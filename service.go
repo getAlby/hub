@@ -23,6 +23,11 @@ type Service struct {
 	Logger      *logrus.Logger
 }
 
+var supportedMethods = map[string]bool{
+	NIP_47_PAY_INVOICE_METHOD: true,
+	NIP_47_GET_BALANCE_METHOD: true,
+}
+
 func (svc *Service) GetUser(c echo.Context) (user *User, err error) {
 	sess, _ := session.Get("nwc_session", c)
 	userID := sess.Values["user_id"]
@@ -190,7 +195,7 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 	if err != nil {
 		return nil, err
 	}
-	if nip47Request.Method != NIP_47_PAY_INVOICE_METHOD {
+	if !supportedMethods[nip47Request.Method] {
 		return svc.createResponse(event, Nip47Response{Error: &Nip47Error{
 			Code:    NIP_47_ERROR_NOT_IMPLEMENTED,
 			Message: fmt.Sprintf("Unknown method: %s", nip47Request.Method),
