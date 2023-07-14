@@ -54,6 +54,7 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	templates["apps/create.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/create.html", "views/layout.html"))
 	templates["alby/index.html"] = template.Must(template.ParseFS(embeddedViews, "views/backends/alby/index.html", "views/layout.html"))
 	templates["about.html"] = template.Must(template.ParseFS(embeddedViews, "views/about.html", "views/layout.html"))
+	templates["404.html"] = template.Must(template.ParseFS(embeddedViews, "views/404.html", "views/layout.html"))
 	templates["lnd/index.html"] = template.Must(template.ParseFS(embeddedViews, "views/backends/lnd/index.html", "views/layout.html"))
 	e.Renderer = &TemplateRegistry{
 		templates: templates,
@@ -81,6 +82,7 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	e.GET("/logout", svc.LogoutHandler)
 	e.GET("/about", svc.AboutHandler)
 	e.GET("/", svc.IndexHandler)
+	e.GET("/404", svc.NotFoundHandler)
 }
 
 func (svc *Service) IndexHandler(c echo.Context) error {
@@ -112,6 +114,16 @@ func (svc *Service) AboutHandler(c echo.Context) error {
 		return err
 	}
 	return c.Render(http.StatusOK, "about.html", map[string]interface{}{
+		"User": user,
+	})
+}
+
+func (svc *Service) NotFoundHandler(c echo.Context) error {
+	user, err := svc.GetUser(c)
+	if err != nil {
+		return err
+	}
+	return c.Render(http.StatusOK, "404.html", map[string]interface{}{
 		"User": user,
 	})
 }
@@ -158,6 +170,11 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 
 	app := App{}
 	svc.db.Where("user_id = ? AND nostr_pubkey = ?", user.ID, c.Param("pubkey")).First(&app)
+
+	if app.NostrPubkey == "" {
+		return c.Redirect(302, "/404")
+	}
+
 	lastEvent := NostrEvent{}
 	svc.db.Where("app_id = ?", app.ID).Order("id desc").Limit(1).Find(&lastEvent)
 	var eventsCount int64
