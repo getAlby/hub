@@ -76,10 +76,10 @@
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 24 24"
       >
-        <rect x="6" y="6" width="10" height="14" rx="1.5" fill="currentColor"/>
+        <rect id="copy-icon-rect" x="6" y="6" width="10" height="14" rx="1.5" stroke="currentColor" fill="transparent"/>
         <path d="M8.06427 5.06427C8.20216 5.02247 8.34846 5 8.5 5H15.5C16.3284 5 17 5.67157 17 6.5V17.5C17 17.6515 16.9775 17.7978 16.9357 17.9357C17.5517 17.7491 18 17.1769 18 16.5V5.5C18 4.67157 17.3284 4 16.5 4H9.5C8.82312 4 8.25095 4.44835 8.06427 5.06427Z" fill="currentColor"/>
       </svg>
-      Copy Secret
+      <span id="copy-text">Copy Secret</span>
     </a>
 
     <a href="{{.PairingUri}}" target="_blank" id="pairing-link">
@@ -125,10 +125,28 @@
       .getElementById("copy-link")
       .addEventListener("click", async (event) => {
         event.preventDefault();
-        const copyIcon = document.getElementById("copy-icon");
+        const copyText = document.getElementById("copy-text");
+        const copyIcon = document.getElementById("copy-icon-rect");
         const value = document.getElementById("pairing-input").value;
-        await navigator.clipboard.writeText(value);
-        copyIcon.src = "public/images/check.svg";
+
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(value);
+        } else {
+          const textArea = document.createElement("textarea");
+          textArea.value = value;
+          textArea.style.position = "absolute";
+          textArea.style.opacity = 0;
+          document.body.appendChild(textArea);
+          textArea.select();
+          await document.execCommand("copy");
+          textArea.remove();
+        }
+        copyIcon.style.fill = "currentColor";
+        copyText.textContent = "Copied"
+        setTimeout(() => {
+          copyIcon.style.fill = "transparent"
+          copyText.textContent = "Copy Secret"
+        }, 2000);
       });
   });
 </script>
