@@ -75,9 +75,9 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	e.GET("/public/*", echo.WrapHandler(http.StripPrefix("/public/", assetHandler)))
 	e.GET("/apps", svc.AppsListHandler)
 	e.GET("/apps/new", svc.AppsNewHandler)
-	e.GET("/apps/:id", svc.AppsShowHandler)
+	e.GET("/apps/:pubkey", svc.AppsShowHandler)
 	e.POST("/apps", svc.AppsCreateHandler)
-	e.POST("/apps/delete/:id", svc.AppsDeleteHandler)
+	e.POST("/apps/delete/:pubkey", svc.AppsDeleteHandler)
 	e.GET("/logout", svc.LogoutHandler)
 	e.GET("/about", svc.AboutHandler)
 	e.GET("/", svc.IndexHandler)
@@ -157,7 +157,7 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 	}
 
 	app := App{}
-	svc.db.Where("user_id = ?", user.ID).First(&app, c.Param("id"))
+	svc.db.Where("user_id = ? AND nostr_pubkey = ?", user.ID, c.Param("pubkey")).First(&app)
 	lastEvent := NostrEvent{}
 	svc.db.Where("app_id = ?", app.ID).Order("id desc").Limit(1).Find(&lastEvent)
 	var eventsCount int64
@@ -173,7 +173,6 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 		budgetUsage = svc.GetBudgetUsage(&appPermission)
 		endOfBudget := GetEndOfBudget(appPermission.BudgetRenewal, app.CreatedAt)
 		renewsIn = getEndOfBudgetString(endOfBudget)
-
 	}
 
 	return c.Render(http.StatusOK, "apps/show.html", map[string]interface{}{
@@ -360,7 +359,7 @@ func (svc *Service) AppsDeleteHandler(c echo.Context) error {
 		return c.Redirect(302, "/")
 	}
 	app := App{}
-	svc.db.Where("user_id = ?", user.ID).First(&app, c.Param("id"))
+	svc.db.Where("user_id = ? AND nostr_pubkey = ?", user.ID, c.Param("pubkey")).First(&app)
 	svc.db.Delete(&app)
 	return c.Redirect(302, "/apps")
 }

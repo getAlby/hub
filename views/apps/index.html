@@ -44,7 +44,7 @@
           </tr>
         {{else}}
         {{range .Apps}}
-        <tr class="bg-white border-t dark:bg-surface-02dp dark:border-white/10 cursor-pointer hover:bg-purple-50 dark:hover:bg-surface-16dp" onclick="window.location='/apps/{{.ID}}'">
+        <tr class="bg-white border-t dark:bg-surface-02dp dark:border-white/10 cursor-pointer hover:bg-purple-50 dark:hover:bg-surface-16dp" onclick="window.location='/apps/{{.NostrPubkey}}'">
           <td class="px-6 py-4 text-gray-500 dark:text-white">
             {{.Name}}
           </td>

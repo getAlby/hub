@@ -65,7 +65,7 @@
     </div>
   </div>
 
-  <form method="post" action="/apps/delete/{{.App.ID}}">
+  <form method="post" action="/apps/delete/{{.App.NostrPubkey}}">
     <input type="hidden" name="_csrf" value="{{.Csrf}}">
     <button type="submit"
       class="inline-flex bg-white border border-red-400 cursor-pointer dark:bg-surface-02dp dark:hover:bg-surface-16dp duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus:outline-none font-medium hover:bg-gray-50 items-center justify-center px-5 py-3 rounded-md shadow text-gray-700 dark:text-neutral-300 transition w-full sm:w-[250px] sm:mr-8 mt-8 sm:mt-0 order-last sm:order-first">Disconnect</button>
