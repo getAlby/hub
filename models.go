@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"time"
 
 	"gorm.io/gorm"
@@ -112,8 +113,8 @@ type Identity struct {
 }
 
 type Nip47Request struct {
-	Method string      `json:"method"`
-	Params interface{} `json:"params"`
+	Method string          `json:"method"`
+	Params json.RawMessage `json:"params"`
 }
 
 type Nip47Response struct {

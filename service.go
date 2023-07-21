@@ -174,101 +174,22 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 		}).Errorf("Failed to decrypt content: %v", err)
 		return nil, err
 	}
-
-	nostrEvent = NostrEvent{App: app, NostrId: event.ID, Content: event.Content, State: "received"}
-	insertNostrEventResult := svc.db.Create(&nostrEvent)
-	if insertNostrEventResult.Error != nil {
-		svc.Logger.WithFields(logrus.Fields{
-			"eventId":   event.ID,
-			"eventKind": event.Kind,
-			"appId":     app.ID,
-		}).Errorf("Failed to save nostr event: %v", insertNostrEventResult.Error)
-		return nil, insertNostrEventResult.Error
-	}
-
-	var bolt11 string
-	payParams := &Nip47PayParams{}
-	nip47Request := &Nip47Request{
-		Params: payParams,
-	}
+	nip47Request := &Nip47Request{}
 	err = json.Unmarshal([]byte(payload), nip47Request)
 	if err != nil {
 		return nil, err
 	}
-	if !supportedMethods[nip47Request.Method] {
+	switch nip47Request.Method {
+	case NIP_47_PAY_INVOICE_METHOD:
+		return svc.HandlePayInvoiceEvent(ctx, nip47Request, event, app, ss)
+	case NIP_47_GET_BALANCE_METHOD:
+		return svc.HandleGetBalanceEvent(ctx, nip47Request, event, app, ss)
+	default:
 		return svc.createResponse(event, Nip47Response{Error: &Nip47Error{
 			Code:    NIP_47_ERROR_NOT_IMPLEMENTED,
 			Message: fmt.Sprintf("Unknown method: %s", nip47Request.Method),
 		}}, ss)
 	}
-	bolt11 = payParams.Invoice
-	paymentRequest, err := decodepay.Decodepay(bolt11)
-	if err != nil {
-		svc.Logger.WithFields(logrus.Fields{
-			"eventId":   event.ID,
-			"eventKind": event.Kind,
-			"appId":     app.ID,
-			"bolt11":    bolt11,
-		}).Errorf("Failed to decode bolt11 invoice: %v", err)
-		//todo: create & send response
-		return nil, err
-	}
-
-	hasPermission, code, message := svc.hasPermission(&app, event, nip47Request.Method, &paymentRequest)
-
-	if !hasPermission {
-		svc.Logger.WithFields(logrus.Fields{
-			"eventId":   event.ID,
-			"eventKind": event.Kind,
-			"appId":     app.ID,
-		}).Errorf("App does not have permission: %s %s", code, message)
-
-		return svc.createResponse(event, Nip47Response{Error: &Nip47Error{
-			Code:    code,
-			Message: message,
-		}}, ss)
-	}
-
-	payment := Payment{App: app, NostrEvent: nostrEvent, PaymentRequest: bolt11, Amount: uint(paymentRequest.MSatoshi / 1000)}
-	insertPaymentResult := svc.db.Create(&payment)
-	if insertPaymentResult.Error != nil {
-		return nil, insertPaymentResult.Error
-	}
-
-	svc.Logger.WithFields(logrus.Fields{
-		"eventId":   event.ID,
-		"eventKind": event.Kind,
-		"appId":     app.ID,
-		"bolt11":    bolt11,
-	}).Info("Sending payment")
-
-	preimage, err := svc.lnClient.SendPaymentSync(ctx, event.PubKey, bolt11)
-	if err != nil {
-		svc.Logger.WithFields(logrus.Fields{
-			"eventId":   event.ID,
-			"eventKind": event.Kind,
-			"appId":     app.ID,
-			"bolt11":    bolt11,
-		}).Infof("Failed to send payment: %v", err)
-		nostrEvent.State = "error"
-		svc.db.Save(&nostrEvent)
-		return svc.createResponse(event, Nip47Response{
-			Error: &Nip47Error{
-				Code:    NIP_47_ERROR_INTERNAL,
-				Message: fmt.Sprintf("Something went wrong while paying invoice: %s", err.Error()),
-			},
-		}, ss)
-	}
-	payment.Preimage = preimage
-	nostrEvent.State = "executed"
-	svc.db.Save(&nostrEvent)
-	svc.db.Save(&payment)
-	return svc.createResponse(event, Nip47Response{
-		ResultType: NIP_47_PAY_INVOICE_METHOD,
-		Result: Nip47PayResponse{
-			Preimage: preimage,
-		},
-	}, ss)
 }
 
 func (svc *Service) createResponse(initialEvent *nostr.Event, content interface{}, ss []byte) (result *nostr.Event, err error) {
@@ -292,46 +213,6 @@ func (svc *Service) createResponse(initialEvent *nostr.Event, content interface{
 		return nil, err
 	}
 	return resp, nil
-}
-
-func GetStartOfBudget(budget_type string, createdAt time.Time) time.Time {
-	now := time.Now()
-	switch budget_type {
-	case "daily":
-		// TODO: Use the location of the user, instead of the server
-		return time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
-	case "weekly":
-		weekday := now.Weekday()
-		var startOfWeek time.Time
-		if weekday == 0 {
-			startOfWeek = now.AddDate(0, 0, -6)
-		} else {
-			startOfWeek = now.AddDate(0, 0, -int(weekday)+1)
-		}
-		return time.Date(startOfWeek.Year(), startOfWeek.Month(), startOfWeek.Day(), 0, 0, 0, 0, startOfWeek.Location())
-	case "monthly":
-		return time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
-	case "yearly":
-		return time.Date(now.Year(), time.January, 1, 0, 0, 0, 0, now.Location())
-	default: //"never"
-		return createdAt
-	}
-}
-
-func GetEndOfBudget(budget_type string, createdAt time.Time) time.Time {
-	start := GetStartOfBudget(budget_type, createdAt)
-	switch budget_type {
-	case "daily":
-		return start.AddDate(0, 0, 1)
-	case "weekly":
-		return start.AddDate(0, 0, 7)
-	case "monthly":
-		return start.AddDate(0, 1, 0)
-	case "yearly":
-		return start.AddDate(1, 0, 0)
-	default: //"never"
-		return time.Time{}
-	}
 }
 
 func (svc *Service) hasPermission(app *App, event *nostr.Event, requestMethod string, paymentRequest *decodepay.Bolt11) (result bool, code string, message string) {
