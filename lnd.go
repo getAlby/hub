@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/hex"
+	"fmt"
 
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
@@ -15,6 +16,7 @@ import (
 
 type LNClient interface {
 	SendPaymentSync(ctx context.Context, senderPubkey, payReq string) (preimage string, err error)
+	GetBalance(ctx context.Context, senderPubkey string) (balance int64, err error)
 }
 
 // wrap it again :sweat_smile:
@@ -36,6 +38,10 @@ func (svc *LNDService) AuthHandler(c echo.Context) error {
 	sess.Values["user_id"] = user.ID
 	sess.Save(c.Request(), c.Response())
 	return c.Redirect(302, "/")
+}
+
+func (svc *LNDService) GetBalance(ctx context.Context, senderPubkey string) (balance int64, err error) {
+	return 0, fmt.Errorf("not implemented")
 }
 
 func (svc *LNDService) SendPaymentSync(ctx context.Context, senderPubkey, payReq string) (preimage string, err error) {

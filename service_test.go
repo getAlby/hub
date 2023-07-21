@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -252,4 +253,8 @@ type MockLn struct {
 func (mln *MockLn) SendPaymentSync(ctx context.Context, senderPubkey string, payReq string) (preimage string, err error) {
 	//todo more advanced behaviour
 	return "123preimage", nil
+}
+
+func (mln *MockLn) GetBalance(ctx context.Context, senderPubkey string) (balance int64, err error) {
+	return 0, fmt.Errorf("not implemented")
 }

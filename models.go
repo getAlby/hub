@@ -134,3 +134,8 @@ type Nip47PayParams struct {
 type Nip47PayResponse struct {
 	Preimage string `json:"preimage"`
 }
+type Nip47BalanceResponse struct {
+	Balance       int64  `json:"balance"`
+	MaxAmount     int    `json:"max_amount"`
+	BudgetRenewal string `json:"budget_renewal"`
+}

@@ -49,6 +49,10 @@ func NewAlbyOauthService(svc *Service, e *echo.Echo) (result *AlbyOAuthService, 
 	return albySvc, err
 }
 
+func (svc *AlbyOAuthService) GetBalance(ctx context.Context, senderPubkey string) (balance int64, err error) {
+	return 0, fmt.Errorf("not implemented yet")
+}
+
 func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, payReq string) (preimage string, err error) {
 	app := App{}
 	err = svc.db.Preload("User").First(&app, &App{
@@ -150,7 +154,7 @@ func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, 
 func (svc *AlbyOAuthService) AuthHandler(c echo.Context) error {
 	// clear current session
 	sess, _ := session.Get(CookieName, c)
-	if (sess.Values["user_id"] != nil) {
+	if sess.Values["user_id"] != nil {
 		delete(sess.Values, "user_id")
 		sess.Options.MaxAge = 0
 		sess.Options.SameSite = http.SameSiteLaxMode
