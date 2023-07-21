@@ -3,6 +3,7 @@ package main
 const (
 	AlbyBackendType = "ALBY"
 	LNDBackendType  = "LND"
+	CookieName      = "alby_nwc_session"
 )
 
 type Config struct {

@@ -47,6 +47,8 @@ func main() {
 		}
 		// Override SQLite config to max one connection
 		cfg.DatabaseMaxConns = 1
+		// Enable foreign keys for sqlite
+		db.Exec("PRAGMA foreign_keys=ON;")
 	}
 	sqlDb, err := db.DB()
 	if err != nil {

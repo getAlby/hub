@@ -28,6 +28,7 @@
   
   <form method="POST" action="/apps" accept-charset="UTF-8">
     <div {{ if .Disabled }}class="opacity-80 pointer-events-none"{{ end }}>
+      <input type="hidden" name="_csrf" value="{{.Csrf}}">
       <input type="hidden" name="pubkey" value="{{.Pubkey}}" />
       <input type="hidden" name="returnTo" value="{{.ReturnTo}}" />
       {{ if eq .Name "" }}

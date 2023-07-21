@@ -64,6 +64,9 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 
 	e.Use(middleware.Recover())
 	e.Use(middleware.RequestID())
+	e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
+    TokenLookup: "form:_csrf",
+	}))
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte(svc.cfg.CookieSecret))))
 	e.Use(ddEcho.Middleware(ddEcho.WithServiceName("nostr-wallet-connect")))
 
@@ -81,7 +84,7 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 }
 
 func (svc *Service) IndexHandler(c echo.Context) error {
-	sess, _ := session.Get("nwc_session", c)
+	sess, _ := session.Get(CookieName, c)
 	returnTo := sess.Values["return_to"]
 	user, err := svc.GetUser(c)
 	if err != nil {
@@ -89,6 +92,11 @@ func (svc *Service) IndexHandler(c echo.Context) error {
 	}
 	if user != nil && returnTo != nil {
 		delete(sess.Values, "return_to")
+		sess.Options.MaxAge = 0
+		sess.Options.SameSite = http.SameSiteLaxMode
+		if svc.cfg.CookieDomain != "" {
+			sess.Options.Domain = svc.cfg.CookieDomain
+		}
 		sess.Save(c.Request(), c.Response())
 		return c.Redirect(302, fmt.Sprintf("%s", returnTo))
 	}
@@ -139,6 +147,7 @@ func (svc *Service) AppsListHandler(c echo.Context) error {
 }
 
 func (svc *Service) AppsShowHandler(c echo.Context) error {
+	csrf, _ := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
 	user, err := svc.GetUser(c)
 	if err != nil {
 		return err
@@ -175,6 +184,7 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 		"EventsCount":   eventsCount,
 		"BudgetUsage":   budgetUsage,
 		"RenewsIn":      renewsIn,
+		"Csrf":          csrf,
 	})
 }
 
@@ -210,17 +220,26 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 	returnTo := c.QueryParam("return_to")
 	maxAmount := c.QueryParam("max_amount")
 	budgetRenewal := strings.ToLower(c.QueryParam("budget_renewal"))
-	expiresAt := c.QueryParam("expires_at") // YYYY-MM-DD or MM/DD/YYYY
+	expiresAt := c.QueryParam("expires_at") // YYYY-MM-DD or MM/DD/YYYY or timestamp in seconds
+	if expiresAtTimestamp, err := strconv.Atoi(expiresAt); err == nil {
+    expiresAt = time.Unix(int64(expiresAtTimestamp), 0).Format(time.RFC3339)
+	}
 	disabled := c.QueryParam("editable") == "false"
 	budgetEnabled := maxAmount != "" || budgetRenewal != ""
+	csrf, _ := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
 
 	user, err := svc.GetUser(c)
 	if err != nil {
 		return err
 	}
 	if user == nil {
-		sess, _ := session.Get("nwc_session", c)
+		sess, _ := session.Get(CookieName, c)
 		sess.Values["return_to"] = c.Path() + "?" + c.QueryString()
+		sess.Options.MaxAge = 0
+		sess.Options.SameSite = http.SameSiteLaxMode
+		if svc.cfg.CookieDomain != "" {
+			sess.Options.Domain = svc.cfg.CookieDomain
+		}
 		sess.Save(c.Request(), c.Response())
 		return c.Redirect(302, fmt.Sprintf("/%s/auth", strings.ToLower(svc.cfg.LNBackendType)))
 	}
@@ -235,6 +254,7 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 		"ExpiresAt":     expiresAt,
 		"BudgetEnabled": budgetEnabled,
 		"Disabled":      disabled,
+		"Csrf":          csrf,
 	})
 }
 
@@ -265,7 +285,7 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 	app := App{Name: name, NostrPubkey: pairingPublicKey}
 	maxAmount, _ := strconv.Atoi(c.FormValue("MaxAmount"))
 	budgetRenewal := c.FormValue("BudgetRenewal")
-	expiresAt, _ := time.Parse("2006-01-02", c.FormValue("ExpiresAt"))
+	expiresAt, _ := time.Parse(time.RFC3339, c.FormValue("ExpiresAt"))
 	if !expiresAt.IsZero() {
 		expiresAt = time.Date(expiresAt.Year(), expiresAt.Month(), expiresAt.Day(), 23, 59, 59, 0, expiresAt.Location())
 	}
@@ -321,7 +341,7 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 	if user.LightningAddress != "" {
 		lud16 = fmt.Sprintf("&lud16=%s", user.LightningAddress)
 	}
-	pairingUri := template.URL(fmt.Sprintf("nostrwalletconnect://%s?relay=%s&secret=%s%s", svc.cfg.IdentityPubkey, svc.cfg.Relay, pairingSecretKey, lud16))
+	pairingUri := template.URL(fmt.Sprintf("nostr+walletconnect://%s?relay=%s&secret=%s%s", svc.cfg.IdentityPubkey, svc.cfg.Relay, pairingSecretKey, lud16))
 	return c.Render(http.StatusOK, "apps/create.html", map[string]interface{}{
 		"User":          user,
 		"PairingUri":    pairingUri,
@@ -346,7 +366,7 @@ func (svc *Service) AppsDeleteHandler(c echo.Context) error {
 }
 
 func (svc *Service) LogoutHandler(c echo.Context) error {
-	sess, _ := session.Get("nwc_session", c)
+	sess, _ := session.Get(CookieName, c)
 	sess.Options.MaxAge = -1
 	if svc.cfg.CookieDomain != "" {
 		sess.Options.Domain = svc.cfg.CookieDomain

@@ -75,7 +75,7 @@ If the client creates the secret the client only needs to share the public key o
 - `c`: the name of the client app
 - `pubkey`: the public key of the client's secret for the user to authorize
 - `return_to`: (optional) if a `return_to` URL is provided the user will be redirected to that URL after authorization. The `lud16`, `relay` and `pubkey` query parameters will be added to the URL.
-- `expires_at` (optional) connection cannot be used after this date. Format: 2024-05-23
+- `expires_at` (optional) connection cannot be used after this date. Unix timestamp in seconds.
 - `max_amount` (optional) maximum amount in sats that can be sent per renewal period
 - `budget_renewal` (optional) reset the budget at the end of the given budget renewal. Can be `never` (default), `daily`, `weekly`, `monthly`, `yearly`
 - `editable` (optional) set to `false` to disable form editing by the user

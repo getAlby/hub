@@ -149,14 +149,16 @@ func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, 
 
 func (svc *AlbyOAuthService) AuthHandler(c echo.Context) error {
 	// clear current session
-	sess, _ := session.Get("nwc_session", c)
-	sess.Values["user_id"] = ""
-	delete(sess.Values, "user_id")
-	sess.Options.MaxAge = -1
-	if svc.cfg.CookieDomain != "" {
-		sess.Options.Domain = svc.cfg.CookieDomain
+	sess, _ := session.Get(CookieName, c)
+	if (sess.Values["user_id"] != nil) {
+		delete(sess.Values, "user_id")
+		sess.Options.MaxAge = 0
+		sess.Options.SameSite = http.SameSiteLaxMode
+		if svc.cfg.CookieDomain != "" {
+			sess.Options.Domain = svc.cfg.CookieDomain
+		}
+		sess.Save(c.Request(), c.Response())
 	}
-	sess.Save(c.Request(), c.Response())
 
 	url := svc.oauthConf.AuthCodeURL("")
 	return c.Redirect(302, url)
@@ -200,8 +202,9 @@ func (svc *AlbyOAuthService) CallbackHandler(c echo.Context) error {
 	user.LightningAddress = me.LightningAddress
 	svc.db.Save(&user)
 
-	sess, _ := session.Get("nwc_session", c)
+	sess, _ := session.Get(CookieName, c)
 	sess.Options.MaxAge = 0
+	sess.Options.SameSite = http.SameSiteLaxMode
 	if svc.cfg.CookieDomain != "" {
 		sess.Options.Domain = svc.cfg.CookieDomain
 	}

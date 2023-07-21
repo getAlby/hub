@@ -32,7 +32,7 @@ func (svc *LNDService) AuthHandler(c echo.Context) error {
 		return err
 	}
 
-	sess, _ := session.Get("nwc_session", c)
+	sess, _ := session.Get(CookieName, c)
 	sess.Values["user_id"] = user.ID
 	sess.Save(c.Request(), c.Response())
 	return c.Redirect(302, "/")
