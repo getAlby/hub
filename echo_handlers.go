@@ -65,7 +65,7 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	e.Use(middleware.Recover())
 	e.Use(middleware.RequestID())
 	e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
-    TokenLookup: "form:_csrf",
+		TokenLookup: "form:_csrf",
 	}))
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte(svc.cfg.CookieSecret))))
 	e.Use(ddEcho.Middleware(ddEcho.WithServiceName("nostr-wallet-connect")))
@@ -222,9 +222,10 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 	budgetRenewal := strings.ToLower(c.QueryParam("budget_renewal"))
 	expiresAt := c.QueryParam("expires_at") // YYYY-MM-DD or MM/DD/YYYY or timestamp in seconds
 	if expiresAtTimestamp, err := strconv.Atoi(expiresAt); err == nil {
-    expiresAt = time.Unix(int64(expiresAtTimestamp), 0).Format(time.RFC3339)
+		expiresAt = time.Unix(int64(expiresAtTimestamp), 0).Format(time.RFC3339)
 	}
 	disabled := c.QueryParam("editable") == "false"
+	requestMethods := c.QueryParam("request_methods")
 	budgetEnabled := maxAmount != "" || budgetRenewal != ""
 	csrf, _ := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
 
@@ -253,8 +254,11 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 		"BudgetRenewal": budgetRenewal,
 		"ExpiresAt":     expiresAt,
 		"BudgetEnabled": budgetEnabled,
-		"Disabled":      disabled,
-		"Csrf":          csrf,
+		//todo show request methods in html page
+		//in a readable format
+		"RequestMethods": requestMethods,
+		"Disabled":       disabled,
+		"Csrf":           csrf,
 	})
 }
 
@@ -308,6 +312,28 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 			err = tx.Create(&appPermission).Error
 			if err != nil {
 				return err
+			}
+
+			requestMethod := c.FormValue("RequestMethod")
+			if requestMethod != "" {
+				//validate requestMethod
+				//should be space seperated, and we always create the pay_invoice permission anyway
+				//only create the get_balance if present now
+				methodsToCreate := strings.Split(requestMethod, " ")
+				for _, m := range methodsToCreate {
+					if m == NIP_47_GET_BALANCE_METHOD {
+						appPermission := AppPermission{
+							App:           app,
+							RequestMethod: NIP_47_GET_BALANCE_METHOD,
+							ExpiresAt:     expiresAt,
+						}
+
+						err = tx.Create(&appPermission).Error
+						if err != nil {
+							return err
+						}
+					}
+				}
 			}
 		}
 
