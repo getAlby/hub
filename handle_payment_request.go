@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/nbd-wtf/go-nostr"
@@ -24,6 +25,15 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 
 	var bolt11 string
 	payParams := &Nip47PayParams{}
+	err = json.Unmarshal(request.Params, payParams)
+	if err != nil {
+		svc.Logger.WithFields(logrus.Fields{
+			"eventId":   event.ID,
+			"eventKind": event.Kind,
+			"appId":     app.ID,
+		}).Errorf("Failed to decode nostr event: %v", err)
+		return nil, err
+	}
 
 	bolt11 = payParams.Invoice
 	paymentRequest, err := decodepay.Decodepay(bolt11)
