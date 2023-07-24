@@ -66,7 +66,7 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	e.Use(middleware.Recover())
 	e.Use(middleware.RequestID())
 	e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
-    TokenLookup: "form:_csrf",
+		TokenLookup: "form:_csrf",
 	}))
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte(svc.cfg.CookieSecret))))
 	e.Use(ddEcho.Middleware(ddEcho.WithServiceName("nostr-wallet-connect")))
@@ -82,7 +82,6 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	e.GET("/logout", svc.LogoutHandler)
 	e.GET("/about", svc.AboutHandler)
 	e.GET("/", svc.IndexHandler)
-	e.GET("/404", svc.NotFoundHandler)
 }
 
 func (svc *Service) IndexHandler(c echo.Context) error {
@@ -114,16 +113,6 @@ func (svc *Service) AboutHandler(c echo.Context) error {
 		return err
 	}
 	return c.Render(http.StatusOK, "about.html", map[string]interface{}{
-		"User": user,
-	})
-}
-
-func (svc *Service) NotFoundHandler(c echo.Context) error {
-	user, err := svc.GetUser(c)
-	if err != nil {
-		return err
-	}
-	return c.Render(http.StatusOK, "404.html", map[string]interface{}{
 		"User": user,
 	})
 }
@@ -172,7 +161,9 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 	svc.db.Where("user_id = ? AND nostr_pubkey = ?", user.ID, c.Param("pubkey")).First(&app)
 
 	if app.NostrPubkey == "" {
-		return c.Redirect(302, "/404")
+		return c.Render(http.StatusNotFound, "404.html", map[string]interface{}{
+			"User": user,
+		})
 	}
 
 	lastEvent := NostrEvent{}
@@ -238,7 +229,7 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 	budgetRenewal := strings.ToLower(c.QueryParam("budget_renewal"))
 	expiresAt := c.QueryParam("expires_at") // YYYY-MM-DD or MM/DD/YYYY or timestamp in seconds
 	if expiresAtTimestamp, err := strconv.Atoi(expiresAt); err == nil {
-    expiresAt = time.Unix(int64(expiresAtTimestamp), 0).Format(time.RFC3339)
+		expiresAt = time.Unix(int64(expiresAtTimestamp), 0).Format(time.RFC3339)
 	}
 	disabled := c.QueryParam("editable") == "false"
 	budgetEnabled := maxAmount != "" || budgetRenewal != ""
