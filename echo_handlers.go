@@ -54,6 +54,7 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	templates["apps/create.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/create.html", "views/layout.html"))
 	templates["alby/index.html"] = template.Must(template.ParseFS(embeddedViews, "views/backends/alby/index.html", "views/layout.html"))
 	templates["about.html"] = template.Must(template.ParseFS(embeddedViews, "views/about.html", "views/layout.html"))
+	templates["404.html"] = template.Must(template.ParseFS(embeddedViews, "views/404.html", "views/layout.html"))
 	templates["lnd/index.html"] = template.Must(template.ParseFS(embeddedViews, "views/backends/lnd/index.html", "views/layout.html"))
 	e.Renderer = &TemplateRegistry{
 		templates: templates,
@@ -65,7 +66,7 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	e.Use(middleware.Recover())
 	e.Use(middleware.RequestID())
 	e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
-    TokenLookup: "form:_csrf",
+		TokenLookup: "form:_csrf",
 	}))
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte(svc.cfg.CookieSecret))))
 	e.Use(ddEcho.Middleware(ddEcho.WithServiceName("nostr-wallet-connect")))
@@ -75,9 +76,9 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	e.GET("/public/*", echo.WrapHandler(http.StripPrefix("/public/", assetHandler)))
 	e.GET("/apps", svc.AppsListHandler)
 	e.GET("/apps/new", svc.AppsNewHandler)
-	e.GET("/apps/:id", svc.AppsShowHandler)
+	e.GET("/apps/:pubkey", svc.AppsShowHandler)
 	e.POST("/apps", svc.AppsCreateHandler)
-	e.POST("/apps/delete/:id", svc.AppsDeleteHandler)
+	e.POST("/apps/delete/:pubkey", svc.AppsDeleteHandler)
 	e.GET("/logout", svc.LogoutHandler)
 	e.GET("/about", svc.AboutHandler)
 	e.GET("/", svc.IndexHandler)
@@ -157,7 +158,14 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 	}
 
 	app := App{}
-	svc.db.Where("user_id = ?", user.ID).First(&app, c.Param("id"))
+	svc.db.Where("user_id = ? AND nostr_pubkey = ?", user.ID, c.Param("pubkey")).First(&app)
+
+	if app.NostrPubkey == "" {
+		return c.Render(http.StatusNotFound, "404.html", map[string]interface{}{
+			"User": user,
+		})
+	}
+
 	lastEvent := NostrEvent{}
 	svc.db.Where("app_id = ?", app.ID).Order("id desc").Limit(1).Find(&lastEvent)
 	var eventsCount int64
@@ -173,7 +181,6 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 		budgetUsage = svc.GetBudgetUsage(&appPermission)
 		endOfBudget := GetEndOfBudget(appPermission.BudgetRenewal, app.CreatedAt)
 		renewsIn = getEndOfBudgetString(endOfBudget)
-
 	}
 
 	return c.Render(http.StatusOK, "apps/show.html", map[string]interface{}{
@@ -222,7 +229,7 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 	budgetRenewal := strings.ToLower(c.QueryParam("budget_renewal"))
 	expiresAt := c.QueryParam("expires_at") // YYYY-MM-DD or MM/DD/YYYY or timestamp in seconds
 	if expiresAtTimestamp, err := strconv.Atoi(expiresAt); err == nil {
-    expiresAt = time.Unix(int64(expiresAtTimestamp), 0).Format(time.RFC3339)
+		expiresAt = time.Unix(int64(expiresAtTimestamp), 0).Format(time.RFC3339)
 	}
 	disabled := c.QueryParam("editable") == "false"
 	budgetEnabled := maxAmount != "" || budgetRenewal != ""
@@ -360,7 +367,7 @@ func (svc *Service) AppsDeleteHandler(c echo.Context) error {
 		return c.Redirect(302, "/")
 	}
 	app := App{}
-	svc.db.Where("user_id = ?", user.ID).First(&app, c.Param("id"))
+	svc.db.Where("user_id = ? AND nostr_pubkey = ?", user.ID, c.Param("pubkey")).First(&app)
 	svc.db.Delete(&app)
 	return c.Redirect(302, "/apps")
 }
