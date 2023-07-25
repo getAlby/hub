@@ -314,7 +314,7 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 				return err
 			}
 
-			requestMethod := c.FormValue("RequestMethod")
+			requestMethod := "get_balance" //c.FormValue("RequestMethod")
 			if requestMethod != "" {
 				//validate requestMethod
 				//should be space seperated, and we always create the pay_invoice permission anyway

@@ -96,6 +96,12 @@ type PayRequest struct {
 	Invoice string `json:"invoice"`
 }
 
+type BalanceResponse struct {
+	Balance  int64  `json:"balance"`
+	Currency string `json:"currency"`
+	Unit     string `json:"unit"`
+}
+
 type PayResponse struct {
 	Preimage    string `json:"payment_preimage"`
 	PaymentHash string `json:"payment_hash"`
