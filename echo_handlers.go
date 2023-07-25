@@ -59,7 +59,6 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 		templates: templates,
 	}
 	e.HideBanner = true
-	e.Logger = echologrus.GetEchoLogger()
 	e.Use(echologrus.Middleware())
 
 	e.Use(middleware.Recover())
