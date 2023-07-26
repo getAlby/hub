@@ -300,6 +300,7 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 			return err
 		}
 
+		// PAY_INVOICE_METHOD permissions
 		if maxAmount > 0 || !expiresAt.IsZero() {
 			appPermission := AppPermission{
 				App:           app,
@@ -313,25 +314,26 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 			if err != nil {
 				return err
 			}
+		}
 
-			requestMethod := "get_balance" //c.FormValue("RequestMethod")
-			if requestMethod != "" {
-				//validate requestMethod
-				//should be space seperated, and we always create the pay_invoice permission anyway
-				//only create the get_balance if present now
-				methodsToCreate := strings.Split(requestMethod, " ")
-				for _, m := range methodsToCreate {
-					if m == NIP_47_GET_BALANCE_METHOD {
-						appPermission := AppPermission{
-							App:           app,
-							RequestMethod: NIP_47_GET_BALANCE_METHOD,
-							ExpiresAt:     expiresAt,
-						}
+		// other method permissions
+		requestMethod := c.FormValue("RequestMethod")
+		if requestMethod != "" {
+			//validate requestMethod
+			//should be space seperated, and we always create the pay_invoice permission anyway
+			//only create the get_balance if present now
+			methodsToCreate := strings.Split(requestMethod, " ")
+			for _, m := range methodsToCreate {
+				if m == NIP_47_GET_BALANCE_METHOD {
+					appPermission := AppPermission{
+						App:           app,
+						RequestMethod: NIP_47_GET_BALANCE_METHOD,
+						ExpiresAt:     expiresAt,
+					}
 
-						err = tx.Create(&appPermission).Error
-						if err != nil {
-							return err
-						}
+					err = tx.Create(&appPermission).Error
+					if err != nil {
+						return err
 					}
 				}
 			}

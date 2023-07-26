@@ -90,7 +90,7 @@
       </p>
       <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">If set, app will be restricted to send payments only within a chosen budget range (Routing fees not included).</p>
 
-      <div id="BudgetOptions" class="{{if not .MaxAmount}}hidden{{end}} mt-4 mb-6">
+      <div id="BudgetOptions" class="{{if not .MaxAmount}}hidden{{end}} mt-4">
         <div class="mt-4">
           <label for="MaxAmount" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
             Budget Amount (in sats)
@@ -137,6 +137,25 @@
             </li>
           </ul>
         </div>
+      </div>
+      <input type="hidden" name="RequestMethod" id="RequestMethod" value="pay_invoice">
+      <div id="RequestMethodOptions" class="mt-4 mb-6">
+        <p class="text-sm font-medium text-gray-900 dark:text-gray-300 mb-1">Set Request Methods</p>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Allows the application to fetch balance and pay invoices (Pay Invoice is defaulted).</p>
+        <ul class="items-center w-full sm:flex">
+          <li class="w-full">
+            <div class="flex items-center pl-3">
+              <input id="GetBalance" type="checkbox" value="get_balance" class="w-4 h-4 text-purple-700 bg-gray-50 border border-gray-300 rounded focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-surface-00dp dark:border-gray-700">
+              <label for="GetBalance" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Get Balance</label>
+            </div>
+          </li>
+          <li class="w-full">
+            <div class="flex items-center pl-3">
+              <input checked disabled id="PayInvoice" type="checkbox" value="pay_invoice" class="w-4 h-4 text-purple-700 bg-gray-50 border border-gray-300 rounded focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-surface-00dp dark:border-gray-700">
+              <label for="PayInvoice" class="ml-2 text-sm font-medium text-gray-500 dark:text-gray-400">Pay Invoice</label>
+            </div>
+          </li>
+        </ul>
       </div>
     </div>
     {{ if .Pubkey }}
@@ -213,5 +232,18 @@
       budgetOptions.classList.remove("hidden");
     }
   });
+
+  const requestMethodCheckboxes = document.getElementById("RequestMethodOptions").querySelectorAll("input");
+  requestMethodCheckboxes.forEach(checkbox => {
+    checkbox.addEventListener("change", function(e) {
+      let checkedValues = "";
+      requestMethodCheckboxes.forEach(checkbox => {
+        if (checkbox.checked) {
+          checkedValues += checkbox.value + " ";
+        }
+      });
+      document.getElementById("RequestMethod").value = checkedValues.trim();
+    })
+  })
 </script>
 {{end}}
