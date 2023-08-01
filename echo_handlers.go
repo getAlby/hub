@@ -164,7 +164,19 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 	svc.db.Model(&NostrEvent{}).Where("app_id = ?", app.ID).Count(&eventsCount)
 
 	appPermission := AppPermission{}
-	svc.db.Where("app_id = ? AND request_method = ?", app.ID, NIP_47_PAY_INVOICE_METHOD).First(&appPermission)
+	appPermissions := []AppPermission{}
+	svc.db.Where("app_id = ?", app.ID).Find(&appPermissions)
+
+	requestMethods := []string{"pay_invoice"}
+	// because pay_invoice is enabled even
+	// when there are no permissions set
+	for _, appPerm := range appPermissions {
+		if (appPerm.RequestMethod == NIP_47_PAY_INVOICE_METHOD) {
+			appPermission = appPerm
+		} else {
+			requestMethods = append(requestMethods, appPerm.RequestMethod)
+		}
+	}
 
 	renewsIn := ""
 	budgetUsage := int64(0)
@@ -173,18 +185,18 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 		budgetUsage = svc.GetBudgetUsage(&appPermission)
 		endOfBudget := GetEndOfBudget(appPermission.BudgetRenewal, app.CreatedAt)
 		renewsIn = getEndOfBudgetString(endOfBudget)
-
 	}
 
 	return c.Render(http.StatusOK, "apps/show.html", map[string]interface{}{
-		"App":           app,
-		"AppPermission": appPermission,
-		"User":          user,
-		"LastEvent":     lastEvent,
-		"EventsCount":   eventsCount,
-		"BudgetUsage":   budgetUsage,
-		"RenewsIn":      renewsIn,
-		"Csrf":          csrf,
+		"App":            app,
+		"AppPermission":  appPermission,
+		"RequestMethods": requestMethods,
+		"User":           user,
+		"LastEvent":      lastEvent,
+		"EventsCount":    eventsCount,
+		"BudgetUsage":    budgetUsage,
+		"RenewsIn":       renewsIn,
+		"Csrf":           csrf,
 	})
 }
 
@@ -289,7 +301,7 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 	app := App{Name: name, NostrPubkey: pairingPublicKey}
 	maxAmount, _ := strconv.Atoi(c.FormValue("MaxAmount"))
 	budgetRenewal := c.FormValue("BudgetRenewal")
-	expiresAt, _ := time.Parse(time.RFC3339, c.FormValue("ExpiresAt"))
+	expiresAt, _ := time.Parse("2006-01-02", c.FormValue("ExpiresAt"))
 	if !expiresAt.IsZero() {
 		expiresAt = time.Date(expiresAt.Year(), expiresAt.Month(), expiresAt.Day(), 23, 59, 59, 0, expiresAt.Location())
 	}
@@ -317,12 +329,12 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 		}
 
 		// other method permissions
-		requestMethod := c.FormValue("RequestMethod")
-		if requestMethod != "" {
-			//validate requestMethod
+		requestMethods := c.FormValue("RequestMethods")
+		if requestMethods != "" {
+			//validate requestMethods
 			//should be space seperated, and we always create the pay_invoice permission anyway
 			//only create the get_balance if present now
-			methodsToCreate := strings.Split(requestMethod, " ")
+			methodsToCreate := strings.Split(requestMethods, " ")
 			for _, m := range methodsToCreate {
 				if m == NIP_47_GET_BALANCE_METHOD {
 					appPermission := AppPermission{
