@@ -17,6 +17,11 @@ import (
 
 const testDB = "test.db"
 
+const nip47GetJson = `
+{
+	"method": "get_balance"
+}
+`
 const nip47PayJson = `
 {
 	"method": "pay_invoice",
@@ -223,6 +228,51 @@ func TestHandleEvent(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, received.Error.Code, NIP_47_ERROR_RESTRICTED)
 	assert.NotNil(t, res)
+	// get_balance: without permission
+	newPayload, err = nip04.Encrypt(nip47GetJson, ss)
+	assert.NoError(t, err)
+	res, err = svc.HandleEvent(ctx, &nostr.Event{
+		ID:      "test_event_10",
+		Kind:    NIP_47_REQUEST_KIND,
+		PubKey:  senderPubkey,
+		Content: newPayload,
+	})
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+	decrypted, err = nip04.Decrypt(res.Content, ss)
+	assert.NoError(t, err)
+	received = &Nip47Response{}
+	err = json.Unmarshal([]byte(decrypted), received)
+	assert.NoError(t, err)
+	assert.Equal(t, received.Error.Code, NIP_47_ERROR_RESTRICTED)
+	assert.NotNil(t, res)
+	// get_balance: with permission
+	err = svc.db.Model(&AppPermission{}).Where("app_id = ?", app.ID).Update("request_method", "pay_invoice").Error
+	appPermission = &AppPermission{
+		AppId:         app.ID,
+		App:           app,
+		RequestMethod: NIP_47_GET_BALANCE_METHOD,
+		ExpiresAt:     expiresAt,
+	}
+	err = svc.db.Create(appPermission).Error
+	res, err = svc.HandleEvent(ctx, &nostr.Event{
+		ID:      "test_event_11",
+		Kind:    NIP_47_REQUEST_KIND,
+		PubKey:  senderPubkey,
+		Content: newPayload,
+	})
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+	decrypted, err = nip04.Decrypt(res.Content, ss)
+	assert.NoError(t, err)
+	received = &Nip47Response{
+		Result: &Nip47BalanceResponse{},
+	}
+	err = json.Unmarshal([]byte(decrypted), received)
+	assert.NoError(t, err)
+	assert.Equal(t, received.Result.(*Nip47BalanceResponse).Balance, int64(21))
+	assert.Equal(t, received.Result.(*Nip47BalanceResponse).MaxAmount, 100)
+	assert.Equal(t, received.Result.(*Nip47BalanceResponse).BudgetRenewal, "never")
 }
 
 func createTestService(t *testing.T) (svc *Service, ln *MockLn) {
@@ -252,4 +302,8 @@ type MockLn struct {
 func (mln *MockLn) SendPaymentSync(ctx context.Context, senderPubkey string, payReq string) (preimage string, err error) {
 	//todo more advanced behaviour
 	return "123preimage", nil
+}
+
+func (mln *MockLn) GetBalance(ctx context.Context, senderPubkey string) (balance int64, err error) {
+	return 21, nil
 }

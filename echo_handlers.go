@@ -171,7 +171,19 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 	svc.db.Model(&NostrEvent{}).Where("app_id = ?", app.ID).Count(&eventsCount)
 
 	appPermission := AppPermission{}
-	svc.db.Where("app_id = ? AND request_method = ?", app.ID, NIP_47_PAY_INVOICE_METHOD).First(&appPermission)
+	appPermissions := []AppPermission{}
+	svc.db.Where("app_id = ?", app.ID).Find(&appPermissions)
+
+	requestMethods := []string{"pay_invoice"}
+	// because pay_invoice is enabled even
+	// when there are no permissions set
+	for _, appPerm := range appPermissions {
+		if appPerm.RequestMethod == NIP_47_PAY_INVOICE_METHOD {
+			appPermission = appPerm
+		} else {
+			requestMethods = append(requestMethods, appPerm.RequestMethod)
+		}
+	}
 
 	renewsIn := ""
 	budgetUsage := int64(0)
@@ -183,14 +195,15 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 	}
 
 	return c.Render(http.StatusOK, "apps/show.html", map[string]interface{}{
-		"App":           app,
-		"AppPermission": appPermission,
-		"User":          user,
-		"LastEvent":     lastEvent,
-		"EventsCount":   eventsCount,
-		"BudgetUsage":   budgetUsage,
-		"RenewsIn":      renewsIn,
-		"Csrf":          csrf,
+		"App":            app,
+		"AppPermission":  appPermission,
+		"RequestMethods": requestMethods,
+		"User":           user,
+		"LastEvent":      lastEvent,
+		"EventsCount":    eventsCount,
+		"BudgetUsage":    budgetUsage,
+		"RenewsIn":       renewsIn,
+		"Csrf":           csrf,
 	})
 }
 
@@ -231,6 +244,7 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 		expiresAt = time.Unix(int64(expiresAtTimestamp), 0).Format(time.RFC3339)
 	}
 	disabled := c.QueryParam("editable") == "false"
+	requestMethods := c.QueryParam("request_methods")
 	budgetEnabled := maxAmount != "" || budgetRenewal != ""
 	csrf, _ := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
 
@@ -249,6 +263,12 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 		sess.Save(c.Request(), c.Response())
 		return c.Redirect(302, fmt.Sprintf("/%s/auth", strings.ToLower(svc.cfg.LNBackendType)))
 	}
+	descriptions := []string{}
+	for _, m := range strings.Split(requestMethods, " ") {
+		if _, ok := nip47MethodDescriptions[m]; ok && m != NIP_47_PAY_INVOICE_METHOD {
+			descriptions = append(descriptions, nip47MethodDescriptions[m])
+		}
+	}
 
 	return c.Render(http.StatusOK, "apps/new.html", map[string]interface{}{
 		"User":          user,
@@ -259,8 +279,12 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 		"BudgetRenewal": budgetRenewal,
 		"ExpiresAt":     expiresAt,
 		"BudgetEnabled": budgetEnabled,
-		"Disabled":      disabled,
-		"Csrf":          csrf,
+		//todo show request methods in html page
+		//in a readable format
+		"RequestMethods":            requestMethods,
+		"RequestMethodDescriptions": descriptions,
+		"Disabled":                  disabled,
+		"Csrf":                      csrf,
 	})
 }
 
@@ -302,6 +326,7 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 			return err
 		}
 
+		// PAY_INVOICE_METHOD permissions
 		if maxAmount > 0 || !expiresAt.IsZero() {
 			appPermission := AppPermission{
 				App:           app,
@@ -314,6 +339,29 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 			err = tx.Create(&appPermission).Error
 			if err != nil {
 				return err
+			}
+		}
+
+		// other method permissions
+		requestMethods := c.FormValue("RequestMethods")
+		if requestMethods != "" {
+			//validate requestMethods
+			//should be space seperated, and we always create the pay_invoice permission anyway
+			//only create the get_balance if present now
+			methodsToCreate := strings.Split(requestMethods, " ")
+			for _, m := range methodsToCreate {
+				if m == NIP_47_GET_BALANCE_METHOD {
+					appPermission := AppPermission{
+						App:           app,
+						RequestMethod: NIP_47_GET_BALANCE_METHOD,
+						ExpiresAt:     expiresAt,
+					}
+
+					err = tx.Create(&appPermission).Error
+					if err != nil {
+						return err
+					}
+				}
 			}
 		}
 

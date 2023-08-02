@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"time"
 
 	"gorm.io/gorm"
@@ -11,6 +12,7 @@ const (
 	NIP_47_REQUEST_KIND               = 23194
 	NIP_47_RESPONSE_KIND              = 23195
 	NIP_47_PAY_INVOICE_METHOD         = "pay_invoice"
+	NIP_47_GET_BALANCE_METHOD         = "get_balance"
 	NIP_47_ERROR_INTERNAL             = "INTERNAL"
 	NIP_47_ERROR_NOT_IMPLEMENTED      = "NOT_IMPLEMENTED"
 	NIP_47_ERROR_QUOTA_EXCEEDED       = "QUOTA_EXCEEDED"
@@ -18,8 +20,13 @@ const (
 	NIP_47_ERROR_UNAUTHORIZED         = "UNAUTHORIZED"
 	NIP_47_ERROR_EXPIRED              = "EXPIRED"
 	NIP_47_ERROR_RESTRICTED           = "RESTRICTED"
-	NIP_47_CAPABILITIES               = "pay_invoice"
+	NIP_47_CAPABILITIES               = "pay_invoice,get_balance"
 )
+
+var nip47MethodDescriptions = map[string]string{
+	NIP_47_GET_BALANCE_METHOD: "Read your balance.",
+	NIP_47_PAY_INVOICE_METHOD: "Send payments from your wallet.",
+}
 
 type AlbyMe struct {
 	Identifier       string `json:"identifier"`
@@ -53,15 +60,15 @@ type App struct {
 }
 
 type AppPermission struct {
-	ID                      uint `gorm:"primaryKey"`
-	AppId                   uint `gorm:"index" validate:"required"`
-	App                     App  `gorm:"constraint:OnDelete:CASCADE"`
-	RequestMethod           string  `gorm:"index" validate:"required"`
-	MaxAmount               int
-	BudgetRenewal           string
-	ExpiresAt               time.Time
-	CreatedAt               time.Time
-	UpdatedAt               time.Time
+	ID            uint   `gorm:"primaryKey"`
+	AppId         uint   `gorm:"index" validate:"required"`
+	App           App    `gorm:"constraint:OnDelete:CASCADE"`
+	RequestMethod string `gorm:"index" validate:"required"`
+	MaxAmount     int
+	BudgetRenewal string
+	ExpiresAt     time.Time
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
 }
 
 type NostrEvent struct {
@@ -94,6 +101,12 @@ type PayRequest struct {
 	Invoice string `json:"invoice"`
 }
 
+type BalanceResponse struct {
+	Balance  int64  `json:"balance"`
+	Currency string `json:"currency"`
+	Unit     string `json:"unit"`
+}
+
 type PayResponse struct {
 	Preimage    string `json:"payment_preimage"`
 	PaymentHash string `json:"payment_hash"`
@@ -111,8 +124,8 @@ type Identity struct {
 }
 
 type Nip47Request struct {
-	Method string      `json:"method"`
-	Params interface{} `json:"params"`
+	Method string          `json:"method"`
+	Params json.RawMessage `json:"params"`
 }
 
 type Nip47Response struct {
@@ -131,4 +144,9 @@ type Nip47PayParams struct {
 }
 type Nip47PayResponse struct {
 	Preimage string `json:"preimage"`
+}
+type Nip47BalanceResponse struct {
+	Balance       int64  `json:"balance"`
+	MaxAmount     int    `json:"max_amount"`
+	BudgetRenewal string `json:"budget_renewal"`
 }

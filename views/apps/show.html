@@ -24,10 +24,22 @@
     <div class="py-4">
       <h3 class="text-xl font-headline dark:text-white">Permissions</h3>
       <ul class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-        <li class="mb-2 relative pl-6">
-          <span class="absolute left-0 text-green-500">✓</span>
-          Send payments from your wallet
-        </li>
+        {{ if .RequestMethods}}
+          {{range .RequestMethods}}
+            {{if eq . "pay_invoice"}}
+            <li class="mb-2 relative pl-6">
+              <span class="absolute left-0 text-green-500">✓</span>
+              Send payments from your wallet
+            </li>
+            {{end}}
+            {{if eq . "get_balance"}}
+            <li class="mb-2 relative pl-6">
+              <span class="absolute left-0 text-green-500">✓</span>
+              View your wallet balance
+            </li>
+            {{end}}
+          {{end}}
+        {{end}}
         {{ if not .AppPermission.ExpiresAt.IsZero}}
         <li class="mb-2 relative pl-6">
           <p>

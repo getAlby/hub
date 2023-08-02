@@ -49,6 +49,94 @@ func NewAlbyOauthService(svc *Service, e *echo.Echo) (result *AlbyOAuthService, 
 	return albySvc, err
 }
 
+func (svc *AlbyOAuthService) FetchUserToken(ctx context.Context, app App) (token *oauth2.Token, err error) {
+	user := app.User
+	tok, err := svc.oauthConf.TokenSource(ctx, &oauth2.Token{
+		AccessToken:  user.AccessToken,
+		RefreshToken: user.RefreshToken,
+		Expiry:       user.Expiry,
+	}).Token()
+	if err != nil {
+		svc.Logger.WithFields(logrus.Fields{
+			"senderPubkey": app.NostrPubkey,
+			"appId":        app.ID,
+			"userId":       app.User.ID,
+		}).Errorf("Token error: %v", err)
+		return nil, err
+	}
+	// we always update the user's token for future use
+	// the oauth library handles the token refreshing
+	user.AccessToken = tok.AccessToken
+	user.RefreshToken = tok.RefreshToken
+	user.Expiry = tok.Expiry // TODO; probably needs some calculation
+	err = svc.db.Save(&user).Error
+	if err != nil {
+		svc.Logger.WithError(err).Error("Error saving user")
+		return nil, err
+	}
+	return tok, nil
+}
+
+func (svc *AlbyOAuthService) GetBalance(ctx context.Context, senderPubkey string) (balance int64, err error) {
+	app := App{}
+	err = svc.db.Preload("User").First(&app, &App{
+		NostrPubkey: senderPubkey,
+	}).Error
+	if err != nil {
+		svc.Logger.WithFields(logrus.Fields{
+			"senderPubkey": senderPubkey,
+		}).Errorf("App not found: %v", err)
+		return 0, err
+	}
+	tok, err := svc.FetchUserToken(ctx, app)
+	if err != nil {
+		return 0, err
+	}
+	client := svc.oauthConf.Client(ctx, tok)
+
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/balance", svc.cfg.AlbyAPIURL), nil)
+	if err != nil {
+		svc.Logger.WithError(err).Error("Error creating request /balance")
+		return 0, err
+	}
+
+	req.Header.Set("User-Agent", "NWC")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		svc.Logger.WithFields(logrus.Fields{
+			"senderPubkey": senderPubkey,
+			"appId":        app.ID,
+			"userId":       app.User.ID,
+		}).Errorf("Failed to fetch balance: %v", err)
+		return 0, err
+	}
+
+	if resp.StatusCode < 300 {
+		responsePayload := &BalanceResponse{}
+		err = json.NewDecoder(resp.Body).Decode(responsePayload)
+		if err != nil {
+			return 0, err
+		}
+		svc.Logger.WithFields(logrus.Fields{
+			"senderPubkey": senderPubkey,
+			"appId":        app.ID,
+			"userId":       app.User.ID,
+		}).Info("Balance fetch successful")
+		return int64(responsePayload.Balance), nil
+	} else {
+		errorPayload := &ErrorResponse{}
+		err = json.NewDecoder(resp.Body).Decode(errorPayload)
+		svc.Logger.WithFields(logrus.Fields{
+			"senderPubkey":  senderPubkey,
+			"appId":         app.ID,
+			"userId":        app.User.ID,
+			"APIHttpStatus": resp.StatusCode,
+		}).Errorf("Balance fetch failed %s", string(errorPayload.Message))
+		return 0, errors.New(errorPayload.Message)
+	}
+}
+
 func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, payReq string) (preimage string, err error) {
 	app := App{}
 	err = svc.db.Preload("User").First(&app, &App{
@@ -67,29 +155,8 @@ func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, 
 		"appId":        app.ID,
 		"userId":       app.User.ID,
 	}).Info("Processing payment request")
-	user := app.User
-	tok, err := svc.oauthConf.TokenSource(ctx, &oauth2.Token{
-		AccessToken:  user.AccessToken,
-		RefreshToken: user.RefreshToken,
-		Expiry:       user.Expiry,
-	}).Token()
+	tok, err := svc.FetchUserToken(ctx, app)
 	if err != nil {
-		svc.Logger.WithFields(logrus.Fields{
-			"senderPubkey": senderPubkey,
-			"bolt11":       payReq,
-			"appId":        app.ID,
-			"userId":       app.User.ID,
-		}).Errorf("Token error: %v", err)
-		return "", err
-	}
-	// we always update the user's token for future use
-	// the oauth library handles the token refreshing
-	user.AccessToken = tok.AccessToken
-	user.RefreshToken = tok.RefreshToken
-	user.Expiry = tok.Expiry // TODO; probably needs some calculation
-	err = svc.db.Save(&user).Error
-	if err != nil {
-		svc.Logger.WithError(err).Error("Error saving user")
 		return "", err
 	}
 	client := svc.oauthConf.Client(ctx, tok)
@@ -150,7 +217,7 @@ func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, 
 func (svc *AlbyOAuthService) AuthHandler(c echo.Context) error {
 	// clear current session
 	sess, _ := session.Get(CookieName, c)
-	if (sess.Values["user_id"] != nil) {
+	if sess.Values["user_id"] != nil {
 		delete(sess.Values, "user_id")
 		sess.Options.MaxAge = 0
 		sess.Options.SameSite = http.SameSiteLaxMode
