@@ -171,7 +171,7 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 	// because pay_invoice is enabled even
 	// when there are no permissions set
 	for _, appPerm := range appPermissions {
-		if (appPerm.RequestMethod == NIP_47_PAY_INVOICE_METHOD) {
+		if appPerm.RequestMethod == NIP_47_PAY_INVOICE_METHOD {
 			appPermission = appPerm
 		} else {
 			requestMethods = append(requestMethods, appPerm.RequestMethod)
@@ -256,6 +256,12 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 		sess.Save(c.Request(), c.Response())
 		return c.Redirect(302, fmt.Sprintf("/%s/auth", strings.ToLower(svc.cfg.LNBackendType)))
 	}
+	descriptions := []string{}
+	for _, m := range strings.Split(requestMethods, " ") {
+		if _, ok := nip47MethodDescriptions[m]; ok && m != NIP_47_PAY_INVOICE_METHOD {
+			descriptions = append(descriptions, nip47MethodDescriptions[m])
+		}
+	}
 
 	return c.Render(http.StatusOK, "apps/new.html", map[string]interface{}{
 		"User":          user,
@@ -268,9 +274,10 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 		"BudgetEnabled": budgetEnabled,
 		//todo show request methods in html page
 		//in a readable format
-		"RequestMethods": requestMethods,
-		"Disabled":       disabled,
-		"Csrf":           csrf,
+		"RequestMethods":            requestMethods,
+		"RequestMethodDescriptions": descriptions,
+		"Disabled":                  disabled,
+		"Csrf":                      csrf,
 	})
 }
 

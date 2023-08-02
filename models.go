@@ -23,6 +23,11 @@ const (
 	NIP_47_CAPABILITIES               = "pay_invoice,get_balance"
 )
 
+var nip47MethodDescriptions = map[string]string{
+	NIP_47_GET_BALANCE_METHOD: "Read your balance.",
+	NIP_47_PAY_INVOICE_METHOD: "Send payments from your wallet.",
+}
+
 type AlbyMe struct {
 	Identifier       string `json:"identifier"`
 	NPub             string `json:"nostr_pubkey"`

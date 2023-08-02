@@ -14,10 +14,16 @@
   <p class="mb-4 text-sm font-medium text-gray-900 dark:text-white">Authorize {{ if .Name }}{{ .Name }}{{ else }}the new app{{end}} access to:</p>
 
   <ul class="mb-6">
-    <li class="flex items-center mb-2 relative pl-6 text-sm text-gray-500 dark:text-gray-400">
-      <span class="text-lg absolute left-0 text-green-500">✓</span>
-      Send payments from your wallet
+    <li class="mb-2 relative pl-6">
+       <span class="absolute left-0 text-green-500">✓</span>
+       Send payments from your wallet.
     </li>
+    {{range .RequestMethodDescriptions}}
+    <li class="mb-2 relative pl-6">
+       <span class="absolute left-0 text-green-500">✓</span>
+       {{ . }}
+    </li>
+    {{end}}
   </ul>
 
   {{ if .Disabled }}
@@ -138,22 +144,22 @@
           </ul>
         </div>
       </div>
-      <div id="RequestMethodOptions" class="{{if .RequestMethods}}hidden{{end}} mt-4">
+      <div id="RequestMethodOptions" class=" mt-4">
         <input type="hidden" name="RequestMethods" id="RequestMethods" value={{if .RequestMethods}}{{.RequestMethods}}{{else}}{{"pay_invoice"}}{{end}}>
         <div class="mb-6">
-          <p class="text-sm font-medium text-gray-900 dark:text-gray-300 mb-1">Set Request Methods</p>
-          <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Allows the application to fetch balance and pay invoices (Pay Invoice is defaulted).</p>
+          <p class="text-sm font-medium text-gray-900 dark:text-gray-300 mb-1">Set request permissions</p>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Finetune the application's permissions.</p>
           <ul class="items-center w-full sm:flex">
             <li class="w-full">
               <div class="flex items-center pl-3">
-                <input id="GetBalance" type="checkbox" value="get_balance" class="w-4 h-4 text-purple-700 bg-gray-50 border border-gray-300 rounded focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-surface-00dp dark:border-gray-700">
-                <label for="GetBalance" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Get Balance</label>
+                <input {{if .RequestMethodDescriptions}}checked{{end}} id="GetBalance" type="checkbox" value="get_balance" class="w-4 h-4 text-purple-700 bg-gray-50 border border-gray-300 rounded focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-surface-00dp dark:border-gray-700">
+                <label for="GetBalance" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Read your balance</label>
               </div>
             </li>
             <li class="w-full">
               <div class="flex items-center pl-3">
                 <input checked disabled id="PayInvoice" type="checkbox" value="pay_invoice" class="w-4 h-4 text-purple-700 bg-gray-50 border border-gray-300 rounded focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-surface-00dp dark:border-gray-700">
-                <label for="PayInvoice" class="ml-2 text-sm font-medium text-gray-500 dark:text-gray-400">Pay Invoice</label>
+                <label for="PayInvoice" class="ml-2 text-sm font-medium text-gray-500 dark:text-gray-400">Send payments</label>
               </div>
             </li>
           </ul>
