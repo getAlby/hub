@@ -168,14 +168,12 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 	svc.db.Where("app_id = ?", app.ID).Find(&appPermissions)
 
 	requestMethods := []string{}
-	// because pay_invoice is enabled even
-	// when there are no permissions set
 	for _, appPerm := range appPermissions {
 		if appPerm.RequestMethod == NIP_47_PAY_INVOICE_METHOD {
+			//find the pay_invoice-specific permissions
 			appPermission = appPerm
-		} else {
-			requestMethods = append(requestMethods, appPerm.RequestMethod)
 		}
+		requestMethods = append(requestMethods, nip47MethodDescriptions[appPerm.RequestMethod])
 	}
 
 	renewsIn := ""
