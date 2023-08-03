@@ -237,7 +237,7 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 	disabled := c.QueryParam("editable") == "false"
 	requestMethods := c.QueryParam("request_methods")
 	if requestMethods == "" {
-		//default
+		//pay_invoice checkbox is default checked but can be disabled
 		requestMethods = NIP_47_PAY_INVOICE_METHOD
 	}
 	budgetEnabled := maxAmount != "" || budgetRenewal != ""
