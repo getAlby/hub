@@ -14,15 +14,13 @@
   <p class="mb-4 text-sm font-medium text-gray-900 dark:text-white">Authorize {{ if .Name }}{{ .Name }}{{ else }}the new app{{end}} access to:</p>
 
   <ul class="mb-6">
+    {{range $key, $value := .RequestMethodHelper}}
+    {{ if $value.Checked}}
     <li class="mb-2 relative pl-6">
        <span class="absolute left-0 text-green-500">✓</span>
-       Send payments from your wallet.
+       {{ $value.Description }}
     </li>
-    {{range .RequestMethodDescriptions}}
-    <li class="mb-2 relative pl-6">
-       <span class="absolute left-0 text-green-500">✓</span>
-       {{ . }}
-    </li>
+    {{end}}
     {{end}}
   </ul>
 
@@ -150,18 +148,14 @@
           <p class="text-sm font-medium text-gray-900 dark:text-gray-300 mb-1">Set request permissions</p>
           <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Finetune the application's permissions.</p>
           <ul class="items-center w-full sm:flex">
+            {{range $key, $value := .RequestMethodHelper}}
             <li class="w-full">
               <div class="flex items-center pl-3">
-                <input {{if .RequestMethodDescriptions}}checked{{end}} id="GetBalance" type="checkbox" value="get_balance" class="w-4 h-4 text-purple-700 bg-gray-50 border border-gray-300 rounded focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-surface-00dp dark:border-gray-700">
-                <label for="GetBalance" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Read your balance</label>
+                <input {{if  $value.Checked }} checked {{end}} id="{{$key}}-id" type="checkbox" value="{{ $key }}" class="w-4 h-4 text-purple-700 bg-gray-50 border border-gray-300 rounded focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-surface-00dp dark:border-gray-700">
+                <label for="PayInvoice" class="ml-2 text-sm font-medium text-gray-500 dark:text-gray-400">{{ $value.Description}}</label>
               </div>
             </li>
-            <li class="w-full">
-              <div class="flex items-center pl-3">
-                <input checked disabled id="PayInvoice" type="checkbox" value="pay_invoice" class="w-4 h-4 text-purple-700 bg-gray-50 border border-gray-300 rounded focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-surface-00dp dark:border-gray-700">
-                <label for="PayInvoice" class="ml-2 text-sm font-medium text-gray-500 dark:text-gray-400">Send payments</label>
-              </div>
-            </li>
+            {{ end }}
           </ul>
         </div>
       </div>

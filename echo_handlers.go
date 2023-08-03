@@ -167,7 +167,7 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 	appPermissions := []AppPermission{}
 	svc.db.Where("app_id = ?", app.ID).Find(&appPermissions)
 
-	requestMethods := []string{"pay_invoice"}
+	requestMethods := []string{}
 	// because pay_invoice is enabled even
 	// when there are no permissions set
 	for _, appPerm := range appPermissions {
@@ -238,6 +238,10 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 	}
 	disabled := c.QueryParam("editable") == "false"
 	requestMethods := c.QueryParam("request_methods")
+	if requestMethods == "" {
+		//default
+		requestMethods = NIP_47_PAY_INVOICE_METHOD
+	}
 	budgetEnabled := maxAmount != "" || budgetRenewal != ""
 	csrf, _ := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
 
@@ -256,28 +260,40 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 		sess.Save(c.Request(), c.Response())
 		return c.Redirect(302, fmt.Sprintf("/%s/auth", strings.ToLower(svc.cfg.LNBackendType)))
 	}
-	descriptions := []string{}
+
+	//construction to return a map with all possible permissions
+	//and indicate which ones are checked by default in the front-end
+	type RequestMethodHelper struct {
+		Description string
+		Checked     bool
+	}
+
+	requestMethodHelper := map[string]*RequestMethodHelper{}
+	for k, v := range nip47MethodDescriptions {
+		requestMethodHelper[k] = &RequestMethodHelper{
+			Description: v,
+		}
+	}
+
 	for _, m := range strings.Split(requestMethods, " ") {
-		if _, ok := nip47MethodDescriptions[m]; ok && m != NIP_47_PAY_INVOICE_METHOD {
-			descriptions = append(descriptions, nip47MethodDescriptions[m])
+		if _, ok := nip47MethodDescriptions[m]; ok {
+			requestMethodHelper[m].Checked = true
 		}
 	}
 
 	return c.Render(http.StatusOK, "apps/new.html", map[string]interface{}{
-		"User":          user,
-		"Name":          appName,
-		"Pubkey":        pubkey,
-		"ReturnTo":      returnTo,
-		"MaxAmount":     maxAmount,
-		"BudgetRenewal": budgetRenewal,
-		"ExpiresAt":     expiresAt,
-		"BudgetEnabled": budgetEnabled,
-		//todo show request methods in html page
-		//in a readable format
-		"RequestMethods":            requestMethods,
-		"RequestMethodDescriptions": descriptions,
-		"Disabled":                  disabled,
-		"Csrf":                      csrf,
+		"User":                user,
+		"Name":                appName,
+		"Pubkey":              pubkey,
+		"ReturnTo":            returnTo,
+		"MaxAmount":           maxAmount,
+		"BudgetRenewal":       budgetRenewal,
+		"ExpiresAt":           expiresAt,
+		"BudgetEnabled":       budgetEnabled,
+		"RequestMethods":      requestMethods,
+		"RequestMethodHelper": requestMethodHelper,
+		"Disabled":            disabled,
+		"Csrf":                csrf,
 	})
 }
 
