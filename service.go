@@ -235,17 +235,17 @@ func (svc *Service) hasPermission(app *App, event *nostr.Event, requestMethod st
 		// No permission for this request method
 		return false, NIP_47_ERROR_RESTRICTED, fmt.Sprintf("This app does not have permission to request %s", requestMethod)
 	}
+	ExpiresAt := appPermission.ExpiresAt
+	if !ExpiresAt.IsZero() && ExpiresAt.Before(time.Now()) {
+		svc.Logger.Info("This pubkey is expired")
+		return false, NIP_47_ERROR_EXPIRED, "This app has expired"
+	}
+
 	if requestMethod == NIP_47_PAY_INVOICE_METHOD {
-		ExpiresAt := appPermission.ExpiresAt
-		if !ExpiresAt.IsZero() && ExpiresAt.Before(time.Now()) {
-			svc.Logger.Info("This pubkey is expired")
-			return false, NIP_47_ERROR_EXPIRED, "This app has expired"
-		}
-	
 		maxAmount := appPermission.MaxAmount
 		if maxAmount != 0 {
 			budgetUsage := svc.GetBudgetUsage(&appPermission)
-	
+
 			if budgetUsage+paymentRequest.MSatoshi/1000 > int64(maxAmount) {
 				return false, NIP_47_ERROR_QUOTA_EXCEEDED, "Insufficient budget remaining to make payment"
 			}
