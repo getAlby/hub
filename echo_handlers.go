@@ -319,45 +319,30 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 			return err
 		}
 
-		// PAY_INVOICE_METHOD permissions
-		if maxAmount > 0 || !expiresAt.IsZero() {
+		requestMethods := c.FormValue("RequestMethods")
+		if requestMethods == "" {
+			return fmt.Errorf("Won't create an app without request methods.")
+		}
+		//request methods should be space seperated list of known request kinds
+		methodsToCreate := strings.Split(requestMethods, " ")
+		for _, m := range methodsToCreate {
+			//if we don't know this method, we return an error
+			if _, ok := nip47MethodDescriptions[m]; !ok {
+				return fmt.Errorf("Did not recognize request method: %s", m)
+			}
 			appPermission := AppPermission{
 				App:           app,
-				RequestMethod: NIP_47_PAY_INVOICE_METHOD,
+				RequestMethod: m,
+				ExpiresAt:     expiresAt,
+				//these fields are only relevant for pay_invoice
 				MaxAmount:     maxAmount,
 				BudgetRenewal: budgetRenewal,
-				ExpiresAt:     expiresAt,
 			}
-
 			err = tx.Create(&appPermission).Error
 			if err != nil {
 				return err
 			}
 		}
-
-		// other method permissions
-		requestMethods := c.FormValue("RequestMethods")
-		if requestMethods != "" {
-			//validate requestMethods
-			//should be space seperated, and we always create the pay_invoice permission anyway
-			//only create the get_balance if present now
-			methodsToCreate := strings.Split(requestMethods, " ")
-			for _, m := range methodsToCreate {
-				if m == NIP_47_GET_BALANCE_METHOD {
-					appPermission := AppPermission{
-						App:           app,
-						RequestMethod: NIP_47_GET_BALANCE_METHOD,
-						ExpiresAt:     expiresAt,
-					}
-
-					err = tx.Create(&appPermission).Error
-					if err != nil {
-						return err
-					}
-				}
-			}
-		}
-
 		// commit transaction
 		return nil
 	})
