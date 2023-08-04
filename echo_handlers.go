@@ -163,32 +163,37 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 	var eventsCount int64
 	svc.db.Model(&NostrEvent{}).Where("app_id = ?", app.ID).Count(&eventsCount)
 
-	appPermission := AppPermission{}
+	paySpecificPermission := AppPermission{}
 	appPermissions := []AppPermission{}
+	expiresAt := time.Time{}
 	svc.db.Where("app_id = ?", app.ID).Find(&appPermissions)
 
 	requestMethods := []string{}
 	for _, appPerm := range appPermissions {
+		if expiresAt.IsZero() && !appPerm.ExpiresAt.IsZero() {
+			expiresAt = appPerm.ExpiresAt
+		}
 		if appPerm.RequestMethod == NIP_47_PAY_INVOICE_METHOD {
 			//find the pay_invoice-specific permissions
-			appPermission = appPerm
+			paySpecificPermission = appPerm
 		}
 		requestMethods = append(requestMethods, nip47MethodDescriptions[appPerm.RequestMethod])
 	}
 
 	renewsIn := ""
 	budgetUsage := int64(0)
-	maxAmount := appPermission.MaxAmount
+	maxAmount := paySpecificPermission.MaxAmount
 	if maxAmount > 0 {
-		budgetUsage = svc.GetBudgetUsage(&appPermission)
-		endOfBudget := GetEndOfBudget(appPermission.BudgetRenewal, app.CreatedAt)
+		budgetUsage = svc.GetBudgetUsage(&paySpecificPermission)
+		endOfBudget := GetEndOfBudget(paySpecificPermission.BudgetRenewal, app.CreatedAt)
 		renewsIn = getEndOfBudgetString(endOfBudget)
 	}
 
 	return c.Render(http.StatusOK, "apps/show.html", map[string]interface{}{
 		"App":            app,
-		"AppPermission":  appPermission,
+		"AppPermission":  paySpecificPermission,
 		"RequestMethods": requestMethods,
+		"ExpiresAt":      expiresAt,
 		"User":           user,
 		"LastEvent":      lastEvent,
 		"EventsCount":    eventsCount,

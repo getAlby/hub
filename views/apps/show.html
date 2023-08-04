@@ -30,7 +30,7 @@
               {{ . }}
             </li>
           {{end}}
-        {{ if not .AppPermission.ExpiresAt.IsZero}}
+        {{ if not .ExpiresAt.IsZero}}
         <li class="mb-2 relative pl-6">
           <p>
             <span class="dark:text-white">Expiry:</span> {{.AppPermission.ExpiresAt}}
