@@ -37,22 +37,22 @@
           </p>
         </li>
         {{end}}
-        {{ if gt .PaySpecificPermision.MaxAmount 0 }}
+        {{ if gt .PaySpecificPermission.MaxAmount 0 }}
         <li class="mb-2 relative pl-6">
           <p>
-            <span class="dark:text-white">Budget Amount:</span> {{.PaySpecificPermision.MaxAmount}}
+            <span class="dark:text-white">Budget Amount:</span> {{.PaySpecificPermission.MaxAmount}}
           </p>
         </li>
         {{end}}
-        {{ if gt .PaySpecificPermision.MaxAmount 0 }}
+        {{ if gt .PaySpecificPermission.MaxAmount 0 }}
         <li class="mb-2 relative pl-6">
           <p>
-            <span class="dark:text-white">Current usage:</span> {{.BudgetUsage}} / {{.PaySpecificPermision.MaxAmount}} sats
+            <span class="dark:text-white">Current usage:</span> {{.BudgetUsage}} / {{.PaySpecificPermission.MaxAmount}} sats
           </p>
         </li>
         <li class="mb-2 relative pl-6">
           <p>
-            <span class="dark:text-white">Renews in:</span> {{.RenewsIn}} (set to {{.PaySpecificPermision.BudgetRenewal}})
+            <span class="dark:text-white">Renews in:</span> {{.RenewsIn}} (set to {{.PaySpecificPermission.BudgetRenewal}})
           </p>
         </li>
         {{ end  }}
