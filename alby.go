@@ -27,7 +27,7 @@ func NewAlbyOauthService(svc *Service, e *echo.Echo) (result *AlbyOAuthService, 
 		ClientID:     svc.cfg.AlbyClientId,
 		ClientSecret: svc.cfg.AlbyClientSecret,
 		//Todo: do we really need all these permissions?
-		Scopes: []string{"account:read", "payments:send", "invoices:read", "transactions:read", "invoices:create"},
+		Scopes: []string{"account:read", "payments:send", "invoices:read", "transactions:read", "invoices:create", "balance:read"},
 		Endpoint: oauth2.Endpoint{
 			TokenURL:  svc.cfg.OAuthTokenUrl,
 			AuthURL:   svc.cfg.OAuthAuthUrl,
