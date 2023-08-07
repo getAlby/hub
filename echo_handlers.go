@@ -190,16 +190,16 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 	}
 
 	return c.Render(http.StatusOK, "apps/show.html", map[string]interface{}{
-		"App":            app,
-		"AppPermission":  paySpecificPermission,
-		"RequestMethods": requestMethods,
-		"ExpiresAt":      expiresAt,
-		"User":           user,
-		"LastEvent":      lastEvent,
-		"EventsCount":    eventsCount,
-		"BudgetUsage":    budgetUsage,
-		"RenewsIn":       renewsIn,
-		"Csrf":           csrf,
+		"App":                   app,
+		"PaySpecificPermission": paySpecificPermission,
+		"RequestMethods":        requestMethods,
+		"ExpiresAt":             expiresAt,
+		"User":                  user,
+		"LastEvent":             lastEvent,
+		"EventsCount":           eventsCount,
+		"BudgetUsage":           budgetUsage,
+		"RenewsIn":              renewsIn,
+		"Csrf":                  csrf,
 	})
 }
 
