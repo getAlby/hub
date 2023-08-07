@@ -14,7 +14,6 @@
   <p class="mb-4 text-sm font-medium text-gray-900 dark:text-white"></p>
 
   <div id="RequestMethodOptions" class=" mt-4">
-    <input type="hidden" name="RequestMethods" id="RequestMethods" value={{if .RequestMethods}}{{.RequestMethods}}{{else}}{{"pay_invoice"}}{{end}}>
     <div class="mb-6">
       <p class="text-sm text-gray-500 dark:text-gray-400 mb-4"> Authorize {{ if .Name }}{{ .Name }}{{ else }}the new app{{end}} access to:</p>
       <ul class="items-center w-full sm:flex">
@@ -41,6 +40,7 @@
       <input type="hidden" name="_csrf" value="{{.Csrf}}">
       <input type="hidden" name="pubkey" value="{{.Pubkey}}" />
       <input type="hidden" name="returnTo" value="{{.ReturnTo}}" />
+      <input type="hidden" name="RequestMethods" id="RequestMethods" value={{if .RequestMethods}}{{.RequestMethods}}{{else}}{{"pay_invoice"}}{{end}}>
       {{ if eq .Name "" }}
         <div class="mb-4">
           <label
