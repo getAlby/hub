@@ -24,45 +24,35 @@
     <div class="py-4">
       <h3 class="text-xl font-headline dark:text-white">Permissions</h3>
       <ul class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-        {{ if .RequestMethods}}
           {{range .RequestMethods}}
-            {{if eq . "pay_invoice"}}
             <li class="mb-2 relative pl-6">
               <span class="absolute left-0 text-green-500">✓</span>
-              Send payments from your wallet
+              {{ . }}
             </li>
-            {{end}}
-            {{if eq . "get_balance"}}
-            <li class="mb-2 relative pl-6">
-              <span class="absolute left-0 text-green-500">✓</span>
-              View your wallet balance
-            </li>
-            {{end}}
           {{end}}
-        {{end}}
-        {{ if not .AppPermission.ExpiresAt.IsZero}}
+        {{ if not .ExpiresAt.IsZero}}
         <li class="mb-2 relative pl-6">
           <p>
-            <span class="dark:text-white">Expiry:</span> {{.AppPermission.ExpiresAt}}
+            <span class="dark:text-white">Expiry:</span> {{.ExpiresAt}}
           </p>
         </li>
         {{end}}
-        {{ if gt .AppPermission.MaxAmount 0 }}
+        {{ if gt .PaySpecificPermision.MaxAmount 0 }}
         <li class="mb-2 relative pl-6">
           <p>
-            <span class="dark:text-white">Budget Amount:</span> {{.AppPermission.MaxAmount}}
+            <span class="dark:text-white">Budget Amount:</span> {{.PaySpecificPermision.MaxAmount}}
           </p>
         </li>
         {{end}}
-        {{ if gt .AppPermission.MaxAmount 0 }}
+        {{ if gt .PaySpecificPermision.MaxAmount 0 }}
         <li class="mb-2 relative pl-6">
           <p>
-            <span class="dark:text-white">Current usage:</span> {{.BudgetUsage}} / {{.AppPermission.MaxAmount}} sats
+            <span class="dark:text-white">Current usage:</span> {{.BudgetUsage}} / {{.PaySpecificPermision.MaxAmount}} sats
           </p>
         </li>
         <li class="mb-2 relative pl-6">
           <p>
-            <span class="dark:text-white">Renews in:</span> {{.RenewsIn}} (set to {{.AppPermission.BudgetRenewal}})
+            <span class="dark:text-white">Renews in:</span> {{.RenewsIn}} (set to {{.PaySpecificPermision.BudgetRenewal}})
           </p>
         </li>
         {{ end  }}

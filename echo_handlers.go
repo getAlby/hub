@@ -170,40 +170,43 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 	var eventsCount int64
 	svc.db.Model(&NostrEvent{}).Where("app_id = ?", app.ID).Count(&eventsCount)
 
-	appPermission := AppPermission{}
+	paySpecificPermission := AppPermission{}
 	appPermissions := []AppPermission{}
+	expiresAt := time.Time{}
 	svc.db.Where("app_id = ?", app.ID).Find(&appPermissions)
 
-	requestMethods := []string{"pay_invoice"}
-	// because pay_invoice is enabled even
-	// when there are no permissions set
+	requestMethods := []string{}
 	for _, appPerm := range appPermissions {
-		if appPerm.RequestMethod == NIP_47_PAY_INVOICE_METHOD {
-			appPermission = appPerm
-		} else {
-			requestMethods = append(requestMethods, appPerm.RequestMethod)
+		if expiresAt.IsZero() && !appPerm.ExpiresAt.IsZero() {
+			expiresAt = appPerm.ExpiresAt
 		}
+		if appPerm.RequestMethod == NIP_47_PAY_INVOICE_METHOD {
+			//find the pay_invoice-specific permissions
+			paySpecificPermission = appPerm
+		}
+		requestMethods = append(requestMethods, nip47MethodDescriptions[appPerm.RequestMethod])
 	}
 
 	renewsIn := ""
 	budgetUsage := int64(0)
-	maxAmount := appPermission.MaxAmount
+	maxAmount := paySpecificPermission.MaxAmount
 	if maxAmount > 0 {
-		budgetUsage = svc.GetBudgetUsage(&appPermission)
-		endOfBudget := GetEndOfBudget(appPermission.BudgetRenewal, app.CreatedAt)
+		budgetUsage = svc.GetBudgetUsage(&paySpecificPermission)
+		endOfBudget := GetEndOfBudget(paySpecificPermission.BudgetRenewal, app.CreatedAt)
 		renewsIn = getEndOfBudgetString(endOfBudget)
 	}
 
 	return c.Render(http.StatusOK, "apps/show.html", map[string]interface{}{
-		"App":            app,
-		"AppPermission":  appPermission,
-		"RequestMethods": requestMethods,
-		"User":           user,
-		"LastEvent":      lastEvent,
-		"EventsCount":    eventsCount,
-		"BudgetUsage":    budgetUsage,
-		"RenewsIn":       renewsIn,
-		"Csrf":           csrf,
+		"App":                   app,
+		"PaySpecificPermission": paySpecificPermission,
+		"RequestMethods":        requestMethods,
+		"ExpiresAt":             expiresAt,
+		"User":                  user,
+		"LastEvent":             lastEvent,
+		"EventsCount":           eventsCount,
+		"BudgetUsage":           budgetUsage,
+		"RenewsIn":              renewsIn,
+		"Csrf":                  csrf,
 	})
 }
 
@@ -245,6 +248,10 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 	}
 	disabled := c.QueryParam("editable") == "false"
 	requestMethods := c.QueryParam("request_methods")
+	if requestMethods == "" {
+		//pay_invoice checkbox is default checked but can be disabled
+		requestMethods = NIP_47_PAY_INVOICE_METHOD
+	}
 	budgetEnabled := maxAmount != "" || budgetRenewal != ""
 	csrf, _ := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
 
@@ -263,28 +270,40 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 		sess.Save(c.Request(), c.Response())
 		return c.Redirect(302, fmt.Sprintf("/%s/auth", strings.ToLower(svc.cfg.LNBackendType)))
 	}
-	descriptions := []string{}
+
+	//construction to return a map with all possible permissions
+	//and indicate which ones are checked by default in the front-end
+	type RequestMethodHelper struct {
+		Description string
+		Checked     bool
+	}
+
+	requestMethodHelper := map[string]*RequestMethodHelper{}
+	for k, v := range nip47MethodDescriptions {
+		requestMethodHelper[k] = &RequestMethodHelper{
+			Description: v,
+		}
+	}
+
 	for _, m := range strings.Split(requestMethods, " ") {
-		if _, ok := nip47MethodDescriptions[m]; ok && m != NIP_47_PAY_INVOICE_METHOD {
-			descriptions = append(descriptions, nip47MethodDescriptions[m])
+		if _, ok := nip47MethodDescriptions[m]; ok {
+			requestMethodHelper[m].Checked = true
 		}
 	}
 
 	return c.Render(http.StatusOK, "apps/new.html", map[string]interface{}{
-		"User":          user,
-		"Name":          appName,
-		"Pubkey":        pubkey,
-		"ReturnTo":      returnTo,
-		"MaxAmount":     maxAmount,
-		"BudgetRenewal": budgetRenewal,
-		"ExpiresAt":     expiresAt,
-		"BudgetEnabled": budgetEnabled,
-		//todo show request methods in html page
-		//in a readable format
-		"RequestMethods":            requestMethods,
-		"RequestMethodDescriptions": descriptions,
-		"Disabled":                  disabled,
-		"Csrf":                      csrf,
+		"User":                user,
+		"Name":                appName,
+		"Pubkey":              pubkey,
+		"ReturnTo":            returnTo,
+		"MaxAmount":           maxAmount,
+		"BudgetRenewal":       budgetRenewal,
+		"ExpiresAt":           expiresAt,
+		"BudgetEnabled":       budgetEnabled,
+		"RequestMethods":      requestMethods,
+		"RequestMethodHelper": requestMethodHelper,
+		"Disabled":            disabled,
+		"Csrf":                csrf,
 	})
 }
 
@@ -326,45 +345,30 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 			return err
 		}
 
-		// PAY_INVOICE_METHOD permissions
-		if maxAmount > 0 || !expiresAt.IsZero() {
+		requestMethods := c.FormValue("RequestMethods")
+		if requestMethods == "" {
+			return fmt.Errorf("Won't create an app without request methods.")
+		}
+		//request methods should be space seperated list of known request kinds
+		methodsToCreate := strings.Split(requestMethods, " ")
+		for _, m := range methodsToCreate {
+			//if we don't know this method, we return an error
+			if _, ok := nip47MethodDescriptions[m]; !ok {
+				return fmt.Errorf("Did not recognize request method: %s", m)
+			}
 			appPermission := AppPermission{
 				App:           app,
-				RequestMethod: NIP_47_PAY_INVOICE_METHOD,
+				RequestMethod: m,
+				ExpiresAt:     expiresAt,
+				//these fields are only relevant for pay_invoice
 				MaxAmount:     maxAmount,
 				BudgetRenewal: budgetRenewal,
-				ExpiresAt:     expiresAt,
 			}
-
 			err = tx.Create(&appPermission).Error
 			if err != nil {
 				return err
 			}
 		}
-
-		// other method permissions
-		requestMethods := c.FormValue("RequestMethods")
-		if requestMethods != "" {
-			//validate requestMethods
-			//should be space seperated, and we always create the pay_invoice permission anyway
-			//only create the get_balance if present now
-			methodsToCreate := strings.Split(requestMethods, " ")
-			for _, m := range methodsToCreate {
-				if m == NIP_47_GET_BALANCE_METHOD {
-					appPermission := AppPermission{
-						App:           app,
-						RequestMethod: NIP_47_GET_BALANCE_METHOD,
-						ExpiresAt:     expiresAt,
-					}
-
-					err = tx.Create(&appPermission).Error
-					if err != nil {
-						return err
-					}
-				}
-			}
-		}
-
 		// commit transaction
 		return nil
 	})
