@@ -35,6 +35,10 @@ To build the CSS run:
 
 `npx tailwindcss -i ./views/application.css -o ./public/css/application.css --watch`
 
+### Testing
+
+`go test`
+
 ## Configuration parameters
 
 - `NOSTR_PRIVKEY`: the private key of this service. Should be a securely randomly generated 32 byte hex string.

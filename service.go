@@ -184,6 +184,8 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 		return svc.HandlePayInvoiceEvent(ctx, nip47Request, event, app, ss)
 	case NIP_47_GET_BALANCE_METHOD:
 		return svc.HandleGetBalanceEvent(ctx, nip47Request, event, app, ss)
+	case NIP_47_MAKE_INVOICE_METHOD:
+		return svc.HandleMakeInvoiceEvent(ctx, nip47Request, event, app, ss)
 	default:
 		return svc.createResponse(event, Nip47Response{Error: &Nip47Error{
 			Code:    NIP_47_ERROR_NOT_IMPLEMENTED,
