@@ -111,7 +111,7 @@ func (svc *AlbyOAuthService) MakeInvoice(ctx context.Context, senderPubkey strin
 	body := bytes.NewBuffer([]byte{})
 	payload := &MakeInvoiceRequest{
 		Amount: amount,
-		Memo: description,
+		Description: description,
 		DescriptionHash: descriptionHash,
 		// TODO: support expiry
 	}
@@ -155,6 +155,8 @@ func (svc *AlbyOAuthService) MakeInvoice(ctx context.Context, senderPubkey strin
 			"expiry":          expiry,
 			"appId":           app.ID,
 			"userId":          app.User.ID,
+			"paymentRequest":  responsePayload.PaymentRequest,
+			"paymentHash":  responsePayload.PaymentHash,
 		}).Info("Make invoice successful")
 		return responsePayload.PaymentRequest, responsePayload.PaymentHash, nil
 	} else {

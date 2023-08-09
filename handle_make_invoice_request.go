@@ -54,17 +54,25 @@ func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Re
 	}
 
 	svc.Logger.WithFields(logrus.Fields{
-		"eventId":   event.ID,
-		"eventKind": event.Kind,
-		"appId":     app.ID,
+		"eventId":         event.ID,
+		"eventKind":       event.Kind,
+		"appId":           app.ID,
+		"amount":          makeInvoiceParams.Amount,
+		"description":     makeInvoiceParams.Description,
+		"descriptionHash": makeInvoiceParams.DescriptionHash,
+		"expiry":          makeInvoiceParams.Expiry,
 	}).Info("Making invoice")
 
 	invoice, paymentHash, err := svc.lnClient.MakeInvoice(ctx, event.PubKey, makeInvoiceParams.Amount, makeInvoiceParams.Description, makeInvoiceParams.DescriptionHash, makeInvoiceParams.Expiry)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
-			"eventId":   event.ID,
-			"eventKind": event.Kind,
-			"appId":     app.ID,
+			"eventId":         event.ID,
+			"eventKind":       event.Kind,
+			"appId":           app.ID,
+			"amount":          makeInvoiceParams.Amount,
+			"description":     makeInvoiceParams.Description,
+			"descriptionHash": makeInvoiceParams.DescriptionHash,
+			"expiry":          makeInvoiceParams.Expiry,
 		}).Infof("Failed to make invoice: %v", err)
 		nostrEvent.State = "error"
 		svc.db.Save(&nostrEvent)

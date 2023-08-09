@@ -27,6 +27,7 @@ const (
 var nip47MethodDescriptions = map[string]string{
 	NIP_47_GET_BALANCE_METHOD: "Read your balance.",
 	NIP_47_PAY_INVOICE_METHOD: "Send payments from your wallet.",
+	NIP_47_MAKE_INVOICE_METHOD: "Create invoices on your behalf.",
 }
 
 type AlbyMe struct {
@@ -115,7 +116,7 @@ type PayResponse struct {
 
 type MakeInvoiceRequest struct {
 	Amount          int64  `json:"amount"`
-	Memo            string `json:"memo"`
+	Description     string `json:"description"`
 	DescriptionHash string `json:"description_hash"`
 }
 
