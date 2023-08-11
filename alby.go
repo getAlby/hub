@@ -77,6 +77,105 @@ func (svc *AlbyOAuthService) FetchUserToken(ctx context.Context, app App) (token
 	return tok, nil
 }
 
+func (svc *AlbyOAuthService) MakeInvoice(ctx context.Context, senderPubkey string, amount int64, description string, descriptionHash string, expiry int64) (invoice string, paymentHash string, err error) {
+	// TODO: move to a shared function
+	app := App{}
+	err = svc.db.Preload("User").First(&app, &App{
+		NostrPubkey: senderPubkey,
+	}).Error
+	if err != nil {
+		svc.Logger.WithFields(logrus.Fields{
+			"senderPubkey":    senderPubkey,
+			"amount":          amount,
+			"description":     description,
+			"descriptionHash": descriptionHash,
+			"expiry":          expiry,
+		}).Errorf("App not found: %v", err)
+		return "", "", err
+	}
+	svc.Logger.WithFields(logrus.Fields{
+		"senderPubkey":    senderPubkey,
+		"amount":          amount,
+		"description":     description,
+		"descriptionHash": descriptionHash,
+		"expiry":          expiry,
+		"appId":           app.ID,
+		"userId":          app.User.ID,
+	}).Info("Processing make invoice request")
+	tok, err := svc.FetchUserToken(ctx, app)
+	if err != nil {
+		return "", "", err
+	}
+	client := svc.oauthConf.Client(ctx, tok)
+
+	body := bytes.NewBuffer([]byte{})
+	payload := &MakeInvoiceRequest{
+		Amount: amount,
+		Description: description,
+		DescriptionHash: descriptionHash,
+		// TODO: support expiry
+	}
+	err = json.NewEncoder(body).Encode(payload)
+
+	// TODO: move to a shared function
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/invoices", svc.cfg.AlbyAPIURL), body)
+	if err != nil {
+		svc.Logger.WithError(err).Error("Error creating request /invoices")
+		return "", "", err
+	}
+
+	req.Header.Set("User-Agent", "NWC")
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		svc.Logger.WithFields(logrus.Fields{
+			"senderPubkey":    senderPubkey,
+			"amount":          amount,
+			"description":     description,
+			"descriptionHash": descriptionHash,
+			"expiry":          expiry,
+			"appId":           app.ID,
+			"userId":          app.User.ID,
+		}).Errorf("Failed to make invoice: %v", err)
+		return "", "", err
+	}
+
+	if resp.StatusCode < 300 {
+		responsePayload := &MakeInvoiceResponse{}
+		err = json.NewDecoder(resp.Body).Decode(responsePayload)
+		if err != nil {
+			return "", "", err
+		}
+		svc.Logger.WithFields(logrus.Fields{
+			"senderPubkey":    senderPubkey,
+			"amount":          amount,
+			"description":     description,
+			"descriptionHash": descriptionHash,
+			"expiry":          expiry,
+			"appId":           app.ID,
+			"userId":          app.User.ID,
+			"paymentRequest":  responsePayload.PaymentRequest,
+			"paymentHash":  responsePayload.PaymentHash,
+		}).Info("Make invoice successful")
+		return responsePayload.PaymentRequest, responsePayload.PaymentHash, nil
+	} else {
+		errorPayload := &ErrorResponse{}
+		err = json.NewDecoder(resp.Body).Decode(errorPayload)
+		svc.Logger.WithFields(logrus.Fields{
+			"senderPubkey":    senderPubkey,
+			"amount":          amount,
+			"description":     description,
+			"descriptionHash": descriptionHash,
+			"expiry":          expiry,
+			"appId":           app.ID,
+			"userId":          app.User.ID,
+			"APIHttpStatus": resp.StatusCode,
+		}).Errorf("Make invoice failed %s", string(errorPayload.Message))
+		return "", "", errors.New(errorPayload.Message)
+	}
+}
+
 func (svc *AlbyOAuthService) GetBalance(ctx context.Context, senderPubkey string) (balance int64, err error) {
 	app := App{}
 	err = svc.db.Preload("User").First(&app, &App{

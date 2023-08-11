@@ -44,8 +44,13 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 			"appId":     app.ID,
 			"bolt11":    bolt11,
 		}).Errorf("Failed to decode bolt11 invoice: %v", err)
-		//todo: create & send response
-		return nil, err
+
+		return svc.createResponse(event, Nip47Response{
+			Error: &Nip47Error{
+				Code:    NIP_47_ERROR_INTERNAL,
+				Message: fmt.Sprintf("Failed to decode bolt11 invoice: %s", err.Error()),
+			},
+		}, ss)
 	}
 
 	hasPermission, code, message := svc.hasPermission(&app, event, request.Method, &paymentRequest)
