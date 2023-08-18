@@ -42,7 +42,11 @@ func (svc *LNDService) AuthHandler(c echo.Context) error {
 }
 
 func (svc *LNDService) GetBalance(ctx context.Context, senderPubkey string) (balance int64, err error) {
-	return 0, fmt.Errorf("not implemented")
+	resp, err := svc.client.WalletBalance(ctx, &lnrpc.WalletBalanceRequest{})
+	if err != nil {
+		return 0, err
+	}
+	return resp.TotalBalance, nil
 }
 
 func (svc *LNDService) MakeInvoice(ctx context.Context, senderPubkey string, amount int64, description string, descriptionHash string, expiry int64) (invoice string, paymentHash string, err error) {
