@@ -74,7 +74,7 @@ func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Re
 			"descriptionHash": makeInvoiceParams.DescriptionHash,
 			"expiry":          makeInvoiceParams.Expiry,
 		}).Infof("Failed to make invoice: %v", err)
-		nostrEvent.State = "error"
+		nostrEvent.State = NOSTR_EVENT_STATE_HANDLER_ERROR
 		svc.db.Save(&nostrEvent)
 		return svc.createResponse(event, Nip47Response{
 			Error: &Nip47Error{
@@ -89,7 +89,7 @@ func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Re
 		PaymentHash: paymentHash,
 	}
 
-	nostrEvent.State = "executed"
+	nostrEvent.State = NOSTR_EVENT_STATE_HANDLER_EXECUTED
 	svc.db.Save(&nostrEvent)
 	return svc.createResponse(event, Nip47Response{
 		ResultType: NIP_47_GET_BALANCE_METHOD,

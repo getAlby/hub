@@ -79,7 +79,7 @@ func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 					nostrEvent.ReplyId = resp.ID
 					// https://github.com/nbd-wtf/go-nostr/blob/master/relay.go#L321
 					if status == nostr.PublishStatusSucceeded {
-						nostrEvent.State = "replied"
+						nostrEvent.State = NOSTR_EVENT_STATE_PUBLISH_CONFIRMED
 						nostrEvent.RepliedAt = time.Now()
 						svc.db.Save(&nostrEvent)
 						svc.Logger.WithFields(logrus.Fields{
@@ -90,7 +90,7 @@ func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 							"appId":        nostrEvent.AppId,
 						}).Info("Published reply")
 					} else if status == nostr.PublishStatusFailed {
-						nostrEvent.State = "failed"
+						nostrEvent.State = NOSTR_EVENT_STATE_PUBLISH_FAILED
 						svc.db.Save(&nostrEvent)
 						svc.Logger.WithFields(logrus.Fields{
 							"nostrEventId": nostrEvent.ID,
@@ -100,7 +100,7 @@ func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 							"appId":        nostrEvent.AppId,
 						}).Info("Failed to publish reply")
 					} else {
-						nostrEvent.State = "sent"
+						nostrEvent.State = NOSTR_EVENT_STATE_PUBLISH_UNCONFIRMED
 						svc.db.Save(&nostrEvent)
 						svc.Logger.WithFields(logrus.Fields{
 							"nostrEventId": nostrEvent.ID,

@@ -89,7 +89,7 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 			"appId":     app.ID,
 			"bolt11":    bolt11,
 		}).Infof("Failed to send payment: %v", err)
-		nostrEvent.State = "error"
+		nostrEvent.State = NOSTR_EVENT_STATE_HANDLER_ERROR
 		svc.db.Save(&nostrEvent)
 		return svc.createResponse(event, Nip47Response{
 			Error: &Nip47Error{
@@ -99,7 +99,7 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 		}, ss)
 	}
 	payment.Preimage = preimage
-	nostrEvent.State = "executed"
+	nostrEvent.State = NOSTR_EVENT_STATE_HANDLER_EXECUTED
 	svc.db.Save(&nostrEvent)
 	svc.db.Save(&payment)
 	return svc.createResponse(event, Nip47Response{
