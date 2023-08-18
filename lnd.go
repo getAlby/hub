@@ -5,10 +5,11 @@ import (
 	"encoding/hex"
 	"fmt"
 
+	"github.com/getAlby/nostr-wallet-connect/lnd"
+
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
-	"github.com/getAlby/lndhub.go/lnd"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/lightningnetwork/lnd/lnrpc"
@@ -66,7 +67,7 @@ func NewLNDService(ctx context.Context, svc *Service, e *echo.Echo) (result *LND
 		Address:      svc.cfg.LNDAddress,
 		CertFile:     svc.cfg.LNDCertFile,
 		MacaroonFile: svc.cfg.LNDMacaroonFile,
-	})
+	}, ctx)
 	if err != nil {
 		return nil, err
 	}
