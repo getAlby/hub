@@ -49,7 +49,7 @@ func (svc *Service) HandleGetBalanceEvent(ctx context.Context, request *Nip47Req
 			"eventKind": event.Kind,
 			"appId":     app.ID,
 		}).Infof("Failed to fetch balance: %v", err)
-		nostrEvent.State = "error"
+		nostrEvent.State = NOSTR_EVENT_STATE_HANDLER_ERROR
 		svc.db.Save(&nostrEvent)
 		return svc.createResponse(event, Nip47Response{
 			Error: &Nip47Error{
@@ -72,7 +72,7 @@ func (svc *Service) HandleGetBalanceEvent(ctx context.Context, request *Nip47Req
 		responsePayload.BudgetRenewal = appPermission.BudgetRenewal
 	}
 
-	nostrEvent.State = "executed"
+	nostrEvent.State = NOSTR_EVENT_STATE_HANDLER_EXECUTED
 	svc.db.Save(&nostrEvent)
 	return svc.createResponse(event, Nip47Response{
 		ResultType: NIP_47_GET_BALANCE_METHOD,
