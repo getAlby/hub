@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/hex"
+	"errors"
 	"fmt"
 
 	"github.com/sirupsen/logrus"
@@ -46,7 +47,25 @@ func (svc *LNDService) GetBalance(ctx context.Context, senderPubkey string) (bal
 }
 
 func (svc *LNDService) MakeInvoice(ctx context.Context, senderPubkey string, amount int64, description string, descriptionHash string, expiry int64) (invoice string, paymentHash string, err error) {
-	return "", "", fmt.Errorf("not implemented")
+	var descriptionHashBytes []byte
+	
+	if descriptionHash != "" {
+		descriptionHashBytes, err = hex.DecodeString(descriptionHash)
+		if err == nil && len(descriptionHashBytes) != 32 {
+			err = errors.New("Description hash must be 32 bytes hex")
+		}
+		if err != nil {
+			svc.Logger.Errorf("Invalid description hash: %s", descriptionHash)
+			return "", "", err
+		}
+	}
+	
+	resp, err := svc.client.AddInvoice(ctx, &lnrpc.Invoice{Value: amount, Memo: description, DescriptionHash: descriptionHashBytes, Expiry: expiry})
+	if err != nil {
+		return "", "", err
+	}
+
+	return resp.GetPaymentRequest(), hex.EncodeToString(resp.GetRHash()), nil
 }
 
 func (svc *LNDService) SendPaymentSync(ctx context.Context, senderPubkey, payReq string) (preimage string, err error) {
