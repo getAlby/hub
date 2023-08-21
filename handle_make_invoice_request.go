@@ -53,6 +53,21 @@ func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Re
 		return nil, err
 	}
 
+	if makeInvoiceParams.Description != "" && makeInvoiceParams.DescriptionHash != "" {
+		svc.Logger.WithFields(logrus.Fields{
+			"eventId":   event.ID,
+			"eventKind": event.Kind,
+			"appId":     app.ID,
+		}).Errorf("Only one of description, description_hash can be provided")
+
+		return svc.createResponse(event, Nip47Response{
+			Error: &Nip47Error{
+				Code:    NIP_47_OTHER,
+				Message: "Only one of description, description_hash can be provided",
+			},
+		}, ss)
+	}
+
 	svc.Logger.WithFields(logrus.Fields{
 		"eventId":         event.ID,
 		"eventKind":       event.Kind,
@@ -62,6 +77,8 @@ func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Re
 		"descriptionHash": makeInvoiceParams.DescriptionHash,
 		"expiry":          makeInvoiceParams.Expiry,
 	}).Info("Making invoice")
+
+
 
 	invoice, paymentHash, err := svc.lnClient.MakeInvoice(ctx, event.PubKey, makeInvoiceParams.Amount, makeInvoiceParams.Description, makeInvoiceParams.DescriptionHash, makeInvoiceParams.Expiry)
 	if err != nil {

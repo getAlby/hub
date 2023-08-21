@@ -21,6 +21,7 @@ const (
 	NIP_47_ERROR_UNAUTHORIZED         = "UNAUTHORIZED"
 	NIP_47_ERROR_EXPIRED              = "EXPIRED"
 	NIP_47_ERROR_RESTRICTED           = "RESTRICTED"
+	NIP_47_OTHER                      = "OTHER"
 	NIP_47_CAPABILITIES               = "pay_invoice,get_balance"
 )
 
