@@ -64,7 +64,7 @@ func (svc *LNDService) MakeInvoice(ctx context.Context, senderPubkey string, amo
 		}
 	}
 	
-	resp, err := svc.client.AddInvoice(ctx, &lnrpc.Invoice{Value: amount, Memo: description, DescriptionHash: descriptionHashBytes, Expiry: expiry})
+	resp, err := svc.client.AddInvoice(ctx, &lnrpc.Invoice{ValueMsat: amount, Memo: description, DescriptionHash: descriptionHashBytes, Expiry: expiry})
 	if err != nil {
 		return "", "", err
 	}
