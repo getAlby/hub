@@ -12,6 +12,7 @@ import (
 	"time"
 
 	echologrus "github.com/davrux/echo-logrus/v4"
+	"github.com/glebarez/sqlite"
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/labstack/echo/v4"
@@ -23,7 +24,6 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/jackc/pgx/v5/stdlib"
-	sqlite3 "github.com/mattn/go-sqlite3"
 	sqltrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/database/sql"
 	gormtrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/gorm.io/gorm.v1"
 )
@@ -41,26 +41,39 @@ func main() {
 	var db *gorm.DB
 	var sqlDb *sql.DB
 	if strings.HasPrefix(cfg.DatabaseUri, "postgres://") || strings.HasPrefix(cfg.DatabaseUri, "postgresql://") || strings.HasPrefix(cfg.DatabaseUri, "unix://") {
-		sqltrace.Register("pgx", &stdlib.Driver{}, sqltrace.WithServiceName("nostr-wallet-connect"))
-		sqlDb, err = sqltrace.Open("pgx", cfg.DatabaseUri)
-		if err != nil {
-			log.Fatalf("Failed to open DB %v", err)
-		}
-		db, err = gormtrace.Open(postgres.New(postgres.Config{Conn: sqlDb}), &gorm.Config{})
-		if err != nil {
-			log.Fatalf("Failed to open DB %v", err)
+		if os.Getenv("DATADOG_AGENT_URL") != "" {
+			sqltrace.Register("pgx", &stdlib.Driver{}, sqltrace.WithServiceName("nostr-wallet-connect"))
+			sqlDb, err = sqltrace.Open("pgx", cfg.DatabaseUri)
+			if err != nil {
+				log.Fatalf("Failed to open DB %v", err)
+			}
+			db, err = gormtrace.Open(postgres.New(postgres.Config{Conn: sqlDb}), &gorm.Config{})
+			if err != nil {
+				log.Fatalf("Failed to open DB %v", err)
+			}
+		} else {
+			db, err = gorm.Open(postgres.Open(cfg.DatabaseUri), &gorm.Config{})
+			if err != nil {
+				log.Fatalf("Failed to open DB %v", err)
+			}
+			sqlDb, err = db.DB()
+			if err != nil {
+				log.Fatalf("Failed to set DB config: %v", err)
+			}
 		}
 	} else {
-		sqltrace.Register("sqlite", &sqlite3.SQLiteDriver{}, sqltrace.WithServiceName("sqlite-example"))
-		sqlDb, err = sqltrace.Open("sqlite", cfg.DatabaseUri)
+		db, err = gorm.Open(sqlite.Open(cfg.DatabaseUri), &gorm.Config{})
 		if err != nil {
 			log.Fatalf("Failed to open DB %v", err)
 		}
-		db, err = gormtrace.Open(postgres.New(postgres.Config{Conn: sqlDb}), &gorm.Config{})
 		// Override SQLite config to max one connection
 		cfg.DatabaseMaxConns = 1
 		// Enable foreign keys for sqlite
 		db.Exec("PRAGMA foreign_keys=ON;")
+		sqlDb, err = db.DB()
+		if err != nil {
+			log.Fatalf("Failed to set DB config: %v", err)
+		}
 	}
 	sqlDb.SetMaxOpenConns(cfg.DatabaseMaxConns)
 	sqlDb.SetMaxIdleConns(cfg.DatabaseMaxIdleConns)
