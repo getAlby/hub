@@ -19,6 +19,7 @@ type LNClient interface {
 	SendPaymentSync(ctx context.Context, senderPubkey string, payReq string) (preimage string, err error)
 	GetBalance(ctx context.Context, senderPubkey string) (balance int64, err error)
 	MakeInvoice(ctx context.Context, senderPubkey string, amount int64, description string, descriptionHash string, expiry int64) (invoice string, paymentHash string, err error)
+	LookupInvoice(ctx context.Context, senderPubkey string, paymentHash string) (invoice string, paid bool, err error)
 }
 
 // wrap it again :sweat_smile:
@@ -70,6 +71,10 @@ func (svc *LNDService) MakeInvoice(ctx context.Context, senderPubkey string, amo
 	}
 
 	return resp.GetPaymentRequest(), hex.EncodeToString(resp.GetRHash()), nil
+}
+
+func (svc *LNDService) LookupInvoice(ctx context.Context, senderPubkey string, paymentHash string) (invoice string, paid bool, err error) {
+	return "", false, fmt.Errorf("not implemented")
 }
 
 func (svc *LNDService) SendPaymentSync(ctx context.Context, senderPubkey, payReq string) (preimage string, err error) {

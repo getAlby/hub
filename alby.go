@@ -104,7 +104,7 @@ func (svc *AlbyOAuthService) MakeInvoice(ctx context.Context, senderPubkey strin
 			"description":     description,
 			"descriptionHash": descriptionHash,
 			"expiry":          expiry,
-		}).Errorf("App not found: %v", err);
+		}).Errorf("Value must be 1 sat or greater");
 		return "", "", errors.New("Value must be 1 sat or greater")
 	}
 
@@ -188,6 +188,93 @@ func (svc *AlbyOAuthService) MakeInvoice(ctx context.Context, senderPubkey strin
 			"APIHttpStatus": resp.StatusCode,
 		}).Errorf("Make invoice failed %s", string(errorPayload.Message))
 		return "", "", errors.New(errorPayload.Message)
+	}
+}
+
+func (svc *AlbyOAuthService) LookupInvoice(ctx context.Context, senderPubkey string, paymentHash string) (invoice string, paid bool, err error) {
+	// TODO: move to a shared function
+	app := App{}
+	err = svc.db.Preload("User").First(&app, &App{
+		NostrPubkey: senderPubkey,
+	}).Error
+	if err != nil {
+		svc.Logger.WithFields(logrus.Fields{
+			"senderPubkey":    senderPubkey,
+			"paymentHash":     paymentHash,
+		}).Errorf("App not found: %v", err)
+		return "", false, err
+	}
+
+	svc.Logger.WithFields(logrus.Fields{
+		"senderPubkey":    senderPubkey,
+		"paymentHash":     paymentHash,
+		"appId":           app.ID,
+		"userId":          app.User.ID,
+	}).Info("Processing lookup invoice request")
+	tok, err := svc.FetchUserToken(ctx, app)
+	if err != nil {
+		return "", false, err
+	}
+	client := svc.oauthConf.Client(ctx, tok)
+
+	body := bytes.NewBuffer([]byte{})
+
+	// TODO: move to a shared function
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/invoices/%s", svc.cfg.AlbyAPIURL, paymentHash), body)
+	if err != nil {
+		svc.Logger.WithError(err).Errorf("Error creating request /invoices/%s", paymentHash)
+		return "", false, err
+	}
+
+	req.Header.Set("User-Agent", "NWC")
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		svc.Logger.WithFields(logrus.Fields{
+			"senderPubkey":    senderPubkey,
+			"paymentHash":     paymentHash,
+			"appId":           app.ID,
+			"userId":          app.User.ID,
+		}).Errorf("Failed to lookup invoice: %v", err)
+		return "", false, err
+	}
+	
+	if resp.StatusCode == 404 {
+		// TODO: review
+		svc.Logger.WithFields(logrus.Fields{
+			"senderPubkey":    senderPubkey,
+			"paymentHash":     paymentHash,
+			"appId":           app.ID,
+			"userId":          app.User.ID,
+		}).Info("Lookup invoice returned not found")
+		return "", false, nil
+	} else if resp.StatusCode < 300 {
+		responsePayload := &LookupInvoiceResponse{}
+		err = json.NewDecoder(resp.Body).Decode(responsePayload)
+		if err != nil {
+			return "", false, err
+		}
+		svc.Logger.WithFields(logrus.Fields{
+			"senderPubkey":    senderPubkey,
+			"paymentHash":     paymentHash,
+			"appId":           app.ID,
+			"userId":          app.User.ID,
+			"paymentRequest":  responsePayload.PaymentRequest,
+			"settled":         responsePayload.Settled,
+		}).Info("Lookup invoice successful")
+		return responsePayload.PaymentRequest, responsePayload.Settled, nil
+	} else {
+		errorPayload := &ErrorResponse{}
+		err = json.NewDecoder(resp.Body).Decode(errorPayload)
+		svc.Logger.WithFields(logrus.Fields{
+			"senderPubkey":    senderPubkey,
+			"paymentHash":     paymentHash,
+			"appId":           app.ID,
+			"userId":          app.User.ID,
+			"APIHttpStatus": resp.StatusCode,
+		}).Errorf("Lookup invoice failed %s", string(errorPayload.Message))
+		return "", false, errors.New(errorPayload.Message)
 	}
 }
 

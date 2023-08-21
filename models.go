@@ -14,6 +14,7 @@ const (
 	NIP_47_PAY_INVOICE_METHOD         = "pay_invoice"
 	NIP_47_GET_BALANCE_METHOD         = "get_balance"
 	NIP_47_MAKE_INVOICE_METHOD        = "make_invoice"
+	NIP_47_LOOKUP_INVOICE_METHOD      = "lookup_invoice"
 	NIP_47_ERROR_INTERNAL             = "INTERNAL"
 	NIP_47_ERROR_NOT_IMPLEMENTED      = "NOT_IMPLEMENTED"
 	NIP_47_ERROR_QUOTA_EXCEEDED       = "QUOTA_EXCEEDED"
@@ -37,6 +38,7 @@ var nip47MethodDescriptions = map[string]string{
 	NIP_47_GET_BALANCE_METHOD: "Read your balance.",
 	NIP_47_PAY_INVOICE_METHOD: "Send payments from your wallet.",
 	NIP_47_MAKE_INVOICE_METHOD: "Create invoices on your behalf.",
+	NIP_47_LOOKUP_INVOICE_METHOD: "Lookup status of created invoices.",
 }
 
 type AlbyMe struct {
@@ -134,6 +136,11 @@ type MakeInvoiceResponse struct {
 	PaymentHash    string `json:"payment_hash"`
 }
 
+type LookupInvoiceResponse struct {
+	PaymentRequest string `json:"payment_request"`
+	Settled        bool   `json:"settled"`
+}
+
 type ErrorResponse struct {
 	Error   bool   `json:"error"`
 	Code    int    `json:"code"`
@@ -182,4 +189,14 @@ type Nip47MakeInvoiceParams struct {
 type Nip47MakeInvoiceResponse struct {
 	Invoice     string `json:"invoice"`
 	PaymentHash string `json:"payment_hash"`
+}
+
+type Nip47LookupInvoiceParams struct {
+	Invoice     string `json:"invoice"`
+	PaymentHash string `json:"payment_hash"`
+}
+
+type Nip47LookupInvoiceResponse struct {
+	Invoice     string `json:"invoice"`
+	Paid        bool   `json:"paid"`
 }
