@@ -104,7 +104,7 @@ func (svc *AlbyOAuthService) MakeInvoice(ctx context.Context, senderPubkey strin
 			"description":     description,
 			"descriptionHash": descriptionHash,
 			"expiry":          expiry,
-		}).Errorf("App not found: %v", err);
+		}).Errorf("Value must be 1 sat or greater");
 		return "", "", errors.New("Value must be 1 sat or greater")
 	}
 

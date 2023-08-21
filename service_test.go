@@ -28,7 +28,6 @@ const nip47MakeInvoiceJson = `
 	"params": {
 		"amount": 1000,
 		"description": "[[\"text/identifier\",\"hello@getalby.com\"],[\"text/plain\",\"Sats for Alby\"]]",
-		"description_hash": "7da78494568d0c8afcd972ea5f5464d6f8d222025c04704e3d19c338ed61cd1f",
 		"expiry": 3600
 	}
 }
