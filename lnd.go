@@ -51,12 +51,16 @@ func (svc *LNDService) MakeInvoice(ctx context.Context, senderPubkey string, amo
 	
 	if descriptionHash != "" {
 		descriptionHashBytes, err = hex.DecodeString(descriptionHash)
-		if err == nil && len(descriptionHashBytes) != 32 {
-			err = errors.New("Description hash must be 32 bytes hex")
-		}
-		if err != nil {
-			svc.Logger.Errorf("Invalid description hash: %s", descriptionHash)
-			return "", "", err
+
+		if err != nil || len(descriptionHashBytes) != 32 {
+			svc.Logger.WithFields(logrus.Fields{
+				"senderPubkey":    senderPubkey,
+				"amount":          amount,
+				"description":     description,
+				"descriptionHash": descriptionHash,
+				"expiry":          expiry,
+			}).Errorf("Invalid description hash")
+			return "", "", errors.New("Description hash must be 32 bytes hex")
 		}
 	}
 	
