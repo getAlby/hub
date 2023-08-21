@@ -92,7 +92,7 @@ func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Re
 	nostrEvent.State = NOSTR_EVENT_STATE_HANDLER_EXECUTED
 	svc.db.Save(&nostrEvent)
 	return svc.createResponse(event, Nip47Response{
-		ResultType: NIP_47_GET_BALANCE_METHOD,
+		ResultType: NIP_47_MAKE_INVOICE_METHOD,
 		Result: responsePayload,
 	},
 	ss)
