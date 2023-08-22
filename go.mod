@@ -12,7 +12,7 @@ require (
 	github.com/stretchr/testify v1.8.1
 	golang.org/x/oauth2 v0.4.0
 	gopkg.in/DataDog/dd-trace-go.v1 v1.47.0
-	gorm.io/gorm v1.24.0
+	gorm.io/gorm v1.25.0
 )
 
 require (
@@ -187,9 +187,9 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/lightningnetwork/lnd v0.15.5-beta.rc2
-	github.com/mattn/go-sqlite3 v1.14.17
+	github.com/mattn/go-sqlite3 v1.14.17 // indirect
 	github.com/sirupsen/logrus v1.9.0
 	github.com/valyala/fastjson v1.6.3 // indirect
 	golang.org/x/exp v0.0.0-20221106115401-f9659909a136 // indirect
-	gorm.io/driver/postgres v1.4.4
+	gorm.io/driver/postgres v1.5.2
 )
