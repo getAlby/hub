@@ -53,6 +53,21 @@ func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Re
 		return nil, err
 	}
 
+	if makeInvoiceParams.Description != "" && makeInvoiceParams.DescriptionHash != "" {
+		svc.Logger.WithFields(logrus.Fields{
+			"eventId":   event.ID,
+			"eventKind": event.Kind,
+			"appId":     app.ID,
+		}).Errorf("Only one of description, description_hash can be provided")
+
+		return svc.createResponse(event, Nip47Response{
+			Error: &Nip47Error{
+				Code:    NIP_47_OTHER,
+				Message: "Only one of description, description_hash can be provided",
+			},
+		}, ss)
+	}
+
 	svc.Logger.WithFields(logrus.Fields{
 		"eventId":         event.ID,
 		"eventKind":       event.Kind,
@@ -62,6 +77,8 @@ func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Re
 		"descriptionHash": makeInvoiceParams.DescriptionHash,
 		"expiry":          makeInvoiceParams.Expiry,
 	}).Info("Making invoice")
+
+
 
 	invoice, paymentHash, err := svc.lnClient.MakeInvoice(ctx, event.PubKey, makeInvoiceParams.Amount, makeInvoiceParams.Description, makeInvoiceParams.DescriptionHash, makeInvoiceParams.Expiry)
 	if err != nil {
@@ -74,7 +91,7 @@ func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Re
 			"descriptionHash": makeInvoiceParams.DescriptionHash,
 			"expiry":          makeInvoiceParams.Expiry,
 		}).Infof("Failed to make invoice: %v", err)
-		nostrEvent.State = "error"
+		nostrEvent.State = NOSTR_EVENT_STATE_HANDLER_ERROR
 		svc.db.Save(&nostrEvent)
 		return svc.createResponse(event, Nip47Response{
 			Error: &Nip47Error{
@@ -89,10 +106,10 @@ func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Re
 		PaymentHash: paymentHash,
 	}
 
-	nostrEvent.State = "executed"
+	nostrEvent.State = NOSTR_EVENT_STATE_HANDLER_EXECUTED
 	svc.db.Save(&nostrEvent)
 	return svc.createResponse(event, Nip47Response{
-		ResultType: NIP_47_GET_BALANCE_METHOD,
+		ResultType: NIP_47_MAKE_INVOICE_METHOD,
 		Result: responsePayload,
 	},
 	ss)

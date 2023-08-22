@@ -21,7 +21,16 @@ const (
 	NIP_47_ERROR_UNAUTHORIZED         = "UNAUTHORIZED"
 	NIP_47_ERROR_EXPIRED              = "EXPIRED"
 	NIP_47_ERROR_RESTRICTED           = "RESTRICTED"
+	NIP_47_OTHER                      = "OTHER"
 	NIP_47_CAPABILITIES               = "pay_invoice,get_balance"
+)
+
+const (
+	NOSTR_EVENT_STATE_HANDLER_EXECUTED    = "executed"
+	NOSTR_EVENT_STATE_HANDLER_ERROR       = "error"
+	NOSTR_EVENT_STATE_PUBLISH_CONFIRMED   = "replied"
+	NOSTR_EVENT_STATE_PUBLISH_FAILED      = "failed"
+	NOSTR_EVENT_STATE_PUBLISH_UNCONFIRMED = "sent"
 )
 
 var nip47MethodDescriptions = map[string]string{

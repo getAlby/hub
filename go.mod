@@ -14,7 +14,7 @@ require (
 	google.golang.org/grpc v1.53.0
 	gopkg.in/DataDog/dd-trace-go.v1 v1.47.0
 	gopkg.in/macaroon.v2 v2.1.0
-	gorm.io/gorm v1.24.0
+	gorm.io/gorm v1.25.0
 )
 
 require (
@@ -152,12 +152,12 @@ require (
 	go.uber.org/zap v1.24.0 // indirect
 	go4.org/intern v0.0.0-20211027215823-ae77deb06f29 // indirect
 	go4.org/unsafe/assume-no-moving-gc v0.0.0-20220617031537-928513b29760 // indirect
-	golang.org/x/crypto v0.7.0 // indirect
+	golang.org/x/crypto v0.9.0 // indirect
 	golang.org/x/mod v0.8.0 // indirect
-	golang.org/x/net v0.8.0 // indirect
-	golang.org/x/sys v0.6.0 // indirect
-	golang.org/x/term v0.6.0 // indirect
-	golang.org/x/text v0.8.0 // indirect
+	golang.org/x/net v0.10.0 // indirect
+	golang.org/x/sys v0.8.0 // indirect
+	golang.org/x/term v0.8.0 // indirect
+	golang.org/x/text v0.9.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	golang.org/x/tools v0.6.0 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
@@ -186,12 +186,14 @@ require (
 	github.com/getsentry/sentry-go v0.23.0
 	github.com/glebarez/sqlite v1.5.0
 	github.com/gorilla/websocket v1.5.0 // indirect
+	github.com/jackc/pgx/v5 v5.4.3
 	github.com/joho/godotenv v1.5.1
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/lightningnetwork/lnd v0.15.5-beta.rc2
+	github.com/mattn/go-sqlite3 v1.14.17 // indirect
 	github.com/sirupsen/logrus v1.9.0
 	github.com/valyala/fastjson v1.6.3 // indirect
 	github.com/ziflex/lecho/v3 v3.5.0
 	golang.org/x/exp v0.0.0-20221106115401-f9659909a136 // indirect
-	gorm.io/driver/postgres v1.4.4
+	gorm.io/driver/postgres v1.5.2
 )
