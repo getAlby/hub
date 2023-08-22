@@ -108,8 +108,8 @@ func (wrapper *LNDWrapper) SendPaymentSync(ctx context.Context, req *lnrpc.SendR
 	return wrapper.client.SendPaymentSync(ctx, req, options...)
 }
 
-func (wrapper *LNDWrapper) WalletBalance(ctx context.Context, req *lnrpc.WalletBalanceRequest, options ...grpc.CallOption) (*lnrpc.WalletBalanceResponse, error) {
-	return wrapper.client.WalletBalance(ctx, req, options...)
+func (wrapper *LNDWrapper) ChannelBalance(ctx context.Context, req *lnrpc.ChannelBalanceRequest, options ...grpc.CallOption) (*lnrpc.ChannelBalanceResponse, error) {
+	return wrapper.client.ChannelBalance(ctx, req, options...)
 }
 
 func (wrapper *LNDWrapper) AddInvoice(ctx context.Context, req *lnrpc.Invoice, options ...grpc.CallOption) (*lnrpc.AddInvoiceResponse, error) {

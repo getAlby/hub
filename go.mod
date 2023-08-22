@@ -18,6 +18,7 @@ require (
 )
 
 require (
+	github.com/BurntSushi/toml v1.2.1 // indirect
 	github.com/DataDog/datadog-agent/pkg/obfuscate v0.0.0-20211129110424-6491aa3bf583 // indirect
 	github.com/DataDog/datadog-agent/pkg/remoteconfig/state v0.42.0-rc.1 // indirect
 	github.com/DataDog/datadog-go v4.8.2+incompatible // indirect
@@ -118,7 +119,6 @@ require (
 	github.com/remyoudompheng/bigfft v0.0.0-20230126093431-47fa9a501578 // indirect
 	github.com/rogpeppe/fastuuid v1.2.0 // indirect
 	github.com/rogpeppe/go-internal v1.9.0 // indirect
-	github.com/rs/zerolog v1.29.0 // indirect
 	github.com/secure-systems-lab/go-securesystemslib v0.4.0 // indirect
 	github.com/soheilhy/cmux v0.1.5 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
@@ -183,7 +183,6 @@ require (
 	github.com/btcsuite/btcd/chaincfg/chainhash v1.0.2 // indirect
 	github.com/decred/dcrd/crypto/blake256 v1.0.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.1.0 // indirect
-	github.com/getsentry/sentry-go v0.23.0
 	github.com/glebarez/sqlite v1.5.0
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/jackc/pgx/v5 v5.4.3
@@ -193,7 +192,6 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.17 // indirect
 	github.com/sirupsen/logrus v1.9.0
 	github.com/valyala/fastjson v1.6.3 // indirect
-	github.com/ziflex/lecho/v3 v3.5.0
 	golang.org/x/exp v0.0.0-20221106115401-f9659909a136 // indirect
 	gorm.io/driver/postgres v1.5.2
 )
