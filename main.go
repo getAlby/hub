@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"net/http"
 	"os"
@@ -21,6 +22,10 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+
+	"github.com/jackc/pgx/v5/stdlib"
+	sqltrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/database/sql"
+	gormtrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/gorm.io/gorm.v1"
 )
 
 func main() {
@@ -34,12 +39,28 @@ func main() {
 	}
 
 	var db *gorm.DB
+	var sqlDb *sql.DB
 	if strings.HasPrefix(cfg.DatabaseUri, "postgres://") || strings.HasPrefix(cfg.DatabaseUri, "postgresql://") || strings.HasPrefix(cfg.DatabaseUri, "unix://") {
-		db, err = gorm.Open(postgres.Open(cfg.DatabaseUri), &gorm.Config{})
-		if err != nil {
-			log.Fatalf("Failed to open DB %v", err)
+		if os.Getenv("DATADOG_AGENT_URL") != "" {
+			sqltrace.Register("pgx", &stdlib.Driver{}, sqltrace.WithServiceName("nostr-wallet-connect"))
+			sqlDb, err = sqltrace.Open("pgx", cfg.DatabaseUri)
+			if err != nil {
+				log.Fatalf("Failed to open DB %v", err)
+			}
+			db, err = gormtrace.Open(postgres.New(postgres.Config{Conn: sqlDb}), &gorm.Config{})
+			if err != nil {
+				log.Fatalf("Failed to open DB %v", err)
+			}
+		} else {
+			db, err = gorm.Open(postgres.Open(cfg.DatabaseUri), &gorm.Config{})
+			if err != nil {
+				log.Fatalf("Failed to open DB %v", err)
+			}
+			sqlDb, err = db.DB()
+			if err != nil {
+				log.Fatalf("Failed to set DB config: %v", err)
+			}
 		}
-
 	} else {
 		db, err = gorm.Open(sqlite.Open(cfg.DatabaseUri), &gorm.Config{})
 		if err != nil {
@@ -49,10 +70,10 @@ func main() {
 		cfg.DatabaseMaxConns = 1
 		// Enable foreign keys for sqlite
 		db.Exec("PRAGMA foreign_keys=ON;")
-	}
-	sqlDb, err := db.DB()
-	if err != nil {
-		log.Fatalf("Failed set DB config: %v", err)
+		sqlDb, err = db.DB()
+		if err != nil {
+			log.Fatalf("Failed to set DB config: %v", err)
+		}
 	}
 	sqlDb.SetMaxOpenConns(cfg.DatabaseMaxConns)
 	sqlDb.SetMaxIdleConns(cfg.DatabaseMaxIdleConns)

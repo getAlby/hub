@@ -9,6 +9,7 @@ require (
 	github.com/labstack/echo/v4 v4.10.2
 	github.com/nbd-wtf/go-nostr v0.13.2
 	github.com/nbd-wtf/ln-decodepay v1.11.1
+	github.com/stretchr/testify v1.8.1
 	golang.org/x/oauth2 v0.4.0
 	gopkg.in/DataDog/dd-trace-go.v1 v1.47.0
 	gorm.io/gorm v1.24.0
@@ -117,7 +118,6 @@ require (
 	github.com/soheilhy/cmux v0.1.5 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/objx v0.5.0 // indirect
-	github.com/stretchr/testify v1.8.1 // indirect
 	github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7 // indirect
 	github.com/tinylib/msgp v1.1.6 // indirect
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20220101234140-673ab2c3ae75 // indirect
@@ -147,14 +147,14 @@ require (
 	go.uber.org/zap v1.24.0 // indirect
 	go4.org/intern v0.0.0-20211027215823-ae77deb06f29 // indirect
 	go4.org/unsafe/assume-no-moving-gc v0.0.0-20220617031537-928513b29760 // indirect
-	golang.org/x/crypto v0.6.0 // indirect
-	golang.org/x/mod v0.7.0 // indirect
-	golang.org/x/net v0.7.0 // indirect
-	golang.org/x/sys v0.5.0 // indirect
-	golang.org/x/term v0.5.0 // indirect
-	golang.org/x/text v0.7.0 // indirect
+	golang.org/x/crypto v0.9.0 // indirect
+	golang.org/x/mod v0.8.0 // indirect
+	golang.org/x/net v0.10.0 // indirect
+	golang.org/x/sys v0.8.0 // indirect
+	golang.org/x/term v0.8.0 // indirect
+	golang.org/x/text v0.9.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
-	golang.org/x/tools v0.5.0 // indirect
+	golang.org/x/tools v0.6.0 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20230113154510-dbe35b8444a5 // indirect
@@ -183,9 +183,11 @@ require (
 	github.com/getAlby/lndhub.go v0.0.0-20230304124642-bdd94315270f
 	github.com/glebarez/sqlite v1.5.0
 	github.com/gorilla/websocket v1.5.0 // indirect
+	github.com/jackc/pgx/v5 v5.4.3
 	github.com/joho/godotenv v1.5.1
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/lightningnetwork/lnd v0.15.5-beta.rc2
+	github.com/mattn/go-sqlite3 v1.14.17
 	github.com/sirupsen/logrus v1.9.0
 	github.com/valyala/fastjson v1.6.3 // indirect
 	golang.org/x/exp v0.0.0-20221106115401-f9659909a136 // indirect
