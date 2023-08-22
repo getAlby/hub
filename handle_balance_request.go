@@ -8,6 +8,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+const (
+	MSAT_PER_SAT = 1000
+)
+
 func (svc *Service) HandleGetBalanceEvent(ctx context.Context, request *Nip47Request, event *nostr.Event, app App, ss []byte) (result *nostr.Event, err error) {
 
 	nostrEvent := NostrEvent{App: app, NostrId: event.ID, Content: event.Content, State: "received"}
@@ -60,7 +64,7 @@ func (svc *Service) HandleGetBalanceEvent(ctx context.Context, request *Nip47Req
 	}
 
 	responsePayload := &Nip47BalanceResponse{
-		Balance: balance,
+		Balance: balance * MSAT_PER_SAT,
 	}
 
 	appPermission := AppPermission{}
@@ -68,7 +72,7 @@ func (svc *Service) HandleGetBalanceEvent(ctx context.Context, request *Nip47Req
 
 	maxAmount := appPermission.MaxAmount
 	if maxAmount > 0 {
-		responsePayload.MaxAmount = maxAmount
+		responsePayload.MaxAmount = maxAmount * MSAT_PER_SAT
 		responsePayload.BudgetRenewal = appPermission.BudgetRenewal
 	}
 
@@ -76,7 +80,7 @@ func (svc *Service) HandleGetBalanceEvent(ctx context.Context, request *Nip47Req
 	svc.db.Save(&nostrEvent)
 	return svc.createResponse(event, Nip47Response{
 		ResultType: NIP_47_GET_BALANCE_METHOD,
-		Result: responsePayload,
+		Result:     responsePayload,
 	},
-	ss)
+		ss)
 }
