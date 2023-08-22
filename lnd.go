@@ -4,12 +4,12 @@ import (
 	"context"
 	"encoding/hex"
 	"errors"
-	"fmt"
+
+	"github.com/getAlby/nostr-wallet-connect/lnd"
 
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
-	"github.com/getAlby/lndhub.go/lnd"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/lightningnetwork/lnd/lnrpc"
@@ -43,7 +43,11 @@ func (svc *LNDService) AuthHandler(c echo.Context) error {
 }
 
 func (svc *LNDService) GetBalance(ctx context.Context, senderPubkey string) (balance int64, err error) {
-	return 0, fmt.Errorf("not implemented")
+	resp, err := svc.client.ChannelBalance(ctx, &lnrpc.ChannelBalanceRequest{})
+	if err != nil {
+		return 0, err
+	}
+	return int64(resp.LocalBalance.Sat), nil
 }
 
 func (svc *LNDService) MakeInvoice(ctx context.Context, senderPubkey string, amount int64, description string, descriptionHash string, expiry int64) (invoice string, paymentHash string, err error) {
@@ -85,7 +89,7 @@ func NewLNDService(ctx context.Context, svc *Service, e *echo.Echo) (result *LND
 		Address:      svc.cfg.LNDAddress,
 		CertFile:     svc.cfg.LNDCertFile,
 		MacaroonFile: svc.cfg.LNDMacaroonFile,
-	})
+	}, ctx)
 	if err != nil {
 		return nil, err
 	}
