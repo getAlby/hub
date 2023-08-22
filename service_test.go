@@ -140,7 +140,7 @@ func TestHandleEvent(t *testing.T) {
 		PubKey:  senderPubkey,
 		Content: malformedPayload,
 	})
-	
+
 	decrypted, err = nip04.Decrypt(res.Content, ss)
 	assert.NoError(t, err)
 	receivedError := &Nip47Response{
@@ -298,8 +298,8 @@ func TestHandleEvent(t *testing.T) {
 	}
 	err = json.Unmarshal([]byte(decrypted), received)
 	assert.NoError(t, err)
-	assert.Equal(t, int64(21), received.Result.(*Nip47BalanceResponse).Balance)
-	assert.Equal(t, 100, received.Result.(*Nip47BalanceResponse).MaxAmount)
+	assert.Equal(t, int64(21000), received.Result.(*Nip47BalanceResponse).Balance)
+	assert.Equal(t, 100000, received.Result.(*Nip47BalanceResponse).MaxAmount)
 	assert.Equal(t, "never", received.Result.(*Nip47BalanceResponse).BudgetRenewal)
 
 	// make invoice: without permission
