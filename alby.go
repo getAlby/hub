@@ -329,6 +329,7 @@ func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, 
 }
 
 func (svc *AlbyOAuthService) AuthHandler(c echo.Context) error {
+	appName := c.QueryParam("c") // c - for client
 	// clear current session
 	sess, _ := session.Get(CookieName, c)
 	if sess.Values["user_id"] != nil {
@@ -341,7 +342,7 @@ func (svc *AlbyOAuthService) AuthHandler(c echo.Context) error {
 		sess.Save(c.Request(), c.Response())
 	}
 
-	url := svc.oauthConf.AuthCodeURL("")
+	url := svc.oauthConf.AuthCodeURL(appName) // pass on the appName as state
 	return c.Redirect(302, url)
 }
 
