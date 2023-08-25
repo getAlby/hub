@@ -3,6 +3,7 @@ module github.com/getAlby/nostr-wallet-connect
 go 1.20
 
 require (
+	github.com/breez/breez-sdk-go v0.1.5-beta.rc2
 	github.com/davrux/echo-logrus/v4 v4.0.3
 	github.com/gorilla/sessions v1.2.1
 	github.com/labstack/echo-contrib v0.14.1
