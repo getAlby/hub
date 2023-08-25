@@ -19,6 +19,7 @@ type Config struct {
 	LNDMacaroonFile         string `envconfig:"LND_MACAROON_FILE"`
 	BreezMnemonic           string `envconfig:"BREEZ_MNEMONIC"`
 	BreezAPIKey             string `envconfig:"BREEZ_API_KEY"`
+	GreenlightInviteCode    string `envconfig:"GREENLIGHT_INVITE_CODE"`
 	BreezWorkdir            string `envconfig:"BREEZ_WORK_DIR" default:".breez"`
 	AlbyAPIURL              string `envconfig:"ALBY_API_URL" default:"https://api.getalby.com"`
 	AlbyClientId            string `envconfig:"ALBY_CLIENT_ID"`

@@ -154,7 +154,7 @@ func main() {
 		}
 		svc.lnClient = oauthService
 	case BreezBackendType:
-		breezSvc, err := breez.NewBreezService(cfg.BreezMnemonic, cfg.BreezAPIKey, cfg.BreezAPIKey, cfg.BreezWorkdir)
+		breezSvc, err := breez.NewBreezService(cfg.BreezMnemonic, cfg.BreezAPIKey, cfg.GreenlightInviteCode, cfg.BreezWorkdir)
 		if err != nil {
 			svc.Logger.Fatal(err)
 		}
