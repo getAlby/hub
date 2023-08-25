@@ -3,6 +3,8 @@ package breez
 import (
 	"context"
 	"log"
+	"os"
+	"path/filepath"
 
 	"github.com/breez/breez-sdk-go/breez_sdk"
 )
@@ -18,6 +20,12 @@ func (BreezListener) OnEvent(e breez_sdk.BreezEvent) {
 }
 
 func NewBreezService(mnemonic, apiKey, inviteCode, workDir string) (result *BreezService, err error) {
+	//create dir if not exists
+	newpath := filepath.Join(".", workDir)
+	err = os.MkdirAll(newpath, os.ModePerm)
+	if err != nil {
+		return nil, err
+	}
 	seed, err := breez_sdk.MnemonicToSeed(mnemonic)
 	if err != nil {
 		return nil, err
