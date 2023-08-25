@@ -1,4 +1,4 @@
-package main
+package breez
 
 import (
 	"context"
@@ -17,7 +17,7 @@ func (BreezListener) OnEvent(e breez_sdk.BreezEvent) {
 	log.Printf("received event %#v", e)
 }
 
-func NewBreezService(mnemonic, apiKey, inviteCode string) (result *BreezService, err error) {
+func NewBreezService(mnemonic, apiKey, inviteCode, workDir string) (result *BreezService, err error) {
 	seed, err := breez_sdk.MnemonicToSeed(mnemonic)
 	if err != nil {
 		return nil, err
@@ -29,11 +29,11 @@ func NewBreezService(mnemonic, apiKey, inviteCode string) (result *BreezService,
 	}
 	listener := BreezListener{}
 	config := breez_sdk.DefaultConfig(breez_sdk.EnvironmentTypeProduction, apiKey, nodeConfig)
+	config.WorkingDir = workDir
 	svc, err := breez_sdk.Connect(config, seed, listener)
 	if err != nil {
 		return nil, err
 	}
-	//todo: init LSP (wait for Breez to fix issue)
 	return &BreezService{
 		listener: &listener,
 		svc:      svc,

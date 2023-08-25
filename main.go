@@ -12,6 +12,7 @@ import (
 	"time"
 
 	echologrus "github.com/davrux/echo-logrus/v4"
+	"github.com/getAlby/nostr-wallet-connect/breez"
 	"github.com/glebarez/sqlite"
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
@@ -152,6 +153,12 @@ func main() {
 			svc.Logger.Fatal(err)
 		}
 		svc.lnClient = oauthService
+	case BreezBackendType:
+		breezSvc, err := breez.NewBreezService(cfg.BreezMnemonic, cfg.BreezAPIKey, cfg.BreezAPIKey, cfg.BreezWorkdir)
+		if err != nil {
+			svc.Logger.Fatal(err)
+		}
+		svc.lnClient = breezSvc
 	}
 
 	//register shared routes

@@ -1,9 +1,10 @@
 package main
 
 const (
-	AlbyBackendType = "ALBY"
-	LNDBackendType  = "LND"
-	CookieName      = "alby_nwc_session"
+	AlbyBackendType  = "ALBY"
+	LNDBackendType   = "LND"
+	BreezBackendType = "BREEZ"
+	CookieName       = "alby_nwc_session"
 )
 
 type Config struct {
@@ -16,6 +17,9 @@ type Config struct {
 	LNDAddress              string `envconfig:"LND_ADDRESS"`
 	LNDCertFile             string `envconfig:"LND_CERT_FILE"`
 	LNDMacaroonFile         string `envconfig:"LND_MACAROON_FILE"`
+	BreezMnemonic           string `envconfig:"BREEZ_MNEMONIC"`
+	BreezAPIKey             string `envconfig:"BREEZ_API_KEY"`
+	BreezWorkdir            string `envconfig:"BREEZ_WORK_DIR" default:".breez"`
 	AlbyAPIURL              string `envconfig:"ALBY_API_URL" default:"https://api.getalby.com"`
 	AlbyClientId            string `envconfig:"ALBY_CLIENT_ID"`
 	AlbyClientSecret        string `envconfig:"ALBY_CLIENT_SECRET"`
