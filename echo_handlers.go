@@ -56,6 +56,7 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	templates["about.html"] = template.Must(template.ParseFS(embeddedViews, "views/about.html", "views/layout.html"))
 	templates["404.html"] = template.Must(template.ParseFS(embeddedViews, "views/404.html", "views/layout.html"))
 	templates["lnd/index.html"] = template.Must(template.ParseFS(embeddedViews, "views/backends/lnd/index.html", "views/layout.html"))
+	templates["breez/index.html"] = template.Must(template.ParseFS(embeddedViews, "views/backends/breez/index.html", "views/layout.html"))
 	e.Renderer = &TemplateRegistry{
 		templates: templates,
 	}

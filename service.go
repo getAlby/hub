@@ -24,15 +24,15 @@ type Service struct {
 }
 
 var supportedMethods = map[string]bool{
-	NIP_47_PAY_INVOICE_METHOD: true,
-	NIP_47_GET_BALANCE_METHOD: true,
+	NIP_47_PAY_INVOICE_METHOD:  true,
+	NIP_47_GET_BALANCE_METHOD:  true,
 	NIP_47_MAKE_INVOICE_METHOD: true,
 }
 
 func (svc *Service) GetUser(c echo.Context) (user *User, err error) {
 	sess, _ := session.Get(CookieName, c)
 	userID := sess.Values["user_id"]
-	if svc.cfg.LNBackendType == LNDBackendType {
+	if svc.cfg.LNBackendType == LNDBackendType || svc.cfg.LNBackendType == BreezBackendType {
 		//if we self-host, there is always only one user
 		userID = 1
 	}
