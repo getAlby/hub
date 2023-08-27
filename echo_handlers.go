@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/subtle"
 	"embed"
 	"encoding/hex"
 	"errors"
@@ -62,6 +63,17 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	}
 	e.HideBanner = true
 	e.Use(echologrus.Middleware())
+
+	if svc.cfg.BasicAuthUser != "" && svc.cfg.BasicAuthPassword != "" {
+		e.Use(middleware.BasicAuth(func(username, password string, c echo.Context) (bool, error) {
+			// Be careful to use constant time comparison to prevent timing attacks
+			if subtle.ConstantTimeCompare([]byte(username), []byte(svc.cfg.BasicAuthUser)) == 1 &&
+				subtle.ConstantTimeCompare([]byte(password), []byte(svc.cfg.BasicAuthPassword)) == 1 {
+				return true, nil
+			}
+			return false, nil
+		}))
+	}
 
 	e.Use(middleware.Recover())
 	e.Use(middleware.RequestID())

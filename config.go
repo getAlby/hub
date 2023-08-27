@@ -21,6 +21,8 @@ type Config struct {
 	BreezAPIKey             string `envconfig:"BREEZ_API_KEY"`
 	GreenlightInviteCode    string `envconfig:"GREENLIGHT_INVITE_CODE"`
 	BreezWorkdir            string `envconfig:"BREEZ_WORK_DIR" default:".breez"`
+	BasicAuthUser           string `envconfig:"BASIC_AUTH_USER"`
+	BasicAuthPassword       string `envconfig:"BASIC_AUTH_PASSWORD"`
 	AlbyAPIURL              string `envconfig:"ALBY_API_URL" default:"https://api.getalby.com"`
 	AlbyClientId            string `envconfig:"ALBY_CLIENT_ID"`
 	AlbyClientSecret        string `envconfig:"ALBY_CLIENT_SECRET"`
