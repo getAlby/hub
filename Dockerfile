@@ -15,7 +15,10 @@ COPY . .
 RUN go build -o main
 
 # Start a new, final image to reduce size.
-FROM alpine as final
+
+FROM gcr.io/distroless/static-debian11
+
+USER small-user:small-user
 
 # Copy the binaries and entrypoint from the builder image.
 COPY --from=builder /build/main /bin/
