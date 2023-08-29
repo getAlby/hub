@@ -78,7 +78,21 @@ func (svc *LNDService) MakeInvoice(ctx context.Context, senderPubkey string, amo
 }
 
 func (svc *LNDService) LookupInvoice(ctx context.Context, senderPubkey string, paymentHash string) (invoice string, paid bool, err error) {
-	return "", false, fmt.Errorf("not implemented")
+	paymentHashBytes, err := hex.DecodeString(paymentHash)
+
+	if err != nil || len(paymentHashBytes) != 32 {
+		svc.Logger.WithFields(logrus.Fields{
+			"paymentHash": paymentHash,
+		}).Errorf("Invalid payment hash")
+		return "", false, errors.New("Payment hash must be 32 bytes hex")
+	}
+
+	lndInvoice, err := svc.client.LookupInvoice(ctx, &lnrpc.PaymentHash{ RHash: paymentHashBytes })
+	if err != nil {
+		return "", false, err
+	}
+	
+	return lndInvoice.PaymentRequest, lndInvoice.State == *lnrpc.Invoice_SETTLED.Enum(), nil;
 }
 
 func (svc *LNDService) SendPaymentSync(ctx context.Context, senderPubkey, payReq string) (preimage string, err error) {

@@ -120,6 +120,10 @@ func (wrapper *LNDWrapper) SubscribeInvoices(ctx context.Context, req *lnrpc.Inv
 	return wrapper.client.SubscribeInvoices(ctx, req, options...)
 }
 
+func (wrapper *LNDWrapper) LookupInvoice(ctx context.Context, req *lnrpc.PaymentHash, options ...grpc.CallOption) (*lnrpc.Invoice, error) {
+	return wrapper.client.LookupInvoice(ctx, req, options...)
+}
+
 func (wrapper *LNDWrapper) GetInfo(ctx context.Context, req *lnrpc.GetInfoRequest, options ...grpc.CallOption) (*lnrpc.GetInfoResponse, error) {
 	return wrapper.client.GetInfo(ctx, req, options...)
 }
