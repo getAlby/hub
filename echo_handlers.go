@@ -250,7 +250,7 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 	requestMethods := c.QueryParam("request_methods")
 	if requestMethods == "" {
 		// if no request methods are given, enable them all by default
-		keys := make([]string, 0, len(nip47MethodDescriptions))
+		keys := []string{}
 		for key := range nip47MethodDescriptions {
 			keys = append(keys, key)
 		}
