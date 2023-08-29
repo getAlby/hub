@@ -104,8 +104,8 @@ func (svc *AlbyOAuthService) MakeInvoice(ctx context.Context, senderPubkey strin
 			"description":     description,
 			"descriptionHash": descriptionHash,
 			"expiry":          expiry,
-		}).Errorf("Value must be 1 sat or greater");
-		return "", "", errors.New("Value must be 1 sat or greater")
+		}).Errorf("amount must be 1000 msat or greater");
+		return "", "", errors.New("amount must be 1000 msat or greater")
 	}
 
 	svc.Logger.WithFields(logrus.Fields{
