@@ -97,7 +97,7 @@ func (svc *AlbyOAuthService) MakeInvoice(ctx context.Context, senderPubkey strin
 	// amount provided in msat, but Alby API currently only supports sats. Will get truncated to a whole sat value
 	var amountSat int64 = amount / 1000
 	// make sure amount is not converted to 0
-	if (amount > 0 && amountSat == 0) {
+	if amount > 0 && amountSat == 0 {
 		svc.Logger.WithFields(logrus.Fields{
 			"senderPubkey":    senderPubkey,
 			"amount":          amount,
@@ -125,8 +125,8 @@ func (svc *AlbyOAuthService) MakeInvoice(ctx context.Context, senderPubkey strin
 
 	body := bytes.NewBuffer([]byte{})
 	payload := &MakeInvoiceRequest{
-		Amount: amountSat,
-		Description: description,
+		Amount:          amountSat,
+		Description:     description,
 		DescriptionHash: descriptionHash,
 		// TODO: support expiry
 	}
@@ -171,7 +171,7 @@ func (svc *AlbyOAuthService) MakeInvoice(ctx context.Context, senderPubkey strin
 			"appId":           app.ID,
 			"userId":          app.User.ID,
 			"paymentRequest":  responsePayload.PaymentRequest,
-			"paymentHash":  responsePayload.PaymentHash,
+			"paymentHash":     responsePayload.PaymentHash,
 		}).Info("Make invoice successful")
 		return responsePayload.PaymentRequest, responsePayload.PaymentHash, nil
 	} else {
@@ -185,7 +185,7 @@ func (svc *AlbyOAuthService) MakeInvoice(ctx context.Context, senderPubkey strin
 			"expiry":          expiry,
 			"appId":           app.ID,
 			"userId":          app.User.ID,
-			"APIHttpStatus": resp.StatusCode,
+			"APIHttpStatus":   resp.StatusCode,
 		}).Errorf("Make invoice failed %s", string(errorPayload.Message))
 		return "", "", errors.New(errorPayload.Message)
 	}
