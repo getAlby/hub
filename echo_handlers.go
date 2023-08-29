@@ -249,8 +249,13 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 	disabled := c.QueryParam("editable") == "false"
 	requestMethods := c.QueryParam("request_methods")
 	if requestMethods == "" {
-		//pay_invoice checkbox is default checked but can be disabled
-		requestMethods = fmt.Sprintf("%s %s %s", NIP_47_GET_BALANCE_METHOD, NIP_47_PAY_INVOICE_METHOD, NIP_47_MAKE_INVOICE_METHOD)
+		// if no request methods are given, enable them all by default
+		keys := make([]string, 0, len(nip47MethodDescriptions))
+		for key := range nip47MethodDescriptions {
+			keys = append(keys, key)
+		}
+
+		requestMethods = strings.Join(keys, " ")
 	}
 	budgetEnabled := maxAmount != "" || budgetRenewal != ""
 	csrf, _ := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
