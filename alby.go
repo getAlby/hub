@@ -174,21 +174,21 @@ func (svc *AlbyOAuthService) MakeInvoice(ctx context.Context, senderPubkey strin
 			"paymentHash":     responsePayload.PaymentHash,
 		}).Info("Make invoice successful")
 		return responsePayload.PaymentRequest, responsePayload.PaymentHash, nil
-	} else {
-		errorPayload := &ErrorResponse{}
-		err = json.NewDecoder(resp.Body).Decode(errorPayload)
-		svc.Logger.WithFields(logrus.Fields{
-			"senderPubkey":    senderPubkey,
-			"amount":          amount,
-			"description":     description,
-			"descriptionHash": descriptionHash,
-			"expiry":          expiry,
-			"appId":           app.ID,
-			"userId":          app.User.ID,
-			"APIHttpStatus":   resp.StatusCode,
-		}).Errorf("Make invoice failed %s", string(errorPayload.Message))
-		return "", "", errors.New(errorPayload.Message)
 	}
+
+	errorPayload := &ErrorResponse{}
+	err = json.NewDecoder(resp.Body).Decode(errorPayload)
+	svc.Logger.WithFields(logrus.Fields{
+		"senderPubkey":    senderPubkey,
+		"amount":          amount,
+		"description":     description,
+		"descriptionHash": descriptionHash,
+		"expiry":          expiry,
+		"appId":           app.ID,
+		"userId":          app.User.ID,
+		"APIHttpStatus":   resp.StatusCode,
+	}).Errorf("Make invoice failed %s", string(errorPayload.Message))
+	return "", "", errors.New(errorPayload.Message)
 }
 
 func (svc *AlbyOAuthService) LookupInvoice(ctx context.Context, senderPubkey string, paymentHash string) (invoice string, paid bool, err error) {
@@ -255,18 +255,18 @@ func (svc *AlbyOAuthService) LookupInvoice(ctx context.Context, senderPubkey str
 			"settled":         responsePayload.Settled,
 		}).Info("Lookup invoice successful")
 		return responsePayload.PaymentRequest, responsePayload.Settled, nil
-	} else {
-		errorPayload := &ErrorResponse{}
-		err = json.NewDecoder(resp.Body).Decode(errorPayload)
-		svc.Logger.WithFields(logrus.Fields{
-			"senderPubkey":    senderPubkey,
-			"paymentHash":     paymentHash,
-			"appId":           app.ID,
-			"userId":          app.User.ID,
-			"APIHttpStatus": resp.StatusCode,
-		}).Errorf("Lookup invoice failed %s", string(errorPayload.Message))
-		return "", false, errors.New(errorPayload.Message)
 	}
+
+	errorPayload := &ErrorResponse{}
+	err = json.NewDecoder(resp.Body).Decode(errorPayload)
+	svc.Logger.WithFields(logrus.Fields{
+		"senderPubkey":    senderPubkey,
+		"paymentHash":     paymentHash,
+		"appId":           app.ID,
+		"userId":          app.User.ID,
+		"APIHttpStatus": resp.StatusCode,
+	}).Errorf("Lookup invoice failed %s", string(errorPayload.Message))
+	return "", false, errors.New(errorPayload.Message)
 }
 
 func (svc *AlbyOAuthService) GetBalance(ctx context.Context, senderPubkey string) (balance int64, err error) {
@@ -316,17 +316,17 @@ func (svc *AlbyOAuthService) GetBalance(ctx context.Context, senderPubkey string
 			"userId":       app.User.ID,
 		}).Info("Balance fetch successful")
 		return int64(responsePayload.Balance), nil
-	} else {
-		errorPayload := &ErrorResponse{}
-		err = json.NewDecoder(resp.Body).Decode(errorPayload)
-		svc.Logger.WithFields(logrus.Fields{
-			"senderPubkey":  senderPubkey,
-			"appId":         app.ID,
-			"userId":        app.User.ID,
-			"APIHttpStatus": resp.StatusCode,
-		}).Errorf("Balance fetch failed %s", string(errorPayload.Message))
-		return 0, errors.New(errorPayload.Message)
 	}
+
+	errorPayload := &ErrorResponse{}
+	err = json.NewDecoder(resp.Body).Decode(errorPayload)
+	svc.Logger.WithFields(logrus.Fields{
+		"senderPubkey":  senderPubkey,
+		"appId":         app.ID,
+		"userId":        app.User.ID,
+		"APIHttpStatus": resp.StatusCode,
+	}).Errorf("Balance fetch failed %s", string(errorPayload.Message))
+	return 0, errors.New(errorPayload.Message)
 }
 
 func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, payReq string) (preimage string, err error) {
@@ -392,18 +392,18 @@ func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, 
 			"userId":       app.User.ID,
 		}).Info("Payment successful")
 		return responsePayload.Preimage, nil
-	} else {
-		errorPayload := &ErrorResponse{}
-		err = json.NewDecoder(resp.Body).Decode(errorPayload)
-		svc.Logger.WithFields(logrus.Fields{
-			"senderPubkey":  senderPubkey,
-			"bolt11":        payReq,
-			"appId":         app.ID,
-			"userId":        app.User.ID,
-			"APIHttpStatus": resp.StatusCode,
-		}).Errorf("Payment failed %s", string(errorPayload.Message))
-		return "", errors.New(errorPayload.Message)
 	}
+
+	errorPayload := &ErrorResponse{}
+	err = json.NewDecoder(resp.Body).Decode(errorPayload)
+	svc.Logger.WithFields(logrus.Fields{
+		"senderPubkey":  senderPubkey,
+		"bolt11":        payReq,
+		"appId":         app.ID,
+		"userId":        app.User.ID,
+		"APIHttpStatus": resp.StatusCode,
+	}).Errorf("Payment failed %s", string(errorPayload.Message))
+	return "", errors.New(errorPayload.Message)
 }
 
 func (svc *AlbyOAuthService) AuthHandler(c echo.Context) error {
