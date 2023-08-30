@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	//"fmt"
-
 	"github.com/nbd-wtf/go-nostr"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
