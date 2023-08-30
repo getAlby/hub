@@ -240,16 +240,7 @@ func (svc *AlbyOAuthService) LookupInvoice(ctx context.Context, senderPubkey str
 		return "", false, err
 	}
 	
-	if resp.StatusCode == 404 {
-		// TODO: review
-		svc.Logger.WithFields(logrus.Fields{
-			"senderPubkey":    senderPubkey,
-			"paymentHash":     paymentHash,
-			"appId":           app.ID,
-			"userId":          app.User.ID,
-		}).Info("Lookup invoice returned not found")
-		return "", false, nil
-	} else if resp.StatusCode < 300 {
+	if resp.StatusCode < 300 {
 		responsePayload := &LookupInvoiceResponse{}
 		err = json.NewDecoder(resp.Body).Decode(responsePayload)
 		if err != nil {
