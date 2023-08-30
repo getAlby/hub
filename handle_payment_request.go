@@ -13,14 +13,14 @@ import (
 func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Request, event *nostr.Event, app App, ss []byte) (result *nostr.Event, err error) {
 
 	nostrEvent := NostrEvent{App: app, NostrId: event.ID, Content: event.Content, State: "received"}
-	insertNostrEventResult := svc.db.Create(&nostrEvent)
-	if insertNostrEventResult.Error != nil {
+	err = svc.db.Create(&nostrEvent).Error
+	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
 			"eventId":   event.ID,
 			"eventKind": event.Kind,
 			"appId":     app.ID,
-		}).Errorf("Failed to save nostr event: %v", insertNostrEventResult.Error)
-		return nil, insertNostrEventResult.Error
+		}).Errorf("Failed to save nostr event: %v", err)
+		return nil, err
 	}
 
 	var bolt11 string
