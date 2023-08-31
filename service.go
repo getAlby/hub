@@ -27,6 +27,7 @@ var supportedMethods = map[string]bool{
 	NIP_47_PAY_INVOICE_METHOD: true,
 	NIP_47_GET_BALANCE_METHOD: true,
 	NIP_47_MAKE_INVOICE_METHOD: true,
+	NIP_47_LOOKUP_INVOICE_METHOD: true,
 }
 
 func (svc *Service) GetUser(c echo.Context) (user *User, err error) {
@@ -187,6 +188,8 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 		return svc.HandleGetBalanceEvent(ctx, nip47Request, event, app, ss)
 	case NIP_47_MAKE_INVOICE_METHOD:
 		return svc.HandleMakeInvoiceEvent(ctx, nip47Request, event, app, ss)
+	case NIP_47_LOOKUP_INVOICE_METHOD:
+		return svc.HandleLookupInvoiceEvent(ctx, nip47Request, event, app, ss)
 	default:
 		return svc.createResponse(event, Nip47Response{Error: &Nip47Error{
 			Code:    NIP_47_ERROR_NOT_IMPLEMENTED,
