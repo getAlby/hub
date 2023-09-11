@@ -273,7 +273,7 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 			sess.Options.Domain = svc.cfg.CookieDomain
 		}
 		sess.Save(c.Request(), c.Response())
-		return c.Redirect(302, fmt.Sprintf("/%s/auth", strings.ToLower(svc.cfg.LNBackendType)))
+		return c.Redirect(302, fmt.Sprintf("/%s/auth?c=%s", strings.ToLower(svc.cfg.LNBackendType), appName))
 	}
 
 	//construction to return a map with all possible permissions
