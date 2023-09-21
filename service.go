@@ -280,7 +280,7 @@ func (svc *Service) PublishNip47Info(ctx context.Context, relay *nostr.Relay) er
 	}
 	status := relay.Publish(ctx, *ev)
 	if status != nostr.PublishStatusSucceeded {
-		return fmt.Errorf("Nostr publish not succesful: %s", status)
+		return fmt.Errorf("Nostr publish not successful: %s", status)
 	}
 	return nil
 }
