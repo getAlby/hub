@@ -35,7 +35,9 @@ func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Re
 			"appId":     app.ID,
 		}).Errorf("App does not have permission: %s %s", code, message)
 
-		return svc.createResponse(event, Nip47Response{Error: &Nip47Error{
+		return svc.createResponse(event, Nip47Response{
+			ResultType: NIP_47_MAKE_INVOICE_METHOD,
+			Error: &Nip47Error{
 			Code:    code,
 			Message: message,
 		}}, ss)
@@ -61,6 +63,7 @@ func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Re
 		}).Errorf("Only one of description, description_hash can be provided")
 
 		return svc.createResponse(event, Nip47Response{
+			ResultType: NIP_47_MAKE_INVOICE_METHOD,
 			Error: &Nip47Error{
 				Code:    NIP_47_OTHER,
 				Message: "Only one of description, description_hash can be provided",
@@ -94,6 +97,7 @@ func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Re
 		nostrEvent.State = NOSTR_EVENT_STATE_HANDLER_ERROR
 		svc.db.Save(&nostrEvent)
 		return svc.createResponse(event, Nip47Response{
+			ResultType: NIP_47_MAKE_INVOICE_METHOD,
 			Error: &Nip47Error{
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: fmt.Sprintf("Something went wrong while making invoice: %s", err.Error()),

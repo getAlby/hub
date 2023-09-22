@@ -46,6 +46,7 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 		}).Errorf("Failed to decode bolt11 invoice: %v", err)
 
 		return svc.createResponse(event, Nip47Response{
+			ResultType: NIP_47_PAY_INVOICE_METHOD,
 			Error: &Nip47Error{
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: fmt.Sprintf("Failed to decode bolt11 invoice: %s", err.Error()),
@@ -63,6 +64,7 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 		}).Errorf("App does not have permission: %s %s", code, message)
 
 		return svc.createResponse(event, Nip47Response{Error: &Nip47Error{
+			ResultType: NIP_47_PAY_INVOICE_METHOD,
 			Code:    code,
 			Message: message,
 		}}, ss)
@@ -92,6 +94,7 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 		nostrEvent.State = NOSTR_EVENT_STATE_HANDLER_ERROR
 		svc.db.Save(&nostrEvent)
 		return svc.createResponse(event, Nip47Response{
+			ResultType: NIP_47_PAY_INVOICE_METHOD,
 			Error: &Nip47Error{
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: fmt.Sprintf("Something went wrong while paying invoice: %s", err.Error()),

@@ -33,7 +33,9 @@ func (svc *Service) HandleLookupInvoiceEvent(ctx context.Context, request *Nip47
 			"appId":     app.ID,
 		}).Errorf("App does not have permission: %s %s", code, message)
 
-		return svc.createResponse(event, Nip47Response{Error: &Nip47Error{
+		return svc.createResponse(event, Nip47Response{
+			ResultType: NIP_47_LOOKUP_INVOICE_METHOD,
+			Error: &Nip47Error{
 			Code:    code,
 			Message: message,
 		}}, ss)
@@ -72,6 +74,7 @@ func (svc *Service) HandleLookupInvoiceEvent(ctx context.Context, request *Nip47
 			}).Errorf("Failed to decode bolt11 invoice: %v", err)
 
 			return svc.createResponse(event, Nip47Response{
+				ResultType: NIP_47_LOOKUP_INVOICE_METHOD,
 				Error: &Nip47Error{
 					Code:    NIP_47_ERROR_INTERNAL,
 					Message: fmt.Sprintf("Failed to decode bolt11 invoice: %s", err.Error()),
@@ -93,6 +96,7 @@ func (svc *Service) HandleLookupInvoiceEvent(ctx context.Context, request *Nip47
 		nostrEvent.State = NOSTR_EVENT_STATE_HANDLER_ERROR
 		svc.db.Save(&nostrEvent)
 		return svc.createResponse(event, Nip47Response{
+			ResultType: NIP_47_LOOKUP_INVOICE_METHOD,
 			Error: &Nip47Error{
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: fmt.Sprintf("Something went wrong while looking up invoice: %s", err.Error()),
