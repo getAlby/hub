@@ -63,8 +63,9 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 			"appId":     app.ID,
 		}).Errorf("App does not have permission: %s %s", code, message)
 
-		return svc.createResponse(event, Nip47Response{Error: &Nip47Error{
+		return svc.createResponse(event, Nip47Response{
 			ResultType: NIP_47_PAY_INVOICE_METHOD,
+			Error: &Nip47Error{
 			Code:    code,
 			Message: message,
 		}}, ss)
