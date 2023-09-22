@@ -354,7 +354,7 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 		if requestMethods == "" {
 			return fmt.Errorf("Won't create an app without request methods.")
 		}
-		//request methods should be space seperated list of known request kinds
+		//request methods should be space separated list of known request kinds
 		methodsToCreate := strings.Split(requestMethods, " ")
 		for _, m := range methodsToCreate {
 			//if we don't know this method, we return an error
