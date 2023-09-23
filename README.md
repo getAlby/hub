@@ -106,7 +106,8 @@ await nwc.initNWC({name: 'myapp'});
 
 ## Help
 
-If you need help contact hello@getalby.com or reach out on Nostr: npub1getal6ykt05fsz5nqu4uld09nfj3y3qxmv8crys4aeut53unfvlqr80nfm
+If you need help contact support@getalby.com or reach out on Nostr: npub1getal6ykt05fsz5nqu4uld09nfj3y3qxmv8crys4aeut53unfvlqr80nfm
+You can also visit the chat of our Community on [Telegram](https://t.me/getalby).
 
 
 ## ⚡️Donations
