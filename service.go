@@ -258,7 +258,7 @@ func (svc *Service) hasPermission(app *App, event *nostr.Event, requestMethod st
 		svc.Logger.WithFields(logrus.Fields{
 			"eventId":       event.ID,
 			"requestMethod": requestMethod,
-			"expiresAt":     expiresAt,
+			"expiresAt":     expiresAt.Unix(),
 			"appId":         app.ID,
 			"pubkey":        app.NostrPubkey,
 		}).Info("This pubkey is expired")
