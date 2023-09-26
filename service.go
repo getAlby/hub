@@ -70,8 +70,8 @@ func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 				if err != nil {
 					svc.Logger.WithFields(logrus.Fields{
 						"eventId":      event.ID,
-						"replyEventId": resp.ID,
-					}).Error(err)
+						"eventKind":      event.Kind,
+					}).Errorf("Failed to process event: %v", err)
 				}
 				if resp != nil {
 					status := sub.Relay.Publish(ctx, *resp)
