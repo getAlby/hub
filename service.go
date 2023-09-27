@@ -191,7 +191,9 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 	case NIP_47_LOOKUP_INVOICE_METHOD:
 		return svc.HandleLookupInvoiceEvent(ctx, nip47Request, event, app, ss)
 	default:
-		return svc.createResponse(event, Nip47Response{Error: &Nip47Error{
+		return svc.createResponse(event, Nip47Response{
+			ResultType: nip47Request.Method,
+			Error: &Nip47Error{
 			Code:    NIP_47_ERROR_NOT_IMPLEMENTED,
 			Message: fmt.Sprintf("Unknown method: %s", nip47Request.Method),
 		}}, ss)

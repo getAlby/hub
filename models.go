@@ -160,7 +160,7 @@ type Nip47Request struct {
 type Nip47Response struct {
 	Error      *Nip47Error `json:"error,omitempty"`
 	Result     interface{} `json:"result,omitempty"`
-	ResultType string      `json:"result_type,omitempty"`
+	ResultType string      `json:"result_type"`
 }
 
 type Nip47Error struct {

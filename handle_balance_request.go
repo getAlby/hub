@@ -34,7 +34,9 @@ func (svc *Service) HandleGetBalanceEvent(ctx context.Context, request *Nip47Req
 			"appId":     app.ID,
 		}).Errorf("App does not have permission: %s %s", code, message)
 
-		return svc.createResponse(event, Nip47Response{Error: &Nip47Error{
+		return svc.createResponse(event, Nip47Response{
+			ResultType: NIP_47_GET_BALANCE_METHOD,
+			Error: &Nip47Error{
 			Code:    code,
 			Message: message,
 		}}, ss)
@@ -56,6 +58,7 @@ func (svc *Service) HandleGetBalanceEvent(ctx context.Context, request *Nip47Req
 		nostrEvent.State = NOSTR_EVENT_STATE_HANDLER_ERROR
 		svc.db.Save(&nostrEvent)
 		return svc.createResponse(event, Nip47Response{
+			ResultType: NIP_47_GET_BALANCE_METHOD,
 			Error: &Nip47Error{
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: fmt.Sprintf("Something went wrong while fetching balance: %s", err.Error()),
