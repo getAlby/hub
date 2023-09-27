@@ -390,6 +390,7 @@ func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, 
 			"bolt11":       payReq,
 			"appId":        app.ID,
 			"userId":       app.User.ID,
+			"paymentHash":  responsePayload.PaymentHash,
 		}).Info("Payment successful")
 		return responsePayload.Preimage, nil
 	}
