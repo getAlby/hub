@@ -14,7 +14,7 @@ require (
 	google.golang.org/grpc v1.53.0
 	gopkg.in/DataDog/dd-trace-go.v1 v1.47.0
 	gopkg.in/macaroon.v2 v2.1.0
-	gorm.io/gorm v1.25.0
+	gorm.io/gorm v1.25.4
 )
 
 require (
@@ -55,6 +55,7 @@ require (
 	github.com/fergusstrange/embedded-postgres v1.19.0 // indirect
 	github.com/glebarez/go-sqlite v1.20.3 // indirect
 	github.com/go-errors/errors v1.4.2 // indirect
+	github.com/go-gormigrate/gormigrate/v2 v2.1.1 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-macaroon-bakery/macaroonpb v1.0.0 // indirect

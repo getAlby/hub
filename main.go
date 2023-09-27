@@ -12,6 +12,7 @@ import (
 	"time"
 
 	echologrus "github.com/davrux/echo-logrus/v4"
+	"github.com/getAlby/nostr-wallet-connect/migrations"
 	"github.com/glebarez/sqlite"
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
@@ -79,11 +80,7 @@ func main() {
 	sqlDb.SetMaxIdleConns(cfg.DatabaseMaxIdleConns)
 	sqlDb.SetConnMaxLifetime(time.Duration(cfg.DatabaseConnMaxLifetime) * time.Second)
 
-	// Migrate the schema
-	err = db.AutoMigrate(&User{}, &App{}, &AppPermission{}, &NostrEvent{}, &Payment{}, &Identity{})
-	if err != nil {
-		log.Fatalf("Failed migrate DB %v", err)
-	}
+	migrations.Migrate(db)
 
 	if cfg.NostrSecretKey == "" {
 		if cfg.LNBackendType == AlbyBackendType {

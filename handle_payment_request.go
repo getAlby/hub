@@ -102,7 +102,7 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 			},
 		}, ss)
 	}
-	payment.Preimage = preimage
+	payment.Preimage = &preimage
 	nostrEvent.State = NOSTR_EVENT_STATE_HANDLER_EXECUTED
 	svc.db.Save(&nostrEvent)
 	svc.db.Save(&payment)
