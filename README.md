@@ -33,7 +33,8 @@ As data storage SQLite or PostgreSQL (recommended) can be used.
 
 To build the CSS run:
 
-`npx tailwindcss -i ./views/application.css -o ./public/css/application.css --watch`
+1. `npm install`
+2. `npm run css`
 
 ### Testing
 
