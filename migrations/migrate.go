@@ -9,9 +9,9 @@ import (
 func Migrate(db *gorm.DB) {
 
 	m := gormigrate.New(db, gormigrate.DefaultOptions, []*gormigrate.Migration{
-		_202309271616,
-		_202309271617,
-		_202309271618,
+		_202309271616_initial_migration,
+		_202309271617_fix_preimage_null,
+		_202309271618_add_payment_sum_index,
 	})
 
 	err := m.Migrate()

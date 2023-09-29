@@ -8,8 +8,8 @@ import (
 )
 
 // Create a composite index to improve performance of summing payments in the current budget period
-var _202309271618 = &gormigrate.Migration {
-	ID: "202309271618",
+var _202309271618_add_payment_sum_index = &gormigrate.Migration {
+	ID: "202309271618_add_payment_sum_index",
 	Migrate: func(tx *gorm.DB) error {
 		
 		var sql string

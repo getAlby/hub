@@ -14,8 +14,8 @@ var initialMigrationPostgres string
 var initialMigrationSqlite string
 
 // Initial migration
-var _202309271616 = &gormigrate.Migration {
-	ID: "202309271616",
+var _202309271616_initial_migration = &gormigrate.Migration {
+	ID: "202309271616_initial_migration",
 	Migrate: func(tx *gorm.DB) error {
 
 		// only execute migration if apps table doesn't exist
