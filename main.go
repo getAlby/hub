@@ -80,7 +80,11 @@ func main() {
 	sqlDb.SetMaxIdleConns(cfg.DatabaseMaxIdleConns)
 	sqlDb.SetConnMaxLifetime(time.Duration(cfg.DatabaseConnMaxLifetime) * time.Second)
 
-	migrations.Migrate(db)
+	err = migrations.Migrate(db)
+	if err != nil {
+		log.Fatalf("Migration failed: %v", err)
+	}
+	log.Println("Any pending migrations ran successfully")
 
 	if cfg.NostrSecretKey == "" {
 		if cfg.LNBackendType == AlbyBackendType {

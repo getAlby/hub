@@ -21,12 +21,7 @@ var _202309271618_add_payment_sum_index = &gormigrate.Migration {
 			log.Fatalf("unsupported database type: %s", tx.Dialector.Name())
 		}
 
-		err := tx.Exec(sql).Error
-		if err != nil {
-			return err
-		}
-		
-		return nil
+		return tx.Exec(sql).Error
 	},
 	Rollback: func(tx *gorm.DB) error {
 		return nil;

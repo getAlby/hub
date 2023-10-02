@@ -2,11 +2,10 @@ package migrations
 
 import (
 	"github.com/go-gormigrate/gormigrate/v2"
-	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
-func Migrate(db *gorm.DB) {
+func Migrate(db *gorm.DB) error {
 
 	m := gormigrate.New(db, gormigrate.DefaultOptions, []*gormigrate.Migration{
 		_202309271616_initial_migration,
@@ -14,9 +13,5 @@ func Migrate(db *gorm.DB) {
 		_202309271618_add_payment_sum_index,
 	})
 
-	err := m.Migrate()
-	if err != nil {
-		log.Fatalf("Migration failed: %v", err)
-	}
-	log.Println("Any pending migrations ran successfully")
+	return m.Migrate()
 }

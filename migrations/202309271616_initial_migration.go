@@ -13,28 +13,25 @@ var initialMigrationPostgres string
 //go:embed initial_migration_sqlite.sql
 var initialMigrationSqlite string
 
+var initialMigrations = map[string]string {
+	"postgres": initialMigrationPostgres,
+	"sqlite": initialMigrationSqlite,
+}
+
 // Initial migration
 var _202309271616_initial_migration = &gormigrate.Migration {
 	ID: "202309271616_initial_migration",
 	Migrate: func(tx *gorm.DB) error {
-
 		// only execute migration if apps table doesn't exist
-		err := tx.Exec("Select * from apps").Error;
+		err := tx.Exec("SELECT * FROM apps").Error;
 		if err != nil {
 			// find which initial migration should be executed
-			var initialMigration string
-			if tx.Dialector.Name() == "postgres" {
-				initialMigration = initialMigrationPostgres
-			} else if tx.Dialector.Name() == "sqlite" {
-				initialMigration = initialMigrationSqlite
-			} else {
+			initialMigration := initialMigrations[tx.Dialector.Name()]
+			if initialMigration == "" {
 				log.Fatalf("unsupported database type: %s", tx.Dialector.Name())
 			}
 
-			err := tx.Exec(initialMigration).Error
-			if err != nil {
-				return err
-			}
+			return tx.Exec(initialMigration).Error
 		}
 
 		return nil

@@ -19,12 +19,7 @@ import (
 var _MY_ID_HERE = &gormigrate.Migration {
   ID: "MY_ID_HERE",
   Migrate: func(tx *gorm.DB) error {
-    err := DO_SOMETHING_HERE.Error;
-    
-    if err != nil {
-      return err
-    }
-    return nil
+    return DO_SOMETHING_HERE.Error;
   },
   Rollback: func(tx *gorm.DB) error {
     return nil;
