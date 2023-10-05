@@ -68,14 +68,21 @@ func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 			go func() {
 				resp, err := svc.HandleEvent(ctx, event)
 				if err != nil {
-					svc.Logger.Error(err)
+					svc.Logger.WithFields(logrus.Fields{
+						"eventId":      event.ID,
+						"eventKind":      event.Kind,
+					}).Errorf("Failed to process event: %v", err)
 				}
 				if resp != nil {
 					status := sub.Relay.Publish(ctx, *resp)
 					nostrEvent := NostrEvent{}
 					result := svc.db.Where("nostr_id = ?", event.ID).First(&nostrEvent)
 					if result.Error != nil {
-						svc.Logger.Error(result.Error)
+						svc.Logger.WithFields(logrus.Fields{
+							"eventId":      event.ID,
+							"status":       status,
+							"replyEventId": resp.ID,
+						}).Error(result.Error)
 						return
 					}
 					nostrEvent.ReplyId = resp.ID
@@ -231,7 +238,12 @@ func (svc *Service) hasPermission(app *App, event *nostr.Event, requestMethod st
 	})
 	if findPermissionsResult.RowsAffected == 0 {
 		// No permissions created for this app. It can do anything
-		svc.Logger.Info("No permissions found for app", app.ID)
+		svc.Logger.WithFields(logrus.Fields{
+			"eventId":       event.ID,
+			"requestMethod": requestMethod,
+			"appId":         app.ID,
+			"pubkey":        app.NostrPubkey,
+		}).Info("No permissions found for app")
 		return true, "", ""
 	}
 
@@ -243,9 +255,15 @@ func (svc *Service) hasPermission(app *App, event *nostr.Event, requestMethod st
 		// No permission for this request method
 		return false, NIP_47_ERROR_RESTRICTED, fmt.Sprintf("This app does not have permission to request %s", requestMethod)
 	}
-	ExpiresAt := appPermission.ExpiresAt
-	if !ExpiresAt.IsZero() && ExpiresAt.Before(time.Now()) {
-		svc.Logger.Info("This pubkey is expired")
+	expiresAt := appPermission.ExpiresAt
+	if !expiresAt.IsZero() && expiresAt.Before(time.Now()) {
+		svc.Logger.WithFields(logrus.Fields{
+			"eventId":       event.ID,
+			"requestMethod": requestMethod,
+			"expiresAt":     expiresAt.Unix(),
+			"appId":         app.ID,
+			"pubkey":        app.NostrPubkey,
+		}).Info("This pubkey is expired")
 		return false, NIP_47_ERROR_EXPIRED, "This app has expired"
 	}
 
