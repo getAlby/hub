@@ -49,8 +49,8 @@ type AlbyMe struct {
 }
 
 type User struct {
-	ID               uint   `gorm:"primaryKey"`
-	AlbyIdentifier   string `gorm:"uniqueIndex" validate:"required"`
+	ID               uint
+	AlbyIdentifier   string `validate:"required"`
 	AccessToken      string `validate:"required"`
 	RefreshToken     string `validate:"required"`
 	Email            string
@@ -62,21 +62,21 @@ type User struct {
 }
 
 type App struct {
-	ID          uint   `gorm:"primaryKey"`
-	UserId      uint   `gorm:"index" validate:"required"`
-	User        User   `gorm:"constraint:OnDelete:CASCADE"`
+	ID          uint
+	UserId      uint   `validate:"required"`
+	User        User
 	Name        string `validate:"required"`
 	Description string
-	NostrPubkey string `gorm:"index"`
+	NostrPubkey string `validate:"required"`
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
 
 type AppPermission struct {
-	ID            uint   `gorm:"primaryKey"`
-	AppId         uint   `gorm:"index" validate:"required"`
-	App           App    `gorm:"constraint:OnDelete:CASCADE"`
-	RequestMethod string `gorm:"index" validate:"required"`
+	ID            uint
+	AppId         uint   `validate:"required"`
+	App           App
+	RequestMethod string `validate:"required"`
 	MaxAmount     int
 	BudgetRenewal string
 	ExpiresAt     time.Time
@@ -85,10 +85,10 @@ type AppPermission struct {
 }
 
 type NostrEvent struct {
-	ID        uint   `gorm:"primaryKey"`
-	AppId     uint   `gorm:"index" validate:"required"`
-	App       App    `gorm:"constraint:OnDelete:CASCADE"`
-	NostrId   string `gorm:"uniqueIndex" validate:"required"`
+	ID        uint
+	AppId     uint   `validate:"required"`
+	App       App
+	NostrId   string `validate:"required"`
 	ReplyId   string
 	Content   string
 	State     string
@@ -98,14 +98,14 @@ type NostrEvent struct {
 }
 
 type Payment struct {
-	ID             uint `gorm:"primaryKey"`
-	AppId          uint `gorm:"index" validate:"required"`
-	App            App  `gorm:"constraint:OnDelete:CASCADE"`
-	NostrEventId   uint `gorm:"index" validate:"required"`
+	ID             uint
+	AppId          uint `validate:"required"`
+	App            App
+	NostrEventId   uint `validate:"required"`
 	NostrEvent     NostrEvent
 	Amount         uint
 	PaymentRequest string
-	Preimage       string
+	Preimage       *string
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 }
