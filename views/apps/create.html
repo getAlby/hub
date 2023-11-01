@@ -1,90 +1,64 @@
 {{define "body"}}
 
-<div
-  class="bg-white rounded-md shadow p-4 lg:p-8 dark:bg-surface-02dp"
->
-  <h2 class="font-bold text-2xl font-headline mb-2 dark:text-white">{{.Name}}</h2>
 
-  <div
-    class="bg-green-100 border-t-4 border-green-500 rounded-md px-4 py-3 shadow-md mb-8 dark:bg-green-900"
-    role="alert"
-  >
-    <div class="flex items-center text-green-700 dark:text-green-400">
-      <div class="py-1">
-        <svg
-          class="fill-current h-6 w-6 mr-4"
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 20 20"
-        >
-          <path
-            d="M2.93 17.07A10 10 0 1 1 17.07 2.93 10 10 0 0 1 2.93 17.07zm12.73-1.41A8 8 0 1 0 4.34 4.34a8 8 0 0 0 11.32 11.32zM9 11V9h2v6H9v-4zm0-6h2v2H9V5z"
-          ></path>
-        </svg>
-      </div>
-      <div>
-        <p class="font-bold">App connection created</p>
-      </div>
-    </div>
+<div class="w-full max-w-screen-sm mx-auto">
+  <h2 class="font-bold text-2xl font-headline mb-2 dark:text-white text-center">
+    🚀 Almost there!
+  </h2>
+  <div class="font-medium text-center mb-8 dark:text-white">
+    Complete the last step of the setup by pasting or scanning your connection's pairing secret in the desired app to finalise the connection.
   </div>
 
-  {{if not (eq .PairingSecret "")}}
-  <p class="mb-4 dark:text-white">Use the pairing secret to connect to your app.</p>
-
-  <p class=" text-orange-700 bg-orange-50 dark:text-orange-400 dark:bg-orange-900 py-3 px-4 mb-6 rounded-md">
-    ⚠️ This pairing secret is only shown once. Don’t show it to anyone. Use it
-    only with apps you trust.
-  </p>
-
-  <p class="text-l font-bold">
-    <a
-      onclick="document.getElementById('pairing-details').classList.toggle('hidden');return false"
-      class="inline-flex bg-purple-700 cursor-pointer duration-150 focus:outline-none font-medium hover:bg-purple-900 items-center justify-center px-5 py-3 rounded-md shadow text-white transition"
-      href="#"
-    >
-      <img
-        src="public/images/visible.svg"
-        width="24"
-        height="24"
-        class="mr-2"
-      />
-      Reveal pairing secret
-    </a>
-  </p>
-  {{end}}
-
-  <div
-    class="hidden my-6 mx-auto rounded-lg border border-gray-300 dark:border-white/10 p-6"
-    style="width: 432px"
-    id="pairing-details"
-  >
-    <p class="my-4 w-full">
-      <input
-        type="text"
-        id="pairing-input"
-        value="{{.PairingUri}}"
-        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-surface-00dp dark:border-neutral-800 dark:placeholder-gray-400 dark:text-white"
-      />
-    </p>
-
-    <a
-      href="#"
-      id="copy-link"
-      class="w-full text-center bg-white border cursor-pointer dark:bg-surface-02dp dark:border-white/10 dark:hover:bg-surface-16dp duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus:outline-none font-medium hover:bg-gray-100 flex items-center justify-center px-5 py-3 rounded-md shadow text-gray-700 dark:text-neutral-300 transition mb-6"
-    >
-      <svg 
-        class="fill-current h-6 w-6 mr-4"
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-      >
-        <rect id="copy-icon-rect" x="6" y="6" width="10" height="14" rx="1.5" stroke="currentColor" fill="transparent"/>
-        <path d="M8.06427 5.06427C8.20216 5.02247 8.34846 5 8.5 5H15.5C16.3284 5 17 5.67157 17 6.5V17.5C17 17.6515 16.9775 17.7978 16.9357 17.9357C17.5517 17.7491 18 17.1769 18 16.5V5.5C18 4.67157 17.3284 4 16.5 4H9.5C8.82312 4 8.25095 4.44835 8.06427 5.06427Z" fill="currentColor"/>
+<div class="flex flex-col">
+    <a href="{{.PairingUri}}" class="w-full inline-flex bg-purple-700 cursor-pointer duration-150 focus:outline-none font-medium hover:bg-purple-900 items-center justify-center px-5 py-4 rounded-md shadow text-white transition mb-2">
+      <svg class="mr-2" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path fill-rule="evenodd" clip-rule="evenodd"
+          d="M13.6281 5.03035L20.9945 12.43L20.9956 12.431C21.4028 12.84 21.8601 13.0639 22.279 13.1062C22.6711 13.1459 23.0667 13.0322 23.4219 12.6949L19.4029 2.22631C18.9491 1.2345 17.6421 0.998839 16.8705 1.7739L13.6281 5.03035ZM20.5966 12.8277L20.5967 12.8278L20.5965 12.828C21.5558 13.7914 22.8871 14.0212 23.8507 13.0622L20.5884 16.3091L19.0591 17.8312L17.9915 18.8938L16.1182 17.0137C17.026 15.6333 16.8781 13.76 15.6662 12.5406L14.3908 11.2573C14.2095 11.0748 13.9176 11.074 13.7351 11.2553L13.1055 11.8809L11.5093 10.2748C11.2323 9.99609 10.7744 10.0126 10.5176 10.3196C10.2928 10.5907 10.3315 10.9906 10.5786 11.2392L12.1549 12.8252L10.9035 14.0685L9.3073 12.4624C9.03028 12.1837 8.5705 12.1981 8.31561 12.5072C8.0928 12.7764 8.13155 13.1762 8.37864 13.4249L9.95488 15.0109L9.32725 15.6346C9.14479 15.8159 9.14392 16.1077 9.32522 16.2902L10.6006 17.5735C11.8123 18.7927 13.6847 18.9526 15.0709 18.054L16.9452 19.9351L16.3577 20.5197L14.3527 22.5153C13.3889 23.4743 11.8301 23.4707 10.8708 22.5072L0.717064 12.3077C-0.242097 11.344 -0.238627 9.78546 0.725161 8.82627L6.96087 2.61994C7.92465 1.66089 9.4834 1.66451 10.4427 2.62803L20.5966 12.8277Z"
+          fill="currentColor" />
       </svg>
-      <span id="copy-text">Copy Secret</span>
+      Open in supported app
     </a>
+    <div class="text-center text-xs text-gray-600 dark:text-neutral-500">
+      Only connect with apps you trust!
+    </div>
 
-    <a href="{{.PairingUri}}" target="_blank" id="pairing-link">
-      <div id="connect-qrcode"></div>
-    </a>
+    {{if not (eq .PairingSecret "")}}
+      <div class="dark:text-white text-sm text-center mt-8 mb-1">Manually pair app ↓</div>
+      <button id="copy-button" class="w-full inline-flex items-center justify-center px-3 py-2 cursor-pointer duration-150 transition bg-white text-purple-700 dark:bg-surface-02dp dark:text-neutral-200 border dark:border-white/10 hover:bg-gray-50 dark:hover:bg-surface-16dp bg-origin-border rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary mt-2 mb-2">
+        <svg class="mr-2" width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+          fill="currentColor">
+          <rect width="10" height="14" x="6" y="6" rx="1.5"></rect>
+          <path
+            d="M8.064 5.064A1.5 1.5 0 018.5 5h7A1.5 1.5 0 0117 6.5v11a1.5 1.5 0 01-.064.436A1.5 1.5 0 0018 16.5v-11A1.5 1.5 0 0016.5 4h-7a1.5 1.5 0 00-1.436 1.064z"></path>
+        </svg>
+        <span id="copy-text">Copy pairing secret</span>
+      </button>
+
+      <button onclick="document.getElementById('pairing-details').classList.toggle('hidden');return false" class="w-full inline-flex items-center justify-center px-3 py-2 cursor-pointer duration-150 transition bg-white text-purple-700 dark:bg-surface-02dp dark:text-neutral-200 border dark:border-white/10 hover:bg-gray-50 dark:hover:bg-surface-16dp bg-origin-border rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary mb-4 lg:mb-6">
+        <svg class="mr-2" width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+          fill="currentColor">
+          <path d="M12 14a2 2 0 100-4 2 2 0 000 4z"></path>
+          <path fill-rule="evenodd"
+            d="M21 12c0 2.761-4.03 5-9 5s-9-2.239-9-5 4.03-5 9-5 9 2.239 9 5zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"
+            clip-rule="evenodd"></path>
+        </svg>
+        QR code
+      </button>
+    {{end}}
+  </div>
+
+  <div class="flex fixed inset-0 items-center justify-center hidden" id="pairing-details">
+    <div onclick="document.getElementById('pairing-details').classList.toggle('hidden');return false" class="fixed inset-0 bg-gray-900 opacity-50"></div>
+    <div class="bg-white dark:bg-surface-02dp p-4 lg:px-6 rounded shadow relative">
+      <h2 class="mb-4 font-semibold text-lg lg:text-xl font-headline dark:text-white">Scan QR Code in the app to pair</h2>
+      <a href="{{.PairingUri}}" target="_blank" id="pairing-link" class="block border-4 border-purple-600 rounded-lg p-4 lg:p-6">
+        <div id="connect-qrcode"></div>
+      </a>
+      <button onclick="document.getElementById('pairing-details').classList.toggle('hidden');return false"
+      class="w-full inline-flex font-semibold items-center justify-center px-3 py-2 cursor-pointer duration-150 transition bg-white text-gray-700 dark:bg-surface-02dp dark:text-neutral-200 dark:border-neutral-800 hover:bg-gray-50 dark:hover:bg-surface-16dp bg-origin-border shadow rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary mt-4">
+        Close
+      </button>
+    </div>
   </div>
 </div>
 
@@ -92,23 +66,22 @@
 <script type="text/javascript">
   // notify the opener if present of the success full connect
   window.addEventListener("load", (event) => {
-    
-    // if there is no opener we redirect to the protocol link
-    // this fails if the user does not support it and the user sees the normal
-    if (!window.opener) {
-      // delay execution a bit to make sure the page can finish loading
-      setTimeout(function () {
-        document.location = "{{.PairingUri}}";
-      }, 250);
-      return;
+
+    // dispatch a success event which can be listened to by the opener or by the app that embeddes the webview
+    // this gives thoes apps the chance to know the user has enabled the connection
+    const nwcEvent = new CustomEvent("nwc:success", { detail: {} });
+    window.dispatchEvent(nwcEvent);
+
+    // notify the opener of the successful connection
+    if (window.opener) {
+      window.opener.postMessage(
+        {
+          type: "nwc:success",
+          payload: {success: true},
+        },
+        "*"
+      );
     }
-    window.opener.postMessage(
-      {
-        type: "nwc:success",
-        payload: { success: true },
-      },
-      "*"
-    );
   });
 
   window.addEventListener("DOMContentLoaded", (event) => {
@@ -116,24 +89,23 @@
       {
         fill: window.matchMedia('(prefers-color-scheme: dark)').matches ? "#FFF" : "#000",
         text: "{{.PairingUri}}",
-        size: 384, // in pixels
+        size: 250, // in pixels
       }, //window.matchMedia('(prefers-color-scheme: dark)').matches ? "#FFF" : 
       document.getElementById("connect-qrcode")
     );
 
     document
-      .getElementById("copy-link")
+      .getElementById("copy-button")
       .addEventListener("click", async (event) => {
         event.preventDefault();
+        const copyButton = document.getElementById("copy-button")
         const copyText = document.getElementById("copy-text");
-        const copyIcon = document.getElementById("copy-icon-rect");
-        const value = document.getElementById("pairing-input").value;
 
         if (navigator.clipboard && window.isSecureContext) {
-          navigator.clipboard.writeText(value);
+          navigator.clipboard.writeText("{{.PairingUri}}");
         } else {
           const textArea = document.createElement("textarea");
-          textArea.value = value;
+          textArea.value = "{{.PairingUri}}";
           textArea.style.position = "absolute";
           textArea.style.opacity = 0;
           document.body.appendChild(textArea);
@@ -141,11 +113,13 @@
           await document.execCommand("copy");
           textArea.remove();
         }
-        copyIcon.style.fill = "currentColor";
-        copyText.textContent = "Copied"
+
+        const classesToToggle = ["hover:bg-gray-50", "bg-green-600", "bg-white", "text-white", "text-purple-700"];
+        classesToToggle.forEach(className => copyButton.classList.toggle(className));
+        copyText.textContent = "Copied to clipboard!"
         setTimeout(() => {
-          copyIcon.style.fill = "transparent"
-          copyText.textContent = "Copy Secret"
+        classesToToggle.forEach(className => copyButton.classList.toggle(className));
+          copyText.textContent = "Copy pairing secret"
         }, 2000);
       });
   });
