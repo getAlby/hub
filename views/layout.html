@@ -12,10 +12,9 @@
 
   <body class="bg-gray-50 dark:bg-surface-00dp">
     <div class="bg-white border-b border-gray-200 dark:bg-surface-01dp dark:border-neutral-700 mb-6">
-        <nav class="container max-w-screen-lg mx-auto px-2 py-3">
+        <nav class="container max-w-screen-lg mx-auto px-4 py-3">
             <div class="flex justify-between items-center">
-                <!-- Logo -->
-                <div class="flex items-center">
+                <div class="flex items-center space-x-12">
                   <a href="/" class="font-headline text-[20px] dark:text-white">
                     <img
                       alt="NWC Logo"
@@ -26,9 +25,9 @@
                     />
                     <span class="dark:text-white text-lg font-semibold">Nostr Wallet Connect</span>
                   </a>
-                </div>
+
                 <div class="hidden md:flex space-x-4">
-                  <a
+                   <a
                     class="text-gray-400 font-medium hover:text-gray-600 dark:hover:text-gray-300 transition"
                     href="/apps"
                   >
@@ -41,6 +40,8 @@
                     About
                   </a>
                 </div>
+                </div>
+                 
                 {{if .User}}                
                   <a
                     class="text-gray-400 pl-5 font-medium"
@@ -52,10 +53,10 @@
             </div>
         </nav>
     </div>
-    <main class="container max-w-screen-lg mx-auto px-2 lg:px-0 flex flex-col">
+    <main class="container max-w-screen-lg mx-auto px-4 lg:px-0 flex flex-col">
         {{template "body" .}}
     </main>
-    <footer class="mt-24 text-center">
+    <footer class="mt-20 mb-4 text-center">
       <span class="text-gray-500 dark:text-neutral-300 text-xs">Made with 💜 by</span>
       <a href="https://getalby.com?utm_source=nwc" rel="noreferrer noopener">
         <img

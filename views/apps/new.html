@@ -42,7 +42,7 @@
       </div>
 
       <div class="flex justify-between items-center mb-2 text-gray-800 dark:text-white">
-        <p class="text-lg font-medium">Authorize the app to</p>
+        <p class="text-lg font-medium">Authorize the app to:</p>
         <img id="edit" class="dark:invert opacity-80 inline cursor-pointer w-6" src="/public/images/edit.svg"/>
       </div>
       <div id="request-method-options" class="mb-6">
@@ -57,12 +57,13 @@
               {{if eq $key "pay_invoice"}}
                 <div id="budget-allowance" class="pt-1 pb-2 pl-5 ml-2.5 border-l-2 border-l-gray-200 dark:border-l-gray-400 {{if not $value.Checked }}pointer-events-none opacity-30 hidden {{end}}">
                   <p class="text-gray-600 dark:text-gray-300 mb-2 text-sm">Monthly budget</p>
-                  <div id="budget-allowance-limits" class="grid grid-cols-6 grid-rows-2 md:grid-rows-1 md:grid-cols-5 gap-2 text-xs text-gray-800 dark:text-neutral-200">
+                  <div id="budget-allowance-limits" class="grid grid-cols-6 grid-rows-2 md:grid-rows-1 md:grid-cols-6 gap-2 text-xs text-gray-800 dark:text-neutral-200">
                     <div data-limit="10000" class="col-span-2 md:col-span-1 cursor-pointer rounded border-2 border-gray-200 dark:border-gray-400 text-center py-4">10k<br>sats</div>
+                    <div data-limit="25000" class="col-span-2 md:col-span-1 cursor-pointer rounded border-2 border-gray-200 dark:border-gray-400 text-center py-4">25k<br>sats</div>
                     <div data-limit="50000" class="col-span-2 md:col-span-1 cursor-pointer rounded border-2 border-gray-200 dark:border-gray-400 text-center py-4">50k<br>sats</div>
                     <div data-limit="100000" class="col-span-2 md:col-span-1 cursor-pointer rounded border-2 border-gray-200 dark:border-gray-400 text-center py-4">100k<br>sats</div>
-                    <div data-limit="1000000" class="col-span-3 md:col-span-1 cursor-pointer rounded border-2 border-gray-200 dark:border-gray-400 text-center py-4">1M<br>sats</div>
-                    <div data-limit="0" class="col-span-3 md:col-span-1 cursor-pointer rounded border-2 border-gray-200 dark:border-gray-400 text-center py-4 border-purple-700 dark:border-purple-300 text-purple-700 dark:text-white bg-purple-100 dark:bg-purple-900">Unlimited<br>#reckless</b></div>
+                    <div data-limit="1000000" class="col-span-2 md:col-span-1 cursor-pointer rounded border-2 border-gray-200 dark:border-gray-400 text-center py-4">1M<br>sats</div>
+                    <div data-limit="0" class="col-span-2 md:col-span-1 cursor-pointer rounded border-2 border-gray-200 dark:border-gray-400 text-center py-4 border-purple-700 dark:border-purple-300 text-purple-700 dark:text-white bg-purple-100 dark:bg-purple-900">Unlimited<br>#reckless</b></div>
                   </div>
                 </div>
               {{end}}

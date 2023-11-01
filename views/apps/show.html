@@ -13,11 +13,11 @@
     <div class="pb-4">
       <table>
         <tr>
-          <td class="font-medium dark:text-white">Public Key:</td>
-          <td class="text-gray-600 dark:text-neutral-400">{{.App.NostrPubkey}}</td>
+          <td class="align-top w-32 font-medium dark:text-white">Public Key</td>
+          <td class="text-gray-600 dark:text-neutral-400 break-all">{{.App.NostrPubkey}}</td>
         </tr>
         <tr>
-          <td class="pr-3 font-medium dark:text-white">Last used:</td>
+          <td class="align-top font-medium dark:text-white">Last used</td>
           <td class="text-gray-600 dark:text-neutral-400">
             {{if gt .EventsCount 0 }}
               {{.LastEvent.CreatedAt.Format "02 Jan 06 15:04 MST" }}
@@ -27,7 +27,7 @@
           </td>
         </tr>
         <tr>
-          <td class="pr-3 font-medium dark:text-white">Expires at:</td>
+          <td class="align-top font-medium dark:text-white">Expires at</td>
           <td class="text-gray-600 dark:text-neutral-400">        
              {{ if not .ExpiresAt.IsZero}}
               {{.ExpiresAt}}
