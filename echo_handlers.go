@@ -257,7 +257,6 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 
 		requestMethods = strings.Join(keys, " ")
 	}
-	budgetEnabled := maxAmount != "" || budgetRenewal != ""
 	csrf, _ := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
 
 	user, err := svc.GetUser(c)
@@ -280,6 +279,7 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 	//and indicate which ones are checked by default in the front-end
 	type RequestMethodHelper struct {
 		Description string
+		Icon        string
 		Checked     bool
 	}
 
@@ -287,6 +287,7 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 	for k, v := range nip47MethodDescriptions {
 		requestMethodHelper[k] = &RequestMethodHelper{
 			Description: v,
+			Icon:        nip47MethodIcons[k],    
 		}
 	}
 
@@ -304,7 +305,6 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 		"MaxAmount":           maxAmount,
 		"BudgetRenewal":       budgetRenewal,
 		"ExpiresAt":           expiresAt,
-		"BudgetEnabled":       budgetEnabled,
 		"RequestMethods":      requestMethods,
 		"RequestMethodHelper": requestMethodHelper,
 		"Disabled":            disabled,
