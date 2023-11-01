@@ -70,7 +70,7 @@ type User struct {
 
 type App struct {
 	ID          uint
-	UserId      uint   `validate:"required"`
+	UserId      uint `validate:"required"`
 	User        User
 	Name        string `validate:"required"`
 	Description string
@@ -81,7 +81,7 @@ type App struct {
 
 type AppPermission struct {
 	ID            uint
-	AppId         uint   `validate:"required"`
+	AppId         uint `validate:"required"`
 	App           App
 	RequestMethod string `validate:"required"`
 	MaxAmount     int
@@ -93,7 +93,7 @@ type AppPermission struct {
 
 type NostrEvent struct {
 	ID        uint
-	AppId     uint   `validate:"required"`
+	AppId     uint `validate:"required"`
 	App       App
 	NostrId   string `validate:"required"`
 	ReplyId   string

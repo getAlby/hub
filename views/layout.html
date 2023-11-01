@@ -11,75 +11,57 @@
   </head>
 
   <body class="bg-gray-50 dark:bg-surface-00dp">
-    <nav
-      class="bg-white border-b border-gray-200 mb-4 dark:bg-surface-01dp dark:border-white/10"
-      data-controller="navbar"
-    >
-      <div class="container mx-auto">
-        <div
-          class="w-full py-2 lg:w-8/12 mx-auto flex flex-wrap justify-between items-center"
-          style="height: 56px"
-        >
-          <a href="/" class="font-headline text-[20px] dark:text-white">
-            <img
-              alt=""
-              class="inline w-8 ml-1 md:ml-0"
-              width="128"
-              height="120"
-              src="/public/images/nwc-logo.svg"
-            />
-            Nostr Wallet Connect
-          </a>
-          <div class="flex md:flex-1 items-center">
-            <ul
-              class="hidden md:flex flex-wrap pl-10 pr-10 {{if .User}}mx-auto{{else}}w-full justify-end{{end}}"
-            >
-              <li class="mx-2 flex">
-                <a
-                  class="text-gray-400 pl-5 py-2 font-medium hover:text-gray-600 dark:hover:text-gray-300 transition"
-                  rel="nofollow"
-                  href="/apps"
-                >
-                  Connections
-                </a>
-              </li>
-              <li class="mx-2 flex">
-                <a
-                  class="text-gray-400 pl-5 py-2 font-medium"
-                  rel="nofollow"
-                  href="/about"
-                >
-                  About
-                </a>
-              </li>
-            </ul>
-            {{if .User}}
-            <div class="pr-4 sm:pr-0">
-              <a
-                class="text-gray-400 pl-5 py-2 font-medium"
-                rel="nofollow"
-                href="/logout"
-              >
-                Logout
-              </a>
+    <div class="bg-white border-b border-gray-200 dark:bg-surface-01dp dark:border-neutral-700 mb-6">
+        <nav class="container max-w-screen-lg mx-auto px-2 py-3">
+            <div class="flex justify-between items-center">
+                <!-- Logo -->
+                <div class="flex items-center">
+                  <a href="/" class="font-headline text-[20px] dark:text-white">
+                    <img
+                      alt="NWC Logo"
+                      class="w-8 inline"
+                      width="128"
+                      height="120"
+                      src="/public/images/nwc-logo.svg"
+                    />
+                    <span class="dark:text-white text-lg font-semibold">Nostr Wallet Connect</span>
+                  </a>
+                </div>
+                <div class="hidden md:flex space-x-4">
+                  <a
+                    class="text-gray-400 font-medium hover:text-gray-600 dark:hover:text-gray-300 transition"
+                    href="/apps"
+                  >
+                    Connections
+                  </a>
+                  <a
+                    class="text-gray-400 pl-5 font-medium"
+                    href="/about"
+                  >
+                    About
+                  </a>
+                </div>
+                {{if .User}}                
+                  <a
+                    class="text-gray-400 pl-5 font-medium"
+                    href="/logout"
+                  >
+                    Logout
+                  </a>
+                {{end}}
             </div>
-            {{end}}
-          </div>
-        </div>
-      </div>
-    </nav>
-    <main class="container mx-auto px-2 md:px-0 pb-4 flex flex-col">
-      {{template "body" .}}
+        </nav>
+    </div>
+    <main class="container max-w-screen-lg mx-auto px-2 lg:px-0 flex flex-col">
+        {{template "body" .}}
     </main>
-    <footer class="mb-8 text-center">
-      <span class="text-gray-500 dark:text-neutral-300">powered by</span>
-      <a href="https://getalby.com">
+    <footer class="mt-24 text-center">
+      <span class="text-gray-500 dark:text-neutral-300 text-xs">Made with 💜 by</span>
+      <a href="https://getalby.com?utm_source=nwc" rel="noreferrer noopener">
         <img
           id="alby-logo"
           src="/public/images/alby-logo-with-text.svg"
-          width="1094"
-          height="525"
-          class="w-[65px] inline"
+          class="w-16 inline"
         />
       </a>
     </footer>
