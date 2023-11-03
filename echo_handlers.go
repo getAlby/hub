@@ -187,6 +187,8 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 		requestMethods = append(requestMethods, nip47MethodDescriptions[appPerm.RequestMethod])
 	}
 
+	expiresAtFormatted := expiresAt.Format("January 2, 2006 03:04 PM")
+
 	renewsIn := ""
 	budgetUsage := int64(0)
 	maxAmount := paySpecificPermission.MaxAmount
@@ -201,6 +203,7 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 		"PaySpecificPermission": paySpecificPermission,
 		"RequestMethods":        requestMethods,
 		"ExpiresAt":             expiresAt,
+		"ExpiresAtFormatted":    expiresAtFormatted,
 		"User":                  user,
 		"LastEvent":             lastEvent,
 		"EventsCount":           eventsCount,
@@ -244,8 +247,11 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 	budgetRenewal := strings.ToLower(c.QueryParam("budget_renewal"))
 	expiresAt := c.QueryParam("expires_at") // YYYY-MM-DD or MM/DD/YYYY or timestamp in seconds
 	if expiresAtTimestamp, err := strconv.Atoi(expiresAt); err == nil {
-		expiresAt = time.Unix(int64(expiresAtTimestamp), 0).Format(time.RFC3339) // FIXME: should display like "January 2, 2006 03:04 PM" in the UI
+		expiresAt = time.Unix(int64(expiresAtTimestamp), 0).Format(time.RFC3339)
 	}
+	expiresAtISO, _ := time.Parse(time.RFC3339, expiresAt)
+	expiresAtFormatted := expiresAtISO.Format("January 2, 2006 03:04 PM")
+
 	requestMethods := c.QueryParam("request_methods")
 	customRequestMethods := requestMethods
 	if requestMethods == "" {
@@ -305,6 +311,7 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 		"MaxAmount":            maxAmount,
 		"BudgetRenewal":        budgetRenewal,
 		"ExpiresAt":            expiresAt,
+		"ExpiresAtFormatted":   expiresAtFormatted,
 		"RequestMethods":       requestMethods,
 		"CustomRequestMethods": customRequestMethods,
 		"RequestMethodHelper":  requestMethodHelper,
@@ -339,7 +346,11 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 	app := App{Name: name, NostrPubkey: pairingPublicKey}
 	maxAmount, _ := strconv.Atoi(c.FormValue("MaxAmount"))
 	budgetRenewal := c.FormValue("BudgetRenewal")
-	expiresAt, _ := time.Parse("2006-01-02", c.FormValue("ExpiresAt"))
+	expiresAt, err := time.Parse(time.RFC3339, c.FormValue("ExpiresAt"))
+	if (err != nil) {
+		return fmt.Errorf("Invalid ExpiresAt: %v", err)
+	}
+
 	if !expiresAt.IsZero() {
 		expiresAt = time.Date(expiresAt.Year(), expiresAt.Month(), expiresAt.Day(), 23, 59, 59, 0, expiresAt.Location())
 	}

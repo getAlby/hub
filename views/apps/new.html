@@ -97,12 +97,12 @@
             <div data-days="7" class="cursor-pointer rounded border-2 border-gray-200 dark:border-gray-400 text-center py-4">1 week</div>
             <div data-days="30" class="cursor-pointer rounded border-2 border-gray-200 dark:border-gray-400 text-center py-4">1 month</div>
             <div data-days="365" class="cursor-pointer rounded border-2 border-gray-200 dark:border-gray-400 text-center py-4">1 year</div>
-            <div data-days="0" class="cursor-pointer rounded border-2 border-gray-200 dark:border-gray-400 text-center py-4 border-purple-700 dark:border-purple-300 text-purple-700 dark:text-white bg-purple-100 dark:bg-purple-900">Never</div>
+            <div data-days="0" class="cursor-pointer rounded border-2 text-center py-4 border-purple-700 dark:border-purple-300 text-purple-700 dark:text-white bg-purple-100 dark:bg-purple-900">Never</div>
           </div>
         </div>
       {{else}}
         <p class="text-lg font-medium mb-2">Connection expiry time</p>
-        <p class="text-gray-600 dark:text-gray-300 text-sm">{{ .ExpiresAt }}</p>
+        <p class="text-gray-600 dark:text-gray-300 text-sm">{{ .ExpiresAtFormatted }}</p>
       {{end}}
 
     {{if .User.Email}}
@@ -216,7 +216,7 @@
         expiresAt.value = "";
       } else {
         let expiryDate = new Date(today.getTime() + days * 24 * 60 * 60 * 1000);
-        expiresAt.value = expiryDate.toISOString().split('T')[0];
+        expiresAt.value = expiryDate.toISOString();
       }
     })
   })

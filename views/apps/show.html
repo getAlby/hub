@@ -29,8 +29,8 @@
         <tr>
           <td class="align-top font-medium dark:text-white">Expires at</td>
           <td class="text-gray-600 dark:text-neutral-400">        
-             {{ if not .ExpiresAt.IsZero}}
-              {{.ExpiresAt}}
+            {{ if not .ExpiresAt.IsZero}}
+              {{.ExpiresAtFormatted}}
             {{else}}
               never
             {{end}}
