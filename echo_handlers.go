@@ -350,9 +350,13 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 	app := App{Name: name, NostrPubkey: pairingPublicKey}
 	maxAmount, _ := strconv.Atoi(c.FormValue("MaxAmount"))
 	budgetRenewal := c.FormValue("BudgetRenewal")
-	expiresAt, err := time.Parse(time.RFC3339, c.FormValue("ExpiresAt"))
-	if (err != nil) {
-		return fmt.Errorf("Invalid ExpiresAt: %v", err)
+
+	expiresAt := time.Time{}
+	if c.FormValue("ExpiresAt") != "" {
+		expiresAt, err = time.Parse(time.RFC3339, c.FormValue("ExpiresAt"))
+		if (err != nil) {
+			return fmt.Errorf("Invalid ExpiresAt: %v", err)
+		}
 	}
 
 	if !expiresAt.IsZero() {

@@ -36,8 +36,8 @@
           <input type="hidden" name="name" id="" value="{{.Name}}">
         {{end}}
         <input type="hidden" name="RequestMethods" id="request-methods" value={{.RequestMethods}}>
-        <input type="hidden" name="ExpiresAt" id="expires-at" value={{.ExpiresAt}}>
-        <input type="hidden" name="MaxAmount" id="max-amount" value={{.MaxAmount}}>
+        <input type="hidden" name="ExpiresAt" id="expires-at" value="{{.ExpiresAt}}">
+        <input type="hidden" name="MaxAmount" id="max-amount" value="{{.MaxAmount}}">
         <input type="hidden" name="BudgetRenewal" id="budget-renewal" value={{if .BudgetRenewal}}{{.BudgetRenewal}}{{else}}{{"monthly"}}{{end}}>
       </div>
 
