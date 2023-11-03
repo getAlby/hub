@@ -244,10 +244,10 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 	budgetRenewal := strings.ToLower(c.QueryParam("budget_renewal"))
 	expiresAt := c.QueryParam("expires_at") // YYYY-MM-DD or MM/DD/YYYY or timestamp in seconds
 	if expiresAtTimestamp, err := strconv.Atoi(expiresAt); err == nil {
-		expiresAt = time.Unix(int64(expiresAtTimestamp), 0).Format(time.RFC3339)
+		expiresAt = time.Unix(int64(expiresAtTimestamp), 0).Format(time.RFC3339) // FIXME: should display like "January 2, 2006 03:04 PM" in the UI
 	}
-	disabled := c.QueryParam("editable") == "false"
 	requestMethods := c.QueryParam("request_methods")
+	customRequestMethods := requestMethods
 	if requestMethods == "" {
 		// if no request methods are given, enable them all by default
 		keys := []string{}
@@ -298,17 +298,17 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 	}
 
 	return c.Render(http.StatusOK, "apps/new.html", map[string]interface{}{
-		"User":                user,
-		"Name":                appName,
-		"Pubkey":              pubkey,
-		"ReturnTo":            returnTo,
-		"MaxAmount":           maxAmount,
-		"BudgetRenewal":       budgetRenewal,
-		"ExpiresAt":           expiresAt,
-		"RequestMethods":      requestMethods,
-		"RequestMethodHelper": requestMethodHelper,
-		"Disabled":            disabled,
-		"Csrf":                csrf,
+		"User":                 user,
+		"Name":                 appName,
+		"Pubkey":               pubkey,
+		"ReturnTo":             returnTo,
+		"MaxAmount":            maxAmount,
+		"BudgetRenewal":        budgetRenewal,
+		"ExpiresAt":            expiresAt,
+		"RequestMethods":       requestMethods,
+		"CustomRequestMethods": customRequestMethods,
+		"RequestMethodHelper":  requestMethodHelper,
+		"Csrf":                 csrf,
 	})
 }
 
