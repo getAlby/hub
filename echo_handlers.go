@@ -240,7 +240,11 @@ func getEndOfBudgetString(endOfBudget time.Time) (result string) {
 }
 
 func (svc *Service) AppsNewHandler(c echo.Context) error {
-	appName := c.QueryParam("c") // c - for client
+	appName := c.QueryParam("name")
+	if (appName == "") {
+		 // c - for client (deprecated)
+		appName = c.QueryParam("c")
+	}
 	pubkey := c.QueryParam("pubkey")
 	returnTo := c.QueryParam("return_to")
 	maxAmount := c.QueryParam("max_amount")
