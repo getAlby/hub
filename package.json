@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "css": "npx tailwindcss -i ./views/application.css -o ./public/css/application.css --watch"
+    "css": "tailwindcss -i ./views/application.css -o ./public/css/application.css --watch"
   },
   "devDependencies": {
     "@tailwindcss/aspect-ratio": "^0.4.2",

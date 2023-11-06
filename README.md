@@ -29,7 +29,7 @@ As data storage SQLite or PostgreSQL (recommended) can be used.
 
 ## Development
 
-`go run .`
+`go run .` or `gow -e=go,mod,html,css run .` using [gow](https://github.com/mitranim/gow)
 
 To build the CSS run:
 
@@ -83,7 +83,6 @@ If the client creates the secret the client only needs to share the public key o
 - `expires_at` (optional) connection cannot be used after this date. Unix timestamp in seconds.
 - `max_amount` (optional) maximum amount in sats that can be sent per renewal period
 - `budget_renewal` (optional) reset the budget at the end of the given budget renewal. Can be `never` (default), `daily`, `weekly`, `monthly`, `yearly`
-- `editable` (optional) set to `false` to disable form editing by the user
 - `request_methods` (optional) url encoded, space separated list of request types that you need permission for: `pay_invoice` (default), `get_balance`  (see NIP47). For example: `..&request_methods=pay_invoice%20get_balance`
 
 Example:
