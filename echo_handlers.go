@@ -405,11 +405,15 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 		return c.Redirect(302, "/apps")
 	}
 
+	// FIXME: need a public-facing relay URL env variable
+	// and fallback to svc.cfg.Relay (hosted instance uses an internal URL)
+	publicRelayUrl := "wss://relay.getalby.com/v1";
+
 	if c.FormValue("returnTo") != "" {
 		returnToUrl, err := url.Parse(c.FormValue("returnTo"))
 		if err == nil {
 			query := returnToUrl.Query()
-			query.Add("relay", svc.cfg.Relay)
+			query.Add("relay", publicRelayUrl);
 			query.Add("pubkey", svc.cfg.IdentityPubkey)
 			if user.LightningAddress != "" {
 				query.Add("lud16", user.LightningAddress)
@@ -423,7 +427,7 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 	if user.LightningAddress != "" {
 		lud16 = fmt.Sprintf("&lud16=%s", user.LightningAddress)
 	}
-	pairingUri := template.URL(fmt.Sprintf("nostr+walletconnect://%s?relay=%s&secret=%s%s", svc.cfg.IdentityPubkey, svc.cfg.Relay, pairingSecretKey, lud16))
+	pairingUri := template.URL(fmt.Sprintf("nostr+walletconnect://%s?relay=%s&secret=%s%s", svc.cfg.IdentityPubkey, publicRelayUrl, pairingSecretKey, lud16))
 	return c.Render(http.StatusOK, "apps/create.html", map[string]interface{}{
 		"User":          user,
 		"PairingUri":    pairingUri,
