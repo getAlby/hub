@@ -405,9 +405,10 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 		return c.Redirect(302, "/apps")
 	}
 
-	// FIXME: need a public-facing relay URL env variable
-	// and fallback to svc.cfg.Relay (hosted instance uses an internal URL)
-	publicRelayUrl := "wss://relay.getalby.com/v1";
+	publicRelayUrl := svc.cfg.PublicRelay;
+	if (publicRelayUrl == "") {
+		publicRelayUrl = svc.cfg.Relay;
+	}
 
 	if c.FormValue("returnTo") != "" {
 		returnToUrl, err := url.Parse(c.FormValue("returnTo"))
