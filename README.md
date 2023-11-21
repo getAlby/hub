@@ -45,6 +45,7 @@ To build the CSS run:
 - `NOSTR_PRIVKEY`: the private key of this service. Should be a securely randomly generated 32 byte hex string.
 - `CLIENT_NOSTR_PUBKEY`: if set, this service will only listen to events authored by this public key. You can set this to your own nostr public key.
 - `RELAY`: default: "wss://relay.getalby.com/v1"
+- `PUBLIC_RELAY`: optional relay URL to be used in connection strings if `RELAY` is an internal URL
 - `LN_BACKEND_TYPE`: ALBY or LND
 - `ALBY_CLIENT_SECRET`= Alby OAuth client secret (used with the Alby backend)
 - `ALBY_CLIENT_ID`= Alby OAuth client ID (used with the Alby backend)
