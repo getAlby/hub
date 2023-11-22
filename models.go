@@ -15,6 +15,7 @@ const (
 	NIP_47_GET_BALANCE_METHOD         = "get_balance"
 	NIP_47_MAKE_INVOICE_METHOD        = "make_invoice"
 	NIP_47_LOOKUP_INVOICE_METHOD      = "lookup_invoice"
+	NIP_47_LIST_INVOICES_METHOD       = "list_invoices"
 	NIP_47_ERROR_INTERNAL             = "INTERNAL"
 	NIP_47_ERROR_NOT_IMPLEMENTED      = "NOT_IMPLEMENTED"
 	NIP_47_ERROR_QUOTA_EXCEEDED       = "QUOTA_EXCEEDED"
@@ -39,11 +40,13 @@ var nip47MethodDescriptions = map[string]string{
 	NIP_47_PAY_INVOICE_METHOD:    "Send payments",
 	NIP_47_MAKE_INVOICE_METHOD:   "Create invoices",
 	NIP_47_LOOKUP_INVOICE_METHOD: "Lookup status of invoices",
+	NIP_47_LIST_INVOICES_METHOD:  "List invoices",
 }
 
 var nip47MethodIcons = map[string]string{
 	NIP_47_GET_BALANCE_METHOD:    "wallet",
 	NIP_47_PAY_INVOICE_METHOD:    "lightning",
+	NIP_47_LIST_INVOICES_METHOD:  "invoice",
 	NIP_47_MAKE_INVOICE_METHOD:   "invoice",
 	NIP_47_LOOKUP_INVOICE_METHOD: "search",
 }
@@ -115,6 +118,18 @@ type Payment struct {
 	Preimage       *string
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
+}
+
+type Invoice struct {
+	Invoice         string                 `json:"payment_request"`
+	Description     string                 `json:"memo"`
+	DescriptionHash string                 `json:"description_hash"`
+	Preimage        string                 `json:"preimage"`
+	PaymentHash     string                 `json:"payment_hash"`
+	Amount          int64                  `json:"amount"`
+	FeesPaid        int64                  `json:"value"`
+	SettledAt       time.Time              `json:"settled_at"`
+	Metadata        map[string]interface{} `json:"metadata,omitempty"`
 }
 
 type PayRequest struct {
@@ -206,4 +221,12 @@ type Nip47LookupInvoiceParams struct {
 type Nip47LookupInvoiceResponse struct {
 	Invoice string `json:"invoice"`
 	Paid    bool   `json:"paid"`
+}
+
+type Nip47ListInvoicesParams struct {
+	From   string `json:"from,omitempty"`
+	Until  string `json:"until,omitempty"`
+	Limit  string `json:"limit,omitempty"`
+	Offset string `json:"offset,omitempty"`
+	Unpaid string `json:"unpaid,omitempty"`
 }

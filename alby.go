@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
@@ -327,6 +328,79 @@ func (svc *AlbyOAuthService) GetBalance(ctx context.Context, senderPubkey string
 		"APIHttpStatus": resp.StatusCode,
 	}).Errorf("Balance fetch failed %s", string(errorPayload.Message))
 	return 0, errors.New(errorPayload.Message)
+}
+
+func (svc *AlbyOAuthService) ListInvoices(ctx context.Context, senderPubkey, from, until, limit, offset string) (invoices []*Invoice, err error) {
+	app := App{}
+	err = svc.db.Preload("User").First(&app, &App{
+		NostrPubkey: senderPubkey,
+	}).Error
+	if err != nil {
+		svc.Logger.WithFields(logrus.Fields{
+			"senderPubkey": senderPubkey,
+		}).Errorf("App not found: %v", err)
+		return nil, err
+	}
+	tok, err := svc.FetchUserToken(ctx, app)
+	if err != nil {
+		return nil, err
+	}
+	client := svc.oauthConf.Client(ctx, tok)
+
+	urlParams := url.Values{}
+	urlParams.Add("page", "1")
+	if from != "" {
+		urlParams.Add("q[created_at_gt]", from)
+	}
+	if until != "" {
+		urlParams.Add("q[created_at_lt]", until)
+	}
+	if limit != "" {
+		urlParams.Add("items", limit)
+	}
+	// TODO: Add Offset and Unpaid
+
+	fmt.Println(fmt.Sprintf("%s/invoices?%s", svc.cfg.AlbyAPIURL, urlParams.Encode()))
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/invoices?%s", svc.cfg.AlbyAPIURL, urlParams.Encode()), nil)
+	if err != nil {
+		svc.Logger.WithError(err).Error("Error creating request /invoices")
+		return nil, err
+	}
+
+	req.Header.Set("User-Agent", "NWC")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		svc.Logger.WithFields(logrus.Fields{
+			"senderPubkey": senderPubkey,
+			"appId":        app.ID,
+			"userId":       app.User.ID,
+		}).Errorf("Failed to fetch invoices: %v", err)
+		return nil, err
+	}
+
+	if resp.StatusCode < 300 {
+		err = json.NewDecoder(resp.Body).Decode(&invoices)
+		if err != nil {
+			return nil, err
+		}
+		svc.Logger.WithFields(logrus.Fields{
+			"senderPubkey": senderPubkey,
+			"appId":        app.ID,
+			"userId":       app.User.ID,
+		}).Info("Invoices listing successful")
+		return invoices, nil
+	}
+
+	errorPayload := &ErrorResponse{}
+	err = json.NewDecoder(resp.Body).Decode(errorPayload)
+	svc.Logger.WithFields(logrus.Fields{
+		"senderPubkey":  senderPubkey,
+		"appId":         app.ID,
+		"userId":        app.User.ID,
+		"APIHttpStatus": resp.StatusCode,
+	}).Errorf("Invoices listing failed %s", string(errorPayload.Message))
+	return nil, errors.New(errorPayload.Message)
 }
 
 func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, payReq string) (preimage string, err error) {

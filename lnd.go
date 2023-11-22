@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/hex"
 	"errors"
+	"strconv"
+	"time"
 
 	"github.com/getAlby/nostr-wallet-connect/lnd"
 
@@ -20,6 +22,7 @@ type LNClient interface {
 	GetBalance(ctx context.Context, senderPubkey string) (balance int64, err error)
 	MakeInvoice(ctx context.Context, senderPubkey string, amount int64, description string, descriptionHash string, expiry int64) (invoice string, paymentHash string, err error)
 	LookupInvoice(ctx context.Context, senderPubkey string, paymentHash string) (invoice string, paid bool, err error)
+	ListInvoices(ctx context.Context, senderPubkey, from, until, limit, offset string) (invoices []*Invoice, err error)
 }
 
 // wrap it again :sweat_smile:
@@ -49,6 +52,36 @@ func (svc *LNDService) GetBalance(ctx context.Context, senderPubkey string) (bal
 		return 0, err
 	}
 	return int64(resp.LocalBalance.Sat), nil
+}
+
+func (svc *LNDService) ListInvoices(ctx context.Context, senderPubkey string, from string, until string, limit string, offset string) (invoices []*Invoice, err error) {
+	maxInvoices, err := strconv.ParseUint(limit, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	indexOffset, err := strconv.ParseUint(offset, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := svc.client.ListInvoices(ctx, &lnrpc.ListInvoiceRequest{NumMaxInvoices: maxInvoices, IndexOffset: indexOffset})
+	if err != nil {
+		return nil, err
+	}
+
+	for _, inv := range resp.Invoices {
+		invoice := &Invoice{
+			Invoice:         inv.PaymentRequest,
+			Description:     inv.Memo,
+			DescriptionHash: hex.EncodeToString(inv.DescriptionHash),
+			Preimage:        hex.EncodeToString(inv.RPreimage),
+			PaymentHash:     hex.EncodeToString(inv.RHash),
+			Amount:          inv.ValueMsat,
+			FeesPaid:        inv.AmtPaidMsat,
+			SettledAt:       time.Unix(inv.SettleDate, 0),
+		}
+		invoices = append(invoices, invoice)
+	}
+	return invoices, nil
 }
 
 func (svc *LNDService) MakeInvoice(ctx context.Context, senderPubkey string, amount int64, description string, descriptionHash string, expiry int64) (invoice string, paymentHash string, err error) {
@@ -87,12 +120,12 @@ func (svc *LNDService) LookupInvoice(ctx context.Context, senderPubkey string, p
 		return "", false, errors.New("Payment hash must be 32 bytes hex")
 	}
 
-	lndInvoice, err := svc.client.LookupInvoice(ctx, &lnrpc.PaymentHash{ RHash: paymentHashBytes })
+	lndInvoice, err := svc.client.LookupInvoice(ctx, &lnrpc.PaymentHash{RHash: paymentHashBytes})
 	if err != nil {
 		return "", false, err
 	}
 	
-	return lndInvoice.PaymentRequest, lndInvoice.State == *lnrpc.Invoice_SETTLED.Enum(), nil;
+	return lndInvoice.PaymentRequest, lndInvoice.State == *lnrpc.Invoice_SETTLED.Enum(), nil
 }
 
 func (svc *LNDService) SendPaymentSync(ctx context.Context, senderPubkey, payReq string) (preimage string, err error) {
