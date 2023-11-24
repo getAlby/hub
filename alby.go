@@ -104,8 +104,8 @@ func (svc *AlbyOAuthService) MakeInvoice(ctx context.Context, senderPubkey strin
 			"description":     description,
 			"descriptionHash": descriptionHash,
 			"expiry":          expiry,
-		}).Errorf("Value must be 1 sat or greater")
-		return "", "", errors.New("Value must be 1 sat or greater")
+		}).Errorf("amount must be 1000 msat or greater");
+		return "", "", errors.New("amount must be 1000 msat or greater")
 	}
 
 	svc.Logger.WithFields(logrus.Fields{
@@ -174,21 +174,99 @@ func (svc *AlbyOAuthService) MakeInvoice(ctx context.Context, senderPubkey strin
 			"paymentHash":     responsePayload.PaymentHash,
 		}).Info("Make invoice successful")
 		return responsePayload.PaymentRequest, responsePayload.PaymentHash, nil
-	} else {
-		errorPayload := &ErrorResponse{}
-		err = json.NewDecoder(resp.Body).Decode(errorPayload)
+	}
+
+	errorPayload := &ErrorResponse{}
+	err = json.NewDecoder(resp.Body).Decode(errorPayload)
+	svc.Logger.WithFields(logrus.Fields{
+		"senderPubkey":    senderPubkey,
+		"amount":          amount,
+		"description":     description,
+		"descriptionHash": descriptionHash,
+		"expiry":          expiry,
+		"appId":           app.ID,
+		"userId":          app.User.ID,
+		"APIHttpStatus":   resp.StatusCode,
+	}).Errorf("Make invoice failed %s", string(errorPayload.Message))
+	return "", "", errors.New(errorPayload.Message)
+}
+
+func (svc *AlbyOAuthService) LookupInvoice(ctx context.Context, senderPubkey string, paymentHash string) (invoice string, paid bool, err error) {
+	// TODO: move to a shared function
+	app := App{}
+	err = svc.db.Preload("User").First(&app, &App{
+		NostrPubkey: senderPubkey,
+	}).Error
+	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
 			"senderPubkey":    senderPubkey,
-			"amount":          amount,
-			"description":     description,
-			"descriptionHash": descriptionHash,
-			"expiry":          expiry,
+			"paymentHash":     paymentHash,
+		}).Errorf("App not found: %v", err)
+		return "", false, err
+	}
+
+	svc.Logger.WithFields(logrus.Fields{
+		"senderPubkey":    senderPubkey,
+		"paymentHash":     paymentHash,
+		"appId":           app.ID,
+		"userId":          app.User.ID,
+	}).Info("Processing lookup invoice request")
+	tok, err := svc.FetchUserToken(ctx, app)
+	if err != nil {
+		return "", false, err
+	}
+	client := svc.oauthConf.Client(ctx, tok)
+
+	body := bytes.NewBuffer([]byte{})
+
+	// TODO: move to a shared function
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/invoices/%s", svc.cfg.AlbyAPIURL, paymentHash), body)
+	if err != nil {
+		svc.Logger.WithError(err).Errorf("Error creating request /invoices/%s", paymentHash)
+		return "", false, err
+	}
+
+	req.Header.Set("User-Agent", "NWC")
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		svc.Logger.WithFields(logrus.Fields{
+			"senderPubkey":    senderPubkey,
+			"paymentHash":     paymentHash,
 			"appId":           app.ID,
 			"userId":          app.User.ID,
-			"APIHttpStatus":   resp.StatusCode,
-		}).Errorf("Make invoice failed %s", string(errorPayload.Message))
-		return "", "", errors.New(errorPayload.Message)
+		}).Errorf("Failed to lookup invoice: %v", err)
+		return "", false, err
 	}
+	
+	if resp.StatusCode < 300 {
+		responsePayload := &LookupInvoiceResponse{}
+		err = json.NewDecoder(resp.Body).Decode(responsePayload)
+		if err != nil {
+			return "", false, err
+		}
+		svc.Logger.WithFields(logrus.Fields{
+			"senderPubkey":    senderPubkey,
+			"paymentHash":     paymentHash,
+			"appId":           app.ID,
+			"userId":          app.User.ID,
+			"paymentRequest":  responsePayload.PaymentRequest,
+			"settled":         responsePayload.Settled,
+		}).Info("Lookup invoice successful")
+		return responsePayload.PaymentRequest, responsePayload.Settled, nil
+	}
+
+	errorPayload := &ErrorResponse{}
+	err = json.NewDecoder(resp.Body).Decode(errorPayload)
+	svc.Logger.WithFields(logrus.Fields{
+		"senderPubkey":    senderPubkey,
+		"paymentHash":     paymentHash,
+		"appId":           app.ID,
+		"userId":          app.User.ID,
+		"APIHttpStatus": resp.StatusCode,
+	}).Errorf("Lookup invoice failed %s", string(errorPayload.Message))
+	return "", false, errors.New(errorPayload.Message)
 }
 
 func (svc *AlbyOAuthService) GetBalance(ctx context.Context, senderPubkey string) (balance int64, err error) {
@@ -238,17 +316,17 @@ func (svc *AlbyOAuthService) GetBalance(ctx context.Context, senderPubkey string
 			"userId":       app.User.ID,
 		}).Info("Balance fetch successful")
 		return int64(responsePayload.Balance), nil
-	} else {
-		errorPayload := &ErrorResponse{}
-		err = json.NewDecoder(resp.Body).Decode(errorPayload)
-		svc.Logger.WithFields(logrus.Fields{
-			"senderPubkey":  senderPubkey,
-			"appId":         app.ID,
-			"userId":        app.User.ID,
-			"APIHttpStatus": resp.StatusCode,
-		}).Errorf("Balance fetch failed %s", string(errorPayload.Message))
-		return 0, errors.New(errorPayload.Message)
 	}
+
+	errorPayload := &ErrorResponse{}
+	err = json.NewDecoder(resp.Body).Decode(errorPayload)
+	svc.Logger.WithFields(logrus.Fields{
+		"senderPubkey":  senderPubkey,
+		"appId":         app.ID,
+		"userId":        app.User.ID,
+		"APIHttpStatus": resp.StatusCode,
+	}).Errorf("Balance fetch failed %s", string(errorPayload.Message))
+	return 0, errors.New(errorPayload.Message)
 }
 
 func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, payReq string) (preimage string, err error) {
@@ -312,23 +390,25 @@ func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, 
 			"bolt11":       payReq,
 			"appId":        app.ID,
 			"userId":       app.User.ID,
+			"paymentHash":  responsePayload.PaymentHash,
 		}).Info("Payment successful")
 		return responsePayload.Preimage, nil
-	} else {
-		errorPayload := &ErrorResponse{}
-		err = json.NewDecoder(resp.Body).Decode(errorPayload)
-		svc.Logger.WithFields(logrus.Fields{
-			"senderPubkey":  senderPubkey,
-			"bolt11":        payReq,
-			"appId":         app.ID,
-			"userId":        app.User.ID,
-			"APIHttpStatus": resp.StatusCode,
-		}).Errorf("Payment failed %s", string(errorPayload.Message))
-		return "", errors.New(errorPayload.Message)
 	}
+
+	errorPayload := &ErrorResponse{}
+	err = json.NewDecoder(resp.Body).Decode(errorPayload)
+	svc.Logger.WithFields(logrus.Fields{
+		"senderPubkey":  senderPubkey,
+		"bolt11":        payReq,
+		"appId":         app.ID,
+		"userId":        app.User.ID,
+		"APIHttpStatus": resp.StatusCode,
+	}).Errorf("Payment failed %s", string(errorPayload.Message))
+	return "", errors.New(errorPayload.Message)
 }
 
 func (svc *AlbyOAuthService) AuthHandler(c echo.Context) error {
+	appName := c.QueryParam("c") // c - for client
 	// clear current session
 	sess, _ := session.Get(CookieName, c)
 	if sess.Values["user_id"] != nil {
@@ -341,7 +421,7 @@ func (svc *AlbyOAuthService) AuthHandler(c echo.Context) error {
 		sess.Save(c.Request(), c.Response())
 	}
 
-	url := svc.oauthConf.AuthCodeURL("")
+	url := svc.oauthConf.AuthCodeURL(appName) // pass on the appName as state
 	return c.Redirect(302, url)
 }
 

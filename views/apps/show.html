@@ -1,68 +1,74 @@
 {{define "body"}}
 
 
-<div class="w-full lg:w-8/12 mx-auto bg-white rounded-md shadow px-4 lg:px-12 py-4 lg:py-12 mb-10 dark:bg-surface-02dp">
-  <a class="mb-2 block dark:text-white" href="/apps">
-    &slarr;
-    Back
-  </a>
+<h2 class="font-bold text-2xl font-headline dark:text-white">{{.App.Name}}</h2>
+<p class="text-gray-600 dark:text-neutral-400 text-sm">{{.App.Description}}</p>
+<a class="ml-1 mt-1 mb-4 block dark:text-white text-xs" href="/apps">
+  &slarr;
+  Back to overview
+</a>
 
+<div class="bg-white rounded-md shadow p-4 lg:p-8 dark:bg-surface-02dp">
   <div class="divide-y divide-gray-200 dark:divide-white/10 dark:bg-surface-02dp">
-    <div class="py-4">
-      <h2 class="font-bold text-2xl font-headline mb-2 dark:text-white">{{.App.Name}}</h2>
-      <p class="text-gray-400 text-sm">App connection pubkey: {{.App.NostrPubkey}}</p>
-      <p class="text-gray-400 text-sm">Last accessed:
-        {{if gt .EventsCount 0 }}
-        {{.LastEvent.CreatedAt.Format "02 Jan 06 15:04 MST" }}
-        {{else}}
-        never
-        {{end}}
-      </p>
-      <p class="text-sm">{{.App.Description}}</p>
+    <div class="pb-4">
+      <table>
+        <tr>
+          <td class="align-top w-32 font-medium dark:text-white">Public Key</td>
+          <td class="text-gray-600 dark:text-neutral-400 break-all">{{.App.NostrPubkey}}</td>
+        </tr>
+        <tr>
+          <td class="align-top font-medium dark:text-white">Last used</td>
+          <td class="text-gray-600 dark:text-neutral-400">
+            {{if gt .EventsCount 0 }}
+              {{.LastEvent.CreatedAt.Format "02 Jan 06 15:04 MST" }}
+            {{else}}
+              never
+            {{end}}
+          </td>
+        </tr>
+        <tr>
+          <td class="align-top font-medium dark:text-white">Expires at</td>
+          <td class="text-gray-600 dark:text-neutral-400">        
+            {{ if not .ExpiresAt.IsZero}}
+              {{.ExpiresAtFormatted}}
+            {{else}}
+              never
+            {{end}}
+          </td>
+        </tr>
+      </table>
     </div>
   
     <div class="py-4">
       <h3 class="text-xl font-headline dark:text-white">Permissions</h3>
-      <ul class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+      <ul class="mt-2 text-gray-600 dark:text-neutral-400">
           {{range .RequestMethods}}
             <li class="mb-2 relative pl-6">
               <span class="absolute left-0 text-green-500">✓</span>
               {{ . }}
             </li>
           {{end}}
-        {{ if not .ExpiresAt.IsZero}}
-        <li class="mb-2 relative pl-6">
-          <p>
-            <span class="dark:text-white">Expiry:</span> {{.ExpiresAt}}
-          </p>
-        </li>
-        {{end}}
-        {{ if gt .PaySpecificPermission.MaxAmount 0 }}
-        <li class="mb-2 relative pl-6">
-          <p>
-            <span class="dark:text-white">Budget Amount:</span> {{.PaySpecificPermission.MaxAmount}}
-          </p>
-        </li>
-        {{end}}
-        {{ if gt .PaySpecificPermission.MaxAmount 0 }}
-        <li class="mb-2 relative pl-6">
-          <p>
-            <span class="dark:text-white">Current usage:</span> {{.BudgetUsage}} / {{.PaySpecificPermission.MaxAmount}} sats
-          </p>
-        </li>
-        <li class="mb-2 relative pl-6">
-          <p>
-            <span class="dark:text-white">Renews in:</span> {{.RenewsIn}} (set to {{.PaySpecificPermission.BudgetRenewal}})
-          </p>
-        </li>
-        {{ end  }}
       </ul>
+      {{ if gt .PaySpecificPermission.MaxAmount 0 }}
+      <div class="pl-6">
+        <table class="text-gray-600 dark:text-neutral-400">
+          <tr>
+            <td class="font-medium">Budget</td>
+            <td>{{.PaySpecificPermission.MaxAmount}} sats ({{.BudgetUsage}} sats used)</td>
+          </tr>
+          <tr>
+            <td class="font-medium pr-3">Renews in</td>
+            <td>{{.RenewsIn}} (set to {{.PaySpecificPermission.BudgetRenewal}})</td>
+          </tr>
+        </table>
+      </div>
+      {{ end  }}
     </div>
   
-    <div class="py-4">
-      <h3 class="text-xl font-headline mb-2 dark:text-white">Danger zone</h3>
-      <p class="text-sm text-gray-500 dark:text-gray-400">
-        This will revoke the permission and will no longer allow calls from this pubkey.
+    <div class="pt-4">
+      <h3 class="text-xl font-headline mb-2 dark:text-white">⚠️ Danger zone</h3>
+      <p class="text-gray-600 dark:text-neutral-400 mb-4">
+        This will revoke the permission and will no longer allow calls from this public key. 
       </p>
     </div>
   </div>
@@ -73,4 +79,5 @@
       class="inline-flex bg-white border border-red-400 cursor-pointer dark:bg-surface-02dp dark:hover:bg-surface-16dp duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus:outline-none font-medium hover:bg-gray-50 items-center justify-center px-5 py-3 rounded-md shadow text-gray-700 dark:text-neutral-300 transition w-full sm:w-[250px] sm:mr-8 mt-8 sm:mt-0 order-last sm:order-first">Disconnect</button>
   </form>
 </div>
+
 {{end}}

@@ -188,6 +188,8 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 		requestMethods = append(requestMethods, nip47MethodDescriptions[appPerm.RequestMethod])
 	}
 
+	expiresAtFormatted := expiresAt.Format("January 2, 2006 03:04 PM")
+
 	renewsIn := ""
 	budgetUsage := int64(0)
 	maxAmount := paySpecificPermission.MaxAmount
@@ -202,6 +204,7 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 		"PaySpecificPermission": paySpecificPermission,
 		"RequestMethods":        requestMethods,
 		"ExpiresAt":             expiresAt,
+		"ExpiresAtFormatted":    expiresAtFormatted,
 		"User":                  user,
 		"LastEvent":             lastEvent,
 		"EventsCount":           eventsCount,
@@ -238,7 +241,11 @@ func getEndOfBudgetString(endOfBudget time.Time) (result string) {
 }
 
 func (svc *Service) AppsNewHandler(c echo.Context) error {
-	appName := c.QueryParam("c") // c - for client
+	appName := c.QueryParam("name")
+	if (appName == "") {
+		 // c - for client (deprecated)
+		appName = c.QueryParam("c")
+	}
 	pubkey := c.QueryParam("pubkey")
 	returnTo := c.QueryParam("return_to")
 	maxAmount := c.QueryParam("max_amount")
@@ -247,13 +254,20 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 	if expiresAtTimestamp, err := strconv.Atoi(expiresAt); err == nil {
 		expiresAt = time.Unix(int64(expiresAtTimestamp), 0).Format(time.RFC3339)
 	}
-	disabled := c.QueryParam("editable") == "false"
+	expiresAtISO, _ := time.Parse(time.RFC3339, expiresAt)
+	expiresAtFormatted := expiresAtISO.Format("January 2, 2006 03:04 PM")
+
 	requestMethods := c.QueryParam("request_methods")
+	customRequestMethods := requestMethods
 	if requestMethods == "" {
-		//pay_invoice checkbox is default checked but can be disabled
-		requestMethods = NIP_47_PAY_INVOICE_METHOD
+		// if no request methods are given, enable them all by default
+		keys := []string{}
+		for key := range nip47MethodDescriptions {
+			keys = append(keys, key)
+		}
+
+		requestMethods = strings.Join(keys, " ")
 	}
-	budgetEnabled := maxAmount != "" || budgetRenewal != ""
 	csrf, _ := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
 
 	user, err := svc.GetUser(c)
@@ -269,13 +283,14 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 			sess.Options.Domain = svc.cfg.CookieDomain
 		}
 		sess.Save(c.Request(), c.Response())
-		return c.Redirect(302, fmt.Sprintf("/%s/auth", strings.ToLower(svc.cfg.LNBackendType)))
+		return c.Redirect(302, fmt.Sprintf("/%s/auth?c=%s", strings.ToLower(svc.cfg.LNBackendType), appName))
 	}
 
 	//construction to return a map with all possible permissions
 	//and indicate which ones are checked by default in the front-end
 	type RequestMethodHelper struct {
 		Description string
+		Icon        string
 		Checked     bool
 	}
 
@@ -283,6 +298,7 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 	for k, v := range nip47MethodDescriptions {
 		requestMethodHelper[k] = &RequestMethodHelper{
 			Description: v,
+			Icon:        nip47MethodIcons[k],    
 		}
 	}
 
@@ -293,18 +309,18 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 	}
 
 	return c.Render(http.StatusOK, "apps/new.html", map[string]interface{}{
-		"User":                user,
-		"Name":                appName,
-		"Pubkey":              pubkey,
-		"ReturnTo":            returnTo,
-		"MaxAmount":           maxAmount,
-		"BudgetRenewal":       budgetRenewal,
-		"ExpiresAt":           expiresAt,
-		"BudgetEnabled":       budgetEnabled,
-		"RequestMethods":      requestMethods,
-		"RequestMethodHelper": requestMethodHelper,
-		"Disabled":            disabled,
-		"Csrf":                csrf,
+		"User":                 user,
+		"Name":                 appName,
+		"Pubkey":               pubkey,
+		"ReturnTo":             returnTo,
+		"MaxAmount":            maxAmount,
+		"BudgetRenewal":        budgetRenewal,
+		"ExpiresAt":            expiresAt,
+		"ExpiresAtFormatted":   expiresAtFormatted,
+		"RequestMethods":       requestMethods,
+		"CustomRequestMethods": customRequestMethods,
+		"RequestMethodHelper":  requestMethodHelper,
+		"Csrf":                 csrf,
 	})
 }
 
@@ -335,7 +351,15 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 	app := App{Name: name, NostrPubkey: pairingPublicKey}
 	maxAmount, _ := strconv.Atoi(c.FormValue("MaxAmount"))
 	budgetRenewal := c.FormValue("BudgetRenewal")
-	expiresAt, _ := time.Parse("2006-01-02", c.FormValue("ExpiresAt"))
+
+	expiresAt := time.Time{}
+	if c.FormValue("ExpiresAt") != "" {
+		expiresAt, err = time.Parse(time.RFC3339, c.FormValue("ExpiresAt"))
+		if (err != nil) {
+			return fmt.Errorf("Invalid ExpiresAt: %v", err)
+		}
+	}
+
 	if !expiresAt.IsZero() {
 		expiresAt = time.Date(expiresAt.Year(), expiresAt.Month(), expiresAt.Day(), 23, 59, 59, 0, expiresAt.Location())
 	}
@@ -350,7 +374,7 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 		if requestMethods == "" {
 			return fmt.Errorf("Won't create an app without request methods.")
 		}
-		//request methods should be space seperated list of known request kinds
+		//request methods should be space separated list of known request kinds
 		methodsToCreate := strings.Split(requestMethods, " ")
 		for _, m := range methodsToCreate {
 			//if we don't know this method, we return an error
@@ -382,11 +406,16 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 		return c.Redirect(302, "/apps")
 	}
 
+	publicRelayUrl := svc.cfg.PublicRelay;
+	if (publicRelayUrl == "") {
+		publicRelayUrl = svc.cfg.Relay;
+	}
+
 	if c.FormValue("returnTo") != "" {
 		returnToUrl, err := url.Parse(c.FormValue("returnTo"))
 		if err == nil {
 			query := returnToUrl.Query()
-			query.Add("relay", svc.cfg.Relay)
+			query.Add("relay", publicRelayUrl);
 			query.Add("pubkey", svc.cfg.IdentityPubkey)
 			if user.LightningAddress != "" {
 				query.Add("lud16", user.LightningAddress)
@@ -400,7 +429,7 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 	if user.LightningAddress != "" {
 		lud16 = fmt.Sprintf("&lud16=%s", user.LightningAddress)
 	}
-	pairingUri := template.URL(fmt.Sprintf("nostr+walletconnect://%s?relay=%s&secret=%s%s", svc.cfg.IdentityPubkey, svc.cfg.Relay, pairingSecretKey, lud16))
+	pairingUri := template.URL(fmt.Sprintf("nostr+walletconnect://%s?relay=%s&secret=%s%s", svc.cfg.IdentityPubkey, publicRelayUrl, pairingSecretKey, lud16))
 	return c.Render(http.StatusOK, "apps/create.html", map[string]interface{}{
 		"User":          user,
 		"PairingUri":    pairingUri,

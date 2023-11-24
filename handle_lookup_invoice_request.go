@@ -5,14 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 
-	//"fmt"
-
 	"github.com/nbd-wtf/go-nostr"
+	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
 )
 
-func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Request, event *nostr.Event, app App, ss []byte) (result *nostr.Event, err error) {
-	
+func (svc *Service) HandleLookupInvoiceEvent(ctx context.Context, request *Nip47Request, event *nostr.Event, app App, ss []byte) (result *nostr.Event, err error) {
 	// TODO: move to a shared function
 	nostrEvent := NostrEvent{App: app, NostrId: event.ID, Content: event.Content, State: "received"}
 	err = svc.db.Create(&nostrEvent).Error
@@ -36,7 +34,7 @@ func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Re
 		}).Errorf("App does not have permission: %s %s", code, message)
 
 		return svc.createResponse(event, Nip47Response{
-			ResultType: NIP_47_MAKE_INVOICE_METHOD,
+			ResultType: NIP_47_LOOKUP_INVOICE_METHOD,
 			Error: &Nip47Error{
 			Code:    code,
 			Message: message,
@@ -44,8 +42,8 @@ func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Re
 	}
 
 	// TODO: move to a shared generic function
-	makeInvoiceParams := &Nip47MakeInvoiceParams{}
-	err = json.Unmarshal(request.Params, makeInvoiceParams)
+	lookupInvoiceParams := &Nip47LookupInvoiceParams{}
+	err = json.Unmarshal(request.Params, lookupInvoiceParams)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
 			"eventId":   event.ID,
@@ -55,65 +53,66 @@ func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Re
 		return nil, err
 	}
 
-	if makeInvoiceParams.Description != "" && makeInvoiceParams.DescriptionHash != "" {
-		svc.Logger.WithFields(logrus.Fields{
-			"eventId":   event.ID,
-			"eventKind": event.Kind,
-			"appId":     app.ID,
-		}).Errorf("Only one of description, description_hash can be provided")
-
-		return svc.createResponse(event, Nip47Response{
-			ResultType: NIP_47_MAKE_INVOICE_METHOD,
-			Error: &Nip47Error{
-				Code:    NIP_47_OTHER,
-				Message: "Only one of description, description_hash can be provided",
-			},
-		}, ss)
-	}
-
 	svc.Logger.WithFields(logrus.Fields{
 		"eventId":         event.ID,
 		"eventKind":       event.Kind,
 		"appId":           app.ID,
-		"amount":          makeInvoiceParams.Amount,
-		"description":     makeInvoiceParams.Description,
-		"descriptionHash": makeInvoiceParams.DescriptionHash,
-		"expiry":          makeInvoiceParams.Expiry,
-	}).Info("Making invoice")
+		"invoice":         lookupInvoiceParams.Invoice,
+		"paymentHash":     lookupInvoiceParams.PaymentHash,
+	}).Info("Looking up invoice")
 
+	paymentHash := lookupInvoiceParams.PaymentHash
 
+	if (paymentHash == "") {
+		paymentRequest, err := decodepay.Decodepay(lookupInvoiceParams.Invoice)
+		if err != nil {
+			svc.Logger.WithFields(logrus.Fields{
+				"eventId":   event.ID,
+				"eventKind": event.Kind,
+				"appId":     app.ID,
+				"invoice":    lookupInvoiceParams.Invoice,
+			}).Errorf("Failed to decode bolt11 invoice: %v", err)
 
-	invoice, paymentHash, err := svc.lnClient.MakeInvoice(ctx, event.PubKey, makeInvoiceParams.Amount, makeInvoiceParams.Description, makeInvoiceParams.DescriptionHash, makeInvoiceParams.Expiry)
+			return svc.createResponse(event, Nip47Response{
+				ResultType: NIP_47_LOOKUP_INVOICE_METHOD,
+				Error: &Nip47Error{
+					Code:    NIP_47_ERROR_INTERNAL,
+					Message: fmt.Sprintf("Failed to decode bolt11 invoice: %s", err.Error()),
+				},
+			}, ss)
+		}
+		paymentHash = paymentRequest.PaymentHash
+	}
+
+	invoice, paid, err := svc.lnClient.LookupInvoice(ctx, event.PubKey, paymentHash)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
 			"eventId":         event.ID,
 			"eventKind":       event.Kind,
 			"appId":           app.ID,
-			"amount":          makeInvoiceParams.Amount,
-			"description":     makeInvoiceParams.Description,
-			"descriptionHash": makeInvoiceParams.DescriptionHash,
-			"expiry":          makeInvoiceParams.Expiry,
-		}).Infof("Failed to make invoice: %v", err)
+			"invoice":         lookupInvoiceParams.Invoice,
+			"paymentHash":     lookupInvoiceParams.PaymentHash,
+		}).Infof("Failed to lookup invoice: %v", err)
 		nostrEvent.State = NOSTR_EVENT_STATE_HANDLER_ERROR
 		svc.db.Save(&nostrEvent)
 		return svc.createResponse(event, Nip47Response{
-			ResultType: NIP_47_MAKE_INVOICE_METHOD,
+			ResultType: NIP_47_LOOKUP_INVOICE_METHOD,
 			Error: &Nip47Error{
 				Code:    NIP_47_ERROR_INTERNAL,
-				Message: fmt.Sprintf("Something went wrong while making invoice: %s", err.Error()),
+				Message: fmt.Sprintf("Something went wrong while looking up invoice: %s", err.Error()),
 			},
 		}, ss)
 	}
 
-	responsePayload := &Nip47MakeInvoiceResponse{
+	responsePayload := &Nip47LookupInvoiceResponse {
 		Invoice: invoice,
-		PaymentHash: paymentHash,
+		Paid: paid,
 	}
 
 	nostrEvent.State = NOSTR_EVENT_STATE_HANDLER_EXECUTED
 	svc.db.Save(&nostrEvent)
 	return svc.createResponse(event, Nip47Response{
-		ResultType: NIP_47_MAKE_INVOICE_METHOD,
+		ResultType: NIP_47_LOOKUP_INVOICE_METHOD,
 		Result: responsePayload,
 	},
 	ss)

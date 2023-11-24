@@ -2,6 +2,7 @@ package breez
 
 import (
 	"context"
+	"errors"
 	"log"
 	"os"
 	"path/filepath"
@@ -75,4 +76,8 @@ func (bs *BreezService) MakeInvoice(ctx context.Context, senderPubkey string, am
 		return "", "", err
 	}
 	return resp.Bolt11, resp.PaymentHash, nil
+}
+
+func (bs *BreezService) LookupInvoice(ctx context.Context, senderPubkey string, paymentHash string) (invoice string, paid bool, err error) {
+	return "", false, errors.New("Not implemented")
 }

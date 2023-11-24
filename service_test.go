@@ -32,6 +32,14 @@ const nip47MakeInvoiceJson = `
 	}
 }
 `
+const nip47LookupInvoiceJson = `
+{
+	"method": "lookup_invoice",
+	"params": {
+		"payment_hash": "4ad9cd27989b514d868e755178378019903a8d78767e3fceb211af9dd00e7a94"
+	}
+}
+`
 const nip47PayJson = `
 {
 	"method": "pay_invoice",
@@ -348,6 +356,53 @@ func TestHandleEvent(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, mockInvoice, received.Result.(*Nip47MakeInvoiceResponse).Invoice)
 	assert.Equal(t, mockPaymentHash, received.Result.(*Nip47MakeInvoiceResponse).PaymentHash)
+
+	// lookup invoice: without permission
+	newPayload, err = nip04.Encrypt(nip47LookupInvoiceJson, ss)
+	assert.NoError(t, err)
+	res, err = svc.HandleEvent(ctx, &nostr.Event{
+		ID:      "test_event_14",
+		Kind:    NIP_47_REQUEST_KIND,
+		PubKey:  senderPubkey,
+		Content: newPayload,
+	})
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+	decrypted, err = nip04.Decrypt(res.Content, ss)
+	assert.NoError(t, err)
+	received = &Nip47Response{}
+	err = json.Unmarshal([]byte(decrypted), received)
+	assert.NoError(t, err)
+	assert.Equal(t, NIP_47_ERROR_RESTRICTED, received.Error.Code)
+	assert.NotNil(t, res)
+
+	// lookup invoice: with permission
+	err = svc.db.Model(&AppPermission{}).Where("app_id = ?", app.ID).Update("request_method", NIP_47_LOOKUP_INVOICE_METHOD).Error
+	assert.NoError(t, err)
+	appPermission = &AppPermission{
+		AppId:         app.ID,
+		App:           app,
+		RequestMethod: NIP_47_LOOKUP_INVOICE_METHOD,
+		ExpiresAt:     expiresAt,
+	}
+	err = svc.db.Create(appPermission).Error
+	res, err = svc.HandleEvent(ctx, &nostr.Event{
+		ID:      "test_event_15",
+		Kind:    NIP_47_REQUEST_KIND,
+		PubKey:  senderPubkey,
+		Content: newPayload,
+	})
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+	decrypted, err = nip04.Decrypt(res.Content, ss)
+	assert.NoError(t, err)
+	received = &Nip47Response{
+		Result: &Nip47LookupInvoiceResponse{},
+	}
+	err = json.Unmarshal([]byte(decrypted), received)
+	assert.NoError(t, err)
+	assert.Equal(t, mockInvoice, received.Result.(*Nip47LookupInvoiceResponse).Invoice)
+	assert.Equal(t, false, received.Result.(*Nip47LookupInvoiceResponse).Paid)
 }
 
 func createTestService(t *testing.T) (svc *Service, ln *MockLn) {
@@ -391,4 +446,7 @@ func (mln *MockLn) GetBalance(ctx context.Context, senderPubkey string) (balance
 
 func (mln *MockLn) MakeInvoice(ctx context.Context, senderPubkey string, amount int64, description string, descriptionHash string, expiry int64) (invoice string, paymentHash string, err error) {
 	return mockInvoice, mockPaymentHash, nil
+}
+func (mln *MockLn) LookupInvoice(ctx context.Context, senderPubkey string, paymentHash string) (invoice string, paid bool, err error) {
+	return mockInvoice, false, nil
 }

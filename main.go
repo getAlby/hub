@@ -13,6 +13,7 @@ import (
 
 	echologrus "github.com/davrux/echo-logrus/v4"
 	"github.com/getAlby/nostr-wallet-connect/breez"
+	"github.com/getAlby/nostr-wallet-connect/migrations"
 	"github.com/glebarez/sqlite"
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
@@ -80,11 +81,11 @@ func main() {
 	sqlDb.SetMaxIdleConns(cfg.DatabaseMaxIdleConns)
 	sqlDb.SetConnMaxLifetime(time.Duration(cfg.DatabaseConnMaxLifetime) * time.Second)
 
-	// Migrate the schema
-	err = db.AutoMigrate(&User{}, &App{}, &AppPermission{}, &NostrEvent{}, &Payment{}, &Identity{})
+	err = migrations.Migrate(db)
 	if err != nil {
-		log.Fatalf("Failed migrate DB %v", err)
+		log.Fatalf("Migration failed: %v", err)
 	}
+	log.Println("Any pending migrations ran successfully")
 
 	if cfg.NostrSecretKey == "" {
 		if cfg.LNBackendType == AlbyBackendType {

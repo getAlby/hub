@@ -1,13 +1,10 @@
 {{define "body"}}
 
-<div
-  class="w-full lg:w-8/12 mx-auto bg-white rounded-md shadow px-4 lg:px-12 py-4 lg:py-12 mb-10 dark:bg-surface-02dp"
->
-  <div class="mb-6 flex justify-between">
-    <h2 class="font-bold text-2xl font-headline py-2 dark:text-white">Your app connections</h2>
+  <div class="mb-4 flex justify-between items-center">
+    <h2 class="font-bold text-2xl font-headline dark:text-white">Connected apps</h2>
 
     <a
-      class="inline-flex bg-purple-700 cursor-pointer dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus:outline-none font-medium items-center justify-center px-6 py-3 rounded-lg shadow text-white transition {{if not .User}}opacity-50{{else}}hover:bg-purple-900{{end}}"
+      class="inline-flex bg-purple-700 cursor-pointer dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus:outline-none font-medium items-center justify-center px-3 md:px-6 py-2 md:py-3 rounded-lg shadow text-white transition {{if not .User}}opacity-50{{else}}hover:bg-purple-900{{end}} text-sm md:text-base"
       href="{{if not .User}}javascript:void(0);{{else}}/apps/new{{end}}"
     >
       <img
@@ -16,11 +13,9 @@
         height="24"
         class="mr-2 text-white"
       />
-      New connection
+      Connect app
     </a>
   </div>
-
-  <p class="text-sm mb-4"></p>
 
   <div class="rounded-lg border border-gray-200 dark:border-white/10 overflow-hidden">
     <table
@@ -30,32 +25,32 @@
         class="text-xs text-gray-900 uppercase bg-gray-50 dark:bg-surface-08dp dark:text-white rounded-t-lg"
       >
         <tr>
-          <th scope="col" class="px-6 py-3 w-2/5">Name</th>
-          <th scope="col" class="px-6 py-3 w-2/5">Last Accessed</th>
-          <th scope="col" class="px-6 py-3 w-1/5"></th>
+          <th scope="col" class="px-6 py-3 w-full">Name</th>
+          <th scope="col" class="px-6 py-3 w-40 hidden md:table-cell">Last used</th>
+          <th scope="col" class="px-6 py-3 w-24"></th>
         </tr>
       </thead>
-      <tbody>
+      <tbody class="divide-y dark:divide-white/10">
         {{if not .Apps}}
-          <tr class="bg-white border-t dark:bg-surface-02dp dark:border-white/10">
+          <tr class="bg-white dark:bg-surface-02dp">
             <td colspan="3" class="px-6 py-16 text-center text-gray-500 dark:text-neutral-400">
-              No active connections at the moment
+              No apps connected yet.
             </td>
           </tr>
         {{else}}
         {{range .Apps}}
-        <tr class="bg-white border-t dark:bg-surface-02dp dark:border-white/10 cursor-pointer hover:bg-purple-50 dark:hover:bg-surface-16dp" onclick="window.location='/apps/{{.NostrPubkey}}'">
+        <tr class="bg-white dark:bg-surface-02dp cursor-pointer hover:bg-purple-50 dark:hover:bg-surface-16dp" onclick="window.location='/apps/{{.NostrPubkey}}'">
           <td class="px-6 py-4 text-gray-500 dark:text-white">
             {{.Name}}
           </td>
-          <td class="px-6 py-4 text-gray-500 dark:text-neutral-400">
+          <td class="px-6 py-4 text-gray-500 dark:text-neutral-400 hidden md:table-cell">
             {{if gt (index $.EventsCounts .ID) 0 }}
               {{(index $.LastEvents .ID).CreatedAt.Format "02 Jan 06 15:04 MST" }}
             {{else}}
-              NEVER
+              -
             {{end}}
           </td>
-          <td class="px-6 py-4 text-purple-700 dark:text-purple-400">
+          <td class="px-6 py-4 text-purple-700 dark:text-purple-400 text-right">
             Details
           </td>
         </tr>
@@ -64,6 +59,5 @@
       </tbody>
     </table>
   </div>
-</div>
 
 {{end}}
