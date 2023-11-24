@@ -36,9 +36,9 @@ func (svc *Service) HandleLookupInvoiceEvent(ctx context.Context, request *Nip47
 		return svc.createResponse(event, Nip47Response{
 			ResultType: NIP_47_LOOKUP_INVOICE_METHOD,
 			Error: &Nip47Error{
-			Code:    code,
-			Message: message,
-		}}, ss)
+				Code:    code,
+				Message: message,
+			}}, ss)
 	}
 
 	// TODO: move to a shared generic function
@@ -54,23 +54,23 @@ func (svc *Service) HandleLookupInvoiceEvent(ctx context.Context, request *Nip47
 	}
 
 	svc.Logger.WithFields(logrus.Fields{
-		"eventId":         event.ID,
-		"eventKind":       event.Kind,
-		"appId":           app.ID,
-		"invoice":         lookupInvoiceParams.Invoice,
-		"paymentHash":     lookupInvoiceParams.PaymentHash,
+		"eventId":     event.ID,
+		"eventKind":   event.Kind,
+		"appId":       app.ID,
+		"invoice":     lookupInvoiceParams.Invoice,
+		"paymentHash": lookupInvoiceParams.PaymentHash,
 	}).Info("Looking up invoice")
 
 	paymentHash := lookupInvoiceParams.PaymentHash
 
-	if (paymentHash == "") {
+	if paymentHash == "" {
 		paymentRequest, err := decodepay.Decodepay(lookupInvoiceParams.Invoice)
 		if err != nil {
 			svc.Logger.WithFields(logrus.Fields{
 				"eventId":   event.ID,
 				"eventKind": event.Kind,
 				"appId":     app.ID,
-				"invoice":    lookupInvoiceParams.Invoice,
+				"invoice":   lookupInvoiceParams.Invoice,
 			}).Errorf("Failed to decode bolt11 invoice: %v", err)
 
 			return svc.createResponse(event, Nip47Response{
@@ -87,11 +87,11 @@ func (svc *Service) HandleLookupInvoiceEvent(ctx context.Context, request *Nip47
 	invoice, paid, err := svc.lnClient.LookupInvoice(ctx, event.PubKey, paymentHash)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
-			"eventId":         event.ID,
-			"eventKind":       event.Kind,
-			"appId":           app.ID,
-			"invoice":         lookupInvoiceParams.Invoice,
-			"paymentHash":     lookupInvoiceParams.PaymentHash,
+			"eventId":     event.ID,
+			"eventKind":   event.Kind,
+			"appId":       app.ID,
+			"invoice":     lookupInvoiceParams.Invoice,
+			"paymentHash": lookupInvoiceParams.PaymentHash,
 		}).Infof("Failed to lookup invoice: %v", err)
 		nostrEvent.State = NOSTR_EVENT_STATE_HANDLER_ERROR
 		svc.db.Save(&nostrEvent)
@@ -104,16 +104,16 @@ func (svc *Service) HandleLookupInvoiceEvent(ctx context.Context, request *Nip47
 		}, ss)
 	}
 
-	responsePayload := &Nip47LookupInvoiceResponse {
+	responsePayload := &Nip47LookupInvoiceResponse{
 		Invoice: invoice,
-		Paid: paid,
+		Paid:    paid,
 	}
 
 	nostrEvent.State = NOSTR_EVENT_STATE_HANDLER_EXECUTED
 	svc.db.Save(&nostrEvent)
 	return svc.createResponse(event, Nip47Response{
 		ResultType: NIP_47_LOOKUP_INVOICE_METHOD,
-		Result: responsePayload,
+		Result:     responsePayload,
 	},
-	ss)
+		ss)
 }

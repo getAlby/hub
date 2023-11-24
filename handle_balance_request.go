@@ -37,9 +37,9 @@ func (svc *Service) HandleGetBalanceEvent(ctx context.Context, request *Nip47Req
 		return svc.createResponse(event, Nip47Response{
 			ResultType: NIP_47_GET_BALANCE_METHOD,
 			Error: &Nip47Error{
-			Code:    code,
-			Message: message,
-		}}, ss)
+				Code:    code,
+				Message: message,
+			}}, ss)
 	}
 
 	svc.Logger.WithFields(logrus.Fields{
