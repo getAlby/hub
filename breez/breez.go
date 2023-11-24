@@ -50,13 +50,16 @@ func NewBreezService(mnemonic, apiKey, inviteCode, workDir string) (result *Bree
 }
 
 func (bs *BreezService) SendPaymentSync(ctx context.Context, senderPubkey string, payReq string) (preimage string, err error) {
-	resp, err := bs.svc.SendPayment(payReq, nil)
+	sendPaymentRequest := breez_sdk.SendPaymentRequest{
+		Bolt11: payReq,
+	}
+	resp, err := bs.svc.SendPayment(sendPaymentRequest)
 	if err != nil {
 		return "", err
 	}
 	var lnDetails breez_sdk.PaymentDetailsLn
-	if resp.Details != nil {
-		lnDetails, _ = resp.Details.(breez_sdk.PaymentDetailsLn)
+	if resp.Payment.Details != nil {
+		lnDetails, _ = resp.Payment.Details.(breez_sdk.PaymentDetailsLn)
 	}
 	return lnDetails.Data.PaymentPreimage, nil
 
@@ -71,11 +74,16 @@ func (bs *BreezService) GetBalance(ctx context.Context, senderPubkey string) (ba
 }
 
 func (bs *BreezService) MakeInvoice(ctx context.Context, senderPubkey string, amount int64, description string, descriptionHash string, expiry int64) (invoice string, paymentHash string, err error) {
-	resp, err := bs.svc.ReceivePayment(uint64(amount), description)
+	receivePaymentRequest := breez_sdk.ReceivePaymentRequest{
+		// amount provided in msat
+		AmountMsat:  uint64(amount),
+		Description: description,
+	}
+	resp, err := bs.svc.ReceivePayment(receivePaymentRequest)
 	if err != nil {
 		return "", "", err
 	}
-	return resp.Bolt11, resp.PaymentHash, nil
+	return resp.LnInvoice.Bolt11, resp.LnInvoice.PaymentHash, nil
 }
 
 func (bs *BreezService) LookupInvoice(ctx context.Context, senderPubkey string, paymentHash string) (invoice string, paid bool, err error) {
