@@ -1,55 +1,26 @@
 {{define "body"}}
 
-<div
-  class="w-full lg:w-8/12 mx-auto bg-white rounded-md shadow px-4 lg:px-12 py-4 lg:py-12 mb-10 dark:bg-surface-02dp"
->
-  <h2 class="font-bold text-2xl font-headline mb-4 dark:text-white">
-    {{if .Name}}
-      Connect to {{.Name}}
-    {{else}}
-      Create a new app connection
-    {{end}}
-  </h2>
+<h2 class="font-bold text-2xl font-headline mb-4 dark:text-white">
+  {{if .Name}}
+    Connect to {{.Name}}
+  {{else}}
+    Connect a new app
+  {{end}}
+</h2>
 
-  <p class="mb-4 text-sm font-medium text-gray-900 dark:text-white"></p>
+<form method="POST" action="/apps" accept-charset="UTF-8">
+  <div class="bg-white dark:bg-surface-02dp rounded-md shadow p-4 md:p-8 ">
+      <div>
+        <input type="hidden" name="_csrf" value="{{.Csrf}}">
+        <input type="hidden" name="pubkey" value="{{.Pubkey}}">
+        <input type="hidden" name="returnTo" value="{{.ReturnTo}}">
 
-  <div id="RequestMethodOptions" class=" mt-4">
-    <div class="mb-6">
-      <p class="text-sm text-gray-500 dark:text-gray-400 mb-4"> Authorize {{ if .Name }}{{ .Name }}{{ else }}the new app{{end}} access to:</p>
-      <ul class="items-center w-full sm:flex">
-        {{range $key, $value := .RequestMethodHelper}}
-        <li class="w-full">
-          <div class="flex items-center pl-3">
-            <input {{if  $value.Checked }} checked {{end}} id="{{$key}}-id" type="checkbox" value="{{ $key }}" class="w-4 h-4 text-purple-700 bg-gray-50 border border-gray-300 rounded focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-surface-00dp dark:border-gray-700">
-            <label for="{{$key}}-id" class="ml-2 text-sm font-medium text-gray-500 dark:text-gray-400">{{ $value.Description}}</label>
-          </div>
-        </li>
-        {{ end }}
-      </ul>
-    </div>
-  </div>
-
-  {{ if .Disabled }}
-  <p class="text-blue-700 bg-blue-50 p-3 mb-6">
-    💡 This app connection has preconfigured settings and cannot be edited.
-  </p>
-  {{ end }}
-  
-  <form method="POST" action="/apps" accept-charset="UTF-8">
-    <div {{ if .Disabled }}class="opacity-80 pointer-events-none"{{ end }}>
-      <input type="hidden" name="_csrf" value="{{.Csrf}}">
-      <input type="hidden" name="pubkey" value="{{.Pubkey}}" />
-      <input type="hidden" name="returnTo" value="{{.ReturnTo}}" />
-      <input type="hidden" name="RequestMethods" id="RequestMethods" value={{if .RequestMethods}}{{.RequestMethods}}{{else}}{{"pay_invoice"}}{{end}}>
-      {{ if eq .Name "" }}
-        <div class="mb-4">
-          <label
-            for="name"
-            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-            >Connection name</label
-          >
+        {{if (eq .Name "")}}
+          <label for="name" class="block font-medium text-gray-900 dark:text-white">
+            Name
+          </label>
           <input
-            {{if .Disabled}}tabIndex="-1"{{end}}
+            {{ if not (eq .Name "") }}readOnly{{end}}
             type="text"
             name="name"
             value="{{.Name}}"
@@ -57,184 +28,196 @@
             required
             autocomplete="off"
             class="bg-gray-50 border border-gray-300 text-gray-900 focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 text-sm rounded-lg block w-full p-2.5 dark:bg-surface-00dp dark:border-gray-700 dark:placeholder-gray-400 dark:text-white"
-          />
-          <p
-            class="mt-2 mb-6 text-sm text-gray-500 dark:text-gray-400"
           >
-            Give your connection a name to easily identify it.
+          <p class="mt-1 mb-6 text-xs text-gray-500 dark:text-gray-400">
+            Name of the app or purpose of the connection
           </p>
+        {{else}}
+          <input type="hidden" name="name" id="" value="{{.Name}}">
+        {{end}}
+        <input type="hidden" name="RequestMethods" id="request-methods" value={{.RequestMethods}}>
+        <input type="hidden" name="ExpiresAt" id="expires-at" value="{{.ExpiresAt}}">
+        <input type="hidden" name="MaxAmount" id="max-amount" value="{{.MaxAmount}}">
+        <input type="hidden" name="BudgetRenewal" id="budget-renewal" value={{if .BudgetRenewal}}{{.BudgetRenewal}}{{else}}{{"monthly"}}{{end}}>
+      </div>
+
+      <div class="flex justify-between items-center mb-2 text-gray-800 dark:text-white">
+        <p class="text-lg font-medium">Authorize the app to:</p>
+        {{if (eq .CustomRequestMethods "")}}
+          <img id="edit" class="dark:invert opacity-80 inline cursor-pointer w-6" src="/public/images/edit.svg"/>
+        {{end}}
+      </div>
+      <div id="request-method-options" class="mb-6">
+        <ul class="flex flex-col w-full">
+          {{range $key, $value := .RequestMethodHelper}}
+            <li class="w-full {{if eq $key "pay_invoice"}}order-last{{end}} {{if not $value.Checked }} hidden {{end}}">
+              <div class="flex items-center mb-2">
+                <img class="dark:invert opacity-80 w-5 mr-3" src="/public/images/{{ $value.Icon }}.svg"/>
+                <input {{if $value.Checked }} checked {{end}} id="{{$key}}" type="checkbox" value="{{ $key }}" class="hidden w-4 h-4 mr-4 text-purple-700 bg-gray-50 border border-gray-300 rounded focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-surface-00dp dark:border-gray-700 cursor-pointer">
+                <label for="{{$key}}" class="pointer-events-none text-gray-800 dark:text-gray-300 cursor-pointer">{{$value.Description}}</label>
+              </div>
+              {{if eq $key "pay_invoice"}}
+                <div id="budget-allowance" class="pt-2 pb-2 pl-5 ml-2.5 border-l-2 border-l-gray-200 dark:border-l-gray-400 {{if not $value.Checked }}pointer-events-none opacity-30 hidden {{end}}">
+                  {{if (eq $.MaxAmount "")}}
+                    <p class="text-gray-600 dark:text-gray-300 mb-2 text-sm">Monthly budget</p>
+                    <div id="budget-allowance-limits" class="grid grid-cols-6 grid-rows-2 md:grid-rows-1 md:grid-cols-6 gap-2 text-xs text-gray-800 dark:text-neutral-200">
+                      <div data-limit="10000" class="col-span-2 md:col-span-1 cursor-pointer rounded border-2 border-gray-200 dark:border-gray-400 text-center py-4">10k<br>sats</div>
+                      <div data-limit="25000" class="col-span-2 md:col-span-1 cursor-pointer rounded border-2 border-gray-200 dark:border-gray-400 text-center py-4">25k<br>sats</div>
+                      <div data-limit="50000" class="col-span-2 md:col-span-1 cursor-pointer rounded border-2 border-gray-200 dark:border-gray-400 text-center py-4">50k<br>sats</div>
+                      <div data-limit="100000" class="col-span-2 md:col-span-1 cursor-pointer rounded border-2 border-gray-200 dark:border-gray-400 text-center py-4">100k<br>sats</div>
+                      <div data-limit="1000000" class="col-span-2 md:col-span-1 cursor-pointer rounded border-2 border-gray-200 dark:border-gray-400 text-center py-4">1M<br>sats</div>
+                      <div data-limit="0" class="col-span-2 md:col-span-1 cursor-pointer rounded border-2 border-gray-200 dark:border-gray-400 text-center py-4 border-purple-700 dark:border-purple-300 text-purple-700 dark:text-white bg-purple-100 dark:bg-purple-900">Unlimited<br>#reckless</b></div>
+                    </div>
+                  {{else}}
+                    <p class="text-gray-600 dark:text-gray-300 text-sm">
+                      {{if (eq $.BudgetRenewal "")}}
+                        Total budget:
+                      {{else}}
+                        <span class="capitalize">{{ $.BudgetRenewal }}</span> budget:
+                      {{end}}
+                      {{ $.MaxAmount }} sats
+                    </p>
+                  {{end}}
+                </div>
+                {{end}}
+                
+              </li>
+              {{ end }}
+        </ul>
+      </div>
+      
+      {{if (eq .ExpiresAt "")}}
+        <div id="expiry-toggle" class="cursor-pointer text-sm font-medium text-purple-700  dark:text-purple-500">
+          + Add connection expiry time
         </div>
-      {{ else }}
-        <input type="hidden" name="name" value="{{.Name}}" id="name" />
+
+        <div id="expiry" class="hidden text-gray-800 dark:text-neutral-200">
+          <p class="text-lg font-medium mb-2">Connection expiry time</p>
+          <div id="expiry-days" class="grid grid-cols-4 gap-2 text-xs">
+            <div data-days="7" class="cursor-pointer rounded border-2 border-gray-200 dark:border-gray-400 text-center py-4">1 week</div>
+            <div data-days="30" class="cursor-pointer rounded border-2 border-gray-200 dark:border-gray-400 text-center py-4">1 month</div>
+            <div data-days="365" class="cursor-pointer rounded border-2 border-gray-200 dark:border-gray-400 text-center py-4">1 year</div>
+            <div data-days="0" class="cursor-pointer rounded border-2 text-center py-4 border-purple-700 dark:border-purple-300 text-purple-700 dark:text-white bg-purple-100 dark:bg-purple-900">Never</div>
+          </div>
+        </div>
+      {{else}}
+        <p class="text-lg font-medium mb-2 text-gray-800 dark:text-neutral-200">Connection expiry time</p>
+        <p class="text-gray-600 dark:text-gray-300 text-sm">{{ .ExpiresAtFormatted }}</p>
       {{end}}
 
-      <p class="text-gray-500 dark:text-gray-400 mb-1">
-        <input {{if .Disabled}}tabIndex="-1"{{end}} id="ExpiryCheckbox" type="checkbox" class="w-4 h-4 text-purple-700 bg-gray-50 border border-gray-300 rounded focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-surface-00dp dark:border-gray-700">
-        <label for="ExpiryCheckbox" class="ml-1 text-sm font-medium text-gray-900 dark:text-gray-300">Set an expiry date</label>
+    {{if .User.Email}}
+      <p class="mt-8 pt-4 border-t border-gray-300 dark:border-gray-700 text-sm text-gray-500 dark:text-neutral-300 text-center">
+        You're logged in as <span class="font-mono">{{.User.Email}}</span><br>
       </p>
-      <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">If set, app connection will be cancelled after the expiry date.</p>
-      <div id="ExpiryOptions" class="hidden my-4">
-        <div class="mb-6">
-          <label
-            for="ExpiresAt"
-            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-          >
-            Expiry
-          </label>
-          <input
-            {{if .Disabled}}tabIndex="-1"{{end}}
-            type="date"
-            name="ExpiresAt"
-            value="{{.ExpiresAt}}"
-            id="ExpiresAt"
-            autocomplete="off"
-            min=""
-            class="bg-gray-50 border border-gray-300 text-gray-900 focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 text-sm rounded-lg block w-full p-2.5 dark:bg-surface-00dp dark:border-gray-700 dark:placeholder-gray-400 dark:text-white dark:[color-scheme:dark]"
-          />
-        </div>
-      </div>
+    {{end}}
+  </div>
 
-      <p class="text-gray-500 dark:text-gray-400 mb-1">
-        <input {{if .Disabled}}tabIndex="-1"{{end}} {{if .BudgetEnabled}}checked{{end}} id="BudgetCheckbox" type="checkbox" class="w-4 h-4 text-purple-700 bg-gray-50 border border-gray-300 rounded focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-surface-00dp dark:border-gray-700" >
-        <label for="BudgetCheckbox" class="ml-1 text-sm font-medium text-gray-900 dark:text-gray-300">Set a Budget</label>
-      </p>
-      <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">If set, app will be restricted to send payments only within a chosen budget range (Routing fees not included).</p>
-
-      <div id="BudgetOptions" class="{{if not .MaxAmount}}hidden{{end}} mt-4">
-        <div class="mt-4">
-          <label for="MaxAmount" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-            Budget Amount (in sats)
-          </label>
-          <input {{if .Disabled}}tabIndex="-1"{{end}} type="number" name="MaxAmount" id="MaxAmount" aria-describedby="helper-text-explanation"
-            class="bg-gray-50 border border-gray-300 text-gray-900 focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 text-sm rounded-lg block w-full p-2.5 dark:bg-surface-00dp dark:border-gray-700 dark:placeholder-gray-400 dark:text-white"
-            pattern="{0-9}.*"
-            value={{.MaxAmount}}>
-        </div>
-        <div class="mt-4">
-          <p class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-            Budget Renewal
-          </p>
-          <ul class="items-center w-full sm:flex">
-            <li class="w-full">
-              <div class="flex items-center pl-3">
-                <input {{if .Disabled}}tabIndex="-1"{{end}} {{ if or (eq .BudgetRenewal "") (eq .BudgetRenewal "never") }}checked{{end}} id="BudgetRenewalNever" type="radio" value="never" name="BudgetRenewal" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
-                <label for="BudgetRenewalNever" class="w-full py-3 ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Never</label>
-              </div>
-            </li>
-            <li class="w-full">
-              <div class="flex items-center pl-3">
-                <input {{if .Disabled}}tabIndex="-1"{{end}} {{ if eq .BudgetRenewal "daily" }}checked{{end}} id="BudgetRenewalDaily" type="radio" value="daily" name="BudgetRenewal" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
-                <label for="BudgetRenewalDaily" class="w-full py-3 ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Daily</label>
-              </div>
-            </li>
-            <li class="w-full">
-              <div class="flex items-center pl-3">
-                <input {{if .Disabled}}tabIndex="-1"{{end}} {{ if eq .BudgetRenewal "weekly" }}checked{{end}} id="BudgetRenewalWeekly" type="radio" value="weekly" name="BudgetRenewal" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
-                <label for="BudgetRenewalWeekly" class="w-full py-3 ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Weekly</label>
-              </div>
-            </li>
-            <li class="w-full">
-              <div class="flex items-center pl-3">
-                <input {{if .Disabled}}tabIndex="-1"{{end}} {{ if eq .BudgetRenewal "monthly" }}checked{{end}} id="BudgetRenewalMonthly" type="radio" value="monthly" name="BudgetRenewal" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
-                <label for="BudgetRenewalMonthly" class="w-full py-3 ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Monthly</label>
-              </div>
-            </li>
-            <li class="w-full">
-              <div class="flex items-center pl-3">
-                <input {{if .Disabled}}tabIndex="-1"{{end}} {{ if eq .BudgetRenewal "yearly" }}checked{{end}} id="BudgetRenewalYearly" type="radio" value="yearly" name="BudgetRenewal" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
-                <label for="BudgetRenewalYearly" class="w-full py-3 ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Yearly</label>
-              </div>
-            </li>
-          </ul>
-        </div>
-      </div>
-
-    </div>
-    {{ if .Pubkey }}
-      <p class="text-orange-700 bg-orange-50 p-3 mb-6">
-        ⚠️ Only connect with apps you trust!
-      </p>
-    {{ end }}
-
-    <div class="flex flex-col sm:flex-row sm:justify-center">
-      {{ if not .Pubkey }}
+  <div class="mt-6 flex flex-col sm:flex-row sm:justify-center">
+    {{ if not .Pubkey }}
       <a
         href="/apps"
-        class="inline-flex bg-white border cursor-pointer dark:bg-surface-02dp dark:border-white/10 dark:hover:bg-surface-16dp duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus:outline-none font-medium hover:bg-gray-50 items-center justify-center px-5 py-3 rounded-md shadow text-gray-700 dark:text-neutral-300 transition w-full sm:w-[250px] sm:mr-8 mt-8 sm:mt-0 order-last sm:order-first"
+        class="inline-flex p-4 underline cursor-pointer duration-150 items-center justify-center text-gray-700 dark:text-neutral-300 w-full sm:w-[250px] order-last sm:order-first"
       >
         Cancel
       </a>
-      {{ end }}
-
-      <button
-        type="submit"
-        class="inline-flex w-full sm:w-[250px] bg-purple-700 cursor-pointer dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus:outline-none font-medium hover:bg-purple-900 items-center justify-center px-5 py-3 rounded-md shadow text-white transition"
-      >
-      {{ if .Pubkey }} Connect Wallet {{ else }} Confirm {{ end }}
-      </button>
-    </div>
-  </form>
-
-  {{if .User.Email}}
-    <p class="mt-8 pt-4 border-t border-gray-300 dark:border-gray-700 text-sm text-gray-500 dark:text-neutral-300 text-center">
-      You're logged in as <span class="font-mono">{{.User.Email}}</span><br>
-    </p>
-  {{end}}
-</div>
+    {{ end }}
+    <button
+      type="submit"
+      class="inline-flex w-full sm:w-[250px] bg-purple-700 cursor-pointer dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus:outline-none font-medium hover:bg-purple-900 items-center justify-center px-5 py-3 rounded-md shadow text-white transition"
+    >
+    {{ if .Pubkey }} Connect {{ else }} Next {{ end }}
+    </button>
+  </div>
+</form>
 
 <script type="text/javascript">
-  var today = new Date();
-  var dateInput = document.getElementById("ExpiresAt");
-  dateInput.min = today.toISOString().split('T')[0];
 
-  var sixMonthsFromNow = new Date();
-  sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
+  // Permissions
+  const perms = document.getElementById("request-method-options");
+  const edit = document.getElementById("edit");
+  
+  const permsItems = perms.querySelectorAll("li");
+  const permsBoxes = perms.querySelectorAll("input[type=checkbox]");
+  const permsIcons =  perms.querySelectorAll("img");
+  const permsLabels =  perms.querySelectorAll("label");
+  const requestMethods = document.getElementById("request-methods");
+  const budgetAllowance = document.getElementById("budget-allowance");
+  const budgetAllowanceLimits = document.getElementById("budget-allowance-limits")?.querySelectorAll("div");
 
-  var expiryCheckbox = document.getElementById("ExpiryCheckbox");
-  var expiryOptions = document.getElementById("ExpiryOptions");
-
-  var expiry = new Date("{{.ExpiresAt}}");
-  if (!isNaN(Date.parse(expiry))) {
-    expiryCheckbox.checked = true;
-    expiryOptions.classList.remove("hidden");
-    dateInput.value = today.getTime() < expiry.getTime() ? expiry.toISOString().split('T')[0] : today.toISOString().split('T')[0];
-  }
-
-  expiryCheckbox.addEventListener("change", function(e) {
-    if (!expiryCheckbox.checked) {
-      dateInput.value = null;
-      expiryOptions.classList.add("hidden");
-    } else {
-      dateInput.value = sixMonthsFromNow.toISOString().split('T')[0];
-      expiryOptions.classList.remove("hidden");
-    }
-  });
-
-  var budgetCheckbox = document.getElementById("BudgetCheckbox");
-  var budgetOptions = document.getElementById("BudgetOptions");
-  var budgetInput = document.getElementById("MaxAmount");
-
-  budgetCheckbox.addEventListener("change", function(e) {
-    if (!budgetCheckbox.checked) {
-      budgetInput.value = null;
-      budgetInput.required = false;
-      budgetOptions.classList.add("hidden");
-    } else {
-      budgetInput.required = true;
-      budgetOptions.classList.remove("hidden");
-    }
-  });
-
-  const requestMethodCheckboxes = document.getElementById("RequestMethodOptions").querySelectorAll("input[type=checkbox]");
-  requestMethodCheckboxes.forEach(checkbox => {
+  permsBoxes.forEach(checkbox => {
     checkbox.addEventListener("change", function(e) {
       let checkedValues = "";
-      requestMethodCheckboxes.forEach(checkbox => {
-        if (checkbox.checked) {
-          checkedValues += checkbox.value + " ";
+      permsBoxes.forEach(box => {
+        if (box.checked) {
+          checkedValues += box.value + " ";
         }
       });
-      document.getElementById("RequestMethods").value = checkedValues.trim();
+      if (checkbox.value == "pay_invoice") {
+        let unlimited = document.querySelector('[data-limit="0"]')
+        unlimited.click();
+        budgetAllowance.classList.toggle("pointer-events-none");
+        budgetAllowance.classList.toggle("opacity-30")
+      }
+      requestMethods.value = checkedValues.trim();
+    })
+  })
+
+  edit?.addEventListener("click", function(e) {
+    permsItems.forEach(item => {
+      item.classList.remove("hidden");
+    })
+    budgetAllowance.classList.remove("hidden");
+    permsLabels.forEach(label => {
+      label.classList.toggle("select-none");
+      label.classList.toggle("pointer-events-none");
+    })
+    permsIcons.forEach(icon => {
+      icon.classList.toggle("hidden");
+    })
+    permsBoxes.forEach(checkbox => {
+      checkbox.classList.toggle("hidden");
+    })
+    edit.classList.toggle("hidden");
+  })
+
+  // Budget Amount
+  const maxAmount = document.getElementById("max-amount");
+  budgetAllowanceLimits?.forEach(limit => {
+    limit.addEventListener("click", function(e) {
+      budgetAllowanceLimits.forEach(div => {
+        div.classList.remove("border-purple-700", "dark:border-purple-300", "text-purple-700", "dark:text-white", "bg-purple-100", "dark:bg-purple-900");
+      })
+      limit.classList.add("border-purple-700", "dark:border-purple-300", "text-purple-700", "dark:text-white", "bg-purple-100", "dark:bg-purple-900");
+      maxAmount.value = limit.getAttribute('data-limit')
+    })
+  })
+
+  // Expiry
+  const expiry = document.getElementById("expiry");
+  const expiryToggle = document.getElementById("expiry-toggle");
+
+  expiryToggle?.addEventListener("click", function(e) {
+    expiry.classList.toggle("hidden");
+    expiryToggle.classList.toggle("hidden");
+  })
+
+  const today = new Date();
+  const expiryDays = document.getElementById("expiry-days")?.querySelectorAll("div");
+  const expiresAt = document.getElementById("expires-at");
+  
+  expiryDays?.forEach(day => {
+    day.addEventListener("click", function(e) {
+      expiryDays.forEach(div => {
+        div.classList.remove("border-purple-700", "dark:border-purple-300", "text-purple-700", "dark:text-white", "bg-purple-100", "dark:bg-purple-900");
+      })
+      day.classList.add("border-purple-700", "dark:border-purple-300", "text-purple-700", "dark:text-white", "bg-purple-100", "dark:bg-purple-900");
+      let days = parseInt(day.getAttribute('data-days'));
+      if (days == 0) {
+        expiresAt.value = "";
+      } else {
+        let expiryDate = new Date(today.getTime() + days * 24 * 60 * 60 * 1000);
+        expiresAt.value = expiryDate.toISOString();
+      }
     })
   })
 </script>

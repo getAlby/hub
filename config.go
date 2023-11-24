@@ -13,6 +13,7 @@ type Config struct {
 	CookieDomain            string `envconfig:"COOKIE_DOMAIN"`
 	ClientPubkey            string `envconfig:"CLIENT_NOSTR_PUBKEY"`
 	Relay                   string `envconfig:"RELAY" default:"wss://relay.getalby.com/v1"`
+	PublicRelay             string `envconfig:"PUBLIC_RELAY"`
 	LNBackendType           string `envconfig:"LN_BACKEND_TYPE" default:"ALBY"`
 	LNDAddress              string `envconfig:"LND_ADDRESS"`
 	LNDCertFile             string `envconfig:"LND_CERT_FILE"`

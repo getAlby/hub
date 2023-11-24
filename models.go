@@ -14,6 +14,7 @@ const (
 	NIP_47_PAY_INVOICE_METHOD         = "pay_invoice"
 	NIP_47_GET_BALANCE_METHOD         = "get_balance"
 	NIP_47_MAKE_INVOICE_METHOD        = "make_invoice"
+	NIP_47_LOOKUP_INVOICE_METHOD      = "lookup_invoice"
 	NIP_47_ERROR_INTERNAL             = "INTERNAL"
 	NIP_47_ERROR_NOT_IMPLEMENTED      = "NOT_IMPLEMENTED"
 	NIP_47_ERROR_QUOTA_EXCEEDED       = "QUOTA_EXCEEDED"
@@ -34,9 +35,17 @@ const (
 )
 
 var nip47MethodDescriptions = map[string]string{
-	NIP_47_GET_BALANCE_METHOD: "Read your balance.",
-	NIP_47_PAY_INVOICE_METHOD: "Send payments from your wallet.",
-	NIP_47_MAKE_INVOICE_METHOD: "Create invoices on your behalf.",
+	NIP_47_GET_BALANCE_METHOD:    "Read your balance",
+	NIP_47_PAY_INVOICE_METHOD:    "Send payments",
+	NIP_47_MAKE_INVOICE_METHOD:   "Create invoices",
+	NIP_47_LOOKUP_INVOICE_METHOD: "Lookup status of invoices",
+}
+
+var nip47MethodIcons = map[string]string{
+	NIP_47_GET_BALANCE_METHOD:    "wallet",
+	NIP_47_PAY_INVOICE_METHOD:    "lightning",
+	NIP_47_MAKE_INVOICE_METHOD:   "invoice",
+	NIP_47_LOOKUP_INVOICE_METHOD: "search",
 }
 
 type AlbyMe struct {
@@ -47,8 +56,8 @@ type AlbyMe struct {
 }
 
 type User struct {
-	ID               uint   `gorm:"primaryKey"`
-	AlbyIdentifier   string `gorm:"uniqueIndex" validate:"required"`
+	ID               uint
+	AlbyIdentifier   string `validate:"required"`
 	AccessToken      string `validate:"required"`
 	RefreshToken     string `validate:"required"`
 	Email            string
@@ -60,21 +69,21 @@ type User struct {
 }
 
 type App struct {
-	ID          uint   `gorm:"primaryKey"`
-	UserId      uint   `gorm:"index" validate:"required"`
-	User        User   `gorm:"constraint:OnDelete:CASCADE"`
+	ID          uint
+	UserId      uint `validate:"required"`
+	User        User
 	Name        string `validate:"required"`
 	Description string
-	NostrPubkey string `gorm:"index"`
+	NostrPubkey string `validate:"required"`
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
 
 type AppPermission struct {
-	ID            uint   `gorm:"primaryKey"`
-	AppId         uint   `gorm:"index" validate:"required"`
-	App           App    `gorm:"constraint:OnDelete:CASCADE"`
-	RequestMethod string `gorm:"index" validate:"required"`
+	ID            uint
+	AppId         uint `validate:"required"`
+	App           App
+	RequestMethod string `validate:"required"`
 	MaxAmount     int
 	BudgetRenewal string
 	ExpiresAt     time.Time
@@ -83,10 +92,10 @@ type AppPermission struct {
 }
 
 type NostrEvent struct {
-	ID        uint   `gorm:"primaryKey"`
-	AppId     uint   `gorm:"index" validate:"required"`
-	App       App    `gorm:"constraint:OnDelete:CASCADE"`
-	NostrId   string `gorm:"uniqueIndex" validate:"required"`
+	ID        uint
+	AppId     uint `validate:"required"`
+	App       App
+	NostrId   string `validate:"required"`
 	ReplyId   string
 	Content   string
 	State     string
@@ -96,14 +105,14 @@ type NostrEvent struct {
 }
 
 type Payment struct {
-	ID             uint `gorm:"primaryKey"`
-	AppId          uint `gorm:"index" validate:"required"`
-	App            App  `gorm:"constraint:OnDelete:CASCADE"`
-	NostrEventId   uint `gorm:"index" validate:"required"`
+	ID             uint
+	AppId          uint `validate:"required"`
+	App            App
+	NostrEventId   uint `validate:"required"`
 	NostrEvent     NostrEvent
 	Amount         uint
 	PaymentRequest string
-	Preimage       string
+	Preimage       *string
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 }
@@ -134,6 +143,11 @@ type MakeInvoiceResponse struct {
 	PaymentHash    string `json:"payment_hash"`
 }
 
+type LookupInvoiceResponse struct {
+	PaymentRequest string `json:"payment_request"`
+	Settled        bool   `json:"settled"`
+}
+
 type ErrorResponse struct {
 	Error   bool   `json:"error"`
 	Code    int    `json:"code"`
@@ -153,7 +167,7 @@ type Nip47Request struct {
 type Nip47Response struct {
 	Error      *Nip47Error `json:"error,omitempty"`
 	Result     interface{} `json:"result,omitempty"`
-	ResultType string      `json:"result_type,omitempty"`
+	ResultType string      `json:"result_type"`
 }
 
 type Nip47Error struct {
@@ -182,4 +196,14 @@ type Nip47MakeInvoiceParams struct {
 type Nip47MakeInvoiceResponse struct {
 	Invoice     string `json:"invoice"`
 	PaymentHash string `json:"payment_hash"`
+}
+
+type Nip47LookupInvoiceParams struct {
+	Invoice     string `json:"invoice"`
+	PaymentHash string `json:"payment_hash"`
+}
+
+type Nip47LookupInvoiceResponse struct {
+	Invoice string `json:"invoice"`
+	Paid    bool   `json:"paid"`
 }
