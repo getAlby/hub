@@ -24,9 +24,9 @@ type Service struct {
 }
 
 var supportedMethods = map[string]bool{
-	NIP_47_PAY_INVOICE_METHOD: true,
-	NIP_47_GET_BALANCE_METHOD: true,
-	NIP_47_MAKE_INVOICE_METHOD: true,
+	NIP_47_PAY_INVOICE_METHOD:    true,
+	NIP_47_GET_BALANCE_METHOD:    true,
+	NIP_47_MAKE_INVOICE_METHOD:   true,
 	NIP_47_LOOKUP_INVOICE_METHOD: true,
 }
 
@@ -69,8 +69,8 @@ func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 				resp, err := svc.HandleEvent(ctx, event)
 				if err != nil {
 					svc.Logger.WithFields(logrus.Fields{
-						"eventId":      event.ID,
-						"eventKind":      event.Kind,
+						"eventId":   event.ID,
+						"eventKind": event.Kind,
 					}).Errorf("Failed to process event: %v", err)
 				}
 				if resp != nil {
@@ -201,9 +201,9 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 		return svc.createResponse(event, Nip47Response{
 			ResultType: nip47Request.Method,
 			Error: &Nip47Error{
-			Code:    NIP_47_ERROR_NOT_IMPLEMENTED,
-			Message: fmt.Sprintf("Unknown method: %s", nip47Request.Method),
-		}}, ss)
+				Code:    NIP_47_ERROR_NOT_IMPLEMENTED,
+				Message: fmt.Sprintf("Unknown method: %s", nip47Request.Method),
+			}}, ss)
 	}
 }
 

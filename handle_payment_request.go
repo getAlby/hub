@@ -66,9 +66,9 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 		return svc.createResponse(event, Nip47Response{
 			ResultType: NIP_47_PAY_INVOICE_METHOD,
 			Error: &Nip47Error{
-			Code:    code,
-			Message: message,
-		}}, ss)
+				Code:    code,
+				Message: message,
+			}}, ss)
 	}
 
 	payment := Payment{App: app, NostrEvent: nostrEvent, PaymentRequest: bolt11, Amount: uint(paymentRequest.MSatoshi / 1000)}
