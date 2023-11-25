@@ -1,4 +1,11 @@
-FROM golang:1.20-alpine as builder
+FROM golang:latest as builder
+
+RUN apt-get update && \
+    apt-get install -y gcc
+
+ENV CGO_ENABLED=1
+ENV GOOS=linux
+ENV GOARCH=amd64
 
 # Move to working directory /build
 WORKDIR /build
@@ -11,14 +18,14 @@ RUN go mod download
 # Copy the code into the container
 COPY . .
 
-# Build the application
-RUN go build -o main
+RUN go build -o main .
 
 # Start a new, final image to reduce size.
+FROM alpine as final
 
-FROM gcr.io/distroless/static-debian11
+# FROM gcr.io/distroless/static-debian11
 
-USER small-user:small-user
+# USER small-user:small-user
 
 # Copy the binaries and entrypoint from the builder image.
 COPY --from=builder /build/main /bin/
