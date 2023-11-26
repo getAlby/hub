@@ -241,8 +241,8 @@ func getEndOfBudgetString(endOfBudget time.Time) (result string) {
 
 func (svc *Service) AppsNewHandler(c echo.Context) error {
 	appName := c.QueryParam("name")
-	if (appName == "") {
-		 // c - for client (deprecated)
+	if appName == "" {
+		// c - for client (deprecated)
 		appName = c.QueryParam("c")
 	}
 	pubkey := c.QueryParam("pubkey")
@@ -297,7 +297,7 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 	for k, v := range nip47MethodDescriptions {
 		requestMethodHelper[k] = &RequestMethodHelper{
 			Description: v,
-			Icon:        nip47MethodIcons[k],    
+			Icon:        nip47MethodIcons[k],
 		}
 	}
 
@@ -354,7 +354,7 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 	expiresAt := time.Time{}
 	if c.FormValue("ExpiresAt") != "" {
 		expiresAt, err = time.Parse(time.RFC3339, c.FormValue("ExpiresAt"))
-		if (err != nil) {
+		if err != nil {
 			return fmt.Errorf("Invalid ExpiresAt: %v", err)
 		}
 	}
@@ -405,16 +405,16 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 		return c.Redirect(302, "/apps")
 	}
 
-	publicRelayUrl := svc.cfg.PublicRelay;
-	if (publicRelayUrl == "") {
-		publicRelayUrl = svc.cfg.Relay;
+	publicRelayUrl := svc.cfg.PublicRelay
+	if publicRelayUrl == "" {
+		publicRelayUrl = svc.cfg.Relay
 	}
 
 	if c.FormValue("returnTo") != "" {
 		returnToUrl, err := url.Parse(c.FormValue("returnTo"))
 		if err == nil {
 			query := returnToUrl.Query()
-			query.Add("relay", publicRelayUrl);
+			query.Add("relay", publicRelayUrl)
 			query.Add("pubkey", svc.cfg.IdentityPubkey)
 			if user.LightningAddress != "" {
 				query.Add("lud16", user.LightningAddress)
