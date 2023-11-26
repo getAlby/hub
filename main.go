@@ -175,7 +175,6 @@ func main() {
 	//connect to the relay
 	svc.Logger.Infof("Connecting to the relay: %s", cfg.Relay)
 
-
 	relay, err := nostr.RelayConnect(ctx, cfg.Relay, nostr.WithNoticeHandler(svc.noticeHandler))
 	if err != nil {
 		svc.Logger.Fatal(err)
@@ -193,12 +192,7 @@ func main() {
 		svc.Logger.Info("Subscribing to events")
 		sub, err := relay.Subscribe(ctx, svc.createFilters())
 		if err != nil {
-			//err being non-nil means that we have an error on the websocket error channel. In this case we just try to reconnect.
-			svc.Logger.WithError(err).Error("Got an error from the relay while subscribing. Reconnecting...")
-			relay, err = nostr.RelayConnect(ctx, cfg.Relay)
-			if err != nil {
-				svc.Logger.Fatal(err)
-			}
+			svc.Logger.Fatal(err)
 		}
 		err = svc.StartSubscription(ctx, sub)
 		if err != nil {

@@ -53,7 +53,7 @@ func (svc *Service) GetUser(c echo.Context) (user *User, err error) {
 
 func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscription) error {
 	for {
-		if (sub.Relay.ConnectionError != nil) {
+		if sub.Relay.ConnectionError != nil {
 			return sub.Relay.ConnectionError
 		}
 		select {
@@ -75,7 +75,16 @@ func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 					}).Errorf("Failed to process event: %v", err)
 				}
 				if resp != nil {
-					status, publishErr := sub.Relay.Publish(ctx, *resp)
+					status, err := sub.Relay.Publish(ctx, *resp)
+					if err != nil {
+						svc.Logger.WithFields(logrus.Fields{
+							"eventId":      event.ID,
+							"status":       status,
+							"replyEventId": resp.ID,
+						}).Errorf("Failed to publish reply: %v", err)
+						return
+					}
+
 					nostrEvent := NostrEvent{}
 					result := svc.db.Where("nostr_id = ?", event.ID).First(&nostrEvent)
 					if result.Error != nil {
@@ -83,24 +92,12 @@ func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 							"eventId":      event.ID,
 							"status":       status,
 							"replyEventId": resp.ID,
-							"publishErr": publishErr,
 						}).Error(result.Error)
 						return
 					}
 					nostrEvent.ReplyId = resp.ID
-					
-					if status == nostr.PublishStatusFailed || publishErr != nil {
-						nostrEvent.State = NOSTR_EVENT_STATE_PUBLISH_FAILED
-						svc.db.Save(&nostrEvent)
-						svc.Logger.WithFields(logrus.Fields{
-							"nostrEventId": nostrEvent.ID,
-							"eventId":      event.ID,
-							"status":       status,
-							"replyEventId": resp.ID,
-							"appId":        nostrEvent.AppId,
-							"publishErr":   publishErr,
-						}).Info("Failed to publish reply")
-					} else if status == nostr.PublishStatusSucceeded {
+
+					if status == nostr.PublishStatusSucceeded {
 						nostrEvent.State = NOSTR_EVENT_STATE_PUBLISH_CONFIRMED
 						nostrEvent.RepliedAt = time.Now()
 						svc.db.Save(&nostrEvent)
@@ -111,6 +108,16 @@ func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 							"replyEventId": resp.ID,
 							"appId":        nostrEvent.AppId,
 						}).Info("Published reply")
+					} else if status == nostr.PublishStatusFailed {
+						nostrEvent.State = NOSTR_EVENT_STATE_PUBLISH_FAILED
+						svc.db.Save(&nostrEvent)
+						svc.Logger.WithFields(logrus.Fields{
+							"nostrEventId": nostrEvent.ID,
+							"eventId":      event.ID,
+							"status":       status,
+							"replyEventId": resp.ID,
+							"appId":        nostrEvent.AppId,
+						}).Info("Failed to publish reply")
 					} else {
 						nostrEvent.State = NOSTR_EVENT_STATE_PUBLISH_UNCONFIRMED
 						svc.db.Save(&nostrEvent)
