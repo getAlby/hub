@@ -40,13 +40,13 @@ var nip47MethodDescriptions = map[string]string{
 	NIP_47_PAY_INVOICE_METHOD:    "Send payments",
 	NIP_47_MAKE_INVOICE_METHOD:   "Create invoices",
 	NIP_47_LOOKUP_INVOICE_METHOD: "Lookup status of invoices",
-	NIP_47_LIST_INVOICES_METHOD:  "List invoices",
+	NIP_47_LIST_INVOICES_METHOD:  "Read incoming transaction history",
 }
 
 var nip47MethodIcons = map[string]string{
 	NIP_47_GET_BALANCE_METHOD:    "wallet",
 	NIP_47_PAY_INVOICE_METHOD:    "lightning",
-	NIP_47_LIST_INVOICES_METHOD:  "invoice",
+	NIP_47_LIST_INVOICES_METHOD:  "transactions",
 	NIP_47_MAKE_INVOICE_METHOD:   "invoice",
 	NIP_47_LOOKUP_INVOICE_METHOD: "search",
 }

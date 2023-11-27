@@ -360,7 +360,6 @@ func (svc *AlbyOAuthService) ListInvoices(ctx context.Context, senderPubkey, fro
 	}
 	// TODO: Add Offset and Unpaid
 
-	fmt.Println(fmt.Sprintf("%s/invoices?%s", svc.cfg.AlbyAPIURL, urlParams.Encode()))
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s/invoices?%s", svc.cfg.AlbyAPIURL, urlParams.Encode()), nil)
 	if err != nil {
 		svc.Logger.WithError(err).Error("Error creating request /invoices")

@@ -68,6 +68,33 @@ const nip47PayJsonNoInvoice = `
 const mockInvoice = "lnbc10n1pjdy9aepp5ftvu6fucndg5mp5ww4ghsduqrxgr4rtcwelrln4jzxhem5qw022qhp50kncf9zk35xg4lxewt4974ry6mudygsztsz8qn3ar8pn3mtpe50scqzzsxqyz5vqsp5zyzp3dyn98g7sjlgy4nvujq3rh9xxsagytcyx050mf3rtrx3sn4s9qyyssq7af24ljqf5uzgnz4ualxhvffryh3kpkvvj76ah9yrgdvu494lmfrdf36h5wuhshzemkvrtg2zu70uk0fd9fcmxgl3j9748dvvx9ey9gqpr4jjd"
 const mockPaymentHash = "4ad9cd27989b514d868e755178378019903a8d78767e3fceb211af9dd00e7a94" // for the above invoice
 
+var mockInvoices = []*Invoice{
+	{
+		Invoice:         mockInvoice,
+		Description:     "mock invoice 1",
+		DescriptionHash: "hash1",
+		Preimage:        "preimage1",
+		PaymentHash:     "payment_hash_1",
+		Amount:          1000,
+		FeesPaid:        50,
+		SettledAt:       time.Now(),
+		Metadata: map[string]interface{}{
+			"key1": "value1",
+			"key2": 42,
+		},
+	},
+	{
+		Invoice:         mockInvoice,
+		Description:     "mock invoice 2",
+		DescriptionHash: "hash2",
+		Preimage:        "preimage2",
+		PaymentHash:     "payment_hash_2",
+		Amount:          2000,
+		FeesPaid:        75,
+		SettledAt:       time.Now(),
+	},
+}
+
 func TestHandleEvent(t *testing.T) {
 	ctx := context.TODO()
 	svc, _ := createTestService(t)
@@ -447,6 +474,11 @@ func (mln *MockLn) GetBalance(ctx context.Context, senderPubkey string) (balance
 func (mln *MockLn) MakeInvoice(ctx context.Context, senderPubkey string, amount int64, description string, descriptionHash string, expiry int64) (invoice string, paymentHash string, err error) {
 	return mockInvoice, mockPaymentHash, nil
 }
+
 func (mln *MockLn) LookupInvoice(ctx context.Context, senderPubkey string, paymentHash string) (invoice string, paid bool, err error) {
 	return mockInvoice, false, nil
+}
+
+func (mln *MockLn) ListInvoices(ctx context.Context, senderPubkey, from, until, limit, offset string) (invoices []*Invoice, err error) {
+	return mockInvoices, nil
 }
