@@ -157,6 +157,15 @@ type ErrorResponse struct {
 	Message string `json:"message"`
 }
 
+type NodeInfo struct {
+	alias        string
+	color        string
+	pubkey       string
+	network      string
+	block_height uint32
+	block_hash   string
+}
+
 type Identity struct {
 	gorm.Model
 	Privkey string

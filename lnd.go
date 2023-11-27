@@ -18,7 +18,7 @@ import (
 type LNClient interface {
 	SendPaymentSync(ctx context.Context, senderPubkey string, payReq string) (preimage string, err error)
 	GetBalance(ctx context.Context, senderPubkey string) (balance int64, err error)
-	GetInfo(ctx context.Context, senderPubkey string) (alias, color, pubkey, network string, block_height uint32, block_hash string, err error)
+	GetInfo(ctx context.Context, senderPubkey string) (info *NodeInfo, err error)
 	MakeInvoice(ctx context.Context, senderPubkey string, amount int64, description string, descriptionHash string, expiry int64) (invoice string, paymentHash string, err error)
 	LookupInvoice(ctx context.Context, senderPubkey string, paymentHash string) (invoice string, paid bool, err error)
 }
@@ -52,12 +52,19 @@ func (svc *LNDService) GetBalance(ctx context.Context, senderPubkey string) (bal
 	return int64(resp.LocalBalance.Sat), nil
 }
 
-func (svc *LNDService) GetInfo(ctx context.Context, senderPubkey string) (alias, color, pubkey, network string, block_height uint32, block_hash string, err error) {
+func (svc *LNDService) GetInfo(ctx context.Context, senderPubkey string) (info *NodeInfo, err error) {
 	resp, err := svc.client.GetInfo(ctx, &lnrpc.GetInfoRequest{})
 	if err != nil {
-		return "", "", "", "", 0, "", err
+		return nil, err
 	}
-	return resp.Alias, resp.Color, resp.IdentityPubkey, "mainnet", resp.BlockHeight, resp.BlockHash, nil
+	return &NodeInfo{
+		alias:        resp.Alias,
+		color:        resp.Color,
+		pubkey:       resp.IdentityPubkey,
+		network:      "mainnet",
+		block_height: resp.BlockHeight,
+		block_hash:   resp.BlockHash,
+	}, nil
 }
 
 func (svc *LNDService) MakeInvoice(ctx context.Context, senderPubkey string, amount int64, description string, descriptionHash string, expiry int64) (invoice string, paymentHash string, err error) {

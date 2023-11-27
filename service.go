@@ -197,6 +197,8 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 		return svc.HandleMakeInvoiceEvent(ctx, nip47Request, event, app, ss)
 	case NIP_47_LOOKUP_INVOICE_METHOD:
 		return svc.HandleLookupInvoiceEvent(ctx, nip47Request, event, app, ss)
+	case NIP_47_GET_INFO_METHOD:
+		return svc.HandleGetInfoEvent(ctx, nip47Request, event, app, ss)
 	default:
 		return svc.createResponse(event, Nip47Response{
 			ResultType: nip47Request.Method,

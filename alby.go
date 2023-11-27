@@ -269,8 +269,8 @@ func (svc *AlbyOAuthService) LookupInvoice(ctx context.Context, senderPubkey str
 	return "", false, errors.New(errorPayload.Message)
 }
 
-func (svc *AlbyOAuthService) GetInfo(ctx context.Context, senderPubkey string) (alias, color, pubkey, network string, block_height uint32, block_hash string, err error) {
-	alias = "getalby.com"
+func (svc *AlbyOAuthService) GetInfo(ctx context.Context, senderPubkey string) (info *NodeInfo, err error) {
+	alias := "getalby.com"
 	app := App{}
 	err = svc.db.Preload("User").First(&app, &App{
 		NostrPubkey: senderPubkey,
@@ -279,18 +279,18 @@ func (svc *AlbyOAuthService) GetInfo(ctx context.Context, senderPubkey string) (
 		svc.Logger.WithFields(logrus.Fields{
 			"senderPubkey": senderPubkey,
 		}).Errorf("App not found: %v", err)
-		return "", "", "", "", 0, "", err
+		return nil, err
 	}
 	tok, err := svc.FetchUserToken(ctx, app)
 	if err != nil {
-		return "", "", "", "", 0, "", err
+		return nil, err
 	}
 	client := svc.oauthConf.Client(ctx, tok)
 
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s/getinfo", svc.cfg.AlbyAPIURL), nil)
 	if err != nil {
 		svc.Logger.WithError(err).Error("Error creating request /getinfo")
-		return "", "", "", "", 0, "", err
+		return nil, err
 	}
 
 	req.Header.Set("User-Agent", "NWC")
@@ -302,21 +302,28 @@ func (svc *AlbyOAuthService) GetInfo(ctx context.Context, senderPubkey string) (
 			"appId":        app.ID,
 			"userId":       app.User.ID,
 		}).Errorf("Failed to fetch node info: %v", err)
-		return "", "", "", "", 0, "", err
+		return nil, err
 	}
 
 	if resp.StatusCode < 300 {
 		// TODO: decode fetched node info
 		// err = json.NewDecoder(resp.Body).Decode(&nodeInfo)
 		if err != nil {
-			return "", "", "", "", 0, "", err
+			return nil, err
 		}
 		svc.Logger.WithFields(logrus.Fields{
 			"senderPubkey": senderPubkey,
 			"appId":        app.ID,
 			"userId":       app.User.ID,
 		}).Info("Info fetch successful")
-		return alias, "color", "pubkey", "mainnet", 0, "blockhash", err
+		return &NodeInfo{
+			alias:        alias,
+			color:        "color",
+			pubkey:       "pubkey",
+			network:      "mainnet",
+			block_height: 0,
+			block_hash:   "blockhash",
+		}, err
 	}
 
 	errorPayload := &ErrorResponse{}
@@ -327,7 +334,7 @@ func (svc *AlbyOAuthService) GetInfo(ctx context.Context, senderPubkey string) (
 		"userId":        app.User.ID,
 		"APIHttpStatus": resp.StatusCode,
 	}).Errorf("Invoices listing failed %s", string(errorPayload.Message))
-	return "", "", "", "", 0, "", errors.New(errorPayload.Message)
+	return nil, errors.New(errorPayload.Message)
 }
 
 func (svc *AlbyOAuthService) GetBalance(ctx context.Context, senderPubkey string) (balance int64, err error) {

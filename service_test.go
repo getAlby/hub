@@ -444,8 +444,15 @@ func (mln *MockLn) GetBalance(ctx context.Context, senderPubkey string) (balance
 	return 21, nil
 }
 
-func (mln *MockLn) GetInfo(ctx context.Context, senderPubkey string) (alias, color, pubkey, network string, block_height uint32, block_hash string, err error) {
-	return "bob", "#3399FF", "123pubkey", "testnet", 12, "123blockhash", nil
+func (mln *MockLn) GetInfo(ctx context.Context, senderPubkey string) (info *NodeInfo, err error) {
+	return &NodeInfo{
+		alias:        "bob",
+		color:        "#3399FF",
+		pubkey:       "123pubkey",
+		network:      "testnet",
+		block_height: 12,
+		block_hash:   "123blockhash",
+	}, nil
 }
 
 func (mln *MockLn) MakeInvoice(ctx context.Context, senderPubkey string, amount int64, description string, descriptionHash string, expiry int64) (invoice string, paymentHash string, err error) {

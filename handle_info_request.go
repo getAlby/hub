@@ -31,7 +31,7 @@ func (svc *Service) HandleGetInfoEvent(ctx context.Context, request *Nip47Reques
 		}).Errorf("App does not have permission: %s %s", code, message)
 
 		return svc.createResponse(event, Nip47Response{
-			ResultType: NIP_47_GET_INFO_METHOD,
+			ResultType: request.Method,
 			Error: &Nip47Error{
 			Code:    code,
 			Message: message,
@@ -44,7 +44,7 @@ func (svc *Service) HandleGetInfoEvent(ctx context.Context, request *Nip47Reques
 		"appId":     app.ID,
 	}).Info("Fetching node info")
 
-	alias, color, pubkey, network, block_height, block_hash, err := svc.lnClient.GetInfo(ctx, event.PubKey)
+	info, err := svc.lnClient.GetInfo(ctx, event.PubKey)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
 			"eventId":   event.ID,
@@ -54,7 +54,7 @@ func (svc *Service) HandleGetInfoEvent(ctx context.Context, request *Nip47Reques
 		nostrEvent.State = NOSTR_EVENT_STATE_HANDLER_ERROR
 		svc.db.Save(&nostrEvent)
 		return svc.createResponse(event, Nip47Response{
-			ResultType: NIP_47_GET_BALANCE_METHOD,
+			ResultType: request.Method,
 			Error: &Nip47Error{
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: fmt.Sprintf("Something went wrong while fetching node info: %s", err.Error()),
@@ -63,18 +63,18 @@ func (svc *Service) HandleGetInfoEvent(ctx context.Context, request *Nip47Reques
 	}
 
 	responsePayload := &Nip47GetInfoResponse{
-		Alias:       alias,
-		Color:       color,
-		Pubkey:      pubkey,
-		Network:     network,
-		BlockHeight: block_height,
-		BlockHash:   block_hash,
+		Alias:       info.alias,
+		Color:       info.color,
+		Pubkey:      info.pubkey,
+		Network:     info.network,
+		BlockHeight: info.block_height,
+		BlockHash:   info.block_hash,
 	}
 
 	nostrEvent.State = NOSTR_EVENT_STATE_HANDLER_EXECUTED
 	svc.db.Save(&nostrEvent)
 	return svc.createResponse(event, Nip47Response{
-		ResultType: NIP_47_GET_BALANCE_METHOD,
+		ResultType: request.Method,
 		Result:     responsePayload,
 	},
 		ss)
