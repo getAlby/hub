@@ -407,6 +407,87 @@ func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, 
 	return "", errors.New(errorPayload.Message)
 }
 
+func (svc *AlbyOAuthService) SendKeysend(ctx context.Context, senderPubkey string, amount int64, destination, memo string, custom_records map[string]string) (preimage, paymentHash string, err error) {
+	app := App{}
+	err = svc.db.Preload("User").First(&app, &App{
+		NostrPubkey: senderPubkey,
+	}).Error
+	if err != nil {
+		svc.Logger.WithFields(logrus.Fields{
+			"senderPubkey": senderPubkey,
+			"payeePubkey":  destination,
+		}).Errorf("App not found: %v", err)
+		return "", "", err
+	}
+	svc.Logger.WithFields(logrus.Fields{
+		"senderPubkey": senderPubkey,
+		"payeePubkey":  destination,
+		"appId":        app.ID,
+		"userId":       app.User.ID,
+	}).Info("Processing payment request")
+	tok, err := svc.FetchUserToken(ctx, app)
+	if err != nil {
+		return "", "", err
+	}
+	client := svc.oauthConf.Client(ctx, tok)
+
+	body := bytes.NewBuffer([]byte{})
+	payload := &KeysendRequest{
+		Amount: amount,
+		Destination: destination,
+		Memo: memo,
+		CustomRecords: custom_records,
+	}
+	err = json.NewEncoder(body).Encode(payload)
+
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/payments/keysend", svc.cfg.AlbyAPIURL), body)
+	if err != nil {
+		svc.Logger.WithError(err).Error("Error creating request /payments/keysend")
+		return "", "", err
+	}
+
+	req.Header.Set("User-Agent", "NWC")
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		svc.Logger.WithFields(logrus.Fields{
+			"senderPubkey": senderPubkey,
+			"payeePubkey":  destination,
+			"appId":        app.ID,
+			"userId":       app.User.ID,
+		}).Errorf("Failed to pay keysend: %v", err)
+		return "", "", err
+	}
+
+	if resp.StatusCode < 300 {
+		responsePayload := &PayResponse{}
+		err = json.NewDecoder(resp.Body).Decode(responsePayload)
+		if err != nil {
+			return "", "", err
+		}
+		svc.Logger.WithFields(logrus.Fields{
+			"senderPubkey": senderPubkey,
+			"payeePubkey":  destination,
+			"appId":        app.ID,
+			"userId":       app.User.ID,
+			"paymentHash":  responsePayload.PaymentHash,
+		}).Info("Payment successful")
+		return responsePayload.Preimage, responsePayload.PaymentHash, nil
+	}
+
+	errorPayload := &ErrorResponse{}
+	err = json.NewDecoder(resp.Body).Decode(errorPayload)
+	svc.Logger.WithFields(logrus.Fields{
+		"senderPubkey":  senderPubkey,
+		"payeePubkey":   destination,
+		"appId":         app.ID,
+		"userId":        app.User.ID,
+		"APIHttpStatus": resp.StatusCode,
+	}).Errorf("Payment failed %s", string(errorPayload.Message))
+	return "", "", errors.New(errorPayload.Message)
+}
+
 func (svc *AlbyOAuthService) AuthHandler(c echo.Context) error {
 	appName := c.QueryParam("c") // c - for client
 	// clear current session

@@ -15,6 +15,7 @@ const (
 	NIP_47_GET_BALANCE_METHOD         = "get_balance"
 	NIP_47_MAKE_INVOICE_METHOD        = "make_invoice"
 	NIP_47_LOOKUP_INVOICE_METHOD      = "lookup_invoice"
+	NIP_47_PAY_KEYSEND_METHOD         = "pay_keysend"
 	NIP_47_ERROR_INTERNAL             = "INTERNAL"
 	NIP_47_ERROR_NOT_IMPLEMENTED      = "NOT_IMPLEMENTED"
 	NIP_47_ERROR_QUOTA_EXCEEDED       = "QUOTA_EXCEEDED"
@@ -121,6 +122,13 @@ type PayRequest struct {
 	Invoice string `json:"invoice"`
 }
 
+type KeysendRequest struct {
+	Amount        int64             `json:"amount"`
+	Destination   string            `json:"destination"`
+	Memo          string            `json:"memo,omitempty"`
+	CustomRecords map[string]string `json:"custom_records,omitempty"`
+}
+
 type BalanceResponse struct {
 	Balance  int64  `json:"balance"`
 	Currency string `json:"currency"`
@@ -181,6 +189,18 @@ type Nip47PayParams struct {
 type Nip47PayResponse struct {
 	Preimage string `json:"preimage"`
 }
+
+type Nip47KeysendParams struct {
+	Amount     int64             `json:"amount"`
+	Pubkey     string            `json:"pubkey"`
+	Message    string            `json:"message"`
+	TLVRecords map[string]string `json:"tlv_records"`
+}
+type Nip47KeysendResponse struct {
+	Preimage    string `json:"preimage"`
+	PaymentHash string `json:"payment_hash"`
+}
+
 type Nip47BalanceResponse struct {
 	Balance       int64  `json:"balance"`
 	MaxAmount     int    `json:"max_amount"`

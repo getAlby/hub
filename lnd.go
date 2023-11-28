@@ -17,6 +17,7 @@ import (
 
 type LNClient interface {
 	SendPaymentSync(ctx context.Context, senderPubkey string, payReq string) (preimage string, err error)
+	SendKeysend(ctx context.Context, senderPubkey string, amount int64, destination, memo string, custom_records map[string]string) (preimage, paymentHash string, err error)
 	GetBalance(ctx context.Context, senderPubkey string) (balance int64, err error)
 	MakeInvoice(ctx context.Context, senderPubkey string, amount int64, description string, descriptionHash string, expiry int64) (invoice string, paymentHash string, err error)
 	LookupInvoice(ctx context.Context, senderPubkey string, paymentHash string) (invoice string, paid bool, err error)
@@ -101,6 +102,11 @@ func (svc *LNDService) SendPaymentSync(ctx context.Context, senderPubkey, payReq
 		return "", err
 	}
 	return hex.EncodeToString(resp.PaymentPreimage), nil
+}
+
+func (svc *LNDService) SendKeysend(ctx context.Context, senderPubkey string, amount int64, destination, memo string, custom_records map[string]string) (preimage, paymentHash string, err error) {
+	// TODO: MAKE KEYSEND PAYMENT
+	return "", "", errors.New("keysend not implemented")
 }
 
 func NewLNDService(ctx context.Context, svc *Service, e *echo.Echo) (result *LNDService, err error) {

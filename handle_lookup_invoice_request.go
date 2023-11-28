@@ -24,7 +24,7 @@ func (svc *Service) HandleLookupInvoiceEvent(ctx context.Context, request *Nip47
 	}
 
 	// TODO: move to a shared function
-	hasPermission, code, message := svc.hasPermission(&app, event, request.Method, nil)
+	hasPermission, code, message := svc.hasPermission(&app, event, request.Method, 0)
 
 	if !hasPermission {
 		svc.Logger.WithFields(logrus.Fields{

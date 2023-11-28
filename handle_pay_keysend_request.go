@@ -6,11 +6,10 @@ import (
 	"fmt"
 
 	"github.com/nbd-wtf/go-nostr"
-	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
 )
 
-func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Request, event *nostr.Event, app App, ss []byte) (result *nostr.Event, err error) {
+func (svc *Service) HandlePayKeysendEvent(ctx context.Context, request *Nip47Request, event *nostr.Event, app App, ss []byte) (result *nostr.Event, err error) {
 
 	nostrEvent := NostrEvent{App: app, NostrId: event.ID, Content: event.Content, State: "received"}
 	err = svc.db.Create(&nostrEvent).Error
@@ -23,8 +22,7 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 		return nil, err
 	}
 
-	var bolt11 string
-	payParams := &Nip47PayParams{}
+	payParams := &Nip47KeysendParams{}
 	err = json.Unmarshal(request.Params, payParams)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
@@ -35,67 +33,49 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 		return nil, err
 	}
 
-	bolt11 = payParams.Invoice
-	paymentRequest, err := decodepay.Decodepay(bolt11)
-	if err != nil {
-		svc.Logger.WithFields(logrus.Fields{
-			"eventId":   event.ID,
-			"eventKind": event.Kind,
-			"appId":     app.ID,
-			"bolt11":    bolt11,
-		}).Errorf("Failed to decode bolt11 invoice: %v", err)
-
-		return svc.createResponse(event, Nip47Response{
-			ResultType: NIP_47_PAY_INVOICE_METHOD,
-			Error: &Nip47Error{
-				Code:    NIP_47_ERROR_INTERNAL,
-				Message: fmt.Sprintf("Failed to decode bolt11 invoice: %s", err.Error()),
-			},
-		}, ss)
-	}
-
-	hasPermission, code, message := svc.hasPermission(&app, event, request.Method, paymentRequest.MSatoshi)
+	hasPermission, code, message := svc.hasPermission(&app, event, request.Method, payParams.Amount)
 
 	if !hasPermission {
 		svc.Logger.WithFields(logrus.Fields{
-			"eventId":   event.ID,
-			"eventKind": event.Kind,
-			"appId":     app.ID,
+			"eventId":      event.ID,
+			"eventKind":    event.Kind,
+			"appId":        app.ID,
+			"senderPubkey": payParams.Pubkey,
 		}).Errorf("App does not have permission: %s %s", code, message)
 
 		return svc.createResponse(event, Nip47Response{
-			ResultType: NIP_47_PAY_INVOICE_METHOD,
+			ResultType: request.Method,
 			Error: &Nip47Error{
 				Code:    code,
 				Message: message,
 			}}, ss)
 	}
 
-	payment := Payment{App: app, NostrEvent: nostrEvent, PaymentRequest: bolt11, Amount: uint(paymentRequest.MSatoshi / 1000)}
+	payment := Payment{App: app, NostrEvent: nostrEvent, Amount: uint(payParams.Amount / 1000)}
 	insertPaymentResult := svc.db.Create(&payment)
 	if insertPaymentResult.Error != nil {
 		return nil, insertPaymentResult.Error
 	}
 
 	svc.Logger.WithFields(logrus.Fields{
-		"eventId":   event.ID,
-		"eventKind": event.Kind,
-		"appId":     app.ID,
-		"bolt11":    bolt11,
+		"eventId":      event.ID,
+		"eventKind":    event.Kind,
+		"appId":        app.ID,
+		"senderPubkey": payParams.Pubkey,
 	}).Info("Sending payment")
 
-	preimage, err := svc.lnClient.SendPaymentSync(ctx, event.PubKey, bolt11)
+	preimage, paymentHash, err := svc.lnClient.SendKeysend(ctx, event.PubKey, payParams.Amount, payParams.Pubkey, payParams.Message, payParams.TLVRecords)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
-			"eventId":   event.ID,
-			"eventKind": event.Kind,
-			"appId":     app.ID,
-			"bolt11":    bolt11,
+			"eventId":      event.ID,
+			"eventKind":    event.Kind,
+			"appId":        app.ID,
+			"senderPubkey": payParams.Pubkey,
 		}).Infof("Failed to send payment: %v", err)
 		nostrEvent.State = NOSTR_EVENT_STATE_HANDLER_ERROR
 		svc.db.Save(&nostrEvent)
 		return svc.createResponse(event, Nip47Response{
-			ResultType: NIP_47_PAY_INVOICE_METHOD,
+			ResultType: request.Method,
 			Error: &Nip47Error{
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: fmt.Sprintf("Something went wrong while paying invoice: %s", err.Error()),
@@ -107,9 +87,10 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 	svc.db.Save(&nostrEvent)
 	svc.db.Save(&payment)
 	return svc.createResponse(event, Nip47Response{
-		ResultType: NIP_47_PAY_INVOICE_METHOD,
-		Result: Nip47PayResponse{
-			Preimage: preimage,
+		ResultType: request.Method,
+		Result: Nip47KeysendResponse{
+			Preimage:    preimage,
+			PaymentHash: paymentHash,
 		},
 	}, ss)
 }
