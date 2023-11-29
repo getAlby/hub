@@ -174,7 +174,8 @@ func main() {
 
 	//connect to the relay
 	svc.Logger.Infof("Connecting to the relay: %s", cfg.Relay)
-	relay, err := nostr.RelayConnect(ctx, cfg.Relay)
+
+	relay, err := nostr.RelayConnect(ctx, cfg.Relay, nostr.WithNoticeHandler(svc.noticeHandler))
 	if err != nil {
 		svc.Logger.Fatal(err)
 	}
@@ -189,11 +190,14 @@ func main() {
 	//TODO: we can start this loop for multiple relays
 	for {
 		svc.Logger.Info("Subscribing to events")
-		sub := relay.Subscribe(ctx, svc.createFilters())
+		sub, err := relay.Subscribe(ctx, svc.createFilters())
+		if err != nil {
+			svc.Logger.Fatal(err)
+		}
 		err = svc.StartSubscription(ctx, sub)
 		if err != nil {
 			//err being non-nil means that we have an error on the websocket error channel. In this case we just try to reconnect.
-			svc.Logger.WithError(err).Error("Got an error from the relay. Reconnecting...")
+			svc.Logger.WithError(err).Error("Got an error from the relay while listening to subscription. Reconnecting...")
 			relay, err = nostr.RelayConnect(ctx, cfg.Relay)
 			if err != nil {
 				svc.Logger.Fatal(err)
@@ -219,4 +223,8 @@ func (svc *Service) createFilters() nostr.Filters {
 		filter.Authors = []string{svc.cfg.ClientPubkey}
 	}
 	return []nostr.Filter{filter}
+}
+
+func (svc *Service) noticeHandler(notice string) {
+	svc.Logger.Infof("Received a notice %s", notice)
 }
