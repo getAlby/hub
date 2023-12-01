@@ -17,7 +17,7 @@ import (
 
 type LNClient interface {
 	SendPaymentSync(ctx context.Context, senderPubkey string, payReq string) (preimage string, err error)
-	SendKeysend(ctx context.Context, senderPubkey string, amount int64, destination, memo string, custom_records map[string]string) (preimage, paymentHash string, err error)
+	SendKeysend(ctx context.Context, senderPubkey string, amount int64, destination, memo, preimage string, custom_records []TLVRecord) (preImage, paymentHash string, err error)
 	GetBalance(ctx context.Context, senderPubkey string) (balance int64, err error)
 	MakeInvoice(ctx context.Context, senderPubkey string, amount int64, description string, descriptionHash string, expiry int64) (invoice string, paymentHash string, err error)
 	LookupInvoice(ctx context.Context, senderPubkey string, paymentHash string) (invoice string, paid bool, err error)
@@ -104,9 +104,33 @@ func (svc *LNDService) SendPaymentSync(ctx context.Context, senderPubkey, payReq
 	return hex.EncodeToString(resp.PaymentPreimage), nil
 }
 
-func (svc *LNDService) SendKeysend(ctx context.Context, senderPubkey string, amount int64, destination, memo string, custom_records map[string]string) (preimage, paymentHash string, err error) {
-	// TODO: MAKE KEYSEND PAYMENT
-	return "", "", errors.New("keysend not implemented")
+func (svc *LNDService) SendKeysend(ctx context.Context, senderPubkey string, amount int64, destination, memo, preimage string, custom_records []TLVRecord) (preImage, paymentHash string, err error) {
+	destBytes, err := hex.DecodeString(destination)
+	if err != nil {
+		return "", "", err
+	}
+	preimageBytes, err := hex.DecodeString(preimage)
+	if err != nil {
+		return "", "", err
+	}
+	resultMap := make(map[uint64][]byte)
+	for _, record := range custom_records {
+			resultMap[record.Type] = []byte(record.Value)
+	}
+	KEYSEND_CUSTOM_RECORD := uint64(5482373484)
+	resultMap[KEYSEND_CUSTOM_RECORD] = preimageBytes
+	sendPaymentRequest := &lnrpc.SendRequest{
+		Dest:              destBytes,
+		Amt:               amount,
+		DestFeatures:      []lnrpc.FeatureBit{lnrpc.FeatureBit_TLV_ONION_REQ},
+		DestCustomRecords: resultMap,
+	}
+
+	resp, err := svc.client.SendPaymentSync(ctx, sendPaymentRequest)
+	if err != nil {
+		return "", "", err
+	}
+	return hex.EncodeToString(resp.PaymentPreimage), hex.EncodeToString(resp.PaymentHash), nil
 }
 
 func NewLNDService(ctx context.Context, svc *Service, e *echo.Echo) (result *LNDService, err error) {

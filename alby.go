@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
@@ -407,7 +408,7 @@ func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, 
 	return "", errors.New(errorPayload.Message)
 }
 
-func (svc *AlbyOAuthService) SendKeysend(ctx context.Context, senderPubkey string, amount int64, destination, memo string, custom_records map[string]string) (preimage, paymentHash string, err error) {
+func (svc *AlbyOAuthService) SendKeysend(ctx context.Context, senderPubkey string, amount int64, destination, memo, preimage string, custom_records []TLVRecord) (preImage, paymentHash string, err error) {
 	app := App{}
 	err = svc.db.Preload("User").First(&app, &App{
 		NostrPubkey: senderPubkey,
@@ -431,15 +432,21 @@ func (svc *AlbyOAuthService) SendKeysend(ctx context.Context, senderPubkey strin
 	}
 	client := svc.oauthConf.Client(ctx, tok)
 
+	customRecordsMap := make(map[string]string)
+	for _, record := range custom_records {
+		customRecordsMap[strconv.FormatUint(record.Type, 10)] = record.Value
+	}
+	
 	body := bytes.NewBuffer([]byte{})
 	payload := &KeysendRequest{
 		Amount: amount,
 		Destination: destination,
 		Memo: memo,
-		CustomRecords: custom_records,
+		CustomRecords: customRecordsMap,
 	}
 	err = json.NewEncoder(body).Encode(payload)
 
+	// here we don't use the preimage from params
 	req, err := http.NewRequest("POST", fmt.Sprintf("%s/payments/keysend", svc.cfg.AlbyAPIURL), body)
 	if err != nil {
 		svc.Logger.WithError(err).Error("Error creating request /payments/keysend")

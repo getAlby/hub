@@ -194,8 +194,15 @@ type Nip47KeysendParams struct {
 	Amount     int64             `json:"amount"`
 	Pubkey     string            `json:"pubkey"`
 	Message    string            `json:"message"`
-	TLVRecords map[string]string `json:"tlv_records"`
+	Preimage   string            `json:"preimage"`
+	TLVRecords []TLVRecord       `json:"tlv_records"`
 }
+
+type TLVRecord struct {
+	Type  uint64 `json:"type"`
+	Value string `json:"value"`
+}
+
 type Nip47KeysendResponse struct {
 	Preimage    string `json:"preimage"`
 	PaymentHash string `json:"payment_hash"`

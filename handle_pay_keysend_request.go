@@ -64,7 +64,7 @@ func (svc *Service) HandlePayKeysendEvent(ctx context.Context, request *Nip47Req
 		"senderPubkey": payParams.Pubkey,
 	}).Info("Sending payment")
 
-	preimage, paymentHash, err := svc.lnClient.SendKeysend(ctx, event.PubKey, payParams.Amount, payParams.Pubkey, payParams.Message, payParams.TLVRecords)
+	preimage, paymentHash, err := svc.lnClient.SendKeysend(ctx, event.PubKey, payParams.Amount, payParams.Pubkey, payParams.Message, payParams.Preimage, payParams.TLVRecords)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
 			"eventId":      event.ID,
