@@ -44,15 +44,15 @@
           </div>
           {{if .User}}
           <div class="flex items-center relative">
-            <p class="text-gray-400 dark:text-gray-400 text-xs font-medium sm:text-base">
+            <p class="text-gray-400 dark:text-gray-400 text-xs font-medium sm:text-base cursor-pointer select-none " id="dropdown-menu">
               {{.User.Email}}
               <img
-                id="angle-arrow"
+                id="caret"
                 class="inline cursor-pointer w-4 ml-2"
-                src="/public/images/angle-arrow.svg"
+                src="/public/images/caret.svg"
               />
             </p>
-              <div class="font-medium flex flex-col hidden px-4 w-40 logout absolute right mt-25 justify-left cursor-pointer rounded-lg border border-gray-200 dark:border-gray-200 text-center bg-white dark:bg-surface-01dp shadow" id="logout">
+              <div class="font-medium flex flex-col hidden px-4 w-40 logout absolute right mt-25 justify-left cursor-pointer rounded-lg border border-gray-200 dark:border-gray-200 text-center bg-white dark:bg-surface-01dp shadow" id="dropdown">
                 <a class="md:hidden flex items-center justify-left  py-2 text-gray-400 dark:text-gray-400" href="/about">
                   <img class="inline cursor-pointer w-4 mr-3" src="/public/images/about.svg" alt="about-svg"><p class="font-normal">About</p>
                 </a>
@@ -109,11 +109,12 @@
         });
       }
     }
-    const angleArrow = document.getElementById("angle-arrow");
-    angleArrow.addEventListener('click',()=>{
-      const logout = document.getElementById("logout");
-      logout.classList.toggle("hidden");
-      angleArrow.classList.toggle("rotate-180");
+    const dropdownMenu = document.getElementById("dropdown-menu");
+    const caret = document.getElementById("caret");
+    dropdownMenu.addEventListener('click',()=>{
+      const dropdown = document.getElementById("dropdown");
+      dropdown.classList.toggle("hidden");
+      caret.classList.toggle("rotate-180");
     });
     window.addEventListener("load", updateLogo);
     window
