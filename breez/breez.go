@@ -43,6 +43,23 @@ func NewBreezService(mnemonic, apiKey, inviteCode, workDir string) (result *Bree
 	if err != nil {
 		return nil, err
 	}
+	healthCheck, err := svc.ServiceHealthCheck()
+	if err != nil {
+		return nil, err
+	}
+	if err == nil {
+		log.Printf("Current service status is: %v", healthCheck.Status)
+	}
+
+	nodeInfo, err := svc.NodeInfo()
+	if err != nil {
+		return nil, err
+	}
+	if err == nil {
+		log.Printf("Node info: %v", nodeInfo)
+		log.Printf("ln balance: %v - onchain balance: %v - max_payable_msat: %v - max_receivable_msat: %v - max_single_payment_amount_msat: %v - connected_peers: %v - inbound_liquidity_msats: %v", nodeInfo.ChannelsBalanceMsat, nodeInfo.OnchainBalanceMsat, nodeInfo.MaxPayableMsat, nodeInfo.MaxReceivableMsat, nodeInfo.MaxSinglePaymentAmountMsat, nodeInfo.ConnectedPeers, nodeInfo.InboundLiquidityMsats)
+	}
+
 	return &BreezService{
 		listener: &listener,
 		svc:      svc,
