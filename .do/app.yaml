@@ -1,0 +1,6 @@
+name: nwc
+services:
+- name: web
+  github:
+    repo: getAlby/nostr-wallet-connect
+    branch: server-self-host
