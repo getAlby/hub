@@ -24,11 +24,11 @@ type Service struct {
 }
 
 var supportedMethods = map[string]bool{
-	NIP_47_PAY_INVOICE_METHOD:    true,
-	NIP_47_GET_BALANCE_METHOD:    true,
-	NIP_47_MAKE_INVOICE_METHOD:   true,
-	NIP_47_LOOKUP_INVOICE_METHOD: true,
-	NIP_47_LIST_INVOICES_METHOD:  true,
+	NIP_47_PAY_INVOICE_METHOD:       true,
+	NIP_47_GET_BALANCE_METHOD:       true,
+	NIP_47_MAKE_INVOICE_METHOD:      true,
+	NIP_47_LOOKUP_INVOICE_METHOD:    true,
+	NIP_47_LIST_TRANSACTIONS_METHOD: true,
 }
 
 func (svc *Service) GetUser(c echo.Context) (user *User, err error) {
@@ -198,8 +198,8 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 		return svc.HandleMakeInvoiceEvent(ctx, nip47Request, event, app, ss)
 	case NIP_47_LOOKUP_INVOICE_METHOD:
 		return svc.HandleLookupInvoiceEvent(ctx, nip47Request, event, app, ss)
-	case NIP_47_LIST_INVOICES_METHOD:
-		return svc.HandleListInvoicesEvent(ctx, nip47Request, event, app, ss)
+	case NIP_47_LIST_TRANSACTIONS_METHOD:
+		return svc.HandleListTransactionsEvent(ctx, nip47Request, event, app, ss)
 	default:
 		return svc.createResponse(event, Nip47Response{
 			ResultType: nip47Request.Method,

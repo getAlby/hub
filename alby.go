@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
@@ -330,7 +331,7 @@ func (svc *AlbyOAuthService) GetBalance(ctx context.Context, senderPubkey string
 	return 0, errors.New(errorPayload.Message)
 }
 
-func (svc *AlbyOAuthService) ListInvoices(ctx context.Context, senderPubkey, from, until, limit, offset string) (invoices []*Invoice, err error) {
+func (svc *AlbyOAuthService) ListTransactions(ctx context.Context, senderPubkey string, from, until, limit, offset uint64, unpaid bool, invoiceType string) (invoices []Invoice, err error) {
 	app := App{}
 	err = svc.db.Preload("User").First(&app, &App{
 		NostrPubkey: senderPubkey,
@@ -349,18 +350,27 @@ func (svc *AlbyOAuthService) ListInvoices(ctx context.Context, senderPubkey, fro
 
 	urlParams := url.Values{}
 	urlParams.Add("page", "1")
-	if from != "" {
-		urlParams.Add("q[created_at_gt]", from)
+	if from != 0 {
+		urlParams.Add("q[created_at_gt]", strconv.FormatUint(from, 10))
 	}
-	if until != "" {
-		urlParams.Add("q[created_at_lt]", until)
+	if until != 0 {
+		urlParams.Add("q[created_at_lt]", strconv.FormatUint(until, 10))
 	}
-	if limit != "" {
-		urlParams.Add("items", limit)
+	if limit != 0 {
+		urlParams.Add("items", strconv.FormatUint(limit, 10))
 	}
 	// TODO: Add Offset and Unpaid
 
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/invoices?%s", svc.cfg.AlbyAPIURL, urlParams.Encode()), nil)
+	endpoint := "/invoices"
+
+	switch invoiceType {
+		case "incoming":
+			endpoint += "/incoming"
+		case "outgoing":
+			endpoint += "/outgoing"
+	}
+
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s%s?%s", svc.cfg.AlbyAPIURL, endpoint, urlParams.Encode()), nil)
 	if err != nil {
 		svc.Logger.WithError(err).Error("Error creating request /invoices")
 		return nil, err

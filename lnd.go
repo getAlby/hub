@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/hex"
 	"errors"
-	"strconv"
 	"time"
 
 	"github.com/getAlby/nostr-wallet-connect/lnd"
@@ -22,7 +21,7 @@ type LNClient interface {
 	GetBalance(ctx context.Context, senderPubkey string) (balance int64, err error)
 	MakeInvoice(ctx context.Context, senderPubkey string, amount int64, description string, descriptionHash string, expiry int64) (invoice string, paymentHash string, err error)
 	LookupInvoice(ctx context.Context, senderPubkey string, paymentHash string) (invoice string, paid bool, err error)
-	ListInvoices(ctx context.Context, senderPubkey, from, until, limit, offset string) (invoices []*Invoice, err error)
+	ListTransactions(ctx context.Context, senderPubkey string, from, until, limit, offset uint64, unpaid bool, invoiceType string) (invoices []Invoice, err error)
 }
 
 // wrap it again :sweat_smile:
@@ -54,12 +53,12 @@ func (svc *LNDService) GetBalance(ctx context.Context, senderPubkey string) (bal
 	return int64(resp.LocalBalance.Sat), nil
 }
 
-func (svc *LNDService) ListInvoices(ctx context.Context, senderPubkey string, from string, until string, limit string, offset string) (invoices []*Invoice, err error) {
-	maxInvoices, err := strconv.ParseUint(limit, 10, 64)
+func (svc *LNDService) ListTransactions(ctx context.Context, senderPubkey string, from, until, limit, offset uint64, unpaid bool, invoiceType string) (invoices []Invoice, err error) {
+	maxInvoices := uint64(limit)
 	if err != nil {
 		return nil, err
 	}
-	indexOffset, err := strconv.ParseUint(offset, 10, 64)
+	indexOffset := uint64(offset)
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +68,7 @@ func (svc *LNDService) ListInvoices(ctx context.Context, senderPubkey string, fr
 	}
 
 	for _, inv := range resp.Invoices {
-		invoice := &Invoice{
+		invoice := Invoice{
 			Invoice:         inv.PaymentRequest,
 			Description:     inv.Memo,
 			DescriptionHash: hex.EncodeToString(inv.DescriptionHash),

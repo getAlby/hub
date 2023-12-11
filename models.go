@@ -15,7 +15,7 @@ const (
 	NIP_47_GET_BALANCE_METHOD         = "get_balance"
 	NIP_47_MAKE_INVOICE_METHOD        = "make_invoice"
 	NIP_47_LOOKUP_INVOICE_METHOD      = "lookup_invoice"
-	NIP_47_LIST_INVOICES_METHOD       = "list_invoices"
+	NIP_47_LIST_TRANSACTIONS_METHOD   = "list_transactions"
 	NIP_47_ERROR_INTERNAL             = "INTERNAL"
 	NIP_47_ERROR_NOT_IMPLEMENTED      = "NOT_IMPLEMENTED"
 	NIP_47_ERROR_QUOTA_EXCEEDED       = "QUOTA_EXCEEDED"
@@ -36,19 +36,19 @@ const (
 )
 
 var nip47MethodDescriptions = map[string]string{
-	NIP_47_GET_BALANCE_METHOD:    "Read your balance",
-	NIP_47_PAY_INVOICE_METHOD:    "Send payments",
-	NIP_47_MAKE_INVOICE_METHOD:   "Create invoices",
-	NIP_47_LOOKUP_INVOICE_METHOD: "Lookup status of invoices",
-	NIP_47_LIST_INVOICES_METHOD:  "Read incoming transaction history",
+	NIP_47_GET_BALANCE_METHOD:       "Read your balance",
+	NIP_47_PAY_INVOICE_METHOD:       "Send payments",
+	NIP_47_MAKE_INVOICE_METHOD:      "Create invoices",
+	NIP_47_LOOKUP_INVOICE_METHOD:    "Lookup status of invoices",
+	NIP_47_LIST_TRANSACTIONS_METHOD: "Read incoming transaction history",
 }
 
 var nip47MethodIcons = map[string]string{
-	NIP_47_GET_BALANCE_METHOD:    "wallet",
-	NIP_47_PAY_INVOICE_METHOD:    "lightning",
-	NIP_47_LIST_INVOICES_METHOD:  "transactions",
-	NIP_47_MAKE_INVOICE_METHOD:   "invoice",
-	NIP_47_LOOKUP_INVOICE_METHOD: "search",
+	NIP_47_GET_BALANCE_METHOD:       "wallet",
+	NIP_47_PAY_INVOICE_METHOD:       "lightning",
+	NIP_47_LIST_TRANSACTIONS_METHOD: "transactions",
+	NIP_47_MAKE_INVOICE_METHOD:      "invoice",
+	NIP_47_LOOKUP_INVOICE_METHOD:    "search",
 }
 
 type AlbyMe struct {
@@ -121,13 +121,14 @@ type Payment struct {
 }
 
 type Invoice struct {
-	Invoice         string                 `json:"payment_request"`
-	Description     string                 `json:"memo"`
+	Type            string                 `json:"type"`
+	Invoice         string                 `json:"invoice"`
+	Description     string                 `json:"description"`
 	DescriptionHash string                 `json:"description_hash"`
 	Preimage        string                 `json:"preimage"`
 	PaymentHash     string                 `json:"payment_hash"`
 	Amount          int64                  `json:"amount"`
-	FeesPaid        int64                  `json:"value"`
+	FeesPaid        int64                  `json:"fees_paid"`
 	SettledAt       time.Time              `json:"settled_at"`
 	Metadata        map[string]interface{} `json:"metadata,omitempty"`
 }
@@ -223,10 +224,15 @@ type Nip47LookupInvoiceResponse struct {
 	Paid    bool   `json:"paid"`
 }
 
-type Nip47ListInvoicesParams struct {
-	From   string `json:"from,omitempty"`
-	Until  string `json:"until,omitempty"`
-	Limit  string `json:"limit,omitempty"`
-	Offset string `json:"offset,omitempty"`
-	Unpaid string `json:"unpaid,omitempty"`
+type Nip47ListTransactionsParams struct {
+	From   uint64 `json:"from,omitempty"`
+	Until  uint64 `json:"until,omitempty"`
+	Limit  uint64 `json:"limit,omitempty"`
+	Offset uint64 `json:"offset,omitempty"`
+	Unpaid bool   `json:"unpaid,omitempty"`
+	Type   string `json:"type,omitempty"`
+}
+
+type Nip47ListTransactionsResponse struct {
+	Transactions []Invoice `json:"transactions"`
 }
