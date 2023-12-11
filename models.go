@@ -125,7 +125,6 @@ type PayRequest struct {
 type KeysendRequest struct {
 	Amount        int64             `json:"amount"`
 	Destination   string            `json:"destination"`
-	Memo          string            `json:"memo,omitempty"`
 	CustomRecords map[string]string `json:"custom_records,omitempty"`
 }
 
@@ -193,7 +192,6 @@ type Nip47PayResponse struct {
 type Nip47KeysendParams struct {
 	Amount     int64             `json:"amount"`
 	Pubkey     string            `json:"pubkey"`
-	Message    string            `json:"message"`
 	Preimage   string            `json:"preimage"`
 	TLVRecords []TLVRecord       `json:"tlv_records"`
 }
@@ -201,11 +199,6 @@ type Nip47KeysendParams struct {
 type TLVRecord struct {
 	Type  uint64 `json:"type"`
 	Value string `json:"value"`
-}
-
-type Nip47KeysendResponse struct {
-	Preimage    string `json:"preimage"`
-	PaymentHash string `json:"payment_hash"`
 }
 
 type Nip47BalanceResponse struct {

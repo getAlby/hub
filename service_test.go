@@ -440,9 +440,9 @@ func (mln *MockLn) SendPaymentSync(ctx context.Context, senderPubkey string, pay
 	return "123preimage", nil
 }
 
-func (mln *MockLn) SendKeysend(ctx context.Context, senderPubkey string, amount int64, destination, memo, preimage string, custom_records []TLVRecord) (preImage, paymentHash string, err error) {
+func (mln *MockLn) SendKeysend(ctx context.Context, senderPubkey string, amount int64, destination, preimage string, custom_records []TLVRecord) (preImage string, err error) {
 	//todo more advanced behaviour
-	return "123preimage", "123paymenthash", nil
+	return "123preimage", nil
 }
 
 func (mln *MockLn) GetBalance(ctx context.Context, senderPubkey string) (balance int64, err error) {

@@ -17,7 +17,7 @@ import (
 
 type LNClient interface {
 	SendPaymentSync(ctx context.Context, senderPubkey string, payReq string) (preimage string, err error)
-	SendKeysend(ctx context.Context, senderPubkey string, amount int64, destination, memo, preimage string, custom_records []TLVRecord) (preImage, paymentHash string, err error)
+	SendKeysend(ctx context.Context, senderPubkey string, amount int64, destination, preimage string, custom_records []TLVRecord) (preImage string, err error)
 	GetBalance(ctx context.Context, senderPubkey string) (balance int64, err error)
 	MakeInvoice(ctx context.Context, senderPubkey string, amount int64, description string, descriptionHash string, expiry int64) (invoice string, paymentHash string, err error)
 	LookupInvoice(ctx context.Context, senderPubkey string, paymentHash string) (invoice string, paid bool, err error)
@@ -104,14 +104,14 @@ func (svc *LNDService) SendPaymentSync(ctx context.Context, senderPubkey, payReq
 	return hex.EncodeToString(resp.PaymentPreimage), nil
 }
 
-func (svc *LNDService) SendKeysend(ctx context.Context, senderPubkey string, amount int64, destination, memo, preimage string, custom_records []TLVRecord) (preImage, paymentHash string, err error) {
+func (svc *LNDService) SendKeysend(ctx context.Context, senderPubkey string, amount int64, destination, preimage string, custom_records []TLVRecord) (preImage string, err error) {
 	destBytes, err := hex.DecodeString(destination)
 	if err != nil {
-		return "", "", err
+		return "", err
 	}
 	preimageBytes, err := hex.DecodeString(preimage)
 	if err != nil {
-		return "", "", err
+		return "", err
 	}
 	resultMap := make(map[uint64][]byte)
 	for _, record := range custom_records {
@@ -128,9 +128,9 @@ func (svc *LNDService) SendKeysend(ctx context.Context, senderPubkey string, amo
 
 	resp, err := svc.client.SendPaymentSync(ctx, sendPaymentRequest)
 	if err != nil {
-		return "", "", err
+		return "", err
 	}
-	return hex.EncodeToString(resp.PaymentPreimage), hex.EncodeToString(resp.PaymentHash), nil
+	return hex.EncodeToString(resp.PaymentPreimage), nil
 }
 
 func NewLNDService(ctx context.Context, svc *Service, e *echo.Echo) (result *LNDService, err error) {
