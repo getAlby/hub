@@ -69,7 +69,7 @@ func (svc *LNDService) GetInfo(ctx context.Context, senderPubkey string) (info *
 
 func (svc *LNDService) MakeInvoice(ctx context.Context, senderPubkey string, amount int64, description string, descriptionHash string, expiry int64) (invoice string, paymentHash string, err error) {
 	var descriptionHashBytes []byte
-	
+
 	if descriptionHash != "" {
 		descriptionHashBytes, err = hex.DecodeString(descriptionHash)
 
@@ -84,7 +84,7 @@ func (svc *LNDService) MakeInvoice(ctx context.Context, senderPubkey string, amo
 			return "", "", errors.New("Description hash must be 32 bytes hex")
 		}
 	}
-	
+
 	resp, err := svc.client.AddInvoice(ctx, &lnrpc.Invoice{ValueMsat: amount, Memo: description, DescriptionHash: descriptionHashBytes, Expiry: expiry})
 	if err != nil {
 		return "", "", err
@@ -103,12 +103,12 @@ func (svc *LNDService) LookupInvoice(ctx context.Context, senderPubkey string, p
 		return "", false, errors.New("Payment hash must be 32 bytes hex")
 	}
 
-	lndInvoice, err := svc.client.LookupInvoice(ctx, &lnrpc.PaymentHash{ RHash: paymentHashBytes })
+	lndInvoice, err := svc.client.LookupInvoice(ctx, &lnrpc.PaymentHash{RHash: paymentHashBytes})
 	if err != nil {
 		return "", false, err
 	}
-	
-	return lndInvoice.PaymentRequest, lndInvoice.State == *lnrpc.Invoice_SETTLED.Enum(), nil;
+
+	return lndInvoice.PaymentRequest, lndInvoice.State == *lnrpc.Invoice_SETTLED.Enum(), nil
 }
 
 func (svc *LNDService) SendPaymentSync(ctx context.Context, senderPubkey, payReq string) (preimage string, err error) {
