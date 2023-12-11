@@ -63,12 +63,12 @@ func (svc *Service) HandleGetInfoEvent(ctx context.Context, request *Nip47Reques
 	}
 
 	responsePayload := &Nip47GetInfoResponse{
-		Alias:       info.alias,
-		Color:       info.color,
-		Pubkey:      info.pubkey,
-		Network:     info.network,
-		BlockHeight: info.block_height,
-		BlockHash:   info.block_hash,
+		Alias:       info.Alias,
+		Color:       info.Color,
+		Pubkey:      info.Pubkey,
+		Network:     info.Network,
+		BlockHeight: info.BlockHeight,
+		BlockHash:   info.BlockHash,
 	}
 
 	nostrEvent.State = NOSTR_EVENT_STATE_HANDLER_EXECUTED
@@ -76,6 +76,5 @@ func (svc *Service) HandleGetInfoEvent(ctx context.Context, request *Nip47Reques
 	return svc.createResponse(event, Nip47Response{
 		ResultType: request.Method,
 		Result:     responsePayload,
-	},
-		ss)
+	}, ss)
 }

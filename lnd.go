@@ -58,12 +58,12 @@ func (svc *LNDService) GetInfo(ctx context.Context, senderPubkey string) (info *
 		return nil, err
 	}
 	return &NodeInfo{
-		alias:        resp.Alias,
-		color:        resp.Color,
-		pubkey:       resp.IdentityPubkey,
-		network:      "mainnet",
-		block_height: resp.BlockHeight,
-		block_hash:   resp.BlockHash,
+		Alias:       resp.Alias,
+		Color:       resp.Color,
+		Pubkey:      resp.IdentityPubkey,
+		Network:     "mainnet",
+		BlockHeight: resp.BlockHeight,
+		BlockHash:   resp.BlockHash,
 	}, nil
 }
 

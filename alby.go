@@ -317,12 +317,12 @@ func (svc *AlbyOAuthService) GetInfo(ctx context.Context, senderPubkey string) (
 			"userId":       app.User.ID,
 		}).Info("Info fetch successful")
 		return &NodeInfo{
-			alias:        alias,
-			color:        "color",
-			pubkey:       "pubkey",
-			network:      "mainnet",
-			block_height: 0,
-			block_hash:   "blockhash",
+			Alias:       alias,
+			Color:       "color",
+			Pubkey:      "pubkey",
+			Network:     "mainnet",
+			BlockHeight: 0,
+			BlockHash:   "blockhash",
 		}, err
 	}
 

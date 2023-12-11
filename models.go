@@ -158,12 +158,12 @@ type ErrorResponse struct {
 }
 
 type NodeInfo struct {
-	alias        string
-	color        string
-	pubkey       string
-	network      string
-	block_height uint32
-	block_hash   string
+	Alias       string
+	Color       string
+	Pubkey      string
+	Network     string
+	BlockHeight uint32
+	BlockHash   string
 }
 
 type Identity struct {

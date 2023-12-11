@@ -446,12 +446,12 @@ func (mln *MockLn) GetBalance(ctx context.Context, senderPubkey string) (balance
 
 func (mln *MockLn) GetInfo(ctx context.Context, senderPubkey string) (info *NodeInfo, err error) {
 	return &NodeInfo{
-		alias:        "bob",
-		color:        "#3399FF",
-		pubkey:       "123pubkey",
-		network:      "testnet",
-		block_height: 12,
-		block_hash:   "123blockhash",
+		Alias:       "bob",
+		Color:       "#3399FF",
+		Pubkey:      "123pubkey",
+		Network:     "testnet",
+		BlockHeight: 12,
+		BlockHash:   "123blockhash",
 	}, nil
 }
 
