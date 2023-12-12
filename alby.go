@@ -270,7 +270,6 @@ func (svc *AlbyOAuthService) LookupInvoice(ctx context.Context, senderPubkey str
 }
 
 func (svc *AlbyOAuthService) GetInfo(ctx context.Context, senderPubkey string) (info *NodeInfo, err error) {
-	alias := "getalby.com"
 	app := App{}
 	err = svc.db.Preload("User").First(&app, &App{
 		NostrPubkey: senderPubkey,
@@ -281,55 +280,20 @@ func (svc *AlbyOAuthService) GetInfo(ctx context.Context, senderPubkey string) (
 		}).Errorf("App not found: %v", err)
 		return nil, err
 	}
-	// tok, err := svc.FetchUserToken(ctx, app)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	//client := svc.oauthConf.Client(ctx, tok)
 
-	// req, err := http.NewRequest("GET", fmt.Sprintf("%s/getinfo", svc.cfg.AlbyAPIURL), nil)
-	// if err != nil {
-	// 	svc.Logger.WithError(err).Error("Error creating request /getinfo")
-	// 	return nil, err
-	// }
-
-	// req.Header.Set("User-Agent", "NWC")
-
-	// resp, err := client.Do(req)
-	// if err != nil {
-	// 	svc.Logger.WithFields(logrus.Fields{
-	// 		"senderPubkey": senderPubkey,
-	// 		"appId":        app.ID,
-	// 		"userId":       app.User.ID,
-	// 	}).Errorf("Failed to fetch node info: %v", err)
-	// 	return nil, err
-	// }
-
-	// if resp.StatusCode < 300 {
 	svc.Logger.WithFields(logrus.Fields{
 		"senderPubkey": senderPubkey,
 		"appId":        app.ID,
 		"userId":       app.User.ID,
 	}).Info("Info fetch successful")
 	return &NodeInfo{
-		Alias:       alias,
+		Alias:       "getalby.com",
 		Color:       "",
 		Pubkey:      "",
 		Network:     "mainnet",
 		BlockHeight: 0,
 		BlockHash:   "",
 	}, err
-	// }
-
-	// errorPayload := &ErrorResponse{}
-	// err = json.NewDecoder(resp.Body).Decode(errorPayload)
-	// svc.Logger.WithFields(logrus.Fields{
-	// 	"senderPubkey":  senderPubkey,
-	// 	"appId":         app.ID,
-	// 	"userId":        app.User.ID,
-	// 	// "APIHttpStatus": resp.StatusCode,
-	// }).Errorf("Invoices listing failed %s", string(errorPayload.Message))
-	// return nil, errors.New(errorPayload.Message)
 }
 
 func (svc *AlbyOAuthService) GetBalance(ctx context.Context, senderPubkey string) (balance int64, err error) {
