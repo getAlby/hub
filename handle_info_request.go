@@ -33,9 +33,9 @@ func (svc *Service) HandleGetInfoEvent(ctx context.Context, request *Nip47Reques
 		return svc.createResponse(event, Nip47Response{
 			ResultType: request.Method,
 			Error: &Nip47Error{
-			Code:    code,
-			Message: message,
-		}}, ss)
+				Code:    code,
+				Message: message,
+			}}, ss)
 	}
 
 	svc.Logger.WithFields(logrus.Fields{
@@ -69,6 +69,7 @@ func (svc *Service) HandleGetInfoEvent(ctx context.Context, request *Nip47Reques
 		Network:     info.Network,
 		BlockHeight: info.BlockHeight,
 		BlockHash:   info.BlockHash,
+		Methods:     svc.GetMethods(&app),
 	}
 
 	nostrEvent.State = NOSTR_EVENT_STATE_HANDLER_EXECUTED

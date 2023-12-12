@@ -24,7 +24,7 @@ const (
 	NIP_47_ERROR_EXPIRED              = "EXPIRED"
 	NIP_47_ERROR_RESTRICTED           = "RESTRICTED"
 	NIP_47_OTHER                      = "OTHER"
-	NIP_47_CAPABILITIES               = "pay_invoice,get_balance"
+	NIP_47_CAPABILITIES               = "pay_invoice,get_balance,get_info,make_invoice,lookup_invoice"
 )
 
 const (
@@ -164,6 +164,7 @@ type NodeInfo struct {
 	Network     string
 	BlockHeight uint32
 	BlockHash   string
+	Methods     []string
 }
 
 type Identity struct {
@@ -200,12 +201,13 @@ type Nip47BalanceResponse struct {
 }
 
 type Nip47GetInfoResponse struct {
-	Alias       string `json:"alias"`
-	Color       string `json:"color"`
-	Pubkey      string `json:"pubkey"`
-	Network     string `json:"network"`
-	BlockHeight uint32 `json:"block_height"`
-	BlockHash   string `json:"block_hash"`
+	Alias       string   `json:"alias"`
+	Color       string   `json:"color"`
+	Pubkey      string   `json:"pubkey"`
+	Network     string   `json:"network"`
+	BlockHeight uint32   `json:"block_height"`
+	BlockHash   string   `json:"block_hash"`
+	Methods     []string `json:"methods"`
 }
 
 type Nip47MakeInvoiceParams struct {

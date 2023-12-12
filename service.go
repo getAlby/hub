@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/labstack/echo-contrib/session"
@@ -241,6 +242,22 @@ func (svc *Service) createResponse(initialEvent *nostr.Event, content interface{
 		return nil, err
 	}
 	return resp, nil
+}
+
+func (svc *Service) GetMethods(app *App) []string {
+	appPermissions := []AppPermission{}
+	findPermissionsResult := svc.db.Find(&appPermissions, &AppPermission{
+		AppId: app.ID,
+	})
+	if findPermissionsResult.RowsAffected == 0 {
+		// No permissions created for this app. It can do anything
+		return strings.Split(NIP_47_CAPABILITIES, ",")
+	}
+	requestMethods := make([]string, 0, len(appPermissions))
+	for _, appPermission := range appPermissions {
+		requestMethods = append(requestMethods, appPermission.RequestMethod)
+	}
+	return requestMethods
 }
 
 func (svc *Service) hasPermission(app *App, event *nostr.Event, requestMethod string, paymentRequest *decodepay.Bolt11) (result bool, code string, message string) {
