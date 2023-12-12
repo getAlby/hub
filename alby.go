@@ -139,6 +139,7 @@ func (svc *AlbyOAuthService) MakeInvoice(ctx context.Context, senderPubkey strin
 		return "", "", err
 	}
 
+	// TODO: move to creation of HTTP client
 	req.Header.Set("User-Agent", "NWC")
 	req.Header.Set("Content-Type", "application/json")
 
