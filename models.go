@@ -51,6 +51,7 @@ var nip47MethodIcons = map[string]string{
 	NIP_47_LOOKUP_INVOICE_METHOD: "search",
 }
 
+// TODO: move to models/Alby
 type AlbyMe struct {
 	Identifier       string `json:"identifier"`
 	NPub             string `json:"nostr_pubkey"`
@@ -124,6 +125,7 @@ type PayRequest struct {
 	Invoice string `json:"invoice"`
 }
 
+// TODO: move to models/Alby
 type BalanceResponse struct {
 	Balance  int64  `json:"balance"`
 	Currency string `json:"currency"`
@@ -157,6 +159,7 @@ type ErrorResponse struct {
 	Message string `json:"message"`
 }
 
+// TODO: move to models/LNClient
 type NodeInfo struct {
 	Alias       string
 	Color       string
@@ -199,6 +202,7 @@ type Nip47BalanceResponse struct {
 	BudgetRenewal string `json:"budget_renewal"`
 }
 
+// TODO: move to models/Nip47
 type Nip47GetInfoResponse struct {
 	Alias       string   `json:"alias"`
 	Color       string   `json:"color"`
