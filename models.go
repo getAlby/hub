@@ -164,7 +164,6 @@ type NodeInfo struct {
 	Network     string
 	BlockHeight uint32
 	BlockHash   string
-	Methods     []string
 }
 
 type Identity struct {
