@@ -142,10 +142,6 @@ You can also contribute to our [bounty program](https://github.com/getAlby/light
 
 ❌ `list_transactions`
 
-❌ `list_invoices`
-
-❌ `list_payments`
-
 ❌ `multi_pay_invoice (TBC)`
 
 ❌ `multi_pay_keysend (TBC)`
@@ -174,10 +170,6 @@ You can also contribute to our [bounty program](https://github.com/getAlby/light
 ❌ `pay_keysend`
 
 ❌ `list_transactions`
-
-❌ `list_invoices`
-
-❌ `list_payments`
 
 ❌ `multi_pay_invoice (TBC)`
 

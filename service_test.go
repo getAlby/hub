@@ -22,6 +22,13 @@ const nip47GetBalanceJson = `
 	"method": "get_balance"
 }
 `
+
+const nip47GetInfoJson = `
+{
+	"method": "get_info"
+}
+`
+
 const nip47MakeInvoiceJson = `
 {
 	"method": "make_invoice",
@@ -68,6 +75,7 @@ const nip47PayJsonNoInvoice = `
 const mockInvoice = "lnbc10n1pjdy9aepp5ftvu6fucndg5mp5ww4ghsduqrxgr4rtcwelrln4jzxhem5qw022qhp50kncf9zk35xg4lxewt4974ry6mudygsztsz8qn3ar8pn3mtpe50scqzzsxqyz5vqsp5zyzp3dyn98g7sjlgy4nvujq3rh9xxsagytcyx050mf3rtrx3sn4s9qyyssq7af24ljqf5uzgnz4ualxhvffryh3kpkvvj76ah9yrgdvu494lmfrdf36h5wuhshzemkvrtg2zu70uk0fd9fcmxgl3j9748dvvx9ey9gqpr4jjd"
 const mockPaymentHash = "4ad9cd27989b514d868e755178378019903a8d78767e3fceb211af9dd00e7a94" // for the above invoice
 
+// TODO: split up into individual tests
 func TestHandleEvent(t *testing.T) {
 	ctx := context.TODO()
 	svc, _ := createTestService(t)
@@ -331,14 +339,6 @@ func TestHandleEvent(t *testing.T) {
 
 	// make invoice: with permission
 	err = svc.db.Model(&AppPermission{}).Where("app_id = ?", app.ID).Update("request_method", NIP_47_MAKE_INVOICE_METHOD).Error
-	assert.NoError(t, err)
-	appPermission = &AppPermission{
-		AppId:         app.ID,
-		App:           app,
-		RequestMethod: NIP_47_MAKE_INVOICE_METHOD,
-		ExpiresAt:     expiresAt,
-	}
-	err = svc.db.Create(appPermission).Error
 	res, err = svc.HandleEvent(ctx, &nostr.Event{
 		ID:      "test_event_13",
 		Kind:    NIP_47_REQUEST_KIND,
@@ -379,13 +379,6 @@ func TestHandleEvent(t *testing.T) {
 	// lookup invoice: with permission
 	err = svc.db.Model(&AppPermission{}).Where("app_id = ?", app.ID).Update("request_method", NIP_47_LOOKUP_INVOICE_METHOD).Error
 	assert.NoError(t, err)
-	appPermission = &AppPermission{
-		AppId:         app.ID,
-		App:           app,
-		RequestMethod: NIP_47_LOOKUP_INVOICE_METHOD,
-		ExpiresAt:     expiresAt,
-	}
-	err = svc.db.Create(appPermission).Error
 	res, err = svc.HandleEvent(ctx, &nostr.Event{
 		ID:      "test_event_15",
 		Kind:    NIP_47_REQUEST_KIND,
@@ -403,6 +396,59 @@ func TestHandleEvent(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, mockInvoice, received.Result.(*Nip47LookupInvoiceResponse).Invoice)
 	assert.Equal(t, false, received.Result.(*Nip47LookupInvoiceResponse).Paid)
+
+	// get info: without permission
+	newPayload, err = nip04.Encrypt(nip47GetInfoJson, ss)
+	assert.NoError(t, err)
+	res, err = svc.HandleEvent(ctx, &nostr.Event{
+		ID:      "test_event_16",
+		Kind:    NIP_47_REQUEST_KIND,
+		PubKey:  senderPubkey,
+		Content: newPayload,
+	})
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+	decrypted, err = nip04.Decrypt(res.Content, ss)
+	assert.NoError(t, err)
+	received = &Nip47Response{}
+	err = json.Unmarshal([]byte(decrypted), received)
+	assert.NoError(t, err)
+	assert.Equal(t, NIP_47_ERROR_RESTRICTED, received.Error.Code)
+	assert.NotNil(t, res)
+
+	// delete all permissions
+	svc.db.Exec("delete from app_permissions")
+
+	// lookup invoice: with permission
+	appPermission = &AppPermission{
+		AppId:         app.ID,
+		App:           app,
+		RequestMethod: NIP_47_GET_INFO_METHOD,
+		ExpiresAt:     expiresAt,
+	}
+	err = svc.db.Create(appPermission).Error
+	res, err = svc.HandleEvent(ctx, &nostr.Event{
+		ID:      "test_event_17",
+		Kind:    NIP_47_REQUEST_KIND,
+		PubKey:  senderPubkey,
+		Content: newPayload,
+	})
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+	decrypted, err = nip04.Decrypt(res.Content, ss)
+	assert.NoError(t, err)
+	received = &Nip47Response{
+		Result: &Nip47GetInfoResponse{},
+	}
+	err = json.Unmarshal([]byte(decrypted), received)
+	assert.NoError(t, err)
+	assert.Equal(t, "bob", received.Result.(*Nip47GetInfoResponse).Alias)
+	assert.Equal(t, "#3399FF", received.Result.(*Nip47GetInfoResponse).Color)
+	assert.Equal(t, "123pubkey", received.Result.(*Nip47GetInfoResponse).Pubkey)
+	assert.Equal(t, "testnet", received.Result.(*Nip47GetInfoResponse).Network)
+	assert.Equal(t, uint32(12), received.Result.(*Nip47GetInfoResponse).BlockHeight)
+	assert.Equal(t, "123blockhash", received.Result.(*Nip47GetInfoResponse).BlockHash)
+	assert.Equal(t, []string{"get_info"}, received.Result.(*Nip47GetInfoResponse).Methods)
 }
 
 func createTestService(t *testing.T) (svc *Service, ln *MockLn) {
