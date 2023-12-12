@@ -132,8 +132,6 @@ You can also contribute to our [bounty program](https://github.com/getAlby/light
 ✅ `pay_invoice`
 
 ⚠️ `make_invoice`
-- ⚠️ preimage in response not supported (TBC)
-- ⚠️ preimage in response not supported (TBC)
 - ⚠️ invoice in response missing (TODO)
 
 ⚠️ `lookup_invoice`
@@ -167,8 +165,6 @@ You can also contribute to our [bounty program](https://github.com/getAlby/light
 
 ⚠️ `make_invoice`
 - ⚠️ expiry in request not supported
-- ⚠️ preimage in request not supported (TBC)
-- ⚠️ preimage in response not supported (TBC)
 - ⚠️ invoice in response missing (TODO)
 
 ⚠️ `lookup_invoice`
