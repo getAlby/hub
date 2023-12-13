@@ -505,6 +505,7 @@ func (svc *AlbyOAuthService) SendKeysend(ctx context.Context, senderPubkey strin
 			"payeePubkey":  destination,
 			"appId":        app.ID,
 			"userId":       app.User.ID,
+			"preimage":     responsePayload.Preimage,
 			"paymentHash":  responsePayload.PaymentHash,
 		}).Info("Keysend payment successful")
 		return responsePayload.Preimage, nil
