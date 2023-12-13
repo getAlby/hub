@@ -13,6 +13,7 @@ const (
 	NIP_47_RESPONSE_KIND              = 23195
 	NIP_47_PAY_INVOICE_METHOD         = "pay_invoice"
 	NIP_47_GET_BALANCE_METHOD         = "get_balance"
+	NIP_47_GET_INFO_METHOD            = "get_info"
 	NIP_47_MAKE_INVOICE_METHOD        = "make_invoice"
 	NIP_47_LOOKUP_INVOICE_METHOD      = "lookup_invoice"
 	NIP_47_ERROR_INTERNAL             = "INTERNAL"
@@ -23,7 +24,7 @@ const (
 	NIP_47_ERROR_EXPIRED              = "EXPIRED"
 	NIP_47_ERROR_RESTRICTED           = "RESTRICTED"
 	NIP_47_OTHER                      = "OTHER"
-	NIP_47_CAPABILITIES               = "pay_invoice,get_balance"
+	NIP_47_CAPABILITIES               = "pay_invoice,get_balance,get_info,make_invoice,lookup_invoice"
 )
 
 const (
@@ -36,6 +37,7 @@ const (
 
 var nip47MethodDescriptions = map[string]string{
 	NIP_47_GET_BALANCE_METHOD:    "Read your balance",
+	NIP_47_GET_INFO_METHOD:       "Read your node info",
 	NIP_47_PAY_INVOICE_METHOD:    "Send payments",
 	NIP_47_MAKE_INVOICE_METHOD:   "Create invoices",
 	NIP_47_LOOKUP_INVOICE_METHOD: "Lookup status of invoices",
@@ -43,11 +45,13 @@ var nip47MethodDescriptions = map[string]string{
 
 var nip47MethodIcons = map[string]string{
 	NIP_47_GET_BALANCE_METHOD:    "wallet",
+	NIP_47_GET_INFO_METHOD:       "wallet",
 	NIP_47_PAY_INVOICE_METHOD:    "lightning",
 	NIP_47_MAKE_INVOICE_METHOD:   "invoice",
 	NIP_47_LOOKUP_INVOICE_METHOD: "search",
 }
 
+// TODO: move to models/Alby
 type AlbyMe struct {
 	Identifier       string `json:"identifier"`
 	NPub             string `json:"nostr_pubkey"`
@@ -121,6 +125,7 @@ type PayRequest struct {
 	Invoice string `json:"invoice"`
 }
 
+// TODO: move to models/Alby
 type BalanceResponse struct {
 	Balance  int64  `json:"balance"`
 	Currency string `json:"currency"`
@@ -154,6 +159,16 @@ type ErrorResponse struct {
 	Message string `json:"message"`
 }
 
+// TODO: move to models/LNClient
+type NodeInfo struct {
+	Alias       string
+	Color       string
+	Pubkey      string
+	Network     string
+	BlockHeight uint32
+	BlockHash   string
+}
+
 type Identity struct {
 	gorm.Model
 	Privkey string
@@ -185,6 +200,17 @@ type Nip47BalanceResponse struct {
 	Balance       int64  `json:"balance"`
 	MaxAmount     int    `json:"max_amount"`
 	BudgetRenewal string `json:"budget_renewal"`
+}
+
+// TODO: move to models/Nip47
+type Nip47GetInfoResponse struct {
+	Alias       string   `json:"alias"`
+	Color       string   `json:"color"`
+	Pubkey      string   `json:"pubkey"`
+	Network     string   `json:"network"`
+	BlockHeight uint32   `json:"block_height"`
+	BlockHash   string   `json:"block_hash"`
+	Methods     []string `json:"methods"`
 }
 
 type Nip47MakeInvoiceParams struct {

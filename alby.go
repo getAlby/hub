@@ -139,6 +139,7 @@ func (svc *AlbyOAuthService) MakeInvoice(ctx context.Context, senderPubkey strin
 		return "", "", err
 	}
 
+	// TODO: move to creation of HTTP client
 	req.Header.Set("User-Agent", "NWC")
 	req.Header.Set("Content-Type", "application/json")
 
@@ -267,6 +268,33 @@ func (svc *AlbyOAuthService) LookupInvoice(ctx context.Context, senderPubkey str
 		"APIHttpStatus": resp.StatusCode,
 	}).Errorf("Lookup invoice failed %s", string(errorPayload.Message))
 	return "", false, errors.New(errorPayload.Message)
+}
+
+func (svc *AlbyOAuthService) GetInfo(ctx context.Context, senderPubkey string) (info *NodeInfo, err error) {
+	app := App{}
+	err = svc.db.Preload("User").First(&app, &App{
+		NostrPubkey: senderPubkey,
+	}).Error
+	if err != nil {
+		svc.Logger.WithFields(logrus.Fields{
+			"senderPubkey": senderPubkey,
+		}).Errorf("App not found: %v", err)
+		return nil, err
+	}
+
+	svc.Logger.WithFields(logrus.Fields{
+		"senderPubkey": senderPubkey,
+		"appId":        app.ID,
+		"userId":       app.User.ID,
+	}).Info("Info fetch successful")
+	return &NodeInfo{
+		Alias:       "getalby.com",
+		Color:       "",
+		Pubkey:      "",
+		Network:     "mainnet",
+		BlockHeight: 0,
+		BlockHash:   "",
+	}, err
 }
 
 func (svc *AlbyOAuthService) GetBalance(ctx context.Context, senderPubkey string) (balance int64, err error) {
