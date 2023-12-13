@@ -133,6 +133,8 @@ type Invoice struct {
 	PaymentHash     string                 `json:"payment_hash"`
 	Amount          int64                  `json:"amount"`
 	FeesPaid        int64                  `json:"fees_paid"`
+	CreatedAt       time.Time              `json:"created_at"`
+	ExpiresAt       time.Time              `json:"expires_at"`
 	SettledAt       time.Time              `json:"settled_at"`
 	Metadata        map[string]interface{} `json:"metadata,omitempty"`
 }

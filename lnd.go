@@ -63,13 +63,26 @@ func (svc *LNDService) ListTransactions(ctx context.Context, senderPubkey string
 	if err != nil {
 		return nil, err
 	}
-	resp, err := svc.client.ListInvoices(ctx, &lnrpc.ListInvoiceRequest{NumMaxInvoices: maxInvoices, IndexOffset: indexOffset})
-	if err != nil {
-		return nil, err
-	}
+	// Fetch Incoming Payments
+	var incomingInvoices []*lnrpc.Invoice
+	if invoiceType == "" || invoiceType == "incoming" {
+		incomingResp, err := svc.client.ListInvoices(ctx, &lnrpc.ListInvoiceRequest{NumMaxInvoices: maxInvoices, IndexOffset: indexOffset})
+		if err != nil {
+			return nil, err
+		}
+		incomingInvoices = incomingResp.Invoices
 
-	for _, inv := range resp.Invoices {
+		if unpaid {
+			incomingUnpaidResp, err := svc.client.ListInvoices(ctx, &lnrpc.ListInvoiceRequest{NumMaxInvoices: maxInvoices, IndexOffset: indexOffset, PendingOnly: true})
+			if err != nil {
+				return nil, err
+			}
+			incomingInvoices = append(incomingInvoices, incomingUnpaidResp.Invoices...)
+		}
+	}
+	for _, inv := range incomingInvoices {
 		invoice := Invoice{
+			Type:            "incoming",
 			Invoice:         inv.PaymentRequest,
 			Description:     inv.Memo,
 			DescriptionHash: hex.EncodeToString(inv.DescriptionHash),
@@ -77,7 +90,31 @@ func (svc *LNDService) ListTransactions(ctx context.Context, senderPubkey string
 			PaymentHash:     hex.EncodeToString(inv.RHash),
 			Amount:          inv.ValueMsat,
 			FeesPaid:        inv.AmtPaidMsat,
+			CreatedAt:       time.Unix(inv.CreationDate, 0),
 			SettledAt:       time.Unix(inv.SettleDate, 0),
+			ExpiresAt:       time.Unix(inv.CreationDate+inv.Expiry, 0),
+		}
+		invoices = append(invoices, invoice)
+	}
+	// Fetch Outgoing Invoices
+	var outgoingInvoices []*lnrpc.Payment
+	if invoiceType == "" || invoiceType == "incoming" {
+		// Not just pending but failed payments will also be included because of IncludeIncomplete
+		outgoingResp, err := svc.client.ListPayments(ctx, &lnrpc.ListPaymentsRequest{MaxPayments: maxInvoices, IndexOffset: indexOffset, IncludeIncomplete: unpaid})
+		if err != nil {
+			return nil, err
+		}
+		outgoingInvoices = outgoingResp.Payments
+	}
+	for _, inv := range outgoingInvoices {
+		invoice := Invoice{
+			Type:        "outgoing",
+			Invoice:     inv.PaymentRequest,
+			Preimage:    inv.PaymentPreimage,
+			PaymentHash: inv.PaymentHash,
+			Amount:      inv.ValueMsat,
+			FeesPaid:    inv.FeeMsat,
+			CreatedAt:   time.Unix(0, inv.CreationTimeNs),
 		}
 		invoices = append(invoices, invoice)
 	}

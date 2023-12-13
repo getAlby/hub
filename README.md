@@ -138,9 +138,10 @@ You can also contribute to our [bounty program](https://github.com/getAlby/light
 - ⚠️ invoice in response missing (TODO)
 - ⚠️ response does not match spec, missing fields
 
-❌ `pay_keysend`
+✅ `list_transactions`
+- ⚠️ from and until in request not supported
 
-❌ `list_transactions`
+❌ `pay_keysend`
 
 ❌ `multi_pay_invoice (TBC)`
 
@@ -167,9 +168,10 @@ You can also contribute to our [bounty program](https://github.com/getAlby/light
 - ⚠️ invoice in response missing (TODO)
 - ⚠️ response does not match spec, missing fields (TODO)
 
-❌ `pay_keysend`
+✅ `list_transactions`
+- ⚠️ offset and unpaid in request not supported
 
-❌ `list_transactions`
+❌ `pay_keysend`
 
 ❌ `multi_pay_invoice (TBC)`
 
