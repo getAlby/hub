@@ -33,7 +33,7 @@ func (svc *Service) HandlePayKeysendEvent(ctx context.Context, request *Nip47Req
 		return nil, err
 	}
 
-	hasPermission, code, message := svc.hasPermission(&app, event, request.Method, 0)
+	hasPermission, code, message := svc.hasPermission(&app, event, NIP_47_PAY_INVOICE_METHOD, 0)
 	if hasPermission {
 		// We use pay_invoice permissions for budget and max amount
 		hasPermission, code, message = svc.hasPermission(&app, event, NIP_47_PAY_INVOICE_METHOD, payParams.Amount)
@@ -68,7 +68,7 @@ func (svc *Service) HandlePayKeysendEvent(ctx context.Context, request *Nip47Req
 		"senderPubkey": payParams.Pubkey,
 	}).Info("Sending payment")
 
-	preimage, err := svc.lnClient.SendKeysend(ctx, event.PubKey, payParams.Amount, payParams.Pubkey, payParams.Preimage, payParams.TLVRecords)
+	preimage, err := svc.lnClient.SendKeysend(ctx, event.PubKey, payParams.Amount/1000, payParams.Pubkey, payParams.Preimage, payParams.TLVRecords)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
 			"eventId":      event.ID,
