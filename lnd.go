@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 
@@ -120,33 +122,108 @@ func (svc *LNDService) SendPaymentSync(ctx context.Context, senderPubkey, payReq
 	return hex.EncodeToString(resp.PaymentPreimage), nil
 }
 
-func (svc *LNDService) SendKeysend(ctx context.Context, senderPubkey string, amount int64, destination, preimage string, custom_records []TLVRecord) (preImage string, err error) {
+func (svc *LNDService) SendKeysend(ctx context.Context, senderPubkey string, amount int64, destination, preimage string, custom_records []TLVRecord) (respPreimage string, err error) {
 	destBytes, err := hex.DecodeString(destination)
 	if err != nil {
 		return "", err
 	}
-	preimageBytes, err := hex.DecodeString(preimage)
-	if err != nil {
+	var preImageBytes []byte
+
+	if preimage == "" {
+		preImageBytes, err = makePreimageHex()
+		preimage = hex.EncodeToString(preImageBytes)
+	} else {
+		preImageBytes, err = hex.DecodeString(preimage)
+	}
+	if err != nil || len(preImageBytes) != 32 {
+		svc.Logger.WithFields(logrus.Fields{
+			"senderPubkey":  senderPubkey,
+			"amount":        amount,
+			"destination":   destination,
+			"preimage":      preimage,
+			"customRecords": custom_records,
+			"error":         err,
+		}).Errorf("Invalid preimage")
 		return "", err
 	}
-	resultMap := make(map[uint64][]byte)
+
+	paymentHash := sha256.New()
+	paymentHash.Write(preImageBytes)
+	paymentHashBytes := paymentHash.Sum(nil)
+	paymentHashHex := hex.EncodeToString(paymentHashBytes)
+
+	destCustomRecords := map[uint64][]byte{}
 	for _, record := range custom_records {
-			resultMap[record.Type] = []byte(record.Value)
+		destCustomRecords[record.Type] = []byte(record.Value)
 	}
-	KEYSEND_CUSTOM_RECORD := uint64(5482373484)
-	resultMap[KEYSEND_CUSTOM_RECORD] = preimageBytes
+	const KEYSEND_CUSTOM_RECORD = 5482373484
+	destCustomRecords[KEYSEND_CUSTOM_RECORD] = preImageBytes
 	sendPaymentRequest := &lnrpc.SendRequest{
 		Dest:              destBytes,
 		Amt:               amount,
+		PaymentHash:       paymentHashBytes,
 		DestFeatures:      []lnrpc.FeatureBit{lnrpc.FeatureBit_TLV_ONION_REQ},
-		DestCustomRecords: resultMap,
+		DestCustomRecords: destCustomRecords,
 	}
 
 	resp, err := svc.client.SendPaymentSync(ctx, sendPaymentRequest)
 	if err != nil {
+		svc.Logger.WithFields(logrus.Fields{
+			"senderPubkey":  senderPubkey,
+			"amount":        amount,
+			"payeePubkey":   destination,
+			"paymentHash":   paymentHashHex,
+			"preimage":      preimage,
+			"customRecords": custom_records,
+			"error":         err,
+		}).Errorf("Failed to send keysend payment")
 		return "", err
 	}
-	return hex.EncodeToString(resp.PaymentPreimage), nil
+	if resp.PaymentError != "" {
+		svc.Logger.WithFields(logrus.Fields{
+			"senderPubkey":  senderPubkey,
+			"amount":        amount,
+			"payeePubkey":   destination,
+			"paymentHash":   paymentHashHex,
+			"preimage":      preimage,
+			"customRecords": custom_records,
+			"paymentError":  resp.PaymentError,
+		}).Errorf("Keysend payment has payment error")
+		return "", errors.New(resp.PaymentError)
+	}
+	respPreimage = hex.EncodeToString(resp.PaymentPreimage)
+	if respPreimage == "" {
+		svc.Logger.WithFields(logrus.Fields{
+			"senderPubkey":  senderPubkey,
+			"amount":        amount,
+			"payeePubkey":   destination,
+			"paymentHash":   paymentHashHex,
+			"preimage":      preimage,
+			"customRecords": custom_records,
+			"paymentError":  resp.PaymentError,
+		}).Errorf("No preimage in keysend response")
+		return "", errors.New("No preimage in keysend response")
+	}
+	svc.Logger.WithFields(logrus.Fields{
+		"senderPubkey":  senderPubkey,
+		"amount":        amount,
+		"payeePubkey":   destination,
+		"paymentHash":   paymentHashHex,
+		"preimage":      preimage,
+		"customRecords": custom_records,
+		"respPreimage":  respPreimage,
+	}).Info("Keysend payment successful")
+
+	return respPreimage, nil
+}
+
+func makePreimageHex() ([]byte, error) {
+	bytes := make([]byte, 32) // 32 bytes * 8 bits/byte = 256 bits
+	_, err := rand.Read(bytes)
+	if err != nil {
+		return nil, err
+	}
+	return bytes, nil
 }
 
 func NewLNDService(ctx context.Context, svc *Service, e *echo.Echo) (result *LNDService, err error) {
