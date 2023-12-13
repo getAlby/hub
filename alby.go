@@ -453,7 +453,7 @@ func (svc *AlbyOAuthService) SendKeysend(ctx context.Context, senderPubkey strin
 		"payeePubkey":  destination,
 		"appId":        app.ID,
 		"userId":       app.User.ID,
-	}).Info("Processing payment request")
+	}).Info("Processing keysend request")
 	tok, err := svc.FetchUserToken(ctx, app)
 	if err != nil {
 		return "", err
@@ -464,11 +464,11 @@ func (svc *AlbyOAuthService) SendKeysend(ctx context.Context, senderPubkey strin
 	for _, record := range custom_records {
 		customRecordsMap[strconv.FormatUint(record.Type, 10)] = record.Value
 	}
-	
+
 	body := bytes.NewBuffer([]byte{})
 	payload := &KeysendRequest{
-		Amount: amount,
-		Destination: destination,
+		Amount:        amount,
+		Destination:   destination,
 		CustomRecords: customRecordsMap,
 	}
 	err = json.NewEncoder(body).Encode(payload)
@@ -506,7 +506,7 @@ func (svc *AlbyOAuthService) SendKeysend(ctx context.Context, senderPubkey strin
 			"appId":        app.ID,
 			"userId":       app.User.ID,
 			"paymentHash":  responsePayload.PaymentHash,
-		}).Info("Payment successful")
+		}).Info("Keysend payment successful")
 		return responsePayload.Preimage, nil
 	}
 

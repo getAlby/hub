@@ -25,7 +25,7 @@ const (
 	NIP_47_ERROR_EXPIRED              = "EXPIRED"
 	NIP_47_ERROR_RESTRICTED           = "RESTRICTED"
 	NIP_47_OTHER                      = "OTHER"
-	NIP_47_CAPABILITIES               = "pay_invoice,get_balance,get_info,make_invoice,lookup_invoice"
+	NIP_47_CAPABILITIES               = "pay_invoice,pay_keysend,get_balance,get_info,make_invoice,lookup_invoice"
 )
 
 const (
@@ -181,6 +181,7 @@ type Identity struct {
 	Privkey string
 }
 
+// TODO: move to models/Nip47
 type Nip47Request struct {
 	Method string          `json:"method"`
 	Params json.RawMessage `json:"params"`

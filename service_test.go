@@ -572,12 +572,10 @@ type MockLn struct {
 }
 
 func (mln *MockLn) SendPaymentSync(ctx context.Context, senderPubkey string, payReq string) (preimage string, err error) {
-	//todo more advanced behaviour
 	return "123preimage", nil
 }
 
 func (mln *MockLn) SendKeysend(ctx context.Context, senderPubkey string, amount int64, destination, preimage string, custom_records []TLVRecord) (preImage string, err error) {
-	//todo more advanced behaviour
 	return "123preimage", nil
 }
 
