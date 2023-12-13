@@ -61,7 +61,7 @@ func (svc *LNDService) GetInfo(ctx context.Context, senderPubkey string) (info *
 		Alias:       resp.Alias,
 		Color:       resp.Color,
 		Pubkey:      resp.IdentityPubkey,
-		Network:     "mainnet",
+		Network:     resp.Chains[0].Network,
 		BlockHeight: resp.BlockHeight,
 		BlockHash:   resp.BlockHash,
 	}, nil
