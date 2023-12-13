@@ -493,7 +493,7 @@ func TestHandleEvent(t *testing.T) {
 	assert.Equal(t, mockInvoices[0].PaymentHash, transaction.PaymentHash)
 	assert.Equal(t, mockInvoices[0].Amount, transaction.Amount)
 	assert.Equal(t, mockInvoices[0].FeesPaid, transaction.FeesPaid)
-	assert.Equal(t, mockInvoices[0].SettledAt, transaction.SettledAt)
+	assert.Equal(t, mockInvoices[0].SettledAt.Unix(), transaction.SettledAt.Unix())
 	// get info: without permission
 	newPayload, err = nip04.Encrypt(nip47GetInfoJson, ss)
 	assert.NoError(t, err)
