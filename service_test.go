@@ -314,13 +314,6 @@ func TestHandleEvent(t *testing.T) {
 	newMaxAmount = 1000
 	err = svc.db.Model(&AppPermission{}).Where("app_id = ?", app.ID).Update("request_method", NIP_47_PAY_INVOICE_METHOD).Update("max_amount", newMaxAmount).Error
 	assert.NoError(t, err)
-	// create a second permission for getting the budget
-	appPermission = &AppPermission{
-		AppId:         app.ID,
-		App:           app,
-		RequestMethod: NIP_47_PAY_KEYSEND_METHOD,
-		ExpiresAt:     expiresAt,
-	}
 	err = svc.db.Create(appPermission).Error
 	res, err = svc.HandleEvent(ctx, &nostr.Event{
 		ID:      "test_pay_keysend_event_2",
