@@ -19,6 +19,7 @@ type LNClient interface {
 	SendPaymentSync(ctx context.Context, senderPubkey string, payReq string) (preimage string, err error)
 	SendKeysend(ctx context.Context, senderPubkey string, amount int64, destination, preimage string, custom_records []TLVRecord) (preImage string, err error)
 	GetBalance(ctx context.Context, senderPubkey string) (balance int64, err error)
+	GetInfo(ctx context.Context, senderPubkey string) (info *NodeInfo, err error)
 	MakeInvoice(ctx context.Context, senderPubkey string, amount int64, description string, descriptionHash string, expiry int64) (invoice string, paymentHash string, err error)
 	LookupInvoice(ctx context.Context, senderPubkey string, paymentHash string) (invoice string, paid bool, err error)
 }
@@ -50,6 +51,21 @@ func (svc *LNDService) GetBalance(ctx context.Context, senderPubkey string) (bal
 		return 0, err
 	}
 	return int64(resp.LocalBalance.Sat), nil
+}
+
+func (svc *LNDService) GetInfo(ctx context.Context, senderPubkey string) (info *NodeInfo, err error) {
+	resp, err := svc.client.GetInfo(ctx, &lnrpc.GetInfoRequest{})
+	if err != nil {
+		return nil, err
+	}
+	return &NodeInfo{
+		Alias:       resp.Alias,
+		Color:       resp.Color,
+		Pubkey:      resp.IdentityPubkey,
+		Network:     resp.Chains[0].Network,
+		BlockHeight: resp.BlockHeight,
+		BlockHash:   resp.BlockHash,
+	}, nil
 }
 
 func (svc *LNDService) MakeInvoice(ctx context.Context, senderPubkey string, amount int64, description string, descriptionHash string, expiry int64) (invoice string, paymentHash string, err error) {

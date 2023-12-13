@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/labstack/echo-contrib/session"
@@ -25,6 +26,7 @@ type Service struct {
 var supportedMethods = map[string]bool{
 	NIP_47_PAY_INVOICE_METHOD:    true,
 	NIP_47_GET_BALANCE_METHOD:    true,
+	NIP_47_GET_INFO_METHOD:       true,
 	NIP_47_MAKE_INVOICE_METHOD:   true,
 	NIP_47_LOOKUP_INVOICE_METHOD: true,
 	NIP_47_PAY_KEYSEND_METHOD:    true,
@@ -53,16 +55,17 @@ func (svc *Service) GetUser(c echo.Context) (user *User, err error) {
 
 func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscription) error {
 	for {
+		if sub.Relay.ConnectionError != nil {
+			return sub.Relay.ConnectionError
+		}
 		select {
-		case notice := <-sub.Relay.Notices:
-			svc.Logger.Infof("Received a notice %s", notice)
-		case conErr := <-sub.Relay.ConnectionError:
-			return conErr
 		case <-ctx.Done():
 			svc.Logger.Info("Exiting subscription.")
 			return nil
 		case <-sub.EndOfStoredEvents:
-			svc.Logger.Info("Received EOS")
+			if !svc.ReceivedEOS {
+				svc.Logger.Info("Received EOS")
+			}
 			svc.ReceivedEOS = true
 		case event := <-sub.Events:
 			go func() {
@@ -74,7 +77,16 @@ func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 					}).Errorf("Failed to process event: %v", err)
 				}
 				if resp != nil {
-					status := sub.Relay.Publish(ctx, *resp)
+					status, err := sub.Relay.Publish(ctx, *resp)
+					if err != nil {
+						svc.Logger.WithFields(logrus.Fields{
+							"eventId":      event.ID,
+							"status":       status,
+							"replyEventId": resp.ID,
+						}).Errorf("Failed to publish reply: %v", err)
+						return
+					}
+
 					nostrEvent := NostrEvent{}
 					result := svc.db.Where("nostr_id = ?", event.ID).First(&nostrEvent)
 					if result.Error != nil {
@@ -86,7 +98,7 @@ func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 						return
 					}
 					nostrEvent.ReplyId = resp.ID
-					// https://github.com/nbd-wtf/go-nostr/blob/master/relay.go#L321
+
 					if status == nostr.PublishStatusSucceeded {
 						nostrEvent.State = NOSTR_EVENT_STATE_PUBLISH_CONFIRMED
 						nostrEvent.RepliedAt = time.Now()
@@ -199,6 +211,8 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 		return svc.HandleMakeInvoiceEvent(ctx, nip47Request, event, app, ss)
 	case NIP_47_LOOKUP_INVOICE_METHOD:
 		return svc.HandleLookupInvoiceEvent(ctx, nip47Request, event, app, ss)
+	case NIP_47_GET_INFO_METHOD:
+		return svc.HandleGetInfoEvent(ctx, nip47Request, event, app, ss)
 	default:
 		return svc.createResponse(event, Nip47Response{
 			ResultType: nip47Request.Method,
@@ -220,7 +234,7 @@ func (svc *Service) createResponse(initialEvent *nostr.Event, content interface{
 	}
 	resp := &nostr.Event{
 		PubKey:    svc.cfg.IdentityPubkey,
-		CreatedAt: time.Now(),
+		CreatedAt: nostr.Now(),
 		Kind:      NIP_47_RESPONSE_KIND,
 		Tags:      nostr.Tags{[]string{"p", initialEvent.PubKey}, []string{"e", initialEvent.ID}},
 		Content:   msg,
@@ -230,6 +244,22 @@ func (svc *Service) createResponse(initialEvent *nostr.Event, content interface{
 		return nil, err
 	}
 	return resp, nil
+}
+
+func (svc *Service) GetMethods(app *App) []string {
+	appPermissions := []AppPermission{}
+	findPermissionsResult := svc.db.Find(&appPermissions, &AppPermission{
+		AppId: app.ID,
+	})
+	if findPermissionsResult.RowsAffected == 0 {
+		// No permissions created for this app. It can do anything
+		return strings.Split(NIP_47_CAPABILITIES, ",")
+	}
+	requestMethods := make([]string, 0, len(appPermissions))
+	for _, appPermission := range appPermissions {
+		requestMethods = append(requestMethods, appPermission.RequestMethod)
+	}
+	return requestMethods
 }
 
 func (svc *Service) hasPermission(app *App, event *nostr.Event, requestMethod string, amount int64) (result bool, code string, message string) {
@@ -294,15 +324,15 @@ func (svc *Service) PublishNip47Info(ctx context.Context, relay *nostr.Relay) er
 	ev := &nostr.Event{}
 	ev.Kind = NIP_47_INFO_EVENT_KIND
 	ev.Content = NIP_47_CAPABILITIES
-	ev.CreatedAt = time.Now()
+	ev.CreatedAt = nostr.Now()
 	ev.PubKey = svc.cfg.IdentityPubkey
 	err := ev.Sign(svc.cfg.NostrSecretKey)
 	if err != nil {
 		return err
 	}
-	status := relay.Publish(ctx, *ev)
-	if status != nostr.PublishStatusSucceeded {
-		return fmt.Errorf("Nostr publish not successful: %s", status)
+	status, err := relay.Publish(ctx, *ev)
+	if err != nil || status != nostr.PublishStatusSucceeded {
+		return fmt.Errorf("Nostr publish not successful: %s error: %s", status, err)
 	}
 	return nil
 }
