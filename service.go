@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/labstack/echo-contrib/session"
@@ -26,6 +27,7 @@ type Service struct {
 var supportedMethods = map[string]bool{
 	NIP_47_PAY_INVOICE_METHOD:       true,
 	NIP_47_GET_BALANCE_METHOD:       true,
+	NIP_47_GET_INFO_METHOD:          true,
 	NIP_47_MAKE_INVOICE_METHOD:      true,
 	NIP_47_LOOKUP_INVOICE_METHOD:    true,
 	NIP_47_LIST_TRANSACTIONS_METHOD: true,
@@ -210,6 +212,8 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 		return svc.HandleLookupInvoiceEvent(ctx, nip47Request, event, app, ss)
 	case NIP_47_LIST_TRANSACTIONS_METHOD:
 		return svc.HandleListTransactionsEvent(ctx, nip47Request, event, app, ss)
+	case NIP_47_GET_INFO_METHOD:
+		return svc.HandleGetInfoEvent(ctx, nip47Request, event, app, ss)
 	default:
 		return svc.createResponse(event, Nip47Response{
 			ResultType: nip47Request.Method,
@@ -241,6 +245,22 @@ func (svc *Service) createResponse(initialEvent *nostr.Event, content interface{
 		return nil, err
 	}
 	return resp, nil
+}
+
+func (svc *Service) GetMethods(app *App) []string {
+	appPermissions := []AppPermission{}
+	findPermissionsResult := svc.db.Find(&appPermissions, &AppPermission{
+		AppId: app.ID,
+	})
+	if findPermissionsResult.RowsAffected == 0 {
+		// No permissions created for this app. It can do anything
+		return strings.Split(NIP_47_CAPABILITIES, ",")
+	}
+	requestMethods := make([]string, 0, len(appPermissions))
+	for _, appPermission := range appPermissions {
+		requestMethods = append(requestMethods, appPermission.RequestMethod)
+	}
+	return requestMethods
 }
 
 func (svc *Service) hasPermission(app *App, event *nostr.Event, requestMethod string, paymentRequest *decodepay.Bolt11) (result bool, code string, message string) {

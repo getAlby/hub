@@ -1,5 +1,5 @@
 /*
-! tailwindcss v3.3.5 | MIT License | https://tailwindcss.com
+! tailwindcss v3.2.7 | MIT License | https://tailwindcss.com
 */
 
 /*
@@ -31,7 +31,6 @@
 3. Use a more readable tab size.
 4. Use the user's configured `sans` font-family by default.
 5. Use the user's configured `sans` font-feature-settings by default.
-6. Use the user's configured `sans` font-variation-settings by default.
 */
 
 html {
@@ -48,8 +47,6 @@ html {
   /* 4 */
   font-feature-settings: normal;
   /* 5 */
-  font-variation-settings: normal;
-  /* 6 */
 }
 
 /*
@@ -191,10 +188,6 @@ select,
 textarea {
   font-family: inherit;
   /* 1 */
-  font-feature-settings: inherit;
-  /* 1 */
-  font-variation-settings: inherit;
-  /* 1 */
   font-size: 100%;
   /* 1 */
   font-weight: inherit;
@@ -242,7 +235,9 @@ Use the modern Firefox focus style for all focusable elements.
 :-moz-focusring {
   outline: auto;
 }
-
+/*
+Css for logout button
+*/
 /*
 Remove the additional `:invalid` styles in Firefox. (https://github.com/mozilla/gecko-dev/blob/2f9eacd9d3d995c937b4251a5557d95d494c9be1/layout/style/res/forms.css#L728-L737)
 */
@@ -346,14 +341,6 @@ menu {
 }
 
 /*
-Reset default styling for dialogs.
-*/
-
-dialog {
-  padding: 0;
-}
-
-/*
 Prevent resizing textareas horizontally by default.
 */
 
@@ -434,7 +421,7 @@ video {
   display: none;
 }
 
-[type='text'],input:where(:not([type])),[type='email'],[type='url'],[type='password'],[type='number'],[type='date'],[type='datetime-local'],[type='month'],[type='search'],[type='tel'],[type='time'],[type='week'],[multiple],textarea,select {
+[type='text'],[type='email'],[type='url'],[type='password'],[type='number'],[type='date'],[type='datetime-local'],[type='month'],[type='search'],[type='tel'],[type='time'],[type='week'],[multiple],textarea,select {
   -webkit-appearance: none;
      -moz-appearance: none;
           appearance: none;
@@ -451,7 +438,7 @@ video {
   --tw-shadow: 0 0 #0000;
 }
 
-[type='text']:focus, input:where(:not([type])):focus, [type='email']:focus, [type='url']:focus, [type='password']:focus, [type='number']:focus, [type='date']:focus, [type='datetime-local']:focus, [type='month']:focus, [type='search']:focus, [type='tel']:focus, [type='time']:focus, [type='week']:focus, [multiple]:focus, textarea:focus, select:focus {
+[type='text']:focus, [type='email']:focus, [type='url']:focus, [type='password']:focus, [type='number']:focus, [type='date']:focus, [type='datetime-local']:focus, [type='month']:focus, [type='search']:focus, [type='tel']:focus, [type='time']:focus, [type='week']:focus, [multiple]:focus, textarea:focus, select:focus {
   outline: 2px solid transparent;
   outline-offset: 2px;
   --tw-ring-inset: var(--tw-empty,/*!*/ /*!*/);
@@ -480,11 +467,6 @@ input::placeholder,textarea::placeholder {
 
 ::-webkit-date-and-time-value {
   min-height: 1.5em;
-  text-align: inherit;
-}
-
-::-webkit-datetime-edit {
-  display: inline-flex;
 }
 
 ::-webkit-datetime-edit,::-webkit-datetime-edit-year-field,::-webkit-datetime-edit-month-field,::-webkit-datetime-edit-day-field,::-webkit-datetime-edit-hour-field,::-webkit-datetime-edit-minute-field,::-webkit-datetime-edit-second-field,::-webkit-datetime-edit-millisecond-field,::-webkit-datetime-edit-meridiem-field {
@@ -502,7 +484,7 @@ select {
           print-color-adjust: exact;
 }
 
-[multiple],[size]:where(select:not([size="1"])) {
+[multiple] {
   background-image: initial;
   background-position: initial;
   background-repeat: unset;
@@ -619,9 +601,6 @@ select {
   --tw-pan-y:  ;
   --tw-pinch-zoom:  ;
   --tw-scroll-snap-strictness: proximity;
-  --tw-gradient-from-position:  ;
-  --tw-gradient-via-position:  ;
-  --tw-gradient-to-position:  ;
   --tw-ordinal:  ;
   --tw-slashed-zero:  ;
   --tw-numeric-figure:  ;
@@ -669,9 +648,6 @@ select {
   --tw-pan-y:  ;
   --tw-pinch-zoom:  ;
   --tw-scroll-snap-strictness: proximity;
-  --tw-gradient-from-position:  ;
-  --tw-gradient-via-position:  ;
-  --tw-gradient-to-position:  ;
   --tw-ordinal:  ;
   --tw-slashed-zero:  ;
   --tw-numeric-figure:  ;
@@ -756,7 +732,10 @@ select {
 }
 
 .inset-0 {
-  inset: 0px;
+  top: 0px;
+  right: 0px;
+  bottom: 0px;
+  left: 0px;
 }
 
 .left-0 {
@@ -769,6 +748,9 @@ select {
 
 .col-span-2 {
   grid-column: span 2 / span 2;
+}
+.col-span-3 {
+  grid-column: span 3 / span 3;
 }
 
 .mx-auto {
@@ -846,6 +828,20 @@ select {
   margin-top: 5rem;
 }
 
+.mt-25{
+  margin-top: 6.75rem;
+}
+
+.mt-30{
+  margin-top: 7.5rem;
+}
+.mt-40{
+  margin-top: 10rem;
+}
+.right{
+  right: 0px;
+}
+
 .mt-4 {
   margin-top: 1rem;
 }
@@ -861,7 +857,12 @@ select {
 .block {
   display: block;
 }
-
+.absolute{
+  position: absolute;
+}
+.relative{
+  position: relative;
+}
 .inline {
   display: inline;
 }
@@ -885,9 +886,17 @@ select {
 .hidden {
   display: none;
 }
+/* to rotate arrow 180 deg */
+.rotate-180 {
+  transform: rotate(180deg);
+  margin-top: -6px;
+}
 
 .h-4 {
   height: 1rem;
+}
+.h-10{
+  height: 2.5rem;
 }
 
 .w-16 {
@@ -991,7 +1000,9 @@ select {
 .justify-center {
   justify-content: center;
 }
-
+.justify-left{
+  justify-content: left;
+}
 .justify-between {
   justify-content: space-between;
 }
@@ -1047,7 +1058,9 @@ select {
   border-top-left-radius: 0.5rem;
   border-top-right-radius: 0.5rem;
 }
-
+.rounded-circle{
+  border-radius: 50px;
+}
 .border {
   border-width: 1px;
 }
@@ -1082,6 +1095,15 @@ select {
   border-color: rgb(209 213 219 / var(--tw-border-opacity));
 }
 
+.border-gray-400 {
+    --tw-border-opacity: 1;
+    border-color: rgb(156 163 175 / var(--tw-border-opacity));
+  }
+
+.border-gray-900{
+--tw-text-opacity: 1;
+  border-color: rgb(17 24 39 / var(--tw-text-opacity));
+}
 .border-purple-600 {
   --tw-border-opacity: 1;
   border-color: rgb(147 51 234 / var(--tw-border-opacity));
@@ -1136,6 +1158,9 @@ select {
   background-origin: border-box;
 }
 
+.p-1{
+  padding: 0.3rem;
+}
 .p-2 {
   padding: 0.5rem;
 }
@@ -1152,7 +1177,10 @@ select {
   padding-left: 2.5rem;
   padding-right: 2.5rem;
 }
-
+.px-2{
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
 .px-3 {
   padding-left: 0.75rem;
   padding-right: 0.75rem;
@@ -1213,16 +1241,12 @@ select {
   padding-right: 0.75rem;
 }
 
-.pt-1 {
-  padding-top: 0.25rem;
+.pt-2 {
+  padding-top: 0.5rem;
 }
 
 .pt-4 {
   padding-top: 1rem;
-}
-
-.pt-2 {
-  padding-top: 0.5rem;
 }
 
 .text-left {
@@ -1281,6 +1305,9 @@ select {
 .text-xs {
   font-size: 0.75rem;
   line-height: 1rem;
+}
+.font-normal{
+  font-weight: 400;
 }
 
 .font-bold {
@@ -1342,6 +1369,10 @@ select {
   color: rgb(17 24 39 / var(--tw-text-opacity));
 }
 
+.text-red-500 {
+  --tw-text-opacity: 1;
+  color: rgb(248 113 113 / var(--tw-text-opacity));
+}
 .text-green-500 {
   --tw-text-opacity: 1;
   color: rgb(34 197 94 / var(--tw-text-opacity));
@@ -1452,11 +1483,12 @@ select {
   .dark\:divide-white\/10 > :not([hidden]) ~ :not([hidden]) {
     border-color: rgb(255 255 255 / 0.1);
   }
-
-  .dark\:border-gray-400 {
-    --tw-border-opacity: 1;
-    border-color: rgb(156 163 175 / var(--tw-border-opacity));
+  .dark\:border-gray-200{
+    --tw-border-opacity: 0.3;
+    border-color: rgb(229 231 235 / var(--tw-border-opacity));
   }
+  .dark\:
+  
 
   .dark\:border-gray-700 {
     --tw-border-opacity: 1;
@@ -1595,6 +1627,9 @@ select {
     --tw-ring-opacity: 1;
     --tw-ring-color: rgb(147 51 234 / var(--tw-ring-opacity));
   }
+  .dark\:fill{
+    fill:rgb(156 163 175 / var(--tw-border-opacity));
+  }
 }
 
 @media (min-width: 640px) {
@@ -1618,10 +1653,18 @@ select {
     flex-direction: row;
   }
 
+  .sm\:inline{
+    display: inline;
+  }
+
   .sm\:justify-center {
     justify-content: center;
   }
 
+  .sm\:text-base {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
   .sm\:text-2xl {
     font-size: 1.5rem;
     line-height: 2rem;
@@ -1640,6 +1683,10 @@ select {
 
   .md\:flex {
     display: flex;
+  }
+
+  .md\:hidden{
+    display: none;
   }
 
   .md\:table-cell {
