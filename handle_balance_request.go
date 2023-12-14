@@ -25,7 +25,7 @@ func (svc *Service) HandleGetBalanceEvent(ctx context.Context, request *Nip47Req
 		return nil, err
 	}
 
-	hasPermission, code, message := svc.hasPermission(&app, event, request.Method, nil)
+	hasPermission, code, message := svc.hasPermission(&app, event, request.Method, 0)
 
 	if !hasPermission {
 		svc.Logger.WithFields(logrus.Fields{

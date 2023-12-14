@@ -16,6 +16,7 @@ const (
 	NIP_47_GET_INFO_METHOD            = "get_info"
 	NIP_47_MAKE_INVOICE_METHOD        = "make_invoice"
 	NIP_47_LOOKUP_INVOICE_METHOD      = "lookup_invoice"
+	NIP_47_PAY_KEYSEND_METHOD         = "pay_keysend"
 	NIP_47_ERROR_INTERNAL             = "INTERNAL"
 	NIP_47_ERROR_NOT_IMPLEMENTED      = "NOT_IMPLEMENTED"
 	NIP_47_ERROR_QUOTA_EXCEEDED       = "QUOTA_EXCEEDED"
@@ -24,7 +25,7 @@ const (
 	NIP_47_ERROR_EXPIRED              = "EXPIRED"
 	NIP_47_ERROR_RESTRICTED           = "RESTRICTED"
 	NIP_47_OTHER                      = "OTHER"
-	NIP_47_CAPABILITIES               = "pay_invoice,get_balance,get_info,make_invoice,lookup_invoice"
+	NIP_47_CAPABILITIES               = "pay_invoice,pay_keysend,get_balance,get_info,make_invoice,lookup_invoice"
 )
 
 const (
@@ -126,6 +127,12 @@ type PayRequest struct {
 }
 
 // TODO: move to models/Alby
+type KeysendRequest struct {
+	Amount        int64             `json:"amount"`
+	Destination   string            `json:"destination"`
+	CustomRecords map[string]string `json:"custom_records,omitempty"`
+}
+
 type BalanceResponse struct {
 	Balance  int64  `json:"balance"`
 	Currency string `json:"currency"`
@@ -174,6 +181,7 @@ type Identity struct {
 	Privkey string
 }
 
+// TODO: move to models/Nip47
 type Nip47Request struct {
 	Method string          `json:"method"`
 	Params json.RawMessage `json:"params"`
@@ -196,6 +204,19 @@ type Nip47PayParams struct {
 type Nip47PayResponse struct {
 	Preimage string `json:"preimage"`
 }
+
+type Nip47KeysendParams struct {
+	Amount     int64       `json:"amount"`
+	Pubkey     string      `json:"pubkey"`
+	Preimage   string      `json:"preimage"`
+	TLVRecords []TLVRecord `json:"tlv_records"`
+}
+
+type TLVRecord struct {
+	Type  uint64 `json:"type"`
+	Value string `json:"value"`
+}
+
 type Nip47BalanceResponse struct {
 	Balance       int64  `json:"balance"`
 	MaxAmount     int    `json:"max_amount"`

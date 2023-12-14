@@ -21,7 +21,7 @@ func (svc *Service) HandleGetInfoEvent(ctx context.Context, request *Nip47Reques
 		return nil, err
 	}
 
-	hasPermission, code, message := svc.hasPermission(&app, event, request.Method, nil)
+	hasPermission, code, message := svc.hasPermission(&app, event, request.Method, 0)
 
 	if !hasPermission {
 		svc.Logger.WithFields(logrus.Fields{
