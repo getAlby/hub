@@ -15,6 +15,7 @@ import (
 	"time"
 
 	echologrus "github.com/davrux/echo-logrus/v4"
+	"github.com/getAlby/nostr-wallet-connect/frontend"
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
@@ -46,22 +47,8 @@ func (t *TemplateRegistry) Render(w io.Writer, name string, data interface{}, c 
 }
 
 func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
-
-	templates := make(map[string]*template.Template)
-	templates["apps/index.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/index.html", "views/layout.html"))
-	templates["apps/new.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/new.html", "views/layout.html"))
-	templates["apps/show.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/show.html", "views/layout.html"))
-	templates["apps/create.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/create.html", "views/layout.html"))
-	templates["alby/index.html"] = template.Must(template.ParseFS(embeddedViews, "views/backends/alby/index.html", "views/layout.html"))
-	templates["about.html"] = template.Must(template.ParseFS(embeddedViews, "views/about.html", "views/layout.html"))
-	templates["404.html"] = template.Must(template.ParseFS(embeddedViews, "views/404.html", "views/layout.html"))
-	templates["lnd/index.html"] = template.Must(template.ParseFS(embeddedViews, "views/backends/lnd/index.html", "views/layout.html"))
-	e.Renderer = &TemplateRegistry{
-		templates: templates,
-	}
 	e.HideBanner = true
 	e.Use(echologrus.Middleware())
-
 	e.Use(middleware.Recover())
 	e.Use(middleware.RequestID())
 	e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
@@ -81,6 +68,7 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	e.GET("/logout", svc.LogoutHandler)
 	e.GET("/about", svc.AboutHandler)
 	e.GET("/", svc.IndexHandler)
+	frontend.RegisterHandlers(e)
 }
 
 func (svc *Service) IndexHandler(c echo.Context) error {
@@ -103,7 +91,7 @@ func (svc *Service) IndexHandler(c echo.Context) error {
 	if user != nil {
 		return c.Redirect(302, "/apps")
 	}
-	return c.Render(http.StatusOK, fmt.Sprintf("%s/index.html", strings.ToLower(svc.cfg.LNBackendType)), map[string]interface{}{})
+	return c.Render(http.StatusOK, fmt.Sprintf("%s", strings.ToLower(svc.cfg.LNBackendType)), map[string]interface{}{})
 }
 
 func (svc *Service) AboutHandler(c echo.Context) error {
