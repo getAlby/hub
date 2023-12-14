@@ -23,14 +23,14 @@ type Service struct {
 	Logger      *logrus.Logger
 }
 
-var supportedMethods = map[string]bool{
+/*var supportedMethods = map[string]bool{
 	NIP_47_PAY_INVOICE_METHOD:       true,
 	NIP_47_GET_BALANCE_METHOD:       true,
 	NIP_47_GET_INFO_METHOD:          true,
 	NIP_47_MAKE_INVOICE_METHOD:      true,
 	NIP_47_LOOKUP_INVOICE_METHOD:    true,
 	NIP_47_LIST_TRANSACTIONS_METHOD: true,
-}
+}*/
 
 func (svc *Service) GetUser(c echo.Context) (user *User, err error) {
 	sess, _ := session.Get(CookieName, c)
