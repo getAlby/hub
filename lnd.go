@@ -25,7 +25,7 @@ type LNClient interface {
 	GetInfo(ctx context.Context, senderPubkey string) (info *NodeInfo, err error)
 	MakeInvoice(ctx context.Context, senderPubkey string, amount int64, description string, descriptionHash string, expiry int64) (invoice string, paymentHash string, err error)
 	LookupInvoice(ctx context.Context, senderPubkey string, paymentHash string) (invoice string, paid bool, err error)
-	ListTransactions(ctx context.Context, senderPubkey string, from, until, limit, offset uint64, unpaid bool, invoiceType string) (invoices []Invoice, err error)
+	ListTransactions(ctx context.Context, senderPubkey string, from, until, limit, offset uint64, unpaid bool, invoiceType string) (invoices []Nip47Transaction, err error)
 }
 
 // wrap it again :sweat_smile:
@@ -57,7 +57,7 @@ func (svc *LNDService) GetBalance(ctx context.Context, senderPubkey string) (bal
 	return int64(resp.LocalBalance.Sat), nil
 }
 
-func (svc *LNDService) ListTransactions(ctx context.Context, senderPubkey string, from, until, limit, offset uint64, unpaid bool, invoiceType string) (invoices []Invoice, err error) {
+func (svc *LNDService) ListTransactions(ctx context.Context, senderPubkey string, from, until, limit, offset uint64, unpaid bool, invoiceType string) (invoices []Nip47Transaction, err error) {
 	maxInvoices := uint64(limit)
 	if err != nil {
 		return nil, err
@@ -84,7 +84,7 @@ func (svc *LNDService) ListTransactions(ctx context.Context, senderPubkey string
 		}
 	}
 	for _, inv := range incomingInvoices {
-		invoice := Invoice{
+		invoice := Nip47Transaction{
 			Type:            "incoming",
 			Invoice:         inv.PaymentRequest,
 			Description:     inv.Memo,
@@ -110,7 +110,7 @@ func (svc *LNDService) ListTransactions(ctx context.Context, senderPubkey string
 		outgoingInvoices = outgoingResp.Payments
 	}
 	for _, inv := range outgoingInvoices {
-		invoice := Invoice{
+		invoice := Nip47Transaction{
 			Type:        "outgoing",
 			Invoice:     inv.PaymentRequest,
 			Preimage:    inv.PaymentPreimage,

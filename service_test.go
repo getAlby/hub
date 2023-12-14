@@ -110,7 +110,7 @@ var mockNodeInfo = NodeInfo{
 	BlockHash:   "123blockhash",
 }
 
-var mockInvoices = []Invoice{
+var mockTransactions = []Nip47Transaction{
 	{
 		Type:            "incoming",
 		Invoice:         mockInvoice,
@@ -562,15 +562,15 @@ func TestHandleEvent(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(received.Result.(*Nip47ListTransactionsResponse).Transactions))
 	transaction := received.Result.(*Nip47ListTransactionsResponse).Transactions[0]
-	assert.Equal(t, mockInvoices[0].Type, transaction.Type)
-	assert.Equal(t, mockInvoices[0].Invoice, transaction.Invoice)
-	assert.Equal(t, mockInvoices[0].Description, transaction.Description)
-	assert.Equal(t, mockInvoices[0].DescriptionHash, transaction.DescriptionHash)
-	assert.Equal(t, mockInvoices[0].Preimage, transaction.Preimage)
-	assert.Equal(t, mockInvoices[0].PaymentHash, transaction.PaymentHash)
-	assert.Equal(t, mockInvoices[0].Amount, transaction.Amount)
-	assert.Equal(t, mockInvoices[0].FeesPaid, transaction.FeesPaid)
-	assert.Equal(t, mockInvoices[0].SettledAt.Unix(), transaction.SettledAt.Unix())
+	assert.Equal(t, mockTransactions[0].Type, transaction.Type)
+	assert.Equal(t, mockTransactions[0].Invoice, transaction.Invoice)
+	assert.Equal(t, mockTransactions[0].Description, transaction.Description)
+	assert.Equal(t, mockTransactions[0].DescriptionHash, transaction.DescriptionHash)
+	assert.Equal(t, mockTransactions[0].Preimage, transaction.Preimage)
+	assert.Equal(t, mockTransactions[0].PaymentHash, transaction.PaymentHash)
+	assert.Equal(t, mockTransactions[0].Amount, transaction.Amount)
+	assert.Equal(t, mockTransactions[0].FeesPaid, transaction.FeesPaid)
+	assert.Equal(t, mockTransactions[0].SettledAt.Unix(), transaction.SettledAt.Unix())
 
 	// get_info: without permission
 	newPayload, err = nip04.Encrypt(nip47GetInfoJson, ss)
@@ -680,6 +680,6 @@ func (mln *MockLn) LookupInvoice(ctx context.Context, senderPubkey string, payme
 	return mockInvoice, false, nil
 }
 
-func (mln *MockLn) ListTransactions(ctx context.Context, senderPubkey string, from, until, limit, offset uint64, unpaid bool, invoiceType string) (invoices []Invoice, err error) {
-	return mockInvoices, nil
+func (mln *MockLn) ListTransactions(ctx context.Context, senderPubkey string, from, until, limit, offset uint64, unpaid bool, invoiceType string) (invoices []Nip47Transaction, err error) {
+	return mockTransactions, nil
 }

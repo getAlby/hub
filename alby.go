@@ -359,7 +359,7 @@ func (svc *AlbyOAuthService) GetBalance(ctx context.Context, senderPubkey string
 	return 0, errors.New(errorPayload.Message)
 }
 
-func (svc *AlbyOAuthService) ListTransactions(ctx context.Context, senderPubkey string, from, until, limit, offset uint64, unpaid bool, invoiceType string) (invoices []Invoice, err error) {
+func (svc *AlbyOAuthService) ListTransactions(ctx context.Context, senderPubkey string, from, until, limit, offset uint64, unpaid bool, invoiceType string) (invoices []Nip47Transaction, err error) {
 	app := App{}
 	err = svc.db.Preload("User").First(&app, &App{
 		NostrPubkey: senderPubkey,

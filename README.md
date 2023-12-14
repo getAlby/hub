@@ -134,11 +134,10 @@ You can also contribute to our [bounty program](https://github.com/getAlby/light
 ✅ `pay_keysend`
 
 ⚠️ `make_invoice`
-- ⚠️ invoice in response missing (TODO)
+- ⚠️ does not match spec
 
 ⚠️ `lookup_invoice`
-- ⚠️ invoice in response missing (TODO)
-- ⚠️ response does not match spec, missing fields
+- ⚠️ does not match spec
 
 ✅ `list_transactions`
 - ⚠️ from and until in request not supported
@@ -165,11 +164,10 @@ You can also contribute to our [bounty program](https://github.com/getAlby/light
 
 ⚠️ `make_invoice`
 - ⚠️ expiry in request not supported
-- ⚠️ invoice in response missing (TODO)
+- ⚠️ does not match spec
 
 ⚠️ `lookup_invoice`
-- ⚠️ invoice in response missing (TODO)
-- ⚠️ response does not match spec, missing fields (TODO)
+- ⚠️ does not match spec
 
 ✅ `list_transactions`
 - ⚠️ offset and unpaid in request not supported

@@ -125,7 +125,8 @@ type Payment struct {
 	UpdatedAt      time.Time
 }
 
-type Invoice struct {
+// TODO: move to models/Nip47
+type Nip47Transaction struct {
 	Type            string                 `json:"type"`
 	Invoice         string                 `json:"invoice"`
 	Description     string                 `json:"description"`
@@ -168,11 +169,13 @@ type MakeInvoiceRequest struct {
 	DescriptionHash string `json:"description_hash"`
 }
 
+// TODO: this should have the same content as Nip46Transaction
 type MakeInvoiceResponse struct {
 	PaymentRequest string `json:"payment_request"`
 	PaymentHash    string `json:"payment_hash"`
 }
 
+// TODO: this should have the same content as Nip46Transaction
 type LookupInvoiceResponse struct {
 	PaymentRequest string `json:"payment_request"`
 	Settled        bool   `json:"settled"`
@@ -283,5 +286,5 @@ type Nip47ListTransactionsParams struct {
 }
 
 type Nip47ListTransactionsResponse struct {
-	Transactions []Invoice `json:"transactions"`
+	Transactions []Nip47Transaction `json:"transactions"`
 }
