@@ -33,7 +33,7 @@ func (svc *Service) HandleListTransactionsEvent(ctx context.Context, request *Ni
 		return nil, err
 	}
 
-	hasPermission, code, message := svc.hasPermission(&app, event, request.Method, nil)
+	hasPermission, code, message := svc.hasPermission(&app, event, request.Method, 0)
 
 	if !hasPermission {
 		svc.Logger.WithFields(logrus.Fields{
@@ -45,9 +45,9 @@ func (svc *Service) HandleListTransactionsEvent(ctx context.Context, request *Ni
 		return svc.createResponse(event, Nip47Response{
 			ResultType: request.Method,
 			Error: &Nip47Error{
-			Code:    code,
-			Message: message,
-		}}, ss)
+				Code:    code,
+				Message: message,
+			}}, ss)
 	}
 
 	svc.Logger.WithFields(logrus.Fields{

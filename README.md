@@ -131,6 +131,8 @@ You can also contribute to our [bounty program](https://github.com/getAlby/light
 
 ✅ `pay_invoice`
 
+✅ `pay_keysend`
+
 ⚠️ `make_invoice`
 - ⚠️ invoice in response missing (TODO)
 
@@ -140,8 +142,6 @@ You can also contribute to our [bounty program](https://github.com/getAlby/light
 
 ✅ `list_transactions`
 - ⚠️ from and until in request not supported
-
-❌ `pay_keysend`
 
 ❌ `multi_pay_invoice (TBC)`
 
@@ -160,6 +160,9 @@ You can also contribute to our [bounty program](https://github.com/getAlby/light
 
 ✅ `pay_invoice`
 
+✅ `pay_keysend`
+- ⚠️ preimage in request not supported
+
 ⚠️ `make_invoice`
 - ⚠️ expiry in request not supported
 - ⚠️ invoice in response missing (TODO)
@@ -170,8 +173,6 @@ You can also contribute to our [bounty program](https://github.com/getAlby/light
 
 ✅ `list_transactions`
 - ⚠️ offset and unpaid in request not supported
-
-❌ `pay_keysend`
 
 ❌ `multi_pay_invoice (TBC)`
 
