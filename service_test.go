@@ -56,6 +56,7 @@ const nip47ListTransactionsJson = `
 		"limit": 10,
 		"offset": 0,
 		"type": "incoming"
+	}
 }
 `
 
