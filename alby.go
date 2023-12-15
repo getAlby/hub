@@ -359,7 +359,7 @@ func (svc *AlbyOAuthService) GetBalance(ctx context.Context, senderPubkey string
 	return 0, errors.New(errorPayload.Message)
 }
 
-func (svc *AlbyOAuthService) ListTransactions(ctx context.Context, senderPubkey string, from, until, limit, offset uint64, unpaid bool, invoiceType string) (invoices []Nip47Transaction, err error) {
+func (svc *AlbyOAuthService) ListTransactions(ctx context.Context, senderPubkey string, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []Nip47Transaction, err error) {
 	app := App{}
 	err = svc.db.Preload("User").First(&app, &App{
 		NostrPubkey: senderPubkey,
@@ -377,7 +377,9 @@ func (svc *AlbyOAuthService) ListTransactions(ctx context.Context, senderPubkey 
 	client := svc.oauthConf.Client(ctx, tok)
 
 	urlParams := url.Values{}
-	urlParams.Add("page", "1")
+	//urlParams.Add("page", "1")
+
+	// TODO: clarify gt/lt vs from to in NWC spec
 	if from != 0 {
 		urlParams.Add("q[created_at_gt]", strconv.FormatUint(from, 10))
 	}
@@ -398,7 +400,9 @@ func (svc *AlbyOAuthService) ListTransactions(ctx context.Context, senderPubkey 
 		endpoint += "/outgoing"
 	}
 
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s%s?%s", svc.cfg.AlbyAPIURL, endpoint, urlParams.Encode()), nil)
+	requestUrl := fmt.Sprintf("%s%s?%s", svc.cfg.AlbyAPIURL, endpoint, urlParams.Encode())
+
+	req, err := http.NewRequest("GET", requestUrl, nil)
 	if err != nil {
 		svc.Logger.WithError(err).Error("Error creating request /invoices")
 		return nil, err
@@ -412,21 +416,57 @@ func (svc *AlbyOAuthService) ListTransactions(ctx context.Context, senderPubkey 
 			"senderPubkey": senderPubkey,
 			"appId":        app.ID,
 			"userId":       app.User.ID,
+			"requestUrl":   requestUrl,
 		}).Errorf("Failed to fetch invoices: %v", err)
 		return nil, err
 	}
 
+	var invoices []AlbyInvoice
+
 	if resp.StatusCode < 300 {
 		err = json.NewDecoder(resp.Body).Decode(&invoices)
 		if err != nil {
+			svc.Logger.WithFields(logrus.Fields{
+				"senderPubkey": senderPubkey,
+				"appId":        app.ID,
+				"userId":       app.User.ID,
+				"requestUrl":   requestUrl,
+			}).Errorf("Failed to decode invoices: %v", err)
 			return nil, err
 		}
+
+		transactions = []Nip47Transaction{}
+		for _, invoice := range invoices {
+			description := invoice.Comment
+			if description == "" {
+				description = invoice.Memo
+			}
+
+			transaction := Nip47Transaction{
+				Type:            invoice.Type,
+				Invoice:         invoice.PaymentRequest,
+				Description:     description,
+				DescriptionHash: invoice.DescriptionHash,
+				Preimage:        invoice.Preimage,
+				PaymentHash:     invoice.PaymentHash,
+				Amount:          invoice.Amount,
+				FeesPaid:        0, // TODO: support fees
+				CreatedAt:       invoice.CreatedAt,
+				ExpiresAt:       invoice.ExpiresAt,
+				SettledAt:       invoice.SettledAt,
+				Metadata:        invoice.Metadata,
+			}
+
+			transactions = append(transactions, transaction)
+		}
+
 		svc.Logger.WithFields(logrus.Fields{
 			"senderPubkey": senderPubkey,
 			"appId":        app.ID,
 			"userId":       app.User.ID,
-		}).Info("Invoices listing successful")
-		return invoices, nil
+			"requestUrl":   requestUrl,
+		}).Info("List transactions successful")
+		return transactions, nil
 	}
 
 	errorPayload := &ErrorResponse{}
@@ -436,7 +476,8 @@ func (svc *AlbyOAuthService) ListTransactions(ctx context.Context, senderPubkey 
 		"appId":         app.ID,
 		"userId":        app.User.ID,
 		"APIHttpStatus": resp.StatusCode,
-	}).Errorf("Invoices listing failed %s", string(errorPayload.Message))
+		"requestUrl":    requestUrl,
+	}).Errorf("List transactions failed %s", string(errorPayload.Message))
 	return nil, errors.New(errorPayload.Message)
 }
 

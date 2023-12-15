@@ -127,18 +127,47 @@ type Payment struct {
 
 // TODO: move to models/Nip47
 type Nip47Transaction struct {
-	Type            string                 `json:"type"`
-	Invoice         string                 `json:"invoice"`
-	Description     string                 `json:"description"`
-	DescriptionHash string                 `json:"description_hash"`
-	Preimage        string                 `json:"preimage"`
-	PaymentHash     string                 `json:"payment_hash"`
-	Amount          int64                  `json:"amount"`
-	FeesPaid        int64                  `json:"fees_paid"`
-	CreatedAt       time.Time              `json:"created_at"`
-	ExpiresAt       time.Time              `json:"expires_at"`
-	SettledAt       time.Time              `json:"settled_at"`
-	Metadata        map[string]interface{} `json:"metadata,omitempty"`
+	Type            string      `json:"type"`
+	Invoice         string      `json:"invoice"`
+	Description     string      `json:"description"`
+	DescriptionHash string      `json:"description_hash"`
+	Preimage        string      `json:"preimage"`
+	PaymentHash     string      `json:"payment_hash"`
+	Amount          int64       `json:"amount"`
+	FeesPaid        int64       `json:"fees_paid"`
+	CreatedAt       time.Time   `json:"created_at"`
+	ExpiresAt       time.Time   `json:"expires_at"`
+	SettledAt       time.Time   `json:"settled_at"`
+	Metadata        interface{} `json:"metadata,omitempty"`
+}
+
+// TODO: move to models/Alby
+type AlbyInvoice struct {
+	Amount int64 `json:"amount"`
+	// Boostagram AlbyInvoiceBoostagram        `json:"boostagram"`
+	Comment   string    `json:"comment"`
+	CreatedAt time.Time `json:"created_at"`
+	// CreationDate uint64 `json:"creation_date"`
+	Currency string `json:"currency"`
+	// custom_records
+	DescriptionHash string    `json:"description_hash"`
+	ExpiresAt       time.Time `json:"expires_at"`
+	Expiry          uint32    `json:"expiry"`
+	// Identifier string
+	KeysendMessage string      `json:"keysend_message"`
+	Memo           string      `json:"memo"`
+	Metadata       interface{} `json:"metadata"`
+	PayerName      string      `json:"payer_name"`
+	PayerPubkey    string      `json:"payer_pubkey"`
+	PaymentHash    string      `json:"payment_hash"`
+	PaymentRequest string      `json:"payment_request"`
+	Preimage       string      `json:"preimage"`
+	// r_hash_str
+	Settled   bool      `json:"settled"`
+	SettledAt time.Time `json:"settled_at"`
+	State     string    `json:"state"`
+	Type      string    `json:"type"`
+	// value
 }
 
 type PayRequest struct {
@@ -169,14 +198,16 @@ type MakeInvoiceRequest struct {
 	DescriptionHash string `json:"description_hash"`
 }
 
-// TODO: this should have the same content as Nip46Transaction
+// TODO: this should have the same content as Nip47Transaction
 type MakeInvoiceResponse struct {
+	// Nip47Transaction
 	PaymentRequest string `json:"payment_request"`
 	PaymentHash    string `json:"payment_hash"`
 }
 
-// TODO: this should have the same content as Nip46Transaction
+// TODO: this should have the same content as Nip47Transaction
 type LookupInvoiceResponse struct {
+	// Nip47Transaction
 	PaymentRequest string `json:"payment_request"`
 	Settled        bool   `json:"settled"`
 }

@@ -37,6 +37,7 @@ func (svc *Service) HandleListTransactionsEvent(ctx context.Context, request *Ni
 
 	if !hasPermission {
 		svc.Logger.WithFields(logrus.Fields{
+			// TODO: log request fields from listParams
 			"eventId":   event.ID,
 			"eventKind": event.Kind,
 			"appId":     app.ID,
@@ -51,34 +52,35 @@ func (svc *Service) HandleListTransactionsEvent(ctx context.Context, request *Ni
 	}
 
 	svc.Logger.WithFields(logrus.Fields{
+		// TODO: log request fields from listParams
 		"eventId":   event.ID,
 		"eventKind": event.Kind,
 		"appId":     app.ID,
-	}).Info("Fetching invoices")
+	}).Info("Fetching transactions")
 
-	invoices, err := svc.lnClient.ListTransactions(ctx, event.PubKey, listParams.From, listParams.Until, listParams.Limit, listParams.Offset, listParams.Unpaid, listParams.Type)
+	transactions, err := svc.lnClient.ListTransactions(ctx, event.PubKey, listParams.From, listParams.Until, listParams.Limit, listParams.Offset, listParams.Unpaid, listParams.Type)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
+			// TODO: log request fields from listParams
 			"eventId":   event.ID,
 			"eventKind": event.Kind,
 			"appId":     app.ID,
-		}).Infof("Failed to fetch invoices: %v", err)
+		}).Infof("Failed to fetch transactions: %v", err)
 		nostrEvent.State = NOSTR_EVENT_STATE_HANDLER_ERROR
 		svc.db.Save(&nostrEvent)
 		return svc.createResponse(event, Nip47Response{
 			ResultType: request.Method,
 			Error: &Nip47Error{
 				Code:    NIP_47_ERROR_INTERNAL,
-				Message: fmt.Sprintf("Something went wrong while fetching invoices: %s", err.Error()),
+				Message: fmt.Sprintf("Something went wrong while fetching transactions: %s", err.Error()),
 			},
 		}, ss)
 	}
 
-	// TODO: Nip47ListListTransactionsResponse
 	responsePayload := &Nip47ListTransactionsResponse{
-		Transactions: invoices,
+		Transactions: transactions,
 	}
-	fmt.Println(responsePayload)
+	// fmt.Println(responsePayload)
 
 	nostrEvent.State = NOSTR_EVENT_STATE_HANDLER_EXECUTED
 	svc.db.Save(&nostrEvent)

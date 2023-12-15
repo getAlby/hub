@@ -123,6 +123,8 @@ You can also contribute to our [bounty program](https://github.com/getAlby/light
 
 ✅ NIP-47 info event
 
+❌ `expires` tag in requests
+
 ### LND
 
 ✅ `get_info`
@@ -142,7 +144,7 @@ You can also contribute to our [bounty program](https://github.com/getAlby/light
 ✅ `list_transactions`
 - ⚠️ from and until in request not supported
 
-❌ `multi_pay_invoice (TBC)`
+❌ `multi_pay_invoice`
 
 ❌ `multi_pay_keysend (TBC)`
 
@@ -171,7 +173,8 @@ You can also contribute to our [bounty program](https://github.com/getAlby/light
 
 ✅ `list_transactions`
 - ⚠️ offset and unpaid in request not supported
+- ⚠️ fees_paid in response not supported
 
-❌ `multi_pay_invoice (TBC)`
+❌ `multi_pay_invoice`
 
 ❌ `multi_pay_keysend (TBC)`
