@@ -6,9 +6,11 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"sort"
 	"time"
 
 	"github.com/getAlby/nostr-wallet-connect/lnd"
+	decodepay "github.com/nbd-wtf/ln-decodepay"
 
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
@@ -57,71 +59,96 @@ func (svc *LNDService) GetBalance(ctx context.Context, senderPubkey string) (bal
 	return int64(resp.LocalBalance.Sat), nil
 }
 
-func (svc *LNDService) ListTransactions(ctx context.Context, senderPubkey string, from, until, limit, offset uint64, unpaid bool, invoiceType string) (invoices []Nip47Transaction, err error) {
-	maxInvoices := uint64(limit)
-	if err != nil {
-		return nil, err
-	}
-	indexOffset := uint64(offset)
-	if err != nil {
-		return nil, err
-	}
-	// Fetch Incoming Payments
-	var incomingInvoices []*lnrpc.Invoice
+func (svc *LNDService) ListTransactions(ctx context.Context, senderPubkey string, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []Nip47Transaction, err error) {
+	// Fetch invoices
+	var invoices []*lnrpc.Invoice
 	if invoiceType == "" || invoiceType == "incoming" {
-		incomingResp, err := svc.client.ListInvoices(ctx, &lnrpc.ListInvoiceRequest{NumMaxInvoices: maxInvoices, IndexOffset: indexOffset})
+		incomingResp, err := svc.client.ListInvoices(ctx, &lnrpc.ListInvoiceRequest{NumMaxInvoices: limit, IndexOffset: offset})
 		if err != nil {
 			return nil, err
 		}
-		incomingInvoices = incomingResp.Invoices
+		invoices = incomingResp.Invoices
+	}
+	for _, invoice := range invoices {
+		// this will cause retrieved amount to be less than limit if unpaid is false
+		if !unpaid && invoice.State != lnrpc.Invoice_SETTLED {
+			continue
+		}
 
-		if unpaid {
-			incomingUnpaidResp, err := svc.client.ListInvoices(ctx, &lnrpc.ListInvoiceRequest{NumMaxInvoices: maxInvoices, IndexOffset: indexOffset, PendingOnly: true})
+		transaction := Nip47Transaction{
+			Type:            "incoming",
+			Invoice:         invoice.PaymentRequest,
+			Description:     invoice.Memo,
+			DescriptionHash: hex.EncodeToString(invoice.DescriptionHash),
+			Preimage:        hex.EncodeToString(invoice.RPreimage),
+			PaymentHash:     hex.EncodeToString(invoice.RHash),
+			Amount:          invoice.ValueMsat,
+			FeesPaid:        invoice.AmtPaidMsat,
+			CreatedAt:       time.Unix(invoice.CreationDate, 0),
+			SettledAt:       time.Unix(invoice.SettleDate, 0),
+			ExpiresAt:       time.Unix(invoice.CreationDate+invoice.Expiry, 0),
+			// TODO: Metadata (e.g. keysend)
+		}
+		transactions = append(transactions, transaction)
+	}
+	// Fetch payments
+	var payments []*lnrpc.Payment
+	if invoiceType == "" || invoiceType == "outgoing" {
+		// Not just pending but failed payments will also be included because of IncludeIncomplete
+		outgoingResp, err := svc.client.ListPayments(ctx, &lnrpc.ListPaymentsRequest{MaxPayments: limit, IndexOffset: offset, IncludeIncomplete: unpaid})
+		if err != nil {
+			return nil, err
+		}
+		payments = outgoingResp.Payments
+	}
+	for _, payment := range payments {
+		var paymentRequest decodepay.Bolt11
+		var expiresAt time.Time
+		var description string
+		var descriptionHash string
+		if payment.PaymentRequest != "" {
+			paymentRequest, err = decodepay.Decodepay(payment.PaymentRequest)
 			if err != nil {
+				svc.Logger.WithFields(logrus.Fields{
+					"bolt11": payment.PaymentRequest,
+				}).Errorf("Failed to decode bolt11 invoice: %v", err)
+
 				return nil, err
 			}
-			incomingInvoices = append(incomingInvoices, incomingUnpaidResp.Invoices...)
+			expiresAt = time.UnixMilli(int64(paymentRequest.CreatedAt) * 1000).Add(time.Duration(paymentRequest.Expiry) * time.Second)
+			description = paymentRequest.Description
+			descriptionHash = paymentRequest.DescriptionHash
 		}
-	}
-	for _, inv := range incomingInvoices {
-		invoice := Nip47Transaction{
-			Type:            "incoming",
-			Invoice:         inv.PaymentRequest,
-			Description:     inv.Memo,
-			DescriptionHash: hex.EncodeToString(inv.DescriptionHash),
-			Preimage:        hex.EncodeToString(inv.RPreimage),
-			PaymentHash:     hex.EncodeToString(inv.RHash),
-			Amount:          inv.ValueMsat,
-			FeesPaid:        inv.AmtPaidMsat,
-			CreatedAt:       time.Unix(inv.CreationDate, 0),
-			SettledAt:       time.Unix(inv.SettleDate, 0),
-			ExpiresAt:       time.Unix(inv.CreationDate+inv.Expiry, 0),
+
+		var settledAt time.Time
+		if payment.Status == lnrpc.Payment_SUCCEEDED {
+			// FIXME: how to get the actual settled at time?
+			settledAt = time.Unix(0, payment.CreationTimeNs)
 		}
-		invoices = append(invoices, invoice)
-	}
-	// Fetch Outgoing Invoices
-	var outgoingInvoices []*lnrpc.Payment
-	if invoiceType == "" || invoiceType == "incoming" {
-		// Not just pending but failed payments will also be included because of IncludeIncomplete
-		outgoingResp, err := svc.client.ListPayments(ctx, &lnrpc.ListPaymentsRequest{MaxPayments: maxInvoices, IndexOffset: indexOffset, IncludeIncomplete: unpaid})
-		if err != nil {
-			return nil, err
+
+		transaction := Nip47Transaction{
+			Type:            "outgoing",
+			Invoice:         payment.PaymentRequest,
+			Preimage:        payment.PaymentPreimage,
+			PaymentHash:     payment.PaymentHash,
+			Amount:          payment.ValueMsat,
+			FeesPaid:        payment.FeeMsat,
+			CreatedAt:       time.Unix(0, payment.CreationTimeNs),
+			Description:     description,
+			DescriptionHash: descriptionHash,
+			ExpiresAt:       expiresAt,
+			SettledAt:       settledAt,
+			//TODO: Metadata:  (e.g. keysend),
 		}
-		outgoingInvoices = outgoingResp.Payments
+		transactions = append(transactions, transaction)
 	}
-	for _, inv := range outgoingInvoices {
-		invoice := Nip47Transaction{
-			Type:        "outgoing",
-			Invoice:     inv.PaymentRequest,
-			Preimage:    inv.PaymentPreimage,
-			PaymentHash: inv.PaymentHash,
-			Amount:      inv.ValueMsat,
-			FeesPaid:    inv.FeeMsat,
-			CreatedAt:   time.Unix(0, inv.CreationTimeNs),
-		}
-		invoices = append(invoices, invoice)
-	}
-	return invoices, nil
+
+	// sort by created date descending
+	sort.SliceStable(transactions, func(i, j int) bool {
+		return transactions[i].CreatedAt.After(transactions[j].CreatedAt)
+	})
+
+	return transactions, nil
 }
 
 func (svc *LNDService) GetInfo(ctx context.Context, senderPubkey string) (info *NodeInfo, err error) {
