@@ -102,6 +102,11 @@ func (svc *LNDService) ListTransactions(ctx context.Context, senderPubkey string
 		payments = outgoingResp.Payments
 	}
 	for _, payment := range payments {
+		if payment.Status == lnrpc.Payment_FAILED {
+			// don't return failed payments for now
+			// this will cause retrieved amount to be less than limit
+			continue
+		}
 		var paymentRequest decodepay.Bolt11
 		var expiresAt time.Time
 		var description string

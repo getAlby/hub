@@ -143,6 +143,7 @@ You can also contribute to our [bounty program](https://github.com/getAlby/light
 
 ✅ `list_transactions`
 - ⚠️ from and until in request not supported
+- ⚠️ failed payments will not be returned
 
 ❌ `multi_pay_invoice`
 
@@ -174,6 +175,7 @@ You can also contribute to our [bounty program](https://github.com/getAlby/light
 ✅ `list_transactions`
 - ⚠️ offset and unpaid in request not supported
 - ⚠️ fees_paid in response not supported
+- ⚠️ unsettled and failed transactions will not be returned
 
 ❌ `multi_pay_invoice`
 
