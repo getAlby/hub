@@ -16,6 +16,12 @@ type BreezService struct {
 }
 type BreezListener struct{}
 
+func (BreezListener) Log(l breez_sdk.LogEntry) {
+	if l.Level != "TRACE" {
+		log.Printf("%v\n", l.Line)
+	}
+}
+
 func (BreezListener) OnEvent(e breez_sdk.BreezEvent) {
 	log.Printf("received event %#v", e)
 }
@@ -39,6 +45,7 @@ func NewBreezService(mnemonic, apiKey, inviteCode, workDir string) (result *Bree
 	listener := BreezListener{}
 	config := breez_sdk.DefaultConfig(breez_sdk.EnvironmentTypeProduction, apiKey, nodeConfig)
 	config.WorkingDir = workDir
+	// breez_sdk.SetLogStream(listener)
 	svc, err := breez_sdk.Connect(config, seed, listener)
 	if err != nil {
 		return nil, err
