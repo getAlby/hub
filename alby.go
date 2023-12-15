@@ -449,7 +449,7 @@ func (svc *AlbyOAuthService) ListTransactions(ctx context.Context, senderPubkey 
 				DescriptionHash: invoice.DescriptionHash,
 				Preimage:        invoice.Preimage,
 				PaymentHash:     invoice.PaymentHash,
-				Amount:          invoice.Amount,
+				Amount:          invoice.Amount * 1000,
 				FeesPaid:        0, // TODO: support fees
 				CreatedAt:       invoice.CreatedAt,
 				ExpiresAt:       invoice.ExpiresAt,
