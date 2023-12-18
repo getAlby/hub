@@ -6,8 +6,11 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"sort"
+	"time"
 
 	"github.com/getAlby/nostr-wallet-connect/lnd"
+	decodepay "github.com/nbd-wtf/ln-decodepay"
 
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
@@ -22,8 +25,9 @@ type LNClient interface {
 	SendKeysend(ctx context.Context, senderPubkey string, amount int64, destination, preimage string, custom_records []TLVRecord) (preImage string, err error)
 	GetBalance(ctx context.Context, senderPubkey string) (balance int64, err error)
 	GetInfo(ctx context.Context, senderPubkey string) (info *NodeInfo, err error)
-	MakeInvoice(ctx context.Context, senderPubkey string, amount int64, description string, descriptionHash string, expiry int64) (invoice string, paymentHash string, err error)
-	LookupInvoice(ctx context.Context, senderPubkey string, paymentHash string) (invoice string, paid bool, err error)
+	MakeInvoice(ctx context.Context, senderPubkey string, amount int64, description string, descriptionHash string, expiry int64) (transaction *Nip47Transaction, err error)
+	LookupInvoice(ctx context.Context, senderPubkey string, paymentHash string) (transaction *Nip47Transaction, err error)
+	ListTransactions(ctx context.Context, senderPubkey string, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []Nip47Transaction, err error)
 }
 
 // wrap it again :sweat_smile:
@@ -55,6 +59,92 @@ func (svc *LNDService) GetBalance(ctx context.Context, senderPubkey string) (bal
 	return int64(resp.LocalBalance.Sat), nil
 }
 
+func (svc *LNDService) ListTransactions(ctx context.Context, senderPubkey string, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []Nip47Transaction, err error) {
+	// Fetch invoices
+	var invoices []*lnrpc.Invoice
+	if invoiceType == "" || invoiceType == "incoming" {
+		incomingResp, err := svc.client.ListInvoices(ctx, &lnrpc.ListInvoiceRequest{NumMaxInvoices: limit, IndexOffset: offset})
+		if err != nil {
+			return nil, err
+		}
+		invoices = incomingResp.Invoices
+	}
+	for _, invoice := range invoices {
+		// this will cause retrieved amount to be less than limit if unpaid is false
+		if !unpaid && invoice.State != lnrpc.Invoice_SETTLED {
+			continue
+		}
+
+		transaction := lndInvoiceToTransaction(invoice)
+		transactions = append(transactions, *transaction)
+	}
+	// Fetch payments
+	var payments []*lnrpc.Payment
+	if invoiceType == "" || invoiceType == "outgoing" {
+		// Not just pending but failed payments will also be included because of IncludeIncomplete
+		outgoingResp, err := svc.client.ListPayments(ctx, &lnrpc.ListPaymentsRequest{MaxPayments: limit, IndexOffset: offset, IncludeIncomplete: unpaid})
+		if err != nil {
+			return nil, err
+		}
+		payments = outgoingResp.Payments
+	}
+	for _, payment := range payments {
+		if payment.Status == lnrpc.Payment_FAILED {
+			// don't return failed payments for now
+			// this will cause retrieved amount to be less than limit
+			continue
+		}
+		var paymentRequest decodepay.Bolt11
+		var expiresAt *time.Time
+		var description string
+		var descriptionHash string
+		if payment.PaymentRequest != "" {
+			paymentRequest, err = decodepay.Decodepay(payment.PaymentRequest)
+			if err != nil {
+				svc.Logger.WithFields(logrus.Fields{
+					"bolt11": payment.PaymentRequest,
+				}).Errorf("Failed to decode bolt11 invoice: %v", err)
+
+				return nil, err
+			}
+			expiresAt = &time.Time{}
+			*expiresAt = time.UnixMilli(int64(paymentRequest.CreatedAt) * 1000).Add(time.Duration(paymentRequest.Expiry) * time.Second)
+			description = paymentRequest.Description
+			descriptionHash = paymentRequest.DescriptionHash
+		}
+
+		var settledAt *time.Time
+		if payment.Status == lnrpc.Payment_SUCCEEDED {
+			// FIXME: how to get the actual settled at time?
+			settledAt = &time.Time{}
+			*settledAt = time.Unix(0, payment.CreationTimeNs)
+		}
+
+		transaction := Nip47Transaction{
+			Type:            "outgoing",
+			Invoice:         payment.PaymentRequest,
+			Preimage:        payment.PaymentPreimage,
+			PaymentHash:     payment.PaymentHash,
+			Amount:          payment.ValueMsat,
+			FeesPaid:        payment.FeeMsat,
+			CreatedAt:       time.Unix(0, payment.CreationTimeNs),
+			Description:     description,
+			DescriptionHash: descriptionHash,
+			ExpiresAt:       expiresAt,
+			SettledAt:       settledAt,
+			//TODO: Metadata:  (e.g. keysend),
+		}
+		transactions = append(transactions, transaction)
+	}
+
+	// sort by created date descending
+	sort.SliceStable(transactions, func(i, j int) bool {
+		return transactions[i].CreatedAt.After(transactions[j].CreatedAt)
+	})
+
+	return transactions, nil
+}
+
 func (svc *LNDService) GetInfo(ctx context.Context, senderPubkey string) (info *NodeInfo, err error) {
 	resp, err := svc.client.GetInfo(ctx, &lnrpc.GetInfoRequest{})
 	if err != nil {
@@ -70,7 +160,7 @@ func (svc *LNDService) GetInfo(ctx context.Context, senderPubkey string) (info *
 	}, nil
 }
 
-func (svc *LNDService) MakeInvoice(ctx context.Context, senderPubkey string, amount int64, description string, descriptionHash string, expiry int64) (invoice string, paymentHash string, err error) {
+func (svc *LNDService) MakeInvoice(ctx context.Context, senderPubkey string, amount int64, description string, descriptionHash string, expiry int64) (transaction *Nip47Transaction, err error) {
 	var descriptionHashBytes []byte
 
 	if descriptionHash != "" {
@@ -84,34 +174,41 @@ func (svc *LNDService) MakeInvoice(ctx context.Context, senderPubkey string, amo
 				"descriptionHash": descriptionHash,
 				"expiry":          expiry,
 			}).Errorf("Invalid description hash")
-			return "", "", errors.New("Description hash must be 32 bytes hex")
+			return nil, errors.New("Description hash must be 32 bytes hex")
 		}
 	}
 
 	resp, err := svc.client.AddInvoice(ctx, &lnrpc.Invoice{ValueMsat: amount, Memo: description, DescriptionHash: descriptionHashBytes, Expiry: expiry})
 	if err != nil {
-		return "", "", err
+		return nil, err
 	}
 
-	return resp.GetPaymentRequest(), hex.EncodeToString(resp.GetRHash()), nil
+	inv, err := svc.client.LookupInvoice(ctx, &lnrpc.PaymentHash{RHash: resp.RHash})
+	if err != nil {
+		return nil, err
+	}
+
+	transaction = lndInvoiceToTransaction(inv)
+	return transaction, nil
 }
 
-func (svc *LNDService) LookupInvoice(ctx context.Context, senderPubkey string, paymentHash string) (invoice string, paid bool, err error) {
+func (svc *LNDService) LookupInvoice(ctx context.Context, senderPubkey string, paymentHash string) (transaction *Nip47Transaction, err error) {
 	paymentHashBytes, err := hex.DecodeString(paymentHash)
 
 	if err != nil || len(paymentHashBytes) != 32 {
 		svc.Logger.WithFields(logrus.Fields{
 			"paymentHash": paymentHash,
 		}).Errorf("Invalid payment hash")
-		return "", false, errors.New("Payment hash must be 32 bytes hex")
+		return nil, errors.New("Payment hash must be 32 bytes hex")
 	}
 
 	lndInvoice, err := svc.client.LookupInvoice(ctx, &lnrpc.PaymentHash{RHash: paymentHashBytes})
 	if err != nil {
-		return "", false, err
+		return nil, err
 	}
 
-	return lndInvoice.PaymentRequest, lndInvoice.State == *lnrpc.Invoice_SETTLED.Enum(), nil
+	transaction = lndInvoiceToTransaction(lndInvoice)
+	return transaction, nil
 }
 
 func (svc *LNDService) SendPaymentSync(ctx context.Context, senderPubkey, payReq string) (preimage string, err error) {
@@ -256,4 +353,35 @@ func NewLNDService(ctx context.Context, svc *Service, e *echo.Echo) (result *LND
 	svc.Logger.Infof("Connected to LND - alias %s", info.Alias)
 
 	return lndService, nil
+}
+
+func lndInvoiceToTransaction(invoice *lnrpc.Invoice) *Nip47Transaction {
+	var settledAt *time.Time
+	var preimage string
+	if invoice.State == lnrpc.Invoice_SETTLED {
+		settledAt = &time.Time{}
+		*settledAt = time.Unix(invoice.SettleDate, 0)
+		// only set preimage if invoice is settled
+		preimage = hex.EncodeToString(invoice.RPreimage)
+	}
+	var expiresAt *time.Time
+	if invoice.Expiry > 0 {
+		expiresAt = &time.Time{}
+		*expiresAt = time.Unix(invoice.SettleDate, 0)
+	}
+
+	return &Nip47Transaction{
+		Type:            "incoming",
+		Invoice:         invoice.PaymentRequest,
+		Description:     invoice.Memo,
+		DescriptionHash: hex.EncodeToString(invoice.DescriptionHash),
+		Preimage:        preimage,
+		PaymentHash:     hex.EncodeToString(invoice.RHash),
+		Amount:          invoice.ValueMsat,
+		FeesPaid:        invoice.AmtPaidMsat,
+		CreatedAt:       time.Unix(invoice.CreationDate, 0),
+		SettledAt:       settledAt,
+		ExpiresAt:       expiresAt,
+		// TODO: Metadata (e.g. keysend)
+	}
 }

@@ -4,6 +4,7 @@ go 1.20
 
 require (
 	github.com/davrux/echo-logrus/v4 v4.0.3
+	github.com/go-gormigrate/gormigrate/v2 v2.1.1
 	github.com/gorilla/sessions v1.2.1
 	github.com/labstack/echo-contrib v0.14.1
 	github.com/labstack/echo/v4 v4.10.2
@@ -55,7 +56,6 @@ require (
 	github.com/fergusstrange/embedded-postgres v1.19.0 // indirect
 	github.com/glebarez/go-sqlite v1.20.3 // indirect
 	github.com/go-errors/errors v1.4.2 // indirect
-	github.com/go-gormigrate/gormigrate/v2 v2.1.1 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-macaroon-bakery/macaroonpb v1.0.0 // indirect

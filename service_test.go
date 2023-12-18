@@ -47,6 +47,19 @@ const nip47LookupInvoiceJson = `
 	}
 }
 `
+const nip47ListTransactionsJson = `
+{
+	"method": "list_transactions",
+	"params": {
+		"from": 1693876973,
+		"until": 1694876973,
+		"limit": 10,
+		"offset": 0,
+		"type": "incoming"
+	}
+}
+`
+
 const nip47KeysendJson = `
 {
 	"method": "pay_keysend",
@@ -60,6 +73,7 @@ const nip47KeysendJson = `
 	}
 }
 `
+
 const nip47PayJson = `
 {
 	"method": "pay_invoice",
@@ -95,6 +109,38 @@ var mockNodeInfo = NodeInfo{
 	BlockHeight: 12,
 	BlockHash:   "123blockhash",
 }
+
+var mockTime = time.Unix(1693876963, 0)
+
+var mockTransactions = []Nip47Transaction{
+	{
+		Type:            "incoming",
+		Invoice:         mockInvoice,
+		Description:     "mock invoice 1",
+		DescriptionHash: "hash1",
+		Preimage:        "preimage1",
+		PaymentHash:     "payment_hash_1",
+		Amount:          1000,
+		FeesPaid:        50,
+		SettledAt:       &mockTime,
+		Metadata: map[string]interface{}{
+			"key1": "value1",
+			"key2": 42,
+		},
+	},
+	{
+		Type:            "incoming",
+		Invoice:         mockInvoice,
+		Description:     "mock invoice 2",
+		DescriptionHash: "hash2",
+		Preimage:        "preimage2",
+		PaymentHash:     "payment_hash_2",
+		Amount:          2000,
+		FeesPaid:        75,
+		SettledAt:       &mockTime,
+	},
+}
+var mockTransaction = &mockTransactions[0]
 
 // TODO: split up into individual tests
 func TestHandleEvent(t *testing.T) {
@@ -437,8 +483,7 @@ func TestHandleEvent(t *testing.T) {
 	}
 	err = json.Unmarshal([]byte(decrypted), received)
 	assert.NoError(t, err)
-	assert.Equal(t, mockInvoice, received.Result.(*Nip47MakeInvoiceResponse).Invoice)
-	assert.Equal(t, mockPaymentHash, received.Result.(*Nip47MakeInvoiceResponse).PaymentHash)
+	assert.Equal(t, mockTransaction.Preimage, received.Result.(*Nip47MakeInvoiceResponse).Preimage)
 
 	// lookup_invoice: without permission
 	newPayload, err = nip04.Encrypt(nip47LookupInvoiceJson, ss)
@@ -477,8 +522,56 @@ func TestHandleEvent(t *testing.T) {
 	}
 	err = json.Unmarshal([]byte(decrypted), received)
 	assert.NoError(t, err)
-	assert.Equal(t, mockInvoice, received.Result.(*Nip47LookupInvoiceResponse).Invoice)
-	assert.Equal(t, false, received.Result.(*Nip47LookupInvoiceResponse).Paid)
+	assert.Equal(t, mockTransaction.Preimage, received.Result.(*Nip47LookupInvoiceResponse).Preimage)
+
+	// list_transactions: without permission
+	newPayload, err = nip04.Encrypt(nip47ListTransactionsJson, ss)
+	assert.NoError(t, err)
+	res, err = svc.HandleEvent(ctx, &nostr.Event{
+		ID:      "test_list_transactions_event_1",
+		Kind:    NIP_47_REQUEST_KIND,
+		PubKey:  senderPubkey,
+		Content: newPayload,
+	})
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+	decrypted, err = nip04.Decrypt(res.Content, ss)
+	assert.NoError(t, err)
+	received = &Nip47Response{}
+	err = json.Unmarshal([]byte(decrypted), received)
+	assert.NoError(t, err)
+	assert.Equal(t, NIP_47_ERROR_RESTRICTED, received.Error.Code)
+	assert.NotNil(t, res)
+
+	// list_transactions: with permission
+	err = svc.db.Model(&AppPermission{}).Where("app_id = ?", app.ID).Update("request_method", NIP_47_LIST_TRANSACTIONS_METHOD).Error
+	assert.NoError(t, err)
+	res, err = svc.HandleEvent(ctx, &nostr.Event{
+		ID:      "test_list_transactions_event_2",
+		Kind:    NIP_47_REQUEST_KIND,
+		PubKey:  senderPubkey,
+		Content: newPayload,
+	})
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+	decrypted, err = nip04.Decrypt(res.Content, ss)
+	assert.NoError(t, err)
+	received = &Nip47Response{
+		Result: &Nip47ListTransactionsResponse{},
+	}
+	err = json.Unmarshal([]byte(decrypted), received)
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(received.Result.(*Nip47ListTransactionsResponse).Transactions))
+	transaction := received.Result.(*Nip47ListTransactionsResponse).Transactions[0]
+	assert.Equal(t, mockTransactions[0].Type, transaction.Type)
+	assert.Equal(t, mockTransactions[0].Invoice, transaction.Invoice)
+	assert.Equal(t, mockTransactions[0].Description, transaction.Description)
+	assert.Equal(t, mockTransactions[0].DescriptionHash, transaction.DescriptionHash)
+	assert.Equal(t, mockTransactions[0].Preimage, transaction.Preimage)
+	assert.Equal(t, mockTransactions[0].PaymentHash, transaction.PaymentHash)
+	assert.Equal(t, mockTransactions[0].Amount, transaction.Amount)
+	assert.Equal(t, mockTransactions[0].FeesPaid, transaction.FeesPaid)
+	assert.Equal(t, mockTransactions[0].SettledAt.Unix(), transaction.SettledAt.Unix())
 
 	// get_info: without permission
 	newPayload, err = nip04.Encrypt(nip47GetInfoJson, ss)
@@ -580,9 +673,14 @@ func (mln *MockLn) GetInfo(ctx context.Context, senderPubkey string) (info *Node
 	return &mockNodeInfo, nil
 }
 
-func (mln *MockLn) MakeInvoice(ctx context.Context, senderPubkey string, amount int64, description string, descriptionHash string, expiry int64) (invoice string, paymentHash string, err error) {
-	return mockInvoice, mockPaymentHash, nil
+func (mln *MockLn) MakeInvoice(ctx context.Context, senderPubkey string, amount int64, description string, descriptionHash string, expiry int64) (transaction *Nip47Transaction, err error) {
+	return mockTransaction, nil
 }
-func (mln *MockLn) LookupInvoice(ctx context.Context, senderPubkey string, paymentHash string) (invoice string, paid bool, err error) {
-	return mockInvoice, false, nil
+
+func (mln *MockLn) LookupInvoice(ctx context.Context, senderPubkey string, paymentHash string) (transaction *Nip47Transaction, err error) {
+	return mockTransaction, nil
+}
+
+func (mln *MockLn) ListTransactions(ctx context.Context, senderPubkey string, from, until, limit, offset uint64, unpaid bool, invoiceType string) (invoices []Nip47Transaction, err error) {
+	return mockTransactions, nil
 }
