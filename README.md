@@ -164,6 +164,7 @@ You can also contribute to our [bounty program](https://github.com/getAlby/light
 - ⚠️ preimage in request not supported
 
 ✅ `make_invoice`
+- ⚠️ expiry in request not supported
 
 ✅ `lookup_invoice`
 - ⚠️ fees_paid in response not supported
