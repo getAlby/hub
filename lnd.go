@@ -25,9 +25,9 @@ type LNClient interface {
 	SendKeysend(ctx context.Context, senderPubkey string, amount int64, destination, preimage string, custom_records []TLVRecord) (preImage string, err error)
 	GetBalance(ctx context.Context, senderPubkey string) (balance int64, err error)
 	GetInfo(ctx context.Context, senderPubkey string) (info *NodeInfo, err error)
-	MakeInvoice(ctx context.Context, senderPubkey string, amount int64, description string, descriptionHash string, expiry int64) (invoice string, paymentHash string, err error)
-	LookupInvoice(ctx context.Context, senderPubkey string, paymentHash string) (invoice string, paid bool, err error)
-	ListTransactions(ctx context.Context, senderPubkey string, from, until, limit, offset uint64, unpaid bool, invoiceType string) (invoices []Nip47Transaction, err error)
+	MakeInvoice(ctx context.Context, senderPubkey string, amount int64, description string, descriptionHash string, expiry int64) (transaction *Nip47Transaction, err error)
+	LookupInvoice(ctx context.Context, senderPubkey string, paymentHash string) (transaction *Nip47Transaction, err error)
+	ListTransactions(ctx context.Context, senderPubkey string, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []Nip47Transaction, err error)
 }
 
 // wrap it again :sweat_smile:
@@ -75,21 +75,8 @@ func (svc *LNDService) ListTransactions(ctx context.Context, senderPubkey string
 			continue
 		}
 
-		transaction := Nip47Transaction{
-			Type:            "incoming",
-			Invoice:         invoice.PaymentRequest,
-			Description:     invoice.Memo,
-			DescriptionHash: hex.EncodeToString(invoice.DescriptionHash),
-			Preimage:        hex.EncodeToString(invoice.RPreimage),
-			PaymentHash:     hex.EncodeToString(invoice.RHash),
-			Amount:          invoice.ValueMsat,
-			FeesPaid:        invoice.AmtPaidMsat,
-			CreatedAt:       time.Unix(invoice.CreationDate, 0),
-			SettledAt:       time.Unix(invoice.SettleDate, 0),
-			ExpiresAt:       time.Unix(invoice.CreationDate+invoice.Expiry, 0),
-			// TODO: Metadata (e.g. keysend)
-		}
-		transactions = append(transactions, transaction)
+		transaction := lndInvoiceToTransaction(invoice)
+		transactions = append(transactions, *transaction)
 	}
 	// Fetch payments
 	var payments []*lnrpc.Payment
@@ -108,7 +95,7 @@ func (svc *LNDService) ListTransactions(ctx context.Context, senderPubkey string
 			continue
 		}
 		var paymentRequest decodepay.Bolt11
-		var expiresAt time.Time
+		var expiresAt *time.Time
 		var description string
 		var descriptionHash string
 		if payment.PaymentRequest != "" {
@@ -120,15 +107,17 @@ func (svc *LNDService) ListTransactions(ctx context.Context, senderPubkey string
 
 				return nil, err
 			}
-			expiresAt = time.UnixMilli(int64(paymentRequest.CreatedAt) * 1000).Add(time.Duration(paymentRequest.Expiry) * time.Second)
+			expiresAt = &time.Time{}
+			*expiresAt = time.UnixMilli(int64(paymentRequest.CreatedAt) * 1000).Add(time.Duration(paymentRequest.Expiry) * time.Second)
 			description = paymentRequest.Description
 			descriptionHash = paymentRequest.DescriptionHash
 		}
 
-		var settledAt time.Time
+		var settledAt *time.Time
 		if payment.Status == lnrpc.Payment_SUCCEEDED {
 			// FIXME: how to get the actual settled at time?
-			settledAt = time.Unix(0, payment.CreationTimeNs)
+			settledAt = &time.Time{}
+			*settledAt = time.Unix(0, payment.CreationTimeNs)
 		}
 
 		transaction := Nip47Transaction{
@@ -171,7 +160,7 @@ func (svc *LNDService) GetInfo(ctx context.Context, senderPubkey string) (info *
 	}, nil
 }
 
-func (svc *LNDService) MakeInvoice(ctx context.Context, senderPubkey string, amount int64, description string, descriptionHash string, expiry int64) (invoice string, paymentHash string, err error) {
+func (svc *LNDService) MakeInvoice(ctx context.Context, senderPubkey string, amount int64, description string, descriptionHash string, expiry int64) (transaction *Nip47Transaction, err error) {
 	var descriptionHashBytes []byte
 
 	if descriptionHash != "" {
@@ -185,34 +174,41 @@ func (svc *LNDService) MakeInvoice(ctx context.Context, senderPubkey string, amo
 				"descriptionHash": descriptionHash,
 				"expiry":          expiry,
 			}).Errorf("Invalid description hash")
-			return "", "", errors.New("Description hash must be 32 bytes hex")
+			return nil, errors.New("Description hash must be 32 bytes hex")
 		}
 	}
 
 	resp, err := svc.client.AddInvoice(ctx, &lnrpc.Invoice{ValueMsat: amount, Memo: description, DescriptionHash: descriptionHashBytes, Expiry: expiry})
 	if err != nil {
-		return "", "", err
+		return nil, err
 	}
 
-	return resp.GetPaymentRequest(), hex.EncodeToString(resp.GetRHash()), nil
+	inv, err := svc.client.LookupInvoice(ctx, &lnrpc.PaymentHash{RHash: resp.RHash})
+	if err != nil {
+		return nil, err
+	}
+
+	transaction = lndInvoiceToTransaction(inv)
+	return transaction, nil
 }
 
-func (svc *LNDService) LookupInvoice(ctx context.Context, senderPubkey string, paymentHash string) (invoice string, paid bool, err error) {
+func (svc *LNDService) LookupInvoice(ctx context.Context, senderPubkey string, paymentHash string) (transaction *Nip47Transaction, err error) {
 	paymentHashBytes, err := hex.DecodeString(paymentHash)
 
 	if err != nil || len(paymentHashBytes) != 32 {
 		svc.Logger.WithFields(logrus.Fields{
 			"paymentHash": paymentHash,
 		}).Errorf("Invalid payment hash")
-		return "", false, errors.New("Payment hash must be 32 bytes hex")
+		return nil, errors.New("Payment hash must be 32 bytes hex")
 	}
 
 	lndInvoice, err := svc.client.LookupInvoice(ctx, &lnrpc.PaymentHash{RHash: paymentHashBytes})
 	if err != nil {
-		return "", false, err
+		return nil, err
 	}
 
-	return lndInvoice.PaymentRequest, lndInvoice.State == *lnrpc.Invoice_SETTLED.Enum(), nil
+	transaction = lndInvoiceToTransaction(lndInvoice)
+	return transaction, nil
 }
 
 func (svc *LNDService) SendPaymentSync(ctx context.Context, senderPubkey, payReq string) (preimage string, err error) {
@@ -357,4 +353,35 @@ func NewLNDService(ctx context.Context, svc *Service, e *echo.Echo) (result *LND
 	svc.Logger.Infof("Connected to LND - alias %s", info.Alias)
 
 	return lndService, nil
+}
+
+func lndInvoiceToTransaction(invoice *lnrpc.Invoice) *Nip47Transaction {
+	var settledAt *time.Time
+	var preimage string
+	if invoice.State == lnrpc.Invoice_SETTLED {
+		settledAt = &time.Time{}
+		*settledAt = time.Unix(invoice.SettleDate, 0)
+		// only set preimage if invoice is settled
+		preimage = hex.EncodeToString(invoice.RPreimage)
+	}
+	var expiresAt *time.Time
+	if invoice.Expiry > 0 {
+		expiresAt = &time.Time{}
+		*expiresAt = time.Unix(invoice.SettleDate, 0)
+	}
+
+	return &Nip47Transaction{
+		Type:            "incoming",
+		Invoice:         invoice.PaymentRequest,
+		Description:     invoice.Memo,
+		DescriptionHash: hex.EncodeToString(invoice.DescriptionHash),
+		Preimage:        preimage,
+		PaymentHash:     hex.EncodeToString(invoice.RHash),
+		Amount:          invoice.ValueMsat,
+		FeesPaid:        invoice.AmtPaidMsat,
+		CreatedAt:       time.Unix(invoice.CreationDate, 0),
+		SettledAt:       settledAt,
+		ExpiresAt:       expiresAt,
+		// TODO: Metadata (e.g. keysend)
+	}
 }

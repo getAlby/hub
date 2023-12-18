@@ -84,7 +84,7 @@ func (svc *Service) HandleLookupInvoiceEvent(ctx context.Context, request *Nip47
 		paymentHash = paymentRequest.PaymentHash
 	}
 
-	invoice, paid, err := svc.lnClient.LookupInvoice(ctx, event.PubKey, paymentHash)
+	transaction, err := svc.lnClient.LookupInvoice(ctx, event.PubKey, paymentHash)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
 			"eventId":     event.ID,
@@ -105,8 +105,7 @@ func (svc *Service) HandleLookupInvoiceEvent(ctx context.Context, request *Nip47
 	}
 
 	responsePayload := &Nip47LookupInvoiceResponse{
-		Invoice: invoice,
-		Paid:    paid,
+		Nip47Transaction: *transaction,
 	}
 
 	nostrEvent.State = NOSTR_EVENT_STATE_HANDLER_EXECUTED

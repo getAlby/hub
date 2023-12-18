@@ -136,8 +136,8 @@ type Nip47Transaction struct {
 	Amount          int64       `json:"amount"`
 	FeesPaid        int64       `json:"fees_paid"`
 	CreatedAt       time.Time   `json:"created_at"`
-	ExpiresAt       time.Time   `json:"expires_at"`
-	SettledAt       time.Time   `json:"settled_at"`
+	ExpiresAt       *time.Time  `json:"expires_at"`
+	SettledAt       *time.Time  `json:"settled_at"`
 	Metadata        interface{} `json:"metadata,omitempty"`
 }
 
@@ -150,9 +150,9 @@ type AlbyInvoice struct {
 	// CreationDate uint64 `json:"creation_date"`
 	Currency string `json:"currency"`
 	// custom_records
-	DescriptionHash string    `json:"description_hash"`
-	ExpiresAt       time.Time `json:"expires_at"`
-	Expiry          uint32    `json:"expiry"`
+	DescriptionHash string     `json:"description_hash"`
+	ExpiresAt       *time.Time `json:"expires_at"`
+	Expiry          uint32     `json:"expiry"`
 	// Identifier string
 	KeysendMessage string      `json:"keysend_message"`
 	Memo           string      `json:"memo"`
@@ -163,10 +163,10 @@ type AlbyInvoice struct {
 	PaymentRequest string      `json:"payment_request"`
 	Preimage       string      `json:"preimage"`
 	// r_hash_str
-	Settled   bool      `json:"settled"`
-	SettledAt time.Time `json:"settled_at"`
-	State     string    `json:"state"`
-	Type      string    `json:"type"`
+	Settled   bool       `json:"settled"`
+	SettledAt *time.Time `json:"settled_at"`
+	State     string     `json:"state"`
+	Type      string     `json:"type"`
 	// value
 }
 
@@ -198,18 +198,12 @@ type MakeInvoiceRequest struct {
 	DescriptionHash string `json:"description_hash"`
 }
 
-// TODO: this should have the same content as Nip47Transaction
 type MakeInvoiceResponse struct {
-	// Nip47Transaction
-	PaymentRequest string `json:"payment_request"`
-	PaymentHash    string `json:"payment_hash"`
+	Nip47Transaction
 }
 
-// TODO: this should have the same content as Nip47Transaction
 type LookupInvoiceResponse struct {
-	// Nip47Transaction
-	PaymentRequest string `json:"payment_request"`
-	Settled        bool   `json:"settled"`
+	Nip47Transaction
 }
 
 type ErrorResponse struct {
@@ -293,8 +287,7 @@ type Nip47MakeInvoiceParams struct {
 	Expiry          int64  `json:"expiry"`
 }
 type Nip47MakeInvoiceResponse struct {
-	Invoice     string `json:"invoice"`
-	PaymentHash string `json:"payment_hash"`
+	Nip47Transaction
 }
 
 type Nip47LookupInvoiceParams struct {
@@ -303,8 +296,7 @@ type Nip47LookupInvoiceParams struct {
 }
 
 type Nip47LookupInvoiceResponse struct {
-	Invoice string `json:"invoice"`
-	Paid    bool   `json:"paid"`
+	Nip47Transaction
 }
 
 type Nip47ListTransactionsParams struct {

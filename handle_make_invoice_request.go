@@ -81,7 +81,7 @@ func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Re
 		"expiry":          makeInvoiceParams.Expiry,
 	}).Info("Making invoice")
 
-	invoice, paymentHash, err := svc.lnClient.MakeInvoice(ctx, event.PubKey, makeInvoiceParams.Amount, makeInvoiceParams.Description, makeInvoiceParams.DescriptionHash, makeInvoiceParams.Expiry)
+	transaction, err := svc.lnClient.MakeInvoice(ctx, event.PubKey, makeInvoiceParams.Amount, makeInvoiceParams.Description, makeInvoiceParams.DescriptionHash, makeInvoiceParams.Expiry)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
 			"eventId":         event.ID,
@@ -104,8 +104,7 @@ func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Re
 	}
 
 	responsePayload := &Nip47MakeInvoiceResponse{
-		Invoice:     invoice,
-		PaymentHash: paymentHash,
+		Nip47Transaction: *transaction,
 	}
 
 	nostrEvent.State = NOSTR_EVENT_STATE_HANDLER_EXECUTED
