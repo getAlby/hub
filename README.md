@@ -135,11 +135,9 @@ You can also contribute to our [bounty program](https://github.com/getAlby/light
 
 ✅ `pay_keysend`
 
-⚠️ `make_invoice`
-- ⚠️ does not match spec
+✅ `make_invoice`
 
-⚠️ `lookup_invoice`
-- ⚠️ does not match spec
+✅ `lookup_invoice`
 
 ✅ `list_transactions`
 - ⚠️ from and until in request not supported
@@ -165,12 +163,10 @@ You can also contribute to our [bounty program](https://github.com/getAlby/light
 ✅ `pay_keysend`
 - ⚠️ preimage in request not supported
 
-⚠️ `make_invoice`
-- ⚠️ expiry in request not supported
-- ⚠️ does not match spec
+✅ `make_invoice`
 
-⚠️ `lookup_invoice`
-- ⚠️ does not match spec
+✅ `lookup_invoice`
+- ⚠️ fees_paid in response not supported
 
 ✅ `list_transactions`
 - ⚠️ offset and unpaid in request not supported

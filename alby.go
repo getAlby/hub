@@ -79,7 +79,7 @@ func (svc *AlbyOAuthService) FetchUserToken(ctx context.Context, app App) (token
 	return tok, nil
 }
 
-func (svc *AlbyOAuthService) MakeInvoice(ctx context.Context, senderPubkey string, amount int64, description string, descriptionHash string, expiry int64) (invoice string, paymentHash string, err error) {
+func (svc *AlbyOAuthService) MakeInvoice(ctx context.Context, senderPubkey string, amount int64, description string, descriptionHash string, expiry int64) (transaction *Nip47Transaction, err error) {
 	// TODO: move to a shared function
 	app := App{}
 	err = svc.db.Preload("User").First(&app, &App{
@@ -93,7 +93,7 @@ func (svc *AlbyOAuthService) MakeInvoice(ctx context.Context, senderPubkey strin
 			"descriptionHash": descriptionHash,
 			"expiry":          expiry,
 		}).Errorf("App not found: %v", err)
-		return "", "", err
+		return nil, err
 	}
 
 	// amount provided in msat, but Alby API currently only supports sats. Will get truncated to a whole sat value
@@ -107,7 +107,7 @@ func (svc *AlbyOAuthService) MakeInvoice(ctx context.Context, senderPubkey strin
 			"descriptionHash": descriptionHash,
 			"expiry":          expiry,
 		}).Errorf("amount must be 1000 msat or greater")
-		return "", "", errors.New("amount must be 1000 msat or greater")
+		return nil, errors.New("amount must be 1000 msat or greater")
 	}
 
 	svc.Logger.WithFields(logrus.Fields{
@@ -121,7 +121,7 @@ func (svc *AlbyOAuthService) MakeInvoice(ctx context.Context, senderPubkey strin
 	}).Info("Processing make invoice request")
 	tok, err := svc.FetchUserToken(ctx, app)
 	if err != nil {
-		return "", "", err
+		return nil, err
 	}
 	client := svc.oauthConf.Client(ctx, tok)
 
@@ -138,7 +138,7 @@ func (svc *AlbyOAuthService) MakeInvoice(ctx context.Context, senderPubkey strin
 	req, err := http.NewRequest("POST", fmt.Sprintf("%s/invoices", svc.cfg.AlbyAPIURL), body)
 	if err != nil {
 		svc.Logger.WithError(err).Error("Error creating request /invoices")
-		return "", "", err
+		return nil, err
 	}
 
 	// TODO: move to creation of HTTP client
@@ -156,14 +156,14 @@ func (svc *AlbyOAuthService) MakeInvoice(ctx context.Context, senderPubkey strin
 			"appId":           app.ID,
 			"userId":          app.User.ID,
 		}).Errorf("Failed to make invoice: %v", err)
-		return "", "", err
+		return nil, err
 	}
 
 	if resp.StatusCode < 300 {
-		responsePayload := &MakeInvoiceResponse{}
+		responsePayload := &AlbyInvoice{}
 		err = json.NewDecoder(resp.Body).Decode(responsePayload)
 		if err != nil {
-			return "", "", err
+			return nil, err
 		}
 		svc.Logger.WithFields(logrus.Fields{
 			"senderPubkey":    senderPubkey,
@@ -176,7 +176,9 @@ func (svc *AlbyOAuthService) MakeInvoice(ctx context.Context, senderPubkey strin
 			"paymentRequest":  responsePayload.PaymentRequest,
 			"paymentHash":     responsePayload.PaymentHash,
 		}).Info("Make invoice successful")
-		return responsePayload.PaymentRequest, responsePayload.PaymentHash, nil
+
+		transaction := albyInvoiceToTransaction(responsePayload)
+		return transaction, nil
 	}
 
 	errorPayload := &ErrorResponse{}
@@ -191,10 +193,10 @@ func (svc *AlbyOAuthService) MakeInvoice(ctx context.Context, senderPubkey strin
 		"userId":          app.User.ID,
 		"APIHttpStatus":   resp.StatusCode,
 	}).Errorf("Make invoice failed %s", string(errorPayload.Message))
-	return "", "", errors.New(errorPayload.Message)
+	return nil, errors.New(errorPayload.Message)
 }
 
-func (svc *AlbyOAuthService) LookupInvoice(ctx context.Context, senderPubkey string, paymentHash string) (invoice string, paid bool, err error) {
+func (svc *AlbyOAuthService) LookupInvoice(ctx context.Context, senderPubkey string, paymentHash string) (transaction *Nip47Transaction, err error) {
 	// TODO: move to a shared function
 	app := App{}
 	err = svc.db.Preload("User").First(&app, &App{
@@ -205,7 +207,7 @@ func (svc *AlbyOAuthService) LookupInvoice(ctx context.Context, senderPubkey str
 			"senderPubkey": senderPubkey,
 			"paymentHash":  paymentHash,
 		}).Errorf("App not found: %v", err)
-		return "", false, err
+		return nil, err
 	}
 
 	svc.Logger.WithFields(logrus.Fields{
@@ -216,7 +218,7 @@ func (svc *AlbyOAuthService) LookupInvoice(ctx context.Context, senderPubkey str
 	}).Info("Processing lookup invoice request")
 	tok, err := svc.FetchUserToken(ctx, app)
 	if err != nil {
-		return "", false, err
+		return nil, err
 	}
 	client := svc.oauthConf.Client(ctx, tok)
 
@@ -226,7 +228,7 @@ func (svc *AlbyOAuthService) LookupInvoice(ctx context.Context, senderPubkey str
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s/invoices/%s", svc.cfg.AlbyAPIURL, paymentHash), body)
 	if err != nil {
 		svc.Logger.WithError(err).Errorf("Error creating request /invoices/%s", paymentHash)
-		return "", false, err
+		return nil, err
 	}
 
 	req.Header.Set("User-Agent", "NWC")
@@ -240,14 +242,14 @@ func (svc *AlbyOAuthService) LookupInvoice(ctx context.Context, senderPubkey str
 			"appId":        app.ID,
 			"userId":       app.User.ID,
 		}).Errorf("Failed to lookup invoice: %v", err)
-		return "", false, err
+		return nil, err
 	}
 
 	if resp.StatusCode < 300 {
-		responsePayload := &LookupInvoiceResponse{}
+		responsePayload := &AlbyInvoice{}
 		err = json.NewDecoder(resp.Body).Decode(responsePayload)
 		if err != nil {
-			return "", false, err
+			return nil, err
 		}
 		svc.Logger.WithFields(logrus.Fields{
 			"senderPubkey":   senderPubkey,
@@ -257,7 +259,9 @@ func (svc *AlbyOAuthService) LookupInvoice(ctx context.Context, senderPubkey str
 			"paymentRequest": responsePayload.PaymentRequest,
 			"settled":        responsePayload.Settled,
 		}).Info("Lookup invoice successful")
-		return responsePayload.PaymentRequest, responsePayload.Settled, nil
+
+		transaction = albyInvoiceToTransaction(responsePayload)
+		return transaction, nil
 	}
 
 	errorPayload := &ErrorResponse{}
@@ -269,7 +273,7 @@ func (svc *AlbyOAuthService) LookupInvoice(ctx context.Context, senderPubkey str
 		"userId":        app.User.ID,
 		"APIHttpStatus": resp.StatusCode,
 	}).Errorf("Lookup invoice failed %s", string(errorPayload.Message))
-	return "", false, errors.New(errorPayload.Message)
+	return nil, errors.New(errorPayload.Message)
 }
 
 func (svc *AlbyOAuthService) GetInfo(ctx context.Context, senderPubkey string) (info *NodeInfo, err error) {
@@ -437,27 +441,9 @@ func (svc *AlbyOAuthService) ListTransactions(ctx context.Context, senderPubkey 
 
 		transactions = []Nip47Transaction{}
 		for _, invoice := range invoices {
-			description := invoice.Comment
-			if description == "" {
-				description = invoice.Memo
-			}
+			transaction := albyInvoiceToTransaction(&invoice)
 
-			transaction := Nip47Transaction{
-				Type:            invoice.Type,
-				Invoice:         invoice.PaymentRequest,
-				Description:     description,
-				DescriptionHash: invoice.DescriptionHash,
-				Preimage:        invoice.Preimage,
-				PaymentHash:     invoice.PaymentHash,
-				Amount:          invoice.Amount * 1000,
-				FeesPaid:        0, // TODO: support fees
-				CreatedAt:       invoice.CreatedAt,
-				ExpiresAt:       invoice.ExpiresAt,
-				SettledAt:       invoice.SettledAt,
-				Metadata:        invoice.Metadata,
-			}
-
-			transactions = append(transactions, transaction)
+			transactions = append(transactions, *transaction)
 		}
 
 		svc.Logger.WithFields(logrus.Fields{
@@ -711,4 +697,26 @@ func (svc *AlbyOAuthService) CallbackHandler(c echo.Context) error {
 	sess.Values["user_id"] = user.ID
 	sess.Save(c.Request(), c.Response())
 	return c.Redirect(302, "/")
+}
+
+func albyInvoiceToTransaction(invoice *AlbyInvoice) *Nip47Transaction {
+	description := invoice.Comment
+	if description == "" {
+		description = invoice.Memo
+	}
+
+	return &Nip47Transaction{
+		Type:            invoice.Type,
+		Invoice:         invoice.PaymentRequest,
+		Description:     description,
+		DescriptionHash: invoice.DescriptionHash,
+		Preimage:        invoice.Preimage,
+		PaymentHash:     invoice.PaymentHash,
+		Amount:          invoice.Amount * 1000,
+		FeesPaid:        0, // TODO: support fees
+		CreatedAt:       invoice.CreatedAt,
+		ExpiresAt:       invoice.ExpiresAt,
+		SettledAt:       invoice.SettledAt,
+		Metadata:        invoice.Metadata,
+	}
 }
