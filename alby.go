@@ -704,13 +704,17 @@ func albyInvoiceToTransaction(invoice *AlbyInvoice) *Nip47Transaction {
 	if description == "" {
 		description = invoice.Memo
 	}
+	var preimage string
+	if invoice.SettledAt != nil {
+		preimage = invoice.Preimage
+	}
 
 	return &Nip47Transaction{
 		Type:            invoice.Type,
 		Invoice:         invoice.PaymentRequest,
 		Description:     description,
 		DescriptionHash: invoice.DescriptionHash,
-		Preimage:        invoice.Preimage,
+		Preimage:        preimage,
 		PaymentHash:     invoice.PaymentHash,
 		Amount:          invoice.Amount * 1000,
 		FeesPaid:        0, // TODO: support fees
