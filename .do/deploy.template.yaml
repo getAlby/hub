@@ -13,11 +13,8 @@ spec:
           value: BREEZ
           scope: RUN_TIME
         - key: COOKIE_SECRET
-          type: SECRET
           scope: RUN_TIME
         - key: GREENLIGHT_INVITE_CODE
-          type: SECRET
           scope: RUN_TIME
         - key: BREEZ_MNEMONIC
-          type: SECRET
           scope: RUN_TIME
