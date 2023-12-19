@@ -117,3 +117,63 @@ Want to support the work on Alby?
 
 Support the Alby team ⚡️hello@getalby.com
 You can also contribute to our [bounty program](https://github.com/getAlby/lightning-browser-extension/wiki/Bounties): ⚡️bounties@getalby.com
+
+
+## NIP-47 Supported Methods
+
+✅ NIP-47 info event
+
+❌ `expires` tag in requests
+
+### LND
+
+✅ `get_info`
+
+✅ `get_balance`
+
+✅ `pay_invoice`
+
+✅ `pay_keysend`
+
+✅ `make_invoice`
+
+✅ `lookup_invoice`
+
+✅ `list_transactions`
+- ⚠️ from and until in request not supported
+- ⚠️ failed payments will not be returned
+
+❌ `multi_pay_invoice`
+
+❌ `multi_pay_keysend (TBC)`
+
+### Alby OAuth API
+
+✅ `get_info`
+- ⚠️ block_hash not supported
+- ⚠️ block_height not supported
+- ⚠️ pubkey not supported
+- ⚠️ color not supported
+- ⚠️ network is always `mainnet`
+
+✅ `get_balance`
+
+✅ `pay_invoice`
+
+✅ `pay_keysend`
+- ⚠️ preimage in request not supported
+
+✅ `make_invoice`
+- ⚠️ expiry in request not supported
+
+✅ `lookup_invoice`
+- ⚠️ fees_paid in response not supported
+
+✅ `list_transactions`
+- ⚠️ offset and unpaid in request not supported
+- ⚠️ fees_paid in response not supported
+- ⚠️ unsettled and failed transactions will not be returned
+
+❌ `multi_pay_invoice`
+
+❌ `multi_pay_keysend (TBC)`

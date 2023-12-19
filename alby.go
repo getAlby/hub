@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
+	"strconv"
 
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
@@ -77,7 +79,7 @@ func (svc *AlbyOAuthService) FetchUserToken(ctx context.Context, app App) (token
 	return tok, nil
 }
 
-func (svc *AlbyOAuthService) MakeInvoice(ctx context.Context, senderPubkey string, amount int64, description string, descriptionHash string, expiry int64) (invoice string, paymentHash string, err error) {
+func (svc *AlbyOAuthService) MakeInvoice(ctx context.Context, senderPubkey string, amount int64, description string, descriptionHash string, expiry int64) (transaction *Nip47Transaction, err error) {
 	// TODO: move to a shared function
 	app := App{}
 	err = svc.db.Preload("User").First(&app, &App{
@@ -91,7 +93,7 @@ func (svc *AlbyOAuthService) MakeInvoice(ctx context.Context, senderPubkey strin
 			"descriptionHash": descriptionHash,
 			"expiry":          expiry,
 		}).Errorf("App not found: %v", err)
-		return "", "", err
+		return nil, err
 	}
 
 	// amount provided in msat, but Alby API currently only supports sats. Will get truncated to a whole sat value
@@ -104,8 +106,8 @@ func (svc *AlbyOAuthService) MakeInvoice(ctx context.Context, senderPubkey strin
 			"description":     description,
 			"descriptionHash": descriptionHash,
 			"expiry":          expiry,
-		}).Errorf("amount must be 1000 msat or greater");
-		return "", "", errors.New("amount must be 1000 msat or greater")
+		}).Errorf("amount must be 1000 msat or greater")
+		return nil, errors.New("amount must be 1000 msat or greater")
 	}
 
 	svc.Logger.WithFields(logrus.Fields{
@@ -119,7 +121,7 @@ func (svc *AlbyOAuthService) MakeInvoice(ctx context.Context, senderPubkey strin
 	}).Info("Processing make invoice request")
 	tok, err := svc.FetchUserToken(ctx, app)
 	if err != nil {
-		return "", "", err
+		return nil, err
 	}
 	client := svc.oauthConf.Client(ctx, tok)
 
@@ -136,9 +138,10 @@ func (svc *AlbyOAuthService) MakeInvoice(ctx context.Context, senderPubkey strin
 	req, err := http.NewRequest("POST", fmt.Sprintf("%s/invoices", svc.cfg.AlbyAPIURL), body)
 	if err != nil {
 		svc.Logger.WithError(err).Error("Error creating request /invoices")
-		return "", "", err
+		return nil, err
 	}
 
+	// TODO: move to creation of HTTP client
 	req.Header.Set("User-Agent", "NWC")
 	req.Header.Set("Content-Type", "application/json")
 
@@ -153,14 +156,14 @@ func (svc *AlbyOAuthService) MakeInvoice(ctx context.Context, senderPubkey strin
 			"appId":           app.ID,
 			"userId":          app.User.ID,
 		}).Errorf("Failed to make invoice: %v", err)
-		return "", "", err
+		return nil, err
 	}
 
 	if resp.StatusCode < 300 {
-		responsePayload := &MakeInvoiceResponse{}
+		responsePayload := &AlbyInvoice{}
 		err = json.NewDecoder(resp.Body).Decode(responsePayload)
 		if err != nil {
-			return "", "", err
+			return nil, err
 		}
 		svc.Logger.WithFields(logrus.Fields{
 			"senderPubkey":    senderPubkey,
@@ -173,7 +176,9 @@ func (svc *AlbyOAuthService) MakeInvoice(ctx context.Context, senderPubkey strin
 			"paymentRequest":  responsePayload.PaymentRequest,
 			"paymentHash":     responsePayload.PaymentHash,
 		}).Info("Make invoice successful")
-		return responsePayload.PaymentRequest, responsePayload.PaymentHash, nil
+
+		transaction := albyInvoiceToTransaction(responsePayload)
+		return transaction, nil
 	}
 
 	errorPayload := &ErrorResponse{}
@@ -188,10 +193,10 @@ func (svc *AlbyOAuthService) MakeInvoice(ctx context.Context, senderPubkey strin
 		"userId":          app.User.ID,
 		"APIHttpStatus":   resp.StatusCode,
 	}).Errorf("Make invoice failed %s", string(errorPayload.Message))
-	return "", "", errors.New(errorPayload.Message)
+	return nil, errors.New(errorPayload.Message)
 }
 
-func (svc *AlbyOAuthService) LookupInvoice(ctx context.Context, senderPubkey string, paymentHash string) (invoice string, paid bool, err error) {
+func (svc *AlbyOAuthService) LookupInvoice(ctx context.Context, senderPubkey string, paymentHash string) (transaction *Nip47Transaction, err error) {
 	// TODO: move to a shared function
 	app := App{}
 	err = svc.db.Preload("User").First(&app, &App{
@@ -199,21 +204,21 @@ func (svc *AlbyOAuthService) LookupInvoice(ctx context.Context, senderPubkey str
 	}).Error
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
-			"senderPubkey":    senderPubkey,
-			"paymentHash":     paymentHash,
+			"senderPubkey": senderPubkey,
+			"paymentHash":  paymentHash,
 		}).Errorf("App not found: %v", err)
-		return "", false, err
+		return nil, err
 	}
 
 	svc.Logger.WithFields(logrus.Fields{
-		"senderPubkey":    senderPubkey,
-		"paymentHash":     paymentHash,
-		"appId":           app.ID,
-		"userId":          app.User.ID,
+		"senderPubkey": senderPubkey,
+		"paymentHash":  paymentHash,
+		"appId":        app.ID,
+		"userId":       app.User.ID,
 	}).Info("Processing lookup invoice request")
 	tok, err := svc.FetchUserToken(ctx, app)
 	if err != nil {
-		return "", false, err
+		return nil, err
 	}
 	client := svc.oauthConf.Client(ctx, tok)
 
@@ -223,7 +228,7 @@ func (svc *AlbyOAuthService) LookupInvoice(ctx context.Context, senderPubkey str
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s/invoices/%s", svc.cfg.AlbyAPIURL, paymentHash), body)
 	if err != nil {
 		svc.Logger.WithError(err).Errorf("Error creating request /invoices/%s", paymentHash)
-		return "", false, err
+		return nil, err
 	}
 
 	req.Header.Set("User-Agent", "NWC")
@@ -232,41 +237,70 @@ func (svc *AlbyOAuthService) LookupInvoice(ctx context.Context, senderPubkey str
 	resp, err := client.Do(req)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
-			"senderPubkey":    senderPubkey,
-			"paymentHash":     paymentHash,
-			"appId":           app.ID,
-			"userId":          app.User.ID,
+			"senderPubkey": senderPubkey,
+			"paymentHash":  paymentHash,
+			"appId":        app.ID,
+			"userId":       app.User.ID,
 		}).Errorf("Failed to lookup invoice: %v", err)
-		return "", false, err
+		return nil, err
 	}
-	
+
 	if resp.StatusCode < 300 {
-		responsePayload := &LookupInvoiceResponse{}
+		responsePayload := &AlbyInvoice{}
 		err = json.NewDecoder(resp.Body).Decode(responsePayload)
 		if err != nil {
-			return "", false, err
+			return nil, err
 		}
 		svc.Logger.WithFields(logrus.Fields{
-			"senderPubkey":    senderPubkey,
-			"paymentHash":     paymentHash,
-			"appId":           app.ID,
-			"userId":          app.User.ID,
-			"paymentRequest":  responsePayload.PaymentRequest,
-			"settled":         responsePayload.Settled,
+			"senderPubkey":   senderPubkey,
+			"paymentHash":    paymentHash,
+			"appId":          app.ID,
+			"userId":         app.User.ID,
+			"paymentRequest": responsePayload.PaymentRequest,
+			"settled":        responsePayload.Settled,
 		}).Info("Lookup invoice successful")
-		return responsePayload.PaymentRequest, responsePayload.Settled, nil
+
+		transaction = albyInvoiceToTransaction(responsePayload)
+		return transaction, nil
 	}
 
 	errorPayload := &ErrorResponse{}
 	err = json.NewDecoder(resp.Body).Decode(errorPayload)
 	svc.Logger.WithFields(logrus.Fields{
-		"senderPubkey":    senderPubkey,
-		"paymentHash":     paymentHash,
-		"appId":           app.ID,
-		"userId":          app.User.ID,
+		"senderPubkey":  senderPubkey,
+		"paymentHash":   paymentHash,
+		"appId":         app.ID,
+		"userId":        app.User.ID,
 		"APIHttpStatus": resp.StatusCode,
 	}).Errorf("Lookup invoice failed %s", string(errorPayload.Message))
-	return "", false, errors.New(errorPayload.Message)
+	return nil, errors.New(errorPayload.Message)
+}
+
+func (svc *AlbyOAuthService) GetInfo(ctx context.Context, senderPubkey string) (info *NodeInfo, err error) {
+	app := App{}
+	err = svc.db.Preload("User").First(&app, &App{
+		NostrPubkey: senderPubkey,
+	}).Error
+	if err != nil {
+		svc.Logger.WithFields(logrus.Fields{
+			"senderPubkey": senderPubkey,
+		}).Errorf("App not found: %v", err)
+		return nil, err
+	}
+
+	svc.Logger.WithFields(logrus.Fields{
+		"senderPubkey": senderPubkey,
+		"appId":        app.ID,
+		"userId":       app.User.ID,
+	}).Info("Info fetch successful")
+	return &NodeInfo{
+		Alias:       "getalby.com",
+		Color:       "",
+		Pubkey:      "",
+		Network:     "mainnet",
+		BlockHeight: 0,
+		BlockHash:   "",
+	}, err
 }
 
 func (svc *AlbyOAuthService) GetBalance(ctx context.Context, senderPubkey string) (balance int64, err error) {
@@ -327,6 +361,110 @@ func (svc *AlbyOAuthService) GetBalance(ctx context.Context, senderPubkey string
 		"APIHttpStatus": resp.StatusCode,
 	}).Errorf("Balance fetch failed %s", string(errorPayload.Message))
 	return 0, errors.New(errorPayload.Message)
+}
+
+func (svc *AlbyOAuthService) ListTransactions(ctx context.Context, senderPubkey string, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []Nip47Transaction, err error) {
+	app := App{}
+	err = svc.db.Preload("User").First(&app, &App{
+		NostrPubkey: senderPubkey,
+	}).Error
+	if err != nil {
+		svc.Logger.WithFields(logrus.Fields{
+			"senderPubkey": senderPubkey,
+		}).Errorf("App not found: %v", err)
+		return nil, err
+	}
+	tok, err := svc.FetchUserToken(ctx, app)
+	if err != nil {
+		return nil, err
+	}
+	client := svc.oauthConf.Client(ctx, tok)
+
+	urlParams := url.Values{}
+	//urlParams.Add("page", "1")
+
+	// TODO: clarify gt/lt vs from to in NWC spec
+	if from != 0 {
+		urlParams.Add("q[created_at_gt]", strconv.FormatUint(from, 10))
+	}
+	if until != 0 {
+		urlParams.Add("q[created_at_lt]", strconv.FormatUint(until, 10))
+	}
+	if limit != 0 {
+		urlParams.Add("items", strconv.FormatUint(limit, 10))
+	}
+	// TODO: Add Offset and Unpaid
+
+	endpoint := "/invoices"
+
+	switch invoiceType {
+	case "incoming":
+		endpoint += "/incoming"
+	case "outgoing":
+		endpoint += "/outgoing"
+	}
+
+	requestUrl := fmt.Sprintf("%s%s?%s", svc.cfg.AlbyAPIURL, endpoint, urlParams.Encode())
+
+	req, err := http.NewRequest("GET", requestUrl, nil)
+	if err != nil {
+		svc.Logger.WithError(err).Error("Error creating request /invoices")
+		return nil, err
+	}
+
+	req.Header.Set("User-Agent", "NWC")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		svc.Logger.WithFields(logrus.Fields{
+			"senderPubkey": senderPubkey,
+			"appId":        app.ID,
+			"userId":       app.User.ID,
+			"requestUrl":   requestUrl,
+		}).Errorf("Failed to fetch invoices: %v", err)
+		return nil, err
+	}
+
+	var invoices []AlbyInvoice
+
+	if resp.StatusCode < 300 {
+		err = json.NewDecoder(resp.Body).Decode(&invoices)
+		if err != nil {
+			svc.Logger.WithFields(logrus.Fields{
+				"senderPubkey": senderPubkey,
+				"appId":        app.ID,
+				"userId":       app.User.ID,
+				"requestUrl":   requestUrl,
+			}).Errorf("Failed to decode invoices: %v", err)
+			return nil, err
+		}
+
+		transactions = []Nip47Transaction{}
+		for _, invoice := range invoices {
+			transaction := albyInvoiceToTransaction(&invoice)
+
+			transactions = append(transactions, *transaction)
+		}
+
+		svc.Logger.WithFields(logrus.Fields{
+			"senderPubkey": senderPubkey,
+			"appId":        app.ID,
+			"userId":       app.User.ID,
+			"requestUrl":   requestUrl,
+		}).Info("List transactions successful")
+		return transactions, nil
+	}
+
+	errorPayload := &ErrorResponse{}
+	err = json.NewDecoder(resp.Body).Decode(errorPayload)
+	svc.Logger.WithFields(logrus.Fields{
+		"senderPubkey":  senderPubkey,
+		"appId":         app.ID,
+		"userId":        app.User.ID,
+		"APIHttpStatus": resp.StatusCode,
+		"requestUrl":    requestUrl,
+	}).Errorf("List transactions failed %s", string(errorPayload.Message))
+	return nil, errors.New(errorPayload.Message)
 }
 
 func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, payReq string) (preimage string, err error) {
@@ -407,6 +545,93 @@ func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, 
 	return "", errors.New(errorPayload.Message)
 }
 
+func (svc *AlbyOAuthService) SendKeysend(ctx context.Context, senderPubkey string, amount int64, destination, preimage string, custom_records []TLVRecord) (preImage string, err error) {
+	app := App{}
+	err = svc.db.Preload("User").First(&app, &App{
+		NostrPubkey: senderPubkey,
+	}).Error
+	if err != nil {
+		svc.Logger.WithFields(logrus.Fields{
+			"senderPubkey": senderPubkey,
+			"payeePubkey":  destination,
+		}).Errorf("App not found: %v", err)
+		return "", err
+	}
+	svc.Logger.WithFields(logrus.Fields{
+		"senderPubkey": senderPubkey,
+		"payeePubkey":  destination,
+		"appId":        app.ID,
+		"userId":       app.User.ID,
+	}).Info("Processing keysend request")
+	tok, err := svc.FetchUserToken(ctx, app)
+	if err != nil {
+		return "", err
+	}
+	client := svc.oauthConf.Client(ctx, tok)
+
+	customRecordsMap := make(map[string]string)
+	for _, record := range custom_records {
+		customRecordsMap[strconv.FormatUint(record.Type, 10)] = record.Value
+	}
+
+	body := bytes.NewBuffer([]byte{})
+	payload := &KeysendRequest{
+		Amount:        amount,
+		Destination:   destination,
+		CustomRecords: customRecordsMap,
+	}
+	err = json.NewEncoder(body).Encode(payload)
+
+	// here we don't use the preimage from params
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/payments/keysend", svc.cfg.AlbyAPIURL), body)
+	if err != nil {
+		svc.Logger.WithError(err).Error("Error creating request /payments/keysend")
+		return "", err
+	}
+
+	req.Header.Set("User-Agent", "NWC")
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		svc.Logger.WithFields(logrus.Fields{
+			"senderPubkey": senderPubkey,
+			"payeePubkey":  destination,
+			"appId":        app.ID,
+			"userId":       app.User.ID,
+		}).Errorf("Failed to pay keysend: %v", err)
+		return "", err
+	}
+
+	if resp.StatusCode < 300 {
+		responsePayload := &PayResponse{}
+		err = json.NewDecoder(resp.Body).Decode(responsePayload)
+		if err != nil {
+			return "", err
+		}
+		svc.Logger.WithFields(logrus.Fields{
+			"senderPubkey": senderPubkey,
+			"payeePubkey":  destination,
+			"appId":        app.ID,
+			"userId":       app.User.ID,
+			"preimage":     responsePayload.Preimage,
+			"paymentHash":  responsePayload.PaymentHash,
+		}).Info("Keysend payment successful")
+		return responsePayload.Preimage, nil
+	}
+
+	errorPayload := &ErrorResponse{}
+	err = json.NewDecoder(resp.Body).Decode(errorPayload)
+	svc.Logger.WithFields(logrus.Fields{
+		"senderPubkey":  senderPubkey,
+		"payeePubkey":   destination,
+		"appId":         app.ID,
+		"userId":        app.User.ID,
+		"APIHttpStatus": resp.StatusCode,
+	}).Errorf("Payment failed %s", string(errorPayload.Message))
+	return "", errors.New(errorPayload.Message)
+}
+
 func (svc *AlbyOAuthService) AuthHandler(c echo.Context) error {
 	appName := c.QueryParam("c") // c - for client
 	// clear current session
@@ -472,4 +697,30 @@ func (svc *AlbyOAuthService) CallbackHandler(c echo.Context) error {
 	sess.Values["user_id"] = user.ID
 	sess.Save(c.Request(), c.Response())
 	return c.Redirect(302, "/")
+}
+
+func albyInvoiceToTransaction(invoice *AlbyInvoice) *Nip47Transaction {
+	description := invoice.Comment
+	if description == "" {
+		description = invoice.Memo
+	}
+	var preimage string
+	if invoice.SettledAt != nil {
+		preimage = invoice.Preimage
+	}
+
+	return &Nip47Transaction{
+		Type:            invoice.Type,
+		Invoice:         invoice.PaymentRequest,
+		Description:     description,
+		DescriptionHash: invoice.DescriptionHash,
+		Preimage:        preimage,
+		PaymentHash:     invoice.PaymentHash,
+		Amount:          invoice.Amount * 1000,
+		FeesPaid:        0, // TODO: support fees
+		CreatedAt:       invoice.CreatedAt,
+		ExpiresAt:       invoice.ExpiresAt,
+		SettledAt:       invoice.SettledAt,
+		Metadata:        invoice.Metadata,
+	}
 }
