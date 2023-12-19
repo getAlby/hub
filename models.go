@@ -51,6 +51,25 @@ var nip47MethodIcons = map[string]string{
 	NIP_47_LOOKUP_INVOICE_METHOD: "search",
 }
 
+type ShowAppResponse struct {
+	App                   App           `json:"app"`
+	BudgetUsage           int64         `json:"budgetUsage"`
+	Csrf                  string        `json:"csrft"`
+	EventsCount           int64         `json:"eventsCount"`
+	ExpiresAt             int64         `json:"expiresAt"`
+	ExpiresAtFormatted    string        `json:"expiresAtFormatted"`
+	LastEvent             NostrEvent    `json:"lastEvent"`
+	PaySpecificPermission AppPermission `json:"paySpecificPermission"`
+	RenewsIn              string        `json:"renewsIn"`
+	RequestMethods        []string      `json:"requestMethods"`
+}
+
+type ListAppsResponse struct {
+	Apps         []App               `json:"apps"`
+	LastEvents   map[uint]NostrEvent `json:"lastEvents"`
+	EventsCounts map[uint]int64      `json:"eventsCounts"`
+}
+
 // TODO: move to models/Alby
 type AlbyMe struct {
 	Identifier       string `json:"identifier"`
@@ -60,52 +79,52 @@ type AlbyMe struct {
 }
 
 type User struct {
-	ID               uint
-	AlbyIdentifier   string `validate:"required"`
-	AccessToken      string `validate:"required"`
-	RefreshToken     string `validate:"required"`
-	Email            string
-	Expiry           time.Time
-	LightningAddress string
-	Apps             []App
-	CreatedAt        time.Time
-	UpdatedAt        time.Time
+	ID               uint      `json:"id"`
+	AlbyIdentifier   string    `json:"albyIdentifier" validate:"required"`
+	AccessToken      string    `json:"accessToken" validate:"required"`
+	RefreshToken     string    `json:"refreshToken" validate:"required"`
+	Email            string    `json:"email"`
+	Expiry           time.Time `json:"expiry"`
+	LightningAddress string    `json:"lightningAddress"`
+	Apps             []App     `json:"apps"`
+	CreatedAt        time.Time `json:"createdAt"`
+	UpdatedAt        time.Time `json:"updatedAt"`
 }
 
 type App struct {
-	ID          uint
-	UserId      uint `validate:"required"`
-	User        User
-	Name        string `validate:"required"`
-	Description string
-	NostrPubkey string `validate:"required"`
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	ID          uint      `json:"id"`
+	UserId      uint      `json:"userId" validate:"required"`
+	User        User      `json:"user"`
+	Name        string    `json:"name" validate:"required"`
+	Description string    `json:"description"`
+	NostrPubkey string    `json:"nostrPubkey" validate:"required"`
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
 }
 
 type AppPermission struct {
-	ID            uint
-	AppId         uint `validate:"required"`
-	App           App
-	RequestMethod string `validate:"required"`
-	MaxAmount     int
-	BudgetRenewal string
-	ExpiresAt     time.Time
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
+	ID            uint      `json:"id"`
+	AppId         uint      `json:"appId" validate:"required"`
+	App           App       `json:"app"`
+	RequestMethod string    `json:"requestMethod" validate:"required"`
+	MaxAmount     int       `json:"maxAmount"`
+	BudgetRenewal string    `json:"budgetRenewal"`
+	ExpiresAt     time.Time `json:"expiresAt"`
+	CreatedAt     time.Time `json:"createdAt"`
+	UpdatedAt     time.Time `json:"updatedAt"`
 }
 
 type NostrEvent struct {
-	ID        uint
-	AppId     uint `validate:"required"`
-	App       App
-	NostrId   string `validate:"required"`
-	ReplyId   string
-	Content   string
-	State     string
-	RepliedAt time.Time
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID        uint      `json:"id"`
+	AppId     uint      `json:"appId" validate:"required"`
+	App       App       `json:"app"`
+	NostrId   string    `json:"nostrId" validate:"required"`
+	ReplyId   string    `json:"replyId"`
+	Content   string    `json:"content"`
+	State     string    `json:"state"`
+	RepliedAt time.Time `json:"repliedAt"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 type Payment struct {

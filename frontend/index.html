@@ -1,13 +1,52 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React + TS</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Alby - Nostr Wallet Connect</title>
+    <link rel="icon" href="/public/vite.svg" />
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
+  <!-- <script type="text/javascript">
+    if (window.location.pathname.startsWith("/apps")) {
+      const link = document.querySelector('a[href="/apps"]');
+      link.classList.remove("text-gray-400");
+      link.classList.add("text-gray-900", "dark:text-gray-100");
+    }
+    if (window.location.pathname.startsWith("/about")) {
+      const link = document.querySelector('a[href="/about"]');
+      link.classList.remove("text-gray-400");
+      link.classList.add("text-gray-900", "dark:text-gray-100");
+    }
+    function updateLogo() {
+      const isDarkMode = window.matchMedia(
+        "(prefers-color-scheme: dark)"
+      ).matches;
+      const logoImages = document.querySelectorAll("#alby-logo");
+
+      if (isDarkMode) {
+        logoImages.forEach((logoImage) => {
+          logoImage.src = "/public/images/alby-logo-with-text-dark.svg";
+        });
+      } else {
+        logoImages.forEach((logoImage) => {
+          logoImage.src = "/public/images/alby-logo-with-text.svg";
+        });
+      }
+    }
+    const dropdownMenu = document.getElementById("dropdown-menu");
+    const caret = document.getElementById("caret");
+    dropdownMenu.addEventListener('click',()=>{
+      const dropdown = document.getElementById("dropdown");
+      dropdown.classList.toggle("hidden");
+      caret.classList.toggle("rotate-180");
+    });
+    window.addEventListener("load", updateLogo);
+    window
+      .matchMedia("(prefers-color-scheme: dark)")
+      .addEventListener("change", updateLogo);
+  </script> -->
 </html>

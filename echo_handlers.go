@@ -15,6 +15,7 @@ import (
 	"time"
 
 	echologrus "github.com/davrux/echo-logrus/v4"
+	// "github.com/getAlby/lndhub.go/lib/responses"
 	"github.com/getAlby/nostr-wallet-connect/frontend"
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
@@ -60,12 +61,12 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	assetSubdir, _ := fs.Sub(embeddedAssets, "public")
 	assetHandler := http.FileServer(http.FS(assetSubdir))
 	e.GET("/public/*", echo.WrapHandler(http.StripPrefix("/public/", assetHandler)))
-	e.GET("/apps", svc.AppsListHandler)
-	e.GET("/apps/new", svc.AppsNewHandler)
-	e.GET("/apps/:pubkey", svc.AppsShowHandler)
-	e.POST("/apps", svc.AppsCreateHandler)
-	e.POST("/apps/delete/:pubkey", svc.AppsDeleteHandler)
-	e.GET("/logout", svc.LogoutHandler)
+	e.GET("/api/apps", svc.AppsListHandler)
+	e.GET("/api/apps/new", svc.AppsNewHandler)
+	e.GET("/api/apps/:pubkey", svc.AppsShowHandler)
+	e.POST("/api/apps", svc.AppsCreateHandler)
+	e.POST("/api/apps/delete/:pubkey", svc.AppsDeleteHandler)
+	e.GET("/api/logout", svc.LogoutHandler)
 	e.GET("/about", svc.AboutHandler)
 	e.GET("/", svc.IndexHandler)
 	frontend.RegisterHandlers(e)
@@ -107,10 +108,15 @@ func (svc *Service) AboutHandler(c echo.Context) error {
 func (svc *Service) AppsListHandler(c echo.Context) error {
 	user, err := svc.GetUser(c)
 	if err != nil {
-		return err
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Error:   true,
+			Code:    8,
+			Message: fmt.Sprintf("Bad arguments %s", err.Error()),
+		})
 	}
 	if user == nil {
-		return c.Redirect(302, "/")
+		// TODO: Show not found?
+		return c.Redirect(302, "/?q=notfound")
 	}
 
 	apps := user.Apps
@@ -126,11 +132,10 @@ func (svc *Service) AppsListHandler(c echo.Context) error {
 		eventsCounts[app.ID] = eventsCount
 	}
 
-	return c.Render(http.StatusOK, "apps/index.html", map[string]interface{}{
-		"Apps":         apps,
-		"User":         user,
-		"LastEvents":   lastEvents,
-		"EventsCounts": eventsCounts,
+	return c.JSON(http.StatusOK, ListAppsResponse{
+		Apps:         apps,
+		LastEvents:   lastEvents,
+		EventsCounts: eventsCounts,
 	})
 }
 
@@ -138,7 +143,11 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 	csrf, _ := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
 	user, err := svc.GetUser(c)
 	if err != nil {
-		return err
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Error:   true,
+			Code:    8,
+			Message: fmt.Sprintf("Bad arguments %s", err.Error()),
+		})
 	}
 	if user == nil {
 		return c.Redirect(302, "/")
@@ -148,9 +157,8 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 	svc.db.Where("user_id = ? AND nostr_pubkey = ?", user.ID, c.Param("pubkey")).First(&app)
 
 	if app.NostrPubkey == "" {
-		return c.Render(http.StatusNotFound, "404.html", map[string]interface{}{
-			"User": user,
-		})
+		// TODO: Show not found?
+		return c.Redirect(302, "/?q=notfound")
 	}
 
 	lastEvent := NostrEvent{}
@@ -172,7 +180,7 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 			//find the pay_invoice-specific permissions
 			paySpecificPermission = appPerm
 		}
-		requestMethods = append(requestMethods, nip47MethodDescriptions[appPerm.RequestMethod])
+		requestMethods = append(requestMethods, appPerm.RequestMethod)
 	}
 
 	expiresAtFormatted := expiresAt.Format("January 2, 2006 03:04 PM")
@@ -186,18 +194,17 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 		renewsIn = getEndOfBudgetString(endOfBudget)
 	}
 
-	return c.Render(http.StatusOK, "apps/show.html", map[string]interface{}{
-		"App":                   app,
-		"PaySpecificPermission": paySpecificPermission,
-		"RequestMethods":        requestMethods,
-		"ExpiresAt":             expiresAt,
-		"ExpiresAtFormatted":    expiresAtFormatted,
-		"User":                  user,
-		"LastEvent":             lastEvent,
-		"EventsCount":           eventsCount,
-		"BudgetUsage":           budgetUsage,
-		"RenewsIn":              renewsIn,
-		"Csrf":                  csrf,
+	return c.JSON(http.StatusOK, ShowAppResponse{
+		App:                   app,
+		PaySpecificPermission: paySpecificPermission,
+		RequestMethods:        requestMethods,
+		ExpiresAt:             expiresAt.Unix(),
+		ExpiresAtFormatted:    expiresAtFormatted,
+		LastEvent:             lastEvent,
+		EventsCount:           eventsCount,
+		BudgetUsage:           budgetUsage,
+		RenewsIn:              renewsIn,
+		Csrf:                  csrf,
 	})
 }
 
