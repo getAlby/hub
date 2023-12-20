@@ -5,39 +5,50 @@ import {
   useEffect,
   useState,
 } from "react";
+import { InfoResponse, UserInfo } from "../types";
+import axios from "axios";
 
 interface UserContextType {
-  user: Record<string, string> | null;
+  info: UserInfo | null;
   loading: boolean;
-  logout: (callback: VoidFunction) => void;
+  logout: () => void;
 }
 
 const UserContext = createContext({} as UserContextType);
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<UserContextType["user"]>(null);
+  const [info, setInfo] = useState<UserContextType["info"]>(null);
   const [loading, setLoading] = useState(true);
 
-  const logout = () => { //callback: VoidFunction param?
-    // do an api request and logout
-    return;
-    // return msg.request("lock").then(() => {
-    //   setUserId("");
-    //   callback();
-    // });
+  const logout = async () => {
+    try {
+      await axios.get('/logout');
+    } catch (error) {
+      // TODO: Handle failure
+      console.error('Error during logout:', error);
+    }
+    setInfo(null);
   };
+
+  const getInfo = async () => {
+    try {
+      const response = await axios.get('/api/info');
+      const data: InfoResponse = response.data;
+      setInfo(data);
+    } catch (error) {
+      console.error('Error getting user info:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   // Invoked only on on mount.
   useEffect(() => {
-    // do an api call to /user with the cookie and set the user
-    setUser({
-      id: "1234",
-    })
-    setLoading(false)
+    getInfo()
   }, []);
 
   const value = {
-    user,
+    info,
     loading,
     logout
   };

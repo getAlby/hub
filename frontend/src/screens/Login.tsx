@@ -1,4 +1,17 @@
+import { useNavigate } from "react-router-dom";
+import { useUser } from "../context/UserContext";
+import { useEffect } from "react";
+
 function Login() {
+  const { info } = useUser()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (info?.user) {
+      navigate('/');
+    }
+  }, [navigate, info?.user]);
+
   return(
     <div className="text-center">
       <img

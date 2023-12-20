@@ -2,14 +2,15 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useUser } from "./UserContext";
 
 function RequireAuth({ children }: { children: JSX.Element }) {
-  const auth = useUser();
+  const { info, loading } = useUser();
   const location = useLocation();
 
-  if (auth.loading) {
+  if (loading) {
     return null;
   }
 
-  if (!auth.user) {
+  if (!info?.user) {
+    // TODO: Use the location to redirect back in /alby/auth?c=
     return <Navigate to="/login" state={{ from: location }} />;
   }
 

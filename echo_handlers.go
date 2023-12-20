@@ -61,13 +61,13 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	assetSubdir, _ := fs.Sub(embeddedAssets, "public")
 	assetHandler := http.FileServer(http.FS(assetSubdir))
 	e.GET("/public/*", echo.WrapHandler(http.StripPrefix("/public/", assetHandler)))
+	e.GET("/api/getCSRFToken", svc.CSRFHandler)
 	e.GET("/api/apps", svc.AppsListHandler)
-	e.GET("/api/apps/new", svc.AppsNewHandler)
 	e.GET("/api/apps/:pubkey", svc.AppsShowHandler)
 	e.POST("/api/apps", svc.AppsCreateHandler)
 	e.POST("/api/apps/delete/:pubkey", svc.AppsDeleteHandler)
-	e.GET("/api/logout", svc.LogoutHandler)
-	e.GET("/about", svc.AboutHandler)
+	e.GET("/api/info", svc.InfoHandler)
+	e.GET("/logout", svc.LogoutHandler)
 	e.GET("/", svc.IndexHandler)
 	frontend.RegisterHandlers(e)
 }
@@ -92,7 +92,7 @@ func (svc *Service) IndexHandler(c echo.Context) error {
 	if user != nil {
 		return c.Redirect(302, "/apps")
 	}
-	return c.Render(http.StatusOK, fmt.Sprintf("%s", strings.ToLower(svc.cfg.LNBackendType)), map[string]interface{}{})
+	return c.Redirect(302, "/login")
 }
 
 func (svc *Service) AboutHandler(c echo.Context) error {
@@ -150,7 +150,11 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 		})
 	}
 	if user == nil {
-		return c.Redirect(302, "/")
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Error:   true,
+			Code:    8,
+			Message: "User does not exist",
+		})
 	}
 
 	app := App{}
@@ -158,7 +162,11 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 
 	if app.NostrPubkey == "" {
 		// TODO: Show not found?
-		return c.Redirect(302, "/?q=notfound")
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Error:   true,
+			Code:    8,
+			Message: "App does not exist",
+		})
 	}
 
 	lastEvent := NostrEvent{}
@@ -234,97 +242,28 @@ func getEndOfBudgetString(endOfBudget time.Time) (result string) {
 	return fmt.Sprintf("%d months", months)
 }
 
-func (svc *Service) AppsNewHandler(c echo.Context) error {
-	appName := c.QueryParam("name")
-	if appName == "" {
-		// c - for client (deprecated)
-		appName = c.QueryParam("c")
-	}
-	pubkey := c.QueryParam("pubkey")
-	returnTo := c.QueryParam("return_to")
-	maxAmount := c.QueryParam("max_amount")
-	budgetRenewal := strings.ToLower(c.QueryParam("budget_renewal"))
-	expiresAt := c.QueryParam("expires_at") // YYYY-MM-DD or MM/DD/YYYY or timestamp in seconds
-	if expiresAtTimestamp, err := strconv.Atoi(expiresAt); err == nil {
-		expiresAt = time.Unix(int64(expiresAtTimestamp), 0).Format(time.RFC3339)
-	}
-	expiresAtISO, _ := time.Parse(time.RFC3339, expiresAt)
-	expiresAtFormatted := expiresAtISO.Format("January 2, 2006 03:04 PM")
-
-	requestMethods := c.QueryParam("request_methods")
-	customRequestMethods := requestMethods
-	if requestMethods == "" {
-		// if no request methods are given, enable them all by default
-		keys := []string{}
-		for key := range nip47MethodDescriptions {
-			keys = append(keys, key)
-		}
-
-		requestMethods = strings.Join(keys, " ")
-	}
+func (svc *Service) CSRFHandler(c echo.Context) error {
 	csrf, _ := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
-
-	user, err := svc.GetUser(c)
-	if err != nil {
-		return err
-	}
-	if user == nil {
-		sess, _ := session.Get(CookieName, c)
-		sess.Values["return_to"] = c.Path() + "?" + c.QueryString()
-		sess.Options.MaxAge = 0
-		sess.Options.SameSite = http.SameSiteLaxMode
-		if svc.cfg.CookieDomain != "" {
-			sess.Options.Domain = svc.cfg.CookieDomain
-		}
-		sess.Save(c.Request(), c.Response())
-		return c.Redirect(302, fmt.Sprintf("/%s/auth?c=%s", strings.ToLower(svc.cfg.LNBackendType), appName))
-	}
-
-	//construction to return a map with all possible permissions
-	//and indicate which ones are checked by default in the front-end
-	type RequestMethodHelper struct {
-		Description string
-		Icon        string
-		Checked     bool
-	}
-
-	requestMethodHelper := map[string]*RequestMethodHelper{}
-	for k, v := range nip47MethodDescriptions {
-		requestMethodHelper[k] = &RequestMethodHelper{
-			Description: v,
-			Icon:        nip47MethodIcons[k],
-		}
-	}
-
-	for _, m := range strings.Split(requestMethods, " ") {
-		if _, ok := nip47MethodDescriptions[m]; ok {
-			requestMethodHelper[m].Checked = true
-		}
-	}
-
-	return c.Render(http.StatusOK, "apps/new.html", map[string]interface{}{
-		"User":                 user,
-		"Name":                 appName,
-		"Pubkey":               pubkey,
-		"ReturnTo":             returnTo,
-		"MaxAmount":            maxAmount,
-		"BudgetRenewal":        budgetRenewal,
-		"ExpiresAt":            expiresAt,
-		"ExpiresAtFormatted":   expiresAtFormatted,
-		"RequestMethods":       requestMethods,
-		"CustomRequestMethods": customRequestMethods,
-		"RequestMethodHelper":  requestMethodHelper,
-		"Csrf":                 csrf,
+	return c.JSON(http.StatusOK, &CSRFResponse{
+		Csrf: csrf,
 	})
 }
 
 func (svc *Service) AppsCreateHandler(c echo.Context) error {
 	user, err := svc.GetUser(c)
 	if err != nil {
-		return err
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Error:   true,
+			Code:    8,
+			Message: fmt.Sprintf("Bad arguments %s", err.Error()),
+		})
 	}
 	if user == nil {
-		return c.Redirect(302, "/")
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Error:   true,
+			Code:    8,
+			Message: "User does not exist",
+		})
 	}
 
 	name := c.FormValue("name")
@@ -339,18 +278,27 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 		decoded, err := hex.DecodeString(pairingPublicKey)
 		if err != nil || len(decoded) != 32 {
 			svc.Logger.Errorf("Invalid public key format: %s", pairingPublicKey)
-			return c.Redirect(302, "/apps")
+			return c.JSON(http.StatusBadRequest, ErrorResponse{
+				Error:   true,
+				Code:    8,
+				Message: fmt.Sprintf("Invalid public key format: %s", pairingPublicKey),
+			})
 		}
 	}
 	app := App{Name: name, NostrPubkey: pairingPublicKey}
-	maxAmount, _ := strconv.Atoi(c.FormValue("MaxAmount"))
-	budgetRenewal := c.FormValue("BudgetRenewal")
+	maxAmount, _ := strconv.Atoi(c.FormValue("maxAmount"))
+	budgetRenewal := c.FormValue("budgetRenewal")
 
 	expiresAt := time.Time{}
-	if c.FormValue("ExpiresAt") != "" {
-		expiresAt, err = time.Parse(time.RFC3339, c.FormValue("ExpiresAt"))
+	if c.FormValue("expiresAt") != "" {
+		expiresAt, err = time.Parse(time.RFC3339, c.FormValue("expiresAt"))
 		if err != nil {
-			return fmt.Errorf("Invalid ExpiresAt: %v", err)
+			svc.Logger.Errorf("Invalid expiresAt: %s", pairingPublicKey)
+			return c.JSON(http.StatusBadRequest, ErrorResponse{
+				Error:   true,
+				Code:    8,
+				Message: fmt.Sprintf("Invalid expiresAt: %v", err),
+			})
 		}
 	}
 
@@ -364,7 +312,7 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 			return err
 		}
 
-		requestMethods := c.FormValue("RequestMethods")
+		requestMethods := c.FormValue("requestMethods")
 		if requestMethods == "" {
 			return fmt.Errorf("Won't create an app without request methods.")
 		}
@@ -397,13 +345,22 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 			"pairingPublicKey": pairingPublicKey,
 			"name":             name,
 		}).Errorf("Failed to save app: %v", err)
-		return c.Redirect(302, "/apps")
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Error:   true,
+			Code:    8,
+			Message: fmt.Sprintf("Failed to save app: %v", err),
+		})
 	}
 
 	publicRelayUrl := svc.cfg.PublicRelay
 	if publicRelayUrl == "" {
 		publicRelayUrl = svc.cfg.Relay
 	}
+
+	responseBody := &CreateAppResponse{}
+	responseBody.Name = name
+	responseBody.Pubkey = pairingPublicKey
+	responseBody.PairingSecret = pairingSecretKey
 
 	if c.FormValue("returnTo") != "" {
 		returnToUrl, err := url.Parse(c.FormValue("returnTo"))
@@ -415,7 +372,7 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 				query.Add("lud16", user.LightningAddress)
 			}
 			returnToUrl.RawQuery = query.Encode()
-			return c.Redirect(302, returnToUrl.String())
+			responseBody.ReturnTo = returnToUrl.String()
 		}
 	}
 
@@ -423,14 +380,8 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 	if user.LightningAddress != "" {
 		lud16 = fmt.Sprintf("&lud16=%s", user.LightningAddress)
 	}
-	pairingUri := template.URL(fmt.Sprintf("nostr+walletconnect://%s?relay=%s&secret=%s%s", svc.cfg.IdentityPubkey, publicRelayUrl, pairingSecretKey, lud16))
-	return c.Render(http.StatusOK, "apps/create.html", map[string]interface{}{
-		"User":          user,
-		"PairingUri":    pairingUri,
-		"PairingSecret": pairingSecretKey,
-		"Pubkey":        pairingPublicKey,
-		"Name":          name,
-	})
+	responseBody.PairingUri = fmt.Sprintf("nostr+walletconnect://%s?relay=%s&secret=%s%s", svc.cfg.IdentityPubkey, publicRelayUrl, pairingSecretKey, lud16)
+	return c.JSON(http.StatusOK, responseBody)
 }
 
 func (svc *Service) AppsDeleteHandler(c echo.Context) error {
@@ -439,12 +390,16 @@ func (svc *Service) AppsDeleteHandler(c echo.Context) error {
 		return err
 	}
 	if user == nil {
-		return c.Redirect(302, "/")
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Error:   true,
+			Code:    8,
+			Message: "User does not exist",
+		})
 	}
 	app := App{}
 	svc.db.Where("user_id = ? AND nostr_pubkey = ?", user.ID, c.Param("pubkey")).First(&app)
 	svc.db.Delete(&app)
-	return c.Redirect(302, "/apps")
+	return c.JSON(http.StatusOK, "App deleted successfully")
 }
 
 func (svc *Service) LogoutHandler(c echo.Context) error {
@@ -454,5 +409,18 @@ func (svc *Service) LogoutHandler(c echo.Context) error {
 		sess.Options.Domain = svc.cfg.CookieDomain
 	}
 	sess.Save(c.Request(), c.Response())
-	return c.Redirect(302, "/")
+	return c.JSON(http.StatusOK, "Logout successful")
+}
+
+func (svc *Service) InfoHandler(c echo.Context) error {
+	csrf, _ := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
+	user, err := svc.GetUser(c)
+	if err != nil {
+		return err
+	}
+	responseBody := &InfoResponse{}
+	responseBody.BackendType = svc.cfg.LNBackendType
+	responseBody.User = *user
+	responseBody.Csrf = csrf
+	return c.JSON(http.StatusOK, responseBody)
 }

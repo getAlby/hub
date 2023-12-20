@@ -66,7 +66,7 @@
                       <div data-limit="50000" class="col-span-2 md:col-span-1 cursor-pointer rounded border-2 border-gray-200 dark:border-gray-400 text-center py-4">50k<br>sats</div>
                       <div data-limit="100000" class="col-span-2 md:col-span-1 cursor-pointer rounded border-2 border-gray-200 dark:border-gray-400 text-center py-4">100k<br>sats</div>
                       <div data-limit="1000000" class="col-span-2 md:col-span-1 cursor-pointer rounded border-2 border-gray-200 dark:border-gray-400 text-center py-4">1M<br>sats</div>
-                      <div data-limit="0" class="col-span-2 md:col-span-1 cursor-pointer rounded border-2 border-gray-200 dark:border-gray-400 text-center py-4 border-purple-700 dark:border-purple-300 text-purple-700 dark:text-white bg-purple-100 dark:bg-purple-900">Unlimited<br>#reckless</b></div>
+                      <div data-limit="0" class="col-span-2 md:col-span-1 cursor-pointer rounded border-2 border-gray-200 dark:border-gray-400 text-center py-4  text-purple-700 dark:text-white bg-purple-100 dark:bg-purple-900">Unlimited<br>#reckless</b></div>
                     </div>
                   {{else}}
                     <p class="text-gray-600 dark:text-gray-300 text-sm">
@@ -105,11 +105,11 @@
         <p class="text-gray-600 dark:text-gray-300 text-sm">{{ .ExpiresAtFormatted }}</p>
       {{end}}
 
-    {{if .User.Email}}
-      <p class="mt-8 pt-4 border-t border-gray-300 dark:border-gray-700 text-sm text-gray-500 dark:text-neutral-300 text-center">
-        You're logged in as <span class="font-mono">{{.User.Email}}</span><br>
-      </p>
-    {{end}}
+      {{if .User.Email}}
+        <p class="mt-8 pt-4 border-t border-gray-300 dark:border-gray-700 text-sm text-gray-500 dark:text-neutral-300 text-center">
+          You're logged in as <span class="font-mono">{{.User.Email}}</span><br>
+        </p>
+      {{end}}
   </div>
 
   <div class="mt-6 flex flex-col sm:flex-row sm:justify-center">

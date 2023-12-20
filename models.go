@@ -51,10 +51,20 @@ var nip47MethodIcons = map[string]string{
 	NIP_47_LOOKUP_INVOICE_METHOD: "search",
 }
 
+type InfoResponse struct {
+	User        User   `json:"user"`
+	BackendType string `json:"backendType"`
+	Csrf        string `json:"csrf"`
+}
+
+type CSRFResponse struct {
+	Csrf string `json:"csrf"`
+}
+
 type ShowAppResponse struct {
 	App                   App           `json:"app"`
 	BudgetUsage           int64         `json:"budgetUsage"`
-	Csrf                  string        `json:"csrft"`
+	Csrf                  string        `json:"csrf"`
 	EventsCount           int64         `json:"eventsCount"`
 	ExpiresAt             int64         `json:"expiresAt"`
 	ExpiresAtFormatted    string        `json:"expiresAtFormatted"`
@@ -68,6 +78,14 @@ type ListAppsResponse struct {
 	Apps         []App               `json:"apps"`
 	LastEvents   map[uint]NostrEvent `json:"lastEvents"`
 	EventsCounts map[uint]int64      `json:"eventsCounts"`
+}
+
+type CreateAppResponse struct {
+	PairingUri    string `json:"pairingUri"`
+	PairingSecret string `json:"pairingSecretKey"`
+	Pubkey        string `json:"pairingPublicKey"`
+	Name          string `json:"name"`
+	ReturnTo      string `json:"returnTo"`
 }
 
 // TODO: move to models/Alby

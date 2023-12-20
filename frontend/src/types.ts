@@ -4,10 +4,15 @@ export const NIP_47_GET_INFO_METHOD = "get_info"
 export const NIP_47_MAKE_INVOICE_METHOD = "make_invoice"
 export const NIP_47_LOOKUP_INVOICE_METHOD = "lookup_invoice"
 
+export type BackendType = "ALBY" | "LND"
 
 export type RequestMethodType = "pay_invoice" | "get_balance" | "get_info" | "make_invoice" | "lookup_invoice";
 
-export const nip47MethodDescriptions = {
+export type BudgetRenewalType = "daily" | "weekly" | "monthly" | "yearly" | "";
+
+export const validBudgetRenewals: BudgetRenewalType[] = ["daily", "weekly", "monthly", "yearly", ""]
+
+export const nip47MethodDescriptions: Record<RequestMethodType, string> = {
 	[NIP_47_GET_BALANCE_METHOD]: "Read your balance",
 	[NIP_47_GET_INFO_METHOD]: "Read your node info",
 	[NIP_47_PAY_INVOICE_METHOD]: "Send payments",
@@ -15,7 +20,7 @@ export const nip47MethodDescriptions = {
 	[NIP_47_LOOKUP_INVOICE_METHOD]: "Lookup status of invoices",
 }
 
-export const nip47MethodIcons = {
+export const nip47MethodIcons: Record<RequestMethodType, string> = {
 	[NIP_47_GET_BALANCE_METHOD]: "wallet",
 	[NIP_47_GET_INFO_METHOD]: "wallet",
 	[NIP_47_PAY_INVOICE_METHOD]: "lightning",
@@ -71,6 +76,14 @@ export interface NostrEvent {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface UserInfo {
+  user: User | null;
+  backendType: BackendType;
+  csrf: string;
+}
+
+export interface InfoResponse extends UserInfo{}
 
 export interface ShowAppResponse {
   app: App;

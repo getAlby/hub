@@ -2,8 +2,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom';
 
-import Loading from '../../components/loading';
+import Loading from '../../components/Loading';
 import { App, NostrEvent, ListAppsResponse } from "../../types";
+import axios from "axios";
 
 function Connections() {
   const [apps, setApps] = useState<App[] | null>(null);
@@ -18,8 +19,8 @@ function Connections() {
   useEffect(() => {
     const fetchAppsData = async () => {
       try {
-        const response = await fetch("/api/apps");
-        const data: ListAppsResponse = await response.json();
+        const response = await axios.get("/api/apps");
+        const data: ListAppsResponse = response.data;
         setApps(data.apps);
         setEventsCounts(data.eventsCounts);
         setLastEvents(data.lastEvent);
@@ -38,7 +39,7 @@ function Connections() {
     <>
       <div className="mb-4 flex justify-between items-center">
         <h2 className="font-bold text-2xl font-headline dark:text-white">Connected apps</h2>
-        <a className="inline-flex bg-purple-700 cursor-pointer dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus:outline-none font-medium items-center justify-center px-3 md:px-6 py-2 md:py-3 rounded-lg shadow text-white transition {{if not .User}}opacity-50{{else}}hover:bg-purple-900{{end}} text-sm md:text-base" href="{{if not .User}}javascript:void(0);{{else}}/apps/new{{end}}">
+        <a className="inline-flex bg-purple-700 cursor-pointer dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus:outline-none font-medium items-center justify-center px-3 md:px-6 py-2 md:py-3 rounded-lg shadow text-white transition {{if not .User}}opacity-50{{else}}hover:bg-purple-900{{end}} text-sm md:text-base" href="/apps/new">
           <img
             src="public/images/plus.svg"
             width="24"

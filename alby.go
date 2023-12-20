@@ -436,7 +436,6 @@ func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, 
 }
 
 func (svc *AlbyOAuthService) AuthHandler(c echo.Context) error {
-	fmt.Println("haha")
 	appName := c.QueryParam("c") // c - for client
 	// clear current session
 	sess, _ := session.Get(CookieName, c)

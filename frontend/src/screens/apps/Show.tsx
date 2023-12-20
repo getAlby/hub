@@ -1,24 +1,40 @@
 import { useState, useEffect } from 'react';
 import { ShowAppResponse } from '../../types';
-import Loading from '../../components/loading';
+import Loading from '../../components/Loading';
 import { useNavigate, useParams } from 'react-router-dom';
+import axios from 'axios';
+import { useUser } from '../../context/UserContext';
 
 function Show() {
+  const { info } = useUser();
   const { pubkey } = useParams() as { pubkey: string };
   const navigate = useNavigate();
-  console.log(pubkey)
   const [appData, setAppData] = useState<ShowAppResponse | null>(null);
+
+  const handleDelete = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!appData || !info) return
+    const formData = new FormData();
+    formData.append("_csrf", info.csrf);
+    try {
+      // Here you'd handle form submission. For example:
+      await axios.post(`/api/apps/delete/${appData.app.nostrPubkey}`, formData)
+      navigate("/apps?q=appdeleted");
+    } catch (error) {
+      console.error('Error deleting app:', error);
+    }
+  };
 
   useEffect(() => {
     const fetchAppData = async () => {
       try {
-        const response = await fetch(`/api/apps/${pubkey}`);
-        const data: ShowAppResponse = await response.json();
+        const response = await axios.get(`/api/apps/${pubkey}`);
+        const data: ShowAppResponse = response.data;
         setAppData(data);
       } catch (error) {
+        console.error('Error fetching app data:', error);
         // TODO: Show error page
         navigate("/apps?q=notfound");
-        console.error('Error fetching app data:', error);
       }
     };
 
@@ -93,7 +109,7 @@ function Show() {
               </div>
             </div>
 
-            <form method="post" action={`/apps/delete/${appData.app.nostrPubkey}`}>
+            <form method="post" onSubmit={handleDelete}>
               <input type="hidden" name="_csrf" value={appData.csrf} />
               <button type="submit"
                 className="inline-flex bg-white border border-red-400 cursor-pointer dark:bg-surface-02dp dark:hover:bg-surface-16dp duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus:outline-none font-medium hover:bg-gray-50 items-center justify-center px-5 py-3 rounded-md shadow text-gray-700 dark:text-neutral-300 transition w-full sm:w-[250px] sm:mr-8 mt-8 sm:mt-0 order-last sm:order-first">Disconnect</button>

@@ -1,5 +1,4 @@
 import { useState } from 'react';
-// import QrCreator from 'qr-creator'; // Ensure this module is installed and imported correctly
 
 const Create = () => {
   const pairingUri = "YOUR_PAIRING_URI"; // Replace with actual data or props
