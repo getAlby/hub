@@ -11,6 +11,8 @@ RUN go mod download
 # Copy the code into the container
 COPY . .
 
+# TODO: build react app?
+
 # Build the application
 RUN go build -o main
 
@@ -18,6 +20,7 @@ RUN go build -o main
 FROM alpine as final
 
 # Copy the binaries and entrypoint from the builder image.
+# TODO: update for React
 COPY --from=builder /build/main /bin/
 COPY --from=builder /build/public /public/
 COPY --from=builder /build/views /views/
