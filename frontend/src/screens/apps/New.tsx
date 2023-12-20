@@ -73,10 +73,6 @@ const New = () => {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!info) return;
-    // Here you'd handle form submission. For example:
-    console.log('Form Data', {
-      appName, pubkey, returnTo, maxAmount, budgetRenewal, expiresAt, requestMethods
-    });
     const formData = new FormData();
     formData.append("name", appName);
     formData.append("pubkey", pubkey);

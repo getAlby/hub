@@ -3,10 +3,11 @@ export const NIP_47_GET_BALANCE_METHOD = "get_balance"
 export const NIP_47_GET_INFO_METHOD = "get_info"
 export const NIP_47_MAKE_INVOICE_METHOD = "make_invoice"
 export const NIP_47_LOOKUP_INVOICE_METHOD = "lookup_invoice"
+export const NIP_47_LIST_TRANSACTIONS_METHOD = "list_transactions"
 
 export type BackendType = "ALBY" | "LND"
 
-export type RequestMethodType = "pay_invoice" | "get_balance" | "get_info" | "make_invoice" | "lookup_invoice";
+export type RequestMethodType = "pay_invoice" | "get_balance" | "get_info" | "make_invoice" | "lookup_invoice" | "list_transactions"
 
 export type BudgetRenewalType = "daily" | "weekly" | "monthly" | "yearly" | "";
 
@@ -18,6 +19,7 @@ export const nip47MethodDescriptions: Record<RequestMethodType, string> = {
 	[NIP_47_PAY_INVOICE_METHOD]: "Send payments",
 	[NIP_47_MAKE_INVOICE_METHOD]: "Create invoices",
 	[NIP_47_LOOKUP_INVOICE_METHOD]: "Lookup status of invoices",
+	[NIP_47_LIST_TRANSACTIONS_METHOD]: "Read incoming transaction history",
 }
 
 export const nip47MethodIcons: Record<RequestMethodType, string> = {
@@ -26,6 +28,7 @@ export const nip47MethodIcons: Record<RequestMethodType, string> = {
 	[NIP_47_PAY_INVOICE_METHOD]: "lightning",
 	[NIP_47_MAKE_INVOICE_METHOD]: "invoice",
 	[NIP_47_LOOKUP_INVOICE_METHOD]: "search",
+	[NIP_47_LIST_TRANSACTIONS_METHOD]: "transactions",
 }
 
 export interface User {
