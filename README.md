@@ -29,12 +29,16 @@ As data storage SQLite or PostgreSQL (recommended) can be used.
 
 ## Development
 
+### Server
+
 `go run .` or `gow -e=go,mod,html,css run .` using [gow](https://github.com/mitranim/gow)
 
-To build the CSS run:
+### React Frontend
 
-1. `npm install`
-2. `npm run css`
+Go to `/frontend` and run:
+
+1. `yarn install`
+2. `yarn dev`
 
 ### Testing
 
