@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useUser } from '../../context/UserContext';
 import { BudgetRenewalType, RequestMethodType, User, UserInfo, nip47MethodDescriptions, nip47MethodIcons, validBudgetRenewals } from '../../types';
-import axios from 'axios';
 
 const New = () => {
   const { info } = useUser();
@@ -83,7 +82,13 @@ const New = () => {
     formData.append("returnTo", returnTo);
     formData.append("_csrf", info.csrf);
     try {
-      const response = await axios.post("/api/apps", formData)
+      const response = await fetch("/api/apps", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: JSON.stringify(formData.toString()),
+      })
       console.log(response)
       // TODO: Navigate to success screen with data
       // navigate("/apps/success");

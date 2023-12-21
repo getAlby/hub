@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 
 import Loading from '../../components/Loading';
 import { App, NostrEvent, ListAppsResponse } from "../../types";
-import axios from "axios";
 
 function Connections() {
   const [apps, setApps] = useState<App[] | null>(null);
@@ -19,8 +18,8 @@ function Connections() {
   useEffect(() => {
     const fetchAppsData = async () => {
       try {
-        const response = await axios.get("/api/apps");
-        const data: ListAppsResponse = response.data;
+        const response = await fetch("/api/apps");
+        const data: ListAppsResponse = await response.json();
         setApps(data.apps);
         setEventsCounts(data.eventsCounts);
         setLastEvents(data.lastEvent);

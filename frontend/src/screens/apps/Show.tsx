@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { ShowAppResponse } from '../../types';
 import Loading from '../../components/Loading';
 import { useNavigate, useParams } from 'react-router-dom';
-import axios from 'axios';
 import { useUser } from '../../context/UserContext';
 
 function Show() {
@@ -18,7 +17,13 @@ function Show() {
     formData.append("_csrf", info.csrf);
     try {
       // Here you'd handle form submission. For example:
-      await axios.post(`/api/apps/delete/${appData.app.nostrPubkey}`, formData)
+      await fetch(`/api/apps/delete/${appData.app.nostrPubkey}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: JSON.stringify(formData.toString()),
+      })
       navigate("/apps?q=appdeleted");
     } catch (error) {
       console.error('Error deleting app:', error);
@@ -28,8 +33,8 @@ function Show() {
   useEffect(() => {
     const fetchAppData = async () => {
       try {
-        const response = await axios.get(`/api/apps/${pubkey}`);
-        const data: ShowAppResponse = response.data;
+        const response = await fetch(`/api/apps/${pubkey}`);
+        const data: ShowAppResponse = await response.json();
         setAppData(data);
       } catch (error) {
         console.error('Error fetching app data:', error);

@@ -6,7 +6,6 @@ import {
   useState,
 } from "react";
 import { InfoResponse, UserInfo } from "../types";
-import axios from "axios";
 
 interface UserContextType {
   info: UserInfo | null;
@@ -22,7 +21,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     try {
-      await axios.get('/logout');
+      await fetch('/logout');
     } catch (error) {
       // TODO: Handle failure
       console.error('Error during logout:', error);
@@ -32,8 +31,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
   const getInfo = async () => {
     try {
-      const response = await axios.get('/api/info');
-      const data: InfoResponse = response.data;
+      const response = await fetch('/api/info');
+      const data: InfoResponse = await response.json();
       setInfo(data);
     } catch (error) {
       console.error('Error getting user info:', error);
