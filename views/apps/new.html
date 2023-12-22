@@ -37,7 +37,7 @@
         {{end}}
         <input type="hidden" name="RequestMethods" id="request-methods" value={{.RequestMethods}}>
         <input type="hidden" name="ExpiresAt" id="expires-at" value="{{.ExpiresAt}}">
-        <input type="hidden" name="MaxAmount" id="max-amount" value="{{.MaxAmount}}">
+        <input type="hidden" name="MaxAmount" id="max-amount" value={{if .MaxAmount}}{{.MaxAmount}}{{else}}{{"100000"}}{{end}}>
         <input type="hidden" name="BudgetRenewal" id="budget-renewal" value={{if .BudgetRenewal}}{{.BudgetRenewal}}{{else}}{{"monthly"}}{{end}}>
       </div>
 
@@ -64,9 +64,9 @@
                       <div data-limit="10000" class="col-span-2 md:col-span-1 cursor-pointer rounded border-2 border-gray-200 dark:border-gray-400 text-center py-4">10k<br>sats</div>
                       <div data-limit="25000" class="col-span-2 md:col-span-1 cursor-pointer rounded border-2 border-gray-200 dark:border-gray-400 text-center py-4">25k<br>sats</div>
                       <div data-limit="50000" class="col-span-2 md:col-span-1 cursor-pointer rounded border-2 border-gray-200 dark:border-gray-400 text-center py-4">50k<br>sats</div>
-                      <div data-limit="100000" class="col-span-2 md:col-span-1 cursor-pointer rounded border-2 border-gray-200 dark:border-gray-400 text-center py-4">100k<br>sats</div>
+                      <div data-limit="100000" class="col-span-2 md:col-span-1 cursor-pointer rounded border-2 border-gray-200 dark:border-gray-400 text-center py-4 border-purple-700 dark:border-purple-300 text-purple-700 dark:text-white bg-purple-100 dark:bg-purple-900">100k<br>sats</div>
                       <div data-limit="1000000" class="col-span-2 md:col-span-1 cursor-pointer rounded border-2 border-gray-200 dark:border-gray-400 text-center py-4">1M<br>sats</div>
-                      <div data-limit="0" class="col-span-2 md:col-span-1 cursor-pointer rounded border-2 border-gray-200 dark:border-gray-400 text-center py-4 border-purple-700 dark:border-purple-300 text-purple-700 dark:text-white bg-purple-100 dark:bg-purple-900">Unlimited<br>#reckless</b></div>
+                      <div data-limit="0" class="col-span-2 md:col-span-1 cursor-pointer rounded border-2 border-gray-200 dark:border-gray-400 text-center py-4">Unlimited<br>#reckless</b></div>
                     </div>
                   {{else}}
                     <p class="text-gray-600 dark:text-gray-300 text-sm">
