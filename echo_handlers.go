@@ -53,7 +53,7 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	e.Use(middleware.Recover())
 	e.Use(middleware.RequestID())
 	e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
-		TokenLookup: "form:_csrf",
+		TokenLookup: "header:X-CSRF-Token,form:_csrf",
 	}))
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte(svc.cfg.CookieSecret))))
 	e.Use(ddEcho.Middleware(ddEcho.WithServiceName("nostr-wallet-connect")))
@@ -65,7 +65,7 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	e.GET("/api/apps", svc.AppsListHandler)
 	e.GET("/api/apps/:pubkey", svc.AppsShowHandler)
 	e.POST("/api/apps", svc.AppsCreateHandler)
-	e.POST("/api/apps/delete/:pubkey", svc.AppsDeleteHandler)
+	e.DELETE("/api/apps/:pubkey", svc.AppsDeleteHandler)
 	e.GET("/api/info", svc.InfoHandler)
 	e.GET("/logout", svc.LogoutHandler)
 	e.GET("/", svc.IndexHandler)

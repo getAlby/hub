@@ -13,16 +13,14 @@ function Show() {
   const handleDelete = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!appData || !info) return
-    const formData = new FormData();
-    formData.append("_csrf", info.csrf);
     try {
       // Here you'd handle form submission. For example:
-      await fetch(`/api/apps/delete/${appData.app.nostrPubkey}`, {
-        method: 'POST',
+      await fetch(`/api/apps/${appData.app.nostrPubkey}`, {
+        method: 'DELETE',
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: JSON.stringify(formData.toString()),
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': info.csrf,
+        }
       })
       navigate("/apps?q=appdeleted");
     } catch (error) {
