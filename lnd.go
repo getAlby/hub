@@ -63,7 +63,7 @@ func (svc *LNDService) ListTransactions(ctx context.Context, senderPubkey string
 	// Fetch invoices
 	var invoices []*lnrpc.Invoice
 	if invoiceType == "" || invoiceType == "incoming" {
-		incomingResp, err := svc.client.ListInvoices(ctx, &lnrpc.ListInvoiceRequest{NumMaxInvoices: limit, IndexOffset: offset})
+		incomingResp, err := svc.client.ListInvoices(ctx, &lnrpc.ListInvoiceRequest{Reversed: true, NumMaxInvoices: limit, IndexOffset: offset})
 		if err != nil {
 			return nil, err
 		}
@@ -82,7 +82,7 @@ func (svc *LNDService) ListTransactions(ctx context.Context, senderPubkey string
 	var payments []*lnrpc.Payment
 	if invoiceType == "" || invoiceType == "outgoing" {
 		// Not just pending but failed payments will also be included because of IncludeIncomplete
-		outgoingResp, err := svc.client.ListPayments(ctx, &lnrpc.ListPaymentsRequest{MaxPayments: limit, IndexOffset: offset, IncludeIncomplete: unpaid})
+		outgoingResp, err := svc.client.ListPayments(ctx, &lnrpc.ListPaymentsRequest{Reversed: true, MaxPayments: limit, IndexOffset: offset, IncludeIncomplete: unpaid})
 		if err != nil {
 			return nil, err
 		}
