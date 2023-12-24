@@ -8,6 +8,7 @@ import (
 	"errors"
 	"sort"
 	"time"
+	"strings"
 
 	"github.com/getAlby/nostr-wallet-connect/lnd"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
@@ -99,7 +100,7 @@ func (svc *LNDService) ListTransactions(ctx context.Context, senderPubkey string
 		var description string
 		var descriptionHash string
 		if payment.PaymentRequest != "" {
-			paymentRequest, err = decodepay.Decodepay(payment.PaymentRequest)
+			paymentRequest, err = decodepay.Decodepay(strings.ToLower(payment.PaymentRequest))
 			if err != nil {
 				svc.Logger.WithFields(logrus.Fields{
 					"bolt11": payment.PaymentRequest,
