@@ -1,35 +1,47 @@
-export const NIP_47_PAY_INVOICE_METHOD = "pay_invoice"
-export const NIP_47_GET_BALANCE_METHOD = "get_balance"
-export const NIP_47_GET_INFO_METHOD = "get_info"
-export const NIP_47_MAKE_INVOICE_METHOD = "make_invoice"
-export const NIP_47_LOOKUP_INVOICE_METHOD = "lookup_invoice"
-export const NIP_47_LIST_TRANSACTIONS_METHOD = "list_transactions"
+export const NIP_47_PAY_INVOICE_METHOD = "pay_invoice";
+export const NIP_47_GET_BALANCE_METHOD = "get_balance";
+export const NIP_47_GET_INFO_METHOD = "get_info";
+export const NIP_47_MAKE_INVOICE_METHOD = "make_invoice";
+export const NIP_47_LOOKUP_INVOICE_METHOD = "lookup_invoice";
+export const NIP_47_LIST_TRANSACTIONS_METHOD = "list_transactions";
 
-export type BackendType = "ALBY" | "LND"
+export type BackendType = "ALBY" | "LND";
 
-export type RequestMethodType = "pay_invoice" | "get_balance" | "get_info" | "make_invoice" | "lookup_invoice" | "list_transactions"
+export type RequestMethodType =
+  | "pay_invoice"
+  | "get_balance"
+  | "get_info"
+  | "make_invoice"
+  | "lookup_invoice"
+  | "list_transactions";
 
 export type BudgetRenewalType = "daily" | "weekly" | "monthly" | "yearly" | "";
 
-export const validBudgetRenewals: BudgetRenewalType[] = ["daily", "weekly", "monthly", "yearly", ""]
+export const validBudgetRenewals: BudgetRenewalType[] = [
+  "daily",
+  "weekly",
+  "monthly",
+  "yearly",
+  "",
+];
 
 export const nip47MethodDescriptions: Record<RequestMethodType, string> = {
-	[NIP_47_GET_BALANCE_METHOD]: "Read your balance",
-	[NIP_47_GET_INFO_METHOD]: "Read your node info",
-	[NIP_47_PAY_INVOICE_METHOD]: "Send payments",
-	[NIP_47_MAKE_INVOICE_METHOD]: "Create invoices",
-	[NIP_47_LOOKUP_INVOICE_METHOD]: "Lookup status of invoices",
-	[NIP_47_LIST_TRANSACTIONS_METHOD]: "Read incoming transaction history",
-}
+  [NIP_47_GET_BALANCE_METHOD]: "Read your balance",
+  [NIP_47_GET_INFO_METHOD]: "Read your node info",
+  [NIP_47_PAY_INVOICE_METHOD]: "Send payments",
+  [NIP_47_MAKE_INVOICE_METHOD]: "Create invoices",
+  [NIP_47_LOOKUP_INVOICE_METHOD]: "Lookup status of invoices",
+  [NIP_47_LIST_TRANSACTIONS_METHOD]: "Read incoming transaction history",
+};
 
 export const nip47MethodIcons: Record<RequestMethodType, string> = {
-	[NIP_47_GET_BALANCE_METHOD]: "wallet",
-	[NIP_47_GET_INFO_METHOD]: "wallet",
-	[NIP_47_PAY_INVOICE_METHOD]: "lightning",
-	[NIP_47_MAKE_INVOICE_METHOD]: "invoice",
-	[NIP_47_LOOKUP_INVOICE_METHOD]: "search",
-	[NIP_47_LIST_TRANSACTIONS_METHOD]: "transactions",
-}
+  [NIP_47_GET_BALANCE_METHOD]: "wallet",
+  [NIP_47_GET_INFO_METHOD]: "wallet",
+  [NIP_47_PAY_INVOICE_METHOD]: "lightning",
+  [NIP_47_MAKE_INVOICE_METHOD]: "invoice",
+  [NIP_47_LOOKUP_INVOICE_METHOD]: "search",
+  [NIP_47_LIST_TRANSACTIONS_METHOD]: "transactions",
+};
 
 export interface User {
   id: number;
@@ -45,19 +57,19 @@ export interface User {
 }
 
 export interface App {
-	id: number;
-	userId: number;
-	user: User;
-	name: string;
-	description: string;
-	nostrPubkey: string;
-	createdAt: string;
-	updatedAt: string;
+  id: number;
+  userId: number;
+  user: User;
+  name: string;
+  description: string;
+  nostrPubkey: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface AppPermission {
-	id: number;
-	appId: number;
+  id: number;
+  appId: number;
   app: App;
   requestMethod: RequestMethodType;
   maxAmount: number;
@@ -68,13 +80,13 @@ export interface AppPermission {
 }
 
 export interface NostrEvent {
-	id: number;
-	appId: number;
+  id: number;
+  appId: number;
   app: App;
-	nostrId: string;
-	replyId: string;
-	content: string;
-	state: string;
+  nostrId: string;
+  replyId: string;
+  content: string;
+  state: string;
   repliedAt: string;
   createdAt: string;
   updatedAt: string;
@@ -86,7 +98,7 @@ export interface UserInfo {
   csrf: string;
 }
 
-export interface InfoResponse extends UserInfo{}
+export interface InfoResponse extends UserInfo {}
 
 export interface ShowAppResponse {
   app: App;
@@ -105,4 +117,8 @@ export interface ListAppsResponse {
   apps: App[];
   lastEvent: Record<App["id"], NostrEvent>;
   eventsCounts: Record<App["id"], number>;
+}
+
+export interface CreateAppResponse {
+  pairingUri: string;
 }
