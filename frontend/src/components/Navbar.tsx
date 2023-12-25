@@ -1,8 +1,9 @@
 import { Outlet } from "react-router-dom";
 import { useUser } from "../context/UserContext";
+import { logout } from "../utils/logout";
 
 function Navbar() {
-  const { info, logout } = useUser();
+  const { info } = useUser();
   return (
     <>
       <div className="bg-gray-50 dark:bg-surface-00dp">
@@ -38,56 +39,60 @@ function Navbar() {
                   </a>
                 </div>
               </div>
-              {info?.backendType === "ALBY" && (
-                <div className="flex items-center relative">
-                  <p
-                    className="text-gray-400 dark:text-gray-400 text-xs font-medium sm:text-base cursor-pointer select-none "
-                    id="dropdown-menu"
-                  >
-                    {/* {user.email} */}
-                    <img
-                      id="caret"
-                      className="inline cursor-pointer w-4 ml-2"
-                      src="/public/images/caret.svg"
-                    />
-                  </p>
-
-                  <div
-                    className="font-medium flex flex-col px-4 w-40 logout absolute right mt-25 justify-left cursor-pointer rounded-lg border border-gray-200 dark:border-gray-200 text-center bg-white dark:bg-surface-01dp shadow"
-                    id="dropdown"
-                  >
-                    <a
-                      className="md:hidden flex items-center justify-left  py-2 text-gray-400 dark:text-gray-400"
-                      href="/about"
-                    >
-                      <img
-                        className="inline cursor-pointer w-4 mr-3"
-                        src="/public/images/about.svg"
-                        alt="about-svg"
-                      />
-                      <p className="font-normal">About</p>
-                    </a>
-
-                    <div
-                      className="flex items-center justify-left py-2 text-red-500"
-                      onClick={logout}
-                    >
-                      <img
-                        className="inline cursor-pointer w-4 mr-3"
-                        src="/public/images/logout.svg"
-                        alt="logout-svg"
-                      />
-                      <p className="font-normal">Logout</p>
-                    </div>
-                  </div>
-                </div>
-              )}
+              {info?.backendType === "ALBY" && <ProfileDropdown />}
             </div>
           </nav>
         </div>
       </div>
       <Outlet />
     </>
+  );
+}
+
+function ProfileDropdown() {
+  return (
+    <div className="flex items-center relative">
+      <p
+        className="text-gray-400 dark:text-gray-400 text-xs font-medium sm:text-base cursor-pointer select-none "
+        id="dropdown-menu"
+      >
+        {/* {user.email} */}
+        <img
+          id="caret"
+          className="inline cursor-pointer w-4 ml-2"
+          src="/public/images/caret.svg"
+        />
+      </p>
+
+      <div
+        className="font-medium flex flex-col px-4 w-40 logout absolute right mt-25 justify-left cursor-pointer rounded-lg border border-gray-200 dark:border-gray-200 text-center bg-white dark:bg-surface-01dp shadow"
+        id="dropdown"
+      >
+        <a
+          className="md:hidden flex items-center justify-left  py-2 text-gray-400 dark:text-gray-400"
+          href="/about"
+        >
+          <img
+            className="inline cursor-pointer w-4 mr-3"
+            src="/public/images/about.svg"
+            alt="about-svg"
+          />
+          <p className="font-normal">About</p>
+        </a>
+
+        <div
+          className="flex items-center justify-left py-2 text-red-500"
+          onClick={logout}
+        >
+          <img
+            className="inline cursor-pointer w-4 mr-3"
+            src="/public/images/logout.svg"
+            alt="logout-svg"
+          />
+          <p className="font-normal">Logout</p>
+        </div>
+      </div>
+    </div>
   );
 }
 

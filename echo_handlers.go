@@ -67,11 +67,12 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	e.POST("/api/apps", svc.AppsCreateHandler)
 	e.DELETE("/api/apps/:pubkey", svc.AppsDeleteHandler)
 	e.GET("/api/info", svc.InfoHandler)
-	e.GET("/logout", svc.LogoutHandler)
+	e.GET("/api/logout", svc.LogoutHandler)
 	e.GET("/", svc.IndexHandler)
 	frontend.RegisterHandlers(e)
 }
 
+// TODO: should this be moved to React?
 func (svc *Service) IndexHandler(c echo.Context) error {
 	sess, _ := session.Get(CookieName, c)
 	returnTo := sess.Values["return_to"]
@@ -409,7 +410,7 @@ func (svc *Service) LogoutHandler(c echo.Context) error {
 		sess.Options.Domain = svc.cfg.CookieDomain
 	}
 	sess.Save(c.Request(), c.Response())
-	return c.JSON(http.StatusOK, "Logout successful")
+	return c.NoContent(http.StatusNoContent)
 }
 
 func (svc *Service) InfoHandler(c echo.Context) error {
