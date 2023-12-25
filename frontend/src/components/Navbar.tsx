@@ -1,9 +1,10 @@
 import { Outlet } from "react-router-dom";
-import { useUser } from "../context/UserContext";
+import { useInfo } from "../hooks/useInfo";
 import { logout } from "../utils/logout";
+import { useLogin } from "../hooks/useLogin";
 
 function Navbar() {
-  const { info } = useUser();
+  const { data: info } = useInfo();
   return (
     <>
       <div className="bg-gray-50 dark:bg-surface-00dp">
@@ -50,6 +51,13 @@ function Navbar() {
 }
 
 function ProfileDropdown() {
+  const { data: info } = useInfo();
+  useLogin();
+
+  if (!info?.user) {
+    return null;
+  }
+
   return (
     <div className="flex items-center relative">
       <p

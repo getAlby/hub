@@ -56,7 +56,7 @@ var nip47MethodIcons = map[string]string{
 }
 
 type InfoResponse struct {
-	User        User   `json:"user"`
+	User        *User  `json:"user"`
 	BackendType string `json:"backendType"`
 	Csrf        string `json:"csrf"`
 }

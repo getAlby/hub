@@ -1,10 +1,10 @@
 import { useNavigate } from "react-router-dom";
-import { useUser } from "../context/UserContext";
+import { useInfo } from "../hooks/useInfo";
 import { useEffect } from "react";
 import nwcLogo from "../assets/nwc-logo.svg";
 
 function Login() {
-  const { info } = useUser();
+  const { data: info } = useInfo();
   const navigate = useNavigate();
 
   useEffect(() => {

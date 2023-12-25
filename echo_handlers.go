@@ -116,8 +116,7 @@ func (svc *Service) AppsListHandler(c echo.Context) error {
 		})
 	}
 	if user == nil {
-		// TODO: Show not found?
-		return c.Redirect(302, "/?q=notfound")
+		return c.NoContent(http.StatusUnauthorized)
 	}
 
 	apps := user.Apps
@@ -421,7 +420,7 @@ func (svc *Service) InfoHandler(c echo.Context) error {
 	}
 	responseBody := &InfoResponse{}
 	responseBody.BackendType = svc.cfg.LNBackendType
-	responseBody.User = *user
+	responseBody.User = user
 	responseBody.Csrf = csrf
 	return c.JSON(http.StatusOK, responseBody)
 }

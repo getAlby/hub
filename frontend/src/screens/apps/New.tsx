@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useUser } from "../../context/UserContext";
+import { useInfo } from "../../hooks/useInfo";
 import {
   BudgetRenewalType,
   CreateAppResponse,
@@ -13,7 +13,7 @@ import {
 } from "../../types";
 
 const New = () => {
-  const { info } = useUser();
+  const { data: info } = useInfo();
   const navigate = useNavigate();
   const currentUser: User = (info as UserInfo).user!;
 
