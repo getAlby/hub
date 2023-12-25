@@ -1,19 +1,19 @@
 import { useNavigate } from "react-router-dom";
 import { useUser } from "../context/UserContext";
 import { useEffect } from "react";
-import nwcLogo from "../assets/nwc-logo.svg"
+import nwcLogo from "../assets/nwc-logo.svg";
 
 function Login() {
-  const { info } = useUser()
-  const navigate = useNavigate()
+  const { info } = useUser();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (info?.user) {
-      navigate('/');
+      navigate("/");
     }
   }, [navigate, info?.user]);
 
-  return(
+  return (
     <div className="text-center">
       <img
         alt="Nostr Wallet Connect logo"
@@ -32,8 +32,11 @@ function Login() {
       </h2>
 
       <p className="my-8">
-        <a className=" inline-flex cursor-pointer items-center justify-center rounded-md transition-all px-10 py-4 text-black bg-gradient-to-r from-[#ffde6e] to-[#f8c455]" href="/alby/auth">
-        {/* style="background: linear-gradient(180deg, #ffde6e 63.72%, #f8c455 95.24%);" */}
+        <a
+          className=" inline-flex cursor-pointer items-center justify-center rounded-md transition-all px-10 py-4 text-black bg-gradient-to-r from-[#ffde6e] to-[#f8c455]"
+          href="/alby/auth"
+        >
+          {/* style="background: linear-gradient(180deg, #ffde6e 63.72%, #f8c455 95.24%);" */}
           <img
             src="/public/images/alby-head.svg"
             width="400"
@@ -43,12 +46,14 @@ function Login() {
           Log in with Alby Account
         </a>
       </p>
-    
+
       <p>
-        <a href="/about" className="text-purple-700 dark:text-purple-400">How does it work?</a>
+        <a href="/about" className="text-purple-700 dark:text-purple-400">
+          How does it work?
+        </a>
       </p>
     </div>
-  )
+  );
 }
 
 export default Login;
