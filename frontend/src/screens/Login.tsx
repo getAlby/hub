@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useUser } from "../context/UserContext";
 import { useEffect } from "react";
+import nwcLogo from "../assets/nwc-logo.svg"
 
 function Login() {
   const { info } = useUser()
@@ -19,7 +20,7 @@ function Login() {
         className="mx-auto my-4"
         width="128"
         height="120"
-        src="/public/images/nwc-logo.svg"
+        src={nwcLogo}
       />
 
       <h1 className="font-headline text-3xl sm:text-4xl mb-2 dark:text-white">
