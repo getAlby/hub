@@ -79,9 +79,8 @@ type ShowAppResponse struct {
 }
 
 type ListAppsResponse struct {
-	Apps         []App               `json:"apps"`
-	LastEvents   map[uint]NostrEvent `json:"lastEvents"`
-	EventsCounts map[uint]int64      `json:"eventsCounts"`
+	Apps       []App                `json:"apps"`
+	LastEvents map[uint]*NostrEvent `json:"lastEvents"`
 }
 
 type CreateAppResponse struct {

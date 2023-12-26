@@ -115,8 +115,7 @@ export interface ShowAppResponse {
 
 export interface ListAppsResponse {
   apps: App[];
-  lastEvent: Record<App["id"], NostrEvent>;
-  eventsCounts: Record<App["id"], number>;
+  lastEvents: Record<App["id"], NostrEvent>;
 }
 
 export interface CreateAppResponse {

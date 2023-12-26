@@ -118,21 +118,18 @@ func (svc *Service) AppsListHandler(c echo.Context) error {
 
 	apps := user.Apps
 
-	lastEvents := make(map[uint]NostrEvent)
-	eventsCounts := make(map[uint]int64)
+	lastEvents := make(map[uint]*NostrEvent)
 	for _, app := range apps {
 		var lastEvent NostrEvent
-		var eventsCount int64
-		svc.db.Where("app_id = ?", app.ID).Order("id desc").Limit(1).Find(&lastEvent)
-		svc.db.Model(&NostrEvent{}).Where("app_id = ?", app.ID).Count(&eventsCount)
-		lastEvents[app.ID] = lastEvent
-		eventsCounts[app.ID] = eventsCount
+		result := svc.db.Where("app_id = ?", app.ID).Order("id desc").Limit(1).Find(&lastEvent)
+		if result.RowsAffected > 0 {
+			lastEvents[app.ID] = &lastEvent
+		}
 	}
 
 	return c.JSON(http.StatusOK, ListAppsResponse{
-		Apps:         apps,
-		LastEvents:   lastEvents,
-		EventsCounts: eventsCounts,
+		Apps:       apps,
+		LastEvents: lastEvents,
 	})
 }
 

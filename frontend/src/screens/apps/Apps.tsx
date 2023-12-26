@@ -59,10 +59,10 @@ function Apps() {
 
             {apps.apps.length && (
               <>
-                {apps.apps.map((app) => (
+                {apps.apps.map((app, index) => (
                   <tr
                     onClick={() => handleRowClick(app.nostrPubkey)}
-                    key={app.id}
+                    key={index}
                     className="bg-white dark:bg-surface-02dp cursor-pointer hover:bg-purple-50 dark:hover:bg-surface-16dp"
                   >
                     {/* onClick="window.location='/apps/{{.NostrPubkey}}'"*/}
@@ -70,10 +70,10 @@ function Apps() {
                       {app.name}
                     </td>
                     <td className="px-6 py-4 text-gray-500 dark:text-neutral-400 hidden md:table-cell">
-                      {apps.eventsCounts && apps.eventsCounts[app.id] > 0
-                        ? apps.lastEvent && apps.lastEvent[app.id]
-                          ? apps.lastEvent[app.id].createdAt.toLocaleString()
-                          : "-"
+                      {apps.lastEvents[app.id]
+                        ? new Date(
+                            apps.lastEvents[app.id].createdAt
+                          ).toLocaleDateString()
                         : "-"}
                     </td>
                     <td className="px-6 py-4 text-purple-700 dark:text-purple-400 text-right">
