@@ -68,12 +68,12 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	e.DELETE("/api/apps/:pubkey", svc.AppsDeleteHandler)
 	e.GET("/api/info", svc.InfoHandler)
 	e.GET("/api/logout", svc.LogoutHandler)
-	e.GET("/", svc.IndexHandler)
+	// e.GET("/", svc.IndexHandler)
 	frontend.RegisterHandlers(e)
 }
 
-// TODO: should this be moved to React?
-func (svc *Service) IndexHandler(c echo.Context) error {
+// TODO: this should be moved to React
+/*func (svc *Service) IndexHandler(c echo.Context) error {
 	sess, _ := session.Get(CookieName, c)
 	returnTo := sess.Values["return_to"]
 	user, err := svc.GetUser(c)
@@ -94,7 +94,7 @@ func (svc *Service) IndexHandler(c echo.Context) error {
 		return c.Redirect(302, "/apps")
 	}
 	return c.Redirect(302, "/login")
-}
+}*/
 
 func (svc *Service) AboutHandler(c echo.Context) error {
 	user, err := svc.GetUser(c)
