@@ -5,8 +5,6 @@ import {
   BudgetRenewalType,
   CreateAppResponse,
   RequestMethodType,
-  User,
-  UserInfo,
   nip47MethodDescriptions,
   nip47MethodIcons,
   validBudgetRenewals,
@@ -15,7 +13,6 @@ import {
 const NewApp = () => {
   const { data: info } = useInfo();
   const navigate = useNavigate();
-  const currentUser: User = (info as UserInfo).user!;
 
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
@@ -430,14 +427,6 @@ const NewApp = () => {
                 {new Date(parseInt(expiresAtParam) * 1000).toISOString()}
               </p>
             </>
-          )}
-
-          {currentUser.email && (
-            <p className="mt-8 pt-4 border-t border-gray-300 dark:border-gray-700 text-sm text-gray-500 dark:text-neutral-300 text-center">
-              You're logged in as{" "}
-              <span className="font-mono">{currentUser.email}</span>
-              <br />
-            </p>
           )}
 
           <div className="mt-6 flex flex-col sm:flex-row sm:justify-center">
