@@ -29,9 +29,11 @@ To get a new random Nostr key use `openssl rand -hex 32` or similar.
 
 ### Server (LND)
 
-Create a Lightning Polar setup with two LND nodes and uncomment the Polar LND section in your `.env` file.
+1. Create a Lightning Polar setup with two LND nodes and uncomment the Polar LND section in your `.env` file.
 
-`go run .` or `gow -e=go,mod,html,css run .` using [gow](https://github.com/mitranim/gow)
+2. Compile the frontend or run `touch frontend/dist/tmp` to ensure there are embeddable files available.
+
+3. `go run .` or `gow -e=go,mod,html,css run .` using [gow](https://github.com/mitranim/gow)
 
 ### Server (Alby Wallet API)
 
