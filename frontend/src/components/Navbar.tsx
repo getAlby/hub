@@ -1,4 +1,4 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { useInfo } from "../hooks/useInfo";
 import { logout } from "../utils/logout";
 import { useLogin } from "../hooks/useLogin";
@@ -10,6 +10,12 @@ import { LogoutIcon } from "./icons/LogoutIcon";
 
 function Navbar() {
   const { data: info } = useInfo();
+  const location = useLocation();
+
+  const linkStyles =
+    "text-gray-400 font-medium hover:text-gray-600 dark:hover:text-gray-300 transition";
+  const selectedLinkStyles = "text-gray-900 dark:text-gray-100";
+
   return (
     <>
       <div className="bg-gray-50 dark:bg-surface-00dp">
@@ -39,12 +45,19 @@ function Navbar() {
                   } space-x-4`}
                 >
                   <a
-                    className="text-gray-400 font-medium hover:text-gray-600 dark:hover:text-gray-300 transition"
+                    className={`${linkStyles} ${
+                      location.pathname === "/apps" && selectedLinkStyles
+                    }`}
                     href="/apps"
                   >
                     Connections
                   </a>
-                  <a className="text-gray-400 pl-5 font-medium" href="/about">
+                  <a
+                    className={`${linkStyles} ${
+                      location.pathname === "/about" && selectedLinkStyles
+                    }`}
+                    href="/about"
+                  >
                     About
                   </a>
                 </div>
@@ -82,7 +95,9 @@ function ProfileDropdown() {
         <span>{info.user.email}</span>
         <img
           id="caret"
-          className="inline cursor-pointer w-4 ml-2"
+          className={`inline cursor-pointer w-4 ml-2 ${
+            isOpen ? "rotate-180" : ""
+          }`}
           src={caretIcon}
         />
       </p>
@@ -109,10 +124,7 @@ function ProfileDropdown() {
               className="flex items-center justify-left py-2 text-red-500"
               onClick={logout}
             >
-              <LogoutIcon
-                className="inline cursor-pointer w-4 mr-3"
-                alt="logout-svg"
-              />
+              <LogoutIcon className="inline cursor-pointer w-4 mr-3" />
               <p className="font-normal">Logout</p>
             </div>
           )}

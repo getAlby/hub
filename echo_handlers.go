@@ -214,6 +214,7 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, response)
 }
 
+// TODO: remove this function, should be done in React!
 func getEndOfBudgetString(endOfBudget time.Time) (result string) {
 	if endOfBudget.IsZero() {
 		return "--"

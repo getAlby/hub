@@ -15,7 +15,7 @@ function Login() {
   }, [navigate, info?.user]);
 
   return (
-    <div className="text-center">
+    <div className="text-center pt-4">
       <img
         alt="Nostr Wallet Connect logo"
         className="mx-auto my-4"
