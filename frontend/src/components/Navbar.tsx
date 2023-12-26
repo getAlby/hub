@@ -2,6 +2,11 @@ import { Outlet } from "react-router-dom";
 import { useInfo } from "../hooks/useInfo";
 import { logout } from "../utils/logout";
 import { useLogin } from "../hooks/useLogin";
+import nwcLogo from "../assets/images/nwc-logo.svg";
+import caretIcon from "../assets/icons/caret.svg";
+import aboutIcon from "../assets/icons/about.svg";
+import React from "react";
+import { LogoutIcon } from "./icons/LogoutIcon";
 
 function Navbar() {
   const { data: info } = useInfo();
@@ -21,14 +26,18 @@ function Navbar() {
                     className="w-8 inline"
                     width="128"
                     height="120"
-                    src="/public/images/nwc-logo.svg"
+                    src={nwcLogo}
                   />
                   <span className="dark:text-white text-lg font-semibold hidden sm:inline">
                     Nostr Wallet Connect
                   </span>
                 </a>
 
-                <div className="hidden md:flex space-x-4">
+                <div
+                  className={`${
+                    info?.user ? "hidden md:flex" : "flex"
+                  } space-x-4`}
+                >
                   <a
                     className="text-gray-400 font-medium hover:text-gray-600 dark:hover:text-gray-300 transition"
                     href="/apps"
@@ -51,55 +60,60 @@ function Navbar() {
 }
 
 function ProfileDropdown() {
-  const { data: info } = useInfo();
   useLogin();
+  const { data: info } = useInfo();
+  const [isOpen, setOpen] = React.useState(false);
 
   if (!info?.user) {
     return null;
   }
 
+  // TODO: add a proper dropdown component
   return (
     <div className="flex items-center relative">
       <p
-        className="text-gray-400 dark:text-gray-400 text-xs font-medium sm:text-base cursor-pointer select-none "
-        id="dropdown-menu"
+        className="text-gray-400 text-xs font-medium sm:text-base cursor-pointer select-none "
+        onClick={() => setOpen((current) => !current)}
       >
-        {/* {user.email} */}
+        <span>{info.user.email}</span>
         <img
           id="caret"
           className="inline cursor-pointer w-4 ml-2"
-          src="/public/images/caret.svg"
+          src={caretIcon}
         />
       </p>
 
-      <div
-        className="font-medium flex flex-col px-4 w-40 logout absolute right mt-25 justify-left cursor-pointer rounded-lg border border-gray-200 dark:border-gray-200 text-center bg-white dark:bg-surface-01dp shadow"
-        id="dropdown"
-      >
-        <a
-          className="md:hidden flex items-center justify-left  py-2 text-gray-400 dark:text-gray-400"
-          href="/about"
-        >
-          <img
-            className="inline cursor-pointer w-4 mr-3"
-            src="/public/images/about.svg"
-            alt="about-svg"
-          />
-          <p className="font-normal">About</p>
-        </a>
-
+      {isOpen && (
         <div
-          className="flex items-center justify-left py-2 text-red-500"
-          onClick={logout}
+          className="font-medium flex flex-col px-4 w-40 logout absolute right top-8 right-0 justify-left cursor-pointer rounded-lg border border-gray-200 dark:border-gray-600 text-center bg-white dark:bg-surface-01dp shadow"
+          id="dropdown"
         >
-          <img
-            className="inline cursor-pointer w-4 mr-3"
-            src="/public/images/logout.svg"
-            alt="logout-svg"
-          />
-          <p className="font-normal">Logout</p>
+          <a
+            className="md:hidden flex items-center justify-left  py-2 text-gray-400 dark:text-gray-400"
+            href="/about"
+          >
+            <img
+              className="inline cursor-pointer w-4 mr-3"
+              src={aboutIcon}
+              alt="about-svg"
+            />
+            <p className="font-normal">About</p>
+          </a>
+
+          {info?.user && (
+            <div
+              className="flex items-center justify-left py-2 text-red-500"
+              onClick={logout}
+            >
+              <LogoutIcon
+                className="inline cursor-pointer w-4 mr-3"
+                alt="logout-svg"
+              />
+              <p className="font-normal">Logout</p>
+            </div>
+          )}
         </div>
-      </div>
+      )}
     </div>
   );
 }
