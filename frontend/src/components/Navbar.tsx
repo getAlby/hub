@@ -16,10 +16,10 @@ function Navbar() {
         <div className="bg-white border-b border-gray-200 dark:bg-surface-01dp dark:border-neutral-700 mb-6">
           <nav className="container max-w-screen-lg mx-auto px-4 lg:px-0 py-3">
             <div className="flex justify-between items-center">
-              <div className="flex items-center space-x-12">
+              <div className="flex items-center space-x-12 justify-center">
                 <a
                   href="/"
-                  className="font-headline text-[20px] dark:text-white"
+                  className="font-headline text-[20px] dark:text-white flex gap-2 justify-center items-center"
                 >
                   <img
                     alt="NWC Logo"
@@ -54,7 +54,11 @@ function Navbar() {
           </nav>
         </div>
       </div>
-      <Outlet />
+      <div className="flex justify-center">
+        <div className="container max-w-screen-lg">
+          <Outlet />
+        </div>
+      </div>
     </>
   );
 }
