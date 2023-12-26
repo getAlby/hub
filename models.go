@@ -55,34 +55,39 @@ var nip47MethodIcons = map[string]string{
 	NIP_47_LIST_TRANSACTIONS_METHOD: "transactions",
 }
 
+// TODO: move to models/API
 type InfoResponse struct {
 	User        *User  `json:"user"`
 	BackendType string `json:"backendType"`
 	Csrf        string `json:"csrf"`
 }
 
+// TODO: move to models/API
 type CSRFResponse struct {
 	Csrf string `json:"csrf"`
 }
 
+// TODO: move to models/API
 type ShowAppResponse struct {
 	App                   App           `json:"app"`
 	BudgetUsage           int64         `json:"budgetUsage"`
 	Csrf                  string        `json:"csrf"`
 	EventsCount           int64         `json:"eventsCount"`
-	ExpiresAt             int64         `json:"expiresAt"`
-	ExpiresAtFormatted    string        `json:"expiresAtFormatted"`
-	LastEvent             NostrEvent    `json:"lastEvent"`
+	ExpiresAt             *int64        `json:"expiresAt"`
+	LastEvent             *NostrEvent   `json:"lastEvent"`
 	PaySpecificPermission AppPermission `json:"paySpecificPermission"`
 	RenewsIn              string        `json:"renewsIn"`
 	RequestMethods        []string      `json:"requestMethods"`
 }
 
+// TODO: move to models/API
 type ListAppsResponse struct {
-	Apps       []App                `json:"apps"`
+	Apps []App `json:"apps"`
+	// TODO: return just the last accessed date instead of the whole event?
 	LastEvents map[uint]*NostrEvent `json:"lastEvents"`
 }
 
+// TODO: move to models/API
 type CreateAppResponse struct {
 	PairingUri    string `json:"pairingUri"`
 	PairingSecret string `json:"pairingSecretKey"`

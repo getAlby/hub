@@ -163,20 +163,20 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 		})
 	}
 
-	lastEvent := NostrEvent{}
-	svc.db.Where("app_id = ?", app.ID).Order("id desc").Limit(1).Find(&lastEvent)
+	var lastEvent NostrEvent
+	lastEventResult := svc.db.Where("app_id = ?", app.ID).Order("id desc").Limit(1).Find(&lastEvent)
 	var eventsCount int64
 	svc.db.Model(&NostrEvent{}).Where("app_id = ?", app.ID).Count(&eventsCount)
 
 	paySpecificPermission := AppPermission{}
 	appPermissions := []AppPermission{}
-	expiresAt := time.Time{}
+	var expiresAt int64
 	svc.db.Where("app_id = ?", app.ID).Find(&appPermissions)
 
 	requestMethods := []string{}
 	for _, appPerm := range appPermissions {
-		if expiresAt.IsZero() && !appPerm.ExpiresAt.IsZero() {
-			expiresAt = appPerm.ExpiresAt
+		if !appPerm.ExpiresAt.IsZero() {
+			expiresAt = appPerm.ExpiresAt.Unix()
 		}
 		if appPerm.RequestMethod == NIP_47_PAY_INVOICE_METHOD {
 			//find the pay_invoice-specific permissions
@@ -184,8 +184,6 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 		}
 		requestMethods = append(requestMethods, appPerm.RequestMethod)
 	}
-
-	expiresAtFormatted := expiresAt.Format("January 2, 2006 03:04 PM")
 
 	renewsIn := ""
 	budgetUsage := int64(0)
@@ -196,18 +194,24 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 		renewsIn = getEndOfBudgetString(endOfBudget)
 	}
 
-	return c.JSON(http.StatusOK, ShowAppResponse{
+	response := ShowAppResponse{
 		App:                   app,
 		PaySpecificPermission: paySpecificPermission,
 		RequestMethods:        requestMethods,
-		ExpiresAt:             expiresAt.Unix(),
-		ExpiresAtFormatted:    expiresAtFormatted,
-		LastEvent:             lastEvent,
 		EventsCount:           eventsCount,
 		BudgetUsage:           budgetUsage,
 		RenewsIn:              renewsIn,
 		Csrf:                  csrf,
-	})
+	}
+
+	if lastEventResult.RowsAffected > 0 {
+		response.LastEvent = &lastEvent
+	}
+	if expiresAt != 0 {
+		response.ExpiresAt = &expiresAt
+	}
+
+	return c.JSON(http.StatusOK, response)
 }
 
 func getEndOfBudgetString(endOfBudget time.Time) (result string) {

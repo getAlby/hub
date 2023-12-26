@@ -67,7 +67,9 @@ function Show() {
                   Expires at
                 </td>
                 <td className="text-gray-600 dark:text-neutral-400">
-                  {appData.expiresAtFormatted || "never"}
+                  {appData.expiresAt
+                    ? new Date(appData.expiresAt * 1000).toLocaleDateString()
+                    : "never"}
                 </td>
               </tr>
             </table>
