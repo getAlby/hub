@@ -12,7 +12,7 @@ import {
   validBudgetRenewals,
 } from "../../types";
 
-const New = () => {
+const NewApp = () => {
   const { data: info } = useInfo();
   const navigate = useNavigate();
   const currentUser: User = (info as UserInfo).user!;
@@ -454,4 +454,4 @@ const New = () => {
   );
 };
 
-export default New;
+export default NewApp;

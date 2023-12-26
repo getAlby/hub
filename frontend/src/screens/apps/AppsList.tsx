@@ -5,7 +5,7 @@ import { App } from "../../types";
 import { useApps } from "../../hooks/useApps";
 import { PlusIcon } from "../../components/icons/PlusIcon";
 
-function Apps() {
+function AppsList() {
   const { data: apps } = useApps();
   const navigate = useNavigate();
 
@@ -90,4 +90,4 @@ function Apps() {
   );
 }
 
-export default Apps;
+export default AppsList;

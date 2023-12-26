@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useInfo } from "../../hooks/useInfo";
 import { useApp } from "../../hooks/useApp";
 
-function Show() {
+function ShowApp() {
   const { data: info } = useInfo();
   const { pubkey } = useParams() as { pubkey: string };
   const { data: appData } = useApp(pubkey);
@@ -135,4 +135,4 @@ function Show() {
   );
 }
 
-export default Show;
+export default ShowApp;

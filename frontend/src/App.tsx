@@ -1,15 +1,15 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import About from "./screens/About";
-import Apps from "./screens/apps/Apps";
-import Show from "./screens/apps/Show";
+import AppsList from "./screens/apps/AppsList";
+import ShowApp from "./screens/apps/ShowApp";
 import Login from "./screens/Login";
 import NotFound from "./screens/NotFound";
 
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
-import New from "./screens/apps/New";
-import Created from "./screens/apps/Created";
+import NewApp from "./screens/apps/NewApp";
+import AppCreated from "./screens/apps/AppCreated";
 
 function App() {
   return (
@@ -18,10 +18,10 @@ function App() {
         <Routes>
           <Route path="/" element={<Navbar />}>
             <Route index element={<Navigate to="/apps" replace />} />
-            <Route path="apps" element={<Apps />} />
-            <Route path="apps/:pubkey" element={<Show />} />
-            <Route path="apps/new" element={<New />} />
-            <Route path="apps/created" element={<Created />} />
+            <Route path="apps" element={<AppsList />} />
+            <Route path="apps/:pubkey" element={<ShowApp />} />
+            <Route path="apps/new" element={<NewApp />} />
+            <Route path="apps/created" element={<AppCreated />} />
             <Route path="about" element={<About />} />
           </Route>
           <Route path="login" element={<Login />} />
