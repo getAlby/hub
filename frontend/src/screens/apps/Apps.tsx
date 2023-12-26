@@ -4,7 +4,7 @@ import Loading from "../../components/Loading";
 import { App } from "../../types";
 import { useApps } from "../../hooks/useApps";
 
-function Connections() {
+function Apps() {
   const { data: apps } = useApps();
   const navigate = useNavigate();
 
@@ -94,4 +94,4 @@ function Connections() {
   );
 }
 
-export default Connections;
+export default Apps;

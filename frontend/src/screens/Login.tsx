@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useInfo } from "../hooks/useInfo";
 import { useEffect } from "react";
-import nwcLogo from "../assets/nwc-logo.svg";
+import nwcLogo from "../assets/images/nwc-logo.svg";
 
 function Login() {
   const { data: info } = useInfo();
