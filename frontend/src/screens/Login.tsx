@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useInfo } from "../hooks/useInfo";
 import { useEffect } from "react";
 import nwcLogo from "../assets/images/nwc-logo.svg";
+import albyHead from "../assets/images/alby-head.svg";
 
 function Login() {
   const { data: info } = useInfo();
@@ -36,9 +37,8 @@ function Login() {
           className=" inline-flex cursor-pointer items-center justify-center rounded-md transition-all px-10 py-4 text-black bg-gradient-to-r from-[#ffde6e] to-[#f8c455]"
           href="/alby/auth"
         >
-          {/* style="background: linear-gradient(180deg, #ffde6e 63.72%, #f8c455 95.24%);" */}
           <img
-            src="/public/images/alby-head.svg"
+            src={albyHead}
             width="400"
             height="400"
             className="w-[24px] mr-2"

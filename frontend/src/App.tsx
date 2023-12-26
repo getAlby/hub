@@ -13,7 +13,7 @@ import Created from "./screens/apps/Created";
 
 function App() {
   return (
-    <div className="p-4">
+    <div className="p-4 dark:bg-black min-h-full">
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Navbar />}>
