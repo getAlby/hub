@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Loading from "../../components/Loading";
 import { App } from "../../types";
 import { useApps } from "../../hooks/useApps";
+import { PlusIcon } from "../../components/icons/PlusIcon";
 
 function Apps() {
   const { data: apps } = useApps();
@@ -26,12 +27,7 @@ function Apps() {
           className="inline-flex bg-purple-700 cursor-pointer dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus:outline-none font-medium items-center justify-center px-3 md:px-6 py-2 md:py-3 rounded-lg shadow text-white transition {{if not .User}}opacity-50{{else}}hover:bg-purple-900{{end}} text-sm md:text-base"
           href="/apps/new"
         >
-          <img
-            src="public/images/plus.svg"
-            width="24"
-            height="24"
-            className="mr-2 text-white"
-          />
+          <PlusIcon className="mr-2 text-white w-6 h-6" />
           Connect app
         </a>
       </div>
