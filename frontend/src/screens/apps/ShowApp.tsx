@@ -37,7 +37,7 @@ function ShowApp() {
         {appData ? appData.app.description : ""}
       </p>
       <a className="ml-1 mt-1 mb-4 block dark:text-white text-xs" href="/apps">
-        &slarr; Back to overview
+        {"<"} Back to overview
       </a>
 
       <div className="bg-white rounded-md shadow p-4 lg:p-8 dark:bg-surface-02dp">
