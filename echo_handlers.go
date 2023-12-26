@@ -27,11 +27,8 @@ import (
 	"gorm.io/gorm"
 )
 
-//go:embed public/*
+//go:embed frontend/dist/*
 var embeddedAssets embed.FS
-
-//go:embed views/*
-var embeddedViews embed.FS
 
 type TemplateRegistry struct {
 	templates map[string]*template.Template
