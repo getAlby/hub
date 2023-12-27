@@ -65,7 +65,7 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	e.POST("/api/apps", svc.AppsCreateHandler)
 	e.DELETE("/api/apps/:pubkey", svc.AppsDeleteHandler)
 	e.GET("/api/info", svc.InfoHandler)
-	e.GET("/api/logout", svc.LogoutHandler)
+	e.POST("/api/logout", svc.LogoutHandler)
 	frontend.RegisterHandlers(e)
 }
 

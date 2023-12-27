@@ -1,4 +1,4 @@
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useInfo } from "../hooks/useInfo";
 import { logout } from "../utils/logout";
 import { useLogin } from "../hooks/useLogin";
@@ -7,6 +7,9 @@ import caretIcon from "../assets/icons/caret.svg";
 import aboutIcon from "../assets/icons/about.svg";
 import React from "react";
 import { LogoutIcon } from "./icons/LogoutIcon";
+import { handleFetchError, validateFetchResponse } from "../utils/fetch";
+import toast from "./Toast";
+import { useSWRConfig } from "swr";
 
 function Navbar() {
   const { data: info } = useInfo();
@@ -83,6 +86,24 @@ function ProfileDropdown() {
 
   if (!info?.user) {
     return null;
+  }
+
+  async function logout() {
+    try {
+      if (!info) {
+        throw new Error("info not loaded");
+      }
+      const response = await fetch("/api/logout", {
+        method: "POST",
+        headers: {
+          "X-CSRF-Token": info.csrf,
+        },
+      });
+      await validateFetchResponse(response);
+      window.location.href = "/";
+    } catch (error) {
+      handleFetchError("Failed to logout", error);
+    }
   }
 
   // TODO: add a proper dropdown component
