@@ -12,6 +12,7 @@
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-hot-toast": "^2.4.1",
     "react-qr-code": "^2.0.12",
     "react-router-dom": "^6.21.0",
     "swr": "^2.2.4"

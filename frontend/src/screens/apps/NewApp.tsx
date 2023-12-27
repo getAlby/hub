@@ -9,6 +9,8 @@ import {
   nip47MethodIcons,
   validBudgetRenewals,
 } from "../../types";
+import toast from "react-hot-toast";
+import { handleFetchError, validateFetchResponse } from "../../utils/fetch";
 
 const NewApp = () => {
   const { data: info } = useInfo();
@@ -123,15 +125,15 @@ const NewApp = () => {
           returnTo: returnTo,
         }),*/
       });
-      console.log(response);
+      await validateFetchResponse(response);
+
       const createAppResponse: CreateAppResponse = await response.json();
       navigate("/apps/created", {
         state: createAppResponse,
       });
+      toast.success("App created!");
     } catch (error) {
-      // TODO: Deal with invalid pubkey format error
-      // Invalid expiresAt error
-      console.error("Error deleting app:", error);
+      handleFetchError("Failed to create app", error);
     }
   };
 

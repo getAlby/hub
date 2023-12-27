@@ -2,6 +2,8 @@ import Loading from "../../components/Loading";
 import { useNavigate, useParams } from "react-router-dom";
 import { useInfo } from "../../hooks/useInfo";
 import { useApp } from "../../hooks/useApp";
+import { handleFetchError, validateFetchResponse } from "../../utils/fetch";
+import toast from "../../components/Toast";
 
 function ShowApp() {
   const { data: info } = useInfo();
@@ -15,16 +17,18 @@ function ShowApp() {
   const handleDelete = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     try {
-      await fetch(`/api/apps/${app.nostrPubkey}`, {
+      const response = await fetch(`/api/apps/${app.nostrPubkey}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
           "X-CSRF-Token": info.csrf,
         },
       });
+      await validateFetchResponse(response);
       navigate("/apps");
+      toast.success("App disconnected");
     } catch (error) {
-      console.error("Error deleting app:", error);
+      await handleFetchError("Failed to delete app", error);
     }
   };
 

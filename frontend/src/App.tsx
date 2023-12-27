@@ -10,10 +10,12 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import NewApp from "./screens/apps/NewApp";
 import AppCreated from "./screens/apps/AppCreated";
+import Toaster from "./components/Toast/Toaster";
 
 function App() {
   return (
     <div className="dark:bg-black min-h-full">
+      <Toaster />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Navbar />}>
