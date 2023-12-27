@@ -2,10 +2,6 @@ package api
 
 import "time"
 
-type CSRFResponse struct {
-	Csrf string `json:"csrf"`
-}
-
 type App struct {
 	// ID          uint      `json:"id"` // ID unused - pubkey is used as ID
 	Name        string    `json:"name"`
@@ -53,5 +49,4 @@ type User struct {
 type InfoResponse struct {
 	User        *User  `json:"user"`
 	BackendType string `json:"backendType"`
-	Csrf        string `json:"csrf"`
 }

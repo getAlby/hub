@@ -4,9 +4,11 @@ import { useInfo } from "../../hooks/useInfo";
 import { useApp } from "../../hooks/useApp";
 import { handleFetchError, validateFetchResponse } from "../../utils/fetch";
 import toast from "../../components/Toast";
+import { useCSRF } from "../../hooks/useCSRF";
 
 function ShowApp() {
   const { data: info } = useInfo();
+  const { data: csrf } = useCSRF();
   const { pubkey } = useParams() as { pubkey: string };
   const { data: app } = useApp(pubkey);
   const navigate = useNavigate();
@@ -17,11 +19,14 @@ function ShowApp() {
   const handleDelete = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     try {
+      if (!csrf) {
+        throw new Error("No CSRF token");
+      }
       const response = await fetch(`/api/apps/${app.nostrPubkey}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
-          "X-CSRF-Token": info.csrf,
+          "X-CSRF-Token": csrf,
         },
       });
       await validateFetchResponse(response);

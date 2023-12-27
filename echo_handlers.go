@@ -59,7 +59,7 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	assetSubdir, _ := fs.Sub(embeddedAssets, "public")
 	assetHandler := http.FileServer(http.FS(assetSubdir))
 	e.GET("/public/*", echo.WrapHandler(http.StripPrefix("/public/", assetHandler)))
-	e.GET("/api/getCSRFToken", svc.CSRFHandler)
+	e.GET("/api/csrf", svc.CSRFHandler)
 	e.GET("/api/apps", svc.AppsListHandler)
 	e.GET("/api/apps/:pubkey", svc.AppsShowHandler)
 	e.POST("/api/apps", svc.AppsCreateHandler)
@@ -192,9 +192,7 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 
 func (svc *Service) CSRFHandler(c echo.Context) error {
 	csrf, _ := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
-	return c.JSON(http.StatusOK, &api.CSRFResponse{
-		Csrf: csrf,
-	})
+	return c.JSON(http.StatusOK, csrf)
 }
 
 func (svc *Service) AppsCreateHandler(c echo.Context) error {
@@ -353,7 +351,6 @@ func (svc *Service) LogoutHandler(c echo.Context) error {
 }
 
 func (svc *Service) InfoHandler(c echo.Context) error {
-	csrf, _ := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
 	user, err := svc.GetUser(c)
 	if err != nil {
 		return err
@@ -365,6 +362,5 @@ func (svc *Service) InfoHandler(c echo.Context) error {
 			Email: user.Email,
 		}
 	}
-	responseBody.Csrf = csrf
 	return c.JSON(http.StatusOK, responseBody)
 }

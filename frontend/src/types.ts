@@ -102,24 +102,12 @@ export interface NostrEvent {
 
 export interface UserInfo {
   user: User | null;
-  backendType: BackendType;
-  csrf: string;
 }
 
-export interface InfoResponse extends UserInfo {}
-
-// export interface ShowAppResponse {
-//   app: App;
-//   budgetUsage?: number;
-//   csrf: string;
-//   eventsCount: number;
-//   expiresAt?: number;
-//   expiresAtFormatted?: string;
-//   lastEvent?: NostrEvent;
-//   paySpecificPermission?: AppPermission;
-//   renewsIn?: string;
-//   requestMethods: RequestMethodType[];
-// }
+export interface InfoResponse {
+  backendType: BackendType;
+  user: User | null; // TODO: remove
+}
 
 export interface CreateAppResponse {
   pairingUri: string;

@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useInfo } from "../../hooks/useInfo";
 import {
   BudgetRenewalType,
   CreateAppResponse,
@@ -11,9 +10,10 @@ import {
 } from "../../types";
 import toast from "react-hot-toast";
 import { handleFetchError, validateFetchResponse } from "../../utils/fetch";
+import { useCSRF } from "../../hooks/useCSRF";
 
 const NewApp = () => {
-  const { data: info } = useInfo();
+  const { data: csrf } = useCSRF();
   const navigate = useNavigate();
 
   const location = useLocation();
@@ -95,7 +95,9 @@ const NewApp = () => {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!info) return;
+    if (!csrf) {
+      throw new Error("No CSRF token");
+    }
 
     const formData = new FormData();
     formData.append("name", appName);
@@ -110,7 +112,7 @@ const NewApp = () => {
       const response = await fetch("/api/apps", {
         method: "POST",
         headers: {
-          "X-CSRF-Token": info.csrf,
+          "X-CSRF-Token": csrf,
         },
         body: formData,
 

@@ -1,6 +1,5 @@
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { useInfo } from "../hooks/useInfo";
-import { logout } from "../utils/logout";
 import { useLogin } from "../hooks/useLogin";
 import nwcLogo from "../assets/images/nwc-logo.svg";
 import caretIcon from "../assets/icons/caret.svg";
@@ -8,8 +7,7 @@ import aboutIcon from "../assets/icons/about.svg";
 import React from "react";
 import { LogoutIcon } from "./icons/LogoutIcon";
 import { handleFetchError, validateFetchResponse } from "../utils/fetch";
-import toast from "./Toast";
-import { useSWRConfig } from "swr";
+import { useCSRF } from "../hooks/useCSRF";
 
 function Navbar() {
   const { data: info } = useInfo();
@@ -82,6 +80,7 @@ function Navbar() {
 function ProfileDropdown() {
   useLogin();
   const { data: info } = useInfo();
+  const { data: csrf } = useCSRF();
   const [isOpen, setOpen] = React.useState(false);
 
   if (!info?.user) {
@@ -90,13 +89,13 @@ function ProfileDropdown() {
 
   async function logout() {
     try {
-      if (!info) {
+      if (!csrf) {
         throw new Error("info not loaded");
       }
       const response = await fetch("/api/logout", {
         method: "POST",
         headers: {
-          "X-CSRF-Token": info.csrf,
+          "X-CSRF-Token": csrf,
         },
       });
       await validateFetchResponse(response);
