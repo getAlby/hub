@@ -5,6 +5,7 @@ import { useApp } from "../../hooks/useApp";
 import { handleFetchError, validateFetchResponse } from "../../utils/fetch";
 import toast from "../../components/Toast";
 import { useCSRF } from "../../hooks/useCSRF";
+import { RequestMethodType, nip47MethodDescriptions } from "../../types";
 
 function ShowApp() {
   const { data: info } = useInfo();
@@ -92,7 +93,7 @@ function ShowApp() {
               {app.requestMethods.map((method, index) => (
                 <li key={index} className="mb-2 relative pl-6">
                   <span className="absolute left-0 text-green-500">✓</span>
-                  {method}
+                  {nip47MethodDescriptions[method as RequestMethodType]}
                 </li>
               ))}
             </ul>

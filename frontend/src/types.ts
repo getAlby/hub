@@ -17,6 +17,12 @@ export type RequestMethodType =
 
 export type BudgetRenewalType = "daily" | "weekly" | "monthly" | "yearly" | "";
 
+export type IconMap = {
+  [key in RequestMethodType]: (
+    props: React.SVGAttributes<SVGElement>
+  ) => JSX.Element;
+};
+
 export const validBudgetRenewals: BudgetRenewalType[] = [
   "daily",
   "weekly",
@@ -28,19 +34,10 @@ export const validBudgetRenewals: BudgetRenewalType[] = [
 export const nip47MethodDescriptions: Record<RequestMethodType, string> = {
   [NIP_47_GET_BALANCE_METHOD]: "Read your balance",
   [NIP_47_GET_INFO_METHOD]: "Read your node info",
-  [NIP_47_PAY_INVOICE_METHOD]: "Send payments",
-  [NIP_47_MAKE_INVOICE_METHOD]: "Create invoices",
-  [NIP_47_LOOKUP_INVOICE_METHOD]: "Lookup status of invoices",
   [NIP_47_LIST_TRANSACTIONS_METHOD]: "Read incoming transaction history",
-};
-
-export const nip47MethodIcons: Record<RequestMethodType, string> = {
-  [NIP_47_GET_BALANCE_METHOD]: "wallet",
-  [NIP_47_GET_INFO_METHOD]: "wallet",
-  [NIP_47_PAY_INVOICE_METHOD]: "lightning",
-  [NIP_47_MAKE_INVOICE_METHOD]: "invoice",
-  [NIP_47_LOOKUP_INVOICE_METHOD]: "search",
-  [NIP_47_LIST_TRANSACTIONS_METHOD]: "transactions",
+  [NIP_47_LOOKUP_INVOICE_METHOD]: "Lookup status of invoices",
+  [NIP_47_MAKE_INVOICE_METHOD]: "Create invoices",
+  [NIP_47_PAY_INVOICE_METHOD]: "Send payments",
 };
 
 export interface User {
