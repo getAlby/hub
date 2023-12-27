@@ -17,6 +17,7 @@ import (
 	echologrus "github.com/davrux/echo-logrus/v4"
 	// "github.com/getAlby/lndhub.go/lib/responses"
 	"github.com/getAlby/nostr-wallet-connect/frontend"
+	"github.com/getAlby/nostr-wallet-connect/models/api"
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
@@ -116,25 +117,31 @@ func (svc *Service) AppsListHandler(c echo.Context) error {
 		return c.NoContent(http.StatusUnauthorized)
 	}
 
-	apps := user.Apps
+	apps := []api.App{}
 
-	lastEvents := make(map[uint]*NostrEvent)
-	for _, app := range apps {
+	for _, app := range user.Apps {
+		apiApp := api.App{
+			// ID:          app.ID,
+			Name:        app.Name,
+			Description: app.Description,
+			CreatedAt:   app.CreatedAt,
+			UpdatedAt:   app.UpdatedAt,
+			NostrPubkey: app.NostrPubkey,
+		}
+
 		var lastEvent NostrEvent
 		result := svc.db.Where("app_id = ?", app.ID).Order("id desc").Limit(1).Find(&lastEvent)
 		if result.RowsAffected > 0 {
-			lastEvents[app.ID] = &lastEvent
+			apiApp.LastEventAt = &lastEvent.CreatedAt
 		}
+		apps = append(apps, apiApp)
 	}
 
-	return c.JSON(http.StatusOK, ListAppsResponse{
-		Apps:       apps,
-		LastEvents: lastEvents,
-	})
+	return c.JSON(http.StatusOK, apps)
 }
 
 func (svc *Service) AppsShowHandler(c echo.Context) error {
-	csrf, _ := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
+	// csrf, _ := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
 	user, err := svc.GetUser(c)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
@@ -165,18 +172,18 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 
 	var lastEvent NostrEvent
 	lastEventResult := svc.db.Where("app_id = ?", app.ID).Order("id desc").Limit(1).Find(&lastEvent)
-	var eventsCount int64
-	svc.db.Model(&NostrEvent{}).Where("app_id = ?", app.ID).Count(&eventsCount)
+	//var eventsCount int64
+	//svc.db.Model(&NostrEvent{}).Where("app_id = ?", app.ID).Count(&eventsCount)
 
 	paySpecificPermission := AppPermission{}
 	appPermissions := []AppPermission{}
-	var expiresAt int64
+	var expiresAt *time.Time
 	svc.db.Where("app_id = ?", app.ID).Find(&appPermissions)
 
 	requestMethods := []string{}
 	for _, appPerm := range appPermissions {
 		if !appPerm.ExpiresAt.IsZero() {
-			expiresAt = appPerm.ExpiresAt.Unix()
+			expiresAt = &appPerm.ExpiresAt
 		}
 		if appPerm.RequestMethod == NIP_47_PAY_INVOICE_METHOD {
 			//find the pay_invoice-specific permissions
@@ -185,65 +192,36 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 		requestMethods = append(requestMethods, appPerm.RequestMethod)
 	}
 
-	renewsIn := ""
+	//renewsIn := ""
 	budgetUsage := int64(0)
 	maxAmount := paySpecificPermission.MaxAmount
 	if maxAmount > 0 {
 		budgetUsage = svc.GetBudgetUsage(&paySpecificPermission)
-		endOfBudget := GetEndOfBudget(paySpecificPermission.BudgetRenewal, app.CreatedAt)
-		renewsIn = getEndOfBudgetString(endOfBudget)
 	}
 
-	response := ShowAppResponse{
-		App:                   app,
-		PaySpecificPermission: paySpecificPermission,
-		RequestMethods:        requestMethods,
-		EventsCount:           eventsCount,
-		BudgetUsage:           budgetUsage,
-		RenewsIn:              renewsIn,
-		Csrf:                  csrf,
+	response := api.App{
+		Name:           app.Name,
+		Description:    app.Description,
+		CreatedAt:      app.CreatedAt,
+		UpdatedAt:      app.UpdatedAt,
+		NostrPubkey:    app.NostrPubkey,
+		ExpiresAt:      expiresAt,
+		MaxAmount:      maxAmount,
+		RequestMethods: requestMethods,
+		BudgetUsage:    budgetUsage,
+		BudgetRenewal:  paySpecificPermission.BudgetRenewal,
 	}
 
 	if lastEventResult.RowsAffected > 0 {
-		response.LastEvent = &lastEvent
-	}
-	if expiresAt != 0 {
-		response.ExpiresAt = &expiresAt
+		response.LastEventAt = &lastEvent.CreatedAt
 	}
 
 	return c.JSON(http.StatusOK, response)
 }
 
-// TODO: remove this function, should be done in React!
-func getEndOfBudgetString(endOfBudget time.Time) (result string) {
-	if endOfBudget.IsZero() {
-		return "--"
-	}
-	endOfBudgetDuration := endOfBudget.Sub(time.Now())
-
-	//less than a day
-	if endOfBudgetDuration.Hours() < 24 {
-		hours := int(endOfBudgetDuration.Hours())
-		minutes := int(endOfBudgetDuration.Minutes()) % 60
-		return fmt.Sprintf("%d hours and %d minutes", hours, minutes)
-	}
-	//less than a month
-	if endOfBudgetDuration.Hours() < 24*30 {
-		days := int(endOfBudgetDuration.Hours() / 24)
-		return fmt.Sprintf("%d days", days)
-	}
-	//more than a month
-	months := int(endOfBudgetDuration.Hours() / 24 / 30)
-	days := int(endOfBudgetDuration.Hours()/24) % 30
-	if days > 0 {
-		return fmt.Sprintf("%d months %d days", months, days)
-	}
-	return fmt.Sprintf("%d months", months)
-}
-
 func (svc *Service) CSRFHandler(c echo.Context) error {
 	csrf, _ := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
-	return c.JSON(http.StatusOK, &CSRFResponse{
+	return c.JSON(http.StatusOK, &api.CSRFResponse{
 		Csrf: csrf,
 	})
 }
@@ -356,7 +334,7 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 		publicRelayUrl = svc.cfg.Relay
 	}
 
-	responseBody := &CreateAppResponse{}
+	responseBody := &api.CreateAppResponse{}
 	responseBody.Name = name
 	responseBody.Pubkey = pairingPublicKey
 	responseBody.PairingSecret = pairingSecretKey
@@ -417,9 +395,13 @@ func (svc *Service) InfoHandler(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	responseBody := &InfoResponse{}
+	responseBody := &api.InfoResponse{}
 	responseBody.BackendType = svc.cfg.LNBackendType
-	responseBody.User = user
+	if user != nil {
+		responseBody.User = &api.User{
+			Email: user.Email,
+		}
+	}
 	responseBody.Csrf = csrf
 	return c.JSON(http.StatusOK, responseBody)
 }

@@ -6,16 +6,16 @@ import { useApp } from "../../hooks/useApp";
 function ShowApp() {
   const { data: info } = useInfo();
   const { pubkey } = useParams() as { pubkey: string };
-  const { data: appData } = useApp(pubkey);
+  const { data: app } = useApp(pubkey);
   const navigate = useNavigate();
 
-  if (!appData || !info) {
+  if (!app || !info) {
     return <Loading />;
   }
   const handleDelete = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     try {
-      await fetch(`/api/apps/${appData.app.nostrPubkey}`, {
+      await fetch(`/api/apps/${app.nostrPubkey}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -31,10 +31,10 @@ function ShowApp() {
   return (
     <div>
       <h2 className="font-bold text-2xl font-headline dark:text-white">
-        {appData ? appData.app.name : "Fetching app..."}
+        {app ? app.name : "Fetching app..."}
       </h2>
       <p className="text-gray-600 dark:text-neutral-400 text-sm">
-        {appData ? appData.app.description : ""}
+        {app ? app.description : ""}
       </p>
       <a className="ml-1 mt-1 mb-4 block dark:text-white text-xs" href="/apps">
         {"<"} Back to overview
@@ -49,7 +49,7 @@ function ShowApp() {
                   Public Key
                 </td>
                 <td className="text-gray-600 dark:text-neutral-400 break-all">
-                  {appData.app.nostrPubkey}
+                  {app.nostrPubkey}
                 </td>
               </tr>
               <tr>
@@ -57,8 +57,8 @@ function ShowApp() {
                   Last used
                 </td>
                 <td className="text-gray-600 dark:text-neutral-400">
-                  {appData.eventsCount && appData.lastEvent
-                    ? appData.lastEvent.createdAt
+                  {app.lastEventAt
+                    ? new Date(app.lastEventAt).toLocaleDateString()
                     : "never"}
                 </td>
               </tr>
@@ -67,8 +67,8 @@ function ShowApp() {
                   Expires at
                 </td>
                 <td className="text-gray-600 dark:text-neutral-400">
-                  {appData.expiresAt
-                    ? new Date(appData.expiresAt * 1000).toLocaleDateString()
+                  {app.expiresAt
+                    ? new Date(app.expiresAt).toLocaleDateString()
                     : "never"}
                 </td>
               </tr>
@@ -80,34 +80,29 @@ function ShowApp() {
               Permissions
             </h3>
             <ul className="mt-2 text-gray-600 dark:text-neutral-400">
-              {appData.requestMethods.map((method, index) => (
+              {app.requestMethods.map((method, index) => (
                 <li key={index} className="mb-2 relative pl-6">
                   <span className="absolute left-0 text-green-500">✓</span>
                   {method}
                 </li>
               ))}
             </ul>
-            {appData.paySpecificPermission &&
-              appData.paySpecificPermission.maxAmount > 0 && (
-                <div className="pl-6">
-                  <table className="text-gray-600 dark:text-neutral-400">
-                    <tr>
-                      <td className="font-medium">Budget</td>
-                      <td>
-                        {appData.paySpecificPermission.maxAmount} sats (
-                        {appData.budgetUsage} sats used)
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className="font-medium pr-3">Renews in</td>
-                      <td>
-                        {appData.renewsIn} (set to{" "}
-                        {appData.paySpecificPermission.budgetRenewal})
-                      </td>
-                    </tr>
-                  </table>
-                </div>
-              )}
+            {app.maxAmount > 0 && (
+              <div className="pl-6">
+                <table className="text-gray-600 dark:text-neutral-400">
+                  <tr>
+                    <td className="font-medium">Budget</td>
+                    <td>
+                      {app.maxAmount} sats ({app.budgetUsage} sats used)
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="font-medium pr-3">Renews</td>
+                    <td>{app.budgetRenewal}</td>
+                  </tr>
+                </table>
+              </div>
+            )}
           </div>
 
           <div className="pt-4">
@@ -122,7 +117,6 @@ function ShowApp() {
         </div>
 
         <form method="post" onSubmit={handleDelete}>
-          <input type="hidden" name="_csrf" value={appData.csrf} />
           <button
             type="submit"
             className="inline-flex bg-white border border-red-400 cursor-pointer dark:bg-surface-02dp dark:hover:bg-surface-16dp duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus:outline-none font-medium hover:bg-gray-50 items-center justify-center px-5 py-3 rounded-md shadow text-gray-700 dark:text-neutral-300 transition w-full sm:w-[250px] sm:mr-8 mt-8 sm:mt-0 order-last sm:order-first"

@@ -1,17 +1,12 @@
-import { useNavigate } from "react-router-dom";
-
 import Loading from "../../components/Loading";
-import { App } from "../../types";
 import { useApps } from "../../hooks/useApps";
 import { PlusIcon } from "../../components/icons/PlusIcon";
+import { useNavigate } from "react-router-dom";
 
 function AppsList() {
   const { data: apps } = useApps();
-  const navigate = useNavigate();
 
-  const handleRowClick = (appId: App["nostrPubkey"]) => {
-    navigate(`/apps/${appId}`);
-  };
+  const navigate = useNavigate();
 
   if (!apps) {
     return <Loading />;
@@ -46,7 +41,7 @@ function AppsList() {
             </tr>
           </thead>
           <tbody className="divide-y dark:divide-white/10">
-            {!apps.apps.length && (
+            {!apps.length && (
               <tr className="bg-white dark:bg-surface-02dp">
                 <td
                   colSpan={3}
@@ -57,32 +52,25 @@ function AppsList() {
               </tr>
             )}
 
-            {apps.apps.length && (
-              <>
-                {apps.apps.map((app, index) => (
-                  <tr
-                    onClick={() => handleRowClick(app.nostrPubkey)}
-                    key={index}
-                    className="bg-white dark:bg-surface-02dp cursor-pointer hover:bg-purple-50 dark:hover:bg-surface-16dp"
-                  >
-                    {/* onClick="window.location='/apps/{{.NostrPubkey}}'"*/}
-                    <td className="px-6 py-4 text-gray-500 dark:text-white">
-                      {app.name}
-                    </td>
-                    <td className="px-6 py-4 text-gray-500 dark:text-neutral-400 hidden md:table-cell">
-                      {apps.lastEvents[app.id]
-                        ? new Date(
-                            apps.lastEvents[app.id].createdAt
-                          ).toLocaleDateString()
-                        : "-"}
-                    </td>
-                    <td className="px-6 py-4 text-purple-700 dark:text-purple-400 text-right">
-                      Details
-                    </td>
-                  </tr>
-                ))}
-              </>
-            )}
+            {apps.map((app, index) => (
+              <tr
+                key={index}
+                onClick={() => navigate(`/apps/${app.nostrPubkey}`)}
+                className="bg-white dark:bg-surface-02dp cursor-pointer hover:bg-purple-50 dark:hover:bg-surface-16dp"
+              >
+                <td className="px-6 py-4 text-gray-500 dark:text-white">
+                  {app.name}
+                </td>
+                <td className="px-6 py-4 text-gray-500 dark:text-neutral-400 hidden md:table-cell">
+                  {app.lastEventAt
+                    ? new Date(app.lastEventAt).toLocaleDateString()
+                    : "-"}
+                </td>
+                <td className="px-6 py-4 text-purple-700 dark:text-purple-400 text-right">
+                  <a href={`/apps/${app.nostrPubkey}`}>Details</a>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>

@@ -54,6 +54,7 @@ export interface User {
   apps: string;
   createdAt: string;
   updatedAt: string;
+  expiresAt: string;
 }
 
 export interface App {
@@ -65,6 +66,13 @@ export interface App {
   nostrPubkey: string;
   createdAt: string;
   updatedAt: string;
+  lastEventAt?: string;
+  expiresAt?: string;
+
+  requestMethods: string[];
+  maxAmount: number;
+  budgetUsage: number;
+  budgetRenewal: string;
 }
 
 export interface AppPermission {
@@ -100,23 +108,18 @@ export interface UserInfo {
 
 export interface InfoResponse extends UserInfo {}
 
-export interface ShowAppResponse {
-  app: App;
-  budgetUsage?: number;
-  csrf: string;
-  eventsCount: number;
-  expiresAt?: number;
-  expiresAtFormatted?: string;
-  lastEvent?: NostrEvent;
-  paySpecificPermission?: AppPermission;
-  renewsIn?: string;
-  requestMethods: RequestMethodType[];
-}
-
-export interface ListAppsResponse {
-  apps: App[];
-  lastEvents: Record<App["id"], NostrEvent>;
-}
+// export interface ShowAppResponse {
+//   app: App;
+//   budgetUsage?: number;
+//   csrf: string;
+//   eventsCount: number;
+//   expiresAt?: number;
+//   expiresAtFormatted?: string;
+//   lastEvent?: NostrEvent;
+//   paySpecificPermission?: AppPermission;
+//   renewsIn?: string;
+//   requestMethods: RequestMethodType[];
+// }
 
 export interface CreateAppResponse {
   pairingUri: string;
