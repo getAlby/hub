@@ -100,13 +100,8 @@ export interface NostrEvent {
   updatedAt: string;
 }
 
-export interface UserInfo {
-  user: User | null;
-}
-
 export interface InfoResponse {
   backendType: BackendType;
-  user: User | null; // TODO: remove
 }
 
 export interface CreateAppResponse {

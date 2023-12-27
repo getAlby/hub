@@ -18,18 +18,6 @@ type App struct {
 	BudgetRenewal  string     `json:"budgetRenewal"`
 }
 
-// type AppPermission struct {
-// 	ID            uint      `json:"id"`
-// 	AppId         uint      `json:"appId" validate:"required"`
-// 	App           App       `json:"app"`
-// 	RequestMethod string    `json:"requestMethod" validate:"required"`
-// 	MaxAmount     int       `json:"maxAmount"`
-// 	BudgetRenewal string    `json:"budgetRenewal"`
-// 	ExpiresAt     time.Time `json:"expiresAt"`
-// 	CreatedAt     time.Time `json:"createdAt"`
-// 	UpdatedAt     time.Time `json:"updatedAt"`
-// }
-
 type ListAppsResponse struct {
 	Apps []App `json:"apps"`
 }
@@ -47,6 +35,5 @@ type User struct {
 }
 
 type InfoResponse struct {
-	User        *User  `json:"user"`
 	BackendType string `json:"backendType"`
 }

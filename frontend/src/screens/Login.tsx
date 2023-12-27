@@ -1,19 +1,7 @@
-import { useNavigate } from "react-router-dom";
-import { useInfo } from "../hooks/useInfo";
-import { useEffect } from "react";
 import nwcLogo from "../assets/images/nwc-logo.svg";
 import albyHead from "../assets/images/alby-head.svg";
 
 function Login() {
-  const { data: info } = useInfo();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (info?.user) {
-      navigate("/");
-    }
-  }, [navigate, info?.user]);
-
   return (
     <div className="text-center pt-4">
       <img

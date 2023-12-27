@@ -3,10 +3,7 @@ package main
 import (
 	"embed"
 	"encoding/hex"
-	"errors"
 	"fmt"
-	"html/template"
-	"io"
 	"io/fs"
 	"net/http"
 	"net/url"
@@ -31,20 +28,6 @@ import (
 //go:embed frontend/dist/*
 var embeddedAssets embed.FS
 
-type TemplateRegistry struct {
-	templates map[string]*template.Template
-}
-
-// Implement e.Renderer interface
-func (t *TemplateRegistry) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
-	tmpl, ok := t.templates[name]
-	if !ok {
-		err := errors.New("Template not found -> " + name)
-		return err
-	}
-	return tmpl.ExecuteTemplate(w, "layout.html", data)
-}
-
 func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	e.HideBanner = true
 	e.Use(echologrus.Middleware())
@@ -64,6 +47,7 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	e.GET("/api/apps/:pubkey", svc.AppsShowHandler)
 	e.POST("/api/apps", svc.AppsCreateHandler)
 	e.DELETE("/api/apps/:pubkey", svc.AppsDeleteHandler)
+	e.GET("/api/user/me", svc.UserMeHandler)
 	e.GET("/api/info", svc.InfoHandler)
 	e.POST("/api/logout", svc.LogoutHandler)
 	frontend.RegisterHandlers(e)
@@ -328,6 +312,7 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 
 func (svc *Service) AppsDeleteHandler(c echo.Context) error {
 	user, err := svc.GetUser(c)
+	// TODO: error handling
 	if err != nil {
 		return err
 	}
@@ -351,16 +336,23 @@ func (svc *Service) LogoutHandler(c echo.Context) error {
 }
 
 func (svc *Service) InfoHandler(c echo.Context) error {
-	user, err := svc.GetUser(c)
-	if err != nil {
-		return err
-	}
 	responseBody := &api.InfoResponse{}
 	responseBody.BackendType = svc.cfg.LNBackendType
-	if user != nil {
-		responseBody.User = &api.User{
-			Email: user.Email,
-		}
+	return c.JSON(http.StatusOK, responseBody)
+}
+
+func (svc *Service) UserMeHandler(c echo.Context) error {
+	user, err := svc.GetUser(c)
+	if err != nil {
+		// TODO: error handling
+		return err
+	}
+	if user == nil {
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	responseBody := api.User{
+		Email: user.Email,
 	}
 	return c.JSON(http.StatusOK, responseBody)
 }
