@@ -68,7 +68,6 @@ func (svc *Service) AppsListHandler(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   true,
-			Code:    8,
 			Message: fmt.Sprintf("Bad arguments %s", err.Error()),
 		})
 	}
@@ -105,7 +104,6 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   true,
-			Code:    8,
 			Message: fmt.Sprintf("Bad arguments %s", err.Error()),
 		})
 	}
@@ -117,10 +115,8 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 	svc.db.Where("user_id = ? AND nostr_pubkey = ?", user.ID, c.Param("pubkey")).First(&app)
 
 	if app.NostrPubkey == "" {
-		// TODO: Show not found?
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
+		return c.JSON(http.StatusNotFound, ErrorResponse{
 			Error:   true,
-			Code:    8,
 			Message: "App does not exist",
 		})
 	}
@@ -184,7 +180,6 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   true,
-			Code:    8,
 			Message: fmt.Sprintf("Bad arguments %s", err.Error()),
 		})
 	}
@@ -206,7 +201,6 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 			svc.Logger.Errorf("Invalid public key format: %s", pairingPublicKey)
 			return c.JSON(http.StatusBadRequest, ErrorResponse{
 				Error:   true,
-				Code:    8,
 				Message: fmt.Sprintf("Invalid public key format: %s", pairingPublicKey),
 			})
 		}
@@ -222,7 +216,6 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 			svc.Logger.Errorf("Invalid expiresAt: %s", pairingPublicKey)
 			return c.JSON(http.StatusBadRequest, ErrorResponse{
 				Error:   true,
-				Code:    8,
 				Message: fmt.Sprintf("Invalid expiresAt: %v", err),
 			})
 		}
@@ -273,7 +266,6 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 		}).Errorf("Failed to save app: %v", err)
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Error:   true,
-			Code:    8,
 			Message: fmt.Sprintf("Failed to save app: %v", err),
 		})
 	}

@@ -117,11 +117,11 @@ const NewApp = () => {
 
     const formData = new FormData();
     formData.append("name", appName);
-    formData.append("pubkey", pubkey);
     formData.append("maxAmount", maxAmount.toString());
     formData.append("budgetRenewal", budgetRenewal);
     formData.append("expiresAt", expiresAt);
     formData.append("requestMethods", requestMethods);
+    formData.append("pubkey", pubkey);
     formData.append("returnTo", returnTo);
 
     try {
@@ -164,6 +164,22 @@ const NewApp = () => {
     [NIP_47_PAY_INVOICE_METHOD]: LightningIcon,
   };
 
+  const expiryOptions: Record<string, number> = {
+    "1 week": 7,
+    "1 month": 30,
+    "1 year": 365,
+    Never: 0,
+  };
+
+  const budgetOptions: Record<string, number> = {
+    "10k": 10_000,
+    "25k": 25_000,
+    "50k": 50_000,
+    "100k": 100_000,
+    "1M": 100_000_000,
+    Unlimited: 0,
+  };
+
   return (
     <div>
       <h2 className="font-bold text-2xl font-headline mb-4 dark:text-white">
@@ -172,11 +188,7 @@ const NewApp = () => {
 
       <form onSubmit={handleSubmit} acceptCharset="UTF-8">
         <div className="bg-white dark:bg-surface-02dp rounded-md shadow p-4 md:p-8">
-          <input type="hidden" name="_csrf" value="YOUR_CSRF_TOKEN" />
-          <input type="hidden" name="pubkey" value={pubkey ?? ""} />
-          <input type="hidden" name="returnTo" value={returnTo ?? ""} />
-
-          {!nameParam ? (
+          {!nameParam && (
             <>
               <label
                 htmlFor="name"
@@ -199,35 +211,7 @@ const NewApp = () => {
                 Name of the app or purpose of the connection
               </p>
             </>
-          ) : (
-            <input type="hidden" name="name" id="" value="{{.Name}}" />
           )}
-
-          <input
-            type="hidden"
-            name="RequestMethods"
-            id="request-methods"
-            value={requestMethods}
-          />
-          <input
-            type="hidden"
-            name="ExpiresAt"
-            id="expires-at"
-            value={expiresAt}
-          />
-          <input
-            type="hidden"
-            name="MaxAmount"
-            id="max-amount"
-            value={maxAmount}
-          />
-          <input
-            type="hidden"
-            name="BudgetRenewal"
-            id="budget-renewal"
-            value={budgetRenewal}
-          />
-
           <div className="flex justify-between items-center mb-2 text-gray-800 dark:text-white">
             <p className="text-lg font-medium">Authorize the app to:</p>
             {!reqMethodsParam && (
@@ -293,78 +277,28 @@ const NewApp = () => {
                               id="budget-allowance-limits"
                               className="grid grid-cols-6 grid-rows-2 md:grid-rows-1 md:grid-cols-6 gap-2 text-xs text-gray-800 dark:text-neutral-200"
                             >
-                              <div
-                                onClick={() => setMaxAmount(10000)}
-                                className={`col-span-2 md:col-span-1 cursor-pointer rounded border-2 ${
-                                  maxAmount == 10000
-                                    ? "border-purple-700 dark:border-purple-300 text-purple-700 bg-purple-100 dark:bg-purple-900"
-                                    : "border-gray-200 dark:border-gray-400"
-                                } text-center py-4 dark:text-white`}
-                              >
-                                10k
-                                <br />
-                                sats
-                              </div>
-                              <div
-                                onClick={() => setMaxAmount(25000)}
-                                className={`col-span-2 md:col-span-1 cursor-pointer rounded border-2 ${
-                                  maxAmount == 25000
-                                    ? "border-purple-700 dark:border-purple-300 text-purple-700 bg-purple-100 dark:bg-purple-900"
-                                    : "border-gray-200 dark:border-gray-400"
-                                } text-center py-4 dark:text-white`}
-                              >
-                                25k
-                                <br />
-                                sats
-                              </div>
-                              <div
-                                onClick={() => setMaxAmount(50000)}
-                                className={`col-span-2 md:col-span-1 cursor-pointer rounded border-2 ${
-                                  maxAmount == 50000
-                                    ? "border-purple-700 dark:border-purple-300 text-purple-700 bg-purple-100 dark:bg-purple-900"
-                                    : "border-gray-200 dark:border-gray-400"
-                                } text-center py-4 dark:text-white`}
-                              >
-                                50k
-                                <br />
-                                sats
-                              </div>
-                              <div
-                                onClick={() => setMaxAmount(100000)}
-                                className={`col-span-2 md:col-span-1 cursor-pointer rounded border-2 ${
-                                  maxAmount == 100000
-                                    ? "border-purple-700 dark:border-purple-300 text-purple-700 bg-purple-100 dark:bg-purple-900"
-                                    : "border-gray-200 dark:border-gray-400"
-                                } text-center py-4 dark:text-white`}
-                              >
-                                100k
-                                <br />
-                                sats
-                              </div>
-                              <div
-                                onClick={() => setMaxAmount(1000000)}
-                                className={`col-span-2 md:col-span-1 cursor-pointer rounded border-2 ${
-                                  maxAmount == 1000000
-                                    ? "border-purple-700 dark:border-purple-300 text-purple-700 bg-purple-100 dark:bg-purple-900"
-                                    : "border-gray-200 dark:border-gray-400"
-                                } text-center py-4 dark:text-white`}
-                              >
-                                1M
-                                <br />
-                                sats
-                              </div>
-                              <div
-                                onClick={() => setMaxAmount(0)}
-                                className={`col-span-2 md:col-span-1 cursor-pointer rounded border-2 ${
-                                  maxAmount == 0
-                                    ? "border-purple-700 dark:border-purple-300 text-purple-700 bg-purple-100 dark:bg-purple-900"
-                                    : "border-gray-200 dark:border-gray-400"
-                                } text-center py-4 dark:text-white`}
-                              >
-                                Unlimited
-                                <br />
-                                #reckless
-                              </div>
+                              {Object.keys(budgetOptions).map((budget) => {
+                                return (
+                                  <>
+                                    <div
+                                      onClick={() =>
+                                        setMaxAmount(budgetOptions[budget])
+                                      }
+                                      className={`col-span-2 md:col-span-1 cursor-pointer rounded border-2 ${
+                                        maxAmount == budgetOptions[budget]
+                                          ? "border-purple-700 dark:border-purple-300 text-purple-700 bg-purple-100 dark:bg-purple-900"
+                                          : "border-gray-200 dark:border-gray-400"
+                                      } text-center py-4 dark:text-white`}
+                                    >
+                                      {budget}
+                                      <br />
+                                      {budgetOptions[budget]
+                                        ? "sats"
+                                        : "#reckless"}
+                                    </div>
+                                  </>
+                                );
+                              })}
                             </div>
                           </>
                         ) : (
@@ -405,46 +339,20 @@ const NewApp = () => {
                     id="expiry-days"
                     className="grid grid-cols-4 gap-2 text-xs"
                   >
-                    <div
-                      onClick={() => handleDays(7)}
-                      className={`cursor-pointer rounded border-2 ${
-                        days == 7
-                          ? "border-purple-700 dark:border-purple-300 text-purple-700 bg-purple-100 dark:bg-purple-900"
-                          : "border-gray-200 dark:border-gray-400"
-                      } text-center py-4`}
-                    >
-                      1 week
-                    </div>
-                    <div
-                      onClick={() => handleDays(30)}
-                      className={`cursor-pointer rounded border-2 ${
-                        days == 30
-                          ? "border-purple-700 dark:border-purple-300 text-purple-700 bg-purple-100 dark:bg-purple-900"
-                          : "border-gray-200 dark:border-gray-400"
-                      } text-center py-4`}
-                    >
-                      1 month
-                    </div>
-                    <div
-                      onClick={() => handleDays(365)}
-                      className={`cursor-pointer rounded border-2 ${
-                        days == 365
-                          ? "border-purple-700 dark:border-purple-300 text-purple-700 bg-purple-100 dark:bg-purple-900"
-                          : "border-gray-200 dark:border-gray-400"
-                      } text-center py-4`}
-                    >
-                      1 year
-                    </div>
-                    <div
-                      onClick={() => handleDays(0)}
-                      className={`cursor-pointer rounded border-2 ${
-                        days == 0
-                          ? "border-purple-700 dark:border-purple-300 text-purple-700 bg-purple-100 dark:bg-purple-900"
-                          : "border-gray-200 dark:border-gray-400"
-                      } text-center py-4`}
-                    >
-                      Never
-                    </div>
+                    {Object.keys(expiryOptions).map((expiry) => {
+                      return (
+                        <div
+                          onClick={() => handleDays(expiryOptions[expiry])}
+                          className={`cursor-pointer rounded border-2 ${
+                            days == expiryOptions[expiry]
+                              ? "border-purple-700 dark:border-purple-300 text-purple-700 bg-purple-100 dark:bg-purple-900"
+                              : "border-gray-200 dark:border-gray-400"
+                          } text-center py-4`}
+                        >
+                          {expiry}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
