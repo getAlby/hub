@@ -105,5 +105,9 @@ export interface InfoResponse {
 }
 
 export interface CreateAppResponse {
+  name: string;
   pairingUri: string;
+  pairingPublicKey: string;
+  pairingSecretKey: string;
+  returnTo: string;
 }

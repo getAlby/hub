@@ -1,4 +1,5 @@
 import ReactQRCode from "react-qr-code";
+import { useDarkMode } from "../hooks/useDarkMode";
 
 export type Props = {
   value: string;
@@ -16,11 +17,11 @@ export type Props = {
   level?: "Q" | undefined;
 };
 
-export default function QRCode({ value, size, level, className }: Props) {
-  // TODO: Theme option in settings?
-  const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches
-  const fgColor = isDark ? "#FFFFFF" : "#000000";
-  const bgColor = isDark ? "#000000" : "#FFFFFF";
+function QRCode({ value, size, level, className }: Props) {
+  const isDarkMode = useDarkMode();
+  console.log(isDarkMode);
+  const fgColor = isDarkMode ? "#FFFFFF" : "#242424";
+  const bgColor = isDarkMode ? "#242424" : "#FFFFFF";
 
   return (
     <ReactQRCode
@@ -33,3 +34,5 @@ export default function QRCode({ value, size, level, className }: Props) {
     />
   );
 }
+
+export default QRCode;
