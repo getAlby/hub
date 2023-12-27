@@ -151,11 +151,7 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 		})
 	}
 	if user == nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error:   true,
-			Code:    8,
-			Message: "User does not exist",
-		})
+		return c.NoContent(http.StatusUnauthorized)
 	}
 
 	app := App{}
@@ -236,11 +232,7 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 		})
 	}
 	if user == nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error:   true,
-			Code:    8,
-			Message: "User does not exist",
-		})
+		return c.NoContent(http.StatusUnauthorized)
 	}
 
 	name := c.FormValue("name")
@@ -367,16 +359,12 @@ func (svc *Service) AppsDeleteHandler(c echo.Context) error {
 		return err
 	}
 	if user == nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error:   true,
-			Code:    8,
-			Message: "User does not exist",
-		})
+		return c.NoContent(http.StatusUnauthorized)
 	}
 	app := App{}
 	svc.db.Where("user_id = ? AND nostr_pubkey = ?", user.ID, c.Param("pubkey")).First(&app)
 	svc.db.Delete(&app)
-	return c.JSON(http.StatusOK, "App deleted successfully")
+	return c.NoContent(http.StatusNoContent)
 }
 
 func (svc *Service) LogoutHandler(c echo.Context) error {
