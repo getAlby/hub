@@ -12,7 +12,6 @@ import (
 	"time"
 
 	echologrus "github.com/davrux/echo-logrus/v4"
-	"github.com/getAlby/nostr-wallet-connect/breez"
 	"github.com/getAlby/nostr-wallet-connect/migrations"
 	"github.com/glebarez/sqlite"
 	"github.com/joho/godotenv"
@@ -155,7 +154,7 @@ func main() {
 		}
 		svc.lnClient = oauthService
 	case BreezBackendType:
-		breezSvc, err := breez.NewBreezService(cfg.BreezMnemonic, cfg.BreezAPIKey, cfg.GreenlightInviteCode, cfg.BreezWorkdir)
+		breezSvc, err := NewBreezService(cfg.BreezMnemonic, cfg.BreezAPIKey, cfg.GreenlightInviteCode, cfg.BreezWorkdir)
 		if err != nil {
 			svc.Logger.Fatal(err)
 		}
