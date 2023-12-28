@@ -323,7 +323,7 @@ func makePreimageHex() ([]byte, error) {
 	return bytes, nil
 }
 
-func NewLNDService(ctx context.Context, svc *Service, e *echo.Echo) (result *LNDService, err error) {
+func NewLNDService(ctx context.Context, svc *Service, e *echo.Echo) (result LNClient, err error) {
 	lndClient, err := lnd.NewLNDclient(lnd.LNDoptions{
 		Address:      svc.cfg.LNDAddress,
 		CertFile:     svc.cfg.LNDCertFile,

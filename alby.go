@@ -24,7 +24,7 @@ type AlbyOAuthService struct {
 	Logger    *logrus.Logger
 }
 
-func NewAlbyOauthService(svc *Service, e *echo.Echo) (result *AlbyOAuthService, err error) {
+func NewAlbyOauthService(svc *Service, e *echo.Echo) (result LNClient, err error) {
 	conf := &oauth2.Config{
 		ClientID:     svc.cfg.AlbyClientId,
 		ClientSecret: svc.cfg.AlbyClientSecret,

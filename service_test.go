@@ -627,7 +627,7 @@ func TestHandleEvent(t *testing.T) {
 	assert.Equal(t, []string{"get_info"}, received.Result.(*Nip47GetInfoResponse).Methods)
 }
 
-func createTestService(t *testing.T) (svc *Service, ln *MockLn) {
+func createTestService(t *testing.T) (svc *Service, ln LNClient) {
 	db, err := gorm.Open(sqlite.Open(testDB), &gorm.Config{})
 	assert.NoError(t, err)
 	err = db.AutoMigrate(&User{}, &App{}, &AppPermission{}, &NostrEvent{}, &Payment{}, &Identity{})
