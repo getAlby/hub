@@ -4,10 +4,7 @@ import (
 	"crypto/subtle"
 	"embed"
 	"encoding/hex"
-	"errors"
 	"fmt"
-	"html/template"
-	"io"
 	"io/fs"
 	"net/http"
 	"net/url"
@@ -16,6 +13,9 @@ import (
 	"time"
 
 	echologrus "github.com/davrux/echo-logrus/v4"
+	// "github.com/getAlby/lndhub.go/lib/responses"
+	"github.com/getAlby/nostr-wallet-connect/frontend"
+	"github.com/getAlby/nostr-wallet-connect/models/api"
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
@@ -26,59 +26,16 @@ import (
 	"gorm.io/gorm"
 )
 
-//go:embed public/*
+//go:embed frontend/dist/*
 var embeddedAssets embed.FS
 
-//go:embed views/*
-var embeddedViews embed.FS
-
-type TemplateRegistry struct {
-	templates map[string]*template.Template
-}
-
-// Implement e.Renderer interface
-func (t *TemplateRegistry) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
-	tmpl, ok := t.templates[name]
-	if !ok {
-		err := errors.New("Template not found -> " + name)
-		return err
-	}
-	return tmpl.ExecuteTemplate(w, "layout.html", data)
-}
-
 func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
-
-	templates := make(map[string]*template.Template)
-	templates["apps/index.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/index.html", "views/layout.html"))
-	templates["apps/new.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/new.html", "views/layout.html"))
-	templates["apps/show.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/show.html", "views/layout.html"))
-	templates["apps/create.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/create.html", "views/layout.html"))
-	templates["alby/index.html"] = template.Must(template.ParseFS(embeddedViews, "views/backends/alby/index.html", "views/layout.html"))
-	templates["about.html"] = template.Must(template.ParseFS(embeddedViews, "views/about.html", "views/layout.html"))
-	templates["404.html"] = template.Must(template.ParseFS(embeddedViews, "views/404.html", "views/layout.html"))
-	templates["lnd/index.html"] = template.Must(template.ParseFS(embeddedViews, "views/backends/lnd/index.html", "views/layout.html"))
-	templates["breez/index.html"] = template.Must(template.ParseFS(embeddedViews, "views/backends/breez/index.html", "views/layout.html"))
-	e.Renderer = &TemplateRegistry{
-		templates: templates,
-	}
 	e.HideBanner = true
 	e.Use(echologrus.Middleware())
-
-	if svc.cfg.BasicAuthUser != "" && svc.cfg.BasicAuthPassword != "" {
-		e.Use(middleware.BasicAuth(func(username, password string, c echo.Context) (bool, error) {
-			// Be careful to use constant time comparison to prevent timing attacks
-			if subtle.ConstantTimeCompare([]byte(username), []byte(svc.cfg.BasicAuthUser)) == 1 &&
-				subtle.ConstantTimeCompare([]byte(password), []byte(svc.cfg.BasicAuthPassword)) == 1 {
-				return true, nil
-			}
-			return false, nil
-		}))
-	}
-
 	e.Use(middleware.Recover())
 	e.Use(middleware.RequestID())
 	e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
-		TokenLookup: "form:_csrf",
+		TokenLookup: "header:X-CSRF-Token,form:_csrf",
 	}))
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte(svc.cfg.CookieSecret))))
 	e.Use(ddEcho.Middleware(ddEcho.WithServiceName("nostr-wallet-connect")))
@@ -86,37 +43,15 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	assetSubdir, _ := fs.Sub(embeddedAssets, "public")
 	assetHandler := http.FileServer(http.FS(assetSubdir))
 	e.GET("/public/*", echo.WrapHandler(http.StripPrefix("/public/", assetHandler)))
-	e.GET("/apps", svc.AppsListHandler)
-	e.GET("/apps/new", svc.AppsNewHandler)
-	e.GET("/apps/:pubkey", svc.AppsShowHandler)
-	e.POST("/apps", svc.AppsCreateHandler)
-	e.POST("/apps/delete/:pubkey", svc.AppsDeleteHandler)
-	e.GET("/logout", svc.LogoutHandler)
-	e.GET("/about", svc.AboutHandler)
-	e.GET("/", svc.IndexHandler)
-}
-
-func (svc *Service) IndexHandler(c echo.Context) error {
-	sess, _ := session.Get(CookieName, c)
-	returnTo := sess.Values["return_to"]
-	user, err := svc.GetUser(c)
-	if err != nil {
-		return err
-	}
-	if user != nil && returnTo != nil {
-		delete(sess.Values, "return_to")
-		sess.Options.MaxAge = 0
-		sess.Options.SameSite = http.SameSiteLaxMode
-		if svc.cfg.CookieDomain != "" {
-			sess.Options.Domain = svc.cfg.CookieDomain
-		}
-		sess.Save(c.Request(), c.Response())
-		return c.Redirect(302, fmt.Sprintf("%s", returnTo))
-	}
-	if user != nil {
-		return c.Redirect(302, "/apps")
-	}
-	return c.Render(http.StatusOK, fmt.Sprintf("%s/index.html", strings.ToLower(svc.cfg.LNBackendType)), map[string]interface{}{})
+	e.GET("/api/csrf", svc.CSRFHandler)
+	e.GET("/api/apps", svc.AppsListHandler)
+	e.GET("/api/apps/:pubkey", svc.AppsShowHandler)
+	e.POST("/api/apps", svc.AppsCreateHandler)
+	e.DELETE("/api/apps/:pubkey", svc.AppsDeleteHandler)
+	e.GET("/api/user/me", svc.UserMeHandler)
+	e.GET("/api/info", svc.InfoHandler)
+	e.POST("/api/logout", svc.LogoutHandler)
+	frontend.RegisterHandlers(e)
 }
 
 func (svc *Service) AboutHandler(c echo.Context) error {
@@ -132,217 +67,125 @@ func (svc *Service) AboutHandler(c echo.Context) error {
 func (svc *Service) AppsListHandler(c echo.Context) error {
 	user, err := svc.GetUser(c)
 	if err != nil {
-		return err
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Error:   true,
+			Message: fmt.Sprintf("Bad arguments %s", err.Error()),
+		})
 	}
 	if user == nil {
-		return c.Redirect(302, "/")
+		return c.NoContent(http.StatusUnauthorized)
 	}
 
-	apps := user.Apps
+	apps := []api.App{}
 
-	lastEvents := make(map[uint]NostrEvent)
-	eventsCounts := make(map[uint]int64)
-	for _, app := range apps {
+	for _, app := range user.Apps {
+		apiApp := api.App{
+			// ID:          app.ID,
+			Name:        app.Name,
+			Description: app.Description,
+			CreatedAt:   app.CreatedAt,
+			UpdatedAt:   app.UpdatedAt,
+			NostrPubkey: app.NostrPubkey,
+		}
+
 		var lastEvent NostrEvent
-		var eventsCount int64
-		svc.db.Where("app_id = ?", app.ID).Order("id desc").Limit(1).Find(&lastEvent)
-		svc.db.Model(&NostrEvent{}).Where("app_id = ?", app.ID).Count(&eventsCount)
-		lastEvents[app.ID] = lastEvent
-		eventsCounts[app.ID] = eventsCount
+		result := svc.db.Where("app_id = ?", app.ID).Order("id desc").Limit(1).Find(&lastEvent)
+		if result.RowsAffected > 0 {
+			apiApp.LastEventAt = &lastEvent.CreatedAt
+		}
+		apps = append(apps, apiApp)
 	}
 
-	return c.Render(http.StatusOK, "apps/index.html", map[string]interface{}{
-		"Apps":         apps,
-		"User":         user,
-		"LastEvents":   lastEvents,
-		"EventsCounts": eventsCounts,
-	})
+	return c.JSON(http.StatusOK, apps)
 }
 
 func (svc *Service) AppsShowHandler(c echo.Context) error {
-	csrf, _ := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
+	// csrf, _ := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
 	user, err := svc.GetUser(c)
 	if err != nil {
-		return err
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Error:   true,
+			Message: fmt.Sprintf("Bad arguments %s", err.Error()),
+		})
 	}
 	if user == nil {
-		return c.Redirect(302, "/")
+		return c.NoContent(http.StatusUnauthorized)
 	}
 
 	app := App{}
 	svc.db.Where("user_id = ? AND nostr_pubkey = ?", user.ID, c.Param("pubkey")).First(&app)
 
 	if app.NostrPubkey == "" {
-		return c.Render(http.StatusNotFound, "404.html", map[string]interface{}{
-			"User": user,
+		return c.JSON(http.StatusNotFound, ErrorResponse{
+			Error:   true,
+			Message: "App does not exist",
 		})
 	}
 
-	lastEvent := NostrEvent{}
-	svc.db.Where("app_id = ?", app.ID).Order("id desc").Limit(1).Find(&lastEvent)
-	var eventsCount int64
-	svc.db.Model(&NostrEvent{}).Where("app_id = ?", app.ID).Count(&eventsCount)
+	var lastEvent NostrEvent
+	lastEventResult := svc.db.Where("app_id = ?", app.ID).Order("id desc").Limit(1).Find(&lastEvent)
+	//var eventsCount int64
+	//svc.db.Model(&NostrEvent{}).Where("app_id = ?", app.ID).Count(&eventsCount)
 
 	paySpecificPermission := AppPermission{}
 	appPermissions := []AppPermission{}
-	expiresAt := time.Time{}
+	var expiresAt *time.Time
 	svc.db.Where("app_id = ?", app.ID).Find(&appPermissions)
 
 	requestMethods := []string{}
 	for _, appPerm := range appPermissions {
-		if expiresAt.IsZero() && !appPerm.ExpiresAt.IsZero() {
-			expiresAt = appPerm.ExpiresAt
+		if !appPerm.ExpiresAt.IsZero() {
+			expiresAt = &appPerm.ExpiresAt
 		}
 		if appPerm.RequestMethod == NIP_47_PAY_INVOICE_METHOD {
 			//find the pay_invoice-specific permissions
 			paySpecificPermission = appPerm
 		}
-		requestMethods = append(requestMethods, nip47MethodDescriptions[appPerm.RequestMethod])
+		requestMethods = append(requestMethods, appPerm.RequestMethod)
 	}
 
-	expiresAtFormatted := expiresAt.Format("January 2, 2006 03:04 PM")
-
-	renewsIn := ""
+	//renewsIn := ""
 	budgetUsage := int64(0)
 	maxAmount := paySpecificPermission.MaxAmount
 	if maxAmount > 0 {
 		budgetUsage = svc.GetBudgetUsage(&paySpecificPermission)
-		endOfBudget := GetEndOfBudget(paySpecificPermission.BudgetRenewal, app.CreatedAt)
-		renewsIn = getEndOfBudgetString(endOfBudget)
 	}
 
-	return c.Render(http.StatusOK, "apps/show.html", map[string]interface{}{
-		"App":                   app,
-		"PaySpecificPermission": paySpecificPermission,
-		"RequestMethods":        requestMethods,
-		"ExpiresAt":             expiresAt,
-		"ExpiresAtFormatted":    expiresAtFormatted,
-		"User":                  user,
-		"LastEvent":             lastEvent,
-		"EventsCount":           eventsCount,
-		"BudgetUsage":           budgetUsage,
-		"RenewsIn":              renewsIn,
-		"Csrf":                  csrf,
-	})
+	response := api.App{
+		Name:           app.Name,
+		Description:    app.Description,
+		CreatedAt:      app.CreatedAt,
+		UpdatedAt:      app.UpdatedAt,
+		NostrPubkey:    app.NostrPubkey,
+		ExpiresAt:      expiresAt,
+		MaxAmount:      maxAmount,
+		RequestMethods: requestMethods,
+		BudgetUsage:    budgetUsage,
+		BudgetRenewal:  paySpecificPermission.BudgetRenewal,
+	}
+
+	if lastEventResult.RowsAffected > 0 {
+		response.LastEventAt = &lastEvent.CreatedAt
+	}
+
+	return c.JSON(http.StatusOK, response)
 }
 
-func getEndOfBudgetString(endOfBudget time.Time) (result string) {
-	if endOfBudget.IsZero() {
-		return "--"
-	}
-	endOfBudgetDuration := endOfBudget.Sub(time.Now())
-
-	//less than a day
-	if endOfBudgetDuration.Hours() < 24 {
-		hours := int(endOfBudgetDuration.Hours())
-		minutes := int(endOfBudgetDuration.Minutes()) % 60
-		return fmt.Sprintf("%d hours and %d minutes", hours, minutes)
-	}
-	//less than a month
-	if endOfBudgetDuration.Hours() < 24*30 {
-		days := int(endOfBudgetDuration.Hours() / 24)
-		return fmt.Sprintf("%d days", days)
-	}
-	//more than a month
-	months := int(endOfBudgetDuration.Hours() / 24 / 30)
-	days := int(endOfBudgetDuration.Hours()/24) % 30
-	if days > 0 {
-		return fmt.Sprintf("%d months %d days", months, days)
-	}
-	return fmt.Sprintf("%d months", months)
-}
-
-func (svc *Service) AppsNewHandler(c echo.Context) error {
-	appName := c.QueryParam("name")
-	if appName == "" {
-		// c - for client (deprecated)
-		appName = c.QueryParam("c")
-	}
-	pubkey := c.QueryParam("pubkey")
-	returnTo := c.QueryParam("return_to")
-	maxAmount := c.QueryParam("max_amount")
-	budgetRenewal := strings.ToLower(c.QueryParam("budget_renewal"))
-	expiresAt := c.QueryParam("expires_at") // YYYY-MM-DD or MM/DD/YYYY or timestamp in seconds
-	if expiresAtTimestamp, err := strconv.Atoi(expiresAt); err == nil {
-		expiresAt = time.Unix(int64(expiresAtTimestamp), 0).Format(time.RFC3339)
-	}
-	expiresAtISO, _ := time.Parse(time.RFC3339, expiresAt)
-	expiresAtFormatted := expiresAtISO.Format("January 2, 2006 03:04 PM")
-
-	requestMethods := c.QueryParam("request_methods")
-	customRequestMethods := requestMethods
-	if requestMethods == "" {
-		// if no request methods are given, enable them all by default
-		keys := []string{}
-		for key := range nip47MethodDescriptions {
-			keys = append(keys, key)
-		}
-
-		requestMethods = strings.Join(keys, " ")
-	}
+func (svc *Service) CSRFHandler(c echo.Context) error {
 	csrf, _ := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
-
-	user, err := svc.GetUser(c)
-	if err != nil {
-		return err
-	}
-	if user == nil {
-		sess, _ := session.Get(CookieName, c)
-		sess.Values["return_to"] = c.Path() + "?" + c.QueryString()
-		sess.Options.MaxAge = 0
-		sess.Options.SameSite = http.SameSiteLaxMode
-		if svc.cfg.CookieDomain != "" {
-			sess.Options.Domain = svc.cfg.CookieDomain
-		}
-		sess.Save(c.Request(), c.Response())
-		return c.Redirect(302, fmt.Sprintf("/%s/auth?c=%s", strings.ToLower(svc.cfg.LNBackendType), appName))
-	}
-
-	//construction to return a map with all possible permissions
-	//and indicate which ones are checked by default in the front-end
-	type RequestMethodHelper struct {
-		Description string
-		Icon        string
-		Checked     bool
-	}
-
-	requestMethodHelper := map[string]*RequestMethodHelper{}
-	for k, v := range nip47MethodDescriptions {
-		requestMethodHelper[k] = &RequestMethodHelper{
-			Description: v,
-			Icon:        nip47MethodIcons[k],
-		}
-	}
-
-	for _, m := range strings.Split(requestMethods, " ") {
-		if _, ok := nip47MethodDescriptions[m]; ok {
-			requestMethodHelper[m].Checked = true
-		}
-	}
-
-	return c.Render(http.StatusOK, "apps/new.html", map[string]interface{}{
-		"User":                 user,
-		"Name":                 appName,
-		"Pubkey":               pubkey,
-		"ReturnTo":             returnTo,
-		"MaxAmount":            maxAmount,
-		"BudgetRenewal":        budgetRenewal,
-		"ExpiresAt":            expiresAt,
-		"ExpiresAtFormatted":   expiresAtFormatted,
-		"RequestMethods":       requestMethods,
-		"CustomRequestMethods": customRequestMethods,
-		"RequestMethodHelper":  requestMethodHelper,
-		"Csrf":                 csrf,
-	})
+	return c.JSON(http.StatusOK, csrf)
 }
 
 func (svc *Service) AppsCreateHandler(c echo.Context) error {
 	user, err := svc.GetUser(c)
 	if err != nil {
-		return err
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Error:   true,
+			Message: fmt.Sprintf("Bad arguments %s", err.Error()),
+		})
 	}
 	if user == nil {
-		return c.Redirect(302, "/")
+		return c.NoContent(http.StatusUnauthorized)
 	}
 
 	name := c.FormValue("name")
@@ -357,18 +200,25 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 		decoded, err := hex.DecodeString(pairingPublicKey)
 		if err != nil || len(decoded) != 32 {
 			svc.Logger.Errorf("Invalid public key format: %s", pairingPublicKey)
-			return c.Redirect(302, "/apps")
+			return c.JSON(http.StatusBadRequest, ErrorResponse{
+				Error:   true,
+				Message: fmt.Sprintf("Invalid public key format: %s", pairingPublicKey),
+			})
 		}
 	}
 	app := App{Name: name, NostrPubkey: pairingPublicKey}
-	maxAmount, _ := strconv.Atoi(c.FormValue("MaxAmount"))
-	budgetRenewal := c.FormValue("BudgetRenewal")
+	maxAmount, _ := strconv.Atoi(c.FormValue("maxAmount"))
+	budgetRenewal := c.FormValue("budgetRenewal")
 
 	expiresAt := time.Time{}
-	if c.FormValue("ExpiresAt") != "" {
-		expiresAt, err = time.Parse(time.RFC3339, c.FormValue("ExpiresAt"))
+	if c.FormValue("expiresAt") != "" {
+		expiresAt, err = time.Parse(time.RFC3339, c.FormValue("expiresAt"))
 		if err != nil {
-			return fmt.Errorf("Invalid ExpiresAt: %v", err)
+			svc.Logger.Errorf("Invalid expiresAt: %s", pairingPublicKey)
+			return c.JSON(http.StatusBadRequest, ErrorResponse{
+				Error:   true,
+				Message: fmt.Sprintf("Invalid expiresAt: %v", err),
+			})
 		}
 	}
 
@@ -382,7 +232,7 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 			return err
 		}
 
-		requestMethods := c.FormValue("RequestMethods")
+		requestMethods := c.FormValue("requestMethods")
 		if requestMethods == "" {
 			return fmt.Errorf("Won't create an app without request methods.")
 		}
@@ -415,13 +265,21 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 			"pairingPublicKey": pairingPublicKey,
 			"name":             name,
 		}).Errorf("Failed to save app: %v", err)
-		return c.Redirect(302, "/apps")
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Error:   true,
+			Message: fmt.Sprintf("Failed to save app: %v", err),
+		})
 	}
 
 	publicRelayUrl := svc.cfg.PublicRelay
 	if publicRelayUrl == "" {
 		publicRelayUrl = svc.cfg.Relay
 	}
+
+	responseBody := &api.CreateAppResponse{}
+	responseBody.Name = name
+	responseBody.Pubkey = pairingPublicKey
+	responseBody.PairingSecret = pairingSecretKey
 
 	if c.FormValue("returnTo") != "" {
 		returnToUrl, err := url.Parse(c.FormValue("returnTo"))
@@ -433,7 +291,7 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 				query.Add("lud16", user.LightningAddress)
 			}
 			returnToUrl.RawQuery = query.Encode()
-			return c.Redirect(302, returnToUrl.String())
+			responseBody.ReturnTo = returnToUrl.String()
 		}
 	}
 
@@ -441,28 +299,23 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 	if user.LightningAddress != "" {
 		lud16 = fmt.Sprintf("&lud16=%s", user.LightningAddress)
 	}
-	pairingUri := template.URL(fmt.Sprintf("nostr+walletconnect://%s?relay=%s&secret=%s%s", svc.cfg.IdentityPubkey, publicRelayUrl, pairingSecretKey, lud16))
-	return c.Render(http.StatusOK, "apps/create.html", map[string]interface{}{
-		"User":          user,
-		"PairingUri":    pairingUri,
-		"PairingSecret": pairingSecretKey,
-		"Pubkey":        pairingPublicKey,
-		"Name":          name,
-	})
+	responseBody.PairingUri = fmt.Sprintf("nostr+walletconnect://%s?relay=%s&secret=%s%s", svc.cfg.IdentityPubkey, publicRelayUrl, pairingSecretKey, lud16)
+	return c.JSON(http.StatusOK, responseBody)
 }
 
 func (svc *Service) AppsDeleteHandler(c echo.Context) error {
 	user, err := svc.GetUser(c)
+	// TODO: error handling
 	if err != nil {
 		return err
 	}
 	if user == nil {
-		return c.Redirect(302, "/")
+		return c.NoContent(http.StatusUnauthorized)
 	}
 	app := App{}
 	svc.db.Where("user_id = ? AND nostr_pubkey = ?", user.ID, c.Param("pubkey")).First(&app)
 	svc.db.Delete(&app)
-	return c.Redirect(302, "/apps")
+	return c.NoContent(http.StatusNoContent)
 }
 
 func (svc *Service) LogoutHandler(c echo.Context) error {
@@ -472,5 +325,27 @@ func (svc *Service) LogoutHandler(c echo.Context) error {
 		sess.Options.Domain = svc.cfg.CookieDomain
 	}
 	sess.Save(c.Request(), c.Response())
-	return c.Redirect(302, "/")
+	return c.NoContent(http.StatusNoContent)
+}
+
+func (svc *Service) InfoHandler(c echo.Context) error {
+	responseBody := &api.InfoResponse{}
+	responseBody.BackendType = svc.cfg.LNBackendType
+	return c.JSON(http.StatusOK, responseBody)
+}
+
+func (svc *Service) UserMeHandler(c echo.Context) error {
+	user, err := svc.GetUser(c)
+	if err != nil {
+		// TODO: error handling
+		return err
+	}
+	if user == nil {
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	responseBody := api.User{
+		Email: user.Email,
+	}
+	return c.JSON(http.StatusOK, responseBody)
 }

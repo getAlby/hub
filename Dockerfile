@@ -19,6 +19,8 @@ RUN go mod download
 COPY . .
 
 RUN go build -o main .
+# TODO: build react app?
+
 
 # Start a new, final image to reduce size.
 FROM alpine as final
@@ -29,7 +31,8 @@ FROM alpine as final
 
 # Copy the binaries and entrypoint from the builder image.
 COPY --from=builder /build/main /bin/
-COPY --from=builder /build/public /public/
-COPY --from=builder /build/views /views/
+# NOTE: should not be needed - assets should be embedded in the go app
+#COPY --from=builder /build/public /public/
+#COPY --from=builder /build/views /views/
 
 ENTRYPOINT [ "/bin/main" ]
