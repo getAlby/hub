@@ -1,5 +1,5 @@
 import Loading from "../../components/Loading";
-import { useNavigate, useParams } from "react-router-dom";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { useInfo } from "../../hooks/useInfo";
 import { useApp } from "../../hooks/useApp";
 import { handleFetchError, validateFetchResponse } from "../../utils/fetch";
@@ -17,6 +17,11 @@ function ShowApp() {
   if (!app || !info) {
     return <Loading />;
   }
+
+  if (app && "error" in app) {
+    return <Navigate to="/404" />;
+  }
+
   const handleDelete = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     try {

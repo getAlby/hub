@@ -54,6 +54,11 @@ export interface User {
   expiresAt: string;
 }
 
+export interface ErrorResponse {
+  error: boolean;
+  message: string;
+}
+
 export interface App {
   id: number;
   userId: number;
