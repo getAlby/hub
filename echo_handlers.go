@@ -1,10 +1,8 @@
 package main
 
 import (
-	"embed"
 	"encoding/hex"
 	"fmt"
-	"io/fs"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -12,7 +10,6 @@ import (
 	"time"
 
 	echologrus "github.com/davrux/echo-logrus/v4"
-	// "github.com/getAlby/lndhub.go/lib/responses"
 	"github.com/getAlby/nostr-wallet-connect/frontend"
 	"github.com/getAlby/nostr-wallet-connect/models/api"
 	"github.com/gorilla/sessions"
@@ -25,9 +22,6 @@ import (
 	"gorm.io/gorm"
 )
 
-//go:embed frontend/dist/*
-var embeddedAssets embed.FS
-
 func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	e.HideBanner = true
 	e.Use(echologrus.Middleware())
@@ -39,17 +33,15 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte(svc.cfg.CookieSecret))))
 	e.Use(ddEcho.Middleware(ddEcho.WithServiceName("nostr-wallet-connect")))
 
-	assetSubdir, _ := fs.Sub(embeddedAssets, "public")
-	assetHandler := http.FileServer(http.FS(assetSubdir))
-	e.GET("/public/*", echo.WrapHandler(http.StripPrefix("/public/", assetHandler)))
 	e.GET("/api/csrf", svc.CSRFHandler)
+	e.GET("/api/info", svc.InfoHandler)
+	e.GET("/api/user/me", svc.UserMeHandler)
 	e.GET("/api/apps", svc.AppsListHandler)
 	e.GET("/api/apps/:pubkey", svc.AppsShowHandler)
-	e.POST("/api/apps", svc.AppsCreateHandler)
 	e.DELETE("/api/apps/:pubkey", svc.AppsDeleteHandler)
-	e.GET("/api/user/me", svc.UserMeHandler)
-	e.GET("/api/info", svc.InfoHandler)
+	e.POST("/api/apps", svc.AppsCreateHandler)
 	e.POST("/api/logout", svc.LogoutHandler)
+
 	frontend.RegisterHandlers(e)
 }
 
