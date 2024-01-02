@@ -214,7 +214,7 @@ const NewApp = () => {
           )}
           <div className="flex justify-between items-center mb-2 text-gray-800 dark:text-white">
             <p className="text-lg font-medium">Authorize the app to:</p>
-            {!reqMethodsParam && (
+            {!reqMethodsParam && !edit && (
               <EditIcon
                 onClick={() => setEdit(true)}
                 className="text-gray-800 dark:text-gray-300 cursor-pointer w-6"
