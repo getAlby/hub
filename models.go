@@ -37,22 +37,13 @@ const (
 	NOSTR_EVENT_STATE_PUBLISH_UNCONFIRMED = "sent"
 )
 
-var nip47MethodDescriptions = map[string]string{
-	NIP_47_GET_BALANCE_METHOD:       "Read your balance",
-	NIP_47_GET_INFO_METHOD:          "Read your node info",
-	NIP_47_PAY_INVOICE_METHOD:       "Send payments",
-	NIP_47_MAKE_INVOICE_METHOD:      "Create invoices",
-	NIP_47_LOOKUP_INVOICE_METHOD:    "Lookup status of invoices",
-	NIP_47_LIST_TRANSACTIONS_METHOD: "Read incoming transaction history",
-}
-
-var nip47MethodIcons = map[string]string{
-	NIP_47_GET_BALANCE_METHOD:       "wallet",
-	NIP_47_GET_INFO_METHOD:          "wallet",
-	NIP_47_PAY_INVOICE_METHOD:       "lightning",
-	NIP_47_MAKE_INVOICE_METHOD:      "invoice",
-	NIP_47_LOOKUP_INVOICE_METHOD:    "search",
-	NIP_47_LIST_TRANSACTIONS_METHOD: "transactions",
+var validNIP47Methods = map[string]bool{
+	NIP_47_GET_BALANCE_METHOD:       true,
+	NIP_47_GET_INFO_METHOD:          true,
+	NIP_47_PAY_INVOICE_METHOD:       true,
+	NIP_47_MAKE_INVOICE_METHOD:      true,
+	NIP_47_LOOKUP_INVOICE_METHOD:    true,
+	NIP_47_LIST_TRANSACTIONS_METHOD: true,
 }
 
 // TODO: move to models/Alby

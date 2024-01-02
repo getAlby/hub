@@ -28,7 +28,7 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	e.Use(middleware.Recover())
 	e.Use(middleware.RequestID())
 	e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
-		TokenLookup: "header:X-CSRF-Token,form:_csrf",
+		TokenLookup: "header:X-CSRF-Token",
 	}))
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte(svc.cfg.CookieSecret))))
 	e.Use(ddEcho.Middleware(ddEcho.WithServiceName("nostr-wallet-connect")))
@@ -45,14 +45,33 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	frontend.RegisterHandlers(e)
 }
 
-func (svc *Service) AboutHandler(c echo.Context) error {
+func (svc *Service) CSRFHandler(c echo.Context) error {
+	csrf, _ := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
+	return c.JSON(http.StatusOK, csrf)
+}
+
+func (svc *Service) InfoHandler(c echo.Context) error {
+	responseBody := &api.InfoResponse{}
+	responseBody.BackendType = svc.cfg.LNBackendType
+	return c.JSON(http.StatusOK, responseBody)
+}
+
+func (svc *Service) UserMeHandler(c echo.Context) error {
 	user, err := svc.GetUser(c)
 	if err != nil {
-		return err
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Error:   true,
+			Message: fmt.Sprintf("Bad arguments %s", err.Error()),
+		})
 	}
-	return c.Render(http.StatusOK, "about.html", map[string]interface{}{
-		"User": user,
-	})
+	if user == nil {
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	responseBody := api.User{
+		Email: user.Email,
+	}
+	return c.JSON(http.StatusOK, responseBody)
 }
 
 func (svc *Service) AppsListHandler(c echo.Context) error {
@@ -91,7 +110,6 @@ func (svc *Service) AppsListHandler(c echo.Context) error {
 }
 
 func (svc *Service) AppsShowHandler(c echo.Context) error {
-	// csrf, _ := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
 	user, err := svc.GetUser(c)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
@@ -115,8 +133,6 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 
 	var lastEvent NostrEvent
 	lastEventResult := svc.db.Where("app_id = ?", app.ID).Order("id desc").Limit(1).Find(&lastEvent)
-	//var eventsCount int64
-	//svc.db.Model(&NostrEvent{}).Where("app_id = ?", app.ID).Count(&eventsCount)
 
 	paySpecificPermission := AppPermission{}
 	appPermissions := []AppPermission{}
@@ -162,9 +178,21 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, response)
 }
 
-func (svc *Service) CSRFHandler(c echo.Context) error {
-	csrf, _ := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
-	return c.JSON(http.StatusOK, csrf)
+func (svc *Service) AppsDeleteHandler(c echo.Context) error {
+	user, err := svc.GetUser(c)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Error:   true,
+			Message: fmt.Sprintf("Bad arguments %s", err.Error()),
+		})
+	}
+	if user == nil {
+		return c.NoContent(http.StatusUnauthorized)
+	}
+	app := App{}
+	svc.db.Where("user_id = ? AND nostr_pubkey = ?", user.ID, c.Param("pubkey")).First(&app)
+	svc.db.Delete(&app)
+	return c.NoContent(http.StatusNoContent)
 }
 
 func (svc *Service) AppsCreateHandler(c echo.Context) error {
@@ -239,7 +267,7 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 		methodsToCreate := strings.Split(requestMethods, " ")
 		for _, m := range methodsToCreate {
 			//if we don't know this method, we return an error
-			if _, ok := nip47MethodDescriptions[m]; !ok {
+			if !validNIP47Methods[m] {
 				return fmt.Errorf("Did not recognize request method: %s", m)
 			}
 			appPermission := AppPermission{
@@ -302,21 +330,6 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, responseBody)
 }
 
-func (svc *Service) AppsDeleteHandler(c echo.Context) error {
-	user, err := svc.GetUser(c)
-	// TODO: error handling
-	if err != nil {
-		return err
-	}
-	if user == nil {
-		return c.NoContent(http.StatusUnauthorized)
-	}
-	app := App{}
-	svc.db.Where("user_id = ? AND nostr_pubkey = ?", user.ID, c.Param("pubkey")).First(&app)
-	svc.db.Delete(&app)
-	return c.NoContent(http.StatusNoContent)
-}
-
 func (svc *Service) LogoutHandler(c echo.Context) error {
 	sess, _ := session.Get(CookieName, c)
 	sess.Options.MaxAge = -1
@@ -325,26 +338,4 @@ func (svc *Service) LogoutHandler(c echo.Context) error {
 	}
 	sess.Save(c.Request(), c.Response())
 	return c.NoContent(http.StatusNoContent)
-}
-
-func (svc *Service) InfoHandler(c echo.Context) error {
-	responseBody := &api.InfoResponse{}
-	responseBody.BackendType = svc.cfg.LNBackendType
-	return c.JSON(http.StatusOK, responseBody)
-}
-
-func (svc *Service) UserMeHandler(c echo.Context) error {
-	user, err := svc.GetUser(c)
-	if err != nil {
-		// TODO: error handling
-		return err
-	}
-	if user == nil {
-		return c.NoContent(http.StatusNotFound)
-	}
-
-	responseBody := api.User{
-		Email: user.Email,
-	}
-	return c.JSON(http.StatusOK, responseBody)
 }
