@@ -19,7 +19,6 @@ export type Props = {
 
 function QRCode({ value, size, level, className }: Props) {
   const isDarkMode = useDarkMode();
-  console.log(isDarkMode);
   const fgColor = isDarkMode ? "#FFFFFF" : "#242424";
   const bgColor = isDarkMode ? "#242424" : "#FFFFFF";
 

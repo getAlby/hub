@@ -115,25 +115,14 @@ const NewApp = () => {
       throw new Error("No CSRF token");
     }
 
-    const formData = new FormData();
-    formData.append("name", appName);
-    formData.append("maxAmount", maxAmount.toString());
-    formData.append("budgetRenewal", budgetRenewal);
-    formData.append("expiresAt", expiresAt);
-    formData.append("requestMethods", requestMethods);
-    formData.append("pubkey", pubkey);
-    formData.append("returnTo", returnTo);
-
     try {
       const response = await fetch("/api/apps", {
         method: "POST",
         headers: {
           "X-CSRF-Token": csrf,
+          "Content-Type": "application/json",
         },
-        body: formData,
-
-        // TODO: send consider sending JSON data
-        /*body: JSON.stringify({
+        body: JSON.stringify({
           name: appName,
           pubkey: pubkey,
           maxAmount: maxAmount.toString(),
@@ -141,7 +130,7 @@ const NewApp = () => {
           expiresAt: expiresAt,
           requestMethods: requestMethods,
           returnTo: returnTo,
-        }),*/
+        }),
       });
       await validateFetchResponse(response);
 

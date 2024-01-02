@@ -179,14 +179,22 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 		return c.NoContent(http.StatusUnauthorized)
 	}
 
-	name := c.FormValue("name")
+	var requestData api.CreateAppRequest
+	if err := c.Bind(&requestData); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Error:   true,
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	name := requestData.Name
 	var pairingPublicKey string
 	var pairingSecretKey string
-	if c.FormValue("pubkey") == "" {
+	if requestData.Pubkey == "" {
 		pairingSecretKey = nostr.GeneratePrivateKey()
 		pairingPublicKey, _ = nostr.GetPublicKey(pairingSecretKey)
 	} else {
-		pairingPublicKey = c.FormValue("pubkey")
+		pairingPublicKey = requestData.Pubkey
 		//validate public key
 		decoded, err := hex.DecodeString(pairingPublicKey)
 		if err != nil || len(decoded) != 32 {
@@ -198,12 +206,12 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 		}
 	}
 	app := App{Name: name, NostrPubkey: pairingPublicKey}
-	maxAmount, _ := strconv.Atoi(c.FormValue("maxAmount"))
-	budgetRenewal := c.FormValue("budgetRenewal")
+	maxAmount, _ := strconv.Atoi(requestData.MaxAmount)
+	budgetRenewal := requestData.BudgetRenewal
 
 	expiresAt := time.Time{}
-	if c.FormValue("expiresAt") != "" {
-		expiresAt, err = time.Parse(time.RFC3339, c.FormValue("expiresAt"))
+	if requestData.ExpiresAt != "" {
+		expiresAt, err = time.Parse(time.RFC3339, requestData.ExpiresAt)
 		if err != nil {
 			svc.Logger.Errorf("Invalid expiresAt: %s", pairingPublicKey)
 			return c.JSON(http.StatusBadRequest, ErrorResponse{
@@ -223,7 +231,7 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 			return err
 		}
 
-		requestMethods := c.FormValue("requestMethods")
+		requestMethods := requestData.RequestMethods
 		if requestMethods == "" {
 			return fmt.Errorf("Won't create an app without request methods.")
 		}
@@ -272,8 +280,8 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 	responseBody.Pubkey = pairingPublicKey
 	responseBody.PairingSecret = pairingSecretKey
 
-	if c.FormValue("returnTo") != "" {
-		returnToUrl, err := url.Parse(c.FormValue("returnTo"))
+	if requestData.ReturnTo != "" {
+		returnToUrl, err := url.Parse(requestData.ReturnTo)
 		if err == nil {
 			query := returnToUrl.Query()
 			query.Add("relay", publicRelayUrl)
