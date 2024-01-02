@@ -16,8 +16,9 @@ function Navbar() {
   const location = useLocation();
 
   const linkStyles =
-    "text-gray-400 font-medium hover:text-gray-600 dark:hover:text-gray-300 transition";
-  const selectedLinkStyles = "text-gray-900 dark:text-gray-100";
+    "font-medium text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 transition px-2 ";
+  const selectedLinkStyles =
+    "text-gray-900 hover:text-gray-900 dark:text-gray-100 dark:hover:text-gray-100";
 
   return (
     <>
@@ -25,7 +26,7 @@ function Navbar() {
         <div className="bg-white border-b border-gray-200 dark:bg-surface-01dp dark:border-neutral-700 mb-6">
           <nav className="container max-w-screen-lg mx-auto px-4 lg:px-0 py-3">
             <div className="flex justify-between items-center">
-              <div className="flex items-center space-x-12 justify-center">
+              <div className="flex items-center space-x-12">
                 <a
                   href="/"
                   className="font-headline text-[20px] dark:text-white flex gap-2 justify-center items-center"
@@ -47,7 +48,8 @@ function Navbar() {
                 >
                   <a
                     className={`${linkStyles} ${
-                      location.pathname === "/apps" && selectedLinkStyles
+                      location.pathname.startsWith("/apps") &&
+                      selectedLinkStyles
                     }`}
                     href="/apps"
                   >
@@ -109,10 +111,10 @@ function ProfileDropdown() {
   return (
     <div className="flex items-center relative">
       <p
-        className="text-gray-400 text-xs font-medium sm:text-base cursor-pointer select-none "
+        className="text-gray-400 text-xs font-medium sm:text-base cursor-pointer select-none"
         onClick={() => setOpen((current) => !current)}
       >
-        <span>{user.email}</span>
+        <span className="mx-1">{user.email}</span>
         <img
           id="caret"
           className={`inline cursor-pointer w-4 ml-2 ${
