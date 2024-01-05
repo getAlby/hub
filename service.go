@@ -128,17 +128,18 @@ func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 		}
 	}()
 
-	<-ctx.Done()
-	if sub.Relay.ConnectionError != nil {
-		svc.Logger.Errorf("Relay error %v", ctx.Err())
+	select {
+	case <-sub.Relay.Context().Done():
+		svc.Logger.Errorf("Relay error %v", sub.Relay.ConnectionError)
 		return sub.Relay.ConnectionError
+	case <-ctx.Done():
+		if ctx.Err() != context.Canceled {
+			svc.Logger.Errorf("Subscription error %v", ctx.Err())
+			return ctx.Err()
+		}
+		svc.Logger.Info("Exiting subscription.")
+		return nil
 	}
-	if ctx.Err() != context.Canceled {
-		svc.Logger.Errorf("Subscription error %v", ctx.Err())
-		return ctx.Err()
-	}
-	svc.Logger.Info("Exiting subscription.")
-	return nil
 }
 
 func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result *nostr.Event, err error) {
