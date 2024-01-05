@@ -129,6 +129,10 @@ func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 	}()
 
 	<-ctx.Done()
+	if sub.Relay.ConnectionError != nil {
+		svc.Logger.Errorf("Relay error %v", ctx.Err())
+		return sub.Relay.ConnectionError
+	}
 	if ctx.Err() != context.Canceled {
 		svc.Logger.Errorf("Subscription error %v", ctx.Err())
 		return ctx.Err()
