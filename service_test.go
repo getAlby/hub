@@ -111,6 +111,7 @@ var mockNodeInfo = NodeInfo{
 }
 
 var mockTime = time.Unix(1693876963, 0)
+var mockTimeUnix = mockTime.Unix()
 
 var mockTransactions = []Nip47Transaction{
 	{
@@ -122,7 +123,7 @@ var mockTransactions = []Nip47Transaction{
 		PaymentHash:     "payment_hash_1",
 		Amount:          1000,
 		FeesPaid:        50,
-		SettledAt:       &mockTime,
+		SettledAt:       &mockTimeUnix,
 		Metadata: map[string]interface{}{
 			"key1": "value1",
 			"key2": 42,
@@ -137,7 +138,7 @@ var mockTransactions = []Nip47Transaction{
 		PaymentHash:     "payment_hash_2",
 		Amount:          2000,
 		FeesPaid:        75,
-		SettledAt:       &mockTime,
+		SettledAt:       &mockTimeUnix,
 	},
 }
 var mockTransaction = &mockTransactions[0]
@@ -571,7 +572,7 @@ func TestHandleEvent(t *testing.T) {
 	assert.Equal(t, mockTransactions[0].PaymentHash, transaction.PaymentHash)
 	assert.Equal(t, mockTransactions[0].Amount, transaction.Amount)
 	assert.Equal(t, mockTransactions[0].FeesPaid, transaction.FeesPaid)
-	assert.Equal(t, mockTransactions[0].SettledAt.Unix(), transaction.SettledAt.Unix())
+	assert.Equal(t, mockTransactions[0].SettledAt, transaction.SettledAt)
 
 	// get_info: without permission
 	newPayload, err = nip04.Encrypt(nip47GetInfoJson, ss)
