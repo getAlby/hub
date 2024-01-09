@@ -171,12 +171,11 @@ const NewApp = () => {
 
   return (
     <div>
-      <h2 className="font-bold text-2xl font-headline mb-4 dark:text-white">
-        {nameParam ? `Connect to ${appName}` : "Connect a new app"}
-      </h2>
-
       <form onSubmit={handleSubmit} acceptCharset="UTF-8">
         <div className="bg-white dark:bg-surface-02dp rounded-md shadow p-4 md:p-8">
+          <h2 className="font-bold text-2xl font-headline mb-4 dark:text-white">
+            {nameParam ? `Connect to ${appName}` : "Connect a new app"}
+          </h2>
           {!nameParam && (
             <>
               <label
@@ -356,16 +355,9 @@ const NewApp = () => {
               </p>
             </>
           )}
-
-          {user && user.email && (
-            <p className="mt-8 pt-4 border-t border-gray-300 dark:border-gray-700 text-sm text-gray-500 dark:text-neutral-300 text-center">
-              You're logged in as{" "}
-              <span className="font-mono">{user.email}</span>
-            </p>
-          )}
         </div>
 
-        <div className="mt-6 flex flex-col sm:flex-row sm:justify-center">
+        <div className="mt-6 flex flex-col sm:flex-row sm:justify-center px-4 md:px-8">
           {!pubkey && (
             <a
               href="/apps"

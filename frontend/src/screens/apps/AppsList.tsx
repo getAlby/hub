@@ -14,7 +14,7 @@ function AppsList() {
 
   return (
     <>
-      <div className="mb-4 flex justify-between items-center">
+      <div className="mb-4 flex justify-between items-center px-4 md:px-8">
         <h2 className="font-bold text-2xl font-headline dark:text-white">
           Connected apps
         </h2>

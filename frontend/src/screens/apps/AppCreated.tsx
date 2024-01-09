@@ -63,7 +63,7 @@ export default function AppCreated() {
   };
 
   return (
-    <div className="w-full max-w-screen-sm mx-auto">
+    <div className="w-full max-w-screen-sm mx-auto px-4 md:px-8">
       <h2 className="font-bold text-2xl font-headline mb-2 dark:text-white text-center">
         🚀 Almost there!
       </h2>
