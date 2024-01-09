@@ -126,9 +126,9 @@ type Nip47Transaction struct {
 	PaymentHash     string      `json:"payment_hash"`
 	Amount          int64       `json:"amount"`
 	FeesPaid        int64       `json:"fees_paid"`
-	CreatedAt       time.Time   `json:"created_at"`
-	ExpiresAt       *time.Time  `json:"expires_at"`
-	SettledAt       *time.Time  `json:"settled_at"`
+	CreatedAt       int64       `json:"created_at"`
+	ExpiresAt       *int64      `json:"expires_at"`
+	SettledAt       *int64      `json:"settled_at"`
 	Metadata        interface{} `json:"metadata,omitempty"`
 }
 

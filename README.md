@@ -139,7 +139,7 @@ You can also contribute to our [bounty program](https://github.com/getAlby/light
 
 ✅ NIP-47 info event
 
-❌ `expires` tag in requests
+❌ `expiration` tag in requests
 
 ### LND
 
@@ -148,6 +148,7 @@ You can also contribute to our [bounty program](https://github.com/getAlby/light
 ✅ `get_balance`
 
 ✅ `pay_invoice`
+- ⚠️ amount not supported (for amountless invoices)
 
 ✅ `pay_keysend`
 
@@ -177,6 +178,7 @@ You can also contribute to our [bounty program](https://github.com/getAlby/light
 ✅ `get_balance`
 
 ✅ `pay_invoice`
+- ⚠️ amount not supported (for amountless invoices)
 
 ✅ `pay_keysend`
 

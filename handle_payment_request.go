@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/nbd-wtf/go-nostr"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
@@ -36,6 +37,8 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 	}
 
 	bolt11 = payParams.Invoice
+	// Convert invoice to lowercase string
+	bolt11 = strings.ToLower(bolt11)
 	paymentRequest, err := decodepay.Decodepay(bolt11)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{

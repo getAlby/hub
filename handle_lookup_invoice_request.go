@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/nbd-wtf/go-nostr"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
@@ -64,7 +65,7 @@ func (svc *Service) HandleLookupInvoiceEvent(ctx context.Context, request *Nip47
 	paymentHash := lookupInvoiceParams.PaymentHash
 
 	if paymentHash == "" {
-		paymentRequest, err := decodepay.Decodepay(lookupInvoiceParams.Invoice)
+		paymentRequest, err := decodepay.Decodepay(strings.ToLower(lookupInvoiceParams.Invoice))
 		if err != nil {
 			svc.Logger.WithFields(logrus.Fields{
 				"eventId":   event.ID,
