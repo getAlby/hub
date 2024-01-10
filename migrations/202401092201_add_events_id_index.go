@@ -5,7 +5,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// Create a composite index to improve performance of summing payments in the current budget period
+// Create a composite index to improve performance of finding the latest nostr event for an app
 var _202401092201_add_events_id_index = &gormigrate.Migration{
 	ID: "202401092201_add_events_id_index",
 	Migrate: func(tx *gorm.DB) error {
