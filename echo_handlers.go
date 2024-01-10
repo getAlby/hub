@@ -22,6 +22,23 @@ import (
 	"gorm.io/gorm"
 )
 
+func (svc *Service) ValidateUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		user, err := svc.GetUser(c)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, ErrorResponse{
+				Error:   true,
+				Message: fmt.Sprintf("Bad arguments %s", err.Error()),
+			})
+		}
+		if user == nil {
+			return c.NoContent(http.StatusUnauthorized)
+		}
+		c.Set("user", user)
+		return next(c)
+	}
+}
+
 func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	e.HideBanner = true
 	e.Use(echologrus.Middleware())
@@ -33,13 +50,15 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte(svc.cfg.CookieSecret))))
 	e.Use(ddEcho.Middleware(ddEcho.WithServiceName("nostr-wallet-connect")))
 
+	authMiddleware := svc.ValidateUserMiddleware
+	e.GET("/api/user/me", svc.UserMeHandler, authMiddleware)
+	e.GET("/api/apps", svc.AppsListHandler, authMiddleware)
+	e.GET("/api/apps/:pubkey", svc.AppsShowHandler, authMiddleware)
+	e.DELETE("/api/apps/:pubkey", svc.AppsDeleteHandler, authMiddleware)
+	e.POST("/api/apps", svc.AppsCreateHandler, authMiddleware)
+
 	e.GET("/api/csrf", svc.CSRFHandler)
 	e.GET("/api/info", svc.InfoHandler)
-	e.GET("/api/user/me", svc.UserMeHandler)
-	e.GET("/api/apps", svc.AppsListHandler)
-	e.GET("/api/apps/:pubkey", svc.AppsShowHandler)
-	e.DELETE("/api/apps/:pubkey", svc.AppsDeleteHandler)
-	e.POST("/api/apps", svc.AppsCreateHandler)
 	e.POST("/api/logout", svc.LogoutHandler)
 
 	frontend.RegisterHandlers(e)
@@ -56,18 +75,18 @@ func (svc *Service) InfoHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, responseBody)
 }
 
-func (svc *Service) UserMeHandler(c echo.Context) error {
-	user, err := svc.GetUser(c)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error:   true,
-			Message: fmt.Sprintf("Bad arguments %s", err.Error()),
-		})
+func (svc *Service) LogoutHandler(c echo.Context) error {
+	sess, _ := session.Get(CookieName, c)
+	sess.Options.MaxAge = -1
+	if svc.cfg.CookieDomain != "" {
+		sess.Options.Domain = svc.cfg.CookieDomain
 	}
-	if user == nil {
-		return c.NoContent(http.StatusNotFound)
-	}
+	sess.Save(c.Request(), c.Response())
+	return c.NoContent(http.StatusNoContent)
+}
 
+func (svc *Service) UserMeHandler(c echo.Context) error {
+	user, _ := c.Get("user").(*User)
 	responseBody := api.User{
 		Email: user.Email,
 	}
@@ -75,17 +94,7 @@ func (svc *Service) UserMeHandler(c echo.Context) error {
 }
 
 func (svc *Service) AppsListHandler(c echo.Context) error {
-	user, err := svc.GetUser(c)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error:   true,
-			Message: fmt.Sprintf("Bad arguments %s", err.Error()),
-		})
-	}
-	if user == nil {
-		return c.NoContent(http.StatusUnauthorized)
-	}
-
+	user, _ := c.Get("user").(*User)
 	apps := []api.App{}
 
 	for _, app := range user.Apps {
@@ -110,17 +119,7 @@ func (svc *Service) AppsListHandler(c echo.Context) error {
 }
 
 func (svc *Service) AppsShowHandler(c echo.Context) error {
-	user, err := svc.GetUser(c)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error:   true,
-			Message: fmt.Sprintf("Bad arguments %s", err.Error()),
-		})
-	}
-	if user == nil {
-		return c.NoContent(http.StatusUnauthorized)
-	}
-
+	user, _ := c.Get("user").(*User)
 	app := App{}
 	svc.db.Where("user_id = ? AND nostr_pubkey = ?", user.ID, c.Param("pubkey")).First(&app)
 
@@ -179,16 +178,7 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 }
 
 func (svc *Service) AppsDeleteHandler(c echo.Context) error {
-	user, err := svc.GetUser(c)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error:   true,
-			Message: fmt.Sprintf("Bad arguments %s", err.Error()),
-		})
-	}
-	if user == nil {
-		return c.NoContent(http.StatusUnauthorized)
-	}
+	user, _ := c.Get("user").(*User)
 	app := App{}
 	svc.db.Where("user_id = ? AND nostr_pubkey = ?", user.ID, c.Param("pubkey")).First(&app)
 	svc.db.Delete(&app)
@@ -196,17 +186,7 @@ func (svc *Service) AppsDeleteHandler(c echo.Context) error {
 }
 
 func (svc *Service) AppsCreateHandler(c echo.Context) error {
-	user, err := svc.GetUser(c)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error:   true,
-			Message: fmt.Sprintf("Bad arguments %s", err.Error()),
-		})
-	}
-	if user == nil {
-		return c.NoContent(http.StatusUnauthorized)
-	}
-
+	user, _ := c.Get("user").(*User)
 	var requestData api.CreateAppRequest
 	if err := c.Bind(&requestData); err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
@@ -239,6 +219,7 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 
 	expiresAt := time.Time{}
 	if requestData.ExpiresAt != "" {
+		var err error
 		expiresAt, err = time.Parse(time.RFC3339, requestData.ExpiresAt)
 		if err != nil {
 			svc.Logger.Errorf("Invalid expiresAt: %s", pairingPublicKey)
@@ -253,8 +234,8 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 		expiresAt = time.Date(expiresAt.Year(), expiresAt.Month(), expiresAt.Day(), 23, 59, 59, 0, expiresAt.Location())
 	}
 
-	err = svc.db.Transaction(func(tx *gorm.DB) error {
-		err = tx.Model(&user).Association("Apps").Append(&app)
+	err := svc.db.Transaction(func(tx *gorm.DB) error {
+		err := tx.Model(&user).Association("Apps").Append(&app)
 		if err != nil {
 			return err
 		}
@@ -328,14 +309,4 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 	}
 	responseBody.PairingUri = fmt.Sprintf("nostr+walletconnect://%s?relay=%s&secret=%s%s", svc.cfg.IdentityPubkey, publicRelayUrl, pairingSecretKey, lud16)
 	return c.JSON(http.StatusOK, responseBody)
-}
-
-func (svc *Service) LogoutHandler(c echo.Context) error {
-	sess, _ := session.Get(CookieName, c)
-	sess.Options.MaxAge = -1
-	if svc.cfg.CookieDomain != "" {
-		sess.Options.Domain = svc.cfg.CookieDomain
-	}
-	sess.Save(c.Request(), c.Response())
-	return c.NoContent(http.StatusNoContent)
 }
