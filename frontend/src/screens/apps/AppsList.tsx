@@ -1,7 +1,8 @@
-import Loading from "../../components/Loading";
-import { useApps } from "../../hooks/useApps";
-import { PlusIcon } from "../../components/icons/PlusIcon";
 import { useNavigate } from "react-router-dom";
+
+import { useApps } from "@hooks/useApps";
+import { PlusIcon } from "@icons/PlusIcon";
+import Loading from "@components/Loading";
 
 function AppsList() {
   const { data: apps } = useApps();

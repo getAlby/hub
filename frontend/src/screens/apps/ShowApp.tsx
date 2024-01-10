@@ -1,11 +1,12 @@
-import Loading from "../../components/Loading";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
-import { useInfo } from "../../hooks/useInfo";
-import { useApp } from "../../hooks/useApp";
-import { handleFetchError, validateFetchResponse } from "../../utils/fetch";
-import toast from "../../components/Toast";
-import { useCSRF } from "../../hooks/useCSRF";
-import { RequestMethodType, nip47MethodDescriptions } from "../../types";
+
+import { RequestMethodType, nip47MethodDescriptions } from "@types";
+import { useInfo } from "@hooks/useInfo";
+import { useApp } from "@hooks/useApp";
+import { useCSRF } from "@hooks/useCSRF";
+import toast from "@components/Toast";
+import Loading from "@components/Loading";
+import { handleFetchError, validateFetchResponse } from "@utils/fetch";
 
 function ShowApp() {
   const { data: info } = useInfo();
@@ -96,7 +97,7 @@ function ShowApp() {
               Permissions
             </h3>
             <ul className="mt-2 text-gray-600 dark:text-neutral-400">
-              {app.requestMethods.map((method, index) => (
+              {app.requestMethods.map((method: string, index: number) => (
                 <li key={index} className="mb-2 relative pl-6">
                   <span className="absolute left-0 text-green-500">✓</span>
                   {nip47MethodDescriptions[method as RequestMethodType]}

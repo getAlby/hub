@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+
 import {
   BudgetRenewalType,
   CreateAppResponse,
@@ -14,15 +15,15 @@ import {
   RequestMethodType,
   nip47MethodDescriptions,
   validBudgetRenewals,
-} from "../../types";
-import { handleFetchError, validateFetchResponse } from "../../utils/fetch";
-import { useCSRF } from "../../hooks/useCSRF";
-import { WalletIcon } from "../../components/icons/WalletIcon";
-import { LightningIcon } from "../../components/icons/LightningIcon";
-import { InvoiceIcon } from "../../components/icons/InvoiceIcon";
-import { SearchIcon } from "../../components/icons/SearchIcon";
-import { TransactionsIcon } from "../../components/icons/TransactionsIcon";
-import { EditIcon } from "../../components/icons/EditIcon";
+} from "@types";
+import { useCSRF } from "@hooks/useCSRF";
+import { EditIcon } from "@icons/EditIcon";
+import { WalletIcon } from "@icons/WalletIcon";
+import { LightningIcon } from "@icons/LightningIcon";
+import { InvoiceIcon } from "@icons/InvoiceIcon";
+import { SearchIcon } from "@icons/SearchIcon";
+import { TransactionsIcon } from "@icons/TransactionsIcon";
+import { handleFetchError, validateFetchResponse } from "@utils/fetch";
 
 const NewApp = () => {
   const { data: csrf } = useCSRF();

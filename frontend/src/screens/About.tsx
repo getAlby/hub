@@ -1,4 +1,4 @@
-import nostrBitcoin from "../assets/images/nostr-bitcoin.png";
+import nostrBitcoin from "@assets/images/nostr-bitcoin.png";
 
 function About() {
   return (

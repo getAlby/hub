@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation, Navigate } from "react-router-dom";
-import { CreateAppResponse } from "../../types";
 
-import { EyeIcon } from "../../components/icons/EyeIcon";
-import { CopyIcon } from "../../components/icons/CopyIcon";
-import { LogoIcon } from "../../components/icons/LogoIcon";
-import QRCode from "../../components/QRCode";
+import { CreateAppResponse } from "@types";
+import { EyeIcon } from "@icons/EyeIcon";
+import { CopyIcon } from "@icons/CopyIcon";
+import { LogoIcon } from "@icons/LogoIcon";
+import QRCode from "@components/QRCode";
 
 export default function AppCreated() {
   const { state } = useLocation();
