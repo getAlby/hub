@@ -2,13 +2,13 @@ import { Outlet, useLocation } from "react-router-dom";
 import { useInfo } from "../hooks/useInfo";
 import { useLogin } from "../hooks/useLogin";
 import nwcLogo from "../assets/images/nwc-logo.svg";
-import caretIcon from "../assets/icons/caret.svg";
-import aboutIcon from "../assets/icons/about.svg";
 import React from "react";
-import { LogoutIcon } from "./icons/LogoutIcon";
 import { handleFetchError, validateFetchResponse } from "../utils/fetch";
 import { useCSRF } from "../hooks/useCSRF";
 import { useUser } from "../hooks/useUser";
+import { LogoutIcon } from "./icons/LogoutIcon";
+import { AboutIcon } from "./icons/AboutIcon";
+import { CaretIcon } from "./icons/CaretIcon";
 
 function Navbar() {
   const { data: info } = useInfo();
@@ -115,12 +115,10 @@ function ProfileDropdown() {
         onClick={() => setOpen((current) => !current)}
       >
         <span className="mx-1">{user.email}</span>
-        <img
-          id="caret"
+        <CaretIcon
           className={`inline cursor-pointer w-4 ml-2 ${
             isOpen ? "rotate-180" : ""
           }`}
-          src={caretIcon}
         />
       </p>
 
@@ -133,11 +131,7 @@ function ProfileDropdown() {
             className="md:hidden flex items-center justify-left  py-2 text-gray-400 dark:text-gray-400"
             href="/about"
           >
-            <img
-              className="inline cursor-pointer w-4 mr-3"
-              src={aboutIcon}
-              alt="about-svg"
-            />
+            <AboutIcon className="inline cursor-pointer w-4 mr-3" />
             <p className="font-normal">About</p>
           </a>
 
