@@ -48,10 +48,22 @@ const NewApp = () => {
     ? budgetRenewalParam
     : "monthly";
 
-  const reqMethodsParam = queryParams.get("request_methods");
-  const [requestMethods, setRequestMethods] = useState(
-    reqMethodsParam ?? Object.keys(nip47MethodDescriptions).join(" ")
+  // returns RequestMethod Set
+  const parseRequestMethods = (reqParam: string): Set<RequestMethodType> => {
+    const methods = reqParam
+      ? reqParam.split(" ")
+      : Object.keys(nip47MethodDescriptions);
+    // Create a Set of RequestMethodType from the array
+    const requestMethodsSet = new Set<RequestMethodType>(
+      methods as RequestMethodType[]
+    );
+    return requestMethodsSet;
+  };
+
+  const reqMethodsParam = parseRequestMethods(
+    queryParams.get("request_methods") ?? ""
   );
+  const [requestMethods, setRequestMethods] = useState(reqMethodsParam);
 
   const maxAmountParam = queryParams.get("max_amount") ?? "";
   const [maxAmount, setMaxAmount] = useState(
@@ -78,7 +90,7 @@ const NewApp = () => {
 
   // Only timestamp in seconds or ISO string is expected
   const expiresAtParam = parseExpiresParam(queryParams.get("expires_at") ?? "");
-  const [expiresAt, setExpiresAt] = useState(expiresAtParam ?? "");
+  const [expiresAt, setExpiresAt] = useState(expiresAtParam);
   const [days, setDays] = useState(0);
   const [expireOptions, setExpireOptions] = useState(false);
 
@@ -96,17 +108,14 @@ const NewApp = () => {
   const handleRequestMethodChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    const rm = event.target.value;
-    if (requestMethods.includes(rm)) {
+    const rm = event.target.value as RequestMethodType;
+    if (requestMethods.has(rm)) {
       // If checked and item is already in the list, remove it
-      const newMethods = requestMethods
-        .split(" ")
-        .filter((reqMethod) => reqMethod !== rm)
-        .join(" ");
-      setRequestMethods(newMethods);
+      requestMethods.delete(rm);
     } else {
-      setRequestMethods(`${requestMethods} ${rm}`);
+      requestMethods.add(rm);
     }
+    setRequestMethods(requestMethods);
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -128,7 +137,7 @@ const NewApp = () => {
           maxAmount: maxAmount.toString(),
           budgetRenewal: budgetRenewal,
           expiresAt: expiresAt,
-          requestMethods: requestMethods,
+          requestMethods: [...requestMethods].join(" "),
           returnTo: returnTo,
         }),
       });
@@ -219,7 +228,11 @@ const NewApp = () => {
                     key={index}
                     className={`w-full ${
                       rm == "pay_invoice" ? "order-last" : ""
-                    } ${!edit && !requestMethods.includes(rm) ? "hidden" : ""}`}
+                    } ${
+                      !edit && !requestMethods.has(rm as RequestMethodType)
+                        ? "hidden"
+                        : ""
+                    }`}
                   >
                     <div className="flex items-center mb-2">
                       {RequestMethodIcon && (
@@ -233,7 +246,7 @@ const NewApp = () => {
                         type="checkbox"
                         id={rm}
                         value={rm}
-                        checked={requestMethods.includes(rm)}
+                        checked={requestMethods.has(rm as RequestMethodType)}
                         onChange={handleRequestMethodChange}
                         className={` ${
                           !edit ? "hidden" : ""
@@ -249,7 +262,7 @@ const NewApp = () => {
                     {rm == "pay_invoice" && (
                       <div
                         className={`pt-2 pb-2 pl-5 ml-2.5 border-l-2 border-l-gray-200 dark:border-l-gray-400 ${
-                          !requestMethods.includes(rm)
+                          !requestMethods.has(rm)
                             ? edit
                               ? "pointer-events-none opacity-30"
                               : "hidden"
