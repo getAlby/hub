@@ -62,70 +62,73 @@ func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 
 	go func() {
 		for event := range sub.Events {
-			resp, err := svc.HandleEvent(ctx, event)
-			if err != nil {
-				svc.Logger.WithFields(logrus.Fields{
-					"eventId":   event.ID,
-					"eventKind": event.Kind,
-				}).Errorf("Failed to process event: %v", err)
-			}
-			if resp != nil {
-				status, err := sub.Relay.Publish(ctx, *resp)
+			go func(event *nostr.Event) {
+				resp, err := svc.HandleEvent(ctx, event)
 				if err != nil {
 					svc.Logger.WithFields(logrus.Fields{
-						"eventId":      event.ID,
-						"status":       status,
-						"replyEventId": resp.ID,
-					}).Errorf("Failed to publish reply: %v", err)
-					return
+						"eventId":   event.ID,
+						"eventKind": event.Kind,
+					}).Errorf("Failed to process event: %v", err)
 				}
+				if resp != nil {
+					status, err := sub.Relay.Publish(ctx, *resp)
+					if err != nil {
+						svc.Logger.WithFields(logrus.Fields{
+							"eventId":      event.ID,
+							"status":       status,
+							"replyEventId": resp.ID,
+						}).Errorf("Failed to publish reply: %v", err)
+						return
+					}
 
-				nostrEvent := NostrEvent{}
-				result := svc.db.Where("nostr_id = ?", event.ID).First(&nostrEvent)
-				if result.Error != nil {
-					svc.Logger.WithFields(logrus.Fields{
-						"eventId":      event.ID,
-						"status":       status,
-						"replyEventId": resp.ID,
-					}).Error(result.Error)
-					return
-				}
-				nostrEvent.ReplyId = resp.ID
+					nostrEvent := NostrEvent{}
+					result := svc.db.Where("nostr_id = ?", event.ID).First(&nostrEvent)
+					if result.Error != nil {
+						svc.Logger.WithFields(logrus.Fields{
+							"eventId":      event.ID,
+							"status":       status,
+							"replyEventId": resp.ID,
+						}).Error(result.Error)
+						return
+					}
+					nostrEvent.ReplyId = resp.ID
 
-				if status == nostr.PublishStatusSucceeded {
-					nostrEvent.State = NOSTR_EVENT_STATE_PUBLISH_CONFIRMED
-					nostrEvent.RepliedAt = time.Now()
-					svc.db.Save(&nostrEvent)
-					svc.Logger.WithFields(logrus.Fields{
-						"nostrEventId": nostrEvent.ID,
-						"eventId":      event.ID,
-						"status":       status,
-						"replyEventId": resp.ID,
-						"appId":        nostrEvent.AppId,
-					}).Info("Published reply")
-				} else if status == nostr.PublishStatusFailed {
-					nostrEvent.State = NOSTR_EVENT_STATE_PUBLISH_FAILED
-					svc.db.Save(&nostrEvent)
-					svc.Logger.WithFields(logrus.Fields{
-						"nostrEventId": nostrEvent.ID,
-						"eventId":      event.ID,
-						"status":       status,
-						"replyEventId": resp.ID,
-						"appId":        nostrEvent.AppId,
-					}).Info("Failed to publish reply")
-				} else {
-					nostrEvent.State = NOSTR_EVENT_STATE_PUBLISH_UNCONFIRMED
-					svc.db.Save(&nostrEvent)
-					svc.Logger.WithFields(logrus.Fields{
-						"nostrEventId": nostrEvent.ID,
-						"eventId":      event.ID,
-						"status":       status,
-						"replyEventId": resp.ID,
-						"appId":        nostrEvent.AppId,
-					}).Info("Reply sent but no response from relay (timeout)")
+					if status == nostr.PublishStatusSucceeded {
+						nostrEvent.State = NOSTR_EVENT_STATE_PUBLISH_CONFIRMED
+						nostrEvent.RepliedAt = time.Now()
+						svc.db.Save(&nostrEvent)
+						svc.Logger.WithFields(logrus.Fields{
+							"nostrEventId": nostrEvent.ID,
+							"eventId":      event.ID,
+							"status":       status,
+							"replyEventId": resp.ID,
+							"appId":        nostrEvent.AppId,
+						}).Info("Published reply")
+					} else if status == nostr.PublishStatusFailed {
+						nostrEvent.State = NOSTR_EVENT_STATE_PUBLISH_FAILED
+						svc.db.Save(&nostrEvent)
+						svc.Logger.WithFields(logrus.Fields{
+							"nostrEventId": nostrEvent.ID,
+							"eventId":      event.ID,
+							"status":       status,
+							"replyEventId": resp.ID,
+							"appId":        nostrEvent.AppId,
+						}).Info("Failed to publish reply")
+					} else {
+						nostrEvent.State = NOSTR_EVENT_STATE_PUBLISH_UNCONFIRMED
+						svc.db.Save(&nostrEvent)
+						svc.Logger.WithFields(logrus.Fields{
+							"nostrEventId": nostrEvent.ID,
+							"eventId":      event.ID,
+							"status":       status,
+							"replyEventId": resp.ID,
+							"appId":        nostrEvent.AppId,
+						}).Info("Reply sent but no response from relay (timeout)")
+					}
 				}
-			}
+			}(event)
 		}
+		svc.Logger.Info("Subscription ended")
 	}()
 
 	select {
