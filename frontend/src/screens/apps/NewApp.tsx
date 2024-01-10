@@ -23,11 +23,9 @@ import { InvoiceIcon } from "../../components/icons/InvoiceIcon";
 import { SearchIcon } from "../../components/icons/SearchIcon";
 import { TransactionsIcon } from "../../components/icons/TransactionsIcon";
 import { EditIcon } from "../../components/icons/EditIcon";
-import { useUser } from "../../hooks/useUser";
 
 const NewApp = () => {
   const { data: csrf } = useCSRF();
-  const { data: user } = useUser();
   const navigate = useNavigate();
 
   const location = useLocation();
