@@ -57,25 +57,31 @@ const NewApp = () => {
     parseInt(maxAmountParam || "100000")
   );
 
+  // returns ISO string
   const parseExpiresParam = (expiresParam: string): string => {
     if (/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/.test(expiresParam)) {
       const d = new Date(expiresParam);
       const isIso =
         d instanceof Date &&
         !isNaN(d.getTime()) &&
-        d.toISOString() === expiresAtParam;
+        d.toISOString() === expiresParam;
       if (isIso) {
         return expiresParam;
       }
     }
+    console.info(expiresParam);
     if (!isNaN(parseInt(expiresParam))) {
-      return new Date(parseInt(expiresAtParam as string) * 1000).toISOString();
+      console.info(
+        new Date(parseInt(expiresParam as string) * 1000).toISOString()
+      );
+      return new Date(parseInt(expiresParam as string) * 1000).toISOString();
     }
     return "";
   };
 
   // Only timestamp in seconds or ISO string is expected
   const expiresAtParam = parseExpiresParam(queryParams.get("expires_at") ?? "");
+  console.info(expiresAtParam);
   const [expiresAt, setExpiresAt] = useState(expiresAtParam ?? "");
   const [days, setDays] = useState(0);
   const [expireOptions, setExpireOptions] = useState(false);
@@ -349,7 +355,7 @@ const NewApp = () => {
                 Connection expiry time
               </p>
               <p className="text-gray-600 dark:text-gray-300 text-sm">
-                {new Date(parseInt(expiresAtParam) * 1000).toISOString()}
+                {new Date(expiresAtParam).toLocaleString()}
               </p>
             </>
           )}

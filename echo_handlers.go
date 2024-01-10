@@ -267,7 +267,7 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 		methodsToCreate := strings.Split(requestMethods, " ")
 		for _, m := range methodsToCreate {
 			//if we don't know this method, we return an error
-			if !validNIP47Methods[m] {
+			if !strings.Contains(NIP_47_CAPABILITIES, m) {
 				return fmt.Errorf("Did not recognize request method: %s", m)
 			}
 			appPermission := AppPermission{
