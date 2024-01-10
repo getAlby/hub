@@ -16,6 +16,24 @@ export default function AppCreated() {
   const popupRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // dispatch a success event which can be listened to by the opener or by the app that embedded the webview
+    // this gives those apps the chance to know the user has enabled the connection
+    const nwcEvent = new CustomEvent("nwc:success", { detail: {} });
+    window.dispatchEvent(nwcEvent);
+
+    // notify the opener of the successful connection
+    if (window.opener) {
+      window.opener.postMessage(
+        {
+          type: "nwc:success",
+          payload: { success: true },
+        },
+        "*"
+      );
+    }
+  }, []);
+
+  useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
         popupRef.current &&
