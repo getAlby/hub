@@ -69,11 +69,7 @@ const NewApp = () => {
         return expiresParam;
       }
     }
-    console.info(expiresParam);
     if (!isNaN(parseInt(expiresParam))) {
-      console.info(
-        new Date(parseInt(expiresParam as string) * 1000).toISOString()
-      );
       return new Date(parseInt(expiresParam as string) * 1000).toISOString();
     }
     return "";
@@ -81,7 +77,6 @@ const NewApp = () => {
 
   // Only timestamp in seconds or ISO string is expected
   const expiresAtParam = parseExpiresParam(queryParams.get("expires_at") ?? "");
-  console.info(expiresAtParam);
   const [expiresAt, setExpiresAt] = useState(expiresAtParam ?? "");
   const [days, setDays] = useState(0);
   const [expireOptions, setExpireOptions] = useState(false);
