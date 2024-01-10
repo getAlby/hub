@@ -1,3 +1,8 @@
+FROM node:18-alpine as frontend
+WORKDIR /build
+COPY frontend ./frontend
+RUN cd frontend && yarn install && yarn build
+
 FROM golang:1.20-alpine as builder
 
 # Move to working directory /build
@@ -11,7 +16,8 @@ RUN go mod download
 # Copy the code into the container
 COPY . .
 
-# TODO: build react app?
+# Copy frontend dist files into the container
+COPY --from=frontend /build/frontend/dist ./frontend/dist
 
 # Build the application
 RUN go build -o main
@@ -21,8 +27,5 @@ FROM alpine as final
 
 # Copy the binaries and entrypoint from the builder image.
 COPY --from=builder /build/main /bin/
-# NOTE: should not be needed - assets should be embedded in the go app
-#COPY --from=builder /build/public /public/
-#COPY --from=builder /build/views /views/
 
 ENTRYPOINT [ "/bin/main" ]
