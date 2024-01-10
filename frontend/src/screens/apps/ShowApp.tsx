@@ -19,7 +19,8 @@ function ShowApp() {
   }
 
   if (app && "error" in app) {
-    return <Navigate to="/404" />;
+    handleFetchError("Failed to fetch", app.message);
+    return <Navigate to="/apps" />;
   }
 
   const handleDelete = async (event: React.FormEvent<HTMLFormElement>) => {
