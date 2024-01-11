@@ -45,21 +45,15 @@ func (svc *Service) GetUser(c echo.Context) (user *User, err error) {
 }
 
 func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscription) error {
-	for {
-		if sub.Relay.ConnectionError != nil {
-			return sub.Relay.ConnectionError
-		}
-		select {
-		case <-ctx.Done():
-			svc.Logger.Info("Exiting subscription.")
-			return nil
-		case <-sub.EndOfStoredEvents:
-			if !svc.ReceivedEOS {
-				svc.Logger.Info("Received EOS")
-			}
-			svc.ReceivedEOS = true
-		case event := <-sub.Events:
-			go func() {
+	go func() {
+		<-sub.EndOfStoredEvents
+		svc.ReceivedEOS = true
+		svc.Logger.Info("Received EOS")
+	}()
+
+	go func() {
+		for event := range sub.Events {
+			go func(event *nostr.Event) {
 				resp, err := svc.HandleEvent(ctx, event)
 				if err != nil {
 					svc.Logger.WithFields(logrus.Fields{
@@ -123,8 +117,22 @@ func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 						}).Info("Reply sent but no response from relay (timeout)")
 					}
 				}
-			}()
+			}(event)
 		}
+		svc.Logger.Info("Subscription ended")
+	}()
+
+	select {
+	case <-sub.Relay.Context().Done():
+		svc.Logger.Errorf("Relay error %v", sub.Relay.ConnectionError)
+		return sub.Relay.ConnectionError
+	case <-ctx.Done():
+		if ctx.Err() != context.Canceled {
+			svc.Logger.Errorf("Subscription error %v", ctx.Err())
+			return ctx.Err()
+		}
+		svc.Logger.Info("Exiting subscription.")
+		return nil
 	}
 }
 
