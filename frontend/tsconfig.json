@@ -6,16 +6,7 @@
     "module": "ESNext",
     "skipLibCheck": true,
 
-    "paths": {
-      "@assets/*": ["./src/assets/*"],
-      "@components/*": ["./src/components/*"],
-      "@hooks/*": ["./src/hooks/*"],
-      "@icons/*": ["./src/components/icons/*"],
-      "@screens/*": ["./src/screens/*"],
-      "@swr": ["./src/swr"],
-      "@types": ["./src/types"],
-      "@utils/*": ["./src/utils/*"]
-    },
+    "baseUrl": ".",
 
     /* Bundler mode */
     "moduleResolution": "bundler",

@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router-dom";
 
-import { useApps } from "@hooks/useApps";
-import { PlusIcon } from "@icons/PlusIcon";
-import Loading from "@components/Loading";
+import { useApps } from "src/hooks/useApps";
+import { PlusIcon } from "src/components/icons/PlusIcon";
+import Loading from "src/components/Loading";
 
 function AppsList() {
   const { data: apps } = useApps();

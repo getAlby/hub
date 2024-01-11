@@ -1,12 +1,12 @@
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 
-import { RequestMethodType, nip47MethodDescriptions } from "@types";
-import { useInfo } from "@hooks/useInfo";
-import { useApp } from "@hooks/useApp";
-import { useCSRF } from "@hooks/useCSRF";
-import toast from "@components/Toast";
-import Loading from "@components/Loading";
-import { handleFetchError, validateFetchResponse } from "@utils/fetch";
+import { RequestMethodType, nip47MethodDescriptions } from "src/types";
+import { useInfo } from "src/hooks/useInfo";
+import { useApp } from "src/hooks/useApp";
+import { useCSRF } from "src/hooks/useCSRF";
+import toast from "src/components/Toast";
+import Loading from "src/components/Loading";
+import { handleFetchError, validateFetchResponse } from "src/utils/fetch";
 
 function ShowApp() {
   const { data: info } = useInfo();

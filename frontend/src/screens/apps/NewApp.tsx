@@ -15,15 +15,15 @@ import {
   RequestMethodType,
   nip47MethodDescriptions,
   validBudgetRenewals,
-} from "@types";
-import { useCSRF } from "@hooks/useCSRF";
-import { EditIcon } from "@icons/EditIcon";
-import { WalletIcon } from "@icons/WalletIcon";
-import { LightningIcon } from "@icons/LightningIcon";
-import { InvoiceIcon } from "@icons/InvoiceIcon";
-import { SearchIcon } from "@icons/SearchIcon";
-import { TransactionsIcon } from "@icons/TransactionsIcon";
-import { handleFetchError, validateFetchResponse } from "@utils/fetch";
+} from "src/types";
+import { useCSRF } from "src/hooks/useCSRF";
+import { EditIcon } from "src/components/icons/EditIcon";
+import { WalletIcon } from "src/components/icons/WalletIcon";
+import { LightningIcon } from "src/components/icons/LightningIcon";
+import { InvoiceIcon } from "src/components/icons/InvoiceIcon";
+import { SearchIcon } from "src/components/icons/SearchIcon";
+import { TransactionsIcon } from "src/components/icons/TransactionsIcon";
+import { handleFetchError, validateFetchResponse } from "src/utils/fetch";
 
 const NewApp = () => {
   const { data: csrf } = useCSRF();
@@ -364,7 +364,9 @@ const NewApp = () => {
                 Connection expiry time
               </p>
               <p className="text-gray-600 dark:text-gray-300 text-sm">
-                {new Date(expiresAtParam).toLocaleString()}
+                {expiresAtParam
+                  ? new Date(expiresAtParam).toLocaleString()
+                  : "Never"}
               </p>
             </>
           )}

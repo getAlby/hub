@@ -1,6 +1,6 @@
 import ReactQRCode from "react-qr-code";
 
-import { useDarkMode } from "@hooks/useDarkMode";
+import { useDarkMode } from "src/hooks/useDarkMode";
 
 export type Props = {
   value: string;

@@ -1,6 +1,6 @@
-import nwcLogo from "@assets/images/nwc-logo.svg";
-import albyHead from "@assets/images/alby-head.svg";
-import { useInfo } from "@hooks/useInfo";
+import nwcLogo from "assets/images/nwc-logo.svg";
+import albyHead from "assets/images/alby-head.svg";
+import { useInfo } from "src/hooks/useInfo";
 
 function Login() {
   const { data: info } = useInfo();

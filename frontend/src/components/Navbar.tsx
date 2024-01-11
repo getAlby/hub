@@ -1,15 +1,15 @@
 import React from "react";
 import { Outlet, useLocation } from "react-router-dom";
 
-import { useInfo } from "@hooks/useInfo";
-import { useLogin } from "@hooks/useLogin";
-import { useCSRF } from "@hooks/useCSRF";
-import { useUser } from "@hooks/useUser";
-import { LogoutIcon } from "@icons/LogoutIcon";
-import { AboutIcon } from "@icons/AboutIcon";
-import { CaretIcon } from "@icons/CaretIcon";
-import nwcLogo from "@assets/images/nwc-logo.svg";
-import { handleFetchError, validateFetchResponse } from "@utils/fetch";
+import { useInfo } from "src/hooks/useInfo";
+import { useLogin } from "src/hooks/useLogin";
+import { useCSRF } from "src/hooks/useCSRF";
+import { useUser } from "src/hooks/useUser";
+import { LogoutIcon } from "src/components/icons/LogoutIcon";
+import { AboutIcon } from "src/components/icons/AboutIcon";
+import { CaretIcon } from "src/components/icons/CaretIcon";
+import nwcLogo from "assets/images/nwc-logo.svg";
+import { handleFetchError, validateFetchResponse } from "src/utils/fetch";
 
 function Navbar() {
   const { data: info } = useInfo();

@@ -1,7 +1,7 @@
 import useSWR from "swr";
 
-import { swrFetcher } from "@swr";
-import { App, ErrorResponse } from "@types";
+import { swrFetcher } from "src/swr";
+import { App, ErrorResponse } from "src/types";
 
 export function useApp(pubkey: string | undefined) {
   return useSWR<App | ErrorResponse>(
