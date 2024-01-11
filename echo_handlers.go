@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -66,22 +67,45 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 
 func (svc *Service) CSRFHandler(c echo.Context) error {
 	csrf, _ := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
+	if csrf == "" {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Error:   true,
+			Message: "CSRF token not available",
+		})
+	}
 	return c.JSON(http.StatusOK, csrf)
 }
 
 func (svc *Service) InfoHandler(c echo.Context) error {
 	responseBody := &api.InfoResponse{}
 	responseBody.BackendType = svc.cfg.LNBackendType
+	if responseBody.BackendType == "" {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Error:   true,
+			Message: "Backend type not available",
+		})
+	}
 	return c.JSON(http.StatusOK, responseBody)
 }
 
 func (svc *Service) LogoutHandler(c echo.Context) error {
-	sess, _ := session.Get(CookieName, c)
+	sess, err := session.Get(CookieName, c)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Error:   true,
+			Message: "Failed to get session",
+		})
+	}
 	sess.Options.MaxAge = -1
 	if svc.cfg.CookieDomain != "" {
 		sess.Options.Domain = svc.cfg.CookieDomain
 	}
-	sess.Save(c.Request(), c.Response())
+	if err := sess.Save(c.Request(), c.Response()); err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Error:   true,
+			Message: "Failed to save session",
+		})
+	}
 	return c.NoContent(http.StatusNoContent)
 }
 
@@ -109,6 +133,12 @@ func (svc *Service) AppsListHandler(c echo.Context) error {
 
 		var lastEvent NostrEvent
 		result := svc.db.Where("app_id = ?", app.ID).Order("id desc").Limit(1).Find(&lastEvent)
+		if result.Error != nil {
+			return c.JSON(http.StatusInternalServerError, ErrorResponse{
+				Error:   true,
+				Message: "Failed to fetch last event",
+			})
+		}
 		if result.RowsAffected > 0 {
 			apiApp.LastEventAt = &lastEvent.CreatedAt
 		}
@@ -179,9 +209,33 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 
 func (svc *Service) AppsDeleteHandler(c echo.Context) error {
 	user, _ := c.Get("user").(*User)
+	pubkey := c.Param("pubkey")
+	if pubkey == "" {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Error:   true,
+			Message: "Invalid pubkey parameter",
+		})
+	}
 	app := App{}
-	svc.db.Where("user_id = ? AND nostr_pubkey = ?", user.ID, c.Param("pubkey")).First(&app)
-	svc.db.Delete(&app)
+	result := svc.db.Where("user_id = ? AND nostr_pubkey = ?", user.ID, pubkey).First(&app)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return c.JSON(http.StatusNotFound, ErrorResponse{
+				Error:   true,
+				Message: "App not found",
+			})
+		}
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Error:   true,
+			Message: "Failed to fetch app",
+		})
+	}
+	if err := svc.db.Delete(&app).Error; err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Error:   true,
+			Message: "Failed to delete app",
+		})
+	}
 	return c.NoContent(http.StatusNoContent)
 }
 
