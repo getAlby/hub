@@ -93,8 +93,8 @@ function About() {
           >
             Amethyst
           </a>
-          is the first Nostr Client to fully support Nostr Wallet Connect. More
-          are working on support for it and are following shortly.
+          &nbsp;is the first Nostr Client to fully support Nostr Wallet Connect.
+          More are working on support for it and are following shortly.
         </p>
 
         <h4 className="font-bold text-l font-headline mt-6 dark:text-white">
@@ -119,14 +119,14 @@ function About() {
           self-hosted.
           <br />
           We are looking for contributors to add support for more wallet
-          backends. If you're interested please contact us
+          backends. If you're interested please contact us&nbsp;
           <a
             href="https://github.com/getAlby/nostr-wallet-connect/"
             className="dark:text-gray-300 underline"
           >
             on GitHub
           </a>
-          or
+          &nbsp;or&nbsp;
           <a
             href="mailto:hello@getalby.com"
             className="dark:text-gray-300 underline"
