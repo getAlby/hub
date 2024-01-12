@@ -8,7 +8,7 @@ import { useUser } from "src/hooks/useUser";
 import { LogoutIcon } from "src/components/icons/LogoutIcon";
 import { AboutIcon } from "src/components/icons/AboutIcon";
 import { CaretIcon } from "src/components/icons/CaretIcon";
-import nwcLogo from "assets/images/nwc-logo.svg";
+import nwcLogo from "src/assets/images/nwc-logo.svg";
 import { handleFetchError, validateFetchResponse } from "src/utils/fetch";
 
 function Navbar() {

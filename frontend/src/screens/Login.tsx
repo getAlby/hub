@@ -1,5 +1,5 @@
-import nwcLogo from "assets/images/nwc-logo.svg";
-import albyHead from "assets/images/alby-head.svg";
+import nwcLogo from "src/assets/images/nwc-logo.svg";
+import albyHead from "src/assets/images/alby-head.svg";
 import { useInfo } from "src/hooks/useInfo";
 
 function Login() {

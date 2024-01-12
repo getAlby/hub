@@ -13,14 +13,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "@assets": path.resolve(__dirname, "./src/assets"),
-      "@components": path.resolve(__dirname, "./src/components"),
-      "@hooks": path.resolve(__dirname, "./src/hooks"),
-      "@icons": path.resolve(__dirname, "./src/components/icons"),
-      "@screens": path.resolve(__dirname, "./src/screens"),
-      "@swr": path.resolve(__dirname, "./src/swr"),
-      "@types": path.resolve(__dirname, "./src/types"),
-      "@utils": path.resolve(__dirname, "./src/utils"),
+      src: path.resolve(__dirname, "./src"),
     },
   },
 });
