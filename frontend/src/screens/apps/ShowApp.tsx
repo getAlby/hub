@@ -1,4 +1,4 @@
-import { Navigate, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 import { RequestMethodType, nip47MethodDescriptions } from "src/types";
 import { useInfo } from "src/hooks/useInfo";
@@ -12,16 +12,15 @@ function ShowApp() {
   const { data: info } = useInfo();
   const { data: csrf } = useCSRF();
   const { pubkey } = useParams() as { pubkey: string };
-  const { data: app } = useApp(pubkey);
+  const { data: app, error } = useApp(pubkey);
   const navigate = useNavigate();
+
+  if (error) {
+    return <p className="text-red-500">{error.message}</p>;
+  }
 
   if (!app || !info) {
     return <Loading />;
-  }
-
-  if (app && "error" in app) {
-    handleFetchError("Failed to fetch", app.message);
-    return <Navigate to="/apps" />;
   }
 
   const handleDelete = async (event: React.FormEvent<HTMLFormElement>) => {

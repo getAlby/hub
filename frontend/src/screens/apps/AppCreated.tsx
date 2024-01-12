@@ -50,7 +50,7 @@ export default function AppCreated() {
   }, []);
 
   if (!createAppResponse) {
-    return <Navigate to="/apps/new" state={{ from: "/apps/success" }} />;
+    return <Navigate to="/apps/new" />;
   }
 
   const pairingUri = createAppResponse.pairingUri;

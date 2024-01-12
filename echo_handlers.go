@@ -27,7 +27,6 @@ func (svc *Service) ValidateUserMiddleware(next echo.HandlerFunc) echo.HandlerFu
 		user, err := svc.GetUser(c)
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, ErrorResponse{
-				Error:   true,
 				Message: fmt.Sprintf("Bad arguments %s", err.Error()),
 			})
 		}
@@ -68,7 +67,6 @@ func (svc *Service) CSRFHandler(c echo.Context) error {
 	csrf, _ := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
 	if csrf == "" {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Error:   true,
 			Message: "CSRF token not available",
 		})
 	}
@@ -80,7 +78,6 @@ func (svc *Service) InfoHandler(c echo.Context) error {
 	responseBody.BackendType = svc.cfg.LNBackendType
 	if responseBody.BackendType == "" {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Error:   true,
 			Message: "Backend type not available",
 		})
 	}
@@ -91,7 +88,6 @@ func (svc *Service) LogoutHandler(c echo.Context) error {
 	sess, err := session.Get(CookieName, c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Error:   true,
 			Message: "Failed to get session",
 		})
 	}
@@ -101,7 +97,6 @@ func (svc *Service) LogoutHandler(c echo.Context) error {
 	}
 	if err := sess.Save(c.Request(), c.Response()); err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Error:   true,
 			Message: "Failed to save session",
 		})
 	}
@@ -134,7 +129,6 @@ func (svc *Service) AppsListHandler(c echo.Context) error {
 		result := svc.db.Where("app_id = ?", app.ID).Order("id desc").Limit(1).Find(&lastEvent)
 		if result.Error != nil {
 			return c.JSON(http.StatusInternalServerError, ErrorResponse{
-				Error:   true,
 				Message: "Failed to fetch last event",
 			})
 		}
@@ -154,7 +148,6 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 
 	if findResult.RowsAffected == 0 {
 		return c.JSON(http.StatusNotFound, ErrorResponse{
-			Error:   true,
 			Message: "App does not exist",
 		})
 	}
@@ -211,7 +204,6 @@ func (svc *Service) AppsDeleteHandler(c echo.Context) error {
 	pubkey := c.Param("pubkey")
 	if pubkey == "" {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error:   true,
 			Message: "Invalid pubkey parameter",
 		})
 	}
@@ -220,18 +212,15 @@ func (svc *Service) AppsDeleteHandler(c echo.Context) error {
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return c.JSON(http.StatusNotFound, ErrorResponse{
-				Error:   true,
 				Message: "App not found",
 			})
 		}
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Error:   true,
 			Message: "Failed to fetch app",
 		})
 	}
 	if err := svc.db.Delete(&app).Error; err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Error:   true,
 			Message: "Failed to delete app",
 		})
 	}
@@ -243,7 +232,6 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 	var requestData api.CreateAppRequest
 	if err := c.Bind(&requestData); err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error:   true,
 			Message: fmt.Sprintf("Bad request: %s", err.Error()),
 		})
 	}
@@ -261,7 +249,6 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 		if err != nil || len(decoded) != 32 {
 			svc.Logger.Errorf("Invalid public key format: %s", pairingPublicKey)
 			return c.JSON(http.StatusBadRequest, ErrorResponse{
-				Error:   true,
 				Message: fmt.Sprintf("Invalid public key format: %s", pairingPublicKey),
 			})
 		}
@@ -291,7 +278,6 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 		if err != nil {
 			svc.Logger.Errorf("Invalid expiresAt: %s", pairingPublicKey)
 			return c.JSON(http.StatusBadRequest, ErrorResponse{
-				Error:   true,
 				Message: fmt.Sprintf("Invalid expiresAt: %v", err),
 			})
 		}
@@ -341,7 +327,6 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 			"name":             name,
 		}).Errorf("Failed to save app: %v", err)
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Error:   true,
 			Message: fmt.Sprintf("Failed to save app: %v", err),
 		})
 	}
