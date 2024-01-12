@@ -60,34 +60,36 @@ function ShowApp() {
         <div className="divide-y divide-gray-200 dark:divide-white/10 dark:bg-surface-02dp">
           <div className="pb-4">
             <table>
-              <tr>
-                <td className="align-top w-32 font-medium dark:text-white">
-                  Public Key
-                </td>
-                <td className="text-gray-600 dark:text-neutral-400 break-all">
-                  {app.nostrPubkey}
-                </td>
-              </tr>
-              <tr>
-                <td className="align-top font-medium dark:text-white">
-                  Last used
-                </td>
-                <td className="text-gray-600 dark:text-neutral-400">
-                  {app.lastEventAt
-                    ? new Date(app.lastEventAt).toLocaleDateString()
-                    : "never"}
-                </td>
-              </tr>
-              <tr>
-                <td className="align-top font-medium dark:text-white">
-                  Expires at
-                </td>
-                <td className="text-gray-600 dark:text-neutral-400">
-                  {app.expiresAt
-                    ? new Date(app.expiresAt).toLocaleDateString()
-                    : "never"}
-                </td>
-              </tr>
+              <tbody>
+                <tr>
+                  <td className="align-top w-32 font-medium dark:text-white">
+                    Public Key
+                  </td>
+                  <td className="text-gray-600 dark:text-neutral-400 break-all">
+                    {app.nostrPubkey}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="align-top font-medium dark:text-white">
+                    Last used
+                  </td>
+                  <td className="text-gray-600 dark:text-neutral-400">
+                    {app.lastEventAt
+                      ? new Date(app.lastEventAt).toLocaleDateString()
+                      : "never"}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="align-top font-medium dark:text-white">
+                    Expires at
+                  </td>
+                  <td className="text-gray-600 dark:text-neutral-400">
+                    {app.expiresAt
+                      ? new Date(app.expiresAt).toLocaleDateString()
+                      : "never"}
+                  </td>
+                </tr>
+              </tbody>
             </table>
           </div>
 
@@ -106,16 +108,18 @@ function ShowApp() {
             {app.maxAmount > 0 && (
               <div className="pl-6">
                 <table className="text-gray-600 dark:text-neutral-400">
-                  <tr>
-                    <td className="font-medium">Budget</td>
-                    <td>
-                      {app.maxAmount} sats ({app.budgetUsage} sats used)
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="font-medium pr-3">Renews</td>
-                    <td>{app.budgetRenewal}</td>
-                  </tr>
+                  <tbody>
+                    <tr>
+                      <td className="font-medium">Budget</td>
+                      <td>
+                        {app.maxAmount} sats ({app.budgetUsage} sats used)
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="font-medium pr-3">Renews</td>
+                      <td>{app.budgetRenewal}</td>
+                    </tr>
+                  </tbody>
                 </table>
               </div>
             )}

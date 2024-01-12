@@ -276,24 +276,23 @@ const NewApp = () => {
                             >
                               {Object.keys(budgetOptions).map((budget) => {
                                 return (
-                                  <>
-                                    <div
-                                      onClick={() =>
-                                        setMaxAmount(budgetOptions[budget])
-                                      }
-                                      className={`col-span-2 md:col-span-1 cursor-pointer rounded border-2 ${
-                                        maxAmount == budgetOptions[budget]
-                                          ? "border-purple-700 dark:border-purple-300 text-purple-700 bg-purple-100 dark:bg-purple-900"
-                                          : "border-gray-200 dark:border-gray-400"
-                                      } text-center py-4 dark:text-white`}
-                                    >
-                                      {budget}
-                                      <br />
-                                      {budgetOptions[budget]
-                                        ? "sats"
-                                        : "#reckless"}
-                                    </div>
-                                  </>
+                                  <div
+                                    key={budget}
+                                    onClick={() =>
+                                      setMaxAmount(budgetOptions[budget])
+                                    }
+                                    className={`col-span-2 md:col-span-1 cursor-pointer rounded border-2 ${
+                                      maxAmount == budgetOptions[budget]
+                                        ? "border-purple-700 dark:border-purple-300 text-purple-700 bg-purple-100 dark:bg-purple-900"
+                                        : "border-gray-200 dark:border-gray-400"
+                                    } text-center py-4 dark:text-white`}
+                                  >
+                                    {budget}
+                                    <br />
+                                    {budgetOptions[budget]
+                                      ? "sats"
+                                      : "#reckless"}
+                                  </div>
                                 );
                               })}
                             </div>
@@ -339,6 +338,7 @@ const NewApp = () => {
                     {Object.keys(expiryOptions).map((expiry) => {
                       return (
                         <div
+                          key={expiry}
                           onClick={() => handleDays(expiryOptions[expiry])}
                           className={`cursor-pointer rounded border-2 ${
                             days == expiryOptions[expiry]
