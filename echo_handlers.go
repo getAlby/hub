@@ -269,6 +269,7 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 
 	// make sure there is not already a pubkey is already associated with an app
 	// as apps are currently indexed by pubkey
+	// TODO: shouldn't this be a database constraint?
 	existingApp := App{}
 
 	findResult := svc.db.Where("user_id = ? AND nostr_pubkey = ?", user.ID, pairingPublicKey).First(&existingApp)
