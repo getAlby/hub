@@ -125,7 +125,7 @@ const NewApp = () => {
           pubkey,
           maxAmount,
           budgetRenewal,
-          expiresAt,
+          expiresAt: expiresAt?.toISOString(),
           requestMethods: [...requestMethods].join(" "),
           returnTo: returnTo,
         }),
