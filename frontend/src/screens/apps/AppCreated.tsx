@@ -33,6 +33,7 @@ export default function AppCreated() {
     }
   }, []);
 
+  // TODO: use a modal library instead of doing this manually
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (

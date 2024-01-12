@@ -48,7 +48,6 @@ const NewApp = () => {
     ? budgetRenewalParam
     : "monthly";
 
-  // returns RequestMethod Set
   const parseRequestMethods = (reqParam: string): Set<RequestMethodType> => {
     const methods = reqParam
       ? reqParam.split(" ")
@@ -123,10 +122,10 @@ const NewApp = () => {
         },
         body: JSON.stringify({
           name: appName,
-          pubkey: pubkey,
-          maxAmount: maxAmount.toString(),
-          budgetRenewal: budgetRenewal,
-          expiresAt: expiresAt,
+          pubkey,
+          maxAmount,
+          budgetRenewal,
+          expiresAt,
           requestMethods: [...requestMethods].join(" "),
           returnTo: returnTo,
         }),
@@ -134,6 +133,11 @@ const NewApp = () => {
       await validateFetchResponse(response);
 
       const createAppResponse: CreateAppResponse = await response.json();
+      if (createAppResponse.returnTo) {
+        // open connection URI directly in an app
+        window.location.href = createAppResponse.returnTo;
+        return;
+      }
       navigate("/apps/created", {
         state: createAppResponse,
       });
@@ -211,18 +215,16 @@ const NewApp = () => {
 
           <div className="mb-6">
             <ul className="flex flex-col w-full">
-              {Object.keys(nip47MethodDescriptions).map((rm, index) => {
-                const RequestMethodIcon = iconMap[rm as RequestMethodType];
+              {(
+                Object.keys(nip47MethodDescriptions) as RequestMethodType[]
+              ).map((rm, index) => {
+                const RequestMethodIcon = iconMap[rm];
                 return (
                   <li
                     key={index}
                     className={`w-full ${
                       rm == "pay_invoice" ? "order-last" : ""
-                    } ${
-                      !edit && !requestMethods.has(rm as RequestMethodType)
-                        ? "hidden"
-                        : ""
-                    }`}
+                    } ${!edit && !requestMethods.has(rm) ? "hidden" : ""}`}
                   >
                     <div className="flex items-center mb-2">
                       {RequestMethodIcon && (

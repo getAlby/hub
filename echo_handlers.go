@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"strconv"
 	"strings"
 	"time"
 
@@ -268,7 +267,7 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 		}
 	}
 	app := App{Name: name, NostrPubkey: pairingPublicKey}
-	maxAmount, _ := strconv.Atoi(requestData.MaxAmount)
+	maxAmount := requestData.MaxAmount
 	budgetRenewal := requestData.BudgetRenewal
 
 	expiresAt := time.Time{}
