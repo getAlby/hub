@@ -70,27 +70,17 @@ const NewApp = () => {
     parseInt(maxAmountParam || "100000")
   );
 
-  // returns ISO string
-  const parseExpiresParam = (expiresParam: string): string => {
-    if (/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/.test(expiresParam)) {
-      const d = new Date(expiresParam);
-      const isIso =
-        d instanceof Date &&
-        !isNaN(d.getTime()) &&
-        d.toISOString() === expiresParam;
-      if (isIso) {
-        return expiresParam;
-      }
+  const parseExpiresParam = (expiresParam: string): Date | undefined => {
+    const expiresParamTimestamp = parseInt(expiresParam);
+    if (!isNaN(expiresParamTimestamp)) {
+      return new Date(expiresParamTimestamp * 1000);
     }
-    if (!isNaN(parseInt(expiresParam))) {
-      return new Date(parseInt(expiresParam as string) * 1000).toISOString();
-    }
-    return "";
+    return undefined;
   };
 
-  // Only timestamp in seconds or ISO string is expected
-  const expiresAtParam = parseExpiresParam(queryParams.get("expires_at") ?? "");
-  const [expiresAt, setExpiresAt] = useState(expiresAtParam);
+  const [expiresAt, setExpiresAt] = useState<Date | undefined>(
+    parseExpiresParam(queryParams.get("expires_at") ?? "")
+  );
   const [days, setDays] = useState(0);
   const [expireOptions, setExpireOptions] = useState(false);
 
@@ -98,11 +88,11 @@ const NewApp = () => {
   const handleDays = (days: number) => {
     setDays(days);
     if (!days) {
-      setExpiresAt("");
+      setExpiresAt(undefined);
       return;
     }
     const expiryDate = new Date(today.getTime() + days * 24 * 60 * 60 * 1000);
-    setExpiresAt(expiryDate.toISOString());
+    setExpiresAt(expiryDate);
   };
 
   const handleRequestMethodChange = (
@@ -320,7 +310,7 @@ const NewApp = () => {
             </ul>
           </div>
 
-          {!expiresAtParam ? (
+          {!expiresAt || days ? (
             <>
               <div
                 onClick={() => setExpireOptions(true)}
@@ -364,9 +354,7 @@ const NewApp = () => {
                 Connection expiry time
               </p>
               <p className="text-gray-600 dark:text-gray-300 text-sm">
-                {expiresAtParam
-                  ? new Date(expiresAtParam).toLocaleString()
-                  : "Never"}
+                {expiresAt.toLocaleString()}
               </p>
             </>
           )}
