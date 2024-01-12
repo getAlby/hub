@@ -50,6 +50,21 @@ Go to `/frontend`
 
 Follow standard LND instructions. After logging in, you will be redirected to the wrong port (8080), so manually re-open <http://localhost:5173>.
 
+### Build and run locally
+
+`mkdir tmp`
+`go build -o main`
+`cp main tmp`
+`cp .env tmp`
+`cd tmp`
+`./main`
+
+### Run dockerfile locally
+
+`docker build . -t nwc-local`
+
+`docker run --env-file .env -p 8080:8080 nwc-local`
+
 ### Testing
 
 `go test`
@@ -148,6 +163,7 @@ You can also contribute to our [bounty program](https://github.com/getAlby/light
 ✅ `get_balance`
 
 ✅ `pay_invoice`
+
 - ⚠️ amount not supported (for amountless invoices)
 
 ✅ `pay_keysend`
@@ -178,6 +194,7 @@ You can also contribute to our [bounty program](https://github.com/getAlby/light
 ✅ `get_balance`
 
 ✅ `pay_invoice`
+
 - ⚠️ amount not supported (for amountless invoices)
 
 ✅ `pay_keysend`
@@ -201,3 +218,10 @@ You can also contribute to our [bounty program](https://github.com/getAlby/light
 ❌ `multi_pay_invoice`
 
 ❌ `multi_pay_keysend (TBC)`
+
+## Node Distributions
+
+Run NWC on your own node!
+
+- [https://github.com/getAlby/umbrel-community-app-store](Umbrel)
+- [https://github.com/horologger/nostr-wallet-connect-startos](Start9) (WIP)
