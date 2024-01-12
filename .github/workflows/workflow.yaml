@@ -39,7 +39,7 @@ jobs:
         if: ${{ github.ref == 'refs/heads/main' }}
         uses: fjogeleit/yaml-update-action@v0.7.0
         with:
-          valueFile: "alby-simnet-deployment/values.yaml"
+          valueFile: "alby-simnet-deployment/values/nwc.yaml"
           propertyPath: "nwc.image.tag"
           value: ${{ steps.build.outputs.tags }}
           repository: getalby/alby-deployment
