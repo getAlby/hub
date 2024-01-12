@@ -32,7 +32,7 @@ const NewApp = () => {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
 
-  const [edit, setEdit] = useState(false);
+  const [isEditing, setEditing] = useState(false);
 
   const nameParam = (queryParams.get("name") || queryParams.get("c")) ?? "";
   const [appName, setAppName] = useState(nameParam);
@@ -59,10 +59,10 @@ const NewApp = () => {
     return requestMethodsSet;
   };
 
-  const reqMethodsParam = parseRequestMethods(
-    queryParams.get("request_methods") ?? ""
+  const reqMethodsParam = queryParams.get("request_methods") ?? "";
+  const [requestMethods, setRequestMethods] = useState(
+    parseRequestMethods(reqMethodsParam)
   );
-  const [requestMethods, setRequestMethods] = useState(reqMethodsParam);
 
   const maxAmountParam = queryParams.get("max_amount") ?? "";
   const [maxAmount, setMaxAmount] = useState(
@@ -97,14 +97,18 @@ const NewApp = () => {
   const handleRequestMethodChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    const rm = event.target.value as RequestMethodType;
-    if (requestMethods.has(rm)) {
+    const requestMethod = event.target.value as RequestMethodType;
+
+    const newRequestMethods = new Set(requestMethods);
+
+    if (newRequestMethods.has(requestMethod)) {
       // If checked and item is already in the list, remove it
-      requestMethods.delete(rm);
+      newRequestMethods.delete(requestMethod);
     } else {
-      requestMethods.add(rm);
+      newRequestMethods.add(requestMethod);
     }
-    setRequestMethods(requestMethods);
+
+    setRequestMethods(newRequestMethods);
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -205,9 +209,9 @@ const NewApp = () => {
           )}
           <div className="flex justify-between items-center mb-2 text-gray-800 dark:text-white">
             <p className="text-lg font-medium">Authorize the app to:</p>
-            {!reqMethodsParam && !edit && (
+            {!reqMethodsParam && !isEditing && (
               <EditIcon
-                onClick={() => setEdit(true)}
+                onClick={() => setEditing(true)}
                 className="text-gray-800 dark:text-gray-300 cursor-pointer w-6"
               />
             )}
@@ -224,13 +228,13 @@ const NewApp = () => {
                     key={index}
                     className={`w-full ${
                       rm == "pay_invoice" ? "order-last" : ""
-                    } ${!edit && !requestMethods.has(rm) ? "hidden" : ""}`}
+                    } ${!isEditing && !requestMethods.has(rm) ? "hidden" : ""}`}
                   >
                     <div className="flex items-center mb-2">
                       {RequestMethodIcon && (
                         <RequestMethodIcon
                           className={`text-gray-800 dark:text-gray-300 w-5 mr-3 ${
-                            edit ? "hidden" : ""
+                            isEditing ? "hidden" : ""
                           }`}
                         />
                       )}
@@ -241,7 +245,7 @@ const NewApp = () => {
                         checked={requestMethods.has(rm as RequestMethodType)}
                         onChange={handleRequestMethodChange}
                         className={` ${
-                          !edit ? "hidden" : ""
+                          !isEditing ? "hidden" : ""
                         } w-4 h-4 mr-4 text-purple-700 bg-gray-50 border border-gray-300 rounded focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-surface-00dp dark:border-gray-700 cursor-pointer`}
                       />
                       <label
@@ -255,7 +259,7 @@ const NewApp = () => {
                       <div
                         className={`pt-2 pb-2 pl-5 ml-2.5 border-l-2 border-l-gray-200 dark:border-l-gray-400 ${
                           !requestMethods.has(rm)
-                            ? edit
+                            ? isEditing
                               ? "pointer-events-none opacity-30"
                               : "hidden"
                             : ""
