@@ -266,6 +266,19 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 			})
 		}
 	}
+
+	// make sure there is not already a pubkey is already associated with an app
+	// as apps are currently indexed by pubkey
+	existingApp := App{}
+
+	findResult := svc.db.Where("user_id = ? AND nostr_pubkey = ?", user.ID, pairingPublicKey).First(&existingApp)
+
+	if findResult.RowsAffected > 0 {
+		return c.JSON(http.StatusConflict, ErrorResponse{
+			Message: "Pubkey already in use: " + existingApp.NostrPubkey,
+		})
+	}
+
 	app := App{Name: name, NostrPubkey: pairingPublicKey}
 	maxAmount := requestData.MaxAmount
 	budgetRenewal := requestData.BudgetRenewal
