@@ -161,6 +161,10 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 		NostrPubkey: event.PubKey,
 	}).Error
 	if err != nil {
+		svc.Logger.WithFields(logrus.Fields{
+			"nostrPubkey": event.PubKey,
+		}).Errorf("Failed to find app for nostr pubkey: %v", err)
+
 		ss, err := nip04.ComputeSharedSecret(event.PubKey, svc.cfg.NostrSecretKey)
 		if err != nil {
 			return nil, err

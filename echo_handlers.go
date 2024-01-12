@@ -150,9 +150,9 @@ func (svc *Service) AppsListHandler(c echo.Context) error {
 func (svc *Service) AppsShowHandler(c echo.Context) error {
 	user, _ := c.Get("user").(*User)
 	app := App{}
-	svc.db.Where("user_id = ? AND nostr_pubkey = ?", user.ID, c.Param("pubkey")).First(&app)
+	findResult := svc.db.Where("user_id = ? AND nostr_pubkey = ?", user.ID, c.Param("pubkey")).First(&app)
 
-	if app.NostrPubkey == "" {
+	if findResult.RowsAffected == 0 {
 		return c.JSON(http.StatusNotFound, ErrorResponse{
 			Error:   true,
 			Message: "App does not exist",
