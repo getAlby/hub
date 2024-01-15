@@ -5,7 +5,7 @@ export const NIP_47_MAKE_INVOICE_METHOD = "make_invoice";
 export const NIP_47_LOOKUP_INVOICE_METHOD = "lookup_invoice";
 export const NIP_47_LIST_TRANSACTIONS_METHOD = "list_transactions";
 
-export type BackendType = "ALBY" | "LND";
+export type BackendType = "ALBY" | "LND" | "BREEZ";
 
 export type RequestMethodType =
   | "pay_invoice"
@@ -103,6 +103,7 @@ export interface NostrEvent {
 
 export interface InfoResponse {
   backendType: BackendType;
+  setupCompleted: boolean;
 }
 
 export interface CreateAppResponse {

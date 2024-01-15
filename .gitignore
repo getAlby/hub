@@ -1,5 +1,6 @@
 .DS_Store
 .env
+.env.local
 *.db
 *.macaroon
 node_modules

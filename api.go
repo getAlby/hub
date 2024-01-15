@@ -30,3 +30,7 @@ func (svc *Service) ListApps(userApps *[]App, apps *[]api.App) error {
 	}
 	return nil
 }
+
+func (svc *Service) GetInfo(info *api.InfoResponse) {
+	info.BackendType = svc.cfg.LNBackendType
+}

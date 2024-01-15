@@ -140,7 +140,7 @@ func main() {
 	ctx, _ = signal.NotifyContext(ctx, os.Interrupt)
 
 	// TODO: use a different check to run wails app
-	if cfg.LNBackendType == "BREEZ" {
+	if cfg.AppType == WailsAppType {
 		app := NewApp(svc)
 		LaunchWailsApp(app)
 
@@ -157,6 +157,7 @@ func main() {
 		e := echo.New()
 
 		switch cfg.LNBackendType {
+		// TODO: LND and Breez should only start if configured
 		case LNDBackendType:
 			lndClient, err := NewLNDService(ctx, svc, e)
 			if err != nil {
@@ -169,6 +170,12 @@ func main() {
 				svc.Logger.Fatal(err)
 			}
 			svc.lnClient = oauthService
+		case BreezBackendType:
+			/*breezSvc, err := NewBreezService(cfg.BreezMnemonic, cfg.BreezAPIKey, cfg.GreenlightInviteCode, cfg.BreezWorkdir)
+			if err != nil {
+				svc.Logger.Fatal(err)
+			}
+			svc.lnClient = breezSvc*/
 		default:
 			svc.Logger.Fatalf("Unsupported LNBackendType: %v", cfg.LNBackendType)
 		}
@@ -191,6 +198,10 @@ func main() {
 		}()
 	}
 
+	var wg sync.WaitGroup
+	if cfg.AppType == HttpAppType {
+		wg.Add(1)
+	}
 	go func() {
 
 		//connect to the relay
@@ -233,7 +244,9 @@ func main() {
 			svc.Logger.Error(err)
 		}
 		svc.Logger.Info("Graceful shutdown completed. Goodbye.")
+		wg.Done()
 	}()
+	wg.Wait()
 }
 
 func (svc *Service) createFilters() nostr.Filters {

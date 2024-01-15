@@ -43,8 +43,9 @@ Generate a new OAuth client for <http://localhost:8080> from the [Alby developer
 
 Go to `/frontend`
 
-1. `yarn install`
-2. `yarn dev`
+1. `cp .env.example .env.local`
+2. `yarn install`
+3. `yarn dev`
 
 ### React Frontend (Alby Wallet API)
 
@@ -52,6 +53,7 @@ Follow standard LND instructions. After logging in, you will be redirected to th
 
 ### Wails Frontend
 
+`unset GTK_PATH`
 `wails dev`
 
 ### Build and run locally

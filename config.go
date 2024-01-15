@@ -5,6 +5,9 @@ const (
 	LNDBackendType   = "LND"
 	BreezBackendType = "BREEZ"
 	CookieName       = "alby_nwc_session"
+
+	WailsAppType = "WAILS"
+	HttpAppType  = "HTTP"
 )
 
 type Config struct {
@@ -15,6 +18,7 @@ type Config struct {
 	Relay                   string `envconfig:"RELAY" default:"wss://relay.getalby.com/v1"`
 	PublicRelay             string `envconfig:"PUBLIC_RELAY"`
 	LNBackendType           string `envconfig:"LN_BACKEND_TYPE" default:"ALBY"`
+	AppType                 string `envconfig:"APP_TYPE" default:"HTTP"`
 	LNDAddress              string `envconfig:"LND_ADDRESS"`
 	LNDCertFile             string `envconfig:"LND_CERT_FILE"`
 	LNDMacaroonFile         string `envconfig:"LND_MACAROON_FILE"`

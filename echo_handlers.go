@@ -74,9 +74,9 @@ func (svc *Service) CSRFHandler(c echo.Context) error {
 }
 
 func (svc *Service) InfoHandler(c echo.Context) error {
-	responseBody := &api.InfoResponse{}
-	responseBody.BackendType = svc.cfg.LNBackendType
-	return c.JSON(http.StatusOK, responseBody)
+	responseBody := api.InfoResponse{}
+	svc.GetInfo(&responseBody)
+	return c.JSON(http.StatusOK, &responseBody)
 }
 
 func (svc *Service) LogoutHandler(c echo.Context) error {

@@ -58,6 +58,14 @@ function Navbar() {
                   </a>
                   <a
                     className={`${linkStyles} ${
+                      location.pathname === "/setup" && selectedLinkStyles
+                    }`}
+                    href="/setup"
+                  >
+                    Setup
+                  </a>
+                  <a
+                    className={`${linkStyles} ${
                       location.pathname === "/about" && selectedLinkStyles
                     }`}
                     href="/about"

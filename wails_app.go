@@ -5,7 +5,6 @@ import (
 	"embed"
 	"log"
 
-	"github.com/getAlby/nostr-wallet-connect/models/api"
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
@@ -27,32 +26,6 @@ func NewApp(svc *Service) *WailsApp {
 // so we can call the runtime methods
 func (a *WailsApp) startup(ctx context.Context) {
 	a.ctx = ctx
-}
-
-func (a *WailsApp) WailsRequestRouter(route string) interface{} {
-
-	switch route {
-	case "/api/apps":
-		userApps := []App{}
-		a.svc.db.Find(&userApps)
-		apps := []api.App{}
-		a.svc.ListApps(&userApps, &apps)
-		a.svc.Logger.Infof("END WailsRequestRouter %v", len(apps))
-		return apps
-	case "/api/info":
-		// TODO: move to API
-		return api.InfoResponse{
-			BackendType: a.svc.cfg.LNBackendType,
-		}
-	case "/api/user/me":
-		// no user in this mode
-		return nil
-	case "/api/csrf":
-		// never used
-		return ""
-	}
-	a.svc.Logger.Fatalf("Unhandled route: %s", route)
-	return nil
 }
 
 func LaunchWailsApp(app *WailsApp) {

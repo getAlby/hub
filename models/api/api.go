@@ -45,5 +45,6 @@ type User struct {
 }
 
 type InfoResponse struct {
-	BackendType string `json:"backendType"`
+	BackendType    string `json:"backendType"`
+	SetupCompleted bool   `json:"setupCompleted"`
 }

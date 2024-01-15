@@ -1,13 +1,10 @@
 import toast from "src/components/Toast";
 
-// TODO: this should be passed as an environment variable
-const FETCH_METHOD = "wails";
-
 import { WailsRequestRouter } from "wailsjs/go/main/WailsApp";
 
-export const appFetch = async (args: Parameters<typeof fetch>) => {
+export const appFetch = async (...args: Parameters<typeof fetch>) => {
   try {
-    if (FETCH_METHOD === "wails") {
+    if (import.meta.env.VITE_APP_TYPE === "WAILS") {
       while (!("go" in window)) {
         console.log("go not in window");
         await new Promise((resolve) => setTimeout(resolve, 500));

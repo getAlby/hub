@@ -11,15 +11,33 @@ import ShowApp from "src/screens/apps/ShowApp";
 import NewApp from "src/screens/apps/NewApp";
 import AppCreated from "src/screens/apps/AppCreated";
 import NotFound from "src/screens/NotFound";
+import { useInfo } from "./hooks/useInfo";
+import Loading from "./components/Loading";
+import { Setup } from "./screens/Setup";
 
 function App() {
+  const { data: info } = useInfo();
+
+  if (!info) {
+    return <Loading />;
+  }
+
   return (
     <div className="bg:white dark:bg-black min-h-full">
       <Toaster />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Navbar />}>
-            <Route index element={<Navigate to="/apps" replace />} />
+            <Route
+              index
+              element={
+                <Navigate
+                  to={info.setupCompleted ? "/apps" : "/setup"}
+                  replace
+                />
+              }
+            />
+            <Route path="setup" element={<Setup />} />
             <Route path="apps" element={<AppsList />} />
             <Route path="apps/:pubkey" element={<ShowApp />} />
             <Route path="apps/new" element={<NewApp />} />
