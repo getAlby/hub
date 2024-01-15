@@ -198,28 +198,6 @@ func (bs *BreezService) GetInfo(ctx context.Context, senderPubkey string) (info 
 }
 
 func breezPaymentToTransaction(payment *breez_sdk.Payment) *Nip47Transaction {
-	//
-	//	Id          string
-	//	PaymentType PaymentType
-	//	PaymentTime int64
-	//	AmountMsat  uint64
-	//	FeeMsat     uint64
-	//	Status      PaymentStatus
-	//	Description *string
-	//	Details     PaymentDetails
-	//
-	//	PaymentHash           string
-	//	Label                 string
-	//	DestinationPubkey     string
-	//	PaymentPreimage       string
-	//	Keysend               bool
-	//	Bolt11                string
-	//	LnurlSuccessAction    *SuccessActionProcessed
-	//	LnurlMetadata         *string
-	//	LnAddress             *string
-	//	LnurlWithdrawEndpoint *string
-	//	SwapInfo              *SwapInfo
-
 	var lnDetails breez_sdk.PaymentDetailsLn
 	if payment.Details != nil {
 		lnDetails, _ = payment.Details.(breez_sdk.PaymentDetailsLn)
@@ -242,7 +220,7 @@ func breezPaymentToTransaction(payment *breez_sdk.Payment) *Nip47Transaction {
 		ExpiresAt:   nil,
 		Metadata:    nil,
 	}
-	if payment.Status == 2 {
+	if payment.Status == breez_sdk.PaymentStatusComplete {
 		settledAt := payment.PaymentTime
 		tx.SettledAt = &settledAt
 	}
