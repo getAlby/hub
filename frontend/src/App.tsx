@@ -14,7 +14,7 @@ import NotFound from "src/screens/NotFound";
 
 function App() {
   return (
-    <div className="dark:bg-black min-h-full">
+    <div className="bg:white dark:bg-black min-h-full">
       <Toaster />
       <BrowserRouter>
         <Routes>

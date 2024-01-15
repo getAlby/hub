@@ -9,3 +9,5 @@ nwc.db
 
 frontend/dist
 frontend/node_modules
+frontend/wailsjs
+package.json.md5

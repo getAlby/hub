@@ -25,7 +25,7 @@ function Navbar() {
     <>
       <div className="bg-gray-50 dark:bg-surface-00dp">
         <div className="bg-white border-b border-gray-200 dark:bg-surface-01dp dark:border-neutral-700 mb-6">
-          <nav className="container max-w-screen-lg mx-auto px-4 lg:px-0 py-3">
+          <nav className="container max-w-screen-lg mx-auto px-4 2xl:px-0 py-3">
             <div className="flex justify-between items-center">
               <div className="flex items-center space-x-12">
                 <a
@@ -72,7 +72,7 @@ function Navbar() {
         </div>
       </div>
       <div className="flex justify-center">
-        <div className="container max-w-screen-lg">
+        <div className="container max-w-screen-lg px-2">
           <Outlet />
         </div>
       </div>

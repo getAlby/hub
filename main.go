@@ -130,94 +130,110 @@ func main() {
 		defer tracer.Stop()
 	}
 
-	echologrus.Logger = log.New()
-	echologrus.Logger.SetFormatter(&log.JSONFormatter{})
-	echologrus.Logger.SetOutput(os.Stdout)
-	echologrus.Logger.SetLevel(log.InfoLevel)
-	svc.Logger = echologrus.Logger
+	logger := log.New()
+	logger.SetFormatter(&log.JSONFormatter{})
+	logger.SetOutput(os.Stdout)
+	logger.SetLevel(log.InfoLevel)
+	svc.Logger = logger
 
-	e := echo.New()
 	ctx := context.Background()
 	ctx, _ = signal.NotifyContext(ctx, os.Interrupt)
-	var wg sync.WaitGroup
-	switch cfg.LNBackendType {
-	case LNDBackendType:
-		lndClient, err := NewLNDService(ctx, svc, e)
+
+	// TODO: use a different check to run wails app
+	if cfg.LNBackendType == "BREEZ" {
+		app := NewApp(svc)
+		LaunchWailsApp(app)
+
+		// TODO: enable service if/after config is setup
+		/*breezSvc, err := NewBreezService(cfg.BreezMnemonic, cfg.BreezAPIKey, cfg.GreenlightInviteCode, cfg.BreezWorkdir)
 		if err != nil {
 			svc.Logger.Fatal(err)
 		}
-		svc.lnClient = lndClient
-	case AlbyBackendType:
-		oauthService, err := NewAlbyOauthService(svc, e)
-		if err != nil {
-			svc.Logger.Fatal(err)
-		}
-		svc.lnClient = oauthService
-	case BreezBackendType:
-		breezSvc, err := NewBreezService(cfg.BreezMnemonic, cfg.BreezAPIKey, cfg.GreenlightInviteCode, cfg.BreezWorkdir)
-		if err != nil {
-			svc.Logger.Fatal(err)
-		}
-		svc.lnClient = breezSvc
-	}
+		svc.lnClient = breezSvc*/
 
-	//register shared routes
-	svc.RegisterSharedRoutes(e)
-	//start Echo server
-	wg.Add(1)
-	go func() {
-		if err := e.Start(fmt.Sprintf(":%v", svc.cfg.Port)); err != nil && err != http.ErrServerClosed {
-			e.Logger.Fatal("shutting down the server")
-		}
-		//handle graceful shutdown
-		<-ctx.Done()
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-		e.Shutdown(ctx)
-		svc.Logger.Info("Echo server exited")
-		wg.Done()
-	}()
+	} else {
+		// using echo
+		echologrus.Logger = logger
+		e := echo.New()
 
-	//connect to the relay
-	svc.Logger.Infof("Connecting to the relay: %s", cfg.Relay)
-
-	relay, err := nostr.RelayConnect(ctx, cfg.Relay, nostr.WithNoticeHandler(svc.noticeHandler))
-	if err != nil {
-		svc.Logger.Fatal(err)
-	}
-
-	//publish event with NIP-47 info
-	err = svc.PublishNip47Info(ctx, relay)
-	if err != nil {
-		svc.Logger.WithError(err).Error("Could not publish NIP47 info")
-	}
-
-	//Start infinite loop which will be only broken by canceling ctx (SIGINT)
-	//TODO: we can start this loop for multiple relays
-	for {
-		svc.Logger.Info("Subscribing to events")
-		sub, err := relay.Subscribe(ctx, svc.createFilters())
-		if err != nil {
-			svc.Logger.Fatal(err)
-		}
-		err = svc.StartSubscription(ctx, sub)
-		if err != nil {
-			//err being non-nil means that we have an error on the websocket error channel. In this case we just try to reconnect.
-			svc.Logger.WithError(err).Error("Got an error from the relay while listening to subscription. Reconnecting...")
-			relay, err = nostr.RelayConnect(ctx, cfg.Relay)
+		switch cfg.LNBackendType {
+		case LNDBackendType:
+			lndClient, err := NewLNDService(ctx, svc, e)
 			if err != nil {
 				svc.Logger.Fatal(err)
 			}
-			continue
+			svc.lnClient = lndClient
+		case AlbyBackendType:
+			oauthService, err := NewAlbyOauthService(svc, e)
+			if err != nil {
+				svc.Logger.Fatal(err)
+			}
+			svc.lnClient = oauthService
+		default:
+			svc.Logger.Fatalf("Unsupported LNBackendType: %v", cfg.LNBackendType)
 		}
-		//err being nil means that the context was canceled and we should exit the program.
-		break
+		//register shared routes
+		svc.RegisterSharedRoutes(e)
+		//start Echo server
+		var wg sync.WaitGroup
+		wg.Add(1)
+		go func() {
+			if err := e.Start(fmt.Sprintf(":%v", svc.cfg.Port)); err != nil && err != http.ErrServerClosed {
+				e.Logger.Fatal("shutting down the server")
+			}
+			//handle graceful shutdown
+			<-ctx.Done()
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			defer cancel()
+			e.Shutdown(ctx)
+			svc.Logger.Info("Echo server exited")
+			wg.Done()
+		}()
 	}
-	err = relay.Close()
-	if err != nil {
-		svc.Logger.Error(err)
-	}
-	svc.Logger.Info("Graceful shutdown completed. Goodbye.")
+
+	go func() {
+
+		//connect to the relay
+		svc.Logger.Infof("Connecting to the relay: %s", cfg.Relay)
+
+		relay, err := nostr.RelayConnect(ctx, cfg.Relay, nostr.WithNoticeHandler(svc.noticeHandler))
+		if err != nil {
+			svc.Logger.Fatal(err)
+		}
+
+		//publish event with NIP-47 info
+		err = svc.PublishNip47Info(ctx, relay)
+		if err != nil {
+			svc.Logger.WithError(err).Error("Could not publish NIP47 info")
+		}
+
+		//Start infinite loop which will be only broken by canceling ctx (SIGINT)
+		//TODO: we can start this loop for multiple relays
+		for {
+			svc.Logger.Info("Subscribing to events")
+			sub, err := relay.Subscribe(ctx, svc.createFilters())
+			if err != nil {
+				svc.Logger.Fatal(err)
+			}
+			err = svc.StartSubscription(ctx, sub)
+			if err != nil {
+				//err being non-nil means that we have an error on the websocket error channel. In this case we just try to reconnect.
+				svc.Logger.WithError(err).Error("Got an error from the relay while listening to subscription. Reconnecting...")
+				relay, err = nostr.RelayConnect(ctx, cfg.Relay)
+				if err != nil {
+					svc.Logger.Fatal(err)
+				}
+				continue
+			}
+			//err being nil means that the context was canceled and we should exit the program.
+			break
+		}
+		err = relay.Close()
+		if err != nil {
+			svc.Logger.Error(err)
+		}
+		svc.Logger.Info("Graceful shutdown completed. Goodbye.")
+	}()
 }
 
 func (svc *Service) createFilters() nostr.Filters {

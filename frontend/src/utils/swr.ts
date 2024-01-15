@@ -1,7 +1,8 @@
 import { ErrorResponse } from "src/types";
+import { appFetch } from "./fetch";
 
 export const swrFetcher = async (...args: Parameters<typeof fetch>) => {
-  const response = await fetch(...args);
+  const response = await appFetch(args);
 
   const json = await response.json();
 

@@ -76,11 +76,6 @@ func (svc *Service) CSRFHandler(c echo.Context) error {
 func (svc *Service) InfoHandler(c echo.Context) error {
 	responseBody := &api.InfoResponse{}
 	responseBody.BackendType = svc.cfg.LNBackendType
-	if responseBody.BackendType == "" {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: "Backend type not available",
-		})
-	}
 	return c.JSON(http.StatusOK, responseBody)
 }
 
@@ -113,29 +108,15 @@ func (svc *Service) UserMeHandler(c echo.Context) error {
 
 func (svc *Service) AppsListHandler(c echo.Context) error {
 	user, _ := c.Get("user").(*User)
+	userApps := user.Apps
 	apps := []api.App{}
 
-	for _, app := range user.Apps {
-		apiApp := api.App{
-			// ID:          app.ID,
-			Name:        app.Name,
-			Description: app.Description,
-			CreatedAt:   app.CreatedAt,
-			UpdatedAt:   app.UpdatedAt,
-			NostrPubkey: app.NostrPubkey,
-		}
+	err := svc.ListApps(&userApps, &apps)
 
-		var lastEvent NostrEvent
-		result := svc.db.Where("app_id = ?", app.ID).Order("id desc").Limit(1).Find(&lastEvent)
-		if result.Error != nil {
-			return c.JSON(http.StatusInternalServerError, ErrorResponse{
-				Message: "Failed to fetch last event",
-			})
-		}
-		if result.RowsAffected > 0 {
-			apiApp.LastEventAt = &lastEvent.CreatedAt
-		}
-		apps = append(apps, apiApp)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
+		})
 	}
 
 	return c.JSON(http.StatusOK, apps)

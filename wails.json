@@ -1,0 +1,13 @@
+{
+  "$schema": "https://wails.io/schemas/config.v2.json",
+  "name": "nostr-wallet-connect",
+  "outputfilename": "Nostr-Wallet-Connect",
+  "frontend:install": "yarn install",
+  "frontend:build": "yarn build",
+  "frontend:dev:watcher": "yarn dev",
+  "frontend:dev:serverUrl": "auto",
+  "author": {
+    "name": "Alby Contributors",
+    "email": "hello@getalby.com"
+  }
+}

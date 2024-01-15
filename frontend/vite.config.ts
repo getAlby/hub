@@ -14,6 +14,7 @@ export default defineConfig({
   resolve: {
     alias: {
       src: path.resolve(__dirname, "./src"),
+      wailsjs: path.resolve(__dirname, "./wailsjs"),
     },
   },
 });
