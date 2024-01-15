@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation, Navigate } from "react-router-dom";
-import { CreateAppResponse } from "../../types";
 
-import { EyeIcon } from "../../components/icons/EyeIcon";
-import { CopyIcon } from "../../components/icons/CopyIcon";
-import { LogoIcon } from "../../components/icons/LogoIcon";
-import QRCode from "../../components/QRCode";
+import { CreateAppResponse } from "src/types";
+import { EyeIcon } from "src/components/icons/EyeIcon";
+import { CopyIcon } from "src/components/icons/CopyIcon";
+import { LogoIcon } from "src/components/icons/LogoIcon";
+import QRCode from "src/components/QRCode";
 
 export default function AppCreated() {
   const { state } = useLocation();
@@ -15,6 +15,25 @@ export default function AppCreated() {
   const [isPopupVisible, setPopupVisible] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    // dispatch a success event which can be listened to by the opener or by the app that embedded the webview
+    // this gives those apps the chance to know the user has enabled the connection
+    const nwcEvent = new CustomEvent("nwc:success", { detail: {} });
+    window.dispatchEvent(nwcEvent);
+
+    // notify the opener of the successful connection
+    if (window.opener) {
+      window.opener.postMessage(
+        {
+          type: "nwc:success",
+          payload: { success: true },
+        },
+        "*"
+      );
+    }
+  }, []);
+
+  // TODO: use a modal library instead of doing this manually
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -31,7 +50,7 @@ export default function AppCreated() {
   }, []);
 
   if (!createAppResponse) {
-    return <Navigate to="/apps/new" state={{ from: "/apps/success" }} />;
+    return <Navigate to="/apps/new" />;
   }
 
   const pairingUri = createAppResponse.pairingUri;
@@ -63,7 +82,7 @@ export default function AppCreated() {
   };
 
   return (
-    <div className="w-full max-w-screen-sm mx-auto">
+    <div className="w-full max-w-screen-sm mx-auto px-4 md:px-8">
       <h2 className="font-bold text-2xl font-headline mb-2 dark:text-white text-center">
         🚀 Almost there!
       </h2>

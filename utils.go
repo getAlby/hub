@@ -25,19 +25,3 @@ func GetStartOfBudget(budget_type string, createdAt time.Time) time.Time {
 		return createdAt
 	}
 }
-
-func GetEndOfBudget(budget_type string, createdAt time.Time) time.Time {
-	start := GetStartOfBudget(budget_type, createdAt)
-	switch budget_type {
-	case "daily":
-		return start.AddDate(0, 0, 1)
-	case "weekly":
-		return start.AddDate(0, 0, 7)
-	case "monthly":
-		return start.AddDate(0, 1, 0)
-	case "yearly":
-		return start.AddDate(1, 0, 0)
-	default: //"never"
-		return time.Time{}
-	}
-}

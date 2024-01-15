@@ -24,7 +24,7 @@ type AlbyOAuthService struct {
 	Logger    *logrus.Logger
 }
 
-func NewAlbyOauthService(svc *Service, e *echo.Echo) (result *AlbyOAuthService, err error) {
+func NewAlbyOauthService(svc *Service, e *echo.Echo) (result LNClient, err error) {
 	conf := &oauth2.Config{
 		ClientID:     svc.cfg.AlbyClientId,
 		ClientSecret: svc.cfg.AlbyClientSecret,
@@ -709,6 +709,18 @@ func albyInvoiceToTransaction(invoice *AlbyInvoice) *Nip47Transaction {
 		preimage = invoice.Preimage
 	}
 
+	var expiresAt *int64
+	if invoice.ExpiresAt != nil {
+		expiresAtUnix := invoice.ExpiresAt.Unix()
+		expiresAt = &expiresAtUnix
+	}
+
+	var settledAt *int64
+	if invoice.SettledAt != nil {
+		settledAtUnix := invoice.SettledAt.Unix()
+		settledAt = &settledAtUnix
+	}
+
 	return &Nip47Transaction{
 		Type:            invoice.Type,
 		Invoice:         invoice.PaymentRequest,
@@ -718,9 +730,9 @@ func albyInvoiceToTransaction(invoice *AlbyInvoice) *Nip47Transaction {
 		PaymentHash:     invoice.PaymentHash,
 		Amount:          invoice.Amount * 1000,
 		FeesPaid:        0, // TODO: support fees
-		CreatedAt:       invoice.CreatedAt,
-		ExpiresAt:       invoice.ExpiresAt,
-		SettledAt:       invoice.SettledAt,
+		CreatedAt:       invoice.CreatedAt.Unix(),
+		ExpiresAt:       expiresAt,
+		SettledAt:       settledAt,
 		Metadata:        invoice.Metadata,
 	}
 }

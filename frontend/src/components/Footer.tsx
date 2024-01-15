@@ -1,6 +1,6 @@
-import albyLogoWithText from "../assets/images/alby-logo-with-text.svg";
-import albyLogoWithTextDark from "../assets/images/alby-logo-with-text-dark.svg";
-import { useDarkMode } from "../hooks/useDarkMode";
+import { useDarkMode } from "src/hooks/useDarkMode";
+import albyLogoWithText from "src/assets/images/alby-logo-with-text.svg";
+import albyLogoWithTextDark from "src/assets/images/alby-logo-with-text-dark.svg";
 
 function Footer() {
   const isDarkMode = useDarkMode();

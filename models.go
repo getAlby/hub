@@ -37,24 +37,6 @@ const (
 	NOSTR_EVENT_STATE_PUBLISH_UNCONFIRMED = "sent"
 )
 
-var nip47MethodDescriptions = map[string]string{
-	NIP_47_GET_BALANCE_METHOD:       "Read your balance",
-	NIP_47_GET_INFO_METHOD:          "Read your node info",
-	NIP_47_PAY_INVOICE_METHOD:       "Send payments",
-	NIP_47_MAKE_INVOICE_METHOD:      "Create invoices",
-	NIP_47_LOOKUP_INVOICE_METHOD:    "Lookup status of invoices",
-	NIP_47_LIST_TRANSACTIONS_METHOD: "Read incoming transaction history",
-}
-
-var nip47MethodIcons = map[string]string{
-	NIP_47_GET_BALANCE_METHOD:       "wallet",
-	NIP_47_GET_INFO_METHOD:          "wallet",
-	NIP_47_PAY_INVOICE_METHOD:       "lightning",
-	NIP_47_MAKE_INVOICE_METHOD:      "invoice",
-	NIP_47_LOOKUP_INVOICE_METHOD:    "search",
-	NIP_47_LIST_TRANSACTIONS_METHOD: "transactions",
-}
-
 // TODO: move to models/Alby
 type AlbyMe struct {
 	Identifier       string `json:"identifier"`
@@ -135,9 +117,9 @@ type Nip47Transaction struct {
 	PaymentHash     string      `json:"payment_hash"`
 	Amount          int64       `json:"amount"`
 	FeesPaid        int64       `json:"fees_paid"`
-	CreatedAt       time.Time   `json:"created_at"`
-	ExpiresAt       *time.Time  `json:"expires_at"`
-	SettledAt       *time.Time  `json:"settled_at"`
+	CreatedAt       int64       `json:"created_at"`
+	ExpiresAt       *int64      `json:"expires_at"`
+	SettledAt       *int64      `json:"settled_at"`
 	Metadata        interface{} `json:"metadata,omitempty"`
 }
 
@@ -207,7 +189,6 @@ type LookupInvoiceResponse struct {
 }
 
 type ErrorResponse struct {
-	Error   bool   `json:"error"`
 	Message string `json:"message"`
 }
 

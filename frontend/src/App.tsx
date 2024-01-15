@@ -1,16 +1,16 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
-import About from "./screens/About";
-import AppsList from "./screens/apps/AppsList";
-import ShowApp from "./screens/apps/ShowApp";
-import Login from "./screens/Login";
-import NotFound from "./screens/NotFound";
+import Navbar from "src/components/Navbar";
+import Footer from "src/components/Footer";
+import Toaster from "src/components/Toast/Toaster";
 
-import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
-import NewApp from "./screens/apps/NewApp";
-import AppCreated from "./screens/apps/AppCreated";
-import Toaster from "./components/Toast/Toaster";
+import About from "src/screens/About";
+import Login from "src/screens/Login";
+import AppsList from "src/screens/apps/AppsList";
+import ShowApp from "src/screens/apps/ShowApp";
+import NewApp from "src/screens/apps/NewApp";
+import AppCreated from "src/screens/apps/AppCreated";
+import NotFound from "src/screens/NotFound";
 
 function App() {
   return (

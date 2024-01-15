@@ -1,6 +1,7 @@
-import { useLocation, useNavigate } from "react-router-dom";
 import React from "react";
-import { useUser } from "./useUser";
+import { useLocation, useNavigate } from "react-router-dom";
+
+import { useUser } from "src/hooks/useUser";
 
 const RETURN_TO_KEY = "returnTo";
 

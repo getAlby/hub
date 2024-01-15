@@ -1,14 +1,15 @@
-import { Outlet, useLocation } from "react-router-dom";
-import { useInfo } from "../hooks/useInfo";
-import { useLogin } from "../hooks/useLogin";
-import nwcLogo from "../assets/images/nwc-logo.svg";
-import caretIcon from "../assets/icons/caret.svg";
-import aboutIcon from "../assets/icons/about.svg";
 import React from "react";
-import { LogoutIcon } from "./icons/LogoutIcon";
-import { handleFetchError, validateFetchResponse } from "../utils/fetch";
-import { useCSRF } from "../hooks/useCSRF";
-import { useUser } from "../hooks/useUser";
+import { Outlet, useLocation } from "react-router-dom";
+
+import { useInfo } from "src/hooks/useInfo";
+import { useLogin } from "src/hooks/useLogin";
+import { useCSRF } from "src/hooks/useCSRF";
+import { useUser } from "src/hooks/useUser";
+import { LogoutIcon } from "src/components/icons/LogoutIcon";
+import { AboutIcon } from "src/components/icons/AboutIcon";
+import { CaretIcon } from "src/components/icons/CaretIcon";
+import nwcLogo from "src/assets/images/nwc-logo.svg";
+import { handleFetchError, validateFetchResponse } from "src/utils/fetch";
 
 function Navbar() {
   const { data: info } = useInfo();
@@ -16,8 +17,9 @@ function Navbar() {
   const location = useLocation();
 
   const linkStyles =
-    "text-gray-400 font-medium hover:text-gray-600 dark:hover:text-gray-300 transition";
-  const selectedLinkStyles = "text-gray-900 dark:text-gray-100";
+    "font-medium text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 transition px-2 ";
+  const selectedLinkStyles =
+    "text-gray-900 hover:text-gray-900 dark:text-gray-100 dark:hover:text-gray-100";
 
   return (
     <>
@@ -25,7 +27,7 @@ function Navbar() {
         <div className="bg-white border-b border-gray-200 dark:bg-surface-01dp dark:border-neutral-700 mb-6">
           <nav className="container max-w-screen-lg mx-auto px-4 lg:px-0 py-3">
             <div className="flex justify-between items-center">
-              <div className="flex items-center space-x-12 justify-center">
+              <div className="flex items-center space-x-12">
                 <a
                   href="/"
                   className="font-headline text-[20px] dark:text-white flex gap-2 justify-center items-center"
@@ -47,7 +49,8 @@ function Navbar() {
                 >
                   <a
                     className={`${linkStyles} ${
-                      location.pathname === "/apps" && selectedLinkStyles
+                      location.pathname.startsWith("/apps") &&
+                      selectedLinkStyles
                     }`}
                     href="/apps"
                   >
@@ -109,16 +112,14 @@ function ProfileDropdown() {
   return (
     <div className="flex items-center relative">
       <p
-        className="text-gray-400 text-xs font-medium sm:text-base cursor-pointer select-none "
+        className="text-gray-400 text-xs font-medium sm:text-base cursor-pointer select-none"
         onClick={() => setOpen((current) => !current)}
       >
-        <span>{user.email}</span>
-        <img
-          id="caret"
+        <span className="mx-1">{user.email}</span>
+        <CaretIcon
           className={`inline cursor-pointer w-4 ml-2 ${
             isOpen ? "rotate-180" : ""
           }`}
-          src={caretIcon}
         />
       </p>
 
@@ -131,11 +132,7 @@ function ProfileDropdown() {
             className="md:hidden flex items-center justify-left  py-2 text-gray-400 dark:text-gray-400"
             href="/about"
           >
-            <img
-              className="inline cursor-pointer w-4 mr-3"
-              src={aboutIcon}
-              alt="about-svg"
-            />
+            <AboutIcon className="inline cursor-pointer w-4 mr-3" />
             <p className="font-normal">About</p>
           </a>
 

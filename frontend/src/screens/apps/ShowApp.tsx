@@ -1,22 +1,28 @@
-import Loading from "../../components/Loading";
 import { useNavigate, useParams } from "react-router-dom";
-import { useInfo } from "../../hooks/useInfo";
-import { useApp } from "../../hooks/useApp";
-import { handleFetchError, validateFetchResponse } from "../../utils/fetch";
-import toast from "../../components/Toast";
-import { useCSRF } from "../../hooks/useCSRF";
-import { RequestMethodType, nip47MethodDescriptions } from "../../types";
+
+import { RequestMethodType, nip47MethodDescriptions } from "src/types";
+import { useInfo } from "src/hooks/useInfo";
+import { useApp } from "src/hooks/useApp";
+import { useCSRF } from "src/hooks/useCSRF";
+import toast from "src/components/Toast";
+import Loading from "src/components/Loading";
+import { handleFetchError, validateFetchResponse } from "src/utils/fetch";
 
 function ShowApp() {
   const { data: info } = useInfo();
   const { data: csrf } = useCSRF();
   const { pubkey } = useParams() as { pubkey: string };
-  const { data: app } = useApp(pubkey);
+  const { data: app, error } = useApp(pubkey);
   const navigate = useNavigate();
+
+  if (error) {
+    return <p className="text-red-500">{error.message}</p>;
+  }
 
   if (!app || !info) {
     return <Loading />;
   }
+
   const handleDelete = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     try {
@@ -54,34 +60,36 @@ function ShowApp() {
         <div className="divide-y divide-gray-200 dark:divide-white/10 dark:bg-surface-02dp">
           <div className="pb-4">
             <table>
-              <tr>
-                <td className="align-top w-32 font-medium dark:text-white">
-                  Public Key
-                </td>
-                <td className="text-gray-600 dark:text-neutral-400 break-all">
-                  {app.nostrPubkey}
-                </td>
-              </tr>
-              <tr>
-                <td className="align-top font-medium dark:text-white">
-                  Last used
-                </td>
-                <td className="text-gray-600 dark:text-neutral-400">
-                  {app.lastEventAt
-                    ? new Date(app.lastEventAt).toLocaleDateString()
-                    : "never"}
-                </td>
-              </tr>
-              <tr>
-                <td className="align-top font-medium dark:text-white">
-                  Expires at
-                </td>
-                <td className="text-gray-600 dark:text-neutral-400">
-                  {app.expiresAt
-                    ? new Date(app.expiresAt).toLocaleDateString()
-                    : "never"}
-                </td>
-              </tr>
+              <tbody>
+                <tr>
+                  <td className="align-top w-32 font-medium dark:text-white">
+                    Public Key
+                  </td>
+                  <td className="text-gray-600 dark:text-neutral-400 break-all">
+                    {app.nostrPubkey}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="align-top font-medium dark:text-white">
+                    Last used
+                  </td>
+                  <td className="text-gray-600 dark:text-neutral-400">
+                    {app.lastEventAt
+                      ? new Date(app.lastEventAt).toLocaleDateString()
+                      : "never"}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="align-top font-medium dark:text-white">
+                    Expires at
+                  </td>
+                  <td className="text-gray-600 dark:text-neutral-400">
+                    {app.expiresAt
+                      ? new Date(app.expiresAt).toLocaleDateString()
+                      : "never"}
+                  </td>
+                </tr>
+              </tbody>
             </table>
           </div>
 
@@ -90,7 +98,7 @@ function ShowApp() {
               Permissions
             </h3>
             <ul className="mt-2 text-gray-600 dark:text-neutral-400">
-              {app.requestMethods.map((method, index) => (
+              {app.requestMethods.map((method: string, index: number) => (
                 <li key={index} className="mb-2 relative pl-6">
                   <span className="absolute left-0 text-green-500">✓</span>
                   {nip47MethodDescriptions[method as RequestMethodType]}
@@ -100,16 +108,18 @@ function ShowApp() {
             {app.maxAmount > 0 && (
               <div className="pl-6">
                 <table className="text-gray-600 dark:text-neutral-400">
-                  <tr>
-                    <td className="font-medium">Budget</td>
-                    <td>
-                      {app.maxAmount} sats ({app.budgetUsage} sats used)
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="font-medium pr-3">Renews</td>
-                    <td>{app.budgetRenewal}</td>
-                  </tr>
+                  <tbody>
+                    <tr>
+                      <td className="font-medium">Budget</td>
+                      <td>
+                        {app.maxAmount} sats ({app.budgetUsage} sats used)
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="font-medium pr-3">Renews</td>
+                      <td>{app.budgetRenewal}</td>
+                    </tr>
+                  </tbody>
                 </table>
               </div>
             )}

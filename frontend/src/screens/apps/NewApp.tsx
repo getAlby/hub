@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+
 import {
   BudgetRenewalType,
   CreateAppResponse,
@@ -14,26 +15,24 @@ import {
   RequestMethodType,
   nip47MethodDescriptions,
   validBudgetRenewals,
-} from "../../types";
-import { handleFetchError, validateFetchResponse } from "../../utils/fetch";
-import { useCSRF } from "../../hooks/useCSRF";
-import { WalletIcon } from "../../components/icons/WalletIcon";
-import { LightningIcon } from "../../components/icons/LightningIcon";
-import { InvoiceIcon } from "../../components/icons/InvoiceIcon";
-import { SearchIcon } from "../../components/icons/SearchIcon";
-import { TransactionsIcon } from "../../components/icons/TransactionsIcon";
-import { EditIcon } from "../../components/icons/EditIcon";
-import { useUser } from "../../hooks/useUser";
+} from "src/types";
+import { useCSRF } from "src/hooks/useCSRF";
+import { EditIcon } from "src/components/icons/EditIcon";
+import { WalletIcon } from "src/components/icons/WalletIcon";
+import { LightningIcon } from "src/components/icons/LightningIcon";
+import { InvoiceIcon } from "src/components/icons/InvoiceIcon";
+import { SearchIcon } from "src/components/icons/SearchIcon";
+import { TransactionsIcon } from "src/components/icons/TransactionsIcon";
+import { handleFetchError, validateFetchResponse } from "src/utils/fetch";
 
 const NewApp = () => {
   const { data: csrf } = useCSRF();
-  const { data: user } = useUser();
   const navigate = useNavigate();
 
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
 
-  const [edit, setEdit] = useState(false);
+  const [isEditing, setEditing] = useState(false);
 
   const nameParam = (queryParams.get("name") || queryParams.get("c")) ?? "";
   const [appName, setAppName] = useState(nameParam);
@@ -49,9 +48,20 @@ const NewApp = () => {
     ? budgetRenewalParam
     : "monthly";
 
-  const reqMethodsParam = queryParams.get("request_methods");
+  const parseRequestMethods = (reqParam: string): Set<RequestMethodType> => {
+    const methods = reqParam
+      ? reqParam.split(" ")
+      : Object.keys(nip47MethodDescriptions);
+    // Create a Set of RequestMethodType from the array
+    const requestMethodsSet = new Set<RequestMethodType>(
+      methods as RequestMethodType[]
+    );
+    return requestMethodsSet;
+  };
+
+  const reqMethodsParam = queryParams.get("request_methods") ?? "";
   const [requestMethods, setRequestMethods] = useState(
-    reqMethodsParam ?? Object.keys(nip47MethodDescriptions).join(" ")
+    parseRequestMethods(reqMethodsParam)
   );
 
   const maxAmountParam = queryParams.get("max_amount") ?? "";
@@ -59,26 +69,17 @@ const NewApp = () => {
     parseInt(maxAmountParam || "100000")
   );
 
-  const parseExpiresParam = (expiresParam: string): string => {
-    if (/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/.test(expiresParam)) {
-      const d = new Date(expiresParam);
-      const isIso =
-        d instanceof Date &&
-        !isNaN(d.getTime()) &&
-        d.toISOString() === expiresAtParam;
-      if (isIso) {
-        return expiresParam;
-      }
+  const parseExpiresParam = (expiresParam: string): Date | undefined => {
+    const expiresParamTimestamp = parseInt(expiresParam);
+    if (!isNaN(expiresParamTimestamp)) {
+      return new Date(expiresParamTimestamp * 1000);
     }
-    if (!isNaN(parseInt(expiresParam))) {
-      return new Date(parseInt(expiresAtParam as string) * 1000).toISOString();
-    }
-    return "";
+    return undefined;
   };
 
-  // Only timestamp in seconds or ISO string is expected
-  const expiresAtParam = parseExpiresParam(queryParams.get("expires_at") ?? "");
-  const [expiresAt, setExpiresAt] = useState(expiresAtParam ?? "");
+  const [expiresAt, setExpiresAt] = useState<Date | undefined>(
+    parseExpiresParam(queryParams.get("expires_at") ?? "")
+  );
   const [days, setDays] = useState(0);
   const [expireOptions, setExpireOptions] = useState(false);
 
@@ -86,27 +87,28 @@ const NewApp = () => {
   const handleDays = (days: number) => {
     setDays(days);
     if (!days) {
-      setExpiresAt("");
+      setExpiresAt(undefined);
       return;
     }
     const expiryDate = new Date(today.getTime() + days * 24 * 60 * 60 * 1000);
-    setExpiresAt(expiryDate.toISOString());
+    setExpiresAt(expiryDate);
   };
 
   const handleRequestMethodChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    const rm = event.target.value;
-    if (requestMethods.includes(rm)) {
+    const requestMethod = event.target.value as RequestMethodType;
+
+    const newRequestMethods = new Set(requestMethods);
+
+    if (newRequestMethods.has(requestMethod)) {
       // If checked and item is already in the list, remove it
-      const newMethods = requestMethods
-        .split(" ")
-        .filter((reqMethod) => reqMethod !== rm)
-        .join(" ");
-      setRequestMethods(newMethods);
+      newRequestMethods.delete(requestMethod);
     } else {
-      setRequestMethods(`${requestMethods} ${rm}`);
+      newRequestMethods.add(requestMethod);
     }
+
+    setRequestMethods(newRequestMethods);
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -115,37 +117,31 @@ const NewApp = () => {
       throw new Error("No CSRF token");
     }
 
-    const formData = new FormData();
-    formData.append("name", appName);
-    formData.append("maxAmount", maxAmount.toString());
-    formData.append("budgetRenewal", budgetRenewal);
-    formData.append("expiresAt", expiresAt);
-    formData.append("requestMethods", requestMethods);
-    formData.append("pubkey", pubkey);
-    formData.append("returnTo", returnTo);
-
     try {
       const response = await fetch("/api/apps", {
         method: "POST",
         headers: {
           "X-CSRF-Token": csrf,
+          "Content-Type": "application/json",
         },
-        body: formData,
-
-        // TODO: send consider sending JSON data
-        /*body: JSON.stringify({
+        body: JSON.stringify({
           name: appName,
-          pubkey: pubkey,
-          maxAmount: maxAmount.toString(),
-          budgetRenewal: budgetRenewal,
-          expiresAt: expiresAt,
-          requestMethods: requestMethods,
+          pubkey,
+          maxAmount,
+          budgetRenewal,
+          expiresAt: expiresAt?.toISOString(),
+          requestMethods: [...requestMethods].join(" "),
           returnTo: returnTo,
-        }),*/
+        }),
       });
       await validateFetchResponse(response);
 
       const createAppResponse: CreateAppResponse = await response.json();
+      if (createAppResponse.returnTo) {
+        // open connection URI directly in an app
+        window.location.href = createAppResponse.returnTo;
+        return;
+      }
       navigate("/apps/created", {
         state: createAppResponse,
       });
@@ -182,12 +178,11 @@ const NewApp = () => {
 
   return (
     <div>
-      <h2 className="font-bold text-2xl font-headline mb-4 dark:text-white">
-        {nameParam ? `Connect to ${appName}` : "Connect a new app"}
-      </h2>
-
       <form onSubmit={handleSubmit} acceptCharset="UTF-8">
         <div className="bg-white dark:bg-surface-02dp rounded-md shadow p-4 md:p-8">
+          <h2 className="font-bold text-2xl font-headline mb-4 dark:text-white">
+            {nameParam ? `Connect to ${appName}` : "Connect a new app"}
+          </h2>
           {!nameParam && (
             <>
               <label
@@ -214,9 +209,9 @@ const NewApp = () => {
           )}
           <div className="flex justify-between items-center mb-2 text-gray-800 dark:text-white">
             <p className="text-lg font-medium">Authorize the app to:</p>
-            {!reqMethodsParam && (
+            {!reqMethodsParam && !isEditing && (
               <EditIcon
-                onClick={() => setEdit(true)}
+                onClick={() => setEditing(true)}
                 className="text-gray-800 dark:text-gray-300 cursor-pointer w-6"
               />
             )}
@@ -224,20 +219,22 @@ const NewApp = () => {
 
           <div className="mb-6">
             <ul className="flex flex-col w-full">
-              {Object.keys(nip47MethodDescriptions).map((rm, index) => {
-                const RequestMethodIcon = iconMap[rm as RequestMethodType];
+              {(
+                Object.keys(nip47MethodDescriptions) as RequestMethodType[]
+              ).map((rm, index) => {
+                const RequestMethodIcon = iconMap[rm];
                 return (
                   <li
                     key={index}
                     className={`w-full ${
                       rm == "pay_invoice" ? "order-last" : ""
-                    } ${!edit && !requestMethods.includes(rm) ? "hidden" : ""}`}
+                    } ${!isEditing && !requestMethods.has(rm) ? "hidden" : ""}`}
                   >
                     <div className="flex items-center mb-2">
                       {RequestMethodIcon && (
                         <RequestMethodIcon
                           className={`text-gray-800 dark:text-gray-300 w-5 mr-3 ${
-                            edit ? "hidden" : ""
+                            isEditing ? "hidden" : ""
                           }`}
                         />
                       )}
@@ -245,10 +242,10 @@ const NewApp = () => {
                         type="checkbox"
                         id={rm}
                         value={rm}
-                        checked={requestMethods.includes(rm)}
+                        checked={requestMethods.has(rm as RequestMethodType)}
                         onChange={handleRequestMethodChange}
                         className={` ${
-                          !edit ? "hidden" : ""
+                          !isEditing ? "hidden" : ""
                         } w-4 h-4 mr-4 text-purple-700 bg-gray-50 border border-gray-300 rounded focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-surface-00dp dark:border-gray-700 cursor-pointer`}
                       />
                       <label
@@ -261,8 +258,8 @@ const NewApp = () => {
                     {rm == "pay_invoice" && (
                       <div
                         className={`pt-2 pb-2 pl-5 ml-2.5 border-l-2 border-l-gray-200 dark:border-l-gray-400 ${
-                          !requestMethods.includes(rm)
-                            ? edit
+                          !requestMethods.has(rm)
+                            ? isEditing
                               ? "pointer-events-none opacity-30"
                               : "hidden"
                             : ""
@@ -279,24 +276,23 @@ const NewApp = () => {
                             >
                               {Object.keys(budgetOptions).map((budget) => {
                                 return (
-                                  <>
-                                    <div
-                                      onClick={() =>
-                                        setMaxAmount(budgetOptions[budget])
-                                      }
-                                      className={`col-span-2 md:col-span-1 cursor-pointer rounded border-2 ${
-                                        maxAmount == budgetOptions[budget]
-                                          ? "border-purple-700 dark:border-purple-300 text-purple-700 bg-purple-100 dark:bg-purple-900"
-                                          : "border-gray-200 dark:border-gray-400"
-                                      } text-center py-4 dark:text-white`}
-                                    >
-                                      {budget}
-                                      <br />
-                                      {budgetOptions[budget]
-                                        ? "sats"
-                                        : "#reckless"}
-                                    </div>
-                                  </>
+                                  <div
+                                    key={budget}
+                                    onClick={() =>
+                                      setMaxAmount(budgetOptions[budget])
+                                    }
+                                    className={`col-span-2 md:col-span-1 cursor-pointer rounded border-2 ${
+                                      maxAmount == budgetOptions[budget]
+                                        ? "border-purple-700 dark:border-purple-300 text-purple-700 bg-purple-100 dark:bg-purple-900"
+                                        : "border-gray-200 dark:border-gray-400"
+                                    } text-center py-4 dark:text-white`}
+                                  >
+                                    {budget}
+                                    <br />
+                                    {budgetOptions[budget]
+                                      ? "sats"
+                                      : "#reckless"}
+                                  </div>
                                 );
                               })}
                             </div>
@@ -319,7 +315,7 @@ const NewApp = () => {
             </ul>
           </div>
 
-          {!expiresAtParam ? (
+          {!expiresAt || days ? (
             <>
               <div
                 onClick={() => setExpireOptions(true)}
@@ -342,6 +338,7 @@ const NewApp = () => {
                     {Object.keys(expiryOptions).map((expiry) => {
                       return (
                         <div
+                          key={expiry}
                           onClick={() => handleDays(expiryOptions[expiry])}
                           className={`cursor-pointer rounded border-2 ${
                             days == expiryOptions[expiry]
@@ -363,20 +360,13 @@ const NewApp = () => {
                 Connection expiry time
               </p>
               <p className="text-gray-600 dark:text-gray-300 text-sm">
-                {new Date(parseInt(expiresAtParam) * 1000).toISOString()}
+                {expiresAt.toLocaleString()}
               </p>
             </>
           )}
-
-          {user && user.email && (
-            <p className="mt-8 pt-4 border-t border-gray-300 dark:border-gray-700 text-sm text-gray-500 dark:text-neutral-300 text-center">
-              You're logged in as{" "}
-              <span className="font-mono">{user.email}</span>
-            </p>
-          )}
         </div>
 
-        <div className="mt-6 flex flex-col sm:flex-row sm:justify-center">
+        <div className="mt-6 flex flex-col sm:flex-row sm:justify-center px-4 md:px-8">
           {!pubkey && (
             <a
               href="/apps"

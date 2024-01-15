@@ -1,4 +1,4 @@
-import toast from "../components/Toast";
+import toast from "src/components/Toast";
 
 export async function validateFetchResponse(response: Response) {
   if (!response.ok) {

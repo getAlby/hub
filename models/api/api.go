@@ -22,6 +22,16 @@ type ListAppsResponse struct {
 	Apps []App `json:"apps"`
 }
 
+type CreateAppRequest struct {
+	Name           string `json:"name"`
+	Pubkey         string `json:"pubkey"`
+	MaxAmount      int    `json:"maxAmount"`
+	BudgetRenewal  string `json:"budgetRenewal"`
+	ExpiresAt      string `json:"expiresAt"`
+	RequestMethods string `json:"requestMethods"`
+	ReturnTo       string `json:"returnTo"`
+}
+
 type CreateAppResponse struct {
 	PairingUri    string `json:"pairingUri"`
 	PairingSecret string `json:"pairingSecretKey"`

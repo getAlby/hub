@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/getAlby/nostr-wallet-connect/lnd"
@@ -63,7 +64,7 @@ func (svc *LNDService) ListTransactions(ctx context.Context, senderPubkey string
 	// Fetch invoices
 	var invoices []*lnrpc.Invoice
 	if invoiceType == "" || invoiceType == "incoming" {
-		incomingResp, err := svc.client.ListInvoices(ctx, &lnrpc.ListInvoiceRequest{NumMaxInvoices: limit, IndexOffset: offset})
+		incomingResp, err := svc.client.ListInvoices(ctx, &lnrpc.ListInvoiceRequest{Reversed: true, NumMaxInvoices: limit, IndexOffset: offset})
 		if err != nil {
 			return nil, err
 		}
@@ -82,7 +83,7 @@ func (svc *LNDService) ListTransactions(ctx context.Context, senderPubkey string
 	var payments []*lnrpc.Payment
 	if invoiceType == "" || invoiceType == "outgoing" {
 		// Not just pending but failed payments will also be included because of IncludeIncomplete
-		outgoingResp, err := svc.client.ListPayments(ctx, &lnrpc.ListPaymentsRequest{MaxPayments: limit, IndexOffset: offset, IncludeIncomplete: unpaid})
+		outgoingResp, err := svc.client.ListPayments(ctx, &lnrpc.ListPaymentsRequest{Reversed: true, MaxPayments: limit, IndexOffset: offset, IncludeIncomplete: unpaid})
 		if err != nil {
 			return nil, err
 		}
@@ -95,11 +96,11 @@ func (svc *LNDService) ListTransactions(ctx context.Context, senderPubkey string
 			continue
 		}
 		var paymentRequest decodepay.Bolt11
-		var expiresAt *time.Time
+		var expiresAt *int64
 		var description string
 		var descriptionHash string
 		if payment.PaymentRequest != "" {
-			paymentRequest, err = decodepay.Decodepay(payment.PaymentRequest)
+			paymentRequest, err = decodepay.Decodepay(strings.ToLower(payment.PaymentRequest))
 			if err != nil {
 				svc.Logger.WithFields(logrus.Fields{
 					"bolt11": payment.PaymentRequest,
@@ -107,17 +108,17 @@ func (svc *LNDService) ListTransactions(ctx context.Context, senderPubkey string
 
 				return nil, err
 			}
-			expiresAt = &time.Time{}
-			*expiresAt = time.UnixMilli(int64(paymentRequest.CreatedAt) * 1000).Add(time.Duration(paymentRequest.Expiry) * time.Second)
+			expiresAtUnix := time.UnixMilli(int64(paymentRequest.CreatedAt) * 1000).Add(time.Duration(paymentRequest.Expiry) * time.Second).Unix()
+			expiresAt = &expiresAtUnix
 			description = paymentRequest.Description
 			descriptionHash = paymentRequest.DescriptionHash
 		}
 
-		var settledAt *time.Time
+		var settledAt *int64
 		if payment.Status == lnrpc.Payment_SUCCEEDED {
 			// FIXME: how to get the actual settled at time?
-			settledAt = &time.Time{}
-			*settledAt = time.Unix(0, payment.CreationTimeNs)
+			settledAtUnix := time.Unix(0, payment.CreationTimeNs).Unix()
+			settledAt = &settledAtUnix
 		}
 
 		transaction := Nip47Transaction{
@@ -127,7 +128,7 @@ func (svc *LNDService) ListTransactions(ctx context.Context, senderPubkey string
 			PaymentHash:     payment.PaymentHash,
 			Amount:          payment.ValueMsat,
 			FeesPaid:        payment.FeeMsat,
-			CreatedAt:       time.Unix(0, payment.CreationTimeNs),
+			CreatedAt:       time.Unix(0, payment.CreationTimeNs).Unix(),
 			Description:     description,
 			DescriptionHash: descriptionHash,
 			ExpiresAt:       expiresAt,
@@ -139,7 +140,7 @@ func (svc *LNDService) ListTransactions(ctx context.Context, senderPubkey string
 
 	// sort by created date descending
 	sort.SliceStable(transactions, func(i, j int) bool {
-		return transactions[i].CreatedAt.After(transactions[j].CreatedAt)
+		return transactions[i].CreatedAt > transactions[j].CreatedAt
 	})
 
 	return transactions, nil
@@ -323,7 +324,7 @@ func makePreimageHex() ([]byte, error) {
 	return bytes, nil
 }
 
-func NewLNDService(ctx context.Context, svc *Service, e *echo.Echo) (result *LNDService, err error) {
+func NewLNDService(ctx context.Context, svc *Service, e *echo.Echo) (result LNClient, err error) {
 	lndClient, err := lnd.NewLNDclient(lnd.LNDoptions{
 		Address:      svc.cfg.LNDAddress,
 		CertFile:     svc.cfg.LNDCertFile,
@@ -356,18 +357,17 @@ func NewLNDService(ctx context.Context, svc *Service, e *echo.Echo) (result *LND
 }
 
 func lndInvoiceToTransaction(invoice *lnrpc.Invoice) *Nip47Transaction {
-	var settledAt *time.Time
+	var settledAt *int64
 	var preimage string
 	if invoice.State == lnrpc.Invoice_SETTLED {
-		settledAt = &time.Time{}
-		*settledAt = time.Unix(invoice.SettleDate, 0)
+		settledAt = &invoice.SettleDate
 		// only set preimage if invoice is settled
 		preimage = hex.EncodeToString(invoice.RPreimage)
 	}
-	var expiresAt *time.Time
+	var expiresAt *int64
 	if invoice.Expiry > 0 {
-		expiresAt = &time.Time{}
-		*expiresAt = time.Unix(invoice.SettleDate, 0)
+		expiresAtUnix := invoice.CreationDate + invoice.Expiry
+		expiresAt = &expiresAtUnix
 	}
 
 	return &Nip47Transaction{
@@ -379,7 +379,7 @@ func lndInvoiceToTransaction(invoice *lnrpc.Invoice) *Nip47Transaction {
 		PaymentHash:     hex.EncodeToString(invoice.RHash),
 		Amount:          invoice.ValueMsat,
 		FeesPaid:        invoice.AmtPaidMsat,
-		CreatedAt:       time.Unix(invoice.CreationDate, 0),
+		CreatedAt:       invoice.CreationDate,
 		SettledAt:       settledAt,
 		ExpiresAt:       expiresAt,
 		// TODO: Metadata (e.g. keysend)
