@@ -137,7 +137,7 @@ func (bs *BreezService) MakeInvoice(ctx context.Context, senderPubkey string, am
 		Preimage:    hex.EncodeToString(resp.LnInvoice.PaymentSecret),
 		PaymentHash: resp.LnInvoice.PaymentHash,
 		FeesPaid:    0,
-		CreatedAt:   time.Unix(int64(resp.LnInvoice.Timestamp), 0),
+		CreatedAt:   int64(resp.LnInvoice.Timestamp),
 		SettledAt:   nil,
 		Metadata:    nil,
 	}
@@ -151,7 +151,7 @@ func (bs *BreezService) MakeInvoice(ctx context.Context, senderPubkey string, am
 	if resp.LnInvoice.AmountMsat != nil {
 		tx.Amount = int64(*resp.LnInvoice.AmountMsat)
 	}
-	invExpiry := time.Unix(int64(resp.LnInvoice.Expiry), 0)
+	invExpiry := int64(resp.LnInvoice.Expiry)
 	tx.ExpiresAt = &invExpiry
 	return tx, nil
 }
@@ -238,12 +238,12 @@ func breezPaymentToTransaction(payment *breez_sdk.Payment) *Nip47Transaction {
 		PaymentHash: lnDetails.Data.PaymentHash,
 		Amount:      int64(payment.AmountMsat),
 		FeesPaid:    int64(payment.FeeMsat),
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().Unix(),
 		ExpiresAt:   nil,
 		Metadata:    nil,
 	}
 	if payment.Status == 2 {
-		settledAt := time.Now()
+		settledAt := payment.PaymentTime
 		tx.SettledAt = &settledAt
 	}
 
