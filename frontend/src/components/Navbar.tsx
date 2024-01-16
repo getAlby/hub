@@ -1,5 +1,5 @@
 import React from "react";
-import { Outlet, useLocation } from "react-router-dom";
+import { Link, Outlet, useLocation } from "react-router-dom";
 
 import { useInfo } from "src/hooks/useInfo";
 import { useLogin } from "src/hooks/useLogin";
@@ -28,8 +28,8 @@ function Navbar() {
           <nav className="container max-w-screen-lg mx-auto px-4 2xl:px-0 py-3">
             <div className="flex justify-between items-center">
               <div className="flex items-center space-x-12">
-                <a
-                  href="/"
+                <Link
+                  to="/"
                   className="font-headline text-[20px] dark:text-white flex gap-2 justify-center items-center"
                 >
                   <img
@@ -42,36 +42,36 @@ function Navbar() {
                   <span className="dark:text-white text-lg font-semibold hidden sm:inline">
                     Nostr Wallet Connect
                   </span>
-                </a>
+                </Link>
 
                 <div
                   className={`${user ? "hidden md:flex" : "flex"} space-x-4`}
                 >
-                  <a
+                  <Link
                     className={`${linkStyles} ${
                       location.pathname.startsWith("/apps") &&
                       selectedLinkStyles
                     }`}
-                    href="/apps"
+                    to="/apps"
                   >
                     Connections
-                  </a>
-                  <a
+                  </Link>
+                  <Link
                     className={`${linkStyles} ${
                       location.pathname === "/setup" && selectedLinkStyles
                     }`}
-                    href="/setup"
+                    to="/setup"
                   >
                     Setup
-                  </a>
-                  <a
+                  </Link>
+                  <Link
                     className={`${linkStyles} ${
                       location.pathname === "/about" && selectedLinkStyles
                     }`}
-                    href="/about"
+                    to="/about"
                   >
                     About
-                  </a>
+                  </Link>
                 </div>
               </div>
               {info?.backendType === "ALBY" && <ProfileDropdown />}
@@ -135,13 +135,13 @@ function ProfileDropdown() {
           className="font-medium flex flex-col px-4 w-40 logout absolute right top-8 right-0 justify-left cursor-pointer rounded-lg border border-gray-200 dark:border-gray-600 text-center bg-white dark:bg-surface-01dp shadow"
           id="dropdown"
         >
-          <a
+          <Link
             className="md:hidden flex items-center justify-left  py-2 text-gray-400 dark:text-gray-400"
-            href="/about"
+            to="/about"
           >
             <AboutIcon className="inline cursor-pointer w-4 mr-3" />
             <p className="font-normal">About</p>
-          </a>
+          </Link>
 
           <div
             className="flex items-center justify-left py-2 text-red-500"

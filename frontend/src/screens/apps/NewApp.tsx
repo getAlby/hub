@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
 import {
@@ -367,12 +367,12 @@ const NewApp = () => {
 
         <div className="mt-6 flex flex-col sm:flex-row sm:justify-center px-4 md:px-8">
           {!pubkey && (
-            <a
-              href="/apps"
+            <Link
+              to="/apps"
               className="inline-flex p-4 underline cursor-pointer duration-150 items-center justify-center text-gray-700 dark:text-neutral-300 w-full sm:w-[250px] order-last sm:order-first"
             >
               Cancel
-            </a>
+            </Link>
           )}
           <button
             type="submit"

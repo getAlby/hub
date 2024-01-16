@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
 import { RequestMethodType, nip47MethodDescriptions } from "src/types";
 import { useInfo } from "src/hooks/useInfo";
@@ -51,9 +51,9 @@ function ShowApp() {
       <p className="text-gray-600 dark:text-neutral-400 text-sm">
         {app ? app.description : ""}
       </p>
-      <a className="ml-1 mt-1 mb-4 block dark:text-white text-xs" href="/apps">
+      <Link className="ml-1 mt-1 mb-4 block dark:text-white text-xs" to="/apps">
         {"<"} Back to overview
-      </a>
+      </Link>
 
       <div className="bg-white rounded-md shadow p-4 lg:p-8 dark:bg-surface-02dp">
         <div className="divide-y divide-gray-200 dark:divide-white/10 dark:bg-surface-02dp">

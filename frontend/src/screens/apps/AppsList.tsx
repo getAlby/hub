@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import { useApps } from "src/hooks/useApps";
 import { PlusIcon } from "src/components/icons/PlusIcon";
@@ -19,13 +19,13 @@ function AppsList() {
         <h2 className="font-bold text-2xl font-headline dark:text-white">
           Connected apps
         </h2>
-        <a
+        <Link
           className="inline-flex bg-purple-700 cursor-pointer dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus:outline-none font-medium items-center justify-center px-3 md:px-6 py-2 md:py-3 rounded-lg shadow text-white transition {{if not .User}}opacity-50{{else}}hover:bg-purple-900{{end}} text-sm md:text-base"
-          href="/apps/new"
+          to="/apps/new"
         >
           <PlusIcon className="mr-2 text-white w-6 h-6" />
           Connect app
-        </a>
+        </Link>
       </div>
 
       <div className="rounded-lg border border-gray-200 dark:border-white/10 overflow-hidden">
@@ -68,7 +68,7 @@ function AppsList() {
                     : "-"}
                 </td>
                 <td className="px-6 py-4 text-purple-700 dark:text-purple-400 text-right">
-                  <a href={`/apps/${app.nostrPubkey}`}>Details</a>
+                  <Link to={`/apps/${app.nostrPubkey}`}>Details</Link>
                 </td>
               </tr>
             ))}

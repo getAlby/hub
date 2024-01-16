@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 function NotFound() {
   return (
     <div className="flex justify-center">
@@ -9,9 +11,9 @@ function NotFound() {
           <p className="leading-relaxed dark:text-neutral-400 mb-4">
             The page you are looking for does not exist.
           </p>
-          <a href="/" className="text-purple-700 dark:text-purple-400">
+          <Link to="/" className="text-purple-700 dark:text-purple-400">
             Return Home
-          </a>
+          </Link>
         </div>
       </div>
     </div>

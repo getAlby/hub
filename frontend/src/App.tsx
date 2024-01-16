@@ -1,4 +1,10 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import {
+  HashRouter,
+  Routes,
+  Route,
+  Navigate,
+  BrowserRouter,
+} from "react-router-dom";
 
 import Navbar from "src/components/Navbar";
 import Footer from "src/components/Footer";
@@ -15,6 +21,9 @@ import { useInfo } from "./hooks/useInfo";
 import Loading from "./components/Loading";
 import { Setup } from "./screens/Setup";
 
+const RouterComponent =
+  import.meta.env.VITE_APP_TYPE === "WAILS" ? HashRouter : BrowserRouter;
+
 function App() {
   const { data: info } = useInfo();
 
@@ -25,7 +34,7 @@ function App() {
   return (
     <div className="bg:white dark:bg-black min-h-full">
       <Toaster />
-      <BrowserRouter>
+      <RouterComponent>
         <Routes>
           <Route path="/" element={<Navbar />}>
             <Route
@@ -48,7 +57,7 @@ function App() {
           <Route path="/*" element={<NotFound />} />
         </Routes>
         <Footer />
-      </BrowserRouter>
+      </RouterComponent>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import nwcLogo from "src/assets/images/nwc-logo.svg";
 import albyHead from "src/assets/images/alby-head.svg";
 import { useInfo } from "src/hooks/useInfo";
+import { Link } from "react-router-dom";
 
 function Login() {
   const { data: info } = useInfo();
@@ -27,9 +28,9 @@ function Login() {
 
       {isAlby && (
         <p className="my-8">
-          <a
+          <Link
             className=" inline-flex cursor-pointer items-center justify-center rounded-md transition-all px-10 py-4 text-black bg-gradient-to-r from-[#ffde6e] to-[#f8c455]"
-            href="/alby/auth"
+            to="/alby/auth"
           >
             <img
               src={albyHead}
@@ -38,14 +39,14 @@ function Login() {
               className="w-[24px] mr-2"
             />
             Log in with Alby Account
-          </a>
+          </Link>
         </p>
       )}
 
       <p>
-        <a href="/about" className="text-purple-700 dark:text-purple-400">
+        <Link to="/about" className="text-purple-700 dark:text-purple-400">
           How does it work?
-        </a>
+        </Link>
       </p>
     </div>
   );
