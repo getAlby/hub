@@ -685,3 +685,6 @@ func (mln *MockLn) LookupInvoice(ctx context.Context, senderPubkey string, payme
 func (mln *MockLn) ListTransactions(ctx context.Context, senderPubkey string, from, until, limit, offset uint64, unpaid bool, invoiceType string) (invoices []Nip47Transaction, err error) {
 	return mockTransactions, nil
 }
+func (mln *MockLn) Shutdown() error {
+	return nil
+}

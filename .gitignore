@@ -12,3 +12,5 @@ frontend/dist
 frontend/node_modules
 frontend/wailsjs
 package.json.md5
+
+build

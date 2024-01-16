@@ -37,6 +37,7 @@ func (svc *Service) ListApps(userApps *[]App, apps *[]api.App) error {
 
 func (svc *Service) GetInfo(info *api.InfoResponse) {
 	info.BackendType = svc.cfg.LNBackendType
+	info.SetupCompleted = svc.lnClient != nil
 }
 
 func (svc *Service) Setup(setupRequest *api.SetupRequest) error {

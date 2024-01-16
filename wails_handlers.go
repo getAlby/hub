@@ -1,26 +1,55 @@
 package main
 
-import "github.com/getAlby/nostr-wallet-connect/models/api"
+import (
+	"encoding/json"
+	"fmt"
 
-func (a *WailsApp) WailsRequestRouter(route string) interface{} {
+	"github.com/getAlby/nostr-wallet-connect/models/api"
+	"github.com/sirupsen/logrus"
+)
+
+type WailsRequestRouterResponse struct {
+	Body  interface{} `json:"body"`
+	Error string      `json:"error"`
+}
+
+func (a *WailsApp) WailsRequestRouter(route string, method string, body string) WailsRequestRouterResponse {
 	switch route {
 	case "/api/apps":
-
 		userApps := []App{}
 		a.svc.db.Find(&userApps)
 		apps := []api.App{}
-		a.svc.ListApps(&userApps, &apps)
-		a.svc.Logger.Infof("END WailsRequestRouter %v", len(apps))
-		return apps
+		err := a.svc.ListApps(&userApps, &apps)
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: ""}
+		}
+		return WailsRequestRouterResponse{Body: apps, Error: ""}
 	case "/api/info":
 		infoResponse := api.InfoResponse{}
 		a.svc.GetInfo(&infoResponse)
-		return infoResponse
+		res := WailsRequestRouterResponse{Body: infoResponse, Error: ""}
+		return res
 	case "/api/user/me":
-		return nil
+		dummyUser := api.User{
+			Email: "",
+		}
+		return WailsRequestRouterResponse{Body: dummyUser, Error: ""}
 	case "/api/csrf":
-		return "dummy"
+		return WailsRequestRouterResponse{Body: "dummy", Error: ""}
+	case "/api/setup":
+		setupRequest := &api.SetupRequest{}
+		err := json.Unmarshal([]byte(body), setupRequest)
+		if err != nil {
+			a.svc.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).Errorf("Failed to decode request to wails router: %v", err)
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		a.svc.Setup(setupRequest)
+		return WailsRequestRouterResponse{Body: nil, Error: ""}
 	}
-	a.svc.Logger.Fatalf("Unhandled route: %s", route)
-	return nil
+	a.svc.Logger.Errorf("Unhandled route: %s", route)
+	return WailsRequestRouterResponse{Body: nil, Error: fmt.Sprintf("Unhandled route: %s", route)}
 }

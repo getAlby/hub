@@ -143,15 +143,20 @@ func main() {
 	svc.Logger = logger
 
 	var wg sync.WaitGroup
+	wg.Add(1)
 	switch cfg.AppType {
 	case WailsAppType:
-		app := NewApp(svc)
-		LaunchWailsApp(app)
 		err := svc.launchLNBackend()
 		if err != nil {
 			// LN backend not needed immediately, just log errors
 			svc.Logger.Warnf("Failed to launch LN backend: %v", err)
 		}
+		go func() {
+			app := NewApp(svc)
+			LaunchWailsApp(app)
+			wg.Done()
+			svc.Logger.Info("Wails app exited")
+		}()
 	case HttpAppType:
 		// using echo
 		echologrus.Logger = logger
@@ -175,7 +180,6 @@ func main() {
 		//register shared routes
 		svc.RegisterSharedRoutes(e)
 		//start Echo server
-		wg.Add(1)
 		go func() {
 			if err := e.Start(fmt.Sprintf(":%v", svc.cfg.Port)); err != nil && err != http.ErrServerClosed {
 				e.Logger.Fatal("shutting down the server")

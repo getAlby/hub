@@ -51,10 +51,9 @@ Go to `/frontend`
 
 Follow standard LND instructions. After logging in, you will be redirected to the wrong port (8080), so manually re-open <http://localhost:5173>.
 
-### Wails Frontend
+### Wails (Backend + Frontend)
 
-`unset GTK_PATH`
-`wails dev`
+`unset GTK_PATH && wails dev`
 
 ### Build and run locally
 

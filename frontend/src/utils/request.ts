@@ -9,18 +9,27 @@ export const request = async <T>(
   try {
     switch (import.meta.env.VITE_APP_TYPE) {
       case "WAILS": {
-        const res = await WailsRequestRouter(args[0].toString());
+        const res = await WailsRequestRouter(
+          args[0].toString(),
+          args[1]?.method || "GET",
+          args[1]?.body?.toString() || ""
+        );
         // TODO: wrap response and do error handling e.g.
         // if (!res.ok) { throw new Error((json as ErrorResponse).message || "Unknown error")}
 
-        return res;
+        console.log("Wails request", ...args, res);
+        if (res.error) {
+          throw new Error(res.error);
+        }
+
+        return res.body;
       }
       case "HTTP": {
         const fetchResponse = await fetch(...args);
 
-        let json: T | undefined;
+        let body: T | undefined;
         try {
-          json = await fetchResponse.json();
+          body = await fetchResponse.json();
         } catch (error) {
           console.error(error);
         }
@@ -29,10 +38,10 @@ export const request = async <T>(
           throw new Error(
             fetchResponse.status +
               " " +
-              ((json as ErrorResponse)?.message || "Unknown error")
+              ((body as ErrorResponse)?.message || "Unknown error")
           );
         }
-        return json;
+        return body;
       }
       default:
         throw new Error(
