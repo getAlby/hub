@@ -240,11 +240,13 @@ func main() {
 
 func (svc *Service) launchLNBackend() error {
 	if svc.lnClient != nil {
-		// TODO: svc.lnClient.shutdown()
+		err := svc.lnClient.Shutdown()
+		if err != nil {
+			svc.Logger.Fatalf("Failed to disconnect from current node: %v", err)
+		}
 		svc.lnClient = nil
 	}
 
-	// TODO: merge with DB
 	dbCfgEntries := []db.ConfigEntry{}
 	svc.db.Find(&dbCfgEntries)
 
@@ -262,16 +264,22 @@ func (svc *Service) launchLNBackend() error {
 	breezMnemonic := mergeConfigEntry(svc.cfg.BreezMnemonic, "BREEZ_MNEMONIC")
 	greenlightInviteCode := mergeConfigEntry(svc.cfg.GreenlightInviteCode, "GREENLIGHT_INVITE_CODE")
 
+	lndAddress := mergeConfigEntry(svc.cfg.LNDAddress, "LND_ADDRESS")
+	lndCertFile := mergeConfigEntry(svc.cfg.LNDCertFile, "LND_CERT_FILE")
+	lndCertHex := mergeConfigEntry(svc.cfg.LNDCertHex, "LND_CERT_HEX")
+	lndMacaroonFile := mergeConfigEntry(svc.cfg.LNDMacaroonFile, "LND_MACAROON_FILE")
+	lndMacaroonHex := mergeConfigEntry(svc.cfg.LNDMacaroonHex, "LND_MACAROON_HEX")
+
+	svc.Logger.Infof("Launching new LN Backend: %s", lnBackendType)
 	switch lnBackendType {
 	case LNDBackendType:
-		// TODO: pass config to LND
-		lndClient, err := NewLNDService(svc)
+		lndClient, err := NewLNDService(svc, lndAddress, lndCertFile, lndCertHex, lndMacaroonFile, lndMacaroonHex)
 		if err != nil {
 			return err
 		}
 		svc.lnClient = lndClient
 	case BreezBackendType:
-		breezSvc, err := NewBreezService(breezMnemonic, svc.cfg.BreezAPIKey, greenlightInviteCode, svc.cfg.BreezWorkdir)
+		breezSvc, err := NewBreezService(svc, breezMnemonic, svc.cfg.BreezAPIKey, greenlightInviteCode, svc.cfg.BreezWorkdir)
 		if err != nil {
 			return err
 		}

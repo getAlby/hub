@@ -38,7 +38,11 @@ type SetupRequest struct {
 	BreezMnemonic        string `json:"breezMnemonic"`
 	GreenlightInviteCode string `json:"greenlightInviteCode"`
 	// LND fields
-	// TODO: ....
+	LNDAddress      string `json:"lndAddress"`
+	LNDCertFile     string `json:"lndCertFile"`
+	LNDMacaroonFile string `json:"lndMacaroonFile"`
+	LNDCertHex      string `json:"lndCertHex"`
+	LNDMacaroonHex  string `json:"lndMacaroonHex"`
 }
 
 type CreateAppResponse struct {

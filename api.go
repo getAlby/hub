@@ -43,6 +43,9 @@ func (svc *Service) Setup(setupRequest *api.SetupRequest) error {
 	dbConfigEntries := []db.ConfigEntry{}
 
 	dbConfigEntries = append(dbConfigEntries, db.ConfigEntry{Key: "LN_BACKEND_TYPE", Value: setupRequest.LNBackendType})
+
+	// TODO: reduce duplication
+
 	if setupRequest.BreezMnemonic != "" {
 		dbConfigEntries = append(dbConfigEntries, db.ConfigEntry{Key: "BREEZ_MNEMONIC", Value: setupRequest.BreezMnemonic})
 	}
@@ -50,7 +53,23 @@ func (svc *Service) Setup(setupRequest *api.SetupRequest) error {
 		dbConfigEntries = append(dbConfigEntries, db.ConfigEntry{Key: "GREENLIGHT_INVITE_CODE", Value: setupRequest.GreenlightInviteCode})
 	}
 
-	// Update columns to default value on `id` conflict
+	if setupRequest.LNDAddress != "" {
+		dbConfigEntries = append(dbConfigEntries, db.ConfigEntry{Key: "LND_ADDRESS", Value: setupRequest.LNDAddress})
+	}
+	if setupRequest.LNDCertFile != "" {
+		dbConfigEntries = append(dbConfigEntries, db.ConfigEntry{Key: "LND_CERT_FILE", Value: setupRequest.LNDCertFile})
+	}
+	if setupRequest.LNDCertHex != "" {
+		dbConfigEntries = append(dbConfigEntries, db.ConfigEntry{Key: "LND_CERT_HEX", Value: setupRequest.LNDCertHex})
+	}
+	if setupRequest.LNDMacaroonFile != "" {
+		dbConfigEntries = append(dbConfigEntries, db.ConfigEntry{Key: "LND_MACAROON_FILE", Value: setupRequest.LNDMacaroonFile})
+	}
+	if setupRequest.LNDMacaroonHex != "" {
+		dbConfigEntries = append(dbConfigEntries, db.ConfigEntry{Key: "LND_MACAROON_HEX", Value: setupRequest.LNDMacaroonHex})
+	}
+
+	// replace existing keys with latest values
 	res := svc.db.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "key"}},
 		DoUpdates: clause.AssignmentColumns([]string{"value"}),

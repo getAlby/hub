@@ -56,7 +56,7 @@ export function Setup() {
       </select>
 
       {backendType === "BREEZ" && <BreezForm handleSubmit={handleSubmit} />}
-      {backendType === "LND" && <p>Coming soon</p>}
+      {backendType === "LND" && <LNDForm handleSubmit={handleSubmit} />}
     </>
   );
 }
@@ -111,7 +111,7 @@ function BreezForm({ handleSubmit }: SetupFormProps) {
           className="bg-gray-50 border border-gray-300 text-gray-900 focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 text-sm rounded-lg block w-full p-2.5 dark:bg-surface-00dp dark:border-gray-700 dark:placeholder-gray-400 dark:text-white"
         />
         <label
-          htmlFor="greenlight-invite-code"
+          htmlFor="mnemonic"
           className="mt-4 block font-medium text-gray-900 dark:text-white"
         >
           BIP39 Mnemonic
@@ -122,6 +122,75 @@ function BreezForm({ handleSubmit }: SetupFormProps) {
           value={breezMnemonic}
           type="password"
           id="mnemonic"
+          className="bg-gray-50 border border-gray-300 text-gray-900 focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 text-sm rounded-lg block w-full p-2.5 dark:bg-surface-00dp dark:border-gray-700 dark:placeholder-gray-400 dark:text-white"
+        />
+      </>
+      <ConnectButton />
+    </form>
+  );
+}
+
+function LNDForm({ handleSubmit }: SetupFormProps) {
+  const [lndAddress, setLndAddress] = React.useState<string>("");
+  const [lndCertHex, setLndCertHex] = React.useState<string>("");
+  const [lndMacaroonHex, setLndMacaroonHex] = React.useState<string>("");
+
+  function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!lndAddress || !lndCertHex || !lndMacaroonHex) {
+      alert("please fill out all fields");
+      return;
+    }
+    handleSubmit({
+      lndAddress,
+      lndCertHex,
+      lndMacaroonHex,
+    });
+  }
+
+  return (
+    <form onSubmit={onSubmit}>
+      <>
+        <label
+          htmlFor="lnd-address"
+          className="block font-medium text-gray-900 dark:text-white"
+        >
+          LND Address (GRPC)
+        </label>
+        <input
+          name="lnd-address"
+          onChange={(e) => setLndAddress(e.target.value)}
+          value={lndAddress}
+          id="lnd-address"
+          className="bg-gray-50 border border-gray-300 text-gray-900 focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 text-sm rounded-lg block w-full p-2.5 dark:bg-surface-00dp dark:border-gray-700 dark:placeholder-gray-400 dark:text-white"
+        />
+
+        <label
+          htmlFor="lnd-cert-hex"
+          className="mt-4 block font-medium text-gray-900 dark:text-white"
+        >
+          TLS Certificate (Hex)
+        </label>
+        <input
+          name="lnd-cert-hex"
+          onChange={(e) => setLndCertHex(e.target.value)}
+          value={lndCertHex}
+          type="password"
+          id="lnd-cert-hex"
+          className="bg-gray-50 border border-gray-300 text-gray-900 focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 text-sm rounded-lg block w-full p-2.5 dark:bg-surface-00dp dark:border-gray-700 dark:placeholder-gray-400 dark:text-white"
+        />
+        <label
+          htmlFor="lnd-macaroon-hex"
+          className="mt-4 block font-medium text-gray-900 dark:text-white"
+        >
+          Admin Macaroon (Hex)
+        </label>
+        <input
+          name="lnd-macaroon-hex"
+          onChange={(e) => setLndMacaroonHex(e.target.value)}
+          value={lndMacaroonHex}
+          type="password"
+          id="lnd-macaroon-hex"
           className="bg-gray-50 border border-gray-300 text-gray-900 focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 text-sm rounded-lg block w-full p-2.5 dark:bg-surface-00dp dark:border-gray-700 dark:placeholder-gray-400 dark:text-white"
         />
       </>

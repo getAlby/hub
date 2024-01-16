@@ -51,6 +51,10 @@ func NewAlbyOauthService(svc *Service, e *echo.Echo) (result LNClient, err error
 	return albySvc, err
 }
 
+func (svc *AlbyOAuthService) Shutdown() error {
+	return nil
+}
+
 func (svc *AlbyOAuthService) FetchUserToken(ctx context.Context, app App) (token *oauth2.Token, err error) {
 	user := app.User
 	tok, err := svc.oauthConf.TokenSource(ctx, &oauth2.Token{

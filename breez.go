@@ -28,7 +28,19 @@ func (BreezListener) OnEvent(e breez_sdk.BreezEvent) {
 	log.Printf("received event %#v", e)
 }
 
-func NewBreezService(mnemonic, apiKey, inviteCode, workDir string) (result LNClient, err error) {
+func NewBreezService(nwcSvc *Service, mnemonic, apiKey, inviteCode, workDir string) (result LNClient, err error) {
+	// FIXME: split single and multi user app
+	//add default user to db
+	user := &User{}
+	err = nwcSvc.db.FirstOrInit(user, User{AlbyIdentifier: "breez"}).Error
+	if err != nil {
+		return nil, err
+	}
+	err = nwcSvc.db.Save(user).Error
+	if err != nil {
+		return nil, err
+	}
+
 	//create dir if not exists
 	newpath := filepath.Join(".", workDir)
 	err = os.MkdirAll(newpath, os.ModePerm)
@@ -73,6 +85,10 @@ func NewBreezService(mnemonic, apiKey, inviteCode, workDir string) (result LNCli
 		listener: &listener,
 		svc:      svc,
 	}, nil
+}
+
+func (bs *BreezService) Shutdown() error {
+	return bs.svc.Disconnect()
 }
 
 func (bs *BreezService) SendPaymentSync(ctx context.Context, senderPubkey string, payReq string) (preimage string, err error) {
