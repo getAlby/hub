@@ -24,7 +24,6 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 		return nil, err
 	}
 
-	var bolt11 string
 	payParams := &Nip47PayParams{}
 	err = json.Unmarshal(request.Params, payParams)
 	if err != nil {
@@ -36,7 +35,7 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 		return nil, err
 	}
 
-	bolt11 = payParams.Invoice
+	bolt11 := payParams.Invoice
 	// Convert invoice to lowercase string
 	bolt11 = strings.ToLower(bolt11)
 	paymentRequest, err := decodepay.Decodepay(bolt11)

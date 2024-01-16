@@ -18,6 +18,7 @@ const (
 	NIP_47_LOOKUP_INVOICE_METHOD      = "lookup_invoice"
 	NIP_47_LIST_TRANSACTIONS_METHOD   = "list_transactions"
 	NIP_47_PAY_KEYSEND_METHOD         = "pay_keysend"
+	NIP_47_MULTI_PAY_INVOICE_METHOD   = "multi_pay_invoice"
 	NIP_47_ERROR_INTERNAL             = "INTERNAL"
 	NIP_47_ERROR_NOT_IMPLEMENTED      = "NOT_IMPLEMENTED"
 	NIP_47_ERROR_QUOTA_EXCEEDED       = "QUOTA_EXCEEDED"
@@ -249,6 +250,19 @@ type Nip47PayParams struct {
 }
 type Nip47PayResponse struct {
 	Preimage string `json:"preimage"`
+}
+
+type Nip47MultiPayParams struct {
+	Invoices []InvoiceInfo `json:"invoices"`
+}
+
+type InvoiceInfo struct {
+	Id      uint64 `json:"id"`
+	Invoice string `json:"invoice"`
+}
+
+type Nip47MultiPayResponse struct {
+	Invoice string `json:"invoice"`
 }
 
 type Nip47KeysendParams struct {
