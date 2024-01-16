@@ -9,7 +9,7 @@ import { LogoutIcon } from "src/components/icons/LogoutIcon";
 import { AboutIcon } from "src/components/icons/AboutIcon";
 import { CaretIcon } from "src/components/icons/CaretIcon";
 import nwcLogo from "src/assets/images/nwc-logo.svg";
-import { handleFetchError, validateFetchResponse } from "src/utils/fetch";
+import { handleFetchError } from "src/utils/request";
 
 function Navbar() {
   const { data: info } = useInfo();
@@ -103,13 +103,12 @@ function ProfileDropdown() {
       if (!csrf) {
         throw new Error("info not loaded");
       }
-      const response = await fetch("/api/logout", {
+      await fetch("/api/logout", {
         method: "POST",
         headers: {
           "X-CSRF-Token": csrf,
         },
       });
-      await validateFetchResponse(response);
       window.location.href = "/";
     } catch (error) {
       handleFetchError("Failed to logout", error);

@@ -12,6 +12,7 @@ func Migrate(db *gorm.DB) error {
 		_202309271617_fix_preimage_null,
 		_202309271618_add_payment_sum_index,
 		_202401092201_add_events_id_index,
+		_202401161432_add_config_table,
 	})
 
 	return m.Migrate()

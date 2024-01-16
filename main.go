@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -13,6 +14,7 @@ import (
 
 	echologrus "github.com/davrux/echo-logrus/v4"
 	"github.com/getAlby/nostr-wallet-connect/migrations"
+	"github.com/getAlby/nostr-wallet-connect/models/db"
 	"github.com/glebarez/sqlite"
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
@@ -120,9 +122,13 @@ func main() {
 	}
 
 	log.Infof("Starting nostr-wallet-connect. npub: %s hex: %s", npub, identityPubkey)
+	ctx := context.Background()
+	ctx, _ = signal.NotifyContext(ctx, os.Interrupt)
+
 	svc := &Service{
 		cfg: cfg,
 		db:  db,
+		ctx: ctx,
 	}
 
 	if os.Getenv("DATADOG_AGENT_URL") != "" {
@@ -136,53 +142,39 @@ func main() {
 	logger.SetLevel(log.InfoLevel)
 	svc.Logger = logger
 
-	ctx := context.Background()
-	ctx, _ = signal.NotifyContext(ctx, os.Interrupt)
-
-	// TODO: use a different check to run wails app
-	if cfg.AppType == WailsAppType {
+	var wg sync.WaitGroup
+	switch cfg.AppType {
+	case WailsAppType:
 		app := NewApp(svc)
 		LaunchWailsApp(app)
-
-		// TODO: enable service if/after config is setup
-		/*breezSvc, err := NewBreezService(cfg.BreezMnemonic, cfg.BreezAPIKey, cfg.GreenlightInviteCode, cfg.BreezWorkdir)
+		err := svc.launchLNBackend()
 		if err != nil {
-			svc.Logger.Fatal(err)
+			// LN backend not needed immediately, just log errors
+			svc.Logger.Warnf("Failed to launch LN backend: %v", err)
 		}
-		svc.lnClient = breezSvc*/
-
-	} else {
+	case HttpAppType:
 		// using echo
 		echologrus.Logger = logger
 		e := echo.New()
 
-		switch cfg.LNBackendType {
-		// TODO: LND and Breez should only start if configured
-		case LNDBackendType:
-			lndClient, err := NewLNDService(ctx, svc, e)
-			if err != nil {
-				svc.Logger.Fatal(err)
-			}
-			svc.lnClient = lndClient
-		case AlbyBackendType:
+		// Alby backend only supported in HTTP app type
+		if svc.cfg.LNBackendType == AlbyBackendType {
 			oauthService, err := NewAlbyOauthService(svc, e)
 			if err != nil {
 				svc.Logger.Fatal(err)
 			}
 			svc.lnClient = oauthService
-		case BreezBackendType:
-			/*breezSvc, err := NewBreezService(cfg.BreezMnemonic, cfg.BreezAPIKey, cfg.GreenlightInviteCode, cfg.BreezWorkdir)
+		} else {
+			err := svc.launchLNBackend()
 			if err != nil {
-				svc.Logger.Fatal(err)
+				// LN backend not needed immediately, just log errors
+				svc.Logger.Warnf("Failed to launch LN backend: %v", err)
 			}
-			svc.lnClient = breezSvc*/
-		default:
-			svc.Logger.Fatalf("Unsupported LNBackendType: %v", cfg.LNBackendType)
 		}
+
 		//register shared routes
 		svc.RegisterSharedRoutes(e)
 		//start Echo server
-		var wg sync.WaitGroup
 		wg.Add(1)
 		go func() {
 			if err := e.Start(fmt.Sprintf(":%v", svc.cfg.Port)); err != nil && err != http.ErrServerClosed {
@@ -196,14 +188,11 @@ func main() {
 			svc.Logger.Info("Echo server exited")
 			wg.Done()
 		}()
+	default:
+		svc.Logger.Fatalf("Unknown app type: %s", cfg.AppType)
 	}
 
-	var wg sync.WaitGroup
-	if cfg.AppType == HttpAppType {
-		wg.Add(1)
-	}
 	go func() {
-
 		//connect to the relay
 		svc.Logger.Infof("Connecting to the relay: %s", cfg.Relay)
 
@@ -247,6 +236,52 @@ func main() {
 		wg.Done()
 	}()
 	wg.Wait()
+}
+
+func (svc *Service) launchLNBackend() error {
+	if svc.lnClient != nil {
+		// TODO: svc.lnClient.shutdown()
+		svc.lnClient = nil
+	}
+
+	// TODO: merge with DB
+	dbCfgEntries := []db.ConfigEntry{}
+	svc.db.Find(&dbCfgEntries)
+
+	mergeConfigEntry := func(defaultValue string, key string) string {
+		for _, v := range dbCfgEntries {
+			if v.Key == key {
+				return v.Value
+			}
+		}
+		return ""
+	}
+
+	// TODO: is there a better way to do this?
+	lnBackendType := mergeConfigEntry(svc.cfg.LNBackendType, "LN_BACKEND_TYPE")
+	breezMnemonic := mergeConfigEntry(svc.cfg.BreezMnemonic, "BREEZ_MNEMONIC")
+	greenlightInviteCode := mergeConfigEntry(svc.cfg.GreenlightInviteCode, "GREENLIGHT_INVITE_CODE")
+
+	switch lnBackendType {
+	case LNDBackendType:
+		// TODO: pass config to LND
+		lndClient, err := NewLNDService(svc)
+		if err != nil {
+			return err
+		}
+		svc.lnClient = lndClient
+	case BreezBackendType:
+		breezSvc, err := NewBreezService(breezMnemonic, svc.cfg.BreezAPIKey, greenlightInviteCode, svc.cfg.BreezWorkdir)
+		if err != nil {
+			return err
+		}
+		svc.lnClient = breezSvc
+	case "":
+		return errors.New("No LNBackendType specified")
+	default:
+		svc.Logger.Fatalf("Unsupported LNBackendType: %v", lnBackendType)
+	}
+	return nil
 }
 
 func (svc *Service) createFilters() nostr.Filters {

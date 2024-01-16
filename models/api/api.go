@@ -32,6 +32,15 @@ type CreateAppRequest struct {
 	ReturnTo       string `json:"returnTo"`
 }
 
+type SetupRequest struct {
+	LNBackendType string `json:"backendType"`
+	// Breez fields
+	BreezMnemonic        string `json:"breezMnemonic"`
+	GreenlightInviteCode string `json:"greenlightInviteCode"`
+	// LND fields
+	// TODO: ....
+}
+
 type CreateAppResponse struct {
 	PairingUri    string `json:"pairingUri"`
 	PairingSecret string `json:"pairingSecretKey"`

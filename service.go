@@ -21,12 +21,15 @@ type Service struct {
 	lnClient    LNClient
 	ReceivedEOS bool
 	Logger      *logrus.Logger
+	ctx         context.Context
 }
 
 func (svc *Service) GetUser(c echo.Context) (user *User, err error) {
 	sess, _ := session.Get(CookieName, c)
 	userID := sess.Values["user_id"]
-	if svc.cfg.LNBackendType == LNDBackendType || svc.cfg.LNBackendType == BreezBackendType {
+
+	// FIXME: split app into single-user and multi-user
+	if svc.cfg.LNBackendType != AlbyBackendType {
 		//if we self-host, there is always only one user
 		userID = 1
 	}

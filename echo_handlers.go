@@ -59,6 +59,7 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	e.GET("/api/csrf", svc.CSRFHandler)
 	e.GET("/api/info", svc.InfoHandler)
 	e.POST("/api/logout", svc.LogoutHandler)
+	e.POST("/api/setup", svc.SetupHandler)
 
 	frontend.RegisterHandlers(e)
 }
@@ -342,4 +343,22 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 	}
 	responseBody.PairingUri = fmt.Sprintf("nostr+walletconnect://%s?relay=%s&secret=%s%s", svc.cfg.IdentityPubkey, publicRelayUrl, pairingSecretKey, lud16)
 	return c.JSON(http.StatusOK, responseBody)
+}
+
+func (svc *Service) SetupHandler(c echo.Context) error {
+	var setupRequest api.SetupRequest
+	if err := c.Bind(&setupRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	err := svc.Setup(&setupRequest)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to setup node: %s", err.Error()),
+		})
+	}
+
+	return c.NoContent(http.StatusNoContent)
 }

@@ -23,7 +23,7 @@ import { LightningIcon } from "src/components/icons/LightningIcon";
 import { InvoiceIcon } from "src/components/icons/InvoiceIcon";
 import { SearchIcon } from "src/components/icons/SearchIcon";
 import { TransactionsIcon } from "src/components/icons/TransactionsIcon";
-import { handleFetchError, validateFetchResponse } from "src/utils/fetch";
+import { handleFetchError } from "src/utils/request";
 
 const NewApp = () => {
   const { data: csrf } = useCSRF();
@@ -134,7 +134,6 @@ const NewApp = () => {
           returnTo: returnTo,
         }),
       });
-      await validateFetchResponse(response);
 
       const createAppResponse: CreateAppResponse = await response.json();
       if (createAppResponse.returnTo) {

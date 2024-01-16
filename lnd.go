@@ -16,8 +16,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
-	"github.com/labstack/echo-contrib/session"
-	"github.com/labstack/echo/v4"
 	"github.com/lightningnetwork/lnd/lnrpc"
 )
 
@@ -37,19 +35,6 @@ type LNDService struct {
 	client *lnd.LNDWrapper
 	db     *gorm.DB
 	Logger *logrus.Logger
-}
-
-func (svc *LNDService) AuthHandler(c echo.Context) error {
-	user := &User{}
-	err := svc.db.FirstOrInit(user, User{AlbyIdentifier: "lnd"}).Error
-	if err != nil {
-		return err
-	}
-
-	sess, _ := session.Get(CookieName, c)
-	sess.Values["user_id"] = user.ID
-	sess.Save(c.Request(), c.Response())
-	return c.Redirect(302, "/")
 }
 
 func (svc *LNDService) GetBalance(ctx context.Context, senderPubkey string) (balance int64, err error) {
@@ -324,16 +309,16 @@ func makePreimageHex() ([]byte, error) {
 	return bytes, nil
 }
 
-func NewLNDService(ctx context.Context, svc *Service, e *echo.Echo) (result LNClient, err error) {
+func NewLNDService(svc *Service) (result LNClient, err error) {
 	lndClient, err := lnd.NewLNDclient(lnd.LNDoptions{
 		Address:      svc.cfg.LNDAddress,
 		CertFile:     svc.cfg.LNDCertFile,
 		MacaroonFile: svc.cfg.LNDMacaroonFile,
-	}, ctx)
+	}, svc.ctx)
 	if err != nil {
 		return nil, err
 	}
-	info, err := lndClient.GetInfo(ctx, &lnrpc.GetInfoRequest{})
+	info, err := lndClient.GetInfo(svc.ctx, &lnrpc.GetInfoRequest{})
 	if err != nil {
 		return nil, err
 	}
@@ -350,7 +335,6 @@ func NewLNDService(ctx context.Context, svc *Service, e *echo.Echo) (result LNCl
 
 	lndService := &LNDService{client: lndClient, Logger: svc.Logger, db: svc.db}
 
-	e.GET("/lnd/auth", lndService.AuthHandler)
 	svc.Logger.Infof("Connected to LND - alias %s", info.Alias)
 
 	return lndService, nil
