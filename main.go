@@ -131,6 +131,7 @@ func main() {
 		ctx: ctx,
 	}
 
+	// TODO: remove Datadog etc.
 	if os.Getenv("DATADOG_AGENT_URL") != "" {
 		tracer.Start(tracer.WithService("nostr-wallet-connect"))
 		defer tracer.Stop()
@@ -144,6 +145,7 @@ func main() {
 
 	var wg sync.WaitGroup
 	wg.Add(1)
+	// TODO: can we move these into two separate entrypoint files?
 	switch cfg.AppType {
 	case WailsAppType:
 		err := svc.launchLNBackend()

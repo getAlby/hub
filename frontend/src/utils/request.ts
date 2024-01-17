@@ -7,6 +7,7 @@ export const request = async <T>(
   ...args: Parameters<typeof fetch>
 ): Promise<T | undefined> => {
   try {
+    // TODO: can we use a different request file at build time so no conditional / env variable is needed?
     switch (import.meta.env.VITE_APP_TYPE) {
       case "WAILS": {
         const res = await WailsRequestRouter(
