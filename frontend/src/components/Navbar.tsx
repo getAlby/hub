@@ -88,6 +88,7 @@ function Navbar() {
   );
 }
 
+// TODO: remove in single-user app
 function ProfileDropdown() {
   useLogin();
   const { data: csrf } = useCSRF();

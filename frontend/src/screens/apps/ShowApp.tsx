@@ -6,7 +6,7 @@ import { useApp } from "src/hooks/useApp";
 import { useCSRF } from "src/hooks/useCSRF";
 import toast from "src/components/Toast";
 import Loading from "src/components/Loading";
-import { handleRequestError } from "src/utils/request";
+import { handleRequestError, request } from "src/utils/request";
 
 function ShowApp() {
   const { data: info } = useInfo();
@@ -29,7 +29,7 @@ function ShowApp() {
       if (!csrf) {
         throw new Error("No CSRF token");
       }
-      await fetch(`/api/apps/${app.nostrPubkey}`, {
+      await request(`/api/apps/${app.nostrPubkey}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",

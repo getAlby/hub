@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useCSRF } from "src/hooks/useCSRF";
+import { useInfo } from "src/hooks/useInfo";
 import { BackendType } from "src/types";
 import { request, handleRequestError } from "src/utils/request";
 
@@ -8,6 +9,7 @@ export function Setup() {
   const [backendType, setBackendType] = React.useState<BackendType>("BREEZ");
   const navigate = useNavigate();
 
+  const { data: info } = useInfo();
   const { data: csrf } = useCSRF();
 
   async function handleSubmit(data: object) {
@@ -35,6 +37,12 @@ export function Setup() {
 
   return (
     <>
+      {info?.setupCompleted && (
+        <p className="mb-4 text-red-500">
+          Your node is already setup! only continue if you actually want to
+          change your connection settings.
+        </p>
+      )}
       <p className="mb-4">
         Enter your node connection credentials to connect to your wallet.
       </p>

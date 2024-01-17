@@ -14,8 +14,6 @@ export const request = async <T>(
           args[1]?.method || "GET",
           args[1]?.body?.toString() || ""
         );
-        // TODO: wrap response and do error handling e.g.
-        // if (!res.ok) { throw new Error((json as ErrorResponse).message || "Unknown error")}
 
         console.log("Wails request", ...args, res);
         if (res.error) {

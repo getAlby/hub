@@ -23,7 +23,7 @@ import { LightningIcon } from "src/components/icons/LightningIcon";
 import { InvoiceIcon } from "src/components/icons/InvoiceIcon";
 import { SearchIcon } from "src/components/icons/SearchIcon";
 import { TransactionsIcon } from "src/components/icons/TransactionsIcon";
-import { handleRequestError } from "src/utils/request";
+import { handleRequestError, request } from "src/utils/request";
 
 const NewApp = () => {
   const { data: csrf } = useCSRF();
@@ -118,7 +118,7 @@ const NewApp = () => {
     }
 
     try {
-      const response = await fetch("/api/apps", {
+      const createAppResponse = await request<CreateAppResponse>("/api/apps", {
         method: "POST",
         headers: {
           "X-CSRF-Token": csrf,
@@ -135,7 +135,10 @@ const NewApp = () => {
         }),
       });
 
-      const createAppResponse: CreateAppResponse = await response.json();
+      if (!createAppResponse) {
+        throw new Error("no create app response received");
+      }
+
       if (createAppResponse.returnTo) {
         // open connection URI directly in an app
         window.location.href = createAppResponse.returnTo;

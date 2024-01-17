@@ -5,6 +5,7 @@ import { useUser } from "src/hooks/useUser";
 
 const RETURN_TO_KEY = "returnTo";
 
+// TODO: delete in single-user app
 export function useLogin() {
   const { data: user, isLoading } = useUser();
   const location = useLocation();
