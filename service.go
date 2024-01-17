@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/labstack/echo-contrib/session"
@@ -81,7 +80,7 @@ func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 	}
 }
 
-func (svc *Service) publishEvent(ctx context.Context, sub *nostr.Subscription, event *nostr.Event, resp *nostr.Event) {
+func (svc *Service) PublishEvent(ctx context.Context, sub *nostr.Subscription, event *nostr.Event, resp *nostr.Event) {
 	status, err := sub.Relay.Publish(ctx, *resp)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
@@ -140,7 +139,6 @@ func (svc *Service) publishEvent(ctx context.Context, sub *nostr.Subscription, e
 
 func (svc *Service) handleAndPublishEvent(ctx context.Context, sub *nostr.Subscription, event *nostr.Event) {
 	var resp *nostr.Event
-	var resps []*nostr.Event
 	svc.Logger.WithFields(logrus.Fields{
 		"eventId":   event.ID,
 		"eventKind": event.Kind,
@@ -175,7 +173,7 @@ func (svc *Service) handleAndPublishEvent(ctx context.Context, sub *nostr.Subscr
 				Message: "The public key does not have a wallet connected.",
 			},
 		}, ss)
-		svc.publishEvent(ctx, sub, event, resp)
+		svc.PublishEvent(ctx, sub, event, resp)
 		return
 	}
 
@@ -217,12 +215,13 @@ func (svc *Service) handleAndPublishEvent(ctx context.Context, sub *nostr.Subscr
 		return
 	}
 	switch nip47Request.Method {
+	case NIP_47_MULTI_PAY_INVOICE_METHOD:
+		svc.HandleMultiPayInvoiceEvent(ctx, sub, nip47Request, event, app, ss)
+		return
 	case NIP_47_PAY_INVOICE_METHOD:
 		resp, err = svc.HandlePayInvoiceEvent(ctx, nip47Request, event, app, ss)
 	case NIP_47_PAY_KEYSEND_METHOD:
 		resp, err = svc.HandlePayKeysendEvent(ctx, nip47Request, event, app, ss)
-	case NIP_47_MULTI_PAY_INVOICE_METHOD:
-		resps, err = svc.HandleMultiPayInvoiceEvent(ctx, nip47Request, event, app, ss)
 	case NIP_47_GET_BALANCE_METHOD:
 		resp, err = svc.HandleGetBalanceEvent(ctx, nip47Request, event, app, ss)
 	case NIP_47_MAKE_INVOICE_METHOD:
@@ -250,18 +249,7 @@ func (svc *Service) handleAndPublishEvent(ctx context.Context, sub *nostr.Subscr
 		}).Errorf("Failed to process event: %v", err)
 	}
 	if resp != nil {
-		svc.publishEvent(ctx, sub, event, resp)
-	}
-	if resps != nil {
-		var wg sync.WaitGroup
-		for _, resp := range resps {
-			wg.Add(1)
-			go func(resp *nostr.Event) {
-				defer wg.Done()
-				svc.publishEvent(ctx, sub, event, resp)
-			}(resp)
-		}
-		wg.Wait()
+		svc.PublishEvent(ctx, sub, event, resp)
 	}
 }
 

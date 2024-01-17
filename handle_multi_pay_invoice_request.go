@@ -12,17 +12,21 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, request *Nip47Request, event *nostr.Event, app App, ss []byte) (results []*nostr.Event, err error) {
+func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, sub *nostr.Subscription, request *Nip47Request, event *nostr.Event, app App, ss []byte) {
 
 	nostrEvent := NostrEvent{App: app, NostrId: event.ID, Content: event.Content, State: "received"}
-	err = svc.db.Create(&nostrEvent).Error
+	err := svc.db.Create(&nostrEvent).Error
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
 			"eventId":   event.ID,
 			"eventKind": event.Kind,
 			"appId":     app.ID,
 		}).Errorf("Failed to save nostr event: %v", err)
-		return nil, err
+		svc.Logger.WithFields(logrus.Fields{
+			"eventId":   event.ID,
+			"eventKind": event.Kind,
+		}).Errorf("Failed to process event: %v", err)
+		return
 	}
 
 	multiPayParams := &Nip47MultiPayParams{}
@@ -33,7 +37,11 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, request *Nip
 			"eventKind": event.Kind,
 			"appId":     app.ID,
 		}).Errorf("Failed to decode nostr event: %v", err)
-		return nil, err
+		svc.Logger.WithFields(logrus.Fields{
+			"eventId":   event.ID,
+			"eventKind": event.Kind,
+		}).Errorf("Failed to process event: %v", err)
+		return
 	}
 
 	var wg sync.WaitGroup
@@ -53,13 +61,25 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, request *Nip
 					"bolt11":    bolt11,
 				}).Errorf("Failed to decode bolt11 invoice: %v", err)
 
-				results = svc.createAndAppendResponse(event, Nip47Response{
+				resp, err := svc.createResponse(event, Nip47Response{
 					ResultType: NIP_47_PAY_INVOICE_METHOD,
 					Error: &Nip47Error{
 						Code:    NIP_47_ERROR_INTERNAL,
 						Message: fmt.Sprintf("Failed to decode bolt11 invoice: %s", err.Error()),
 					},
-				}, ss, invoiceInfo, results)
+				}, ss)
+				if err != nil {
+					svc.Logger.WithFields(logrus.Fields{
+						"eventId":        event.ID,
+						"eventKind":      event.Kind,
+						"paymentRequest": invoiceInfo.Invoice,
+						"invoiceId":      invoiceInfo.Id,
+					}).Errorf("Failed to process event: %v", err)
+					return
+				}
+				dTag := []string{"a", fmt.Sprintf("%d:%s:%d", NIP_47_RESPONSE_KIND, event.PubKey, invoiceInfo.Id)}
+				resp.Tags = append(resp.Tags, dTag)
+				svc.PublishEvent(ctx, sub, event, resp)
 				return
 			}
 
@@ -72,13 +92,25 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, request *Nip
 					"appId":     app.ID,
 				}).Errorf("App does not have permission: %s %s", code, message)
 
-				results = svc.createAndAppendResponse(event, Nip47Response{
+				resp, err := svc.createResponse(event, Nip47Response{
 					ResultType: NIP_47_PAY_INVOICE_METHOD,
 					Error: &Nip47Error{
 						Code:    code,
 						Message: message,
 					},
-				}, ss, invoiceInfo, results)
+				}, ss)
+				if err != nil {
+					svc.Logger.WithFields(logrus.Fields{
+						"eventId":        event.ID,
+						"eventKind":      event.Kind,
+						"paymentRequest": invoiceInfo.Invoice,
+						"invoiceId":      invoiceInfo.Id,
+					}).Errorf("Failed to process event: %v", err)
+					return
+				}
+				dTag := []string{"a", fmt.Sprintf("%d:%s:%d", NIP_47_RESPONSE_KIND, event.PubKey, invoiceInfo.Id)}
+				resp.Tags = append(resp.Tags, dTag)
+				svc.PublishEvent(ctx, sub, event, resp)
 				return
 			}
 
@@ -113,13 +145,25 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, request *Nip
 				nostrEvent.State = NOSTR_EVENT_STATE_HANDLER_ERROR
 				svc.db.Save(&nostrEvent)
 
-				results = svc.createAndAppendResponse(event, Nip47Response{
+				resp, err := svc.createResponse(event, Nip47Response{
 					ResultType: NIP_47_PAY_INVOICE_METHOD,
 					Error: &Nip47Error{
 						Code:    NIP_47_ERROR_INTERNAL,
 						Message: fmt.Sprintf("Something went wrong while paying invoice: %s", err.Error()),
 					},
-				}, ss, invoiceInfo, results)
+				}, ss)
+				if err != nil {
+					svc.Logger.WithFields(logrus.Fields{
+						"eventId":        event.ID,
+						"eventKind":      event.Kind,
+						"paymentRequest": invoiceInfo.Invoice,
+						"invoiceId":      invoiceInfo.Id,
+					}).Errorf("Failed to process event: %v", err)
+					return
+				}
+				dTag := []string{"a", fmt.Sprintf("%d:%s:%d", NIP_47_RESPONSE_KIND, event.PubKey, invoiceInfo.Id)}
+				resp.Tags = append(resp.Tags, dTag)
+				svc.PublishEvent(ctx, sub, event, resp)
 				return
 			}
 			payment.Preimage = &preimage
@@ -127,32 +171,27 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, request *Nip
 			nostrEvent.State = NOSTR_EVENT_STATE_HANDLER_EXECUTED
 			svc.db.Save(&nostrEvent)
 			svc.db.Save(&payment)
-			results = svc.createAndAppendResponse(event, Nip47Response{
+			resp, err := svc.createResponse(event, Nip47Response{
 				ResultType: NIP_47_PAY_INVOICE_METHOD,
 				Result: Nip47PayResponse{
 					Preimage: preimage,
 				},
-			}, ss, invoiceInfo, results)
-			return
+			}, ss)
+			if err != nil {
+				svc.Logger.WithFields(logrus.Fields{
+					"eventId":        event.ID,
+					"eventKind":      event.Kind,
+					"paymentRequest": invoiceInfo.Invoice,
+					"invoiceId":      invoiceInfo.Id,
+				}).Errorf("Failed to process event: %v", err)
+				return
+			}
+			dTag := []string{"a", fmt.Sprintf("%d:%s:%d", NIP_47_RESPONSE_KIND, event.PubKey, invoiceInfo.Id)}
+			resp.Tags = append(resp.Tags, dTag)
+			svc.PublishEvent(ctx, sub, event, resp)
 		}(invoiceInfo)
 	}
 
 	wg.Wait()
-	return results, nil
-}
-
-func (svc *Service) createAndAppendResponse(initialEvent *nostr.Event, content interface{}, ss []byte, invoiceInfo InvoiceInfo, results []*nostr.Event) (result []*nostr.Event) {
-	resp, err := svc.createResponse(initialEvent, content, ss)
-	if err != nil {
-		svc.Logger.WithFields(logrus.Fields{
-			"eventId":        initialEvent.ID,
-			"eventKind":      initialEvent.Kind,
-			"paymentRequest": invoiceInfo.Invoice,
-			"invoiceId":      invoiceInfo.Id,
-		}).Errorf("Failed to process event: %v", err)
-		return results
-	}
-	dTag := []string{"a", fmt.Sprintf("%d:%s:%d", NIP_47_RESPONSE_KIND, initialEvent.PubKey, invoiceInfo.Id)}
-	resp.Tags = append(resp.Tags, dTag)
-	return append(results, resp)
+	return
 }
