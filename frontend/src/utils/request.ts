@@ -54,7 +54,7 @@ export const request = async <T>(
   }
 };
 
-export function handleFetchError(message: string, error: unknown) {
+export function handleRequestError(message: string, error: unknown) {
   console.error(message, error);
   toast.error(message + ": " + error);
 }

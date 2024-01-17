@@ -23,7 +23,7 @@ import { LightningIcon } from "src/components/icons/LightningIcon";
 import { InvoiceIcon } from "src/components/icons/InvoiceIcon";
 import { SearchIcon } from "src/components/icons/SearchIcon";
 import { TransactionsIcon } from "src/components/icons/TransactionsIcon";
-import { handleFetchError } from "src/utils/request";
+import { handleRequestError } from "src/utils/request";
 
 const NewApp = () => {
   const { data: csrf } = useCSRF();
@@ -146,7 +146,7 @@ const NewApp = () => {
       });
       toast.success("App created!");
     } catch (error) {
-      handleFetchError("Failed to create app", error);
+      handleRequestError("Failed to create app", error);
     }
   };
 

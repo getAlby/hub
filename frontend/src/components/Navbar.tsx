@@ -9,7 +9,7 @@ import { LogoutIcon } from "src/components/icons/LogoutIcon";
 import { AboutIcon } from "src/components/icons/AboutIcon";
 import { CaretIcon } from "src/components/icons/CaretIcon";
 import nwcLogo from "src/assets/images/nwc-logo.svg";
-import { handleFetchError } from "src/utils/request";
+import { handleRequestError } from "src/utils/request";
 
 function Navbar() {
   const { data: info } = useInfo();
@@ -111,7 +111,7 @@ function ProfileDropdown() {
       });
       window.location.href = "/";
     } catch (error) {
-      handleFetchError("Failed to logout", error);
+      handleRequestError("Failed to logout", error);
     }
   }
 

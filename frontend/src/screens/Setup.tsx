@@ -2,7 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useCSRF } from "src/hooks/useCSRF";
 import { BackendType } from "src/types";
-import { request, handleFetchError } from "src/utils/request";
+import { request, handleRequestError } from "src/utils/request";
 
 export function Setup() {
   const [backendType, setBackendType] = React.useState<BackendType>("BREEZ");
@@ -29,7 +29,7 @@ export function Setup() {
 
       navigate("/apps");
     } catch (error) {
-      handleFetchError("Failed to connect", error);
+      handleRequestError("Failed to connect", error);
     }
   }
 

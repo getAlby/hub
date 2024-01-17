@@ -6,7 +6,7 @@ import { useApp } from "src/hooks/useApp";
 import { useCSRF } from "src/hooks/useCSRF";
 import toast from "src/components/Toast";
 import Loading from "src/components/Loading";
-import { handleFetchError } from "src/utils/request";
+import { handleRequestError } from "src/utils/request";
 
 function ShowApp() {
   const { data: info } = useInfo();
@@ -39,7 +39,7 @@ function ShowApp() {
       navigate("/apps");
       toast.success("App disconnected");
     } catch (error) {
-      await handleFetchError("Failed to delete app", error);
+      await handleRequestError("Failed to delete app", error);
     }
   };
 
