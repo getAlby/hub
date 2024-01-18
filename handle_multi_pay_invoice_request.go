@@ -77,11 +77,18 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, sub *nostr.S
 					}).Errorf("Failed to process event: %v", err)
 					return
 				}
+				// TODO: Decide what to do if id is empty
 				dTag := []string{"a", fmt.Sprintf("%d:%s:%s", NIP_47_RESPONSE_KIND, event.PubKey, invoiceInfo.Id)}
 				resp.Tags = append(resp.Tags, dTag)
 				svc.PublishEvent(ctx, sub, event, resp)
 				return
 			}
+
+			id := invoiceInfo.Id
+			if id == "" {
+				id = paymentRequest.PaymentHash
+			}
+			dTag := []string{"a", fmt.Sprintf("%d:%s:%s", NIP_47_RESPONSE_KIND, event.PubKey, id)}
 
 			hasPermission, code, message := svc.hasPermission(&app, event, request.Method, paymentRequest.MSatoshi)
 
@@ -108,7 +115,6 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, sub *nostr.S
 					}).Errorf("Failed to process event: %v", err)
 					return
 				}
-				dTag := []string{"a", fmt.Sprintf("%d:%s:%s", NIP_47_RESPONSE_KIND, event.PubKey, invoiceInfo.Id)}
 				resp.Tags = append(resp.Tags, dTag)
 				svc.PublishEvent(ctx, sub, event, resp)
 				return
@@ -161,7 +167,6 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, sub *nostr.S
 					}).Errorf("Failed to process event: %v", err)
 					return
 				}
-				dTag := []string{"a", fmt.Sprintf("%d:%s:%s", NIP_47_RESPONSE_KIND, event.PubKey, invoiceInfo.Id)}
 				resp.Tags = append(resp.Tags, dTag)
 				svc.PublishEvent(ctx, sub, event, resp)
 				return
@@ -186,7 +191,6 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, sub *nostr.S
 				}).Errorf("Failed to process event: %v", err)
 				return
 			}
-			dTag := []string{"a", fmt.Sprintf("%d:%s:%s", NIP_47_RESPONSE_KIND, event.PubKey, invoiceInfo.Id)}
 			resp.Tags = append(resp.Tags, dTag)
 			svc.PublishEvent(ctx, sub, event, resp)
 		}(invoiceInfo)
