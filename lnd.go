@@ -319,6 +319,7 @@ func NewLNDService(svc *Service, lndAddress, lndCertFile, lndCertHex, lndMacaroo
 		MacaroonHex:  lndMacaroonHex,
 	}, svc.ctx)
 	if err != nil {
+		svc.Logger.Errorf("Failed to create new LND client %v", err)
 		return nil, err
 	}
 	info, err := lndClient.GetInfo(svc.ctx, &lnrpc.GetInfoRequest{})
