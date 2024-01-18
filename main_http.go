@@ -24,7 +24,7 @@ func main() {
 	var wg sync.WaitGroup
 	wg.Add(1)
 
-	svc := CreateService(&wg)
+	svc := NewService(&wg)
 
 	if svc.cfg.CookieSecret == "" {
 		svc.Logger.Fatalf("required key COOKIE_SECRET missing value")

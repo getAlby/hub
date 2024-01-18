@@ -16,7 +16,7 @@ func main() {
 	var wg sync.WaitGroup
 	wg.Add(1)
 
-	svc := CreateService(&wg)
+	svc := NewService(&wg)
 
 	go func() {
 		app := NewApp(svc)
