@@ -1,5 +1,7 @@
 package main
 
+import "github.com/getAlby/nostr-wallet-connect/models/db"
+
 const (
 	AlbyBackendType  = "ALBY"
 	LNDBackendType   = "LND"
@@ -11,22 +13,17 @@ const (
 )
 
 type Config struct {
+	// These config can be set either by .env or the database config table.
+	// database config always takes preference.
+	db.Config
 	NostrSecretKey          string `envconfig:"NOSTR_PRIVKEY"`
 	CookieSecret            string `envconfig:"COOKIE_SECRET" required:"true"`
 	CookieDomain            string `envconfig:"COOKIE_DOMAIN"`
 	ClientPubkey            string `envconfig:"CLIENT_NOSTR_PUBKEY"`
 	Relay                   string `envconfig:"RELAY" default:"wss://relay.getalby.com/v1"`
 	PublicRelay             string `envconfig:"PUBLIC_RELAY"`
-	LNBackendType           string `envconfig:"LN_BACKEND_TYPE"`
 	AppType                 string `envconfig:"APP_TYPE" default:"HTTP"`
-	LNDAddress              string `envconfig:"LND_ADDRESS"`
-	LNDCertFile             string `envconfig:"LND_CERT_FILE"`
-	LNDCertHex              string `envconfig:"LND_CERT_HEX"`
-	LNDMacaroonFile         string `envconfig:"LND_MACAROON_FILE"`
-	LNDMacaroonHex          string `envconfig:"LND_MACAROON_HEX"`
-	BreezMnemonic           string `envconfig:"BREEZ_MNEMONIC"`
 	BreezAPIKey             string `envconfig:"BREEZ_API_KEY"`
-	GreenlightInviteCode    string `envconfig:"GREENLIGHT_INVITE_CODE"`
 	BreezWorkdir            string `envconfig:"BREEZ_WORK_DIR" default:".breez"`
 	BasicAuthUser           string `envconfig:"BASIC_AUTH_USER"`
 	BasicAuthPassword       string `envconfig:"BASIC_AUTH_PASSWORD"`

@@ -131,6 +131,11 @@ func main() {
 		ctx: ctx,
 	}
 
+	err = svc.setupDbConfig()
+	if err != nil {
+		log.Fatalf("Failed to setup DB config: %v", err)
+	}
+
 	// TODO: remove Datadog etc.
 	if os.Getenv("DATADOG_AGENT_URL") != "" {
 		tracer.Start(tracer.WithService("nostr-wallet-connect"))
@@ -244,6 +249,42 @@ func main() {
 	wg.Wait()
 }
 
+func (svc *Service) setupDbConfig() error {
+	// setup database config from the env on first run
+	// after first run, changes to ENV will have no effect for these fields
+	// because the database values always take precedence!
+
+	var existing db.Config
+	res := svc.db.Limit(1).Find(&existing)
+
+	if res.Error != nil {
+		return res.Error
+	}
+
+	if res.RowsAffected > 0 {
+		// do not overwrite the existing entry
+		return nil
+	}
+
+	newDbConfig := db.Config{
+		ID:                   1,
+		LNBackendType:        svc.cfg.LNBackendType,
+		LNDAddress:           svc.cfg.LNDAddress,
+		LNDCertFile:          svc.cfg.LNDCertFile,
+		LNDCertHex:           svc.cfg.LNDCertHex,
+		LNDMacaroonFile:      svc.cfg.LNDMacaroonFile,
+		LNDMacaroonHex:       svc.cfg.LNDMacaroonHex,
+		BreezMnemonic:        svc.cfg.BreezMnemonic,
+		GreenlightInviteCode: svc.cfg.GreenlightInviteCode,
+	}
+	err := svc.db.Save(&newDbConfig).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (svc *Service) launchLNBackend() error {
 	if svc.lnClient != nil {
 		err := svc.lnClient.Shutdown()
@@ -253,48 +294,28 @@ func (svc *Service) launchLNBackend() error {
 		svc.lnClient = nil
 	}
 
-	dbCfgEntries := []db.ConfigEntry{}
-	svc.db.Find(&dbCfgEntries)
+	dbConfig := db.Config{}
+	svc.db.First(&dbConfig)
 
-	mergeConfigEntry := func(defaultValue string, key string) string {
-		for _, v := range dbCfgEntries {
-			if v.Key == key {
-				return v.Value
-			}
-		}
-		return ""
-	}
-
-	// TODO: is there a better way to do this?
-	lnBackendType := mergeConfigEntry(svc.cfg.LNBackendType, "LN_BACKEND_TYPE")
-	breezMnemonic := mergeConfigEntry(svc.cfg.BreezMnemonic, "BREEZ_MNEMONIC")
-	greenlightInviteCode := mergeConfigEntry(svc.cfg.GreenlightInviteCode, "GREENLIGHT_INVITE_CODE")
-
-	lndAddress := mergeConfigEntry(svc.cfg.LNDAddress, "LND_ADDRESS")
-	lndCertFile := mergeConfigEntry(svc.cfg.LNDCertFile, "LND_CERT_FILE")
-	lndCertHex := mergeConfigEntry(svc.cfg.LNDCertHex, "LND_CERT_HEX")
-	lndMacaroonFile := mergeConfigEntry(svc.cfg.LNDMacaroonFile, "LND_MACAROON_FILE")
-	lndMacaroonHex := mergeConfigEntry(svc.cfg.LNDMacaroonHex, "LND_MACAROON_HEX")
-
-	svc.Logger.Infof("Launching new LN Backend: %s", lnBackendType)
-	switch lnBackendType {
-	case LNDBackendType:
-		lndClient, err := NewLNDService(svc, lndAddress, lndCertFile, lndCertHex, lndMacaroonFile, lndMacaroonHex)
-		if err != nil {
-			return err
-		}
-		svc.lnClient = lndClient
-	case BreezBackendType:
-		breezSvc, err := NewBreezService(svc, breezMnemonic, svc.cfg.BreezAPIKey, greenlightInviteCode, svc.cfg.BreezWorkdir)
-		if err != nil {
-			return err
-		}
-		svc.lnClient = breezSvc
-	case "":
+	if dbConfig.LNBackendType == "" {
 		return errors.New("No LNBackendType specified")
-	default:
-		svc.Logger.Fatalf("Unsupported LNBackendType: %v", lnBackendType)
 	}
+
+	svc.Logger.Infof("Launching LN Backend: %s", dbConfig.LNBackendType)
+	var err error
+	var lnClient LNClient
+	switch dbConfig.LNBackendType {
+	case LNDBackendType:
+		lnClient, err = NewLNDService(svc, dbConfig.LNDAddress, dbConfig.LNDCertFile, dbConfig.LNDCertHex, dbConfig.LNDMacaroonFile, dbConfig.LNDMacaroonHex)
+	case BreezBackendType:
+		lnClient, err = NewBreezService(svc, dbConfig.BreezMnemonic, svc.cfg.BreezAPIKey, dbConfig.GreenlightInviteCode, svc.cfg.BreezWorkdir)
+	default:
+		svc.Logger.Fatalf("Unsupported LNBackendType: %v", dbConfig.LNBackendType)
+	}
+	if err != nil {
+		return err
+	}
+	svc.lnClient = lnClient
 	return nil
 }
 

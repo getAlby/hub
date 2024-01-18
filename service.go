@@ -16,6 +16,7 @@ import (
 )
 
 type Service struct {
+	// config from .env only. Fetch dynamic config from db
 	cfg         *Config
 	db          *gorm.DB
 	lnClient    LNClient

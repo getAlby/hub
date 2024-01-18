@@ -12,7 +12,6 @@ import (
 	"github.com/getAlby/nostr-wallet-connect/models/db"
 	"github.com/nbd-wtf/go-nostr"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 // TODO: these methods should be moved to a separate object, not in Service
@@ -221,40 +220,37 @@ func (svc *Service) GetInfo() *api.InfoResponse {
 }
 
 func (svc *Service) Setup(setupRequest *api.SetupRequest) error {
-	dbConfigEntries := []db.ConfigEntry{}
 
-	dbConfigEntries = append(dbConfigEntries, db.ConfigEntry{Key: "LN_BACKEND_TYPE", Value: setupRequest.LNBackendType})
+	dbConfig := db.Config{}
+	svc.db.First(&dbConfig)
 
-	// TODO: reduce duplication
-
+	// only update non-empty values
+	if setupRequest.LNBackendType != "" {
+		dbConfig.LNBackendType = setupRequest.LNBackendType
+	}
 	if setupRequest.BreezMnemonic != "" {
-		dbConfigEntries = append(dbConfigEntries, db.ConfigEntry{Key: "BREEZ_MNEMONIC", Value: setupRequest.BreezMnemonic})
+		dbConfig.BreezMnemonic = setupRequest.BreezMnemonic
 	}
 	if setupRequest.GreenlightInviteCode != "" {
-		dbConfigEntries = append(dbConfigEntries, db.ConfigEntry{Key: "GREENLIGHT_INVITE_CODE", Value: setupRequest.GreenlightInviteCode})
+		dbConfig.GreenlightInviteCode = setupRequest.GreenlightInviteCode
 	}
-
 	if setupRequest.LNDAddress != "" {
-		dbConfigEntries = append(dbConfigEntries, db.ConfigEntry{Key: "LND_ADDRESS", Value: setupRequest.LNDAddress})
+		dbConfig.LNDAddress = setupRequest.LNDAddress
 	}
 	if setupRequest.LNDCertFile != "" {
-		dbConfigEntries = append(dbConfigEntries, db.ConfigEntry{Key: "LND_CERT_FILE", Value: setupRequest.LNDCertFile})
+		dbConfig.LNDCertFile = setupRequest.LNDCertFile
 	}
 	if setupRequest.LNDCertHex != "" {
-		dbConfigEntries = append(dbConfigEntries, db.ConfigEntry{Key: "LND_CERT_HEX", Value: setupRequest.LNDCertHex})
+		dbConfig.LNDCertHex = setupRequest.LNDCertHex
 	}
 	if setupRequest.LNDMacaroonFile != "" {
-		dbConfigEntries = append(dbConfigEntries, db.ConfigEntry{Key: "LND_MACAROON_FILE", Value: setupRequest.LNDMacaroonFile})
+		dbConfig.LNDMacaroonFile = setupRequest.LNDMacaroonFile
 	}
 	if setupRequest.LNDMacaroonHex != "" {
-		dbConfigEntries = append(dbConfigEntries, db.ConfigEntry{Key: "LND_MACAROON_HEX", Value: setupRequest.LNDMacaroonHex})
+		dbConfig.LNDMacaroonHex = setupRequest.LNDMacaroonHex
 	}
 
-	// replace existing keys with latest values
-	res := svc.db.Clauses(clause.OnConflict{
-		Columns:   []clause.Column{{Name: "key"}},
-		DoUpdates: clause.AssignmentColumns([]string{"value"}),
-	}).Create(&dbConfigEntries)
+	res := svc.db.Save(&dbConfig)
 
 	if res.Error != nil {
 		svc.Logger.Errorf("Failed to update config: %v", res.Error)

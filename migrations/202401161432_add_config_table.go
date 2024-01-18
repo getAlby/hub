@@ -10,9 +10,16 @@ var _202401161432_add_config_table = &gormigrate.Migration{
 	ID: "202401161432_add_config_table",
 	Migrate: func(tx *gorm.DB) error {
 		return tx.Exec(`
-CREATE TABLE config_entries (
-	key TEXT PRIMARY KEY,
-	value TEXT
+CREATE TABLE configs (
+	id int NOT NULL PRIMARY KEY,
+	ln_backend_type TEXT,
+	lnd_address TEXT,
+	lnd_cert_file TEXT,
+	lnd_cert_hex TEXT,
+	lnd_macaroon_file TEXT,
+	lnd_macaroon_hex TEXT,
+	breez_mnemonic TEXT,
+	greenlight_invite_code TEXT
 );`).Error
 	},
 	Rollback: func(tx *gorm.DB) error {
