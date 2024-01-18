@@ -17,12 +17,11 @@ type Config struct {
 	// database config always takes preference.
 	db.Config
 	NostrSecretKey          string `envconfig:"NOSTR_PRIVKEY"`
-	CookieSecret            string `envconfig:"COOKIE_SECRET" required:"true"`
+	CookieSecret            string `envconfig:"COOKIE_SECRET"`
 	CookieDomain            string `envconfig:"COOKIE_DOMAIN"`
 	ClientPubkey            string `envconfig:"CLIENT_NOSTR_PUBKEY"`
 	Relay                   string `envconfig:"RELAY" default:"wss://relay.getalby.com/v1"`
 	PublicRelay             string `envconfig:"PUBLIC_RELAY"`
-	AppType                 string `envconfig:"APP_TYPE" default:"HTTP"`
 	BreezAPIKey             string `envconfig:"BREEZ_API_KEY"`
 	BreezWorkdir            string `envconfig:"BREEZ_WORK_DIR" default:".breez"`
 	BasicAuthUser           string `envconfig:"BASIC_AUTH_USER"`

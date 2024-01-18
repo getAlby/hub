@@ -4,21 +4,17 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
-	"net/http"
 	"os"
 	"os/signal"
 	"strings"
 	"sync"
 	"time"
 
-	echologrus "github.com/davrux/echo-logrus/v4"
 	"github.com/getAlby/nostr-wallet-connect/migrations"
 	"github.com/getAlby/nostr-wallet-connect/models/db"
 	"github.com/glebarez/sqlite"
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
-	"github.com/labstack/echo/v4"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip19"
 	log "github.com/sirupsen/logrus"
@@ -31,8 +27,8 @@ import (
 	gormtrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/gorm.io/gorm.v1"
 )
 
-func main() {
-
+// TODO: move to service.go
+func CreateService(wg *sync.WaitGroup) *Service {
 	// Load config from environment variables / .env file
 	godotenv.Load(".env")
 	cfg := &Config{}
@@ -148,59 +144,10 @@ func main() {
 	logger.SetLevel(log.InfoLevel)
 	svc.Logger = logger
 
-	var wg sync.WaitGroup
-	wg.Add(1)
-	// TODO: can we move these into two separate entrypoint files?
-	switch cfg.AppType {
-	case WailsAppType:
-		err := svc.launchLNBackend()
-		if err != nil {
-			// LN backend not needed immediately, just log errors
-			svc.Logger.Warnf("Failed to launch LN backend: %v", err)
-		}
-		go func() {
-			app := NewApp(svc)
-			LaunchWailsApp(app)
-			wg.Done()
-			svc.Logger.Info("Wails app exited")
-		}()
-	case HttpAppType:
-		// using echo
-		echologrus.Logger = logger
-		e := echo.New()
-
-		// Alby backend only supported in HTTP app type
-		if svc.cfg.LNBackendType == AlbyBackendType {
-			oauthService, err := NewAlbyOauthService(svc, e)
-			if err != nil {
-				svc.Logger.Fatal(err)
-			}
-			svc.lnClient = oauthService
-		} else {
-			err := svc.launchLNBackend()
-			if err != nil {
-				// LN backend not needed immediately, just log errors
-				svc.Logger.Warnf("Failed to launch LN backend: %v", err)
-			}
-		}
-
-		//register shared routes
-		svc.RegisterSharedRoutes(e)
-		//start Echo server
-		go func() {
-			if err := e.Start(fmt.Sprintf(":%v", svc.cfg.Port)); err != nil && err != http.ErrServerClosed {
-				e.Logger.Fatal("shutting down the server")
-			}
-			//handle graceful shutdown
-			<-ctx.Done()
-			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-			defer cancel()
-			e.Shutdown(ctx)
-			svc.Logger.Info("Echo server exited")
-			wg.Done()
-		}()
-	default:
-		svc.Logger.Fatalf("Unknown app type: %s", cfg.AppType)
+	err = svc.launchLNBackend()
+	if err != nil {
+		// LN backend not needed immediately, just log errors
+		svc.Logger.Warnf("Failed to launch LN backend: %v", err)
 	}
 
 	go func() {
@@ -246,7 +193,8 @@ func main() {
 		svc.Logger.Info("Graceful shutdown completed. Goodbye.")
 		wg.Done()
 	}()
-	wg.Wait()
+
+	return svc
 }
 
 func (svc *Service) setupDbConfig() error {
