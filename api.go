@@ -222,7 +222,12 @@ func (svc *Service) GetInfo() *api.InfoResponse {
 func (svc *Service) Setup(setupRequest *api.SetupRequest) error {
 
 	dbConfig := db.Config{}
-	svc.db.First(&dbConfig)
+	err := svc.db.First(&dbConfig).Error
+
+	if err != nil {
+		svc.Logger.Errorf("Failed to get db config: %v", err)
+		return err
+	}
 
 	// only update non-empty values
 	if setupRequest.LNBackendType != "" {
@@ -250,11 +255,11 @@ func (svc *Service) Setup(setupRequest *api.SetupRequest) error {
 		dbConfig.LNDMacaroonHex = setupRequest.LNDMacaroonHex
 	}
 
-	res := svc.db.Save(&dbConfig)
+	err = svc.db.Save(&dbConfig).Error
 
-	if res.Error != nil {
-		svc.Logger.Errorf("Failed to update config: %v", res.Error)
-		return res.Error
+	if err != nil {
+		svc.Logger.Errorf("Failed to update config: %v", err)
+		return err
 	}
 
 	return svc.launchLNBackend()
