@@ -47,7 +47,7 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, sub *nostr.S
 	var wg sync.WaitGroup
 	for _, invoiceInfo := range multiPayParams.Invoices {
 		wg.Add(1)
-		go func(invoiceInfo InvoiceInfo) {
+		go func(invoiceInfo Nip47MultiPayInvoiceElement) {
 			defer wg.Done()
 			bolt11 := invoiceInfo.Invoice
 			// Convert invoice to lowercase string
@@ -62,7 +62,7 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, sub *nostr.S
 				}).Errorf("Failed to decode bolt11 invoice: %v", err)
 
 				resp, err := svc.createResponse(event, Nip47Response{
-					ResultType: NIP_47_PAY_INVOICE_METHOD,
+					ResultType: NIP_47_MULTI_PAY_INVOICE_METHOD,
 					Error: &Nip47Error{
 						Code:    NIP_47_ERROR_INTERNAL,
 						Message: fmt.Sprintf("Failed to decode bolt11 invoice: %s", err.Error()),
@@ -77,7 +77,7 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, sub *nostr.S
 					}).Errorf("Failed to process event: %v", err)
 					return
 				}
-				dTag := []string{"a", fmt.Sprintf("%d:%s:%d", NIP_47_RESPONSE_KIND, event.PubKey, invoiceInfo.Id)}
+				dTag := []string{"a", fmt.Sprintf("%d:%s:%s", NIP_47_RESPONSE_KIND, event.PubKey, invoiceInfo.Id)}
 				resp.Tags = append(resp.Tags, dTag)
 				svc.PublishEvent(ctx, sub, event, resp)
 				return
@@ -93,7 +93,7 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, sub *nostr.S
 				}).Errorf("App does not have permission: %s %s", code, message)
 
 				resp, err := svc.createResponse(event, Nip47Response{
-					ResultType: NIP_47_PAY_INVOICE_METHOD,
+					ResultType: NIP_47_MULTI_PAY_INVOICE_METHOD,
 					Error: &Nip47Error{
 						Code:    code,
 						Message: message,
@@ -108,7 +108,7 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, sub *nostr.S
 					}).Errorf("Failed to process event: %v", err)
 					return
 				}
-				dTag := []string{"a", fmt.Sprintf("%d:%s:%d", NIP_47_RESPONSE_KIND, event.PubKey, invoiceInfo.Id)}
+				dTag := []string{"a", fmt.Sprintf("%d:%s:%s", NIP_47_RESPONSE_KIND, event.PubKey, invoiceInfo.Id)}
 				resp.Tags = append(resp.Tags, dTag)
 				svc.PublishEvent(ctx, sub, event, resp)
 				return
@@ -146,7 +146,7 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, sub *nostr.S
 				svc.db.Save(&nostrEvent)
 
 				resp, err := svc.createResponse(event, Nip47Response{
-					ResultType: NIP_47_PAY_INVOICE_METHOD,
+					ResultType: NIP_47_MULTI_PAY_INVOICE_METHOD,
 					Error: &Nip47Error{
 						Code:    NIP_47_ERROR_INTERNAL,
 						Message: fmt.Sprintf("Something went wrong while paying invoice: %s", err.Error()),
@@ -161,7 +161,7 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, sub *nostr.S
 					}).Errorf("Failed to process event: %v", err)
 					return
 				}
-				dTag := []string{"a", fmt.Sprintf("%d:%s:%d", NIP_47_RESPONSE_KIND, event.PubKey, invoiceInfo.Id)}
+				dTag := []string{"a", fmt.Sprintf("%d:%s:%s", NIP_47_RESPONSE_KIND, event.PubKey, invoiceInfo.Id)}
 				resp.Tags = append(resp.Tags, dTag)
 				svc.PublishEvent(ctx, sub, event, resp)
 				return
@@ -172,7 +172,7 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, sub *nostr.S
 			svc.db.Save(&nostrEvent)
 			svc.db.Save(&payment)
 			resp, err := svc.createResponse(event, Nip47Response{
-				ResultType: NIP_47_PAY_INVOICE_METHOD,
+				ResultType: NIP_47_MULTI_PAY_INVOICE_METHOD,
 				Result: Nip47PayResponse{
 					Preimage: preimage,
 				},
@@ -186,7 +186,7 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, sub *nostr.S
 				}).Errorf("Failed to process event: %v", err)
 				return
 			}
-			dTag := []string{"a", fmt.Sprintf("%d:%s:%d", NIP_47_RESPONSE_KIND, event.PubKey, invoiceInfo.Id)}
+			dTag := []string{"a", fmt.Sprintf("%d:%s:%s", NIP_47_RESPONSE_KIND, event.PubKey, invoiceInfo.Id)}
 			resp.Tags = append(resp.Tags, dTag)
 			svc.PublishEvent(ctx, sub, event, resp)
 		}(invoiceInfo)

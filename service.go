@@ -232,7 +232,6 @@ func (svc *Service) handleAndPublishEvent(ctx context.Context, sub *nostr.Subscr
 		resp, err = svc.HandleListTransactionsEvent(ctx, nip47Request, event, app, ss)
 	case NIP_47_GET_INFO_METHOD:
 		resp, err = svc.HandleGetInfoEvent(ctx, nip47Request, event, app, ss)
-	// multi methods
 	default:
 		resp, err = svc.createResponse(event, Nip47Response{
 			ResultType: nip47Request.Method,

@@ -253,12 +253,12 @@ type Nip47PayResponse struct {
 }
 
 type Nip47MultiPayParams struct {
-	Invoices []InvoiceInfo `json:"invoices"`
+	Invoices []Nip47MultiPayInvoiceElement `json:"invoices"`
 }
 
-type InvoiceInfo struct {
-	Id      uint64 `json:"id"`
-	Invoice string `json:"invoice"`
+type Nip47MultiPayInvoiceElement struct {
+	Nip47PayParams
+	Id string `json:"id"`
 }
 
 type Nip47MultiPayResponse struct {
