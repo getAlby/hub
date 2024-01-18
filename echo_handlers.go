@@ -12,7 +12,6 @@ import (
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	ddEcho "gopkg.in/DataDog/dd-trace-go.v1/contrib/labstack/echo.v4"
 	"gorm.io/gorm"
 )
 
@@ -43,7 +42,6 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 		TokenLookup: "header:X-CSRF-Token",
 	}))
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte(svc.cfg.CookieSecret))))
-	e.Use(ddEcho.Middleware(ddEcho.WithServiceName("nostr-wallet-connect")))
 
 	authMiddleware := svc.ValidateUserMiddleware
 	e.GET("/api/user/me", svc.UserMeHandler, authMiddleware)

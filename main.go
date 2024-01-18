@@ -18,13 +18,8 @@ import (
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip19"
 	log "github.com/sirupsen/logrus"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-
-	"github.com/jackc/pgx/v5/stdlib"
-	sqltrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/database/sql"
-	gormtrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/gorm.io/gorm.v1"
 )
 
 // TODO: move to service.go
@@ -40,25 +35,13 @@ func CreateService(wg *sync.WaitGroup) *Service {
 	var db *gorm.DB
 	var sqlDb *sql.DB
 	if strings.HasPrefix(cfg.DatabaseUri, "postgres://") || strings.HasPrefix(cfg.DatabaseUri, "postgresql://") || strings.HasPrefix(cfg.DatabaseUri, "unix://") {
-		if os.Getenv("DATADOG_AGENT_URL") != "" {
-			sqltrace.Register("pgx", &stdlib.Driver{}, sqltrace.WithServiceName("nostr-wallet-connect"))
-			sqlDb, err = sqltrace.Open("pgx", cfg.DatabaseUri)
-			if err != nil {
-				log.Fatalf("Failed to open DB %v", err)
-			}
-			db, err = gormtrace.Open(postgres.New(postgres.Config{Conn: sqlDb}), &gorm.Config{})
-			if err != nil {
-				log.Fatalf("Failed to open DB %v", err)
-			}
-		} else {
-			db, err = gorm.Open(postgres.Open(cfg.DatabaseUri), &gorm.Config{})
-			if err != nil {
-				log.Fatalf("Failed to open DB %v", err)
-			}
-			sqlDb, err = db.DB()
-			if err != nil {
-				log.Fatalf("Failed to set DB config: %v", err)
-			}
+		db, err = gorm.Open(postgres.Open(cfg.DatabaseUri), &gorm.Config{})
+		if err != nil {
+			log.Fatalf("Failed to open DB %v", err)
+		}
+		sqlDb, err = db.DB()
+		if err != nil {
+			log.Fatalf("Failed to set DB config: %v", err)
 		}
 	} else {
 		db, err = gorm.Open(sqlite.Open(cfg.DatabaseUri), &gorm.Config{})
@@ -130,12 +113,6 @@ func CreateService(wg *sync.WaitGroup) *Service {
 	err = svc.setupDbConfig()
 	if err != nil {
 		log.Fatalf("Failed to setup DB config: %v", err)
-	}
-
-	// TODO: remove Datadog etc.
-	if os.Getenv("DATADOG_AGENT_URL") != "" {
-		tracer.Start(tracer.WithService("nostr-wallet-connect"))
-		defer tracer.Stop()
 	}
 
 	logger := log.New()
