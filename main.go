@@ -23,7 +23,7 @@ import (
 )
 
 // TODO: move to service.go
-func CreateService(wg *sync.WaitGroup) *Service {
+func NewService(wg *sync.WaitGroup) *Service {
 	// Load config from environment variables / .env file
 	godotenv.Load(".env")
 	cfg := &Config{}

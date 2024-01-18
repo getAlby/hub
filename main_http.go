@@ -24,7 +24,7 @@ func main() {
 	var wg sync.WaitGroup
 	wg.Add(1)
 
-	svc := CreateService(&wg)
+	svc := NewService(&wg)
 
 	if svc.cfg.CookieSecret == "" {
 		svc.Logger.Fatalf("required key COOKIE_SECRET missing value")
@@ -32,21 +32,6 @@ func main() {
 
 	echologrus.Logger = svc.Logger
 	e := echo.New()
-
-	// Alby backend only supported in HTTP app type
-	if svc.cfg.LNBackendType == AlbyBackendType {
-		oauthService, err := NewAlbyOauthService(svc, e)
-		if err != nil {
-			svc.Logger.Fatal(err)
-		}
-		svc.lnClient = oauthService
-	} else {
-		err := svc.launchLNBackend()
-		if err != nil {
-			// LN backend not needed immediately, just log errors
-			svc.Logger.Warnf("Failed to launch LN backend: %v", err)
-		}
-	}
 
 	//register shared routes
 	svc.RegisterSharedRoutes(e)
