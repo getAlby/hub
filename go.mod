@@ -196,11 +196,9 @@ require (
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0 // indirect
 	github.com/glebarez/sqlite v1.5.0
 	github.com/gorilla/websocket v1.5.0 // indirect
-	github.com/jackc/pgx/v5 v5.4.3 // indirect
 	github.com/joho/godotenv v1.5.1
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/lightningnetwork/lnd v0.15.5-beta.rc2
 	github.com/sirupsen/logrus v1.9.0
 	golang.org/x/exp v0.0.0-20230522175609-2e198f4a06a1 // indirect
-	gorm.io/driver/postgres v1.5.2
 )

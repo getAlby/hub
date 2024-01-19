@@ -16,7 +16,6 @@ import (
 
 // TODO: these methods should be moved to a separate object, not in Service
 
-// TODO: remove user parameter in single-user fork
 func (svc *Service) CreateApp(createAppRequest *api.CreateAppRequest) (*api.CreateAppResponse, error) {
 	name := createAppRequest.Name
 	var pairingPublicKey string
@@ -33,15 +32,6 @@ func (svc *Service) CreateApp(createAppRequest *api.CreateAppRequest) (*api.Crea
 			return nil, errors.New(fmt.Sprintf("Invalid public key format: %s", pairingPublicKey))
 
 		}
-	}
-
-	// make sure there is not already a pubkey is already associated with an app
-	// as apps are currently indexed by pubkey
-	// TODO: shouldn't this be a database constraint?
-	existingApp := App{}
-	findResult := svc.db.Where("user_id = ? AND nostr_pubkey = ?", user.ID, pairingPublicKey).First(&existingApp)
-	if findResult.RowsAffected > 0 {
-		return nil, errors.New("Pubkey already in use: " + existingApp.NostrPubkey)
 	}
 
 	app := App{Name: name, NostrPubkey: pairingPublicKey}
@@ -63,7 +53,7 @@ func (svc *Service) CreateApp(createAppRequest *api.CreateAppRequest) (*api.Crea
 	}
 
 	err := svc.db.Transaction(func(tx *gorm.DB) error {
-		err := tx.Model(&user).Association("Apps").Append(&app)
+		err := tx.Save(&app).Error
 		if err != nil {
 			return err
 		}
@@ -116,18 +106,18 @@ func (svc *Service) CreateApp(createAppRequest *api.CreateAppRequest) (*api.Crea
 			query := returnToUrl.Query()
 			query.Add("relay", publicRelayUrl)
 			query.Add("pubkey", svc.cfg.IdentityPubkey)
-			if user.LightningAddress != "" {
-				query.Add("lud16", user.LightningAddress)
-			}
+			// if user.LightningAddress != "" {
+			// 	query.Add("lud16", user.LightningAddress)
+			// }
 			returnToUrl.RawQuery = query.Encode()
 			responseBody.ReturnTo = returnToUrl.String()
 		}
 	}
 
 	var lud16 string
-	if user.LightningAddress != "" {
-		lud16 = fmt.Sprintf("&lud16=%s", user.LightningAddress)
-	}
+	// if user.LightningAddress != "" {
+	// 	lud16 = fmt.Sprintf("&lud16=%s", user.LightningAddress)
+	// }
 	responseBody.PairingUri = fmt.Sprintf("nostr+walletconnect://%s?relay=%s&secret=%s%s", svc.cfg.IdentityPubkey, publicRelayUrl, pairingSecretKey, lud16)
 	return responseBody, nil
 }
@@ -186,9 +176,12 @@ func (svc *Service) GetApp(userApp *App) *api.App {
 
 }
 
-func (svc *Service) ListApps(userApps *[]App) ([]api.App, error) {
-	apps := []api.App{}
-	for _, userApp := range *userApps {
+func (svc *Service) ListApps() ([]api.App, error) {
+	apps := []App{}
+	svc.db.Find(&apps)
+
+	apiApps := []api.App{}
+	for _, userApp := range apps {
 		apiApp := api.App{
 			// ID:          app.ID,
 			Name:        userApp.Name,
@@ -207,9 +200,9 @@ func (svc *Service) ListApps(userApps *[]App) ([]api.App, error) {
 		if result.RowsAffected > 0 {
 			apiApp.LastEventAt = &lastEvent.CreatedAt
 		}
-		apps = append(apps, apiApp)
+		apiApps = append(apiApps, apiApp)
 	}
-	return apps, nil
+	return apiApps, nil
 }
 
 func (svc *Service) GetInfo() *api.InfoResponse {

@@ -87,10 +87,8 @@ func (svc *Service) LogoutHandler(c echo.Context) error {
 }
 
 func (svc *Service) AppsListHandler(c echo.Context) error {
-	user, _ := c.Get("user").(*User)
-	userApps := user.Apps
 
-	apps, err := svc.ListApps(&userApps)
+	apps, err := svc.ListApps()
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
@@ -102,9 +100,8 @@ func (svc *Service) AppsListHandler(c echo.Context) error {
 }
 
 func (svc *Service) AppsShowHandler(c echo.Context) error {
-	user, _ := c.Get("user").(*User)
 	app := App{}
-	findResult := svc.db.Where("user_id = ? AND nostr_pubkey = ?", user.ID, c.Param("pubkey")).First(&app)
+	findResult := svc.db.Where("nostr_pubkey = ?", c.Param("pubkey")).First(&app)
 
 	if findResult.RowsAffected == 0 {
 		return c.JSON(http.StatusNotFound, ErrorResponse{
@@ -118,7 +115,6 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 }
 
 func (svc *Service) AppsDeleteHandler(c echo.Context) error {
-	user, _ := c.Get("user").(*User)
 	pubkey := c.Param("pubkey")
 	if pubkey == "" {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
@@ -126,7 +122,7 @@ func (svc *Service) AppsDeleteHandler(c echo.Context) error {
 		})
 	}
 	app := App{}
-	result := svc.db.Where("user_id = ? AND nostr_pubkey = ?", user.ID, pubkey).First(&app)
+	result := svc.db.Where("nostr_pubkey = ?", pubkey).First(&app)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return c.JSON(http.StatusNotFound, ErrorResponse{
@@ -147,7 +143,6 @@ func (svc *Service) AppsDeleteHandler(c echo.Context) error {
 }
 
 func (svc *Service) AppsCreateHandler(c echo.Context) error {
-	user, _ := c.Get("user").(*User)
 	var requestData api.CreateAppRequest
 	if err := c.Bind(&requestData); err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
@@ -155,7 +150,7 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 		})
 	}
 
-	responseBody, err := svc.CreateApp(user, &requestData)
+	responseBody, err := svc.CreateApp(&requestData)
 
 	if err != nil {
 		svc.Logger.Errorf("Failed to save app: %v", err)

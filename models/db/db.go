@@ -9,4 +9,5 @@ type Config struct {
 	BreezMnemonic        string `envconfig:"BREEZ_MNEMONIC"`
 	BreezAPIKey          string `envconfig:"BREEZ_API_KEY"`
 	GreenlightInviteCode string `envconfig:"GREENLIGHT_INVITE_CODE"`
+	NostrSecretKey       string `envconfig:"NOSTR_PRIVKEY"`
 }

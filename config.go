@@ -12,7 +12,6 @@ type Config struct {
 	// These config can be set either by .env or the database config table.
 	// database config always takes preference.
 	db.Config
-	NostrSecretKey          string `envconfig:"NOSTR_PRIVKEY"`
 	CookieSecret            string `envconfig:"COOKIE_SECRET"`
 	CookieDomain            string `envconfig:"COOKIE_DOMAIN"`
 	ClientPubkey            string `envconfig:"CLIENT_NOSTR_PUBKEY"`

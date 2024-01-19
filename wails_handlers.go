@@ -51,9 +51,7 @@ func (a *WailsApp) WailsRequestRouter(route string, method string, body string) 
 	case "/api/apps":
 		switch method {
 		case "GET":
-			userApps := []App{}
-			a.svc.db.Find(&userApps)
-			apps, err := a.svc.ListApps(&userApps)
+			apps, err := a.svc.ListApps()
 			if err != nil {
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 			}
@@ -69,9 +67,7 @@ func (a *WailsApp) WailsRequestRouter(route string, method string, body string) 
 				}).Errorf("Failed to decode request to wails router: %v", err)
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 			}
-			user := User{}
-			a.svc.db.First(&user)
-			createAppResponse, err := a.svc.CreateApp(&user, createAppRequest)
+			createAppResponse, err := a.svc.CreateApp(createAppRequest)
 			if err != nil {
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 			}

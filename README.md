@@ -17,7 +17,7 @@ Connect applications like [Damus](https://damus.io/) or [Amethyst](https://linkt
 
 The application has no runtime dependencies. (simple Go executable).
 
-As data storage SQLite or PostgreSQL (recommended) can be used.
+As data storage SQLite is used.
 
     $ cp .env.example .env
     # edit the config for your needs
@@ -78,7 +78,7 @@ _If you get a blank screen the first load, close the window and start the app ag
 - `RELAY`: default: "wss://relay.getalby.com/v1"
 - `PUBLIC_RELAY`: optional relay URL to be used in connection strings if `RELAY` is an internal URL
 - `COOKIE_SECRET`: a randomly generated secret string.
-- `DATABASE_URI`: a postgres connection string or sqlite filename. Default: nostr-wallet-connect.db (sqlite)
+- `DATABASE_URI`: a sqlite filename. Default: nwc.db (sqlite)
 - `PORT`: the port on which the app should listen on (default: 8080)
 - `LN_BACKEND_TYPE`: LND or BREEZ
 

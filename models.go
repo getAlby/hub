@@ -3,8 +3,6 @@ package main
 import (
 	"encoding/json"
 	"time"
-
-	"gorm.io/gorm"
 )
 
 const (
@@ -148,11 +146,6 @@ type NodeInfo struct {
 	Network     string
 	BlockHeight uint32
 	BlockHash   string
-}
-
-type Identity struct {
-	gorm.Model
-	Privkey string
 }
 
 // TODO: move to models/Nip47

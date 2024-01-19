@@ -40,20 +40,6 @@ export const nip47MethodDescriptions: Record<RequestMethodType, string> = {
   [NIP_47_PAY_INVOICE_METHOD]: "Send payments",
 };
 
-export interface User {
-  id: number;
-  albyIdentifier: string;
-  accessToken: string;
-  refreshToken: string;
-  email: string;
-  expiry: string;
-  lightningAddress: string;
-  apps: string;
-  createdAt: string;
-  updatedAt: string;
-  expiresAt: string;
-}
-
 export interface ErrorResponse {
   message: string;
 }
@@ -61,7 +47,6 @@ export interface ErrorResponse {
 export interface App {
   id: number;
   userId: number;
-  user: User;
   name: string;
   description: string;
   nostrPubkey: string;

@@ -1,10 +1,8 @@
 import { Link, Outlet, useLocation } from "react-router-dom";
 
-import { useUser } from "src/hooks/useUser";
 import nwcLogo from "src/assets/images/nwc-logo.svg";
 
 function Navbar() {
-  const { data: user } = useUser();
   const location = useLocation();
 
   const linkStyles =
@@ -35,9 +33,7 @@ function Navbar() {
                   </span>
                 </Link>
 
-                <div
-                  className={`${user ? "hidden md:flex" : "flex"} space-x-4`}
-                >
+                <div className="flex space-x-4">
                   <Link
                     className={`${linkStyles} ${
                       location.pathname.startsWith("/apps") &&

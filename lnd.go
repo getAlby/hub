@@ -326,17 +326,6 @@ func NewLNDService(svc *Service, lndAddress, lndCertFile, lndCertHex, lndMacaroo
 	if err != nil {
 		return nil, err
 	}
-	// FIXME: split single and multi user app
-	//add default user to db
-	user := &User{}
-	err = svc.db.FirstOrInit(user, User{AlbyIdentifier: "lnd"}).Error
-	if err != nil {
-		return nil, err
-	}
-	err = svc.db.Save(user).Error
-	if err != nil {
-		return nil, err
-	}
 
 	lndService := &LNDService{client: lndClient, Logger: svc.Logger, db: svc.db}
 
