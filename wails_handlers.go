@@ -90,7 +90,15 @@ func (a *WailsApp) WailsRequestRouter(route string, method string, body string) 
 			}).Errorf("Failed to decode request to wails router: %v", err)
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
-		a.svc.Setup(setupRequest)
+		err = a.svc.Setup(setupRequest)
+		if err != nil {
+			a.svc.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).Errorf("Failed to setup node: %v", err)
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
 		return WailsRequestRouterResponse{Body: nil, Error: ""}
 	}
 	a.svc.Logger.Errorf("Unhandled route: %s", route)
