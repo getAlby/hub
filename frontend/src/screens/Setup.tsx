@@ -110,6 +110,7 @@ type SetupFormProps = {
 function BreezForm({ isConnecting, handleSubmit }: SetupFormProps) {
   const [greenlightInviteCode, setGreenlightInviteCode] =
     React.useState<string>("");
+  const [breezApiKey, setBreezApiKey] = React.useState<string>("");
   const [breezMnemonic, setBreezMnemonic] = React.useState<string>("");
 
   function onSubmit(e: React.FormEvent) {
@@ -120,6 +121,7 @@ function BreezForm({ isConnecting, handleSubmit }: SetupFormProps) {
     }
     handleSubmit({
       greenlightInviteCode,
+      breezApiKey,
       breezMnemonic,
     });
   }
@@ -139,6 +141,20 @@ function BreezForm({ isConnecting, handleSubmit }: SetupFormProps) {
           value={greenlightInviteCode}
           type="password"
           id="greenlight-invite-code"
+          className="bg-gray-50 border border-gray-300 text-gray-900 focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 text-sm rounded-lg block w-full p-2.5 dark:bg-surface-00dp dark:border-gray-700 dark:placeholder-gray-400 dark:text-white"
+        />
+        <label
+          htmlFor="breez-api-key"
+          className="mt-4 block font-medium text-gray-900 dark:text-white"
+        >
+          Breez API Key
+        </label>
+        <input
+          name="breez-api-key"
+          onChange={(e) => setBreezApiKey(e.target.value)}
+          value={breezApiKey}
+          type="password"
+          id="breez-api-key"
           className="bg-gray-50 border border-gray-300 text-gray-900 focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 text-sm rounded-lg block w-full p-2.5 dark:bg-surface-00dp dark:border-gray-700 dark:placeholder-gray-400 dark:text-white"
         />
         <label
