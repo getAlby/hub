@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/labstack/echo-contrib/session"
@@ -23,6 +24,7 @@ type Service struct {
 	ReceivedEOS bool
 	Logger      *logrus.Logger
 	ctx         context.Context
+	wg          *sync.WaitGroup
 }
 
 func (svc *Service) GetUser(c echo.Context) (user *User, err error) {
@@ -123,7 +125,6 @@ func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 				}
 			}(event)
 		}
-		svc.Logger.Info("Subscription ended")
 	}()
 
 	select {
@@ -135,7 +136,7 @@ func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 			svc.Logger.Errorf("Subscription error %v", ctx.Err())
 			return ctx.Err()
 		}
-		svc.Logger.Info("Exiting subscription.")
+		svc.Logger.Info("Exiting subscription...")
 		return nil
 	}
 }

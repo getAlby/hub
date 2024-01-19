@@ -4,7 +4,7 @@
 package main
 
 import (
-	"sync"
+	"context"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -13,17 +13,17 @@ import (
 // this function will only be executed if the wails tag is set
 func main() {
 	log.Info("NWC Starting in WAILS mode")
-	var wg sync.WaitGroup
-	wg.Add(1)
+	ctx, cancel := context.WithCancel(context.Background())
+	svc := NewService(ctx)
 
-	svc := NewService(&wg)
+	app := NewApp(svc)
+	LaunchWailsApp(app)
+	svc.Logger.Info("Wails app exited")
 
-	go func() {
-		app := NewApp(svc)
-		LaunchWailsApp(app)
-		wg.Done()
-		svc.Logger.Info("Wails app exited")
-	}()
-
-	wg.Wait()
+	svc.Logger.Info("Cancelling service context...")
+	// cancel the service context
+	cancel()
+	svc.Logger.Info("Waiting for service to exit...")
+	svc.wg.Wait()
+	svc.Logger.Info("Service exited")
 }

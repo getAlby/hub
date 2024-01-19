@@ -46,6 +46,8 @@ Go to `/frontend`
 
 `unset GTK_PATH && wails dev -tags "wails"`
 
+_If you get a blank screen the first load, close the window and start the app again_
+
 #### Wails Production build
 
 `wails build -tags "wails"`
