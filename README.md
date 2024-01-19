@@ -44,6 +44,8 @@ Go to `/frontend`
 
 ### Wails (Backend + Frontend)
 
+_Make sure to have [wails](https://wails.io/docs/introduction) installed_
+
 `unset GTK_PATH && wails dev -tags "wails"`
 
 _If you get a blank screen the first load, close the window and start the app again_
