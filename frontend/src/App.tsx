@@ -5,7 +5,6 @@ import Footer from "src/components/Footer";
 import Toaster from "src/components/Toast/Toaster";
 
 import About from "src/screens/About";
-import Login from "src/screens/Login";
 import AppsList from "src/screens/apps/AppsList";
 import ShowApp from "src/screens/apps/ShowApp";
 import NewApp from "src/screens/apps/NewApp";
@@ -44,7 +43,6 @@ function App() {
             <Route path="apps/created" element={<AppCreated />} />
             <Route path="about" element={<About />} />
           </Route>
-          <Route path="login" element={<Login />} />
           <Route path="/*" element={<NotFound />} />
         </Routes>
         <Footer />

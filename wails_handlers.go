@@ -81,12 +81,6 @@ func (a *WailsApp) WailsRequestRouter(route string, method string, body string) 
 		infoResponse := a.svc.GetInfo()
 		res := WailsRequestRouterResponse{Body: *infoResponse, Error: ""}
 		return res
-	case "/api/user/me":
-		// TODO: remove in single app fork
-		dummyUser := api.User{
-			Email: "",
-		}
-		return WailsRequestRouterResponse{Body: dummyUser, Error: ""}
 	case "/api/csrf":
 		return WailsRequestRouterResponse{Body: "dummy", Error: ""}
 	case "/api/setup":

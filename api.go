@@ -17,7 +17,7 @@ import (
 // TODO: these methods should be moved to a separate object, not in Service
 
 // TODO: remove user parameter in single-user fork
-func (svc *Service) CreateApp(user *User, createAppRequest *api.CreateAppRequest) (*api.CreateAppResponse, error) {
+func (svc *Service) CreateApp(createAppRequest *api.CreateAppRequest) (*api.CreateAppResponse, error) {
 	name := createAppRequest.Name
 	var pairingPublicKey string
 	var pairingSecretKey string

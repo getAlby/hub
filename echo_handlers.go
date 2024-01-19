@@ -19,16 +19,11 @@ import (
 
 func (svc *Service) ValidateUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		user, err := svc.GetUser(c)
-		if err != nil {
-			return c.JSON(http.StatusBadRequest, ErrorResponse{
-				Message: fmt.Sprintf("Bad arguments %s", err.Error()),
-			})
-		}
-		if user == nil {
-			return c.NoContent(http.StatusUnauthorized)
-		}
-		c.Set("user", user)
+		// TODO: check if login is required and check if user is logged in
+		//sess, _ := session.Get(CookieName, c)
+		// if user == nil {
+		// 	return c.NoContent(http.StatusUnauthorized)
+		// }
 		return next(c)
 	}
 }
@@ -44,7 +39,6 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte(svc.cfg.CookieSecret))))
 
 	authMiddleware := svc.ValidateUserMiddleware
-	e.GET("/api/user/me", svc.UserMeHandler, authMiddleware)
 	e.GET("/api/apps", svc.AppsListHandler, authMiddleware)
 	e.GET("/api/apps/:pubkey", svc.AppsShowHandler, authMiddleware)
 	e.DELETE("/api/apps/:pubkey", svc.AppsDeleteHandler, authMiddleware)
@@ -90,14 +84,6 @@ func (svc *Service) LogoutHandler(c echo.Context) error {
 		})
 	}
 	return c.NoContent(http.StatusNoContent)
-}
-
-func (svc *Service) UserMeHandler(c echo.Context) error {
-	user, _ := c.Get("user").(*User)
-	responseBody := api.User{
-		Email: user.Email,
-	}
-	return c.JSON(http.StatusOK, responseBody)
 }
 
 func (svc *Service) AppsListHandler(c echo.Context) error {
