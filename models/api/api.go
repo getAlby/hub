@@ -36,6 +36,7 @@ type SetupRequest struct {
 	LNBackendType string `json:"backendType"`
 	// Breez fields
 	BreezMnemonic        string `json:"breezMnemonic"`
+	BreezAPIKey          string `json:"breezApiKey"`
 	GreenlightInviteCode string `json:"greenlightInviteCode"`
 	// LND fields
 	LNDAddress      string `json:"lndAddress"`

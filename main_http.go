@@ -9,7 +9,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"sync"
 	"time"
 
 	echologrus "github.com/davrux/echo-logrus/v4"
@@ -21,10 +20,8 @@ import (
 // this function will only be executed if no wails tag is set
 func main() {
 	log.Info("NWC Starting in HTTP mode")
-	var wg sync.WaitGroup
-	wg.Add(1)
-
-	svc := NewService(&wg)
+	ctx := context.Background()
+	svc := NewService(ctx)
 
 	if svc.cfg.CookieSecret == "" {
 		svc.Logger.Fatalf("required key COOKIE_SECRET missing value")
@@ -38,16 +35,17 @@ func main() {
 	//start Echo server
 	go func() {
 		if err := e.Start(fmt.Sprintf(":%v", svc.cfg.Port)); err != nil && err != http.ErrServerClosed {
-			e.Logger.Fatal("shutting down the server")
+			e.Logger.Fatalf("shutting down the server: %v", err)
 		}
-		//handle graceful shutdown
-		<-svc.ctx.Done()
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-		e.Shutdown(ctx)
-		svc.Logger.Info("Echo server exited")
-		wg.Done()
 	}()
-
-	wg.Wait()
+	//handle graceful shutdown
+	<-svc.ctx.Done()
+	svc.Logger.Infof("Shutting down echo server...")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	e.Shutdown(ctx)
+	svc.Logger.Info("Echo server exited")
+	svc.Logger.Info("Waiting for service to exit...")
+	svc.wg.Wait()
+	svc.Logger.Info("Service exited")
 }

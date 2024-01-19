@@ -14,10 +14,9 @@ CREATE TABLE configs (
 	id int NOT NULL PRIMARY KEY,
 	ln_backend_type TEXT,
 	lnd_address TEXT,
-	lnd_cert_file TEXT,
 	lnd_cert_hex TEXT,
-	lnd_macaroon_file TEXT,
 	lnd_macaroon_hex TEXT,
+	breez_api_key TEXT,
 	breez_mnemonic TEXT,
 	greenlight_invite_code TEXT
 );`).Error

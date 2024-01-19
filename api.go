@@ -233,6 +233,9 @@ func (svc *Service) Setup(setupRequest *api.SetupRequest) error {
 	if setupRequest.LNBackendType != "" {
 		dbConfig.LNBackendType = setupRequest.LNBackendType
 	}
+	if setupRequest.BreezAPIKey != "" {
+		dbConfig.BreezAPIKey = setupRequest.BreezAPIKey
+	}
 	if setupRequest.BreezMnemonic != "" {
 		dbConfig.BreezMnemonic = setupRequest.BreezMnemonic
 	}
@@ -242,14 +245,8 @@ func (svc *Service) Setup(setupRequest *api.SetupRequest) error {
 	if setupRequest.LNDAddress != "" {
 		dbConfig.LNDAddress = setupRequest.LNDAddress
 	}
-	if setupRequest.LNDCertFile != "" {
-		dbConfig.LNDCertFile = setupRequest.LNDCertFile
-	}
 	if setupRequest.LNDCertHex != "" {
 		dbConfig.LNDCertHex = setupRequest.LNDCertHex
-	}
-	if setupRequest.LNDMacaroonFile != "" {
-		dbConfig.LNDMacaroonFile = setupRequest.LNDMacaroonFile
 	}
 	if setupRequest.LNDMacaroonHex != "" {
 		dbConfig.LNDMacaroonHex = setupRequest.LNDMacaroonHex

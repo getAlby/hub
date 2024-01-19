@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import Loading from "src/components/Loading";
 import { useCSRF } from "src/hooks/useCSRF";
 import { useInfo } from "src/hooks/useInfo";
 import { BackendType } from "src/types";
@@ -7,6 +8,7 @@ import { request, handleRequestError } from "src/utils/request";
 
 export function Setup() {
   const [backendType, setBackendType] = React.useState<BackendType>("BREEZ");
+  const [isConnecting, setConnecting] = React.useState(false);
   const navigate = useNavigate();
 
   const { data: info } = useInfo();
@@ -14,6 +16,7 @@ export function Setup() {
 
   async function handleSubmit(data: object) {
     try {
+      setConnecting(true);
       if (!csrf) {
         throw new Error("info not loaded");
       }
@@ -32,6 +35,8 @@ export function Setup() {
       navigate("/apps");
     } catch (error) {
       handleRequestError("Failed to connect", error);
+    } finally {
+      setConnecting(false);
     }
   }
 
@@ -63,30 +68,49 @@ export function Setup() {
         <option value={"LND"}>LND</option>
       </select>
 
-      {backendType === "BREEZ" && <BreezForm handleSubmit={handleSubmit} />}
-      {backendType === "LND" && <LNDForm handleSubmit={handleSubmit} />}
+      {backendType === "BREEZ" && (
+        <BreezForm handleSubmit={handleSubmit} isConnecting={isConnecting} />
+      )}
+      {backendType === "LND" && (
+        <LNDForm handleSubmit={handleSubmit} isConnecting={isConnecting} />
+      )}
     </>
   );
 }
 
-function ConnectButton() {
+type ConnectButtonProps = {
+  isConnecting: boolean;
+};
+
+function ConnectButton({ isConnecting }: ConnectButtonProps) {
   return (
     <button
       type="submit"
-      className="mt-4 inline-flex w-full bg-purple-700 cursor-pointer dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus:outline-none font-medium hover:bg-purple-900 items-center justify-center px-5 py-3 rounded-md shadow text-white transition"
+      className={`mt-4 gap-2 inline-flex w-full ${
+        isConnecting ? "bg-gray-300 dark:bg-gray-700" : "bg-purple-700"
+      } cursor-pointer dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus:outline-none font-medium hover:bg-purple-900 items-center justify-center px-5 py-3 rounded-md shadow text-white transition`}
+      disabled={isConnecting}
     >
-      Connect
+      {isConnecting ? (
+        <>
+          <Loading /> Connecting...
+        </>
+      ) : (
+        <>Connect</>
+      )}
     </button>
   );
 }
 
 type SetupFormProps = {
+  isConnecting: boolean;
   handleSubmit(data: unknown): void;
 };
 
-function BreezForm({ handleSubmit }: SetupFormProps) {
+function BreezForm({ isConnecting, handleSubmit }: SetupFormProps) {
   const [greenlightInviteCode, setGreenlightInviteCode] =
     React.useState<string>("");
+  const [breezApiKey, setBreezApiKey] = React.useState<string>("");
   const [breezMnemonic, setBreezMnemonic] = React.useState<string>("");
 
   function onSubmit(e: React.FormEvent) {
@@ -97,6 +121,7 @@ function BreezForm({ handleSubmit }: SetupFormProps) {
     }
     handleSubmit({
       greenlightInviteCode,
+      breezApiKey,
       breezMnemonic,
     });
   }
@@ -119,6 +144,20 @@ function BreezForm({ handleSubmit }: SetupFormProps) {
           className="bg-gray-50 border border-gray-300 text-gray-900 focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 text-sm rounded-lg block w-full p-2.5 dark:bg-surface-00dp dark:border-gray-700 dark:placeholder-gray-400 dark:text-white"
         />
         <label
+          htmlFor="breez-api-key"
+          className="mt-4 block font-medium text-gray-900 dark:text-white"
+        >
+          Breez API Key
+        </label>
+        <input
+          name="breez-api-key"
+          onChange={(e) => setBreezApiKey(e.target.value)}
+          value={breezApiKey}
+          type="password"
+          id="breez-api-key"
+          className="bg-gray-50 border border-gray-300 text-gray-900 focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 text-sm rounded-lg block w-full p-2.5 dark:bg-surface-00dp dark:border-gray-700 dark:placeholder-gray-400 dark:text-white"
+        />
+        <label
           htmlFor="mnemonic"
           className="mt-4 block font-medium text-gray-900 dark:text-white"
         >
@@ -133,12 +172,12 @@ function BreezForm({ handleSubmit }: SetupFormProps) {
           className="bg-gray-50 border border-gray-300 text-gray-900 focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 text-sm rounded-lg block w-full p-2.5 dark:bg-surface-00dp dark:border-gray-700 dark:placeholder-gray-400 dark:text-white"
         />
       </>
-      <ConnectButton />
+      <ConnectButton isConnecting={isConnecting} />
     </form>
   );
 }
 
-function LNDForm({ handleSubmit }: SetupFormProps) {
+function LNDForm({ isConnecting, handleSubmit }: SetupFormProps) {
   const [lndAddress, setLndAddress] = React.useState<string>("");
   const [lndCertHex, setLndCertHex] = React.useState<string>("");
   const [lndMacaroonHex, setLndMacaroonHex] = React.useState<string>("");
@@ -202,7 +241,7 @@ function LNDForm({ handleSubmit }: SetupFormProps) {
           className="bg-gray-50 border border-gray-300 text-gray-900 focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 text-sm rounded-lg block w-full p-2.5 dark:bg-surface-00dp dark:border-gray-700 dark:placeholder-gray-400 dark:text-white"
         />
       </>
-      <ConnectButton />
+      <ConnectButton isConnecting={isConnecting} />
     </form>
   );
 }

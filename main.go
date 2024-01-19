@@ -23,7 +23,7 @@ import (
 )
 
 // TODO: move to service.go
-func NewService(wg *sync.WaitGroup) *Service {
+func NewService(ctx context.Context) *Service {
 	// Load config from environment variables / .env file
 	godotenv.Load(".env")
 	cfg := &Config{}
@@ -101,13 +101,16 @@ func NewService(wg *sync.WaitGroup) *Service {
 	}
 
 	log.Infof("Starting nostr-wallet-connect. npub: %s hex: %s", npub, identityPubkey)
-	ctx := context.Background()
 	ctx, _ = signal.NotifyContext(ctx, os.Interrupt)
+
+	var wg sync.WaitGroup
+	wg.Add(1)
 
 	svc := &Service{
 		cfg: cfg,
 		db:  db,
 		ctx: ctx,
+		wg:  &wg,
 	}
 
 	err = svc.setupDbConfig()
@@ -133,7 +136,9 @@ func NewService(wg *sync.WaitGroup) *Service {
 
 		relay, err := nostr.RelayConnect(ctx, cfg.Relay, nostr.WithNoticeHandler(svc.noticeHandler))
 		if err != nil {
-			svc.Logger.Fatal(err)
+			svc.Logger.Errorf("Failed to connect to relay: %v", err)
+			wg.Done()
+			return
 		}
 
 		//publish event with NIP-47 info
@@ -163,11 +168,19 @@ func NewService(wg *sync.WaitGroup) *Service {
 			//err being nil means that the context was canceled and we should exit the program.
 			break
 		}
+		svc.Logger.Info("Disconnecting from relay...")
 		err = relay.Close()
 		if err != nil {
 			svc.Logger.Error(err)
 		}
-		svc.Logger.Info("Graceful shutdown completed. Goodbye.")
+		if svc.lnClient != nil {
+			svc.Logger.Info("Shutting down LN backend...")
+			err = svc.lnClient.Shutdown()
+			if err != nil {
+				svc.Logger.Error(err)
+			}
+		}
+		svc.Logger.Info("Relay subroutine ended")
 		wg.Done()
 	}()
 
@@ -195,11 +208,10 @@ func (svc *Service) setupDbConfig() error {
 		ID:                   1,
 		LNBackendType:        svc.cfg.LNBackendType,
 		LNDAddress:           svc.cfg.LNDAddress,
-		LNDCertFile:          svc.cfg.LNDCertFile,
 		LNDCertHex:           svc.cfg.LNDCertHex,
-		LNDMacaroonFile:      svc.cfg.LNDMacaroonFile,
 		LNDMacaroonHex:       svc.cfg.LNDMacaroonHex,
 		BreezMnemonic:        svc.cfg.BreezMnemonic,
+		BreezAPIKey:          svc.cfg.BreezAPIKey,
 		GreenlightInviteCode: svc.cfg.GreenlightInviteCode,
 	}
 	err := svc.db.Save(&newDbConfig).Error
@@ -231,9 +243,9 @@ func (svc *Service) launchLNBackend() error {
 	var lnClient LNClient
 	switch dbConfig.LNBackendType {
 	case LNDBackendType:
-		lnClient, err = NewLNDService(svc, dbConfig.LNDAddress, dbConfig.LNDCertFile, dbConfig.LNDCertHex, dbConfig.LNDMacaroonFile, dbConfig.LNDMacaroonHex)
+		lnClient, err = NewLNDService(svc, dbConfig.LNDAddress, svc.cfg.LNDCertFile, dbConfig.LNDCertHex, svc.cfg.LNDMacaroonFile, dbConfig.LNDMacaroonHex)
 	case BreezBackendType:
-		lnClient, err = NewBreezService(svc, dbConfig.BreezMnemonic, svc.cfg.BreezAPIKey, dbConfig.GreenlightInviteCode, svc.cfg.BreezWorkdir)
+		lnClient, err = NewBreezService(svc, dbConfig.BreezMnemonic, dbConfig.BreezAPIKey, dbConfig.GreenlightInviteCode, svc.cfg.BreezWorkdir)
 	default:
 		svc.Logger.Fatalf("Unsupported LNBackendType: %v", dbConfig.LNBackendType)
 	}
