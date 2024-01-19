@@ -22,7 +22,8 @@ type Config struct {
 	ClientPubkey            string `envconfig:"CLIENT_NOSTR_PUBKEY"`
 	Relay                   string `envconfig:"RELAY" default:"wss://relay.getalby.com/v1"`
 	PublicRelay             string `envconfig:"PUBLIC_RELAY"`
-	BreezAPIKey             string `envconfig:"BREEZ_API_KEY"`
+	LNDCertFile             string `envconfig:"LND_CERT_FILE"`
+	LNDMacaroonFile         string `envconfig:"LND_MACAROON_FILE"`
 	BreezWorkdir            string `envconfig:"BREEZ_WORK_DIR" default:".breez"`
 	BasicAuthUser           string `envconfig:"BASIC_AUTH_USER"`
 	BasicAuthPassword       string `envconfig:"BASIC_AUTH_PASSWORD"`

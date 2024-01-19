@@ -231,11 +231,10 @@ func (svc *Service) setupDbConfig() error {
 		ID:                   1,
 		LNBackendType:        svc.cfg.LNBackendType,
 		LNDAddress:           svc.cfg.LNDAddress,
-		LNDCertFile:          svc.cfg.LNDCertFile,
 		LNDCertHex:           svc.cfg.LNDCertHex,
-		LNDMacaroonFile:      svc.cfg.LNDMacaroonFile,
 		LNDMacaroonHex:       svc.cfg.LNDMacaroonHex,
 		BreezMnemonic:        svc.cfg.BreezMnemonic,
+		BreezAPIKey:          svc.cfg.BreezAPIKey,
 		GreenlightInviteCode: svc.cfg.GreenlightInviteCode,
 	}
 	err := svc.db.Save(&newDbConfig).Error
@@ -267,9 +266,9 @@ func (svc *Service) launchLNBackend() error {
 	var lnClient LNClient
 	switch dbConfig.LNBackendType {
 	case LNDBackendType:
-		lnClient, err = NewLNDService(svc, dbConfig.LNDAddress, dbConfig.LNDCertFile, dbConfig.LNDCertHex, dbConfig.LNDMacaroonFile, dbConfig.LNDMacaroonHex)
+		lnClient, err = NewLNDService(svc, dbConfig.LNDAddress, svc.cfg.LNDCertFile, dbConfig.LNDCertHex, svc.cfg.LNDMacaroonFile, dbConfig.LNDMacaroonHex)
 	case BreezBackendType:
-		lnClient, err = NewBreezService(svc, dbConfig.BreezMnemonic, svc.cfg.BreezAPIKey, dbConfig.GreenlightInviteCode, svc.cfg.BreezWorkdir)
+		lnClient, err = NewBreezService(svc, dbConfig.BreezMnemonic, dbConfig.BreezAPIKey, dbConfig.GreenlightInviteCode, svc.cfg.BreezWorkdir)
 	default:
 		svc.Logger.Fatalf("Unsupported LNBackendType: %v", dbConfig.LNBackendType)
 	}
