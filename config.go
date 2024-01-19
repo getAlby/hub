@@ -7,9 +7,6 @@ const (
 	LNDBackendType   = "LND"
 	BreezBackendType = "BREEZ"
 	CookieName       = "alby_nwc_session"
-
-	WailsAppType = "WAILS"
-	HttpAppType  = "HTTP"
 )
 
 type Config struct {
