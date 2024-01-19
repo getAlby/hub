@@ -44,7 +44,7 @@ Go to `/frontend`
 
 ### Wails (Backend + Frontend)
 
-_Make sure to have [wails](https://wails.io/docs/introduction) installed_
+_Make sure to have [wails](https://wails.io/docs/gettingstarted/installation) installed and all platform-specific dependencies installed (see wails doctor)_
 
 `unset GTK_PATH && wails dev -tags "wails"`
 
