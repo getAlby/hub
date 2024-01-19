@@ -7,9 +7,6 @@ const (
 	LNDBackendType   = "LND"
 	BreezBackendType = "BREEZ"
 	CookieName       = "alby_nwc_session"
-
-	WailsAppType = "WAILS"
-	HttpAppType  = "HTTP"
 )
 
 type Config struct {
@@ -17,12 +14,11 @@ type Config struct {
 	// database config always takes preference.
 	db.Config
 	NostrSecretKey          string `envconfig:"NOSTR_PRIVKEY"`
-	CookieSecret            string `envconfig:"COOKIE_SECRET" required:"true"`
+	CookieSecret            string `envconfig:"COOKIE_SECRET"`
 	CookieDomain            string `envconfig:"COOKIE_DOMAIN"`
 	ClientPubkey            string `envconfig:"CLIENT_NOSTR_PUBKEY"`
 	Relay                   string `envconfig:"RELAY" default:"wss://relay.getalby.com/v1"`
 	PublicRelay             string `envconfig:"PUBLIC_RELAY"`
-	AppType                 string `envconfig:"APP_TYPE" default:"HTTP"`
 	LNDCertFile             string `envconfig:"LND_CERT_FILE"`
 	LNDMacaroonFile         string `envconfig:"LND_MACAROON_FILE"`
 	BreezWorkdir            string `envconfig:"BREEZ_WORK_DIR" default:".breez"`

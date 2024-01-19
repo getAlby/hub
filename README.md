@@ -7,8 +7,8 @@ Connect applications like [Damus](https://damus.io/) or [Amethyst](https://linkt
 
 ## Supported Backends
 
-- [Alby](https://getalby.com) (see: alby.go)
 - LND (see: lnd.go)
+- Breez (see: breez.go)
 - want more? please open an issue.
 
 ## Installation
@@ -27,35 +27,32 @@ To get a new random Nostr key use `openssl rand -hex 32` or similar.
 
 ## Development
 
-### Server (LND)
+### Server (HTTP mode)
 
 1. Create a Lightning Polar setup with two LND nodes and uncomment the Polar LND section in your `.env` file.
 
 2. Compile the frontend or run `touch frontend/dist/tmp` to ensure there are embeddable files available.
 
-3. `go run .` or `gow -e=go,mod,html,css run .` using [gow](https://github.com/mitranim/gow)
+3. `go run .`
 
-### Server (Alby Wallet API)
-
-Generate a new OAuth client for <http://localhost:8080> from the [Alby developer portal](https://getalby.com/developer) and set `ALBY_CLIENT_ID` and `ALBY_CLIENT_SECRET` in your .env file.
-
-### React Frontend (LND)
+### React Frontend (HTTP mode)
 
 Go to `/frontend`
 
-1. `cp .env.example .env.local`
-2. `yarn install`
-3. `yarn dev`
-
-### React Frontend (Alby Wallet API)
-
-Follow standard LND instructions. After logging in, you will be redirected to the wrong port (8080), so manually re-open <http://localhost:5173>.
+1. `yarn install`
+2. `yarn dev`
 
 ### Wails (Backend + Frontend)
 
-`unset GTK_PATH && wails dev`
+`unset GTK_PATH && wails dev -tags "wails"`
 
-### Build and run locally
+_If you get a blank screen the first load, close the window and start the app again_
+
+#### Wails Production build
+
+`wails build -tags "wails"`
+
+### Build and run locally (HTTP mode)
 
 `mkdir tmp`
 `go build -o main`
@@ -64,7 +61,7 @@ Follow standard LND instructions. After logging in, you will be redirected to th
 `cd tmp`
 `./main`
 
-### Run dockerfile locally
+### Run dockerfile locally (HTTP mode)
 
 `docker build . -t nwc-local`
 

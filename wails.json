@@ -3,8 +3,8 @@
   "name": "nostr-wallet-connect",
   "outputfilename": "Nostr-Wallet-Connect",
   "frontend:install": "yarn install",
-  "frontend:build": "yarn build",
-  "frontend:dev:watcher": "yarn dev",
+  "frontend:build": "yarn build:wails",
+  "frontend:dev:watcher": "yarn dev:wails",
   "frontend:dev:serverUrl": "auto",
   "author": {
     "name": "Alby Contributors",

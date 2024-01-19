@@ -7,8 +7,9 @@ export const request = async <T>(
   ...args: Parameters<typeof fetch>
 ): Promise<T | undefined> => {
   try {
+    const appType = import.meta.env.VITE_NWC_APP_TYPE || "HTTP";
     // TODO: can we use a different request file at build time so no conditional / env variable is needed?
-    switch (import.meta.env.VITE_APP_TYPE) {
+    switch (appType) {
       case "WAILS": {
         const res = await WailsRequestRouter(
           args[0].toString(),
@@ -43,9 +44,7 @@ export const request = async <T>(
         return body;
       }
       default:
-        throw new Error(
-          "Unsupported app type: " + import.meta.env.VITE_APP_TYPE
-        );
+        throw new Error("Unsupported app type: " + appType);
     }
   } catch (error) {
     console.error("Failed to fetch", error);

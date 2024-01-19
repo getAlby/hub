@@ -3,5 +3,6 @@
   "[go]": {
     "editor.defaultFormatter": "golang.go"
   },
-  "editor.formatOnSave": true
+  "editor.formatOnSave": true,
+  "go.buildTags": "http,wails"
 }
