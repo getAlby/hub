@@ -19,7 +19,7 @@ export type BudgetRenewalType = "daily" | "weekly" | "monthly" | "yearly" | "";
 
 export type IconMap = {
   [key in RequestMethodType]: (
-    props: React.SVGAttributes<SVGElement>
+    props: React.SVGAttributes<SVGElement>,
   ) => JSX.Element;
 };
 
@@ -89,6 +89,7 @@ export interface NostrEvent {
 export interface InfoResponse {
   backendType: BackendType;
   setupCompleted: boolean;
+  running: boolean;
 }
 
 export interface CreateAppResponse {

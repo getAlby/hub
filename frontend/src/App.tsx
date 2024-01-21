@@ -13,6 +13,7 @@ import NotFound from "src/screens/NotFound";
 import { useInfo } from "./hooks/useInfo";
 import Loading from "./components/Loading";
 import { Setup } from "./screens/Setup";
+import Start from "./screens/Start";
 
 function App() {
   const { data: info } = useInfo();
@@ -21,21 +22,23 @@ function App() {
     return <Loading />;
   }
 
+  let home;
+  if (info?.setupCompleted && info.running) {
+    home = "/apps";
+  } else if (info.setupCompleted && !info.running) {
+    home = "/start";
+  } else {
+    home = "/setup";
+  }
+
   return (
-    <div className="bg:white dark:bg-black min-h-full">
+    <div className="bg:white min-h-full dark:bg-black">
       <Toaster />
       <HashRouter>
         <Routes>
           <Route path="/" element={<Navbar />}>
-            <Route
-              index
-              element={
-                <Navigate
-                  to={info.setupCompleted ? "/apps" : "/setup"}
-                  replace
-                />
-              }
-            />
+            <Route index element={<Navigate to={home} replace />} />
+            <Route path="start" element={<Start />} />
             <Route path="setup" element={<Setup />} />
             <Route path="apps" element={<AppsList />} />
             <Route path="apps/:pubkey" element={<ShowApp />} />

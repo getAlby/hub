@@ -32,6 +32,10 @@ type CreateAppRequest struct {
 	ReturnTo       string `json:"returnTo"`
 }
 
+type StartRequest struct {
+	unlockPassword string `json:"unlockPassword"`
+}
+
 type SetupRequest struct {
 	LNBackendType string `json:"backendType"`
 	// Breez fields
@@ -61,4 +65,5 @@ type User struct {
 type InfoResponse struct {
 	BackendType    string `json:"backendType"`
 	SetupCompleted bool   `json:"setupCompleted"`
+	Running        bool   `json:"running"`
 }

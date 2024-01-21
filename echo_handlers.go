@@ -48,6 +48,7 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	e.GET("/api/info", svc.InfoHandler)
 	e.POST("/api/logout", svc.LogoutHandler)
 	e.POST("/api/setup", svc.SetupHandler)
+	e.POST("/api/start", svc.StartHandler)
 
 	frontend.RegisterHandlers(e)
 }
@@ -64,6 +65,18 @@ func (svc *Service) CSRFHandler(c echo.Context) error {
 
 func (svc *Service) InfoHandler(c echo.Context) error {
 	responseBody := svc.GetInfo()
+	return c.JSON(http.StatusOK, responseBody)
+}
+
+func (svc *Service) StartHandler(c echo.Context) error {
+	var startRequest api.StartRequest
+	if err := c.Bind(&startRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	responseBody, _ := svc.Start(&startRequest)
 	return c.JSON(http.StatusOK, responseBody)
 }
 

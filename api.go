@@ -208,8 +208,21 @@ func (svc *Service) ListApps() ([]api.App, error) {
 func (svc *Service) GetInfo() *api.InfoResponse {
 	info := api.InfoResponse{}
 	info.BackendType = svc.cfg.LNBackendType
-	info.SetupCompleted = svc.lnClient != nil
+	info.SetupCompleted = svc.cfg.LNBackendType != ""
+	info.Running = svc.lnClient != nil
 	return &info
+}
+
+func (svc *Service) Start(startRequest *api.StartRequest) (*api.InfoResponse, error) {
+	err := svc.StartApp()
+	if err != nil {
+		panic(err)
+	}
+	info := api.InfoResponse{}
+	info.BackendType = svc.cfg.LNBackendType
+	info.SetupCompleted = svc.lnClient != nil
+	info.Running = svc.lnClient != nil
+	return &info, nil
 }
 
 func (svc *Service) Setup(setupRequest *api.SetupRequest) error {
