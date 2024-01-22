@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/getAlby/nostr-wallet-connect/migrations"
+	"github.com/getAlby/nostr-wallet-connect/models/db"
 	"github.com/glebarez/sqlite"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip04"
@@ -180,13 +182,9 @@ func TestHandleEvent(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, received.Error.Code, NIP_47_ERROR_UNAUTHORIZED)
 	assert.NotNil(t, res)
-	//create user
-	user := &User{ID: 0, AlbyIdentifier: "dummy"}
-	err = svc.db.Create(user).Error
-	assert.NoError(t, err)
 	//register app
 	app := App{Name: "test", NostrPubkey: senderPubkey}
-	err = svc.db.Model(&user).Association("Apps").Append(&app)
+	err = svc.db.Save(&app).Error
 	assert.NoError(t, err)
 	//test old payload
 	res, err = svc.HandleEvent(ctx, &nostr.Event{
@@ -629,9 +627,9 @@ func TestHandleEvent(t *testing.T) {
 }
 
 func createTestService(t *testing.T) (svc *Service, ln LNClient) {
-	db, err := gorm.Open(sqlite.Open(testDB), &gorm.Config{})
+	gormDb, err := gorm.Open(sqlite.Open(testDB), &gorm.Config{})
 	assert.NoError(t, err)
-	err = db.AutoMigrate(&User{}, &App{}, &AppPermission{}, &NostrEvent{}, &Payment{}, &Identity{})
+	err = migrations.Migrate(gormDb)
 	assert.NoError(t, err)
 	ln = &MockLn{}
 	sk := nostr.GeneratePrivateKey()
@@ -645,10 +643,12 @@ func createTestService(t *testing.T) (svc *Service, ln LNClient) {
 
 	return &Service{
 		cfg: &Config{
-			NostrSecretKey: sk,
+			Config: db.Config{
+				NostrSecretKey: sk,
+			},
 			IdentityPubkey: pk,
 		},
-		db:          db,
+		db:          gormDb,
 		lnClient:    ln,
 		ReceivedEOS: false,
 		Logger:      logger,

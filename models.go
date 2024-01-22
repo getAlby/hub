@@ -3,8 +3,6 @@ package main
 import (
 	"encoding/json"
 	"time"
-
-	"gorm.io/gorm"
 )
 
 const (
@@ -37,31 +35,8 @@ const (
 	NOSTR_EVENT_STATE_PUBLISH_UNCONFIRMED = "sent"
 )
 
-// TODO: move to models/Alby
-type AlbyMe struct {
-	Identifier       string `json:"identifier"`
-	NPub             string `json:"nostr_pubkey"`
-	LightningAddress string `json:"lightning_address"`
-	Email            string `json:"email"`
-}
-
-type User struct {
-	ID               uint
-	AlbyIdentifier   string `validate:"required"`
-	AccessToken      string `validate:"required"`
-	RefreshToken     string `validate:"required"`
-	Email            string
-	Expiry           time.Time
-	LightningAddress string
-	Apps             []App
-	CreatedAt        time.Time
-	UpdatedAt        time.Time
-}
-
 type App struct {
 	ID          uint
-	UserId      uint `validate:"required"`
-	User        User
 	Name        string `validate:"required"`
 	Description string
 	NostrPubkey string `validate:"required"`
@@ -123,35 +98,6 @@ type Nip47Transaction struct {
 	Metadata        interface{} `json:"metadata,omitempty"`
 }
 
-// TODO: move to models/Alby
-type AlbyInvoice struct {
-	Amount int64 `json:"amount"`
-	// Boostagram AlbyInvoiceBoostagram        `json:"boostagram"`
-	Comment   string    `json:"comment"`
-	CreatedAt time.Time `json:"created_at"`
-	// CreationDate uint64 `json:"creation_date"`
-	Currency string `json:"currency"`
-	// custom_records
-	DescriptionHash string     `json:"description_hash"`
-	ExpiresAt       *time.Time `json:"expires_at"`
-	Expiry          uint32     `json:"expiry"`
-	// Identifier string
-	KeysendMessage string      `json:"keysend_message"`
-	Memo           string      `json:"memo"`
-	Metadata       interface{} `json:"metadata"`
-	PayerName      string      `json:"payer_name"`
-	PayerPubkey    string      `json:"payer_pubkey"`
-	PaymentHash    string      `json:"payment_hash"`
-	PaymentRequest string      `json:"payment_request"`
-	Preimage       string      `json:"preimage"`
-	// r_hash_str
-	Settled   bool       `json:"settled"`
-	SettledAt *time.Time `json:"settled_at"`
-	State     string     `json:"state"`
-	Type      string     `json:"type"`
-	// value
-}
-
 type PayRequest struct {
 	Invoice string `json:"invoice"`
 }
@@ -200,11 +146,6 @@ type NodeInfo struct {
 	Network     string
 	BlockHeight uint32
 	BlockHash   string
-}
-
-type Identity struct {
-	gorm.Model
-	Privkey string
 }
 
 // TODO: move to models/Nip47

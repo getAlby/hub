@@ -6,7 +6,6 @@ import (
 	"errors"
 	"os"
 	"os/signal"
-	"strings"
 	"sync"
 	"time"
 
@@ -18,13 +17,7 @@ import (
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip19"
 	log "github.com/sirupsen/logrus"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
-	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-
-	"github.com/jackc/pgx/v5/stdlib"
-	sqltrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/database/sql"
-	gormtrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/gorm.io/gorm.v1"
 )
 
 // TODO: move to service.go
@@ -39,40 +32,17 @@ func NewService(ctx context.Context) *Service {
 
 	var db *gorm.DB
 	var sqlDb *sql.DB
-	if strings.HasPrefix(cfg.DatabaseUri, "postgres://") || strings.HasPrefix(cfg.DatabaseUri, "postgresql://") || strings.HasPrefix(cfg.DatabaseUri, "unix://") {
-		if os.Getenv("DATADOG_AGENT_URL") != "" {
-			sqltrace.Register("pgx", &stdlib.Driver{}, sqltrace.WithServiceName("nostr-wallet-connect"))
-			sqlDb, err = sqltrace.Open("pgx", cfg.DatabaseUri)
-			if err != nil {
-				log.Fatalf("Failed to open DB %v", err)
-			}
-			db, err = gormtrace.Open(postgres.New(postgres.Config{Conn: sqlDb}), &gorm.Config{})
-			if err != nil {
-				log.Fatalf("Failed to open DB %v", err)
-			}
-		} else {
-			db, err = gorm.Open(postgres.Open(cfg.DatabaseUri), &gorm.Config{})
-			if err != nil {
-				log.Fatalf("Failed to open DB %v", err)
-			}
-			sqlDb, err = db.DB()
-			if err != nil {
-				log.Fatalf("Failed to set DB config: %v", err)
-			}
-		}
-	} else {
-		db, err = gorm.Open(sqlite.Open(cfg.DatabaseUri), &gorm.Config{})
-		if err != nil {
-			log.Fatalf("Failed to open DB %v", err)
-		}
-		// Override SQLite config to max one connection
-		cfg.DatabaseMaxConns = 1
-		// Enable foreign keys for sqlite
-		db.Exec("PRAGMA foreign_keys=ON;")
-		sqlDb, err = db.DB()
-		if err != nil {
-			log.Fatalf("Failed to set DB config: %v", err)
-		}
+	db, err = gorm.Open(sqlite.Open(cfg.DatabaseUri), &gorm.Config{})
+	if err != nil {
+		log.Fatalf("Failed to open DB %v", err)
+	}
+	// Override SQLite config to max one connection
+	cfg.DatabaseMaxConns = 1
+	// Enable foreign keys for sqlite
+	db.Exec("PRAGMA foreign_keys=ON;")
+	sqlDb, err = db.DB()
+	if err != nil {
+		log.Fatalf("Failed to set DB config: %v", err)
 	}
 	sqlDb.SetMaxOpenConns(cfg.DatabaseMaxConns)
 	sqlDb.SetMaxIdleConns(cfg.DatabaseMaxIdleConns)
@@ -84,40 +54,6 @@ func NewService(ctx context.Context) *Service {
 	}
 	log.Println("Any pending migrations ran successfully")
 
-	if cfg.NostrSecretKey == "" {
-		if cfg.LNBackendType == AlbyBackendType {
-			//not allowed
-			log.Fatal("Nostr private key is required with this backend type.")
-		}
-		//first look up if we already have the private key in the database
-		//else, generate and store private key
-		identity := &Identity{}
-		err = db.FirstOrInit(identity).Error
-		if err != nil {
-			log.WithError(err).Fatal("Error retrieving private key from database")
-		}
-		if identity.Privkey == "" {
-			log.Info("No private key found in database, generating & saving.")
-			identity.Privkey = nostr.GeneratePrivateKey()
-			err = db.Save(identity).Error
-			if err != nil {
-				log.WithError(err).Fatal("Error saving private key to database")
-			}
-		}
-		cfg.NostrSecretKey = identity.Privkey
-	}
-
-	identityPubkey, err := nostr.GetPublicKey(cfg.NostrSecretKey)
-	if err != nil {
-		log.Fatalf("Error converting nostr privkey to pubkey: %v", err)
-	}
-	cfg.IdentityPubkey = identityPubkey
-	npub, err := nip19.EncodePublicKey(identityPubkey)
-	if err != nil {
-		log.Fatalf("Error converting nostr privkey to pubkey: %v", err)
-	}
-
-	log.Infof("Starting nostr-wallet-connect. npub: %s hex: %s", npub, identityPubkey)
 	ctx, _ = signal.NotifyContext(ctx, os.Interrupt)
 
 	var wg sync.WaitGroup
@@ -130,15 +66,29 @@ func NewService(ctx context.Context) *Service {
 		wg:  &wg,
 	}
 
-	err = svc.setupDbConfig()
+	dbConfig, err := svc.setupDbConfig()
 	if err != nil {
 		log.Fatalf("Failed to setup DB config: %v", err)
 	}
 
-	// TODO: remove Datadog etc.
-	if os.Getenv("DATADOG_AGENT_URL") != "" {
-		tracer.Start(tracer.WithService("nostr-wallet-connect"))
-		defer tracer.Stop()
+	// TODO: should not re-set config like this
+	cfg.NostrSecretKey = dbConfig.NostrSecretKey
+
+	if cfg.NostrSecretKey == "" {
+		log.Fatalf("No nostr secret key set")
+	}
+
+	// calculate pubkey
+	identityPubkey, err := nostr.GetPublicKey(cfg.NostrSecretKey)
+	if err != nil {
+		log.Fatalf("Error converting nostr privkey to pubkey: %v", err)
+	}
+	// TODO: should not re-set config like this
+	cfg.IdentityPubkey = identityPubkey
+
+	npub, err := nip19.EncodePublicKey(identityPubkey)
+	if err != nil {
+		log.Fatalf("Error converting nostr privkey to pubkey: %v", err)
 	}
 
 	logger := log.New()
@@ -146,6 +96,8 @@ func NewService(ctx context.Context) *Service {
 	logger.SetOutput(os.Stdout)
 	logger.SetLevel(log.InfoLevel)
 	svc.Logger = logger
+
+	logger.Infof("Starting nostr-wallet-connect. npub: %s hex: %s", npub, identityPubkey)
 
 	err = svc.launchLNBackend()
 	if err != nil {
@@ -210,21 +162,26 @@ func NewService(ctx context.Context) *Service {
 	return svc
 }
 
-func (svc *Service) setupDbConfig() error {
+func (svc *Service) setupDbConfig() (*db.Config, error) {
 	// setup database config from the env on first run
 	// after first run, changes to ENV will have no effect for these fields
 	// because the database values always take precedence!
 
-	var existing db.Config
-	res := svc.db.Limit(1).Find(&existing)
+	var existingDbConfig db.Config
+	res := svc.db.Limit(1).Find(&existingDbConfig)
 
 	if res.Error != nil {
-		return res.Error
+		return nil, res.Error
 	}
 
 	if res.RowsAffected > 0 {
 		// do not overwrite the existing entry
-		return nil
+		return &existingDbConfig, nil
+	}
+
+	nostrSecretKey := svc.cfg.NostrSecretKey
+	if nostrSecretKey == "" {
+		nostrSecretKey = nostr.GeneratePrivateKey()
 	}
 
 	newDbConfig := db.Config{
@@ -236,13 +193,14 @@ func (svc *Service) setupDbConfig() error {
 		BreezMnemonic:        svc.cfg.BreezMnemonic,
 		BreezAPIKey:          svc.cfg.BreezAPIKey,
 		GreenlightInviteCode: svc.cfg.GreenlightInviteCode,
+		NostrSecretKey:       nostrSecretKey,
 	}
 	err := svc.db.Save(&newDbConfig).Error
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return &newDbConfig, nil
 }
 
 func (svc *Service) launchLNBackend() error {
@@ -268,11 +226,12 @@ func (svc *Service) launchLNBackend() error {
 	case LNDBackendType:
 		lnClient, err = NewLNDService(svc, dbConfig.LNDAddress, svc.cfg.LNDCertFile, dbConfig.LNDCertHex, svc.cfg.LNDMacaroonFile, dbConfig.LNDMacaroonHex)
 	case BreezBackendType:
-		lnClient, err = NewBreezService(svc, dbConfig.BreezMnemonic, dbConfig.BreezAPIKey, dbConfig.GreenlightInviteCode, svc.cfg.BreezWorkdir)
+		lnClient, err = NewBreezService(dbConfig.BreezMnemonic, dbConfig.BreezAPIKey, dbConfig.GreenlightInviteCode, svc.cfg.BreezWorkdir)
 	default:
 		svc.Logger.Fatalf("Unsupported LNBackendType: %v", dbConfig.LNBackendType)
 	}
 	if err != nil {
+		svc.Logger.Errorf("Failed to launch LN backend: %v", err)
 		return err
 	}
 	svc.lnClient = lnClient

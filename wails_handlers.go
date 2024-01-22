@@ -51,9 +51,7 @@ func (a *WailsApp) WailsRequestRouter(route string, method string, body string) 
 	case "/api/apps":
 		switch method {
 		case "GET":
-			userApps := []App{}
-			a.svc.db.Find(&userApps)
-			apps, err := a.svc.ListApps(&userApps)
+			apps, err := a.svc.ListApps()
 			if err != nil {
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 			}
@@ -69,9 +67,7 @@ func (a *WailsApp) WailsRequestRouter(route string, method string, body string) 
 				}).Errorf("Failed to decode request to wails router: %v", err)
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 			}
-			user := User{}
-			a.svc.db.First(&user)
-			createAppResponse, err := a.svc.CreateApp(&user, createAppRequest)
+			createAppResponse, err := a.svc.CreateApp(createAppRequest)
 			if err != nil {
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 			}
@@ -81,12 +77,6 @@ func (a *WailsApp) WailsRequestRouter(route string, method string, body string) 
 		infoResponse := a.svc.GetInfo()
 		res := WailsRequestRouterResponse{Body: *infoResponse, Error: ""}
 		return res
-	case "/api/user/me":
-		// TODO: remove in single app fork
-		dummyUser := api.User{
-			Email: "",
-		}
-		return WailsRequestRouterResponse{Body: dummyUser, Error: ""}
 	case "/api/csrf":
 		return WailsRequestRouterResponse{Body: "dummy", Error: ""}
 	case "/api/setup":
@@ -100,7 +90,15 @@ func (a *WailsApp) WailsRequestRouter(route string, method string, body string) 
 			}).Errorf("Failed to decode request to wails router: %v", err)
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
-		a.svc.Setup(setupRequest)
+		err = a.svc.Setup(setupRequest)
+		if err != nil {
+			a.svc.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).Errorf("Failed to setup node: %v", err)
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
 		return WailsRequestRouterResponse{Body: nil, Error: ""}
 	}
 	a.svc.Logger.Errorf("Unhandled route: %s", route)

@@ -5,7 +5,7 @@ export const NIP_47_MAKE_INVOICE_METHOD = "make_invoice";
 export const NIP_47_LOOKUP_INVOICE_METHOD = "lookup_invoice";
 export const NIP_47_LIST_TRANSACTIONS_METHOD = "list_transactions";
 
-export type BackendType = "ALBY" | "LND" | "BREEZ";
+export type BackendType = "LND" | "BREEZ";
 
 export type RequestMethodType =
   | "pay_invoice"
@@ -40,20 +40,6 @@ export const nip47MethodDescriptions: Record<RequestMethodType, string> = {
   [NIP_47_PAY_INVOICE_METHOD]: "Send payments",
 };
 
-export interface User {
-  id: number;
-  albyIdentifier: string;
-  accessToken: string;
-  refreshToken: string;
-  email: string;
-  expiry: string;
-  lightningAddress: string;
-  apps: string;
-  createdAt: string;
-  updatedAt: string;
-  expiresAt: string;
-}
-
 export interface ErrorResponse {
   message: string;
 }
@@ -61,7 +47,6 @@ export interface ErrorResponse {
 export interface App {
   id: number;
   userId: number;
-  user: User;
   name: string;
   description: string;
   nostrPubkey: string;

@@ -12,7 +12,6 @@ import (
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	ddEcho "gopkg.in/DataDog/dd-trace-go.v1/contrib/labstack/echo.v4"
 	"gorm.io/gorm"
 )
 
@@ -20,16 +19,11 @@ import (
 
 func (svc *Service) ValidateUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		user, err := svc.GetUser(c)
-		if err != nil {
-			return c.JSON(http.StatusBadRequest, ErrorResponse{
-				Message: fmt.Sprintf("Bad arguments %s", err.Error()),
-			})
-		}
-		if user == nil {
-			return c.NoContent(http.StatusUnauthorized)
-		}
-		c.Set("user", user)
+		// TODO: check if login is required and check if user is logged in
+		//sess, _ := session.Get(CookieName, c)
+		// if user == nil {
+		// 	return c.NoContent(http.StatusUnauthorized)
+		// }
 		return next(c)
 	}
 }
@@ -43,10 +37,8 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 		TokenLookup: "header:X-CSRF-Token",
 	}))
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte(svc.cfg.CookieSecret))))
-	e.Use(ddEcho.Middleware(ddEcho.WithServiceName("nostr-wallet-connect")))
 
 	authMiddleware := svc.ValidateUserMiddleware
-	e.GET("/api/user/me", svc.UserMeHandler, authMiddleware)
 	e.GET("/api/apps", svc.AppsListHandler, authMiddleware)
 	e.GET("/api/apps/:pubkey", svc.AppsShowHandler, authMiddleware)
 	e.DELETE("/api/apps/:pubkey", svc.AppsDeleteHandler, authMiddleware)
@@ -94,19 +86,9 @@ func (svc *Service) LogoutHandler(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func (svc *Service) UserMeHandler(c echo.Context) error {
-	user, _ := c.Get("user").(*User)
-	responseBody := api.User{
-		Email: user.Email,
-	}
-	return c.JSON(http.StatusOK, responseBody)
-}
-
 func (svc *Service) AppsListHandler(c echo.Context) error {
-	user, _ := c.Get("user").(*User)
-	userApps := user.Apps
 
-	apps, err := svc.ListApps(&userApps)
+	apps, err := svc.ListApps()
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
@@ -118,9 +100,8 @@ func (svc *Service) AppsListHandler(c echo.Context) error {
 }
 
 func (svc *Service) AppsShowHandler(c echo.Context) error {
-	user, _ := c.Get("user").(*User)
 	app := App{}
-	findResult := svc.db.Where("user_id = ? AND nostr_pubkey = ?", user.ID, c.Param("pubkey")).First(&app)
+	findResult := svc.db.Where("nostr_pubkey = ?", c.Param("pubkey")).First(&app)
 
 	if findResult.RowsAffected == 0 {
 		return c.JSON(http.StatusNotFound, ErrorResponse{
@@ -134,7 +115,6 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 }
 
 func (svc *Service) AppsDeleteHandler(c echo.Context) error {
-	user, _ := c.Get("user").(*User)
 	pubkey := c.Param("pubkey")
 	if pubkey == "" {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
@@ -142,7 +122,7 @@ func (svc *Service) AppsDeleteHandler(c echo.Context) error {
 		})
 	}
 	app := App{}
-	result := svc.db.Where("user_id = ? AND nostr_pubkey = ?", user.ID, pubkey).First(&app)
+	result := svc.db.Where("nostr_pubkey = ?", pubkey).First(&app)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return c.JSON(http.StatusNotFound, ErrorResponse{
@@ -163,7 +143,6 @@ func (svc *Service) AppsDeleteHandler(c echo.Context) error {
 }
 
 func (svc *Service) AppsCreateHandler(c echo.Context) error {
-	user, _ := c.Get("user").(*User)
 	var requestData api.CreateAppRequest
 	if err := c.Bind(&requestData); err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
@@ -171,7 +150,7 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 		})
 	}
 
-	responseBody, err := svc.CreateApp(user, &requestData)
+	responseBody, err := svc.CreateApp(&requestData)
 
 	if err != nil {
 		svc.Logger.Errorf("Failed to save app: %v", err)

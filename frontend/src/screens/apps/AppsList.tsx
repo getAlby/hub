@@ -20,7 +20,7 @@ function AppsList() {
           Connected apps
         </h2>
         <Link
-          className="inline-flex bg-purple-700 cursor-pointer dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus:outline-none font-medium items-center justify-center px-3 md:px-6 py-2 md:py-3 rounded-lg shadow text-white transition {{if not .User}}opacity-50{{else}}hover:bg-purple-900{{end}} text-sm md:text-base"
+          className="inline-flex bg-purple-700 cursor-pointer dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus:outline-none font-medium items-center justify-center px-3 md:px-6 py-2 md:py-3 rounded-lg shadow text-white transition hover:bg-purple-900 text-sm md:text-base"
           to="/apps/new"
         >
           <PlusIcon className="mr-2 text-white w-6 h-6" />

@@ -17,7 +17,7 @@ Connect applications like [Damus](https://damus.io/) or [Amethyst](https://linkt
 
 The application has no runtime dependencies. (simple Go executable).
 
-As data storage SQLite or PostgreSQL (recommended) can be used.
+As data storage SQLite is used.
 
     $ cp .env.example .env
     # edit the config for your needs
@@ -43,6 +43,8 @@ Go to `/frontend`
 2. `yarn dev`
 
 ### Wails (Backend + Frontend)
+
+_Make sure to have [wails](https://wails.io/docs/gettingstarted/installation) installed and all platform-specific dependencies installed (see wails doctor)_
 
 `unset GTK_PATH && wails dev -tags "wails"`
 
@@ -77,16 +79,26 @@ _If you get a blank screen the first load, close the window and start the app ag
 - `CLIENT_NOSTR_PUBKEY`: if set, this service will only listen to events authored by this public key. You can set this to your own nostr public key.
 - `RELAY`: default: "wss://relay.getalby.com/v1"
 - `PUBLIC_RELAY`: optional relay URL to be used in connection strings if `RELAY` is an internal URL
-- `LN_BACKEND_TYPE`: ALBY or LND
-- `ALBY_CLIENT_SECRET`= Alby OAuth client secret (used with the Alby backend)
-- `ALBY_CLIENT_ID`= Alby OAuth client ID (used with the Alby backend)
-- `OAUTH_REDIRECT_URL`= OAuth redirect URL (e.g. http://localhost:8080/alby/callback) (used with the Alby backend)
+- `COOKIE_SECRET`: a randomly generated secret string.
+- `DATABASE_URI`: a sqlite filename. Default: nwc.db (sqlite)
+- `PORT`: the port on which the app should listen on (default: 8080)
+- `LN_BACKEND_TYPE`: LND or BREEZ
+
+### LND Backend parameters
+
+_For cert and macaroon, either hex or file options can be used._
+
 - `LND_ADDRESS`: the LND gRPC address, eg. `localhost:10009` (used with the LND backend)
 - `LND_CERT_FILE`: the location where LND's `tls.cert` file can be found (used with the LND backend)
+- `LND_CERT_HEX`: LND's hex-encoded `tls.cert` (used with the LND backend)
 - `LND_MACAROON_FILE`: the location where LND's `admin.macaroon` file can be found (used with the LND backend)
-- `COOKIE_SECRET`: a randomly generated secret string.
-- `DATABASE_URI`: a postgres connection string or sqlite filename. Default: nostr-wallet-connect.db (sqlite)
-- `PORT`: the port on which the app should listen on (default: 8080)
+- `LND_MACAROON_HEX`: LND's hex-encoded `admin.macaroon` (used with the LND backend)
+
+### BREEZ Backend parameters
+
+- `BREEZ_MNEMONIC`: your bip39 mnemonic key phrase e.g. "define limit soccer guilt trim mechanic beyond outside best give south shine"
+- `BREEZ_API_KEY`: contact breez for more info
+- `GREENLIGHT_INVITE_CODE`: contact blockstream for more info
 
 ## Application deeplink options
 
@@ -181,49 +193,11 @@ You can also contribute to our [bounty program](https://github.com/getAlby/light
 
 ❌ `multi_pay_invoice`
 
-❌ `multi_pay_keysend (TBC)`
-
-### Alby OAuth API
-
-✅ `get_info`
-
-- ⚠️ block_hash not supported
-- ⚠️ block_height not supported
-- ⚠️ pubkey not supported
-- ⚠️ color not supported
-- ⚠️ network is always `mainnet`
-
-✅ `get_balance`
-
-✅ `pay_invoice`
-
-- ⚠️ amount not supported (for amountless invoices)
-
-✅ `pay_keysend`
-
-- ⚠️ preimage in request not supported
-
-✅ `make_invoice`
-
-- ⚠️ expiry in request not supported
-
-✅ `lookup_invoice`
-
-- ⚠️ fees_paid in response not supported
-
-✅ `list_transactions`
-
-- ⚠️ offset and unpaid in request not supported
-- ⚠️ fees_paid in response not supported
-- ⚠️ unsettled and failed transactions will not be returned
-
-❌ `multi_pay_invoice`
-
-❌ `multi_pay_keysend (TBC)`
+❌ `multi_pay_keysend`
 
 ## Node Distributions
 
 Run NWC on your own node!
 
 - [https://github.com/getAlby/umbrel-community-app-store](Umbrel)
-- [https://github.com/horologger/nostr-wallet-connect-startos](Start9) (WIP)
+- [https://github.com/horologger/nostr-wallet-connect-startos](Start9)
