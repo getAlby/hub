@@ -4,7 +4,8 @@ import Loading from "src/components/Loading";
 import { useCSRF } from "src/hooks/useCSRF";
 import { useInfo } from "src/hooks/useInfo";
 import { BackendType } from "src/types";
-import { request, handleRequestError } from "src/utils/request";
+import { handleRequestError } from "src/utils/handleRequestError";
+import { request } from "src/utils/request"; // build the project for this to appear
 
 export function Setup() {
   const [backendType, setBackendType] = React.useState<BackendType>("BREEZ");
