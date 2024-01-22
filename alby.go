@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"sync"
+	"time"
 
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
@@ -18,10 +20,11 @@ import (
 )
 
 type AlbyOAuthService struct {
-	cfg       *Config
-	oauthConf *oauth2.Config
-	db        *gorm.DB
-	Logger    *logrus.Logger
+	cfg        *Config
+	oauthConf  *oauth2.Config
+	db         *gorm.DB
+	Logger     *logrus.Logger
+	tokenMutex sync.Mutex
 }
 
 func NewAlbyOauthService(svc *Service, e *echo.Echo) (result *AlbyOAuthService, err error) {
@@ -52,12 +55,22 @@ func NewAlbyOauthService(svc *Service, e *echo.Echo) (result *AlbyOAuthService, 
 }
 
 func (svc *AlbyOAuthService) FetchUserToken(ctx context.Context, app App) (token *oauth2.Token, err error) {
-	user := app.User
-	tok, err := svc.oauthConf.TokenSource(ctx, &oauth2.Token{
+	svc.tokenMutex.Lock()
+	defer svc.tokenMutex.Unlock()
+
+	user := User{}
+	err = svc.db.First(&user, &User{ID: app.UserId}).Error
+	currentToken := &oauth2.Token{
 		AccessToken:  user.AccessToken,
 		RefreshToken: user.RefreshToken,
 		Expiry:       user.Expiry,
-	}).Token()
+	}
+
+	if user.Expiry.After(time.Now()) {
+		return currentToken, nil
+	}
+
+	tok, err := svc.oauthConf.TokenSource(ctx, currentToken).Token()
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
 			"senderPubkey": app.NostrPubkey,
@@ -82,7 +95,7 @@ func (svc *AlbyOAuthService) FetchUserToken(ctx context.Context, app App) (token
 func (svc *AlbyOAuthService) MakeInvoice(ctx context.Context, senderPubkey string, amount int64, description string, descriptionHash string, expiry int64) (transaction *Nip47Transaction, err error) {
 	// TODO: move to a shared function
 	app := App{}
-	err = svc.db.Preload("User").First(&app, &App{
+	err = svc.db.First(&app, &App{
 		NostrPubkey: senderPubkey,
 	}).Error
 	if err != nil {
@@ -117,7 +130,7 @@ func (svc *AlbyOAuthService) MakeInvoice(ctx context.Context, senderPubkey strin
 		"descriptionHash": descriptionHash,
 		"expiry":          expiry,
 		"appId":           app.ID,
-		"userId":          app.User.ID,
+		"userId":          app.UserId,
 	}).Info("Processing make invoice request")
 	tok, err := svc.FetchUserToken(ctx, app)
 	if err != nil {
@@ -154,7 +167,7 @@ func (svc *AlbyOAuthService) MakeInvoice(ctx context.Context, senderPubkey strin
 			"descriptionHash": descriptionHash,
 			"expiry":          expiry,
 			"appId":           app.ID,
-			"userId":          app.User.ID,
+			"userId":          app.UserId,
 		}).Errorf("Failed to make invoice: %v", err)
 		return nil, err
 	}
@@ -172,7 +185,7 @@ func (svc *AlbyOAuthService) MakeInvoice(ctx context.Context, senderPubkey strin
 			"descriptionHash": descriptionHash,
 			"expiry":          expiry,
 			"appId":           app.ID,
-			"userId":          app.User.ID,
+			"userId":          app.UserId,
 			"paymentRequest":  responsePayload.PaymentRequest,
 			"paymentHash":     responsePayload.PaymentHash,
 		}).Info("Make invoice successful")
@@ -190,7 +203,7 @@ func (svc *AlbyOAuthService) MakeInvoice(ctx context.Context, senderPubkey strin
 		"descriptionHash": descriptionHash,
 		"expiry":          expiry,
 		"appId":           app.ID,
-		"userId":          app.User.ID,
+		"userId":          app.UserId,
 		"APIHttpStatus":   resp.StatusCode,
 	}).Errorf("Make invoice failed %s", string(errorPayload.Message))
 	return nil, errors.New(errorPayload.Message)
@@ -199,7 +212,7 @@ func (svc *AlbyOAuthService) MakeInvoice(ctx context.Context, senderPubkey strin
 func (svc *AlbyOAuthService) LookupInvoice(ctx context.Context, senderPubkey string, paymentHash string) (transaction *Nip47Transaction, err error) {
 	// TODO: move to a shared function
 	app := App{}
-	err = svc.db.Preload("User").First(&app, &App{
+	err = svc.db.First(&app, &App{
 		NostrPubkey: senderPubkey,
 	}).Error
 	if err != nil {
@@ -214,7 +227,7 @@ func (svc *AlbyOAuthService) LookupInvoice(ctx context.Context, senderPubkey str
 		"senderPubkey": senderPubkey,
 		"paymentHash":  paymentHash,
 		"appId":        app.ID,
-		"userId":       app.User.ID,
+		"userId":       app.UserId,
 	}).Info("Processing lookup invoice request")
 	tok, err := svc.FetchUserToken(ctx, app)
 	if err != nil {
@@ -240,7 +253,7 @@ func (svc *AlbyOAuthService) LookupInvoice(ctx context.Context, senderPubkey str
 			"senderPubkey": senderPubkey,
 			"paymentHash":  paymentHash,
 			"appId":        app.ID,
-			"userId":       app.User.ID,
+			"userId":       app.UserId,
 		}).Errorf("Failed to lookup invoice: %v", err)
 		return nil, err
 	}
@@ -255,7 +268,7 @@ func (svc *AlbyOAuthService) LookupInvoice(ctx context.Context, senderPubkey str
 			"senderPubkey":   senderPubkey,
 			"paymentHash":    paymentHash,
 			"appId":          app.ID,
-			"userId":         app.User.ID,
+			"userId":         app.UserId,
 			"paymentRequest": responsePayload.PaymentRequest,
 			"settled":        responsePayload.Settled,
 		}).Info("Lookup invoice successful")
@@ -270,7 +283,7 @@ func (svc *AlbyOAuthService) LookupInvoice(ctx context.Context, senderPubkey str
 		"senderPubkey":  senderPubkey,
 		"paymentHash":   paymentHash,
 		"appId":         app.ID,
-		"userId":        app.User.ID,
+		"userId":        app.UserId,
 		"APIHttpStatus": resp.StatusCode,
 	}).Errorf("Lookup invoice failed %s", string(errorPayload.Message))
 	return nil, errors.New(errorPayload.Message)
@@ -278,7 +291,7 @@ func (svc *AlbyOAuthService) LookupInvoice(ctx context.Context, senderPubkey str
 
 func (svc *AlbyOAuthService) GetInfo(ctx context.Context, senderPubkey string) (info *NodeInfo, err error) {
 	app := App{}
-	err = svc.db.Preload("User").First(&app, &App{
+	err = svc.db.First(&app, &App{
 		NostrPubkey: senderPubkey,
 	}).Error
 	if err != nil {
@@ -291,7 +304,7 @@ func (svc *AlbyOAuthService) GetInfo(ctx context.Context, senderPubkey string) (
 	svc.Logger.WithFields(logrus.Fields{
 		"senderPubkey": senderPubkey,
 		"appId":        app.ID,
-		"userId":       app.User.ID,
+		"userId":       app.UserId,
 	}).Info("Info fetch successful")
 	return &NodeInfo{
 		Alias:       "getalby.com",
@@ -305,7 +318,7 @@ func (svc *AlbyOAuthService) GetInfo(ctx context.Context, senderPubkey string) (
 
 func (svc *AlbyOAuthService) GetBalance(ctx context.Context, senderPubkey string) (balance int64, err error) {
 	app := App{}
-	err = svc.db.Preload("User").First(&app, &App{
+	err = svc.db.First(&app, &App{
 		NostrPubkey: senderPubkey,
 	}).Error
 	if err != nil {
@@ -333,7 +346,7 @@ func (svc *AlbyOAuthService) GetBalance(ctx context.Context, senderPubkey string
 		svc.Logger.WithFields(logrus.Fields{
 			"senderPubkey": senderPubkey,
 			"appId":        app.ID,
-			"userId":       app.User.ID,
+			"userId":       app.UserId,
 		}).Errorf("Failed to fetch balance: %v", err)
 		return 0, err
 	}
@@ -347,7 +360,7 @@ func (svc *AlbyOAuthService) GetBalance(ctx context.Context, senderPubkey string
 		svc.Logger.WithFields(logrus.Fields{
 			"senderPubkey": senderPubkey,
 			"appId":        app.ID,
-			"userId":       app.User.ID,
+			"userId":       app.UserId,
 		}).Info("Balance fetch successful")
 		return int64(responsePayload.Balance), nil
 	}
@@ -357,7 +370,7 @@ func (svc *AlbyOAuthService) GetBalance(ctx context.Context, senderPubkey string
 	svc.Logger.WithFields(logrus.Fields{
 		"senderPubkey":  senderPubkey,
 		"appId":         app.ID,
-		"userId":        app.User.ID,
+		"userId":        app.UserId,
 		"APIHttpStatus": resp.StatusCode,
 	}).Errorf("Balance fetch failed %s", string(errorPayload.Message))
 	return 0, errors.New(errorPayload.Message)
@@ -365,7 +378,7 @@ func (svc *AlbyOAuthService) GetBalance(ctx context.Context, senderPubkey string
 
 func (svc *AlbyOAuthService) ListTransactions(ctx context.Context, senderPubkey string, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []Nip47Transaction, err error) {
 	app := App{}
-	err = svc.db.Preload("User").First(&app, &App{
+	err = svc.db.First(&app, &App{
 		NostrPubkey: senderPubkey,
 	}).Error
 	if err != nil {
@@ -419,7 +432,7 @@ func (svc *AlbyOAuthService) ListTransactions(ctx context.Context, senderPubkey 
 		svc.Logger.WithFields(logrus.Fields{
 			"senderPubkey": senderPubkey,
 			"appId":        app.ID,
-			"userId":       app.User.ID,
+			"userId":       app.UserId,
 			"requestUrl":   requestUrl,
 		}).Errorf("Failed to fetch invoices: %v", err)
 		return nil, err
@@ -433,7 +446,7 @@ func (svc *AlbyOAuthService) ListTransactions(ctx context.Context, senderPubkey 
 			svc.Logger.WithFields(logrus.Fields{
 				"senderPubkey": senderPubkey,
 				"appId":        app.ID,
-				"userId":       app.User.ID,
+				"userId":       app.UserId,
 				"requestUrl":   requestUrl,
 			}).Errorf("Failed to decode invoices: %v", err)
 			return nil, err
@@ -449,7 +462,7 @@ func (svc *AlbyOAuthService) ListTransactions(ctx context.Context, senderPubkey 
 		svc.Logger.WithFields(logrus.Fields{
 			"senderPubkey": senderPubkey,
 			"appId":        app.ID,
-			"userId":       app.User.ID,
+			"userId":       app.UserId,
 			"requestUrl":   requestUrl,
 		}).Info("List transactions successful")
 		return transactions, nil
@@ -460,7 +473,7 @@ func (svc *AlbyOAuthService) ListTransactions(ctx context.Context, senderPubkey 
 	svc.Logger.WithFields(logrus.Fields{
 		"senderPubkey":  senderPubkey,
 		"appId":         app.ID,
-		"userId":        app.User.ID,
+		"userId":        app.UserId,
 		"APIHttpStatus": resp.StatusCode,
 		"requestUrl":    requestUrl,
 	}).Errorf("List transactions failed %s", string(errorPayload.Message))
@@ -469,7 +482,7 @@ func (svc *AlbyOAuthService) ListTransactions(ctx context.Context, senderPubkey 
 
 func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, payReq string) (preimage string, err error) {
 	app := App{}
-	err = svc.db.Preload("User").First(&app, &App{
+	err = svc.db.First(&app, &App{
 		NostrPubkey: senderPubkey,
 	}).Error
 	if err != nil {
@@ -483,7 +496,7 @@ func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, 
 		"senderPubkey": senderPubkey,
 		"bolt11":       payReq,
 		"appId":        app.ID,
-		"userId":       app.User.ID,
+		"userId":       app.UserId,
 	}).Info("Processing payment request")
 	tok, err := svc.FetchUserToken(ctx, app)
 	if err != nil {
@@ -512,7 +525,7 @@ func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, 
 			"senderPubkey": senderPubkey,
 			"bolt11":       payReq,
 			"appId":        app.ID,
-			"userId":       app.User.ID,
+			"userId":       app.UserId,
 		}).Errorf("Failed to pay invoice: %v", err)
 		return "", err
 	}
@@ -527,7 +540,7 @@ func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, 
 			"senderPubkey": senderPubkey,
 			"bolt11":       payReq,
 			"appId":        app.ID,
-			"userId":       app.User.ID,
+			"userId":       app.UserId,
 			"paymentHash":  responsePayload.PaymentHash,
 		}).Info("Payment successful")
 		return responsePayload.Preimage, nil
@@ -539,7 +552,7 @@ func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, 
 		"senderPubkey":  senderPubkey,
 		"bolt11":        payReq,
 		"appId":         app.ID,
-		"userId":        app.User.ID,
+		"userId":        app.UserId,
 		"APIHttpStatus": resp.StatusCode,
 	}).Errorf("Payment failed %s", string(errorPayload.Message))
 	return "", errors.New(errorPayload.Message)
@@ -547,7 +560,7 @@ func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, 
 
 func (svc *AlbyOAuthService) SendKeysend(ctx context.Context, senderPubkey string, amount int64, destination, preimage string, custom_records []TLVRecord) (preImage string, err error) {
 	app := App{}
-	err = svc.db.Preload("User").First(&app, &App{
+	err = svc.db.First(&app, &App{
 		NostrPubkey: senderPubkey,
 	}).Error
 	if err != nil {
@@ -561,7 +574,7 @@ func (svc *AlbyOAuthService) SendKeysend(ctx context.Context, senderPubkey strin
 		"senderPubkey": senderPubkey,
 		"payeePubkey":  destination,
 		"appId":        app.ID,
-		"userId":       app.User.ID,
+		"userId":       app.UserId,
 	}).Info("Processing keysend request")
 	tok, err := svc.FetchUserToken(ctx, app)
 	if err != nil {
@@ -598,7 +611,7 @@ func (svc *AlbyOAuthService) SendKeysend(ctx context.Context, senderPubkey strin
 			"senderPubkey": senderPubkey,
 			"payeePubkey":  destination,
 			"appId":        app.ID,
-			"userId":       app.User.ID,
+			"userId":       app.UserId,
 		}).Errorf("Failed to pay keysend: %v", err)
 		return "", err
 	}
@@ -613,7 +626,7 @@ func (svc *AlbyOAuthService) SendKeysend(ctx context.Context, senderPubkey strin
 			"senderPubkey": senderPubkey,
 			"payeePubkey":  destination,
 			"appId":        app.ID,
-			"userId":       app.User.ID,
+			"userId":       app.UserId,
 			"preimage":     responsePayload.Preimage,
 			"paymentHash":  responsePayload.PaymentHash,
 		}).Info("Keysend payment successful")
@@ -626,7 +639,7 @@ func (svc *AlbyOAuthService) SendKeysend(ctx context.Context, senderPubkey strin
 		"senderPubkey":  senderPubkey,
 		"payeePubkey":   destination,
 		"appId":         app.ID,
-		"userId":        app.User.ID,
+		"userId":        app.UserId,
 		"APIHttpStatus": resp.StatusCode,
 	}).Errorf("Payment failed %s", string(errorPayload.Message))
 	return "", errors.New(errorPayload.Message)
