@@ -88,9 +88,6 @@ func (svc *Service) LogoutHandler(c echo.Context) error {
 		})
 	}
 	sess.Options.MaxAge = -1
-	if svc.cfg.CookieDomain != "" {
-		sess.Options.Domain = svc.cfg.CookieDomain
-	}
 	if err := sess.Save(c.Request(), c.Response()); err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: "Failed to save session",

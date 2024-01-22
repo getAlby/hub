@@ -4,51 +4,80 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
+	"encoding/hex"
+	"strings"
+
+	"golang.org/x/crypto/scrypt"
 )
 
-func AesGcmEncrypt(secretKey string, plaintext string) string {
+func DeriveKey(password string, salt []byte) ([]byte, []byte, error) {
+	if salt == nil {
+		salt = make([]byte, 32)
+		if _, err := rand.Read(salt); err != nil {
+			return nil, nil, err
+		}
+	}
+
+	key, err := scrypt.Key([]byte(password), salt, 131072, 8, 1, 32)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return key, salt, nil
+}
+
+func AesGcmEncrypt(plaintext string, password string) (string, error) {
+	secretKey, salt, err := DeriveKey(password, nil)
+	if err != nil {
+		return "", err
+	}
 	plaintextBytes := []byte(plaintext)
 
 	aes, err := aes.NewCipher([]byte(secretKey))
 	if err != nil {
-		panic(err.Error())
+		return "", err
 	}
 
 	aesgcm, err := cipher.NewGCM(aes)
 	if err != nil {
-		panic(err.Error())
+		return "", err
 	}
 
 	nonce := make([]byte, aesgcm.NonceSize())
 	_, err = rand.Read(nonce)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 
-	ciphertext := aesgcm.Seal(nonce, nonce, plaintextBytes, nil)
+	ciphertext := aesgcm.Seal(nil, nonce, plaintextBytes, nil)
 
-	return string(ciphertext)
+	return hex.EncodeToString(salt) + "-" + hex.EncodeToString(nonce) + "-" + hex.EncodeToString(ciphertext), nil
 }
 
-func AesGcmDecrypt(secretKey string, ciphertext string) string {
+func AesGcmDecrypt(ciphertext string, password string) (string, error) {
+	arr := strings.Split(ciphertext, "-")
+	salt, _ := hex.DecodeString(arr[0])
+	nonce, _ := hex.DecodeString(arr[1])
+	data, _ := hex.DecodeString(arr[2])
 
+	secretKey, salt, err := DeriveKey(password, salt)
+	if err != nil {
+		return "", err
+	}
 	aes, err := aes.NewCipher([]byte(secretKey))
 	if err != nil {
-		panic(err.Error())
+		return "", err
 	}
 
 	aesgcm, err := cipher.NewGCM(aes)
 	if err != nil {
-		panic(err.Error())
+		return "", err
 	}
 
-	nonceSize := aesgcm.NonceSize()
-	nonce, ciphertext := ciphertext[:nonceSize], ciphertext[nonceSize:]
-
-	plaintext, err := aesgcm.Open(nil, []byte(nonce), []byte(ciphertext), nil)
+	plaintext, err := aesgcm.Open(nil, nonce, data, nil)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 
-	return string(plaintext)
+	return string(plaintext), nil
 }

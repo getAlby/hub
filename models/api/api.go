@@ -33,7 +33,7 @@ type CreateAppRequest struct {
 }
 
 type StartRequest struct {
-	unlockPassword string `json:"unlockPassword"`
+	UnlockPassword string `json:"unlockPassword"`
 }
 
 type SetupRequest struct {

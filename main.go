@@ -6,11 +6,10 @@ import (
 	"errors"
 	"os"
 	"os/signal"
+	"path"
 	"sync"
-	"time"
 
 	"github.com/getAlby/nostr-wallet-connect/migrations"
-	"github.com/getAlby/nostr-wallet-connect/models/db"
 	"github.com/glebarez/sqlite"
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
@@ -72,15 +71,16 @@ func NewService(ctx context.Context) (*Service, error) {
 		return nil, err
 	}
 	sqlDb.SetMaxOpenConns(1)
-	sqlDb.SetMaxIdleConns(5)
-	sqlDb.SetConnMaxLifetime(time.Duration(1800) * time.Second)
 
 	err = migrations.Migrate(db)
 	if err != nil {
+		logger.Errorf("Failed to migrate: %v", err)
 		return nil, err
 	}
 
 	ctx, _ = signal.NotifyContext(ctx, os.Interrupt)
+
+	cfg.Init(db)
 
 	var wg sync.WaitGroup
 	svc := &Service{
@@ -94,54 +94,7 @@ func NewService(ctx context.Context) (*Service, error) {
 	return svc, nil
 }
 
-func (svc *Service) loadConfig() (*db.Config, error) {
-	// setup database config from the env on first run
-	// after first run, changes to ENV will have no effect for these fields
-	// because the database values always take precedence!
-
-	godotenv.Load(".env")
-	cfg := &Config{}
-	err := envconfig.Process("", cfg)
-	if err != nil {
-		return nil, err
-	}
-
-	var existingDbConfig db.Config
-	res := svc.db.Limit(1).Find(&existingDbConfig)
-
-	if res.Error != nil {
-		return nil, res.Error
-	}
-
-	if res.RowsAffected > 0 {
-		// do not overwrite the existing entry
-		return &existingDbConfig, nil
-	}
-
-	nostrSecretKey := svc.cfg.NostrSecretKey
-	if nostrSecretKey == "" {
-		nostrSecretKey = nostr.GeneratePrivateKey()
-	}
-
-	newDbConfig := db.Config{
-		LNBackendType:        svc.cfg.LNBackendType,
-		LNDAddress:           svc.cfg.LNDAddress,
-		LNDCertHex:           svc.cfg.LNDCertHex,
-		LNDMacaroonHex:       svc.cfg.LNDMacaroonHex,
-		BreezMnemonic:        svc.cfg.BreezMnemonic,
-		BreezAPIKey:          svc.cfg.BreezAPIKey,
-		GreenlightInviteCode: svc.cfg.GreenlightInviteCode,
-		NostrSecretKey:       nostrSecretKey,
-	}
-	err := svc.db.Save(&newDbConfig).Error
-	if err != nil {
-		return nil, err
-	}
-
-	return &newDbConfig, nil
-}
-
-func (svc *Service) launchLNBackend() error {
+func (svc *Service) launchLNBackend(encryptionKey string) error {
 	if svc.lnClient != nil {
 		err := svc.lnClient.Shutdown()
 		if err != nil {
@@ -150,30 +103,30 @@ func (svc *Service) launchLNBackend() error {
 		svc.lnClient = nil
 	}
 
-	dbConfig := db.Config{}
-	svc.db.First(&dbConfig)
-
-	if dbConfig.LNBackendType == "" {
+	lndBackend, _ := svc.cfg.Get("LNBackendType", encryptionKey)
+	if lndBackend == "" {
 		return errors.New("No LNBackendType specified")
 	}
 
-	svc.cfg.NostrSecretKey = dbConfig.NostrSecretKey
-	identityPubkey, err := nostr.GetPublicKey(svc.cfg.NostrSecretKey)
-	if err != nil {
-		log.Fatalf("Error converting nostr privkey to pubkey: %v", err)
-	}
-	// TODO: should not re-set config like this
-	svc.cfg.IdentityPubkey = identityPubkey
-
-	svc.Logger.Infof("Launching LN Backend: %s", dbConfig.LNBackendType)
+	svc.Logger.Infof("Launching LN Backend: %s", lndBackend)
 	var lnClient LNClient
-	switch dbConfig.LNBackendType {
+	var err error
+	switch lndBackend {
 	case LNDBackendType:
-		lnClient, err = NewLNDService(svc, dbConfig.LNDAddress, svc.cfg.LNDCertFile, dbConfig.LNDCertHex, svc.cfg.LNDMacaroonFile, dbConfig.LNDMacaroonHex)
-	case BreezBackendType:
-		lnClient, err = NewBreezService(dbConfig.BreezMnemonic, dbConfig.BreezAPIKey, dbConfig.GreenlightInviteCode, svc.cfg.BreezWorkdir)
+		LNDAddress, _ := svc.cfg.Get("LNDAddress", encryptionKey)
+		LNDCertHex, _ := svc.cfg.Get("LNDCertHex", encryptionKey)
+		LNDMacaroonHex, _ := svc.cfg.Get("LNDMacaroonHex", encryptionKey)
+
+		lnClient, err = NewLNDService(svc, LNDAddress, LNDCertHex, LNDMacaroonHex)
+	case lndBackend:
+		BreezMnemonic, _ := svc.cfg.Get("BreezMnemonic", encryptionKey)
+		BreezAPIKey, _ := svc.cfg.Get("BreezAPIKey", encryptionKey)
+		GreenlightInviteCode, _ := svc.cfg.Get("GreenlightInviteCode", encryptionKey)
+		BreezWorkdir := path.Join(svc.cfg.Workdir, "breez")
+
+		lnClient, err = NewBreezService(BreezMnemonic, BreezAPIKey, GreenlightInviteCode, BreezWorkdir)
 	default:
-		svc.Logger.Fatalf("Unsupported LNBackendType: %v", dbConfig.LNBackendType)
+		svc.Logger.Fatalf("Unsupported LNBackendType: %v", lndBackend)
 	}
 	if err != nil {
 		svc.Logger.Errorf("Failed to launch LN backend: %v", err)
@@ -183,13 +136,10 @@ func (svc *Service) launchLNBackend() error {
 	return nil
 }
 
-func (svc *Service) createFilters() nostr.Filters {
+func (svc *Service) createFilters(identityPubkey string) nostr.Filters {
 	filter := nostr.Filter{
-		Tags:  nostr.TagMap{"p": []string{svc.cfg.IdentityPubkey}},
+		Tags:  nostr.TagMap{"p": []string{identityPubkey}},
 		Kinds: []int{NIP_47_REQUEST_KIND},
-	}
-	if svc.cfg.ClientPubkey != "" {
-		filter.Authors = []string{svc.cfg.ClientPubkey}
 	}
 	return []nostr.Filter{filter}
 }

@@ -310,13 +310,11 @@ func makePreimageHex() ([]byte, error) {
 	return bytes, nil
 }
 
-func NewLNDService(svc *Service, lndAddress, lndCertFile, lndCertHex, lndMacaroonFile, lndMacaroonHex string) (result LNClient, err error) {
+func NewLNDService(svc *Service, lndAddress, lndCertHex, lndMacaroonHex string) (result LNClient, err error) {
 	lndClient, err := lnd.NewLNDclient(lnd.LNDoptions{
-		Address:      lndAddress,
-		CertFile:     lndCertFile,
-		CertHex:      lndCertHex,
-		MacaroonFile: lndMacaroonFile,
-		MacaroonHex:  lndMacaroonHex,
+		Address:     lndAddress,
+		CertHex:     lndCertHex,
+		MacaroonHex: lndMacaroonHex,
 	}, svc.ctx)
 	if err != nil {
 		svc.Logger.Errorf("Failed to create new LND client %v", err)
