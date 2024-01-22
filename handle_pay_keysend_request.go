@@ -49,7 +49,7 @@ func (svc *Service) HandlePayKeysendEvent(ctx context.Context, request *Nip47Req
 			Error: &Nip47Error{
 				Code:    code,
 				Message: message,
-			}}, ss)
+			}}, nostr.Tags{}, ss)
 	}
 
 	payment := Payment{App: app, NostrEvent: nostrEvent, Amount: uint(payParams.Amount / 1000)}
@@ -81,7 +81,7 @@ func (svc *Service) HandlePayKeysendEvent(ctx context.Context, request *Nip47Req
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: fmt.Sprintf("Something went wrong while paying invoice: %s", err.Error()),
 			},
-		}, ss)
+		}, nostr.Tags{}, ss)
 	}
 	payment.Preimage = &preimage
 	nostrEvent.State = NOSTR_EVENT_STATE_HANDLER_EXECUTED
@@ -92,5 +92,5 @@ func (svc *Service) HandlePayKeysendEvent(ctx context.Context, request *Nip47Req
 		Result: Nip47PayResponse{
 			Preimage: preimage,
 		},
-	}, ss)
+	}, nostr.Tags{}, ss)
 }

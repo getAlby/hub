@@ -40,7 +40,7 @@ func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Re
 			Error: &Nip47Error{
 				Code:    code,
 				Message: message,
-			}}, ss)
+			}}, nostr.Tags{}, ss)
 	}
 
 	// TODO: move to a shared generic function
@@ -68,7 +68,7 @@ func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Re
 				Code:    NIP_47_OTHER,
 				Message: "Only one of description, description_hash can be provided",
 			},
-		}, ss)
+		}, nostr.Tags{}, ss)
 	}
 
 	svc.Logger.WithFields(logrus.Fields{
@@ -100,7 +100,7 @@ func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Re
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: fmt.Sprintf("Something went wrong while making invoice: %s", err.Error()),
 			},
-		}, ss)
+		}, nostr.Tags{}, ss)
 	}
 
 	responsePayload := &Nip47MakeInvoiceResponse{
@@ -112,6 +112,5 @@ func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Re
 	return svc.createResponse(event, Nip47Response{
 		ResultType: NIP_47_MAKE_INVOICE_METHOD,
 		Result:     responsePayload,
-	},
-		ss)
+	}, nostr.Tags{}, ss)
 }

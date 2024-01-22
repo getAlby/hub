@@ -172,7 +172,7 @@ func (svc *Service) handleAndPublishEvent(ctx context.Context, sub *nostr.Subscr
 				Code:    NIP_47_ERROR_UNAUTHORIZED,
 				Message: "The public key does not have a wallet connected.",
 			},
-		}, ss)
+		}, nostr.Tags{}, ss)
 		svc.PublishEvent(ctx, sub, event, resp)
 		return
 	}
@@ -238,7 +238,7 @@ func (svc *Service) handleAndPublishEvent(ctx context.Context, sub *nostr.Subscr
 			Error: &Nip47Error{
 				Code:    NIP_47_ERROR_NOT_IMPLEMENTED,
 				Message: fmt.Sprintf("Unknown method: %s", nip47Request.Method),
-			}}, ss)
+			}}, nostr.Tags{}, ss)
 	}
 
 	if err != nil {
@@ -252,7 +252,7 @@ func (svc *Service) handleAndPublishEvent(ctx context.Context, sub *nostr.Subscr
 	}
 }
 
-func (svc *Service) createResponse(initialEvent *nostr.Event, content interface{}, ss []byte) (result *nostr.Event, err error) {
+func (svc *Service) createResponse(initialEvent *nostr.Event, content interface{}, tags nostr.Tags, ss []byte) (result *nostr.Event, err error) {
 	payloadBytes, err := json.Marshal(content)
 	if err != nil {
 		return nil, err
@@ -261,11 +261,15 @@ func (svc *Service) createResponse(initialEvent *nostr.Event, content interface{
 	if err != nil {
 		return nil, err
 	}
+
+	allTags := nostr.Tags{[]string{"p", initialEvent.PubKey}, []string{"e", initialEvent.ID}}
+	allTags = append(allTags, tags...)
+
 	resp := &nostr.Event{
 		PubKey:    svc.cfg.IdentityPubkey,
 		CreatedAt: nostr.Now(),
 		Kind:      NIP_47_RESPONSE_KIND,
-		Tags:      nostr.Tags{[]string{"p", initialEvent.PubKey}, []string{"e", initialEvent.ID}},
+		Tags:      allTags,
 		Content:   msg,
 	}
 	err = resp.Sign(svc.cfg.NostrSecretKey)

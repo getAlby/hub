@@ -133,12 +133,15 @@ You can also contribute to our [bounty program](https://github.com/getAlby/light
 
 ✅ `pay_invoice`
 - ⚠️ amount not supported (for amountless invoices)
+- ⚠️ PAYMENT_FAILED error code not supported
 
 ✅ `pay_keysend`
+- ⚠️ PAYMENT_FAILED error code not supported
 
 ✅ `make_invoice`
 
 ✅ `lookup_invoice`
+- ⚠️ NOT_FOUND error code not supported
 
 ✅ `list_transactions`
 - ⚠️ from and until in request not supported
@@ -161,15 +164,18 @@ You can also contribute to our [bounty program](https://github.com/getAlby/light
 
 ✅ `pay_invoice`
 - ⚠️ amount not supported (for amountless invoices)
+- ⚠️ PAYMENT_FAILED error code not supported
 
 ✅ `pay_keysend`
 - ⚠️ preimage in request not supported
+- ⚠️ PAYMENT_FAILED error code not supported
 
 ✅ `make_invoice`
 - ⚠️ expiry in request not supported
 
 ✅ `lookup_invoice`
 - ⚠️ fees_paid in response not supported
+- ⚠️ NOT_FOUND error code not supported
 
 ✅ `list_transactions`
 - ⚠️ offset and unpaid in request not supported

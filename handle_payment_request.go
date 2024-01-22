@@ -53,7 +53,7 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: fmt.Sprintf("Failed to decode bolt11 invoice: %s", err.Error()),
 			},
-		}, ss)
+		}, nostr.Tags{}, ss)
 	}
 
 	hasPermission, code, message := svc.hasPermission(&app, event, request.Method, paymentRequest.MSatoshi)
@@ -70,7 +70,7 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 			Error: &Nip47Error{
 				Code:    code,
 				Message: message,
-			}}, ss)
+			}}, nostr.Tags{}, ss)
 	}
 
 	payment := Payment{App: app, NostrEvent: nostrEvent, PaymentRequest: bolt11, Amount: uint(paymentRequest.MSatoshi / 1000)}
@@ -102,7 +102,7 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: fmt.Sprintf("Something went wrong while paying invoice: %s", err.Error()),
 			},
-		}, ss)
+		}, nostr.Tags{}, ss)
 	}
 	payment.Preimage = &preimage
 	nostrEvent.State = NOSTR_EVENT_STATE_HANDLER_EXECUTED
@@ -113,5 +113,5 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 		Result: Nip47PayResponse{
 			Preimage: preimage,
 		},
-	}, ss)
+	}, nostr.Tags{}, ss)
 }

@@ -35,7 +35,7 @@ func (svc *Service) HandleGetInfoEvent(ctx context.Context, request *Nip47Reques
 			Error: &Nip47Error{
 				Code:    code,
 				Message: message,
-			}}, ss)
+			}}, nostr.Tags{}, ss)
 	}
 
 	svc.Logger.WithFields(logrus.Fields{
@@ -59,7 +59,7 @@ func (svc *Service) HandleGetInfoEvent(ctx context.Context, request *Nip47Reques
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: fmt.Sprintf("Something went wrong while fetching node info: %s", err.Error()),
 			},
-		}, ss)
+		}, nostr.Tags{}, ss)
 	}
 
 	responsePayload := &Nip47GetInfoResponse{
@@ -77,5 +77,5 @@ func (svc *Service) HandleGetInfoEvent(ctx context.Context, request *Nip47Reques
 	return svc.createResponse(event, Nip47Response{
 		ResultType: request.Method,
 		Result:     responsePayload,
-	}, ss)
+	}, nostr.Tags{}, ss)
 }

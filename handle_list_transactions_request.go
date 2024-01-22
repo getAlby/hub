@@ -48,7 +48,7 @@ func (svc *Service) HandleListTransactionsEvent(ctx context.Context, request *Ni
 			Error: &Nip47Error{
 				Code:    code,
 				Message: message,
-			}}, ss)
+			}}, nostr.Tags{}, ss)
 	}
 
 	svc.Logger.WithFields(logrus.Fields{
@@ -74,7 +74,7 @@ func (svc *Service) HandleListTransactionsEvent(ctx context.Context, request *Ni
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: fmt.Sprintf("Something went wrong while fetching transactions: %s", err.Error()),
 			},
-		}, ss)
+		}, nostr.Tags{}, ss)
 	}
 
 	responsePayload := &Nip47ListTransactionsResponse{
@@ -87,6 +87,5 @@ func (svc *Service) HandleListTransactionsEvent(ctx context.Context, request *Ni
 	return svc.createResponse(event, Nip47Response{
 		ResultType: request.Method,
 		Result:     responsePayload,
-	},
-		ss)
+	}, nostr.Tags{}, ss)
 }

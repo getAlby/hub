@@ -61,13 +61,15 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, sub *nostr.S
 					"bolt11":    bolt11,
 				}).Errorf("Failed to decode bolt11 invoice: %v", err)
 
+				// TODO: Decide what to do if id is empty
+				dTag := []string{"d", invoiceInfo.Id}
 				resp, err := svc.createResponse(event, Nip47Response{
 					ResultType: NIP_47_MULTI_PAY_INVOICE_METHOD,
 					Error: &Nip47Error{
 						Code:    NIP_47_ERROR_INTERNAL,
 						Message: fmt.Sprintf("Failed to decode bolt11 invoice: %s", err.Error()),
 					},
-				}, ss)
+				}, nostr.Tags{dTag}, ss)
 				if err != nil {
 					svc.Logger.WithFields(logrus.Fields{
 						"eventId":        event.ID,
@@ -77,20 +79,18 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, sub *nostr.S
 					}).Errorf("Failed to process event: %v", err)
 					return
 				}
-				// TODO: Decide what to do if id is empty
-				dTag := []string{"a", fmt.Sprintf("%d:%s:%s", NIP_47_RESPONSE_KIND, event.PubKey, invoiceInfo.Id)}
-				resp.Tags = append(resp.Tags, dTag)
+
 				svc.PublishEvent(ctx, sub, event, resp)
 				return
 			}
 
-			id := invoiceInfo.Id
-			if id == "" {
-				id = paymentRequest.PaymentHash
+			invoiceDTagValue := invoiceInfo.Id
+			if invoiceDTagValue == "" {
+				invoiceDTagValue = paymentRequest.PaymentHash
 			}
-			dTag := []string{"a", fmt.Sprintf("%d:%s:%s", NIP_47_RESPONSE_KIND, event.PubKey, id)}
+			dTag := []string{"d", invoiceDTagValue}
 
-			hasPermission, code, message := svc.hasPermission(&app, event, request.Method, paymentRequest.MSatoshi)
+			hasPermission, code, message := svc.hasPermission(&app, event, NIP_47_PAY_INVOICE_METHOD, paymentRequest.MSatoshi)
 
 			if !hasPermission {
 				svc.Logger.WithFields(logrus.Fields{
@@ -105,7 +105,7 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, sub *nostr.S
 						Code:    code,
 						Message: message,
 					},
-				}, ss)
+				}, nostr.Tags{dTag}, ss)
 				if err != nil {
 					svc.Logger.WithFields(logrus.Fields{
 						"eventId":        event.ID,
@@ -115,7 +115,6 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, sub *nostr.S
 					}).Errorf("Failed to process event: %v", err)
 					return
 				}
-				resp.Tags = append(resp.Tags, dTag)
 				svc.PublishEvent(ctx, sub, event, resp)
 				return
 			}
@@ -157,7 +156,7 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, sub *nostr.S
 						Code:    NIP_47_ERROR_INTERNAL,
 						Message: fmt.Sprintf("Something went wrong while paying invoice: %s", err.Error()),
 					},
-				}, ss)
+				}, nostr.Tags{dTag}, ss)
 				if err != nil {
 					svc.Logger.WithFields(logrus.Fields{
 						"eventId":        event.ID,
@@ -167,7 +166,6 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, sub *nostr.S
 					}).Errorf("Failed to process event: %v", err)
 					return
 				}
-				resp.Tags = append(resp.Tags, dTag)
 				svc.PublishEvent(ctx, sub, event, resp)
 				return
 			}
@@ -181,7 +179,7 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, sub *nostr.S
 				Result: Nip47PayResponse{
 					Preimage: preimage,
 				},
-			}, ss)
+			}, nostr.Tags{dTag}, ss)
 			if err != nil {
 				svc.Logger.WithFields(logrus.Fields{
 					"eventId":        event.ID,
@@ -191,7 +189,6 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, sub *nostr.S
 				}).Errorf("Failed to process event: %v", err)
 				return
 			}
-			resp.Tags = append(resp.Tags, dTag)
 			svc.PublishEvent(ctx, sub, event, resp)
 		}(invoiceInfo)
 	}

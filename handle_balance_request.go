@@ -39,7 +39,7 @@ func (svc *Service) HandleGetBalanceEvent(ctx context.Context, request *Nip47Req
 			Error: &Nip47Error{
 				Code:    code,
 				Message: message,
-			}}, ss)
+			}}, nostr.Tags{}, ss)
 	}
 
 	svc.Logger.WithFields(logrus.Fields{
@@ -63,7 +63,7 @@ func (svc *Service) HandleGetBalanceEvent(ctx context.Context, request *Nip47Req
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: fmt.Sprintf("Something went wrong while fetching balance: %s", err.Error()),
 			},
-		}, ss)
+		}, nostr.Tags{}, ss)
 	}
 
 	responsePayload := &Nip47BalanceResponse{
@@ -84,6 +84,5 @@ func (svc *Service) HandleGetBalanceEvent(ctx context.Context, request *Nip47Req
 	return svc.createResponse(event, Nip47Response{
 		ResultType: NIP_47_GET_BALANCE_METHOD,
 		Result:     responsePayload,
-	},
-		ss)
+	}, nostr.Tags{}, ss)
 }

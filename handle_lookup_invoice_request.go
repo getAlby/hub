@@ -39,7 +39,7 @@ func (svc *Service) HandleLookupInvoiceEvent(ctx context.Context, request *Nip47
 			Error: &Nip47Error{
 				Code:    code,
 				Message: message,
-			}}, ss)
+			}}, nostr.Tags{}, ss)
 	}
 
 	// TODO: move to a shared generic function
@@ -80,7 +80,7 @@ func (svc *Service) HandleLookupInvoiceEvent(ctx context.Context, request *Nip47
 					Code:    NIP_47_ERROR_INTERNAL,
 					Message: fmt.Sprintf("Failed to decode bolt11 invoice: %s", err.Error()),
 				},
-			}, ss)
+			}, nostr.Tags{}, ss)
 		}
 		paymentHash = paymentRequest.PaymentHash
 	}
@@ -102,7 +102,7 @@ func (svc *Service) HandleLookupInvoiceEvent(ctx context.Context, request *Nip47
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: fmt.Sprintf("Something went wrong while looking up invoice: %s", err.Error()),
 			},
-		}, ss)
+		}, nostr.Tags{}, ss)
 	}
 
 	responsePayload := &Nip47LookupInvoiceResponse{
@@ -114,6 +114,5 @@ func (svc *Service) HandleLookupInvoiceEvent(ctx context.Context, request *Nip47
 	return svc.createResponse(event, Nip47Response{
 		ResultType: NIP_47_LOOKUP_INVOICE_METHOD,
 		Result:     responsePayload,
-	},
-		ss)
+	}, nostr.Tags{}, ss)
 }
