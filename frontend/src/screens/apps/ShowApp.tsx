@@ -6,7 +6,8 @@ import { useApp } from "src/hooks/useApp";
 import { useCSRF } from "src/hooks/useCSRF";
 import toast from "src/components/Toast";
 import Loading from "src/components/Loading";
-import { handleRequestError, request } from "src/utils/request";
+import { request } from "src/utils/request"; // build the project for this to appear
+import { handleRequestError } from "src/utils/handleRequestError";
 
 function ShowApp() {
   const { data: info } = useInfo();

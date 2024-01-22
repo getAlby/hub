@@ -1,7 +1,6 @@
-import toast from "../components/Toast";
-import { ErrorResponse } from "../types";
+import { ErrorResponse } from "src/types";
 
-export const request = async <T,>(
+export const request = async <T>(
   ...args: Parameters<typeof fetch>
 ): Promise<T | undefined> => {
   try {
@@ -18,7 +17,7 @@ export const request = async <T,>(
       throw new Error(
         fetchResponse.status +
           " " +
-          ((body as ErrorResponse)?.message || "Unknown error"),
+          ((body as ErrorResponse)?.message || "Unknown error")
       );
     }
     return body;
@@ -27,8 +26,3 @@ export const request = async <T,>(
     throw error;
   }
 };
-
-export function handleRequestError(message: string, error: unknown) {
-  console.error(message, error);
-  toast.error(message + ": " + error);
-}

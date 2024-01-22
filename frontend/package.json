@@ -4,12 +4,12 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "dev:wails": "yarn prepare:wails && VITE_NWC_APP_TYPE=WAILS vite",
-    "build": "tsc && vite build",
+    "dev": "yarn prepare:http && vite",
+    "dev:wails": "yarn prepare:wails && vite",
+    "build": "yarn prepare:http && tsc && vite build",
     "prepare:wails": "cp ./platform_specific/wails/src/utils/request.ts src/utils/request.ts",
     "prepare:http": "cp ./platform_specific/http/src/utils/request.ts src/utils/request.ts",
-    "build:wails": "yarn prepare:wails && tsc && VITE_NWC_APP_TYPE=WAILS vite build",
+    "build:wails": "yarn prepare:wails && tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
