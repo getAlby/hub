@@ -66,7 +66,7 @@ func (svc *AlbyOAuthService) FetchUserToken(ctx context.Context, app App) (token
 		Expiry:       user.Expiry,
 	}
 
-	if user.Expiry.After(time.Now()) {
+	if user.Expiry.After(time.Now().Add(time.Duration(1) * time.Second)) {
 		return currentToken, nil
 	}
 
