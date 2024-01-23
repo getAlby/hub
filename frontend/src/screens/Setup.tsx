@@ -32,7 +32,7 @@ export function Setup() {
         }),
       });
 
-      navigate("/apps");
+      navigate("/");
     } catch (error) {
       handleRequestError("Failed to connect", error);
     } finally {
