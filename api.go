@@ -225,28 +225,27 @@ func (svc *Service) Start(startRequest *api.StartRequest) (*api.InfoResponse, er
 }
 
 func (svc *Service) Setup(setupRequest *api.SetupRequest) error {
-	encryptionKey := "bit1"
 	// only update non-empty values
 	if setupRequest.LNBackendType != "" {
-		svc.cfg.SetUpdate("LNBackendType", setupRequest.LNBackendType, encryptionKey)
+		svc.cfg.SetUpdate("LNBackendType", setupRequest.LNBackendType, setupRequest.UnlockPassword)
 	}
 	if setupRequest.BreezAPIKey != "" {
-		svc.cfg.SetUpdate("BreezAPIKey", setupRequest.BreezAPIKey, encryptionKey)
+		svc.cfg.SetUpdate("BreezAPIKey", setupRequest.BreezAPIKey, setupRequest.UnlockPassword)
 	}
 	if setupRequest.BreezMnemonic != "" {
-		svc.cfg.SetUpdate("BreezMnemonic", setupRequest.BreezMnemonic, encryptionKey)
+		svc.cfg.SetUpdate("BreezMnemonic", setupRequest.BreezMnemonic, setupRequest.UnlockPassword)
 	}
 	if setupRequest.GreenlightInviteCode != "" {
-		svc.cfg.SetUpdate("GreenlightInviteCode", setupRequest.GreenlightInviteCode, encryptionKey)
+		svc.cfg.SetUpdate("GreenlightInviteCode", setupRequest.GreenlightInviteCode, setupRequest.UnlockPassword)
 	}
 	if setupRequest.LNDAddress != "" {
-		svc.cfg.SetUpdate("LNDAddress", setupRequest.LNDAddress, encryptionKey)
+		svc.cfg.SetUpdate("LNDAddress", setupRequest.LNDAddress, setupRequest.UnlockPassword)
 	}
 	if setupRequest.LNDCertHex != "" {
-		svc.cfg.SetUpdate("LNDCertHex", setupRequest.LNDCertHex, encryptionKey)
+		svc.cfg.SetUpdate("LNDCertHex", setupRequest.LNDCertHex, setupRequest.UnlockPassword)
 	}
 	if setupRequest.LNDMacaroonHex != "" {
-		svc.cfg.SetUpdate("LNDMacaroonHex", setupRequest.LNDMacaroonHex, encryptionKey)
+		svc.cfg.SetUpdate("LNDMacaroonHex", setupRequest.LNDMacaroonHex, setupRequest.UnlockPassword)
 	}
 
 	return nil
