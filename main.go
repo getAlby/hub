@@ -23,8 +23,8 @@ import (
 func NewService(ctx context.Context) (*Service, error) {
 	// Load config from environment variables / .env file
 	godotenv.Load(".env")
-	cfg := &Config{}
-	err := envconfig.Process("", cfg)
+	appConfig := &AppConfig{}
+	err := envconfig.Process("", appConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -36,18 +36,18 @@ func NewService(ctx context.Context) (*Service, error) {
 
 	hook, err := lumberjackrus.NewHook(
 		&lumberjackrus.LogFile{
-			Filename: "nwc.general.log",
+			Filename: path.Join(appConfig.Workdir, "log/nwc-general.log"),
 		},
 		log.InfoLevel,
 		&log.JSONFormatter{},
 		&lumberjackrus.LogFileOpts{
 			log.InfoLevel: &lumberjackrus.LogFile{
-				Filename:   "./log/nwc-info.log",
+				Filename:   path.Join(appConfig.Workdir, "log/nwc-info.log"),
 				MaxAge:     1,
 				MaxBackups: 2,
 			},
 			log.ErrorLevel: &lumberjackrus.LogFile{
-				Filename:   "./log/nwc-error.log",
+				Filename:   path.Join(appConfig.Workdir, "log/nwc-error.log"),
 				MaxAge:     1,
 				MaxBackups: 2,
 			},
@@ -60,7 +60,7 @@ func NewService(ctx context.Context) (*Service, error) {
 
 	var db *gorm.DB
 	var sqlDb *sql.DB
-	db, err = gorm.Open(sqlite.Open(cfg.DatabaseUri), &gorm.Config{})
+	db, err = gorm.Open(sqlite.Open(appConfig.DatabaseUri), &gorm.Config{})
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +80,8 @@ func NewService(ctx context.Context) (*Service, error) {
 
 	ctx, _ = signal.NotifyContext(ctx, os.Interrupt)
 
-	cfg.Init(db)
+	cfg := &Config{}
+	cfg.Init(db, appConfig)
 
 	var wg sync.WaitGroup
 	svc := &Service{
@@ -103,7 +104,7 @@ func (svc *Service) launchLNBackend(encryptionKey string) error {
 		svc.lnClient = nil
 	}
 
-	lndBackend, _ := svc.cfg.Get("LNBackendType", encryptionKey)
+	lndBackend, _ := svc.cfg.Get("LNBackendType", "")
 	if lndBackend == "" {
 		return errors.New("No LNBackendType specified")
 	}
@@ -122,7 +123,7 @@ func (svc *Service) launchLNBackend(encryptionKey string) error {
 		BreezMnemonic, _ := svc.cfg.Get("BreezMnemonic", encryptionKey)
 		BreezAPIKey, _ := svc.cfg.Get("BreezAPIKey", encryptionKey)
 		GreenlightInviteCode, _ := svc.cfg.Get("GreenlightInviteCode", encryptionKey)
-		BreezWorkdir := path.Join(svc.cfg.Workdir, "breez")
+		BreezWorkdir := path.Join(svc.cfg.Env.Workdir, "breez")
 
 		lnClient, err = NewBreezService(BreezMnemonic, BreezAPIKey, GreenlightInviteCode, BreezWorkdir)
 	default:

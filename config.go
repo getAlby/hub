@@ -17,7 +17,7 @@ const (
 
 type AppConfig struct {
 	Relay           string `envconfig:"RELAY" default:"wss://relay.getalby.com/v1"`
-	PublicRelay     string `envconfig:"PUBLIC_RELAY"`
+	LNBackendType   string `envconfig:"LN_BACKEND_TYPE"`
 	LNDCertFile     string `envconfig:"LND_CERT_FILE"`
 	LNDMacaroonFile string `envconfig:"LND_MACAROON_FILE"`
 	Workdir         string `envconfig:"WORK_DIR" default:".data"`
@@ -34,32 +34,40 @@ type UserConfig struct {
 }
 
 type Config struct {
-	AppConfig
+	Env            *AppConfig
+	CookieSecret   string
 	NostrSecretKey string
 	NostrPublicKey string
 	db             *gorm.DB
 }
 
-func (cfg *Config) Init(db *gorm.DB) {
+func (cfg *Config) Init(db *gorm.DB, env *AppConfig) {
 	cfg.db = db
+	cfg.Env = env
 
-	if cfg.Relay != "" {
-		cfg.SetUpdate("Relay", cfg.Relay, "")
+	if cfg.Env.Relay != "" {
+		cfg.SetUpdate("Relay", cfg.Env.Relay, "")
 	}
-	if cfg.LNDCertFile != "" {
-		certBytes, err := os.ReadFile(cfg.LNDCertFile)
+	if cfg.Env.LNBackendType != "" {
+		cfg.SetUpdate("LNBackendType", cfg.Env.LNBackendType, "")
+	}
+	if cfg.Env.LNDCertFile != "" {
+		certBytes, err := os.ReadFile(cfg.Env.LNDCertFile)
 		if err != nil {
 			certHex := hex.EncodeToString(certBytes)
 			cfg.SetUpdate("LNDCertHex", certHex, "")
 		}
 	}
-	if cfg.LNDMacaroonFile != "" {
-		macBytes, err := os.ReadFile(cfg.LNDMacaroonFile)
+	if cfg.Env.LNDMacaroonFile != "" {
+		macBytes, err := os.ReadFile(cfg.Env.LNDMacaroonFile)
 		if err != nil {
 			macHex := hex.EncodeToString(macBytes)
 			cfg.SetUpdate("LNDMacaroonHex", macHex, "")
 		}
 	}
+	// set the cookie secret to the one from the env
+	// if no cookie secret is configured we create a random one and store it in the DB
+	cfg.CookieSecret = cfg.Env.CookieSecret
 	if cfg.CookieSecret == "" {
 		hex, err := randomHex(20)
 		if err == nil {

@@ -89,10 +89,7 @@ func (svc *Service) CreateApp(createAppRequest *api.CreateAppRequest) (*api.Crea
 		return nil, err
 	}
 
-	publicRelayUrl := svc.cfg.PublicRelay
-	if publicRelayUrl == "" {
-		publicRelayUrl = svc.cfg.Relay
-	}
+	relayUrl, _ := svc.cfg.Get("Relay", "")
 
 	responseBody := &api.CreateAppResponse{}
 	responseBody.Name = name
@@ -103,7 +100,7 @@ func (svc *Service) CreateApp(createAppRequest *api.CreateAppRequest) (*api.Crea
 		returnToUrl, err := url.Parse(createAppRequest.ReturnTo)
 		if err == nil {
 			query := returnToUrl.Query()
-			query.Add("relay", publicRelayUrl)
+			query.Add("relay", relayUrl)
 			query.Add("pubkey", svc.cfg.NostrPublicKey)
 			// if user.LightningAddress != "" {
 			// 	query.Add("lud16", user.LightningAddress)
@@ -117,7 +114,7 @@ func (svc *Service) CreateApp(createAppRequest *api.CreateAppRequest) (*api.Crea
 	// if user.LightningAddress != "" {
 	// 	lud16 = fmt.Sprintf("&lud16=%s", user.LightningAddress)
 	// }
-	responseBody.PairingUri = fmt.Sprintf("nostr+walletconnect://%s?relay=%s&secret=%s%s", svc.cfg.NostrPublicKey, publicRelayUrl, pairingSecretKey, lud16)
+	responseBody.PairingUri = fmt.Sprintf("nostr+walletconnect://%s?relay=%s&secret=%s%s", svc.cfg.NostrPublicKey, relayUrl, pairingSecretKey, lud16)
 	return responseBody, nil
 }
 
@@ -227,7 +224,7 @@ func (svc *Service) Start(startRequest *api.StartRequest) (*api.InfoResponse, er
 func (svc *Service) Setup(setupRequest *api.SetupRequest) error {
 	// only update non-empty values
 	if setupRequest.LNBackendType != "" {
-		svc.cfg.SetUpdate("LNBackendType", setupRequest.LNBackendType, setupRequest.UnlockPassword)
+		svc.cfg.SetUpdate("LNBackendType", setupRequest.LNBackendType, "")
 	}
 	if setupRequest.BreezAPIKey != "" {
 		svc.cfg.SetUpdate("BreezAPIKey", setupRequest.BreezAPIKey, setupRequest.UnlockPassword)
