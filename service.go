@@ -214,6 +214,9 @@ func (svc *Service) handleAndPublishEvent(ctx context.Context, sub *nostr.Subscr
 		}).Errorf("Failed to process event: %v", err)
 		return
 	}
+
+	// TODO: consider move event publishing to individual methods - multi_* methods are
+	// inconsistent with single methods because they publish multiple responses
 	switch nip47Request.Method {
 	case NIP_47_MULTI_PAY_INVOICE_METHOD:
 		svc.HandleMultiPayInvoiceEvent(ctx, sub, nip47Request, event, app, ss)
@@ -233,12 +236,7 @@ func (svc *Service) handleAndPublishEvent(ctx context.Context, sub *nostr.Subscr
 	case NIP_47_GET_INFO_METHOD:
 		resp, err = svc.HandleGetInfoEvent(ctx, nip47Request, event, app, ss)
 	default:
-		resp, err = svc.createResponse(event, Nip47Response{
-			ResultType: nip47Request.Method,
-			Error: &Nip47Error{
-				Code:    NIP_47_ERROR_NOT_IMPLEMENTED,
-				Message: fmt.Sprintf("Unknown method: %s", nip47Request.Method),
-			}}, nostr.Tags{}, ss)
+		resp, err = svc.handleUnknownMethod(ctx, nip47Request, event, app, ss)
 	}
 
 	if err != nil {
@@ -250,6 +248,15 @@ func (svc *Service) handleAndPublishEvent(ctx context.Context, sub *nostr.Subscr
 	if resp != nil {
 		svc.PublishEvent(ctx, sub, event, resp)
 	}
+}
+
+func (svc *Service) handleUnknownMethod(ctx context.Context, request *Nip47Request, event *nostr.Event, app App, ss []byte) (result *nostr.Event, err error) {
+	return svc.createResponse(event, Nip47Response{
+		ResultType: request.Method,
+		Error: &Nip47Error{
+			Code:    NIP_47_ERROR_NOT_IMPLEMENTED,
+			Message: fmt.Sprintf("Unknown method: %s", request.Method),
+		}}, nostr.Tags{}, ss)
 }
 
 func (svc *Service) createResponse(initialEvent *nostr.Event, content interface{}, tags nostr.Tags, ss []byte) (result *nostr.Event, err error) {
