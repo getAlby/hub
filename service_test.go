@@ -643,10 +643,9 @@ func createTestService(t *testing.T) (svc *Service, ln LNClient) {
 
 	return &Service{
 		cfg: &Config{
-			Config: db.Config{
-				NostrSecretKey: sk,
-			},
-			IdentityPubkey: pk,
+			db:             gormDb,
+			NostrSecretKey: sk,
+			NostrPublicKey: pk,
 		},
 		db:          gormDb,
 		lnClient:    ln,
