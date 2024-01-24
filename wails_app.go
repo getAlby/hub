@@ -17,16 +17,20 @@ var assets embed.FS
 type WailsApp struct {
 	ctx context.Context
 	svc *Service
+	api *API
 }
 
 func NewApp(svc *Service) *WailsApp {
-	return &WailsApp{svc: svc}
+	return &WailsApp{
+		svc: svc,
+		api: NewAPI(svc),
+	}
 }
 
 // startup is called when the app starts. The context is saved
 // so we can call the runtime methods
-func (a *WailsApp) startup(ctx context.Context) {
-	a.ctx = ctx
+func (app *WailsApp) startup(ctx context.Context) {
+	app.ctx = ctx
 }
 
 func LaunchWailsApp(app *WailsApp) {

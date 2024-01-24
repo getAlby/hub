@@ -27,7 +27,8 @@ func main() {
 	e := echo.New()
 
 	//register shared routes
-	svc.RegisterSharedRoutes(e)
+	httpSvc := NewHttpService(svc)
+	httpSvc.RegisterSharedRoutes(e)
 	//start Echo server
 	go func() {
 		if err := e.Start(fmt.Sprintf(":%v", svc.cfg.Env.Port)); err != nil && err != http.ErrServerClosed {

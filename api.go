@@ -8,14 +8,22 @@ import (
 	"strings"
 	"time"
 
-	"github.com/getAlby/nostr-wallet-connect/models/api"
+	models "github.com/getAlby/nostr-wallet-connect/models/api"
 	"github.com/nbd-wtf/go-nostr"
 	"gorm.io/gorm"
 )
 
-// TODO: these methods should be moved to a separate object, not in Service
+type API struct {
+	svc *Service
+}
 
-func (svc *Service) CreateApp(createAppRequest *api.CreateAppRequest) (*api.CreateAppResponse, error) {
+func NewAPI(svc *Service) *API {
+	return &API{
+		svc: svc,
+	}
+}
+
+func (api *API) CreateApp(createAppRequest *models.CreateAppRequest) (*models.CreateAppResponse, error) {
 	name := createAppRequest.Name
 	var pairingPublicKey string
 	var pairingSecretKey string
@@ -27,7 +35,7 @@ func (svc *Service) CreateApp(createAppRequest *api.CreateAppRequest) (*api.Crea
 		//validate public key
 		decoded, err := hex.DecodeString(pairingPublicKey)
 		if err != nil || len(decoded) != 32 {
-			svc.Logger.Errorf("Invalid public key format: %s", pairingPublicKey)
+			api.svc.Logger.Errorf("Invalid public key format: %s", pairingPublicKey)
 			return nil, errors.New(fmt.Sprintf("Invalid public key format: %s", pairingPublicKey))
 
 		}
@@ -42,7 +50,7 @@ func (svc *Service) CreateApp(createAppRequest *api.CreateAppRequest) (*api.Crea
 		var err error
 		expiresAt, err = time.Parse(time.RFC3339, createAppRequest.ExpiresAt)
 		if err != nil {
-			svc.Logger.Errorf("Invalid expiresAt: %s", pairingPublicKey)
+			api.svc.Logger.Errorf("Invalid expiresAt: %s", pairingPublicKey)
 			return nil, errors.New(fmt.Sprintf("Invalid expiresAt: %v", err))
 		}
 	}
@@ -51,7 +59,7 @@ func (svc *Service) CreateApp(createAppRequest *api.CreateAppRequest) (*api.Crea
 		expiresAt = time.Date(expiresAt.Year(), expiresAt.Month(), expiresAt.Day(), 23, 59, 59, 0, expiresAt.Location())
 	}
 
-	err := svc.db.Transaction(func(tx *gorm.DB) error {
+	err := api.svc.db.Transaction(func(tx *gorm.DB) error {
 		err := tx.Save(&app).Error
 		if err != nil {
 			return err
@@ -89,9 +97,9 @@ func (svc *Service) CreateApp(createAppRequest *api.CreateAppRequest) (*api.Crea
 		return nil, err
 	}
 
-	relayUrl, _ := svc.cfg.Get("Relay", "")
+	relayUrl, _ := api.svc.cfg.Get("Relay", "")
 
-	responseBody := &api.CreateAppResponse{}
+	responseBody := &models.CreateAppResponse{}
 	responseBody.Name = name
 	responseBody.Pubkey = pairingPublicKey
 	responseBody.PairingSecret = pairingSecretKey
@@ -101,7 +109,7 @@ func (svc *Service) CreateApp(createAppRequest *api.CreateAppRequest) (*api.Crea
 		if err == nil {
 			query := returnToUrl.Query()
 			query.Add("relay", relayUrl)
-			query.Add("pubkey", svc.cfg.NostrPublicKey)
+			query.Add("pubkey", api.svc.cfg.NostrPublicKey)
 			// if user.LightningAddress != "" {
 			// 	query.Add("lud16", user.LightningAddress)
 			// }
@@ -114,23 +122,23 @@ func (svc *Service) CreateApp(createAppRequest *api.CreateAppRequest) (*api.Crea
 	// if user.LightningAddress != "" {
 	// 	lud16 = fmt.Sprintf("&lud16=%s", user.LightningAddress)
 	// }
-	responseBody.PairingUri = fmt.Sprintf("nostr+walletconnect://%s?relay=%s&secret=%s%s", svc.cfg.NostrPublicKey, relayUrl, pairingSecretKey, lud16)
+	responseBody.PairingUri = fmt.Sprintf("nostr+walletconnect://%s?relay=%s&secret=%s%s", api.svc.cfg.NostrPublicKey, relayUrl, pairingSecretKey, lud16)
 	return responseBody, nil
 }
 
-func (svc *Service) DeleteApp(userApp *App) error {
-	return svc.db.Delete(userApp).Error
+func (api *API) DeleteApp(userApp *App) error {
+	return api.svc.db.Delete(userApp).Error
 }
 
-func (svc *Service) GetApp(userApp *App) *api.App {
+func (api *API) GetApp(userApp *App) *models.App {
 
 	var lastEvent NostrEvent
-	lastEventResult := svc.db.Where("app_id = ?", userApp.ID).Order("id desc").Limit(1).Find(&lastEvent)
+	lastEventResult := api.svc.db.Where("app_id = ?", userApp.ID).Order("id desc").Limit(1).Find(&lastEvent)
 
 	paySpecificPermission := AppPermission{}
 	appPermissions := []AppPermission{}
 	var expiresAt *time.Time
-	svc.db.Where("app_id = ?", userApp.ID).Find(&appPermissions)
+	api.svc.db.Where("app_id = ?", userApp.ID).Find(&appPermissions)
 
 	requestMethods := []string{}
 	for _, appPerm := range appPermissions {
@@ -148,10 +156,10 @@ func (svc *Service) GetApp(userApp *App) *api.App {
 	budgetUsage := int64(0)
 	maxAmount := paySpecificPermission.MaxAmount
 	if maxAmount > 0 {
-		budgetUsage = svc.GetBudgetUsage(&paySpecificPermission)
+		budgetUsage = api.svc.GetBudgetUsage(&paySpecificPermission)
 	}
 
-	response := api.App{
+	response := models.App{
 		Name:           userApp.Name,
 		Description:    userApp.Description,
 		CreatedAt:      userApp.CreatedAt,
@@ -172,13 +180,13 @@ func (svc *Service) GetApp(userApp *App) *api.App {
 
 }
 
-func (svc *Service) ListApps() ([]api.App, error) {
+func (api *API) ListApps() ([]models.App, error) {
 	apps := []App{}
-	svc.db.Find(&apps)
+	api.svc.db.Find(&apps)
 
-	apiApps := []api.App{}
+	apiApps := []models.App{}
 	for _, userApp := range apps {
-		apiApp := api.App{
+		apiApp := models.App{
 			// ID:          app.ID,
 			Name:        userApp.Name,
 			Description: userApp.Description,
@@ -188,9 +196,9 @@ func (svc *Service) ListApps() ([]api.App, error) {
 		}
 
 		var lastEvent NostrEvent
-		result := svc.db.Where("app_id = ?", userApp.ID).Order("id desc").Limit(1).Find(&lastEvent)
+		result := api.svc.db.Where("app_id = ?", userApp.ID).Order("id desc").Limit(1).Find(&lastEvent)
 		if result.Error != nil {
-			svc.Logger.Errorf("Failed to fetch last event %v", result.Error)
+			api.svc.Logger.Errorf("Failed to fetch last event %v", result.Error)
 			return nil, errors.New("Failed to fetch last event")
 		}
 		if result.RowsAffected > 0 {
@@ -201,40 +209,40 @@ func (svc *Service) ListApps() ([]api.App, error) {
 	return apiApps, nil
 }
 
-func (svc *Service) GetInfo() *api.InfoResponse {
-	info := api.InfoResponse{}
-	backend, _ := svc.cfg.Get("LNBackendType", "")
+func (api *API) GetInfo() *models.InfoResponse {
+	info := models.InfoResponse{}
+	backend, _ := api.svc.cfg.Get("LNBackendType", "")
 	info.SetupCompleted = backend != ""
-	info.Running = svc.lnClient != nil
+	info.Running = api.svc.lnClient != nil
 	return &info
 }
 
-func (svc *Service) Start(startRequest *api.StartRequest) error {
-	return svc.StartApp(startRequest.UnlockPassword)
+func (api *API) Start(startRequest *models.StartRequest) error {
+	return api.svc.StartApp(startRequest.UnlockPassword)
 }
 
-func (svc *Service) Setup(setupRequest *api.SetupRequest) error {
+func (api *API) Setup(setupRequest *models.SetupRequest) error {
 	// only update non-empty values
 	if setupRequest.LNBackendType != "" {
-		svc.cfg.SetUpdate("LNBackendType", setupRequest.LNBackendType, "")
+		api.svc.cfg.SetUpdate("LNBackendType", setupRequest.LNBackendType, "")
 	}
 	if setupRequest.BreezAPIKey != "" {
-		svc.cfg.SetUpdate("BreezAPIKey", setupRequest.BreezAPIKey, setupRequest.UnlockPassword)
+		api.svc.cfg.SetUpdate("BreezAPIKey", setupRequest.BreezAPIKey, setupRequest.UnlockPassword)
 	}
 	if setupRequest.BreezMnemonic != "" {
-		svc.cfg.SetUpdate("BreezMnemonic", setupRequest.BreezMnemonic, setupRequest.UnlockPassword)
+		api.svc.cfg.SetUpdate("BreezMnemonic", setupRequest.BreezMnemonic, setupRequest.UnlockPassword)
 	}
 	if setupRequest.GreenlightInviteCode != "" {
-		svc.cfg.SetUpdate("GreenlightInviteCode", setupRequest.GreenlightInviteCode, setupRequest.UnlockPassword)
+		api.svc.cfg.SetUpdate("GreenlightInviteCode", setupRequest.GreenlightInviteCode, setupRequest.UnlockPassword)
 	}
 	if setupRequest.LNDAddress != "" {
-		svc.cfg.SetUpdate("LNDAddress", setupRequest.LNDAddress, setupRequest.UnlockPassword)
+		api.svc.cfg.SetUpdate("LNDAddress", setupRequest.LNDAddress, setupRequest.UnlockPassword)
 	}
 	if setupRequest.LNDCertHex != "" {
-		svc.cfg.SetUpdate("LNDCertHex", setupRequest.LNDCertHex, setupRequest.UnlockPassword)
+		api.svc.cfg.SetUpdate("LNDCertHex", setupRequest.LNDCertHex, setupRequest.UnlockPassword)
 	}
 	if setupRequest.LNDMacaroonHex != "" {
-		svc.cfg.SetUpdate("LNDMacaroonHex", setupRequest.LNDMacaroonHex, setupRequest.UnlockPassword)
+		api.svc.cfg.SetUpdate("LNDMacaroonHex", setupRequest.LNDMacaroonHex, setupRequest.UnlockPassword)
 	}
 
 	return nil
