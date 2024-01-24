@@ -17,11 +17,13 @@ import (
 
 type HttpService struct {
 	svc *Service
+	api *API
 }
 
 func NewHttpService(svc *Service) *HttpService {
 	return &HttpService{
 		svc: svc,
+		api: NewAPI(svc),
 	}
 }
 
@@ -72,7 +74,7 @@ func (httpSvc *HttpService) csrfHandler(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) infoHandler(c echo.Context) error {
-	responseBody := httpSvc.svc.GetInfo()
+	responseBody := httpSvc.api.GetInfo()
 	return c.JSON(http.StatusOK, responseBody)
 }
 
@@ -84,7 +86,7 @@ func (httpSvc *HttpService) startHandler(c echo.Context) error {
 		})
 	}
 
-	err := httpSvc.svc.Start(&startRequest)
+	err := httpSvc.api.Start(&startRequest)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: fmt.Sprintf("Failed to start node: %s", err.Error()),
@@ -111,7 +113,7 @@ func (httpSvc *HttpService) logoutHandler(c echo.Context) error {
 
 func (httpSvc *HttpService) appsListHandler(c echo.Context) error {
 
-	apps, err := httpSvc.svc.ListApps()
+	apps, err := httpSvc.api.ListApps()
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
@@ -132,7 +134,7 @@ func (httpSvc *HttpService) appsShowHandler(c echo.Context) error {
 		})
 	}
 
-	response := httpSvc.svc.GetApp(&app)
+	response := httpSvc.api.GetApp(&app)
 
 	return c.JSON(http.StatusOK, response)
 }
@@ -157,7 +159,7 @@ func (httpSvc *HttpService) appsDeleteHandler(c echo.Context) error {
 		})
 	}
 
-	if err := httpSvc.svc.DeleteApp(&app); err != nil {
+	if err := httpSvc.api.DeleteApp(&app); err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: "Failed to delete app",
 		})
@@ -173,7 +175,7 @@ func (httpSvc *HttpService) appsCreateHandler(c echo.Context) error {
 		})
 	}
 
-	responseBody, err := httpSvc.svc.CreateApp(&requestData)
+	responseBody, err := httpSvc.api.CreateApp(&requestData)
 
 	if err != nil {
 		httpSvc.svc.Logger.Errorf("Failed to save app: %v", err)
@@ -193,7 +195,7 @@ func (httpSvc *HttpService) setupHandler(c echo.Context) error {
 		})
 	}
 
-	err := httpSvc.svc.Setup(&setupRequest)
+	err := httpSvc.api.Setup(&setupRequest)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: fmt.Sprintf("Failed to setup node: %s", err.Error()),
