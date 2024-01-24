@@ -41,11 +41,6 @@ func NewService(ctx context.Context) (*Service, error) {
 		log.InfoLevel,
 		&log.JSONFormatter{},
 		&lumberjackrus.LogFileOpts{
-			log.InfoLevel: &lumberjackrus.LogFile{
-				Filename:   path.Join(appConfig.Workdir, "log/nwc-info.log"),
-				MaxAge:     1,
-				MaxBackups: 2,
-			},
 			log.ErrorLevel: &lumberjackrus.LogFile{
 				Filename:   path.Join(appConfig.Workdir, "log/nwc-error.log"),
 				MaxAge:     1,
