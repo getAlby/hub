@@ -11,7 +11,7 @@ export function Setup() {
   const [isConnecting, setConnecting] = React.useState(false);
   const navigate = useNavigate();
 
-  const { data: info } = useInfo();
+  const { data: info, mutate: refetchInfo } = useInfo();
   const { data: csrf } = useCSRF();
 
   async function handleSubmit(data: object) {
@@ -32,6 +32,7 @@ export function Setup() {
         }),
       });
 
+      await refetchInfo();
       navigate("/");
     } catch (error) {
       handleRequestError("Failed to connect", error);

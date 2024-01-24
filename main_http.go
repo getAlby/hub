@@ -30,7 +30,7 @@ func main() {
 	svc.RegisterSharedRoutes(e)
 	//start Echo server
 	go func() {
-		if err := e.Start(fmt.Sprintf(":%v", svc.cfg.Port)); err != nil && err != http.ErrServerClosed {
+		if err := e.Start(fmt.Sprintf(":%v", svc.cfg.Env.Port)); err != nil && err != http.ErrServerClosed {
 			svc.Logger.Fatalf("shutting down the server: %v", err)
 		}
 	}()
