@@ -34,7 +34,7 @@ func NewService(ctx context.Context) (*Service, error) {
 	logger.SetOutput(os.Stdout)
 	logger.SetLevel(log.InfoLevel)
 
-	hook, err := lumberjackrus.NewHook(
+	fileLoggerHook, err := lumberjackrus.NewHook(
 		&lumberjackrus.LogFile{
 			Filename: path.Join(appConfig.Workdir, "log/nwc-general.log"),
 		},
@@ -51,7 +51,7 @@ func NewService(ctx context.Context) (*Service, error) {
 	if err != nil {
 		return nil, err
 	}
-	logger.AddHook(hook)
+	logger.AddHook(fileLoggerHook)
 
 	var db *gorm.DB
 	var sqlDb *sql.DB
