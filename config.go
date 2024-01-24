@@ -4,8 +4,8 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"os"
-	"time"
 
+	"github.com/getAlby/nostr-wallet-connect/models/db"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -25,15 +25,6 @@ type AppConfig struct {
 	Port            string `envconfig:"PORT" default:"8080"`
 	DatabaseUri     string `envconfig:"DATABASE_URI" default:"nostr-wallet-connect.db"`
 	CookieSecret    string `envconfig:"COOKIE_SECRET"`
-}
-
-type UserConfig struct {
-	ID        uint   `gorm:"primaryKey"`
-	Key       string `gorm:"unique;uniqueIndex;not null"`
-	Value     string
-	Encrypted bool
-	CreatedAt time.Time
-	UpdatedAt time.Time
 }
 
 type Config struct {
@@ -81,7 +72,7 @@ func (cfg *Config) Init(db *gorm.DB, env *AppConfig) {
 }
 
 func (cfg *Config) Get(key string, encryptionKey string) (string, error) {
-	var userConfig UserConfig
+	var userConfig db.UserConfig
 	cfg.db.Where("key = ?", key).Limit(1).Find(&userConfig)
 
 	value := userConfig.Value
@@ -97,12 +88,12 @@ func (cfg *Config) Get(key string, encryptionKey string) (string, error) {
 
 func (cfg *Config) set(key string, value string, clauses clause.OnConflict, encryptionKey string) bool {
 	if encryptionKey != "" {
-		decrypted, err := AesGcmEncrypt(value, encryptionKey)
+		encrypted, err := AesGcmEncrypt(value, encryptionKey)
 		if err == nil {
-			value = decrypted
+			value = encrypted
 		}
 	}
-	userConfig := UserConfig{Key: key, Value: value, Encrypted: encryptionKey != ""}
+	userConfig := db.UserConfig{Key: key, Value: value, Encrypted: encryptionKey != ""}
 	result := cfg.db.Clauses(clauses).Create(&userConfig)
 
 	return result.Error == nil
