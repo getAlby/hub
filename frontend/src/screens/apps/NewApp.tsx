@@ -23,7 +23,8 @@ import { LightningIcon } from "src/components/icons/LightningIcon";
 import { InvoiceIcon } from "src/components/icons/InvoiceIcon";
 import { SearchIcon } from "src/components/icons/SearchIcon";
 import { TransactionsIcon } from "src/components/icons/TransactionsIcon";
-import { handleRequestError, request } from "src/utils/request";
+import { request } from "src/utils/request"; // build the project for this to appear
+import { handleRequestError } from "src/utils/handleRequestError";
 
 const NewApp = () => {
   const { data: csrf } = useCSRF();

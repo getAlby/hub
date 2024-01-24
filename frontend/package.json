@@ -5,11 +5,11 @@
   "type": "module",
   "scripts": {
     "dev:http": "yarn prepare:http && vite",
-    "dev:wails": "yarn prepare:wails && VITE_NWC_APP_TYPE=WAILS vite",
+    "dev:wails": "yarn prepare:wails && vite",
     "build:http": "yarn prepare:http && tsc && vite build",
+    "build:wails": "yarn prepare:wails && tsc && vite build",
     "prepare:wails": "cp ./platform_specific/wails/src/utils/request.ts src/utils/request.ts",
     "prepare:http": "cp ./platform_specific/http/src/utils/request.ts src/utils/request.ts",
-    "build:wails": "yarn prepare:wails && tsc && VITE_NWC_APP_TYPE=WAILS vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },

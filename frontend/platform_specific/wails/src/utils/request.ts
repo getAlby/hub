@@ -1,15 +1,13 @@
-import toast from "../components/Toast";
-
 import { WailsRequestRouter } from "wailsjs/go/main/WailsApp";
 
-export const request = async <T,>(
+export const request = async <T>(
   ...args: Parameters<typeof fetch>
 ): Promise<T | undefined> => {
   try {
     const res = await WailsRequestRouter(
       args[0].toString(),
       args[1]?.method || "GET",
-      args[1]?.body?.toString() || "",
+      args[1]?.body?.toString() || ""
     );
 
     console.log("Wails request", ...args, res);
@@ -23,8 +21,3 @@ export const request = async <T,>(
     throw error;
   }
 };
-
-export function handleRequestError(message: string, error: unknown) {
-  console.error(message, error);
-  toast.error(message + ": " + error);
-}
