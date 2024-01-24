@@ -6,7 +6,6 @@ import (
 	"crypto/x509"
 	"encoding/hex"
 	"errors"
-	"io/ioutil"
 
 	"github.com/lightningnetwork/lnd/lnrpc"
 	"github.com/lightningnetwork/lnd/lnrpc/routerrpc"
@@ -49,12 +48,6 @@ func NewLNDclient(lndOptions LNDoptions, ctx context.Context) (result *LNDWrappe
 		cp.AppendCertsFromPEM(cert)
 		creds = credentials.NewClientTLSFromCert(cp, "")
 		// if a path to a cert file is provided
-	} else if lndOptions.CertFile != "" {
-		credsFromFile, err := credentials.NewClientTLSFromFile(lndOptions.CertFile, "")
-		if err != nil {
-			return nil, err
-		}
-		creds = credsFromFile // make it available outside of the else if block
 	} else {
 		creds = credentials.NewTLS(&tls.Config{})
 	}
@@ -69,12 +62,6 @@ func NewLNDclient(lndOptions LNDoptions, ctx context.Context) (result *LNDWrappe
 			return nil, err
 		}
 		macaroonData = macBytes
-	} else if lndOptions.MacaroonFile != "" {
-		macBytes, err := ioutil.ReadFile(lndOptions.MacaroonFile)
-		if err != nil {
-			return nil, err
-		}
-		macaroonData = macBytes // make it available outside of the else if block
 	} else {
 		return nil, errors.New("LND macaroon is missing")
 	}

@@ -32,6 +32,10 @@ type CreateAppRequest struct {
 	ReturnTo       string `json:"returnTo"`
 }
 
+type StartRequest struct {
+	UnlockPassword string `json:"unlockPassword"`
+}
+
 type SetupRequest struct {
 	LNBackendType string `json:"backendType"`
 	// Breez fields
@@ -44,6 +48,7 @@ type SetupRequest struct {
 	LNDMacaroonFile string `json:"lndMacaroonFile"`
 	LNDCertHex      string `json:"lndCertHex"`
 	LNDMacaroonHex  string `json:"lndMacaroonHex"`
+	UnlockPassword  string `json:"unlockPassword"`
 }
 
 type CreateAppResponse struct {
@@ -61,4 +66,5 @@ type User struct {
 type InfoResponse struct {
 	BackendType    string `json:"backendType"`
 	SetupCompleted bool   `json:"setupCompleted"`
+	Running        bool   `json:"running"`
 }

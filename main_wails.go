@@ -14,7 +14,7 @@ import (
 func main() {
 	log.Info("NWC Starting in WAILS mode")
 	ctx, cancel := context.WithCancel(context.Background())
-	svc := NewService(ctx)
+	svc, _ := NewService(ctx)
 
 	app := NewApp(svc)
 	LaunchWailsApp(app)

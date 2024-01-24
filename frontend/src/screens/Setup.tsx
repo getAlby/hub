@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import Loading from "src/components/Loading";
+import ConnectButton from "src/components/ConnectButton";
 import { useCSRF } from "src/hooks/useCSRF";
 import { useInfo } from "src/hooks/useInfo";
 import { BackendType } from "src/types";
@@ -9,10 +9,12 @@ import { request } from "src/utils/request"; // build the project for this to ap
 
 export function Setup() {
   const [backendType, setBackendType] = React.useState<BackendType>("BREEZ");
+  // TODO: proper onboarding
+  const [unlockPassword, setUnlockPassword] = React.useState("");
   const [isConnecting, setConnecting] = React.useState(false);
   const navigate = useNavigate();
 
-  const { data: info } = useInfo();
+  const { data: info, mutate: refetchInfo } = useInfo();
   const { data: csrf } = useCSRF();
 
   async function handleSubmit(data: object) {
@@ -29,11 +31,13 @@ export function Setup() {
         },
         body: JSON.stringify({
           backendType,
+          unlockPassword,
           ...data,
         }),
       });
 
-      navigate("/apps");
+      await refetchInfo();
+      navigate("/");
     } catch (error) {
       handleRequestError("Failed to connect", error);
     } finally {
@@ -52,6 +56,21 @@ export function Setup() {
       <p className="mb-4">
         Enter your node connection credentials to connect to your wallet.
       </p>
+      {/* TODO: proper onboarding */}
+      <label
+        htmlFor="unlock-password"
+        className="block font-medium text-gray-900 dark:text-white"
+      >
+        NWC unlock password
+      </label>
+      <input
+        name="unlock-password"
+        onChange={(e) => setUnlockPassword(e.target.value)}
+        value={unlockPassword}
+        type="password"
+        id="unlock-password"
+        className="mb-4 dark:bg-surface-00dp block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
+      />
       <label
         htmlFor="backend-type"
         className="block font-medium text-gray-900 dark:text-white"
@@ -63,7 +82,7 @@ export function Setup() {
         value={backendType}
         onChange={(e) => setBackendType(e.target.value as BackendType)}
         id="backend-type"
-        className="mb-4 bg-gray-50 border border-gray-300 text-gray-900 focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 text-sm rounded-lg block w-full p-2.5 dark:bg-surface-00dp dark:border-gray-700 dark:placeholder-gray-400 dark:text-white"
+        className="dark:bg-surface-00dp mb-4 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
       >
         <option value={"BREEZ"}>Breez</option>
         <option value={"LND"}>LND</option>
@@ -76,30 +95,6 @@ export function Setup() {
         <LNDForm handleSubmit={handleSubmit} isConnecting={isConnecting} />
       )}
     </>
-  );
-}
-
-type ConnectButtonProps = {
-  isConnecting: boolean;
-};
-
-function ConnectButton({ isConnecting }: ConnectButtonProps) {
-  return (
-    <button
-      type="submit"
-      className={`mt-4 gap-2 inline-flex w-full ${
-        isConnecting ? "bg-gray-300 dark:bg-gray-700" : "bg-purple-700"
-      } cursor-pointer dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus:outline-none font-medium hover:bg-purple-900 items-center justify-center px-5 py-3 rounded-md shadow text-white transition`}
-      disabled={isConnecting}
-    >
-      {isConnecting ? (
-        <>
-          <Loading /> Connecting...
-        </>
-      ) : (
-        <>Connect</>
-      )}
-    </button>
   );
 }
 
@@ -142,7 +137,7 @@ function BreezForm({ isConnecting, handleSubmit }: SetupFormProps) {
           value={greenlightInviteCode}
           type="password"
           id="greenlight-invite-code"
-          className="bg-gray-50 border border-gray-300 text-gray-900 focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 text-sm rounded-lg block w-full p-2.5 dark:bg-surface-00dp dark:border-gray-700 dark:placeholder-gray-400 dark:text-white"
+          className="dark:bg-surface-00dp block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
         />
         <label
           htmlFor="breez-api-key"
@@ -156,7 +151,7 @@ function BreezForm({ isConnecting, handleSubmit }: SetupFormProps) {
           value={breezApiKey}
           type="password"
           id="breez-api-key"
-          className="bg-gray-50 border border-gray-300 text-gray-900 focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 text-sm rounded-lg block w-full p-2.5 dark:bg-surface-00dp dark:border-gray-700 dark:placeholder-gray-400 dark:text-white"
+          className="dark:bg-surface-00dp block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
         />
         <label
           htmlFor="mnemonic"
@@ -170,7 +165,7 @@ function BreezForm({ isConnecting, handleSubmit }: SetupFormProps) {
           value={breezMnemonic}
           type="password"
           id="mnemonic"
-          className="bg-gray-50 border border-gray-300 text-gray-900 focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 text-sm rounded-lg block w-full p-2.5 dark:bg-surface-00dp dark:border-gray-700 dark:placeholder-gray-400 dark:text-white"
+          className="dark:bg-surface-00dp block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
         />
       </>
       <ConnectButton isConnecting={isConnecting} />
@@ -182,6 +177,7 @@ function LNDForm({ isConnecting, handleSubmit }: SetupFormProps) {
   const [lndAddress, setLndAddress] = React.useState<string>("");
   const [lndCertHex, setLndCertHex] = React.useState<string>("");
   const [lndMacaroonHex, setLndMacaroonHex] = React.useState<string>("");
+  // TODO: proper onboarding
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -210,7 +206,7 @@ function LNDForm({ isConnecting, handleSubmit }: SetupFormProps) {
           onChange={(e) => setLndAddress(e.target.value)}
           value={lndAddress}
           id="lnd-address"
-          className="bg-gray-50 border border-gray-300 text-gray-900 focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 text-sm rounded-lg block w-full p-2.5 dark:bg-surface-00dp dark:border-gray-700 dark:placeholder-gray-400 dark:text-white"
+          className="dark:bg-surface-00dp block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
         />
 
         <label
@@ -225,7 +221,7 @@ function LNDForm({ isConnecting, handleSubmit }: SetupFormProps) {
           value={lndCertHex}
           type="password"
           id="lnd-cert-hex"
-          className="bg-gray-50 border border-gray-300 text-gray-900 focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 text-sm rounded-lg block w-full p-2.5 dark:bg-surface-00dp dark:border-gray-700 dark:placeholder-gray-400 dark:text-white"
+          className="dark:bg-surface-00dp block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
         />
         <label
           htmlFor="lnd-macaroon-hex"
@@ -239,7 +235,7 @@ function LNDForm({ isConnecting, handleSubmit }: SetupFormProps) {
           value={lndMacaroonHex}
           type="password"
           id="lnd-macaroon-hex"
-          className="bg-gray-50 border border-gray-300 text-gray-900 focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 text-sm rounded-lg block w-full p-2.5 dark:bg-surface-00dp dark:border-gray-700 dark:placeholder-gray-400 dark:text-white"
+          className="dark:bg-surface-00dp block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
         />
       </>
       <ConnectButton isConnecting={isConnecting} />

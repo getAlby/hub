@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/getAlby/nostr-wallet-connect/models/api"
-	"github.com/getAlby/nostr-wallet-connect/models/db"
 	"github.com/nbd-wtf/go-nostr"
 	"gorm.io/gorm"
 )
@@ -90,10 +89,7 @@ func (svc *Service) CreateApp(createAppRequest *api.CreateAppRequest) (*api.Crea
 		return nil, err
 	}
 
-	publicRelayUrl := svc.cfg.PublicRelay
-	if publicRelayUrl == "" {
-		publicRelayUrl = svc.cfg.Relay
-	}
+	relayUrl, _ := svc.cfg.Get("Relay", "")
 
 	responseBody := &api.CreateAppResponse{}
 	responseBody.Name = name
@@ -104,8 +100,8 @@ func (svc *Service) CreateApp(createAppRequest *api.CreateAppRequest) (*api.Crea
 		returnToUrl, err := url.Parse(createAppRequest.ReturnTo)
 		if err == nil {
 			query := returnToUrl.Query()
-			query.Add("relay", publicRelayUrl)
-			query.Add("pubkey", svc.cfg.IdentityPubkey)
+			query.Add("relay", relayUrl)
+			query.Add("pubkey", svc.cfg.NostrPublicKey)
 			// if user.LightningAddress != "" {
 			// 	query.Add("lud16", user.LightningAddress)
 			// }
@@ -118,7 +114,7 @@ func (svc *Service) CreateApp(createAppRequest *api.CreateAppRequest) (*api.Crea
 	// if user.LightningAddress != "" {
 	// 	lud16 = fmt.Sprintf("&lud16=%s", user.LightningAddress)
 	// }
-	responseBody.PairingUri = fmt.Sprintf("nostr+walletconnect://%s?relay=%s&secret=%s%s", svc.cfg.IdentityPubkey, publicRelayUrl, pairingSecretKey, lud16)
+	responseBody.PairingUri = fmt.Sprintf("nostr+walletconnect://%s?relay=%s&secret=%s%s", svc.cfg.NostrPublicKey, relayUrl, pairingSecretKey, lud16)
 	return responseBody, nil
 }
 
@@ -207,50 +203,39 @@ func (svc *Service) ListApps() ([]api.App, error) {
 
 func (svc *Service) GetInfo() *api.InfoResponse {
 	info := api.InfoResponse{}
-	info.BackendType = svc.cfg.LNBackendType
-	info.SetupCompleted = svc.lnClient != nil
+	backend, _ := svc.cfg.Get("LNBackendType", "")
+	info.SetupCompleted = backend != ""
+	info.Running = svc.lnClient != nil
 	return &info
 }
 
+func (svc *Service) Start(startRequest *api.StartRequest) error {
+	return svc.StartApp(startRequest.UnlockPassword)
+}
+
 func (svc *Service) Setup(setupRequest *api.SetupRequest) error {
-
-	dbConfig := db.Config{}
-	err := svc.db.First(&dbConfig).Error
-
-	if err != nil {
-		svc.Logger.Errorf("Failed to get db config: %v", err)
-		return err
-	}
-
 	// only update non-empty values
 	if setupRequest.LNBackendType != "" {
-		dbConfig.LNBackendType = setupRequest.LNBackendType
+		svc.cfg.SetUpdate("LNBackendType", setupRequest.LNBackendType, "")
 	}
 	if setupRequest.BreezAPIKey != "" {
-		dbConfig.BreezAPIKey = setupRequest.BreezAPIKey
+		svc.cfg.SetUpdate("BreezAPIKey", setupRequest.BreezAPIKey, setupRequest.UnlockPassword)
 	}
 	if setupRequest.BreezMnemonic != "" {
-		dbConfig.BreezMnemonic = setupRequest.BreezMnemonic
+		svc.cfg.SetUpdate("BreezMnemonic", setupRequest.BreezMnemonic, setupRequest.UnlockPassword)
 	}
 	if setupRequest.GreenlightInviteCode != "" {
-		dbConfig.GreenlightInviteCode = setupRequest.GreenlightInviteCode
+		svc.cfg.SetUpdate("GreenlightInviteCode", setupRequest.GreenlightInviteCode, setupRequest.UnlockPassword)
 	}
 	if setupRequest.LNDAddress != "" {
-		dbConfig.LNDAddress = setupRequest.LNDAddress
+		svc.cfg.SetUpdate("LNDAddress", setupRequest.LNDAddress, setupRequest.UnlockPassword)
 	}
 	if setupRequest.LNDCertHex != "" {
-		dbConfig.LNDCertHex = setupRequest.LNDCertHex
+		svc.cfg.SetUpdate("LNDCertHex", setupRequest.LNDCertHex, setupRequest.UnlockPassword)
 	}
 	if setupRequest.LNDMacaroonHex != "" {
-		dbConfig.LNDMacaroonHex = setupRequest.LNDMacaroonHex
+		svc.cfg.SetUpdate("LNDMacaroonHex", setupRequest.LNDMacaroonHex, setupRequest.UnlockPassword)
 	}
 
-	err = svc.db.Save(&dbConfig).Error
-
-	if err != nil {
-		svc.Logger.Errorf("Failed to update config: %v", err)
-		return err
-	}
-
-	return svc.launchLNBackend()
+	return nil
 }

@@ -10,4 +10,5 @@ CREATE UNIQUE INDEX `idx_nostr_events_nostr_id` ON `nostr_events`(`nostr_id`);
 CREATE INDEX `idx_nostr_events_app_id` ON `nostr_events`(`app_id`);
 CREATE INDEX idx_payment_sum ON payments (app_id, preimage, created_at);
 CREATE INDEX idx_nostr_events_app_id_and_id ON nostr_events(app_id, id);
-CREATE TABLE configs (id int NOT NULL PRIMARY KEY, ln_backend_type TEXT, lnd_address TEXT, lnd_cert_hex TEXT, lnd_macaroon_hex TEXT, breez_api_key TEXT, breez_mnemonic TEXT, greenlight_invite_code TEXT, nostr_secret_key TEXT, created_at datetime, updated_at datetime);
+CREATE TABLE "user_configs" ("id"	integer, "key"	text NOT NULL UNIQUE, "value"	text, "encrypted"	numeric, `created_at` datetime,`updated_at` datetime, PRIMARY KEY("id"));
+CREATE UNIQUE INDEX "idx_user_configs_key" ON "user_configs" ("key");

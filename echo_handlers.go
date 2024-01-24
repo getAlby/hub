@@ -48,6 +48,7 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	e.GET("/api/info", svc.InfoHandler)
 	e.POST("/api/logout", svc.LogoutHandler)
 	e.POST("/api/setup", svc.SetupHandler)
+	e.POST("/api/start", svc.StartHandler)
 
 	frontend.RegisterHandlers(e)
 }
@@ -67,6 +68,23 @@ func (svc *Service) InfoHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, responseBody)
 }
 
+func (svc *Service) StartHandler(c echo.Context) error {
+	var startRequest api.StartRequest
+	if err := c.Bind(&startRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	err := svc.Start(&startRequest)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to start node: %s", err.Error()),
+		})
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
 func (svc *Service) LogoutHandler(c echo.Context) error {
 	sess, err := session.Get(CookieName, c)
 	if err != nil {
@@ -75,9 +93,6 @@ func (svc *Service) LogoutHandler(c echo.Context) error {
 		})
 	}
 	sess.Options.MaxAge = -1
-	if svc.cfg.CookieDomain != "" {
-		sess.Options.Domain = svc.cfg.CookieDomain
-	}
 	if err := sess.Save(c.Request(), c.Response()); err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: "Failed to save session",

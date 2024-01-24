@@ -218,7 +218,7 @@ func (svc *Service) createResponse(initialEvent *nostr.Event, content interface{
 		return nil, err
 	}
 	resp := &nostr.Event{
-		PubKey:    svc.cfg.IdentityPubkey,
+		PubKey:    svc.cfg.NostrPublicKey,
 		CreatedAt: nostr.Now(),
 		Kind:      NIP_47_RESPONSE_KIND,
 		Tags:      nostr.Tags{[]string{"p", initialEvent.PubKey}, []string{"e", initialEvent.ID}},
@@ -310,7 +310,7 @@ func (svc *Service) PublishNip47Info(ctx context.Context, relay *nostr.Relay) er
 	ev.Kind = NIP_47_INFO_EVENT_KIND
 	ev.Content = NIP_47_CAPABILITIES
 	ev.CreatedAt = nostr.Now()
-	ev.PubKey = svc.cfg.IdentityPubkey
+	ev.PubKey = svc.cfg.NostrPublicKey
 	err := ev.Sign(svc.cfg.NostrSecretKey)
 	if err != nil {
 		return err
