@@ -25,6 +25,7 @@ func (a *WailsApp) WailsRequestRouter(route string, method string, body string) 
 	switch {
 	case appMatch != nil && len(appMatch) > 1:
 		pubkey := appMatch[1]
+
 		userApp := App{}
 		findResult := a.svc.db.Where("nostr_pubkey = ?", pubkey).First(&userApp)
 

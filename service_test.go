@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/getAlby/nostr-wallet-connect/migrations"
-	"github.com/getAlby/nostr-wallet-connect/models/db"
 	"github.com/glebarez/sqlite"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip04"
@@ -163,7 +162,7 @@ func TestHandleEvent(t *testing.T) {
 	senderPubkey, err := nostr.GetPublicKey(senderPrivkey)
 	assert.NoError(t, err)
 	//test lnbc.. payload without having an app registered
-	ss, err := nip04.ComputeSharedSecret(svc.cfg.IdentityPubkey, senderPrivkey)
+	ss, err := nip04.ComputeSharedSecret(svc.cfg.NostrPublicKey, senderPrivkey)
 	assert.NoError(t, err)
 	payload, err := nip04.Encrypt(nip47PayJson, ss)
 	assert.NoError(t, err)

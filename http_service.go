@@ -15,9 +15,17 @@ import (
 	"gorm.io/gorm"
 )
 
-// TODO: echo methods should not be on Service object
+type HttpService struct {
+	svc *Service
+}
 
-func (svc *Service) ValidateUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+func NewHttpService(svc *Service) *HttpService {
+	return &HttpService{
+		svc: svc,
+	}
+}
+
+func (httpSvc *HttpService) validateUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		// TODO: check if login is required and check if user is logged in
 		//sess, _ := session.Get(CookieName, c)
@@ -28,7 +36,7 @@ func (svc *Service) ValidateUserMiddleware(next echo.HandlerFunc) echo.HandlerFu
 	}
 }
 
-func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
+func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.HideBanner = true
 	e.Use(echologrus.Middleware())
 	e.Use(middleware.Recover())
@@ -36,24 +44,24 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
 		TokenLookup: "header:X-CSRF-Token",
 	}))
-	e.Use(session.Middleware(sessions.NewCookieStore([]byte(svc.cfg.CookieSecret))))
+	e.Use(session.Middleware(sessions.NewCookieStore([]byte(httpSvc.svc.cfg.CookieSecret))))
 
-	authMiddleware := svc.ValidateUserMiddleware
-	e.GET("/api/apps", svc.AppsListHandler, authMiddleware)
-	e.GET("/api/apps/:pubkey", svc.AppsShowHandler, authMiddleware)
-	e.DELETE("/api/apps/:pubkey", svc.AppsDeleteHandler, authMiddleware)
-	e.POST("/api/apps", svc.AppsCreateHandler, authMiddleware)
+	authMiddleware := httpSvc.validateUserMiddleware
+	e.GET("/api/apps", httpSvc.appsListHandler, authMiddleware)
+	e.GET("/api/apps/:pubkey", httpSvc.appsShowHandler, authMiddleware)
+	e.DELETE("/api/apps/:pubkey", httpSvc.appsDeleteHandler, authMiddleware)
+	e.POST("/api/apps", httpSvc.appsCreateHandler, authMiddleware)
 
-	e.GET("/api/csrf", svc.CSRFHandler)
-	e.GET("/api/info", svc.InfoHandler)
-	e.POST("/api/logout", svc.LogoutHandler)
-	e.POST("/api/setup", svc.SetupHandler)
-	e.POST("/api/start", svc.StartHandler)
+	e.GET("/api/csrf", httpSvc.csrfHandler)
+	e.GET("/api/info", httpSvc.infoHandler)
+	e.POST("/api/logout", httpSvc.logoutHandler)
+	e.POST("/api/setup", httpSvc.setupHandler)
+	e.POST("/api/start", httpSvc.startHandler)
 
 	frontend.RegisterHandlers(e)
 }
 
-func (svc *Service) CSRFHandler(c echo.Context) error {
+func (httpSvc *HttpService) csrfHandler(c echo.Context) error {
 	csrf, _ := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
 	if csrf == "" {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
@@ -63,12 +71,12 @@ func (svc *Service) CSRFHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, csrf)
 }
 
-func (svc *Service) InfoHandler(c echo.Context) error {
-	responseBody := svc.GetInfo()
+func (httpSvc *HttpService) infoHandler(c echo.Context) error {
+	responseBody := httpSvc.svc.GetInfo()
 	return c.JSON(http.StatusOK, responseBody)
 }
 
-func (svc *Service) StartHandler(c echo.Context) error {
+func (httpSvc *HttpService) startHandler(c echo.Context) error {
 	var startRequest api.StartRequest
 	if err := c.Bind(&startRequest); err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
@@ -76,7 +84,7 @@ func (svc *Service) StartHandler(c echo.Context) error {
 		})
 	}
 
-	err := svc.Start(&startRequest)
+	err := httpSvc.svc.Start(&startRequest)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: fmt.Sprintf("Failed to start node: %s", err.Error()),
@@ -85,7 +93,7 @@ func (svc *Service) StartHandler(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func (svc *Service) LogoutHandler(c echo.Context) error {
+func (httpSvc *HttpService) logoutHandler(c echo.Context) error {
 	sess, err := session.Get(CookieName, c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
@@ -101,9 +109,9 @@ func (svc *Service) LogoutHandler(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func (svc *Service) AppsListHandler(c echo.Context) error {
+func (httpSvc *HttpService) appsListHandler(c echo.Context) error {
 
-	apps, err := svc.ListApps()
+	apps, err := httpSvc.svc.ListApps()
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
@@ -114,9 +122,9 @@ func (svc *Service) AppsListHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, apps)
 }
 
-func (svc *Service) AppsShowHandler(c echo.Context) error {
+func (httpSvc *HttpService) appsShowHandler(c echo.Context) error {
 	app := App{}
-	findResult := svc.db.Where("nostr_pubkey = ?", c.Param("pubkey")).First(&app)
+	findResult := httpSvc.svc.db.Where("nostr_pubkey = ?", c.Param("pubkey")).First(&app)
 
 	if findResult.RowsAffected == 0 {
 		return c.JSON(http.StatusNotFound, ErrorResponse{
@@ -124,12 +132,12 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 		})
 	}
 
-	response := svc.GetApp(&app)
+	response := httpSvc.svc.GetApp(&app)
 
 	return c.JSON(http.StatusOK, response)
 }
 
-func (svc *Service) AppsDeleteHandler(c echo.Context) error {
+func (httpSvc *HttpService) appsDeleteHandler(c echo.Context) error {
 	pubkey := c.Param("pubkey")
 	if pubkey == "" {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
@@ -137,7 +145,7 @@ func (svc *Service) AppsDeleteHandler(c echo.Context) error {
 		})
 	}
 	app := App{}
-	result := svc.db.Where("nostr_pubkey = ?", pubkey).First(&app)
+	result := httpSvc.svc.db.Where("nostr_pubkey = ?", pubkey).First(&app)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return c.JSON(http.StatusNotFound, ErrorResponse{
@@ -149,7 +157,7 @@ func (svc *Service) AppsDeleteHandler(c echo.Context) error {
 		})
 	}
 
-	if err := svc.DeleteApp(&app); err != nil {
+	if err := httpSvc.svc.DeleteApp(&app); err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: "Failed to delete app",
 		})
@@ -157,7 +165,7 @@ func (svc *Service) AppsDeleteHandler(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func (svc *Service) AppsCreateHandler(c echo.Context) error {
+func (httpSvc *HttpService) appsCreateHandler(c echo.Context) error {
 	var requestData api.CreateAppRequest
 	if err := c.Bind(&requestData); err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
@@ -165,10 +173,10 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 		})
 	}
 
-	responseBody, err := svc.CreateApp(&requestData)
+	responseBody, err := httpSvc.svc.CreateApp(&requestData)
 
 	if err != nil {
-		svc.Logger.Errorf("Failed to save app: %v", err)
+		httpSvc.svc.Logger.Errorf("Failed to save app: %v", err)
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: fmt.Sprintf("Failed to save app: %v", err),
 		})
@@ -177,7 +185,7 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, responseBody)
 }
 
-func (svc *Service) SetupHandler(c echo.Context) error {
+func (httpSvc *HttpService) setupHandler(c echo.Context) error {
 	var setupRequest api.SetupRequest
 	if err := c.Bind(&setupRequest); err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
@@ -185,7 +193,7 @@ func (svc *Service) SetupHandler(c echo.Context) error {
 		})
 	}
 
-	err := svc.Setup(&setupRequest)
+	err := httpSvc.svc.Setup(&setupRequest)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: fmt.Sprintf("Failed to setup node: %s", err.Error()),
