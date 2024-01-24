@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"os"
+	"time"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -31,6 +32,8 @@ type UserConfig struct {
 	Key       string `gorm:"unique;uniqueIndex;not null"`
 	Value     string
 	Encrypted bool
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 type Config struct {
