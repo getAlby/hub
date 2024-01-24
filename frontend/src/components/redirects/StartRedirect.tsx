@@ -1,0 +1,24 @@
+import { useInfo } from "src/hooks/useInfo";
+import { useLocation, useNavigate } from "react-router-dom";
+import React from "react";
+import Loading from "src/components/Loading";
+
+export function StartRedirect({ children }: React.PropsWithChildren) {
+  const { data: info } = useInfo();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // TODO: re-add login redirect: https://github.com/getAlby/nostr-wallet-connect/commit/59b041886098dda4ff38191e3dd704ec36360673
+  React.useEffect(() => {
+    if (!info || (info.setupCompleted && !info.running)) {
+      return;
+    }
+    navigate("/");
+  }, [info, location, navigate]);
+
+  if (!info) {
+    return <Loading />;
+  }
+
+  return children;
+}

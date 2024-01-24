@@ -7,10 +7,12 @@ export const request = async <T>(
     const fetchResponse = await fetch(...args);
 
     let body: T | undefined;
-    try {
-      body = await fetchResponse.json();
-    } catch (error) {
-      console.error(error);
+    if (fetchResponse.status !== 204) {
+      try {
+        body = await fetchResponse.json();
+      } catch (error) {
+        console.error(error);
+      }
     }
 
     if (!fetchResponse.ok) {
