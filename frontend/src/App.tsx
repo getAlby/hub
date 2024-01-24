@@ -36,7 +36,7 @@ function App() {
             ></Route>
             <Route path="welcome" element={<Welcome />}></Route>
             <Route path="setup">
-              <Route path="" element={<Navigate to="password" />} />
+              <Route path="" element={<Navigate to="password" replace />} />
               <Route path="password" element={<SetupPassword />} />
               <Route path="node" element={<SetupNode />} />
             </Route>
