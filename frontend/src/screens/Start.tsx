@@ -1,8 +1,9 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useCSRF } from "src/hooks/useCSRF";
-import { request, handleRequestError } from "src/utils/request";
+import { request } from "src/utils/request";
 import ConnectButton from "src/components/ConnectButton";
+import { handleRequestError } from "src/utils/handleRequestError";
 
 export default function Start() {
   const [unlockPassword, setUnlockPassword] = React.useState("");

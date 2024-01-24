@@ -76,8 +76,13 @@ func (svc *Service) StartHandler(c echo.Context) error {
 		})
 	}
 
-	responseBody, _ := svc.Start(&startRequest)
-	return c.JSON(http.StatusOK, responseBody)
+	err := svc.Start(&startRequest)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to start node: %s", err.Error()),
+		})
+	}
+	return c.NoContent(http.StatusNoContent)
 }
 
 func (svc *Service) LogoutHandler(c echo.Context) error {

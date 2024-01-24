@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/nbd-wtf/go-nostr"
+	"github.com/nbd-wtf/go-nostr/nip19"
 )
 
 func (svc *Service) StartNostr(encryptionKey string) error {
@@ -19,7 +20,12 @@ func (svc *Service) StartNostr(encryptionKey string) error {
 	svc.cfg.NostrSecretKey = nostrSecretKey
 	svc.cfg.NostrPublicKey = nostrPublicKey
 
-	svc.Logger.Infof("Starting nostr-wallet-connect. npub: %s", svc.cfg.NostrPublicKey)
+	npub, err := nip19.EncodePublicKey(svc.cfg.NostrPublicKey)
+	if err != nil {
+		svc.Logger.Fatalf("Error converting nostr privkey to pubkey: %v", err)
+	}
+
+	svc.Logger.Infof("Starting nostr-wallet-connect. npub: %s hex: %s", npub, svc.cfg.NostrPublicKey)
 	svc.wg.Add(1)
 	go func() {
 		//connect to the relay
@@ -72,10 +78,9 @@ func (svc *Service) StartNostr(encryptionKey string) error {
 }
 
 func (svc *Service) StartApp(encryptionKey string) error {
-	// svc.Logger.Infof("Starting nostr-wallet-connect. npub: %s hex: %s", npub, identityPubkey)
 	err := svc.launchLNBackend(encryptionKey)
 	if err != nil {
-		svc.Logger.Warnf("Failed to launch LN backend: %v", err)
+		svc.Logger.Errorf("Failed to launch LN backend: %v", err)
 		return err
 	}
 

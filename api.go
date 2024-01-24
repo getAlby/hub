@@ -209,16 +209,8 @@ func (svc *Service) GetInfo() *api.InfoResponse {
 	return &info
 }
 
-func (svc *Service) Start(startRequest *api.StartRequest) (*api.InfoResponse, error) {
-	err := svc.StartApp(startRequest.UnlockPassword)
-	if err != nil {
-		panic(err)
-	}
-	info := api.InfoResponse{}
-	backend, _ := svc.cfg.Get("LNBackendType", "")
-	info.SetupCompleted = backend != ""
-	info.Running = svc.lnClient != nil
-	return &info, nil
+func (svc *Service) Start(startRequest *api.StartRequest) error {
+	return svc.StartApp(startRequest.UnlockPassword)
 }
 
 func (svc *Service) Setup(setupRequest *api.SetupRequest) error {

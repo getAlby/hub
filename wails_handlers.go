@@ -45,8 +45,6 @@ func (a *WailsApp) WailsRequestRouter(route string, method string, body string) 
 		}
 	}
 
-	//e.POST("/api/apps", svc.AppsCreateHandler, authMiddleware)
-
 	switch route {
 	case "/api/apps":
 		switch method {
@@ -88,16 +86,16 @@ func (a *WailsApp) WailsRequestRouter(route string, method string, body string) 
 			}).Errorf("Failed to decode request to wails router: %v", err)
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
-		res, err := a.svc.Start(startRequest)
+		err = a.svc.Start(startRequest)
 		if err != nil {
 			a.svc.Logger.WithFields(logrus.Fields{
 				"route":  route,
 				"method": method,
 				"body":   body,
 			}).Errorf("Failed to setup node: %v", err)
-			return WailsRequestRouterResponse{Body: res, Error: err.Error()}
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
-		return WailsRequestRouterResponse{Body: res, Error: ""}
+		return WailsRequestRouterResponse{Body: nil, Error: ""}
 	case "/api/csrf":
 		return WailsRequestRouterResponse{Body: "dummy", Error: ""}
 	case "/api/setup":

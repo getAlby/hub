@@ -9,6 +9,8 @@ import { request } from "src/utils/request"; // build the project for this to ap
 
 export function Setup() {
   const [backendType, setBackendType] = React.useState<BackendType>("BREEZ");
+  // TODO: proper onboarding
+  const [unlockPassword, setUnlockPassword] = React.useState("");
   const [isConnecting, setConnecting] = React.useState(false);
   const navigate = useNavigate();
 
@@ -29,6 +31,7 @@ export function Setup() {
         },
         body: JSON.stringify({
           backendType,
+          unlockPassword,
           ...data,
         }),
       });
@@ -53,6 +56,21 @@ export function Setup() {
       <p className="mb-4">
         Enter your node connection credentials to connect to your wallet.
       </p>
+      {/* TODO: proper onboarding */}
+      <label
+        htmlFor="unlock-password"
+        className="block font-medium text-gray-900 dark:text-white"
+      >
+        NWC unlock password
+      </label>
+      <input
+        name="unlock-password"
+        onChange={(e) => setUnlockPassword(e.target.value)}
+        value={unlockPassword}
+        type="password"
+        id="unlock-password"
+        className="mb-4 dark:bg-surface-00dp block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
+      />
       <label
         htmlFor="backend-type"
         className="block font-medium text-gray-900 dark:text-white"
@@ -159,6 +177,7 @@ function LNDForm({ isConnecting, handleSubmit }: SetupFormProps) {
   const [lndAddress, setLndAddress] = React.useState<string>("");
   const [lndCertHex, setLndCertHex] = React.useState<string>("");
   const [lndMacaroonHex, setLndMacaroonHex] = React.useState<string>("");
+  // TODO: proper onboarding
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
