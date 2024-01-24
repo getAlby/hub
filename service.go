@@ -61,7 +61,7 @@ func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 		svc.Logger.Info("Received EOS")
 
 		for event := range sub.Events {
-			go svc.handleAndPublishEvent(ctx, sub, event)
+			go svc.HandleEvent(ctx, sub, event)
 		}
 		svc.Logger.Info("Subscription ended")
 	}()
@@ -137,7 +137,7 @@ func (svc *Service) PublishEvent(ctx context.Context, sub *nostr.Subscription, e
 	}
 }
 
-func (svc *Service) handleAndPublishEvent(ctx context.Context, sub *nostr.Subscription, event *nostr.Event) {
+func (svc *Service) HandleEvent(ctx context.Context, sub *nostr.Subscription, event *nostr.Event) {
 	var resp *nostr.Event
 	svc.Logger.WithFields(logrus.Fields{
 		"eventId":   event.ID,
