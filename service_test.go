@@ -368,7 +368,7 @@ func TestHandlePayInvoiceEvent(t *testing.T) {
 	// check again
 	err = svc.db.Model(&AppPermission{}).Where("app_id = ?", app.ID).Update("expires_at", nil).Error
 
-	reqEvent.ID = "pay_invoice_with_budget_overflow"
+	reqEvent.ID = "pay_invoice_after_change"
 	res, err = svc.HandlePayInvoiceEvent(ctx, request, reqEvent, *app, ss)
 	assert.NoError(t, err)
 	assert.NotNil(t, res)
