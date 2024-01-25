@@ -149,14 +149,6 @@ func TestHandleEvent(t *testing.T) {
 	ctx := context.TODO()
 	svc, _ := createTestService(t)
 	defer os.Remove(testDB)
-	//test not yet receivedEOS
-	res, err := svc.HandleEvent(ctx, &nostr.Event{
-		Kind: NIP_47_REQUEST_KIND,
-	})
-	assert.Nil(t, res)
-	assert.Nil(t, err)
-	//now signal that we are ready to receive events
-	svc.ReceivedEOS = true
 
 	senderPrivkey := nostr.GeneratePrivateKey()
 	senderPubkey, err := nostr.GetPublicKey(senderPrivkey)
@@ -166,7 +158,7 @@ func TestHandleEvent(t *testing.T) {
 	assert.NoError(t, err)
 	payload, err := nip04.Encrypt(nip47PayJson, ss)
 	assert.NoError(t, err)
-	res, err = svc.HandleEvent(ctx, &nostr.Event{
+	res, err := svc.HandleEvent(ctx, &nostr.Event{
 		ID:      "test_event_1",
 		Kind:    NIP_47_REQUEST_KIND,
 		PubKey:  senderPubkey,
@@ -646,10 +638,9 @@ func createTestService(t *testing.T) (svc *Service, ln LNClient) {
 			NostrSecretKey: sk,
 			NostrPublicKey: pk,
 		},
-		db:          gormDb,
-		lnClient:    ln,
-		ReceivedEOS: false,
-		Logger:      logger,
+		db:       gormDb,
+		lnClient: ln,
+		Logger:   logger,
 	}, ln
 }
 
