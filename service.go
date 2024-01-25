@@ -334,6 +334,9 @@ func (svc *Service) HandleEvent(ctx context.Context, sub *nostr.Subscription, ev
 	case NIP_47_MULTI_PAY_INVOICE_METHOD:
 		svc.HandleMultiPayInvoiceEvent(ctx, sub, nip47Request, event, app, ss)
 		return
+	case NIP_47_MULTI_PAY_KEYSEND_METHOD:
+		svc.HandleMultiPayKeysendEvent(ctx, sub, nip47Request, event, app, ss)
+		return
 	// TODO: for the below handlers consider returning
 	// Nip47Response instead of *nostr.Event
 	case NIP_47_PAY_INVOICE_METHOD:

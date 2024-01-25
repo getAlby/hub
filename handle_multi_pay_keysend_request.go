@@ -4,15 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strings"
 	"sync"
 
 	"github.com/nbd-wtf/go-nostr"
-	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
 )
 
-func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, sub *nostr.Subscription, request *Nip47Request, event *nostr.Event, app App, ss []byte) {
+func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, sub *nostr.Subscription, request *Nip47Request, event *nostr.Event, app App, ss []byte) {
 
 	nostrEvent := NostrEvent{App: app, NostrId: event.ID, Content: event.Content, State: "received"}
 	err := svc.db.Create(&nostrEvent).Error
@@ -29,7 +27,7 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, sub *nostr.S
 		return
 	}
 
-	multiPayParams := &Nip47MultiPayInvoiceParams{}
+	multiPayParams := &Nip47MultiPayKeysendParams{}
 	err = json.Unmarshal(request.Params, multiPayParams)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
@@ -45,58 +43,25 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, sub *nostr.S
 	}
 
 	var wg sync.WaitGroup
-	for _, invoiceInfo := range multiPayParams.Invoices {
+	for _, keysendInfo := range multiPayParams.Invoices {
 		wg.Add(1)
-		go func(invoiceInfo Nip47MultiPayInvoiceElement) {
+		go func(keysendInfo Nip47MultiPayKeysendElement) {
 			defer wg.Done()
-			bolt11 := invoiceInfo.Invoice
-			// Convert invoice to lowercase string
-			bolt11 = strings.ToLower(bolt11)
-			paymentRequest, err := decodepay.Decodepay(bolt11)
-			if err != nil {
-				svc.Logger.WithFields(logrus.Fields{
-					"eventId":   event.ID,
-					"eventKind": event.Kind,
-					"appId":     app.ID,
-					"bolt11":    bolt11,
-				}).Errorf("Failed to decode bolt11 invoice: %v", err)
 
-				// TODO: Decide what to do if id is empty
-				dTag := []string{"d", invoiceInfo.Id}
-				resp, err := svc.createResponse(event, Nip47Response{
-					ResultType: request.Method,
-					Error: &Nip47Error{
-						Code:    NIP_47_ERROR_INTERNAL,
-						Message: fmt.Sprintf("Failed to decode bolt11 invoice: %s", err.Error()),
-					},
-				}, nostr.Tags{dTag}, ss)
-				if err != nil {
-					svc.Logger.WithFields(logrus.Fields{
-						"eventId":        event.ID,
-						"eventKind":      event.Kind,
-						"paymentRequest": invoiceInfo.Invoice,
-						"invoiceId":      invoiceInfo.Id,
-					}).Errorf("Failed to process event: %v", err)
-					return
-				}
-
-				svc.PublishEvent(ctx, sub, event, resp)
-				return
+			keysendDTagValue := keysendInfo.Id
+			if keysendDTagValue == "" {
+				keysendDTagValue = keysendInfo.Pubkey
 			}
+			dTag := []string{"d", keysendDTagValue}
 
-			invoiceDTagValue := invoiceInfo.Id
-			if invoiceDTagValue == "" {
-				invoiceDTagValue = paymentRequest.PaymentHash
-			}
-			dTag := []string{"d", invoiceDTagValue}
-
-			hasPermission, code, message := svc.hasPermission(&app, event, NIP_47_PAY_INVOICE_METHOD, paymentRequest.MSatoshi)
+			hasPermission, code, message := svc.hasPermission(&app, event, NIP_47_PAY_INVOICE_METHOD, keysendInfo.Amount)
 
 			if !hasPermission {
 				svc.Logger.WithFields(logrus.Fields{
-					"eventId":   event.ID,
-					"eventKind": event.Kind,
-					"appId":     app.ID,
+					"eventId":      event.ID,
+					"eventKind":    event.Kind,
+					"appId":        app.ID,
+					"senderPubkey": keysendInfo.Pubkey,
 				}).Errorf("App does not have permission: %s %s", code, message)
 
 				resp, err := svc.createResponse(event, Nip47Response{
@@ -108,10 +73,10 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, sub *nostr.S
 				}, nostr.Tags{dTag}, ss)
 				if err != nil {
 					svc.Logger.WithFields(logrus.Fields{
-						"eventId":        event.ID,
-						"eventKind":      event.Kind,
-						"paymentRequest": invoiceInfo.Invoice,
-						"invoiceId":      invoiceInfo.Id,
+						"eventId":      event.ID,
+						"eventKind":    event.Kind,
+						"senderPubkey": keysendInfo.Pubkey,
+						"keysendId":    keysendInfo.Id,
 					}).Errorf("Failed to process event: %v", err)
 					return
 				}
@@ -119,32 +84,32 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, sub *nostr.S
 				return
 			}
 
-			payment := Payment{App: app, NostrEvent: nostrEvent, PaymentRequest: bolt11, Amount: uint(paymentRequest.MSatoshi / 1000)}
+			payment := Payment{App: app, NostrEvent: nostrEvent, Amount: uint(keysendInfo.Amount / 1000)}
 			insertPaymentResult := svc.db.Create(&payment)
 			if insertPaymentResult.Error != nil {
 				svc.Logger.WithFields(logrus.Fields{
-					"eventId":        event.ID,
-					"eventKind":      event.Kind,
-					"paymentRequest": bolt11,
-					"invoiceId":      invoiceInfo.Id,
+					"eventId":      event.ID,
+					"eventKind":    event.Kind,
+					"senderPubkey": keysendInfo.Pubkey,
+					"keysendId":    keysendInfo.Id,
 				}).Errorf("Failed to process event: %v", insertPaymentResult.Error)
 				return
 			}
 
 			svc.Logger.WithFields(logrus.Fields{
-				"eventId":   event.ID,
-				"eventKind": event.Kind,
-				"appId":     app.ID,
-				"bolt11":    bolt11,
+				"eventId":      event.ID,
+				"eventKind":    event.Kind,
+				"appId":        app.ID,
+				"senderPubkey": keysendInfo.Pubkey,
 			}).Info("Sending payment")
 
-			preimage, err := svc.lnClient.SendPaymentSync(ctx, event.PubKey, bolt11)
+			preimage, err := svc.lnClient.SendKeysend(ctx, event.PubKey, keysendInfo.Amount/1000, keysendInfo.Pubkey, keysendInfo.Preimage, keysendInfo.TLVRecords)
 			if err != nil {
 				svc.Logger.WithFields(logrus.Fields{
-					"eventId":   event.ID,
-					"eventKind": event.Kind,
-					"appId":     app.ID,
-					"bolt11":    bolt11,
+					"eventId":      event.ID,
+					"eventKind":    event.Kind,
+					"appId":        app.ID,
+					"senderPubkey": keysendInfo.Pubkey,
 				}).Infof("Failed to send payment: %v", err)
 				// TODO: https://github.com/getAlby/nostr-wallet-connect/issues/231
 				nostrEvent.State = NOSTR_EVENT_STATE_HANDLER_ERROR
@@ -159,10 +124,10 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, sub *nostr.S
 				}, nostr.Tags{dTag}, ss)
 				if err != nil {
 					svc.Logger.WithFields(logrus.Fields{
-						"eventId":        event.ID,
-						"eventKind":      event.Kind,
-						"paymentRequest": invoiceInfo.Invoice,
-						"invoiceId":      invoiceInfo.Id,
+						"eventId":      event.ID,
+						"eventKind":    event.Kind,
+						"senderPubkey": keysendInfo.Pubkey,
+						"keysendId":    keysendInfo.Id,
 					}).Errorf("Failed to process event: %v", err)
 					return
 				}
@@ -182,15 +147,15 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, sub *nostr.S
 			}, nostr.Tags{dTag}, ss)
 			if err != nil {
 				svc.Logger.WithFields(logrus.Fields{
-					"eventId":        event.ID,
-					"eventKind":      event.Kind,
-					"paymentRequest": invoiceInfo.Invoice,
-					"invoiceId":      invoiceInfo.Id,
+					"eventId":      event.ID,
+					"eventKind":    event.Kind,
+					"senderPubkey": keysendInfo.Pubkey,
+					"keysendId":    keysendInfo.Id,
 				}).Errorf("Failed to process event: %v", err)
 				return
 			}
 			svc.PublishEvent(ctx, sub, event, resp)
-		}(invoiceInfo)
+		}(keysendInfo)
 	}
 
 	wg.Wait()
