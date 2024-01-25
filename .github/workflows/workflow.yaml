@@ -10,55 +10,55 @@ jobs:
       IMAGENAME: ${{ github.event.repository.name }}
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-      name: Check out code
-    - name: Install Go
-      uses: actions/setup-go@v1
-      with:
-        go-version: 1.20.x
-    - name: Checkout code
-      uses: actions/checkout@v2
-    - name: Run tests
-      run:  go test
-    - name: Docker build
-      uses: mr-smithers-excellent/docker-build-push@v6
-      id: build
-      with:
-        image: ${{ env.IMAGENAME }}
-        registry: ${{ env.REGISTRY }}
-        username: ${{ github.repository_owner }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-    - name: Checkout deployment repo
-      uses: actions/checkout@v2
-      with:
-        repository: getalby/alby-deployment
-        path: infrastructure
-        token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-    # Always update dev environment
-    - name: Update dev environment
-      if: ${{ github.ref == 'refs/heads/main' }}
-      uses: fjogeleit/yaml-update-action@v0.7.0
-      with:
-        valueFile: 'alby-simnet-deployment/values/nwc.yaml'
-        propertyPath: 'nwc.image.tag'
-        value: ${{ steps.build.outputs.tags }}
-        repository: getalby/alby-deployment
-        branch: main
-        createPR: false
-        message: 'CD: Update nwc tag to ${{ steps.build.outputs.tags }}'
-        token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-        workDir: infrastructure
-    # Only update prod environment if this action was triggered by a new tag
-    - name: Update production environment
-      if: startsWith(github.ref, 'refs/tags')
-      uses: fjogeleit/yaml-update-action@v0.7.0
-      with:
-        valueFile: 'alby-mainnet-deployment/values.yaml'
-        propertyPath: 'nwc.image.tag'
-        value: ${{ steps.build.outputs.tags }}
-        repository: getalby/alby-deployment
-        branch: main
-        createPR: false
-        message: 'CD: Update nwc tag to ${{ steps.build.outputs.tags }}'
-        token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-        workDir: infrastructure
+      - uses: actions/checkout@v2
+        name: Check out code
+      - name: Install Go
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.20.x
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Run tests
+        run: mkdir frontend/dist && touch frontend/dist/tmp && go test
+      - name: Docker build
+        uses: mr-smithers-excellent/docker-build-push@v6
+        id: build
+        with:
+          image: ${{ env.IMAGENAME }}
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Checkout deployment repo
+        uses: actions/checkout@v2
+        with:
+          repository: getalby/alby-deployment
+          path: infrastructure
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+      # Always update dev environment
+      - name: Update dev environment
+        if: ${{ github.ref == 'refs/heads/main' }}
+        uses: fjogeleit/yaml-update-action@v0.7.0
+        with:
+          valueFile: "alby-simnet-deployment/values/nwc.yaml"
+          propertyPath: "nwc.image.tag"
+          value: ${{ steps.build.outputs.tags }}
+          repository: getalby/alby-deployment
+          branch: main
+          createPR: false
+          message: "CD: Update nwc tag to ${{ steps.build.outputs.tags }}"
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          workDir: infrastructure
+      # Only update prod environment if this action was triggered by a new tag
+      - name: Update production environment
+        if: startsWith(github.ref, 'refs/tags')
+        uses: fjogeleit/yaml-update-action@v0.7.0
+        with:
+          valueFile: "alby-mainnet-deployment/values.yaml"
+          propertyPath: "nwc.image.tag"
+          value: ${{ steps.build.outputs.tags }}
+          repository: getalby/alby-deployment
+          branch: main
+          createPR: false
+          message: "CD: Update nwc tag to ${{ steps.build.outputs.tags }}"
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          workDir: infrastructure

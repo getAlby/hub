@@ -1,3 +1,8 @@
 {
-  "editor.defaultFormatter": "golang.go"
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[go]": {
+    "editor.defaultFormatter": "golang.go"
+  },
+  "editor.formatOnSave": true,
+  "go.buildTags": "http,wails"
 }

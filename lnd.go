@@ -16,8 +16,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
-	"github.com/labstack/echo-contrib/session"
-	"github.com/labstack/echo/v4"
 	"github.com/lightningnetwork/lnd/lnrpc"
 )
 
@@ -29,6 +27,7 @@ type LNClient interface {
 	MakeInvoice(ctx context.Context, senderPubkey string, amount int64, description string, descriptionHash string, expiry int64) (transaction *Nip47Transaction, err error)
 	LookupInvoice(ctx context.Context, senderPubkey string, paymentHash string) (transaction *Nip47Transaction, err error)
 	ListTransactions(ctx context.Context, senderPubkey string, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []Nip47Transaction, err error)
+	Shutdown() error
 }
 
 // wrap it again :sweat_smile:
@@ -37,19 +36,6 @@ type LNDService struct {
 	client *lnd.LNDWrapper
 	db     *gorm.DB
 	Logger *logrus.Logger
-}
-
-func (svc *LNDService) AuthHandler(c echo.Context) error {
-	user := &User{}
-	err := svc.db.FirstOrInit(user, User{AlbyIdentifier: "lnd"}).Error
-	if err != nil {
-		return err
-	}
-
-	sess, _ := session.Get(CookieName, c)
-	sess.Values["user_id"] = user.ID
-	sess.Save(c.Request(), c.Response())
-	return c.Redirect(302, "/")
 }
 
 func (svc *LNDService) GetBalance(ctx context.Context, senderPubkey string) (balance int64, err error) {
@@ -324,36 +310,30 @@ func makePreimageHex() ([]byte, error) {
 	return bytes, nil
 }
 
-func NewLNDService(ctx context.Context, svc *Service, e *echo.Echo) (result *LNDService, err error) {
+func NewLNDService(svc *Service, lndAddress, lndCertHex, lndMacaroonHex string) (result LNClient, err error) {
 	lndClient, err := lnd.NewLNDclient(lnd.LNDoptions{
-		Address:      svc.cfg.LNDAddress,
-		CertFile:     svc.cfg.LNDCertFile,
-		MacaroonFile: svc.cfg.LNDMacaroonFile,
-	}, ctx)
+		Address:     lndAddress,
+		CertHex:     lndCertHex,
+		MacaroonHex: lndMacaroonHex,
+	}, svc.ctx)
 	if err != nil {
+		svc.Logger.Errorf("Failed to create new LND client %v", err)
 		return nil, err
 	}
-	info, err := lndClient.GetInfo(ctx, &lnrpc.GetInfoRequest{})
-	if err != nil {
-		return nil, err
-	}
-	//add default user to db
-	user := &User{}
-	err = svc.db.FirstOrInit(user, User{AlbyIdentifier: "lnd"}).Error
-	if err != nil {
-		return nil, err
-	}
-	err = svc.db.Save(user).Error
+	info, err := lndClient.GetInfo(svc.ctx, &lnrpc.GetInfoRequest{})
 	if err != nil {
 		return nil, err
 	}
 
 	lndService := &LNDService{client: lndClient, Logger: svc.Logger, db: svc.db}
 
-	e.GET("/lnd/auth", lndService.AuthHandler)
 	svc.Logger.Infof("Connected to LND - alias %s", info.Alias)
 
 	return lndService, nil
+}
+
+func (svc *LNDService) Shutdown() error {
+	return nil
 }
 
 func lndInvoiceToTransaction(invoice *lnrpc.Invoice) *Nip47Transaction {

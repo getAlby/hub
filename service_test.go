@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/getAlby/nostr-wallet-connect/migrations"
 	"github.com/glebarez/sqlite"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip04"
@@ -159,7 +160,7 @@ func TestHandleGetBalanceEvent(t *testing.T) {
 	assert.NoError(t, err)
 	svc, err := createTestService(mockLn)
 	assert.NoError(t, err)
-	_, app, ss, err := createUserWithApp(svc)
+	app, ss, err := createApp(svc)
 	assert.NoError(t, err)
 
 	request := &Nip47Request{}
@@ -242,7 +243,7 @@ func TestHandlePayInvoiceEvent(t *testing.T) {
 	assert.NoError(t, err)
 	svc, err := createTestService(mockLn)
 	assert.NoError(t, err)
-	_, app, ss, err := createUserWithApp(svc)
+	app, ss, err := createApp(svc)
 	assert.NoError(t, err)
 
 	request := &Nip47Request{}
@@ -385,7 +386,7 @@ func TestHandlePayKeysendEvent(t *testing.T) {
 	assert.NoError(t, err)
 	svc, err := createTestService(mockLn)
 	assert.NoError(t, err)
-	_, app, ss, err := createUserWithApp(svc)
+	app, ss, err := createApp(svc)
 	assert.NoError(t, err)
 
 	request := &Nip47Request{}
@@ -471,7 +472,7 @@ func TestHandleMakeInvoiceEvent(t *testing.T) {
 	assert.NoError(t, err)
 	svc, err := createTestService(mockLn)
 	assert.NoError(t, err)
-	_, app, ss, err := createUserWithApp(svc)
+	app, ss, err := createApp(svc)
 	assert.NoError(t, err)
 
 	request := &Nip47Request{}
@@ -527,7 +528,7 @@ func TestHandleListTransactionsEvent(t *testing.T) {
 	assert.NoError(t, err)
 	svc, err := createTestService(mockLn)
 	assert.NoError(t, err)
-	_, app, ss, err := createUserWithApp(svc)
+	app, ss, err := createApp(svc)
 	assert.NoError(t, err)
 
 	request := &Nip47Request{}
@@ -593,7 +594,7 @@ func TestHandleGetInfoEvent(t *testing.T) {
 	assert.NoError(t, err)
 	svc, err := createTestService(mockLn)
 	assert.NoError(t, err)
-	_, app, ss, err := createUserWithApp(svc)
+	app, ss, err := createApp(svc)
 	assert.NoError(t, err)
 
 	request := &Nip47Request{}
@@ -652,11 +653,11 @@ func TestHandleGetInfoEvent(t *testing.T) {
 }
 
 func createTestService(ln *MockLn) (svc *Service, err error) {
-	db, err := gorm.Open(sqlite.Open(testDB), &gorm.Config{})
+	gormDb, err := gorm.Open(sqlite.Open(testDB), &gorm.Config{})
 	if err != nil {
 		return nil, err
 	}
-	err = db.AutoMigrate(&User{}, &App{}, &AppPermission{}, &NostrEvent{}, &Payment{}, &Identity{})
+	err = migrations.Migrate(gormDb)
 	if err != nil {
 		return nil, err
 	}
@@ -673,38 +674,30 @@ func createTestService(ln *MockLn) (svc *Service, err error) {
 
 	return &Service{
 		cfg: &Config{
+			db:             gormDb,
 			NostrSecretKey: sk,
-			IdentityPubkey: pk,
+			NostrPublicKey: pk,
 		},
-		db:          db,
+		db:          gormDb,
 		lnClient:    ln,
 		ReceivedEOS: false,
 		Logger:      logger,
 	}, nil
 }
 
-func createUserWithApp(svc *Service) (user *User, app *App, ss []byte, err error) {
-	user = &User{ID: 0, AlbyIdentifier: "dummy"}
-	err = svc.db.Create(user).Error
-	if err != nil {
-		return nil, nil, nil, err
-	}
-
+func createApp(svc *Service) (app *App, ss []byte, err error) {
 	senderPrivkey := nostr.GeneratePrivateKey()
 	senderPubkey, err := nostr.GetPublicKey(senderPrivkey)
 
-	ss, err = nip04.ComputeSharedSecret(svc.cfg.IdentityPubkey, senderPrivkey)
+	ss, err = nip04.ComputeSharedSecret(svc.cfg.NostrPublicKey, senderPrivkey)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, err
 	}
 
 	app = &App{Name: "test", NostrPubkey: senderPubkey}
+	err = svc.db.Create(app).Error
 	if err != nil {
-		return nil, nil, nil, err
-	}
-	err = svc.db.Model(&user).Association("Apps").Append(app)
-	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, err
 	}
 
 	// creating this permission because if no permissions
@@ -716,7 +709,7 @@ func createUserWithApp(svc *Service) (user *User, app *App, ss []byte, err error
 	}
 	err = svc.db.Create(appPermission).Error
 
-	return user, app, ss, nil
+	return app, ss, nil
 }
 
 func decryptResponse(res *nostr.Event, ss []byte, resultType interface{}) (resp *Nip47Response, err error) {
@@ -767,4 +760,7 @@ func (mln *MockLn) LookupInvoice(ctx context.Context, senderPubkey string, payme
 
 func (mln *MockLn) ListTransactions(ctx context.Context, senderPubkey string, from, until, limit, offset uint64, unpaid bool, invoiceType string) (invoices []Nip47Transaction, err error) {
 	return mockTransactions, nil
+}
+func (mln *MockLn) Shutdown() error {
+	return nil
 }
