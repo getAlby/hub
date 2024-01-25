@@ -145,10 +145,6 @@ var mockTransactions = []Nip47Transaction{
 }
 var mockTransaction = &mockTransactions[0]
 
-func TestBackwardsCompatibility(t *testing.T) {
-	// Test without adding a single permission
-}
-
 // TODO: add tests for HandleEvent method as these
 // only cover the cases after the event is processed
 // and the corresponding app is found
