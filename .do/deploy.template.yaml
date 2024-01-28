@@ -3,18 +3,5 @@ spec:
   services:
     - name: web
       git:
-        branch: server-self-host
+        branch: onboarding-flow
         repo_clone_url: https://github.com/getAlby/nostr-wallet-connect.git
-      envs:
-        - key: RELAY
-          value: "RELAY=wss://relay.getalby.com/v1"
-          scope: RUN_TIME
-        - key: LN_BACKEND_TYPE
-          value: BREEZ
-          scope: RUN_TIME
-        - key: COOKIE_SECRET
-          scope: RUN_TIME
-        - key: GREENLIGHT_INVITE_CODE
-          scope: RUN_TIME
-        - key: BREEZ_MNEMONIC
-          scope: RUN_TIME
