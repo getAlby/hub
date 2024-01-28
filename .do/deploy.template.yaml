@@ -3,5 +3,5 @@ spec:
   services:
     - name: web
       git:
-        branch: onboarding-flow
+        branch: feat/onboarding-flow
         repo_clone_url: https://github.com/getAlby/nostr-wallet-connect.git

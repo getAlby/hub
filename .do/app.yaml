@@ -3,5 +3,5 @@ services:
   - name: web
     github:
       repo: getAlby/nostr-wallet-connect
-      branch: onboarding-flow
+      branch: feat/onboarding-flow
     dockerfile_path: .do/Dockerfile
