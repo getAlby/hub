@@ -12,7 +12,7 @@ import (
 
 func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, sub *nostr.Subscription, request *Nip47Request, event *nostr.Event, app App, ss []byte) {
 
-	nostrEvent := NostrEvent{App: app, NostrId: event.ID, Content: event.Content, State: "received"}
+	nostrEvent := NostrEvent{App: app, NostrId: event.ID, Content: event.Content}
 	err := svc.db.Create(&nostrEvent).Error
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
@@ -80,7 +80,7 @@ func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, sub *nostr.S
 					}).Errorf("Failed to process event: %v", err)
 					return
 				}
-				svc.PublishEvent(ctx, sub, event, resp)
+				svc.PublishEvent(ctx, sub, event, resp, app, ss)
 				return
 			}
 
@@ -111,9 +111,6 @@ func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, sub *nostr.S
 					"appId":        app.ID,
 					"senderPubkey": keysendInfo.Pubkey,
 				}).Infof("Failed to send payment: %v", err)
-				// TODO: https://github.com/getAlby/nostr-wallet-connect/issues/231
-				nostrEvent.State = NOSTR_EVENT_STATE_HANDLER_ERROR
-				svc.db.Save(&nostrEvent)
 
 				resp, err := svc.createResponse(event, Nip47Response{
 					ResultType: request.Method,
@@ -131,13 +128,10 @@ func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, sub *nostr.S
 					}).Errorf("Failed to process event: %v", err)
 					return
 				}
-				svc.PublishEvent(ctx, sub, event, resp)
+				svc.PublishEvent(ctx, sub, event, resp, app, ss)
 				return
 			}
 			payment.Preimage = &preimage
-			// TODO: https://github.com/getAlby/nostr-wallet-connect/issues/231
-			nostrEvent.State = NOSTR_EVENT_STATE_HANDLER_EXECUTED
-			svc.db.Save(&nostrEvent)
 			svc.db.Save(&payment)
 			resp, err := svc.createResponse(event, Nip47Response{
 				ResultType: request.Method,
@@ -154,7 +148,7 @@ func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, sub *nostr.S
 				}).Errorf("Failed to process event: %v", err)
 				return
 			}
-			svc.PublishEvent(ctx, sub, event, resp)
+			svc.PublishEvent(ctx, sub, event, resp, app, ss)
 		}(keysendInfo)
 	}
 

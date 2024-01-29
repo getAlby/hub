@@ -11,7 +11,7 @@ import (
 
 func (svc *Service) HandlePayKeysendEvent(ctx context.Context, request *Nip47Request, event *nostr.Event, app App, ss []byte) (result *nostr.Event, err error) {
 
-	nostrEvent := NostrEvent{App: app, NostrId: event.ID, Content: event.Content, State: "received"}
+	nostrEvent := NostrEvent{App: app, NostrId: event.ID, Content: event.Content}
 	err = svc.db.Create(&nostrEvent).Error
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
@@ -73,8 +73,6 @@ func (svc *Service) HandlePayKeysendEvent(ctx context.Context, request *Nip47Req
 			"appId":        app.ID,
 			"senderPubkey": payParams.Pubkey,
 		}).Infof("Failed to send payment: %v", err)
-		nostrEvent.State = NOSTR_EVENT_STATE_HANDLER_ERROR
-		svc.db.Save(&nostrEvent)
 		return svc.createResponse(event, Nip47Response{
 			ResultType: request.Method,
 			Error: &Nip47Error{
@@ -84,8 +82,6 @@ func (svc *Service) HandlePayKeysendEvent(ctx context.Context, request *Nip47Req
 		}, nostr.Tags{}, ss)
 	}
 	payment.Preimage = &preimage
-	nostrEvent.State = NOSTR_EVENT_STATE_HANDLER_EXECUTED
-	svc.db.Save(&nostrEvent)
 	svc.db.Save(&payment)
 	return svc.createResponse(event, Nip47Response{
 		ResultType: request.Method,

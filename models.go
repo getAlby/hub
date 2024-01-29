@@ -63,12 +63,24 @@ type NostrEvent struct {
 	AppId     uint `validate:"required"`
 	App       App
 	NostrId   string `validate:"required"`
-	ReplyId   string
 	Content   string
-	State     string
 	RepliedAt time.Time
 	CreatedAt time.Time
 	UpdatedAt time.Time
+}
+
+type ResponseEvent struct {
+	ID               uint
+	AppId            uint `validate:"required"`
+	App              App
+	NostrId          string `validate:"required"`
+	ReplyId          string
+	Content          string
+	DecryptedContent string
+	State            string
+	RepliedAt        time.Time
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
 }
 
 type Payment struct {
