@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strings"
 	"sync"
 	"time"
 
@@ -365,13 +364,9 @@ func (svc *Service) createResponse(initialEvent *nostr.Event, content interface{
 
 func (svc *Service) GetMethods(app *App) []string {
 	appPermissions := []AppPermission{}
-	findPermissionsResult := svc.db.Find(&appPermissions, &AppPermission{
+	svc.db.Find(&appPermissions, &AppPermission{
 		AppId: app.ID,
 	})
-	if findPermissionsResult.RowsAffected == 0 {
-		// No permissions created for this app. It can do anything
-		return strings.Split(NIP_47_CAPABILITIES, ",")
-	}
 	requestMethods := make([]string, 0, len(appPermissions))
 	for _, appPermission := range appPermissions {
 		requestMethods = append(requestMethods, appPermission.RequestMethod)
@@ -380,24 +375,9 @@ func (svc *Service) GetMethods(app *App) []string {
 }
 
 func (svc *Service) hasPermission(app *App, event *nostr.Event, requestMethod string, amount int64) (result bool, code string, message string) {
-	// find all permissions for the app
-	appPermissions := []AppPermission{}
-	findPermissionsResult := svc.db.Find(&appPermissions, &AppPermission{
-		AppId: app.ID,
-	})
-	if findPermissionsResult.RowsAffected == 0 {
-		// No permissions created for this app. It can do anything
-		svc.Logger.WithFields(logrus.Fields{
-			"eventId":       event.ID,
-			"requestMethod": requestMethod,
-			"appId":         app.ID,
-			"pubkey":        app.NostrPubkey,
-		}).Info("No permissions found for app")
-		return true, "", ""
-	}
-
 	appPermission := AppPermission{}
-	findPermissionResult := findPermissionsResult.Limit(1).Find(&appPermission, &AppPermission{
+	findPermissionResult := svc.db.Find(&appPermission, &AppPermission{
+		AppId:         app.ID,
 		RequestMethod: requestMethod,
 	})
 	if findPermissionResult.RowsAffected == 0 {

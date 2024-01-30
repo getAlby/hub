@@ -177,15 +177,6 @@ func TestHandleEvent(t *testing.T) {
 	app := App{Name: "test", NostrPubkey: senderPubkey}
 	err = svc.db.Save(&app).Error
 	assert.NoError(t, err)
-	//test old payload
-	res, err = svc.HandleEvent(ctx, &nostr.Event{
-		ID:      "test_event_2",
-		Kind:    NIP_47_REQUEST_KIND,
-		PubKey:  senderPubkey,
-		Content: payload,
-	})
-	assert.NoError(t, err)
-	assert.NotNil(t, res)
 	//test new payload
 	newPayload, err := nip04.Encrypt(nip47PayJson, ss)
 	assert.NoError(t, err)
@@ -204,7 +195,9 @@ func TestHandleEvent(t *testing.T) {
 	}
 	err = json.Unmarshal([]byte(decrypted), received)
 	assert.NoError(t, err)
-	assert.Equal(t, received.Result.(*Nip47PayResponse).Preimage, "123preimage")
+	// this app has no permission
+	assert.Equal(t, received.Error.Code, NIP_47_ERROR_RESTRICTED)
+
 	malformedPayload, err := nip04.Encrypt(nip47PayJsonNoInvoice, ss)
 	assert.NoError(t, err)
 	res, err = svc.HandleEvent(ctx, &nostr.Event{
