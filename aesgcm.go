@@ -7,7 +7,7 @@ import (
 	"encoding/hex"
 	"strings"
 
-	"golang.org/x/crypto/scrypt"
+	"golang.org/x/crypto/argon2"
 )
 
 func DeriveKey(password string, salt []byte) ([]byte, []byte, error) {
@@ -18,10 +18,7 @@ func DeriveKey(password string, salt []byte) ([]byte, []byte, error) {
 		}
 	}
 
-	key, err := scrypt.Key([]byte(password), salt, 131072, 8, 1, 32)
-	if err != nil {
-		return nil, nil, err
-	}
+	key := argon2.Key([]byte(password), salt, 3, 32*1024, 1, 32)
 
 	return key, salt, nil
 }
