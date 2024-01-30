@@ -183,6 +183,11 @@ func (bs *BreezService) ListTransactions(ctx context.Context, senderPubkey strin
 
 	transactions = []Nip47Transaction{}
 	for _, payment := range payments {
+		if payment.PaymentType != breez_sdk.PaymentTypeReceived && payment.PaymentType != breez_sdk.PaymentTypeSent {
+			// skip other types of payments for now
+			continue
+		}
+
 		transaction := breezPaymentToTransaction(&payment)
 
 		transactions = append(transactions, *transaction)
@@ -209,7 +214,7 @@ func breezPaymentToTransaction(payment *breez_sdk.Payment) *Nip47Transaction {
 	var txType string
 	if payment.PaymentType == breez_sdk.PaymentTypeSent {
 		txType = "outgoing"
-	} else if payment.PaymentType == breez_sdk.PaymentTypeSent {
+	} else {
 		txType = "incoming"
 	}
 
