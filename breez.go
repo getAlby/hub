@@ -7,9 +7,11 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/breez/breez-sdk-go/breez_sdk"
+	decodepay "github.com/nbd-wtf/ln-decodepay"
 )
 
 type BreezService struct {
@@ -168,7 +170,10 @@ func (bs *BreezService) LookupInvoice(ctx context.Context, senderPubkey string, 
 	}
 	if payment != nil {
 		log.Printf("p: %v", payment)
-		transaction = breezPaymentToTransaction(payment)
+		transaction, err = breezPaymentToTransaction(payment)
+		if err != nil {
+			return nil, err
+		}
 		return transaction, nil
 	} else {
 		return nil, errors.New("not found")
@@ -188,9 +193,10 @@ func (bs *BreezService) ListTransactions(ctx context.Context, senderPubkey strin
 			continue
 		}
 
-		transaction := breezPaymentToTransaction(&payment)
-
-		transactions = append(transactions, *transaction)
+		transaction, err := breezPaymentToTransaction(&payment)
+		if err == nil {
+			transactions = append(transactions, *transaction)
+		}
 	}
 	return transactions, nil
 }
@@ -206,7 +212,7 @@ func (bs *BreezService) GetInfo(ctx context.Context, senderPubkey string) (info 
 	}, nil
 }
 
-func breezPaymentToTransaction(payment *breez_sdk.Payment) *Nip47Transaction {
+func breezPaymentToTransaction(payment *breez_sdk.Payment) (*Nip47Transaction, error) {
 	var lnDetails breez_sdk.PaymentDetailsLn
 	if payment.Details != nil {
 		lnDetails, _ = payment.Details.(breez_sdk.PaymentDetailsLn)
@@ -218,16 +224,28 @@ func breezPaymentToTransaction(payment *breez_sdk.Payment) *Nip47Transaction {
 		txType = "incoming"
 	}
 
+	paymentRequest, err := decodepay.Decodepay(strings.ToLower(lnDetails.Data.Bolt11))
+	if err != nil {
+		log.Printf("Failed to decode bolt11 invoice: %v", payment)
+		return nil, err
+	}
+
+	createdAt := int64(paymentRequest.CreatedAt)
+	expiresAtUnix := time.UnixMilli(int64(paymentRequest.CreatedAt) * 1000).Add(time.Duration(paymentRequest.Expiry) * time.Second).Unix()
+	expiresAt := &expiresAtUnix
+
 	tx := &Nip47Transaction{
-		Type:        txType,
-		Invoice:     lnDetails.Data.Bolt11,
-		Preimage:    lnDetails.Data.PaymentPreimage,
-		PaymentHash: lnDetails.Data.PaymentHash,
-		Amount:      int64(payment.AmountMsat),
-		FeesPaid:    int64(payment.FeeMsat),
-		CreatedAt:   time.Now().Unix(),
-		ExpiresAt:   nil,
-		Metadata:    nil,
+		Type:            txType,
+		Invoice:         lnDetails.Data.Bolt11,
+		Preimage:        lnDetails.Data.PaymentPreimage,
+		PaymentHash:     lnDetails.Data.PaymentHash,
+		Amount:          int64(payment.AmountMsat),
+		FeesPaid:        int64(payment.FeeMsat),
+		CreatedAt:       createdAt,
+		ExpiresAt:       expiresAt,
+		Metadata:        nil,
+		Description:     paymentRequest.Description,
+		DescriptionHash: paymentRequest.DescriptionHash,
 	}
 	if payment.Status == breez_sdk.PaymentStatusComplete {
 		settledAt := payment.PaymentTime
@@ -238,5 +256,5 @@ func breezPaymentToTransaction(payment *breez_sdk.Payment) *Nip47Transaction {
 		tx.Description = *payment.Description
 	}
 
-	return tx
+	return tx, nil
 }
