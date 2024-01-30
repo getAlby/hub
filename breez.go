@@ -187,7 +187,8 @@ func (bs *BreezService) ListTransactions(ctx context.Context, senderPubkey strin
 	}
 
 	transactions = []Nip47Transaction{}
-	for _, payment := range payments {
+	paymentList := payments[0:100]
+	for _, payment := range paymentList {
 		if payment.PaymentType != breez_sdk.PaymentTypeReceived && payment.PaymentType != breez_sdk.PaymentTypeSent {
 			// skip other types of payments for now
 			continue
