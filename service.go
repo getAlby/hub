@@ -29,13 +29,12 @@ import (
 
 type Service struct {
 	// config from .env only. Fetch dynamic config from db
-	cfg         *Config
-	db          *gorm.DB
-	lnClient    LNClient
-	ReceivedEOS bool
-	Logger      *logrus.Logger
-	ctx         context.Context
-	wg          *sync.WaitGroup
+	cfg      *Config
+	db       *gorm.DB
+	lnClient LNClient
+	Logger   *logrus.Logger
+	ctx      context.Context
+	wg       *sync.WaitGroup
 }
 
 // TODO: move to service.go
@@ -164,12 +163,11 @@ func (svc *Service) noticeHandler(notice string) {
 
 func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscription) error {
 	go func() {
+		// block till EOS is received
 		<-sub.EndOfStoredEvents
-		svc.ReceivedEOS = true
 		svc.Logger.Info("Received EOS")
-	}()
 
-	go func() {
+		// loop through incoming events
 		for event := range sub.Events {
 			go func(event *nostr.Event) {
 				resp, err := svc.HandleEvent(ctx, event)
@@ -254,10 +252,6 @@ func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 }
 
 func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result *nostr.Event, err error) {
-	//don't process historical events
-	if !svc.ReceivedEOS {
-		return nil, nil
-	}
 	svc.Logger.WithFields(logrus.Fields{
 		"eventId":   event.ID,
 		"eventKind": event.Kind,
