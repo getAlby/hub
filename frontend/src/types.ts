@@ -90,6 +90,7 @@ export interface InfoResponse {
   backendType: BackendType;
   setupCompleted: boolean;
   running: boolean;
+  unlocked: boolean;
 }
 
 export interface CreateAppResponse {

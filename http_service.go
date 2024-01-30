@@ -16,8 +16,9 @@ import (
 )
 
 type HttpService struct {
-	svc *Service
-	api *API
+	svc           *Service
+	api           *API
+	encryptionKey string
 }
 
 func NewHttpService(svc *Service) *HttpService {
@@ -29,11 +30,9 @@ func NewHttpService(svc *Service) *HttpService {
 
 func (httpSvc *HttpService) validateUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		// TODO: check if login is required and check if user is logged in
-		//sess, _ := session.Get(CookieName, c)
-		// if user == nil {
-		// 	return c.NoContent(http.StatusUnauthorized)
-		// }
+		if !httpSvc.isUnlocked(c) {
+			return c.NoContent(http.StatusUnauthorized)
+		}
 		return next(c)
 	}
 }
@@ -59,6 +58,8 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.POST("/api/logout", httpSvc.logoutHandler)
 	e.POST("/api/setup", httpSvc.setupHandler)
 	e.POST("/api/start", httpSvc.startHandler)
+	// TODO: add rate limiter
+	e.POST("/api/unlock", httpSvc.unlockHandler)
 
 	frontend.RegisterHandlers(e)
 }
@@ -75,6 +76,7 @@ func (httpSvc *HttpService) csrfHandler(c echo.Context) error {
 
 func (httpSvc *HttpService) infoHandler(c echo.Context) error {
 	responseBody := httpSvc.api.GetInfo()
+	responseBody.Unlocked = httpSvc.isUnlocked(c)
 	return c.JSON(http.StatusOK, responseBody)
 }
 
@@ -92,11 +94,65 @@ func (httpSvc *HttpService) startHandler(c echo.Context) error {
 			Message: fmt.Sprintf("Failed to start node: %s", err.Error()),
 		})
 	}
+
+	err = httpSvc.saveSessionCookie(c)
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to save session: %s", err.Error()),
+		})
+	}
+
+	httpSvc.encryptionKey = startRequest.UnlockPassword
+
 	return c.NoContent(http.StatusNoContent)
 }
 
+func (httpSvc *HttpService) unlockHandler(c echo.Context) error {
+	var unlockRequest api.UnlockRequest
+	if err := c.Bind(&unlockRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	if unlockRequest.UnlockPassword != httpSvc.encryptionKey {
+		return c.NoContent(http.StatusUnauthorized)
+	}
+
+	err := httpSvc.saveSessionCookie(c)
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to save session: %s", err.Error()),
+		})
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
+
+func (httpSvc *HttpService) isUnlocked(c echo.Context) bool {
+	sess, _ := session.Get(SessionCookieName, c)
+	return sess.Values[SessionCookieAuthKey] == true
+}
+
+func (httpSvc *HttpService) saveSessionCookie(c echo.Context) error {
+	sess, _ := session.Get("session", c)
+	sess.Options = &sessions.Options{
+		Path:     "/",
+		MaxAge:   86400 * 7,
+		HttpOnly: true,
+	}
+	sess.Values[SessionCookieAuthKey] = true
+	err := sess.Save(c.Request(), c.Response())
+	if err != nil {
+		httpSvc.svc.Logger.Errorf("Failed to save session: %v", err)
+	}
+	return err
+}
+
 func (httpSvc *HttpService) logoutHandler(c echo.Context) error {
-	sess, err := session.Get(CookieName, c)
+	sess, err := session.Get(SessionCookieName, c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: "Failed to get session",

@@ -12,9 +12,10 @@ import (
 )
 
 const (
-	LNDBackendType   = "LND"
-	BreezBackendType = "BREEZ"
-	CookieName       = "alby_nwc_session"
+	LNDBackendType       = "LND"
+	BreezBackendType     = "BREEZ"
+	SessionCookieName    = "session"
+	SessionCookieAuthKey = "authenticated"
 )
 
 type AppConfig struct {

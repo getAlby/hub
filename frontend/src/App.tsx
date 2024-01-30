@@ -17,6 +17,7 @@ import Start from "src/screens/Start";
 import { AppsRedirect } from "src/components/redirects/AppsRedirect";
 import { StartRedirect } from "src/components/redirects/StartRedirect";
 import { HomeRedirect } from "src/components/redirects/HomeRedirect";
+import Unlock from "src/screens/Unlock";
 
 function App() {
   return (
@@ -47,6 +48,7 @@ function App() {
               <Route path="created" element={<AppCreated />} />
               <Route path="*" element={<NotFound />} />
             </Route>
+            <Route path="unlock" element={<Unlock />} />
             <Route path="about" element={<About />} />
           </Route>
           <Route path="/*" element={<NotFound />} />

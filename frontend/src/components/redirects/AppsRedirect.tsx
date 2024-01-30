@@ -10,7 +10,7 @@ export function AppsRedirect() {
 
   // TODO: re-add login redirect: https://github.com/getAlby/nostr-wallet-connect/commit/59b041886098dda4ff38191e3dd704ec36360673
   React.useEffect(() => {
-    if (!info || info.running) {
+    if (!info || (info.running && info.unlocked)) {
       return;
     }
     navigate("/");

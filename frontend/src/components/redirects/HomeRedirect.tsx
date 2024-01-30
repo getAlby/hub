@@ -14,7 +14,11 @@ export function HomeRedirect() {
     }
     let to: string | undefined;
     if (info.setupCompleted && info.running) {
-      to = "/apps";
+      if (info.unlocked) {
+        to = "/apps";
+      } else {
+        to = "/unlock";
+      }
     } else if (info.setupCompleted && !info.running) {
       to = "/start";
     } else {
