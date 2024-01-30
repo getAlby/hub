@@ -1,6 +1,7 @@
 name: nwc
 services:
-- name: web
-  github:
-    repo: getAlby/nostr-wallet-connect
-    branch: server-self-host
+  - name: web
+    github:
+      repo: getAlby/nostr-wallet-connect
+      branch: feat/onboarding-flow
+    dockerfile_path: .do/Dockerfile

@@ -93,7 +93,7 @@ func NewService(ctx context.Context) (*Service, error) {
 	ctx, _ = signal.NotifyContext(ctx, os.Interrupt)
 
 	cfg := &Config{}
-	cfg.Init(db, appConfig)
+	cfg.Init(db, appConfig, logger)
 
 	var wg sync.WaitGroup
 	svc := &Service{
@@ -129,7 +129,6 @@ func (svc *Service) launchLNBackend(encryptionKey string) error {
 		LNDAddress, _ := svc.cfg.Get("LNDAddress", encryptionKey)
 		LNDCertHex, _ := svc.cfg.Get("LNDCertHex", encryptionKey)
 		LNDMacaroonHex, _ := svc.cfg.Get("LNDMacaroonHex", encryptionKey)
-
 		lnClient, err = NewLNDService(svc, LNDAddress, LNDCertHex, LNDMacaroonHex)
 	case lndBackend:
 		BreezMnemonic, _ := svc.cfg.Get("BreezMnemonic", encryptionKey)

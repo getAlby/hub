@@ -5,7 +5,7 @@ go 1.21
 toolchain go1.21.1
 
 require (
-	github.com/breez/breez-sdk-go v0.2.10
+	github.com/breez/breez-sdk-go v0.2.14
 	github.com/davrux/echo-logrus/v4 v4.0.3
 	github.com/go-gormigrate/gormigrate/v2 v2.1.1
 	github.com/gorilla/sessions v1.2.1

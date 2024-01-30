@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useCSRF } from "src/hooks/useCSRF";
 import { request } from "src/utils/request";
 import ConnectButton from "src/components/ConnectButton";
@@ -40,7 +40,11 @@ export default function Start() {
 
   return (
     <>
-      <form onSubmit={onSubmit}>
+      <h1 className="text-lg">Start NWC</h1>
+      <p className="text-lg mb-10">
+        To start, please enter your unlock password
+      </p>
+      <form onSubmit={onSubmit} className="mb-10">
         <>
           <label
             htmlFor="greenlight-invite-code"
@@ -58,6 +62,10 @@ export default function Start() {
           <ConnectButton isConnecting={loading} />
         </>
       </form>
+
+      <Link to="/setup" className=" text-red-500">
+        Forgot password?
+      </Link>
     </>
   );
 }

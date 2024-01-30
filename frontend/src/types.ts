@@ -19,7 +19,7 @@ export type BudgetRenewalType = "daily" | "weekly" | "monthly" | "yearly" | "";
 
 export type IconMap = {
   [key in RequestMethodType]: (
-    props: React.SVGAttributes<SVGElement>,
+    props: React.SVGAttributes<SVGElement>
   ) => JSX.Element;
 };
 
