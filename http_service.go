@@ -251,6 +251,10 @@ func (httpSvc *HttpService) setupHandler(c echo.Context) error {
 		})
 	}
 
+	if httpSvc.svc.lnClient != nil && !httpSvc.isUnlocked(c) {
+		return c.NoContent(http.StatusUnauthorized)
+	}
+
 	err := httpSvc.api.Setup(&setupRequest)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
