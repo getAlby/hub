@@ -222,6 +222,8 @@ func (api *API) Start(startRequest *models.StartRequest) error {
 }
 
 func (api *API) Setup(setupRequest *models.SetupRequest) error {
+	api.svc.cfg.SavePasswordCheck(setupRequest.UnlockPassword)
+
 	// only update non-empty values
 	if setupRequest.LNBackendType != "" {
 		api.svc.cfg.SetUpdate("LNBackendType", setupRequest.LNBackendType, "")

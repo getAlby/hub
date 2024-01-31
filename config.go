@@ -16,6 +16,7 @@ const (
 	BreezBackendType     = "BREEZ"
 	SessionCookieName    = "session"
 	SessionCookieAuthKey = "authenticated"
+	UnlockPasswordCheck  = "THIS STRING SHOULD MATCH IF PASSWORD IS CORRECT"
 )
 
 type AppConfig struct {
@@ -126,6 +127,16 @@ func (cfg *Config) SetUpdate(key string, value string, encryptionKey string) {
 		DoUpdates: clause.AssignmentColumns([]string{"value"}),
 	}
 	cfg.set(key, value, clauses, encryptionKey)
+}
+
+func (cfg *Config) CheckUnlockPassword(encryptionKey string) bool {
+	decryptedValue, err := cfg.Get("UnlockPasswordCheck", encryptionKey)
+
+	return err == nil && decryptedValue == UnlockPasswordCheck
+}
+
+func (cfg *Config) SavePasswordCheck(encryptionKey string) {
+	cfg.SetUpdate("UnlockPasswordCheck", UnlockPasswordCheck, encryptionKey)
 }
 
 func randomHex(n int) (string, error) {

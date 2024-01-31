@@ -1,6 +1,8 @@
 package main
 
 import (
+	"errors"
+
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip19"
 )
@@ -78,6 +80,11 @@ func (svc *Service) StartNostr(encryptionKey string) error {
 }
 
 func (svc *Service) StartApp(encryptionKey string) error {
+	if !svc.cfg.CheckUnlockPassword(encryptionKey) {
+		svc.Logger.Errorf("Invalid password")
+		return errors.New("Invalid password")
+	}
+
 	err := svc.launchLNBackend(encryptionKey)
 	if err != nil {
 		svc.Logger.Errorf("Failed to launch LN backend: %v", err)
