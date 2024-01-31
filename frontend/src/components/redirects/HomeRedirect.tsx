@@ -2,6 +2,7 @@ import { useInfo } from "src/hooks/useInfo";
 import { useLocation, useNavigate } from "react-router-dom";
 import React from "react";
 import Loading from "src/components/Loading";
+import { localStorageKeys } from "src/constants";
 
 export function HomeRedirect() {
   const { data: info } = useInfo();
@@ -15,7 +16,8 @@ export function HomeRedirect() {
     let to: string | undefined;
     if (info.setupCompleted && info.running) {
       if (info.unlocked) {
-        to = "/apps";
+        const returnTo = window.localStorage.getItem(localStorageKeys.returnTo);
+        to = returnTo || "/apps";
       } else {
         to = "/unlock";
       }

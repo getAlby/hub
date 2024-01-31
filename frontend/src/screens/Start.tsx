@@ -33,7 +33,7 @@ export default function Start() {
       console.log({ res });
       await refetchInfo();
 
-      navigate("/apps");
+      navigate("/");
     } catch (error) {
       handleRequestError("Failed to connect", error);
     } finally {

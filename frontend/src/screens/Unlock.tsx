@@ -32,7 +32,7 @@ export default function Unlock() {
       });
       console.log({ res });
       await refetchInfo();
-      navigate("/apps");
+      navigate("/");
     } catch (error) {
       handleRequestError("Failed to connect", error);
     } finally {
