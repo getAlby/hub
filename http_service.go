@@ -16,9 +16,8 @@ import (
 )
 
 type HttpService struct {
-	svc           *Service
-	api           *API
-	encryptionKey string
+	svc *Service
+	api *API
 }
 
 func NewHttpService(svc *Service) *HttpService {
@@ -105,8 +104,6 @@ func (httpSvc *HttpService) startHandler(c echo.Context) error {
 		})
 	}
 
-	httpSvc.encryptionKey = startRequest.UnlockPassword
-
 	return c.NoContent(http.StatusNoContent)
 }
 
@@ -118,8 +115,10 @@ func (httpSvc *HttpService) unlockHandler(c echo.Context) error {
 		})
 	}
 
-	if unlockRequest.UnlockPassword != httpSvc.encryptionKey {
-		return c.NoContent(http.StatusUnauthorized)
+	if !httpSvc.svc.cfg.CheckUnlockPassword(unlockRequest.UnlockPassword) {
+		return c.JSON(http.StatusUnauthorized, ErrorResponse{
+			Message: "Invalid password",
+		})
 	}
 
 	err := httpSvc.saveSessionCookie(c)
