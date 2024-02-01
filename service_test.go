@@ -402,7 +402,7 @@ func TestHandleEvent(t *testing.T) {
 	assert.Equal(t, NIP_47_ERROR_RESTRICTED, received.Error.Code)
 	assert.NotNil(t, res)
 	// get_balance: with permission
-	// the pay_invoice permmission already exists with the budget info
+	// the pay_invoice permission already exists with the budget info
 	// create a second permission to fetch the balance and budget info
 	appPermission = &AppPermission{
 		AppId:         app.ID,
