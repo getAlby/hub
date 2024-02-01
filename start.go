@@ -1,6 +1,8 @@
 package main
 
 import (
+	"time"
+
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip19"
 )
@@ -28,47 +30,71 @@ func (svc *Service) StartNostr(encryptionKey string) error {
 	svc.Logger.Infof("Starting nostr-wallet-connect. npub: %s hex: %s", npub, svc.cfg.NostrPublicKey)
 	svc.wg.Add(1)
 	go func() {
-		//connect to the relay
-		svc.Logger.Infof("Connecting to the relay: %s", relayUrl)
-
-		relay, err := nostr.RelayConnect(svc.ctx, relayUrl, nostr.WithNoticeHandler(svc.noticeHandler))
-		if err != nil {
-			svc.Logger.Errorf("Failed to connect to relay: %v", err)
-			svc.wg.Done()
-			return
-		}
-
-		//publish event with NIP-47 info
-		err = svc.PublishNip47Info(svc.ctx, relay)
-		if err != nil {
-			svc.Logger.WithError(err).Error("Could not publish NIP47 info")
-		}
-
 		//Start infinite loop which will be only broken by canceling ctx (SIGINT)
 		//TODO: we can start this loop for multiple relays
-		for {
+		var relay *nostr.Relay
+
+		for i := 0; ; i++ {
+			// wait for a delay before retrying except on first iteration
+			if i > 0 {
+				sleepDuration := 10
+				contextCancelled := false
+				svc.Logger.Infof("[Iteration %d] Retrying in %d seconds...", i, sleepDuration)
+
+				select {
+				case <-svc.ctx.Done(): //context cancelled
+					svc.Logger.Info("service context cancelled while waiting for retry")
+					contextCancelled = true
+				case <-time.After(time.Duration(sleepDuration) * time.Second): //timeout
+				}
+				if contextCancelled {
+					break
+				}
+			}
+			if relay != nil && relay.IsConnected() {
+				err := relay.Close()
+				if err != nil {
+					svc.Logger.WithError(err).Error("Could not close relay connection")
+				}
+			}
+
+			//connect to the relay
+			svc.Logger.Infof("Connecting to the relay: %s", relayUrl)
+
+			relay, err := nostr.RelayConnect(svc.ctx, relayUrl, nostr.WithNoticeHandler(svc.noticeHandler))
+			if err != nil {
+				svc.Logger.WithError(err).Error("Failed to connect to relay")
+				continue
+			}
+
+			//publish event with NIP-47 info
+			err = svc.PublishNip47Info(svc.ctx, relay)
+			if err != nil {
+				svc.Logger.WithError(err).Error("Could not publish NIP47 info")
+			}
+
 			svc.Logger.Info("Subscribing to events")
 			sub, err := relay.Subscribe(svc.ctx, svc.createFilters(svc.cfg.NostrPublicKey))
 			if err != nil {
-				svc.Logger.Fatal(err)
+				svc.Logger.WithError(err).Error("Failed to subscribe to events")
+				continue
 			}
 			err = svc.StartSubscription(svc.ctx, sub)
 			if err != nil {
 				//err being non-nil means that we have an error on the websocket error channel. In this case we just try to reconnect.
-				svc.Logger.WithError(err).Error("Got an error from the relay while listening to subscription. Reconnecting...")
-				relay, err = nostr.RelayConnect(svc.ctx, relayUrl)
-				if err != nil {
-					svc.Logger.Fatal(err)
-				}
+				svc.Logger.WithError(err).Error("Got an error from the relay while listening to subscription.")
+
 				continue
 			}
 			//err being nil means that the context was canceled and we should exit the program.
 			break
 		}
 		svc.Logger.Info("Disconnecting from relay...")
-		err = relay.Close()
-		if err != nil {
-			svc.Logger.Error(err)
+		if relay != nil && relay.IsConnected() {
+			err := relay.Close()
+			if err != nil {
+				svc.Logger.WithError(err).Error("Could not close relay connection")
+			}
 		}
 		svc.Shutdown()
 		svc.Logger.Info("Relay subroutine ended")
