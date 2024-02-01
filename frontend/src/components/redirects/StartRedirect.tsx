@@ -8,7 +8,6 @@ export function StartRedirect({ children }: React.PropsWithChildren) {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // TODO: re-add login redirect: https://github.com/getAlby/nostr-wallet-connect/commit/59b041886098dda4ff38191e3dd704ec36360673
   React.useEffect(() => {
     if (!info || (info.setupCompleted && !info.running)) {
       return;

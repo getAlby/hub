@@ -31,6 +31,10 @@ func (BreezListener) OnEvent(e breez_sdk.BreezEvent) {
 }
 
 func NewBreezService(mnemonic, apiKey, inviteCode, workDir string) (result LNClient, err error) {
+	if mnemonic == "" || apiKey == "" || inviteCode == "" || workDir == "" {
+		return nil, errors.New("One or more required breez configuration are missing")
+	}
+
 	//create dir if not exists
 	newpath := filepath.Join(".", workDir)
 	err = os.MkdirAll(newpath, os.ModePerm)
@@ -181,7 +185,26 @@ func (bs *BreezService) LookupInvoice(ctx context.Context, senderPubkey string, 
 }
 
 func (bs *BreezService) ListTransactions(ctx context.Context, senderPubkey string, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []Nip47Transaction, err error) {
-	payments, err := bs.svc.ListPayments(breez_sdk.ListPaymentsRequest{})
+
+	request := breez_sdk.ListPaymentsRequest{}
+	if limit > 0 {
+		limit32 := uint32(limit)
+		request.Limit = &limit32
+	}
+	if offset > 0 {
+		offset32 := uint32(offset)
+		request.Offset = &offset32
+	}
+	if from > 0 {
+		from64 := int64(from)
+		request.FromTimestamp = &from64
+	}
+	if until > 0 {
+		until64 := int64(until)
+		request.ToTimestamp = &until64
+	}
+
+	payments, err := bs.svc.ListPayments(request)
 	if err != nil {
 		return nil, err
 	}
@@ -225,15 +248,25 @@ func breezPaymentToTransaction(payment *breez_sdk.Payment) (*Nip47Transaction, e
 		txType = "incoming"
 	}
 
-	paymentRequest, err := decodepay.Decodepay(strings.ToLower(lnDetails.Data.Bolt11))
-	if err != nil {
-		log.Printf("Failed to decode bolt11 invoice: %v", payment)
-		return nil, err
-	}
+	createdAt := payment.PaymentTime
+	var expiresAt *int64
+	description := lnDetails.Data.Label
+	descriptionHash := ""
 
-	createdAt := int64(paymentRequest.CreatedAt)
-	expiresAtUnix := time.UnixMilli(int64(paymentRequest.CreatedAt) * 1000).Add(time.Duration(paymentRequest.Expiry) * time.Second).Unix()
-	expiresAt := &expiresAtUnix
+	if lnDetails.Data.Bolt11 != "" {
+		// TODO: Breez should provide these details so we don't need to manually decode the invoice
+		paymentRequest, err := decodepay.Decodepay(strings.ToLower(lnDetails.Data.Bolt11))
+		if err != nil {
+			log.Printf("Failed to decode bolt11 invoice: %v", payment)
+			return nil, err
+		}
+
+		createdAt = int64(paymentRequest.CreatedAt)
+		expiresAtUnix := time.UnixMilli(int64(paymentRequest.CreatedAt) * 1000).Add(time.Duration(paymentRequest.Expiry) * time.Second).Unix()
+		expiresAt = &expiresAtUnix
+		description = paymentRequest.Description
+		descriptionHash = paymentRequest.DescriptionHash
+	}
 
 	tx := &Nip47Transaction{
 		Type:            txType,
@@ -245,8 +278,8 @@ func breezPaymentToTransaction(payment *breez_sdk.Payment) (*Nip47Transaction, e
 		CreatedAt:       createdAt,
 		ExpiresAt:       expiresAt,
 		Metadata:        nil,
-		Description:     paymentRequest.Description,
-		DescriptionHash: paymentRequest.DescriptionHash,
+		Description:     description,
+		DescriptionHash: descriptionHash,
 	}
 	if payment.Status == breez_sdk.PaymentStatusComplete {
 		settledAt := payment.PaymentTime
