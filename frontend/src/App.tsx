@@ -17,6 +17,8 @@ import Start from "src/screens/Start";
 import { AppsRedirect } from "src/components/redirects/AppsRedirect";
 import { StartRedirect } from "src/components/redirects/StartRedirect";
 import { HomeRedirect } from "src/components/redirects/HomeRedirect";
+import Unlock from "src/screens/Unlock";
+import { SetupRedirect } from "src/components/redirects/SetupRedirect";
 
 function App() {
   return (
@@ -35,7 +37,7 @@ function App() {
               }
             ></Route>
             <Route path="welcome" element={<Welcome />}></Route>
-            <Route path="setup">
+            <Route path="setup" element={<SetupRedirect />}>
               <Route path="" element={<Navigate to="password" replace />} />
               <Route path="password" element={<SetupPassword />} />
               <Route path="node" element={<SetupNode />} />
@@ -47,6 +49,7 @@ function App() {
               <Route path="created" element={<AppCreated />} />
               <Route path="*" element={<NotFound />} />
             </Route>
+            <Route path="unlock" element={<Unlock />} />
             <Route path="about" element={<About />} />
           </Route>
           <Route path="/*" element={<NotFound />} />

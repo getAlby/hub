@@ -1,12 +1,12 @@
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useCSRF } from "src/hooks/useCSRF";
 import { request } from "src/utils/request";
 import ConnectButton from "src/components/ConnectButton";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { useInfo } from "src/hooks/useInfo";
 
-export default function Start() {
+export default function Unlock() {
   const [unlockPassword, setUnlockPassword] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const navigate = useNavigate();
@@ -20,7 +20,7 @@ export default function Start() {
       if (!csrf) {
         throw new Error("info not loaded");
       }
-      const res = await request("/api/start", {
+      const res = await request("/api/unlock", {
         method: "POST",
         headers: {
           "X-CSRF-Token": csrf,
@@ -32,7 +32,6 @@ export default function Start() {
       });
       console.log({ res });
       await refetchInfo();
-
       navigate("/");
     } catch (error) {
       handleRequestError("Failed to connect", error);
@@ -43,9 +42,9 @@ export default function Start() {
 
   return (
     <>
-      <h1 className="text-lg">Start NWC</h1>
+      <h1 className="text-lg">Unlock NWC</h1>
       <p className="text-lg mb-10">
-        To start, please enter your unlock password
+        To continue, please enter your unlock password
       </p>
       <form onSubmit={onSubmit} className="mb-10">
         <>
@@ -65,10 +64,6 @@ export default function Start() {
           <ConnectButton isConnecting={loading} />
         </>
       </form>
-
-      <Link to="/setup" className=" text-red-500">
-        Forgot password?
-      </Link>
     </>
   );
 }

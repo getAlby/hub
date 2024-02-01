@@ -36,6 +36,10 @@ type StartRequest struct {
 	UnlockPassword string `json:"unlockPassword"`
 }
 
+type UnlockRequest struct {
+	UnlockPassword string `json:"unlockPassword"`
+}
+
 type SetupRequest struct {
 	LNBackendType string `json:"backendType"`
 	// Breez fields
@@ -67,4 +71,5 @@ type InfoResponse struct {
 	BackendType    string `json:"backendType"`
 	SetupCompleted bool   `json:"setupCompleted"`
 	Running        bool   `json:"running"`
+	Unlocked       bool   `json:"unlocked"`
 }
