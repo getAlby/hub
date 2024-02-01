@@ -51,6 +51,9 @@ func NewService(ctx context.Context) (*Service, error) {
 	logger.SetOutput(os.Stdout)
 	logger.SetLevel(log.InfoLevel)
 
+	// make sure workdir exists
+	os.MkdirAll(appConfig.Workdir, os.ModePerm)
+
 	fileLoggerHook, err := lumberjackrus.NewHook(
 		&lumberjackrus.LogFile{
 			Filename: path.Join(appConfig.Workdir, "log/nwc-general.log"),
