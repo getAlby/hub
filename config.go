@@ -27,7 +27,7 @@ type AppConfig struct {
 	LNDMacaroonFile string `envconfig:"LND_MACAROON_FILE"`
 	Workdir         string `envconfig:"WORK_DIR" default:".data"`
 	Port            string `envconfig:"PORT" default:"8080"`
-	DatabaseUri     string `envconfig:"DATABASE_URI" default:"nostr-wallet-connect.db"`
+	DatabaseUri     string `envconfig:"DATABASE_URI" default:".data/nwc.db"`
 	CookieSecret    string `envconfig:"COOKIE_SECRET"`
 }
 
