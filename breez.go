@@ -187,6 +187,10 @@ func (bs *BreezService) LookupInvoice(ctx context.Context, senderPubkey string, 
 func (bs *BreezService) ListTransactions(ctx context.Context, senderPubkey string, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []Nip47Transaction, err error) {
 
 	request := breez_sdk.ListPaymentsRequest{}
+	if limit == 0 {
+		// make sure a sensible limit is passed
+		limit = 100
+	}
 	if limit > 0 {
 		limit32 := uint32(limit)
 		request.Limit = &limit32
@@ -210,8 +214,7 @@ func (bs *BreezService) ListTransactions(ctx context.Context, senderPubkey strin
 	}
 
 	transactions = []Nip47Transaction{}
-	paymentList := payments[0:100]
-	for _, payment := range paymentList {
+	for _, payment := range payments {
 		if payment.PaymentType != breez_sdk.PaymentTypeReceived && payment.PaymentType != breez_sdk.PaymentTypeSent {
 			// skip other types of payments for now
 			continue
