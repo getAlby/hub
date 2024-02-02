@@ -616,10 +616,6 @@ func TestHandleGetInfoEvent(t *testing.T) {
 	assert.NotNil(t, response)
 	assert.Equal(t, NIP_47_ERROR_RESTRICTED, response.Error.Code)
 
-	// with permission
-	err = svc.db.Exec("delete from app_permissions").Error
-	assert.NoError(t, err)
-
 	expiresAt := time.Now().Add(24 * time.Hour)
 	appPermission := &AppPermission{
 		AppId:         app.ID,
@@ -694,15 +690,6 @@ func createApp(svc *Service) (app *App, ss []byte, err error) {
 	if err != nil {
 		return nil, nil, err
 	}
-
-	// creating this permission because if no permissions
-	// are created for an app, it can do anything
-	appPermission := &AppPermission{
-		AppId:         app.ID,
-		App:           *app,
-		RequestMethod: "UNKNOWN_METHOD",
-	}
-	err = svc.db.Create(appPermission).Error
 
 	return app, ss, nil
 }
