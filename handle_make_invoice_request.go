@@ -14,7 +14,7 @@ import (
 func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Request, event *nostr.Event, app App, ss []byte) (result *nostr.Event, err error) {
 
 	// TODO: move to a shared function
-	nostrEvent := NostrEvent{App: app, NostrId: event.ID, Content: event.Content, State: "received"}
+	nostrEvent := NostrEvent{App: app, NostrId: event.ID, Content: event.Content}
 	err = svc.db.Create(&nostrEvent).Error
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
@@ -92,8 +92,6 @@ func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Re
 			"descriptionHash": makeInvoiceParams.DescriptionHash,
 			"expiry":          makeInvoiceParams.Expiry,
 		}).Infof("Failed to make invoice: %v", err)
-		nostrEvent.State = NOSTR_EVENT_STATE_HANDLER_ERROR
-		svc.db.Save(&nostrEvent)
 		return svc.createResponse(event, Nip47Response{
 			ResultType: NIP_47_MAKE_INVOICE_METHOD,
 			Error: &Nip47Error{
@@ -107,8 +105,6 @@ func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Re
 		Nip47Transaction: *transaction,
 	}
 
-	nostrEvent.State = NOSTR_EVENT_STATE_HANDLER_EXECUTED
-	svc.db.Save(&nostrEvent)
 	return svc.createResponse(event, Nip47Response{
 		ResultType: NIP_47_MAKE_INVOICE_METHOD,
 		Result:     responsePayload,

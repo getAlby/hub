@@ -189,12 +189,35 @@ func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 	}
 }
 
-func (svc *Service) PublishEvent(ctx context.Context, sub *nostr.Subscription, event *nostr.Event, resp *nostr.Event) {
+func (svc *Service) PublishEvent(ctx context.Context, sub *nostr.Subscription, event *nostr.Event, resp *nostr.Event, app App, ss []byte) {
+	payload, err := nip04.Decrypt(resp.Content, ss)
+	if err != nil {
+		svc.Logger.WithFields(logrus.Fields{
+			"eventId":      event.ID,
+			"eventKind":    event.Kind,
+			"appId":        app.ID,
+			"replyEventId": resp.ID,
+		}).Errorf("Failed to decrypt content: %v", err)
+		return
+	}
+	responseEvent := ResponseEvent{App: app, NostrId: resp.ID, DecryptedContent: payload, Content: resp.Content, State: "received"}
+	err = svc.db.Create(&responseEvent).Error
+	if err != nil {
+		svc.Logger.WithFields(logrus.Fields{
+			"eventId":      event.ID,
+			"eventKind":    event.Kind,
+			"appId":        app.ID,
+			"replyEventId": resp.ID,
+		}).Errorf("Failed to save response/reply event: %v", err)
+		return
+	}
+
 	status, err := sub.Relay.Publish(ctx, *resp)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
 			"eventId":      event.ID,
 			"status":       status,
+			"appId":        app.ID,
 			"replyEventId": resp.ID,
 		}).Errorf("Failed to publish reply: %v", err)
 		return
@@ -206,42 +229,43 @@ func (svc *Service) PublishEvent(ctx context.Context, sub *nostr.Subscription, e
 		svc.Logger.WithFields(logrus.Fields{
 			"eventId":      event.ID,
 			"status":       status,
+			"appId":        app.ID,
 			"replyEventId": resp.ID,
 		}).Error(result.Error)
 		return
 	}
-	nostrEvent.ReplyId = resp.ID
 
 	if status == nostr.PublishStatusSucceeded {
-		nostrEvent.State = NOSTR_EVENT_STATE_PUBLISH_CONFIRMED
+		responseEvent.State = NOSTR_EVENT_STATE_PUBLISH_CONFIRMED
+		responseEvent.RepliedAt = time.Now()
 		nostrEvent.RepliedAt = time.Now()
 		svc.db.Save(&nostrEvent)
 		svc.Logger.WithFields(logrus.Fields{
 			"nostrEventId": nostrEvent.ID,
 			"eventId":      event.ID,
 			"status":       status,
+			"appId":        app.ID,
 			"replyEventId": resp.ID,
-			"appId":        nostrEvent.AppId,
 		}).Info("Published reply")
 	} else if status == nostr.PublishStatusFailed {
-		nostrEvent.State = NOSTR_EVENT_STATE_PUBLISH_FAILED
+		responseEvent.State = NOSTR_EVENT_STATE_PUBLISH_FAILED
 		svc.db.Save(&nostrEvent)
 		svc.Logger.WithFields(logrus.Fields{
 			"nostrEventId": nostrEvent.ID,
 			"eventId":      event.ID,
 			"status":       status,
+			"appId":        app.ID,
 			"replyEventId": resp.ID,
-			"appId":        nostrEvent.AppId,
 		}).Info("Failed to publish reply")
 	} else {
-		nostrEvent.State = NOSTR_EVENT_STATE_PUBLISH_UNCONFIRMED
+		responseEvent.State = NOSTR_EVENT_STATE_PUBLISH_UNCONFIRMED
 		svc.db.Save(&nostrEvent)
 		svc.Logger.WithFields(logrus.Fields{
 			"nostrEventId": nostrEvent.ID,
 			"eventId":      event.ID,
 			"status":       status,
+			"appId":        app.ID,
 			"replyEventId": resp.ID,
-			"appId":        nostrEvent.AppId,
 		}).Info("Reply sent but no response from relay (timeout)")
 	}
 }
@@ -286,7 +310,7 @@ func (svc *Service) HandleEvent(ctx context.Context, sub *nostr.Subscription, ev
 				Message: "The public key does not have a wallet connected.",
 			},
 		}, nostr.Tags{}, ss)
-		svc.PublishEvent(ctx, sub, event, resp)
+		svc.PublishEvent(ctx, sub, event, resp, app, ss)
 		return
 	}
 
@@ -334,6 +358,9 @@ func (svc *Service) HandleEvent(ctx context.Context, sub *nostr.Subscription, ev
 	case NIP_47_MULTI_PAY_INVOICE_METHOD:
 		svc.HandleMultiPayInvoiceEvent(ctx, sub, nip47Request, event, app, ss)
 		return
+	case NIP_47_MULTI_PAY_KEYSEND_METHOD:
+		svc.HandleMultiPayKeysendEvent(ctx, sub, nip47Request, event, app, ss)
+		return
 	// TODO: for the below handlers consider returning
 	// Nip47Response instead of *nostr.Event
 	case NIP_47_PAY_INVOICE_METHOD:
@@ -361,7 +388,7 @@ func (svc *Service) HandleEvent(ctx context.Context, sub *nostr.Subscription, ev
 		}).Errorf("Failed to process event: %v", err)
 	}
 	if resp != nil {
-		svc.PublishEvent(ctx, sub, event, resp)
+		svc.PublishEvent(ctx, sub, event, resp, app, ss)
 	}
 }
 

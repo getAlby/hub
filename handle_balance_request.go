@@ -14,7 +14,7 @@ const (
 
 func (svc *Service) HandleGetBalanceEvent(ctx context.Context, request *Nip47Request, event *nostr.Event, app App, ss []byte) (result *nostr.Event, err error) {
 
-	nostrEvent := NostrEvent{App: app, NostrId: event.ID, Content: event.Content, State: "received"}
+	nostrEvent := NostrEvent{App: app, NostrId: event.ID, Content: event.Content}
 	err = svc.db.Create(&nostrEvent).Error
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
@@ -55,8 +55,6 @@ func (svc *Service) HandleGetBalanceEvent(ctx context.Context, request *Nip47Req
 			"eventKind": event.Kind,
 			"appId":     app.ID,
 		}).Infof("Failed to fetch balance: %v", err)
-		nostrEvent.State = NOSTR_EVENT_STATE_HANDLER_ERROR
-		svc.db.Save(&nostrEvent)
 		return svc.createResponse(event, Nip47Response{
 			ResultType: NIP_47_GET_BALANCE_METHOD,
 			Error: &Nip47Error{
@@ -79,8 +77,6 @@ func (svc *Service) HandleGetBalanceEvent(ctx context.Context, request *Nip47Req
 		responsePayload.BudgetRenewal = appPermission.BudgetRenewal
 	}
 
-	nostrEvent.State = NOSTR_EVENT_STATE_HANDLER_EXECUTED
-	svc.db.Save(&nostrEvent)
 	return svc.createResponse(event, Nip47Response{
 		ResultType: NIP_47_GET_BALANCE_METHOD,
 		Result:     responsePayload,
