@@ -132,7 +132,7 @@ func (cfg *Config) SetUpdate(key string, value string, encryptionKey string) {
 func (cfg *Config) CheckUnlockPassword(encryptionKey string) bool {
 	decryptedValue, err := cfg.Get("UnlockPasswordCheck", encryptionKey)
 
-	return err == nil && decryptedValue == UnlockPasswordCheck
+	return err == nil && (decryptedValue == "" || decryptedValue == UnlockPasswordCheck)
 }
 
 func (cfg *Config) SavePasswordCheck(encryptionKey string) {
