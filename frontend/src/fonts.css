@@ -1,0 +1,51 @@
+@font-face {
+  font-family: "Inter var";
+  font-weight: 100 900;
+  font-display: swap;
+  font-style: normal;
+  font-named-instance: "Regular";
+  src: url(/fonts/Inter-roman.var.woff2) format("woff2");
+}
+
+@font-face {
+  font-family: "Inter var";
+  font-weight: 100 900;
+  font-display: swap;
+  font-style: italic;
+  font-named-instance: "Italic";
+  src: url(/fonts/Inter-italic.var.woff2) format("woff2");
+}
+
+/* NOTE: source: https://gwfh.mranftl.com/fonts/work-sans?subsets=latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: "Work Sans";
+  font-style: normal;
+  font-weight: 500;
+  src: url("/fonts/work-sans-v18-latin-500.eot"); /* IE9 Compat Modes */
+  src: url("/fonts/work-sans-v18-latin-500.eot?#iefix")
+      format("embedded-opentype"),
+    /* IE6-IE8 */ url("/fonts/work-sans-v18-latin-500.woff2") format("woff2"),
+    /* Super Modern Browsers */ url("/fonts/work-sans-v18-latin-500.woff")
+      format("woff"),
+    /* Modern Browsers */ url("/fonts/work-sans-v18-latin-500.ttf")
+      format("truetype"),
+    /* Safari, Android, iOS */
+      url("/fonts/work-sans-v18-latin-500.svg#WorkSans") format("svg"); /* Legacy iOS */
+}
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: "Work Sans";
+  font-style: normal;
+  font-weight: 600;
+  src: url("/fonts/work-sans-v18-latin-600.eot"); /* IE9 Compat Modes */
+  src: url("/fonts/work-sans-v18-latin-600.eot?#iefix")
+      format("embedded-opentype"),
+    /* IE6-IE8 */ url("/fonts/work-sans-v18-latin-600.woff2") format("woff2"),
+    /* Super Modern Browsers */ url("/fonts/work-sans-v18-latin-600.woff")
+      format("woff"),
+    /* Modern Browsers */ url("/fonts/work-sans-v18-latin-600.ttf")
+      format("truetype"),
+    /* Safari, Android, iOS */
+      url("/fonts/work-sans-v18-latin-600.svg#WorkSans") format("svg"); /* Legacy iOS */
+}

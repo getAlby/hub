@@ -1,0 +1,45 @@
+{
+  "name": "frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev:http": "yarn prepare:http && vite",
+    "dev:wails": "yarn prepare:wails && vite",
+    "build:http": "yarn prepare:http && tsc && vite build",
+    "build:wails": "yarn prepare:wails && tsc && vite build",
+    "prepare:wails": "shx cp ./platform_specific/wails/src/utils/request.ts src/utils/request.ts",
+    "prepare:http": "shx cp ./platform_specific/http/src/utils/request.ts src/utils/request.ts",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-hot-toast": "^2.4.1",
+    "react-qr-code": "^2.0.12",
+    "react-router-dom": "^6.21.0",
+    "swr": "^2.2.4",
+    "zustand": "^4.5.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/aspect-ratio": "^0.4.2",
+    "@tailwindcss/forms": "^0.5.7",
+    "@tailwindcss/typography": "^0.5.10",
+    "@types/node": "^20.10.8",
+    "@types/react": "^18.2.15",
+    "@types/react-dom": "^18.2.7",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "@vitejs/plugin-react-swc": "^3.3.2",
+    "autoprefixer": "^10.4.16",
+    "eslint": "^8.45.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.3",
+    "postcss": "^8.4.32",
+    "shx": "^0.3.4",
+    "tailwindcss": "^3.3.6",
+    "typescript": "^5.0.2",
+    "vite": "^4.4.5"
+  }
+}

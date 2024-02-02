@@ -1,0 +1,8 @@
+spec:
+  name: nwc
+  services:
+    - name: web
+      github:
+        branch: feat/onboarding-flow
+        repo: getAlby/nostr-wallet-connect
+        deploy_on_push: true

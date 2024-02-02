@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/getAlby/nostr-wallet-connect/migrations"
 	"github.com/glebarez/sqlite"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip04"
@@ -148,24 +149,16 @@ func TestHandleEvent(t *testing.T) {
 	ctx := context.TODO()
 	svc, _ := createTestService(t)
 	defer os.Remove(testDB)
-	//test not yet receivedEOS
-	res, err := svc.HandleEvent(ctx, &nostr.Event{
-		Kind: NIP_47_REQUEST_KIND,
-	})
-	assert.Nil(t, res)
-	assert.Nil(t, err)
-	//now signal that we are ready to receive events
-	svc.ReceivedEOS = true
 
 	senderPrivkey := nostr.GeneratePrivateKey()
 	senderPubkey, err := nostr.GetPublicKey(senderPrivkey)
 	assert.NoError(t, err)
 	//test lnbc.. payload without having an app registered
-	ss, err := nip04.ComputeSharedSecret(svc.cfg.IdentityPubkey, senderPrivkey)
+	ss, err := nip04.ComputeSharedSecret(svc.cfg.NostrPublicKey, senderPrivkey)
 	assert.NoError(t, err)
 	payload, err := nip04.Encrypt(nip47PayJson, ss)
 	assert.NoError(t, err)
-	res, err = svc.HandleEvent(ctx, &nostr.Event{
+	res, err := svc.HandleEvent(ctx, &nostr.Event{
 		ID:      "test_event_1",
 		Kind:    NIP_47_REQUEST_KIND,
 		PubKey:  senderPubkey,
@@ -180,23 +173,10 @@ func TestHandleEvent(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, received.Error.Code, NIP_47_ERROR_UNAUTHORIZED)
 	assert.NotNil(t, res)
-	//create user
-	user := &User{ID: 0, AlbyIdentifier: "dummy"}
-	err = svc.db.Create(user).Error
-	assert.NoError(t, err)
 	//register app
 	app := App{Name: "test", NostrPubkey: senderPubkey}
-	err = svc.db.Model(&user).Association("Apps").Append(&app)
+	err = svc.db.Save(&app).Error
 	assert.NoError(t, err)
-	//test old payload
-	res, err = svc.HandleEvent(ctx, &nostr.Event{
-		ID:      "test_event_2",
-		Kind:    NIP_47_REQUEST_KIND,
-		PubKey:  senderPubkey,
-		Content: payload,
-	})
-	assert.NoError(t, err)
-	assert.NotNil(t, res)
 	//test new payload
 	newPayload, err := nip04.Encrypt(nip47PayJson, ss)
 	assert.NoError(t, err)
@@ -215,7 +195,9 @@ func TestHandleEvent(t *testing.T) {
 	}
 	err = json.Unmarshal([]byte(decrypted), received)
 	assert.NoError(t, err)
-	assert.Equal(t, received.Result.(*Nip47PayResponse).Preimage, "123preimage")
+	// this app has no permission
+	assert.Equal(t, received.Error.Code, NIP_47_ERROR_RESTRICTED)
+
 	malformedPayload, err := nip04.Encrypt(nip47PayJsonNoInvoice, ss)
 	assert.NoError(t, err)
 	res, err = svc.HandleEvent(ctx, &nostr.Event{
@@ -628,10 +610,10 @@ func TestHandleEvent(t *testing.T) {
 	assert.Equal(t, []string{"get_info"}, received.Result.(*Nip47GetInfoResponse).Methods)
 }
 
-func createTestService(t *testing.T) (svc *Service, ln *MockLn) {
-	db, err := gorm.Open(sqlite.Open(testDB), &gorm.Config{})
+func createTestService(t *testing.T) (svc *Service, ln LNClient) {
+	gormDb, err := gorm.Open(sqlite.Open(testDB), &gorm.Config{})
 	assert.NoError(t, err)
-	err = db.AutoMigrate(&User{}, &App{}, &AppPermission{}, &NostrEvent{}, &Payment{}, &Identity{})
+	err = migrations.Migrate(gormDb)
 	assert.NoError(t, err)
 	ln = &MockLn{}
 	sk := nostr.GeneratePrivateKey()
@@ -645,13 +627,13 @@ func createTestService(t *testing.T) (svc *Service, ln *MockLn) {
 
 	return &Service{
 		cfg: &Config{
+			db:             gormDb,
 			NostrSecretKey: sk,
-			IdentityPubkey: pk,
+			NostrPublicKey: pk,
 		},
-		db:          db,
-		lnClient:    ln,
-		ReceivedEOS: false,
-		Logger:      logger,
+		db:       gormDb,
+		lnClient: ln,
+		Logger:   logger,
 	}, ln
 }
 
@@ -684,4 +666,7 @@ func (mln *MockLn) LookupInvoice(ctx context.Context, senderPubkey string, payme
 
 func (mln *MockLn) ListTransactions(ctx context.Context, senderPubkey string, from, until, limit, offset uint64, unpaid bool, invoiceType string) (invoices []Nip47Transaction, err error) {
 	return mockTransactions, nil
+}
+func (mln *MockLn) Shutdown() error {
+	return nil
 }
