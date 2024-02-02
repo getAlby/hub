@@ -60,9 +60,11 @@ type AppPermission struct {
 
 type NostrEvent struct {
 	ID        uint
-	AppId     uint `validate:"required"`
+	AppId     *uint
 	App       App
 	NostrId   string `validate:"required"`
+	Kind      int
+	PubKey    string
 	Content   string
 	RepliedAt time.Time
 	CreatedAt time.Time
@@ -70,11 +72,12 @@ type NostrEvent struct {
 }
 
 type ResponseEvent struct {
-	ID               uint
-	AppId            uint `validate:"required"`
+	ID uint
+	// TODO: should we store app?
+	AppId            *uint
 	App              App
 	NostrId          string `validate:"required"`
-	ReplyId          string
+	RequestId        uint   `validate:"required"`
 	Content          string
 	DecryptedContent string
 	State            string

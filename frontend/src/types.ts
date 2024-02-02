@@ -78,9 +78,9 @@ export interface NostrEvent {
   appId: number;
   app: App;
   nostrId: string;
-  replyId: string;
+  kind: number;
+  pubKey: string;
   content: string;
-  state: string;
   repliedAt: string;
   createdAt: string;
   updatedAt: string;

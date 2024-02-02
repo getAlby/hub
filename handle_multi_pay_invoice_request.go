@@ -12,22 +12,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, sub *nostr.Subscription, request *Nip47Request, event *nostr.Event, app App, ss []byte) {
-
-	nostrEvent := NostrEvent{App: app, NostrId: event.ID, Content: event.Content}
-	err := svc.db.Create(&nostrEvent).Error
-	if err != nil {
-		svc.Logger.WithFields(logrus.Fields{
-			"eventId":   event.ID,
-			"eventKind": event.Kind,
-			"appId":     app.ID,
-		}).Errorf("Failed to save nostr event: %v", err)
-		svc.Logger.WithFields(logrus.Fields{
-			"eventId":   event.ID,
-			"eventKind": event.Kind,
-		}).Errorf("Failed to process event: %v", err)
-		return
-	}
+func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, sub *nostr.Subscription, request *Nip47Request, event *nostr.Event, requestEvent *NostrEvent, app *App, ss []byte) (resps []*nostr.Event, err error) {
 
 	multiPayParams := &Nip47MultiPayInvoiceParams{}
 	err = json.Unmarshal(request.Params, multiPayParams)
@@ -41,10 +26,11 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, sub *nostr.S
 			"eventId":   event.ID,
 			"eventKind": event.Kind,
 		}).Errorf("Failed to process event: %v", err)
-		return
+		return nil, err
 	}
 
 	var wg sync.WaitGroup
+	var mu sync.Mutex
 	for _, invoiceInfo := range multiPayParams.Invoices {
 		wg.Add(1)
 		go func(invoiceInfo Nip47MultiPayInvoiceElement) {
@@ -80,7 +66,7 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, sub *nostr.S
 					return
 				}
 
-				svc.PublishEvent(ctx, sub, event, resp, app, ss)
+				svc.PublishAndAppend(ctx, sub, requestEvent, resp, app, ss, &mu, &resps)
 				return
 			}
 
@@ -90,7 +76,7 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, sub *nostr.S
 			}
 			dTag := []string{"d", invoiceDTagValue}
 
-			hasPermission, code, message := svc.hasPermission(&app, event, NIP_47_PAY_INVOICE_METHOD, paymentRequest.MSatoshi)
+			hasPermission, code, message := svc.hasPermission(app, requestEvent, NIP_47_PAY_INVOICE_METHOD, paymentRequest.MSatoshi)
 
 			if !hasPermission {
 				svc.Logger.WithFields(logrus.Fields{
@@ -115,11 +101,11 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, sub *nostr.S
 					}).Errorf("Failed to process event: %v", err)
 					return
 				}
-				svc.PublishEvent(ctx, sub, event, resp, app, ss)
+				svc.PublishAndAppend(ctx, sub, requestEvent, resp, app, ss, &mu, &resps)
 				return
 			}
 
-			payment := Payment{App: app, NostrEvent: nostrEvent, PaymentRequest: bolt11, Amount: uint(paymentRequest.MSatoshi / 1000)}
+			payment := Payment{App: *app, NostrEvent: *requestEvent, PaymentRequest: bolt11, Amount: uint(paymentRequest.MSatoshi / 1000)}
 			insertPaymentResult := svc.db.Create(&payment)
 			if insertPaymentResult.Error != nil {
 				svc.Logger.WithFields(logrus.Fields{
@@ -163,7 +149,7 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, sub *nostr.S
 					}).Errorf("Failed to process event: %v", err)
 					return
 				}
-				svc.PublishEvent(ctx, sub, event, resp, app, ss)
+				svc.PublishAndAppend(ctx, sub, requestEvent, resp, app, ss, &mu, &resps)
 				return
 			}
 			payment.Preimage = &preimage
@@ -183,10 +169,10 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, sub *nostr.S
 				}).Errorf("Failed to process event: %v", err)
 				return
 			}
-			svc.PublishEvent(ctx, sub, event, resp, app, ss)
+			svc.PublishAndAppend(ctx, sub, requestEvent, resp, app, ss, &mu, &resps)
 		}(invoiceInfo)
 	}
 
 	wg.Wait()
-	return
+	return resps, nil
 }

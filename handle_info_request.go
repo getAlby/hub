@@ -4,60 +4,48 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/nbd-wtf/go-nostr"
 	"github.com/sirupsen/logrus"
 )
 
-func (svc *Service) HandleGetInfoEvent(ctx context.Context, request *Nip47Request, event *nostr.Event, app App, ss []byte) (result *nostr.Event, err error) {
+func (svc *Service) HandleGetInfoEvent(ctx context.Context, request *Nip47Request, requestEvent *NostrEvent, app *App) (result *Nip47Response, err error) {
 
-	nostrEvent := NostrEvent{App: app, NostrId: event.ID, Content: event.Content}
-	err = svc.db.Create(&nostrEvent).Error
-	if err != nil {
-		svc.Logger.WithFields(logrus.Fields{
-			"eventId":   event.ID,
-			"eventKind": event.Kind,
-			"appId":     app.ID,
-		}).Errorf("Failed to save nostr event: %v", err)
-		return nil, err
-	}
-
-	hasPermission, code, message := svc.hasPermission(&app, event, request.Method, 0)
+	hasPermission, code, message := svc.hasPermission(app, requestEvent, request.Method, 0)
 
 	if !hasPermission {
 		svc.Logger.WithFields(logrus.Fields{
-			"eventId":   event.ID,
-			"eventKind": event.Kind,
+			"eventId":   requestEvent.NostrId,
+			"eventKind": requestEvent.Kind,
 			"appId":     app.ID,
 		}).Errorf("App does not have permission: %s %s", code, message)
 
-		return svc.createResponse(event, Nip47Response{
+		return &Nip47Response{
 			ResultType: request.Method,
 			Error: &Nip47Error{
 				Code:    code,
 				Message: message,
-			}}, nostr.Tags{}, ss)
+			}}, nil
 	}
 
 	svc.Logger.WithFields(logrus.Fields{
-		"eventId":   event.ID,
-		"eventKind": event.Kind,
+		"eventId":   requestEvent.NostrId,
+		"eventKind": requestEvent.Kind,
 		"appId":     app.ID,
 	}).Info("Fetching node info")
 
-	info, err := svc.lnClient.GetInfo(ctx, event.PubKey)
+	info, err := svc.lnClient.GetInfo(ctx, requestEvent.PubKey)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
-			"eventId":   event.ID,
-			"eventKind": event.Kind,
+			"eventId":   requestEvent.NostrId,
+			"eventKind": requestEvent.Kind,
 			"appId":     app.ID,
 		}).Infof("Failed to fetch node info: %v", err)
-		return svc.createResponse(event, Nip47Response{
+		return &Nip47Response{
 			ResultType: request.Method,
 			Error: &Nip47Error{
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: fmt.Sprintf("Something went wrong while fetching node info: %s", err.Error()),
 			},
-		}, nostr.Tags{}, ss)
+		}, nil
 	}
 
 	responsePayload := &Nip47GetInfoResponse{
@@ -67,10 +55,10 @@ func (svc *Service) HandleGetInfoEvent(ctx context.Context, request *Nip47Reques
 		Network:     info.Network,
 		BlockHeight: info.BlockHeight,
 		BlockHash:   info.BlockHash,
-		Methods:     svc.GetMethods(&app),
+		Methods:     svc.GetMethods(app),
 	}
-	return svc.createResponse(event, Nip47Response{
+	return &Nip47Response{
 		ResultType: request.Method,
 		Result:     responsePayload,
-	}, nostr.Tags{}, ss)
+	}, nil
 }

@@ -10,22 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, sub *nostr.Subscription, request *Nip47Request, event *nostr.Event, app App, ss []byte) {
-
-	nostrEvent := NostrEvent{App: app, NostrId: event.ID, Content: event.Content}
-	err := svc.db.Create(&nostrEvent).Error
-	if err != nil {
-		svc.Logger.WithFields(logrus.Fields{
-			"eventId":   event.ID,
-			"eventKind": event.Kind,
-			"appId":     app.ID,
-		}).Errorf("Failed to save nostr event: %v", err)
-		svc.Logger.WithFields(logrus.Fields{
-			"eventId":   event.ID,
-			"eventKind": event.Kind,
-		}).Errorf("Failed to process event: %v", err)
-		return
-	}
+func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, sub *nostr.Subscription, request *Nip47Request, event *nostr.Event, requestEvent *NostrEvent, app *App, ss []byte) (resps []*nostr.Event, err error) {
 
 	multiPayParams := &Nip47MultiPayKeysendParams{}
 	err = json.Unmarshal(request.Params, multiPayParams)
@@ -39,10 +24,11 @@ func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, sub *nostr.S
 			"eventId":   event.ID,
 			"eventKind": event.Kind,
 		}).Errorf("Failed to process event: %v", err)
-		return
+		return nil, err
 	}
 
 	var wg sync.WaitGroup
+	var mu sync.Mutex
 	for _, keysendInfo := range multiPayParams.Invoices {
 		wg.Add(1)
 		go func(keysendInfo Nip47MultiPayKeysendElement) {
@@ -54,7 +40,7 @@ func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, sub *nostr.S
 			}
 			dTag := []string{"d", keysendDTagValue}
 
-			hasPermission, code, message := svc.hasPermission(&app, event, NIP_47_PAY_INVOICE_METHOD, keysendInfo.Amount)
+			hasPermission, code, message := svc.hasPermission(app, requestEvent, NIP_47_PAY_INVOICE_METHOD, keysendInfo.Amount)
 
 			if !hasPermission {
 				svc.Logger.WithFields(logrus.Fields{
@@ -80,11 +66,11 @@ func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, sub *nostr.S
 					}).Errorf("Failed to process event: %v", err)
 					return
 				}
-				svc.PublishEvent(ctx, sub, event, resp, app, ss)
+				svc.PublishAndAppend(ctx, sub, requestEvent, resp, app, ss, &mu, &resps)
 				return
 			}
 
-			payment := Payment{App: app, NostrEvent: nostrEvent, Amount: uint(keysendInfo.Amount / 1000)}
+			payment := Payment{App: *app, NostrEvent: *requestEvent, Amount: uint(keysendInfo.Amount / 1000)}
 			insertPaymentResult := svc.db.Create(&payment)
 			if insertPaymentResult.Error != nil {
 				svc.Logger.WithFields(logrus.Fields{
@@ -128,7 +114,7 @@ func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, sub *nostr.S
 					}).Errorf("Failed to process event: %v", err)
 					return
 				}
-				svc.PublishEvent(ctx, sub, event, resp, app, ss)
+				svc.PublishAndAppend(ctx, sub, requestEvent, resp, app, ss, &mu, &resps)
 				return
 			}
 			payment.Preimage = &preimage
@@ -148,10 +134,10 @@ func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, sub *nostr.S
 				}).Errorf("Failed to process event: %v", err)
 				return
 			}
-			svc.PublishEvent(ctx, sub, event, resp, app, ss)
+			svc.PublishAndAppend(ctx, sub, requestEvent, resp, app, ss, &mu, &resps)
 		}(keysendInfo)
 	}
 
 	wg.Wait()
-	return
+	return resps, nil
 }

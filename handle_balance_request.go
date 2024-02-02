@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/nbd-wtf/go-nostr"
 	"github.com/sirupsen/logrus"
 )
 
@@ -12,56 +11,45 @@ const (
 	MSAT_PER_SAT = 1000
 )
 
-func (svc *Service) HandleGetBalanceEvent(ctx context.Context, request *Nip47Request, event *nostr.Event, app App, ss []byte) (result *nostr.Event, err error) {
+func (svc *Service) HandleGetBalanceEvent(ctx context.Context, request *Nip47Request, requestEvent *NostrEvent, app *App) (result *Nip47Response, err error) {
 
-	nostrEvent := NostrEvent{App: app, NostrId: event.ID, Content: event.Content}
-	err = svc.db.Create(&nostrEvent).Error
-	if err != nil {
-		svc.Logger.WithFields(logrus.Fields{
-			"eventId":   event.ID,
-			"eventKind": event.Kind,
-			"appId":     app.ID,
-		}).Errorf("Failed to save nostr event: %v", err)
-		return nil, err
-	}
-
-	hasPermission, code, message := svc.hasPermission(&app, event, request.Method, 0)
+	hasPermission, code, message := svc.hasPermission(app, requestEvent, request.Method, 0)
 
 	if !hasPermission {
 		svc.Logger.WithFields(logrus.Fields{
-			"eventId":   event.ID,
-			"eventKind": event.Kind,
+			"eventId":   requestEvent.NostrId,
+			"eventKind": requestEvent.Kind,
 			"appId":     app.ID,
 		}).Errorf("App does not have permission: %s %s", code, message)
 
-		return svc.createResponse(event, Nip47Response{
-			ResultType: NIP_47_GET_BALANCE_METHOD,
+		return &Nip47Response{
+			ResultType: request.Method,
 			Error: &Nip47Error{
 				Code:    code,
 				Message: message,
-			}}, nostr.Tags{}, ss)
+			}}, nil
 	}
 
 	svc.Logger.WithFields(logrus.Fields{
-		"eventId":   event.ID,
-		"eventKind": event.Kind,
+		"eventId":   requestEvent.NostrId,
+		"eventKind": requestEvent.Kind,
 		"appId":     app.ID,
 	}).Info("Fetching balance")
 
-	balance, err := svc.lnClient.GetBalance(ctx, event.PubKey)
+	balance, err := svc.lnClient.GetBalance(ctx, requestEvent.PubKey)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
-			"eventId":   event.ID,
-			"eventKind": event.Kind,
+			"eventId":   requestEvent.NostrId,
+			"eventKind": requestEvent.Kind,
 			"appId":     app.ID,
 		}).Infof("Failed to fetch balance: %v", err)
-		return svc.createResponse(event, Nip47Response{
-			ResultType: NIP_47_GET_BALANCE_METHOD,
+		return &Nip47Response{
+			ResultType: request.Method,
 			Error: &Nip47Error{
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: fmt.Sprintf("Something went wrong while fetching balance: %s", err.Error()),
 			},
-		}, nostr.Tags{}, ss)
+		}, nil
 	}
 
 	responsePayload := &Nip47BalanceResponse{
@@ -77,8 +65,8 @@ func (svc *Service) HandleGetBalanceEvent(ctx context.Context, request *Nip47Req
 		responsePayload.BudgetRenewal = appPermission.BudgetRenewal
 	}
 
-	return svc.createResponse(event, Nip47Response{
-		ResultType: NIP_47_GET_BALANCE_METHOD,
+	return &Nip47Response{
+		ResultType: request.Method,
 		Result:     responsePayload,
-	}, nostr.Tags{}, ss)
+	}, nil
 }
