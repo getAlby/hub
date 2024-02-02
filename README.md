@@ -1,9 +1,18 @@
-# Nostr Wallet Connect
+# Nostr Wallet Connect (Next)
+
+This is a self-sovereign, self-custodial, single-user rewrite of NWC currently in an experimental phase development. **❗This version is not backwards compatible with NWC - it requires a fresh database and connections to be re-added**
 
 This application allows you to control your Lightning node or wallet over Nostr.
 Connect applications like [Damus](https://damus.io/) or [Amethyst](https://linktr.ee/amethyst.social) to your node.
 
 **Specification**: [NIP-47](https://github.com/nostr-protocol/nips/blob/master/47.md)
+
+The application can run in two modes:
+
+- Wails (Desktop app): Mac (arm64), Windows (amd64), Linux (amd64)
+- HTTP (Web app): Docker, Linux (amd64)
+
+Ideally the app runs 24/7 (on a node, VPS or always-online desktop/laptop machine) so it can be connected to a lightning address and receive online payments.
 
 ## Supported Backends
 
@@ -73,16 +82,21 @@ _If you get a blank screen the first load, close the window and start the app ag
 
 `go test`
 
+### Windows
+
+Breez SDK requires gcc to build the Breez bindings. Run `choco install mingw` and copy the breez SDK bindings file into the root of this directory (from your go installation directory) as per the [Breez SDK instructions](https://github.com/breez/breez-sdk-go?tab=readme-ov-file#windows). ALSO copy the bindings file into the output directory alongside the .exe in order to run it.
+
 ## Configuration parameters
 
 - `NOSTR_PRIVKEY`: the private key of this service. Should be a securely randomly generated 32 byte hex string.
 - `CLIENT_NOSTR_PUBKEY`: if set, this service will only listen to events authored by this public key. You can set this to your own nostr public key.
 - `RELAY`: default: "wss://relay.getalby.com/v1"
-- `PUBLIC_RELAY`: optional relay URL to be used in connection strings if `RELAY` is an internal URL
-- `COOKIE_SECRET`: a randomly generated secret string.
-- `DATABASE_URI`: a sqlite filename. Default: nwc.db (sqlite)
+- `COOKIE_SECRET`: a randomly generated secret string. (only needed in http mode)
+- `DATABASE_URI`: a sqlite filename. Default: .data/nwc.db
 - `PORT`: the port on which the app should listen on (default: 8080)
 - `LN_BACKEND_TYPE`: LND or BREEZ
+- `WORK_DIR`: directory to store NWC data files. Default: .data
+-
 
 ### LND Backend parameters
 
@@ -90,9 +104,7 @@ _For cert and macaroon, either hex or file options can be used._
 
 - `LND_ADDRESS`: the LND gRPC address, eg. `localhost:10009` (used with the LND backend)
 - `LND_CERT_FILE`: the location where LND's `tls.cert` file can be found (used with the LND backend)
-- `LND_CERT_HEX`: LND's hex-encoded `tls.cert` (used with the LND backend)
 - `LND_MACAROON_FILE`: the location where LND's `admin.macaroon` file can be found (used with the LND backend)
-- `LND_MACAROON_HEX`: LND's hex-encoded `admin.macaroon` (used with the LND backend)
 
 ### BREEZ Backend parameters
 
@@ -200,9 +212,15 @@ You can also contribute to our [bounty program](https://github.com/getAlby/light
 
 ❌ `multi_pay_keysend`
 
+### Breez
+
+(Supported methods coming soon)
+
 ## Node Distributions
 
 Run NWC on your own node!
+
+**NOTE: the below links are for the original version of NWC**
 
 - [https://github.com/getAlby/umbrel-community-app-store](Umbrel)
 - [https://github.com/horologger/nostr-wallet-connect-startos](Start9)

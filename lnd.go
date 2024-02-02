@@ -311,6 +311,10 @@ func makePreimageHex() ([]byte, error) {
 }
 
 func NewLNDService(svc *Service, lndAddress, lndCertHex, lndMacaroonHex string) (result LNClient, err error) {
+	if lndAddress == "" || lndCertHex == "" || lndMacaroonHex == "" {
+		return nil, errors.New("One or more required LND configuration are missing")
+	}
+
 	lndClient, err := lnd.NewLNDclient(lnd.LNDoptions{
 		Address:     lndAddress,
 		CertHex:     lndCertHex,

@@ -19,7 +19,7 @@ export type BudgetRenewalType = "daily" | "weekly" | "monthly" | "yearly" | "";
 
 export type IconMap = {
   [key in RequestMethodType]: (
-    props: React.SVGAttributes<SVGElement>,
+    props: React.SVGAttributes<SVGElement>
   ) => JSX.Element;
 };
 
@@ -90,6 +90,7 @@ export interface InfoResponse {
   backendType: BackendType;
   setupCompleted: boolean;
   running: boolean;
+  unlocked: boolean;
 }
 
 export interface CreateAppResponse {

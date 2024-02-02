@@ -674,10 +674,9 @@ func createTestService(ln *MockLn) (svc *Service, err error) {
 			NostrSecretKey: sk,
 			NostrPublicKey: pk,
 		},
-		db:          gormDb,
-		lnClient:    ln,
-		ReceivedEOS: false,
-		Logger:      logger,
+		db:       gormDb,
+		lnClient: ln,
+		Logger:   logger,
 	}, nil
 }
 

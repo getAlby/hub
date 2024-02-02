@@ -8,8 +8,8 @@
     "dev:wails": "yarn prepare:wails && vite",
     "build:http": "yarn prepare:http && tsc && vite build",
     "build:wails": "yarn prepare:wails && tsc && vite build",
-    "prepare:wails": "cp ./platform_specific/wails/src/utils/request.ts src/utils/request.ts",
-    "prepare:http": "cp ./platform_specific/http/src/utils/request.ts src/utils/request.ts",
+    "prepare:wails": "shx cp ./platform_specific/wails/src/utils/request.ts src/utils/request.ts",
+    "prepare:http": "shx cp ./platform_specific/http/src/utils/request.ts src/utils/request.ts",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
@@ -19,7 +19,8 @@
     "react-hot-toast": "^2.4.1",
     "react-qr-code": "^2.0.12",
     "react-router-dom": "^6.21.0",
-    "swr": "^2.2.4"
+    "swr": "^2.2.4",
+    "zustand": "^4.5.0"
   },
   "devDependencies": {
     "@tailwindcss/aspect-ratio": "^0.4.2",
@@ -36,6 +37,7 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.3",
     "postcss": "^8.4.32",
+    "shx": "^0.3.4",
     "tailwindcss": "^3.3.6",
     "typescript": "^5.0.2",
     "vite": "^4.4.5"

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strings"
 	"sync"
 	"time"
 
@@ -29,13 +28,12 @@ import (
 
 type Service struct {
 	// config from .env only. Fetch dynamic config from db
-	cfg         *Config
-	db          *gorm.DB
-	lnClient    LNClient
-	ReceivedEOS bool
-	Logger      *logrus.Logger
-	ctx         context.Context
-	wg          *sync.WaitGroup
+	cfg      *Config
+	db       *gorm.DB
+	lnClient LNClient
+	Logger   *logrus.Logger
+	ctx      context.Context
+	wg       *sync.WaitGroup
 }
 
 // TODO: move to service.go
@@ -52,6 +50,9 @@ func NewService(ctx context.Context) (*Service, error) {
 	logger.SetFormatter(&log.JSONFormatter{})
 	logger.SetOutput(os.Stdout)
 	logger.SetLevel(log.InfoLevel)
+
+	// make sure workdir exists
+	os.MkdirAll(appConfig.Workdir, os.ModePerm)
 
 	fileLoggerHook, err := lumberjackrus.NewHook(
 		&lumberjackrus.LogFile{
@@ -95,7 +96,7 @@ func NewService(ctx context.Context) (*Service, error) {
 	ctx, _ = signal.NotifyContext(ctx, os.Interrupt)
 
 	cfg := &Config{}
-	cfg.Init(db, appConfig)
+	cfg.Init(db, appConfig, logger)
 
 	var wg sync.WaitGroup
 	svc := &Service{
@@ -131,7 +132,6 @@ func (svc *Service) launchLNBackend(encryptionKey string) error {
 		LNDAddress, _ := svc.cfg.Get("LNDAddress", encryptionKey)
 		LNDCertHex, _ := svc.cfg.Get("LNDCertHex", encryptionKey)
 		LNDMacaroonHex, _ := svc.cfg.Get("LNDMacaroonHex", encryptionKey)
-
 		lnClient, err = NewLNDService(svc, LNDAddress, LNDCertHex, LNDMacaroonHex)
 	case lndBackend:
 		BreezMnemonic, _ := svc.cfg.Get("BreezMnemonic", encryptionKey)
@@ -165,11 +165,11 @@ func (svc *Service) noticeHandler(notice string) {
 
 func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscription) error {
 	go func() {
-		// block till EOS is reached
+		// block till EOS is received
 		<-sub.EndOfStoredEvents
-		svc.ReceivedEOS = true
 		svc.Logger.Info("Received EOS")
 
+		// loop through incoming events
 		for event := range sub.Events {
 			go svc.HandleEvent(ctx, sub, event)
 		}
@@ -430,13 +430,9 @@ func (svc *Service) createResponse(initialEvent *nostr.Event, content interface{
 
 func (svc *Service) GetMethods(app *App) []string {
 	appPermissions := []AppPermission{}
-	findPermissionsResult := svc.db.Find(&appPermissions, &AppPermission{
+	svc.db.Find(&appPermissions, &AppPermission{
 		AppId: app.ID,
 	})
-	if findPermissionsResult.RowsAffected == 0 {
-		// No permissions created for this app. It can do anything
-		return strings.Split(NIP_47_CAPABILITIES, ",")
-	}
 	requestMethods := make([]string, 0, len(appPermissions))
 	for _, appPermission := range appPermissions {
 		requestMethods = append(requestMethods, appPermission.RequestMethod)
@@ -445,24 +441,9 @@ func (svc *Service) GetMethods(app *App) []string {
 }
 
 func (svc *Service) hasPermission(app *App, event *nostr.Event, requestMethod string, amount int64) (result bool, code string, message string) {
-	// find all permissions for the app
-	appPermissions := []AppPermission{}
-	findPermissionsResult := svc.db.Find(&appPermissions, &AppPermission{
-		AppId: app.ID,
-	})
-	if findPermissionsResult.RowsAffected == 0 {
-		// No permissions created for this app. It can do anything
-		svc.Logger.WithFields(logrus.Fields{
-			"eventId":       event.ID,
-			"requestMethod": requestMethod,
-			"appId":         app.ID,
-			"pubkey":        app.NostrPubkey,
-		}).Info("No permissions found for app")
-		return true, "", ""
-	}
-
 	appPermission := AppPermission{}
-	findPermissionResult := findPermissionsResult.Limit(1).Find(&appPermission, &AppPermission{
+	findPermissionResult := svc.db.Find(&appPermission, &AppPermission{
+		AppId:         app.ID,
 		RequestMethod: requestMethod,
 	})
 	if findPermissionResult.RowsAffected == 0 {
