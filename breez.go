@@ -102,9 +102,18 @@ func (bs *BreezService) SendPaymentSync(ctx context.Context, senderPubkey string
 }
 
 func (bs *BreezService) SendKeysend(ctx context.Context, senderPubkey string, amount int64, destination, preimage string, custom_records []TLVRecord) (preImage string, err error) {
+	extraTlvs := []breez_sdk.TlvEntry{}
+	for _, record := range custom_records {
+		extraTlvs = append(extraTlvs, breez_sdk.TlvEntry{
+			FieldNumber: record.Type,
+			Value:       []uint8(record.Value),
+		})
+	}
+
 	sendSpontaneousPaymentRequest := breez_sdk.SendSpontaneousPaymentRequest{
 		NodeId:     destination,
 		AmountMsat: uint64(amount),
+		ExtraTlvs:  &extraTlvs,
 	}
 	resp, err := bs.svc.SendSpontaneousPayment(sendSpontaneousPaymentRequest)
 	if err != nil {

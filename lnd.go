@@ -244,7 +244,7 @@ func (svc *LNDService) SendKeysend(ctx context.Context, senderPubkey string, amo
 	destCustomRecords[KEYSEND_CUSTOM_RECORD] = preImageBytes
 	sendPaymentRequest := &lnrpc.SendRequest{
 		Dest:              destBytes,
-		Amt:               amount,
+		AmtMsat:           amount,
 		PaymentHash:       paymentHashBytes,
 		DestFeatures:      []lnrpc.FeatureBit{lnrpc.FeatureBit_TLV_ONION_REQ},
 		DestCustomRecords: destCustomRecords,

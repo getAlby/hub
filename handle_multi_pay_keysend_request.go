@@ -90,7 +90,7 @@ func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, sub *nostr.S
 				"recipientPubkey": keysendInfo.Pubkey,
 			}).Info("Sending payment")
 
-			preimage, err := svc.lnClient.SendKeysend(ctx, event.PubKey, keysendInfo.Amount/1000, keysendInfo.Pubkey, keysendInfo.Preimage, keysendInfo.TLVRecords)
+			preimage, err := svc.lnClient.SendKeysend(ctx, event.PubKey, keysendInfo.Amount, keysendInfo.Pubkey, keysendInfo.Preimage, keysendInfo.TLVRecords)
 			if err != nil {
 				svc.Logger.WithFields(logrus.Fields{
 					"eventId":         event.ID,
