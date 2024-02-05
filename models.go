@@ -190,7 +190,7 @@ type Nip47PayResponse struct {
 }
 
 type Nip47MultiPayKeysendParams struct {
-	Invoices []Nip47MultiPayKeysendElement `json:"invoices"`
+	Keysends []Nip47MultiPayKeysendElement `json:"keysends"`
 }
 
 type Nip47MultiPayKeysendElement struct {

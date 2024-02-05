@@ -29,7 +29,7 @@ func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, sub *nostr.S
 
 	var wg sync.WaitGroup
 	var mu sync.Mutex
-	for _, keysendInfo := range multiPayParams.Invoices {
+	for _, keysendInfo := range multiPayParams.Keysends {
 		wg.Add(1)
 		go func(keysendInfo Nip47MultiPayKeysendElement) {
 			defer wg.Done()
@@ -40,14 +40,15 @@ func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, sub *nostr.S
 			}
 			dTag := []string{"d", keysendDTagValue}
 
+			// TODO: consider adding svc.requirePermission() function that handles returning response if permission is denied
 			hasPermission, code, message := svc.hasPermission(app, requestEvent, NIP_47_PAY_INVOICE_METHOD, keysendInfo.Amount)
 
 			if !hasPermission {
 				svc.Logger.WithFields(logrus.Fields{
-					"eventId":      event.ID,
-					"eventKind":    event.Kind,
-					"appId":        app.ID,
-					"senderPubkey": keysendInfo.Pubkey,
+					"eventId":         event.ID,
+					"eventKind":       event.Kind,
+					"appId":           app.ID,
+					"recipientPubkey": keysendInfo.Pubkey,
 				}).Errorf("App does not have permission: %s %s", code, message)
 
 				resp, err := svc.createResponse(event, Nip47Response{
@@ -59,10 +60,10 @@ func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, sub *nostr.S
 				}, nostr.Tags{dTag}, ss)
 				if err != nil {
 					svc.Logger.WithFields(logrus.Fields{
-						"eventId":      event.ID,
-						"eventKind":    event.Kind,
-						"senderPubkey": keysendInfo.Pubkey,
-						"keysendId":    keysendInfo.Id,
+						"eventId":         event.ID,
+						"eventKind":       event.Kind,
+						"recipientPubkey": keysendInfo.Pubkey,
+						"keysendId":       keysendInfo.Id,
 					}).Errorf("Failed to process event: %v", err)
 					return
 				}
@@ -74,28 +75,28 @@ func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, sub *nostr.S
 			insertPaymentResult := svc.db.Create(&payment)
 			if insertPaymentResult.Error != nil {
 				svc.Logger.WithFields(logrus.Fields{
-					"eventId":      event.ID,
-					"eventKind":    event.Kind,
-					"senderPubkey": keysendInfo.Pubkey,
-					"keysendId":    keysendInfo.Id,
+					"eventId":         event.ID,
+					"eventKind":       event.Kind,
+					"recipientPubkey": keysendInfo.Pubkey,
+					"keysendId":       keysendInfo.Id,
 				}).Errorf("Failed to process event: %v", insertPaymentResult.Error)
 				return
 			}
 
 			svc.Logger.WithFields(logrus.Fields{
-				"eventId":      event.ID,
-				"eventKind":    event.Kind,
-				"appId":        app.ID,
-				"senderPubkey": keysendInfo.Pubkey,
+				"eventId":         event.ID,
+				"eventKind":       event.Kind,
+				"appId":           app.ID,
+				"recipientPubkey": keysendInfo.Pubkey,
 			}).Info("Sending payment")
 
 			preimage, err := svc.lnClient.SendKeysend(ctx, event.PubKey, keysendInfo.Amount/1000, keysendInfo.Pubkey, keysendInfo.Preimage, keysendInfo.TLVRecords)
 			if err != nil {
 				svc.Logger.WithFields(logrus.Fields{
-					"eventId":      event.ID,
-					"eventKind":    event.Kind,
-					"appId":        app.ID,
-					"senderPubkey": keysendInfo.Pubkey,
+					"eventId":         event.ID,
+					"eventKind":       event.Kind,
+					"appId":           app.ID,
+					"recipientPubkey": keysendInfo.Pubkey,
 				}).Infof("Failed to send payment: %v", err)
 
 				resp, err := svc.createResponse(event, Nip47Response{
@@ -107,10 +108,10 @@ func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, sub *nostr.S
 				}, nostr.Tags{dTag}, ss)
 				if err != nil {
 					svc.Logger.WithFields(logrus.Fields{
-						"eventId":      event.ID,
-						"eventKind":    event.Kind,
-						"senderPubkey": keysendInfo.Pubkey,
-						"keysendId":    keysendInfo.Id,
+						"eventId":         event.ID,
+						"eventKind":       event.Kind,
+						"recipientPubkey": keysendInfo.Pubkey,
+						"keysendId":       keysendInfo.Id,
 					}).Errorf("Failed to process event: %v", err)
 					return
 				}
@@ -127,10 +128,10 @@ func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, sub *nostr.S
 			}, nostr.Tags{dTag}, ss)
 			if err != nil {
 				svc.Logger.WithFields(logrus.Fields{
-					"eventId":      event.ID,
-					"eventKind":    event.Kind,
-					"senderPubkey": keysendInfo.Pubkey,
-					"keysendId":    keysendInfo.Id,
+					"eventId":         event.ID,
+					"eventKind":       event.Kind,
+					"recipientPubkey": keysendInfo.Pubkey,
+					"keysendId":       keysendInfo.Id,
 				}).Errorf("Failed to process event: %v", err)
 				return
 			}
