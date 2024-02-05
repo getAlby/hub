@@ -309,7 +309,6 @@ func (svc *Service) HandleEvent(ctx context.Context, sub *nostr.Subscription, ev
 				Message: fmt.Sprintf("Failed to save nostr event: %s", err.Error()),
 			},
 		}
-		// TAGS TAGS TAGS
 		resp, err := svc.createResponse(event, nipResponse, nostr.Tags{}, ss)
 		if err != nil {
 			svc.Logger.WithFields(logrus.Fields{
@@ -336,7 +335,6 @@ func (svc *Service) HandleEvent(ctx context.Context, sub *nostr.Subscription, ev
 				Message: "The public key does not have a wallet connected.",
 			},
 		}
-		// TAGS TAGS TAGS
 		resp, err := svc.createResponse(event, nipResponse, nostr.Tags{}, ss)
 		if err != nil {
 			svc.Logger.WithFields(logrus.Fields{
@@ -361,7 +359,6 @@ func (svc *Service) HandleEvent(ctx context.Context, sub *nostr.Subscription, ev
 				Message: fmt.Sprintf("Failed to save app to nostr event: %s", err.Error()),
 			},
 		}
-		// TAGS TAGS TAGS
 		resp, err := svc.createResponse(event, nipResponse, nostr.Tags{}, ss)
 		if err != nil {
 			svc.Logger.WithFields(logrus.Fields{
@@ -443,7 +440,6 @@ func (svc *Service) HandleEvent(ctx context.Context, sub *nostr.Subscription, ev
 	// should we remove err return type?
 
 	if nipResponse != nil {
-		// TAGS TAGS TAGS
 		resp, err := svc.createResponse(event, *nipResponse, nostr.Tags{}, ss)
 		if err != nil {
 			svc.Logger.WithFields(logrus.Fields{
