@@ -225,10 +225,156 @@ var mockTransaction = &mockTransactions[0]
 
 // TODO: split each method into separate files (requires moving out of the main package)
 // TODO: add E2E tests as well
+// TODO: test a request cannot be processed twice
+// TODO: test if an app doesn't exist it returns the right error code
 
-// TODO:
-// - test svc.createResponse
-// - test svc.hasPermission
+func TestHasPermission_NoPermission(t *testing.T) {
+	defer os.Remove(testDB)
+	mockLn, err := NewMockLn()
+	assert.NoError(t, err)
+	svc, err := createTestService(mockLn)
+	assert.NoError(t, err)
+
+	app, _, err := createApp(svc)
+	assert.NoError(t, err)
+
+	result, code, message := svc.hasPermission(app, NIP_47_PAY_INVOICE_METHOD, 100)
+	assert.False(t, result)
+	assert.Equal(t, NIP_47_ERROR_RESTRICTED, code)
+	assert.Equal(t, "This app does not have permission to request pay_invoice", message)
+}
+
+func TestHasPermission_Expired(t *testing.T) {
+	defer os.Remove(testDB)
+	mockLn, err := NewMockLn()
+	assert.NoError(t, err)
+	svc, err := createTestService(mockLn)
+	assert.NoError(t, err)
+
+	app, _, err := createApp(svc)
+	assert.NoError(t, err)
+
+	budgetRenewal := "never"
+	expiresAt := time.Now().Add(-24 * time.Hour)
+	appPermission := &AppPermission{
+		AppId:         app.ID,
+		App:           *app,
+		RequestMethod: NIP_47_PAY_INVOICE_METHOD,
+		MaxAmount:     100,
+		BudgetRenewal: budgetRenewal,
+		ExpiresAt:     expiresAt,
+	}
+	err = svc.db.Create(appPermission).Error
+	assert.NoError(t, err)
+
+	result, code, message := svc.hasPermission(app, NIP_47_PAY_INVOICE_METHOD, 100)
+	assert.False(t, result)
+	assert.Equal(t, NIP_47_ERROR_EXPIRED, code)
+	assert.Equal(t, "This app has expired", message)
+}
+
+func TestHasPermission_Exceeded(t *testing.T) {
+	defer os.Remove(testDB)
+	mockLn, err := NewMockLn()
+	assert.NoError(t, err)
+	svc, err := createTestService(mockLn)
+	assert.NoError(t, err)
+
+	app, _, err := createApp(svc)
+	assert.NoError(t, err)
+
+	budgetRenewal := "never"
+	expiresAt := time.Now().Add(24 * time.Hour)
+	appPermission := &AppPermission{
+		AppId:         app.ID,
+		App:           *app,
+		RequestMethod: NIP_47_PAY_INVOICE_METHOD,
+		MaxAmount:     10,
+		BudgetRenewal: budgetRenewal,
+		ExpiresAt:     expiresAt,
+	}
+	err = svc.db.Create(appPermission).Error
+	assert.NoError(t, err)
+
+	result, code, message := svc.hasPermission(app, NIP_47_PAY_INVOICE_METHOD, 100*1000)
+	assert.False(t, result)
+	assert.Equal(t, NIP_47_ERROR_QUOTA_EXCEEDED, code)
+	assert.Equal(t, "Insufficient budget remaining to make payment", message)
+}
+
+func TestHasPermission_OK(t *testing.T) {
+	defer os.Remove(testDB)
+	mockLn, err := NewMockLn()
+	assert.NoError(t, err)
+	svc, err := createTestService(mockLn)
+	assert.NoError(t, err)
+
+	app, _, err := createApp(svc)
+	assert.NoError(t, err)
+
+	budgetRenewal := "never"
+	expiresAt := time.Now().Add(24 * time.Hour)
+	appPermission := &AppPermission{
+		AppId:         app.ID,
+		App:           *app,
+		RequestMethod: NIP_47_PAY_INVOICE_METHOD,
+		MaxAmount:     10,
+		BudgetRenewal: budgetRenewal,
+		ExpiresAt:     expiresAt,
+	}
+	err = svc.db.Create(appPermission).Error
+	assert.NoError(t, err)
+
+	result, code, message := svc.hasPermission(app, NIP_47_PAY_INVOICE_METHOD, 10*1000)
+	assert.True(t, result)
+	assert.Empty(t, code)
+	assert.Empty(t, message)
+}
+
+func TestCreateResponse(t *testing.T) {
+	defer os.Remove(testDB)
+	mockLn, err := NewMockLn()
+	assert.NoError(t, err)
+	svc, err := createTestService(mockLn)
+	assert.NoError(t, err)
+
+	reqPrivateKey := nostr.GeneratePrivateKey()
+	reqPubkey, err := nostr.GetPublicKey(reqPrivateKey)
+
+	reqEvent := &nostr.Event{
+		Kind:    NIP_47_REQUEST_KIND,
+		PubKey:  reqPubkey,
+		Content: "1",
+	}
+
+	reqEvent.ID = "12345"
+
+	ss, err := nip04.ComputeSharedSecret(reqPubkey, svc.cfg.NostrSecretKey)
+
+	reqContent := Nip47Response{
+		ResultType: NIP_47_GET_BALANCE_METHOD,
+		Result: Nip47BalanceResponse{
+			Balance: 1000,
+		},
+	}
+	res, err := svc.createResponse(reqEvent, reqContent, nostr.Tags{}, ss)
+	assert.NoError(t, err)
+	assert.Equal(t, reqPubkey, res.Tags.GetFirst([]string{"p"}).Value())
+	assert.Equal(t, reqEvent.ID, res.Tags.GetFirst([]string{"e"}).Value())
+	assert.Equal(t, svc.cfg.NostrPublicKey, res.PubKey)
+
+	decrypted, err := nip04.Decrypt(res.Content, ss)
+	assert.NoError(t, err)
+	response := Nip47Response{
+		Result: &Nip47BalanceResponse{},
+	}
+
+	err = json.Unmarshal([]byte(decrypted), &response)
+	assert.NoError(t, err)
+	assert.Equal(t, reqContent.ResultType, response.ResultType)
+	assert.Equal(t, reqContent.Result, *response.Result.(*Nip47BalanceResponse))
+}
+
 func TestHandleEncryption(t *testing.T) {}
 
 // TODO: split and add extra tests for service.HandleEvent:
@@ -1044,21 +1190,6 @@ func createApp(svc *Service) (app *App, ss []byte, err error) {
 	}
 
 	return app, ss, nil
-}
-
-func decryptResponse(res *nostr.Event, ss []byte, resultType interface{}) (resp *Nip47Response, err error) {
-	decrypted, err := nip04.Decrypt(res.Content, ss)
-	if err != nil {
-		return nil, err
-	}
-	response := &Nip47Response{
-		Result: resultType,
-	}
-	err = json.Unmarshal([]byte(decrypted), response)
-	if err != nil {
-		return nil, err
-	}
-	return response, nil
 }
 
 // TODO: MockService
