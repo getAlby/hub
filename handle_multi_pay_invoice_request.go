@@ -29,6 +29,7 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, request *Nip
 	}
 
 	var wg sync.WaitGroup
+	var mu sync.Mutex
 	for _, invoiceInfo := range multiPayParams.Invoices {
 		wg.Add(1)
 		// TODO: we should call the handle_payment_request (most of this code is duplicated)
@@ -82,7 +83,9 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, request *Nip
 			}
 
 			payment := Payment{App: *app, NostrEventId: requestEvent.ID, PaymentRequest: bolt11, Amount: uint(paymentRequest.MSatoshi / 1000)}
+			mu.Lock()
 			insertPaymentResult := svc.db.Create(&payment)
+			mu.Unlock()
 			if insertPaymentResult.Error != nil {
 				svc.Logger.WithFields(logrus.Fields{
 					"eventId":        requestEvent.NostrId,
@@ -116,7 +119,9 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, request *Nip
 				return
 			}
 			payment.Preimage = &preimage
+			mu.Lock()
 			svc.db.Save(&payment)
+			mu.Unlock()
 			publishResponse(&Nip47Response{
 				ResultType: request.Method,
 				Result: Nip47PayResponse{
