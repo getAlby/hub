@@ -75,7 +75,6 @@ const nip47KeysendJson = `
 }
 `
 
-// TODO: test both id and no id payload to check the dtag is returned correctly
 const nip47MultiPayKeysendJson = `
 {
 	"method": "multi_pay_keysend",
@@ -91,6 +90,31 @@ const nip47MultiPayKeysendJson = `
 			{
 				"amount": 123000,
 				"pubkey": "123pubkey",
+				"tlv_records": [{
+					"type": 5482373484,
+					"value": "fajsn341414fq"
+				}]
+			}
+		]
+	}
+}
+`
+
+const nip47MultiPayKeysendOneOverflowingBudgetJson = `
+{
+	"method": "multi_pay_keysend",
+	"params": {
+		"keysends": [{
+				"amount": 123000,
+				"pubkey": "123pubkey",
+				"tlv_records": [{
+					"type": 5482373484,
+					"value": "fajsn341414fq"
+				}]
+			},
+			{
+				"amount": 500000,
+				"pubkey": "500pubkey",
 				"tlv_records": [{
 					"type": 5482373484,
 					"value": "fajsn341414fq"
@@ -543,14 +567,15 @@ func TestHandleMultiPayKeysendEvent(t *testing.T) {
 	requestEvent.NostrId = reqEvent.ID
 
 	responses := []*Nip47Response{}
+	dTags := []nostr.Tags{}
 
 	publishResponse := func(response *Nip47Response, tags nostr.Tags) {
 		responses = append(responses, response)
+		dTags = append(dTags, tags)
 	}
 
 	err = svc.HandleMultiPayKeysendEvent(ctx, request, requestEvent, app, publishResponse)
 	assert.NoError(t, err)
-	// assert.NotNil(t, res)
 
 	assert.Equal(t, 2, len(responses))
 	for i := 0; i < len(responses); i++ {
@@ -563,10 +588,13 @@ func TestHandleMultiPayKeysendEvent(t *testing.T) {
 	// 3. test one successful and one failing payment (e.g. one invalid bolt 11 invoice)
 	// 4. test one successful and one failing payment (e.g. one invoice with amount > budget)
 
-	/*// with permission
+	// with permission
 	maxAmount := 1000
 	budgetRenewal := "never"
 	expiresAt := time.Now().Add(24 * time.Hour)
+	// because we need the same permission for keysend although
+	// it works even with NIP_47_PAY_KEYSEND_METHOD, see
+	// https://github.com/getAlby/nostr-wallet-connect/issues/189
 	appPermission := &AppPermission{
 		AppId:         app.ID,
 		App:           *app,
@@ -578,87 +606,43 @@ func TestHandleMultiPayKeysendEvent(t *testing.T) {
 	err = svc.db.Create(appPermission).Error
 	assert.NoError(t, err)
 
-	reqEvent.ID = "pay_invoice_with_permission"
+	reqEvent.ID = "multi_pay_keysend_with_permission"
 	requestEvent.NostrId = reqEvent.ID
-	res, err = svc.HandlePayInvoiceEvent(ctx, request, requestEvent, app)
-	assert.NoError(t, err)
-	assert.NotNil(t, res)
-
-	assert.Equal(t, res.Result.(Nip47PayResponse).Preimage, "123preimage")
-
-	// malformed invoice
-	err = json.Unmarshal([]byte(nip47PayJsonNoInvoice), request)
+	responses = []*Nip47Response{}
+	dTags = []nostr.Tags{}
+	err = svc.HandleMultiPayKeysendEvent(ctx, request, requestEvent, app, publishResponse)
 	assert.NoError(t, err)
 
-	payload, err = nip04.Encrypt(nip47PayJsonNoInvoice, ss)
-	assert.NoError(t, err)
-	reqEvent.Content = payload
+	assert.Equal(t, 2, len(responses))
+	for i := 0; i < len(responses); i++ {
+		assert.Equal(t, responses[i].Result.(Nip47PayResponse).Preimage, "12345preimage")
+		assert.Equal(t, "123pubkey", dTags[i].GetFirst([]string{"d"}).Value())
+	}
 
-	reqEvent.ID = "pay_invoice_with_malformed_invoice"
-	requestEvent.NostrId = reqEvent.ID
-	res, err = svc.HandlePayInvoiceEvent(ctx, request, requestEvent, app)
-	assert.NoError(t, err)
-	assert.NotNil(t, res)
-
-	assert.Equal(t, NIP_47_ERROR_INTERNAL, res.Error.Code)
-
-	// wrong method
-	err = json.Unmarshal([]byte(nip47PayWrongMethodJson), request)
-	assert.NoError(t, err)
-
-	payload, err = nip04.Encrypt(nip47PayWrongMethodJson, ss)
-	assert.NoError(t, err)
-	reqEvent.Content = payload
-
-	reqEvent.ID = "pay_invoice_with_wrong_request_method"
-	requestEvent.NostrId = reqEvent.ID
-	res, err = svc.HandlePayInvoiceEvent(ctx, request, requestEvent, app)
-	assert.NoError(t, err)
-	assert.NotNil(t, res)
-
-	assert.Equal(t, NIP_47_ERROR_RESTRICTED, res.Error.Code)
+	// we've spent 246 till here in two payments
 
 	// budget overflow
-	newMaxAmount := 100
+	newMaxAmount := 500
 	err = svc.db.Model(&AppPermission{}).Where("app_id = ?", app.ID).Update("max_amount", newMaxAmount).Error
 
-	err = json.Unmarshal([]byte(nip47PayJson), request)
+	err = json.Unmarshal([]byte(nip47MultiPayKeysendOneOverflowingBudgetJson), request)
 	assert.NoError(t, err)
 
-	payload, err = nip04.Encrypt(nip47PayJson, ss)
+	payload, err = nip04.Encrypt(nip47MultiPayKeysendOneOverflowingBudgetJson, ss)
 	assert.NoError(t, err)
 	reqEvent.Content = payload
 
-	reqEvent.ID = "pay_invoice_with_budget_overflow"
+	reqEvent.ID = "multi_pay_keysend_with_budget_overflow"
 	requestEvent.NostrId = reqEvent.ID
-	res, err = svc.HandlePayInvoiceEvent(ctx, request, requestEvent, app)
+	responses = []*Nip47Response{}
+	dTags = []nostr.Tags{}
+	err = svc.HandleMultiPayKeysendEvent(ctx, request, requestEvent, app, publishResponse)
 	assert.NoError(t, err)
-	assert.NotNil(t, res)
 
-	assert.Equal(t, NIP_47_ERROR_QUOTA_EXCEEDED, res.Error.Code)
-
-	// budget expiry
-	newExpiry := time.Now().Add(-24 * time.Hour)
-	err = svc.db.Model(&AppPermission{}).Where("app_id = ?", app.ID).Update("max_amount", maxAmount).Update("expires_at", newExpiry).Error
-
-	reqEvent.ID = "pay_invoice_with_budget_expiry"
-	requestEvent.NostrId = reqEvent.ID
-	res, err = svc.HandlePayInvoiceEvent(ctx, request, requestEvent, app)
-	assert.NoError(t, err)
-	assert.NotNil(t, res)
-
-	assert.Equal(t, NIP_47_ERROR_EXPIRED, res.Error.Code)
-
-	// check again
-	err = svc.db.Model(&AppPermission{}).Where("app_id = ?", app.ID).Update("expires_at", nil).Error
-
-	reqEvent.ID = "pay_invoice_after_change"
-	requestEvent.NostrId = reqEvent.ID
-	res, err = svc.HandlePayInvoiceEvent(ctx, request, requestEvent, app)
-	assert.NoError(t, err)
-	assert.NotNil(t, res)
-
-	assert.Equal(t, res.Result.(Nip47PayResponse).Preimage, "123preimage")*/
+	assert.Equal(t, responses[0].Error.Code, NIP_47_ERROR_QUOTA_EXCEEDED)
+	assert.Equal(t, "500pubkey", dTags[0].GetFirst([]string{"d"}).Value())
+	assert.Equal(t, responses[1].Result.(Nip47PayResponse).Preimage, "12345preimage")
+	assert.Equal(t, "123pubkey", dTags[1].GetFirst([]string{"d"}).Value())
 }
 
 func TestHandleGetBalanceEvent(t *testing.T) {

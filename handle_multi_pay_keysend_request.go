@@ -26,6 +26,7 @@ func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, request *Nip
 	}
 
 	var wg sync.WaitGroup
+	var mu sync.Mutex
 	for _, keysendInfo := range multiPayParams.Keysends {
 		wg.Add(1)
 		go func(keysendInfo Nip47MultiPayKeysendElement) {
@@ -58,7 +59,9 @@ func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, request *Nip
 			}
 
 			payment := Payment{App: *app, NostrEvent: *requestEvent, Amount: uint(keysendInfo.Amount / 1000)}
+			mu.Lock()
 			insertPaymentResult := svc.db.Create(&payment)
+			mu.Unlock()
 			if insertPaymentResult.Error != nil {
 				svc.Logger.WithFields(logrus.Fields{
 					"eventId":         requestEvent.NostrId,
@@ -92,7 +95,9 @@ func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, request *Nip
 				return
 			}
 			payment.Preimage = &preimage
+			mu.Lock()
 			svc.db.Save(&payment)
+			mu.Unlock()
 			publishResponse(&Nip47Response{
 				ResultType: request.Method,
 				Result: Nip47PayResponse{
