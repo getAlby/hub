@@ -134,7 +134,6 @@ const nip47PayJson = `
 }
 `
 
-// TODO: test both id and no id payload to check the dtag is returned correctly
 const nip47MultiPayJson = `
 {
 	"method": "multi_pay_invoice",
@@ -150,7 +149,6 @@ const nip47MultiPayJson = `
 }
 `
 
-// TODO: test both id and no id payload to check the dtag is returned correctly
 const nip47MultiPayOneOverflowingBudgetJson = `
 {
 	"method": "multi_pay_invoice",
@@ -248,7 +246,7 @@ var mockTransactions = []Nip47Transaction{
 var mockTransaction = &mockTransactions[0]
 
 // TODO: split each method into separate files (requires moving out of the main package)
-// TODO: add E2E tests as well
+// TODO: add E2E tests as well (related MockService)
 // TODO: test a request cannot be processed twice
 // TODO: test if an app doesn't exist it returns the right error code
 
@@ -401,11 +399,6 @@ func TestCreateResponse(t *testing.T) {
 
 func TestHandleEncryption(t *testing.T) {}
 
-// TODO: split and add extra tests for service.HandleEvent:
-// - make sure an event cannot be processed twice
-// - make sure we get the correct error code if a pubkey for a non-existent app is used
-
-// TODO: split these tests further
 func TestHandleMultiPayInvoiceEvent(t *testing.T) {
 	ctx := context.TODO()
 	defer os.Remove(testDB)
@@ -581,12 +574,6 @@ func TestHandleMultiPayKeysendEvent(t *testing.T) {
 	for i := 0; i < len(responses); i++ {
 		assert.Equal(t, NIP_47_ERROR_RESTRICTED, responses[i].Error.Code)
 	}
-
-	// TODO:
-	// 1. enable below and test for multi function (update to use keysend)
-	// 2. test dtags for both versions (with id, without id)
-	// 3. test one successful and one failing payment (e.g. one invalid bolt 11 invoice)
-	// 4. test one successful and one failing payment (e.g. one invoice with amount > budget)
 
 	// with permission
 	maxAmount := 1000
@@ -1175,9 +1162,6 @@ func createApp(svc *Service) (app *App, ss []byte, err error) {
 
 	return app, ss, nil
 }
-
-// TODO: MockService
-// Mock PublishEvent to handle nil subscription
 
 type MockLn struct {
 }
