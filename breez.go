@@ -85,7 +85,7 @@ func (bs *BreezService) Shutdown() error {
 	return bs.svc.Disconnect()
 }
 
-func (bs *BreezService) SendPaymentSync(ctx context.Context, senderPubkey string, payReq string) (preimage string, err error) {
+func (bs *BreezService) SendPaymentSync(ctx context.Context, payReq string) (preimage string, err error) {
 	sendPaymentRequest := breez_sdk.SendPaymentRequest{
 		Bolt11: payReq,
 	}
@@ -101,7 +101,7 @@ func (bs *BreezService) SendPaymentSync(ctx context.Context, senderPubkey string
 
 }
 
-func (bs *BreezService) SendKeysend(ctx context.Context, senderPubkey string, amount int64, destination, preimage string, custom_records []TLVRecord) (preImage string, err error) {
+func (bs *BreezService) SendKeysend(ctx context.Context, amount int64, destination, preimage string, custom_records []TLVRecord) (preImage string, err error) {
 	extraTlvs := []breez_sdk.TlvEntry{}
 	for _, record := range custom_records {
 		extraTlvs = append(extraTlvs, breez_sdk.TlvEntry{
@@ -126,7 +126,7 @@ func (bs *BreezService) SendKeysend(ctx context.Context, senderPubkey string, am
 	return lnDetails.Data.PaymentPreimage, nil
 }
 
-func (bs *BreezService) GetBalance(ctx context.Context, senderPubkey string) (balance int64, err error) {
+func (bs *BreezService) GetBalance(ctx context.Context) (balance int64, err error) {
 	info, err := bs.svc.NodeInfo()
 	if err != nil {
 		return 0, err
@@ -134,7 +134,7 @@ func (bs *BreezService) GetBalance(ctx context.Context, senderPubkey string) (ba
 	return int64(info.ChannelsBalanceMsat) / 1000, nil
 }
 
-func (bs *BreezService) MakeInvoice(ctx context.Context, senderPubkey string, amount int64, description string, descriptionHash string, expiry int64) (transaction *Nip47Transaction, err error) {
+func (bs *BreezService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *Nip47Transaction, err error) {
 	if expiry == 0 {
 		expiry = 60 * 60 * 24
 	}
@@ -175,7 +175,7 @@ func (bs *BreezService) MakeInvoice(ctx context.Context, senderPubkey string, am
 	return tx, nil
 }
 
-func (bs *BreezService) LookupInvoice(ctx context.Context, senderPubkey string, paymentHash string) (transaction *Nip47Transaction, err error) {
+func (bs *BreezService) LookupInvoice(ctx context.Context, paymentHash string) (transaction *Nip47Transaction, err error) {
 	log.Printf("p: %v", paymentHash)
 	payment, err := bs.svc.PaymentByHash(paymentHash)
 	if err != nil {
@@ -193,7 +193,7 @@ func (bs *BreezService) LookupInvoice(ctx context.Context, senderPubkey string, 
 	}
 }
 
-func (bs *BreezService) ListTransactions(ctx context.Context, senderPubkey string, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []Nip47Transaction, err error) {
+func (bs *BreezService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []Nip47Transaction, err error) {
 
 	request := breez_sdk.ListPaymentsRequest{}
 	if limit == 0 {
@@ -237,7 +237,7 @@ func (bs *BreezService) ListTransactions(ctx context.Context, senderPubkey strin
 	return transactions, nil
 }
 
-func (bs *BreezService) GetInfo(ctx context.Context, senderPubkey string) (info *NodeInfo, err error) {
+func (bs *BreezService) GetInfo(ctx context.Context) (info *NodeInfo, err error) {
 	return &NodeInfo{
 		Alias:       "breez",
 		Color:       "",

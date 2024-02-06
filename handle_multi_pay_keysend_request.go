@@ -10,25 +10,22 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, sub *nostr.Subscription, request *Nip47Request, event *nostr.Event, requestEvent *NostrEvent, app *App, ss []byte) (resps []*nostr.Event, err error) {
+func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, request *Nip47Request, requestEvent *NostrEvent, app *App, publishResponse func(*Nip47Response, nostr.Tags)) (err error) {
 
 	multiPayParams := &Nip47MultiPayKeysendParams{}
 	err = json.Unmarshal(request.Params, multiPayParams)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
-			"eventId":   event.ID,
-			"eventKind": event.Kind,
-			"appId":     app.ID,
+			"eventId": requestEvent.NostrId,
+			"appId":   app.ID,
 		}).Errorf("Failed to decode nostr event: %v", err)
 		svc.Logger.WithFields(logrus.Fields{
-			"eventId":   event.ID,
-			"eventKind": event.Kind,
+			"eventId": requestEvent.NostrId,
 		}).Errorf("Failed to process event: %v", err)
-		return nil, err
+		return err
 	}
 
 	var wg sync.WaitGroup
-	var mu sync.Mutex
 	for _, keysendInfo := range multiPayParams.Keysends {
 		wg.Add(1)
 		go func(keysendInfo Nip47MultiPayKeysendElement) {
@@ -41,33 +38,22 @@ func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, sub *nostr.S
 			dTag := []string{"d", keysendDTagValue}
 
 			// TODO: consider adding svc.requirePermission() function that handles returning response if permission is denied
-			hasPermission, code, message := svc.hasPermission(app, requestEvent, NIP_47_PAY_INVOICE_METHOD, keysendInfo.Amount)
+			hasPermission, code, message := svc.hasPermission(app, NIP_47_PAY_INVOICE_METHOD, keysendInfo.Amount)
 
 			if !hasPermission {
 				svc.Logger.WithFields(logrus.Fields{
-					"eventId":         event.ID,
-					"eventKind":       event.Kind,
+					"eventId":         requestEvent.NostrId,
 					"appId":           app.ID,
 					"recipientPubkey": keysendInfo.Pubkey,
 				}).Errorf("App does not have permission: %s %s", code, message)
 
-				resp, err := svc.createResponse(event, Nip47Response{
+				publishResponse(&Nip47Response{
 					ResultType: request.Method,
 					Error: &Nip47Error{
 						Code:    code,
 						Message: message,
 					},
-				}, nostr.Tags{dTag}, ss)
-				if err != nil {
-					svc.Logger.WithFields(logrus.Fields{
-						"eventId":         event.ID,
-						"eventKind":       event.Kind,
-						"recipientPubkey": keysendInfo.Pubkey,
-						"keysendId":       keysendInfo.Id,
-					}).Errorf("Failed to process event: %v", err)
-					return
-				}
-				svc.PublishAndAppend(ctx, sub, requestEvent, resp, app, ss, &mu, &resps)
+				}, nostr.Tags{dTag})
 				return
 			}
 
@@ -75,8 +61,7 @@ func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, sub *nostr.S
 			insertPaymentResult := svc.db.Create(&payment)
 			if insertPaymentResult.Error != nil {
 				svc.Logger.WithFields(logrus.Fields{
-					"eventId":         event.ID,
-					"eventKind":       event.Kind,
+					"eventId":         requestEvent.NostrId,
 					"recipientPubkey": keysendInfo.Pubkey,
 					"keysendId":       keysendInfo.Id,
 				}).Errorf("Failed to process event: %v", insertPaymentResult.Error)
@@ -84,61 +69,39 @@ func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, sub *nostr.S
 			}
 
 			svc.Logger.WithFields(logrus.Fields{
-				"eventId":         event.ID,
-				"eventKind":       event.Kind,
+				"eventId":         requestEvent.NostrId,
 				"appId":           app.ID,
 				"recipientPubkey": keysendInfo.Pubkey,
 			}).Info("Sending payment")
 
-			preimage, err := svc.lnClient.SendKeysend(ctx, event.PubKey, keysendInfo.Amount, keysendInfo.Pubkey, keysendInfo.Preimage, keysendInfo.TLVRecords)
+			preimage, err := svc.lnClient.SendKeysend(ctx, keysendInfo.Amount, keysendInfo.Pubkey, keysendInfo.Preimage, keysendInfo.TLVRecords)
 			if err != nil {
 				svc.Logger.WithFields(logrus.Fields{
-					"eventId":         event.ID,
-					"eventKind":       event.Kind,
+					"eventId":         requestEvent.NostrId,
 					"appId":           app.ID,
 					"recipientPubkey": keysendInfo.Pubkey,
 				}).Infof("Failed to send payment: %v", err)
 
-				resp, err := svc.createResponse(event, Nip47Response{
+				publishResponse(&Nip47Response{
 					ResultType: request.Method,
 					Error: &Nip47Error{
 						Code:    NIP_47_ERROR_INTERNAL,
 						Message: fmt.Sprintf("Something went wrong while paying invoice: %s", err.Error()),
 					},
-				}, nostr.Tags{dTag}, ss)
-				if err != nil {
-					svc.Logger.WithFields(logrus.Fields{
-						"eventId":         event.ID,
-						"eventKind":       event.Kind,
-						"recipientPubkey": keysendInfo.Pubkey,
-						"keysendId":       keysendInfo.Id,
-					}).Errorf("Failed to process event: %v", err)
-					return
-				}
-				svc.PublishAndAppend(ctx, sub, requestEvent, resp, app, ss, &mu, &resps)
+				}, nostr.Tags{dTag})
 				return
 			}
 			payment.Preimage = &preimage
 			svc.db.Save(&payment)
-			resp, err := svc.createResponse(event, Nip47Response{
+			publishResponse(&Nip47Response{
 				ResultType: request.Method,
 				Result: Nip47PayResponse{
 					Preimage: preimage,
 				},
-			}, nostr.Tags{dTag}, ss)
-			if err != nil {
-				svc.Logger.WithFields(logrus.Fields{
-					"eventId":         event.ID,
-					"eventKind":       event.Kind,
-					"recipientPubkey": keysendInfo.Pubkey,
-					"keysendId":       keysendInfo.Id,
-				}).Errorf("Failed to process event: %v", err)
-				return
-			}
-			svc.PublishAndAppend(ctx, sub, requestEvent, resp, app, ss, &mu, &resps)
+			}, nostr.Tags{dTag})
 		}(keysendInfo)
 	}
 
 	wg.Wait()
-	return resps, nil
+	return nil
 }

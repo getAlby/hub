@@ -11,7 +11,7 @@ import (
 func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Request, requestEvent *NostrEvent, app *App) (result *Nip47Response, err error) {
 
 	// TODO: move to a shared function
-	hasPermission, code, message := svc.hasPermission(app, requestEvent, request.Method, 0)
+	hasPermission, code, message := svc.hasPermission(app, request.Method, 0)
 
 	if !hasPermission {
 		svc.Logger.WithFields(logrus.Fields{
@@ -66,9 +66,10 @@ func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Re
 		"expiry":          makeInvoiceParams.Expiry,
 	}).Info("Making invoice")
 
-	transaction, err := svc.lnClient.MakeInvoice(ctx, requestEvent.PubKey, makeInvoiceParams.Amount, makeInvoiceParams.Description, makeInvoiceParams.DescriptionHash, makeInvoiceParams.Expiry)
+	transaction, err := svc.lnClient.MakeInvoice(ctx, makeInvoiceParams.Amount, makeInvoiceParams.Description, makeInvoiceParams.DescriptionHash, makeInvoiceParams.Expiry)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
+			"senderPubkey":    requestEvent.PubKey,
 			"eventId":         requestEvent.NostrId,
 			"eventKind":       requestEvent.Kind,
 			"appId":           app.ID,

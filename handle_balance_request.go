@@ -13,7 +13,7 @@ const (
 
 func (svc *Service) HandleGetBalanceEvent(ctx context.Context, request *Nip47Request, requestEvent *NostrEvent, app *App) (result *Nip47Response, err error) {
 
-	hasPermission, code, message := svc.hasPermission(app, requestEvent, request.Method, 0)
+	hasPermission, code, message := svc.hasPermission(app, request.Method, 0)
 
 	if !hasPermission {
 		svc.Logger.WithFields(logrus.Fields{
@@ -36,12 +36,13 @@ func (svc *Service) HandleGetBalanceEvent(ctx context.Context, request *Nip47Req
 		"appId":     app.ID,
 	}).Info("Fetching balance")
 
-	balance, err := svc.lnClient.GetBalance(ctx, requestEvent.PubKey)
+	balance, err := svc.lnClient.GetBalance(ctx)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
-			"eventId":   requestEvent.NostrId,
-			"eventKind": requestEvent.Kind,
-			"appId":     app.ID,
+			"senderPubkey": requestEvent.PubKey,
+			"eventId":      requestEvent.NostrId,
+			"eventKind":    requestEvent.Kind,
+			"appId":        app.ID,
 		}).Infof("Failed to fetch balance: %v", err)
 		return &Nip47Response{
 			ResultType: request.Method,

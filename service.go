@@ -189,7 +189,7 @@ func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 	}
 }
 
-func (svc *Service) PublishEvent(ctx context.Context, sub *nostr.Subscription, requestEvent *NostrEvent, resp *nostr.Event, app *App, ss []byte) {
+func (svc *Service) PublishEvent(ctx context.Context, sub *nostr.Subscription, requestEvent *NostrEvent, resp *nostr.Event, app *App, ss []byte) error {
 	payload, err := nip04.Decrypt(resp.Content, ss)
 	var appId *uint
 	if app != nil {
@@ -202,7 +202,7 @@ func (svc *Service) PublishEvent(ctx context.Context, sub *nostr.Subscription, r
 			"appId":        appId,
 			"replyEventId": resp.ID,
 		}).Errorf("Failed to decrypt content: %v", err)
-		return
+		return err
 	}
 	responseEvent := ResponseEvent{AppId: appId, NostrId: resp.ID, RequestId: requestEvent.ID, DecryptedContent: payload, Content: resp.Content, State: "received"}
 	err = svc.db.Create(&responseEvent).Error
@@ -213,7 +213,7 @@ func (svc *Service) PublishEvent(ctx context.Context, sub *nostr.Subscription, r
 			"appId":        appId,
 			"replyEventId": resp.ID,
 		}).Errorf("Failed to save response/reply event: %v", err)
-		return
+		return err
 	}
 
 	status, err := sub.Relay.Publish(ctx, *resp)
@@ -224,7 +224,7 @@ func (svc *Service) PublishEvent(ctx context.Context, sub *nostr.Subscription, r
 			"appId":        appId,
 			"replyEventId": resp.ID,
 		}).Errorf("Failed to publish reply: %v", err)
-		return
+		return err
 	}
 
 	if status == nostr.PublishStatusSucceeded {
@@ -258,14 +258,7 @@ func (svc *Service) PublishEvent(ctx context.Context, sub *nostr.Subscription, r
 			"replyEventId": resp.ID,
 		}).Info("Reply sent but no response from relay (timeout)")
 	}
-}
-
-func (svc *Service) PublishAndAppend(ctx context.Context, sub *nostr.Subscription, requestEvent *NostrEvent, resp *nostr.Event, app *App, ss []byte, mu *sync.Mutex, resps *[]*nostr.Event) {
-	svc.PublishEvent(ctx, sub, requestEvent, resp, app, ss)
-	// Lock to safely append to resps array
-	mu.Lock()
-	defer mu.Unlock()
-	*resps = append(*resps, resp)
+	return nil
 }
 
 func (svc *Service) HandleEvent(ctx context.Context, sub *nostr.Subscription, event *nostr.Event) {
@@ -407,15 +400,36 @@ func (svc *Service) HandleEvent(ctx context.Context, sub *nostr.Subscription, ev
 		}).Errorf("Failed to process event: %v", err)
 		return
 	}
+
+	// TODO: replace with a channel
+	// TODO: update all previous occurences of svc.PublishEvent to also use the channel
+	publishResponse := func(nipResponse *Nip47Response, tags nostr.Tags) {
+		resp, err := svc.createResponse(event, *nipResponse, tags, ss)
+		if err != nil {
+			svc.Logger.WithFields(logrus.Fields{
+				"eventId":   event.ID,
+				"eventKind": event.Kind,
+			}).Errorf("Failed to create response: %v", err)
+		}
+		if resp != nil {
+			err = svc.PublishEvent(ctx, sub, &requestEvent, resp, &app, ss)
+
+			if err != nil {
+				svc.Logger.WithFields(logrus.Fields{
+					"eventId":   event.ID,
+					"eventKind": event.Kind,
+				}).Errorf("Failed to publish event: %v", err)
+			}
+		}
+	}
+
 	// TODO: consider move event publishing to individual methods - multi_* methods are
 	// inconsistent with single methods because they publish multiple responses
 	switch nip47Request.Method {
 	case NIP_47_MULTI_PAY_INVOICE_METHOD:
-		svc.HandleMultiPayInvoiceEvent(ctx, sub, nip47Request, event, &requestEvent, &app, ss)
-		return
+		err = svc.HandleMultiPayInvoiceEvent(ctx, nip47Request, &requestEvent, &app, publishResponse)
 	case NIP_47_MULTI_PAY_KEYSEND_METHOD:
-		svc.HandleMultiPayKeysendEvent(ctx, sub, nip47Request, event, &requestEvent, &app, ss)
-		return
+		err = svc.HandleMultiPayKeysendEvent(ctx, nip47Request, &requestEvent, &app, publishResponse)
 	case NIP_47_PAY_INVOICE_METHOD:
 		nipResponse, err = svc.HandlePayInvoiceEvent(ctx, nip47Request, &requestEvent, &app)
 	case NIP_47_PAY_KEYSEND_METHOD:
@@ -436,18 +450,15 @@ func (svc *Service) HandleEvent(ctx context.Context, sub *nostr.Subscription, ev
 		nipResponse, err = svc.handleUnknownMethod(ctx, nip47Request)
 	}
 
-	// we already deal with/log the errors in handlers itself
-	// should we remove err return type?
+	if err != nil {
+		svc.Logger.WithFields(logrus.Fields{
+			"eventId":   event.ID,
+			"eventKind": event.Kind,
+		}).Errorf("Failed to handle event: %v", err)
+	}
 
 	if nipResponse != nil {
-		resp, err := svc.createResponse(event, *nipResponse, nostr.Tags{}, ss)
-		if err != nil {
-			svc.Logger.WithFields(logrus.Fields{
-				"eventId":   event.ID,
-				"eventKind": event.Kind,
-			}).Errorf("Failed to process event: %v", err)
-		}
-		svc.PublishEvent(ctx, sub, &requestEvent, resp, &app, ss)
+		publishResponse(nipResponse, nostr.Tags{})
 	}
 }
 
@@ -499,7 +510,7 @@ func (svc *Service) GetMethods(app *App) []string {
 	return requestMethods
 }
 
-func (svc *Service) hasPermission(app *App, requestEvent *NostrEvent, requestMethod string, amount int64) (result bool, code string, message string) {
+func (svc *Service) hasPermission(app *App, requestMethod string, amount int64) (result bool, code string, message string) {
 	appPermission := AppPermission{}
 	findPermissionResult := svc.db.Find(&appPermission, &AppPermission{
 		AppId:         app.ID,
@@ -512,7 +523,6 @@ func (svc *Service) hasPermission(app *App, requestEvent *NostrEvent, requestMet
 	expiresAt := appPermission.ExpiresAt
 	if !expiresAt.IsZero() && expiresAt.Before(time.Now()) {
 		svc.Logger.WithFields(logrus.Fields{
-			"eventId":       requestEvent.NostrId,
 			"requestMethod": requestMethod,
 			"expiresAt":     expiresAt.Unix(),
 			"appId":         app.ID,

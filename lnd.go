@@ -20,13 +20,13 @@ import (
 )
 
 type LNClient interface {
-	SendPaymentSync(ctx context.Context, senderPubkey string, payReq string) (preimage string, err error)
-	SendKeysend(ctx context.Context, senderPubkey string, amount int64, destination, preimage string, custom_records []TLVRecord) (preImage string, err error)
-	GetBalance(ctx context.Context, senderPubkey string) (balance int64, err error)
-	GetInfo(ctx context.Context, senderPubkey string) (info *NodeInfo, err error)
-	MakeInvoice(ctx context.Context, senderPubkey string, amount int64, description string, descriptionHash string, expiry int64) (transaction *Nip47Transaction, err error)
-	LookupInvoice(ctx context.Context, senderPubkey string, paymentHash string) (transaction *Nip47Transaction, err error)
-	ListTransactions(ctx context.Context, senderPubkey string, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []Nip47Transaction, err error)
+	SendPaymentSync(ctx context.Context, payReq string) (preimage string, err error)
+	SendKeysend(ctx context.Context, amount int64, destination, preimage string, custom_records []TLVRecord) (preImage string, err error)
+	GetBalance(ctx context.Context) (balance int64, err error)
+	GetInfo(ctx context.Context) (info *NodeInfo, err error)
+	MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *Nip47Transaction, err error)
+	LookupInvoice(ctx context.Context, paymentHash string) (transaction *Nip47Transaction, err error)
+	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []Nip47Transaction, err error)
 	Shutdown() error
 }
 
@@ -38,7 +38,7 @@ type LNDService struct {
 	Logger *logrus.Logger
 }
 
-func (svc *LNDService) GetBalance(ctx context.Context, senderPubkey string) (balance int64, err error) {
+func (svc *LNDService) GetBalance(ctx context.Context) (balance int64, err error) {
 	resp, err := svc.client.ChannelBalance(ctx, &lnrpc.ChannelBalanceRequest{})
 	if err != nil {
 		return 0, err
@@ -46,7 +46,7 @@ func (svc *LNDService) GetBalance(ctx context.Context, senderPubkey string) (bal
 	return int64(resp.LocalBalance.Sat), nil
 }
 
-func (svc *LNDService) ListTransactions(ctx context.Context, senderPubkey string, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []Nip47Transaction, err error) {
+func (svc *LNDService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []Nip47Transaction, err error) {
 	// Fetch invoices
 	var invoices []*lnrpc.Invoice
 	if invoiceType == "" || invoiceType == "incoming" {
@@ -132,7 +132,7 @@ func (svc *LNDService) ListTransactions(ctx context.Context, senderPubkey string
 	return transactions, nil
 }
 
-func (svc *LNDService) GetInfo(ctx context.Context, senderPubkey string) (info *NodeInfo, err error) {
+func (svc *LNDService) GetInfo(ctx context.Context) (info *NodeInfo, err error) {
 	resp, err := svc.client.GetInfo(ctx, &lnrpc.GetInfoRequest{})
 	if err != nil {
 		return nil, err
@@ -147,7 +147,7 @@ func (svc *LNDService) GetInfo(ctx context.Context, senderPubkey string) (info *
 	}, nil
 }
 
-func (svc *LNDService) MakeInvoice(ctx context.Context, senderPubkey string, amount int64, description string, descriptionHash string, expiry int64) (transaction *Nip47Transaction, err error) {
+func (svc *LNDService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *Nip47Transaction, err error) {
 	var descriptionHashBytes []byte
 
 	if descriptionHash != "" {
@@ -155,7 +155,6 @@ func (svc *LNDService) MakeInvoice(ctx context.Context, senderPubkey string, amo
 
 		if err != nil || len(descriptionHashBytes) != 32 {
 			svc.Logger.WithFields(logrus.Fields{
-				"senderPubkey":    senderPubkey,
 				"amount":          amount,
 				"description":     description,
 				"descriptionHash": descriptionHash,
@@ -179,7 +178,7 @@ func (svc *LNDService) MakeInvoice(ctx context.Context, senderPubkey string, amo
 	return transaction, nil
 }
 
-func (svc *LNDService) LookupInvoice(ctx context.Context, senderPubkey string, paymentHash string) (transaction *Nip47Transaction, err error) {
+func (svc *LNDService) LookupInvoice(ctx context.Context, paymentHash string) (transaction *Nip47Transaction, err error) {
 	paymentHashBytes, err := hex.DecodeString(paymentHash)
 
 	if err != nil || len(paymentHashBytes) != 32 {
@@ -198,7 +197,7 @@ func (svc *LNDService) LookupInvoice(ctx context.Context, senderPubkey string, p
 	return transaction, nil
 }
 
-func (svc *LNDService) SendPaymentSync(ctx context.Context, senderPubkey, payReq string) (preimage string, err error) {
+func (svc *LNDService) SendPaymentSync(ctx context.Context, payReq string) (preimage string, err error) {
 	resp, err := svc.client.SendPaymentSync(ctx, &lnrpc.SendRequest{PaymentRequest: payReq})
 	if err != nil {
 		return "", err
@@ -206,7 +205,7 @@ func (svc *LNDService) SendPaymentSync(ctx context.Context, senderPubkey, payReq
 	return hex.EncodeToString(resp.PaymentPreimage), nil
 }
 
-func (svc *LNDService) SendKeysend(ctx context.Context, senderPubkey string, amount int64, destination, preimage string, custom_records []TLVRecord) (respPreimage string, err error) {
+func (svc *LNDService) SendKeysend(ctx context.Context, amount int64, destination, preimage string, custom_records []TLVRecord) (respPreimage string, err error) {
 	destBytes, err := hex.DecodeString(destination)
 	if err != nil {
 		return "", err
@@ -221,7 +220,6 @@ func (svc *LNDService) SendKeysend(ctx context.Context, senderPubkey string, amo
 	}
 	if err != nil || len(preImageBytes) != 32 {
 		svc.Logger.WithFields(logrus.Fields{
-			"senderPubkey":  senderPubkey,
 			"amount":        amount,
 			"destination":   destination,
 			"preimage":      preimage,
@@ -253,7 +251,6 @@ func (svc *LNDService) SendKeysend(ctx context.Context, senderPubkey string, amo
 	resp, err := svc.client.SendPaymentSync(ctx, sendPaymentRequest)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
-			"senderPubkey":  senderPubkey,
 			"amount":        amount,
 			"payeePubkey":   destination,
 			"paymentHash":   paymentHashHex,
@@ -265,7 +262,6 @@ func (svc *LNDService) SendKeysend(ctx context.Context, senderPubkey string, amo
 	}
 	if resp.PaymentError != "" {
 		svc.Logger.WithFields(logrus.Fields{
-			"senderPubkey":  senderPubkey,
 			"amount":        amount,
 			"payeePubkey":   destination,
 			"paymentHash":   paymentHashHex,
@@ -278,7 +274,6 @@ func (svc *LNDService) SendKeysend(ctx context.Context, senderPubkey string, amo
 	respPreimage = hex.EncodeToString(resp.PaymentPreimage)
 	if respPreimage == "" {
 		svc.Logger.WithFields(logrus.Fields{
-			"senderPubkey":  senderPubkey,
 			"amount":        amount,
 			"payeePubkey":   destination,
 			"paymentHash":   paymentHashHex,
@@ -289,7 +284,6 @@ func (svc *LNDService) SendKeysend(ctx context.Context, senderPubkey string, amo
 		return "", errors.New("No preimage in keysend response")
 	}
 	svc.Logger.WithFields(logrus.Fields{
-		"senderPubkey":  senderPubkey,
 		"amount":        amount,
 		"payeePubkey":   destination,
 		"paymentHash":   paymentHashHex,

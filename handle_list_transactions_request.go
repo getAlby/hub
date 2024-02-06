@@ -21,7 +21,7 @@ func (svc *Service) HandleListTransactionsEvent(ctx context.Context, request *Ni
 		return nil, err
 	}
 
-	hasPermission, code, message := svc.hasPermission(app, requestEvent, request.Method, 0)
+	hasPermission, code, message := svc.hasPermission(app, request.Method, 0)
 
 	if !hasPermission {
 		svc.Logger.WithFields(logrus.Fields{
@@ -46,13 +46,14 @@ func (svc *Service) HandleListTransactionsEvent(ctx context.Context, request *Ni
 		"appId":     app.ID,
 	}).Info("Fetching transactions")
 
-	transactions, err := svc.lnClient.ListTransactions(ctx, requestEvent.PubKey, listParams.From, listParams.Until, listParams.Limit, listParams.Offset, listParams.Unpaid, listParams.Type)
+	transactions, err := svc.lnClient.ListTransactions(ctx, listParams.From, listParams.Until, listParams.Limit, listParams.Offset, listParams.Unpaid, listParams.Type)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
 			// TODO: log request fields from listParams
-			"eventId":   requestEvent.NostrId,
-			"eventKind": requestEvent.Kind,
-			"appId":     app.ID,
+			"senderPubkey": requestEvent.PubKey,
+			"eventId":      requestEvent.NostrId,
+			"eventKind":    requestEvent.Kind,
+			"appId":        app.ID,
 		}).Infof("Failed to fetch transactions: %v", err)
 		return &Nip47Response{
 			ResultType: request.Method,

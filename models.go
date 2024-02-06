@@ -92,7 +92,7 @@ type Payment struct {
 	App            App
 	NostrEventId   uint `validate:"required"`
 	NostrEvent     NostrEvent
-	Amount         uint
+	Amount         uint // in sats
 	PaymentRequest string
 	Preimage       *string
 	CreatedAt      time.Time

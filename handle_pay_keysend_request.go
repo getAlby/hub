@@ -22,7 +22,7 @@ func (svc *Service) HandlePayKeysendEvent(ctx context.Context, request *Nip47Req
 	}
 
 	// We use pay_invoice permissions for budget and max amount
-	hasPermission, code, message := svc.hasPermission(app, requestEvent, NIP_47_PAY_INVOICE_METHOD, payParams.Amount)
+	hasPermission, code, message := svc.hasPermission(app, NIP_47_PAY_INVOICE_METHOD, payParams.Amount)
 
 	if !hasPermission {
 		svc.Logger.WithFields(logrus.Fields{
@@ -53,13 +53,14 @@ func (svc *Service) HandlePayKeysendEvent(ctx context.Context, request *Nip47Req
 		"senderPubkey": payParams.Pubkey,
 	}).Info("Sending payment")
 
-	preimage, err := svc.lnClient.SendKeysend(ctx, requestEvent.PubKey, payParams.Amount, payParams.Pubkey, payParams.Preimage, payParams.TLVRecords)
+	preimage, err := svc.lnClient.SendKeysend(ctx, payParams.Amount, payParams.Pubkey, payParams.Preimage, payParams.TLVRecords)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
-			"eventId":      requestEvent.NostrId,
-			"eventKind":    requestEvent.Kind,
-			"appId":        app.ID,
-			"senderPubkey": payParams.Pubkey,
+			"senderPubkey":    requestEvent.PubKey,
+			"eventId":         requestEvent.NostrId,
+			"eventKind":       requestEvent.Kind,
+			"appId":           app.ID,
+			"recipientPubkey": payParams.Pubkey,
 		}).Infof("Failed to send payment: %v", err)
 		return &Nip47Response{
 			ResultType: request.Method,

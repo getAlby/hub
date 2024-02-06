@@ -13,7 +13,7 @@ import (
 func (svc *Service) HandleLookupInvoiceEvent(ctx context.Context, request *Nip47Request, requestEvent *NostrEvent, app *App) (result *Nip47Response, err error) {
 
 	// TODO: move to a shared function
-	hasPermission, code, message := svc.hasPermission(app, requestEvent, request.Method, 0)
+	hasPermission, code, message := svc.hasPermission(app, request.Method, 0)
 
 	if !hasPermission {
 		svc.Logger.WithFields(logrus.Fields{
@@ -73,14 +73,15 @@ func (svc *Service) HandleLookupInvoiceEvent(ctx context.Context, request *Nip47
 		paymentHash = paymentRequest.PaymentHash
 	}
 
-	transaction, err := svc.lnClient.LookupInvoice(ctx, requestEvent.PubKey, paymentHash)
+	transaction, err := svc.lnClient.LookupInvoice(ctx, paymentHash)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
-			"eventId":     requestEvent.NostrId,
-			"eventKind":   requestEvent.Kind,
-			"appId":       app.ID,
-			"invoice":     lookupInvoiceParams.Invoice,
-			"paymentHash": lookupInvoiceParams.PaymentHash,
+			"senderPubkey": requestEvent.PubKey,
+			"eventId":      requestEvent.NostrId,
+			"eventKind":    requestEvent.Kind,
+			"appId":        app.ID,
+			"invoice":      lookupInvoiceParams.Invoice,
+			"paymentHash":  lookupInvoiceParams.PaymentHash,
 		}).Infof("Failed to lookup invoice: %v", err)
 		return &Nip47Response{
 			ResultType: request.Method,

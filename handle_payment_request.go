@@ -20,6 +20,7 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 			"eventKind": requestEvent.Kind,
 			"appId":     app.ID,
 		}).Errorf("Failed to decode nostr event: %v", err)
+		// TODO: why not return a Nip47Response here?
 		return nil, err
 	}
 
@@ -44,7 +45,7 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 		}, nil
 	}
 
-	hasPermission, code, message := svc.hasPermission(app, requestEvent, request.Method, paymentRequest.MSatoshi)
+	hasPermission, code, message := svc.hasPermission(app, request.Method, paymentRequest.MSatoshi)
 
 	if !hasPermission {
 		svc.Logger.WithFields(logrus.Fields{
@@ -74,13 +75,14 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 		"bolt11":    bolt11,
 	}).Info("Sending payment")
 
-	preimage, err := svc.lnClient.SendPaymentSync(ctx, requestEvent.PubKey, bolt11)
+	preimage, err := svc.lnClient.SendPaymentSync(ctx, bolt11)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
-			"eventId":   requestEvent.NostrId,
-			"eventKind": requestEvent.Kind,
-			"appId":     app.ID,
-			"bolt11":    bolt11,
+			"senderPubkey": requestEvent.PubKey,
+			"eventId":      requestEvent.NostrId,
+			"eventKind":    requestEvent.Kind,
+			"appId":        app.ID,
+			"bolt11":       bolt11,
 		}).Infof("Failed to send payment: %v", err)
 		return &Nip47Response{
 			ResultType: request.Method,
