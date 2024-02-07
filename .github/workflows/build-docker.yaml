@@ -30,3 +30,4 @@ jobs:
           platform: linux/amd64,linux/arm64
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
+          addLatest: ${{ github.ref == 'refs/heads/master' }}
