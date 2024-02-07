@@ -507,7 +507,12 @@ func (svc *Service) HandleEvent(ctx context.Context, sub *nostr.Subscription, ev
 		publishResponse(nipResponse, nostr.Tags{})
 	}
 
-	requestEvent.State = REQUEST_EVENT_STATE_HANDLER_EXECUTED
+	// TODO: the handlers should always publish a response and then this check is not needed
+	if err != nil {
+		requestEvent.State = REQUEST_EVENT_STATE_HANDLER_ERROR
+	} else {
+		requestEvent.State = REQUEST_EVENT_STATE_HANDLER_EXECUTED
+	}
 	err = svc.db.Save(&requestEvent).Error
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
