@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"slices"
 	"sync"
 	"time"
 
@@ -220,37 +221,43 @@ func (svc *Service) PublishEvent(ctx context.Context, sub *nostr.Subscription, r
 		responseEvent.State = RESPONSE_EVENT_STATE_PUBLISH_CONFIRMED
 		responseEvent.RepliedAt = time.Now()
 		svc.Logger.WithFields(logrus.Fields{
-			"nostrEventId": requestEvent.ID,
-			"eventId":      requestEvent.NostrId,
-			"status":       status,
-			"appId":        appId,
-			"replyEventId": resp.ID,
+			"requestEventId":       requestEvent.ID,
+			"requestNostrEventId":  requestEvent.NostrId,
+			"status":               status,
+			"appId":                appId,
+			"responseEventId":      responseEvent.ID,
+			"responseNostrEventId": resp.ID,
 		}).Info("Published reply")
 	} else if status == nostr.PublishStatusFailed {
 		responseEvent.State = RESPONSE_EVENT_STATE_PUBLISH_FAILED
 		svc.Logger.WithFields(logrus.Fields{
-			"nostrEventId": requestEvent.ID,
-			"eventId":      requestEvent.NostrId,
-			"status":       status,
-			"appId":        appId,
-			"replyEventId": resp.ID,
+			"requestEventId":       requestEvent.ID,
+			"requestNostrEventId":  requestEvent.NostrId,
+			"status":               status,
+			"appId":                appId,
+			"responseEventId":      responseEvent.ID,
+			"responseNostrEventId": resp.ID,
 		}).Info("Failed to publish reply")
 	} else {
 		responseEvent.State = RESPONSE_EVENT_STATE_PUBLISH_UNCONFIRMED
 		svc.Logger.WithFields(logrus.Fields{
-			"nostrEventId": requestEvent.ID,
-			"eventId":      requestEvent.NostrId,
-			"status":       status,
-			"appId":        appId,
-			"replyEventId": resp.ID,
+			"requestEventId":       requestEvent.ID,
+			"requestNostrEventId":  requestEvent.NostrId,
+			"status":               status,
+			"appId":                appId,
+			"responseEventId":      responseEvent.ID,
+			"responseNostrEventId": resp.ID,
 		}).Info("Reply sent but no response from relay (timeout)")
 	}
 	err = svc.db.Save(&responseEvent).Error
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
-			"eventId":      requestEvent.NostrId,
-			"appId":        appId,
-			"replyEventId": resp.ID,
+			"requestEventId":       requestEvent.ID,
+			"requestNostrEventId":  requestEvent.NostrId,
+			"status":               status,
+			"appId":                appId,
+			"responseEventId":      responseEvent.ID,
+			"responseNostrEventId": resp.ID,
 		}).Errorf("Failed to update response/reply event: %v", err)
 	}
 
@@ -554,6 +561,11 @@ func (svc *Service) GetMethods(app *App) []string {
 	for _, appPermission := range appPermissions {
 		requestMethods = append(requestMethods, appPermission.RequestMethod)
 	}
+	if slices.Contains(requestMethods, NIP_47_PAY_INVOICE_METHOD) {
+		// all payment methods are tied to the pay_invoice permission
+		requestMethods = append(requestMethods, NIP_47_PAY_KEYSEND_METHOD, NIP_47_MULTI_PAY_INVOICE_METHOD, NIP_47_MULTI_PAY_KEYSEND_METHOD)
+	}
+
 	return requestMethods
 }
 
