@@ -422,7 +422,7 @@ func TestHandleMultiPayInvoiceEvent(t *testing.T) {
 		PubKey:  app.NostrPubkey,
 		Content: payload,
 	}
-	requestEvent := &NostrEvent{
+	requestEvent := &RequestEvent{
 		Kind:    reqEvent.Kind,
 		PubKey:  reqEvent.PubKey,
 		Content: reqEvent.Content,
@@ -551,7 +551,7 @@ func TestHandleMultiPayKeysendEvent(t *testing.T) {
 		PubKey:  app.NostrPubkey,
 		Content: payload,
 	}
-	requestEvent := &NostrEvent{
+	requestEvent := &RequestEvent{
 		Kind:    reqEvent.Kind,
 		PubKey:  reqEvent.PubKey,
 		Content: reqEvent.Content,
@@ -655,7 +655,7 @@ func TestHandleGetBalanceEvent(t *testing.T) {
 		PubKey:  app.NostrPubkey,
 		Content: payload,
 	}
-	requestEvent := &NostrEvent{
+	requestEvent := &RequestEvent{
 		Kind:    reqEvent.Kind,
 		PubKey:  reqEvent.PubKey,
 		Content: reqEvent.Content,
@@ -737,7 +737,7 @@ func TestHandlePayInvoiceEvent(t *testing.T) {
 		PubKey:  app.NostrPubkey,
 		Content: payload,
 	}
-	requestEvent := &NostrEvent{
+	requestEvent := &RequestEvent{
 		Kind:    reqEvent.Kind,
 		PubKey:  reqEvent.PubKey,
 		Content: reqEvent.Content,
@@ -871,7 +871,7 @@ func TestHandlePayKeysendEvent(t *testing.T) {
 		PubKey:  app.NostrPubkey,
 		Content: payload,
 	}
-	requestEvent := &NostrEvent{
+	requestEvent := &RequestEvent{
 		Kind:    reqEvent.Kind,
 		PubKey:  reqEvent.PubKey,
 		Content: reqEvent.Content,
@@ -953,7 +953,7 @@ func TestHandleMakeInvoiceEvent(t *testing.T) {
 		PubKey:  app.NostrPubkey,
 		Content: payload,
 	}
-	requestEvent := &NostrEvent{
+	requestEvent := &RequestEvent{
 		Kind:    reqEvent.Kind,
 		PubKey:  reqEvent.PubKey,
 		Content: reqEvent.Content,
@@ -1009,7 +1009,7 @@ func TestHandleListTransactionsEvent(t *testing.T) {
 		PubKey:  app.NostrPubkey,
 		Content: payload,
 	}
-	requestEvent := &NostrEvent{
+	requestEvent := &RequestEvent{
 		Kind:    reqEvent.Kind,
 		PubKey:  reqEvent.PubKey,
 		Content: reqEvent.Content,
@@ -1075,7 +1075,7 @@ func TestHandleGetInfoEvent(t *testing.T) {
 		PubKey:  app.NostrPubkey,
 		Content: payload,
 	}
-	requestEvent := &NostrEvent{
+	requestEvent := &RequestEvent{
 		Kind:    reqEvent.Kind,
 		PubKey:  reqEvent.PubKey,
 		Content: reqEvent.Content,

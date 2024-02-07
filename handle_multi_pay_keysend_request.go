@@ -10,7 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, request *Nip47Request, requestEvent *NostrEvent, app *App, publishResponse func(*Nip47Response, nostr.Tags)) (err error) {
+func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, nostr.Tags)) (err error) {
 
 	multiPayParams := &Nip47MultiPayKeysendParams{}
 	err = json.Unmarshal(request.Params, multiPayParams)
@@ -58,7 +58,7 @@ func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, request *Nip
 				return
 			}
 
-			payment := Payment{App: *app, NostrEvent: *requestEvent, Amount: uint(keysendInfo.Amount / 1000)}
+			payment := Payment{App: *app, RequestEvent: *requestEvent, Amount: uint(keysendInfo.Amount / 1000)}
 			mu.Lock()
 			insertPaymentResult := svc.db.Create(&payment)
 			mu.Unlock()

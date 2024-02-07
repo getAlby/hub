@@ -13,7 +13,7 @@ import (
 )
 
 // TODO: pass a channel instead of publishResponse function
-func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, request *Nip47Request, requestEvent *NostrEvent, app *App, publishResponse func(*Nip47Response, nostr.Tags)) (err error) {
+func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, nostr.Tags)) (err error) {
 
 	multiPayParams := &Nip47MultiPayInvoiceParams{}
 	err = json.Unmarshal(request.Params, multiPayParams)
@@ -82,7 +82,7 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, request *Nip
 				return
 			}
 
-			payment := Payment{App: *app, NostrEventId: requestEvent.ID, PaymentRequest: bolt11, Amount: uint(paymentRequest.MSatoshi / 1000)}
+			payment := Payment{App: *app, RequestEventId: requestEvent.ID, PaymentRequest: bolt11, Amount: uint(paymentRequest.MSatoshi / 1000)}
 			mu.Lock()
 			insertPaymentResult := svc.db.Create(&payment)
 			mu.Unlock()

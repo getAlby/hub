@@ -189,7 +189,7 @@ func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 	}
 }
 
-func (svc *Service) PublishEvent(ctx context.Context, sub *nostr.Subscription, requestEvent *NostrEvent, resp *nostr.Event, app *App, ss []byte) error {
+func (svc *Service) PublishEvent(ctx context.Context, sub *nostr.Subscription, requestEvent *RequestEvent, resp *nostr.Event, app *App, ss []byte) error {
 	payload, err := nip04.Decrypt(resp.Content, ss)
 	var appId *uint
 	if app != nil {
@@ -269,7 +269,7 @@ func (svc *Service) HandleEvent(ctx context.Context, sub *nostr.Subscription, ev
 	}).Info("Processing Event")
 
 	// make sure we don't know the event, yet
-	requestEvent := NostrEvent{}
+	requestEvent := RequestEvent{}
 	findEventResult := svc.db.Where("nostr_id = ?", event.ID).Find(&requestEvent)
 	if findEventResult.RowsAffected != 0 {
 		svc.Logger.WithFields(logrus.Fields{
@@ -288,7 +288,7 @@ func (svc *Service) HandleEvent(ctx context.Context, sub *nostr.Subscription, ev
 	}
 
 	// store request event
-	requestEvent = NostrEvent{AppId: nil, NostrId: event.ID, Kind: event.Kind, PubKey: event.PubKey, Content: event.Content}
+	requestEvent = RequestEvent{AppId: nil, NostrId: event.ID, Kind: event.Kind, PubKey: event.PubKey, Content: event.Content}
 	err = svc.db.Create(&requestEvent).Error
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{

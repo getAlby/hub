@@ -58,7 +58,7 @@ type AppPermission struct {
 	UpdatedAt     time.Time
 }
 
-type NostrEvent struct {
+type RequestEvent struct {
 	ID        uint
 	AppId     *uint
 	App       App
@@ -90,8 +90,8 @@ type Payment struct {
 	ID             uint
 	AppId          uint `validate:"required"`
 	App            App
-	NostrEventId   uint `validate:"required"`
-	NostrEvent     NostrEvent
+	RequestEventId uint `validate:"required"`
+	RequestEvent   RequestEvent
 	Amount         uint // in sats
 	PaymentRequest string
 	Preimage       *string

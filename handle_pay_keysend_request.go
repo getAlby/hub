@@ -8,7 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (svc *Service) HandlePayKeysendEvent(ctx context.Context, request *Nip47Request, requestEvent *NostrEvent, app *App) (result *Nip47Response, err error) {
+func (svc *Service) HandlePayKeysendEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App) (result *Nip47Response, err error) {
 
 	payParams := &Nip47KeysendParams{}
 	err = json.Unmarshal(request.Params, payParams)
@@ -40,7 +40,7 @@ func (svc *Service) HandlePayKeysendEvent(ctx context.Context, request *Nip47Req
 			}}, nil
 	}
 
-	payment := Payment{App: *app, NostrEvent: *requestEvent, Amount: uint(payParams.Amount / 1000)}
+	payment := Payment{App: *app, RequestEvent: *requestEvent, Amount: uint(payParams.Amount / 1000)}
 	insertPaymentResult := svc.db.Create(&payment)
 	if insertPaymentResult.Error != nil {
 		return nil, insertPaymentResult.Error
