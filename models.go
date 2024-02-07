@@ -30,11 +30,14 @@ const (
 )
 
 const (
-	NOSTR_EVENT_STATE_HANDLER_EXECUTED    = "executed"
-	NOSTR_EVENT_STATE_HANDLER_ERROR       = "error"
-	NOSTR_EVENT_STATE_PUBLISH_CONFIRMED   = "replied"
-	NOSTR_EVENT_STATE_PUBLISH_FAILED      = "failed"
-	NOSTR_EVENT_STATE_PUBLISH_UNCONFIRMED = "sent"
+	REQUEST_EVENT_STATE_HANDLER_EXECUTING = "executing"
+	REQUEST_EVENT_STATE_HANDLER_EXECUTED  = "executed"
+	REQUEST_EVENT_STATE_HANDLER_ERROR     = "error"
+)
+const (
+	RESPONSE_EVENT_STATE_PUBLISH_CONFIRMED   = "replied"
+	RESPONSE_EVENT_STATE_PUBLISH_FAILED      = "failed"
+	RESPONSE_EVENT_STATE_PUBLISH_UNCONFIRMED = "sent"
 )
 
 // TODO: move to models/db
@@ -67,6 +70,7 @@ type RequestEvent struct {
 	App       App
 	NostrId   string `validate:"required"`
 	Content   string
+	State     string
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
