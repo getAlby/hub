@@ -65,12 +65,63 @@ const nip47KeysendJson = `
 {
 	"method": "pay_keysend",
 	"params": {
-		"amount": 100,
+		"amount": 123000,
 		"pubkey": "123pubkey",
 		"tlv_records": [{
 			"type": 5482373484,
 			"value": "fajsn341414fq"
 		}]
+	}
+}
+`
+
+const nip47MultiPayKeysendJson = `
+{
+	"method": "multi_pay_keysend",
+	"params": {
+		"keysends": [{
+				"amount": 123000,
+				"pubkey": "123pubkey",
+				"tlv_records": [{
+					"type": 5482373484,
+					"value": "fajsn341414fq"
+				}]
+			},
+			{
+				"amount": 123000,
+				"pubkey": "123pubkey",
+				"tlv_records": [{
+					"type": 5482373484,
+					"value": "fajsn341414fq"
+				}]
+			}
+		]
+	}
+}
+`
+
+const nip47MultiPayKeysendOneOverflowingBudgetJson = `
+{
+	"method": "multi_pay_keysend",
+	"params": {
+		"keysends": [{
+				"amount": 123000,
+				"pubkey": "123pubkey",
+				"id": "customId",
+				"tlv_records": [{
+					"type": 5482373484,
+					"value": "fajsn341414fq"
+				}]
+			},
+			{
+				"amount": 500000,
+				"pubkey": "500pubkey",
+				"tlv_records": [{
+					"type": 5482373484,
+					"value": "fajsn341414fq"
+				}]
+			}
+		]
 	}
 }
 `
@@ -83,6 +134,53 @@ const nip47PayJson = `
 	}
 }
 `
+
+const nip47MultiPayJson = `
+{
+	"method": "multi_pay_invoice",
+	"params": {
+		"invoices": [{
+				"invoice": "lntb1230n1pjypux0pp5xgxzcks5jtx06k784f9dndjh664wc08ucrganpqn52d0ftrh9n8sdqyw3jscqzpgxqyz5vqsp5rkx7cq252p3frx8ytjpzc55rkgyx2mfkzzraa272dqvr2j6leurs9qyyssqhutxa24r5hqxstchz5fxlslawprqjnarjujp5sm3xj7ex73s32sn54fthv2aqlhp76qmvrlvxppx9skd3r5ut5xutgrup8zuc6ay73gqmra29m"
+			},
+			{
+				"invoice": "lntb1230n1pjypux0pp5xgxzcks5jtx06k784f9dndjh664wc08ucrganpqn52d0ftrh9n8sdqyw3jscqzpgxqyz5vqsp5rkx7cq252p3frx8ytjpzc55rkgyx2mfkzzraa272dqvr2j6leurs9qyyssqhutxa24r5hqxstchz5fxlslawprqjnarjujp5sm3xj7ex73s32sn54fthv2aqlhp76qmvrlvxppx9skd3r5ut5xutgrup8zuc6ay73gqmra29m"
+			}
+		]
+	}
+}
+`
+
+const nip47MultiPayOneOverflowingBudgetJson = `
+{
+	"method": "multi_pay_invoice",
+	"params": {
+		"invoices": [{
+				"invoice": "lnbcrt5u1pjuywzppp5h69dt59cypca2wxu69sw8ga0g39a3yx7dqug5nthrw3rcqgfdu4qdqqcqzzsxqyz5vqsp5gzlpzszyj2k30qmpme7jsfzr24wqlvt9xdmr7ay34lfelz050krs9qyyssq038x07nh8yuv8hdpjh5y8kqp7zcd62ql9na9xh7pla44htjyy02sz23q7qm2tza6ct4ypljk54w9k9qsrsu95usk8ce726ytep6vhhsq9mhf9a"
+			},
+			{
+				"invoice": "lntb1230n1pjypux0pp5xgxzcks5jtx06k784f9dndjh664wc08ucrganpqn52d0ftrh9n8sdqyw3jscqzpgxqyz5vqsp5rkx7cq252p3frx8ytjpzc55rkgyx2mfkzzraa272dqvr2j6leurs9qyyssqhutxa24r5hqxstchz5fxlslawprqjnarjujp5sm3xj7ex73s32sn54fthv2aqlhp76qmvrlvxppx9skd3r5ut5xutgrup8zuc6ay73gqmra29m"
+			}
+		]
+	}
+}
+`
+
+const nip47MultiPayOneMalformedInvoiceJson = `
+{
+	"method": "multi_pay_invoice",
+	"params": {
+		"invoices": [{
+				"invoice": "",
+				"id": "invoiceId123"
+			},
+			{
+				"invoice": "lntb1230n1pjypux0pp5xgxzcks5jtx06k784f9dndjh664wc08ucrganpqn52d0ftrh9n8sdqyw3jscqzpgxqyz5vqsp5rkx7cq252p3frx8ytjpzc55rkgyx2mfkzzraa272dqvr2j6leurs9qyyssqhutxa24r5hqxstchz5fxlslawprqjnarjujp5sm3xj7ex73s32sn54fthv2aqlhp76qmvrlvxppx9skd3r5ut5xutgrup8zuc6ay73gqmra29m"
+			}
+		]
+	}
+}
+`
+
 const nip47PayWrongMethodJson = `
 {
 	"method": "get_balance",
@@ -100,8 +198,12 @@ const nip47PayJsonNoInvoice = `
 }
 `
 
-const mockInvoice = "lnbc10n1pjdy9aepp5ftvu6fucndg5mp5ww4ghsduqrxgr4rtcwelrln4jzxhem5qw022qhp50kncf9zk35xg4lxewt4974ry6mudygsztsz8qn3ar8pn3mtpe50scqzzsxqyz5vqsp5zyzp3dyn98g7sjlgy4nvujq3rh9xxsagytcyx050mf3rtrx3sn4s9qyyssq7af24ljqf5uzgnz4ualxhvffryh3kpkvvj76ah9yrgdvu494lmfrdf36h5wuhshzemkvrtg2zu70uk0fd9fcmxgl3j9748dvvx9ey9gqpr4jjd"
-const mockPaymentHash = "4ad9cd27989b514d868e755178378019903a8d78767e3fceb211af9dd00e7a94" // for the above invoice
+// for the invoice:
+// lnbcrt5u1pjuywzppp5h69dt59cypca2wxu69sw8ga0g39a3yx7dqug5nthrw3rcqgfdu4qdqqcqzzsxqyz5vqsp5gzlpzszyj2k30qmpme7jsfzr24wqlvt9xdmr7ay34lfelz050krs9qyyssq038x07nh8yuv8hdpjh5y8kqp7zcd62ql9na9xh7pla44htjyy02sz23q7qm2tza6ct4ypljk54w9k9qsrsu95usk8ce726ytep6vhhsq9mhf9a
+const mockPaymentHash500 = "be8ad5d0b82071d538dcd160e3a3af444bd890de68388a4d771ba23c01096f2a"
+
+const mockInvoice = "lntb1230n1pjypux0pp5xgxzcks5jtx06k784f9dndjh664wc08ucrganpqn52d0ftrh9n8sdqyw3jscqzpgxqyz5vqsp5rkx7cq252p3frx8ytjpzc55rkgyx2mfkzzraa272dqvr2j6leurs9qyyssqhutxa24r5hqxstchz5fxlslawprqjnarjujp5sm3xj7ex73s32sn54fthv2aqlhp76qmvrlvxppx9skd3r5ut5xutgrup8zuc6ay73gqmra29m"
+const mockPaymentHash = "320c2c5a1492ccfd5bc7aa4ad9b657d6aaec3cfcc0d1d98413a29af4ac772ccf" // for the above invoice
 var mockNodeInfo = NodeInfo{
 	Alias:       "bob",
 	Color:       "#3399FF",
@@ -144,95 +246,215 @@ var mockTransactions = []Nip47Transaction{
 }
 var mockTransaction = &mockTransactions[0]
 
-// TODO: split up into individual tests
-func TestHandleEvent(t *testing.T) {
-	ctx := context.TODO()
-	svc, _ := createTestService(t)
-	defer os.Remove(testDB)
+// TODO: split each method into separate files (requires moving out of the main package)
+// TODO: add E2E tests as well (currently the LNClient and relay are not tested)
+// TODO: test a request cannot be processed twice
+// TODO: test if an app doesn't exist it returns the right error code
+// TODO: test data is stored in the database correctly
 
-	senderPrivkey := nostr.GeneratePrivateKey()
-	senderPubkey, err := nostr.GetPublicKey(senderPrivkey)
+func TestHasPermission_NoPermission(t *testing.T) {
+	defer os.Remove(testDB)
+	mockLn, err := NewMockLn()
 	assert.NoError(t, err)
-	//test lnbc.. payload without having an app registered
-	ss, err := nip04.ComputeSharedSecret(svc.cfg.NostrPublicKey, senderPrivkey)
+	svc, err := createTestService(mockLn)
 	assert.NoError(t, err)
-	payload, err := nip04.Encrypt(nip47PayJson, ss)
+
+	app, _, err := createApp(svc)
 	assert.NoError(t, err)
-	res, err := svc.HandleEvent(ctx, &nostr.Event{
-		ID:      "test_event_1",
+
+	result, code, message := svc.hasPermission(app, NIP_47_PAY_INVOICE_METHOD, 100)
+	assert.False(t, result)
+	assert.Equal(t, NIP_47_ERROR_RESTRICTED, code)
+	assert.Equal(t, "This app does not have permission to request pay_invoice", message)
+}
+
+func TestHasPermission_Expired(t *testing.T) {
+	defer os.Remove(testDB)
+	mockLn, err := NewMockLn()
+	assert.NoError(t, err)
+	svc, err := createTestService(mockLn)
+	assert.NoError(t, err)
+
+	app, _, err := createApp(svc)
+	assert.NoError(t, err)
+
+	budgetRenewal := "never"
+	expiresAt := time.Now().Add(-24 * time.Hour)
+	appPermission := &AppPermission{
+		AppId:         app.ID,
+		App:           *app,
+		RequestMethod: NIP_47_PAY_INVOICE_METHOD,
+		MaxAmount:     100,
+		BudgetRenewal: budgetRenewal,
+		ExpiresAt:     expiresAt,
+	}
+	err = svc.db.Create(appPermission).Error
+	assert.NoError(t, err)
+
+	result, code, message := svc.hasPermission(app, NIP_47_PAY_INVOICE_METHOD, 100)
+	assert.False(t, result)
+	assert.Equal(t, NIP_47_ERROR_EXPIRED, code)
+	assert.Equal(t, "This app has expired", message)
+}
+
+func TestHasPermission_Exceeded(t *testing.T) {
+	defer os.Remove(testDB)
+	mockLn, err := NewMockLn()
+	assert.NoError(t, err)
+	svc, err := createTestService(mockLn)
+	assert.NoError(t, err)
+
+	app, _, err := createApp(svc)
+	assert.NoError(t, err)
+
+	budgetRenewal := "never"
+	expiresAt := time.Now().Add(24 * time.Hour)
+	appPermission := &AppPermission{
+		AppId:         app.ID,
+		App:           *app,
+		RequestMethod: NIP_47_PAY_INVOICE_METHOD,
+		MaxAmount:     10,
+		BudgetRenewal: budgetRenewal,
+		ExpiresAt:     expiresAt,
+	}
+	err = svc.db.Create(appPermission).Error
+	assert.NoError(t, err)
+
+	result, code, message := svc.hasPermission(app, NIP_47_PAY_INVOICE_METHOD, 100*1000)
+	assert.False(t, result)
+	assert.Equal(t, NIP_47_ERROR_QUOTA_EXCEEDED, code)
+	assert.Equal(t, "Insufficient budget remaining to make payment", message)
+}
+
+func TestHasPermission_OK(t *testing.T) {
+	defer os.Remove(testDB)
+	mockLn, err := NewMockLn()
+	assert.NoError(t, err)
+	svc, err := createTestService(mockLn)
+	assert.NoError(t, err)
+
+	app, _, err := createApp(svc)
+	assert.NoError(t, err)
+
+	budgetRenewal := "never"
+	expiresAt := time.Now().Add(24 * time.Hour)
+	appPermission := &AppPermission{
+		AppId:         app.ID,
+		App:           *app,
+		RequestMethod: NIP_47_PAY_INVOICE_METHOD,
+		MaxAmount:     10,
+		BudgetRenewal: budgetRenewal,
+		ExpiresAt:     expiresAt,
+	}
+	err = svc.db.Create(appPermission).Error
+	assert.NoError(t, err)
+
+	result, code, message := svc.hasPermission(app, NIP_47_PAY_INVOICE_METHOD, 10*1000)
+	assert.True(t, result)
+	assert.Empty(t, code)
+	assert.Empty(t, message)
+}
+
+func TestCreateResponse(t *testing.T) {
+	defer os.Remove(testDB)
+	mockLn, err := NewMockLn()
+	assert.NoError(t, err)
+	svc, err := createTestService(mockLn)
+	assert.NoError(t, err)
+
+	reqPrivateKey := nostr.GeneratePrivateKey()
+	reqPubkey, err := nostr.GetPublicKey(reqPrivateKey)
+
+	reqEvent := &nostr.Event{
 		Kind:    NIP_47_REQUEST_KIND,
-		PubKey:  senderPubkey,
-		Content: payload,
-	})
+		PubKey:  reqPubkey,
+		Content: "1",
+	}
+
+	reqEvent.ID = "12345"
+
+	ss, err := nip04.ComputeSharedSecret(reqPubkey, svc.cfg.NostrSecretKey)
+
+	reqContent := Nip47Response{
+		ResultType: NIP_47_GET_BALANCE_METHOD,
+		Result: Nip47BalanceResponse{
+			Balance: 1000,
+		},
+	}
+	res, err := svc.createResponse(reqEvent, reqContent, nostr.Tags{}, ss)
 	assert.NoError(t, err)
-	assert.NotNil(t, res)
-	received := &Nip47Response{}
+	assert.Equal(t, reqPubkey, res.Tags.GetFirst([]string{"p"}).Value())
+	assert.Equal(t, reqEvent.ID, res.Tags.GetFirst([]string{"e"}).Value())
+	assert.Equal(t, svc.cfg.NostrPublicKey, res.PubKey)
+
 	decrypted, err := nip04.Decrypt(res.Content, ss)
 	assert.NoError(t, err)
-	err = json.Unmarshal([]byte(decrypted), received)
-	assert.NoError(t, err)
-	assert.Equal(t, received.Error.Code, NIP_47_ERROR_UNAUTHORIZED)
-	assert.NotNil(t, res)
-	//register app
-	app := App{Name: "test", NostrPubkey: senderPubkey}
-	err = svc.db.Save(&app).Error
-	assert.NoError(t, err)
-	//test new payload
-	newPayload, err := nip04.Encrypt(nip47PayJson, ss)
-	assert.NoError(t, err)
-	res, err = svc.HandleEvent(ctx, &nostr.Event{
-		ID:      "test_event_3",
-		Kind:    NIP_47_REQUEST_KIND,
-		PubKey:  senderPubkey,
-		Content: newPayload,
-	})
-	assert.NoError(t, err)
-	assert.NotNil(t, res)
-	decrypted, err = nip04.Decrypt(res.Content, ss)
-	assert.NoError(t, err)
-	received = &Nip47Response{
-		Result: &Nip47PayResponse{},
+	response := Nip47Response{
+		Result: &Nip47BalanceResponse{},
 	}
-	err = json.Unmarshal([]byte(decrypted), received)
-	assert.NoError(t, err)
-	// this app has no permission
-	assert.Equal(t, received.Error.Code, NIP_47_ERROR_RESTRICTED)
 
-	malformedPayload, err := nip04.Encrypt(nip47PayJsonNoInvoice, ss)
+	err = json.Unmarshal([]byte(decrypted), &response)
 	assert.NoError(t, err)
-	res, err = svc.HandleEvent(ctx, &nostr.Event{
-		ID:      "test_event_4",
+	assert.Equal(t, reqContent.ResultType, response.ResultType)
+	assert.Equal(t, reqContent.Result, *response.Result.(*Nip47BalanceResponse))
+}
+
+func TestHandleEncryption(t *testing.T) {}
+
+func TestHandleMultiPayInvoiceEvent(t *testing.T) {
+	ctx := context.TODO()
+	defer os.Remove(testDB)
+	mockLn, err := NewMockLn()
+	assert.NoError(t, err)
+	svc, err := createTestService(mockLn)
+	assert.NoError(t, err)
+	app, ss, err := createApp(svc)
+	assert.NoError(t, err)
+
+	request := &Nip47Request{}
+	err = json.Unmarshal([]byte(nip47MultiPayJson), request)
+	assert.NoError(t, err)
+
+	// without permission
+	payload, err := nip04.Encrypt(nip47MultiPayJson, ss)
+	assert.NoError(t, err)
+	reqEvent := &nostr.Event{
 		Kind:    NIP_47_REQUEST_KIND,
-		PubKey:  senderPubkey,
-		Content: malformedPayload,
-	})
-
-	decrypted, err = nip04.Decrypt(res.Content, ss)
-	assert.NoError(t, err)
-	receivedError := &Nip47Response{
-		Result: &Nip47Error{},
+		PubKey:  app.NostrPubkey,
+		Content: payload,
 	}
-	err = json.Unmarshal([]byte(decrypted), receivedError)
-	assert.NoError(t, err)
-	assert.Equal(t, NIP_47_ERROR_INTERNAL, receivedError.Error.Code)
+	requestEvent := &RequestEvent{
+		Content: reqEvent.Content,
+	}
 
-	//test wrong method
-	wrongMethodPayload, err := nip04.Encrypt(nip47PayWrongMethodJson, ss)
+	reqEvent.ID = "multi_pay_invoice_without_permission"
+	requestEvent.NostrId = reqEvent.ID
+
+	responses := []*Nip47Response{}
+	dTags := []nostr.Tags{}
+
+	publishResponse := func(response *Nip47Response, tags nostr.Tags) {
+		responses = append(responses, response)
+		dTags = append(dTags, tags)
+	}
+
+	err = svc.HandleMultiPayInvoiceEvent(ctx, request, requestEvent, app, publishResponse)
 	assert.NoError(t, err)
-	res, err = svc.HandleEvent(ctx, &nostr.Event{
-		ID:      "test_event_5",
-		Kind:    NIP_47_REQUEST_KIND,
-		PubKey:  senderPubkey,
-		Content: wrongMethodPayload,
-	})
-	assert.NoError(t, err)
-	//add app permissions
+
+	assert.Equal(t, 2, len(responses))
+	assert.Equal(t, 2, len(dTags))
+	for i := 0; i < len(responses); i++ {
+		assert.Equal(t, NIP_47_ERROR_RESTRICTED, responses[i].Error.Code)
+		assert.Equal(t, mockPaymentHash, dTags[i].GetFirst([]string{"d"}).Value())
+	}
+
+	// with permission
 	maxAmount := 1000
 	budgetRenewal := "never"
 	expiresAt := time.Now().Add(24 * time.Hour)
 	appPermission := &AppPermission{
 		AppId:         app.ID,
-		App:           app,
+		App:           *app,
 		RequestMethod: NIP_47_PAY_INVOICE_METHOD,
 		MaxAmount:     maxAmount,
 		BudgetRenewal: budgetRenewal,
@@ -240,312 +462,573 @@ func TestHandleEvent(t *testing.T) {
 	}
 	err = svc.db.Create(appPermission).Error
 	assert.NoError(t, err)
-	// permissions: no limitations
-	res, err = svc.HandleEvent(ctx, &nostr.Event{
-		ID:      "test_event_6",
-		Kind:    NIP_47_REQUEST_KIND,
-		PubKey:  senderPubkey,
-		Content: newPayload,
-	})
+
+	reqEvent.ID = "multi_pay_invoice_with_permission"
+	requestEvent.NostrId = reqEvent.ID
+	responses = []*Nip47Response{}
+	dTags = []nostr.Tags{}
+	err = svc.HandleMultiPayInvoiceEvent(ctx, request, requestEvent, app, publishResponse)
 	assert.NoError(t, err)
-	assert.NotNil(t, res)
-	decrypted, err = nip04.Decrypt(res.Content, ss)
-	assert.NoError(t, err)
-	received = &Nip47Response{
-		Result: &Nip47PayResponse{},
+
+	assert.Equal(t, 2, len(responses))
+	for i := 0; i < len(responses); i++ {
+		assert.Equal(t, responses[i].Result.(Nip47PayResponse).Preimage, "123preimage")
+		assert.Equal(t, mockPaymentHash, dTags[i].GetFirst([]string{"d"}).Value())
 	}
-	err = json.Unmarshal([]byte(decrypted), received)
+
+	// one malformed invoice
+	err = json.Unmarshal([]byte(nip47MultiPayOneMalformedInvoiceJson), request)
 	assert.NoError(t, err)
-	assert.Equal(t, "123preimage", received.Result.(*Nip47PayResponse).Preimage)
-	// permissions: budget overflow
-	newMaxAmount := 100
+
+	payload, err = nip04.Encrypt(nip47MultiPayOneMalformedInvoiceJson, ss)
+	assert.NoError(t, err)
+	reqEvent.Content = payload
+
+	reqEvent.ID = "multi_pay_invoice_with_one_malformed_invoice"
+	requestEvent.NostrId = reqEvent.ID
+	responses = []*Nip47Response{}
+	dTags = []nostr.Tags{}
+	err = svc.HandleMultiPayInvoiceEvent(ctx, request, requestEvent, app, publishResponse)
+	assert.NoError(t, err)
+
+	assert.Equal(t, 2, len(responses))
+	assert.Equal(t, "invoiceId123", dTags[0].GetFirst([]string{"d"}).Value())
+	assert.Equal(t, responses[0].Error.Code, NIP_47_ERROR_INTERNAL)
+
+	assert.Equal(t, mockPaymentHash, dTags[1].GetFirst([]string{"d"}).Value())
+	assert.Equal(t, responses[1].Result.(Nip47PayResponse).Preimage, "123preimage")
+
+	// we've spent 369 till here in three payments
+
+	// budget overflow
+	newMaxAmount := 500
 	err = svc.db.Model(&AppPermission{}).Where("app_id = ?", app.ID).Update("max_amount", newMaxAmount).Error
 
-	res, err = svc.HandleEvent(ctx, &nostr.Event{
-		ID:      "test_event_7",
+	err = json.Unmarshal([]byte(nip47MultiPayOneOverflowingBudgetJson), request)
+	assert.NoError(t, err)
+
+	payload, err = nip04.Encrypt(nip47MultiPayOneOverflowingBudgetJson, ss)
+	assert.NoError(t, err)
+	reqEvent.Content = payload
+
+	reqEvent.ID = "multi_pay_invoice_with_budget_overflow"
+	requestEvent.NostrId = reqEvent.ID
+	responses = []*Nip47Response{}
+	dTags = []nostr.Tags{}
+	err = svc.HandleMultiPayInvoiceEvent(ctx, request, requestEvent, app, publishResponse)
+	assert.NoError(t, err)
+
+	// might be flaky because the two requests run concurrently
+	// and there's more chance that the failed respons calls the
+	// publishResponse as it's called earlier
+	assert.Equal(t, responses[0].Error.Code, NIP_47_ERROR_QUOTA_EXCEEDED)
+	assert.Equal(t, mockPaymentHash500, dTags[0].GetFirst([]string{"d"}).Value())
+	assert.Equal(t, responses[1].Result.(Nip47PayResponse).Preimage, "123preimage")
+	assert.Equal(t, mockPaymentHash, dTags[1].GetFirst([]string{"d"}).Value())
+}
+
+func TestHandleMultiPayKeysendEvent(t *testing.T) {
+
+	ctx := context.TODO()
+	defer os.Remove(testDB)
+	mockLn, err := NewMockLn()
+	assert.NoError(t, err)
+	svc, err := createTestService(mockLn)
+	assert.NoError(t, err)
+	app, ss, err := createApp(svc)
+	assert.NoError(t, err)
+
+	request := &Nip47Request{}
+	err = json.Unmarshal([]byte(nip47MultiPayKeysendJson), request)
+	assert.NoError(t, err)
+
+	// without permission
+	payload, err := nip04.Encrypt(nip47MultiPayKeysendJson, ss)
+	assert.NoError(t, err)
+	reqEvent := &nostr.Event{
 		Kind:    NIP_47_REQUEST_KIND,
-		PubKey:  senderPubkey,
-		Content: newPayload,
-	})
-	assert.NoError(t, err)
-	assert.NotNil(t, res)
-
-	decrypted, err = nip04.Decrypt(res.Content, ss)
-	assert.NoError(t, err)
-	received = &Nip47Response{}
-	err = json.Unmarshal([]byte(decrypted), received)
-	assert.NoError(t, err)
-	assert.Equal(t, NIP_47_ERROR_QUOTA_EXCEEDED, received.Error.Code)
-	assert.NotNil(t, res)
-	// permissions: expired app
-	newExpiry := time.Now().Add(-24 * time.Hour)
-	err = svc.db.Model(&AppPermission{}).Where("app_id = ?", app.ID).Update("expires_at", newExpiry).Error
-
-	res, err = svc.HandleEvent(ctx, &nostr.Event{
-		ID:      "test_event_8",
-		Kind:    NIP_47_REQUEST_KIND,
-		PubKey:  senderPubkey,
-		Content: newPayload,
-	})
-	assert.NoError(t, err)
-	assert.NotNil(t, res)
-
-	decrypted, err = nip04.Decrypt(res.Content, ss)
-	assert.NoError(t, err)
-	received = &Nip47Response{}
-	err = json.Unmarshal([]byte(decrypted), received)
-	assert.NoError(t, err)
-	assert.Equal(t, NIP_47_ERROR_EXPIRED, received.Error.Code)
-	assert.NotNil(t, res)
-
-	// remove expiry
-	err = svc.db.Model(&AppPermission{}).Where("app_id = ?", app.ID).Update("expires_at", nil).Error
-	// permissions: no request method
-	err = svc.db.Model(&AppPermission{}).Where("app_id = ?", app.ID).Update("request_method", nil).Error
-
-	res, err = svc.HandleEvent(ctx, &nostr.Event{
-		ID:      "test_event_9",
-		Kind:    NIP_47_REQUEST_KIND,
-		PubKey:  senderPubkey,
-		Content: newPayload,
-	})
-	assert.NoError(t, err)
-	assert.NotNil(t, res)
-
-	decrypted, err = nip04.Decrypt(res.Content, ss)
-	assert.NoError(t, err)
-	received = &Nip47Response{}
-	err = json.Unmarshal([]byte(decrypted), received)
-	assert.NoError(t, err)
-	assert.Equal(t, NIP_47_ERROR_RESTRICTED, received.Error.Code)
-	assert.NotNil(t, res)
-
-	// pay_keysend: without permission
-	newPayload, err = nip04.Encrypt(nip47KeysendJson, ss)
-	assert.NoError(t, err)
-	res, err = svc.HandleEvent(ctx, &nostr.Event{
-		ID:      "test_pay_keysend_event_1",
-		Kind:    NIP_47_REQUEST_KIND,
-		PubKey:  senderPubkey,
-		Content: newPayload,
-	})
-	assert.NoError(t, err)
-	assert.NotNil(t, res)
-	decrypted, err = nip04.Decrypt(res.Content, ss)
-	assert.NoError(t, err)
-	received = &Nip47Response{}
-	err = json.Unmarshal([]byte(decrypted), received)
-	assert.NoError(t, err)
-	assert.Equal(t, NIP_47_ERROR_RESTRICTED, received.Error.Code)
-	assert.NotNil(t, res)
-	// pay_keysend: with permission
-	// update the existing permission to pay_invoice so we can have the budget info and increase max amount
-	newMaxAmount = 1000
-	err = svc.db.Model(&AppPermission{}).Where("app_id = ?", app.ID).Update("request_method", NIP_47_PAY_INVOICE_METHOD).Update("max_amount", newMaxAmount).Error
-	assert.NoError(t, err)
-	err = svc.db.Create(appPermission).Error
-	res, err = svc.HandleEvent(ctx, &nostr.Event{
-		ID:      "test_pay_keysend_event_2",
-		Kind:    NIP_47_REQUEST_KIND,
-		PubKey:  senderPubkey,
-		Content: newPayload,
-	})
-	assert.NoError(t, err)
-	assert.NotNil(t, res)
-	decrypted, err = nip04.Decrypt(res.Content, ss)
-	assert.NoError(t, err)
-	received = &Nip47Response{
-		Result: &Nip47PayResponse{},
+		PubKey:  app.NostrPubkey,
+		Content: payload,
 	}
-	err = json.Unmarshal([]byte(decrypted), received)
-	assert.NoError(t, err)
-	assert.Equal(t, "123preimage", received.Result.(*Nip47PayResponse).Preimage)
-
-	// keysend: budget overflow
-	newMaxAmount = 100
-	// we change the budget info in pay_invoice permission
-	err = svc.db.Model(&AppPermission{}).Where("request_method = ?", NIP_47_PAY_INVOICE_METHOD).Update("max_amount", newMaxAmount).Error
-	res, err = svc.HandleEvent(ctx, &nostr.Event{
-		ID:      "test_pay_keysend_event_3",
-		Kind:    NIP_47_REQUEST_KIND,
-		PubKey:  senderPubkey,
-		Content: newPayload,
-	})
-	assert.NoError(t, err)
-	assert.NotNil(t, res)
-	decrypted, err = nip04.Decrypt(res.Content, ss)
-	assert.NoError(t, err)
-	received = &Nip47Response{
-		Result: &Nip47PayResponse{},
+	requestEvent := &RequestEvent{
+		Content: reqEvent.Content,
 	}
-	err = json.Unmarshal([]byte(decrypted), received)
-	assert.NoError(t, err)
-	assert.Equal(t, NIP_47_ERROR_QUOTA_EXCEEDED, received.Error.Code)
-	assert.NotNil(t, res)
 
-	// get_balance: without permission
-	newPayload, err = nip04.Encrypt(nip47GetBalanceJson, ss)
+	reqEvent.ID = "multi_pay_keysend_without_permission"
+	requestEvent.NostrId = reqEvent.ID
+
+	responses := []*Nip47Response{}
+	dTags := []nostr.Tags{}
+
+	publishResponse := func(response *Nip47Response, tags nostr.Tags) {
+		responses = append(responses, response)
+		dTags = append(dTags, tags)
+	}
+
+	err = svc.HandleMultiPayKeysendEvent(ctx, request, requestEvent, app, publishResponse)
 	assert.NoError(t, err)
-	res, err = svc.HandleEvent(ctx, &nostr.Event{
-		ID:      "test_event_10",
-		Kind:    NIP_47_REQUEST_KIND,
-		PubKey:  senderPubkey,
-		Content: newPayload,
-	})
-	assert.NoError(t, err)
-	assert.NotNil(t, res)
-	decrypted, err = nip04.Decrypt(res.Content, ss)
-	assert.NoError(t, err)
-	received = &Nip47Response{}
-	err = json.Unmarshal([]byte(decrypted), received)
-	assert.NoError(t, err)
-	assert.Equal(t, NIP_47_ERROR_RESTRICTED, received.Error.Code)
-	assert.NotNil(t, res)
-	// get_balance: with permission
-	// the pay_invoice permission already exists with the budget info
-	// create a second permission to fetch the balance and budget info
-	appPermission = &AppPermission{
+
+	assert.Equal(t, 2, len(responses))
+	for i := 0; i < len(responses); i++ {
+		assert.Equal(t, NIP_47_ERROR_RESTRICTED, responses[i].Error.Code)
+	}
+
+	// with permission
+	maxAmount := 1000
+	budgetRenewal := "never"
+	expiresAt := time.Now().Add(24 * time.Hour)
+	// because we need the same permission for keysend although
+	// it works even with NIP_47_PAY_KEYSEND_METHOD, see
+	// https://github.com/getAlby/nostr-wallet-connect/issues/189
+	appPermission := &AppPermission{
 		AppId:         app.ID,
-		App:           app,
+		App:           *app,
+		RequestMethod: NIP_47_PAY_INVOICE_METHOD,
+		MaxAmount:     maxAmount,
+		BudgetRenewal: budgetRenewal,
+		ExpiresAt:     expiresAt,
+	}
+	err = svc.db.Create(appPermission).Error
+	assert.NoError(t, err)
+
+	reqEvent.ID = "multi_pay_keysend_with_permission"
+	requestEvent.NostrId = reqEvent.ID
+	responses = []*Nip47Response{}
+	dTags = []nostr.Tags{}
+	err = svc.HandleMultiPayKeysendEvent(ctx, request, requestEvent, app, publishResponse)
+	assert.NoError(t, err)
+
+	assert.Equal(t, 2, len(responses))
+	for i := 0; i < len(responses); i++ {
+		assert.Equal(t, responses[i].Result.(Nip47PayResponse).Preimage, "12345preimage")
+		assert.Equal(t, "123pubkey", dTags[i].GetFirst([]string{"d"}).Value())
+	}
+
+	// we've spent 246 till here in two payments
+
+	// budget overflow
+	newMaxAmount := 500
+	err = svc.db.Model(&AppPermission{}).Where("app_id = ?", app.ID).Update("max_amount", newMaxAmount).Error
+
+	err = json.Unmarshal([]byte(nip47MultiPayKeysendOneOverflowingBudgetJson), request)
+	assert.NoError(t, err)
+
+	payload, err = nip04.Encrypt(nip47MultiPayKeysendOneOverflowingBudgetJson, ss)
+	assert.NoError(t, err)
+	reqEvent.Content = payload
+
+	reqEvent.ID = "multi_pay_keysend_with_budget_overflow"
+	requestEvent.NostrId = reqEvent.ID
+	responses = []*Nip47Response{}
+	dTags = []nostr.Tags{}
+	err = svc.HandleMultiPayKeysendEvent(ctx, request, requestEvent, app, publishResponse)
+	assert.NoError(t, err)
+
+	assert.Equal(t, responses[0].Error.Code, NIP_47_ERROR_QUOTA_EXCEEDED)
+	assert.Equal(t, "500pubkey", dTags[0].GetFirst([]string{"d"}).Value())
+	assert.Equal(t, responses[1].Result.(Nip47PayResponse).Preimage, "12345preimage")
+	assert.Equal(t, "customId", dTags[1].GetFirst([]string{"d"}).Value())
+}
+
+func TestHandleGetBalanceEvent(t *testing.T) {
+	ctx := context.TODO()
+	defer os.Remove(testDB)
+	mockLn, err := NewMockLn()
+	assert.NoError(t, err)
+	svc, err := createTestService(mockLn)
+	assert.NoError(t, err)
+	app, ss, err := createApp(svc)
+	assert.NoError(t, err)
+
+	request := &Nip47Request{}
+	err = json.Unmarshal([]byte(nip47GetBalanceJson), request)
+	assert.NoError(t, err)
+
+	// without permission
+	payload, err := nip04.Encrypt(nip47GetBalanceJson, ss)
+	assert.NoError(t, err)
+	reqEvent := &nostr.Event{
+		Kind:    NIP_47_REQUEST_KIND,
+		PubKey:  app.NostrPubkey,
+		Content: payload,
+	}
+	requestEvent := &RequestEvent{
+		Content: reqEvent.Content,
+	}
+
+	reqEvent.ID = "test_get_balance_without_permission"
+	requestEvent.NostrId = reqEvent.ID
+	err = svc.db.Create(&requestEvent).Error
+	assert.NoError(t, err)
+
+	res, err := svc.HandleGetBalanceEvent(ctx, request, requestEvent, app)
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+
+	assert.Equal(t, NIP_47_ERROR_RESTRICTED, res.Error.Code)
+
+	// with permission
+	expiresAt := time.Now().Add(24 * time.Hour)
+	appPermission := &AppPermission{
+		AppId:         app.ID,
+		App:           *app,
 		RequestMethod: NIP_47_GET_BALANCE_METHOD,
 		ExpiresAt:     expiresAt,
 	}
 	err = svc.db.Create(appPermission).Error
-	res, err = svc.HandleEvent(ctx, &nostr.Event{
-		ID:      "test_event_11",
-		Kind:    NIP_47_REQUEST_KIND,
-		PubKey:  senderPubkey,
-		Content: newPayload,
-	})
+	assert.NoError(t, err)
+
+	reqEvent.ID = "test_get_balance_with_permission"
+	requestEvent.NostrId = reqEvent.ID
+	res, err = svc.HandleGetBalanceEvent(ctx, request, requestEvent, app)
 	assert.NoError(t, err)
 	assert.NotNil(t, res)
-	decrypted, err = nip04.Decrypt(res.Content, ss)
-	assert.NoError(t, err)
-	received = &Nip47Response{
-		Result: &Nip47BalanceResponse{},
+
+	assert.Equal(t, int64(21000), res.Result.(*Nip47BalanceResponse).Balance)
+
+	// create pay_invoice permission
+	maxAmount := 1000
+	budgetRenewal := "never"
+	appPermission = &AppPermission{
+		AppId:         app.ID,
+		App:           *app,
+		RequestMethod: NIP_47_PAY_INVOICE_METHOD,
+		MaxAmount:     maxAmount,
+		BudgetRenewal: budgetRenewal,
+		ExpiresAt:     expiresAt,
 	}
-	err = json.Unmarshal([]byte(decrypted), received)
+	err = svc.db.Create(appPermission).Error
 	assert.NoError(t, err)
-	assert.Equal(t, int64(21000), received.Result.(*Nip47BalanceResponse).Balance)
-	assert.Equal(t, 100000, received.Result.(*Nip47BalanceResponse).MaxAmount)
-	assert.Equal(t, "never", received.Result.(*Nip47BalanceResponse).BudgetRenewal)
 
-	// make_invoice: without permission
-	newPayload, err = nip04.Encrypt(nip47MakeInvoiceJson, ss)
+	reqEvent.ID = "test_get_balance_with_budget"
+	res, err = svc.HandleGetBalanceEvent(ctx, request, requestEvent, app)
 	assert.NoError(t, err)
-	res, err = svc.HandleEvent(ctx, &nostr.Event{
-		ID:      "test_event_12",
-		Kind:    NIP_47_REQUEST_KIND,
-		PubKey:  senderPubkey,
-		Content: newPayload,
-	})
-	assert.NoError(t, err)
-	assert.NotNil(t, res)
-	decrypted, err = nip04.Decrypt(res.Content, ss)
-	assert.NoError(t, err)
-	received = &Nip47Response{}
-	err = json.Unmarshal([]byte(decrypted), received)
-	assert.NoError(t, err)
-	assert.Equal(t, NIP_47_ERROR_RESTRICTED, received.Error.Code)
 	assert.NotNil(t, res)
 
-	// make_invoice: with permission
-	err = svc.db.Model(&AppPermission{}).Where("app_id = ?", app.ID).Update("request_method", NIP_47_MAKE_INVOICE_METHOD).Error
-	res, err = svc.HandleEvent(ctx, &nostr.Event{
-		ID:      "test_event_13",
+	assert.Equal(t, int64(21000), res.Result.(*Nip47BalanceResponse).Balance)
+	assert.Equal(t, 1000000, res.Result.(*Nip47BalanceResponse).MaxAmount)
+	assert.Equal(t, "never", res.Result.(*Nip47BalanceResponse).BudgetRenewal)
+}
+
+func TestHandlePayInvoiceEvent(t *testing.T) {
+	ctx := context.TODO()
+	defer os.Remove(testDB)
+	mockLn, err := NewMockLn()
+	assert.NoError(t, err)
+	svc, err := createTestService(mockLn)
+	assert.NoError(t, err)
+	app, ss, err := createApp(svc)
+	assert.NoError(t, err)
+
+	request := &Nip47Request{}
+	err = json.Unmarshal([]byte(nip47PayJson), request)
+	assert.NoError(t, err)
+
+	// without permission
+	payload, err := nip04.Encrypt(nip47PayJson, ss)
+	assert.NoError(t, err)
+	reqEvent := &nostr.Event{
 		Kind:    NIP_47_REQUEST_KIND,
-		PubKey:  senderPubkey,
-		Content: newPayload,
-	})
-	assert.NoError(t, err)
-	assert.NotNil(t, res)
-	decrypted, err = nip04.Decrypt(res.Content, ss)
-	assert.NoError(t, err)
-	received = &Nip47Response{
-		Result: &Nip47MakeInvoiceResponse{},
+		PubKey:  app.NostrPubkey,
+		Content: payload,
 	}
-	err = json.Unmarshal([]byte(decrypted), received)
-	assert.NoError(t, err)
-	assert.Equal(t, mockTransaction.Preimage, received.Result.(*Nip47MakeInvoiceResponse).Preimage)
-
-	// lookup_invoice: without permission
-	newPayload, err = nip04.Encrypt(nip47LookupInvoiceJson, ss)
-	assert.NoError(t, err)
-	res, err = svc.HandleEvent(ctx, &nostr.Event{
-		ID:      "test_event_14",
-		Kind:    NIP_47_REQUEST_KIND,
-		PubKey:  senderPubkey,
-		Content: newPayload,
-	})
-	assert.NoError(t, err)
-	assert.NotNil(t, res)
-	decrypted, err = nip04.Decrypt(res.Content, ss)
-	assert.NoError(t, err)
-	received = &Nip47Response{}
-	err = json.Unmarshal([]byte(decrypted), received)
-	assert.NoError(t, err)
-	assert.Equal(t, NIP_47_ERROR_RESTRICTED, received.Error.Code)
-	assert.NotNil(t, res)
-
-	// lookup_invoice: with permission
-	err = svc.db.Model(&AppPermission{}).Where("app_id = ?", app.ID).Update("request_method", NIP_47_LOOKUP_INVOICE_METHOD).Error
-	assert.NoError(t, err)
-	res, err = svc.HandleEvent(ctx, &nostr.Event{
-		ID:      "test_event_15",
-		Kind:    NIP_47_REQUEST_KIND,
-		PubKey:  senderPubkey,
-		Content: newPayload,
-	})
-	assert.NoError(t, err)
-	assert.NotNil(t, res)
-	decrypted, err = nip04.Decrypt(res.Content, ss)
-	assert.NoError(t, err)
-	received = &Nip47Response{
-		Result: &Nip47LookupInvoiceResponse{},
+	requestEvent := &RequestEvent{
+		Content: reqEvent.Content,
 	}
-	err = json.Unmarshal([]byte(decrypted), received)
-	assert.NoError(t, err)
-	assert.Equal(t, mockTransaction.Preimage, received.Result.(*Nip47LookupInvoiceResponse).Preimage)
 
-	// list_transactions: without permission
-	newPayload, err = nip04.Encrypt(nip47ListTransactionsJson, ss)
+	reqEvent.ID = "pay_invoice_without_permission"
+	requestEvent.NostrId = reqEvent.ID
+	res, err := svc.HandlePayInvoiceEvent(ctx, request, requestEvent, app)
 	assert.NoError(t, err)
-	res, err = svc.HandleEvent(ctx, &nostr.Event{
-		ID:      "test_list_transactions_event_1",
-		Kind:    NIP_47_REQUEST_KIND,
-		PubKey:  senderPubkey,
-		Content: newPayload,
-	})
-	assert.NoError(t, err)
-	assert.NotNil(t, res)
-	decrypted, err = nip04.Decrypt(res.Content, ss)
-	assert.NoError(t, err)
-	received = &Nip47Response{}
-	err = json.Unmarshal([]byte(decrypted), received)
-	assert.NoError(t, err)
-	assert.Equal(t, NIP_47_ERROR_RESTRICTED, received.Error.Code)
 	assert.NotNil(t, res)
 
-	// list_transactions: with permission
-	err = svc.db.Model(&AppPermission{}).Where("app_id = ?", app.ID).Update("request_method", NIP_47_LIST_TRANSACTIONS_METHOD).Error
-	assert.NoError(t, err)
-	res, err = svc.HandleEvent(ctx, &nostr.Event{
-		ID:      "test_list_transactions_event_2",
-		Kind:    NIP_47_REQUEST_KIND,
-		PubKey:  senderPubkey,
-		Content: newPayload,
-	})
-	assert.NoError(t, err)
-	assert.NotNil(t, res)
-	decrypted, err = nip04.Decrypt(res.Content, ss)
-	assert.NoError(t, err)
-	received = &Nip47Response{
-		Result: &Nip47ListTransactionsResponse{},
+	assert.Equal(t, NIP_47_ERROR_RESTRICTED, res.Error.Code)
+
+	// with permission
+	maxAmount := 1000
+	budgetRenewal := "never"
+	expiresAt := time.Now().Add(24 * time.Hour)
+	appPermission := &AppPermission{
+		AppId:         app.ID,
+		App:           *app,
+		RequestMethod: NIP_47_PAY_INVOICE_METHOD,
+		MaxAmount:     maxAmount,
+		BudgetRenewal: budgetRenewal,
+		ExpiresAt:     expiresAt,
 	}
-	err = json.Unmarshal([]byte(decrypted), received)
+	err = svc.db.Create(appPermission).Error
 	assert.NoError(t, err)
-	assert.Equal(t, 2, len(received.Result.(*Nip47ListTransactionsResponse).Transactions))
-	transaction := received.Result.(*Nip47ListTransactionsResponse).Transactions[0]
+
+	reqEvent.ID = "pay_invoice_with_permission"
+	requestEvent.NostrId = reqEvent.ID
+	res, err = svc.HandlePayInvoiceEvent(ctx, request, requestEvent, app)
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+
+	assert.Equal(t, res.Result.(Nip47PayResponse).Preimage, "123preimage")
+
+	// malformed invoice
+	err = json.Unmarshal([]byte(nip47PayJsonNoInvoice), request)
+	assert.NoError(t, err)
+
+	payload, err = nip04.Encrypt(nip47PayJsonNoInvoice, ss)
+	assert.NoError(t, err)
+	reqEvent.Content = payload
+
+	reqEvent.ID = "pay_invoice_with_malformed_invoice"
+	requestEvent.NostrId = reqEvent.ID
+	res, err = svc.HandlePayInvoiceEvent(ctx, request, requestEvent, app)
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+
+	assert.Equal(t, NIP_47_ERROR_INTERNAL, res.Error.Code)
+
+	// wrong method
+	err = json.Unmarshal([]byte(nip47PayWrongMethodJson), request)
+	assert.NoError(t, err)
+
+	payload, err = nip04.Encrypt(nip47PayWrongMethodJson, ss)
+	assert.NoError(t, err)
+	reqEvent.Content = payload
+
+	reqEvent.ID = "pay_invoice_with_wrong_request_method"
+	requestEvent.NostrId = reqEvent.ID
+	res, err = svc.HandlePayInvoiceEvent(ctx, request, requestEvent, app)
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+
+	assert.Equal(t, NIP_47_ERROR_RESTRICTED, res.Error.Code)
+
+	// budget overflow
+	newMaxAmount := 100
+	err = svc.db.Model(&AppPermission{}).Where("app_id = ?", app.ID).Update("max_amount", newMaxAmount).Error
+
+	err = json.Unmarshal([]byte(nip47PayJson), request)
+	assert.NoError(t, err)
+
+	payload, err = nip04.Encrypt(nip47PayJson, ss)
+	assert.NoError(t, err)
+	reqEvent.Content = payload
+
+	reqEvent.ID = "pay_invoice_with_budget_overflow"
+	requestEvent.NostrId = reqEvent.ID
+	res, err = svc.HandlePayInvoiceEvent(ctx, request, requestEvent, app)
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+
+	assert.Equal(t, NIP_47_ERROR_QUOTA_EXCEEDED, res.Error.Code)
+
+	// budget expiry
+	newExpiry := time.Now().Add(-24 * time.Hour)
+	err = svc.db.Model(&AppPermission{}).Where("app_id = ?", app.ID).Update("max_amount", maxAmount).Update("expires_at", newExpiry).Error
+
+	reqEvent.ID = "pay_invoice_with_budget_expiry"
+	requestEvent.NostrId = reqEvent.ID
+	res, err = svc.HandlePayInvoiceEvent(ctx, request, requestEvent, app)
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+
+	assert.Equal(t, NIP_47_ERROR_EXPIRED, res.Error.Code)
+
+	// check again
+	err = svc.db.Model(&AppPermission{}).Where("app_id = ?", app.ID).Update("expires_at", nil).Error
+
+	reqEvent.ID = "pay_invoice_after_change"
+	requestEvent.NostrId = reqEvent.ID
+	res, err = svc.HandlePayInvoiceEvent(ctx, request, requestEvent, app)
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+
+	assert.Equal(t, res.Result.(Nip47PayResponse).Preimage, "123preimage")
+}
+
+func TestHandlePayKeysendEvent(t *testing.T) {
+	ctx := context.TODO()
+	defer os.Remove(testDB)
+	mockLn, err := NewMockLn()
+	assert.NoError(t, err)
+	svc, err := createTestService(mockLn)
+	assert.NoError(t, err)
+	app, ss, err := createApp(svc)
+	assert.NoError(t, err)
+
+	request := &Nip47Request{}
+	err = json.Unmarshal([]byte(nip47KeysendJson), request)
+	assert.NoError(t, err)
+
+	// without permission
+	payload, err := nip04.Encrypt(nip47KeysendJson, ss)
+	assert.NoError(t, err)
+	reqEvent := &nostr.Event{
+		Kind:    NIP_47_REQUEST_KIND,
+		PubKey:  app.NostrPubkey,
+		Content: payload,
+	}
+	requestEvent := &RequestEvent{
+		Content: reqEvent.Content,
+	}
+
+	reqEvent.ID = "pay_keysend_without_permission"
+	requestEvent.NostrId = reqEvent.ID
+	res, err := svc.HandlePayKeysendEvent(ctx, request, requestEvent, app)
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+
+	assert.Equal(t, NIP_47_ERROR_RESTRICTED, res.Error.Code)
+
+	// with permission
+	maxAmount := 1000
+	budgetRenewal := "never"
+	expiresAt := time.Now().Add(24 * time.Hour)
+	// because we need the same permission for keysend although
+	// it works even with NIP_47_PAY_KEYSEND_METHOD, see
+	// https://github.com/getAlby/nostr-wallet-connect/issues/189
+	appPermission := &AppPermission{
+		AppId:         app.ID,
+		App:           *app,
+		RequestMethod: NIP_47_PAY_INVOICE_METHOD,
+		MaxAmount:     maxAmount,
+		BudgetRenewal: budgetRenewal,
+		ExpiresAt:     expiresAt,
+	}
+	err = svc.db.Create(appPermission).Error
+	assert.NoError(t, err)
+
+	reqEvent.ID = "pay_keysend_with_permission"
+	requestEvent.NostrId = reqEvent.ID
+	res, err = svc.HandlePayKeysendEvent(ctx, request, requestEvent, app)
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+
+	assert.Equal(t, res.Result.(Nip47PayResponse).Preimage, "12345preimage")
+
+	// budget overflow
+	newMaxAmount := 100
+	err = svc.db.Model(&AppPermission{}).Where("app_id = ?", app.ID).Update("max_amount", newMaxAmount).Error
+
+	err = json.Unmarshal([]byte(nip47KeysendJson), request)
+	assert.NoError(t, err)
+
+	payload, err = nip04.Encrypt(nip47KeysendJson, ss)
+	assert.NoError(t, err)
+	reqEvent.Content = payload
+
+	reqEvent.ID = "pay_keysend_with_budget_overflow"
+	requestEvent.NostrId = reqEvent.ID
+	res, err = svc.HandlePayKeysendEvent(ctx, request, requestEvent, app)
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+
+	assert.Equal(t, NIP_47_ERROR_QUOTA_EXCEEDED, res.Error.Code)
+}
+
+func TestHandleMakeInvoiceEvent(t *testing.T) {
+	ctx := context.TODO()
+	defer os.Remove(testDB)
+	mockLn, err := NewMockLn()
+	assert.NoError(t, err)
+	svc, err := createTestService(mockLn)
+	assert.NoError(t, err)
+	app, ss, err := createApp(svc)
+	assert.NoError(t, err)
+
+	request := &Nip47Request{}
+	err = json.Unmarshal([]byte(nip47MakeInvoiceJson), request)
+	assert.NoError(t, err)
+
+	// without permission
+	payload, err := nip04.Encrypt(nip47MakeInvoiceJson, ss)
+	assert.NoError(t, err)
+	reqEvent := &nostr.Event{
+		Kind:    NIP_47_REQUEST_KIND,
+		PubKey:  app.NostrPubkey,
+		Content: payload,
+	}
+	requestEvent := &RequestEvent{
+		Content: reqEvent.Content,
+	}
+
+	reqEvent.ID = "test_make_invoice_without_permission"
+	requestEvent.NostrId = reqEvent.ID
+	res, err := svc.HandleMakeInvoiceEvent(ctx, request, requestEvent, app)
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+
+	assert.Equal(t, NIP_47_ERROR_RESTRICTED, res.Error.Code)
+
+	// with permission
+	expiresAt := time.Now().Add(24 * time.Hour)
+	appPermission := &AppPermission{
+		AppId:         app.ID,
+		App:           *app,
+		RequestMethod: NIP_47_MAKE_INVOICE_METHOD,
+		ExpiresAt:     expiresAt,
+	}
+	err = svc.db.Create(appPermission).Error
+	assert.NoError(t, err)
+
+	reqEvent.ID = "test_make_invoice_with_permission"
+	requestEvent.NostrId = reqEvent.ID
+	res, err = svc.HandleMakeInvoiceEvent(ctx, request, requestEvent, app)
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+
+	assert.Equal(t, mockTransaction.Preimage, res.Result.(*Nip47MakeInvoiceResponse).Preimage)
+}
+
+func TestHandleListTransactionsEvent(t *testing.T) {
+	ctx := context.TODO()
+	defer os.Remove(testDB)
+	mockLn, err := NewMockLn()
+	assert.NoError(t, err)
+	svc, err := createTestService(mockLn)
+	assert.NoError(t, err)
+	app, ss, err := createApp(svc)
+	assert.NoError(t, err)
+
+	request := &Nip47Request{}
+	err = json.Unmarshal([]byte(nip47ListTransactionsJson), request)
+	assert.NoError(t, err)
+
+	// without permission
+	payload, err := nip04.Encrypt(nip47ListTransactionsJson, ss)
+	assert.NoError(t, err)
+	reqEvent := &nostr.Event{
+		Kind:    NIP_47_REQUEST_KIND,
+		PubKey:  app.NostrPubkey,
+		Content: payload,
+	}
+	requestEvent := &RequestEvent{
+		Content: reqEvent.Content,
+	}
+
+	reqEvent.ID = "test_list_transactions_without_permission"
+	requestEvent.NostrId = reqEvent.ID
+	res, err := svc.HandleListTransactionsEvent(ctx, request, requestEvent, app)
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+
+	assert.Equal(t, NIP_47_ERROR_RESTRICTED, res.Error.Code)
+
+	// with permission
+	expiresAt := time.Now().Add(24 * time.Hour)
+	appPermission := &AppPermission{
+		AppId:         app.ID,
+		App:           *app,
+		RequestMethod: NIP_47_LIST_TRANSACTIONS_METHOD,
+		ExpiresAt:     expiresAt,
+	}
+	err = svc.db.Create(appPermission).Error
+	assert.NoError(t, err)
+
+	reqEvent.ID = "test_list_transactions_with_permission"
+	requestEvent.NostrId = reqEvent.ID
+	res, err = svc.HandleListTransactionsEvent(ctx, request, requestEvent, app)
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+
+	assert.Equal(t, 2, len(res.Result.(*Nip47ListTransactionsResponse).Transactions))
+	transaction := res.Result.(*Nip47ListTransactionsResponse).Transactions[0]
 	assert.Equal(t, mockTransactions[0].Type, transaction.Type)
 	assert.Equal(t, mockTransactions[0].Invoice, transaction.Invoice)
 	assert.Equal(t, mockTransactions[0].Description, transaction.Description)
@@ -555,70 +1038,81 @@ func TestHandleEvent(t *testing.T) {
 	assert.Equal(t, mockTransactions[0].Amount, transaction.Amount)
 	assert.Equal(t, mockTransactions[0].FeesPaid, transaction.FeesPaid)
 	assert.Equal(t, mockTransactions[0].SettledAt, transaction.SettledAt)
+}
 
-	// get_info: without permission
-	newPayload, err = nip04.Encrypt(nip47GetInfoJson, ss)
+func TestHandleGetInfoEvent(t *testing.T) {
+	ctx := context.TODO()
+	defer os.Remove(testDB)
+	mockLn, err := NewMockLn()
 	assert.NoError(t, err)
-	res, err = svc.HandleEvent(ctx, &nostr.Event{
-		ID:      "test_event_16",
+	svc, err := createTestService(mockLn)
+	assert.NoError(t, err)
+	app, ss, err := createApp(svc)
+	assert.NoError(t, err)
+
+	request := &Nip47Request{}
+	err = json.Unmarshal([]byte(nip47GetInfoJson), request)
+	assert.NoError(t, err)
+
+	// without permission
+	payload, err := nip04.Encrypt(nip47GetInfoJson, ss)
+	assert.NoError(t, err)
+	reqEvent := &nostr.Event{
 		Kind:    NIP_47_REQUEST_KIND,
-		PubKey:  senderPubkey,
-		Content: newPayload,
-	})
+		PubKey:  app.NostrPubkey,
+		Content: payload,
+	}
+	requestEvent := &RequestEvent{
+		Content: reqEvent.Content,
+	}
+
+	reqEvent.ID = "test_get_info_without_permission"
+	requestEvent.NostrId = reqEvent.ID
+	res, err := svc.HandleGetInfoEvent(ctx, request, requestEvent, app)
 	assert.NoError(t, err)
 	assert.NotNil(t, res)
-	decrypted, err = nip04.Decrypt(res.Content, ss)
-	assert.NoError(t, err)
-	received = &Nip47Response{}
-	err = json.Unmarshal([]byte(decrypted), received)
-	assert.NoError(t, err)
-	assert.Equal(t, NIP_47_ERROR_RESTRICTED, received.Error.Code)
-	assert.NotNil(t, res)
 
-	// delete all permissions
-	svc.db.Exec("delete from app_permissions")
+	assert.Equal(t, NIP_47_ERROR_RESTRICTED, res.Error.Code)
 
-	// get_info: with permission
-	appPermission = &AppPermission{
+	expiresAt := time.Now().Add(24 * time.Hour)
+	appPermission := &AppPermission{
 		AppId:         app.ID,
-		App:           app,
+		App:           *app,
 		RequestMethod: NIP_47_GET_INFO_METHOD,
 		ExpiresAt:     expiresAt,
 	}
 	err = svc.db.Create(appPermission).Error
-	res, err = svc.HandleEvent(ctx, &nostr.Event{
-		ID:      "test_event_17",
-		Kind:    NIP_47_REQUEST_KIND,
-		PubKey:  senderPubkey,
-		Content: newPayload,
-	})
+	assert.NoError(t, err)
+
+	reqEvent.ID = "test_get_info_with_permission"
+	requestEvent.NostrId = reqEvent.ID
+	res, err = svc.HandleGetInfoEvent(ctx, request, requestEvent, app)
 	assert.NoError(t, err)
 	assert.NotNil(t, res)
-	decrypted, err = nip04.Decrypt(res.Content, ss)
-	assert.NoError(t, err)
-	received = &Nip47Response{
-		Result: &Nip47GetInfoResponse{},
-	}
-	err = json.Unmarshal([]byte(decrypted), received)
-	assert.NoError(t, err)
-	assert.Equal(t, mockNodeInfo.Alias, received.Result.(*Nip47GetInfoResponse).Alias)
-	assert.Equal(t, mockNodeInfo.Color, received.Result.(*Nip47GetInfoResponse).Color)
-	assert.Equal(t, mockNodeInfo.Pubkey, received.Result.(*Nip47GetInfoResponse).Pubkey)
-	assert.Equal(t, mockNodeInfo.Network, received.Result.(*Nip47GetInfoResponse).Network)
-	assert.Equal(t, mockNodeInfo.BlockHeight, received.Result.(*Nip47GetInfoResponse).BlockHeight)
-	assert.Equal(t, mockNodeInfo.BlockHash, received.Result.(*Nip47GetInfoResponse).BlockHash)
-	assert.Equal(t, []string{"get_info"}, received.Result.(*Nip47GetInfoResponse).Methods)
+
+	assert.Equal(t, mockNodeInfo.Alias, res.Result.(*Nip47GetInfoResponse).Alias)
+	assert.Equal(t, mockNodeInfo.Color, res.Result.(*Nip47GetInfoResponse).Color)
+	assert.Equal(t, mockNodeInfo.Pubkey, res.Result.(*Nip47GetInfoResponse).Pubkey)
+	assert.Equal(t, mockNodeInfo.Network, res.Result.(*Nip47GetInfoResponse).Network)
+	assert.Equal(t, mockNodeInfo.BlockHeight, res.Result.(*Nip47GetInfoResponse).BlockHeight)
+	assert.Equal(t, mockNodeInfo.BlockHash, res.Result.(*Nip47GetInfoResponse).BlockHash)
+	assert.Equal(t, []string{"get_info"}, res.Result.(*Nip47GetInfoResponse).Methods)
 }
 
-func createTestService(t *testing.T) (svc *Service, ln LNClient) {
+func createTestService(ln *MockLn) (svc *Service, err error) {
 	gormDb, err := gorm.Open(sqlite.Open(testDB), &gorm.Config{})
-	assert.NoError(t, err)
+	if err != nil {
+		return nil, err
+	}
 	err = migrations.Migrate(gormDb)
-	assert.NoError(t, err)
-	ln = &MockLn{}
+	if err != nil {
+		return nil, err
+	}
 	sk := nostr.GeneratePrivateKey()
 	pk, err := nostr.GetPublicKey(sk)
-	assert.NoError(t, err)
+	if err != nil {
+		return nil, err
+	}
 
 	logger := logrus.New()
 	logger.SetFormatter(&logrus.JSONFormatter{})
@@ -634,37 +1128,59 @@ func createTestService(t *testing.T) (svc *Service, ln LNClient) {
 		db:       gormDb,
 		lnClient: ln,
 		Logger:   logger,
-	}, ln
+	}, nil
+}
+
+func createApp(svc *Service) (app *App, ss []byte, err error) {
+	senderPrivkey := nostr.GeneratePrivateKey()
+	senderPubkey, err := nostr.GetPublicKey(senderPrivkey)
+
+	ss, err = nip04.ComputeSharedSecret(svc.cfg.NostrPublicKey, senderPrivkey)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	app = &App{Name: "test", NostrPubkey: senderPubkey}
+	err = svc.db.Create(app).Error
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return app, ss, nil
 }
 
 type MockLn struct {
 }
 
-func (mln *MockLn) SendPaymentSync(ctx context.Context, senderPubkey string, payReq string) (preimage string, err error) {
+func NewMockLn() (*MockLn, error) {
+	return &MockLn{}, nil
+}
+
+func (mln *MockLn) SendPaymentSync(ctx context.Context, payReq string) (preimage string, err error) {
 	return "123preimage", nil
 }
 
-func (mln *MockLn) SendKeysend(ctx context.Context, senderPubkey string, amount int64, destination, preimage string, custom_records []TLVRecord) (preImage string, err error) {
-	return "123preimage", nil
+func (mln *MockLn) SendKeysend(ctx context.Context, amount int64, destination, preimage string, custom_records []TLVRecord) (preImage string, err error) {
+	return "12345preimage", nil
 }
 
-func (mln *MockLn) GetBalance(ctx context.Context, senderPubkey string) (balance int64, err error) {
+func (mln *MockLn) GetBalance(ctx context.Context) (balance int64, err error) {
 	return 21, nil
 }
 
-func (mln *MockLn) GetInfo(ctx context.Context, senderPubkey string) (info *NodeInfo, err error) {
+func (mln *MockLn) GetInfo(ctx context.Context) (info *NodeInfo, err error) {
 	return &mockNodeInfo, nil
 }
 
-func (mln *MockLn) MakeInvoice(ctx context.Context, senderPubkey string, amount int64, description string, descriptionHash string, expiry int64) (transaction *Nip47Transaction, err error) {
+func (mln *MockLn) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *Nip47Transaction, err error) {
 	return mockTransaction, nil
 }
 
-func (mln *MockLn) LookupInvoice(ctx context.Context, senderPubkey string, paymentHash string) (transaction *Nip47Transaction, err error) {
+func (mln *MockLn) LookupInvoice(ctx context.Context, paymentHash string) (transaction *Nip47Transaction, err error) {
 	return mockTransaction, nil
 }
 
-func (mln *MockLn) ListTransactions(ctx context.Context, senderPubkey string, from, until, limit, offset uint64, unpaid bool, invoiceType string) (invoices []Nip47Transaction, err error) {
+func (mln *MockLn) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string) (invoices []Nip47Transaction, err error) {
 	return mockTransactions, nil
 }
 func (mln *MockLn) Shutdown() error {

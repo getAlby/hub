@@ -191,21 +191,31 @@ You can also contribute to our [bounty program](https://github.com/getAlby/light
 ✅ `pay_invoice`
 
 - ⚠️ amount not supported (for amountless invoices)
+- ⚠️ PAYMENT_FAILED error code not supported
 
 ✅ `pay_keysend`
+
+- ⚠️ PAYMENT_FAILED error code not supported
 
 ✅ `make_invoice`
 
 ✅ `lookup_invoice`
+
+- ⚠️ NOT_FOUND error code not supported
 
 ✅ `list_transactions`
 
 - ⚠️ from and until in request not supported
 - ⚠️ failed payments will not be returned
 
-❌ `multi_pay_invoice`
+✅ `multi_pay_invoice`
 
-❌ `multi_pay_keysend`
+- ⚠️ amount not supported (for amountless invoices)
+- ⚠️ PAYMENT_FAILED error code not supported
+
+✅ `multi_pay_keysend`
+
+- ⚠️ PAYMENT_FAILED error code not supported
 
 ### Breez
 

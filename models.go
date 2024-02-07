@@ -16,6 +16,8 @@ const (
 	NIP_47_LOOKUP_INVOICE_METHOD      = "lookup_invoice"
 	NIP_47_LIST_TRANSACTIONS_METHOD   = "list_transactions"
 	NIP_47_PAY_KEYSEND_METHOD         = "pay_keysend"
+	NIP_47_MULTI_PAY_INVOICE_METHOD   = "multi_pay_invoice"
+	NIP_47_MULTI_PAY_KEYSEND_METHOD   = "multi_pay_keysend"
 	NIP_47_ERROR_INTERNAL             = "INTERNAL"
 	NIP_47_ERROR_NOT_IMPLEMENTED      = "NOT_IMPLEMENTED"
 	NIP_47_ERROR_QUOTA_EXCEEDED       = "QUOTA_EXCEEDED"
@@ -24,17 +26,21 @@ const (
 	NIP_47_ERROR_EXPIRED              = "EXPIRED"
 	NIP_47_ERROR_RESTRICTED           = "RESTRICTED"
 	NIP_47_OTHER                      = "OTHER"
-	NIP_47_CAPABILITIES               = "pay_invoice,pay_keysend,get_balance,get_info,make_invoice,lookup_invoice,list_transactions"
+	NIP_47_CAPABILITIES               = "pay_invoice,pay_keysend,get_balance,get_info,make_invoice,lookup_invoice,list_transactions,multi_pay_invoice,multi_pay_keysend"
 )
 
 const (
-	NOSTR_EVENT_STATE_HANDLER_EXECUTED    = "executed"
-	NOSTR_EVENT_STATE_HANDLER_ERROR       = "error"
-	NOSTR_EVENT_STATE_PUBLISH_CONFIRMED   = "replied"
-	NOSTR_EVENT_STATE_PUBLISH_FAILED      = "failed"
-	NOSTR_EVENT_STATE_PUBLISH_UNCONFIRMED = "sent"
+	REQUEST_EVENT_STATE_HANDLER_EXECUTING = "executing"
+	REQUEST_EVENT_STATE_HANDLER_EXECUTED  = "executed"
+	REQUEST_EVENT_STATE_HANDLER_ERROR     = "error"
+)
+const (
+	RESPONSE_EVENT_STATE_PUBLISH_CONFIRMED   = "confirmed"
+	RESPONSE_EVENT_STATE_PUBLISH_FAILED      = "failed"
+	RESPONSE_EVENT_STATE_PUBLISH_UNCONFIRMED = "unconfirmed"
 )
 
+// TODO: move to models/db
 type App struct {
 	ID          uint
 	Name        string `validate:"required"`
@@ -44,6 +50,7 @@ type App struct {
 	UpdatedAt   time.Time
 }
 
+// TODO: move to models/db
 type AppPermission struct {
 	ID            uint
 	AppId         uint `validate:"required"`
@@ -56,12 +63,23 @@ type AppPermission struct {
 	UpdatedAt     time.Time
 }
 
-type NostrEvent struct {
+// TODO: move to models/db
+type RequestEvent struct {
 	ID        uint
-	AppId     uint `validate:"required"`
+	AppId     *uint
 	App       App
 	NostrId   string `validate:"required"`
-	ReplyId   string
+	Content   string
+	State     string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+// TODO: move to models/db
+type ResponseEvent struct {
+	ID        uint
+	NostrId   string `validate:"required"`
+	RequestId uint   `validate:"required"`
 	Content   string
 	State     string
 	RepliedAt time.Time
@@ -69,13 +87,14 @@ type NostrEvent struct {
 	UpdatedAt time.Time
 }
 
+// TODO: move to models/db
 type Payment struct {
 	ID             uint
 	AppId          uint `validate:"required"`
 	App            App
-	NostrEventId   uint `validate:"required"`
-	NostrEvent     NostrEvent
-	Amount         uint
+	RequestEventId uint `validate:"required"`
+	RequestEvent   RequestEvent
+	Amount         uint // in sats
 	PaymentRequest string
 	Preimage       *string
 	CreatedAt      time.Time
@@ -100,38 +119,6 @@ type Nip47Transaction struct {
 
 type PayRequest struct {
 	Invoice string `json:"invoice"`
-}
-
-// TODO: move to models/Alby
-type KeysendRequest struct {
-	Amount        int64             `json:"amount"`
-	Destination   string            `json:"destination"`
-	CustomRecords map[string]string `json:"custom_records,omitempty"`
-}
-
-type BalanceResponse struct {
-	Balance  int64  `json:"balance"`
-	Currency string `json:"currency"`
-	Unit     string `json:"unit"`
-}
-
-type PayResponse struct {
-	Preimage    string `json:"payment_preimage"`
-	PaymentHash string `json:"payment_hash"`
-}
-
-type MakeInvoiceRequest struct {
-	Amount          int64  `json:"amount"`
-	Description     string `json:"description"`
-	DescriptionHash string `json:"description_hash"`
-}
-
-type MakeInvoiceResponse struct {
-	Nip47Transaction
-}
-
-type LookupInvoiceResponse struct {
-	Nip47Transaction
 }
 
 type ErrorResponse struct {
@@ -170,6 +157,24 @@ type Nip47PayParams struct {
 }
 type Nip47PayResponse struct {
 	Preimage string `json:"preimage"`
+}
+
+type Nip47MultiPayKeysendParams struct {
+	Keysends []Nip47MultiPayKeysendElement `json:"keysends"`
+}
+
+type Nip47MultiPayKeysendElement struct {
+	Nip47KeysendParams
+	Id string `json:"id"`
+}
+
+type Nip47MultiPayInvoiceParams struct {
+	Invoices []Nip47MultiPayInvoiceElement `json:"invoices"`
+}
+
+type Nip47MultiPayInvoiceElement struct {
+	Nip47PayParams
+	Id string `json:"id"`
 }
 
 type Nip47KeysendParams struct {

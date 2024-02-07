@@ -61,30 +61,17 @@ export interface App {
   budgetRenewal: string;
 }
 
-export interface AppPermission {
-  id: number;
-  appId: number;
-  app: App;
-  requestMethod: RequestMethodType;
-  maxAmount: number;
-  budgetRenewal: string;
-  expiresAt: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface NostrEvent {
-  id: number;
-  appId: number;
-  app: App;
-  nostrId: string;
-  replyId: string;
-  content: string;
-  state: string;
-  repliedAt: string;
-  createdAt: string;
-  updatedAt: string;
-}
+// export interface AppPermission {
+//   id: number;
+//   appId: number;
+//   app: App;
+//   requestMethod: RequestMethodType;
+//   maxAmount: number;
+//   budgetRenewal: string;
+//   expiresAt: string;
+//   createdAt: string;
+//   updatedAt: string;
+// }
 
 export interface InfoResponse {
   backendType: BackendType;
