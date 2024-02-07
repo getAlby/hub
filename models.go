@@ -37,6 +37,7 @@ const (
 	NOSTR_EVENT_STATE_PUBLISH_UNCONFIRMED = "sent"
 )
 
+// TODO: move to models/db
 type App struct {
 	ID          uint
 	Name        string `validate:"required"`
@@ -46,6 +47,7 @@ type App struct {
 	UpdatedAt   time.Time
 }
 
+// TODO: move to models/db
 type AppPermission struct {
 	ID            uint
 	AppId         uint `validate:"required"`
@@ -58,6 +60,7 @@ type AppPermission struct {
 	UpdatedAt     time.Time
 }
 
+// TODO: move to models/db
 type RequestEvent struct {
 	ID        uint
 	AppId     *uint
@@ -68,21 +71,19 @@ type RequestEvent struct {
 	UpdatedAt time.Time
 }
 
+// TODO: move to models/db
 type ResponseEvent struct {
-	ID uint
-	// TODO: should we store app?
-	AppId            *uint
-	App              App
-	NostrId          string `validate:"required"`
-	RequestId        uint   `validate:"required"`
-	Content          string
-	DecryptedContent string
-	State            string
-	RepliedAt        time.Time
-	CreatedAt        time.Time
-	UpdatedAt        time.Time
+	ID        uint
+	NostrId   string `validate:"required"`
+	RequestId uint   `validate:"required"`
+	Content   string
+	State     string
+	RepliedAt time.Time
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
+// TODO: move to models/db
 type Payment struct {
 	ID             uint
 	AppId          uint `validate:"required"`
@@ -114,38 +115,6 @@ type Nip47Transaction struct {
 
 type PayRequest struct {
 	Invoice string `json:"invoice"`
-}
-
-// TODO: move to models/Alby
-type KeysendRequest struct {
-	Amount        int64             `json:"amount"`
-	Destination   string            `json:"destination"`
-	CustomRecords map[string]string `json:"custom_records,omitempty"`
-}
-
-type BalanceResponse struct {
-	Balance  int64  `json:"balance"`
-	Currency string `json:"currency"`
-	Unit     string `json:"unit"`
-}
-
-type PayResponse struct {
-	Preimage    string `json:"payment_preimage"`
-	PaymentHash string `json:"payment_hash"`
-}
-
-type MakeInvoiceRequest struct {
-	Amount          int64  `json:"amount"`
-	Description     string `json:"description"`
-	DescriptionHash string `json:"description_hash"`
-}
-
-type MakeInvoiceResponse struct {
-	Nip47Transaction
-}
-
-type LookupInvoiceResponse struct {
-	Nip47Transaction
 }
 
 type ErrorResponse struct {

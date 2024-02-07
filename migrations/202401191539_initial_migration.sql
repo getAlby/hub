@@ -10,8 +10,7 @@ CREATE UNIQUE INDEX `idx_request_events_nostr_id` ON `request_events`(`nostr_id`
 CREATE INDEX `idx_request_events_app_id` ON `request_events`(`app_id`);
 CREATE INDEX idx_payment_sum ON payments (app_id, preimage, created_at);
 CREATE INDEX idx_request_events_app_id_and_id ON request_events(app_id, id);
-CREATE TABLE "response_events" (`id` integer,`app_id` integer null,`nostr_id` text UNIQUE,`request_id` integer,`content` text,`decrypted_content` text,`state` text,`replied_at` datetime,`created_at` datetime,`updated_at` datetime,PRIMARY KEY (`id`),CONSTRAINT `fk_response_events_app` FOREIGN KEY (`app_id`) REFERENCES `apps`(`id`) ON DELETE CASCADE,CONSTRAINT `fk_response_events_request_events` FOREIGN KEY (`request_id`) REFERENCES `request_events`(`id`));
+CREATE TABLE "response_events" (`id` integer,`nostr_id` text UNIQUE,`request_id` integer,`content` text,`state` text,`replied_at` datetime,`created_at` datetime,`updated_at` datetime,PRIMARY KEY (`id`),CONSTRAINT `fk_response_events_request_event` FOREIGN KEY (`request_id`) REFERENCES `request_events`(`id`));
 CREATE UNIQUE INDEX `idx_response_events_nostr_id` ON `response_events`(`nostr_id`);
-CREATE INDEX `idx_response_events_app_id` ON `response_events`(`app_id`);
 CREATE TABLE "user_configs" ("id"	integer, "key"	text NOT NULL UNIQUE, "value"	text, "encrypted"	numeric, `created_at` datetime,`updated_at` datetime, PRIMARY KEY("id"));
 CREATE UNIQUE INDEX "idx_user_configs_key" ON "user_configs" ("key");

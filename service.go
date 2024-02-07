@@ -190,21 +190,12 @@ func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 }
 
 func (svc *Service) PublishEvent(ctx context.Context, sub *nostr.Subscription, requestEvent *RequestEvent, resp *nostr.Event, app *App, ss []byte) error {
-	payload, err := nip04.Decrypt(resp.Content, ss)
 	var appId *uint
 	if app != nil {
 		appId = &app.ID
 	}
-	if err != nil {
-		svc.Logger.WithFields(logrus.Fields{
-			"eventId":      requestEvent.NostrId,
-			"appId":        appId,
-			"replyEventId": resp.ID,
-		}).Errorf("Failed to decrypt content: %v", err)
-		return err
-	}
-	responseEvent := ResponseEvent{AppId: appId, NostrId: resp.ID, RequestId: requestEvent.ID, DecryptedContent: payload, Content: resp.Content, State: "received"}
-	err = svc.db.Create(&responseEvent).Error
+	responseEvent := ResponseEvent{NostrId: resp.ID, RequestId: requestEvent.ID, Content: resp.Content, State: "received"}
+	err := svc.db.Create(&responseEvent).Error
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
 			"eventId":      requestEvent.NostrId,
