@@ -107,6 +107,7 @@ const nip47MultiPayKeysendOneOverflowingBudgetJson = `
 		"keysends": [{
 				"amount": 123000,
 				"pubkey": "123pubkey",
+				"id": "customId",
 				"tlv_records": [{
 					"type": 5482373484,
 					"value": "fajsn341414fq"
@@ -629,7 +630,7 @@ func TestHandleMultiPayKeysendEvent(t *testing.T) {
 	assert.Equal(t, responses[0].Error.Code, NIP_47_ERROR_QUOTA_EXCEEDED)
 	assert.Equal(t, "500pubkey", dTags[0].GetFirst([]string{"d"}).Value())
 	assert.Equal(t, responses[1].Result.(Nip47PayResponse).Preimage, "12345preimage")
-	assert.Equal(t, "123pubkey", dTags[1].GetFirst([]string{"d"}).Value())
+	assert.Equal(t, "customId", dTags[1].GetFirst([]string{"d"}).Value())
 }
 
 func TestHandleGetBalanceEvent(t *testing.T) {
