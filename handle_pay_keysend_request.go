@@ -8,15 +8,14 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (svc *Service) HandlePayKeysendEvent(ctx context.Context, request *Nip47Request, requestEvent *NostrEvent, app *App) (result *Nip47Response, err error) {
+func (svc *Service) HandlePayKeysendEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App) (result *Nip47Response, err error) {
 
 	payParams := &Nip47KeysendParams{}
 	err = json.Unmarshal(request.Params, payParams)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
-			"eventId":   requestEvent.NostrId,
-			"eventKind": requestEvent.Kind,
-			"appId":     app.ID,
+			"eventId": requestEvent.NostrId,
+			"appId":   app.ID,
 		}).Errorf("Failed to decode nostr event: %v", err)
 		return nil, err
 	}
@@ -27,7 +26,6 @@ func (svc *Service) HandlePayKeysendEvent(ctx context.Context, request *Nip47Req
 	if !hasPermission {
 		svc.Logger.WithFields(logrus.Fields{
 			"eventId":      requestEvent.NostrId,
-			"eventKind":    requestEvent.Kind,
 			"appId":        app.ID,
 			"senderPubkey": payParams.Pubkey,
 		}).Errorf("App does not have permission: %s %s", code, message)
@@ -40,7 +38,7 @@ func (svc *Service) HandlePayKeysendEvent(ctx context.Context, request *Nip47Req
 			}}, nil
 	}
 
-	payment := Payment{App: *app, NostrEvent: *requestEvent, Amount: uint(payParams.Amount / 1000)}
+	payment := Payment{App: *app, RequestEvent: *requestEvent, Amount: uint(payParams.Amount / 1000)}
 	insertPaymentResult := svc.db.Create(&payment)
 	if insertPaymentResult.Error != nil {
 		return nil, insertPaymentResult.Error
@@ -48,7 +46,6 @@ func (svc *Service) HandlePayKeysendEvent(ctx context.Context, request *Nip47Req
 
 	svc.Logger.WithFields(logrus.Fields{
 		"eventId":      requestEvent.NostrId,
-		"eventKind":    requestEvent.Kind,
 		"appId":        app.ID,
 		"senderPubkey": payParams.Pubkey,
 	}).Info("Sending payment")
@@ -56,9 +53,7 @@ func (svc *Service) HandlePayKeysendEvent(ctx context.Context, request *Nip47Req
 	preimage, err := svc.lnClient.SendKeysend(ctx, payParams.Amount, payParams.Pubkey, payParams.Preimage, payParams.TLVRecords)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
-			"senderPubkey":    requestEvent.PubKey,
 			"eventId":         requestEvent.NostrId,
-			"eventKind":       requestEvent.Kind,
 			"appId":           app.ID,
 			"recipientPubkey": payParams.Pubkey,
 		}).Infof("Failed to send payment: %v", err)

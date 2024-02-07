@@ -30,13 +30,17 @@ const (
 )
 
 const (
-	NOSTR_EVENT_STATE_HANDLER_EXECUTED    = "executed"
-	NOSTR_EVENT_STATE_HANDLER_ERROR       = "error"
-	NOSTR_EVENT_STATE_PUBLISH_CONFIRMED   = "replied"
-	NOSTR_EVENT_STATE_PUBLISH_FAILED      = "failed"
-	NOSTR_EVENT_STATE_PUBLISH_UNCONFIRMED = "sent"
+	REQUEST_EVENT_STATE_HANDLER_EXECUTING = "executing"
+	REQUEST_EVENT_STATE_HANDLER_EXECUTED  = "executed"
+	REQUEST_EVENT_STATE_HANDLER_ERROR     = "error"
+)
+const (
+	RESPONSE_EVENT_STATE_PUBLISH_CONFIRMED   = "confirmed"
+	RESPONSE_EVENT_STATE_PUBLISH_FAILED      = "failed"
+	RESPONSE_EVENT_STATE_PUBLISH_UNCONFIRMED = "unconfirmed"
 )
 
+// TODO: move to models/db
 type App struct {
 	ID          uint
 	Name        string `validate:"required"`
@@ -46,6 +50,7 @@ type App struct {
 	UpdatedAt   time.Time
 }
 
+// TODO: move to models/db
 type AppPermission struct {
 	ID            uint
 	AppId         uint `validate:"required"`
@@ -58,40 +63,37 @@ type AppPermission struct {
 	UpdatedAt     time.Time
 }
 
-type NostrEvent struct {
+// TODO: move to models/db
+type RequestEvent struct {
 	ID        uint
 	AppId     *uint
 	App       App
 	NostrId   string `validate:"required"`
-	Kind      int
-	PubKey    string
 	Content   string
+	State     string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+// TODO: move to models/db
+type ResponseEvent struct {
+	ID        uint
+	NostrId   string `validate:"required"`
+	RequestId uint   `validate:"required"`
+	Content   string
+	State     string
 	RepliedAt time.Time
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
 
-type ResponseEvent struct {
-	ID uint
-	// TODO: should we store app?
-	AppId            *uint
-	App              App
-	NostrId          string `validate:"required"`
-	RequestId        uint   `validate:"required"`
-	Content          string
-	DecryptedContent string
-	State            string
-	RepliedAt        time.Time
-	CreatedAt        time.Time
-	UpdatedAt        time.Time
-}
-
+// TODO: move to models/db
 type Payment struct {
 	ID             uint
 	AppId          uint `validate:"required"`
 	App            App
-	NostrEventId   uint `validate:"required"`
-	NostrEvent     NostrEvent
+	RequestEventId uint `validate:"required"`
+	RequestEvent   RequestEvent
 	Amount         uint // in sats
 	PaymentRequest string
 	Preimage       *string
@@ -117,38 +119,6 @@ type Nip47Transaction struct {
 
 type PayRequest struct {
 	Invoice string `json:"invoice"`
-}
-
-// TODO: move to models/Alby
-type KeysendRequest struct {
-	Amount        int64             `json:"amount"`
-	Destination   string            `json:"destination"`
-	CustomRecords map[string]string `json:"custom_records,omitempty"`
-}
-
-type BalanceResponse struct {
-	Balance  int64  `json:"balance"`
-	Currency string `json:"currency"`
-	Unit     string `json:"unit"`
-}
-
-type PayResponse struct {
-	Preimage    string `json:"payment_preimage"`
-	PaymentHash string `json:"payment_hash"`
-}
-
-type MakeInvoiceRequest struct {
-	Amount          int64  `json:"amount"`
-	Description     string `json:"description"`
-	DescriptionHash string `json:"description_hash"`
-}
-
-type MakeInvoiceResponse struct {
-	Nip47Transaction
-}
-
-type LookupInvoiceResponse struct {
-	Nip47Transaction
 }
 
 type ErrorResponse struct {

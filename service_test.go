@@ -247,9 +247,10 @@ var mockTransactions = []Nip47Transaction{
 var mockTransaction = &mockTransactions[0]
 
 // TODO: split each method into separate files (requires moving out of the main package)
-// TODO: add E2E tests as well (related MockService)
+// TODO: add E2E tests as well (currently the LNClient and relay are not tested)
 // TODO: test a request cannot be processed twice
 // TODO: test if an app doesn't exist it returns the right error code
+// TODO: test data is stored in the database correctly
 
 func TestHasPermission_NoPermission(t *testing.T) {
 	defer os.Remove(testDB)
@@ -422,9 +423,7 @@ func TestHandleMultiPayInvoiceEvent(t *testing.T) {
 		PubKey:  app.NostrPubkey,
 		Content: payload,
 	}
-	requestEvent := &NostrEvent{
-		Kind:    reqEvent.Kind,
-		PubKey:  reqEvent.PubKey,
+	requestEvent := &RequestEvent{
 		Content: reqEvent.Content,
 	}
 
@@ -551,9 +550,7 @@ func TestHandleMultiPayKeysendEvent(t *testing.T) {
 		PubKey:  app.NostrPubkey,
 		Content: payload,
 	}
-	requestEvent := &NostrEvent{
-		Kind:    reqEvent.Kind,
-		PubKey:  reqEvent.PubKey,
+	requestEvent := &RequestEvent{
 		Content: reqEvent.Content,
 	}
 
@@ -655,9 +652,7 @@ func TestHandleGetBalanceEvent(t *testing.T) {
 		PubKey:  app.NostrPubkey,
 		Content: payload,
 	}
-	requestEvent := &NostrEvent{
-		Kind:    reqEvent.Kind,
-		PubKey:  reqEvent.PubKey,
+	requestEvent := &RequestEvent{
 		Content: reqEvent.Content,
 	}
 
@@ -737,9 +732,7 @@ func TestHandlePayInvoiceEvent(t *testing.T) {
 		PubKey:  app.NostrPubkey,
 		Content: payload,
 	}
-	requestEvent := &NostrEvent{
-		Kind:    reqEvent.Kind,
-		PubKey:  reqEvent.PubKey,
+	requestEvent := &RequestEvent{
 		Content: reqEvent.Content,
 	}
 
@@ -871,9 +864,7 @@ func TestHandlePayKeysendEvent(t *testing.T) {
 		PubKey:  app.NostrPubkey,
 		Content: payload,
 	}
-	requestEvent := &NostrEvent{
-		Kind:    reqEvent.Kind,
-		PubKey:  reqEvent.PubKey,
+	requestEvent := &RequestEvent{
 		Content: reqEvent.Content,
 	}
 
@@ -953,9 +944,7 @@ func TestHandleMakeInvoiceEvent(t *testing.T) {
 		PubKey:  app.NostrPubkey,
 		Content: payload,
 	}
-	requestEvent := &NostrEvent{
-		Kind:    reqEvent.Kind,
-		PubKey:  reqEvent.PubKey,
+	requestEvent := &RequestEvent{
 		Content: reqEvent.Content,
 	}
 
@@ -1009,9 +998,7 @@ func TestHandleListTransactionsEvent(t *testing.T) {
 		PubKey:  app.NostrPubkey,
 		Content: payload,
 	}
-	requestEvent := &NostrEvent{
-		Kind:    reqEvent.Kind,
-		PubKey:  reqEvent.PubKey,
+	requestEvent := &RequestEvent{
 		Content: reqEvent.Content,
 	}
 
@@ -1075,9 +1062,7 @@ func TestHandleGetInfoEvent(t *testing.T) {
 		PubKey:  app.NostrPubkey,
 		Content: payload,
 	}
-	requestEvent := &NostrEvent{
-		Kind:    reqEvent.Kind,
-		PubKey:  reqEvent.PubKey,
+	requestEvent := &RequestEvent{
 		Content: reqEvent.Content,
 	}
 

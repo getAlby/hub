@@ -8,15 +8,14 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (svc *Service) HandleListTransactionsEvent(ctx context.Context, request *Nip47Request, requestEvent *NostrEvent, app *App) (result *Nip47Response, err error) {
+func (svc *Service) HandleListTransactionsEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App) (result *Nip47Response, err error) {
 
 	listParams := &Nip47ListTransactionsParams{}
 	err = json.Unmarshal(request.Params, listParams)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
-			"eventId":   requestEvent.NostrId,
-			"eventKind": requestEvent.Kind,
-			"appId":     app.ID,
+			"eventId": requestEvent.NostrId,
+			"appId":   app.ID,
 		}).Errorf("Failed to decode nostr event: %v", err)
 		return nil, err
 	}
@@ -26,9 +25,8 @@ func (svc *Service) HandleListTransactionsEvent(ctx context.Context, request *Ni
 	if !hasPermission {
 		svc.Logger.WithFields(logrus.Fields{
 			// TODO: log request fields from listParams
-			"eventId":   requestEvent.NostrId,
-			"eventKind": requestEvent.Kind,
-			"appId":     app.ID,
+			"eventId": requestEvent.NostrId,
+			"appId":   app.ID,
 		}).Errorf("App does not have permission: %s %s", code, message)
 
 		return &Nip47Response{
@@ -41,19 +39,16 @@ func (svc *Service) HandleListTransactionsEvent(ctx context.Context, request *Ni
 
 	svc.Logger.WithFields(logrus.Fields{
 		// TODO: log request fields from listParams
-		"eventId":   requestEvent.NostrId,
-		"eventKind": requestEvent.Kind,
-		"appId":     app.ID,
+		"eventId": requestEvent.NostrId,
+		"appId":   app.ID,
 	}).Info("Fetching transactions")
 
 	transactions, err := svc.lnClient.ListTransactions(ctx, listParams.From, listParams.Until, listParams.Limit, listParams.Offset, listParams.Unpaid, listParams.Type)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
 			// TODO: log request fields from listParams
-			"senderPubkey": requestEvent.PubKey,
-			"eventId":      requestEvent.NostrId,
-			"eventKind":    requestEvent.Kind,
-			"appId":        app.ID,
+			"eventId": requestEvent.NostrId,
+			"appId":   app.ID,
 		}).Infof("Failed to fetch transactions: %v", err)
 		return &Nip47Response{
 			ResultType: request.Method,

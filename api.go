@@ -132,7 +132,7 @@ func (api *API) DeleteApp(userApp *App) error {
 
 func (api *API) GetApp(userApp *App) *models.App {
 
-	var lastEvent NostrEvent
+	var lastEvent RequestEvent
 	lastEventResult := api.svc.db.Where("app_id = ?", userApp.ID).Order("id desc").Limit(1).Find(&lastEvent)
 
 	paySpecificPermission := AppPermission{}
@@ -195,7 +195,7 @@ func (api *API) ListApps() ([]models.App, error) {
 			NostrPubkey: userApp.NostrPubkey,
 		}
 
-		var lastEvent NostrEvent
+		var lastEvent RequestEvent
 		result := api.svc.db.Where("app_id = ?", userApp.ID).Order("id desc").Limit(1).Find(&lastEvent)
 		if result.Error != nil {
 			api.svc.Logger.Errorf("Failed to fetch last event %v", result.Error)
