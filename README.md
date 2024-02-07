@@ -208,9 +208,14 @@ You can also contribute to our [bounty program](https://github.com/getAlby/light
 - ⚠️ from and until in request not supported
 - ⚠️ failed payments will not be returned
 
-❌ `multi_pay_invoice`
+✅ `multi_pay_invoice`
 
-❌ `multi_pay_keysend`
+- ⚠️ amount not supported (for amountless invoices)
+- ⚠️ PAYMENT_FAILED error code not supported
+
+✅ `multi_pay_keysend`
+
+- ⚠️ PAYMENT_FAILED error code not supported
 
 ### Breez
 
