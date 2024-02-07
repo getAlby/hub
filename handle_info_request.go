@@ -13,9 +13,8 @@ func (svc *Service) HandleGetInfoEvent(ctx context.Context, request *Nip47Reques
 
 	if !hasPermission {
 		svc.Logger.WithFields(logrus.Fields{
-			"eventId":   requestEvent.NostrId,
-			"eventKind": requestEvent.Kind,
-			"appId":     app.ID,
+			"eventId": requestEvent.NostrId,
+			"appId":   app.ID,
 		}).Errorf("App does not have permission: %s %s", code, message)
 
 		return &Nip47Response{
@@ -27,18 +26,15 @@ func (svc *Service) HandleGetInfoEvent(ctx context.Context, request *Nip47Reques
 	}
 
 	svc.Logger.WithFields(logrus.Fields{
-		"eventId":   requestEvent.NostrId,
-		"eventKind": requestEvent.Kind,
-		"appId":     app.ID,
+		"eventId": requestEvent.NostrId,
+		"appId":   app.ID,
 	}).Info("Fetching node info")
 
 	info, err := svc.lnClient.GetInfo(ctx)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
-			"senderPubkey": requestEvent.PubKey,
-			"eventId":      requestEvent.NostrId,
-			"eventKind":    requestEvent.Kind,
-			"appId":        app.ID,
+			"eventId": requestEvent.NostrId,
+			"appId":   app.ID,
 		}).Infof("Failed to fetch node info: %v", err)
 		return &Nip47Response{
 			ResultType: request.Method,

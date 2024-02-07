@@ -5,7 +5,7 @@ CREATE INDEX `idx_app_permissions_app_id` ON `app_permissions`(`app_id`);
 CREATE TABLE `payments` (`id` integer,`app_id` integer,`request_event_id` integer,`amount` integer,`payment_request` text,`preimage` text,`created_at` datetime,`updated_at` datetime,PRIMARY KEY (`id`),CONSTRAINT `fk_payments_app` FOREIGN KEY (`app_id`) REFERENCES `apps`(`id`) ON DELETE CASCADE,CONSTRAINT `fk_payments_request_event` FOREIGN KEY (`request_event_id`) REFERENCES `request_events`(`id`));
 CREATE INDEX `idx_payments_request_event_id` ON `payments`(`request_event_id`);
 CREATE INDEX `idx_payments_app_id` ON `payments`(`app_id`);
-CREATE TABLE "request_events" (`id` integer,`app_id` integer null,`nostr_id` text UNIQUE,`kind` integer,`pub_key` text,`content` text,`replied_at` datetime,`created_at` datetime,`updated_at` datetime,PRIMARY KEY (`id`),CONSTRAINT `fk_request_events_app` FOREIGN KEY (`app_id`) REFERENCES `apps`(`id`) ON DELETE CASCADE);
+CREATE TABLE "request_events" (`id` integer,`app_id` integer null,`nostr_id` text UNIQUE,`content` text,`created_at` datetime,`updated_at` datetime,PRIMARY KEY (`id`),CONSTRAINT `fk_request_events_app` FOREIGN KEY (`app_id`) REFERENCES `apps`(`id`) ON DELETE CASCADE);
 CREATE UNIQUE INDEX `idx_request_events_nostr_id` ON `request_events`(`nostr_id`);
 CREATE INDEX `idx_request_events_app_id` ON `request_events`(`app_id`);
 CREATE INDEX idx_payment_sum ON payments (app_id, preimage, created_at);

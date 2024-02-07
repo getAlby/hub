@@ -16,9 +16,8 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 	err = json.Unmarshal(request.Params, payParams)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
-			"eventId":   requestEvent.NostrId,
-			"eventKind": requestEvent.Kind,
-			"appId":     app.ID,
+			"eventId": requestEvent.NostrId,
+			"appId":   app.ID,
 		}).Errorf("Failed to decode nostr event: %v", err)
 		// TODO: why not return a Nip47Response here?
 		return nil, err
@@ -30,10 +29,9 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 	paymentRequest, err := decodepay.Decodepay(bolt11)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
-			"eventId":   requestEvent.NostrId,
-			"eventKind": requestEvent.Kind,
-			"appId":     app.ID,
-			"bolt11":    bolt11,
+			"eventId": requestEvent.NostrId,
+			"appId":   app.ID,
+			"bolt11":  bolt11,
 		}).Errorf("Failed to decode bolt11 invoice: %v", err)
 
 		return &Nip47Response{
@@ -49,9 +47,8 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 
 	if !hasPermission {
 		svc.Logger.WithFields(logrus.Fields{
-			"eventId":   requestEvent.NostrId,
-			"eventKind": requestEvent.Kind,
-			"appId":     app.ID,
+			"eventId": requestEvent.NostrId,
+			"appId":   app.ID,
 		}).Errorf("App does not have permission: %s %s", code, message)
 
 		return &Nip47Response{
@@ -69,20 +66,17 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 	}
 
 	svc.Logger.WithFields(logrus.Fields{
-		"eventId":   requestEvent.NostrId,
-		"eventKind": requestEvent.Kind,
-		"appId":     app.ID,
-		"bolt11":    bolt11,
+		"eventId": requestEvent.NostrId,
+		"appId":   app.ID,
+		"bolt11":  bolt11,
 	}).Info("Sending payment")
 
 	preimage, err := svc.lnClient.SendPaymentSync(ctx, bolt11)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
-			"senderPubkey": requestEvent.PubKey,
-			"eventId":      requestEvent.NostrId,
-			"eventKind":    requestEvent.Kind,
-			"appId":        app.ID,
-			"bolt11":       bolt11,
+			"eventId": requestEvent.NostrId,
+			"appId":   app.ID,
+			"bolt11":  bolt11,
 		}).Infof("Failed to send payment: %v", err)
 		return &Nip47Response{
 			ResultType: request.Method,

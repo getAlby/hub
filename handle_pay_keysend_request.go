@@ -14,9 +14,8 @@ func (svc *Service) HandlePayKeysendEvent(ctx context.Context, request *Nip47Req
 	err = json.Unmarshal(request.Params, payParams)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
-			"eventId":   requestEvent.NostrId,
-			"eventKind": requestEvent.Kind,
-			"appId":     app.ID,
+			"eventId": requestEvent.NostrId,
+			"appId":   app.ID,
 		}).Errorf("Failed to decode nostr event: %v", err)
 		return nil, err
 	}
@@ -27,7 +26,6 @@ func (svc *Service) HandlePayKeysendEvent(ctx context.Context, request *Nip47Req
 	if !hasPermission {
 		svc.Logger.WithFields(logrus.Fields{
 			"eventId":      requestEvent.NostrId,
-			"eventKind":    requestEvent.Kind,
 			"appId":        app.ID,
 			"senderPubkey": payParams.Pubkey,
 		}).Errorf("App does not have permission: %s %s", code, message)
@@ -48,7 +46,6 @@ func (svc *Service) HandlePayKeysendEvent(ctx context.Context, request *Nip47Req
 
 	svc.Logger.WithFields(logrus.Fields{
 		"eventId":      requestEvent.NostrId,
-		"eventKind":    requestEvent.Kind,
 		"appId":        app.ID,
 		"senderPubkey": payParams.Pubkey,
 	}).Info("Sending payment")
@@ -56,9 +53,7 @@ func (svc *Service) HandlePayKeysendEvent(ctx context.Context, request *Nip47Req
 	preimage, err := svc.lnClient.SendKeysend(ctx, payParams.Amount, payParams.Pubkey, payParams.Preimage, payParams.TLVRecords)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
-			"senderPubkey":    requestEvent.PubKey,
 			"eventId":         requestEvent.NostrId,
-			"eventKind":       requestEvent.Kind,
 			"appId":           app.ID,
 			"recipientPubkey": payParams.Pubkey,
 		}).Infof("Failed to send payment: %v", err)

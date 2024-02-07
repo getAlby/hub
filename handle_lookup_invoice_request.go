@@ -17,9 +17,8 @@ func (svc *Service) HandleLookupInvoiceEvent(ctx context.Context, request *Nip47
 
 	if !hasPermission {
 		svc.Logger.WithFields(logrus.Fields{
-			"eventId":   requestEvent.NostrId,
-			"eventKind": requestEvent.Kind,
-			"appId":     app.ID,
+			"eventId": requestEvent.NostrId,
+			"appId":   app.ID,
 		}).Errorf("App does not have permission: %s %s", code, message)
 
 		return &Nip47Response{
@@ -35,16 +34,14 @@ func (svc *Service) HandleLookupInvoiceEvent(ctx context.Context, request *Nip47
 	err = json.Unmarshal(request.Params, lookupInvoiceParams)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
-			"eventId":   requestEvent.NostrId,
-			"eventKind": requestEvent.Kind,
-			"appId":     app.ID,
+			"eventId": requestEvent.NostrId,
+			"appId":   app.ID,
 		}).Errorf("Failed to decode nostr event: %v", err)
 		return nil, err
 	}
 
 	svc.Logger.WithFields(logrus.Fields{
 		"eventId":     requestEvent.NostrId,
-		"eventKind":   requestEvent.Kind,
 		"appId":       app.ID,
 		"invoice":     lookupInvoiceParams.Invoice,
 		"paymentHash": lookupInvoiceParams.PaymentHash,
@@ -56,10 +53,9 @@ func (svc *Service) HandleLookupInvoiceEvent(ctx context.Context, request *Nip47
 		paymentRequest, err := decodepay.Decodepay(strings.ToLower(lookupInvoiceParams.Invoice))
 		if err != nil {
 			svc.Logger.WithFields(logrus.Fields{
-				"eventId":   requestEvent.NostrId,
-				"eventKind": requestEvent.Kind,
-				"appId":     app.ID,
-				"invoice":   lookupInvoiceParams.Invoice,
+				"eventId": requestEvent.NostrId,
+				"appId":   app.ID,
+				"invoice": lookupInvoiceParams.Invoice,
 			}).Errorf("Failed to decode bolt11 invoice: %v", err)
 
 			return &Nip47Response{
@@ -76,12 +72,10 @@ func (svc *Service) HandleLookupInvoiceEvent(ctx context.Context, request *Nip47
 	transaction, err := svc.lnClient.LookupInvoice(ctx, paymentHash)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
-			"senderPubkey": requestEvent.PubKey,
-			"eventId":      requestEvent.NostrId,
-			"eventKind":    requestEvent.Kind,
-			"appId":        app.ID,
-			"invoice":      lookupInvoiceParams.Invoice,
-			"paymentHash":  lookupInvoiceParams.PaymentHash,
+			"eventId":     requestEvent.NostrId,
+			"appId":       app.ID,
+			"invoice":     lookupInvoiceParams.Invoice,
+			"paymentHash": lookupInvoiceParams.PaymentHash,
 		}).Infof("Failed to lookup invoice: %v", err)
 		return &Nip47Response{
 			ResultType: request.Method,

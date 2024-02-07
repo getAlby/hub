@@ -198,7 +198,6 @@ func (svc *Service) PublishEvent(ctx context.Context, sub *nostr.Subscription, r
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
 			"eventId":      requestEvent.NostrId,
-			"eventKind":    requestEvent.Kind,
 			"appId":        appId,
 			"replyEventId": resp.ID,
 		}).Errorf("Failed to decrypt content: %v", err)
@@ -209,7 +208,6 @@ func (svc *Service) PublishEvent(ctx context.Context, sub *nostr.Subscription, r
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
 			"eventId":      requestEvent.NostrId,
-			"eventKind":    requestEvent.Kind,
 			"appId":        appId,
 			"replyEventId": resp.ID,
 		}).Errorf("Failed to save response/reply event: %v", err)
@@ -230,8 +228,6 @@ func (svc *Service) PublishEvent(ctx context.Context, sub *nostr.Subscription, r
 	if status == nostr.PublishStatusSucceeded {
 		responseEvent.State = NOSTR_EVENT_STATE_PUBLISH_CONFIRMED
 		responseEvent.RepliedAt = time.Now()
-		requestEvent.RepliedAt = time.Now()
-		svc.db.Save(requestEvent)
 		svc.Logger.WithFields(logrus.Fields{
 			"nostrEventId": requestEvent.ID,
 			"eventId":      requestEvent.NostrId,
@@ -258,6 +254,7 @@ func (svc *Service) PublishEvent(ctx context.Context, sub *nostr.Subscription, r
 			"replyEventId": resp.ID,
 		}).Info("Reply sent but no response from relay (timeout)")
 	}
+	svc.db.Save(&responseEvent)
 	return nil
 }
 
@@ -288,7 +285,7 @@ func (svc *Service) HandleEvent(ctx context.Context, sub *nostr.Subscription, ev
 	}
 
 	// store request event
-	requestEvent = RequestEvent{AppId: nil, NostrId: event.ID, Kind: event.Kind, PubKey: event.PubKey, Content: event.Content}
+	requestEvent = RequestEvent{AppId: nil, NostrId: event.ID, Content: event.Content}
 	err = svc.db.Create(&requestEvent).Error
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
@@ -340,7 +337,7 @@ func (svc *Service) HandleEvent(ctx context.Context, sub *nostr.Subscription, ev
 	}
 
 	requestEvent.AppId = &app.ID
-	err = svc.db.Save(requestEvent).Error
+	err = svc.db.Save(&requestEvent).Error
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
 			"nostrPubkey": event.PubKey,

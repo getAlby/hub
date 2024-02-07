@@ -63,10 +63,7 @@ type RequestEvent struct {
 	AppId     *uint
 	App       App
 	NostrId   string `validate:"required"`
-	Kind      int
-	PubKey    string
 	Content   string
-	RepliedAt time.Time
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
