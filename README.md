@@ -229,3 +229,28 @@ Run NWC on your own node!
 
 - [https://github.com/getAlby/umbrel-community-app-store](Umbrel)
 - [https://github.com/horologger/nostr-wallet-connect-startos](Start9)
+
+## Deploy it yourself
+
+### Fly
+
+- [install fly](https://fly.io/docs/hands-on/install-flyctl/)
+- update `app = 'nwc'` on **line 6** to a unique name in fly.toml e.g. `app = 'nwc-john-doe-1234'`
+- run `fly launch`
+  - press 'y' to copy configuration to the new app and then hit enter
+  - press 'n' to tweak the settings and then hit enter
+  - wait for the deployment to succeed, it should give you a URL like `https://nwc-john-doe-1234.fly.dev`
+
+### Custom Ubuntu VM
+
+- install go (using snap)
+- install build-essential
+- install nvm (curl script)
+- with nvm, choose node lts
+- install yarn (via npm)
+- then run yarn build
+- go run .
+
+### Docker
+
+(TBC)
