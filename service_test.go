@@ -247,9 +247,10 @@ var mockTransactions = []Nip47Transaction{
 var mockTransaction = &mockTransactions[0]
 
 // TODO: split each method into separate files (requires moving out of the main package)
-// TODO: add E2E tests as well (related MockService)
+// TODO: add E2E tests as well (currently the LNClient and relay are not tested)
 // TODO: test a request cannot be processed twice
 // TODO: test if an app doesn't exist it returns the right error code
+// TODO: test data is stored in the database correctly
 
 func TestHasPermission_NoPermission(t *testing.T) {
 	defer os.Remove(testDB)
