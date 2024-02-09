@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"math/rand"
 	"os"
@@ -57,7 +58,12 @@ func NewGreenlightService(mnemonic, inviteCode, workDir string) (result LNClient
 	err = gs.recover()
 
 	if err != nil {
-		log.Fatalf("failed to recover: %v", err)
+		log.Printf("Failed to recover node: %v", err)
+		log.Print("Trying to register instead...")
+		err = gs.register(inviteCode)
+		if err != nil {
+			log.Fatalf("Failed to register new node")
+		}
 	}
 
 	nodeInfo := models.NodeInfo{}
@@ -82,7 +88,13 @@ func NewGreenlightService(mnemonic, inviteCode, workDir string) (result LNClient
 
 func (gs *GreenlightService) recover() error {
 	output, err := gs.execCommand("scheduler", "recover")
-	log.Printf("scheduler recover: %v", string(output))
+	log.Printf("scheduler recover: %v %v", string(output), err)
+	return err
+}
+
+func (gs *GreenlightService) register(inviteCode string) error {
+	output, err := gs.execCommand("scheduler", "register", "--network=bitcoin", fmt.Sprintf("--invite=%s", inviteCode))
+	log.Printf("scheduler register: %v %v", string(output), err)
 	return err
 }
 

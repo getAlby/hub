@@ -9,11 +9,7 @@ To enable the GREENLIGHT LNClient some additional steps are required.
 
 ## Setup
 
-1. Wallet
-   1. Existing mnemonic (possible through NWC UI)
-   2. New mnemonic: (WIP)
-      1. glcli scheduler register --network=bitcoin --invite=YOUR_INVITE_CODE
-      2. glcli getinfo - "warning_lightningd_sync" should disappear after < 30 seconds
+1. Wallet can be registered or recovered through NWC UI
 2. Get Liquidity
    1. peer with blocktank (TBC): `glcli connect 0296b2db342fcf87ea94d981757fdf4d3e545bd5cef4919f58b5d38dfdd73bf5c9 130.211.95.29 9735`
    2. run `glcli scheduler schedule` to get your node ID and GRPC uri
