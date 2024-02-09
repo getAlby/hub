@@ -182,7 +182,7 @@ func (gs *GreenlightService) MakeInvoice(ctx context.Context, amount int64, desc
 	invoice := models.Invoice{}
 	err = gs.execJSONCommand(&invoice, "invoice", "label_"+strconv.Itoa(rand.Int()), strconv.FormatInt(amount, 10)+"msat")
 	if err != nil {
-		log.Println("MakeInvoice failed: %v", err)
+		log.Printf("MakeInvoice failed: %v", err)
 		return nil, err
 	}
 
