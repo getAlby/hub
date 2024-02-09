@@ -12,11 +12,12 @@ import (
 )
 
 const (
-	LNDBackendType       = "LND"
-	BreezBackendType     = "BREEZ"
-	SessionCookieName    = "session"
-	SessionCookieAuthKey = "authenticated"
-	UnlockPasswordCheck  = "THIS STRING SHOULD MATCH IF PASSWORD IS CORRECT"
+	LNDBackendType        = "LND"
+	GreenlightBackendType = "GREENLIGHT"
+	BreezBackendType      = "BREEZ"
+	SessionCookieName     = "session"
+	SessionCookieAuthKey  = "authenticated"
+	UnlockPasswordCheck   = "THIS STRING SHOULD MATCH IF PASSWORD IS CORRECT"
 )
 
 type AppConfig struct {

@@ -18,6 +18,7 @@ Ideally the app runs 24/7 (on a node, VPS or always-online desktop/laptop machin
 
 - LND (see: lnd.go)
 - Breez (see: breez.go)
+- Greenlight (see: greenlight.go)
 - want more? please open an issue.
 
 ## Installation
@@ -32,9 +33,15 @@ As data storage SQLite is used.
     # edit the config for your needs
     vim .env
 
-To get a new random Nostr key use `openssl rand -hex 32` or similar.
+#### Optional Requirements
+
+See [Greenlight](./README_GREENLIGHT.md)
 
 ## Development
+
+### Required Software
+
+- Go
 
 ### Server (HTTP mode)
 
@@ -94,7 +101,7 @@ Breez SDK requires gcc to build the Breez bindings. Run `choco install mingw` an
 - `COOKIE_SECRET`: a randomly generated secret string. (only needed in http mode)
 - `DATABASE_URI`: a sqlite filename. Default: .data/nwc.db
 - `PORT`: the port on which the app should listen on (default: 8080)
-- `LN_BACKEND_TYPE`: LND or BREEZ
+- `LN_BACKEND_TYPE`: LND, BREEZ or GREENLIGHT
 - `WORK_DIR`: directory to store NWC data files. Default: .data
 -
 
@@ -105,12 +112,6 @@ _For cert and macaroon, either hex or file options can be used._
 - `LND_ADDRESS`: the LND gRPC address, eg. `localhost:10009` (used with the LND backend)
 - `LND_CERT_FILE`: the location where LND's `tls.cert` file can be found (used with the LND backend)
 - `LND_MACAROON_FILE`: the location where LND's `admin.macaroon` file can be found (used with the LND backend)
-
-### BREEZ Backend parameters
-
-- `BREEZ_MNEMONIC`: your bip39 mnemonic key phrase e.g. "define limit soccer guilt trim mechanic beyond outside best give south shine"
-- `BREEZ_API_KEY`: contact breez for more info
-- `GREENLIGHT_INVITE_CODE`: contact blockstream for more info
 
 ## Application deeplink options
 

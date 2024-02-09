@@ -9,7 +9,8 @@ import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request"; // build the project for this to appear
 
 export function SetupNode() {
-  const [backendType, setBackendType] = React.useState<BackendType>("BREEZ");
+  const [backendType, setBackendType] =
+    React.useState<BackendType>("GREENLIGHT");
   const { unlockPassword } = useSetupStore();
   const [isConnecting, setConnecting] = React.useState(false);
   const navigate = useNavigate();
@@ -70,12 +71,19 @@ export function SetupNode() {
         id="backend-type"
         className="dark:bg-surface-00dp mb-4 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
       >
+        <option value={"GREENLIGHT"}>Greenlight</option>
         <option value={"BREEZ"}>Breez</option>
         <option value={"LND"}>LND</option>
       </select>
 
       {backendType === "BREEZ" && (
         <BreezForm handleSubmit={handleSubmit} isConnecting={isConnecting} />
+      )}
+      {backendType === "GREENLIGHT" && (
+        <GreenlightForm
+          handleSubmit={handleSubmit}
+          isConnecting={isConnecting}
+        />
       )}
       {backendType === "LND" && (
         <LNDForm handleSubmit={handleSubmit} isConnecting={isConnecting} />
@@ -93,18 +101,18 @@ function BreezForm({ isConnecting, handleSubmit }: SetupFormProps) {
   const [greenlightInviteCode, setGreenlightInviteCode] =
     React.useState<string>("");
   const [breezApiKey, setBreezApiKey] = React.useState<string>("");
-  const [breezMnemonic, setBreezMnemonic] = React.useState<string>("");
+  const [mnemonic, setMnemonic] = React.useState<string>("");
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!greenlightInviteCode || !breezMnemonic) {
+    if (!greenlightInviteCode || !mnemonic) {
       alert("please fill out all fields");
       return;
     }
     handleSubmit({
       greenlightInviteCode,
       breezApiKey,
-      breezMnemonic,
+      mnemonic,
     });
   }
 
@@ -147,8 +155,62 @@ function BreezForm({ isConnecting, handleSubmit }: SetupFormProps) {
         </label>
         <input
           name="mnemonic"
-          onChange={(e) => setBreezMnemonic(e.target.value)}
-          value={breezMnemonic}
+          onChange={(e) => setMnemonic(e.target.value)}
+          value={mnemonic}
+          type="password"
+          id="mnemonic"
+          className="dark:bg-surface-00dp block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
+        />
+      </>
+      <ConnectButton isConnecting={isConnecting} />
+    </form>
+  );
+}
+
+function GreenlightForm({ isConnecting, handleSubmit }: SetupFormProps) {
+  const [greenlightInviteCode, setGreenlightInviteCode] =
+    React.useState<string>("");
+  const [mnemonic, setMnemonic] = React.useState<string>("");
+
+  function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!greenlightInviteCode || !mnemonic) {
+      alert("please fill out all fields");
+      return;
+    }
+    handleSubmit({
+      greenlightInviteCode,
+      mnemonic,
+    });
+  }
+
+  return (
+    <form onSubmit={onSubmit}>
+      <>
+        <label
+          htmlFor="greenlight-invite-code"
+          className="block font-medium text-gray-900 dark:text-white"
+        >
+          Greenlight Invite Code
+        </label>
+        <input
+          name="greenlight-invite-code"
+          onChange={(e) => setGreenlightInviteCode(e.target.value)}
+          value={greenlightInviteCode}
+          type="password"
+          id="greenlight-invite-code"
+          className="dark:bg-surface-00dp block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
+        />
+        <label
+          htmlFor="mnemonic"
+          className="mt-4 block font-medium text-gray-900 dark:text-white"
+        >
+          BIP39 Mnemonic
+        </label>
+        <input
+          name="mnemonic"
+          onChange={(e) => setMnemonic(e.target.value)}
+          value={mnemonic}
           type="password"
           id="mnemonic"
           className="dark:bg-surface-00dp block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
