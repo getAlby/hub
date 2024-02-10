@@ -87,3 +87,22 @@ export interface CreateAppResponse {
   pairingSecretKey: string;
   returnTo: string;
 }
+
+export type Channel = {
+  localBalance: number;
+  remoteBalance: number;
+  remotePubkey: string;
+  id: string;
+};
+
+export type NodeConnectionInfo = {
+  pubkey: string;
+  address: string;
+  port: number;
+};
+
+export type ConnectPeerRequest = {
+  pubkey: string;
+  address: string;
+  port: number;
+};

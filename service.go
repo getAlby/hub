@@ -19,6 +19,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/getAlby/nostr-wallet-connect/migrations"
+	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 	"github.com/glebarez/sqlite"
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
@@ -31,7 +32,7 @@ type Service struct {
 	// config from .env only. Fetch dynamic config from db
 	cfg      *Config
 	db       *gorm.DB
-	lnClient LNClient
+	lnClient lnclient.LNClient
 	Logger   *logrus.Logger
 	ctx      context.Context
 	wg       *sync.WaitGroup
@@ -126,7 +127,7 @@ func (svc *Service) launchLNBackend(encryptionKey string) error {
 	}
 
 	svc.Logger.Infof("Launching LN Backend: %s", lndBackend)
-	var lnClient LNClient
+	var lnClient lnclient.LNClient
 	var err error
 	switch lndBackend {
 	case LNDBackendType:

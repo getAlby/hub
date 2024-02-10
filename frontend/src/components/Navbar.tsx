@@ -1,9 +1,11 @@
 import { Link, Outlet, useLocation } from "react-router-dom";
 
 import nwcLogo from "src/assets/images/nwc-logo.svg";
+import { useInfo } from "src/hooks/useInfo";
 
 function Navbar() {
   const location = useLocation();
+  const { data: info } = useInfo();
 
   const linkStyles =
     "font-medium text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 transition px-2 ";
@@ -43,6 +45,17 @@ function Navbar() {
                   >
                     Connections
                   </Link>
+                  {info?.running && info.backendType === "GREENLIGHT" && (
+                    <Link
+                      className={`${linkStyles} ${
+                        location.pathname.startsWith("/channels") &&
+                        selectedLinkStyles
+                      }`}
+                      to="/channels"
+                    >
+                      Channels
+                    </Link>
+                  )}
                   <Link
                     className={`${linkStyles} ${
                       location.pathname === "/setup" && selectedLinkStyles

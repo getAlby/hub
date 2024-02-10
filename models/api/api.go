@@ -1,6 +1,10 @@
 package api
 
-import "time"
+import (
+	"time"
+
+	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
+)
 
 type App struct {
 	// ID          uint      `json:"id"` // ID unused - pubkey is used as ID
@@ -77,3 +81,5 @@ type InfoResponse struct {
 	Running        bool   `json:"running"`
 	Unlocked       bool   `json:"unlocked"`
 }
+
+type ConnectPeerRequest = lnclient.ConnectPeerRequest

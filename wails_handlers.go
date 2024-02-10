@@ -72,6 +72,14 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			}
 			return WailsRequestRouterResponse{Body: createAppResponse, Error: ""}
 		}
+	case "/api/channels":
+		channels, err := app.api.ListChannels()
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		res := WailsRequestRouterResponse{Body: channels, Error: ""}
+		return res
+
 	case "/api/info":
 		infoResponse := app.api.GetInfo()
 		res := WailsRequestRouterResponse{Body: *infoResponse, Error: ""}

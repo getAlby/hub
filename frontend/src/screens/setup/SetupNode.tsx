@@ -22,7 +22,7 @@ export function SetupNode() {
     try {
       setConnecting(true);
       if (!csrf) {
-        throw new Error("info not loaded");
+        throw new Error("csrf not loaded");
       }
       await request("/api/setup", {
         method: "POST",

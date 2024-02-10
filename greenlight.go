@@ -12,10 +12,12 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/breez/breez-sdk-go/breez_sdk"
 	models "github.com/getAlby/nostr-wallet-connect/models/greenlight"
+	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 )
 
 type GreenlightService struct {
@@ -24,7 +26,7 @@ type GreenlightService struct {
 	//svc      *breez_sdk.BlockingGreenlightServices
 }
 
-func NewGreenlightService(mnemonic, inviteCode, workDir string) (result LNClient, err error) {
+func NewGreenlightService(mnemonic, inviteCode, workDir string) (result lnclient.LNClient, err error) {
 	if mnemonic == "" || inviteCode == "" || workDir == "" {
 		return nil, errors.New("One or more required greenlight configuration are missing")
 	}
@@ -74,8 +76,6 @@ func NewGreenlightService(mnemonic, inviteCode, workDir string) (result LNClient
 	if err == nil {
 		log.Printf("Node info: %v", nodeInfo)
 	}
-
-	// TODO: schedule
 
 	gs.hsmdCmd = gs.createCommand("hsmd")
 
@@ -161,19 +161,24 @@ func (gs *GreenlightService) SendPaymentSync(ctx context.Context, payReq string)
 	return payResponse.Preimage, nil
 }
 
-func (gs *GreenlightService) SendKeysend(ctx context.Context, amount int64, destination, preimage string, custom_records []TLVRecord) (preImage string, err error) {
+func (gs *GreenlightService) SendKeysend(ctx context.Context, amount int64, destination, preimage string, custom_records []lnclient.TLVRecord) (preImage string, err error) {
 	log.Println("TODO: SendKeysend")
 	return "", nil
 }
 
 func (gs *GreenlightService) GetBalance(ctx context.Context) (balance int64, err error) {
-	/*info, err := bs.svc.NodeInfo()
+	channels, err := gs.ListChannels(ctx)
+
 	if err != nil {
 		return 0, err
 	}
-	return int64(info.ChannelsBalanceMsat) / 1000, nil*/
-	log.Println("TODO: GetBalance")
-	return 0, nil
+
+	balance = 0
+	for _, channel := range channels {
+		balance += channel.LocalBalance
+	}
+
+	return balance, nil
 }
 
 func (gs *GreenlightService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *Nip47Transaction, err error) {
@@ -209,9 +214,9 @@ func (gs *GreenlightService) ListTransactions(ctx context.Context, from, until, 
 	return transactions, nil
 }
 
-func (gs *GreenlightService) GetInfo(ctx context.Context) (info *NodeInfo, err error) {
+func (gs *GreenlightService) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, err error) {
 	log.Println("TODO: GetInfo")
-	return &NodeInfo{
+	return &lnclient.NodeInfo{
 		Alias:       "greenlight",
 		Color:       "",
 		Pubkey:      "",
@@ -219,4 +224,58 @@ func (gs *GreenlightService) GetInfo(ctx context.Context) (info *NodeInfo, err e
 		BlockHeight: 0,
 		BlockHash:   "",
 	}, nil
+}
+
+func (gs *GreenlightService) ListChannels(ctx context.Context) ([]lnclient.Channel, error) {
+
+	//glcli listfunds
+
+	listFundsResponse := models.ListFundsResponse{}
+	err := gs.execJSONCommand(&listFundsResponse, "listfunds")
+	if err != nil {
+		log.Printf("ListChannels failed: %v", err)
+		return nil, err
+	}
+
+	glChannels := listFundsResponse.Channels
+	channels := []lnclient.Channel{}
+
+	for _, glChannel := range glChannels {
+		channels = append(channels, lnclient.Channel{
+			LocalBalance:  glChannel.OurAmountMsat.Msat,
+			RemoteBalance: glChannel.AmountMsat.Msat - glChannel.OurAmountMsat.Msat,
+			RemotePubkey:  glChannel.PeerId,
+			Id:            glChannel.Id,
+		})
+	}
+
+	return channels, nil
+}
+
+func (gs *GreenlightService) GetNodeConnectionInfo(ctx context.Context) (nodeConnectionInfo *lnclient.NodeConnectionInfo, err error) {
+	// glcli scheduler schedule
+	scheduleResponse := models.ScheduleResponse{}
+	err = gs.execJSONCommand(&scheduleResponse, "scheduler", "schedule")
+	if err != nil {
+		log.Printf("ListChannels failed: %v", err)
+		return nil, err
+	}
+
+	return &lnclient.NodeConnectionInfo{
+		Pubkey:  scheduleResponse.NodeId,
+		Address: strings.ReplaceAll(scheduleResponse.GrpcUri, "https://", ""),
+		Port:    9735, // TODO: why doesn't greenlight return this?
+	}, nil
+}
+
+func (gs *GreenlightService) ConnectPeer(ctx context.Context, connectPeerRequest *lnclient.ConnectPeerRequest) error {
+	// glcli connect pubkey host port
+	connectPeerResponse := models.ConnectPeerResponse{}
+	err := gs.execJSONCommand(&connectPeerResponse, "connect", connectPeerRequest.Pubkey, connectPeerRequest.Address, strconv.Itoa(connectPeerRequest.Port))
+	if err != nil {
+		log.Printf("ConnectPeer failed: %v", err)
+		return err
+	}
+
+	return nil
 }

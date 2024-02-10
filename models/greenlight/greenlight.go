@@ -15,7 +15,7 @@ type Invoice struct {
 }
 
 type MsatValue struct {
-	Msat uint `json:"msat"`
+	Msat int64 `json:"msat"`
 }
 
 type PayResponse struct {
@@ -24,5 +24,27 @@ type PayResponse struct {
 	CreatedAt      float64   `json:"created_at"`
 	AmountMsat     MsatValue `json:"amount_msat"`
 	AmountSentMsat MsatValue `json:"amount_sent_msat"`
+	// ...other fields
+}
+
+type ListFundsResponse struct {
+	Channels []Channel `json:"channels"`
+}
+
+type Channel struct {
+	PeerId        string    `json:"peer_id"`
+	OurAmountMsat MsatValue `json:"our_amount_msat"`
+	AmountMsat    MsatValue `json:"amount_msat"`
+	FundingTxId   string    `json:"funding_txid"`
+	Id            string    `json:"channel_id"`
+}
+
+type ScheduleResponse struct {
+	NodeId  string `json:"node_id"`
+	GrpcUri string `json:"grpc_uri"`
+}
+
+type ConnectPeerResponse struct {
+	Id string `json:"id"`
 	// ...other fields
 }

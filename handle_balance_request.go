@@ -50,7 +50,7 @@ func (svc *Service) HandleGetBalanceEvent(ctx context.Context, request *Nip47Req
 	}
 
 	responsePayload := &Nip47BalanceResponse{
-		Balance: balance * MSAT_PER_SAT,
+		Balance: balance,
 	}
 
 	appPermission := AppPermission{}

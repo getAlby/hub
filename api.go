@@ -9,6 +9,7 @@ import (
 	"time"
 
 	models "github.com/getAlby/nostr-wallet-connect/models/api"
+	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 	"github.com/nbd-wtf/go-nostr"
 	"gorm.io/gorm"
 )
@@ -209,11 +210,33 @@ func (api *API) ListApps() ([]models.App, error) {
 	return apiApps, nil
 }
 
+func (api *API) ListChannels() ([]lnclient.Channel, error) {
+	if api.svc.lnClient == nil {
+		return nil, errors.New("LNClient not started")
+	}
+	return api.svc.lnClient.ListChannels(api.svc.ctx)
+}
+
+func (api *API) GetNodeConnectionInfo() (*lnclient.NodeConnectionInfo, error) {
+	if api.svc.lnClient == nil {
+		return nil, errors.New("LNClient not started")
+	}
+	return api.svc.lnClient.GetNodeConnectionInfo(api.svc.ctx)
+}
+
+func (api *API) ConnectPeer(connectPeerRequest *models.ConnectPeerRequest) error {
+	if api.svc.lnClient == nil {
+		return errors.New("LNClient not started")
+	}
+	return api.svc.lnClient.ConnectPeer(api.svc.ctx, connectPeerRequest)
+}
+
 func (api *API) GetInfo() *models.InfoResponse {
 	info := models.InfoResponse{}
 	backend, _ := api.svc.cfg.Get("LNBackendType", "")
 	info.SetupCompleted = backend != ""
 	info.Running = api.svc.lnClient != nil
+	info.BackendType = backend
 	return &info
 }
 
