@@ -51,6 +51,8 @@ type LNClient interface {
 	ListChannels(ctx context.Context) (channels []Channel, err error)
 	GetNodeConnectionInfo(ctx context.Context) (nodeConnectionInfo *NodeConnectionInfo, err error)
 	ConnectPeer(ctx context.Context, connectPeerRequest *ConnectPeerRequest) error
+	GetNewOnchainAddress(ctx context.Context) (string, error)
+	GetOnchainBalance(ctx context.Context) (int64, error)
 }
 
 type Channel struct {

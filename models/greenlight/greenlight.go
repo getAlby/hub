@@ -29,6 +29,14 @@ type PayResponse struct {
 
 type ListFundsResponse struct {
 	Channels []Channel `json:"channels"`
+	Outputs  []Output  `json:"outputs"`
+}
+
+type Output struct {
+	TxId       string    `json:"txid"`
+	AmountMsat MsatValue `json:"amount_msat"`
+	Address    string    `json:"address"`
+	// ...other fields
 }
 
 type Channel struct {
@@ -47,4 +55,8 @@ type ScheduleResponse struct {
 type ConnectPeerResponse struct {
 	Id string `json:"id"`
 	// ...other fields
+}
+
+type NewAddressResponse struct {
+	Bech32 string `json:"bech32"`
 }

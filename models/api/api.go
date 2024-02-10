@@ -83,3 +83,11 @@ type InfoResponse struct {
 }
 
 type ConnectPeerRequest = lnclient.ConnectPeerRequest
+
+type NewOnchainAddressResponse struct {
+	Address string `json:"address"`
+}
+
+type OnchainBalanceResponse struct {
+	Sats int64 `json:"sats"`
+}

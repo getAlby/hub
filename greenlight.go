@@ -227,7 +227,6 @@ func (gs *GreenlightService) GetInfo(ctx context.Context) (info *lnclient.NodeIn
 }
 
 func (gs *GreenlightService) ListChannels(ctx context.Context) ([]lnclient.Channel, error) {
-
 	//glcli listfunds
 
 	listFundsResponse := models.ListFundsResponse{}
@@ -278,4 +277,35 @@ func (gs *GreenlightService) ConnectPeer(ctx context.Context, connectPeerRequest
 	}
 
 	return nil
+}
+
+func (gs *GreenlightService) GetNewOnchainAddress(ctx context.Context) (string, error) {
+	// glcli newaddr
+
+	newAddressResponse := models.NewAddressResponse{}
+	err := gs.execJSONCommand(&newAddressResponse, "newaddr")
+	if err != nil {
+		log.Printf("GetNewOnchainAddress failed: %v", err)
+		return "", err
+	}
+
+	return newAddressResponse.Bech32, nil
+}
+
+func (gs *GreenlightService) GetOnchainBalance(ctx context.Context) (int64, error) {
+	//glcli listfunds
+
+	listFundsResponse := models.ListFundsResponse{}
+	err := gs.execJSONCommand(&listFundsResponse, "listfunds")
+	if err != nil {
+		log.Printf("GetOnchainBalance failed: %v", err)
+		return 0, err
+	}
+
+	var balance int64 = 0
+	for _, output := range listFundsResponse.Outputs {
+		balance += output.AmountMsat.Msat
+	}
+
+	return balance / 1000, nil
 }

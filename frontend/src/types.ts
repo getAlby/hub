@@ -106,3 +106,11 @@ export type ConnectPeerRequest = {
   address: string;
   port: number;
 };
+
+export type GetOnchainAddressResponse = {
+  address: string;
+};
+
+export type OnchainBalanceResponse = {
+  sats: number;
+};

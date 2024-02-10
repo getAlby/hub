@@ -318,3 +318,11 @@ func breezPaymentToTransaction(payment *breez_sdk.Payment) (*Nip47Transaction, e
 
 	return tx, nil
 }
+
+func (bs *BreezService) GetNewOnchainAddress(ctx context.Context) (string, error) {
+	return "", nil
+}
+
+func (bs *BreezService) GetOnchainBalance(ctx context.Context) (int64, error) {
+	return 0, nil
+}

@@ -1,17 +1,19 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useChannels } from "src/hooks/useChannels";
+import { useOnchainBalance } from "src/hooks/useOnchainBalance";
 
 export default function Channels() {
   const { data: channels } = useChannels();
-  const [nodes, setNodes] = React.useState<NodeStats[]>([]);
+  const { data: onchainBalance } = useOnchainBalance();
+  const [nodes, setNodes] = React.useState<Node[]>([]);
 
   const loadNodeStats = React.useCallback(async () => {
     if (!channels) {
       return [];
     }
     const nodes = await Promise.all(
-      channels?.map(async (channel): Promise<NodeStats | undefined> => {
+      channels?.map(async (channel): Promise<Node | undefined> => {
         const response = await fetch(
           `https://mempool.space/api/v1/lightning/nodes/${channel.remotePubkey}`
         );
@@ -22,16 +24,14 @@ export default function Channels() {
         }
       })
     );
-    setNodes(nodes.filter((node) => !!node) as NodeStats[]);
+    setNodes(nodes.filter((node) => !!node) as Node[]);
   }, [channels]);
 
   React.useEffect(() => {
     loadNodeStats();
   }, [loadNodeStats]);
 
-  const loading = !channels;
-  const balanceLoading = false;
-  const onchainBalance = 0;
+  const loading = !channels || !onchainBalance;
   const lightningBalance = channels
     ?.map((channel) => channel.localBalance)
     .reduce((a, b) => a + b, 0);
@@ -79,14 +79,14 @@ export default function Channels() {
                 Onchain balance
               </p>
               <div className="text-lg font-semibold text-gray-700 dark:text-gray-200">
-                {balanceLoading && (
+                {!onchainBalance && (
                   <div>
                     <div className="animate-pulse d-inline ">
                       <div className="h-2.5 bg-gray-200 rounded-full dark:bg-gray-700 w-12 my-2"></div>
                     </div>
                   </div>
                 )}
-                {!balanceLoading && <span>{onchainBalance} sats</span>}
+                {onchainBalance && <span>{onchainBalance.sats} sats</span>}
               </div>
             </div>
           </div>
@@ -103,15 +103,15 @@ export default function Channels() {
                 Lightning balance
               </div>
               <div className="text-lg font-semibold text-gray-700 dark:text-gray-200">
-                {balanceLoading && (
+                {!channels && (
                   <div>
                     <div className="animate-pulse d-inline ">
                       <div className="h-2.5 bg-gray-200 rounded-full dark:bg-gray-700 w-12 my-2"></div>
                     </div>
                   </div>
                 )}
-                {!balanceLoading && (
-                  <div>{formatAmount(lightningBalance || 0)} sats</div>
+                {lightningBalance !== undefined && (
+                  <div>{formatAmount(lightningBalance)} sats</div>
                 )}
               </div>
             </div>
@@ -261,7 +261,7 @@ const formatAmount = (amount: number, decimals = 1) => {
 };
 
 // from https://mempool.space/docs/api/rest#get-node-stats
-type NodeStats = {
+type Node = {
   alias: string;
   public_key: string;
 };

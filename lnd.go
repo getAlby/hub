@@ -337,6 +337,14 @@ func (svc *LNDService) ConnectPeer(ctx context.Context, connectPeerRequest *lncl
 	return nil
 }
 
+func (svc *LNDService) GetNewOnchainAddress(ctx context.Context) (string, error) {
+	return "", nil
+}
+
+func (svc *LNDService) GetOnchainBalance(ctx context.Context) (int64, error) {
+	return 0, nil
+}
+
 func lndInvoiceToTransaction(invoice *lnrpc.Invoice) *Nip47Transaction {
 	var settledAt *int64
 	var preimage string

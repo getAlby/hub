@@ -64,8 +64,10 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 
 	// TODO: below could be supported by NIP-47
 	e.GET("/api/channels", httpSvc.channelsListHandler, authMiddleware)
-	e.GET("/api/node", httpSvc.nodeConnectionInfoHandler, authMiddleware)
+	e.GET("/api/node/connection-info", httpSvc.nodeConnectionInfoHandler, authMiddleware)
 	e.POST("/api/peer", httpSvc.connectPeerHandler, authMiddleware)
+	e.POST("/api/wallet/new-address", httpSvc.newOnchainAddressHandler, authMiddleware)
+	e.GET("/api/wallet/balance", httpSvc.onchainBalanceHandler, authMiddleware)
 
 	frontend.RegisterHandlers(e)
 }
@@ -199,6 +201,19 @@ func (httpSvc *HttpService) nodeConnectionInfoHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, info)
 }
 
+func (httpSvc *HttpService) onchainBalanceHandler(c echo.Context) error {
+
+	onchainBalanceResponse, err := httpSvc.api.GetOnchainBalance()
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+
+	return c.JSON(http.StatusOK, onchainBalanceResponse)
+}
+
 func (httpSvc *HttpService) connectPeerHandler(c echo.Context) error {
 	var connectPeerRequest api.ConnectPeerRequest
 	if err := c.Bind(&connectPeerRequest); err != nil {
@@ -216,6 +231,18 @@ func (httpSvc *HttpService) connectPeerHandler(c echo.Context) error {
 	}
 
 	return c.NoContent(http.StatusNoContent)
+}
+
+func (httpSvc *HttpService) newOnchainAddressHandler(c echo.Context) error {
+	newAddressResponse, err := httpSvc.api.GetNewOnchainAddress()
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to save session: %s", err.Error()),
+		})
+	}
+
+	return c.JSON(http.StatusOK, newAddressResponse)
 }
 
 func (httpSvc *HttpService) appsListHandler(c echo.Context) error {
