@@ -45,6 +45,7 @@ type Channel struct {
 	AmountMsat    MsatValue `json:"amount_msat"`
 	FundingTxId   string    `json:"funding_txid"`
 	Id            string    `json:"channel_id"`
+	State         int       `json:"state"`
 }
 
 type ScheduleResponse struct {
@@ -54,6 +55,17 @@ type ScheduleResponse struct {
 
 type ConnectPeerResponse struct {
 	Id string `json:"id"`
+	// ...other fields
+}
+
+type Outpoint struct {
+	//txid
+}
+
+type OpenChannelResponse struct {
+	Tx        string `json:"tx"`
+	TxId      string `json:"txid"`
+	ChannelId string `json:"channel_id"`
 	// ...other fields
 }
 

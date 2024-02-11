@@ -51,6 +51,7 @@ type LNClient interface {
 	ListChannels(ctx context.Context) (channels []Channel, err error)
 	GetNodeConnectionInfo(ctx context.Context) (nodeConnectionInfo *NodeConnectionInfo, err error)
 	ConnectPeer(ctx context.Context, connectPeerRequest *ConnectPeerRequest) error
+	OpenChannel(ctx context.Context, openChannelRequest *OpenChannelRequest) (*OpenChannelResponse, error)
 	GetNewOnchainAddress(ctx context.Context) (string, error)
 	GetOnchainBalance(ctx context.Context) (int64, error)
 }
@@ -60,10 +61,20 @@ type Channel struct {
 	RemoteBalance int64  `json:"remoteBalance"`
 	Id            string `json:"id"`
 	RemotePubkey  string `json:"remotePubkey"`
+	Active        bool   `json:"active"`
 }
 
 type ConnectPeerRequest struct {
 	Pubkey  string `json:"pubkey"`
 	Address string `json:"address"`
 	Port    int    `json:"port"`
+}
+
+type OpenChannelRequest struct {
+	Pubkey string `json:"pubkey"`
+	Amount int64  `json:"amount"`
+}
+
+type OpenChannelResponse struct {
+	FundingTxId string `json:"fundingTxId"`
 }

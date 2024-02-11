@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { useChannels } from "src/hooks/useChannels";
 import { useOnchainBalance } from "src/hooks/useOnchainBalance";
+import { Node } from "src/types";
 
 export default function Channels() {
   const { data: channels } = useChannels();
@@ -86,7 +87,9 @@ export default function Channels() {
                     </div>
                   </div>
                 )}
-                {onchainBalance && <span>{onchainBalance.sats} sats</span>}
+                {onchainBalance && (
+                  <span>{formatAmount(onchainBalance.sats * 1000)} sats</span>
+                )}
               </div>
             </div>
           </div>
@@ -185,7 +188,6 @@ export default function Channels() {
                         const node = nodes.find(
                           (n) => n.public_key === channel.remotePubkey
                         );
-                        const active = true;
                         const alias = node?.alias || "Unknown";
                         const capacity =
                           channel.localBalance + channel.remoteBalance;
@@ -200,7 +202,7 @@ export default function Channels() {
                             key={channel.id}
                           >
                             <td className="py-4 px-6 text-sm font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                              {active ? "🟢" : "🔴"}{" "}
+                              {channel.active ? "🟢" : "🔴"}{" "}
                               <a
                                 className="underline"
                                 title={channel.remotePubkey}
@@ -258,10 +260,4 @@ const formatAmount = (amount: number, decimals = 1) => {
     amount /= 1000;
   }
   return amount.toFixed(i > 0 ? decimals : 0) + ["", "k", "M", "G"][i];
-};
-
-// from https://mempool.space/docs/api/rest#get-node-stats
-type Node = {
-  alias: string;
-  public_key: string;
 };

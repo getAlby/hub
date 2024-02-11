@@ -93,6 +93,7 @@ export type Channel = {
   remoteBalance: number;
   remotePubkey: string;
   id: string;
+  active: boolean;
 };
 
 export type NodeConnectionInfo = {
@@ -107,10 +108,28 @@ export type ConnectPeerRequest = {
   port: number;
 };
 
+export type OpenChannelRequest = {
+  pubkey: string;
+  amount: number;
+};
+
+export type OpenChannelResponse = {
+  fundingTxId: string;
+};
+
 export type GetOnchainAddressResponse = {
   address: string;
 };
 
 export type OnchainBalanceResponse = {
   sats: number;
+};
+
+// from https://mempool.space/docs/api/rest#get-node-stats
+export type Node = {
+  alias: string;
+  public_key: string;
+  color: string;
+  active_channel_count: number;
+  sockets: string;
 };

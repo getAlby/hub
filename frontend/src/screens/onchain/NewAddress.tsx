@@ -67,6 +67,9 @@ export default function NewOnchainAddress() {
         className="w-full font-mono shadow-md"
         value={onchainAddress}
       ></input>
+      <p className="italic text-sm">
+        Wait for one block confirmation after depositing.
+      </p>
       <button
         className="flex mt-8 bg-red-300 rounded-lg p-4"
         onClick={confirmGetNewAddress}

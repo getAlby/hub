@@ -3,7 +3,7 @@ import { useNodeConnectionInfo } from "src/hooks/useNodeConnectionInfo";
 import { ConnectPeerRequest } from "src/types";
 import { request } from "src/utils/request";
 
-export default function Blocktank() {
+export default function NewBlocktankChannel() {
   const { data: connectionInfo } = useNodeConnectionInfo();
   const { data: csrf } = useCSRF();
   if (!connectionInfo) {

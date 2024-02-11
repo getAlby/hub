@@ -261,6 +261,9 @@ func (bs *BreezService) GetNodeConnectionInfo(ctx context.Context) (nodeConnecti
 func (bs *BreezService) ConnectPeer(ctx context.Context, connectPeerRequest *lnclient.ConnectPeerRequest) error {
 	return nil
 }
+func (bs *BreezService) OpenChannel(ctx context.Context, openChannelRequest *lnclient.OpenChannelRequest) (*lnclient.OpenChannelResponse, error) {
+	return nil, nil
+}
 
 func breezPaymentToTransaction(payment *breez_sdk.Payment) (*Nip47Transaction, error) {
 	var lnDetails breez_sdk.PaymentDetailsLn

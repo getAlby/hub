@@ -336,6 +336,9 @@ func (svc *LNDService) GetNodeConnectionInfo(ctx context.Context) (nodeConnectio
 func (svc *LNDService) ConnectPeer(ctx context.Context, connectPeerRequest *lnclient.ConnectPeerRequest) error {
 	return nil
 }
+func (svc *LNDService) OpenChannel(ctx context.Context, openChannelRequest *lnclient.OpenChannelRequest) (*lnclient.OpenChannelResponse, error) {
+	return nil, nil
+}
 
 func (svc *LNDService) GetNewOnchainAddress(ctx context.Context) (string, error) {
 	return "", nil

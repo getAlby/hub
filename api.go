@@ -231,6 +231,13 @@ func (api *API) ConnectPeer(connectPeerRequest *models.ConnectPeerRequest) error
 	return api.svc.lnClient.ConnectPeer(api.svc.ctx, connectPeerRequest)
 }
 
+func (api *API) OpenChannel(openChannelRequest *models.OpenChannelRequest) (*models.OpenChannelResponse, error) {
+	if api.svc.lnClient == nil {
+		return nil, errors.New("LNClient not started")
+	}
+	return api.svc.lnClient.OpenChannel(api.svc.ctx, openChannelRequest)
+}
+
 func (api *API) GetNewOnchainAddress() (*models.NewOnchainAddressResponse, error) {
 	if api.svc.lnClient == nil {
 		return nil, errors.New("LNClient not started")

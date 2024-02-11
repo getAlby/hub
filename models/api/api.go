@@ -83,6 +83,8 @@ type InfoResponse struct {
 }
 
 type ConnectPeerRequest = lnclient.ConnectPeerRequest
+type OpenChannelRequest = lnclient.OpenChannelRequest
+type OpenChannelResponse = lnclient.OpenChannelResponse
 
 type NewOnchainAddressResponse struct {
 	Address string `json:"address"`

@@ -7,9 +7,9 @@ export default function NewChannel() {
       <Link className="text-purple-500" to="/channels/new/blocktank">
         Buy Liquidity from Blocktank
       </Link>
-      {/* <Link className="text-purple-500" to="/channels/new/recommended">
+      <Link className="text-purple-500" to="/channels/recommended">
         Connect with a Recommended Channel
-      </Link> */}
+      </Link>
       <Link className="text-purple-500" to="/channels/new/custom">
         Custom Channel
       </Link>

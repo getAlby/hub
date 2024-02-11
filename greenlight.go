@@ -151,12 +151,14 @@ func (gs *GreenlightService) Shutdown() error {
 func (gs *GreenlightService) SendPaymentSync(ctx context.Context, payReq string) (preimage string, err error) {
 	//glcli pay BOLT11_INVOICE_HERE
 
+	log.Printf("SendPaymentSync %v", payReq)
 	payResponse := models.PayResponse{}
 	err = gs.execJSONCommand(&payResponse, "pay", payReq)
 	if err != nil {
 		log.Printf("SendPaymentSync failed: %v", err)
 		return "", err
 	}
+	log.Printf("SendPaymentSync succeeded: %v", payResponse.Preimage)
 
 	return payResponse.Preimage, nil
 }
@@ -245,6 +247,7 @@ func (gs *GreenlightService) ListChannels(ctx context.Context) ([]lnclient.Chann
 			RemoteBalance: glChannel.AmountMsat.Msat - glChannel.OurAmountMsat.Msat,
 			RemotePubkey:  glChannel.PeerId,
 			Id:            glChannel.Id,
+			Active:        glChannel.State == 2,
 		})
 	}
 
@@ -277,6 +280,22 @@ func (gs *GreenlightService) ConnectPeer(ctx context.Context, connectPeerRequest
 	}
 
 	return nil
+}
+
+func (gs *GreenlightService) OpenChannel(ctx context.Context, openChannelRequest *lnclient.OpenChannelRequest) (*lnclient.OpenChannelResponse, error) {
+
+	// glcli fundchannel nodeid amount
+
+	openChannelResponse := models.OpenChannelResponse{}
+	err := gs.execJSONCommand(&openChannelResponse, "fundchannel", openChannelRequest.Pubkey, strconv.FormatInt(openChannelRequest.Amount*1000, 10)+"msat")
+	if err != nil {
+		log.Printf("OpenChannel failed: %v", err)
+		return nil, err
+	}
+
+	return &lnclient.OpenChannelResponse{
+		FundingTxId: openChannelResponse.TxId,
+	}, nil
 }
 
 func (gs *GreenlightService) GetNewOnchainAddress(ctx context.Context) (string, error) {

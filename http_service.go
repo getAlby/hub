@@ -64,6 +64,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 
 	// TODO: below could be supported by NIP-47
 	e.GET("/api/channels", httpSvc.channelsListHandler, authMiddleware)
+	e.POST("/api/channels", httpSvc.openChannelHandler, authMiddleware)
 	e.GET("/api/node/connection-info", httpSvc.nodeConnectionInfoHandler, authMiddleware)
 	e.POST("/api/peer", httpSvc.connectPeerHandler, authMiddleware)
 	e.POST("/api/wallet/new-address", httpSvc.newOnchainAddressHandler, authMiddleware)
@@ -226,11 +227,30 @@ func (httpSvc *HttpService) connectPeerHandler(c echo.Context) error {
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to save session: %s", err.Error()),
+			Message: fmt.Sprintf("Failed to connect peer: %s", err.Error()),
 		})
 	}
 
 	return c.NoContent(http.StatusNoContent)
+}
+
+func (httpSvc *HttpService) openChannelHandler(c echo.Context) error {
+	var openChannelRequest api.OpenChannelRequest
+	if err := c.Bind(&openChannelRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	openChannelResponse, err := httpSvc.api.OpenChannel(&openChannelRequest)
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to open channel: %s", err.Error()),
+		})
+	}
+
+	return c.JSON(http.StatusOK, openChannelResponse)
 }
 
 func (httpSvc *HttpService) newOnchainAddressHandler(c echo.Context) error {
@@ -238,7 +258,7 @@ func (httpSvc *HttpService) newOnchainAddressHandler(c echo.Context) error {
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to save session: %s", err.Error()),
+			Message: fmt.Sprintf("Failed to request new onchain address: %s", err.Error()),
 		})
 	}
 
