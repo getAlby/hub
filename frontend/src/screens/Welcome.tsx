@@ -1,18 +1,13 @@
 import { Link } from "react-router-dom";
-
-import nwcComboMark from "src/assets/images/nwc-combomark.svg";
+import Container from "src/components/Container";
 
 export function Welcome() {
   return (
-    <div className="bg-white rounded-md shadow p-4 lg:p-8 mb-8 mx-auto max-w-xl dark:bg-surface-02dp flex flex-col items-center">
-      <div className="px-8 py-4 mb-14">
-        <img alt="NWC Logo" className="h-12 inline" src={nwcComboMark} />
-      </div>
-
+    <Container>
       <h1 className="font-semibold text-2xl font-headline mb-2 dark:text-white">
         Welcome to NWC app
       </h1>
-      <p className="text-center font-light text-md leading-relaxed dark:text-neutral-400 px-4 mb-14">
+      <p className="text-center text-md leading-relaxed dark:text-neutral-400 mb-14">
         Connect your lightning wallet to dozens of apps and enjoy seamless
         in-app payments.
       </p>
@@ -31,6 +26,6 @@ export function Welcome() {
           Get Started
         </Link>
       </div>
-    </div>
+    </Container>
   );
 }
