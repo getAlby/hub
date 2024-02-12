@@ -1,5 +1,6 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import Alert from "src/components/Alert";
 import ConnectButton from "src/components/ConnectButton";
 import Container from "src/components/Container";
 import { useCSRF } from "src/hooks/useCSRF";
@@ -14,16 +15,32 @@ export function SetupNode() {
   const { unlockPassword } = useSetupStore();
   const [isConnecting, setConnecting] = React.useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const params = new URLSearchParams(location.search);
+  const isNew = params.get("wallet") === "new";
 
   const { data: info, mutate: refetchInfo } = useInfo();
   const { data: csrf } = useCSRF();
 
   async function handleSubmit(data: object) {
+    if (backendType === "BREEZ") {
+      navigate(`/setup/mnemonic${isNew ? "?wallet=new" : ""}`, {
+        state: {
+          backendType,
+          unlockPassword,
+          ...data,
+        },
+      });
+      return;
+    }
+
     try {
       setConnecting(true);
       if (!csrf) {
         throw new Error("info not loaded");
       }
+
       await request("/api/setup", {
         method: "POST",
         headers: {
@@ -49,39 +66,43 @@ export function SetupNode() {
   return (
     <>
       <Container>
-        <p className="mb-4">
+        <p className="text-center font-light text-md leading-relaxed dark:text-neutral-400 px-4 mb-4">
           Enter your node connection credentials to connect to your wallet.
         </p>
-
         {info?.setupCompleted && (
-          <p className="mb-4 text-red-500 text-sm font-bold">
-            Your node is already setup! only continue if you actually want to
+          <Alert type="warn">
+            ⚠️ Your node is already setup! only continue if you actually want to
             change your connection settings.
-          </p>
+          </Alert>
         )}
-        <label
-          htmlFor="backend-type"
-          className="block font-medium text-gray-900 dark:text-white"
-        >
-          Backend Type
-        </label>
-        <select
-          name="backend-type"
-          value={backendType}
-          onChange={(e) => setBackendType(e.target.value as BackendType)}
-          id="backend-type"
-          className="dark:bg-surface-00dp mb-4 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
-        >
-          <option value={"BREEZ"}>Breez</option>
-          <option value={"LND"}>LND</option>
-        </select>
-
-        {backendType === "BREEZ" && (
-          <BreezForm handleSubmit={handleSubmit} isConnecting={isConnecting} />
-        )}
-        {backendType === "LND" && (
-          <LNDForm handleSubmit={handleSubmit} isConnecting={isConnecting} />
-        )}
+        <div className="w-full mt-4">
+          <label
+            htmlFor="backend-type"
+            className="block mb-2 text-md text-gray-900 dark:text-white"
+          >
+            Backend Type
+          </label>
+          <select
+            name="backend-type"
+            value={backendType}
+            disabled={isNew}
+            onChange={(e) => setBackendType(e.target.value as BackendType)}
+            id="backend-type"
+            className="dark:bg-surface-00dp mb-4 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
+          >
+            <option value={"BREEZ"}>Breez</option>
+            <option value={"LND"}>LND</option>
+          </select>
+          {backendType === "BREEZ" && (
+            <BreezForm
+              handleSubmit={handleSubmit}
+              isConnecting={isConnecting}
+            />
+          )}
+          {backendType === "LND" && (
+            <LNDForm handleSubmit={handleSubmit} isConnecting={isConnecting} />
+          )}
+        </div>
       </Container>
     </>
   );
@@ -96,18 +117,17 @@ function BreezForm({ isConnecting, handleSubmit }: SetupFormProps) {
   const [greenlightInviteCode, setGreenlightInviteCode] =
     React.useState<string>("");
   const [breezApiKey, setBreezApiKey] = React.useState<string>("");
-  const [breezMnemonic, setBreezMnemonic] = React.useState<string>("");
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!greenlightInviteCode || !breezMnemonic) {
-      alert("please fill out all fields");
+    // Isn't breezApiKey not required?
+    if (!greenlightInviteCode) {
+      alert("Please fill out all fields");
       return;
     }
     handleSubmit({
       greenlightInviteCode,
       breezApiKey,
-      breezMnemonic,
     });
   }
 
@@ -116,7 +136,7 @@ function BreezForm({ isConnecting, handleSubmit }: SetupFormProps) {
       <>
         <label
           htmlFor="greenlight-invite-code"
-          className="block font-medium text-gray-900 dark:text-white"
+          className="block mb-2 text-md dark:text-white"
         >
           Greenlight Invite Code
         </label>
@@ -126,11 +146,13 @@ function BreezForm({ isConnecting, handleSubmit }: SetupFormProps) {
           value={greenlightInviteCode}
           type="password"
           id="greenlight-invite-code"
+          autoComplete="new-password"
+          placeholder="XXXX-YYYY"
           className="dark:bg-surface-00dp block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
         />
         <label
           htmlFor="breez-api-key"
-          className="mt-4 block font-medium text-gray-900 dark:text-white"
+          className="block mt-4 mb-2 text-md dark:text-white"
         >
           Breez API Key
         </label>
@@ -140,20 +162,7 @@ function BreezForm({ isConnecting, handleSubmit }: SetupFormProps) {
           value={breezApiKey}
           type="password"
           id="breez-api-key"
-          className="dark:bg-surface-00dp block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
-        />
-        <label
-          htmlFor="mnemonic"
-          className="mt-4 block font-medium text-gray-900 dark:text-white"
-        >
-          BIP39 Mnemonic
-        </label>
-        <input
-          name="mnemonic"
-          onChange={(e) => setBreezMnemonic(e.target.value)}
-          value={breezMnemonic}
-          type="password"
-          id="mnemonic"
+          autoComplete="new-password"
           className="dark:bg-surface-00dp block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
         />
       </>
@@ -190,7 +199,7 @@ function LNDForm({ isConnecting, handleSubmit }: SetupFormProps) {
       <>
         <label
           htmlFor="lnd-address"
-          className="block font-medium text-gray-900 dark:text-white"
+          className="block mb-2 text-md dark:text-white"
         >
           LND Address (GRPC)
         </label>
@@ -204,7 +213,7 @@ function LNDForm({ isConnecting, handleSubmit }: SetupFormProps) {
 
         <label
           htmlFor="lnd-cert-hex"
-          className="mt-4 block font-medium text-gray-900 dark:text-white"
+          className="block mt-4 mb-2 text-md text-gray-900 dark:text-white"
         >
           TLS Certificate (Hex)
         </label>
@@ -218,7 +227,7 @@ function LNDForm({ isConnecting, handleSubmit }: SetupFormProps) {
         />
         <label
           htmlFor="lnd-macaroon-hex"
-          className="mt-4 block font-medium text-gray-900 dark:text-white"
+          className="block mt-4 mb-2 text-md text-gray-900 dark:text-white"
         >
           Admin Macaroon (Hex)
         </label>
@@ -233,7 +242,7 @@ function LNDForm({ isConnecting, handleSubmit }: SetupFormProps) {
       </>
       <ConnectButton
         isConnecting={isConnecting}
-        submitText="Next"
+        submitText="Finish"
         loadingText="Saving..."
       />
     </form>

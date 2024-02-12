@@ -11,6 +11,7 @@ import NewApp from "src/screens/apps/NewApp";
 import AppCreated from "src/screens/apps/AppCreated";
 import NotFound from "src/screens/NotFound";
 import { SetupNode } from "src/screens/setup/SetupNode";
+import { SetupWallet } from "src/screens/setup/SetupWallet";
 import { Welcome } from "src/screens/Welcome";
 import { SetupPassword } from "src/screens/setup/SetupPassword";
 import Start from "src/screens/Start";
@@ -19,6 +20,7 @@ import { StartRedirect } from "src/components/redirects/StartRedirect";
 import { HomeRedirect } from "src/components/redirects/HomeRedirect";
 import Unlock from "src/screens/Unlock";
 import { SetupRedirect } from "src/components/redirects/SetupRedirect";
+import { SetupMnemonic } from "src/screens/setup/SetupMnemonic";
 
 function App() {
   return (
@@ -41,6 +43,8 @@ function App() {
               <Route path="" element={<Navigate to="password" replace />} />
               <Route path="password" element={<SetupPassword />} />
               <Route path="node" element={<SetupNode />} />
+              <Route path="wallet" element={<SetupWallet />} />
+              <Route path="mnemonic" element={<SetupMnemonic />} />
             </Route>
             <Route path="apps" element={<AppsRedirect />}>
               <Route index path="" element={<AppsList />} />

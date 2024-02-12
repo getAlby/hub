@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useInfo } from "src/hooks/useInfo";
 import useSetupStore from "src/state/SetupStore";
 
-import nwcComboMark from "src/assets/images/nwc-combomark.svg";
 import Container from "src/components/Container";
+import Alert from "src/components/Alert";
 
 export function SetupPassword() {
   const store = useSetupStore();
@@ -18,24 +18,23 @@ export function SetupPassword() {
       alert("Passwords don't match!");
       return;
     }
-    navigate("/setup/node");
+    navigate("/setup/wallet");
   }
 
   return (
     <>
       <Container>
         <form onSubmit={onSubmit} className="flex flex-col items-center w-full">
-          <p className="text-center text-md leading-relaxed dark:text-neutral-400 px-4 mb-8">
+          <p className="text-center font-light text-md leading-relaxed dark:text-neutral-400 px-4 mb-4">
             Choose a password to unlock the NWC app
           </p>
           {info?.setupCompleted && (
-            <p className="mb-4 text-red-500 text-sm font-bold">
-              Your node is already setup! only continue if you actually want to
-              change your connection settings.
-            </p>
+            <Alert type="warn">
+              ⚠️ Your node is already setup! only continue if you actually want
+              to change your connection settings.
+            </Alert>
           )}
-
-          <div className="w-full mb-4">
+          <div className="w-full my-4">
             <label
               htmlFor="unlock-password"
               className="block mb-2 text-md dark:text-white"
