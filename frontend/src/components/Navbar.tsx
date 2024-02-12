@@ -53,7 +53,7 @@ function Navbar() {
         </div>
       </div>
       <div className="flex justify-center">
-        <div className="container max-w-screen-lg px-2">
+        <div className="container max-w-screen-lg px-2 pt-6">
           <Outlet />
         </div>
       </div>

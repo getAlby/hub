@@ -2,9 +2,15 @@ import Loading from "src/components/Loading";
 
 type ConnectButtonProps = {
   isConnecting: boolean;
+  loadingText?: string;
+  submitText?: string;
 };
 
-export default function ConnectButton({ isConnecting }: ConnectButtonProps) {
+export default function ConnectButton({
+  isConnecting,
+  loadingText,
+  submitText,
+}: ConnectButtonProps) {
   return (
     <button
       type="submit"
@@ -15,10 +21,10 @@ export default function ConnectButton({ isConnecting }: ConnectButtonProps) {
     >
       {isConnecting ? (
         <>
-          <Loading /> Connecting...
+          <Loading /> {loadingText || "Connecting..."}
         </>
       ) : (
-        <>Connect</>
+        <>{submitText || "Connect"}</>
       )}
     </button>
   );

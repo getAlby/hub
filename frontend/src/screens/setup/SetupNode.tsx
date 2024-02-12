@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import ConnectButton from "src/components/ConnectButton";
+import Container from "src/components/Container";
 import { useCSRF } from "src/hooks/useCSRF";
 import { useInfo } from "src/hooks/useInfo";
 import useSetupStore from "src/state/SetupStore";
@@ -47,39 +48,41 @@ export function SetupNode() {
 
   return (
     <>
-      {info?.setupCompleted && (
-        <p className="mb-4 text-red-500">
-          Your node is already setup! only continue if you actually want to
-          change your connection settings.
+      <Container>
+        <p className="mb-4">
+          Enter your node connection credentials to connect to your wallet.
         </p>
-      )}
-      <p className="mb-4">
-        Enter your node connection credentials to connect to your wallet.
-      </p>
 
-      <label
-        htmlFor="backend-type"
-        className="block font-medium text-gray-900 dark:text-white"
-      >
-        Backend Type
-      </label>
-      <select
-        name="backend-type"
-        value={backendType}
-        onChange={(e) => setBackendType(e.target.value as BackendType)}
-        id="backend-type"
-        className="dark:bg-surface-00dp mb-4 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
-      >
-        <option value={"BREEZ"}>Breez</option>
-        <option value={"LND"}>LND</option>
-      </select>
+        {info?.setupCompleted && (
+          <p className="mb-4 text-red-500 text-sm font-bold">
+            Your node is already setup! only continue if you actually want to
+            change your connection settings.
+          </p>
+        )}
+        <label
+          htmlFor="backend-type"
+          className="block font-medium text-gray-900 dark:text-white"
+        >
+          Backend Type
+        </label>
+        <select
+          name="backend-type"
+          value={backendType}
+          onChange={(e) => setBackendType(e.target.value as BackendType)}
+          id="backend-type"
+          className="dark:bg-surface-00dp mb-4 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
+        >
+          <option value={"BREEZ"}>Breez</option>
+          <option value={"LND"}>LND</option>
+        </select>
 
-      {backendType === "BREEZ" && (
-        <BreezForm handleSubmit={handleSubmit} isConnecting={isConnecting} />
-      )}
-      {backendType === "LND" && (
-        <LNDForm handleSubmit={handleSubmit} isConnecting={isConnecting} />
-      )}
+        {backendType === "BREEZ" && (
+          <BreezForm handleSubmit={handleSubmit} isConnecting={isConnecting} />
+        )}
+        {backendType === "LND" && (
+          <LNDForm handleSubmit={handleSubmit} isConnecting={isConnecting} />
+        )}
+      </Container>
     </>
   );
 }
@@ -109,7 +112,7 @@ function BreezForm({ isConnecting, handleSubmit }: SetupFormProps) {
   }
 
   return (
-    <form onSubmit={onSubmit}>
+    <form className="w-full" onSubmit={onSubmit}>
       <>
         <label
           htmlFor="greenlight-invite-code"
@@ -154,7 +157,11 @@ function BreezForm({ isConnecting, handleSubmit }: SetupFormProps) {
           className="dark:bg-surface-00dp block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
         />
       </>
-      <ConnectButton isConnecting={isConnecting} />
+      <ConnectButton
+        isConnecting={isConnecting}
+        submitText="Next"
+        loadingText="Saving..."
+      />
     </form>
   );
 }
@@ -179,7 +186,7 @@ function LNDForm({ isConnecting, handleSubmit }: SetupFormProps) {
   }
 
   return (
-    <form onSubmit={onSubmit}>
+    <form className="w-full" onSubmit={onSubmit}>
       <>
         <label
           htmlFor="lnd-address"
@@ -224,7 +231,11 @@ function LNDForm({ isConnecting, handleSubmit }: SetupFormProps) {
           className="dark:bg-surface-00dp block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
         />
       </>
-      <ConnectButton isConnecting={isConnecting} />
+      <ConnectButton
+        isConnecting={isConnecting}
+        submitText="Next"
+        loadingText="Saving..."
+      />
     </form>
   );
 }
