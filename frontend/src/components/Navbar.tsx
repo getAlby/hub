@@ -1,6 +1,6 @@
 import { Link, Outlet, useLocation } from "react-router-dom";
 
-import nwcLogo from "src/assets/images/nwc-logo.svg";
+import nwcComboMark from "src/assets/images/nwc-combomark.svg";
 import { useInfo } from "src/hooks/useInfo";
 
 function Navbar() {
@@ -16,70 +16,57 @@ function Navbar() {
     <>
       <div className="bg-gray-50 dark:bg-surface-00dp">
         <div className="bg-white border-b border-gray-200 dark:bg-surface-01dp dark:border-neutral-700 mb-6">
-          <nav className="container max-w-screen-lg mx-auto px-4 2xl:px-0 py-3">
-            <div className="flex justify-between items-center">
-              <div className="flex items-center space-x-12">
+          <nav className="container relative max-w-screen-lg mx-auto px-4 2xl:px-0 py-3">
+            <Link
+              to="/"
+              className="z-10 absolute font-headline dark:text-white"
+            >
+              <img alt="NWC Logo" className="h-8 inline" src={nwcComboMark} />
+            </Link>
+            <div className="flex justify-center items-center relative h-8">
+              <div className="flex space-x-4">
                 <Link
-                  to="/"
-                  className="font-headline text-[20px] dark:text-white flex gap-2 justify-center items-center"
+                  className={`${linkStyles} ${
+                    location.pathname.startsWith("/apps") && selectedLinkStyles
+                  }`}
+                  to="/apps"
                 >
-                  <img
-                    alt="NWC Logo"
-                    className="w-8 inline"
-                    width="128"
-                    height="120"
-                    src={nwcLogo}
-                  />
-                  <span className="dark:text-white text-lg font-semibold hidden sm:inline">
-                    Nostr Wallet Connect
-                  </span>
+                  Apps
                 </Link>
-
-                <div className="flex space-x-4">
+                <Link
+                  className={`${linkStyles} ${
+                    location.pathname === "/setup" && selectedLinkStyles
+                  }`}
+                  to="/setup"
+                >
+                  Setup
+                </Link>
+                {info?.running && info.backendType === "GREENLIGHT" && (
                   <Link
                     className={`${linkStyles} ${
-                      location.pathname.startsWith("/apps") &&
+                      location.pathname.startsWith("/channels") &&
                       selectedLinkStyles
                     }`}
-                    to="/apps"
+                    to="/channels"
                   >
-                    Connections
+                    Channels
                   </Link>
-                  {info?.running && info.backendType === "GREENLIGHT" && (
-                    <Link
-                      className={`${linkStyles} ${
-                        location.pathname.startsWith("/channels") &&
-                        selectedLinkStyles
-                      }`}
-                      to="/channels"
-                    >
-                      Channels
-                    </Link>
-                  )}
-                  <Link
-                    className={`${linkStyles} ${
-                      location.pathname === "/setup" && selectedLinkStyles
-                    }`}
-                    to="/setup"
-                  >
-                    Setup
-                  </Link>
-                  <Link
-                    className={`${linkStyles} ${
-                      location.pathname === "/about" && selectedLinkStyles
-                    }`}
-                    to="/about"
-                  >
-                    About
-                  </Link>
-                </div>
+                )}
+                <Link
+                  className={`${linkStyles} ${
+                    location.pathname === "/about" && selectedLinkStyles
+                  }`}
+                  to="/about"
+                >
+                  About
+                </Link>
               </div>
             </div>
           </nav>
         </div>
       </div>
       <div className="flex justify-center">
-        <div className="container max-w-screen-lg px-2">
+        <div className="container max-w-screen-lg px-2 pt-6">
           <Outlet />
         </div>
       </div>

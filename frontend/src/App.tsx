@@ -28,7 +28,7 @@ import RecommendedChannels from "src/screens/channels/RecommendedChannels";
 
 function App() {
   return (
-    <div className="bg:white min-h-full dark:bg-black">
+    <div className="bg-zinc-50 min-h-full flex flex-col justify-center dark:bg-zinc-950">
       <Toaster />
       <HashRouter>
         <Routes>
@@ -72,8 +72,8 @@ function App() {
           </Route>
           <Route path="/*" element={<NotFound />} />
         </Routes>
-        <Footer />
       </HashRouter>
+      <Footer />
     </div>
   );
 }
