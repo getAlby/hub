@@ -16,7 +16,7 @@ import toast from "src/components/Toast";
 export function SetupMnemonic() {
   const navigate = useNavigate();
   const { search } = useLocation();
-  const { setNodeInfo } = useSetupStore();
+  const { updateNodeInfo } = useSetupStore();
   const params = new URLSearchParams(search);
   const isNew = params.get("wallet") === "new";
 
@@ -35,7 +35,7 @@ export function SetupMnemonic() {
       return;
     }
 
-    setNodeInfo({ mnemonic });
+    updateNodeInfo({ mnemonic });
     navigate(`/setup/finish`);
   }
 

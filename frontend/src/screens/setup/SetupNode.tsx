@@ -8,7 +8,7 @@ import { BackendType } from "src/types";
 
 export function SetupNode() {
   const [backendType, setBackendType] = React.useState<BackendType>("BREEZ");
-  const { unlockPassword, setNodeInfo } = useSetupStore();
+  const { updateNodeInfo } = useSetupStore();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -16,9 +16,8 @@ export function SetupNode() {
   const isNew = params.get("wallet") === "new";
 
   async function handleSubmit(data: object) {
-    setNodeInfo({
+    updateNodeInfo({
       backendType,
-      unlockPassword,
       ...data,
     });
     navigate(
@@ -51,9 +50,7 @@ export function SetupNode() {
             <option value={"BREEZ"}>Breez</option>
             {!isNew && <option value={"LND"}>LND</option>}
           </select>
-          {backendType === "BREEZ" && (
-            <BreezForm handleSubmit={handleSubmit} isNew={isNew} />
-          )}
+          {backendType === "BREEZ" && <BreezForm handleSubmit={handleSubmit} />}
           {backendType === "LND" && <LNDForm handleSubmit={handleSubmit} />}
         </div>
       </Container>
@@ -65,18 +62,14 @@ type SetupFormProps = {
   handleSubmit(data: unknown): void;
 };
 
-type BreezFormProps = SetupFormProps & {
-  isNew: boolean;
-};
-
-function BreezForm({ handleSubmit, isNew }: BreezFormProps) {
+function BreezForm({ handleSubmit }: SetupFormProps) {
   const [greenlightInviteCode, setGreenlightInviteCode] =
     React.useState<string>("");
   const [breezApiKey, setBreezApiKey] = React.useState<string>("");
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if ((isNew && !greenlightInviteCode) || !breezApiKey) {
+    if (!greenlightInviteCode || !breezApiKey) {
       toast.error("Please fill out all fields");
       return;
     }
@@ -89,25 +82,22 @@ function BreezForm({ handleSubmit, isNew }: BreezFormProps) {
   return (
     <form className="w-full" onSubmit={onSubmit}>
       <>
-        {isNew && (
-          <>
-            <label
-              htmlFor="greenlight-invite-code"
-              className="block mb-2 text-md dark:text-white"
-            >
-              Greenlight Invite Code
-            </label>
-            <input
-              name="greenlight-invite-code"
-              onChange={(e) => setGreenlightInviteCode(e.target.value)}
-              value={greenlightInviteCode}
-              type="text"
-              id="greenlight-invite-code"
-              placeholder="XXXX-YYYY"
-              className="dark:bg-surface-00dp block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
-            />
-          </>
-        )}
+        <label
+          htmlFor="greenlight-invite-code"
+          className="block mb-2 text-md dark:text-white"
+        >
+          Greenlight Invite Code
+        </label>
+        <input
+          name="greenlight-invite-code"
+          onChange={(e) => setGreenlightInviteCode(e.target.value)}
+          value={greenlightInviteCode}
+          type="text"
+          id="greenlight-invite-code"
+          placeholder="XXXX-YYYY"
+          autoComplete="off"
+          className="dark:bg-surface-00dp block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
+        />
         <label
           htmlFor="breez-api-key"
           className="block mt-4 mb-2 text-md dark:text-white"
@@ -118,6 +108,7 @@ function BreezForm({ handleSubmit, isNew }: BreezFormProps) {
           name="breez-api-key"
           onChange={(e) => setBreezApiKey(e.target.value)}
           value={breezApiKey}
+          autoComplete="off"
           type="text"
           id="breez-api-key"
           className="dark:bg-surface-00dp block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
