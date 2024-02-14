@@ -54,7 +54,9 @@ function WalletComponent({ walletType }: { walletType: string }) {
           {walletType} Wallet
         </div>
         <div className="text-gray-600 dark:text-neutral-400 text-xs leading-4 md:text-sm">
-          {walletType == "new" ? "Breez only" : "Breez or LND"}
+          {walletType == "new"
+            ? "Create a new wallet powered by the Breez SDK"
+            : "Connect to an existing Breez or LND wallet"}
         </div>
       </div>
       <div className="flex-shrink-0 flex justify-end ">

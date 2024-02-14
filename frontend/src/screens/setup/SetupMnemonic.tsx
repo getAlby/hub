@@ -93,7 +93,8 @@ export function SetupMnemonic() {
                 <BuoyIcon />
               </div>
               <span className="text-gray-600 dark:text-neutral-400">
-                Recovery phrase is a set of 12 words that backs up your wallet
+                Your recovery phrase is a set of 12 words that backs up your
+                wallet
               </span>
             </div>
             <div className="flex gap-2 items-center">
