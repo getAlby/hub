@@ -14,7 +14,6 @@ import ConnectButton from "src/components/ConnectButton";
 import { useCSRF } from "src/hooks/useCSRF";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
-import Alert from "src/components/Alert";
 import toast from "src/components/Toast";
 
 export function SetupMnemonic() {
