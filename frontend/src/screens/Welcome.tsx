@@ -1,7 +1,19 @@
-import { Link } from "react-router-dom";
+import React from "react";
+import { Link, useNavigate } from "react-router-dom";
 import Container from "src/components/Container";
+import { useInfo } from "src/hooks/useInfo";
 
 export function Welcome() {
+  const { data: info } = useInfo();
+  const navigate = useNavigate();
+
+  React.useEffect(() => {
+    if (!info?.setupCompleted) {
+      return;
+    }
+    navigate("/");
+  }, [info, navigate]);
+
   return (
     <Container>
       <h1 className="font-semibold text-2xl font-headline mb-2 dark:text-white">
