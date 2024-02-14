@@ -5,6 +5,7 @@ import useSetupStore from "src/state/SetupStore";
 
 import Container from "src/components/Container";
 import Alert from "src/components/Alert";
+import toast from "src/components/Toast";
 
 export function SetupPassword() {
   const store = useSetupStore();
@@ -15,7 +16,7 @@ export function SetupPassword() {
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (store.unlockPassword !== confirmPassword) {
-      alert("Passwords don't match!");
+      toast.error("Passwords don't match!");
       return;
     }
     navigate("/setup/wallet");

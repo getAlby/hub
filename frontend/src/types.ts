@@ -87,3 +87,16 @@ export interface CreateAppResponse {
   pairingSecretKey: string;
   returnTo: string;
 }
+
+export interface NodeInfo {
+  backendType: BackendType;
+  unlockPassword: string;
+
+  mnemonic?: string;
+  greenlightInviteCode?: string;
+  breezApiKey?: string;
+
+  lndAddress?: string;
+  lndCertHex?: string;
+  lndMacaroonHex?: string;
+}

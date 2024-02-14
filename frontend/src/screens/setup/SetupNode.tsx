@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import Alert from "src/components/Alert";
 import ConnectButton from "src/components/ConnectButton";
 import Container from "src/components/Container";
+import toast from "src/components/Toast";
 import { useCSRF } from "src/hooks/useCSRF";
 import { useInfo } from "src/hooks/useInfo";
 import useSetupStore from "src/state/SetupStore";
@@ -85,18 +86,18 @@ export function SetupNode() {
           <select
             name="backend-type"
             value={backendType}
-            disabled={isNew}
             onChange={(e) => setBackendType(e.target.value as BackendType)}
             id="backend-type"
             className="dark:bg-surface-00dp mb-4 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
           >
             <option value={"BREEZ"}>Breez</option>
-            <option value={"LND"}>LND</option>
+            {!isNew && <option value={"LND"}>LND</option>}
           </select>
           {backendType === "BREEZ" && (
             <BreezForm
               handleSubmit={handleSubmit}
               isConnecting={isConnecting}
+              isNew={isNew}
             />
           )}
           {backendType === "LND" && (
@@ -113,16 +114,19 @@ type SetupFormProps = {
   handleSubmit(data: unknown): void;
 };
 
-function BreezForm({ isConnecting, handleSubmit }: SetupFormProps) {
+type BreezFormProps = SetupFormProps & {
+  isNew: boolean;
+};
+
+function BreezForm({ isConnecting, handleSubmit, isNew }: BreezFormProps) {
   const [greenlightInviteCode, setGreenlightInviteCode] =
     React.useState<string>("");
   const [breezApiKey, setBreezApiKey] = React.useState<string>("");
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    // Isn't breezApiKey not required?
-    if (!greenlightInviteCode) {
-      alert("Please fill out all fields");
+    if ((isNew && !greenlightInviteCode) || !breezApiKey) {
+      toast.error("Please fill out all fields");
       return;
     }
     handleSubmit({
@@ -134,22 +138,25 @@ function BreezForm({ isConnecting, handleSubmit }: SetupFormProps) {
   return (
     <form className="w-full" onSubmit={onSubmit}>
       <>
-        <label
-          htmlFor="greenlight-invite-code"
-          className="block mb-2 text-md dark:text-white"
-        >
-          Greenlight Invite Code
-        </label>
-        <input
-          name="greenlight-invite-code"
-          onChange={(e) => setGreenlightInviteCode(e.target.value)}
-          value={greenlightInviteCode}
-          type="password"
-          id="greenlight-invite-code"
-          autoComplete="new-password"
-          placeholder="XXXX-YYYY"
-          className="dark:bg-surface-00dp block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
-        />
+        {isNew && (
+          <>
+            <label
+              htmlFor="greenlight-invite-code"
+              className="block mb-2 text-md dark:text-white"
+            >
+              Greenlight Invite Code
+            </label>
+            <input
+              name="greenlight-invite-code"
+              onChange={(e) => setGreenlightInviteCode(e.target.value)}
+              value={greenlightInviteCode}
+              type="text"
+              id="greenlight-invite-code"
+              placeholder="XXXX-YYYY"
+              className="dark:bg-surface-00dp block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
+            />
+          </>
+        )}
         <label
           htmlFor="breez-api-key"
           className="block mt-4 mb-2 text-md dark:text-white"
@@ -160,9 +167,8 @@ function BreezForm({ isConnecting, handleSubmit }: SetupFormProps) {
           name="breez-api-key"
           onChange={(e) => setBreezApiKey(e.target.value)}
           value={breezApiKey}
-          type="password"
+          type="text"
           id="breez-api-key"
-          autoComplete="new-password"
           className="dark:bg-surface-00dp block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
         />
       </>
@@ -184,7 +190,7 @@ function LNDForm({ isConnecting, handleSubmit }: SetupFormProps) {
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!lndAddress || !lndCertHex || !lndMacaroonHex) {
-      alert("please fill out all fields");
+      toast.error("please fill out all fields");
       return;
     }
     handleSubmit({

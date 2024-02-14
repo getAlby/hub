@@ -31,7 +31,7 @@ func (BreezListener) OnEvent(e breez_sdk.BreezEvent) {
 }
 
 func NewBreezService(mnemonic, apiKey, inviteCode, workDir string) (result LNClient, err error) {
-	if mnemonic == "" || apiKey == "" || inviteCode == "" || workDir == "" {
+	if mnemonic == "" || apiKey == "" || workDir == "" {
 		return nil, errors.New("One or more required breez configuration are missing")
 	}
 

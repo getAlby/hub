@@ -15,6 +15,7 @@ import { useCSRF } from "src/hooks/useCSRF";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 import Alert from "src/components/Alert";
+import toast from "src/components/Toast";
 
 export function SetupMnemonic() {
   const navigate = useNavigate();
@@ -39,7 +40,7 @@ export function SetupMnemonic() {
       mnemonic.split(" ").length !== 12 ||
       !bip39.validateMnemonic(mnemonic, wordlist)
     ) {
-      alert("Invalid mnemonic");
+      toast.error("Invalid recovery phrase");
       return;
     }
 
@@ -76,7 +77,7 @@ export function SetupMnemonic() {
         className="flex flex-col gap-2 mx-auto max-w-2xl text-sm"
       >
         <h1 className="font-semibold text-2xl font-headline mb-2 dark:text-white">
-          {isNew ? "Back up your wallet" : "Enter your mnemonic"}
+          {isNew ? "Back up your wallet" : "Import your wallet"}
         </h1>
         {info?.setupCompleted && (
           <Alert type="warn">
@@ -86,7 +87,7 @@ export function SetupMnemonic() {
         )}
         {/* Think of a back button */}
 
-        {isNew && (
+        {isNew ? (
           <>
             <div className="flex gap-2 items-center mt-2">
               <div className="shrink-0 w-6 h-6 text-gray-600 dark:text-neutral-400">
@@ -112,6 +113,26 @@ export function SetupMnemonic() {
               <span className="font-medium text-red-600 dark:text-red-800">
                 If you lose your recovery phrase, you will lose access to your
                 funds
+              </span>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="flex gap-2 items-center mt-2">
+              <div className="shrink-0 w-6 h-6 text-gray-600 dark:text-neutral-400">
+                <BuoyIcon />
+              </div>
+              <span className="text-gray-600 dark:text-neutral-400">
+                Recovery phrase is a set of 12 words that restores your wallet
+                from a backup
+              </span>
+            </div>
+            <div className="flex gap-2 items-center">
+              <div className="shrink-0 w-6 h-6 text-gray-600 dark:text-neutral-400">
+                <ShieldIcon />
+              </div>
+              <span className="text-gray-600 dark:text-neutral-400">
+                Make sure to enter them somewhere safe and private
               </span>
             </div>
           </>
