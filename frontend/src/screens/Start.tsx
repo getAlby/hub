@@ -7,9 +7,11 @@ import { handleRequestError } from "src/utils/handleRequestError";
 import { useInfo } from "src/hooks/useInfo";
 import Container from "src/components/Container";
 import Input from "src/components/Input";
+import PasswordViewAdornment from "src/components/PasswordAdornment";
 
 export default function Start() {
   const [unlockPassword, setUnlockPassword] = React.useState("");
+  const [passwordVisible, setPasswordVisible] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const navigate = useNavigate();
   const { data: csrf } = useCSRF();
@@ -55,8 +57,15 @@ export default function Start() {
               name="unlock"
               onChange={(e) => setUnlockPassword(e.target.value)}
               value={unlockPassword}
-              type="password"
+              type={passwordVisible ? "text" : "password"}
               placeholder="Password"
+              endAdornment={
+                <PasswordViewAdornment
+                  onChange={(passwordView) => {
+                    setPasswordVisible(passwordView);
+                  }}
+                />
+              }
             />
             <ConnectButton isConnecting={loading} />
           </>

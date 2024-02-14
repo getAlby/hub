@@ -7,10 +7,14 @@ import Container from "src/components/Container";
 import Alert from "src/components/Alert";
 import toast from "src/components/Toast";
 import Input from "src/components/Input";
+import PasswordViewAdornment from "src/components/PasswordAdornment";
 
 export function SetupPassword() {
   const store = useSetupStore();
   const [confirmPassword, setConfirmPassword] = React.useState("");
+  const [passwordVisible, setPasswordVisible] = React.useState(false);
+  const [confirmPasswordVisible, setConfirmPasswordVisible] =
+    React.useState(false);
   const navigate = useNavigate();
   const { data: info } = useInfo();
 
@@ -48,13 +52,20 @@ export function SetupPassword() {
               New Password
             </label>
             <Input
-              type="password"
+              type={passwordVisible ? "text" : "password"}
               name="unlock-password"
               id="unlock-password"
               placeholder="Enter a password"
               value={store.unlockPassword}
               onChange={(e) => store.setUnlockPassword(e.target.value)}
               required={true}
+              endAdornment={
+                <PasswordViewAdornment
+                  onChange={(passwordView) => {
+                    setPasswordVisible(passwordView);
+                  }}
+                />
+              }
             />
           </div>
           <div className="w-full mb-8 ">
@@ -65,13 +76,20 @@ export function SetupPassword() {
               Confirm Password
             </label>
             <Input
-              type="password"
+              type={confirmPasswordVisible ? "text" : "password"}
               name="confirm-password"
               id="confirm-password"
               placeholder="Re-enter the password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required={true}
+              endAdornment={
+                <PasswordViewAdornment
+                  onChange={(passwordView) => {
+                    setConfirmPasswordVisible(passwordView);
+                  }}
+                />
+              }
             />
           </div>
 
