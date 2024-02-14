@@ -99,6 +99,8 @@ Breez SDK requires gcc to build the Breez bindings. Run `choco install mingw` an
 
 ### LND Backend parameters
 
+Currently only LND can be configured via env. Other node types must be configured via the UI.
+
 _To configure via env, the following parameters must be provided:_
 
 - `LN_BACKEND_TYPE`: LND

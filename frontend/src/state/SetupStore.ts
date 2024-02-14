@@ -11,11 +11,9 @@ interface SetupStore {
 const useSetupStore = create<SetupStore>((set) => ({
   nodeInfo: {},
   unlockPassword: "",
-  updateNodeInfo: (nodeInfoPartial) =>
+  updateNodeInfo: (nodeInfo) =>
     set((state) => ({
-      nodeInfo: state.nodeInfo
-        ? { ...state.nodeInfo, ...nodeInfoPartial }
-        : ({ ...nodeInfoPartial } as NodeInfo),
+      nodeInfo: { ...state.nodeInfo, ...nodeInfo },
     })),
   setUnlockPassword: (unlockPassword) => set({ unlockPassword }),
 }));

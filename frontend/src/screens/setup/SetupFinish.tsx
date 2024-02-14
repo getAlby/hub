@@ -49,9 +49,6 @@ const finishSetup = async (
   unlockPassword: string
 ): Promise<boolean> => {
   try {
-    if (!csrf) {
-      throw new Error("info not loaded");
-    }
     await request("/api/setup", {
       method: "POST",
       headers: {
