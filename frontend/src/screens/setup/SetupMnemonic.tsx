@@ -157,7 +157,7 @@ export function SetupMnemonic() {
           )}
         </MnemonicInputs>
         <ConnectButton
-          submitText="Next"
+          submitText="Finish"
           loadingText="Saving..."
           isConnecting={isConnecting}
           disabled={isNew ? !backedUp : false}
