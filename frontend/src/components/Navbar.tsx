@@ -33,7 +33,7 @@ function Navbar() {
                 </Link>
                 <Link
                   className={`${linkStyles} ${
-                    location.pathname === "/setup" && selectedLinkStyles
+                    location.pathname.startsWith("/setup") && selectedLinkStyles
                   }`}
                   to="/setup"
                 >
