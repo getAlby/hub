@@ -2,6 +2,7 @@ import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import ConnectButton from "src/components/ConnectButton";
 import Container from "src/components/Container";
+import Input from "src/components/Input";
 import toast from "src/components/Toast";
 import { useCSRF } from "src/hooks/useCSRF";
 import { useInfo } from "src/hooks/useInfo";
@@ -139,14 +140,13 @@ function BreezForm({ isConnecting, handleSubmit, isNew }: BreezFormProps) {
             >
               Greenlight Invite Code
             </label>
-            <input
+            <Input
               name="greenlight-invite-code"
               onChange={(e) => setGreenlightInviteCode(e.target.value)}
               value={greenlightInviteCode}
               type="text"
               id="greenlight-invite-code"
               placeholder="XXXX-YYYY"
-              className="dark:bg-surface-00dp block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
             />
           </>
         )}
@@ -156,13 +156,12 @@ function BreezForm({ isConnecting, handleSubmit, isNew }: BreezFormProps) {
         >
           Breez API Key
         </label>
-        <input
+        <Input
           name="breez-api-key"
           onChange={(e) => setBreezApiKey(e.target.value)}
           value={breezApiKey}
           type="text"
           id="breez-api-key"
-          className="dark:bg-surface-00dp block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
         />
       </>
       <ConnectButton
@@ -202,12 +201,11 @@ function LNDForm({ isConnecting, handleSubmit }: SetupFormProps) {
         >
           LND Address (GRPC)
         </label>
-        <input
+        <Input
           name="lnd-address"
           onChange={(e) => setLndAddress(e.target.value)}
           value={lndAddress}
           id="lnd-address"
-          className="dark:bg-surface-00dp block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
         />
 
         <label
@@ -216,13 +214,12 @@ function LNDForm({ isConnecting, handleSubmit }: SetupFormProps) {
         >
           TLS Certificate (Hex)
         </label>
-        <input
+        <Input
           name="lnd-cert-hex"
           onChange={(e) => setLndCertHex(e.target.value)}
           value={lndCertHex}
           type="text"
           id="lnd-cert-hex"
-          className="dark:bg-surface-00dp block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
         />
         <label
           htmlFor="lnd-macaroon-hex"
@@ -230,13 +227,12 @@ function LNDForm({ isConnecting, handleSubmit }: SetupFormProps) {
         >
           Admin Macaroon (Hex)
         </label>
-        <input
+        <Input
           name="lnd-macaroon-hex"
           onChange={(e) => setLndMacaroonHex(e.target.value)}
           value={lndMacaroonHex}
           type="text"
           id="lnd-macaroon-hex"
-          className="dark:bg-surface-00dp block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
         />
       </>
       <ConnectButton
