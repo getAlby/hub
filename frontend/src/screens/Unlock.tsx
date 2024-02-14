@@ -53,7 +53,7 @@ export default function Unlock() {
   return (
     <>
       <Container>
-        <p className="text-center text-md leading-relaxed dark:text-neutral-400 mb-14">
+        <p className="font-light text-center text-md leading-relaxed dark:text-neutral-400 mb-14">
           Use your password to unlock NWC
         </p>
         <form onSubmit={onSubmit} className="w-full">
