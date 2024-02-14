@@ -8,29 +8,46 @@ import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 import Loading from "src/components/Loading";
 import { NodeInfo } from "src/types";
+import React from "react";
 
-let hasFetched = false;
 export function SetupFinish() {
   const navigate = useNavigate();
   const { nodeInfo, unlockPassword } = useSetupStore();
 
   const { mutate: refetchInfo } = useInfo();
   const { data: csrf } = useCSRF();
+  const [connectionError, setConnectionError] = React.useState(false);
+  const hasFetchedRef = React.useRef(false);
 
   useEffect(() => {
     // ensure setup call is only called once
-    if (!csrf || hasFetched) {
+    if (!csrf || hasFetchedRef.current) {
       return;
     }
-    hasFetched = true;
+    hasFetchedRef.current = true;
 
     (async () => {
-      if (await finishSetup(csrf, nodeInfo, unlockPassword)) {
+      const succeeded = await finishSetup(csrf, nodeInfo, unlockPassword);
+      if (succeeded) {
         await refetchInfo();
         navigate("/");
+      } else {
+        setConnectionError(true);
       }
     })();
   }, [csrf, nodeInfo, refetchInfo, navigate, unlockPassword]);
+
+  if (connectionError) {
+    return (
+      <Container>
+        <h1 className="font-semibold text-lg font-headline mt-16 mb-8 dark:text-white">
+          Connection Failed
+        </h1>
+
+        <p>Navigate back to check your configuration, then try again.</p>
+      </Container>
+    );
+  }
 
   return (
     <Container>

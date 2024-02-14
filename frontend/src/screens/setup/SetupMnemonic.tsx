@@ -16,12 +16,13 @@ import toast from "src/components/Toast";
 export function SetupMnemonic() {
   const navigate = useNavigate();
   const { search } = useLocation();
-  const { updateNodeInfo } = useSetupStore();
+  const setupStore = useSetupStore();
   const params = new URLSearchParams(search);
   const isNew = params.get("wallet") === "new";
 
   const [mnemonic, setMnemonic] = useState<string>(
-    isNew ? bip39.generateMnemonic(wordlist, 128) : ""
+    setupStore.nodeInfo.mnemonic ||
+      (isNew ? bip39.generateMnemonic(wordlist, 128) : "")
   );
   const [backedUp, isBackedUp] = useState<boolean>(false);
 
@@ -35,7 +36,7 @@ export function SetupMnemonic() {
       return;
     }
 
-    updateNodeInfo({ mnemonic });
+    setupStore.updateNodeInfo({ mnemonic });
     navigate(`/setup/finish`);
   }
 

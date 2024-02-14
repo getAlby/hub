@@ -8,8 +8,10 @@ import useSetupStore from "src/state/SetupStore";
 import { BackendType } from "src/types";
 
 export function SetupNode() {
-  const [backendType, setBackendType] = React.useState<BackendType>("BREEZ");
-  const { updateNodeInfo } = useSetupStore();
+  const setupStore = useSetupStore();
+  const [backendType, setBackendType] = React.useState<BackendType>(
+    setupStore.nodeInfo.backendType || "BREEZ"
+  );
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -17,7 +19,7 @@ export function SetupNode() {
   const isNew = params.get("wallet") === "new";
 
   async function handleSubmit(data: object) {
-    updateNodeInfo({
+    setupStore.updateNodeInfo({
       backendType,
       ...data,
     });
@@ -64,9 +66,12 @@ type SetupFormProps = {
 };
 
 function BreezForm({ handleSubmit }: SetupFormProps) {
+  const setupStore = useSetupStore();
   const [greenlightInviteCode, setGreenlightInviteCode] =
-    React.useState<string>("");
-  const [breezApiKey, setBreezApiKey] = React.useState<string>("");
+    React.useState<string>(setupStore.nodeInfo.greenlightInviteCode || "");
+  const [breezApiKey, setBreezApiKey] = React.useState<string>(
+    setupStore.nodeInfo.breezApiKey || ""
+  );
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -118,9 +123,16 @@ function BreezForm({ handleSubmit }: SetupFormProps) {
 }
 
 function LNDForm({ handleSubmit }: SetupFormProps) {
-  const [lndAddress, setLndAddress] = React.useState<string>("");
-  const [lndCertHex, setLndCertHex] = React.useState<string>("");
-  const [lndMacaroonHex, setLndMacaroonHex] = React.useState<string>("");
+  const setupStore = useSetupStore();
+  const [lndAddress, setLndAddress] = React.useState<string>(
+    setupStore.nodeInfo.lndAddress || ""
+  );
+  const [lndCertHex, setLndCertHex] = React.useState<string>(
+    setupStore.nodeInfo.lndCertHex || ""
+  );
+  const [lndMacaroonHex, setLndMacaroonHex] = React.useState<string>(
+    setupStore.nodeInfo.lndMacaroonHex || ""
+  );
   // TODO: proper onboarding
 
   function onSubmit(e: React.FormEvent) {
