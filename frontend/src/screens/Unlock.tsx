@@ -6,6 +6,7 @@ import ConnectButton from "src/components/ConnectButton";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { useInfo } from "src/hooks/useInfo";
 import Container from "src/components/Container";
+import Input from "src/components/Input";
 
 export default function Unlock() {
   const [unlockPassword, setUnlockPassword] = React.useState("");
@@ -53,18 +54,17 @@ export default function Unlock() {
   return (
     <>
       <Container>
-        <p className="text-center text-md leading-relaxed dark:text-neutral-400 mb-14">
+        <p className="font-light text-center text-md leading-relaxed dark:text-neutral-400 mb-14">
           Use your password to unlock NWC
         </p>
         <form onSubmit={onSubmit} className="w-full">
           <>
-            <input
+            <Input
               name="unlock"
               onChange={(e) => setUnlockPassword(e.target.value)}
               value={unlockPassword}
               type="password"
               placeholder="Password"
-              className="dark:bg-surface-00dp block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
             />
             <ConnectButton isConnecting={loading} />
           </>

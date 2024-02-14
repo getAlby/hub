@@ -6,6 +6,7 @@ import useSetupStore from "src/state/SetupStore";
 import Container from "src/components/Container";
 import Alert from "src/components/Alert";
 import toast from "src/components/Toast";
+import Input from "src/components/Input";
 
 export function SetupPassword() {
   const store = useSetupStore();
@@ -46,14 +47,13 @@ export function SetupPassword() {
             >
               New Password
             </label>
-            <input
+            <Input
               type="password"
               name="unlock-password"
               id="unlock-password"
               placeholder="Enter a password"
               value={store.unlockPassword}
               onChange={(e) => store.setUnlockPassword(e.target.value)}
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-md rounded-md focus:ring-primary-600 focus:border-primary-600 block w-full px-3 py-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-purple-700 dark:focus:border-purple-700"
               required={true}
             />
           </div>
@@ -64,14 +64,13 @@ export function SetupPassword() {
             >
               Confirm Password
             </label>
-            <input
+            <Input
               type="password"
               name="confirm-password"
               id="confirm-password"
               placeholder="Re-enter the password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-md rounded-md focus:ring-primary-600 focus:border-primary-600 block w-full px-3 py-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-purple-700 dark:focus:border-purple-700"
               required={true}
             />
           </div>

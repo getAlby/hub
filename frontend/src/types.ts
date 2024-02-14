@@ -88,9 +88,8 @@ export interface CreateAppResponse {
   returnTo: string;
 }
 
-export interface NodeInfo {
+export type NodeInfo = Partial<{
   backendType: BackendType;
-  unlockPassword: string;
 
   mnemonic?: string;
   greenlightInviteCode?: string;
@@ -99,4 +98,4 @@ export interface NodeInfo {
   lndAddress?: string;
   lndCertHex?: string;
   lndMacaroonHex?: string;
-}
+}>;
