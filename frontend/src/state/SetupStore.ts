@@ -4,14 +4,19 @@ import { create } from "zustand";
 interface SetupStore {
   readonly nodeInfo: NodeInfo | null;
   readonly unlockPassword: string;
-  setNodeInfo(nodeInfo: NodeInfo): void;
+  setNodeInfo(nodeInfo: Partial<NodeInfo>): void;
   setUnlockPassword(unlockPassword: string): void;
 }
 
 const useSetupStore = create<SetupStore>((set) => ({
   nodeInfo: null,
   unlockPassword: "",
-  setNodeInfo: (nodeInfo) => set({ nodeInfo }),
+  setNodeInfo: (nodeInfoPartial) =>
+    set((state) => ({
+      nodeInfo: state.nodeInfo
+        ? { ...state.nodeInfo, ...nodeInfoPartial }
+        : ({ ...nodeInfoPartial } as NodeInfo),
+    })),
   setUnlockPassword: (unlockPassword) => set({ unlockPassword }),
 }));
 

@@ -3,64 +3,29 @@ import { useLocation, useNavigate } from "react-router-dom";
 import ConnectButton from "src/components/ConnectButton";
 import Container from "src/components/Container";
 import toast from "src/components/Toast";
-import { useCSRF } from "src/hooks/useCSRF";
-import { useInfo } from "src/hooks/useInfo";
 import useSetupStore from "src/state/SetupStore";
 import { BackendType } from "src/types";
-import { handleRequestError } from "src/utils/handleRequestError";
-import { request } from "src/utils/request"; // build the project for this to appear
 
 export function SetupNode() {
   const [backendType, setBackendType] = React.useState<BackendType>("BREEZ");
-  const { unlockPassword } = useSetupStore();
-  const [isConnecting, setConnecting] = React.useState(false);
+  const { unlockPassword, setNodeInfo } = useSetupStore();
   const navigate = useNavigate();
   const location = useLocation();
 
   const params = new URLSearchParams(location.search);
   const isNew = params.get("wallet") === "new";
 
-  const { mutate: refetchInfo } = useInfo();
-  const { data: csrf } = useCSRF();
-
   async function handleSubmit(data: object) {
-    if (backendType === "BREEZ") {
-      navigate(`/setup/mnemonic${isNew ? "?wallet=new" : ""}`, {
-        state: {
-          backendType,
-          unlockPassword,
-          ...data,
-        },
-      });
-      return;
-    }
-
-    try {
-      setConnecting(true);
-      if (!csrf) {
-        throw new Error("info not loaded");
-      }
-
-      await request("/api/setup", {
-        method: "POST",
-        headers: {
-          "X-CSRF-Token": csrf,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          backendType,
-          unlockPassword,
-          ...data,
-        }),
-      });
-
-      await refetchInfo();
-      navigate("/");
-    } catch (error) {
-      handleRequestError("Failed to connect", error);
-    } finally {
-      setConnecting(false);
-    }
+    setNodeInfo({
+      backendType,
+      unlockPassword,
+      ...data,
+    });
+    navigate(
+      backendType === "BREEZ"
+        ? `/setup/mnemonic${isNew ? "?wallet=new" : ""}`
+        : `/setup/finish`
+    );
   }
 
   return (
@@ -87,15 +52,9 @@ export function SetupNode() {
             {!isNew && <option value={"LND"}>LND</option>}
           </select>
           {backendType === "BREEZ" && (
-            <BreezForm
-              handleSubmit={handleSubmit}
-              isConnecting={isConnecting}
-              isNew={isNew}
-            />
+            <BreezForm handleSubmit={handleSubmit} isNew={isNew} />
           )}
-          {backendType === "LND" && (
-            <LNDForm handleSubmit={handleSubmit} isConnecting={isConnecting} />
-          )}
+          {backendType === "LND" && <LNDForm handleSubmit={handleSubmit} />}
         </div>
       </Container>
     </>
@@ -103,7 +62,6 @@ export function SetupNode() {
 }
 
 type SetupFormProps = {
-  isConnecting: boolean;
   handleSubmit(data: unknown): void;
 };
 
@@ -111,7 +69,7 @@ type BreezFormProps = SetupFormProps & {
   isNew: boolean;
 };
 
-function BreezForm({ isConnecting, handleSubmit, isNew }: BreezFormProps) {
+function BreezForm({ handleSubmit, isNew }: BreezFormProps) {
   const [greenlightInviteCode, setGreenlightInviteCode] =
     React.useState<string>("");
   const [breezApiKey, setBreezApiKey] = React.useState<string>("");
@@ -165,16 +123,12 @@ function BreezForm({ isConnecting, handleSubmit, isNew }: BreezFormProps) {
           className="dark:bg-surface-00dp block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
         />
       </>
-      <ConnectButton
-        isConnecting={isConnecting}
-        submitText="Next"
-        loadingText="Saving..."
-      />
+      <ConnectButton isConnecting={false} submitText="Next" />
     </form>
   );
 }
 
-function LNDForm({ isConnecting, handleSubmit }: SetupFormProps) {
+function LNDForm({ handleSubmit }: SetupFormProps) {
   const [lndAddress, setLndAddress] = React.useState<string>("");
   const [lndCertHex, setLndCertHex] = React.useState<string>("");
   const [lndMacaroonHex, setLndMacaroonHex] = React.useState<string>("");
@@ -239,11 +193,7 @@ function LNDForm({ isConnecting, handleSubmit }: SetupFormProps) {
           className="dark:bg-surface-00dp block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
         />
       </>
-      <ConnectButton
-        isConnecting={isConnecting}
-        submitText="Finish"
-        loadingText="Saving..."
-      />
+      <ConnectButton isConnecting={false} submitText="Submit" />
     </form>
   );
 }
