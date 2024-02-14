@@ -19,7 +19,7 @@ export function Welcome() {
       <h1 className="font-semibold text-2xl font-headline mb-2 dark:text-white">
         Welcome to NWC app
       </h1>
-      <p className="text-center text-md leading-relaxed dark:text-neutral-400 mb-14">
+      <p className="font-light text-center text-md leading-relaxed dark:text-neutral-400 mb-14">
         Connect your lightning wallet to dozens of apps and enjoy seamless
         in-app payments.
       </p>

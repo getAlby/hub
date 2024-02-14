@@ -1,8 +1,8 @@
 import {
-  AlertCircleIcon,
-  BuoyIcon,
-  ShieldIcon,
-} from "@bitcoin-design/bitcoin-icons-react/outline";
+  PopiconsLifebuoyLine,
+  PopiconsShieldLine,
+  PopiconsTriangleExclamationLine,
+} from "@popicons/react";
 import * as bip39 from "@scure/bip39";
 import { wordlist } from "@scure/bip39/wordlists/english";
 import { useState } from "react";
@@ -50,54 +50,54 @@ export function SetupMnemonic() {
         </h1>
 
         {isNew ? (
-          <>
-            <div className="flex gap-2 items-center mt-2">
-              <div className="shrink-0 w-6 h-6 text-gray-600 dark:text-neutral-400">
-                <BuoyIcon />
+          <div className="flex flex-col gap-4 mb-4">
+            <div className="flex gap-2 items-center">
+              <div className="shrink-0 text-gray-600 dark:text-neutral-400">
+                <PopiconsLifebuoyLine className="w-6 h-6" />
               </div>
               <span className="text-gray-600 dark:text-neutral-400">
-                Your recovery phrase is a set of 12 words that backs up your
-                wallet
+                Your recovery phrase is a set of 12 words that{" "}
+                <b>backs up your wallet</b>
               </span>
             </div>
             <div className="flex gap-2 items-center">
-              <div className="shrink-0 w-6 h-6 text-gray-600 dark:text-neutral-400">
-                <ShieldIcon />
+              <div className="shrink-0 text-gray-600 dark:text-neutral-400">
+                <PopiconsShieldLine className="w-6 h-6" />
               </div>
               <span className="text-gray-600 dark:text-neutral-400">
                 Make sure to write them down somewhere safe and private
               </span>
             </div>
-            <div className="flex gap-2 items-center mb-2">
-              <div className="shrink-0 w-6 h-6 text-red-600 dark:text-red-800">
-                <AlertCircleIcon />
+            <div className="flex gap-2 items-center">
+              <div className="shrink-0 text-red-600 dark:text-red-800">
+                <PopiconsTriangleExclamationLine className="w-6 h-6" />
               </div>
               <span className="font-medium text-red-600 dark:text-red-800">
                 If you lose your recovery phrase, you will lose access to your
                 funds
               </span>
             </div>
-          </>
+          </div>
         ) : (
-          <>
-            <div className="flex gap-2 items-center mt-2">
-              <div className="shrink-0 w-6 h-6 text-gray-600 dark:text-neutral-400">
-                <BuoyIcon />
+          <div className="flex flex-col gap-4 mb-4">
+            <div className="flex gap-2 items-center">
+              <div className="shrink-0 text-gray-600 dark:text-neutral-400">
+                <PopiconsLifebuoyLine className="w-6 h-6" />
               </div>
               <span className="text-gray-600 dark:text-neutral-400">
-                Recovery phrase is a set of 12 words that restores your wallet
-                from a backup
+                Recovery phrase is a set of 12 words that{" "}
+                <b>restores your wallet from a backup</b>
               </span>
             </div>
             <div className="flex gap-2 items-center">
-              <div className="shrink-0 w-6 h-6 text-gray-600 dark:text-neutral-400">
-                <ShieldIcon />
+              <div className="shrink-0 text-gray-600 dark:text-neutral-400">
+                <PopiconsShieldLine className="w-6 h-6" />
               </div>
               <span className="text-gray-600 dark:text-neutral-400">
                 Make sure to enter them somewhere safe and private
               </span>
             </div>
-          </>
+          </div>
         )}
 
         <MnemonicInputs
@@ -127,7 +127,7 @@ export function SetupMnemonic() {
           )}
         </MnemonicInputs>
         <ConnectButton
-          submitText="Next"
+          submitText="Finish"
           loadingText="Saving..."
           isConnecting={false}
           disabled={isNew ? !backedUp : false}

@@ -25,6 +25,7 @@ import { SearchIcon } from "src/components/icons/SearchIcon";
 import { TransactionsIcon } from "src/components/icons/TransactionsIcon";
 import { request } from "src/utils/request"; // build the project for this to appear
 import { handleRequestError } from "src/utils/handleRequestError";
+import Input from "src/components/Input";
 
 const NewApp = () => {
   const { data: csrf } = useCSRF();
@@ -194,7 +195,7 @@ const NewApp = () => {
               >
                 Name
               </label>
-              <input
+              <Input
                 readOnly={!!nameParam}
                 type="text"
                 name="name"
@@ -203,7 +204,6 @@ const NewApp = () => {
                 onChange={(e) => setAppName(e.target.value)}
                 required
                 autoComplete="off"
-                className="bg-gray-50 border border-gray-300 text-gray-900 focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 text-sm rounded-lg block w-full p-2.5 dark:bg-surface-00dp dark:border-gray-700 dark:placeholder-gray-400 dark:text-white"
               />
               <p className="mt-1 mb-6 text-xs text-gray-500 dark:text-gray-400">
                 Name of the app or purpose of the connection

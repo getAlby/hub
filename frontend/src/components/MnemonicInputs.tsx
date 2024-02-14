@@ -24,8 +24,12 @@ export default function MnemonicInputs({
     words.push("");
   }
 
+  while (words.length > 12) {
+    words.pop();
+  }
+
   return (
-    <div className="border border-gray-200 dark:border-neutral-700 bg-white dark:bg-surface-02dp rounded-lg p-6 flex flex-col gap-8 items-center justify-center mt-2 w-full mx-auto">
+    <div className="border border-gray-200 dark:border-neutral-700 bg-white dark:bg-surface-02dp rounded-lg p-6 flex flex-col gap-8 items-center justify-center w-full mx-auto">
       <h3 className="text-lg font-semibold dark:text-white">
         Recovery phrase to your wallet
       </h3>
