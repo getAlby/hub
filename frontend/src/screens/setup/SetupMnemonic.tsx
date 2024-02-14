@@ -31,7 +31,7 @@ export function SetupMnemonic() {
   const [backedUp, isBackedUp] = useState<boolean>(false);
   const [isConnecting, setConnecting] = useState(false);
 
-  const { data: info, mutate: refetchInfo } = useInfo();
+  const { mutate: refetchInfo } = useInfo();
   const { data: csrf } = useCSRF();
 
   async function onSubmit(e: React.FormEvent) {
@@ -79,13 +79,6 @@ export function SetupMnemonic() {
         <h1 className="font-semibold text-2xl font-headline mb-2 dark:text-white">
           {isNew ? "Back up your wallet" : "Import your wallet"}
         </h1>
-        {info?.setupCompleted && (
-          <Alert type="warn">
-            ⚠️ Your node is already setup! only continue if you actually want to
-            change your connection settings.
-          </Alert>
-        )}
-        {/* Think of a back button */}
 
         {isNew ? (
           <>

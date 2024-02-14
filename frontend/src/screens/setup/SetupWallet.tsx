@@ -4,25 +4,20 @@ import {
 } from "@bitcoin-design/bitcoin-icons-react/outline";
 import { Link } from "react-router-dom";
 
-import { useInfo } from "src/hooks/useInfo";
 import Container from "src/components/Container";
-import Alert from "src/components/Alert";
 
 export function SetupWallet() {
-  const { data: info } = useInfo();
-
   return (
     <>
       <Container>
-        <p className="text-center font-light text-md leading-relaxed dark:text-neutral-400 px-4 mb-4">
+        <h1 className="font-semibold text-2xl font-headline mb-2 dark:text-white">
           Connect Wallet to NWC
+        </h1>
+        <p className="text-center font-light text-md leading-relaxed dark:text-neutral-400 px-4 mb-4">
+          NWC requires a wallet to connect to your apps. You can import an
+          existing wallet or start a brand new one.
         </p>
-        {info?.setupCompleted && (
-          <Alert type="warn">
-            ⚠️ Your node is already setup! only continue if you actually want to
-            change your connection settings.
-          </Alert>
-        )}
+
         <div className="w-full mt-4">
           <WalletComponent walletType="new" />
           <WalletComponent walletType="import" />

@@ -70,12 +70,6 @@ export function SetupNode() {
         <p className="text-center font-light text-md leading-relaxed dark:text-neutral-400 px-4 mb-4">
           Enter your node connection credentials to connect to your wallet.
         </p>
-        {info?.setupCompleted && (
-          <Alert type="warn">
-            ⚠️ Your node is already setup! only continue if you actually want to
-            change your connection settings.
-          </Alert>
-        )}
         <div className="w-full mt-4">
           <label
             htmlFor="backend-type"

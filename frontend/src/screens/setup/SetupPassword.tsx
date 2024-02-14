@@ -26,8 +26,12 @@ export function SetupPassword() {
     <>
       <Container>
         <form onSubmit={onSubmit} className="flex flex-col items-center w-full">
-          <p className="text-center font-light text-md leading-relaxed dark:text-neutral-400 px-4 mb-4">
-            Choose a password to unlock the NWC app
+          <h1 className="font-semibold text-2xl font-headline mb-2 dark:text-white">
+            Choose an unlock password
+          </h1>
+          <p className="text-center font-light text-md leading-relaxed dark:text-neutral-400 mb-4">
+            Your unlock password will be required to access NWC from a different
+            device or browser session.
           </p>
           {info?.setupCompleted && (
             <Alert type="warn">
