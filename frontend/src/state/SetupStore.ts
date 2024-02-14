@@ -2,16 +2,19 @@ import { NodeInfo } from "src/types";
 import { create } from "zustand";
 
 interface SetupStore {
-  readonly nodeInfo: NodeInfo | null;
+  readonly nodeInfo: NodeInfo;
   readonly unlockPassword: string;
-  setNodeInfo(nodeInfo: NodeInfo): void;
+  updateNodeInfo(nodeInfo: NodeInfo): void;
   setUnlockPassword(unlockPassword: string): void;
 }
 
 const useSetupStore = create<SetupStore>((set) => ({
-  nodeInfo: null,
+  nodeInfo: {},
   unlockPassword: "",
-  setNodeInfo: (nodeInfo) => set({ nodeInfo }),
+  updateNodeInfo: (nodeInfo) =>
+    set((state) => ({
+      nodeInfo: { ...state.nodeInfo, ...nodeInfo },
+    })),
   setUnlockPassword: (unlockPassword) => set({ unlockPassword }),
 }));
 

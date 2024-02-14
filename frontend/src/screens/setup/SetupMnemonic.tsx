@@ -3,35 +3,28 @@ import {
   PopiconsShieldLine,
   PopiconsTriangleExclamationLine,
 } from "@popicons/react";
+import * as bip39 from "@scure/bip39";
+import { wordlist } from "@scure/bip39/wordlists/english";
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { useInfo } from "src/hooks/useInfo";
-import * as bip39 from "@scure/bip39";
-import { wordlist } from "@scure/bip39/wordlists/english";
 import MnemonicInputs from "src/components/MnemonicInputs";
 import ConnectButton from "src/components/ConnectButton";
-import { useCSRF } from "src/hooks/useCSRF";
-import { handleRequestError } from "src/utils/handleRequestError";
-import { request } from "src/utils/request";
+import useSetupStore from "src/state/SetupStore";
 import toast from "src/components/Toast";
 
 export function SetupMnemonic() {
   const navigate = useNavigate();
-  const { state, search } = useLocation();
+  const { search } = useLocation();
+  const setupStore = useSetupStore();
   const params = new URLSearchParams(search);
   const isNew = params.get("wallet") === "new";
 
-  const data = state as object;
-
   const [mnemonic, setMnemonic] = useState<string>(
-    isNew ? bip39.generateMnemonic(wordlist, 128) : ""
+    setupStore.nodeInfo.mnemonic ||
+      (isNew ? bip39.generateMnemonic(wordlist, 128) : "")
   );
   const [backedUp, isBackedUp] = useState<boolean>(false);
-  const [isConnecting, setConnecting] = useState(false);
-
-  const { mutate: refetchInfo } = useInfo();
-  const { data: csrf } = useCSRF();
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -43,30 +36,8 @@ export function SetupMnemonic() {
       return;
     }
 
-    try {
-      setConnecting(true);
-      if (!csrf) {
-        throw new Error("info not loaded");
-      }
-      await request("/api/setup", {
-        method: "POST",
-        headers: {
-          "X-CSRF-Token": csrf,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          breezMnemonic: mnemonic,
-          ...data,
-        }),
-      });
-
-      await refetchInfo();
-      navigate("/");
-    } catch (error) {
-      handleRequestError("Failed to connect", error);
-    } finally {
-      setConnecting(false);
-    }
+    setupStore.updateNodeInfo({ mnemonic });
+    navigate(`/setup/finish`);
   }
 
   return (
@@ -159,7 +130,7 @@ export function SetupMnemonic() {
         <ConnectButton
           submitText="Finish"
           loadingText="Saving..."
-          isConnecting={isConnecting}
+          isConnecting={false}
           disabled={isNew ? !backedUp : false}
         />
       </form>

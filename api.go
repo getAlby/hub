@@ -233,8 +233,8 @@ func (api *API) Setup(setupRequest *models.SetupRequest) error {
 	if setupRequest.BreezAPIKey != "" {
 		api.svc.cfg.SetUpdate("BreezAPIKey", setupRequest.BreezAPIKey, setupRequest.UnlockPassword)
 	}
-	if setupRequest.BreezMnemonic != "" {
-		api.svc.cfg.SetUpdate("BreezMnemonic", setupRequest.BreezMnemonic, setupRequest.UnlockPassword)
+	if setupRequest.Mnemonic != "" {
+		api.svc.cfg.SetUpdate("Mnemonic", setupRequest.Mnemonic, setupRequest.UnlockPassword)
 	}
 	if setupRequest.GreenlightInviteCode != "" {
 		api.svc.cfg.SetUpdate("GreenlightInviteCode", setupRequest.GreenlightInviteCode, setupRequest.UnlockPassword)

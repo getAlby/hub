@@ -22,9 +22,9 @@ export default function Start() {
     try {
       setLoading(true);
       if (!csrf) {
-        throw new Error("info not loaded");
+        throw new Error("csrf not loaded");
       }
-      const res = await request("/api/start", {
+      await request("/api/start", {
         method: "POST",
         headers: {
           "X-CSRF-Token": csrf,
@@ -34,7 +34,6 @@ export default function Start() {
           unlockPassword,
         }),
       });
-      console.log({ res });
       await refetchInfo();
 
       navigate("/");

@@ -43,7 +43,7 @@ type UnlockRequest struct {
 type SetupRequest struct {
 	LNBackendType string `json:"backendType"`
 	// Breez fields
-	BreezMnemonic        string `json:"breezMnemonic"`
+	Mnemonic             string `json:"Mnemonic"`
 	BreezAPIKey          string `json:"breezApiKey"`
 	GreenlightInviteCode string `json:"greenlightInviteCode"`
 	// LND fields

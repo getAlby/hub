@@ -4,64 +4,30 @@ import ConnectButton from "src/components/ConnectButton";
 import Container from "src/components/Container";
 import Input from "src/components/Input";
 import toast from "src/components/Toast";
-import { useCSRF } from "src/hooks/useCSRF";
-import { useInfo } from "src/hooks/useInfo";
 import useSetupStore from "src/state/SetupStore";
 import { BackendType } from "src/types";
-import { handleRequestError } from "src/utils/handleRequestError";
-import { request } from "src/utils/request"; // build the project for this to appear
 
 export function SetupNode() {
-  const [backendType, setBackendType] = React.useState<BackendType>("BREEZ");
-  const { unlockPassword } = useSetupStore();
-  const [isConnecting, setConnecting] = React.useState(false);
+  const setupStore = useSetupStore();
+  const [backendType, setBackendType] = React.useState<BackendType>(
+    setupStore.nodeInfo.backendType || "BREEZ"
+  );
   const navigate = useNavigate();
   const location = useLocation();
 
   const params = new URLSearchParams(location.search);
   const isNew = params.get("wallet") === "new";
 
-  const { mutate: refetchInfo } = useInfo();
-  const { data: csrf } = useCSRF();
-
   async function handleSubmit(data: object) {
-    if (backendType === "BREEZ") {
-      navigate(`/setup/mnemonic${isNew ? "?wallet=new" : ""}`, {
-        state: {
-          backendType,
-          unlockPassword,
-          ...data,
-        },
-      });
-      return;
-    }
-
-    try {
-      setConnecting(true);
-      if (!csrf) {
-        throw new Error("info not loaded");
-      }
-
-      await request("/api/setup", {
-        method: "POST",
-        headers: {
-          "X-CSRF-Token": csrf,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          backendType,
-          unlockPassword,
-          ...data,
-        }),
-      });
-
-      await refetchInfo();
-      navigate("/");
-    } catch (error) {
-      handleRequestError("Failed to connect", error);
-    } finally {
-      setConnecting(false);
-    }
+    setupStore.updateNodeInfo({
+      backendType,
+      ...data,
+    });
+    navigate(
+      backendType === "BREEZ"
+        ? `/setup/mnemonic${isNew ? "?wallet=new" : ""}`
+        : `/setup/finish`
+    );
   }
 
   return (
@@ -87,16 +53,8 @@ export function SetupNode() {
             <option value={"BREEZ"}>Breez</option>
             {!isNew && <option value={"LND"}>LND</option>}
           </select>
-          {backendType === "BREEZ" && (
-            <BreezForm
-              handleSubmit={handleSubmit}
-              isConnecting={isConnecting}
-              isNew={isNew}
-            />
-          )}
-          {backendType === "LND" && (
-            <LNDForm handleSubmit={handleSubmit} isConnecting={isConnecting} />
-          )}
+          {backendType === "BREEZ" && <BreezForm handleSubmit={handleSubmit} />}
+          {backendType === "LND" && <LNDForm handleSubmit={handleSubmit} />}
         </div>
       </Container>
     </>
@@ -104,22 +62,20 @@ export function SetupNode() {
 }
 
 type SetupFormProps = {
-  isConnecting: boolean;
   handleSubmit(data: unknown): void;
 };
 
-type BreezFormProps = SetupFormProps & {
-  isNew: boolean;
-};
-
-function BreezForm({ isConnecting, handleSubmit, isNew }: BreezFormProps) {
+function BreezForm({ handleSubmit }: SetupFormProps) {
+  const setupStore = useSetupStore();
   const [greenlightInviteCode, setGreenlightInviteCode] =
-    React.useState<string>("");
-  const [breezApiKey, setBreezApiKey] = React.useState<string>("");
+    React.useState<string>(setupStore.nodeInfo.greenlightInviteCode || "");
+  const [breezApiKey, setBreezApiKey] = React.useState<string>(
+    setupStore.nodeInfo.breezApiKey || ""
+  );
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if ((isNew && !greenlightInviteCode) || !breezApiKey) {
+    if (!greenlightInviteCode || !breezApiKey) {
       toast.error("Please fill out all fields");
       return;
     }
@@ -132,24 +88,20 @@ function BreezForm({ isConnecting, handleSubmit, isNew }: BreezFormProps) {
   return (
     <form className="w-full" onSubmit={onSubmit}>
       <>
-        {isNew && (
-          <>
-            <label
-              htmlFor="greenlight-invite-code"
-              className="block mb-2 text-md dark:text-white"
-            >
-              Greenlight Invite Code
-            </label>
-            <Input
-              name="greenlight-invite-code"
-              onChange={(e) => setGreenlightInviteCode(e.target.value)}
-              value={greenlightInviteCode}
-              type="text"
-              id="greenlight-invite-code"
-              placeholder="XXXX-YYYY"
-            />
-          </>
-        )}
+        <label
+          htmlFor="greenlight-invite-code"
+          className="block mb-2 text-md dark:text-white"
+        >
+          Greenlight Invite Code
+        </label>
+        <Input
+          name="greenlight-invite-code"
+          onChange={(e) => setGreenlightInviteCode(e.target.value)}
+          value={greenlightInviteCode}
+          type="text"
+          id="greenlight-invite-code"
+          placeholder="XXXX-YYYY"
+        />
         <label
           htmlFor="breez-api-key"
           className="block mt-4 mb-2 text-md dark:text-white"
@@ -160,23 +112,27 @@ function BreezForm({ isConnecting, handleSubmit, isNew }: BreezFormProps) {
           name="breez-api-key"
           onChange={(e) => setBreezApiKey(e.target.value)}
           value={breezApiKey}
+          autoComplete="off"
           type="text"
           id="breez-api-key"
         />
       </>
-      <ConnectButton
-        isConnecting={isConnecting}
-        submitText="Next"
-        loadingText="Saving..."
-      />
+      <ConnectButton isConnecting={false} submitText="Next" />
     </form>
   );
 }
 
-function LNDForm({ isConnecting, handleSubmit }: SetupFormProps) {
-  const [lndAddress, setLndAddress] = React.useState<string>("");
-  const [lndCertHex, setLndCertHex] = React.useState<string>("");
-  const [lndMacaroonHex, setLndMacaroonHex] = React.useState<string>("");
+function LNDForm({ handleSubmit }: SetupFormProps) {
+  const setupStore = useSetupStore();
+  const [lndAddress, setLndAddress] = React.useState<string>(
+    setupStore.nodeInfo.lndAddress || ""
+  );
+  const [lndCertHex, setLndCertHex] = React.useState<string>(
+    setupStore.nodeInfo.lndCertHex || ""
+  );
+  const [lndMacaroonHex, setLndMacaroonHex] = React.useState<string>(
+    setupStore.nodeInfo.lndMacaroonHex || ""
+  );
   // TODO: proper onboarding
 
   function onSubmit(e: React.FormEvent) {
@@ -235,11 +191,7 @@ function LNDForm({ isConnecting, handleSubmit }: SetupFormProps) {
           id="lnd-macaroon-hex"
         />
       </>
-      <ConnectButton
-        isConnecting={isConnecting}
-        submitText="Finish"
-        loadingText="Saving..."
-      />
+      <ConnectButton isConnecting={false} submitText="Submit" />
     </form>
   );
 }
