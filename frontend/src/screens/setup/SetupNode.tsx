@@ -1,6 +1,5 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import Alert from "src/components/Alert";
 import ConnectButton from "src/components/ConnectButton";
 import Container from "src/components/Container";
 import toast from "src/components/Toast";
@@ -21,7 +20,7 @@ export function SetupNode() {
   const params = new URLSearchParams(location.search);
   const isNew = params.get("wallet") === "new";
 
-  const { data: info, mutate: refetchInfo } = useInfo();
+  const { mutate: refetchInfo } = useInfo();
   const { data: csrf } = useCSRF();
 
   async function handleSubmit(data: object) {
@@ -221,7 +220,7 @@ function LNDForm({ isConnecting, handleSubmit }: SetupFormProps) {
           name="lnd-cert-hex"
           onChange={(e) => setLndCertHex(e.target.value)}
           value={lndCertHex}
-          type="password"
+          type="text"
           id="lnd-cert-hex"
           className="dark:bg-surface-00dp block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
         />
@@ -235,7 +234,7 @@ function LNDForm({ isConnecting, handleSubmit }: SetupFormProps) {
           name="lnd-macaroon-hex"
           onChange={(e) => setLndMacaroonHex(e.target.value)}
           value={lndMacaroonHex}
-          type="password"
+          type="text"
           id="lnd-macaroon-hex"
           className="dark:bg-surface-00dp block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
         />
