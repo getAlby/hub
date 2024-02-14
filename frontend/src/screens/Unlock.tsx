@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useCSRF } from "src/hooks/useCSRF";
 import { request } from "src/utils/request";
 import ConnectButton from "src/components/ConnectButton";
@@ -11,8 +11,17 @@ export default function Unlock() {
   const [unlockPassword, setUnlockPassword] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { data: csrf } = useCSRF();
+  const { data: info } = useInfo();
   const { mutate: refetchInfo } = useInfo();
+
+  React.useEffect(() => {
+    if (!info || info.running) {
+      return;
+    }
+    navigate("/");
+  }, [info, location, navigate]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
