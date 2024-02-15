@@ -23,7 +23,6 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/orandin/lumberjackrus"
-	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
@@ -47,10 +46,10 @@ func NewService(ctx context.Context) (*Service, error) {
 		return nil, err
 	}
 
-	logger := log.New()
-	logger.SetFormatter(&log.JSONFormatter{})
+	logger := logrus.New()
+	logger.SetFormatter(&logrus.JSONFormatter{})
 	logger.SetOutput(os.Stdout)
-	logger.SetLevel(log.InfoLevel)
+	logger.SetLevel(logrus.InfoLevel)
 
 	// make sure workdir exists
 	os.MkdirAll(appConfig.Workdir, os.ModePerm)
@@ -59,10 +58,10 @@ func NewService(ctx context.Context) (*Service, error) {
 		&lumberjackrus.LogFile{
 			Filename: path.Join(appConfig.Workdir, "log/nwc-general.log"),
 		},
-		log.InfoLevel,
-		&log.JSONFormatter{},
+		logrus.InfoLevel,
+		&logrus.JSONFormatter{},
 		&lumberjackrus.LogFileOpts{
-			log.ErrorLevel: &lumberjackrus.LogFile{
+			logrus.ErrorLevel: &lumberjackrus.LogFile{
 				Filename:   path.Join(appConfig.Workdir, "log/nwc-error.log"),
 				MaxAge:     1,
 				MaxBackups: 2,
@@ -122,7 +121,7 @@ func (svc *Service) launchLNBackend(encryptionKey string) error {
 
 	lndBackend, _ := svc.cfg.Get("LNBackendType", "")
 	if lndBackend == "" {
-		return errors.New("No LNBackendType specified")
+		return errors.New("no LNBackendType specified")
 	}
 
 	svc.Logger.Infof("Launching LN Backend: %s", lndBackend)
@@ -628,7 +627,7 @@ func (svc *Service) PublishNip47Info(ctx context.Context, relay *nostr.Relay) er
 	}
 	status, err := relay.Publish(ctx, *ev)
 	if err != nil || status != nostr.PublishStatusSucceeded {
-		return fmt.Errorf("Nostr publish not successful: %s error: %s", status, err)
+		return fmt.Errorf("nostr publish not successful: %s error: %s", status, err)
 	}
 	return nil
 }

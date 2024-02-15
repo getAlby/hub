@@ -23,7 +23,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 	appMatch := appRegex.FindStringSubmatch(route)
 
 	switch {
-	case appMatch != nil && len(appMatch) > 1:
+	case len(appMatch) > 1:
 		pubkey := appMatch[1]
 
 		userApp := App{}

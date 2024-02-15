@@ -36,7 +36,7 @@ func (api *API) CreateApp(createAppRequest *models.CreateAppRequest) (*models.Cr
 		decoded, err := hex.DecodeString(pairingPublicKey)
 		if err != nil || len(decoded) != 32 {
 			api.svc.Logger.Errorf("Invalid public key format: %s", pairingPublicKey)
-			return nil, errors.New(fmt.Sprintf("Invalid public key format: %s", pairingPublicKey))
+			return nil, fmt.Errorf("invalid public key format: %s", pairingPublicKey)
 
 		}
 	}
@@ -51,7 +51,7 @@ func (api *API) CreateApp(createAppRequest *models.CreateAppRequest) (*models.Cr
 		expiresAt, err = time.Parse(time.RFC3339, createAppRequest.ExpiresAt)
 		if err != nil {
 			api.svc.Logger.Errorf("Invalid expiresAt: %s", pairingPublicKey)
-			return nil, errors.New(fmt.Sprintf("Invalid expiresAt: %v", err))
+			return nil, fmt.Errorf("invalid expiresAt: %v", err)
 		}
 	}
 
@@ -67,14 +67,14 @@ func (api *API) CreateApp(createAppRequest *models.CreateAppRequest) (*models.Cr
 
 		requestMethods := createAppRequest.RequestMethods
 		if requestMethods == "" {
-			return fmt.Errorf("Won't create an app without request methods.")
+			return fmt.Errorf("won't create an app without request methods")
 		}
 		//request methods should be space separated list of known request kinds
 		methodsToCreate := strings.Split(requestMethods, " ")
 		for _, m := range methodsToCreate {
 			//if we don't know this method, we return an error
 			if !strings.Contains(NIP_47_CAPABILITIES, m) {
-				return fmt.Errorf("Did not recognize request method: %s", m)
+				return fmt.Errorf("did not recognize request method: %s", m)
 			}
 			appPermission := AppPermission{
 				App:           app,
@@ -199,7 +199,7 @@ func (api *API) ListApps() ([]models.App, error) {
 		result := api.svc.db.Where("app_id = ?", userApp.ID).Order("id desc").Limit(1).Find(&lastEvent)
 		if result.Error != nil {
 			api.svc.Logger.Errorf("Failed to fetch last event %v", result.Error)
-			return nil, errors.New("Failed to fetch last event")
+			return nil, errors.New("failed to fetch last event")
 		}
 		if result.RowsAffected > 0 {
 			apiApp.LastEventAt = &lastEvent.CreatedAt
