@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/breez/breez-sdk-go/breez_sdk"
+	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 )
 
@@ -30,7 +31,7 @@ func (BreezListener) OnEvent(e breez_sdk.BreezEvent) {
 	log.Printf("received event %#v", e)
 }
 
-func NewBreezService(mnemonic, apiKey, inviteCode, workDir string) (result LNClient, err error) {
+func NewBreezService(mnemonic, apiKey, inviteCode, workDir string) (result lnclient.LNClient, err error) {
 	if mnemonic == "" || apiKey == "" || inviteCode == "" || workDir == "" {
 		return nil, errors.New("One or more required breez configuration are missing")
 	}
@@ -101,7 +102,7 @@ func (bs *BreezService) SendPaymentSync(ctx context.Context, payReq string) (pre
 
 }
 
-func (bs *BreezService) SendKeysend(ctx context.Context, amount int64, destination, preimage string, custom_records []TLVRecord) (preImage string, err error) {
+func (bs *BreezService) SendKeysend(ctx context.Context, amount int64, destination, preimage string, custom_records []lnclient.TLVRecord) (preImage string, err error) {
 	extraTlvs := []breez_sdk.TlvEntry{}
 	for _, record := range custom_records {
 		extraTlvs = append(extraTlvs, breez_sdk.TlvEntry{
@@ -131,7 +132,7 @@ func (bs *BreezService) GetBalance(ctx context.Context) (balance int64, err erro
 	if err != nil {
 		return 0, err
 	}
-	return int64(info.ChannelsBalanceMsat) / 1000, nil
+	return int64(info.ChannelsBalanceMsat), nil
 }
 
 func (bs *BreezService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *Nip47Transaction, err error) {
@@ -237,8 +238,8 @@ func (bs *BreezService) ListTransactions(ctx context.Context, from, until, limit
 	return transactions, nil
 }
 
-func (bs *BreezService) GetInfo(ctx context.Context) (info *NodeInfo, err error) {
-	return &NodeInfo{
+func (bs *BreezService) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, err error) {
+	return &lnclient.NodeInfo{
 		Alias:       "breez",
 		Color:       "",
 		Pubkey:      "",
@@ -246,6 +247,22 @@ func (bs *BreezService) GetInfo(ctx context.Context) (info *NodeInfo, err error)
 		BlockHeight: 0,
 		BlockHash:   "",
 	}, nil
+}
+
+func (bs *BreezService) ListChannels(ctx context.Context) ([]lnclient.Channel, error) {
+	channels := []lnclient.Channel{}
+	return channels, nil
+}
+
+func (bs *BreezService) GetNodeConnectionInfo(ctx context.Context) (nodeConnectionInfo *lnclient.NodeConnectionInfo, err error) {
+	return &lnclient.NodeConnectionInfo{}, nil
+}
+
+func (bs *BreezService) ConnectPeer(ctx context.Context, connectPeerRequest *lnclient.ConnectPeerRequest) error {
+	return nil
+}
+func (bs *BreezService) OpenChannel(ctx context.Context, openChannelRequest *lnclient.OpenChannelRequest) (*lnclient.OpenChannelResponse, error) {
+	return nil, nil
 }
 
 func breezPaymentToTransaction(payment *breez_sdk.Payment) (*Nip47Transaction, error) {
@@ -303,4 +320,12 @@ func breezPaymentToTransaction(payment *breez_sdk.Payment) (*Nip47Transaction, e
 	}
 
 	return tx, nil
+}
+
+func (bs *BreezService) GetNewOnchainAddress(ctx context.Context) (string, error) {
+	return "", nil
+}
+
+func (bs *BreezService) GetOnchainBalance(ctx context.Context) (int64, error) {
+	return 0, nil
 }

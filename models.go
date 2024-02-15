@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"time"
+
+	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 )
 
 const (
@@ -102,20 +104,7 @@ type Payment struct {
 }
 
 // TODO: move to models/Nip47
-type Nip47Transaction struct {
-	Type            string      `json:"type"`
-	Invoice         string      `json:"invoice"`
-	Description     string      `json:"description"`
-	DescriptionHash string      `json:"description_hash"`
-	Preimage        string      `json:"preimage"`
-	PaymentHash     string      `json:"payment_hash"`
-	Amount          int64       `json:"amount"`
-	FeesPaid        int64       `json:"fees_paid"`
-	CreatedAt       int64       `json:"created_at"`
-	ExpiresAt       *int64      `json:"expires_at"`
-	SettledAt       *int64      `json:"settled_at"`
-	Metadata        interface{} `json:"metadata,omitempty"`
-}
+type Nip47Transaction = lnclient.Transaction
 
 type PayRequest struct {
 	Invoice string `json:"invoice"`
@@ -123,16 +112,6 @@ type PayRequest struct {
 
 type ErrorResponse struct {
 	Message string `json:"message"`
-}
-
-// TODO: move to models/LNClient
-type NodeInfo struct {
-	Alias       string
-	Color       string
-	Pubkey      string
-	Network     string
-	BlockHeight uint32
-	BlockHash   string
 }
 
 // TODO: move to models/Nip47
@@ -178,15 +157,10 @@ type Nip47MultiPayInvoiceElement struct {
 }
 
 type Nip47KeysendParams struct {
-	Amount     int64       `json:"amount"`
-	Pubkey     string      `json:"pubkey"`
-	Preimage   string      `json:"preimage"`
-	TLVRecords []TLVRecord `json:"tlv_records"`
-}
-
-type TLVRecord struct {
-	Type  uint64 `json:"type"`
-	Value string `json:"value"`
+	Amount     int64                `json:"amount"`
+	Pubkey     string               `json:"pubkey"`
+	Preimage   string               `json:"preimage"`
+	TLVRecords []lnclient.TLVRecord `json:"tlv_records"`
 }
 
 type Nip47BalanceResponse struct {

@@ -1,6 +1,10 @@
 package api
 
-import "time"
+import (
+	"time"
+
+	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
+)
 
 type App struct {
 	// ID          uint      `json:"id"` // ID unused - pubkey is used as ID
@@ -42,10 +46,14 @@ type UnlockRequest struct {
 
 type SetupRequest struct {
 	LNBackendType string `json:"backendType"`
-	// Breez fields
-	Mnemonic             string `json:"Mnemonic"`
-	BreezAPIKey          string `json:"breezApiKey"`
+
+	// Breez / Greenlight
+	Mnemonic             string `json:"mnemonic"`
 	GreenlightInviteCode string `json:"greenlightInviteCode"`
+
+	// Breez fields
+	BreezAPIKey string `json:"breezApiKey"`
+
 	// LND fields
 	LNDAddress      string `json:"lndAddress"`
 	LNDCertFile     string `json:"lndCertFile"`
@@ -72,4 +80,16 @@ type InfoResponse struct {
 	SetupCompleted bool   `json:"setupCompleted"`
 	Running        bool   `json:"running"`
 	Unlocked       bool   `json:"unlocked"`
+}
+
+type ConnectPeerRequest = lnclient.ConnectPeerRequest
+type OpenChannelRequest = lnclient.OpenChannelRequest
+type OpenChannelResponse = lnclient.OpenChannelResponse
+
+type NewOnchainAddressResponse struct {
+	Address string `json:"address"`
+}
+
+type OnchainBalanceResponse struct {
+	Sats int64 `json:"sats"`
 }

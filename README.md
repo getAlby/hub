@@ -18,6 +18,7 @@ Ideally the app runs 24/7 (on a node, VPS or always-online desktop/laptop machin
 
 - LND (see: lnd.go)
 - Breez (see: breez.go)
+- Greenlight (see: greenlight.go)
 - want more? please open an issue.
 
 ## Installation
@@ -32,9 +33,15 @@ As data storage SQLite is used.
     # edit the config for your needs
     vim .env
 
-To get a new random Nostr key use `openssl rand -hex 32` or similar.
+#### Optional Requirements
+
+See [Greenlight](./README_GREENLIGHT.md)
 
 ## Development
+
+### Required Software
+
+- Go
 
 ### Server (HTTP mode)
 
@@ -74,7 +81,7 @@ _If you get a blank screen the first load, close the window and start the app ag
 
 ### Run dockerfile locally (HTTP mode)
 
-`docker build . -t nwc-local`
+`docker build . -t nwc-local --progress=plain`
 
 `docker run --env-file .env -p 8080:8080 nwc-local`
 
@@ -95,7 +102,6 @@ Breez SDK requires gcc to build the Breez bindings. Run `choco install mingw` an
 - `DATABASE_URI`: a sqlite filename. Default: .data/nwc.db
 - `PORT`: the port on which the app should listen on (default: 8080)
 - `WORK_DIR`: directory to store NWC data files. Default: .data
--
 
 ### LND Backend parameters
 

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	models "github.com/getAlby/nostr-wallet-connect/models/api"
+	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 	"github.com/nbd-wtf/go-nostr"
 	"gorm.io/gorm"
 )
@@ -207,6 +208,60 @@ func (api *API) ListApps() ([]models.App, error) {
 		apiApps = append(apiApps, apiApp)
 	}
 	return apiApps, nil
+}
+
+func (api *API) ListChannels() ([]lnclient.Channel, error) {
+	if api.svc.lnClient == nil {
+		return nil, errors.New("LNClient not started")
+	}
+	return api.svc.lnClient.ListChannels(api.svc.ctx)
+}
+
+func (api *API) GetNodeConnectionInfo() (*lnclient.NodeConnectionInfo, error) {
+	if api.svc.lnClient == nil {
+		return nil, errors.New("LNClient not started")
+	}
+	return api.svc.lnClient.GetNodeConnectionInfo(api.svc.ctx)
+}
+
+func (api *API) ConnectPeer(connectPeerRequest *models.ConnectPeerRequest) error {
+	if api.svc.lnClient == nil {
+		return errors.New("LNClient not started")
+	}
+	return api.svc.lnClient.ConnectPeer(api.svc.ctx, connectPeerRequest)
+}
+
+func (api *API) OpenChannel(openChannelRequest *models.OpenChannelRequest) (*models.OpenChannelResponse, error) {
+	if api.svc.lnClient == nil {
+		return nil, errors.New("LNClient not started")
+	}
+	return api.svc.lnClient.OpenChannel(api.svc.ctx, openChannelRequest)
+}
+
+func (api *API) GetNewOnchainAddress() (*models.NewOnchainAddressResponse, error) {
+	if api.svc.lnClient == nil {
+		return nil, errors.New("LNClient not started")
+	}
+	address, err := api.svc.lnClient.GetNewOnchainAddress(api.svc.ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &models.NewOnchainAddressResponse{
+		Address: address,
+	}, nil
+}
+
+func (api *API) GetOnchainBalance() (*models.OnchainBalanceResponse, error) {
+	if api.svc.lnClient == nil {
+		return nil, errors.New("LNClient not started")
+	}
+	balance, err := api.svc.lnClient.GetOnchainBalance(api.svc.ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &models.OnchainBalanceResponse{
+		Sats: balance,
+	}, nil
 }
 
 func (api *API) GetInfo() *models.InfoResponse {

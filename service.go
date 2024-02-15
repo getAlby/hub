@@ -19,6 +19,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/getAlby/nostr-wallet-connect/migrations"
+	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 	"github.com/glebarez/sqlite"
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
@@ -31,7 +32,7 @@ type Service struct {
 	// config from .env only. Fetch dynamic config from db
 	cfg      *Config
 	db       *gorm.DB
-	lnClient LNClient
+	lnClient lnclient.LNClient
 	Logger   *logrus.Logger
 	ctx      context.Context
 	wg       *sync.WaitGroup
@@ -126,7 +127,7 @@ func (svc *Service) launchLNBackend(encryptionKey string) error {
 	}
 
 	svc.Logger.Infof("Launching LN Backend: %s", lndBackend)
-	var lnClient LNClient
+	var lnClient lnclient.LNClient
 	var err error
 	switch lndBackend {
 	case LNDBackendType:
@@ -134,6 +135,12 @@ func (svc *Service) launchLNBackend(encryptionKey string) error {
 		LNDCertHex, _ := svc.cfg.Get("LNDCertHex", encryptionKey)
 		LNDMacaroonHex, _ := svc.cfg.Get("LNDMacaroonHex", encryptionKey)
 		lnClient, err = NewLNDService(svc, LNDAddress, LNDCertHex, LNDMacaroonHex)
+	case GreenlightBackendType:
+		Mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
+		GreenlightInviteCode, _ := svc.cfg.Get("GreenlightInviteCode", encryptionKey)
+		GreenlightWorkdir := path.Join(svc.cfg.Env.Workdir, "greenlightcli")
+
+		lnClient, err = NewGreenlightService(Mnemonic, GreenlightInviteCode, GreenlightWorkdir)
 	case BreezBackendType:
 		Mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
 		BreezAPIKey, _ := svc.cfg.Get("BreezAPIKey", encryptionKey)

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/getAlby/nostr-wallet-connect/migrations"
+	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 	"github.com/glebarez/sqlite"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip04"
@@ -204,7 +205,7 @@ const mockPaymentHash500 = "be8ad5d0b82071d538dcd160e3a3af444bd890de68388a4d771b
 
 const mockInvoice = "lntb1230n1pjypux0pp5xgxzcks5jtx06k784f9dndjh664wc08ucrganpqn52d0ftrh9n8sdqyw3jscqzpgxqyz5vqsp5rkx7cq252p3frx8ytjpzc55rkgyx2mfkzzraa272dqvr2j6leurs9qyyssqhutxa24r5hqxstchz5fxlslawprqjnarjujp5sm3xj7ex73s32sn54fthv2aqlhp76qmvrlvxppx9skd3r5ut5xutgrup8zuc6ay73gqmra29m"
 const mockPaymentHash = "320c2c5a1492ccfd5bc7aa4ad9b657d6aaec3cfcc0d1d98413a29af4ac772ccf" // for the above invoice
-var mockNodeInfo = NodeInfo{
+var mockNodeInfo = lnclient.NodeInfo{
 	Alias:       "bob",
 	Color:       "#3399FF",
 	Pubkey:      "123pubkey",
@@ -1160,15 +1161,15 @@ func (mln *MockLn) SendPaymentSync(ctx context.Context, payReq string) (preimage
 	return "123preimage", nil
 }
 
-func (mln *MockLn) SendKeysend(ctx context.Context, amount int64, destination, preimage string, custom_records []TLVRecord) (preImage string, err error) {
+func (mln *MockLn) SendKeysend(ctx context.Context, amount int64, destination, preimage string, custom_records []lnclient.TLVRecord) (preImage string, err error) {
 	return "12345preimage", nil
 }
 
 func (mln *MockLn) GetBalance(ctx context.Context) (balance int64, err error) {
-	return 21, nil
+	return 21000, nil
 }
 
-func (mln *MockLn) GetInfo(ctx context.Context) (info *NodeInfo, err error) {
+func (mln *MockLn) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, err error) {
 	return &mockNodeInfo, nil
 }
 
@@ -1185,4 +1186,23 @@ func (mln *MockLn) ListTransactions(ctx context.Context, from, until, limit, off
 }
 func (mln *MockLn) Shutdown() error {
 	return nil
+}
+
+func (mln *MockLn) ListChannels(ctx context.Context) (channels []lnclient.Channel, err error) {
+	return []lnclient.Channel{}, nil
+}
+func (mln *MockLn) GetNodeConnectionInfo(ctx context.Context) (nodeConnectionInfo *lnclient.NodeConnectionInfo, err error) {
+	return nil, nil
+}
+func (mln *MockLn) ConnectPeer(ctx context.Context, connectPeerRequest *lnclient.ConnectPeerRequest) error {
+	return nil
+}
+func (mln *MockLn) OpenChannel(ctx context.Context, openChannelRequest *lnclient.OpenChannelRequest) (*lnclient.OpenChannelResponse, error) {
+	return nil, nil
+}
+func (mln *MockLn) GetNewOnchainAddress(ctx context.Context) (string, error) {
+	return "", nil
+}
+func (mln *MockLn) GetOnchainBalance(ctx context.Context) (int64, error) {
+	return 0, nil
 }

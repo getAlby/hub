@@ -20,6 +20,12 @@ import { StartRedirect } from "src/components/redirects/StartRedirect";
 import { HomeRedirect } from "src/components/redirects/HomeRedirect";
 import Unlock from "src/screens/Unlock";
 import { SetupRedirect } from "src/components/redirects/SetupRedirect";
+import Channels from "src/screens/channels/Channels";
+import NewChannel from "src/screens/channels/NewChannel";
+import NewBlocktankChannel from "src/screens/channels/NewBlocktankChannel";
+import NewOnchainAddress from "src/screens/onchain/NewAddress";
+import NewCustomChannel from "src/screens/channels/NewCustomChannel";
+import RecommendedChannels from "src/screens/channels/RecommendedChannels";
 import { SetupMnemonic } from "src/screens/setup/SetupMnemonic";
 import { SetupFinish } from "src/screens/setup/SetupFinish";
 
@@ -55,6 +61,18 @@ function App() {
               <Route path="created" element={<AppCreated />} />
               <Route path="*" element={<NotFound />} />
             </Route>
+            <Route path="channels" element={<Channels />} />
+            <Route path="channels/new" element={<NewChannel />} />
+            <Route
+              path="channels/new/blocktank"
+              element={<NewBlocktankChannel />}
+            />
+            <Route
+              path="channels/recommended"
+              element={<RecommendedChannels />}
+            />
+            <Route path="channels/new/custom" element={<NewCustomChannel />} />
+            <Route path="onchain/new-address" element={<NewOnchainAddress />} />
             <Route path="unlock" element={<Unlock />} />
             <Route path="about" element={<About />} />
           </Route>

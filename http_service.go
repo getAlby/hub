@@ -62,6 +62,14 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.POST("/api/start", httpSvc.startHandler, unlockRateLimiter)
 	e.POST("/api/unlock", httpSvc.unlockHandler, unlockRateLimiter)
 
+	// TODO: below could be supported by NIP-47
+	e.GET("/api/channels", httpSvc.channelsListHandler, authMiddleware)
+	e.POST("/api/channels", httpSvc.openChannelHandler, authMiddleware)
+	e.GET("/api/node/connection-info", httpSvc.nodeConnectionInfoHandler, authMiddleware)
+	e.POST("/api/peer", httpSvc.connectPeerHandler, authMiddleware)
+	e.POST("/api/wallet/new-address", httpSvc.newOnchainAddressHandler, authMiddleware)
+	e.GET("/api/wallet/balance", httpSvc.onchainBalanceHandler, authMiddleware)
+
 	frontend.RegisterHandlers(e)
 }
 
@@ -166,6 +174,95 @@ func (httpSvc *HttpService) logoutHandler(c echo.Context) error {
 		})
 	}
 	return c.NoContent(http.StatusNoContent)
+}
+
+func (httpSvc *HttpService) channelsListHandler(c echo.Context) error {
+
+	channels, err := httpSvc.api.ListChannels()
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+
+	return c.JSON(http.StatusOK, channels)
+}
+
+func (httpSvc *HttpService) nodeConnectionInfoHandler(c echo.Context) error {
+
+	info, err := httpSvc.api.GetNodeConnectionInfo()
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+
+	return c.JSON(http.StatusOK, info)
+}
+
+func (httpSvc *HttpService) onchainBalanceHandler(c echo.Context) error {
+
+	onchainBalanceResponse, err := httpSvc.api.GetOnchainBalance()
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+
+	return c.JSON(http.StatusOK, onchainBalanceResponse)
+}
+
+func (httpSvc *HttpService) connectPeerHandler(c echo.Context) error {
+	var connectPeerRequest api.ConnectPeerRequest
+	if err := c.Bind(&connectPeerRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	err := httpSvc.api.ConnectPeer(&connectPeerRequest)
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to connect peer: %s", err.Error()),
+		})
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
+
+func (httpSvc *HttpService) openChannelHandler(c echo.Context) error {
+	var openChannelRequest api.OpenChannelRequest
+	if err := c.Bind(&openChannelRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	openChannelResponse, err := httpSvc.api.OpenChannel(&openChannelRequest)
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to open channel: %s", err.Error()),
+		})
+	}
+
+	return c.JSON(http.StatusOK, openChannelResponse)
+}
+
+func (httpSvc *HttpService) newOnchainAddressHandler(c echo.Context) error {
+	newAddressResponse, err := httpSvc.api.GetNewOnchainAddress()
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to request new onchain address: %s", err.Error()),
+		})
+	}
+
+	return c.JSON(http.StatusOK, newAddressResponse)
 }
 
 func (httpSvc *HttpService) appsListHandler(c echo.Context) error {

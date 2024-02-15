@@ -24,7 +24,7 @@ export function SetupNode() {
       ...data,
     });
     navigate(
-      backendType === "BREEZ"
+      backendType === "BREEZ" || backendType === "GREENLIGHT"
         ? `/setup/mnemonic${isNew ? "?wallet=new" : ""}`
         : `/setup/finish`
     );
@@ -51,9 +51,13 @@ export function SetupNode() {
             className="dark:bg-surface-00dp mb-4 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
           >
             <option value={"BREEZ"}>Breez</option>
+            <option value={"GREENLIGHT"}>Greenlight</option>
             {!isNew && <option value={"LND"}>LND</option>}
           </select>
           {backendType === "BREEZ" && <BreezForm handleSubmit={handleSubmit} />}
+          {backendType === "GREENLIGHT" && (
+            <GreenlightForm handleSubmit={handleSubmit} />
+          )}
           {backendType === "LND" && <LNDForm handleSubmit={handleSubmit} />}
         </div>
       </Container>
@@ -115,6 +119,45 @@ function BreezForm({ handleSubmit }: SetupFormProps) {
           autoComplete="off"
           type="text"
           id="breez-api-key"
+        />
+      </>
+      <ConnectButton isConnecting={false} submitText="Next" />
+    </form>
+  );
+}
+
+function GreenlightForm({ handleSubmit }: SetupFormProps) {
+  const setupStore = useSetupStore();
+  const [greenlightInviteCode, setGreenlightInviteCode] =
+    React.useState<string>(setupStore.nodeInfo.greenlightInviteCode || "");
+
+  function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!greenlightInviteCode) {
+      toast.error("please fill out all fields");
+      return;
+    }
+    handleSubmit({
+      greenlightInviteCode,
+    });
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="w-full">
+      <>
+        <label
+          htmlFor="greenlight-invite-code"
+          className="block mb-2 text-md dark:text-white"
+        >
+          Greenlight Invite Code
+        </label>
+        <Input
+          name="greenlight-invite-code"
+          onChange={(e) => setGreenlightInviteCode(e.target.value)}
+          value={greenlightInviteCode}
+          type="text"
+          id="greenlight-invite-code"
+          placeholder="XXXX-YYYY"
         />
       </>
       <ConnectButton isConnecting={false} submitText="Next" />

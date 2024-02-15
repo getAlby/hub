@@ -1,10 +1,10 @@
-import { NodeInfo } from "src/types";
+import { SetupNodeInfo } from "src/types";
 import { create } from "zustand";
 
 interface SetupStore {
-  readonly nodeInfo: NodeInfo;
+  readonly nodeInfo: SetupNodeInfo;
   readonly unlockPassword: string;
-  updateNodeInfo(nodeInfo: NodeInfo): void;
+  updateNodeInfo(nodeInfo: SetupNodeInfo): void;
   setUnlockPassword(unlockPassword: string): void;
 }
 

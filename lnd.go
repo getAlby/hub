@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/getAlby/nostr-wallet-connect/lnd"
+	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 
 	"github.com/sirupsen/logrus"
@@ -18,17 +19,6 @@ import (
 
 	"github.com/lightningnetwork/lnd/lnrpc"
 )
-
-type LNClient interface {
-	SendPaymentSync(ctx context.Context, payReq string) (preimage string, err error)
-	SendKeysend(ctx context.Context, amount int64, destination, preimage string, custom_records []TLVRecord) (preImage string, err error)
-	GetBalance(ctx context.Context) (balance int64, err error)
-	GetInfo(ctx context.Context) (info *NodeInfo, err error)
-	MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *Nip47Transaction, err error)
-	LookupInvoice(ctx context.Context, paymentHash string) (transaction *Nip47Transaction, err error)
-	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []Nip47Transaction, err error)
-	Shutdown() error
-}
 
 // wrap it again :sweat_smile:
 // todo: drop dependency on lndhub package
@@ -43,7 +33,7 @@ func (svc *LNDService) GetBalance(ctx context.Context) (balance int64, err error
 	if err != nil {
 		return 0, err
 	}
-	return int64(resp.LocalBalance.Sat), nil
+	return int64(resp.LocalBalance.Msat), nil
 }
 
 func (svc *LNDService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []Nip47Transaction, err error) {
@@ -132,12 +122,12 @@ func (svc *LNDService) ListTransactions(ctx context.Context, from, until, limit,
 	return transactions, nil
 }
 
-func (svc *LNDService) GetInfo(ctx context.Context) (info *NodeInfo, err error) {
+func (svc *LNDService) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, err error) {
 	resp, err := svc.client.GetInfo(ctx, &lnrpc.GetInfoRequest{})
 	if err != nil {
 		return nil, err
 	}
-	return &NodeInfo{
+	return &lnclient.NodeInfo{
 		Alias:       resp.Alias,
 		Color:       resp.Color,
 		Pubkey:      resp.IdentityPubkey,
@@ -145,6 +135,11 @@ func (svc *LNDService) GetInfo(ctx context.Context) (info *NodeInfo, err error) 
 		BlockHeight: resp.BlockHeight,
 		BlockHash:   resp.BlockHash,
 	}, nil
+}
+
+func (svc *LNDService) ListChannels(ctx context.Context) ([]lnclient.Channel, error) {
+	channels := []lnclient.Channel{}
+	return channels, nil
 }
 
 func (svc *LNDService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *Nip47Transaction, err error) {
@@ -205,7 +200,7 @@ func (svc *LNDService) SendPaymentSync(ctx context.Context, payReq string) (prei
 	return hex.EncodeToString(resp.PaymentPreimage), nil
 }
 
-func (svc *LNDService) SendKeysend(ctx context.Context, amount int64, destination, preimage string, custom_records []TLVRecord) (respPreimage string, err error) {
+func (svc *LNDService) SendKeysend(ctx context.Context, amount int64, destination, preimage string, custom_records []lnclient.TLVRecord) (respPreimage string, err error) {
 	destBytes, err := hex.DecodeString(destination)
 	if err != nil {
 		return "", err
@@ -304,7 +299,7 @@ func makePreimageHex() ([]byte, error) {
 	return bytes, nil
 }
 
-func NewLNDService(svc *Service, lndAddress, lndCertHex, lndMacaroonHex string) (result LNClient, err error) {
+func NewLNDService(svc *Service, lndAddress, lndCertHex, lndMacaroonHex string) (result lnclient.LNClient, err error) {
 	if lndAddress == "" || lndCertHex == "" || lndMacaroonHex == "" {
 		return nil, errors.New("One or more required LND configuration are missing")
 	}
@@ -332,6 +327,25 @@ func NewLNDService(svc *Service, lndAddress, lndCertHex, lndMacaroonHex string) 
 
 func (svc *LNDService) Shutdown() error {
 	return nil
+}
+
+func (svc *LNDService) GetNodeConnectionInfo(ctx context.Context) (nodeConnectionInfo *lnclient.NodeConnectionInfo, err error) {
+	return &lnclient.NodeConnectionInfo{}, nil
+}
+
+func (svc *LNDService) ConnectPeer(ctx context.Context, connectPeerRequest *lnclient.ConnectPeerRequest) error {
+	return nil
+}
+func (svc *LNDService) OpenChannel(ctx context.Context, openChannelRequest *lnclient.OpenChannelRequest) (*lnclient.OpenChannelResponse, error) {
+	return nil, nil
+}
+
+func (svc *LNDService) GetNewOnchainAddress(ctx context.Context) (string, error) {
+	return "", nil
+}
+
+func (svc *LNDService) GetOnchainBalance(ctx context.Context) (int64, error) {
+	return 0, nil
 }
 
 func lndInvoiceToTransaction(invoice *lnrpc.Invoice) *Nip47Transaction {

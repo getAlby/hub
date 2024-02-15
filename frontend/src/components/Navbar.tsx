@@ -33,6 +33,17 @@ function Navbar() {
                 >
                   Apps
                 </Link>
+                {info?.running && info.backendType === "GREENLIGHT" && (
+                  <Link
+                    className={`${linkStyles} ${
+                      location.pathname.startsWith("/channels") &&
+                      selectedLinkStyles
+                    }`}
+                    to="/channels"
+                  >
+                    Channels
+                  </Link>
+                )}
                 {!info?.running && (
                   <Link
                     className={`${linkStyles} ${

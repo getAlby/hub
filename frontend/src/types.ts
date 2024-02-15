@@ -5,7 +5,7 @@ export const NIP_47_MAKE_INVOICE_METHOD = "make_invoice";
 export const NIP_47_LOOKUP_INVOICE_METHOD = "lookup_invoice";
 export const NIP_47_LIST_TRANSACTIONS_METHOD = "list_transactions";
 
-export type BackendType = "LND" | "BREEZ";
+export type BackendType = "LND" | "BREEZ" | "GREENLIGHT";
 
 export type RequestMethodType =
   | "pay_invoice"
@@ -88,7 +88,52 @@ export interface CreateAppResponse {
   returnTo: string;
 }
 
-export type NodeInfo = Partial<{
+export type Channel = {
+  localBalance: number;
+  remoteBalance: number;
+  remotePubkey: string;
+  id: string;
+  active: boolean;
+};
+
+export type NodeConnectionInfo = {
+  pubkey: string;
+  address: string;
+  port: number;
+};
+
+export type ConnectPeerRequest = {
+  pubkey: string;
+  address: string;
+  port: number;
+};
+
+export type OpenChannelRequest = {
+  pubkey: string;
+  amount: number;
+};
+
+export type OpenChannelResponse = {
+  fundingTxId: string;
+};
+
+export type GetOnchainAddressResponse = {
+  address: string;
+};
+
+export type OnchainBalanceResponse = {
+  sats: number;
+};
+
+// from https://mempool.space/docs/api/rest#get-node-stats
+export type Node = {
+  alias: string;
+  public_key: string;
+  color: string;
+  active_channel_count: number;
+  sockets: string;
+};
+export type SetupNodeInfo = Partial<{
   backendType: BackendType;
 
   mnemonic?: string;
