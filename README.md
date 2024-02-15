@@ -237,6 +237,10 @@ Run NWC on your own node!
   - press 'n' to tweak the settings and then hit enter
   - wait for the deployment to succeed, it should give you a URL like `https://nwc-john-doe-1234.fly.dev`
 
+#### Update Fly App
+
+- run `fly deploy`
+
 ### Custom Ubuntu VM
 
 - install go (using snap)

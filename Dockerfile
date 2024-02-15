@@ -35,7 +35,8 @@ COPY --from=frontend /build/frontend/dist ./frontend/dist
 
 RUN GOARCH=$(echo "$TARGETPLATFORM" | cut -d'/' -f2) go build -o main .
 
-RUN wget https://github.com/breez/breez-sdk-go/raw/main/breez_sdk/lib/linux-amd64/libbreez_sdk_bindings.so
+#RUN wget https://github.com/breez/breez-sdk-go/raw/main/breez_sdk/lib/linux-amd64/libbreez_sdk_bindings.so
+RUN wget https://github.com/breez/breez-sdk-go/raw/v0.2.14/breez_sdk/lib/linux-amd64/libbreez_sdk_bindings.so
 
 # Start a new, final image to reduce size.
 FROM debian as final
