@@ -1,121 +1,91 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import ConnectButton from "src/components/ConnectButton";
 import Container from "src/components/Container";
-import { useCSRF } from "src/hooks/useCSRF";
-import { useInfo } from "src/hooks/useInfo";
+import Input from "src/components/Input";
+import toast from "src/components/Toast";
 import useSetupStore from "src/state/SetupStore";
 import { BackendType } from "src/types";
-import { handleRequestError } from "src/utils/handleRequestError";
-import { request } from "src/utils/request"; // build the project for this to appear
 
 export function SetupNode() {
-  const [backendType, setBackendType] =
-    React.useState<BackendType>("GREENLIGHT");
-  const { unlockPassword } = useSetupStore();
-  const [isConnecting, setConnecting] = React.useState(false);
+  const setupStore = useSetupStore();
+  const [backendType, setBackendType] = React.useState<BackendType>(
+    setupStore.nodeInfo.backendType || "BREEZ"
+  );
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const { data: info, mutate: refetchInfo } = useInfo();
-  const { data: csrf } = useCSRF();
+  const params = new URLSearchParams(location.search);
+  const isNew = params.get("wallet") === "new";
 
   async function handleSubmit(data: object) {
-    try {
-      setConnecting(true);
-      if (!csrf) {
-        throw new Error("csrf not loaded");
-      }
-      await request("/api/setup", {
-        method: "POST",
-        headers: {
-          "X-CSRF-Token": csrf,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          backendType,
-          unlockPassword,
-          ...data,
-        }),
-      });
-
-      await refetchInfo();
-      navigate("/");
-    } catch (error) {
-      handleRequestError("Failed to connect", error);
-    } finally {
-      setConnecting(false);
-    }
+    setupStore.updateNodeInfo({
+      backendType,
+      ...data,
+    });
+    navigate(
+      backendType === "BREEZ" || backendType === "GREENLIGHT"
+        ? `/setup/mnemonic${isNew ? "?wallet=new" : ""}`
+        : `/setup/finish`
+    );
   }
 
   return (
     <>
       <Container>
-        <p className="mb-4">
+        <p className="text-center font-light text-md leading-relaxed dark:text-neutral-400 px-4 mb-4">
           Enter your node connection credentials to connect to your wallet.
         </p>
-
-        {info?.setupCompleted && (
-          <p className="mb-4 text-red-500 text-sm font-bold">
-            Your node is already setup! only continue if you actually want to
-            change your connection settings.
-          </p>
-        )}
-        <label
-          htmlFor="backend-type"
-          className="block font-medium text-gray-900 dark:text-white"
-        >
-          Backend Type
-        </label>
-        <select
-          name="backend-type"
-          value={backendType}
-          onChange={(e) => setBackendType(e.target.value as BackendType)}
-          id="backend-type"
-          className="dark:bg-surface-00dp mb-4 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
-        >
-          <option value={"GREENLIGHT"}>Greenlight</option>
-          <option value={"BREEZ"}>Breez</option>
-          <option value={"LND"}>LND</option>
-        </select>
-
-        {backendType === "GREENLIGHT" && (
-          <GreenlightForm
-            handleSubmit={handleSubmit}
-            isConnecting={isConnecting}
-          />
-        )}
-        {backendType === "BREEZ" && (
-          <BreezForm handleSubmit={handleSubmit} isConnecting={isConnecting} />
-        )}
-        {backendType === "LND" && (
-          <LNDForm handleSubmit={handleSubmit} isConnecting={isConnecting} />
-        )}
+        <div className="w-full mt-4">
+          <label
+            htmlFor="backend-type"
+            className="block mb-2 text-md text-gray-900 dark:text-white"
+          >
+            Backend Type
+          </label>
+          <select
+            name="backend-type"
+            value={backendType}
+            onChange={(e) => setBackendType(e.target.value as BackendType)}
+            id="backend-type"
+            className="dark:bg-surface-00dp mb-4 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
+          >
+            <option value={"BREEZ"}>Breez</option>
+            <option value={"GREENLIGHT"}>Greenlight</option>
+            {!isNew && <option value={"LND"}>LND</option>}
+          </select>
+          {backendType === "BREEZ" && <BreezForm handleSubmit={handleSubmit} />}
+          {backendType === "GREENLIGHT" && (
+            <GreenlightForm handleSubmit={handleSubmit} />
+          )}
+          {backendType === "LND" && <LNDForm handleSubmit={handleSubmit} />}
+        </div>
       </Container>
     </>
   );
 }
 
 type SetupFormProps = {
-  isConnecting: boolean;
   handleSubmit(data: unknown): void;
 };
 
-function BreezForm({ isConnecting, handleSubmit }: SetupFormProps) {
+function BreezForm({ handleSubmit }: SetupFormProps) {
+  const setupStore = useSetupStore();
   const [greenlightInviteCode, setGreenlightInviteCode] =
-    React.useState<string>("");
-  const [breezApiKey, setBreezApiKey] = React.useState<string>("");
-  const [mnemonic, setMnemonic] = React.useState<string>("");
+    React.useState<string>(setupStore.nodeInfo.greenlightInviteCode || "");
+  const [breezApiKey, setBreezApiKey] = React.useState<string>(
+    setupStore.nodeInfo.breezApiKey || ""
+  );
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!greenlightInviteCode || !mnemonic) {
-      alert("please fill out all fields");
+    if (!greenlightInviteCode || !breezApiKey) {
+      toast.error("Please fill out all fields");
       return;
     }
     handleSubmit({
       greenlightInviteCode,
       breezApiKey,
-      mnemonic,
     });
   }
 
@@ -124,66 +94,51 @@ function BreezForm({ isConnecting, handleSubmit }: SetupFormProps) {
       <>
         <label
           htmlFor="greenlight-invite-code"
-          className="block font-medium text-gray-900 dark:text-white"
+          className="block mb-2 text-md dark:text-white"
         >
           Greenlight Invite Code
         </label>
-        <input
+        <Input
           name="greenlight-invite-code"
           onChange={(e) => setGreenlightInviteCode(e.target.value)}
           value={greenlightInviteCode}
-          type="password"
+          type="text"
           id="greenlight-invite-code"
-          className="dark:bg-surface-00dp block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
+          placeholder="XXXX-YYYY"
         />
         <label
           htmlFor="breez-api-key"
-          className="mt-4 block font-medium text-gray-900 dark:text-white"
+          className="block mt-4 mb-2 text-md dark:text-white"
         >
           Breez API Key
         </label>
-        <input
+        <Input
           name="breez-api-key"
           onChange={(e) => setBreezApiKey(e.target.value)}
           value={breezApiKey}
-          type="password"
+          autoComplete="off"
+          type="text"
           id="breez-api-key"
-          className="dark:bg-surface-00dp block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
-        />
-        <label
-          htmlFor="mnemonic"
-          className="mt-4 block font-medium text-gray-900 dark:text-white"
-        >
-          BIP39 Mnemonic
-        </label>
-        <input
-          name="mnemonic"
-          onChange={(e) => setMnemonic(e.target.value)}
-          value={mnemonic}
-          type="password"
-          id="mnemonic"
-          className="dark:bg-surface-00dp block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
         />
       </>
-      <ConnectButton isConnecting={isConnecting} />
+      <ConnectButton isConnecting={false} submitText="Next" />
     </form>
   );
 }
 
-function GreenlightForm({ isConnecting, handleSubmit }: SetupFormProps) {
+function GreenlightForm({ handleSubmit }: SetupFormProps) {
+  const setupStore = useSetupStore();
   const [greenlightInviteCode, setGreenlightInviteCode] =
-    React.useState<string>("");
-  const [mnemonic, setMnemonic] = React.useState<string>("");
+    React.useState<string>(setupStore.nodeInfo.greenlightInviteCode || "");
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!greenlightInviteCode || !mnemonic) {
-      alert("please fill out all fields");
+    if (!greenlightInviteCode) {
+      toast.error("please fill out all fields");
       return;
     }
     handleSubmit({
       greenlightInviteCode,
-      mnemonic,
     });
   }
 
@@ -192,52 +147,41 @@ function GreenlightForm({ isConnecting, handleSubmit }: SetupFormProps) {
       <>
         <label
           htmlFor="greenlight-invite-code"
-          className="block font-medium text-gray-900 dark:text-white"
+          className="block mb-2 text-md dark:text-white"
         >
           Greenlight Invite Code
         </label>
-        <input
+        <Input
           name="greenlight-invite-code"
           onChange={(e) => setGreenlightInviteCode(e.target.value)}
           value={greenlightInviteCode}
-          type="password"
+          type="text"
           id="greenlight-invite-code"
-          className="dark:bg-surface-00dp block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
-        />
-        <label
-          htmlFor="mnemonic"
-          className="mt-4 block font-medium text-gray-900 dark:text-white"
-        >
-          BIP39 Mnemonic
-        </label>
-        <input
-          name="mnemonic"
-          onChange={(e) => setMnemonic(e.target.value)}
-          value={mnemonic}
-          type="password"
-          id="mnemonic"
-          className="dark:bg-surface-00dp block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
+          placeholder="XXXX-YYYY"
         />
       </>
-      <ConnectButton
-        isConnecting={isConnecting}
-        submitText="Next"
-        loadingText="Saving..."
-      />
+      <ConnectButton isConnecting={false} submitText="Next" />
     </form>
   );
 }
 
-function LNDForm({ isConnecting, handleSubmit }: SetupFormProps) {
-  const [lndAddress, setLndAddress] = React.useState<string>("");
-  const [lndCertHex, setLndCertHex] = React.useState<string>("");
-  const [lndMacaroonHex, setLndMacaroonHex] = React.useState<string>("");
+function LNDForm({ handleSubmit }: SetupFormProps) {
+  const setupStore = useSetupStore();
+  const [lndAddress, setLndAddress] = React.useState<string>(
+    setupStore.nodeInfo.lndAddress || ""
+  );
+  const [lndCertHex, setLndCertHex] = React.useState<string>(
+    setupStore.nodeInfo.lndCertHex || ""
+  );
+  const [lndMacaroonHex, setLndMacaroonHex] = React.useState<string>(
+    setupStore.nodeInfo.lndMacaroonHex || ""
+  );
   // TODO: proper onboarding
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!lndAddress || !lndCertHex || !lndMacaroonHex) {
-      alert("please fill out all fields");
+      toast.error("please fill out all fields");
       return;
     }
     handleSubmit({
@@ -252,52 +196,45 @@ function LNDForm({ isConnecting, handleSubmit }: SetupFormProps) {
       <>
         <label
           htmlFor="lnd-address"
-          className="block font-medium text-gray-900 dark:text-white"
+          className="block mb-2 text-md dark:text-white"
         >
           LND Address (GRPC)
         </label>
-        <input
+        <Input
           name="lnd-address"
           onChange={(e) => setLndAddress(e.target.value)}
           value={lndAddress}
           id="lnd-address"
-          className="dark:bg-surface-00dp block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
         />
 
         <label
           htmlFor="lnd-cert-hex"
-          className="mt-4 block font-medium text-gray-900 dark:text-white"
+          className="block mt-4 mb-2 text-md text-gray-900 dark:text-white"
         >
           TLS Certificate (Hex)
         </label>
-        <input
+        <Input
           name="lnd-cert-hex"
           onChange={(e) => setLndCertHex(e.target.value)}
           value={lndCertHex}
-          type="password"
+          type="text"
           id="lnd-cert-hex"
-          className="dark:bg-surface-00dp block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
         />
         <label
           htmlFor="lnd-macaroon-hex"
-          className="mt-4 block font-medium text-gray-900 dark:text-white"
+          className="block mt-4 mb-2 text-md text-gray-900 dark:text-white"
         >
           Admin Macaroon (Hex)
         </label>
-        <input
+        <Input
           name="lnd-macaroon-hex"
           onChange={(e) => setLndMacaroonHex(e.target.value)}
           value={lndMacaroonHex}
-          type="password"
+          type="text"
           id="lnd-macaroon-hex"
-          className="dark:bg-surface-00dp block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
         />
       </>
-      <ConnectButton
-        isConnecting={isConnecting}
-        submitText="Next"
-        loadingText="Saving..."
-      />
+      <ConnectButton isConnecting={false} submitText="Submit" />
     </form>
   );
 }

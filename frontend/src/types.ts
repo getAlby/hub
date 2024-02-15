@@ -133,3 +133,14 @@ export type Node = {
   active_channel_count: number;
   sockets: string;
 };
+export type NodeInfo = Partial<{
+  backendType: BackendType;
+
+  mnemonic?: string;
+  greenlightInviteCode?: string;
+  breezApiKey?: string;
+
+  lndAddress?: string;
+  lndCertHex?: string;
+  lndMacaroonHex?: string;
+}>;

@@ -266,10 +266,11 @@ func (api *API) GetOnchainBalance() (*models.OnchainBalanceResponse, error) {
 
 func (api *API) GetInfo() *models.InfoResponse {
 	info := models.InfoResponse{}
-	backend, _ := api.svc.cfg.Get("LNBackendType", "")
-	info.SetupCompleted = backend != ""
+	backendType, _ := api.svc.cfg.Get("LNBackendType", "")
+	unlockPasswordCheck, _ := api.svc.cfg.Get("UnlockPasswordCheck", "")
+	info.SetupCompleted = unlockPasswordCheck != ""
 	info.Running = api.svc.lnClient != nil
-	info.BackendType = backend
+	info.BackendType = backendType
 	return &info
 }
 

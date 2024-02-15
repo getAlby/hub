@@ -93,7 +93,7 @@ _If you get a blank screen the first load, close the window and start the app ag
 
 Breez SDK requires gcc to build the Breez bindings. Run `choco install mingw` and copy the breez SDK bindings file into the root of this directory (from your go installation directory) as per the [Breez SDK instructions](https://github.com/breez/breez-sdk-go?tab=readme-ov-file#windows). ALSO copy the bindings file into the output directory alongside the .exe in order to run it.
 
-## Configuration parameters
+## Optional configuration parameters
 
 - `NOSTR_PRIVKEY`: the private key of this service. Should be a securely randomly generated 32 byte hex string.
 - `CLIENT_NOSTR_PUBKEY`: if set, this service will only listen to events authored by this public key. You can set this to your own nostr public key.
@@ -101,14 +101,15 @@ Breez SDK requires gcc to build the Breez bindings. Run `choco install mingw` an
 - `COOKIE_SECRET`: a randomly generated secret string. (only needed in http mode)
 - `DATABASE_URI`: a sqlite filename. Default: .data/nwc.db
 - `PORT`: the port on which the app should listen on (default: 8080)
-- `LN_BACKEND_TYPE`: LND, BREEZ or GREENLIGHT
 - `WORK_DIR`: directory to store NWC data files. Default: .data
--
 
 ### LND Backend parameters
 
-_For cert and macaroon, either hex or file options can be used._
+Currently only LND can be configured via env. Other node types must be configured via the UI.
 
+_To configure via env, the following parameters must be provided:_
+
+- `LN_BACKEND_TYPE`: LND
 - `LND_ADDRESS`: the LND gRPC address, eg. `localhost:10009` (used with the LND backend)
 - `LND_CERT_FILE`: the location where LND's `tls.cert` file can be found (used with the LND backend)
 - `LND_MACAROON_FILE`: the location where LND's `admin.macaroon` file can be found (used with the LND backend)

@@ -1,8 +1,8 @@
 /** @type {import('tailwindcss').Config} */
-import defaultTheme from 'tailwindcss/defaultTheme';
-import forms from '@tailwindcss/forms';
-import aspectRatio from '@tailwindcss/aspect-ratio';
-import typography from '@tailwindcss/typography';
+import defaultTheme from "tailwindcss/defaultTheme";
+import forms from "@tailwindcss/forms";
+import aspectRatio from "@tailwindcss/aspect-ratio";
+import typography from "@tailwindcss/typography";
 
 // NOTE: copied from:
 //   https://github.com/getAlby/lightning-browser-extension/blob/1bab35feb58859d0786a9c2807a038395dd87fca/tailwind.config.js#L4-L21
@@ -28,10 +28,7 @@ function lighten(color, percent) {
 const surfaceColor = "#121212";
 
 export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
+  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
       fontFamily: {
@@ -45,7 +42,7 @@ export default {
         bitcoin: "#F7931A",
         "cold-grey": "#C5C7C8",
         light: "#F4F4F4",
-        primary: "#F8C455",
+        primary: "#9333ea",
         "warm-grey": "#D2D2D1",
 
         // Material Design Surface Colors
@@ -89,10 +86,5 @@ export default {
       emoji: ["sans-serif"],
     },
   },
-  plugins: [
-    forms,
-    aspectRatio,
-    typography,
-  ],
-}
-
+  plugins: [forms, aspectRatio, typography],
+};

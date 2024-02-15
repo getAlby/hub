@@ -11,6 +11,7 @@ import NewApp from "src/screens/apps/NewApp";
 import AppCreated from "src/screens/apps/AppCreated";
 import NotFound from "src/screens/NotFound";
 import { SetupNode } from "src/screens/setup/SetupNode";
+import { SetupWallet } from "src/screens/setup/SetupWallet";
 import { Welcome } from "src/screens/Welcome";
 import { SetupPassword } from "src/screens/setup/SetupPassword";
 import Start from "src/screens/Start";
@@ -25,6 +26,8 @@ import NewBlocktankChannel from "src/screens/channels/NewBlocktankChannel";
 import NewOnchainAddress from "src/screens/onchain/NewAddress";
 import NewCustomChannel from "src/screens/channels/NewCustomChannel";
 import RecommendedChannels from "src/screens/channels/RecommendedChannels";
+import { SetupMnemonic } from "src/screens/setup/SetupMnemonic";
+import { SetupFinish } from "src/screens/setup/SetupFinish";
 
 function App() {
   return (
@@ -47,6 +50,9 @@ function App() {
               <Route path="" element={<Navigate to="password" replace />} />
               <Route path="password" element={<SetupPassword />} />
               <Route path="node" element={<SetupNode />} />
+              <Route path="wallet" element={<SetupWallet />} />
+              <Route path="mnemonic" element={<SetupMnemonic />} />
+              <Route path="finish" element={<SetupFinish />} />
             </Route>
             <Route path="apps" element={<AppsRedirect />}>
               <Route index path="" element={<AppsList />} />
