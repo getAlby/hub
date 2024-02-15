@@ -211,9 +211,11 @@ func (api *API) ListApps() ([]models.App, error) {
 
 func (api *API) GetInfo() *models.InfoResponse {
 	info := models.InfoResponse{}
-	backend, _ := api.svc.cfg.Get("LNBackendType", "")
-	info.SetupCompleted = backend != ""
+	backendType, _ := api.svc.cfg.Get("LNBackendType", "")
+	unlockPasswordCheck, _ := api.svc.cfg.Get("UnlockPasswordCheck", "")
+	info.SetupCompleted = unlockPasswordCheck != ""
 	info.Running = api.svc.lnClient != nil
+	info.BackendType = backendType
 	return &info
 }
 
@@ -231,8 +233,8 @@ func (api *API) Setup(setupRequest *models.SetupRequest) error {
 	if setupRequest.BreezAPIKey != "" {
 		api.svc.cfg.SetUpdate("BreezAPIKey", setupRequest.BreezAPIKey, setupRequest.UnlockPassword)
 	}
-	if setupRequest.BreezMnemonic != "" {
-		api.svc.cfg.SetUpdate("BreezMnemonic", setupRequest.BreezMnemonic, setupRequest.UnlockPassword)
+	if setupRequest.Mnemonic != "" {
+		api.svc.cfg.SetUpdate("Mnemonic", setupRequest.Mnemonic, setupRequest.UnlockPassword)
 	}
 	if setupRequest.GreenlightInviteCode != "" {
 		api.svc.cfg.SetUpdate("GreenlightInviteCode", setupRequest.GreenlightInviteCode, setupRequest.UnlockPassword)

@@ -87,3 +87,15 @@ export interface CreateAppResponse {
   pairingSecretKey: string;
   returnTo: string;
 }
+
+export type NodeInfo = Partial<{
+  backendType: BackendType;
+
+  mnemonic?: string;
+  greenlightInviteCode?: string;
+  breezApiKey?: string;
+
+  lndAddress?: string;
+  lndCertHex?: string;
+  lndMacaroonHex?: string;
+}>;

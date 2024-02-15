@@ -134,13 +134,13 @@ func (svc *Service) launchLNBackend(encryptionKey string) error {
 		LNDCertHex, _ := svc.cfg.Get("LNDCertHex", encryptionKey)
 		LNDMacaroonHex, _ := svc.cfg.Get("LNDMacaroonHex", encryptionKey)
 		lnClient, err = NewLNDService(svc, LNDAddress, LNDCertHex, LNDMacaroonHex)
-	case lndBackend:
-		BreezMnemonic, _ := svc.cfg.Get("BreezMnemonic", encryptionKey)
+	case BreezBackendType:
+		Mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
 		BreezAPIKey, _ := svc.cfg.Get("BreezAPIKey", encryptionKey)
 		GreenlightInviteCode, _ := svc.cfg.Get("GreenlightInviteCode", encryptionKey)
 		BreezWorkdir := path.Join(svc.cfg.Env.Workdir, "breez")
 
-		lnClient, err = NewBreezService(BreezMnemonic, BreezAPIKey, GreenlightInviteCode, BreezWorkdir)
+		lnClient, err = NewBreezService(Mnemonic, BreezAPIKey, GreenlightInviteCode, BreezWorkdir)
 	default:
 		svc.Logger.Fatalf("Unsupported LNBackendType: %v", lndBackend)
 	}
