@@ -7,7 +7,7 @@ import { useCSRF } from "src/hooks/useCSRF";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 import Loading from "src/components/Loading";
-import { NodeInfo } from "src/types";
+import { SetupNodeInfo } from "src/types";
 import React from "react";
 
 export function SetupFinish() {
@@ -62,7 +62,7 @@ export function SetupFinish() {
 
 const finishSetup = async (
   csrf: string,
-  nodeInfo: NodeInfo,
+  nodeInfo: SetupNodeInfo,
   unlockPassword: string
 ): Promise<boolean> => {
   try {

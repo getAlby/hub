@@ -133,7 +133,7 @@ export type Node = {
   active_channel_count: number;
   sockets: string;
 };
-export type NodeInfo = Partial<{
+export type SetupNodeInfo = Partial<{
   backendType: BackendType;
 
   mnemonic?: string;
