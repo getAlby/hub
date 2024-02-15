@@ -1161,12 +1161,12 @@ func (mln *MockLn) SendPaymentSync(ctx context.Context, payReq string) (preimage
 	return "123preimage", nil
 }
 
-func (mln *MockLn) SendKeysend(ctx context.Context, amount int64, destination, preimage string, custom_records []TLVRecord) (preImage string, err error) {
+func (mln *MockLn) SendKeysend(ctx context.Context, amount int64, destination, preimage string, custom_records []lnclient.TLVRecord) (preImage string, err error) {
 	return "12345preimage", nil
 }
 
 func (mln *MockLn) GetBalance(ctx context.Context) (balance int64, err error) {
-	return 21, nil
+	return 21000, nil
 }
 
 func (mln *MockLn) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, err error) {
@@ -1196,6 +1196,9 @@ func (mln *MockLn) GetNodeConnectionInfo(ctx context.Context) (nodeConnectionInf
 }
 func (mln *MockLn) ConnectPeer(ctx context.Context, connectPeerRequest *lnclient.ConnectPeerRequest) error {
 	return nil
+}
+func (mln *MockLn) OpenChannel(ctx context.Context, openChannelRequest *lnclient.OpenChannelRequest) (*lnclient.OpenChannelResponse, error) {
+	return nil, nil
 }
 func (mln *MockLn) GetNewOnchainAddress(ctx context.Context) (string, error) {
 	return "", nil
