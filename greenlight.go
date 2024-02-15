@@ -68,6 +68,12 @@ func NewGreenlightService(mnemonic, inviteCode, workDir string) (result lnclient
 		}
 	}
 
+	gs.hsmdCmd = gs.createCommand("hsmd")
+
+	if err := gs.hsmdCmd.Start(); err != nil {
+		log.Fatalf("Failed to start hsmd: %v", err)
+	}
+
 	nodeInfo := models.NodeInfo{}
 	err = gs.execJSONCommand(&nodeInfo, "getinfo")
 	if err != nil {
@@ -75,12 +81,6 @@ func NewGreenlightService(mnemonic, inviteCode, workDir string) (result lnclient
 	}
 	if err == nil {
 		log.Printf("Node info: %v", nodeInfo)
-	}
-
-	gs.hsmdCmd = gs.createCommand("hsmd")
-
-	if err := gs.hsmdCmd.Start(); err != nil {
-		log.Fatalf("Failed to start hsmd: %v", err)
 	}
 
 	return &gs, nil

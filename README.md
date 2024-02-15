@@ -81,7 +81,7 @@ _If you get a blank screen the first load, close the window and start the app ag
 
 ### Run dockerfile locally (HTTP mode)
 
-`docker build . -t nwc-local`
+`docker build . -t nwc-local --progress=plain`
 
 `docker run --env-file .env -p 8080:8080 nwc-local`
 

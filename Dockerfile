@@ -43,6 +43,7 @@ FROM debian as final
 
 ######
 # TEMPORARY GREENLIGHT CLI
+# THIS MAY BREAK AT ANY TIME!
 RUN apt-get update && \
    apt-get install -y python3-pip wget
 
