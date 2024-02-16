@@ -49,7 +49,8 @@ RUN apt-get update && \
 RUN pip install -U gl-client --break-system-packages
 RUN pip install --extra-index-url=https://us-west2-python.pkg.dev/c-lightning/greenlight-pypi/simple/ -U glcli --break-system-packages
 #RUN python3 -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])'
-RUN wget -O /usr/local/lib/python3.11/dist-packages/glcli/cli.py https://raw.githubusercontent.com/Blockstream/greenlight/2dc5a94668d41baef7275dae860c09b4a5dba198/tools/glcli/glcli/cli.py
+# Temporary fix for some bugs in the CLI
+RUN wget -O /usr/local/lib/python3.11/dist-packages/glcli/cli.py https://gist.githubusercontent.com/rolznz/211045adfd69239e61078553b1a724ad/raw/3945714da5addecd4ce9c8f7f4bbb82c06ac8f24/cli.py
 ######
 
 
