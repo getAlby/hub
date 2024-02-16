@@ -50,7 +50,7 @@ RUN pip install -U gl-client --break-system-packages
 RUN pip install --extra-index-url=https://us-west2-python.pkg.dev/c-lightning/greenlight-pypi/simple/ -U glcli --break-system-packages
 #RUN python3 -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])'
 # Temporary fix for some bugs in the CLI
-RUN wget -O /usr/local/lib/python3.11/dist-packages/glcli/cli.py https://gist.githubusercontent.com/rolznz/211045adfd69239e61078553b1a724ad/raw/3945714da5addecd4ce9c8f7f4bbb82c06ac8f24/cli.py
+RUN wget -O /usr/local/lib/python3.11/dist-packages/glcli/cli.py https://gist.githubusercontent.com/rolznz/211045adfd69239e61078553b1a724ad/raw/b8c82f5acc942ecc42f01471487bf11230f22840/cli.py
 ######
 
 
