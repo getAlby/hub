@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -18,6 +19,7 @@ import (
 	"github.com/breez/breez-sdk-go/breez_sdk"
 	models "github.com/getAlby/nostr-wallet-connect/models/greenlight"
 	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
+	decodepay "github.com/nbd-wtf/ln-decodepay"
 )
 
 type GreenlightService struct {
@@ -164,8 +166,19 @@ func (gs *GreenlightService) SendPaymentSync(ctx context.Context, payReq string)
 }
 
 func (gs *GreenlightService) SendKeysend(ctx context.Context, amount int64, destination, preimage string, custom_records []lnclient.TLVRecord) (preImage string, err error) {
-	log.Println("TODO: SendKeysend")
-	return "", nil
+	if len(custom_records) > 0 {
+		log.Printf("FIXME: TLVs not supported with CLI")
+	}
+
+	payResponse := models.PayResponse{}
+	err = gs.execJSONCommand(&payResponse, "keysend", destination, strconv.FormatInt(amount, 10)+"msat")
+	if err != nil {
+		log.Printf("Keysend failed: %v", err)
+		return "", err
+	}
+	log.Printf("Keysend succeeded: %v", payResponse.Preimage)
+
+	return payResponse.Preimage, nil
 }
 
 func (gs *GreenlightService) GetBalance(ctx context.Context) (balance int64, err error) {
@@ -212,18 +225,118 @@ func (gs *GreenlightService) LookupInvoice(ctx context.Context, paymentHash stri
 
 func (gs *GreenlightService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []Nip47Transaction, err error) {
 	log.Println("TODO: ListTransactions")
+
 	transactions = []Nip47Transaction{}
+
+	//glcli listinvoices
+	listInvoicesResponse := models.ListInvoicesResponse{}
+	err = gs.execJSONCommand(&listInvoicesResponse, "listinvoices")
+	if err != nil {
+		log.Printf("ListInvoices failed: %v", err)
+		return nil, err
+	}
+
+	for _, glInvoice := range listInvoicesResponse.Invoices {
+		var createdAt int64
+		description := glInvoice.Description
+		descriptionHash := ""
+
+		if glInvoice.Bolt11 != "" {
+			// TODO: Greenlight should provide these details so we don't need to manually decode the invoice
+			paymentRequest, err := decodepay.Decodepay(strings.ToLower(glInvoice.Bolt11))
+			if err != nil {
+				log.Printf("Failed to decode bolt11 invoice: %v", glInvoice.Bolt11)
+				return nil, err
+			}
+
+			createdAt = int64(paymentRequest.CreatedAt)
+			description = paymentRequest.Description
+			descriptionHash = paymentRequest.DescriptionHash
+		}
+
+		var fee int64 = 0
+		if glInvoice.AmountReceivedMsat != nil {
+			fee = glInvoice.AmountMsat.Msat - glInvoice.AmountReceivedMsat.Msat
+		}
+
+		transactions = append(transactions, lnclient.Transaction{
+			Type:            "incoming",
+			Invoice:         glInvoice.Bolt11,
+			Description:     description,
+			DescriptionHash: descriptionHash,
+			Preimage:        glInvoice.Preimage,
+			PaymentHash:     glInvoice.PaymentHash,
+			ExpiresAt:       &glInvoice.ExpiresAt,
+			Amount:          glInvoice.AmountMsat.Msat,
+			FeesPaid:        fee,
+			CreatedAt:       createdAt,
+			SettledAt:       glInvoice.PaidAt,
+		})
+	}
+
+	//glcli listpays
+	listPaymentsResponse := models.ListPaymentsResponse{}
+	err = gs.execJSONCommand(&listPaymentsResponse, "listpays")
+	if err != nil {
+		log.Printf("ListPayments failed: %v", err)
+		return nil, err
+	}
+
+	for _, glPayment := range listPaymentsResponse.Payments {
+		description := ""
+		descriptionHash := ""
+		var expiresAt *int64
+		if glPayment.Bolt11 != "" {
+			// TODO: Greenlight should provide these details so we don't need to manually decode the invoice
+			paymentRequest, err := decodepay.Decodepay(strings.ToLower(glPayment.Bolt11))
+			if err != nil {
+				log.Printf("Failed to decode bolt11 invoice: %v", glPayment.Bolt11)
+				return nil, err
+			}
+
+			description = paymentRequest.Description
+			descriptionHash = paymentRequest.DescriptionHash
+			expiresAtUnix := time.UnixMilli(int64(paymentRequest.CreatedAt) * 1000).Add(time.Duration(paymentRequest.Expiry) * time.Second).Unix()
+			expiresAt = &expiresAtUnix
+		}
+
+		transactions = append(transactions, lnclient.Transaction{
+			Type:            "outgoing",
+			Invoice:         glPayment.Bolt11,
+			Description:     description,
+			DescriptionHash: descriptionHash,
+			Preimage:        glPayment.Preimage,
+			PaymentHash:     glPayment.PaymentHash,
+			ExpiresAt:       expiresAt,
+			Amount:          glPayment.AmountMsat.Msat,
+			FeesPaid:        glPayment.AmountSentMsat.Msat - glPayment.AmountMsat.Msat,
+			CreatedAt:       glPayment.CreatedAt,
+			SettledAt:       &glPayment.CompletedAt,
+		})
+	}
+
+	// sort by created date descending
+	sort.SliceStable(transactions, func(i, j int) bool {
+		return transactions[i].CreatedAt > transactions[j].CreatedAt
+	})
+
 	return transactions, nil
 }
 
 func (gs *GreenlightService) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, err error) {
-	log.Println("TODO: GetInfo")
+	// glcli getinfo
+	nodeInfo := models.NodeInfo{}
+	err = gs.execJSONCommand(&nodeInfo, "getinfo")
+	if err != nil {
+		return nil, err
+	}
+
 	return &lnclient.NodeInfo{
-		Alias:       "greenlight",
-		Color:       "",
-		Pubkey:      "",
-		Network:     "mainnet",
-		BlockHeight: 0,
+		Alias:       nodeInfo.Alias,
+		Color:       "#" + nodeInfo.Color,
+		Pubkey:      nodeInfo.ID,
+		Network:     nodeInfo.Network,
+		BlockHeight: nodeInfo.BlockHeight,
 		BlockHash:   "",
 	}, nil
 }
@@ -259,7 +372,7 @@ func (gs *GreenlightService) GetNodeConnectionInfo(ctx context.Context) (nodeCon
 	scheduleResponse := models.ScheduleResponse{}
 	err = gs.execJSONCommand(&scheduleResponse, "scheduler", "schedule")
 	if err != nil {
-		log.Printf("ListChannels failed: %v", err)
+		log.Printf("GetNodeConnectionInfo failed: %v", err)
 		return nil, err
 	}
 
