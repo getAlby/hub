@@ -166,8 +166,19 @@ func (gs *GreenlightService) SendPaymentSync(ctx context.Context, payReq string)
 }
 
 func (gs *GreenlightService) SendKeysend(ctx context.Context, amount int64, destination, preimage string, custom_records []lnclient.TLVRecord) (preImage string, err error) {
-	log.Println("TODO: SendKeysend")
-	return "", nil
+	if len(custom_records) > 0 {
+		log.Printf("FIXME: TLVs not supported with CLI")
+	}
+
+	payResponse := models.PayResponse{}
+	err = gs.execJSONCommand(&payResponse, "keysend", destination, strconv.FormatInt(amount, 10)+"msat")
+	if err != nil {
+		log.Printf("Keysend failed: %v", err)
+		return "", err
+	}
+	log.Printf("Keysend succeeded: %v", payResponse.Preimage)
+
+	return payResponse.Preimage, nil
 }
 
 func (gs *GreenlightService) GetBalance(ctx context.Context) (balance int64, err error) {
@@ -313,13 +324,19 @@ func (gs *GreenlightService) ListTransactions(ctx context.Context, from, until, 
 }
 
 func (gs *GreenlightService) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, err error) {
-	log.Println("TODO: GetInfo")
+	// glcli getinfo
+	nodeInfo := models.NodeInfo{}
+	err = gs.execJSONCommand(&nodeInfo, "getinfo")
+	if err != nil {
+		return nil, err
+	}
+
 	return &lnclient.NodeInfo{
-		Alias:       "greenlight",
-		Color:       "",
-		Pubkey:      "",
-		Network:     "mainnet",
-		BlockHeight: 0,
+		Alias:       nodeInfo.Alias,
+		Color:       "#" + nodeInfo.Color,
+		Pubkey:      nodeInfo.ID,
+		Network:     nodeInfo.Network,
+		BlockHeight: nodeInfo.BlockHeight,
 		BlockHash:   "",
 	}, nil
 }

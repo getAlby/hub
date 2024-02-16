@@ -3,8 +3,11 @@ package greenlight
 import "github.com/getAlby/nostr-wallet-connect/models/lnclient"
 
 type NodeInfo struct {
-	ID    string `json:"id"`
-	Alias string `json:"alias"`
+	ID          string `json:"id"`
+	Alias       string `json:"alias"`
+	Color       string `json:"color"`
+	Network     string `json:"network"`
+	BlockHeight uint32 `json:"blockheight"`
 	// ...other fields
 }
 
@@ -142,10 +145,10 @@ type GreenlightRustService interface {
 	OpenChannel(openChannelRequest *lnclient.OpenChannelRequest) (*OpenChannelResponse, error)
 	GetNewOnchainAddress() (string, error)
 	ListInvoices() ([]Invoice, error) // TODO: add paging params
+	ListPayments() ([]Payment, error) // TODO: add paging params
+	SendKeysend(amount int64, destination, preimage string, custom_records []lnclient.TLVRecord) (preImage string, err error)
 	// TODO:
 	// LookupInvoice(paymentHash string) (transaction *lnclient.Transaction, err error)
-	// SendKeysend(amount int64, destination, preimage string, custom_records []lnclient.TLVRecord) (preImage string, err error)
-	// ListPayments
 	// GetRoute
 	// ListClosedChannels
 	// ListHTLCs
