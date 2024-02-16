@@ -57,7 +57,7 @@ func AesGcmDecrypt(ciphertext string, password string) (string, error) {
 	nonce, _ := hex.DecodeString(arr[1])
 	data, _ := hex.DecodeString(arr[2])
 
-	secretKey, salt, err := DeriveKey(password, salt)
+	secretKey, _, err := DeriveKey(password, salt)
 	if err != nil {
 		return "", err
 	}

@@ -84,7 +84,6 @@ func (svc *Service) StartNostr(encryptionKey string) error {
 			if err != nil {
 				//err being non-nil means that we have an error on the websocket error channel. In this case we just try to reconnect.
 				svc.Logger.WithError(err).Error("Got an error from the relay while listening to subscription.")
-
 				continue
 			}
 			//err being nil means that the context was canceled and we should exit the program.
@@ -107,7 +106,7 @@ func (svc *Service) StartNostr(encryptionKey string) error {
 func (svc *Service) StartApp(encryptionKey string) error {
 	if !svc.cfg.CheckUnlockPassword(encryptionKey) {
 		svc.Logger.Errorf("Invalid password")
-		return errors.New("Invalid password")
+		return errors.New("invalid password")
 	}
 
 	err := svc.launchLNBackend(encryptionKey)
