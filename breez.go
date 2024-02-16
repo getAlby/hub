@@ -33,7 +33,7 @@ func (BreezListener) OnEvent(e breez_sdk.BreezEvent) {
 
 func NewBreezService(mnemonic, apiKey, inviteCode, workDir string) (result lnclient.LNClient, err error) {
 	if mnemonic == "" || apiKey == "" || inviteCode == "" || workDir == "" {
-		return nil, errors.New("One or more required breez configuration are missing")
+		return nil, errors.New("one or more required breez configuration are missing")
 	}
 
 	//create dir if not exists

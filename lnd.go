@@ -155,7 +155,7 @@ func (svc *LNDService) MakeInvoice(ctx context.Context, amount int64, descriptio
 				"descriptionHash": descriptionHash,
 				"expiry":          expiry,
 			}).Errorf("Invalid description hash")
-			return nil, errors.New("Description hash must be 32 bytes hex")
+			return nil, errors.New("description hash must be 32 bytes hex")
 		}
 	}
 
@@ -276,7 +276,7 @@ func (svc *LNDService) SendKeysend(ctx context.Context, amount int64, destinatio
 			"customRecords": custom_records,
 			"paymentError":  resp.PaymentError,
 		}).Errorf("No preimage in keysend response")
-		return "", errors.New("No preimage in keysend response")
+		return "", errors.New("no preimage in keysend response")
 	}
 	svc.Logger.WithFields(logrus.Fields{
 		"amount":        amount,
@@ -301,7 +301,7 @@ func makePreimageHex() ([]byte, error) {
 
 func NewLNDService(svc *Service, lndAddress, lndCertHex, lndMacaroonHex string) (result lnclient.LNClient, err error) {
 	if lndAddress == "" || lndCertHex == "" || lndMacaroonHex == "" {
-		return nil, errors.New("One or more required LND configuration are missing")
+		return nil, errors.New("one or more required LND configuration are missing")
 	}
 
 	lndClient, err := lnd.NewLNDclient(lnd.LNDoptions{
