@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/breez/breez-sdk-go/breez_sdk"
 	"github.com/getAlby/nostr-wallet-connect/glalby" // TODO: import from other repository
 	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 )
@@ -20,7 +19,7 @@ type GreenlightService struct {
 	// hsmdCmd *exec.Cmd
 }
 
-func NewGreenlightService(mnemonic, inviteCode, workDir string) (result lnclient.LNClient, err error) {
+func NewGreenlightService(svc *Service, mnemonic, inviteCode, workDir string) (result lnclient.LNClient, err error) {
 	if mnemonic == "" || inviteCode == "" || workDir == "" {
 		return nil, errors.New("one or more required greenlight configuration are missing")
 	}
@@ -32,37 +31,45 @@ func NewGreenlightService(mnemonic, inviteCode, workDir string) (result lnclient
 		log.Printf("Failed to create greenlight working dir: %v", err)
 		return nil, err
 	}
-	seed, err := breez_sdk.MnemonicToSeed(mnemonic)
-	if err != nil {
-		log.Printf("Failed to convert mnemonic to seed: %v", err)
-		return nil, err
+
+	var credentials *glalby.GreenlightCredentials
+	// NOTE: mnemonic used for encryption
+	existingDeviceCert, _ := svc.cfg.Get("GreenlightDeviceCert", mnemonic)
+	existingDeviceKey, _ := svc.cfg.Get("GreenlightDeviceKey", mnemonic)
+
+	if existingDeviceCert != "" && existingDeviceKey != "" {
+		credentials = &glalby.GreenlightCredentials{
+			DeviceCert: existingDeviceCert,
+			DeviceKey:  existingDeviceKey,
+		}
+		svc.Logger.Info("Using saved greenlight credentials")
 	}
 
-	hsmSecretPath := filepath.Join(newpath, "hsm_secret")
-	err = os.WriteFile(hsmSecretPath, seed[0:32], 0644)
-	if err != nil {
-		log.Printf("Failed to write hsm secret: %v", err)
-		return nil, err
-	}
+	if credentials == nil {
+		svc.Logger.Info("No greenlight credentials found, attempting to recover existing node")
+		recoveredCredentials, err := glalby.Recover(mnemonic)
+		credentials = &recoveredCredentials
 
-	credentials, err := glalby.Recover(mnemonic)
-
-	if err != nil {
-		log.Printf("Failed to recover node: %v", err)
-		log.Print("Trying to register instead...")
-		log.Fatalf("TODO")
-		/*err = gs.register(inviteCode)
 		if err != nil {
-			log.Fatalf("Failed to register new node")
-		}*/
-	}
-	if credentials.DeviceCert == "" || credentials.DeviceKey == "" {
-		log.Fatalf("unexpected response from Recover")
+			log.Printf("Failed to recover node: %v", err)
+
+			log.Print("Trying to register instead...")
+			log.Fatalf("TODO")
+			/*err = gs.register(inviteCode)
+			if err != nil {
+				log.Fatalf("Failed to register new node")
+			}*/
+		}
+
+		if credentials == nil || credentials.DeviceCert == "" || credentials.DeviceKey == "" {
+			log.Fatalf("unexpected response from Recover")
+		}
+		// NOTE: mnemonic used for encryption
+		svc.cfg.SetUpdate("GreenlightDeviceCert", credentials.DeviceCert, mnemonic)
+		svc.cfg.SetUpdate("GreenlightDeviceKey", credentials.DeviceKey, mnemonic)
 	}
 
-	// TODO: save credentials
-
-	client, err := glalby.NewBlockingGreenlightAlbyClient(mnemonic, credentials)
+	client, err := glalby.NewBlockingGreenlightAlbyClient(mnemonic, *credentials)
 
 	if err != nil {
 		log.Printf("Failed to create greenlight alby client: %v", err)
