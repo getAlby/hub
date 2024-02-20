@@ -17,7 +17,6 @@ type LDKService struct {
 	svc     *Service
 	workdir string
 	node    *ldk_node.LdkNode
-	//client  *ldkalby.BlockingLdkAlbyClient
 }
 
 func NewLDKService(svc *Service, mnemonic, workDir string) (result lnclient.LNClient, err error) {
@@ -120,19 +119,8 @@ func (gs *LDKService) SendKeysend(ctx context.Context, amount int64, destination
 		log.Printf("FIXME: TLVs not supported")
 	}
 	//paymentHash := gs.node.SendSpontaneousPayment(uint64(amount), destination)
-	/*if len(custom_records) > 0 {
-		log.Printf("FIXME: TLVs not supported with CLI")
-	}
-
-	payResponse := models.PayResponse{}
-	err = gs.execJSONCommand(&payResponse, "keysend", destination, strconv.FormatInt(amount, 10)+"msat")
-	if err != nil {
-		log.Printf("Keysend failed: %v", err)
-		return "", err
-	}
-	log.Printf("Keysend succeeded: %v", payResponse.Preimage)
-
-	return payResponse.Preimage, nil*/
+	// TODO: get payment by hash
+	//return payResponse.Preimage, nil
 	return "", errors.New("TODO")
 }
 
@@ -148,6 +136,9 @@ func (gs *LDKService) GetBalance(ctx context.Context) (balance int64, err error)
 }
 
 func (gs *LDKService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *Nip47Transaction, err error) {
+	if expiry == 0 {
+		expiry = 86400
+	}
 	invoice, err := gs.node.ReceivePayment(uint64(amount),
 		description,
 		uint32(expiry))
@@ -172,103 +163,28 @@ func (gs *LDKService) MakeInvoice(ctx context.Context, amount int64, description
 
 func (gs *LDKService) LookupInvoice(ctx context.Context, paymentHash string) (transaction *Nip47Transaction, err error) {
 
-	return nil, errors.New("TODO: LookupInvoice")
+	payment := gs.node.Payment(paymentHash)
+	if payment == nil {
+		gs.svc.Logger.Errorf("Couldn't find payment by payment hash: %v", paymentHash)
+		return nil, errors.New("Payment not found")
+	}
+
+	transaction = ldkPaymentToTransaction(payment)
+
+	return transaction, nil
 }
 
 func (gs *LDKService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []Nip47Transaction, err error) {
-	log.Println("TODO: ListTransactions")
-
 	transactions = []Nip47Transaction{}
 
-	/*//glcli listinvoices
-	listInvoicesResponse := models.ListInvoicesResponse{}
-	err = gs.execJSONCommand(&listInvoicesResponse, "listinvoices")
-	if err != nil {
-		log.Printf("ListInvoices failed: %v", err)
-		return nil, err
-	}
+	payments := gs.node.ListPayments()
 
-	for _, glInvoice := range listInvoicesResponse.Invoices {
-		var createdAt int64
-		description := glInvoice.Description
-		descriptionHash := ""
-
-		if glInvoice.Bolt11 != "" {
-			// TODO: LDK should provide these details so we don't need to manually decode the invoice
-			paymentRequest, err := decodepay.Decodepay(strings.ToLower(glInvoice.Bolt11))
-			if err != nil {
-				log.Printf("Failed to decode bolt11 invoice: %v", glInvoice.Bolt11)
-				return nil, err
-			}
-
-			createdAt = int64(paymentRequest.CreatedAt)
-			description = paymentRequest.Description
-			descriptionHash = paymentRequest.DescriptionHash
-		}
-
-		var fee int64 = 0
-		if glInvoice.AmountReceivedMsat != nil {
-			fee = glInvoice.AmountMsat.Msat - glInvoice.AmountReceivedMsat.Msat
-		}
-
-		transactions = append(transactions, lnclient.Transaction{
-			Type:            "incoming",
-			Invoice:         glInvoice.Bolt11,
-			Description:     description,
-			DescriptionHash: descriptionHash,
-			Preimage:        glInvoice.Preimage,
-			PaymentHash:     glInvoice.PaymentHash,
-			ExpiresAt:       &glInvoice.ExpiresAt,
-			Amount:          glInvoice.AmountMsat.Msat,
-			FeesPaid:        fee,
-			CreatedAt:       createdAt,
-			SettledAt:       glInvoice.PaidAt,
-		})
-	}
-
-	//glcli listpays
-	listPaymentsResponse := models.ListPaymentsResponse{}
-	err = gs.execJSONCommand(&listPaymentsResponse, "listpays")
-	if err != nil {
-		log.Printf("ListPayments failed: %v", err)
-		return nil, err
-	}
-
-	for _, glPayment := range listPaymentsResponse.Payments {
-		description := ""
-		descriptionHash := ""
-		var expiresAt *int64
-		if glPayment.Bolt11 != "" {
-			// TODO: LDK should provide these details so we don't need to manually decode the invoice
-			paymentRequest, err := decodepay.Decodepay(strings.ToLower(glPayment.Bolt11))
-			if err != nil {
-				log.Printf("Failed to decode bolt11 invoice: %v", glPayment.Bolt11)
-				return nil, err
-			}
-
-			description = paymentRequest.Description
-			descriptionHash = paymentRequest.DescriptionHash
-			expiresAtUnix := time.UnixMilli(int64(paymentRequest.CreatedAt) * 1000).Add(time.Duration(paymentRequest.Expiry) * time.Second).Unix()
-			expiresAt = &expiresAtUnix
-		}
-
-		transactions = append(transactions, lnclient.Transaction{
-			Type:            "outgoing",
-			Invoice:         glPayment.Bolt11,
-			Description:     description,
-			DescriptionHash: descriptionHash,
-			Preimage:        glPayment.Preimage,
-			PaymentHash:     glPayment.PaymentHash,
-			ExpiresAt:       expiresAt,
-			Amount:          glPayment.AmountMsat.Msat,
-			FeesPaid:        glPayment.AmountSentMsat.Msat - glPayment.AmountMsat.Msat,
-			CreatedAt:       glPayment.CreatedAt,
-			SettledAt:       &glPayment.CompletedAt,
-		})
+	for _, payment := range payments {
+		transactions = append(transactions, *ldkPaymentToTransaction(&payment))
 	}
 
 	// sort by created date descending
-	sort.SliceStable(transactions, func(i, j int) bool {
+	/*sort.SliceStable(transactions, func(i, j int) bool {
 		return transactions[i].CreatedAt > transactions[j].CreatedAt
 	})*/
 
@@ -305,7 +221,6 @@ func (gs *LDKService) ListChannels(ctx context.Context) ([]lnclient.Channel, err
 }
 
 func (gs *LDKService) GetNodeConnectionInfo(ctx context.Context) (nodeConnectionInfo *lnclient.NodeConnectionInfo, err error) {
-
 	/*addresses := gs.node.ListeningAddresses()
 	if addresses == nil || len(*addresses) < 1 {
 		return nil, errors.New("no available listening addresses")
@@ -372,4 +287,35 @@ func (gs *LDKService) GetOnchainBalance(ctx context.Context) (int64, error) {
 		return 0, err
 	}
 	return int64(balance), nil
+}
+
+func ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) *Nip47Transaction {
+	transactionType := "incoming"
+	if payment.Direction == ldk_node.PaymentDirectionOutbound {
+		transactionType = "outgoing"
+	}
+
+	preimage := ""
+	var settledAt *int64
+	if payment.Status == ldk_node.PaymentStatusSucceeded {
+		preimage = *payment.Secret
+		// TODO: use payment settle time
+		now := time.Now().Unix()
+		settledAt = &now
+	}
+
+	var amount uint64 = 0
+	if payment.AmountMsat != nil {
+		amount = *payment.AmountMsat
+	}
+
+	return &Nip47Transaction{
+		Type: transactionType,
+		// TODO: get bolt11 invoice from payment
+		//Invoice: payment.,
+		Preimage:    preimage,
+		PaymentHash: payment.Hash,
+		SettledAt:   settledAt,
+		Amount:      int64(amount),
+	}
 }
