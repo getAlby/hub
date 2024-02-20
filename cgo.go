@@ -1,6 +1,6 @@
 package main
 
 /*
-#cgo LDFLAGS: -lldkalby_bindings -Wl,-rpath,./ldkalby -L./ldkalby
+#cgo LDFLAGS: -lldk_node_bindings -Wl,-rpath,./ldk_node -L./ldk_node
 */
 import "C"

@@ -6,14 +6,18 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
+	"time"
 
-	"github.com/getAlby/nostr-wallet-connect/ldkalby" // TODO: import from other repository
+	"github.com/getAlby/nostr-wallet-connect/ldk_node" // TODO: include this from an external library
 	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 )
 
 type LDKService struct {
+	svc     *Service
 	workdir string
-	client  *ldkalby.BlockingLdkAlbyClient
+	node    *ldk_node.LdkNode
+	//client  *ldkalby.BlockingLdkAlbyClient
 }
 
 func NewLDKService(svc *Service, mnemonic, workDir string) (result lnclient.LNClient, err error) {
@@ -29,72 +33,93 @@ func NewLDKService(svc *Service, mnemonic, workDir string) (result lnclient.LNCl
 		return nil, err
 	}
 
-	client, err := ldkalby.NewBlockingLdkAlbyClient(mnemonic, newpath)
+	logDirPath := filepath.Join(newpath, "./logs")
+	config := ldk_node.DefaultConfig()
+	listeningAddresses := []string{
+		"0.0.0.0:9735",
+	}
+	config.ListeningAddresses = &listeningAddresses
+	config.LogDirPath = &logDirPath
+	builder := ldk_node.BuilderFromConfig(config)
+	builder.SetEntropyBip39Mnemonic(mnemonic, nil)
+	builder.SetNetwork("bitcoin")
+	builder.SetEsploraServer("https://blockstream.info/api")
+	builder.SetGossipSourceRgs("https://rapidsync.lightningdevkit.org/snapshot")
+	builder.SetStorageDirPath(filepath.Join(newpath, "./storage"))
+	//builder.SetLogDirPath (filepath.Join(newpath, "./logs")); // missing?
+	node, err := builder.Build()
 
 	if err != nil {
-		log.Printf("Failed to create LDK alby client: %v", err)
+		svc.Logger.Errorf("Failed to create LDK node: %v", err)
+		return nil, err
 	}
-	if client == nil {
-		log.Fatalf("unexpected response from NewBlockingLDKAlbyClient")
+
+	err = node.Start()
+	if err != nil {
+		svc.Logger.Errorf("Failed to start LDK node: %v", err)
+		return nil, err
 	}
 
 	gs := LDKService{
 		workdir: newpath,
-		client:  client,
+		node:    node,
 		//listener: &listener,
-		//svc:      svc,
+		svc: svc,
 	}
 
-	//gs.hsmdCmd = gs.createCommand("hsmd")
-
-	// if err := gs.hsmdCmd.Start(); err != nil {
-	// 	log.Fatalf("Failed to start hsmd: %v", err)
-	// }
-
-	/*nodeInfo := models.NodeInfo{}
-	err = gs.execJSONCommand(&nodeInfo, "getinfo")*/
-	nodeInfo, err := client.GetInfo()
+	nodeId := node.NodeId()
 
 	if err != nil {
 		return nil, err
 	}
 
-	log.Printf("Node info: %v", nodeInfo)
+	log.Printf("Connected to node ID: %v", nodeId)
 
 	return &gs, nil
 }
 
-func (gs *LDKService) register(inviteCode string) error {
-	/*output, err := gs.execCommand("scheduler", "register", "--network=bitcoin", fmt.Sprintf("--invite=%s", inviteCode))
-	log.Printf("scheduler register: %v %v", string(output), err)
-	return err*/
-	return errors.New("TODO")
-}
-
 func (gs *LDKService) Shutdown() error {
-	log.Println("TODO: shut down LDK client")
+	gs.svc.Logger.Infof("shutting down LDK client")
+	gs.node.Destroy()
 
 	return nil
-	//return bs.svc.Disconnect()
 }
 
 func (gs *LDKService) SendPaymentSync(ctx context.Context, payReq string) (preimage string, err error) {
-	//glcli pay BOLT11_INVOICE_HERE
-
-	/*log.Printf("SendPaymentSync %v", payReq)
-	payResponse := models.PayResponse{}
-	err = gs.execJSONCommand(&payResponse, "pay", payReq)
+	paymentHash, err := gs.node.SendPayment(payReq)
 	if err != nil {
-		log.Printf("SendPaymentSync failed: %v", err)
+		gs.svc.Logger.Errorf("SendPayment failed: %v", err)
 		return "", err
 	}
-	log.Printf("SendPaymentSync succeeded: %v", payResponse.Preimage)
 
-	return payResponse.Preimage, nil*/
-	return "", errors.New("TODO")
+	for start := time.Now(); time.Since(start) < time.Second*60; {
+		gs.node.WaitNextEvent()
+
+		payment := gs.node.Payment(paymentHash)
+		if payment == nil {
+			gs.svc.Logger.Errorf("Couldn't find payment by payment hash: %v", paymentHash)
+			return "", errors.New("Payment not found")
+		}
+
+		if payment.Secret != nil {
+			preimage = *payment.Secret
+			gs.svc.Logger.Infof("Payment succeeded")
+			break
+		}
+	}
+	if preimage == "" {
+		return "", errors.New("Payment timed out")
+	}
+
+	return preimage, nil
 }
 
 func (gs *LDKService) SendKeysend(ctx context.Context, amount int64, destination, preimage string, custom_records []lnclient.TLVRecord) (preImage string, err error) {
+
+	if len(custom_records) > 0 {
+		log.Printf("FIXME: TLVs not supported")
+	}
+	//paymentHash := gs.node.SendSpontaneousPayment(uint64(amount), destination)
 	/*if len(custom_records) > 0 {
 		log.Printf("FIXME: TLVs not supported with CLI")
 	}
@@ -112,28 +137,20 @@ func (gs *LDKService) SendKeysend(ctx context.Context, amount int64, destination
 }
 
 func (gs *LDKService) GetBalance(ctx context.Context) (balance int64, err error) {
-	/*channels, err := gs.ListChannels(ctx)
-
-	if err != nil {
-		return 0, err
-	}
+	channels := gs.node.ListChannels()
 
 	balance = 0
 	for _, channel := range channels {
-		balance += channel.LocalBalance
+		balance += int64(channel.BalanceMsat)
 	}
 
-	return balance, nil*/
-	return 0, nil
+	return balance, nil
 }
 
 func (gs *LDKService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *Nip47Transaction, err error) {
-	invoice, err := gs.client.MakeInvoice(ldkalby.MakeInvoiceRequest{
-		AmountMsat: uint64(amount),
-		//Description: description,
-		//Label:       "label_" + strconv.Itoa(rand.Int()),
-		// TODO: other fields
-	})
+	invoice, err := gs.node.ReceivePayment(uint64(amount),
+		description,
+		uint32(expiry))
 
 	if err != nil {
 		log.Printf("MakeInvoice failed: %v", err)
@@ -143,7 +160,7 @@ func (gs *LDKService) MakeInvoice(ctx context.Context, amount int64, description
 	// TODO: add missing fields
 	transaction = &Nip47Transaction{
 		Type:    "incoming",
-		Invoice: invoice.Bolt11,
+		Invoice: invoice,
 		//PaymentHash: invoice.PaymentHash,
 		Amount: amount,
 		//CreatedAt:   time.Now().Unix(),
@@ -154,7 +171,7 @@ func (gs *LDKService) MakeInvoice(ctx context.Context, amount int64, description
 }
 
 func (gs *LDKService) LookupInvoice(ctx context.Context, paymentHash string) (transaction *Nip47Transaction, err error) {
-	log.Println("TODO: LookupInvoice")
+
 	return nil, errors.New("TODO: LookupInvoice")
 }
 
@@ -259,17 +276,10 @@ func (gs *LDKService) ListTransactions(ctx context.Context, from, until, limit, 
 }
 
 func (gs *LDKService) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, err error) {
-	nodeInfo, err := gs.client.GetInfo()
-
-	if err != nil {
-		log.Printf("GetInfo failed: %v", err)
-		return nil, err
-	}
-
 	return &lnclient.NodeInfo{
 		// Alias:       nodeInfo.Alias,
 		// Color:       nodeInfo.Color,
-		Pubkey: nodeInfo.Pubkey,
+		Pubkey: gs.node.NodeId(),
 		// Network:     nodeInfo.Network,
 		// BlockHeight: nodeInfo.BlockHeight,
 		BlockHash: "",
@@ -277,108 +287,89 @@ func (gs *LDKService) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, err
 }
 
 func (gs *LDKService) ListChannels(ctx context.Context) ([]lnclient.Channel, error) {
-	//glcli listfunds
 
-	/*listFundsResponse := models.ListFundsResponse{}
-	err := gs.execJSONCommand(&listFundsResponse, "listfunds")
-	if err != nil {
-		log.Printf("ListChannels failed: %v", err)
-		return nil, err
+	ldkChannels := gs.node.ListChannels()
+	channels := []lnclient.Channel{}
+
+	for _, ldkChannel := range ldkChannels {
+		channels = append(channels, lnclient.Channel{
+			LocalBalance:  int64(ldkChannel.OutboundCapacityMsat),
+			RemoteBalance: int64(ldkChannel.InboundCapacityMsat),
+			RemotePubkey:  ldkChannel.CounterpartyNodeId,
+			Id:            ldkChannel.ChannelId,
+			Active:        ldkChannel.IsChannelReady && ldkChannel.IsUsable, // TODO: confirm
+		})
 	}
 
-	glChannels := listFundsResponse.Channels
-	channels := []lnclient.Channel{}
-
-	for _, glChannel := range glChannels {
-		channels = append(channels, lnclient.Channel{
-			LocalBalance:  glChannel.OurAmountMsat.Msat,
-			RemoteBalance: glChannel.AmountMsat.Msat - glChannel.OurAmountMsat.Msat,
-			RemotePubkey:  glChannel.PeerId,
-			Id:            glChannel.Id,
-			Active:        glChannel.State == 2,
-		})
-	}*/
-
-	channels := []lnclient.Channel{}
 	return channels, nil
 }
 
 func (gs *LDKService) GetNodeConnectionInfo(ctx context.Context) (nodeConnectionInfo *lnclient.NodeConnectionInfo, err error) {
-	// glcli scheduler schedule
-	/*scheduleResponse := models.ScheduleResponse{}
-	err = gs.execJSONCommand(&scheduleResponse, "scheduler", "schedule")
-	if err != nil {
-		log.Printf("GetNodeConnectionInfo failed: %v", err)
-		return nil, err
+
+	/*addresses := gs.node.ListeningAddresses()
+	if addresses == nil || len(*addresses) < 1 {
+		return nil, errors.New("no available listening addresses")
 	}
+	firstAddress := (*addresses)[0]
+	parts := strings.Split(firstAddress, ":")
+	if len(parts) != 2 {
+		return nil, errors.New(fmt.Sprintf("invalid address %v", firstAddress))
+	}
+	port, err := strconv.Atoi(parts[1])
+	if err != nil {
+		gs.svc.Logger.Errorf("ConnectPeer failed: %v", err)
+		return nil, err
+	}*/
 
 	return &lnclient.NodeConnectionInfo{
-		Pubkey:  scheduleResponse.NodeId,
-		Address: strings.ReplaceAll(scheduleResponse.GrpcUri, "https://", ""),
-		Port:    9735, // TODO: why doesn't LDK return this?
-	}, nil*/
-	return nil, errors.New("TODO")
+		Pubkey: gs.node.NodeId(),
+		//Address: parts[0],
+		//Port:    port,
+	}, nil
 }
 
 func (gs *LDKService) ConnectPeer(ctx context.Context, connectPeerRequest *lnclient.ConnectPeerRequest) error {
-	// glcli connect pubkey host port
-	/*connectPeerResponse := models.ConnectPeerResponse{}
-	err := gs.execJSONCommand(&connectPeerResponse, "connect", connectPeerRequest.Pubkey, connectPeerRequest.Address, strconv.Itoa(connectPeerRequest.Port))
+	err := gs.node.Connect(connectPeerRequest.Pubkey, connectPeerRequest.Address+":"+strconv.Itoa(connectPeerRequest.Port), true)
 	if err != nil {
-		log.Printf("ConnectPeer failed: %v", err)
+		gs.svc.Logger.Errorf("ConnectPeer failed: %v", err)
 		return err
 	}
 
-	return nil*/
-	return errors.New("TODO")
+	return nil
 }
 
 func (gs *LDKService) OpenChannel(ctx context.Context, openChannelRequest *lnclient.OpenChannelRequest) (*lnclient.OpenChannelResponse, error) {
-
-	// glcli fundchannel nodeid amount
-
-	/*openChannelResponse := models.OpenChannelResponse{}
-	err := gs.execJSONCommand(&openChannelResponse, "fundchannel", openChannelRequest.Pubkey, strconv.FormatInt(openChannelRequest.Amount*1000, 10)+"msat")
-	if err != nil {
-		log.Printf("OpenChannel failed: %v", err)
-		return nil, err
+	peers := gs.node.ListPeers()
+	for _, peer := range peers {
+		if peer.NodeId == openChannelRequest.Pubkey {
+			gs.svc.Logger.Infof("Opening channel with: %v", peer.NodeId)
+			err := gs.node.ConnectOpenChannel(peer.NodeId, peer.Address, uint64(openChannelRequest.Amount), nil, nil, true)
+			if err != nil {
+				gs.svc.Logger.Errorf("OpenChannel failed: %v", err)
+				return nil, err
+			}
+			return nil, nil
+		}
 	}
 
-	return &lnclient.OpenChannelResponse{
-		FundingTxId: openChannelResponse.TxId,
-	}, nil*/
-	return nil, errors.New("TODO")
+	return nil, errors.New("peer not found")
 }
 
 func (gs *LDKService) GetNewOnchainAddress(ctx context.Context) (string, error) {
-	// glcli newaddr
-
-	/*newAddressResponse := models.NewAddressResponse{}
-	err := gs.execJSONCommand(&newAddressResponse, "newaddr")
+	address, err := gs.node.NewOnchainAddress()
 	if err != nil {
-		log.Printf("GetNewOnchainAddress failed: %v", err)
+		gs.svc.Logger.Errorf("NewOnchainAddress failed: %v", err)
 		return "", err
 	}
-
-	return newAddressResponse.Bech32, nil*/
-	return "", errors.New("TODO")
+	return address, nil
 }
 
 func (gs *LDKService) GetOnchainBalance(ctx context.Context) (int64, error) {
-	//glcli listfunds
-
-	/*listFundsResponse := models.ListFundsResponse{}
-	err := gs.execJSONCommand(&listFundsResponse, "listfunds")
+	balance, err := gs.node.SpendableOnchainBalanceSats()
+	gs.svc.Logger.Infof("SpendableOnchainBalanceSats: %v", balance)
 	if err != nil {
-		log.Printf("GetOnchainBalance failed: %v", err)
+		gs.svc.Logger.Errorf("SpendableOnchainBalanceSats failed: %v", err)
 		return 0, err
 	}
-
-	var balance int64 = 0
-	for _, output := range listFundsResponse.Outputs {
-		balance += output.AmountMsat.Msat
-	}
-
-	return balance / 1000, nil*/
-	return 0, nil
+	return int64(balance), nil
 }

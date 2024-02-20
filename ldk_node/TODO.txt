@@ -1,0 +1,3 @@
+Delete this folder and properly consume ldk-node go bindings
+
+This will only work with Linux amd64!
