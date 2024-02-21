@@ -118,10 +118,25 @@ func (gs *LDKService) SendKeysend(ctx context.Context, amount int64, destination
 	if len(custom_records) > 0 {
 		log.Printf("FIXME: TLVs not supported")
 	}
-	//paymentHash := gs.node.SendSpontaneousPayment(uint64(amount), destination)
-	// TODO: get payment by hash
-	//return payResponse.Preimage, nil
-	return "", errors.New("TODO")
+
+	paymentHash, err := gs.node.SendSpontaneousPayment(uint64(amount), destination)
+	if err != nil {
+		gs.svc.Logger.Errorf("Keysend failed: %v", err)
+		return "", err
+	}
+
+	payment := gs.node.Payment(paymentHash)
+	if payment == nil {
+		gs.svc.Logger.Errorf("Couldn't find payment by payment hash: %v", paymentHash)
+		return "", errors.New("Payment not found")
+	}
+
+	if payment.Preimage == nil {
+		gs.svc.Logger.Errorf("No payment preimage found for payment hash: %v", paymentHash)
+		return "", errors.New("no preimage in payment")
+	}
+
+	return *payment.Preimage, nil
 }
 
 func (gs *LDKService) GetBalance(ctx context.Context) (balance int64, err error) {
@@ -144,7 +159,7 @@ func (gs *LDKService) MakeInvoice(ctx context.Context, amount int64, description
 		uint32(expiry))
 
 	if err != nil {
-		log.Printf("MakeInvoice failed: %v", err)
+		gs.svc.Logger.Errorf("MakeInvoice failed: %v", err)
 		return nil, err
 	}
 
@@ -298,7 +313,12 @@ func ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) *Nip47Transaction
 	preimage := ""
 	var settledAt *int64
 	if payment.Status == ldk_node.PaymentStatusSucceeded {
-		preimage = *payment.Secret
+		if payment.Preimage != nil {
+
+			preimage = *payment.Preimage
+		} else if payment.Secret != nil {
+			preimage = *payment.Secret
+		}
 		// TODO: use payment settle time
 		now := time.Now().Unix()
 		settledAt = &now
