@@ -195,7 +195,9 @@ func (gs *LDKService) ListTransactions(ctx context.Context, from, until, limit, 
 	payments := gs.node.ListPayments()
 
 	for _, payment := range payments {
-		transactions = append(transactions, *ldkPaymentToTransaction(&payment))
+		if payment.Status == ldk_node.PaymentStatusSucceeded {
+			transactions = append(transactions, *ldkPaymentToTransaction(&payment))
+		}
 	}
 
 	// sort by created date descending
