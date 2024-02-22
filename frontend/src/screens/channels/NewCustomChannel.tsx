@@ -13,6 +13,7 @@ export default function NewCustomChannel() {
   const [loading, setLoading] = React.useState(false);
   const [localAmount, setLocalAmount] = React.useState("");
   const [nodeDetails, setNodeDetails] = React.useState<Node | undefined>();
+  const [isPublic, setPublic] = React.useState(true);
 
   const [searchParams] = useSearchParams();
   const [pubkey, setPubkey] = React.useState(searchParams.get("pubkey") || "");
@@ -95,6 +96,7 @@ export default function NewCustomChannel() {
       const openChannelRequest: OpenChannelRequest = {
         pubkey,
         amount: +localAmount,
+        public: isPublic,
       };
       const openChannelResponse = await request<OpenChannelResponse>(
         "/api/channels",
@@ -207,6 +209,18 @@ export default function NewCustomChannel() {
               }}
             />
           </div>
+        </div>
+
+        <div className="w-full my-6">
+          <label>
+            <input
+              type="checkbox"
+              defaultChecked={isPublic}
+              onChange={(e) => setPublic(e.target.checked)}
+              className="mr-2"
+            />
+            Public Channel
+          </label>
         </div>
 
         <div className="mt-2">

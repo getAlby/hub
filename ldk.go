@@ -92,18 +92,33 @@ func (gs *LDKService) SendPaymentSync(ctx context.Context, payReq string) (preim
 	}
 
 	for start := time.Now(); time.Since(start) < time.Second*60; {
-		gs.node.WaitNextEvent()
+		// FIXME: listen and handle events in one place
+		// this will not work for simultaneous payments
+		event := gs.node.WaitNextEvent()
+		gs.node.EventHandled()
 
-		payment := gs.node.Payment(paymentHash)
-		if payment == nil {
-			gs.svc.Logger.Errorf("Couldn't find payment by payment hash: %v", paymentHash)
-			return "", errors.New("Payment not found")
-		}
+		eventPaymentSuccessful, isEventPaymentSuccessfulEvent := event.(ldk_node.EventPaymentSuccessful)
+		eventPaymentFailed, isEventPaymentFailedEvent := event.(ldk_node.EventPaymentFailed)
 
-		if payment.Secret != nil {
+		if isEventPaymentSuccessfulEvent && eventPaymentSuccessful.PaymentHash == paymentHash {
+			gs.svc.Logger.Infof("Got payment success event")
+			payment := gs.node.Payment(paymentHash)
+			if payment == nil {
+				gs.svc.Logger.Errorf("Couldn't find payment by payment hash: %v", paymentHash)
+				return "", errors.New("Payment not found")
+			}
+
+			if payment.Secret == nil {
+				gs.svc.Logger.Errorf("No payment secret for payment hash: %v", paymentHash)
+				return "", errors.New("Payment secret not found")
+			}
 			preimage = *payment.Secret
-			gs.svc.Logger.Infof("Payment succeeded")
 			break
+		}
+		if isEventPaymentFailedEvent && eventPaymentFailed.PaymentHash == paymentHash {
+			// TODO: is there a way to get a failure reason / error message?
+			gs.svc.Logger.Errorf("Payment failed: %v", paymentHash)
+			return "", errors.New("Payment failed")
 		}
 	}
 	if preimage == "" {
@@ -272,19 +287,45 @@ func (gs *LDKService) ConnectPeer(ctx context.Context, connectPeerRequest *lncli
 
 func (gs *LDKService) OpenChannel(ctx context.Context, openChannelRequest *lnclient.OpenChannelRequest) (*lnclient.OpenChannelResponse, error) {
 	peers := gs.node.ListPeers()
+	var foundPeer *ldk_node.PeerDetails
 	for _, peer := range peers {
 		if peer.NodeId == openChannelRequest.Pubkey {
-			gs.svc.Logger.Infof("Opening channel with: %v", peer.NodeId)
-			err := gs.node.ConnectOpenChannel(peer.NodeId, peer.Address, uint64(openChannelRequest.Amount), nil, nil, true)
-			if err != nil {
-				gs.svc.Logger.Errorf("OpenChannel failed: %v", err)
-				return nil, err
-			}
-			return nil, nil
+
+			foundPeer = &peer
+			break
 		}
 	}
 
-	return nil, errors.New("peer not found")
+	if foundPeer == nil {
+		return nil, errors.New("node is not peered yet")
+	}
+
+	gs.svc.Logger.Infof("Opening channel with: %v", foundPeer.NodeId)
+	err := gs.node.ConnectOpenChannel(foundPeer.NodeId, foundPeer.Address, uint64(openChannelRequest.Amount), nil, nil, openChannelRequest.Public)
+	if err != nil {
+		gs.svc.Logger.Errorf("OpenChannel failed: %v", err)
+		return nil, err
+	}
+
+	for start := time.Now(); time.Since(start) < time.Second*60; {
+		// FIXME: listen and handle events in one place
+		event := gs.node.WaitNextEvent()
+		gs.node.EventHandled()
+
+		channelPendingEvent, ok := event.(ldk_node.EventChannelPending)
+
+		if !ok {
+			gs.svc.Logger.Infof("Could not match to channel pending event, skipping %v", event)
+			continue
+		}
+		gs.svc.Logger.Infof("Matched event to channel pending event %v", channelPendingEvent)
+
+		return &lnclient.OpenChannelResponse{
+			FundingTxId: channelPendingEvent.FundingTxo.Txid,
+		}, nil
+	}
+
+	return nil, errors.New("open channel timeout")
 }
 
 func (gs *LDKService) GetNewOnchainAddress(ctx context.Context) (string, error) {

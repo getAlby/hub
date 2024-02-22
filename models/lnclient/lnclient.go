@@ -73,6 +73,7 @@ type ConnectPeerRequest struct {
 type OpenChannelRequest struct {
 	Pubkey string `json:"pubkey"`
 	Amount int64  `json:"amount"`
+	Public bool   `json:"public"`
 }
 
 type OpenChannelResponse struct {

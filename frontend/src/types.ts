@@ -111,6 +111,7 @@ export type ConnectPeerRequest = {
 export type OpenChannelRequest = {
   pubkey: string;
   amount: number;
+  public: boolean;
 };
 
 export type OpenChannelResponse = {
