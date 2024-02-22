@@ -293,7 +293,7 @@ func (gs *GreenlightService) GetInfo(ctx context.Context) (info *lnclient.NodeIn
 	nodeInfo, err := gs.client.GetInfo()
 
 	if err != nil {
-		log.Printf("GetInfo failed: %v", err)
+		gs.svc.Logger.Errorf("GetInfo failed: %v", err)
 		return nil, err
 	}
 
@@ -344,20 +344,14 @@ func (gs *GreenlightService) ListChannels(ctx context.Context) ([]lnclient.Chann
 }
 
 func (gs *GreenlightService) GetNodeConnectionInfo(ctx context.Context) (nodeConnectionInfo *lnclient.NodeConnectionInfo, err error) {
-	// glcli scheduler schedule
-	/*scheduleResponse := models.ScheduleResponse{}
-	err = gs.execJSONCommand(&scheduleResponse, "scheduler", "schedule")
+	info, err := gs.GetInfo(ctx)
 	if err != nil {
-		log.Printf("GetNodeConnectionInfo failed: %v", err)
+		gs.svc.Logger.Errorf("GetInfo failed: %v", err)
 		return nil, err
 	}
-
 	return &lnclient.NodeConnectionInfo{
-		Pubkey:  scheduleResponse.NodeId,
-		Address: strings.ReplaceAll(scheduleResponse.GrpcUri, "https://", ""),
-		Port:    9735, // TODO: why doesn't greenlight return this?
-	}, nil*/
-	return nil, errors.New("TODO")
+		Pubkey: info.Pubkey,
+	}, nil
 }
 
 func (gs *GreenlightService) ConnectPeer(ctx context.Context, connectPeerRequest *lnclient.ConnectPeerRequest) error {
