@@ -11,6 +11,8 @@ import (
 
 	"github.com/getAlby/nostr-wallet-connect/ldk_node" // TODO: include this from an external library
 	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
+	decodepay "github.com/nbd-wtf/ln-decodepay"
+	"github.com/sirupsen/logrus"
 )
 
 type LDKService struct {
@@ -178,14 +180,29 @@ func (gs *LDKService) MakeInvoice(ctx context.Context, amount int64, description
 		return nil, err
 	}
 
-	// TODO: add missing fields
+	var expiresAt *int64
+	paymentRequest, err := decodepay.Decodepay(invoice)
+	if err != nil {
+		gs.svc.Logger.WithFields(logrus.Fields{
+			"bolt11": invoice,
+		}).Errorf("Failed to decode bolt11 invoice: %v", err)
+
+		return nil, err
+	}
+	expiresAtUnix := time.UnixMilli(int64(paymentRequest.CreatedAt) * 1000).Add(time.Duration(paymentRequest.Expiry) * time.Second).Unix()
+	expiresAt = &expiresAtUnix
+	description = paymentRequest.Description
+	descriptionHash = paymentRequest.DescriptionHash
+
 	transaction = &Nip47Transaction{
-		Type:    "incoming",
-		Invoice: invoice,
-		//PaymentHash: invoice.PaymentHash,
-		Amount: amount,
-		//CreatedAt:   time.Now().Unix(),
-		//ExpiresAt:   &invoice.ExpiresAt,
+		Type:            "incoming",
+		Invoice:         invoice,
+		PaymentHash:     paymentRequest.PaymentHash,
+		Amount:          amount,
+		CreatedAt:       time.Now().Unix(),
+		ExpiresAt:       expiresAt,
+		Description:     description,
+		DescriptionHash: descriptionHash,
 	}
 
 	return transaction, nil
