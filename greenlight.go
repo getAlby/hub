@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/getAlby/nostr-wallet-connect/glalby" // TODO: import from other repository
-	//"github.com/getAlby/glalby/glalby"
+	//"github.com/getAlby/nostr-wallet-connect/glalby" // for local development only
+	"github.com/getAlby/glalby/glalby"
 
 	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 )
@@ -308,29 +308,38 @@ func (gs *GreenlightService) GetInfo(ctx context.Context) (info *lnclient.NodeIn
 }
 
 func (gs *GreenlightService) ListChannels(ctx context.Context) ([]lnclient.Channel, error) {
-	//glcli listfunds
+	response, err := gs.client.ListFunds(glalby.ListFundsRequest{})
 
-	/*listFundsResponse := models.ListFundsResponse{}
-	err := gs.execJSONCommand(&listFundsResponse, "listfunds")
 	if err != nil {
-		log.Printf("ListChannels failed: %v", err)
+		gs.svc.Logger.Errorf("Failed to list funds: %v", err)
 		return nil, err
 	}
 
-	glChannels := listFundsResponse.Channels
 	channels := []lnclient.Channel{}
 
-	for _, glChannel := range glChannels {
+	for _, glChannel := range response.Channels {
+		if glChannel.ChannelId == nil {
+			continue
+		}
+
+		var localAmount uint64
+		if glChannel.OurAmountMsat != nil {
+			localAmount = *glChannel.OurAmountMsat
+		}
+		var totalAmount uint64
+		if glChannel.AmountMsat != nil {
+			totalAmount = *glChannel.AmountMsat
+		}
+
 		channels = append(channels, lnclient.Channel{
-			LocalBalance:  glChannel.OurAmountMsat.Msat,
-			RemoteBalance: glChannel.AmountMsat.Msat - glChannel.OurAmountMsat.Msat,
+			LocalBalance:  int64(localAmount),
+			RemoteBalance: int64(totalAmount - localAmount),
 			RemotePubkey:  glChannel.PeerId,
-			Id:            glChannel.Id,
+			Id:            *glChannel.ChannelId,
 			Active:        glChannel.State == 2,
 		})
-	}*/
+	}
 
-	channels := []lnclient.Channel{}
 	return channels, nil
 }
 
@@ -396,20 +405,19 @@ func (gs *GreenlightService) GetNewOnchainAddress(ctx context.Context) (string, 
 }
 
 func (gs *GreenlightService) GetOnchainBalance(ctx context.Context) (int64, error) {
-	//glcli listfunds
+	response, err := gs.client.ListFunds(glalby.ListFundsRequest{})
 
-	/*listFundsResponse := models.ListFundsResponse{}
-	err := gs.execJSONCommand(&listFundsResponse, "listfunds")
 	if err != nil {
-		log.Printf("GetOnchainBalance failed: %v", err)
+		gs.svc.Logger.Errorf("Failed to list funds: %v", err)
 		return 0, err
 	}
 
 	var balance int64 = 0
-	for _, output := range listFundsResponse.Outputs {
-		balance += output.AmountMsat.Msat
+	for _, output := range response.Outputs {
+		if output.AmountMsat != nil {
+			balance += int64(*output.AmountMsat)
+		}
 	}
 
-	return balance / 1000, nil*/
-	return 0, nil
+	return balance / 1000, nil
 }
