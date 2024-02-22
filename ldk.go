@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/getAlby/nostr-wallet-connect/ldk_node" // TODO: include this from an external library
@@ -16,9 +17,12 @@ import (
 )
 
 type LDKService struct {
-	svc     *Service
-	workdir string
-	node    *ldk_node.LdkNode
+	svc                       *Service
+	workdir                   string
+	node                      *ldk_node.LdkNode
+	cancelLdkEventListenerCtx context.CancelFunc
+	subscribeLdkEvents        func() chan ldk_node.Event
+	unsubscribeLdkEvents      func(chan ldk_node.Event)
 }
 
 func NewLDKService(svc *Service, mnemonic, workDir string) (result lnclient.LNClient, err error) {
@@ -61,11 +65,60 @@ func NewLDKService(svc *Service, mnemonic, workDir string) (result lnclient.LNCl
 		return nil, err
 	}
 
+	// TODO: move this event handler code
+	ldkEventListenerCtx, cancelLdkEventListenerCtx := context.WithCancel(context.Background())
+	ldkEventHandlers := []chan ldk_node.Event{}
+	var ldkEventHandlersMutex sync.Mutex
+
+	subscribeLdkEvents := func() chan ldk_node.Event {
+		ldkEventHandler := make(chan ldk_node.Event)
+		ldkEventHandlersMutex.Lock()
+		ldkEventHandlers = append(ldkEventHandlers, ldkEventHandler)
+		ldkEventHandlersMutex.Unlock()
+		return ldkEventHandler
+	}
+
+	unsubscribeLdkEvents := func(eventHandler chan ldk_node.Event) {
+		ldkEventHandlersMutex.Lock()
+		for i := 0; i < len(ldkEventHandlers); i++ {
+			if eventHandler == ldkEventHandlers[i] {
+				// Replace the element to be removed with the last element of the slice
+				ldkEventHandlers[i] = ldkEventHandlers[len(ldkEventHandlers)-1]
+				// Slice off the last element
+				ldkEventHandlers = ldkEventHandlers[:len(ldkEventHandlers)-1]
+				break
+			}
+		}
+		ldkEventHandlersMutex.Unlock()
+	}
+
+	go func() {
+		for {
+			select {
+			case <-ldkEventListenerCtx.Done():
+				return
+			default:
+				event := node.WaitNextEvent()
+				ldkEventHandlersMutex.Lock()
+				svc.Logger.Infof("Received LDK event %+v", event, len(ldkEventHandlers))
+				for _, eventHandler := range ldkEventHandlers {
+					eventHandler <- event
+				}
+				ldkEventHandlersMutex.Unlock()
+
+				node.EventHandled()
+			}
+		}
+	}()
+
 	gs := LDKService{
 		workdir: newpath,
 		node:    node,
 		//listener: &listener,
-		svc: svc,
+		svc:                       svc,
+		cancelLdkEventListenerCtx: cancelLdkEventListenerCtx,
+		subscribeLdkEvents:        subscribeLdkEvents,
+		unsubscribeLdkEvents:      unsubscribeLdkEvents,
 	}
 
 	nodeId := node.NodeId()
@@ -81,6 +134,7 @@ func NewLDKService(svc *Service, mnemonic, workDir string) (result lnclient.LNCl
 
 func (gs *LDKService) Shutdown() error {
 	gs.svc.Logger.Infof("shutting down LDK client")
+	gs.cancelLdkEventListenerCtx()
 	gs.node.Destroy()
 
 	return nil
@@ -93,11 +147,10 @@ func (gs *LDKService) SendPaymentSync(ctx context.Context, payReq string) (preim
 		return "", err
 	}
 
+	eventListener := gs.subscribeLdkEvents()
+	defer gs.unsubscribeLdkEvents(eventListener)
 	for start := time.Now(); time.Since(start) < time.Second*60; {
-		// FIXME: listen and handle events in one place
-		// this will not work for simultaneous payments
-		event := gs.node.WaitNextEvent()
-		gs.node.EventHandled()
+		event := <-eventListener
 
 		eventPaymentSuccessful, isEventPaymentSuccessfulEvent := event.(ldk_node.EventPaymentSuccessful)
 		eventPaymentFailed, isEventPaymentFailedEvent := event.(ldk_node.EventPaymentFailed)
@@ -324,18 +377,16 @@ func (gs *LDKService) OpenChannel(ctx context.Context, openChannelRequest *lncli
 		return nil, err
 	}
 
+	eventListener := gs.subscribeLdkEvents()
+	defer gs.unsubscribeLdkEvents(eventListener)
 	for start := time.Now(); time.Since(start) < time.Second*60; {
-		// FIXME: listen and handle events in one place
-		event := gs.node.WaitNextEvent()
-		gs.node.EventHandled()
+		event := <-eventListener
 
-		channelPendingEvent, ok := event.(ldk_node.EventChannelPending)
+		channelPendingEvent, isChannelPendingEvent := event.(ldk_node.EventChannelPending)
 
-		if !ok {
-			gs.svc.Logger.Infof("Could not match to channel pending event, skipping %v", event)
+		if !isChannelPendingEvent {
 			continue
 		}
-		gs.svc.Logger.Infof("Matched event to channel pending event %v", channelPendingEvent)
 
 		return &lnclient.OpenChannelResponse{
 			FundingTxId: channelPendingEvent.FundingTxo.Txid,
