@@ -10,12 +10,15 @@ import (
 	"strconv"
 
 	"github.com/getAlby/nostr-wallet-connect/glalby" // TODO: import from other repository
+	//"github.com/getAlby/glalby/glalby"
+
 	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 )
 
 type GreenlightService struct {
 	workdir string
 	client  *glalby.BlockingGreenlightAlbyClient
+	svc     *Service
 	// hsmdCmd *exec.Cmd
 }
 
@@ -81,8 +84,7 @@ func NewGreenlightService(svc *Service, mnemonic, inviteCode, workDir string) (r
 	gs := GreenlightService{
 		workdir: newpath,
 		client:  client,
-		//listener: &listener,
-		//svc:      svc,
+		svc:     svc,
 	}
 
 	//gs.hsmdCmd = gs.createCommand("hsmd")
@@ -104,34 +106,21 @@ func NewGreenlightService(svc *Service, mnemonic, inviteCode, workDir string) (r
 	return &gs, nil
 }
 
-func (gs *GreenlightService) register(inviteCode string) error {
-	/*output, err := gs.execCommand("scheduler", "register", "--network=bitcoin", fmt.Sprintf("--invite=%s", inviteCode))
-	log.Printf("scheduler register: %v %v", string(output), err)
-	return err*/
-	return errors.New("TODO")
-}
-
 func (gs *GreenlightService) Shutdown() error {
-	log.Println("TODO: shut down greenlight client")
-
 	return nil
-	//return bs.svc.Disconnect()
 }
 
 func (gs *GreenlightService) SendPaymentSync(ctx context.Context, payReq string) (preimage string, err error) {
-	//glcli pay BOLT11_INVOICE_HERE
+	response, err := gs.client.Pay(glalby.PayRequest{
+		Bolt11: payReq,
+	})
 
-	/*log.Printf("SendPaymentSync %v", payReq)
-	payResponse := models.PayResponse{}
-	err = gs.execJSONCommand(&payResponse, "pay", payReq)
 	if err != nil {
-		log.Printf("SendPaymentSync failed: %v", err)
+		gs.svc.Logger.Errorf("Failed to send payment: %v", err)
 		return "", err
 	}
-	log.Printf("SendPaymentSync succeeded: %v", payResponse.Preimage)
-
-	return payResponse.Preimage, nil*/
-	return "", errors.New("TODO")
+	log.Printf("SendPaymentSync succeeded: %v", response.PaymentPreimage)
+	return response.PaymentPreimage, nil
 }
 
 func (gs *GreenlightService) SendKeysend(ctx context.Context, amount int64, destination, preimage string, custom_records []lnclient.TLVRecord) (preImage string, err error) {
@@ -152,23 +141,25 @@ func (gs *GreenlightService) SendKeysend(ctx context.Context, amount int64, dest
 }
 
 func (gs *GreenlightService) GetBalance(ctx context.Context) (balance int64, err error) {
-	/*channels, err := gs.ListChannels(ctx)
+	response, err := gs.client.ListFunds(glalby.ListFundsRequest{})
 
 	if err != nil {
+		gs.svc.Logger.Errorf("Failed to list funds: %v", err)
 		return 0, err
 	}
 
 	balance = 0
-	for _, channel := range channels {
-		balance += channel.LocalBalance
+	for _, channel := range response.Channels {
+		if channel.OurAmountMsat != nil && channel.Connected {
+			balance += int64(*channel.OurAmountMsat)
+		}
 	}
 
-	return balance, nil*/
-	return 0, nil
+	return balance, nil
 }
 
 func (gs *GreenlightService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *Nip47Transaction, err error) {
-	invoice, err := gs.client.MakeInvoice(glalby.GreenlightInvoiceRequest{
+	invoice, err := gs.client.MakeInvoice(glalby.MakeInvoiceRequest{
 		AmountMsat:  uint64(amount),
 		Description: description,
 		Label:       "label_" + strconv.Itoa(rand.Int()),
