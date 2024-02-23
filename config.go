@@ -14,6 +14,7 @@ import (
 const (
 	LNDBackendType        = "LND"
 	GreenlightBackendType = "GREENLIGHT"
+	LDKBackendType        = "LDK"
 	BreezBackendType      = "BREEZ"
 	SessionCookieName     = "session"
 	SessionCookieAuthKey  = "authenticated"

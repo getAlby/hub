@@ -259,4 +259,6 @@ Run NWC on your own node!
 
 ### Docker
 
-(TBC)
+`docker build . -t nwc-local --progress=plain`
+
+`docker run --env-file .env -p 8080:8080 nwc-local`

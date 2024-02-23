@@ -1,6 +1,7 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useChannels } from "src/hooks/useChannels";
+import { useInfo } from "src/hooks/useInfo";
 import { useOnchainBalance } from "src/hooks/useOnchainBalance";
 import { Node } from "src/types";
 
@@ -8,6 +9,15 @@ export default function Channels() {
   const { data: channels } = useChannels();
   const { data: onchainBalance } = useOnchainBalance();
   const [nodes, setNodes] = React.useState<Node[]>([]);
+  const { data: info } = useInfo();
+  const navigate = useNavigate();
+
+  React.useEffect(() => {
+    if (!info || info.running) {
+      return;
+    }
+    navigate("/");
+  }, [info, navigate]);
 
   const loadNodeStats = React.useCallback(async () => {
     if (!channels) {
