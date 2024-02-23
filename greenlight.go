@@ -119,8 +119,8 @@ func (gs *GreenlightService) SendPaymentSync(ctx context.Context, payReq string)
 		gs.svc.Logger.Errorf("Failed to send payment: %v", err)
 		return "", err
 	}
-	log.Printf("SendPaymentSync succeeded: %v", response.PaymentPreimage)
-	return response.PaymentPreimage, nil
+	log.Printf("SendPaymentSync succeeded: %v", response.Preimage)
+	return response.Preimage, nil
 }
 
 func (gs *GreenlightService) SendKeysend(ctx context.Context, amount int64, destination, preimage string, custom_records []lnclient.TLVRecord) (preImage string, err error) {
@@ -385,17 +385,17 @@ func (gs *GreenlightService) OpenChannel(ctx context.Context, openChannelRequest
 }
 
 func (gs *GreenlightService) GetNewOnchainAddress(ctx context.Context) (string, error) {
-	// glcli newaddr
 
-	/*newAddressResponse := models.NewAddressResponse{}
-	err := gs.execJSONCommand(&newAddressResponse, "newaddr")
+	newAddressResponse, err := gs.client.NewAddress(glalby.NewAddressRequest{})
 	if err != nil {
-		log.Printf("GetNewOnchainAddress failed: %v", err)
+		gs.svc.Logger.Errorf("NewAddress failed: %v", err)
 		return "", err
 	}
+	if newAddressResponse.Bech32 == nil {
+		return "", errors.New("No Bec32 in new address response")
+	}
 
-	return newAddressResponse.Bech32, nil*/
-	return "", errors.New("TODO")
+	return *newAddressResponse.Bech32, nil
 }
 
 func (gs *GreenlightService) GetOnchainBalance(ctx context.Context) (int64, error) {
