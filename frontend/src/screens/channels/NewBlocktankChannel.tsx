@@ -35,7 +35,7 @@ export default function NewBlocktankChannel() {
     }
   }
 
-  const connectionString = `${connectionInfo.pubkey}@${connectionInfo.address}:${connectionInfo.port}`;
+  const connectionString = connectionInfo.pubkey; //`${connectionInfo.pubkey}@${connectionInfo.address}:${connectionInfo.port}`;
 
   // TODO: replace with https://github.com/synonymdev/blocktank-client
   return (

@@ -61,4 +61,7 @@ COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /build/libbreez_sdk_bindings.so /usr/lib/libbreez/
 COPY --from=builder /build/main /bin/
 
+# Temporary LDK bindings
+COPY ldk_node ./ldk_node
+
 ENTRYPOINT [ "/bin/main" ]

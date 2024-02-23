@@ -13,9 +13,11 @@ export default function NewCustomChannel() {
   const [loading, setLoading] = React.useState(false);
   const [localAmount, setLocalAmount] = React.useState("");
   const [nodeDetails, setNodeDetails] = React.useState<Node | undefined>();
+  const [isPublic, setPublic] = React.useState(true);
 
   const [searchParams] = useSearchParams();
   const [pubkey, setPubkey] = React.useState(searchParams.get("pubkey") || "");
+  const [host, setHost] = React.useState(searchParams.get("host") || "");
   const { data: csrf } = useCSRF();
 
   const fetchNodeDetails = React.useCallback(async () => {
@@ -37,11 +39,11 @@ export default function NewCustomChannel() {
     if (!csrf) {
       throw new Error("csrf not loaded");
     }
-    if (!nodeDetails) {
+    if (!nodeDetails && !host) {
       throw new Error("node details not found");
     }
-    const host = nodeDetails.sockets.split(",")[0];
-    const [address, port] = host.split(":");
+    const _host = nodeDetails ? nodeDetails.sockets.split(",")[0] : host;
+    const [address, port] = _host.split(":");
     if (!address || !port) {
       throw new Error("host not found");
     }
@@ -59,19 +61,16 @@ export default function NewCustomChannel() {
       },
       body: JSON.stringify(connectPeerRequest),
     });
-  }, [csrf, nodeDetails, pubkey]);
+  }, [csrf, nodeDetails, pubkey, host]);
 
   async function openChannel() {
     try {
       if (!csrf) {
         throw new Error("csrf not loaded");
       }
-      if (!nodeDetails) {
-        throw new Error("node details not found");
-      }
       if (
         !confirm(
-          `Are you sure you want to open a ${localAmount} sat channel to ${nodeDetails.alias}?`
+          `Are you sure you want to peer with ${nodeDetails?.alias || pubkey}?`
         )
       ) {
         return;
@@ -81,11 +80,23 @@ export default function NewCustomChannel() {
 
       await connectPeer();
 
+      if (
+        !confirm(
+          `Are you sure you want to open a ${localAmount} sat channel to ${
+            nodeDetails?.alias || pubkey
+          }?`
+        )
+      ) {
+        setLoading(false);
+        return;
+      }
+
       console.log(`🎬 Opening channel with ${pubkey}`);
 
       const openChannelRequest: OpenChannelRequest = {
         pubkey,
         amount: +localAmount,
+        public: isPublic,
       };
       const openChannelResponse = await request<OpenChannelResponse>(
         "/api/channels",
@@ -160,6 +171,25 @@ export default function NewCustomChannel() {
               }}
             />
           </div>
+          {!nodeDetails && pubkey && (
+            <div className="w-full px-3 mb-6 md:mb-0">
+              <label
+                className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                htmlFor="grid-first-name"
+              >
+                Host:Port
+              </label>
+              <input
+                className="appearance-none block w-full bg-gray-200 text-gray-700 border rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white"
+                type="text"
+                value={host}
+                placeholder="0.0.0.0:9735"
+                onChange={(e) => {
+                  setHost(e.target.value.trim());
+                }}
+              />
+            </div>
+          )}
         </div>
 
         <div className="flex flex-wrap -mx-3 mt-6">
@@ -179,6 +209,18 @@ export default function NewCustomChannel() {
               }}
             />
           </div>
+        </div>
+
+        <div className="w-full my-6">
+          <label>
+            <input
+              type="checkbox"
+              defaultChecked={isPublic}
+              onChange={(e) => setPublic(e.target.checked)}
+              className="mr-2"
+            />
+            Public Channel
+          </label>
         </div>
 
         <div className="mt-2">

@@ -24,7 +24,9 @@ export function SetupNode() {
       ...data,
     });
     navigate(
-      backendType === "BREEZ" || backendType === "GREENLIGHT"
+      backendType === "BREEZ" ||
+        backendType === "GREENLIGHT" ||
+        backendType === "LDK"
         ? `/setup/mnemonic${isNew ? "?wallet=new" : ""}`
         : `/setup/finish`
     );
@@ -52,12 +54,14 @@ export function SetupNode() {
           >
             <option value={"BREEZ"}>Breez</option>
             <option value={"GREENLIGHT"}>Greenlight</option>
+            <option value={"LDK"}>LDK</option>
             {!isNew && <option value={"LND"}>LND</option>}
           </select>
           {backendType === "BREEZ" && <BreezForm handleSubmit={handleSubmit} />}
           {backendType === "GREENLIGHT" && (
             <GreenlightForm handleSubmit={handleSubmit} />
           )}
+          {backendType === "LDK" && <LDKForm handleSubmit={handleSubmit} />}
           {backendType === "LND" && <LNDForm handleSubmit={handleSubmit} />}
         </div>
       </Container>
@@ -160,6 +164,19 @@ function GreenlightForm({ handleSubmit }: SetupFormProps) {
           placeholder="XXXX-YYYY"
         />
       </>
+      <ConnectButton isConnecting={false} submitText="Next" />
+    </form>
+  );
+}
+
+function LDKForm({ handleSubmit }: SetupFormProps) {
+  function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    handleSubmit({});
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="w-full">
       <ConnectButton isConnecting={false} submitText="Next" />
     </form>
   );

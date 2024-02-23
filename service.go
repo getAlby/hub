@@ -134,6 +134,11 @@ func (svc *Service) launchLNBackend(encryptionKey string) error {
 		LNDCertHex, _ := svc.cfg.Get("LNDCertHex", encryptionKey)
 		LNDMacaroonHex, _ := svc.cfg.Get("LNDMacaroonHex", encryptionKey)
 		lnClient, err = NewLNDService(svc, LNDAddress, LNDCertHex, LNDMacaroonHex)
+	case LDKBackendType:
+		Mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
+		LDKWorkdir := path.Join(svc.cfg.Env.Workdir, "ldk")
+
+		lnClient, err = NewLDKService(svc, Mnemonic, LDKWorkdir)
 	case GreenlightBackendType:
 		Mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
 		GreenlightInviteCode, _ := svc.cfg.Get("GreenlightInviteCode", encryptionKey)
