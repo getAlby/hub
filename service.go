@@ -137,7 +137,7 @@ func (svc *Service) launchLNBackend(encryptionKey string) error {
 	case GreenlightBackendType:
 		Mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
 		GreenlightInviteCode, _ := svc.cfg.Get("GreenlightInviteCode", encryptionKey)
-		GreenlightWorkdir := path.Join(svc.cfg.Env.Workdir, "greenlightcli")
+		GreenlightWorkdir := path.Join(svc.cfg.Env.Workdir, "greenlight")
 
 		lnClient, err = NewGreenlightService(svc, Mnemonic, GreenlightInviteCode, GreenlightWorkdir)
 	case BreezBackendType:
