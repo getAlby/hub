@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
 	"log"
 	"math/rand"
@@ -130,20 +131,30 @@ func (gs *GreenlightService) SendPaymentSync(ctx context.Context, payReq string)
 }
 
 func (gs *GreenlightService) SendKeysend(ctx context.Context, amount int64, destination, preimage string, custom_records []lnclient.TLVRecord) (preImage string, err error) {
-	/*if len(custom_records) > 0 {
-		log.Printf("FIXME: TLVs not supported with CLI")
+
+	extraTlvs := []glalby.TlvEntry{}
+
+	for _, customRecord := range custom_records {
+		extraTlvs = append(extraTlvs, glalby.TlvEntry{
+			Ty:    customRecord.Type,
+			Value: hex.EncodeToString([]byte(customRecord.Value)),
+		})
 	}
 
-	payResponse := models.PayResponse{}
-	err = gs.execJSONCommand(&payResponse, "keysend", destination, strconv.FormatInt(amount, 10)+"msat")
+	amount_u64 := uint64(amount)
+	// TODO: support passing custom preimage
+	response, err := gs.client.KeySend(glalby.KeySendRequest{
+		Destination: destination,
+		AmountMsat:  &amount_u64,
+		ExtraTlvs:   &extraTlvs,
+	})
+
 	if err != nil {
-		log.Printf("Keysend failed: %v", err)
+		gs.svc.Logger.Errorf("Failed to send keysend payment: %v", err)
 		return "", err
 	}
-	log.Printf("Keysend succeeded: %v", payResponse.Preimage)
 
-	return payResponse.Preimage, nil*/
-	return "", errors.New("TODO")
+	return response.PaymentPreimage, nil
 }
 
 func (gs *GreenlightService) GetBalance(ctx context.Context) (balance int64, err error) {
