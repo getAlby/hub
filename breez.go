@@ -136,9 +136,6 @@ func (bs *BreezService) GetBalance(ctx context.Context) (balance int64, err erro
 }
 
 func (bs *BreezService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *Nip47Transaction, err error) {
-	if expiry == 0 {
-		expiry = 60 * 60 * 24
-	}
 	expiry32 := uint32(expiry)
 	receivePaymentRequest := breez_sdk.ReceivePaymentRequest{
 		// amount provided in msat

@@ -67,7 +67,7 @@ type Channel struct {
 type ConnectPeerRequest struct {
 	Pubkey  string `json:"pubkey"`
 	Address string `json:"address"`
-	Port    int    `json:"port"`
+	Port    uint16 `json:"port"`
 }
 
 type OpenChannelRequest struct {
