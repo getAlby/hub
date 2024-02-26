@@ -1,36 +1,36 @@
 package main
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
+	"encoding/hex"
 	"errors"
-	"fmt"
 	"log"
 	"math/rand"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/breez/breez-sdk-go/breez_sdk"
-	models "github.com/getAlby/nostr-wallet-connect/models/greenlight"
-	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
+	//"github.com/getAlby/nostr-wallet-connect/glalby" // for local development only
+
+	"github.com/getAlby/glalby/glalby"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
+	"github.com/sirupsen/logrus"
+
+	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 )
 
 type GreenlightService struct {
 	workdir string
-	hsmdCmd *exec.Cmd
-	//svc      *breez_sdk.BlockingGreenlightServices
+	client  *glalby.BlockingGreenlightAlbyClient
+	svc     *Service
 }
 
-func NewGreenlightService(mnemonic, inviteCode, workDir string) (result lnclient.LNClient, err error) {
+func NewGreenlightService(svc *Service, mnemonic, inviteCode, workDir string) (result lnclient.LNClient, err error) {
 	if mnemonic == "" || inviteCode == "" || workDir == "" {
-		return nil, errors.New("One or more required greenlight configuration are missing")
+		return nil, errors.New("one or more required greenlight configuration are missing")
 	}
 
 	//create dir if not exists
@@ -40,257 +40,248 @@ func NewGreenlightService(mnemonic, inviteCode, workDir string) (result lnclient
 		log.Printf("Failed to create greenlight working dir: %v", err)
 		return nil, err
 	}
-	seed, err := breez_sdk.MnemonicToSeed(mnemonic)
-	if err != nil {
-		log.Printf("Failed to convert mnemonic to seed: %v", err)
-		return nil, err
+
+	var credentials *glalby.GreenlightCredentials
+	// NOTE: mnemonic used for encryption
+	existingDeviceCert, _ := svc.cfg.Get("GreenlightDeviceCert", mnemonic)
+	existingDeviceKey, _ := svc.cfg.Get("GreenlightDeviceKey", mnemonic)
+
+	if existingDeviceCert != "" && existingDeviceKey != "" {
+		credentials = &glalby.GreenlightCredentials{
+			DeviceCert: existingDeviceCert,
+			DeviceKey:  existingDeviceKey,
+		}
+		svc.Logger.Info("Using saved greenlight credentials")
 	}
 
-	hsmSecretPath := filepath.Join(newpath, "hsm_secret")
-	err = os.WriteFile(hsmSecretPath, seed[0:32], 0644)
+	if credentials == nil {
+		svc.Logger.Info("No greenlight credentials found, attempting to recover existing node")
+		recoveredCredentials, err := glalby.Recover(mnemonic)
+		credentials = &recoveredCredentials
+
+		if err != nil {
+			svc.Logger.Errorf("Failed to recover node: %v", err)
+			svc.Logger.Infof("Trying to register instead...")
+			recoveredCredentials, err := glalby.Register(mnemonic, inviteCode)
+			credentials = &recoveredCredentials
+
+			if err != nil {
+				svc.Logger.Fatalf("Failed to register new node")
+			}
+		}
+
+		if credentials == nil || credentials.DeviceCert == "" || credentials.DeviceKey == "" {
+			log.Fatalf("unexpected response from Recover")
+		}
+		// NOTE: mnemonic used for encryption
+		svc.cfg.SetUpdate("GreenlightDeviceCert", credentials.DeviceCert, mnemonic)
+		svc.cfg.SetUpdate("GreenlightDeviceKey", credentials.DeviceKey, mnemonic)
+	}
+
+	client, err := glalby.NewBlockingGreenlightAlbyClient(mnemonic, *credentials)
+
 	if err != nil {
-		log.Printf("Failed to write hsm secret: %v", err)
-		return nil, err
+		log.Printf("Failed to create greenlight alby client: %v", err)
+	}
+	if client == nil {
+		log.Fatalf("unexpected response from NewBlockingGreenlightAlbyClient")
 	}
 
 	gs := GreenlightService{
 		workdir: newpath,
-		//listener: &listener,
-		//svc:      svc,
+		client:  client,
+		svc:     svc,
 	}
 
-	err = gs.recover()
+	nodeInfo, err := client.GetInfo()
 
-	if err != nil {
-		log.Printf("Failed to recover node: %v", err)
-		log.Print("Trying to register instead...")
-		err = gs.register(inviteCode)
-		if err != nil {
-			log.Fatalf("Failed to register new node")
-		}
-	}
-
-	gs.hsmdCmd = gs.createCommand("hsmd")
-
-	if err := gs.hsmdCmd.Start(); err != nil {
-		log.Fatalf("Failed to start hsmd: %v", err)
-	}
-
-	nodeInfo := models.NodeInfo{}
-	err = gs.execJSONCommand(&nodeInfo, "getinfo")
 	if err != nil {
 		return nil, err
 	}
-	if err == nil {
-		log.Printf("Node info: %v", nodeInfo)
-	}
+
+	log.Printf("Node info: %v", nodeInfo)
 
 	return &gs, nil
 }
 
-func (gs *GreenlightService) recover() error {
-	output, err := gs.execCommand("scheduler", "recover")
-	log.Printf("scheduler recover: %v %v", string(output), err)
-	return err
-}
-
-func (gs *GreenlightService) register(inviteCode string) error {
-	output, err := gs.execCommand("scheduler", "register", "--network=bitcoin", fmt.Sprintf("--invite=%s", inviteCode))
-	log.Printf("scheduler register: %v %v", string(output), err)
-	return err
-}
-
-func (gs *GreenlightService) createCommand(args ...string) *exec.Cmd {
-	cmd := exec.Command("glcli", args...)
-	cmd.Dir = gs.workdir
-	return cmd
-}
-
-func (gs *GreenlightService) execCommand(args ...string) ([]byte, error) {
-	cmd := gs.createCommand(args...)
-
-	var outputBuffer bytes.Buffer
-	var errorBuffer bytes.Buffer
-
-	cmd.Stdout = &outputBuffer
-	cmd.Stderr = &errorBuffer
-	err := cmd.Run()
-
-	if err != nil {
-		errorOutput := errorBuffer.String()
-		log.Printf("Failed to exec command %v: %v %v", args, err, errorOutput)
-		return nil, err
-	}
-	output := outputBuffer.Bytes()
-	return output, err
-}
-
-func (gs *GreenlightService) execJSONCommand(dest any, args ...string) error {
-	output, err := gs.execCommand(args...)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(output, dest)
-	if err != nil {
-		log.Printf("Failed to unmarshal command output %v: %v", string(output), err)
-	}
-	return err
-}
-
 func (gs *GreenlightService) Shutdown() error {
-	if gs.hsmdCmd != nil {
-		if err := gs.hsmdCmd.Process.Kill(); err != nil {
-			log.Printf("Failed to kill hsmd process: %v", err)
-			return err
-		}
-	}
-
 	return nil
-	//return bs.svc.Disconnect()
 }
 
 func (gs *GreenlightService) SendPaymentSync(ctx context.Context, payReq string) (preimage string, err error) {
-	//glcli pay BOLT11_INVOICE_HERE
+	response, err := gs.client.Pay(glalby.PayRequest{
+		Bolt11: payReq,
+	})
 
-	log.Printf("SendPaymentSync %v", payReq)
-	payResponse := models.PayResponse{}
-	err = gs.execJSONCommand(&payResponse, "pay", payReq)
 	if err != nil {
-		log.Printf("SendPaymentSync failed: %v", err)
+		gs.svc.Logger.Errorf("Failed to send payment: %v", err)
 		return "", err
 	}
-	log.Printf("SendPaymentSync succeeded: %v", payResponse.Preimage)
-
-	return payResponse.Preimage, nil
+	log.Printf("SendPaymentSync succeeded: %v", response.Preimage)
+	return response.Preimage, nil
 }
 
 func (gs *GreenlightService) SendKeysend(ctx context.Context, amount int64, destination, preimage string, custom_records []lnclient.TLVRecord) (preImage string, err error) {
-	if len(custom_records) > 0 {
-		log.Printf("FIXME: TLVs not supported with CLI")
+
+	extraTlvs := []glalby.TlvEntry{}
+
+	for _, customRecord := range custom_records {
+		extraTlvs = append(extraTlvs, glalby.TlvEntry{
+			Ty:    customRecord.Type,
+			Value: hex.EncodeToString([]byte(customRecord.Value)),
+		})
 	}
 
-	payResponse := models.PayResponse{}
-	err = gs.execJSONCommand(&payResponse, "keysend", destination, strconv.FormatInt(amount, 10)+"msat")
+	amount_u64 := uint64(amount)
+	// TODO: support passing custom preimage
+	response, err := gs.client.KeySend(glalby.KeySendRequest{
+		Destination: destination,
+		AmountMsat:  &amount_u64,
+		ExtraTlvs:   &extraTlvs,
+	})
+
 	if err != nil {
-		log.Printf("Keysend failed: %v", err)
+		gs.svc.Logger.Errorf("Failed to send keysend payment: %v", err)
 		return "", err
 	}
-	log.Printf("Keysend succeeded: %v", payResponse.Preimage)
 
-	return payResponse.Preimage, nil
+	return response.PaymentPreimage, nil
 }
 
 func (gs *GreenlightService) GetBalance(ctx context.Context) (balance int64, err error) {
-	channels, err := gs.ListChannels(ctx)
+	response, err := gs.client.ListFunds(glalby.ListFundsRequest{})
 
 	if err != nil {
+		gs.svc.Logger.Errorf("Failed to list funds: %v", err)
 		return 0, err
 	}
 
 	balance = 0
-	for _, channel := range channels {
-		balance += channel.LocalBalance
+	for _, channel := range response.Channels {
+		if channel.OurAmountMsat != nil && channel.Connected {
+			balance += int64(*channel.OurAmountMsat)
+		}
 	}
 
 	return balance, nil
 }
 
 func (gs *GreenlightService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *Nip47Transaction, err error) {
-	//glcli invoice example_label3 21000msat
+	uexpiry := uint64(expiry)
+	// TODO: it seems description hash cannot be passed to greenlight
+	invoice, err := gs.client.MakeInvoice(glalby.MakeInvoiceRequest{
+		AmountMsat:  uint64(amount),
+		Description: description,
+		Label:       "label_" + strconv.Itoa(rand.Int()),
+		Expiry:      &uexpiry,
+	})
 
-	invoice := models.Invoice{}
-	err = gs.execJSONCommand(&invoice, "invoice", "label_"+strconv.Itoa(rand.Int()), strconv.FormatInt(amount, 10)+"msat")
 	if err != nil {
-		log.Printf("MakeInvoice failed: %v", err)
+		gs.svc.Logger.Errorf("MakeInvoice failed: %v", err)
 		return nil, err
 	}
 
+	paymentRequest, err := decodepay.Decodepay(strings.ToLower(invoice.Bolt11))
+	if err != nil {
+		gs.svc.Logger.WithFields(logrus.Fields{
+			"invoice": invoice.Bolt11,
+		}).Errorf("Failed to decode bolt11 invoice: %v", invoice.Bolt11)
+		return nil, err
+	}
+
+	description = paymentRequest.Description
+	descriptionHash = paymentRequest.DescriptionHash
+	expiresAt := int64(invoice.ExpiresAt)
 	transaction = &Nip47Transaction{
-		Type:        "incoming",
-		Invoice:     invoice.Bolt11,
-		PaymentHash: invoice.PaymentHash,
-		Amount:      amount,
-		CreatedAt:   time.Now().Unix(),
-		ExpiresAt:   &invoice.ExpiresAt,
+		Type:            "incoming",
+		Invoice:         invoice.Bolt11,
+		Description:     description,
+		DescriptionHash: descriptionHash,
+		PaymentHash:     invoice.PaymentHash,
+		ExpiresAt:       &expiresAt,
+		Amount:          amount,
+		CreatedAt:       int64(paymentRequest.CreatedAt),
 	}
 
 	return transaction, nil
 }
 
 func (gs *GreenlightService) LookupInvoice(ctx context.Context, paymentHash string) (transaction *Nip47Transaction, err error) {
-	log.Println("TODO: LookupInvoice")
-	return nil, errors.New("TODO: LookupInvoice")
+	response, err := gs.client.ListInvoices(glalby.ListInvoicesRequest{
+		PaymentHash: &paymentHash,
+	})
+
+	if err != nil {
+		gs.svc.Logger.Errorf("ListInvoices failed: %v", err)
+		return nil, err
+	}
+
+	if len(response.Invoices) == 0 {
+		return nil, errors.New("invoice not found")
+	}
+	invoice := response.Invoices[0]
+
+	if invoice.Bolt11 == nil {
+		return nil, errors.New("not a Bolt11 invoice")
+	}
+
+	transaction, err = gs.greenlightInvoiceToTransaction(&invoice)
+
+	if err != nil {
+		gs.svc.Logger.Errorf("Failed to map invoice: %v", err)
+		return nil, err
+	}
+
+	return transaction, nil
 }
 
 func (gs *GreenlightService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []Nip47Transaction, err error) {
-	log.Println("TODO: ListTransactions")
+	listInvoicesResponse, err := gs.client.ListInvoices(glalby.ListInvoicesRequest{})
+
+	if err != nil {
+		gs.svc.Logger.Errorf("ListInvoices failed: %v", err)
+		return nil, err
+	}
 
 	transactions = []Nip47Transaction{}
 
-	//glcli listinvoices
-	listInvoicesResponse := models.ListInvoicesResponse{}
-	err = gs.execJSONCommand(&listInvoicesResponse, "listinvoices")
 	if err != nil {
 		log.Printf("ListInvoices failed: %v", err)
 		return nil, err
 	}
 
-	for _, glInvoice := range listInvoicesResponse.Invoices {
-		var createdAt int64
-		description := glInvoice.Description
-		descriptionHash := ""
-
-		if glInvoice.Bolt11 != "" {
-			// TODO: Greenlight should provide these details so we don't need to manually decode the invoice
-			paymentRequest, err := decodepay.Decodepay(strings.ToLower(glInvoice.Bolt11))
-			if err != nil {
-				log.Printf("Failed to decode bolt11 invoice: %v", glInvoice.Bolt11)
-				return nil, err
-			}
-
-			createdAt = int64(paymentRequest.CreatedAt)
-			description = paymentRequest.Description
-			descriptionHash = paymentRequest.DescriptionHash
+	for _, invoice := range listInvoicesResponse.Invoices {
+		if invoice.PaidAt == nil {
+			// skip unpaid invoices
+			continue
 		}
 
-		var fee int64 = 0
-		if glInvoice.AmountReceivedMsat != nil {
-			fee = glInvoice.AmountMsat.Msat - glInvoice.AmountReceivedMsat.Msat
+		transaction, err := gs.greenlightInvoiceToTransaction(&invoice)
+		if err != nil {
+			continue
 		}
 
-		transactions = append(transactions, lnclient.Transaction{
-			Type:            "incoming",
-			Invoice:         glInvoice.Bolt11,
-			Description:     description,
-			DescriptionHash: descriptionHash,
-			Preimage:        glInvoice.Preimage,
-			PaymentHash:     glInvoice.PaymentHash,
-			ExpiresAt:       &glInvoice.ExpiresAt,
-			Amount:          glInvoice.AmountMsat.Msat,
-			FeesPaid:        fee,
-			CreatedAt:       createdAt,
-			SettledAt:       glInvoice.PaidAt,
-		})
+		transactions = append(transactions, *transaction)
 	}
 
-	//glcli listpays
-	listPaymentsResponse := models.ListPaymentsResponse{}
-	err = gs.execJSONCommand(&listPaymentsResponse, "listpays")
+	listPaymentsResponse, err := gs.client.ListPayments(glalby.ListPaymentsRequest{})
+
 	if err != nil {
-		log.Printf("ListPayments failed: %v", err)
+		gs.svc.Logger.Errorf("ListPayments failed: %v", err)
 		return nil, err
 	}
 
-	for _, glPayment := range listPaymentsResponse.Payments {
+	for _, payment := range listPaymentsResponse.Payments {
 		description := ""
 		descriptionHash := ""
+		bolt11 := ""
 		var expiresAt *int64
-		if glPayment.Bolt11 != "" {
+		if payment.Bolt11 != nil {
 			// TODO: Greenlight should provide these details so we don't need to manually decode the invoice
-			paymentRequest, err := decodepay.Decodepay(strings.ToLower(glPayment.Bolt11))
+			bolt11 := *payment.Bolt11
+			paymentRequest, err := decodepay.Decodepay(strings.ToLower(bolt11))
 			if err != nil {
-				log.Printf("Failed to decode bolt11 invoice: %v", glPayment.Bolt11)
+				log.Printf("Failed to decode bolt11 invoice: %v", bolt11)
 				return nil, err
 			}
 
@@ -300,18 +291,36 @@ func (gs *GreenlightService) ListTransactions(ctx context.Context, from, until, 
 			expiresAt = &expiresAtUnix
 		}
 
+		preimage := ""
+		if payment.Preimage != nil {
+			preimage = *payment.Preimage
+		}
+		var amount int64 = 0
+		var fee int64 = 0
+		if payment.AmountSentMsat != nil {
+			amount = int64(*payment.AmountSentMsat)
+			if payment.AmountMsat != nil {
+				fee = amount - int64(*payment.AmountMsat)
+			}
+		}
+		var settledAt *int64
+		if payment.CompletedAt != nil {
+			completedAt := int64(*payment.CompletedAt)
+			settledAt = &completedAt
+		}
+
 		transactions = append(transactions, lnclient.Transaction{
 			Type:            "outgoing",
-			Invoice:         glPayment.Bolt11,
+			Invoice:         bolt11,
 			Description:     description,
 			DescriptionHash: descriptionHash,
-			Preimage:        glPayment.Preimage,
-			PaymentHash:     glPayment.PaymentHash,
+			Preimage:        preimage,
+			PaymentHash:     payment.PaymentHash,
 			ExpiresAt:       expiresAt,
-			Amount:          glPayment.AmountMsat.Msat,
-			FeesPaid:        glPayment.AmountSentMsat.Msat - glPayment.AmountMsat.Msat,
-			CreatedAt:       glPayment.CreatedAt,
-			SettledAt:       &glPayment.CompletedAt,
+			Amount:          amount,
+			FeesPaid:        fee,
+			CreatedAt:       int64(payment.CreatedAt),
+			SettledAt:       settledAt,
 		})
 	}
 
@@ -324,17 +333,17 @@ func (gs *GreenlightService) ListTransactions(ctx context.Context, from, until, 
 }
 
 func (gs *GreenlightService) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, err error) {
-	// glcli getinfo
-	nodeInfo := models.NodeInfo{}
-	err = gs.execJSONCommand(&nodeInfo, "getinfo")
+	nodeInfo, err := gs.client.GetInfo()
+
 	if err != nil {
+		gs.svc.Logger.Errorf("GetInfo failed: %v", err)
 		return nil, err
 	}
 
 	return &lnclient.NodeInfo{
 		Alias:       nodeInfo.Alias,
-		Color:       "#" + nodeInfo.Color,
-		Pubkey:      nodeInfo.ID,
+		Color:       nodeInfo.Color,
+		Pubkey:      nodeInfo.Pubkey,
 		Network:     nodeInfo.Network,
 		BlockHeight: nodeInfo.BlockHeight,
 		BlockHash:   "",
@@ -342,24 +351,34 @@ func (gs *GreenlightService) GetInfo(ctx context.Context) (info *lnclient.NodeIn
 }
 
 func (gs *GreenlightService) ListChannels(ctx context.Context) ([]lnclient.Channel, error) {
-	//glcli listfunds
+	response, err := gs.client.ListFunds(glalby.ListFundsRequest{})
 
-	listFundsResponse := models.ListFundsResponse{}
-	err := gs.execJSONCommand(&listFundsResponse, "listfunds")
 	if err != nil {
-		log.Printf("ListChannels failed: %v", err)
+		gs.svc.Logger.Errorf("Failed to list funds: %v", err)
 		return nil, err
 	}
 
-	glChannels := listFundsResponse.Channels
 	channels := []lnclient.Channel{}
 
-	for _, glChannel := range glChannels {
+	for _, glChannel := range response.Channels {
+		if glChannel.ChannelId == nil {
+			continue
+		}
+
+		var localAmount uint64
+		if glChannel.OurAmountMsat != nil {
+			localAmount = *glChannel.OurAmountMsat
+		}
+		var totalAmount uint64
+		if glChannel.AmountMsat != nil {
+			totalAmount = *glChannel.AmountMsat
+		}
+
 		channels = append(channels, lnclient.Channel{
-			LocalBalance:  glChannel.OurAmountMsat.Msat,
-			RemoteBalance: glChannel.AmountMsat.Msat - glChannel.OurAmountMsat.Msat,
+			LocalBalance:  int64(localAmount),
+			RemoteBalance: int64(totalAmount - localAmount),
 			RemotePubkey:  glChannel.PeerId,
-			Id:            glChannel.Id,
+			Id:            *glChannel.ChannelId,
 			Active:        glChannel.State == 2,
 		})
 	}
@@ -368,76 +387,139 @@ func (gs *GreenlightService) ListChannels(ctx context.Context) ([]lnclient.Chann
 }
 
 func (gs *GreenlightService) GetNodeConnectionInfo(ctx context.Context) (nodeConnectionInfo *lnclient.NodeConnectionInfo, err error) {
-	// glcli scheduler schedule
-	scheduleResponse := models.ScheduleResponse{}
-	err = gs.execJSONCommand(&scheduleResponse, "scheduler", "schedule")
+	info, err := gs.GetInfo(ctx)
 	if err != nil {
-		log.Printf("GetNodeConnectionInfo failed: %v", err)
+		gs.svc.Logger.Errorf("GetInfo failed: %v", err)
 		return nil, err
 	}
-
 	return &lnclient.NodeConnectionInfo{
-		Pubkey:  scheduleResponse.NodeId,
-		Address: strings.ReplaceAll(scheduleResponse.GrpcUri, "https://", ""),
-		Port:    9735, // TODO: why doesn't greenlight return this?
+		Pubkey: info.Pubkey,
 	}, nil
 }
 
 func (gs *GreenlightService) ConnectPeer(ctx context.Context, connectPeerRequest *lnclient.ConnectPeerRequest) error {
-	// glcli connect pubkey host port
-	connectPeerResponse := models.ConnectPeerResponse{}
-	err := gs.execJSONCommand(&connectPeerResponse, "connect", connectPeerRequest.Pubkey, connectPeerRequest.Address, strconv.Itoa(connectPeerRequest.Port))
+	var host *string
+	if connectPeerRequest.Address != "" {
+		host = &connectPeerRequest.Address
+	}
+	var port *uint16
+	if connectPeerRequest.Port > 0 {
+		port = &connectPeerRequest.Port
+	}
+	_, err := gs.client.ConnectPeer(glalby.ConnectPeerRequest{
+		Id:   connectPeerRequest.Pubkey,
+		Host: host,
+		Port: port,
+	})
 	if err != nil {
-		log.Printf("ConnectPeer failed: %v", err)
+		gs.svc.Logger.Errorf("ConnectPeer failed: %v", err)
 		return err
 	}
-
 	return nil
 }
 
 func (gs *GreenlightService) OpenChannel(ctx context.Context, openChannelRequest *lnclient.OpenChannelRequest) (*lnclient.OpenChannelResponse, error) {
 
-	// glcli fundchannel nodeid amount
-
-	openChannelResponse := models.OpenChannelResponse{}
-	err := gs.execJSONCommand(&openChannelResponse, "fundchannel", openChannelRequest.Pubkey, strconv.FormatInt(openChannelRequest.Amount*1000, 10)+"msat")
+	amountMsat := uint64(openChannelRequest.Amount) * 1000
+	// minConf := uint32(0) //
+	response, err := gs.client.FundChannel(glalby.FundChannelRequest{
+		Id:         openChannelRequest.Pubkey,
+		AmountMsat: &amountMsat,
+		Announce:   &openChannelRequest.Public,
+		// Minconf:    &minConf,
+	})
 	if err != nil {
-		log.Printf("OpenChannel failed: %v", err)
+		gs.svc.Logger.Errorf("OpenChannel failed: %v", err)
 		return nil, err
 	}
 
 	return &lnclient.OpenChannelResponse{
-		FundingTxId: openChannelResponse.TxId,
+		FundingTxId: response.Txid,
 	}, nil
 }
 
 func (gs *GreenlightService) GetNewOnchainAddress(ctx context.Context) (string, error) {
-	// glcli newaddr
 
-	newAddressResponse := models.NewAddressResponse{}
-	err := gs.execJSONCommand(&newAddressResponse, "newaddr")
+	newAddressResponse, err := gs.client.NewAddress(glalby.NewAddressRequest{})
 	if err != nil {
-		log.Printf("GetNewOnchainAddress failed: %v", err)
+		gs.svc.Logger.Errorf("NewAddress failed: %v", err)
 		return "", err
 	}
+	if newAddressResponse.Bech32 == nil {
+		return "", errors.New("no Bech32 in new address response")
+	}
 
-	return newAddressResponse.Bech32, nil
+	return *newAddressResponse.Bech32, nil
 }
 
 func (gs *GreenlightService) GetOnchainBalance(ctx context.Context) (int64, error) {
-	//glcli listfunds
+	response, err := gs.client.ListFunds(glalby.ListFundsRequest{})
 
-	listFundsResponse := models.ListFundsResponse{}
-	err := gs.execJSONCommand(&listFundsResponse, "listfunds")
 	if err != nil {
-		log.Printf("GetOnchainBalance failed: %v", err)
+		gs.svc.Logger.Errorf("Failed to list funds: %v", err)
 		return 0, err
 	}
 
 	var balance int64 = 0
-	for _, output := range listFundsResponse.Outputs {
-		balance += output.AmountMsat.Msat
+	for _, output := range response.Outputs {
+		if output.AmountMsat != nil {
+			balance += int64(*output.AmountMsat)
+		}
 	}
 
 	return balance / 1000, nil
+}
+
+func (gs *GreenlightService) greenlightInvoiceToTransaction(invoice *glalby.ListInvoicesInvoice) (*Nip47Transaction, error) {
+	description := ""
+	descriptionHash := ""
+	if invoice.Description != nil {
+		description = *invoice.Description
+	}
+	bolt11 := *invoice.Bolt11
+	paymentRequest, err := decodepay.Decodepay(strings.ToLower(bolt11))
+	if err != nil {
+		gs.svc.Logger.WithFields(logrus.Fields{
+			"invoice": bolt11,
+		}).Errorf("Failed to decode bolt11 invoice: %v", bolt11)
+		return nil, err
+	}
+	if description == "" {
+		description = paymentRequest.Description
+	}
+	descriptionHash = paymentRequest.DescriptionHash
+
+	expiresAt := int64(invoice.ExpiresAt)
+
+	var amount int64 = 0
+	var fee int64 = 0
+	if invoice.AmountReceivedMsat != nil {
+		amount = int64(*invoice.AmountReceivedMsat)
+		if invoice.AmountMsat != nil {
+			fee = int64(*invoice.AmountMsat) - amount
+		}
+	}
+
+	preimage := ""
+	var settledAt *int64
+	if invoice.PaidAt != nil {
+		preimage = *invoice.PaymentPreimage
+		paidAt := int64(*invoice.PaidAt)
+		settledAt = &paidAt
+	}
+
+	transaction := &Nip47Transaction{
+		Type:            "incoming",
+		Invoice:         bolt11,
+		Description:     description,
+		DescriptionHash: descriptionHash,
+		PaymentHash:     invoice.PaymentHash,
+		ExpiresAt:       &expiresAt,
+		Amount:          amount,
+		FeesPaid:        fee,
+		CreatedAt:       int64(paymentRequest.CreatedAt),
+		Preimage:        preimage,
+		SettledAt:       settledAt,
+	}
+	return transaction, nil
 }

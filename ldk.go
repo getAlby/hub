@@ -221,9 +221,6 @@ func (gs *LDKService) GetBalance(ctx context.Context) (balance int64, err error)
 }
 
 func (gs *LDKService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *Nip47Transaction, err error) {
-	if expiry == 0 {
-		expiry = 86400
-	}
 	invoice, err := gs.node.ReceivePayment(uint64(amount),
 		description,
 		uint32(expiry))
@@ -346,7 +343,7 @@ func (gs *LDKService) GetNodeConnectionInfo(ctx context.Context) (nodeConnection
 }
 
 func (gs *LDKService) ConnectPeer(ctx context.Context, connectPeerRequest *lnclient.ConnectPeerRequest) error {
-	err := gs.node.Connect(connectPeerRequest.Pubkey, connectPeerRequest.Address+":"+strconv.Itoa(connectPeerRequest.Port), true)
+	err := gs.node.Connect(connectPeerRequest.Pubkey, connectPeerRequest.Address+":"+strconv.Itoa(int(connectPeerRequest.Port)), true)
 	if err != nil {
 		gs.svc.Logger.Errorf("ConnectPeer failed: %v", err)
 		return err
