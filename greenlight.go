@@ -60,14 +60,14 @@ func NewGreenlightService(svc *Service, mnemonic, inviteCode, workDir string) (r
 		credentials = &recoveredCredentials
 
 		if err != nil {
-			log.Printf("Failed to recover node: %v", err)
+			svc.Logger.Errorf("Failed to recover node: %v", err)
+			svc.Logger.Infof("Trying to register instead...")
+			recoveredCredentials, err := glalby.Register(mnemonic, inviteCode)
+			credentials = &recoveredCredentials
 
-			log.Print("Trying to register instead...")
-			log.Fatalf("TODO")
-			/*err = gs.register(inviteCode)
 			if err != nil {
-				log.Fatalf("Failed to register new node")
-			}*/
+				svc.Logger.Fatalf("Failed to register new node")
+			}
 		}
 
 		if credentials == nil || credentials.DeviceCert == "" || credentials.DeviceKey == "" {
