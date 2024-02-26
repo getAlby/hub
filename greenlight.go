@@ -26,7 +26,6 @@ type GreenlightService struct {
 	workdir string
 	client  *glalby.BlockingGreenlightAlbyClient
 	svc     *Service
-	// hsmdCmd *exec.Cmd
 }
 
 func NewGreenlightService(svc *Service, mnemonic, inviteCode, workDir string) (result lnclient.LNClient, err error) {
@@ -94,14 +93,6 @@ func NewGreenlightService(svc *Service, mnemonic, inviteCode, workDir string) (r
 		svc:     svc,
 	}
 
-	//gs.hsmdCmd = gs.createCommand("hsmd")
-
-	// if err := gs.hsmdCmd.Start(); err != nil {
-	// 	log.Fatalf("Failed to start hsmd: %v", err)
-	// }
-
-	/*nodeInfo := models.NodeInfo{}
-	err = gs.execJSONCommand(&nodeInfo, "getinfo")*/
 	nodeInfo, err := client.GetInfo()
 
 	if err != nil {
@@ -260,6 +251,11 @@ func (gs *GreenlightService) ListTransactions(ctx context.Context, from, until, 
 	}
 
 	for _, invoice := range listInvoicesResponse.Invoices {
+		if invoice.PaidAt == nil {
+			// skip unpaid invoices
+			continue
+		}
+
 		transaction, err := gs.greenlightInvoiceToTransaction(&invoice)
 		if err != nil {
 			continue
