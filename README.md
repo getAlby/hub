@@ -3,7 +3,7 @@
 This is a self-sovereign, self-custodial, single-user rewrite of NWC currently in an experimental phase development. **❗This version is not backwards compatible with NWC - it requires a fresh database and connections to be re-added**
 
 This application allows you to control your Lightning node or wallet over Nostr.
-Connect applications like [Damus](https://damus.io/) or [Amethyst](https://linktr.ee/amethyst.social) to your node.
+Connect applications like [Damus](https://damus.io/) or [Amethyst](https://linktr.ee/amethyst.social) to your node. There are many more apps available on https://nwc.dev/.
 
 **Specification**: [NIP-47](https://github.com/nostr-protocol/nips/blob/master/47.md)
 
