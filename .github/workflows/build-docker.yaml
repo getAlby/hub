@@ -1,4 +1,4 @@
-name: Multiplatform Docker build & push
+name: Linux-amd64 Docker build & push
 on:
   push:
   release:
