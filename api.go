@@ -297,7 +297,7 @@ func (api *API) GetMempoolLightningNode(pubkey string) (interface{}, error) {
 	jsonContent := map[string]interface{}{}
 	jsonErr := json.Unmarshal(body, &jsonContent)
 	if jsonErr != nil {
-		api.svc.Logger.Errorf("Failed to deserialize json", err)
+		api.svc.Logger.Errorf("Failed to deserialize json %s %v", url, err)
 		return nil, fmt.Errorf("failed to deserialize json %s %s", url, string(body))
 	}
 	return jsonContent, nil
