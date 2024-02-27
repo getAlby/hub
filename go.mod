@@ -4,8 +4,6 @@ go 1.21
 
 toolchain go1.21.1
 
-//replace github.com/getAlby/glalby => /home/fmar/workspace/glalby
-
 require (
 	github.com/breez/breez-sdk-go v0.2.14
 	github.com/davrux/echo-logrus/v4 v4.0.3
