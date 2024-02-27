@@ -393,6 +393,10 @@ func (gs *LDKService) OpenChannel(ctx context.Context, openChannelRequest *lncli
 	return nil, errors.New("open channel timeout")
 }
 
+func (gs *LDKService) CloseChannel(ctx context.Context, closeChannelRequest *lnclient.CloseChannelRequest) (*lnclient.CloseChannelResponse, error) {
+	return nil, nil
+}
+
 func (gs *LDKService) GetNewOnchainAddress(ctx context.Context) (string, error) {
 	address, err := gs.node.NewOnchainAddress()
 	if err != nil {

@@ -52,6 +52,7 @@ type LNClient interface {
 	GetNodeConnectionInfo(ctx context.Context) (nodeConnectionInfo *NodeConnectionInfo, err error)
 	ConnectPeer(ctx context.Context, connectPeerRequest *ConnectPeerRequest) error
 	OpenChannel(ctx context.Context, openChannelRequest *OpenChannelRequest) (*OpenChannelResponse, error)
+	CloseChannel(ctx context.Context, closeChannelRequest *CloseChannelRequest) (*CloseChannelResponse, error)
 	GetNewOnchainAddress(ctx context.Context) (string, error)
 	GetOnchainBalance(ctx context.Context) (int64, error)
 }
@@ -78,4 +79,11 @@ type OpenChannelRequest struct {
 
 type OpenChannelResponse struct {
 	FundingTxId string `json:"fundingTxId"`
+}
+
+type CloseChannelRequest struct {
+	Id string `json:"pubkey"`
+}
+
+type CloseChannelResponse struct {
 }

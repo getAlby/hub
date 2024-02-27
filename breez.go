@@ -262,6 +262,10 @@ func (bs *BreezService) OpenChannel(ctx context.Context, openChannelRequest *lnc
 	return nil, nil
 }
 
+func (bs *BreezService) CloseChannel(ctx context.Context, closeChannelRequest *lnclient.CloseChannelRequest) (*lnclient.CloseChannelResponse, error) {
+	return nil, nil
+}
+
 func breezPaymentToTransaction(payment *breez_sdk.Payment) (*Nip47Transaction, error) {
 	var lnDetails breez_sdk.PaymentDetailsLn
 	if payment.Details != nil {
