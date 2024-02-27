@@ -4,6 +4,7 @@ import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
 import { useOnchainBalance } from "src/hooks/useOnchainBalance";
 import { Node } from "src/types";
+import { request } from "src/utils/request";
 
 export default function Channels() {
   const { data: channels } = useChannels();
@@ -25,12 +26,13 @@ export default function Channels() {
     }
     const nodes = await Promise.all(
       channels?.map(async (channel): Promise<Node | undefined> => {
-        const response = await fetch(
-          `https://mempool.space/api/v1/lightning/nodes/${channel.remotePubkey}`
-        );
-        if (response.ok) {
-          return response.json();
-        } else {
+        try {
+          const response = await request<Node>(
+            `/api/mempool/lightning/nodes/${channel.remotePubkey}`
+          );
+          return response;
+        } catch (error) {
+          console.error(error);
           return undefined;
         }
       })

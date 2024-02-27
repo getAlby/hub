@@ -46,6 +46,22 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		}
 	}
 
+	mempoolLightningNodePubkeyRegex := regexp.MustCompile(
+		`/api/mempool/lightning/nodes/([0-9a-f]+)`,
+	)
+	mempoolLightningNodePubkeyMatch := mempoolLightningNodePubkeyRegex.FindStringSubmatch(route)
+
+	switch {
+	case len(mempoolLightningNodePubkeyMatch) > 1:
+		pubkey := mempoolLightningNodePubkeyMatch[1]
+		node, err := app.api.GetMempoolLightningNode(pubkey)
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+
+		return WailsRequestRouterResponse{Body: node, Error: ""}
+	}
+
 	switch route {
 	case "/api/apps":
 		switch method {

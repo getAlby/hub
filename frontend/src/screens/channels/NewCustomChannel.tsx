@@ -24,11 +24,15 @@ export default function NewCustomChannel() {
     if (!pubkey) {
       return;
     }
-    const response = await fetch(
-      `https://mempool.space/api/v1/lightning/nodes/${pubkey}`
-    );
-    const data = await response.json();
-    setNodeDetails(data);
+    try {
+      const data = await request<Node>(
+        `/api/mempool/lightning/nodes/${pubkey}`
+      );
+      setNodeDetails(data);
+    } catch (error) {
+      console.error(error);
+      setNodeDetails(undefined);
+    }
   }, [pubkey]);
 
   React.useEffect(() => {
