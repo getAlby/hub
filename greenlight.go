@@ -469,6 +469,9 @@ func (gs *GreenlightService) GetOnchainBalance(ctx context.Context) (int64, erro
 
 	return balance / 1000, nil
 }
+func (gs *GreenlightService) RedeemOnchainFunds(ctx context.Context, toAddress string) (txId string, err error) {
+	return "", nil
+}
 
 func (gs *GreenlightService) greenlightInvoiceToTransaction(invoice *glalby.ListInvoicesInvoice) (*Nip47Transaction, error) {
 	description := ""

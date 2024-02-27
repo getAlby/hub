@@ -251,6 +251,19 @@ func (api *API) GetNewOnchainAddress() (*models.NewOnchainAddressResponse, error
 	}, nil
 }
 
+func (api *API) RedeemOnchainFunds(toAddress string) (*models.RedeemOnchainFundsResponse, error) {
+	if api.svc.lnClient == nil {
+		return nil, errors.New("LNClient not started")
+	}
+	txId, err := api.svc.lnClient.RedeemOnchainFunds(api.svc.ctx, toAddress)
+	if err != nil {
+		return nil, err
+	}
+	return &models.RedeemOnchainFundsResponse{
+		TxId: txId,
+	}, nil
+}
+
 func (api *API) GetOnchainBalance() (*models.OnchainBalanceResponse, error) {
 	if api.svc.lnClient == nil {
 		return nil, errors.New("LNClient not started")

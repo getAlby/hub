@@ -54,6 +54,7 @@ type LNClient interface {
 	OpenChannel(ctx context.Context, openChannelRequest *OpenChannelRequest) (*OpenChannelResponse, error)
 	GetNewOnchainAddress(ctx context.Context) (string, error)
 	GetOnchainBalance(ctx context.Context) (int64, error)
+	RedeemOnchainFunds(ctx context.Context, toAddress string) (txId string, err error)
 }
 
 type Channel struct {

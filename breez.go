@@ -13,11 +13,13 @@ import (
 	"github.com/breez/breez-sdk-go/breez_sdk"
 	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
+	"github.com/sirupsen/logrus"
 )
 
 type BreezService struct {
 	listener *BreezListener
 	svc      *breez_sdk.BlockingBreezServices
+	logger   *logrus.Logger
 }
 type BreezListener struct{}
 
@@ -31,7 +33,7 @@ func (BreezListener) OnEvent(e breez_sdk.BreezEvent) {
 	log.Printf("received event %#v", e)
 }
 
-func NewBreezService(mnemonic, apiKey, inviteCode, workDir string) (result lnclient.LNClient, err error) {
+func NewBreezService(logger *logrus.Logger, mnemonic, apiKey, inviteCode, workDir string) (result lnclient.LNClient, err error) {
 	if mnemonic == "" || apiKey == "" || inviteCode == "" || workDir == "" {
 		return nil, errors.New("one or more required breez configuration are missing")
 	}
@@ -79,6 +81,7 @@ func NewBreezService(mnemonic, apiKey, inviteCode, workDir string) (result lncli
 	return &BreezService{
 		listener: &listener,
 		svc:      svc,
+		logger:   logger,
 	}, nil
 }
 
@@ -320,9 +323,60 @@ func breezPaymentToTransaction(payment *breez_sdk.Payment) (*Nip47Transaction, e
 }
 
 func (bs *BreezService) GetNewOnchainAddress(ctx context.Context) (string, error) {
+	// The below code works but is not needed and there's no Breez UI to support it.
+	// Plus, it creates complexity with the deposit limits.
+	/*swapInfo, err := bs.svc.ReceiveOnchain(breez_sdk.ReceiveOnchainRequest{})
+
+	if err != nil {
+		bs.logger.Errorf("Failed to get onchain address: %v", err)
+		return "", err
+	}
+	bs.logger.Infof("This address has deposit limits! Min: %d Max: %d", swapInfo.MinAllowedDeposit, swapInfo.MaxAllowedDeposit)
+
+	return swapInfo.BitcoinAddress, nil*/
 	return "", nil
 }
 
 func (bs *BreezService) GetOnchainBalance(ctx context.Context) (int64, error) {
-	return 0, nil
+	response, err := bs.svc.NodeInfo()
+
+	if err != nil {
+		bs.logger.Errorf("Failed to get node info: %v", err)
+		return 0, err
+	}
+
+	return int64(response.OnchainBalanceMsat) / 1000, nil
+}
+
+func (bs *BreezService) RedeemOnchainFunds(ctx context.Context, toAddress string) (txId string, err error) {
+	if toAddress == "" {
+		return "", errors.New("No address provided")
+	}
+
+	recommendedFees, err := bs.svc.RecommendedFees()
+	if err != nil {
+		bs.logger.Errorf("Failed to get recommended fees info: %v", err)
+		return "", err
+	}
+
+	satPerVbyte := uint32(recommendedFees.FastestFee)
+	prepareReq := breez_sdk.PrepareRedeemOnchainFundsRequest{SatPerVbyte: satPerVbyte, ToAddress: toAddress}
+	prepareRedeemOnchainFundsResponse, err := bs.svc.PrepareRedeemOnchainFunds(prepareReq)
+
+	if err != nil {
+		bs.logger.Errorf("Failed to prepare onchain address: %v", err)
+		return "", err
+	}
+	bs.logger.Infof("PrepareRedeemOnchainFunds response: %#v", prepareRedeemOnchainFundsResponse)
+
+	redeemReq := breez_sdk.RedeemOnchainFundsRequest{SatPerVbyte: satPerVbyte, ToAddress: toAddress}
+	redeemOnchainFundsResponse, err := bs.svc.RedeemOnchainFunds(redeemReq)
+
+	if err != nil {
+		bs.logger.Errorf("Failed to redeem onchain funds: %v", err)
+		return "", err
+	}
+
+	bs.logger.Infof("RedeemOnchainFunds response: %#v", redeemOnchainFundsResponse)
+	return string(redeemOnchainFundsResponse.Txid), nil
 }

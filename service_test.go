@@ -1282,3 +1282,6 @@ func (mln *MockLn) GetNewOnchainAddress(ctx context.Context) (string, error) {
 func (mln *MockLn) GetOnchainBalance(ctx context.Context) (int64, error) {
 	return 0, nil
 }
+func (mln *MockLn) RedeemOnchainFunds(ctx context.Context, toAddress string) (txId string, err error) {
+	return "", nil
+}

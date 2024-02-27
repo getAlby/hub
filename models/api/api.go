@@ -86,6 +86,14 @@ type ConnectPeerRequest = lnclient.ConnectPeerRequest
 type OpenChannelRequest = lnclient.OpenChannelRequest
 type OpenChannelResponse = lnclient.OpenChannelResponse
 
+type RedeemOnchainFundsRequest struct {
+	ToAddress string `json:"toAddress"`
+}
+
+type RedeemOnchainFundsResponse struct {
+	TxId string `json:"txId"`
+}
+
 type NewOnchainAddressResponse struct {
 	Address string `json:"address"`
 }
