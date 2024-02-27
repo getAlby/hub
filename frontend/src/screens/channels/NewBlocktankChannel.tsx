@@ -21,7 +21,7 @@ export default function NewBlocktankChannel() {
         address: "130.211.95.29",
         port: 9735,
       };
-      await request("/api/peer", {
+      await request("/api/peers", {
         method: "POST",
         headers: {
           "X-CSRF-Token": csrf,

@@ -2,8 +2,11 @@ package main
 
 import (
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"net/http"
 	"net/url"
 	"strings"
 	"time"
@@ -262,6 +265,42 @@ func (api *API) GetOnchainBalance() (*models.OnchainBalanceResponse, error) {
 	return &models.OnchainBalanceResponse{
 		Sats: balance,
 	}, nil
+}
+
+func (api *API) GetMempoolLightningNode(pubkey string) (interface{}, error) {
+	url := "https://mempool.space/api/v1/lightning/nodes/" + pubkey
+
+	spaceClient := http.Client{
+		Timeout: time.Second * 10,
+	}
+
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		api.svc.Logger.Errorf("Failed to create http request %s %v", url, err)
+		return nil, err
+	}
+
+	res, err := spaceClient.Do(req)
+	if err != nil {
+		api.svc.Logger.Errorf("Failed to request %s %v", url, err)
+		return nil, err
+	}
+
+	defer res.Body.Close()
+
+	body, readErr := io.ReadAll(res.Body)
+	if readErr != nil {
+		api.svc.Logger.Errorf("Failed to read response body %s %v", url, err)
+		return nil, errors.New("failed to read response body")
+	}
+
+	jsonContent := map[string]interface{}{}
+	jsonErr := json.Unmarshal(body, &jsonContent)
+	if jsonErr != nil {
+		api.svc.Logger.Errorf("Failed to deserialize json %s %v", url, err)
+		return nil, fmt.Errorf("failed to deserialize json %s %s", url, string(body))
+	}
+	return jsonContent, nil
 }
 
 func (api *API) GetInfo() *models.InfoResponse {

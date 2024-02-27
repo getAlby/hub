@@ -66,9 +66,11 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.GET("/api/channels", httpSvc.channelsListHandler, authMiddleware)
 	e.POST("/api/channels", httpSvc.openChannelHandler, authMiddleware)
 	e.GET("/api/node/connection-info", httpSvc.nodeConnectionInfoHandler, authMiddleware)
-	e.POST("/api/peer", httpSvc.connectPeerHandler, authMiddleware)
+	e.POST("/api/peers", httpSvc.connectPeerHandler, authMiddleware)
 	e.POST("/api/wallet/new-address", httpSvc.newOnchainAddressHandler, authMiddleware)
 	e.GET("/api/wallet/balance", httpSvc.onchainBalanceHandler, authMiddleware)
+
+	e.GET("/api/mempool/lightning/nodes/:pubkey", httpSvc.mempoolLightningNodeHandler, authMiddleware)
 
 	frontend.RegisterHandlers(e)
 }
@@ -213,6 +215,24 @@ func (httpSvc *HttpService) onchainBalanceHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, onchainBalanceResponse)
+}
+
+func (httpSvc *HttpService) mempoolLightningNodeHandler(c echo.Context) error {
+	pubkey := c.Param("pubkey")
+	if pubkey == "" {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: "Invalid pubkey parameter",
+		})
+	}
+
+	response, err := httpSvc.api.GetMempoolLightningNode(pubkey)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to request mempool API: %s", err.Error()),
+		})
+	}
+
+	return c.JSON(http.StatusOK, response)
 }
 
 func (httpSvc *HttpService) connectPeerHandler(c echo.Context) error {
