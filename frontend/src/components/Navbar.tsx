@@ -25,14 +25,17 @@ function Navbar() {
             </Link>
             <div className="flex justify-center items-center relative h-8">
               <div className="flex space-x-4">
-                <Link
-                  className={`${linkStyles} ${
-                    location.pathname.startsWith("/apps") && selectedLinkStyles
-                  }`}
-                  to="/apps"
-                >
-                  Apps
-                </Link>
+                {info?.running && info.unlocked && (
+                  <Link
+                    className={`${linkStyles} ${
+                      location.pathname.startsWith("/apps") &&
+                      selectedLinkStyles
+                    }`}
+                    to="/apps"
+                  >
+                    Apps
+                  </Link>
+                )}
                 {info?.running &&
                   (info.backendType === "GREENLIGHT" ||
                     info.backendType === "LDK") && (
@@ -46,6 +49,17 @@ function Navbar() {
                       Channels
                     </Link>
                   )}
+                {info?.setupCompleted && !info.unlocked && !info.running && (
+                  <Link
+                    className={`${linkStyles} ${
+                      location.pathname.startsWith("/start") &&
+                      selectedLinkStyles
+                    }`}
+                    to="/start"
+                  >
+                    Unlock
+                  </Link>
+                )}
                 {!info?.running && (
                   <Link
                     className={`${linkStyles} ${
