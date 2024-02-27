@@ -73,15 +73,69 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: createAppResponse, Error: ""}
 		}
 	case "/api/channels":
-		channels, err := app.api.ListChannels()
+		switch method {
+		case "GET":
+			channels, err := app.api.ListChannels()
+			if err != nil {
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
+			res := WailsRequestRouterResponse{Body: channels, Error: ""}
+			return res
+		case "POST":
+			openChannelRequest := &api.OpenChannelRequest{}
+			err := json.Unmarshal([]byte(body), openChannelRequest)
+			if err != nil {
+				app.svc.Logger.WithFields(logrus.Fields{
+					"route":  route,
+					"method": method,
+					"body":   body,
+				}).Errorf("Failed to decode request to wails router: %v", err)
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
+			openChannelResponse, err := app.api.OpenChannel(openChannelRequest)
+			if err != nil {
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
+			return WailsRequestRouterResponse{Body: openChannelResponse, Error: ""}
+		}
+	case "/api/wallet/balance":
+		balanceResponse, err := app.api.GetOnchainBalance()
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
-		res := WailsRequestRouterResponse{Body: channels, Error: ""}
+		res := WailsRequestRouterResponse{Body: *balanceResponse, Error: ""}
 		return res
-
+	case "/api/wallet/new-address":
+		newAddressResponse, err := app.api.GetNewOnchainAddress()
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: *newAddressResponse, Error: ""}
+	case "/api/peers":
+		connectPeerRequest := &api.ConnectPeerRequest{}
+		err := json.Unmarshal([]byte(body), connectPeerRequest)
+		if err != nil {
+			app.svc.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).Errorf("Failed to decode request to wails router: %v", err)
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		err = app.api.ConnectPeer(connectPeerRequest)
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: nil, Error: ""}
+	case "/api/node/connection-info":
+		nodeConnectionInfo, err := app.api.GetNodeConnectionInfo()
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: *nodeConnectionInfo, Error: ""}
 	case "/api/info":
 		infoResponse := app.api.GetInfo()
+		infoResponse.Unlocked = infoResponse.Running
 		res := WailsRequestRouterResponse{Body: *infoResponse, Error: ""}
 		return res
 	case "/api/start":

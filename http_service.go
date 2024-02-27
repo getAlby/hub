@@ -66,7 +66,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.GET("/api/channels", httpSvc.channelsListHandler, authMiddleware)
 	e.POST("/api/channels", httpSvc.openChannelHandler, authMiddleware)
 	e.GET("/api/node/connection-info", httpSvc.nodeConnectionInfoHandler, authMiddleware)
-	e.POST("/api/peer", httpSvc.connectPeerHandler, authMiddleware)
+	e.POST("/api/peers", httpSvc.connectPeerHandler, authMiddleware)
 	e.POST("/api/wallet/new-address", httpSvc.newOnchainAddressHandler, authMiddleware)
 	e.GET("/api/wallet/balance", httpSvc.onchainBalanceHandler, authMiddleware)
 

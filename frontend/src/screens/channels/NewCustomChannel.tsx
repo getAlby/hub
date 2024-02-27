@@ -53,7 +53,7 @@ export default function NewCustomChannel() {
       address,
       port: +port,
     };
-    await request("/api/peer", {
+    await request("/api/peers", {
       method: "POST",
       headers: {
         "X-CSRF-Token": csrf,
@@ -125,7 +125,9 @@ export default function NewCustomChannel() {
 
   return (
     <div>
-      <h2 className="font-bold text-white text-2xl mt-5">Open a channel</h2>
+      <h2 className="font-bold dark:text-white text-2xl mt-5">
+        Open a channel
+      </h2>
 
       <p className="text-gray-500 mb-5">
         {nodeDetails?.alias && (
