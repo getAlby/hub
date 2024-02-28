@@ -50,7 +50,4 @@ COPY --from=builder /build/libbreez_sdk_bindings.so /usr/lib/nwc/
 COPY --from=builder /build/libglalby_bindings.so /usr/lib/nwc/
 COPY --from=builder /build/main /bin/
 
-# Temporary LDK bindings
-COPY ldk_node ./ldk_node
-
 ENTRYPOINT [ "/bin/main" ]
