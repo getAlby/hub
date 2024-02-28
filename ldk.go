@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/getAlby/nostr-wallet-connect/ldk_node" // TODO: include this from an external library
+	"github.com/getAlby/ldk-node-go/ldk_node"
 	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
@@ -214,7 +214,7 @@ func (gs *LDKService) GetBalance(ctx context.Context) (balance int64, err error)
 
 	balance = 0
 	for _, channel := range channels {
-		balance += int64(channel.BalanceMsat)
+		balance += int64(channel.OutboundCapacityMsat)
 	}
 
 	return balance, nil
@@ -368,11 +368,14 @@ func (gs *LDKService) OpenChannel(ctx context.Context, openChannelRequest *lncli
 	}
 
 	gs.svc.Logger.Infof("Opening channel with: %v", foundPeer.NodeId)
-	err := gs.node.ConnectOpenChannel(foundPeer.NodeId, foundPeer.Address, uint64(openChannelRequest.Amount), nil, nil, openChannelRequest.Public)
+	userChannelId, err := gs.node.ConnectOpenChannel(foundPeer.NodeId, foundPeer.Address, uint64(openChannelRequest.Amount), nil, nil, openChannelRequest.Public)
 	if err != nil {
 		gs.svc.Logger.Errorf("OpenChannel failed: %v", err)
 		return nil, err
 	}
+
+	// userChannelId allows to locally keep track of the channel
+	gs.svc.Logger.Infof("Funded channel: %v", userChannelId)
 
 	eventListener := gs.subscribeLdkEvents()
 	defer gs.unsubscribeLdkEvents(eventListener)
@@ -403,13 +406,9 @@ func (gs *LDKService) GetNewOnchainAddress(ctx context.Context) (string, error) 
 }
 
 func (gs *LDKService) GetOnchainBalance(ctx context.Context) (int64, error) {
-	balance, err := gs.node.SpendableOnchainBalanceSats()
-	gs.svc.Logger.Infof("SpendableOnchainBalanceSats: %v", balance)
-	if err != nil {
-		gs.svc.Logger.Errorf("SpendableOnchainBalanceSats failed: %v", err)
-		return 0, err
-	}
-	return int64(balance), nil
+	balances := gs.node.ListBalances()
+	gs.svc.Logger.Infof("SpendableOnchainBalanceSats: %v", balances.SpendableOnchainBalanceSats)
+	return int64(balances.SpendableOnchainBalanceSats), nil
 }
 
 func ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) *Nip47Transaction {
