@@ -48,6 +48,7 @@ ENV LD_LIBRARY_PATH=/usr/lib/nwc
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /build/libbreez_sdk_bindings.so /usr/lib/nwc/
 COPY --from=builder /build/libglalby_bindings.so /usr/lib/nwc/
+COPY --from=builder /build/libldk_node.so /usr/lib/nwc/
 COPY --from=builder /build/main /bin/
 
 ENTRYPOINT [ "/bin/main" ]
