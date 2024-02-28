@@ -7,7 +7,7 @@ toolchain go1.21.1
 require (
 	github.com/breez/breez-sdk-go v0.2.14
 	github.com/davrux/echo-logrus/v4 v4.0.3
-	github.com/getAlby/glalby v0.0.0-20240226164227-cfe1edfbd521
+	github.com/getAlby/glalby v0.1.0
 	github.com/getAlby/ldk-node-go v0.0.0-20240228063727-c5d07042affd
 	github.com/go-gormigrate/gormigrate/v2 v2.1.1
 	github.com/gorilla/sessions v1.2.1
