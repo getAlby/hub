@@ -58,6 +58,7 @@ func NewLDKService(svc *Service, mnemonic, workDir string) (result lnclient.LNCl
 	builder := ldk_node.BuilderFromConfig(config)
 	builder.SetEntropyBip39Mnemonic(mnemonic, nil)
 	builder.SetNetwork("bitcoin")
+	builder.SetLiquiditySourceLsps2("52.88.33.119:9735", "03aefa43fbb4009b21a4129d05953974b7dbabbbfb511921410080860fca8ee1f0", nil) // Temporary hack to work with voltage, remove when https://github.com/lightningdevkit/rust-lightning/issues/2914 is merged
 	builder.SetEsploraServer("https://blockstream.info/api")
 	builder.SetGossipSourceRgs("https://rapidsync.lightningdevkit.org/snapshot")
 	builder.SetStorageDirPath(filepath.Join(newpath, "./storage"))
