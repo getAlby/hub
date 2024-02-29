@@ -98,11 +98,16 @@ func NewLDKService(svc *Service, mnemonic, workDir string) (result lnclient.LNCl
 			case <-ldkEventListenerCtx.Done():
 				return
 			default:
-				event := node.WaitNextEvent()
+				// NOTE: do not use WaitNextEvent() as it can block the LDK thread
+				event := node.NextEvent()
+				if event == nil {
+					time.Sleep(100 * time.Millisecond)
+					continue
+				}
 				ldkEventHandlersMutex.Lock()
-				svc.Logger.Infof("Received LDK event %+v (%d listeners)", event, len(ldkEventHandlers))
+				svc.Logger.Infof("Received LDK event %+v (%d listeners)", *event, len(ldkEventHandlers))
 				for _, eventHandler := range ldkEventHandlers {
-					eventHandler <- event
+					eventHandler <- *event
 				}
 				ldkEventHandlersMutex.Unlock()
 
