@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -10,7 +11,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/getAlby/ldk-node-go/ldk_node"
+	//"github.com/getAlby/ldk-node-go/ldk_node"
+	"github.com/getAlby/nostr-wallet-connect/ldk_node"
 	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
@@ -31,7 +33,7 @@ func NewLDKService(svc *Service, mnemonic, workDir string) (result lnclient.LNCl
 	}
 
 	//create dir if not exists
-	newpath := filepath.Join(".", workDir)
+	newpath := filepath.Join(".", workDir+"-lsp3")
 	err = os.MkdirAll(newpath, os.ModePerm)
 	if err != nil {
 		log.Printf("Failed to create LDK working dir: %v", err)
@@ -43,6 +45,14 @@ func NewLDKService(svc *Service, mnemonic, workDir string) (result lnclient.LNCl
 	listeningAddresses := []string{
 		"0.0.0.0:9735",
 	}
+	config.TrustedPeers0conf = []string{
+		"03aefa43fbb4009b21a4129d05953974b7dbabbbfb511921410080860fca8ee1f0", // https://lsp.voltageapi.com/api/v1/info
+		"031b301307574bbe9b9ac7b79cbe1700e31e544513eae0b5d7497483083f99e581", // https://0conf.lnolymp.us/api/v1/info
+	}
+	config.AnchorChannelsConfig.TrustedPeersNoReserve = []string{
+		"031b301307574bbe9b9ac7b79cbe1700e31e544513eae0b5d7497483083f99e581", // https://0conf.lnolymp.us/api/v1/info
+	}
+
 	config.ListeningAddresses = &listeningAddresses
 	config.LogDirPath = &logDirPath
 	builder := ldk_node.BuilderFromConfig(config)
@@ -98,11 +108,15 @@ func NewLDKService(svc *Service, mnemonic, workDir string) (result lnclient.LNCl
 			case <-ldkEventListenerCtx.Done():
 				return
 			default:
-				event := node.WaitNextEvent()
+				event := node.NextEvent()
+				if event == nil {
+					time.Sleep(100 * time.Millisecond)
+					continue
+				}
 				ldkEventHandlersMutex.Lock()
-				svc.Logger.Infof("Received LDK event %+v (%d listeners)", event, len(ldkEventHandlers))
+				svc.Logger.Infof("Received LDK event %+v (%d listeners)", *event, len(ldkEventHandlers))
 				for _, eventHandler := range ldkEventHandlers {
-					eventHandler <- event
+					eventHandler <- *event
 				}
 				ldkEventHandlersMutex.Unlock()
 
@@ -171,9 +185,12 @@ func (gs *LDKService) SendPaymentSync(ctx context.Context, payReq string) (preim
 			break
 		}
 		if isEventPaymentFailedEvent && eventPaymentFailed.PaymentHash == paymentHash {
-			// TODO: is there a way to get a failure reason / error message?
-			gs.svc.Logger.Errorf("Payment failed: %v", paymentHash)
-			return "", errors.New("Payment failed")
+			var failureReason ldk_node.PaymentFailureReason = 0 // unset
+			if eventPaymentFailed.Reason != nil {
+				failureReason = *eventPaymentFailed.Reason
+			}
+			gs.svc.Logger.Errorf("Payment failed: %v %v", paymentHash, failureReason)
+			return "", fmt.Errorf("payment failed: %v", failureReason)
 		}
 	}
 	if preimage == "" {
@@ -221,8 +238,12 @@ func (gs *LDKService) GetBalance(ctx context.Context) (balance int64, err error)
 }
 
 func (gs *LDKService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *Nip47Transaction, err error) {
+	expiry = 60 * 60 // Temporary fix for LSP
+
+	// TODO: support passing description hash
 	invoice, err := gs.node.ReceivePayment(uint64(amount),
-		description,
+		"", // Temporary fix for LSP
+		//description,
 		uint32(expiry))
 
 	if err != nil {
