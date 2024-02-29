@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -146,14 +147,15 @@ func (gs *LDKService) Shutdown() error {
 }
 
 func (gs *LDKService) SendPaymentSync(ctx context.Context, payReq string) (preimage string, err error) {
+	eventListener := gs.subscribeLdkEvents()
+	defer gs.unsubscribeLdkEvents(eventListener)
+
 	paymentHash, err := gs.node.SendPayment(payReq)
 	if err != nil {
 		gs.svc.Logger.Errorf("SendPayment failed: %v", err)
 		return "", err
 	}
 
-	eventListener := gs.subscribeLdkEvents()
-	defer gs.unsubscribeLdkEvents(eventListener)
 	for start := time.Now(); time.Since(start) < time.Second*60; {
 		event := <-eventListener
 
@@ -176,9 +178,30 @@ func (gs *LDKService) SendPaymentSync(ctx context.Context, payReq string) (preim
 			break
 		}
 		if isEventPaymentFailedEvent && eventPaymentFailed.PaymentHash == paymentHash {
-			// TODO: is there a way to get a failure reason / error message?
-			gs.svc.Logger.Errorf("Payment failed: %v", paymentHash)
-			return "", errors.New("Payment failed")
+			var failureReason ldk_node.PaymentFailureReason
+			var failureReasonMessage string
+			if eventPaymentFailed.Reason != nil {
+				failureReason = *eventPaymentFailed.Reason
+			}
+			switch failureReason {
+			case ldk_node.PaymentFailureReasonRecipientRejected:
+				failureReasonMessage = "RecipientRejected"
+			case ldk_node.PaymentFailureReasonUserAbandoned:
+				failureReasonMessage = "UserAbandoned"
+			case ldk_node.PaymentFailureReasonRetriesExhausted:
+				failureReasonMessage = "RetriesExhausted"
+			case ldk_node.PaymentFailureReasonPaymentExpired:
+				failureReasonMessage = "PaymentExpired"
+			case ldk_node.PaymentFailureReasonRouteNotFound:
+				failureReasonMessage = "RouteNotFound"
+			case ldk_node.PaymentFailureReasonUnexpectedError:
+				failureReasonMessage = "UnexpectedError"
+			default:
+				failureReasonMessage = "UnknownError"
+			}
+
+			gs.svc.Logger.Errorf("Payment Failed event: %v %v %s", paymentHash, failureReason, failureReasonMessage)
+			return "", fmt.Errorf("payment failed event: %v %s", failureReason, failureReasonMessage)
 		}
 	}
 	if preimage == "" {
@@ -372,6 +395,9 @@ func (gs *LDKService) OpenChannel(ctx context.Context, openChannelRequest *lncli
 		return nil, errors.New("node is not peered yet")
 	}
 
+	eventListener := gs.subscribeLdkEvents()
+	defer gs.unsubscribeLdkEvents(eventListener)
+
 	gs.svc.Logger.Infof("Opening channel with: %v", foundPeer.NodeId)
 	userChannelId, err := gs.node.ConnectOpenChannel(foundPeer.NodeId, foundPeer.Address, uint64(openChannelRequest.Amount), nil, nil, openChannelRequest.Public)
 	if err != nil {
@@ -382,8 +408,6 @@ func (gs *LDKService) OpenChannel(ctx context.Context, openChannelRequest *lncli
 	// userChannelId allows to locally keep track of the channel
 	gs.svc.Logger.Infof("Funded channel: %v", userChannelId)
 
-	eventListener := gs.subscribeLdkEvents()
-	defer gs.unsubscribeLdkEvents(eventListener)
 	for start := time.Now(); time.Since(start) < time.Second*60; {
 		event := <-eventListener
 
