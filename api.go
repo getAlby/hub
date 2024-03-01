@@ -490,7 +490,7 @@ func (api *API) NewWrappedInvoice(request *models.NewWrappedInvoiceRequest) (*mo
 	}
 	return &models.NewWrappedInvoiceResponse{
 		WrappedInvoice: proposalResponse.Bolt11,
-		Fee:            feeResponse.FeeAmountMsat,
+		Fee:            feeResponse.FeeAmountMsat / 1000,
 	}, nil
 }
 
