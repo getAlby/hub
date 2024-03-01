@@ -14,6 +14,7 @@ import (
 	//"github.com/getAlby/ldk-node-go/ldk_node"
 	"github.com/getAlby/nostr-wallet-connect/ldk_node"
 	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
+	"github.com/getAlby/nostr-wallet-connect/models/lsp"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
 )
@@ -46,22 +47,24 @@ func NewLDKService(svc *Service, mnemonic, workDir string) (result lnclient.LNCl
 		"0.0.0.0:9735",
 	}
 	config.TrustedPeers0conf = []string{
-		"03aefa43fbb4009b21a4129d05953974b7dbabbbfb511921410080860fca8ee1f0", // https://lsp.voltageapi.com/api/v1/info
-		"031b301307574bbe9b9ac7b79cbe1700e31e544513eae0b5d7497483083f99e581", // https://0conf.lnolymp.us/api/v1/info
+		lsp.VoltageLSP().Pubkey,
+		lsp.OlympusLSP().Pubkey,
 	}
 	config.AnchorChannelsConfig.TrustedPeersNoReserve = []string{
-		"031b301307574bbe9b9ac7b79cbe1700e31e544513eae0b5d7497483083f99e581", // https://0conf.lnolymp.us/api/v1/info
+		lsp.OlympusLSP().Pubkey,
 	}
 
 	config.ListeningAddresses = &listeningAddresses
 	config.LogDirPath = &logDirPath
+	config.LogLevel = ldk_node.LogLevelTrace
 	builder := ldk_node.BuilderFromConfig(config)
 	builder.SetEntropyBip39Mnemonic(mnemonic, nil)
 	builder.SetNetwork("bitcoin")
-	builder.SetLiquiditySourceLsps2("52.88.33.119:9735", "03aefa43fbb4009b21a4129d05953974b7dbabbbfb511921410080860fca8ee1f0", nil) // Temporary hack to work with voltage, remove when https://github.com/lightningdevkit/rust-lightning/issues/2914 is merged
+	builder.SetLiquiditySourceLsps2("52.88.33.119:9735", lsp.VoltageLSP().Pubkey, nil) // Temporary hack to work with voltage, remove when https://github.com/lightningdevkit/rust-lightning/issues/2914 is merged
 	builder.SetEsploraServer("https://blockstream.info/api")
 	builder.SetGossipSourceRgs("https://rapidsync.lightningdevkit.org/snapshot")
 	builder.SetStorageDirPath(filepath.Join(newpath, "./storage"))
+
 	//builder.SetLogDirPath (filepath.Join(newpath, "./logs")); // missing?
 	node, err := builder.Build()
 
@@ -239,12 +242,10 @@ func (gs *LDKService) GetBalance(ctx context.Context) (balance int64, err error)
 }
 
 func (gs *LDKService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *Nip47Transaction, err error) {
-	expiry = 60 * 60 // Temporary fix for LSP
 
 	// TODO: support passing description hash
 	invoice, err := gs.node.ReceivePayment(uint64(amount),
-		"", // Temporary fix for LSP
-		//description,
+		description,
 		uint32(expiry))
 
 	if err != nil {

@@ -65,6 +65,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	// TODO: below could be supported by NIP-47
 	e.GET("/api/channels", httpSvc.channelsListHandler, authMiddleware)
 	e.POST("/api/channels", httpSvc.openChannelHandler, authMiddleware)
+	e.POST("/api/wrapped-invoices", httpSvc.newWrappedInvoiceHandler, authMiddleware)
 	e.GET("/api/node/connection-info", httpSvc.nodeConnectionInfoHandler, authMiddleware)
 	e.POST("/api/peers", httpSvc.connectPeerHandler, authMiddleware)
 	e.POST("/api/wallet/new-address", httpSvc.newOnchainAddressHandler, authMiddleware)
@@ -271,6 +272,25 @@ func (httpSvc *HttpService) openChannelHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, openChannelResponse)
+}
+
+func (httpSvc *HttpService) newWrappedInvoiceHandler(c echo.Context) error {
+	var newWrappedInvoiceRequest api.NewWrappedInvoiceRequest
+	if err := c.Bind(&newWrappedInvoiceRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	newWrappedInvoiceResponse, err := httpSvc.api.NewWrappedInvoice(&newWrappedInvoiceRequest)
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to request wrapped invoice: %s", err.Error()),
+		})
+	}
+
+	return c.JSON(http.StatusOK, newWrappedInvoiceResponse)
 }
 
 func (httpSvc *HttpService) newOnchainAddressHandler(c echo.Context) error {

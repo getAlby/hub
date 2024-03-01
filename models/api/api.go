@@ -86,6 +86,16 @@ type ConnectPeerRequest = lnclient.ConnectPeerRequest
 type OpenChannelRequest = lnclient.OpenChannelRequest
 type OpenChannelResponse = lnclient.OpenChannelResponse
 
+type NewWrappedInvoiceRequest struct {
+	Amount uint64 `json:"amount"`
+	LSP    string `json:"lsp"`
+}
+
+type NewWrappedInvoiceResponse struct {
+	WrappedInvoice string `json:"wrappedInvoice"`
+	Fee            uint64 `json:"fee"`
+}
+
 type NewOnchainAddressResponse struct {
 	Address string `json:"address"`
 }
