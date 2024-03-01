@@ -362,7 +362,7 @@ func (api *API) NewWrappedInvoice(request *models.NewWrappedInvoiceRequest) (*mo
 		return nil, err
 	}
 
-	api.svc.Logger.Infoln("Connecting to LSP node as a peer: %v", lspInfo)
+	api.svc.Logger.Infof("Connecting to LSP node as a peer: %v", lspInfo)
 
 	if !strings.HasPrefix(lspInfo.ConnectionMethods[0].Type, "ip") {
 		api.svc.Logger.Errorf("Expected ipv4/ipv6 connection method, got %s", lspInfo.ConnectionMethods[0].Type)
