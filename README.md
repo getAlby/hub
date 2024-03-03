@@ -259,6 +259,10 @@ Run NWC on your own node!
 
 ### Docker
 
-`docker build . -t nwc-local --progress=plain`
+#### From Alby's Container Registry
 
-`docker run --env-file .env -p 8080:8080 nwc-local`
+`docker run -p 8080:8080 ghcr.io/getalby/nostr-wallet-connect-next:latest`
+
+#### From Source
+
+`docker run -p 8080:8080 $(docker build -q .)`
