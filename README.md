@@ -259,7 +259,7 @@ Run NWC on your own node!
 
 ### Docker
 
-#### From Alby's Container Repository
+#### From Alby's Container Registry
 
 `docker run -p 8080:8080 ghcr.io/getalby/nostr-wallet-connect-next:latest`
 
