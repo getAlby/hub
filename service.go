@@ -136,9 +136,9 @@ func (svc *Service) launchLNBackend(encryptionKey string) error {
 		lnClient, err = NewLNDService(svc, LNDAddress, LNDCertHex, LNDMacaroonHex)
 	case LDKBackendType:
 		Mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
-		LDKWorkdir := path.Join(svc.cfg.Env.Workdir, "ldk")
+		LDKWorkdir := path.Join(svc.cfg.Env.Workdir, "ldk", svc.cfg.Env.LDKNetwork)
 
-		lnClient, err = NewLDKService(svc, Mnemonic, LDKWorkdir)
+		lnClient, err = NewLDKService(svc, Mnemonic, LDKWorkdir, svc.cfg.Env.LDKNetwork, svc.cfg.Env.LDKEsploraServer, svc.cfg.Env.LDKGossipSource)
 	case GreenlightBackendType:
 		Mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
 		GreenlightInviteCode, _ := svc.cfg.Get("GreenlightInviteCode", encryptionKey)

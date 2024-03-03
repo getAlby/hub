@@ -26,7 +26,7 @@ type LDKService struct {
 	unsubscribeLdkEvents      func(chan ldk_node.Event)
 }
 
-func NewLDKService(svc *Service, mnemonic, workDir string) (result lnclient.LNClient, err error) {
+func NewLDKService(svc *Service, mnemonic, workDir string, network string, esploraServer string, gossipSource string) (result lnclient.LNClient, err error) {
 	if mnemonic == "" || workDir == "" {
 		return nil, errors.New("one or more required LDK configuration are missing")
 	}
@@ -48,9 +48,9 @@ func NewLDKService(svc *Service, mnemonic, workDir string) (result lnclient.LNCl
 	config.LogDirPath = &logDirPath
 	builder := ldk_node.BuilderFromConfig(config)
 	builder.SetEntropyBip39Mnemonic(mnemonic, nil)
-	builder.SetNetwork("bitcoin")
-	builder.SetEsploraServer("https://blockstream.info/api")
-	builder.SetGossipSourceRgs("https://rapidsync.lightningdevkit.org/snapshot")
+	builder.SetNetwork(network)
+	builder.SetEsploraServer(esploraServer)
+	builder.SetGossipSourceRgs(gossipSource)
 	builder.SetStorageDirPath(filepath.Join(newpath, "./storage"))
 	//builder.SetLogDirPath (filepath.Join(newpath, "./logs")); // missing?
 	node, err := builder.Build()
