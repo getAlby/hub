@@ -171,8 +171,8 @@ func (gs *LDKService) SendPaymentSync(ctx context.Context, payReq string) (preim
 			}
 
 			if payment.Preimage == nil {
-				gs.svc.Logger.Errorf("No payment secret for payment hash: %v", paymentHash)
-				return "", errors.New("Payment secret not found")
+				gs.svc.Logger.Errorf("No payment preimage for payment hash: %v", paymentHash)
+				return "", errors.New("Payment preimage not found")
 			}
 			preimage = *payment.Preimage
 			break
