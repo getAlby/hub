@@ -32,6 +32,7 @@ type AppConfig struct {
 	DatabaseUri     string `envconfig:"DATABASE_URI" default:".data/nwc.db"`
 	CookieSecret    string `envconfig:"COOKIE_SECRET"`
 	LogLevel        string `envconfig:"LOG_LEVEL"`
+	LDKLogLevel     string `envconfig:"LDK_LOG_LEVEL"`
 }
 
 type Config struct {

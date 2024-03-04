@@ -46,6 +46,10 @@ func NewLDKService(svc *Service, mnemonic, workDir string) (result lnclient.LNCl
 	}
 	config.ListeningAddresses = &listeningAddresses
 	config.LogDirPath = &logDirPath
+	logLevel, err := strconv.Atoi(svc.cfg.Env.LDKLogLevel)
+	if err == nil {
+		config.LogLevel = ldk_node.LogLevel(logLevel)
+	}
 	builder := ldk_node.BuilderFromConfig(config)
 	builder.SetEntropyBip39Mnemonic(mnemonic, nil)
 	builder.SetNetwork("bitcoin")
