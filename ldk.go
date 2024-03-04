@@ -102,7 +102,7 @@ func NewLDKService(svc *Service, mnemonic, workDir string) (result lnclient.LNCl
 				// NOTE: do not use WaitNextEvent() as it can block the LDK thread
 				event := node.NextEvent()
 				if event == nil {
-					time.Sleep(100 * time.Millisecond)
+					time.Sleep(time.Duration(1) * time.Millisecond)
 					continue
 				}
 				ldkEventHandlersMutex.Lock()
@@ -170,11 +170,11 @@ func (gs *LDKService) SendPaymentSync(ctx context.Context, payReq string) (preim
 				return "", errors.New("Payment not found")
 			}
 
-			if payment.Secret == nil {
+			if payment.Preimage == nil {
 				gs.svc.Logger.Errorf("No payment secret for payment hash: %v", paymentHash)
 				return "", errors.New("Payment secret not found")
 			}
-			preimage = *payment.Secret
+			preimage = *payment.Preimage
 			break
 		}
 		if isEventPaymentFailedEvent && eventPaymentFailed.PaymentHash == paymentHash {
@@ -452,8 +452,6 @@ func ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) *Nip47Transaction
 		if payment.Preimage != nil {
 
 			preimage = *payment.Preimage
-		} else if payment.Secret != nil {
-			preimage = *payment.Secret
 		}
 		// TODO: use payment settle time
 		now := time.Now().Unix()
