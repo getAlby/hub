@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -10,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/getAlby/nostr-wallet-connect/ldk_node" // TODO: include this from an external library
+	"github.com/getAlby/ldk-node-go/ldk_node"
 	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
@@ -45,6 +46,10 @@ func NewLDKService(svc *Service, mnemonic, workDir string) (result lnclient.LNCl
 	}
 	config.ListeningAddresses = &listeningAddresses
 	config.LogDirPath = &logDirPath
+	logLevel, err := strconv.Atoi(svc.cfg.Env.LDKLogLevel)
+	if err == nil {
+		config.LogLevel = ldk_node.LogLevel(logLevel)
+	}
 	builder := ldk_node.BuilderFromConfig(config)
 	builder.SetEntropyBip39Mnemonic(mnemonic, nil)
 	builder.SetNetwork("bitcoin")
@@ -72,14 +77,19 @@ func NewLDKService(svc *Service, mnemonic, workDir string) (result lnclient.LNCl
 
 	subscribeLdkEvents := func() chan ldk_node.Event {
 		ldkEventHandler := make(chan ldk_node.Event)
+		svc.Logger.Debugf("Locking event handler mutex")
 		ldkEventHandlersMutex.Lock()
+		svc.Logger.Debugf("Locked event handler mutex")
 		ldkEventHandlers = append(ldkEventHandlers, ldkEventHandler)
 		ldkEventHandlersMutex.Unlock()
+		svc.Logger.Debugf("Unlocked event handler mutex")
 		return ldkEventHandler
 	}
 
 	unsubscribeLdkEvents := func(eventHandler chan ldk_node.Event) {
+		svc.Logger.Debugf("Locking event handler mutex")
 		ldkEventHandlersMutex.Lock()
+		svc.Logger.Debugf("Locked event handler mutex")
 		for i := 0; i < len(ldkEventHandlers); i++ {
 			if eventHandler == ldkEventHandlers[i] {
 				// Replace the element to be removed with the last element of the slice
@@ -90,6 +100,7 @@ func NewLDKService(svc *Service, mnemonic, workDir string) (result lnclient.LNCl
 			}
 		}
 		ldkEventHandlersMutex.Unlock()
+		svc.Logger.Debugf("Unlocked event handler mutex")
 	}
 
 	go func() {
@@ -98,13 +109,21 @@ func NewLDKService(svc *Service, mnemonic, workDir string) (result lnclient.LNCl
 			case <-ldkEventListenerCtx.Done():
 				return
 			default:
-				event := node.WaitNextEvent()
+				// NOTE: do not use WaitNextEvent() as it can block the LDK thread
+				event := node.NextEvent()
+				if event == nil {
+					time.Sleep(time.Duration(1) * time.Millisecond)
+					continue
+				}
+				svc.Logger.Debugf("Locking event handler mutex")
 				ldkEventHandlersMutex.Lock()
-				svc.Logger.Infof("Received LDK event %+v (%d listeners)", event, len(ldkEventHandlers))
+				svc.Logger.Debugf("Locked event handler mutex")
+				svc.Logger.Infof("Received LDK event %+v (%d listeners)", *event, len(ldkEventHandlers))
 				for _, eventHandler := range ldkEventHandlers {
-					eventHandler <- event
+					eventHandler <- *event
 				}
 				ldkEventHandlersMutex.Unlock()
+				svc.Logger.Debugf("Unlocked event handler mutex")
 
 				node.EventHandled()
 			}
@@ -141,14 +160,16 @@ func (gs *LDKService) Shutdown() error {
 }
 
 func (gs *LDKService) SendPaymentSync(ctx context.Context, payReq string) (preimage string, err error) {
+	paymentStart := time.Now()
+	eventListener := gs.subscribeLdkEvents()
+	defer gs.unsubscribeLdkEvents(eventListener)
+
 	paymentHash, err := gs.node.SendPayment(payReq)
 	if err != nil {
 		gs.svc.Logger.Errorf("SendPayment failed: %v", err)
 		return "", err
 	}
 
-	eventListener := gs.subscribeLdkEvents()
-	defer gs.unsubscribeLdkEvents(eventListener)
 	for start := time.Now(); time.Since(start) < time.Second*60; {
 		event := <-eventListener
 
@@ -163,23 +184,45 @@ func (gs *LDKService) SendPaymentSync(ctx context.Context, payReq string) (preim
 				return "", errors.New("Payment not found")
 			}
 
-			if payment.Secret == nil {
-				gs.svc.Logger.Errorf("No payment secret for payment hash: %v", paymentHash)
-				return "", errors.New("Payment secret not found")
+			if payment.Preimage == nil {
+				gs.svc.Logger.Errorf("No payment preimage for payment hash: %v", paymentHash)
+				return "", errors.New("Payment preimage not found")
 			}
-			preimage = *payment.Secret
+			preimage = *payment.Preimage
 			break
 		}
 		if isEventPaymentFailedEvent && eventPaymentFailed.PaymentHash == paymentHash {
-			// TODO: is there a way to get a failure reason / error message?
-			gs.svc.Logger.Errorf("Payment failed: %v", paymentHash)
-			return "", errors.New("Payment failed")
+			var failureReason ldk_node.PaymentFailureReason
+			var failureReasonMessage string
+			if eventPaymentFailed.Reason != nil {
+				failureReason = *eventPaymentFailed.Reason
+			}
+			switch failureReason {
+			case ldk_node.PaymentFailureReasonRecipientRejected:
+				failureReasonMessage = "RecipientRejected"
+			case ldk_node.PaymentFailureReasonUserAbandoned:
+				failureReasonMessage = "UserAbandoned"
+			case ldk_node.PaymentFailureReasonRetriesExhausted:
+				failureReasonMessage = "RetriesExhausted"
+			case ldk_node.PaymentFailureReasonPaymentExpired:
+				failureReasonMessage = "PaymentExpired"
+			case ldk_node.PaymentFailureReasonRouteNotFound:
+				failureReasonMessage = "RouteNotFound"
+			case ldk_node.PaymentFailureReasonUnexpectedError:
+				failureReasonMessage = "UnexpectedError"
+			default:
+				failureReasonMessage = "UnknownError"
+			}
+
+			gs.svc.Logger.Errorf("Payment Failed event: %v %v %s", paymentHash, failureReason, failureReasonMessage)
+			return "", fmt.Errorf("payment failed event: %v %s", failureReason, failureReasonMessage)
 		}
 	}
 	if preimage == "" {
 		return "", errors.New("Payment timed out")
 	}
 
+	gs.svc.Logger.Infof("Payment made in %d ms", time.Since(paymentStart).Milliseconds())
 	return preimage, nil
 }
 
@@ -214,7 +257,7 @@ func (gs *LDKService) GetBalance(ctx context.Context) (balance int64, err error)
 
 	balance = 0
 	for _, channel := range channels {
-		balance += int64(channel.BalanceMsat)
+		balance += int64(channel.OutboundCapacityMsat)
 	}
 
 	return balance, nil
@@ -367,15 +410,19 @@ func (gs *LDKService) OpenChannel(ctx context.Context, openChannelRequest *lncli
 		return nil, errors.New("node is not peered yet")
 	}
 
+	eventListener := gs.subscribeLdkEvents()
+	defer gs.unsubscribeLdkEvents(eventListener)
+
 	gs.svc.Logger.Infof("Opening channel with: %v", foundPeer.NodeId)
-	err := gs.node.ConnectOpenChannel(foundPeer.NodeId, foundPeer.Address, uint64(openChannelRequest.Amount), nil, nil, openChannelRequest.Public)
+	userChannelId, err := gs.node.ConnectOpenChannel(foundPeer.NodeId, foundPeer.Address, uint64(openChannelRequest.Amount), nil, nil, openChannelRequest.Public)
 	if err != nil {
 		gs.svc.Logger.Errorf("OpenChannel failed: %v", err)
 		return nil, err
 	}
 
-	eventListener := gs.subscribeLdkEvents()
-	defer gs.unsubscribeLdkEvents(eventListener)
+	// userChannelId allows to locally keep track of the channel
+	gs.svc.Logger.Infof("Funded channel: %v", userChannelId)
+
 	for start := time.Now(); time.Since(start) < time.Second*60; {
 		event := <-eventListener
 
@@ -403,13 +450,9 @@ func (gs *LDKService) GetNewOnchainAddress(ctx context.Context) (string, error) 
 }
 
 func (gs *LDKService) GetOnchainBalance(ctx context.Context) (int64, error) {
-	balance, err := gs.node.SpendableOnchainBalanceSats()
-	gs.svc.Logger.Infof("SpendableOnchainBalanceSats: %v", balance)
-	if err != nil {
-		gs.svc.Logger.Errorf("SpendableOnchainBalanceSats failed: %v", err)
-		return 0, err
-	}
-	return int64(balance), nil
+	balances := gs.node.ListBalances()
+	gs.svc.Logger.Infof("SpendableOnchainBalanceSats: %v", balances.SpendableOnchainBalanceSats)
+	return int64(balances.SpendableOnchainBalanceSats), nil
 }
 
 func (gs *LDKService) RedeemOnchainFunds(ctx context.Context, toAddress string) (txId string, err error) {
@@ -428,8 +471,6 @@ func ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) *Nip47Transaction
 		if payment.Preimage != nil {
 
 			preimage = *payment.Preimage
-		} else if payment.Secret != nil {
-			preimage = *payment.Secret
 		}
 		// TODO: use payment settle time
 		now := time.Now().Unix()

@@ -37,6 +37,7 @@ RUN GOARCH=$(echo "$TARGETPLATFORM" | cut -d'/' -f2) go build -o main .
 
 RUN cp `find /go/pkg/mod/github.com/breez/ |grep linux-amd64 |grep libbreez_sdk_bindings.so` ./
 RUN cp `find /go/pkg/mod/github.com/get\!alby/ | grep libglalby_bindings.so` ./
+RUN cp `find /go/pkg/mod/github.com/get\!alby/ | grep libldk_node.so` ./
 
 # Start a new, final image to reduce size.
 FROM debian as final
@@ -47,9 +48,7 @@ ENV LD_LIBRARY_PATH=/usr/lib/nwc
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /build/libbreez_sdk_bindings.so /usr/lib/nwc/
 COPY --from=builder /build/libglalby_bindings.so /usr/lib/nwc/
+COPY --from=builder /build/libldk_node.so /usr/lib/nwc/
 COPY --from=builder /build/main /bin/
-
-# Temporary LDK bindings
-COPY ldk_node ./ldk_node
 
 ENTRYPOINT [ "/bin/main" ]
