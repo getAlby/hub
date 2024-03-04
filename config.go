@@ -31,6 +31,7 @@ type AppConfig struct {
 	Port            string `envconfig:"PORT" default:"8080"`
 	DatabaseUri     string `envconfig:"DATABASE_URI" default:".data/nwc.db"`
 	CookieSecret    string `envconfig:"COOKIE_SECRET"`
+	LogLevel        string `envconfig:"LOG_LEVEL"`
 }
 
 type Config struct {
