@@ -102,6 +102,7 @@ Breez SDK requires gcc to build the Breez bindings. Run `choco install mingw` an
 - `DATABASE_URI`: a sqlite filename. Default: .data/nwc.db
 - `PORT`: the port on which the app should listen on (default: 8080)
 - `WORK_DIR`: directory to store NWC data files. Default: .data
+- `LOG_LEVEL`: log level for the application. Higher is more verbose. Default: 4 (info)
 
 ### LND Backend parameters
 

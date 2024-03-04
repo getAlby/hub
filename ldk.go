@@ -46,6 +46,10 @@ func NewLDKService(svc *Service, mnemonic, workDir string) (result lnclient.LNCl
 	}
 	config.ListeningAddresses = &listeningAddresses
 	config.LogDirPath = &logDirPath
+	logLevel, err := strconv.Atoi(svc.cfg.Env.LDKLogLevel)
+	if err == nil {
+		config.LogLevel = ldk_node.LogLevel(logLevel)
+	}
 	builder := ldk_node.BuilderFromConfig(config)
 	builder.SetEntropyBip39Mnemonic(mnemonic, nil)
 	builder.SetNetwork("bitcoin")
@@ -73,14 +77,19 @@ func NewLDKService(svc *Service, mnemonic, workDir string) (result lnclient.LNCl
 
 	subscribeLdkEvents := func() chan ldk_node.Event {
 		ldkEventHandler := make(chan ldk_node.Event)
+		svc.Logger.Debugf("Locking event handler mutex")
 		ldkEventHandlersMutex.Lock()
+		svc.Logger.Debugf("Locked event handler mutex")
 		ldkEventHandlers = append(ldkEventHandlers, ldkEventHandler)
 		ldkEventHandlersMutex.Unlock()
+		svc.Logger.Debugf("Unlocked event handler mutex")
 		return ldkEventHandler
 	}
 
 	unsubscribeLdkEvents := func(eventHandler chan ldk_node.Event) {
+		svc.Logger.Debugf("Locking event handler mutex")
 		ldkEventHandlersMutex.Lock()
+		svc.Logger.Debugf("Locked event handler mutex")
 		for i := 0; i < len(ldkEventHandlers); i++ {
 			if eventHandler == ldkEventHandlers[i] {
 				// Replace the element to be removed with the last element of the slice
@@ -91,6 +100,7 @@ func NewLDKService(svc *Service, mnemonic, workDir string) (result lnclient.LNCl
 			}
 		}
 		ldkEventHandlersMutex.Unlock()
+		svc.Logger.Debugf("Unlocked event handler mutex")
 	}
 
 	go func() {
@@ -105,12 +115,15 @@ func NewLDKService(svc *Service, mnemonic, workDir string) (result lnclient.LNCl
 					time.Sleep(time.Duration(1) * time.Millisecond)
 					continue
 				}
+				svc.Logger.Debugf("Locking event handler mutex")
 				ldkEventHandlersMutex.Lock()
+				svc.Logger.Debugf("Locked event handler mutex")
 				svc.Logger.Infof("Received LDK event %+v (%d listeners)", *event, len(ldkEventHandlers))
 				for _, eventHandler := range ldkEventHandlers {
 					eventHandler <- *event
 				}
 				ldkEventHandlersMutex.Unlock()
+				svc.Logger.Debugf("Unlocked event handler mutex")
 
 				node.EventHandled()
 			}
@@ -147,6 +160,7 @@ func (gs *LDKService) Shutdown() error {
 }
 
 func (gs *LDKService) SendPaymentSync(ctx context.Context, payReq string) (preimage string, err error) {
+	paymentStart := time.Now()
 	eventListener := gs.subscribeLdkEvents()
 	defer gs.unsubscribeLdkEvents(eventListener)
 
@@ -208,6 +222,7 @@ func (gs *LDKService) SendPaymentSync(ctx context.Context, payReq string) (preim
 		return "", errors.New("Payment timed out")
 	}
 
+	gs.svc.Logger.Infof("Payment made in %d ms", time.Since(paymentStart).Milliseconds())
 	return preimage, nil
 }
 
