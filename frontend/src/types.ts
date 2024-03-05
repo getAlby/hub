@@ -1,3 +1,12 @@
+import {
+  PopiconsBoltLine,
+  PopiconsBookmarkLine,
+  PopiconsClipboardTextLine,
+  PopiconsDatabaseLine,
+  PopiconsSearchCircleLine,
+  PopiconsWalletLine,
+} from "@popicons/react";
+
 export const NIP_47_PAY_INVOICE_METHOD = "pay_invoice";
 export const NIP_47_GET_BALANCE_METHOD = "get_balance";
 export const NIP_47_GET_INFO_METHOD = "get_info";
@@ -18,9 +27,18 @@ export type RequestMethodType =
 export type BudgetRenewalType = "daily" | "weekly" | "monthly" | "yearly" | "";
 
 export type IconMap = {
-  [key in RequestMethodType]: (
-    props: React.SVGAttributes<SVGElement>
-  ) => JSX.Element;
+  [key in RequestMethodType]: React.FunctionComponent<
+    React.SVGProps<SVGSVGElement>
+  >;
+};
+
+export const iconMap: IconMap = {
+  [NIP_47_GET_BALANCE_METHOD]: PopiconsWalletLine,
+  [NIP_47_GET_INFO_METHOD]: PopiconsDatabaseLine,
+  [NIP_47_LIST_TRANSACTIONS_METHOD]: PopiconsBookmarkLine,
+  [NIP_47_LOOKUP_INVOICE_METHOD]: PopiconsSearchCircleLine,
+  [NIP_47_MAKE_INVOICE_METHOD]: PopiconsClipboardTextLine,
+  [NIP_47_PAY_INVOICE_METHOD]: PopiconsBoltLine,
 };
 
 export const validBudgetRenewals: BudgetRenewalType[] = [
@@ -78,6 +96,11 @@ export interface InfoResponse {
   setupCompleted: boolean;
   running: boolean;
   unlocked: boolean;
+  isMnemonicBackupDone: boolean;
+}
+
+export interface MnemonicResponse {
+  mnemonic: string;
 }
 
 export interface CreateAppResponse {
@@ -138,6 +161,7 @@ export type SetupNodeInfo = Partial<{
   backendType: BackendType;
 
   mnemonic?: string;
+  isMnemonicBackupDone?: string;
   greenlightInviteCode?: string;
   breezApiKey?: string;
 

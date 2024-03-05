@@ -4,10 +4,11 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/hex"
 	"strings"
 
-	"golang.org/x/crypto/argon2"
+	"golang.org/x/crypto/pbkdf2"
 )
 
 func DeriveKey(password string, salt []byte) ([]byte, []byte, error) {
@@ -18,7 +19,7 @@ func DeriveKey(password string, salt []byte) ([]byte, []byte, error) {
 		}
 	}
 
-	key := argon2.Key([]byte(password), salt, 3, 32*1024, 1, 32)
+	key := pbkdf2.Key([]byte(password), salt, 32000, 32, sha256.New)
 
 	return key, salt, nil
 }

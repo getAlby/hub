@@ -54,6 +54,8 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 
 	e.GET("/api/csrf", httpSvc.csrfHandler)
 	e.GET("/api/info", httpSvc.infoHandler)
+	e.GET("/api/mnemonic", httpSvc.mnemonicHandler)
+	e.PATCH("/api/mnemonic", httpSvc.mnemonicBackupHandler)
 	e.POST("/api/logout", httpSvc.logoutHandler)
 	e.POST("/api/setup", httpSvc.setupHandler)
 
@@ -86,9 +88,30 @@ func (httpSvc *HttpService) csrfHandler(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) infoHandler(c echo.Context) error {
-	responseBody := httpSvc.api.GetInfo()
+	responseBody, err := httpSvc.api.GetInfo()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
+		})
+	}
 	responseBody.Unlocked = httpSvc.isUnlocked(c)
 	return c.JSON(http.StatusOK, responseBody)
+}
+
+func (httpSvc *HttpService) mnemonicHandler(c echo.Context) error {
+	responseBody := httpSvc.api.GetMnemonic()
+	return c.JSON(http.StatusOK, responseBody)
+}
+
+func (httpSvc *HttpService) mnemonicBackupHandler(c echo.Context) error {
+	err := httpSvc.api.BackupMnemonic()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to backup mnemonic: %s", err.Error()),
+		})
+	}
+
+	return c.NoContent(http.StatusNoContent)
 }
 
 func (httpSvc *HttpService) startHandler(c echo.Context) error {

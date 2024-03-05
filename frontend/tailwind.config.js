@@ -74,6 +74,10 @@ export default {
         xs: "2px",
       },
     },
+    backgroundImage: () => ({
+      "primary-gradient": `linear-gradient(180deg, #FFDE6E 63%, #F8C455 95%)`,
+      "primary-gradient-hover": `linear-gradient(180deg, #F2D369 63%, #ECBA51 95%)`,
+    }),
     fontFamily: {
       headline: [
         '"Work Sans"',

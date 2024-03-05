@@ -5,24 +5,14 @@ import toast from "react-hot-toast";
 import {
   BudgetRenewalType,
   CreateAppResponse,
-  IconMap,
-  NIP_47_GET_BALANCE_METHOD,
-  NIP_47_GET_INFO_METHOD,
-  NIP_47_LIST_TRANSACTIONS_METHOD,
-  NIP_47_LOOKUP_INVOICE_METHOD,
-  NIP_47_MAKE_INVOICE_METHOD,
-  NIP_47_PAY_INVOICE_METHOD,
   RequestMethodType,
+  iconMap,
   nip47MethodDescriptions,
   validBudgetRenewals,
 } from "src/types";
 import { useCSRF } from "src/hooks/useCSRF";
 import { EditIcon } from "src/components/icons/EditIcon";
-import { WalletIcon } from "src/components/icons/WalletIcon";
-import { LightningIcon } from "src/components/icons/LightningIcon";
-import { InvoiceIcon } from "src/components/icons/InvoiceIcon";
-import { SearchIcon } from "src/components/icons/SearchIcon";
-import { TransactionsIcon } from "src/components/icons/TransactionsIcon";
+
 import { request } from "src/utils/request"; // build the project for this to appear
 import { handleRequestError } from "src/utils/handleRequestError";
 import Input from "src/components/Input";
@@ -155,15 +145,6 @@ const NewApp = () => {
     }
   };
 
-  const iconMap: IconMap = {
-    [NIP_47_GET_BALANCE_METHOD]: WalletIcon,
-    [NIP_47_GET_INFO_METHOD]: WalletIcon,
-    [NIP_47_LIST_TRANSACTIONS_METHOD]: TransactionsIcon,
-    [NIP_47_LOOKUP_INVOICE_METHOD]: SearchIcon,
-    [NIP_47_MAKE_INVOICE_METHOD]: InvoiceIcon,
-    [NIP_47_PAY_INVOICE_METHOD]: LightningIcon,
-  };
-
   const expiryOptions: Record<string, number> = {
     "1 week": 7,
     "1 month": 30,
@@ -181,7 +162,7 @@ const NewApp = () => {
   };
 
   return (
-    <div>
+    <div className="container max-w-screen-lg mt-6">
       <form onSubmit={handleSubmit} acceptCharset="UTF-8">
         <div className="bg-white dark:bg-surface-02dp rounded-md shadow p-4 md:p-8">
           <h2 className="font-bold text-2xl font-headline mb-4 dark:text-white">
@@ -236,7 +217,7 @@ const NewApp = () => {
                     <div className="flex items-center mb-2">
                       {RequestMethodIcon && (
                         <RequestMethodIcon
-                          className={`text-gray-800 dark:text-gray-300 w-5 mr-3 ${
+                          className={`text-gray-800 dark:text-gray-300 w-4 mr-3 ${
                             isEditing ? "hidden" : ""
                           }`}
                         />

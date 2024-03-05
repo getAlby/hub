@@ -199,14 +199,17 @@ func (api *API) ListApps() ([]models.App, error) {
 			NostrPubkey: userApp.NostrPubkey,
 		}
 
-		var lastEvent RequestEvent
-		result := api.svc.db.Where("app_id = ?", userApp.ID).Order("id desc").Limit(1).Find(&lastEvent)
+		paySpecificPermission := AppPermission{}
+		result := api.svc.db.Where("app_id = ? AND request_method = ?", userApp.ID, "pay_invoice").Limit(1).Find(&paySpecificPermission)
 		if result.Error != nil {
-			api.svc.Logger.Errorf("Failed to fetch last event %v", result.Error)
-			return nil, errors.New("failed to fetch last event")
+			api.svc.Logger.Errorf("Failed to fetch pay invoice permission %v", result.Error)
+			return nil, errors.New("failed to fetch pay invoice permission")
 		}
 		if result.RowsAffected > 0 {
-			apiApp.LastEventAt = &lastEvent.CreatedAt
+			apiApp.MaxAmount = paySpecificPermission.MaxAmount
+			if apiApp.MaxAmount > 0 {
+				apiApp.BudgetUsage = api.svc.GetBudgetUsage(&paySpecificPermission)
+			}
 		}
 		apiApps = append(apiApps, apiApp)
 	}
@@ -303,14 +306,43 @@ func (api *API) GetMempoolLightningNode(pubkey string) (interface{}, error) {
 	return jsonContent, nil
 }
 
-func (api *API) GetInfo() *models.InfoResponse {
+func (api *API) GetInfo() (*models.InfoResponse, error) {
 	info := models.InfoResponse{}
 	backendType, _ := api.svc.cfg.Get("LNBackendType", "")
+	isMnemonicBackupDone, _ := api.svc.cfg.Get("IsMnemonicBackupDone", "")
 	unlockPasswordCheck, _ := api.svc.cfg.Get("UnlockPasswordCheck", "")
 	info.SetupCompleted = unlockPasswordCheck != ""
 	info.Running = api.svc.lnClient != nil
 	info.BackendType = backendType
-	return &info
+
+	var err error
+	parsedTime := time.Time{}
+	if isMnemonicBackupDone != "" {
+		parsedTime, err = time.Parse("2006-01-02 15:04:05", isMnemonicBackupDone)
+		if err != nil {
+			api.svc.Logger.Errorf("Error parsing time: %v", err)
+			return nil, err
+		}
+	}
+	currentTime := time.Now()
+	sixMonthsAgo := currentTime.AddDate(0, -6, 0)
+	info.IsMnemonicBackupDone = !(parsedTime.IsZero() || parsedTime.Before(sixMonthsAgo))
+
+	return &info, nil
+}
+
+func (api *API) GetMnemonic() *models.MnemonicResponse {
+	resp := models.MnemonicResponse{}
+	mnemonic, _ := api.svc.cfg.Get("Mnemonic", "")
+	resp.Mnemonic = mnemonic
+	return &resp
+}
+
+func (api *API) BackupMnemonic() error {
+	currentTime := time.Now()
+	timeString := currentTime.Format("2006-01-02 15:04:05")
+	api.svc.cfg.SetUpdate("IsMnemonicBackupDone", timeString, "")
+	return nil
 }
 
 func (api *API) Start(startRequest *models.StartRequest) error {
@@ -320,6 +352,8 @@ func (api *API) Start(startRequest *models.StartRequest) error {
 func (api *API) Setup(setupRequest *models.SetupRequest) error {
 	api.svc.cfg.SavePasswordCheck(setupRequest.UnlockPassword)
 
+	// update mnemonic check
+	api.svc.cfg.SetUpdate("IsMnemonicBackupDone", setupRequest.IsMnemonicBackupDone, "")
 	// only update non-empty values
 	if setupRequest.LNBackendType != "" {
 		api.svc.cfg.SetUpdate("LNBackendType", setupRequest.LNBackendType, "")

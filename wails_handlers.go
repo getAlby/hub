@@ -150,10 +150,31 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		}
 		return WailsRequestRouterResponse{Body: *nodeConnectionInfo, Error: ""}
 	case "/api/info":
-		infoResponse := app.api.GetInfo()
+		infoResponse, err := app.api.GetInfo()
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
 		infoResponse.Unlocked = infoResponse.Running
 		res := WailsRequestRouterResponse{Body: *infoResponse, Error: ""}
 		return res
+	case "/api/mnemonic":
+		switch method {
+		case "GET":
+			infoResponse := app.api.GetMnemonic()
+			res := WailsRequestRouterResponse{Body: *infoResponse, Error: ""}
+			return res
+		case "PATCH":
+			err := app.api.BackupMnemonic()
+			if err != nil {
+				app.svc.Logger.WithFields(logrus.Fields{
+					"route":  route,
+					"method": method,
+					"body":   body,
+				}).Errorf("Failed to backup mnemonic: %v", err)
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
+			return WailsRequestRouterResponse{Body: nil, Error: ""}
+		}
 	case "/api/start":
 		startRequest := &api.StartRequest{}
 		err := json.Unmarshal([]byte(body), startRequest)

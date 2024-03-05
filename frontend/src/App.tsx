@@ -28,6 +28,7 @@ import NewCustomChannel from "src/screens/channels/NewCustomChannel";
 import RecommendedChannels from "src/screens/channels/RecommendedChannels";
 import { SetupMnemonic } from "src/screens/setup/SetupMnemonic";
 import { SetupFinish } from "src/screens/setup/SetupFinish";
+import { Mnemonic } from "src/screens/Mnemonic";
 
 function App() {
   return (
@@ -54,6 +55,8 @@ function App() {
               <Route path="mnemonic" element={<SetupMnemonic />} />
               <Route path="finish" element={<SetupFinish />} />
             </Route>
+            {/* TODO: move this under settings later */}
+            <Route path="mnemonic" element={<Mnemonic />} />
             <Route path="apps" element={<AppsRedirect />}>
               <Route index path="" element={<AppsList />} />
               <Route path=":pubkey" element={<ShowApp />} />

@@ -50,6 +50,7 @@ type SetupRequest struct {
 	// Breez / Greenlight
 	Mnemonic             string `json:"mnemonic"`
 	GreenlightInviteCode string `json:"greenlightInviteCode"`
+	IsMnemonicBackupDone string `json:"isMnemonicBackupDone"`
 
 	// Breez fields
 	BreezAPIKey string `json:"breezApiKey"`
@@ -76,10 +77,15 @@ type User struct {
 }
 
 type InfoResponse struct {
-	BackendType    string `json:"backendType"`
-	SetupCompleted bool   `json:"setupCompleted"`
-	Running        bool   `json:"running"`
-	Unlocked       bool   `json:"unlocked"`
+	BackendType          string `json:"backendType"`
+	SetupCompleted       bool   `json:"setupCompleted"`
+	Running              bool   `json:"running"`
+	Unlocked             bool   `json:"unlocked"`
+	IsMnemonicBackupDone bool   `json:"isMnemonicBackupDone"`
+}
+
+type MnemonicResponse struct {
+	Mnemonic string `json:"mnemonic"`
 }
 
 type ConnectPeerRequest = lnclient.ConnectPeerRequest

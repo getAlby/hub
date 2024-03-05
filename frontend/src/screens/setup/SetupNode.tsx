@@ -1,4 +1,6 @@
 import React from "react";
+import * as bip39 from "@scure/bip39";
+import { wordlist } from "@scure/bip39/wordlists/english";
 import { useLocation, useNavigate } from "react-router-dom";
 import ConnectButton from "src/components/ConnectButton";
 import Container from "src/components/Container";
@@ -21,13 +23,16 @@ export function SetupNode() {
   async function handleSubmit(data: object) {
     setupStore.updateNodeInfo({
       backendType,
+      isMnemonicBackupDone: "0001-01-01 00:00:00",
+      ...(isNew && { mnemonic: bip39.generateMnemonic(wordlist, 128) }),
       ...data,
     });
     navigate(
-      backendType === "BREEZ" ||
-        backendType === "GREENLIGHT" ||
-        backendType === "LDK"
-        ? `/setup/mnemonic${isNew ? "?wallet=new" : ""}`
+      !isNew &&
+        (backendType === "BREEZ" ||
+          backendType === "GREENLIGHT" ||
+          backendType === "LDK")
+        ? `/setup/mnemonic`
         : `/setup/finish`
     );
   }
