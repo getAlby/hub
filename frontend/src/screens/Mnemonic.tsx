@@ -11,7 +11,7 @@ import ConnectButton from "src/components/ConnectButton";
 import Container from "src/components/Container";
 import Input from "src/components/Input";
 import PasswordViewAdornment from "src/components/PasswordAdornment";
-import { aesGcmDecrypt } from "src/utils/aes";
+import { aesGcmDecrypt } from "src/utils/aesgcm";
 import { useMnemonic } from "src/hooks/useMnemonic";
 import Loading from "src/components/Loading";
 import toast from "src/components/Toast";

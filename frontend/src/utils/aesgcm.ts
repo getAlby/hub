@@ -1,34 +1,40 @@
+import { hash } from "argon2-wasm-esm";
+
 async function deriveKey(
   password: string,
   salt?: Uint8Array
 ): Promise<[CryptoKey, Uint8Array]> {
   if (!salt) {
-    salt = new Uint8Array(32);
+    salt = new Uint8Array(16);
     window.crypto.getRandomValues(salt);
   }
 
-  const key = await window.crypto.subtle.importKey(
-    "raw",
-    new TextEncoder().encode(password),
-    { name: "PBKDF2" },
-    false,
-    ["deriveKey"]
-  );
+  const argon2Options = {
+    type: 1, // use Argon2i
+    hashLen: 32,
+    time: 3,
+    mem: 1024 * 32,
+    parallelism: 1,
+    salt: salt,
+    pass: password,
+  };
 
-  const derivedKey = await window.crypto.subtle.deriveKey(
-    {
-      name: "PBKDF2",
-      salt: salt,
-      iterations: 32000,
-      hash: "SHA-256",
-    },
-    key,
-    { name: "AES-GCM", length: 256 },
-    true,
-    ["encrypt", "decrypt"]
-  );
+  try {
+    const result = await hash(argon2Options);
 
-  return [derivedKey, salt];
+    const key = await window.crypto.subtle.importKey(
+      "raw",
+      result.hash,
+      { name: "AES-GCM" },
+      false,
+      ["encrypt", "decrypt"]
+    );
+
+    return [key, salt];
+  } catch (err) {
+    console.error(err);
+    throw new Error("Failed to derive key with Argon2");
+  }
 }
 
 export async function aesGcmEncrypt(

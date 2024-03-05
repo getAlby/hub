@@ -539,6 +539,11 @@ arg@^5.0.2:
   resolved "https://registry.npmjs.org/arg/-/arg-5.0.2.tgz"
   integrity sha512-PYjyFOLKQ9y57JvQ6QLo8dAgNqswh8M1RMJYdQduT6xbWSgK36P/Z/v+p888pM69jMMfS8Xd8F6I1kQ/I9HUGg==
 
+argon2-wasm-esm@^1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/argon2-wasm-esm/-/argon2-wasm-esm-1.0.3.tgz#cdd6602b00b78b6d4fe8bf3c966c4c705e683e21"
+  integrity sha512-tRwVl0LO0Tl4rJRwTAMy+PfA7cqZb6jGB2o5lIrPqF2PFJVeNILeo4zAdFgow+MvggDWsujrrbYo14+CWF0dmQ==
+
 argparse@^2.0.1:
   version "2.0.1"
   resolved "https://registry.npmjs.org/argparse/-/argparse-2.0.1.tgz"
