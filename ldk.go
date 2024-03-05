@@ -484,7 +484,7 @@ func (gs *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 	}
 
 	var expiresAt *int64
-	var createdAt int64 = time.Now().Unix()
+	var createdAt int64
 	var description string
 	var descriptionHash string
 	var bolt11Invoice string
