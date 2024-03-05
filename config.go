@@ -31,9 +31,11 @@ type AppConfig struct {
 	Port             string `envconfig:"PORT" default:"8080"`
 	DatabaseUri      string `envconfig:"DATABASE_URI" default:".data/nwc.db"`
 	CookieSecret     string `envconfig:"COOKIE_SECRET"`
+  LogLevel        string `envconfig:"LOG_LEVEL"`
 	LDKNetwork       string `envconfig:"LDK_NETWORK" default:"bitcoin"`
 	LDKEsploraServer string `envconfig:"LDK_ESPLORA_SERVER" default:"https://blockstream.info/api"`
 	LDKGossipSource  string `envconfig:"LDK_GOSSIP_SOURCE" default:"https://rapidsync.lightningdevkit.org/snapshot"`
+	LDKLogLevel     string `envconfig:"LDK_LOG_LEVEL"`
 }
 
 type Config struct {
