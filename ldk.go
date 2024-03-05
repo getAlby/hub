@@ -228,12 +228,16 @@ func (gs *LDKService) SendPaymentSync(ctx context.Context, payReq string) (preim
 }
 
 func (gs *LDKService) SendKeysend(ctx context.Context, amount int64, destination, preimage string, custom_records []lnclient.TLVRecord) (preImage string, err error) {
+	customTlvs := []ldk_node.TlvEntry{}
 
-	if len(custom_records) > 0 {
-		log.Printf("FIXME: TLVs not supported")
+	for _, customRecord := range custom_records {
+		customTlvs = append(customTlvs, ldk_node.TlvEntry{
+			Type:  customRecord.Type,
+			Value: []uint8(customRecord.Value),
+		})
 	}
 
-	paymentHash, err := gs.node.SendSpontaneousPayment(uint64(amount), destination)
+	paymentHash, err := gs.node.SendSpontaneousPayment(uint64(amount), destination, customTlvs)
 	if err != nil {
 		gs.svc.Logger.Errorf("Keysend failed: %v", err)
 		return "", err
