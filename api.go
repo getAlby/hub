@@ -309,24 +309,28 @@ func (api *API) GetMempoolLightningNode(pubkey string) (interface{}, error) {
 func (api *API) GetInfo() (*models.InfoResponse, error) {
 	info := models.InfoResponse{}
 	backendType, _ := api.svc.cfg.Get("LNBackendType", "")
-	isMnemonicBackupDone, _ := api.svc.cfg.Get("IsMnemonicBackupDone", "")
 	unlockPasswordCheck, _ := api.svc.cfg.Get("UnlockPasswordCheck", "")
 	info.SetupCompleted = unlockPasswordCheck != ""
 	info.Running = api.svc.lnClient != nil
 	info.BackendType = backendType
 
-	var err error
-	parsedTime := time.Time{}
-	if isMnemonicBackupDone != "" {
-		parsedTime, err = time.Parse("2006-01-02 15:04:05", isMnemonicBackupDone)
-		if err != nil {
-			api.svc.Logger.Errorf("Error parsing time: %v", err)
-			return nil, err
+	if info.BackendType == LNDBackendType {
+		info.IsMnemonicBackupDone = true // because otherwise it shows the popup
+	} else {
+		isMnemonicBackupDone, _ := api.svc.cfg.Get("IsMnemonicBackupDone", "")
+		var err error
+		parsedTime := time.Time{}
+		if isMnemonicBackupDone != "" {
+			parsedTime, err = time.Parse("2006-01-02 15:04:05", isMnemonicBackupDone)
+			if err != nil {
+				api.svc.Logger.Errorf("Error parsing time: %v", err)
+				return nil, err
+			}
 		}
+		currentTime := time.Now()
+		sixMonthsAgo := currentTime.AddDate(0, -6, 0)
+		info.IsMnemonicBackupDone = !(parsedTime.IsZero() || parsedTime.Before(sixMonthsAgo))
 	}
-	currentTime := time.Now()
-	sixMonthsAgo := currentTime.AddDate(0, -6, 0)
-	info.IsMnemonicBackupDone = !(parsedTime.IsZero() || parsedTime.Before(sixMonthsAgo))
 
 	return &info, nil
 }
