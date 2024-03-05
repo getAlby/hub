@@ -43,7 +43,12 @@ func (svc *Service) HandleListTransactionsEvent(ctx context.Context, request *Ni
 		"appId":   app.ID,
 	}).Info("Fetching transactions")
 
-	transactions, err := svc.lnClient.ListTransactions(ctx, listParams.From, listParams.Until, listParams.Limit, listParams.Offset, listParams.Unpaid, listParams.Type)
+	limit := listParams.Limit
+	if limit == 0 {
+		// make sure a sensible limit is passed
+		limit = 100
+	}
+	transactions, err := svc.lnClient.ListTransactions(ctx, listParams.From, listParams.Until, limit, listParams.Offset, listParams.Unpaid, listParams.Type)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
 			// TODO: log request fields from listParams
