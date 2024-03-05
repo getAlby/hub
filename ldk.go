@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"sync"
 	"time"
@@ -317,6 +318,7 @@ func (gs *LDKService) LookupInvoice(ctx context.Context, paymentHash string) (tr
 func (gs *LDKService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []Nip47Transaction, err error) {
 	transactions = []Nip47Transaction{}
 
+	// TODO: support pagination
 	payments := gs.node.ListPayments()
 
 	for _, payment := range payments {
@@ -326,9 +328,12 @@ func (gs *LDKService) ListTransactions(ctx context.Context, from, until, limit, 
 	}
 
 	// sort by created date descending
-	/*sort.SliceStable(transactions, func(i, j int) bool {
+	sort.SliceStable(transactions, func(i, j int) bool {
 		return transactions[i].CreatedAt > transactions[j].CreatedAt
-	})*/
+	})
+
+	// locally limit for now
+	transactions = transactions[:limit]
 
 	return transactions, nil
 }
