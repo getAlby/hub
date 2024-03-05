@@ -46,7 +46,7 @@ func (svc *Service) HandleListTransactionsEvent(ctx context.Context, request *Ni
 	limit := listParams.Limit
 	if limit == 0 {
 		// make sure a sensible limit is passed
-		limit = 100
+		limit = 50
 	}
 	transactions, err := svc.lnClient.ListTransactions(ctx, listParams.From, listParams.Until, limit, listParams.Offset, listParams.Unpaid, listParams.Type)
 	if err != nil {
