@@ -513,8 +513,7 @@ func (gs *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 			preimage = *payment.Preimage
 		}
 		// TODO: use payment settle time
-		now := time.Now().Unix()
-		settledAt = &now
+		settledAt = &createdAt
 	}
 
 	var amount uint64 = 0
