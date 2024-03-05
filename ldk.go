@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -297,7 +298,7 @@ func (gs *LDKService) MakeInvoice(ctx context.Context, amount int64, description
 		Invoice:         invoice,
 		PaymentHash:     paymentRequest.PaymentHash,
 		Amount:          amount,
-		CreatedAt:       time.Now().Unix(),
+		CreatedAt:       int64(paymentRequest.CreatedAt),
 		ExpiresAt:       expiresAt,
 		Description:     description,
 		DescriptionHash: descriptionHash,
@@ -314,7 +315,12 @@ func (gs *LDKService) LookupInvoice(ctx context.Context, paymentHash string) (tr
 		return nil, errors.New("Payment not found")
 	}
 
-	transaction = ldkPaymentToTransaction(payment)
+	transaction, err = gs.ldkPaymentToTransaction(payment)
+
+	if err != nil {
+		gs.svc.Logger.Errorf("Failed to map transaction: %v", err)
+		return nil, err
+	}
 
 	return transaction, nil
 }
@@ -327,7 +333,14 @@ func (gs *LDKService) ListTransactions(ctx context.Context, from, until, limit, 
 
 	for _, payment := range payments {
 		if payment.Status == ldk_node.PaymentStatusSucceeded {
-			transactions = append(transactions, *ldkPaymentToTransaction(&payment))
+			transaction, err := gs.ldkPaymentToTransaction(&payment)
+
+			if err != nil {
+				gs.svc.Logger.Errorf("Failed to map transaction: %v", err)
+				continue
+			}
+
+			transactions = append(transactions, *transaction)
 		}
 	}
 
@@ -464,10 +477,32 @@ func (gs *LDKService) GetOnchainBalance(ctx context.Context) (int64, error) {
 	return int64(balances.SpendableOnchainBalanceSats), nil
 }
 
-func ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) *Nip47Transaction {
+func (gs *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) (*Nip47Transaction, error) {
 	transactionType := "incoming"
 	if payment.Direction == ldk_node.PaymentDirectionOutbound {
 		transactionType = "outgoing"
+	}
+
+	var expiresAt *int64
+	var createdAt int64 = time.Now().Unix()
+	var description string
+	var descriptionHash string
+	var bolt11Invoice string
+	if payment.Bolt11Invoice != nil {
+		bolt11Invoice = *payment.Bolt11Invoice
+		paymentRequest, err := decodepay.Decodepay(strings.ToLower(bolt11Invoice))
+		if err != nil {
+			gs.svc.Logger.WithFields(logrus.Fields{
+				"bolt11": bolt11Invoice,
+			}).Errorf("Failed to decode bolt11 invoice: %v", err)
+
+			return nil, err
+		}
+		createdAt = int64(paymentRequest.CreatedAt)
+		expiresAtUnix := time.UnixMilli(int64(paymentRequest.CreatedAt) * 1000).Add(time.Duration(paymentRequest.Expiry) * time.Second).Unix()
+		expiresAt = &expiresAtUnix
+		description = paymentRequest.Description
+		descriptionHash = paymentRequest.DescriptionHash
 	}
 
 	preimage := ""
@@ -488,12 +523,16 @@ func ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) *Nip47Transaction
 	}
 
 	return &Nip47Transaction{
-		Type: transactionType,
-		// TODO: get bolt11 invoice from payment
-		//Invoice: payment.,
+		Type:        transactionType,
 		Preimage:    preimage,
 		PaymentHash: payment.Hash,
 		SettledAt:   settledAt,
 		Amount:      int64(amount),
-	}
+		Invoice:     bolt11Invoice,
+		//FeesPaid:        payment.FeeMsat,
+		CreatedAt:       createdAt,
+		Description:     description,
+		DescriptionHash: descriptionHash,
+		ExpiresAt:       expiresAt,
+	}, nil
 }
