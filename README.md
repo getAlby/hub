@@ -248,6 +248,16 @@ Run NWC on your own node!
 
 - run `fly deploy`
 
+#### View logs
+
+Main application logs
+
+- `fly logs`
+
+LDK logs:
+
+- `fly machine exec "tail -100 data/ldk/logs/ldk_node_latest.log"`
+
 ### Custom Ubuntu VM
 
 - install go (using snap)
