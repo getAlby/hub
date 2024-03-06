@@ -10,7 +10,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/getAlby/ldk-node-go/ldk_node"
@@ -20,12 +19,12 @@ import (
 )
 
 type LDKService struct {
-	svc                       *Service
-	workdir                   string
-	node                      *ldk_node.LdkNode
-	cancelLdkEventListenerCtx context.CancelFunc
-	subscribeLdkEvents        func() chan ldk_node.Event
-	unsubscribeLdkEvents      func(chan ldk_node.Event)
+	svc                 *Service
+	workdir             string
+	node                *ldk_node.LdkNode
+	ldkEventBroadcaster LDKEventBroadcaster
+	ctx                 context.Context
+	cancel              context.CancelFunc
 }
 
 func NewLDKService(svc *Service, mnemonic, workDir string, network string, esploraServer string, gossipSource string) (result lnclient.LNClient, err error) {
@@ -72,43 +71,14 @@ func NewLDKService(svc *Service, mnemonic, workDir string, network string, esplo
 		return nil, err
 	}
 
-	// TODO: move this event handler code
-	ldkEventListenerCtx, cancelLdkEventListenerCtx := context.WithCancel(context.Background())
-	ldkEventHandlers := []chan ldk_node.Event{}
-	var ldkEventHandlersMutex sync.Mutex
+	ldkEventConsumer := make(chan *ldk_node.Event)
+	ctx, cancel := context.WithCancel(svc.ctx)
 
-	subscribeLdkEvents := func() chan ldk_node.Event {
-		ldkEventHandler := make(chan ldk_node.Event)
-		svc.Logger.Debugf("Locking event handler mutex")
-		ldkEventHandlersMutex.Lock()
-		svc.Logger.Debugf("Locked event handler mutex")
-		ldkEventHandlers = append(ldkEventHandlers, ldkEventHandler)
-		ldkEventHandlersMutex.Unlock()
-		svc.Logger.Debugf("Unlocked event handler mutex")
-		return ldkEventHandler
-	}
-
-	unsubscribeLdkEvents := func(eventHandler chan ldk_node.Event) {
-		svc.Logger.Debugf("Locking event handler mutex")
-		ldkEventHandlersMutex.Lock()
-		svc.Logger.Debugf("Locked event handler mutex")
-		for i := 0; i < len(ldkEventHandlers); i++ {
-			if eventHandler == ldkEventHandlers[i] {
-				// Replace the element to be removed with the last element of the slice
-				ldkEventHandlers[i] = ldkEventHandlers[len(ldkEventHandlers)-1]
-				// Slice off the last element
-				ldkEventHandlers = ldkEventHandlers[:len(ldkEventHandlers)-1]
-				break
-			}
-		}
-		ldkEventHandlersMutex.Unlock()
-		svc.Logger.Debugf("Unlocked event handler mutex")
-	}
-
+	// check for and forward new LDK events to LDKEventBroadcaster (through ldkEventConsumer)
 	go func() {
 		for {
 			select {
-			case <-ldkEventListenerCtx.Done():
+			case <-ctx.Done():
 				return
 			default:
 				// NOTE: do not use WaitNextEvent() as it can block the LDK thread
@@ -117,15 +87,9 @@ func NewLDKService(svc *Service, mnemonic, workDir string, network string, esplo
 					time.Sleep(time.Duration(1) * time.Millisecond)
 					continue
 				}
-				svc.Logger.Debugf("Locking event handler mutex")
-				ldkEventHandlersMutex.Lock()
-				svc.Logger.Debugf("Locked event handler mutex")
-				svc.Logger.Infof("Received LDK event %+v (%d listeners)", *event, len(ldkEventHandlers))
-				for _, eventHandler := range ldkEventHandlers {
-					eventHandler <- *event
-				}
-				ldkEventHandlersMutex.Unlock()
-				svc.Logger.Debugf("Unlocked event handler mutex")
+
+				svc.Logger.Infof("Received LDK event %+v", *event)
+				ldkEventConsumer <- event
 
 				node.EventHandled()
 			}
@@ -136,10 +100,10 @@ func NewLDKService(svc *Service, mnemonic, workDir string, network string, esplo
 		workdir: newpath,
 		node:    node,
 		//listener: &listener,
-		svc:                       svc,
-		cancelLdkEventListenerCtx: cancelLdkEventListenerCtx,
-		subscribeLdkEvents:        subscribeLdkEvents,
-		unsubscribeLdkEvents:      unsubscribeLdkEvents,
+		svc:                 svc,
+		ctx:                 ctx,
+		cancel:              cancel,
+		ldkEventBroadcaster: NewLDKEventBroadcaster(svc.Logger, ctx, ldkEventConsumer),
 	}
 
 	nodeId := node.NodeId()
@@ -155,7 +119,7 @@ func NewLDKService(svc *Service, mnemonic, workDir string, network string, esplo
 
 func (gs *LDKService) Shutdown() error {
 	gs.svc.Logger.Infof("shutting down LDK client")
-	gs.cancelLdkEventListenerCtx()
+	gs.cancel()
 	gs.node.Destroy()
 
 	return nil
@@ -163,8 +127,8 @@ func (gs *LDKService) Shutdown() error {
 
 func (gs *LDKService) SendPaymentSync(ctx context.Context, payReq string) (preimage string, err error) {
 	paymentStart := time.Now()
-	eventListener := gs.subscribeLdkEvents()
-	defer gs.unsubscribeLdkEvents(eventListener)
+	ldkEventSubscription := gs.ldkEventBroadcaster.Subscribe()
+	defer gs.ldkEventBroadcaster.CancelSubscription(ldkEventSubscription)
 
 	paymentHash, err := gs.node.SendPayment(payReq)
 	if err != nil {
@@ -173,10 +137,10 @@ func (gs *LDKService) SendPaymentSync(ctx context.Context, payReq string) (preim
 	}
 
 	for start := time.Now(); time.Since(start) < time.Second*60; {
-		event := <-eventListener
+		event := <-ldkEventSubscription
 
-		eventPaymentSuccessful, isEventPaymentSuccessfulEvent := event.(ldk_node.EventPaymentSuccessful)
-		eventPaymentFailed, isEventPaymentFailedEvent := event.(ldk_node.EventPaymentFailed)
+		eventPaymentSuccessful, isEventPaymentSuccessfulEvent := (*event).(ldk_node.EventPaymentSuccessful)
+		eventPaymentFailed, isEventPaymentFailedEvent := (*event).(ldk_node.EventPaymentFailed)
 
 		if isEventPaymentSuccessfulEvent && eventPaymentSuccessful.PaymentHash == paymentHash {
 			gs.svc.Logger.Infof("Got payment success event")
@@ -432,8 +396,8 @@ func (gs *LDKService) OpenChannel(ctx context.Context, openChannelRequest *lncli
 		return nil, errors.New("node is not peered yet")
 	}
 
-	eventListener := gs.subscribeLdkEvents()
-	defer gs.unsubscribeLdkEvents(eventListener)
+	ldkEventSubscription := gs.ldkEventBroadcaster.Subscribe()
+	defer gs.ldkEventBroadcaster.CancelSubscription(ldkEventSubscription)
 
 	gs.svc.Logger.Infof("Opening channel with: %v", foundPeer.NodeId)
 	userChannelId, err := gs.node.ConnectOpenChannel(foundPeer.NodeId, foundPeer.Address, uint64(openChannelRequest.Amount), nil, nil, openChannelRequest.Public)
@@ -446,9 +410,9 @@ func (gs *LDKService) OpenChannel(ctx context.Context, openChannelRequest *lncli
 	gs.svc.Logger.Infof("Funded channel: %v", userChannelId)
 
 	for start := time.Now(); time.Since(start) < time.Second*60; {
-		event := <-eventListener
+		event := <-ldkEventSubscription
 
-		channelPendingEvent, isChannelPendingEvent := event.(ldk_node.EventChannelPending)
+		channelPendingEvent, isChannelPendingEvent := (*event).(ldk_node.EventChannelPending)
 
 		if !isChannelPendingEvent {
 			continue
