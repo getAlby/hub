@@ -86,6 +86,9 @@ type ConnectPeerRequest = lnclient.ConnectPeerRequest
 type OpenChannelRequest = lnclient.OpenChannelRequest
 type OpenChannelResponse = lnclient.OpenChannelResponse
 
+type CloseChannelRequest = lnclient.CloseChannelRequest
+type CloseChannelResponse = lnclient.CloseChannelResponse
+
 type NewOnchainAddressResponse struct {
 	Address string `json:"address"`
 }
