@@ -369,6 +369,7 @@ func (gs *LDKService) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, err
 func (gs *LDKService) ListChannels(ctx context.Context) ([]lnclient.Channel, error) {
 
 	ldkChannels := gs.node.ListChannels()
+
 	channels := []lnclient.Channel{}
 
 	for _, ldkChannel := range ldkChannels {
@@ -376,8 +377,8 @@ func (gs *LDKService) ListChannels(ctx context.Context) ([]lnclient.Channel, err
 			LocalBalance:  int64(ldkChannel.OutboundCapacityMsat),
 			RemoteBalance: int64(ldkChannel.InboundCapacityMsat),
 			RemotePubkey:  ldkChannel.CounterpartyNodeId,
-			Id:            ldkChannel.ChannelId,
-			Active:        ldkChannel.IsChannelReady && ldkChannel.IsUsable, // TODO: confirm
+			Id:            ldkChannel.UserChannelId, // CloseChannel takes the UserChannelId
+			Active:        ldkChannel.IsUsable,      // superset of ldkChannel.IsReady
 		})
 	}
 
@@ -463,6 +464,7 @@ func (gs *LDKService) OpenChannel(ctx context.Context, openChannelRequest *lncli
 }
 
 func (gs *LDKService) CloseChannel(ctx context.Context, closeChannelRequest *lnclient.CloseChannelRequest) (*lnclient.CloseChannelResponse, error) {
+	gs.svc.Logger.Infof("Closing Channel: %+v", *closeChannelRequest)
 	err := gs.node.CloseChannel(closeChannelRequest.ChannelId, closeChannelRequest.NodeId)
 	if err != nil {
 		gs.svc.Logger.Errorf("CloseChannel failed: %v", err)
