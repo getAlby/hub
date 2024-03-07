@@ -350,7 +350,9 @@ func (gs *LDKService) ListTransactions(ctx context.Context, from, until, limit, 
 	})
 
 	// locally limit for now
-	transactions = transactions[:limit]
+	if len(transactions) > int(limit) {
+		transactions = transactions[:limit]
+	}
 
 	return transactions, nil
 }
