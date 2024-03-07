@@ -82,7 +82,8 @@ type OpenChannelResponse struct {
 }
 
 type CloseChannelRequest struct {
-	Id string `json:"pubkey"`
+	ChannelId string `json:"channelId"`
+	NodeId    string `json:"nodeId"`
 }
 
 type CloseChannelResponse struct {

@@ -463,7 +463,12 @@ func (gs *LDKService) OpenChannel(ctx context.Context, openChannelRequest *lncli
 }
 
 func (gs *LDKService) CloseChannel(ctx context.Context, closeChannelRequest *lnclient.CloseChannelRequest) (*lnclient.CloseChannelResponse, error) {
-	return nil, nil
+	err := gs.node.CloseChannel(closeChannelRequest.ChannelId, closeChannelRequest.NodeId)
+	if err != nil {
+		gs.svc.Logger.Errorf("CloseChannel failed: %v", err)
+		return nil, err
+	}
+	return &lnclient.CloseChannelResponse{}, nil
 }
 
 func (gs *LDKService) GetNewOnchainAddress(ctx context.Context) (string, error) {
