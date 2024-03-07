@@ -23,7 +23,6 @@ type LDKService struct {
 	workdir             string
 	node                *ldk_node.LdkNode
 	ldkEventBroadcaster LDKEventBroadcaster
-	ctx                 context.Context
 	cancel              context.CancelFunc
 }
 
@@ -101,7 +100,6 @@ func NewLDKService(svc *Service, mnemonic, workDir string, network string, esplo
 		node:    node,
 		//listener: &listener,
 		svc:                 svc,
-		ctx:                 ctx,
 		cancel:              cancel,
 		ldkEventBroadcaster: NewLDKEventBroadcaster(svc.Logger, ctx, ldkEventConsumer),
 	}
