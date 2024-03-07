@@ -18,8 +18,8 @@ type ldkEventBroadcastServer struct {
 }
 
 type LDKEventBroadcaster interface {
-	Subscribe() <-chan *ldk_node.Event
-	CancelSubscription(<-chan *ldk_node.Event)
+	Subscribe() chan *ldk_node.Event
+	CancelSubscription(chan *ldk_node.Event)
 }
 
 func NewLDKEventBroadcaster(logger *logrus.Logger, ctx context.Context, source <-chan *ldk_node.Event) LDKEventBroadcaster {
@@ -34,13 +34,26 @@ func NewLDKEventBroadcaster(logger *logrus.Logger, ctx context.Context, source <
 	return service
 }
 
-func (s *ldkEventBroadcastServer) Subscribe() <-chan *ldk_node.Event {
+func (s *ldkEventBroadcastServer) Subscribe() chan *ldk_node.Event {
 	newListener := make(chan *ldk_node.Event)
 	s.addListener <- newListener
 	return newListener
 }
 
-func (s *ldkEventBroadcastServer) CancelSubscription(channel <-chan *ldk_node.Event) {
+func (s *ldkEventBroadcastServer) CancelSubscription(channel chan *ldk_node.Event) {
+	close(channel)
+	// make sure the channel is drained after closing it
+out:
+	for {
+		select {
+		case _, ok := <-channel:
+			if !ok {
+				break out
+			}
+		default:
+			break out
+		}
+	}
 	s.removeListener <- channel
 }
 
@@ -64,13 +77,21 @@ func (s *ldkEventBroadcastServer) serve(ctx context.Context) {
 				if listener == listenerToRemove {
 					s.listeners[i] = s.listeners[len(s.listeners)-1]
 					s.listeners = slices.Delete(s.listeners, len(s.listeners)-1, len(s.listeners))
-					close(listener)
 					break
 				}
 			}
 		case event := <-s.source:
+			s.logger.Debugf("Sending LDK event +%v to %d listeners", *event, len(s.listeners))
 			for _, listener := range s.listeners {
-				listener <- event
+				func() {
+					// if we fail to send the event to the listener it was probably closed
+					defer func() {
+						if r := recover(); r != nil {
+							s.logger.Errorf("Failed to send event to listener: %v", r)
+						}
+					}()
+					listener <- event
+				}()
 			}
 		}
 	}
