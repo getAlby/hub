@@ -8,7 +8,7 @@ import { request } from "src/utils/request";
 import { useCSRF } from "../../hooks/useCSRF.ts";
 
 export default function Channels() {
-  const { data: channels } = useChannels();
+  const { data: channels, mutate: reloadChannels } = useChannels();
   const { data: onchainBalance } = useOnchainBalance();
   const [nodes, setNodes] = React.useState<Node[]>([]);
   const { data: info } = useInfo();
@@ -100,6 +100,8 @@ export default function Channels() {
       if (!closeChannelResponse) {
         throw new Error("Error closing channel");
       }
+
+      await reloadChannels();
 
       alert(`🎉 Channel closed`);
     } catch (error) {
