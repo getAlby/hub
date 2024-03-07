@@ -44,7 +44,6 @@ export default function Channels() {
     loadNodeStats();
   }, [loadNodeStats]);
 
-  const loading = !channels || !onchainBalance;
   const lightningBalance = channels
     ?.map((channel) => channel.localBalance)
     .reduce((a, b) => a + b, 0);
@@ -64,14 +63,14 @@ export default function Channels() {
                 Total number of channels
               </div>
               <div className="text-lg font-semibold text-gray-700 dark:text-gray-200">
-                {loading && (
+                {!channels && (
                   <div>
                     <div className="animate-pulse d-inline ">
                       <div className="h-2.5 bg-gray-200 rounded-full dark:bg-gray-700 w-12 my-2"></div>
                     </div>
                   </div>
                 )}
-                {!loading && channels.length}
+                {channels && channels.length}
               </div>
             </div>
           </div>
@@ -175,7 +174,7 @@ export default function Channels() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
-                  {loading && (
+                  {!channels && (
                     <tr>
                       <td colSpan={6} className="text-center p-5">
                         <div
@@ -190,7 +189,7 @@ export default function Channels() {
                       </td>
                     </tr>
                   )}
-                  {!loading && channels && channels.length > 0 && (
+                  {channels && channels.length > 0 && (
                     <>
                       {channels.map((channel) => {
                         // const localMaxPercentage =

@@ -194,10 +194,6 @@ func (bs *BreezService) LookupInvoice(ctx context.Context, paymentHash string) (
 func (bs *BreezService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []Nip47Transaction, err error) {
 
 	request := breez_sdk.ListPaymentsRequest{}
-	if limit == 0 {
-		// make sure a sensible limit is passed
-		limit = 100
-	}
 	if limit > 0 {
 		limit32 := uint32(limit)
 		request.Limit = &limit32

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"slices"
+	"strconv"
 	"sync"
 	"time"
 
@@ -50,7 +51,11 @@ func NewService(ctx context.Context) (*Service, error) {
 	logger := logrus.New()
 	logger.SetFormatter(&logrus.JSONFormatter{})
 	logger.SetOutput(os.Stdout)
-	logger.SetLevel(logrus.InfoLevel)
+	logLevel, err := strconv.Atoi(appConfig.LogLevel)
+	if err != nil {
+		logLevel = int(logrus.InfoLevel)
+	}
+	logger.SetLevel(logrus.Level(logLevel))
 
 	// make sure workdir exists
 	os.MkdirAll(appConfig.Workdir, os.ModePerm)
@@ -138,7 +143,7 @@ func (svc *Service) launchLNBackend(encryptionKey string) error {
 		Mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
 		LDKWorkdir := path.Join(svc.cfg.Env.Workdir, "ldk")
 
-		lnClient, err = NewLDKService(svc, Mnemonic, LDKWorkdir)
+		lnClient, err = NewLDKService(svc, Mnemonic, LDKWorkdir, svc.cfg.Env.LDKNetwork, svc.cfg.Env.LDKEsploraServer, svc.cfg.Env.LDKGossipSource)
 	case GreenlightBackendType:
 		Mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
 		GreenlightInviteCode, _ := svc.cfg.Get("GreenlightInviteCode", encryptionKey)

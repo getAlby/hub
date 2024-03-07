@@ -2,8 +2,8 @@
 
 This is a self-sovereign, self-custodial, single-user rewrite of NWC currently in an experimental phase development. **❗This version is not backwards compatible with NWC - it requires a fresh database and connections to be re-added**
 
-This application allows you to control your Lightning node or wallet over Nostr.
-Connect applications like [Damus](https://damus.io/) or [Amethyst](https://linktr.ee/amethyst.social) to your node. There are many more apps available on https://nwc.dev/.
+This application allows you to control your Lightning node or wallet from any other application that supports [NWC](https://nwc.dev/).
+Connect apps like [Damus](https://damus.io/) or [Amethyst](https://linktr.ee/amethyst.social) to your node. There are many more available on https://nwc.dev/.
 
 **Specification**: [NIP-47](https://github.com/nostr-protocol/nips/blob/master/47.md)
 
@@ -102,6 +102,7 @@ Breez SDK requires gcc to build the Breez bindings. Run `choco install mingw` an
 - `DATABASE_URI`: a sqlite filename. Default: .data/nwc.db
 - `PORT`: the port on which the app should listen on (default: 8080)
 - `WORK_DIR`: directory to store NWC data files. Default: .data
+- `LOG_LEVEL`: log level for the application. Higher is more verbose. Default: 4 (info)
 
 ### LND Backend parameters
 
@@ -247,6 +248,16 @@ Run NWC on your own node!
 
 - run `fly deploy`
 
+#### View logs
+
+Main application logs
+
+- `fly logs`
+
+LDK logs:
+
+- `fly machine exec "tail -100 data/ldk/logs/ldk_node_latest.log"`
+
 ### Custom Ubuntu VM
 
 - install go (using snap)
@@ -259,6 +270,10 @@ Run NWC on your own node!
 
 ### Docker
 
-`docker build . -t nwc-local --progress=plain`
+#### From Alby's Container Registry
 
-`docker run --env-file .env -p 8080:8080 nwc-local`
+`docker run -p 8080:8080 ghcr.io/getalby/nostr-wallet-connect-next:latest`
+
+#### From Source
+
+`docker run -p 8080:8080 $(docker build -q .)`
