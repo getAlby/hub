@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/sirupsen/logrus"
 )
@@ -44,7 +43,7 @@ func (svc *Service) HandleGetBalanceEvent(ctx context.Context, request *Nip47Req
 			ResultType: request.Method,
 			Error: &Nip47Error{
 				Code:    NIP_47_ERROR_INTERNAL,
-				Message: fmt.Sprintf("Something went wrong while fetching balance: %s", err.Error()),
+				Message: err.Error(),
 			},
 		}, nil
 	}

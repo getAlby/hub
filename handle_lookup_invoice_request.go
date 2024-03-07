@@ -81,7 +81,7 @@ func (svc *Service) HandleLookupInvoiceEvent(ctx context.Context, request *Nip47
 			ResultType: request.Method,
 			Error: &Nip47Error{
 				Code:    NIP_47_ERROR_INTERNAL,
-				Message: fmt.Sprintf("Something went wrong while looking up invoice: %s", err.Error()),
+				Message: err.Error(),
 			},
 		}, nil
 	}
