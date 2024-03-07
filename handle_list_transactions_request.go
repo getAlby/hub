@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/sirupsen/logrus"
 )
@@ -60,7 +59,7 @@ func (svc *Service) HandleListTransactionsEvent(ctx context.Context, request *Ni
 			ResultType: request.Method,
 			Error: &Nip47Error{
 				Code:    NIP_47_ERROR_INTERNAL,
-				Message: fmt.Sprintf("Something went wrong while fetching transactions: %s", err.Error()),
+				Message: err.Error(),
 			},
 		}, nil
 	}
