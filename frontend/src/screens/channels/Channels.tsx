@@ -3,13 +3,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
 import { useOnchainBalance } from "src/hooks/useOnchainBalance";
-import {
-  CloseChannelRequest,
-  CloseChannelResponse,
-  Node,
-} from "src/types";
+import { CloseChannelRequest, CloseChannelResponse, Node } from "src/types";
 import { request } from "src/utils/request";
-import {useCSRF} from "../../hooks/useCSRF.ts";
+import { useCSRF } from "../../hooks/useCSRF.ts";
 
 export default function Channels() {
   const { data: channels } = useChannels();
@@ -54,15 +50,31 @@ export default function Channels() {
     ?.map((channel) => channel.localBalance)
     .reduce((a, b) => a + b, 0);
 
-  async function closeChannel(channelId: string, nodeId: string) {
+  async function closeChannel(
+    channelId: string,
+    nodeId: string,
+    isActive: boolean
+  ) {
     try {
       if (!csrf) {
         throw new Error("csrf not loaded");
       }
-      if (
+      if (!isActive) {
+        if (
           !confirm(
-              `Are you sure you want to close channel with ${nodeId}?`
+            `This channel is inactive. Some channels require up to 6 onchain confirmations before they are usable. If you really want to continue, click OK.`
           )
+        ) {
+          return;
+        }
+      }
+      if (
+        !confirm(
+          `Are you sure you want to close the channel with ${
+            nodes.find((node) => node.public_key === nodeId)?.alias ||
+            "Unknown Node"
+          }?\n\nNode ID: ${nodeId}\n\nChannel ID: ${channelId}`
+        )
       ) {
         return;
       }
@@ -71,18 +83,18 @@ export default function Channels() {
 
       const closeChannelRequest: CloseChannelRequest = {
         channelId: channelId,
-        nodeId: nodeId
+        nodeId: nodeId,
       };
       const closeChannelResponse = await request<CloseChannelResponse>(
-          "/api/channels/close",
-          {
-            method: "POST",
-            headers: {
-              "X-CSRF-Token": csrf,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(closeChannelRequest),
-          }
+        "/api/channels/close",
+        {
+          method: "POST",
+          headers: {
+            "X-CSRF-Token": csrf,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(closeChannelRequest),
+        }
       );
 
       if (!closeChannelResponse) {
@@ -93,7 +105,6 @@ export default function Channels() {
     } catch (error) {
       console.error(error);
       alert("Something went wrong: " + error);
-    } finally {
     }
   }
 
@@ -301,16 +312,23 @@ export default function Channels() {
                             </td>
                             <td>
                               <button
-                                  onClick={() => closeChannel(channel.id, channel.remotePubkey)}
-                              > {channel.active ? `❌` : ""}{" "}</button>
+                                onClick={() =>
+                                  closeChannel(
+                                    channel.id,
+                                    channel.remotePubkey,
+                                    channel.active
+                                  )
+                                }
+                              >
+                                ❌
+                              </button>
                             </td>
                           </tr>
-                      );
+                        );
                       })}
-                      </>
-                      )
-                      }
-                        </tbody>
+                    </>
+                  )}
+                </tbody>
               </table>
             </div>
           </div>
