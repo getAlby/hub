@@ -183,6 +183,7 @@ func (gs *LDKService) SendPaymentSync(ctx context.Context, payReq string) (preim
 		}
 	}
 	if preimage == "" {
+		// TODO: this doesn't necessarily mean it will fail - we should return a different response
 		return "", errors.New("Payment timed out")
 	}
 
