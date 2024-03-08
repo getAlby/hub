@@ -227,10 +227,10 @@ github.com/frankban/quicktest v1.13.0/go.mod h1:qLE0fzW0VuyUAJgPU19zByoIr0HtCHN/
 github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMoQvtojpjFo=
 github.com/fsnotify/fsnotify v1.4.9 h1:hsms1Qyu0jgnwNXIxa+/V/PDsU6CfLf6CNO8H7IWoS4=
 github.com/fsnotify/fsnotify v1.4.9/go.mod h1:znqG4EE+3YCdAaPaxE2ZRY/06pZUdp0tY4IgpuI1SZQ=
-github.com/getAlby/glalby-go v0.0.0-20240305115032-de77adfd67c1 h1:RF76EWDgukygUZR4nhBLCbN1gBTn6x47KJRpIydDHGw=
-github.com/getAlby/glalby-go v0.0.0-20240305115032-de77adfd67c1/go.mod h1:ViyJvjlvv0GCesTJ7mb3fBo4G+/qsujDAFN90xZ7a9U=
-github.com/getAlby/ldk-node-go v0.0.0-20240306112940-da4da77651d8 h1:jBHPI3pGnAC3MITXaOQhjpr8eqHiKmYiftUnf1yQfSM=
-github.com/getAlby/ldk-node-go v0.0.0-20240306112940-da4da77651d8/go.mod h1:8BRjtKcz8E0RyYTPEbMS8VIdgredcGSLne8vHDtcRLg=
+github.com/getAlby/glalby-go v0.0.0-20240307093106-aab6d05591b4 h1:Kzx3NNzSGtMwo9+YdvzG6ISwFq7TmqGBhz3pXnBZ4X0=
+github.com/getAlby/glalby-go v0.0.0-20240307093106-aab6d05591b4/go.mod h1:ViyJvjlvv0GCesTJ7mb3fBo4G+/qsujDAFN90xZ7a9U=
+github.com/getAlby/ldk-node-go v0.0.0-20240307093012-74bfe9fd6146 h1:t+hp3xxy7BzQF0Guvu6L9AsHLa509MHXsjt/PhK+684=
+github.com/getAlby/ldk-node-go v0.0.0-20240307093012-74bfe9fd6146/go.mod h1:8BRjtKcz8E0RyYTPEbMS8VIdgredcGSLne8vHDtcRLg=
 github.com/getsentry/raven-go v0.2.0 h1:no+xWJRb5ZI7eE8TWgIq1jLulQiIoLG0IfYxv5JYMGs=
 github.com/getsentry/raven-go v0.2.0/go.mod h1:KungGk8q33+aIAZUIVWZDr2OfAEBsO49PX4NzFV5kcQ=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
