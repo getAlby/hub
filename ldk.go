@@ -336,6 +336,8 @@ func (gs *LDKService) ListChannels(ctx context.Context) ([]lnclient.Channel, err
 
 	channels := []lnclient.Channel{}
 
+	gs.svc.Logger.Debugf("Channels: %+v", ldkChannels)
+
 	for _, ldkChannel := range ldkChannels {
 		channels = append(channels, lnclient.Channel{
 			LocalBalance:  int64(ldkChannel.OutboundCapacityMsat),
@@ -407,7 +409,7 @@ func (gs *LDKService) OpenChannel(ctx context.Context, openChannelRequest *lncli
 		return nil, err
 	}
 
-	// userChannelId allows to locally keep track of the channel
+	// userChannelId allows to locally keep track of the channel (and is also used to close the channel)
 	gs.svc.Logger.Infof("Funded channel: %v", userChannelId)
 
 	for start := time.Now(); time.Since(start) < time.Second*60; {
@@ -448,6 +450,7 @@ func (gs *LDKService) GetNewOnchainAddress(ctx context.Context) (string, error) 
 
 func (gs *LDKService) GetOnchainBalance(ctx context.Context) (int64, error) {
 	balances := gs.node.ListBalances()
+	gs.svc.Logger.Debugf("Balances: %+v", balances)
 	gs.svc.Logger.Infof("SpendableOnchainBalanceSats: %v", balances.SpendableOnchainBalanceSats)
 	return int64(balances.SpendableOnchainBalanceSats), nil
 }
