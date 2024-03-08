@@ -42,18 +42,6 @@ func (s *ldkEventBroadcastServer) Subscribe() chan *ldk_node.Event {
 
 func (s *ldkEventBroadcastServer) CancelSubscription(channel chan *ldk_node.Event) {
 	close(channel)
-	// make sure the channel is drained after closing it
-out:
-	for {
-		select {
-		case _, ok := <-channel:
-			if !ok {
-				break out
-			}
-		default:
-			break out
-		}
-	}
 	s.removeListener <- channel
 }
 
