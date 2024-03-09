@@ -45,7 +45,7 @@ func (s *ldkEventBroadcastServer) CancelSubscription(channel chan *ldk_node.Even
 	func() {
 		defer func() {
 			if r := recover(); r != nil {
-				s.logger.Errorf("Failed to close channel: %v", r)
+				s.logger.Errorf("Failed to close subscription channel: %v", r)
 			}
 		}()
 		close(channel)
@@ -59,7 +59,7 @@ func (s *ldkEventBroadcastServer) serve(ctx context.Context) {
 			func() {
 				defer func() {
 					if r := recover(); r != nil {
-						s.logger.Errorf("Failed to close channel: %v", r)
+						s.logger.Errorf("Failed to close subscription channel: %v", r)
 					}
 				}()
 				close(listener)
