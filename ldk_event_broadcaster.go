@@ -42,7 +42,14 @@ func (s *ldkEventBroadcastServer) Subscribe() chan *ldk_node.Event {
 }
 
 func (s *ldkEventBroadcastServer) CancelSubscription(channel chan *ldk_node.Event) {
-	close(channel)
+	func() {
+		defer func() {
+			if r := recover(); r != nil {
+				s.logger.Errorf("Failed to close channel: %v", r)
+			}
+		}()
+		close(channel)
+	}()
 	s.removeListener <- channel
 }
 
