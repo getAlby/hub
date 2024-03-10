@@ -80,9 +80,11 @@ func NewLDKService(svc *Service, mnemonic, workDir string, network string, esplo
 			case <-ctx.Done():
 				return
 			default:
-				// NOTE: do not use WaitNextEvent() as it can block the LDK thread
+				// NOTE: currently do not use WaitNextEvent() as it can possibly block the LDK thread (to confirm)
 				event := node.NextEvent()
 				if event == nil {
+					// if there is no event, wait before polling again to avoid 100% CPU usage
+					// TODO: remove this and use WaitNextEvent()
 					time.Sleep(time.Duration(1) * time.Millisecond)
 					continue
 				}
