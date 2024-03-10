@@ -100,7 +100,10 @@ func (s *ldkEventBroadcastServer) serve(ctx context.Context) {
 			}
 		case event := <-s.source:
 			// got a new LDK event - send it to all listeners
-			s.logger.Debugf("Sending LDK event %+v to %d listeners", *event, len(s.listeners))
+			s.logger.WithFields(logrus.Fields{
+				"event":         event,
+				"listenerCount": len(s.listeners),
+			}).Debug("Sending LDK event to listeners")
 			for _, listener := range s.listeners {
 				func() {
 					// if we fail to send the event to the listener it was probably closed
@@ -117,7 +120,9 @@ func (s *ldkEventBroadcastServer) serve(ctx context.Context) {
 					case listener <- event:
 						s.logger.Debugln("sent event to listener")
 					case <-time.After(5 * time.Second):
-						s.logger.Errorf("Timeout sending %+v to listener", *event)
+						s.logger.WithFields(logrus.Fields{
+							"event": event,
+						}).Error("Timeout sending to listener")
 					}
 				}()
 			}

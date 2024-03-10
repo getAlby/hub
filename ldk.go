@@ -89,7 +89,9 @@ func NewLDKService(svc *Service, mnemonic, workDir string, network string, esplo
 					continue
 				}
 
-				svc.Logger.Infof("Received LDK event %+v", *event)
+				svc.Logger.WithFields(logrus.Fields{
+					"event": event,
+				}).Info("Received LDK event")
 				ldkEventConsumer <- event
 
 				node.EventHandled()
@@ -339,7 +341,9 @@ func (gs *LDKService) ListChannels(ctx context.Context) ([]lnclient.Channel, err
 
 	channels := []lnclient.Channel{}
 
-	gs.svc.Logger.Debugf("Channels: %+v", ldkChannels)
+	gs.svc.Logger.WithFields(logrus.Fields{
+		"channels": ldkChannels,
+	}).Debug("Listed Channels")
 
 	for _, ldkChannel := range ldkChannels {
 		channels = append(channels, lnclient.Channel{
@@ -433,7 +437,9 @@ func (gs *LDKService) OpenChannel(ctx context.Context, openChannelRequest *lncli
 }
 
 func (gs *LDKService) CloseChannel(ctx context.Context, closeChannelRequest *lnclient.CloseChannelRequest) (*lnclient.CloseChannelResponse, error) {
-	gs.svc.Logger.Infof("Closing Channel: %+v", *closeChannelRequest)
+	gs.svc.Logger.WithFields(logrus.Fields{
+		"request": closeChannelRequest,
+	}).Info("Closing Channel")
 	err := gs.node.CloseChannel(closeChannelRequest.ChannelId, closeChannelRequest.NodeId)
 	if err != nil {
 		gs.svc.Logger.Errorf("CloseChannel failed: %v", err)
@@ -453,8 +459,9 @@ func (gs *LDKService) GetNewOnchainAddress(ctx context.Context) (string, error) 
 
 func (gs *LDKService) GetOnchainBalance(ctx context.Context) (int64, error) {
 	balances := gs.node.ListBalances()
-	gs.svc.Logger.Debugf("Balances: %+v", balances)
-	gs.svc.Logger.Infof("SpendableOnchainBalanceSats: %v", balances.SpendableOnchainBalanceSats)
+	gs.svc.Logger.WithFields(logrus.Fields{
+		"balances": balances,
+	}).Debug("Listed Balances")
 	return int64(balances.SpendableOnchainBalanceSats), nil
 }
 
