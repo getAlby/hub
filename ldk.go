@@ -80,14 +80,18 @@ func NewLDKService(svc *Service, mnemonic, workDir string, network string, esplo
 			case <-ctx.Done():
 				return
 			default:
-				// NOTE: do not use WaitNextEvent() as it can block the LDK thread
+				// NOTE: currently do not use WaitNextEvent() as it can possibly block the LDK thread (to confirm)
 				event := node.NextEvent()
 				if event == nil {
+					// if there is no event, wait before polling again to avoid 100% CPU usage
+					// TODO: remove this and use WaitNextEvent()
 					time.Sleep(time.Duration(1) * time.Millisecond)
 					continue
 				}
 
-				svc.Logger.Infof("Received LDK event %+v", *event)
+				svc.Logger.WithFields(logrus.Fields{
+					"event": event,
+				}).Info("Received LDK event")
 				ldkEventConsumer <- event
 
 				node.EventHandled()
@@ -183,6 +187,7 @@ func (gs *LDKService) SendPaymentSync(ctx context.Context, payReq string) (preim
 		}
 	}
 	if preimage == "" {
+		// TODO: this doesn't necessarily mean it will fail - we should return a different response
 		return "", errors.New("Payment timed out")
 	}
 
@@ -336,6 +341,10 @@ func (gs *LDKService) ListChannels(ctx context.Context) ([]lnclient.Channel, err
 
 	channels := []lnclient.Channel{}
 
+	gs.svc.Logger.WithFields(logrus.Fields{
+		"channels": ldkChannels,
+	}).Debug("Listed Channels")
+
 	for _, ldkChannel := range ldkChannels {
 		channels = append(channels, lnclient.Channel{
 			LocalBalance:  int64(ldkChannel.OutboundCapacityMsat),
@@ -407,7 +416,7 @@ func (gs *LDKService) OpenChannel(ctx context.Context, openChannelRequest *lncli
 		return nil, err
 	}
 
-	// userChannelId allows to locally keep track of the channel
+	// userChannelId allows to locally keep track of the channel (and is also used to close the channel)
 	gs.svc.Logger.Infof("Funded channel: %v", userChannelId)
 
 	for start := time.Now(); time.Since(start) < time.Second*60; {
@@ -428,7 +437,9 @@ func (gs *LDKService) OpenChannel(ctx context.Context, openChannelRequest *lncli
 }
 
 func (gs *LDKService) CloseChannel(ctx context.Context, closeChannelRequest *lnclient.CloseChannelRequest) (*lnclient.CloseChannelResponse, error) {
-	gs.svc.Logger.Infof("Closing Channel: %+v", *closeChannelRequest)
+	gs.svc.Logger.WithFields(logrus.Fields{
+		"request": closeChannelRequest,
+	}).Info("Closing Channel")
 	err := gs.node.CloseChannel(closeChannelRequest.ChannelId, closeChannelRequest.NodeId)
 	if err != nil {
 		gs.svc.Logger.Errorf("CloseChannel failed: %v", err)
@@ -448,7 +459,9 @@ func (gs *LDKService) GetNewOnchainAddress(ctx context.Context) (string, error) 
 
 func (gs *LDKService) GetOnchainBalance(ctx context.Context) (int64, error) {
 	balances := gs.node.ListBalances()
-	gs.svc.Logger.Infof("SpendableOnchainBalanceSats: %v", balances.SpendableOnchainBalanceSats)
+	gs.svc.Logger.WithFields(logrus.Fields{
+		"balances": balances,
+	}).Debug("Listed Balances")
 	return int64(balances.SpendableOnchainBalanceSats), nil
 }
 
