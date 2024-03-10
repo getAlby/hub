@@ -423,6 +423,14 @@ func (gs *LDKService) OpenChannel(ctx context.Context, openChannelRequest *lncli
 		event := <-ldkEventSubscription
 
 		channelPendingEvent, isChannelPendingEvent := (*event).(ldk_node.EventChannelPending)
+		channelClosedEvent, isChannelClosedEvent := (*event).(ldk_node.EventChannelClosed)
+
+		if isChannelClosedEvent {
+			gs.svc.Logger.WithFields(logrus.Fields{
+				"event": channelClosedEvent,
+			})
+			return nil, fmt.Errorf("failed to open channel: %+v", *channelClosedEvent.Reason)
+		}
 
 		if !isChannelPendingEvent {
 			continue
