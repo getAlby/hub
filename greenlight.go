@@ -438,6 +438,10 @@ func (gs *GreenlightService) OpenChannel(ctx context.Context, openChannelRequest
 	}, nil
 }
 
+func (gs *GreenlightService) CloseChannel(ctx context.Context, closeChannelRequest *lnclient.CloseChannelRequest) (*lnclient.CloseChannelResponse, error) {
+	return nil, nil
+}
+
 func (gs *GreenlightService) GetNewOnchainAddress(ctx context.Context) (string, error) {
 
 	newAddressResponse, err := gs.client.NewAddress(glalby.NewAddressRequest{})

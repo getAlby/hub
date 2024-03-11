@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strconv"
-	"sync"
+	"strings"
 	"time"
 
 	"github.com/getAlby/ldk-node-go/ldk_node"
@@ -19,12 +19,11 @@ import (
 )
 
 type LDKService struct {
-	svc                       *Service
-	workdir                   string
-	node                      *ldk_node.LdkNode
-	cancelLdkEventListenerCtx context.CancelFunc
-	subscribeLdkEvents        func() chan ldk_node.Event
-	unsubscribeLdkEvents      func(chan ldk_node.Event)
+	svc                 *Service
+	workdir             string
+	node                *ldk_node.LdkNode
+	ldkEventBroadcaster LDKEventBroadcaster
+	cancel              context.CancelFunc
 }
 
 func NewLDKService(svc *Service, mnemonic, workDir string, network string, esploraServer string, gossipSource string) (result lnclient.LNClient, err error) {
@@ -71,60 +70,29 @@ func NewLDKService(svc *Service, mnemonic, workDir string, network string, esplo
 		return nil, err
 	}
 
-	// TODO: move this event handler code
-	ldkEventListenerCtx, cancelLdkEventListenerCtx := context.WithCancel(context.Background())
-	ldkEventHandlers := []chan ldk_node.Event{}
-	var ldkEventHandlersMutex sync.Mutex
+	ldkEventConsumer := make(chan *ldk_node.Event)
+	ctx, cancel := context.WithCancel(svc.ctx)
 
-	subscribeLdkEvents := func() chan ldk_node.Event {
-		ldkEventHandler := make(chan ldk_node.Event)
-		svc.Logger.Debugf("Locking event handler mutex")
-		ldkEventHandlersMutex.Lock()
-		svc.Logger.Debugf("Locked event handler mutex")
-		ldkEventHandlers = append(ldkEventHandlers, ldkEventHandler)
-		ldkEventHandlersMutex.Unlock()
-		svc.Logger.Debugf("Unlocked event handler mutex")
-		return ldkEventHandler
-	}
-
-	unsubscribeLdkEvents := func(eventHandler chan ldk_node.Event) {
-		svc.Logger.Debugf("Locking event handler mutex")
-		ldkEventHandlersMutex.Lock()
-		svc.Logger.Debugf("Locked event handler mutex")
-		for i := 0; i < len(ldkEventHandlers); i++ {
-			if eventHandler == ldkEventHandlers[i] {
-				// Replace the element to be removed with the last element of the slice
-				ldkEventHandlers[i] = ldkEventHandlers[len(ldkEventHandlers)-1]
-				// Slice off the last element
-				ldkEventHandlers = ldkEventHandlers[:len(ldkEventHandlers)-1]
-				break
-			}
-		}
-		ldkEventHandlersMutex.Unlock()
-		svc.Logger.Debugf("Unlocked event handler mutex")
-	}
-
+	// check for and forward new LDK events to LDKEventBroadcaster (through ldkEventConsumer)
 	go func() {
 		for {
 			select {
-			case <-ldkEventListenerCtx.Done():
+			case <-ctx.Done():
 				return
 			default:
-				// NOTE: do not use WaitNextEvent() as it can block the LDK thread
+				// NOTE: currently do not use WaitNextEvent() as it can possibly block the LDK thread (to confirm)
 				event := node.NextEvent()
 				if event == nil {
+					// if there is no event, wait before polling again to avoid 100% CPU usage
+					// TODO: remove this and use WaitNextEvent()
 					time.Sleep(time.Duration(1) * time.Millisecond)
 					continue
 				}
-				svc.Logger.Debugf("Locking event handler mutex")
-				ldkEventHandlersMutex.Lock()
-				svc.Logger.Debugf("Locked event handler mutex")
-				svc.Logger.Infof("Received LDK event %+v (%d listeners)", *event, len(ldkEventHandlers))
-				for _, eventHandler := range ldkEventHandlers {
-					eventHandler <- *event
-				}
-				ldkEventHandlersMutex.Unlock()
-				svc.Logger.Debugf("Unlocked event handler mutex")
+
+				svc.Logger.WithFields(logrus.Fields{
+					"event": event,
+				}).Info("Received LDK event")
+				ldkEventConsumer <- event
 
 				node.EventHandled()
 			}
@@ -135,10 +103,9 @@ func NewLDKService(svc *Service, mnemonic, workDir string, network string, esplo
 		workdir: newpath,
 		node:    node,
 		//listener: &listener,
-		svc:                       svc,
-		cancelLdkEventListenerCtx: cancelLdkEventListenerCtx,
-		subscribeLdkEvents:        subscribeLdkEvents,
-		unsubscribeLdkEvents:      unsubscribeLdkEvents,
+		svc:                 svc,
+		cancel:              cancel,
+		ldkEventBroadcaster: NewLDKEventBroadcaster(svc.Logger, ctx, ldkEventConsumer),
 	}
 
 	nodeId := node.NodeId()
@@ -154,7 +121,7 @@ func NewLDKService(svc *Service, mnemonic, workDir string, network string, esplo
 
 func (gs *LDKService) Shutdown() error {
 	gs.svc.Logger.Infof("shutting down LDK client")
-	gs.cancelLdkEventListenerCtx()
+	gs.cancel()
 	gs.node.Destroy()
 
 	return nil
@@ -162,8 +129,8 @@ func (gs *LDKService) Shutdown() error {
 
 func (gs *LDKService) SendPaymentSync(ctx context.Context, payReq string) (preimage string, err error) {
 	paymentStart := time.Now()
-	eventListener := gs.subscribeLdkEvents()
-	defer gs.unsubscribeLdkEvents(eventListener)
+	ldkEventSubscription := gs.ldkEventBroadcaster.Subscribe()
+	defer gs.ldkEventBroadcaster.CancelSubscription(ldkEventSubscription)
 
 	paymentHash, err := gs.node.SendPayment(payReq)
 	if err != nil {
@@ -172,10 +139,10 @@ func (gs *LDKService) SendPaymentSync(ctx context.Context, payReq string) (preim
 	}
 
 	for start := time.Now(); time.Since(start) < time.Second*60; {
-		event := <-eventListener
+		event := <-ldkEventSubscription
 
-		eventPaymentSuccessful, isEventPaymentSuccessfulEvent := event.(ldk_node.EventPaymentSuccessful)
-		eventPaymentFailed, isEventPaymentFailedEvent := event.(ldk_node.EventPaymentFailed)
+		eventPaymentSuccessful, isEventPaymentSuccessfulEvent := (*event).(ldk_node.EventPaymentSuccessful)
+		eventPaymentFailed, isEventPaymentFailedEvent := (*event).(ldk_node.EventPaymentFailed)
 
 		if isEventPaymentSuccessfulEvent && eventPaymentSuccessful.PaymentHash == paymentHash {
 			gs.svc.Logger.Infof("Got payment success event")
@@ -220,6 +187,7 @@ func (gs *LDKService) SendPaymentSync(ctx context.Context, payReq string) (preim
 		}
 	}
 	if preimage == "" {
+		// TODO: this doesn't necessarily mean it will fail - we should return a different response
 		return "", errors.New("Payment timed out")
 	}
 
@@ -228,12 +196,16 @@ func (gs *LDKService) SendPaymentSync(ctx context.Context, payReq string) (preim
 }
 
 func (gs *LDKService) SendKeysend(ctx context.Context, amount int64, destination, preimage string, custom_records []lnclient.TLVRecord) (preImage string, err error) {
+	customTlvs := []ldk_node.TlvEntry{}
 
-	if len(custom_records) > 0 {
-		log.Printf("FIXME: TLVs not supported")
+	for _, customRecord := range custom_records {
+		customTlvs = append(customTlvs, ldk_node.TlvEntry{
+			Type:  customRecord.Type,
+			Value: []uint8(customRecord.Value),
+		})
 	}
 
-	paymentHash, err := gs.node.SendSpontaneousPayment(uint64(amount), destination)
+	paymentHash, err := gs.node.SendSpontaneousPayment(uint64(amount), destination, customTlvs)
 	if err != nil {
 		gs.svc.Logger.Errorf("Keysend failed: %v", err)
 		return "", err
@@ -293,7 +265,7 @@ func (gs *LDKService) MakeInvoice(ctx context.Context, amount int64, description
 		Invoice:         invoice,
 		PaymentHash:     paymentRequest.PaymentHash,
 		Amount:          amount,
-		CreatedAt:       time.Now().Unix(),
+		CreatedAt:       int64(paymentRequest.CreatedAt),
 		ExpiresAt:       expiresAt,
 		Description:     description,
 		DescriptionHash: descriptionHash,
@@ -310,7 +282,12 @@ func (gs *LDKService) LookupInvoice(ctx context.Context, paymentHash string) (tr
 		return nil, errors.New("Payment not found")
 	}
 
-	transaction = ldkPaymentToTransaction(payment)
+	transaction, err = gs.ldkPaymentToTransaction(payment)
+
+	if err != nil {
+		gs.svc.Logger.Errorf("Failed to map transaction: %v", err)
+		return nil, err
+	}
 
 	return transaction, nil
 }
@@ -323,7 +300,14 @@ func (gs *LDKService) ListTransactions(ctx context.Context, from, until, limit, 
 
 	for _, payment := range payments {
 		if payment.Status == ldk_node.PaymentStatusSucceeded {
-			transactions = append(transactions, *ldkPaymentToTransaction(&payment))
+			transaction, err := gs.ldkPaymentToTransaction(&payment)
+
+			if err != nil {
+				gs.svc.Logger.Errorf("Failed to map transaction: %v", err)
+				continue
+			}
+
+			transactions = append(transactions, *transaction)
 		}
 	}
 
@@ -333,7 +317,9 @@ func (gs *LDKService) ListTransactions(ctx context.Context, from, until, limit, 
 	})
 
 	// locally limit for now
-	transactions = transactions[:limit]
+	if len(transactions) > int(limit) {
+		transactions = transactions[:limit]
+	}
 
 	return transactions, nil
 }
@@ -352,15 +338,20 @@ func (gs *LDKService) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, err
 func (gs *LDKService) ListChannels(ctx context.Context) ([]lnclient.Channel, error) {
 
 	ldkChannels := gs.node.ListChannels()
+
 	channels := []lnclient.Channel{}
+
+	gs.svc.Logger.WithFields(logrus.Fields{
+		"channels": ldkChannels,
+	}).Debug("Listed Channels")
 
 	for _, ldkChannel := range ldkChannels {
 		channels = append(channels, lnclient.Channel{
 			LocalBalance:  int64(ldkChannel.OutboundCapacityMsat),
 			RemoteBalance: int64(ldkChannel.InboundCapacityMsat),
 			RemotePubkey:  ldkChannel.CounterpartyNodeId,
-			Id:            ldkChannel.ChannelId,
-			Active:        ldkChannel.IsChannelReady && ldkChannel.IsUsable, // TODO: confirm
+			Id:            ldkChannel.UserChannelId, // CloseChannel takes the UserChannelId
+			Active:        ldkChannel.IsUsable,      // superset of ldkChannel.IsReady
 		})
 	}
 
@@ -415,8 +406,8 @@ func (gs *LDKService) OpenChannel(ctx context.Context, openChannelRequest *lncli
 		return nil, errors.New("node is not peered yet")
 	}
 
-	eventListener := gs.subscribeLdkEvents()
-	defer gs.unsubscribeLdkEvents(eventListener)
+	ldkEventSubscription := gs.ldkEventBroadcaster.Subscribe()
+	defer gs.ldkEventBroadcaster.CancelSubscription(ldkEventSubscription)
 
 	gs.svc.Logger.Infof("Opening channel with: %v", foundPeer.NodeId)
 	userChannelId, err := gs.node.ConnectOpenChannel(foundPeer.NodeId, foundPeer.Address, uint64(openChannelRequest.Amount), nil, nil, openChannelRequest.Public)
@@ -425,13 +416,21 @@ func (gs *LDKService) OpenChannel(ctx context.Context, openChannelRequest *lncli
 		return nil, err
 	}
 
-	// userChannelId allows to locally keep track of the channel
+	// userChannelId allows to locally keep track of the channel (and is also used to close the channel)
 	gs.svc.Logger.Infof("Funded channel: %v", userChannelId)
 
 	for start := time.Now(); time.Since(start) < time.Second*60; {
-		event := <-eventListener
+		event := <-ldkEventSubscription
 
-		channelPendingEvent, isChannelPendingEvent := event.(ldk_node.EventChannelPending)
+		channelPendingEvent, isChannelPendingEvent := (*event).(ldk_node.EventChannelPending)
+		channelClosedEvent, isChannelClosedEvent := (*event).(ldk_node.EventChannelClosed)
+
+		if isChannelClosedEvent {
+			gs.svc.Logger.WithFields(logrus.Fields{
+				"event": channelClosedEvent,
+			})
+			return nil, fmt.Errorf("failed to open channel: %+v", *channelClosedEvent.Reason)
+		}
 
 		if !isChannelPendingEvent {
 			continue
@@ -445,6 +444,18 @@ func (gs *LDKService) OpenChannel(ctx context.Context, openChannelRequest *lncli
 	return nil, errors.New("open channel timeout")
 }
 
+func (gs *LDKService) CloseChannel(ctx context.Context, closeChannelRequest *lnclient.CloseChannelRequest) (*lnclient.CloseChannelResponse, error) {
+	gs.svc.Logger.WithFields(logrus.Fields{
+		"request": closeChannelRequest,
+	}).Info("Closing Channel")
+	err := gs.node.CloseChannel(closeChannelRequest.ChannelId, closeChannelRequest.NodeId)
+	if err != nil {
+		gs.svc.Logger.Errorf("CloseChannel failed: %v", err)
+		return nil, err
+	}
+	return &lnclient.CloseChannelResponse{}, nil
+}
+
 func (gs *LDKService) GetNewOnchainAddress(ctx context.Context) (string, error) {
 	address, err := gs.node.NewOnchainAddress()
 	if err != nil {
@@ -456,14 +467,38 @@ func (gs *LDKService) GetNewOnchainAddress(ctx context.Context) (string, error) 
 
 func (gs *LDKService) GetOnchainBalance(ctx context.Context) (int64, error) {
 	balances := gs.node.ListBalances()
-	gs.svc.Logger.Infof("SpendableOnchainBalanceSats: %v", balances.SpendableOnchainBalanceSats)
+	gs.svc.Logger.WithFields(logrus.Fields{
+		"balances": balances,
+	}).Debug("Listed Balances")
 	return int64(balances.SpendableOnchainBalanceSats), nil
 }
 
-func ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) *Nip47Transaction {
+func (gs *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) (*Nip47Transaction, error) {
 	transactionType := "incoming"
 	if payment.Direction == ldk_node.PaymentDirectionOutbound {
 		transactionType = "outgoing"
+	}
+
+	var expiresAt *int64
+	var createdAt int64
+	var description string
+	var descriptionHash string
+	var bolt11Invoice string
+	if payment.Bolt11Invoice != nil {
+		bolt11Invoice = *payment.Bolt11Invoice
+		paymentRequest, err := decodepay.Decodepay(strings.ToLower(bolt11Invoice))
+		if err != nil {
+			gs.svc.Logger.WithFields(logrus.Fields{
+				"bolt11": bolt11Invoice,
+			}).Errorf("Failed to decode bolt11 invoice: %v", err)
+
+			return nil, err
+		}
+		createdAt = int64(paymentRequest.CreatedAt)
+		expiresAtUnix := time.UnixMilli(int64(paymentRequest.CreatedAt) * 1000).Add(time.Duration(paymentRequest.Expiry) * time.Second).Unix()
+		expiresAt = &expiresAtUnix
+		description = paymentRequest.Description
+		descriptionHash = paymentRequest.DescriptionHash
 	}
 
 	preimage := ""
@@ -474,8 +509,7 @@ func ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) *Nip47Transaction
 			preimage = *payment.Preimage
 		}
 		// TODO: use payment settle time
-		now := time.Now().Unix()
-		settledAt = &now
+		settledAt = &createdAt
 	}
 
 	var amount uint64 = 0
@@ -484,12 +518,16 @@ func ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) *Nip47Transaction
 	}
 
 	return &Nip47Transaction{
-		Type: transactionType,
-		// TODO: get bolt11 invoice from payment
-		//Invoice: payment.,
+		Type:        transactionType,
 		Preimage:    preimage,
 		PaymentHash: payment.Hash,
 		SettledAt:   settledAt,
 		Amount:      int64(amount),
-	}
+		Invoice:     bolt11Invoice,
+		//FeesPaid:        payment.FeeMsat,
+		CreatedAt:       createdAt,
+		Description:     description,
+		DescriptionHash: descriptionHash,
+		ExpiresAt:       expiresAt,
+	}, nil
 }

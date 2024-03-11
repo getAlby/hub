@@ -67,6 +67,8 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	// TODO: below could be supported by NIP-47
 	e.GET("/api/channels", httpSvc.channelsListHandler, authMiddleware)
 	e.POST("/api/channels", httpSvc.openChannelHandler, authMiddleware)
+	// TODO: should this be DELETE /api/channels:id?
+	e.POST("/api/channels/close", httpSvc.closeChannelHandler, authMiddleware)
 	e.GET("/api/node/connection-info", httpSvc.nodeConnectionInfoHandler, authMiddleware)
 	e.POST("/api/peers", httpSvc.connectPeerHandler, authMiddleware)
 	e.POST("/api/wallet/new-address", httpSvc.newOnchainAddressHandler, authMiddleware)
@@ -294,6 +296,25 @@ func (httpSvc *HttpService) openChannelHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, openChannelResponse)
+}
+
+func (httpSvc *HttpService) closeChannelHandler(c echo.Context) error {
+	var closeChannelRequest api.CloseChannelRequest
+	if err := c.Bind(&closeChannelRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	closeChannelResponse, err := httpSvc.api.CloseChannel(&closeChannelRequest)
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to close channel: %s", err.Error()),
+		})
+	}
+
+	return c.JSON(http.StatusOK, closeChannelResponse)
 }
 
 func (httpSvc *HttpService) newOnchainAddressHandler(c echo.Context) error {

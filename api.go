@@ -244,6 +244,13 @@ func (api *API) OpenChannel(openChannelRequest *models.OpenChannelRequest) (*mod
 	return api.svc.lnClient.OpenChannel(api.svc.ctx, openChannelRequest)
 }
 
+func (api *API) CloseChannel(closeChannelRequest *models.CloseChannelRequest) (*models.CloseChannelResponse, error) {
+	if api.svc.lnClient == nil {
+		return nil, errors.New("LNClient not started")
+	}
+	return api.svc.lnClient.CloseChannel(api.svc.ctx, closeChannelRequest)
+}
+
 func (api *API) GetNewOnchainAddress() (*models.NewOnchainAddressResponse, error) {
 	if api.svc.lnClient == nil {
 		return nil, errors.New("LNClient not started")

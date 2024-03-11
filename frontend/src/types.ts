@@ -141,6 +141,14 @@ export type OpenChannelResponse = {
   fundingTxId: string;
 };
 
+export type CloseChannelRequest = {
+  channelId: string;
+  nodeId: string;
+};
+
+export type CloseChannelResponse = {
+};
+
 export type GetOnchainAddressResponse = {
   address: string;
 };
