@@ -380,6 +380,7 @@ func (gs *GreenlightService) ListChannels(ctx context.Context) ([]lnclient.Chann
 			RemotePubkey:  glChannel.PeerId,
 			Id:            *glChannel.ChannelId,
 			Active:        glChannel.State == 2,
+			// TODO: add Public property
 		})
 	}
 

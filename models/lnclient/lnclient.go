@@ -63,6 +63,7 @@ type Channel struct {
 	Id            string `json:"id"`
 	RemotePubkey  string `json:"remotePubkey"`
 	Active        bool   `json:"active"`
+	Public        bool   `json:"public"`
 }
 
 type ConnectPeerRequest struct {
