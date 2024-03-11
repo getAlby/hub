@@ -1015,6 +1015,15 @@ goober@^2.1.10:
   resolved "https://registry.npmjs.org/goober/-/goober-2.1.13.tgz"
   integrity sha512-jFj3BQeleOoy7t93E9rZ2de+ScC4lQICLwiAQmKMg9F6roKGaLSHoCDYKkWlSafg138jejvq/mTdvmnwDQgqoQ==
 
+gradient-avatar@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/gradient-avatar/-/gradient-avatar-1.0.2.tgz#42bb408e402b1f21aafba3878858721055515224"
+  integrity sha512-Od9KI2YImV60wnsvU/u6GEyBm2fiHUUHgiLySE243GYl/T/tiJMJ5QYey8o7tepugmlnUGQRaCItHv19UnUjUg==
+  dependencies:
+    hsl-rgb "^1.0.0"
+    hsl-triad "^1.0.0"
+    string-hash "^1.1.3"
+
 graphemer@^1.4.0:
   version "1.4.0"
   resolved "https://registry.npmjs.org/graphemer/-/graphemer-1.4.0.tgz"
@@ -1031,6 +1040,16 @@ hasown@^2.0.0:
   integrity sha512-vUptKVTpIJhcczKBbgnS+RtcuYMB8+oNzPK2/Hp3hanz8JmpATdmmgLgSaadVREkDm+e2giHwY3ZRkyjSIDDFA==
   dependencies:
     function-bind "^1.1.2"
+
+hsl-rgb@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/hsl-rgb/-/hsl-rgb-1.0.0.tgz#05ca49f6d960c9d8e237f27d7bdf284b656de5ab"
+  integrity sha512-cNq+7sfwzSDoiG/jiu8wZpOmjScUZrMKiI33tH3aQ1MZsXWQd0yJjMpPwu2OZFYa4D/bOT1aCbB5gS1kOqFx1A==
+
+hsl-triad@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/hsl-triad/-/hsl-triad-1.0.0.tgz#0d27f397f75e8beb6cf9c361970ffbe104652220"
+  integrity sha512-PKnjrMugS6sHC5dVh4VQZYOHEKG2QILjVwbpEtNjEV19RyswuIxrIiGhumVJjya/FjK/p9gX6+zRMXFGTvaQAA==
 
 ignore@^5.2.0, ignore@^5.2.4:
   version "5.3.0"
@@ -1624,6 +1643,11 @@ source-map-js@^1.0.2:
   version "1.0.2"
   resolved "https://registry.npmjs.org/source-map-js/-/source-map-js-1.0.2.tgz"
   integrity sha512-R0XvVJ9WusLiqTCEiGCmICCMplcCkIwwR11mOSD9CR5u+IXYdiseeEuXCVAjS54zqwkLcPNnmU4OeJ6tUrWhDw==
+
+string-hash@^1.1.3:
+  version "1.1.3"
+  resolved "https://registry.yarnpkg.com/string-hash/-/string-hash-1.1.3.tgz#e8aafc0ac1855b4666929ed7dd1275df5d6c811b"
+  integrity sha512-kJUvRUFK49aub+a7T1nNE66EJbZBMnBgoC1UbCZ5n6bsZKBRga4KgBRTMn/pFkeCZSYtNeSyMxPDM0AXWELk2A==
 
 strip-ansi@^6.0.1:
   version "6.0.1"
