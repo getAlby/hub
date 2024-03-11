@@ -58,6 +58,22 @@ export const nip47MethodDescriptions: Record<RequestMethodType, string> = {
   [NIP_47_PAY_INVOICE_METHOD]: "Send payments",
 };
 
+export const expiryOptions: Record<string, number> = {
+  "1 week": 7,
+  "1 month": 30,
+  "1 year": 365,
+  Never: 0,
+};
+
+export const budgetOptions: Record<string, number> = {
+  "10k": 10_000,
+  "25k": 25_000,
+  "50k": 50_000,
+  "100k": 100_000,
+  "1M": 100_000_000,
+  Unlimited: 0,
+};
+
 export interface ErrorResponse {
   message: string;
 }
@@ -146,8 +162,7 @@ export type CloseChannelRequest = {
   nodeId: string;
 };
 
-export type CloseChannelResponse = {
-};
+export type CloseChannelResponse = {};
 
 export type GetOnchainAddressResponse = {
   address: string;

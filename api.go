@@ -130,6 +130,98 @@ func (api *API) CreateApp(createAppRequest *models.CreateAppRequest) (*models.Cr
 	return responseBody, nil
 }
 
+func (api *API) UpdateApp(userApp *App, updateAppRequest *models.UpdateAppRequest) error {
+	maxAmount := updateAppRequest.MaxAmount
+	budgetRenewal := updateAppRequest.BudgetRenewal
+
+	expiresAt := time.Time{}
+	if updateAppRequest.ExpiresAt != "" {
+		var err error
+		expiresAt, err = time.Parse(time.RFC3339, updateAppRequest.ExpiresAt)
+		if err != nil {
+			return fmt.Errorf("invalid expiresAt: %v", err)
+		}
+	}
+
+	if !expiresAt.IsZero() {
+		expiresAt = time.Date(expiresAt.Year(), expiresAt.Month(), expiresAt.Day(), 23, 59, 59, 0, expiresAt.Location())
+	}
+
+	err := api.svc.db.Transaction(func(tx *gorm.DB) error {
+		var existingPermissionsCount int64
+		tx.Model(&AppPermission{}).Where("app_id = ?", userApp.ID).Count(&existingPermissionsCount)
+
+		var requestMethodsToAdd []string
+		var requestMethodsToRemove []string
+		if updateAppRequest.RequestMethodsToAdd != "" {
+			requestMethodsToAdd = strings.Split(updateAppRequest.RequestMethodsToAdd, " ")
+		}
+		if updateAppRequest.RequestMethodsToRemove != "" {
+			requestMethodsToRemove = strings.Split(updateAppRequest.RequestMethodsToRemove, " ")
+		}
+
+		resultingPermissionsCount := existingPermissionsCount + int64(len(requestMethodsToAdd)) - int64(len(requestMethodsToRemove))
+
+		if resultingPermissionsCount <= 0 {
+			return fmt.Errorf("won't update an app without request methods")
+		}
+
+		for _, m := range requestMethodsToAdd {
+			//if we don't know this method, we return an error
+			if !strings.Contains(NIP_47_CAPABILITIES, m) {
+				return fmt.Errorf("did not recognize request method: %s", m)
+			}
+			appPermission := AppPermission{
+				App:           *userApp,
+				RequestMethod: m,
+				ExpiresAt:     expiresAt,
+				//these fields are only relevant for pay_invoice
+				MaxAmount:     maxAmount,
+				BudgetRenewal: budgetRenewal,
+			}
+			err := tx.Create(&appPermission).Error
+			if err != nil {
+				return err
+			}
+		}
+		for _, m := range requestMethodsToRemove {
+			//if we don't know this method, we return an error
+			if !strings.Contains(NIP_47_CAPABILITIES, m) {
+				return fmt.Errorf("did not recognize request method: %s", m)
+			}
+			// Find the app permission to delete
+			var appPermission AppPermission
+			err := tx.Where("app_id = ? AND request_method = ?", userApp.ID, m).First(&appPermission).Error
+			if err != nil {
+				return err
+			}
+			// Delete the app permission
+			err = tx.Delete(&appPermission).Error
+			if err != nil {
+				return err
+			}
+		}
+
+		// Update the budget ifno in pay_invoice permission
+		// The other permissions will remain same
+		paySpecificPermission := AppPermission{}
+		findPermissionResult := tx.Find(&paySpecificPermission, &AppPermission{
+			AppId:         userApp.ID,
+			RequestMethod: NIP_47_PAY_INVOICE_METHOD,
+		})
+		if findPermissionResult.RowsAffected != 0 {
+			paySpecificPermission.MaxAmount = maxAmount
+			paySpecificPermission.BudgetRenewal = budgetRenewal
+			tx.Save(&paySpecificPermission)
+		}
+
+		// commit transaction
+		return nil
+	})
+
+	return err
+}
+
 func (api *API) DeleteApp(userApp *App) error {
 	return api.svc.db.Delete(userApp).Error
 }
@@ -199,18 +291,23 @@ func (api *API) ListApps() ([]models.App, error) {
 			NostrPubkey: userApp.NostrPubkey,
 		}
 
-		paySpecificPermission := AppPermission{}
-		result := api.svc.db.Where("app_id = ? AND request_method = ?", userApp.ID, "pay_invoice").Limit(1).Find(&paySpecificPermission)
+		permissions := []AppPermission{}
+		result := api.svc.db.Where("app_id = ?", userApp.ID).Find(&permissions)
 		if result.Error != nil {
-			api.svc.Logger.Errorf("Failed to fetch pay invoice permission %v", result.Error)
-			return nil, errors.New("failed to fetch pay invoice permission")
+			api.svc.Logger.Errorf("Failed to fetch app permissions %v", result.Error)
+			return nil, errors.New("failed to fetch app permissions")
 		}
-		if result.RowsAffected > 0 {
-			apiApp.MaxAmount = paySpecificPermission.MaxAmount
-			if apiApp.MaxAmount > 0 {
-				apiApp.BudgetUsage = api.svc.GetBudgetUsage(&paySpecificPermission)
+
+		for _, permission := range permissions {
+			apiApp.RequestMethods = append(apiApp.RequestMethods, permission.RequestMethod)
+			if permission.RequestMethod == NIP_47_PAY_INVOICE_METHOD {
+				apiApp.MaxAmount = permission.MaxAmount
+				if apiApp.MaxAmount > 0 {
+					apiApp.BudgetUsage = api.svc.GetBudgetUsage(&permission)
+				}
 			}
 		}
+
 		apiApps = append(apiApps, apiApp)
 	}
 	return apiApps, nil

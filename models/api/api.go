@@ -26,6 +26,14 @@ type ListAppsResponse struct {
 	Apps []App `json:"apps"`
 }
 
+type UpdateAppRequest struct {
+	MaxAmount              int    `json:"maxAmount"`
+	BudgetRenewal          string `json:"budgetRenewal"`
+	ExpiresAt              string `json:"expiresAt"`
+	RequestMethodsToAdd    string `json:"requestMethodsToAdd"`
+	RequestMethodsToRemove string `json:"requestMethodsToRemove"`
+}
+
 type CreateAppRequest struct {
 	Name           string `json:"name"`
 	Pubkey         string `json:"pubkey"`

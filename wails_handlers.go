@@ -37,6 +37,22 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		case "GET":
 			app := app.api.GetApp(&userApp)
 			return WailsRequestRouterResponse{Body: app, Error: ""}
+		case "PATCH":
+			updateAppRequest := &api.UpdateAppRequest{}
+			err := json.Unmarshal([]byte(body), updateAppRequest)
+			if err != nil {
+				app.svc.Logger.WithFields(logrus.Fields{
+					"route":  route,
+					"method": method,
+					"body":   body,
+				}).Errorf("Failed to decode request to wails router: %v", err)
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
+			err = app.api.UpdateApp(&userApp, updateAppRequest)
+			if err != nil {
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
+			return WailsRequestRouterResponse{Body: nil, Error: ""}
 		case "DELETE":
 			err := app.api.DeleteApp(&userApp)
 			if err != nil {

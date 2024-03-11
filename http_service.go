@@ -49,6 +49,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	authMiddleware := httpSvc.validateUserMiddleware
 	e.GET("/api/apps", httpSvc.appsListHandler, authMiddleware)
 	e.GET("/api/apps/:pubkey", httpSvc.appsShowHandler, authMiddleware)
+	e.PATCH("/api/apps/:pubkey", httpSvc.appsUpdateHandler, authMiddleware)
 	e.DELETE("/api/apps/:pubkey", httpSvc.appsDeleteHandler, authMiddleware)
 	e.POST("/api/apps", httpSvc.appsCreateHandler, authMiddleware)
 
@@ -355,6 +356,35 @@ func (httpSvc *HttpService) appsShowHandler(c echo.Context) error {
 	response := httpSvc.api.GetApp(&app)
 
 	return c.JSON(http.StatusOK, response)
+}
+
+func (httpSvc *HttpService) appsUpdateHandler(c echo.Context) error {
+	var requestData api.UpdateAppRequest
+	if err := c.Bind(&requestData); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	app := App{}
+	findResult := httpSvc.svc.db.Where("nostr_pubkey = ?", c.Param("pubkey")).First(&app)
+
+	if findResult.RowsAffected == 0 {
+		return c.JSON(http.StatusNotFound, ErrorResponse{
+			Message: "App does not exist",
+		})
+	}
+
+	err := httpSvc.api.UpdateApp(&app, &requestData)
+
+	if err != nil {
+		httpSvc.svc.Logger.Errorf("Failed to update app: %v", err)
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to update app: %v", err),
+		})
+	}
+
+	return c.NoContent(http.StatusNoContent)
 }
 
 func (httpSvc *HttpService) appsDeleteHandler(c echo.Context) error {
