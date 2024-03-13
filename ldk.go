@@ -13,9 +13,10 @@ import (
 	"time"
 
 	"github.com/getAlby/ldk-node-go/ldk_node"
-	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
+
+	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 )
 
 type LDKService struct {
@@ -472,6 +473,16 @@ func (gs *LDKService) GetOnchainBalance(ctx context.Context) (int64, error) {
 		"balances": balances,
 	}).Debug("Listed Balances")
 	return int64(balances.SpendableOnchainBalanceSats), nil
+}
+
+func (gs *LDKService) SignMessage(ctx context.Context, message []byte) (string, error) {
+	sign, err := gs.node.SignMessage(message)
+	if err != nil {
+		gs.svc.Logger.Errorf("SignMessage failed: %v", err)
+		return "", err
+	}
+
+	return sign, nil
 }
 
 func (gs *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) (*Nip47Transaction, error) {

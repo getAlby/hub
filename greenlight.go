@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"log"
@@ -13,9 +14,9 @@ import (
 	"strings"
 	"time"
 
-	//"github.com/getAlby/nostr-wallet-connect/glalby" // for local development only
+	"github.com/getAlby/nostr-wallet-connect/glalby" // for local development only
 
-	"github.com/getAlby/glalby-go/glalby"
+	//"github.com/getAlby/glalby-go/glalby"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
 
@@ -473,6 +474,23 @@ func (gs *GreenlightService) GetOnchainBalance(ctx context.Context) (int64, erro
 	}
 
 	return balance / 1000, nil
+}
+
+func (gs *GreenlightService) SignMessage(ctx context.Context, message []byte) (string, error) {
+	// TODO: make sure that Greenlight actually expects base64-encoded data.
+	//       It's not documented at all.
+	encoded := base64.StdEncoding.EncodeToString(message)
+
+	response, err := gs.client.SignMessage(glalby.SignMessageRequest{
+		Message: encoded,
+	})
+
+	if err != nil {
+		gs.svc.Logger.Errorf("SignMessage failed: %v", err)
+		return "", err
+	}
+
+	return response.Zbase, nil
 }
 
 func (gs *GreenlightService) greenlightInvoiceToTransaction(invoice *glalby.ListInvoicesInvoice) (*Nip47Transaction, error) {

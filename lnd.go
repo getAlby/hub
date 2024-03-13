@@ -10,9 +10,10 @@ import (
 	"strings"
 	"time"
 
+	decodepay "github.com/nbd-wtf/ln-decodepay"
+
 	"github.com/getAlby/nostr-wallet-connect/lnd"
 	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
-	decodepay "github.com/nbd-wtf/ln-decodepay"
 
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
@@ -350,6 +351,11 @@ func (svc *LNDService) GetNewOnchainAddress(ctx context.Context) (string, error)
 
 func (svc *LNDService) GetOnchainBalance(ctx context.Context) (int64, error) {
 	return 0, nil
+}
+
+func (svc *LNDService) SignMessage(ctx context.Context, message []byte) (string, error) {
+	// TODO: implement
+	return "", nil
 }
 
 func lndInvoiceToTransaction(invoice *lnrpc.Invoice) *Nip47Transaction {
