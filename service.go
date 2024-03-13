@@ -2,40 +2,41 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"os"
+	"os/signal"
+	"path"
 	"slices"
 	"strconv"
 	"sync"
 	"time"
 
-	"database/sql"
-	"errors"
-	"os"
-	"os/signal"
-	"path"
-
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip04"
 	"github.com/sirupsen/logrus"
 
-	"github.com/getAlby/nostr-wallet-connect/migrations"
-	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 	"github.com/glebarez/sqlite"
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/orandin/lumberjackrus"
 	"gorm.io/gorm"
+
+	"github.com/getAlby/nostr-wallet-connect/migrations"
+	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 )
 
 type Service struct {
 	// config from .env only. Fetch dynamic config from db
-	cfg      *Config
-	db       *gorm.DB
-	lnClient lnclient.LNClient
-	Logger   *logrus.Logger
-	ctx      context.Context
-	wg       *sync.WaitGroup
+	cfg         *Config
+	db          *gorm.DB
+	lnClient    lnclient.LNClient
+	lnDbgClient lnclient.DebugClient
+	Logger      *logrus.Logger
+	ctx         context.Context
+	wg          *sync.WaitGroup
 }
 
 // TODO: move to service.go
@@ -123,6 +124,7 @@ func (svc *Service) launchLNBackend(encryptionKey string) error {
 			return err
 		}
 		svc.lnClient = nil
+		svc.lnDbgClient = nil
 	}
 
 	lndBackend, _ := svc.cfg.Get("LNBackendType", "")
@@ -132,6 +134,7 @@ func (svc *Service) launchLNBackend(encryptionKey string) error {
 
 	svc.Logger.Infof("Launching LN Backend: %s", lndBackend)
 	var lnClient lnclient.LNClient
+	var lnDbgClient lnclient.DebugClient
 	var err error
 	switch lndBackend {
 	case LNDBackendType:
@@ -144,6 +147,7 @@ func (svc *Service) launchLNBackend(encryptionKey string) error {
 		LDKWorkdir := path.Join(svc.cfg.Env.Workdir, "ldk")
 
 		lnClient, err = NewLDKService(svc, Mnemonic, LDKWorkdir, svc.cfg.Env.LDKNetwork, svc.cfg.Env.LDKEsploraServer, svc.cfg.Env.LDKGossipSource)
+		lnDbgClient = lnClient.(lnclient.DebugClient)
 	case GreenlightBackendType:
 		Mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
 		GreenlightInviteCode, _ := svc.cfg.Get("GreenlightInviteCode", encryptionKey)
@@ -165,6 +169,7 @@ func (svc *Service) launchLNBackend(encryptionKey string) error {
 		return err
 	}
 	svc.lnClient = lnClient
+	svc.lnDbgClient = lnDbgClient
 	return nil
 }
 

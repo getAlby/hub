@@ -6,13 +6,14 @@ import (
 	"net/http"
 
 	echologrus "github.com/davrux/echo-logrus/v4"
-	"github.com/getAlby/nostr-wallet-connect/frontend"
-	"github.com/getAlby/nostr-wallet-connect/models/api"
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"gorm.io/gorm"
+
+	"github.com/getAlby/nostr-wallet-connect/frontend"
+	"github.com/getAlby/nostr-wallet-connect/models/api"
 )
 
 type HttpService struct {
@@ -73,6 +74,9 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.GET("/api/wallet/balance", httpSvc.onchainBalanceHandler, authMiddleware)
 
 	e.GET("/api/mempool/lightning/nodes/:pubkey", httpSvc.mempoolLightningNodeHandler, authMiddleware)
+
+	e.POST("/api/debug/send-payment-probes", httpSvc.sendPaymentProbesHandler, authMiddleware)
+	e.POST("/api/debug/send-spontaneous-payment-probes", httpSvc.sendSpontaneousPaymentProbesHandler, authMiddleware)
 
 	frontend.RegisterHandlers(e)
 }
@@ -402,4 +406,54 @@ func (httpSvc *HttpService) setupHandler(c echo.Context) error {
 	}
 
 	return c.NoContent(http.StatusNoContent)
+}
+
+func (httpSvc *HttpService) sendPaymentProbesHandler(c echo.Context) error {
+	if httpSvc.svc.lnDbgClient == nil {
+		return c.JSON(http.StatusNotImplemented, ErrorResponse{
+			Message: "Debug client not available",
+		})
+	}
+
+	var sendPaymentProbesRequest api.SendPaymentProbesRequest
+	if err := c.Bind(&sendPaymentProbesRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	err := httpSvc.svc.lnDbgClient.SendPaymentProbes(httpSvc.svc.ctx, sendPaymentProbesRequest.Invoice)
+	errMsg := ""
+	if err != nil {
+		errMsg = err.Error()
+	}
+
+	return c.JSON(http.StatusOK, api.SendPaymentProbesResponse{
+		Error: errMsg,
+	})
+}
+
+func (httpSvc *HttpService) sendSpontaneousPaymentProbesHandler(c echo.Context) error {
+	if httpSvc.svc.lnDbgClient == nil {
+		return c.JSON(http.StatusNotImplemented, ErrorResponse{
+			Message: "Debug client not available",
+		})
+	}
+
+	var sendSpontaneousPaymentProbesRequest api.SendSpontaneousPaymentProbesRequest
+	if err := c.Bind(&sendSpontaneousPaymentProbesRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	err := httpSvc.svc.lnDbgClient.SendSpontaneousPaymentProbes(httpSvc.svc.ctx, sendSpontaneousPaymentProbesRequest.Amount, sendSpontaneousPaymentProbesRequest.NodeID)
+	errMsg := ""
+	if err != nil {
+		errMsg = err.Error()
+	}
+
+	return c.JSON(http.StatusOK, api.SendSpontaneousPaymentProbesResponse{
+		Error: errMsg,
+	})
 }

@@ -13,9 +13,10 @@ import (
 	"time"
 
 	"github.com/getAlby/ldk-node-go/ldk_node"
-	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
+
+	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 )
 
 type LDKService struct {
@@ -531,4 +532,24 @@ func (gs *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 		DescriptionHash: descriptionHash,
 		ExpiresAt:       expiresAt,
 	}, nil
+}
+
+func (gs *LDKService) SendPaymentProbes(ctx context.Context, invoice string) error {
+	err := gs.node.SendPaymentProbes(invoice)
+	if err != nil {
+		gs.svc.Logger.Errorf("SendPaymentProbes failed: %v", err)
+		return err
+	}
+
+	return nil
+}
+
+func (gs *LDKService) SendSpontaneousPaymentProbes(ctx context.Context, amount_msat uint64, node_id string) error {
+	err := gs.node.SendSpontaneousPaymentProbes(amount_msat, node_id)
+	if err != nil {
+		gs.svc.Logger.Errorf("SendSpontaneousPaymentProbes failed: %v", err)
+		return err
+	}
+
+	return nil
 }

@@ -57,6 +57,11 @@ type LNClient interface {
 	GetOnchainBalance(ctx context.Context) (int64, error)
 }
 
+type DebugClient interface {
+	SendPaymentProbes(ctx context.Context, invoice string) error
+	SendSpontaneousPaymentProbes(ctx context.Context, amount_msat uint64, node_id string) error
+}
+
 type Channel struct {
 	LocalBalance  int64  `json:"localBalance"`
 	RemoteBalance int64  `json:"remoteBalance"`
