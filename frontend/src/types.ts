@@ -94,6 +94,7 @@ export type Channel = {
   remotePubkey: string;
   id: string;
   active: boolean;
+  public: boolean;
 };
 
 export type NodeConnectionInfo = {
@@ -123,8 +124,7 @@ export type CloseChannelRequest = {
   nodeId: string;
 };
 
-export type CloseChannelResponse = {
-};
+export type CloseChannelResponse = {};
 
 export type GetOnchainAddressResponse = {
   address: string;

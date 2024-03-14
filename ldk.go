@@ -352,6 +352,7 @@ func (gs *LDKService) ListChannels(ctx context.Context) ([]lnclient.Channel, err
 			RemotePubkey:  ldkChannel.CounterpartyNodeId,
 			Id:            ldkChannel.UserChannelId, // CloseChannel takes the UserChannelId
 			Active:        ldkChannel.IsUsable,      // superset of ldkChannel.IsReady
+			Public:        ldkChannel.IsPublic,
 		})
 	}
 

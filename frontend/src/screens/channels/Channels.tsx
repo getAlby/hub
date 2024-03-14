@@ -287,6 +287,9 @@ export default function Channels() {
                                 {alias} ({channel.remotePubkey.substring(0, 10)}
                                 ...)
                               </a>
+                              <span className="mx-4 uppercase text-xs border-2 py-0.5 px-1 rounded-lg">
+                                {channel.public ? "Public" : "Private"}
+                              </span>
                             </td>
                             <td className="py-4 px-6 text-sm font-medium text-gray-500 whitespace-nowrap dark:text-white">
                               {formatAmount(capacity)}
