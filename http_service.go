@@ -77,6 +77,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 
 	e.POST("/api/debug/send-payment-probes", httpSvc.sendPaymentProbesHandler, authMiddleware)
 	e.POST("/api/debug/send-spontaneous-payment-probes", httpSvc.sendSpontaneousPaymentProbesHandler, authMiddleware)
+	e.GET("/api/debug/peers", httpSvc.listPeers, authMiddleware)
 
 	frontend.RegisterHandlers(e)
 }
@@ -456,4 +457,21 @@ func (httpSvc *HttpService) sendSpontaneousPaymentProbesHandler(c echo.Context) 
 	return c.JSON(http.StatusOK, api.SendSpontaneousPaymentProbesResponse{
 		Error: errMsg,
 	})
+}
+
+func (httpSvc *HttpService) listPeers(c echo.Context) error {
+	if httpSvc.svc.lnDbgClient == nil {
+		return c.JSON(http.StatusNotImplemented, ErrorResponse{
+			Message: "Debug client not available",
+		})
+	}
+
+	peers, err := httpSvc.svc.lnDbgClient.ListPeers(httpSvc.svc.ctx)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to list peers: %s", err.Error()),
+		})
+	}
+
+	return c.JSON(http.StatusOK, peers)
 }

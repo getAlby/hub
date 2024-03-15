@@ -60,6 +60,7 @@ type LNClient interface {
 type DebugClient interface {
 	SendPaymentProbes(ctx context.Context, invoice string) error
 	SendSpontaneousPaymentProbes(ctx context.Context, amount_msat uint64, node_id string) error
+	ListPeers(ctx context.Context) ([]PeerDetails, error)
 }
 
 type Channel struct {
@@ -93,4 +94,11 @@ type CloseChannelRequest struct {
 }
 
 type CloseChannelResponse struct {
+}
+
+type PeerDetails struct {
+	NodeID      string `json:"node_id"`
+	Address     string `json:"address"`
+	IsPersisted bool   `json:"is_persisted"`
+	IsConnected bool   `json:"is_connected"`
 }

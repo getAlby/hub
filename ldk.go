@@ -553,3 +553,17 @@ func (gs *LDKService) SendSpontaneousPaymentProbes(ctx context.Context, amount_m
 
 	return nil
 }
+
+func (gs *LDKService) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, error) {
+	peers := gs.node.ListPeers()
+	ret := make([]lnclient.PeerDetails, 0, len(peers))
+	for _, peer := range peers {
+		ret = append(ret, lnclient.PeerDetails{
+			NodeID:      peer.NodeId,
+			Address:     peer.Address,
+			IsPersisted: peer.IsPersisted,
+			IsConnected: peer.IsConnected,
+		})
+	}
+	return ret, nil
+}
