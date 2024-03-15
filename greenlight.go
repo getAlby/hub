@@ -14,9 +14,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/getAlby/nostr-wallet-connect/glalby" // for local development only
+	//"github.com/getAlby/nostr-wallet-connect/glalby" // for local development only
 
-	//"github.com/getAlby/glalby-go/glalby"
+	"github.com/getAlby/glalby-go/glalby"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
 
