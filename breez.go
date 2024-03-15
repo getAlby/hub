@@ -328,7 +328,13 @@ func (bs *BreezService) GetOnchainBalance(ctx context.Context) (int64, error) {
 	return 0, nil
 }
 
-func (bs *BreezService) SignMessage(ctx context.Context, message []byte) (string, error) {
-	// TODO: implement
-	return "", nil
+func (bs *BreezService) SignMessage(ctx context.Context, message string) (string, error) {
+	resp, err := bs.svc.SignMessage(breez_sdk.SignMessageRequest{
+		Message: message,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return resp.Signature, nil
 }

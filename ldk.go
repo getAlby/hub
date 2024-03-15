@@ -475,8 +475,8 @@ func (gs *LDKService) GetOnchainBalance(ctx context.Context) (int64, error) {
 	return int64(balances.SpendableOnchainBalanceSats), nil
 }
 
-func (gs *LDKService) SignMessage(ctx context.Context, message []byte) (string, error) {
-	sign, err := gs.node.SignMessage(message)
+func (gs *LDKService) SignMessage(ctx context.Context, message string) (string, error) {
+	sign, err := gs.node.SignMessage([]byte(message))
 	if err != nil {
 		gs.svc.Logger.Errorf("SignMessage failed: %v", err)
 		return "", err

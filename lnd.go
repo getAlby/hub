@@ -353,9 +353,13 @@ func (svc *LNDService) GetOnchainBalance(ctx context.Context) (int64, error) {
 	return 0, nil
 }
 
-func (svc *LNDService) SignMessage(ctx context.Context, message []byte) (string, error) {
-	// TODO: implement
-	return "", nil
+func (svc *LNDService) SignMessage(ctx context.Context, message string) (string, error) {
+	resp, err := svc.client.SignMessage(ctx, &lnrpc.SignMessageRequest{Msg: []byte(message)})
+	if err != nil {
+		return "", err
+	}
+
+	return resp.Signature, nil
 }
 
 func lndInvoiceToTransaction(invoice *lnrpc.Invoice) *Nip47Transaction {

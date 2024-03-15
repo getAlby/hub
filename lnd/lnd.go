@@ -140,3 +140,7 @@ func (wrapper *LNDWrapper) IsIdentityPubkey(pubkey string) (isOurPubkey bool) {
 func (wrapper *LNDWrapper) GetMainPubkey() (pubkey string) {
 	return wrapper.IdentityPubkey
 }
+
+func (wrapper *LNDWrapper) SignMessage(ctx context.Context, req *lnrpc.SignMessageRequest, options ...grpc.CallOption) (*lnrpc.SignMessageResponse, error) {
+	return wrapper.client.SignMessage(ctx, req, options...)
+}

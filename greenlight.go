@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"log"
@@ -476,13 +475,9 @@ func (gs *GreenlightService) GetOnchainBalance(ctx context.Context) (int64, erro
 	return balance / 1000, nil
 }
 
-func (gs *GreenlightService) SignMessage(ctx context.Context, message []byte) (string, error) {
-	// TODO: make sure that Greenlight actually expects base64-encoded data.
-	//       It's not documented at all.
-	encoded := base64.StdEncoding.EncodeToString(message)
-
+func (gs *GreenlightService) SignMessage(ctx context.Context, message string) (string, error) {
 	response, err := gs.client.SignMessage(glalby.SignMessageRequest{
-		Message: encoded,
+		Message: message,
 	})
 
 	if err != nil {
