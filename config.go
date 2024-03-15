@@ -22,20 +22,28 @@ const (
 )
 
 type AppConfig struct {
-	Relay            string `envconfig:"RELAY" default:"wss://relay.getalby.com/v1"`
-	LNBackendType    string `envconfig:"LN_BACKEND_TYPE"`
-	LNDAddress       string `envconfig:"LND_ADDRESS"`
-	LNDCertFile      string `envconfig:"LND_CERT_FILE"`
-	LNDMacaroonFile  string `envconfig:"LND_MACAROON_FILE"`
-	Workdir          string `envconfig:"WORK_DIR" default:".data"`
-	Port             string `envconfig:"PORT" default:"8080"`
-	DatabaseUri      string `envconfig:"DATABASE_URI" default:".data/nwc.db"`
-	CookieSecret     string `envconfig:"COOKIE_SECRET"`
-  LogLevel        string `envconfig:"LOG_LEVEL"`
-	LDKNetwork       string `envconfig:"LDK_NETWORK" default:"bitcoin"`
-	LDKEsploraServer string `envconfig:"LDK_ESPLORA_SERVER" default:"https://blockstream.info/api"`
-	LDKGossipSource  string `envconfig:"LDK_GOSSIP_SOURCE" default:"https://rapidsync.lightningdevkit.org/snapshot"`
-	LDKLogLevel     string `envconfig:"LDK_LOG_LEVEL"`
+	Relay                string `envconfig:"RELAY" default:"wss://relay.getalby.com/v1"`
+	LNBackendType        string `envconfig:"LN_BACKEND_TYPE"`
+	LNDAddress           string `envconfig:"LND_ADDRESS"`
+	LNDCertFile          string `envconfig:"LND_CERT_FILE"`
+	LNDMacaroonFile      string `envconfig:"LND_MACAROON_FILE"`
+	Workdir              string `envconfig:"WORK_DIR" default:".data"`
+	Port                 string `envconfig:"PORT" default:"8080"`
+	DatabaseUri          string `envconfig:"DATABASE_URI" default:".data/nwc.db"`
+	CookieSecret         string `envconfig:"COOKIE_SECRET"`
+	LogLevel             string `envconfig:"LOG_LEVEL"`
+	MempoolLightningNode string `envconfig:"MEMPOOL_LIGHTNING_NODE" default:"https://mempool.space/api/v1/lightning/nodes/"`
+	LDKNetwork           string `envconfig:"LDK_NETWORK" default:"bitcoin"`
+	LDKEsploraServer     string `envconfig:"LDK_ESPLORA_SERVER" default:"https://blockstream.info/api"`
+	LDKGossipSource      string `envconfig:"LDK_GOSSIP_SOURCE" default:"https://rapidsync.lightningdevkit.org/snapshot"`
+
+	// For testnet
+	//MempoolLightningNode string `envconfig:"MEMPOOL_LIGHTNING_NODE" default:"https://mempool.space/testnet/api/v1/lightning/nodes/"`
+	//LDKNetwork           string `envconfig:"LDK_NETWORK" default:"testnet"`
+	//LDKEsploraServer     string `envconfig:"LDK_ESPLORA_SERVER" default:" https://mutiny.mempool.space/testnet/api"`
+	//LDKGossipSource      string `envconfig:"LDK_GOSSIP_SOURCE" default:"https://rapidsync.lightningdevkit.org/testnet/snapshot"`
+
+	LDKLogLevel string `envconfig:"LDK_LOG_LEVEL"`
 }
 
 type Config struct {
