@@ -5,7 +5,8 @@ import (
 	"slices"
 	"time"
 
-	"github.com/getAlby/ldk-node-go/ldk_node"
+	//"github.com/getAlby/ldk-node-go/ldk_node"
+	"github.com/getAlby/nostr-wallet-connect/ldk_node"
 	"github.com/sirupsen/logrus"
 )
 

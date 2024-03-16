@@ -298,6 +298,10 @@ func (httpSvc *HttpService) closeChannelHandler(c echo.Context) error {
 func (httpSvc *HttpService) newWrappedInvoiceHandler(c echo.Context) error {
 	var newWrappedInvoiceRequest api.NewWrappedInvoiceRequest
 	if err := c.Bind(&newWrappedInvoiceRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
 
 	newWrappedInvoiceResponse, err := httpSvc.api.NewWrappedInvoice(&newWrappedInvoiceRequest)
 

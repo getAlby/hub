@@ -23,7 +23,7 @@ import (
 type LDKService struct {
 	svc                 *Service
 	workdir             string
-	node                *ldk_node.LdkNode
+	node                *ldk_node.Node
 	ldkEventBroadcaster LDKEventBroadcaster
 	cancel              context.CancelFunc
 }
@@ -34,7 +34,7 @@ func NewLDKService(svc *Service, mnemonic, workDir string, network string, esplo
 	}
 
 	//create dir if not exists
-	newpath := filepath.Join(".", workDir+"-lsp3")
+	newpath := filepath.Join(".", workDir+"-lsp-anchor")
 	err = os.MkdirAll(newpath, os.ModePerm)
 	if err != nil {
 		log.Printf("Failed to create LDK working dir: %v", err)
@@ -144,11 +144,12 @@ func (gs *LDKService) SendPaymentSync(ctx context.Context, payReq string) (preim
 	ldkEventSubscription := gs.ldkEventBroadcaster.Subscribe()
 	defer gs.ldkEventBroadcaster.CancelSubscription(ldkEventSubscription)
 
-	paymentHash, err := gs.node.SendPayment(payReq)
+	paymentHash, err := gs.node.Bolt11Payment().Send(payReq)
 	if err != nil {
 		gs.svc.Logger.Errorf("SendPayment failed: %v", err)
 		return "", err
 	}
+	fee := uint64(0)
 
 	for start := time.Now(); time.Since(start) < time.Second*60; {
 		event := <-ldkEventSubscription
@@ -164,11 +165,23 @@ func (gs *LDKService) SendPaymentSync(ctx context.Context, payReq string) (preim
 				return "", errors.New("Payment not found")
 			}
 
-			if payment.Preimage == nil {
+			bolt11PaymentKind, ok := payment.Kind.(ldk_node.PaymentKindBolt11)
+
+			if !ok {
+				gs.svc.Logger.WithFields(logrus.Fields{
+					"payment": payment,
+				}).Error("Payment is not a bolt11 kind")
+			}
+
+			if bolt11PaymentKind.Preimage == nil {
 				gs.svc.Logger.Errorf("No payment preimage for payment hash: %v", paymentHash)
 				return "", errors.New("Payment preimage not found")
 			}
-			preimage = *payment.Preimage
+			preimage = *bolt11PaymentKind.Preimage
+
+			if eventPaymentSuccessful.FeePaidMsat != nil {
+				fee = *eventPaymentSuccessful.FeePaidMsat
+			}
 			break
 		}
 		if isEventPaymentFailedEvent && eventPaymentFailed.PaymentHash == paymentHash {
@@ -203,7 +216,10 @@ func (gs *LDKService) SendPaymentSync(ctx context.Context, payReq string) (preim
 		return "", errors.New("Payment timed out")
 	}
 
-	gs.svc.Logger.Infof("Payment made in %d ms", time.Since(paymentStart).Milliseconds())
+	gs.svc.Logger.WithFields(logrus.Fields{
+		"duration": time.Since(paymentStart).Milliseconds(),
+		"fee":      fee,
+	}).Info("Successful payment")
 	return preimage, nil
 }
 
@@ -217,13 +233,14 @@ func (gs *LDKService) SendKeysend(ctx context.Context, amount int64, destination
 		})
 	}
 
-	paymentHash, err := gs.node.SendSpontaneousPayment(uint64(amount), destination, customTlvs)
+	paymentHash, err := gs.node.SpontaneousPayment().Send(uint64(amount), destination, customTlvs)
 	if err != nil {
-		gs.svc.Logger.Errorf("Keysend failed: %v", err)
+		gs.svc.Logger.WithError(err).Error("Keysend failed")
 		return "", err
 	}
 
-	payment := gs.node.Payment(paymentHash)
+	gs.svc.Logger.Infof("TODO: listen for events %v", paymentHash)
+	/*payment := gs.node.Payment(paymentHash)
 	if payment == nil {
 		gs.svc.Logger.Errorf("Couldn't find payment by payment hash: %v", paymentHash)
 		return "", errors.New("Payment not found")
@@ -234,7 +251,8 @@ func (gs *LDKService) SendKeysend(ctx context.Context, amount int64, destination
 		return "", errors.New("no preimage in payment")
 	}
 
-	return *payment.Preimage, nil
+	return *payment.Preimage, nil*/
+	return "", nil
 }
 
 func (gs *LDKService) GetBalance(ctx context.Context) (balance int64, err error) {
@@ -251,7 +269,7 @@ func (gs *LDKService) GetBalance(ctx context.Context) (balance int64, err error)
 func (gs *LDKService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *Nip47Transaction, err error) {
 
 	// TODO: support passing description hash
-	invoice, err := gs.node.ReceivePayment(uint64(amount),
+	invoice, err := gs.node.Bolt11Payment().Receive(uint64(amount),
 		description,
 		uint32(expiry))
 
@@ -463,7 +481,8 @@ func (gs *LDKService) CloseChannel(ctx context.Context, closeChannelRequest *lnc
 	gs.svc.Logger.WithFields(logrus.Fields{
 		"request": closeChannelRequest,
 	}).Info("Closing Channel")
-	err := gs.node.CloseChannel(closeChannelRequest.ChannelId, closeChannelRequest.NodeId)
+	// TODO: support passing force option
+	err := gs.node.CloseChannel(closeChannelRequest.ChannelId, closeChannelRequest.NodeId, false)
 	if err != nil {
 		gs.svc.Logger.Errorf("CloseChannel failed: %v", err)
 		return nil, err
@@ -472,7 +491,7 @@ func (gs *LDKService) CloseChannel(ctx context.Context, closeChannelRequest *lnc
 }
 
 func (gs *LDKService) GetNewOnchainAddress(ctx context.Context) (string, error) {
-	address, err := gs.node.NewOnchainAddress()
+	address, err := gs.node.OnchainPayment().NewAddress()
 	if err != nil {
 		gs.svc.Logger.Errorf("NewOnchainAddress failed: %v", err)
 		return "", err
@@ -499,8 +518,14 @@ func (gs *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 	var description string
 	var descriptionHash string
 	var bolt11Invoice string
-	if payment.Bolt11Invoice != nil {
-		bolt11Invoice = *payment.Bolt11Invoice
+	var settledAt *int64
+	preimage := ""
+	paymentHash := ""
+
+	bolt11PaymentKind, isBolt11PaymentKind := payment.Kind.(ldk_node.PaymentKindBolt11)
+
+	if isBolt11PaymentKind {
+		bolt11Invoice = *bolt11PaymentKind.Bolt11Invoice
 		paymentRequest, err := decodepay.Decodepay(strings.ToLower(bolt11Invoice))
 		if err != nil {
 			gs.svc.Logger.WithFields(logrus.Fields{
@@ -514,17 +539,14 @@ func (gs *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 		expiresAt = &expiresAtUnix
 		description = paymentRequest.Description
 		descriptionHash = paymentRequest.DescriptionHash
-	}
-
-	preimage := ""
-	var settledAt *int64
-	if payment.Status == ldk_node.PaymentStatusSucceeded {
-		if payment.Preimage != nil {
-
-			preimage = *payment.Preimage
+		if payment.Status == ldk_node.PaymentStatusSucceeded {
+			if bolt11PaymentKind.Preimage != nil {
+				preimage = *bolt11PaymentKind.Preimage
+			}
+			// TODO: use payment settle time
+			settledAt = &createdAt
 		}
-		// TODO: use payment settle time
-		settledAt = &createdAt
+		paymentHash = bolt11PaymentKind.Hash
 	}
 
 	var amount uint64 = 0
@@ -535,7 +557,7 @@ func (gs *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 	return &Nip47Transaction{
 		Type:        transactionType,
 		Preimage:    preimage,
-		PaymentHash: payment.Hash,
+		PaymentHash: paymentHash,
 		SettledAt:   settledAt,
 		Amount:      int64(amount),
 		Invoice:     bolt11Invoice,
