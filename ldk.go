@@ -12,8 +12,7 @@ import (
 	"strings"
 	"time"
 
-	//"github.com/getAlby/ldk-node-go/ldk_node"
-	"github.com/getAlby/nostr-wallet-connect/ldk_node"
+	"github.com/getAlby/ldk-node-go/ldk_node"
 	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 	"github.com/getAlby/nostr-wallet-connect/models/lsp"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
