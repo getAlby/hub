@@ -88,6 +88,23 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			}
 			return WailsRequestRouterResponse{Body: createAppResponse, Error: ""}
 		}
+	// TODO: should this be DELETE /api/channels/:id?
+	case "/api/channels/close":
+		closeChannelRequest := &api.CloseChannelRequest{}
+		err := json.Unmarshal([]byte(body), closeChannelRequest)
+		if err != nil {
+			app.svc.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).Errorf("Failed to decode request to wails router: %v", err)
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		closeChannelResponse, err := app.api.CloseChannel(closeChannelRequest)
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: closeChannelResponse, Error: ""}
 	case "/api/channels":
 		switch method {
 		case "GET":

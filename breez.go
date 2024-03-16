@@ -194,10 +194,6 @@ func (bs *BreezService) LookupInvoice(ctx context.Context, paymentHash string) (
 func (bs *BreezService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []Nip47Transaction, err error) {
 
 	request := breez_sdk.ListPaymentsRequest{}
-	if limit == 0 {
-		// make sure a sensible limit is passed
-		limit = 100
-	}
 	if limit > 0 {
 		limit32 := uint32(limit)
 		request.Limit = &limit32
@@ -259,6 +255,10 @@ func (bs *BreezService) ConnectPeer(ctx context.Context, connectPeerRequest *lnc
 	return nil
 }
 func (bs *BreezService) OpenChannel(ctx context.Context, openChannelRequest *lnclient.OpenChannelRequest) (*lnclient.OpenChannelResponse, error) {
+	return nil, nil
+}
+
+func (bs *BreezService) CloseChannel(ctx context.Context, closeChannelRequest *lnclient.CloseChannelRequest) (*lnclient.CloseChannelResponse, error) {
 	return nil, nil
 }
 

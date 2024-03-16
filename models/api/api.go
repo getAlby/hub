@@ -85,6 +85,8 @@ type InfoResponse struct {
 type ConnectPeerRequest = lnclient.ConnectPeerRequest
 type OpenChannelRequest = lnclient.OpenChannelRequest
 type OpenChannelResponse = lnclient.OpenChannelResponse
+type CloseChannelRequest = lnclient.CloseChannelRequest
+type CloseChannelResponse = lnclient.CloseChannelResponse
 
 type NewWrappedInvoiceRequest struct {
 	Amount uint64 `json:"amount"`
