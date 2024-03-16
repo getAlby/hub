@@ -543,8 +543,11 @@ func (gs *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 			if bolt11PaymentKind.Preimage != nil {
 				preimage = *bolt11PaymentKind.Preimage
 			}
-			// TODO: use payment settle time
-			settledAt = &createdAt
+			settledAt = &createdAt // fallback settledAt to created at time
+			if payment.LastUpdate > 0 {
+				lastUpdate := int64(payment.LastUpdate)
+				settledAt = &lastUpdate
+			}
 		}
 		paymentHash = bolt11PaymentKind.Hash
 	}
