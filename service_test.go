@@ -1285,3 +1285,6 @@ func (mln *MockLn) GetNewOnchainAddress(ctx context.Context) (string, error) {
 func (mln *MockLn) GetOnchainBalance(ctx context.Context) (int64, error) {
 	return 0, nil
 }
+func (mln *MockLn) ResetRouter(ctx context.Context) error {
+	return nil
+}

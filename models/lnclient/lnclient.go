@@ -55,6 +55,7 @@ type LNClient interface {
 	CloseChannel(ctx context.Context, closeChannelRequest *CloseChannelRequest) (*CloseChannelResponse, error)
 	GetNewOnchainAddress(ctx context.Context) (string, error)
 	GetOnchainBalance(ctx context.Context) (int64, error)
+	ResetRouter(ctx context.Context) error
 }
 
 type Channel struct {

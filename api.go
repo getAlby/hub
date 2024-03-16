@@ -222,6 +222,23 @@ func (api *API) ListChannels() ([]lnclient.Channel, error) {
 	return api.svc.lnClient.ListChannels(api.svc.ctx)
 }
 
+func (api *API) ResetRouter() error {
+	if api.svc.lnClient == nil {
+		return errors.New("LNClient not started")
+	}
+	err := api.svc.lnClient.ResetRouter(api.svc.ctx)
+	if err != nil {
+		return err
+	}
+	// Shut down the lnclient
+	// The user will be forced to re-enter their unlock password to restart the node
+	err = api.svc.lnClient.Shutdown()
+	if err == nil {
+		api.svc.lnClient = nil
+	}
+	return err
+}
+
 func (api *API) GetNodeConnectionInfo() (*lnclient.NodeConnectionInfo, error) {
 	if api.svc.lnClient == nil {
 		return nil, errors.New("LNClient not started")

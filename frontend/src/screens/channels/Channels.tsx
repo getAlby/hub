@@ -11,7 +11,7 @@ export default function Channels() {
   const { data: channels, mutate: reloadChannels } = useChannels();
   const { data: onchainBalance } = useOnchainBalance();
   const [nodes, setNodes] = React.useState<Node[]>([]);
-  const { data: info } = useInfo();
+  const { data: info, mutate: reloadInfo } = useInfo();
   const { data: csrf } = useCSRF();
   const navigate = useNavigate();
 
@@ -104,6 +104,27 @@ export default function Channels() {
       await reloadChannels();
 
       alert(`🎉 Channel closed`);
+    } catch (error) {
+      console.error(error);
+      alert("Something went wrong: " + error);
+    }
+  }
+
+  async function resetRouter() {
+    try {
+      if (!csrf) {
+        throw new Error("csrf not loaded");
+      }
+
+      await request("/api/reset-router", {
+        method: "POST",
+        headers: {
+          "X-CSRF-Token": csrf,
+          "Content-Type": "application/json",
+        },
+      });
+      await reloadInfo();
+      alert(`🎉 Router reset`);
     } catch (error) {
       console.error(error);
       alert("Something went wrong: " + error);
@@ -207,6 +228,14 @@ export default function Channels() {
       >
         Onchain address
       </Link>
+      {info?.backendType === "LDK" && (
+        <button
+          onClick={resetRouter}
+          className="text-white bg-orange-700 hover:bg-orange-800 focus:ring-4 focus:ring-orange-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 dark:bg-orange-600 dark:hover:bg-orange-700 focus:outline-none dark:focus:ring-orange-800"
+        >
+          Reset Router
+        </button>
+      )}
 
       <div className="flex flex-col mt-5">
         <div className="overflow-x-auto shadow-md sm:rounded-lg">

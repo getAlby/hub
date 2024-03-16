@@ -326,3 +326,7 @@ func (bs *BreezService) GetNewOnchainAddress(ctx context.Context) (string, error
 func (bs *BreezService) GetOnchainBalance(ctx context.Context) (int64, error) {
 	return 0, nil
 }
+
+func (bs *BreezService) ResetRouter(ctx context.Context) error {
+	return nil
+}

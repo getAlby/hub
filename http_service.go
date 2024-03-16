@@ -72,6 +72,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.POST("/api/peers", httpSvc.connectPeerHandler, authMiddleware)
 	e.POST("/api/wallet/new-address", httpSvc.newOnchainAddressHandler, authMiddleware)
 	e.GET("/api/wallet/balance", httpSvc.onchainBalanceHandler, authMiddleware)
+	e.POST("/api/reset-router", httpSvc.resetRouterHandler, authMiddleware)
 
 	e.GET("/api/mempool/lightning/nodes/:pubkey", httpSvc.mempoolLightningNodeHandler, authMiddleware)
 
@@ -192,6 +193,19 @@ func (httpSvc *HttpService) channelsListHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, channels)
+}
+
+func (httpSvc *HttpService) resetRouterHandler(c echo.Context) error {
+
+	err := httpSvc.api.ResetRouter()
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+
+	return c.NoContent(http.StatusNoContent)
 }
 
 func (httpSvc *HttpService) nodeConnectionInfoHandler(c echo.Context) error {

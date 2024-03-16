@@ -381,3 +381,7 @@ func lndInvoiceToTransaction(invoice *lnrpc.Invoice) *Nip47Transaction {
 		// TODO: Metadata (e.g. keysend)
 	}
 }
+
+func (svc *LNDService) ResetRouter(ctx context.Context) error {
+	return nil
+}
