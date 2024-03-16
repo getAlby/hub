@@ -33,7 +33,7 @@ func NewLDKService(svc *Service, mnemonic, workDir string, network string, esplo
 	}
 
 	//create dir if not exists
-	newpath := filepath.Join(".", workDir+"-lsp-anchor")
+	newpath := filepath.Join(".", workDir)
 	err = os.MkdirAll(newpath, os.ModePerm)
 	if err != nil {
 		log.Printf("Failed to create LDK working dir: %v", err)
