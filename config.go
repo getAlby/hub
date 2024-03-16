@@ -34,16 +34,16 @@ type AppConfig struct {
 	LogLevel        string `envconfig:"LOG_LEVEL"`
 
 	// For mainnet
-	MempoolLightningNode string `envconfig:"MEMPOOL_LIGHTNING_NODE" default:"https://mempool.space/api/v1/lightning/nodes/"`
-	LDKNetwork           string `envconfig:"LDK_NETWORK" default:"bitcoin"`
-	LDKEsploraServer     string `envconfig:"LDK_ESPLORA_SERVER" default:"https://blockstream.info/api"`
-	LDKGossipSource      string `envconfig:"LDK_GOSSIP_SOURCE" default:"https://rapidsync.lightningdevkit.org/snapshot"`
+	MempoolApi       string `envconfig:"MEMPOOL_API" default:"https://mempool.space/api"`
+	LDKNetwork       string `envconfig:"LDK_NETWORK" default:"bitcoin"`
+	LDKEsploraServer string `envconfig:"LDK_ESPLORA_SERVER" default:"https://blockstream.info/api"`
+	LDKGossipSource  string `envconfig:"LDK_GOSSIP_SOURCE" default:"https://rapidsync.lightningdevkit.org/snapshot"`
 
 	// For testnet
-	//MempoolLightningNode string `envconfig:"MEMPOOL_LIGHTNING_NODE" default:"https://mempool.space/testnet/api/v1/lightning/nodes/"`
-	//LDKNetwork           string `envconfig:"LDK_NETWORK" default:"testnet"`
-	//LDKEsploraServer     string `envconfig:"LDK_ESPLORA_SERVER" default:" https://mutiny.mempool.space/testnet/api"`
-	//LDKGossipSource      string `envconfig:"LDK_GOSSIP_SOURCE" default:"https://rapidsync.lightningdevkit.org/testnet/snapshot"`
+	//MempoolApi       string `envconfig:"MEMPOOL_API" default:"https://mempool.space/testnet/api"`
+	//LDKNetwork       string `envconfig:"LDK_NETWORK" default:"testnet"`
+	//LDKEsploraServer string `envconfig:"LDK_ESPLORA_SERVER" default:" https://mutiny.mempool.space/testnet/api"`
+	//LDKGossipSource  string `envconfig:"LDK_GOSSIP_SOURCE" default:"https://rapidsync.lightningdevkit.org/testnet/snapshot"`
 
 	LDKLogLevel string `envconfig:"LDK_LOG_LEVEL"`
 }

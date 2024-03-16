@@ -275,7 +275,7 @@ func (api *API) GetOnchainBalance() (*models.OnchainBalanceResponse, error) {
 }
 
 func (api *API) GetMempoolLightningNode(pubkey string) (interface{}, error) {
-	url := api.svc.cfg.Env.MempoolLightningNode + pubkey
+	url := api.svc.cfg.Env.MempoolApi + "/v1/lightning/nodes/" + pubkey
 
 	spaceClient := http.Client{
 		Timeout: time.Second * 10,
