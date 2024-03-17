@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/getAlby/nostr-wallet-connect/migrations"
+	"github.com/getAlby/nostr-wallet-connect/models/config"
 	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 	"github.com/glebarez/sqlite"
 	"github.com/nbd-wtf/go-nostr"
@@ -1178,7 +1179,15 @@ func createTestService(ln *MockLn) (svc *Service, err error) {
 	if err != nil {
 		return nil, err
 	}
-	err = migrations.Migrate(gormDb)
+
+	logger := logrus.New()
+	logger.SetFormatter(&logrus.JSONFormatter{})
+	logger.SetOutput(os.Stdout)
+	logger.SetLevel(logrus.InfoLevel)
+
+	err = migrations.Migrate(gormDb, &config.AppConfig{
+		Workdir: ".test",
+	}, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -1187,11 +1196,6 @@ func createTestService(ln *MockLn) (svc *Service, err error) {
 	if err != nil {
 		return nil, err
 	}
-
-	logger := logrus.New()
-	logger.SetFormatter(&logrus.JSONFormatter{})
-	logger.SetOutput(os.Stdout)
-	logger.SetLevel(logrus.InfoLevel)
 
 	return &Service{
 		cfg: &Config{
