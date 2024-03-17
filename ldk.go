@@ -125,7 +125,9 @@ func NewLDKService(svc *Service, mnemonic, workDir string, network string, esplo
 		return nil, err
 	}
 
-	log.Printf("Connected to node ID: %v", nodeId)
+	svc.Logger.WithFields(logrus.Fields{
+		"nodeId": nodeId,
+	}).Info("Connected to LDK node")
 
 	return &gs, nil
 }
@@ -523,7 +525,7 @@ func (gs *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 
 	bolt11PaymentKind, isBolt11PaymentKind := payment.Kind.(ldk_node.PaymentKindBolt11)
 
-	if isBolt11PaymentKind {
+	if isBolt11PaymentKind && bolt11PaymentKind.Bolt11Invoice != nil {
 		bolt11Invoice = *bolt11PaymentKind.Bolt11Invoice
 		paymentRequest, err := decodepay.Decodepay(strings.ToLower(bolt11Invoice))
 		if err != nil {
