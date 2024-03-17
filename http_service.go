@@ -20,6 +20,11 @@ type HttpService struct {
 	api *API
 }
 
+const (
+	sessionCookieName    = "session"
+	sessionCookieAuthKey = "authenticated"
+)
+
 func NewHttpService(svc *Service) *HttpService {
 	return &HttpService{
 		svc: svc,
@@ -146,8 +151,8 @@ func (httpSvc *HttpService) unlockHandler(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) isUnlocked(c echo.Context) bool {
-	sess, _ := session.Get(SessionCookieName, c)
-	return sess.Values[SessionCookieAuthKey] == true
+	sess, _ := session.Get(sessionCookieName, c)
+	return sess.Values[sessionCookieAuthKey] == true
 }
 
 func (httpSvc *HttpService) saveSessionCookie(c echo.Context) error {
@@ -157,7 +162,7 @@ func (httpSvc *HttpService) saveSessionCookie(c echo.Context) error {
 		MaxAge:   86400 * 7,
 		HttpOnly: true,
 	}
-	sess.Values[SessionCookieAuthKey] = true
+	sess.Values[sessionCookieAuthKey] = true
 	err := sess.Save(c.Request(), c.Response())
 	if err != nil {
 		httpSvc.svc.Logger.Errorf("Failed to save session: %v", err)
@@ -166,7 +171,7 @@ func (httpSvc *HttpService) saveSessionCookie(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) logoutHandler(c echo.Context) error {
-	sess, err := session.Get(SessionCookieName, c)
+	sess, err := session.Get(sessionCookieName, c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: "Failed to get session",
