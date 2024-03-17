@@ -65,7 +65,10 @@ func NewLDKService(svc *Service, mnemonic, workDir string, network string, esplo
 	builder.SetEsploraServer(esploraServer)
 	builder.SetGossipSourceRgs(gossipSource)
 	builder.SetStorageDirPath(filepath.Join(newpath, "./storage"))
-	builder.SetLiquiditySourceLsps2("52.88.33.119:9735", lsp.VoltageLSP().Pubkey, nil) // Temporary hack to work with voltage, remove when https://github.com/lightningdevkit/rust-lightning/issues/2914 is merged
+
+	// Temporary hack to work with voltage, remove when https://github.com/lightningdevkit/rust-lightning/issues/2914 is merged
+	// LDK default HTLC inflight value is 10% of the channel size. If an LSPS service is configured this will be set to 0.
+	builder.SetLiquiditySourceLsps2("52.88.33.119:9735", lsp.VoltageLSP().Pubkey, nil)
 
 	//builder.SetLogDirPath (filepath.Join(newpath, "./logs")); // missing?
 	node, err := builder.Build()
