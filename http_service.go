@@ -69,15 +69,15 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	// TODO: should this be DELETE /api/channels:id?
 	e.POST("/api/channels/close", httpSvc.closeChannelHandler, authMiddleware)
 	e.GET("/api/node/connection-info", httpSvc.nodeConnectionInfoHandler, authMiddleware)
+	e.GET("/api/peers", httpSvc.listPeers, authMiddleware)
 	e.POST("/api/peers", httpSvc.connectPeerHandler, authMiddleware)
 	e.POST("/api/wallet/new-address", httpSvc.newOnchainAddressHandler, authMiddleware)
 	e.GET("/api/wallet/balance", httpSvc.onchainBalanceHandler, authMiddleware)
 
 	e.GET("/api/mempool/lightning/nodes/:pubkey", httpSvc.mempoolLightningNodeHandler, authMiddleware)
 
-	e.POST("/api/debug/send-payment-probes", httpSvc.sendPaymentProbesHandler, authMiddleware)
-	e.POST("/api/debug/send-spontaneous-payment-probes", httpSvc.sendSpontaneousPaymentProbesHandler, authMiddleware)
-	e.GET("/api/debug/peers", httpSvc.listPeers, authMiddleware)
+	e.POST("/api/send-payment-probes", httpSvc.sendPaymentProbesHandler, authMiddleware)
+	e.POST("/api/send-spontaneous-payment-probes", httpSvc.sendSpontaneousPaymentProbesHandler, authMiddleware)
 
 	frontend.RegisterHandlers(e)
 }
@@ -240,6 +240,17 @@ func (httpSvc *HttpService) mempoolLightningNodeHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, response)
+}
+
+func (httpSvc *HttpService) listPeers(c echo.Context) error {
+	peers, err := httpSvc.svc.lnClient.ListPeers(httpSvc.svc.ctx)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to list peers: %s", err.Error()),
+		})
+	}
+
+	return c.JSON(http.StatusOK, peers)
 }
 
 func (httpSvc *HttpService) connectPeerHandler(c echo.Context) error {
@@ -410,12 +421,6 @@ func (httpSvc *HttpService) setupHandler(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) sendPaymentProbesHandler(c echo.Context) error {
-	if httpSvc.svc.lnDbgClient == nil {
-		return c.JSON(http.StatusNotImplemented, ErrorResponse{
-			Message: "Debug client not available",
-		})
-	}
-
 	var sendPaymentProbesRequest api.SendPaymentProbesRequest
 	if err := c.Bind(&sendPaymentProbesRequest); err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
@@ -423,7 +428,7 @@ func (httpSvc *HttpService) sendPaymentProbesHandler(c echo.Context) error {
 		})
 	}
 
-	err := httpSvc.svc.lnDbgClient.SendPaymentProbes(httpSvc.svc.ctx, sendPaymentProbesRequest.Invoice)
+	err := httpSvc.svc.lnClient.SendPaymentProbes(httpSvc.svc.ctx, sendPaymentProbesRequest.Invoice)
 	errMsg := ""
 	if err != nil {
 		errMsg = err.Error()
@@ -435,12 +440,6 @@ func (httpSvc *HttpService) sendPaymentProbesHandler(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) sendSpontaneousPaymentProbesHandler(c echo.Context) error {
-	if httpSvc.svc.lnDbgClient == nil {
-		return c.JSON(http.StatusNotImplemented, ErrorResponse{
-			Message: "Debug client not available",
-		})
-	}
-
 	var sendSpontaneousPaymentProbesRequest api.SendSpontaneousPaymentProbesRequest
 	if err := c.Bind(&sendSpontaneousPaymentProbesRequest); err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
@@ -448,7 +447,7 @@ func (httpSvc *HttpService) sendSpontaneousPaymentProbesHandler(c echo.Context) 
 		})
 	}
 
-	err := httpSvc.svc.lnDbgClient.SendSpontaneousPaymentProbes(httpSvc.svc.ctx, sendSpontaneousPaymentProbesRequest.Amount, sendSpontaneousPaymentProbesRequest.NodeID)
+	err := httpSvc.svc.lnClient.SendSpontaneousPaymentProbes(httpSvc.svc.ctx, sendSpontaneousPaymentProbesRequest.Amount, sendSpontaneousPaymentProbesRequest.NodeID)
 	errMsg := ""
 	if err != nil {
 		errMsg = err.Error()
@@ -457,21 +456,4 @@ func (httpSvc *HttpService) sendSpontaneousPaymentProbesHandler(c echo.Context) 
 	return c.JSON(http.StatusOK, api.SendSpontaneousPaymentProbesResponse{
 		Error: errMsg,
 	})
-}
-
-func (httpSvc *HttpService) listPeers(c echo.Context) error {
-	if httpSvc.svc.lnDbgClient == nil {
-		return c.JSON(http.StatusNotImplemented, ErrorResponse{
-			Message: "Debug client not available",
-		})
-	}
-
-	peers, err := httpSvc.svc.lnDbgClient.ListPeers(httpSvc.svc.ctx)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to list peers: %s", err.Error()),
-		})
-	}
-
-	return c.JSON(http.StatusOK, peers)
 }

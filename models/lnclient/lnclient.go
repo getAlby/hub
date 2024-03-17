@@ -55,9 +55,6 @@ type LNClient interface {
 	CloseChannel(ctx context.Context, closeChannelRequest *CloseChannelRequest) (*CloseChannelResponse, error)
 	GetNewOnchainAddress(ctx context.Context) (string, error)
 	GetOnchainBalance(ctx context.Context) (int64, error)
-}
-
-type DebugClient interface {
 	SendPaymentProbes(ctx context.Context, invoice string) error
 	SendSpontaneousPaymentProbes(ctx context.Context, amount_msat uint64, node_id string) error
 	ListPeers(ctx context.Context) ([]PeerDetails, error)

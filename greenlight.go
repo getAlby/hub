@@ -475,6 +475,18 @@ func (gs *GreenlightService) GetOnchainBalance(ctx context.Context) (int64, erro
 	return balance / 1000, nil
 }
 
+func (gs *GreenlightService) SendPaymentProbes(ctx context.Context, invoice string) error {
+	return nil
+}
+
+func (gs *GreenlightService) SendSpontaneousPaymentProbes(ctx context.Context, amount_msat uint64, node_id string) error {
+	return nil
+}
+
+func (gs *GreenlightService) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, error) {
+	return nil, nil
+}
+
 func (gs *GreenlightService) greenlightInvoiceToTransaction(invoice *glalby.ListInvoicesInvoice) (*Nip47Transaction, error) {
 	description := ""
 	descriptionHash := ""

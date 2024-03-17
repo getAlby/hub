@@ -11,8 +11,9 @@ import (
 	"time"
 
 	"github.com/breez/breez-sdk-go/breez_sdk"
-	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
+
+	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 )
 
 type BreezService struct {
@@ -325,4 +326,16 @@ func (bs *BreezService) GetNewOnchainAddress(ctx context.Context) (string, error
 
 func (bs *BreezService) GetOnchainBalance(ctx context.Context) (int64, error) {
 	return 0, nil
+}
+
+func (bs *BreezService) SendPaymentProbes(ctx context.Context, invoice string) error {
+	return nil
+}
+
+func (bs *BreezService) SendSpontaneousPaymentProbes(ctx context.Context, amount_msat uint64, node_id string) error {
+	return nil
+}
+
+func (bs *BreezService) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, error) {
+	return nil, nil
 }

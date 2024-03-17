@@ -30,13 +30,12 @@ import (
 
 type Service struct {
 	// config from .env only. Fetch dynamic config from db
-	cfg         *Config
-	db          *gorm.DB
-	lnClient    lnclient.LNClient
-	lnDbgClient lnclient.DebugClient
-	Logger      *logrus.Logger
-	ctx         context.Context
-	wg          *sync.WaitGroup
+	cfg      *Config
+	db       *gorm.DB
+	lnClient lnclient.LNClient
+	Logger   *logrus.Logger
+	ctx      context.Context
+	wg       *sync.WaitGroup
 }
 
 // TODO: move to service.go
@@ -124,7 +123,6 @@ func (svc *Service) launchLNBackend(encryptionKey string) error {
 			return err
 		}
 		svc.lnClient = nil
-		svc.lnDbgClient = nil
 	}
 
 	lndBackend, _ := svc.cfg.Get("LNBackendType", "")
@@ -134,7 +132,6 @@ func (svc *Service) launchLNBackend(encryptionKey string) error {
 
 	svc.Logger.Infof("Launching LN Backend: %s", lndBackend)
 	var lnClient lnclient.LNClient
-	var lnDbgClient lnclient.DebugClient
 	var err error
 	switch lndBackend {
 	case LNDBackendType:
@@ -147,7 +144,6 @@ func (svc *Service) launchLNBackend(encryptionKey string) error {
 		LDKWorkdir := path.Join(svc.cfg.Env.Workdir, "ldk")
 
 		lnClient, err = NewLDKService(svc, Mnemonic, LDKWorkdir, svc.cfg.Env.LDKNetwork, svc.cfg.Env.LDKEsploraServer, svc.cfg.Env.LDKGossipSource)
-		lnDbgClient = lnClient.(lnclient.DebugClient)
 	case GreenlightBackendType:
 		Mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
 		GreenlightInviteCode, _ := svc.cfg.Get("GreenlightInviteCode", encryptionKey)
@@ -169,7 +165,6 @@ func (svc *Service) launchLNBackend(encryptionKey string) error {
 		return err
 	}
 	svc.lnClient = lnClient
-	svc.lnDbgClient = lnDbgClient
 	return nil
 }
 
