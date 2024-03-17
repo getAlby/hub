@@ -7,14 +7,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/getAlby/nostr-wallet-connect/migrations"
-	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 	"github.com/glebarez/sqlite"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip04"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
+
+	"github.com/getAlby/nostr-wallet-connect/migrations"
+	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 )
 
 const testDB = "test.db"
@@ -1284,4 +1285,13 @@ func (mln *MockLn) GetNewOnchainAddress(ctx context.Context) (string, error) {
 }
 func (mln *MockLn) GetOnchainBalance(ctx context.Context) (int64, error) {
 	return 0, nil
+}
+func (mln *MockLn) SendPaymentProbes(ctx context.Context, invoice string) error {
+	return nil
+}
+func (mln *MockLn) SendSpontaneousPaymentProbes(ctx context.Context, amount_msat uint64, node_id string) error {
+	return nil
+}
+func (mln *MockLn) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, error) {
+	return nil, nil
 }
