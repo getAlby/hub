@@ -11,6 +11,7 @@ import { useAlbyBalance } from "src/hooks/useAlbyBalance";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useCSRF } from "src/hooks/useCSRF";
 import { useChannels } from "src/hooks/useChannels";
+import { useInfo } from "src/hooks/useInfo";
 import {
   LSPOption,
   NewWrappedInvoiceRequest,
@@ -26,6 +27,7 @@ export default function MigrateAlbyFunds() {
   const { data: albyBalance } = useAlbyBalance();
   const { data: csrf } = useCSRF();
   const { data: channels } = useChannels();
+  const { mutate: refetchInfo } = useInfo();
   const [prePurchaseChannelCount, setPrePurchaseChannelCount] = React.useState<
     number | undefined
   >();
@@ -124,10 +126,13 @@ export default function MigrateAlbyFunds() {
 
   React.useEffect(() => {
     if (hasOpenedChannel) {
-      toast.success("Channel opened!");
-      navigate("/");
+      (async () => {
+        toast.success("Channel opened!");
+        await refetchInfo();
+        navigate("/");
+      })();
     }
-  }, [hasOpenedChannel, navigate]);
+  }, [hasOpenedChannel, navigate, refetchInfo]);
 
   if (!albyMe || !albyBalance || !channels || !wrappedInvoiceResponse) {
     return <Loading />;
