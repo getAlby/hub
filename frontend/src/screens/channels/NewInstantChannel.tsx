@@ -1,4 +1,4 @@
-import { Payment } from "@getalby/bitcoin-connect-react";
+import { Payment, init } from "@getalby/bitcoin-connect-react";
 import React from "react";
 import ConnectButton from "src/components/ConnectButton";
 import { MIN_0CONF_BALANCE } from "src/constants";
@@ -11,6 +11,9 @@ import {
   NewWrappedInvoiceResponse,
 } from "src/types";
 import { request } from "src/utils/request";
+init({
+  showBalance: false,
+});
 
 export default function NewInstantChannel() {
   const { data: csrf } = useCSRF();
