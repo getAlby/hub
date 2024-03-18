@@ -81,6 +81,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.GET("/api/alby/callback", httpSvc.albyCallbackHandler, authMiddleware)
 	e.GET("/api/alby/me", httpSvc.albyMeHandler, authMiddleware)
 	e.GET("/api/alby/balance", httpSvc.albyBalanceHandler, authMiddleware)
+	e.POST("/api/alby/pay", httpSvc.albyPayHandler, authMiddleware)
 
 	e.GET("/api/mempool/lightning/nodes/:pubkey", httpSvc.mempoolLightningNodeHandler, authMiddleware)
 
@@ -479,4 +480,23 @@ func (httpSvc *HttpService) albyBalanceHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, &api.AlbyBalanceResponse{
 		Sats: balance.Balance,
 	})
+}
+
+func (httpSvc *HttpService) albyPayHandler(c echo.Context) error {
+	var payRequest api.AlbyPayRequest
+	if err := c.Bind(&payRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	err := httpSvc.api.albySvc.SendPayment(c.Request().Context(), payRequest.Invoice)
+	if err != nil {
+		httpSvc.svc.Logger.WithError(err).Error("Failed to request alby pay endpoint")
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to request alby pay endpoint: %s", err.Error()),
+		})
+	}
+
+	return c.NoContent(http.StatusNoContent)
 }

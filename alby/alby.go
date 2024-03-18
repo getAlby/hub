@@ -1,8 +1,10 @@
 package alby
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -188,6 +190,89 @@ func (svc *AlbyOAuthService) GetBalance(ctx context.Context) (*AlbyBalance, erro
 
 	svc.logger.WithFields(logrus.Fields{"balance": balance}).Info("Alby balance response")
 	return balance, nil
+}
+
+func (svc *AlbyOAuthService) SendPayment(ctx context.Context, invoice string) error {
+	token, err := svc.fetchUserToken(ctx)
+	if err != nil {
+		svc.logger.WithError(err).Error("Failed to fetch user token")
+		return err
+	}
+
+	client := svc.oauthConf.Client(ctx, token)
+
+	type PayRequest struct {
+		Invoice string `json:"invoice"`
+	}
+
+	body := bytes.NewBuffer([]byte{})
+	payload := &PayRequest{
+		Invoice: invoice,
+	}
+	err = json.NewEncoder(body).Encode(payload)
+
+	if err != nil {
+		svc.logger.WithError(err).Error("Failed to encode request payload")
+		return err
+	}
+
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/payments/bolt11", svc.appConfig.AlbyAPIURL), body)
+	if err != nil {
+		svc.logger.WithError(err).Error("Error creating request /payments/bolt11")
+		return err
+	}
+
+	req.Header.Set("User-Agent", "NWC-next")
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		svc.logger.WithFields(logrus.Fields{
+			"invoice": invoice,
+		}).WithError(err).Error("Failed to pay invoice")
+		return err
+	}
+
+	type PayResponse struct {
+		Preimage    string `json:"payment_preimage"`
+		PaymentHash string `json:"payment_hash"`
+	}
+
+	if resp.StatusCode >= 300 {
+
+		type ErrorResponse struct {
+			Error   bool   `json:"error"`
+			Code    int    `json:"code"`
+			Message string `json:"message"`
+		}
+
+		errorPayload := &ErrorResponse{}
+		err = json.NewDecoder(resp.Body).Decode(errorPayload)
+		if err != nil {
+			svc.logger.WithError(err).Error("Failed to decode error response payload")
+			return err
+		}
+
+		svc.logger.WithFields(logrus.Fields{
+			"invoice": invoice,
+			"status":  resp.StatusCode,
+			"message": errorPayload.Message,
+		}).Error("Payment failed")
+		return errors.New(errorPayload.Message)
+	}
+
+	responsePayload := &PayResponse{}
+	err = json.NewDecoder(resp.Body).Decode(responsePayload)
+	if err != nil {
+		svc.logger.WithError(err).Error("Failed to decode response payload")
+		return err
+	}
+	svc.logger.WithFields(logrus.Fields{
+		"invoice":     invoice,
+		"paymentHash": responsePayload.PaymentHash,
+		"preimage":    responsePayload.Preimage,
+	}).Info("Payment successful")
+	return nil
 }
 
 func (svc *AlbyOAuthService) GetAuthUrl() string {

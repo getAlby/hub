@@ -111,3 +111,7 @@ type OnchainBalanceResponse struct {
 type AlbyBalanceResponse struct {
 	Sats int64 `json:"sats"`
 }
+
+type AlbyPayRequest struct {
+	Invoice string `json:"invoice"`
+}

@@ -16,6 +16,7 @@ import {
   NewWrappedInvoiceRequest,
   NewWrappedInvoiceResponse,
 } from "src/types";
+import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 
 const DEFAULT_LSP: LSPOption = "OLYMPUS";
@@ -73,7 +74,32 @@ export default function MigrateAlbyFunds() {
     [channels, csrf]
   );
 
-  const payWrappedInvoice = () => alert("TODO!");
+  const payWrappedInvoice = React.useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      try {
+        if (!wrappedInvoiceResponse) {
+          throw new Error("No wrapped invoice");
+        }
+        if (!csrf) {
+          throw new Error("No csrf token");
+        }
+        await request("/api/alby/pay", {
+          method: "POST",
+          headers: {
+            "X-CSRF-Token": csrf,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            invoice: wrappedInvoiceResponse.wrappedInvoice,
+          }),
+        });
+      } catch (error) {
+        handleRequestError("Failed to pay channel funding invoice", error);
+      }
+    },
+    [csrf, wrappedInvoiceResponse]
+  );
 
   React.useEffect(() => {
     if (hasRequestedInvoice || !channels || !albyMe || !albyBalance) {
