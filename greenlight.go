@@ -15,7 +15,7 @@ import (
 
 	//"github.com/getAlby/nostr-wallet-connect/glalby" // for local development only
 
-	"github.com/getAlby/glalby/glalby"
+	"github.com/getAlby/glalby-go/glalby"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
 
@@ -380,6 +380,7 @@ func (gs *GreenlightService) ListChannels(ctx context.Context) ([]lnclient.Chann
 			RemotePubkey:  glChannel.PeerId,
 			Id:            *glChannel.ChannelId,
 			Active:        glChannel.State == 2,
+			// TODO: add Public property
 		})
 	}
 
@@ -436,6 +437,10 @@ func (gs *GreenlightService) OpenChannel(ctx context.Context, openChannelRequest
 	return &lnclient.OpenChannelResponse{
 		FundingTxId: response.Txid,
 	}, nil
+}
+
+func (gs *GreenlightService) CloseChannel(ctx context.Context, closeChannelRequest *lnclient.CloseChannelRequest) (*lnclient.CloseChannelResponse, error) {
+	return nil, nil
 }
 
 func (gs *GreenlightService) GetNewOnchainAddress(ctx context.Context) (string, error) {
