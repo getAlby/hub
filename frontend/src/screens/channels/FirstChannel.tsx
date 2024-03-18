@@ -1,17 +1,19 @@
 import { Link } from "react-router-dom";
+import Loading from "src/components/Loading";
 import { AlbyIcon } from "src/components/icons/Alby";
 import { ALBY_NODE_PUBKEY, MIN_ALBY_BALANCE } from "src/constants";
 import { useAlbyBalance } from "src/hooks/useAlbyBalance";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
-
-// TODO: get full OAuth authorization URL from backend
-const CLIENT_ID = "FIXME";
-const REDIRECT_URI = "http://localhost:8080/api/alby/callback";
-const SCOPES = ["account:read", "balance:read", "payments:send"];
+import { useInfo } from "src/hooks/useInfo";
 
 export default function FirstChannel() {
+  const { data: info } = useInfo();
   const { data: albyMe } = useAlbyMe();
   const { data: albyBalance } = useAlbyBalance();
+
+  if (!info) {
+    return <Loading />;
+  }
 
   return (
     <div className="flex flex-col justify-center items-center gap-4">
@@ -27,11 +29,7 @@ export default function FirstChannel() {
             first channel.
           </p>
 
-          <Link
-            to={`https://getalby.com/oauth?client_id=${CLIENT_ID}&response_type=code&redirect_uri=${REDIRECT_URI}&scope=${SCOPES.join(
-              "%20"
-            )}`}
-          >
+          <Link to={info.albyAuthUrl}>
             <button
               className="font-body flex h-10 w-56 items-center justify-center gap-2 rounded-md font-bold text-black shadow transition-all hover:brightness-90 active:scale-95"
               style={{

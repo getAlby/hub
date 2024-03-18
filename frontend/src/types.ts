@@ -79,6 +79,7 @@ export interface InfoResponse {
   running: boolean;
   unlocked: boolean;
   hasChannels: boolean;
+  albyAuthUrl: string;
 }
 
 export interface CreateAppResponse {

@@ -82,7 +82,7 @@ func (svc *AlbyOAuthService) saveToken(token *oauth2.Token) {
 
 var tokenMutex sync.Mutex
 
-func (svc *AlbyOAuthService) fetchUserToken() (token *oauth2.Token, err error) {
+func (svc *AlbyOAuthService) fetchUserToken(ctx context.Context) (*oauth2.Token, error) {
 	tokenMutex.Lock()
 	defer tokenMutex.Unlock()
 	accessToken, err := svc.kvStore.Get("AccessToken", "")
@@ -112,13 +112,19 @@ func (svc *AlbyOAuthService) fetchUserToken() (token *oauth2.Token, err error) {
 		return currentToken, nil
 	}
 
-	svc.saveToken(token)
-	return token, nil
+	newToken, err := svc.oauthConf.TokenSource(ctx, currentToken).Token()
+	if err != nil {
+		svc.logger.WithError(err).Error("Failed to refresh existing token")
+		return nil, err
+	}
+
+	svc.saveToken(newToken)
+	return newToken, nil
 }
 
 func (svc *AlbyOAuthService) GetMe(ctx context.Context) (*AlbyMe, error) {
 
-	token, err := svc.fetchUserToken()
+	token, err := svc.fetchUserToken(ctx)
 	if err != nil {
 		svc.logger.WithError(err).Error("Failed to fetch user token")
 		return nil, err
@@ -152,7 +158,7 @@ func (svc *AlbyOAuthService) GetMe(ctx context.Context) (*AlbyMe, error) {
 
 func (svc *AlbyOAuthService) GetBalance(ctx context.Context) (*AlbyBalance, error) {
 
-	token, err := svc.fetchUserToken()
+	token, err := svc.fetchUserToken(ctx)
 	if err != nil {
 		svc.logger.WithError(err).Error("Failed to fetch user token")
 		return nil, err
@@ -182,4 +188,11 @@ func (svc *AlbyOAuthService) GetBalance(ctx context.Context) (*AlbyBalance, erro
 
 	svc.logger.WithFields(logrus.Fields{"balance": balance}).Info("Alby balance response")
 	return balance, nil
+}
+
+func (svc *AlbyOAuthService) GetAuthUrl() string {
+	// FIXME: use env variable
+	redirectUri := "http://localhost:8080/api/alby/callback"
+	scopes := "account:read%20balance:read%20payments:send"
+	return fmt.Sprintf("%s?client_id=%s&response_type=code&redirect_uri=%s&scope=%s", svc.appConfig.AlbyOAuthAuthUrl, svc.appConfig.AlbyClientId, redirectUri, scopes)
 }

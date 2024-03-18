@@ -518,6 +518,7 @@ func (api *API) GetInfo() *models.InfoResponse {
 		channels, err := api.ListChannels()
 		info.HasChannels = err == nil && len(channels) > 0
 	}
+	info.AlbyAuthUrl = api.albySvc.GetAuthUrl()
 	return &info
 }
 
