@@ -78,6 +78,7 @@ export interface InfoResponse {
   setupCompleted: boolean;
   running: boolean;
   unlocked: boolean;
+  hasChannels: boolean;
 }
 
 export interface CreateAppResponse {
@@ -153,3 +154,30 @@ export type SetupNodeInfo = Partial<{
   lndCertHex?: string;
   lndMacaroonHex?: string;
 }>;
+
+export type AlbyMe = {
+  identifier: string;
+  nostr_pubkey: string;
+  lightning_address: string;
+  email: string;
+  name: string;
+  avatar: string;
+  keysend_pubkey: string;
+};
+
+export type AlbyBalance = {
+  sats: number;
+};
+
+export type LSPOption = "OLYMPUS" | "VOLTAGE";
+export const LSP_OPTIONS: LSPOption[] = ["OLYMPUS"]; //, "VOLTAGE"
+
+export type NewWrappedInvoiceRequest = {
+  amount: number;
+  lsp: LSPOption;
+};
+
+export type NewWrappedInvoiceResponse = {
+  wrappedInvoice: string;
+  fee: number;
+};

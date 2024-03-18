@@ -8,7 +8,6 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": "http://localhost:8080",
-      "/alby": "http://localhost:8080",
     },
   },
   resolve: {

@@ -1,0 +1,185 @@
+package alby
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"strconv"
+	"sync"
+	"time"
+
+	"github.com/getAlby/nostr-wallet-connect/models/config"
+	"github.com/sirupsen/logrus"
+	"golang.org/x/oauth2"
+)
+
+type AlbyOAuthService struct {
+	appConfig *config.AppConfig
+	kvStore   config.ConfigKVStore
+	oauthConf *oauth2.Config
+	logger    *logrus.Logger
+}
+
+// TODO: move to models/alby
+type AlbyMe struct {
+	Identifier       string `json:"identifier"`
+	NPub             string `json:"nostr_pubkey"`
+	LightningAddress string `json:"lightning_address"`
+	Email            string `json:"email"`
+	Name             string `json:"name"`
+	Avatar           string `json:"avatar"`
+	KeysendPubkey    string `json:"keysend_pubkey"`
+}
+
+type AlbyBalance struct {
+	Balance  int64  `json:"balance"`
+	Unit     string `json:"unit"`
+	Currency string `json:"currency"`
+}
+
+func NewAlbyOauthService(logger *logrus.Logger, kvStore config.ConfigKVStore, appConfig *config.AppConfig) (result *AlbyOAuthService, err error) {
+	conf := &oauth2.Config{
+		ClientID:     appConfig.AlbyClientId,
+		ClientSecret: appConfig.AlbyClientSecret,
+		Scopes:       []string{"account:read", "balance:read", "payments:send"},
+		Endpoint: oauth2.Endpoint{
+			TokenURL:  appConfig.AlbyAPIURL + "/oauth/token",
+			AuthURL:   appConfig.AlbyOAuthAuthUrl,
+			AuthStyle: 2, // use HTTP Basic Authorization https://pkg.go.dev/golang.org/x/oauth2#AuthStyle
+		},
+		RedirectURL: appConfig.AlbyOAuthRedirectUrl,
+	}
+
+	albySvc := &AlbyOAuthService{
+		appConfig: appConfig,
+		oauthConf: conf,
+		kvStore:   kvStore,
+		logger:    logger,
+	}
+	return albySvc, err
+}
+
+func (svc *AlbyOAuthService) CallbackHandler(ctx context.Context, code string) error {
+	token, err := svc.oauthConf.Exchange(ctx, code)
+	if err != nil {
+		svc.logger.WithError(err).Error("Failed to exchange token")
+		return err
+	}
+
+	svc.saveToken(token)
+
+	return nil
+}
+
+func (svc *AlbyOAuthService) saveToken(token *oauth2.Token) {
+	// TODO: can these be encrypted?
+	svc.logger.WithField("token", token).Info("Got token") // FIXME: remove
+	svc.kvStore.SetUpdate("AccessTokenExpiry", strconv.FormatInt(token.Expiry.Unix(), 10), "")
+	svc.kvStore.SetUpdate("AccessToken", token.AccessToken, "")
+	svc.kvStore.SetUpdate("RefreshToken", token.RefreshToken, "")
+}
+
+var tokenMutex sync.Mutex
+
+func (svc *AlbyOAuthService) fetchUserToken() (token *oauth2.Token, err error) {
+	tokenMutex.Lock()
+	defer tokenMutex.Unlock()
+	accessToken, err := svc.kvStore.Get("AccessToken", "")
+	if err != nil {
+		return nil, err
+	}
+	expiry, err := svc.kvStore.Get("AccessTokenExpiry", "")
+	if err != nil {
+		return nil, err
+	}
+	expiry64, err := strconv.ParseInt(expiry, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	refreshToken, err := svc.kvStore.Get("RefreshToken", "")
+	if err != nil {
+		return nil, err
+	}
+	currentToken := &oauth2.Token{
+		AccessToken:  accessToken,
+		Expiry:       time.Unix(expiry64, 0),
+		RefreshToken: refreshToken,
+	}
+
+	if currentToken.Expiry.After(time.Now().Add(time.Duration(1) * time.Second)) {
+		svc.logger.Info("Using existing Alby OAuth token")
+		return currentToken, nil
+	}
+
+	svc.saveToken(token)
+	return token, nil
+}
+
+func (svc *AlbyOAuthService) GetMe(ctx context.Context) (*AlbyMe, error) {
+
+	token, err := svc.fetchUserToken()
+	if err != nil {
+		svc.logger.WithError(err).Error("Failed to fetch user token")
+		return nil, err
+	}
+
+	client := svc.oauthConf.Client(ctx, token)
+
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/user/me", svc.appConfig.AlbyAPIURL), nil)
+	if err != nil {
+		svc.logger.WithError(err).Error("Error creating request /me")
+		return nil, err
+	}
+
+	req.Header.Set("User-Agent", "NWC-next")
+
+	res, err := client.Do(req)
+	if err != nil {
+		svc.logger.WithError(err).Error("Failed to fetch /me")
+		return nil, err
+	}
+	me := &AlbyMe{}
+	err = json.NewDecoder(res.Body).Decode(me)
+	if err != nil {
+		svc.logger.WithError(err).Error("Failed to decode API response")
+		return nil, err
+	}
+
+	svc.logger.WithFields(logrus.Fields{"me": me}).Info("Alby me response")
+	return me, nil
+}
+
+func (svc *AlbyOAuthService) GetBalance(ctx context.Context) (*AlbyBalance, error) {
+
+	token, err := svc.fetchUserToken()
+	if err != nil {
+		svc.logger.WithError(err).Error("Failed to fetch user token")
+		return nil, err
+	}
+
+	client := svc.oauthConf.Client(ctx, token)
+
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/balance", svc.appConfig.AlbyAPIURL), nil)
+	if err != nil {
+		svc.logger.WithError(err).Error("Error creating request /balance")
+		return nil, err
+	}
+
+	req.Header.Set("User-Agent", "NWC-next")
+
+	res, err := client.Do(req)
+	if err != nil {
+		svc.logger.WithError(err).Error("Failed to fetch /balance")
+		return nil, err
+	}
+	balance := &AlbyBalance{}
+	err = json.NewDecoder(res.Body).Decode(balance)
+	if err != nil {
+		svc.logger.WithError(err).Error("Failed to decode API response")
+		return nil, err
+	}
+
+	svc.logger.WithFields(logrus.Fields{"balance": balance}).Info("Alby balance response")
+	return balance, nil
+}

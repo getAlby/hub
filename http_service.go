@@ -78,6 +78,10 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.POST("/api/wallet/new-address", httpSvc.newOnchainAddressHandler, authMiddleware)
 	e.GET("/api/wallet/balance", httpSvc.onchainBalanceHandler, authMiddleware)
 
+	e.GET("/api/alby/callback", httpSvc.albyCallbackHandler, authMiddleware)
+	e.GET("/api/alby/me", httpSvc.albyMeHandler, authMiddleware)
+	e.GET("/api/alby/balance", httpSvc.albyBalanceHandler, authMiddleware)
+
 	e.GET("/api/mempool/lightning/nodes/:pubkey", httpSvc.mempoolLightningNodeHandler, authMiddleware)
 
 	frontend.RegisterHandlers(e)
@@ -188,6 +192,7 @@ func (httpSvc *HttpService) logoutHandler(c echo.Context) error {
 
 func (httpSvc *HttpService) channelsListHandler(c echo.Context) error {
 
+	// TODO: pass c.Request().Context() to API functions
 	channels, err := httpSvc.api.ListChannels()
 
 	if err != nil {
@@ -427,4 +432,51 @@ func (httpSvc *HttpService) setupHandler(c echo.Context) error {
 	}
 
 	return c.NoContent(http.StatusNoContent)
+}
+
+func (httpSvc *HttpService) albyCallbackHandler(c echo.Context) error {
+	code := c.QueryParam("code")
+
+	err := httpSvc.api.albySvc.CallbackHandler(c.Request().Context(), code)
+	if err != nil {
+		httpSvc.svc.Logger.WithError(err).Error("Failed to handle Alby OAuth callback")
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to handle Alby OAuth callback: %s", err.Error()),
+		})
+	}
+
+	// FIXME: redirect to the correct place
+	//return c.Redirect(302, "/")
+	// FIXME: redirects will not work for wails
+	return c.Redirect(302, "http://localhost:5173/#/channels/first")
+}
+
+func (httpSvc *HttpService) albyMeHandler(c echo.Context) error {
+	me, err := httpSvc.api.albySvc.GetMe(c.Request().Context())
+	if err != nil {
+		httpSvc.svc.Logger.WithError(err).Error("Failed to request alby me endpoint")
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to request alby me endpoint: %s", err.Error()),
+		})
+	}
+
+	return c.JSON(http.StatusOK, me)
+}
+
+func (httpSvc *HttpService) albyBalanceHandler(c echo.Context) error {
+	balance, err := httpSvc.api.albySvc.GetBalance(c.Request().Context())
+	if err != nil {
+		httpSvc.svc.Logger.WithError(err).Error("Failed to request alby balance endpoint")
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to request alby balance endpoint: %s", err.Error()),
+		})
+	}
+	if balance.Unit != "sat" {
+		httpSvc.svc.Logger.WithField("balance", balance.Unit).Error("Unsupported balance unit")
+		return errors.New("unsupported balance unit")
+	}
+
+	return c.JSON(http.StatusOK, &api.AlbyBalanceResponse{
+		Sats: balance.Balance,
+	})
 }

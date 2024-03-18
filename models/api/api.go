@@ -80,6 +80,7 @@ type InfoResponse struct {
 	SetupCompleted bool   `json:"setupCompleted"`
 	Running        bool   `json:"running"`
 	Unlocked       bool   `json:"unlocked"`
+	HasChannels    bool   `json:"hasChannels"`
 }
 
 type ConnectPeerRequest = lnclient.ConnectPeerRequest
@@ -103,5 +104,9 @@ type NewOnchainAddressResponse struct {
 }
 
 type OnchainBalanceResponse struct {
+	Sats int64 `json:"sats"`
+}
+
+type AlbyBalanceResponse struct {
 	Sats int64 `json:"sats"`
 }

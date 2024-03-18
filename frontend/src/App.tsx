@@ -29,6 +29,9 @@ import RecommendedChannels from "src/screens/channels/RecommendedChannels";
 import { SetupMnemonic } from "src/screens/setup/SetupMnemonic";
 import { SetupFinish } from "src/screens/setup/SetupFinish";
 import NewInstantChannel from "src/screens/channels/NewInstantChannel";
+import FirstChannel from "src/screens/channels/FirstChannel";
+import { ChannelsRedirect } from "src/components/redirects/ChannelsRedirect";
+import MigrateAlbyFunds from "src/screens/channels/MigrateAlbyFunds";
 
 function App() {
   return (
@@ -62,22 +65,21 @@ function App() {
               <Route path="created" element={<AppCreated />} />
               <Route path="*" element={<NotFound />} />
             </Route>
-            <Route path="channels" element={<Channels />} />
-            <Route path="channels/new" element={<NewChannel />} />
-            <Route
-              path="channels/new/instant"
-              element={<NewInstantChannel />}
-            />
-            <Route
-              path="channels/new/blocktank"
-              element={<NewBlocktankChannel />}
-            />
-            <Route
-              path="channels/recommended"
-              element={<RecommendedChannels />}
-            />
-            <Route path="channels/new/custom" element={<NewCustomChannel />} />
-            <Route path="onchain/new-address" element={<NewOnchainAddress />} />
+            <Route path="channels" element={<ChannelsRedirect />}>
+              <Route path="" element={<Channels />} />
+              <Route path="first" element={<FirstChannel />} />
+              <Route path="migrate-alby" element={<MigrateAlbyFunds />} />
+              <Route path="new" element={<NewChannel />} />
+              <Route path="new/instant" element={<NewInstantChannel />} />
+              <Route path="new/blocktank" element={<NewBlocktankChannel />} />
+              <Route path="recommended" element={<RecommendedChannels />} />
+              <Route path="new/custom" element={<NewCustomChannel />} />
+
+              <Route
+                path="onchain/new-address"
+                element={<NewOnchainAddress />}
+              />
+            </Route>
             <Route path="unlock" element={<Unlock />} />
             <Route path="about" element={<About />} />
           </Route>

@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	alby "github.com/getAlby/nostr-wallet-connect/alby"
 	models "github.com/getAlby/nostr-wallet-connect/models/api"
 	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 	"github.com/getAlby/nostr-wallet-connect/models/lsp"
@@ -20,12 +21,17 @@ import (
 )
 
 type API struct {
-	svc *Service
+	svc     *Service
+	albySvc *alby.AlbyOAuthService
 }
 
 func NewAPI(svc *Service) *API {
+
+	albyOAuthSvc, _ := alby.NewAlbyOauthService(svc.Logger, svc.cfg, svc.cfg.Env)
+
 	return &API{
-		svc: svc,
+		svc:     svc,
+		albySvc: albyOAuthSvc,
 	}
 }
 
@@ -508,6 +514,10 @@ func (api *API) GetInfo() *models.InfoResponse {
 	info.SetupCompleted = unlockPasswordCheck != ""
 	info.Running = api.svc.lnClient != nil
 	info.BackendType = backendType
+	if info.Running {
+		channels, err := api.ListChannels()
+		info.HasChannels = err == nil && len(channels) > 0
+	}
 	return &info
 }
 

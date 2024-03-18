@@ -1,22 +1,16 @@
 import { Payment } from "@getalby/bitcoin-connect-react";
 import React from "react";
 import ConnectButton from "src/components/ConnectButton";
+import { MIN_0CONF_BALANCE } from "src/constants";
 import { useCSRF } from "src/hooks/useCSRF";
 import { useChannels } from "src/hooks/useChannels";
+import {
+  LSPOption,
+  LSP_OPTIONS,
+  NewWrappedInvoiceRequest,
+  NewWrappedInvoiceResponse,
+} from "src/types";
 import { request } from "src/utils/request";
-
-type LSPOption = "OLYMPUS" | "VOLTAGE";
-const LSP_OPTIONS: LSPOption[] = ["OLYMPUS"]; //, "VOLTAGE"
-
-type NewWrappedInvoiceRequest = {
-  amount: number;
-  lsp: LSPOption;
-};
-
-type NewWrappedInvoiceResponse = {
-  wrappedInvoice: string;
-  fee: number;
-};
 
 export default function NewInstantChannel() {
   const { data: csrf } = useCSRF();
@@ -32,7 +26,7 @@ export default function NewInstantChannel() {
   const amountSats = React.useMemo(() => {
     try {
       const _amountSats = parseInt(amount);
-      if (_amountSats >= 20000) {
+      if (_amountSats >= MIN_0CONF_BALANCE) {
         return _amountSats;
       }
     } catch (error) {
@@ -111,9 +105,9 @@ export default function NewInstantChannel() {
         <>
           <h1 className="mt-8">2. Purchase Liquidity</h1>
           <p className="italic text-xs max-w-sm">
-            Enter at least 20,000 sats. You'll receive outgoing liquidity of
-            this amount minus any LSP fees. You'll also get some incoming
-            liquidity.
+            Enter at least {MIN_0CONF_BALANCE} sats. You'll receive outgoing
+            liquidity of this amount minus any LSP fees. You'll also get some
+            incoming liquidity.
           </p>
           <form onSubmit={requestWrappedInvoice}>
             <p className="text-gray-500 text-sm">Amount in sats</p>
