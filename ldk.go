@@ -33,7 +33,7 @@ func NewLDKService(svc *Service, mnemonic, workDir string, network string, esplo
 	}
 
 	//create dir if not exists
-	newpath := filepath.Join(".", workDir+"-lsp-anchor")
+	newpath := filepath.Join(workDir)
 	err = os.MkdirAll(newpath, os.ModePerm)
 	if err != nil {
 		log.Printf("Failed to create LDK working dir: %v", err)
@@ -65,7 +65,10 @@ func NewLDKService(svc *Service, mnemonic, workDir string, network string, esplo
 	builder.SetEsploraServer(esploraServer)
 	builder.SetGossipSourceRgs(gossipSource)
 	builder.SetStorageDirPath(filepath.Join(newpath, "./storage"))
-	builder.SetLiquiditySourceLsps2("52.88.33.119:9735", lsp.VoltageLSP().Pubkey, nil) // Temporary hack to work with voltage, remove when https://github.com/lightningdevkit/rust-lightning/issues/2914 is merged
+
+	// TODO: remove when https://github.com/lightningdevkit/rust-lightning/issues/2914 is merged
+	// LDK default HTLC inflight value is 10% of the channel size. If an LSPS service is configured this will be set to 0.
+	builder.SetLiquiditySourceLsps2("52.88.33.119:9735", lsp.VoltageLSP().Pubkey, nil)
 
 	//builder.SetLogDirPath (filepath.Join(newpath, "./logs")); // missing?
 	node, err := builder.Build()
@@ -125,7 +128,9 @@ func NewLDKService(svc *Service, mnemonic, workDir string, network string, esplo
 		return nil, err
 	}
 
-	log.Printf("Connected to node ID: %v", nodeId)
+	svc.Logger.WithFields(logrus.Fields{
+		"nodeId": nodeId,
+	}).Info("Connected to LDK node")
 
 	return &gs, nil
 }
@@ -157,7 +162,7 @@ func (gs *LDKService) SendPaymentSync(ctx context.Context, payReq string) (preim
 		eventPaymentFailed, isEventPaymentFailedEvent := (*event).(ldk_node.EventPaymentFailed)
 
 		if isEventPaymentSuccessfulEvent && eventPaymentSuccessful.PaymentHash == paymentHash {
-			gs.svc.Logger.Infof("Got payment success event")
+			gs.svc.Logger.Info("Got payment success event")
 			payment := gs.node.Payment(paymentHash)
 			if payment == nil {
 				gs.svc.Logger.Errorf("Couldn't find payment by payment hash: %v", paymentHash)
@@ -206,7 +211,12 @@ func (gs *LDKService) SendPaymentSync(ctx context.Context, payReq string) (preim
 				failureReasonMessage = "UnknownError"
 			}
 
-			gs.svc.Logger.Errorf("Payment Failed event: %v %v %s", paymentHash, failureReason, failureReasonMessage)
+			gs.svc.Logger.WithFields(logrus.Fields{
+				"paymentHash":          paymentHash,
+				"failureReason":        failureReason,
+				"failureReasonMessage": failureReasonMessage,
+			}).Error("Received payment failed event")
+
 			return "", fmt.Errorf("payment failed event: %v %s", failureReason, failureReasonMessage)
 		}
 	}
@@ -223,6 +233,7 @@ func (gs *LDKService) SendPaymentSync(ctx context.Context, payReq string) (preim
 }
 
 func (gs *LDKService) SendKeysend(ctx context.Context, amount int64, destination, preimage string, custom_records []lnclient.TLVRecord) (preImage string, err error) {
+	paymentStart := time.Now()
 	customTlvs := []ldk_node.TlvEntry{}
 
 	for _, customRecord := range custom_records {
@@ -232,6 +243,9 @@ func (gs *LDKService) SendKeysend(ctx context.Context, amount int64, destination
 		})
 	}
 
+	ldkEventSubscription := gs.ldkEventBroadcaster.Subscribe()
+	defer gs.ldkEventBroadcaster.CancelSubscription(ldkEventSubscription)
+
 	paymentHash, err := gs.node.SpontaneousPayment().Send(uint64(amount), destination, customTlvs)
 	if err != nil {
 		gs.svc.Logger.WithError(err).Error("Keysend failed")
@@ -239,19 +253,84 @@ func (gs *LDKService) SendKeysend(ctx context.Context, amount int64, destination
 	}
 
 	gs.svc.Logger.Infof("TODO: listen for events %v", paymentHash)
-	/*payment := gs.node.Payment(paymentHash)
-	if payment == nil {
-		gs.svc.Logger.Errorf("Couldn't find payment by payment hash: %v", paymentHash)
-		return "", errors.New("Payment not found")
+
+	fee := uint64(0)
+
+	for start := time.Now(); time.Since(start) < time.Second*60; {
+		event := <-ldkEventSubscription
+
+		eventPaymentSuccessful, isEventPaymentSuccessfulEvent := (*event).(ldk_node.EventPaymentSuccessful)
+		eventPaymentFailed, isEventPaymentFailedEvent := (*event).(ldk_node.EventPaymentFailed)
+
+		if isEventPaymentSuccessfulEvent && eventPaymentSuccessful.PaymentHash == paymentHash {
+			gs.svc.Logger.Info("Got payment success event")
+			payment := gs.node.Payment(paymentHash)
+			if payment == nil {
+				gs.svc.Logger.Errorf("Couldn't find payment by payment hash: %v", paymentHash)
+				return "", errors.New("Payment not found")
+			}
+
+			spontaneousPaymentKind, ok := payment.Kind.(ldk_node.PaymentKindSpontaneous)
+
+			if !ok {
+				gs.svc.Logger.WithFields(logrus.Fields{
+					"payment": payment,
+				}).Error("Payment is not a spontaneous kind")
+			}
+
+			if spontaneousPaymentKind.Preimage == nil {
+				gs.svc.Logger.Errorf("No payment preimage for payment hash: %v", paymentHash)
+				return "", errors.New("Payment preimage not found")
+			}
+			preimage = *spontaneousPaymentKind.Preimage
+
+			if eventPaymentSuccessful.FeePaidMsat != nil {
+				fee = *eventPaymentSuccessful.FeePaidMsat
+			}
+			break
+		}
+		if isEventPaymentFailedEvent && eventPaymentFailed.PaymentHash == paymentHash {
+			var failureReason ldk_node.PaymentFailureReason
+			var failureReasonMessage string
+			if eventPaymentFailed.Reason != nil {
+				failureReason = *eventPaymentFailed.Reason
+			}
+			switch failureReason {
+			case ldk_node.PaymentFailureReasonRecipientRejected:
+				failureReasonMessage = "RecipientRejected"
+			case ldk_node.PaymentFailureReasonUserAbandoned:
+				failureReasonMessage = "UserAbandoned"
+			case ldk_node.PaymentFailureReasonRetriesExhausted:
+				failureReasonMessage = "RetriesExhausted"
+			case ldk_node.PaymentFailureReasonPaymentExpired:
+				failureReasonMessage = "PaymentExpired"
+			case ldk_node.PaymentFailureReasonRouteNotFound:
+				failureReasonMessage = "RouteNotFound"
+			case ldk_node.PaymentFailureReasonUnexpectedError:
+				failureReasonMessage = "UnexpectedError"
+			default:
+				failureReasonMessage = "UnknownError"
+			}
+
+			gs.svc.Logger.WithFields(logrus.Fields{
+				"paymentHash":          paymentHash,
+				"failureReason":        failureReason,
+				"failureReasonMessage": failureReasonMessage,
+			}).Error("Received payment failed event")
+
+			return "", fmt.Errorf("payment failed event: %v %s", failureReason, failureReasonMessage)
+		}
+	}
+	if preimage == "" {
+		// TODO: this doesn't necessarily mean it will fail - we should return a different response
+		return "", errors.New("keysend payment timed out")
 	}
 
-	if payment.Preimage == nil {
-		gs.svc.Logger.Errorf("No payment preimage found for payment hash: %v", paymentHash)
-		return "", errors.New("no preimage in payment")
-	}
-
-	return *payment.Preimage, nil*/
-	return "", nil
+	gs.svc.Logger.WithFields(logrus.Fields{
+		"duration": time.Since(paymentStart).Milliseconds(),
+		"fee":      fee,
+	}).Info("Successful keysend payment")
+	return preimage, nil
 }
 
 func (gs *LDKService) GetBalance(ctx context.Context) (balance int64, err error) {
@@ -538,7 +617,7 @@ func (gs *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 
 	bolt11PaymentKind, isBolt11PaymentKind := payment.Kind.(ldk_node.PaymentKindBolt11)
 
-	if isBolt11PaymentKind {
+	if isBolt11PaymentKind && bolt11PaymentKind.Bolt11Invoice != nil {
 		bolt11Invoice = *bolt11PaymentKind.Bolt11Invoice
 		paymentRequest, err := decodepay.Decodepay(strings.ToLower(bolt11Invoice))
 		if err != nil {

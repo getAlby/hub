@@ -1,12 +1,15 @@
-import { Payment } from "@getalby/bitcoin-connect-react";
+import { Payment, init } from "@getalby/bitcoin-connect-react";
 import React from "react";
 import ConnectButton from "src/components/ConnectButton";
 import { useCSRF } from "src/hooks/useCSRF";
 import { useChannels } from "src/hooks/useChannels";
 import { request } from "src/utils/request";
+init({
+  showBalance: false,
+});
 
 type LSPOption = "OLYMPUS" | "VOLTAGE";
-const LSP_OPTIONS: LSPOption[] = ["OLYMPUS", "VOLTAGE"];
+const LSP_OPTIONS: LSPOption[] = ["OLYMPUS"]; //, "VOLTAGE"
 
 type NewWrappedInvoiceRequest = {
   amount: number;
@@ -21,7 +24,7 @@ type NewWrappedInvoiceResponse = {
 export default function NewInstantChannel() {
   const { data: csrf } = useCSRF();
   const { data: channels } = useChannels();
-  const [lsp, setLsp] = React.useState<LSPOption | undefined>();
+  const [lsp, setLsp] = React.useState<LSPOption | undefined>("OLYMPUS");
   const [amount, setAmount] = React.useState("");
   const [prePurchaseChannelAmount, setPrePurchaseChannelAmount] =
     React.useState<number | undefined>();
@@ -32,7 +35,7 @@ export default function NewInstantChannel() {
   const amountSats = React.useMemo(() => {
     try {
       const _amountSats = parseInt(amount);
-      if (_amountSats > 10000) {
+      if (_amountSats >= 20000) {
         return _amountSats;
       }
     } catch (error) {
@@ -140,7 +143,7 @@ export default function NewInstantChannel() {
         <>
           <h1 className="mt-8">3. Complete Payment</h1>
           <p className="font-bold">
-            Fee included: {wrappedInvoiceResponse.fee}
+            Fee included: {wrappedInvoiceResponse.fee} sats
           </p>
           <Payment
             invoice={wrappedInvoiceResponse.wrappedInvoice}
