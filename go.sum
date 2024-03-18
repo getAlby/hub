@@ -229,8 +229,8 @@ github.com/fsnotify/fsnotify v1.4.9 h1:hsms1Qyu0jgnwNXIxa+/V/PDsU6CfLf6CNO8H7IWo
 github.com/fsnotify/fsnotify v1.4.9/go.mod h1:znqG4EE+3YCdAaPaxE2ZRY/06pZUdp0tY4IgpuI1SZQ=
 github.com/getAlby/glalby-go v0.0.0-20240307093106-aab6d05591b4 h1:Kzx3NNzSGtMwo9+YdvzG6ISwFq7TmqGBhz3pXnBZ4X0=
 github.com/getAlby/glalby-go v0.0.0-20240307093106-aab6d05591b4/go.mod h1:ViyJvjlvv0GCesTJ7mb3fBo4G+/qsujDAFN90xZ7a9U=
-github.com/getAlby/ldk-node-go v0.0.0-20240318112519-f16035c453b5 h1:tlE6PIcbaFfMeV7cZQFlohdXNgLTZY5nGsyJKos66N0=
-github.com/getAlby/ldk-node-go v0.0.0-20240318112519-f16035c453b5/go.mod h1:8BRjtKcz8E0RyYTPEbMS8VIdgredcGSLne8vHDtcRLg=
+github.com/getAlby/ldk-node-go v0.0.0-20240318131343-7ddfe35d7ce9 h1:yjGywbDFuaba0V2qporii04/JkP/mgYS4qDeOj3pnH4=
+github.com/getAlby/ldk-node-go v0.0.0-20240318131343-7ddfe35d7ce9/go.mod h1:8BRjtKcz8E0RyYTPEbMS8VIdgredcGSLne8vHDtcRLg=
 github.com/getsentry/raven-go v0.2.0 h1:no+xWJRb5ZI7eE8TWgIq1jLulQiIoLG0IfYxv5JYMGs=
 github.com/getsentry/raven-go v0.2.0/go.mod h1:KungGk8q33+aIAZUIVWZDr2OfAEBsO49PX4NzFV5kcQ=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
