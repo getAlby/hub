@@ -474,8 +474,19 @@ func (gs *GreenlightService) GetOnchainBalance(ctx context.Context) (int64, erro
 
 	return balance / 1000, nil
 }
-func (gs *GreenlightService) RedeemOnchainFunds(ctx context.Context, toAddress string) (txId string, err error) {
-	return "", nil
+
+func (gs *GreenlightService) RedeemOnchainFunds(ctx context.Context, toAddress string) (string, error) {
+	amountAll := glalby.AmountOrAll(glalby.AmountOrAllAll{})
+	txId, err := gs.client.Withdraw(glalby.WithdrawRequest{
+		Destination: toAddress,
+		Amount:      &amountAll,
+	})
+	if err != nil {
+		gs.svc.Logger.Errorf("Withdraw failed: %v", err)
+		return "", err
+	}
+
+	return txId.Txid, nil
 }
 
 func (gs *GreenlightService) greenlightInvoiceToTransaction(invoice *glalby.ListInvoicesInvoice) (*Nip47Transaction, error) {
