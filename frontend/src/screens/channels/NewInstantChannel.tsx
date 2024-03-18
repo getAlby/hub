@@ -1,9 +1,12 @@
-import { Payment } from "@getalby/bitcoin-connect-react";
+import { Payment, init } from "@getalby/bitcoin-connect-react";
 import React from "react";
 import ConnectButton from "src/components/ConnectButton";
 import { useCSRF } from "src/hooks/useCSRF";
 import { useChannels } from "src/hooks/useChannels";
 import { request } from "src/utils/request";
+init({
+  showBalance: false,
+});
 
 type LSPOption = "OLYMPUS" | "VOLTAGE";
 const LSP_OPTIONS: LSPOption[] = ["OLYMPUS"]; //, "VOLTAGE"
