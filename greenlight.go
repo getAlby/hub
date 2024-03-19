@@ -440,7 +440,15 @@ func (gs *GreenlightService) OpenChannel(ctx context.Context, openChannelRequest
 }
 
 func (gs *GreenlightService) CloseChannel(ctx context.Context, closeChannelRequest *lnclient.CloseChannelRequest) (*lnclient.CloseChannelResponse, error) {
-	return nil, nil
+	_, err := gs.client.Close(glalby.CloseRequest{
+		Id: closeChannelRequest.ChannelId,
+	})
+	if err != nil {
+		gs.svc.Logger.Errorf("CloseChannel failed: %v", err)
+		return nil, err
+	}
+
+	return &lnclient.CloseChannelResponse{}, nil
 }
 
 func (gs *GreenlightService) GetNewOnchainAddress(ctx context.Context) (string, error) {
