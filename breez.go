@@ -393,3 +393,7 @@ func (bs *BreezService) RedeemOnchainFunds(ctx context.Context, toAddress string
 	bs.logger.Infof("RedeemOnchainFunds response: %#v", redeemOnchainFundsResponse)
 	return hex.EncodeToString(redeemOnchainFundsResponse.Txid), nil
 }
+
+func (bs *BreezService) ResetRouter(ctx context.Context) error {
+	return nil
+}

@@ -540,3 +540,7 @@ func (gs *GreenlightService) greenlightInvoiceToTransaction(invoice *glalby.List
 	}
 	return transaction, nil
 }
+
+func (gs *GreenlightService) ResetRouter(ctx context.Context) error {
+	return nil
+}

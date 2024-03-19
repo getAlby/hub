@@ -592,6 +592,21 @@ func (gs *LDKService) RedeemOnchainFunds(ctx context.Context, toAddress string) 
 	return "", nil
 }
 
+func (ls *LDKService) ResetRouter(ctx context.Context) error {
+	// HACK: to ensure the router is reset correctly we must stop the node first.
+	err := ls.node.Stop()
+	if err != nil {
+		ls.svc.Logger.WithError(err).Error("Failed to stop the node")
+	}
+
+	err = ls.node.ResetRouter()
+	if err != nil {
+		ls.svc.Logger.WithError(err).Error("ResetRouter failed")
+	}
+
+	return err
+}
+
 func (gs *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) (*Nip47Transaction, error) {
 	transactionType := "incoming"
 	if payment.Direction == ldk_node.PaymentDirectionOutbound {
