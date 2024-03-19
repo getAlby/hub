@@ -474,6 +474,10 @@ func (gs *LDKService) GetOnchainBalance(ctx context.Context) (int64, error) {
 	return int64(balances.SpendableOnchainBalanceSats), nil
 }
 
+func (gs *LDKService) RedeemOnchainFunds(ctx context.Context, toAddress string) (txId string, err error) {
+	return "", nil
+}
+
 func (gs *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) (*Nip47Transaction, error) {
 	transactionType := "incoming"
 	if payment.Direction == ldk_node.PaymentDirectionOutbound {

@@ -5,7 +5,7 @@ go 1.21
 toolchain go1.21.1
 
 require (
-	github.com/breez/breez-sdk-go v0.2.14
+	github.com/breez/breez-sdk-go v0.3.4
 	github.com/davrux/echo-logrus/v4 v4.0.3
 	github.com/getAlby/glalby-go v0.0.0-20240307093106-aab6d05591b4
 	github.com/getAlby/ldk-node-go v0.0.0-20240307093012-74bfe9fd6146

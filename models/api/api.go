@@ -89,6 +89,14 @@ type OpenChannelResponse = lnclient.OpenChannelResponse
 type CloseChannelRequest = lnclient.CloseChannelRequest
 type CloseChannelResponse = lnclient.CloseChannelResponse
 
+type RedeemOnchainFundsRequest struct {
+	ToAddress string `json:"toAddress"`
+}
+
+type RedeemOnchainFundsResponse struct {
+	TxId string `json:"txId"`
+}
+
 type NewOnchainAddressResponse struct {
 	Address string `json:"address"`
 }

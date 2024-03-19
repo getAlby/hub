@@ -153,3 +153,7 @@ export type SetupNodeInfo = Partial<{
   lndCertHex?: string;
   lndMacaroonHex?: string;
 }>;
+
+export type RedeemOnchainFundsResponse = {
+  txId: string;
+};
