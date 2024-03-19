@@ -67,7 +67,7 @@ export default function RecommendedChannels() {
               Min channel size:{" "}
               <span
                 className={`${
-                  node.min <= (onchainBalance?.sats || 0)
+                  node.min <= (onchainBalance?.spendable || 0)
                     ? "text-green-500"
                     : "text-red-500"
                 }`}

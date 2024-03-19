@@ -282,9 +282,7 @@ func (api *API) GetOnchainBalance() (*models.OnchainBalanceResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &models.OnchainBalanceResponse{
-		Sats: balance,
-	}, nil
+	return balance, nil
 }
 
 func (api *API) GetMempoolLightningNode(pubkey string) (interface{}, error) {
