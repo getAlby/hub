@@ -7,15 +7,15 @@ import (
 	"testing"
 	"time"
 
+	"github.com/getAlby/nostr-wallet-connect/migrations"
+	"github.com/getAlby/nostr-wallet-connect/models/config"
+	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 	"github.com/glebarez/sqlite"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip04"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
-
-	"github.com/getAlby/nostr-wallet-connect/migrations"
-	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 )
 
 const testDB = "test.db"
@@ -1179,7 +1179,15 @@ func createTestService(ln *MockLn) (svc *Service, err error) {
 	if err != nil {
 		return nil, err
 	}
-	err = migrations.Migrate(gormDb)
+
+	logger := logrus.New()
+	logger.SetFormatter(&logrus.JSONFormatter{})
+	logger.SetOutput(os.Stdout)
+	logger.SetLevel(logrus.InfoLevel)
+
+	err = migrations.Migrate(gormDb, &config.AppConfig{
+		Workdir: ".test",
+	}, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -1188,11 +1196,6 @@ func createTestService(ln *MockLn) (svc *Service, err error) {
 	if err != nil {
 		return nil, err
 	}
-
-	logger := logrus.New()
-	logger.SetFormatter(&logrus.JSONFormatter{})
-	logger.SetOutput(os.Stdout)
-	logger.SetLevel(logrus.InfoLevel)
 
 	return &Service{
 		cfg: &Config{
@@ -1283,8 +1286,14 @@ func (mln *MockLn) CloseChannel(ctx context.Context, closeChannelRequest *lnclie
 func (mln *MockLn) GetNewOnchainAddress(ctx context.Context) (string, error) {
 	return "", nil
 }
-func (mln *MockLn) GetOnchainBalance(ctx context.Context) (int64, error) {
-	return 0, nil
+func (mln *MockLn) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainBalanceResponse, error) {
+	return nil, nil
+}
+func (mln *MockLn) RedeemOnchainFunds(ctx context.Context, toAddress string) (txId string, err error) {
+	return "", nil
+}
+func (mln *MockLn) ResetRouter(ctx context.Context) error {
+	return nil
 }
 func (mln *MockLn) SignMessage(ctx context.Context, message string) (string, error) {
 	return "", nil

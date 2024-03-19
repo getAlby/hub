@@ -20,6 +20,11 @@ type HttpService struct {
 	api *API
 }
 
+const (
+	sessionCookieName    = "session"
+	sessionCookieAuthKey = "authenticated"
+)
+
 func NewHttpService(svc *Service) *HttpService {
 	return &HttpService{
 		svc: svc,
@@ -65,12 +70,15 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	// TODO: below could be supported by NIP-47
 	e.GET("/api/channels", httpSvc.channelsListHandler, authMiddleware)
 	e.POST("/api/channels", httpSvc.openChannelHandler, authMiddleware)
+	e.POST("/api/wrapped-invoices", httpSvc.newWrappedInvoiceHandler, authMiddleware)
 	// TODO: should this be DELETE /api/channels:id?
 	e.POST("/api/channels/close", httpSvc.closeChannelHandler, authMiddleware)
 	e.GET("/api/node/connection-info", httpSvc.nodeConnectionInfoHandler, authMiddleware)
 	e.POST("/api/peers", httpSvc.connectPeerHandler, authMiddleware)
 	e.POST("/api/wallet/new-address", httpSvc.newOnchainAddressHandler, authMiddleware)
+	e.POST("/api/wallet/redeem-onchain-funds", httpSvc.redeemOnchainFundsHandler, authMiddleware)
 	e.GET("/api/wallet/balance", httpSvc.onchainBalanceHandler, authMiddleware)
+	e.POST("/api/reset-router", httpSvc.resetRouterHandler, authMiddleware)
 
 	e.GET("/api/mempool/lightning/nodes/:pubkey", httpSvc.mempoolLightningNodeHandler, authMiddleware)
 
@@ -145,8 +153,8 @@ func (httpSvc *HttpService) unlockHandler(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) isUnlocked(c echo.Context) bool {
-	sess, _ := session.Get(SessionCookieName, c)
-	return sess.Values[SessionCookieAuthKey] == true
+	sess, _ := session.Get(sessionCookieName, c)
+	return sess.Values[sessionCookieAuthKey] == true
 }
 
 func (httpSvc *HttpService) saveSessionCookie(c echo.Context) error {
@@ -156,7 +164,7 @@ func (httpSvc *HttpService) saveSessionCookie(c echo.Context) error {
 		MaxAge:   86400 * 7,
 		HttpOnly: true,
 	}
-	sess.Values[SessionCookieAuthKey] = true
+	sess.Values[sessionCookieAuthKey] = true
 	err := sess.Save(c.Request(), c.Response())
 	if err != nil {
 		httpSvc.svc.Logger.Errorf("Failed to save session: %v", err)
@@ -165,7 +173,7 @@ func (httpSvc *HttpService) saveSessionCookie(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) logoutHandler(c echo.Context) error {
-	sess, err := session.Get(SessionCookieName, c)
+	sess, err := session.Get(sessionCookieName, c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: "Failed to get session",
@@ -191,6 +199,19 @@ func (httpSvc *HttpService) channelsListHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, channels)
+}
+
+func (httpSvc *HttpService) resetRouterHandler(c echo.Context) error {
+
+	err := httpSvc.api.ResetRouter()
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+
+	return c.NoContent(http.StatusNoContent)
 }
 
 func (httpSvc *HttpService) nodeConnectionInfoHandler(c echo.Context) error {
@@ -294,6 +315,25 @@ func (httpSvc *HttpService) closeChannelHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, closeChannelResponse)
 }
 
+func (httpSvc *HttpService) newWrappedInvoiceHandler(c echo.Context) error {
+	var newWrappedInvoiceRequest api.NewWrappedInvoiceRequest
+	if err := c.Bind(&newWrappedInvoiceRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	newWrappedInvoiceResponse, err := httpSvc.api.NewWrappedInvoice(&newWrappedInvoiceRequest)
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to request wrapped invoice: %s", err.Error()),
+		})
+	}
+
+	return c.JSON(http.StatusOK, newWrappedInvoiceResponse)
+}
+
 func (httpSvc *HttpService) newOnchainAddressHandler(c echo.Context) error {
 	newAddressResponse, err := httpSvc.api.GetNewOnchainAddress()
 
@@ -304,6 +344,25 @@ func (httpSvc *HttpService) newOnchainAddressHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, newAddressResponse)
+}
+
+func (httpSvc *HttpService) redeemOnchainFundsHandler(c echo.Context) error {
+	var redeemOnchainFundsRequest api.RedeemOnchainFundsRequest
+	if err := c.Bind(&redeemOnchainFundsRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	redeemOnchainFundsResponse, err := httpSvc.api.RedeemOnchainFunds(redeemOnchainFundsRequest.ToAddress)
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to request new onchain address: %s", err.Error()),
+		})
+	}
+
+	return c.JSON(http.StatusOK, redeemOnchainFundsResponse)
 }
 
 func (httpSvc *HttpService) appsListHandler(c echo.Context) error {
