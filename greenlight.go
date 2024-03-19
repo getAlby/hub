@@ -491,9 +491,10 @@ func (gs *GreenlightService) RedeemOnchainFunds(ctx context.Context, toAddress s
 		Amount:      &amountAll,
 	})
 	if err != nil {
-		gs.svc.Logger.Errorf("Withdraw failed: %v", err)
+		gs.svc.Logger.WithError(err).Error("Withdraw failed")
 		return "", err
 	}
+	gs.svc.Logger.WithField("txId", txId).Info("Redeeming on chain funds")
 
 	return txId.Txid, nil
 }

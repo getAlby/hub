@@ -17,8 +17,6 @@ import (
 	"github.com/getAlby/nostr-wallet-connect/models/lsp"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
-
-	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 )
 
 type LDKService struct {
@@ -591,7 +589,7 @@ func (gs *LDKService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainB
 }
 
 func (gs *LDKService) RedeemOnchainFunds(ctx context.Context, toAddress string) (string, error) {
-	txId, err := gs.node.SendAllToOnchainAddress(toAddress)
+	txId, err := gs.node.OnchainPayment().SendAllToAddress(toAddress)
 	if err != nil {
 		gs.svc.Logger.Errorf("SendAllToOnchainAddress failed: %v", err)
 		return "", err
