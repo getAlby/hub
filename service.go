@@ -18,14 +18,14 @@ import (
 	"github.com/nbd-wtf/go-nostr/nip04"
 	"github.com/sirupsen/logrus"
 
+	"github.com/getAlby/nostr-wallet-connect/migrations"
+	"github.com/getAlby/nostr-wallet-connect/models/config"
+	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 	"github.com/glebarez/sqlite"
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/orandin/lumberjackrus"
 	"gorm.io/gorm"
-
-	"github.com/getAlby/nostr-wallet-connect/migrations"
-	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 )
 
 type Service struct {
@@ -42,7 +42,7 @@ type Service struct {
 func NewService(ctx context.Context) (*Service, error) {
 	// Load config from environment variables / .env file
 	godotenv.Load(".env")
-	appConfig := &AppConfig{}
+	appConfig := &config.AppConfig{}
 	err := envconfig.Process("", appConfig)
 	if err != nil {
 		return nil, err
@@ -93,7 +93,7 @@ func NewService(ctx context.Context) (*Service, error) {
 	}
 	sqlDb.SetMaxOpenConns(1)
 
-	err = migrations.Migrate(db)
+	err = migrations.Migrate(db, appConfig, logger)
 	if err != nil {
 		logger.Errorf("Failed to migrate: %v", err)
 		return nil, err
@@ -134,29 +134,29 @@ func (svc *Service) launchLNBackend(encryptionKey string) error {
 	var lnClient lnclient.LNClient
 	var err error
 	switch lndBackend {
-	case LNDBackendType:
+	case config.LNDBackendType:
 		LNDAddress, _ := svc.cfg.Get("LNDAddress", encryptionKey)
 		LNDCertHex, _ := svc.cfg.Get("LNDCertHex", encryptionKey)
 		LNDMacaroonHex, _ := svc.cfg.Get("LNDMacaroonHex", encryptionKey)
 		lnClient, err = NewLNDService(svc, LNDAddress, LNDCertHex, LNDMacaroonHex)
-	case LDKBackendType:
+	case config.LDKBackendType:
 		Mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
 		LDKWorkdir := path.Join(svc.cfg.Env.Workdir, "ldk")
 
 		lnClient, err = NewLDKService(svc, Mnemonic, LDKWorkdir, svc.cfg.Env.LDKNetwork, svc.cfg.Env.LDKEsploraServer, svc.cfg.Env.LDKGossipSource)
-	case GreenlightBackendType:
+	case config.GreenlightBackendType:
 		Mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
 		GreenlightInviteCode, _ := svc.cfg.Get("GreenlightInviteCode", encryptionKey)
 		GreenlightWorkdir := path.Join(svc.cfg.Env.Workdir, "greenlight")
 
 		lnClient, err = NewGreenlightService(svc, Mnemonic, GreenlightInviteCode, GreenlightWorkdir)
-	case BreezBackendType:
+	case config.BreezBackendType:
 		Mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
 		BreezAPIKey, _ := svc.cfg.Get("BreezAPIKey", encryptionKey)
 		GreenlightInviteCode, _ := svc.cfg.Get("GreenlightInviteCode", encryptionKey)
 		BreezWorkdir := path.Join(svc.cfg.Env.Workdir, "breez")
 
-		lnClient, err = NewBreezService(Mnemonic, BreezAPIKey, GreenlightInviteCode, BreezWorkdir)
+		lnClient, err = NewBreezService(svc.Logger, Mnemonic, BreezAPIKey, GreenlightInviteCode, BreezWorkdir)
 	default:
 		svc.Logger.Fatalf("Unsupported LNBackendType: %v", lndBackend)
 	}
