@@ -6,8 +6,10 @@ import (
 	"net/http"
 
 	echologrus "github.com/davrux/echo-logrus/v4"
+	"github.com/getAlby/nostr-wallet-connect/alby"
 	"github.com/getAlby/nostr-wallet-connect/frontend"
 	"github.com/getAlby/nostr-wallet-connect/models/api"
+	models "github.com/getAlby/nostr-wallet-connect/models/http"
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
@@ -16,8 +18,9 @@ import (
 )
 
 type HttpService struct {
-	svc *Service
-	api *API
+	svc         *Service
+	api         *API
+	albyHttpSvc *alby.AlbyHttpService
 }
 
 const (
@@ -26,9 +29,11 @@ const (
 )
 
 func NewHttpService(svc *Service) *HttpService {
+	albyOAuthSvc, _ := alby.NewAlbyOauthService(svc.Logger, svc.cfg, svc.cfg.Env)
 	return &HttpService{
-		svc: svc,
-		api: NewAPI(svc),
+		svc:         svc,
+		api:         NewAPI(svc, albyOAuthSvc),
+		albyHttpSvc: alby.NewAlbyHttpService(albyOAuthSvc, svc.Logger),
 	}
 }
 
@@ -78,10 +83,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.POST("/api/wallet/new-address", httpSvc.newOnchainAddressHandler, authMiddleware)
 	e.GET("/api/wallet/balance", httpSvc.onchainBalanceHandler, authMiddleware)
 
-	e.GET("/api/alby/callback", httpSvc.albyCallbackHandler, authMiddleware)
-	e.GET("/api/alby/me", httpSvc.albyMeHandler, authMiddleware)
-	e.GET("/api/alby/balance", httpSvc.albyBalanceHandler, authMiddleware)
-	e.POST("/api/alby/pay", httpSvc.albyPayHandler, authMiddleware)
+	httpSvc.albyHttpSvc.RegisterSharedRoutes(e, authMiddleware)
 
 	e.GET("/api/mempool/lightning/nodes/:pubkey", httpSvc.mempoolLightningNodeHandler, authMiddleware)
 
@@ -91,7 +93,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 func (httpSvc *HttpService) csrfHandler(c echo.Context) error {
 	csrf, _ := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
 	if csrf == "" {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
 			Message: "CSRF token not available",
 		})
 	}
@@ -107,14 +109,14 @@ func (httpSvc *HttpService) infoHandler(c echo.Context) error {
 func (httpSvc *HttpService) startHandler(c echo.Context) error {
 	var startRequest api.StartRequest
 	if err := c.Bind(&startRequest); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
+		return c.JSON(http.StatusBadRequest, models.ErrorResponse{
 			Message: fmt.Sprintf("Bad request: %s", err.Error()),
 		})
 	}
 
 	err := httpSvc.api.Start(&startRequest)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
 			Message: fmt.Sprintf("Failed to start node: %s", err.Error()),
 		})
 	}
@@ -122,7 +124,7 @@ func (httpSvc *HttpService) startHandler(c echo.Context) error {
 	err = httpSvc.saveSessionCookie(c)
 
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
 			Message: fmt.Sprintf("Failed to save session: %s", err.Error()),
 		})
 	}
@@ -133,13 +135,13 @@ func (httpSvc *HttpService) startHandler(c echo.Context) error {
 func (httpSvc *HttpService) unlockHandler(c echo.Context) error {
 	var unlockRequest api.UnlockRequest
 	if err := c.Bind(&unlockRequest); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
+		return c.JSON(http.StatusBadRequest, models.ErrorResponse{
 			Message: fmt.Sprintf("Bad request: %s", err.Error()),
 		})
 	}
 
 	if !httpSvc.svc.cfg.CheckUnlockPassword(unlockRequest.UnlockPassword) {
-		return c.JSON(http.StatusUnauthorized, ErrorResponse{
+		return c.JSON(http.StatusUnauthorized, models.ErrorResponse{
 			Message: "Invalid password",
 		})
 	}
@@ -147,7 +149,7 @@ func (httpSvc *HttpService) unlockHandler(c echo.Context) error {
 	err := httpSvc.saveSessionCookie(c)
 
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
 			Message: fmt.Sprintf("Failed to save session: %s", err.Error()),
 		})
 	}
@@ -178,13 +180,13 @@ func (httpSvc *HttpService) saveSessionCookie(c echo.Context) error {
 func (httpSvc *HttpService) logoutHandler(c echo.Context) error {
 	sess, err := session.Get(sessionCookieName, c)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
 			Message: "Failed to get session",
 		})
 	}
 	sess.Options.MaxAge = -1
 	if err := sess.Save(c.Request(), c.Response()); err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
 			Message: "Failed to save session",
 		})
 	}
@@ -197,7 +199,7 @@ func (httpSvc *HttpService) channelsListHandler(c echo.Context) error {
 	channels, err := httpSvc.api.ListChannels()
 
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
 			Message: err.Error(),
 		})
 	}
@@ -210,7 +212,7 @@ func (httpSvc *HttpService) nodeConnectionInfoHandler(c echo.Context) error {
 	info, err := httpSvc.api.GetNodeConnectionInfo()
 
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
 			Message: err.Error(),
 		})
 	}
@@ -223,7 +225,7 @@ func (httpSvc *HttpService) onchainBalanceHandler(c echo.Context) error {
 	onchainBalanceResponse, err := httpSvc.api.GetOnchainBalance()
 
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
 			Message: err.Error(),
 		})
 	}
@@ -234,14 +236,14 @@ func (httpSvc *HttpService) onchainBalanceHandler(c echo.Context) error {
 func (httpSvc *HttpService) mempoolLightningNodeHandler(c echo.Context) error {
 	pubkey := c.Param("pubkey")
 	if pubkey == "" {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
+		return c.JSON(http.StatusBadRequest, models.ErrorResponse{
 			Message: "Invalid pubkey parameter",
 		})
 	}
 
 	response, err := httpSvc.api.GetMempoolLightningNode(pubkey)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
 			Message: fmt.Sprintf("Failed to request mempool API: %s", err.Error()),
 		})
 	}
@@ -252,7 +254,7 @@ func (httpSvc *HttpService) mempoolLightningNodeHandler(c echo.Context) error {
 func (httpSvc *HttpService) connectPeerHandler(c echo.Context) error {
 	var connectPeerRequest api.ConnectPeerRequest
 	if err := c.Bind(&connectPeerRequest); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
+		return c.JSON(http.StatusBadRequest, models.ErrorResponse{
 			Message: fmt.Sprintf("Bad request: %s", err.Error()),
 		})
 	}
@@ -260,7 +262,7 @@ func (httpSvc *HttpService) connectPeerHandler(c echo.Context) error {
 	err := httpSvc.api.ConnectPeer(&connectPeerRequest)
 
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
 			Message: fmt.Sprintf("Failed to connect peer: %s", err.Error()),
 		})
 	}
@@ -271,7 +273,7 @@ func (httpSvc *HttpService) connectPeerHandler(c echo.Context) error {
 func (httpSvc *HttpService) openChannelHandler(c echo.Context) error {
 	var openChannelRequest api.OpenChannelRequest
 	if err := c.Bind(&openChannelRequest); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
+		return c.JSON(http.StatusBadRequest, models.ErrorResponse{
 			Message: fmt.Sprintf("Bad request: %s", err.Error()),
 		})
 	}
@@ -279,7 +281,7 @@ func (httpSvc *HttpService) openChannelHandler(c echo.Context) error {
 	openChannelResponse, err := httpSvc.api.OpenChannel(&openChannelRequest)
 
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
 			Message: fmt.Sprintf("Failed to open channel: %s", err.Error()),
 		})
 	}
@@ -290,7 +292,7 @@ func (httpSvc *HttpService) openChannelHandler(c echo.Context) error {
 func (httpSvc *HttpService) closeChannelHandler(c echo.Context) error {
 	var closeChannelRequest api.CloseChannelRequest
 	if err := c.Bind(&closeChannelRequest); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
+		return c.JSON(http.StatusBadRequest, models.ErrorResponse{
 			Message: fmt.Sprintf("Bad request: %s", err.Error()),
 		})
 	}
@@ -298,7 +300,7 @@ func (httpSvc *HttpService) closeChannelHandler(c echo.Context) error {
 	closeChannelResponse, err := httpSvc.api.CloseChannel(&closeChannelRequest)
 
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
 			Message: fmt.Sprintf("Failed to close channel: %s", err.Error()),
 		})
 	}
@@ -309,7 +311,7 @@ func (httpSvc *HttpService) closeChannelHandler(c echo.Context) error {
 func (httpSvc *HttpService) newWrappedInvoiceHandler(c echo.Context) error {
 	var newWrappedInvoiceRequest api.NewWrappedInvoiceRequest
 	if err := c.Bind(&newWrappedInvoiceRequest); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
+		return c.JSON(http.StatusBadRequest, models.ErrorResponse{
 			Message: fmt.Sprintf("Bad request: %s", err.Error()),
 		})
 	}
@@ -317,7 +319,7 @@ func (httpSvc *HttpService) newWrappedInvoiceHandler(c echo.Context) error {
 	newWrappedInvoiceResponse, err := httpSvc.api.NewWrappedInvoice(&newWrappedInvoiceRequest)
 
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
 			Message: fmt.Sprintf("Failed to request wrapped invoice: %s", err.Error()),
 		})
 	}
@@ -329,7 +331,7 @@ func (httpSvc *HttpService) newOnchainAddressHandler(c echo.Context) error {
 	newAddressResponse, err := httpSvc.api.GetNewOnchainAddress()
 
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
 			Message: fmt.Sprintf("Failed to request new onchain address: %s", err.Error()),
 		})
 	}
@@ -342,7 +344,7 @@ func (httpSvc *HttpService) appsListHandler(c echo.Context) error {
 	apps, err := httpSvc.api.ListApps()
 
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
 			Message: err.Error(),
 		})
 	}
@@ -355,7 +357,7 @@ func (httpSvc *HttpService) appsShowHandler(c echo.Context) error {
 	findResult := httpSvc.svc.db.Where("nostr_pubkey = ?", c.Param("pubkey")).First(&app)
 
 	if findResult.RowsAffected == 0 {
-		return c.JSON(http.StatusNotFound, ErrorResponse{
+		return c.JSON(http.StatusNotFound, models.ErrorResponse{
 			Message: "App does not exist",
 		})
 	}
@@ -368,7 +370,7 @@ func (httpSvc *HttpService) appsShowHandler(c echo.Context) error {
 func (httpSvc *HttpService) appsDeleteHandler(c echo.Context) error {
 	pubkey := c.Param("pubkey")
 	if pubkey == "" {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
+		return c.JSON(http.StatusBadRequest, models.ErrorResponse{
 			Message: "Invalid pubkey parameter",
 		})
 	}
@@ -376,17 +378,17 @@ func (httpSvc *HttpService) appsDeleteHandler(c echo.Context) error {
 	result := httpSvc.svc.db.Where("nostr_pubkey = ?", pubkey).First(&app)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return c.JSON(http.StatusNotFound, ErrorResponse{
+			return c.JSON(http.StatusNotFound, models.ErrorResponse{
 				Message: "App not found",
 			})
 		}
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
 			Message: "Failed to fetch app",
 		})
 	}
 
 	if err := httpSvc.api.DeleteApp(&app); err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
 			Message: "Failed to delete app",
 		})
 	}
@@ -396,7 +398,7 @@ func (httpSvc *HttpService) appsDeleteHandler(c echo.Context) error {
 func (httpSvc *HttpService) appsCreateHandler(c echo.Context) error {
 	var requestData api.CreateAppRequest
 	if err := c.Bind(&requestData); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
+		return c.JSON(http.StatusBadRequest, models.ErrorResponse{
 			Message: fmt.Sprintf("Bad request: %s", err.Error()),
 		})
 	}
@@ -405,7 +407,7 @@ func (httpSvc *HttpService) appsCreateHandler(c echo.Context) error {
 
 	if err != nil {
 		httpSvc.svc.Logger.Errorf("Failed to save app: %v", err)
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
 			Message: fmt.Sprintf("Failed to save app: %v", err),
 		})
 	}
@@ -416,7 +418,7 @@ func (httpSvc *HttpService) appsCreateHandler(c echo.Context) error {
 func (httpSvc *HttpService) setupHandler(c echo.Context) error {
 	var setupRequest api.SetupRequest
 	if err := c.Bind(&setupRequest); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
+		return c.JSON(http.StatusBadRequest, models.ErrorResponse{
 			Message: fmt.Sprintf("Bad request: %s", err.Error()),
 		})
 	}
@@ -427,70 +429,8 @@ func (httpSvc *HttpService) setupHandler(c echo.Context) error {
 
 	err := httpSvc.api.Setup(&setupRequest)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
 			Message: fmt.Sprintf("Failed to setup node: %s", err.Error()),
-		})
-	}
-
-	return c.NoContent(http.StatusNoContent)
-}
-
-func (httpSvc *HttpService) albyCallbackHandler(c echo.Context) error {
-	code := c.QueryParam("code")
-
-	err := httpSvc.api.albySvc.CallbackHandler(c.Request().Context(), code)
-	if err != nil {
-		httpSvc.svc.Logger.WithError(err).Error("Failed to handle Alby OAuth callback")
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to handle Alby OAuth callback: %s", err.Error()),
-		})
-	}
-
-	// FIXME: redirect to the correct place
-	//return c.Redirect(302, "/")
-	// FIXME: redirects will not work for wails
-	return c.Redirect(302, "http://localhost:5173/#/channels/first")
-}
-
-func (httpSvc *HttpService) albyMeHandler(c echo.Context) error {
-	me, err := httpSvc.api.albySvc.GetMe(c.Request().Context())
-	if err != nil {
-		httpSvc.svc.Logger.WithError(err).Error("Failed to request alby me endpoint")
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to request alby me endpoint: %s", err.Error()),
-		})
-	}
-
-	return c.JSON(http.StatusOK, me)
-}
-
-func (httpSvc *HttpService) albyBalanceHandler(c echo.Context) error {
-	balance, err := httpSvc.api.albySvc.GetBalance(c.Request().Context())
-	if err != nil {
-		httpSvc.svc.Logger.WithError(err).Error("Failed to request alby balance endpoint")
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to request alby balance endpoint: %s", err.Error()),
-		})
-	}
-
-	return c.JSON(http.StatusOK, &api.AlbyBalanceResponse{
-		Sats: balance.Balance,
-	})
-}
-
-func (httpSvc *HttpService) albyPayHandler(c echo.Context) error {
-	var payRequest api.AlbyPayRequest
-	if err := c.Bind(&payRequest); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
-			Message: fmt.Sprintf("Bad request: %s", err.Error()),
-		})
-	}
-
-	err := httpSvc.api.albySvc.SendPayment(c.Request().Context(), payRequest.Invoice)
-	if err != nil {
-		httpSvc.svc.Logger.WithError(err).Error("Failed to request alby pay endpoint")
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to request alby pay endpoint: %s", err.Error()),
 		})
 	}
 

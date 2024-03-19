@@ -5,6 +5,7 @@ import (
 	"embed"
 	"log"
 
+	alby "github.com/getAlby/nostr-wallet-connect/alby"
 	"github.com/sirupsen/logrus"
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
@@ -21,9 +22,10 @@ type WailsApp struct {
 }
 
 func NewApp(svc *Service) *WailsApp {
+	albyOAuthSvc, _ := alby.NewAlbyOauthService(svc.Logger, svc.cfg, svc.cfg.Env)
 	return &WailsApp{
 		svc: svc,
-		api: NewAPI(svc),
+		api: NewAPI(svc, albyOAuthSvc),
 	}
 }
 

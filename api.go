@@ -21,17 +21,15 @@ import (
 )
 
 type API struct {
-	svc     *Service
-	albySvc *alby.AlbyOAuthService
+	svc          *Service
+	albyOAuthSvc *alby.AlbyOAuthService
 }
 
-func NewAPI(svc *Service) *API {
-
-	albyOAuthSvc, _ := alby.NewAlbyOauthService(svc.Logger, svc.cfg, svc.cfg.Env)
+func NewAPI(svc *Service, albyOAuthSvc *alby.AlbyOAuthService) *API {
 
 	return &API{
-		svc:     svc,
-		albySvc: albyOAuthSvc,
+		svc:          svc,
+		albyOAuthSvc: albyOAuthSvc,
 	}
 }
 
@@ -518,7 +516,7 @@ func (api *API) GetInfo() *models.InfoResponse {
 		channels, err := api.ListChannels()
 		info.HasChannels = err == nil && len(channels) > 0
 	}
-	info.AlbyAuthUrl = api.albySvc.GetAuthUrl()
+	info.AlbyAuthUrl = api.albyOAuthSvc.GetAuthUrl()
 	return &info
 }
 

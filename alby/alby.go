@@ -53,13 +53,13 @@ func NewAlbyOauthService(logger *logrus.Logger, kvStore config.ConfigKVStore, ap
 		RedirectURL: appConfig.AlbyOAuthRedirectUrl,
 	}
 
-	albySvc := &AlbyOAuthService{
+	albyOAuthSvc := &AlbyOAuthService{
 		appConfig: appConfig,
 		oauthConf: conf,
 		kvStore:   kvStore,
 		logger:    logger,
 	}
-	return albySvc, err
+	return albyOAuthSvc, err
 }
 
 func (svc *AlbyOAuthService) CallbackHandler(ctx context.Context, code string) error {
