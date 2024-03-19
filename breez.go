@@ -347,15 +347,18 @@ func (bs *BreezService) GetNewOnchainAddress(ctx context.Context) (string, error
 	return "", nil
 }
 
-func (bs *BreezService) GetOnchainBalance(ctx context.Context) (int64, error) {
+func (bs *BreezService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainBalanceResponse, error) {
 	response, err := bs.svc.NodeInfo()
 
 	if err != nil {
 		bs.logger.Errorf("Failed to get node info: %v", err)
-		return 0, err
+		return nil, err
 	}
 
-	return int64(response.OnchainBalanceMsat) / 1000, nil
+	return &lnclient.OnchainBalanceResponse{
+		Spendable: int64(response.OnchainBalanceMsat) / 1000,
+		Total:     int64(response.OnchainBalanceMsat+response.PendingOnchainBalanceMsat) / 1000,
+	}, nil
 }
 
 func (bs *BreezService) RedeemOnchainFunds(ctx context.Context, toAddress string) (txId string, err error) {

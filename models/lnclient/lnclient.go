@@ -54,7 +54,7 @@ type LNClient interface {
 	OpenChannel(ctx context.Context, openChannelRequest *OpenChannelRequest) (*OpenChannelResponse, error)
 	CloseChannel(ctx context.Context, closeChannelRequest *CloseChannelRequest) (*CloseChannelResponse, error)
 	GetNewOnchainAddress(ctx context.Context) (string, error)
-	GetOnchainBalance(ctx context.Context) (int64, error)
+	GetOnchainBalance(ctx context.Context) (*OnchainBalanceResponse, error)
 	RedeemOnchainFunds(ctx context.Context, toAddress string) (txId string, err error)
 }
 
@@ -89,4 +89,9 @@ type CloseChannelRequest struct {
 }
 
 type CloseChannelResponse struct {
+}
+
+type OnchainBalanceResponse struct {
+	Spendable int64 `json:"spendable"`
+	Total     int64 `json:"total"`
 }
