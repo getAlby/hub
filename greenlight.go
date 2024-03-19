@@ -34,7 +34,7 @@ func NewGreenlightService(svc *Service, mnemonic, inviteCode, workDir string) (r
 	}
 
 	//create dir if not exists
-	newpath := filepath.Join(".", workDir)
+	newpath := filepath.Join(workDir)
 	err = os.MkdirAll(newpath, os.ModePerm)
 	if err != nil {
 		log.Printf("Failed to create greenlight working dir: %v", err)
@@ -457,22 +457,31 @@ func (gs *GreenlightService) GetNewOnchainAddress(ctx context.Context) (string, 
 	return *newAddressResponse.Bech32, nil
 }
 
-func (gs *GreenlightService) GetOnchainBalance(ctx context.Context) (int64, error) {
+func (gs *GreenlightService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainBalanceResponse, error) {
 	response, err := gs.client.ListFunds(glalby.ListFundsRequest{})
+	gs.svc.Logger.WithField("response", response).Info("Listed funds")
 
 	if err != nil {
 		gs.svc.Logger.Errorf("Failed to list funds: %v", err)
-		return 0, err
+		return nil, err
 	}
 
-	var balance int64 = 0
+	var spendableBalance int64 = 0
+	var pendingBalance int64 = 0
 	for _, output := range response.Outputs {
 		if output.AmountMsat != nil {
-			balance += int64(*output.AmountMsat)
+			if output.Status == 1 {
+				spendableBalance += int64(*output.AmountMsat)
+			} else {
+				pendingBalance += int64(*output.AmountMsat)
+			}
 		}
 	}
 
-	return balance / 1000, nil
+	return &lnclient.OnchainBalanceResponse{
+		Spendable: spendableBalance / 1000,
+		Total:     (spendableBalance + pendingBalance) / 1000,
+	}, nil
 }
 
 func (gs *GreenlightService) RedeemOnchainFunds(ctx context.Context, toAddress string) (string, error) {
@@ -541,4 +550,8 @@ func (gs *GreenlightService) greenlightInvoiceToTransaction(invoice *glalby.List
 		SettledAt:       settledAt,
 	}
 	return transaction, nil
+}
+
+func (gs *GreenlightService) ResetRouter(ctx context.Context) error {
+	return nil
 }

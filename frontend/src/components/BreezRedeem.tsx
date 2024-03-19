@@ -60,7 +60,7 @@ function BreezRedeemInternal() {
     await reloadOnchainBalance();
   }, [csrf, reloadOnchainBalance]);
 
-  if (!onchainBalance || onchainBalance.sats <= 0) {
+  if (!onchainBalance || onchainBalance.spendable <= 0) {
     return null;
   }
 
@@ -69,7 +69,7 @@ function BreezRedeemInternal() {
       <Alert type="info">
         <div className="flex justify-between items-center text-sm">
           One of your Breez channels was closed and you have{" "}
-          {onchainBalance.sats} sats to redeem.{" "}
+          {onchainBalance.spendable} sats to redeem.{" "}
           <button
             className="flex justify-center items-center gap-2 bg-purple-100 p-2 text-purple-500 rounded-md"
             onClick={redeemFunds}

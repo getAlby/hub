@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -13,6 +14,7 @@ import (
 
 	models "github.com/getAlby/nostr-wallet-connect/models/api"
 	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
+	"github.com/getAlby/nostr-wallet-connect/models/lsp"
 	"github.com/nbd-wtf/go-nostr"
 	"gorm.io/gorm"
 )
@@ -220,6 +222,23 @@ func (api *API) ListChannels() ([]lnclient.Channel, error) {
 	return api.svc.lnClient.ListChannels(api.svc.ctx)
 }
 
+func (api *API) ResetRouter() error {
+	if api.svc.lnClient == nil {
+		return errors.New("LNClient not started")
+	}
+	err := api.svc.lnClient.ResetRouter(api.svc.ctx)
+	if err != nil {
+		return err
+	}
+	// Shut down the lnclient
+	// The user will be forced to re-enter their unlock password to restart the node
+	err = api.svc.lnClient.Shutdown()
+	if err == nil {
+		api.svc.lnClient = nil
+	}
+	return err
+}
+
 func (api *API) GetNodeConnectionInfo() (*lnclient.NodeConnectionInfo, error) {
 	if api.svc.lnClient == nil {
 		return nil, errors.New("LNClient not started")
@@ -282,15 +301,13 @@ func (api *API) GetOnchainBalance() (*models.OnchainBalanceResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &models.OnchainBalanceResponse{
-		Sats: balance,
-	}, nil
+	return balance, nil
 }
 
 func (api *API) GetMempoolLightningNode(pubkey string) (interface{}, error) {
 	url := "https://mempool.space/api/v1/lightning/nodes/" + pubkey
 
-	spaceClient := http.Client{
+	client := http.Client{
 		Timeout: time.Second * 10,
 	}
 
@@ -300,7 +317,7 @@ func (api *API) GetMempoolLightningNode(pubkey string) (interface{}, error) {
 		return nil, err
 	}
 
-	res, err := spaceClient.Do(req)
+	res, err := client.Do(req)
 	if err != nil {
 		api.svc.Logger.Errorf("Failed to request %s %v", url, err)
 		return nil, err
@@ -321,6 +338,195 @@ func (api *API) GetMempoolLightningNode(pubkey string) (interface{}, error) {
 		return nil, fmt.Errorf("failed to deserialize json %s %s", url, string(body))
 	}
 	return jsonContent, nil
+}
+
+func (api *API) NewWrappedInvoice(request *models.NewWrappedInvoiceRequest) (*models.NewWrappedInvoiceResponse, error) {
+	var selectedLsp lsp.LSP
+	switch request.LSP {
+	case "VOLTAGE":
+		selectedLsp = lsp.VoltageLSP()
+	case "OLYMPUS":
+		selectedLsp = lsp.OlympusLSP()
+	default:
+		return nil, errors.New("unknown LSP")
+	}
+
+	if api.svc.lnClient == nil {
+		return nil, errors.New("LNClient not started")
+	}
+
+	api.svc.Logger.Infoln("Requesting LSP info")
+
+	var lspInfo lsp.LSPInfo
+	{
+		client := http.Client{
+			Timeout: time.Second * 10,
+		}
+		req, err := http.NewRequest(http.MethodGet, selectedLsp.Url+"/info", nil)
+		if err != nil {
+			api.svc.Logger.Errorf("Failed to create lsp info request %s %v", selectedLsp.Url, err)
+			return nil, err
+		}
+
+		res, err := client.Do(req)
+		if err != nil {
+			api.svc.Logger.Errorf("Failed to request lsp info %s %v", selectedLsp.Url, err)
+			return nil, err
+		}
+
+		defer res.Body.Close()
+
+		body, err := io.ReadAll(res.Body)
+		if err != nil {
+			api.svc.Logger.Errorf("Failed to read response body %s %v", selectedLsp.Url, err)
+			return nil, errors.New("failed to read response body")
+		}
+
+		err = json.Unmarshal(body, &lspInfo)
+		if err != nil {
+			api.svc.Logger.Errorf("Failed to deserialize json %s %v", selectedLsp.Url, err)
+			return nil, fmt.Errorf("failed to deserialize json %s %s", selectedLsp.Url, string(body))
+		}
+	}
+
+	api.svc.Logger.Infoln("Requesting own node info")
+
+	nodeInfo, err := api.svc.lnClient.GetInfo(api.svc.ctx)
+	if err != nil {
+		api.svc.Logger.Errorf("Failed to request own node info %v", err)
+		return nil, err
+	}
+
+	api.svc.Logger.Infof("Connecting to LSP node as a peer: %v", lspInfo)
+
+	if !strings.HasPrefix(lspInfo.ConnectionMethods[0].Type, "ip") {
+		api.svc.Logger.Errorf("Expected ipv4/ipv6 connection method, got %s", lspInfo.ConnectionMethods[0].Type)
+		return nil, errors.New("unexpected LSP connection method")
+	}
+
+	err = api.ConnectPeer(&models.ConnectPeerRequest{
+		Pubkey:  lspInfo.Pubkey,
+		Address: lspInfo.ConnectionMethods[0].Address,
+		Port:    lspInfo.ConnectionMethods[0].Port,
+	})
+
+	if err != nil {
+		api.svc.Logger.Errorf("Failed to connect to peer %v", err)
+		return nil, err
+	}
+
+	api.svc.Logger.Infoln("Requesting fee information")
+
+	var feeResponse lsp.FeeResponse
+	{
+		client := http.Client{
+			Timeout: time.Second * 10,
+		}
+		payloadBytes, err := json.Marshal(lsp.FeeRequest{
+			AmountMsat: request.Amount * 1000,
+			Pubkey:     nodeInfo.Pubkey,
+		})
+		if err != nil {
+			return nil, err
+		}
+		bodyReader := bytes.NewReader(payloadBytes)
+
+		req, err := http.NewRequest(http.MethodPost, selectedLsp.Url+"/fee", bodyReader)
+		if err != nil {
+			api.svc.Logger.Errorf("Failed to create lsp fee request %s %v", selectedLsp.Url, err)
+			return nil, err
+		}
+
+		req.Header.Set("Content-Type", "application/json")
+
+		res, err := client.Do(req)
+		if err != nil {
+			api.svc.Logger.Errorf("Failed to request lsp fee %s %v", selectedLsp.Url, err)
+			return nil, err
+		}
+
+		defer res.Body.Close()
+
+		body, err := io.ReadAll(res.Body)
+		if err != nil {
+			api.svc.Logger.Errorf("Failed to read response body %s %v", selectedLsp.Url, err)
+			return nil, errors.New("failed to read response body")
+		}
+
+		err = json.Unmarshal(body, &feeResponse)
+		if err != nil {
+			api.svc.Logger.Errorf("Failed to deserialize json %s %v", selectedLsp.Url, err)
+			return nil, fmt.Errorf("failed to deserialize json %s %s", selectedLsp.Url, string(body))
+		}
+
+		api.svc.Logger.Infof("Fee response: %+v", feeResponse)
+		if feeResponse.Id == "" {
+			api.svc.Logger.Errorf("No fee id in fee response %v", feeResponse)
+			return nil, fmt.Errorf("no fee id in fee response %v", feeResponse)
+		}
+	}
+
+	api.svc.Logger.Infoln("Requesting own invoice")
+
+	makeInvoiceResponse, err := api.svc.lnClient.MakeInvoice(api.svc.ctx, int64(request.Amount)*1000-int64(feeResponse.FeeAmountMsat), "", "", 60*60)
+	if err != nil {
+		api.svc.Logger.Errorf("Failed to request own invoice %v", err)
+		return nil, fmt.Errorf("failed to request own invoice %v", err)
+	}
+
+	api.svc.Logger.Infoln("Proposing invoice")
+
+	var proposalResponse lsp.ProposalResponse
+	{
+		client := http.Client{
+			Timeout: time.Second * 10,
+		}
+		payloadBytes, err := json.Marshal(lsp.ProposalRequest{
+			Bolt11: makeInvoiceResponse.Invoice,
+			FeeId:  feeResponse.Id,
+		})
+		if err != nil {
+			return nil, err
+		}
+		bodyReader := bytes.NewReader(payloadBytes)
+
+		req, err := http.NewRequest(http.MethodPost, selectedLsp.Url+"/proposal", bodyReader)
+		if err != nil {
+			api.svc.Logger.Errorf("Failed to create lsp fee request %s %v", selectedLsp.Url, err)
+			return nil, err
+		}
+
+		req.Header.Set("Content-Type", "application/json")
+
+		res, err := client.Do(req)
+		if err != nil {
+			api.svc.Logger.Errorf("Failed to request lsp fee %s %v", selectedLsp.Url, err)
+			return nil, err
+		}
+
+		defer res.Body.Close()
+
+		body, err := io.ReadAll(res.Body)
+		if err != nil {
+			api.svc.Logger.Errorf("Failed to read response body %s %v", selectedLsp.Url, err)
+			return nil, errors.New("failed to read response body")
+		}
+
+		err = json.Unmarshal(body, &proposalResponse)
+		if err != nil {
+			api.svc.Logger.Errorf("Failed to deserialize json %s %v", selectedLsp.Url, err)
+			return nil, fmt.Errorf("failed to deserialize json %s %s", selectedLsp.Url, string(body))
+		}
+		api.svc.Logger.Infof("Proposal response: %+v", proposalResponse)
+		if proposalResponse.Bolt11 == "" {
+			api.svc.Logger.Errorf("No bolt11 in proposal response %v", proposalResponse)
+			return nil, fmt.Errorf("no bolt11 in proposal response %v", proposalResponse)
+		}
+	}
+	return &models.NewWrappedInvoiceResponse{
+		WrappedInvoice: proposalResponse.Bolt11,
+		Fee:            feeResponse.FeeAmountMsat / 1000,
+	}, nil
 }
 
 func (api *API) GetInfo() *models.InfoResponse {

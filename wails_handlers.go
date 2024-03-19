@@ -105,6 +105,13 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: closeChannelResponse, Error: ""}
+	case "/api/reset-router":
+		err := app.api.ResetRouter()
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		res := WailsRequestRouterResponse{Body: nil, Error: ""}
+		return res
 	case "/api/channels":
 		switch method {
 		case "GET":

@@ -21,11 +21,13 @@ type BreezService struct {
 	svc      *breez_sdk.BlockingBreezServices
 	logger   *logrus.Logger
 }
-type BreezListener struct{}
+type BreezListener struct {
+	logger *logrus.Logger
+}
 
-func (BreezListener) Log(l breez_sdk.LogEntry) {
-	if l.Level != "TRACE" {
-		log.Printf("%v\n", l.Line)
+func (listener BreezListener) Log(l breez_sdk.LogEntry) {
+	if l.Level != "TRACE" && l.Level != "DEBUG" {
+		listener.logger.WithField("level", l.Level).Print(l.Line)
 	}
 }
 
@@ -39,7 +41,7 @@ func NewBreezService(logger *logrus.Logger, mnemonic, apiKey, inviteCode, workDi
 	}
 
 	//create dir if not exists
-	newpath := filepath.Join(".", workDir)
+	newpath := filepath.Join(workDir)
 	err = os.MkdirAll(newpath, os.ModePerm)
 	if err != nil {
 		return nil, err
@@ -53,10 +55,12 @@ func NewBreezService(logger *logrus.Logger, mnemonic, apiKey, inviteCode, workDi
 			InviteCode: &inviteCode,
 		},
 	}
-	listener := BreezListener{}
+	listener := BreezListener{
+		logger: logger,
+	}
 	config := breez_sdk.DefaultConfig(breez_sdk.EnvironmentTypeProduction, apiKey, nodeConfig)
 	config.WorkingDir = workDir
-	// breez_sdk.SetLogStream(listener)
+	breez_sdk.SetLogStream(listener)
 	svc, err := breez_sdk.Connect(config, seed, listener)
 	if err != nil {
 		return nil, err
@@ -66,17 +70,23 @@ func NewBreezService(logger *logrus.Logger, mnemonic, apiKey, inviteCode, workDi
 		return nil, err
 	}
 	if err == nil {
-		log.Printf("Current service status is: %v", healthCheck.Status)
+		logger.WithField("status", healthCheck.Status).Info("Current service status")
 	}
 
 	nodeInfo, err := svc.NodeInfo()
 	if err != nil {
 		return nil, err
 	}
-	if err == nil {
-		log.Printf("Node info: %v", nodeInfo)
-		log.Printf("ln balance: %v - onchain balance: %v - max_payable_msat: %v - max_receivable_msat: %v - max_single_payment_amount_msat: %v - connected_peers: %v - inbound_liquidity_msats: %v", nodeInfo.ChannelsBalanceMsat, nodeInfo.OnchainBalanceMsat, nodeInfo.MaxPayableMsat, nodeInfo.MaxReceivableMsat, nodeInfo.MaxSinglePaymentAmountMsat, nodeInfo.ConnectedPeers, nodeInfo.InboundLiquidityMsats)
-	}
+	logger.WithField("info", nodeInfo).Info("Node info")
+	logger.WithFields(logrus.Fields{
+		"ln balance":                     nodeInfo.ChannelsBalanceMsat,
+		"balance":                        nodeInfo.OnchainBalanceMsat,
+		"max_payable_msat":               nodeInfo.MaxPayableMsat,
+		"max_receivable_msat":            nodeInfo.MaxReceivableMsat,
+		"max_single_payment_amount_msat": nodeInfo.MaxSinglePaymentAmountMsat,
+		"connected_peers":                nodeInfo.ConnectedPeers,
+		"inbound_liquidity_msats":        nodeInfo.InboundLiquidityMsats,
+	}).Info("node balances and peers")
 
 	return &BreezService{
 		listener: &listener,
@@ -337,15 +347,18 @@ func (bs *BreezService) GetNewOnchainAddress(ctx context.Context) (string, error
 	return "", nil
 }
 
-func (bs *BreezService) GetOnchainBalance(ctx context.Context) (int64, error) {
+func (bs *BreezService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainBalanceResponse, error) {
 	response, err := bs.svc.NodeInfo()
 
 	if err != nil {
 		bs.logger.Errorf("Failed to get node info: %v", err)
-		return 0, err
+		return nil, err
 	}
 
-	return int64(response.OnchainBalanceMsat) / 1000, nil
+	return &lnclient.OnchainBalanceResponse{
+		Spendable: int64(response.OnchainBalanceMsat) / 1000,
+		Total:     int64(response.OnchainBalanceMsat+response.PendingOnchainBalanceMsat) / 1000,
+	}, nil
 }
 
 func (bs *BreezService) RedeemOnchainFunds(ctx context.Context, toAddress string) (txId string, err error) {
@@ -378,5 +391,9 @@ func (bs *BreezService) RedeemOnchainFunds(ctx context.Context, toAddress string
 	}
 
 	bs.logger.Infof("RedeemOnchainFunds response: %#v", redeemOnchainFundsResponse)
-	return string(redeemOnchainFundsResponse.Txid), nil
+	return hex.EncodeToString(redeemOnchainFundsResponse.Txid), nil
+}
+
+func (bs *BreezService) ResetRouter(ctx context.Context) error {
+	return nil
 }

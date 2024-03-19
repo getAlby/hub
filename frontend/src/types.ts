@@ -124,6 +124,7 @@ export type CloseChannelRequest = {
   nodeId: string;
 };
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 export type CloseChannelResponse = {};
 
 export type GetOnchainAddressResponse = {
@@ -131,7 +132,8 @@ export type GetOnchainAddressResponse = {
 };
 
 export type OnchainBalanceResponse = {
-  sats: number;
+  spendable: number;
+  total: number;
 };
 
 // from https://mempool.space/docs/api/rest#get-node-stats
