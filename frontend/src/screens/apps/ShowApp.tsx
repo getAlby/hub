@@ -3,12 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import gradientAvatar from "gradient-avatar";
 import { PopiconsArrowLeftLine, PopiconsEditLine } from "@popicons/react";
 
-import {
-  RequestMethodType,
-  budgetOptions,
-  iconMap,
-  nip47MethodDescriptions,
-} from "src/types";
+import { BudgetRenewalType, RequestMethodType } from "src/types";
 import { useInfo } from "src/hooks/useInfo";
 import { useApp } from "src/hooks/useApp";
 import { useCSRF } from "src/hooks/useCSRF";
@@ -20,6 +15,7 @@ import AppHeader from "src/components/AppHeader";
 import IconButton from "src/components/IconButton";
 
 import alby from "src/assets/suggested/alby.png";
+import Permissions from "src/components/Permissions";
 
 function ShowApp() {
   const { data: info } = useInfo();
@@ -29,27 +25,21 @@ function ShowApp() {
   const navigate = useNavigate();
 
   const [editMode, setEditMode] = React.useState(false);
-  const [maxAmount, setMaxAmount] = React.useState(0);
 
-  const parseRequestMethods = (reqParam: string): Set<RequestMethodType> => {
-    const methods = reqParam
-      ? reqParam.split(" ")
-      : Object.keys(nip47MethodDescriptions);
-    // Create a Set of RequestMethodType from the array
-    const requestMethodsSet = new Set<RequestMethodType>(
-      methods as RequestMethodType[]
-    );
-    return requestMethodsSet;
-  };
-
-  const [requestMethods, setRequestMethods] = React.useState(
-    parseRequestMethods("")
-  );
+  const [requestMethods, setRequestMethods] = React.useState<
+    Set<RequestMethodType>
+  >(new Set());
+  const [maxAmount, setMaxAmount] = React.useState<number>(0);
+  const [budgetRenewal, setBudgetRenewal] =
+    React.useState<BudgetRenewalType>("");
+  const [expiresAt, setExpiresAt] = React.useState<Date>();
 
   React.useEffect(() => {
     if (app) {
       setMaxAmount(app.maxAmount);
-      setRequestMethods(parseRequestMethods(app.requestMethods.join(" ")));
+      setRequestMethods(new Set(app.requestMethods as RequestMethodType[]));
+      setBudgetRenewal(app.budgetRenewal as BudgetRenewalType);
+      setExpiresAt(app.expiresAt ? new Date(app.expiresAt) : undefined);
     }
   }, [app]);
 
@@ -67,20 +57,14 @@ function ShowApp() {
         throw new Error("No CSRF token");
       }
 
-      const requestMethodsToAdd = new Set<RequestMethodType>();
-      requestMethods.forEach((rm) => {
-        if (!app.requestMethods.includes(rm)) {
-          requestMethodsToAdd.add(rm);
-        }
-      });
-
-      const requestMethodsToRemove = new Set<RequestMethodType>();
-      (app.requestMethods as RequestMethodType[]).forEach((rm) => {
-        if (!requestMethods.has(rm)) {
-          requestMethodsToRemove.add(rm);
-        }
-      });
-
+      console.info(
+        JSON.stringify({
+          maxAmount,
+          budgetRenewal,
+          expiresAt,
+          requestMethods: [...requestMethods].join(" "),
+        })
+      );
       await request(`/api/apps/${app.nostrPubkey}`, {
         method: "PATCH",
         headers: {
@@ -89,10 +73,9 @@ function ShowApp() {
         },
         body: JSON.stringify({
           maxAmount,
-          budgetRenewal: app.budgetRenewal || "monthly",
-          expiresAt: app.expiresAt,
-          requestMethodsToAdd: [...requestMethodsToAdd].join(" "),
-          requestMethodsToRemove: [...requestMethodsToRemove].join(" "),
+          budgetRenewal,
+          expiresAt,
+          requestMethods: [...requestMethods].join(" "),
         }),
       });
 
@@ -121,33 +104,6 @@ function ShowApp() {
     } catch (error) {
       await handleRequestError("Failed to delete app", error);
     }
-  };
-
-  const isEdited = () => {
-    const requestMethodCheck =
-      app.requestMethods.length === requestMethods.size &&
-      app.requestMethods.every((rm) =>
-        requestMethods.has(rm as RequestMethodType)
-      );
-    const maxAmountCheck = maxAmount === app.maxAmount;
-    return !(requestMethodCheck && maxAmountCheck);
-  };
-
-  const handleRequestMethodChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const requestMethod = event.target.value as RequestMethodType;
-
-    const newRequestMethods = new Set(requestMethods);
-
-    if (newRequestMethods.has(requestMethod)) {
-      // If checked and item is already in the list, remove it
-      newRequestMethods.delete(requestMethod);
-    } else {
-      newRequestMethods.add(requestMethod);
-    }
-
-    setRequestMethods(newRequestMethods);
   };
 
   return (
@@ -217,7 +173,7 @@ function ShowApp() {
                 </td>
                 <td className="text-gray-600 dark:text-neutral-400">
                   {app.lastEventAt
-                    ? new Date(app.lastEventAt).toLocaleDateString()
+                    ? new Date(app.lastEventAt).toString()
                     : "never"}
                 </td>
               </tr>
@@ -227,7 +183,7 @@ function ShowApp() {
                 </td>
                 <td className="text-gray-600 dark:text-neutral-400">
                   {app.expiresAt
-                    ? new Date(app.expiresAt).toLocaleDateString()
+                    ? new Date(app.expiresAt).toDateString()
                     : "never"}
                 </td>
               </tr>
@@ -242,115 +198,40 @@ function ShowApp() {
         </div>
 
         <div className="bg-white rounded-md shadow p-4 md:p-6 dark:bg-surface-02dp">
-          <>
-            <ul className="flex flex-col w-full">
-              {(
-                Object.keys(nip47MethodDescriptions) as RequestMethodType[]
-              ).map((rm, index) => {
-                const RequestMethodIcon = iconMap[rm];
-                return (
-                  <li
-                    key={index}
-                    className={`w-full ${
-                      rm == "pay_invoice" ? "order-last" : ""
-                    } ${!editMode && !requestMethods.has(rm) ? "hidden" : ""}`}
-                  >
-                    <div className="flex items-center mb-2">
-                      {RequestMethodIcon && (
-                        <RequestMethodIcon
-                          className={`text-gray-800 dark:text-gray-300 w-4 mr-3 ${
-                            editMode ? "hidden" : ""
-                          }`}
-                        />
-                      )}
-                      <input
-                        type="checkbox"
-                        id={rm}
-                        value={rm}
-                        checked={requestMethods.has(rm as RequestMethodType)}
-                        onChange={handleRequestMethodChange}
-                        className={` ${
-                          !editMode ? "hidden" : ""
-                        } w-4 h-4 mr-4 text-indigo-500 bg-gray-50 border border-gray-300 rounded focus:ring-indigo-500 dark:focus:ring-indigo-400 dark:ring-offset-gray-800 focus:ring-2 dark:bg-surface-00dp dark:border-gray-700 cursor-pointer`}
-                      />
-                      <label
-                        htmlFor={rm}
-                        className="text-gray-800 dark:text-gray-300 cursor-pointer"
-                      >
-                        {nip47MethodDescriptions[rm as RequestMethodType]}
-                      </label>
-                    </div>
-                    {rm == "pay_invoice" &&
-                      (editMode ? (
-                        <div
-                          className={`pt-2 pb-2 pl-5 ml-2.5 border-l-2 border-l-gray-200 dark:border-l-gray-400 ${
-                            !requestMethods.has(rm)
-                              ? "pointer-events-none opacity-30"
-                              : ""
-                          }`}
-                        >
-                          <p className="text-gray-600 dark:text-gray-300 mb-2 text-sm">
-                            Monthly budget
-                          </p>
-                          <div
-                            id="budget-allowance-limits"
-                            className="grid grid-cols-6 grid-rows-2 md:grid-rows-1 md:grid-cols-6 gap-2 text-xs text-gray-800 dark:text-neutral-200"
-                          >
-                            {Object.keys(budgetOptions).map((budget) => {
-                              return (
-                                <div
-                                  key={budget}
-                                  onClick={() =>
-                                    setMaxAmount(budgetOptions[budget])
-                                  }
-                                  className={`col-span-2 md:col-span-1 cursor-pointer rounded border-2 ${
-                                    maxAmount == budgetOptions[budget]
-                                      ? "border-indigo-500 dark:border-indigo-400 text-indigo-500 bg-indigo-100 dark:bg-purple-900"
-                                      : "border-gray-200 dark:border-gray-400"
-                                  } text-center py-4 dark:text-white`}
-                                >
-                                  {budget}
-                                  <br />
-                                  {budgetOptions[budget] ? "sats" : "#reckless"}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="ml-2 pl-5 border-l-2">
-                          <table className="text-gray-600 dark:text-neutral-400">
-                            <tbody>
-                              <tr className="text-sm">
-                                <td className="pr-2">Budget Allowance:</td>
-                                <td>
-                                  {app.maxAmount || "∞"} sats ({app.budgetUsage}{" "}
-                                  sats used)
-                                </td>
-                              </tr>
-                              <tr className="text-sm">
-                                <td className="pr-2">Renews:</td>
-                                <td>{app.budgetRenewal}</td>
-                              </tr>
-                            </tbody>
-                          </table>
-                        </div>
-                      ))}
-                  </li>
-                );
-              })}
-            </ul>
-          </>
+          <Permissions
+            initialRequestMethods={
+              new Set(app.requestMethods as RequestMethodType[])
+            }
+            initialMaxAmount={app.maxAmount}
+            initialBudgetRenewal={app.budgetRenewal as BudgetRenewalType}
+            initialExpiresAt={
+              app.expiresAt ? new Date(app.expiresAt) : undefined
+            }
+            onRequestMethodChange={setRequestMethods}
+            onMaxAmountChange={setMaxAmount}
+            onBudgetRenewalChange={setBudgetRenewal}
+            onExpiresAtChange={setExpiresAt}
+            budgetUsage={app.budgetUsage}
+            isEditing={editMode}
+          />
 
           {editMode ? (
-            <button
-              type="button"
-              className="mt-6 flex-row px-6 py-2 bg-white border border-indigo-500  text-indigo-500 dark:bg-surface-02dp dark:text-neutral-200 dark:border-neutral-800 hover:bg-gray-50 dark:hover:bg-surface-16dp cursor-pointer inline-flex justify-center items-center font-medium bg-origin-border shadow rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary transition duration-150"
-              disabled={!isEdited()}
-              onClick={handleSave}
-            >
-              Save
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                className="mt-6 flex-row px-6 py-2 bg-white border border-indigo-500  text-indigo-500 dark:bg-surface-02dp dark:text-neutral-200 dark:border-neutral-800 hover:bg-gray-50 dark:hover:bg-surface-16dp cursor-pointer inline-flex justify-center items-center font-medium bg-origin-border shadow rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary transition duration-150"
+                onClick={() => setEditMode(!editMode)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="mt-6 flex-row px-6 py-2 bg-indigo-500 border text-white dark:bg-indigo-700 hover:bg-indigo-600 cursor-pointer inline-flex justify-center items-center font-medium bg-origin-border shadow rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary transition duration-150"
+                onClick={handleSave}
+              >
+                Save
+              </button>
+            </div>
           ) : (
             <button
               type="button"

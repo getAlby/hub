@@ -24,7 +24,13 @@ export type RequestMethodType =
   | "lookup_invoice"
   | "list_transactions";
 
-export type BudgetRenewalType = "daily" | "weekly" | "monthly" | "yearly" | "";
+export type BudgetRenewalType =
+  | "daily"
+  | "weekly"
+  | "monthly"
+  | "yearly"
+  | "never"
+  | "";
 
 export type IconMap = {
   [key in RequestMethodType]: React.FunctionComponent<
@@ -46,7 +52,7 @@ export const validBudgetRenewals: BudgetRenewalType[] = [
   "weekly",
   "monthly",
   "yearly",
-  "",
+  "never",
 ];
 
 export const nip47MethodDescriptions: Record<RequestMethodType, string> = {

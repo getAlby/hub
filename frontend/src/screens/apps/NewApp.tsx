@@ -6,9 +6,6 @@ import {
   BudgetRenewalType,
   CreateAppResponse,
   RequestMethodType,
-  budgetOptions,
-  expiryOptions,
-  iconMap,
   nip47MethodDescriptions,
   validBudgetRenewals,
 } from "src/types";
@@ -18,6 +15,7 @@ import { EditIcon } from "src/components/icons/EditIcon";
 import { request } from "src/utils/request"; // build the project for this to appear
 import { handleRequestError } from "src/utils/handleRequestError";
 import Input from "src/components/Input";
+import Permissions from "../../components/Permissions";
 
 const NewApp = () => {
   const { data: csrf } = useCSRF();
@@ -36,11 +34,11 @@ const NewApp = () => {
   const budgetRenewalParam = queryParams.get(
     "budget_renewal"
   ) as BudgetRenewalType;
-  const budgetRenewal: BudgetRenewalType = validBudgetRenewals.includes(
-    budgetRenewalParam
-  )
-    ? budgetRenewalParam
-    : "monthly";
+  const [budgetRenewal, setBudgetRenewal] = useState<BudgetRenewalType>(
+    validBudgetRenewals.includes(budgetRenewalParam)
+      ? budgetRenewalParam
+      : "monthly"
+  );
 
   const parseRequestMethods = (reqParam: string): Set<RequestMethodType> => {
     const methods = reqParam
@@ -70,40 +68,9 @@ const NewApp = () => {
     }
     return undefined;
   };
-
   const [expiresAt, setExpiresAt] = useState<Date | undefined>(
     parseExpiresParam(queryParams.get("expires_at") ?? "")
   );
-  const [days, setDays] = useState(0);
-  const [expireOptions, setExpireOptions] = useState(false);
-
-  const today = new Date();
-  const handleDays = (days: number) => {
-    setDays(days);
-    if (!days) {
-      setExpiresAt(undefined);
-      return;
-    }
-    const expiryDate = new Date(today.getTime() + days * 24 * 60 * 60 * 1000);
-    setExpiresAt(expiryDate);
-  };
-
-  const handleRequestMethodChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const requestMethod = event.target.value as RequestMethodType;
-
-    const newRequestMethods = new Set(requestMethods);
-
-    if (newRequestMethods.has(requestMethod)) {
-      // If checked and item is already in the list, remove it
-      newRequestMethods.delete(requestMethod);
-    } else {
-      newRequestMethods.add(requestMethod);
-    }
-
-    setRequestMethods(newRequestMethods);
-  };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -187,153 +154,18 @@ const NewApp = () => {
             )}
           </div>
 
-          <div className="mb-6">
-            <ul className="flex flex-col w-full">
-              {(
-                Object.keys(nip47MethodDescriptions) as RequestMethodType[]
-              ).map((rm, index) => {
-                const RequestMethodIcon = iconMap[rm];
-                return (
-                  <li
-                    key={index}
-                    className={`w-full ${
-                      rm == "pay_invoice" ? "order-last" : ""
-                    } ${!isEditing && !requestMethods.has(rm) ? "hidden" : ""}`}
-                  >
-                    <div className="flex items-center mb-2">
-                      {RequestMethodIcon && (
-                        <RequestMethodIcon
-                          className={`text-gray-800 dark:text-gray-300 w-4 mr-3 ${
-                            isEditing ? "hidden" : ""
-                          }`}
-                        />
-                      )}
-                      <input
-                        type="checkbox"
-                        id={rm}
-                        value={rm}
-                        checked={requestMethods.has(rm as RequestMethodType)}
-                        onChange={handleRequestMethodChange}
-                        className={` ${
-                          !isEditing ? "hidden" : ""
-                        } w-4 h-4 mr-4 text-purple-700 bg-gray-50 border border-gray-300 rounded focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-surface-00dp dark:border-gray-700 cursor-pointer`}
-                      />
-                      <label
-                        htmlFor={rm}
-                        className="text-gray-800 dark:text-gray-300 cursor-pointer"
-                      >
-                        {nip47MethodDescriptions[rm as RequestMethodType]}
-                      </label>
-                    </div>
-                    {rm == "pay_invoice" && (
-                      <div
-                        className={`pt-2 pb-2 pl-5 ml-2.5 border-l-2 border-l-gray-200 dark:border-l-gray-400 ${
-                          !requestMethods.has(rm)
-                            ? isEditing
-                              ? "pointer-events-none opacity-30"
-                              : "hidden"
-                            : ""
-                        }`}
-                      >
-                        {!maxAmountParam ? (
-                          <>
-                            <p className="text-gray-600 dark:text-gray-300 mb-2 text-sm">
-                              Monthly budget
-                            </p>
-                            <div
-                              id="budget-allowance-limits"
-                              className="grid grid-cols-6 grid-rows-2 md:grid-rows-1 md:grid-cols-6 gap-2 text-xs text-gray-800 dark:text-neutral-200"
-                            >
-                              {Object.keys(budgetOptions).map((budget) => {
-                                return (
-                                  <div
-                                    key={budget}
-                                    onClick={() =>
-                                      setMaxAmount(budgetOptions[budget])
-                                    }
-                                    className={`col-span-2 md:col-span-1 cursor-pointer rounded border-2 ${
-                                      maxAmount == budgetOptions[budget]
-                                        ? "border-purple-700 dark:border-purple-300 text-purple-700 bg-purple-100 dark:bg-purple-900"
-                                        : "border-gray-200 dark:border-gray-400"
-                                    } text-center py-4 dark:text-white`}
-                                  >
-                                    {budget}
-                                    <br />
-                                    {budgetOptions[budget]
-                                      ? "sats"
-                                      : "#reckless"}
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </>
-                        ) : (
-                          <>
-                            <p className="text-gray-600 dark:text-gray-300 text-sm">
-                              <span className="capitalize">
-                                {budgetRenewal}
-                              </span>{" "}
-                              budget: {maxAmount} sats
-                            </p>
-                          </>
-                        )}
-                      </div>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-
-          {!expiresAt || days ? (
-            <>
-              <div
-                onClick={() => setExpireOptions(true)}
-                className={`${
-                  expireOptions ? "hidden" : ""
-                } cursor-pointer text-sm font-medium text-purple-700  dark:text-purple-500`}
-              >
-                + Add connection expiry time
-              </div>
-
-              {expireOptions && (
-                <div className="text-gray-800 dark:text-neutral-200">
-                  <p className="text-lg font-medium mb-2">
-                    Connection expiry time
-                  </p>
-                  <div
-                    id="expiry-days"
-                    className="grid grid-cols-4 gap-2 text-xs"
-                  >
-                    {Object.keys(expiryOptions).map((expiry) => {
-                      return (
-                        <div
-                          key={expiry}
-                          onClick={() => handleDays(expiryOptions[expiry])}
-                          className={`cursor-pointer rounded border-2 ${
-                            days == expiryOptions[expiry]
-                              ? "border-purple-700 dark:border-purple-300 text-purple-700 bg-purple-100 dark:bg-purple-900"
-                              : "border-gray-200 dark:border-gray-400"
-                          } text-center py-4`}
-                        >
-                          {expiry}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </>
-          ) : (
-            <>
-              <p className="text-lg font-medium mb-2 text-gray-800 dark:text-neutral-200">
-                Connection expiry time
-              </p>
-              <p className="text-gray-600 dark:text-gray-300 text-sm">
-                {expiresAt.toLocaleString()}
-              </p>
-            </>
-          )}
+          <Permissions
+            initialRequestMethods={requestMethods}
+            initialMaxAmount={maxAmount}
+            initialBudgetRenewal={budgetRenewal}
+            initialExpiresAt={expiresAt}
+            onRequestMethodChange={setRequestMethods}
+            onMaxAmountChange={setMaxAmount}
+            onBudgetRenewalChange={setBudgetRenewal}
+            onExpiresAtChange={setExpiresAt}
+            isEditing={isEditing}
+            isNew
+          />
         </div>
 
         <div className="mt-6 flex flex-col sm:flex-row sm:justify-center px-4 md:px-8">
@@ -347,7 +179,7 @@ const NewApp = () => {
           )}
           <button
             type="submit"
-            className="inline-flex w-full sm:w-[250px] bg-purple-700 cursor-pointer dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus:outline-none font-medium hover:bg-purple-900 items-center justify-center px-5 py-3 rounded-md shadow text-white transition"
+            className="inline-flex w-full sm:w-[250px] bg-indigo-500 cursor-pointer dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus:outline-none font-medium hover:bg-indigo-700 items-center justify-center px-5 py-3 rounded-md shadow text-white transition"
           >
             {pubkey ? "Connect" : "Next"}
           </button>

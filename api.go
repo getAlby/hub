@@ -133,11 +133,18 @@ func (api *API) CreateApp(createAppRequest *models.CreateAppRequest) (*models.Cr
 func (api *API) UpdateApp(userApp *App, updateAppRequest *models.UpdateAppRequest) error {
 	maxAmount := updateAppRequest.MaxAmount
 	budgetRenewal := updateAppRequest.BudgetRenewal
+	expiry := updateAppRequest.ExpiresAt
+
+	requestMethods := updateAppRequest.RequestMethods
+	if requestMethods == "" {
+		return fmt.Errorf("won't update an app to have no request methods")
+	}
+	newRequestMethods := strings.Split(requestMethods, " ")
 
 	expiresAt := time.Time{}
-	if updateAppRequest.ExpiresAt != "" {
+	if expiry != "" {
 		var err error
-		expiresAt, err = time.Parse(time.RFC3339, updateAppRequest.ExpiresAt)
+		expiresAt, err = time.Parse(time.RFC3339, expiry)
 		if err != nil {
 			return fmt.Errorf("invalid expiresAt: %v", err)
 		}
@@ -148,71 +155,46 @@ func (api *API) UpdateApp(userApp *App, updateAppRequest *models.UpdateAppReques
 	}
 
 	err := api.svc.db.Transaction(func(tx *gorm.DB) error {
-		var existingPermissionsCount int64
-		tx.Model(&AppPermission{}).Where("app_id = ?", userApp.ID).Count(&existingPermissionsCount)
-
-		var requestMethodsToAdd []string
-		var requestMethodsToRemove []string
-		if updateAppRequest.RequestMethodsToAdd != "" {
-			requestMethodsToAdd = strings.Split(updateAppRequest.RequestMethodsToAdd, " ")
-		}
-		if updateAppRequest.RequestMethodsToRemove != "" {
-			requestMethodsToRemove = strings.Split(updateAppRequest.RequestMethodsToRemove, " ")
+		err := tx.Model(&AppPermission{}).Where("app_id", userApp.ID).Updates(AppPermission{
+			ExpiresAt:     expiresAt,
+			MaxAmount:     maxAmount,
+			BudgetRenewal: budgetRenewal,
+		}).Error
+		if err != nil {
+			return err
 		}
 
-		resultingPermissionsCount := existingPermissionsCount + int64(len(requestMethodsToAdd)) - int64(len(requestMethodsToRemove))
-
-		if resultingPermissionsCount <= 0 {
-			return fmt.Errorf("won't update an app without request methods")
+		var existingPermissions []AppPermission
+		if err := tx.Where("app_id = ?", userApp.ID).Find(&existingPermissions).Error; err != nil {
+			return err
 		}
 
-		for _, m := range requestMethodsToAdd {
-			//if we don't know this method, we return an error
-			if !strings.Contains(NIP_47_CAPABILITIES, m) {
-				return fmt.Errorf("did not recognize request method: %s", m)
+		existingMethodMap := make(map[string]bool)
+		for _, perm := range existingPermissions {
+			existingMethodMap[perm.RequestMethod] = true
+		}
+
+		for _, method := range newRequestMethods {
+			if !existingMethodMap[method] {
+				// Add new permission
+				perm := AppPermission{
+					App:           *userApp,
+					RequestMethod: method,
+					ExpiresAt:     expiresAt,
+					MaxAmount:     maxAmount,
+					BudgetRenewal: budgetRenewal,
+				}
+				if err := tx.Create(&perm).Error; err != nil {
+					return err
+				}
 			}
-			appPermission := AppPermission{
-				App:           *userApp,
-				RequestMethod: m,
-				ExpiresAt:     expiresAt,
-				//these fields are only relevant for pay_invoice
-				MaxAmount:     maxAmount,
-				BudgetRenewal: budgetRenewal,
-			}
-			err := tx.Create(&appPermission).Error
-			if err != nil {
+			delete(existingMethodMap, method) // Remove processed methods from the map
+		}
+
+		for method := range existingMethodMap {
+			if err := tx.Where("app_id = ? AND request_method = ?", userApp.ID, method).Delete(&AppPermission{}).Error; err != nil {
 				return err
 			}
-		}
-		for _, m := range requestMethodsToRemove {
-			//if we don't know this method, we return an error
-			if !strings.Contains(NIP_47_CAPABILITIES, m) {
-				return fmt.Errorf("did not recognize request method: %s", m)
-			}
-			// Find the app permission to delete
-			var appPermission AppPermission
-			err := tx.Where("app_id = ? AND request_method = ?", userApp.ID, m).First(&appPermission).Error
-			if err != nil {
-				return err
-			}
-			// Delete the app permission
-			err = tx.Delete(&appPermission).Error
-			if err != nil {
-				return err
-			}
-		}
-
-		// Update the budget ifno in pay_invoice permission
-		// The other permissions will remain same
-		paySpecificPermission := AppPermission{}
-		findPermissionResult := tx.Find(&paySpecificPermission, &AppPermission{
-			AppId:         userApp.ID,
-			RequestMethod: NIP_47_PAY_INVOICE_METHOD,
-		})
-		if findPermissionResult.RowsAffected != 0 {
-			paySpecificPermission.MaxAmount = maxAmount
-			paySpecificPermission.BudgetRenewal = budgetRenewal
-			tx.Save(&paySpecificPermission)
 		}
 
 		// commit transaction

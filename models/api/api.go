@@ -27,11 +27,10 @@ type ListAppsResponse struct {
 }
 
 type UpdateAppRequest struct {
-	MaxAmount              int    `json:"maxAmount"`
-	BudgetRenewal          string `json:"budgetRenewal"`
-	ExpiresAt              string `json:"expiresAt"`
-	RequestMethodsToAdd    string `json:"requestMethodsToAdd"`
-	RequestMethodsToRemove string `json:"requestMethodsToRemove"`
+	MaxAmount      int    `json:"maxAmount"`
+	BudgetRenewal  string `json:"budgetRenewal"`
+	ExpiresAt      string `json:"expiresAt"`
+	RequestMethods string `json:"requestMethods"`
 }
 
 type CreateAppRequest struct {
