@@ -182,7 +182,15 @@ export default function Channels() {
                   </div>
                 )}
                 {onchainBalance && (
-                  <span>{formatAmount(onchainBalance.sats * 1000)} sats</span>
+                  <span>
+                    {formatAmount(onchainBalance.spendable * 1000)} sats
+                    {onchainBalance.spendable !== onchainBalance.total && (
+                      <span className="text-xs animate-pulse">
+                        &nbsp;({onchainBalance.total - onchainBalance.spendable}{" "}
+                        incoming)
+                      </span>
+                    )}
+                  </span>
                 )}
               </div>
             </div>

@@ -76,6 +76,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.GET("/api/node/connection-info", httpSvc.nodeConnectionInfoHandler, authMiddleware)
 	e.POST("/api/peers", httpSvc.connectPeerHandler, authMiddleware)
 	e.POST("/api/wallet/new-address", httpSvc.newOnchainAddressHandler, authMiddleware)
+	e.POST("/api/wallet/redeem-onchain-funds", httpSvc.redeemOnchainFundsHandler, authMiddleware)
 	e.GET("/api/wallet/balance", httpSvc.onchainBalanceHandler, authMiddleware)
 	e.POST("/api/reset-router", httpSvc.resetRouterHandler, authMiddleware)
 
@@ -343,6 +344,25 @@ func (httpSvc *HttpService) newOnchainAddressHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, newAddressResponse)
+}
+
+func (httpSvc *HttpService) redeemOnchainFundsHandler(c echo.Context) error {
+	var redeemOnchainFundsRequest api.RedeemOnchainFundsRequest
+	if err := c.Bind(&redeemOnchainFundsRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	redeemOnchainFundsResponse, err := httpSvc.api.RedeemOnchainFunds(redeemOnchainFundsRequest.ToAddress)
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to request new onchain address: %s", err.Error()),
+		})
+	}
+
+	return c.JSON(http.StatusOK, redeemOnchainFundsResponse)
 }
 
 func (httpSvc *HttpService) appsListHandler(c echo.Context) error {

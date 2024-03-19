@@ -577,12 +577,19 @@ func (gs *LDKService) GetNewOnchainAddress(ctx context.Context) (string, error) 
 	return address, nil
 }
 
-func (gs *LDKService) GetOnchainBalance(ctx context.Context) (int64, error) {
+func (gs *LDKService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainBalanceResponse, error) {
 	balances := gs.node.ListBalances()
 	gs.svc.Logger.WithFields(logrus.Fields{
 		"balances": balances,
 	}).Debug("Listed Balances")
-	return int64(balances.SpendableOnchainBalanceSats), nil
+	return &lnclient.OnchainBalanceResponse{
+		Spendable: int64(balances.SpendableOnchainBalanceSats),
+		Total:     int64(balances.TotalOnchainBalanceSats),
+	}, nil
+}
+
+func (gs *LDKService) RedeemOnchainFunds(ctx context.Context, toAddress string) (txId string, err error) {
+	return "", nil
 }
 
 func (ls *LDKService) ResetRouter(ctx context.Context) error {

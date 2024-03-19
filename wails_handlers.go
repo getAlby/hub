@@ -151,6 +151,24 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: *newAddressResponse, Error: ""}
+	case "/api/wallet/redeem-onchain-funds":
+
+		redeemOnchainFundsRequest := &api.RedeemOnchainFundsRequest{}
+		err := json.Unmarshal([]byte(body), redeemOnchainFundsRequest)
+		if err != nil {
+			app.svc.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).Errorf("Failed to decode request to wails router: %v", err)
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+
+		redeemOnchainFundsResponse, err := app.api.RedeemOnchainFunds(redeemOnchainFundsRequest.ToAddress)
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: *redeemOnchainFundsResponse, Error: ""}
 	case "/api/peers":
 		connectPeerRequest := &api.ConnectPeerRequest{}
 		err := json.Unmarshal([]byte(body), connectPeerRequest)

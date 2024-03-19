@@ -9,7 +9,7 @@ init({
 });
 
 type LSPOption = "OLYMPUS" | "VOLTAGE";
-const LSP_OPTIONS: LSPOption[] = ["OLYMPUS"]; //, "VOLTAGE"
+const LSP_OPTIONS: LSPOption[] = ["OLYMPUS", "VOLTAGE"];
 
 type NewWrappedInvoiceRequest = {
   amount: number;
