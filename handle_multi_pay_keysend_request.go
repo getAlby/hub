@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"sync"
 
 	"github.com/nbd-wtf/go-nostr"
@@ -89,7 +88,7 @@ func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, request *Nip
 					ResultType: request.Method,
 					Error: &Nip47Error{
 						Code:    NIP_47_ERROR_INTERNAL,
-						Message: fmt.Sprintf("Something went wrong while paying invoice: %s", err.Error()),
+						Message: err.Error(),
 					},
 				}, nostr.Tags{dTag})
 				return

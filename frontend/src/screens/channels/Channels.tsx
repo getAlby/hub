@@ -3,14 +3,16 @@ import { Link, useNavigate } from "react-router-dom";
 import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
 import { useOnchainBalance } from "src/hooks/useOnchainBalance";
-import { Node } from "src/types";
+import { CloseChannelRequest, CloseChannelResponse, Node } from "src/types";
 import { request } from "src/utils/request";
+import { useCSRF } from "../../hooks/useCSRF.ts";
 
 export default function Channels() {
-  const { data: channels } = useChannels();
+  const { data: channels, mutate: reloadChannels } = useChannels();
   const { data: onchainBalance } = useOnchainBalance();
   const [nodes, setNodes] = React.useState<Node[]>([]);
   const { data: info } = useInfo();
+  const { data: csrf } = useCSRF();
   const navigate = useNavigate();
 
   React.useEffect(() => {
@@ -47,6 +49,66 @@ export default function Channels() {
   const lightningBalance = channels
     ?.map((channel) => channel.localBalance)
     .reduce((a, b) => a + b, 0);
+
+  async function closeChannel(
+    channelId: string,
+    nodeId: string,
+    isActive: boolean
+  ) {
+    try {
+      if (!csrf) {
+        throw new Error("csrf not loaded");
+      }
+      if (!isActive) {
+        if (
+          !confirm(
+            `This channel is inactive. Some channels require up to 6 onchain confirmations before they are usable. If you really want to continue, click OK.`
+          )
+        ) {
+          return;
+        }
+      }
+      if (
+        !confirm(
+          `Are you sure you want to close the channel with ${
+            nodes.find((node) => node.public_key === nodeId)?.alias ||
+            "Unknown Node"
+          }?\n\nNode ID: ${nodeId}\n\nChannel ID: ${channelId}`
+        )
+      ) {
+        return;
+      }
+
+      console.log(`🎬 Closing channel with ${nodeId}`);
+
+      const closeChannelRequest: CloseChannelRequest = {
+        channelId: channelId,
+        nodeId: nodeId,
+      };
+      const closeChannelResponse = await request<CloseChannelResponse>(
+        "/api/channels/close",
+        {
+          method: "POST",
+          headers: {
+            "X-CSRF-Token": csrf,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(closeChannelRequest),
+        }
+      );
+
+      if (!closeChannelResponse) {
+        throw new Error("Error closing channel");
+      }
+
+      await reloadChannels();
+
+      alert(`🎉 Channel closed`);
+    } catch (error) {
+      console.error(error);
+      alert("Something went wrong: " + error);
+    }
+  }
 
   return (
     <div>
@@ -171,6 +233,7 @@ export default function Channels() {
                     >
                       Local / Remote
                     </th>
+                    <th></th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
@@ -224,6 +287,9 @@ export default function Channels() {
                                 {alias} ({channel.remotePubkey.substring(0, 10)}
                                 ...)
                               </a>
+                              <span className="mx-4 uppercase text-xs border-2 py-0.5 px-1 rounded-lg">
+                                {channel.public ? "Public" : "Private"}
+                              </span>
                             </td>
                             <td className="py-4 px-6 text-sm font-medium text-gray-500 whitespace-nowrap dark:text-white">
                               {formatAmount(capacity)}
@@ -248,6 +314,19 @@ export default function Channels() {
                                   style={{ width: `${remotePercentage}%` }}
                                 ></div>
                               </div>
+                            </td>
+                            <td>
+                              <button
+                                onClick={() =>
+                                  closeChannel(
+                                    channel.id,
+                                    channel.remotePubkey,
+                                    channel.active
+                                  )
+                                }
+                              >
+                                ❌
+                              </button>
                             </td>
                           </tr>
                         );

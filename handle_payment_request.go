@@ -82,7 +82,7 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 			ResultType: request.Method,
 			Error: &Nip47Error{
 				Code:    NIP_47_ERROR_INTERNAL,
-				Message: fmt.Sprintf("Something went wrong while paying invoice: %s", err.Error()),
+				Message: err.Error(),
 			},
 		}, nil
 	}

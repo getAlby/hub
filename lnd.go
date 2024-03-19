@@ -340,6 +340,10 @@ func (svc *LNDService) OpenChannel(ctx context.Context, openChannelRequest *lncl
 	return nil, nil
 }
 
+func (svc *LNDService) CloseChannel(ctx context.Context, closeChannelRequest *lnclient.CloseChannelRequest) (*lnclient.CloseChannelResponse, error) {
+	return nil, nil
+}
+
 func (svc *LNDService) GetNewOnchainAddress(ctx context.Context) (string, error) {
 	return "", nil
 }
