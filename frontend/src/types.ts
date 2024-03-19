@@ -70,7 +70,7 @@ export const budgetOptions: Record<string, number> = {
   "25k": 25_000,
   "50k": 50_000,
   "100k": 100_000,
-  "1M": 100_000_000,
+  "1M": 1_000_000,
   Unlimited: 0,
 };
 
