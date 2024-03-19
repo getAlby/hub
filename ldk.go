@@ -13,10 +13,11 @@ import (
 	"time"
 
 	"github.com/getAlby/ldk-node-go/ldk_node"
-	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
-	"github.com/getAlby/nostr-wallet-connect/models/lsp"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
+
+	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
+	"github.com/getAlby/nostr-wallet-connect/models/lsp"
 )
 
 type LDKService struct {
@@ -673,9 +674,9 @@ func (gs *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 }
 
 func (gs *LDKService) SendPaymentProbes(ctx context.Context, invoice string) error {
-	err := gs.node.SendPaymentProbes(invoice)
+	err := gs.node.Bolt11Payment().SendProbes(invoice)
 	if err != nil {
-		gs.svc.Logger.Errorf("SendPaymentProbes failed: %v", err)
+		gs.svc.Logger.Errorf("Bolt11Payment.SendProbes failed: %v", err)
 		return err
 	}
 
@@ -683,9 +684,9 @@ func (gs *LDKService) SendPaymentProbes(ctx context.Context, invoice string) err
 }
 
 func (gs *LDKService) SendSpontaneousPaymentProbes(ctx context.Context, amount_msat uint64, node_id string) error {
-	err := gs.node.SendSpontaneousPaymentProbes(amount_msat, node_id)
+	err := gs.node.SpontaneousPayment().SendProbes(amount_msat, node_id)
 	if err != nil {
-		gs.svc.Logger.Errorf("SendSpontaneousPaymentProbes failed: %v", err)
+		gs.svc.Logger.Errorf("SpontaneousPayment.SendProbes failed: %v", err)
 		return err
 	}
 
