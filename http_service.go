@@ -472,10 +472,6 @@ func (httpSvc *HttpService) albyBalanceHandler(c echo.Context) error {
 			Message: fmt.Sprintf("Failed to request alby balance endpoint: %s", err.Error()),
 		})
 	}
-	if balance.Unit != "sat" {
-		httpSvc.svc.Logger.WithField("balance", balance.Unit).Error("Unsupported balance unit")
-		return errors.New("unsupported balance unit")
-	}
 
 	return c.JSON(http.StatusOK, &api.AlbyBalanceResponse{
 		Sats: balance.Balance,
