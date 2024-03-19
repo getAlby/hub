@@ -13,13 +13,15 @@ export function useRedeemOnchainFunds() {
     if (!csrf) {
       return;
     }
+    setLoading(true);
+    await new Promise((resolve) => setTimeout(resolve, 100));
     const toAddress = prompt(
       "Please enter an onchain bitcoin address (bc1...)"
     );
     if (!toAddress) {
+      setLoading(false);
       return;
     }
-    setLoading(true);
 
     try {
       const response = await request<RedeemOnchainFundsResponse>(
