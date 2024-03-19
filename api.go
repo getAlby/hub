@@ -262,6 +262,16 @@ func (api *API) ListApps() ([]models.App, error) {
 	apps := []App{}
 	api.svc.db.Find(&apps)
 
+	permissions := []AppPermission{}
+	api.svc.db.Find(&permissions)
+
+	permissionsMap := make(map[uint][]AppPermission)
+	for _, perm := range permissions {
+		permissionsMap[perm.AppId] = append(permissionsMap[perm.AppId], perm)
+	}
+
+	// Can also fetch last events but is unused
+
 	apiApps := []models.App{}
 	for _, userApp := range apps {
 		apiApp := models.App{
@@ -273,16 +283,11 @@ func (api *API) ListApps() ([]models.App, error) {
 			NostrPubkey: userApp.NostrPubkey,
 		}
 
-		permissions := []AppPermission{}
-		result := api.svc.db.Where("app_id = ?", userApp.ID).Find(&permissions)
-		if result.Error != nil {
-			api.svc.Logger.Errorf("Failed to fetch app permissions %v", result.Error)
-			return nil, errors.New("failed to fetch app permissions")
-		}
-
-		for _, permission := range permissions {
+		for _, permission := range permissionsMap[userApp.ID] {
 			apiApp.RequestMethods = append(apiApp.RequestMethods, permission.RequestMethod)
+			apiApp.ExpiresAt = &permission.ExpiresAt
 			if permission.RequestMethod == NIP_47_PAY_INVOICE_METHOD {
+				apiApp.BudgetRenewal = permission.BudgetRenewal
 				apiApp.MaxAmount = permission.MaxAmount
 				if apiApp.MaxAmount > 0 {
 					apiApp.BudgetUsage = api.svc.GetBudgetUsage(&permission)
