@@ -41,7 +41,7 @@ func NewBreezService(logger *logrus.Logger, mnemonic, apiKey, inviteCode, workDi
 	}
 
 	//create dir if not exists
-	newpath := filepath.Join(".", workDir)
+	newpath := filepath.Join(workDir)
 	err = os.MkdirAll(newpath, os.ModePerm)
 	if err != nil {
 		return nil, err

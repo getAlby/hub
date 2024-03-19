@@ -34,7 +34,7 @@ func NewGreenlightService(svc *Service, mnemonic, inviteCode, workDir string) (r
 	}
 
 	//create dir if not exists
-	newpath := filepath.Join(".", workDir)
+	newpath := filepath.Join(workDir)
 	err = os.MkdirAll(newpath, os.ModePerm)
 	if err != nil {
 		log.Printf("Failed to create greenlight working dir: %v", err)
