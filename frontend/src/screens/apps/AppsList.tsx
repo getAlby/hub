@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useApps } from "src/hooks/useApps";
 import { PlusIcon } from "src/components/icons/PlusIcon";
 import Loading from "src/components/Loading";
+import BreezRedeem from "src/components/BreezRedeem";
 
 function AppsList() {
   const { data: apps } = useApps();
@@ -15,6 +16,7 @@ function AppsList() {
 
   return (
     <>
+      <BreezRedeem />
       <div className="mb-4 flex justify-between items-center">
         <h2 className="font-bold text-2xl font-headline dark:text-white">
           Connected apps
