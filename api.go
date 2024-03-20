@@ -157,11 +157,12 @@ func (api *API) UpdateApp(userApp *App, updateAppRequest *models.UpdateAppReques
 		expiresAt = time.Date(expiresAt.Year(), expiresAt.Month(), expiresAt.Day(), 23, 59, 59, 0, expiresAt.Location())
 	}
 
+	fmt.Println(expiresAt)
 	err := api.svc.db.Transaction(func(tx *gorm.DB) error {
-		err := tx.Model(&AppPermission{}).Where("app_id", userApp.ID).Updates(AppPermission{
-			ExpiresAt:     expiresAt,
-			MaxAmount:     maxAmount,
-			BudgetRenewal: budgetRenewal,
+		err := tx.Model(&AppPermission{}).Where("app_id", userApp.ID).Updates(map[string]interface{}{
+			"ExpiresAt":     expiresAt,
+			"MaxAmount":     maxAmount,
+			"BudgetRenewal": budgetRenewal,
 		}).Error
 		if err != nil {
 			return err

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   AppPermissions,
   RequestMethodType,
@@ -29,6 +29,10 @@ const Permissions: React.FC<PermissionsProps> = ({
 
   const [days, setDays] = useState(isNew ? 0 : -1);
   const [expireOptions, setExpireOptions] = useState(!isNew);
+
+  useEffect(() => {
+    setPermissions(initialPermissions);
+  }, [initialPermissions]);
 
   const handlePermissionsChange = (
     changedPermissions: Partial<AppPermissions>
@@ -243,7 +247,11 @@ const Permissions: React.FC<PermissionsProps> = ({
               <p className="text-lg font-medium mb-2">Connection expiry time</p>
               {!isNew && (
                 <p className="mb-2 text-gray-600 dark:text-gray-300 text-sm">
-                  Expires: {permissions.expiresAt?.toString() || "Never"}
+                  Expires:{" "}
+                  {permissions.expiresAt &&
+                  new Date(permissions.expiresAt).getFullYear() !== 1
+                    ? new Date(permissions.expiresAt).toString()
+                    : "This app will never expire"}
                 </p>
               )}
               <div id="expiry-days" className="grid grid-cols-4 gap-2 text-xs">
@@ -272,8 +280,9 @@ const Permissions: React.FC<PermissionsProps> = ({
             Connection expiry time
           </p>
           <p className="text-gray-600 dark:text-gray-300 text-sm">
-            {permissions.expiresAt
-              ? permissions.expiresAt?.toString()
+            {permissions.expiresAt &&
+            new Date(permissions.expiresAt).getFullYear() !== 1
+              ? new Date(permissions.expiresAt).toString()
               : "This app will never expire"}
           </p>
         </>

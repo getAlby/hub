@@ -167,9 +167,10 @@ function ShowApp() {
                   Last used
                 </td>
                 <td className="text-gray-600 dark:text-neutral-400">
-                  {app.lastEventAt
+                  {app.lastEventAt &&
+                  new Date(app.lastEventAt).getFullYear() !== 1
                     ? new Date(app.lastEventAt).toString()
-                    : "never"}
+                    : "Never"}
                 </td>
               </tr>
               <tr>
@@ -177,7 +178,9 @@ function ShowApp() {
                   Expires At
                 </td>
                 <td className="text-gray-600 dark:text-neutral-400">
-                  {app.expiresAt ? new Date(app.expiresAt).toString() : "never"}
+                  {app.expiresAt && new Date(app.expiresAt).getFullYear() !== 1
+                    ? new Date(app.expiresAt).toString()
+                    : "Never"}
                 </td>
               </tr>
             </tbody>
@@ -192,14 +195,7 @@ function ShowApp() {
 
         <div className="bg-white rounded-md shadow p-4 md:p-6 dark:bg-surface-02dp">
           <Permissions
-            initialPermissions={{
-              requestMethods: new Set(
-                app.requestMethods as RequestMethodType[]
-              ),
-              maxAmount: app.maxAmount,
-              budgetRenewal: app.budgetRenewal as BudgetRenewalType,
-              expiresAt: app.expiresAt ? new Date(app.expiresAt) : undefined,
-            }}
+            initialPermissions={permissions}
             onPermissionsChange={setPermissions}
             budgetUsage={app.budgetUsage}
             isEditing={editMode}
@@ -210,7 +206,20 @@ function ShowApp() {
               <button
                 type="button"
                 className="mt-6 flex-row px-6 py-2 bg-white border border-indigo-500  text-indigo-500 dark:bg-surface-02dp dark:text-neutral-200 dark:border-neutral-800 hover:bg-gray-50 dark:hover:bg-surface-16dp cursor-pointer inline-flex justify-center items-center font-medium bg-origin-border shadow rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary transition duration-150"
-                onClick={() => setEditMode(!editMode)}
+                onClick={() => {
+                  setPermissions({
+                    requestMethods: new Set(
+                      app.requestMethods as RequestMethodType[]
+                    ),
+                    maxAmount: app.maxAmount,
+                    budgetRenewal: app.budgetRenewal as BudgetRenewalType,
+                    expiresAt: app.expiresAt
+                      ? new Date(app.expiresAt)
+                      : undefined,
+                  });
+                  setEditMode(!editMode);
+                  // TODO: clicking cancel and then editing again will leave the days option wrong
+                }}
               >
                 Cancel
               </button>
