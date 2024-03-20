@@ -22,12 +22,12 @@ type AppConfig struct {
 	LDKEsploraServer     string `envconfig:"LDK_ESPLORA_SERVER" default:"https://blockstream.info/api"`
 	LDKGossipSource      string `envconfig:"LDK_GOSSIP_SOURCE" default:"https://rapidsync.lightningdevkit.org/snapshot"`
 	LDKLogLevel          string `envconfig:"LDK_LOG_LEVEL"`
+	MempoolApi           string `envconfig:"MEMPOOL_API" default:"https://mempool.space/api"`
 	AlbyAPIURL           string `envconfig:"ALBY_API_URL" default:"https://api.getalby.com"`
 	AlbyClientId         string `envconfig:"ALBY_OAUTH_CLIENT_ID"`
 	AlbyClientSecret     string `envconfig:"ALBY_OAUTH_CLIENT_SECRET"`
 	AlbyOAuthRedirectUrl string `envconfig:"ALBY_OAUTH_REDIRECT_URL"`
 	AlbyOAuthAuthUrl     string `envconfig:"ALBY_OAUTH_AUTH_URL" default:"https://getalby.com/oauth"`
-	MempoolApi           string `envconfig:"MEMPOOL_API" default:"https://mempool.space/api"`
 }
 
 type ConfigKVStore interface {

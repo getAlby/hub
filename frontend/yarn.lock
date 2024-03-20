@@ -185,14 +185,6 @@
     events "^3.3.0"
     nostr-tools "^1.17.0"
 
-"@getalby/sdk@^3.4.0":
-  version "3.4.0"
-  resolved "https://registry.yarnpkg.com/@getalby/sdk/-/sdk-3.4.0.tgz#3251e17435caccc5b6f6448a89736034ed4c0c00"
-  integrity sha512-qzIx6GVs4uc9cFyP1fpqHrMxZqqNwi0dSMcgcFMXlb2QBV1syUaNhEvdyBuQo1s+Y38UkQnRToOMqBAX6jXGwQ==
-  dependencies:
-    events "^3.3.0"
-    nostr-tools "^1.17.0"
-
 "@humanwhocodes/config-array@^0.11.13":
   version "0.11.13"
   resolved "https://registry.npmjs.org/@humanwhocodes/config-array/-/config-array-0.11.13.tgz"
