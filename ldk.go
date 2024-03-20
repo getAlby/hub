@@ -150,7 +150,7 @@ func (gs *LDKService) SendPaymentSync(ctx context.Context, payReq string) (preim
 
 	paymentHash, err := gs.node.Bolt11Payment().Send(payReq)
 	if err != nil {
-		gs.svc.Logger.Errorf("SendPayment failed: %v", err)
+		gs.svc.Logger.WithError(err).Error("SendPayment failed")
 		return "", err
 	}
 	fee := uint64(0)
@@ -352,7 +352,7 @@ func (gs *LDKService) MakeInvoice(ctx context.Context, amount int64, description
 		uint32(expiry))
 
 	if err != nil {
-		gs.svc.Logger.Errorf("MakeInvoice failed: %v", err)
+		gs.svc.Logger.WithError(err).Error("MakeInvoice failed")
 		return nil, err
 	}
 
@@ -481,7 +481,7 @@ func (gs *LDKService) GetNodeConnectionInfo(ctx context.Context) (nodeConnection
 	}
 	port, err := strconv.Atoi(parts[1])
 	if err != nil {
-		gs.svc.Logger.Errorf("ConnectPeer failed: %v", err)
+		gs.svc.Logger.WithError(err).Error("ConnectPeer failed")
 		return nil, err
 	}*/
 
@@ -495,7 +495,7 @@ func (gs *LDKService) GetNodeConnectionInfo(ctx context.Context) (nodeConnection
 func (gs *LDKService) ConnectPeer(ctx context.Context, connectPeerRequest *lnclient.ConnectPeerRequest) error {
 	err := gs.node.Connect(connectPeerRequest.Pubkey, connectPeerRequest.Address+":"+strconv.Itoa(int(connectPeerRequest.Port)), true)
 	if err != nil {
-		gs.svc.Logger.Errorf("ConnectPeer failed: %v", err)
+		gs.svc.Logger.WithError(err).Error("ConnectPeer failed")
 		return err
 	}
 
@@ -523,7 +523,7 @@ func (gs *LDKService) OpenChannel(ctx context.Context, openChannelRequest *lncli
 	gs.svc.Logger.Infof("Opening channel with: %v", foundPeer.NodeId)
 	userChannelId, err := gs.node.ConnectOpenChannel(foundPeer.NodeId, foundPeer.Address, uint64(openChannelRequest.Amount), nil, nil, openChannelRequest.Public)
 	if err != nil {
-		gs.svc.Logger.Errorf("OpenChannel failed: %v", err)
+		gs.svc.Logger.WithError(err).Error("OpenChannel failed")
 		return nil, err
 	}
 
@@ -562,7 +562,7 @@ func (gs *LDKService) CloseChannel(ctx context.Context, closeChannelRequest *lnc
 	// TODO: support passing force option
 	err := gs.node.CloseChannel(closeChannelRequest.ChannelId, closeChannelRequest.NodeId, false)
 	if err != nil {
-		gs.svc.Logger.Errorf("CloseChannel failed: %v", err)
+		gs.svc.Logger.WithError(err).Error("CloseChannel failed")
 		return nil, err
 	}
 	return &lnclient.CloseChannelResponse{}, nil
@@ -571,7 +571,7 @@ func (gs *LDKService) CloseChannel(ctx context.Context, closeChannelRequest *lnc
 func (gs *LDKService) GetNewOnchainAddress(ctx context.Context) (string, error) {
 	address, err := gs.node.OnchainPayment().NewAddress()
 	if err != nil {
-		gs.svc.Logger.Errorf("NewOnchainAddress failed: %v", err)
+		gs.svc.Logger.WithError(err).Error("NewOnchainAddress failed")
 		return "", err
 	}
 	return address, nil
@@ -591,7 +591,7 @@ func (gs *LDKService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainB
 func (gs *LDKService) RedeemOnchainFunds(ctx context.Context, toAddress string) (string, error) {
 	txId, err := gs.node.OnchainPayment().SendAllToAddress(toAddress)
 	if err != nil {
-		gs.svc.Logger.Errorf("SendAllToOnchainAddress failed: %v", err)
+		gs.svc.Logger.WithError(err).Error("SendAllToOnchainAddress failed")
 		return "", err
 	}
 	return txId, nil
