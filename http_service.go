@@ -110,7 +110,7 @@ func (httpSvc *HttpService) infoHandler(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) mnemonicHandler(c echo.Context) error {
-	responseBody := httpSvc.api.GetMnemonic()
+	responseBody := httpSvc.api.GetEncryptedMnemonic()
 	return c.JSON(http.StatusOK, responseBody)
 }
 

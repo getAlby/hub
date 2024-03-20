@@ -647,8 +647,8 @@ func (api *API) GetInfo() (*models.InfoResponse, error) {
 	return &info, nil
 }
 
-func (api *API) GetMnemonic() *models.MnemonicResponse {
-	resp := models.MnemonicResponse{}
+func (api *API) GetEncryptedMnemonic() *models.EncryptedMnemonicResponse {
+	resp := models.EncryptedMnemonicResponse{}
 	mnemonic, _ := api.svc.cfg.Get("Mnemonic", "")
 	resp.Mnemonic = mnemonic
 	return &resp

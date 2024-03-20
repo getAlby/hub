@@ -91,7 +91,7 @@ type InfoResponse struct {
 	IsMnemonicBackupDone bool   `json:"isMnemonicBackupDone"`
 }
 
-type MnemonicResponse struct {
+type EncryptedMnemonicResponse struct {
 	Mnemonic string `json:"mnemonic"`
 }
 

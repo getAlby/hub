@@ -218,7 +218,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 	case "/api/mnemonic":
 		switch method {
 		case "GET":
-			infoResponse := app.api.GetMnemonic()
+			infoResponse := app.api.GetEncryptedMnemonic()
 			res := WailsRequestRouterResponse{Body: *infoResponse, Error: ""}
 			return res
 		case "PATCH":
