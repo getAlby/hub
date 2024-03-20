@@ -130,6 +130,80 @@ func (api *API) CreateApp(createAppRequest *models.CreateAppRequest) (*models.Cr
 	return responseBody, nil
 }
 
+func (api *API) UpdateApp(userApp *App, updateAppRequest *models.UpdateAppRequest) error {
+	maxAmount := updateAppRequest.MaxAmount
+	budgetRenewal := updateAppRequest.BudgetRenewal
+	expiry := updateAppRequest.ExpiresAt
+
+	requestMethods := updateAppRequest.RequestMethods
+	if requestMethods == "" {
+		return fmt.Errorf("won't update an app to have no request methods")
+	}
+	newRequestMethods := strings.Split(requestMethods, " ")
+
+	expiresAt := time.Time{}
+	if expiry != "" {
+		var err error
+		expiresAt, err = time.Parse(time.RFC3339, expiry)
+		if err != nil {
+			return fmt.Errorf("invalid expiresAt: %v", err)
+		}
+	}
+
+	if !expiresAt.IsZero() {
+		expiresAt = time.Date(expiresAt.Year(), expiresAt.Month(), expiresAt.Day(), 23, 59, 59, 0, expiresAt.Location())
+	}
+
+	err := api.svc.db.Transaction(func(tx *gorm.DB) error {
+		err := tx.Model(&AppPermission{}).Where("app_id", userApp.ID).Updates(AppPermission{
+			ExpiresAt:     expiresAt,
+			MaxAmount:     maxAmount,
+			BudgetRenewal: budgetRenewal,
+		}).Error
+		if err != nil {
+			return err
+		}
+
+		var existingPermissions []AppPermission
+		if err := tx.Where("app_id = ?", userApp.ID).Find(&existingPermissions).Error; err != nil {
+			return err
+		}
+
+		existingMethodMap := make(map[string]bool)
+		for _, perm := range existingPermissions {
+			existingMethodMap[perm.RequestMethod] = true
+		}
+
+		for _, method := range newRequestMethods {
+			if !existingMethodMap[method] {
+				// Add new permission
+				perm := AppPermission{
+					App:           *userApp,
+					RequestMethod: method,
+					ExpiresAt:     expiresAt,
+					MaxAmount:     maxAmount,
+					BudgetRenewal: budgetRenewal,
+				}
+				if err := tx.Create(&perm).Error; err != nil {
+					return err
+				}
+			}
+			delete(existingMethodMap, method) // Remove processed methods from the map
+		}
+
+		for method := range existingMethodMap {
+			if err := tx.Where("app_id = ? AND request_method = ?", userApp.ID, method).Delete(&AppPermission{}).Error; err != nil {
+				return err
+			}
+		}
+
+		// commit transaction
+		return nil
+	})
+
+	return err
+}
+
 func (api *API) DeleteApp(userApp *App) error {
 	return api.svc.db.Delete(userApp).Error
 }
@@ -188,6 +262,16 @@ func (api *API) ListApps() ([]models.App, error) {
 	apps := []App{}
 	api.svc.db.Find(&apps)
 
+	permissions := []AppPermission{}
+	api.svc.db.Find(&permissions)
+
+	permissionsMap := make(map[uint][]AppPermission)
+	for _, perm := range permissions {
+		permissionsMap[perm.AppId] = append(permissionsMap[perm.AppId], perm)
+	}
+
+	// Can also fetch last events but is unused
+
 	apiApps := []models.App{}
 	for _, userApp := range apps {
 		apiApp := models.App{
@@ -199,18 +283,18 @@ func (api *API) ListApps() ([]models.App, error) {
 			NostrPubkey: userApp.NostrPubkey,
 		}
 
-		paySpecificPermission := AppPermission{}
-		result := api.svc.db.Where("app_id = ? AND request_method = ?", userApp.ID, "pay_invoice").Limit(1).Find(&paySpecificPermission)
-		if result.Error != nil {
-			api.svc.Logger.Errorf("Failed to fetch pay invoice permission %v", result.Error)
-			return nil, errors.New("failed to fetch pay invoice permission")
-		}
-		if result.RowsAffected > 0 {
-			apiApp.MaxAmount = paySpecificPermission.MaxAmount
-			if apiApp.MaxAmount > 0 {
-				apiApp.BudgetUsage = api.svc.GetBudgetUsage(&paySpecificPermission)
+		for _, permission := range permissionsMap[userApp.ID] {
+			apiApp.RequestMethods = append(apiApp.RequestMethods, permission.RequestMethod)
+			apiApp.ExpiresAt = &permission.ExpiresAt
+			if permission.RequestMethod == NIP_47_PAY_INVOICE_METHOD {
+				apiApp.BudgetRenewal = permission.BudgetRenewal
+				apiApp.MaxAmount = permission.MaxAmount
+				if apiApp.MaxAmount > 0 {
+					apiApp.BudgetUsage = api.svc.GetBudgetUsage(&permission)
+				}
 			}
 		}
+
 		apiApps = append(apiApps, apiApp)
 	}
 	return apiApps, nil

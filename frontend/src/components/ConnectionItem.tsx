@@ -7,7 +7,7 @@ import {
 } from "@popicons/react";
 
 import Progressbar from "src/components/ProgressBar";
-import { App } from "src/types";
+import { App, NIP_47_PAY_INVOICE_METHOD } from "src/types";
 import { request } from "src/utils/request";
 import toast from "src/components/Toast";
 import { handleRequestError } from "src/utils/handleRequestError";
@@ -112,15 +112,19 @@ export default function ConnectionItem({ app, csrf, onDelete }: Props) {
             </h2>
           </div>
           <div className="text-sm text-gray-700">
-            {app.maxAmount > 0 ? (
-              <>
-                <p className="mb-2">Budget Usage:</p>
-                <Progressbar
-                  percentage={(app.budgetUsage * 100) / app.maxAmount}
-                />
-              </>
+            {app.requestMethods?.includes(NIP_47_PAY_INVOICE_METHOD) ? (
+              app.maxAmount > 0 ? (
+                <>
+                  <p className="mb-2">Budget Usage:</p>
+                  <Progressbar
+                    percentage={(app.budgetUsage * 100) / app.maxAmount}
+                  />
+                </>
+              ) : (
+                "No limits!"
+              )
             ) : (
-              "No limits!"
+              "Payments disabled."
             )}
           </div>
         </div>

@@ -1,8 +1,13 @@
+import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import gradientAvatar from "gradient-avatar";
-import { PopiconsArrowLeftLine } from "@popicons/react";
+import { PopiconsArrowLeftLine, PopiconsEditLine } from "@popicons/react";
 
-import { RequestMethodType, iconMap, nip47MethodDescriptions } from "src/types";
+import {
+  AppPermissions,
+  BudgetRenewalType,
+  RequestMethodType,
+} from "src/types";
 import { useInfo } from "src/hooks/useInfo";
 import { useApp } from "src/hooks/useApp";
 import { useCSRF } from "src/hooks/useCSRF";
@@ -14,13 +19,34 @@ import AppHeader from "src/components/AppHeader";
 import IconButton from "src/components/IconButton";
 
 import alby from "src/assets/suggested/alby.png";
+import Permissions from "src/components/Permissions";
 
 function ShowApp() {
   const { data: info } = useInfo();
   const { data: csrf } = useCSRF();
   const { pubkey } = useParams() as { pubkey: string };
-  const { data: app, error } = useApp(pubkey);
+  const { data: app, mutate: refetchInfo, error } = useApp(pubkey);
   const navigate = useNavigate();
+
+  const [editMode, setEditMode] = React.useState(false);
+
+  const [permissions, setPermissions] = React.useState<AppPermissions>({
+    requestMethods: new Set<RequestMethodType>(),
+    maxAmount: 0,
+    budgetRenewal: "" as BudgetRenewalType,
+    expiresAt: undefined as Date | undefined,
+  });
+
+  React.useEffect(() => {
+    if (app) {
+      setPermissions({
+        requestMethods: new Set(app.requestMethods as RequestMethodType[]),
+        maxAmount: app.maxAmount,
+        budgetRenewal: app.budgetRenewal as BudgetRenewalType,
+        expiresAt: app.expiresAt ? new Date(app.expiresAt) : undefined,
+      });
+    }
+  }, [app]);
 
   if (error) {
     return <p className="text-red-500">{error.message}</p>;
@@ -29,6 +55,32 @@ function ShowApp() {
   if (!app || !info) {
     return <Loading />;
   }
+
+  const handleSave = async () => {
+    try {
+      if (!csrf) {
+        throw new Error("No CSRF token");
+      }
+
+      await request(`/api/apps/${app.nostrPubkey}`, {
+        method: "PATCH",
+        headers: {
+          "X-CSRF-Token": csrf,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...permissions,
+          requestMethods: [...permissions.requestMethods].join(" "),
+        }),
+      });
+
+      await refetchInfo();
+      setEditMode(false);
+      toast.success("Permissions updated!");
+    } catch (error) {
+      handleRequestError("Failed to update permissions", error);
+    }
+  };
 
   const handleDelete = async () => {
     try {
@@ -116,7 +168,7 @@ function ShowApp() {
                 </td>
                 <td className="text-gray-600 dark:text-neutral-400">
                   {app.lastEventAt
-                    ? new Date(app.lastEventAt).toLocaleDateString()
+                    ? new Date(app.lastEventAt).toString()
                     : "never"}
                 </td>
               </tr>
@@ -125,9 +177,7 @@ function ShowApp() {
                   Expires At
                 </td>
                 <td className="text-gray-600 dark:text-neutral-400">
-                  {app.expiresAt
-                    ? new Date(app.expiresAt).toLocaleDateString()
-                    : "never"}
+                  {app.expiresAt ? new Date(app.expiresAt).toString() : "never"}
                 </td>
               </tr>
             </tbody>
@@ -141,43 +191,46 @@ function ShowApp() {
         </div>
 
         <div className="bg-white rounded-md shadow p-4 md:p-6 dark:bg-surface-02dp">
-          <ul className=" text-gray-600 dark:text-neutral-400">
-            {app.requestMethods.map((method: string, index: number) => {
-              const RequestMethodIcon = iconMap[method as RequestMethodType];
-              return (
-                <li key={index} className="mb-3 relative">
-                  <div className="flex items-center">
-                    {RequestMethodIcon && (
-                      <RequestMethodIcon className="text-gray-800 dark:text-gray-300 w-4 mr-3" />
-                    )}
-                    <label
-                      htmlFor={method}
-                      className="text-gray-800 font-medium dark:text-gray-300"
-                    >
-                      {nip47MethodDescriptions[method as RequestMethodType]}
-                    </label>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-          {app.maxAmount > 0 && (
-            <div className="ml-2 pl-5 border-l-2">
-              <table className="text-gray-600 dark:text-neutral-400">
-                <tbody>
-                  <tr className="text-sm">
-                    <td className="pr-2">Budget Allowance:</td>
-                    <td>
-                      {app.maxAmount} sats ({app.budgetUsage} sats used)
-                    </td>
-                  </tr>
-                  <tr className="text-sm">
-                    <td className="pr-2">Renews:</td>
-                    <td>{app.budgetRenewal}</td>
-                  </tr>
-                </tbody>
-              </table>
+          <Permissions
+            initialPermissions={{
+              requestMethods: new Set(
+                app.requestMethods as RequestMethodType[]
+              ),
+              maxAmount: app.maxAmount,
+              budgetRenewal: app.budgetRenewal as BudgetRenewalType,
+              expiresAt: app.expiresAt ? new Date(app.expiresAt) : undefined,
+            }}
+            onPermissionsChange={setPermissions}
+            budgetUsage={app.budgetUsage}
+            isEditing={editMode}
+          />
+
+          {editMode ? (
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                className="mt-6 flex-row px-6 py-2 bg-white border border-indigo-500  text-indigo-500 dark:bg-surface-02dp dark:text-neutral-200 dark:border-neutral-800 hover:bg-gray-50 dark:hover:bg-surface-16dp cursor-pointer inline-flex justify-center items-center font-medium bg-origin-border shadow rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary transition duration-150"
+                onClick={() => setEditMode(!editMode)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="mt-6 flex-row px-6 py-2 bg-indigo-500 border text-white dark:bg-indigo-700 hover:bg-indigo-600 cursor-pointer inline-flex justify-center items-center font-medium bg-origin-border shadow rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary transition duration-150"
+                onClick={handleSave}
+              >
+                Save
+              </button>
             </div>
+          ) : (
+            <button
+              type="button"
+              className="mt-6 flex-row px-6 py-2 bg-white border border-indigo-500  text-indigo-500 dark:bg-surface-02dp dark:text-neutral-200 dark:border-neutral-800 hover:bg-gray-50 dark:hover:bg-surface-16dp cursor-pointer inline-flex justify-center items-center font-medium bg-origin-border shadow rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary transition duration-150"
+              onClick={() => setEditMode(!editMode)}
+            >
+              <PopiconsEditLine className="text-indigo-500 dark:bg-surface-02dp w-4 mr-3" />
+              Edit Permissions
+            </button>
           )}
         </div>
 
@@ -203,7 +256,7 @@ function ShowApp() {
               <div className="sm:w-64 flex-none w-full pt-4 sm:pt-0">
                 <button
                   type="button"
-                  className="flex-row w-full px-0 py-2 bg-white text-gray-700 dark:bg-surface-02dp dark:text-neutral-200 dark:border-neutral-800 hover:bg-gray-50 dark:hover:bg-surface-16dp cursor-pointer inline-flex justify-center items-center font-medium bg-origin-border shadow rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary transition duration-150"
+                  className="flex-row w-full px-0 py-2 bg-white border border-red-500 text-red-500 dark:bg-surface-02dp dark:text-neutral-200 dark:border-neutral-800 hover:bg-gray-50 dark:hover:bg-surface-16dp cursor-pointer inline-flex justify-center items-center font-medium bg-origin-border shadow rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary transition duration-150"
                   onClick={handleDelete}
                 >
                   Disconnect App
