@@ -6,8 +6,8 @@ import { useInfo } from "src/hooks/useInfo";
 import { useCSRF } from "src/hooks/useCSRF";
 import Loading from "src/components/Loading";
 import SuggestedApps from "src/components/SuggestedApps";
-
 import ConnectionItem from "src/components/ConnectionItem";
+import BreezRedeem from "src/components/BreezRedeem";
 
 function AppsList() {
   const { data: apps, mutate: mutateApps } = useApps();
@@ -28,6 +28,7 @@ function AppsList() {
   return (
     <div className="container max-w-screen-lg mt-6">
       <div className="flex flex-row-reverse">
+        <BreezRedeem />
         <Link
           className="flex-row w-48 mb-6 px-0 py-2 bg-primary-gradient border-2 border-transparent text-black hover:bg-primary-gradient-hover cursor-pointer inline-flex justify-center items-center font-medium bg-origin-border shadow rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary transition duration-150"
           to="/apps/new"

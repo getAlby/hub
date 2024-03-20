@@ -29,6 +29,7 @@ import RecommendedChannels from "src/screens/channels/RecommendedChannels";
 import { SetupMnemonic } from "src/screens/setup/SetupMnemonic";
 import { SetupFinish } from "src/screens/setup/SetupFinish";
 import { Mnemonic } from "src/screens/Mnemonic";
+import NewInstantChannel from "src/screens/channels/NewInstantChannel";
 
 function App() {
   return (
@@ -66,6 +67,10 @@ function App() {
             </Route>
             <Route path="channels" element={<Channels />} />
             <Route path="channels/new" element={<NewChannel />} />
+            <Route
+              path="channels/new/instant"
+              element={<NewInstantChannel />}
+            />
             <Route
               path="channels/new/blocktank"
               element={<NewBlocktankChannel />}

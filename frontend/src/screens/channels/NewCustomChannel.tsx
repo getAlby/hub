@@ -13,7 +13,7 @@ export default function NewCustomChannel() {
   const [loading, setLoading] = React.useState(false);
   const [localAmount, setLocalAmount] = React.useState("");
   const [nodeDetails, setNodeDetails] = React.useState<Node | undefined>();
-  const [isPublic, setPublic] = React.useState(true);
+  const [isPublic, setPublic] = React.useState(false);
 
   const [searchParams] = useSearchParams();
   const [pubkey, setPubkey] = React.useState(searchParams.get("pubkey") || "");
@@ -71,6 +71,14 @@ export default function NewCustomChannel() {
     try {
       if (!csrf) {
         throw new Error("csrf not loaded");
+      }
+      if (
+        isPublic &&
+        !confirm(
+          `Are you sure you want to open a public channel? in most cases a private channel is recommended.`
+        )
+      ) {
+        return;
       }
       if (
         !confirm(

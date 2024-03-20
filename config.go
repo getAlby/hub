@@ -5,41 +5,15 @@ import (
 	"encoding/hex"
 	"os"
 
+	"github.com/getAlby/nostr-wallet-connect/models/config"
 	"github.com/getAlby/nostr-wallet-connect/models/db"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
-const (
-	LNDBackendType        = "LND"
-	GreenlightBackendType = "GREENLIGHT"
-	LDKBackendType        = "LDK"
-	BreezBackendType      = "BREEZ"
-	SessionCookieName     = "session"
-	SessionCookieAuthKey  = "authenticated"
-	UnlockPasswordCheck   = "THIS STRING SHOULD MATCH IF PASSWORD IS CORRECT"
-)
-
-type AppConfig struct {
-	Relay            string `envconfig:"RELAY" default:"wss://relay.getalby.com/v1"`
-	LNBackendType    string `envconfig:"LN_BACKEND_TYPE"`
-	LNDAddress       string `envconfig:"LND_ADDRESS"`
-	LNDCertFile      string `envconfig:"LND_CERT_FILE"`
-	LNDMacaroonFile  string `envconfig:"LND_MACAROON_FILE"`
-	Workdir          string `envconfig:"WORK_DIR" default:".data"`
-	Port             string `envconfig:"PORT" default:"8080"`
-	DatabaseUri      string `envconfig:"DATABASE_URI" default:".data/nwc.db"`
-	CookieSecret     string `envconfig:"COOKIE_SECRET"`
-  LogLevel        string `envconfig:"LOG_LEVEL"`
-	LDKNetwork       string `envconfig:"LDK_NETWORK" default:"bitcoin"`
-	LDKEsploraServer string `envconfig:"LDK_ESPLORA_SERVER" default:"https://blockstream.info/api"`
-	LDKGossipSource  string `envconfig:"LDK_GOSSIP_SOURCE" default:"https://rapidsync.lightningdevkit.org/snapshot"`
-	LDKLogLevel     string `envconfig:"LDK_LOG_LEVEL"`
-}
-
 type Config struct {
-	Env            *AppConfig
+	Env            *config.AppConfig
 	CookieSecret   string
 	NostrSecretKey string
 	NostrPublicKey string
@@ -47,7 +21,11 @@ type Config struct {
 	logger         *logrus.Logger
 }
 
-func (cfg *Config) Init(db *gorm.DB, env *AppConfig, logger *logrus.Logger) {
+const (
+	unlockPasswordCheck = "THIS STRING SHOULD MATCH IF PASSWORD IS CORRECT"
+)
+
+func (cfg *Config) Init(db *gorm.DB, env *config.AppConfig, logger *logrus.Logger) {
 	cfg.db = db
 	cfg.Env = env
 	cfg.logger = logger
@@ -139,11 +117,11 @@ func (cfg *Config) SetUpdate(key string, value string, encryptionKey string) {
 func (cfg *Config) CheckUnlockPassword(encryptionKey string) bool {
 	decryptedValue, err := cfg.Get("UnlockPasswordCheck", encryptionKey)
 
-	return err == nil && (decryptedValue == "" || decryptedValue == UnlockPasswordCheck)
+	return err == nil && (decryptedValue == "" || decryptedValue == unlockPasswordCheck)
 }
 
 func (cfg *Config) SavePasswordCheck(encryptionKey string) {
-	cfg.SetUpdate("UnlockPasswordCheck", UnlockPasswordCheck, encryptionKey)
+	cfg.SetUpdate("UnlockPasswordCheck", unlockPasswordCheck, encryptionKey)
 }
 
 func randomHex(n int) (string, error) {

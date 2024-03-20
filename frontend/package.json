@@ -14,6 +14,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@getalby/bitcoin-connect-react": "^3.2.2",
     "@popicons/react": "^0.0.9",
     "@scure/bip39": "^1.2.2",
     "argon2-wasm-esm": "^1.0.3",

@@ -146,6 +146,7 @@ export type Channel = {
   remotePubkey: string;
   id: string;
   active: boolean;
+  public: boolean;
 };
 
 export type NodeConnectionInfo = {
@@ -175,6 +176,7 @@ export type CloseChannelRequest = {
   nodeId: string;
 };
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 export type CloseChannelResponse = {};
 
 export type GetOnchainAddressResponse = {
@@ -182,7 +184,8 @@ export type GetOnchainAddressResponse = {
 };
 
 export type OnchainBalanceResponse = {
-  sats: number;
+  spendable: number;
+  total: number;
 };
 
 // from https://mempool.space/docs/api/rest#get-node-stats
@@ -205,3 +208,7 @@ export type SetupNodeInfo = Partial<{
   lndCertHex?: string;
   lndMacaroonHex?: string;
 }>;
+
+export type RedeemOnchainFundsResponse = {
+  txId: string;
+};
