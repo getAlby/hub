@@ -26,22 +26,29 @@ function ShowApp() {
 
   const [editMode, setEditMode] = React.useState(false);
 
-  const [requestMethods, setRequestMethods] = React.useState<
-    Set<RequestMethodType>
-  >(new Set());
-  const [maxAmount, setMaxAmount] = React.useState<number>(0);
-  const [budgetRenewal, setBudgetRenewal] =
-    React.useState<BudgetRenewalType>("");
-  const [expiresAt, setExpiresAt] = React.useState<Date>();
+  const [permissions, setPermissions] = React.useState({
+    requestMethods: new Set<RequestMethodType>(),
+    maxAmount: 0,
+    budgetRenewal: "" as BudgetRenewalType,
+    expiresAt: undefined as Date | undefined,
+  });
 
   React.useEffect(() => {
     if (app) {
-      setMaxAmount(app.maxAmount);
-      setRequestMethods(new Set(app.requestMethods as RequestMethodType[]));
-      setBudgetRenewal(app.budgetRenewal as BudgetRenewalType);
-      setExpiresAt(app.expiresAt ? new Date(app.expiresAt) : undefined);
+      setPermissions({
+        requestMethods: new Set(app.requestMethods as RequestMethodType[]),
+        maxAmount: app.maxAmount,
+        budgetRenewal: app.budgetRenewal as BudgetRenewalType,
+        expiresAt: app.expiresAt ? new Date(app.expiresAt) : undefined,
+      });
     }
   }, [app]);
+
+  const handlePermissionsChange = (
+    changedPermissions: Partial<typeof permissions>
+  ) => {
+    setPermissions((prev) => ({ ...prev, ...changedPermissions }));
+  };
 
   if (error) {
     return <p className="text-red-500">{error.message}</p>;
@@ -57,14 +64,6 @@ function ShowApp() {
         throw new Error("No CSRF token");
       }
 
-      console.info(
-        JSON.stringify({
-          maxAmount,
-          budgetRenewal,
-          expiresAt,
-          requestMethods: [...requestMethods].join(" "),
-        })
-      );
       await request(`/api/apps/${app.nostrPubkey}`, {
         method: "PATCH",
         headers: {
@@ -72,10 +71,8 @@ function ShowApp() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          maxAmount,
-          budgetRenewal,
-          expiresAt,
-          requestMethods: [...requestMethods].join(" "),
+          ...permissions,
+          requestMethods: [...permissions.requestMethods].join(" "),
         }),
       });
 
@@ -182,9 +179,7 @@ function ShowApp() {
                   Expires At
                 </td>
                 <td className="text-gray-600 dark:text-neutral-400">
-                  {app.expiresAt
-                    ? new Date(app.expiresAt).toDateString()
-                    : "never"}
+                  {app.expiresAt ? new Date(app.expiresAt).toString() : "never"}
                 </td>
               </tr>
             </tbody>
@@ -199,18 +194,15 @@ function ShowApp() {
 
         <div className="bg-white rounded-md shadow p-4 md:p-6 dark:bg-surface-02dp">
           <Permissions
-            initialRequestMethods={
-              new Set(app.requestMethods as RequestMethodType[])
-            }
-            initialMaxAmount={app.maxAmount}
-            initialBudgetRenewal={app.budgetRenewal as BudgetRenewalType}
-            initialExpiresAt={
-              app.expiresAt ? new Date(app.expiresAt) : undefined
-            }
-            onRequestMethodChange={setRequestMethods}
-            onMaxAmountChange={setMaxAmount}
-            onBudgetRenewalChange={setBudgetRenewal}
-            onExpiresAtChange={setExpiresAt}
+            initialPermissions={{
+              requestMethods: new Set(
+                app.requestMethods as RequestMethodType[]
+              ),
+              maxAmount: app.maxAmount,
+              budgetRenewal: app.budgetRenewal as BudgetRenewalType,
+              expiresAt: app.expiresAt ? new Date(app.expiresAt) : undefined,
+            }}
+            onPermissionsChange={handlePermissionsChange}
             budgetUsage={app.budgetUsage}
             isEditing={editMode}
           />

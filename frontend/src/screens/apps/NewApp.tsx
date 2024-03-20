@@ -34,11 +34,9 @@ const NewApp = () => {
   const budgetRenewalParam = queryParams.get(
     "budget_renewal"
   ) as BudgetRenewalType;
-  const [budgetRenewal, setBudgetRenewal] = useState<BudgetRenewalType>(
-    validBudgetRenewals.includes(budgetRenewalParam)
-      ? budgetRenewalParam
-      : "monthly"
-  );
+  const reqMethodsParam = queryParams.get("request_methods") ?? "";
+  const maxAmountParam = queryParams.get("max_amount") ?? "";
+  const expiresAtParam = queryParams.get("expires_at") ?? "";
 
   const parseRequestMethods = (reqParam: string): Set<RequestMethodType> => {
     const methods = reqParam
@@ -51,16 +49,6 @@ const NewApp = () => {
     return requestMethodsSet;
   };
 
-  const reqMethodsParam = queryParams.get("request_methods") ?? "";
-  const [requestMethods, setRequestMethods] = useState(
-    parseRequestMethods(reqMethodsParam)
-  );
-
-  const maxAmountParam = queryParams.get("max_amount") ?? "";
-  const [maxAmount, setMaxAmount] = useState(
-    parseInt(maxAmountParam || "100000")
-  );
-
   const parseExpiresParam = (expiresParam: string): Date | undefined => {
     const expiresParamTimestamp = parseInt(expiresParam);
     if (!isNaN(expiresParamTimestamp)) {
@@ -68,9 +56,21 @@ const NewApp = () => {
     }
     return undefined;
   };
-  const [expiresAt, setExpiresAt] = useState<Date | undefined>(
-    parseExpiresParam(queryParams.get("expires_at") ?? "")
-  );
+
+  const [permissions, setPermissions] = useState({
+    requestMethods: parseRequestMethods(reqMethodsParam),
+    maxAmount: parseInt(maxAmountParam || "100000"),
+    budgetRenewal: validBudgetRenewals.includes(budgetRenewalParam)
+      ? budgetRenewalParam
+      : "monthly",
+    expiresAt: parseExpiresParam(expiresAtParam),
+  });
+
+  const handlePermissionsChange = (
+    changedPermissions: Partial<typeof permissions>
+  ) => {
+    setPermissions((prev) => ({ ...prev, ...changedPermissions }));
+  };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -88,10 +88,9 @@ const NewApp = () => {
         body: JSON.stringify({
           name: appName,
           pubkey,
-          maxAmount,
-          budgetRenewal,
-          expiresAt: expiresAt?.toISOString(),
-          requestMethods: [...requestMethods].join(" "),
+          ...permissions,
+          requestMethods: [...permissions.requestMethods].join(" "),
+          expiresAt: permissions.expiresAt?.toISOString(),
           returnTo: returnTo,
         }),
       });
@@ -155,14 +154,8 @@ const NewApp = () => {
           </div>
 
           <Permissions
-            initialRequestMethods={requestMethods}
-            initialMaxAmount={maxAmount}
-            initialBudgetRenewal={budgetRenewal}
-            initialExpiresAt={expiresAt}
-            onRequestMethodChange={setRequestMethods}
-            onMaxAmountChange={setMaxAmount}
-            onBudgetRenewalChange={setBudgetRenewal}
-            onExpiresAtChange={setExpiresAt}
+            initialPermissions={permissions}
+            onPermissionsChange={handlePermissionsChange}
             isEditing={isEditing}
             isNew
           />

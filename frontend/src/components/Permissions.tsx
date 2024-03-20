@@ -10,73 +10,68 @@ import {
 } from "src/types";
 
 interface PermissionsProps {
-  initialRequestMethods: Set<RequestMethodType>;
-  initialMaxAmount: number;
-  initialBudgetRenewal: BudgetRenewalType;
-  initialExpiresAt?: Date;
-  onRequestMethodChange: (methods: Set<RequestMethodType>) => void;
-  onMaxAmountChange: (amount: number) => void;
-  onBudgetRenewalChange: (renewal: BudgetRenewalType) => void;
-  onExpiresAtChange: (date?: Date) => void;
+  initialPermissions: {
+    requestMethods: Set<RequestMethodType>;
+    maxAmount: number;
+    budgetRenewal: BudgetRenewalType;
+    expiresAt?: Date;
+  };
+  onPermissionsChange: (
+    permissions: Partial<PermissionsProps["initialPermissions"]>
+  ) => void;
   budgetUsage?: number;
   isEditing: boolean;
   isNew?: boolean;
 }
 
 const Permissions: React.FC<PermissionsProps> = ({
-  initialRequestMethods,
-  initialMaxAmount,
-  initialBudgetRenewal,
-  initialExpiresAt,
-  onRequestMethodChange,
-  onMaxAmountChange,
-  onBudgetRenewalChange,
-  onExpiresAtChange,
+  initialPermissions,
+  onPermissionsChange,
   isEditing,
   isNew,
   budgetUsage,
 }) => {
-  const [requestMethods, setRequestMethods] = useState(initialRequestMethods);
-  const [maxAmount, setMaxAmount] = useState(initialMaxAmount);
-  const [budgetRenewal, setBudgetRenewal] = useState<
-    BudgetRenewalType | "never"
-  >(initialBudgetRenewal || "never");
-  const [expiresAt, setExpiresAt] = useState(initialExpiresAt);
+  const [permissions, setPermissions] = React.useState(initialPermissions);
+
   const [days, setDays] = useState(isNew ? 0 : -1);
   const [expireOptions, setExpireOptions] = useState(!isNew);
+
+  const handlePermissionsChange = (
+    changedPermissions: Partial<typeof permissions>
+  ) => {
+    const updatedPermissions = { ...permissions, ...changedPermissions };
+    setPermissions(updatedPermissions);
+    onPermissionsChange(updatedPermissions);
+  };
 
   const handleRequestMethodChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const requestMethod = event.target.value as RequestMethodType;
-    const newRequestMethods = new Set(requestMethods);
+    const newRequestMethods = new Set(permissions.requestMethods);
     if (newRequestMethods.has(requestMethod)) {
       newRequestMethods.delete(requestMethod);
     } else {
       newRequestMethods.add(requestMethod);
     }
-    setRequestMethods(newRequestMethods);
-    onRequestMethodChange(newRequestMethods);
+    handlePermissionsChange({ requestMethods: newRequestMethods });
   };
 
   const handleMaxAmountChange = (amount: number) => {
-    setMaxAmount(amount);
-    onMaxAmountChange(amount);
+    handlePermissionsChange({ maxAmount: amount });
   };
 
   const handleBudgetRenewalChange = (
     event: React.ChangeEvent<HTMLSelectElement>
   ) => {
-    const renewal = event.target.value as BudgetRenewalType;
-    setBudgetRenewal(renewal);
-    onBudgetRenewalChange(renewal);
+    const budgetRenewal = event.target.value as BudgetRenewalType;
+    handlePermissionsChange({ budgetRenewal });
   };
 
   const handleDaysChange = (days: number) => {
     setDays(days);
     if (!days) {
-      setExpiresAt(undefined);
-      onExpiresAtChange(undefined);
+      handlePermissionsChange({ expiresAt: undefined });
       return;
     }
     const currentDate = new Date();
@@ -91,8 +86,7 @@ const Permissions: React.FC<PermissionsProps> = ({
         0
       )
     );
-    setExpiresAt(expiryDate);
-    onExpiresAtChange(expiryDate);
+    handlePermissionsChange({ expiresAt: expiryDate });
   };
 
   return (
@@ -107,7 +101,11 @@ const Permissions: React.FC<PermissionsProps> = ({
                   key={index}
                   className={`w-full ${
                     rm == "pay_invoice" ? "order-last" : ""
-                  } ${!isEditing && !requestMethods.has(rm) ? "hidden" : ""}`}
+                  } ${
+                    !isEditing && !permissions.requestMethods.has(rm)
+                      ? "hidden"
+                      : ""
+                  }`}
                 >
                   <div className="flex items-center mb-2">
                     {RequestMethodIcon && (
@@ -121,7 +119,7 @@ const Permissions: React.FC<PermissionsProps> = ({
                       type="checkbox"
                       id={rm}
                       value={rm}
-                      checked={requestMethods.has(rm)}
+                      checked={permissions.requestMethods.has(rm)}
                       onChange={handleRequestMethodChange}
                       className={`${
                         !isEditing ? "hidden" : ""
@@ -137,7 +135,7 @@ const Permissions: React.FC<PermissionsProps> = ({
                   {rm == "pay_invoice" && (
                     <div
                       className={`pt-2 pb-2 pl-5 ml-2.5 border-l-2 border-l-gray-200 dark:border-l-gray-400 ${
-                        !requestMethods.has(rm)
+                        !permissions.requestMethods.has(rm)
                           ? isEditing
                             ? "pointer-events-none opacity-30"
                             : "hidden"
@@ -149,11 +147,11 @@ const Permissions: React.FC<PermissionsProps> = ({
                           <p className="text-gray-600 dark:text-gray-300 mb-3 text-sm capitalize">
                             Budget Renewal:
                             {!isEditing ? (
-                              budgetRenewal
+                              permissions.budgetRenewal
                             ) : (
                               <select
                                 id="budgetRenewal"
-                                value={budgetRenewal}
+                                value={permissions.budgetRenewal}
                                 onChange={handleBudgetRenewalChange}
                                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 ml-2 p-2.5 pr-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-indigo-400 dark:focus:border-indigo-400"
                                 disabled={!isEditing}
@@ -184,7 +182,8 @@ const Permissions: React.FC<PermissionsProps> = ({
                                     handleMaxAmountChange(budgetOptions[budget])
                                   }
                                   className={`col-span-2 md:col-span-1 cursor-pointer rounded border-2 ${
-                                    maxAmount == budgetOptions[budget]
+                                    permissions.maxAmount ==
+                                    budgetOptions[budget]
                                       ? "border-indigo-500 dark:border-indigo-400 text-indigo-500 bg-indigo-100 dark:bg-indigo-900"
                                       : "border-gray-200 dark:border-gray-400"
                                   } text-center py-4 dark:text-white`}
@@ -200,8 +199,10 @@ const Permissions: React.FC<PermissionsProps> = ({
                       ) : isNew ? (
                         <>
                           <p className="text-gray-600 dark:text-gray-300 text-sm">
-                            <span className="capitalize">{budgetRenewal}</span>{" "}
-                            budget: {maxAmount} sats
+                            <span className="capitalize">
+                              {permissions.budgetRenewal}
+                            </span>{" "}
+                            budget: {permissions.maxAmount} sats
                           </p>
                         </>
                       ) : (
@@ -210,14 +211,14 @@ const Permissions: React.FC<PermissionsProps> = ({
                             <tr className="text-sm">
                               <td className="pr-2">Budget Allowance:</td>
                               <td>
-                                {maxAmount || "∞"} sats ({budgetUsage} sats
-                                used)
+                                {permissions.maxAmount || "∞"} sats (
+                                {budgetUsage} sats used)
                               </td>
                             </tr>
                             <tr className="text-sm">
                               <td className="pr-2">Renews:</td>
                               <td className="capitalize">
-                                {budgetRenewal || "Never"}
+                                {permissions.budgetRenewal || "Never"}
                               </td>
                             </tr>
                           </tbody>
@@ -232,7 +233,7 @@ const Permissions: React.FC<PermissionsProps> = ({
         </ul>
       </div>
 
-      {(isNew ? !expiresAt || days : isEditing) ? (
+      {(isNew ? !permissions.expiresAt || days : isEditing) ? (
         <>
           <div
             onClick={() => setExpireOptions(true)}
@@ -248,7 +249,7 @@ const Permissions: React.FC<PermissionsProps> = ({
               <p className="text-lg font-medium mb-2">Connection expiry time</p>
               {!isNew && (
                 <p className="mb-2 text-gray-600 dark:text-gray-300 text-sm">
-                  Currently expiring on: {expiresAt?.toString() || "Never"}
+                  Expires: {permissions.expiresAt?.toString() || "Never"}
                 </p>
               )}
               <div id="expiry-days" className="grid grid-cols-4 gap-2 text-xs">
@@ -277,7 +278,9 @@ const Permissions: React.FC<PermissionsProps> = ({
             Connection expiry time
           </p>
           <p className="text-gray-600 dark:text-gray-300 text-sm">
-            {expiresAt ? expiresAt?.toString() : "This app will never expire"}
+            {permissions.expiresAt
+              ? permissions.expiresAt?.toString()
+              : "This app will never expire"}
           </p>
         </>
       )}
