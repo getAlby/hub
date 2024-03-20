@@ -18,7 +18,6 @@ import { handleRequestError } from "src/utils/handleRequestError";
 import AppHeader from "src/components/AppHeader";
 import IconButton from "src/components/IconButton";
 
-import alby from "src/assets/suggested-apps/alby.png";
 import Permissions from "src/components/Permissions";
 
 function ShowApp() {
@@ -114,27 +113,20 @@ function ShowApp() {
         }
       >
         <div className="flex-row max-w-48 sm:max-w-lg md:max-w-xl justify-center space-x-2 flex items-center">
-          {app &&
-            (app.name.toLowerCase().includes("alby") ? (
+          {app && (
+            <div className="relative inline-block min-w-9 w-9 h-9 rounded-lg border">
               <img
-                src={alby}
+                src={`data:image/svg+xml;base64,${btoa(
+                  gradientAvatar(app.name)
+                )}`}
                 alt={app.name}
-                className="block min-w-9 w-9 h-9 rounded-lg"
+                className="block w-full h-full rounded-lg p-1"
               />
-            ) : (
-              <div className="relative inline-block min-w-9 w-9 h-9 rounded-lg border">
-                <img
-                  src={`data:image/svg+xml;base64,${btoa(
-                    gradientAvatar(app.name)
-                  )}`}
-                  alt={app.name}
-                  className="block w-full h-full rounded-lg p-1"
-                />
-                <span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-xl font-medium capitalize">
-                  {app.name.charAt(0)}
-                </span>
-              </div>
-            ))}
+              <span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-xl font-medium capitalize">
+                {app.name.charAt(0)}
+              </span>
+            </div>
+          )}
           <h2
             title={app ? app.name : "Fetching app..."}
             className="text-xl font-semibold dark:text-white overflow-hidden text-ellipsis whitespace-nowrap my-2"

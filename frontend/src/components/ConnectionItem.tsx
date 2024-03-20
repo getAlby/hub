@@ -12,8 +12,6 @@ import { request } from "src/utils/request";
 import toast from "src/components/Toast";
 import { handleRequestError } from "src/utils/handleRequestError";
 
-import alby from "src/assets/suggested-apps/alby.png";
-
 type Props = {
   app: App;
   csrf?: string;
@@ -87,26 +85,18 @@ export default function ConnectionItem({ app, csrf, onDelete }: Props) {
           className="cursor-pointer p-4 rounded-t-2xl h-full border-b hover:bg-gray-50"
         >
           <div className="flex items-center mb-4">
-            {app.name.toLowerCase().includes("alby") ? (
+            <div className="relative inline-block min-w-10 w-10 h-10 rounded-lg border">
               <img
-                src={alby}
+                src={`data:image/svg+xml;base64,${btoa(
+                  gradientAvatar(app.name)
+                )}`}
                 alt={app.name}
-                className="block min-w-10 w-10 h-10 rounded-lg"
+                className="block w-full h-full rounded-lg p-1"
               />
-            ) : (
-              <div className="relative inline-block min-w-10 w-10 h-10 rounded-lg border">
-                <img
-                  src={`data:image/svg+xml;base64,${btoa(
-                    gradientAvatar(app.name)
-                  )}`}
-                  alt={app.name}
-                  className="block w-full h-full rounded-lg p-1"
-                />
-                <span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-2xl font-medium capitalize">
-                  {app.name.charAt(0)}
-                </span>
-              </div>
-            )}
+              <span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-2xl font-medium capitalize">
+                {app.name.charAt(0)}
+              </span>
+            </div>
             <h2 className="font-semibold whitespace-nowrap text-ellipsis overflow-hidden ml-4">
               {app.name}
             </h2>
