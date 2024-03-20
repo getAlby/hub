@@ -348,8 +348,12 @@ func (svc *LNDService) GetNewOnchainAddress(ctx context.Context) (string, error)
 	return "", nil
 }
 
-func (svc *LNDService) GetOnchainBalance(ctx context.Context) (int64, error) {
-	return 0, nil
+func (svc *LNDService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainBalanceResponse, error) {
+	return nil, nil
+}
+
+func (svc *LNDService) RedeemOnchainFunds(ctx context.Context, toAddress string) (txId string, err error) {
+	return "", nil
 }
 
 func lndInvoiceToTransaction(invoice *lnrpc.Invoice) *Nip47Transaction {
@@ -380,4 +384,8 @@ func lndInvoiceToTransaction(invoice *lnrpc.Invoice) *Nip47Transaction {
 		ExpiresAt:       expiresAt,
 		// TODO: Metadata (e.g. keysend)
 	}
+}
+
+func (svc *LNDService) ResetRouter(ctx context.Context) error {
+	return nil
 }

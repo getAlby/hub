@@ -1,10 +1,5 @@
 package config
 
-import (
-	"github.com/sirupsen/logrus"
-	"gorm.io/gorm"
-)
-
 const (
 	LNDBackendType        = "LND"
 	GreenlightBackendType = "GREENLIGHT"
@@ -32,15 +27,7 @@ type AppConfig struct {
 	AlbyClientSecret     string `envconfig:"ALBY_OAUTH_CLIENT_SECRET"`
 	AlbyOAuthRedirectUrl string `envconfig:"ALBY_OAUTH_REDIRECT_URL"`
 	AlbyOAuthAuthUrl     string `envconfig:"ALBY_OAUTH_AUTH_URL" default:"https://getalby.com/oauth"`
-}
-
-type Config struct {
-	Env            *AppConfig
-	CookieSecret   string
-	NostrSecretKey string
-	NostrPublicKey string
-	db             *gorm.DB
-	logger         *logrus.Logger
+	MempoolApi           string `envconfig:"MEMPOOL_API" default:"https://mempool.space/api"`
 }
 
 type ConfigKVStore interface {

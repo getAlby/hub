@@ -126,6 +126,7 @@ export type CloseChannelRequest = {
   nodeId: string;
 };
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 export type CloseChannelResponse = {};
 
 export type GetOnchainAddressResponse = {
@@ -133,7 +134,8 @@ export type GetOnchainAddressResponse = {
 };
 
 export type OnchainBalanceResponse = {
-  sats: number;
+  spendable: number;
+  total: number;
 };
 
 // from https://mempool.space/docs/api/rest#get-node-stats
@@ -156,6 +158,7 @@ export type SetupNodeInfo = Partial<{
   lndMacaroonHex?: string;
 }>;
 
+// TODO: move to different file
 export type AlbyMe = {
   identifier: string;
   nostr_pubkey: string;
@@ -170,8 +173,9 @@ export type AlbyBalance = {
   sats: number;
 };
 
+// TODO: move to different file
 export type LSPOption = "OLYMPUS" | "VOLTAGE";
-export const LSP_OPTIONS: LSPOption[] = ["OLYMPUS"]; //, "VOLTAGE"
+export const LSP_OPTIONS: LSPOption[] = ["OLYMPUS", "VOLTAGE"];
 
 export type NewWrappedInvoiceRequest = {
   amount: number;
@@ -181,4 +185,8 @@ export type NewWrappedInvoiceRequest = {
 export type NewWrappedInvoiceResponse = {
   wrappedInvoice: string;
   fee: number;
+};
+
+export type RedeemOnchainFundsResponse = {
+  txId: string;
 };

@@ -226,6 +226,23 @@ func (api *API) ListChannels() ([]lnclient.Channel, error) {
 	return api.svc.lnClient.ListChannels(api.svc.ctx)
 }
 
+func (api *API) ResetRouter() error {
+	if api.svc.lnClient == nil {
+		return errors.New("LNClient not started")
+	}
+	err := api.svc.lnClient.ResetRouter(api.svc.ctx)
+	if err != nil {
+		return err
+	}
+	// Shut down the lnclient
+	// The user will be forced to re-enter their unlock password to restart the node
+	err = api.svc.lnClient.Shutdown()
+	if err == nil {
+		api.svc.lnClient = nil
+	}
+	return err
+}
+
 func (api *API) GetNodeConnectionInfo() (*lnclient.NodeConnectionInfo, error) {
 	if api.svc.lnClient == nil {
 		return nil, errors.New("LNClient not started")
@@ -267,6 +284,19 @@ func (api *API) GetNewOnchainAddress() (*models.NewOnchainAddressResponse, error
 	}, nil
 }
 
+func (api *API) RedeemOnchainFunds(toAddress string) (*models.RedeemOnchainFundsResponse, error) {
+	if api.svc.lnClient == nil {
+		return nil, errors.New("LNClient not started")
+	}
+	txId, err := api.svc.lnClient.RedeemOnchainFunds(api.svc.ctx, toAddress)
+	if err != nil {
+		return nil, err
+	}
+	return &models.RedeemOnchainFundsResponse{
+		TxId: txId,
+	}, nil
+}
+
 func (api *API) GetOnchainBalance() (*models.OnchainBalanceResponse, error) {
 	if api.svc.lnClient == nil {
 		return nil, errors.New("LNClient not started")
@@ -275,13 +305,11 @@ func (api *API) GetOnchainBalance() (*models.OnchainBalanceResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &models.OnchainBalanceResponse{
-		Sats: balance,
-	}, nil
+	return balance, nil
 }
 
 func (api *API) GetMempoolLightningNode(pubkey string) (interface{}, error) {
-	url := "https://mempool.space/api/v1/lightning/nodes/" + pubkey
+	url := api.svc.cfg.Env.MempoolApi + "/v1/lightning/nodes/" + pubkey
 
 	client := http.Client{
 		Timeout: time.Second * 10,

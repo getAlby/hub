@@ -157,7 +157,7 @@ func (svc *Service) launchLNBackend(encryptionKey string) error {
 		GreenlightInviteCode, _ := svc.cfg.Get("GreenlightInviteCode", encryptionKey)
 		BreezWorkdir := path.Join(svc.cfg.Env.Workdir, "breez")
 
-		lnClient, err = NewBreezService(Mnemonic, BreezAPIKey, GreenlightInviteCode, BreezWorkdir)
+		lnClient, err = NewBreezService(svc.Logger, Mnemonic, BreezAPIKey, GreenlightInviteCode, BreezWorkdir)
 	default:
 		svc.Logger.Fatalf("Unsupported LNBackendType: %v", lndBackend)
 	}
