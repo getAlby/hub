@@ -378,7 +378,7 @@ func (httpSvc *HttpService) appsUpdateHandler(c echo.Context) error {
 	err := httpSvc.api.UpdateApp(&app, &requestData)
 
 	if err != nil {
-		httpSvc.svc.Logger.Errorf("Failed to update app: %v", err)
+		httpSvc.svc.Logger.WithError(err).Error("Failed to update app")
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: fmt.Sprintf("Failed to update app: %v", err),
 		})
