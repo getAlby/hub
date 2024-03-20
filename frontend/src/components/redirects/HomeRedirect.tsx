@@ -15,9 +15,7 @@ export function HomeRedirect() {
     }
     let to: string | undefined;
     if (info.setupCompleted && info.running) {
-      if (!info.hasChannels) {
-        to = "/channels/first";
-      } else if (info.unlocked) {
+      if (info.unlocked) {
         const returnTo = window.localStorage.getItem(localStorageKeys.returnTo);
         to = returnTo || "/apps";
       } else {

@@ -13,7 +13,7 @@ export function AppsRedirect() {
     if (!info) {
       return;
     }
-    if (info.running && info.unlocked && info.hasChannels) {
+    if (info.running && info.unlocked) {
       window.localStorage.removeItem(localStorageKeys.returnTo);
       return;
     }

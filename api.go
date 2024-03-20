@@ -540,10 +540,6 @@ func (api *API) GetInfo() *models.InfoResponse {
 	info.SetupCompleted = unlockPasswordCheck != ""
 	info.Running = api.svc.lnClient != nil
 	info.BackendType = backendType
-	if info.Running {
-		channels, err := api.ListChannels()
-		info.HasChannels = err == nil && len(channels) > 0
-	}
 	info.AlbyAuthUrl = api.albyOAuthSvc.GetAuthUrl()
 	return &info
 }

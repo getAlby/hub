@@ -80,7 +80,6 @@ type InfoResponse struct {
 	SetupCompleted bool   `json:"setupCompleted"`
 	Running        bool   `json:"running"`
 	Unlocked       bool   `json:"unlocked"`
-	HasChannels    bool   `json:"hasChannels"`
 	AlbyAuthUrl    string `json:"albyAuthUrl"`
 }
 

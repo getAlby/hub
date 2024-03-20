@@ -78,7 +78,6 @@ export interface InfoResponse {
   setupCompleted: boolean;
   running: boolean;
   unlocked: boolean;
-  hasChannels: boolean;
   albyAuthUrl: string;
 }
 
