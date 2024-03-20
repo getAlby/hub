@@ -499,6 +499,10 @@ func (gs *GreenlightService) ListPeers(ctx context.Context) ([]lnclient.PeerDeta
 	return nil, nil
 }
 
+func (gs *GreenlightService) GetLogOutput(ctx context.Context, maxLen int) (string, error) {
+	return "", nil
+}
+
 func (gs *GreenlightService) greenlightInvoiceToTransaction(invoice *glalby.ListInvoicesInvoice) (*Nip47Transaction, error) {
 	description := ""
 	descriptionHash := ""

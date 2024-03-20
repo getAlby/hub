@@ -11,9 +11,10 @@ import (
 	"time"
 
 	"github.com/breez/breez-sdk-go/breez_sdk"
-	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
+
+	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 )
 
 type BreezService struct {
@@ -408,4 +409,8 @@ func (bs *BreezService) SendSpontaneousPaymentProbes(ctx context.Context, amount
 
 func (bs *BreezService) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, error) {
 	return nil, nil
+}
+
+func (bs *BreezService) GetLogOutput(ctx context.Context, maxLen int) (string, error) {
+	return "", nil
 }

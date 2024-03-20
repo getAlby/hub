@@ -369,6 +369,10 @@ func (svc *LNDService) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, e
 	return nil, nil
 }
 
+func (svc *LNDService) GetLogOutput(ctx context.Context, maxLen int) (string, error) {
+	return "", nil
+}
+
 func lndInvoiceToTransaction(invoice *lnrpc.Invoice) *Nip47Transaction {
 	var settledAt *int64
 	var preimage string

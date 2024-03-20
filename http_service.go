@@ -86,6 +86,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 
 	e.POST("/api/send-payment-probes", httpSvc.sendPaymentProbesHandler, authMiddleware)
 	e.POST("/api/send-spontaneous-payment-probes", httpSvc.sendSpontaneousPaymentProbesHandler, authMiddleware)
+	e.POST("/api/get-log-output", httpSvc.getLogOutput, authMiddleware)
 
 	frontend.RegisterHandlers(e)
 }
@@ -514,5 +515,25 @@ func (httpSvc *HttpService) sendSpontaneousPaymentProbesHandler(c echo.Context) 
 
 	return c.JSON(http.StatusOK, api.SendSpontaneousPaymentProbesResponse{
 		Error: errMsg,
+	})
+}
+
+func (httpSvc *HttpService) getLogOutput(c echo.Context) error {
+	var getLogRequest api.GetLogOutputRequest
+	if err := c.Bind(&getLogRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	logData, err := httpSvc.svc.lnClient.GetLogOutput(httpSvc.svc.ctx, getLogRequest.MaxLen)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: "Failed to get log data",
+		})
+	}
+
+	return c.JSON(http.StatusOK, api.GetLogOutputResponse{
+		Log: logData,
 	})
 }

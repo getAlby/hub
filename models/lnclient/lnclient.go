@@ -60,6 +60,7 @@ type LNClient interface {
 	SendPaymentProbes(ctx context.Context, invoice string) error
 	SendSpontaneousPaymentProbes(ctx context.Context, amount_msat uint64, node_id string) error
 	ListPeers(ctx context.Context) ([]PeerDetails, error)
+	GetLogOutput(ctx context.Context, maxLen int) (string, error)
 }
 
 type Channel struct {

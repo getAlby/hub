@@ -4,9 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -705,4 +707,64 @@ func (gs *LDKService) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, er
 		})
 	}
 	return ret, nil
+}
+
+func (gs *LDKService) GetLogOutput(ctx context.Context, maxLen int) (string, error) {
+	config := gs.node.Config()
+	logPath := ""
+	if config.LogDirPath != nil {
+		logPath = *config.LogDirPath
+	} else {
+		// Default log path if not set explicitly in the config.
+		logPath = filepath.Join(config.StorageDirPath, "logs")
+	}
+
+	allLogFiles, err := filepath.Glob(filepath.Join(logPath, "ldk_node_*.log"))
+	if err != nil {
+		gs.svc.Logger.WithError(err).Error("GetLogOutput failed to list log files")
+		return "", err
+	}
+
+	if len(allLogFiles) == 0 {
+		return "", nil
+	}
+
+	// Log filenames are formatted as ldk_node_YYYY_MM_DD.log, hence they
+	// naturally sort by date.
+	lastLogFileName := slices.Max(allLogFiles)
+
+	logFile, err := os.Open(lastLogFileName)
+	if err != nil {
+		gs.svc.Logger.WithError(err).Error("GetLogOutput failed to open log file")
+		return "", err
+	}
+	defer LoggedClose(gs.svc.Logger, logFile)
+
+	var logDataReader io.Reader = logFile
+
+	if maxLen > 0 {
+		stat, err := logFile.Stat()
+		if err != nil {
+			gs.svc.Logger.WithError(err).Error("GetLogOutput failed to get log file stat")
+			return "", err
+		}
+
+		if stat.Size() > int64(maxLen) {
+			_, err = logFile.Seek(-int64(maxLen), io.SeekEnd)
+			if err != nil {
+				gs.svc.Logger.WithError(err).Error("GetLogOutput failed to seek log file")
+				return "", err
+			}
+		}
+
+		logDataReader = io.LimitReader(logFile, int64(maxLen))
+	}
+
+	logData, err := io.ReadAll(logDataReader)
+	if err != nil {
+		gs.svc.Logger.WithError(err).Error("GetLogOutput failed to read log file")
+		return "", err
+	}
+
+	return string(logData), nil
 }

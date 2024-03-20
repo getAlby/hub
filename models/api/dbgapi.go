@@ -16,3 +16,11 @@ type SendSpontaneousPaymentProbesRequest struct {
 type SendSpontaneousPaymentProbesResponse struct {
 	Error string `json:"error"`
 }
+
+type GetLogOutputRequest struct {
+	MaxLen int `json:"maxLen"`
+}
+
+type GetLogOutputResponse struct {
+	Log string `json:"logs"`
+}
