@@ -2,11 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import Loading from "src/components/Loading";
 import toast from "src/components/Toast";
-import {
-  ALBY_NODE_PUBKEY,
-  ALBY_FEE_RESERVE,
-  MIN_ALBY_BALANCE,
-} from "src/constants";
+import { ALBY_FEE_RESERVE, MIN_ALBY_BALANCE } from "src/constants";
 import { useAlbyBalance } from "src/hooks/useAlbyBalance";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useCSRF } from "src/hooks/useCSRF";
@@ -140,10 +136,6 @@ export default function MigrateAlbyFunds() {
 
   if (error) {
     return <p>{error}</p>;
-  }
-
-  if (albyMe.keysend_pubkey !== ALBY_NODE_PUBKEY) {
-    return <p>Your Alby account is already linked to a node.</p>;
   }
 
   if (albyBalance.sats < MIN_ALBY_BALANCE) {

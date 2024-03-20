@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import Loading from "src/components/Loading";
 import { AlbyIcon } from "src/components/icons/Alby";
-import { ALBY_NODE_PUBKEY, MIN_ALBY_BALANCE } from "src/constants";
+import { MIN_ALBY_BALANCE } from "src/constants";
 import { useAlbyBalance } from "src/hooks/useAlbyBalance";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useInfo } from "src/hooks/useInfo";
@@ -51,22 +51,16 @@ export default function FirstChannel() {
             <span className="font-bold">{albyMe.lightning_address}</span>
           </p>
 
-          {albyMe.keysend_pubkey === ALBY_NODE_PUBKEY &&
-            albyBalance.sats >= MIN_ALBY_BALANCE && (
-              <>
-                <Link to="/channels/migrate-alby">
-                  <button className="bg-yellow-400 border-8 rounded-lg border-yellow-500 p-4 shadow-lg font-mono text-lg font-black">
-                    Migrate Funds 🚀
-                  </button>
-                </Link>
-                <p className="text-sm italic mt-4">
-                  You have {albyBalance.sats} sats to migrate
-                </p>
-              </>
-            )}
-          {albyMe.keysend_pubkey !== ALBY_NODE_PUBKEY && (
+          {albyBalance.sats >= MIN_ALBY_BALANCE && (
             <>
-              <p>Your Alby account is already linked to a node.</p>
+              <Link to="/channels/migrate-alby">
+                <button className="bg-yellow-400 border-8 rounded-lg border-yellow-500 p-4 shadow-lg font-mono text-lg font-black">
+                  Migrate Funds 🚀
+                </button>
+              </Link>
+              <p className="text-sm italic mt-4">
+                You have {albyBalance.sats} sats to migrate
+              </p>
             </>
           )}
           {albyBalance.sats < MIN_ALBY_BALANCE && (
