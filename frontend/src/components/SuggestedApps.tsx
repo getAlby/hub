@@ -161,9 +161,9 @@ export default function SuggestedApps() {
       </h2>
 
       <div className="my-8 grid sm:grid-cols-2 md:grid-cols-3 gap-4">
-        {suggestedApps.map((app, index) => (
+        {suggestedApps.map((app) => (
           <SuggestedApp
-            key={index}
+            key={app.title}
             to={app.link}
             title={app.title}
             description={app.description}

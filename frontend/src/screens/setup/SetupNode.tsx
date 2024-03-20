@@ -23,7 +23,7 @@ export function SetupNode() {
   async function handleSubmit(data: object) {
     setupStore.updateNodeInfo({
       backendType,
-      isMnemonicBackupDone: "0001-01-01 00:00:00",
+      NextBackupReminder: "0001-01-01T00:00:00Z",
       ...(isNew && { mnemonic: bip39.generateMnemonic(wordlist, 128) }),
       ...data,
     });

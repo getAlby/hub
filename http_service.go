@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	echologrus "github.com/davrux/echo-logrus/v4"
 	"github.com/getAlby/nostr-wallet-connect/frontend"
@@ -57,11 +58,11 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.PATCH("/api/apps/:pubkey", httpSvc.appsUpdateHandler, authMiddleware)
 	e.DELETE("/api/apps/:pubkey", httpSvc.appsDeleteHandler, authMiddleware)
 	e.POST("/api/apps", httpSvc.appsCreateHandler, authMiddleware)
+	e.GET("/api/mnemonic", httpSvc.mnemonicHandler, authMiddleware)
+	e.PATCH("/api/mnemonic", httpSvc.backupReminderHandler, authMiddleware)
 
 	e.GET("/api/csrf", httpSvc.csrfHandler)
 	e.GET("/api/info", httpSvc.infoHandler)
-	e.GET("/api/mnemonic", httpSvc.mnemonicHandler)
-	e.PATCH("/api/mnemonic", httpSvc.mnemonicBackupHandler)
 	e.POST("/api/logout", httpSvc.logoutHandler)
 	e.POST("/api/setup", httpSvc.setupHandler)
 
@@ -114,8 +115,9 @@ func (httpSvc *HttpService) mnemonicHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, responseBody)
 }
 
-func (httpSvc *HttpService) mnemonicBackupHandler(c echo.Context) error {
-	err := httpSvc.api.BackupMnemonic()
+func (httpSvc *HttpService) backupReminderHandler(c echo.Context) error {
+	currentTime := time.Now()
+	err := httpSvc.api.SetNextBackupReminder(&currentTime)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: fmt.Sprintf("Failed to backup mnemonic: %s", err.Error()),

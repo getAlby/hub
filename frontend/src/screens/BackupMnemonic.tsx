@@ -12,17 +12,19 @@ import Container from "src/components/Container";
 import Input from "src/components/Input";
 import PasswordViewAdornment from "src/components/PasswordAdornment";
 import { aesGcmDecrypt } from "src/utils/aesgcm";
-import { useMnemonic } from "src/hooks/useMnemonic";
+import { useEncryptedMnemonic } from "src/hooks/useEncryptedMnemonic";
 import Loading from "src/components/Loading";
 import toast from "src/components/Toast";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 import { useCSRF } from "src/hooks/useCSRF";
+import { useInfo } from "src/hooks/useInfo";
 
-export function Mnemonic() {
+export function BackupMnemonic() {
   const navigate = useNavigate();
   const { data: csrf } = useCSRF();
-  const { data: mnemonic } = useMnemonic();
+  const { mutate: refetchInfo } = useInfo();
+  const { data: mnemonic } = useEncryptedMnemonic();
 
   const [unlockPassword, setUnlockPassword] = React.useState("");
   const [passwordVisible, setPasswordVisible] = React.useState(false);
@@ -61,8 +63,10 @@ export function Mnemonic() {
           "Content-Type": "application/json",
         },
       });
+      await refetchInfo();
+
       navigate("/");
-      toast.success("Mnemonic Backed Up!");
+      toast.success("Recovery phrase backed up!");
     } catch (error) {
       handleRequestError("Failed to store back up info", error);
     }
@@ -73,7 +77,7 @@ export function Mnemonic() {
       {!decryptedMnemonic ? (
         <Container>
           <p className="font-light text-center text-md leading-relaxed dark:text-neutral-400 mb-14">
-            Enter your password to decrypt mnemonic
+            Enter your unlock password to continue
           </p>
           <form onSubmit={onSubmitPassword} className="w-full">
             <>

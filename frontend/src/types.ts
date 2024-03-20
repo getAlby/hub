@@ -125,7 +125,7 @@ export interface InfoResponse {
   setupCompleted: boolean;
   running: boolean;
   unlocked: boolean;
-  isMnemonicBackupDone: boolean;
+  NextBackupReminder: boolean;
 }
 
 export interface MnemonicResponse {
@@ -200,7 +200,7 @@ export type SetupNodeInfo = Partial<{
   backendType: BackendType;
 
   mnemonic?: string;
-  isMnemonicBackupDone?: string;
+  NextBackupReminder?: string;
   greenlightInviteCode?: string;
   breezApiKey?: string;
 

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
+	"time"
 
 	"github.com/getAlby/nostr-wallet-connect/models/api"
 	"github.com/sirupsen/logrus"
@@ -222,7 +223,8 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			res := WailsRequestRouterResponse{Body: *infoResponse, Error: ""}
 			return res
 		case "PATCH":
-			err := app.api.BackupMnemonic()
+			currentTime := time.Now()
+			err := app.api.SetNextBackupReminder(&currentTime)
 			if err != nil {
 				app.svc.Logger.WithFields(logrus.Fields{
 					"route":  route,

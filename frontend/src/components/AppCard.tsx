@@ -18,7 +18,7 @@ type Props = {
   onDelete: (nostrPubkey: string) => void;
 };
 
-export default function ConnectionItem({ app, csrf, onDelete }: Props) {
+export default function AppCard({ app, csrf, onDelete }: Props) {
   const navigate = useNavigate();
   const [showPopup, setShowPopup] = React.useState(false); // State to control popup visibility
 

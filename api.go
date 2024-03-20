@@ -627,13 +627,13 @@ func (api *API) GetInfo() (*models.InfoResponse, error) {
 	info.BackendType = backendType
 
 	if info.BackendType == config.LNDBackendType {
-		info.IsMnemonicBackupDone = true // because otherwise it shows the popup
+		info.NextBackupReminder = true // because otherwise it shows the popup
 	} else {
-		isMnemonicBackupDone, _ := api.svc.cfg.Get("IsMnemonicBackupDone", "")
+		NextBackupReminder, _ := api.svc.cfg.Get("NextBackupReminder", "")
 		var err error
 		parsedTime := time.Time{}
-		if isMnemonicBackupDone != "" {
-			parsedTime, err = time.Parse("2006-01-02 15:04:05", isMnemonicBackupDone)
+		if NextBackupReminder != "" {
+			parsedTime, err = time.Parse(time.RFC3339, NextBackupReminder)
 			if err != nil {
 				api.svc.Logger.Errorf("Error parsing time: %v", err)
 				return nil, err
@@ -641,7 +641,7 @@ func (api *API) GetInfo() (*models.InfoResponse, error) {
 		}
 		currentTime := time.Now()
 		sixMonthsAgo := currentTime.AddDate(0, -6, 0)
-		info.IsMnemonicBackupDone = !(parsedTime.IsZero() || parsedTime.Before(sixMonthsAgo))
+		info.NextBackupReminder = !(parsedTime.IsZero() || parsedTime.Before(sixMonthsAgo))
 	}
 
 	return &info, nil
@@ -654,10 +654,8 @@ func (api *API) GetEncryptedMnemonic() *models.EncryptedMnemonicResponse {
 	return &resp
 }
 
-func (api *API) BackupMnemonic() error {
-	currentTime := time.Now()
-	timeString := currentTime.Format("2006-01-02 15:04:05")
-	api.svc.cfg.SetUpdate("IsMnemonicBackupDone", timeString, "")
+func (api *API) SetNextBackupReminder(nextBackupReminder *time.Time) error {
+	api.svc.cfg.SetUpdate("NextBackupReminder", nextBackupReminder.Format(time.RFC3339), "")
 	return nil
 }
 
@@ -669,7 +667,7 @@ func (api *API) Setup(setupRequest *models.SetupRequest) error {
 	api.svc.cfg.SavePasswordCheck(setupRequest.UnlockPassword)
 
 	// update mnemonic check
-	api.svc.cfg.SetUpdate("IsMnemonicBackupDone", setupRequest.IsMnemonicBackupDone, "")
+	api.svc.cfg.SetUpdate("NextBackupReminder", setupRequest.NextBackupReminder, "")
 	// only update non-empty values
 	if setupRequest.LNBackendType != "" {
 		api.svc.cfg.SetUpdate("LNBackendType", setupRequest.LNBackendType, "")

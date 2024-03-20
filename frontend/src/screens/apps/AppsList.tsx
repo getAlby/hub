@@ -6,7 +6,7 @@ import { useInfo } from "src/hooks/useInfo";
 import { useCSRF } from "src/hooks/useCSRF";
 import Loading from "src/components/Loading";
 import SuggestedApps from "src/components/SuggestedApps";
-import ConnectionItem from "src/components/ConnectionItem";
+import AppCard from "src/components/AppCard";
 import BreezRedeem from "src/components/BreezRedeem";
 
 function AppsList() {
@@ -58,7 +58,7 @@ function AppsList() {
             </div>
           </div>
         )}
-        {!info?.isMnemonicBackupDone && showBackupPrompt && (
+        {!info?.NextBackupReminder && showBackupPrompt && (
           <div className="rounded-2xl bg-orange-50 border border-orange-200 flex flex-col justify-between">
             <div className="p-4 h-full border-b border-orange-200">
               <h2 className="font-medium text-orange-700 mb-2">
@@ -86,7 +86,7 @@ function AppsList() {
           </div>
         )}
         {apps.map((app, index) => (
-          <ConnectionItem
+          <AppCard
             key={index}
             app={app}
             csrf={csrf}
