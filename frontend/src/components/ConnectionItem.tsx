@@ -12,7 +12,7 @@ import { request } from "src/utils/request";
 import toast from "src/components/Toast";
 import { handleRequestError } from "src/utils/handleRequestError";
 
-import alby from "src/assets/suggested/alby.png";
+import alby from "src/assets/suggested-apps/alby.png";
 
 type Props = {
   app: App;

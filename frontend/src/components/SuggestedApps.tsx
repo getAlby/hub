@@ -1,23 +1,23 @@
 import { Link } from "react-router-dom";
 
-import alby from "src/assets/suggested/alby.png";
-import damus from "src/assets/suggested/damus.png";
-import amethyst from "src/assets/suggested/amethyst.png";
-import primal from "src/assets/suggested/primal.png";
-import zapstream from "src/assets/suggested/zap-stream.png";
-import wavelake from "src/assets/suggested/wavelake.png";
-import snort from "src/assets/suggested/snort.png";
-import hablanews from "src/assets/suggested/habla-news.png";
-import nostrudel from "src/assets/suggested/nostrudel.png";
-import yakihonne from "src/assets/suggested/yakihonne.png";
-import zapplanner from "src/assets/suggested/zapplanner.png";
-import zapplepay from "src/assets/suggested/zapple-pay.png";
-import lume from "src/assets/suggested/lume.png";
-import bc from "src/assets/suggested/bitcoin-connect.png";
-import kiwi from "src/assets/suggested/kiwi.png";
-import zappybird from "src/assets/suggested/zappy-bird.png";
-import nostur from "src/assets/suggested/nostur.png";
-import wherostr from "src/assets/suggested/wherostr.png";
+import alby from "src/assets/suggested-apps/alby.png";
+import damus from "src/assets/suggested-apps/damus.png";
+import amethyst from "src/assets/suggested-apps/amethyst.png";
+import primal from "src/assets/suggested-apps/primal.png";
+import zapstream from "src/assets/suggested-apps/zap-stream.png";
+import wavelake from "src/assets/suggested-apps/wavelake.png";
+import snort from "src/assets/suggested-apps/snort.png";
+import hablanews from "src/assets/suggested-apps/habla-news.png";
+import nostrudel from "src/assets/suggested-apps/nostrudel.png";
+import yakihonne from "src/assets/suggested-apps/yakihonne.png";
+import zapplanner from "src/assets/suggested-apps/zapplanner.png";
+import zapplepay from "src/assets/suggested-apps/zapple-pay.png";
+import lume from "src/assets/suggested-apps/lume.png";
+import bc from "src/assets/suggested-apps/bitcoin-connect.png";
+import kiwi from "src/assets/suggested-apps/kiwi.png";
+import zappybird from "src/assets/suggested-apps/zappy-bird.png";
+import nostur from "src/assets/suggested-apps/nostur.png";
+import wherostr from "src/assets/suggested-apps/wherostr.png";
 
 const suggestedApps = [
   {

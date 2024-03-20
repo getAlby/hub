@@ -18,7 +18,7 @@ import { handleRequestError } from "src/utils/handleRequestError";
 import AppHeader from "src/components/AppHeader";
 import IconButton from "src/components/IconButton";
 
-import alby from "src/assets/suggested/alby.png";
+import alby from "src/assets/suggested-apps/alby.png";
 import Permissions from "src/components/Permissions";
 
 function ShowApp() {
