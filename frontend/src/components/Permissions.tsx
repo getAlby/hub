@@ -12,7 +12,7 @@ import {
 
 interface PermissionsProps {
   initialPermissions: AppPermissions;
-  onPermissionsChange: (permissions: Partial<AppPermissions>) => void;
+  onPermissionsChange: (permissions: AppPermissions) => void;
   budgetUsage?: number;
   isEditing: boolean;
   isNew?: boolean;
@@ -31,7 +31,7 @@ const Permissions: React.FC<PermissionsProps> = ({
   const [expireOptions, setExpireOptions] = useState(!isNew);
 
   const handlePermissionsChange = (
-    changedPermissions: Partial<typeof permissions>
+    changedPermissions: Partial<AppPermissions>
   ) => {
     const updatedPermissions = { ...permissions, ...changedPermissions };
     setPermissions(updatedPermissions);

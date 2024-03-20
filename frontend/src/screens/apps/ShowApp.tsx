@@ -48,12 +48,6 @@ function ShowApp() {
     }
   }, [app]);
 
-  const handlePermissionsChange = (
-    changedPermissions: Partial<AppPermissions>
-  ) => {
-    setPermissions((prev) => ({ ...prev, ...changedPermissions }));
-  };
-
   if (error) {
     return <p className="text-red-500">{error.message}</p>;
   }
@@ -206,7 +200,7 @@ function ShowApp() {
               budgetRenewal: app.budgetRenewal as BudgetRenewalType,
               expiresAt: app.expiresAt ? new Date(app.expiresAt) : undefined,
             }}
-            onPermissionsChange={handlePermissionsChange}
+            onPermissionsChange={setPermissions}
             budgetUsage={app.budgetUsage}
             isEditing={editMode}
           />

@@ -67,12 +67,6 @@ const NewApp = () => {
     expiresAt: parseExpiresParam(expiresAtParam),
   });
 
-  const handlePermissionsChange = (
-    changedPermissions: Partial<AppPermissions>
-  ) => {
-    setPermissions((prev) => ({ ...prev, ...changedPermissions }));
-  };
-
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!csrf) {
@@ -156,7 +150,7 @@ const NewApp = () => {
 
           <Permissions
             initialPermissions={permissions}
-            onPermissionsChange={handlePermissionsChange}
+            onPermissionsChange={setPermissions}
             isEditing={isEditing}
             isNew
           />
