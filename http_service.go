@@ -358,7 +358,7 @@ func (httpSvc *HttpService) redeemOnchainFundsHandler(c echo.Context) error {
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to request new onchain address: %s", err.Error()),
+			Message: fmt.Sprintf("Failed to redeem onchain funds: %s", err.Error()),
 		})
 	}
 

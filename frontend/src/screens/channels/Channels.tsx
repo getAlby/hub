@@ -6,6 +6,8 @@ import { useOnchainBalance } from "src/hooks/useOnchainBalance";
 import { CloseChannelRequest, CloseChannelResponse, Node } from "src/types";
 import { request } from "src/utils/request";
 import { useCSRF } from "../../hooks/useCSRF.ts";
+import { useRedeemOnchainFunds } from "src/hooks/useRedeemOnchainFunds.ts";
+import Loading from "src/components/Loading.tsx";
 
 export default function Channels() {
   const { data: channels, mutate: reloadChannels } = useChannels();
@@ -14,6 +16,7 @@ export default function Channels() {
   const { data: info, mutate: reloadInfo } = useInfo();
   const { data: csrf } = useCSRF();
   const navigate = useNavigate();
+  const redeemOnchainFunds = useRedeemOnchainFunds();
 
   React.useEffect(() => {
     if (!info || info.running) {
@@ -244,6 +247,16 @@ export default function Channels() {
           Reset Router
         </button>
       )}
+      {(info?.backendType === "LDK" || info?.backendType === "GREENLIGHT") &&
+        (onchainBalance?.spendable || 0) > 0 && (
+          <button
+            onClick={redeemOnchainFunds.redeemFunds}
+            disabled={redeemOnchainFunds.isLoading}
+            className="text-white bg-orange-700 hover:bg-orange-800 focus:ring-4 focus:ring-orange-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 dark:bg-orange-600 dark:hover:bg-orange-700 focus:outline-none dark:focus:ring-orange-800 inline-flex gap-2 justify-center items-center"
+          >
+            Redeem Onchain Funds {redeemOnchainFunds.isLoading && <Loading />}
+          </button>
+        )}
 
       <div className="flex flex-col mt-5">
         <div className="overflow-x-auto shadow-md sm:rounded-lg">
