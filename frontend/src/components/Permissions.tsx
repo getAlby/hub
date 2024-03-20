@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import {
+  AppPermissions,
   RequestMethodType,
   budgetOptions,
   expiryOptions,
@@ -10,15 +11,8 @@ import {
 } from "src/types";
 
 interface PermissionsProps {
-  initialPermissions: {
-    requestMethods: Set<RequestMethodType>;
-    maxAmount: number;
-    budgetRenewal: BudgetRenewalType;
-    expiresAt?: Date;
-  };
-  onPermissionsChange: (
-    permissions: Partial<PermissionsProps["initialPermissions"]>
-  ) => void;
+  initialPermissions: AppPermissions;
+  onPermissionsChange: (permissions: Partial<AppPermissions>) => void;
   budgetUsage?: number;
   isEditing: boolean;
   isNew?: boolean;

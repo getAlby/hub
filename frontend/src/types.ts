@@ -101,6 +101,13 @@ export interface App {
   budgetRenewal: string;
 }
 
+export interface AppPermissions {
+  requestMethods: Set<RequestMethodType>;
+  maxAmount: number;
+  budgetRenewal: BudgetRenewalType;
+  expiresAt?: Date;
+}
+
 // export interface AppPermission {
 //   id: number;
 //   appId: number;

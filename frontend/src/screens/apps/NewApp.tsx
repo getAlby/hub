@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
 import {
+  AppPermissions,
   BudgetRenewalType,
   CreateAppResponse,
   RequestMethodType,
@@ -57,7 +58,7 @@ const NewApp = () => {
     return undefined;
   };
 
-  const [permissions, setPermissions] = useState({
+  const [permissions, setPermissions] = useState<AppPermissions>({
     requestMethods: parseRequestMethods(reqMethodsParam),
     maxAmount: parseInt(maxAmountParam || "100000"),
     budgetRenewal: validBudgetRenewals.includes(budgetRenewalParam)
@@ -67,7 +68,7 @@ const NewApp = () => {
   });
 
   const handlePermissionsChange = (
-    changedPermissions: Partial<typeof permissions>
+    changedPermissions: Partial<AppPermissions>
   ) => {
     setPermissions((prev) => ({ ...prev, ...changedPermissions }));
   };

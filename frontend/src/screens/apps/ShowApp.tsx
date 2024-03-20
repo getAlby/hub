@@ -3,7 +3,11 @@ import { useNavigate, useParams } from "react-router-dom";
 import gradientAvatar from "gradient-avatar";
 import { PopiconsArrowLeftLine, PopiconsEditLine } from "@popicons/react";
 
-import { BudgetRenewalType, RequestMethodType } from "src/types";
+import {
+  AppPermissions,
+  BudgetRenewalType,
+  RequestMethodType,
+} from "src/types";
 import { useInfo } from "src/hooks/useInfo";
 import { useApp } from "src/hooks/useApp";
 import { useCSRF } from "src/hooks/useCSRF";
@@ -26,7 +30,7 @@ function ShowApp() {
 
   const [editMode, setEditMode] = React.useState(false);
 
-  const [permissions, setPermissions] = React.useState({
+  const [permissions, setPermissions] = React.useState<AppPermissions>({
     requestMethods: new Set<RequestMethodType>(),
     maxAmount: 0,
     budgetRenewal: "" as BudgetRenewalType,
@@ -45,7 +49,7 @@ function ShowApp() {
   }, [app]);
 
   const handlePermissionsChange = (
-    changedPermissions: Partial<typeof permissions>
+    changedPermissions: Partial<AppPermissions>
   ) => {
     setPermissions((prev) => ({ ...prev, ...changedPermissions }));
   };
