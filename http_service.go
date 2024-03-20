@@ -174,7 +174,7 @@ func (httpSvc *HttpService) saveSessionCookie(c echo.Context) error {
 	sess.Values[sessionCookieAuthKey] = true
 	err := sess.Save(c.Request(), c.Response())
 	if err != nil {
-		httpSvc.svc.Logger.Errorf("Failed to save session: %v", err)
+		httpSvc.svc.Logger.WithError(err).Error("Failed to save session")
 	}
 	return err
 }
@@ -440,7 +440,7 @@ func (httpSvc *HttpService) appsCreateHandler(c echo.Context) error {
 	responseBody, err := httpSvc.api.CreateApp(&requestData)
 
 	if err != nil {
-		httpSvc.svc.Logger.Errorf("Failed to save app: %v", err)
+		httpSvc.svc.Logger.WithField("requestData", requestData).WithError(err).Error("Failed to save app")
 		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
 			Message: fmt.Sprintf("Failed to save app: %v", err),
 		})

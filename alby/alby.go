@@ -249,7 +249,9 @@ func (svc *AlbyOAuthService) SendPayment(ctx context.Context, invoice string) er
 		errorPayload := &ErrorResponse{}
 		err = json.NewDecoder(resp.Body).Decode(errorPayload)
 		if err != nil {
-			svc.logger.WithError(err).Error("Failed to decode error response payload")
+			svc.logger.WithFields(logrus.Fields{
+				"status": resp.StatusCode,
+			}).WithError(err).Error("Failed to decode payment error response payload")
 			return err
 		}
 
