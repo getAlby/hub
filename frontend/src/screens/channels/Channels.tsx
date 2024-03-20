@@ -6,14 +6,17 @@ import { useOnchainBalance } from "src/hooks/useOnchainBalance";
 import { CloseChannelRequest, CloseChannelResponse, Node } from "src/types";
 import { request } from "src/utils/request";
 import { useCSRF } from "../../hooks/useCSRF.ts";
+import { useRedeemOnchainFunds } from "src/hooks/useRedeemOnchainFunds.ts";
+import Loading from "src/components/Loading.tsx";
 
 export default function Channels() {
   const { data: channels, mutate: reloadChannels } = useChannels();
   const { data: onchainBalance } = useOnchainBalance();
   const [nodes, setNodes] = React.useState<Node[]>([]);
-  const { data: info } = useInfo();
+  const { data: info, mutate: reloadInfo } = useInfo();
   const { data: csrf } = useCSRF();
   const navigate = useNavigate();
+  const redeemOnchainFunds = useRedeemOnchainFunds();
 
   React.useEffect(() => {
     if (!info || info.running) {
@@ -110,6 +113,27 @@ export default function Channels() {
     }
   }
 
+  async function resetRouter() {
+    try {
+      if (!csrf) {
+        throw new Error("csrf not loaded");
+      }
+
+      await request("/api/reset-router", {
+        method: "POST",
+        headers: {
+          "X-CSRF-Token": csrf,
+          "Content-Type": "application/json",
+        },
+      });
+      await reloadInfo();
+      alert(`🎉 Router reset`);
+    } catch (error) {
+      console.error(error);
+      alert("Something went wrong: " + error);
+    }
+  }
+
   return (
     <div>
       <div className="grid gap-6 mb-8 md:grid-cols-3 xl:grid-cols-3">
@@ -161,7 +185,15 @@ export default function Channels() {
                   </div>
                 )}
                 {onchainBalance && (
-                  <span>{formatAmount(onchainBalance.sats * 1000)} sats</span>
+                  <span>
+                    {formatAmount(onchainBalance.spendable * 1000)} sats
+                    {onchainBalance.spendable !== onchainBalance.total && (
+                      <span className="text-xs animate-pulse">
+                        &nbsp;({onchainBalance.total - onchainBalance.spendable}{" "}
+                        incoming)
+                      </span>
+                    )}
+                  </span>
                 )}
               </div>
             </div>
@@ -207,6 +239,24 @@ export default function Channels() {
       >
         Onchain address
       </Link>
+      {info?.backendType === "LDK" && (
+        <button
+          onClick={resetRouter}
+          className="text-white bg-orange-700 hover:bg-orange-800 focus:ring-4 focus:ring-orange-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 dark:bg-orange-600 dark:hover:bg-orange-700 focus:outline-none dark:focus:ring-orange-800"
+        >
+          Reset Router
+        </button>
+      )}
+      {(info?.backendType === "LDK" || info?.backendType === "GREENLIGHT") &&
+        (onchainBalance?.spendable || 0) > 0 && (
+          <button
+            onClick={redeemOnchainFunds.redeemFunds}
+            disabled={redeemOnchainFunds.isLoading}
+            className="text-white bg-orange-700 hover:bg-orange-800 focus:ring-4 focus:ring-orange-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 dark:bg-orange-600 dark:hover:bg-orange-700 focus:outline-none dark:focus:ring-orange-800 inline-flex gap-2 justify-center items-center"
+          >
+            Redeem Onchain Funds {redeemOnchainFunds.isLoading && <Loading />}
+          </button>
+        )}
 
       <div className="flex flex-col mt-5">
         <div className="overflow-x-auto shadow-md sm:rounded-lg">
