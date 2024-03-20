@@ -10,9 +10,10 @@ import (
 	"strings"
 	"time"
 
+	decodepay "github.com/nbd-wtf/ln-decodepay"
+
 	"github.com/getAlby/nostr-wallet-connect/lnd"
 	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
-	decodepay "github.com/nbd-wtf/ln-decodepay"
 
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
@@ -308,7 +309,7 @@ func NewLNDService(svc *Service, lndAddress, lndCertHex, lndMacaroonHex string) 
 		Address:     lndAddress,
 		CertHex:     lndCertHex,
 		MacaroonHex: lndMacaroonHex,
-	}, svc.ctx)
+	})
 	if err != nil {
 		svc.Logger.Errorf("Failed to create new LND client %v", err)
 		return nil, err
