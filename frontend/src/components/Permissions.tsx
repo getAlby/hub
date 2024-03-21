@@ -45,6 +45,9 @@ const Permissions: React.FC<PermissionsProps> = ({
   const handleRequestMethodChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
+    if (!isEditing) {
+      return;
+    }
     const requestMethod = event.target.value as RequestMethodType;
     const newRequestMethods = new Set(permissions.requestMethods);
     if (newRequestMethods.has(requestMethod)) {
@@ -125,7 +128,9 @@ const Permissions: React.FC<PermissionsProps> = ({
                     />
                     <label
                       htmlFor={rm}
-                      className="text-gray-800 dark:text-gray-300 cursor-pointer"
+                      className={`text-gray-800 dark:text-gray-300 ${
+                        isEditing && "cursor-pointer"
+                      }`}
                     >
                       {nip47MethodDescriptions[rm]}
                     </label>
