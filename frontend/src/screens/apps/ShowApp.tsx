@@ -41,8 +41,8 @@ function ShowApp() {
   const [permissions, setPermissions] = React.useState<AppPermissions>({
     requestMethods: new Set<RequestMethodType>(),
     maxAmount: 0,
-    budgetRenewal: "" as BudgetRenewalType,
-    expiresAt: undefined as Date | undefined,
+    budgetRenewal: "",
+    expiresAt: undefined,
   });
 
   React.useEffect(() => {
