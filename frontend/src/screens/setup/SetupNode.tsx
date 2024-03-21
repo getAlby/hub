@@ -23,7 +23,6 @@ export function SetupNode() {
   async function handleSubmit(data: object) {
     setupStore.updateNodeInfo({
       backendType,
-      NextBackupReminder: "0001-01-01T00:00:00Z",
       ...(isNew && { mnemonic: bip39.generateMnemonic(wordlist, 128) }),
       ...data,
     });
@@ -32,7 +31,7 @@ export function SetupNode() {
         (backendType === "BREEZ" ||
           backendType === "GREENLIGHT" ||
           backendType === "LDK")
-        ? `/setup/mnemonic`
+        ? `/setup/import-mnemonic`
         : `/setup/finish`
     );
   }

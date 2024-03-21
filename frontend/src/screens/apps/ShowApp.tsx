@@ -24,7 +24,7 @@ function ShowApp() {
   const { data: info } = useInfo();
   const { data: csrf } = useCSRF();
   const { pubkey } = useParams() as { pubkey: string };
-  const { data: app, mutate: refetchInfo, error } = useApp(pubkey);
+  const { data: app, mutate: refetchApp, error } = useApp(pubkey);
   const navigate = useNavigate();
 
   const [editMode, setEditMode] = React.useState(false);
@@ -73,7 +73,7 @@ function ShowApp() {
         }),
       });
 
-      await refetchInfo();
+      await refetchApp();
       setEditMode(false);
       toast.success("Permissions updated!");
     } catch (error) {
@@ -159,8 +159,7 @@ function ShowApp() {
                   Last used
                 </td>
                 <td className="text-gray-600 dark:text-neutral-400">
-                  {app.lastEventAt &&
-                  new Date(app.lastEventAt).getFullYear() !== 1
+                  {app.lastEventAt
                     ? new Date(app.lastEventAt).toString()
                     : "Never"}
                 </td>

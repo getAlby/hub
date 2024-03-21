@@ -55,13 +55,21 @@ export function BackupMnemonic() {
       throw new Error("No CSRF token");
     }
 
+    const currentDate = new Date();
+    const sixMonthsLater = new Date(
+      currentDate.setMonth(currentDate.getMonth() + 6)
+    );
+
     try {
-      await request("/api/mnemonic", {
+      await request("/api/reminder", {
         method: "PATCH",
         headers: {
           "X-CSRF-Token": csrf,
           "Content-Type": "application/json",
         },
+        body: JSON.stringify({
+          nextBackupReminder: sixMonthsLater.toISOString(),
+        }),
       });
       await refetchInfo();
 

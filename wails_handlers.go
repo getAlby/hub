@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
-	"time"
 
 	"github.com/getAlby/nostr-wallet-connect/models/api"
 	"github.com/sirupsen/logrus"
@@ -216,25 +215,32 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		infoResponse.Unlocked = infoResponse.Running
 		res := WailsRequestRouterResponse{Body: *infoResponse, Error: ""}
 		return res
-	case "/api/mnemonic":
-		switch method {
-		case "GET":
-			infoResponse := app.api.GetEncryptedMnemonic()
-			res := WailsRequestRouterResponse{Body: *infoResponse, Error: ""}
-			return res
-		case "PATCH":
-			currentTime := time.Now()
-			err := app.api.SetNextBackupReminder(&currentTime)
-			if err != nil {
-				app.svc.Logger.WithFields(logrus.Fields{
-					"route":  route,
-					"method": method,
-					"body":   body,
-				}).Errorf("Failed to backup mnemonic: %v", err)
-				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
-			}
-			return WailsRequestRouterResponse{Body: nil, Error: ""}
+	case "/api/encrypted-mnemonic":
+		infoResponse := app.api.GetEncryptedMnemonic()
+		res := WailsRequestRouterResponse{Body: *infoResponse, Error: ""}
+		return res
+	case "/api/reminder":
+		backupReminderRequest := &api.BackupReminderRequest{}
+		err := json.Unmarshal([]byte(body), backupReminderRequest)
+		if err != nil {
+			app.svc.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).Errorf("Failed to decode request to wails router: %v", err)
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
+
+		err = app.api.SetNextBackupReminder(backupReminderRequest)
+		if err != nil {
+			app.svc.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).Errorf("Failed to store backup reminder: %v", err)
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: nil, Error: ""}
 	case "/api/start":
 		startRequest := &api.StartRequest{}
 		err := json.Unmarshal([]byte(body), startRequest)

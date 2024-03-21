@@ -51,13 +51,17 @@ type UnlockRequest struct {
 	UnlockPassword string `json:"unlockPassword"`
 }
 
+type BackupReminderRequest struct {
+	NextBackupReminder string `json:"nextBackupReminder"`
+}
+
 type SetupRequest struct {
 	LNBackendType string `json:"backendType"`
 
 	// Breez / Greenlight
 	Mnemonic             string `json:"mnemonic"`
 	GreenlightInviteCode string `json:"greenlightInviteCode"`
-	NextBackupReminder   string `json:"NextBackupReminder"`
+	NextBackupReminder   string `json:"nextBackupReminder"`
 
 	// Breez fields
 	BreezAPIKey string `json:"breezApiKey"`
@@ -88,7 +92,7 @@ type InfoResponse struct {
 	SetupCompleted     bool   `json:"setupCompleted"`
 	Running            bool   `json:"running"`
 	Unlocked           bool   `json:"unlocked"`
-	NextBackupReminder bool   `json:"NextBackupReminder"`
+	ShowBackupReminder bool   `json:"showBackupReminder"`
 }
 
 type EncryptedMnemonicResponse struct {

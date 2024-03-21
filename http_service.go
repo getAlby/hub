@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"time"
 
 	echologrus "github.com/davrux/echo-logrus/v4"
 	"github.com/getAlby/nostr-wallet-connect/frontend"
@@ -58,13 +57,13 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.PATCH("/api/apps/:pubkey", httpSvc.appsUpdateHandler, authMiddleware)
 	e.DELETE("/api/apps/:pubkey", httpSvc.appsDeleteHandler, authMiddleware)
 	e.POST("/api/apps", httpSvc.appsCreateHandler, authMiddleware)
-	e.GET("/api/mnemonic", httpSvc.mnemonicHandler, authMiddleware)
-	e.PATCH("/api/mnemonic", httpSvc.backupReminderHandler, authMiddleware)
+	e.GET("/api/encrypted-mnemonic", httpSvc.encryptedMnemonicHandler, authMiddleware)
 
 	e.GET("/api/csrf", httpSvc.csrfHandler)
 	e.GET("/api/info", httpSvc.infoHandler)
 	e.POST("/api/logout", httpSvc.logoutHandler)
 	e.POST("/api/setup", httpSvc.setupHandler)
+	e.PATCH("/api/reminder", httpSvc.backupReminderHandler)
 
 	// allow one unlock request per second
 	unlockRateLimiter := middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(1))
@@ -110,17 +109,23 @@ func (httpSvc *HttpService) infoHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, responseBody)
 }
 
-func (httpSvc *HttpService) mnemonicHandler(c echo.Context) error {
+func (httpSvc *HttpService) encryptedMnemonicHandler(c echo.Context) error {
 	responseBody := httpSvc.api.GetEncryptedMnemonic()
 	return c.JSON(http.StatusOK, responseBody)
 }
 
 func (httpSvc *HttpService) backupReminderHandler(c echo.Context) error {
-	currentTime := time.Now()
-	err := httpSvc.api.SetNextBackupReminder(&currentTime)
+	var backupReminderRequest api.BackupReminderRequest
+	if err := c.Bind(&backupReminderRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	err := httpSvc.api.SetNextBackupReminder(&backupReminderRequest)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to backup mnemonic: %s", err.Error()),
+			Message: fmt.Sprintf("Failed to store backup reminder: %s", err.Error()),
 		})
 	}
 

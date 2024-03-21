@@ -37,30 +37,6 @@ async function deriveKey(
   }
 }
 
-export async function aesGcmEncrypt(
-  plaintext: string,
-  password: string
-): Promise<string> {
-  const [secretKey, salt] = await deriveKey(password);
-  const plaintextBytes = new TextEncoder().encode(plaintext);
-
-  const iv = new Uint8Array(12);
-  window.crypto.getRandomValues(iv);
-
-  const cipherText = await window.crypto.subtle.encrypt(
-    {
-      name: "AES-GCM",
-      iv: iv,
-    },
-    secretKey,
-    plaintextBytes
-  );
-
-  return `${arrayBufferToHex(salt)}-${arrayBufferToHex(iv)}-${arrayBufferToHex(
-    new Uint8Array(cipherText)
-  )}`;
-}
-
 export async function aesGcmDecrypt(
   ciphertext: string,
   password: string
@@ -82,12 +58,6 @@ export async function aesGcmDecrypt(
   );
 
   return new TextDecoder().decode(plaintext);
-}
-
-function arrayBufferToHex(buffer: Uint8Array): string {
-  return Array.from(buffer)
-    .map((byte) => byte.toString(16).padStart(2, "0"))
-    .join("");
 }
 
 function hexToArrayBuffer(hexString: string): Uint8Array {

@@ -125,7 +125,7 @@ export interface InfoResponse {
   setupCompleted: boolean;
   running: boolean;
   unlocked: boolean;
-  NextBackupReminder: boolean;
+  showBackupReminder: boolean;
 }
 
 export interface MnemonicResponse {
@@ -200,7 +200,7 @@ export type SetupNodeInfo = Partial<{
   backendType: BackendType;
 
   mnemonic?: string;
-  NextBackupReminder?: string;
+  nextBackupReminder?: string;
   greenlightInviteCode?: string;
   breezApiKey?: string;
 
@@ -211,4 +211,11 @@ export type SetupNodeInfo = Partial<{
 
 export type RedeemOnchainFundsResponse = {
   txId: string;
+};
+
+export type SuggestedApp = {
+  to: string;
+  title: string;
+  description: string;
+  logo?: string;
 };

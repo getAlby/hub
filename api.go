@@ -627,21 +627,19 @@ func (api *API) GetInfo() (*models.InfoResponse, error) {
 	info.BackendType = backendType
 
 	if info.BackendType == config.LNDBackendType {
-		info.NextBackupReminder = true // because otherwise it shows the popup
+		info.ShowBackupReminder = false // because otherwise it shows the popup
 	} else {
-		NextBackupReminder, _ := api.svc.cfg.Get("NextBackupReminder", "")
+		nextBackupReminder, _ := api.svc.cfg.Get("NextBackupReminder", "")
 		var err error
 		parsedTime := time.Time{}
-		if NextBackupReminder != "" {
-			parsedTime, err = time.Parse(time.RFC3339, NextBackupReminder)
+		if nextBackupReminder != "" {
+			parsedTime, err = time.Parse(time.RFC3339, nextBackupReminder)
 			if err != nil {
 				api.svc.Logger.Errorf("Error parsing time: %v", err)
 				return nil, err
 			}
 		}
-		currentTime := time.Now()
-		sixMonthsAgo := currentTime.AddDate(0, -6, 0)
-		info.NextBackupReminder = !(parsedTime.IsZero() || parsedTime.Before(sixMonthsAgo))
+		info.ShowBackupReminder = (parsedTime.IsZero() || parsedTime.Before(time.Now()))
 	}
 
 	return &info, nil
@@ -654,8 +652,8 @@ func (api *API) GetEncryptedMnemonic() *models.EncryptedMnemonicResponse {
 	return &resp
 }
 
-func (api *API) SetNextBackupReminder(nextBackupReminder *time.Time) error {
-	api.svc.cfg.SetUpdate("NextBackupReminder", nextBackupReminder.Format(time.RFC3339), "")
+func (api *API) SetNextBackupReminder(backupReminderRequest *models.BackupReminderRequest) error {
+	api.svc.cfg.SetUpdate("NextBackupReminder", backupReminderRequest.NextBackupReminder, "")
 	return nil
 }
 
@@ -666,7 +664,7 @@ func (api *API) Start(startRequest *models.StartRequest) error {
 func (api *API) Setup(setupRequest *models.SetupRequest) error {
 	api.svc.cfg.SavePasswordCheck(setupRequest.UnlockPassword)
 
-	// update mnemonic check
+	// update next backup reminder
 	api.svc.cfg.SetUpdate("NextBackupReminder", setupRequest.NextBackupReminder, "")
 	// only update non-empty values
 	if setupRequest.LNBackendType != "" {

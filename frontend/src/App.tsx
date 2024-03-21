@@ -53,7 +53,7 @@ function App() {
               <Route path="password" element={<SetupPassword />} />
               <Route path="node" element={<SetupNode />} />
               <Route path="wallet" element={<SetupWallet />} />
-              <Route path="mnemonic" element={<ImportMnemonic />} />
+              <Route path="import-mnemonic" element={<ImportMnemonic />} />
               <Route path="finish" element={<SetupFinish />} />
             </Route>
             {/* TODO: move this under settings later */}

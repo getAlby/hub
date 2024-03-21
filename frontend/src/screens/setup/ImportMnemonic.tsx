@@ -25,9 +25,14 @@ export function ImportMnemonic() {
       return;
     }
 
+    const currentDate = new Date();
+    const sixMonthsLater = new Date(
+      currentDate.setMonth(currentDate.getMonth() + 6)
+    );
+
     setupStore.updateNodeInfo({
       mnemonic,
-      NextBackupReminder: new Date().toISOString(),
+      nextBackupReminder: sixMonthsLater.toISOString(),
     });
     navigate(`/setup/finish`);
   }

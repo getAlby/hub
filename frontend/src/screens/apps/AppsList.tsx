@@ -27,8 +27,8 @@ function AppsList() {
 
   return (
     <div className="container max-w-screen-lg mt-6">
+      <BreezRedeem />
       <div className="flex flex-row-reverse">
-        <BreezRedeem />
         <Link
           className="flex-row w-48 mb-6 px-0 py-2 bg-primary-gradient border-2 border-transparent text-black hover:bg-primary-gradient-hover cursor-pointer inline-flex justify-center items-center font-medium bg-origin-border shadow rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary transition duration-150"
           to="/apps/new"
@@ -44,8 +44,7 @@ function AppsList() {
                 Create a New Connection
               </h2>
               <p className="text-sm text-indigo-600">
-                Click "Add a connection" to create one and use it in your
-                favourite Nostr apps
+                Create a new connection to connect to an NWC-powered app
               </p>
             </div>
             <div className="py-3 px-4 flex items-center gap-4">
@@ -53,12 +52,12 @@ function AppsList() {
                 to="/apps/new"
                 className="text-center font-medium p-2.5 w-full text-sm rounded-lg text-indigo-600 bg-indigo-200 cursor-pointer hover:bg-indigo-300"
               >
-                Add a connection
+                Create a New Connection
               </Link>
             </div>
           </div>
         )}
-        {!info?.NextBackupReminder && showBackupPrompt && (
+        {info?.showBackupReminder && showBackupPrompt && (
           <div className="rounded-2xl bg-orange-50 border border-orange-200 flex flex-col justify-between">
             <div className="p-4 h-full border-b border-orange-200">
               <h2 className="font-medium text-orange-700 mb-2">

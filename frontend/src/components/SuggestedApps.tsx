@@ -18,126 +18,120 @@ import kiwi from "src/assets/suggested-apps/kiwi.png";
 import zappybird from "src/assets/suggested-apps/zappy-bird.png";
 import nostur from "src/assets/suggested-apps/nostur.png";
 import wherostr from "src/assets/suggested-apps/wherostr.png";
+import { SuggestedApp } from "src/types";
 
-const suggestedApps = [
+const suggestedApps: SuggestedApp[] = [
   {
     title: "Alby Extension",
     description: "Wallet in your browser",
-    link: "https://getalby.com/",
+    to: "https://getalby.com/",
     logo: alby,
   },
   {
     title: "Damus",
     description: "iOS Nostr client",
-    link: "https://damus.io/?utm_source=getalby",
+    to: "https://damus.io/?utm_source=getalby",
     logo: damus,
   },
   {
     title: "Amethyst",
     description: "Android Nostr client",
-    link: "https://play.google.com/store/apps/details?id=com.vitorpamplona.amethyst&hl=de&gl=US",
+    to: "https://play.google.com/store/apps/details?id=com.vitorpamplona.amethyst&hl=de&gl=US",
     logo: amethyst,
   },
   {
     title: "Primal",
     description: "Cross-platform social",
-    link: "https://primal.net/",
+    to: "https://primal.net/",
     logo: primal,
   },
   {
     title: "Zap Stream",
     description: "Stream and stack sats",
-    link: "https://zap.stream/",
+    to: "https://zap.stream/",
     logo: zapstream,
   },
   {
     title: "Wavlake",
     description: "Creators platform",
-    link: "https://www.wavlake.com/",
+    to: "https://www.wavlake.com/",
     logo: wavelake,
   },
   {
     title: "Snort",
     description: "Web Nostr client",
-    link: "https://snort.social/",
+    to: "https://snort.social/",
     logo: snort,
   },
   {
     title: "Habla News",
     description: "Blogging platform",
-    link: "https://habla.news/",
+    to: "https://habla.news/",
     logo: hablanews,
   },
   {
     title: "noStrudel",
     description: "Web Nostr client",
-    link: "https://nostrudel.ninja/",
+    to: "https://nostrudel.ninja/",
     logo: nostrudel,
   },
   {
     title: "YakiHonne",
     description: "Blogging platform",
-    link: "https://yakihonne.com/",
+    to: "https://yakihonne.com/",
     logo: yakihonne,
   },
   {
     title: "ZapPlanner",
     description: "Schedule payments",
-    link: "https://zapplanner.albylabs.com/",
+    to: "https://zapplanner.albylabs.com/",
     logo: zapplanner,
   },
   {
     title: "Zapple Pay",
     description: "Zap from any client",
-    link: "https://www.zapplepay.com/",
+    to: "https://www.zapplepay.com/",
     logo: zapplepay,
   },
   {
     title: "Lume",
     description: "macOS Nostr client",
-    link: "https://lume.nu/",
+    to: "https://lume.nu/",
     logo: lume,
   },
   {
     title: "Bitcoin Connect",
     description: "Connect to apps",
-    link: "https://bitcoin-connect.com/",
+    to: "https://bitcoin-connect.com/",
     logo: bc,
   },
   {
     title: "Kiwi",
     description: "Nostr communities",
-    link: "https://nostr.kiwi/",
+    to: "https://nostr.kiwi/",
     logo: kiwi,
   },
   {
     title: "Zappy Bird",
     description: "Loose sats quickly",
-    link: "https://rolznz.github.io/zappy-bird/",
+    to: "https://rolznz.github.io/zappy-bird/",
     logo: zappybird,
   },
   {
     title: "Nostur",
     description: "Social media",
-    link: "https://nostur.com/",
+    to: "https://nostur.com/",
     logo: nostur,
   },
   {
     title: "Wherostr",
     description: "Map of notes",
-    link: "https://wherostr.social/",
+    to: "https://wherostr.social/",
     logo: wherostr,
   },
 ];
 
-type Props = {
-  to: string;
-  title: string;
-  description: string;
-  logo?: string;
-};
-
-function SuggestedApp({ to, title, description, logo }: Props) {
+function SuggestedApp({ to, title, description, logo }: SuggestedApp) {
   return (
     <Link
       to={to}
@@ -164,7 +158,7 @@ export default function SuggestedApps() {
         {suggestedApps.map((app) => (
           <SuggestedApp
             key={app.title}
-            to={app.link}
+            to={app.to}
             title={app.title}
             description={app.description}
             logo={app.logo}
