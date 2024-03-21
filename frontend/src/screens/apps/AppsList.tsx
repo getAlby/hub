@@ -27,7 +27,7 @@ function AppsList() {
     mutateApps(updatedApps, false);
   };
 
-  async function onSkip(e: React.FormEvent) {
+  async function onSkipBackup(e: React.FormEvent) {
     e.preventDefault();
     if (!csrf) {
       throw new Error("No CSRF token");
@@ -101,7 +101,7 @@ function AppsList() {
             </div>
             <div className="py-3 px-4 flex items-center gap-4">
               <div
-                onClick={onSkip}
+                onClick={onSkipBackup}
                 className="text-center font-medium p-2.5 w-full text-sm rounded-lg text-orange-700 hover:bg-orange-100 cursor-pointer"
               >
                 Skip For Now
