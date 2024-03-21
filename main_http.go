@@ -38,7 +38,7 @@ func main() {
 		}
 	}()
 	//handle graceful shutdown
-	<-svc.ctx.Done()
+	<-ctx.Done()
 	svc.Logger.Infof("Shutting down echo server...")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"embed"
 	"log"
 
@@ -14,6 +15,7 @@ import (
 var assets embed.FS
 
 type WailsApp struct {
+	ctx context.Context
 	svc *Service
 	api *API
 }
@@ -23,6 +25,12 @@ func NewApp(svc *Service) *WailsApp {
 		svc: svc,
 		api: NewAPI(svc),
 	}
+}
+
+// startup is called when the app starts. The context is saved
+// so we can call the runtime methods
+func (app *WailsApp) startup(ctx context.Context) {
+	app.ctx = ctx
 }
 
 func LaunchWailsApp(app *WailsApp) {
@@ -39,6 +47,7 @@ func LaunchWailsApp(app *WailsApp) {
 		Logger: logger,
 
 		//BackgroundColour: &options.RGBA{R: 27, G: 38, B: 54, A: 1},
+		OnStartup: app.startup,
 		Bind: []interface{}{
 			app,
 		},
