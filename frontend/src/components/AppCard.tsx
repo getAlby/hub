@@ -54,7 +54,10 @@ export default function AppCard({ app, onDelete }: Props) {
               {app.requestMethods?.includes(NIP_47_PAY_INVOICE_METHOD) ? (
                 app.maxAmount > 0 ? (
                   <>
-                    <p className="mb-2">Budget Usage:</p>
+                    <p className="mb-2">
+                      Budget Usage:{" "}
+                      {new Intl.NumberFormat().format(app.budgetUsage)} sats
+                    </p>
                     <Progressbar
                       percentage={(app.budgetUsage * 100) / app.maxAmount}
                     />

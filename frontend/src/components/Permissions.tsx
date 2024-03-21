@@ -214,8 +214,16 @@ const Permissions: React.FC<PermissionsProps> = ({
                             <tr className="text-sm">
                               <td className="pr-2">Budget Allowance:</td>
                               <td>
-                                {permissions.maxAmount || "∞"} sats (
-                                {budgetUsage} sats used)
+                                {permissions.maxAmount
+                                  ? new Intl.NumberFormat().format(
+                                      permissions.maxAmount
+                                    )
+                                  : "∞"}{" "}
+                                sats (
+                                {new Intl.NumberFormat().format(
+                                  budgetUsage || 0
+                                )}{" "}
+                                sats used)
                               </td>
                             </tr>
                             <tr className="text-sm">
