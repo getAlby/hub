@@ -61,7 +61,7 @@ export function BackupMnemonic() {
     );
 
     try {
-      await request("/api/reminder", {
+      await request("/api/backup-reminder", {
         method: "PATCH",
         headers: {
           "X-CSRF-Token": csrf,

@@ -63,7 +63,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.GET("/api/info", httpSvc.infoHandler)
 	e.POST("/api/logout", httpSvc.logoutHandler)
 	e.POST("/api/setup", httpSvc.setupHandler)
-	e.PATCH("/api/reminder", httpSvc.backupReminderHandler)
+	e.PATCH("/api/backup-reminder", httpSvc.backupReminderHandler)
 
 	// allow one unlock request per second
 	unlockRateLimiter := middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(1))

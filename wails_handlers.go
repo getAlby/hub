@@ -219,7 +219,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		infoResponse := app.api.GetEncryptedMnemonic()
 		res := WailsRequestRouterResponse{Body: *infoResponse, Error: ""}
 		return res
-	case "/api/reminder":
+	case "/api/backup-reminder":
 		backupReminderRequest := &api.BackupReminderRequest{}
 		err := json.Unmarshal([]byte(body), backupReminderRequest)
 		if err != nil {
