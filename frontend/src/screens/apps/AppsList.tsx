@@ -1,16 +1,20 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-import { useApps } from "src/hooks/useApps";
-import { useInfo } from "src/hooks/useInfo";
 import Loading from "src/components/Loading";
 import SuggestedApps from "src/components/SuggestedApps";
 import AppCard from "src/components/AppCard";
 import BreezRedeem from "src/components/BreezRedeem";
+import { request } from "src/utils/request";
+import { handleRequestError } from "src/utils/handleRequestError";
+import { useCSRF } from "src/hooks/useCSRF";
+import { useApps } from "src/hooks/useApps";
+import { useInfo } from "src/hooks/useInfo";
 
 function AppsList() {
   const { data: apps, mutate: mutateApps } = useApps();
   const { data: info } = useInfo();
+  const { data: csrf } = useCSRF();
   const navigate = useNavigate();
   const [showBackupPrompt, setShowBackupPrompt] = React.useState(true);
 
@@ -22,6 +26,35 @@ function AppsList() {
     const updatedApps = apps.filter((app) => app.nostrPubkey !== nostrPubkey);
     mutateApps(updatedApps, false);
   };
+
+  async function onSkip(e: React.FormEvent) {
+    e.preventDefault();
+    if (!csrf) {
+      throw new Error("No CSRF token");
+    }
+
+    const currentDate = new Date();
+    const twoWeeksLater = new Date(
+      currentDate.setDate(currentDate.getDate() + 14)
+    );
+
+    try {
+      await request("/api/backup-reminder", {
+        method: "PATCH",
+        headers: {
+          "X-CSRF-Token": csrf,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          nextBackupReminder: twoWeeksLater.toISOString(),
+        }),
+      });
+    } catch (error) {
+      handleRequestError("Failed to skip backup", error);
+    } finally {
+      setShowBackupPrompt(false);
+    }
+  }
 
   return (
     <div className="container max-w-screen-lg mt-6">
@@ -68,7 +101,7 @@ function AppsList() {
             </div>
             <div className="py-3 px-4 flex items-center gap-4">
               <div
-                onClick={() => setShowBackupPrompt(false)}
+                onClick={onSkip}
                 className="text-center font-medium p-2.5 w-full text-sm rounded-lg text-orange-700 hover:bg-orange-100 cursor-pointer"
               >
                 Skip For Now
