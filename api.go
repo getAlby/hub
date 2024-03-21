@@ -627,9 +627,7 @@ func (api *API) GetInfo() (*models.InfoResponse, error) {
 	info.Running = api.svc.lnClient != nil
 	info.BackendType = backendType
 
-	if info.BackendType == config.LNDBackendType {
-		info.ShowBackupReminder = false
-	} else {
+	if info.BackendType != config.LNDBackendType {
 		nextBackupReminder, _ := api.svc.cfg.Get("NextBackupReminder", "")
 		var err error
 		parsedTime := time.Time{}
@@ -640,7 +638,7 @@ func (api *API) GetInfo() (*models.InfoResponse, error) {
 				return nil, err
 			}
 		}
-		info.ShowBackupReminder = (parsedTime.IsZero() || parsedTime.Before(time.Now()))
+		info.ShowBackupReminder = parsedTime.IsZero() || parsedTime.Before(time.Now())
 	}
 
 	return &info, nil
