@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 
 import { useApps } from "src/hooks/useApps";
 import { useInfo } from "src/hooks/useInfo";
-import { useCSRF } from "src/hooks/useCSRF";
 import Loading from "src/components/Loading";
 import SuggestedApps from "src/components/SuggestedApps";
 import AppCard from "src/components/AppCard";
@@ -12,7 +11,6 @@ import BreezRedeem from "src/components/BreezRedeem";
 function AppsList() {
   const { data: apps, mutate: mutateApps } = useApps();
   const { data: info } = useInfo();
-  const { data: csrf } = useCSRF();
   const navigate = useNavigate();
   const [showBackupPrompt, setShowBackupPrompt] = React.useState(true);
 
@@ -76,7 +74,7 @@ function AppsList() {
                 Skip For Now
               </div>
               <div
-                onClick={() => navigate("/mnemonic")}
+                onClick={() => navigate("/backup/mnemonic")}
                 className="text-center font-medium p-2.5 w-full text-sm rounded-lg text-orange-700 bg-orange-200 cursor-pointer hover:bg-orange-300"
               >
                 Back Up Now
@@ -85,12 +83,7 @@ function AppsList() {
           </div>
         )}
         {apps.map((app, index) => (
-          <AppCard
-            key={index}
-            app={app}
-            csrf={csrf}
-            onDelete={handleDeleteApp}
-          />
+          <AppCard key={index} app={app} onDelete={handleDeleteApp} />
         ))}
       </div>
 

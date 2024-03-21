@@ -8,9 +8,7 @@ import {
 
 import Progressbar from "src/components/ProgressBar";
 import { App, NIP_47_PAY_INVOICE_METHOD } from "src/types";
-import { request } from "src/utils/request";
-import toast from "src/components/Toast";
-import { handleRequestError } from "src/utils/handleRequestError";
+import { useDeleteApp } from "src/hooks/useDeleteApp";
 
 type Props = {
   app: App;
@@ -18,30 +16,13 @@ type Props = {
   onDelete: (nostrPubkey: string) => void;
 };
 
-export default function AppCard({ app, csrf, onDelete }: Props) {
+export default function AppCard({ app, onDelete }: Props) {
   const navigate = useNavigate();
-  const [showPopup, setShowPopup] = React.useState(false); // State to control popup visibility
-
-  const handleDelete = async () => {
-    try {
-      if (!csrf) {
-        throw new Error("No CSRF token");
-      }
-      await request(`/api/apps/${app.nostrPubkey}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRF-Token": csrf,
-        },
-      });
-      onDelete(app.nostrPubkey);
-      toast.success("App disconnected");
-    } catch (error) {
-      await handleRequestError("Failed to delete app", error);
-    } finally {
-      setShowPopup(false);
-    }
-  };
+  const [showPopup, setShowPopup] = React.useState(false);
+  const { deleteApp } = useDeleteApp((nostrPubkey: string) => {
+    setShowPopup(false);
+    onDelete(nostrPubkey);
+  });
 
   const Popup = () => (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-10 flex justify-center items-center">
@@ -66,7 +47,7 @@ export default function AppCard({ app, csrf, onDelete }: Props) {
             Cancel
           </button>
           <button
-            onClick={handleDelete}
+            onClick={() => deleteApp(app.nostrPubkey)}
             className="text-center font-medium p-2.5 w-full text-sm rounded-lg text-white bg-red-500 cursor-pointer hover:bg-red-600 whitespace-nowrap"
           >
             Confirm

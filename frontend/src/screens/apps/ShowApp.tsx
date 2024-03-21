@@ -19,6 +19,7 @@ import AppHeader from "src/components/AppHeader";
 import IconButton from "src/components/IconButton";
 
 import Permissions from "src/components/Permissions";
+import { useDeleteApp } from "src/hooks/useDeleteApp";
 
 function ShowApp() {
   const { data: info } = useInfo();
@@ -26,6 +27,7 @@ function ShowApp() {
   const { pubkey } = useParams() as { pubkey: string };
   const { data: app, mutate: refetchApp, error } = useApp(pubkey);
   const navigate = useNavigate();
+  const { deleteApp } = useDeleteApp(() => navigate("/apps"));
 
   const [editMode, setEditMode] = React.useState(false);
 
@@ -78,25 +80,6 @@ function ShowApp() {
       toast.success("Permissions updated!");
     } catch (error) {
       handleRequestError("Failed to update permissions", error);
-    }
-  };
-
-  const handleDelete = async () => {
-    try {
-      if (!csrf) {
-        throw new Error("No CSRF token");
-      }
-      await request(`/api/apps/${app.nostrPubkey}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRF-Token": csrf,
-        },
-      });
-      navigate("/apps");
-      toast.success("App disconnected");
-    } catch (error) {
-      await handleRequestError("Failed to delete app", error);
     }
   };
 
@@ -257,7 +240,7 @@ function ShowApp() {
                 <button
                   type="button"
                   className="flex-row w-full px-0 py-2 bg-white border border-red-500 text-red-500 dark:bg-surface-02dp dark:text-neutral-200 dark:border-neutral-800 hover:bg-gray-50 dark:hover:bg-surface-16dp cursor-pointer inline-flex justify-center items-center font-medium bg-origin-border shadow rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary transition duration-150"
-                  onClick={handleDelete}
+                  onClick={() => deleteApp(app.nostrPubkey)}
                 >
                   Disconnect App
                 </button>
