@@ -367,6 +367,7 @@ export default function Channels() {
                             </td>
                             <td>
                               <button
+                                className="text-sm mr-2"
                                 onClick={() =>
                                   closeChannel(
                                     channel.id,

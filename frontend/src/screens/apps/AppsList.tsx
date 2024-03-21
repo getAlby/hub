@@ -57,7 +57,7 @@ function AppsList() {
   }
 
   return (
-    <div className="container max-w-screen-lg mt-6">
+    <div className="container max-w-screen-lg">
       <BreezRedeem />
       <div className="flex flex-row-reverse">
         <Link

@@ -109,7 +109,7 @@ const NewApp = () => {
   };
 
   return (
-    <div className="container max-w-screen-lg mt-6">
+    <div className="container max-w-screen-lg">
       <form onSubmit={handleSubmit} acceptCharset="UTF-8">
         <div className="bg-white dark:bg-surface-02dp rounded-md shadow p-4 md:p-8">
           <h2 className="font-bold text-2xl font-headline mb-4 dark:text-white">
