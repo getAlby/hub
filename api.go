@@ -157,8 +157,8 @@ func (api *API) UpdateApp(userApp *App, updateAppRequest *models.UpdateAppReques
 		expiresAt = time.Date(expiresAt.Year(), expiresAt.Month(), expiresAt.Day(), 23, 59, 59, 0, expiresAt.Location())
 	}
 
-	fmt.Println(expiresAt)
 	err := api.svc.db.Transaction(func(tx *gorm.DB) error {
+		// Update existing permissions with new budget and expiry
 		err := tx.Model(&AppPermission{}).Where("app_id", userApp.ID).Updates(map[string]interface{}{
 			"ExpiresAt":     expiresAt,
 			"MaxAmount":     maxAmount,
@@ -178,9 +178,9 @@ func (api *API) UpdateApp(userApp *App, updateAppRequest *models.UpdateAppReques
 			existingMethodMap[perm.RequestMethod] = true
 		}
 
+		// Add new permissions
 		for _, method := range newRequestMethods {
 			if !existingMethodMap[method] {
-				// Add new permission
 				perm := AppPermission{
 					App:           *userApp,
 					RequestMethod: method,
@@ -192,9 +192,10 @@ func (api *API) UpdateApp(userApp *App, updateAppRequest *models.UpdateAppReques
 					return err
 				}
 			}
-			delete(existingMethodMap, method) // Remove processed methods from the map
+			delete(existingMethodMap, method)
 		}
 
+		// Remove old permissions
 		for method := range existingMethodMap {
 			if err := tx.Where("app_id = ? AND request_method = ?", userApp.ID, method).Delete(&AppPermission{}).Error; err != nil {
 				return err
@@ -627,7 +628,7 @@ func (api *API) GetInfo() (*models.InfoResponse, error) {
 	info.BackendType = backendType
 
 	if info.BackendType == config.LNDBackendType {
-		info.ShowBackupReminder = false // because otherwise it shows the popup
+		info.ShowBackupReminder = false
 	} else {
 		nextBackupReminder, _ := api.svc.cfg.Get("NextBackupReminder", "")
 		var err error
