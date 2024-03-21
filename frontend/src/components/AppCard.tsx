@@ -15,19 +15,19 @@ type Props = {
 };
 
 export default function AppCard({ app, onDelete }: Props) {
-  const [showPopup, setShowPopup] = React.useState(false);
+  const [showDeletePopup, setShowDeletePopup] = React.useState(false);
   const { deleteApp } = useDeleteApp((nostrPubkey: string) => {
-    setShowPopup(false);
+    setShowDeletePopup(false);
     onDelete(nostrPubkey);
   });
 
   return (
     <>
-      {showPopup && (
+      {showDeletePopup && (
         <DeleteConfirmationPopup
           appName={app.name}
           onConfirm={() => deleteApp(app.nostrPubkey)}
-          onCancel={() => setShowPopup(false)}
+          onCancel={() => setShowDeletePopup(false)}
         />
       )}
       <div className="rounded-2xl bg-white border flex flex-col justify-between">
@@ -76,7 +76,7 @@ export default function AppCard({ app, onDelete }: Props) {
           </Link>
           <div
             className="w-8 h-8 cursor-pointer hover:bg-red-50 hover:border-red-200 border rounded-full flex justify-center items-center"
-            onClick={() => setShowPopup(true)}
+            onClick={() => setShowDeletePopup(true)}
           >
             <PopiconsBinLine className="w-4 h-4 text-red-400" />
           </div>
