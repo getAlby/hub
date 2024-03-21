@@ -1,12 +1,10 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import gradientAvatar from "gradient-avatar";
-import {
-  PopiconsBinLine,
-  PopiconsTriangleExclamationLine,
-} from "@popicons/react";
+import { PopiconsBinLine } from "@popicons/react";
 
 import Progressbar from "src/components/ProgressBar";
+import DeleteConfirmationPopup from "src/components/DeleteConfirmationPopup";
 import { App, NIP_47_PAY_INVOICE_METHOD } from "src/types";
 import { useDeleteApp } from "src/hooks/useDeleteApp";
 
@@ -24,42 +22,15 @@ export default function AppCard({ app, onDelete }: Props) {
     onDelete(nostrPubkey);
   });
 
-  const Popup = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-10 flex justify-center items-center">
-      <div className="rounded-xl mx-2 w-full max-w-lg bg-white border flex flex-col justify-between">
-        <div className="p-4 h-full border-b flex items-center">
-          <PopiconsTriangleExclamationLine className="w-20 h-20 text-red-300" />
-          <div className="ml-4">
-            <h2 className="font-medium text-gray-800 mb-2">
-              Disconnecting <span className="font-bold">{app.name}</span>
-            </h2>
-            <p className="text-sm text-gray-500">
-              This will revoke the permission and will no longer allow calls
-              from this public key.
-            </p>
-          </div>
-        </div>
-        <div className="py-3 px-4 flex items-center gap-4">
-          <button
-            onClick={() => setShowPopup(false)}
-            className="text-center font-medium p-2.5 w-full text-sm rounded-lg text-gray-700 hover:bg-gray-100 cursor-pointer whitespace-nowrap"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={() => deleteApp(app.nostrPubkey)}
-            className="text-center font-medium p-2.5 w-full text-sm rounded-lg text-white bg-red-500 cursor-pointer hover:bg-red-600 whitespace-nowrap"
-          >
-            Confirm
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-
   return (
     <>
-      {showPopup && <Popup />}
+      {showPopup && (
+        <DeleteConfirmationPopup
+          appName={app.name}
+          onConfirm={() => deleteApp(app.nostrPubkey)}
+          onCancel={() => setShowPopup(false)}
+        />
+      )}
       <div className="rounded-2xl bg-white border flex flex-col justify-between">
         <div
           onClick={() => navigate(`/apps/${app.nostrPubkey}`)}
