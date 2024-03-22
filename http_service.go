@@ -54,8 +54,11 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	authMiddleware := httpSvc.validateUserMiddleware
 	e.GET("/api/apps", httpSvc.appsListHandler, authMiddleware)
 	e.GET("/api/apps/:pubkey", httpSvc.appsShowHandler, authMiddleware)
+	e.PATCH("/api/apps/:pubkey", httpSvc.appsUpdateHandler, authMiddleware)
 	e.DELETE("/api/apps/:pubkey", httpSvc.appsDeleteHandler, authMiddleware)
 	e.POST("/api/apps", httpSvc.appsCreateHandler, authMiddleware)
+	e.GET("/api/encrypted-mnemonic", httpSvc.encryptedMnemonicHandler, authMiddleware)
+	e.PATCH("/api/backup-reminder", httpSvc.backupReminderHandler, authMiddleware)
 
 	e.GET("/api/csrf", httpSvc.csrfHandler)
 	e.GET("/api/info", httpSvc.infoHandler)
@@ -96,9 +99,37 @@ func (httpSvc *HttpService) csrfHandler(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) infoHandler(c echo.Context) error {
-	responseBody := httpSvc.api.GetInfo()
+	responseBody, err := httpSvc.api.GetInfo()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
+		})
+	}
 	responseBody.Unlocked = httpSvc.isUnlocked(c)
 	return c.JSON(http.StatusOK, responseBody)
+}
+
+func (httpSvc *HttpService) encryptedMnemonicHandler(c echo.Context) error {
+	responseBody := httpSvc.api.GetEncryptedMnemonic()
+	return c.JSON(http.StatusOK, responseBody)
+}
+
+func (httpSvc *HttpService) backupReminderHandler(c echo.Context) error {
+	var backupReminderRequest api.BackupReminderRequest
+	if err := c.Bind(&backupReminderRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	err := httpSvc.api.SetNextBackupReminder(&backupReminderRequest)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to store backup reminder: %s", err.Error()),
+		})
+	}
+
+	return c.NoContent(http.StatusNoContent)
 }
 
 func (httpSvc *HttpService) startHandler(c echo.Context) error {
@@ -391,6 +422,35 @@ func (httpSvc *HttpService) appsShowHandler(c echo.Context) error {
 	response := httpSvc.api.GetApp(&app)
 
 	return c.JSON(http.StatusOK, response)
+}
+
+func (httpSvc *HttpService) appsUpdateHandler(c echo.Context) error {
+	var requestData api.UpdateAppRequest
+	if err := c.Bind(&requestData); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	app := App{}
+	findResult := httpSvc.svc.db.Where("nostr_pubkey = ?", c.Param("pubkey")).First(&app)
+
+	if findResult.RowsAffected == 0 {
+		return c.JSON(http.StatusNotFound, ErrorResponse{
+			Message: "App does not exist",
+		})
+	}
+
+	err := httpSvc.api.UpdateApp(&app, &requestData)
+
+	if err != nil {
+		httpSvc.svc.Logger.WithError(err).Error("Failed to update app")
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to update app: %v", err),
+		})
+	}
+
+	return c.NoContent(http.StatusNoContent)
 }
 
 func (httpSvc *HttpService) appsDeleteHandler(c echo.Context) error {

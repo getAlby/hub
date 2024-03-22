@@ -2,7 +2,7 @@ import nostrBitcoin from "src/assets/images/nostr-bitcoin.png";
 
 function About() {
   return (
-    <>
+    <div className="container max-w-screen-lg">
       <div className="bg-white rounded-md shadow p-4 lg:p-8 mb-8 dark:bg-surface-02dp">
         <h3 className="font-bold text-2xl font-headline mb-4 dark:text-white">
           tl;dr
@@ -176,7 +176,7 @@ function About() {
           />
         </p>
       </div>
-    </>
+    </div>
   );
 }
 

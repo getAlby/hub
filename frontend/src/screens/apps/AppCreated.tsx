@@ -82,11 +82,11 @@ export default function AppCreated() {
   };
 
   return (
-    <div className="w-full max-w-screen-sm mx-auto px-4 md:px-8">
+    <div className="w-full max-w-screen-sm mx-auto mt-6 md:px-4">
       <h2 className="font-bold text-2xl font-headline mb-2 dark:text-white text-center">
         🚀 Almost there!
       </h2>
-      <div className="font-medium text-center mb-8 dark:text-white">
+      <div className="font-medium text-center mb-6 dark:text-white">
         Complete the last step of the setup by pasting or scanning your
         connection's pairing secret in the desired app to finalise the
         connection.

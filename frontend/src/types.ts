@@ -1,3 +1,12 @@
+import {
+  PopiconsBoltLine,
+  PopiconsBookmarkLine,
+  PopiconsClipboardTextLine,
+  PopiconsDatabaseLine,
+  PopiconsSearchCircleLine,
+  PopiconsWalletLine,
+} from "@popicons/react";
+
 export const NIP_47_PAY_INVOICE_METHOD = "pay_invoice";
 export const NIP_47_GET_BALANCE_METHOD = "get_balance";
 export const NIP_47_GET_INFO_METHOD = "get_info";
@@ -15,12 +24,27 @@ export type RequestMethodType =
   | "lookup_invoice"
   | "list_transactions";
 
-export type BudgetRenewalType = "daily" | "weekly" | "monthly" | "yearly" | "";
+export type BudgetRenewalType =
+  | "daily"
+  | "weekly"
+  | "monthly"
+  | "yearly"
+  | "never"
+  | "";
 
 export type IconMap = {
-  [key in RequestMethodType]: (
-    props: React.SVGAttributes<SVGElement>
-  ) => JSX.Element;
+  [key in RequestMethodType]: React.FunctionComponent<
+    React.SVGProps<SVGSVGElement>
+  >;
+};
+
+export const iconMap: IconMap = {
+  [NIP_47_GET_BALANCE_METHOD]: PopiconsWalletLine,
+  [NIP_47_GET_INFO_METHOD]: PopiconsDatabaseLine,
+  [NIP_47_LIST_TRANSACTIONS_METHOD]: PopiconsBookmarkLine,
+  [NIP_47_LOOKUP_INVOICE_METHOD]: PopiconsSearchCircleLine,
+  [NIP_47_MAKE_INVOICE_METHOD]: PopiconsClipboardTextLine,
+  [NIP_47_PAY_INVOICE_METHOD]: PopiconsBoltLine,
 };
 
 export const validBudgetRenewals: BudgetRenewalType[] = [
@@ -28,7 +52,7 @@ export const validBudgetRenewals: BudgetRenewalType[] = [
   "weekly",
   "monthly",
   "yearly",
-  "",
+  "never",
 ];
 
 export const nip47MethodDescriptions: Record<RequestMethodType, string> = {
@@ -38,6 +62,22 @@ export const nip47MethodDescriptions: Record<RequestMethodType, string> = {
   [NIP_47_LOOKUP_INVOICE_METHOD]: "Lookup status of invoices",
   [NIP_47_MAKE_INVOICE_METHOD]: "Create invoices",
   [NIP_47_PAY_INVOICE_METHOD]: "Send payments",
+};
+
+export const expiryOptions: Record<string, number> = {
+  "1 week": 7,
+  "1 month": 30,
+  "1 year": 365,
+  Never: 0,
+};
+
+export const budgetOptions: Record<string, number> = {
+  "10k": 10_000,
+  "25k": 25_000,
+  "50k": 50_000,
+  "100k": 100_000,
+  "1M": 1_000_000,
+  Unlimited: 0,
 };
 
 export interface ErrorResponse {
@@ -61,6 +101,13 @@ export interface App {
   budgetRenewal: string;
 }
 
+export interface AppPermissions {
+  requestMethods: Set<RequestMethodType>;
+  maxAmount: number;
+  budgetRenewal: BudgetRenewalType;
+  expiresAt?: Date;
+}
+
 // export interface AppPermission {
 //   id: number;
 //   appId: number;
@@ -78,6 +125,11 @@ export interface InfoResponse {
   setupCompleted: boolean;
   running: boolean;
   unlocked: boolean;
+  showBackupReminder: boolean;
+}
+
+export interface MnemonicResponse {
+  mnemonic: string;
 }
 
 export interface CreateAppResponse {
@@ -148,6 +200,7 @@ export type SetupNodeInfo = Partial<{
   backendType: BackendType;
 
   mnemonic?: string;
+  nextBackupReminder?: string;
   greenlightInviteCode?: string;
   breezApiKey?: string;
 
@@ -158,4 +211,11 @@ export type SetupNodeInfo = Partial<{
 
 export type RedeemOnchainFundsResponse = {
   txId: string;
+};
+
+export type SuggestedApp = {
+  to: string;
+  title: string;
+  description: string;
+  logo?: string;
 };
