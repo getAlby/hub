@@ -37,6 +37,7 @@ function Navbar() {
                   </Link>
                 )}
                 {info?.running &&
+                  info?.unlocked &&
                   (info.backendType === "GREENLIGHT" ||
                     info.backendType === "LDK") && (
                     <Link
@@ -49,7 +50,7 @@ function Navbar() {
                       Channels
                     </Link>
                   )}
-                {info?.setupCompleted && !info.unlocked && !info.running && (
+                {info?.setupCompleted && !info.running && (
                   <Link
                     className={`${linkStyles} ${
                       location.pathname.startsWith("/start") &&
@@ -57,10 +58,21 @@ function Navbar() {
                     }`}
                     to="/start"
                   >
+                    Start
+                  </Link>
+                )}
+                {info?.setupCompleted && info.running && !info.unlocked && (
+                  <Link
+                    className={`${linkStyles} ${
+                      location.pathname.startsWith("/unlock") &&
+                      selectedLinkStyles
+                    }`}
+                    to="/unlock"
+                  >
                     Unlock
                   </Link>
                 )}
-                {!info?.running && (
+                {!info?.setupCompleted && (
                   <Link
                     className={`${linkStyles} ${
                       location.pathname.startsWith("/setup") &&
