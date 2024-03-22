@@ -509,7 +509,7 @@ func (svc *Service) HandleEvent(ctx context.Context, sub *nostr.Subscription, ev
 		nipResponse, err = svc.HandleListTransactionsEvent(ctx, nip47Request, &requestEvent, &app)
 	case NIP_47_GET_INFO_METHOD:
 		nipResponse, err = svc.HandleGetInfoEvent(ctx, nip47Request, &requestEvent, &app)
-	case "sign_message": // TODO: constant
+	case NIP_47_SIGN_MESSAGE_METHOD:
 		nipResponse, err = svc.HandleSignMessageEvent(ctx, nip47Request, &requestEvent, &app)
 	default:
 		nipResponse, err = svc.handleUnknownMethod(ctx, nip47Request)

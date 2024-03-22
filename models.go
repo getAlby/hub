@@ -20,6 +20,7 @@ const (
 	NIP_47_PAY_KEYSEND_METHOD         = "pay_keysend"
 	NIP_47_MULTI_PAY_INVOICE_METHOD   = "multi_pay_invoice"
 	NIP_47_MULTI_PAY_KEYSEND_METHOD   = "multi_pay_keysend"
+	NIP_47_SIGN_MESSAGE_METHOD        = "sign_message"
 	NIP_47_ERROR_INTERNAL             = "INTERNAL"
 	NIP_47_ERROR_NOT_IMPLEMENTED      = "NOT_IMPLEMENTED"
 	NIP_47_ERROR_QUOTA_EXCEEDED       = "QUOTA_EXCEEDED"
