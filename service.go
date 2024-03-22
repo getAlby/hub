@@ -2,31 +2,34 @@ package main
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
-	"slices"
-	"strconv"
-	"sync"
-	"time"
-
 	"database/sql"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"os/signal"
 	"path"
+	"path/filepath"
+	"slices"
+	"strconv"
+	"strings"
+	"sync"
+	"time"
 
+	"github.com/adrg/xdg"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip04"
 	"github.com/sirupsen/logrus"
 
-	"github.com/getAlby/nostr-wallet-connect/migrations"
-	"github.com/getAlby/nostr-wallet-connect/models/config"
-	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 	"github.com/glebarez/sqlite"
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/orandin/lumberjackrus"
 	"gorm.io/gorm"
+
+	"github.com/getAlby/nostr-wallet-connect/migrations"
+	"github.com/getAlby/nostr-wallet-connect/models/config"
+	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 )
 
 type Service struct {
@@ -47,6 +50,10 @@ func NewService(ctx context.Context) (*Service, error) {
 	err := envconfig.Process("", appConfig)
 	if err != nil {
 		return nil, err
+	}
+
+	if appConfig.Workdir == "" {
+		appConfig.Workdir = filepath.Join(xdg.DataHome, "/nostr-wallet-connect")
 	}
 
 	logger := logrus.New()
@@ -79,6 +86,15 @@ func NewService(ctx context.Context) (*Service, error) {
 		return nil, err
 	}
 	logger.AddHook(fileLoggerHook)
+
+	// If DATABASE_URI is a URI or a path, leave it unchanged.
+	// If it only contains a filename, prepend the workdir.
+	if !strings.HasPrefix(appConfig.DatabaseUri, "file:") {
+		databasePath, _ := filepath.Split(appConfig.DatabaseUri)
+		if databasePath == "" {
+			appConfig.DatabaseUri = filepath.Join(appConfig.Workdir, appConfig.DatabaseUri)
+		}
+	}
 
 	var db *gorm.DB
 	var sqlDb *sql.DB
