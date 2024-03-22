@@ -28,6 +28,7 @@ type LDKService struct {
 	node                *ldk_node.Node
 	ldkEventBroadcaster LDKEventBroadcaster
 	cancel              context.CancelFunc
+	network             string
 }
 
 func NewLDKService(svc *Service, mnemonic, workDir string, network string, esploraServer string, gossipSource string) (result lnclient.LNClient, err error) {
@@ -116,6 +117,7 @@ func NewLDKService(svc *Service, mnemonic, workDir string, network string, esplo
 		}
 	}()
 
+	// TODO: rename "gs" in this file
 	gs := LDKService{
 		workdir: newpath,
 		node:    node,
@@ -123,6 +125,7 @@ func NewLDKService(svc *Service, mnemonic, workDir string, network string, esplo
 		svc:                 svc,
 		cancel:              cancel,
 		ldkEventBroadcaster: NewLDKEventBroadcaster(svc.Logger, ctx, ldkEventConsumer),
+		network:             network,
 	}
 
 	nodeId := node.NodeId()
@@ -153,7 +156,7 @@ func (gs *LDKService) SendPaymentSync(ctx context.Context, payReq string) (preim
 
 	paymentHash, err := gs.node.Bolt11Payment().Send(payReq)
 	if err != nil {
-		gs.svc.Logger.Errorf("SendPayment failed: %v", err)
+		gs.svc.Logger.WithError(err).Error("SendPayment failed")
 		return "", err
 	}
 	fee := uint64(0)
@@ -355,7 +358,7 @@ func (gs *LDKService) MakeInvoice(ctx context.Context, amount int64, description
 		uint32(expiry))
 
 	if err != nil {
-		gs.svc.Logger.Errorf("MakeInvoice failed: %v", err)
+		gs.svc.Logger.WithError(err).Error("MakeInvoice failed")
 		return nil, err
 	}
 
@@ -438,13 +441,16 @@ func (gs *LDKService) ListTransactions(ctx context.Context, from, until, limit, 
 }
 
 func (gs *LDKService) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, err error) {
+	// TODO: should alias, color be configured in LDK-node? or can we manage them in NWC?
+	// an alias is only needed if the user has public channels and wants their node to be publicly visible?
+	status := gs.node.Status()
 	return &lnclient.NodeInfo{
-		// Alias:       nodeInfo.Alias,
-		// Color:       nodeInfo.Color,
-		Pubkey: gs.node.NodeId(),
-		// Network:     nodeInfo.Network,
-		// BlockHeight: nodeInfo.BlockHeight,
-		BlockHash: "",
+		Alias:       "NWC",
+		Color:       "#897FFF",
+		Pubkey:      gs.node.NodeId(),
+		Network:     gs.network,
+		BlockHeight: status.CurrentBestBlock.Height,
+		BlockHash:   status.CurrentBestBlock.BlockHash,
 	}, nil
 }
 
@@ -484,7 +490,7 @@ func (gs *LDKService) GetNodeConnectionInfo(ctx context.Context) (nodeConnection
 	}
 	port, err := strconv.Atoi(parts[1])
 	if err != nil {
-		gs.svc.Logger.Errorf("ConnectPeer failed: %v", err)
+		gs.svc.Logger.WithError(err).Error("ConnectPeer failed")
 		return nil, err
 	}*/
 
@@ -498,7 +504,7 @@ func (gs *LDKService) GetNodeConnectionInfo(ctx context.Context) (nodeConnection
 func (gs *LDKService) ConnectPeer(ctx context.Context, connectPeerRequest *lnclient.ConnectPeerRequest) error {
 	err := gs.node.Connect(connectPeerRequest.Pubkey, connectPeerRequest.Address+":"+strconv.Itoa(int(connectPeerRequest.Port)), true)
 	if err != nil {
-		gs.svc.Logger.Errorf("ConnectPeer failed: %v", err)
+		gs.svc.Logger.WithError(err).Error("ConnectPeer failed")
 		return err
 	}
 
@@ -526,7 +532,7 @@ func (gs *LDKService) OpenChannel(ctx context.Context, openChannelRequest *lncli
 	gs.svc.Logger.Infof("Opening channel with: %v", foundPeer.NodeId)
 	userChannelId, err := gs.node.ConnectOpenChannel(foundPeer.NodeId, foundPeer.Address, uint64(openChannelRequest.Amount), nil, nil, openChannelRequest.Public)
 	if err != nil {
-		gs.svc.Logger.Errorf("OpenChannel failed: %v", err)
+		gs.svc.Logger.WithError(err).Error("OpenChannel failed")
 		return nil, err
 	}
 
@@ -565,7 +571,7 @@ func (gs *LDKService) CloseChannel(ctx context.Context, closeChannelRequest *lnc
 	// TODO: support passing force option
 	err := gs.node.CloseChannel(closeChannelRequest.ChannelId, closeChannelRequest.NodeId, false)
 	if err != nil {
-		gs.svc.Logger.Errorf("CloseChannel failed: %v", err)
+		gs.svc.Logger.WithError(err).Error("CloseChannel failed")
 		return nil, err
 	}
 	return &lnclient.CloseChannelResponse{}, nil
@@ -574,7 +580,7 @@ func (gs *LDKService) CloseChannel(ctx context.Context, closeChannelRequest *lnc
 func (gs *LDKService) GetNewOnchainAddress(ctx context.Context) (string, error) {
 	address, err := gs.node.OnchainPayment().NewAddress()
 	if err != nil {
-		gs.svc.Logger.Errorf("NewOnchainAddress failed: %v", err)
+		gs.svc.Logger.WithError(err).Error("NewOnchainAddress failed")
 		return "", err
 	}
 	return address, nil
@@ -591,8 +597,13 @@ func (gs *LDKService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainB
 	}, nil
 }
 
-func (gs *LDKService) RedeemOnchainFunds(ctx context.Context, toAddress string) (txId string, err error) {
-	return "", nil
+func (gs *LDKService) RedeemOnchainFunds(ctx context.Context, toAddress string) (string, error) {
+	txId, err := gs.node.OnchainPayment().SendAllToAddress(toAddress)
+	if err != nil {
+		gs.svc.Logger.WithError(err).Error("SendAllToOnchainAddress failed")
+		return "", err
+	}
+	return txId, nil
 }
 
 func (ls *LDKService) ResetRouter(ctx context.Context) error {

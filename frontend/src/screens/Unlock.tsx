@@ -33,7 +33,7 @@ export default function Unlock() {
       if (!csrf) {
         throw new Error("info not loaded");
       }
-      const res = await request("/api/unlock", {
+      await request("/api/unlock", {
         method: "POST",
         headers: {
           "X-CSRF-Token": csrf,
@@ -43,7 +43,6 @@ export default function Unlock() {
           unlockPassword,
         }),
       });
-      console.log({ res });
       await refetchInfo();
       navigate("/");
     } catch (error) {

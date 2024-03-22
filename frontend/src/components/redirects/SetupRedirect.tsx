@@ -12,7 +12,7 @@ export function SetupRedirect() {
     if (!info) {
       return;
     }
-    if (info.running && !info.unlocked) {
+    if (info.setupCompleted) {
       navigate("/");
     }
   }, [info, location, navigate]);

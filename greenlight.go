@@ -483,8 +483,20 @@ func (gs *GreenlightService) GetOnchainBalance(ctx context.Context) (*lnclient.O
 		Total:     (spendableBalance + pendingBalance) / 1000,
 	}, nil
 }
-func (gs *GreenlightService) RedeemOnchainFunds(ctx context.Context, toAddress string) (txId string, err error) {
-	return "", nil
+
+func (gs *GreenlightService) RedeemOnchainFunds(ctx context.Context, toAddress string) (string, error) {
+	amountAll := glalby.AmountOrAll(glalby.AmountOrAllAll{})
+	txId, err := gs.client.Withdraw(glalby.WithdrawRequest{
+		Destination: toAddress,
+		Amount:      &amountAll,
+	})
+	if err != nil {
+		gs.svc.Logger.WithError(err).Error("Withdraw failed")
+		return "", err
+	}
+	gs.svc.Logger.WithField("txId", txId).Info("Redeeming on chain funds")
+
+	return txId.Txid, nil
 }
 
 func (gs *GreenlightService) SendPaymentProbes(ctx context.Context, invoice string) error {
