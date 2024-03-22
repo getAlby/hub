@@ -661,6 +661,16 @@ func (api *API) Start(startRequest *models.StartRequest) error {
 }
 
 func (api *API) Setup(setupRequest *models.SetupRequest) error {
+	info, err := api.GetInfo()
+	if err != nil {
+		api.svc.Logger.WithError(err).Error("Failed to get info")
+		return err
+	}
+	if info.SetupCompleted {
+		api.svc.Logger.Error("Cannot re-setup node")
+		return errors.New("setup already completed")
+	}
+
 	api.svc.cfg.SavePasswordCheck(setupRequest.UnlockPassword)
 
 	// update next backup reminder
