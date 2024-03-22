@@ -15,7 +15,7 @@ function Navbar() {
   return (
     <>
       <div className="bg-gray-50 dark:bg-surface-00dp">
-        <div className="bg-white border-b border-gray-200 dark:bg-surface-01dp dark:border-neutral-700 mb-6">
+        <div className="bg-white border-b border-gray-200 dark:bg-surface-01dp dark:border-neutral-700">
           <nav className="container relative max-w-screen-lg mx-auto px-4 2xl:px-0 py-3">
             <Link
               to="/"
@@ -37,6 +37,7 @@ function Navbar() {
                   </Link>
                 )}
                 {info?.running &&
+                  info?.unlocked &&
                   (info.backendType === "GREENLIGHT" ||
                     info.backendType === "LDK") && (
                     <Link
@@ -49,7 +50,7 @@ function Navbar() {
                       Channels
                     </Link>
                   )}
-                {info?.setupCompleted && !info.unlocked && !info.running && (
+                {info?.setupCompleted && !info.running && (
                   <Link
                     className={`${linkStyles} ${
                       location.pathname.startsWith("/start") &&
@@ -57,10 +58,21 @@ function Navbar() {
                     }`}
                     to="/start"
                   >
+                    Start
+                  </Link>
+                )}
+                {info?.setupCompleted && info.running && !info.unlocked && (
+                  <Link
+                    className={`${linkStyles} ${
+                      location.pathname.startsWith("/unlock") &&
+                      selectedLinkStyles
+                    }`}
+                    to="/unlock"
+                  >
                     Unlock
                   </Link>
                 )}
-                {!info?.running && (
+                {!info?.setupCompleted && (
                   <Link
                     className={`${linkStyles} ${
                       location.pathname.startsWith("/setup") &&
@@ -84,10 +96,8 @@ function Navbar() {
           </nav>
         </div>
       </div>
-      <div className="flex justify-center">
-        <div className="container max-w-screen-lg px-2 pt-6">
-          <Outlet />
-        </div>
+      <div className="flex justify-center px-2 pt-6">
+        <Outlet />
       </div>
     </>
   );

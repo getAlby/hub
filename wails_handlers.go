@@ -40,6 +40,22 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		case "GET":
 			app := app.api.GetApp(&userApp)
 			return WailsRequestRouterResponse{Body: app, Error: ""}
+		case "PATCH":
+			updateAppRequest := &api.UpdateAppRequest{}
+			err := json.Unmarshal([]byte(body), updateAppRequest)
+			if err != nil {
+				app.svc.Logger.WithFields(logrus.Fields{
+					"route":  route,
+					"method": method,
+					"body":   body,
+				}).Errorf("Failed to decode request to wails router: %v", err)
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
+			err = app.api.UpdateApp(&userApp, updateAppRequest)
+			if err != nil {
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
+			return WailsRequestRouterResponse{Body: nil, Error: ""}
 		case "DELETE":
 			err := app.api.DeleteApp(&userApp)
 			if err != nil {
@@ -195,10 +211,39 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		}
 		return WailsRequestRouterResponse{Body: *nodeConnectionInfo, Error: ""}
 	case "/api/info":
-		infoResponse := app.api.GetInfo()
+		infoResponse, err := app.api.GetInfo()
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
 		infoResponse.Unlocked = infoResponse.Running
 		res := WailsRequestRouterResponse{Body: *infoResponse, Error: ""}
 		return res
+	case "/api/encrypted-mnemonic":
+		infoResponse := app.api.GetEncryptedMnemonic()
+		res := WailsRequestRouterResponse{Body: *infoResponse, Error: ""}
+		return res
+	case "/api/backup-reminder":
+		backupReminderRequest := &api.BackupReminderRequest{}
+		err := json.Unmarshal([]byte(body), backupReminderRequest)
+		if err != nil {
+			app.svc.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).Errorf("Failed to decode request to wails router: %v", err)
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+
+		err = app.api.SetNextBackupReminder(backupReminderRequest)
+		if err != nil {
+			app.svc.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).Errorf("Failed to store backup reminder: %v", err)
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: nil, Error: ""}
 	case "/api/start":
 		startRequest := &api.StartRequest{}
 		err := json.Unmarshal([]byte(body), startRequest)
