@@ -2,31 +2,31 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"os"
+	"os/signal"
+	"path"
 	"slices"
 	"strconv"
 	"sync"
 	"time"
 
-	"database/sql"
-	"errors"
-	"os"
-	"os/signal"
-	"path"
-
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip04"
 	"github.com/sirupsen/logrus"
 
-	"github.com/getAlby/nostr-wallet-connect/migrations"
-	"github.com/getAlby/nostr-wallet-connect/models/config"
-	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 	"github.com/glebarez/sqlite"
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/orandin/lumberjackrus"
 	"gorm.io/gorm"
+
+	"github.com/getAlby/nostr-wallet-connect/migrations"
+	"github.com/getAlby/nostr-wallet-connect/models/config"
+	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 )
 
 type Service struct {
@@ -509,6 +509,8 @@ func (svc *Service) HandleEvent(ctx context.Context, sub *nostr.Subscription, ev
 		nipResponse, err = svc.HandleListTransactionsEvent(ctx, nip47Request, &requestEvent, &app)
 	case NIP_47_GET_INFO_METHOD:
 		nipResponse, err = svc.HandleGetInfoEvent(ctx, nip47Request, &requestEvent, &app)
+	case "sign_message": // TODO: constant
+		nipResponse, err = svc.HandleSignMessageEvent(ctx, nip47Request, &requestEvent, &app)
 	default:
 		nipResponse, err = svc.handleUnknownMethod(ctx, nip47Request)
 	}

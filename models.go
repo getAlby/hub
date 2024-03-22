@@ -211,3 +211,12 @@ type Nip47ListTransactionsParams struct {
 type Nip47ListTransactionsResponse struct {
 	Transactions []Nip47Transaction `json:"transactions"`
 }
+
+type Nip47SignMessageParams struct {
+	Message string `json:"message"`
+}
+
+type Nip47SignMessageResponse struct {
+	Message   string `json:"message"`
+	Signature string `json:"signature"`
+}
