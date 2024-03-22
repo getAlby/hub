@@ -13,6 +13,7 @@ import (
 	"time"
 
 	models "github.com/getAlby/nostr-wallet-connect/models/api"
+	"github.com/getAlby/nostr-wallet-connect/models/config"
 	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 	"github.com/getAlby/nostr-wallet-connect/models/lsp"
 	"github.com/nbd-wtf/go-nostr"
@@ -132,6 +133,82 @@ func (api *API) CreateApp(createAppRequest *models.CreateAppRequest) (*models.Cr
 	return responseBody, nil
 }
 
+func (api *API) UpdateApp(userApp *App, updateAppRequest *models.UpdateAppRequest) error {
+	maxAmount := updateAppRequest.MaxAmount
+	budgetRenewal := updateAppRequest.BudgetRenewal
+	expiry := updateAppRequest.ExpiresAt
+
+	requestMethods := updateAppRequest.RequestMethods
+	if requestMethods == "" {
+		return fmt.Errorf("won't update an app to have no request methods")
+	}
+	newRequestMethods := strings.Split(requestMethods, " ")
+
+	expiresAt := time.Time{}
+	if expiry != "" {
+		var err error
+		expiresAt, err = time.Parse(time.RFC3339, expiry)
+		if err != nil {
+			return fmt.Errorf("invalid expiresAt: %v", err)
+		}
+	}
+
+	if !expiresAt.IsZero() {
+		expiresAt = time.Date(expiresAt.Year(), expiresAt.Month(), expiresAt.Day(), 23, 59, 59, 0, expiresAt.Location())
+	}
+
+	err := api.svc.db.Transaction(func(tx *gorm.DB) error {
+		// Update existing permissions with new budget and expiry
+		err := tx.Model(&AppPermission{}).Where("app_id", userApp.ID).Updates(map[string]interface{}{
+			"ExpiresAt":     expiresAt,
+			"MaxAmount":     maxAmount,
+			"BudgetRenewal": budgetRenewal,
+		}).Error
+		if err != nil {
+			return err
+		}
+
+		var existingPermissions []AppPermission
+		if err := tx.Where("app_id = ?", userApp.ID).Find(&existingPermissions).Error; err != nil {
+			return err
+		}
+
+		existingMethodMap := make(map[string]bool)
+		for _, perm := range existingPermissions {
+			existingMethodMap[perm.RequestMethod] = true
+		}
+
+		// Add new permissions
+		for _, method := range newRequestMethods {
+			if !existingMethodMap[method] {
+				perm := AppPermission{
+					App:           *userApp,
+					RequestMethod: method,
+					ExpiresAt:     expiresAt,
+					MaxAmount:     maxAmount,
+					BudgetRenewal: budgetRenewal,
+				}
+				if err := tx.Create(&perm).Error; err != nil {
+					return err
+				}
+			}
+			delete(existingMethodMap, method)
+		}
+
+		// Remove old permissions
+		for method := range existingMethodMap {
+			if err := tx.Where("app_id = ? AND request_method = ?", userApp.ID, method).Delete(&AppPermission{}).Error; err != nil {
+				return err
+			}
+		}
+
+		// commit transaction
+		return nil
+	})
+
+	return err
+}
+
 func (api *API) DeleteApp(userApp *App) error {
 	return api.svc.db.Delete(userApp).Error
 }
@@ -190,6 +267,16 @@ func (api *API) ListApps() ([]models.App, error) {
 	apps := []App{}
 	api.svc.db.Find(&apps)
 
+	permissions := []AppPermission{}
+	api.svc.db.Find(&permissions)
+
+	permissionsMap := make(map[uint][]AppPermission)
+	for _, perm := range permissions {
+		permissionsMap[perm.AppId] = append(permissionsMap[perm.AppId], perm)
+	}
+
+	// Can also fetch last events but is unused
+
 	apiApps := []models.App{}
 	for _, userApp := range apps {
 		apiApp := models.App{
@@ -201,15 +288,18 @@ func (api *API) ListApps() ([]models.App, error) {
 			NostrPubkey: userApp.NostrPubkey,
 		}
 
-		var lastEvent RequestEvent
-		result := api.svc.db.Where("app_id = ?", userApp.ID).Order("id desc").Limit(1).Find(&lastEvent)
-		if result.Error != nil {
-			api.svc.Logger.Errorf("Failed to fetch last event %v", result.Error)
-			return nil, errors.New("failed to fetch last event")
+		for _, permission := range permissionsMap[userApp.ID] {
+			apiApp.RequestMethods = append(apiApp.RequestMethods, permission.RequestMethod)
+			apiApp.ExpiresAt = &permission.ExpiresAt
+			if permission.RequestMethod == NIP_47_PAY_INVOICE_METHOD {
+				apiApp.BudgetRenewal = permission.BudgetRenewal
+				apiApp.MaxAmount = permission.MaxAmount
+				if apiApp.MaxAmount > 0 {
+					apiApp.BudgetUsage = api.svc.GetBudgetUsage(&permission)
+				}
+			}
 		}
-		if result.RowsAffected > 0 {
-			apiApp.LastEventAt = &lastEvent.CreatedAt
-		}
+
 		apiApps = append(apiApps, apiApp)
 	}
 	return apiApps, nil
@@ -529,14 +619,41 @@ func (api *API) NewWrappedInvoice(request *models.NewWrappedInvoiceRequest) (*mo
 	}, nil
 }
 
-func (api *API) GetInfo() *models.InfoResponse {
+func (api *API) GetInfo() (*models.InfoResponse, error) {
 	info := models.InfoResponse{}
 	backendType, _ := api.svc.cfg.Get("LNBackendType", "")
 	unlockPasswordCheck, _ := api.svc.cfg.Get("UnlockPasswordCheck", "")
 	info.SetupCompleted = unlockPasswordCheck != ""
 	info.Running = api.svc.lnClient != nil
 	info.BackendType = backendType
-	return &info
+
+	if info.BackendType != config.LNDBackendType {
+		nextBackupReminder, _ := api.svc.cfg.Get("NextBackupReminder", "")
+		var err error
+		parsedTime := time.Time{}
+		if nextBackupReminder != "" {
+			parsedTime, err = time.Parse(time.RFC3339, nextBackupReminder)
+			if err != nil {
+				api.svc.Logger.Errorf("Error parsing time: %v", err)
+				return nil, err
+			}
+		}
+		info.ShowBackupReminder = parsedTime.IsZero() || parsedTime.Before(time.Now())
+	}
+
+	return &info, nil
+}
+
+func (api *API) GetEncryptedMnemonic() *models.EncryptedMnemonicResponse {
+	resp := models.EncryptedMnemonicResponse{}
+	mnemonic, _ := api.svc.cfg.Get("Mnemonic", "")
+	resp.Mnemonic = mnemonic
+	return &resp
+}
+
+func (api *API) SetNextBackupReminder(backupReminderRequest *models.BackupReminderRequest) error {
+	api.svc.cfg.SetUpdate("NextBackupReminder", backupReminderRequest.NextBackupReminder, "")
+	return nil
 }
 
 func (api *API) Start(startRequest *models.StartRequest) error {
@@ -544,8 +661,20 @@ func (api *API) Start(startRequest *models.StartRequest) error {
 }
 
 func (api *API) Setup(setupRequest *models.SetupRequest) error {
+	info, err := api.GetInfo()
+	if err != nil {
+		api.svc.Logger.WithError(err).Error("Failed to get info")
+		return err
+	}
+	if info.SetupCompleted {
+		api.svc.Logger.Error("Cannot re-setup node")
+		return errors.New("setup already completed")
+	}
+
 	api.svc.cfg.SavePasswordCheck(setupRequest.UnlockPassword)
 
+	// update next backup reminder
+	api.svc.cfg.SetUpdate("NextBackupReminder", setupRequest.NextBackupReminder, "")
 	// only update non-empty values
 	if setupRequest.LNBackendType != "" {
 		api.svc.cfg.SetUpdate("LNBackendType", setupRequest.LNBackendType, "")
