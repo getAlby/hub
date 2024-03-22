@@ -21,5 +21,6 @@ type AppConfig struct {
 	LDKNetwork       string `envconfig:"LDK_NETWORK" default:"bitcoin"`
 	LDKEsploraServer string `envconfig:"LDK_ESPLORA_SERVER" default:"https://blockstream.info/api"`
 	LDKGossipSource  string `envconfig:"LDK_GOSSIP_SOURCE" default:"https://rapidsync.lightningdevkit.org/snapshot"`
+	MempoolApi       string `envconfig:"MEMPOOL_API" default:"https://mempool.space/api"`
 	LDKLogLevel      string `envconfig:"LDK_LOG_LEVEL"`
 }

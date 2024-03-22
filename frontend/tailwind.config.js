@@ -42,7 +42,7 @@ export default {
         bitcoin: "#F7931A",
         "cold-grey": "#C5C7C8",
         light: "#F4F4F4",
-        primary: "#9333ea",
+        primary: "#6366f1",
         "warm-grey": "#D2D2D1",
 
         // Material Design Surface Colors
@@ -74,6 +74,10 @@ export default {
         xs: "2px",
       },
     },
+    backgroundImage: () => ({
+      "primary-gradient": `linear-gradient(180deg, #FFDE6E 63%, #F8C455 95%)`,
+      "primary-gradient-hover": `linear-gradient(180deg, #F2D369 63%, #ECBA51 95%)`,
+    }),
     fontFamily: {
       headline: [
         '"Work Sans"',

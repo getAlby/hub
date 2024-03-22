@@ -19,6 +19,7 @@ Ideally the app runs 24/7 (on a node, VPS or always-online desktop/laptop machin
 - LND (see: lnd.go)
 - Breez (see: breez.go)
 - Greenlight (see: greenlight.go)
+- LDK (see: ldk.go)
 - want more? please open an issue.
 
 ## Installation
@@ -42,6 +43,9 @@ See [Greenlight](./README_GREENLIGHT.md)
 ### Required Software
 
 - Go
+- Node
+- NPM
+- Yarn
 
 ### Server (HTTP mode)
 
@@ -114,6 +118,22 @@ _To configure via env, the following parameters must be provided:_
 - `LND_ADDRESS`: the LND gRPC address, eg. `localhost:10009` (used with the LND backend)
 - `LND_CERT_FILE`: the location where LND's `tls.cert` file can be found (used with the LND backend)
 - `LND_MACAROON_FILE`: the location where LND's `admin.macaroon` file can be found (used with the LND backend)
+
+### LDK Backend parameters
+
+#### Testnet
+
+- `MEMPOOL_API=https://mempool.space/testnet/api`
+- `LDK_NETWORK=testnet`
+- `LDK_ESPLORA_SERVER=https://mempool.space/testnet/api`
+- `LDK_GOSSIP_SOURCE=https://rapidsync.lightningdevkit.org/testnet/snapshot`
+
+#### Mutinynet
+
+- `MEMPOOL_API=https://mutinynet.com/api`
+- `LDK_NETWORK=signet`
+- `LDK_ESPLORA_SERVER=https://mutinynet.com/api`
+- `LDK_GOSSIP_SOURCE=https://rgs.mutinynet.com/snapshot`
 
 ## Application deeplink options
 
