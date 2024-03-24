@@ -320,9 +320,19 @@ func (api *API) ResetRouter() error {
 	if err != nil {
 		return err
 	}
+
+	// Because the above method has to stop the node to reset the router,
+	// We also need to stop the lnclient and ask the user to start it again
+	return api.Stop()
+}
+
+func (api *API) Stop() error {
+	if api.svc.lnClient == nil {
+		return errors.New("LNClient not started")
+	}
 	// Shut down the lnclient
 	// The user will be forced to re-enter their unlock password to restart the node
-	err = api.svc.lnClient.Shutdown()
+	err := api.svc.lnClient.Shutdown()
 	if err == nil {
 		api.svc.lnClient = nil
 	}
