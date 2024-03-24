@@ -109,7 +109,7 @@ func (httpSvc *HttpService) csrfHandler(c echo.Context) error {
 func (httpSvc *HttpService) infoHandler(c echo.Context) error {
 	responseBody, err := httpSvc.api.GetInfo()
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
 			Message: err.Error(),
 		})
 	}
@@ -125,14 +125,14 @@ func (httpSvc *HttpService) encryptedMnemonicHandler(c echo.Context) error {
 func (httpSvc *HttpService) backupReminderHandler(c echo.Context) error {
 	var backupReminderRequest api.BackupReminderRequest
 	if err := c.Bind(&backupReminderRequest); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
+		return c.JSON(http.StatusBadRequest, models.ErrorResponse{
 			Message: fmt.Sprintf("Bad request: %s", err.Error()),
 		})
 	}
 
 	err := httpSvc.api.SetNextBackupReminder(&backupReminderRequest)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
 			Message: fmt.Sprintf("Failed to store backup reminder: %s", err.Error()),
 		})
 	}
@@ -259,7 +259,7 @@ func (httpSvc *HttpService) stopHandler(c echo.Context) error {
 	err := httpSvc.api.Stop()
 
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
 			Message: err.Error(),
 		})
 	}
@@ -449,7 +449,7 @@ func (httpSvc *HttpService) appsShowHandler(c echo.Context) error {
 func (httpSvc *HttpService) appsUpdateHandler(c echo.Context) error {
 	var requestData api.UpdateAppRequest
 	if err := c.Bind(&requestData); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
+		return c.JSON(http.StatusBadRequest, models.ErrorResponse{
 			Message: fmt.Sprintf("Bad request: %s", err.Error()),
 		})
 	}
@@ -458,7 +458,7 @@ func (httpSvc *HttpService) appsUpdateHandler(c echo.Context) error {
 	findResult := httpSvc.svc.db.Where("nostr_pubkey = ?", c.Param("pubkey")).First(&app)
 
 	if findResult.RowsAffected == 0 {
-		return c.JSON(http.StatusNotFound, ErrorResponse{
+		return c.JSON(http.StatusNotFound, models.ErrorResponse{
 			Message: "App does not exist",
 		})
 	}
@@ -467,7 +467,7 @@ func (httpSvc *HttpService) appsUpdateHandler(c echo.Context) error {
 
 	if err != nil {
 		httpSvc.svc.Logger.WithError(err).Error("Failed to update app")
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
 			Message: fmt.Sprintf("Failed to update app: %v", err),
 		})
 	}
