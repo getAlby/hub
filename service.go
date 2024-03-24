@@ -19,6 +19,8 @@ import (
 	"github.com/nbd-wtf/go-nostr/nip04"
 	"github.com/sirupsen/logrus"
 
+	alby "github.com/getAlby/nostr-wallet-connect/alby"
+	"github.com/getAlby/nostr-wallet-connect/events"
 	"github.com/getAlby/nostr-wallet-connect/migrations"
 	"github.com/getAlby/nostr-wallet-connect/models/config"
 	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
@@ -31,12 +33,14 @@ import (
 
 type Service struct {
 	// config from .env only. Fetch dynamic config from db
-	cfg      *Config
-	db       *gorm.DB
-	lnClient lnclient.LNClient
-	Logger   *logrus.Logger
-	ctx      context.Context
-	wg       *sync.WaitGroup
+	cfg          *Config
+	db           *gorm.DB
+	lnClient     lnclient.LNClient
+	Logger       *logrus.Logger
+	AlbyOAuthSvc *alby.AlbyOAuthService
+	EventLogger  events.EventLogger
+	ctx          context.Context
+	wg           *sync.WaitGroup
 }
 
 // TODO: move to service.go
@@ -96,7 +100,7 @@ func NewService(ctx context.Context) (*Service, error) {
 
 	err = migrations.Migrate(db, appConfig, logger)
 	if err != nil {
-		logger.Errorf("Failed to migrate: %v", err)
+		logger.WithError(err).Error("Failed to migrate")
 		return nil, err
 	}
 
@@ -105,14 +109,29 @@ func NewService(ctx context.Context) (*Service, error) {
 	cfg := &Config{}
 	cfg.Init(db, appConfig, logger)
 
+	albyOAuthSvc := alby.NewAlbyOauthService(logger, cfg, cfg.Env)
+	if err != nil {
+		logger.WithError(err).Error("Failed to create Alby OAuth service")
+		return nil, err
+	}
+
+	eventLogger := events.NewEventLogger(logger)
+	eventLogger.Subscribe(albyOAuthSvc)
+
 	var wg sync.WaitGroup
 	svc := &Service{
-		cfg:    cfg,
-		db:     db,
-		ctx:    ctx,
-		wg:     &wg,
-		Logger: logger,
+		cfg:          cfg,
+		db:           db,
+		ctx:          ctx,
+		wg:           &wg,
+		Logger:       logger,
+		AlbyOAuthSvc: albyOAuthSvc,
+		EventLogger:  eventLogger,
 	}
+
+	eventLogger.Log(ctx, &events.Event{
+		Event: "nwc_started",
+	})
 
 	return svc, nil
 }
@@ -165,6 +184,13 @@ func (svc *Service) launchLNBackend(encryptionKey string) error {
 		svc.Logger.Errorf("Failed to launch LN backend: %v", err)
 		return err
 	}
+
+	svc.EventLogger.Log(svc.ctx, &events.Event{
+		Event: "nwc_node_started",
+		Properties: map[string]interface{}{
+			"backend": lndBackend,
+		},
+	})
 	svc.lnClient = lnClient
 	return nil
 }

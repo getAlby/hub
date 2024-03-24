@@ -29,11 +29,10 @@ const (
 )
 
 func NewHttpService(svc *Service) *HttpService {
-	albyOAuthSvc, _ := alby.NewAlbyOauthService(svc.Logger, svc.cfg, svc.cfg.Env)
 	return &HttpService{
 		svc:         svc,
-		api:         NewAPI(svc, albyOAuthSvc),
-		albyHttpSvc: alby.NewAlbyHttpService(albyOAuthSvc, svc.Logger),
+		api:         NewAPI(svc, svc.AlbyOAuthSvc),
+		albyHttpSvc: alby.NewAlbyHttpService(svc.AlbyOAuthSvc, svc.Logger),
 	}
 }
 
