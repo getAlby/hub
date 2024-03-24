@@ -26,8 +26,9 @@ import NewBlocktankChannel from "src/screens/channels/NewBlocktankChannel";
 import NewOnchainAddress from "src/screens/onchain/NewAddress";
 import NewCustomChannel from "src/screens/channels/NewCustomChannel";
 import RecommendedChannels from "src/screens/channels/RecommendedChannels";
-import { SetupMnemonic } from "src/screens/setup/SetupMnemonic";
+import { ImportMnemonic } from "src/screens/setup/ImportMnemonic";
 import { SetupFinish } from "src/screens/setup/SetupFinish";
+import { BackupMnemonic } from "src/screens/BackupMnemonic";
 import NewInstantChannel from "src/screens/channels/NewInstantChannel";
 import FirstChannel from "src/screens/channels/FirstChannel";
 import { ChannelsRedirect } from "src/components/redirects/ChannelsRedirect";
@@ -55,9 +56,11 @@ function App() {
               <Route path="password" element={<SetupPassword />} />
               <Route path="node" element={<SetupNode />} />
               <Route path="wallet" element={<SetupWallet />} />
-              <Route path="mnemonic" element={<SetupMnemonic />} />
+              <Route path="import-mnemonic" element={<ImportMnemonic />} />
               <Route path="finish" element={<SetupFinish />} />
             </Route>
+            {/* TODO: move this under settings later */}
+            <Route path="/backup/mnemonic" element={<BackupMnemonic />} />
             <Route path="apps" element={<AppsRedirect />}>
               <Route index path="" element={<AppsList />} />
               <Route path=":pubkey" element={<ShowApp />} />

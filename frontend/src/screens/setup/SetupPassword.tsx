@@ -1,10 +1,8 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { useInfo } from "src/hooks/useInfo";
 import useSetupStore from "src/state/SetupStore";
 
 import Container from "src/components/Container";
-import Alert from "src/components/Alert";
 import toast from "src/components/Toast";
 import Input from "src/components/Input";
 import PasswordViewAdornment from "src/components/PasswordAdornment";
@@ -16,7 +14,6 @@ export function SetupPassword() {
   const [confirmPasswordVisible, setConfirmPasswordVisible] =
     React.useState(false);
   const navigate = useNavigate();
-  const { data: info } = useInfo();
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -38,12 +35,6 @@ export function SetupPassword() {
             Your unlock password will be required to access NWC from a different
             device or browser session.
           </p>
-          {info?.setupCompleted && (
-            <Alert type="warn">
-              ⚠️ Your node is already setup! only continue if you actually want
-              to change your connection settings.
-            </Alert>
-          )}
           <div className="w-full my-4">
             <label
               htmlFor="unlock-password"

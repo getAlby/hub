@@ -26,6 +26,13 @@ type ListAppsResponse struct {
 	Apps []App `json:"apps"`
 }
 
+type UpdateAppRequest struct {
+	MaxAmount      int    `json:"maxAmount"`
+	BudgetRenewal  string `json:"budgetRenewal"`
+	ExpiresAt      string `json:"expiresAt"`
+	RequestMethods string `json:"requestMethods"`
+}
+
 type CreateAppRequest struct {
 	Name           string `json:"name"`
 	Pubkey         string `json:"pubkey"`
@@ -44,12 +51,17 @@ type UnlockRequest struct {
 	UnlockPassword string `json:"unlockPassword"`
 }
 
+type BackupReminderRequest struct {
+	NextBackupReminder string `json:"nextBackupReminder"`
+}
+
 type SetupRequest struct {
 	LNBackendType string `json:"backendType"`
 
 	// Breez / Greenlight
 	Mnemonic             string `json:"mnemonic"`
 	GreenlightInviteCode string `json:"greenlightInviteCode"`
+	NextBackupReminder   string `json:"nextBackupReminder"`
 
 	// Breez fields
 	BreezAPIKey string `json:"breezApiKey"`
@@ -76,11 +88,16 @@ type User struct {
 }
 
 type InfoResponse struct {
-	BackendType    string `json:"backendType"`
-	SetupCompleted bool   `json:"setupCompleted"`
-	Running        bool   `json:"running"`
-	Unlocked       bool   `json:"unlocked"`
-	AlbyAuthUrl    string `json:"albyAuthUrl"`
+	BackendType        string `json:"backendType"`
+	SetupCompleted     bool   `json:"setupCompleted"`
+	Running            bool   `json:"running"`
+	Unlocked           bool   `json:"unlocked"`
+	AlbyAuthUrl        string `json:"albyAuthUrl"`
+	ShowBackupReminder bool   `json:"showBackupReminder"`
+}
+
+type EncryptedMnemonicResponse struct {
+	Mnemonic string `json:"mnemonic"`
 }
 
 type ConnectPeerRequest = lnclient.ConnectPeerRequest

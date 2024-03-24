@@ -25,6 +25,7 @@ type LDKService struct {
 	node                *ldk_node.Node
 	ldkEventBroadcaster LDKEventBroadcaster
 	cancel              context.CancelFunc
+	network             string
 }
 
 func NewLDKService(svc *Service, mnemonic, workDir string, network string, esploraServer string, gossipSource string) (result lnclient.LNClient, err error) {
@@ -48,9 +49,11 @@ func NewLDKService(svc *Service, mnemonic, workDir string, network string, esplo
 	config.TrustedPeers0conf = []string{
 		lsp.VoltageLSP().Pubkey,
 		lsp.OlympusLSP().Pubkey,
+		lsp.AlbyPlebsLSP().Pubkey,
 	}
 	config.AnchorChannelsConfig.TrustedPeersNoReserve = []string{
 		lsp.OlympusLSP().Pubkey,
+		lsp.AlbyPlebsLSP().Pubkey,
 	}
 
 	config.ListeningAddresses = &listeningAddresses
@@ -113,6 +116,7 @@ func NewLDKService(svc *Service, mnemonic, workDir string, network string, esplo
 		}
 	}()
 
+	// TODO: rename "gs" in this file
 	gs := LDKService{
 		workdir: newpath,
 		node:    node,
@@ -120,6 +124,7 @@ func NewLDKService(svc *Service, mnemonic, workDir string, network string, esplo
 		svc:                 svc,
 		cancel:              cancel,
 		ldkEventBroadcaster: NewLDKEventBroadcaster(svc.Logger, ctx, ldkEventConsumer),
+		network:             network,
 	}
 
 	nodeId := node.NodeId()
@@ -435,13 +440,16 @@ func (gs *LDKService) ListTransactions(ctx context.Context, from, until, limit, 
 }
 
 func (gs *LDKService) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, err error) {
+	// TODO: should alias, color be configured in LDK-node? or can we manage them in NWC?
+	// an alias is only needed if the user has public channels and wants their node to be publicly visible?
+	status := gs.node.Status()
 	return &lnclient.NodeInfo{
-		// Alias:       nodeInfo.Alias,
-		// Color:       nodeInfo.Color,
-		Pubkey: gs.node.NodeId(),
-		// Network:     nodeInfo.Network,
-		// BlockHeight: nodeInfo.BlockHeight,
-		BlockHash: "",
+		Alias:       "NWC",
+		Color:       "#897FFF",
+		Pubkey:      gs.node.NodeId(),
+		Network:     gs.network,
+		BlockHeight: status.CurrentBestBlock.Height,
+		BlockHash:   status.CurrentBestBlock.BlockHash,
 	}, nil
 }
 
