@@ -51,10 +51,6 @@ func NewService(ctx context.Context) (*Service, error) {
 		return nil, err
 	}
 
-	if appConfig.Workdir == "" {
-		appConfig.Workdir = filepath.Join(xdg.DataHome, "/alby-nwc")
-	}
-
 	logger := logrus.New()
 	logger.SetFormatter(&logrus.JSONFormatter{})
 	logger.SetOutput(os.Stdout)
@@ -64,6 +60,10 @@ func NewService(ctx context.Context) (*Service, error) {
 	}
 	logger.SetLevel(logrus.Level(logLevel))
 
+	if appConfig.Workdir == "" {
+		appConfig.Workdir = filepath.Join(xdg.DataHome, "/alby-nwc")
+		logger.WithField("workdir", appConfig.Workdir).Info("No workdir specified, using default")
+	}
 	// make sure workdir exists
 	os.MkdirAll(appConfig.Workdir, os.ModePerm)
 
