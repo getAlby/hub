@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"os/signal"
 	"path"
 	"path/filepath"
 	"slices"
@@ -115,8 +114,6 @@ func NewService(ctx context.Context) (*Service, error) {
 		logger.Errorf("Failed to migrate: %v", err)
 		return nil, err
 	}
-
-	ctx, _ = signal.NotifyContext(ctx, os.Interrupt)
 
 	cfg := &Config{}
 	cfg.Init(db, appConfig, logger)

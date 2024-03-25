@@ -35,7 +35,7 @@ type LNDWrapper struct {
 	IdentityPubkey string
 }
 
-func NewLNDclient(lndOptions LNDoptions, ctx context.Context) (result *LNDWrapper, err error) {
+func NewLNDclient(lndOptions LNDoptions) (result *LNDWrapper, err error) {
 	// Get credentials either from a hex string, a file or the system's certificate store
 	var creds credentials.TransportCredentials
 	// if a hex string is provided
