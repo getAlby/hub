@@ -334,12 +334,9 @@ func (api *API) Stop() error {
 	if api.svc.lnClient == nil {
 		return errors.New("LNClient not started")
 	}
-	// Shut down the lnclient
+	// stop the lnclient
 	// The user will be forced to re-enter their unlock password to restart the node
-	err := api.svc.lnClient.Shutdown()
-	if err == nil {
-		api.svc.lnClient = nil
-	}
+	err := api.svc.StopLNClient()
 	return err
 }
 

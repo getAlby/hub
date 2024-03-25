@@ -301,9 +301,7 @@ func (svc *AlbyOAuthService) Log(ctx context.Context, event *events.Event) error
 		return err
 	}
 
-	// FIXME: use actual URL
-	//req, err := http.NewRequest("POST", fmt.Sprintf("%s/events", svc.appConfig.AlbyAPIURL), body)
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/events", "http://localhost:3000/api"), body)
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/events", svc.appConfig.AlbyAPIURL), body)
 	if err != nil {
 		svc.logger.WithError(err).Error("Error creating request /events")
 		return err
