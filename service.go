@@ -2,31 +2,30 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"os"
+	"path"
 	"slices"
 	"strconv"
 	"sync"
 	"time"
 
-	"database/sql"
-	"errors"
-	"os"
-	"os/signal"
-	"path"
-
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip04"
 	"github.com/sirupsen/logrus"
 
-	"github.com/getAlby/nostr-wallet-connect/migrations"
-	"github.com/getAlby/nostr-wallet-connect/models/config"
-	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 	"github.com/glebarez/sqlite"
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/orandin/lumberjackrus"
 	"gorm.io/gorm"
+
+	"github.com/getAlby/nostr-wallet-connect/migrations"
+	"github.com/getAlby/nostr-wallet-connect/models/config"
+	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 )
 
 type Service struct {
@@ -99,8 +98,6 @@ func NewService(ctx context.Context) (*Service, error) {
 		logger.Errorf("Failed to migrate: %v", err)
 		return nil, err
 	}
-
-	ctx, _ = signal.NotifyContext(ctx, os.Interrupt)
 
 	cfg := &Config{}
 	cfg.Init(db, appConfig, logger)

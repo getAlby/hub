@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -12,12 +13,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/nbd-wtf/go-nostr"
+	"gorm.io/gorm"
+
 	models "github.com/getAlby/nostr-wallet-connect/models/api"
 	"github.com/getAlby/nostr-wallet-connect/models/config"
 	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 	"github.com/getAlby/nostr-wallet-connect/models/lsp"
-	"github.com/nbd-wtf/go-nostr"
-	"gorm.io/gorm"
 )
 
 type API struct {
@@ -305,18 +307,18 @@ func (api *API) ListApps() ([]models.App, error) {
 	return apiApps, nil
 }
 
-func (api *API) ListChannels() ([]lnclient.Channel, error) {
+func (api *API) ListChannels(ctx context.Context) ([]lnclient.Channel, error) {
 	if api.svc.lnClient == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	return api.svc.lnClient.ListChannels(api.svc.ctx)
+	return api.svc.lnClient.ListChannels(ctx)
 }
 
-func (api *API) ResetRouter() error {
+func (api *API) ResetRouter(ctx context.Context) error {
 	if api.svc.lnClient == nil {
 		return errors.New("LNClient not started")
 	}
-	err := api.svc.lnClient.ResetRouter(api.svc.ctx)
+	err := api.svc.lnClient.ResetRouter(ctx)
 	if err != nil {
 		return err
 	}
@@ -339,39 +341,39 @@ func (api *API) Stop() error {
 	return err
 }
 
-func (api *API) GetNodeConnectionInfo() (*lnclient.NodeConnectionInfo, error) {
+func (api *API) GetNodeConnectionInfo(ctx context.Context) (*lnclient.NodeConnectionInfo, error) {
 	if api.svc.lnClient == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	return api.svc.lnClient.GetNodeConnectionInfo(api.svc.ctx)
+	return api.svc.lnClient.GetNodeConnectionInfo(ctx)
 }
 
-func (api *API) ConnectPeer(connectPeerRequest *models.ConnectPeerRequest) error {
+func (api *API) ConnectPeer(ctx context.Context, connectPeerRequest *models.ConnectPeerRequest) error {
 	if api.svc.lnClient == nil {
 		return errors.New("LNClient not started")
 	}
-	return api.svc.lnClient.ConnectPeer(api.svc.ctx, connectPeerRequest)
+	return api.svc.lnClient.ConnectPeer(ctx, connectPeerRequest)
 }
 
-func (api *API) OpenChannel(openChannelRequest *models.OpenChannelRequest) (*models.OpenChannelResponse, error) {
+func (api *API) OpenChannel(ctx context.Context, openChannelRequest *models.OpenChannelRequest) (*models.OpenChannelResponse, error) {
 	if api.svc.lnClient == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	return api.svc.lnClient.OpenChannel(api.svc.ctx, openChannelRequest)
+	return api.svc.lnClient.OpenChannel(ctx, openChannelRequest)
 }
 
-func (api *API) CloseChannel(closeChannelRequest *models.CloseChannelRequest) (*models.CloseChannelResponse, error) {
+func (api *API) CloseChannel(ctx context.Context, closeChannelRequest *models.CloseChannelRequest) (*models.CloseChannelResponse, error) {
 	if api.svc.lnClient == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	return api.svc.lnClient.CloseChannel(api.svc.ctx, closeChannelRequest)
+	return api.svc.lnClient.CloseChannel(ctx, closeChannelRequest)
 }
 
-func (api *API) GetNewOnchainAddress() (*models.NewOnchainAddressResponse, error) {
+func (api *API) GetNewOnchainAddress(ctx context.Context) (*models.NewOnchainAddressResponse, error) {
 	if api.svc.lnClient == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	address, err := api.svc.lnClient.GetNewOnchainAddress(api.svc.ctx)
+	address, err := api.svc.lnClient.GetNewOnchainAddress(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -380,11 +382,11 @@ func (api *API) GetNewOnchainAddress() (*models.NewOnchainAddressResponse, error
 	}, nil
 }
 
-func (api *API) RedeemOnchainFunds(toAddress string) (*models.RedeemOnchainFundsResponse, error) {
+func (api *API) RedeemOnchainFunds(ctx context.Context, toAddress string) (*models.RedeemOnchainFundsResponse, error) {
 	if api.svc.lnClient == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	txId, err := api.svc.lnClient.RedeemOnchainFunds(api.svc.ctx, toAddress)
+	txId, err := api.svc.lnClient.RedeemOnchainFunds(ctx, toAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -393,11 +395,11 @@ func (api *API) RedeemOnchainFunds(toAddress string) (*models.RedeemOnchainFunds
 	}, nil
 }
 
-func (api *API) GetOnchainBalance() (*models.OnchainBalanceResponse, error) {
+func (api *API) GetOnchainBalance(ctx context.Context) (*models.OnchainBalanceResponse, error) {
 	if api.svc.lnClient == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	balance, err := api.svc.lnClient.GetOnchainBalance(api.svc.ctx)
+	balance, err := api.svc.lnClient.GetOnchainBalance(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -440,7 +442,7 @@ func (api *API) GetMempoolLightningNode(pubkey string) (interface{}, error) {
 	return jsonContent, nil
 }
 
-func (api *API) NewWrappedInvoice(request *models.NewWrappedInvoiceRequest) (*models.NewWrappedInvoiceResponse, error) {
+func (api *API) NewWrappedInvoice(ctx context.Context, request *models.NewWrappedInvoiceRequest) (*models.NewWrappedInvoiceResponse, error) {
 	var selectedLsp lsp.LSP
 	switch request.LSP {
 	case "VOLTAGE":
@@ -491,7 +493,7 @@ func (api *API) NewWrappedInvoice(request *models.NewWrappedInvoiceRequest) (*mo
 
 	api.svc.Logger.Infoln("Requesting own node info")
 
-	nodeInfo, err := api.svc.lnClient.GetInfo(api.svc.ctx)
+	nodeInfo, err := api.svc.lnClient.GetInfo(ctx)
 	if err != nil {
 		api.svc.Logger.Errorf("Failed to request own node info %v", err)
 		return nil, err
@@ -504,7 +506,7 @@ func (api *API) NewWrappedInvoice(request *models.NewWrappedInvoiceRequest) (*mo
 		return nil, errors.New("unexpected LSP connection method")
 	}
 
-	err = api.ConnectPeer(&models.ConnectPeerRequest{
+	err = api.ConnectPeer(ctx, &models.ConnectPeerRequest{
 		Pubkey:  lspInfo.Pubkey,
 		Address: lspInfo.ConnectionMethods[0].Address,
 		Port:    lspInfo.ConnectionMethods[0].Port,
@@ -568,7 +570,7 @@ func (api *API) NewWrappedInvoice(request *models.NewWrappedInvoiceRequest) (*mo
 
 	api.svc.Logger.Infoln("Requesting own invoice")
 
-	makeInvoiceResponse, err := api.svc.lnClient.MakeInvoice(api.svc.ctx, int64(request.Amount)*1000-int64(feeResponse.FeeAmountMsat), "", "", 60*60)
+	makeInvoiceResponse, err := api.svc.lnClient.MakeInvoice(ctx, int64(request.Amount)*1000-int64(feeResponse.FeeAmountMsat), "", "", 60*60)
 	if err != nil {
 		api.svc.Logger.Errorf("Failed to request own invoice %v", err)
 		return nil, fmt.Errorf("failed to request own invoice %v", err)
