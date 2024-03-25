@@ -48,3 +48,11 @@ func OlympusLSP() LSP {
 	}
 	return lsp
 }
+
+func AlbyPlebsLSP() LSP {
+	lsp := LSP{
+		Pubkey: "029ca15ad2ea3077f5f0524c4c9bc266854c14b9fc81b9cc3d6b48e2460af13f65",
+		Url:    "https://getalby.com/api/todo",
+	}
+	return lsp
+}

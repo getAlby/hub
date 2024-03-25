@@ -52,9 +52,11 @@ func NewLDKService(svc *Service, mnemonic, workDir string, network string, esplo
 	config.TrustedPeers0conf = []string{
 		lsp.VoltageLSP().Pubkey,
 		lsp.OlympusLSP().Pubkey,
+		lsp.AlbyPlebsLSP().Pubkey,
 	}
 	config.AnchorChannelsConfig.TrustedPeersNoReserve = []string{
 		lsp.OlympusLSP().Pubkey,
+		lsp.AlbyPlebsLSP().Pubkey,
 	}
 
 	config.ListeningAddresses = &listeningAddresses
