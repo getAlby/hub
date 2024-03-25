@@ -53,7 +53,7 @@ func NewService(ctx context.Context) (*Service, error) {
 	}
 
 	if appConfig.Workdir == "" {
-		appConfig.Workdir = filepath.Join(xdg.DataHome, "/nostr-wallet-connect")
+		appConfig.Workdir = filepath.Join(xdg.DataHome, "/alby-nwc")
 	}
 
 	logger := logrus.New()
