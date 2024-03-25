@@ -9,6 +9,8 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
+	"os/signal"
 	"time"
 
 	echologrus "github.com/davrux/echo-logrus/v4"
@@ -20,7 +22,7 @@ import (
 // this function will only be executed if no wails tag is set
 func main() {
 	log.Info("NWC Starting in HTTP mode")
-	ctx := context.Background()
+	ctx, _ := signal.NotifyContext(context.Background(), os.Interrupt)
 	svc, _ := NewService(ctx)
 
 	echologrus.Logger = svc.Logger
@@ -36,7 +38,7 @@ func main() {
 		}
 	}()
 	//handle graceful shutdown
-	<-svc.ctx.Done()
+	<-ctx.Done()
 	svc.Logger.Infof("Shutting down echo server...")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()

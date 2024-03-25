@@ -2,31 +2,33 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"os"
+	"path"
+	"path/filepath"
 	"slices"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
-	"database/sql"
-	"errors"
-	"os"
-	"os/signal"
-	"path"
-
+	"github.com/adrg/xdg"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip04"
 	"github.com/sirupsen/logrus"
 
-	"github.com/getAlby/nostr-wallet-connect/migrations"
-	"github.com/getAlby/nostr-wallet-connect/models/config"
-	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 	"github.com/glebarez/sqlite"
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/orandin/lumberjackrus"
 	"gorm.io/gorm"
+
+	"github.com/getAlby/nostr-wallet-connect/migrations"
+	"github.com/getAlby/nostr-wallet-connect/models/config"
+	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 )
 
 type Service struct {
@@ -58,6 +60,10 @@ func NewService(ctx context.Context) (*Service, error) {
 	}
 	logger.SetLevel(logrus.Level(logLevel))
 
+	if appConfig.Workdir == "" {
+		appConfig.Workdir = filepath.Join(xdg.DataHome, "/alby-nwc")
+		logger.WithField("workdir", appConfig.Workdir).Info("No workdir specified, using default")
+	}
 	// make sure workdir exists
 	os.MkdirAll(appConfig.Workdir, os.ModePerm)
 
@@ -80,6 +86,15 @@ func NewService(ctx context.Context) (*Service, error) {
 	}
 	logger.AddHook(fileLoggerHook)
 
+	// If DATABASE_URI is a URI or a path, leave it unchanged.
+	// If it only contains a filename, prepend the workdir.
+	if !strings.HasPrefix(appConfig.DatabaseUri, "file:") {
+		databasePath, _ := filepath.Split(appConfig.DatabaseUri)
+		if databasePath == "" {
+			appConfig.DatabaseUri = filepath.Join(appConfig.Workdir, appConfig.DatabaseUri)
+		}
+	}
+
 	var db *gorm.DB
 	var sqlDb *sql.DB
 	db, err = gorm.Open(sqlite.Open(appConfig.DatabaseUri), &gorm.Config{})
@@ -99,8 +114,6 @@ func NewService(ctx context.Context) (*Service, error) {
 		logger.Errorf("Failed to migrate: %v", err)
 		return nil, err
 	}
-
-	ctx, _ = signal.NotifyContext(ctx, os.Interrupt)
 
 	cfg := &Config{}
 	cfg.Init(db, appConfig, logger)
