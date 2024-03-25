@@ -309,7 +309,7 @@ func NewLNDService(svc *Service, lndAddress, lndCertHex, lndMacaroonHex string) 
 		Address:     lndAddress,
 		CertHex:     lndCertHex,
 		MacaroonHex: lndMacaroonHex,
-	}, svc.ctx)
+	})
 	if err != nil {
 		svc.Logger.Errorf("Failed to create new LND client %v", err)
 		return nil, err

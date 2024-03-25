@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/getAlby/nostr-wallet-connect/models/api"
 	"github.com/sirupsen/logrus"
+
+	"github.com/getAlby/nostr-wallet-connect/models/api"
 )
 
 type WailsRequestRouterResponse struct {
@@ -16,6 +17,8 @@ type WailsRequestRouterResponse struct {
 
 // TODO: make this match echo
 func (app *WailsApp) WailsRequestRouter(route string, method string, body string) WailsRequestRouterResponse {
+	ctx := app.ctx
+
 	appRegex := regexp.MustCompile(
 		`/api/apps/([0-9a-f]+)`,
 	)
@@ -116,13 +119,20 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			}).Errorf("Failed to decode request to wails router: %v", err)
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
-		closeChannelResponse, err := app.api.CloseChannel(closeChannelRequest)
+		closeChannelResponse, err := app.api.CloseChannel(ctx, closeChannelRequest)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: closeChannelResponse, Error: ""}
 	case "/api/reset-router":
-		err := app.api.ResetRouter()
+		err := app.api.ResetRouter(ctx)
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		res := WailsRequestRouterResponse{Body: nil, Error: ""}
+		return res
+	case "/api/stop":
+		err := app.api.Stop()
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
@@ -131,7 +141,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 	case "/api/channels":
 		switch method {
 		case "GET":
-			channels, err := app.api.ListChannels()
+			channels, err := app.api.ListChannels(ctx)
 			if err != nil {
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 			}
@@ -148,21 +158,21 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 				}).Errorf("Failed to decode request to wails router: %v", err)
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 			}
-			openChannelResponse, err := app.api.OpenChannel(openChannelRequest)
+			openChannelResponse, err := app.api.OpenChannel(ctx, openChannelRequest)
 			if err != nil {
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 			}
 			return WailsRequestRouterResponse{Body: openChannelResponse, Error: ""}
 		}
 	case "/api/wallet/balance":
-		balanceResponse, err := app.api.GetOnchainBalance()
+		balanceResponse, err := app.api.GetOnchainBalance(ctx)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		res := WailsRequestRouterResponse{Body: *balanceResponse, Error: ""}
 		return res
 	case "/api/wallet/new-address":
-		newAddressResponse, err := app.api.GetNewOnchainAddress()
+		newAddressResponse, err := app.api.GetNewOnchainAddress(ctx)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
@@ -180,7 +190,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 
-		redeemOnchainFundsResponse, err := app.api.RedeemOnchainFunds(redeemOnchainFundsRequest.ToAddress)
+		redeemOnchainFundsResponse, err := app.api.RedeemOnchainFunds(ctx, redeemOnchainFundsRequest.ToAddress)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
@@ -196,13 +206,13 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			}).Errorf("Failed to decode request to wails router: %v", err)
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
-		err = app.api.ConnectPeer(connectPeerRequest)
+		err = app.api.ConnectPeer(ctx, connectPeerRequest)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: nil, Error: ""}
 	case "/api/node/connection-info":
-		nodeConnectionInfo, err := app.api.GetNodeConnectionInfo()
+		nodeConnectionInfo, err := app.api.GetNodeConnectionInfo(ctx)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
