@@ -33,6 +33,7 @@ export default function MigrateAlbyFunds() {
   >();
   const [error, setError] = React.useState("");
   const [hasRequestedInvoice, setRequestedInvoice] = React.useState(false);
+  const [isOpeningChannel, setOpeningChannel] = React.useState(false);
   const navigate = useNavigate();
   const [amount, setAmount] = React.useState(0);
 
@@ -86,6 +87,7 @@ export default function MigrateAlbyFunds() {
         if (!csrf) {
           throw new Error("No csrf token");
         }
+        setOpeningChannel(true);
         await request("/api/alby/pay", {
           method: "POST",
           headers: {
@@ -98,6 +100,7 @@ export default function MigrateAlbyFunds() {
         });
       } catch (error) {
         handleRequestError("Failed to pay channel funding invoice", error);
+        setOpeningChannel(false);
       }
     },
     [csrf, wrappedInvoiceResponse]
@@ -185,10 +188,11 @@ export default function MigrateAlbyFunds() {
       </p>
       <form className="mt-16">
         <button
-          className="bg-blue-300 hover:bg-blue-200 px-8 py-4 font-bold text-lg rounded-lg"
+          className="bg-blue-300 hover:bg-blue-200 px-8 py-4 font-bold text-lg rounded-lg flex gap-2 justify-center items-center"
           onClick={payWrappedInvoice}
+          disabled={isOpeningChannel}
         >
-          Open Channel
+          Open Channel {isOpeningChannel && <Loading />}
         </button>
       </form>
     </div>
