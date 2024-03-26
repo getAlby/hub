@@ -135,6 +135,12 @@ _To configure via env, the following parameters must be provided:_
 - `LDK_ESPLORA_SERVER=https://mutinynet.com/api`
 - `LDK_GOSSIP_SOURCE=https://rgs.mutinynet.com/snapshot`
 
+### Alby OAuth
+
+Create an OAuth client at the [Alby Developer Portal](https://getalby.com/developer) and set your `ALBY_OAUTH_CLIENT_ID` and `ALBY_OAUTH_CLIENT_SECRET` in your .env. If not running locally, you'll also need to change your `BASE_URL`.
+
+> If running the React app locally, OAuth redirects will not work locally if running the react app you will need to manually change the port to 5173. **Login in Wails mode is not yet supported**
+
 ## Application deeplink options
 
 ### `/apps/new` deeplink options

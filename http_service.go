@@ -7,6 +7,7 @@ import (
 
 	echologrus "github.com/davrux/echo-logrus/v4"
 	"github.com/getAlby/nostr-wallet-connect/alby"
+	"github.com/getAlby/nostr-wallet-connect/events"
 	"github.com/getAlby/nostr-wallet-connect/frontend"
 	"github.com/getAlby/nostr-wallet-connect/models/api"
 	models "github.com/getAlby/nostr-wallet-connect/models/http"
@@ -29,11 +30,10 @@ const (
 )
 
 func NewHttpService(svc *Service) *HttpService {
-	albyOAuthSvc, _ := alby.NewAlbyOauthService(svc.Logger, svc.cfg, svc.cfg.Env)
 	return &HttpService{
 		svc:         svc,
-		api:         NewAPI(svc, albyOAuthSvc),
-		albyHttpSvc: alby.NewAlbyHttpService(albyOAuthSvc, svc.Logger),
+		api:         NewAPI(svc, svc.AlbyOAuthSvc),
+		albyHttpSvc: alby.NewAlbyHttpService(svc.AlbyOAuthSvc, svc.Logger),
 	}
 }
 
@@ -187,6 +187,10 @@ func (httpSvc *HttpService) unlockHandler(c echo.Context) error {
 			Message: fmt.Sprintf("Failed to save session: %s", err.Error()),
 		})
 	}
+
+	httpSvc.svc.EventLogger.Log(c.Request().Context(), &events.Event{
+		Event: "nwc_unlocked",
+	})
 
 	return c.NoContent(http.StatusNoContent)
 }

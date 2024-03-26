@@ -40,10 +40,8 @@ func (albyHttpSvc *AlbyHttpService) albyCallbackHandler(c echo.Context) error {
 		})
 	}
 
-	// FIXME: redirect to the correct place
-	//return c.Redirect(302, "/")
 	// FIXME: redirects will not work for wails
-	return c.Redirect(302, "http://localhost:5173/#/channels/first")
+	return c.Redirect(302, albyHttpSvc.albyOAuthSvc.appConfig.BaseUrl+"/#/channels/first")
 }
 
 func (albyHttpSvc *AlbyHttpService) albyMeHandler(c echo.Context) error {

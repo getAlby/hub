@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/getAlby/nostr-wallet-connect/events"
 	"github.com/getAlby/nostr-wallet-connect/models/config"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
@@ -40,7 +41,13 @@ type AlbyBalance struct {
 	Currency string `json:"currency"`
 }
 
-func NewAlbyOauthService(logger *logrus.Logger, kvStore config.ConfigKVStore, appConfig *config.AppConfig) (result *AlbyOAuthService, err error) {
+const (
+	ACCESS_TOKEN_KEY        = "AlbyOAuthAccessToken"
+	ACCESS_TOKEN_EXPIRY_KEY = "AlbyOAuthAccessTokenExpiry"
+	REFRESH_TOKEN_KEY       = "AlbyOAuthRefreshToken"
+)
+
+func NewAlbyOauthService(logger *logrus.Logger, kvStore config.ConfigKVStore, appConfig *config.AppConfig) *AlbyOAuthService {
 	conf := &oauth2.Config{
 		ClientID:     appConfig.AlbyClientId,
 		ClientSecret: appConfig.AlbyClientSecret,
@@ -50,7 +57,7 @@ func NewAlbyOauthService(logger *logrus.Logger, kvStore config.ConfigKVStore, ap
 			AuthURL:   appConfig.AlbyOAuthAuthUrl,
 			AuthStyle: 2, // use HTTP Basic Authorization https://pkg.go.dev/golang.org/x/oauth2#AuthStyle
 		},
-		RedirectURL: appConfig.AlbyOAuthRedirectUrl,
+		RedirectURL: appConfig.BaseUrl + "/api/alby/callback",
 	}
 
 	albyOAuthSvc := &AlbyOAuthService{
@@ -59,7 +66,7 @@ func NewAlbyOauthService(logger *logrus.Logger, kvStore config.ConfigKVStore, ap
 		kvStore:   kvStore,
 		logger:    logger,
 	}
-	return albyOAuthSvc, err
+	return albyOAuthSvc
 }
 
 func (svc *AlbyOAuthService) CallbackHandler(ctx context.Context, code string) error {
@@ -75,11 +82,9 @@ func (svc *AlbyOAuthService) CallbackHandler(ctx context.Context, code string) e
 }
 
 func (svc *AlbyOAuthService) saveToken(token *oauth2.Token) {
-	// TODO: can these be encrypted?
-	svc.logger.WithField("token", token).Info("Got token") // FIXME: remove
-	svc.kvStore.SetUpdate("AccessTokenExpiry", strconv.FormatInt(token.Expiry.Unix(), 10), "")
-	svc.kvStore.SetUpdate("AccessToken", token.AccessToken, "")
-	svc.kvStore.SetUpdate("RefreshToken", token.RefreshToken, "")
+	svc.kvStore.SetUpdate(ACCESS_TOKEN_EXPIRY_KEY, strconv.FormatInt(token.Expiry.Unix(), 10), "")
+	svc.kvStore.SetUpdate(ACCESS_TOKEN_KEY, token.AccessToken, "")
+	svc.kvStore.SetUpdate(REFRESH_TOKEN_KEY, token.RefreshToken, "")
 }
 
 var tokenMutex sync.Mutex
@@ -87,11 +92,11 @@ var tokenMutex sync.Mutex
 func (svc *AlbyOAuthService) fetchUserToken(ctx context.Context) (*oauth2.Token, error) {
 	tokenMutex.Lock()
 	defer tokenMutex.Unlock()
-	accessToken, err := svc.kvStore.Get("AccessToken", "")
+	accessToken, err := svc.kvStore.Get(ACCESS_TOKEN_KEY, "")
 	if err != nil {
 		return nil, err
 	}
-	expiry, err := svc.kvStore.Get("AccessTokenExpiry", "")
+	expiry, err := svc.kvStore.Get(ACCESS_TOKEN_EXPIRY_KEY, "")
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +104,7 @@ func (svc *AlbyOAuthService) fetchUserToken(ctx context.Context) (*oauth2.Token,
 	if err != nil {
 		return nil, err
 	}
-	refreshToken, err := svc.kvStore.Get("RefreshToken", "")
+	refreshToken, err := svc.kvStore.Get(REFRESH_TOKEN_KEY, "")
 	if err != nil {
 		return nil, err
 	}
@@ -278,8 +283,49 @@ func (svc *AlbyOAuthService) SendPayment(ctx context.Context, invoice string) er
 }
 
 func (svc *AlbyOAuthService) GetAuthUrl() string {
-	// FIXME: use env variable
-	redirectUri := "http://localhost:8080/api/alby/callback"
-	scopes := "account:read%20balance:read%20payments:send"
-	return fmt.Sprintf("%s?client_id=%s&response_type=code&redirect_uri=%s&scope=%s", svc.appConfig.AlbyOAuthAuthUrl, svc.appConfig.AlbyClientId, redirectUri, scopes)
+	return svc.oauthConf.AuthCodeURL("unused")
+}
+
+func (svc *AlbyOAuthService) Log(ctx context.Context, event *events.Event) error {
+	token, err := svc.fetchUserToken(ctx)
+	if err != nil {
+		svc.logger.WithError(err).Error("Failed to fetch user token")
+	}
+
+	client := svc.oauthConf.Client(ctx, token)
+
+	body := bytes.NewBuffer([]byte{})
+	err = json.NewEncoder(body).Encode(event)
+
+	if err != nil {
+		svc.logger.WithError(err).Error("Failed to encode request payload")
+		return err
+	}
+
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/events", svc.appConfig.AlbyAPIURL), body)
+	if err != nil {
+		svc.logger.WithError(err).Error("Error creating request /events")
+		return err
+	}
+
+	req.Header.Set("User-Agent", "NWC-next")
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		svc.logger.WithFields(logrus.Fields{
+			"event": event,
+		}).WithError(err).Error("Failed to send request to /events")
+		return err
+	}
+
+	if resp.StatusCode >= 300 {
+		svc.logger.WithFields(logrus.Fields{
+			"event":  event,
+			"status": resp.StatusCode,
+		}).Error("Request to /events returned non-success status")
+		return errors.New("request to /events returned non-success status")
+	}
+
+	return nil
 }
