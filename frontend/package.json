@@ -16,8 +16,12 @@
   "dependencies": {
     "@getalby/bitcoin-connect-react": "^3.2.2",
     "@popicons/react": "^0.0.9",
+    "@radix-ui/react-icons": "^1.3.0",
+    "@radix-ui/react-slot": "^1.0.2",
     "@scure/bip39": "^1.2.2",
     "argon2-wasm-esm": "^1.0.3",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.0",
     "gradient-avatar": "^1.0.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -25,6 +29,8 @@
     "react-qr-code": "^2.0.12",
     "react-router-dom": "^6.21.0",
     "swr": "^2.2.4",
+    "tailwind-merge": "^2.2.2",
+    "tailwindcss-animate": "^1.0.7",
     "zustand": "^4.5.0"
   },
   "devDependencies": {
