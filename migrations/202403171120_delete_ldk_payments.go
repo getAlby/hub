@@ -15,6 +15,7 @@ import (
 )
 
 // Delete LDK payments that were not migrated to the new LDK format (PaymentKind)
+// TODO: delete this sometime in the future (only affects current testers)
 func _202403171120_delete_ldk_payments(appConfig *config.AppConfig, logger *logrus.Logger) *gormigrate.Migration {
 	return &gormigrate.Migration{
 		ID: "202403171120_delete_ldk_payments",

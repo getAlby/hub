@@ -21,6 +21,17 @@ type AppConfig struct {
 	LDKNetwork       string `envconfig:"LDK_NETWORK" default:"bitcoin"`
 	LDKEsploraServer string `envconfig:"LDK_ESPLORA_SERVER" default:"https://blockstream.info/api"`
 	LDKGossipSource  string `envconfig:"LDK_GOSSIP_SOURCE" default:"https://rapidsync.lightningdevkit.org/snapshot"`
-	MempoolApi       string `envconfig:"MEMPOOL_API" default:"https://mempool.space/api"`
 	LDKLogLevel      string `envconfig:"LDK_LOG_LEVEL"`
+	MempoolApi       string `envconfig:"MEMPOOL_API" default:"https://mempool.space/api"`
+	AlbyAPIURL       string `envconfig:"ALBY_API_URL" default:"https://api.getalby.com"`
+	AlbyClientId     string `envconfig:"ALBY_OAUTH_CLIENT_ID"`
+	AlbyClientSecret string `envconfig:"ALBY_OAUTH_CLIENT_SECRET"`
+	AlbyOAuthAuthUrl string `envconfig:"ALBY_OAUTH_AUTH_URL" default:"https://getalby.com/oauth"`
+	BaseUrl          string `envconfig:"BASE_URL" default:"http://localhost:8080"`
+}
+
+type ConfigKVStore interface {
+	Get(key string, encryptionKey string) (string, error)
+	SetIgnore(key string, value string, encryptionKey string)
+	SetUpdate(key string, value string, encryptionKey string)
 }
