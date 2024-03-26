@@ -13,9 +13,9 @@ type AppConfig struct {
 	LNDAddress       string `envconfig:"LND_ADDRESS"`
 	LNDCertFile      string `envconfig:"LND_CERT_FILE"`
 	LNDMacaroonFile  string `envconfig:"LND_MACAROON_FILE"`
-	Workdir          string `envconfig:"WORK_DIR" default:".data"`
+	Workdir          string `envconfig:"WORK_DIR"`
 	Port             string `envconfig:"PORT" default:"8080"`
-	DatabaseUri      string `envconfig:"DATABASE_URI" default:".data/nwc.db"`
+	DatabaseUri      string `envconfig:"DATABASE_URI" default:"nwc.db"`
 	CookieSecret     string `envconfig:"COOKIE_SECRET"`
 	LogLevel         string `envconfig:"LOG_LEVEL"`
 	LDKNetwork       string `envconfig:"LDK_NETWORK" default:"bitcoin"`

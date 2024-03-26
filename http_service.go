@@ -8,14 +8,15 @@ import (
 	echologrus "github.com/davrux/echo-logrus/v4"
 	"github.com/getAlby/nostr-wallet-connect/alby"
 	"github.com/getAlby/nostr-wallet-connect/events"
-	"github.com/getAlby/nostr-wallet-connect/frontend"
-	"github.com/getAlby/nostr-wallet-connect/models/api"
 	models "github.com/getAlby/nostr-wallet-connect/models/http"
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"gorm.io/gorm"
+
+	"github.com/getAlby/nostr-wallet-connect/frontend"
+	"github.com/getAlby/nostr-wallet-connect/models/api"
 )
 
 type HttpService struct {
@@ -232,9 +233,9 @@ func (httpSvc *HttpService) logoutHandler(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) channelsListHandler(c echo.Context) error {
+	ctx := c.Request().Context()
 
-	// TODO: pass c.Request().Context() to API functions
-	channels, err := httpSvc.api.ListChannels()
+	channels, err := httpSvc.api.ListChannels(ctx)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
@@ -246,8 +247,9 @@ func (httpSvc *HttpService) channelsListHandler(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) resetRouterHandler(c echo.Context) error {
+	ctx := c.Request().Context()
 
-	err := httpSvc.api.ResetRouter()
+	err := httpSvc.api.ResetRouter(ctx)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
@@ -272,8 +274,9 @@ func (httpSvc *HttpService) stopHandler(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) nodeConnectionInfoHandler(c echo.Context) error {
+	ctx := c.Request().Context()
 
-	info, err := httpSvc.api.GetNodeConnectionInfo()
+	info, err := httpSvc.api.GetNodeConnectionInfo(ctx)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
@@ -285,8 +288,9 @@ func (httpSvc *HttpService) nodeConnectionInfoHandler(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) onchainBalanceHandler(c echo.Context) error {
+	ctx := c.Request().Context()
 
-	onchainBalanceResponse, err := httpSvc.api.GetOnchainBalance()
+	onchainBalanceResponse, err := httpSvc.api.GetOnchainBalance(ctx)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
@@ -316,6 +320,8 @@ func (httpSvc *HttpService) mempoolLightningNodeHandler(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) connectPeerHandler(c echo.Context) error {
+	ctx := c.Request().Context()
+
 	var connectPeerRequest api.ConnectPeerRequest
 	if err := c.Bind(&connectPeerRequest); err != nil {
 		return c.JSON(http.StatusBadRequest, models.ErrorResponse{
@@ -323,7 +329,7 @@ func (httpSvc *HttpService) connectPeerHandler(c echo.Context) error {
 		})
 	}
 
-	err := httpSvc.api.ConnectPeer(&connectPeerRequest)
+	err := httpSvc.api.ConnectPeer(ctx, &connectPeerRequest)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
@@ -335,6 +341,8 @@ func (httpSvc *HttpService) connectPeerHandler(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) openChannelHandler(c echo.Context) error {
+	ctx := c.Request().Context()
+
 	var openChannelRequest api.OpenChannelRequest
 	if err := c.Bind(&openChannelRequest); err != nil {
 		return c.JSON(http.StatusBadRequest, models.ErrorResponse{
@@ -342,7 +350,7 @@ func (httpSvc *HttpService) openChannelHandler(c echo.Context) error {
 		})
 	}
 
-	openChannelResponse, err := httpSvc.api.OpenChannel(&openChannelRequest)
+	openChannelResponse, err := httpSvc.api.OpenChannel(ctx, &openChannelRequest)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
@@ -354,6 +362,8 @@ func (httpSvc *HttpService) openChannelHandler(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) closeChannelHandler(c echo.Context) error {
+	ctx := c.Request().Context()
+
 	var closeChannelRequest api.CloseChannelRequest
 	if err := c.Bind(&closeChannelRequest); err != nil {
 		return c.JSON(http.StatusBadRequest, models.ErrorResponse{
@@ -361,7 +371,7 @@ func (httpSvc *HttpService) closeChannelHandler(c echo.Context) error {
 		})
 	}
 
-	closeChannelResponse, err := httpSvc.api.CloseChannel(&closeChannelRequest)
+	closeChannelResponse, err := httpSvc.api.CloseChannel(ctx, &closeChannelRequest)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
@@ -373,6 +383,8 @@ func (httpSvc *HttpService) closeChannelHandler(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) newWrappedInvoiceHandler(c echo.Context) error {
+	ctx := c.Request().Context()
+
 	var newWrappedInvoiceRequest api.NewWrappedInvoiceRequest
 	if err := c.Bind(&newWrappedInvoiceRequest); err != nil {
 		return c.JSON(http.StatusBadRequest, models.ErrorResponse{
@@ -380,7 +392,7 @@ func (httpSvc *HttpService) newWrappedInvoiceHandler(c echo.Context) error {
 		})
 	}
 
-	newWrappedInvoiceResponse, err := httpSvc.api.NewWrappedInvoice(&newWrappedInvoiceRequest)
+	newWrappedInvoiceResponse, err := httpSvc.api.NewWrappedInvoice(ctx, &newWrappedInvoiceRequest)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
@@ -392,7 +404,9 @@ func (httpSvc *HttpService) newWrappedInvoiceHandler(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) newOnchainAddressHandler(c echo.Context) error {
-	newAddressResponse, err := httpSvc.api.GetNewOnchainAddress()
+	ctx := c.Request().Context()
+
+	newAddressResponse, err := httpSvc.api.GetNewOnchainAddress(ctx)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
@@ -404,6 +418,8 @@ func (httpSvc *HttpService) newOnchainAddressHandler(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) redeemOnchainFundsHandler(c echo.Context) error {
+	ctx := c.Request().Context()
+
 	var redeemOnchainFundsRequest api.RedeemOnchainFundsRequest
 	if err := c.Bind(&redeemOnchainFundsRequest); err != nil {
 		return c.JSON(http.StatusBadRequest, models.ErrorResponse{
@@ -411,7 +427,7 @@ func (httpSvc *HttpService) redeemOnchainFundsHandler(c echo.Context) error {
 		})
 	}
 
-	redeemOnchainFundsResponse, err := httpSvc.api.RedeemOnchainFunds(redeemOnchainFundsRequest.ToAddress)
+	redeemOnchainFundsResponse, err := httpSvc.api.RedeemOnchainFunds(ctx, redeemOnchainFundsRequest.ToAddress)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{

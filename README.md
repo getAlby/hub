@@ -103,9 +103,9 @@ Breez SDK requires gcc to build the Breez bindings. Run `choco install mingw` an
 - `CLIENT_NOSTR_PUBKEY`: if set, this service will only listen to events authored by this public key. You can set this to your own nostr public key.
 - `RELAY`: default: "wss://relay.getalby.com/v1"
 - `COOKIE_SECRET`: a randomly generated secret string. (only needed in http mode)
-- `DATABASE_URI`: a sqlite filename. Default: .data/nwc.db
+- `DATABASE_URI`: a sqlite filename. Default: $XDG_DATA_HOME/nostr-wallet-connect/nwc.db
 - `PORT`: the port on which the app should listen on (default: 8080)
-- `WORK_DIR`: directory to store NWC data files. Default: .data
+- `WORK_DIR`: directory to store NWC data files. Default: $XDG_DATA_HOME/nostr-wallet-connect
 - `LOG_LEVEL`: log level for the application. Higher is more verbose. Default: 4 (info)
 
 ### LND Backend parameters
