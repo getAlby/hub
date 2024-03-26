@@ -92,7 +92,7 @@ var tokenMutex sync.Mutex
 func (svc *AlbyOAuthService) fetchUserToken(ctx context.Context) (*oauth2.Token, error) {
 	tokenMutex.Lock()
 	defer tokenMutex.Unlock()
-	accessToken, err := svc.kvStore.Get("AccessToken", "")
+	accessToken, err := svc.kvStore.Get(ACCESS_TOKEN_KEY, "")
 	if err != nil {
 		return nil, err
 	}
