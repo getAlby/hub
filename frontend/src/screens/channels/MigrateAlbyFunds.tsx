@@ -171,7 +171,7 @@ export default function MigrateAlbyFunds() {
         Alby service fee: {Math.floor(amount * ALBY_SERVICE_FEE)} sats
       </p>
       <p className="font-bold">
-        Alby fee reserve: {albyBalance.sats * (1 - ALBY_FEE_RESERVE)} sats
+        Alby fee reserve: {Math.floor(albyBalance.sats * ALBY_FEE_RESERVE)} sats
       </p>
       <p className="font-bold">
         Estimated Channel size: {estimatedChannelSize} sats
