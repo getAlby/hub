@@ -2,7 +2,11 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import Loading from "src/components/Loading";
 import toast from "src/components/Toast";
-import { ALBY_FEE_RESERVE, MIN_ALBY_BALANCE } from "src/constants";
+import {
+  ALBY_FEE_RESERVE,
+  ALBY_SERVICE_FEE,
+  MIN_ALBY_BALANCE,
+} from "src/constants";
 import { useAlbyBalance } from "src/hooks/useAlbyBalance";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useCSRF } from "src/hooks/useCSRF";
@@ -104,7 +108,9 @@ export default function MigrateAlbyFunds() {
       return;
     }
     setRequestedInvoice(true);
-    const _amount = albyBalance.sats - ALBY_FEE_RESERVE;
+    const _amount = Math.floor(
+      albyBalance.sats * (1 - ALBY_FEE_RESERVE) * (1 - ALBY_SERVICE_FEE)
+    );
     setAmount(_amount);
     requestWrappedInvoice(_amount);
   }, [
@@ -157,10 +163,16 @@ export default function MigrateAlbyFunds() {
     <div className="flex flex-col justify-center items-center gap-4">
       <h1 className="mt-8">Migrate Alby Account Funds</h1>
       <p className="font-bold">Alby Account Balance: {albyBalance.sats} sats</p>
+      <p className="font-bold">Invoice to pay: {amount} sats</p>
       <p className="font-bold">
         LSP fee ({DEFAULT_LSP}): {wrappedInvoiceResponse.fee} sats
       </p>
-      <p className="font-bold">Alby fee reserve: {ALBY_FEE_RESERVE} sats</p>
+      <p className="font-bold">
+        Alby service fee: {Math.floor(amount * ALBY_SERVICE_FEE)} sats
+      </p>
+      <p className="font-bold">
+        Alby fee reserve: {albyBalance.sats * (1 - ALBY_FEE_RESERVE)} sats
+      </p>
       <p className="font-bold">
         Estimated Channel size: {estimatedChannelSize} sats
       </p>
