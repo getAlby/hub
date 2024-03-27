@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/getAlby/nostr-wallet-connect/events"
 	"github.com/sirupsen/logrus"
@@ -61,7 +60,7 @@ func (svc *Service) HandlePayKeysendEvent(ctx context.Context, request *Nip47Req
 		svc.EventLogger.Log(&events.Event{
 			Event: "nwc_payment_failed",
 			Properties: map[string]interface{}{
-				"error":   fmt.Sprintf("%v", err),
+				// "error":   fmt.Sprintf("%v", err),
 				"keysend": true,
 				"amount":  payParams.Amount / 1000,
 			},
