@@ -9,17 +9,17 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (svc *Service) HandleLookupInvoiceEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App) (result *Nip47Response, err error) {
+func (svc *Service) HandleLookupInvoiceEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App) *Nip47Response {
 
 	lookupInvoiceParams := &Nip47LookupInvoiceParams{}
 	resp := svc.unmarshalRequest(request, requestEvent, app, lookupInvoiceParams)
 	if resp != nil {
-		return resp, nil
+		return resp
 	}
 
 	resp = svc.checkPermission(request, requestEvent, app, 0)
 	if resp != nil {
-		return resp, nil
+		return resp
 	}
 
 	svc.Logger.WithFields(logrus.Fields{
@@ -46,7 +46,7 @@ func (svc *Service) HandleLookupInvoiceEvent(ctx context.Context, request *Nip47
 					Code:    NIP_47_ERROR_INTERNAL,
 					Message: fmt.Sprintf("Failed to decode bolt11 invoice: %s", err.Error()),
 				},
-			}, nil
+			}
 		}
 		paymentHash = paymentRequest.PaymentHash
 	}
@@ -65,7 +65,7 @@ func (svc *Service) HandleLookupInvoiceEvent(ctx context.Context, request *Nip47
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: err.Error(),
 			},
-		}, nil
+		}
 	}
 
 	responsePayload := &Nip47LookupInvoiceResponse{
@@ -75,5 +75,5 @@ func (svc *Service) HandleLookupInvoiceEvent(ctx context.Context, request *Nip47
 	return &Nip47Response{
 		ResultType: request.Method,
 		Result:     responsePayload,
-	}, nil
+	}
 }

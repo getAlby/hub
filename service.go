@@ -546,46 +546,35 @@ func (svc *Service) HandleEvent(ctx context.Context, sub *nostr.Subscription, ev
 	// inconsistent with single methods because they publish multiple responses
 	switch nip47Request.Method {
 	case NIP_47_MULTI_PAY_INVOICE_METHOD:
-		err = svc.HandleMultiPayInvoiceEvent(ctx, nip47Request, &requestEvent, &app, publishResponse)
+		svc.HandleMultiPayInvoiceEvent(ctx, nip47Request, &requestEvent, &app, publishResponse)
 	case NIP_47_MULTI_PAY_KEYSEND_METHOD:
-		err = svc.HandleMultiPayKeysendEvent(ctx, nip47Request, &requestEvent, &app, publishResponse)
+		svc.HandleMultiPayKeysendEvent(ctx, nip47Request, &requestEvent, &app, publishResponse)
 	case NIP_47_PAY_INVOICE_METHOD:
-		nipResponse, err = svc.HandlePayInvoiceEvent(ctx, nip47Request, &requestEvent, &app)
+		nipResponse = svc.HandlePayInvoiceEvent(ctx, nip47Request, &requestEvent, &app)
 	case NIP_47_PAY_KEYSEND_METHOD:
-		nipResponse, err = svc.HandlePayKeysendEvent(ctx, nip47Request, &requestEvent, &app)
+		nipResponse = svc.HandlePayKeysendEvent(ctx, nip47Request, &requestEvent, &app)
 	// TODO: should we add a common check for permissions here
 	// after payment methods? (as they need decoded amounts)
 	case NIP_47_GET_BALANCE_METHOD:
-		nipResponse, err = svc.HandleGetBalanceEvent(ctx, nip47Request, &requestEvent, &app)
+		nipResponse = svc.HandleGetBalanceEvent(ctx, nip47Request, &requestEvent, &app)
 	case NIP_47_MAKE_INVOICE_METHOD:
-		nipResponse, err = svc.HandleMakeInvoiceEvent(ctx, nip47Request, &requestEvent, &app)
+		nipResponse = svc.HandleMakeInvoiceEvent(ctx, nip47Request, &requestEvent, &app)
 	case NIP_47_LOOKUP_INVOICE_METHOD:
-		nipResponse, err = svc.HandleLookupInvoiceEvent(ctx, nip47Request, &requestEvent, &app)
+		nipResponse = svc.HandleLookupInvoiceEvent(ctx, nip47Request, &requestEvent, &app)
 	case NIP_47_LIST_TRANSACTIONS_METHOD:
-		nipResponse, err = svc.HandleListTransactionsEvent(ctx, nip47Request, &requestEvent, &app)
+		nipResponse = svc.HandleListTransactionsEvent(ctx, nip47Request, &requestEvent, &app)
 	case NIP_47_GET_INFO_METHOD:
-		nipResponse, err = svc.HandleGetInfoEvent(ctx, nip47Request, &requestEvent, &app)
+		nipResponse = svc.HandleGetInfoEvent(ctx, nip47Request, &requestEvent, &app)
 	default:
-		nipResponse, err = svc.handleUnknownMethod(ctx, nip47Request)
-	}
-
-	if err != nil {
-		svc.Logger.WithFields(logrus.Fields{
-			"eventId":   event.ID,
-			"eventKind": event.Kind,
-		}).Errorf("Failed to handle event: %v", err)
+		nipResponse = svc.handleUnknownMethod(ctx, nip47Request)
 	}
 
 	if nipResponse != nil {
 		publishResponse(nipResponse, nostr.Tags{})
 	}
 
-	// TODO: the handlers should always publish a response and then this check is not needed
-	if err != nil {
-		requestEvent.State = REQUEST_EVENT_STATE_HANDLER_ERROR
-	} else {
-		requestEvent.State = REQUEST_EVENT_STATE_HANDLER_EXECUTED
-	}
+	requestEvent.State = REQUEST_EVENT_STATE_HANDLER_EXECUTED
+
 	err = svc.db.Save(&requestEvent).Error
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
@@ -594,13 +583,13 @@ func (svc *Service) HandleEvent(ctx context.Context, sub *nostr.Subscription, ev
 	}
 }
 
-func (svc *Service) handleUnknownMethod(ctx context.Context, request *Nip47Request) (result *Nip47Response, err error) {
+func (svc *Service) handleUnknownMethod(ctx context.Context, request *Nip47Request) *Nip47Response {
 	return &Nip47Response{
 		ResultType: request.Method,
 		Error: &Nip47Error{
 			Code:    NIP_47_ERROR_NOT_IMPLEMENTED,
 			Message: fmt.Sprintf("Unknown method: %s", request.Method),
-		}}, nil
+		}}
 }
 
 func (svc *Service) createResponse(initialEvent *nostr.Event, content interface{}, tags nostr.Tags, ss []byte) (result *nostr.Event, err error) {

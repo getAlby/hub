@@ -10,12 +10,12 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App) (result *Nip47Response, err error) {
+func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App) *Nip47Response {
 
 	payParams := &Nip47PayParams{}
 	resp := svc.unmarshalRequest(request, requestEvent, app, payParams)
 	if resp != nil {
-		return resp, nil
+		return resp
 	}
 
 	bolt11 := payParams.Invoice
@@ -35,12 +35,12 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: fmt.Sprintf("Failed to decode bolt11 invoice: %s", err.Error()),
 			},
-		}, nil
+		}
 	}
 
 	resp = svc.checkPermission(request, requestEvent, app, paymentRequest.MSatoshi)
 	if resp != nil {
-		return resp, nil
+		return resp
 	}
 
 	payment := Payment{App: *app, RequestEvent: *requestEvent, PaymentRequest: bolt11, Amount: uint(paymentRequest.MSatoshi / 1000)}
@@ -51,7 +51,7 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 			Error: &Nip47Error{
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: err.Error(),
-			}}, nil
+			}}
 	}
 
 	svc.Logger.WithFields(logrus.Fields{
@@ -81,7 +81,7 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: err.Error(),
 			},
-		}, nil
+		}
 	}
 	payment.Preimage = &preimage
 	svc.db.Save(&payment)
@@ -99,5 +99,5 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 		Result: Nip47PayResponse{
 			Preimage: preimage,
 		},
-	}, nil
+	}
 }

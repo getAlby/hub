@@ -8,28 +8,28 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (svc *Service) HandlePayKeysendEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App) (result *Nip47Response, err error) {
+func (svc *Service) HandlePayKeysendEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App) *Nip47Response {
 
 	payParams := &Nip47KeysendParams{}
 	resp := svc.unmarshalRequest(request, requestEvent, app, payParams)
 	if resp != nil {
-		return resp, nil
+		return resp
 	}
 
 	resp = svc.checkPermission(request, requestEvent, app, payParams.Amount)
 	if resp != nil {
-		return resp, nil
+		return resp
 	}
 
 	payment := Payment{App: *app, RequestEvent: *requestEvent, Amount: uint(payParams.Amount / 1000)}
-	err = svc.db.Create(&payment).Error
+	err := svc.db.Create(&payment).Error
 	if err != nil {
 		return &Nip47Response{
 			ResultType: request.Method,
 			Error: &Nip47Error{
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: err.Error(),
-			}}, nil
+			}}
 	}
 
 	svc.Logger.WithFields(logrus.Fields{
@@ -59,7 +59,7 @@ func (svc *Service) HandlePayKeysendEvent(ctx context.Context, request *Nip47Req
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: err.Error(),
 			},
-		}, nil
+		}
 	}
 	payment.Preimage = &preimage
 	svc.db.Save(&payment)
@@ -75,5 +75,5 @@ func (svc *Service) HandlePayKeysendEvent(ctx context.Context, request *Nip47Req
 		Result: Nip47PayResponse{
 			Preimage: preimage,
 		},
-	}, nil
+	}
 }

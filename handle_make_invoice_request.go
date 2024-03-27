@@ -6,17 +6,17 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App) (result *Nip47Response, err error) {
+func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App) *Nip47Response {
 
 	makeInvoiceParams := &Nip47MakeInvoiceParams{}
 	resp := svc.unmarshalRequest(request, requestEvent, app, makeInvoiceParams)
-	if result != nil {
-		return resp, nil
+	if resp != nil {
+		return resp
 	}
 
 	resp = svc.checkPermission(request, requestEvent, app, 0)
 	if resp != nil {
-		return resp, nil
+		return resp
 	}
 
 	if makeInvoiceParams.Description != "" && makeInvoiceParams.DescriptionHash != "" {
@@ -31,7 +31,7 @@ func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Re
 				Code:    NIP_47_OTHER,
 				Message: "Only one of description, description_hash can be provided",
 			},
-		}, nil
+		}
 	}
 
 	svc.Logger.WithFields(logrus.Fields{
@@ -64,7 +64,7 @@ func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Re
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: err.Error(),
 			},
-		}, nil
+		}
 	}
 
 	responsePayload := &Nip47MakeInvoiceResponse{
@@ -74,5 +74,5 @@ func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Re
 	return &Nip47Response{
 		ResultType: request.Method,
 		Result:     responsePayload,
-	}, nil
+	}
 }

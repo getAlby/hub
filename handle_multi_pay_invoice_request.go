@@ -13,16 +13,13 @@ import (
 )
 
 // TODO: pass a channel instead of publishResponse function
-func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, nostr.Tags)) (err error) {
+func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, nostr.Tags)) {
 
 	multiPayParams := &Nip47MultiPayInvoiceParams{}
 	resp := svc.unmarshalRequest(request, requestEvent, app, multiPayParams)
 	if resp != nil {
-		svc.Logger.WithFields(logrus.Fields{
-			"eventId": requestEvent.NostrId,
-		}).Errorf("Failed to process event: %v", err)
 		publishResponse(resp, nostr.Tags{})
-		return nil
+		return
 	}
 
 	var wg sync.WaitGroup
@@ -133,5 +130,5 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, request *Nip
 	}
 
 	wg.Wait()
-	return nil
+	return
 }

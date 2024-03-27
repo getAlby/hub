@@ -10,16 +10,13 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, nostr.Tags)) (err error) {
+func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, nostr.Tags)) {
 
 	multiPayParams := &Nip47MultiPayKeysendParams{}
 	resp := svc.unmarshalRequest(request, requestEvent, app, multiPayParams)
 	if resp != nil {
-		svc.Logger.WithFields(logrus.Fields{
-			"eventId": requestEvent.NostrId,
-		}).Errorf("Failed to process event: %v", err)
 		publishResponse(resp, nostr.Tags{})
-		return nil
+		return
 	}
 
 	var wg sync.WaitGroup
@@ -107,5 +104,5 @@ func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, request *Nip
 	}
 
 	wg.Wait()
-	return nil
+	return
 }

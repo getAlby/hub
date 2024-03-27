@@ -6,17 +6,17 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (svc *Service) HandleListTransactionsEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App) (result *Nip47Response, err error) {
+func (svc *Service) HandleListTransactionsEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App) *Nip47Response {
 
 	listParams := &Nip47ListTransactionsParams{}
 	resp := svc.unmarshalRequest(request, requestEvent, app, listParams)
 	if resp != nil {
-		return resp, nil
+		return resp
 	}
 
 	resp = svc.checkPermission(request, requestEvent, app, 0)
 	if resp != nil {
-		return resp, nil
+		return resp
 	}
 
 	svc.Logger.WithFields(logrus.Fields{
@@ -44,7 +44,7 @@ func (svc *Service) HandleListTransactionsEvent(ctx context.Context, request *Ni
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: err.Error(),
 			},
-		}, nil
+		}
 	}
 
 	responsePayload := &Nip47ListTransactionsResponse{
@@ -55,5 +55,5 @@ func (svc *Service) HandleListTransactionsEvent(ctx context.Context, request *Ni
 	return &Nip47Response{
 		ResultType: request.Method,
 		Result:     responsePayload,
-	}, nil
+	}
 }
