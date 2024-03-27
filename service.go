@@ -122,13 +122,14 @@ func NewService(ctx context.Context) (*Service, error) {
 	cfg := &Config{}
 	cfg.Init(db, appConfig, logger)
 
-	albyOAuthSvc := alby.NewAlbyOauthService(logger, cfg, cfg.Env)
+	eventLogger := events.NewEventLogger(logger)
+
+	albyOAuthSvc := alby.NewAlbyOauthService(logger, cfg, cfg.Env, eventLogger)
 	if err != nil {
 		logger.WithError(err).Error("Failed to create Alby OAuth service")
 		return nil, err
 	}
 
-	eventLogger := events.NewEventLogger(logger)
 	eventLogger.Subscribe(albyOAuthSvc)
 
 	var wg sync.WaitGroup
