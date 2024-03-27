@@ -150,8 +150,6 @@ func (gs *LDKService) Shutdown() error {
 }
 
 func (gs *LDKService) SendPaymentSync(ctx context.Context, invoice string) (preimage string, err error) {
-	maxSendable := gs.getMaxSendable()
-
 	paymentRequest, err := decodepay.Decodepay(invoice)
 	if err != nil {
 		gs.svc.Logger.WithFields(logrus.Fields{
@@ -161,16 +159,18 @@ func (gs *LDKService) SendPaymentSync(ctx context.Context, invoice string) (prei
 		return "", err
 	}
 
-	gs.eventLogger.Log(&events.Event{
-		Event: "nwc_send_payment",
-		Properties: map[string]interface{}{
-			"invoice":      invoice,
-			"amount":       paymentRequest.MSatoshi / 1000,
-			"max_sendable": maxSendable,
-			"num_channels": len(gs.node.ListChannels()),
-			"node_type":    config.LDKBackendType,
-		},
-	})
+	maxSendable := gs.getMaxSendable()
+	if paymentRequest.MSatoshi > maxSendable {
+		gs.eventLogger.Log(&events.Event{
+			Event: "nwc_outgoing_liquidity_required",
+			Properties: map[string]interface{}{
+				//"amount":         amount / 1000,
+				//"max_receivable": maxReceivable,
+				//"num_channels":   len(gs.node.ListChannels()),
+				"node_type": config.LDKBackendType,
+			},
+		})
+	}
 
 	paymentStart := time.Now()
 	ldkEventSubscription := gs.ldkEventBroadcaster.Subscribe()
@@ -400,15 +400,17 @@ func (gs *LDKService) MakeInvoice(ctx context.Context, amount int64, description
 
 	maxReceivable := gs.getMaxReceivable()
 
-	gs.eventLogger.Log(&events.Event{
-		Event: "nwc_make_invoice",
-		Properties: map[string]interface{}{
-			"amount":         amount / 1000,
-			"max_receivable": maxReceivable,
-			"num_channels":   len(gs.node.ListChannels()),
-			"node_type":      config.LDKBackendType,
-		},
-	})
+	if amount > maxReceivable {
+		gs.eventLogger.Log(&events.Event{
+			Event: "nwc_incoming_liquidity_required",
+			Properties: map[string]interface{}{
+				//"amount":         amount / 1000,
+				//"max_receivable": maxReceivable,
+				//"num_channels":   len(gs.node.ListChannels()),
+				"node_type": config.LDKBackendType,
+			},
+		})
+	}
 
 	// TODO: support passing description hash
 	invoice, err := gs.node.Bolt11Payment().Receive(uint64(amount),
@@ -754,15 +756,15 @@ func (ls *LDKService) logLdkEvent(ctx context.Context, event *ldk_node.Event) {
 		ls.eventLogger.Log(&events.Event{
 			Event: "nwc_channel_ready",
 			Properties: map[string]interface{}{
-				"counterparty_node_id": v.CounterpartyNodeId,
-				"node_type":            config.LDKBackendType,
+				// "counterparty_node_id": v.CounterpartyNodeId,
+				"node_type": config.LDKBackendType,
 			},
 		})
 	case ldk_node.EventChannelClosed:
 		ls.eventLogger.Log(&events.Event{
 			Event: "nwc_channel_closed",
 			Properties: map[string]interface{}{
-				"counterparty_node_id": v.CounterpartyNodeId,
+				// "counterparty_node_id": v.CounterpartyNodeId,
 				// "reason":               fmt.Sprintf("%+v", v.Reason),
 				"node_type": config.LDKBackendType,
 			},

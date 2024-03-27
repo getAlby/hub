@@ -18,10 +18,11 @@ import (
 )
 
 type AlbyOAuthService struct {
-	appConfig *config.AppConfig
-	kvStore   config.ConfigKVStore
-	oauthConf *oauth2.Config
-	logger    *logrus.Logger
+	appConfig   *config.AppConfig
+	kvStore     config.ConfigKVStore
+	oauthConf   *oauth2.Config
+	logger      *logrus.Logger
+	eventLogger events.EventLogger
 }
 
 // TODO: move to models/alby
@@ -47,7 +48,7 @@ const (
 	REFRESH_TOKEN_KEY       = "AlbyOAuthRefreshToken"
 )
 
-func NewAlbyOauthService(logger *logrus.Logger, kvStore config.ConfigKVStore, appConfig *config.AppConfig) *AlbyOAuthService {
+func NewAlbyOauthService(logger *logrus.Logger, kvStore config.ConfigKVStore, appConfig *config.AppConfig, eventLogger events.EventLogger) *AlbyOAuthService {
 	conf := &oauth2.Config{
 		ClientID:     appConfig.AlbyClientId,
 		ClientSecret: appConfig.AlbyClientSecret,
@@ -61,10 +62,11 @@ func NewAlbyOauthService(logger *logrus.Logger, kvStore config.ConfigKVStore, ap
 	}
 
 	albyOAuthSvc := &AlbyOAuthService{
-		appConfig: appConfig,
-		oauthConf: conf,
-		kvStore:   kvStore,
-		logger:    logger,
+		appConfig:   appConfig,
+		oauthConf:   conf,
+		kvStore:     kvStore,
+		logger:      logger,
+		eventLogger: eventLogger,
 	}
 	return albyOAuthSvc
 }
@@ -77,6 +79,10 @@ func (svc *AlbyOAuthService) CallbackHandler(ctx context.Context, code string) e
 	}
 
 	svc.saveToken(token)
+
+	svc.eventLogger.Log(&events.Event{
+		Event: "nwc_alby_auth_success",
+	})
 
 	return nil
 }
