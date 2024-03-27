@@ -647,7 +647,48 @@ func (svc *Service) GetMethods(app *App) []string {
 	return requestMethods
 }
 
+func (svc *Service) unmarshalRequest(request *Nip47Request, requestEvent *RequestEvent, app *App, methodParams interface{}) *Nip47Response {
+	err := json.Unmarshal(request.Params, methodParams)
+	if err != nil {
+		svc.Logger.WithFields(logrus.Fields{
+			"eventId": requestEvent.NostrId,
+			"appId":   app.ID,
+		}).Errorf("Failed to decode nostr event: %v", err)
+		return &Nip47Response{
+			ResultType: request.Method,
+			Error: &Nip47Error{
+				Code:    NIP_47_ERROR_BAD_REQUEST,
+				Message: err.Error(),
+			}}
+	}
+	return nil
+}
+
+func (svc *Service) checkPermission(request *Nip47Request, requestEvent *RequestEvent, app *App, amount int64) *Nip47Response {
+	hasPermission, code, message := svc.hasPermission(app, request.Method, amount)
+	if !hasPermission {
+		svc.Logger.WithFields(logrus.Fields{
+			"eventId": requestEvent.NostrId,
+			"appId":   app.ID,
+		}).Errorf("App does not have permission: %s %s", code, message)
+
+		return &Nip47Response{
+			ResultType: request.Method,
+			Error: &Nip47Error{
+				Code:    code,
+				Message: message,
+			},
+		}
+	}
+	return nil
+}
+
 func (svc *Service) hasPermission(app *App, requestMethod string, amount int64) (result bool, code string, message string) {
+	switch requestMethod {
+	case NIP_47_PAY_INVOICE_METHOD, NIP_47_PAY_KEYSEND_METHOD, NIP_47_MULTI_PAY_INVOICE_METHOD, NIP_47_MULTI_PAY_KEYSEND_METHOD:
+		requestMethod = NIP_47_PAY_INVOICE_METHOD
+	}
+
 	appPermission := AppPermission{}
 	findPermissionResult := svc.db.Find(&appPermission, &AppPermission{
 		AppId:         app.ID,

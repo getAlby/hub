@@ -12,20 +12,9 @@ const (
 
 func (svc *Service) HandleGetBalanceEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App) (result *Nip47Response, err error) {
 
-	hasPermission, code, message := svc.hasPermission(app, request.Method, 0)
-
-	if !hasPermission {
-		svc.Logger.WithFields(logrus.Fields{
-			"eventId": requestEvent.NostrId,
-			"appId":   app.ID,
-		}).Errorf("App does not have permission: %s %s", code, message)
-
-		return &Nip47Response{
-			ResultType: request.Method,
-			Error: &Nip47Error{
-				Code:    code,
-				Message: message,
-			}}, nil
+	resp := svc.checkPermission(request, requestEvent, app, 0)
+	if resp != nil {
+		return resp, nil
 	}
 
 	svc.Logger.WithFields(logrus.Fields{

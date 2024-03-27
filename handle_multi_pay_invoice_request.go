@@ -65,22 +65,9 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, request *Nip
 			}
 			dTag := []string{"d", invoiceDTagValue}
 
-			hasPermission, code, message := svc.hasPermission(app, NIP_47_PAY_INVOICE_METHOD, paymentRequest.MSatoshi)
-
-			if !hasPermission {
-				svc.Logger.WithFields(logrus.Fields{
-					"eventId": requestEvent.NostrId,
-					"appId":   app.ID,
-				}).Errorf("App does not have permission: %s %s", code, message)
-
-				publishResponse(&Nip47Response{
-					ResultType: request.Method,
-					Error: &Nip47Error{
-						Code:    code,
-						Message: message,
-					},
-				}, nostr.Tags{dTag})
-				return
+			resp := svc.checkPermission(request, requestEvent, app, paymentRequest.MSatoshi)
+			if resp != nil {
+				publishResponse(resp, nostr.Tags{dTag})
 			}
 
 			payment := Payment{App: *app, RequestEventId: requestEvent.ID, PaymentRequest: bolt11, Amount: uint(paymentRequest.MSatoshi / 1000)}

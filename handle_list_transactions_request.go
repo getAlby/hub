@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/sirupsen/logrus"
 )
@@ -10,30 +9,14 @@ import (
 func (svc *Service) HandleListTransactionsEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App) (result *Nip47Response, err error) {
 
 	listParams := &Nip47ListTransactionsParams{}
-	err = json.Unmarshal(request.Params, listParams)
-	if err != nil {
-		svc.Logger.WithFields(logrus.Fields{
-			"eventId": requestEvent.NostrId,
-			"appId":   app.ID,
-		}).Errorf("Failed to decode nostr event: %v", err)
-		return nil, err
+	resp := svc.unmarshalRequest(request, requestEvent, app, listParams)
+	if resp != nil {
+		return resp, nil
 	}
 
-	hasPermission, code, message := svc.hasPermission(app, request.Method, 0)
-
-	if !hasPermission {
-		svc.Logger.WithFields(logrus.Fields{
-			// TODO: log request fields from listParams
-			"eventId": requestEvent.NostrId,
-			"appId":   app.ID,
-		}).Errorf("App does not have permission: %s %s", code, message)
-
-		return &Nip47Response{
-			ResultType: request.Method,
-			Error: &Nip47Error{
-				Code:    code,
-				Message: message,
-			}}, nil
+	resp = svc.checkPermission(request, requestEvent, app, 0)
+	if resp != nil {
+		return resp, nil
 	}
 
 	svc.Logger.WithFields(logrus.Fields{

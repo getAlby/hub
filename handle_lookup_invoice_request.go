@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -12,32 +11,15 @@ import (
 
 func (svc *Service) HandleLookupInvoiceEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App) (result *Nip47Response, err error) {
 
-	// TODO: move to a shared function
-	hasPermission, code, message := svc.hasPermission(app, request.Method, 0)
-
-	if !hasPermission {
-		svc.Logger.WithFields(logrus.Fields{
-			"eventId": requestEvent.NostrId,
-			"appId":   app.ID,
-		}).Errorf("App does not have permission: %s %s", code, message)
-
-		return &Nip47Response{
-			ResultType: request.Method,
-			Error: &Nip47Error{
-				Code:    code,
-				Message: message,
-			}}, nil
+	lookupInvoiceParams := &Nip47LookupInvoiceParams{}
+	resp := svc.unmarshalRequest(request, requestEvent, app, lookupInvoiceParams)
+	if resp != nil {
+		return resp, nil
 	}
 
-	// TODO: move to a shared generic function
-	lookupInvoiceParams := &Nip47LookupInvoiceParams{}
-	err = json.Unmarshal(request.Params, lookupInvoiceParams)
-	if err != nil {
-		svc.Logger.WithFields(logrus.Fields{
-			"eventId": requestEvent.NostrId,
-			"appId":   app.ID,
-		}).Errorf("Failed to decode nostr event: %v", err)
-		return nil, err
+	resp = svc.checkPermission(request, requestEvent, app, 0)
+	if resp != nil {
+		return resp, nil
 	}
 
 	svc.Logger.WithFields(logrus.Fields{

@@ -2,39 +2,21 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/sirupsen/logrus"
 )
 
 func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App) (result *Nip47Response, err error) {
 
-	// TODO: move to a shared function
-	hasPermission, code, message := svc.hasPermission(app, request.Method, 0)
-
-	if !hasPermission {
-		svc.Logger.WithFields(logrus.Fields{
-			"eventId": requestEvent.NostrId,
-			"appId":   app.ID,
-		}).Errorf("App does not have permission: %s %s", code, message)
-
-		return &Nip47Response{
-			ResultType: request.Method,
-			Error: &Nip47Error{
-				Code:    code,
-				Message: message,
-			}}, nil
+	makeInvoiceParams := &Nip47MakeInvoiceParams{}
+	result = svc.unmarshalRequest(request, requestEvent, app, makeInvoiceParams)
+	if result != nil {
+		return result, nil
 	}
 
-	// TODO: move to a shared generic function
-	makeInvoiceParams := &Nip47MakeInvoiceParams{}
-	err = json.Unmarshal(request.Params, makeInvoiceParams)
-	if err != nil {
-		svc.Logger.WithFields(logrus.Fields{
-			"eventId": requestEvent.NostrId,
-			"appId":   app.ID,
-		}).Errorf("Failed to decode nostr event: %v", err)
-		return nil, err
+	resp := svc.checkPermission(request, requestEvent, app, 0)
+	if resp != nil {
+		return resp, nil
 	}
 
 	if makeInvoiceParams.Description != "" && makeInvoiceParams.DescriptionHash != "" {

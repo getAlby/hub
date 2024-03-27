@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"github.com/getAlby/nostr-wallet-connect/events"
@@ -12,37 +11,25 @@ import (
 func (svc *Service) HandlePayKeysendEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App) (result *Nip47Response, err error) {
 
 	payParams := &Nip47KeysendParams{}
-	err = json.Unmarshal(request.Params, payParams)
-	if err != nil {
-		svc.Logger.WithFields(logrus.Fields{
-			"eventId": requestEvent.NostrId,
-			"appId":   app.ID,
-		}).Errorf("Failed to decode nostr event: %v", err)
-		return nil, err
+	resp := svc.unmarshalRequest(request, requestEvent, app, payParams)
+	if resp != nil {
+		return resp, nil
 	}
 
-	// We use pay_invoice permissions for budget and max amount
-	hasPermission, code, message := svc.hasPermission(app, NIP_47_PAY_INVOICE_METHOD, payParams.Amount)
-
-	if !hasPermission {
-		svc.Logger.WithFields(logrus.Fields{
-			"eventId":      requestEvent.NostrId,
-			"appId":        app.ID,
-			"senderPubkey": payParams.Pubkey,
-		}).Errorf("App does not have permission: %s %s", code, message)
-
-		return &Nip47Response{
-			ResultType: request.Method,
-			Error: &Nip47Error{
-				Code:    code,
-				Message: message,
-			}}, nil
+	resp = svc.checkPermission(request, requestEvent, app, payParams.Amount)
+	if resp != nil {
+		return resp, nil
 	}
 
 	payment := Payment{App: *app, RequestEvent: *requestEvent, Amount: uint(payParams.Amount / 1000)}
-	insertPaymentResult := svc.db.Create(&payment)
-	if insertPaymentResult.Error != nil {
-		return nil, insertPaymentResult.Error
+	err = svc.db.Create(&payment).Error
+	if err != nil {
+		return &Nip47Response{
+			ResultType: request.Method,
+			Error: &Nip47Error{
+				Code:    NIP_47_ERROR_INTERNAL,
+				Message: err.Error(),
+			}}, nil
 	}
 
 	svc.Logger.WithFields(logrus.Fields{

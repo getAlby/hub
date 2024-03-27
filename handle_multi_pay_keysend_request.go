@@ -39,24 +39,9 @@ func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, request *Nip
 			}
 			dTag := []string{"d", keysendDTagValue}
 
-			// TODO: consider adding svc.requirePermission() function that handles returning response if permission is denied
-			hasPermission, code, message := svc.hasPermission(app, NIP_47_PAY_INVOICE_METHOD, keysendInfo.Amount)
-
-			if !hasPermission {
-				svc.Logger.WithFields(logrus.Fields{
-					"eventId":         requestEvent.NostrId,
-					"appId":           app.ID,
-					"recipientPubkey": keysendInfo.Pubkey,
-				}).Errorf("App does not have permission: %s %s", code, message)
-
-				publishResponse(&Nip47Response{
-					ResultType: request.Method,
-					Error: &Nip47Error{
-						Code:    code,
-						Message: message,
-					},
-				}, nostr.Tags{dTag})
-				return
+			resp := svc.checkPermission(request, requestEvent, app, keysendInfo.Amount)
+			if resp != nil {
+				publishResponse(resp, nostr.Tags{dTag})
 			}
 
 			payment := Payment{App: *app, RequestEvent: *requestEvent, Amount: uint(keysendInfo.Amount / 1000)}
