@@ -1,17 +1,17 @@
-import { Button } from "src/components/ui/button";
-import AppHeader from "src/components/AppHeader";
+import { ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
+import AppHeader from "src/components/AppHeader";
+import { Button } from "src/components/ui/button";
 import {
   Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
 } from "src/components/ui/card";
 import { Checkbox } from "src/components/ui/checkbox";
 import { Input } from "src/components/ui/input";
-import { ExternalLink } from "lucide-react";
 
 function Settings() {
   return (
@@ -26,9 +26,7 @@ function Settings() {
             General
           </Link>
           <Link to="#">General</Link>
-          <Link to="#" className="cusor-not-allowed">
-            Keys
-          </Link>
+          <Link to="/backup/mnemonic">Keys</Link>
           <Link to="#" className="cusor-not-allowed">
             Connections
           </Link>
