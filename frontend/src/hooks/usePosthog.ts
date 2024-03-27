@@ -5,7 +5,7 @@ import { useInfo } from "src/hooks/useInfo";
 export function usePosthog() {
   const { data: info } = useInfo();
   const albyUserIdentifier = info?.albyUserIdentifier;
-  const isHttpMode = info?.appMode === "HTTP";
+  const isHttpMode = window.location.protocol.startsWith("http");
 
   React.useEffect(() => {
     if (!isHttpMode || !albyUserIdentifier) {

@@ -23,7 +23,7 @@ type WailsApp struct {
 func NewApp(svc *Service) *WailsApp {
 	return &WailsApp{
 		svc: svc,
-		api: NewAPI(svc, svc.AlbyOAuthSvc, "WAILS"),
+		api: NewAPI(svc, svc.AlbyOAuthSvc),
 	}
 }
 

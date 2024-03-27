@@ -26,15 +26,13 @@ import (
 type API struct {
 	svc          *Service
 	albyOAuthSvc *alby.AlbyOAuthService
-	appMode      string
 }
 
-func NewAPI(svc *Service, albyOAuthSvc *alby.AlbyOAuthService, appMode string) *API {
+func NewAPI(svc *Service, albyOAuthSvc *alby.AlbyOAuthService) *API {
 
 	return &API{
 		svc:          svc,
 		albyOAuthSvc: albyOAuthSvc,
-		appMode:      appMode,
 	}
 }
 
@@ -643,7 +641,6 @@ func (api *API) GetInfo(ctx context.Context) (*models.InfoResponse, error) {
 	info.BackendType = backendType
 	info.AlbyAuthUrl = api.albyOAuthSvc.GetAuthUrl()
 	info.AlbyUserIdentifier = api.albyOAuthSvc.GetUserIdentifier(ctx)
-	info.AppMode = api.appMode
 
 	if info.BackendType != config.LNDBackendType {
 		nextBackupReminder, _ := api.svc.cfg.Get("NextBackupReminder", "")
