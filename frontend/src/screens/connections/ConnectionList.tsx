@@ -1,15 +1,13 @@
-import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 import { CirclePlus } from "lucide-react";
 import Loading from "src/components/Loading";
 
 import AppCard from "src/components/AppCard";
-import BreezRedeem from "src/components/BreezRedeem";
+import AppHeader from "src/components/AppHeader";
+import { Button } from "src/components/ui/button";
 import { useApps } from "src/hooks/useApps";
 import { useInfo } from "src/hooks/useInfo";
-import { Button } from "src/components/ui/button";
-import AppHeader from "src/components/AppHeader";
 
 function ConnectionList() {
   const { data: apps, mutate: mutateApps } = useApps();

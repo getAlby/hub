@@ -3,23 +3,21 @@ import { Link, useNavigate } from "react-router-dom";
 
 import Loading from "src/components/Loading";
 
-import { request } from "src/utils/request";
-import { handleRequestError } from "src/utils/handleRequestError";
-import { useCSRF } from "src/hooks/useCSRF";
-import { useApps } from "src/hooks/useApps";
-import { useInfo } from "src/hooks/useInfo";
 import AppHeader from "src/components/AppHeader";
 import BreezRedeem from "src/components/BreezRedeem";
 import { Button } from "src/components/ui/button";
+import { useCSRF } from "src/hooks/useCSRF";
+import { useInfo } from "src/hooks/useInfo";
+import { handleRequestError } from "src/utils/handleRequestError";
+import { request } from "src/utils/request";
 
 function Wallet() {
-  const { data: apps, mutate: mutateApps } = useApps();
   const { data: info } = useInfo();
   const { data: csrf } = useCSRF();
   const navigate = useNavigate();
   const [showBackupPrompt, setShowBackupPrompt] = React.useState(true);
 
-  if (!apps || !info) {
+  if (!info) {
     return <Loading />;
   }
 

@@ -10,7 +10,7 @@ import { useToast } from "src/components/ui/use-toast";
 
 export default function Unlock() {
   const [unlockPassword, setUnlockPassword] = React.useState("");
-  const [loading, setLoading] = React.useState(false);
+  const [setLoading] = React.useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { data: csrf } = useCSRF();
