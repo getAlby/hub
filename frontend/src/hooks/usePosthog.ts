@@ -12,11 +12,13 @@ export function usePosthog() {
       return;
     }
     posthog.init("phc_W6d0RRrgfXiYX0pcFBdQHp4mC8HWgUdKQpDZkJYEAiD", {
-      api_host: "ph.albylabs.com",
-      secure_cookie: true,
-      persistence: "cookie",
-      capture_pageview: false,
+      api_host: "https://ph.albylabs.com",
       autocapture: false,
+      capture_pageview: false,
+      persistence: "cookie",
+      disable_session_recording: true,
+      opt_in_site_apps: true,
+      secure_cookie: true,
       session_recording: {
         maskAllInputs: true,
         maskTextSelector: ".sensitive",
