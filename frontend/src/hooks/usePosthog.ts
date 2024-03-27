@@ -15,7 +15,7 @@ export function usePosthog() {
       api_host: "https://ph.albylabs.com",
       autocapture: false,
       capture_pageview: false,
-      persistence: "cookie",
+      persistence: "localStorage+cookie",
       disable_session_recording: true,
       opt_in_site_apps: true,
       secure_cookie: true,
