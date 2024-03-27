@@ -9,12 +9,12 @@ import (
 func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App) (result *Nip47Response, err error) {
 
 	makeInvoiceParams := &Nip47MakeInvoiceParams{}
-	result = svc.unmarshalRequest(request, requestEvent, app, makeInvoiceParams)
+	resp := svc.unmarshalRequest(request, requestEvent, app, makeInvoiceParams)
 	if result != nil {
-		return result, nil
+		return resp, nil
 	}
 
-	resp := svc.checkPermission(request, requestEvent, app, 0)
+	resp = svc.checkPermission(request, requestEvent, app, 0)
 	if resp != nil {
 		return resp, nil
 	}

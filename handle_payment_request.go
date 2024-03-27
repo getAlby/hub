@@ -13,9 +13,9 @@ import (
 func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App) (result *Nip47Response, err error) {
 
 	payParams := &Nip47PayParams{}
-	result = svc.unmarshalRequest(request, requestEvent, app, payParams)
-	if result != nil {
-		return result, nil
+	resp := svc.unmarshalRequest(request, requestEvent, app, payParams)
+	if resp != nil {
+		return resp, nil
 	}
 
 	bolt11 := payParams.Invoice
@@ -38,7 +38,7 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 		}, nil
 	}
 
-	resp := svc.checkPermission(request, requestEvent, app, paymentRequest.MSatoshi)
+	resp = svc.checkPermission(request, requestEvent, app, paymentRequest.MSatoshi)
 	if resp != nil {
 		return resp, nil
 	}

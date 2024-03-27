@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strings"
 	"sync"
@@ -17,16 +16,13 @@ import (
 func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, nostr.Tags)) (err error) {
 
 	multiPayParams := &Nip47MultiPayInvoiceParams{}
-	err = json.Unmarshal(request.Params, multiPayParams)
-	if err != nil {
-		svc.Logger.WithFields(logrus.Fields{
-			"eventId": requestEvent.NostrId,
-			"appId":   app.ID,
-		}).Errorf("Failed to decode nostr event: %v", err)
+	resp := svc.unmarshalRequest(request, requestEvent, app, multiPayParams)
+	if resp != nil {
 		svc.Logger.WithFields(logrus.Fields{
 			"eventId": requestEvent.NostrId,
 		}).Errorf("Failed to process event: %v", err)
-		return err
+		publishResponse(resp, nostr.Tags{})
+		return nil
 	}
 
 	var wg sync.WaitGroup
