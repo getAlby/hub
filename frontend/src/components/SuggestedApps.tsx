@@ -164,7 +164,7 @@ function SuggestedApp({ to, title, description, logo }: SuggestedApp) {
 export default function SuggestedApps() {
   return (
     <>
-      <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+      <div className="grid sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {suggestedApps.map((app) => (
           <SuggestedApp
             key={app.title}

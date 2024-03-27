@@ -18,8 +18,6 @@ import { handleRequestError } from "src/utils/handleRequestError";
 
 import toast from "src/components/Toast";
 import Loading from "src/components/Loading";
-import AppHeader from "src/components/AppHeader";
-import IconButton from "src/components/IconButton";
 import DeleteConfirmationPopup from "src/components/DeleteConfirmationPopup";
 import Permissions from "src/components/Permissions";
 
@@ -35,7 +33,7 @@ function ShowConnection() {
 
   const { deleteApp } = useDeleteApp(() => {
     setShowPopup(false);
-    navigate("/apps");
+    navigate("/connections");
   });
 
   const [permissions, setPermissions] = React.useState<AppPermissions>({
@@ -100,19 +98,10 @@ function ShowConnection() {
         />
       )}
       <div className="w-full">
-        <AppHeader
-          headerLeft={
-            <IconButton
-              onClick={() => {
-                navigate("/apps");
-              }}
-              icon={<PopiconsArrowLeftLine className="w-4 h-4" />}
-            />
-          }
-        >
-          <div className="flex-row max-w-48 sm:max-w-lg md:max-w-xl justify-center space-x-2 flex items-center">
+        <div className="max-w-screen-lg mx-auto">
+          <div className="flex flex-row items-center mb-5">
             {app && (
-              <div className="relative inline-block min-w-9 w-9 h-9 rounded-lg border">
+              <div className="relative inline-block min-w-9 w-9 h-9 rounded-lg border mr-2">
                 <img
                   src={`data:image/svg+xml;base64,${btoa(
                     gradientAvatar(app.name)
@@ -132,15 +121,6 @@ function ShowConnection() {
               {app ? app.name : "Fetching app..."}
             </h2>
           </div>
-        </AppHeader>
-
-        <div className="max-w-screen-lg mx-auto">
-          <div className="flex justify-between items-center pt-8 pb-4">
-            <h2 className="text-2xl font-bold font-headline dark:text-white">
-              App Overview
-            </h2>
-          </div>
-
           <div className="bg-white rounded-md shadow p-4 md:p-6 dark:bg-surface-02dp">
             <table>
               <tbody>
@@ -179,7 +159,7 @@ function ShowConnection() {
 
           <div className="flex justify-between items-center pt-8 pb-4">
             <h2 className="text-2xl font-bold font-headline dark:text-white">
-              🔒 Permissions
+              Permissions
             </h2>
           </div>
 

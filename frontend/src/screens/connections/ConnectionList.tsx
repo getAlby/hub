@@ -12,6 +12,7 @@ import { useCSRF } from "src/hooks/useCSRF";
 import { useApps } from "src/hooks/useApps";
 import { useInfo } from "src/hooks/useInfo";
 import { Button } from "src/components/ui/button";
+import AppHeader2 from "src/components/AppHeader2";
 
 function ConnectionList() {
   const { data: apps, mutate: mutateApps } = useApps();
@@ -60,15 +61,18 @@ function ConnectionList() {
 
   return (
     <>
-      <div className="flex items-center justify-between mb-5">
-        <h1 className="text-lg font-semibold md:text-2xl">Connections</h1>
-        <Link to="/apps/new">
-          <Button>
-            <CirclePlus className="h-4 w-4 mr-2" />
-            Add Connection
-          </Button>
-        </Link>
-      </div>
+      <AppHeader2
+        title="Connections"
+        description="Apps that you connected to already"
+        contentRight={
+          <Link to="/apps/new">
+            <Button>
+              <CirclePlus className="h-4 w-4 mr-2" />
+              Add Connection
+            </Button>
+          </Link>
+        }
+      />
       <BreezRedeem />
       <div className="grid sm:grid-cols-1 md:grid-cols-2 gap-4">
         {!apps.length && (

@@ -116,63 +116,61 @@ const NewConnection = () => {
   };
 
   return (
-    <div className="container max-w-screen-lg">
-      <form onSubmit={handleSubmit} acceptCharset="UTF-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              {nameParam ? `Connect to ${appName}` : "Connect a new app"}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {!nameParam && (
-              <>
-                <label
-                  htmlFor="name"
-                  className="block font-medium text-gray-900 dark:text-white"
-                >
-                  Name
-                </label>
-                <Input
-                  readOnly={!!nameParam}
-                  type="text"
-                  name="name"
-                  value={appName}
-                  id="name"
-                  onChange={(e) => setAppName(e.target.value)}
-                  required
-                  autoComplete="off"
-                />
-                <p className="mt-1 mb-6 text-xs text-gray-500 dark:text-gray-400">
-                  Name of the app or purpose of the connection
-                </p>
-              </>
+    <form onSubmit={handleSubmit} acceptCharset="UTF-8">
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            {nameParam ? `Connect to ${appName}` : "Connect a new app"}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {!nameParam && (
+            <>
+              <label
+                htmlFor="name"
+                className="block font-medium text-gray-900 dark:text-white"
+              >
+                Name
+              </label>
+              <Input
+                readOnly={!!nameParam}
+                type="text"
+                name="name"
+                value={appName}
+                id="name"
+                onChange={(e) => setAppName(e.target.value)}
+                required
+                autoComplete="off"
+              />
+              <p className="mt-1 mb-6 text-xs text-gray-500 dark:text-gray-400">
+                Name of the app or purpose of the connection
+              </p>
+            </>
+          )}
+          <div className="flex justify-between items-center mb-2 text-gray-800 dark:text-white">
+            <p className="text-lg font-medium">Authorize the app to:</p>
+            {!reqMethodsParam && !isEditing && (
+              <EditIcon
+                onClick={() => setEditing(true)}
+                className="text-gray-800 dark:text-gray-300 cursor-pointer w-6"
+              />
             )}
-            <div className="flex justify-between items-center mb-2 text-gray-800 dark:text-white">
-              <p className="text-lg font-medium">Authorize the app to:</p>
-              {!reqMethodsParam && !isEditing && (
-                <EditIcon
-                  onClick={() => setEditing(true)}
-                  className="text-gray-800 dark:text-gray-300 cursor-pointer w-6"
-                />
-              )}
-            </div>
+          </div>
 
-            <Permissions
-              initialPermissions={permissions}
-              onPermissionsChange={setPermissions}
-              isEditing={isEditing}
-              isNew
-            />
-          </CardContent>
-        </Card>
-        <div className="mt-6 flex flex-col sm:flex-row sm:justify-center px-4 md:px-8">
-          <Button type="submit" size={"lg"}>
-            {pubkey ? "Connect" : "Next"}
-          </Button>
-        </div>
-      </form>
-    </div>
+          <Permissions
+            initialPermissions={permissions}
+            onPermissionsChange={setPermissions}
+            isEditing={isEditing}
+            isNew
+          />
+        </CardContent>
+      </Card>
+      <div className="mt-6 flex flex-col sm:flex-row sm:justify-center px-4 md:px-8">
+        <Button type="submit" size={"lg"}>
+          {pubkey ? "Connect" : "Next"}
+        </Button>
+      </div>
+    </form>
   );
 };
 

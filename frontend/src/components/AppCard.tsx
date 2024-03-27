@@ -77,11 +77,12 @@ export default function AppCard({ app, onDelete }: Props) {
             {app.requestMethods?.includes(NIP_47_PAY_INVOICE_METHOD) ? (
               app.maxAmount > 0 ? (
                 <>
-                  <p className="mb-2">
-                    You've spent:
-                    <br />
-                    {new Intl.NumberFormat().format(app.budgetUsage)} sats
-                  </p>
+                  <div className="mb-2">
+                    <p className="text-sm">You've spent:</p>
+                    <p className="text-xl font-medium">
+                      {new Intl.NumberFormat().format(app.budgetUsage)} sats
+                    </p>
+                  </div>
                   <Progress
                     className="h-4"
                     value={(app.budgetUsage * 100) / app.maxAmount}
