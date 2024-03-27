@@ -42,10 +42,10 @@ type AlbyBalance struct {
 }
 
 const (
-	ACCESS_TOKEN_KEY        = "AlbyOAuthAccessToken"
-	ACCESS_TOKEN_EXPIRY_KEY = "AlbyOAuthAccessTokenExpiry"
-	REFRESH_TOKEN_KEY       = "AlbyOAuthRefreshToken"
-	USER_IDENTIFIER_KEY     = "AlbyUserIdentifier"
+	accessTokenKey       = "AlbyOAuthAccessToken"
+	accessTokenExpiryKey = "AlbyOAuthAccessTokenExpiry"
+	refreshTokenKey      = "AlbyOAuthRefreshToken"
+	userIdentifierKey    = "AlbyUserIdentifier"
 )
 
 func NewAlbyOauthService(logger *logrus.Logger, kvStore config.ConfigKVStore, appConfig *config.AppConfig) *AlbyOAuthService {
@@ -85,13 +85,13 @@ func (svc *AlbyOAuthService) CallbackHandler(ctx context.Context, code string) e
 		return err
 	}
 
-	svc.kvStore.SetUpdate(USER_IDENTIFIER_KEY, me.Identifier, "")
+	svc.kvStore.SetUpdate(userIdentifierKey, me.Identifier, "")
 
 	return nil
 }
 
-func (svc *AlbyOAuthService) GetUserIdentifier(ctx context.Context) string {
-	userIdentifier, err := svc.kvStore.Get(USER_IDENTIFIER_KEY, "")
+func (svc *AlbyOAuthService) GetUserIdentifier() string {
+	userIdentifier, err := svc.kvStore.Get(userIdentifierKey, "")
 	if err != nil {
 		svc.logger.WithError(err).Error("Failed to fetch user identifier from user configs")
 		return ""
@@ -100,9 +100,9 @@ func (svc *AlbyOAuthService) GetUserIdentifier(ctx context.Context) string {
 }
 
 func (svc *AlbyOAuthService) saveToken(token *oauth2.Token) {
-	svc.kvStore.SetUpdate(ACCESS_TOKEN_EXPIRY_KEY, strconv.FormatInt(token.Expiry.Unix(), 10), "")
-	svc.kvStore.SetUpdate(ACCESS_TOKEN_KEY, token.AccessToken, "")
-	svc.kvStore.SetUpdate(REFRESH_TOKEN_KEY, token.RefreshToken, "")
+	svc.kvStore.SetUpdate(accessTokenExpiryKey, strconv.FormatInt(token.Expiry.Unix(), 10), "")
+	svc.kvStore.SetUpdate(accessTokenKey, token.AccessToken, "")
+	svc.kvStore.SetUpdate(refreshTokenKey, token.RefreshToken, "")
 }
 
 var tokenMutex sync.Mutex
@@ -110,11 +110,11 @@ var tokenMutex sync.Mutex
 func (svc *AlbyOAuthService) fetchUserToken(ctx context.Context) (*oauth2.Token, error) {
 	tokenMutex.Lock()
 	defer tokenMutex.Unlock()
-	accessToken, err := svc.kvStore.Get(ACCESS_TOKEN_KEY, "")
+	accessToken, err := svc.kvStore.Get(accessTokenKey, "")
 	if err != nil {
 		return nil, err
 	}
-	expiry, err := svc.kvStore.Get(ACCESS_TOKEN_EXPIRY_KEY, "")
+	expiry, err := svc.kvStore.Get(accessTokenExpiryKey, "")
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +122,7 @@ func (svc *AlbyOAuthService) fetchUserToken(ctx context.Context) (*oauth2.Token,
 	if err != nil {
 		return nil, err
 	}
-	refreshToken, err := svc.kvStore.Get(REFRESH_TOKEN_KEY, "")
+	refreshToken, err := svc.kvStore.Get(refreshTokenKey, "")
 	if err != nil {
 		return nil, err
 	}
