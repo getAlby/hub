@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 
+	"github.com/nbd-wtf/go-nostr"
 	"github.com/sirupsen/logrus"
 )
 
@@ -10,11 +11,12 @@ const (
 	MSAT_PER_SAT = 1000
 )
 
-func (svc *Service) HandleGetBalanceEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App) *Nip47Response {
+func (svc *Service) HandleGetBalanceEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, *nostr.Tags)) {
 
 	resp := svc.checkPermission(request, requestEvent, app, 0)
 	if resp != nil {
-		return resp
+		publishResponse(resp, &nostr.Tags{})
+		return
 	}
 
 	svc.Logger.WithFields(logrus.Fields{
@@ -28,13 +30,14 @@ func (svc *Service) HandleGetBalanceEvent(ctx context.Context, request *Nip47Req
 			"eventId": requestEvent.NostrId,
 			"appId":   app.ID,
 		}).Infof("Failed to fetch balance: %v", err)
-		return &Nip47Response{
+		publishResponse(&Nip47Response{
 			ResultType: request.Method,
 			Error: &Nip47Error{
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: err.Error(),
 			},
-		}
+		}, &nostr.Tags{})
+		return
 	}
 
 	responsePayload := &Nip47BalanceResponse{
@@ -50,8 +53,8 @@ func (svc *Service) HandleGetBalanceEvent(ctx context.Context, request *Nip47Req
 		responsePayload.BudgetRenewal = appPermission.BudgetRenewal
 	}
 
-	return &Nip47Response{
+	publishResponse(&Nip47Response{
 		ResultType: request.Method,
 		Result:     responsePayload,
-	}
+	}, &nostr.Tags{})
 }

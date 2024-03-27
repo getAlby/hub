@@ -5,31 +5,36 @@ import (
 	"fmt"
 
 	"github.com/getAlby/nostr-wallet-connect/events"
+	"github.com/nbd-wtf/go-nostr"
 	"github.com/sirupsen/logrus"
 )
 
-func (svc *Service) HandlePayKeysendEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App) *Nip47Response {
+func (svc *Service) HandlePayKeysendEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, *nostr.Tags)) {
 
 	payParams := &Nip47KeysendParams{}
 	resp := svc.unmarshalRequest(request, requestEvent, app, payParams)
 	if resp != nil {
-		return resp
+		publishResponse(resp, &nostr.Tags{})
+		return
 	}
 
 	resp = svc.checkPermission(request, requestEvent, app, payParams.Amount)
 	if resp != nil {
-		return resp
+		publishResponse(resp, &nostr.Tags{})
+		return
 	}
 
 	payment := Payment{App: *app, RequestEvent: *requestEvent, Amount: uint(payParams.Amount / 1000)}
 	err := svc.db.Create(&payment).Error
 	if err != nil {
-		return &Nip47Response{
+		publishResponse(&Nip47Response{
 			ResultType: request.Method,
 			Error: &Nip47Error{
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: err.Error(),
-			}}
+			},
+		}, &nostr.Tags{})
+		return
 	}
 
 	svc.Logger.WithFields(logrus.Fields{
@@ -53,13 +58,14 @@ func (svc *Service) HandlePayKeysendEvent(ctx context.Context, request *Nip47Req
 				"amount":  payParams.Amount / 1000,
 			},
 		})
-		return &Nip47Response{
+		publishResponse(&Nip47Response{
 			ResultType: request.Method,
 			Error: &Nip47Error{
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: err.Error(),
 			},
-		}
+		}, &nostr.Tags{})
+		return
 	}
 	payment.Preimage = &preimage
 	svc.db.Save(&payment)
@@ -70,10 +76,10 @@ func (svc *Service) HandlePayKeysendEvent(ctx context.Context, request *Nip47Req
 			"amount":  payParams.Amount / 1000,
 		},
 	})
-	return &Nip47Response{
+	publishResponse(&Nip47Response{
 		ResultType: request.Method,
 		Result: Nip47PayResponse{
 			Preimage: preimage,
 		},
-	}
+	}, &nostr.Tags{})
 }

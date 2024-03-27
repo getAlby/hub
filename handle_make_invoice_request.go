@@ -3,20 +3,23 @@ package main
 import (
 	"context"
 
+	"github.com/nbd-wtf/go-nostr"
 	"github.com/sirupsen/logrus"
 )
 
-func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App) *Nip47Response {
+func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, *nostr.Tags)) {
 
 	makeInvoiceParams := &Nip47MakeInvoiceParams{}
 	resp := svc.unmarshalRequest(request, requestEvent, app, makeInvoiceParams)
 	if resp != nil {
-		return resp
+		publishResponse(resp, &nostr.Tags{})
+		return
 	}
 
 	resp = svc.checkPermission(request, requestEvent, app, 0)
 	if resp != nil {
-		return resp
+		publishResponse(resp, &nostr.Tags{})
+		return
 	}
 
 	if makeInvoiceParams.Description != "" && makeInvoiceParams.DescriptionHash != "" {
@@ -25,13 +28,14 @@ func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Re
 			"appId":   app.ID,
 		}).Errorf("Only one of description, description_hash can be provided")
 
-		return &Nip47Response{
+		publishResponse(&Nip47Response{
 			ResultType: request.Method,
 			Error: &Nip47Error{
 				Code:    NIP_47_OTHER,
 				Message: "Only one of description, description_hash can be provided",
 			},
-		}
+		}, &nostr.Tags{})
+		return
 	}
 
 	svc.Logger.WithFields(logrus.Fields{
@@ -58,21 +62,23 @@ func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Re
 			"descriptionHash": makeInvoiceParams.DescriptionHash,
 			"expiry":          makeInvoiceParams.Expiry,
 		}).Infof("Failed to make invoice: %v", err)
-		return &Nip47Response{
+
+		publishResponse(&Nip47Response{
 			ResultType: request.Method,
 			Error: &Nip47Error{
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: err.Error(),
 			},
-		}
+		}, &nostr.Tags{})
+		return
 	}
 
 	responsePayload := &Nip47MakeInvoiceResponse{
 		Nip47Transaction: *transaction,
 	}
 
-	return &Nip47Response{
+	publishResponse(&Nip47Response{
 		ResultType: request.Method,
 		Result:     responsePayload,
-	}
+	}, &nostr.Tags{})
 }

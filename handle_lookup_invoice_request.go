@@ -5,21 +5,24 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/nbd-wtf/go-nostr"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
 )
 
-func (svc *Service) HandleLookupInvoiceEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App) *Nip47Response {
+func (svc *Service) HandleLookupInvoiceEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, *nostr.Tags)) {
 
 	lookupInvoiceParams := &Nip47LookupInvoiceParams{}
 	resp := svc.unmarshalRequest(request, requestEvent, app, lookupInvoiceParams)
 	if resp != nil {
-		return resp
+		publishResponse(resp, &nostr.Tags{})
+		return
 	}
 
 	resp = svc.checkPermission(request, requestEvent, app, 0)
 	if resp != nil {
-		return resp
+		publishResponse(resp, &nostr.Tags{})
+		return
 	}
 
 	svc.Logger.WithFields(logrus.Fields{
@@ -40,13 +43,14 @@ func (svc *Service) HandleLookupInvoiceEvent(ctx context.Context, request *Nip47
 				"invoice": lookupInvoiceParams.Invoice,
 			}).Errorf("Failed to decode bolt11 invoice: %v", err)
 
-			return &Nip47Response{
+			publishResponse(&Nip47Response{
 				ResultType: request.Method,
 				Error: &Nip47Error{
 					Code:    NIP_47_ERROR_INTERNAL,
 					Message: fmt.Sprintf("Failed to decode bolt11 invoice: %s", err.Error()),
 				},
-			}
+			}, &nostr.Tags{})
+			return
 		}
 		paymentHash = paymentRequest.PaymentHash
 	}
@@ -59,21 +63,23 @@ func (svc *Service) HandleLookupInvoiceEvent(ctx context.Context, request *Nip47
 			"invoice":     lookupInvoiceParams.Invoice,
 			"paymentHash": lookupInvoiceParams.PaymentHash,
 		}).Infof("Failed to lookup invoice: %v", err)
-		return &Nip47Response{
+
+		publishResponse(&Nip47Response{
 			ResultType: request.Method,
 			Error: &Nip47Error{
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: err.Error(),
 			},
-		}
+		}, &nostr.Tags{})
+		return
 	}
 
 	responsePayload := &Nip47LookupInvoiceResponse{
 		Nip47Transaction: *transaction,
 	}
 
-	return &Nip47Response{
+	publishResponse(&Nip47Response{
 		ResultType: request.Method,
 		Result:     responsePayload,
-	}
+	}, &nostr.Tags{})
 }

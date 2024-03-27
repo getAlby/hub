@@ -6,16 +6,18 @@ import (
 	"strings"
 
 	"github.com/getAlby/nostr-wallet-connect/events"
+	"github.com/nbd-wtf/go-nostr"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
 )
 
-func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App) *Nip47Response {
+func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, *nostr.Tags)) {
 
 	payParams := &Nip47PayParams{}
 	resp := svc.unmarshalRequest(request, requestEvent, app, payParams)
 	if resp != nil {
-		return resp
+		publishResponse(resp, &nostr.Tags{})
+		return
 	}
 
 	bolt11 := payParams.Invoice
@@ -29,29 +31,33 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 			"bolt11":  bolt11,
 		}).Errorf("Failed to decode bolt11 invoice: %v", err)
 
-		return &Nip47Response{
+		publishResponse(&Nip47Response{
 			ResultType: request.Method,
 			Error: &Nip47Error{
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: fmt.Sprintf("Failed to decode bolt11 invoice: %s", err.Error()),
 			},
-		}
+		}, &nostr.Tags{})
+		return
 	}
 
 	resp = svc.checkPermission(request, requestEvent, app, paymentRequest.MSatoshi)
 	if resp != nil {
-		return resp
+		publishResponse(resp, &nostr.Tags{})
+		return
 	}
 
 	payment := Payment{App: *app, RequestEvent: *requestEvent, PaymentRequest: bolt11, Amount: uint(paymentRequest.MSatoshi / 1000)}
 	err = svc.db.Create(&payment).Error
 	if err != nil {
-		return &Nip47Response{
+		publishResponse(&Nip47Response{
 			ResultType: request.Method,
 			Error: &Nip47Error{
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: err.Error(),
-			}}
+			},
+		}, &nostr.Tags{})
+		return
 	}
 
 	svc.Logger.WithFields(logrus.Fields{
@@ -75,13 +81,14 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 				"amount":  paymentRequest.MSatoshi / 1000,
 			},
 		})
-		return &Nip47Response{
+		publishResponse(&Nip47Response{
 			ResultType: request.Method,
 			Error: &Nip47Error{
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: err.Error(),
 			},
-		}
+		}, &nostr.Tags{})
+		return
 	}
 	payment.Preimage = &preimage
 	svc.db.Save(&payment)
@@ -94,10 +101,10 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 		},
 	})
 
-	return &Nip47Response{
+	publishResponse(&Nip47Response{
 		ResultType: request.Method,
 		Result: Nip47PayResponse{
 			Preimage: preimage,
 		},
-	}
+	}, &nostr.Tags{})
 }

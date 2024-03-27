@@ -13,12 +13,12 @@ import (
 )
 
 // TODO: pass a channel instead of publishResponse function
-func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, nostr.Tags)) {
+func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, *nostr.Tags)) {
 
 	multiPayParams := &Nip47MultiPayInvoiceParams{}
 	resp := svc.unmarshalRequest(request, requestEvent, app, multiPayParams)
 	if resp != nil {
-		publishResponse(resp, nostr.Tags{})
+		publishResponse(resp, &nostr.Tags{})
 		return
 	}
 
@@ -48,7 +48,7 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, request *Nip
 						Code:    NIP_47_ERROR_INTERNAL,
 						Message: fmt.Sprintf("Failed to decode bolt11 invoice: %s", err.Error()),
 					},
-				}, nostr.Tags{dTag})
+				}, &nostr.Tags{dTag})
 				return
 			}
 
@@ -60,7 +60,7 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, request *Nip
 
 			resp := svc.checkPermission(request, requestEvent, app, paymentRequest.MSatoshi)
 			if resp != nil {
-				publishResponse(resp, nostr.Tags{dTag})
+				publishResponse(resp, &nostr.Tags{dTag})
 			}
 
 			payment := Payment{App: *app, RequestEventId: requestEvent.ID, PaymentRequest: bolt11, Amount: uint(paymentRequest.MSatoshi / 1000)}
@@ -106,7 +106,7 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, request *Nip
 						Code:    NIP_47_ERROR_INTERNAL,
 						Message: err.Error(),
 					},
-				}, nostr.Tags{dTag})
+				}, &nostr.Tags{dTag})
 				return
 			}
 			payment.Preimage = &preimage
@@ -125,7 +125,7 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, request *Nip
 				Result: Nip47PayResponse{
 					Preimage: preimage,
 				},
-			}, nostr.Tags{dTag})
+			}, &nostr.Tags{dTag})
 		}(invoiceInfo)
 	}
 
