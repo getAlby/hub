@@ -79,7 +79,7 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 			"appId":   app.ID,
 			"bolt11":  bolt11,
 		}).Infof("Failed to send payment: %v", err)
-		svc.EventLogger.Log(ctx, &events.Event{
+		svc.EventLogger.Log(&events.Event{
 			Event: "nwc_payment_failed",
 			Properties: map[string]interface{}{
 				"invoice": bolt11,
@@ -98,7 +98,7 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 	payment.Preimage = &preimage
 	svc.db.Save(&payment)
 
-	svc.EventLogger.Log(ctx, &events.Event{
+	svc.EventLogger.Log(&events.Event{
 		Event: "nwc_payment_succeeded",
 		Properties: map[string]interface{}{
 			"bolt11": bolt11,

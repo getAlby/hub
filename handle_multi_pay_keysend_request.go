@@ -85,7 +85,7 @@ func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, request *Nip
 					"appId":           app.ID,
 					"recipientPubkey": keysendInfo.Pubkey,
 				}).Infof("Failed to send payment: %v", err)
-				svc.EventLogger.Log(ctx, &events.Event{
+				svc.EventLogger.Log(&events.Event{
 					Event: "nwc_payment_failed",
 					Properties: map[string]interface{}{
 						"error":   fmt.Sprintf("%v", err),
@@ -108,7 +108,7 @@ func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, request *Nip
 			mu.Lock()
 			svc.db.Save(&payment)
 			mu.Unlock()
-			svc.EventLogger.Log(ctx, &events.Event{
+			svc.EventLogger.Log(&events.Event{
 				Event: "nwc_payment_succeeded",
 				Properties: map[string]interface{}{
 					"keysend": true,
