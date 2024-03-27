@@ -127,6 +127,8 @@ export interface InfoResponse {
   unlocked: boolean;
   albyAuthUrl: string;
   showBackupReminder: boolean;
+  albyUserIdentifier: string;
+  appMode: "HTTP" | "WAILS";
 }
 
 export interface EncryptedMnemonicResponse {

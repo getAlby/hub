@@ -218,7 +218,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		}
 		return WailsRequestRouterResponse{Body: *nodeConnectionInfo, Error: ""}
 	case "/api/info":
-		infoResponse, err := app.api.GetInfo()
+		infoResponse, err := app.api.GetInfo(ctx)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
@@ -285,7 +285,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			}).Errorf("Failed to decode request to wails router: %v", err)
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
-		err = app.api.Setup(setupRequest)
+		err = app.api.Setup(ctx, setupRequest)
 		if err != nil {
 			app.svc.Logger.WithFields(logrus.Fields{
 				"route":  route,

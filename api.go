@@ -26,13 +26,15 @@ import (
 type API struct {
 	svc          *Service
 	albyOAuthSvc *alby.AlbyOAuthService
+	appMode      string
 }
 
-func NewAPI(svc *Service, albyOAuthSvc *alby.AlbyOAuthService) *API {
+func NewAPI(svc *Service, albyOAuthSvc *alby.AlbyOAuthService, appMode string) *API {
 
 	return &API{
 		svc:          svc,
 		albyOAuthSvc: albyOAuthSvc,
+		appMode:      appMode,
 	}
 }
 
@@ -632,7 +634,7 @@ func (api *API) NewWrappedInvoice(ctx context.Context, request *models.NewWrappe
 	}, nil
 }
 
-func (api *API) GetInfo() (*models.InfoResponse, error) {
+func (api *API) GetInfo(ctx context.Context) (*models.InfoResponse, error) {
 	info := models.InfoResponse{}
 	backendType, _ := api.svc.cfg.Get("LNBackendType", "")
 	unlockPasswordCheck, _ := api.svc.cfg.Get("UnlockPasswordCheck", "")
@@ -640,6 +642,8 @@ func (api *API) GetInfo() (*models.InfoResponse, error) {
 	info.Running = api.svc.lnClient != nil
 	info.BackendType = backendType
 	info.AlbyAuthUrl = api.albyOAuthSvc.GetAuthUrl()
+	info.AlbyUserIdentifier = api.albyOAuthSvc.GetUserIdentifier(ctx)
+	info.AppMode = api.appMode
 
 	if info.BackendType != config.LNDBackendType {
 		nextBackupReminder, _ := api.svc.cfg.Get("NextBackupReminder", "")
@@ -674,8 +678,8 @@ func (api *API) Start(startRequest *models.StartRequest) error {
 	return api.svc.StartApp(startRequest.UnlockPassword)
 }
 
-func (api *API) Setup(setupRequest *models.SetupRequest) error {
-	info, err := api.GetInfo()
+func (api *API) Setup(ctx context.Context, setupRequest *models.SetupRequest) error {
+	info, err := api.GetInfo(ctx)
 	if err != nil {
 		api.svc.Logger.WithError(err).Error("Failed to get info")
 		return err

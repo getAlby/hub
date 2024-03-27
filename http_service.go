@@ -33,7 +33,7 @@ const (
 func NewHttpService(svc *Service) *HttpService {
 	return &HttpService{
 		svc:         svc,
-		api:         NewAPI(svc, svc.AlbyOAuthSvc),
+		api:         NewAPI(svc, svc.AlbyOAuthSvc, "HTTP"),
 		albyHttpSvc: alby.NewAlbyHttpService(svc.AlbyOAuthSvc, svc.Logger),
 	}
 }
@@ -108,7 +108,7 @@ func (httpSvc *HttpService) csrfHandler(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) infoHandler(c echo.Context) error {
-	responseBody, err := httpSvc.api.GetInfo()
+	responseBody, err := httpSvc.api.GetInfo(c.Request().Context())
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
 			Message: err.Error(),
@@ -551,7 +551,7 @@ func (httpSvc *HttpService) setupHandler(c echo.Context) error {
 		})
 	}
 
-	err := httpSvc.api.Setup(&setupRequest)
+	err := httpSvc.api.Setup(c.Request().Context(), &setupRequest)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
 			Message: fmt.Sprintf("Failed to setup node: %s", err.Error()),
