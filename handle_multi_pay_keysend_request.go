@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"sync"
 
 	"github.com/getAlby/nostr-wallet-connect/events"
@@ -88,7 +87,7 @@ func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, request *Nip
 				svc.EventLogger.Log(&events.Event{
 					Event: "nwc_payment_failed",
 					Properties: map[string]interface{}{
-						"error":   fmt.Sprintf("%v", err),
+						// "error":   fmt.Sprintf("%v", err),
 						"keysend": true,
 						"multi":   true,
 						"amount":  keysendInfo.Amount / 1000,

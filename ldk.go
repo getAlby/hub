@@ -14,6 +14,7 @@ import (
 
 	"github.com/getAlby/ldk-node-go/ldk_node"
 	"github.com/getAlby/nostr-wallet-connect/events"
+	"github.com/getAlby/nostr-wallet-connect/models/config"
 	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 	"github.com/getAlby/nostr-wallet-connect/models/lsp"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
@@ -161,12 +162,13 @@ func (gs *LDKService) SendPaymentSync(ctx context.Context, invoice string) (prei
 	}
 
 	gs.eventLogger.Log(&events.Event{
-		Event: "nwc_ldk_send_payment",
+		Event: "nwc_send_payment",
 		Properties: map[string]interface{}{
 			"invoice":      invoice,
 			"amount":       paymentRequest.MSatoshi / 1000,
 			"max_sendable": maxSendable,
 			"num_channels": len(gs.node.ListChannels()),
+			"node_type":    config.LDKBackendType,
 		},
 	})
 
@@ -243,16 +245,7 @@ func (gs *LDKService) SendPaymentSync(ctx context.Context, invoice string) (prei
 				"failureReasonMessage": failureReasonMessage,
 			}).Error("Received payment failed event")
 
-			gs.eventLogger.Log(&events.Event{
-				Event: "nwc_ldk_payment_failed",
-				Properties: map[string]interface{}{
-					"invoice":        invoice,
-					"reason":         failureReason,
-					"reason_message": failureReasonMessage,
-				},
-			})
-
-			return "", fmt.Errorf("payment failed event: %v %s", failureReason, failureReasonMessage)
+			return "", fmt.Errorf("received payment failed event: %v %s", failureReason, failureReasonMessage)
 		}
 	}
 	if preimage == "" {
@@ -408,11 +401,12 @@ func (gs *LDKService) MakeInvoice(ctx context.Context, amount int64, description
 	maxReceivable := gs.getMaxReceivable()
 
 	gs.eventLogger.Log(&events.Event{
-		Event: "nwc_ldk_make_invoice",
+		Event: "nwc_make_invoice",
 		Properties: map[string]interface{}{
 			"amount":         amount / 1000,
 			"max_receivable": maxReceivable,
 			"num_channels":   len(gs.node.ListChannels()),
+			"node_type":      config.LDKBackendType,
 		},
 	})
 
@@ -758,33 +752,28 @@ func (ls *LDKService) logLdkEvent(ctx context.Context, event *ldk_node.Event) {
 	switch v := (*event).(type) {
 	case ldk_node.EventChannelReady:
 		ls.eventLogger.Log(&events.Event{
-			Event: "nwc_ldk_channel_ready",
+			Event: "nwc_channel_ready",
 			Properties: map[string]interface{}{
 				"counterparty_node_id": v.CounterpartyNodeId,
+				"node_type":            config.LDKBackendType,
 			},
 		})
 	case ldk_node.EventChannelClosed:
 		ls.eventLogger.Log(&events.Event{
-			Event: "nwc_ldk_channel_closed",
+			Event: "nwc_channel_closed",
 			Properties: map[string]interface{}{
 				"counterparty_node_id": v.CounterpartyNodeId,
-				"reason":               fmt.Sprintf("%+v", v.Reason),
+				// "reason":               fmt.Sprintf("%+v", v.Reason),
+				"node_type": config.LDKBackendType,
 			},
 		})
 	case ldk_node.EventPaymentReceived:
 		ls.eventLogger.Log(&events.Event{
-			Event: "nwc_ldk_payment_received",
+			Event: "nwc_payment_received",
 			Properties: map[string]interface{}{
 				"payment_hash": v.PaymentHash,
 				"amount":       v.AmountMsat / 1000,
-			},
-		})
-	case ldk_node.EventPaymentFailed:
-		ls.eventLogger.Log(&events.Event{
-			Event: "nwc_ldk_payment_failed",
-			Properties: map[string]interface{}{
-				"payment_hash": v.PaymentHash,
-				"reason":       fmt.Sprintf("%+v", v.Reason),
+				"node_type":    config.LDKBackendType,
 			},
 		})
 	}
