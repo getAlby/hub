@@ -1,10 +1,8 @@
-import { Link } from "react-router-dom";
-
 import { CirclePlus } from "lucide-react";
-import Loading from "src/components/Loading";
-
+import { Link } from "react-router-dom";
 import AppCard from "src/components/AppCard";
 import AppHeader from "src/components/AppHeader";
+import Loading from "src/components/Loading";
 import { Button } from "src/components/ui/button";
 import { useApps } from "src/hooks/useApps";
 import { useInfo } from "src/hooks/useInfo";
