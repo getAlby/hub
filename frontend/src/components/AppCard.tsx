@@ -1,18 +1,14 @@
-import React from "react";
-import { Link } from "react-router-dom";
 import gradientAvatar from "gradient-avatar";
-import { PopiconsBinLine, PopiconsEditLine } from "@popicons/react";
+import { Link } from "react-router-dom";
 
-import DeleteConfirmationPopup from "src/components/DeleteConfirmationPopup";
-import { App, NIP_47_PAY_INVOICE_METHOD } from "src/types";
-import { useDeleteApp } from "src/hooks/useDeleteApp";
 import {
   Card,
+  CardContent,
   CardHeader,
   CardTitle,
-  CardContent,
 } from "src/components/ui/card";
 import { Progress } from "src/components/ui/progress";
+import { App, NIP_47_PAY_INVOICE_METHOD } from "src/types";
 
 type Props = {
   app: App;

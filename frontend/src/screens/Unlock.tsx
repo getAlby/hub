@@ -1,16 +1,17 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useCSRF } from "src/hooks/useCSRF";
-import { request } from "src/utils/request";
-import { useInfo } from "src/hooks/useInfo";
-import { Label } from "src/components/ui/label";
+import Loading from "src/components/Loading";
 import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
+import { Label } from "src/components/ui/label";
 import { useToast } from "src/components/ui/use-toast";
+import { useCSRF } from "src/hooks/useCSRF";
+import { useInfo } from "src/hooks/useInfo";
+import { request } from "src/utils/request";
 
 export default function Unlock() {
   const [unlockPassword, setUnlockPassword] = React.useState("");
-  const [setLoading] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { data: csrf } = useCSRF();
@@ -54,6 +55,8 @@ export default function Unlock() {
       setLoading(false);
     }
   }
+
+  if (loading) return <Loading />;
 
   return (
     <>
