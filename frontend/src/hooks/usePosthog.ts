@@ -12,7 +12,7 @@ export function usePosthog() {
       return;
     }
     console.log("Posthog enabled");
-    posthog.init("TODO", {
+    posthog.init("phc_W6d0RRrgfXiYX0pcFBdQHp4mC8HWgUdKQpDZkJYEAiD", {
       api_host: "ph.albylabs.com",
       secure_cookie: true,
       persistence: "cookie",
