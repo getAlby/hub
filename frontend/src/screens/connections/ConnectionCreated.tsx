@@ -7,7 +7,7 @@ import { CopyIcon } from "src/components/icons/CopyIcon";
 import { LogoIcon } from "src/components/icons/LogoIcon";
 import QRCode from "src/components/QRCode";
 
-export default function AppCreated() {
+export default function ConnectionCreated() {
   const { state } = useLocation();
   const createAppResponse = state as CreateAppResponse;
 

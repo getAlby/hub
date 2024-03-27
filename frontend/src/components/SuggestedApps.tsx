@@ -19,6 +19,14 @@ import zappybird from "src/assets/suggested-apps/zappy-bird.png";
 import nostur from "src/assets/suggested-apps/nostur.png";
 import wherostr from "src/assets/suggested-apps/wherostr.png";
 import { SuggestedApp } from "src/types";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "src/components/ui/card";
 
 const suggestedApps: SuggestedApp[] = [
   {
@@ -133,16 +141,22 @@ const suggestedApps: SuggestedApp[] = [
 
 function SuggestedApp({ to, title, description, logo }: SuggestedApp) {
   return (
-    <Link
-      to={to}
-      target="_blank"
-      className="h-24 p-6 border border-gray-200 rounded-2xl bg-white hover:bg-gray-50 flex items-center"
-    >
-      <img src={logo} alt="logo" className="inline rounded-lg w-10 h-10" />
-      <div className="ml-4">
-        <h2 className="dark:text-white font-semibold mb-1">{title}</h2>
-        <p className="text-gray-600 text-sm">{description}</p>
-      </div>
+    <Link to={to} target="_blank">
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex gap-3 items-center">
+            <img
+              src={logo}
+              alt="logo"
+              className="inline rounded-lg w-10 h-10"
+            />
+            <div className="flex-grow">
+              <CardTitle>{title}</CardTitle>
+              <CardDescription>{description}</CardDescription>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </Link>
   );
 }
@@ -150,11 +164,7 @@ function SuggestedApp({ to, title, description, logo }: SuggestedApp) {
 export default function SuggestedApps() {
   return (
     <>
-      <h2 className="text-center font-medium px-8 sm:px-0">
-        Use NWC to connect your wallet to any of apps below
-      </h2>
-
-      <div className="my-8 grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+      <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
         {suggestedApps.map((app) => (
           <SuggestedApp
             key={app.title}

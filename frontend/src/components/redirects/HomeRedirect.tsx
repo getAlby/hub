@@ -17,7 +17,7 @@ export function HomeRedirect() {
     if (info.setupCompleted && info.running) {
       if (info.unlocked) {
         const returnTo = window.localStorage.getItem(localStorageKeys.returnTo);
-        to = returnTo || "/apps";
+        to = returnTo || "/connections";
       } else {
         to = "/unlock";
       }

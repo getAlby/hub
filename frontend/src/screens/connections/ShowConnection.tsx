@@ -23,7 +23,7 @@ import IconButton from "src/components/IconButton";
 import DeleteConfirmationPopup from "src/components/DeleteConfirmationPopup";
 import Permissions from "src/components/Permissions";
 
-function ShowApp() {
+function ShowConnection() {
   const { data: info } = useInfo();
   const { data: csrf } = useCSRF();
   const { pubkey } = useParams() as { pubkey: string };
@@ -270,4 +270,4 @@ function ShowApp() {
   );
 }
 
-export default ShowApp;
+export default ShowConnection;

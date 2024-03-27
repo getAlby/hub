@@ -1,14 +1,8 @@
 import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 
-import Navbar from "src/components/Navbar";
-import Footer from "src/components/Footer";
-import Toaster from "src/components/Toast/Toaster";
+import AppLayout from "src/components/layouts/AppLayout";
 
 import About from "src/screens/About";
-import AppsList from "src/screens/apps/AppsList";
-import ShowApp from "src/screens/apps/ShowApp";
-import NewApp from "src/screens/apps/NewApp";
-import AppCreated from "src/screens/apps/AppCreated";
 import NotFound from "src/screens/NotFound";
 import { SetupNode } from "src/screens/setup/SetupNode";
 import { SetupWallet } from "src/screens/setup/SetupWallet";
@@ -33,64 +27,80 @@ import NewInstantChannel from "src/screens/channels/NewInstantChannel";
 import FirstChannel from "src/screens/channels/FirstChannel";
 import { ChannelsRedirect } from "src/components/redirects/ChannelsRedirect";
 import MigrateAlbyFunds from "src/screens/channels/MigrateAlbyFunds";
+import FullScreenLayout from "src/components/layouts/FullScreenLayout";
+import { Toaster } from "src/components/ui/toaster";
+import { ThemeProvider } from "src/components/ui/theme-provider";
+import ConnectionList from "src/screens/connections/ConnectionList";
+import ShowConnection from "src/screens/connections/ShowConnection";
+import NewConnection from "src/screens/connections/NewConnection";
+import ConnectionCreated from "src/screens/connections/ConnectionCreated";
+import AppsList from "src/screens/apps/AppsList";
+import Settings from "src/screens/settings/Settings";
 
 function App() {
   return (
-    <div className="bg-zinc-50 min-h-full flex flex-col justify-center dark:bg-zinc-950">
-      <Toaster />
-      <HashRouter>
-        <Routes>
-          <Route path="/" element={<Navbar />}>
-            <Route path="" element={<HomeRedirect />} />
-            <Route
-              path="start"
-              element={
-                <StartRedirect>
-                  <Start />
-                </StartRedirect>
-              }
-            ></Route>
-            <Route path="welcome" element={<Welcome />}></Route>
-            <Route path="setup" element={<SetupRedirect />}>
-              <Route path="" element={<Navigate to="password" replace />} />
-              <Route path="password" element={<SetupPassword />} />
-              <Route path="node" element={<SetupNode />} />
-              <Route path="wallet" element={<SetupWallet />} />
-              <Route path="import-mnemonic" element={<ImportMnemonic />} />
-              <Route path="finish" element={<SetupFinish />} />
-            </Route>
-            {/* TODO: move this under settings later */}
-            <Route path="/backup/mnemonic" element={<BackupMnemonic />} />
-            <Route path="apps" element={<AppsRedirect />}>
-              <Route index path="" element={<AppsList />} />
-              <Route path=":pubkey" element={<ShowApp />} />
-              <Route path="new" element={<NewApp />} />
-              <Route path="created" element={<AppCreated />} />
-              <Route path="*" element={<NotFound />} />
-            </Route>
-            <Route path="channels" element={<ChannelsRedirect />}>
-              <Route path="" element={<Channels />} />
-              <Route path="first" element={<FirstChannel />} />
-              <Route path="migrate-alby" element={<MigrateAlbyFunds />} />
-              <Route path="new" element={<NewChannel />} />
-              <Route path="new/instant" element={<NewInstantChannel />} />
-              <Route path="new/blocktank" element={<NewBlocktankChannel />} />
-              <Route path="recommended" element={<RecommendedChannels />} />
-              <Route path="new/custom" element={<NewCustomChannel />} />
-
+    <>
+      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+        <Toaster />
+        <HashRouter>
+          <Routes>
+            <Route path="/" element={<AppLayout />}>
+              <Route path="" element={<HomeRedirect />} />
               <Route
-                path="onchain/new-address"
-                element={<NewOnchainAddress />}
-              />
+                path="start"
+                element={
+                  <StartRedirect>
+                    <Start />
+                  </StartRedirect>
+                }
+              ></Route>
+              <Route path="welcome" element={<Welcome />}></Route>
+              <Route path="setup" element={<SetupRedirect />}>
+                <Route path="" element={<Navigate to="password" replace />} />
+                <Route path="password" element={<SetupPassword />} />
+                <Route path="node" element={<SetupNode />} />
+                <Route path="wallet" element={<SetupWallet />} />
+                <Route path="import-mnemonic" element={<ImportMnemonic />} />
+                <Route path="finish" element={<SetupFinish />} />
+              </Route>
+              <Route path="settings" element={<Settings />} />
+              {/* TODO: move this under settings later */}
+              <Route path="backup/mnemonic" element={<BackupMnemonic />} />
+              <Route path="apps" element={<AppsList />}></Route>
+              {/* TODO: path needs to be maintained because 3rd party hard link to it */}
+              <Route path="apps/new" element={<NewConnection />}></Route>
+              <Route path="connections" element={<AppsRedirect />}>
+                <Route index path="" element={<ConnectionList />} />
+                <Route path=":pubkey" element={<ShowConnection />} />
+                <Route path="created" element={<ConnectionCreated />} />
+                <Route path="*" element={<NotFound />} />
+              </Route>
+              <Route path="channels" element={<ChannelsRedirect />}>
+                <Route path="" element={<Channels />} />
+                <Route path="first" element={<FirstChannel />} />
+                <Route path="migrate-alby" element={<MigrateAlbyFunds />} />
+                <Route path="new" element={<NewChannel />} />
+                <Route path="new/instant" element={<NewInstantChannel />} />
+                <Route path="new/blocktank" element={<NewBlocktankChannel />} />
+                <Route path="recommended" element={<RecommendedChannels />} />
+                <Route path="new/custom" element={<NewCustomChannel />} />
+
+                <Route
+                  path="onchain/new-address"
+                  element={<NewOnchainAddress />}
+                />
+              </Route>
+              <Route path="about" element={<About />} />
+              <Route path="/*" element={<NotFound />} />
             </Route>
-            <Route path="unlock" element={<Unlock />} />
-            <Route path="about" element={<About />} />
-          </Route>
-          <Route path="/*" element={<NotFound />} />
-        </Routes>
-      </HashRouter>
-      <Footer />
-    </div>
+            <Route element={<FullScreenLayout />}>
+              <Route path="unlock" element={<Unlock />} />
+            </Route>
+            <Route path="/*" element={<NotFound />} />
+          </Routes>
+        </HashRouter>{" "}
+      </ThemeProvider>
+    </>
   );
 }
 

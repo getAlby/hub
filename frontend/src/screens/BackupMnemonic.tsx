@@ -9,8 +9,6 @@ import { useNavigate } from "react-router-dom";
 import MnemonicInputs from "src/components/MnemonicInputs";
 import ConnectButton from "src/components/ConnectButton";
 import Container from "src/components/Container";
-import Input from "src/components/Input";
-import PasswordViewAdornment from "src/components/PasswordAdornment";
 import { aesGcmDecrypt } from "src/utils/aesgcm";
 import { useEncryptedMnemonic } from "src/hooks/useEncryptedMnemonic";
 import Loading from "src/components/Loading";
@@ -19,6 +17,7 @@ import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 import { useCSRF } from "src/hooks/useCSRF";
 import { useInfo } from "src/hooks/useInfo";
+import { Input } from "src/components/ui/input";
 
 export function BackupMnemonic() {
   const navigate = useNavigate();
@@ -95,13 +94,6 @@ export function BackupMnemonic() {
                 value={unlockPassword}
                 type={passwordVisible ? "text" : "password"}
                 placeholder="Password"
-                endAdornment={
-                  <PasswordViewAdornment
-                    onChange={(passwordView) => {
-                      setPasswordVisible(passwordView);
-                    }}
-                  />
-                }
               />
               <ConnectButton isConnecting={loading} />
             </>

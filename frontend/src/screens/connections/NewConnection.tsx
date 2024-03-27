@@ -15,10 +15,17 @@ import { EditIcon } from "src/components/icons/EditIcon";
 
 import { request } from "src/utils/request"; // build the project for this to appear
 import { handleRequestError } from "src/utils/handleRequestError";
-import Input from "src/components/Input";
 import Permissions from "../../components/Permissions";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "src/components/ui/card";
+import { Button } from "src/components/ui/button";
+import { Input } from "src/components/ui/input";
 
-const NewApp = () => {
+const NewConnection = () => {
   const { data: csrf } = useCSRF();
   const navigate = useNavigate();
 
@@ -99,7 +106,7 @@ const NewApp = () => {
         window.location.href = createAppResponse.returnTo;
         return;
       }
-      navigate("/apps/created", {
+      navigate("/connections/created", {
         state: createAppResponse,
       });
       toast.success("App created!");
@@ -111,70 +118,62 @@ const NewApp = () => {
   return (
     <div className="container max-w-screen-lg">
       <form onSubmit={handleSubmit} acceptCharset="UTF-8">
-        <div className="bg-white dark:bg-surface-02dp rounded-md shadow p-4 md:p-8">
-          <h2 className="font-bold text-2xl font-headline mb-4 dark:text-white">
-            {nameParam ? `Connect to ${appName}` : "Connect a new app"}
-          </h2>
-          {!nameParam && (
-            <>
-              <label
-                htmlFor="name"
-                className="block font-medium text-gray-900 dark:text-white"
-              >
-                Name
-              </label>
-              <Input
-                readOnly={!!nameParam}
-                type="text"
-                name="name"
-                value={appName}
-                id="name"
-                onChange={(e) => setAppName(e.target.value)}
-                required
-                autoComplete="off"
-              />
-              <p className="mt-1 mb-6 text-xs text-gray-500 dark:text-gray-400">
-                Name of the app or purpose of the connection
-              </p>
-            </>
-          )}
-          <div className="flex justify-between items-center mb-2 text-gray-800 dark:text-white">
-            <p className="text-lg font-medium">Authorize the app to:</p>
-            {!reqMethodsParam && !isEditing && (
-              <EditIcon
-                onClick={() => setEditing(true)}
-                className="text-gray-800 dark:text-gray-300 cursor-pointer w-6"
-              />
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              {nameParam ? `Connect to ${appName}` : "Connect a new app"}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {!nameParam && (
+              <>
+                <label
+                  htmlFor="name"
+                  className="block font-medium text-gray-900 dark:text-white"
+                >
+                  Name
+                </label>
+                <Input
+                  readOnly={!!nameParam}
+                  type="text"
+                  name="name"
+                  value={appName}
+                  id="name"
+                  onChange={(e) => setAppName(e.target.value)}
+                  required
+                  autoComplete="off"
+                />
+                <p className="mt-1 mb-6 text-xs text-gray-500 dark:text-gray-400">
+                  Name of the app or purpose of the connection
+                </p>
+              </>
             )}
-          </div>
+            <div className="flex justify-between items-center mb-2 text-gray-800 dark:text-white">
+              <p className="text-lg font-medium">Authorize the app to:</p>
+              {!reqMethodsParam && !isEditing && (
+                <EditIcon
+                  onClick={() => setEditing(true)}
+                  className="text-gray-800 dark:text-gray-300 cursor-pointer w-6"
+                />
+              )}
+            </div>
 
-          <Permissions
-            initialPermissions={permissions}
-            onPermissionsChange={setPermissions}
-            isEditing={isEditing}
-            isNew
-          />
-        </div>
-
+            <Permissions
+              initialPermissions={permissions}
+              onPermissionsChange={setPermissions}
+              isEditing={isEditing}
+              isNew
+            />
+          </CardContent>
+        </Card>
         <div className="mt-6 flex flex-col sm:flex-row sm:justify-center px-4 md:px-8">
-          {!pubkey && (
-            <Link
-              to="/apps"
-              className="inline-flex p-4 underline cursor-pointer duration-150 items-center justify-center text-gray-700 dark:text-neutral-300 w-full sm:w-[250px] order-last sm:order-first"
-            >
-              Cancel
-            </Link>
-          )}
-          <button
-            type="submit"
-            className="inline-flex w-full sm:w-[250px] bg-indigo-500 cursor-pointer dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus:outline-none font-medium hover:bg-indigo-700 items-center justify-center px-5 py-3 rounded-md shadow text-white transition"
-          >
+          <Button type="submit" size={"lg"}>
             {pubkey ? "Connect" : "Next"}
-          </button>
+          </Button>
         </div>
       </form>
     </div>
   );
 };
 
-export default NewApp;
+export default NewConnection;

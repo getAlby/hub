@@ -2,22 +2,21 @@ import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useCSRF } from "src/hooks/useCSRF";
 import { request } from "src/utils/request";
-import ConnectButton from "src/components/ConnectButton";
-import { handleRequestError } from "src/utils/handleRequestError";
 import { useInfo } from "src/hooks/useInfo";
-import Container from "src/components/Container";
-import Input from "src/components/Input";
-import PasswordViewAdornment from "src/components/PasswordAdornment";
+import { Label } from "src/components/ui/label";
+import { Button } from "src/components/ui/button";
+import { Input } from "src/components/ui/input";
+import { useToast } from "src/components/ui/use-toast";
 
 export default function Unlock() {
   const [unlockPassword, setUnlockPassword] = React.useState("");
-  const [passwordVisible, setPasswordVisible] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { data: csrf } = useCSRF();
   const { data: info } = useInfo();
   const { mutate: refetchInfo } = useInfo();
+  const { toast } = useToast();
 
   React.useEffect(() => {
     if (!info || info.running) {
@@ -46,7 +45,11 @@ export default function Unlock() {
       await refetchInfo();
       navigate("/");
     } catch (error) {
-      handleRequestError("Failed to connect", error);
+      toast({
+        title: (error as Error).message,
+        variant: "destructive",
+      });
+      // handleRequestError("Failed to connect", error);
     } finally {
       setLoading(false);
     }
@@ -54,30 +57,33 @@ export default function Unlock() {
 
   return (
     <>
-      <Container>
-        <p className="font-light text-center text-md leading-relaxed dark:text-neutral-400 mb-14">
-          Use your password to unlock NWC
-        </p>
-        <form onSubmit={onSubmit} className="w-full">
-          <>
-            <Input
-              name="unlock"
-              onChange={(e) => setUnlockPassword(e.target.value)}
-              value={unlockPassword}
-              type={passwordVisible ? "text" : "password"}
-              placeholder="Password"
-              endAdornment={
-                <PasswordViewAdornment
-                  onChange={(passwordView) => {
-                    setPasswordVisible(passwordView);
-                  }}
-                />
-              }
-            />
-            <ConnectButton isConnecting={loading} />
-          </>
-        </form>
-      </Container>
+      <form onSubmit={onSubmit} className="w-full">
+        <div className="mx-auto grid w-[350px] gap-6">
+          <div className="grid gap-2 text-center">
+            <h1 className="text-3xl font-bold">Login</h1>
+            <p className="text-balance text-muted-foreground">
+              Enter your unlock password to get started
+            </p>
+          </div>
+          <div className="grid gap-4">
+            <div className="grid gap-2">
+              <div className="flex items-center">
+                <Label htmlFor="password">Password</Label>
+              </div>
+              <Input
+                id="password"
+                type="password"
+                required
+                value={unlockPassword}
+                onChange={(e) => setUnlockPassword(e.target.value)}
+              />
+            </div>
+            <Button type="submit" className="w-full">
+              Login
+            </Button>
+          </div>
+        </div>
+      </form>
     </>
   );
 }
