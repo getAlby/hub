@@ -640,6 +640,7 @@ func (api *API) GetInfo() (*models.InfoResponse, error) {
 	info.Running = api.svc.lnClient != nil
 	info.BackendType = backendType
 	info.AlbyAuthUrl = api.albyOAuthSvc.GetAuthUrl()
+	info.AlbyUserIdentifier = api.albyOAuthSvc.GetUserIdentifier()
 
 	if info.BackendType != config.LNDBackendType {
 		nextBackupReminder, _ := api.svc.cfg.Get("NextBackupReminder", "")

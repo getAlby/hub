@@ -33,8 +33,10 @@ import NewInstantChannel from "src/screens/channels/NewInstantChannel";
 import FirstChannel from "src/screens/channels/FirstChannel";
 import { ChannelsRedirect } from "src/components/redirects/ChannelsRedirect";
 import MigrateAlbyFunds from "src/screens/channels/MigrateAlbyFunds";
+import { usePosthog } from "./hooks/usePosthog";
 
 function App() {
+  usePosthog();
   return (
     <div className="bg-zinc-50 min-h-full flex flex-col justify-center dark:bg-zinc-950">
       <Toaster />
