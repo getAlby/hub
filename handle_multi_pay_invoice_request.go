@@ -113,7 +113,7 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, request *Nip
 				svc.EventLogger.Log(&events.Event{
 					Event: "nwc_payment_failed",
 					Properties: map[string]interface{}{
-						"error":   fmt.Sprintf("%v", err),
+						// "error":   fmt.Sprintf("%v", err),
 						"multi":   true,
 						"invoice": bolt11,
 						"amount":  paymentRequest.MSatoshi / 1000,
