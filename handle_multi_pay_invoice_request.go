@@ -16,7 +16,7 @@ import (
 func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, *nostr.Tags)) {
 
 	multiPayParams := &Nip47MultiPayInvoiceParams{}
-	resp := svc.unmarshalRequest(request, requestEvent, app, multiPayParams)
+	resp := svc.decodeNip47Request(request, requestEvent, app, multiPayParams)
 	if resp != nil {
 		publishResponse(resp, &nostr.Tags{})
 		return

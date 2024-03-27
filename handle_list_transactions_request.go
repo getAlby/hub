@@ -10,7 +10,7 @@ import (
 func (svc *Service) HandleListTransactionsEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, *nostr.Tags)) {
 
 	listParams := &Nip47ListTransactionsParams{}
-	resp := svc.unmarshalRequest(request, requestEvent, app, listParams)
+	resp := svc.decodeNip47Request(request, requestEvent, app, listParams)
 	if resp != nil {
 		publishResponse(resp, &nostr.Tags{})
 		return

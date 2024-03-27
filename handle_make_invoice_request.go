@@ -10,7 +10,7 @@ import (
 func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, *nostr.Tags)) {
 
 	makeInvoiceParams := &Nip47MakeInvoiceParams{}
-	resp := svc.unmarshalRequest(request, requestEvent, app, makeInvoiceParams)
+	resp := svc.decodeNip47Request(request, requestEvent, app, makeInvoiceParams)
 	if resp != nil {
 		publishResponse(resp, &nostr.Tags{})
 		return

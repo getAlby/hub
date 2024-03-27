@@ -14,7 +14,7 @@ import (
 func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, *nostr.Tags)) {
 
 	payParams := &Nip47PayParams{}
-	resp := svc.unmarshalRequest(request, requestEvent, app, payParams)
+	resp := svc.decodeNip47Request(request, requestEvent, app, payParams)
 	if resp != nil {
 		publishResponse(resp, &nostr.Tags{})
 		return

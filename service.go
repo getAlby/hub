@@ -630,7 +630,7 @@ func (svc *Service) GetMethods(app *App) []string {
 	return requestMethods
 }
 
-func (svc *Service) unmarshalRequest(request *Nip47Request, requestEvent *RequestEvent, app *App, methodParams interface{}) *Nip47Response {
+func (svc *Service) decodeNip47Request(request *Nip47Request, requestEvent *RequestEvent, app *App, methodParams interface{}) *Nip47Response {
 	err := json.Unmarshal(request.Params, methodParams)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{

@@ -13,7 +13,7 @@ import (
 func (svc *Service) HandleLookupInvoiceEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, *nostr.Tags)) {
 
 	lookupInvoiceParams := &Nip47LookupInvoiceParams{}
-	resp := svc.unmarshalRequest(request, requestEvent, app, lookupInvoiceParams)
+	resp := svc.decodeNip47Request(request, requestEvent, app, lookupInvoiceParams)
 	if resp != nil {
 		publishResponse(resp, &nostr.Tags{})
 		return
