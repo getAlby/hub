@@ -440,13 +440,12 @@ func TestHandleMultiPayInvoiceEvent(t *testing.T) {
 	responses := []*Nip47Response{}
 	dTags := []nostr.Tags{}
 
-	publishResponse := func(response *Nip47Response, tags nostr.Tags) {
+	publishResponse := func(response *Nip47Response, tags *nostr.Tags) {
 		responses = append(responses, response)
-		dTags = append(dTags, tags)
+		dTags = append(dTags, *tags)
 	}
 
-	err = svc.HandleMultiPayInvoiceEvent(ctx, request, requestEvent, app, publishResponse)
-	assert.NoError(t, err)
+	svc.HandleMultiPayInvoiceEvent(ctx, request, requestEvent, app, publishResponse)
 
 	assert.Equal(t, 2, len(responses))
 	assert.Equal(t, 2, len(dTags))
@@ -474,8 +473,7 @@ func TestHandleMultiPayInvoiceEvent(t *testing.T) {
 	requestEvent.NostrId = reqEvent.ID
 	responses = []*Nip47Response{}
 	dTags = []nostr.Tags{}
-	err = svc.HandleMultiPayInvoiceEvent(ctx, request, requestEvent, app, publishResponse)
-	assert.NoError(t, err)
+	svc.HandleMultiPayInvoiceEvent(ctx, request, requestEvent, app, publishResponse)
 
 	assert.Equal(t, 2, len(responses))
 	for i := 0; i < len(responses); i++ {
@@ -495,8 +493,7 @@ func TestHandleMultiPayInvoiceEvent(t *testing.T) {
 	requestEvent.NostrId = reqEvent.ID
 	responses = []*Nip47Response{}
 	dTags = []nostr.Tags{}
-	err = svc.HandleMultiPayInvoiceEvent(ctx, request, requestEvent, app, publishResponse)
-	assert.NoError(t, err)
+	svc.HandleMultiPayInvoiceEvent(ctx, request, requestEvent, app, publishResponse)
 
 	assert.Equal(t, 2, len(responses))
 	assert.Equal(t, "invoiceId123", dTags[0].GetFirst([]string{"d"}).Value())
@@ -523,8 +520,7 @@ func TestHandleMultiPayInvoiceEvent(t *testing.T) {
 	requestEvent.NostrId = reqEvent.ID
 	responses = []*Nip47Response{}
 	dTags = []nostr.Tags{}
-	err = svc.HandleMultiPayInvoiceEvent(ctx, request, requestEvent, app, publishResponse)
-	assert.NoError(t, err)
+	svc.HandleMultiPayInvoiceEvent(ctx, request, requestEvent, app, publishResponse)
 
 	// might be flaky because the two requests run concurrently
 	// and there's more chance that the failed respons calls the
@@ -568,13 +564,12 @@ func TestHandleMultiPayKeysendEvent(t *testing.T) {
 	responses := []*Nip47Response{}
 	dTags := []nostr.Tags{}
 
-	publishResponse := func(response *Nip47Response, tags nostr.Tags) {
+	publishResponse := func(response *Nip47Response, tags *nostr.Tags) {
 		responses = append(responses, response)
-		dTags = append(dTags, tags)
+		dTags = append(dTags, *tags)
 	}
 
-	err = svc.HandleMultiPayKeysendEvent(ctx, request, requestEvent, app, publishResponse)
-	assert.NoError(t, err)
+	svc.HandleMultiPayKeysendEvent(ctx, request, requestEvent, app, publishResponse)
 
 	assert.Equal(t, 2, len(responses))
 	for i := 0; i < len(responses); i++ {
@@ -603,8 +598,7 @@ func TestHandleMultiPayKeysendEvent(t *testing.T) {
 	requestEvent.NostrId = reqEvent.ID
 	responses = []*Nip47Response{}
 	dTags = []nostr.Tags{}
-	err = svc.HandleMultiPayKeysendEvent(ctx, request, requestEvent, app, publishResponse)
-	assert.NoError(t, err)
+	svc.HandleMultiPayKeysendEvent(ctx, request, requestEvent, app, publishResponse)
 
 	assert.Equal(t, 2, len(responses))
 	for i := 0; i < len(responses); i++ {
@@ -630,8 +624,7 @@ func TestHandleMultiPayKeysendEvent(t *testing.T) {
 	requestEvent.NostrId = reqEvent.ID
 	responses = []*Nip47Response{}
 	dTags = []nostr.Tags{}
-	err = svc.HandleMultiPayKeysendEvent(ctx, request, requestEvent, app, publishResponse)
-	assert.NoError(t, err)
+	svc.HandleMultiPayKeysendEvent(ctx, request, requestEvent, app, publishResponse)
 
 	assert.Equal(t, responses[0].Error.Code, NIP_47_ERROR_QUOTA_EXCEEDED)
 	assert.Equal(t, "500pubkey", dTags[0].GetFirst([]string{"d"}).Value())
@@ -667,14 +660,19 @@ func TestHandleGetBalanceEvent(t *testing.T) {
 
 	reqEvent.ID = "test_get_balance_without_permission"
 	requestEvent.NostrId = reqEvent.ID
+
+	responses := []*Nip47Response{}
+
+	publishResponse := func(response *Nip47Response, tags *nostr.Tags) {
+		responses = append(responses, response)
+	}
+
 	err = svc.db.Create(&requestEvent).Error
 	assert.NoError(t, err)
 
-	res, err := svc.HandleGetBalanceEvent(ctx, request, requestEvent, app)
-	assert.NoError(t, err)
-	assert.NotNil(t, res)
+	svc.HandleGetBalanceEvent(ctx, request, requestEvent, app, publishResponse)
 
-	assert.Equal(t, NIP_47_ERROR_RESTRICTED, res.Error.Code)
+	assert.Equal(t, responses[0].Error.Code, NIP_47_ERROR_RESTRICTED)
 
 	// with permission
 	expiresAt := time.Now().Add(24 * time.Hour)
@@ -689,11 +687,10 @@ func TestHandleGetBalanceEvent(t *testing.T) {
 
 	reqEvent.ID = "test_get_balance_with_permission"
 	requestEvent.NostrId = reqEvent.ID
-	res, err = svc.HandleGetBalanceEvent(ctx, request, requestEvent, app)
-	assert.NoError(t, err)
-	assert.NotNil(t, res)
+	responses = []*Nip47Response{}
+	svc.HandleGetBalanceEvent(ctx, request, requestEvent, app, publishResponse)
 
-	assert.Equal(t, int64(21000), res.Result.(*Nip47BalanceResponse).Balance)
+	assert.Equal(t, responses[0].Result.(*Nip47BalanceResponse).Balance, int64(21000))
 
 	// create pay_invoice permission
 	maxAmount := 1000
@@ -710,13 +707,12 @@ func TestHandleGetBalanceEvent(t *testing.T) {
 	assert.NoError(t, err)
 
 	reqEvent.ID = "test_get_balance_with_budget"
-	res, err = svc.HandleGetBalanceEvent(ctx, request, requestEvent, app)
-	assert.NoError(t, err)
-	assert.NotNil(t, res)
+	responses = []*Nip47Response{}
+	svc.HandleGetBalanceEvent(ctx, request, requestEvent, app, publishResponse)
 
-	assert.Equal(t, int64(21000), res.Result.(*Nip47BalanceResponse).Balance)
-	assert.Equal(t, 1000000, res.Result.(*Nip47BalanceResponse).MaxAmount)
-	assert.Equal(t, "never", res.Result.(*Nip47BalanceResponse).BudgetRenewal)
+	assert.Equal(t, int64(21000), responses[0].Result.(*Nip47BalanceResponse).Balance)
+	assert.Equal(t, 1000000, responses[0].Result.(*Nip47BalanceResponse).MaxAmount)
+	assert.Equal(t, "never", responses[0].Result.(*Nip47BalanceResponse).BudgetRenewal)
 }
 
 func TestHandlePayInvoiceEvent(t *testing.T) {
@@ -747,11 +743,16 @@ func TestHandlePayInvoiceEvent(t *testing.T) {
 
 	reqEvent.ID = "pay_invoice_without_permission"
 	requestEvent.NostrId = reqEvent.ID
-	res, err := svc.HandlePayInvoiceEvent(ctx, request, requestEvent, app)
-	assert.NoError(t, err)
-	assert.NotNil(t, res)
 
-	assert.Equal(t, NIP_47_ERROR_RESTRICTED, res.Error.Code)
+	responses := []*Nip47Response{}
+
+	publishResponse := func(response *Nip47Response, tags *nostr.Tags) {
+		responses = append(responses, response)
+	}
+
+	svc.HandlePayInvoiceEvent(ctx, request, requestEvent, app, publishResponse)
+
+	assert.Equal(t, NIP_47_ERROR_RESTRICTED, responses[0].Error.Code)
 
 	// with permission
 	maxAmount := 1000
@@ -770,11 +771,10 @@ func TestHandlePayInvoiceEvent(t *testing.T) {
 
 	reqEvent.ID = "pay_invoice_with_permission"
 	requestEvent.NostrId = reqEvent.ID
-	res, err = svc.HandlePayInvoiceEvent(ctx, request, requestEvent, app)
-	assert.NoError(t, err)
-	assert.NotNil(t, res)
+	responses = []*Nip47Response{}
+	svc.HandlePayInvoiceEvent(ctx, request, requestEvent, app, publishResponse)
 
-	assert.Equal(t, res.Result.(Nip47PayResponse).Preimage, "123preimage")
+	assert.Equal(t, responses[0].Result.(Nip47PayResponse).Preimage, "123preimage")
 
 	// malformed invoice
 	err = json.Unmarshal([]byte(nip47PayJsonNoInvoice), request)
@@ -786,11 +786,10 @@ func TestHandlePayInvoiceEvent(t *testing.T) {
 
 	reqEvent.ID = "pay_invoice_with_malformed_invoice"
 	requestEvent.NostrId = reqEvent.ID
-	res, err = svc.HandlePayInvoiceEvent(ctx, request, requestEvent, app)
-	assert.NoError(t, err)
-	assert.NotNil(t, res)
+	responses = []*Nip47Response{}
+	svc.HandlePayInvoiceEvent(ctx, request, requestEvent, app, publishResponse)
 
-	assert.Equal(t, NIP_47_ERROR_INTERNAL, res.Error.Code)
+	assert.Equal(t, NIP_47_ERROR_INTERNAL, responses[0].Error.Code)
 
 	// wrong method
 	err = json.Unmarshal([]byte(nip47PayWrongMethodJson), request)
@@ -802,11 +801,10 @@ func TestHandlePayInvoiceEvent(t *testing.T) {
 
 	reqEvent.ID = "pay_invoice_with_wrong_request_method"
 	requestEvent.NostrId = reqEvent.ID
-	res, err = svc.HandlePayInvoiceEvent(ctx, request, requestEvent, app)
-	assert.NoError(t, err)
-	assert.NotNil(t, res)
+	responses = []*Nip47Response{}
+	svc.HandlePayInvoiceEvent(ctx, request, requestEvent, app, publishResponse)
 
-	assert.Equal(t, NIP_47_ERROR_RESTRICTED, res.Error.Code)
+	assert.Equal(t, NIP_47_ERROR_RESTRICTED, responses[0].Error.Code)
 
 	// budget overflow
 	newMaxAmount := 100
@@ -822,11 +820,10 @@ func TestHandlePayInvoiceEvent(t *testing.T) {
 
 	reqEvent.ID = "pay_invoice_with_budget_overflow"
 	requestEvent.NostrId = reqEvent.ID
-	res, err = svc.HandlePayInvoiceEvent(ctx, request, requestEvent, app)
-	assert.NoError(t, err)
-	assert.NotNil(t, res)
+	responses = []*Nip47Response{}
+	svc.HandlePayInvoiceEvent(ctx, request, requestEvent, app, publishResponse)
 
-	assert.Equal(t, NIP_47_ERROR_QUOTA_EXCEEDED, res.Error.Code)
+	assert.Equal(t, NIP_47_ERROR_QUOTA_EXCEEDED, responses[0].Error.Code)
 
 	// budget expiry
 	newExpiry := time.Now().Add(-24 * time.Hour)
@@ -835,11 +832,10 @@ func TestHandlePayInvoiceEvent(t *testing.T) {
 
 	reqEvent.ID = "pay_invoice_with_budget_expiry"
 	requestEvent.NostrId = reqEvent.ID
-	res, err = svc.HandlePayInvoiceEvent(ctx, request, requestEvent, app)
-	assert.NoError(t, err)
-	assert.NotNil(t, res)
+	responses = []*Nip47Response{}
+	svc.HandlePayInvoiceEvent(ctx, request, requestEvent, app, publishResponse)
 
-	assert.Equal(t, NIP_47_ERROR_EXPIRED, res.Error.Code)
+	assert.Equal(t, NIP_47_ERROR_EXPIRED, responses[0].Error.Code)
 
 	// check again
 	err = svc.db.Model(&AppPermission{}).Where("app_id = ?", app.ID).Update("expires_at", nil).Error
@@ -847,11 +843,10 @@ func TestHandlePayInvoiceEvent(t *testing.T) {
 
 	reqEvent.ID = "pay_invoice_after_change"
 	requestEvent.NostrId = reqEvent.ID
-	res, err = svc.HandlePayInvoiceEvent(ctx, request, requestEvent, app)
-	assert.NoError(t, err)
-	assert.NotNil(t, res)
+	responses = []*Nip47Response{}
+	svc.HandlePayInvoiceEvent(ctx, request, requestEvent, app, publishResponse)
 
-	assert.Equal(t, res.Result.(Nip47PayResponse).Preimage, "123preimage")
+	assert.Equal(t, responses[0].Result.(Nip47PayResponse).Preimage, "123preimage")
 }
 
 func TestHandlePayKeysendEvent(t *testing.T) {
@@ -882,11 +877,16 @@ func TestHandlePayKeysendEvent(t *testing.T) {
 
 	reqEvent.ID = "pay_keysend_without_permission"
 	requestEvent.NostrId = reqEvent.ID
-	res, err := svc.HandlePayKeysendEvent(ctx, request, requestEvent, app)
-	assert.NoError(t, err)
-	assert.NotNil(t, res)
 
-	assert.Equal(t, NIP_47_ERROR_RESTRICTED, res.Error.Code)
+	responses := []*Nip47Response{}
+
+	publishResponse := func(response *Nip47Response, tags *nostr.Tags) {
+		responses = append(responses, response)
+	}
+
+	svc.HandlePayKeysendEvent(ctx, request, requestEvent, app, publishResponse)
+
+	assert.Equal(t, NIP_47_ERROR_RESTRICTED, responses[0].Error.Code)
 
 	// with permission
 	maxAmount := 1000
@@ -908,11 +908,10 @@ func TestHandlePayKeysendEvent(t *testing.T) {
 
 	reqEvent.ID = "pay_keysend_with_permission"
 	requestEvent.NostrId = reqEvent.ID
-	res, err = svc.HandlePayKeysendEvent(ctx, request, requestEvent, app)
-	assert.NoError(t, err)
-	assert.NotNil(t, res)
+	responses = []*Nip47Response{}
+	svc.HandlePayKeysendEvent(ctx, request, requestEvent, app, publishResponse)
 
-	assert.Equal(t, res.Result.(Nip47PayResponse).Preimage, "12345preimage")
+	assert.Equal(t, responses[0].Result.(Nip47PayResponse).Preimage, "12345preimage")
 
 	// budget overflow
 	newMaxAmount := 100
@@ -928,11 +927,10 @@ func TestHandlePayKeysendEvent(t *testing.T) {
 
 	reqEvent.ID = "pay_keysend_with_budget_overflow"
 	requestEvent.NostrId = reqEvent.ID
-	res, err = svc.HandlePayKeysendEvent(ctx, request, requestEvent, app)
-	assert.NoError(t, err)
-	assert.NotNil(t, res)
+	responses = []*Nip47Response{}
+	svc.HandlePayKeysendEvent(ctx, request, requestEvent, app, publishResponse)
 
-	assert.Equal(t, NIP_47_ERROR_QUOTA_EXCEEDED, res.Error.Code)
+	assert.Equal(t, NIP_47_ERROR_QUOTA_EXCEEDED, responses[0].Error.Code)
 }
 
 func TestHandleLookupInvoiceEvent(t *testing.T) {
@@ -963,11 +961,16 @@ func TestHandleLookupInvoiceEvent(t *testing.T) {
 
 	reqEvent.ID = "test_lookup_invoice_without_permission"
 	requestEvent.NostrId = reqEvent.ID
-	res, err := svc.HandleMakeInvoiceEvent(ctx, request, requestEvent, app)
-	assert.NoError(t, err)
-	assert.NotNil(t, res)
 
-	assert.Equal(t, NIP_47_ERROR_RESTRICTED, res.Error.Code)
+	responses := []*Nip47Response{}
+
+	publishResponse := func(response *Nip47Response, tags *nostr.Tags) {
+		responses = append(responses, response)
+	}
+
+	svc.HandleLookupInvoiceEvent(ctx, request, requestEvent, app, publishResponse)
+
+	assert.Equal(t, NIP_47_ERROR_RESTRICTED, responses[0].Error.Code)
 
 	// with permission
 	expiresAt := time.Now().Add(24 * time.Hour)
@@ -982,11 +985,10 @@ func TestHandleLookupInvoiceEvent(t *testing.T) {
 
 	reqEvent.ID = "test_lookup_invoice_with_permission"
 	requestEvent.NostrId = reqEvent.ID
-	res, err = svc.HandleLookupInvoiceEvent(ctx, request, requestEvent, app)
-	assert.NoError(t, err)
-	assert.NotNil(t, res)
+	responses = []*Nip47Response{}
+	svc.HandleLookupInvoiceEvent(ctx, request, requestEvent, app, publishResponse)
 
-	transaction := res.Result.(*Nip47LookupInvoiceResponse)
+	transaction := responses[0].Result.(*Nip47LookupInvoiceResponse)
 	assert.Equal(t, mockTransaction.Type, transaction.Type)
 	assert.Equal(t, mockTransaction.Invoice, transaction.Invoice)
 	assert.Equal(t, mockTransaction.Description, transaction.Description)
@@ -1026,11 +1028,16 @@ func TestHandleMakeInvoiceEvent(t *testing.T) {
 
 	reqEvent.ID = "test_make_invoice_without_permission"
 	requestEvent.NostrId = reqEvent.ID
-	res, err := svc.HandleMakeInvoiceEvent(ctx, request, requestEvent, app)
-	assert.NoError(t, err)
-	assert.NotNil(t, res)
 
-	assert.Equal(t, NIP_47_ERROR_RESTRICTED, res.Error.Code)
+	responses := []*Nip47Response{}
+
+	publishResponse := func(response *Nip47Response, tags *nostr.Tags) {
+		responses = append(responses, response)
+	}
+
+	svc.HandleMakeInvoiceEvent(ctx, request, requestEvent, app, publishResponse)
+
+	assert.Equal(t, NIP_47_ERROR_RESTRICTED, responses[0].Error.Code)
 
 	// with permission
 	expiresAt := time.Now().Add(24 * time.Hour)
@@ -1045,11 +1052,10 @@ func TestHandleMakeInvoiceEvent(t *testing.T) {
 
 	reqEvent.ID = "test_make_invoice_with_permission"
 	requestEvent.NostrId = reqEvent.ID
-	res, err = svc.HandleMakeInvoiceEvent(ctx, request, requestEvent, app)
-	assert.NoError(t, err)
-	assert.NotNil(t, res)
+	responses = []*Nip47Response{}
+	svc.HandleMakeInvoiceEvent(ctx, request, requestEvent, app, publishResponse)
 
-	assert.Equal(t, mockTransaction.Preimage, res.Result.(*Nip47MakeInvoiceResponse).Preimage)
+	assert.Equal(t, mockTransaction.Preimage, responses[0].Result.(*Nip47MakeInvoiceResponse).Preimage)
 }
 
 func TestHandleListTransactionsEvent(t *testing.T) {
@@ -1080,11 +1086,16 @@ func TestHandleListTransactionsEvent(t *testing.T) {
 
 	reqEvent.ID = "test_list_transactions_without_permission"
 	requestEvent.NostrId = reqEvent.ID
-	res, err := svc.HandleListTransactionsEvent(ctx, request, requestEvent, app)
-	assert.NoError(t, err)
-	assert.NotNil(t, res)
 
-	assert.Equal(t, NIP_47_ERROR_RESTRICTED, res.Error.Code)
+	responses := []*Nip47Response{}
+
+	publishResponse := func(response *Nip47Response, tags *nostr.Tags) {
+		responses = append(responses, response)
+	}
+
+	svc.HandleListTransactionsEvent(ctx, request, requestEvent, app, publishResponse)
+
+	assert.Equal(t, NIP_47_ERROR_RESTRICTED, responses[0].Error.Code)
 
 	// with permission
 	expiresAt := time.Now().Add(24 * time.Hour)
@@ -1099,12 +1110,11 @@ func TestHandleListTransactionsEvent(t *testing.T) {
 
 	reqEvent.ID = "test_list_transactions_with_permission"
 	requestEvent.NostrId = reqEvent.ID
-	res, err = svc.HandleListTransactionsEvent(ctx, request, requestEvent, app)
-	assert.NoError(t, err)
-	assert.NotNil(t, res)
+	responses = []*Nip47Response{}
+	svc.HandleListTransactionsEvent(ctx, request, requestEvent, app, publishResponse)
 
-	assert.Equal(t, 2, len(res.Result.(*Nip47ListTransactionsResponse).Transactions))
-	transaction := res.Result.(*Nip47ListTransactionsResponse).Transactions[0]
+	assert.Equal(t, 2, len(responses[0].Result.(*Nip47ListTransactionsResponse).Transactions))
+	transaction := responses[0].Result.(*Nip47ListTransactionsResponse).Transactions[0]
 	assert.Equal(t, mockTransactions[0].Type, transaction.Type)
 	assert.Equal(t, mockTransactions[0].Invoice, transaction.Invoice)
 	assert.Equal(t, mockTransactions[0].Description, transaction.Description)
@@ -1144,11 +1154,16 @@ func TestHandleGetInfoEvent(t *testing.T) {
 
 	reqEvent.ID = "test_get_info_without_permission"
 	requestEvent.NostrId = reqEvent.ID
-	res, err := svc.HandleGetInfoEvent(ctx, request, requestEvent, app)
-	assert.NoError(t, err)
-	assert.NotNil(t, res)
 
-	assert.Equal(t, NIP_47_ERROR_RESTRICTED, res.Error.Code)
+	responses := []*Nip47Response{}
+
+	publishResponse := func(response *Nip47Response, tags *nostr.Tags) {
+		responses = append(responses, response)
+	}
+
+	svc.HandleGetInfoEvent(ctx, request, requestEvent, app, publishResponse)
+
+	assert.Equal(t, NIP_47_ERROR_RESTRICTED, responses[0].Error.Code)
 
 	expiresAt := time.Now().Add(24 * time.Hour)
 	appPermission := &AppPermission{
@@ -1162,17 +1177,17 @@ func TestHandleGetInfoEvent(t *testing.T) {
 
 	reqEvent.ID = "test_get_info_with_permission"
 	requestEvent.NostrId = reqEvent.ID
-	res, err = svc.HandleGetInfoEvent(ctx, request, requestEvent, app)
-	assert.NoError(t, err)
-	assert.NotNil(t, res)
+	responses = []*Nip47Response{}
+	svc.HandleGetInfoEvent(ctx, request, requestEvent, app, publishResponse)
 
-	assert.Equal(t, mockNodeInfo.Alias, res.Result.(*Nip47GetInfoResponse).Alias)
-	assert.Equal(t, mockNodeInfo.Color, res.Result.(*Nip47GetInfoResponse).Color)
-	assert.Equal(t, mockNodeInfo.Pubkey, res.Result.(*Nip47GetInfoResponse).Pubkey)
-	assert.Equal(t, mockNodeInfo.Network, res.Result.(*Nip47GetInfoResponse).Network)
-	assert.Equal(t, mockNodeInfo.BlockHeight, res.Result.(*Nip47GetInfoResponse).BlockHeight)
-	assert.Equal(t, mockNodeInfo.BlockHash, res.Result.(*Nip47GetInfoResponse).BlockHash)
-	assert.Equal(t, []string{"get_info"}, res.Result.(*Nip47GetInfoResponse).Methods)
+	nodeInfo := responses[0].Result.(*Nip47GetInfoResponse)
+	assert.Equal(t, mockNodeInfo.Alias, nodeInfo.Alias)
+	assert.Equal(t, mockNodeInfo.Color, nodeInfo.Color)
+	assert.Equal(t, mockNodeInfo.Pubkey, nodeInfo.Pubkey)
+	assert.Equal(t, mockNodeInfo.Network, nodeInfo.Network)
+	assert.Equal(t, mockNodeInfo.BlockHeight, nodeInfo.BlockHeight)
+	assert.Equal(t, mockNodeInfo.BlockHash, nodeInfo.BlockHash)
+	assert.Equal(t, []string{"get_info"}, nodeInfo.Methods)
 }
 
 func createTestService(ln *MockLn) (svc *Service, err error) {

@@ -61,6 +61,7 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, request *Nip
 			resp := svc.checkPermission(request, requestEvent, app, paymentRequest.MSatoshi)
 			if resp != nil {
 				publishResponse(resp, &nostr.Tags{dTag})
+				return
 			}
 
 			payment := Payment{App: *app, RequestEventId: requestEvent.ID, PaymentRequest: bolt11, Amount: uint(paymentRequest.MSatoshi / 1000)}

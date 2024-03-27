@@ -35,6 +35,7 @@ func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, request *Nip
 			resp := svc.checkPermission(request, requestEvent, app, keysendInfo.Amount)
 			if resp != nil {
 				publishResponse(resp, &nostr.Tags{dTag})
+				return
 			}
 
 			payment := Payment{App: *app, RequestEvent: *requestEvent, Amount: uint(keysendInfo.Amount / 1000)}
