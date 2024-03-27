@@ -189,7 +189,7 @@ func (httpSvc *HttpService) unlockHandler(c echo.Context) error {
 		})
 	}
 
-	httpSvc.svc.EventLogger.Log(c.Request().Context(), &events.Event{
+	httpSvc.svc.EventLogger.Log(&events.Event{
 		Event: "nwc_unlocked",
 	})
 

@@ -122,13 +122,14 @@ func NewService(ctx context.Context) (*Service, error) {
 	cfg := &Config{}
 	cfg.Init(db, appConfig, logger)
 
-	albyOAuthSvc := alby.NewAlbyOauthService(logger, cfg, cfg.Env)
+	eventLogger := events.NewEventLogger(logger)
+
+	albyOAuthSvc := alby.NewAlbyOauthService(logger, cfg, cfg.Env, eventLogger)
 	if err != nil {
 		logger.WithError(err).Error("Failed to create Alby OAuth service")
 		return nil, err
 	}
 
-	eventLogger := events.NewEventLogger(logger)
 	eventLogger.Subscribe(albyOAuthSvc)
 
 	var wg sync.WaitGroup
@@ -142,7 +143,7 @@ func NewService(ctx context.Context) (*Service, error) {
 		EventLogger:  eventLogger,
 	}
 
-	eventLogger.Log(ctx, &events.Event{
+	eventLogger.Log(&events.Event{
 		Event: "nwc_started",
 	})
 
@@ -154,7 +155,7 @@ func (svc *Service) StopLNClient() error {
 		err := svc.lnClient.Shutdown()
 		if err != nil {
 			svc.Logger.WithError(err).Error("Failed to stop LN backend")
-			svc.EventLogger.Log(svc.ctx, &events.Event{
+			svc.EventLogger.Log(&events.Event{
 				Event: "nwc_node_stop_failed",
 				Properties: map[string]interface{}{
 					"error": fmt.Sprintf("%v", err),
@@ -163,7 +164,7 @@ func (svc *Service) StopLNClient() error {
 			return err
 		}
 		svc.lnClient = nil
-		svc.EventLogger.Log(svc.ctx, &events.Event{
+		svc.EventLogger.Log(&events.Event{
 			Event: "nwc_node_stopped",
 		})
 	}
@@ -176,14 +177,14 @@ func (svc *Service) launchLNBackend(encryptionKey string) error {
 		return err
 	}
 
-	lndBackend, _ := svc.cfg.Get("LNBackendType", "")
-	if lndBackend == "" {
+	lnBackend, _ := svc.cfg.Get("LNBackendType", "")
+	if lnBackend == "" {
 		return errors.New("no LNBackendType specified")
 	}
 
-	svc.Logger.Infof("Launching LN Backend: %s", lndBackend)
+	svc.Logger.Infof("Launching LN Backend: %s", lnBackend)
 	var lnClient lnclient.LNClient
-	switch lndBackend {
+	switch lnBackend {
 	case config.LNDBackendType:
 		LNDAddress, _ := svc.cfg.Get("LNDAddress", encryptionKey)
 		LNDCertHex, _ := svc.cfg.Get("LNDCertHex", encryptionKey)
@@ -208,17 +209,17 @@ func (svc *Service) launchLNBackend(encryptionKey string) error {
 
 		lnClient, err = NewBreezService(svc.Logger, Mnemonic, BreezAPIKey, GreenlightInviteCode, BreezWorkdir)
 	default:
-		svc.Logger.Fatalf("Unsupported LNBackendType: %v", lndBackend)
+		svc.Logger.Fatalf("Unsupported LNBackendType: %v", lnBackend)
 	}
 	if err != nil {
 		svc.Logger.Errorf("Failed to launch LN backend: %v", err)
 		return err
 	}
 
-	svc.EventLogger.Log(svc.ctx, &events.Event{
+	svc.EventLogger.Log(&events.Event{
 		Event: "nwc_node_started",
 		Properties: map[string]interface{}{
-			"backend": lndBackend,
+			"node_type": lnBackend,
 		},
 	})
 	svc.lnClient = lnClient
@@ -678,11 +679,12 @@ func (svc *Service) hasPermission(app *App, requestMethod string, amount int64) 
 		RequestMethod: requestMethod,
 	})
 	if findPermissionResult.RowsAffected == 0 {
-		svc.EventLogger.Log(svc.ctx, &events.Event{
+		svc.EventLogger.Log(&events.Event{
 			Event: "nwc_permission_missing",
 			Properties: map[string]interface{}{
 				"request_method": requestMethod,
 				"app_name":       app.Name,
+				"app_pubkey":     app.NostrPubkey,
 			},
 		})
 
@@ -697,11 +699,12 @@ func (svc *Service) hasPermission(app *App, requestMethod string, amount int64) 
 			"appId":         app.ID,
 			"pubkey":        app.NostrPubkey,
 		}).Info("This pubkey is expired")
-		svc.EventLogger.Log(svc.ctx, &events.Event{
+		svc.EventLogger.Log(&events.Event{
 			Event: "nwc_permission_expired",
 			Properties: map[string]interface{}{
 				"request_method": requestMethod,
 				"app_name":       app.Name,
+				"app_pubkey":     app.NostrPubkey,
 			},
 		})
 		return false, NIP_47_ERROR_EXPIRED, "This app has expired"
@@ -713,14 +716,15 @@ func (svc *Service) hasPermission(app *App, requestMethod string, amount int64) 
 			budgetUsage := svc.GetBudgetUsage(&appPermission)
 
 			if budgetUsage+amount/1000 > int64(maxAmount) {
-				svc.EventLogger.Log(svc.ctx, &events.Event{
-					Event: "nwc_permission_exceeded",
+				svc.EventLogger.Log(&events.Event{
+					Event: "nwc_permission_budget_exceeded",
 					Properties: map[string]interface{}{
 						"request_method": requestMethod,
 						"app_name":       app.Name,
-						"max_amount":     maxAmount,
-						"budget_usage":   budgetUsage,
-						"amount":         amount / 1000,
+						"app_pubkey":     app.NostrPubkey,
+						// "max_amount":     maxAmount,
+						// "budget_usage":   budgetUsage,
+						// "amount":         amount / 1000,
 					},
 				})
 				return false, NIP_47_ERROR_QUOTA_EXCEEDED, "Insufficient budget remaining to make payment"
