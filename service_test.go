@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/getAlby/nostr-wallet-connect/events"
 	"github.com/getAlby/nostr-wallet-connect/migrations"
 	"github.com/getAlby/nostr-wallet-connect/models/config"
 	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
@@ -1203,9 +1204,10 @@ func createTestService(ln *MockLn) (svc *Service, err error) {
 			NostrSecretKey: sk,
 			NostrPublicKey: pk,
 		},
-		db:       gormDb,
-		lnClient: ln,
-		Logger:   logger,
+		db:          gormDb,
+		lnClient:    ln,
+		Logger:      logger,
+		EventLogger: events.NewEventLogger(logger),
 	}, nil
 }
 

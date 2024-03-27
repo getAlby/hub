@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/getAlby/nostr-wallet-connect/events"
 	"github.com/nbd-wtf/go-nostr"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
@@ -109,6 +110,16 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, request *Nip
 					"bolt11":  bolt11,
 				}).Infof("Failed to send payment: %v", err)
 
+				svc.EventLogger.Log(ctx, &events.Event{
+					Event: "nwc_payment_failed",
+					Properties: map[string]interface{}{
+						"error":   fmt.Sprintf("%v", err),
+						"multi":   true,
+						"invoice": bolt11,
+						"amount":  paymentRequest.MSatoshi / 1000,
+					},
+				})
+
 				publishResponse(&Nip47Response{
 					ResultType: request.Method,
 					Error: &Nip47Error{
@@ -122,6 +133,13 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, request *Nip
 			mu.Lock()
 			svc.db.Save(&payment)
 			mu.Unlock()
+			svc.EventLogger.Log(ctx, &events.Event{
+				Event: "nwc_payment_succeeded",
+				Properties: map[string]interface{}{
+					"multi":  true,
+					"amount": paymentRequest.MSatoshi / 1000,
+				},
+			})
 			publishResponse(&Nip47Response{
 				ResultType: request.Method,
 				Result: Nip47PayResponse{

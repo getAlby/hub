@@ -20,6 +20,8 @@ import (
 	"github.com/nbd-wtf/go-nostr/nip04"
 	"github.com/sirupsen/logrus"
 
+	alby "github.com/getAlby/nostr-wallet-connect/alby"
+	"github.com/getAlby/nostr-wallet-connect/events"
 	"github.com/glebarez/sqlite"
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
@@ -33,12 +35,14 @@ import (
 
 type Service struct {
 	// config from .env only. Fetch dynamic config from db
-	cfg      *Config
-	db       *gorm.DB
-	lnClient lnclient.LNClient
-	Logger   *logrus.Logger
-	ctx      context.Context
-	wg       *sync.WaitGroup
+	cfg          *Config
+	db           *gorm.DB
+	lnClient     lnclient.LNClient
+	Logger       *logrus.Logger
+	AlbyOAuthSvc *alby.AlbyOAuthService
+	EventLogger  events.EventLogger
+	ctx          context.Context
+	wg           *sync.WaitGroup
 }
 
 // TODO: move to service.go
@@ -111,32 +115,65 @@ func NewService(ctx context.Context) (*Service, error) {
 
 	err = migrations.Migrate(db, appConfig, logger)
 	if err != nil {
-		logger.Errorf("Failed to migrate: %v", err)
+		logger.WithError(err).Error("Failed to migrate")
 		return nil, err
 	}
 
 	cfg := &Config{}
 	cfg.Init(db, appConfig, logger)
 
+	albyOAuthSvc := alby.NewAlbyOauthService(logger, cfg, cfg.Env)
+	if err != nil {
+		logger.WithError(err).Error("Failed to create Alby OAuth service")
+		return nil, err
+	}
+
+	eventLogger := events.NewEventLogger(logger)
+	eventLogger.Subscribe(albyOAuthSvc)
+
 	var wg sync.WaitGroup
 	svc := &Service{
-		cfg:    cfg,
-		db:     db,
-		ctx:    ctx,
-		wg:     &wg,
-		Logger: logger,
+		cfg:          cfg,
+		db:           db,
+		ctx:          ctx,
+		wg:           &wg,
+		Logger:       logger,
+		AlbyOAuthSvc: albyOAuthSvc,
+		EventLogger:  eventLogger,
 	}
+
+	eventLogger.Log(ctx, &events.Event{
+		Event: "nwc_started",
+	})
 
 	return svc, nil
 }
 
-func (svc *Service) launchLNBackend(encryptionKey string) error {
+func (svc *Service) StopLNClient() error {
 	if svc.lnClient != nil {
 		err := svc.lnClient.Shutdown()
 		if err != nil {
+			svc.Logger.WithError(err).Error("Failed to stop LN backend")
+			svc.EventLogger.Log(svc.ctx, &events.Event{
+				Event: "nwc_node_stop_failed",
+				Properties: map[string]interface{}{
+					"error": fmt.Sprintf("%v", err),
+				},
+			})
 			return err
 		}
 		svc.lnClient = nil
+		svc.EventLogger.Log(svc.ctx, &events.Event{
+			Event: "nwc_node_stopped",
+		})
+	}
+	return nil
+}
+
+func (svc *Service) launchLNBackend(encryptionKey string) error {
+	err := svc.StopLNClient()
+	if err != nil {
+		return err
 	}
 
 	lndBackend, _ := svc.cfg.Get("LNBackendType", "")
@@ -146,7 +183,6 @@ func (svc *Service) launchLNBackend(encryptionKey string) error {
 
 	svc.Logger.Infof("Launching LN Backend: %s", lndBackend)
 	var lnClient lnclient.LNClient
-	var err error
 	switch lndBackend {
 	case config.LNDBackendType:
 		LNDAddress, _ := svc.cfg.Get("LNDAddress", encryptionKey)
@@ -178,6 +214,13 @@ func (svc *Service) launchLNBackend(encryptionKey string) error {
 		svc.Logger.Errorf("Failed to launch LN backend: %v", err)
 		return err
 	}
+
+	svc.EventLogger.Log(svc.ctx, &events.Event{
+		Event: "nwc_node_started",
+		Properties: map[string]interface{}{
+			"backend": lndBackend,
+		},
+	})
 	svc.lnClient = lnClient
 	return nil
 }
@@ -613,6 +656,14 @@ func (svc *Service) hasPermission(app *App, requestMethod string, amount int64) 
 		RequestMethod: requestMethod,
 	})
 	if findPermissionResult.RowsAffected == 0 {
+		svc.EventLogger.Log(svc.ctx, &events.Event{
+			Event: "nwc_permission_missing",
+			Properties: map[string]interface{}{
+				"request_method": requestMethod,
+				"app_name":       app.Name,
+			},
+		})
+
 		// No permission for this request method
 		return false, NIP_47_ERROR_RESTRICTED, fmt.Sprintf("This app does not have permission to request %s", requestMethod)
 	}
@@ -624,6 +675,13 @@ func (svc *Service) hasPermission(app *App, requestMethod string, amount int64) 
 			"appId":         app.ID,
 			"pubkey":        app.NostrPubkey,
 		}).Info("This pubkey is expired")
+		svc.EventLogger.Log(svc.ctx, &events.Event{
+			Event: "nwc_permission_expired",
+			Properties: map[string]interface{}{
+				"request_method": requestMethod,
+				"app_name":       app.Name,
+			},
+		})
 		return false, NIP_47_ERROR_EXPIRED, "This app has expired"
 	}
 
@@ -633,6 +691,16 @@ func (svc *Service) hasPermission(app *App, requestMethod string, amount int64) 
 			budgetUsage := svc.GetBudgetUsage(&appPermission)
 
 			if budgetUsage+amount/1000 > int64(maxAmount) {
+				svc.EventLogger.Log(svc.ctx, &events.Event{
+					Event: "nwc_permission_exceeded",
+					Properties: map[string]interface{}{
+						"request_method": requestMethod,
+						"app_name":       app.Name,
+						"max_amount":     maxAmount,
+						"budget_usage":   budgetUsage,
+						"amount":         amount / 1000,
+					},
+				})
 				return false, NIP_47_ERROR_QUOTA_EXCEEDED, "Insufficient budget remaining to make payment"
 			}
 		}

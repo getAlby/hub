@@ -111,10 +111,6 @@ type PayRequest struct {
 	Invoice string `json:"invoice"`
 }
 
-type ErrorResponse struct {
-	Message string `json:"message"`
-}
-
 // TODO: move to models/Nip47
 type Nip47Request struct {
 	Method string          `json:"method"`
