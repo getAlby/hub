@@ -142,7 +142,7 @@ func NewService(ctx context.Context) (*Service, error) {
 		EventLogger:  eventLogger,
 	}
 
-	eventLogger.Log(ctx, &events.Event{
+	eventLogger.Log(&events.Event{
 		Event: "nwc_started",
 	})
 
@@ -154,7 +154,7 @@ func (svc *Service) StopLNClient() error {
 		err := svc.lnClient.Shutdown()
 		if err != nil {
 			svc.Logger.WithError(err).Error("Failed to stop LN backend")
-			svc.EventLogger.Log(svc.ctx, &events.Event{
+			svc.EventLogger.Log(&events.Event{
 				Event: "nwc_node_stop_failed",
 				Properties: map[string]interface{}{
 					"error": fmt.Sprintf("%v", err),
@@ -163,7 +163,7 @@ func (svc *Service) StopLNClient() error {
 			return err
 		}
 		svc.lnClient = nil
-		svc.EventLogger.Log(svc.ctx, &events.Event{
+		svc.EventLogger.Log(&events.Event{
 			Event: "nwc_node_stopped",
 		})
 	}
@@ -215,7 +215,7 @@ func (svc *Service) launchLNBackend(encryptionKey string) error {
 		return err
 	}
 
-	svc.EventLogger.Log(svc.ctx, &events.Event{
+	svc.EventLogger.Log(&events.Event{
 		Event: "nwc_node_started",
 		Properties: map[string]interface{}{
 			"backend": lndBackend,
@@ -654,7 +654,7 @@ func (svc *Service) hasPermission(app *App, requestMethod string, amount int64) 
 		RequestMethod: requestMethod,
 	})
 	if findPermissionResult.RowsAffected == 0 {
-		svc.EventLogger.Log(svc.ctx, &events.Event{
+		svc.EventLogger.Log(&events.Event{
 			Event: "nwc_permission_missing",
 			Properties: map[string]interface{}{
 				"request_method": requestMethod,
@@ -673,7 +673,7 @@ func (svc *Service) hasPermission(app *App, requestMethod string, amount int64) 
 			"appId":         app.ID,
 			"pubkey":        app.NostrPubkey,
 		}).Info("This pubkey is expired")
-		svc.EventLogger.Log(svc.ctx, &events.Event{
+		svc.EventLogger.Log(&events.Event{
 			Event: "nwc_permission_expired",
 			Properties: map[string]interface{}{
 				"request_method": requestMethod,
@@ -689,7 +689,7 @@ func (svc *Service) hasPermission(app *App, requestMethod string, amount int64) 
 			budgetUsage := svc.GetBudgetUsage(&appPermission)
 
 			if budgetUsage+amount/1000 > int64(maxAmount) {
-				svc.EventLogger.Log(svc.ctx, &events.Event{
+				svc.EventLogger.Log(&events.Event{
 					Event: "nwc_permission_exceeded",
 					Properties: map[string]interface{}{
 						"request_method": requestMethod,

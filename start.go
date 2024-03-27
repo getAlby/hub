@@ -122,7 +122,7 @@ func (svc *Service) StartApp(encryptionKey string) error {
 
 func (svc *Service) Shutdown() {
 	svc.StopLNClient()
-	svc.EventLogger.Log(svc.ctx, &events.Event{
+	svc.EventLogger.Log(&events.Event{
 		Event: "nwc_stopped",
 	})
 	// wait for any remaining events

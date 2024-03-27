@@ -160,7 +160,7 @@ func (gs *LDKService) SendPaymentSync(ctx context.Context, invoice string) (prei
 		return "", err
 	}
 
-	gs.eventLogger.Log(ctx, &events.Event{
+	gs.eventLogger.Log(&events.Event{
 		Event: "nwc_ldk_send_payment",
 		Properties: map[string]interface{}{
 			"invoice":      invoice,
@@ -243,7 +243,7 @@ func (gs *LDKService) SendPaymentSync(ctx context.Context, invoice string) (prei
 				"failureReasonMessage": failureReasonMessage,
 			}).Error("Received payment failed event")
 
-			gs.eventLogger.Log(ctx, &events.Event{
+			gs.eventLogger.Log(&events.Event{
 				Event: "nwc_ldk_payment_failed",
 				Properties: map[string]interface{}{
 					"invoice":        invoice,
@@ -407,7 +407,7 @@ func (gs *LDKService) MakeInvoice(ctx context.Context, amount int64, description
 
 	maxReceivable := gs.getMaxReceivable()
 
-	gs.eventLogger.Log(ctx, &events.Event{
+	gs.eventLogger.Log(&events.Event{
 		Event: "nwc_ldk_make_invoice",
 		Properties: map[string]interface{}{
 			"amount":         amount / 1000,
@@ -757,14 +757,14 @@ func (ls *LDKService) logLdkEvent(ctx context.Context, event *ldk_node.Event) {
 
 	switch v := (*event).(type) {
 	case ldk_node.EventChannelReady:
-		ls.eventLogger.Log(ctx, &events.Event{
+		ls.eventLogger.Log(&events.Event{
 			Event: "nwc_ldk_channel_ready",
 			Properties: map[string]interface{}{
 				"counterparty_node_id": v.CounterpartyNodeId,
 			},
 		})
 	case ldk_node.EventChannelClosed:
-		ls.eventLogger.Log(ctx, &events.Event{
+		ls.eventLogger.Log(&events.Event{
 			Event: "nwc_ldk_channel_closed",
 			Properties: map[string]interface{}{
 				"counterparty_node_id": v.CounterpartyNodeId,
@@ -772,7 +772,7 @@ func (ls *LDKService) logLdkEvent(ctx context.Context, event *ldk_node.Event) {
 			},
 		})
 	case ldk_node.EventPaymentReceived:
-		ls.eventLogger.Log(ctx, &events.Event{
+		ls.eventLogger.Log(&events.Event{
 			Event: "nwc_ldk_payment_received",
 			Properties: map[string]interface{}{
 				"payment_hash": v.PaymentHash,
@@ -780,7 +780,7 @@ func (ls *LDKService) logLdkEvent(ctx context.Context, event *ldk_node.Event) {
 			},
 		})
 	case ldk_node.EventPaymentFailed:
-		ls.eventLogger.Log(ctx, &events.Event{
+		ls.eventLogger.Log(&events.Event{
 			Event: "nwc_ldk_payment_failed",
 			Properties: map[string]interface{}{
 				"payment_hash": v.PaymentHash,
