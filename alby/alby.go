@@ -79,6 +79,14 @@ func (svc *AlbyOAuthService) CallbackHandler(ctx context.Context, code string) e
 
 	svc.saveToken(token)
 
+	me, err := svc.GetMe(ctx)
+	if err != nil {
+		svc.logger.WithError(err).Error("Failed to fetch user me")
+		return err
+	}
+
+	svc.kvStore.SetUpdate(USER_IDENTIFIER_KEY, me.Identifier, "")
+
 	return nil
 }
 
@@ -88,19 +96,7 @@ func (svc *AlbyOAuthService) GetUserIdentifier(ctx context.Context) string {
 		svc.logger.WithError(err).Error("Failed to fetch user identifier from user configs")
 		return ""
 	}
-
-	if userIdentifier != "" {
-		return userIdentifier
-	}
-
-	me, err := svc.GetMe(ctx)
-	if err != nil {
-		svc.logger.WithError(err).Error("Failed to fetch user me")
-		return ""
-	}
-
-	svc.kvStore.SetUpdate(USER_IDENTIFIER_KEY, me.Identifier, "")
-	return me.Identifier
+	return userIdentifier
 }
 
 func (svc *AlbyOAuthService) saveToken(token *oauth2.Token) {
