@@ -1,12 +1,12 @@
 import { Button } from "src/components/ui/button";
 import SuggestedApps from "src/components/SuggestedApps";
 import { CirclePlus } from "lucide-react";
-import AppHeader2 from "src/components/AppHeader2";
+import AppHeader from "src/components/AppHeader";
 
 function AppsList() {
   return (
     <>
-      <AppHeader2
+      <AppHeader
         title="Apps"
         description="Apps that you can connect your wallet into"
         contentRight={

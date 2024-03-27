@@ -16,7 +16,7 @@ import {
 } from "src/components/ui/card.tsx";
 
 import { Cable, Bitcoin, Zap } from "lucide-react";
-import AppHeader2 from "src/components/AppHeader2.tsx";
+import AppHeader from "src/components/AppHeader.tsx";
 
 export default function Channels() {
   const { data: channels, mutate: reloadChannels } = useChannels();
@@ -166,10 +166,10 @@ export default function Channels() {
 
   return (
     <>
-      <AppHeader2
+      <AppHeader
         title={"Channels"}
         description={"Manage liquidity on your lightnig node."}
-      ></AppHeader2>
+      ></AppHeader>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

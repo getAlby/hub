@@ -1,5 +1,5 @@
 import { Button } from "src/components/ui/button";
-import AppHeader2 from "src/components/AppHeader2";
+import AppHeader from "src/components/AppHeader";
 import { Link } from "react-router-dom";
 import {
   Card,
@@ -16,7 +16,7 @@ import { ExternalLink } from "lucide-react";
 function Settings() {
   return (
     <>
-      <AppHeader2
+      <AppHeader
         title="Settings"
         description="Manage your account settings and set e-mail preferences."
       />

@@ -4,7 +4,7 @@ type Props = {
   contentRight?: React.ReactNode;
 };
 
-function AppHeader2({ title, description, contentRight }: Props) {
+function AppHeader({ title, description, contentRight }: Props) {
   return (
     <div className="flex justify-between border-b border-border pb-6">
       <div className="flex-1">
@@ -16,4 +16,4 @@ function AppHeader2({ title, description, contentRight }: Props) {
   );
 }
 
-export default AppHeader2;
+export default AppHeader;

@@ -12,7 +12,7 @@ import { useCSRF } from "src/hooks/useCSRF";
 import { useApps } from "src/hooks/useApps";
 import { useInfo } from "src/hooks/useInfo";
 import { Button } from "src/components/ui/button";
-import AppHeader2 from "src/components/AppHeader2";
+import AppHeader from "src/components/AppHeader";
 
 function ConnectionList() {
   const { data: apps, mutate: mutateApps } = useApps();
@@ -61,7 +61,7 @@ function ConnectionList() {
 
   return (
     <>
-      <AppHeader2
+      <AppHeader
         title="Connections"
         description="Apps that you connected to already"
         contentRight={
