@@ -80,10 +80,6 @@ func (svc *AlbyOAuthService) CallbackHandler(ctx context.Context, code string) e
 
 	svc.saveToken(token)
 
-	svc.eventLogger.Log(&events.Event{
-		Event: "nwc_alby_auth_success",
-	})
-
 	return nil
 }
 
