@@ -17,6 +17,7 @@ import {
 
 import { Cable, Bitcoin, Zap } from "lucide-react";
 import AppHeader from "src/components/AppHeader.tsx";
+import { Button } from "src/components/ui/button.tsx";
 
 export default function Channels() {
   const { data: channels, mutate: reloadChannels } = useChannels();
@@ -169,6 +170,11 @@ export default function Channels() {
       <AppHeader
         title={"Channels"}
         description={"Manage liquidity on your lightnig node."}
+        contentRight={
+          <Link to={`/channels/new`}>
+            <Button>Open a channel</Button>
+          </Link>
+        }
       ></AppHeader>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         <Card>
@@ -239,12 +245,6 @@ export default function Channels() {
         </Card>
       </div>
       <div>
-        <Link
-          to={`/channels/new`}
-          className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
-        >
-          Open a channel
-        </Link>
         <Link
           to={`/channels/onchain/new-address`}
           className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"

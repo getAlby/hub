@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import Loading from "src/components/Loading";
 
@@ -10,6 +10,7 @@ import { useApps } from "src/hooks/useApps";
 import { useInfo } from "src/hooks/useInfo";
 import AppHeader from "src/components/AppHeader";
 import BreezRedeem from "src/components/BreezRedeem";
+import { Button } from "src/components/ui/button";
 
 function Wallet() {
   const { data: apps, mutate: mutateApps } = useApps();
@@ -84,6 +85,20 @@ function Wallet() {
           </div>
         </div>
       )}
+
+      <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm">
+        <div className="flex flex-col items-center gap-1 text-center">
+          <h3 className="text-2xl font-bold tracking-tight">
+            You have no funds, yet.
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            Topup your wallet and make your first transaction.
+          </p>
+          <Link to="/start">
+            <Button className="mt-4">Get Started</Button>
+          </Link>
+        </div>
+      </div>
     </>
   );
 }

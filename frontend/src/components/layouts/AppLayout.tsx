@@ -88,65 +88,15 @@ export default function AppLayout() {
                 <AvatarFallback>CN</AvatarFallback>
               </Avatar>
               <Link
-                to="/"
-                className="flex items-center gap-2 font-semibold text-lg"
+                to="#"
+                className="flex items-center gap-2 font-semibold text-lg cursor-not-allowed"
               >
-                John Doe
+                Satoshi Nakamoto
               </Link>
             </div>
           </div>
         </div>
       </div>
-
-      {/* <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
-                className="shrink-0 md:hidden"
-              >
-                <Menu className="h-5 w-5" />
-                <span className="sr-only">Toggle navigation menu</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="flex flex-col">
-              <nav className="grid gap-2 text-lg font-medium">
-                <Link
-                  to="#"
-                  className="flex items-center gap-2 text-lg font-semibold"
-                >
-                  <Package2 className="h-6 w-6" />
-                  <span>Alby Hub</span>
-                </Link>
-                TODO: Mobile menu
-              </nav>
-            </SheetContent>
-          </Sheet>
-          <div className="w-full flex-1"></div>
-          <ModeToggle />
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="secondary" size="icon" className="rounded-full">
-                <CircleUser className="h-5 w-5" />
-                <span className="sr-only">Toggle user menu</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <Link to="/channels">Channels</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Link to="/backup/mnemonic">Backups</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem>Support</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>Logout</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </header> */}
       <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-8">
         <Outlet />
       </main>
