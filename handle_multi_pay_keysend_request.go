@@ -104,5 +104,4 @@ func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, request *Nip
 	}
 
 	wg.Wait()
-	return
 }

@@ -130,5 +130,4 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, request *Nip
 	}
 
 	wg.Wait()
-	return
 }
