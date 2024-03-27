@@ -36,6 +36,7 @@ import NewConnection from "src/screens/connections/NewConnection";
 import ConnectionCreated from "src/screens/connections/ConnectionCreated";
 import AppsList from "src/screens/apps/AppsList";
 import Settings from "src/screens/settings/Settings";
+import Wallet from "src/screens/wallet";
 
 function App() {
   return (
@@ -64,6 +65,7 @@ function App() {
                 <Route path="finish" element={<SetupFinish />} />
               </Route>
               <Route path="settings" element={<Settings />} />
+              <Route path="wallet" element={<Wallet />} />
               {/* TODO: move this under settings later */}
               <Route path="backup/mnemonic" element={<BackupMnemonic />} />
               <Route path="apps" element={<AppsList />}></Route>

@@ -25,8 +25,8 @@ export default function AppLayout() {
                 </Link>
               </div>
               <Link
-                to="#"
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary cursor-not-allowed"
+                to="/wallet"
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
                 <Wallet className="h-4 w-4" />
                 Wallet
