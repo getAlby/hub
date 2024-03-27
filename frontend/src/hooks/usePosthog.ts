@@ -15,7 +15,18 @@ export function usePosthog() {
       api_host: "ph.albylabs.com",
       secure_cookie: true,
       persistence: "cookie",
+      capture_pageview: false,
+      autocapture: false,
+      session_recording: {
+        maskAllInputs: true,
+        maskTextSelector: ".sensitive",
+      },
       loaded: (p) => {
+        p.onFeatureFlags(() => {
+          if (p.isFeatureEnabled("rec-session")) {
+            p.startSessionRecording();
+          }
+        });
         p.identify(albyUserIdentifier);
       },
     });
