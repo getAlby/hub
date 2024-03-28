@@ -1,8 +1,6 @@
 import { HashRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import AppLayout from "src/components/layouts/AppLayout";
-
-import FullScreenLayout from "src/components/layouts/FullScreenLayout";
 import { AppsRedirect } from "src/components/redirects/AppsRedirect";
 import { DefaultRedirect } from "src/components/redirects/DefaultRedirect";
 import { HomeRedirect } from "src/components/redirects/HomeRedirect";
@@ -39,6 +37,8 @@ import { SetupWallet } from "src/screens/setup/SetupWallet";
 import Wallet from "src/screens/wallet";
 import { usePosthog } from "./hooks/usePosthog";
 
+import TwoColumnFullScreenLayout from "src/components/layouts/TwoColumnFullScreenLayout";
+
 function App() {
   usePosthog();
   return (
@@ -57,15 +57,6 @@ function App() {
                   </StartRedirect>
                 }
               ></Route>
-              <Route path="welcome" element={<Welcome />}></Route>
-              <Route path="setup" element={<SetupRedirect />}>
-                <Route path="" element={<Navigate to="password" replace />} />
-                <Route path="password" element={<SetupPassword />} />
-                <Route path="node" element={<SetupNode />} />
-                <Route path="wallet" element={<SetupWallet />} />
-                <Route path="import-mnemonic" element={<ImportMnemonic />} />
-                <Route path="finish" element={<SetupFinish />} />
-              </Route>
               <Route path="settings" element={<DefaultRedirect />}>
                 <Route index element={<Settings />} />
               </Route>
@@ -100,12 +91,21 @@ function App() {
                   element={<NewOnchainAddress />}
                 />
               </Route>
-              <Route path="about" element={<About />} />
               <Route path="/*" element={<NotFound />} />
             </Route>
-            <Route element={<FullScreenLayout />}>
+            <Route element={<TwoColumnFullScreenLayout />}>
               <Route path="unlock" element={<Unlock />} />
+              <Route path="welcome" element={<Welcome />}></Route>
+              <Route path="setup" element={<SetupRedirect />}>
+                <Route path="" element={<Navigate to="password" replace />} />
+                <Route path="password" element={<SetupPassword />} />
+                <Route path="node" element={<SetupNode />} />
+                <Route path="wallet" element={<SetupWallet />} />
+                <Route path="import-mnemonic" element={<ImportMnemonic />} />
+                <Route path="finish" element={<SetupFinish />} />
+              </Route>
             </Route>
+            <Route path="about" element={<About />} />
             <Route path="/*" element={<NotFound />} />
           </Routes>
         </HashRouter>{" "}

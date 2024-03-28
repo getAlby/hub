@@ -1,6 +1,6 @@
 import { Outlet } from "react-router-dom";
 
-export default function FullScreenLayout() {
+export default function TwoColumnFullScreenLayout() {
   return (
     <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2 items-stretch">
       <div className="hidden lg:flex flex-col bg-[#18181B] justify-end p-5">
