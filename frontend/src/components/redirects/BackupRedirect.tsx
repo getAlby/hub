@@ -9,8 +9,8 @@ export function BackupRedirect() {
   const navigate = useNavigate();
 
   React.useEffect(() => {
-    if (info && !info.setupCompleted) {
-      navigate("/welcome");
+    if (info && (!info.running || !info.unlocked)) {
+      navigate("/");
     }
   }, [info, location, navigate]);
 
