@@ -16,6 +16,7 @@ import { Welcome } from "src/screens/Welcome";
 import { SetupPassword } from "src/screens/setup/SetupPassword";
 import Start from "src/screens/Start";
 import { AppsRedirect } from "src/components/redirects/AppsRedirect";
+import { BackupRedirect } from "src/components/redirects/BackupRedirect";
 import { StartRedirect } from "src/components/redirects/StartRedirect";
 import { HomeRedirect } from "src/components/redirects/HomeRedirect";
 import Unlock from "src/screens/Unlock";
@@ -33,8 +34,10 @@ import NewInstantChannel from "src/screens/channels/NewInstantChannel";
 import FirstChannel from "src/screens/channels/FirstChannel";
 import { ChannelsRedirect } from "src/components/redirects/ChannelsRedirect";
 import MigrateAlbyFunds from "src/screens/channels/MigrateAlbyFunds";
+import { usePosthog } from "./hooks/usePosthog";
 
 function App() {
+  usePosthog();
   return (
     <div className="bg-zinc-50 min-h-full flex flex-col justify-center dark:bg-zinc-950">
       <Toaster />
@@ -60,7 +63,9 @@ function App() {
               <Route path="finish" element={<SetupFinish />} />
             </Route>
             {/* TODO: move this under settings later */}
-            <Route path="/backup/mnemonic" element={<BackupMnemonic />} />
+            <Route path="backup" element={<BackupRedirect />}>
+              <Route path="mnemonic" element={<BackupMnemonic />} />
+            </Route>
             <Route path="apps" element={<AppsRedirect />}>
               <Route index path="" element={<AppsList />} />
               <Route path=":pubkey" element={<ShowApp />} />

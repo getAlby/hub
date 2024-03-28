@@ -127,6 +127,7 @@ export interface InfoResponse {
   unlocked: boolean;
   albyAuthUrl: string;
   showBackupReminder: boolean;
+  albyUserIdentifier: string;
 }
 
 export interface EncryptedMnemonicResponse {

@@ -19,6 +19,7 @@
     "@scure/bip39": "^1.2.2",
     "argon2-wasm-esm": "^1.0.3",
     "gradient-avatar": "^1.0.2",
+    "posthog-js": "^1.116.6",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hot-toast": "^2.4.1",
