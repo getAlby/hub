@@ -8,18 +8,18 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (svc *Service) HandlePayKeysendEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, *nostr.Tags)) {
+func (svc *Service) HandlePayKeysendEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, nostr.Tags)) {
 
 	payParams := &Nip47KeysendParams{}
 	resp := svc.decodeNip47Request(request, requestEvent, app, payParams)
 	if resp != nil {
-		publishResponse(resp, &nostr.Tags{})
+		publishResponse(resp, nostr.Tags{})
 		return
 	}
 
 	resp = svc.checkPermission(request, requestEvent.NostrId, app, payParams.Amount)
 	if resp != nil {
-		publishResponse(resp, &nostr.Tags{})
+		publishResponse(resp, nostr.Tags{})
 		return
 	}
 
@@ -32,7 +32,7 @@ func (svc *Service) HandlePayKeysendEvent(ctx context.Context, request *Nip47Req
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: err.Error(),
 			},
-		}, &nostr.Tags{})
+		}, nostr.Tags{})
 		return
 	}
 
@@ -63,7 +63,7 @@ func (svc *Service) HandlePayKeysendEvent(ctx context.Context, request *Nip47Req
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: err.Error(),
 			},
-		}, &nostr.Tags{})
+		}, nostr.Tags{})
 		return
 	}
 	payment.Preimage = &preimage
@@ -80,5 +80,5 @@ func (svc *Service) HandlePayKeysendEvent(ctx context.Context, request *Nip47Req
 		Result: Nip47PayResponse{
 			Preimage: preimage,
 		},
-	}, &nostr.Tags{})
+	}, nostr.Tags{})
 }

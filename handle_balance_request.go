@@ -11,11 +11,11 @@ const (
 	MSAT_PER_SAT = 1000
 )
 
-func (svc *Service) HandleGetBalanceEvent(ctx context.Context, nip47Request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, *nostr.Tags)) {
+func (svc *Service) HandleGetBalanceEvent(ctx context.Context, nip47Request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, nostr.Tags)) {
 
 	resp := svc.checkPermission(nip47Request, requestEvent.NostrId, app, 0)
 	if resp != nil {
-		publishResponse(resp, &nostr.Tags{})
+		publishResponse(resp, nostr.Tags{})
 		return
 	}
 
@@ -36,7 +36,7 @@ func (svc *Service) HandleGetBalanceEvent(ctx context.Context, nip47Request *Nip
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: err.Error(),
 			},
-		}, &nostr.Tags{})
+		}, nostr.Tags{})
 		return
 	}
 
@@ -56,5 +56,5 @@ func (svc *Service) HandleGetBalanceEvent(ctx context.Context, nip47Request *Nip
 	publishResponse(&Nip47Response{
 		ResultType: nip47Request.Method,
 		Result:     responsePayload,
-	}, &nostr.Tags{})
+	}, nostr.Tags{})
 }

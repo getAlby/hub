@@ -7,11 +7,11 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (svc *Service) HandleGetInfoEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, *nostr.Tags)) {
+func (svc *Service) HandleGetInfoEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, nostr.Tags)) {
 
 	resp := svc.checkPermission(request, requestEvent.NostrId, app, 0)
 	if resp != nil {
-		publishResponse(resp, &nostr.Tags{})
+		publishResponse(resp, nostr.Tags{})
 		return
 	}
 
@@ -33,7 +33,7 @@ func (svc *Service) HandleGetInfoEvent(ctx context.Context, request *Nip47Reques
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: err.Error(),
 			},
-		}, &nostr.Tags{})
+		}, nostr.Tags{})
 		return
 	}
 
@@ -50,5 +50,5 @@ func (svc *Service) HandleGetInfoEvent(ctx context.Context, request *Nip47Reques
 	publishResponse(&Nip47Response{
 		ResultType: request.Method,
 		Result:     responsePayload,
-	}, &nostr.Tags{})
+	}, nostr.Tags{})
 }

@@ -11,12 +11,12 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, *nostr.Tags)) {
+func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, nostr.Tags)) {
 
 	payParams := &Nip47PayParams{}
 	resp := svc.decodeNip47Request(request, requestEvent, app, payParams)
 	if resp != nil {
-		publishResponse(resp, &nostr.Tags{})
+		publishResponse(resp, nostr.Tags{})
 		return
 	}
 
@@ -37,13 +37,13 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: fmt.Sprintf("Failed to decode bolt11 invoice: %s", err.Error()),
 			},
-		}, &nostr.Tags{})
+		}, nostr.Tags{})
 		return
 	}
 
 	resp = svc.checkPermission(request, requestEvent.NostrId, app, paymentRequest.MSatoshi)
 	if resp != nil {
-		publishResponse(resp, &nostr.Tags{})
+		publishResponse(resp, nostr.Tags{})
 		return
 	}
 
@@ -56,7 +56,7 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: err.Error(),
 			},
-		}, &nostr.Tags{})
+		}, nostr.Tags{})
 		return
 	}
 
@@ -87,7 +87,7 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: err.Error(),
 			},
-		}, &nostr.Tags{})
+		}, nostr.Tags{})
 		return
 	}
 	payment.Preimage = &preimage
@@ -106,5 +106,5 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 		Result: Nip47PayResponse{
 			Preimage: preimage,
 		},
-	}, &nostr.Tags{})
+	}, nostr.Tags{})
 }

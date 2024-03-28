@@ -339,7 +339,7 @@ func (svc *Service) PublishEvent(ctx context.Context, sub *nostr.Subscription, r
 }
 
 func (svc *Service) HandleEvent(ctx context.Context, sub *nostr.Subscription, event *nostr.Event) {
-	var nipResponse *Nip47Response
+	var nip47Response *Nip47Response
 	svc.Logger.WithFields(logrus.Fields{
 		"requestEventNostrId": event.ID,
 		"eventKind":           event.Kind,
@@ -372,13 +372,13 @@ func (svc *Service) HandleEvent(ctx context.Context, sub *nostr.Subscription, ev
 			"requestEventNostrId": event.ID,
 			"eventKind":           event.Kind,
 		}).Errorf("Failed to save nostr event: %v", err)
-		nipResponse = &Nip47Response{
+		nip47Response = &Nip47Response{
 			Error: &Nip47Error{
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: fmt.Sprintf("Failed to save nostr event: %s", err.Error()),
 			},
 		}
-		resp, err := svc.createResponse(event, nipResponse, nostr.Tags{}, ss)
+		resp, err := svc.createResponse(event, nip47Response, nostr.Tags{}, ss)
 		if err != nil {
 			svc.Logger.WithFields(logrus.Fields{
 				"requestEventNostrId": event.ID,
@@ -398,13 +398,13 @@ func (svc *Service) HandleEvent(ctx context.Context, sub *nostr.Subscription, ev
 			"nostrPubkey": event.PubKey,
 		}).Errorf("Failed to find app for nostr pubkey: %v", err)
 
-		nipResponse = &Nip47Response{
+		nip47Response = &Nip47Response{
 			Error: &Nip47Error{
 				Code:    NIP_47_ERROR_UNAUTHORIZED,
 				Message: "The public key does not have a wallet connected.",
 			},
 		}
-		resp, err := svc.createResponse(event, nipResponse, nostr.Tags{}, ss)
+		resp, err := svc.createResponse(event, nip47Response, nostr.Tags{}, ss)
 		if err != nil {
 			svc.Logger.WithFields(logrus.Fields{
 				"requestEventNostrId": event.ID,
@@ -430,13 +430,13 @@ func (svc *Service) HandleEvent(ctx context.Context, sub *nostr.Subscription, ev
 			"nostrPubkey": event.PubKey,
 		}).Errorf("Failed to save app to nostr event: %v", err)
 
-		nipResponse = &Nip47Response{
+		nip47Response = &Nip47Response{
 			Error: &Nip47Error{
 				Code:    NIP_47_ERROR_UNAUTHORIZED,
 				Message: fmt.Sprintf("Failed to save app to nostr event: %s", err.Error()),
 			},
 		}
-		resp, err := svc.createResponse(event, nipResponse, nostr.Tags{}, ss)
+		resp, err := svc.createResponse(event, nip47Response, nostr.Tags{}, ss)
 		if err != nil {
 			svc.Logger.WithFields(logrus.Fields{
 				"requestEventNostrId": event.ID,
@@ -523,8 +523,8 @@ func (svc *Service) HandleEvent(ctx context.Context, sub *nostr.Subscription, ev
 
 	// TODO: replace with a channel
 	// TODO: update all previous occurences of svc.PublishEvent to also use the channel
-	publishResponse := func(nipResponse *Nip47Response, tags *nostr.Tags) {
-		resp, err := svc.createResponse(event, *nipResponse, *tags, ss)
+	publishResponse := func(nip47Response *Nip47Response, tags nostr.Tags) {
+		resp, err := svc.createResponse(event, nip47Response, tags, ss)
 		if err != nil {
 			svc.Logger.WithFields(logrus.Fields{
 				"requestEventNostrId": event.ID,
@@ -575,14 +575,14 @@ func (svc *Service) HandleEvent(ctx context.Context, sub *nostr.Subscription, ev
 	}
 }
 
-func (svc *Service) handleUnknownMethod(ctx context.Context, request *Nip47Request, publishResponse func(*Nip47Response, *nostr.Tags)) {
+func (svc *Service) handleUnknownMethod(ctx context.Context, request *Nip47Request, publishResponse func(*Nip47Response, nostr.Tags)) {
 	publishResponse(&Nip47Response{
 		ResultType: request.Method,
 		Error: &Nip47Error{
 			Code:    NIP_47_ERROR_NOT_IMPLEMENTED,
 			Message: fmt.Sprintf("Unknown method: %s", request.Method),
 		},
-	}, &nostr.Tags{})
+	}, nostr.Tags{})
 }
 
 func (svc *Service) createResponse(initialEvent *nostr.Event, content interface{}, tags nostr.Tags, ss []byte) (result *nostr.Event, err error) {
