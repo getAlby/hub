@@ -7,16 +7,16 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, nostr.Tags)) {
+func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, nip47Request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, nostr.Tags)) {
 
 	makeInvoiceParams := &Nip47MakeInvoiceParams{}
-	resp := svc.decodeNip47Request(request, requestEvent, app, makeInvoiceParams)
+	resp := svc.decodeNip47Request(nip47Request, requestEvent, app, makeInvoiceParams)
 	if resp != nil {
 		publishResponse(resp, nostr.Tags{})
 		return
 	}
 
-	resp = svc.checkPermission(request, requestEvent.NostrId, app, 0)
+	resp = svc.checkPermission(nip47Request, requestEvent.NostrId, app, 0)
 	if resp != nil {
 		publishResponse(resp, nostr.Tags{})
 		return
@@ -29,7 +29,7 @@ func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Re
 		}).Errorf("Only one of description, description_hash can be provided")
 
 		publishResponse(&Nip47Response{
-			ResultType: request.Method,
+			ResultType: nip47Request.Method,
 			Error: &Nip47Error{
 				Code:    NIP_47_OTHER,
 				Message: "Only one of description, description_hash can be provided",
@@ -64,7 +64,7 @@ func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Re
 		}).Infof("Failed to make invoice: %v", err)
 
 		publishResponse(&Nip47Response{
-			ResultType: request.Method,
+			ResultType: nip47Request.Method,
 			Error: &Nip47Error{
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: err.Error(),
@@ -78,7 +78,7 @@ func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Re
 	}
 
 	publishResponse(&Nip47Response{
-		ResultType: request.Method,
+		ResultType: nip47Request.Method,
 		Result:     responsePayload,
 	}, nostr.Tags{})
 }

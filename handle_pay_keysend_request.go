@@ -8,16 +8,16 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (svc *Service) HandlePayKeysendEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, nostr.Tags)) {
+func (svc *Service) HandlePayKeysendEvent(ctx context.Context, nip47Request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, nostr.Tags)) {
 
 	payParams := &Nip47KeysendParams{}
-	resp := svc.decodeNip47Request(request, requestEvent, app, payParams)
+	resp := svc.decodeNip47Request(nip47Request, requestEvent, app, payParams)
 	if resp != nil {
 		publishResponse(resp, nostr.Tags{})
 		return
 	}
 
-	resp = svc.checkPermission(request, requestEvent.NostrId, app, payParams.Amount)
+	resp = svc.checkPermission(nip47Request, requestEvent.NostrId, app, payParams.Amount)
 	if resp != nil {
 		publishResponse(resp, nostr.Tags{})
 		return
@@ -27,7 +27,7 @@ func (svc *Service) HandlePayKeysendEvent(ctx context.Context, request *Nip47Req
 	err := svc.db.Create(&payment).Error
 	if err != nil {
 		publishResponse(&Nip47Response{
-			ResultType: request.Method,
+			ResultType: nip47Request.Method,
 			Error: &Nip47Error{
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: err.Error(),
@@ -58,7 +58,7 @@ func (svc *Service) HandlePayKeysendEvent(ctx context.Context, request *Nip47Req
 			},
 		})
 		publishResponse(&Nip47Response{
-			ResultType: request.Method,
+			ResultType: nip47Request.Method,
 			Error: &Nip47Error{
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: err.Error(),
@@ -76,7 +76,7 @@ func (svc *Service) HandlePayKeysendEvent(ctx context.Context, request *Nip47Req
 		},
 	})
 	publishResponse(&Nip47Response{
-		ResultType: request.Method,
+		ResultType: nip47Request.Method,
 		Result: Nip47PayResponse{
 			Preimage: preimage,
 		},

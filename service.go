@@ -591,12 +591,12 @@ func (svc *Service) HandleEvent(ctx context.Context, sub *nostr.Subscription, ev
 	}
 }
 
-func (svc *Service) handleUnknownMethod(ctx context.Context, request *Nip47Request, publishResponse func(*Nip47Response, nostr.Tags)) {
+func (svc *Service) handleUnknownMethod(ctx context.Context, nip47Request *Nip47Request, publishResponse func(*Nip47Response, nostr.Tags)) {
 	publishResponse(&Nip47Response{
-		ResultType: request.Method,
+		ResultType: nip47Request.Method,
 		Error: &Nip47Error{
 			Code:    NIP_47_ERROR_NOT_IMPLEMENTED,
-			Message: fmt.Sprintf("Unknown method: %s", request.Method),
+			Message: fmt.Sprintf("Unknown method: %s", nip47Request.Method),
 		},
 	}, nostr.Tags{})
 }
@@ -645,15 +645,15 @@ func (svc *Service) GetMethods(app *App) []string {
 	return requestMethods
 }
 
-func (svc *Service) decodeNip47Request(request *Nip47Request, requestEvent *RequestEvent, app *App, methodParams interface{}) *Nip47Response {
-	err := json.Unmarshal(request.Params, methodParams)
+func (svc *Service) decodeNip47Request(nip47Request *Nip47Request, requestEvent *RequestEvent, app *App, methodParams interface{}) *Nip47Response {
+	err := json.Unmarshal(nip47Request.Params, methodParams)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
 			"requestEventNostrId": requestEvent.NostrId,
 			"appId":               app.ID,
 		}).Errorf("Failed to decode nostr event: %v", err)
 		return &Nip47Response{
-			ResultType: request.Method,
+			ResultType: nip47Request.Method,
 			Error: &Nip47Error{
 				Code:    NIP_47_ERROR_BAD_REQUEST,
 				Message: err.Error(),
@@ -662,8 +662,8 @@ func (svc *Service) decodeNip47Request(request *Nip47Request, requestEvent *Requ
 	return nil
 }
 
-func (svc *Service) checkPermission(request *Nip47Request, requestNostrEventId string, app *App, amount int64) *Nip47Response {
-	hasPermission, code, message := svc.hasPermission(app, request.Method, amount)
+func (svc *Service) checkPermission(nip47Request *Nip47Request, requestNostrEventId string, app *App, amount int64) *Nip47Response {
+	hasPermission, code, message := svc.hasPermission(app, nip47Request.Method, amount)
 	if !hasPermission {
 		svc.Logger.WithFields(logrus.Fields{
 			"requestEventNostrId": requestNostrEventId,
@@ -673,7 +673,7 @@ func (svc *Service) checkPermission(request *Nip47Request, requestNostrEventId s
 		}).Error("App does not have permission")
 
 		return &Nip47Response{
-			ResultType: request.Method,
+			ResultType: nip47Request.Method,
 			Error: &Nip47Error{
 				Code:    code,
 				Message: message,

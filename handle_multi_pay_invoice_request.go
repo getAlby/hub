@@ -13,10 +13,10 @@ import (
 )
 
 // TODO: pass a channel instead of publishResponse function
-func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, nostr.Tags)) {
+func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, nip47Request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, nostr.Tags)) {
 
 	multiPayParams := &Nip47MultiPayInvoiceParams{}
-	resp := svc.decodeNip47Request(request, requestEvent, app, multiPayParams)
+	resp := svc.decodeNip47Request(nip47Request, requestEvent, app, multiPayParams)
 	if resp != nil {
 		publishResponse(resp, nostr.Tags{})
 		return
@@ -43,7 +43,7 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, request *Nip
 				// TODO: Decide what to do if id is empty
 				dTag := []string{"d", invoiceInfo.Id}
 				publishResponse(&Nip47Response{
-					ResultType: request.Method,
+					ResultType: nip47Request.Method,
 					Error: &Nip47Error{
 						Code:    NIP_47_ERROR_INTERNAL,
 						Message: fmt.Sprintf("Failed to decode bolt11 invoice: %s", err.Error()),
@@ -58,7 +58,7 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, request *Nip
 			}
 			dTag := []string{"d", invoiceDTagValue}
 
-			resp := svc.checkPermission(request, requestEvent.NostrId, app, paymentRequest.MSatoshi)
+			resp := svc.checkPermission(nip47Request, requestEvent.NostrId, app, paymentRequest.MSatoshi)
 			if resp != nil {
 				publishResponse(resp, nostr.Tags{dTag})
 				return
@@ -102,7 +102,7 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, request *Nip
 				})
 
 				publishResponse(&Nip47Response{
-					ResultType: request.Method,
+					ResultType: nip47Request.Method,
 					Error: &Nip47Error{
 						Code:    NIP_47_ERROR_INTERNAL,
 						Message: err.Error(),
@@ -122,7 +122,7 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, request *Nip
 				},
 			})
 			publishResponse(&Nip47Response{
-				ResultType: request.Method,
+				ResultType: nip47Request.Method,
 				Result: Nip47PayResponse{
 					Preimage: preimage,
 				},

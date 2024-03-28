@@ -11,10 +11,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, nostr.Tags)) {
+func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, nip47Request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, nostr.Tags)) {
 
 	payParams := &Nip47PayParams{}
-	resp := svc.decodeNip47Request(request, requestEvent, app, payParams)
+	resp := svc.decodeNip47Request(nip47Request, requestEvent, app, payParams)
 	if resp != nil {
 		publishResponse(resp, nostr.Tags{})
 		return
@@ -32,7 +32,7 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 		}).Errorf("Failed to decode bolt11 invoice: %v", err)
 
 		publishResponse(&Nip47Response{
-			ResultType: request.Method,
+			ResultType: nip47Request.Method,
 			Error: &Nip47Error{
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: fmt.Sprintf("Failed to decode bolt11 invoice: %s", err.Error()),
@@ -41,7 +41,7 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 		return
 	}
 
-	resp = svc.checkPermission(request, requestEvent.NostrId, app, paymentRequest.MSatoshi)
+	resp = svc.checkPermission(nip47Request, requestEvent.NostrId, app, paymentRequest.MSatoshi)
 	if resp != nil {
 		publishResponse(resp, nostr.Tags{})
 		return
@@ -51,7 +51,7 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 	err = svc.db.Create(&payment).Error
 	if err != nil {
 		publishResponse(&Nip47Response{
-			ResultType: request.Method,
+			ResultType: nip47Request.Method,
 			Error: &Nip47Error{
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: err.Error(),
@@ -82,7 +82,7 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 			},
 		})
 		publishResponse(&Nip47Response{
-			ResultType: request.Method,
+			ResultType: nip47Request.Method,
 			Error: &Nip47Error{
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: err.Error(),
@@ -102,7 +102,7 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 	})
 
 	publishResponse(&Nip47Response{
-		ResultType: request.Method,
+		ResultType: nip47Request.Method,
 		Result: Nip47PayResponse{
 			Preimage: preimage,
 		},

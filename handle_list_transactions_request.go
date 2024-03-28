@@ -7,16 +7,16 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (svc *Service) HandleListTransactionsEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, nostr.Tags)) {
+func (svc *Service) HandleListTransactionsEvent(ctx context.Context, nip47Request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, nostr.Tags)) {
 
 	listParams := &Nip47ListTransactionsParams{}
-	resp := svc.decodeNip47Request(request, requestEvent, app, listParams)
+	resp := svc.decodeNip47Request(nip47Request, requestEvent, app, listParams)
 	if resp != nil {
 		publishResponse(resp, nostr.Tags{})
 		return
 	}
 
-	resp = svc.checkPermission(request, requestEvent.NostrId, app, 0)
+	resp = svc.checkPermission(nip47Request, requestEvent.NostrId, app, 0)
 	if resp != nil {
 		publishResponse(resp, nostr.Tags{})
 		return
@@ -43,7 +43,7 @@ func (svc *Service) HandleListTransactionsEvent(ctx context.Context, request *Ni
 		}).Infof("Failed to fetch transactions: %v", err)
 
 		publishResponse(&Nip47Response{
-			ResultType: request.Method,
+			ResultType: nip47Request.Method,
 			Error: &Nip47Error{
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: err.Error(),
@@ -57,7 +57,7 @@ func (svc *Service) HandleListTransactionsEvent(ctx context.Context, request *Ni
 	}
 
 	publishResponse(&Nip47Response{
-		ResultType: request.Method,
+		ResultType: nip47Request.Method,
 		Result:     responsePayload,
 	}, nostr.Tags{})
 }

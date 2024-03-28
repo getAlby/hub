@@ -9,10 +9,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, nostr.Tags)) {
+func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, nip47Request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, nostr.Tags)) {
 
 	multiPayParams := &Nip47MultiPayKeysendParams{}
-	resp := svc.decodeNip47Request(request, requestEvent, app, multiPayParams)
+	resp := svc.decodeNip47Request(nip47Request, requestEvent, app, multiPayParams)
 	if resp != nil {
 		publishResponse(resp, nostr.Tags{})
 		return
@@ -31,7 +31,7 @@ func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, request *Nip
 			}
 			dTag := []string{"d", keysendDTagValue}
 
-			resp := svc.checkPermission(request, requestEvent.NostrId, app, keysendInfo.Amount)
+			resp := svc.checkPermission(nip47Request, requestEvent.NostrId, app, keysendInfo.Amount)
 			if resp != nil {
 				publishResponse(resp, nostr.Tags{dTag})
 				return
@@ -74,7 +74,7 @@ func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, request *Nip
 				})
 
 				publishResponse(&Nip47Response{
-					ResultType: request.Method,
+					ResultType: nip47Request.Method,
 					Error: &Nip47Error{
 						Code:    NIP_47_ERROR_INTERNAL,
 						Message: err.Error(),
@@ -95,7 +95,7 @@ func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, request *Nip
 				},
 			})
 			publishResponse(&Nip47Response{
-				ResultType: request.Method,
+				ResultType: nip47Request.Method,
 				Result: Nip47PayResponse{
 					Preimage: preimage,
 				},
