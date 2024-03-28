@@ -18,6 +18,7 @@ type Event struct {
 type eventLogger struct {
 	logger    *logrus.Logger
 	listeners []EventListener
+	enabled   bool
 }
 
 type EventLogger interface {
@@ -25,10 +26,11 @@ type EventLogger interface {
 	Log(event *Event)
 }
 
-func NewEventLogger(logger *logrus.Logger) *eventLogger {
+func NewEventLogger(logger *logrus.Logger, enabled bool) *eventLogger {
 	eventLogger := &eventLogger{
 		logger:    logger,
 		listeners: []EventListener{},
+		enabled:   enabled,
 	}
 	return eventLogger
 }
@@ -38,7 +40,10 @@ func (el *eventLogger) Subscribe(listener EventListener) {
 }
 
 func (el *eventLogger) Log(event *Event) {
-	el.logger.WithField("event", event).Info("Logging event")
+	el.logger.WithFields(logrus.Fields{"event": event, "enabled": el.enabled}).Info("Logging event")
+	if !el.enabled {
+		return
+	}
 	for _, listener := range el.listeners {
 		go func(listener EventListener) {
 			err := listener.Log(context.Background(), event)
