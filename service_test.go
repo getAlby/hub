@@ -382,13 +382,13 @@ func TestCreateResponse(t *testing.T) {
 	ss, err := nip04.ComputeSharedSecret(reqPubkey, svc.cfg.NostrSecretKey)
 	assert.NoError(t, err)
 
-	reqContent := Nip47Response{
+	nip47Response := &Nip47Response{
 		ResultType: NIP_47_GET_BALANCE_METHOD,
 		Result: Nip47BalanceResponse{
 			Balance: 1000,
 		},
 	}
-	res, err := svc.createResponse(reqEvent, reqContent, nostr.Tags{}, ss)
+	res, err := svc.createResponse(reqEvent, nip47Response, nostr.Tags{}, ss)
 	assert.NoError(t, err)
 	assert.Equal(t, reqPubkey, res.Tags.GetFirst([]string{"p"}).Value())
 	assert.Equal(t, reqEvent.ID, res.Tags.GetFirst([]string{"e"}).Value())
@@ -396,14 +396,14 @@ func TestCreateResponse(t *testing.T) {
 
 	decrypted, err := nip04.Decrypt(res.Content, ss)
 	assert.NoError(t, err)
-	response := Nip47Response{
+	unmarshalledResponse := Nip47Response{
 		Result: &Nip47BalanceResponse{},
 	}
 
-	err = json.Unmarshal([]byte(decrypted), &response)
+	err = json.Unmarshal([]byte(decrypted), &unmarshalledResponse)
 	assert.NoError(t, err)
-	assert.Equal(t, reqContent.ResultType, response.ResultType)
-	assert.Equal(t, reqContent.Result, *response.Result.(*Nip47BalanceResponse))
+	assert.Equal(t, nip47Response.ResultType, unmarshalledResponse.ResultType)
+	assert.Equal(t, nip47Response.Result, *unmarshalledResponse.Result.(*Nip47BalanceResponse))
 }
 
 func TestHandleEncryption(t *testing.T) {}
