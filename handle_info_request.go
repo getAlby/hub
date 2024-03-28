@@ -9,22 +9,22 @@ import (
 
 func (svc *Service) HandleGetInfoEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, *nostr.Tags)) {
 
-	resp := svc.checkPermission(request, requestEvent, app, 0)
+	resp := svc.checkPermission(request, requestEvent.NostrId, app, 0)
 	if resp != nil {
 		publishResponse(resp, &nostr.Tags{})
 		return
 	}
 
 	svc.Logger.WithFields(logrus.Fields{
-		"eventId": requestEvent.NostrId,
-		"appId":   app.ID,
+		"requestEventNostrId": requestEvent.NostrId,
+		"appId":               app.ID,
 	}).Info("Fetching node info")
 
 	info, err := svc.lnClient.GetInfo(ctx)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
-			"eventId": requestEvent.NostrId,
-			"appId":   app.ID,
+			"requestEventNostrId": requestEvent.NostrId,
+			"appId":               app.ID,
 		}).Infof("Failed to fetch node info: %v", err)
 
 		publishResponse(&Nip47Response{

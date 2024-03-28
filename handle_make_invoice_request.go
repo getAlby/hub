@@ -16,7 +16,7 @@ func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Re
 		return
 	}
 
-	resp = svc.checkPermission(request, requestEvent, app, 0)
+	resp = svc.checkPermission(request, requestEvent.NostrId, app, 0)
 	if resp != nil {
 		publishResponse(resp, &nostr.Tags{})
 		return
@@ -24,8 +24,8 @@ func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Re
 
 	if makeInvoiceParams.Description != "" && makeInvoiceParams.DescriptionHash != "" {
 		svc.Logger.WithFields(logrus.Fields{
-			"eventId": requestEvent.NostrId,
-			"appId":   app.ID,
+			"requestEventNostrId": requestEvent.NostrId,
+			"appId":               app.ID,
 		}).Errorf("Only one of description, description_hash can be provided")
 
 		publishResponse(&Nip47Response{
@@ -39,12 +39,12 @@ func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Re
 	}
 
 	svc.Logger.WithFields(logrus.Fields{
-		"eventId":         requestEvent.NostrId,
-		"appId":           app.ID,
-		"amount":          makeInvoiceParams.Amount,
-		"description":     makeInvoiceParams.Description,
-		"descriptionHash": makeInvoiceParams.DescriptionHash,
-		"expiry":          makeInvoiceParams.Expiry,
+		"requestEventNostrId": requestEvent.NostrId,
+		"appId":               app.ID,
+		"amount":              makeInvoiceParams.Amount,
+		"description":         makeInvoiceParams.Description,
+		"descriptionHash":     makeInvoiceParams.DescriptionHash,
+		"expiry":              makeInvoiceParams.Expiry,
 	}).Info("Making invoice")
 
 	expiry := makeInvoiceParams.Expiry
@@ -55,12 +55,12 @@ func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Re
 	transaction, err := svc.lnClient.MakeInvoice(ctx, makeInvoiceParams.Amount, makeInvoiceParams.Description, makeInvoiceParams.DescriptionHash, expiry)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
-			"eventId":         requestEvent.NostrId,
-			"appId":           app.ID,
-			"amount":          makeInvoiceParams.Amount,
-			"description":     makeInvoiceParams.Description,
-			"descriptionHash": makeInvoiceParams.DescriptionHash,
-			"expiry":          makeInvoiceParams.Expiry,
+			"requestEventNostrId": requestEvent.NostrId,
+			"appId":               app.ID,
+			"amount":              makeInvoiceParams.Amount,
+			"description":         makeInvoiceParams.Description,
+			"descriptionHash":     makeInvoiceParams.DescriptionHash,
+			"expiry":              makeInvoiceParams.Expiry,
 		}).Infof("Failed to make invoice: %v", err)
 
 		publishResponse(&Nip47Response{

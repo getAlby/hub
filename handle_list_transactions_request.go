@@ -16,7 +16,7 @@ func (svc *Service) HandleListTransactionsEvent(ctx context.Context, request *Ni
 		return
 	}
 
-	resp = svc.checkPermission(request, requestEvent, app, 0)
+	resp = svc.checkPermission(request, requestEvent.NostrId, app, 0)
 	if resp != nil {
 		publishResponse(resp, &nostr.Tags{})
 		return
@@ -24,8 +24,8 @@ func (svc *Service) HandleListTransactionsEvent(ctx context.Context, request *Ni
 
 	svc.Logger.WithFields(logrus.Fields{
 		// TODO: log request fields from listParams
-		"eventId": requestEvent.NostrId,
-		"appId":   app.ID,
+		"requestEventNostrId": requestEvent.NostrId,
+		"appId":               app.ID,
 	}).Info("Fetching transactions")
 
 	limit := listParams.Limit
@@ -38,8 +38,8 @@ func (svc *Service) HandleListTransactionsEvent(ctx context.Context, request *Ni
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
 			// TODO: log request fields from listParams
-			"eventId": requestEvent.NostrId,
-			"appId":   app.ID,
+			"requestEventNostrId": requestEvent.NostrId,
+			"appId":               app.ID,
 		}).Infof("Failed to fetch transactions: %v", err)
 
 		publishResponse(&Nip47Response{

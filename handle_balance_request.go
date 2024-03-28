@@ -11,27 +11,27 @@ const (
 	MSAT_PER_SAT = 1000
 )
 
-func (svc *Service) HandleGetBalanceEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, *nostr.Tags)) {
+func (svc *Service) HandleGetBalanceEvent(ctx context.Context, nip47Request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, *nostr.Tags)) {
 
-	resp := svc.checkPermission(request, requestEvent, app, 0)
+	resp := svc.checkPermission(nip47Request, requestEvent.NostrId, app, 0)
 	if resp != nil {
 		publishResponse(resp, &nostr.Tags{})
 		return
 	}
 
 	svc.Logger.WithFields(logrus.Fields{
-		"eventId": requestEvent.NostrId,
-		"appId":   app.ID,
+		"requestEventNostrId": requestEvent.NostrId,
+		"appId":               app.ID,
 	}).Info("Fetching balance")
 
 	balance, err := svc.lnClient.GetBalance(ctx)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
-			"eventId": requestEvent.NostrId,
-			"appId":   app.ID,
+			"requestEventNostrId": requestEvent.NostrId,
+			"appId":               app.ID,
 		}).Infof("Failed to fetch balance: %v", err)
 		publishResponse(&Nip47Response{
-			ResultType: request.Method,
+			ResultType: nip47Request.Method,
 			Error: &Nip47Error{
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: err.Error(),
@@ -54,7 +54,7 @@ func (svc *Service) HandleGetBalanceEvent(ctx context.Context, request *Nip47Req
 	}
 
 	publishResponse(&Nip47Response{
-		ResultType: request.Method,
+		ResultType: nip47Request.Method,
 		Result:     responsePayload,
 	}, &nostr.Tags{})
 }

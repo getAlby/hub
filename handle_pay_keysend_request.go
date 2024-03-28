@@ -17,7 +17,7 @@ func (svc *Service) HandlePayKeysendEvent(ctx context.Context, request *Nip47Req
 		return
 	}
 
-	resp = svc.checkPermission(request, requestEvent, app, payParams.Amount)
+	resp = svc.checkPermission(request, requestEvent.NostrId, app, payParams.Amount)
 	if resp != nil {
 		publishResponse(resp, &nostr.Tags{})
 		return
@@ -37,17 +37,17 @@ func (svc *Service) HandlePayKeysendEvent(ctx context.Context, request *Nip47Req
 	}
 
 	svc.Logger.WithFields(logrus.Fields{
-		"eventId":      requestEvent.NostrId,
-		"appId":        app.ID,
-		"senderPubkey": payParams.Pubkey,
+		"requestEventNostrId": requestEvent.NostrId,
+		"appId":               app.ID,
+		"senderPubkey":        payParams.Pubkey,
 	}).Info("Sending payment")
 
 	preimage, err := svc.lnClient.SendKeysend(ctx, payParams.Amount, payParams.Pubkey, payParams.Preimage, payParams.TLVRecords)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
-			"eventId":         requestEvent.NostrId,
-			"appId":           app.ID,
-			"recipientPubkey": payParams.Pubkey,
+			"requestEventNostrId": requestEvent.NostrId,
+			"appId":               app.ID,
+			"recipientPubkey":     payParams.Pubkey,
 		}).Infof("Failed to send payment: %v", err)
 		svc.EventLogger.Log(&events.Event{
 			Event: "nwc_payment_failed",

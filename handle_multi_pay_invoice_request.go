@@ -35,9 +35,9 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, request *Nip
 			paymentRequest, err := decodepay.Decodepay(bolt11)
 			if err != nil {
 				svc.Logger.WithFields(logrus.Fields{
-					"eventId": requestEvent.NostrId,
-					"appId":   app.ID,
-					"bolt11":  bolt11,
+					"requestEventNostrId": requestEvent.NostrId,
+					"appId":               app.ID,
+					"bolt11":              bolt11,
 				}).Errorf("Failed to decode bolt11 invoice: %v", err)
 
 				// TODO: Decide what to do if id is empty
@@ -58,7 +58,7 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, request *Nip
 			}
 			dTag := []string{"d", invoiceDTagValue}
 
-			resp := svc.checkPermission(request, requestEvent, app, paymentRequest.MSatoshi)
+			resp := svc.checkPermission(request, requestEvent.NostrId, app, paymentRequest.MSatoshi)
 			if resp != nil {
 				publishResponse(resp, &nostr.Tags{dTag})
 				return
@@ -70,25 +70,25 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, request *Nip
 			mu.Unlock()
 			if insertPaymentResult.Error != nil {
 				svc.Logger.WithFields(logrus.Fields{
-					"eventId":        requestEvent.NostrId,
-					"paymentRequest": bolt11,
-					"invoiceId":      invoiceInfo.Id,
+					"requestEventNostrId": requestEvent.NostrId,
+					"paymentRequest":      bolt11,
+					"invoiceId":           invoiceInfo.Id,
 				}).Errorf("Failed to process event: %v", insertPaymentResult.Error)
 				return
 			}
 
 			svc.Logger.WithFields(logrus.Fields{
-				"eventId": requestEvent.NostrId,
-				"appId":   app.ID,
-				"bolt11":  bolt11,
+				"requestEventNostrId": requestEvent.NostrId,
+				"appId":               app.ID,
+				"bolt11":              bolt11,
 			}).Info("Sending payment")
 
 			preimage, err := svc.lnClient.SendPaymentSync(ctx, bolt11)
 			if err != nil {
 				svc.Logger.WithFields(logrus.Fields{
-					"eventId": requestEvent.NostrId,
-					"appId":   app.ID,
-					"bolt11":  bolt11,
+					"requestEventNostrId": requestEvent.NostrId,
+					"appId":               app.ID,
+					"bolt11":              bolt11,
 				}).Infof("Failed to send payment: %v", err)
 
 				svc.EventLogger.Log(&events.Event{

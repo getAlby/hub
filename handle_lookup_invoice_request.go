@@ -19,17 +19,17 @@ func (svc *Service) HandleLookupInvoiceEvent(ctx context.Context, request *Nip47
 		return
 	}
 
-	resp = svc.checkPermission(request, requestEvent, app, 0)
+	resp = svc.checkPermission(request, requestEvent.NostrId, app, 0)
 	if resp != nil {
 		publishResponse(resp, &nostr.Tags{})
 		return
 	}
 
 	svc.Logger.WithFields(logrus.Fields{
-		"eventId":     requestEvent.NostrId,
-		"appId":       app.ID,
-		"invoice":     lookupInvoiceParams.Invoice,
-		"paymentHash": lookupInvoiceParams.PaymentHash,
+		"requestEventNostrId": requestEvent.NostrId,
+		"appId":               app.ID,
+		"invoice":             lookupInvoiceParams.Invoice,
+		"paymentHash":         lookupInvoiceParams.PaymentHash,
 	}).Info("Looking up invoice")
 
 	paymentHash := lookupInvoiceParams.PaymentHash
@@ -38,9 +38,9 @@ func (svc *Service) HandleLookupInvoiceEvent(ctx context.Context, request *Nip47
 		paymentRequest, err := decodepay.Decodepay(strings.ToLower(lookupInvoiceParams.Invoice))
 		if err != nil {
 			svc.Logger.WithFields(logrus.Fields{
-				"eventId": requestEvent.NostrId,
-				"appId":   app.ID,
-				"invoice": lookupInvoiceParams.Invoice,
+				"requestEventNostrId": requestEvent.NostrId,
+				"appId":               app.ID,
+				"invoice":             lookupInvoiceParams.Invoice,
 			}).Errorf("Failed to decode bolt11 invoice: %v", err)
 
 			publishResponse(&Nip47Response{
@@ -58,10 +58,10 @@ func (svc *Service) HandleLookupInvoiceEvent(ctx context.Context, request *Nip47
 	transaction, err := svc.lnClient.LookupInvoice(ctx, paymentHash)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
-			"eventId":     requestEvent.NostrId,
-			"appId":       app.ID,
-			"invoice":     lookupInvoiceParams.Invoice,
-			"paymentHash": lookupInvoiceParams.PaymentHash,
+			"requestEventNostrId": requestEvent.NostrId,
+			"appId":               app.ID,
+			"invoice":             lookupInvoiceParams.Invoice,
+			"paymentHash":         lookupInvoiceParams.PaymentHash,
 		}).Infof("Failed to lookup invoice: %v", err)
 
 		publishResponse(&Nip47Response{

@@ -26,9 +26,9 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 	paymentRequest, err := decodepay.Decodepay(bolt11)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
-			"eventId": requestEvent.NostrId,
-			"appId":   app.ID,
-			"bolt11":  bolt11,
+			"requestEventNostrId": requestEvent.NostrId,
+			"appId":               app.ID,
+			"bolt11":              bolt11,
 		}).Errorf("Failed to decode bolt11 invoice: %v", err)
 
 		publishResponse(&Nip47Response{
@@ -41,7 +41,7 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 		return
 	}
 
-	resp = svc.checkPermission(request, requestEvent, app, paymentRequest.MSatoshi)
+	resp = svc.checkPermission(request, requestEvent.NostrId, app, paymentRequest.MSatoshi)
 	if resp != nil {
 		publishResponse(resp, &nostr.Tags{})
 		return
@@ -61,17 +61,17 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, request *Nip47Req
 	}
 
 	svc.Logger.WithFields(logrus.Fields{
-		"eventId": requestEvent.NostrId,
-		"appId":   app.ID,
-		"bolt11":  bolt11,
+		"requestEventNostrId": requestEvent.NostrId,
+		"appId":               app.ID,
+		"bolt11":              bolt11,
 	}).Info("Sending payment")
 
 	preimage, err := svc.lnClient.SendPaymentSync(ctx, bolt11)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
-			"eventId": requestEvent.NostrId,
-			"appId":   app.ID,
-			"bolt11":  bolt11,
+			"requestEventNostrId": requestEvent.NostrId,
+			"appId":               app.ID,
+			"bolt11":              bolt11,
 		}).Infof("Failed to send payment: %v", err)
 		svc.EventLogger.Log(&events.Event{
 			Event: "nwc_payment_failed",
