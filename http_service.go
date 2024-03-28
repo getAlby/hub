@@ -327,7 +327,7 @@ func (httpSvc *HttpService) mempoolLightningNodeHandler(c echo.Context) error {
 func (httpSvc *HttpService) listPeers(c echo.Context) error {
 	peers, err := httpSvc.svc.lnClient.ListPeers(httpSvc.svc.ctx)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
 			Message: fmt.Sprintf("Failed to list peers: %s", err.Error()),
 		})
 	}
@@ -580,7 +580,7 @@ func (httpSvc *HttpService) setupHandler(c echo.Context) error {
 func (httpSvc *HttpService) sendPaymentProbesHandler(c echo.Context) error {
 	var sendPaymentProbesRequest api.SendPaymentProbesRequest
 	if err := c.Bind(&sendPaymentProbesRequest); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
+		return c.JSON(http.StatusBadRequest, models.ErrorResponse{
 			Message: fmt.Sprintf("Bad request: %s", err.Error()),
 		})
 	}
@@ -599,7 +599,7 @@ func (httpSvc *HttpService) sendPaymentProbesHandler(c echo.Context) error {
 func (httpSvc *HttpService) sendSpontaneousPaymentProbesHandler(c echo.Context) error {
 	var sendSpontaneousPaymentProbesRequest api.SendSpontaneousPaymentProbesRequest
 	if err := c.Bind(&sendSpontaneousPaymentProbesRequest); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
+		return c.JSON(http.StatusBadRequest, models.ErrorResponse{
 			Message: fmt.Sprintf("Bad request: %s", err.Error()),
 		})
 	}
@@ -618,14 +618,14 @@ func (httpSvc *HttpService) sendSpontaneousPaymentProbesHandler(c echo.Context) 
 func (httpSvc *HttpService) getLogOutput(c echo.Context) error {
 	var getLogRequest api.GetLogOutputRequest
 	if err := c.Bind(&getLogRequest); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
+		return c.JSON(http.StatusBadRequest, models.ErrorResponse{
 			Message: fmt.Sprintf("Bad request: %s", err.Error()),
 		})
 	}
 
 	logData, err := httpSvc.svc.lnClient.GetLogOutput(httpSvc.svc.ctx, getLogRequest.MaxLen)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
 			Message: "Failed to get log data",
 		})
 	}
