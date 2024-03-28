@@ -91,7 +91,7 @@ const MenuItem = ({
 }: {
   to: string;
   children: React.ReactNode | string;
-  disabled: boolean;
+  disabled?: boolean;
 }) => (
   <>
     <NavLink
@@ -111,3 +111,5 @@ const MenuItem = ({
     </NavLink>
   </>
 );
+
+MenuItem;
