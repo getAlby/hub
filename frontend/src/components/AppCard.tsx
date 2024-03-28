@@ -13,10 +13,9 @@ import { App, NIP_47_PAY_INVOICE_METHOD } from "src/types";
 type Props = {
   app: App;
   csrf?: string;
-  onDelete: (nostrPubkey: string) => void;
 };
 
-export default function AppCard({ app, onDelete }: Props) {
+export default function AppCard({ app }: Props) {
   return (
     <>
       <Link to={`/connections/${app.nostrPubkey}`}>

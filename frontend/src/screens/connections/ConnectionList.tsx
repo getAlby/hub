@@ -8,17 +8,12 @@ import { useApps } from "src/hooks/useApps";
 import { useInfo } from "src/hooks/useInfo";
 
 function ConnectionList() {
-  const { data: apps, mutate: mutateApps } = useApps();
+  const { data: apps } = useApps();
   const { data: info } = useInfo();
 
   if (!apps || !info) {
     return <Loading />;
   }
-
-  const handleDeleteApp = (nostrPubkey: string) => {
-    const updatedApps = apps.filter((app) => app.nostrPubkey !== nostrPubkey);
-    mutateApps(updatedApps, false);
-  };
 
   return (
     <>
@@ -56,7 +51,7 @@ function ConnectionList() {
       {apps.length > 0 && (
         <div className="grid sm:grid-cols-1 md:grid-cols-2 gap-4">
           {apps.map((app, index) => (
-            <AppCard key={index} app={app} onDelete={handleDeleteApp} />
+            <AppCard key={index} app={app} />
           ))}
         </div>
       )}

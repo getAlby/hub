@@ -1,3 +1,4 @@
+import Input from "@/components/Input";
 import {
   PopiconsLifebuoyLine,
   PopiconsShieldLine,
@@ -12,7 +13,6 @@ import Loading from "src/components/Loading";
 import MnemonicInputs from "src/components/MnemonicInputs";
 import PasswordViewAdornment from "src/components/PasswordAdornment";
 import toast from "src/components/Toast";
-import { Input } from "src/components/ui/input";
 import { useCSRF } from "src/hooks/useCSRF";
 import { useEncryptedMnemonic } from "src/hooks/useEncryptedMnemonic";
 import { useInfo } from "src/hooks/useInfo";
