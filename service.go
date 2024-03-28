@@ -582,12 +582,14 @@ func (svc *Service) HandleEvent(ctx context.Context, sub *nostr.Subscription, ev
 		svc.handleUnknownMethod(ctx, nip47Request, publishResponse)
 	}
 
-	requestEvent.State = REQUEST_EVENT_STATE_HANDLER_EXECUTED
-	err = svc.db.Save(&requestEvent).Error
-	if err != nil {
-		svc.Logger.WithFields(logrus.Fields{
-			"nostrPubkey": event.PubKey,
-		}).Errorf("Failed to save state to nostr event: %v", err)
+	if requestEvent.State == REQUEST_EVENT_STATE_HANDLER_EXECUTING {
+		requestEvent.State = REQUEST_EVENT_STATE_HANDLER_EXECUTED
+		err = svc.db.Save(&requestEvent).Error
+		if err != nil {
+			svc.Logger.WithFields(logrus.Fields{
+				"nostrPubkey": event.PubKey,
+			}).Errorf("Failed to save state to nostr event: %v", err)
+		}
 	}
 }
 
