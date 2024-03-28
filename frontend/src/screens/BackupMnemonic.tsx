@@ -1,4 +1,3 @@
-import Input from "@/components/Input";
 import {
   PopiconsLifebuoyLine,
   PopiconsShieldLine,
@@ -6,6 +5,7 @@ import {
 } from "@popicons/react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Input from "src/components/Input";
 
 import ConnectButton from "src/components/ConnectButton";
 import Container from "src/components/Container";

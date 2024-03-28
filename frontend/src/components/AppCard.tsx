@@ -1,12 +1,12 @@
 import gradientAvatar from "gradient-avatar";
 import { Link } from "react-router-dom";
-
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+
 import { Progress } from "src/components/ui/progress";
 import { App, NIP_47_PAY_INVOICE_METHOD } from "src/types";
 
