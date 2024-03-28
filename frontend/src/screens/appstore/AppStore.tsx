@@ -1,9 +1,9 @@
-import { Button } from "src/components/ui/button";
-import SuggestedApps from "src/components/SuggestedApps";
 import { CirclePlus } from "lucide-react";
 import AppHeader from "src/components/AppHeader";
+import SuggestedApps from "src/components/SuggestedApps";
+import { Button } from "src/components/ui/button";
 
-function AppsList() {
+function AppStore() {
   return (
     <>
       <AppHeader
@@ -27,4 +27,4 @@ function AppsList() {
   );
 }
 
-export default AppsList;
+export default AppStore;

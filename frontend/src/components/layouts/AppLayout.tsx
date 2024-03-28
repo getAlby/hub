@@ -1,16 +1,16 @@
-import { ModeToggle } from "src/components/ui/mode-toggle";
 import {
-  MessageCircle,
   Cable,
-  LayoutGrid,
-  Wallet,
-  Settings,
   CircleHelp,
+  LayoutGrid,
+  MessageCircle,
+  Settings,
   ShieldCheck,
+  Wallet,
 } from "lucide-react";
+import { ModeToggle } from "src/components/ui/mode-toggle";
 
 import { Link, Outlet } from "react-router-dom";
-import { Avatar, AvatarImage, AvatarFallback } from "src/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "src/components/ui/avatar";
 
 export default function AppLayout() {
   return (
@@ -32,14 +32,14 @@ export default function AppLayout() {
                 Wallet
               </Link>
               <Link
-                to="/connections"
+                to="/apps"
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
                 <Cable className="h-4 w-4" />
                 Connections
               </Link>
               <Link
-                to="/apps"
+                to="/appstore"
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
                 <LayoutGrid className="h-4 w-4" />

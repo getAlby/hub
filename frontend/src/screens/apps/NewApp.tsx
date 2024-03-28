@@ -1,7 +1,9 @@
 import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import { useLocation, useNavigate } from "react-router-dom";
 
+import { EditIcon } from "src/components/icons/EditIcon";
+import { useCSRF } from "src/hooks/useCSRF";
 import {
   AppPermissions,
   BudgetRenewalType,
@@ -10,22 +12,20 @@ import {
   nip47MethodDescriptions,
   validBudgetRenewals,
 } from "src/types";
-import { useCSRF } from "src/hooks/useCSRF";
-import { EditIcon } from "src/components/icons/EditIcon";
 
-import { request } from "src/utils/request"; // build the project for this to appear
-import { handleRequestError } from "src/utils/handleRequestError";
-import Permissions from "../../components/Permissions";
+import { Button } from "src/components/ui/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
-import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
+import { handleRequestError } from "src/utils/handleRequestError";
+import { request } from "src/utils/request"; // build the project for this to appear
+import Permissions from "../../components/Permissions";
 
-const NewConnection = () => {
+const NewApp = () => {
   const { data: csrf } = useCSRF();
   const navigate = useNavigate();
 
@@ -106,7 +106,7 @@ const NewConnection = () => {
         window.location.href = createAppResponse.returnTo;
         return;
       }
-      navigate("/connections/created", {
+      navigate("/apps/created", {
         state: createAppResponse,
       });
       toast.success("App created!");
@@ -174,4 +174,4 @@ const NewConnection = () => {
   );
 };
 
-export default NewConnection;
+export default NewApp;

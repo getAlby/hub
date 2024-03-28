@@ -17,7 +17,11 @@ import NotFound from "src/screens/NotFound";
 import Start from "src/screens/Start";
 import Unlock from "src/screens/Unlock";
 import { Welcome } from "src/screens/Welcome";
-import AppsList from "src/screens/apps/AppsList";
+import AppCreated from "src/screens/apps/AppCreated";
+import AppList from "src/screens/apps/AppList";
+import NewApp from "src/screens/apps/NewApp";
+import ShowApp from "src/screens/apps/ShowApp";
+import AppStore from "src/screens/appstore/AppStore";
 import Channels from "src/screens/channels/Channels";
 import FirstChannel from "src/screens/channels/FirstChannel";
 import MigrateAlbyFunds from "src/screens/channels/MigrateAlbyFunds";
@@ -26,10 +30,6 @@ import NewChannel from "src/screens/channels/NewChannel";
 import NewCustomChannel from "src/screens/channels/NewCustomChannel";
 import NewInstantChannel from "src/screens/channels/NewInstantChannel";
 import RecommendedChannels from "src/screens/channels/RecommendedChannels";
-import ConnectionCreated from "src/screens/connections/ConnectionCreated";
-import ConnectionList from "src/screens/connections/ConnectionList";
-import NewConnection from "src/screens/connections/NewConnection";
-import ShowConnection from "src/screens/connections/ShowConnection";
 import NewOnchainAddress from "src/screens/onchain/NewAddress";
 import Settings from "src/screens/settings/Settings";
 import { ImportMnemonic } from "src/screens/setup/ImportMnemonic";
@@ -73,13 +73,12 @@ function App() {
               <Route path="backup" element={<BackupRedirect />}>
                 <Route path="mnemonic" element={<BackupMnemonic />} />
               </Route>
-              <Route path="apps" element={<AppsList />}></Route>
-              {/* TODO: path needs to be maintained because 3rd party hard link to it */}
-              <Route path="apps/new" element={<NewConnection />}></Route>
-              <Route path="connections" element={<AppsRedirect />}>
-                <Route index path="" element={<ConnectionList />} />
-                <Route path=":pubkey" element={<ShowConnection />} />
-                <Route path="created" element={<ConnectionCreated />} />
+              <Route path="appstore" element={<AppStore />} />
+              <Route path="apps" element={<AppsRedirect />}>
+                <Route path="new" element={<NewApp />} />
+                <Route index path="" element={<AppList />} />
+                <Route path=":pubkey" element={<ShowApp />} />
+                <Route path="created" element={<AppCreated />} />
                 <Route path="*" element={<NotFound />} />
               </Route>
               <Route path="channels" element={<ChannelsRedirect />}>

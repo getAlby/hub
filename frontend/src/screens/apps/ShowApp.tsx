@@ -1,33 +1,33 @@
+import gradientAvatar from "gradient-avatar";
 import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import gradientAvatar from "gradient-avatar";
 
+import { useApp } from "src/hooks/useApp";
+import { useCSRF } from "src/hooks/useCSRF";
+import { useDeleteApp } from "src/hooks/useDeleteApp";
+import { useInfo } from "src/hooks/useInfo";
 import {
   AppPermissions,
   BudgetRenewalType,
   RequestMethodType,
 } from "src/types";
-import { useInfo } from "src/hooks/useInfo";
-import { useApp } from "src/hooks/useApp";
-import { useCSRF } from "src/hooks/useCSRF";
-import { useDeleteApp } from "src/hooks/useDeleteApp";
 
-import { request } from "src/utils/request"; // build the project for this to appear
 import { handleRequestError } from "src/utils/handleRequestError";
+import { request } from "src/utils/request"; // build the project for this to appear
 
-import toast from "src/components/Toast";
-import Loading from "src/components/Loading";
 import DeleteConfirmationPopup from "src/components/DeleteConfirmationPopup";
+import Loading from "src/components/Loading";
 import Permissions from "src/components/Permissions";
+import toast from "src/components/Toast";
+import { Button } from "src/components/ui/button";
 import {
   Card,
+  CardContent,
   CardHeader,
   CardTitle,
-  CardContent,
 } from "src/components/ui/card";
-import { Button } from "src/components/ui/button";
 
-function ShowConnection() {
+function ShowApp() {
   const { data: info } = useInfo();
   const { data: csrf } = useCSRF();
   const { pubkey } = useParams() as { pubkey: string };
@@ -39,7 +39,7 @@ function ShowConnection() {
 
   const { deleteApp } = useDeleteApp(() => {
     setShowPopup(false);
-    navigate("/connections");
+    navigate("/apps");
   });
 
   const [permissions, setPermissions] = React.useState<AppPermissions>({
@@ -238,4 +238,4 @@ function ShowConnection() {
   );
 }
 
-export default ShowConnection;
+export default ShowApp;

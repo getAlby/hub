@@ -18,7 +18,7 @@ type Props = {
 export default function AppCard({ app }: Props) {
   return (
     <>
-      <Link to={`/connections/${app.nostrPubkey}`}>
+      <Link to={`/apps/${app.nostrPubkey}`}>
         <Card>
           <CardHeader>
             <CardTitle>

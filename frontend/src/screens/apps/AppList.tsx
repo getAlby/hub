@@ -7,7 +7,7 @@ import { Button } from "src/components/ui/button";
 import { useApps } from "src/hooks/useApps";
 import { useInfo } from "src/hooks/useInfo";
 
-function ConnectionList() {
+function AppList() {
   const { data: apps } = useApps();
   const { data: info } = useInfo();
 
@@ -59,4 +59,4 @@ function ConnectionList() {
   );
 }
 
-export default ConnectionList;
+export default AppList;
