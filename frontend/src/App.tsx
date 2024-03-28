@@ -16,6 +16,7 @@ import { Welcome } from "src/screens/Welcome";
 import { SetupPassword } from "src/screens/setup/SetupPassword";
 import Start from "src/screens/Start";
 import { AppsRedirect } from "src/components/redirects/AppsRedirect";
+import { BackupRedirect } from "src/components/redirects/BackupRedirect";
 import { StartRedirect } from "src/components/redirects/StartRedirect";
 import { HomeRedirect } from "src/components/redirects/HomeRedirect";
 import Unlock from "src/screens/Unlock";
@@ -30,8 +31,13 @@ import { ImportMnemonic } from "src/screens/setup/ImportMnemonic";
 import { SetupFinish } from "src/screens/setup/SetupFinish";
 import { BackupMnemonic } from "src/screens/BackupMnemonic";
 import NewInstantChannel from "src/screens/channels/NewInstantChannel";
+import FirstChannel from "src/screens/channels/FirstChannel";
+import { ChannelsRedirect } from "src/components/redirects/ChannelsRedirect";
+import MigrateAlbyFunds from "src/screens/channels/MigrateAlbyFunds";
+import { usePosthog } from "./hooks/usePosthog";
 
 function App() {
+  usePosthog();
   return (
     <div className="bg-zinc-50 min-h-full flex flex-col justify-center dark:bg-zinc-950">
       <Toaster />
@@ -57,7 +63,9 @@ function App() {
               <Route path="finish" element={<SetupFinish />} />
             </Route>
             {/* TODO: move this under settings later */}
-            <Route path="/backup/mnemonic" element={<BackupMnemonic />} />
+            <Route path="backup" element={<BackupRedirect />}>
+              <Route path="mnemonic" element={<BackupMnemonic />} />
+            </Route>
             <Route path="apps" element={<AppsRedirect />}>
               <Route index path="" element={<AppsList />} />
               <Route path=":pubkey" element={<ShowApp />} />
@@ -65,22 +73,21 @@ function App() {
               <Route path="created" element={<AppCreated />} />
               <Route path="*" element={<NotFound />} />
             </Route>
-            <Route path="channels" element={<Channels />} />
-            <Route path="channels/new" element={<NewChannel />} />
-            <Route
-              path="channels/new/instant"
-              element={<NewInstantChannel />}
-            />
-            <Route
-              path="channels/new/blocktank"
-              element={<NewBlocktankChannel />}
-            />
-            <Route
-              path="channels/recommended"
-              element={<RecommendedChannels />}
-            />
-            <Route path="channels/new/custom" element={<NewCustomChannel />} />
-            <Route path="onchain/new-address" element={<NewOnchainAddress />} />
+            <Route path="channels" element={<ChannelsRedirect />}>
+              <Route path="" element={<Channels />} />
+              <Route path="first" element={<FirstChannel />} />
+              <Route path="migrate-alby" element={<MigrateAlbyFunds />} />
+              <Route path="new" element={<NewChannel />} />
+              <Route path="new/instant" element={<NewInstantChannel />} />
+              <Route path="new/blocktank" element={<NewBlocktankChannel />} />
+              <Route path="recommended" element={<RecommendedChannels />} />
+              <Route path="new/custom" element={<NewCustomChannel />} />
+
+              <Route
+                path="onchain/new-address"
+                element={<NewOnchainAddress />}
+              />
+            </Route>
             <Route path="unlock" element={<Unlock />} />
             <Route path="about" element={<About />} />
           </Route>

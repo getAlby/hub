@@ -2,24 +2,16 @@ import { useInfo } from "src/hooks/useInfo";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import React from "react";
 import Loading from "src/components/Loading";
-import { localStorageKeys } from "src/constants";
 
-export function AppsRedirect() {
+export function BackupRedirect() {
   const { data: info } = useInfo();
   const location = useLocation();
   const navigate = useNavigate();
 
   React.useEffect(() => {
-    if (!info) {
-      return;
+    if (info && (!info.running || !info.unlocked)) {
+      navigate("/");
     }
-    if (info.running && info.unlocked) {
-      window.localStorage.removeItem(localStorageKeys.returnTo);
-      return;
-    }
-    const returnTo = location.pathname + location.search;
-    window.localStorage.setItem(localStorageKeys.returnTo, returnTo);
-    navigate("/");
   }, [info, location, navigate]);
 
   if (!info) {

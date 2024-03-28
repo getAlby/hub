@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/getAlby/nostr-wallet-connect/events"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip19"
 )
@@ -112,6 +113,9 @@ func (svc *Service) StartApp(encryptionKey string) error {
 	err := svc.launchLNBackend(encryptionKey)
 	if err != nil {
 		svc.Logger.Errorf("Failed to launch LN backend: %v", err)
+		svc.EventLogger.Log(&events.Event{
+			Event: "nwc_node_start_failed",
+		})
 		return err
 	}
 
@@ -120,11 +124,10 @@ func (svc *Service) StartApp(encryptionKey string) error {
 }
 
 func (svc *Service) Shutdown() {
-	if svc.lnClient != nil {
-		svc.Logger.Info("Shutting down LN backend...")
-		err := svc.lnClient.Shutdown()
-		if err != nil {
-			svc.Logger.Error(err)
-		}
-	}
+	svc.StopLNClient()
+	svc.EventLogger.Log(&events.Event{
+		Event: "nwc_stopped",
+	})
+	// wait for any remaining events
+	time.Sleep(1 * time.Second)
 }

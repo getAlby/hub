@@ -92,7 +92,9 @@ type InfoResponse struct {
 	SetupCompleted     bool   `json:"setupCompleted"`
 	Running            bool   `json:"running"`
 	Unlocked           bool   `json:"unlocked"`
+	AlbyAuthUrl        string `json:"albyAuthUrl"`
 	ShowBackupReminder bool   `json:"showBackupReminder"`
+	AlbyUserIdentifier string `json:"albyUserIdentifier"`
 }
 
 type EncryptedMnemonicResponse struct {
@@ -123,8 +125,17 @@ type RedeemOnchainFundsResponse struct {
 	TxId string `json:"txId"`
 }
 
+type OnchainBalanceResponse = lnclient.OnchainBalanceResponse
+
 type NewOnchainAddressResponse struct {
 	Address string `json:"address"`
 }
 
-type OnchainBalanceResponse = lnclient.OnchainBalanceResponse
+// TODO: move to different file
+type AlbyBalanceResponse struct {
+	Sats int64 `json:"sats"`
+}
+
+type AlbyPayRequest struct {
+	Invoice string `json:"invoice"`
+}

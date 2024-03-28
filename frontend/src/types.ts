@@ -125,10 +125,12 @@ export interface InfoResponse {
   setupCompleted: boolean;
   running: boolean;
   unlocked: boolean;
+  albyAuthUrl: string;
   showBackupReminder: boolean;
+  albyUserIdentifier: string;
 }
 
-export interface MnemonicResponse {
+export interface EncryptedMnemonicResponse {
   mnemonic: string;
 }
 
@@ -208,6 +210,35 @@ export type SetupNodeInfo = Partial<{
   lndCertHex?: string;
   lndMacaroonHex?: string;
 }>;
+
+// TODO: move to different file
+export type AlbyMe = {
+  identifier: string;
+  nostr_pubkey: string;
+  lightning_address: string;
+  email: string;
+  name: string;
+  avatar: string;
+  keysend_pubkey: string;
+};
+
+export type AlbyBalance = {
+  sats: number;
+};
+
+// TODO: move to different file
+export type LSPOption = "OLYMPUS" | "VOLTAGE";
+export const LSP_OPTIONS: LSPOption[] = ["OLYMPUS", "VOLTAGE"];
+
+export type NewWrappedInvoiceRequest = {
+  amount: number;
+  lsp: LSPOption;
+};
+
+export type NewWrappedInvoiceResponse = {
+  wrappedInvoice: string;
+  fee: number;
+};
 
 export type RedeemOnchainFundsResponse = {
   txId: string;
