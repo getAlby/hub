@@ -333,6 +333,7 @@ func (svc *Service) PublishEvent(ctx context.Context, sub *nostr.Subscription, r
 			"responseEventId":      responseEvent.ID,
 			"responseNostrEventId": resp.ID,
 		}).Errorf("Failed to update response/reply event: %v", err)
+		return err
 	}
 
 	return nil
@@ -530,15 +531,30 @@ func (svc *Service) HandleEvent(ctx context.Context, sub *nostr.Subscription, ev
 				"requestEventNostrId": event.ID,
 				"eventKind":           event.Kind,
 			}).Errorf("Failed to create response: %v", err)
-		}
-		if resp != nil {
-			err = svc.PublishEvent(ctx, sub, &requestEvent, resp, &app, ss)
 
+			requestEvent.State = REQUEST_EVENT_STATE_HANDLER_ERROR
+			err = svc.db.Save(&requestEvent).Error
 			if err != nil {
 				svc.Logger.WithFields(logrus.Fields{
-					"requestEventNostrId": event.ID,
-					"eventKind":           event.Kind,
-				}).Errorf("Failed to publish event: %v", err)
+					"nostrPubkey": event.PubKey,
+				}).Errorf("Failed to save state to nostr event: %v", err)
+			}
+			return
+		}
+		err = svc.PublishEvent(ctx, sub, &requestEvent, resp, &app, ss)
+
+		if err != nil {
+			svc.Logger.WithFields(logrus.Fields{
+				"requestEventNostrId": event.ID,
+				"eventKind":           event.Kind,
+			}).Errorf("Failed to publish event: %v", err)
+
+			requestEvent.State = REQUEST_EVENT_STATE_HANDLER_ERROR
+			err = svc.db.Save(&requestEvent).Error
+			if err != nil {
+				svc.Logger.WithFields(logrus.Fields{
+					"nostrPubkey": event.PubKey,
+				}).Errorf("Failed to save state to nostr event: %v", err)
 			}
 		}
 	}
