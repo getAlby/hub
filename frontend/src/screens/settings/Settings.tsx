@@ -20,12 +20,11 @@ function Settings() {
         title="Settings"
         description="Manage your account settings and set e-mail preferences."
       />
-      <div className="mx-auto grid w-full max-w-6xl items-start gap-6 md:grid-cols-[180px_1fr] lg:grid-cols-[250px_1fr]">
+      <div className="grid w-full items-start gap-6 md:grid-cols-[180px_1fr] lg:grid-cols-[250px_1fr]">
         <nav className="grid gap-4 text-sm text-muted-foreground">
           <Link to="#" className="font-semibold text-primary">
             General
           </Link>
-          <Link to="#">General</Link>
           <Link to="/backup/mnemonic">Keys</Link>
           <Link to="#" className="cusor-not-allowed">
             Connections

@@ -4,8 +4,7 @@ import AppLayout from "src/components/layouts/AppLayout";
 
 import FullScreenLayout from "src/components/layouts/FullScreenLayout";
 import { AppsRedirect } from "src/components/redirects/AppsRedirect";
-import { BackupRedirect } from "src/components/redirects/BackupRedirect";
-import { ChannelsRedirect } from "src/components/redirects/ChannelsRedirect";
+import { DefaultRedirect } from "src/components/redirects/DefaultRedirect";
 import { HomeRedirect } from "src/components/redirects/HomeRedirect";
 import { SetupRedirect } from "src/components/redirects/SetupRedirect";
 import { StartRedirect } from "src/components/redirects/StartRedirect";
@@ -67,13 +66,19 @@ function App() {
                 <Route path="import-mnemonic" element={<ImportMnemonic />} />
                 <Route path="finish" element={<SetupFinish />} />
               </Route>
-              <Route path="settings" element={<Settings />} />
-              <Route path="wallet" element={<Wallet />} />
+              <Route path="settings" element={<DefaultRedirect />}>
+                <Route index element={<Settings />} />
+              </Route>
+              <Route path="wallet" element={<DefaultRedirect />}>
+                <Route index element={<Wallet />} />
+              </Route>
               {/* TODO: move this under settings later */}
-              <Route path="backup" element={<BackupRedirect />}>
+              <Route path="backup" element={<DefaultRedirect />}>
                 <Route path="mnemonic" element={<BackupMnemonic />} />
               </Route>
-              <Route path="appstore" element={<AppStore />} />
+              <Route path="appstore" element={<DefaultRedirect />}>
+                <Route index element={<AppStore />} />
+              </Route>
               <Route path="apps" element={<AppsRedirect />}>
                 <Route path="new" element={<NewApp />} />
                 <Route index path="" element={<AppList />} />
@@ -81,7 +86,7 @@ function App() {
                 <Route path="created" element={<AppCreated />} />
                 <Route path="*" element={<NotFound />} />
               </Route>
-              <Route path="channels" element={<ChannelsRedirect />}>
+              <Route path="channels" element={<DefaultRedirect />}>
                 <Route path="" element={<Channels />} />
                 <Route path="first" element={<FirstChannel />} />
                 <Route path="migrate-alby" element={<MigrateAlbyFunds />} />
@@ -90,7 +95,6 @@ function App() {
                 <Route path="new/blocktank" element={<NewBlocktankChannel />} />
                 <Route path="recommended" element={<RecommendedChannels />} />
                 <Route path="new/custom" element={<NewCustomChannel />} />
-
                 <Route
                   path="onchain/new-address"
                   element={<NewOnchainAddress />}
