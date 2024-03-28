@@ -66,32 +66,31 @@ Go to `/frontend`
 
 _Make sure to have [wails](https://wails.io/docs/gettingstarted/installation) installed and all platform-specific dependencies installed (see wails doctor)_
 
-`unset GTK_PATH && wails dev -tags "wails"`
+    $ unset GTK_PATH && wails dev -tags "wails"
 
 _If you get a blank screen the first load, close the window and start the app again_
 
 #### Wails Production build
 
-`wails build -tags "wails"`
+    $ wails build -tags "wails"
 
 ### Build and run locally (HTTP mode)
 
-`mkdir tmp`
-`go build -o main`
-`cp main tmp`
-`cp .env tmp`
-`cd tmp`
-`./main`
+    $ mkdir tmp
+    $ go build -o main
+    $ cp main tmp
+    $ cp .env tmp
+    $ cd tmp
+    $ ./main
 
 ### Run dockerfile locally (HTTP mode)
 
-`docker build . -t nwc-local --progress=plain`
-
-`docker run --env-file .env -p 8080:8080 nwc-local`
+    $ docker build . -t nwc-local --progress=plain
+    $ docker run --env-file .env -p 8080:8080 nwc-local
 
 ### Testing
 
-`go test`
+    $ go test
 
 ### Windows
 

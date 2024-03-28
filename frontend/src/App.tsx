@@ -1,44 +1,47 @@
-import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
+import { HashRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import AppLayout from "src/components/layouts/AppLayout";
 
-import About from "src/screens/About";
-import NotFound from "src/screens/NotFound";
-import { SetupNode } from "src/screens/setup/SetupNode";
-import { SetupWallet } from "src/screens/setup/SetupWallet";
-import { Welcome } from "src/screens/Welcome";
-import { SetupPassword } from "src/screens/setup/SetupPassword";
-import Start from "src/screens/Start";
+import FullScreenLayout from "src/components/layouts/FullScreenLayout";
 import { AppsRedirect } from "src/components/redirects/AppsRedirect";
-import { StartRedirect } from "src/components/redirects/StartRedirect";
+import { BackupRedirect } from "src/components/redirects/BackupRedirect";
+import { ChannelsRedirect } from "src/components/redirects/ChannelsRedirect";
 import { HomeRedirect } from "src/components/redirects/HomeRedirect";
-import Unlock from "src/screens/Unlock";
 import { SetupRedirect } from "src/components/redirects/SetupRedirect";
+import { StartRedirect } from "src/components/redirects/StartRedirect";
+import { ThemeProvider } from "src/components/ui/theme-provider";
+import { Toaster } from "src/components/ui/toaster";
+import About from "src/screens/About";
+import { BackupMnemonic } from "src/screens/BackupMnemonic";
+import NotFound from "src/screens/NotFound";
+import Start from "src/screens/Start";
+import Unlock from "src/screens/Unlock";
+import { Welcome } from "src/screens/Welcome";
+import AppsList from "src/screens/apps/AppsList";
 import Channels from "src/screens/channels/Channels";
-import NewChannel from "src/screens/channels/NewChannel";
+import FirstChannel from "src/screens/channels/FirstChannel";
+import MigrateAlbyFunds from "src/screens/channels/MigrateAlbyFunds";
 import NewBlocktankChannel from "src/screens/channels/NewBlocktankChannel";
-import NewOnchainAddress from "src/screens/onchain/NewAddress";
+import NewChannel from "src/screens/channels/NewChannel";
 import NewCustomChannel from "src/screens/channels/NewCustomChannel";
+import NewInstantChannel from "src/screens/channels/NewInstantChannel";
 import RecommendedChannels from "src/screens/channels/RecommendedChannels";
+import ConnectionCreated from "src/screens/connections/ConnectionCreated";
+import ConnectionList from "src/screens/connections/ConnectionList";
+import NewConnection from "src/screens/connections/NewConnection";
+import ShowConnection from "src/screens/connections/ShowConnection";
+import NewOnchainAddress from "src/screens/onchain/NewAddress";
+import Settings from "src/screens/settings/Settings";
 import { ImportMnemonic } from "src/screens/setup/ImportMnemonic";
 import { SetupFinish } from "src/screens/setup/SetupFinish";
-import { BackupMnemonic } from "src/screens/BackupMnemonic";
-import NewInstantChannel from "src/screens/channels/NewInstantChannel";
-import FirstChannel from "src/screens/channels/FirstChannel";
-import { ChannelsRedirect } from "src/components/redirects/ChannelsRedirect";
-import MigrateAlbyFunds from "src/screens/channels/MigrateAlbyFunds";
-import FullScreenLayout from "src/components/layouts/FullScreenLayout";
-import { Toaster } from "src/components/ui/toaster";
-import { ThemeProvider } from "src/components/ui/theme-provider";
-import ConnectionList from "src/screens/connections/ConnectionList";
-import ShowConnection from "src/screens/connections/ShowConnection";
-import NewConnection from "src/screens/connections/NewConnection";
-import ConnectionCreated from "src/screens/connections/ConnectionCreated";
-import AppsList from "src/screens/apps/AppsList";
-import Settings from "src/screens/settings/Settings";
+import { SetupNode } from "src/screens/setup/SetupNode";
+import { SetupPassword } from "src/screens/setup/SetupPassword";
+import { SetupWallet } from "src/screens/setup/SetupWallet";
 import Wallet from "src/screens/wallet";
+import { usePosthog } from "./hooks/usePosthog";
 
 function App() {
+  usePosthog();
   return (
     <>
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
@@ -67,7 +70,9 @@ function App() {
               <Route path="settings" element={<Settings />} />
               <Route path="wallet" element={<Wallet />} />
               {/* TODO: move this under settings later */}
-              <Route path="backup/mnemonic" element={<BackupMnemonic />} />
+              <Route path="backup" element={<BackupRedirect />}>
+                <Route path="mnemonic" element={<BackupMnemonic />} />
+              </Route>
               <Route path="apps" element={<AppsList />}></Route>
               {/* TODO: path needs to be maintained because 3rd party hard link to it */}
               <Route path="apps/new" element={<NewConnection />}></Route>
