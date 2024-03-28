@@ -450,6 +450,8 @@ func (api *API) NewWrappedInvoice(ctx context.Context, request *models.NewWrappe
 		selectedLsp = lsp.VoltageLSP()
 	case "OLYMPUS":
 		selectedLsp = lsp.OlympusLSP()
+	case "ALBY":
+		selectedLsp = lsp.AlbyPlebsLSP()
 	default:
 		return nil, errors.New("unknown LSP")
 	}
