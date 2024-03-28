@@ -440,9 +440,9 @@ func TestHandleMultiPayInvoiceEvent(t *testing.T) {
 	responses := []*Nip47Response{}
 	dTags := []nostr.Tags{}
 
-	publishResponse := func(response *Nip47Response, tags *nostr.Tags) {
+	publishResponse := func(response *Nip47Response, tags nostr.Tags) {
 		responses = append(responses, response)
-		dTags = append(dTags, *tags)
+		dTags = append(dTags, tags)
 	}
 
 	svc.HandleMultiPayInvoiceEvent(ctx, request, requestEvent, app, publishResponse)
@@ -564,9 +564,9 @@ func TestHandleMultiPayKeysendEvent(t *testing.T) {
 	responses := []*Nip47Response{}
 	dTags := []nostr.Tags{}
 
-	publishResponse := func(response *Nip47Response, tags *nostr.Tags) {
+	publishResponse := func(response *Nip47Response, tags nostr.Tags) {
 		responses = append(responses, response)
-		dTags = append(dTags, *tags)
+		dTags = append(dTags, tags)
 	}
 
 	svc.HandleMultiPayKeysendEvent(ctx, request, requestEvent, app, publishResponse)
@@ -663,7 +663,7 @@ func TestHandleGetBalanceEvent(t *testing.T) {
 
 	responses := []*Nip47Response{}
 
-	publishResponse := func(response *Nip47Response, tags *nostr.Tags) {
+	publishResponse := func(response *Nip47Response, tags nostr.Tags) {
 		responses = append(responses, response)
 	}
 
@@ -746,7 +746,7 @@ func TestHandlePayInvoiceEvent(t *testing.T) {
 
 	responses := []*Nip47Response{}
 
-	publishResponse := func(response *Nip47Response, tags *nostr.Tags) {
+	publishResponse := func(response *Nip47Response, tags nostr.Tags) {
 		responses = append(responses, response)
 	}
 
@@ -880,7 +880,7 @@ func TestHandlePayKeysendEvent(t *testing.T) {
 
 	responses := []*Nip47Response{}
 
-	publishResponse := func(response *Nip47Response, tags *nostr.Tags) {
+	publishResponse := func(response *Nip47Response, tags nostr.Tags) {
 		responses = append(responses, response)
 	}
 
@@ -964,7 +964,7 @@ func TestHandleLookupInvoiceEvent(t *testing.T) {
 
 	responses := []*Nip47Response{}
 
-	publishResponse := func(response *Nip47Response, tags *nostr.Tags) {
+	publishResponse := func(response *Nip47Response, tags nostr.Tags) {
 		responses = append(responses, response)
 	}
 
@@ -1031,7 +1031,7 @@ func TestHandleMakeInvoiceEvent(t *testing.T) {
 
 	responses := []*Nip47Response{}
 
-	publishResponse := func(response *Nip47Response, tags *nostr.Tags) {
+	publishResponse := func(response *Nip47Response, tags nostr.Tags) {
 		responses = append(responses, response)
 	}
 
@@ -1089,7 +1089,7 @@ func TestHandleListTransactionsEvent(t *testing.T) {
 
 	responses := []*Nip47Response{}
 
-	publishResponse := func(response *Nip47Response, tags *nostr.Tags) {
+	publishResponse := func(response *Nip47Response, tags nostr.Tags) {
 		responses = append(responses, response)
 	}
 
@@ -1157,7 +1157,7 @@ func TestHandleGetInfoEvent(t *testing.T) {
 
 	responses := []*Nip47Response{}
 
-	publishResponse := func(response *Nip47Response, tags *nostr.Tags) {
+	publishResponse := func(response *Nip47Response, tags nostr.Tags) {
 		responses = append(responses, response)
 	}
 
