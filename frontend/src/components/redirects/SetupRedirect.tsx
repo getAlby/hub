@@ -12,9 +12,9 @@ export function SetupRedirect() {
     if (!info) {
       return;
     }
-    // if (info.setupCompleted) {
-    //   navigate("/");
-    // }
+    if (info.setupCompleted) {
+      navigate("/");
+    }
   }, [info, location, navigate]);
 
   if (!info) {

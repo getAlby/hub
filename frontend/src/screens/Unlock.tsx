@@ -45,7 +45,6 @@ export default function Unlock() {
       navigate("/");
     } catch (error) {
       handleRequestError("Failed to connect", error);
-      // handleRequestError("Failed to connect", error);
     } finally {
       setLoading(false);
     }

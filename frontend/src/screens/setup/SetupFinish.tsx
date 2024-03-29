@@ -40,7 +40,7 @@ export function SetupFinish() {
       const succeeded = await finishSetup(csrf, nodeInfo, unlockPassword);
       if (succeeded) {
         await refetchInfo();
-        //navigate("/");
+        navigate("/");
       } else {
         setConnectionError(true);
       }

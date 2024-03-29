@@ -21,11 +21,10 @@ export function SetupWallet() {
         <div className="grid gap-5">
           <div className="grid gap-2 text-center">
             <h1 className="font-semibold text-2xl font-headline">
-              Connect Wallet to NWC
+              Create Your Wallet
             </h1>
             <p className="text-muted-foreground">
-              NWC requires a wallet to connect to your apps. You can import an
-              existing wallet or start a brand new one.
+              Alby Hub requires a wallet to connect to your apps.
             </p>
           </div>
           {info?.backendType && (
