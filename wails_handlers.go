@@ -65,6 +65,35 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		}
 	}
 
+	channelRegex := regexp.MustCompile(
+		`/api/channels/([0-9a-f]+)`,
+	)
+
+	channelMatch := channelRegex.FindStringSubmatch(route)
+
+	switch {
+	case len(channelMatch) > 1:
+		channelId := channelMatch[1]
+		switch method {
+		case "DELETE":
+			closeChannelRequest := &api.CloseChannelRequest{}
+			err := json.Unmarshal([]byte(body), closeChannelRequest)
+			if err != nil {
+				app.svc.Logger.WithFields(logrus.Fields{
+					"route":  route,
+					"method": method,
+					"body":   body,
+				}).Errorf("Failed to decode request to wails router: %v", err)
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
+			closeChannelResponse, err := app.api.CloseChannel(ctx, channelId, closeChannelRequest.NodeId)
+			if err != nil {
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
+			return WailsRequestRouterResponse{Body: closeChannelResponse, Error: ""}
+		}
+	}
+
 	mempoolLightningNodePubkeyRegex := regexp.MustCompile(
 		`/api/mempool/lightning/nodes/([0-9a-f]+)`,
 	)
@@ -107,23 +136,6 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			}
 			return WailsRequestRouterResponse{Body: createAppResponse, Error: ""}
 		}
-	// TODO: should this be DELETE /api/channels/:id?
-	case "/api/channels/close":
-		closeChannelRequest := &api.CloseChannelRequest{}
-		err := json.Unmarshal([]byte(body), closeChannelRequest)
-		if err != nil {
-			app.svc.Logger.WithFields(logrus.Fields{
-				"route":  route,
-				"method": method,
-				"body":   body,
-			}).Errorf("Failed to decode request to wails router: %v", err)
-			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
-		}
-		closeChannelResponse, err := app.api.CloseChannel(ctx, closeChannelRequest)
-		if err != nil {
-			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
-		}
-		return WailsRequestRouterResponse{Body: closeChannelResponse, Error: ""}
 	case "/api/reset-router":
 		err := app.api.ResetRouter(ctx)
 		if err != nil {

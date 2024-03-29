@@ -104,8 +104,11 @@ type EncryptedMnemonicResponse struct {
 type ConnectPeerRequest = lnclient.ConnectPeerRequest
 type OpenChannelRequest = lnclient.OpenChannelRequest
 type OpenChannelResponse = lnclient.OpenChannelResponse
-type CloseChannelRequest = lnclient.CloseChannelRequest
 type CloseChannelResponse = lnclient.CloseChannelResponse
+
+type CloseChannelRequest struct {
+	NodeId string `json:"nodeId"`
+}
 
 type NewWrappedInvoiceRequest struct {
 	Amount uint64 `json:"amount"`
