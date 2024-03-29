@@ -3,8 +3,10 @@ import { Link, useNavigate } from "react-router-dom";
 
 import Loading from "src/components/Loading";
 
+import { Terminal } from "lucide-react";
 import AppHeader from "src/components/AppHeader";
 import BreezRedeem from "src/components/BreezRedeem";
+import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
 import { useCSRF } from "src/hooks/useCSRF";
 import { useInfo } from "src/hooks/useInfo";
@@ -57,31 +59,24 @@ function Wallet() {
       <BreezRedeem />
 
       {info?.showBackupReminder && showBackupPrompt && (
-        <div className="rounded-2xl bg-orange-50 border border-orange-200 flex flex-col justify-between">
-          <div className="p-4 h-full border-b border-orange-200">
-            <h2 className="font-medium text-orange-700 mb-2">
-              Back up your recovery phrase!
-            </h2>
-            <p className="text-sm text-orange-700">
-              Not backing up your key might result in loosing access to your
-              funds.
-            </p>
-          </div>
-          <div className="py-3 px-4 flex items-center gap-4">
-            <div
-              onClick={onSkipBackup}
-              className="text-center font-medium p-2.5 w-full text-sm rounded-lg text-orange-700 hover:bg-orange-100 cursor-pointer"
-            >
-              Skip For Now
-            </div>
-            <div
-              onClick={() => navigate("/backup/mnemonic")}
-              className="text-center font-medium p-2.5 w-full text-sm rounded-lg text-orange-700 bg-orange-200 cursor-pointer hover:bg-orange-300"
-            >
-              Back Up Now
-            </div>
-          </div>
-        </div>
+        <>
+          <Alert>
+            <Terminal className="h-4 w-4" />
+            <AlertTitle>Back up your recovery phrase!</AlertTitle>
+            <AlertDescription>
+              Not backing up your key might result in permanently losing access
+              to your funds.
+              <div className="mt-3 flex items-center gap-3">
+                <Button onClick={onSkipBackup} variant="secondary" size="sm">
+                  Skip For Now
+                </Button>
+                <Link to="/backup/mnemonic">
+                  <Button size="sm">Back Up Now</Button>
+                </Link>
+              </div>
+            </AlertDescription>
+          </Alert>
+        </>
       )}
 
       <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm">
