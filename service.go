@@ -122,8 +122,7 @@ func NewService(ctx context.Context) (*Service, error) {
 	cfg := &Config{}
 	cfg.Init(db, appConfig, logger)
 
-	logEvents, _ := strconv.ParseBool(cfg.Env.LogEvents)
-	eventLogger := events.NewEventLogger(logger, logEvents)
+	eventLogger := events.NewEventLogger(logger, cfg.Env.LogEvents)
 
 	albyOAuthSvc := alby.NewAlbyOauthService(logger, cfg, cfg.Env, eventLogger)
 	if err != nil {
