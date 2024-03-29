@@ -2,7 +2,6 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { EditIcon } from "src/components/icons/EditIcon";
 import { useCSRF } from "src/hooks/useCSRF";
 import {
   AppPermissions,
@@ -13,6 +12,7 @@ import {
   validBudgetRenewals,
 } from "src/types";
 
+import { PencilIcon } from "lucide-react";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -150,7 +150,7 @@ const NewApp = () => {
           <div className="flex justify-between items-center mb-2 text-gray-800 dark:text-white">
             <p className="text-lg font-medium">Authorize the app to:</p>
             {!reqMethodsParam && !isEditing && (
-              <EditIcon
+              <PencilIcon
                 onClick={() => setEditing(true)}
                 className="text-gray-800 dark:text-gray-300 cursor-pointer w-6"
               />
