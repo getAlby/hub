@@ -1,4 +1,4 @@
-import { classNames } from "src/utils/classes";
+import { cn } from "src/lib/utils";
 
 type Props = {
   type: "warn" | "info";
@@ -8,7 +8,7 @@ type Props = {
 export default function Alert({ type, children }: Props) {
   return (
     <div
-      className={classNames(
+      className={cn(
         "rounded-md p-3",
         type == "warn" &&
           "text-orange-700 bg-orange-50 dark:text-orange-200 dark:bg-orange-900",

@@ -1,6 +1,5 @@
 import { useRef } from "react";
-
-import { classNames } from "src/utils/classes";
+import { cn } from "src/lib/utils";
 
 type Props = {
   suffix?: string;
@@ -42,7 +41,7 @@ export default function Input({
       type={type}
       name={name}
       id={id}
-      className={classNames(
+      className={cn(
         "placeholder-gray-500 dark:placeholder-neutral-600",
         block && "block w-full",
         !suffix && !endAdornment
@@ -73,7 +72,7 @@ export default function Input({
 
   return (
     <div
-      className={classNames(
+      className={cn(
         "flex items-stretch overflow-hidden",
         !disabled &&
           "focus-within:ring-primary focus-within:border-primary focus-within:dark:border-primary focus-within:ring-1",
@@ -93,7 +92,7 @@ export default function Input({
       )}
       {endAdornment && (
         <span
-          className={classNames(
+          className={cn(
             "flex items-center bg-white dark:bg-black dark:text-neutral-400",
             !!disabled && "bg-gray-50 dark:bg-surface-01dp"
           )}
