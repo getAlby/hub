@@ -3,10 +3,17 @@ import { wordlist } from "@scure/bip39/wordlists/english";
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Container from "src/components/Container";
-import Input from "src/components/Input";
 import toast from "src/components/Toast";
 import { Button } from "src/components/ui/button";
-import { LoadingButton } from "src/components/ui/loading-button";
+import { Input } from "src/components/ui/input";
+import { Label } from "src/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "src/components/ui/select";
 import useSetupStore from "src/state/SetupStore";
 import { BackendType } from "src/types";
 
@@ -40,28 +47,31 @@ export function SetupNode() {
   return (
     <>
       <Container>
-        <p className="text-center font-light text-md leading-relaxed dark:text-neutral-400 px-4 mb-4">
-          Enter your node connection credentials to connect to your wallet.
-        </p>
-        <div className="w-full mt-4">
-          <label
-            htmlFor="backend-type"
-            className="block mb-2 text-md text-gray-900 dark:text-white"
-          >
-            Backend Type
-          </label>
-          <select
+        <div className="grid gap-5">
+          <div className="grid gap-2 text-center">
+            <h1 className="font-semibold text-2xl font-headline">Node Setup</h1>
+            <p className="text-muted-foreground">
+              Enter your node connection credentials to connect to your wallet.
+            </p>
+          </div>
+        </div>
+        <div className="w-full mt-5">
+          <Label htmlFor="backend-type">Backend Type</Label>
+          <Select
             name="backend-type"
             value={backendType}
-            onChange={(e) => setBackendType(e.target.value as BackendType)}
-            id="backend-type"
-            className="dark:bg-surface-00dp mb-4 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-purple-700 dark:border-gray-700 dark:text-white dark:placeholder-gray-400 dark:ring-offset-gray-800 dark:focus:ring-purple-600"
+            onValueChange={(value) => setBackendType(value as BackendType)}
           >
-            <option value={"BREEZ"}>Breez</option>
-            <option value={"GREENLIGHT"}>Greenlight</option>
-            <option value={"LDK"}>LDK</option>
-            {!isNew && <option value={"LND"}>LND</option>}
-          </select>
+            <SelectTrigger className="mb-5">
+              <SelectValue placeholder="Backend" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="LDK">LDK</SelectItem>
+              <SelectItem value="BREEZ">Breez</SelectItem>
+              <SelectItem value="GREENLIGHT">Greenlight</SelectItem>
+              {!isNew && <SelectItem value="LND">LND</SelectItem>}
+            </SelectContent>
+          </Select>
           {backendType === "BREEZ" && <BreezForm handleSubmit={handleSubmit} />}
           {backendType === "GREENLIGHT" && (
             <GreenlightForm handleSubmit={handleSubmit} />
@@ -99,14 +109,9 @@ function BreezForm({ handleSubmit }: SetupFormProps) {
   }
 
   return (
-    <form className="w-full" onSubmit={onSubmit}>
-      <>
-        <label
-          htmlFor="greenlight-invite-code"
-          className="block mb-2 text-md dark:text-white"
-        >
-          Greenlight Invite Code
-        </label>
+    <form className="w-full grid gap-5" onSubmit={onSubmit}>
+      <div className="grid gap-1.5">
+        <Label htmlFor="greenlight-invite-code">Greenlight Invite Code</Label>
         <Input
           name="greenlight-invite-code"
           onChange={(e) => setGreenlightInviteCode(e.target.value)}
@@ -115,12 +120,9 @@ function BreezForm({ handleSubmit }: SetupFormProps) {
           id="greenlight-invite-code"
           placeholder="XXXX-YYYY"
         />
-        <label
-          htmlFor="breez-api-key"
-          className="block mt-4 mb-2 text-md dark:text-white"
-        >
-          Breez API Key
-        </label>
+      </div>
+      <div className="grid gap-1.5">
+        <Label htmlFor="breez-api-key">Breez API Key</Label>
         <Input
           name="breez-api-key"
           onChange={(e) => setBreezApiKey(e.target.value)}
@@ -129,8 +131,8 @@ function BreezForm({ handleSubmit }: SetupFormProps) {
           type="text"
           id="breez-api-key"
         />
-      </>
-      <LoadingButton type="submit">Next</LoadingButton>
+      </div>
+      <Button type="submit">Next</Button>
     </form>
   );
 }
@@ -152,14 +154,9 @@ function GreenlightForm({ handleSubmit }: SetupFormProps) {
   }
 
   return (
-    <form onSubmit={onSubmit} className="w-full">
-      <>
-        <label
-          htmlFor="greenlight-invite-code"
-          className="block mb-2 text-md dark:text-white"
-        >
-          Greenlight Invite Code
-        </label>
+    <form onSubmit={onSubmit} className="w-full grid gap-5">
+      <div className="grid gap-1.5">
+        <Label htmlFor="greenlight-invite-code">Greenlight Invite Code</Label>
         <Input
           name="greenlight-invite-code"
           onChange={(e) => setGreenlightInviteCode(e.target.value)}
@@ -168,8 +165,8 @@ function GreenlightForm({ handleSubmit }: SetupFormProps) {
           id="greenlight-invite-code"
           placeholder="XXXX-YYYY"
         />
-      </>
-      <LoadingButton>Next</LoadingButton>
+      </div>
+      <Button>Next</Button>
     </form>
   );
 }
@@ -181,7 +178,7 @@ function LDKForm({ handleSubmit }: SetupFormProps) {
   }
 
   return (
-    <form onSubmit={onSubmit} className="w-full">
+    <form onSubmit={onSubmit} className="w-full grid gap-5">
       <Button>Next</Button>
     </form>
   );
@@ -214,27 +211,18 @@ function LNDForm({ handleSubmit }: SetupFormProps) {
   }
 
   return (
-    <form className="w-full" onSubmit={onSubmit}>
-      <>
-        <label
-          htmlFor="lnd-address"
-          className="block mb-2 text-md dark:text-white"
-        >
-          LND Address (GRPC)
-        </label>
+    <form className="w-full grid gap-5" onSubmit={onSubmit}>
+      <div className="grid gap-1.5">
+        <Label htmlFor="lnd-address">LND Address (GRPC)</Label>
         <Input
           name="lnd-address"
           onChange={(e) => setLndAddress(e.target.value)}
           value={lndAddress}
           id="lnd-address"
         />
-
-        <label
-          htmlFor="lnd-cert-hex"
-          className="block mt-4 mb-2 text-md text-gray-900 dark:text-white"
-        >
-          TLS Certificate (Hex)
-        </label>
+      </div>
+      <div className="grid gap-1.5">
+        <Label htmlFor="lnd-cert-hex">TLS Certificate (Hex)</Label>
         <Input
           name="lnd-cert-hex"
           onChange={(e) => setLndCertHex(e.target.value)}
@@ -242,12 +230,9 @@ function LNDForm({ handleSubmit }: SetupFormProps) {
           type="text"
           id="lnd-cert-hex"
         />
-        <label
-          htmlFor="lnd-macaroon-hex"
-          className="block mt-4 mb-2 text-md text-gray-900 dark:text-white"
-        >
-          Admin Macaroon (Hex)
-        </label>
+      </div>
+      <div className="grid gap-1.5">
+        <Label htmlFor="lnd-macaroon-hex">Admin Macaroon (Hex)</Label>
         <Input
           name="lnd-macaroon-hex"
           onChange={(e) => setLndMacaroonHex(e.target.value)}
@@ -255,8 +240,8 @@ function LNDForm({ handleSubmit }: SetupFormProps) {
           type="text"
           id="lnd-macaroon-hex"
         />
-      </>
-      <LoadingButton>Next</LoadingButton>
+      </div>
+      <Button>Next</Button>
     </form>
   );
 }

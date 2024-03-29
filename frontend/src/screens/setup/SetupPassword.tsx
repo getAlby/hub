@@ -4,7 +4,9 @@ import useSetupStore from "src/state/SetupStore";
 
 import Container from "src/components/Container";
 import toast from "src/components/Toast";
+import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
+import { Label } from "src/components/ui/label";
 
 export function SetupPassword() {
   const store = useSetupStore();
@@ -24,51 +26,43 @@ export function SetupPassword() {
     <>
       <Container>
         <form onSubmit={onSubmit} className="flex flex-col items-center w-full">
-          <h1 className="font-semibold text-2xl font-headline mb-2 dark:text-white">
-            Choose an unlock password
-          </h1>
-          <p className="text-center font-light text-md leading-relaxed dark:text-neutral-400 mb-4">
-            Your unlock password will be required to access NWC from a different
-            device or browser session.
-          </p>
-          <div className="w-full my-4">
-            <label
-              htmlFor="unlock-password"
-              className="block mb-2 text-md dark:text-white"
-            >
-              New Password
-            </label>
-            <Input
-              type="password"
-              name="unlock-password"
-              id="unlock-password"
-              placeholder="Enter a password"
-              value={store.unlockPassword}
-              onChange={(e) => store.setUnlockPassword(e.target.value)}
-              required={true}
-            />
+          <div className="grid gap-5">
+            <div className="grid gap-2 text-center">
+              <h1 className="font-semibold text-2xl font-headline">
+                Create Password
+              </h1>
+              <p className="text-muted-foreground">
+                You’ll use it to access your Alby Hub on any device.
+              </p>
+            </div>
+            <div className="grid gap-3 w-full">
+              <div className="grid gap-1.5">
+                <Label htmlFor="unlock-password">New Password</Label>
+                <Input
+                  type="password"
+                  name="unlock-password"
+                  id="unlock-password"
+                  placeholder="Enter a password"
+                  value={store.unlockPassword}
+                  onChange={(e) => store.setUnlockPassword(e.target.value)}
+                  required={true}
+                />
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="confirm-password">Confirm Password</Label>
+                <Input
+                  type="password"
+                  name="confirm-password"
+                  id="confirm-password"
+                  placeholder="Re-enter the password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required={true}
+                />
+              </div>
+            </div>
+            <Button type="submit">Create Password</Button>
           </div>
-          <div className="w-full mb-8 ">
-            <label
-              htmlFor="confirm-password"
-              className="block mb-2 text-md dark:text-white"
-            >
-              Confirm Password
-            </label>
-            <Input
-              type="password"
-              name="confirm-password"
-              id="confirm-password"
-              placeholder="Re-enter the password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required={true}
-            />
-          </div>
-
-          <button className="flex-row w-full px-0 py-2 bg-purple-700 border-2 border-transparent text-white hover:bg-purple-800 cursor-pointer inline-flex justify-center items-center font-medium bg-origin-border shadow rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-purple-500 transition duration-150">
-            Next
-          </button>
         </form>
       </Container>
     </>

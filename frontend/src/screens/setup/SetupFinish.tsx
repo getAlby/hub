@@ -1,14 +1,15 @@
-import { useEffect } from "react";
+import React, { useEffect } from "react";
+import Lottie from "react-lottie";
 import { useNavigate } from "react-router-dom";
+import animationData from "src/assets/lotties/loading.json";
 import Container from "src/components/Container";
+import { Button } from "src/components/ui/button";
+import { useCSRF } from "src/hooks/useCSRF";
 import { useInfo } from "src/hooks/useInfo";
 import useSetupStore from "src/state/SetupStore";
-import { useCSRF } from "src/hooks/useCSRF";
+import { SetupNodeInfo } from "src/types";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
-import Loading from "src/components/Loading";
-import { SetupNodeInfo } from "src/types";
-import React from "react";
 
 export function SetupFinish() {
   const navigate = useNavigate();
@@ -18,6 +19,15 @@ export function SetupFinish() {
   const { data: csrf } = useCSRF();
   const [connectionError, setConnectionError] = React.useState(false);
   const hasFetchedRef = React.useRef(false);
+
+  const defaultOptions = {
+    loop: true,
+    autoplay: true,
+    animationData: animationData,
+    rendererSettings: {
+      preserveAspectRatio: "xMidYMid slice",
+    },
+  };
 
   useEffect(() => {
     // ensure setup call is only called once
@@ -30,7 +40,7 @@ export function SetupFinish() {
       const succeeded = await finishSetup(csrf, nodeInfo, unlockPassword);
       if (succeeded) {
         await refetchInfo();
-        navigate("/");
+        //navigate("/");
       } else {
         setConnectionError(true);
       }
@@ -40,22 +50,33 @@ export function SetupFinish() {
   if (connectionError) {
     return (
       <Container>
-        <h1 className="font-semibold text-lg font-headline mt-16 mb-8 dark:text-white">
-          Connection Failed
-        </h1>
-
-        <p>Navigate back to check your configuration, then try again.</p>
+        <div className="flex flex-col gap-5 text-center items-center">
+          <div className="grid gap-2">
+            <h1 className="font-semibold text-lg font-headline dark:text-white">
+              Connection Failed
+            </h1>
+            <p>Please check your node configuration.</p>
+          </div>
+          <Button
+            onClick={() => {
+              navigate(-1);
+            }}
+          >
+            Try again
+          </Button>
+        </div>
       </Container>
     );
   }
 
   return (
     <Container>
-      <h1 className="font-semibold text-lg font-headline mt-16 mb-8 dark:text-white">
-        Connecting...
-      </h1>
-
-      <Loading />
+      <div className="flex flex-col gap-5 justify-center text-center">
+        <Lottie options={defaultOptions} height={400} width={400} />
+        <h1 className="font-semibold text-lg font-headline">
+          Setting up your Hub...
+        </h1>
+      </div>
     </Container>
   );
 }

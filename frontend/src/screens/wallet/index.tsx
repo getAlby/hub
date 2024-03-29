@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 import Loading from "src/components/Loading";
 
-import { Terminal } from "lucide-react";
+import { ShieldCheckIcon } from "lucide-react";
 import AppHeader from "src/components/AppHeader";
 import BreezRedeem from "src/components/BreezRedeem";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
@@ -60,7 +60,7 @@ function Wallet() {
       {info?.showBackupReminder && showBackupPrompt && (
         <>
           <Alert>
-            <Terminal className="h-4 w-4" />
+            <ShieldCheckIcon className="h-4 w-4" />
             <AlertTitle>Back up your recovery phrase!</AlertTitle>
             <AlertDescription>
               Not backing up your key might result in permanently losing access

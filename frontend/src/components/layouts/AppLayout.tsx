@@ -45,7 +45,9 @@ export default function AppLayout() {
           </div>
           <div className="flex flex-col">
             <nav className="grid items-start p-2 text-sm font-medium lg:px-4">
-              <ModeToggle />
+              <div className="px-3 py-2 mb-5">
+                <ModeToggle />
+              </div>
               <MenuItem to="/settings">
                 <Settings className="h-4 w-4" />
                 Settings
