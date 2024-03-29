@@ -35,7 +35,7 @@ export default function AppCard({ app }: Props) {
                     {app.name.charAt(0)}
                   </span>
                 </div>
-                <h2 className="flex-1 font-semibold whitespace-nowrap text-ellipsis overflow-hidden ml-4">
+                <h2 className="flex-1 leading-5 font-semibold whitespace-nowrap text-ellipsis overflow-hidden ml-4">
                   {app.name}
                 </h2>
               </div>
