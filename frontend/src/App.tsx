@@ -35,6 +35,7 @@ import FirstChannel from "src/screens/channels/FirstChannel";
 import { ChannelsRedirect } from "src/components/redirects/ChannelsRedirect";
 import MigrateAlbyFunds from "src/screens/channels/MigrateAlbyFunds";
 import { usePosthog } from "./hooks/usePosthog";
+import Debug from "src/screens/Advanced/Debug";
 
 function App() {
   usePosthog();
@@ -90,6 +91,7 @@ function App() {
             </Route>
             <Route path="unlock" element={<Unlock />} />
             <Route path="about" element={<About />} />
+            <Route path="advanced" element={<Debug />} />
           </Route>
           <Route path="/*" element={<NotFound />} />
         </Routes>

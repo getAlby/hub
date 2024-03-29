@@ -91,6 +91,14 @@ function Navbar() {
                 >
                   About
                 </Link>
+                <Link
+                  className={`${linkStyles} ${
+                    location.pathname === "/advanced" && selectedLinkStyles
+                  }`}
+                  to="/advanced"
+                >
+                  Advanced
+                </Link>
               </div>
             </div>
           </nav>
