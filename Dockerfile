@@ -1,4 +1,4 @@
-FROM node:19-alpine as frontend
+FROM node:20-alpine as frontend
 WORKDIR /build
 COPY frontend ./frontend
 RUN cd frontend && yarn install && yarn build:http
