@@ -12,6 +12,7 @@ import MnemonicInputs from "src/components/MnemonicInputs";
 import toast from "src/components/Toast";
 import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
+import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useCSRF } from "src/hooks/useCSRF";
 import { useEncryptedMnemonic } from "src/hooks/useEncryptedMnemonic";
@@ -83,6 +84,7 @@ export function BackupMnemonic() {
     <>
       {!decryptedMnemonic ? (
         <Container>
+          <h1 className="text-xl font-medium">Confirm it's you</h1>
           <p className="font-light text-center text-md leading-relaxed dark:text-neutral-400 mb-14">
             Enter your unlock password to continue
           </p>
@@ -91,12 +93,16 @@ export function BackupMnemonic() {
             className="w-full flex flex-col gap-3"
           >
             <>
-              <Input
-                name="unlock"
-                onChange={(e) => setUnlockPassword(e.target.value)}
-                value={unlockPassword}
-                placeholder="Password"
-              />
+              <div className="grid gap-1.5">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  type="password"
+                  name="password"
+                  onChange={(e) => setUnlockPassword(e.target.value)}
+                  value={unlockPassword}
+                  placeholder="Password"
+                />
+              </div>
               <LoadingButton loading={loading}>Unlock</LoadingButton>
             </>
           </form>
@@ -160,7 +166,7 @@ export function BackupMnemonic() {
             </div>
           </MnemonicInputs>
           <div className="flex justify-center">
-            <Button disabled={!backedUp} size="lg">
+            <Button type="submit" disabled={!backedUp} size="lg">
               Continue
             </Button>
           </div>

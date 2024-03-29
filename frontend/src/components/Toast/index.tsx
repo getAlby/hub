@@ -29,7 +29,7 @@ const toast: ToastMethods = {
     hotToast.custom(
       (t: { visible: boolean; id: string }) =>
         t.visible ? (
-          <div className="bg-white dark:bg-surface-02dp px-4 py-3 drop-shadow-lg rounded-lg overflow-hidden flex flex-row items-center gap-3 text-gray-800 dark:text-neutral-200">
+          <div className="bg-muted text-foreground px-4 py-3 rounded-lg overflow-hidden flex flex-row items-center gap-3 text-gray-800 dark:text-neutral-200">
             <div className="shrink-0">
               {type == "success" && <CheckmarkIcon />}
               {type == "error" && <ErrorIcon />}
