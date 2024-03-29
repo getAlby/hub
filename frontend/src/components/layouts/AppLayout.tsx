@@ -31,11 +31,11 @@ export default function AppLayout() {
               </MenuItem>
               <MenuItem to="/apps">
                 <Cable className="h-4 w-4" />
-                Connections
+                Apps
               </MenuItem>
               <MenuItem to="/appstore">
                 <LayoutGrid className="h-4 w-4" />
-                Apps
+                Store
               </MenuItem>
               <MenuItem to="/permissions" disabled>
                 <ShieldCheck className="h-4 w-4" />
