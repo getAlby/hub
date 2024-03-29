@@ -105,6 +105,11 @@ func NewGreenlightService(svc *Service, mnemonic, inviteCode, workDir string) (r
 }
 
 func (gs *GreenlightService) Shutdown() error {
+	_, err := gs.client.Shutdown()
+	if err != nil {
+		gs.svc.Logger.WithError(err).Error("Failed to shutdown greenlight node")
+		return err
+	}
 	return nil
 }
 
