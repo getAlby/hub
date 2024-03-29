@@ -1,9 +1,10 @@
 import { CopyIcon, EyeIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { Navigate, useLocation } from "react-router-dom";
+import { Link, Navigate, useLocation } from "react-router-dom";
 
 import QRCode from "src/components/QRCode";
 import { NostrWalletConnectIcon } from "src/components/icons/NostrWalletConnectIcon";
+import { Button } from "src/components/ui/button";
 import { CreateAppResponse } from "src/types";
 
 export default function AppCreated() {
@@ -82,54 +83,38 @@ export default function AppCreated() {
 
   return (
     <div className="w-full max-w-screen-sm mx-auto mt-6 md:px-4 ph-no-capture">
-      <h2 className="font-bold text-2xl font-headline mb-2 dark:text-white text-center">
+      <h2 className="font-bold text-2xl font-headline mb-2 text-center">
         🚀 Almost there!
       </h2>
-      <div className="font-medium text-center mb-6 dark:text-white">
+      <div className="font-medium text-center mb-6">
         Complete the last step of the setup by pasting or scanning your
         connection's pairing secret in the desired app to finalise the
         connection.
       </div>
 
-      <div className="flex flex-col">
-        <a
-          href={pairingUri}
-          className="w-full inline-flex bg-purple-700 cursor-pointer duration-150 focus:outline-none hover:bg-purple-900 items-center justify-center px-5 py-4 rounded-md shadow text-white transition mb-2"
-        >
-          <NostrWalletConnectIcon className="inline w-6 mr-2" />
-          <p className="font-medium">Open in supported app</p>
-        </a>
-        <div className="text-center text-xs text-gray-600 dark:text-neutral-500">
+      <div className="flex flex-col items-center">
+        <Link to={pairingUri}>
+          <Button size="lg">
+            <NostrWalletConnectIcon className="inline w-6 mr-2" />
+            <p className="font-medium">Open in supported app</p>
+          </Button>
+        </Link>
+        <div className="text-center text-xs text-muted-foreground mt-2">
           Only connect with apps you trust!
         </div>
 
-        <div className="dark:text-white text-sm text-center mt-8 mb-1">
-          Manually pair app ↓
-        </div>
-        <button
-          id="copy-button"
-          className={`w-full inline-flex items-center justify-center px-3 py-2 cursor-pointer duration-150 transition border dark:border-white/10 ${
-            copied
-              ? "bg-green-600 text-white"
-              : "bg-white dark:bg-surface-02dp text-purple-700 dark:text-neutral-200 hover:bg-gray-50  dark:hover:bg-surface-16dp"
-          } bg-origin-border rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-purple-700 my-2`}
-          onClick={copyToClipboard}
-        >
-          <CopyIcon className="inline w-6 mr-2" />
-          <span id="copy-text">
+        <div className="dark:text-white text-sm text-center mt-8 mb-1"></div>
+        <div className="flex flex-col gap-3">
+          <div className=" text-center text-sm">Manually pair app ↓</div>
+          <Button variant="secondary" onClick={copyToClipboard}>
+            <CopyIcon className="inline w-6 mr-2" />
             {copied ? "Copied to clipboard!" : "Copy pairing secret"}
-          </span>
-        </button>
-
-        <button
-          id="copy-button"
-          className={`w-full inline-flex items-center justify-center px-3 py-2 cursor-pointer duration-150 transition border dark:border-white/10 bg-white dark:bg-surface-02dp text-purple-700 dark:text-neutral-200 hover:bg-gray-50  dark:hover:bg-surface-16dp bg-origin-border rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-purple-700 mb-2`}
-          onClick={togglePopup}
-        >
-          <EyeIcon className="inline w-6 mr-2" />
-          <span id="copy-text">QR Code</span>
-        </button>
-        {/* ... Remaining JSX conversion for QR code and other elements */}
+          </Button>
+          <Button variant="secondary" onClick={togglePopup}>
+            <EyeIcon className="inline w-6 mr-2" />
+            QR Code
+          </Button>
+        </div>
       </div>
       <div
         className={`fixed inset-0 items-center justify-center ${
