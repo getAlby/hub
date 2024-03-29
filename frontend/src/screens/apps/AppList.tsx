@@ -40,7 +40,7 @@ function AppList() {
               <p className="text-sm text-muted-foreground">
                 Create your first one by checking out our recommended apps
               </p>
-              <Link to="/apps">
+              <Link to="/appstore">
                 <Button className="mt-4">See recommended apps</Button>
               </Link>
             </div>
