@@ -2,8 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"sync"
 
 	"github.com/getAlby/nostr-wallet-connect/events"
@@ -11,19 +9,13 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, nostr.Tags)) (err error) {
+func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, nip47Request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, nostr.Tags)) {
 
 	multiPayParams := &Nip47MultiPayKeysendParams{}
-	err = json.Unmarshal(request.Params, multiPayParams)
-	if err != nil {
-		svc.Logger.WithFields(logrus.Fields{
-			"eventId": requestEvent.NostrId,
-			"appId":   app.ID,
-		}).Errorf("Failed to decode nostr event: %v", err)
-		svc.Logger.WithFields(logrus.Fields{
-			"eventId": requestEvent.NostrId,
-		}).Errorf("Failed to process event: %v", err)
-		return err
+	resp := svc.decodeNip47Request(nip47Request, requestEvent, app, multiPayParams)
+	if resp != nil {
+		publishResponse(resp, nostr.Tags{})
+		return
 	}
 
 	var wg sync.WaitGroup
@@ -39,23 +31,9 @@ func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, request *Nip
 			}
 			dTag := []string{"d", keysendDTagValue}
 
-			// TODO: consider adding svc.requirePermission() function that handles returning response if permission is denied
-			hasPermission, code, message := svc.hasPermission(app, NIP_47_PAY_INVOICE_METHOD, keysendInfo.Amount)
-
-			if !hasPermission {
-				svc.Logger.WithFields(logrus.Fields{
-					"eventId":         requestEvent.NostrId,
-					"appId":           app.ID,
-					"recipientPubkey": keysendInfo.Pubkey,
-				}).Errorf("App does not have permission: %s %s", code, message)
-
-				publishResponse(&Nip47Response{
-					ResultType: request.Method,
-					Error: &Nip47Error{
-						Code:    code,
-						Message: message,
-					},
-				}, nostr.Tags{dTag})
+			resp := svc.checkPermission(nip47Request, requestEvent.NostrId, app, keysendInfo.Amount)
+			if resp != nil {
+				publishResponse(resp, nostr.Tags{dTag})
 				return
 			}
 
@@ -65,30 +43,30 @@ func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, request *Nip
 			mu.Unlock()
 			if insertPaymentResult.Error != nil {
 				svc.Logger.WithFields(logrus.Fields{
-					"eventId":         requestEvent.NostrId,
-					"recipientPubkey": keysendInfo.Pubkey,
-					"keysendId":       keysendInfo.Id,
+					"requestEventNostrId": requestEvent.NostrId,
+					"recipientPubkey":     keysendInfo.Pubkey,
+					"keysendId":           keysendInfo.Id,
 				}).Errorf("Failed to process event: %v", insertPaymentResult.Error)
 				return
 			}
 
 			svc.Logger.WithFields(logrus.Fields{
-				"eventId":         requestEvent.NostrId,
-				"appId":           app.ID,
-				"recipientPubkey": keysendInfo.Pubkey,
+				"requestEventNostrId": requestEvent.NostrId,
+				"appId":               app.ID,
+				"recipientPubkey":     keysendInfo.Pubkey,
 			}).Info("Sending payment")
 
 			preimage, err := svc.lnClient.SendKeysend(ctx, keysendInfo.Amount, keysendInfo.Pubkey, keysendInfo.Preimage, keysendInfo.TLVRecords)
 			if err != nil {
 				svc.Logger.WithFields(logrus.Fields{
-					"eventId":         requestEvent.NostrId,
-					"appId":           app.ID,
-					"recipientPubkey": keysendInfo.Pubkey,
+					"requestEventNostrId": requestEvent.NostrId,
+					"appId":               app.ID,
+					"recipientPubkey":     keysendInfo.Pubkey,
 				}).Infof("Failed to send payment: %v", err)
-				svc.EventLogger.Log(ctx, &events.Event{
+				svc.EventLogger.Log(&events.Event{
 					Event: "nwc_payment_failed",
 					Properties: map[string]interface{}{
-						"error":   fmt.Sprintf("%v", err),
+						// "error":   fmt.Sprintf("%v", err),
 						"keysend": true,
 						"multi":   true,
 						"amount":  keysendInfo.Amount / 1000,
@@ -96,7 +74,7 @@ func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, request *Nip
 				})
 
 				publishResponse(&Nip47Response{
-					ResultType: request.Method,
+					ResultType: nip47Request.Method,
 					Error: &Nip47Error{
 						Code:    NIP_47_ERROR_INTERNAL,
 						Message: err.Error(),
@@ -108,7 +86,7 @@ func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, request *Nip
 			mu.Lock()
 			svc.db.Save(&payment)
 			mu.Unlock()
-			svc.EventLogger.Log(ctx, &events.Event{
+			svc.EventLogger.Log(&events.Event{
 				Event: "nwc_payment_succeeded",
 				Properties: map[string]interface{}{
 					"keysend": true,
@@ -117,7 +95,7 @@ func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, request *Nip
 				},
 			})
 			publishResponse(&Nip47Response{
-				ResultType: request.Method,
+				ResultType: nip47Request.Method,
 				Result: Nip47PayResponse{
 					Preimage: preimage,
 				},
@@ -126,5 +104,4 @@ func (svc *Service) HandleMultiPayKeysendEvent(ctx context.Context, request *Nip
 	}
 
 	wg.Wait()
-	return nil
 }

@@ -502,15 +502,23 @@ func (api *API) NewWrappedInvoice(ctx context.Context, request *models.NewWrappe
 
 	api.svc.Logger.Infof("Connecting to LSP node as a peer: %v", lspInfo)
 
-	if !strings.HasPrefix(lspInfo.ConnectionMethods[0].Type, "ip") {
-		api.svc.Logger.Errorf("Expected ipv4/ipv6 connection method, got %s", lspInfo.ConnectionMethods[0].Type)
+	ipIndex := -1
+	for i, cm := range lspInfo.ConnectionMethods {
+		if strings.HasPrefix(cm.Type, "ip") {
+			ipIndex = i
+			break
+		}
+	}
+
+	if ipIndex == -1 {
+		api.svc.Logger.Errorf("No ipv4/ipv6 connection method found in LSP info")
 		return nil, errors.New("unexpected LSP connection method")
 	}
 
 	err = api.ConnectPeer(ctx, &models.ConnectPeerRequest{
 		Pubkey:  lspInfo.Pubkey,
-		Address: lspInfo.ConnectionMethods[0].Address,
-		Port:    lspInfo.ConnectionMethods[0].Port,
+		Address: lspInfo.ConnectionMethods[ipIndex].Address,
+		Port:    lspInfo.ConnectionMethods[ipIndex].Port,
 	})
 
 	if err != nil {
@@ -571,6 +579,8 @@ func (api *API) NewWrappedInvoice(ctx context.Context, request *models.NewWrappe
 
 	api.svc.Logger.Infoln("Requesting own invoice")
 
+	// because we don't want the sender to pay the fee
+	// see: https://docs.voltage.cloud/voltage-lsp#gqBqV
 	makeInvoiceResponse, err := api.svc.lnClient.MakeInvoice(ctx, int64(request.Amount)*1000-int64(feeResponse.FeeAmountMsat), "", "", 60*60)
 	if err != nil {
 		api.svc.Logger.Errorf("Failed to request own invoice %v", err)
@@ -640,6 +650,7 @@ func (api *API) GetInfo() (*models.InfoResponse, error) {
 	info.Running = api.svc.lnClient != nil
 	info.BackendType = backendType
 	info.AlbyAuthUrl = api.albyOAuthSvc.GetAuthUrl()
+	info.AlbyUserIdentifier = api.albyOAuthSvc.GetUserIdentifier()
 
 	if info.BackendType != config.LNDBackendType {
 		nextBackupReminder, _ := api.svc.cfg.Get("NextBackupReminder", "")

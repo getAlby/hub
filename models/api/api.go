@@ -94,6 +94,7 @@ type InfoResponse struct {
 	Unlocked           bool   `json:"unlocked"`
 	AlbyAuthUrl        string `json:"albyAuthUrl"`
 	ShowBackupReminder bool   `json:"showBackupReminder"`
+	AlbyUserIdentifier string `json:"albyUserIdentifier"`
 }
 
 type EncryptedMnemonicResponse struct {
