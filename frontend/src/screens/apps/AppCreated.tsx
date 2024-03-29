@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 
 import QRCode from "src/components/QRCode";
-import { NostrWalletConnectIcon } from "src/components/icons/LogoIcon";
+import { NostrWalletConnectIcon } from "src/components/icons/NostrWalletConnectIcon";
 import { CreateAppResponse } from "src/types";
 
 export default function AppCreated() {
