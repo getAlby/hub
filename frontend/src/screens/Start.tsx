@@ -2,7 +2,6 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import Container from "src/components/Container";
 import Input from "src/components/Input";
-import PasswordViewAdornment from "src/components/PasswordAdornment";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useCSRF } from "src/hooks/useCSRF";
 import { useInfo } from "src/hooks/useInfo";
@@ -56,15 +55,8 @@ export default function Start() {
               name="unlock"
               onChange={(e) => setUnlockPassword(e.target.value)}
               value={unlockPassword}
-              type={passwordVisible ? "text" : "password"}
+              type="password"
               placeholder="Password"
-              endAdornment={
-                <PasswordViewAdornment
-                  onChange={(passwordView) => {
-                    setPasswordVisible(passwordView);
-                  }}
-                />
-              }
             />
             <LoadingButton type="submit" loading={loading} />
           </>

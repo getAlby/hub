@@ -5,14 +5,13 @@ import {
 } from "@popicons/react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Input from "src/components/Input";
 
 import Container from "src/components/Container";
 import Loading from "src/components/Loading";
 import MnemonicInputs from "src/components/MnemonicInputs";
-import PasswordViewAdornment from "src/components/PasswordAdornment";
 import toast from "src/components/Toast";
 import { Button } from "src/components/ui/button";
+import { Input } from "src/components/ui/input";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useCSRF } from "src/hooks/useCSRF";
 import { useEncryptedMnemonic } from "src/hooks/useEncryptedMnemonic";
@@ -28,7 +27,6 @@ export function BackupMnemonic() {
   const { data: mnemonic } = useEncryptedMnemonic();
 
   const [unlockPassword, setUnlockPassword] = React.useState("");
-  const [passwordVisible, setPasswordVisible] = React.useState(false);
   const [decryptedMnemonic, setDecryptedMnemonic] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [backedUp, isBackedUp] = useState<boolean>(false);
@@ -97,15 +95,7 @@ export function BackupMnemonic() {
                 name="unlock"
                 onChange={(e) => setUnlockPassword(e.target.value)}
                 value={unlockPassword}
-                type={passwordVisible ? "text" : "password"}
                 placeholder="Password"
-                endAdornment={
-                  <PasswordViewAdornment
-                    onChange={(passwordView) => {
-                      setPasswordVisible(passwordView);
-                    }}
-                  />
-                }
               />
               <LoadingButton loading={loading}>Unlock</LoadingButton>
             </>

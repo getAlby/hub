@@ -4,15 +4,11 @@ import useSetupStore from "src/state/SetupStore";
 
 import Container from "src/components/Container";
 import toast from "src/components/Toast";
-import Input from "src/components/Input";
-import PasswordViewAdornment from "src/components/PasswordAdornment";
+import { Input } from "src/components/ui/input";
 
 export function SetupPassword() {
   const store = useSetupStore();
   const [confirmPassword, setConfirmPassword] = React.useState("");
-  const [passwordVisible, setPasswordVisible] = React.useState(false);
-  const [confirmPasswordVisible, setConfirmPasswordVisible] =
-    React.useState(false);
   const navigate = useNavigate();
 
   function onSubmit(e: React.FormEvent) {
@@ -43,20 +39,13 @@ export function SetupPassword() {
               New Password
             </label>
             <Input
-              type={passwordVisible ? "text" : "password"}
+              type="password"
               name="unlock-password"
               id="unlock-password"
               placeholder="Enter a password"
               value={store.unlockPassword}
               onChange={(e) => store.setUnlockPassword(e.target.value)}
               required={true}
-              endAdornment={
-                <PasswordViewAdornment
-                  onChange={(passwordView) => {
-                    setPasswordVisible(passwordView);
-                  }}
-                />
-              }
             />
           </div>
           <div className="w-full mb-8 ">
@@ -67,20 +56,13 @@ export function SetupPassword() {
               Confirm Password
             </label>
             <Input
-              type={confirmPasswordVisible ? "text" : "password"}
+              type="password"
               name="confirm-password"
               id="confirm-password"
               placeholder="Re-enter the password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required={true}
-              endAdornment={
-                <PasswordViewAdornment
-                  onChange={(passwordView) => {
-                    setConfirmPasswordVisible(passwordView);
-                  }}
-                />
-              }
             />
           </div>
 

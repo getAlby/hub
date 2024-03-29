@@ -1,13 +1,12 @@
 import { wordlist } from "@scure/bip39/wordlists/english";
 import { useState } from "react";
-import Input from "src/components/Input";
-import PasswordViewAdornment from "src/components/PasswordAdornment";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { Input } from "src/components/ui/input";
 
 type MnemonicInputsProps = {
   mnemonic?: string;
@@ -57,7 +56,6 @@ export default function MnemonicInputs({
                       onFocus={() => setRevealedIndex(i)}
                       onBlur={() => setRevealedIndex(undefined)}
                       readOnly={readOnly}
-                      block={false}
                       className="w-32 text-center"
                       list={readOnly ? undefined : "wordlist"}
                       value={isRevealed ? word : word.length ? "•••••" : ""}
@@ -73,16 +71,6 @@ export default function MnemonicInputs({
                             .trim()
                         );
                       }}
-                      endAdornment={
-                        <PasswordViewAdornment
-                          isRevealed={isRevealed}
-                          onChange={(passwordView) => {
-                            if (passwordView) {
-                              document.getElementById(inputId)?.focus();
-                            }
-                          }}
-                        />
-                      }
                     />
                   </div>
                 </div>
