@@ -20,7 +20,7 @@ import {
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 
-const DEFAULT_LSP: LSPOption = "OLYMPUS";
+const DEFAULT_LSP: LSPOption = "ALBY";
 
 export default function MigrateAlbyFunds() {
   const { data: albyMe } = useAlbyMe();
