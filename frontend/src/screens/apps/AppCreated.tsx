@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 
 import QRCode from "src/components/QRCode";
-import { LogoIcon } from "src/components/icons/LogoIcon";
+import { NostrWalletConnectIcon } from "src/components/icons/LogoIcon";
 import { CreateAppResponse } from "src/types";
 
 export default function AppCreated() {
@@ -96,7 +96,7 @@ export default function AppCreated() {
           href={pairingUri}
           className="w-full inline-flex bg-purple-700 cursor-pointer duration-150 focus:outline-none hover:bg-purple-900 items-center justify-center px-5 py-4 rounded-md shadow text-white transition mb-2"
         >
-          <LogoIcon className="inline w-6 mr-2" />
+          <NostrWalletConnectIcon className="inline w-6 mr-2" />
           <p className="font-medium">Open in supported app</p>
         </a>
         <div className="text-center text-xs text-gray-600 dark:text-neutral-500">

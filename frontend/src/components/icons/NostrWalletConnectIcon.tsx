@@ -1,6 +1,6 @@
 import { SVGAttributes } from "react";
 
-export function LogoIcon(props: SVGAttributes<SVGElement>) {
+export function NostrWalletConnectIcon(props: SVGAttributes<SVGElement>) {
   return (
     <svg
       width="24"
