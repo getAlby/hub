@@ -2,56 +2,44 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 
+	"github.com/nbd-wtf/go-nostr"
 	"github.com/sirupsen/logrus"
 )
 
-func (svc *Service) HandleSignMessageEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App) (result *Nip47Response, err error) {
-	var signParams Nip47SignMessageParams
-	err = json.Unmarshal(request.Params, &signParams)
-	if err != nil {
-		svc.Logger.WithFields(logrus.Fields{
-			"eventId": requestEvent.NostrId,
-			"appId":   app.ID,
-		}).Errorf("Failed to decode nostr event: %v", err)
-		return nil, err
+func (svc *Service) HandleSignMessageEvent(ctx context.Context, nip47Request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, nostr.Tags)) {
+	signParams := &Nip47SignMessageParams{}
+	resp := svc.decodeNip47Request(nip47Request, requestEvent, app, signParams)
+	if resp != nil {
+		publishResponse(resp, nostr.Tags{})
+		return
 	}
 
-	hasPermission, code, message := svc.hasPermission(app, request.Method, 0)
-
-	if !hasPermission {
-		svc.Logger.WithFields(logrus.Fields{
-			"eventId": requestEvent.NostrId,
-			"appId":   app.ID,
-		}).Errorf("App does not have permission: %s %s", code, message)
-
-		return &Nip47Response{
-			ResultType: request.Method,
-			Error: &Nip47Error{
-				Code:    code,
-				Message: message,
-			}}, nil
+	resp = svc.checkPermission(nip47Request, requestEvent.NostrId, app, 0)
+	if resp != nil {
+		publishResponse(resp, nostr.Tags{})
+		return
 	}
 
 	svc.Logger.WithFields(logrus.Fields{
-		"eventId": requestEvent.NostrId,
-		"appId":   app.ID,
+		"requestEventNostrId": requestEvent.NostrId,
+		"appId":               app.ID,
 	}).Info("Signing message")
 
 	signature, err := svc.lnClient.SignMessage(ctx, signParams.Message)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
-			"eventId": requestEvent.NostrId,
-			"appId":   app.ID,
+			"requestEventNostrId": requestEvent.NostrId,
+			"appId":               app.ID,
 		}).Infof("Failed to sign message: %v", err)
-		return &Nip47Response{
-			ResultType: request.Method,
+		publishResponse(&Nip47Response{
+			ResultType: nip47Request.Method,
 			Error: &Nip47Error{
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: err.Error(),
 			},
-		}, nil
+		}, nostr.Tags{})
+		return
 	}
 
 	responsePayload := Nip47SignMessageResponse{
@@ -59,8 +47,8 @@ func (svc *Service) HandleSignMessageEvent(ctx context.Context, request *Nip47Re
 		Signature: signature,
 	}
 
-	return &Nip47Response{
-		ResultType: request.Method,
+	publishResponse(&Nip47Response{
+		ResultType: nip47Request.Method,
 		Result:     responsePayload,
-	}, nil
+	}, nostr.Tags{})
 }
