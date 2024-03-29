@@ -1,6 +1,6 @@
 import { Payment, init } from "@getalby/bitcoin-connect-react";
 import React from "react";
-import ConnectButton from "src/components/ConnectButton";
+import { LoadingButton } from "src/components/ui/loading-button";
 import { MIN_0CONF_BALANCE } from "src/constants";
 import { useCSRF } from "src/hooks/useCSRF";
 import { useChannels } from "src/hooks/useChannels";
@@ -124,12 +124,13 @@ export default function NewInstantChannel() {
                 onChange={(e) => setAmount(e.target.value)}
               ></input>{" "}
             </div>
-            <ConnectButton
+            <LoadingButton
+              type="submit"
               disabled={amountSats === 0}
-              isConnecting={isRequestingInvoice}
-              loadingText="Loading..."
-              submitText="Submit"
-            />
+              loading={isRequestingInvoice}
+            >
+              Create channel
+            </LoadingButton>
           </form>
         </>
       )}

@@ -7,12 +7,12 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Input from "src/components/Input";
 
-import ConnectButton from "src/components/ConnectButton";
 import Container from "src/components/Container";
 import Loading from "src/components/Loading";
 import MnemonicInputs from "src/components/MnemonicInputs";
 import PasswordViewAdornment from "src/components/PasswordAdornment";
 import toast from "src/components/Toast";
+import { Button } from "src/components/ui/button";
 import { useCSRF } from "src/hooks/useCSRF";
 import { useEncryptedMnemonic } from "src/hooks/useEncryptedMnemonic";
 import { useInfo } from "src/hooks/useInfo";
@@ -87,7 +87,10 @@ export function BackupMnemonic() {
           <p className="font-light text-center text-md leading-relaxed dark:text-neutral-400 mb-14">
             Enter your unlock password to continue
           </p>
-          <form onSubmit={onSubmitPassword} className="w-full">
+          <form
+            onSubmit={onSubmitPassword}
+            className="w-full flex flex-col gap-3"
+          >
             <>
               <Input
                 name="unlock"
@@ -103,7 +106,7 @@ export function BackupMnemonic() {
                   />
                 }
               />
-              <ConnectButton isConnecting={loading} />
+              <Button>Unlock</Button>
             </>
           </form>
         </Container>
@@ -146,7 +149,7 @@ export function BackupMnemonic() {
           </div>
 
           <MnemonicInputs mnemonic={decryptedMnemonic} readOnly={true}>
-            <div className="flex items-center">
+            <div className="flex items-center mt-5">
               <input
                 id="checkbox"
                 type="checkbox"
@@ -165,12 +168,7 @@ export function BackupMnemonic() {
               </label>
             </div>
           </MnemonicInputs>
-          <ConnectButton
-            submitText="Finish"
-            loadingText="Saving..."
-            isConnecting={false}
-            disabled={!backedUp}
-          />
+          <Button disabled={!backedUp}>Save</Button>
         </form>
       )}
     </>

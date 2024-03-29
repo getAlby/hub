@@ -1,13 +1,13 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { useCSRF } from "src/hooks/useCSRF";
-import { request } from "src/utils/request";
-import ConnectButton from "src/components/ConnectButton";
-import { handleRequestError } from "src/utils/handleRequestError";
-import { useInfo } from "src/hooks/useInfo";
 import Container from "src/components/Container";
 import Input from "src/components/Input";
 import PasswordViewAdornment from "src/components/PasswordAdornment";
+import { LoadingButton } from "src/components/ui/loading-button";
+import { useCSRF } from "src/hooks/useCSRF";
+import { useInfo } from "src/hooks/useInfo";
+import { handleRequestError } from "src/utils/handleRequestError";
+import { request } from "src/utils/request";
 
 export default function Start() {
   const [unlockPassword, setUnlockPassword] = React.useState("");
@@ -66,7 +66,7 @@ export default function Start() {
                 />
               }
             />
-            <ConnectButton isConnecting={loading} />
+            <LoadingButton type="submit" loading={loading} />
           </>
         </form>
       </Container>

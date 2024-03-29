@@ -1,11 +1,12 @@
-import React from "react";
 import * as bip39 from "@scure/bip39";
 import { wordlist } from "@scure/bip39/wordlists/english";
+import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import ConnectButton from "src/components/ConnectButton";
 import Container from "src/components/Container";
 import Input from "src/components/Input";
 import toast from "src/components/Toast";
+import { Button } from "src/components/ui/button";
+import { LoadingButton } from "src/components/ui/loading-button";
 import useSetupStore from "src/state/SetupStore";
 import { BackendType } from "src/types";
 
@@ -129,7 +130,7 @@ function BreezForm({ handleSubmit }: SetupFormProps) {
           id="breez-api-key"
         />
       </>
-      <ConnectButton isConnecting={false} submitText="Next" />
+      <LoadingButton type="submit">Next</LoadingButton>
     </form>
   );
 }
@@ -168,7 +169,7 @@ function GreenlightForm({ handleSubmit }: SetupFormProps) {
           placeholder="XXXX-YYYY"
         />
       </>
-      <ConnectButton isConnecting={false} submitText="Next" />
+      <LoadingButton>Next</LoadingButton>
     </form>
   );
 }
@@ -181,7 +182,7 @@ function LDKForm({ handleSubmit }: SetupFormProps) {
 
   return (
     <form onSubmit={onSubmit} className="w-full">
-      <ConnectButton isConnecting={false} submitText="Next" />
+      <Button>Next</Button>
     </form>
   );
 }
@@ -255,7 +256,7 @@ function LNDForm({ handleSubmit }: SetupFormProps) {
           id="lnd-macaroon-hex"
         />
       </>
-      <ConnectButton isConnecting={false} submitText="Submit" />
+      <LoadingButton>Next</LoadingButton>
     </form>
   );
 }

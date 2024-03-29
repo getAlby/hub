@@ -5,9 +5,9 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import MnemonicInputs from "src/components/MnemonicInputs";
-import ConnectButton from "src/components/ConnectButton";
-import useSetupStore from "src/state/SetupStore";
 import toast from "src/components/Toast";
+import { Button } from "src/components/ui/button";
+import useSetupStore from "src/state/SetupStore";
 
 export function ImportMnemonic() {
   const navigate = useNavigate();
@@ -68,12 +68,7 @@ export function ImportMnemonic() {
         </div>
 
         <MnemonicInputs mnemonic={mnemonic} setMnemonic={setMnemonic} />
-        <ConnectButton
-          submitText="Finish"
-          loadingText="Saving..."
-          isConnecting={false}
-          disabled={false}
-        />
+        <Button>Finish</Button>
       </form>
     </>
   );
