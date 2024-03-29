@@ -1,8 +1,4 @@
-import {
-  PopiconsLifebuoyLine,
-  PopiconsShieldLine,
-  PopiconsTriangleExclamationLine,
-} from "@popicons/react";
+import { LifeBuoy, ShieldAlert, ShieldCheck } from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -119,7 +115,7 @@ export function BackupMnemonic() {
           <div className="flex flex-col gap-4 mb-4 text-muted-foreground">
             <div className="flex gap-2 items-center ">
               <div className="shrink-0 ">
-                <PopiconsLifebuoyLine className="w-6 h-6" />
+                <LifeBuoy className="w-6 h-6" />
               </div>
               <span>
                 Your recovery phrase is a set of 12 words that{" "}
@@ -128,7 +124,7 @@ export function BackupMnemonic() {
             </div>
             <div className="flex gap-2 items-center">
               <div className="shrink-0">
-                <PopiconsShieldLine className="w-6 h-6" />
+                <ShieldCheck className="w-6 h-6" />
               </div>
               <span>
                 Make sure to write them down somewhere safe and private
@@ -136,7 +132,7 @@ export function BackupMnemonic() {
             </div>
             <div className="flex gap-2 items-center text-destructive">
               <div className="shrink-0 ">
-                <PopiconsTriangleExclamationLine className="w-6 h-6" />
+                <ShieldAlert className="w-6 h-6" />
               </div>
               <span>
                 If you lose your recovery phrase, you will lose access to your
