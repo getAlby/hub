@@ -7,7 +7,6 @@ import { HomeRedirect } from "src/components/redirects/HomeRedirect";
 import { SetupRedirect } from "src/components/redirects/SetupRedirect";
 import { StartRedirect } from "src/components/redirects/StartRedirect";
 import { ThemeProvider } from "src/components/ui/theme-provider";
-import About from "src/screens/About";
 import AppCreated from "src/screens/apps/AppCreated";
 import AppList from "src/screens/apps/AppList";
 import NewApp from "src/screens/apps/NewApp";
@@ -103,7 +102,6 @@ function App() {
                 <Route path="finish" element={<SetupFinish />} />
               </Route>
             </Route>
-            <Route path="about" element={<About />} />
             <Route path="/*" element={<NotFound />} />
           </Routes>
         </HashRouter>{" "}
