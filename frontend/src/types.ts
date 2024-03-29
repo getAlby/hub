@@ -227,16 +227,16 @@ export type AlbyBalance = {
 };
 
 // TODO: move to different file
-export type LSPOption = "OLYMPUS" | "VOLTAGE";
-export const LSP_OPTIONS: LSPOption[] = ["OLYMPUS", "VOLTAGE"];
+export type LSPOption = "OLYMPUS" | "VOLTAGE" | "ALBY";
+export const LSP_OPTIONS: LSPOption[] = ["OLYMPUS", "VOLTAGE", "ALBY"];
 
-export type NewWrappedInvoiceRequest = {
+export type NewInstantChannelInvoiceRequest = {
   amount: number;
   lsp: LSPOption;
 };
 
-export type NewWrappedInvoiceResponse = {
-  wrappedInvoice: string;
+export type NewInstantChannelInvoiceResponse = {
+  invoice: string;
   fee: number;
 };
 

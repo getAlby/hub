@@ -79,7 +79,8 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	// TODO: below could be supported by NIP-47
 	e.GET("/api/channels", httpSvc.channelsListHandler, authMiddleware)
 	e.POST("/api/channels", httpSvc.openChannelHandler, authMiddleware)
-	e.POST("/api/wrapped-invoices", httpSvc.newWrappedInvoiceHandler, authMiddleware)
+	// TODO: review naming
+	e.POST("/api/instant-channel-invoices", httpSvc.newInstantChannelInvoiceHandler, authMiddleware)
 	// TODO: should this be DELETE /api/channels:id?
 	e.POST("/api/channels/close", httpSvc.closeChannelHandler, authMiddleware)
 	e.GET("/api/node/connection-info", httpSvc.nodeConnectionInfoHandler, authMiddleware)
@@ -382,17 +383,17 @@ func (httpSvc *HttpService) closeChannelHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, closeChannelResponse)
 }
 
-func (httpSvc *HttpService) newWrappedInvoiceHandler(c echo.Context) error {
+func (httpSvc *HttpService) newInstantChannelInvoiceHandler(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	var newWrappedInvoiceRequest api.NewWrappedInvoiceRequest
+	var newWrappedInvoiceRequest api.NewInstantChannelInvoiceRequest
 	if err := c.Bind(&newWrappedInvoiceRequest); err != nil {
 		return c.JSON(http.StatusBadRequest, models.ErrorResponse{
 			Message: fmt.Sprintf("Bad request: %s", err.Error()),
 		})
 	}
 
-	newWrappedInvoiceResponse, err := httpSvc.api.NewWrappedInvoice(ctx, &newWrappedInvoiceRequest)
+	newWrappedInvoiceResponse, err := httpSvc.api.NewInstantChannelInvoice(ctx, &newWrappedInvoiceRequest)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
