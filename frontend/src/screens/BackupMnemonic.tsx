@@ -103,7 +103,7 @@ export function BackupMnemonic() {
                   placeholder="Password"
                 />
               </div>
-              <LoadingButton loading={loading}>Unlock</LoadingButton>
+              <LoadingButton loading={loading}>Continue</LoadingButton>
             </>
           </form>
         </Container>
