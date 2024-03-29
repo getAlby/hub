@@ -25,7 +25,7 @@ export default function ConnectButton({
     >
       {isConnecting ? (
         <>
-          <Loading color="white" /> {loadingText || "Connecting..."}
+          <Loading className="text-white" /> {loadingText || "Connecting..."}
         </>
       ) : (
         <>{submitText || "Connect"}</>
