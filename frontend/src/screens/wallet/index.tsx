@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 import Loading from "src/components/Loading";
 
@@ -16,7 +16,6 @@ import { request } from "src/utils/request";
 function Wallet() {
   const { data: info } = useInfo();
   const { data: csrf } = useCSRF();
-  const navigate = useNavigate();
   const [showBackupPrompt, setShowBackupPrompt] = React.useState(true);
 
   if (!info) {

@@ -10,7 +10,6 @@ import { request } from "src/utils/request";
 
 export default function Start() {
   const [unlockPassword, setUnlockPassword] = React.useState("");
-  const [passwordVisible, setPasswordVisible] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const navigate = useNavigate();
   const { data: csrf } = useCSRF();
