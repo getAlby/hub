@@ -52,9 +52,7 @@ export function SetupFinish() {
       <Container>
         <div className="flex flex-col gap-5 text-center items-center">
           <div className="grid gap-2">
-            <h1 className="font-semibold text-lg font-headline dark:text-white">
-              Connection Failed
-            </h1>
+            <h1 className="font-semibold text-lg">Connection Failed</h1>
             <p>Please check your node configuration.</p>
           </div>
           <Button

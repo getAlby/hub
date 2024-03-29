@@ -46,7 +46,7 @@ export default function MnemonicInputs({
               const inputId = `mnemonic-word-${i}`;
               return (
                 <div key={i} className="flex justify-center items-center gap-2">
-                  <span className="text-gray-600 dark:text-neutral-400 text-right">
+                  <span className="text-muted-foreground text-right">
                     {i + 1}.
                   </span>
                   <div className="relative">
