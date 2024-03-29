@@ -1,23 +1,31 @@
+import { Bitcoin, Cable, ChevronDown, Zap } from "lucide-react";
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
+import AppHeader from "src/components/AppHeader.tsx";
+import Loading from "src/components/Loading.tsx";
+import { Button } from "src/components/ui/button.tsx";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "src/components/ui/card.tsx";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "src/components/ui/dropdown-menu.tsx";
 import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
 import { useOnchainBalance } from "src/hooks/useOnchainBalance";
+import { useRedeemOnchainFunds } from "src/hooks/useRedeemOnchainFunds.ts";
 import { CloseChannelRequest, CloseChannelResponse, Node } from "src/types";
 import { request } from "src/utils/request";
 import { useCSRF } from "../../hooks/useCSRF.ts";
-import { useRedeemOnchainFunds } from "src/hooks/useRedeemOnchainFunds.ts";
-import Loading from "src/components/Loading.tsx";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-} from "src/components/ui/card.tsx";
-
-import { Cable, Bitcoin, Zap } from "lucide-react";
-import AppHeader from "src/components/AppHeader.tsx";
-import { Button } from "src/components/ui/button.tsx";
 
 export default function Channels() {
   const { data: channels, mutate: reloadChannels } = useChannels();
@@ -171,9 +179,52 @@ export default function Channels() {
         title={"Channels"}
         description={"Manage liquidity on your lightnig node."}
         contentRight={
-          <Link to={`/channels/new`}>
-            <Button>Open a channel</Button>
-          </Link>
+          <>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <ChevronDown />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56">
+                <DropdownMenuGroup>
+                  <DropdownMenuItem>
+                    <Link to="/channels/onchain/new-address">
+                      Onchain Address
+                    </Link>
+                  </DropdownMenuItem>
+                  {(info?.backendType === "LDK" ||
+                    info?.backendType === "GREENLIGHT") &&
+                    (onchainBalance?.spendable || 0) > 0 && (
+                      <DropdownMenuItem
+                        onClick={redeemOnchainFunds.redeemFunds}
+                        disabled={redeemOnchainFunds.isLoading}
+                      >
+                        Redeem Onchain Funds
+                        {redeemOnchainFunds.isLoading && <Loading />}
+                      </DropdownMenuItem>
+                    )}
+                </DropdownMenuGroup>
+                {info?.backendType === "LDK" && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuGroup>
+                      <DropdownMenuLabel>Node Management</DropdownMenuLabel>
+                      <DropdownMenuItem onClick={resetRouter}>
+                        Reset Router
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={stopNode}>
+                        Restart
+                      </DropdownMenuItem>
+                    </DropdownMenuGroup>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Link to="/channels/new">
+              <Button>Open a channel</Button>
+            </Link>
+          </>
         }
       ></AppHeader>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
@@ -245,39 +296,6 @@ export default function Channels() {
         </Card>
       </div>
       <div>
-        <Link
-          to={`/channels/onchain/new-address`}
-          className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
-        >
-          Onchain address
-        </Link>
-        {info?.backendType === "LDK" && (
-          <button
-            onClick={resetRouter}
-            className="text-white bg-orange-700 hover:bg-orange-800 focus:ring-4 focus:ring-orange-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 dark:bg-orange-600 dark:hover:bg-orange-700 focus:outline-none dark:focus:ring-orange-800"
-          >
-            Reset Router
-          </button>
-        )}
-        {info?.backendType === "LDK" && (
-          <button
-            onClick={stopNode}
-            className="text-white bg-orange-700 hover:bg-orange-800 focus:ring-4 focus:ring-orange-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 dark:bg-orange-600 dark:hover:bg-orange-700 focus:outline-none dark:focus:ring-orange-800"
-          >
-            Restart
-          </button>
-        )}
-        {(info?.backendType === "LDK" || info?.backendType === "GREENLIGHT") &&
-          (onchainBalance?.spendable || 0) > 0 && (
-            <button
-              onClick={redeemOnchainFunds.redeemFunds}
-              disabled={redeemOnchainFunds.isLoading}
-              className="text-white bg-orange-700 hover:bg-orange-800 focus:ring-4 focus:ring-orange-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 dark:bg-orange-600 dark:hover:bg-orange-700 focus:outline-none dark:focus:ring-orange-800 inline-flex gap-2 justify-center items-center"
-            >
-              Redeem Onchain Funds {redeemOnchainFunds.isLoading && <Loading />}
-            </button>
-          )}
-
         <div className="flex flex-col mt-5">
           <div className="overflow-x-auto shadow-md sm:rounded-lg">
             <div className="inline-block min-w-full align-middle">
