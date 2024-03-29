@@ -13,7 +13,6 @@ import (
 	"strings"
 	"time"
 
-	alby "github.com/getAlby/nostr-wallet-connect/alby"
 	"github.com/nbd-wtf/go-nostr"
 	"gorm.io/gorm"
 
@@ -24,15 +23,13 @@ import (
 )
 
 type API struct {
-	svc          *Service
-	albyOAuthSvc *alby.AlbyOAuthService
+	svc *Service
 }
 
-func NewAPI(svc *Service, albyOAuthSvc *alby.AlbyOAuthService) *API {
+func NewAPI(svc *Service) *API {
 
 	return &API{
-		svc:          svc,
-		albyOAuthSvc: albyOAuthSvc,
+		svc: svc,
 	}
 }
 
@@ -649,8 +646,8 @@ func (api *API) GetInfo() (*models.InfoResponse, error) {
 	info.SetupCompleted = unlockPasswordCheck != ""
 	info.Running = api.svc.lnClient != nil
 	info.BackendType = backendType
-	info.AlbyAuthUrl = api.albyOAuthSvc.GetAuthUrl()
-	info.AlbyUserIdentifier = api.albyOAuthSvc.GetUserIdentifier()
+	info.AlbyAuthUrl = api.svc.AlbyOAuthSvc.GetAuthUrl()
+	info.AlbyUserIdentifier = api.svc.AlbyOAuthSvc.GetUserIdentifier()
 
 	if info.BackendType != config.LNDBackendType {
 		nextBackupReminder, _ := api.svc.cfg.Get("NextBackupReminder", "")

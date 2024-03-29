@@ -33,7 +33,7 @@ const (
 func NewHttpService(svc *Service) *HttpService {
 	return &HttpService{
 		svc:         svc,
-		api:         NewAPI(svc, svc.AlbyOAuthSvc),
+		api:         NewAPI(svc),
 		albyHttpSvc: alby.NewAlbyHttpService(svc.AlbyOAuthSvc, svc.Logger),
 	}
 }
