@@ -517,7 +517,7 @@ func (api *API) NewInstantChannelInvoice(ctx context.Context, request *models.Ne
 	if err != nil {
 		api.svc.Logger.WithError(err).WithFields(logrus.Fields{
 			"url": selectedLsp.Url,
-		}).Error("Failed to request own node info %v", err)
+		}).Error("Failed to request own node info", err)
 		return nil, err
 	}
 
@@ -715,7 +715,7 @@ func (api *API) NewInstantChannelInvoice(ctx context.Context, request *models.Ne
 		if err != nil {
 			api.svc.Logger.WithError(err).WithFields(logrus.Fields{
 				"url": selectedLsp.Url,
-			}).Error("Failed to request new channel invoice %s %v", selectedLsp.Url, err)
+			}).Error("Failed to request new channel invoice")
 			return nil, err
 		}
 
