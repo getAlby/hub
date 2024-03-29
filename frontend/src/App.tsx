@@ -49,14 +49,6 @@ function App() {
           <Routes>
             <Route path="/" element={<AppLayout />}>
               <Route path="" element={<HomeRedirect />} />
-              <Route
-                path="start"
-                element={
-                  <StartRedirect>
-                    <Start />
-                  </StartRedirect>
-                }
-              ></Route>
               <Route path="settings" element={<DefaultRedirect />}>
                 <Route index element={<Settings />} />
               </Route>
@@ -94,6 +86,14 @@ function App() {
               <Route path="/*" element={<NotFound />} />
             </Route>
             <Route element={<TwoColumnFullScreenLayout />}>
+              <Route
+                path="start"
+                element={
+                  <StartRedirect>
+                    <Start />
+                  </StartRedirect>
+                }
+              ></Route>
               <Route path="unlock" element={<Unlock />} />
               <Route path="welcome" element={<Welcome />}></Route>
               <Route path="setup" element={<SetupRedirect />}>
