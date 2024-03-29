@@ -1,9 +1,8 @@
-import { CopyIcon } from "lucide-react";
+import { CopyIcon, EyeIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 
 import QRCode from "src/components/QRCode";
-import { EyeIcon } from "src/components/icons/EyeIcon";
 import { LogoIcon } from "src/components/icons/LogoIcon";
 import { CreateAppResponse } from "src/types";
 
