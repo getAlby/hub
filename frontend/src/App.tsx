@@ -67,7 +67,6 @@ function App() {
                 <Route index path="" element={<AppList />} />
                 <Route path=":pubkey" element={<ShowApp />} />
                 <Route path="created" element={<AppCreated />} />
-                <Route path="*" element={<NotFound />} />
               </Route>
               <Route path="channels" element={<DefaultRedirect />}>
                 <Route path="" element={<Channels />} />
@@ -83,7 +82,6 @@ function App() {
                   element={<NewOnchainAddress />}
                 />
               </Route>
-              <Route path="/*" element={<NotFound />} />
             </Route>
             <Route element={<TwoColumnFullScreenLayout />}>
               <Route
