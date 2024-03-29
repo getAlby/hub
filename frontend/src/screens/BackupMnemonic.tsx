@@ -13,6 +13,7 @@ import MnemonicInputs from "src/components/MnemonicInputs";
 import PasswordViewAdornment from "src/components/PasswordAdornment";
 import toast from "src/components/Toast";
 import { Button } from "src/components/ui/button";
+import { LoadingButton } from "src/components/ui/loading-button";
 import { useCSRF } from "src/hooks/useCSRF";
 import { useEncryptedMnemonic } from "src/hooks/useEncryptedMnemonic";
 import { useInfo } from "src/hooks/useInfo";
@@ -106,7 +107,7 @@ export function BackupMnemonic() {
                   />
                 }
               />
-              <Button>Unlock</Button>
+              <LoadingButton loading={loading}>Unlock</LoadingButton>
             </>
           </form>
         </Container>
@@ -115,33 +116,33 @@ export function BackupMnemonic() {
           onSubmit={onSubmit}
           className="flex mt-6 flex-col gap-2 mx-auto max-w-2xl text-sm"
         >
-          <h1 className="font-semibold text-2xl font-headline mb-2 dark:text-white">
+          <h1 className="font-semibold text-2xl font-headline mb-">
             Back up your wallet
           </h1>
 
-          <div className="flex flex-col gap-4 mb-4">
-            <div className="flex gap-2 items-center">
-              <div className="shrink-0 text-gray-600 dark:text-neutral-400">
+          <div className="flex flex-col gap-4 mb-4 text-muted-foreground">
+            <div className="flex gap-2 items-center ">
+              <div className="shrink-0 ">
                 <PopiconsLifebuoyLine className="w-6 h-6" />
               </div>
-              <span className="text-gray-600 dark:text-neutral-400">
+              <span>
                 Your recovery phrase is a set of 12 words that{" "}
                 <b>backs up your wallet</b>
               </span>
             </div>
             <div className="flex gap-2 items-center">
-              <div className="shrink-0 text-gray-600 dark:text-neutral-400">
+              <div className="shrink-0">
                 <PopiconsShieldLine className="w-6 h-6" />
               </div>
-              <span className="text-gray-600 dark:text-neutral-400">
+              <span>
                 Make sure to write them down somewhere safe and private
               </span>
             </div>
-            <div className="flex gap-2 items-center">
-              <div className="shrink-0 text-red-600 dark:text-red-800">
+            <div className="flex gap-2 items-center text-destructive">
+              <div className="shrink-0 ">
                 <PopiconsTriangleExclamationLine className="w-6 h-6" />
               </div>
-              <span className="font-medium text-red-600 dark:text-red-800">
+              <span>
                 If you lose your recovery phrase, you will lose access to your
                 funds
               </span>
@@ -168,7 +169,11 @@ export function BackupMnemonic() {
               </label>
             </div>
           </MnemonicInputs>
-          <Button disabled={!backedUp}>Save</Button>
+          <div className="flex justify-center">
+            <Button disabled={!backedUp} size="lg">
+              Continue
+            </Button>
+          </div>
         </form>
       )}
     </>
