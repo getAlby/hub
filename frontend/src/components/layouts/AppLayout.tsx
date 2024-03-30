@@ -10,8 +10,19 @@ import {
 } from "lucide-react";
 import { ModeToggle } from "src/components/ui/mode-toggle";
 
+import { CaretUpIcon } from "@radix-ui/react-icons";
 import { Link, NavLink, Outlet } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "src/components/ui/avatar";
+import { Button } from "src/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "src/components/ui/dropdown-menu";
 import { cn } from "src/lib/utils";
 
 export default function AppLayout() {
@@ -67,20 +78,43 @@ export default function AppLayout() {
                 Leave Feedback
               </MenuItem>
             </nav>
-            <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6 gap-3 border-t border-border">
-              <Avatar className="h-8 w-8">
-                <AvatarImage
-                  src="https://github.com/shadcn.png"
-                  alt="@satoshi"
-                />
-                <AvatarFallback>SN</AvatarFallback>
-              </Avatar>
-              <Link
-                to="#"
-                className="flex items-center gap-2 font-semibold text-lg cursor-not-allowed"
-              >
-                Satoshi
-              </Link>
+            <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6 gap-3 border-t border-border justify-between">
+              <div className="grid grid-flow-col gap-2">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage
+                    src="https://github.com/shadcn.png"
+                    alt="@satoshi"
+                  />
+                  <AvatarFallback>SN</AvatarFallback>
+                </Avatar>
+                <Link
+                  to="#"
+                  className="flex items-center gap-2 font-semibold text-lg cursor-not-allowed"
+                >
+                  Satoshi
+                </Link>
+              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <CaretUpIcon />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56">
+                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuGroup>
+                    <DropdownMenuItem disabled>Profile</DropdownMenuItem>
+                    <DropdownMenuItem disabled>Billing</DropdownMenuItem>
+                    <DropdownMenuItem disabled>Settings</DropdownMenuItem>
+                    <DropdownMenuItem disabled>
+                      Keyboard shortcuts
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem>Log out</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>
