@@ -87,7 +87,7 @@ export function BackupMnemonic() {
       {!decryptedMnemonic ? (
         <Container>
           <h1 className="text-xl font-medium">Confirm it's you</h1>
-          <p className="font-light text-center text-md leading-relaxed dark:text-neutral-400 mb-14">
+          <p className="text-center text-md text-muted-foreground mb-14">
             Enter your unlock password to continue
           </p>
           <form

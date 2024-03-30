@@ -112,7 +112,7 @@ export default function AppLayout() {
                     </DropdownMenuItem>
                   </DropdownMenuGroup>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>Log out</DropdownMenuItem>
+                  <DropdownMenuItem disabled>Log out</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
