@@ -182,7 +182,8 @@ export default function Channels() {
           <>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon">
+                <Button variant="outline" size="default">
+                  Advanced
                   <ChevronDown />
                 </Button>
               </DropdownMenuTrigger>
@@ -209,7 +210,7 @@ export default function Channels() {
                   <>
                     <DropdownMenuSeparator />
                     <DropdownMenuGroup>
-                      <DropdownMenuLabel>Node Management</DropdownMenuLabel>
+                      <DropdownMenuLabel>Management</DropdownMenuLabel>
                       <DropdownMenuItem onClick={resetRouter}>
                         Reset Router
                       </DropdownMenuItem>
