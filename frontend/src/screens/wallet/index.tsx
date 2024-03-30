@@ -8,6 +8,7 @@ import AppHeader from "src/components/AppHeader";
 import BreezRedeem from "src/components/BreezRedeem";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
+import { useToast } from "src/components/ui/use-toast";
 import { useCSRF } from "src/hooks/useCSRF";
 import { useInfo } from "src/hooks/useInfo";
 import { handleRequestError } from "src/utils/handleRequestError";
@@ -16,6 +17,7 @@ import { request } from "src/utils/request";
 function Wallet() {
   const { data: info } = useInfo();
   const { data: csrf } = useCSRF();
+  const { toast } = useToast();
   const [showBackupPrompt, setShowBackupPrompt] = React.useState(true);
 
   if (!info) {
@@ -45,7 +47,7 @@ function Wallet() {
         }),
       });
     } catch (error) {
-      handleRequestError("Failed to skip backup", error);
+      handleRequestError(toast, "Failed to skip backup", error);
     } finally {
       setShowBackupPrompt(false);
     }
@@ -86,7 +88,7 @@ function Wallet() {
           <p className="text-sm text-muted-foreground">
             Topup your wallet and make your first transaction.
           </p>
-          <Link to="/start">
+          <Link to="/channels/first">
             <Button className="mt-4">Get Started</Button>
           </Link>
         </div>

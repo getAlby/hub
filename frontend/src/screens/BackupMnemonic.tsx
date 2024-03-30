@@ -5,11 +5,11 @@ import { useNavigate } from "react-router-dom";
 import Container from "src/components/Container";
 import Loading from "src/components/Loading";
 import MnemonicInputs from "src/components/MnemonicInputs";
-import toast from "src/components/Toast";
 import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
+import { useToast } from "src/components/ui/use-toast";
 import { useCSRF } from "src/hooks/useCSRF";
 import { useEncryptedMnemonic } from "src/hooks/useEncryptedMnemonic";
 import { useInfo } from "src/hooks/useInfo";
@@ -20,6 +20,7 @@ import { request } from "src/utils/request";
 export function BackupMnemonic() {
   const navigate = useNavigate();
   const { data: csrf } = useCSRF();
+  const { toast } = useToast();
   const { mutate: refetchInfo } = useInfo();
   const { data: mnemonic } = useEncryptedMnemonic();
 
@@ -39,7 +40,11 @@ export function BackupMnemonic() {
       const dec = await aesGcmDecrypt(mnemonic.mnemonic, unlockPassword);
       setDecryptedMnemonic(dec);
     } catch (error) {
-      toast.error("Failed to decrypt mnemonic: incorrect password");
+      toast({
+        title: "Incorrect password",
+        description: "Failed to decrypt mnemonic.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -70,9 +75,10 @@ export function BackupMnemonic() {
       await refetchInfo();
 
       navigate("/");
-      toast.success("Recovery phrase backed up!");
+
+      toast({ title: "Recovery phrase backed up!" });
     } catch (error) {
-      handleRequestError("Failed to store back up info", error);
+      handleRequestError(toast, "Failed to store back up info", error);
     }
   }
 

@@ -3,12 +3,13 @@ import { useNavigate } from "react-router-dom";
 import useSetupStore from "src/state/SetupStore";
 
 import Container from "src/components/Container";
-import toast from "src/components/Toast";
 import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
+import { useToast } from "src/components/ui/use-toast";
 
 export function SetupPassword() {
+  const { toast } = useToast();
   const store = useSetupStore();
   const [confirmPassword, setConfirmPassword] = React.useState("");
   const navigate = useNavigate();
@@ -16,7 +17,10 @@ export function SetupPassword() {
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (store.unlockPassword !== confirmPassword) {
-      toast.error("Passwords don't match!");
+      toast({
+        title: "Passwords don't match",
+        variant: "destructive",
+      });
       return;
     }
     navigate("/setup/wallet");

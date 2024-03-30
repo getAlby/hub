@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import animationData from "src/assets/lotties/loading.json";
 import Container from "src/components/Container";
 import { Button } from "src/components/ui/button";
+import { toast } from "src/components/ui/use-toast";
 import { useCSRF } from "src/hooks/useCSRF";
 import { useInfo } from "src/hooks/useInfo";
 import useSetupStore from "src/state/SetupStore";
@@ -108,7 +109,7 @@ const finishSetup = async (
     });
     return true;
   } catch (error) {
-    handleRequestError("Failed to connect", error);
+    handleRequestError(toast, "Failed to connect", error);
     return false;
   }
 };

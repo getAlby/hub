@@ -1,5 +1,4 @@
 import { useState } from "react";
-import toast from "react-hot-toast";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { useCSRF } from "src/hooks/useCSRF";
@@ -21,12 +20,14 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 import { Input } from "src/components/ui/input";
+import { useToast } from "src/components/ui/use-toast";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request"; // build the project for this to appear
 import Permissions from "../../components/Permissions";
 
 const NewApp = () => {
   const { data: csrf } = useCSRF();
+  const { toast } = useToast();
   const navigate = useNavigate();
 
   const location = useLocation();
@@ -109,9 +110,9 @@ const NewApp = () => {
       navigate("/apps/created", {
         state: createAppResponse,
       });
-      toast.success("App created!");
+      toast({ title: "App created" });
     } catch (error) {
-      handleRequestError("Failed to create app", error);
+      handleRequestError(toast, "Failed to create app", error);
     }
   };
 

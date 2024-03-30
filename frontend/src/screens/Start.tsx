@@ -4,6 +4,7 @@ import Container from "src/components/Container";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
+import { useToast } from "src/components/ui/use-toast";
 import { useCSRF } from "src/hooks/useCSRF";
 import { useInfo } from "src/hooks/useInfo";
 import { handleRequestError } from "src/utils/handleRequestError";
@@ -15,6 +16,7 @@ export default function Start() {
   const navigate = useNavigate();
   const { data: csrf } = useCSRF();
   const { mutate: refetchInfo } = useInfo();
+  const { toast } = useToast();
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -37,7 +39,7 @@ export default function Start() {
 
       navigate("/");
     } catch (error) {
-      handleRequestError("Failed to connect", error);
+      handleRequestError(toast, "Failed to connect", error);
     } finally {
       setLoading(false);
     }

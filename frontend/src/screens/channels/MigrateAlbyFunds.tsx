@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import Loading from "src/components/Loading";
-import toast from "src/components/Toast";
+import { useToast } from "src/components/ui/use-toast";
 import {
   ALBY_FEE_RESERVE,
   ALBY_SERVICE_FEE,
@@ -28,6 +28,7 @@ export default function MigrateAlbyFunds() {
   const { data: csrf } = useCSRF();
   const { data: channels } = useChannels();
   const { mutate: refetchInfo } = useInfo();
+  const { toast } = useToast();
   const [prePurchaseChannelCount, setPrePurchaseChannelCount] = React.useState<
     number | undefined
   >();
@@ -99,7 +100,11 @@ export default function MigrateAlbyFunds() {
           }),
         });
       } catch (error) {
-        handleRequestError("Failed to pay channel funding invoice", error);
+        handleRequestError(
+          toast,
+          "Failed to pay channel funding invoice",
+          error
+        );
         setOpeningChannel(false);
       }
     },
@@ -132,7 +137,7 @@ export default function MigrateAlbyFunds() {
   React.useEffect(() => {
     if (hasOpenedChannel) {
       (async () => {
-        toast.success("Channel opened!");
+        toast({ title: "Channel opened!" });
         await refetchInfo();
         navigate("/");
       })();

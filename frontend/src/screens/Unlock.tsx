@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
+import { toast } from "src/components/ui/use-toast";
 import { useCSRF } from "src/hooks/useCSRF";
 import { useInfo } from "src/hooks/useInfo";
 import { handleRequestError } from "src/utils/handleRequestError";
@@ -44,7 +45,7 @@ export default function Unlock() {
       await refetchInfo();
       navigate("/");
     } catch (error) {
-      handleRequestError("Failed to connect", error);
+      handleRequestError(toast, "Failed to connect", error);
     } finally {
       setLoading(false);
     }

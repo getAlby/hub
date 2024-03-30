@@ -347,16 +347,17 @@ export default function Channels() {
                 return (
                   <TableRow key={channel.id}>
                     <TableCell>
-                      {channel.active ? "🟢" : "🔴"}{" "}
+                      {channel.active ? "🟢" : "🔴"}
                       <a
-                        className="underline mr-2"
                         title={channel.remotePubkey}
                         href={`https://amboss.space/node/${channel.remotePubkey}`}
                         target="_blank"
                         rel="noopener noreferer"
                       >
-                        {alias} ({channel.remotePubkey.substring(0, 10)}
-                        ...)
+                        <Button variant="link">
+                          {alias} ({channel.remotePubkey.substring(0, 10)}
+                          ...)
+                        </Button>
                       </a>
                       <Badge variant="outline">
                         {channel.public ? "Public" : "Private"}

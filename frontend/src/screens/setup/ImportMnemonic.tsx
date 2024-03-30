@@ -5,11 +5,12 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import MnemonicInputs from "src/components/MnemonicInputs";
-import toast from "src/components/Toast";
 import { Button } from "src/components/ui/button";
+import { useToast } from "src/components/ui/use-toast";
 import useSetupStore from "src/state/SetupStore";
 
 export function ImportMnemonic() {
+  const { toast } = useToast();
   const navigate = useNavigate();
   const setupStore = useSetupStore();
 
@@ -21,7 +22,10 @@ export function ImportMnemonic() {
       mnemonic.split(" ").length !== 12 ||
       !bip39.validateMnemonic(mnemonic, wordlist)
     ) {
-      toast.error("Invalid recovery phrase");
+      toast({
+        title: "Invalid recovery phrase",
+        variant: "destructive",
+      });
       return;
     }
 

@@ -3,7 +3,6 @@ import { wordlist } from "@scure/bip39/wordlists/english";
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Container from "src/components/Container";
-import toast from "src/components/Toast";
 import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
@@ -14,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "src/components/ui/select";
+import { useToast } from "src/components/ui/use-toast";
 import useSetupStore from "src/state/SetupStore";
 import { BackendType } from "src/types";
 
@@ -89,6 +89,7 @@ type SetupFormProps = {
 };
 
 function BreezForm({ handleSubmit }: SetupFormProps) {
+  const { toast } = useToast();
   const setupStore = useSetupStore();
   const [greenlightInviteCode, setGreenlightInviteCode] =
     React.useState<string>(setupStore.nodeInfo.greenlightInviteCode || "");
@@ -99,7 +100,10 @@ function BreezForm({ handleSubmit }: SetupFormProps) {
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!greenlightInviteCode || !breezApiKey) {
-      toast.error("Please fill out all fields");
+      toast({
+        title: "Please fill out all fields",
+        variant: "destructive",
+      });
       return;
     }
     handleSubmit({
@@ -139,13 +143,17 @@ function BreezForm({ handleSubmit }: SetupFormProps) {
 
 function GreenlightForm({ handleSubmit }: SetupFormProps) {
   const setupStore = useSetupStore();
+  const { toast } = useToast();
   const [greenlightInviteCode, setGreenlightInviteCode] =
     React.useState<string>(setupStore.nodeInfo.greenlightInviteCode || "");
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!greenlightInviteCode) {
-      toast.error("please fill out all fields");
+      toast({
+        title: "Please fill out all fields",
+        variant: "destructive",
+      });
       return;
     }
     handleSubmit({
@@ -185,6 +193,7 @@ function LDKForm({ handleSubmit }: SetupFormProps) {
 }
 
 function LNDForm({ handleSubmit }: SetupFormProps) {
+  const { toast } = useToast();
   const setupStore = useSetupStore();
   const [lndAddress, setLndAddress] = React.useState<string>(
     setupStore.nodeInfo.lndAddress || ""
@@ -200,7 +209,10 @@ function LNDForm({ handleSubmit }: SetupFormProps) {
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!lndAddress || !lndCertHex || !lndMacaroonHex) {
-      toast.error("please fill out all fields");
+      toast({
+        title: "Please fill out all fields",
+        variant: "destructive",
+      });
       return;
     }
     handleSubmit({
