@@ -1,8 +1,9 @@
-import { Bitcoin, Cable, ChevronDown, Zap } from "lucide-react";
+import { Bitcoin, Cable, ChevronDown, CircleX, Zap } from "lucide-react";
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader.tsx";
 import Loading from "src/components/Loading.tsx";
+import { Badge } from "src/components/ui/badge.tsx";
 import { Button } from "src/components/ui/button.tsx";
 import {
   Card,
@@ -19,6 +20,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "src/components/ui/dropdown-menu.tsx";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "src/components/ui/table.tsx";
 import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
 import { useOnchainBalance } from "src/hooks/useOnchainBalance";
@@ -296,141 +305,103 @@ export default function Channels() {
           </CardContent>
         </Card>
       </div>
-      <div>
-        <div className="flex flex-col mt-5">
-          <div className="overflow-x-auto shadow-md sm:rounded-lg">
-            <div className="inline-block min-w-full align-middle">
-              <div className="overflow-hidden ">
-                <table className="min-w-full divide-y divide-gray-200 table-fixed dark:divide-gray-700">
-                  <thead className="bg-gray-100 dark:bg-gray-700">
-                    <tr>
-                      <th
-                        scope="col"
-                        className="py-3 px-6 text-xs font-medium tracking-wider text-left text-gray-700 uppercase dark:text-gray-400"
-                      >
-                        Node pubkey
-                      </th>
-                      <th
-                        scope="col"
-                        className="py-3 px-6 text-xs font-medium tracking-wider text-left text-gray-700 uppercase dark:text-gray-400"
-                      >
-                        Capacity
-                      </th>
-                      <th
-                        scope="col"
-                        className="w-96 py-3 px-6 text-xs font-medium tracking-wider text-left text-gray-700 uppercase dark:text-gray-400"
-                      >
-                        Local / Remote
-                      </th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
-                    {!channels && (
-                      <tr>
-                        <td colSpan={6} className="text-center p-5">
-                          <div
-                            role="status"
-                            className="animate-pulse flex space-between"
-                          >
-                            <div className="h-2.5 bg-gray-200 rounded-full w-1/3 dark:bg-gray-700 mr-5"></div>
-                            <div className="h-2.5 bg-gray-200 rounded-full w-20 dark:bg-gray-700 mr-5"></div>
-                            <div className="h-2.5 bg-gray-200 rounded-full w-20 dark:bg-gray-700"></div>
-                            <span className="sr-only">Loading...</span>
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                    {channels && channels.length > 0 && (
-                      <>
-                        {channels.map((channel) => {
-                          // const localMaxPercentage =
-                          //   maxChannelsBalance.local / 100;
-                          // const remoteMaxPercentage =
-                          //   maxChannelsBalance.remote / 100;
-                          const node = nodes.find(
-                            (n) => n.public_key === channel.remotePubkey
-                          );
-                          const alias = node?.alias || "Unknown";
-                          const capacity =
-                            channel.localBalance + channel.remoteBalance;
-                          const localPercentage =
-                            (channel.localBalance / capacity) * 100;
-                          const remotePercentage =
-                            (channel.remoteBalance / capacity) * 100;
 
-                          return (
-                            <tr
-                              className="hover:bg-gray-100 dark:hover:bg-gray-700"
-                              key={channel.id}
-                            >
-                              <td className="py-4 px-6 text-sm font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                {channel.active ? "🟢" : "🔴"}{" "}
-                                <a
-                                  className="underline"
-                                  title={channel.remotePubkey}
-                                  href={`https://amboss.space/node/${channel.remotePubkey}`}
-                                  target="_blank"
-                                  rel="noopener noreferer"
-                                >
-                                  {alias} (
-                                  {channel.remotePubkey.substring(0, 10)}
-                                  ...)
-                                </a>
-                                <span className="mx-4 uppercase text-xs border-2 py-0.5 px-1 rounded-lg">
-                                  {channel.public ? "Public" : "Private"}
-                                </span>
-                              </td>
-                              <td className="py-4 px-6 text-sm font-medium text-gray-500 whitespace-nowrap dark:text-white">
-                                {formatAmount(capacity)}
-                              </td>
-                              <td className="py-4 px-6 text-sm font-light text-right whitespace-nowrap dark:text-gray-400">
-                                <div className="flex justify-between">
-                                  <span>
-                                    {formatAmount(channel.localBalance)}
-                                  </span>
-                                  <span>
-                                    {formatAmount(channel.remoteBalance)}
-                                  </span>
-                                </div>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Node</TableHead>
+            <TableHead className="w-[100px]">Capacity</TableHead>
+            <TableHead className="w-[300px]">Local / Remote</TableHead>
+            <TableHead className="w-[50px]"></TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {!channels && (
+            <TableRow>
+              <TableCell colSpan={4} className="text-center p-5">
+                <div role="status" className="animate-pulse flex space-between">
+                  <div className="h-2.5 bg-gray-200 rounded-full w-1/3 dark:bg-gray-700 mr-5"></div>
+                  <div className="h-2.5 bg-gray-200 rounded-full w-20 dark:bg-gray-700 mr-5"></div>
+                  <div className="h-2.5 bg-gray-200 rounded-full w-20 dark:bg-gray-700"></div>
+                  <span className="sr-only">Loading...</span>
+                </div>
+              </TableCell>
+            </TableRow>
+          )}
+          {channels && channels.length > 0 && (
+            <>
+              {channels.map((channel) => {
+                // const localMaxPercentage =
+                //   maxChannelsBalance.local / 100;
+                // const remoteMaxPercentage =
+                //   maxChannelsBalance.remote / 100;
+                const node = nodes.find(
+                  (n) => n.public_key === channel.remotePubkey
+                );
+                const alias = node?.alias || "Unknown";
+                const capacity = channel.localBalance + channel.remoteBalance;
+                const localPercentage = (channel.localBalance / capacity) * 100;
+                const remotePercentage =
+                  (channel.remoteBalance / capacity) * 100;
 
-                                <div className="w-full flex justify-center items-center">
-                                  <div
-                                    className="bg-green-500 h-3 rounded-l-lg"
-                                    style={{ width: `${localPercentage}%` }}
-                                  ></div>
-                                  <div
-                                    className="bg-blue-500 h-3 rounded-r-lg"
-                                    style={{ width: `${remotePercentage}%` }}
-                                  ></div>
-                                </div>
-                              </td>
-                              <td>
-                                <button
-                                  className="text-sm mr-2"
-                                  onClick={() =>
-                                    closeChannel(
-                                      channel.id,
-                                      channel.remotePubkey,
-                                      channel.active
-                                    )
-                                  }
-                                >
-                                  ❌
-                                </button>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+                return (
+                  <TableRow key={channel.id}>
+                    <TableCell>
+                      {channel.active ? "🟢" : "🔴"}{" "}
+                      <a
+                        className="underline mr-2"
+                        title={channel.remotePubkey}
+                        href={`https://amboss.space/node/${channel.remotePubkey}`}
+                        target="_blank"
+                        rel="noopener noreferer"
+                      >
+                        {alias} ({channel.remotePubkey.substring(0, 10)}
+                        ...)
+                      </a>
+                      <Badge variant="outline">
+                        {channel.public ? "Public" : "Private"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{formatAmount(capacity)}</TableCell>
+                    <TableCell>
+                      <div className="flex justify-between">
+                        <span>{formatAmount(channel.localBalance)}</span>
+                        <span>{formatAmount(channel.remoteBalance)}</span>
+                      </div>
+
+                      <div className="w-full flex justify-center items-center">
+                        <div
+                          className="bg-accent-foreground h-2 rounded-l-lg"
+                          style={{ width: `${localPercentage}%` }}
+                        ></div>
+                        <div
+                          className="bg-muted-foreground h-2 rounded-r-lg"
+                          style={{ width: `${remotePercentage}%` }}
+                        ></div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        size="icon"
+                        variant="outline"
+                        onClick={() =>
+                          closeChannel(
+                            channel.id,
+                            channel.remotePubkey,
+                            channel.active
+                          )
+                        }
+                      >
+                        <CircleX />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </>
+          )}
+        </TableBody>
+      </Table>
     </>
   );
 }
