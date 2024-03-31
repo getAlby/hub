@@ -180,7 +180,7 @@ export default function MigrateAlbyFunds() {
         Estimated Channel size: {estimatedChannelSize} sats
       </p>
       <p className="font-bold">
-        Estimated sendable: {amount - wrappedInvoiceResponse.fee} sats
+        Estimated spendable: {amount - wrappedInvoiceResponse.fee} sats
       </p>
       <p className="font-bold">
         Estimated receivable: {LSP_FREE_INCOMING - wrappedInvoiceResponse.fee}{" "}

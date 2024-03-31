@@ -88,6 +88,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.POST("/api/wallet/new-address", httpSvc.newOnchainAddressHandler, authMiddleware)
 	e.POST("/api/wallet/redeem-onchain-funds", httpSvc.redeemOnchainFundsHandler, authMiddleware)
 	e.GET("/api/wallet/balance", httpSvc.onchainBalanceHandler, authMiddleware)
+	e.GET("/api/balances", httpSvc.balancesHandler, authMiddleware)
 	e.POST("/api/reset-router", httpSvc.resetRouterHandler, authMiddleware)
 	e.POST("/api/stop", httpSvc.stopHandler, authMiddleware)
 
@@ -300,6 +301,20 @@ func (httpSvc *HttpService) onchainBalanceHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, onchainBalanceResponse)
+}
+
+func (httpSvc *HttpService) balancesHandler(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	balances, err := httpSvc.api.GetBalances(ctx)
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+
+	return c.JSON(http.StatusOK, balances)
 }
 
 func (httpSvc *HttpService) mempoolLightningNodeHandler(c echo.Context) error {

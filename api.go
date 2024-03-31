@@ -405,6 +405,17 @@ func (api *API) GetOnchainBalance(ctx context.Context) (*models.OnchainBalanceRe
 	return balance, nil
 }
 
+func (api *API) GetBalances(ctx context.Context) (*models.BalancesResponse, error) {
+	if api.svc.lnClient == nil {
+		return nil, errors.New("LNClient not started")
+	}
+	balances, err := api.svc.lnClient.GetBalances(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return balances, nil
+}
+
 func (api *API) GetMempoolLightningNode(pubkey string) (interface{}, error) {
 	url := api.svc.cfg.Env.MempoolApi + "/v1/lightning/nodes/" + pubkey
 

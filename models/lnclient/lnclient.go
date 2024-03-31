@@ -56,6 +56,7 @@ type LNClient interface {
 	GetNewOnchainAddress(ctx context.Context) (string, error)
 	ResetRouter(ctx context.Context) error
 	GetOnchainBalance(ctx context.Context) (*OnchainBalanceResponse, error)
+	GetBalances(ctx context.Context) (*BalancesResponse, error)
 	RedeemOnchainFunds(ctx context.Context, toAddress string) (txId string, err error)
 }
 
@@ -95,4 +96,18 @@ type CloseChannelResponse struct {
 type OnchainBalanceResponse struct {
 	Spendable int64 `json:"spendable"`
 	Total     int64 `json:"total"`
+}
+
+type LightningBalanceResponse struct {
+	TotalSpendable       int64 `json:"totalSpendable"`
+	TotalReceivable      int64 `json:"totalReceivable"`
+	NextMaxSpendable     int64 `json:"nextMaxSpendable"`
+	NextMaxReceivable    int64 `json:"nextMaxReceivable"`
+	NextMaxSpendableMPP  int64 `json:"nextMaxSpendableMPP"`
+	NextMaxReceivableMPP int64 `json:"nextMaxReceivableMPP"`
+}
+
+type BalancesResponse struct {
+	Onchain   OnchainBalanceResponse   `json:"onchain"`
+	Lightning LightningBalanceResponse `json:"lightning"`
 }
