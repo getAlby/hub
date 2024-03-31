@@ -1315,3 +1315,6 @@ func (mln *MockLn) RedeemOnchainFunds(ctx context.Context, toAddress string) (tx
 func (mln *MockLn) ResetRouter(ctx context.Context) error {
 	return nil
 }
+func (mln *MockLn) SignMessage(ctx context.Context, message string) (string, error) {
+	return "", nil
+}
