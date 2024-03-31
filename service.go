@@ -571,6 +571,8 @@ func (svc *Service) HandleEvent(ctx context.Context, sub *nostr.Subscription, ev
 		svc.HandleListTransactionsEvent(ctx, nip47Request, &requestEvent, &app, publishResponse)
 	case NIP_47_GET_INFO_METHOD:
 		svc.HandleGetInfoEvent(ctx, nip47Request, &requestEvent, &app, publishResponse)
+	case NIP_47_SIGN_MESSAGE_METHOD:
+		svc.HandleSignMessageEvent(ctx, nip47Request, &requestEvent, &app, publishResponse)
 	default:
 		svc.handleUnknownMethod(ctx, nip47Request, publishResponse)
 	}

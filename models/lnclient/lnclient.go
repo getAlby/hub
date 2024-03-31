@@ -58,6 +58,7 @@ type LNClient interface {
 	GetOnchainBalance(ctx context.Context) (*OnchainBalanceResponse, error)
 	GetBalances(ctx context.Context) (*BalancesResponse, error)
 	RedeemOnchainFunds(ctx context.Context, toAddress string) (txId string, err error)
+	SignMessage(ctx context.Context, message string) (string, error)
 }
 
 type Channel struct {

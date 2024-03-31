@@ -4,6 +4,7 @@ import {
   Info,
   LucideIcon,
   NotebookTabs,
+  PenLine,
   Search,
   WalletMinimal,
 } from "lucide-react";
@@ -14,6 +15,7 @@ export const NIP_47_GET_INFO_METHOD = "get_info";
 export const NIP_47_MAKE_INVOICE_METHOD = "make_invoice";
 export const NIP_47_LOOKUP_INVOICE_METHOD = "lookup_invoice";
 export const NIP_47_LIST_TRANSACTIONS_METHOD = "list_transactions";
+export const NIP_47_SIGN_MESSAGE_METHOD = "sign_message";
 
 export type BackendType = "LND" | "BREEZ" | "GREENLIGHT" | "LDK";
 
@@ -23,7 +25,8 @@ export type RequestMethodType =
   | "get_info"
   | "make_invoice"
   | "lookup_invoice"
-  | "list_transactions";
+  | "list_transactions"
+  | "sign_message";
 
 export type BudgetRenewalType =
   | "daily"
@@ -44,6 +47,7 @@ export const iconMap: IconMap = {
   [NIP_47_LOOKUP_INVOICE_METHOD]: Search,
   [NIP_47_MAKE_INVOICE_METHOD]: CirclePlus,
   [NIP_47_PAY_INVOICE_METHOD]: HandCoins,
+  [NIP_47_SIGN_MESSAGE_METHOD]: PenLine,
 };
 
 export const validBudgetRenewals: BudgetRenewalType[] = [
@@ -61,6 +65,7 @@ export const nip47MethodDescriptions: Record<RequestMethodType, string> = {
   [NIP_47_LOOKUP_INVOICE_METHOD]: "Lookup status of invoices",
   [NIP_47_MAKE_INVOICE_METHOD]: "Create invoices",
   [NIP_47_PAY_INVOICE_METHOD]: "Send payments",
+  [NIP_47_SIGN_MESSAGE_METHOD]: "Sign messages",
 };
 
 export const expiryOptions: Record<string, number> = {

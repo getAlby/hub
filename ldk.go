@@ -681,6 +681,16 @@ func (ls *LDKService) ResetRouter(ctx context.Context) error {
 	return err
 }
 
+func (gs *LDKService) SignMessage(ctx context.Context, message string) (string, error) {
+	sign, err := gs.node.SignMessage([]byte(message))
+	if err != nil {
+		gs.svc.Logger.Errorf("SignMessage failed: %v", err)
+		return "", err
+	}
+
+	return sign, nil
+}
+
 func (gs *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) (*Nip47Transaction, error) {
 	transactionType := "incoming"
 	if payment.Direction == ldk_node.PaymentDirectionOutbound {

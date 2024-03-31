@@ -499,6 +499,19 @@ func (gs *GreenlightService) RedeemOnchainFunds(ctx context.Context, toAddress s
 	return txId.Txid, nil
 }
 
+func (gs *GreenlightService) SignMessage(ctx context.Context, message string) (string, error) {
+	response, err := gs.client.SignMessage(glalby.SignMessageRequest{
+		Message: message,
+	})
+
+	if err != nil {
+		gs.svc.Logger.Errorf("SignMessage failed: %v", err)
+		return "", err
+	}
+
+	return response.Zbase, nil
+}
+
 func (gs *GreenlightService) greenlightInvoiceToTransaction(invoice *glalby.ListInvoicesInvoice) (*Nip47Transaction, error) {
 	description := ""
 	descriptionHash := ""

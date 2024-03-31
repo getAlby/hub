@@ -357,6 +357,15 @@ func (svc *LNDService) RedeemOnchainFunds(ctx context.Context, toAddress string)
 	return "", nil
 }
 
+func (svc *LNDService) SignMessage(ctx context.Context, message string) (string, error) {
+	resp, err := svc.client.SignMessage(ctx, &lnrpc.SignMessageRequest{Msg: []byte(message)})
+	if err != nil {
+		return "", err
+	}
+
+	return resp.Signature, nil
+}
+
 func (svc *LNDService) GetBalances(ctx context.Context) (*lnclient.BalancesResponse, error) {
 	balance, err := svc.GetBalance(ctx)
 	if err != nil {
