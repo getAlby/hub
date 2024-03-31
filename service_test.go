@@ -1303,6 +1303,9 @@ func (mln *MockLn) CloseChannel(ctx context.Context, closeChannelRequest *lnclie
 func (mln *MockLn) GetNewOnchainAddress(ctx context.Context) (string, error) {
 	return "", nil
 }
+func (mln *MockLn) GetBalances(ctx context.Context) (*lnclient.BalancesResponse, error) {
+	return nil, nil
+}
 func (mln *MockLn) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainBalanceResponse, error) {
 	return nil, nil
 }
