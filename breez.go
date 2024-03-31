@@ -145,7 +145,7 @@ func (bs *BreezService) GetBalance(ctx context.Context) (balance int64, err erro
 	if err != nil {
 		return 0, err
 	}
-	return int64(info.ChannelsBalanceMsat), nil
+	return int64(info.MaxPayableMsat), nil
 }
 
 func (bs *BreezService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *Nip47Transaction, err error) {
@@ -396,4 +396,26 @@ func (bs *BreezService) RedeemOnchainFunds(ctx context.Context, toAddress string
 
 func (bs *BreezService) ResetRouter(ctx context.Context) error {
 	return nil
+}
+
+func (bs *BreezService) GetBalances(ctx context.Context) (*lnclient.BalancesResponse, error) {
+	info, err := bs.svc.NodeInfo()
+	if err != nil {
+		return nil, err
+	}
+
+	return &lnclient.BalancesResponse{
+		Onchain: lnclient.OnchainBalanceResponse{
+			Spendable: int64(info.OnchainBalanceMsat) / 1000,
+			Total:     int64(info.OnchainBalanceMsat+info.PendingOnchainBalanceMsat) / 1000,
+		},
+		Lightning: lnclient.LightningBalanceResponse{
+			TotalSpendable:       int64(info.MaxPayableMsat),
+			TotalReceivable:      int64(info.MaxReceivableMsat),
+			NextMaxSpendable:     int64(info.MaxSinglePaymentAmountMsat),
+			NextMaxReceivable:    int64(info.MaxReceivableMsat),
+			NextMaxSpendableMPP:  int64(info.MaxSinglePaymentAmountMsat),
+			NextMaxReceivableMPP: int64(info.MaxReceivableMsat),
+		},
+	}, nil
 }

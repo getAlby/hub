@@ -14,13 +14,13 @@ import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
 import {
   LSPOption,
-  NewWrappedInvoiceRequest,
-  NewWrappedInvoiceResponse,
+  NewInstantChannelInvoiceRequest,
+  NewInstantChannelInvoiceResponse,
 } from "src/types";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 
-const DEFAULT_LSP: LSPOption = "OLYMPUS";
+const DEFAULT_LSP: LSPOption = "ALBY";
 
 export default function MigrateAlbyFunds() {
   const { data: albyMe } = useAlbyMe();
@@ -39,7 +39,7 @@ export default function MigrateAlbyFunds() {
   const [amount, setAmount] = React.useState(0);
 
   const [wrappedInvoiceResponse, setWrappedInvoiceResponse] = React.useState<
-    NewWrappedInvoiceResponse | undefined
+    NewInstantChannelInvoiceResponse | undefined
   >();
 
   const requestWrappedInvoice = React.useCallback(
@@ -52,12 +52,12 @@ export default function MigrateAlbyFunds() {
         if (!csrf) {
           throw new Error("csrf not loaded");
         }
-        const newJITChannelRequest: NewWrappedInvoiceRequest = {
+        const newJITChannelRequest: NewInstantChannelInvoiceRequest = {
           lsp: DEFAULT_LSP,
           amount,
         };
-        const response = await request<NewWrappedInvoiceResponse>(
-          "/api/wrapped-invoices",
+        const response = await request<NewInstantChannelInvoiceResponse>(
+          "/api/instant-channel-invoices",
           {
             method: "POST",
             headers: {
@@ -67,8 +67,8 @@ export default function MigrateAlbyFunds() {
             body: JSON.stringify(newJITChannelRequest),
           }
         );
-        if (!response?.wrappedInvoice) {
-          throw new Error("No wrapped invoice in response");
+        if (!response?.invoice) {
+          throw new Error("No invoice in response");
         }
         setWrappedInvoiceResponse(response);
       } catch (error) {
@@ -83,7 +83,7 @@ export default function MigrateAlbyFunds() {
       e.preventDefault();
       try {
         if (!wrappedInvoiceResponse) {
-          throw new Error("No wrapped invoice");
+          throw new Error("No invoice");
         }
         if (!csrf) {
           throw new Error("No csrf token");
@@ -96,7 +96,7 @@ export default function MigrateAlbyFunds() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            invoice: wrappedInvoiceResponse.wrappedInvoice,
+            invoice: wrappedInvoiceResponse.invoice,
           }),
         });
       } catch (error) {
@@ -185,7 +185,7 @@ export default function MigrateAlbyFunds() {
         Estimated Channel size: {estimatedChannelSize} sats
       </p>
       <p className="font-bold">
-        Estimated sendable: {amount - wrappedInvoiceResponse.fee} sats
+        Estimated spendable: {amount - wrappedInvoiceResponse.fee} sats
       </p>
       <p className="font-bold">
         Estimated receivable: {LSP_FREE_INCOMING - wrappedInvoiceResponse.fee}{" "}
