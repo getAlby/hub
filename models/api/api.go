@@ -126,6 +126,7 @@ type RedeemOnchainFundsResponse struct {
 }
 
 type OnchainBalanceResponse = lnclient.OnchainBalanceResponse
+type BalancesResponse = lnclient.BalancesResponse
 
 type NewOnchainAddressResponse struct {
 	Address string `json:"address"`
