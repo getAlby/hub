@@ -268,7 +268,10 @@ export default function Channels() {
             )}
             <div className="text-2xl font-bold">
               {onchainBalance && (
-                <>{formatAmount(onchainBalance.spendable * 1000)} sats</>
+                <>
+                  {new Intl.NumberFormat().format(onchainBalance.spendable)}{" "}
+                  sats
+                </>
               )}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -299,7 +302,10 @@ export default function Channels() {
             )}
             {lightningBalance !== undefined && (
               <div className="text-2xl font-bold">
-                {formatAmount(lightningBalance)} sats
+                {new Intl.NumberFormat(undefined, {}).format(
+                  Math.floor(lightningBalance / 1000)
+                )}{" "}
+                sats
               </div>
             )}
           </CardContent>
