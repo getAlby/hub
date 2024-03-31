@@ -9,6 +9,7 @@ import BreezRedeem from "src/components/BreezRedeem";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
 import { useToast } from "src/components/ui/use-toast";
+import { useBalances } from "src/hooks/useBalances";
 import { useCSRF } from "src/hooks/useCSRF";
 import { useInfo } from "src/hooks/useInfo";
 import { handleRequestError } from "src/utils/handleRequestError";
@@ -16,13 +17,18 @@ import { request } from "src/utils/request";
 
 function Wallet() {
   const { data: info } = useInfo();
+  const { data: balances } = useBalances();
   const { data: csrf } = useCSRF();
   const { toast } = useToast();
   const [showBackupPrompt, setShowBackupPrompt] = React.useState(true);
 
-  if (!info) {
+  if (!info || !balances) {
     return <Loading />;
   }
+
+  const isWalletUsable =
+    balances.lightning.totalReceivable > 0 ||
+    balances.lightning.totalSpendable > 0;
 
   async function onSkipBackup(e: React.FormEvent) {
     e.preventDefault();
@@ -80,19 +86,36 @@ function Wallet() {
         </>
       )}
 
-      <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm">
-        <div className="flex flex-col items-center gap-1 text-center">
-          <h3 className="text-2xl font-bold tracking-tight">
-            You have no funds, yet.
-          </h3>
-          <p className="text-sm text-muted-foreground">
-            Topup your wallet and make your first transaction.
-          </p>
-          <Link to="/channels/first">
-            <Button className="mt-4">Get Started</Button>
-          </Link>
+      {!isWalletUsable && (
+        <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm">
+          <div className="flex flex-col items-center gap-1 text-center">
+            <h3 className="text-2xl font-bold tracking-tight">
+              You have no funds, yet.
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Topup your wallet and make your first transaction.
+            </p>
+            <Link to="/channels/first">
+              <Button className="mt-4">Get Started</Button>
+            </Link>
+          </div>
         </div>
-      </div>
+      )}
+
+      {isWalletUsable && (
+        <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm">
+          <div className="flex flex-col items-center gap-1 text-center">
+            <h3 className="text-2xl font-bold tracking-tight">
+              Spendable: {Math.floor(balances.lightning.totalSpendable / 1000)}{" "}
+              sats
+            </h3>
+            <h3 className="text-2xl font-bold tracking-tight">
+              Receivable:{" "}
+              {Math.floor(balances.lightning.totalReceivable / 1000)} sats
+            </h3>
+          </div>
+        </div>
+      )}
     </>
   );
 }
