@@ -17,6 +17,7 @@ import (
 	"github.com/getAlby/nostr-wallet-connect/models/config"
 	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 	"github.com/getAlby/nostr-wallet-connect/models/lsp"
+	"github.com/nbd-wtf/go-nostr"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
 )
@@ -788,8 +789,22 @@ func (ls *LDKService) logLdkEvent(ctx context.Context, event *ldk_node.Event) {
 				"node_type":    config.LDKBackendType,
 			},
 		})
-	}
 
+		go func() {
+			transaction, err := ls.LookupInvoice(ctx, v.PaymentHash)
+			if err != nil {
+				ls.svc.Logger.
+					WithField("paymentHash", v.PaymentHash).
+					WithError(err).
+					Error("Failed to lookup invoice by payment hash")
+			}
+
+			ls.svc.NotifySubscribers(ctx, &Nip47Notification{
+				Result:     transaction,
+				ResultType: NIP_47_PAYMENT_RECEIVED_NOTIFICATION,
+			}, nostr.Tags{})
+		}()
+	}
 }
 
 func (ls *LDKService) GetBalances(ctx context.Context) (*lnclient.BalancesResponse, error) {

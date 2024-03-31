@@ -11,6 +11,7 @@ const (
 	NIP_47_INFO_EVENT_KIND            = 13194
 	NIP_47_REQUEST_KIND               = 23194
 	NIP_47_RESPONSE_KIND              = 23195
+	NIP_47_NOTIFICATION_KIND          = 23196
 	NIP_47_PAY_INVOICE_METHOD         = "pay_invoice"
 	NIP_47_GET_BALANCE_METHOD         = "get_balance"
 	NIP_47_GET_INFO_METHOD            = "get_info"
@@ -30,7 +31,17 @@ const (
 	NIP_47_ERROR_RESTRICTED           = "RESTRICTED"
 	NIP_47_ERROR_BAD_REQUEST          = "BAD_REQUEST"
 	NIP_47_OTHER                      = "OTHER"
-	NIP_47_CAPABILITIES               = "pay_invoice pay_keysend get_balance get_info make_invoice lookup_invoice list_transactions multi_pay_invoice multi_pay_keysend sign_message"
+	NIP_47_CAPABILITIES               = "pay_invoice pay_keysend get_balance get_info make_invoice lookup_invoice list_transactions multi_pay_invoice multi_pay_keysend sign_message subscribe_updates"
+)
+
+// TODO: move other permissions here (e.g. all payment methods use pay_invoice)
+const (
+	// TODO: should there be one permission for each types of subscription?
+	NIP_47_SUBSCRIBE_UPDATES_PERMISSION = "subscribe_updates"
+)
+
+const (
+	NIP_47_PAYMENT_RECEIVED_NOTIFICATION = "payment_received"
 )
 
 const (
@@ -124,9 +135,19 @@ type Nip47Response struct {
 	ResultType string      `json:"result_type"`
 }
 
+type Nip47Notification struct {
+	// TODO: rename Notification, NotificationType
+	Result     interface{} `json:"result,omitempty"`
+	ResultType string      `json:"result_type"`
+}
+
 type Nip47Error struct {
 	Code    string `json:"code,omitempty"`
 	Message string `json:"message,omitempty"`
+}
+
+type Nip47PaymentReceivedNotification struct {
+	Nip47Transaction
 }
 
 type Nip47PayParams struct {

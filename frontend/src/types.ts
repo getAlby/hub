@@ -1,4 +1,5 @@
 import {
+  PopiconsAlarmMinimalLine,
   PopiconsBoltLine,
   PopiconsBookmarkLine,
   PopiconsClipboardTextLine,
@@ -15,6 +16,8 @@ export const NIP_47_MAKE_INVOICE_METHOD = "make_invoice";
 export const NIP_47_LOOKUP_INVOICE_METHOD = "lookup_invoice";
 export const NIP_47_LIST_TRANSACTIONS_METHOD = "list_transactions";
 export const NIP_47_SIGN_MESSAGE_METHOD = "sign_message";
+
+export const NIP_47_SUBSCRIBE_UPDATES_PERMISSION = "subscribe_updates";
 
 export type BackendType = "LND" | "BREEZ" | "GREENLIGHT" | "LDK";
 
@@ -35,8 +38,11 @@ export type BudgetRenewalType =
   | "never"
   | "";
 
+// TODO: move other permissions
+export type PermissionType = RequestMethodType | "subscribe_updates";
+
 export type IconMap = {
-  [key in RequestMethodType]: React.FunctionComponent<
+  [key in PermissionType]: React.FunctionComponent<
     React.SVGProps<SVGSVGElement>
   >;
 };
@@ -49,6 +55,7 @@ export const iconMap: IconMap = {
   [NIP_47_MAKE_INVOICE_METHOD]: PopiconsClipboardTextLine,
   [NIP_47_PAY_INVOICE_METHOD]: PopiconsBoltLine,
   [NIP_47_SIGN_MESSAGE_METHOD]: PopiconsPenToolLine,
+  [NIP_47_SUBSCRIBE_UPDATES_PERMISSION]: PopiconsAlarmMinimalLine,
 };
 
 export const validBudgetRenewals: BudgetRenewalType[] = [
@@ -67,6 +74,12 @@ export const nip47MethodDescriptions: Record<RequestMethodType, string> = {
   [NIP_47_MAKE_INVOICE_METHOD]: "Create invoices",
   [NIP_47_PAY_INVOICE_METHOD]: "Send payments",
   [NIP_47_SIGN_MESSAGE_METHOD]: "Sign messages",
+};
+
+// TODO: merge with nip47MethodDescriptions
+export const nip47PermissionDescriptions: Record<PermissionType, string> = {
+  ...nip47MethodDescriptions,
+  [NIP_47_SUBSCRIBE_UPDATES_PERMISSION]: "Subscribe to updates",
 };
 
 export const expiryOptions: Record<string, number> = {
@@ -100,30 +113,20 @@ export interface App {
   lastEventAt?: string;
   expiresAt?: string;
 
-  requestMethods: string[];
+  // TODO: rename
+  requestMethods: PermissionType[];
   maxAmount: number;
   budgetUsage: number;
   budgetRenewal: string;
 }
 
 export interface AppPermissions {
-  requestMethods: Set<RequestMethodType>;
+  // TODO: rename to permissions
+  requestMethods: Set<PermissionType>;
   maxAmount: number;
   budgetRenewal: BudgetRenewalType;
   expiresAt?: Date;
 }
-
-// export interface AppPermission {
-//   id: number;
-//   appId: number;
-//   app: App;
-//   requestMethod: RequestMethodType;
-//   maxAmount: number;
-//   budgetRenewal: string;
-//   expiresAt: string;
-//   createdAt: string;
-//   updatedAt: string;
-// }
 
 export interface InfoResponse {
   backendType: BackendType;

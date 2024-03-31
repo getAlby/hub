@@ -43,6 +43,7 @@ type Service struct {
 	EventLogger  events.EventLogger
 	ctx          context.Context
 	wg           *sync.WaitGroup
+	sub          *nostr.Subscription // TODO: undo and use channels
 }
 
 // TODO: move to service.go
@@ -264,7 +265,7 @@ func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 	}
 }
 
-func (svc *Service) PublishEvent(ctx context.Context, sub *nostr.Subscription, requestEvent *RequestEvent, resp *nostr.Event, app *App, ss []byte) error {
+func (svc *Service) PublishEvent(ctx context.Context, sub *nostr.Subscription, requestEvent *RequestEvent, resp *nostr.Event, app *App) error {
 	var appId *uint
 	if app != nil {
 		appId = &app.ID
@@ -386,7 +387,7 @@ func (svc *Service) HandleEvent(ctx context.Context, sub *nostr.Subscription, ev
 				"eventKind":           event.Kind,
 			}).Errorf("Failed to process event: %v", err)
 		}
-		svc.PublishEvent(ctx, sub, &requestEvent, resp, nil, ss)
+		svc.PublishEvent(ctx, sub, &requestEvent, resp, nil)
 		return
 	}
 
@@ -412,7 +413,7 @@ func (svc *Service) HandleEvent(ctx context.Context, sub *nostr.Subscription, ev
 				"eventKind":           event.Kind,
 			}).Errorf("Failed to process event: %v", err)
 		}
-		svc.PublishEvent(ctx, sub, &requestEvent, resp, &app, ss)
+		svc.PublishEvent(ctx, sub, &requestEvent, resp, &app)
 
 		requestEvent.State = REQUEST_EVENT_STATE_HANDLER_ERROR
 		err = svc.db.Save(&requestEvent).Error
@@ -444,7 +445,7 @@ func (svc *Service) HandleEvent(ctx context.Context, sub *nostr.Subscription, ev
 				"eventKind":           event.Kind,
 			}).Errorf("Failed to process event: %v", err)
 		}
-		svc.PublishEvent(ctx, sub, &requestEvent, resp, &app, ss)
+		svc.PublishEvent(ctx, sub, &requestEvent, resp, &app)
 
 		requestEvent.State = REQUEST_EVENT_STATE_HANDLER_ERROR
 		err = svc.db.Save(&requestEvent).Error
@@ -533,7 +534,7 @@ func (svc *Service) HandleEvent(ctx context.Context, sub *nostr.Subscription, ev
 			}).Errorf("Failed to create response: %v", err)
 			requestEvent.State = REQUEST_EVENT_STATE_HANDLER_ERROR
 		} else {
-			err = svc.PublishEvent(ctx, sub, &requestEvent, resp, &app, ss)
+			err = svc.PublishEvent(ctx, sub, &requestEvent, resp, &app)
 			if err != nil {
 				svc.Logger.WithFields(logrus.Fields{
 					"requestEventNostrId": event.ID,
@@ -760,4 +761,84 @@ func (svc *Service) PublishNip47Info(ctx context.Context, relay *nostr.Relay) er
 		return fmt.Errorf("nostr publish not successful: %s error: %s", status, err)
 	}
 	return nil
+}
+
+func (svc *Service) NotifySubscribers(ctx context.Context, notification *Nip47Notification, tags nostr.Tags) {
+	apps := []App{}
+
+	// TODO: join apps and permissions
+	svc.db.Find(&apps)
+
+	for _, app := range apps {
+		hasPermission, _, _ := svc.hasPermission(&app, NIP_47_SUBSCRIBE_UPDATES_PERMISSION, 0)
+		if !hasPermission {
+			continue
+		}
+		svc.NotifySubscriber(ctx, &app, notification, tags)
+	}
+}
+
+func (svc *Service) NotifySubscriber(ctx context.Context, app *App, notification *Nip47Notification, tags nostr.Tags) {
+	svc.Logger.WithFields(logrus.Fields{
+		"notification": notification,
+		"appId":        app.ID,
+	}).Info("Notifying subscriber")
+
+	ss, err := nip04.ComputeSharedSecret(app.NostrPubkey, svc.cfg.NostrSecretKey)
+	if err != nil {
+		svc.Logger.WithFields(logrus.Fields{
+			"notification": notification,
+			"appId":        app.ID,
+		}).WithError(err).Error("Failed to compute shared secret")
+		return
+	}
+
+	payloadBytes, err := json.Marshal(notification)
+	if err != nil {
+		svc.Logger.WithFields(logrus.Fields{
+			"notification": notification,
+			"appId":        app.ID,
+		}).WithError(err).Error("Failed to stringify notification")
+		return
+	}
+	msg, err := nip04.Encrypt(string(payloadBytes), ss)
+	if err != nil {
+		svc.Logger.WithFields(logrus.Fields{
+			"notification": notification,
+			"appId":        app.ID,
+		}).WithError(err).Error("Failed to encrypt notification payload")
+		return
+	}
+
+	event := &nostr.Event{
+		PubKey:    svc.cfg.NostrPublicKey,
+		CreatedAt: nostr.Now(),
+		Kind:      NIP_47_NOTIFICATION_KIND,
+		Tags:      tags,
+		Content:   msg,
+	}
+	err = event.Sign(svc.cfg.NostrSecretKey)
+	if err != nil {
+		svc.Logger.WithFields(logrus.Fields{
+			"notification": notification,
+			"appId":        app.ID,
+		}).WithError(err).Error("Failed to sign event")
+		return
+	}
+
+	status, err := svc.sub.Relay.Publish(ctx, *event)
+	if err != nil {
+		svc.Logger.WithFields(logrus.Fields{
+			"notification": notification,
+			"appId":        app.ID,
+			"status":       status,
+		}).WithError(err).Error("Failed to publish notification")
+		return
+	}
+	svc.Logger.WithFields(logrus.Fields{
+		"notification": notification,
+		"appId":        app.ID,
+		"status":       status,
+	}).Info("Published notification event")
+
 }

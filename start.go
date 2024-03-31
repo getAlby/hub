@@ -81,7 +81,10 @@ func (svc *Service) StartNostr(encryptionKey string) error {
 				svc.Logger.WithError(err).Error("Failed to subscribe to events")
 				continue
 			}
+			// TODO: undo and use channels
+			svc.sub = sub
 			err = svc.StartSubscription(svc.ctx, sub)
+			svc.sub = nil
 			if err != nil {
 				//err being non-nil means that we have an error on the websocket error channel. In this case we just try to reconnect.
 				svc.Logger.WithError(err).Error("Got an error from the relay while listening to subscription.")

@@ -268,6 +268,7 @@ func (api *API) GetApp(userApp *App) *models.App {
 }
 
 func (api *API) ListApps() ([]models.App, error) {
+	// TODO: join apps and permissions
 	apps := []App{}
 	api.svc.db.Find(&apps)
 
