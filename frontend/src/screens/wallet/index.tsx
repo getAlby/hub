@@ -4,8 +4,10 @@ import { Link } from "react-router-dom";
 import Loading from "src/components/Loading";
 
 import {
-  ArrowDownRightSquare,
-  ArrowUpRightSquare,
+  ArrowDownToDot,
+  ArrowUpFromDot,
+  CopyIcon,
+  Dot,
   ShieldCheckIcon,
   Sparkles,
 } from "lucide-react";
@@ -14,15 +16,19 @@ import BreezRedeem from "src/components/BreezRedeem";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "src/components/ui/tooltip";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "src/components/ui/dropdown-menu";
 import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
 import { useCSRF } from "src/hooks/useCSRF";
 import { useInfo } from "src/hooks/useInfo";
+import { copyToClipboard } from "src/lib/clipboard";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 
@@ -78,38 +84,76 @@ function Wallet() {
         description="Send and receive transactions"
         contentRight={
           isWalletUsable && (
-            <div className="text-sm text-muted-foreground flex flex-row gap-5 items-center">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <div className="flex flex-row gap-1 items-center">
-                      <ArrowDownRightSquare className="w-4 h-4 " />
-                      {new Intl.NumberFormat().format(
-                        Math.floor(balances.lightning.totalReceivable / 1000)
-                      )}{" "}
-                      sats
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>Incoming liquidity</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              <div className="flex flex-row gap-1 items-center">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <div className="flex flex-row gap-1 items-center">
-                        <ArrowUpRightSquare className="w-4 h-4 " />
-                        {new Intl.NumberFormat().format(
-                          Math.floor(balances.lightning.totalSpendable / 1000)
-                        )}{" "}
-                        sats
+            <>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="default">
+                    <Dot className="mr-2 h-4 w-4 text-primary" />
+                    Connected
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-64">
+                  <DropdownMenuItem>
+                    <div className="flex flex-row gap-10 items-center w-full">
+                      <div className="whitespace-nowrap flex flex-row items-center gap-2">
+                        Node
                       </div>
-                    </TooltipTrigger>
-                    <TooltipContent>Outgoing liquidity</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            </div>
+                      <div className="overflow-hidden text-ellipsis">
+                        {/* TODO: Load node ID from server */}
+                        029ca15ad2ea3077f5f0524c4c9bc266854c14b9fc81b9cc3d6b48e2460af13f65
+                      </div>
+                      <CopyIcon
+                        className="shrink-0 w-4 h-4"
+                        onClick={() => {
+                          copyToClipboard(
+                            "029ca15ad2ea3077f5f0524c4c9bc266854c14b9fc81b9cc3d6b48e2460af13f65"
+                          );
+                          toast({ title: "Copied to clipboard." });
+                        }}
+                      />
+                    </div>
+                  </DropdownMenuItem>
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuGroup>
+                      <DropdownMenuLabel>Liquidity</DropdownMenuLabel>
+                      <DropdownMenuItem>
+                        <div className="flex flex-row gap-3 items-center justify-between w-full">
+                          <div className="grid grid-flow-col gap-2 items-center">
+                            <ArrowDownToDot className="w-4 h-4 " />
+                            Incoming
+                          </div>
+                          <div className="text-muted-foreground">
+                            {new Intl.NumberFormat().format(
+                              Math.floor(
+                                balances.lightning.totalReceivable / 1000
+                              )
+                            )}{" "}
+                            sats
+                          </div>
+                        </div>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <div className="flex flex-row gap-3 items-center justify-between w-full">
+                          <div className="grid grid-flow-col gap-2 items-center">
+                            <ArrowUpFromDot className="w-4 h-4 " />
+                            Outgoing
+                          </div>
+                          <div className="text-muted-foreground">
+                            {new Intl.NumberFormat().format(
+                              Math.floor(
+                                balances.lightning.totalSpendable / 1000
+                              )
+                            )}{" "}
+                            sats
+                          </div>
+                        </div>
+                      </DropdownMenuItem>
+                    </DropdownMenuGroup>
+                  </>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
           )
         }
       />

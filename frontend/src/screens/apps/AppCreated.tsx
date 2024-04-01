@@ -5,13 +5,15 @@ import { Link, Navigate, useLocation } from "react-router-dom";
 import QRCode from "src/components/QRCode";
 import { NostrWalletConnectIcon } from "src/components/icons/NostrWalletConnectIcon";
 import { Button } from "src/components/ui/button";
+import { useToast } from "src/components/ui/use-toast";
+import { copyToClipboard } from "src/lib/clipboard";
 import { CreateAppResponse } from "src/types";
 
 export default function AppCreated() {
   const { state } = useLocation();
+  const { toast } = useToast();
   const createAppResponse = state as CreateAppResponse;
 
-  const [copied, setCopied] = useState(false);
   const [isPopupVisible, setPopupVisible] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
 
@@ -55,26 +57,9 @@ export default function AppCreated() {
 
   const pairingUri = createAppResponse.pairingUri;
 
-  const copyToClipboard = () => {
-    if (navigator.clipboard && window.isSecureContext) {
-      navigator.clipboard.writeText(pairingUri);
-    } else {
-      // Fallback for older browsers
-      const textArea = document.createElement("textarea");
-      textArea.value = pairingUri;
-      textArea.style.position = "absolute";
-      textArea.style.opacity = "0";
-      document.body.appendChild(textArea);
-      textArea.select();
-      new Promise((res, rej) => {
-        document.execCommand("copy") ? res(pairingUri) : rej();
-        textArea.remove();
-      });
-    }
-    setCopied(true);
-    setTimeout(() => {
-      setCopied(false);
-    }, 2000);
+  const copy = () => {
+    copyToClipboard(pairingUri);
+    toast({ title: "Copied to clipboard." });
   };
 
   const togglePopup = () => {
@@ -106,9 +91,9 @@ export default function AppCreated() {
         <div className="dark:text-white text-sm text-center mt-8 mb-1"></div>
         <div className="flex flex-col gap-3">
           <div className=" text-center text-sm">Manually pair app ↓</div>
-          <Button variant="secondary" onClick={copyToClipboard}>
+          <Button variant="secondary" onClick={copy}>
             <CopyIcon className="inline w-6 mr-2" />
-            {copied ? "Copied to clipboard!" : "Copy pairing secret"}
+            Copy pairing secret
           </Button>
           <Button variant="secondary" onClick={togglePopup}>
             <EyeIcon className="inline w-6 mr-2" />
