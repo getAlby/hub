@@ -20,6 +20,7 @@ type LightningClientWrapper interface {
 	DecodeBolt11(ctx context.Context, bolt11 string, options ...grpc.CallOption) (*lnrpc.PayReq, error)
 	IsIdentityPubkey(pubkey string) (isOurPubkey bool)
 	GetMainPubkey() (pubkey string)
+	SignMessage(ctx context.Context, req *lnrpc.SignMessageRequest, options ...grpc.CallOption) (*lnrpc.SignMessageResponse, error)
 }
 
 type SubscribeInvoicesWrapper interface {

@@ -1,24 +1,24 @@
-import React, { useState } from "react";
 import {
   PopiconsLifebuoyLine,
   PopiconsShieldLine,
   PopiconsTriangleExclamationLine,
 } from "@popicons/react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Input from "src/components/Input";
 
-import MnemonicInputs from "src/components/MnemonicInputs";
 import ConnectButton from "src/components/ConnectButton";
 import Container from "src/components/Container";
-import Input from "src/components/Input";
-import PasswordViewAdornment from "src/components/PasswordAdornment";
-import { aesGcmDecrypt } from "src/utils/aesgcm";
-import { useEncryptedMnemonic } from "src/hooks/useEncryptedMnemonic";
 import Loading from "src/components/Loading";
+import MnemonicInputs from "src/components/MnemonicInputs";
+import PasswordViewAdornment from "src/components/PasswordAdornment";
 import toast from "src/components/Toast";
+import { useCSRF } from "src/hooks/useCSRF";
+import { useEncryptedMnemonic } from "src/hooks/useEncryptedMnemonic";
+import { useInfo } from "src/hooks/useInfo";
+import { aesGcmDecrypt } from "src/utils/aesgcm";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
-import { useCSRF } from "src/hooks/useCSRF";
-import { useInfo } from "src/hooks/useInfo";
 
 export function BackupMnemonic() {
   const navigate = useNavigate();

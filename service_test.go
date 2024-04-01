@@ -1303,6 +1303,9 @@ func (mln *MockLn) CloseChannel(ctx context.Context, closeChannelRequest *lnclie
 func (mln *MockLn) GetNewOnchainAddress(ctx context.Context) (string, error) {
 	return "", nil
 }
+func (mln *MockLn) GetBalances(ctx context.Context) (*lnclient.BalancesResponse, error) {
+	return nil, nil
+}
 func (mln *MockLn) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainBalanceResponse, error) {
 	return nil, nil
 }
@@ -1311,4 +1314,7 @@ func (mln *MockLn) RedeemOnchainFunds(ctx context.Context, toAddress string) (tx
 }
 func (mln *MockLn) ResetRouter(ctx context.Context) error {
 	return nil
+}
+func (mln *MockLn) SignMessage(ctx context.Context, message string) (string, error) {
+	return "", nil
 }

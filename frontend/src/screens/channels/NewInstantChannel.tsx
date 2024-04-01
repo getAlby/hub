@@ -7,8 +7,8 @@ import { useChannels } from "src/hooks/useChannels";
 import {
   LSPOption,
   LSP_OPTIONS,
-  NewWrappedInvoiceRequest,
-  NewWrappedInvoiceResponse,
+  NewInstantChannelInvoiceRequest,
+  NewInstantChannelInvoiceResponse,
 } from "src/types";
 import { request } from "src/utils/request";
 init({
@@ -24,7 +24,7 @@ export default function NewInstantChannel() {
     React.useState<number | undefined>();
   const [isRequestingInvoice, setRequestingInvoice] = React.useState(false);
   const [wrappedInvoiceResponse, setWrappedInvoiceResponse] = React.useState<
-    NewWrappedInvoiceResponse | undefined
+    NewInstantChannelInvoiceResponse | undefined
   >();
   const amountSats = React.useMemo(() => {
     try {
@@ -60,12 +60,12 @@ export default function NewInstantChannel() {
           throw new Error("csrf not loaded");
         }
         setRequestingInvoice(true);
-        const newJITChannelRequest: NewWrappedInvoiceRequest = {
+        const newJITChannelRequest: NewInstantChannelInvoiceRequest = {
           lsp,
           amount: amountSats,
         };
-        const response = await request<NewWrappedInvoiceResponse>(
-          "/api/wrapped-invoices",
+        const response = await request<NewInstantChannelInvoiceResponse>(
+          "/api/instant-channel-invoices",
           {
             method: "POST",
             headers: {
@@ -75,8 +75,8 @@ export default function NewInstantChannel() {
             body: JSON.stringify(newJITChannelRequest),
           }
         );
-        if (!response?.wrappedInvoice) {
-          throw new Error("No wrapped invoice in response");
+        if (!response?.invoice) {
+          throw new Error("No invoice in response");
         }
         setWrappedInvoiceResponse(response);
       } catch (error) {
@@ -140,7 +140,7 @@ export default function NewInstantChannel() {
             Fee included: {wrappedInvoiceResponse.fee} sats
           </p>
           <Payment
-            invoice={wrappedInvoiceResponse.wrappedInvoice}
+            invoice={wrappedInvoiceResponse.invoice}
             payment={
               hasOpenedChannel ? { preimage: "dummy preimage" } : undefined
             }

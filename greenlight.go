@@ -499,6 +499,19 @@ func (gs *GreenlightService) RedeemOnchainFunds(ctx context.Context, toAddress s
 	return txId.Txid, nil
 }
 
+func (gs *GreenlightService) SignMessage(ctx context.Context, message string) (string, error) {
+	response, err := gs.client.SignMessage(glalby.SignMessageRequest{
+		Message: message,
+	})
+
+	if err != nil {
+		gs.svc.Logger.Errorf("SignMessage failed: %v", err)
+		return "", err
+	}
+
+	return response.Zbase, nil
+}
+
 func (gs *GreenlightService) greenlightInvoiceToTransaction(invoice *glalby.ListInvoicesInvoice) (*Nip47Transaction, error) {
 	description := ""
 	descriptionHash := ""
@@ -555,4 +568,55 @@ func (gs *GreenlightService) greenlightInvoiceToTransaction(invoice *glalby.List
 
 func (gs *GreenlightService) ResetRouter(ctx context.Context) error {
 	return nil
+}
+
+func (gs *GreenlightService) GetBalances(ctx context.Context) (*lnclient.BalancesResponse, error) {
+	onchainBalance, err := gs.GetOnchainBalance(ctx)
+	if err != nil {
+		gs.svc.Logger.WithError(err).Error("Failed to retrieve onchain balance")
+		return nil, err
+	}
+
+	response, err := gs.client.ListFunds(glalby.ListFundsRequest{})
+
+	if err != nil {
+		gs.svc.Logger.Errorf("Failed to list funds: %v", err)
+		return nil, err
+	}
+
+	var totalReceivable int64 = 0
+	var totalSpendable int64 = 0
+	var nextMaxReceivable int64 = 0
+	var nextMaxSpendable int64 = 0
+	var nextMaxReceivableMPP int64 = 0
+	var nextMaxSpendableMPP int64 = 0
+	for _, channel := range response.Channels {
+		if channel.OurAmountMsat != nil && channel.AmountMsat != nil && channel.Connected {
+
+			channelReceivable := int64(*channel.AmountMsat - *channel.OurAmountMsat)
+			channelSpendable := int64(*channel.OurAmountMsat)
+
+			nextMaxReceivable = max(nextMaxReceivable, channelReceivable)
+			nextMaxSpendable = max(nextMaxSpendable, channelSpendable)
+
+			nextMaxReceivableMPP += channelReceivable
+			nextMaxSpendableMPP += channelSpendable
+
+			totalReceivable += channelReceivable
+			totalSpendable += channelSpendable
+		}
+	}
+
+	return &lnclient.BalancesResponse{
+		Onchain: *onchainBalance,
+		Lightning: lnclient.LightningBalanceResponse{
+			TotalSpendable:       totalSpendable,
+			TotalReceivable:      totalReceivable,
+			NextMaxSpendable:     nextMaxSpendable,
+			NextMaxReceivable:    nextMaxReceivable,
+			NextMaxSpendableMPP:  nextMaxSpendableMPP,
+			NextMaxReceivableMPP: nextMaxReceivableMPP,
+		},
+	}, nil
+
 }
