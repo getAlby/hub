@@ -106,10 +106,6 @@ type OpenChannelRequest = lnclient.OpenChannelRequest
 type OpenChannelResponse = lnclient.OpenChannelResponse
 type CloseChannelResponse = lnclient.CloseChannelResponse
 
-type CloseChannelRequest struct {
-	NodeId string `json:"nodeId"`
-}
-
 type NewInstantChannelInvoiceRequest struct {
 	Amount uint64 `json:"amount"`
 	LSP    string `json:"lsp"`

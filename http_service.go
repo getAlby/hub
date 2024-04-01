@@ -379,13 +379,6 @@ func (httpSvc *HttpService) openChannelHandler(c echo.Context) error {
 func (httpSvc *HttpService) closeChannelHandler(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	var closeChannelRequest api.CloseChannelRequest
-	if err := c.Bind(&closeChannelRequest); err != nil {
-		return c.JSON(http.StatusBadRequest, models.ErrorResponse{
-			Message: fmt.Sprintf("Bad request: %s", err.Error()),
-		})
-	}
-
 	closeChannelResponse, err := httpSvc.api.CloseChannel(ctx, c.Param("nodeId"), c.Param("channelId"))
 
 	if err != nil {

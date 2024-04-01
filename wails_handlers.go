@@ -77,16 +77,6 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		channelId := nodeChannelMatch[2]
 		switch method {
 		case "DELETE":
-			closeChannelRequest := &api.CloseChannelRequest{}
-			err := json.Unmarshal([]byte(body), closeChannelRequest)
-			if err != nil {
-				app.svc.Logger.WithFields(logrus.Fields{
-					"route":  route,
-					"method": method,
-					"body":   body,
-				}).Errorf("Failed to decode request to wails router: %v", err)
-				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
-			}
 			closeChannelResponse, err := app.api.CloseChannel(ctx, nodeId, channelId)
 			if err != nil {
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
