@@ -43,15 +43,19 @@ export default function TwoColumnFullScreenLayout() {
             <h1 className="text-lg font-medium">Alby Hub</h1>
             <ModeToggle />
           </div>
-          <div className="flex-1 flex pt-4">
-            <div
-              className="w-full h-full bg-[] opacity-50 grayscale bg-cover bg-no-repeat bg-top"
-              style={{ backgroundImage: `url(${quote.imageUrl})` }}
-            ></div>
+        </div>
+        <div className="flex flex-row gap-5">
+          <div
+            className="w-40 h-40 shrink-0 bg-[] grayscale bg-cover bg-no-repeat bg-top rounded"
+            style={{ backgroundImage: `url(${quote.imageUrl})` }}
+          ></div>
+          <div>
+            <p className="text-muted-foreground text-lg mb-2">
+              {quote.content}
+            </p>
+            <p className="text-background text-sm">{quote.author}</p>
           </div>
         </div>
-        <p className="text-muted-foreground text-lg">{quote.content}</p>
-        <p className="text-background text-sm">{quote.author}</p>
       </div>
       <div className="flex items-center justify-center py-12 text-foreground">
         <Outlet />
