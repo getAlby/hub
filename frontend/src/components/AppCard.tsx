@@ -1,3 +1,5 @@
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
 import gradientAvatar from "gradient-avatar";
 import { Link } from "react-router-dom";
 import {
@@ -6,9 +8,10 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
-
 import { Progress } from "src/components/ui/progress";
 import { App, NIP_47_PAY_INVOICE_METHOD } from "src/types";
+
+dayjs.extend(relativeTime);
 
 type Props = {
   app: App;
@@ -94,11 +97,15 @@ export default function AppCard({ app }: Props) {
               </div>
               <div className="flex flex-row justify-between">
                 <div>Expires on</div>
-                <div>{app.expiresAt ?? "Never"}</div>
+                <div>
+                  {app.expiresAt ? dayjs(app.expiresAt).fromNow() : "Never"}
+                </div>
               </div>
               <div className="flex flex-row justify-between">
                 <div>Last used</div>
-                <div>{app.lastEventAt ?? "Never"}</div>
+                <div>
+                  {app.lastEventAt ? dayjs(app.lastEventAt).fromNow() : "Never"}
+                </div>
               </div>
             </div>
           </CardContent>
