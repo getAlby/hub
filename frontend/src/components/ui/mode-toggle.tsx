@@ -10,11 +10,10 @@ export function ModeToggle() {
       <div className="flex items-center space-x-2 text-muted-foreground">
         <Moon className="w-4 h-4" />
         <Switch
-          onClick={() => {
-            setTheme(
-              theme === "system" ? "dark" : theme === "dark" ? "light" : "dark"
-            );
+          onCheckedChange={() => {
+            setTheme(theme === "dark" ? "light" : "dark");
           }}
+          checked={theme === "light"}
         />
         <Sun className="w-4 h-4" />
       </div>
