@@ -3,11 +3,22 @@ import { Link } from "react-router-dom";
 
 import Loading from "src/components/Loading";
 
-import { ShieldCheckIcon } from "lucide-react";
+import {
+  ArrowDownRightSquare,
+  ArrowUpRightSquare,
+  ShieldCheckIcon,
+  Sparkles,
+} from "lucide-react";
 import AppHeader from "src/components/AppHeader";
 import BreezRedeem from "src/components/BreezRedeem";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "src/components/ui/tooltip";
 import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
 import { useCSRF } from "src/hooks/useCSRF";
@@ -61,7 +72,47 @@ function Wallet() {
 
   return (
     <>
-      <AppHeader title="Wallet" description="Send and receive transactions" />
+      {isWalletUsable}
+      <AppHeader
+        title="Wallet"
+        description="Send and receive transactions"
+        contentRight={
+          isWalletUsable && (
+            <div className="text-sm text-muted-foreground flex flex-row gap-5 items-center">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <div className="flex flex-row gap-1 items-center">
+                      <ArrowDownRightSquare className="w-4 h-4 " />
+                      {new Intl.NumberFormat().format(
+                        Math.floor(balances.lightning.totalReceivable / 1000)
+                      )}{" "}
+                      sats
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>Incoming liquidity</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <div className="flex flex-row gap-1 items-center">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <div className="flex flex-row gap-1 items-center">
+                        <ArrowUpRightSquare className="w-4 h-4 " />
+                        {new Intl.NumberFormat().format(
+                          Math.floor(balances.lightning.totalSpendable / 1000)
+                        )}{" "}
+                        sats
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>Outgoing liquidity</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            </div>
+          )
+        }
+      />
 
       <BreezRedeem />
 
@@ -105,20 +156,16 @@ function Wallet() {
       {isWalletUsable && (
         <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm">
           <div className="flex flex-col items-center gap-1 text-center">
+            <Sparkles className="h-20 w-20" />
             <h3 className="text-2xl font-bold tracking-tight">
-              Spendable:{" "}
-              {new Intl.NumberFormat().format(
-                Math.floor(balances.lightning.totalSpendable / 1000)
-              )}{" "}
-              sats
+              You are ready to get started
             </h3>
-            <h3 className="text-2xl font-bold tracking-tight">
-              Receivable:{" "}
-              {new Intl.NumberFormat().format(
-                Math.floor(balances.lightning.totalReceivable / 1000)
-              )}{" "}
-              sats
-            </h3>
+            <p className="text-sm text-muted-foreground">
+              Discover the ecosystem of apps
+            </p>
+            <Link to="/appstore">
+              <Button className="mt-4">Get Started</Button>
+            </Link>
           </div>
         </div>
       )}
