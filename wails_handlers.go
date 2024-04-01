@@ -65,15 +65,16 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		}
 	}
 
-	channelRegex := regexp.MustCompile(
-		`/api/channels/([0-9a-f]+)`,
+	nodeChannelRegex := regexp.MustCompile(
+		`/api/nodes/([^/]+)/channels/([^/]+)`,
 	)
 
-	channelMatch := channelRegex.FindStringSubmatch(route)
+	nodeChannelMatch := nodeChannelRegex.FindStringSubmatch(route)
 
 	switch {
-	case len(channelMatch) > 1:
-		channelId := channelMatch[1]
+	case len(nodeChannelMatch) > 1:
+		nodeId := nodeChannelMatch[1]
+		channelId := nodeChannelMatch[2]
 		switch method {
 		case "DELETE":
 			closeChannelRequest := &api.CloseChannelRequest{}
@@ -86,7 +87,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 				}).Errorf("Failed to decode request to wails router: %v", err)
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 			}
-			closeChannelResponse, err := app.api.CloseChannel(ctx, channelId, closeChannelRequest.NodeId)
+			closeChannelResponse, err := app.api.CloseChannel(ctx, nodeId, channelId)
 			if err != nil {
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 			}

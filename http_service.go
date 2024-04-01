@@ -79,10 +79,10 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	// TODO: below could be supported by NIP-47
 	e.GET("/api/channels", httpSvc.channelsListHandler, authMiddleware)
 	e.POST("/api/channels", httpSvc.openChannelHandler, authMiddleware)
-	e.DELETE("/api/channels/:id", httpSvc.closeChannelHandler, authMiddleware)
 	// TODO: review naming
 	e.POST("/api/instant-channel-invoices", httpSvc.newInstantChannelInvoiceHandler, authMiddleware)
 	e.GET("/api/node/connection-info", httpSvc.nodeConnectionInfoHandler, authMiddleware)
+	e.DELETE("/api/nodes/:nodeId/channels/:channelId", httpSvc.closeChannelHandler, authMiddleware)
 	e.POST("/api/peers", httpSvc.connectPeerHandler, authMiddleware)
 	e.POST("/api/wallet/new-address", httpSvc.newOnchainAddressHandler, authMiddleware)
 	e.POST("/api/wallet/redeem-onchain-funds", httpSvc.redeemOnchainFundsHandler, authMiddleware)
@@ -386,7 +386,7 @@ func (httpSvc *HttpService) closeChannelHandler(c echo.Context) error {
 		})
 	}
 
-	closeChannelResponse, err := httpSvc.api.CloseChannel(ctx, c.Param("id"), closeChannelRequest.NodeId)
+	closeChannelResponse, err := httpSvc.api.CloseChannel(ctx, c.Param("nodeId"), c.Param("channelId"))
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
