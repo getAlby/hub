@@ -12,10 +12,16 @@ function AppStore() {
         contentRight={
           <>
             <Button variant="secondary">How to connect to apps?</Button>
-            <Button variant="outline">
-              <CirclePlus className="h-4 w-4 mr-2" />
-              Submit your app
-            </Button>
+            <a
+              href="https://form.jotform.com/232284367043051"
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              <Button variant="outline">
+                <CirclePlus className="h-4 w-4 mr-2" />
+                Submit your app
+              </Button>
+            </a>
           </>
         }
       />

@@ -1,11 +1,11 @@
 import {
   Cable,
   CircleHelp,
-  LayoutGrid,
   MessageCircle,
   SendToBack,
   Settings,
   ShieldCheck,
+  Store,
   Wallet,
 } from "lucide-react";
 import { ModeToggle } from "src/components/ui/mode-toggle";
@@ -46,7 +46,7 @@ export default function AppLayout() {
                 Apps
               </MenuItem>
               <MenuItem to="/appstore">
-                <LayoutGrid className="h-4 w-4" />
+                <Store className="h-4 w-4" />
                 Store
               </MenuItem>
               <MenuItem to="/permissions" disabled>
