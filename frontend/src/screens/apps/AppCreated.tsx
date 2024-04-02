@@ -1,3 +1,4 @@
+import { DialogTrigger } from "@radix-ui/react-dialog";
 import { CopyIcon, EyeIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Link, Navigate, useLocation } from "react-router-dom";
@@ -6,11 +7,11 @@ import QRCode from "src/components/QRCode";
 import { NostrWalletConnectIcon } from "src/components/icons/NostrWalletConnectIcon";
 import { Button } from "src/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardTitle,
-} from "src/components/ui/card";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "src/components/ui/dialog";
 import { useToast } from "src/components/ui/use-toast";
 import { copyToClipboard } from "src/lib/clipboard";
 import { CreateAppResponse } from "src/types";
@@ -101,43 +102,30 @@ export default function AppCreated() {
             <CopyIcon className="inline w-6 mr-2" />
             Copy pairing secret
           </Button>
-          <Button variant="secondary" onClick={togglePopup}>
-            <EyeIcon className="inline w-6 mr-2" />
-            QR Code
-          </Button>
-        </div>
-      </div>
-      <div
-        className={`fixed inset-0 items-center justify-center ${
-          isPopupVisible ? "flex" : "hidden"
-        }`}
-      >
-        <div
-          onClick={togglePopup}
-          className="fixed inset-0 bg-gray-900 opacity-50"
-        ></div>
-        <Card className="relative">
-          <CardContent className="pt-6">
-            <CardTitle className="mb-4 font-semibold text-lg lg:text-xl font-headline">
-              Scan QR Code in the app to pair
-            </CardTitle>
-            <CardDescription>
-              <a
-                href={pairingUri}
-                target="_blank"
-                className="block border-4 border-purple-600 rounded-lg p-4 lg:p-6"
-              >
-                <QRCode value={pairingUri} size={256} />
-              </a>
-              <Button
-                onClick={togglePopup}
-                className="w-full inline-flex font-semibold items-center justify-center px-3 py-2 mt-4"
-              >
-                Close
+
+          <Dialog>
+            <DialogTrigger>
+              <Button variant="secondary">
+                <EyeIcon className="inline w-6 mr-2" />
+                QR Code
               </Button>
-            </CardDescription>
-          </CardContent>
-        </Card>
+            </DialogTrigger>
+            <DialogContent className="flex flex-col items-center pt-6">
+              <DialogTitle className="mb-4 font-semibold text-lg lg:text-xl font-headline">
+                Scan QR Code in the app to pair
+              </DialogTitle>
+              <DialogDescription className="flex">
+                <a
+                  href={pairingUri}
+                  target="_blank"
+                  className="block border-4 border-purple-600 rounded-lg lg:p-2"
+                >
+                  <QRCode value={pairingUri} size={256} />
+                </a>
+              </DialogDescription>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
     </div>
   );

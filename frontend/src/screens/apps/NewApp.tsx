@@ -20,6 +20,7 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 import { Input } from "src/components/ui/input";
+import { Label } from "src/components/ui/label";
 import { useToast } from "src/components/ui/use-toast";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request"; // build the project for this to appear
@@ -127,9 +128,9 @@ const NewApp = () => {
         <CardContent>
           {!nameParam && (
             <>
-              <label htmlFor="name" className="block font-medium">
+              <Label htmlFor="name" className="block font-medium">
                 Name
-              </label>
+              </Label>
               <Input
                 readOnly={!!nameParam}
                 type="text"
