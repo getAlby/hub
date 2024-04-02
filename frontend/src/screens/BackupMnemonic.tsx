@@ -149,7 +149,7 @@ export function BackupMnemonic() {
 
           <MnemonicInputs mnemonic={decryptedMnemonic} readOnly={true}>
             <div className="flex items-center mt-5">
-              <input
+              <Input
                 id="checkbox"
                 type="checkbox"
                 onChange={(event) => {
@@ -157,13 +157,13 @@ export function BackupMnemonic() {
                 }}
                 checked={backedUp}
               />
-              <label
+              <Label
                 htmlFor="checkbox"
                 className="ms-2 text-sm font-medium text-primary"
               >
                 I've backed my recovery phrase to my wallet in a private and
                 secure place
-              </label>
+              </Label>
             </div>
           </MnemonicInputs>
           <div className="flex justify-center">
