@@ -1,6 +1,4 @@
-import { PopiconsEyeLine } from "@popicons/react";
-import { EyeCrossedLine } from "src/components/icons/EyeCrossedLine";
-
+import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 type Props = {
@@ -29,9 +27,9 @@ export default function PasswordViewAdornment({ onChange, isRevealed }: Props) {
       }}
     >
       {_isRevealed ? (
-        <PopiconsEyeLine className="h-5 w-5 text-gray-600" />
+        <EyeIcon className="h-5 w-5 text-gray-600" />
       ) : (
-        <EyeCrossedLine className="h-5 w-5 text-gray-600" />
+        <EyeOffIcon className="h-5 w-5 text-gray-600" />
       )}
     </button>
   );

@@ -18,7 +18,6 @@ import { request } from "src/utils/request"; // build the project for this to ap
 import DeleteConfirmationPopup from "src/components/DeleteConfirmationPopup";
 import Loading from "src/components/Loading";
 import Permissions from "src/components/Permissions";
-import toast from "src/components/Toast";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -26,10 +25,12 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { useToast } from "src/components/ui/use-toast";
 
 function ShowApp() {
   const { data: info } = useInfo();
   const { data: csrf } = useCSRF();
+  const { toast } = useToast();
   const { pubkey } = useParams() as { pubkey: string };
   const { data: app, mutate: refetchApp, error } = useApp(pubkey);
   const navigate = useNavigate();
@@ -88,9 +89,9 @@ function ShowApp() {
 
       await refetchApp();
       setEditMode(false);
-      toast.success("Permissions updated!");
+      toast({ title: "Permissions updated!" });
     } catch (error) {
-      handleRequestError("Failed to update permissions", error);
+      handleRequestError(toast, "Failed to update permissions", error);
     }
   };
 

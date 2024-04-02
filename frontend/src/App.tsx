@@ -7,8 +7,6 @@ import { HomeRedirect } from "src/components/redirects/HomeRedirect";
 import { SetupRedirect } from "src/components/redirects/SetupRedirect";
 import { StartRedirect } from "src/components/redirects/StartRedirect";
 import { ThemeProvider } from "src/components/ui/theme-provider";
-import { Toaster } from "src/components/ui/toaster";
-import About from "src/screens/About";
 import { BackupMnemonic } from "src/screens/BackupMnemonic";
 import NotFound from "src/screens/NotFound";
 import Start from "src/screens/Start";
@@ -38,12 +36,13 @@ import Wallet from "src/screens/wallet";
 import { usePosthog } from "./hooks/usePosthog";
 
 import TwoColumnFullScreenLayout from "src/components/layouts/TwoColumnFullScreenLayout";
+import { Toaster } from "src/components/ui/toaster";
 
 function App() {
   usePosthog();
   return (
     <>
-      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+      <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
         <Toaster />
         <HashRouter>
           <Routes>
@@ -103,7 +102,6 @@ function App() {
                 <Route path="finish" element={<SetupFinish />} />
               </Route>
             </Route>
-            <Route path="about" element={<About />} />
             <Route path="/*" element={<NotFound />} />
           </Routes>
         </HashRouter>{" "}

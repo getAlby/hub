@@ -1,16 +1,28 @@
 import {
   Cable,
   CircleHelp,
-  LayoutGrid,
   MessageCircle,
+  SendToBack,
   Settings,
   ShieldCheck,
+  Store,
   Wallet,
 } from "lucide-react";
 import { ModeToggle } from "src/components/ui/mode-toggle";
 
+import { CaretUpIcon } from "@radix-ui/react-icons";
 import { Link, NavLink, Outlet } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "src/components/ui/avatar";
+import { Button } from "src/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "src/components/ui/dropdown-menu";
 import { cn } from "src/lib/utils";
 
 export default function AppLayout() {
@@ -34,7 +46,7 @@ export default function AppLayout() {
                 Apps
               </MenuItem>
               <MenuItem to="/appstore">
-                <LayoutGrid className="h-4 w-4" />
+                <Store className="h-4 w-4" />
                 Store
               </MenuItem>
               <MenuItem to="/permissions" disabled>
@@ -45,7 +57,14 @@ export default function AppLayout() {
           </div>
           <div className="flex flex-col">
             <nav className="grid items-start p-2 text-sm font-medium lg:px-4">
-              <ModeToggle />
+              <div className="px-3 py-2 mb-5">
+                <ModeToggle />
+              </div>
+              <MenuItem to="/channels">
+                <SendToBack className="h-4 w-4" />
+                Channels
+              </MenuItem>
+
               <MenuItem to="/settings">
                 <Settings className="h-4 w-4" />
                 Settings
@@ -59,20 +78,43 @@ export default function AppLayout() {
                 Leave Feedback
               </MenuItem>
             </nav>
-            <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6 gap-3 border-t border-border">
-              <Avatar className="h-8 w-8">
-                <AvatarImage
-                  src="https://github.com/shadcn.png"
-                  alt="@satoshi"
-                />
-                <AvatarFallback>SN</AvatarFallback>
-              </Avatar>
-              <Link
-                to="#"
-                className="flex items-center gap-2 font-semibold text-lg cursor-not-allowed"
-              >
-                Satoshi
-              </Link>
+            <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6 gap-3 border-t border-border justify-between">
+              <div className="grid grid-flow-col gap-2">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage
+                    src="https://github.com/shadcn.png"
+                    alt="@satoshi"
+                  />
+                  <AvatarFallback>SN</AvatarFallback>
+                </Avatar>
+                <Link
+                  to="#"
+                  className="flex items-center gap-2 font-semibold text-lg cursor-not-allowed"
+                >
+                  Satoshi
+                </Link>
+              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <CaretUpIcon />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56">
+                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuGroup>
+                    <DropdownMenuItem disabled>Profile</DropdownMenuItem>
+                    <DropdownMenuItem disabled>Billing</DropdownMenuItem>
+                    <DropdownMenuItem disabled>Settings</DropdownMenuItem>
+                    <DropdownMenuItem disabled>
+                      Keyboard shortcuts
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem disabled>Log out</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>
