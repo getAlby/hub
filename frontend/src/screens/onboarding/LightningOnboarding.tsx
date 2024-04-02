@@ -1,7 +1,7 @@
-import { Bird, Crown, Landmark, Rss } from "lucide-react";
+import { Landmark, Rss, Send } from "lucide-react";
 import { Link } from "react-router-dom";
 import Loading from "src/components/Loading";
-import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
+import { Button } from "src/components/ui/button";
 import {
   Card,
   CardContent,
@@ -24,25 +24,22 @@ export default function LightningOnboarding() {
   }
 
   return (
-    <div className="flex flex-col gap-4 p-4">
-      <Alert>
-        <Crown className="h-4 w-4" />
-        <AlertTitle>Your Alby has grown up now</AlertTitle>
-        <AlertDescription>
-          You're running your own node! Now let's connect to the lightning
-          network.
-        </AlertDescription>
-      </Alert>
-
-      <div className="grid sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+    <div className="flex flex-col gap-5 p-5">
+      <div className="grid gap-2 text-center">
+        <h1 className="text-2xl font-semibold">Connect to Lightning</h1>
+        <p className="text-muted-foreground">
+          Choose how you want to connect to the lightning network.
+        </p>
+      </div>
+      <div className="grid sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 items-stretch">
         {albyMe && albyBalance && albyBalance.sats >= MIN_ALBY_BALANCE && (
           <>
-            <Link to="migrate-alby">
-              <Card>
+            <Link to="migrate-alby" className="h-full">
+              <Card className="h-full">
                 <CardHeader>
                   <CardTitle>
-                    <div className="flex flex-row items-center gap-2">
-                      <Bird className="w-10 h-10" />
+                    <div className="flex flex-row items-center gap-3">
+                      <Send className="w-6 h-6" />
                       Migrate
                     </div>
                   </CardTitle>
@@ -51,8 +48,8 @@ export default function LightningOnboarding() {
                     Alby on the lightning network.
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  You have {albyBalance.sats} sats to migrate
+                <CardContent className="flex flex-col items-center">
+                  <Button>Migrate {albyBalance.sats} sats</Button>
                 </CardContent>
               </Card>
             </Link>
@@ -62,8 +59,8 @@ export default function LightningOnboarding() {
           <Card className="h-full">
             <CardHeader>
               <CardTitle>
-                <div className="flex flex-row items-center gap-2">
-                  <Rss className="w-10 h-10" />
+                <div className="flex flex-row items-center gap-3">
+                  <Rss className="w-6 h-6" />
                   Open Channel
                 </div>
               </CardTitle>
@@ -72,6 +69,9 @@ export default function LightningOnboarding() {
                 lightning network.
               </CardDescription>
             </CardHeader>
+            <CardContent className="flex flex-col items-center">
+              <Button variant="secondary">Open Channel</Button>
+            </CardContent>
           </Card>
         </Link>
         <Card className="cursor-not-allowed">
@@ -87,6 +87,11 @@ export default function LightningOnboarding() {
               Hub.
             </CardDescription>
           </CardHeader>
+          <CardContent className="flex flex-col items-center">
+            <Button variant="secondary" disabled>
+              Choose Mint
+            </Button>
+          </CardContent>
         </Card>
       </div>
     </div>
