@@ -1,6 +1,6 @@
 import { DialogTrigger } from "@radix-ui/react-dialog";
 import { CopyIcon, EyeIcon } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect } from "react";
 import { Link, Navigate, useLocation } from "react-router-dom";
 
 import QRCode from "src/components/QRCode";
@@ -21,9 +21,6 @@ export default function AppCreated() {
   const { toast } = useToast();
   const createAppResponse = state as CreateAppResponse;
 
-  const [isPopupVisible, setPopupVisible] = useState(false);
-  const popupRef = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
     // dispatch a success event which can be listened to by the opener or by the app that embedded the webview
     // this gives those apps the chance to know the user has enabled the connection
@@ -42,22 +39,6 @@ export default function AppCreated() {
     }
   }, []);
 
-  // TODO: use a modal library instead of doing this manually
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        popupRef.current &&
-        !popupRef.current.contains(event.target as Node)
-      ) {
-        setPopupVisible(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
   if (!createAppResponse) {
     return <Navigate to="/apps/new" />;
   }
@@ -67,10 +48,6 @@ export default function AppCreated() {
   const copy = () => {
     copyToClipboard(pairingUri);
     toast({ title: "Copied to clipboard." });
-  };
-
-  const togglePopup = () => {
-    setPopupVisible(!isPopupVisible);
   };
 
   return (
