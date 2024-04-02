@@ -1,7 +1,8 @@
 import Alert from "src/components/Alert";
 import Loading from "src/components/Loading";
+import { ONCHAIN_DUST_SATS } from "src/constants";
+import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
-import { useOnchainBalance } from "src/hooks/useOnchainBalance";
 import { useRedeemOnchainFunds } from "src/hooks/useRedeemOnchainFunds";
 
 export default function BreezRedeem() {
@@ -13,11 +14,11 @@ export default function BreezRedeem() {
 }
 
 function BreezRedeemInternal() {
-  const { data: onchainBalance } = useOnchainBalance();
+  const { data: balances } = useBalances();
 
   const redeemOnchainFunds = useRedeemOnchainFunds();
 
-  if (!onchainBalance || onchainBalance.spendable <= 0) {
+  if (!balances || balances.onchain.spendable <= ONCHAIN_DUST_SATS) {
     return null;
   }
 
@@ -26,7 +27,7 @@ function BreezRedeemInternal() {
       <Alert type="info">
         <div className="flex justify-between items-center text-sm">
           One of your Breez channels was closed and you have{" "}
-          {onchainBalance.spendable} sats to redeem.{" "}
+          {balances.onchain.spendable} sats to redeem.{" "}
           <button
             className="flex justify-center items-center gap-2 bg-purple-100 p-2 text-purple-500 rounded-md"
             onClick={redeemOnchainFunds.redeemFunds}

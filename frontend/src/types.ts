@@ -255,3 +255,17 @@ export type SuggestedApp = {
   description: string;
   logo?: string;
 };
+
+export type LightningBalanceResponse = {
+  totalSpendable: number;
+  totalReceivable: number;
+  nextMaxSpendable: number;
+  nextMaxReceivable: number;
+  nextMaxSpendableMPP: number;
+  nextMaxReceivableMPP: number;
+};
+
+export type BalancesResponse = {
+  onchain: OnchainBalanceResponse;
+  lightning: LightningBalanceResponse;
+};

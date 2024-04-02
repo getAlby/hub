@@ -1,27 +1,28 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useChannels } from "src/hooks/useChannels";
-import { useInfo } from "src/hooks/useInfo";
-import { useOnchainBalance } from "src/hooks/useOnchainBalance";
-import { CloseChannelRequest, CloseChannelResponse, Node } from "src/types";
-import { request } from "src/utils/request";
-import { useCSRF } from "../../hooks/useCSRF.ts";
-import { useRedeemOnchainFunds } from "src/hooks/useRedeemOnchainFunds.ts";
 import Loading from "src/components/Loading.tsx";
 import {
   Card,
+  CardContent,
   CardHeader,
   CardTitle,
-  CardContent,
 } from "src/components/ui/card.tsx";
+import { useBalances } from "src/hooks/useBalances.ts";
+import { useChannels } from "src/hooks/useChannels";
+import { useInfo } from "src/hooks/useInfo";
+import { useRedeemOnchainFunds } from "src/hooks/useRedeemOnchainFunds.ts";
+import { CloseChannelRequest, CloseChannelResponse, Node } from "src/types";
+import { request } from "src/utils/request";
+import { useCSRF } from "../../hooks/useCSRF.ts";
 
-import { Cable, Bitcoin, Zap } from "lucide-react";
+import { Bitcoin, Cable, Zap } from "lucide-react";
 import AppHeader from "src/components/AppHeader.tsx";
 import { Button } from "src/components/ui/button.tsx";
+import { ONCHAIN_DUST_SATS } from "src/constants.ts";
 
 export default function Channels() {
   const { data: channels, mutate: reloadChannels } = useChannels();
-  const { data: onchainBalance } = useOnchainBalance();
+  const { data: balances } = useBalances();
   const [nodes, setNodes] = React.useState<Node[]>([]);
   const { data: info, mutate: reloadInfo } = useInfo();
   const { data: csrf } = useCSRF();
@@ -198,7 +199,7 @@ export default function Channels() {
             <Bitcoin className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            {!onchainBalance && (
+            {!balances && (
               <div>
                 <div className="animate-pulse d-inline ">
                   <div className="h-2.5 bg-gray-200 rounded-full dark:bg-gray-700 w-12 my-2"></div>
@@ -206,16 +207,17 @@ export default function Channels() {
               </div>
             )}
             <div className="text-2xl font-bold">
-              {onchainBalance && (
-                <>{formatAmount(onchainBalance.spendable * 1000)} sats</>
+              {balances && (
+                <>{formatAmount(balances.onchain.spendable * 1000)} sats</>
               )}
             </div>
             <p className="text-xs text-muted-foreground">
-              {onchainBalance &&
-                onchainBalance.spendable !== onchainBalance.total && (
+              {balances &&
+                balances.onchain.spendable !== balances.onchain.total && (
                   <span className="text-xs animate-pulse">
                     &nbsp;(
-                    {onchainBalance.total - onchainBalance.spendable} incoming)
+                    {balances.onchain.total - balances.onchain.spendable}{" "}
+                    incoming)
                   </span>
                 )}
             </p>
@@ -268,7 +270,7 @@ export default function Channels() {
           </button>
         )}
         {(info?.backendType === "LDK" || info?.backendType === "GREENLIGHT") &&
-          (onchainBalance?.spendable || 0) > 0 && (
+          (balances?.onchain.spendable || 0) > ONCHAIN_DUST_SATS && (
             <button
               onClick={redeemOnchainFunds.redeemFunds}
               disabled={redeemOnchainFunds.isLoading}
