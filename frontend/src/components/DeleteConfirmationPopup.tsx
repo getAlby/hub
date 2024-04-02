@@ -1,4 +1,4 @@
-import { PopiconsTriangleExclamationLine } from "@popicons/react";
+import { CircleAlert } from "lucide-react";
 
 type Props = {
   appName: string;
@@ -11,7 +11,7 @@ function DeleteConfirmationPopup({ appName, onConfirm, onCancel }: Props) {
     <div className="fixed inset-0 bg-black bg-opacity-50 z-10 flex justify-center items-center">
       <div className="rounded-xl mx-2 w-full max-w-lg bg-white border flex flex-col justify-between">
         <div className="p-4 h-full border-b flex items-center">
-          <PopiconsTriangleExclamationLine className="w-20 h-20 text-red-300" />
+          <CircleAlert className="w-20 h-20 text-red-300" />
           <div className="ml-4">
             <h2 className="font-medium text-gray-800 mb-2">
               Disconnecting <span className="font-bold">{appName}</span>
