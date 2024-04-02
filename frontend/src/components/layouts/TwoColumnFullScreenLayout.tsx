@@ -49,7 +49,7 @@ export default function TwoColumnFullScreenLayout() {
             className="w-40 h-40 shrink-0 bg-[] grayscale bg-cover bg-no-repeat bg-top rounded"
             style={{ backgroundImage: `url(${quote.imageUrl})` }}
           ></div>
-          <div>
+          <div className="flex flex-col justify-center">
             <p className="text-muted-foreground text-lg mb-2">
               {quote.content}
             </p>
