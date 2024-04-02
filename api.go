@@ -56,7 +56,6 @@ func (api *API) CreateApp(createAppRequest *models.CreateAppRequest) (*models.Cr
 	maxAmount := createAppRequest.MaxAmount
 	budgetRenewal := createAppRequest.BudgetRenewal
 
-	var expiresAt *time.Time
 	expiresAt, err := api.parseExpiresAt(createAppRequest.ExpiresAt)
 	if err != nil {
 		return nil, fmt.Errorf("invalid expiresAt: %v", err)
@@ -212,9 +211,7 @@ func (api *API) GetApp(userApp *App) *models.App {
 
 	requestMethods := []string{}
 	for _, appPerm := range appPermissions {
-		if !appPerm.ExpiresAt.IsZero() {
-			expiresAt = appPerm.ExpiresAt
-		}
+		expiresAt = appPerm.ExpiresAt
 		if appPerm.RequestMethod == NIP_47_PAY_INVOICE_METHOD {
 			//find the pay_invoice-specific permissions
 			paySpecificPermission = appPerm
