@@ -40,8 +40,12 @@ export function SetupFinish() {
     (async () => {
       const succeeded = await finishSetup(csrf, nodeInfo, unlockPassword);
       if (succeeded) {
-        await refetchInfo();
-        navigate("/");
+        const info = await refetchInfo();
+        if (!info) {
+          throw new Error("Failed to re-fetch info");
+        }
+        // FIXME: this won't work for Wails
+        window.location.href = info?.albyAuthUrl;
       } else {
         setConnectionError(true);
       }

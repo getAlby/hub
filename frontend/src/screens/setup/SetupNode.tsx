@@ -1,7 +1,5 @@
-import * as bip39 from "@scure/bip39";
-import { wordlist } from "@scure/bip39/wordlists/english";
 import React from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Container from "src/components/Container";
 import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
@@ -23,22 +21,16 @@ export function SetupNode() {
     setupStore.nodeInfo.backendType || "BREEZ"
   );
   const navigate = useNavigate();
-  const location = useLocation();
-
-  const params = new URLSearchParams(location.search);
-  const isNew = params.get("wallet") === "new";
 
   async function handleSubmit(data: object) {
     setupStore.updateNodeInfo({
       backendType,
-      ...(isNew && { mnemonic: bip39.generateMnemonic(wordlist, 128) }),
       ...data,
     });
     navigate(
-      !isNew &&
-        (backendType === "BREEZ" ||
-          backendType === "GREENLIGHT" ||
-          backendType === "LDK")
+      backendType === "BREEZ" ||
+        backendType === "GREENLIGHT" ||
+        backendType === "LDK"
         ? `/setup/import-mnemonic`
         : `/setup/finish`
     );
@@ -69,7 +61,7 @@ export function SetupNode() {
               <SelectItem value="LDK">LDK</SelectItem>
               <SelectItem value="BREEZ">Breez</SelectItem>
               <SelectItem value="GREENLIGHT">Greenlight</SelectItem>
-              {!isNew && <SelectItem value="LND">LND</SelectItem>}
+              <SelectItem value="LND">LND</SelectItem>
             </SelectContent>
           </Select>
           {backendType === "BREEZ" && <BreezForm handleSubmit={handleSubmit} />}

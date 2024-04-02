@@ -142,7 +142,7 @@ export default function MigrateAlbyFunds() {
         navigate("/");
       })();
     }
-  }, [hasOpenedChannel, navigate, refetchInfo]);
+  }, [hasOpenedChannel, navigate, refetchInfo, toast]);
 
   if (!albyMe || !albyBalance || !channels || !wrappedInvoiceResponse) {
     return <Loading />;

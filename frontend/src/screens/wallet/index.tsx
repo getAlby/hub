@@ -78,7 +78,6 @@ function Wallet() {
 
   return (
     <>
-      {isWalletUsable}
       <AppHeader
         title="Wallet"
         description="Send and receive transactions"

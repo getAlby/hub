@@ -759,6 +759,14 @@ func (api *API) GetInfo() (*models.InfoResponse, error) {
 	info.BackendType = backendType
 	info.AlbyAuthUrl = api.svc.AlbyOAuthSvc.GetAuthUrl()
 	info.AlbyUserIdentifier = api.svc.AlbyOAuthSvc.GetUserIdentifier()
+	if api.svc.lnClient != nil {
+		channels, err := api.ListChannels(api.svc.ctx)
+		if err != nil {
+			api.svc.Logger.WithError(err).WithFields(logrus.Fields{}).Error("Failed to fetch channels")
+			return nil, err
+		}
+		info.OnboardingCompleted = len(channels) > 0
+	}
 
 	if info.BackendType != config.LNDBackendType {
 		nextBackupReminder, _ := api.svc.cfg.Get("NextBackupReminder", "")

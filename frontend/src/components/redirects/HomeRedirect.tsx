@@ -1,8 +1,8 @@
-import { useInfo } from "src/hooks/useInfo";
-import { useLocation, useNavigate } from "react-router-dom";
 import React from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import Loading from "src/components/Loading";
 import { localStorageKeys } from "src/constants";
+import { useInfo } from "src/hooks/useInfo";
 
 export function HomeRedirect() {
   const { data: info } = useInfo();
@@ -16,8 +16,14 @@ export function HomeRedirect() {
     let to: string | undefined;
     if (info.setupCompleted && info.running) {
       if (info.unlocked) {
-        const returnTo = window.localStorage.getItem(localStorageKeys.returnTo);
-        to = returnTo || "/wallet";
+        if (info.onboardingCompleted) {
+          const returnTo = window.localStorage.getItem(
+            localStorageKeys.returnTo
+          );
+          to = returnTo || "/wallet";
+        } else {
+          to = "/onboarding/lightning";
+        }
       } else {
         to = "/unlock";
       }

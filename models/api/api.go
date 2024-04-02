@@ -88,13 +88,14 @@ type User struct {
 }
 
 type InfoResponse struct {
-	BackendType        string `json:"backendType"`
-	SetupCompleted     bool   `json:"setupCompleted"`
-	Running            bool   `json:"running"`
-	Unlocked           bool   `json:"unlocked"`
-	AlbyAuthUrl        string `json:"albyAuthUrl"`
-	ShowBackupReminder bool   `json:"showBackupReminder"`
-	AlbyUserIdentifier string `json:"albyUserIdentifier"`
+	BackendType         string `json:"backendType"`
+	SetupCompleted      bool   `json:"setupCompleted"`
+	OnboardingCompleted bool   `json:"onboardingCompleted"`
+	Running             bool   `json:"running"`
+	Unlocked            bool   `json:"unlocked"`
+	AlbyAuthUrl         string `json:"albyAuthUrl"`
+	ShowBackupReminder  bool   `json:"showBackupReminder"`
+	AlbyUserIdentifier  string `json:"albyUserIdentifier"`
 }
 
 type EncryptedMnemonicResponse struct {

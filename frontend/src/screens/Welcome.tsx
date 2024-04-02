@@ -27,13 +27,21 @@ export function Welcome() {
             in-app payments.
           </p>
         </div>
-        <Link to="/setup" className="w-full">
+        <Link to="/setup/password" className="w-full">
           <Button size="lg" className="w-full">
             Continue
           </Button>
         </Link>
+        {!info?.backendType && (
+          <Link to="/setup/password?wallet=import">
+            <Button variant="link" size="sm">
+              Import Existing Wallet
+            </Button>
+          </Link>
+        )}
         <div className="text-sm text-muted-foreground">
-          By clicking "Continue", you agree to our <br />
+          By clicking "Continue" or "Import Existing Wallet", you agree to our{" "}
+          <br />
           <Link to="#" className="underline">
             Terms of Service
           </Link>{" "}

@@ -127,6 +127,7 @@ export interface AppPermissions {
 export interface InfoResponse {
   backendType: BackendType;
   setupCompleted: boolean;
+  onboardingCompleted: boolean;
   running: boolean;
   unlocked: boolean;
   albyAuthUrl: string;
