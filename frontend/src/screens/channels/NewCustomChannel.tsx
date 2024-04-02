@@ -1,5 +1,6 @@
 import React from "react";
 import { useSearchParams } from "react-router-dom";
+import AppHeader from "src/components/AppHeader";
 import { Card, CardContent } from "src/components/ui/card";
 import { Checkbox } from "src/components/ui/checkbox";
 import { Input } from "src/components/ui/input";
@@ -140,23 +141,20 @@ export default function NewCustomChannel() {
     }
   }
 
+  const description = nodeDetails?.alias ? (
+    <>
+      Open a channel with{` `}
+      <span style={{ color: `${nodeDetails.color}` }}>⬤</span>
+      {` `}
+      {`${nodeDetails.alias}(${nodeDetails.active_channel_count} channels)`}
+    </>
+  ) : (
+    "Connect to other nodes on the lightning network"
+  );
+
   return (
     <div>
-      <h2 className="font-bold text-2xl mt-5">Open a channel</h2>
-
-      <p className="text-muted-foreground mb-5">
-        {nodeDetails?.alias && (
-          <>
-            Open a channel with {` `}
-            <span style={{ color: `${nodeDetails.color}` }}>⬤</span>
-            {` `}
-            {nodeDetails.alias}({nodeDetails.active_channel_count} channels)
-          </>
-        )}
-        {!nodeDetails?.alias &&
-          "Connect to other nodes on the lightning network"}
-      </p>
-
+      <AppHeader title="Open a channel" description={description}></AppHeader>
       <Card className="p-4">
         <CardContent>
           {nodeDetails && (

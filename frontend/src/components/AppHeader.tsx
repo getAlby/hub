@@ -1,6 +1,8 @@
+import { ReactElement } from "react";
+
 type Props = {
   title: string;
-  description: string;
+  description: string | ReactElement;
   contentRight?: React.ReactNode;
 };
 
