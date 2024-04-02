@@ -5,6 +5,12 @@ import { Link, Navigate, useLocation } from "react-router-dom";
 import QRCode from "src/components/QRCode";
 import { NostrWalletConnectIcon } from "src/components/icons/NostrWalletConnectIcon";
 import { Button } from "src/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardTitle,
+} from "src/components/ui/card";
 import { useToast } from "src/components/ui/use-toast";
 import { copyToClipboard } from "src/lib/clipboard";
 import { CreateAppResponse } from "src/types";
@@ -88,7 +94,7 @@ export default function AppCreated() {
           Only connect with apps you trust!
         </div>
 
-        <div className="dark:text-white text-sm text-center mt-8 mb-1"></div>
+        <div className="text-sm text-center mt-8 mb-1"></div>
         <div className="flex flex-col gap-3">
           <div className=" text-center text-sm">Manually pair app ↓</div>
           <Button variant="secondary" onClick={copy}>
@@ -110,24 +116,28 @@ export default function AppCreated() {
           onClick={togglePopup}
           className="fixed inset-0 bg-gray-900 opacity-50"
         ></div>
-        <div className="bg-white dark:bg-surface-02dp p-4 lg:px-6 rounded shadow relative">
-          <h2 className="mb-4 font-semibold text-lg lg:text-xl font-headline dark:text-white">
-            Scan QR Code in the app to pair
-          </h2>
-          <a
-            href={pairingUri}
-            target="_blank"
-            className="block border-4 border-purple-600 rounded-lg p-4 lg:p-6"
-          >
-            <QRCode value={pairingUri} size={256} />
-          </a>
-          <button
-            onClick={togglePopup}
-            className="w-full inline-flex font-semibold items-center justify-center px-3 py-2 cursor-pointer duration-150 transition bg-white text-gray-700 dark:bg-surface-02dp dark:text-neutral-200 dark:border-neutral-800 hover:bg-gray-50 dark:hover:bg-surface-16dp bg-origin-border shadow rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-purple-700 mt-4"
-          >
-            Close
-          </button>
-        </div>
+        <Card className="relative">
+          <CardContent className="pt-6">
+            <CardTitle className="mb-4 font-semibold text-lg lg:text-xl font-headline">
+              Scan QR Code in the app to pair
+            </CardTitle>
+            <CardDescription>
+              <a
+                href={pairingUri}
+                target="_blank"
+                className="block border-4 border-purple-600 rounded-lg p-4 lg:p-6"
+              >
+                <QRCode value={pairingUri} size={256} />
+              </a>
+              <Button
+                onClick={togglePopup}
+                className="w-full inline-flex font-semibold items-center justify-center px-3 py-2 mt-4"
+              >
+                Close
+              </Button>
+            </CardDescription>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

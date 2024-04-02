@@ -127,10 +127,7 @@ const NewApp = () => {
         <CardContent>
           {!nameParam && (
             <>
-              <label
-                htmlFor="name"
-                className="block font-medium text-gray-900 dark:text-white"
-              >
+              <label htmlFor="name" className="block font-medium">
                 Name
               </label>
               <Input
@@ -143,17 +140,17 @@ const NewApp = () => {
                 required
                 autoComplete="off"
               />
-              <p className="mt-1 mb-6 text-xs text-gray-500 dark:text-gray-400">
+              <p className="mt-1 mb-6 text-xs text-muted-foreground">
                 Name of the app or purpose of the connection
               </p>
             </>
           )}
-          <div className="flex justify-between items-center mb-2 text-gray-800 dark:text-white">
+          <div className="flex justify-between items-center mb-2">
             <p className="text-lg font-medium">Authorize the app to:</p>
             {!reqMethodsParam && !isEditing && (
               <PencilIcon
                 onClick={() => setEditing(true)}
-                className="text-gray-800 dark:text-gray-300 cursor-pointer w-6"
+                className="cursor-pointer w-6"
               />
             )}
           </div>

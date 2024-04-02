@@ -124,7 +124,7 @@ function ShowApp() {
               )}
               <h2
                 title={app ? app.name : "Fetching app..."}
-                className="text-xl font-semibold dark:text-white overflow-hidden text-ellipsis whitespace-nowrap my-2"
+                className="text-xl font-semibold overflow-hidden text-ellipsis whitespace-nowrap my-2"
               >
                 {app ? app.name : "Fetching app..."}
               </h2>
@@ -141,28 +141,22 @@ function ShowApp() {
               <table>
                 <tbody>
                   <tr>
-                    <td className="align-top w-32 font-medium dark:text-white">
-                      Public Key
-                    </td>
-                    <td className="text-gray-600 dark:text-neutral-400 break-all">
+                    <td className="align-top w-32 font-medium">Public Key</td>
+                    <td className="text-muted-foreground break-all">
                       {app.nostrPubkey}
                     </td>
                   </tr>
                   <tr>
-                    <td className="align-top font-medium dark:text-white">
-                      Last used
-                    </td>
-                    <td className="text-gray-600 dark:text-neutral-400">
+                    <td className="align-top font-medium">Last used</td>
+                    <td className="text-gray-600 text-muted-foreground">
                       {app.lastEventAt
                         ? new Date(app.lastEventAt).toString()
                         : "Never"}
                     </td>
                   </tr>
                   <tr>
-                    <td className="align-top font-medium dark:text-white">
-                      Expires At
-                    </td>
-                    <td className="text-gray-600 dark:text-neutral-400">
+                    <td className="align-top font-medium">Expires At</td>
+                    <td className="text-muted-foreground">
                       {app.expiresAt &&
                       new Date(app.expiresAt).getFullYear() !== 1
                         ? new Date(app.expiresAt).toString()

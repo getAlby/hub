@@ -1,12 +1,21 @@
 import React, { useEffect, useState } from "react";
+import { Card, CardContent } from "src/components/ui/card";
+import { Input } from "src/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "src/components/ui/select";
 import {
   AppPermissions,
+  BudgetRenewalType,
   RequestMethodType,
   budgetOptions,
   expiryOptions,
-  nip47MethodDescriptions,
   iconMap,
-  BudgetRenewalType,
+  nip47MethodDescriptions,
   validBudgetRenewals,
 } from "src/types";
 
@@ -62,11 +71,8 @@ const Permissions: React.FC<PermissionsProps> = ({
     handlePermissionsChange({ maxAmount: amount });
   };
 
-  const handleBudgetRenewalChange = (
-    event: React.ChangeEvent<HTMLSelectElement>
-  ) => {
-    const budgetRenewal = event.target.value as BudgetRenewalType;
-    handlePermissionsChange({ budgetRenewal });
+  const handleBudgetRenewalChange = (value: string) => {
+    handlePermissionsChange({ budgetRenewal: value as BudgetRenewalType });
   };
 
   const handleDaysChange = (days: number) => {
@@ -111,24 +117,22 @@ const Permissions: React.FC<PermissionsProps> = ({
                   <div className="flex items-center mb-2">
                     {RequestMethodIcon && (
                       <RequestMethodIcon
-                        className={`text-gray-800 dark:text-gray-300 w-4 mr-3 ${
+                        className={`text-muted-foreground w-4 mr-3 ${
                           isEditing ? "hidden" : ""
                         }`}
                       />
                     )}
-                    <input
+                    <Input
                       type="checkbox"
                       id={rm}
                       value={rm}
                       checked={permissions.requestMethods.has(rm)}
                       onChange={handleRequestMethodChange}
-                      className={`${
-                        !isEditing ? "hidden" : ""
-                      } w-4 h-4 mr-4 text-indigo-500 bg-gray-50 border border-gray-300 rounded focus:ring-indigo-500 dark:focus:ring-indigo-400 dark:ring-offset-gray-800 focus:ring-2 dark:bg-surface-00dp dark:border-gray-700 cursor-pointer`}
+                      className={`${!isEditing ? "hidden" : ""} w-4 h-4 mr-4`}
                     />
                     <label
                       htmlFor={rm}
-                      className={`text-gray-800 dark:text-gray-300 ${
+                      className={`text-primary ${
                         isEditing && "cursor-pointer"
                       }`}
                     >
@@ -137,7 +141,7 @@ const Permissions: React.FC<PermissionsProps> = ({
                   </div>
                   {rm == "pay_invoice" && (
                     <div
-                      className={`pt-2 pb-2 pl-5 ml-2.5 border-l-2 border-l-gray-200 dark:border-l-gray-400 ${
+                      className={`pt-2 pb-2 pl-5 ml-2.5 border-l-2 border-l-primary ${
                         !permissions.requestMethods.has(rm)
                           ? isEditing
                             ? "pointer-events-none opacity-30"
@@ -147,61 +151,74 @@ const Permissions: React.FC<PermissionsProps> = ({
                     >
                       {isEditing ? (
                         <>
-                          <p className="text-gray-600 dark:text-gray-300 mb-3 text-sm capitalize">
-                            Budget Renewal:
+                          <div className="flex flex-row gap-2 items-center text-muted-foreground mb-3 text-sm capitalize">
+                            <p> Budget Renewal:</p>
                             {!isEditing ? (
                               permissions.budgetRenewal
                             ) : (
-                              <select
-                                id="budgetRenewal"
+                              <Select
                                 value={permissions.budgetRenewal}
-                                onChange={handleBudgetRenewalChange}
-                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 ml-2 p-2.5 pr-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-indigo-400 dark:focus:border-indigo-400"
+                                onValueChange={handleBudgetRenewalChange}
                                 disabled={!isEditing}
                               >
-                                {validBudgetRenewals.map((renewalOption) => (
-                                  <option
-                                    key={renewalOption || "never"}
-                                    value={renewalOption || "never"}
-                                  >
-                                    {renewalOption
-                                      ? renewalOption.charAt(0).toUpperCase() +
-                                        renewalOption.slice(1)
-                                      : "Never"}
-                                  </option>
-                                ))}
-                              </select>
+                                <SelectTrigger className="w-[150px]">
+                                  <SelectValue
+                                    placeholder={permissions.budgetRenewal}
+                                  />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {validBudgetRenewals.map((renewalOption) => (
+                                    <SelectItem
+                                      key={renewalOption || "never"}
+                                      value={renewalOption || "never"}
+                                    >
+                                      {renewalOption
+                                        ? renewalOption
+                                            .charAt(0)
+                                            .toUpperCase() +
+                                          renewalOption.slice(1)
+                                        : "Never"}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                             )}
-                          </p>
+                          </div>
                           <div
                             id="budget-allowance-limits"
-                            className="grid grid-cols-6 grid-rows-2 md:grid-rows-1 md:grid-cols-6 gap-2 text-xs text-gray-800 dark:text-neutral-200"
+                            className="grid grid-cols-6 grid-rows-2 md:grid-rows-1 md:grid-cols-6 gap-2 text-xs"
                           >
                             {Object.keys(budgetOptions).map((budget) => {
                               return (
-                                <div
-                                  key={budget}
-                                  onClick={() =>
-                                    handleMaxAmountChange(budgetOptions[budget])
-                                  }
-                                  className={`col-span-2 md:col-span-1 cursor-pointer rounded border-2 ${
-                                    permissions.maxAmount ==
-                                    budgetOptions[budget]
-                                      ? "border-indigo-500 dark:border-indigo-400 text-indigo-500 bg-indigo-100 dark:bg-indigo-900"
-                                      : "border-gray-200 dark:border-gray-400"
-                                  } text-center py-4 dark:text-white`}
-                                >
-                                  {budget}
-                                  <br />
-                                  {budgetOptions[budget] ? "sats" : "#reckless"}
-                                </div>
+                                <Card>
+                                  <CardContent
+                                    key={budget}
+                                    onClick={() =>
+                                      handleMaxAmountChange(
+                                        budgetOptions[budget]
+                                      )
+                                    }
+                                    className={`col-span-2 md:col-span-1 cursor-pointer rounded border-2 ${
+                                      permissions.maxAmount ==
+                                      budgetOptions[budget]
+                                        ? "border-indigo-400 text-indigo-500"
+                                        : ""
+                                    } text-center py-4`}
+                                  >
+                                    {budget}
+                                    <br />
+                                    {budgetOptions[budget]
+                                      ? "sats"
+                                      : "#reckless"}
+                                  </CardContent>
+                                </Card>
                               );
                             })}
                           </div>
                         </>
                       ) : isNew ? (
                         <>
-                          <p className="text-gray-600 dark:text-gray-300 text-sm">
+                          <p className="text-muted-foreground text-sm">
                             <span className="capitalize">
                               {permissions.budgetRenewal}
                             </span>{" "}
@@ -209,7 +226,7 @@ const Permissions: React.FC<PermissionsProps> = ({
                           </p>
                         </>
                       ) : (
-                        <table className="text-gray-600 dark:text-neutral-400">
+                        <table className="text-muted-foreground">
                           <tbody>
                             <tr className="text-sm">
                               <td className="pr-2">Budget Allowance:</td>
@@ -250,16 +267,16 @@ const Permissions: React.FC<PermissionsProps> = ({
             onClick={() => setExpireOptions(true)}
             className={`${
               expireOptions ? "hidden" : ""
-            } cursor-pointer text-sm font-medium text-indigo-500  dark:text-indigo-400`}
+            } cursor-pointer text-sm font-medium text-indigo-500`}
           >
             + Add connection expiry time
           </div>
 
           {expireOptions && (
-            <div className="text-gray-800 dark:text-neutral-200">
+            <div>
               <p className="text-lg font-medium mb-2">Connection expiry time</p>
               {!isNew && (
-                <p className="mb-2 text-gray-600 dark:text-gray-300 text-sm">
+                <p className="mb-2 text-muted-foreground text-sm">
                   Expires:{" "}
                   {permissions.expiresAt &&
                   new Date(permissions.expiresAt).getFullYear() !== 1
@@ -270,17 +287,19 @@ const Permissions: React.FC<PermissionsProps> = ({
               <div id="expiry-days" className="grid grid-cols-4 gap-2 text-xs">
                 {Object.keys(expiryOptions).map((expiry) => {
                   return (
-                    <div
-                      key={expiry}
-                      onClick={() => handleDaysChange(expiryOptions[expiry])}
-                      className={`cursor-pointer rounded border-2 ${
-                        days == expiryOptions[expiry]
-                          ? "border-indigo-500 dark:border-indigo-400 text-indigo-500 bg-indigo-100 dark:bg-indigo-900"
-                          : "border-gray-200 dark:border-gray-400"
-                      } text-center py-4`}
-                    >
-                      {expiry}
-                    </div>
+                    <Card>
+                      <CardContent
+                        key={expiry}
+                        onClick={() => handleDaysChange(expiryOptions[expiry])}
+                        className={`cursor-pointer rounded border-2 ${
+                          days == expiryOptions[expiry]
+                            ? "border-indigo-500 text-indigo-500"
+                            : ""
+                        } text-center py-4`}
+                      >
+                        {expiry}
+                      </CardContent>
+                    </Card>
                   );
                 })}
               </div>
@@ -289,10 +308,8 @@ const Permissions: React.FC<PermissionsProps> = ({
         </>
       ) : (
         <>
-          <p className="text-lg font-medium mb-2 text-gray-800 dark:text-neutral-200">
-            Connection expiry time
-          </p>
-          <p className="text-gray-600 dark:text-gray-300 text-sm">
+          <p className="text-lg font-medium mb-2">Connection expiry time</p>
+          <p className="text-muted-foreground text-sm">
             {permissions.expiresAt &&
             new Date(permissions.expiresAt).getFullYear() !== 1
               ? new Date(permissions.expiresAt).toString()

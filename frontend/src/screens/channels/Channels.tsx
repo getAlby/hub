@@ -262,7 +262,7 @@ export default function Channels() {
             {!onchainBalance && (
               <div>
                 <div className="animate-pulse d-inline ">
-                  <div className="h-2.5 bg-gray-200 rounded-full dark:bg-gray-700 w-12 my-2"></div>
+                  <div className="h-2.5 bg-primary rounded-full w-12 my-2"></div>
                 </div>
               </div>
             )}
@@ -296,7 +296,7 @@ export default function Channels() {
             {!channels && (
               <div>
                 <div className="animate-pulse d-inline ">
-                  <div className="h-2.5 bg-gray-200 rounded-full dark:bg-gray-700 w-12 my-2"></div>
+                  <div className="h-2.5 bg-primary rounded-full w-12 my-2"></div>
                 </div>
               </div>
             )}
@@ -326,9 +326,9 @@ export default function Channels() {
             <TableRow>
               <TableCell colSpan={4} className="text-center p-5">
                 <div role="status" className="animate-pulse flex space-between">
-                  <div className="h-2.5 bg-gray-200 rounded-full w-1/3 dark:bg-gray-700 mr-5"></div>
-                  <div className="h-2.5 bg-gray-200 rounded-full w-20 dark:bg-gray-700 mr-5"></div>
-                  <div className="h-2.5 bg-gray-200 rounded-full w-20 dark:bg-gray-700"></div>
+                  <div className="h-2.5 bg-primary rounded-full w-1/3 mr-5"></div>
+                  <div className="h-2.5 bg-primary rounded-full w-20 mr-5"></div>
+                  <div className="h-2.5 bg-primary rounded-full w-20"></div>
                   <span className="sr-only">Loading...</span>
                 </div>
               </TableCell>

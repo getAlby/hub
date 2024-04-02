@@ -156,11 +156,10 @@ export function BackupMnemonic() {
                   isBackedUp(event.target.checked);
                 }}
                 checked={backedUp}
-                className="w-4 h-4 text-purple-700 bg-gray-100 border-gray-300 rounded focus:ring-purple-700 dark:focus:ring-purple-800 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
               />
               <label
                 htmlFor="checkbox"
-                className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-100"
+                className="ms-2 text-sm font-medium text-primary"
               >
                 I've backed my recovery phrase to my wallet in a private and
                 secure place
