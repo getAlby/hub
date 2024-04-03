@@ -1,7 +1,7 @@
 import { ReactElement } from "react";
 
 type Props = {
-  title: string;
+  title: string | ReactElement;
   description: string | ReactElement;
   contentRight?: React.ReactNode;
 };

@@ -15,6 +15,7 @@ import {
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request"; // build the project for this to appear
 
+import AppHeader from "src/components/AppHeader";
 import DeleteConfirmationPopup from "src/components/DeleteConfirmationPopup";
 import Loading from "src/components/Loading";
 import Permissions from "src/components/Permissions";
@@ -25,6 +26,7 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { Table, TableBody, TableHead, TableRow } from "src/components/ui/table";
 import { useToast } from "src/components/ui/use-toast";
 
 function ShowApp() {
@@ -104,67 +106,73 @@ function ShowApp() {
           onCancel={() => setShowPopup(false)}
         />
       )}
+
       <div className="w-full">
         <div className="flex flex-col gap-5">
-          <div className="flex flex-row items-center justify-between">
-            <div className="flex flex-row items-center ">
-              {app && (
-                <div className="relative inline-block min-w-9 w-9 h-9 rounded-lg border mr-2">
-                  <img
-                    src={`data:image/svg+xml;base64,${btoa(
-                      gradientAvatar(app.name)
-                    )}`}
-                    alt={app.name}
-                    className="block w-full h-full rounded-lg p-1"
-                  />
-                  <span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-xl font-medium capitalize">
-                    {app.name.charAt(0)}
-                  </span>
-                </div>
-              )}
-              <h2
-                title={app ? app.name : "Fetching app..."}
-                className="text-xl font-semibold overflow-hidden text-ellipsis whitespace-nowrap my-2"
-              >
-                {app ? app.name : "Fetching app..."}
-              </h2>
-            </div>
-            <Button variant="destructive" onClick={() => setShowPopup(true)}>
-              Delete
-            </Button>
-          </div>
+          <AppHeader
+            title={
+              <div className="flex flex-row items-center ">
+                {app && (
+                  <div className="relative inline-block min-w-9 w-9 h-9 rounded-lg border mr-2">
+                    <img
+                      src={`data:image/svg+xml;base64,${btoa(
+                        gradientAvatar(app.name)
+                      )}`}
+                      alt={app.name}
+                      className="block w-full h-full rounded-lg p-1"
+                    />
+                    <span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-xl font-medium capitalize">
+                      {app.name.charAt(0)}
+                    </span>
+                  </div>
+                )}
+                <h2
+                  title={app ? app.name : "Fetching app..."}
+                  className="text-xl font-semibold overflow-hidden text-ellipsis whitespace-nowrap my-2"
+                >
+                  {app ? app.name : "Fetching app..."}
+                </h2>
+              </div>
+            }
+            contentRight={
+              <Button variant="destructive" onClick={() => setShowPopup(true)}>
+                Delete
+              </Button>
+            }
+            description={""}
+          ></AppHeader>
           <Card>
             <CardHeader>
               <CardTitle>Info</CardTitle>
             </CardHeader>
             <CardContent>
-              <table>
-                <tbody>
-                  <tr>
-                    <td className="align-top w-32 font-medium">Public Key</td>
-                    <td className="text-muted-foreground break-all">
+              <Table>
+                <TableBody>
+                  <TableRow>
+                    <TableHead className="font-medium">Public Key</TableHead>
+                    <TableHead className="text-muted-foreground break-all">
                       {app.nostrPubkey}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="align-top font-medium">Last used</td>
-                    <td className="text-gray-600 text-muted-foreground">
+                    </TableHead>
+                  </TableRow>
+                  <TableRow>
+                    <TableHead className="font-medium">Last used</TableHead>
+                    <TableHead className="text-muted-foreground">
                       {app.lastEventAt
                         ? new Date(app.lastEventAt).toString()
                         : "Never"}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="align-top font-medium">Expires At</td>
-                    <td className="text-muted-foreground">
+                    </TableHead>
+                  </TableRow>
+                  <TableRow>
+                    <TableHead className="font-medium">Expires At</TableHead>
+                    <TableHead className="text-muted-foreground">
                       {app.expiresAt &&
                       new Date(app.expiresAt).getFullYear() !== 1
                         ? new Date(app.expiresAt).toString()
                         : "Never"}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+                    </TableHead>
+                  </TableRow>
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
 
