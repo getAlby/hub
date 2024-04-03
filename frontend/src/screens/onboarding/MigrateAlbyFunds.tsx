@@ -169,7 +169,7 @@ export default function MigrateAlbyFunds() {
   }*/
 
   return (
-    <div className="flex flex-col justify-center items-center gap-5 p-5 max-w-md">
+    <div className="flex flex-col justify-center items-center gap-5 p-5 max-w-md items-stretch">
       <div className="grid gap-2 text-center">
         <h1 className="text-2xl font-semibold">Open a Channel</h1>
         <p className="text-muted-foreground">
@@ -177,38 +177,42 @@ export default function MigrateAlbyFunds() {
           fund your first lightning channel.
         </p>
       </div>
-
-      <Table className="border">
-        <TableBody>
-          <TableRow>
-            <TableCell className="font-medium p-3">
-              Current Account balance
-            </TableCell>
-            <TableCell className="text-right p-3">
-              {new Intl.NumberFormat().format(albyBalance.sats)} sats
-            </TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell className="font-medium p-3">Fees</TableCell>
-            <TableCell className="text-right p-3">
-              {new Intl.NumberFormat().format(
-                Math.floor(amount * ALBY_SERVICE_FEE) +
-                  wrappedInvoiceResponse.fee
-              )}{" "}
-              sats
-            </TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell className="font-medium p-3">Alby Hub balance</TableCell>
-            <TableCell className="font-semibold text-right p-3">
-              {new Intl.NumberFormat().format(
-                amount - wrappedInvoiceResponse.fee
-              )}{" "}
-              sats
-            </TableCell>
-          </TableRow>
-        </TableBody>
-      </Table>
+      <div className="border rounded-lg">
+        <Table className="">
+          <TableBody>
+            <TableRow className="border-b-0">
+              <TableCell className="font-medium p-3">
+                Current Account balance
+              </TableCell>
+              <TableCell className="text-right p-3">
+                {new Intl.NumberFormat().format(albyBalance.sats)} sats
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell className="font-medium p-3">Fee</TableCell>
+              <TableCell className="text-right p-3">
+                -{" "}
+                {new Intl.NumberFormat().format(
+                  Math.floor(amount * ALBY_SERVICE_FEE) +
+                    wrappedInvoiceResponse.fee
+                )}{" "}
+                sats
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell className="font-medium p-3">
+                Alby Hub Balance
+              </TableCell>
+              <TableCell className="font-semibold text-right p-3">
+                {new Intl.NumberFormat().format(
+                  amount - wrappedInvoiceResponse.fee
+                )}{" "}
+                sats
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </div>
       <form className="flex flex-col justify-between text-center gap-2">
         <LoadingButton
           onClick={payWrappedInvoice}
