@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { Card, CardContent } from "src/components/ui/card";
 import { Input } from "src/components/ui/input";
 import {
   Select,
@@ -190,28 +189,23 @@ const Permissions: React.FC<PermissionsProps> = ({
                           >
                             {Object.keys(budgetOptions).map((budget) => {
                               return (
-                                <Card>
-                                  <CardContent
-                                    key={budget}
-                                    onClick={() =>
-                                      handleMaxAmountChange(
-                                        budgetOptions[budget]
-                                      )
-                                    }
-                                    className={`col-span-2 md:col-span-1 cursor-pointer rounded border-2 ${
-                                      permissions.maxAmount ==
-                                      budgetOptions[budget]
-                                        ? "border-indigo-400 text-indigo-500"
-                                        : ""
-                                    } text-center py-4`}
-                                  >
-                                    {budget}
-                                    <br />
-                                    {budgetOptions[budget]
-                                      ? "sats"
-                                      : "#reckless"}
-                                  </CardContent>
-                                </Card>
+                                // replace with something else and then remove dark prefixes
+                                <div
+                                  key={budget}
+                                  onClick={() =>
+                                    handleMaxAmountChange(budgetOptions[budget])
+                                  }
+                                  className={`col-span-2 md:col-span-1 cursor-pointer rounded border-2 ${
+                                    permissions.maxAmount ==
+                                    budgetOptions[budget]
+                                      ? "border-indigo-500 dark:border-indigo-400 text-indigo-500 bg-indigo-100 dark:bg-indigo-900"
+                                      : "border-gray-200 dark:border-gray-400"
+                                  } text-center py-4 dark:text-white`}
+                                >
+                                  {budget}
+                                  <br />
+                                  {budgetOptions[budget] ? "sats" : "#reckless"}
+                                </div>
                               );
                             })}
                           </div>
@@ -287,19 +281,18 @@ const Permissions: React.FC<PermissionsProps> = ({
               <div id="expiry-days" className="grid grid-cols-4 gap-2 text-xs">
                 {Object.keys(expiryOptions).map((expiry) => {
                   return (
-                    <Card>
-                      <CardContent
-                        key={expiry}
-                        onClick={() => handleDaysChange(expiryOptions[expiry])}
-                        className={`cursor-pointer rounded border-2 ${
-                          days == expiryOptions[expiry]
-                            ? "border-indigo-500 text-indigo-500"
-                            : ""
-                        } text-center py-4`}
-                      >
-                        {expiry}
-                      </CardContent>
-                    </Card>
+                    // replace with something else and then remove dark prefixes
+                    <div
+                      key={expiry}
+                      onClick={() => handleDaysChange(expiryOptions[expiry])}
+                      className={`cursor-pointer rounded border-2 ${
+                        days == expiryOptions[expiry]
+                          ? "border-indigo-500 dark:border-indigo-400 text-indigo-500 bg-indigo-100 dark:bg-indigo-900"
+                          : "border-gray-200 dark:border-gray-400"
+                      } text-center py-4`}
+                    >
+                      {expiry}
+                    </div>
                   );
                 })}
               </div>
