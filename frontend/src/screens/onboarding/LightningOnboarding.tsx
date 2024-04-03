@@ -1,11 +1,11 @@
-import { Landmark, Rss, Send } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
 import Loading from "src/components/Loading";
+import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
@@ -26,73 +26,45 @@ export default function LightningOnboarding() {
   return (
     <div className="flex flex-col gap-5 p-5">
       <div className="grid gap-2 text-center">
-        <h1 className="text-2xl font-semibold">Connect to Lightning</h1>
+        <h1 className="text-2xl font-semibold">Open a Channel</h1>
         <p className="text-muted-foreground">
-          Choose how you want to connect to the lightning network.
+          You will now connect your node to the lightning network.
         </p>
       </div>
-      <div className="grid sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 items-stretch">
+      <div className="flex flex-col items-center gap-5 justify-center max-w-md">
         {albyMe && albyBalance && albyBalance.sats >= MIN_ALBY_BALANCE && (
           <>
-            <Link to="migrate-alby" className="h-full">
-              <Card className="h-full">
-                <CardHeader>
-                  <CardTitle>
-                    <div className="flex flex-row items-center gap-3">
-                      <Send className="w-6 h-6" />
-                      Migrate
-                    </div>
-                  </CardTitle>
-                  <CardDescription>
-                    Use your existing Alby account funds to open a channel to
-                    Alby on the lightning network.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="flex flex-col items-center">
-                  <Button>Migrate {albyBalance.sats} sats</Button>
-                </CardContent>
-              </Card>
-            </Link>
+            {albyBalance.sats >= MIN_ALBY_BALANCE ? (
+              <>
+                <Card className="w-full">
+                  <CardHeader>
+                    <CardTitle>Alby Account Balance</CardTitle>
+                  </CardHeader>
+                  <CardContent>{albyBalance.sats} sats</CardContent>
+                </Card>
+                <Link to="migrate-alby">
+                  <Button>Continue</Button>
+                </Link>
+              </>
+            ) : (
+              <>
+                <Alert>
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertTitle>Not enough funds available!</AlertTitle>
+                  <AlertDescription>
+                    You don't have enough funds in your Alby account to fund a
+                    new channel right now. Top up your Alby Account to proceed.
+                  </AlertDescription>
+                </Alert>
+              </>
+            )}
           </>
         )}
-        <Link to="channels/new" className="h-full">
-          <Card className="h-full">
-            <CardHeader>
-              <CardTitle>
-                <div className="flex flex-row items-center gap-3">
-                  <Rss className="w-6 h-6" />
-                  Open Channel
-                </div>
-              </CardTitle>
-              <CardDescription>
-                Deposit Bitcoin or pay with lightning to open a channel on the
-                lightning network.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col items-center">
-              <Button variant="secondary">Open Channel</Button>
-            </CardContent>
-          </Card>
-        </Link>
-        <Card className="cursor-not-allowed">
-          <CardHeader>
-            <CardTitle>
-              <div className="flex flex-row items-center gap-2">
-                <Landmark className="w-10 h-10" />
-                Connect to a Mint
-              </div>
-            </CardTitle>
-            <CardDescription>
-              Connect to a custodial Cashu mint to quickly get started with Alby
-              Hub.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col items-center">
-            <Button variant="secondary" disabled>
-              Choose Mint
-            </Button>
-          </CardContent>
-        </Card>
+
+        {/* TODO: Enable this link as soon as we have the flow ready */}
+        {/* <Link to="channels/new">
+          <Button variant="link">Open a Channel manually</Button>
+        </Link> */}
       </div>
     </div>
   );

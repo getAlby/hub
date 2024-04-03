@@ -1,6 +1,14 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import Loading from "src/components/Loading";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "src/components/ui/card";
+import { LoadingButton } from "src/components/ui/loading-button";
+import { Table, TableBody, TableCell, TableRow } from "src/components/ui/table";
 import { useToast } from "src/components/ui/use-toast";
 import {
   ALBY_FEE_RESERVE,
@@ -168,10 +176,51 @@ export default function MigrateAlbyFunds() {
   const estimatedChannelSize =
     amount - wrappedInvoiceResponse.fee + LSP_FREE_INCOMING;
   return (
-    <div className="flex flex-col justify-center items-center gap-4">
-      <h1 className="mt-8">Migrate Alby Account Funds</h1>
+    <div className="flex flex-col justify-center items-center gap-5 p-5 max-w-md">
+      <div className="grid gap-2 text-center">
+        <h1 className="text-2xl font-semibold">Open a Channel</h1>
+        <p className="text-muted-foreground">
+          You can use your remaining balance on Alby hosted lightning wallet to
+          fund your first lightning channel.
+        </p>
+      </div>
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle>Summary</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableBody>
+              <TableRow>
+                <TableCell className="font-medium">
+                  Current Account balance
+                </TableCell>
+                <TableCell className="text-right">
+                  {albyBalance.sats} sats
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">Fees</TableCell>
+                <TableCell className="text-right">
+                  {Math.floor(amount * ALBY_SERVICE_FEE) +
+                    wrappedInvoiceResponse.fee}{" "}
+                  sats
+                </TableCell>
+              </TableRow>
+              <TableRow className="border-0">
+                <TableCell className="font-medium">Alby Hub balance</TableCell>
+                <TableCell className="font-medium text-right">
+                  {amount - wrappedInvoiceResponse.fee} sats
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* <h1 className="mt-8">Migrate Alby Account Funds</h1> */}
+      {/* <p className="font-bold">Invoice to pay: {amount} sats</p>
       <p className="font-bold">Alby Account Balance: {albyBalance.sats} sats</p>
-      <p className="font-bold">Invoice to pay: {amount} sats</p>
       <p className="font-bold">
         LSP fee ({DEFAULT_LSP}): {wrappedInvoiceResponse.fee} sats
       </p>
@@ -190,15 +239,15 @@ export default function MigrateAlbyFunds() {
       <p className="font-bold">
         Estimated receivable: {LSP_FREE_INCOMING - wrappedInvoiceResponse.fee}{" "}
         sats
-      </p>
-      <form className="mt-16">
-        <button
-          className="bg-blue-300 hover:bg-blue-200 px-8 py-4 font-bold text-lg rounded-lg flex gap-2 justify-center items-center"
+      </p> */}
+      <form>
+        <LoadingButton
           onClick={payWrappedInvoice}
           disabled={isOpeningChannel}
+          loading={isOpeningChannel}
         >
-          Open Channel {isOpeningChannel && <Loading />}
-        </button>
+          Migrate Funds and Open Channel
+        </LoadingButton>
       </form>
     </div>
   );
