@@ -62,10 +62,10 @@ export function SetupPassword() {
                 Create Password
               </h1>
               <p className="text-muted-foreground">
-                You’ll use it to access your Alby Hub on any device.
+                You'll use it to access your Alby Hub on any device.
               </p>
             </div>
-            <div className="grid gap-3 w-full">
+            <div className="grid gap-4 w-full">
               <div className="grid gap-1.5">
                 <Label htmlFor="unlock-password">New Password</Label>
                 <Input

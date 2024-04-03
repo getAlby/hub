@@ -22,7 +22,7 @@ export function HomeRedirect() {
           );
           to = returnTo || "/wallet";
         } else {
-          to = "/onboarding/lightning";
+          to = "/onboarding/lightning/migrate-alby";
         }
       } else {
         to = "/unlock";
