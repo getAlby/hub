@@ -169,7 +169,7 @@ export default function MigrateAlbyFunds() {
   }*/
 
   return (
-    <div className="flex flex-col justify-center items-center gap-5 p-5 max-w-md items-stretch">
+    <div className="flex flex-col justify-center gap-5 p-5 max-w-md items-stretch">
       <div className="grid gap-2 text-center">
         <h1 className="text-2xl font-semibold">Open a Channel</h1>
         <p className="text-muted-foreground">
