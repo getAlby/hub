@@ -26,7 +26,7 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
-import { Table, TableBody, TableHead, TableRow } from "src/components/ui/table";
+import { Table, TableBody, TableCell, TableRow } from "src/components/ui/table";
 import { useToast } from "src/components/ui/use-toast";
 
 function ShowApp() {
@@ -149,27 +149,27 @@ function ShowApp() {
               <Table>
                 <TableBody>
                   <TableRow>
-                    <TableHead className="font-medium">Public Key</TableHead>
-                    <TableHead className="text-muted-foreground break-all">
+                    <TableCell className="font-medium">Public Key</TableCell>
+                    <TableCell className="text-muted-foreground break-all">
                       {app.nostrPubkey}
-                    </TableHead>
+                    </TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableHead className="font-medium">Last used</TableHead>
-                    <TableHead className="text-muted-foreground">
+                    <TableCell className="font-medium">Last used</TableCell>
+                    <TableCell className="text-muted-foreground">
                       {app.lastEventAt
                         ? new Date(app.lastEventAt).toString()
                         : "Never"}
-                    </TableHead>
+                    </TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableHead className="font-medium">Expires At</TableHead>
-                    <TableHead className="text-muted-foreground">
+                    <TableCell className="font-medium">Expires At</TableCell>
+                    <TableCell className="text-muted-foreground">
                       {app.expiresAt &&
                       new Date(app.expiresAt).getFullYear() !== 1
                         ? new Date(app.expiresAt).toString()
                         : "Never"}
-                    </TableHead>
+                    </TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
