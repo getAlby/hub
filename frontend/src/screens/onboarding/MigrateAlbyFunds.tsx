@@ -162,7 +162,7 @@ export default function MigrateAlbyFunds() {
     );
   }
 
-  /*  TODO: Remove?
+  /*  TODO: Remove? At least display a link to where to go from here.
   if (channels.length) {
     return (
       <p>You already have a channel.</p>
@@ -188,14 +188,11 @@ export default function MigrateAlbyFunds() {
               </TableCell>
             </TableRow>
             <TableRow>
-              <TableCell className="font-medium p-3">Fee</TableCell>
+              <TableCell className="font-medium p-3 flex flex-row gap-1.5 items-center">
+                Fee
+              </TableCell>
               <TableCell className="text-right p-3">
-                -{" "}
-                {new Intl.NumberFormat().format(
-                  Math.floor(amount * ALBY_SERVICE_FEE) +
-                    wrappedInvoiceResponse.fee
-                )}{" "}
-                sats
+                {new Intl.NumberFormat().format(albyBalance.sats - amount)} sats
               </TableCell>
             </TableRow>
             <TableRow>
@@ -203,10 +200,7 @@ export default function MigrateAlbyFunds() {
                 Alby Hub Balance
               </TableCell>
               <TableCell className="font-semibold text-right p-3">
-                {new Intl.NumberFormat().format(
-                  amount - wrappedInvoiceResponse.fee
-                )}{" "}
-                sats
+                {new Intl.NumberFormat().format(amount)} sats
               </TableCell>
             </TableRow>
           </TableBody>
