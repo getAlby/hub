@@ -1,6 +1,7 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Loading from "src/components/Loading";
+import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { Button } from "src/components/ui/button";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { Table, TableBody, TableCell, TableRow } from "src/components/ui/table";
@@ -170,13 +171,11 @@ export default function MigrateAlbyFunds() {
 
   return (
     <div className="flex flex-col justify-center gap-5 p-5 max-w-md items-stretch">
-      <div className="grid gap-2 text-center">
-        <h1 className="text-2xl font-semibold">Open a Channel</h1>
-        <p className="text-muted-foreground">
-          You can use your remaining balance on Alby hosted lightning wallet to
-          fund your first lightning channel.
-        </p>
-      </div>
+      <TwoColumnLayoutHeader
+        title="Open a Channel"
+        description="You can use your remaining balance on Alby hosted lightning wallet to
+      fund your first lightning channel."
+      />
       <div className="border rounded-lg">
         <Table className="">
           <TableBody>

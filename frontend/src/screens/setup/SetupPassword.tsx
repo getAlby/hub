@@ -5,6 +5,7 @@ import useSetupStore from "src/state/SetupStore";
 import * as bip39 from "@scure/bip39";
 import { wordlist } from "@scure/bip39/wordlists/english";
 import Container from "src/components/Container";
+import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
@@ -57,14 +58,10 @@ export function SetupPassword() {
       <Container>
         <form onSubmit={onSubmit} className="flex flex-col items-center w-full">
           <div className="grid gap-5">
-            <div className="grid gap-2 text-center">
-              <h1 className="font-semibold text-2xl font-headline">
-                Create Password
-              </h1>
-              <p className="text-muted-foreground">
-                You'll use it to access your Alby Hub on any device.
-              </p>
-            </div>
+            <TwoColumnLayoutHeader
+              title="Create Password"
+              description="You'll use it to access your Alby Hub on any device."
+            />
             <div className="grid gap-4 w-full">
               <div className="grid gap-1.5">
                 <Label htmlFor="unlock-password">New Password</Label>

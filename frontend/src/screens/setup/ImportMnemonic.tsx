@@ -5,6 +5,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import MnemonicInputs from "src/components/MnemonicInputs";
+import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
+import { Alert } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
 import { useToast } from "src/components/ui/use-toast";
 import useSetupStore from "src/state/SetupStore";
@@ -45,31 +47,34 @@ export function ImportMnemonic() {
     <>
       <form
         onSubmit={onSubmit}
-        className="flex flex-col gap-2 mx-auto max-w-2xl text-sm"
+        className="flex flex-col gap-5 mx-auto max-w-2xl text-sm"
       >
-        <h1 className="font-semibold text-2xl font-headline mb-2 dark:text-white">
-          Import your wallet
-        </h1>
+        <TwoColumnLayoutHeader
+          title="Import Master Key"
+          description="Enter the your Master Key recovery phrase to import your Alby Hub."
+        />
 
-        <div className="flex flex-col gap-4 mb-4">
-          <div className="flex gap-2 items-center">
-            <div className="shrink-0 text-gray-600 dark:text-neutral-400">
-              <LifeBuoy className="w-6 h-6" />
+        <Alert>
+          <div className="flex flex-col gap-4">
+            <div className="flex gap-2 items-center">
+              <div className="shrink-0 text-gray-600 dark:text-neutral-400">
+                <LifeBuoy className="w-6 h-6" />
+              </div>
+              <span className="text-gray-600 dark:text-neutral-400">
+                Recovery phrase is a set of 12 words that{" "}
+                <b>restores your wallet from a backup</b>
+              </span>
             </div>
-            <span className="text-gray-600 dark:text-neutral-400">
-              Recovery phrase is a set of 12 words that{" "}
-              <b>restores your wallet from a backup</b>
-            </span>
-          </div>
-          <div className="flex gap-2 items-center">
-            <div className="shrink-0 text-gray-600 dark:text-neutral-400">
-              <ShieldCheck className="w-6 h-6" />
+            <div className="flex gap-2 items-center">
+              <div className="shrink-0 text-gray-600 dark:text-neutral-400">
+                <ShieldCheck className="w-6 h-6" />
+              </div>
+              <span className="text-gray-600 dark:text-neutral-400">
+                Make sure to enter them somewhere safe and private
+              </span>
             </div>
-            <span className="text-gray-600 dark:text-neutral-400">
-              Make sure to enter them somewhere safe and private
-            </span>
           </div>
-        </div>
+        </Alert>
 
         <MnemonicInputs mnemonic={mnemonic} setMnemonic={setMnemonic} />
         <Button>Finish</Button>
