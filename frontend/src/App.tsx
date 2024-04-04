@@ -37,6 +37,7 @@ import { usePosthog } from "./hooks/usePosthog";
 
 import TwoColumnFullScreenLayout from "src/components/layouts/TwoColumnFullScreenLayout";
 import { Toaster } from "src/components/ui/toaster";
+import { ChangeUnlockPassword } from "src/screens/settings/ChangeUnlockPassword";
 
 function App() {
   usePosthog();
@@ -50,6 +51,10 @@ function App() {
               <Route path="" element={<HomeRedirect />} />
               <Route path="settings" element={<DefaultRedirect />}>
                 <Route index element={<Settings />} />
+                <Route
+                  path="change-unlock-password"
+                  element={<ChangeUnlockPassword />}
+                />
               </Route>
               <Route path="wallet" element={<DefaultRedirect />}>
                 <Route index element={<Wallet />} />

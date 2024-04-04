@@ -26,6 +26,9 @@ function Settings() {
             General
           </Link>
           <Link to="/backup/mnemonic">Keys</Link>
+          <Link to="/settings/change-unlock-password">
+            Change Unlock Password
+          </Link>
           <Link to="#" className="cusor-not-allowed">
             Connections
           </Link>
