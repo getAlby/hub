@@ -1,12 +1,12 @@
 import React from "react";
+import { useBalances } from "src/hooks/useBalances";
 import { useCSRF } from "src/hooks/useCSRF";
-import { useOnchainBalance } from "src/hooks/useOnchainBalance";
 import { RedeemOnchainFundsResponse } from "src/types";
 import { request } from "src/utils/request";
 
 export function useRedeemOnchainFunds() {
   const { data: csrf } = useCSRF();
-  const { mutate: reloadOnchainBalance } = useOnchainBalance();
+  const { mutate: reloadBalances } = useBalances();
   const [isLoading, setLoading] = React.useState(false);
 
   const redeemFunds = React.useCallback(async () => {
@@ -46,8 +46,8 @@ export function useRedeemOnchainFunds() {
       setLoading(false);
     }
 
-    await reloadOnchainBalance();
-  }, [csrf, reloadOnchainBalance]);
+    await reloadBalances();
+  }, [csrf, reloadBalances]);
 
   return React.useMemo(
     () => ({ redeemFunds, isLoading }),

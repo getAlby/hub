@@ -28,9 +28,10 @@ import {
   TableHeader,
   TableRow,
 } from "src/components/ui/table.tsx";
+import { ONCHAIN_DUST_SATS } from "src/constants.ts";
+import { useBalances } from "src/hooks/useBalances.ts";
 import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
-import { useOnchainBalance } from "src/hooks/useOnchainBalance";
 import { useRedeemOnchainFunds } from "src/hooks/useRedeemOnchainFunds.ts";
 import { CloseChannelRequest, CloseChannelResponse, Node } from "src/types";
 import { request } from "src/utils/request";
@@ -38,7 +39,7 @@ import { useCSRF } from "../../hooks/useCSRF.ts";
 
 export default function Channels() {
   const { data: channels, mutate: reloadChannels } = useChannels();
-  const { data: onchainBalance } = useOnchainBalance();
+  const { data: balances } = useBalances();
   const [nodes, setNodes] = React.useState<Node[]>([]);
   const { data: info, mutate: reloadInfo } = useInfo();
   const { data: csrf } = useCSRF();
@@ -205,7 +206,7 @@ export default function Channels() {
                   </DropdownMenuItem>
                   {(info?.backendType === "LDK" ||
                     info?.backendType === "GREENLIGHT") &&
-                    (onchainBalance?.spendable || 0) > 0 && (
+                    (balances?.onchain.spendable || 0) > ONCHAIN_DUST_SATS && (
                       <DropdownMenuItem
                         onClick={redeemOnchainFunds.redeemFunds}
                         disabled={redeemOnchainFunds.isLoading}
@@ -259,7 +260,7 @@ export default function Channels() {
             <Bitcoin className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            {!onchainBalance && (
+            {!balances && (
               <div>
                 <div className="animate-pulse d-inline ">
                   <div className="h-2.5 bg-gray-200 rounded-full dark:bg-gray-700 w-12 my-2"></div>
@@ -267,19 +268,20 @@ export default function Channels() {
               </div>
             )}
             <div className="text-2xl font-bold">
-              {onchainBalance && (
+              {balances && (
                 <>
-                  {new Intl.NumberFormat().format(onchainBalance.spendable)}{" "}
+                  {new Intl.NumberFormat().format(balances.onchain.spendable)}{" "}
                   sats
                 </>
               )}
             </div>
             <p className="text-xs text-muted-foreground">
-              {onchainBalance &&
-                onchainBalance.spendable !== onchainBalance.total && (
+              {balances &&
+                balances.onchain.spendable !== balances.onchain.total && (
                   <span className="text-xs animate-pulse">
                     &nbsp;(
-                    {onchainBalance.total - onchainBalance.spendable} incoming)
+                    {balances.onchain.total - balances.onchain.spendable}{" "}
+                    incoming)
                   </span>
                 )}
             </p>
