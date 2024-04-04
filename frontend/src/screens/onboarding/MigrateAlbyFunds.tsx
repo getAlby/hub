@@ -214,7 +214,6 @@ export default function MigrateAlbyFunds() {
         >
           Migrate Funds and Open Channel
         </LoadingButton>
-        {/* TODO: Enable this link as soon as we have the flow ready */}
         <Link to="channels/new" className="cursor-not-allowed">
           <Button variant="link" disabled>
             Open a Channel manually
