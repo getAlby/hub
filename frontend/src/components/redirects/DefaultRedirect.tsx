@@ -10,7 +10,6 @@ export function DefaultRedirect() {
   const navigate = useNavigate();
 
   React.useEffect(() => {
-    // TODO: also check if alby access token is OK, otherwise we need to re-login
     if (
       !info ||
       (info.running &&
