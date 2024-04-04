@@ -36,6 +36,7 @@ import { usePosthog } from "./hooks/usePosthog";
 import TwoColumnFullScreenLayout from "src/components/layouts/TwoColumnFullScreenLayout";
 import { OnboardingRedirect } from "src/components/redirects/OnboardingRedirect";
 import { Toaster } from "src/components/ui/toaster";
+import AlbyAuthRedirect from "src/screens/alby/AlbyAuthRedirect";
 import LightningOnboarding from "src/screens/onboarding/LightningOnboarding";
 
 const newChannelRoutes = (
@@ -95,6 +96,7 @@ function App() {
                   </StartRedirect>
                 }
               ></Route>
+              <Route path="/alby/auth" element={<AlbyAuthRedirect />}></Route>
               <Route path="unlock" element={<Unlock />} />
               <Route path="welcome" element={<Welcome />}></Route>
               <Route path="setup" element={<SetupRedirect />}>

@@ -50,6 +50,10 @@ const (
 )
 
 func NewAlbyOauthService(logger *logrus.Logger, kvStore config.ConfigKVStore, appConfig *config.AppConfig, eventLogger events.EventLogger) *AlbyOAuthService {
+	if appConfig.AlbyClientId == "" || appConfig.AlbyClientSecret == "" {
+		logger.Fatalf("No ALBY_OAUTH_CLIENT_ID or ALBY_OAUTH_CLIENT_SECRET set")
+	}
+
 	conf := &oauth2.Config{
 		ClientID:     appConfig.AlbyClientId,
 		ClientSecret: appConfig.AlbyClientSecret,
