@@ -55,6 +55,9 @@ function App() {
               <Route path="wallet" element={<DefaultRedirect />}>
                 <Route index element={<Wallet />} />
               </Route>
+              <Route path="advanced" element={<DefaultRedirect />}>
+                <Route index element={<Debug />} />
+              </Route>
               {/* TODO: move this under settings later */}
               <Route path="backup" element={<DefaultRedirect />}>
                 <Route path="mnemonic" element={<BackupMnemonic />} />
@@ -93,7 +96,6 @@ function App() {
                 }
               ></Route>
               <Route path="unlock" element={<Unlock />} />
-              <Route path="advanced" element={<Debug />} />
               <Route path="welcome" element={<Welcome />}></Route>
               <Route path="setup" element={<SetupRedirect />}>
                 <Route path="" element={<Navigate to="password" replace />} />

@@ -2,6 +2,7 @@ import {
   Cable,
   CircleHelp,
   MessageCircle,
+  Pickaxe,
   SendToBack,
   Settings,
   ShieldCheck,
@@ -52,6 +53,10 @@ export default function AppLayout() {
               <MenuItem to="/permissions" disabled>
                 <ShieldCheck className="h-4 w-4" />
                 Permissions
+              </MenuItem>
+              <MenuItem to="/advanced">
+                <Pickaxe className="h-4 w-4" />
+                Advanced
               </MenuItem>
             </nav>
           </div>

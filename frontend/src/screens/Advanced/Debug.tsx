@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { Button } from "src/components/ui/button";
+import { Card, CardContent } from "src/components/ui/card";
 import { useCSRF } from "src/hooks/useCSRF";
 import { request } from "src/utils/request";
 
@@ -39,18 +41,17 @@ export default function Debug() {
   return (
     <div>
       <div className="grid gap-6 m-8 md:grid-cols-3 xl:grid-cols-4">
-        <button
+        <Button
           onClick={() => {
             const invoice = window.prompt("enter invoice");
             apiRequest("/api/send-payment-probes", "POST", {
               invoice: invoice,
             });
           }}
-          className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
         >
           Send Payment Probes
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={() => {
             const amount_msat = window.prompt("Enter amount in milli satoshi:");
             const node_id = window.prompt("Enter node_id:");
@@ -60,17 +61,13 @@ export default function Debug() {
                 node_id: node_id,
               });
           }}
-          className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
         >
           Send Spontaneous Payment Probes
-        </button>
-        <button
-          onClick={() => apiRequest("/api/peers", "GET")}
-          className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
-        >
+        </Button>
+        <Button onClick={() => apiRequest("/api/peers", "GET")}>
           List Peers
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={() => {
             let maxLen = window.prompt("Enter max length:");
 
@@ -79,15 +76,16 @@ export default function Debug() {
                 maxLen: parseInt(maxLen),
               });
           }}
-          className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
         >
           Get Log Output
-        </button>
+        </Button>
       </div>
       {apiResponse && (
-        <div className="mt-8 p-2 bg-black text-white overflow-x-auto">
-          <pre>API Response: {JSON.stringify(apiResponse, null, 2)}</pre>
-        </div>
+        <Card className="mt-8 pt-6">
+          <CardContent>
+            <pre>API Response: {JSON.stringify(apiResponse, null, 2)}</pre>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
