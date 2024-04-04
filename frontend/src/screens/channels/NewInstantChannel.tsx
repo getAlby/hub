@@ -23,7 +23,7 @@ export default function NewInstantChannel() {
   const { mutate: refetchInfo } = useInfo();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { data: channels } = useChannels();
+  const { data: channels } = useChannels(true);
   const [lsp, setLsp] = React.useState<LSPOption | undefined>("OLYMPUS");
   const [amount, setAmount] = React.useState("");
   const [prePurchaseChannelAmount, setPrePurchaseChannelAmount] =

@@ -29,7 +29,7 @@ export default function MigrateAlbyFunds() {
   const { data: albyMe } = useAlbyMe();
   const { data: albyBalance } = useAlbyBalance();
   const { data: csrf } = useCSRF();
-  const { data: channels } = useChannels();
+  const { data: channels } = useChannels(true);
   const { mutate: refetchInfo } = useInfo();
   const { toast } = useToast();
   const [prePurchaseChannelCount, setPrePurchaseChannelCount] = React.useState<
