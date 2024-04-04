@@ -739,7 +739,7 @@ func (api *API) NewInstantChannelInvoice(ctx context.Context, request *models.Ne
 	}, nil
 }
 
-func (api *API) GetInfo() (*models.InfoResponse, error) {
+func (api *API) GetInfo(ctx context.Context) (*models.InfoResponse, error) {
 	info := models.InfoResponse{}
 	backendType, _ := api.svc.cfg.Get("LNBackendType", "")
 	unlockPasswordCheck, _ := api.svc.cfg.Get("UnlockPasswordCheck", "")
@@ -748,6 +748,15 @@ func (api *API) GetInfo() (*models.InfoResponse, error) {
 	info.BackendType = backendType
 	info.AlbyAuthUrl = api.svc.AlbyOAuthSvc.GetAuthUrl()
 	info.AlbyUserIdentifier = api.svc.AlbyOAuthSvc.GetUserIdentifier()
+	info.AlbyAccountConnected = api.svc.AlbyOAuthSvc.IsConnected(ctx)
+	if api.svc.lnClient != nil {
+		channels, err := api.ListChannels(api.svc.ctx)
+		if err != nil {
+			api.svc.Logger.WithError(err).WithFields(logrus.Fields{}).Error("Failed to fetch channels")
+			return nil, err
+		}
+		info.OnboardingCompleted = len(channels) > 0
+	}
 
 	if info.BackendType != config.LNDBackendType {
 		nextBackupReminder, _ := api.svc.cfg.Get("NextBackupReminder", "")
@@ -784,8 +793,8 @@ func (api *API) Start(startRequest *models.StartRequest) error {
 	return api.svc.StartApp(startRequest.UnlockPassword)
 }
 
-func (api *API) Setup(setupRequest *models.SetupRequest) error {
-	info, err := api.GetInfo()
+func (api *API) Setup(ctx context.Context, setupRequest *models.SetupRequest) error {
+	info, err := api.GetInfo(ctx)
 	if err != nil {
 		api.svc.Logger.WithError(err).Error("Failed to get info")
 		return err

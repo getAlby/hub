@@ -1,7 +1,6 @@
 import { HashRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import AppLayout from "src/components/layouts/AppLayout";
-import { AppsRedirect } from "src/components/redirects/AppsRedirect";
 import { DefaultRedirect } from "src/components/redirects/DefaultRedirect";
 import { HomeRedirect } from "src/components/redirects/HomeRedirect";
 import { SetupRedirect } from "src/components/redirects/SetupRedirect";
@@ -18,13 +17,12 @@ import NewApp from "src/screens/apps/NewApp";
 import ShowApp from "src/screens/apps/ShowApp";
 import AppStore from "src/screens/appstore/AppStore";
 import Channels from "src/screens/channels/Channels";
-import FirstChannel from "src/screens/channels/FirstChannel";
-import MigrateAlbyFunds from "src/screens/channels/MigrateAlbyFunds";
 import NewBlocktankChannel from "src/screens/channels/NewBlocktankChannel";
 import NewChannel from "src/screens/channels/NewChannel";
 import NewCustomChannel from "src/screens/channels/NewCustomChannel";
 import NewInstantChannel from "src/screens/channels/NewInstantChannel";
 import RecommendedChannels from "src/screens/channels/RecommendedChannels";
+import MigrateAlbyFunds from "src/screens/onboarding/MigrateAlbyFunds";
 import NewOnchainAddress from "src/screens/onchain/NewAddress";
 import Settings from "src/screens/settings/Settings";
 import { ImportMnemonic } from "src/screens/setup/ImportMnemonic";
@@ -36,7 +34,19 @@ import Wallet from "src/screens/wallet";
 import { usePosthog } from "./hooks/usePosthog";
 
 import TwoColumnFullScreenLayout from "src/components/layouts/TwoColumnFullScreenLayout";
+import { OnboardingRedirect } from "src/components/redirects/OnboardingRedirect";
 import { Toaster } from "src/components/ui/toaster";
+import LightningOnboarding from "src/screens/onboarding/LightningOnboarding";
+
+const newChannelRoutes = (
+  <Route path="new">
+    <Route path="" element={<NewChannel />} />
+    <Route path="instant" element={<NewInstantChannel />} />
+    <Route path="blocktank" element={<NewBlocktankChannel />} />
+    <Route path="recommended" element={<RecommendedChannels />} />
+    <Route path="custom" element={<NewCustomChannel />} />
+  </Route>
+);
 
 function App() {
   usePosthog();
@@ -61,7 +71,7 @@ function App() {
               <Route path="appstore" element={<DefaultRedirect />}>
                 <Route index element={<AppStore />} />
               </Route>
-              <Route path="apps" element={<AppsRedirect />}>
+              <Route path="apps" element={<DefaultRedirect />}>
                 <Route path="new" element={<NewApp />} />
                 <Route index path="" element={<AppList />} />
                 <Route path=":pubkey" element={<ShowApp />} />
@@ -69,13 +79,7 @@ function App() {
               </Route>
               <Route path="channels" element={<DefaultRedirect />}>
                 <Route path="" element={<Channels />} />
-                <Route path="first" element={<FirstChannel />} />
-                <Route path="migrate-alby" element={<MigrateAlbyFunds />} />
-                <Route path="new" element={<NewChannel />} />
-                <Route path="new/instant" element={<NewInstantChannel />} />
-                <Route path="new/blocktank" element={<NewBlocktankChannel />} />
-                <Route path="recommended" element={<RecommendedChannels />} />
-                <Route path="new/custom" element={<NewCustomChannel />} />
+                {newChannelRoutes}
                 <Route
                   path="onchain/new-address"
                   element={<NewOnchainAddress />}
@@ -100,6 +104,13 @@ function App() {
                 <Route path="wallet" element={<SetupWallet />} />
                 <Route path="import-mnemonic" element={<ImportMnemonic />} />
                 <Route path="finish" element={<SetupFinish />} />
+              </Route>
+              <Route path="onboarding" element={<OnboardingRedirect />}>
+                <Route path="lightning">
+                  <Route path="" element={<LightningOnboarding />} />
+                  <Route path="migrate-alby" element={<MigrateAlbyFunds />} />
+                  <Route path="channels">{newChannelRoutes}</Route>
+                </Route>
               </Route>
             </Route>
             <Route path="/*" element={<NotFound />} />

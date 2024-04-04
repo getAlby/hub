@@ -1,8 +1,8 @@
-import { useInfo } from "src/hooks/useInfo";
-import { useLocation, useNavigate } from "react-router-dom";
 import React from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import Loading from "src/components/Loading";
 import { localStorageKeys } from "src/constants";
+import { useInfo } from "src/hooks/useInfo";
 
 export function HomeRedirect() {
   const { data: info } = useInfo();
@@ -16,8 +16,25 @@ export function HomeRedirect() {
     let to: string | undefined;
     if (info.setupCompleted && info.running) {
       if (info.unlocked) {
-        const returnTo = window.localStorage.getItem(localStorageKeys.returnTo);
-        to = returnTo || "/wallet";
+        if (info.albyAccountConnected) {
+          if (info.onboardingCompleted) {
+            const returnTo = window.localStorage.getItem(
+              localStorageKeys.returnTo
+            );
+            // setTimeout hack needed for React strict mode (in development)
+            // because the effect runs twice before the navigation occurs
+            setTimeout(() => {
+              window.localStorage.removeItem(localStorageKeys.returnTo);
+            }, 100);
+            to = returnTo || "/wallet";
+          } else {
+            to = "/onboarding/lightning/migrate-alby";
+          }
+        } else {
+          // FIXME: this won't work for Wails
+          window.location.href = info?.albyAuthUrl;
+          return;
+        }
       } else {
         to = "/unlock";
       }

@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import Container from "src/components/Container";
+import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
@@ -48,13 +49,11 @@ export default function Start() {
   return (
     <>
       <Container>
-        <div className="mx-auto grid gap-6">
-          <div className="grid gap-2 text-center">
-            <h1 className="text-2xl font-semibold">Login</h1>
-            <p className="text-muted-foreground">
-              Enter your password to unlock and start Alby Hub.
-            </p>
-          </div>
+        <div className="mx-auto grid gap-5">
+          <TwoColumnLayoutHeader
+            title="Login"
+            description="Enter your password to unlock and start Alby Hub."
+          />
           <form onSubmit={onSubmit}>
             <div className="grid gap-4">
               <div className="grid gap-1.5">

@@ -1,6 +1,10 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Loading from "src/components/Loading";
+import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
+import { Button } from "src/components/ui/button";
+import { LoadingButton } from "src/components/ui/loading-button";
+import { Table, TableBody, TableCell, TableRow } from "src/components/ui/table";
 import { useToast } from "src/components/ui/use-toast";
 import {
   ALBY_FEE_RESERVE,
@@ -26,7 +30,7 @@ export default function MigrateAlbyFunds() {
   const { data: albyMe } = useAlbyMe();
   const { data: albyBalance } = useAlbyBalance();
   const { data: csrf } = useCSRF();
-  const { data: channels } = useChannels();
+  const { data: channels } = useChannels(true);
   const { mutate: refetchInfo } = useInfo();
   const { toast } = useToast();
   const [prePurchaseChannelCount, setPrePurchaseChannelCount] = React.useState<
@@ -108,7 +112,7 @@ export default function MigrateAlbyFunds() {
         setOpeningChannel(false);
       }
     },
-    [csrf, wrappedInvoiceResponse]
+    [csrf, toast, wrappedInvoiceResponse]
   );
 
   React.useEffect(() => {
@@ -142,7 +146,7 @@ export default function MigrateAlbyFunds() {
         navigate("/");
       })();
     }
-  }, [hasOpenedChannel, navigate, refetchInfo]);
+  }, [hasOpenedChannel, navigate, refetchInfo, toast]);
 
   if (!albyMe || !albyBalance || !channels || !wrappedInvoiceResponse) {
     return <Loading />;
@@ -158,47 +162,63 @@ export default function MigrateAlbyFunds() {
     );
   }
 
-  /*if (channels.length) {
+  /*  TODO: Remove? At least display a link to where to go from here.
+  if (channels.length) {
     return (
       <p>You already have a channel.</p>
     );
   }*/
 
-  const LSP_FREE_INCOMING = 100000;
-  const estimatedChannelSize =
-    amount - wrappedInvoiceResponse.fee + LSP_FREE_INCOMING;
   return (
-    <div className="flex flex-col justify-center items-center gap-4">
-      <h1 className="mt-8">Migrate Alby Account Funds</h1>
-      <p className="font-bold">Alby Account Balance: {albyBalance.sats} sats</p>
-      <p className="font-bold">Invoice to pay: {amount} sats</p>
-      <p className="font-bold">
-        LSP fee ({DEFAULT_LSP}): {wrappedInvoiceResponse.fee} sats
-      </p>
-      <p className="font-bold">
-        Alby service fee: {Math.floor(amount * ALBY_SERVICE_FEE)} sats
-      </p>
-      <p className="font-bold">
-        Alby fee reserve: {Math.floor(albyBalance.sats * ALBY_FEE_RESERVE)} sats
-      </p>
-      <p className="font-bold">
-        Estimated Channel size: {estimatedChannelSize} sats
-      </p>
-      <p className="font-bold">
-        Estimated spendable: {amount - wrappedInvoiceResponse.fee} sats
-      </p>
-      <p className="font-bold">
-        Estimated receivable: {LSP_FREE_INCOMING - wrappedInvoiceResponse.fee}{" "}
-        sats
-      </p>
-      <form className="mt-16">
-        <button
-          className="bg-blue-300 hover:bg-blue-200 px-8 py-4 font-bold text-lg rounded-lg flex gap-2 justify-center items-center"
+    <div className="flex flex-col justify-center gap-5 p-5 max-w-md items-stretch">
+      <TwoColumnLayoutHeader
+        title="Open a Channel"
+        description="You can use your remaining balance on Alby hosted lightning wallet to
+      fund your first lightning channel."
+      />
+      <div className="border rounded-lg">
+        <Table className="">
+          <TableBody>
+            <TableRow className="border-b-0">
+              <TableCell className="font-medium p-3">
+                Current Account balance
+              </TableCell>
+              <TableCell className="text-right p-3">
+                {new Intl.NumberFormat().format(albyBalance.sats)} sats
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell className="font-medium p-3 flex flex-row gap-1.5 items-center">
+                Fee
+              </TableCell>
+              <TableCell className="text-right p-3">
+                {new Intl.NumberFormat().format(albyBalance.sats - amount)} sats
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell className="font-medium p-3">
+                Alby Hub Balance
+              </TableCell>
+              <TableCell className="font-semibold text-right p-3">
+                {new Intl.NumberFormat().format(amount)} sats
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </div>
+      <form className="flex flex-col justify-between text-center gap-2">
+        <LoadingButton
           onClick={payWrappedInvoice}
           disabled={isOpeningChannel}
+          loading={isOpeningChannel}
         >
-          Open Channel {isOpeningChannel && <Loading />}
-        </button>
+          Migrate Funds and Open Channel
+        </LoadingButton>
+        <Link to="channels/new" className="cursor-not-allowed">
+          <Button variant="link" disabled>
+            Open a Channel manually
+          </Button>
+        </Link>
       </form>
     </div>
   );

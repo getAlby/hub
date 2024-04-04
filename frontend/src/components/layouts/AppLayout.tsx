@@ -25,11 +25,13 @@ import {
   DropdownMenuTrigger,
 } from "src/components/ui/dropdown-menu";
 import { useToast } from "src/components/ui/use-toast";
+import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useCSRF } from "src/hooks/useCSRF";
 import { cn } from "src/lib/utils";
 import { request } from "src/utils/request";
 
 export default function AppLayout() {
+  const { data: albyMe } = useAlbyMe();
   const { data: csrf } = useCSRF();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -89,7 +91,6 @@ export default function AppLayout() {
                 <SendToBack className="h-4 w-4" />
                 Channels
               </MenuItem>
-
               <MenuItem to="/settings">
                 <Settings className="h-4 w-4" />
                 Settings
@@ -106,17 +107,14 @@ export default function AppLayout() {
             <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6 gap-3 border-t border-border justify-between">
               <div className="grid grid-flow-col gap-2">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage
-                    src="https://github.com/shadcn.png"
-                    alt="@satoshi"
-                  />
+                  <AvatarImage src={albyMe?.avatar} alt="@satoshi" />
                   <AvatarFallback>SN</AvatarFallback>
                 </Avatar>
                 <Link
                   to="#"
-                  className="flex items-center gap-2 font-semibold text-lg cursor-not-allowed"
+                  className="font-semibold text-lg whitespace-nowrap overflow-hidden text-ellipsis cursor-not-allowed"
                 >
-                  Satoshi
+                  {albyMe?.name || "Satoshi"}
                 </Link>
               </div>
               <DropdownMenu>
@@ -129,9 +127,16 @@ export default function AppLayout() {
                   <DropdownMenuLabel>My Account</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuGroup>
-                    <DropdownMenuItem disabled>Profile</DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <a
+                        href="https://getalby.com/lightning_addresses/"
+                        target="_blank"
+                        rel="noreferer noopener"
+                      >
+                        Profile
+                      </a>
+                    </DropdownMenuItem>
                     <DropdownMenuItem disabled>Billing</DropdownMenuItem>
-                    <DropdownMenuItem disabled>Settings</DropdownMenuItem>
                     <DropdownMenuItem disabled>
                       Keyboard shortcuts
                     </DropdownMenuItem>
