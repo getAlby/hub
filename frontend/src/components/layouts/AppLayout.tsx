@@ -67,7 +67,6 @@ export default function AppLayout() {
                 <SendToBack className="h-4 w-4" />
                 Channels
               </MenuItem>
-
               <MenuItem to="/settings">
                 <Settings className="h-4 w-4" />
                 Settings
