@@ -101,6 +101,14 @@ func (svc *AlbyOAuthService) GetUserIdentifier() string {
 	return userIdentifier
 }
 
+func (svc *AlbyOAuthService) IsConnected(ctx context.Context) bool {
+	token, err := svc.fetchUserToken(ctx)
+	if err != nil {
+		svc.logger.WithError(err).Error("Failed to check fetch token")
+	}
+	return token != nil
+}
+
 func (svc *AlbyOAuthService) saveToken(token *oauth2.Token) {
 	svc.kvStore.SetUpdate(accessTokenExpiryKey, strconv.FormatInt(token.Expiry.Unix(), 10), "")
 	svc.kvStore.SetUpdate(accessTokenKey, token.AccessToken, "")

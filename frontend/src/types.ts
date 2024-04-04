@@ -128,6 +128,7 @@ export interface InfoResponse {
   backendType: BackendType;
   setupCompleted: boolean;
   onboardingCompleted: boolean;
+  albyAccountConnected: boolean;
   running: boolean;
   unlocked: boolean;
   albyAuthUrl: string;

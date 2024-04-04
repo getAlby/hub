@@ -1,7 +1,6 @@
 import { HashRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import AppLayout from "src/components/layouts/AppLayout";
-import { AppsRedirect } from "src/components/redirects/AppsRedirect";
 import { DefaultRedirect } from "src/components/redirects/DefaultRedirect";
 import { HomeRedirect } from "src/components/redirects/HomeRedirect";
 import { SetupRedirect } from "src/components/redirects/SetupRedirect";
@@ -72,7 +71,7 @@ function App() {
               <Route path="appstore" element={<DefaultRedirect />}>
                 <Route index element={<AppStore />} />
               </Route>
-              <Route path="apps" element={<AppsRedirect />}>
+              <Route path="apps" element={<DefaultRedirect />}>
                 <Route path="new" element={<NewApp />} />
                 <Route index path="" element={<AppList />} />
                 <Route path=":pubkey" element={<ShowApp />} />

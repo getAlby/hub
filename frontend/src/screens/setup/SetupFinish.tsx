@@ -44,8 +44,7 @@ export function SetupFinish() {
         if (!info) {
           throw new Error("Failed to re-fetch info");
         }
-        // FIXME: this won't work for Wails
-        window.location.href = info?.albyAuthUrl;
+        navigate("/");
       } else {
         setConnectionError(true);
       }

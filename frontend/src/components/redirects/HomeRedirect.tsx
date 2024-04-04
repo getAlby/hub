@@ -16,13 +16,24 @@ export function HomeRedirect() {
     let to: string | undefined;
     if (info.setupCompleted && info.running) {
       if (info.unlocked) {
-        if (info.onboardingCompleted) {
-          const returnTo = window.localStorage.getItem(
-            localStorageKeys.returnTo
-          );
-          to = returnTo || "/wallet";
+        if (info.albyAccountConnected) {
+          if (info.onboardingCompleted) {
+            const returnTo = window.localStorage.getItem(
+              localStorageKeys.returnTo
+            );
+            // setTimeout hack needed for React strict mode (in development)
+            // because the effect runs twice before the navigation occurs
+            setTimeout(() => {
+              window.localStorage.removeItem(localStorageKeys.returnTo);
+            }, 100);
+            to = returnTo || "/wallet";
+          } else {
+            to = "/onboarding/lightning/migrate-alby";
+          }
         } else {
-          to = "/onboarding/lightning/migrate-alby";
+          // FIXME: this won't work for Wails
+          window.location.href = info?.albyAuthUrl;
+          return;
         }
       } else {
         to = "/unlock";
