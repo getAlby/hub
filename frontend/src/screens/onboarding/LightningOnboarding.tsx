@@ -31,32 +31,28 @@ export default function LightningOnboarding() {
         description="You will now connect your node to the lightning network."
       />
       <div className="flex flex-col items-center gap-5 justify-center max-w-md">
-        {albyMe && albyBalance && albyBalance.sats >= MIN_ALBY_BALANCE && (
+        {albyBalance.sats >= MIN_ALBY_BALANCE ? (
           <>
-            {albyBalance.sats >= MIN_ALBY_BALANCE ? (
-              <>
-                <Card className="w-full">
-                  <CardHeader>
-                    <CardTitle>Alby Account Balance</CardTitle>
-                  </CardHeader>
-                  <CardContent>{albyBalance.sats} sats</CardContent>
-                </Card>
-                <Link to="migrate-alby">
-                  <Button>Continue</Button>
-                </Link>
-              </>
-            ) : (
-              <>
-                <Alert>
-                  <AlertTriangle className="h-4 w-4" />
-                  <AlertTitle>Not enough funds available!</AlertTitle>
-                  <AlertDescription>
-                    You don't have enough funds in your Alby account to fund a
-                    new channel right now. Top up your Alby Account to proceed.
-                  </AlertDescription>
-                </Alert>
-              </>
-            )}
+            <Card className="w-full">
+              <CardHeader>
+                <CardTitle>Alby Account Balance</CardTitle>
+              </CardHeader>
+              <CardContent>{albyBalance.sats} sats</CardContent>
+            </Card>
+            <Link to="migrate-alby">
+              <Button>Continue</Button>
+            </Link>
+          </>
+        ) : (
+          <>
+            <Alert>
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Not enough funds available!</AlertTitle>
+              <AlertDescription>
+                You don't have enough funds in your Alby account to fund a new
+                channel right now. Top up your Alby Account to proceed.
+              </AlertDescription>
+            </Alert>
           </>
         )}
 

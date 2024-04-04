@@ -112,7 +112,7 @@ export default function MigrateAlbyFunds() {
         setOpeningChannel(false);
       }
     },
-    [csrf, wrappedInvoiceResponse]
+    [csrf, toast, wrappedInvoiceResponse]
   );
 
   React.useEffect(() => {
