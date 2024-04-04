@@ -1,6 +1,7 @@
 import React from "react";
 
 import Container from "src/components/Container";
+import SettingsHeader from "src/components/SettingsHeader";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
@@ -60,13 +61,12 @@ export function ChangeUnlockPassword() {
 
   return (
     <>
+      <SettingsHeader
+        title="Change Unlock Password"
+        description="Enter your current and new unlock password. Your node
+          will be stopped as part of this process."
+      />
       <Container>
-        <h1 className="text-xl font-medium">Change Unlock Password</h1>
-        <p className="text-center text-md text-muted-foreground mb-14">
-          Enter your current and (stronger 💪) new unlock password. Your node
-          will be stopped as part of this process.
-        </p>
-
         <form onSubmit={onSubmit} className="w-full flex flex-col gap-3">
           <>
             <div className="grid gap-1.5">

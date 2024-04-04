@@ -35,6 +35,7 @@ import { SetupWallet } from "src/screens/setup/SetupWallet";
 import Wallet from "src/screens/wallet";
 import { usePosthog } from "./hooks/usePosthog";
 
+import SettingsLayout from "src/components/layouts/SettingsLayout";
 import TwoColumnFullScreenLayout from "src/components/layouts/TwoColumnFullScreenLayout";
 import { Toaster } from "src/components/ui/toaster";
 import { ChangeUnlockPassword } from "src/screens/settings/ChangeUnlockPassword";
@@ -50,18 +51,17 @@ function App() {
             <Route path="/" element={<AppLayout />}>
               <Route path="" element={<HomeRedirect />} />
               <Route path="settings" element={<DefaultRedirect />}>
-                <Route index element={<Settings />} />
-                <Route
-                  path="change-unlock-password"
-                  element={<ChangeUnlockPassword />}
-                />
+                <Route element={<SettingsLayout />}>
+                  <Route index element={<Settings />} />
+                  <Route
+                    path="change-unlock-password"
+                    element={<ChangeUnlockPassword />}
+                  />
+                  <Route path="backup" element={<BackupMnemonic />} />
+                </Route>
               </Route>
               <Route path="wallet" element={<DefaultRedirect />}>
                 <Route index element={<Wallet />} />
-              </Route>
-              {/* TODO: move this under settings later */}
-              <Route path="backup" element={<DefaultRedirect />}>
-                <Route path="mnemonic" element={<BackupMnemonic />} />
               </Route>
               <Route path="appstore" element={<DefaultRedirect />}>
                 <Route index element={<AppStore />} />
@@ -73,7 +73,7 @@ function App() {
                 <Route path="created" element={<AppCreated />} />
               </Route>
               <Route path="channels" element={<DefaultRedirect />}>
-                <Route path="" element={<Channels />} />
+                <Route index path="" element={<Channels />} />
                 <Route path="first" element={<FirstChannel />} />
                 <Route path="migrate-alby" element={<MigrateAlbyFunds />} />
                 <Route path="new" element={<NewChannel />} />
@@ -95,7 +95,7 @@ function App() {
                     <Start />
                   </StartRedirect>
                 }
-              ></Route>
+              />
               <Route path="unlock" element={<Unlock />} />
               <Route path="welcome" element={<Welcome />}></Route>
               <Route path="setup" element={<SetupRedirect />}>
