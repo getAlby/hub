@@ -547,72 +547,73 @@ func (api *API) NewInstantChannelInvoice(ctx context.Context, request *models.Ne
 	invoice := ""
 	var fee uint64 = 0
 
+	api.svc.Logger.Infoln("Requesting fee information")
+
+	var feeResponse lsp.FeeResponse
+	{
+		client := http.Client{
+			Timeout: time.Second * 10,
+		}
+		payloadBytes, err := json.Marshal(lsp.FeeRequest{
+			AmountMsat: request.Amount * 1000,
+			Pubkey:     nodeInfo.Pubkey,
+		})
+		if err != nil {
+			return nil, err
+		}
+		bodyReader := bytes.NewReader(payloadBytes)
+
+		req, err := http.NewRequest(http.MethodPost, selectedLsp.Url+"/fee", bodyReader)
+		if err != nil {
+			api.svc.Logger.WithError(err).WithFields(logrus.Fields{
+				"url": selectedLsp.Url,
+			}).Error("Failed to create lsp fee request")
+			return nil, err
+		}
+
+		req.Header.Set("Content-Type", "application/json")
+
+		res, err := client.Do(req)
+		if err != nil {
+			api.svc.Logger.WithError(err).WithFields(logrus.Fields{
+				"url": selectedLsp.Url,
+			}).Error("Failed to request lsp fee")
+			return nil, err
+		}
+
+		defer res.Body.Close()
+
+		body, err := io.ReadAll(res.Body)
+		if err != nil {
+			api.svc.Logger.WithError(err).WithFields(logrus.Fields{
+				"url": selectedLsp.Url,
+			}).Error("Failed to read response body")
+			return nil, errors.New("failed to read response body")
+		}
+
+		err = json.Unmarshal(body, &feeResponse)
+		if err != nil {
+			api.svc.Logger.WithError(err).WithFields(logrus.Fields{
+				"url": selectedLsp.Url,
+			}).Error("Failed to deserialize json")
+			return nil, fmt.Errorf("failed to deserialize json %s %s", selectedLsp.Url, string(body))
+		}
+
+		api.svc.Logger.WithError(err).WithFields(logrus.Fields{
+			"url":         selectedLsp.Url,
+			"feeResponse": feeResponse,
+		}).Info("Got fee response")
+		if feeResponse.Id == "" {
+			api.svc.Logger.WithError(err).WithFields(logrus.Fields{
+				"feeResponse": feeResponse,
+			}).Error("No fee id in fee response")
+			return nil, fmt.Errorf("no fee id in fee response %v", feeResponse)
+		}
+		fee = feeResponse.FeeAmountMsat / 1000
+	}
+
 	// TODO: switch on LSPType and extract to separate functions
 	if selectedLsp.SupportsWrappedInvoices {
-
-		api.svc.Logger.Infoln("Requesting fee information")
-
-		var feeResponse lsp.FeeResponse
-		{
-			client := http.Client{
-				Timeout: time.Second * 10,
-			}
-			payloadBytes, err := json.Marshal(lsp.FeeRequest{
-				AmountMsat: request.Amount * 1000,
-				Pubkey:     nodeInfo.Pubkey,
-			})
-			if err != nil {
-				return nil, err
-			}
-			bodyReader := bytes.NewReader(payloadBytes)
-
-			req, err := http.NewRequest(http.MethodPost, selectedLsp.Url+"/fee", bodyReader)
-			if err != nil {
-				api.svc.Logger.WithError(err).WithFields(logrus.Fields{
-					"url": selectedLsp.Url,
-				}).Error("Failed to create lsp fee request")
-				return nil, err
-			}
-
-			req.Header.Set("Content-Type", "application/json")
-
-			res, err := client.Do(req)
-			if err != nil {
-				api.svc.Logger.WithError(err).WithFields(logrus.Fields{
-					"url": selectedLsp.Url,
-				}).Error("Failed to request lsp fee")
-				return nil, err
-			}
-
-			defer res.Body.Close()
-
-			body, err := io.ReadAll(res.Body)
-			if err != nil {
-				api.svc.Logger.WithError(err).WithFields(logrus.Fields{
-					"url": selectedLsp.Url,
-				}).Error("Failed to read response body")
-				return nil, errors.New("failed to read response body")
-			}
-
-			err = json.Unmarshal(body, &feeResponse)
-			if err != nil {
-				api.svc.Logger.WithError(err).WithFields(logrus.Fields{
-					"url": selectedLsp.Url,
-				}).Error("Failed to deserialize json")
-				return nil, fmt.Errorf("failed to deserialize json %s %s", selectedLsp.Url, string(body))
-			}
-
-			api.svc.Logger.WithError(err).WithFields(logrus.Fields{
-				"url":         selectedLsp.Url,
-				"feeResponse": feeResponse,
-			}).Info("Got fee response")
-			if feeResponse.Id == "" {
-				api.svc.Logger.WithError(err).WithFields(logrus.Fields{
-					"feeResponse": feeResponse,
-				}).Error("No fee id in fee response")
-				return nil, fmt.Errorf("no fee id in fee response %v", feeResponse)
-			}
-		}
 
 		// because we don't want the sender to pay the fee
 		// see: https://docs.voltage.cloud/voltage-lsp#gqBqV
@@ -683,14 +684,14 @@ func (api *API) NewInstantChannelInvoice(ctx context.Context, request *models.Ne
 			}
 		}
 		invoice = proposalResponse.Bolt11
-		fee = feeResponse.FeeAmountMsat / 1000
 	} else {
 		client := http.Client{
 			Timeout: time.Second * 10,
 		}
 		payloadBytes, err := json.Marshal(lsp.NewInstantChannelRequest{
-			ChannelAmount: request.Amount,
-			NodePubkey:    nodeInfo.Pubkey,
+			Amount: request.Amount,
+			Pubkey: nodeInfo.Pubkey,
+			FeeId:  feeResponse.Id,
 		})
 		if err != nil {
 			return nil, err

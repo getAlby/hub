@@ -23,8 +23,9 @@ type FeeResponse struct {
 
 // Alby LSP
 type NewInstantChannelRequest struct {
-	ChannelAmount uint64 `json:"channelAmount"` // sats
-	NodePubkey    string `json:"nodePubKey"`
+	Amount uint64 `json:"amount"` // sats
+	Pubkey string `json:"pubkey"`
+	FeeId  string `json:"fee_id"`
 }
 
 type ProposalRequest struct {
@@ -61,7 +62,7 @@ func OlympusLSP() LSP {
 func AlbyPlebsLSP() LSP {
 	lsp := LSP{
 		Pubkey: "029ca15ad2ea3077f5f0524c4c9bc266854c14b9fc81b9cc3d6b48e2460af13f65",
-		Url:    "https://pmlsp.fly.dev",
+		Url:    "https://lsp.albylabs.com",
 	}
 	return lsp
 }
