@@ -89,7 +89,7 @@ export default function AppLayout() {
                 </Avatar>
                 <Link
                   to="#"
-                  className="flex items-center gap-2 font-semibold text-lg cursor-not-allowed"
+                  className="font-semibold text-lg whitespace-nowrap overflow-hidden text-ellipsis cursor-not-allowed"
                 >
                   {albyMe?.name || "Satoshi"}
                 </Link>
