@@ -56,11 +56,13 @@ type LNClient interface {
 	GetNewOnchainAddress(ctx context.Context) (string, error)
 	ResetRouter(ctx context.Context) error
 	GetOnchainBalance(ctx context.Context) (*OnchainBalanceResponse, error)
+	GetBalances(ctx context.Context) (*BalancesResponse, error)
 	RedeemOnchainFunds(ctx context.Context, toAddress string) (txId string, err error)
 	SendPaymentProbes(ctx context.Context, invoice string) error
 	SendSpontaneousPaymentProbes(ctx context.Context, amount_msat uint64, node_id string) error
 	ListPeers(ctx context.Context) ([]PeerDetails, error)
 	GetLogOutput(ctx context.Context, maxLen int) (string, error)
+	SignMessage(ctx context.Context, message string) (string, error)
 }
 
 type Channel struct {
@@ -106,4 +108,17 @@ type PeerDetails struct {
 	Address     string `json:"address"`
 	IsPersisted bool   `json:"is_persisted"`
 	IsConnected bool   `json:"is_connected"`
+}
+type LightningBalanceResponse struct {
+	TotalSpendable       int64 `json:"totalSpendable"`
+	TotalReceivable      int64 `json:"totalReceivable"`
+	NextMaxSpendable     int64 `json:"nextMaxSpendable"`
+	NextMaxReceivable    int64 `json:"nextMaxReceivable"`
+	NextMaxSpendableMPP  int64 `json:"nextMaxSpendableMPP"`
+	NextMaxReceivableMPP int64 `json:"nextMaxReceivableMPP"`
+}
+
+type BalancesResponse struct {
+	Onchain   OnchainBalanceResponse   `json:"onchain"`
+	Lightning LightningBalanceResponse `json:"lightning"`
 }

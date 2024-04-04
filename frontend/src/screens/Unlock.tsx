@@ -1,17 +1,16 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { Input } from "src/components/ui/input";
+import { Label } from "src/components/ui/label";
+import { LoadingButton } from "src/components/ui/loading-button";
+import { toast } from "src/components/ui/use-toast";
 import { useCSRF } from "src/hooks/useCSRF";
-import { request } from "src/utils/request";
-import ConnectButton from "src/components/ConnectButton";
-import { handleRequestError } from "src/utils/handleRequestError";
 import { useInfo } from "src/hooks/useInfo";
-import Container from "src/components/Container";
-import Input from "src/components/Input";
-import PasswordViewAdornment from "src/components/PasswordAdornment";
+import { handleRequestError } from "src/utils/handleRequestError";
+import { request } from "src/utils/request";
 
 export default function Unlock() {
   const [unlockPassword, setUnlockPassword] = React.useState("");
-  const [passwordVisible, setPasswordVisible] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -46,7 +45,7 @@ export default function Unlock() {
       await refetchInfo();
       navigate("/");
     } catch (error) {
-      handleRequestError("Failed to connect", error);
+      handleRequestError(toast, "Failed to connect", error);
     } finally {
       setLoading(false);
     }
@@ -54,30 +53,31 @@ export default function Unlock() {
 
   return (
     <>
-      <Container>
-        <p className="font-light text-center text-md leading-relaxed dark:text-neutral-400 mb-14">
-          Use your password to unlock NWC
-        </p>
-        <form onSubmit={onSubmit} className="w-full">
-          <>
-            <Input
-              name="unlock"
-              onChange={(e) => setUnlockPassword(e.target.value)}
-              value={unlockPassword}
-              type={passwordVisible ? "text" : "password"}
-              placeholder="Password"
-              endAdornment={
-                <PasswordViewAdornment
-                  onChange={(passwordView) => {
-                    setPasswordVisible(passwordView);
-                  }}
-                />
-              }
-            />
-            <ConnectButton isConnecting={loading} />
-          </>
-        </form>
-      </Container>
+      <form onSubmit={onSubmit} className="w-full p-5">
+        <div className="mx-auto grid w-80 max-w-full gap-6">
+          <div className="grid gap-2 text-center">
+            <h1 className="text-2xl font-semibold">Login</h1>
+            <p className="text-muted-foreground">
+              Enter your unlock password to continue
+            </p>
+          </div>
+          <div className="grid gap-4">
+            <div className="grid gap-1.5">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                required
+                value={unlockPassword}
+                onChange={(e) => setUnlockPassword(e.target.value)}
+              />
+            </div>
+            <LoadingButton type="submit" loading={loading}>
+              Login
+            </LoadingButton>
+          </div>
+        </div>
+      </form>
     </>
   );
 }

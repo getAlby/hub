@@ -1222,7 +1222,7 @@ func createTestService(ln *MockLn) (svc *Service, err error) {
 		db:          gormDb,
 		lnClient:    ln,
 		Logger:      logger,
-		EventLogger: events.NewEventLogger(logger),
+		EventLogger: events.NewEventLogger(logger, false),
 	}, nil
 }
 
@@ -1303,6 +1303,9 @@ func (mln *MockLn) CloseChannel(ctx context.Context, closeChannelRequest *lnclie
 func (mln *MockLn) GetNewOnchainAddress(ctx context.Context) (string, error) {
 	return "", nil
 }
+func (mln *MockLn) GetBalances(ctx context.Context) (*lnclient.BalancesResponse, error) {
+	return nil, nil
+}
 func (mln *MockLn) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainBalanceResponse, error) {
 	return nil, nil
 }
@@ -1322,5 +1325,9 @@ func (mln *MockLn) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, error
 	return nil, nil
 }
 func (mln *MockLn) GetLogOutput(ctx context.Context, maxLen int) (string, error) {
+	return "", nil
+}
+
+func (mln *MockLn) SignMessage(ctx context.Context, message string) (string, error) {
 	return "", nil
 }

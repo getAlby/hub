@@ -161,8 +161,8 @@ func (gs *LDKService) SendPaymentSync(ctx context.Context, invoice string) (prei
 		return "", err
 	}
 
-	maxSendable := gs.getMaxSendable()
-	if paymentRequest.MSatoshi > maxSendable {
+	maxSpendable := gs.getMaxSpendable()
+	if paymentRequest.MSatoshi > maxSpendable {
 		gs.eventLogger.Log(&events.Event{
 			Event: "nwc_outgoing_liquidity_required",
 			Properties: map[string]interface{}{
@@ -387,7 +387,7 @@ func (gs *LDKService) getMaxReceivable() int64 {
 	return int64(receivable)
 }
 
-func (gs *LDKService) getMaxSendable() int64 {
+func (gs *LDKService) getMaxSpendable() int64 {
 	var spendable int64 = 0
 	channels := gs.node.ListChannels()
 	for _, channel := range channels {
@@ -683,6 +683,16 @@ func (ls *LDKService) ResetRouter(ctx context.Context) error {
 	return err
 }
 
+func (gs *LDKService) SignMessage(ctx context.Context, message string) (string, error) {
+	sign, err := gs.node.SignMessage([]byte(message))
+	if err != nil {
+		gs.svc.Logger.Errorf("SignMessage failed: %v", err)
+		return "", err
+	}
+
+	return sign, nil
+}
+
 func (gs *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) (*Nip47Transaction, error) {
 	transactionType := "incoming"
 	if payment.Direction == ldk_node.PaymentDirectionOutbound {
@@ -876,4 +886,47 @@ func (ls *LDKService) logLdkEvent(ctx context.Context, event *ldk_node.Event) {
 		})
 	}
 
+}
+
+func (ls *LDKService) GetBalances(ctx context.Context) (*lnclient.BalancesResponse, error) {
+	onchainBalance, err := ls.GetOnchainBalance(ctx)
+	if err != nil {
+		ls.svc.Logger.WithError(err).Error("Failed to retrieve onchain balance")
+		return nil, err
+	}
+
+	var totalReceivable int64 = 0
+	var totalSpendable int64 = 0
+	var nextMaxReceivable int64 = 0
+	var nextMaxSpendable int64 = 0
+	var nextMaxReceivableMPP int64 = 0
+	var nextMaxSpendableMPP int64 = 0
+	channels := ls.node.ListChannels()
+	for _, channel := range channels {
+		if channel.IsUsable {
+			channelMinSpendable := min(int64(channel.OutboundCapacityMsat), int64(*channel.CounterpartyOutboundHtlcMaximumMsat))
+			channelMinReceivable := min(int64(channel.InboundCapacityMsat), int64(*channel.InboundHtlcMaximumMsat))
+
+			nextMaxSpendable = max(nextMaxSpendable, channelMinSpendable)
+			nextMaxReceivable = max(nextMaxReceivable, channelMinReceivable)
+
+			nextMaxSpendableMPP += channelMinSpendable
+			nextMaxReceivableMPP += channelMinReceivable
+
+			totalSpendable += int64(channel.OutboundCapacityMsat)
+			totalReceivable += int64(channel.InboundCapacityMsat)
+		}
+	}
+
+	return &lnclient.BalancesResponse{
+		Onchain: *onchainBalance,
+		Lightning: lnclient.LightningBalanceResponse{
+			TotalSpendable:       totalSpendable,
+			TotalReceivable:      totalReceivable,
+			NextMaxSpendable:     nextMaxSpendable,
+			NextMaxReceivable:    nextMaxReceivable,
+			NextMaxSpendableMPP:  nextMaxSpendableMPP,
+			NextMaxReceivableMPP: nextMaxReceivableMPP,
+		},
+	}, nil
 }

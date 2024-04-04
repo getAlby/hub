@@ -122,7 +122,7 @@ func NewService(ctx context.Context) (*Service, error) {
 	cfg := &Config{}
 	cfg.Init(db, appConfig, logger)
 
-	eventLogger := events.NewEventLogger(logger)
+	eventLogger := events.NewEventLogger(logger, cfg.Env.LogEvents)
 
 	albyOAuthSvc := alby.NewAlbyOauthService(logger, cfg, cfg.Env, eventLogger)
 	if err != nil {
@@ -531,31 +531,24 @@ func (svc *Service) HandleEvent(ctx context.Context, sub *nostr.Subscription, ev
 				"requestEventNostrId": event.ID,
 				"eventKind":           event.Kind,
 			}).Errorf("Failed to create response: %v", err)
-
 			requestEvent.State = REQUEST_EVENT_STATE_HANDLER_ERROR
-			err = svc.db.Save(&requestEvent).Error
+		} else {
+			err = svc.PublishEvent(ctx, sub, &requestEvent, resp, &app, ss)
 			if err != nil {
 				svc.Logger.WithFields(logrus.Fields{
-					"nostrPubkey": event.PubKey,
-				}).Errorf("Failed to save state to nostr event: %v", err)
+					"requestEventNostrId": event.ID,
+					"eventKind":           event.Kind,
+				}).Errorf("Failed to publish event: %v", err)
+				requestEvent.State = REQUEST_EVENT_STATE_HANDLER_ERROR
+			} else {
+				requestEvent.State = REQUEST_EVENT_STATE_HANDLER_EXECUTED
 			}
-			return
 		}
-		err = svc.PublishEvent(ctx, sub, &requestEvent, resp, &app, ss)
-
+		err = svc.db.Save(&requestEvent).Error
 		if err != nil {
 			svc.Logger.WithFields(logrus.Fields{
-				"requestEventNostrId": event.ID,
-				"eventKind":           event.Kind,
-			}).Errorf("Failed to publish event: %v", err)
-
-			requestEvent.State = REQUEST_EVENT_STATE_HANDLER_ERROR
-			err = svc.db.Save(&requestEvent).Error
-			if err != nil {
-				svc.Logger.WithFields(logrus.Fields{
-					"nostrPubkey": event.PubKey,
-				}).Errorf("Failed to save state to nostr event: %v", err)
-			}
+				"nostrPubkey": event.PubKey,
+			}).Errorf("Failed to save state to nostr event: %v", err)
 		}
 	}
 
@@ -578,16 +571,10 @@ func (svc *Service) HandleEvent(ctx context.Context, sub *nostr.Subscription, ev
 		svc.HandleListTransactionsEvent(ctx, nip47Request, &requestEvent, &app, publishResponse)
 	case NIP_47_GET_INFO_METHOD:
 		svc.HandleGetInfoEvent(ctx, nip47Request, &requestEvent, &app, publishResponse)
+	case NIP_47_SIGN_MESSAGE_METHOD:
+		svc.HandleSignMessageEvent(ctx, nip47Request, &requestEvent, &app, publishResponse)
 	default:
 		svc.handleUnknownMethod(ctx, nip47Request, publishResponse)
-	}
-
-	requestEvent.State = REQUEST_EVENT_STATE_HANDLER_EXECUTED
-	err = svc.db.Save(&requestEvent).Error
-	if err != nil {
-		svc.Logger.WithFields(logrus.Fields{
-			"nostrPubkey": event.PubKey,
-		}).Errorf("Failed to save state to nostr event: %v", err)
 	}
 }
 

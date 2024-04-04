@@ -107,14 +107,14 @@ type OpenChannelResponse = lnclient.OpenChannelResponse
 type CloseChannelRequest = lnclient.CloseChannelRequest
 type CloseChannelResponse = lnclient.CloseChannelResponse
 
-type NewWrappedInvoiceRequest struct {
+type NewInstantChannelInvoiceRequest struct {
 	Amount uint64 `json:"amount"`
 	LSP    string `json:"lsp"`
 }
 
-type NewWrappedInvoiceResponse struct {
-	WrappedInvoice string `json:"wrappedInvoice"`
-	Fee            uint64 `json:"fee"`
+type NewInstantChannelInvoiceResponse struct {
+	Invoice string `json:"invoice"`
+	Fee     uint64 `json:"fee"`
 }
 
 type RedeemOnchainFundsRequest struct {
@@ -126,6 +126,7 @@ type RedeemOnchainFundsResponse struct {
 }
 
 type OnchainBalanceResponse = lnclient.OnchainBalanceResponse
+type BalancesResponse = lnclient.BalancesResponse
 
 type NewOnchainAddressResponse struct {
 	Address string `json:"address"`

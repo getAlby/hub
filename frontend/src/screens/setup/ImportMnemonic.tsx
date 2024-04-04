@@ -1,15 +1,16 @@
-import { PopiconsLifebuoyLine, PopiconsShieldLine } from "@popicons/react";
 import * as bip39 from "@scure/bip39";
 import { wordlist } from "@scure/bip39/wordlists/english";
+import { LifeBuoy, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import MnemonicInputs from "src/components/MnemonicInputs";
-import ConnectButton from "src/components/ConnectButton";
+import { Button } from "src/components/ui/button";
+import { useToast } from "src/components/ui/use-toast";
 import useSetupStore from "src/state/SetupStore";
-import toast from "src/components/Toast";
 
 export function ImportMnemonic() {
+  const { toast } = useToast();
   const navigate = useNavigate();
   const setupStore = useSetupStore();
 
@@ -21,7 +22,10 @@ export function ImportMnemonic() {
       mnemonic.split(" ").length !== 12 ||
       !bip39.validateMnemonic(mnemonic, wordlist)
     ) {
-      toast.error("Invalid recovery phrase");
+      toast({
+        title: "Invalid recovery phrase",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -50,7 +54,7 @@ export function ImportMnemonic() {
         <div className="flex flex-col gap-4 mb-4">
           <div className="flex gap-2 items-center">
             <div className="shrink-0 text-gray-600 dark:text-neutral-400">
-              <PopiconsLifebuoyLine className="w-6 h-6" />
+              <LifeBuoy className="w-6 h-6" />
             </div>
             <span className="text-gray-600 dark:text-neutral-400">
               Recovery phrase is a set of 12 words that{" "}
@@ -59,7 +63,7 @@ export function ImportMnemonic() {
           </div>
           <div className="flex gap-2 items-center">
             <div className="shrink-0 text-gray-600 dark:text-neutral-400">
-              <PopiconsShieldLine className="w-6 h-6" />
+              <ShieldCheck className="w-6 h-6" />
             </div>
             <span className="text-gray-600 dark:text-neutral-400">
               Make sure to enter them somewhere safe and private
@@ -68,12 +72,7 @@ export function ImportMnemonic() {
         </div>
 
         <MnemonicInputs mnemonic={mnemonic} setMnemonic={setMnemonic} />
-        <ConnectButton
-          submitText="Finish"
-          loadingText="Saving..."
-          isConnecting={false}
-          disabled={false}
-        />
+        <Button>Finish</Button>
       </form>
     </>
   );
