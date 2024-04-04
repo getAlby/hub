@@ -25,12 +25,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "src/components/ui/dropdown-menu";
-import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetTrigger,
-} from "src/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger } from "src/components/ui/sheet";
 import { useToast } from "src/components/ui/use-toast";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useCSRF } from "src/hooks/useCSRF";
@@ -144,7 +139,7 @@ export default function AppLayout() {
                   <span className="">Alby Hub</span>
                 </Link>
               </div>
-              {/* <MainMenuContent /> */}
+              <MainMenuContent />
             </nav>
           </div>
           <div className="flex flex-col">
@@ -194,9 +189,7 @@ export default function AppLayout() {
                     <span className="">Alby Hub</span>
                   </Link>
                 </div>
-                <SheetClose asChild>
-                  <MainMenuContent />
-                </SheetClose>
+                <MainMenuContent />
               </nav>
               <div className="align-bottom">
                 <MainNavSecondary />
