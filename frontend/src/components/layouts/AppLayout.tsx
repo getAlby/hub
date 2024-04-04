@@ -11,7 +11,8 @@ import {
 import { ModeToggle } from "src/components/ui/mode-toggle";
 
 import { CaretUpIcon } from "@radix-ui/react-icons";
-import { Link, NavLink, Outlet } from "react-router-dom";
+import React from "react";
+import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "src/components/ui/avatar";
 import { Button } from "src/components/ui/button";
 import {
@@ -23,9 +24,33 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "src/components/ui/dropdown-menu";
+import { useToast } from "src/components/ui/use-toast";
+import { useCSRF } from "src/hooks/useCSRF";
 import { cn } from "src/lib/utils";
+import { request } from "src/utils/request";
 
 export default function AppLayout() {
+  const { data: csrf } = useCSRF();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+
+  const logout = React.useCallback(async () => {
+    if (!csrf) {
+      throw new Error("csrf not loaded");
+    }
+
+    await request("/api/logout", {
+      method: "POST",
+      headers: {
+        "X-CSRF-Token": csrf,
+        "Content-Type": "application/json",
+      },
+    });
+
+    navigate("/", { replace: true });
+    toast({ title: "You are now logged out." });
+  }, [csrf]);
+
   return (
     <div className="font-sans grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
       <div className="hidden border-r bg-muted/40 md:block">
@@ -112,7 +137,7 @@ export default function AppLayout() {
                     </DropdownMenuItem>
                   </DropdownMenuGroup>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem disabled>Log out</DropdownMenuItem>
+                  <DropdownMenuItem onClick={logout}>Log out</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
