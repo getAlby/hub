@@ -1,6 +1,7 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Loading from "src/components/Loading";
+import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { Button } from "src/components/ui/button";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { Table, TableBody, TableCell, TableRow } from "src/components/ui/table";
@@ -161,7 +162,7 @@ export default function MigrateAlbyFunds() {
     );
   }
 
-  /*  TODO: Remove?
+  /*  TODO: Remove? At least display a link to where to go from here.
   if (channels.length) {
     return (
       <p>You already have a channel.</p>
@@ -169,14 +170,12 @@ export default function MigrateAlbyFunds() {
   }*/
 
   return (
-    <div className="flex flex-col justify-center items-center gap-5 p-5 max-w-md items-stretch">
-      <div className="grid gap-2 text-center">
-        <h1 className="text-2xl font-semibold">Open a Channel</h1>
-        <p className="text-muted-foreground">
-          You can use your remaining balance on Alby hosted lightning wallet to
-          fund your first lightning channel.
-        </p>
-      </div>
+    <div className="flex flex-col justify-center gap-5 p-5 max-w-md items-stretch">
+      <TwoColumnLayoutHeader
+        title="Open a Channel"
+        description="You can use your remaining balance on Alby hosted lightning wallet to
+      fund your first lightning channel."
+      />
       <div className="border rounded-lg">
         <Table className="">
           <TableBody>
@@ -189,14 +188,11 @@ export default function MigrateAlbyFunds() {
               </TableCell>
             </TableRow>
             <TableRow>
-              <TableCell className="font-medium p-3">Fee</TableCell>
+              <TableCell className="font-medium p-3 flex flex-row gap-1.5 items-center">
+                Fee
+              </TableCell>
               <TableCell className="text-right p-3">
-                -{" "}
-                {new Intl.NumberFormat().format(
-                  Math.floor(amount * ALBY_SERVICE_FEE) +
-                    wrappedInvoiceResponse.fee
-                )}{" "}
-                sats
+                {new Intl.NumberFormat().format(albyBalance.sats - amount)} sats
               </TableCell>
             </TableRow>
             <TableRow>
@@ -204,10 +200,7 @@ export default function MigrateAlbyFunds() {
                 Alby Hub Balance
               </TableCell>
               <TableCell className="font-semibold text-right p-3">
-                {new Intl.NumberFormat().format(
-                  amount - wrappedInvoiceResponse.fee
-                )}{" "}
-                sats
+                {new Intl.NumberFormat().format(amount)} sats
               </TableCell>
             </TableRow>
           </TableBody>

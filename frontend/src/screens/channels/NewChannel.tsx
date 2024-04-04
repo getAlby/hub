@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { Button } from "src/components/ui/button";
 import { useInfo } from "src/hooks/useInfo";
 
@@ -6,12 +7,10 @@ export default function NewChannel() {
   const { data: info } = useInfo();
   return (
     <div className="flex flex-col gap-8">
-      <div className="grid gap-2 text-center">
-        <h1 className="text-2xl font-semibold">Open a new channel</h1>
-        <p className="text-muted-foreground">
-          Choose how you want to obtain a channel.
-        </p>
-      </div>
+      <TwoColumnLayoutHeader
+        title="Open a new channel"
+        description="Choose how you want to obtain a channel."
+      />
       <div className="flex flex-col justify-center items-center gap-4">
         {info?.backendType === "LDK" && (
           <Link to="instant">

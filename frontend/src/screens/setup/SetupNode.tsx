@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import Container from "src/components/Container";
+import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
@@ -39,14 +40,10 @@ export function SetupNode() {
   return (
     <>
       <Container>
-        <div className="grid gap-5">
-          <div className="grid gap-2 text-center">
-            <h1 className="font-semibold text-2xl font-headline">Node Setup</h1>
-            <p className="text-muted-foreground">
-              Enter your node connection credentials to connect to your wallet.
-            </p>
-          </div>
-        </div>
+        <TwoColumnLayoutHeader
+          title="Node Setup"
+          description="Enter your node connection credentials to connect to your wallet."
+        />
         <div className="w-full mt-5">
           <Label htmlFor="backend-type">Backend Type</Label>
           <Select

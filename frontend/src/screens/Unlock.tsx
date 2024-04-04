@@ -1,5 +1,6 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
@@ -55,12 +56,10 @@ export default function Unlock() {
     <>
       <form onSubmit={onSubmit} className="w-full p-5">
         <div className="mx-auto grid w-80 max-w-full gap-6">
-          <div className="grid gap-2 text-center">
-            <h1 className="text-2xl font-semibold">Login</h1>
-            <p className="text-muted-foreground">
-              Enter your unlock password to continue
-            </p>
-          </div>
+          <TwoColumnLayoutHeader
+            title="Login"
+            description=" Enter your unlock password to continue"
+          />
           <div className="grid gap-4">
             <div className="grid gap-1.5">
               <Label htmlFor="password">Password</Label>

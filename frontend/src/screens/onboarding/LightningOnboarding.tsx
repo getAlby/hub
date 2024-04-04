@@ -1,6 +1,7 @@
 import { AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
 import Loading from "src/components/Loading";
+import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
 import {
@@ -25,12 +26,10 @@ export default function LightningOnboarding() {
 
   return (
     <div className="flex flex-col gap-5 p-5">
-      <div className="grid gap-2 text-center">
-        <h1 className="text-2xl font-semibold">Open a Channel</h1>
-        <p className="text-muted-foreground">
-          You will now connect your node to the lightning network.
-        </p>
-      </div>
+      <TwoColumnLayoutHeader
+        title="Open a Channel"
+        description="You will now connect your node to the lightning network."
+      />
       <div className="flex flex-col items-center gap-5 justify-center max-w-md">
         {albyMe && albyBalance && albyBalance.sats >= MIN_ALBY_BALANCE && (
           <>
