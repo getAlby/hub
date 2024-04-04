@@ -68,42 +68,40 @@ export function ChangeUnlockPassword() {
       />
       <Container>
         <form onSubmit={onSubmit} className="w-full flex flex-col gap-3">
-          <>
-            <div className="grid gap-1.5">
-              <Label htmlFor="current-password">Current Password</Label>
-              <Input
-                id="current-password"
-                type="password"
-                name="password"
-                onChange={(e) => setCurrentUnlockPassword(e.target.value)}
-                value={currentUnlockPassword}
-                placeholder="Password"
-              />
-            </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor="new-password">New Password</Label>
-              <Input
-                id="new-password"
-                type="password"
-                name="password"
-                onChange={(e) => setNewUnlockPassword(e.target.value)}
-                value={newUnlockPassword}
-                placeholder="Password"
-              />
-            </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor="confirm-new-password">Confirm New Password</Label>
-              <Input
-                id="confirm-new-password"
-                type="password"
-                name="password"
-                onChange={(e) => setConfirmNewUnlockPassword(e.target.value)}
-                value={confirmNewUnlockPassword}
-                placeholder="Password"
-              />
-            </div>
-            <LoadingButton loading={loading}>Continue</LoadingButton>
-          </>
+          <div className="grid gap-1.5">
+            <Label htmlFor="current-password">Current Password</Label>
+            <Input
+              id="current-password"
+              type="password"
+              name="password"
+              onChange={(e) => setCurrentUnlockPassword(e.target.value)}
+              value={currentUnlockPassword}
+              placeholder="Password"
+            />
+          </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor="new-password">New Password</Label>
+            <Input
+              id="new-password"
+              type="password"
+              name="password"
+              onChange={(e) => setNewUnlockPassword(e.target.value)}
+              value={newUnlockPassword}
+              placeholder="Password"
+            />
+          </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor="confirm-new-password">Confirm New Password</Label>
+            <Input
+              id="confirm-new-password"
+              type="password"
+              name="password"
+              onChange={(e) => setConfirmNewUnlockPassword(e.target.value)}
+              value={confirmNewUnlockPassword}
+              placeholder="Password"
+            />
+          </div>
+          <LoadingButton loading={loading}>Change Password</LoadingButton>
         </form>
       </Container>
     </>
