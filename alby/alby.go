@@ -193,9 +193,9 @@ func (svc *AlbyOAuthService) GetBalance(ctx context.Context) (*AlbyBalance, erro
 
 	client := svc.oauthConf.Client(ctx, token)
 
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/balance", svc.appConfig.AlbyAPIURL), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/internal/lndhub/balance", svc.appConfig.AlbyAPIURL), nil)
 	if err != nil {
-		svc.logger.WithError(err).Error("Error creating request /balance")
+		svc.logger.WithError(err).Error("Error creating request to balance endpoint")
 		return nil, err
 	}
 
@@ -203,7 +203,7 @@ func (svc *AlbyOAuthService) GetBalance(ctx context.Context) (*AlbyBalance, erro
 
 	res, err := client.Do(req)
 	if err != nil {
-		svc.logger.WithError(err).Error("Failed to fetch /balance")
+		svc.logger.WithError(err).Error("Failed to fetch balance endpoint")
 		return nil, err
 	}
 	balance := &AlbyBalance{}
@@ -241,9 +241,9 @@ func (svc *AlbyOAuthService) SendPayment(ctx context.Context, invoice string) er
 		return err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/payments/bolt11", svc.appConfig.AlbyAPIURL), body)
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/internal/lndhub/bolt11", svc.appConfig.AlbyAPIURL), body)
 	if err != nil {
-		svc.logger.WithError(err).Error("Error creating request /payments/bolt11")
+		svc.logger.WithError(err).Error("Error creating request bolt11 endpoint")
 		return err
 	}
 
