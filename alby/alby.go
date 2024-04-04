@@ -50,10 +50,6 @@ const (
 )
 
 func NewAlbyOauthService(logger *logrus.Logger, kvStore config.ConfigKVStore, appConfig *config.AppConfig, eventLogger events.EventLogger) *AlbyOAuthService {
-	if appConfig.AlbyClientId == "" || appConfig.AlbyClientSecret == "" {
-		logger.Fatalf("No ALBY_OAUTH_CLIENT_ID or ALBY_OAUTH_CLIENT_SECRET set")
-	}
-
 	conf := &oauth2.Config{
 		ClientID:     appConfig.AlbyClientId,
 		ClientSecret: appConfig.AlbyClientSecret,
@@ -330,6 +326,9 @@ func (svc *AlbyOAuthService) SendPayment(ctx context.Context, invoice string) er
 }
 
 func (svc *AlbyOAuthService) GetAuthUrl() string {
+	if svc.appConfig.AlbyClientId == "" || svc.appConfig.AlbyClientSecret == "" {
+		svc.logger.Fatalf("No ALBY_OAUTH_CLIENT_ID or ALBY_OAUTH_CLIENT_SECRET set")
+	}
 	return svc.oauthConf.AuthCodeURL("unused")
 }
 
