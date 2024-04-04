@@ -394,17 +394,6 @@ func (api *API) RedeemOnchainFunds(ctx context.Context, toAddress string) (*mode
 	}, nil
 }
 
-func (api *API) GetOnchainBalance(ctx context.Context) (*models.OnchainBalanceResponse, error) {
-	if api.svc.lnClient == nil {
-		return nil, errors.New("LNClient not started")
-	}
-	balance, err := api.svc.lnClient.GetOnchainBalance(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return balance, nil
-}
-
 func (api *API) GetBalances(ctx context.Context) (*models.BalancesResponse, error) {
 	if api.svc.lnClient == nil {
 		return nil, errors.New("LNClient not started")

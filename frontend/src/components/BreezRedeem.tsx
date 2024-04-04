@@ -1,8 +1,9 @@
 import { RocketIcon } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { LoadingButton } from "src/components/ui/loading-button";
+import { ONCHAIN_DUST_SATS } from "src/constants";
+import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
-import { useOnchainBalance } from "src/hooks/useOnchainBalance";
 import { useRedeemOnchainFunds } from "src/hooks/useRedeemOnchainFunds";
 
 export default function BreezRedeem() {
@@ -14,11 +15,11 @@ export default function BreezRedeem() {
 }
 
 function BreezRedeemInternal() {
-  const { data: onchainBalance } = useOnchainBalance();
+  const { data: balances } = useBalances();
 
   const redeemOnchainFunds = useRedeemOnchainFunds();
 
-  if (!onchainBalance || onchainBalance.spendable <= 0) {
+  if (!balances || balances.onchain.spendable <= ONCHAIN_DUST_SATS) {
     return null;
   }
 
@@ -29,8 +30,8 @@ function BreezRedeemInternal() {
         <AlertTitle>Breez channel closed</AlertTitle>
         <AlertDescription>
           <div className="mb-2">
-            One of your Breez channels was closed and you have {1} sats to
-            redeem.
+            One of your Breez channels was closed and you have{" "}
+            {balances.onchain.spendable} sats to redeem.
           </div>
           <LoadingButton
             size={"sm"}

@@ -87,7 +87,6 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.POST("/api/peers", httpSvc.connectPeerHandler, authMiddleware)
 	e.POST("/api/wallet/new-address", httpSvc.newOnchainAddressHandler, authMiddleware)
 	e.POST("/api/wallet/redeem-onchain-funds", httpSvc.redeemOnchainFundsHandler, authMiddleware)
-	e.GET("/api/wallet/balance", httpSvc.onchainBalanceHandler, authMiddleware)
 	e.GET("/api/balances", httpSvc.balancesHandler, authMiddleware)
 	e.POST("/api/reset-router", httpSvc.resetRouterHandler, authMiddleware)
 	e.POST("/api/stop", httpSvc.stopHandler, authMiddleware)
@@ -287,20 +286,6 @@ func (httpSvc *HttpService) nodeConnectionInfoHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, info)
-}
-
-func (httpSvc *HttpService) onchainBalanceHandler(c echo.Context) error {
-	ctx := c.Request().Context()
-
-	onchainBalanceResponse, err := httpSvc.api.GetOnchainBalance(ctx)
-
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Message: err.Error(),
-		})
-	}
-
-	return c.JSON(http.StatusOK, onchainBalanceResponse)
 }
 
 func (httpSvc *HttpService) balancesHandler(c echo.Context) error {
