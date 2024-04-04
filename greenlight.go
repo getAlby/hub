@@ -30,7 +30,7 @@ type GreenlightService struct {
 
 const DEVICE_CREDENTIALS_KEY = "GreenlightCreds"
 
-func NewGreenlightService(svc *Service, mnemonic, inviteCode, workDir string) (result lnclient.LNClient, err error) {
+func NewGreenlightService(svc *Service, mnemonic, inviteCode, workDir, encryptionKey string) (result lnclient.LNClient, err error) {
 	if mnemonic == "" || inviteCode == "" || workDir == "" {
 		return nil, errors.New("one or more required greenlight configuration are missing")
 	}
@@ -44,8 +44,7 @@ func NewGreenlightService(svc *Service, mnemonic, inviteCode, workDir string) (r
 	}
 
 	var credentials *glalby.GreenlightCredentials
-	// NOTE: mnemonic used for encryption
-	existingDeviceCreds, _ := svc.cfg.Get(DEVICE_CREDENTIALS_KEY, mnemonic)
+	existingDeviceCreds, _ := svc.cfg.Get(DEVICE_CREDENTIALS_KEY, encryptionKey)
 
 	if existingDeviceCreds != "" {
 		credentials = &glalby.GreenlightCredentials{
@@ -73,8 +72,7 @@ func NewGreenlightService(svc *Service, mnemonic, inviteCode, workDir string) (r
 		if credentials == nil || credentials.GlCreds == "" {
 			return nil, errors.New("unexpected response from Recover")
 		}
-		// NOTE: mnemonic used for encryption
-		svc.cfg.SetUpdate(DEVICE_CREDENTIALS_KEY, credentials.GlCreds, mnemonic)
+		svc.cfg.SetUpdate(DEVICE_CREDENTIALS_KEY, credentials.GlCreds, encryptionKey)
 	}
 
 	client, err := glalby.NewBlockingGreenlightAlbyClient(mnemonic, *credentials)
