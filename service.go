@@ -695,7 +695,7 @@ func (svc *Service) hasPermission(app *App, requestMethod string, amount int64) 
 		return false, NIP_47_ERROR_RESTRICTED, fmt.Sprintf("This app does not have permission to request %s", requestMethod)
 	}
 	expiresAt := appPermission.ExpiresAt
-	if !expiresAt.IsZero() && expiresAt.Before(time.Now()) {
+	if expiresAt != nil && expiresAt.Before(time.Now()) {
 		svc.Logger.WithFields(logrus.Fields{
 			"requestMethod": requestMethod,
 			"expiresAt":     expiresAt.Unix(),
