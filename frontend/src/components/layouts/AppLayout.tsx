@@ -194,7 +194,10 @@ export default function AppLayout() {
                 <span className="sr-only">Toggle navigation menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="flex flex-col justify-between">
+            <SheetContent
+              side="left"
+              className="flex flex-col justify-between max-h-screen"
+            >
               <nav className="grid gap-2 text-lg font-medium">
                 <div className="p-3 ">
                   <Link to="/" className="font-semibold text-xl">
