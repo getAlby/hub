@@ -18,8 +18,10 @@ export default function SettingsLayout() {
             Unlock Password
           </MenuItem>
         </nav>
-        <div className="grid gap-6">
-          <Outlet />
+        <div className="flex-1 lg:max-w-2xl">
+          <div className="grid gap-6">
+            <Outlet />
+          </div>
         </div>
       </div>
     </>
