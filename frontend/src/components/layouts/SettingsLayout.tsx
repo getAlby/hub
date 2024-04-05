@@ -10,7 +10,7 @@ export default function SettingsLayout() {
         title="Settings"
         description="Manage your account settings and set e-mail preferences."
       />
-      <div className="grid w-full items-start gap-6 md:grid-cols-[180px_1fr] lg:grid-cols-[250px_1fr]">
+      <div className="flex flex-col space-y-8 lg:flex-row lg:space-x-12 lg:space-y-0">
         <nav className="flex space-x-2 lg:flex-col lg:space-x-0 lg:space-y-1">
           <MenuItem to="/settings">General</MenuItem>
           <MenuItem to="/settings/backup">Backup</MenuItem>
