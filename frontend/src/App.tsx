@@ -33,11 +33,13 @@ import { SetupWallet } from "src/screens/setup/SetupWallet";
 import Wallet from "src/screens/wallet";
 import { usePosthog } from "./hooks/usePosthog";
 
+import SettingsLayout from "src/components/layouts/SettingsLayout";
 import TwoColumnFullScreenLayout from "src/components/layouts/TwoColumnFullScreenLayout";
 import { OnboardingRedirect } from "src/components/redirects/OnboardingRedirect";
 import { Toaster } from "src/components/ui/toaster";
 import AlbyAuthRedirect from "src/screens/alby/AlbyAuthRedirect";
 import LightningOnboarding from "src/screens/onboarding/LightningOnboarding";
+import { ChangeUnlockPassword } from "src/screens/settings/ChangeUnlockPassword";
 
 const newChannelRoutes = (
   <Route path="new">
@@ -60,14 +62,17 @@ function App() {
             <Route path="/" element={<AppLayout />}>
               <Route path="" element={<HomeRedirect />} />
               <Route path="settings" element={<DefaultRedirect />}>
-                <Route index element={<Settings />} />
+                <Route element={<SettingsLayout />}>
+                  <Route index element={<Settings />} />
+                  <Route
+                    path="change-unlock-password"
+                    element={<ChangeUnlockPassword />}
+                  />
+                  <Route path="backup" element={<BackupMnemonic />} />
+                </Route>
               </Route>
               <Route path="wallet" element={<DefaultRedirect />}>
                 <Route index element={<Wallet />} />
-              </Route>
-              {/* TODO: move this under settings later */}
-              <Route path="backup" element={<DefaultRedirect />}>
-                <Route path="mnemonic" element={<BackupMnemonic />} />
               </Route>
               <Route path="appstore" element={<DefaultRedirect />}>
                 <Route index element={<AppStore />} />
@@ -79,7 +84,7 @@ function App() {
                 <Route path="created" element={<AppCreated />} />
               </Route>
               <Route path="channels" element={<DefaultRedirect />}>
-                <Route path="" element={<Channels />} />
+                <Route index path="" element={<Channels />} />
                 {newChannelRoutes}
                 <Route
                   path="onchain/new-address"
@@ -95,7 +100,7 @@ function App() {
                     <Start />
                   </StartRedirect>
                 }
-              ></Route>
+              />
               <Route path="/alby/auth" element={<AlbyAuthRedirect />}></Route>
               <Route path="unlock" element={<Unlock />} />
               <Route path="welcome" element={<Welcome />}></Route>

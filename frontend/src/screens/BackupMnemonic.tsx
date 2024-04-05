@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import Container from "src/components/Container";
 import Loading from "src/components/Loading";
 import MnemonicInputs from "src/components/MnemonicInputs";
+import SettingsHeader from "src/components/SettingsHeader";
 import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
@@ -84,9 +85,13 @@ export function BackupMnemonic() {
 
   return (
     <>
+      <SettingsHeader
+        title="Backup Your Keys"
+        description="Make sure to store them somewhere safe."
+      />
       {!decryptedMnemonic ? (
         <Container>
-          <h1 className="text-xl font-medium">Confirm it's you</h1>
+          <h1 className="text-xl font-medium">Please confirm it's you</h1>
           <p className="text-center text-md text-muted-foreground mb-14">
             Enter your unlock password to continue
           </p>
@@ -114,10 +119,6 @@ export function BackupMnemonic() {
           onSubmit={onSubmit}
           className="flex mt-6 flex-col gap-2 mx-auto max-w-2xl text-sm"
         >
-          <h1 className="font-semibold text-2xl font-headline mb-">
-            Back up your wallet
-          </h1>
-
           <div className="flex flex-col gap-4 mb-4 text-muted-foreground">
             <div className="flex gap-2 items-center ">
               <div className="shrink-0 ">

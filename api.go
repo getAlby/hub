@@ -310,6 +310,23 @@ func (api *API) ResetRouter(ctx context.Context) error {
 	return api.Stop()
 }
 
+func (api *API) ChangeUnlockPassword(changeUnlockPasswordRequest *models.ChangeUnlockPasswordRequest) error {
+	if api.svc.lnClient == nil {
+		return errors.New("LNClient not started")
+	}
+
+	err := api.svc.cfg.ChangeUnlockPassword(changeUnlockPasswordRequest.CurrentUnlockPassword, changeUnlockPasswordRequest.NewUnlockPassword)
+
+	if err != nil {
+		api.svc.Logger.WithError(err).Error("failed to change unlock password")
+		return err
+	}
+
+	// Because all the encrypted fields have changed
+	// we also need to stop the lnclient and ask the user to start it again
+	return api.Stop()
+}
+
 func (api *API) Stop() error {
 	if api.svc.lnClient == nil {
 		return errors.New("LNClient not started")

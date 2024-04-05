@@ -10,9 +10,11 @@ import {
   Dot,
   ShieldCheckIcon,
   Sparkles,
+  WalletIcon,
 } from "lucide-react";
 import AppHeader from "src/components/AppHeader";
 import BreezRedeem from "src/components/BreezRedeem";
+import EmptyState from "src/components/EmptyState";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
 import {
@@ -181,36 +183,25 @@ function Wallet() {
       )}
 
       {!isWalletUsable && (
-        <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm">
-          <div className="flex flex-col items-center gap-1 text-center">
-            <h3 className="text-2xl font-bold tracking-tight">
-              You have no funds, yet.
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              Topup your wallet and make your first transaction.
-            </p>
-            <Link to="/channels/first">
-              <Button className="mt-4">Get Started</Button>
-            </Link>
-          </div>
-        </div>
+        <EmptyState
+          icon={<WalletIcon />}
+          title="You have no funds, yet"
+          description="Topup your wallet and make your first transaction."
+          buttonText="Get Started"
+          buttonLink="/channels/first"
+        />
       )}
 
       {isWalletUsable && (
-        <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm">
-          <div className="flex flex-col items-center gap-1 text-center">
-            <Sparkles className="h-20 w-20" />
-            <h3 className="text-2xl font-bold tracking-tight">
-              You are ready to get started
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              Discover the ecosystem of apps
-            </p>
-            <Link to="/appstore">
-              <Button className="mt-4">Get Started</Button>
-            </Link>
-          </div>
-        </div>
+        <>
+          <EmptyState
+            icon={<Sparkles />}
+            title="You are ready to get started"
+            description="Discover the ecosystem of apps."
+            buttonText="Get Started"
+            buttonLink="/appstore"
+          />
+        </>
       )}
     </>
   );
