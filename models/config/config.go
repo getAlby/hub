@@ -28,6 +28,8 @@ type AppConfig struct {
 	AlbyClientSecret string `envconfig:"ALBY_OAUTH_CLIENT_SECRET"`
 	AlbyOAuthAuthUrl string `envconfig:"ALBY_OAUTH_AUTH_URL" default:"https://getalby.com/oauth"`
 	BaseUrl          string `envconfig:"BASE_URL" default:"http://localhost:8080"`
+	FrontendUrl      string `envconfig:"FRONTEND_URL"`
+	LogEvents        bool   `envconfig:"LOG_EVENTS" default:"false"`
 }
 
 type ConfigKVStore interface {

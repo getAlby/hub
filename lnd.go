@@ -357,6 +357,37 @@ func (svc *LNDService) RedeemOnchainFunds(ctx context.Context, toAddress string)
 	return "", nil
 }
 
+func (svc *LNDService) SignMessage(ctx context.Context, message string) (string, error) {
+	resp, err := svc.client.SignMessage(ctx, &lnrpc.SignMessageRequest{Msg: []byte(message)})
+	if err != nil {
+		return "", err
+	}
+
+	return resp.Signature, nil
+}
+
+func (svc *LNDService) GetBalances(ctx context.Context) (*lnclient.BalancesResponse, error) {
+	balance, err := svc.GetBalance(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &lnclient.BalancesResponse{
+		Onchain: lnclient.OnchainBalanceResponse{
+			Spendable: 0, // TODO: implement
+			Total:     0, // TODO: implement
+		},
+		Lightning: lnclient.LightningBalanceResponse{
+			TotalSpendable:       balance,
+			TotalReceivable:      0,       // TODO: implement
+			NextMaxSpendable:     balance, // TODO: implement
+			NextMaxReceivable:    0,       // TODO: implement
+			NextMaxSpendableMPP:  balance, // TODO: implement
+			NextMaxReceivableMPP: 0,       // TODO: implement
+		},
+	}, nil
+}
+
 func lndInvoiceToTransaction(invoice *lnrpc.Invoice) *Nip47Transaction {
 	var settledAt *int64
 	var preimage string

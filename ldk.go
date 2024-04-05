@@ -14,6 +14,7 @@ import (
 
 	"github.com/getAlby/ldk-node-go/ldk_node"
 	"github.com/getAlby/nostr-wallet-connect/events"
+	"github.com/getAlby/nostr-wallet-connect/models/config"
 	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 	"github.com/getAlby/nostr-wallet-connect/models/lsp"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
@@ -149,8 +150,6 @@ func (gs *LDKService) Shutdown() error {
 }
 
 func (gs *LDKService) SendPaymentSync(ctx context.Context, invoice string) (preimage string, err error) {
-	maxSendable := gs.getMaxSendable()
-
 	paymentRequest, err := decodepay.Decodepay(invoice)
 	if err != nil {
 		gs.svc.Logger.WithFields(logrus.Fields{
@@ -160,15 +159,18 @@ func (gs *LDKService) SendPaymentSync(ctx context.Context, invoice string) (prei
 		return "", err
 	}
 
-	gs.eventLogger.Log(ctx, &events.Event{
-		Event: "nwc_ldk_send_payment",
-		Properties: map[string]interface{}{
-			"invoice":      invoice,
-			"amount":       paymentRequest.MSatoshi / 1000,
-			"max_sendable": maxSendable,
-			"num_channels": len(gs.node.ListChannels()),
-		},
-	})
+	maxSpendable := gs.getMaxSpendable()
+	if paymentRequest.MSatoshi > maxSpendable {
+		gs.eventLogger.Log(&events.Event{
+			Event: "nwc_outgoing_liquidity_required",
+			Properties: map[string]interface{}{
+				//"amount":         amount / 1000,
+				//"max_receivable": maxReceivable,
+				//"num_channels":   len(gs.node.ListChannels()),
+				"node_type": config.LDKBackendType,
+			},
+		})
+	}
 
 	paymentStart := time.Now()
 	ldkEventSubscription := gs.ldkEventBroadcaster.Subscribe()
@@ -243,16 +245,7 @@ func (gs *LDKService) SendPaymentSync(ctx context.Context, invoice string) (prei
 				"failureReasonMessage": failureReasonMessage,
 			}).Error("Received payment failed event")
 
-			gs.eventLogger.Log(ctx, &events.Event{
-				Event: "nwc_ldk_payment_failed",
-				Properties: map[string]interface{}{
-					"invoice":        invoice,
-					"reason":         failureReason,
-					"reason_message": failureReasonMessage,
-				},
-			})
-
-			return "", fmt.Errorf("payment failed event: %v %s", failureReason, failureReasonMessage)
+			return "", fmt.Errorf("received payment failed event: %v %s", failureReason, failureReasonMessage)
 		}
 	}
 	if preimage == "" {
@@ -392,7 +385,7 @@ func (gs *LDKService) getMaxReceivable() int64 {
 	return int64(receivable)
 }
 
-func (gs *LDKService) getMaxSendable() int64 {
+func (gs *LDKService) getMaxSpendable() int64 {
 	var spendable int64 = 0
 	channels := gs.node.ListChannels()
 	for _, channel := range channels {
@@ -407,14 +400,17 @@ func (gs *LDKService) MakeInvoice(ctx context.Context, amount int64, description
 
 	maxReceivable := gs.getMaxReceivable()
 
-	gs.eventLogger.Log(ctx, &events.Event{
-		Event: "nwc_ldk_make_invoice",
-		Properties: map[string]interface{}{
-			"amount":         amount / 1000,
-			"max_receivable": maxReceivable,
-			"num_channels":   len(gs.node.ListChannels()),
-		},
-	})
+	if amount > maxReceivable {
+		gs.eventLogger.Log(&events.Event{
+			Event: "nwc_incoming_liquidity_required",
+			Properties: map[string]interface{}{
+				//"amount":         amount / 1000,
+				//"max_receivable": maxReceivable,
+				//"num_channels":   len(gs.node.ListChannels()),
+				"node_type": config.LDKBackendType,
+			},
+		})
+	}
 
 	// TODO: support passing description hash
 	invoice, err := gs.node.Bolt11Payment().Receive(uint64(amount),
@@ -685,6 +681,16 @@ func (ls *LDKService) ResetRouter(ctx context.Context) error {
 	return err
 }
 
+func (gs *LDKService) SignMessage(ctx context.Context, message string) (string, error) {
+	sign, err := gs.node.SignMessage([]byte(message))
+	if err != nil {
+		gs.svc.Logger.Errorf("SignMessage failed: %v", err)
+		return "", err
+	}
+
+	return sign, nil
+}
+
 func (gs *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) (*Nip47Transaction, error) {
 	transactionType := "incoming"
 	if payment.Direction == ldk_node.PaymentDirectionOutbound {
@@ -757,36 +763,74 @@ func (ls *LDKService) logLdkEvent(ctx context.Context, event *ldk_node.Event) {
 
 	switch v := (*event).(type) {
 	case ldk_node.EventChannelReady:
-		ls.eventLogger.Log(ctx, &events.Event{
-			Event: "nwc_ldk_channel_ready",
+		ls.eventLogger.Log(&events.Event{
+			Event: "nwc_channel_ready",
 			Properties: map[string]interface{}{
-				"counterparty_node_id": v.CounterpartyNodeId,
+				// "counterparty_node_id": v.CounterpartyNodeId,
+				"node_type": config.LDKBackendType,
 			},
 		})
 	case ldk_node.EventChannelClosed:
-		ls.eventLogger.Log(ctx, &events.Event{
-			Event: "nwc_ldk_channel_closed",
+		ls.eventLogger.Log(&events.Event{
+			Event: "nwc_channel_closed",
 			Properties: map[string]interface{}{
-				"counterparty_node_id": v.CounterpartyNodeId,
-				"reason":               fmt.Sprintf("%+v", v.Reason),
+				// "counterparty_node_id": v.CounterpartyNodeId,
+				// "reason":               fmt.Sprintf("%+v", v.Reason),
+				"node_type": config.LDKBackendType,
 			},
 		})
 	case ldk_node.EventPaymentReceived:
-		ls.eventLogger.Log(ctx, &events.Event{
-			Event: "nwc_ldk_payment_received",
+		ls.eventLogger.Log(&events.Event{
+			Event: "nwc_payment_received",
 			Properties: map[string]interface{}{
 				"payment_hash": v.PaymentHash,
 				"amount":       v.AmountMsat / 1000,
-			},
-		})
-	case ldk_node.EventPaymentFailed:
-		ls.eventLogger.Log(ctx, &events.Event{
-			Event: "nwc_ldk_payment_failed",
-			Properties: map[string]interface{}{
-				"payment_hash": v.PaymentHash,
-				"reason":       fmt.Sprintf("%+v", v.Reason),
+				"node_type":    config.LDKBackendType,
 			},
 		})
 	}
 
+}
+
+func (ls *LDKService) GetBalances(ctx context.Context) (*lnclient.BalancesResponse, error) {
+	onchainBalance, err := ls.GetOnchainBalance(ctx)
+	if err != nil {
+		ls.svc.Logger.WithError(err).Error("Failed to retrieve onchain balance")
+		return nil, err
+	}
+
+	var totalReceivable int64 = 0
+	var totalSpendable int64 = 0
+	var nextMaxReceivable int64 = 0
+	var nextMaxSpendable int64 = 0
+	var nextMaxReceivableMPP int64 = 0
+	var nextMaxSpendableMPP int64 = 0
+	channels := ls.node.ListChannels()
+	for _, channel := range channels {
+		if channel.IsUsable {
+			channelMinSpendable := min(int64(channel.OutboundCapacityMsat), int64(*channel.CounterpartyOutboundHtlcMaximumMsat))
+			channelMinReceivable := min(int64(channel.InboundCapacityMsat), int64(*channel.InboundHtlcMaximumMsat))
+
+			nextMaxSpendable = max(nextMaxSpendable, channelMinSpendable)
+			nextMaxReceivable = max(nextMaxReceivable, channelMinReceivable)
+
+			nextMaxSpendableMPP += channelMinSpendable
+			nextMaxReceivableMPP += channelMinReceivable
+
+			totalSpendable += int64(channel.OutboundCapacityMsat)
+			totalReceivable += int64(channel.InboundCapacityMsat)
+		}
+	}
+
+	return &lnclient.BalancesResponse{
+		Onchain: *onchainBalance,
+		Lightning: lnclient.LightningBalanceResponse{
+			TotalSpendable:       totalSpendable,
+			TotalReceivable:      totalReceivable,
+			NextMaxSpendable:     nextMaxSpendable,
+			NextMaxReceivable:    nextMaxReceivable,
+			NextMaxSpendableMPP:  nextMaxSpendableMPP,
+			NextMaxReceivableMPP: nextMaxReceivableMPP,
+		},
+	}, nil
 }

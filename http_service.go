@@ -33,7 +33,7 @@ const (
 func NewHttpService(svc *Service) *HttpService {
 	return &HttpService{
 		svc:         svc,
-		api:         NewAPI(svc, svc.AlbyOAuthSvc),
+		api:         NewAPI(svc),
 		albyHttpSvc: alby.NewAlbyHttpService(svc.AlbyOAuthSvc, svc.Logger),
 	}
 }
@@ -79,14 +79,15 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	// TODO: below could be supported by NIP-47
 	e.GET("/api/channels", httpSvc.channelsListHandler, authMiddleware)
 	e.POST("/api/channels", httpSvc.openChannelHandler, authMiddleware)
-	e.POST("/api/wrapped-invoices", httpSvc.newWrappedInvoiceHandler, authMiddleware)
+	// TODO: review naming
+	e.POST("/api/instant-channel-invoices", httpSvc.newInstantChannelInvoiceHandler, authMiddleware)
 	// TODO: should this be DELETE /api/channels:id?
 	e.POST("/api/channels/close", httpSvc.closeChannelHandler, authMiddleware)
 	e.GET("/api/node/connection-info", httpSvc.nodeConnectionInfoHandler, authMiddleware)
 	e.POST("/api/peers", httpSvc.connectPeerHandler, authMiddleware)
 	e.POST("/api/wallet/new-address", httpSvc.newOnchainAddressHandler, authMiddleware)
 	e.POST("/api/wallet/redeem-onchain-funds", httpSvc.redeemOnchainFundsHandler, authMiddleware)
-	e.GET("/api/wallet/balance", httpSvc.onchainBalanceHandler, authMiddleware)
+	e.GET("/api/balances", httpSvc.balancesHandler, authMiddleware)
 	e.POST("/api/reset-router", httpSvc.resetRouterHandler, authMiddleware)
 	e.POST("/api/stop", httpSvc.stopHandler, authMiddleware)
 
@@ -108,7 +109,7 @@ func (httpSvc *HttpService) csrfHandler(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) infoHandler(c echo.Context) error {
-	responseBody, err := httpSvc.api.GetInfo()
+	responseBody, err := httpSvc.api.GetInfo(c.Request().Context())
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
 			Message: err.Error(),
@@ -189,7 +190,7 @@ func (httpSvc *HttpService) unlockHandler(c echo.Context) error {
 		})
 	}
 
-	httpSvc.svc.EventLogger.Log(c.Request().Context(), &events.Event{
+	httpSvc.svc.EventLogger.Log(&events.Event{
 		Event: "nwc_unlocked",
 	})
 
@@ -287,10 +288,10 @@ func (httpSvc *HttpService) nodeConnectionInfoHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, info)
 }
 
-func (httpSvc *HttpService) onchainBalanceHandler(c echo.Context) error {
+func (httpSvc *HttpService) balancesHandler(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	onchainBalanceResponse, err := httpSvc.api.GetOnchainBalance(ctx)
+	balances, err := httpSvc.api.GetBalances(ctx)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
@@ -298,7 +299,7 @@ func (httpSvc *HttpService) onchainBalanceHandler(c echo.Context) error {
 		})
 	}
 
-	return c.JSON(http.StatusOK, onchainBalanceResponse)
+	return c.JSON(http.StatusOK, balances)
 }
 
 func (httpSvc *HttpService) mempoolLightningNodeHandler(c echo.Context) error {
@@ -382,17 +383,17 @@ func (httpSvc *HttpService) closeChannelHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, closeChannelResponse)
 }
 
-func (httpSvc *HttpService) newWrappedInvoiceHandler(c echo.Context) error {
+func (httpSvc *HttpService) newInstantChannelInvoiceHandler(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	var newWrappedInvoiceRequest api.NewWrappedInvoiceRequest
+	var newWrappedInvoiceRequest api.NewInstantChannelInvoiceRequest
 	if err := c.Bind(&newWrappedInvoiceRequest); err != nil {
 		return c.JSON(http.StatusBadRequest, models.ErrorResponse{
 			Message: fmt.Sprintf("Bad request: %s", err.Error()),
 		})
 	}
 
-	newWrappedInvoiceResponse, err := httpSvc.api.NewWrappedInvoice(ctx, &newWrappedInvoiceRequest)
+	newWrappedInvoiceResponse, err := httpSvc.api.NewInstantChannelInvoice(ctx, &newWrappedInvoiceRequest)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
@@ -551,7 +552,7 @@ func (httpSvc *HttpService) setupHandler(c echo.Context) error {
 		})
 	}
 
-	err := httpSvc.api.Setup(&setupRequest)
+	err := httpSvc.api.Setup(c.Request().Context(), &setupRequest)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
 			Message: fmt.Sprintf("Failed to setup node: %s", err.Error()),

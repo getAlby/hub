@@ -2,91 +2,83 @@ package main
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 
 	"github.com/getAlby/nostr-wallet-connect/events"
+	"github.com/nbd-wtf/go-nostr"
 	"github.com/sirupsen/logrus"
 )
 
-func (svc *Service) HandlePayKeysendEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App) (result *Nip47Response, err error) {
+func (svc *Service) HandlePayKeysendEvent(ctx context.Context, nip47Request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, nostr.Tags)) {
 
 	payParams := &Nip47KeysendParams{}
-	err = json.Unmarshal(request.Params, payParams)
-	if err != nil {
-		svc.Logger.WithFields(logrus.Fields{
-			"eventId": requestEvent.NostrId,
-			"appId":   app.ID,
-		}).Errorf("Failed to decode nostr event: %v", err)
-		return nil, err
+	resp := svc.decodeNip47Request(nip47Request, requestEvent, app, payParams)
+	if resp != nil {
+		publishResponse(resp, nostr.Tags{})
+		return
 	}
 
-	// We use pay_invoice permissions for budget and max amount
-	hasPermission, code, message := svc.hasPermission(app, NIP_47_PAY_INVOICE_METHOD, payParams.Amount)
-
-	if !hasPermission {
-		svc.Logger.WithFields(logrus.Fields{
-			"eventId":      requestEvent.NostrId,
-			"appId":        app.ID,
-			"senderPubkey": payParams.Pubkey,
-		}).Errorf("App does not have permission: %s %s", code, message)
-
-		return &Nip47Response{
-			ResultType: request.Method,
-			Error: &Nip47Error{
-				Code:    code,
-				Message: message,
-			}}, nil
+	resp = svc.checkPermission(nip47Request, requestEvent.NostrId, app, payParams.Amount)
+	if resp != nil {
+		publishResponse(resp, nostr.Tags{})
+		return
 	}
 
 	payment := Payment{App: *app, RequestEvent: *requestEvent, Amount: uint(payParams.Amount / 1000)}
-	insertPaymentResult := svc.db.Create(&payment)
-	if insertPaymentResult.Error != nil {
-		return nil, insertPaymentResult.Error
+	err := svc.db.Create(&payment).Error
+	if err != nil {
+		publishResponse(&Nip47Response{
+			ResultType: nip47Request.Method,
+			Error: &Nip47Error{
+				Code:    NIP_47_ERROR_INTERNAL,
+				Message: err.Error(),
+			},
+		}, nostr.Tags{})
+		return
 	}
 
 	svc.Logger.WithFields(logrus.Fields{
-		"eventId":      requestEvent.NostrId,
-		"appId":        app.ID,
-		"senderPubkey": payParams.Pubkey,
+		"requestEventNostrId": requestEvent.NostrId,
+		"appId":               app.ID,
+		"senderPubkey":        payParams.Pubkey,
 	}).Info("Sending payment")
 
 	preimage, err := svc.lnClient.SendKeysend(ctx, payParams.Amount, payParams.Pubkey, payParams.Preimage, payParams.TLVRecords)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
-			"eventId":         requestEvent.NostrId,
-			"appId":           app.ID,
-			"recipientPubkey": payParams.Pubkey,
+			"requestEventNostrId": requestEvent.NostrId,
+			"appId":               app.ID,
+			"recipientPubkey":     payParams.Pubkey,
 		}).Infof("Failed to send payment: %v", err)
-		svc.EventLogger.Log(ctx, &events.Event{
+		svc.EventLogger.Log(&events.Event{
 			Event: "nwc_payment_failed",
 			Properties: map[string]interface{}{
-				"error":   fmt.Sprintf("%v", err),
+				// "error":   fmt.Sprintf("%v", err),
 				"keysend": true,
 				"amount":  payParams.Amount / 1000,
 			},
 		})
-		return &Nip47Response{
-			ResultType: request.Method,
+		publishResponse(&Nip47Response{
+			ResultType: nip47Request.Method,
 			Error: &Nip47Error{
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: err.Error(),
 			},
-		}, nil
+		}, nostr.Tags{})
+		return
 	}
 	payment.Preimage = &preimage
 	svc.db.Save(&payment)
-	svc.EventLogger.Log(ctx, &events.Event{
+	svc.EventLogger.Log(&events.Event{
 		Event: "nwc_payment_succeeded",
 		Properties: map[string]interface{}{
 			"keysend": true,
 			"amount":  payParams.Amount / 1000,
 		},
 	})
-	return &Nip47Response{
-		ResultType: request.Method,
+	publishResponse(&Nip47Response{
+		ResultType: nip47Request.Method,
 		Result: Nip47PayResponse{
 			Preimage: preimage,
 		},
-	}, nil
+	}, nostr.Tags{})
 }

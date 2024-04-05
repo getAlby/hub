@@ -2,63 +2,49 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 
+	"github.com/nbd-wtf/go-nostr"
 	"github.com/sirupsen/logrus"
 )
 
-func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Request, requestEvent *RequestEvent, app *App) (result *Nip47Response, err error) {
+func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, nip47Request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, nostr.Tags)) {
 
-	// TODO: move to a shared function
-	hasPermission, code, message := svc.hasPermission(app, request.Method, 0)
-
-	if !hasPermission {
-		svc.Logger.WithFields(logrus.Fields{
-			"eventId": requestEvent.NostrId,
-			"appId":   app.ID,
-		}).Errorf("App does not have permission: %s %s", code, message)
-
-		return &Nip47Response{
-			ResultType: request.Method,
-			Error: &Nip47Error{
-				Code:    code,
-				Message: message,
-			}}, nil
+	makeInvoiceParams := &Nip47MakeInvoiceParams{}
+	resp := svc.decodeNip47Request(nip47Request, requestEvent, app, makeInvoiceParams)
+	if resp != nil {
+		publishResponse(resp, nostr.Tags{})
+		return
 	}
 
-	// TODO: move to a shared generic function
-	makeInvoiceParams := &Nip47MakeInvoiceParams{}
-	err = json.Unmarshal(request.Params, makeInvoiceParams)
-	if err != nil {
-		svc.Logger.WithFields(logrus.Fields{
-			"eventId": requestEvent.NostrId,
-			"appId":   app.ID,
-		}).Errorf("Failed to decode nostr event: %v", err)
-		return nil, err
+	resp = svc.checkPermission(nip47Request, requestEvent.NostrId, app, 0)
+	if resp != nil {
+		publishResponse(resp, nostr.Tags{})
+		return
 	}
 
 	if makeInvoiceParams.Description != "" && makeInvoiceParams.DescriptionHash != "" {
 		svc.Logger.WithFields(logrus.Fields{
-			"eventId": requestEvent.NostrId,
-			"appId":   app.ID,
+			"requestEventNostrId": requestEvent.NostrId,
+			"appId":               app.ID,
 		}).Errorf("Only one of description, description_hash can be provided")
 
-		return &Nip47Response{
-			ResultType: request.Method,
+		publishResponse(&Nip47Response{
+			ResultType: nip47Request.Method,
 			Error: &Nip47Error{
 				Code:    NIP_47_OTHER,
 				Message: "Only one of description, description_hash can be provided",
 			},
-		}, nil
+		}, nostr.Tags{})
+		return
 	}
 
 	svc.Logger.WithFields(logrus.Fields{
-		"eventId":         requestEvent.NostrId,
-		"appId":           app.ID,
-		"amount":          makeInvoiceParams.Amount,
-		"description":     makeInvoiceParams.Description,
-		"descriptionHash": makeInvoiceParams.DescriptionHash,
-		"expiry":          makeInvoiceParams.Expiry,
+		"requestEventNostrId": requestEvent.NostrId,
+		"appId":               app.ID,
+		"amount":              makeInvoiceParams.Amount,
+		"description":         makeInvoiceParams.Description,
+		"descriptionHash":     makeInvoiceParams.DescriptionHash,
+		"expiry":              makeInvoiceParams.Expiry,
 	}).Info("Making invoice")
 
 	expiry := makeInvoiceParams.Expiry
@@ -69,28 +55,30 @@ func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, request *Nip47Re
 	transaction, err := svc.lnClient.MakeInvoice(ctx, makeInvoiceParams.Amount, makeInvoiceParams.Description, makeInvoiceParams.DescriptionHash, expiry)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
-			"eventId":         requestEvent.NostrId,
-			"appId":           app.ID,
-			"amount":          makeInvoiceParams.Amount,
-			"description":     makeInvoiceParams.Description,
-			"descriptionHash": makeInvoiceParams.DescriptionHash,
-			"expiry":          makeInvoiceParams.Expiry,
+			"requestEventNostrId": requestEvent.NostrId,
+			"appId":               app.ID,
+			"amount":              makeInvoiceParams.Amount,
+			"description":         makeInvoiceParams.Description,
+			"descriptionHash":     makeInvoiceParams.DescriptionHash,
+			"expiry":              makeInvoiceParams.Expiry,
 		}).Infof("Failed to make invoice: %v", err)
-		return &Nip47Response{
-			ResultType: request.Method,
+
+		publishResponse(&Nip47Response{
+			ResultType: nip47Request.Method,
 			Error: &Nip47Error{
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: err.Error(),
 			},
-		}, nil
+		}, nostr.Tags{})
+		return
 	}
 
 	responsePayload := &Nip47MakeInvoiceResponse{
 		Nip47Transaction: *transaction,
 	}
 
-	return &Nip47Response{
-		ResultType: request.Method,
+	publishResponse(&Nip47Response{
+		ResultType: nip47Request.Method,
 		Result:     responsePayload,
-	}, nil
+	}, nostr.Tags{})
 }

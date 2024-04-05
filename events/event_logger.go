@@ -18,17 +18,19 @@ type Event struct {
 type eventLogger struct {
 	logger    *logrus.Logger
 	listeners []EventListener
+	enabled   bool
 }
 
 type EventLogger interface {
 	Subscribe(eventListener EventListener)
-	Log(ctx context.Context, event *Event)
+	Log(event *Event)
 }
 
-func NewEventLogger(logger *logrus.Logger) *eventLogger {
+func NewEventLogger(logger *logrus.Logger, enabled bool) *eventLogger {
 	eventLogger := &eventLogger{
 		logger:    logger,
 		listeners: []EventListener{},
+		enabled:   enabled,
 	}
 	return eventLogger
 }
@@ -37,11 +39,14 @@ func (el *eventLogger) Subscribe(listener EventListener) {
 	el.listeners = append(el.listeners, listener)
 }
 
-func (el *eventLogger) Log(ctx context.Context, event *Event) {
-	el.logger.WithField("event", event).Info("Logging event")
+func (el *eventLogger) Log(event *Event) {
+	el.logger.WithFields(logrus.Fields{"event": event, "enabled": el.enabled}).Info("Logging event")
+	if !el.enabled {
+		return
+	}
 	for _, listener := range el.listeners {
 		go func(listener EventListener) {
-			err := listener.Log(ctx, event)
+			err := listener.Log(context.Background(), event)
 			if err != nil {
 				el.logger.WithError(err).Error("Failed to log event")
 			}
