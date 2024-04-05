@@ -124,10 +124,20 @@ func (svc *AlbyOAuthService) fetchUserToken(ctx context.Context) (*oauth2.Token,
 	if err != nil {
 		return nil, err
 	}
+
+	if accessToken == "" {
+		return nil, nil
+	}
+
 	expiry, err := svc.kvStore.Get(accessTokenExpiryKey, "")
 	if err != nil {
 		return nil, err
 	}
+
+	if expiry == "" {
+		return nil, nil
+	}
+
 	expiry64, err := strconv.ParseInt(expiry, 10, 64)
 	if err != nil {
 		return nil, err
@@ -136,6 +146,11 @@ func (svc *AlbyOAuthService) fetchUserToken(ctx context.Context) (*oauth2.Token,
 	if err != nil {
 		return nil, err
 	}
+
+	if refreshToken == "" {
+		return nil, nil
+	}
+
 	currentToken := &oauth2.Token{
 		AccessToken:  accessToken,
 		Expiry:       time.Unix(expiry64, 0),
@@ -311,6 +326,9 @@ func (svc *AlbyOAuthService) SendPayment(ctx context.Context, invoice string) er
 }
 
 func (svc *AlbyOAuthService) GetAuthUrl() string {
+	if svc.appConfig.AlbyClientId == "" || svc.appConfig.AlbyClientSecret == "" {
+		svc.logger.Fatalf("No ALBY_OAUTH_CLIENT_ID or ALBY_OAUTH_CLIENT_SECRET set")
+	}
 	return svc.oauthConf.AuthCodeURL("unused")
 }
 

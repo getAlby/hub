@@ -31,9 +31,7 @@ export function HomeRedirect() {
             to = "/onboarding/lightning/migrate-alby";
           }
         } else {
-          // FIXME: this won't work for Wails
-          window.location.href = info?.albyAuthUrl;
-          return;
+          to = "/alby/auth";
         }
       } else {
         to = "/unlock";
