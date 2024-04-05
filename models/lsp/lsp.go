@@ -25,7 +25,11 @@ type FeeResponse struct {
 type NewInstantChannelRequest struct {
 	Amount uint64 `json:"amount"` // sats
 	Pubkey string `json:"pubkey"`
-	FeeId  string `json:"fee_id"`
+}
+
+type NewInstantChannelResponse struct {
+	FeeAmountMsat uint64 `json:"fee_amount_msat"`
+	Invoice       string `json:"invoice"`
 }
 
 type ProposalRequest struct {
