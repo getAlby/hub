@@ -13,7 +13,13 @@ import { ModeToggle } from "src/components/ui/mode-toggle";
 
 import { CaretUpIcon } from "@radix-ui/react-icons";
 import React from "react";
-import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
+import {
+  Link,
+  NavLink,
+  Outlet,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "src/components/ui/avatar";
 import { Button } from "src/components/ui/button";
 import {
@@ -36,7 +42,13 @@ export default function AppLayout() {
   const { data: albyMe } = useAlbyMe();
   const { data: csrf } = useCSRF();
   const { toast } = useToast();
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  const location = useLocation();
   const navigate = useNavigate();
+
+  React.useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location]);
 
   const logout = React.useCallback(async () => {
     if (!csrf) {
@@ -171,7 +183,7 @@ export default function AppLayout() {
       </div>
       <main className="flex flex-col">
         <header className="md:hidden flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6 justify-between">
-          <Sheet>
+          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild>
               <Button
                 variant="outline"
