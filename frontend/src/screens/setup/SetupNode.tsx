@@ -1,8 +1,7 @@
-import * as bip39 from "@scure/bip39";
-import { wordlist } from "@scure/bip39/wordlists/english";
 import React from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Container from "src/components/Container";
+import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
@@ -20,25 +19,19 @@ import { BackendType } from "src/types";
 export function SetupNode() {
   const setupStore = useSetupStore();
   const [backendType, setBackendType] = React.useState<BackendType>(
-    setupStore.nodeInfo.backendType || "BREEZ"
+    setupStore.nodeInfo.backendType || "LDK"
   );
   const navigate = useNavigate();
-  const location = useLocation();
-
-  const params = new URLSearchParams(location.search);
-  const isNew = params.get("wallet") === "new";
 
   async function handleSubmit(data: object) {
     setupStore.updateNodeInfo({
       backendType,
-      ...(isNew && { mnemonic: bip39.generateMnemonic(wordlist, 128) }),
       ...data,
     });
     navigate(
-      !isNew &&
-        (backendType === "BREEZ" ||
-          backendType === "GREENLIGHT" ||
-          backendType === "LDK")
+      backendType === "BREEZ" ||
+        backendType === "GREENLIGHT" ||
+        backendType === "LDK"
         ? `/setup/import-mnemonic`
         : `/setup/finish`
     );
@@ -47,14 +40,10 @@ export function SetupNode() {
   return (
     <>
       <Container>
-        <div className="grid gap-5">
-          <div className="grid gap-2 text-center">
-            <h1 className="font-semibold text-2xl font-headline">Node Setup</h1>
-            <p className="text-muted-foreground">
-              Enter your node connection credentials to connect to your wallet.
-            </p>
-          </div>
-        </div>
+        <TwoColumnLayoutHeader
+          title="Node Setup"
+          description="Enter your node connection credentials to connect to your wallet."
+        />
         <div className="w-full mt-5">
           <Label htmlFor="backend-type">Backend Type</Label>
           <Select
@@ -69,7 +58,7 @@ export function SetupNode() {
               <SelectItem value="LDK">LDK</SelectItem>
               <SelectItem value="BREEZ">Breez</SelectItem>
               <SelectItem value="GREENLIGHT">Greenlight</SelectItem>
-              {!isNew && <SelectItem value="LND">LND</SelectItem>}
+              <SelectItem value="LND">LND</SelectItem>
             </SelectContent>
           </Select>
           {backendType === "BREEZ" && <BreezForm handleSubmit={handleSubmit} />}
