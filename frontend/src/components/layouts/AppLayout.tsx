@@ -78,6 +78,7 @@ export default function AppLayout() {
               href="https://getalby.com/lightning_addresses/"
               target="_blank"
               rel="noreferer noopener"
+              className="w-full"
             >
               Profile
             </a>

@@ -19,7 +19,7 @@ import { BackendType } from "src/types";
 export function SetupNode() {
   const setupStore = useSetupStore();
   const [backendType, setBackendType] = React.useState<BackendType>(
-    setupStore.nodeInfo.backendType || "BREEZ"
+    setupStore.nodeInfo.backendType || "LDK"
   );
   const navigate = useNavigate();
 

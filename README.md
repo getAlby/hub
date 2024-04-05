@@ -120,6 +120,8 @@ _To configure via env, the following parameters must be provided:_
 
 ### LDK Backend parameters
 
+- `LDK_ESPLORA_SERVER`: If using the mainnet (bitcoin) network, Recommended to use your own LDK esplora server (The public blockstream one is very slow and can cause onchain syncing and issues with opening channels)
+
 #### Testnet
 
 - `MEMPOOL_API=https://mempool.space/testnet/api`

@@ -103,6 +103,11 @@ type EncryptedMnemonicResponse struct {
 	Mnemonic string `json:"mnemonic"`
 }
 
+type ChangeUnlockPasswordRequest struct {
+	CurrentUnlockPassword string `json:"currentUnlockPassword"`
+	NewUnlockPassword     string `json:"newUnlockPassword"`
+}
+
 type ConnectPeerRequest = lnclient.ConnectPeerRequest
 type OpenChannelRequest = lnclient.OpenChannelRequest
 type OpenChannelResponse = lnclient.OpenChannelResponse
