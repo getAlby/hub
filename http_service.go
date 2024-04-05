@@ -6,14 +6,15 @@ import (
 	"net/http"
 
 	echologrus "github.com/davrux/echo-logrus/v4"
-	"github.com/getAlby/nostr-wallet-connect/alby"
-	"github.com/getAlby/nostr-wallet-connect/events"
-	models "github.com/getAlby/nostr-wallet-connect/models/http"
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"gorm.io/gorm"
+
+	"github.com/getAlby/nostr-wallet-connect/alby"
+	"github.com/getAlby/nostr-wallet-connect/events"
+	models "github.com/getAlby/nostr-wallet-connect/models/http"
 
 	"github.com/getAlby/nostr-wallet-connect/frontend"
 	"github.com/getAlby/nostr-wallet-connect/models/api"
@@ -98,7 +99,8 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 
 	e.POST("/api/send-payment-probes", httpSvc.sendPaymentProbesHandler, authMiddleware)
 	e.POST("/api/send-spontaneous-payment-probes", httpSvc.sendSpontaneousPaymentProbesHandler, authMiddleware)
-	e.POST("/api/get-log-output", httpSvc.getLogOutput, authMiddleware)
+	e.POST("/api/get-log-output", httpSvc.getLnLogOutput, authMiddleware)
+	e.POST("/api/get-app-log-output", httpSvc.getAppLogOutput, authMiddleware)
 
 	frontend.RegisterHandlers(e)
 }
@@ -616,8 +618,8 @@ func (httpSvc *HttpService) sendSpontaneousPaymentProbesHandler(c echo.Context) 
 	})
 }
 
-func (httpSvc *HttpService) getLogOutput(c echo.Context) error {
-	var getLogRequest api.GetLogOutputRequest
+func (httpSvc *HttpService) getLnLogOutput(c echo.Context) error {
+	var getLogRequest api.GetLnLogOutputRequest
 	if err := c.Bind(&getLogRequest); err != nil {
 		return c.JSON(http.StatusBadRequest, models.ErrorResponse{
 			Message: fmt.Sprintf("Bad request: %s", err.Error()),
@@ -631,7 +633,39 @@ func (httpSvc *HttpService) getLogOutput(c echo.Context) error {
 		})
 	}
 
-	return c.JSON(http.StatusOK, api.GetLogOutputResponse{
+	return c.JSON(http.StatusOK, api.GetLnLogOutputResponse{
 		Log: logData,
+	})
+}
+
+func (httpSvc *HttpService) getAppLogOutput(c echo.Context) error {
+	var getLogRequest api.GetAppLogOutputRequest
+	if err := c.Bind(&getLogRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, models.ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	logFileName := ""
+
+	if getLogRequest.Source == api.AppLogOutputSourceGeneral {
+		logFileName = httpSvc.svc.GeneralLogFilePath()
+	} else if getLogRequest.Source == api.AppLogOutputSourceError {
+		logFileName = httpSvc.svc.ErrorLogFilePath()
+	} else {
+		return c.JSON(http.StatusBadRequest, models.ErrorResponse{
+			Message: fmt.Sprintf("Bad request: invalid log source '%s'", getLogRequest.Source),
+		})
+	}
+
+	logData, err := ReadFileTail(logFileName, getLogRequest.MaxLen)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
+			Message: fmt.Sprintf("Failed to read log file: %s", err.Error()),
+		})
+	}
+
+	return c.JSON(http.StatusOK, api.GetAppLogOutputResponse{
+		Log: string(logData),
 	})
 }

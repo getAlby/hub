@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -15,12 +14,13 @@ import (
 	"time"
 
 	"github.com/getAlby/ldk-node-go/ldk_node"
+	decodepay "github.com/nbd-wtf/ln-decodepay"
+	"github.com/sirupsen/logrus"
+
 	"github.com/getAlby/nostr-wallet-connect/events"
 	"github.com/getAlby/nostr-wallet-connect/models/config"
 	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 	"github.com/getAlby/nostr-wallet-connect/models/lsp"
-	decodepay "github.com/nbd-wtf/ln-decodepay"
-	"github.com/sirupsen/logrus"
 )
 
 type LDKService struct {
@@ -816,34 +816,7 @@ func (gs *LDKService) GetLogOutput(ctx context.Context, maxLen int) (string, err
 	// naturally sort by date.
 	lastLogFileName := slices.Max(allLogFiles)
 
-	logFile, err := os.Open(lastLogFileName)
-	if err != nil {
-		gs.svc.Logger.WithError(err).Error("GetLogOutput failed to open log file")
-		return "", err
-	}
-	defer LoggedClose(gs.svc.Logger, logFile)
-
-	var logDataReader io.Reader = logFile
-
-	if maxLen > 0 {
-		stat, err := logFile.Stat()
-		if err != nil {
-			gs.svc.Logger.WithError(err).Error("GetLogOutput failed to get log file stat")
-			return "", err
-		}
-
-		if stat.Size() > int64(maxLen) {
-			_, err = logFile.Seek(-int64(maxLen), io.SeekEnd)
-			if err != nil {
-				gs.svc.Logger.WithError(err).Error("GetLogOutput failed to seek log file")
-				return "", err
-			}
-		}
-
-		logDataReader = io.LimitReader(logFile, int64(maxLen))
-	}
-
-	logData, err := io.ReadAll(logDataReader)
+	logData, err := ReadFileTail(lastLogFileName, maxLen)
 	if err != nil {
 		gs.svc.Logger.WithError(err).Error("GetLogOutput failed to read log file")
 		return "", err

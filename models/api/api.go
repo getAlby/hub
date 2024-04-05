@@ -150,11 +150,25 @@ type SendSpontaneousPaymentProbesResponse struct {
 	Error string `json:"error"`
 }
 
-type GetLogOutputRequest struct {
+type GetLnLogOutputRequest struct {
 	MaxLen int `json:"maxLen"`
 }
 
-type GetLogOutputResponse struct {
+type GetLnLogOutputResponse struct {
+	Log string `json:"logs"`
+}
+
+const (
+	AppLogOutputSourceGeneral = "general"
+	AppLogOutputSourceError   = "error"
+)
+
+type GetAppLogOutputRequest struct {
+	MaxLen int    `json:"maxLen"`
+	Source string `json:"source"`
+}
+
+type GetAppLogOutputResponse struct {
 	Log string `json:"logs"`
 }
 
