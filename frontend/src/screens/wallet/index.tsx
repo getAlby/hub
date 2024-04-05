@@ -30,6 +30,7 @@ import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
 import { useCSRF } from "src/hooks/useCSRF";
 import { useInfo } from "src/hooks/useInfo";
+import { useNodeConnectionInfo } from "src/hooks/useNodeConnectionInfo";
 import { copyToClipboard } from "src/lib/clipboard";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
@@ -39,6 +40,7 @@ function Wallet() {
   const { data: balances } = useBalances();
   const { data: csrf } = useCSRF();
   const { toast } = useToast();
+  const { data: nodeConnectionInfo } = useNodeConnectionInfo();
   const [showBackupPrompt, setShowBackupPrompt] = React.useState(true);
 
   if (!info || !balances) {
@@ -100,18 +102,18 @@ function Wallet() {
                         Node
                       </div>
                       <div className="overflow-hidden text-ellipsis">
-                        {/* TODO: Load node ID from server */}
-                        029ca15ad2ea3077f5f0524c4c9bc266854c14b9fc81b9cc3d6b48e2460af13f65
+                        {/* TODO: replace with skeleton loader */}
+                        {nodeConnectionInfo?.pubkey || "Loading..."}
                       </div>
-                      <CopyIcon
-                        className="shrink-0 w-4 h-4"
-                        onClick={() => {
-                          copyToClipboard(
-                            "029ca15ad2ea3077f5f0524c4c9bc266854c14b9fc81b9cc3d6b48e2460af13f65"
-                          );
-                          toast({ title: "Copied to clipboard." });
-                        }}
-                      />
+                      {nodeConnectionInfo && (
+                        <CopyIcon
+                          className="shrink-0 w-4 h-4"
+                          onClick={() => {
+                            copyToClipboard(nodeConnectionInfo.pubkey);
+                            toast({ title: "Copied to clipboard." });
+                          }}
+                        />
+                      )}
                     </div>
                   </DropdownMenuItem>
                   <>
