@@ -544,10 +544,9 @@ func (api *API) NewInstantChannelInvoice(ctx context.Context, request *models.Ne
 	invoice := ""
 	var fee uint64 = 0
 
-	api.svc.Logger.Infoln("Requesting fee information")
-
 	// TODO: switch on LSPType and extract to separate functions
 	if selectedLsp.SupportsWrappedInvoices {
+		api.svc.Logger.Infoln("Requesting fee information")
 
 		var feeResponse lsp.FeeResponse
 		{
