@@ -99,7 +99,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 
 	e.POST("/api/send-payment-probes", httpSvc.sendPaymentProbesHandler, authMiddleware)
 	e.POST("/api/send-spontaneous-payment-probes", httpSvc.sendSpontaneousPaymentProbesHandler, authMiddleware)
-	e.POST("/api/get-log-output", httpSvc.getLnLogOutput, authMiddleware)
+	e.POST("/api/get-ln-log-output", httpSvc.getLnLogOutput, authMiddleware)
 	e.POST("/api/get-app-log-output", httpSvc.getAppLogOutput, authMiddleware)
 
 	frontend.RegisterHandlers(e)

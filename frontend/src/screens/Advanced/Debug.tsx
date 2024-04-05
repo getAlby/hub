@@ -72,7 +72,7 @@ export default function Debug() {
             let maxLen = window.prompt("Enter max length:");
 
             if (maxLen)
-              apiRequest("/api/get-log-output", "POST", {
+              apiRequest("/api/get-ln-log-output", "POST", {
                 maxLen: parseInt(maxLen),
               });
           }}
