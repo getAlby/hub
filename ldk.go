@@ -13,12 +13,13 @@ import (
 	"time"
 
 	"github.com/getAlby/ldk-node-go/ldk_node"
+	decodepay "github.com/nbd-wtf/ln-decodepay"
+	"github.com/sirupsen/logrus"
+
 	"github.com/getAlby/nostr-wallet-connect/events"
 	"github.com/getAlby/nostr-wallet-connect/models/config"
 	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 	"github.com/getAlby/nostr-wallet-connect/models/lsp"
-	decodepay "github.com/nbd-wtf/ln-decodepay"
-	"github.com/sirupsen/logrus"
 )
 
 type LDKService struct {
@@ -45,10 +46,6 @@ func NewLDKService(svc *Service, mnemonic, workDir string, network string, esplo
 	}
 
 	logDirPath := filepath.Join(newpath, "./logs")
-
-	// TODO: remove when LDK supports this
-	// this is not a good solution because it only runs on startup
-	deleteOldLDKLogs(svc.Logger, logDirPath)
 
 	config := ldk_node.DefaultConfig()
 	listeningAddresses := []string{
@@ -102,6 +99,22 @@ func NewLDKService(svc *Service, mnemonic, workDir string, network string, esplo
 		network:             network,
 		eventLogger:         svc.EventLogger,
 	}
+
+	// TODO: remove when LDK supports this
+	go func() {
+		deleteOldLDKLogs(svc.Logger, logDirPath)
+
+		// delete old LDK logs every 24 hours
+		ticker := time.NewTicker(24 * time.Hour)
+		for {
+			select {
+			case <-ticker.C:
+				deleteOldLDKLogs(svc.Logger, logDirPath)
+			case <-svc.ctx.Done():
+				return
+			}
+		}
+	}()
 
 	// check for and forward new LDK events to LDKEventBroadcaster (through ldkEventConsumer)
 	go func() {
