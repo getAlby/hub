@@ -45,6 +45,11 @@ func NewLDKService(svc *Service, mnemonic, workDir string, network string, esplo
 	}
 
 	logDirPath := filepath.Join(newpath, "./logs")
+
+	// TODO: remove when LDK supports this
+	// this is not a good solution because it only runs on startup
+	deleteOldLDKLogs(svc.Logger, logDirPath)
+
 	config := ldk_node.DefaultConfig()
 	listeningAddresses := []string{
 		"0.0.0.0:9735",
@@ -833,4 +838,33 @@ func (ls *LDKService) GetBalances(ctx context.Context) (*lnclient.BalancesRespon
 			NextMaxReceivableMPP: nextMaxReceivableMPP,
 		},
 	}, nil
+}
+
+func deleteOldLDKLogs(logger *logrus.Logger, ldkLogDir string) {
+	files, err := os.ReadDir(ldkLogDir)
+	if err != nil {
+		logger.WithField("path", ldkLogDir).WithError(err).Error("Failed to list ldk log directory")
+		return
+	}
+
+	for _, file := range files {
+		// get files with a date (e.g. ldk_node_2024_03_29.log)
+		if strings.HasPrefix(file.Name(), "ldk_node_2") && strings.HasSuffix(file.Name(), ".log") {
+			filePath := filepath.Join(ldkLogDir, file.Name())
+			fileInfo, err := file.Info()
+			if err != nil {
+				logger.WithField("filePath", filePath).WithError(err).Error("Failed to get file info")
+				continue
+			}
+			// delete files last modified over 3 days ago
+			if fileInfo.ModTime().Before(time.Now().AddDate(0, 0, -3)) {
+				err := os.Remove(filePath)
+				if err != nil {
+					logger.WithField("filePath", filePath).WithError(err).Error("Failed to get file info")
+					continue
+				}
+				logger.WithField("filePath", filePath).Infof("Deleted old LDK log file")
+			}
+		}
+	}
 }
