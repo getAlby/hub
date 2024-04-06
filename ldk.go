@@ -792,7 +792,7 @@ func (gs *LDKService) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, er
 	return ret, nil
 }
 
-func (gs *LDKService) GetLogOutput(ctx context.Context, maxLen int) (string, error) {
+func (gs *LDKService) GetLogOutput(ctx context.Context, maxLen int) ([]byte, error) {
 	config := gs.node.Config()
 	logPath := ""
 	if config.LogDirPath != nil {
@@ -805,11 +805,11 @@ func (gs *LDKService) GetLogOutput(ctx context.Context, maxLen int) (string, err
 	allLogFiles, err := filepath.Glob(filepath.Join(logPath, "ldk_node_*.log"))
 	if err != nil {
 		gs.svc.Logger.WithError(err).Error("GetLogOutput failed to list log files")
-		return "", err
+		return nil, err
 	}
 
 	if len(allLogFiles) == 0 {
-		return "", nil
+		return []byte{}, nil
 	}
 
 	// Log filenames are formatted as ldk_node_YYYY_MM_DD.log, hence they
@@ -819,10 +819,10 @@ func (gs *LDKService) GetLogOutput(ctx context.Context, maxLen int) (string, err
 	logData, err := ReadFileTail(lastLogFileName, maxLen)
 	if err != nil {
 		gs.svc.Logger.WithError(err).Error("GetLogOutput failed to read log file")
-		return "", err
+		return nil, err
 	}
 
-	return string(logData), nil
+	return logData, nil
 }
 
 func (ls *LDKService) logLdkEvent(ctx context.Context, event *ldk_node.Event) {

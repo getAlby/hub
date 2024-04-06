@@ -99,8 +99,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 
 	e.POST("/api/send-payment-probes", httpSvc.sendPaymentProbesHandler, authMiddleware)
 	e.POST("/api/send-spontaneous-payment-probes", httpSvc.sendSpontaneousPaymentProbesHandler, authMiddleware)
-	e.POST("/api/get-ln-log-output", httpSvc.getLnLogOutput, authMiddleware)
-	e.POST("/api/get-app-log-output", httpSvc.getAppLogOutput, authMiddleware)
+	e.GET("/api/log/:type", httpSvc.getLogOutput, authMiddleware)
 
 	frontend.RegisterHandlers(e)
 }
@@ -618,54 +617,52 @@ func (httpSvc *HttpService) sendSpontaneousPaymentProbesHandler(c echo.Context) 
 	})
 }
 
-func (httpSvc *HttpService) getLnLogOutput(c echo.Context) error {
-	var getLogRequest api.GetLnLogOutputRequest
+func (httpSvc *HttpService) getLogOutput(c echo.Context) error {
+	var getLogRequest api.GetLogOutputRequest
 	if err := c.Bind(&getLogRequest); err != nil {
 		return c.JSON(http.StatusBadRequest, models.ErrorResponse{
 			Message: fmt.Sprintf("Bad request: %s", err.Error()),
 		})
 	}
 
-	logData, err := httpSvc.svc.lnClient.GetLogOutput(httpSvc.svc.ctx, getLogRequest.MaxLen)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Message: "Failed to get log data",
-		})
-	}
+	logType := c.Param("type")
 
-	return c.JSON(http.StatusOK, api.GetLnLogOutputResponse{
-		Log: logData,
-	})
-}
+	var err error
+	var logData []byte
 
-func (httpSvc *HttpService) getAppLogOutput(c echo.Context) error {
-	var getLogRequest api.GetAppLogOutputRequest
-	if err := c.Bind(&getLogRequest); err != nil {
-		return c.JSON(http.StatusBadRequest, models.ErrorResponse{
-			Message: fmt.Sprintf("Bad request: %s", err.Error()),
-		})
-	}
+	if logType == api.LogTypeNode {
+		logData, err = httpSvc.svc.lnClient.GetLogOutput(httpSvc.svc.ctx, getLogRequest.MaxLen)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
+				Message: "Failed to get log data",
+			})
+		}
+	} else if logType == api.LogTypeApp {
+		logFileName := ""
 
-	logFileName := ""
+		if getLogRequest.Source == api.AppLogOutputSourceGeneral {
+			logFileName = httpSvc.svc.GeneralLogFilePath()
+		} else if getLogRequest.Source == api.AppLogOutputSourceError {
+			logFileName = httpSvc.svc.ErrorLogFilePath()
+		} else {
+			return c.JSON(http.StatusBadRequest, models.ErrorResponse{
+				Message: fmt.Sprintf("Bad request: invalid app log source '%s'", getLogRequest.Source),
+			})
+		}
 
-	if getLogRequest.Source == api.AppLogOutputSourceGeneral {
-		logFileName = httpSvc.svc.GeneralLogFilePath()
-	} else if getLogRequest.Source == api.AppLogOutputSourceError {
-		logFileName = httpSvc.svc.ErrorLogFilePath()
+		logData, err = ReadFileTail(logFileName, getLogRequest.MaxLen)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
+				Message: fmt.Sprintf("Failed to read log file: %s", err.Error()),
+			})
+		}
 	} else {
 		return c.JSON(http.StatusBadRequest, models.ErrorResponse{
-			Message: fmt.Sprintf("Bad request: invalid log source '%s'", getLogRequest.Source),
+			Message: fmt.Sprintf("Invalid log type parameter: '%s'", logType),
 		})
 	}
 
-	logData, err := ReadFileTail(logFileName, getLogRequest.MaxLen)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Message: fmt.Sprintf("Failed to read log file: %s", err.Error()),
-		})
-	}
-
-	return c.JSON(http.StatusOK, api.GetAppLogOutputResponse{
+	return c.JSON(http.StatusOK, api.GetLogOutputResponse{
 		Log: string(logData),
 	})
 }

@@ -369,8 +369,8 @@ func (svc *LNDService) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, e
 	return nil, nil
 }
 
-func (svc *LNDService) GetLogOutput(ctx context.Context, maxLen int) (string, error) {
-	return "", nil
+func (svc *LNDService) GetLogOutput(ctx context.Context, maxLen int) ([]byte, error) {
+	return []byte{}, nil
 }
 
 func (svc *LNDService) SignMessage(ctx context.Context, message string) (string, error) {

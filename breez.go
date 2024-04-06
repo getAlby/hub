@@ -411,8 +411,8 @@ func (bs *BreezService) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, 
 	return nil, nil
 }
 
-func (bs *BreezService) GetLogOutput(ctx context.Context, maxLen int) (string, error) {
-	return "", nil
+func (bs *BreezService) GetLogOutput(ctx context.Context, maxLen int) ([]byte, error) {
+	return []byte{}, nil
 }
 
 func (bs *BreezService) SignMessage(ctx context.Context, message string) (string, error) {

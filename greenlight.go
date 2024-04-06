@@ -511,8 +511,8 @@ func (gs *GreenlightService) ListPeers(ctx context.Context) ([]lnclient.PeerDeta
 	return nil, nil
 }
 
-func (gs *GreenlightService) GetLogOutput(ctx context.Context, maxLen int) (string, error) {
-	return "", nil
+func (gs *GreenlightService) GetLogOutput(ctx context.Context, maxLen int) ([]byte, error) {
+	return []byte{}, nil
 }
 
 func (gs *GreenlightService) SignMessage(ctx context.Context, message string) (string, error) {
