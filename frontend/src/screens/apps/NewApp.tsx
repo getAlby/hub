@@ -1,8 +1,6 @@
 import { useState } from "react";
-import toast from "react-hot-toast";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { EditIcon } from "src/components/icons/EditIcon";
 import { useCSRF } from "src/hooks/useCSRF";
 import {
   AppPermissions,
@@ -13,6 +11,7 @@ import {
   validBudgetRenewals,
 } from "src/types";
 
+import { PencilIcon } from "lucide-react";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -21,12 +20,14 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 import { Input } from "src/components/ui/input";
+import { useToast } from "src/components/ui/use-toast";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request"; // build the project for this to appear
 import Permissions from "../../components/Permissions";
 
 const NewApp = () => {
   const { data: csrf } = useCSRF();
+  const { toast } = useToast();
   const navigate = useNavigate();
 
   const location = useLocation();
@@ -109,9 +110,9 @@ const NewApp = () => {
       navigate("/apps/created", {
         state: createAppResponse,
       });
-      toast.success("App created!");
+      toast({ title: "App created" });
     } catch (error) {
-      handleRequestError("Failed to create app", error);
+      handleRequestError(toast, "Failed to create app", error);
     }
   };
 
@@ -150,7 +151,7 @@ const NewApp = () => {
           <div className="flex justify-between items-center mb-2 text-gray-800 dark:text-white">
             <p className="text-lg font-medium">Authorize the app to:</p>
             {!reqMethodsParam && !isEditing && (
-              <EditIcon
+              <PencilIcon
                 onClick={() => setEditing(true)}
                 className="text-gray-800 dark:text-gray-300 cursor-pointer w-6"
               />

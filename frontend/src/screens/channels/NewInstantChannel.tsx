@@ -1,9 +1,12 @@
 import { Payment, init } from "@getalby/bitcoin-connect-react";
 import React from "react";
-import ConnectButton from "src/components/ConnectButton";
+import { useNavigate } from "react-router-dom";
+import { LoadingButton } from "src/components/ui/loading-button";
+import { useToast } from "src/components/ui/use-toast";
 import { MIN_0CONF_BALANCE } from "src/constants";
 import { useCSRF } from "src/hooks/useCSRF";
 import { useChannels } from "src/hooks/useChannels";
+import { useInfo } from "src/hooks/useInfo";
 import {
   LSPOption,
   LSP_OPTIONS,
@@ -17,7 +20,10 @@ init({
 
 export default function NewInstantChannel() {
   const { data: csrf } = useCSRF();
-  const { data: channels } = useChannels();
+  const { mutate: refetchInfo } = useInfo();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const { data: channels } = useChannels(true);
   const [lsp, setLsp] = React.useState<LSPOption | undefined>("OLYMPUS");
   const [amount, setAmount] = React.useState("");
   const [prePurchaseChannelAmount, setPrePurchaseChannelAmount] =
@@ -44,6 +50,16 @@ export default function NewInstantChannel() {
     channels &&
     prePurchaseChannelAmount !== undefined &&
     channels.length > prePurchaseChannelAmount;
+
+  React.useEffect(() => {
+    if (hasOpenedChannel) {
+      (async () => {
+        toast({ title: "Channel opened!" });
+        await refetchInfo();
+        navigate("/");
+      })();
+    }
+  }, [hasOpenedChannel, navigate, refetchInfo, toast]);
 
   const requestWrappedInvoice = React.useCallback(
     async (e: React.FormEvent) => {
@@ -124,12 +140,13 @@ export default function NewInstantChannel() {
                 onChange={(e) => setAmount(e.target.value)}
               ></input>{" "}
             </div>
-            <ConnectButton
+            <LoadingButton
+              type="submit"
               disabled={amountSats === 0}
-              isConnecting={isRequestingInvoice}
-              loadingText="Loading..."
-              submitText="Submit"
-            />
+              loading={isRequestingInvoice}
+            >
+              Create channel
+            </LoadingButton>
           </form>
         </>
       )}
@@ -146,9 +163,6 @@ export default function NewInstantChannel() {
             }
           />
         </>
-      )}
-      {hasOpenedChannel && (
-        <p className="mt-8 text-green-400">Channel Opened!</p>
       )}
     </div>
   );

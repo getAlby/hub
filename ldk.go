@@ -13,13 +13,14 @@ import (
 	"time"
 
 	"github.com/getAlby/ldk-node-go/ldk_node"
+	decodepay "github.com/nbd-wtf/ln-decodepay"
+	"github.com/sirupsen/logrus"
+
 	"github.com/getAlby/nostr-wallet-connect/events"
 	"github.com/getAlby/nostr-wallet-connect/models/config"
 	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 	"github.com/getAlby/nostr-wallet-connect/models/lsp"
 	"github.com/nbd-wtf/go-nostr"
-	decodepay "github.com/nbd-wtf/ln-decodepay"
-	"github.com/sirupsen/logrus"
 )
 
 type LDKService struct {
@@ -46,6 +47,7 @@ func NewLDKService(svc *Service, mnemonic, workDir string, network string, esplo
 	}
 
 	logDirPath := filepath.Join(newpath, "./logs")
+
 	config := ldk_node.DefaultConfig()
 	listeningAddresses := []string{
 		"0.0.0.0:9735",
@@ -98,6 +100,21 @@ func NewLDKService(svc *Service, mnemonic, workDir string, network string, esplo
 		network:             network,
 		eventLogger:         svc.EventLogger,
 	}
+
+	// TODO: remove when LDK supports this
+	deleteOldLDKLogs(svc.Logger, logDirPath)
+	go func() {
+		// delete old LDK logs every 24 hours
+		ticker := time.NewTicker(24 * time.Hour)
+		for {
+			select {
+			case <-ticker.C:
+				deleteOldLDKLogs(svc.Logger, logDirPath)
+			case <-svc.ctx.Done():
+				return
+			}
+		}
+	}()
 
 	// check for and forward new LDK events to LDKEventBroadcaster (through ldkEventConsumer)
 	go func() {
@@ -848,4 +865,34 @@ func (ls *LDKService) GetBalances(ctx context.Context) (*lnclient.BalancesRespon
 			NextMaxReceivableMPP: nextMaxReceivableMPP,
 		},
 	}, nil
+}
+
+func deleteOldLDKLogs(logger *logrus.Logger, ldkLogDir string) {
+	logger.WithField("ldkLogDir", ldkLogDir).Info("Deleting old LDK logs")
+	files, err := os.ReadDir(ldkLogDir)
+	if err != nil {
+		logger.WithField("path", ldkLogDir).WithError(err).Error("Failed to list ldk log directory")
+		return
+	}
+
+	for _, file := range files {
+		// get files with a date (e.g. ldk_node_2024_03_29.log)
+		if strings.HasPrefix(file.Name(), "ldk_node_2") && strings.HasSuffix(file.Name(), ".log") {
+			filePath := filepath.Join(ldkLogDir, file.Name())
+			fileInfo, err := file.Info()
+			if err != nil {
+				logger.WithField("filePath", filePath).WithError(err).Error("Failed to get file info")
+				continue
+			}
+			// delete files last modified over 3 days ago
+			if fileInfo.ModTime().Before(time.Now().AddDate(0, 0, -3)) {
+				err := os.Remove(filePath)
+				if err != nil {
+					logger.WithField("filePath", filePath).WithError(err).Error("Failed to get file info")
+					continue
+				}
+				logger.WithField("filePath", filePath).Infof("Deleted old LDK log file")
+			}
+		}
+	}
 }

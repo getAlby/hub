@@ -1,13 +1,14 @@
 import {
-  PopiconsAlarmMinimalLine,
-  PopiconsBoltLine,
-  PopiconsBookmarkLine,
-  PopiconsClipboardTextLine,
-  PopiconsDatabaseLine,
-  PopiconsPenToolLine,
-  PopiconsSearchCircleLine,
-  PopiconsWalletLine,
-} from "@popicons/react";
+  Bell,
+  CirclePlus,
+  HandCoins,
+  Info,
+  LucideIcon,
+  NotebookTabs,
+  PenLine,
+  Search,
+  WalletMinimal,
+} from "lucide-react";
 
 export const NIP_47_PAY_INVOICE_METHOD = "pay_invoice";
 export const NIP_47_GET_BALANCE_METHOD = "get_balance";
@@ -42,20 +43,18 @@ export type BudgetRenewalType =
 export type PermissionType = RequestMethodType | "subscribe_updates";
 
 export type IconMap = {
-  [key in PermissionType]: React.FunctionComponent<
-    React.SVGProps<SVGSVGElement>
-  >;
+  [key in PermissionType]: LucideIcon;
 };
 
 export const iconMap: IconMap = {
-  [NIP_47_GET_BALANCE_METHOD]: PopiconsWalletLine,
-  [NIP_47_GET_INFO_METHOD]: PopiconsDatabaseLine,
-  [NIP_47_LIST_TRANSACTIONS_METHOD]: PopiconsBookmarkLine,
-  [NIP_47_LOOKUP_INVOICE_METHOD]: PopiconsSearchCircleLine,
-  [NIP_47_MAKE_INVOICE_METHOD]: PopiconsClipboardTextLine,
-  [NIP_47_PAY_INVOICE_METHOD]: PopiconsBoltLine,
-  [NIP_47_SIGN_MESSAGE_METHOD]: PopiconsPenToolLine,
-  [NIP_47_SUBSCRIBE_UPDATES_PERMISSION]: PopiconsAlarmMinimalLine,
+  [NIP_47_GET_BALANCE_METHOD]: WalletMinimal,
+  [NIP_47_GET_INFO_METHOD]: Info,
+  [NIP_47_LIST_TRANSACTIONS_METHOD]: NotebookTabs,
+  [NIP_47_LOOKUP_INVOICE_METHOD]: Search,
+  [NIP_47_MAKE_INVOICE_METHOD]: CirclePlus,
+  [NIP_47_PAY_INVOICE_METHOD]: HandCoins,
+  [NIP_47_SIGN_MESSAGE_METHOD]: PenLine,
+  [NIP_47_SUBSCRIBE_UPDATES_PERMISSION]: Bell,
 };
 
 export const validBudgetRenewals: BudgetRenewalType[] = [
@@ -131,6 +130,8 @@ export interface AppPermissions {
 export interface InfoResponse {
   backendType: BackendType;
   setupCompleted: boolean;
+  onboardingCompleted: boolean;
+  albyAccountConnected: boolean;
   running: boolean;
   unlocked: boolean;
   albyAuthUrl: string;
@@ -257,4 +258,18 @@ export type SuggestedApp = {
   title: string;
   description: string;
   logo?: string;
+};
+
+export type LightningBalanceResponse = {
+  totalSpendable: number;
+  totalReceivable: number;
+  nextMaxSpendable: number;
+  nextMaxReceivable: number;
+  nextMaxSpendableMPP: number;
+  nextMaxReceivableMPP: number;
+};
+
+export type BalancesResponse = {
+  onchain: OnchainBalanceResponse;
+  lightning: LightningBalanceResponse;
 };

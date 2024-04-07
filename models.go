@@ -73,7 +73,7 @@ type AppPermission struct {
 	RequestMethod string `validate:"required"`
 	MaxAmount     int
 	BudgetRenewal string
-	ExpiresAt     time.Time
+	ExpiresAt     *time.Time
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
 }

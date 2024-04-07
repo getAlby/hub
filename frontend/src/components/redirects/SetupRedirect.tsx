@@ -1,7 +1,7 @@
-import { useInfo } from "src/hooks/useInfo";
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import React from "react";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import Loading from "src/components/Loading";
+import { useInfo } from "src/hooks/useInfo";
 
 export function SetupRedirect() {
   const { data: info } = useInfo();

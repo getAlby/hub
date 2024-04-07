@@ -1,7 +1,8 @@
-import { CirclePlus } from "lucide-react";
+import { Cable, CirclePlus } from "lucide-react";
 import { Link } from "react-router-dom";
 import AppCard from "src/components/AppCard";
 import AppHeader from "src/components/AppHeader";
+import EmptyState from "src/components/EmptyState";
 import Loading from "src/components/Loading";
 import { Button } from "src/components/ui/button";
 import { useApps } from "src/hooks/useApps";
@@ -31,21 +32,13 @@ function AppList() {
       />
 
       {!apps.length && (
-        <>
-          <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm">
-            <div className="flex flex-col items-center gap-1 text-center">
-              <h3 className="text-2xl font-bold tracking-tight">
-                You have no connections, yet
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                Create your first one by checking out our recommended apps
-              </p>
-              <Link to="/apps">
-                <Button className="mt-4">See recommended apps</Button>
-              </Link>
-            </div>
-          </div>
-        </>
+        <EmptyState
+          icon={<Cable />}
+          title="You have no connections, yet"
+          description="Create your first one by checking out our recommended apps"
+          buttonText="See Recommended Apps"
+          buttonLink="/appstore"
+        />
       )}
 
       {apps.length > 0 && (

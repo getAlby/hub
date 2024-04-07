@@ -1,92 +1,95 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import useSetupStore from "src/state/SetupStore";
 
+import * as bip39 from "@scure/bip39";
+import { wordlist } from "@scure/bip39/wordlists/english";
 import Container from "src/components/Container";
-import toast from "src/components/Toast";
-import Input from "src/components/Input";
-import PasswordViewAdornment from "src/components/PasswordAdornment";
+import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
+import { Button } from "src/components/ui/button";
+import { Input } from "src/components/ui/input";
+import { Label } from "src/components/ui/label";
+import { useToast } from "src/components/ui/use-toast";
+import { useInfo } from "src/hooks/useInfo";
 
 export function SetupPassword() {
+  const { toast } = useToast();
   const store = useSetupStore();
+  const { data: info } = useInfo();
   const [confirmPassword, setConfirmPassword] = React.useState("");
-  const [passwordVisible, setPasswordVisible] = React.useState(false);
-  const [confirmPasswordVisible, setConfirmPasswordVisible] =
-    React.useState(false);
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (store.unlockPassword !== confirmPassword) {
-      toast.error("Passwords don't match!");
+      toast({
+        title: "Passwords don't match",
+        variant: "destructive",
+      });
       return;
     }
-    navigate("/setup/wallet");
+
+    const wallet = searchParams.get("wallet");
+
+    // Pre-configured LND
+    if (info?.backendType === "LND") {
+      // NOTE: LND flow does not setup a mnemonic
+      navigate(`/setup/finish`);
+      return;
+    }
+
+    // Import flow (All options)
+    if (wallet === "import") {
+      navigate(`/setup/node`);
+      return;
+    }
+
+    // Default flow (LDK)
+    useSetupStore.getState().updateNodeInfo({
+      backendType: "LDK",
+      mnemonic: bip39.generateMnemonic(wordlist, 128),
+    });
+    navigate(`/setup/finish`);
   }
 
   return (
     <>
       <Container>
         <form onSubmit={onSubmit} className="flex flex-col items-center w-full">
-          <h1 className="font-semibold text-2xl font-headline mb-2 dark:text-white">
-            Choose an unlock password
-          </h1>
-          <p className="text-center font-light text-md leading-relaxed dark:text-neutral-400 mb-4">
-            Your unlock password will be required to access NWC from a different
-            device or browser session.
-          </p>
-          <div className="w-full my-4">
-            <label
-              htmlFor="unlock-password"
-              className="block mb-2 text-md dark:text-white"
-            >
-              New Password
-            </label>
-            <Input
-              type={passwordVisible ? "text" : "password"}
-              name="unlock-password"
-              id="unlock-password"
-              placeholder="Enter a password"
-              value={store.unlockPassword}
-              onChange={(e) => store.setUnlockPassword(e.target.value)}
-              required={true}
-              endAdornment={
-                <PasswordViewAdornment
-                  onChange={(passwordView) => {
-                    setPasswordVisible(passwordView);
-                  }}
-                />
-              }
+          <div className="grid gap-5">
+            <TwoColumnLayoutHeader
+              title="Create Password"
+              description="You'll use it to access your Alby Hub on any device."
             />
-          </div>
-          <div className="w-full mb-8 ">
-            <label
-              htmlFor="confirm-password"
-              className="block mb-2 text-md dark:text-white"
-            >
-              Confirm Password
-            </label>
-            <Input
-              type={confirmPasswordVisible ? "text" : "password"}
-              name="confirm-password"
-              id="confirm-password"
-              placeholder="Re-enter the password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required={true}
-              endAdornment={
-                <PasswordViewAdornment
-                  onChange={(passwordView) => {
-                    setConfirmPasswordVisible(passwordView);
-                  }}
+            <div className="grid gap-4 w-full">
+              <div className="grid gap-1.5">
+                <Label htmlFor="unlock-password">New Password</Label>
+                <Input
+                  type="password"
+                  name="unlock-password"
+                  id="unlock-password"
+                  placeholder="Enter a password"
+                  value={store.unlockPassword}
+                  onChange={(e) => store.setUnlockPassword(e.target.value)}
+                  required={true}
                 />
-              }
-            />
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="confirm-password">Confirm Password</Label>
+                <Input
+                  type="password"
+                  name="confirm-password"
+                  id="confirm-password"
+                  placeholder="Re-enter the password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required={true}
+                />
+              </div>
+            </div>
+            <Button type="submit">Create Password</Button>
           </div>
-
-          <button className="flex-row w-full px-0 py-2 bg-purple-700 border-2 border-transparent text-white hover:bg-purple-800 cursor-pointer inline-flex justify-center items-center font-medium bg-origin-border shadow rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-purple-500 transition duration-150">
-            Next
-          </button>
         </form>
       </Container>
     </>
