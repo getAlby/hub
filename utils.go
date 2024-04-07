@@ -5,8 +5,6 @@ import (
 	"io"
 	"os"
 	"time"
-
-	"github.com/sirupsen/logrus"
 )
 
 func GetStartOfBudget(budget_type string, createdAt time.Time) time.Time {
@@ -30,13 +28,6 @@ func GetStartOfBudget(budget_type string, createdAt time.Time) time.Time {
 		return time.Date(now.Year(), time.January, 1, 0, 0, 0, 0, now.Location())
 	default: //"never"
 		return createdAt
-	}
-}
-
-func LoggedClose(logger *logrus.Logger, closer io.Closer) {
-	err := closer.Close()
-	if err != nil {
-		logger.WithError(err).Error("Close() failed")
 	}
 }
 
