@@ -747,12 +747,17 @@ func (api *API) GetInfo(ctx context.Context) (*models.InfoResponse, error) {
 	info.AlbyUserIdentifier = api.svc.AlbyOAuthSvc.GetUserIdentifier()
 	info.AlbyAccountConnected = api.svc.AlbyOAuthSvc.IsConnected(ctx)
 	if api.svc.lnClient != nil {
-		channels, err := api.ListChannels(api.svc.ctx)
-		if err != nil {
-			api.svc.Logger.WithError(err).WithFields(logrus.Fields{}).Error("Failed to fetch channels")
-			return nil, err
+		// TODO: is there a better way to do this?
+		if backendType == config.BreezBackendType {
+			info.OnboardingCompleted = true
+		} else {
+			channels, err := api.ListChannels(api.svc.ctx)
+			if err != nil {
+				api.svc.Logger.WithError(err).WithFields(logrus.Fields{}).Error("Failed to fetch channels")
+				return nil, err
+			}
+			info.OnboardingCompleted = len(channels) > 0
 		}
-		info.OnboardingCompleted = len(channels) > 0
 	}
 
 	if info.BackendType != config.LNDBackendType {
