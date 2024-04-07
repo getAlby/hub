@@ -333,6 +333,12 @@ func (svc *AlbyOAuthService) GetAuthUrl() string {
 }
 
 func (svc *AlbyOAuthService) Log(ctx context.Context, event *events.Event) error {
+	// TODO: rename this config option to be specific to the alby API
+	if !svc.appConfig.LogEvents {
+		svc.logger.WithField("event", event).Debug("Skipped sending to alby events API")
+		return nil
+	}
+
 	token, err := svc.fetchUserToken(ctx)
 	if err != nil {
 		svc.logger.WithError(err).Error("Failed to fetch user token")

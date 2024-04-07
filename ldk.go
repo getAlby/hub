@@ -20,7 +20,6 @@ import (
 	"github.com/getAlby/nostr-wallet-connect/models/config"
 	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 	"github.com/getAlby/nostr-wallet-connect/models/lsp"
-	"github.com/nbd-wtf/go-nostr"
 )
 
 type LDKService struct {
@@ -800,27 +799,12 @@ func (ls *LDKService) logLdkEvent(ctx context.Context, event *ldk_node.Event) {
 	case ldk_node.EventPaymentReceived:
 		ls.eventLogger.Log(&events.Event{
 			Event: "nwc_payment_received",
-			Properties: map[string]interface{}{
-				"payment_hash": v.PaymentHash,
-				"amount":       v.AmountMsat / 1000,
-				"node_type":    config.LDKBackendType,
+			Properties: &events.PaymentReceivedEventProperties{
+				PaymentHash: v.PaymentHash,
+				Amount:      v.AmountMsat / 1000,
+				NodeType:    config.LDKBackendType,
 			},
 		})
-
-		go func() {
-			transaction, err := ls.LookupInvoice(ctx, v.PaymentHash)
-			if err != nil {
-				ls.svc.Logger.
-					WithField("paymentHash", v.PaymentHash).
-					WithError(err).
-					Error("Failed to lookup invoice by payment hash")
-			}
-
-			ls.svc.NotifySubscribers(ctx, &Nip47Notification{
-				Result:     transaction,
-				ResultType: NIP_47_PAYMENT_RECEIVED_NOTIFICATION,
-			}, nostr.Tags{})
-		}()
 	}
 }
 

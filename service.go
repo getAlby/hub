@@ -43,7 +43,6 @@ type Service struct {
 	EventLogger  events.EventLogger
 	ctx          context.Context
 	wg           *sync.WaitGroup
-	sub          *nostr.Subscription // TODO: undo and use channels
 }
 
 // TODO: move to service.go
@@ -240,6 +239,9 @@ func (svc *Service) noticeHandler(notice string) {
 }
 
 func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscription) error {
+	nip47Notifier := NewNip47Notifier(svc, sub)
+	svc.EventLogger.Subscribe(nip47Notifier)
+
 	go func() {
 		// block till EOS is received
 		<-sub.EndOfStoredEvents
@@ -249,6 +251,7 @@ func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 		for event := range sub.Events {
 			go svc.HandleEvent(ctx, sub, event)
 		}
+		svc.EventLogger.Unsubscribe(nip47Notifier)
 	}()
 
 	select {
@@ -263,6 +266,7 @@ func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 		svc.Logger.Info("Exiting subscription...")
 		return nil
 	}
+
 }
 
 func (svc *Service) PublishEvent(ctx context.Context, sub *nostr.Subscription, requestEvent *RequestEvent, resp *nostr.Event, app *App) error {
@@ -761,84 +765,4 @@ func (svc *Service) PublishNip47Info(ctx context.Context, relay *nostr.Relay) er
 		return fmt.Errorf("nostr publish not successful: %s error: %s", status, err)
 	}
 	return nil
-}
-
-func (svc *Service) NotifySubscribers(ctx context.Context, notification *Nip47Notification, tags nostr.Tags) {
-	apps := []App{}
-
-	// TODO: join apps and permissions
-	svc.db.Find(&apps)
-
-	for _, app := range apps {
-		hasPermission, _, _ := svc.hasPermission(&app, NIP_47_SUBSCRIBE_UPDATES_PERMISSION, 0)
-		if !hasPermission {
-			continue
-		}
-		svc.NotifySubscriber(ctx, &app, notification, tags)
-	}
-}
-
-func (svc *Service) NotifySubscriber(ctx context.Context, app *App, notification *Nip47Notification, tags nostr.Tags) {
-	svc.Logger.WithFields(logrus.Fields{
-		"notification": notification,
-		"appId":        app.ID,
-	}).Info("Notifying subscriber")
-
-	ss, err := nip04.ComputeSharedSecret(app.NostrPubkey, svc.cfg.NostrSecretKey)
-	if err != nil {
-		svc.Logger.WithFields(logrus.Fields{
-			"notification": notification,
-			"appId":        app.ID,
-		}).WithError(err).Error("Failed to compute shared secret")
-		return
-	}
-
-	payloadBytes, err := json.Marshal(notification)
-	if err != nil {
-		svc.Logger.WithFields(logrus.Fields{
-			"notification": notification,
-			"appId":        app.ID,
-		}).WithError(err).Error("Failed to stringify notification")
-		return
-	}
-	msg, err := nip04.Encrypt(string(payloadBytes), ss)
-	if err != nil {
-		svc.Logger.WithFields(logrus.Fields{
-			"notification": notification,
-			"appId":        app.ID,
-		}).WithError(err).Error("Failed to encrypt notification payload")
-		return
-	}
-
-	event := &nostr.Event{
-		PubKey:    svc.cfg.NostrPublicKey,
-		CreatedAt: nostr.Now(),
-		Kind:      NIP_47_NOTIFICATION_KIND,
-		Tags:      tags,
-		Content:   msg,
-	}
-	err = event.Sign(svc.cfg.NostrSecretKey)
-	if err != nil {
-		svc.Logger.WithFields(logrus.Fields{
-			"notification": notification,
-			"appId":        app.ID,
-		}).WithError(err).Error("Failed to sign event")
-		return
-	}
-
-	status, err := svc.sub.Relay.Publish(ctx, *event)
-	if err != nil {
-		svc.Logger.WithFields(logrus.Fields{
-			"notification": notification,
-			"appId":        app.ID,
-			"status":       status,
-		}).WithError(err).Error("Failed to publish notification")
-		return
-	}
-	svc.Logger.WithFields(logrus.Fields{
-		"notification": notification,
-		"appId":        app.ID,
-		"status":       status,
-	}).Info("Published notification event")
-
 }
