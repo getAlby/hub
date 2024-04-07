@@ -101,9 +101,8 @@ func NewLDKService(svc *Service, mnemonic, workDir string, network string, esplo
 	}
 
 	// TODO: remove when LDK supports this
+	deleteOldLDKLogs(svc.Logger, logDirPath)
 	go func() {
-		deleteOldLDKLogs(svc.Logger, logDirPath)
-
 		// delete old LDK logs every 24 hours
 		ticker := time.NewTicker(24 * time.Hour)
 		for {
@@ -854,6 +853,7 @@ func (ls *LDKService) GetBalances(ctx context.Context) (*lnclient.BalancesRespon
 }
 
 func deleteOldLDKLogs(logger *logrus.Logger, ldkLogDir string) {
+	logger.WithField("ldkLogDir", ldkLogDir).Info("Deleting old LDK logs")
 	files, err := os.ReadDir(ldkLogDir)
 	if err != nil {
 		logger.WithField("path", ldkLogDir).WithError(err).Error("Failed to list ldk log directory")
