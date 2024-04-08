@@ -1,7 +1,9 @@
+import { AlertTriangle } from "lucide-react";
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Loading from "src/components/Loading";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
+import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { Table, TableBody, TableCell, TableRow } from "src/components/ui/table";
@@ -156,12 +158,6 @@ export default function MigrateAlbyFunds() {
     return <p>{error}</p>;
   }
 
-  if (albyBalance.sats < MIN_ALBY_BALANCE) {
-    return (
-      <p>You don't have enough sats in your Alby account to open a channel.</p>
-    );
-  }
-
   /*  TODO: Remove? At least display a link to where to go from here.
   if (channels.length) {
     return (
@@ -176,50 +172,68 @@ export default function MigrateAlbyFunds() {
         description="You can use your remaining balance on Alby hosted lightning wallet to
       fund your first lightning channel."
       />
-      <div className="border rounded-lg">
-        <Table className="">
-          <TableBody>
-            <TableRow className="border-b-0">
-              <TableCell className="font-medium p-3">
-                Current Account balance
-              </TableCell>
-              <TableCell className="text-right p-3">
-                {new Intl.NumberFormat().format(albyBalance.sats)} sats
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell className="font-medium p-3 flex flex-row gap-1.5 items-center">
-                Fee
-              </TableCell>
-              <TableCell className="text-right p-3">
-                {new Intl.NumberFormat().format(albyBalance.sats - amount)} sats
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell className="font-medium p-3">
-                Alby Hub Balance
-              </TableCell>
-              <TableCell className="font-semibold text-right p-3">
-                {new Intl.NumberFormat().format(amount)} sats
-              </TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-      </div>
-      <form className="flex flex-col justify-between text-center gap-2">
-        <LoadingButton
-          onClick={payWrappedInvoice}
-          disabled={isOpeningChannel}
-          loading={isOpeningChannel}
-        >
-          Migrate Funds and Open Channel
-        </LoadingButton>
-        <Link to="channels/new" className="cursor-not-allowed">
-          <Button variant="link" disabled>
-            Open a Channel manually
-          </Button>
-        </Link>
-      </form>
+      {albyBalance.sats >= MIN_ALBY_BALANCE ? (
+        <>
+          <div className="border rounded-lg">
+            <Table>
+              <TableBody>
+                <TableRow className="border-b-0">
+                  <TableCell className="font-medium p-3">
+                    Current Account balance
+                  </TableCell>
+                  <TableCell className="text-right p-3">
+                    {new Intl.NumberFormat().format(albyBalance.sats)} sats
+                  </TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell className="font-medium p-3 flex flex-row gap-1.5 items-center">
+                    Fee
+                  </TableCell>
+                  <TableCell className="text-right p-3">
+                    {new Intl.NumberFormat().format(albyBalance.sats - amount)}{" "}
+                    sats
+                  </TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell className="font-medium p-3">
+                    Alby Hub Balance
+                  </TableCell>
+                  <TableCell className="font-semibold text-right p-3">
+                    {new Intl.NumberFormat().format(amount)} sats
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
+          <form className="flex flex-col justify-between text-center gap-2">
+            <LoadingButton
+              onClick={payWrappedInvoice}
+              disabled={isOpeningChannel}
+              loading={isOpeningChannel}
+            >
+              Migrate Funds and Open Channel
+            </LoadingButton>
+            <Link to="../channels/new/instant">
+              <Button variant="link">Open a Channel manually</Button>
+            </Link>
+          </form>
+        </>
+      ) : (
+        <>
+          <Alert>
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Not enough funds available!</AlertTitle>
+            <AlertDescription>
+              You don't have enough funds in your Alby account to fund a new
+              channel right now. You can open a channel manually and pay with an
+              external wallet though.
+            </AlertDescription>
+          </Alert>
+          <Link to="../channels/new/instant" className="w-full">
+            <Button className="w-full">Open a Channel manually</Button>
+          </Link>
+        </>
+      )}
     </div>
   );
 }
