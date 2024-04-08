@@ -29,7 +29,7 @@ type LDKService struct {
 	ldkEventBroadcaster LDKEventBroadcaster
 	cancel              context.CancelFunc
 	network             string
-	eventLogger         events.EventLogger
+	eventPublisher      events.EventPublisher
 }
 
 func NewLDKService(svc *Service, mnemonic, workDir string, network string, esploraServer string, gossipSource string) (result lnclient.LNClient, err error) {
@@ -97,7 +97,7 @@ func NewLDKService(svc *Service, mnemonic, workDir string, network string, esplo
 		cancel:              cancel,
 		ldkEventBroadcaster: ldkEventBroadcaster,
 		network:             network,
-		eventLogger:         svc.EventLogger,
+		eventPublisher:      svc.EventPublisher,
 	}
 
 	// TODO: remove when LDK supports this
@@ -178,7 +178,7 @@ func (gs *LDKService) SendPaymentSync(ctx context.Context, invoice string) (prei
 
 	maxSpendable := gs.getMaxSpendable()
 	if paymentRequest.MSatoshi > maxSpendable {
-		gs.eventLogger.Log(&events.Event{
+		gs.eventPublisher.Publish(&events.Event{
 			Event: "nwc_outgoing_liquidity_required",
 			Properties: map[string]interface{}{
 				//"amount":         amount / 1000,
@@ -418,7 +418,7 @@ func (gs *LDKService) MakeInvoice(ctx context.Context, amount int64, description
 	maxReceivable := gs.getMaxReceivable()
 
 	if amount > maxReceivable {
-		gs.eventLogger.Log(&events.Event{
+		gs.eventPublisher.Publish(&events.Event{
 			Event: "nwc_incoming_liquidity_required",
 			Properties: map[string]interface{}{
 				//"amount":         amount / 1000,
@@ -780,7 +780,7 @@ func (ls *LDKService) logLdkEvent(ctx context.Context, event *ldk_node.Event) {
 
 	switch v := (*event).(type) {
 	case ldk_node.EventChannelReady:
-		ls.eventLogger.Log(&events.Event{
+		ls.eventPublisher.Publish(&events.Event{
 			Event: "nwc_channel_ready",
 			Properties: map[string]interface{}{
 				// "counterparty_node_id": v.CounterpartyNodeId,
@@ -788,7 +788,7 @@ func (ls *LDKService) logLdkEvent(ctx context.Context, event *ldk_node.Event) {
 			},
 		})
 	case ldk_node.EventChannelClosed:
-		ls.eventLogger.Log(&events.Event{
+		ls.eventPublisher.Publish(&events.Event{
 			Event: "nwc_channel_closed",
 			Properties: map[string]interface{}{
 				// "counterparty_node_id": v.CounterpartyNodeId,
@@ -797,7 +797,7 @@ func (ls *LDKService) logLdkEvent(ctx context.Context, event *ldk_node.Event) {
 			},
 		})
 	case ldk_node.EventPaymentReceived:
-		ls.eventLogger.Log(&events.Event{
+		ls.eventPublisher.Publish(&events.Event{
 			Event: "nwc_payment_received",
 			Properties: &events.PaymentReceivedEventProperties{
 				PaymentHash: v.PaymentHash,

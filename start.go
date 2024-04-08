@@ -113,7 +113,7 @@ func (svc *Service) StartApp(encryptionKey string) error {
 	err := svc.launchLNBackend(encryptionKey)
 	if err != nil {
 		svc.Logger.Errorf("Failed to launch LN backend: %v", err)
-		svc.EventLogger.Log(&events.Event{
+		svc.EventPublisher.Publish(&events.Event{
 			Event: "nwc_node_start_failed",
 		})
 		return err
@@ -125,7 +125,7 @@ func (svc *Service) StartApp(encryptionKey string) error {
 
 func (svc *Service) Shutdown() {
 	svc.StopLNClient()
-	svc.EventLogger.Log(&events.Event{
+	svc.EventPublisher.Publish(&events.Event{
 		Event: "nwc_stopped",
 	})
 	// wait for any remaining events

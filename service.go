@@ -35,14 +35,14 @@ import (
 
 type Service struct {
 	// config from .env only. Fetch dynamic config from db
-	cfg          *Config
-	db           *gorm.DB
-	lnClient     lnclient.LNClient
-	Logger       *logrus.Logger
-	AlbyOAuthSvc *alby.AlbyOAuthService
-	EventLogger  events.EventLogger
-	ctx          context.Context
-	wg           *sync.WaitGroup
+	cfg            *Config
+	db             *gorm.DB
+	lnClient       lnclient.LNClient
+	Logger         *logrus.Logger
+	AlbyOAuthSvc   *alby.AlbyOAuthService
+	EventPublisher events.EventPublisher
+	ctx            context.Context
+	wg             *sync.WaitGroup
 }
 
 // TODO: move to service.go
@@ -122,28 +122,28 @@ func NewService(ctx context.Context) (*Service, error) {
 	cfg := &Config{}
 	cfg.Init(db, appConfig, logger)
 
-	eventLogger := events.NewEventLogger(logger, cfg.Env.LogEvents)
+	eventPublisher := events.NewEventPublisher(logger, cfg.Env.LogEvents)
 
-	albyOAuthSvc := alby.NewAlbyOauthService(logger, cfg, cfg.Env, eventLogger)
+	albyOAuthSvc := alby.NewAlbyOauthService(logger, cfg, cfg.Env, eventPublisher)
 	if err != nil {
 		logger.WithError(err).Error("Failed to create Alby OAuth service")
 		return nil, err
 	}
 
-	eventLogger.Subscribe(albyOAuthSvc)
+	eventPublisher.RegisterSubscriber(albyOAuthSvc)
 
 	var wg sync.WaitGroup
 	svc := &Service{
-		cfg:          cfg,
-		db:           db,
-		ctx:          ctx,
-		wg:           &wg,
-		Logger:       logger,
-		AlbyOAuthSvc: albyOAuthSvc,
-		EventLogger:  eventLogger,
+		cfg:            cfg,
+		db:             db,
+		ctx:            ctx,
+		wg:             &wg,
+		Logger:         logger,
+		AlbyOAuthSvc:   albyOAuthSvc,
+		EventPublisher: eventPublisher,
 	}
 
-	eventLogger.Log(&events.Event{
+	eventPublisher.Publish(&events.Event{
 		Event: "nwc_started",
 	})
 
@@ -155,7 +155,7 @@ func (svc *Service) StopLNClient() error {
 		err := svc.lnClient.Shutdown()
 		if err != nil {
 			svc.Logger.WithError(err).Error("Failed to stop LN backend")
-			svc.EventLogger.Log(&events.Event{
+			svc.EventPublisher.Publish(&events.Event{
 				Event: "nwc_node_stop_failed",
 				Properties: map[string]interface{}{
 					"error": fmt.Sprintf("%v", err),
@@ -164,7 +164,7 @@ func (svc *Service) StopLNClient() error {
 			return err
 		}
 		svc.lnClient = nil
-		svc.EventLogger.Log(&events.Event{
+		svc.EventPublisher.Publish(&events.Event{
 			Event: "nwc_node_stopped",
 		})
 	}
@@ -216,7 +216,7 @@ func (svc *Service) launchLNBackend(encryptionKey string) error {
 		return err
 	}
 
-	svc.EventLogger.Log(&events.Event{
+	svc.EventPublisher.Publish(&events.Event{
 		Event: "nwc_node_started",
 		Properties: map[string]interface{}{
 			"node_type": lnBackend,
@@ -240,7 +240,7 @@ func (svc *Service) noticeHandler(notice string) {
 
 func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscription) error {
 	nip47Notifier := NewNip47Notifier(svc, sub)
-	svc.EventLogger.Subscribe(nip47Notifier)
+	svc.EventPublisher.RegisterSubscriber(nip47Notifier)
 
 	go func() {
 		// block till EOS is received
@@ -251,7 +251,7 @@ func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 		for event := range sub.Events {
 			go svc.HandleEvent(ctx, sub, event)
 		}
-		svc.EventLogger.Unsubscribe(nip47Notifier)
+		svc.EventPublisher.RemoveSubscriber(nip47Notifier)
 	}()
 
 	select {
@@ -687,7 +687,7 @@ func (svc *Service) hasPermission(app *App, requestMethod string, amount int64) 
 		RequestMethod: requestMethod,
 	})
 	if findPermissionResult.RowsAffected == 0 {
-		svc.EventLogger.Log(&events.Event{
+		svc.EventPublisher.Publish(&events.Event{
 			Event: "nwc_permission_missing",
 			Properties: map[string]interface{}{
 				"request_method": requestMethod,
@@ -707,7 +707,7 @@ func (svc *Service) hasPermission(app *App, requestMethod string, amount int64) 
 			"appId":         app.ID,
 			"pubkey":        app.NostrPubkey,
 		}).Info("This pubkey is expired")
-		svc.EventLogger.Log(&events.Event{
+		svc.EventPublisher.Publish(&events.Event{
 			Event: "nwc_permission_expired",
 			Properties: map[string]interface{}{
 				"request_method": requestMethod,
@@ -724,7 +724,7 @@ func (svc *Service) hasPermission(app *App, requestMethod string, amount int64) 
 			budgetUsage := svc.GetBudgetUsage(&appPermission)
 
 			if budgetUsage+amount/1000 > int64(maxAmount) {
-				svc.EventLogger.Log(&events.Event{
+				svc.EventPublisher.Publish(&events.Event{
 					Event: "nwc_permission_budget_exceeded",
 					Properties: map[string]interface{}{
 						"request_method": requestMethod,

@@ -23,7 +23,7 @@ func NewNip47Notifier(svc *Service, sub *nostr.Subscription) *Nip47Notifier {
 	}
 }
 
-func (notifier *Nip47Notifier) Log(ctx context.Context, event *events.Event) error {
+func (notifier *Nip47Notifier) ConsumeEvent(ctx context.Context, event *events.Event) error {
 	if event.Event != "nwc_payment_received" {
 		return nil
 	}

@@ -7,8 +7,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type EventListener interface {
-	Log(ctx context.Context, event *Event) error
+type EventSubscriber interface {
+	ConsumeEvent(ctx context.Context, event *Event) error
 }
 
 type Event struct {
@@ -22,31 +22,30 @@ type PaymentReceivedEventProperties struct {
 	NodeType    string `json:"node_type"`
 }
 
-type eventLogger struct {
+type eventPublisher struct {
 	logger    *logrus.Logger
-	listeners []EventListener
+	listeners []EventSubscriber
 }
 
-// TODO: rename this or use an existing pubsub/eventbus implementation
-type EventLogger interface {
-	Subscribe(eventListener EventListener)
-	Unsubscribe(eventListener EventListener)
-	Log(event *Event)
+type EventPublisher interface {
+	RegisterSubscriber(eventListener EventSubscriber)
+	RemoveSubscriber(eventListener EventSubscriber)
+	Publish(event *Event)
 }
 
-func NewEventLogger(logger *logrus.Logger, enabled bool) *eventLogger {
-	eventLogger := &eventLogger{
+func NewEventPublisher(logger *logrus.Logger, enabled bool) *eventPublisher {
+	eventPublisher := &eventPublisher{
 		logger:    logger,
-		listeners: []EventListener{},
+		listeners: []EventSubscriber{},
 	}
-	return eventLogger
+	return eventPublisher
 }
 
-func (el *eventLogger) Subscribe(listener EventListener) {
+func (el *eventPublisher) RegisterSubscriber(listener EventSubscriber) {
 	el.listeners = append(el.listeners, listener)
 }
 
-func (el *eventLogger) Unsubscribe(listenerToRemove EventListener) {
+func (el *eventPublisher) RemoveSubscriber(listenerToRemove EventSubscriber) {
 	for i, listener := range el.listeners {
 		// delete the listener from the listeners array
 		if listener == listenerToRemove {
@@ -57,13 +56,13 @@ func (el *eventLogger) Unsubscribe(listenerToRemove EventListener) {
 	}
 }
 
-func (el *eventLogger) Log(event *Event) {
+func (el *eventPublisher) Publish(event *Event) {
 	el.logger.WithFields(logrus.Fields{"event": event}).Info("Logging event")
 	for _, listener := range el.listeners {
-		go func(listener EventListener) {
-			err := listener.Log(context.Background(), event)
+		go func(listener EventSubscriber) {
+			err := listener.ConsumeEvent(context.Background(), event)
 			if err != nil {
-				el.logger.WithError(err).Error("Failed to log event")
+				el.logger.WithError(err).Error("Failed to consume event")
 			}
 		}(listener)
 	}

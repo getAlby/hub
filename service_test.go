@@ -1219,10 +1219,10 @@ func createTestService(ln *MockLn) (svc *Service, err error) {
 			NostrSecretKey: sk,
 			NostrPublicKey: pk,
 		},
-		db:          gormDb,
-		lnClient:    ln,
-		Logger:      logger,
-		EventLogger: events.NewEventLogger(logger, false),
+		db:             gormDb,
+		lnClient:       ln,
+		Logger:         logger,
+		EventPublisher: events.NewEventPublisher(logger, false),
 	}, nil
 }
 

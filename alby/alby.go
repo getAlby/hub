@@ -18,11 +18,11 @@ import (
 )
 
 type AlbyOAuthService struct {
-	appConfig   *config.AppConfig
-	kvStore     config.ConfigKVStore
-	oauthConf   *oauth2.Config
-	logger      *logrus.Logger
-	eventLogger events.EventLogger
+	appConfig      *config.AppConfig
+	kvStore        config.ConfigKVStore
+	oauthConf      *oauth2.Config
+	logger         *logrus.Logger
+	eventPublisher events.EventPublisher
 }
 
 // TODO: move to models/alby
@@ -49,7 +49,7 @@ const (
 	userIdentifierKey    = "AlbyUserIdentifier"
 )
 
-func NewAlbyOauthService(logger *logrus.Logger, kvStore config.ConfigKVStore, appConfig *config.AppConfig, eventLogger events.EventLogger) *AlbyOAuthService {
+func NewAlbyOauthService(logger *logrus.Logger, kvStore config.ConfigKVStore, appConfig *config.AppConfig, eventPublisher events.EventPublisher) *AlbyOAuthService {
 	conf := &oauth2.Config{
 		ClientID:     appConfig.AlbyClientId,
 		ClientSecret: appConfig.AlbyClientSecret,
@@ -63,11 +63,11 @@ func NewAlbyOauthService(logger *logrus.Logger, kvStore config.ConfigKVStore, ap
 	}
 
 	albyOAuthSvc := &AlbyOAuthService{
-		appConfig:   appConfig,
-		oauthConf:   conf,
-		kvStore:     kvStore,
-		logger:      logger,
-		eventLogger: eventLogger,
+		appConfig:      appConfig,
+		oauthConf:      conf,
+		kvStore:        kvStore,
+		logger:         logger,
+		eventPublisher: eventPublisher,
 	}
 	return albyOAuthSvc
 }
@@ -332,7 +332,7 @@ func (svc *AlbyOAuthService) GetAuthUrl() string {
 	return svc.oauthConf.AuthCodeURL("unused")
 }
 
-func (svc *AlbyOAuthService) Log(ctx context.Context, event *events.Event) error {
+func (svc *AlbyOAuthService) ConsumeEvent(ctx context.Context, event *events.Event) error {
 	// TODO: rename this config option to be specific to the alby API
 	if !svc.appConfig.LogEvents {
 		svc.logger.WithField("event", event).Debug("Skipped sending to alby events API")
