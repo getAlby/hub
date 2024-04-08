@@ -1,5 +1,6 @@
 import React from "react";
 import { useSearchParams } from "react-router-dom";
+import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { useCSRF } from "src/hooks/useCSRF";
 import {
   ConnectPeerRequest,
@@ -137,10 +138,10 @@ export default function NewCustomChannel() {
 
   return (
     <div>
-      <h2 className="font-bold dark:text-white text-2xl mt-5">
-        Open a channel
-      </h2>
-
+      <TwoColumnLayoutHeader
+        title="Open a channel"
+        description="Use one of many options to add liquidity to your node."
+      />
       <p className="text-gray-500 mb-5">
         {nodeDetails?.alias && (
           <>

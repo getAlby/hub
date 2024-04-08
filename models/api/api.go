@@ -88,17 +88,24 @@ type User struct {
 }
 
 type InfoResponse struct {
-	BackendType        string `json:"backendType"`
-	SetupCompleted     bool   `json:"setupCompleted"`
-	Running            bool   `json:"running"`
-	Unlocked           bool   `json:"unlocked"`
-	AlbyAuthUrl        string `json:"albyAuthUrl"`
-	ShowBackupReminder bool   `json:"showBackupReminder"`
-	AlbyUserIdentifier string `json:"albyUserIdentifier"`
+	BackendType          string `json:"backendType"`
+	SetupCompleted       bool   `json:"setupCompleted"`
+	OnboardingCompleted  bool   `json:"onboardingCompleted"`
+	Running              bool   `json:"running"`
+	Unlocked             bool   `json:"unlocked"`
+	AlbyAuthUrl          string `json:"albyAuthUrl"`
+	ShowBackupReminder   bool   `json:"showBackupReminder"`
+	AlbyUserIdentifier   string `json:"albyUserIdentifier"`
+	AlbyAccountConnected bool   `json:"albyAccountConnected"`
 }
 
 type EncryptedMnemonicResponse struct {
 	Mnemonic string `json:"mnemonic"`
+}
+
+type ChangeUnlockPasswordRequest struct {
+	CurrentUnlockPassword string `json:"currentUnlockPassword"`
+	NewUnlockPassword     string `json:"newUnlockPassword"`
 }
 
 type ConnectPeerRequest = lnclient.ConnectPeerRequest

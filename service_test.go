@@ -292,7 +292,7 @@ func TestHasPermission_Expired(t *testing.T) {
 		RequestMethod: NIP_47_PAY_INVOICE_METHOD,
 		MaxAmount:     100,
 		BudgetRenewal: budgetRenewal,
-		ExpiresAt:     expiresAt,
+		ExpiresAt:     &expiresAt,
 	}
 	err = svc.db.Create(appPermission).Error
 	assert.NoError(t, err)
@@ -321,7 +321,7 @@ func TestHasPermission_Exceeded(t *testing.T) {
 		RequestMethod: NIP_47_PAY_INVOICE_METHOD,
 		MaxAmount:     10,
 		BudgetRenewal: budgetRenewal,
-		ExpiresAt:     expiresAt,
+		ExpiresAt:     &expiresAt,
 	}
 	err = svc.db.Create(appPermission).Error
 	assert.NoError(t, err)
@@ -350,7 +350,7 @@ func TestHasPermission_OK(t *testing.T) {
 		RequestMethod: NIP_47_PAY_INVOICE_METHOD,
 		MaxAmount:     10,
 		BudgetRenewal: budgetRenewal,
-		ExpiresAt:     expiresAt,
+		ExpiresAt:     &expiresAt,
 	}
 	err = svc.db.Create(appPermission).Error
 	assert.NoError(t, err)
@@ -465,7 +465,7 @@ func TestHandleMultiPayInvoiceEvent(t *testing.T) {
 		RequestMethod: NIP_47_PAY_INVOICE_METHOD,
 		MaxAmount:     maxAmount,
 		BudgetRenewal: budgetRenewal,
-		ExpiresAt:     expiresAt,
+		ExpiresAt:     &expiresAt,
 	}
 	err = svc.db.Create(appPermission).Error
 	assert.NoError(t, err)
@@ -590,7 +590,7 @@ func TestHandleMultiPayKeysendEvent(t *testing.T) {
 		RequestMethod: NIP_47_PAY_INVOICE_METHOD,
 		MaxAmount:     maxAmount,
 		BudgetRenewal: budgetRenewal,
-		ExpiresAt:     expiresAt,
+		ExpiresAt:     &expiresAt,
 	}
 	err = svc.db.Create(appPermission).Error
 	assert.NoError(t, err)
@@ -681,7 +681,7 @@ func TestHandleGetBalanceEvent(t *testing.T) {
 		AppId:         app.ID,
 		App:           *app,
 		RequestMethod: NIP_47_GET_BALANCE_METHOD,
-		ExpiresAt:     expiresAt,
+		ExpiresAt:     &expiresAt,
 	}
 	err = svc.db.Create(appPermission).Error
 	assert.NoError(t, err)
@@ -702,7 +702,7 @@ func TestHandleGetBalanceEvent(t *testing.T) {
 		RequestMethod: NIP_47_PAY_INVOICE_METHOD,
 		MaxAmount:     maxAmount,
 		BudgetRenewal: budgetRenewal,
-		ExpiresAt:     expiresAt,
+		ExpiresAt:     &expiresAt,
 	}
 	err = svc.db.Create(appPermission).Error
 	assert.NoError(t, err)
@@ -765,7 +765,7 @@ func TestHandlePayInvoiceEvent(t *testing.T) {
 		RequestMethod: NIP_47_PAY_INVOICE_METHOD,
 		MaxAmount:     maxAmount,
 		BudgetRenewal: budgetRenewal,
-		ExpiresAt:     expiresAt,
+		ExpiresAt:     &expiresAt,
 	}
 	err = svc.db.Create(appPermission).Error
 	assert.NoError(t, err)
@@ -902,7 +902,7 @@ func TestHandlePayKeysendEvent(t *testing.T) {
 		RequestMethod: NIP_47_PAY_INVOICE_METHOD,
 		MaxAmount:     maxAmount,
 		BudgetRenewal: budgetRenewal,
-		ExpiresAt:     expiresAt,
+		ExpiresAt:     &expiresAt,
 	}
 	err = svc.db.Create(appPermission).Error
 	assert.NoError(t, err)
@@ -979,7 +979,7 @@ func TestHandleLookupInvoiceEvent(t *testing.T) {
 		AppId:         app.ID,
 		App:           *app,
 		RequestMethod: NIP_47_LOOKUP_INVOICE_METHOD,
-		ExpiresAt:     expiresAt,
+		ExpiresAt:     &expiresAt,
 	}
 	err = svc.db.Create(appPermission).Error
 	assert.NoError(t, err)
@@ -1046,7 +1046,7 @@ func TestHandleMakeInvoiceEvent(t *testing.T) {
 		AppId:         app.ID,
 		App:           *app,
 		RequestMethod: NIP_47_MAKE_INVOICE_METHOD,
-		ExpiresAt:     expiresAt,
+		ExpiresAt:     &expiresAt,
 	}
 	err = svc.db.Create(appPermission).Error
 	assert.NoError(t, err)
@@ -1104,7 +1104,7 @@ func TestHandleListTransactionsEvent(t *testing.T) {
 		AppId:         app.ID,
 		App:           *app,
 		RequestMethod: NIP_47_LIST_TRANSACTIONS_METHOD,
-		ExpiresAt:     expiresAt,
+		ExpiresAt:     &expiresAt,
 	}
 	err = svc.db.Create(appPermission).Error
 	assert.NoError(t, err)
@@ -1171,7 +1171,7 @@ func TestHandleGetInfoEvent(t *testing.T) {
 		AppId:         app.ID,
 		App:           *app,
 		RequestMethod: NIP_47_GET_INFO_METHOD,
-		ExpiresAt:     expiresAt,
+		ExpiresAt:     &expiresAt,
 	}
 	err = svc.db.Create(appPermission).Error
 	assert.NoError(t, err)

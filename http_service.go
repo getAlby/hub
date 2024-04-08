@@ -76,6 +76,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	unlockRateLimiter := middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(1))
 	e.POST("/api/start", httpSvc.startHandler, unlockRateLimiter)
 	e.POST("/api/unlock", httpSvc.unlockHandler, unlockRateLimiter)
+	e.PATCH("/api/unlock-password", httpSvc.changeUnlockPasswordHandler, unlockRateLimiter)
 
 	// TODO: below could be supported by NIP-47
 	e.GET("/api/channels", httpSvc.channelsListHandler, authMiddleware)
@@ -115,7 +116,7 @@ func (httpSvc *HttpService) csrfHandler(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) infoHandler(c echo.Context) error {
-	responseBody, err := httpSvc.api.GetInfo()
+	responseBody, err := httpSvc.api.GetInfo(c.Request().Context())
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
 			Message: err.Error(),
@@ -199,6 +200,24 @@ func (httpSvc *HttpService) unlockHandler(c echo.Context) error {
 	httpSvc.svc.EventLogger.Log(&events.Event{
 		Event: "nwc_unlocked",
 	})
+
+	return c.NoContent(http.StatusNoContent)
+}
+
+func (httpSvc *HttpService) changeUnlockPasswordHandler(c echo.Context) error {
+	var changeUnlockPasswordRequest api.ChangeUnlockPasswordRequest
+	if err := c.Bind(&changeUnlockPasswordRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, models.ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	err := httpSvc.api.ChangeUnlockPassword(&changeUnlockPasswordRequest)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
+			Message: fmt.Sprintf("Failed to change unlock password: %s", err.Error()),
+		})
+	}
 
 	return c.NoContent(http.StatusNoContent)
 }
@@ -569,7 +588,7 @@ func (httpSvc *HttpService) setupHandler(c echo.Context) error {
 		})
 	}
 
-	err := httpSvc.api.Setup(&setupRequest)
+	err := httpSvc.api.Setup(c.Request().Context(), &setupRequest)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
 			Message: fmt.Sprintf("Failed to setup node: %s", err.Error()),

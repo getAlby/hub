@@ -28,7 +28,9 @@ type GreenlightService struct {
 	svc     *Service
 }
 
-func NewGreenlightService(svc *Service, mnemonic, inviteCode, workDir string) (result lnclient.LNClient, err error) {
+const DEVICE_CREDENTIALS_KEY = "GreenlightCreds"
+
+func NewGreenlightService(svc *Service, mnemonic, inviteCode, workDir, encryptionKey string) (result lnclient.LNClient, err error) {
 	if mnemonic == "" || inviteCode == "" || workDir == "" {
 		return nil, errors.New("one or more required greenlight configuration are missing")
 	}
@@ -42,14 +44,11 @@ func NewGreenlightService(svc *Service, mnemonic, inviteCode, workDir string) (r
 	}
 
 	var credentials *glalby.GreenlightCredentials
-	// NOTE: mnemonic used for encryption
-	existingDeviceCert, _ := svc.cfg.Get("GreenlightDeviceCert", mnemonic)
-	existingDeviceKey, _ := svc.cfg.Get("GreenlightDeviceKey", mnemonic)
+	existingDeviceCreds, _ := svc.cfg.Get(DEVICE_CREDENTIALS_KEY, encryptionKey)
 
-	if existingDeviceCert != "" && existingDeviceKey != "" {
+	if existingDeviceCreds != "" {
 		credentials = &glalby.GreenlightCredentials{
-			DeviceCert: existingDeviceCert,
-			DeviceKey:  existingDeviceKey,
+			GlCreds: existingDeviceCreds,
 		}
 		svc.Logger.Info("Using saved greenlight credentials")
 	}
@@ -70,18 +69,17 @@ func NewGreenlightService(svc *Service, mnemonic, inviteCode, workDir string) (r
 			}
 		}
 
-		if credentials == nil || credentials.DeviceCert == "" || credentials.DeviceKey == "" {
-			log.Fatalf("unexpected response from Recover")
+		if credentials == nil || credentials.GlCreds == "" {
+			return nil, errors.New("unexpected response from Recover")
 		}
-		// NOTE: mnemonic used for encryption
-		svc.cfg.SetUpdate("GreenlightDeviceCert", credentials.DeviceCert, mnemonic)
-		svc.cfg.SetUpdate("GreenlightDeviceKey", credentials.DeviceKey, mnemonic)
+		svc.cfg.SetUpdate(DEVICE_CREDENTIALS_KEY, credentials.GlCreds, encryptionKey)
 	}
 
 	client, err := glalby.NewBlockingGreenlightAlbyClient(mnemonic, *credentials)
 
 	if err != nil {
 		log.Printf("Failed to create greenlight alby client: %v", err)
+		return nil, err
 	}
 	if client == nil {
 		log.Fatalf("unexpected response from NewBlockingGreenlightAlbyClient")
@@ -105,6 +103,11 @@ func NewGreenlightService(svc *Service, mnemonic, inviteCode, workDir string) (r
 }
 
 func (gs *GreenlightService) Shutdown() error {
+	_, err := gs.client.Shutdown()
+	if err != nil {
+		gs.svc.Logger.WithError(err).Error("Failed to shutdown greenlight node")
+		return err
+	}
 	return nil
 }
 
@@ -440,7 +443,15 @@ func (gs *GreenlightService) OpenChannel(ctx context.Context, openChannelRequest
 }
 
 func (gs *GreenlightService) CloseChannel(ctx context.Context, closeChannelRequest *lnclient.CloseChannelRequest) (*lnclient.CloseChannelResponse, error) {
-	return nil, nil
+	_, err := gs.client.Close(glalby.CloseRequest{
+		Id: closeChannelRequest.ChannelId,
+	})
+	if err != nil {
+		gs.svc.Logger.WithError(err).Error("CloseChannel failed")
+		return nil, err
+	}
+
+	return &lnclient.CloseChannelResponse{}, nil
 }
 
 func (gs *GreenlightService) GetNewOnchainAddress(ctx context.Context) (string, error) {

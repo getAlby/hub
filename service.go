@@ -207,7 +207,7 @@ func (svc *Service) launchLNBackend(encryptionKey string) error {
 		GreenlightInviteCode, _ := svc.cfg.Get("GreenlightInviteCode", encryptionKey)
 		GreenlightWorkdir := path.Join(svc.cfg.Env.Workdir, "greenlight")
 
-		lnClient, err = NewGreenlightService(svc, Mnemonic, GreenlightInviteCode, GreenlightWorkdir)
+		lnClient, err = NewGreenlightService(svc, Mnemonic, GreenlightInviteCode, GreenlightWorkdir, encryptionKey)
 	case config.BreezBackendType:
 		Mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
 		BreezAPIKey, _ := svc.cfg.Get("BreezAPIKey", encryptionKey)
@@ -702,7 +702,7 @@ func (svc *Service) hasPermission(app *App, requestMethod string, amount int64) 
 		return false, NIP_47_ERROR_RESTRICTED, fmt.Sprintf("This app does not have permission to request %s", requestMethod)
 	}
 	expiresAt := appPermission.ExpiresAt
-	if !expiresAt.IsZero() && expiresAt.Before(time.Now()) {
+	if expiresAt != nil && expiresAt.Before(time.Now()) {
 		svc.Logger.WithFields(logrus.Fields{
 			"requestMethod": requestMethod,
 			"expiresAt":     expiresAt.Unix(),

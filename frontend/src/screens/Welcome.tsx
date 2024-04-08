@@ -23,17 +23,24 @@ export function Welcome() {
             Welcome to Alby Hub
           </h1>
           <p className="text-muted-foreground">
-            Connect your lightning wallet to dozens of apps and enjoy seamless
-            in-app payments.
+            A powerful, all-in-one lightning wallet with a superpower of
+            connecting into applications.
           </p>
         </div>
-        <Link to="/setup" className="w-full">
-          <Button size="lg" className="w-full">
-            Continue
-          </Button>
-        </Link>
+        <div className="grid gap-2">
+          <Link to="/setup/password" className="w-full">
+            <Button className="w-full">Create New Alby Hub</Button>
+          </Link>
+          {!info?.backendType && (
+            <Link to="/setup/password?wallet=import" className="w-full">
+              <Button variant="ghost" className="w-full">
+                Import Existing Wallet
+              </Button>
+            </Link>
+          )}
+        </div>
         <div className="text-sm text-muted-foreground">
-          By clicking "Continue", you agree to our <br />
+          By continuing, you agree to our <br />
           <Link to="#" className="underline">
             Terms of Service
           </Link>{" "}
