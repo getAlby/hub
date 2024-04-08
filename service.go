@@ -171,7 +171,7 @@ func (svc *Service) StopLNClient() error {
 	return nil
 }
 
-func (svc *Service) launchLNBackend(encryptionKey string) error {
+func (svc *Service) launchLNBackend(ctx context.Context, encryptionKey string) error {
 	err := svc.StopLNClient()
 	if err != nil {
 		return err
@@ -189,12 +189,12 @@ func (svc *Service) launchLNBackend(encryptionKey string) error {
 		LNDAddress, _ := svc.cfg.Get("LNDAddress", encryptionKey)
 		LNDCertHex, _ := svc.cfg.Get("LNDCertHex", encryptionKey)
 		LNDMacaroonHex, _ := svc.cfg.Get("LNDMacaroonHex", encryptionKey)
-		lnClient, err = NewLNDService(svc, LNDAddress, LNDCertHex, LNDMacaroonHex)
+		lnClient, err = NewLNDService(ctx, svc, LNDAddress, LNDCertHex, LNDMacaroonHex)
 	case config.LDKBackendType:
 		Mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
 		LDKWorkdir := path.Join(svc.cfg.Env.Workdir, "ldk")
 
-		lnClient, err = NewLDKService(svc, Mnemonic, LDKWorkdir, svc.cfg.Env.LDKNetwork, svc.cfg.Env.LDKEsploraServer, svc.cfg.Env.LDKGossipSource)
+		lnClient, err = NewLDKService(ctx, svc, Mnemonic, LDKWorkdir, svc.cfg.Env.LDKNetwork, svc.cfg.Env.LDKEsploraServer, svc.cfg.Env.LDKGossipSource)
 	case config.GreenlightBackendType:
 		Mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
 		GreenlightInviteCode, _ := svc.cfg.Get("GreenlightInviteCode", encryptionKey)
@@ -239,6 +239,8 @@ func (svc *Service) noticeHandler(notice string) {
 }
 
 func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscription) error {
+	// FIXME: this will only receive events when the relay is connected. Any other events will be dropped
+	// Should we register a subscriber at the service level that will send events to a queue and consume them here?
 	nip47Notifier := NewNip47Notifier(svc, sub)
 	svc.EventPublisher.RegisterSubscriber(nip47Notifier)
 
@@ -251,22 +253,17 @@ func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 		for event := range sub.Events {
 			go svc.HandleEvent(ctx, sub, event)
 		}
+		svc.Logger.Info("Relay subscription events channel ended")
 		svc.EventPublisher.RemoveSubscriber(nip47Notifier)
 	}()
 
-	select {
-	case <-sub.Relay.Context().Done():
-		svc.Logger.Errorf("Relay error %v", sub.Relay.ConnectionError)
+	<-ctx.Done()
+	if sub.Relay.ConnectionError != nil {
+		svc.Logger.WithField("connectionError", sub.Relay.ConnectionError).Error("Relay error")
 		return sub.Relay.ConnectionError
-	case <-ctx.Done():
-		if ctx.Err() != context.Canceled {
-			svc.Logger.Errorf("Subscription error %v", ctx.Err())
-			return ctx.Err()
-		}
-		svc.Logger.Info("Exiting subscription...")
-		return nil
 	}
-
+	svc.Logger.Info("Exiting subscription...")
+	return nil
 }
 
 func (svc *Service) PublishEvent(ctx context.Context, sub *nostr.Subscription, requestEvent *RequestEvent, resp *nostr.Event, app *App) error {

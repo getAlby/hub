@@ -32,7 +32,7 @@ type LDKService struct {
 	eventPublisher      events.EventPublisher
 }
 
-func NewLDKService(svc *Service, mnemonic, workDir string, network string, esploraServer string, gossipSource string) (result lnclient.LNClient, err error) {
+func NewLDKService(ctx context.Context, svc *Service, mnemonic, workDir string, network string, esploraServer string, gossipSource string) (result lnclient.LNClient, err error) {
 	if mnemonic == "" || workDir == "" {
 		return nil, errors.New("one or more required LDK configuration are missing")
 	}
@@ -87,8 +87,8 @@ func NewLDKService(svc *Service, mnemonic, workDir string, network string, esplo
 	}
 
 	ldkEventConsumer := make(chan *ldk_node.Event)
-	ctx, cancel := context.WithCancel(svc.ctx)
-	ldkEventBroadcaster := NewLDKEventBroadcaster(svc.Logger, ctx, ldkEventConsumer)
+	ldkCtx, cancel := context.WithCancel(ctx)
+	ldkEventBroadcaster := NewLDKEventBroadcaster(svc.Logger, ldkCtx, ldkEventConsumer)
 
 	ls := LDKService{
 		workdir:             newpath,
@@ -109,7 +109,7 @@ func NewLDKService(svc *Service, mnemonic, workDir string, network string, esplo
 			select {
 			case <-ticker.C:
 				deleteOldLDKLogs(svc.Logger, logDirPath)
-			case <-svc.ctx.Done():
+			case <-ldkCtx.Done():
 				return
 			}
 		}
@@ -119,7 +119,7 @@ func NewLDKService(svc *Service, mnemonic, workDir string, network string, esplo
 	go func() {
 		for {
 			select {
-			case <-ctx.Done():
+			case <-ldkCtx.Done():
 				return
 			default:
 				// NOTE: currently do not use WaitNextEvent() as it can possibly block the LDK thread (to confirm)
@@ -131,7 +131,7 @@ func NewLDKService(svc *Service, mnemonic, workDir string, network string, esplo
 					continue
 				}
 
-				ls.logLdkEvent(ctx, event)
+				ls.logLdkEvent(ldkCtx, event)
 				ldkEventConsumer <- event
 
 				node.EventHandled()

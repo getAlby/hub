@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"time"
 
@@ -9,7 +10,7 @@ import (
 	"github.com/nbd-wtf/go-nostr/nip19"
 )
 
-func (svc *Service) StartNostr(encryptionKey string) error {
+func (svc *Service) StartNostr(ctx context.Context, encryptionKey string) error {
 	relayUrl, _ := svc.cfg.Get("Relay", encryptionKey)
 	nostrSecretKey, _ := svc.cfg.Get("NostrSecretKey", encryptionKey)
 	if nostrSecretKey == "" {
@@ -44,7 +45,7 @@ func (svc *Service) StartNostr(encryptionKey string) error {
 				svc.Logger.Infof("[Iteration %d] Retrying in %d seconds...", i, sleepDuration)
 
 				select {
-				case <-svc.ctx.Done(): //context cancelled
+				case <-ctx.Done(): //context cancelled
 					svc.Logger.Info("service context cancelled while waiting for retry")
 					contextCancelled = true
 				case <-time.After(time.Duration(sleepDuration) * time.Second): //timeout
@@ -63,25 +64,25 @@ func (svc *Service) StartNostr(encryptionKey string) error {
 			//connect to the relay
 			svc.Logger.Infof("Connecting to the relay: %s", relayUrl)
 
-			relay, err := nostr.RelayConnect(svc.ctx, relayUrl, nostr.WithNoticeHandler(svc.noticeHandler))
+			relay, err := nostr.RelayConnect(ctx, relayUrl, nostr.WithNoticeHandler(svc.noticeHandler))
 			if err != nil {
 				svc.Logger.WithError(err).Error("Failed to connect to relay")
 				continue
 			}
 
 			//publish event with NIP-47 info
-			err = svc.PublishNip47Info(svc.ctx, relay)
+			err = svc.PublishNip47Info(ctx, relay)
 			if err != nil {
 				svc.Logger.WithError(err).Error("Could not publish NIP47 info")
 			}
 
 			svc.Logger.Info("Subscribing to events")
-			sub, err := relay.Subscribe(svc.ctx, svc.createFilters(svc.cfg.NostrPublicKey))
+			sub, err := relay.Subscribe(ctx, svc.createFilters(svc.cfg.NostrPublicKey))
 			if err != nil {
 				svc.Logger.WithError(err).Error("Failed to subscribe to events")
 				continue
 			}
-			err = svc.StartSubscription(svc.ctx, sub)
+			err = svc.StartSubscription(sub.Context, sub)
 			if err != nil {
 				//err being non-nil means that we have an error on the websocket error channel. In this case we just try to reconnect.
 				svc.Logger.WithError(err).Error("Got an error from the relay while listening to subscription.")
@@ -110,7 +111,7 @@ func (svc *Service) StartApp(encryptionKey string) error {
 		return errors.New("invalid password")
 	}
 
-	err := svc.launchLNBackend(encryptionKey)
+	err := svc.launchLNBackend(svc.ctx, encryptionKey)
 	if err != nil {
 		svc.Logger.Errorf("Failed to launch LN backend: %v", err)
 		svc.EventPublisher.Publish(&events.Event{
@@ -119,7 +120,7 @@ func (svc *Service) StartApp(encryptionKey string) error {
 		return err
 	}
 
-	svc.StartNostr(encryptionKey)
+	svc.StartNostr(svc.ctx, encryptionKey)
 	return nil
 }
 

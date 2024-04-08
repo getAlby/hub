@@ -752,7 +752,7 @@ func (api *API) GetInfo(ctx context.Context) (*models.InfoResponse, error) {
 		if backendType == config.BreezBackendType {
 			info.OnboardingCompleted = true
 		} else {
-			channels, err := api.ListChannels(api.svc.ctx)
+			channels, err := api.ListChannels(ctx)
 			if err != nil {
 				api.svc.Logger.WithError(err).WithFields(logrus.Fields{}).Error("Failed to fetch channels")
 				return nil, err
