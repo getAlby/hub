@@ -657,17 +657,7 @@ func (httpSvc *HttpService) getLogOutput(c echo.Context) error {
 			})
 		}
 	} else if logType == api.LogTypeApp {
-		logFileName := ""
-
-		if getLogRequest.Source == api.AppLogOutputSourceGeneral {
-			logFileName = httpSvc.svc.GeneralLogFilePath()
-		} else if getLogRequest.Source == api.AppLogOutputSourceError {
-			logFileName = httpSvc.svc.ErrorLogFilePath()
-		} else {
-			return c.JSON(http.StatusBadRequest, models.ErrorResponse{
-				Message: fmt.Sprintf("Bad request: invalid app log source '%s'", getLogRequest.Source),
-			})
-		}
+		logFileName := httpSvc.svc.LogFilePath()
 
 		logData, err = ReadFileTail(logFileName, getLogRequest.MaxLen)
 		if err != nil {

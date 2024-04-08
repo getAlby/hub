@@ -35,9 +35,8 @@ import (
 )
 
 const (
-	logDir             = "log"
-	generalLogFilename = "nwc-general.log"
-	errorLogFilename   = "nwc-error.log"
+	logDir      = "log"
+	logFilename = "nwc.log"
 )
 
 type Service struct {
@@ -80,17 +79,13 @@ func NewService(ctx context.Context) (*Service, error) {
 
 	fileLoggerHook, err := lumberjackrus.NewHook(
 		&lumberjackrus.LogFile{
-			Filename: filepath.Join(appConfig.Workdir, logDir, generalLogFilename),
+			Filename:   filepath.Join(appConfig.Workdir, logDir, logFilename),
+			MaxAge:     3,
+			MaxBackups: 3,
 		},
 		logrus.InfoLevel,
 		&logrus.JSONFormatter{},
-		&lumberjackrus.LogFileOpts{
-			logrus.ErrorLevel: &lumberjackrus.LogFile{
-				Filename:   filepath.Join(appConfig.Workdir, logDir, errorLogFilename),
-				MaxAge:     1,
-				MaxBackups: 2,
-			},
-		},
+		nil,
 	)
 	if err != nil {
 		return nil, err
@@ -769,10 +764,6 @@ func (svc *Service) PublishNip47Info(ctx context.Context, relay *nostr.Relay) er
 	return nil
 }
 
-func (svc *Service) GeneralLogFilePath() string {
-	return filepath.Join(svc.cfg.Env.Workdir, logDir, generalLogFilename)
-}
-
-func (svc *Service) ErrorLogFilePath() string {
-	return filepath.Join(svc.cfg.Env.Workdir, logDir, errorLogFilename)
+func (svc *Service) LogFilePath() string {
+	return filepath.Join(svc.cfg.Env.Workdir, logDir, logFilename)
 }
