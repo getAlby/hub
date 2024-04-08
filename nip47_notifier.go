@@ -44,6 +44,7 @@ func (notifier *Nip47Notifier) ConsumeEvent(ctx context.Context, event *events.E
 			WithField("paymentHash", paymentReceivedEventProperties.PaymentHash).
 			WithError(err).
 			Error("Failed to lookup invoice by payment hash")
+		return err
 	}
 
 	notifier.notifySubscribers(ctx, &Nip47Notification{

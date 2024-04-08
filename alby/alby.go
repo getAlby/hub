@@ -342,6 +342,7 @@ func (svc *AlbyOAuthService) ConsumeEvent(ctx context.Context, event *events.Eve
 	token, err := svc.fetchUserToken(ctx)
 	if err != nil {
 		svc.logger.WithError(err).Error("Failed to fetch user token")
+		return err
 	}
 
 	client := svc.oauthConf.Client(ctx, token)
