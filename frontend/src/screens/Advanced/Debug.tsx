@@ -72,18 +72,27 @@ export default function Debug() {
             let maxLen = window.prompt("Enter max length:");
 
             if (maxLen)
-              apiRequest("/api/get-ln-log-output", "POST", {
-                maxLen: parseInt(maxLen),
-              });
+              apiRequest(`/api/log/app?source=error&maxLen=${maxLen}`, "GET");
           }}
         >
-          Get Log Output
+          Get App Logs
+        </Button>
+        <Button
+          onClick={() => {
+            let maxLen = window.prompt("Enter max length:");
+
+            if (maxLen) apiRequest(`/api/log/node?maxLen=${maxLen}`, "GET");
+          }}
+        >
+          Get Node Logs
         </Button>
       </div>
       {apiResponse && (
         <Card className="mt-8 pt-6">
           <CardContent>
-            <pre>API Response: {JSON.stringify(apiResponse, null, 2)}</pre>
+            <pre className="overflow-x-auto max-w-full whitespace-pre-wrap">
+              API Response: {JSON.stringify(apiResponse, null, 2)}
+            </pre>
           </CardContent>
         </Card>
       )}
