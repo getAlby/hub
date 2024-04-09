@@ -48,8 +48,8 @@ func (notifier *Nip47Notifier) ConsumeEvent(ctx context.Context, event *events.E
 	}
 
 	notifier.notifySubscribers(ctx, &Nip47Notification{
-		Result:     transaction,
-		ResultType: NIP_47_PAYMENT_RECEIVED_NOTIFICATION,
+		Notification:     transaction,
+		NotificationType: NIP_47_PAYMENT_RECEIVED_NOTIFICATION,
 	}, nostr.Tags{})
 	return nil
 }

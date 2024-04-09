@@ -136,9 +136,8 @@ type Nip47Response struct {
 }
 
 type Nip47Notification struct {
-	// TODO: rename Notification, NotificationType
-	Result     interface{} `json:"result,omitempty"`
-	ResultType string      `json:"result_type"`
+	Notification     interface{} `json:"notification,omitempty"`
+	NotificationType string      `json:"notification_type"`
 }
 
 type Nip47Error struct {
