@@ -661,6 +661,17 @@ func (svc *Service) checkPermission(nip47Request *Nip47Request, requestNostrEven
 			"message":             message,
 		}).Error("App does not have permission")
 
+		svc.EventPublisher.Publish(&events.Event{
+			Event: "nwc_permission_denied",
+			Properties: map[string]interface{}{
+				"request_method": nip47Request.Method,
+				"app_name":       app.Name,
+				// "app_pubkey":     app.NostrPubkey,
+				"code":    code,
+				"message": message,
+			},
+		})
+
 		return &Nip47Response{
 			ResultType: nip47Request.Method,
 			Error: &Nip47Error{
@@ -684,15 +695,6 @@ func (svc *Service) hasPermission(app *App, requestMethod string, amount int64) 
 		RequestMethod: requestMethod,
 	})
 	if findPermissionResult.RowsAffected == 0 {
-		svc.EventPublisher.Publish(&events.Event{
-			Event: "nwc_permission_missing",
-			Properties: map[string]interface{}{
-				"request_method": requestMethod,
-				"app_name":       app.Name,
-				"app_pubkey":     app.NostrPubkey,
-			},
-		})
-
 		// No permission for this request method
 		return false, NIP_47_ERROR_RESTRICTED, fmt.Sprintf("This app does not have permission to request %s", requestMethod)
 	}
@@ -704,14 +706,7 @@ func (svc *Service) hasPermission(app *App, requestMethod string, amount int64) 
 			"appId":         app.ID,
 			"pubkey":        app.NostrPubkey,
 		}).Info("This pubkey is expired")
-		svc.EventPublisher.Publish(&events.Event{
-			Event: "nwc_permission_expired",
-			Properties: map[string]interface{}{
-				"request_method": requestMethod,
-				"app_name":       app.Name,
-				"app_pubkey":     app.NostrPubkey,
-			},
-		})
+
 		return false, NIP_47_ERROR_EXPIRED, "This app has expired"
 	}
 
@@ -721,17 +716,6 @@ func (svc *Service) hasPermission(app *App, requestMethod string, amount int64) 
 			budgetUsage := svc.GetBudgetUsage(&appPermission)
 
 			if budgetUsage+amount/1000 > int64(maxAmount) {
-				svc.EventPublisher.Publish(&events.Event{
-					Event: "nwc_permission_budget_exceeded",
-					Properties: map[string]interface{}{
-						"request_method": requestMethod,
-						"app_name":       app.Name,
-						"app_pubkey":     app.NostrPubkey,
-						// "max_amount":     maxAmount,
-						// "budget_usage":   budgetUsage,
-						// "amount":         amount / 1000,
-					},
-				})
 				return false, NIP_47_ERROR_QUOTA_EXCEEDED, "Insufficient budget remaining to make payment"
 			}
 		}
