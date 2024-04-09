@@ -1,25 +1,55 @@
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 import Loading from "src/components/Loading";
 
+import {
+  ArrowDownToDot,
+  ArrowUpFromDot,
+  CopyIcon,
+  Dot,
+  ShieldCheckIcon,
+  Sparkles,
+  WalletIcon,
+} from "lucide-react";
 import AppHeader from "src/components/AppHeader";
 import BreezRedeem from "src/components/BreezRedeem";
+import EmptyState from "src/components/EmptyState";
+import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "src/components/ui/dropdown-menu";
+import { useToast } from "src/components/ui/use-toast";
+import { useBalances } from "src/hooks/useBalances";
 import { useCSRF } from "src/hooks/useCSRF";
 import { useInfo } from "src/hooks/useInfo";
+import { useNodeConnectionInfo } from "src/hooks/useNodeConnectionInfo";
+import { copyToClipboard } from "src/lib/clipboard";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 
 function Wallet() {
   const { data: info } = useInfo();
+  const { data: balances } = useBalances();
   const { data: csrf } = useCSRF();
-  const navigate = useNavigate();
+  const { toast } = useToast();
+  const { data: nodeConnectionInfo } = useNodeConnectionInfo();
   const [showBackupPrompt, setShowBackupPrompt] = React.useState(true);
 
-  if (!info) {
+  if (!info || !balances) {
     return <Loading />;
   }
+
+  const isWalletUsable =
+    balances.lightning.totalReceivable > 0 ||
+    balances.lightning.totalSpendable > 0;
 
   async function onSkipBackup(e: React.FormEvent) {
     e.preventDefault();
@@ -44,7 +74,7 @@ function Wallet() {
         }),
       });
     } catch (error) {
-      handleRequestError("Failed to skip backup", error);
+      handleRequestError(toast, "Failed to skip backup", error);
     } finally {
       setShowBackupPrompt(false);
     }
@@ -52,51 +82,129 @@ function Wallet() {
 
   return (
     <>
-      <AppHeader title="Wallet" description="Send and receive transactions" />
+      <AppHeader
+        title="Wallet"
+        description="Send and receive transactions"
+        contentRight={
+          isWalletUsable && (
+            <>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="default">
+                    <Dot className="mr-2 h-4 w-4 text-primary" />
+                    Connected
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-64">
+                  <DropdownMenuItem>
+                    <div className="flex flex-row gap-10 items-center w-full">
+                      <div className="whitespace-nowrap flex flex-row items-center gap-2">
+                        Node
+                      </div>
+                      <div className="overflow-hidden text-ellipsis">
+                        {/* TODO: replace with skeleton loader */}
+                        {nodeConnectionInfo?.pubkey || "Loading..."}
+                      </div>
+                      {nodeConnectionInfo && (
+                        <CopyIcon
+                          className="shrink-0 w-4 h-4"
+                          onClick={() => {
+                            copyToClipboard(nodeConnectionInfo.pubkey);
+                            toast({ title: "Copied to clipboard." });
+                          }}
+                        />
+                      )}
+                    </div>
+                  </DropdownMenuItem>
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuGroup>
+                      <DropdownMenuLabel>Liquidity</DropdownMenuLabel>
+                      <DropdownMenuItem>
+                        <div className="flex flex-row gap-3 items-center justify-between w-full">
+                          <div className="grid grid-flow-col gap-2 items-center">
+                            <ArrowDownToDot className="w-4 h-4 " />
+                            Incoming
+                          </div>
+                          <div className="text-muted-foreground">
+                            {new Intl.NumberFormat().format(
+                              Math.floor(
+                                balances.lightning.totalReceivable / 1000
+                              )
+                            )}{" "}
+                            sats
+                          </div>
+                        </div>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <div className="flex flex-row gap-3 items-center justify-between w-full">
+                          <div className="grid grid-flow-col gap-2 items-center">
+                            <ArrowUpFromDot className="w-4 h-4 " />
+                            Outgoing
+                          </div>
+                          <div className="text-muted-foreground">
+                            {new Intl.NumberFormat().format(
+                              Math.floor(
+                                balances.lightning.totalSpendable / 1000
+                              )
+                            )}{" "}
+                            sats
+                          </div>
+                        </div>
+                      </DropdownMenuItem>
+                    </DropdownMenuGroup>
+                  </>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
+          )
+        }
+      />
 
       <BreezRedeem />
 
       {info?.showBackupReminder && showBackupPrompt && (
-        <div className="rounded-2xl bg-orange-50 border border-orange-200 flex flex-col justify-between">
-          <div className="p-4 h-full border-b border-orange-200">
-            <h2 className="font-medium text-orange-700 mb-2">
-              Back up your recovery phrase!
-            </h2>
-            <p className="text-sm text-orange-700">
-              Not backing up your key might result in loosing access to your
-              funds.
-            </p>
-          </div>
-          <div className="py-3 px-4 flex items-center gap-4">
-            <div
-              onClick={onSkipBackup}
-              className="text-center font-medium p-2.5 w-full text-sm rounded-lg text-orange-700 hover:bg-orange-100 cursor-pointer"
-            >
-              Skip For Now
-            </div>
-            <div
-              onClick={() => navigate("/backup/mnemonic")}
-              className="text-center font-medium p-2.5 w-full text-sm rounded-lg text-orange-700 bg-orange-200 cursor-pointer hover:bg-orange-300"
-            >
-              Back Up Now
-            </div>
-          </div>
-        </div>
+        <>
+          <Alert>
+            <ShieldCheckIcon className="h-4 w-4" />
+            <AlertTitle>Back up your recovery phrase!</AlertTitle>
+            <AlertDescription>
+              Not backing up your key might result in permanently losing access
+              to your funds.
+              <div className="mt-3 flex items-center gap-3">
+                <Button onClick={onSkipBackup} variant="secondary" size="sm">
+                  Skip For Now
+                </Button>
+                <Link to="/backup/mnemonic">
+                  <Button size="sm">Back Up Now</Button>
+                </Link>
+              </div>
+            </AlertDescription>
+          </Alert>
+        </>
       )}
 
-      <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm">
-        <div className="flex flex-col items-center gap-1 text-center">
-          <h3 className="text-2xl font-bold tracking-tight">
-            You have no funds, yet.
-          </h3>
-          <p className="text-sm text-muted-foreground">
-            Topup your wallet and make your first transaction.
-          </p>
-          <Link to="/start">
-            <Button className="mt-4">Get Started</Button>
-          </Link>
-        </div>
-      </div>
+      {!isWalletUsable && (
+        <EmptyState
+          icon={<WalletIcon />}
+          title="You have no funds, yet"
+          description="Topup your wallet and make your first transaction."
+          buttonText="Get Started"
+          buttonLink="/channels/first"
+        />
+      )}
+
+      {isWalletUsable && (
+        <>
+          <EmptyState
+            icon={<Sparkles />}
+            title="You are ready to get started"
+            description="Discover the ecosystem of apps."
+            buttonText="Get Started"
+            buttonLink="/appstore"
+          />
+        </>
+      )}
     </>
   );
 }

@@ -48,7 +48,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 					"route":  route,
 					"method": method,
 					"body":   body,
-				}).Errorf("Failed to decode request to wails router: %v", err)
+				}).WithError(err).Error("Failed to decode request to wails router")
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 			}
 			err = app.api.UpdateApp(&userApp, updateAppRequest)
@@ -118,7 +118,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 					"route":  route,
 					"method": method,
 					"body":   body,
-				}).Errorf("Failed to decode request to wails router: %v", err)
+				}).WithError(err).Error("Failed to decode request to wails router")
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 			}
 			createAppResponse, err := app.api.CreateApp(createAppRequest)
@@ -158,7 +158,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 					"route":  route,
 					"method": method,
 					"body":   body,
-				}).Errorf("Failed to decode request to wails router: %v", err)
+				}).WithError(err).Error("Failed to decode request to wails router")
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 			}
 			openChannelResponse, err := app.api.OpenChannel(ctx, openChannelRequest)
@@ -174,13 +174,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		}
 		res := WailsRequestRouterResponse{Body: *balancesResponse, Error: ""}
 		return res
-	case "/api/wallet/balance":
-		balanceResponse, err := app.api.GetOnchainBalance(ctx)
-		if err != nil {
-			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
-		}
-		res := WailsRequestRouterResponse{Body: *balanceResponse, Error: ""}
-		return res
+
 	case "/api/wallet/new-address":
 		newAddressResponse, err := app.api.GetNewOnchainAddress(ctx)
 		if err != nil {
@@ -196,7 +190,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 				"route":  route,
 				"method": method,
 				"body":   body,
-			}).Errorf("Failed to decode request to wails router: %v", err)
+			}).WithError(err).Error("Failed to decode request to wails router")
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 
@@ -213,7 +207,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 				"route":  route,
 				"method": method,
 				"body":   body,
-			}).Errorf("Failed to decode request to wails router: %v", err)
+			}).WithError(err).Error("Failed to decode request to wails router")
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		err = app.api.ConnectPeer(ctx, connectPeerRequest)
@@ -228,7 +222,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		}
 		return WailsRequestRouterResponse{Body: *nodeConnectionInfo, Error: ""}
 	case "/api/info":
-		infoResponse, err := app.api.GetInfo()
+		infoResponse, err := app.api.GetInfo(ctx)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
@@ -247,7 +241,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 				"route":  route,
 				"method": method,
 				"body":   body,
-			}).Errorf("Failed to decode request to wails router: %v", err)
+			}).WithError(err).Error("Failed to decode request to wails router")
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 
@@ -257,7 +251,29 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 				"route":  route,
 				"method": method,
 				"body":   body,
-			}).Errorf("Failed to store backup reminder: %v", err)
+			}).WithError(err).Error("Failed to store backup reminder")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: nil, Error: ""}
+	case "/api/unlock-password":
+		changeUnlockPasswordRequest := &api.ChangeUnlockPasswordRequest{}
+		err := json.Unmarshal([]byte(body), changeUnlockPasswordRequest)
+		if err != nil {
+			app.svc.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).WithError(err).Error("Failed to decode request to wails router")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+
+		err = app.api.ChangeUnlockPassword(changeUnlockPasswordRequest)
+		if err != nil {
+			app.svc.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).WithError(err).Error("Failed to change unlock password")
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: nil, Error: ""}
@@ -269,7 +285,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 				"route":  route,
 				"method": method,
 				"body":   body,
-			}).Errorf("Failed to decode request to wails router: %v", err)
+			}).WithError(err).Error("Failed to decode request to wails router")
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		err = app.api.Start(startRequest)
@@ -278,7 +294,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 				"route":  route,
 				"method": method,
 				"body":   body,
-			}).Errorf("Failed to setup node: %v", err)
+			}).WithError(err).Error("Failed to setup node")
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: nil, Error: ""}
@@ -292,20 +308,23 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 				"route":  route,
 				"method": method,
 				"body":   body,
-			}).Errorf("Failed to decode request to wails router: %v", err)
+			}).WithError(err).Error("Failed to decode request to wails router")
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
-		err = app.api.Setup(setupRequest)
+		err = app.api.Setup(ctx, setupRequest)
 		if err != nil {
 			app.svc.Logger.WithFields(logrus.Fields{
 				"route":  route,
 				"method": method,
 				"body":   body,
-			}).Errorf("Failed to setup node: %v", err)
+			}).WithError(err).Error("Failed to setup node")
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: nil, Error: ""}
 	}
-	app.svc.Logger.Errorf("Unhandled route: %s", route)
+	app.svc.Logger.WithFields(logrus.Fields{
+		"route":  route,
+		"method": method,
+	}).Error("Unhandled route")
 	return WailsRequestRouterResponse{Body: nil, Error: fmt.Sprintf("Unhandled route: %s %s", method, route)}
 }

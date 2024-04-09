@@ -1,12 +1,13 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import Loading from "src/components/Loading";
-import { Button } from "src/components/ui/button";
+import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { useToast } from "src/components/ui/use-toast";
+import { LoadingButton } from "src/components/ui/loading-button";
+import { toast } from "src/components/ui/use-toast";
 import { useCSRF } from "src/hooks/useCSRF";
 import { useInfo } from "src/hooks/useInfo";
+import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 
 export default function Unlock() {
@@ -17,7 +18,6 @@ export default function Unlock() {
   const { data: csrf } = useCSRF();
   const { data: info } = useInfo();
   const { mutate: refetchInfo } = useInfo();
-  const { toast } = useToast();
 
   React.useEffect(() => {
     if (!info || info.running) {
@@ -46,33 +46,23 @@ export default function Unlock() {
       await refetchInfo();
       navigate("/");
     } catch (error) {
-      toast({
-        title: (error as Error).message,
-        variant: "destructive",
-      });
-      // handleRequestError("Failed to connect", error);
+      handleRequestError(toast, "Failed to connect", error);
     } finally {
       setLoading(false);
     }
   }
 
-  if (loading) return <Loading />;
-
   return (
     <>
-      <form onSubmit={onSubmit} className="w-full">
-        <div className="mx-auto grid w-[350px] gap-6">
-          <div className="grid gap-2 text-center">
-            <h1 className="text-3xl font-bold">Login</h1>
-            <p className="text-balance text-muted-foreground">
-              Enter your unlock password to get started
-            </p>
-          </div>
+      <form onSubmit={onSubmit} className="w-full p-5">
+        <div className="mx-auto grid w-80 max-w-full gap-6">
+          <TwoColumnLayoutHeader
+            title="Login"
+            description=" Enter your unlock password to continue"
+          />
           <div className="grid gap-4">
-            <div className="grid gap-2">
-              <div className="flex items-center">
-                <Label htmlFor="password">Password</Label>
-              </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
                 type="password"
@@ -81,9 +71,9 @@ export default function Unlock() {
                 onChange={(e) => setUnlockPassword(e.target.value)}
               />
             </div>
-            <Button type="submit" className="w-full">
+            <LoadingButton type="submit" loading={loading}>
               Login
-            </Button>
+            </LoadingButton>
           </div>
         </div>
       </form>

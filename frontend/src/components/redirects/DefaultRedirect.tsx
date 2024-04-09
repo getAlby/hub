@@ -1,6 +1,7 @@
 import React from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import Loading from "src/components/Loading";
+import { localStorageKeys } from "src/constants";
 import { useInfo } from "src/hooks/useInfo";
 
 export function DefaultRedirect() {
@@ -9,9 +10,17 @@ export function DefaultRedirect() {
   const navigate = useNavigate();
 
   React.useEffect(() => {
-    if (!info || (info.running && info.unlocked)) {
+    if (
+      !info ||
+      (info.running &&
+        info.unlocked &&
+        info.onboardingCompleted &&
+        info.albyAccountConnected)
+    ) {
       return;
     }
+    const returnTo = location.pathname + location.search;
+    window.localStorage.setItem(localStorageKeys.returnTo, returnTo);
     navigate("/");
   }, [info, location, navigate]);
 

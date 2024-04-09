@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useOnchainBalance } from "src/hooks/useOnchainBalance";
+import { useBalances } from "src/hooks/useBalances";
 
 type RecommendedNode = {
   title: string;
@@ -47,7 +47,7 @@ const RECOMMENDED_NODES: RecommendedNode[] = [
 ];
 
 export default function RecommendedChannels() {
-  const { data: onchainBalance } = useOnchainBalance();
+  const { data: balances } = useBalances();
   return (
     <div className="flex flex-col gap-2">
       <h1>Recommended Channel Peers</h1>
@@ -67,7 +67,7 @@ export default function RecommendedChannels() {
               Min channel size:{" "}
               <span
                 className={`${
-                  node.min <= (onchainBalance?.spendable || 0)
+                  node.min <= (balances?.onchain.spendable || 0)
                     ? "text-green-500"
                     : "text-red-500"
                 }`}
