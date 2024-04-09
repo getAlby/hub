@@ -358,12 +358,12 @@ func (api *API) OpenChannel(ctx context.Context, openChannelRequest *models.Open
 	return api.svc.lnClient.OpenChannel(ctx, openChannelRequest)
 }
 
-func (api *API) CloseChannel(ctx context.Context, nodeId, channelId string) (*models.CloseChannelResponse, error) {
+func (api *API) CloseChannel(ctx context.Context, peerId, channelId string) (*models.CloseChannelResponse, error) {
 	if api.svc.lnClient == nil {
 		return nil, errors.New("LNClient not started")
 	}
 	return api.svc.lnClient.CloseChannel(ctx, &lnclient.CloseChannelRequest{
-		NodeId:    nodeId,
+		NodeId:    peerId,
 		ChannelId: channelId,
 	})
 }

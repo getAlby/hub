@@ -179,11 +179,6 @@ export type OpenChannelResponse = {
   fundingTxId: string;
 };
 
-export type CloseChannelRequest = {
-  channelId: string;
-  nodeId: string;
-};
-
 // eslint-disable-next-line @typescript-eslint/ban-types
 export type CloseChannelResponse = {};
 

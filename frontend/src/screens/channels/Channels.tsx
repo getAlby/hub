@@ -33,7 +33,7 @@ import { useBalances } from "src/hooks/useBalances.ts";
 import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
 import { useRedeemOnchainFunds } from "src/hooks/useRedeemOnchainFunds.ts";
-import { CloseChannelRequest, CloseChannelResponse, Node } from "src/types";
+import { CloseChannelResponse, Node } from "src/types";
 import { request } from "src/utils/request";
 import { useCSRF } from "../../hooks/useCSRF.ts";
 
@@ -112,19 +112,14 @@ export default function Channels() {
 
       console.log(`🎬 Closing channel with ${nodeId}`);
 
-      const closeChannelRequest: CloseChannelRequest = {
-        channelId: channelId,
-        nodeId: nodeId,
-      };
       const closeChannelResponse = await request<CloseChannelResponse>(
-        "/api/channels/close",
+        `/api/peers/${nodeId}/channels/${channelId}`,
         {
-          method: "POST",
+          method: "DELETE",
           headers: {
             "X-CSRF-Token": csrf,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(closeChannelRequest),
         }
       );
 

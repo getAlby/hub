@@ -65,19 +65,19 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		}
 	}
 
-	nodeChannelRegex := regexp.MustCompile(
-		`/api/nodes/([^/]+)/channels/([^/]+)`,
+	peerChannelRegex := regexp.MustCompile(
+		`/api/peers/([^/]+)/channels/([^/]+)`,
 	)
 
-	nodeChannelMatch := nodeChannelRegex.FindStringSubmatch(route)
+	peerChannelMatch := peerChannelRegex.FindStringSubmatch(route)
 
 	switch {
-	case len(nodeChannelMatch) > 1:
-		nodeId := nodeChannelMatch[1]
-		channelId := nodeChannelMatch[2]
+	case len(peerChannelMatch) > 1:
+		peerId := peerChannelMatch[1]
+		channelId := peerChannelMatch[2]
 		switch method {
 		case "DELETE":
-			closeChannelResponse, err := app.api.CloseChannel(ctx, nodeId, channelId)
+			closeChannelResponse, err := app.api.CloseChannel(ctx, peerId, channelId)
 			if err != nil {
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 			}
