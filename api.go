@@ -591,6 +591,11 @@ func (api *API) NewInstantChannelInvoice(ctx context.Context, request *models.Ne
 				return nil, errors.New("failed to read response body")
 			}
 
+			if res.StatusCode >= 300 {
+				api.svc.Logger.WithField("body", string(body)).Error("fee endpoint returned non-success code")
+				return nil, fmt.Errorf("fee endpoint returned non-success code: %s", string(body))
+			}
+
 			err = json.Unmarshal(body, &feeResponse)
 			if err != nil {
 				api.svc.Logger.WithError(err).WithFields(logrus.Fields{
@@ -663,6 +668,11 @@ func (api *API) NewInstantChannelInvoice(ctx context.Context, request *models.Ne
 				return nil, errors.New("failed to read response body")
 			}
 
+			if res.StatusCode >= 300 {
+				api.svc.Logger.WithField("body", string(body)).Error("fee endpoint returned non-success code")
+				return nil, fmt.Errorf("proposal endpoint returned non-success code: %s", string(body))
+			}
+
 			err = json.Unmarshal(body, &proposalResponse)
 			if err != nil {
 				api.svc.Logger.WithError(err).WithFields(logrus.Fields{
@@ -723,6 +733,11 @@ func (api *API) NewInstantChannelInvoice(ctx context.Context, request *models.Ne
 				"url": selectedLsp.Url,
 			}).Error("Failed to read response body")
 			return nil, errors.New("failed to read response body")
+		}
+
+		if res.StatusCode >= 300 {
+			api.svc.Logger.WithField("body", string(body)).Error("fee endpoint returned non-success code")
+			return nil, fmt.Errorf("new-channel endpoint returned non-success code: %s", string(body))
 		}
 
 		invoice = string(body)
