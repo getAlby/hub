@@ -675,7 +675,7 @@ func (api *API) NewInstantChannelInvoice(ctx context.Context, request *models.Ne
 				api.svc.Logger.WithFields(logrus.Fields{
 					"body":       string(body),
 					"statusCode": res.StatusCode,
-				}).Error("fee endpoint returned non-success code")
+				}).Error("proposal endpoint returned non-success code")
 				return nil, fmt.Errorf("proposal endpoint returned non-success code: %s", string(body))
 			}
 
@@ -745,7 +745,7 @@ func (api *API) NewInstantChannelInvoice(ctx context.Context, request *models.Ne
 			api.svc.Logger.WithFields(logrus.Fields{
 				"body":       string(body),
 				"statusCode": res.StatusCode,
-			}).Error("fee endpoint returned non-success code")
+			}).Error("new-channel endpoint returned non-success code")
 			return nil, fmt.Errorf("new-channel endpoint returned non-success code: %s", string(body))
 		}
 
