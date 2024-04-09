@@ -31,18 +31,20 @@ import (
 	"github.com/getAlby/nostr-wallet-connect/migrations"
 	"github.com/getAlby/nostr-wallet-connect/models/config"
 	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
+	"github.com/getAlby/nostr-wallet-connect/nip47"
 )
 
 type Service struct {
 	// config from .env only. Fetch dynamic config from db
-	cfg            *Config
-	db             *gorm.DB
-	lnClient       lnclient.LNClient
-	Logger         *logrus.Logger
-	AlbyOAuthSvc   *alby.AlbyOAuthService
-	EventPublisher events.EventPublisher
-	ctx            context.Context
-	wg             *sync.WaitGroup
+	cfg                    *Config
+	db                     *gorm.DB
+	lnClient               lnclient.LNClient
+	Logger                 *logrus.Logger
+	AlbyOAuthSvc           *alby.AlbyOAuthService
+	EventPublisher         events.EventPublisher
+	ctx                    context.Context
+	wg                     *sync.WaitGroup
+	nip47NotificationQueue nip47.Nip47NotificationQueue
 }
 
 // TODO: move to service.go
@@ -132,15 +134,19 @@ func NewService(ctx context.Context) (*Service, error) {
 
 	eventPublisher.RegisterSubscriber(albyOAuthSvc)
 
+	nip47NotificationQueue := nip47.NewNip47NotificationQueue(logger)
+	eventPublisher.RegisterSubscriber(nip47NotificationQueue)
+
 	var wg sync.WaitGroup
 	svc := &Service{
-		cfg:            cfg,
-		db:             db,
-		ctx:            ctx,
-		wg:             &wg,
-		Logger:         logger,
-		AlbyOAuthSvc:   albyOAuthSvc,
-		EventPublisher: eventPublisher,
+		cfg:                    cfg,
+		db:                     db,
+		ctx:                    ctx,
+		wg:                     &wg,
+		Logger:                 logger,
+		AlbyOAuthSvc:           albyOAuthSvc,
+		EventPublisher:         eventPublisher,
+		nip47NotificationQueue: nip47NotificationQueue,
 	}
 
 	eventPublisher.Publish(&events.Event{
@@ -239,10 +245,18 @@ func (svc *Service) noticeHandler(notice string) {
 }
 
 func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscription) error {
-	// FIXME: this will only receive events when the relay is connected. Any other events will be dropped
-	// Should we register a subscriber at the service level that will send events to a queue and consume them here?
 	nip47Notifier := NewNip47Notifier(svc, sub)
-	svc.EventPublisher.RegisterSubscriber(nip47Notifier)
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				// subscription ended
+				return
+			case event := <-svc.nip47NotificationQueue.Channel():
+				nip47Notifier.ConsumeEvent(ctx, event)
+			}
+		}
+	}()
 
 	go func() {
 		// block till EOS is received
@@ -254,10 +268,10 @@ func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 			go svc.HandleEvent(ctx, sub, event)
 		}
 		svc.Logger.Info("Relay subscription events channel ended")
-		svc.EventPublisher.RemoveSubscriber(nip47Notifier)
 	}()
 
 	<-ctx.Done()
+
 	if sub.Relay.ConnectionError != nil {
 		svc.Logger.WithField("connectionError", sub.Relay.ConnectionError).Error("Relay error")
 		return sub.Relay.ConnectionError
