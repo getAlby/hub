@@ -124,7 +124,7 @@ func NewService(ctx context.Context) (*Service, error) {
 	cfg := &Config{}
 	cfg.Init(db, appConfig, logger)
 
-	eventPublisher := events.NewEventPublisher(logger, cfg.Env.LogEvents)
+	eventPublisher := events.NewEventPublisher(logger)
 
 	albyOAuthSvc := alby.NewAlbyOauthService(logger, cfg, cfg.Env, eventPublisher)
 	if err != nil {
@@ -245,7 +245,7 @@ func (svc *Service) noticeHandler(notice string) {
 }
 
 func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscription) error {
-	nip47Notifier := NewNip47Notifier(svc, sub)
+	nip47Notifier := NewNip47Notifier(svc, sub.Relay)
 	go func() {
 		for {
 			select {

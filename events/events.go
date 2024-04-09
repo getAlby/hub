@@ -35,7 +35,7 @@ type EventPublisher interface {
 	Publish(event *Event)
 }
 
-func NewEventPublisher(logger *logrus.Logger, enabled bool) *eventPublisher {
+func NewEventPublisher(logger *logrus.Logger) *eventPublisher {
 	eventPublisher := &eventPublisher{
 		logger:    logger,
 		listeners: []EventSubscriber{},

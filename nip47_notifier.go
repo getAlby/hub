@@ -11,15 +11,19 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type Nip47Notifier struct {
-	svc *Service
-	sub *nostr.Subscription
+type Relay interface {
+	Publish(ctx context.Context, event nostr.Event) (nostr.Status, error)
 }
 
-func NewNip47Notifier(svc *Service, sub *nostr.Subscription) *Nip47Notifier {
+type Nip47Notifier struct {
+	svc   *Service
+	relay Relay
+}
+
+func NewNip47Notifier(svc *Service, relay Relay) *Nip47Notifier {
 	return &Nip47Notifier{
-		svc: svc,
-		sub: sub,
+		svc:   svc,
+		relay: relay,
 	}
 }
 
@@ -120,7 +124,7 @@ func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *App, n
 		return
 	}
 
-	status, err := notifier.sub.Relay.Publish(ctx, *event)
+	status, err := notifier.relay.Publish(ctx, *event)
 	if err != nil {
 		notifier.svc.Logger.WithFields(logrus.Fields{
 			"notification": notification,

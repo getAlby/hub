@@ -1222,7 +1222,7 @@ func createTestService(ln *MockLn) (svc *Service, err error) {
 		db:             gormDb,
 		lnClient:       ln,
 		Logger:         logger,
-		EventPublisher: events.NewEventPublisher(logger, false),
+		EventPublisher: events.NewEventPublisher(logger),
 	}, nil
 }
 
