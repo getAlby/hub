@@ -101,11 +101,14 @@ func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *App, n
 		return
 	}
 
+	allTags := nostr.Tags{[]string{"p", app.NostrPubkey}}
+	allTags = append(allTags, tags...)
+
 	event := &nostr.Event{
 		PubKey:    notifier.svc.cfg.NostrPublicKey,
 		CreatedAt: nostr.Now(),
 		Kind:      NIP_47_NOTIFICATION_KIND,
-		Tags:      tags,
+		Tags:      allTags,
 		Content:   msg,
 	}
 	err = event.Sign(notifier.svc.cfg.NostrSecretKey)
