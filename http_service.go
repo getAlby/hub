@@ -100,7 +100,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 
 	e.POST("/api/send-payment-probes", httpSvc.sendPaymentProbesHandler, authMiddleware)
 	e.POST("/api/send-spontaneous-payment-probes", httpSvc.sendSpontaneousPaymentProbesHandler, authMiddleware)
-	e.GET("/api/log/:type", httpSvc.getLogOutput, authMiddleware)
+	e.GET("/api/log/:type", httpSvc.getLogOutputHandler, authMiddleware)
 
 	frontend.RegisterHandlers(e)
 }
@@ -606,15 +606,14 @@ func (httpSvc *HttpService) sendPaymentProbesHandler(c echo.Context) error {
 		})
 	}
 
-	err := httpSvc.svc.lnClient.SendPaymentProbes(httpSvc.svc.ctx, sendPaymentProbesRequest.Invoice)
-	errMsg := ""
+	sendPaymentProbesResponse, err := httpSvc.api.SendPaymentProbes(c.Request().Context(), &sendPaymentProbesRequest)
 	if err != nil {
-		errMsg = err.Error()
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
+			Message: fmt.Sprintf("Failed to send payment probes: %v", err),
+		})
 	}
 
-	return c.JSON(http.StatusOK, api.SendPaymentProbesResponse{
-		Error: errMsg,
-	})
+	return c.JSON(http.StatusOK, sendPaymentProbesResponse)
 }
 
 func (httpSvc *HttpService) sendSpontaneousPaymentProbesHandler(c echo.Context) error {
@@ -625,18 +624,17 @@ func (httpSvc *HttpService) sendSpontaneousPaymentProbesHandler(c echo.Context) 
 		})
 	}
 
-	err := httpSvc.svc.lnClient.SendSpontaneousPaymentProbes(httpSvc.svc.ctx, sendSpontaneousPaymentProbesRequest.Amount, sendSpontaneousPaymentProbesRequest.NodeID)
-	errMsg := ""
+	sendSpontaneousPaymentProbesResponse, err := httpSvc.api.SendSpontaneousPaymentProbes(c.Request().Context(), &sendSpontaneousPaymentProbesRequest)
 	if err != nil {
-		errMsg = err.Error()
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
+			Message: fmt.Sprintf("Failed to send spontaneous payment probes: %v", err),
+		})
 	}
 
-	return c.JSON(http.StatusOK, api.SendSpontaneousPaymentProbesResponse{
-		Error: errMsg,
-	})
+	return c.JSON(http.StatusOK, sendSpontaneousPaymentProbesResponse)
 }
 
-func (httpSvc *HttpService) getLogOutput(c echo.Context) error {
+func (httpSvc *HttpService) getLogOutputHandler(c echo.Context) error {
 	var getLogRequest api.GetLogOutputRequest
 	if err := c.Bind(&getLogRequest); err != nil {
 		return c.JSON(http.StatusBadRequest, models.ErrorResponse{
@@ -645,33 +643,18 @@ func (httpSvc *HttpService) getLogOutput(c echo.Context) error {
 	}
 
 	logType := c.Param("type")
-
-	var err error
-	var logData []byte
-
-	if logType == api.LogTypeNode {
-		logData, err = httpSvc.svc.lnClient.GetLogOutput(httpSvc.svc.ctx, getLogRequest.MaxLen)
-		if err != nil {
-			return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
-				Message: "Failed to get log data",
-			})
-		}
-	} else if logType == api.LogTypeApp {
-		logFileName := httpSvc.svc.LogFilePath()
-
-		logData, err = ReadFileTail(logFileName, getLogRequest.MaxLen)
-		if err != nil {
-			return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
-				Message: fmt.Sprintf("Failed to read log file: %s", err.Error()),
-			})
-		}
-	} else {
+	if logType != api.LogTypeNode && logType != api.LogTypeApp {
 		return c.JSON(http.StatusBadRequest, models.ErrorResponse{
 			Message: fmt.Sprintf("Invalid log type parameter: '%s'", logType),
 		})
 	}
 
-	return c.JSON(http.StatusOK, api.GetLogOutputResponse{
-		Log: string(logData),
-	})
+	getLogResponse, err := httpSvc.api.GetLogOutput(c.Request().Context(), logType, &getLogRequest)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
+			Message: fmt.Sprintf("Failed to get log output: %v", err),
+		})
+	}
+
+	return c.JSON(http.StatusOK, getLogResponse)
 }
