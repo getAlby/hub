@@ -547,7 +547,6 @@ func (api *API) NewInstantChannelInvoice(ctx context.Context, request *models.Ne
 
 	// TODO: switch on LSPType and extract to separate functions
 	if selectedLsp.SupportsWrappedInvoices {
-
 		api.svc.Logger.Infoln("Requesting fee information")
 
 		var feeResponse lsp.FeeResponse
@@ -618,6 +617,7 @@ func (api *API) NewInstantChannelInvoice(ctx context.Context, request *models.Ne
 				}).Error("No fee id in fee response")
 				return nil, fmt.Errorf("no fee id in fee response %v", feeResponse)
 			}
+			fee = feeResponse.FeeAmountMsat / 1000
 		}
 
 		// because we don't want the sender to pay the fee
@@ -697,21 +697,19 @@ func (api *API) NewInstantChannelInvoice(ctx context.Context, request *models.Ne
 			}
 		}
 		invoice = proposalResponse.Bolt11
-		fee = feeResponse.FeeAmountMsat / 1000
 	} else {
 		client := http.Client{
 			Timeout: time.Second * 10,
 		}
 		payloadBytes, err := json.Marshal(lsp.NewInstantChannelRequest{
-			ChannelAmount: request.Amount,
-			NodePubkey:    nodeInfo.Pubkey,
+			Amount: request.Amount,
+			Pubkey: nodeInfo.Pubkey,
 		})
 		if err != nil {
 			return nil, err
 		}
 		bodyReader := bytes.NewReader(payloadBytes)
 
-		// TODO: JSON error logging
 		req, err := http.NewRequest(http.MethodPost, selectedLsp.Url+"/new-channel", bodyReader)
 		if err != nil {
 			api.svc.Logger.WithError(err).WithFields(logrus.Fields{
@@ -729,8 +727,6 @@ func (api *API) NewInstantChannelInvoice(ctx context.Context, request *models.Ne
 			}).Error("Failed to request new channel invoice")
 			return nil, err
 		}
-
-		// TODO: check status
 
 		defer res.Body.Close()
 
@@ -750,7 +746,18 @@ func (api *API) NewInstantChannelInvoice(ctx context.Context, request *models.Ne
 			return nil, fmt.Errorf("new-channel endpoint returned non-success code: %s", string(body))
 		}
 
-		invoice = string(body)
+		var newChannelResponse lsp.NewInstantChannelResponse
+
+		err = json.Unmarshal(body, &newChannelResponse)
+		if err != nil {
+			api.svc.Logger.WithError(err).WithFields(logrus.Fields{
+				"url": selectedLsp.Url,
+			}).Error("Failed to deserialize json")
+			return nil, fmt.Errorf("failed to deserialize json %s %s", selectedLsp.Url, string(body))
+		}
+
+		invoice = newChannelResponse.Invoice
+		fee = newChannelResponse.FeeAmountMsat / 1000
 
 		api.svc.Logger.WithField("invoice", invoice).Info("New Channel response")
 	}
