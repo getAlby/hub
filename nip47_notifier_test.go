@@ -27,7 +27,7 @@ func TestSendNotification(t *testing.T) {
 	appPermission := &AppPermission{
 		AppId:         app.ID,
 		App:           *app,
-		RequestMethod: NIP_47_SUBSCRIBE_UPDATES_PERMISSION,
+		RequestMethod: NIP_47_NOTIFICATIONS_PERMISSION,
 	}
 	err = svc.db.Create(appPermission).Error
 	assert.NoError(t, err)

@@ -31,13 +31,13 @@ const (
 	NIP_47_ERROR_RESTRICTED           = "RESTRICTED"
 	NIP_47_ERROR_BAD_REQUEST          = "BAD_REQUEST"
 	NIP_47_OTHER                      = "OTHER"
-	NIP_47_CAPABILITIES               = "pay_invoice pay_keysend get_balance get_info make_invoice lookup_invoice list_transactions multi_pay_invoice multi_pay_keysend sign_message subscribe_updates"
+	NIP_47_CAPABILITIES               = "pay_invoice pay_keysend get_balance get_info make_invoice lookup_invoice list_transactions multi_pay_invoice multi_pay_keysend sign_message notifications"
+	NIP_47_NOTIFICATION_TYPES         = "payment_received" // same format as above e.g. "payment_received balance_updated payment_sent channel_opened channel_closed ..."
 )
 
 // TODO: move other permissions here (e.g. all payment methods use pay_invoice)
 const (
-	// TODO: should there be one permission for each types of subscription?
-	NIP_47_SUBSCRIBE_UPDATES_PERMISSION = "subscribe_updates"
+	NIP_47_NOTIFICATIONS_PERMISSION = "notifications"
 )
 
 const (

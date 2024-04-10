@@ -18,7 +18,7 @@ export const NIP_47_LOOKUP_INVOICE_METHOD = "lookup_invoice";
 export const NIP_47_LIST_TRANSACTIONS_METHOD = "list_transactions";
 export const NIP_47_SIGN_MESSAGE_METHOD = "sign_message";
 
-export const NIP_47_SUBSCRIBE_UPDATES_PERMISSION = "subscribe_updates";
+export const NIP_47_NOTIFICATIONS_PERMISSION = "notifications";
 
 export type BackendType = "LND" | "BREEZ" | "GREENLIGHT" | "LDK";
 
@@ -40,7 +40,9 @@ export type BudgetRenewalType =
   | "";
 
 // TODO: move other permissions
-export type PermissionType = RequestMethodType | "subscribe_updates";
+export type PermissionType =
+  | RequestMethodType
+  | typeof NIP_47_NOTIFICATIONS_PERMISSION;
 
 export type IconMap = {
   [key in PermissionType]: LucideIcon;
@@ -54,7 +56,7 @@ export const iconMap: IconMap = {
   [NIP_47_MAKE_INVOICE_METHOD]: CirclePlus,
   [NIP_47_PAY_INVOICE_METHOD]: HandCoins,
   [NIP_47_SIGN_MESSAGE_METHOD]: PenLine,
-  [NIP_47_SUBSCRIBE_UPDATES_PERMISSION]: Bell,
+  [NIP_47_NOTIFICATIONS_PERMISSION]: Bell,
 };
 
 export const validBudgetRenewals: BudgetRenewalType[] = [
@@ -78,7 +80,7 @@ export const nip47MethodDescriptions: Record<RequestMethodType, string> = {
 // TODO: merge with nip47MethodDescriptions
 export const nip47PermissionDescriptions: Record<PermissionType, string> = {
   ...nip47MethodDescriptions,
-  [NIP_47_SUBSCRIBE_UPDATES_PERMISSION]: "Subscribe to updates",
+  [NIP_47_NOTIFICATIONS_PERMISSION]: "Receive wallet notifications",
 };
 
 export const expiryOptions: Record<string, number> = {
