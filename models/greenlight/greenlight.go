@@ -72,11 +72,6 @@ type Channel struct {
 	State         int       `json:"state"`
 }
 
-type ScheduleResponse struct {
-	NodeId  string `json:"node_id"`
-	GrpcUri string `json:"grpc_uri"`
-}
-
 type ConnectPeerResponse struct {
 	Id string `json:"id"`
 	// ...other fields
@@ -116,7 +111,6 @@ type GreenlightRustInterface interface {
 	NewGreenlightService() *GreenlightRustService
 }
 
-// EXAMPLE ONLY: ideally the rust bindings generate this interface
 type GreenlightRustService interface {
 	/**
 	Attempts to recover or register a new greenlight node and returns the credentials of the node.

@@ -150,7 +150,7 @@ type SendPaymentProbesResponse struct {
 
 type SendSpontaneousPaymentProbesRequest struct {
 	Amount uint64 `json:"amount"`
-	NodeID string `json:"nodeID"`
+	NodeId string `json:"nodeId"`
 }
 
 type SendSpontaneousPaymentProbesResponse struct {

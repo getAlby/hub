@@ -41,7 +41,7 @@ type NodeConnectionInfo struct {
 
 type LNClient interface {
 	SendPaymentSync(ctx context.Context, payReq string) (preimage string, err error)
-	SendKeysend(ctx context.Context, amount int64, destination, preimage string, custom_records []TLVRecord) (preImage string, err error)
+	SendKeysend(ctx context.Context, amount int64, destination, preimage string, customRecords []TLVRecord) (preImage string, err error)
 	GetBalance(ctx context.Context) (balance int64, err error)
 	GetInfo(ctx context.Context) (info *NodeInfo, err error)
 	MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *Transaction, err error)
@@ -59,7 +59,7 @@ type LNClient interface {
 	GetBalances(ctx context.Context) (*BalancesResponse, error)
 	RedeemOnchainFunds(ctx context.Context, toAddress string) (txId string, err error)
 	SendPaymentProbes(ctx context.Context, invoice string) error
-	SendSpontaneousPaymentProbes(ctx context.Context, amount_msat uint64, node_id string) error
+	SendSpontaneousPaymentProbes(ctx context.Context, amountMsat uint64, nodeId string) error
 	ListPeers(ctx context.Context) ([]PeerDetails, error)
 	GetLogOutput(ctx context.Context, maxLen int) ([]byte, error)
 	SignMessage(ctx context.Context, message string) (string, error)
@@ -104,10 +104,10 @@ type OnchainBalanceResponse struct {
 }
 
 type PeerDetails struct {
-	NodeID      string `json:"node_id"`
+	NodeId      string `json:"nodeId"`
 	Address     string `json:"address"`
-	IsPersisted bool   `json:"is_persisted"`
-	IsConnected bool   `json:"is_connected"`
+	IsPersisted bool   `json:"isPersisted"`
+	IsConnected bool   `json:"isConnected"`
 }
 type LightningBalanceResponse struct {
 	TotalSpendable       int64 `json:"totalSpendable"`

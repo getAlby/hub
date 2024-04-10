@@ -856,7 +856,7 @@ func (api *API) SendSpontaneousPaymentProbes(ctx context.Context, sendSpontaneou
 	}
 
 	var errMessage string
-	err := api.svc.lnClient.SendSpontaneousPaymentProbes(ctx, sendSpontaneousPaymentProbesRequest.Amount, sendSpontaneousPaymentProbesRequest.NodeID)
+	err := api.svc.lnClient.SendSpontaneousPaymentProbes(ctx, sendSpontaneousPaymentProbesRequest.Amount, sendSpontaneousPaymentProbesRequest.NodeId)
 	if err != nil {
 		errMessage = err.Error()
 	}

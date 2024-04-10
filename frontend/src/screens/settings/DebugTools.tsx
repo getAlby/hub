@@ -33,7 +33,7 @@ export default function DebugTools() {
       const data = await request(endpoint, requestOptions);
 
       setApiResponse(
-        (data as { logs: string }).logs || JSON.stringify(apiResponse, null, 2)
+        (data as { logs: string }).logs || JSON.stringify(data, null, 2)
       );
     } catch (error) {
       setApiResponse(JSON.stringify(error, Object.getOwnPropertyNames(error)));
@@ -56,11 +56,11 @@ export default function DebugTools() {
         <Button
           onClick={() => {
             const amount = window.prompt("Enter amount in sats:");
-            const nodeId = window.prompt("Enter node_id:");
+            const nodeId = window.prompt("Enter node pubkey:");
             if (amount && nodeId)
               apiRequest("/api/send-spontaneous-payment-probes", "POST", {
                 amount: parseInt(amount) * 1000,
-                nodeID: nodeId,
+                nodeId,
               });
           }}
         >

@@ -361,7 +361,7 @@ func (svc *LNDService) SendPaymentProbes(ctx context.Context, invoice string) er
 	return nil
 }
 
-func (svc *LNDService) SendSpontaneousPaymentProbes(ctx context.Context, amount_msat uint64, node_id string) error {
+func (svc *LNDService) SendSpontaneousPaymentProbes(ctx context.Context, amountMsat uint64, nodeId string) error {
 	return nil
 }
 

@@ -514,7 +514,7 @@ func (gs *GreenlightService) SendPaymentProbes(ctx context.Context, invoice stri
 	return nil
 }
 
-func (gs *GreenlightService) SendSpontaneousPaymentProbes(ctx context.Context, amount_msat uint64, node_id string) error {
+func (gs *GreenlightService) SendSpontaneousPaymentProbes(ctx context.Context, amountMsat uint64, nodeId string) error {
 	return nil
 }
 

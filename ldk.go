@@ -784,8 +784,8 @@ func (gs *LDKService) SendPaymentProbes(ctx context.Context, invoice string) err
 	return nil
 }
 
-func (gs *LDKService) SendSpontaneousPaymentProbes(ctx context.Context, amount_msat uint64, node_id string) error {
-	err := gs.node.SpontaneousPayment().SendProbes(amount_msat, node_id)
+func (gs *LDKService) SendSpontaneousPaymentProbes(ctx context.Context, amountMsat uint64, nodeId string) error {
+	err := gs.node.SpontaneousPayment().SendProbes(amountMsat, nodeId)
 	if err != nil {
 		gs.svc.Logger.Errorf("SpontaneousPayment.SendProbes failed: %v", err)
 		return err
@@ -799,7 +799,7 @@ func (gs *LDKService) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, er
 	ret := make([]lnclient.PeerDetails, 0, len(peers))
 	for _, peer := range peers {
 		ret = append(ret, lnclient.PeerDetails{
-			NodeID:      peer.NodeId,
+			NodeId:      peer.NodeId,
 			Address:     peer.Address,
 			IsPersisted: peer.IsPersisted,
 			IsConnected: peer.IsConnected,
