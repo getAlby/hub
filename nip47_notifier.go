@@ -65,7 +65,7 @@ func (notifier *Nip47Notifier) notifySubscribers(ctx context.Context, notificati
 	notifier.svc.db.Find(&apps)
 
 	for _, app := range apps {
-		hasPermission, _, _ := notifier.svc.hasPermission(&app, NIP_47_SUBSCRIBE_UPDATES_PERMISSION, 0)
+		hasPermission, _, _ := notifier.svc.hasPermission(&app, NIP_47_NOTIFICATIONS_PERMISSION, 0)
 		if !hasPermission {
 			continue
 		}

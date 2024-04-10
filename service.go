@@ -751,6 +751,7 @@ func (svc *Service) PublishNip47Info(ctx context.Context, relay *nostr.Relay) er
 	ev.Content = NIP_47_CAPABILITIES
 	ev.CreatedAt = nostr.Now()
 	ev.PubKey = svc.cfg.NostrPublicKey
+	ev.Tags = nostr.Tags{[]string{"notifications", NIP_47_NOTIFICATION_TYPES}}
 	err := ev.Sign(svc.cfg.NostrSecretKey)
 	if err != nil {
 		return err
