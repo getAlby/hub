@@ -346,7 +346,7 @@ func (httpSvc *HttpService) mempoolLightningNodeHandler(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) listPeers(c echo.Context) error {
-	peers, err := httpSvc.svc.lnClient.ListPeers(httpSvc.svc.ctx)
+	peers, err := httpSvc.api.ListPeers(httpSvc.svc.ctx)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
 			Message: fmt.Sprintf("Failed to list peers: %s", err.Error()),
