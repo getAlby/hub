@@ -728,14 +728,6 @@ func (api *API) NewInstantChannelInvoice(ctx context.Context, request *models.Ne
 			return nil, err
 		}
 
-		if res.StatusCode >= 300 {
-			api.svc.Logger.WithFields(logrus.Fields{
-				"body":       string(body),
-				"statusCode": res.StatusCode,
-			}).Error("new-channel endpoint returned non-success code")
-			return nil, fmt.Errorf("new-channel endpoint returned non-success code: %s", string(body))
-		}
-
 		defer res.Body.Close()
 
 		body, err := io.ReadAll(res.Body)
@@ -745,6 +737,15 @@ func (api *API) NewInstantChannelInvoice(ctx context.Context, request *models.Ne
 			}).Error("Failed to read response body")
 			return nil, errors.New("failed to read response body")
 		}
+
+		if res.StatusCode >= 300 {
+			api.svc.Logger.WithFields(logrus.Fields{
+				"body":       string(body),
+				"statusCode": res.StatusCode,
+			}).Error("new-channel endpoint returned non-success code")
+			return nil, fmt.Errorf("new-channel endpoint returned non-success code: %s", string(body))
+		}
+
 		var newChannelResponse lsp.NewInstantChannelResponse
 
 		err = json.Unmarshal(body, &newChannelResponse)
