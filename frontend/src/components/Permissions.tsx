@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Input } from "src/components/ui/input";
+import { Checkbox } from "src/components/ui/checkbox";
+import { Label } from "src/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -50,13 +51,11 @@ const Permissions: React.FC<PermissionsProps> = ({
     onPermissionsChange(updatedPermissions);
   };
 
-  const handleRequestMethodChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleRequestMethodChange = (requestMethod: PermissionType) => {
     if (!isEditing) {
       return;
     }
-    const requestMethod = event.target.value as PermissionType;
+
     const newRequestMethods = new Set(permissions.requestMethods);
     if (newRequestMethods.has(requestMethod)) {
       newRequestMethods.delete(requestMethod);
@@ -121,22 +120,18 @@ const Permissions: React.FC<PermissionsProps> = ({
                         }`}
                       />
                     )}
-                    <Input
-                      type="checkbox"
+                    <Checkbox
                       id={rm}
-                      value={rm}
+                      className={`${!isEditing ? "hidden" : ""} mr-2`}
+                      onCheckedChange={() => handleRequestMethodChange(rm)}
                       checked={permissions.requestMethods.has(rm)}
-                      onChange={handleRequestMethodChange}
-                      className={`${!isEditing ? "hidden" : ""} w-4 h-4 mr-4`}
                     />
-                    <label
+                    <Label
                       htmlFor={rm}
-                      className={`text-primary ${
-                        isEditing && "cursor-pointer"
-                      }`}
+                      className={`${isEditing && "cursor-pointer"}`}
                     >
                       {nip47PermissionDescriptions[rm]}
-                    </label>
+                    </Label>
                   </div>
                   {rm == "pay_invoice" && (
                     <div
