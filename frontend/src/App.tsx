@@ -37,10 +37,10 @@ import SettingsLayout from "src/components/layouts/SettingsLayout";
 import TwoColumnFullScreenLayout from "src/components/layouts/TwoColumnFullScreenLayout";
 import { OnboardingRedirect } from "src/components/redirects/OnboardingRedirect";
 import { Toaster } from "src/components/ui/toaster";
-import Debug from "src/screens/Advanced/Debug";
 import AlbyAuthRedirect from "src/screens/alby/AlbyAuthRedirect";
 import LightningOnboarding from "src/screens/onboarding/LightningOnboarding";
 import { ChangeUnlockPassword } from "src/screens/settings/ChangeUnlockPassword";
+import DebugTools from "src/screens/settings/DebugTools";
 
 const newChannelRoutes = (
   <Route path="new">
@@ -84,8 +84,8 @@ function App() {
                 <Route path=":pubkey" element={<ShowApp />} />
                 <Route path="created" element={<AppCreated />} />
               </Route>
-              <Route path="advanced" element={<DefaultRedirect />}>
-                <Route index element={<Debug />} />
+              <Route path="debug-tools" element={<DefaultRedirect />}>
+                <Route index element={<DebugTools />} />
               </Route>
               <Route path="channels" element={<DefaultRedirect />}>
                 <Route index path="" element={<Channels />} />

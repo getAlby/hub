@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { Button } from "src/components/ui/button";
-import { Card, CardContent } from "src/components/ui/card";
+import { Textarea } from "src/components/ui/textarea";
 import { useCSRF } from "src/hooks/useCSRF";
 import { request } from "src/utils/request";
 
-export default function Debug() {
+export default function DebugTools() {
   const { data: csrf } = useCSRF();
   const [apiResponse, setApiResponse] = useState<any>(null);
 
@@ -49,37 +49,36 @@ export default function Debug() {
             });
           }}
         >
-          Send Payment Probes
+          Probe Invoice
         </Button>
         <Button
           onClick={() => {
-            const amount_msat = window.prompt("Enter amount in milli satoshi:");
+            const amount_msat = window.prompt("Enter amount (millisatoshi):");
             const node_id = window.prompt("Enter node_id:");
             if (amount_msat && node_id)
               apiRequest("/api/send-spontaneous-payment-probes", "POST", {
-                amount_msat: parseInt(amount_msat),
-                node_id: node_id,
+                amount: parseInt(amount_msat) * 1000,
+                nodeID: node_id,
               });
           }}
         >
-          Send Spontaneous Payment Probes
+          Probe Keysend
         </Button>
         <Button onClick={() => apiRequest("/api/peers", "GET")}>
           List Peers
         </Button>
         <Button
           onClick={() => {
-            let maxLen = window.prompt("Enter max length:");
+            const maxLen = window.prompt("Enter max length (in characters):");
 
-            if (maxLen)
-              apiRequest(`/api/log/app?source=error&maxLen=${maxLen}`, "GET");
+            if (maxLen) apiRequest(`/api/log/app?maxLen=${maxLen}`, "GET");
           }}
         >
           Get App Logs
         </Button>
         <Button
           onClick={() => {
-            let maxLen = window.prompt("Enter max length:");
+            const maxLen = window.prompt("Enter max length (in characters):");
 
             if (maxLen) apiRequest(`/api/log/node?maxLen=${maxLen}`, "GET");
           }}
@@ -88,13 +87,11 @@ export default function Debug() {
         </Button>
       </div>
       {apiResponse && (
-        <Card className="mt-8 pt-6">
-          <CardContent>
-            <pre className="overflow-x-auto max-w-full whitespace-pre-wrap">
-              API Response: {JSON.stringify(apiResponse, null, 2)}
-            </pre>
-          </CardContent>
-        </Card>
+        <Textarea
+          className="whitespace-pre-wrap break-all"
+          rows={35}
+          placeholder={`API Response: ${JSON.stringify(apiResponse, null, 2)}`}
+        />
       )}
     </div>
   );
