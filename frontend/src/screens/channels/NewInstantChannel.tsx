@@ -1,7 +1,19 @@
 import { Payment, init } from "@getalby/bitcoin-connect-react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
+import { Input } from "src/components/ui/input";
+import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "src/components/ui/select";
+import { Table, TableBody, TableCell, TableRow } from "src/components/ui/table";
 import { useToast } from "src/components/ui/use-toast";
 import { MIN_0CONF_BALANCE } from "src/constants";
 import { useCSRF } from "src/hooks/useCSRF";
@@ -24,7 +36,7 @@ export default function NewInstantChannel() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { data: channels } = useChannels(true);
-  const [lsp, setLsp] = React.useState<LSPOption | undefined>("OLYMPUS");
+  const [lsp, setLsp] = React.useState<LSPOption | undefined>("ALBY");
   const [amount, setAmount] = React.useState("");
   const [prePurchaseChannelAmount, setPrePurchaseChannelAmount] =
     React.useState<number | undefined>();
@@ -105,57 +117,86 @@ export default function NewInstantChannel() {
   );
 
   return (
-    <div className="flex flex-col justify-center items-center gap-4">
-      <h1>1. Choose an LSP</h1>
-      <div className="flex gap-2">
-        {LSP_OPTIONS.map((option) => (
-          <button
-            key={option}
-            className={`shadow-lg p-4 bg-gray-100 rounded-lg hover:bg-yellow-100 active:bg-yellow-300 ${
-              option === lsp && "bg-yellow-300"
-            } `}
-            onClick={() => setLsp(option)}
-          >
-            {option}
-          </button>
-        ))}
-      </div>
-      {lsp && (
-        <>
-          <h1 className="mt-8">2. Purchase Liquidity</h1>
-          <p className="italic text-xs max-w-sm">
-            Enter at least {MIN_0CONF_BALANCE} sats. You'll receive outgoing
-            liquidity of this amount minus any LSP fees. You'll also get some
-            incoming liquidity.
-          </p>
-          <form onSubmit={requestWrappedInvoice}>
-            <p className="text-gray-500 text-sm">Amount in sats</p>
-            <div className="flex gap-2 w-full justify-center items-center relative">
-              <input
-                className="font-mono shadow-md"
-                type="number"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-              ></input>{" "}
-            </div>
-            <LoadingButton
-              type="submit"
-              disabled={amountSats === 0}
-              loading={isRequestingInvoice}
+    <div className="flex flex-col justify-center items-center gap-5">
+      <TwoColumnLayoutHeader
+        title={"Buy an Instant Channel"}
+        description={"Choose your LSP to open an instant channel to your node"}
+      />
+      {!wrappedInvoiceResponse && (
+        <form onSubmit={requestWrappedInvoice} className="grid gap-3">
+          <div className="grid w-full max-w-sm items-center gap-1.5">
+            <Label htmlFor="lsp">LSP</Label>
+            <Select
+              value={lsp}
+              onValueChange={(value) => setLsp(value as LSPOption)}
             >
-              Create channel
-            </LoadingButton>
-          </form>
-        </>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a LSP" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {LSP_OPTIONS.map((option) => (
+                    <SelectItem value={option}>
+                      {option.charAt(0).toUpperCase() +
+                        option.slice(1).toLowerCase()}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid w-full max-w-sm items-center gap-1.5">
+            <Label htmlFor="amount">Amount</Label>
+            <Input
+              type="number"
+              id="amount"
+              placeholder="Amount in sats"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              min={MIN_0CONF_BALANCE}
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+            />
+            <div className="text-muted-foreground text-xs">
+              Enter at least {MIN_0CONF_BALANCE} sats. You'll receive outgoing
+              liquidity of this amount minus any LSP fees. You'll also get some
+              incoming liquidity.
+            </div>
+          </div>
+          <LoadingButton
+            type="submit"
+            disabled={amountSats === 0}
+            loading={isRequestingInvoice}
+          >
+            Request Channel Offer
+          </LoadingButton>
+        </form>
       )}
       {wrappedInvoiceResponse && (
         <>
-          <h1 className="mt-8">3. Complete Payment</h1>
-          <p className="font-bold">
-            Fee included: {wrappedInvoiceResponse.fee} sats
-          </p>
+          <div className="border rounded-lg w-96">
+            <Table>
+              <TableBody>
+                <TableRow>
+                  <TableCell className="font-medium p-3 flex flex-row gap-1.5 items-center">
+                    Fee
+                  </TableCell>
+                  <TableCell className="text-right p-3">
+                    {new Intl.NumberFormat().format(wrappedInvoiceResponse.fee)}{" "}
+                    sats
+                  </TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell className="font-medium p-3">
+                    Amount to pay
+                  </TableCell>
+                  <TableCell className="font-semibold text-right p-3">
+                    {new Intl.NumberFormat().format(amountSats)} sats
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
           <Payment
             invoice={wrappedInvoiceResponse.invoice}
             payment={

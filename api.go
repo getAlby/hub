@@ -248,6 +248,7 @@ func (api *API) GetApp(userApp *App) *models.App {
 }
 
 func (api *API) ListApps() ([]models.App, error) {
+	// TODO: join apps and permissions
 	apps := []App{}
 	api.svc.db.Find(&apps)
 
@@ -590,6 +591,14 @@ func (api *API) NewInstantChannelInvoice(ctx context.Context, request *models.Ne
 				return nil, errors.New("failed to read response body")
 			}
 
+			if res.StatusCode >= 300 {
+				api.svc.Logger.WithFields(logrus.Fields{
+					"body":       string(body),
+					"statusCode": res.StatusCode,
+				}).Error("fee endpoint returned non-success code")
+				return nil, fmt.Errorf("fee endpoint returned non-success code: %s", string(body))
+			}
+
 			err = json.Unmarshal(body, &feeResponse)
 			if err != nil {
 				api.svc.Logger.WithError(err).WithFields(logrus.Fields{
@@ -663,6 +672,14 @@ func (api *API) NewInstantChannelInvoice(ctx context.Context, request *models.Ne
 				return nil, errors.New("failed to read response body")
 			}
 
+			if res.StatusCode >= 300 {
+				api.svc.Logger.WithFields(logrus.Fields{
+					"body":       string(body),
+					"statusCode": res.StatusCode,
+				}).Error("proposal endpoint returned non-success code")
+				return nil, fmt.Errorf("proposal endpoint returned non-success code: %s", string(body))
+			}
+
 			err = json.Unmarshal(body, &proposalResponse)
 			if err != nil {
 				api.svc.Logger.WithError(err).WithFields(logrus.Fields{
@@ -693,7 +710,6 @@ func (api *API) NewInstantChannelInvoice(ctx context.Context, request *models.Ne
 		}
 		bodyReader := bytes.NewReader(payloadBytes)
 
-		// TODO: JSON error logging
 		req, err := http.NewRequest(http.MethodPost, selectedLsp.Url+"/new-channel", bodyReader)
 		if err != nil {
 			api.svc.Logger.WithError(err).WithFields(logrus.Fields{
@@ -712,7 +728,13 @@ func (api *API) NewInstantChannelInvoice(ctx context.Context, request *models.Ne
 			return nil, err
 		}
 
-		// TODO: check status
+		if res.StatusCode >= 300 {
+			api.svc.Logger.WithFields(logrus.Fields{
+				"body":       string(body),
+				"statusCode": res.StatusCode,
+			}).Error("new-channel endpoint returned non-success code")
+			return nil, fmt.Errorf("new-channel endpoint returned non-success code: %s", string(body))
+		}
 
 		defer res.Body.Close()
 
@@ -756,12 +778,17 @@ func (api *API) GetInfo(ctx context.Context) (*models.InfoResponse, error) {
 	info.AlbyUserIdentifier = api.svc.AlbyOAuthSvc.GetUserIdentifier()
 	info.AlbyAccountConnected = api.svc.AlbyOAuthSvc.IsConnected(ctx)
 	if api.svc.lnClient != nil {
-		channels, err := api.ListChannels(api.svc.ctx)
-		if err != nil {
-			api.svc.Logger.WithError(err).WithFields(logrus.Fields{}).Error("Failed to fetch channels")
-			return nil, err
+		// TODO: is there a better way to do this?
+		if backendType == config.BreezBackendType {
+			info.OnboardingCompleted = true
+		} else {
+			channels, err := api.ListChannels(ctx)
+			if err != nil {
+				api.svc.Logger.WithError(err).WithFields(logrus.Fields{}).Error("Failed to fetch channels")
+				return nil, err
+			}
+			info.OnboardingCompleted = len(channels) > 0
 		}
-		info.OnboardingCompleted = len(channels) > 0
 	}
 
 	if info.BackendType != config.LNDBackendType {

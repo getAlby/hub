@@ -13,12 +13,13 @@ import (
 	"time"
 
 	"github.com/getAlby/ldk-node-go/ldk_node"
+	decodepay "github.com/nbd-wtf/ln-decodepay"
+	"github.com/sirupsen/logrus"
+
 	"github.com/getAlby/nostr-wallet-connect/events"
 	"github.com/getAlby/nostr-wallet-connect/models/config"
 	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 	"github.com/getAlby/nostr-wallet-connect/models/lsp"
-	decodepay "github.com/nbd-wtf/ln-decodepay"
-	"github.com/sirupsen/logrus"
 )
 
 type LDKService struct {
@@ -28,10 +29,10 @@ type LDKService struct {
 	ldkEventBroadcaster LDKEventBroadcaster
 	cancel              context.CancelFunc
 	network             string
-	eventLogger         events.EventLogger
+	eventPublisher      events.EventPublisher
 }
 
-func NewLDKService(svc *Service, mnemonic, workDir string, network string, esploraServer string, gossipSource string) (result lnclient.LNClient, err error) {
+func NewLDKService(ctx context.Context, svc *Service, mnemonic, workDir string, network string, esploraServer string, gossipSource string) (result lnclient.LNClient, err error) {
 	if mnemonic == "" || workDir == "" {
 		return nil, errors.New("one or more required LDK configuration are missing")
 	}
@@ -45,6 +46,7 @@ func NewLDKService(svc *Service, mnemonic, workDir string, network string, esplo
 	}
 
 	logDirPath := filepath.Join(newpath, "./logs")
+
 	config := ldk_node.DefaultConfig()
 	listeningAddresses := []string{
 		"0.0.0.0:9735",
@@ -85,8 +87,8 @@ func NewLDKService(svc *Service, mnemonic, workDir string, network string, esplo
 	}
 
 	ldkEventConsumer := make(chan *ldk_node.Event)
-	ctx, cancel := context.WithCancel(svc.ctx)
-	ldkEventBroadcaster := NewLDKEventBroadcaster(svc.Logger, ctx, ldkEventConsumer)
+	ldkCtx, cancel := context.WithCancel(ctx)
+	ldkEventBroadcaster := NewLDKEventBroadcaster(svc.Logger, ldkCtx, ldkEventConsumer)
 
 	ls := LDKService{
 		workdir:             newpath,
@@ -95,14 +97,29 @@ func NewLDKService(svc *Service, mnemonic, workDir string, network string, esplo
 		cancel:              cancel,
 		ldkEventBroadcaster: ldkEventBroadcaster,
 		network:             network,
-		eventLogger:         svc.EventLogger,
+		eventPublisher:      svc.EventPublisher,
 	}
+
+	// TODO: remove when LDK supports this
+	deleteOldLDKLogs(svc.Logger, logDirPath)
+	go func() {
+		// delete old LDK logs every 24 hours
+		ticker := time.NewTicker(24 * time.Hour)
+		for {
+			select {
+			case <-ticker.C:
+				deleteOldLDKLogs(svc.Logger, logDirPath)
+			case <-ldkCtx.Done():
+				return
+			}
+		}
+	}()
 
 	// check for and forward new LDK events to LDKEventBroadcaster (through ldkEventConsumer)
 	go func() {
 		for {
 			select {
-			case <-ctx.Done():
+			case <-ldkCtx.Done():
 				return
 			default:
 				// NOTE: currently do not use WaitNextEvent() as it can possibly block the LDK thread (to confirm)
@@ -114,7 +131,7 @@ func NewLDKService(svc *Service, mnemonic, workDir string, network string, esplo
 					continue
 				}
 
-				ls.logLdkEvent(ctx, event)
+				ls.logLdkEvent(ldkCtx, event)
 				ldkEventConsumer <- event
 
 				node.EventHandled()
@@ -161,7 +178,7 @@ func (gs *LDKService) SendPaymentSync(ctx context.Context, invoice string) (prei
 
 	maxSpendable := gs.getMaxSpendable()
 	if paymentRequest.MSatoshi > maxSpendable {
-		gs.eventLogger.Log(&events.Event{
+		gs.eventPublisher.Publish(&events.Event{
 			Event: "nwc_outgoing_liquidity_required",
 			Properties: map[string]interface{}{
 				//"amount":         amount / 1000,
@@ -401,7 +418,7 @@ func (gs *LDKService) MakeInvoice(ctx context.Context, amount int64, description
 	maxReceivable := gs.getMaxReceivable()
 
 	if amount > maxReceivable {
-		gs.eventLogger.Log(&events.Event{
+		gs.eventPublisher.Publish(&events.Event{
 			Event: "nwc_incoming_liquidity_required",
 			Properties: map[string]interface{}{
 				//"amount":         amount / 1000,
@@ -763,7 +780,7 @@ func (ls *LDKService) logLdkEvent(ctx context.Context, event *ldk_node.Event) {
 
 	switch v := (*event).(type) {
 	case ldk_node.EventChannelReady:
-		ls.eventLogger.Log(&events.Event{
+		ls.eventPublisher.Publish(&events.Event{
 			Event: "nwc_channel_ready",
 			Properties: map[string]interface{}{
 				// "counterparty_node_id": v.CounterpartyNodeId,
@@ -771,7 +788,7 @@ func (ls *LDKService) logLdkEvent(ctx context.Context, event *ldk_node.Event) {
 			},
 		})
 	case ldk_node.EventChannelClosed:
-		ls.eventLogger.Log(&events.Event{
+		ls.eventPublisher.Publish(&events.Event{
 			Event: "nwc_channel_closed",
 			Properties: map[string]interface{}{
 				// "counterparty_node_id": v.CounterpartyNodeId,
@@ -780,16 +797,15 @@ func (ls *LDKService) logLdkEvent(ctx context.Context, event *ldk_node.Event) {
 			},
 		})
 	case ldk_node.EventPaymentReceived:
-		ls.eventLogger.Log(&events.Event{
+		ls.eventPublisher.Publish(&events.Event{
 			Event: "nwc_payment_received",
-			Properties: map[string]interface{}{
-				"payment_hash": v.PaymentHash,
-				"amount":       v.AmountMsat / 1000,
-				"node_type":    config.LDKBackendType,
+			Properties: &events.PaymentReceivedEventProperties{
+				PaymentHash: v.PaymentHash,
+				Amount:      v.AmountMsat / 1000,
+				NodeType:    config.LDKBackendType,
 			},
 		})
 	}
-
 }
 
 func (ls *LDKService) GetBalances(ctx context.Context) (*lnclient.BalancesResponse, error) {
@@ -833,4 +849,34 @@ func (ls *LDKService) GetBalances(ctx context.Context) (*lnclient.BalancesRespon
 			NextMaxReceivableMPP: nextMaxReceivableMPP,
 		},
 	}, nil
+}
+
+func deleteOldLDKLogs(logger *logrus.Logger, ldkLogDir string) {
+	logger.WithField("ldkLogDir", ldkLogDir).Info("Deleting old LDK logs")
+	files, err := os.ReadDir(ldkLogDir)
+	if err != nil {
+		logger.WithField("path", ldkLogDir).WithError(err).Error("Failed to list ldk log directory")
+		return
+	}
+
+	for _, file := range files {
+		// get files with a date (e.g. ldk_node_2024_03_29.log)
+		if strings.HasPrefix(file.Name(), "ldk_node_2") && strings.HasSuffix(file.Name(), ".log") {
+			filePath := filepath.Join(ldkLogDir, file.Name())
+			fileInfo, err := file.Info()
+			if err != nil {
+				logger.WithField("filePath", filePath).WithError(err).Error("Failed to get file info")
+				continue
+			}
+			// delete files last modified over 3 days ago
+			if fileInfo.ModTime().Before(time.Now().AddDate(0, 0, -3)) {
+				err := os.Remove(filePath)
+				if err != nil {
+					logger.WithField("filePath", filePath).WithError(err).Error("Failed to get file info")
+					continue
+				}
+				logger.WithField("filePath", filePath).Infof("Deleted old LDK log file")
+			}
+		}
+	}
 }

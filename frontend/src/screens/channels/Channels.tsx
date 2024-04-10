@@ -354,17 +354,17 @@ export default function Channels() {
 
                 return (
                   <TableRow key={channel.id}>
-                    <TableCell>
-                      {channel.active ? "🟢" : "🔴"}
+                    <TableCell className="flex flex-row items-center">
                       <a
                         title={channel.remotePubkey}
                         href={`https://amboss.space/node/${channel.remotePubkey}`}
                         target="_blank"
                         rel="noopener noreferer"
                       >
+                        {channel.active ? "🟢" : "🔴"}{" "}
                         <Button variant="link">
-                          {alias} ({channel.remotePubkey.substring(0, 10)}
-                          ...)
+                          {alias ||
+                            channel.remotePubkey.substring(0, 5) + "..."}
                         </Button>
                       </a>
                       <Badge variant="outline">

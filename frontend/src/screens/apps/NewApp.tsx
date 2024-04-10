@@ -6,8 +6,8 @@ import {
   AppPermissions,
   BudgetRenewalType,
   CreateAppResponse,
-  RequestMethodType,
-  nip47MethodDescriptions,
+  PermissionType,
+  nip47PermissionDescriptions,
   validBudgetRenewals,
 } from "src/types";
 
@@ -47,13 +47,13 @@ const NewApp = () => {
   const maxAmountParam = queryParams.get("max_amount") ?? "";
   const expiresAtParam = queryParams.get("expires_at") ?? "";
 
-  const parseRequestMethods = (reqParam: string): Set<RequestMethodType> => {
+  const parseRequestMethods = (reqParam: string): Set<PermissionType> => {
     const methods = reqParam
       ? reqParam.split(" ")
-      : Object.keys(nip47MethodDescriptions);
-    // Create a Set of RequestMethodType from the array
-    const requestMethodsSet = new Set<RequestMethodType>(
-      methods as RequestMethodType[]
+      : Object.keys(nip47PermissionDescriptions);
+    // Create a Set of PermissionType from the array
+    const requestMethodsSet = new Set<PermissionType>(
+      methods as PermissionType[]
     );
     return requestMethodsSet;
   };
