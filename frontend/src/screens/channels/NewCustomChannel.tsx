@@ -240,7 +240,7 @@ export default function NewCustomChannel() {
                 onClick={openChannel}
                 loading={loading}
               >
-                {loading ? "Loading..." : "Open Channel"}
+                Open Channel
               </LoadingButton>
             </div>
           </CardContent>

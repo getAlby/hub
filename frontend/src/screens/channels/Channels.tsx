@@ -324,18 +324,6 @@ export default function Channels() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {!channels && (
-            <TableRow>
-              <TableCell colSpan={4} className="text-center p-5">
-                <div role="status" className="animate-pulse flex space-between">
-                  <div className="h-2.5 bg-primary rounded-full w-1/3 mr-5"></div>
-                  <div className="h-2.5 bg-primary rounded-full w-20 mr-5"></div>
-                  <div className="h-2.5 bg-primary rounded-full w-20"></div>
-                  <span className="sr-only">Loading...</span>
-                </div>
-              </TableCell>
-            </TableRow>
-          )}
           {channels && channels.length > 0 && (
             <>
               {channels.map((channel) => {
@@ -411,6 +399,11 @@ export default function Channels() {
           )}
         </TableBody>
       </Table>
+      {!channels && (
+        <div className="flex justify-center margin-4">
+          <Loading />
+        </div>
+      )}
     </>
   );
 }

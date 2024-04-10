@@ -7,6 +7,7 @@ import Loading from "src/components/Loading";
 import MnemonicInputs from "src/components/MnemonicInputs";
 import SettingsHeader from "src/components/SettingsHeader";
 import { Button } from "src/components/ui/button";
+import { Checkbox } from "src/components/ui/checkbox";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
@@ -150,18 +151,11 @@ export function BackupMnemonic() {
 
           <MnemonicInputs mnemonic={decryptedMnemonic} readOnly={true}>
             <div className="flex items-center mt-5">
-              <Input
+              <Checkbox
                 id="checkbox"
-                type="checkbox"
-                onChange={(event) => {
-                  isBackedUp(event.target.checked);
-                }}
-                checked={backedUp}
+                onCheckedChange={() => isBackedUp(!backedUp)}
               />
-              <Label
-                htmlFor="checkbox"
-                className="ms-2 text-sm font-medium text-primary"
-              >
+              <Label htmlFor="checkbox" className="ms-2">
                 I've backed my recovery phrase to my wallet in a private and
                 secure place
               </Label>

@@ -60,7 +60,7 @@ function App() {
           <Routes>
             <Route path="/" element={<AppLayout />}>
               <Route path="" element={<HomeRedirect />} />
-              <Route path="settings" element={<DefaultRedirect />}>
+              <Route path="settings">
                 <Route element={<SettingsLayout />}>
                   <Route index element={<Settings />} />
                   <Route

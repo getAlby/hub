@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import gradientAvatar from "gradient-avatar";
 import { Link } from "react-router-dom";
+import AppAvatar from "src/components/AppAvatar";
 import {
   Card,
   CardContent,
@@ -26,17 +26,8 @@ export default function AppCard({ app }: Props) {
           <CardHeader>
             <CardTitle>
               <div className="flex flex-row items-center">
-                <div className="relative w-10 h-10 rounded-lg border">
-                  <img
-                    src={`data:image/svg+xml;base64,${btoa(
-                      gradientAvatar(app.name)
-                    )}`}
-                    alt={app.name}
-                    className="block w-full h-full rounded-lg p-1"
-                  />
-                  <span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-2xl font-medium capitalize">
-                    {app.name.charAt(0)}
-                  </span>
+                <div className="relative w-10 h-10">
+                  <AppAvatar appName={app.name} />
                 </div>
                 <h2 className="flex-1 leading-5 font-semibold text-xl whitespace-nowrap text-ellipsis overflow-hidden ml-4">
                   {app.name}

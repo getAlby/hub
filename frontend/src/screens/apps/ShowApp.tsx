@@ -1,4 +1,3 @@
-import gradientAvatar from "gradient-avatar";
 import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -11,6 +10,7 @@ import { AppPermissions, BudgetRenewalType, PermissionType } from "src/types";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request"; // build the project for this to appear
 
+import AppAvatar from "src/components/AppAvatar";
 import AppHeader from "src/components/AppHeader";
 import DeleteConfirmationPopup from "src/components/DeleteConfirmationPopup";
 import Loading from "src/components/Loading";
@@ -109,17 +109,8 @@ function ShowApp() {
             title={
               <div className="flex flex-row items-center ">
                 {app && (
-                  <div className="relative inline-block min-w-9 w-9 h-9 rounded-lg border mr-2">
-                    <img
-                      src={`data:image/svg+xml;base64,${btoa(
-                        gradientAvatar(app.name)
-                      )}`}
-                      alt={app.name}
-                      className="block w-full h-full rounded-lg p-1"
-                    />
-                    <span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-xl font-medium capitalize">
-                      {app.name.charAt(0)}
-                    </span>
+                  <div className="relative inline-block min-w-9 w-9 h-9 mr-2">
+                    <AppAvatar appName={app.name} />
                   </div>
                 )}
                 <h2

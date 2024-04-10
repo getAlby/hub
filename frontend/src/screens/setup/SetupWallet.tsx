@@ -39,7 +39,7 @@ export function SetupWallet() {
                         </CardDescription>
                       </div>
                       <div className="flex-shrink-0 flex justify-end ">
-                        <ChevronRight className="w-8 h-8 text-gray-400" />
+                        <ChevronRight className="w-8 h-8 text-muted-foreground" />
                       </div>
                     </div>
                   </CardContent>
@@ -48,7 +48,7 @@ export function SetupWallet() {
 
               {!showOtherOptions && (
                 <Button
-                  className={`mt-4 px-3 py-2`}
+                  className="mt-4"
                   onClick={() => setShowOtherOptions(true)}
                 >
                   See other options
