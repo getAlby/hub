@@ -6,7 +6,7 @@ import { request } from "src/utils/request";
 
 export default function DebugTools() {
   const { data: csrf } = useCSRF();
-  const [apiResponse, setApiResponse] = useState<any>(null);
+  const [apiResponse, setApiResponse] = useState<string>("");
 
   async function apiRequest(
     endpoint: string,
@@ -32,9 +32,11 @@ export default function DebugTools() {
 
       const data = await request(endpoint, requestOptions);
 
-      setApiResponse(data);
+      setApiResponse(
+        (data as { logs: string }).logs || JSON.stringify(apiResponse, null, 2)
+      );
     } catch (error) {
-      setApiResponse(error);
+      setApiResponse(JSON.stringify(error, Object.getOwnPropertyNames(error)));
     }
   }
 
@@ -53,12 +55,12 @@ export default function DebugTools() {
         </Button>
         <Button
           onClick={() => {
-            const amount_msat = window.prompt("Enter amount (millisatoshi):");
-            const node_id = window.prompt("Enter node_id:");
-            if (amount_msat && node_id)
+            const amount = window.prompt("Enter amount in sats:");
+            const nodeId = window.prompt("Enter node_id:");
+            if (amount && nodeId)
               apiRequest("/api/send-spontaneous-payment-probes", "POST", {
-                amount: parseInt(amount_msat) * 1000,
-                nodeID: node_id,
+                amount: parseInt(amount) * 1000,
+                nodeID: nodeId,
               });
           }}
         >
@@ -88,9 +90,9 @@ export default function DebugTools() {
       </div>
       {apiResponse && (
         <Textarea
-          className="whitespace-pre-wrap break-all"
+          className="whitespace-pre-wrap break-words font-emoji"
           rows={35}
-          placeholder={`API Response: ${JSON.stringify(apiResponse, null, 2)}`}
+          value={`API Response: ${apiResponse}`}
         />
       )}
     </div>
