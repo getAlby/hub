@@ -56,21 +56,12 @@ func (api *API) CreateApp(createAppRequest *models.CreateAppRequest) (*models.Cr
 	maxAmount := createAppRequest.MaxAmount
 	budgetRenewal := createAppRequest.BudgetRenewal
 
-	expiresAt := time.Time{}
-	if createAppRequest.ExpiresAt != "" {
-		var err error
-		expiresAt, err = time.Parse(time.RFC3339, createAppRequest.ExpiresAt)
-		if err != nil {
-			api.svc.Logger.WithField("expiresAt", createAppRequest.ExpiresAt).Error("Invalid expiresAt")
-			return nil, fmt.Errorf("invalid expiresAt: %v", err)
-		}
+	expiresAt, err := api.parseExpiresAt(createAppRequest.ExpiresAt)
+	if err != nil {
+		return nil, fmt.Errorf("invalid expiresAt: %v", err)
 	}
 
-	if !expiresAt.IsZero() {
-		expiresAt = time.Date(expiresAt.Year(), expiresAt.Month(), expiresAt.Day(), 23, 59, 59, 0, expiresAt.Location())
-	}
-
-	err := api.svc.db.Transaction(func(tx *gorm.DB) error {
+	err = api.svc.db.Transaction(func(tx *gorm.DB) error {
 		err := tx.Save(&app).Error
 		if err != nil {
 			return err
@@ -140,7 +131,6 @@ func (api *API) CreateApp(createAppRequest *models.CreateAppRequest) (*models.Cr
 func (api *API) UpdateApp(userApp *App, updateAppRequest *models.UpdateAppRequest) error {
 	maxAmount := updateAppRequest.MaxAmount
 	budgetRenewal := updateAppRequest.BudgetRenewal
-	expiry := updateAppRequest.ExpiresAt
 
 	requestMethods := updateAppRequest.RequestMethods
 	if requestMethods == "" {
@@ -148,20 +138,12 @@ func (api *API) UpdateApp(userApp *App, updateAppRequest *models.UpdateAppReques
 	}
 	newRequestMethods := strings.Split(requestMethods, " ")
 
-	expiresAt := time.Time{}
-	if expiry != "" {
-		var err error
-		expiresAt, err = time.Parse(time.RFC3339, expiry)
-		if err != nil {
-			return fmt.Errorf("invalid expiresAt: %v", err)
-		}
+	expiresAt, err := api.parseExpiresAt(updateAppRequest.ExpiresAt)
+	if err != nil {
+		return fmt.Errorf("invalid expiresAt: %v", err)
 	}
 
-	if !expiresAt.IsZero() {
-		expiresAt = time.Date(expiresAt.Year(), expiresAt.Month(), expiresAt.Day(), 23, 59, 59, 0, expiresAt.Location())
-	}
-
-	err := api.svc.db.Transaction(func(tx *gorm.DB) error {
+	err = api.svc.db.Transaction(func(tx *gorm.DB) error {
 		// Update existing permissions with new budget and expiry
 		err := tx.Model(&AppPermission{}).Where("app_id", userApp.ID).Updates(map[string]interface{}{
 			"ExpiresAt":     expiresAt,
@@ -229,9 +211,7 @@ func (api *API) GetApp(userApp *App) *models.App {
 
 	requestMethods := []string{}
 	for _, appPerm := range appPermissions {
-		if !appPerm.ExpiresAt.IsZero() {
-			expiresAt = &appPerm.ExpiresAt
-		}
+		expiresAt = appPerm.ExpiresAt
 		if appPerm.RequestMethod == NIP_47_PAY_INVOICE_METHOD {
 			//find the pay_invoice-specific permissions
 			paySpecificPermission = appPerm
@@ -268,6 +248,7 @@ func (api *API) GetApp(userApp *App) *models.App {
 }
 
 func (api *API) ListApps() ([]models.App, error) {
+	// TODO: join apps and permissions
 	apps := []App{}
 	api.svc.db.Find(&apps)
 
@@ -294,7 +275,7 @@ func (api *API) ListApps() ([]models.App, error) {
 
 		for _, permission := range permissionsMap[userApp.ID] {
 			apiApp.RequestMethods = append(apiApp.RequestMethods, permission.RequestMethod)
-			apiApp.ExpiresAt = &permission.ExpiresAt
+			apiApp.ExpiresAt = permission.ExpiresAt
 			if permission.RequestMethod == NIP_47_PAY_INVOICE_METHOD {
 				apiApp.BudgetRenewal = permission.BudgetRenewal
 				apiApp.MaxAmount = permission.MaxAmount
@@ -327,6 +308,23 @@ func (api *API) ResetRouter(ctx context.Context) error {
 
 	// Because the above method has to stop the node to reset the router,
 	// We also need to stop the lnclient and ask the user to start it again
+	return api.Stop()
+}
+
+func (api *API) ChangeUnlockPassword(changeUnlockPasswordRequest *models.ChangeUnlockPasswordRequest) error {
+	if api.svc.lnClient == nil {
+		return errors.New("LNClient not started")
+	}
+
+	err := api.svc.cfg.ChangeUnlockPassword(changeUnlockPasswordRequest.CurrentUnlockPassword, changeUnlockPasswordRequest.NewUnlockPassword)
+
+	if err != nil {
+		api.svc.Logger.WithError(err).Error("failed to change unlock password")
+		return err
+	}
+
+	// Because all the encrypted fields have changed
+	// we also need to stop the lnclient and ask the user to start it again
 	return api.Stop()
 }
 
@@ -392,17 +390,6 @@ func (api *API) RedeemOnchainFunds(ctx context.Context, toAddress string) (*mode
 	return &models.RedeemOnchainFundsResponse{
 		TxId: txId,
 	}, nil
-}
-
-func (api *API) GetOnchainBalance(ctx context.Context) (*models.OnchainBalanceResponse, error) {
-	if api.svc.lnClient == nil {
-		return nil, errors.New("LNClient not started")
-	}
-	balance, err := api.svc.lnClient.GetOnchainBalance(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return balance, nil
 }
 
 func (api *API) GetBalances(ctx context.Context) (*models.BalancesResponse, error) {
@@ -605,6 +592,14 @@ func (api *API) NewInstantChannelInvoice(ctx context.Context, request *models.Ne
 				return nil, errors.New("failed to read response body")
 			}
 
+			if res.StatusCode >= 300 {
+				api.svc.Logger.WithFields(logrus.Fields{
+					"body":       string(body),
+					"statusCode": res.StatusCode,
+				}).Error("fee endpoint returned non-success code")
+				return nil, fmt.Errorf("fee endpoint returned non-success code: %s", string(body))
+			}
+
 			err = json.Unmarshal(body, &feeResponse)
 			if err != nil {
 				api.svc.Logger.WithError(err).WithFields(logrus.Fields{
@@ -677,6 +672,14 @@ func (api *API) NewInstantChannelInvoice(ctx context.Context, request *models.Ne
 				return nil, errors.New("failed to read response body")
 			}
 
+			if res.StatusCode >= 300 {
+				api.svc.Logger.WithFields(logrus.Fields{
+					"body":       string(body),
+					"statusCode": res.StatusCode,
+				}).Error("proposal endpoint returned non-success code")
+				return nil, fmt.Errorf("proposal endpoint returned non-success code: %s", string(body))
+			}
+
 			err = json.Unmarshal(body, &proposalResponse)
 			if err != nil {
 				api.svc.Logger.WithError(err).WithFields(logrus.Fields{
@@ -739,6 +742,14 @@ func (api *API) NewInstantChannelInvoice(ctx context.Context, request *models.Ne
 			return nil, errors.New("failed to read response body")
 		}
 
+		if res.StatusCode >= 300 {
+			api.svc.Logger.WithFields(logrus.Fields{
+				"body":       string(body),
+				"statusCode": res.StatusCode,
+			}).Error("new-channel endpoint returned non-success code")
+			return nil, fmt.Errorf("new-channel endpoint returned non-success code: %s", string(body))
+		}
+
 		invoice = string(body)
 
 		api.svc.Logger.WithField("invoice", invoice).Info("New Channel response")
@@ -750,7 +761,7 @@ func (api *API) NewInstantChannelInvoice(ctx context.Context, request *models.Ne
 	}, nil
 }
 
-func (api *API) GetInfo() (*models.InfoResponse, error) {
+func (api *API) GetInfo(ctx context.Context) (*models.InfoResponse, error) {
 	info := models.InfoResponse{}
 	backendType, _ := api.svc.cfg.Get("LNBackendType", "")
 	unlockPasswordCheck, _ := api.svc.cfg.Get("UnlockPasswordCheck", "")
@@ -759,6 +770,20 @@ func (api *API) GetInfo() (*models.InfoResponse, error) {
 	info.BackendType = backendType
 	info.AlbyAuthUrl = api.svc.AlbyOAuthSvc.GetAuthUrl()
 	info.AlbyUserIdentifier = api.svc.AlbyOAuthSvc.GetUserIdentifier()
+	info.AlbyAccountConnected = api.svc.AlbyOAuthSvc.IsConnected(ctx)
+	if api.svc.lnClient != nil {
+		// TODO: is there a better way to do this?
+		if backendType == config.BreezBackendType {
+			info.OnboardingCompleted = true
+		} else {
+			channels, err := api.ListChannels(ctx)
+			if err != nil {
+				api.svc.Logger.WithError(err).WithFields(logrus.Fields{}).Error("Failed to fetch channels")
+				return nil, err
+			}
+			info.OnboardingCompleted = len(channels) > 0
+		}
+	}
 
 	if info.BackendType != config.LNDBackendType {
 		nextBackupReminder, _ := api.svc.cfg.Get("NextBackupReminder", "")
@@ -795,8 +820,8 @@ func (api *API) Start(startRequest *models.StartRequest) error {
 	return api.svc.StartApp(startRequest.UnlockPassword)
 }
 
-func (api *API) Setup(setupRequest *models.SetupRequest) error {
-	info, err := api.GetInfo()
+func (api *API) Setup(ctx context.Context, setupRequest *models.SetupRequest) error {
+	info, err := api.GetInfo(ctx)
 	if err != nil {
 		api.svc.Logger.WithError(err).Error("Failed to get info")
 		return err
@@ -834,4 +859,19 @@ func (api *API) Setup(setupRequest *models.SetupRequest) error {
 	}
 
 	return nil
+}
+
+func (api *API) parseExpiresAt(expiresAtString string) (*time.Time, error) {
+	var expiresAt *time.Time
+	if expiresAtString != "" {
+		var err error
+		expiresAtValue, err := time.Parse(time.RFC3339, expiresAtString)
+		if err != nil {
+			api.svc.Logger.WithField("expiresAt", expiresAtString).Error("Invalid expiresAt")
+			return nil, fmt.Errorf("invalid expiresAt: %v", err)
+		}
+		expiresAtValue = time.Date(expiresAt.Year(), expiresAt.Month(), expiresAt.Day(), 23, 59, 59, 0, expiresAt.Location())
+		expiresAt = &expiresAtValue
+	}
+	return expiresAt, nil
 }

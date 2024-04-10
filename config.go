@@ -3,10 +3,12 @@ package main
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
+	"fmt"
 	"os"
 
 	"github.com/getAlby/nostr-wallet-connect/models/config"
-	"github.com/getAlby/nostr-wallet-connect/models/db"
+	dbModels "github.com/getAlby/nostr-wallet-connect/models/db"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -68,8 +70,12 @@ func (cfg *Config) Init(db *gorm.DB, env *config.AppConfig, logger *logrus.Logge
 }
 
 func (cfg *Config) Get(key string, encryptionKey string) (string, error) {
-	var userConfig db.UserConfig
-	cfg.db.Where("key = ?", key).Limit(1).Find(&userConfig)
+	return cfg.get(key, encryptionKey, cfg.db)
+}
+
+func (cfg *Config) get(key string, encryptionKey string, db *gorm.DB) (string, error) {
+	var userConfig dbModels.UserConfig
+	db.Where(&dbModels.UserConfig{Key: key}).Limit(1).Find(&userConfig)
 
 	value := userConfig.Value
 	if userConfig.Value != "" && encryptionKey != "" && userConfig.Encrypted {
@@ -82,20 +88,21 @@ func (cfg *Config) Get(key string, encryptionKey string) (string, error) {
 	return value, nil
 }
 
-func (cfg *Config) set(key string, value string, clauses clause.OnConflict, encryptionKey string) {
+func (cfg *Config) set(key string, value string, clauses clause.OnConflict, encryptionKey string, db *gorm.DB) error {
 	if encryptionKey != "" {
 		encrypted, err := AesGcmEncrypt(value, encryptionKey)
 		if err != nil {
-			cfg.logger.Fatalf("Failed to encrypt: %v", err)
+			return fmt.Errorf("failed to encrypt: %v", err)
 		}
 		value = encrypted
 	}
-	userConfig := db.UserConfig{Key: key, Value: value, Encrypted: encryptionKey != ""}
-	result := cfg.db.Clauses(clauses).Create(&userConfig)
+	userConfig := dbModels.UserConfig{Key: key, Value: value, Encrypted: encryptionKey != ""}
+	result := db.Clauses(clauses).Create(&userConfig)
 
 	if result.Error != nil {
-		cfg.logger.Fatalf("Failed to save key to config: %v", result.Error)
+		return fmt.Errorf("failed to save key to config: %v", result.Error)
 	}
+	return nil
 }
 
 func (cfg *Config) SetIgnore(key string, value string, encryptionKey string) {
@@ -103,7 +110,10 @@ func (cfg *Config) SetIgnore(key string, value string, encryptionKey string) {
 		Columns:   []clause.Column{{Name: "key"}},
 		DoNothing: true,
 	}
-	cfg.set(key, value, clauses, encryptionKey)
+	err := cfg.set(key, value, clauses, encryptionKey, cfg.db)
+	if err != nil {
+		cfg.logger.Fatalf("Failed to save config: %v", err)
+	}
 }
 
 func (cfg *Config) SetUpdate(key string, value string, encryptionKey string) {
@@ -111,7 +121,54 @@ func (cfg *Config) SetUpdate(key string, value string, encryptionKey string) {
 		Columns:   []clause.Column{{Name: "key"}},
 		DoUpdates: clause.AssignmentColumns([]string{"value"}),
 	}
-	cfg.set(key, value, clauses, encryptionKey)
+	err := cfg.set(key, value, clauses, encryptionKey, cfg.db)
+	if err != nil {
+		cfg.logger.Fatalf("Failed to save config: %v", err)
+	}
+}
+
+func (cfg *Config) ChangeUnlockPassword(currentUnlockPassword string, newUnlockPassword string) error {
+	if !cfg.CheckUnlockPassword(currentUnlockPassword) {
+		return errors.New("incorrect password")
+	}
+	err := cfg.db.Transaction(func(tx *gorm.DB) error {
+
+		var encryptedUserConfigs []dbModels.UserConfig
+		err := tx.Where(&dbModels.UserConfig{Encrypted: true}).Find(&encryptedUserConfigs).Error
+		if err != nil {
+			return err
+		}
+
+		cfg.logger.WithField("count", len(encryptedUserConfigs)).Info("Updating encrypted entries")
+
+		for _, userConfig := range encryptedUserConfigs {
+			decryptedValue, err := cfg.get(userConfig.Key, currentUnlockPassword, tx)
+			if err != nil {
+				cfg.logger.WithField("key", userConfig.Key).WithError(err).Error("Failed to decrypt key")
+				return err
+			}
+			clauses := clause.OnConflict{
+				Columns:   []clause.Column{{Name: "key"}},
+				DoUpdates: clause.AssignmentColumns([]string{"value"}),
+			}
+			err = cfg.set(userConfig.Key, decryptedValue, clauses, newUnlockPassword, tx)
+			if err != nil {
+				cfg.logger.WithField("key", userConfig.Key).WithError(err).Error("Failed to encrypt key")
+				return err
+			}
+			cfg.logger.WithField("key", userConfig.Key).Info("re-encrypted key")
+		}
+
+		// commit transaction
+		return nil
+	})
+
+	if err != nil {
+		cfg.logger.WithError(err).Error("failed to execute db transaction")
+		return err
+	}
+
+	return nil
 }
 
 func (cfg *Config) CheckUnlockPassword(encryptionKey string) bool {

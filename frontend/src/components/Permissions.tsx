@@ -10,11 +10,11 @@ import {
 import {
   AppPermissions,
   BudgetRenewalType,
-  RequestMethodType,
+  PermissionType,
   budgetOptions,
   expiryOptions,
   iconMap,
-  nip47MethodDescriptions,
+  nip47PermissionDescriptions,
   validBudgetRenewals,
 } from "src/types";
 
@@ -56,7 +56,7 @@ const Permissions: React.FC<PermissionsProps> = ({
     if (!isEditing) {
       return;
     }
-    const requestMethod = event.target.value as RequestMethodType;
+    const requestMethod = event.target.value as PermissionType;
     const newRequestMethods = new Set(permissions.requestMethods);
     if (newRequestMethods.has(requestMethod)) {
       newRequestMethods.delete(requestMethod);
@@ -99,7 +99,7 @@ const Permissions: React.FC<PermissionsProps> = ({
     <div>
       <div className="mb-6">
         <ul className="flex flex-col w-full">
-          {(Object.keys(nip47MethodDescriptions) as RequestMethodType[]).map(
+          {(Object.keys(nip47PermissionDescriptions) as PermissionType[]).map(
             (rm, index) => {
               const RequestMethodIcon = iconMap[rm];
               return (
@@ -135,7 +135,7 @@ const Permissions: React.FC<PermissionsProps> = ({
                         isEditing && "cursor-pointer"
                       }`}
                     >
-                      {nip47MethodDescriptions[rm]}
+                      {nip47PermissionDescriptions[rm]}
                     </label>
                   </div>
                   {rm == "pay_invoice" && (

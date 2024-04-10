@@ -1,8 +1,16 @@
-import useSWR from "swr";
+import useSWR, { SWRConfiguration } from "swr";
 
-import { swrFetcher } from "src/utils/swr";
 import { Channel } from "src/types";
+import { swrFetcher } from "src/utils/swr";
 
-export function useChannels() {
-  return useSWR<Channel[]>("/api/channels", swrFetcher);
+const pollConfiguration: SWRConfiguration = {
+  refreshInterval: 3000,
+};
+
+export function useChannels(poll = false) {
+  return useSWR<Channel[]>(
+    "/api/channels",
+    swrFetcher,
+    poll ? pollConfiguration : undefined
+  );
 }

@@ -1,6 +1,6 @@
 import React from "react";
 import { useSearchParams } from "react-router-dom";
-import AppHeader from "src/components/AppHeader";
+import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { Card, CardContent } from "src/components/ui/card";
 import { Checkbox } from "src/components/ui/checkbox";
 import { Input } from "src/components/ui/input";
@@ -154,102 +154,98 @@ export default function NewCustomChannel() {
 
   return (
     <div>
-      <AppHeader title="Open a channel" description={description}></AppHeader>
-      <Card className="p-4">
-        <CardContent>
-          {nodeDetails && (
-            <h3 className="font-medium text-2xl">
-              <span style={{ color: `${nodeDetails.color}` }}>⬤</span>
-              {nodeDetails.alias && (
-                <>
-                  {nodeDetails.alias} ({nodeDetails.active_channel_count}{" "}
-                  channels)
-                </>
+      <TwoColumnLayoutHeader
+        title="Open a channel"
+        description="Use one of many options to add liquidity to your node."
+      />
+      <div className="grid gap-2">
+        <p>{description}</p>
+        <Card>
+          <CardContent>
+            <div className="inline-flex gap-2 items-center mt-2">
+              {nodeDetails && (
+                <h3 className="font-medium text-2xl">
+                  <span style={{ color: `${nodeDetails.color}` }}>⬤</span>
+                  {nodeDetails.alias && (
+                    <>
+                      {nodeDetails.alias} ({nodeDetails.active_channel_count}{" "}
+                      channels)
+                    </>
+                  )}
+                </h3>
               )}
-            </h3>
-          )}
-          <div>{pubkey}</div>
-
-          <div className="flex flex-wrap -mx-3 mt-6">
-            <div className="w-full px-3 mb-6 md:mb-0">
-              <Label
-                className="block uppercase tracking-wide text-primary text-xs font-bold mb-2"
-                htmlFor="grid-first-name"
-              >
-                Peer
-              </Label>
-              <Input
-                className="appearance-none block w-full bg-gray-200 text-gray-700 border rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white"
-                type="text"
-                value={pubkey}
-                placeholder="Pubkey of the peer"
-                onChange={(e) => {
-                  setPubkey(e.target.value.trim());
-                }}
-              />
+              <div>{pubkey}</div>
             </div>
-            {!nodeDetails && pubkey && (
-              <div className="w-full px-3 mb-6 md:mb-0">
-                <Label
-                  className="block uppercase tracking-wide text-primary text-xs font-bold mb-2"
-                  htmlFor="grid-first-name"
-                >
-                  Host:Port
+
+            <div className="flex flex-wrap -mx-3 mt-6 gap-4">
+              <div className="w-full grid gap-2 px-3 mb-6 md:mb-0">
+                <Label htmlFor="grid-first-name" className="font-bold">
+                  Peer
                 </Label>
                 <Input
-                  className="appearance-none block w-full bg-gray-200 text-gray-700 border rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white"
                   type="text"
-                  value={host}
-                  placeholder="0.0.0.0:9735"
+                  value={pubkey}
+                  placeholder="Pubkey of the peer"
                   onChange={(e) => {
-                    setHost(e.target.value.trim());
+                    setPubkey(e.target.value.trim());
                   }}
                 />
               </div>
-            )}
-          </div>
-
-          <div className="flex flex-wrap -mx-3 mt-6">
-            <div className="w-full px-3 mb-6 md:mb-0">
-              <Label
-                className="block uppercase tracking-wide text-primary text-xs font-bold mb-2"
-                htmlFor="grid-first-name"
-              >
-                Amount (sats)
-              </Label>
-              <Input
-                className="appearance-none block w-full bg-gray-200 text-gray-700 border rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white"
-                type="text"
-                value={localAmount}
-                onChange={(e) => {
-                  setLocalAmount(e.target.value.trim());
-                }}
-              />
+              {!nodeDetails && pubkey && (
+                <div className="w-full grid gap-2 px-3 mb-6 md:mb-0">
+                  <Label className="font-bold" htmlFor="grid-first-name">
+                    Host:Port
+                  </Label>
+                  <Input
+                    type="text"
+                    value={host}
+                    placeholder="0.0.0.0:9735"
+                    onChange={(e) => {
+                      setHost(e.target.value.trim());
+                    }}
+                  />
+                </div>
+              )}
             </div>
-          </div>
 
-          <div className="flex w-full my-6 items-center">
-            <Checkbox
-              id="public-channel"
-              defaultChecked={isPublic}
-              onCheckedChange={() => setPublic(!isPublic)}
-              className="mr-2"
-            />
-            <Label htmlFor="public-channel">Public Channel</Label>
-          </div>
+            <div className="flex flex-wrap -mx-3 mt-6">
+              <div className="w-full grid gap-2 px-3 mb-6 md:mb-0">
+                <Label className="font-bold" htmlFor="grid-first-name">
+                  Amount (sats)
+                </Label>
+                <Input
+                  type="text"
+                  value={localAmount}
+                  onChange={(e) => {
+                    setLocalAmount(e.target.value.trim());
+                  }}
+                />
+              </div>
+            </div>
 
-          <div className="mt-2">
-            <LoadingButton
-              size={"sm"}
-              disabled={!pubkey || !localAmount || loading}
-              onClick={openChannel}
-              loading={loading}
-            >
-              {loading ? "Loading..." : "Open Channel"}
-            </LoadingButton>
-          </div>
-        </CardContent>
-      </Card>
+            <div className="flex w-full my-6 items-center">
+              <Checkbox
+                id="public-channel"
+                defaultChecked={isPublic}
+                onCheckedChange={() => setPublic(!isPublic)}
+                className="mr-2"
+              />
+              <Label htmlFor="public-channel">Public Channel</Label>
+            </div>
+
+            <div className="mt-2">
+              <LoadingButton
+                size={"sm"}
+                disabled={!pubkey || !localAmount || loading}
+                onClick={openChannel}
+                loading={loading}
+              >
+                {loading ? "Loading..." : "Open Channel"}
+              </LoadingButton>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

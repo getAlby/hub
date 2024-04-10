@@ -300,7 +300,7 @@ func makePreimageHex() ([]byte, error) {
 	return bytes, nil
 }
 
-func NewLNDService(svc *Service, lndAddress, lndCertHex, lndMacaroonHex string) (result lnclient.LNClient, err error) {
+func NewLNDService(ctx context.Context, svc *Service, lndAddress, lndCertHex, lndMacaroonHex string) (result lnclient.LNClient, err error) {
 	if lndAddress == "" || lndCertHex == "" || lndMacaroonHex == "" {
 		return nil, errors.New("one or more required LND configuration are missing")
 	}
@@ -314,7 +314,7 @@ func NewLNDService(svc *Service, lndAddress, lndCertHex, lndMacaroonHex string) 
 		svc.Logger.Errorf("Failed to create new LND client %v", err)
 		return nil, err
 	}
-	info, err := lndClient.GetInfo(svc.ctx, &lnrpc.GetInfoRequest{})
+	info, err := lndClient.GetInfo(ctx, &lnrpc.GetInfoRequest{})
 	if err != nil {
 		return nil, err
 	}

@@ -3,6 +3,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 
 import Container from "src/components/Container";
+import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -19,14 +20,10 @@ export function SetupWallet() {
     <>
       <Container>
         <div className="grid gap-5">
-          <div className="grid gap-2 text-center">
-            <h1 className="font-semibold text-2xl font-headline">
-              Create Your Wallet
-            </h1>
-            <p className="text-muted-foreground">
-              Alby Hub requires a wallet to connect to your apps.
-            </p>
-          </div>
+          <TwoColumnLayoutHeader
+            title="Create Your Wallet"
+            description="Alby Hub requires a wallet to connect to your apps."
+          />
           {info?.backendType && (
             <>
               <Link to={`/setup/finish`}>

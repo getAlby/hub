@@ -91,7 +91,7 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, nip47Request
 					"bolt11":              bolt11,
 				}).Infof("Failed to send payment: %v", err)
 
-				svc.EventLogger.Log(&events.Event{
+				svc.EventPublisher.Publish(&events.Event{
 					Event: "nwc_payment_failed",
 					Properties: map[string]interface{}{
 						// "error":   fmt.Sprintf("%v", err),
@@ -114,7 +114,7 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, nip47Request
 			mu.Lock()
 			svc.db.Save(&payment)
 			mu.Unlock()
-			svc.EventLogger.Log(&events.Event{
+			svc.EventPublisher.Publish(&events.Event{
 				Event: "nwc_payment_succeeded",
 				Properties: map[string]interface{}{
 					"multi":  true,

@@ -40,7 +40,10 @@ export function SetupFinish() {
     (async () => {
       const succeeded = await finishSetup(csrf, nodeInfo, unlockPassword);
       if (succeeded) {
-        await refetchInfo();
+        const info = await refetchInfo();
+        if (!info) {
+          throw new Error("Failed to re-fetch info");
+        }
         navigate("/");
       } else {
         setConnectionError(true);
