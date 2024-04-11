@@ -538,9 +538,9 @@ func (gs *LDKService) ListChannels(ctx context.Context) ([]lnclient.Channel, err
 
 	channels := []lnclient.Channel{}
 
-	gs.svc.Logger.WithFields(logrus.Fields{
-		"channels": ldkChannels,
-	}).Debug("Listed Channels")
+	// gs.svc.Logger.WithFields(logrus.Fields{
+	// 	"channels": ldkChannels,
+	// }).Debug("Listed Channels")
 
 	for _, ldkChannel := range ldkChannels {
 		channels = append(channels, lnclient.Channel{

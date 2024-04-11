@@ -69,6 +69,9 @@ export default function DebugTools() {
         <Button onClick={() => apiRequest("/api/peers", "GET")}>
           List Peers
         </Button>
+        <Button onClick={() => apiRequest("/api/channels", "GET")}>
+          List Channels
+        </Button>
         <Button
           onClick={() => {
             const maxLen = window.prompt("Enter max length (in characters):");
