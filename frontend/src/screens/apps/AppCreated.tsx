@@ -1,5 +1,5 @@
-import { DialogTrigger } from "@radix-ui/react-dialog";
-import { CopyIcon, EyeIcon } from "lucide-react";
+import { DialogDescription, DialogTrigger } from "@radix-ui/react-dialog";
+import { CopyIcon, ScanIcon } from "lucide-react";
 import { useEffect } from "react";
 import { Link, Navigate, useLocation } from "react-router-dom";
 
@@ -9,8 +9,8 @@ import { Button } from "src/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogTitle,
+  DialogHeader,
+  DialogTitle
 } from "src/components/ui/dialog";
 import { useToast } from "src/components/ui/use-toast";
 import { copyToClipboard } from "src/lib/clipboard";
@@ -64,8 +64,8 @@ export default function AppCreated() {
       <div className="flex flex-col items-center">
         <Link to={pairingUri}>
           <Button size="lg">
-            <NostrWalletConnectIcon className="inline w-6 mr-2" />
-            <p className="font-medium">Open in supported app</p>
+            <NostrWalletConnectIcon className="w-6 h-6 mr-2" />
+            Open in supported app
           </Button>
         </Link>
         <div className="text-center text-xs text-muted-foreground mt-2">
@@ -74,32 +74,37 @@ export default function AppCreated() {
 
         <div className="text-sm text-center mt-8 mb-1"></div>
         <div className="flex flex-col gap-3">
-          <div className=" text-center text-sm">Manually pair app ↓</div>
+          <div className="text-center text-sm">Manually pair app ↓</div>
           <Button variant="secondary" onClick={copy}>
-            <CopyIcon className="inline w-6 mr-2" />
+            <CopyIcon className="w-4 h-4 mr-2" />
             Copy pairing secret
           </Button>
 
           <Dialog>
             <DialogTrigger>
               <Button variant="secondary">
-                <EyeIcon className="inline w-6 mr-2" />
+                <ScanIcon className="w-4 h-4 mr-2" />
                 QR Code
               </Button>
             </DialogTrigger>
-            <DialogContent className="flex flex-col items-center pt-6">
-              <DialogTitle className="mb-4 font-semibold text-lg lg:text-xl font-headline">
-                Scan QR Code in the app to pair
-              </DialogTitle>
-              <DialogDescription className="flex">
+
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>
+                  Scan QR Code
+                </DialogTitle>
+                <DialogDescription>
+                  Open the app you want to pair and scan this QR code to connect.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="flex flex-row justify-center p-3">
                 <a
                   href={pairingUri}
                   target="_blank"
-                  className="block border-4 border-purple-600 rounded-lg lg:p-2"
                 >
-                  <QRCode value={pairingUri} size={256} />
+                  <QRCode value={pairingUri} />
                 </a>
-              </DialogDescription>
+              </div>
             </DialogContent>
           </Dialog>
         </div>

@@ -128,7 +128,7 @@ const NewApp = () => {
         <CardContent>
           {!nameParam && (
             <>
-              <Label htmlFor="name" className="block font-medium">
+              <Label htmlFor="name" className="font-medium">
                 Name
               </Label>
               <Input
@@ -165,7 +165,7 @@ const NewApp = () => {
         </CardContent>
       </Card>
       <div className="mt-6 flex flex-col sm:flex-row sm:justify-center px-4 md:px-8">
-        <Button type="submit" size={"lg"}>
+        <Button type="submit" size="lg">
           {pubkey ? "Connect" : "Next"}
         </Button>
       </div>

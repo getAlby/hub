@@ -1,6 +1,7 @@
 import ReactQRCode from "react-qr-code";
+import { useTheme } from "src/components/ui/theme-provider";
+import { cn } from "src/lib/utils";
 
-import { useDarkMode } from "src/hooks/useDarkMode";
 
 export type Props = {
   value: string;
@@ -19,9 +20,9 @@ export type Props = {
 };
 
 function QRCode({ value, size, level, className }: Props) {
-  const isDarkMode = useDarkMode();
-  const fgColor = isDarkMode ? "#FFFFFF" : "#242424";
-  const bgColor = isDarkMode ? "#242424" : "#FFFFFF";
+  const { theme } = useTheme();
+  const fgColor = theme === "dark" ? "#FFFFFF" : "#242424";
+  const bgColor = theme === "dark" ? "#242424" : "#FFFFFF";
 
   return (
     <ReactQRCode
@@ -29,7 +30,7 @@ function QRCode({ value, size, level, className }: Props) {
       size={size}
       fgColor={fgColor}
       bgColor={bgColor}
-      className={`"w-full h-auto rounded-md" ${className} ph-no-capture`}
+      className={cn("w-full rounded-md ph-no-capture", className)}
       level={level}
     />
   );
