@@ -1,6 +1,6 @@
 import React from "react";
 import { useSearchParams } from "react-router-dom";
-import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
+import AppHeader from "src/components/AppHeader";
 import { Card, CardContent } from "src/components/ui/card";
 import { Checkbox } from "src/components/ui/checkbox";
 import { Input } from "src/components/ui/input";
@@ -100,8 +100,7 @@ export default function NewCustomChannel() {
 
       if (
         !confirm(
-          `Are you sure you want to open a ${localAmount} sat channel to ${
-            nodeDetails?.alias || pubkey
+          `Are you sure you want to open a ${localAmount} sat channel to ${nodeDetails?.alias || pubkey
           }?`
         )
       ) {
@@ -143,26 +142,25 @@ export default function NewCustomChannel() {
 
   const description = nodeDetails?.alias ? (
     <>
-      Open a channel with{` `}
+      Open a channel with{" "}
       <span style={{ color: `${nodeDetails.color}` }}>⬤</span>
-      {` `}
-      {`${nodeDetails.alias}(${nodeDetails.active_channel_count} channels)`}
+      {" "}
+      {nodeDetails.alias} (${nodeDetails.active_channel_count} channels)
     </>
   ) : (
     "Connect to other nodes on the lightning network"
   );
 
   return (
-    <div>
-      <TwoColumnLayoutHeader
+    <div className="flex flex-col gap-5">
+      <AppHeader
         title="Open a channel"
-        description="Use one of many options to add liquidity to your node."
+        description={description}
       />
-      <div className="grid gap-2">
-        <p>{description}</p>
-        <Card>
-          <CardContent>
-            <div className="inline-flex gap-2 items-center mt-2">
+      <Card>
+        <CardContent>
+          <div className="flex flex-col gap-5">
+            <div className="grid gap-1.5">
               {nodeDetails && (
                 <h3 className="font-medium text-2xl">
                   <span style={{ color: `${nodeDetails.color}` }}>⬤</span>
@@ -174,56 +172,54 @@ export default function NewCustomChannel() {
                   )}
                 </h3>
               )}
-              <div>{pubkey}</div>
             </div>
 
-            <div className="flex flex-wrap -mx-3 mt-6 gap-4">
-              <div className="w-full grid gap-2 px-3 mb-6 md:mb-0">
-                <Label htmlFor="grid-first-name" className="font-bold">
-                  Peer
+            <div className="grid gap-1.5">
+              <Label htmlFor="pubkey">
+                Peer
+              </Label>
+              <Input
+                id="pubkey"
+                type="text"
+                value={pubkey}
+                placeholder="Pubkey of the peer"
+                onChange={(e) => {
+                  setPubkey(e.target.value.trim());
+                }}
+              />
+            </div>
+
+            {!nodeDetails && pubkey && (
+              <div className="grid gap-1.5">
+                <Label htmlFor="host">
+                  Host:Port
                 </Label>
                 <Input
+                  id="host"
                   type="text"
-                  value={pubkey}
-                  placeholder="Pubkey of the peer"
+                  value={host}
+                  placeholder="0.0.0.0:9735"
                   onChange={(e) => {
-                    setPubkey(e.target.value.trim());
+                    setHost(e.target.value.trim());
                   }}
                 />
               </div>
-              {!nodeDetails && pubkey && (
-                <div className="w-full grid gap-2 px-3 mb-6 md:mb-0">
-                  <Label className="font-bold" htmlFor="grid-first-name">
-                    Host:Port
-                  </Label>
-                  <Input
-                    type="text"
-                    value={host}
-                    placeholder="0.0.0.0:9735"
-                    onChange={(e) => {
-                      setHost(e.target.value.trim());
-                    }}
-                  />
-                </div>
-              )}
+            )}
+            <div className="grid gap-1.5">
+              <Label htmlFor="amount">
+                Amount (sats)
+              </Label>
+              <Input
+                id="amount"
+                type="text"
+                value={localAmount}
+                onChange={(e) => {
+                  setLocalAmount(e.target.value.trim());
+                }}
+              />
             </div>
 
-            <div className="flex flex-wrap -mx-3 mt-6">
-              <div className="w-full grid gap-2 px-3 mb-6 md:mb-0">
-                <Label className="font-bold" htmlFor="grid-first-name">
-                  Amount (sats)
-                </Label>
-                <Input
-                  type="text"
-                  value={localAmount}
-                  onChange={(e) => {
-                    setLocalAmount(e.target.value.trim());
-                  }}
-                />
-              </div>
-            </div>
-
-            <div className="flex w-full my-6 items-center">
+            <div className="flex w-full items-center">
               <Checkbox
                 id="public-channel"
                 defaultChecked={isPublic}
@@ -232,20 +228,17 @@ export default function NewCustomChannel() {
               />
               <Label htmlFor="public-channel">Public Channel</Label>
             </div>
-
-            <div className="mt-2">
+            <div className="inline">
               <LoadingButton
-                size={"sm"}
                 disabled={!pubkey || !localAmount || loading}
                 onClick={openChannel}
                 loading={loading}
               >
                 Open Channel
-              </LoadingButton>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+              </LoadingButton></div>
+          </div>
+        </CardContent>
+      </Card>
+    </div >
   );
 }
