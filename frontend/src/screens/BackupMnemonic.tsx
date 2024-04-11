@@ -152,10 +152,10 @@ export function BackupMnemonic() {
           <MnemonicInputs mnemonic={decryptedMnemonic} readOnly={true}>
             <div className="flex items-center mt-5">
               <Checkbox
-                id="checkbox"
+                id="backup"
                 onCheckedChange={() => isBackedUp(!backedUp)}
               />
-              <Label htmlFor="checkbox" className="ms-2">
+              <Label htmlFor="backup" className="ml-2">
                 I've backed my recovery phrase to my wallet in a private and
                 secure place
               </Label>
