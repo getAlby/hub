@@ -112,9 +112,7 @@ function ShowApp() {
           <AppHeader
             title={
               <div className="flex flex-row items-center">
-                {app && (
-                  <AppAvatar appName={app.name} className="w-10 h-10 mr-2" />
-                )}
+                <AppAvatar appName={app.name} className="w-10 h-10 mr-2" />
                 <h2
                   title={app.name}
                   className="text-xl font-semibold overflow-hidden text-ellipsis whitespace-nowrap"
