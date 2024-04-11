@@ -29,7 +29,7 @@ export function BackupMnemonic() {
   const [unlockPassword, setUnlockPassword] = React.useState("");
   const [decryptedMnemonic, setDecryptedMnemonic] = React.useState("");
   const [loading, setLoading] = React.useState(false);
-  const [backedUp, isBackedUp] = useState<boolean>(false);
+  const [backedUp, setIsBackedUp] = useState<boolean>(false);
 
   if (!mnemonic) {
     return <Loading />;
@@ -153,7 +153,7 @@ export function BackupMnemonic() {
             <div className="flex items-center mt-5">
               <Checkbox
                 id="backup"
-                onCheckedChange={() => isBackedUp(!backedUp)}
+                onCheckedChange={() => setIsBackedUp(!backedUp)}
               />
               <Label htmlFor="backup" className="ml-2">
                 I've backed my recovery phrase to my wallet in a private and
