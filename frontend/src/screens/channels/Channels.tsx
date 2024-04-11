@@ -101,9 +101,8 @@ export default function Channels() {
       }
       if (
         !confirm(
-          `Are you sure you want to close the channel with ${
-            nodes.find((node) => node.public_key === nodeId)?.alias ||
-            "Unknown Node"
+          `Are you sure you want to close the channel with ${nodes.find((node) => node.public_key === nodeId)?.alias ||
+          "Unknown Node"
           }?\n\nNode ID: ${nodeId}\n\nChannel ID: ${channelId}`
         )
       ) {
@@ -186,8 +185,8 @@ export default function Channels() {
   return (
     <>
       <AppHeader
-        title={"Channels"}
-        description={"Manage liquidity on your lightnig node."}
+        title="Channels"
+        description="Manage liquidity on your lightnig node."
         contentRight={
           <>
             <DropdownMenu>
@@ -397,13 +396,13 @@ export default function Channels() {
               })}
             </>
           )}
+          {!channels && <TableRow>
+            <TableCell colSpan={4}>
+              <Loading className="m-2" />
+            </TableCell>
+          </TableRow>}
         </TableBody>
       </Table>
-      {!channels && (
-        <div className="flex justify-center margin-4">
-          <Loading />
-        </div>
-      )}
     </>
   );
 }
