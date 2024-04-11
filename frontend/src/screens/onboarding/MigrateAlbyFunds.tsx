@@ -44,7 +44,7 @@ export default function MigrateAlbyFunds() {
   const navigate = useNavigate();
   const [amount, setAmount] = React.useState(0);
 
-  const [wrappedInvoiceResponse, setWrappedInvoiceResponse] = React.useState<
+  const [instantChannelResponse, setInstantChannelResponse] = React.useState<
     NewInstantChannelInvoiceResponse | undefined
   >();
 
@@ -76,7 +76,7 @@ export default function MigrateAlbyFunds() {
         if (!response?.invoice) {
           throw new Error("No invoice in response");
         }
-        setWrappedInvoiceResponse(response);
+        setInstantChannelResponse(response);
       } catch (error) {
         setError("Failed to connect to request wrapped invoice: " + error);
       }
@@ -88,7 +88,7 @@ export default function MigrateAlbyFunds() {
     async (e: React.FormEvent) => {
       e.preventDefault();
       try {
-        if (!wrappedInvoiceResponse) {
+        if (!instantChannelResponse) {
           throw new Error("No invoice");
         }
         if (!csrf) {
@@ -102,7 +102,7 @@ export default function MigrateAlbyFunds() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            invoice: wrappedInvoiceResponse.invoice,
+            invoice: instantChannelResponse.invoice,
           }),
         });
       } catch (error) {
@@ -114,7 +114,7 @@ export default function MigrateAlbyFunds() {
         setOpeningChannel(false);
       }
     },
-    [csrf, toast, wrappedInvoiceResponse]
+    [csrf, toast, instantChannelResponse]
   );
 
   React.useEffect(() => {
@@ -150,7 +150,7 @@ export default function MigrateAlbyFunds() {
     }
   }, [hasOpenedChannel, navigate, refetchInfo, toast]);
 
-  if (!albyMe || !albyBalance || !channels || !wrappedInvoiceResponse) {
+  if (!albyMe || !albyBalance || !channels || !instantChannelResponse) {
     return <Loading />;
   }
 
@@ -190,7 +190,9 @@ export default function MigrateAlbyFunds() {
                     Fee
                   </TableCell>
                   <TableCell className="text-right p-3">
-                    {new Intl.NumberFormat().format(albyBalance.sats - amount)}{" "}
+                    {new Intl.NumberFormat().format(
+                      albyBalance.sats - amount + instantChannelResponse.fee
+                    )}{" "}
                     sats
                   </TableCell>
                 </TableRow>
@@ -199,7 +201,10 @@ export default function MigrateAlbyFunds() {
                     Alby Hub Balance
                   </TableCell>
                   <TableCell className="font-semibold text-right p-3">
-                    {new Intl.NumberFormat().format(amount)} sats
+                    {new Intl.NumberFormat().format(
+                      amount - instantChannelResponse.fee
+                    )}{" "}
+                    sats
                   </TableCell>
                 </TableRow>
               </TableBody>

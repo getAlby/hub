@@ -769,7 +769,9 @@ func (api *API) NewInstantChannelInvoice(ctx context.Context, request *models.Ne
 		invoice = newChannelResponse.Invoice
 		fee = newChannelResponse.FeeAmountMsat / 1000
 
-		api.svc.Logger.WithField("invoice", invoice).Info("New Channel response")
+		api.svc.Logger.WithFields(logrus.Fields{
+			"newChannelResponse": newChannelResponse,
+		}).Info("New Channel response")
 	}
 
 	return &models.NewInstantChannelInvoiceResponse{
