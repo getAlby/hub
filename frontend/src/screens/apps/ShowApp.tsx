@@ -93,6 +93,10 @@ function ShowApp() {
     }
   };
 
+  if (!app) {
+    return <Loading />;
+  }
+
   return (
     <>
       {showPopup && (
@@ -107,17 +111,15 @@ function ShowApp() {
         <div className="flex flex-col gap-5">
           <AppHeader
             title={
-              <div className="flex flex-row items-center ">
+              <div className="flex flex-row items-center">
                 {app && (
-                  <div className="relative inline-block min-w-9 w-9 h-9 mr-2">
-                    <AppAvatar appName={app.name} />
-                  </div>
+                  <AppAvatar appName={app.name} className="w-10 h-10 mr-2" />
                 )}
                 <h2
-                  title={app ? app.name : "Fetching app..."}
-                  className="text-xl font-semibold overflow-hidden text-ellipsis whitespace-nowrap my-2"
+                  title={app.name}
+                  className="text-xl font-semibold overflow-hidden text-ellipsis whitespace-nowrap"
                 >
-                  {app ? app.name : "Fetching app..."}
+                  {app.name}
                 </h2>
               </div>
             }
@@ -153,7 +155,7 @@ function ShowApp() {
                     <TableCell className="font-medium">Expires At</TableCell>
                     <TableCell className="text-muted-foreground">
                       {app.expiresAt &&
-                      new Date(app.expiresAt).getFullYear() !== 1
+                        new Date(app.expiresAt).getFullYear() !== 1
                         ? new Date(app.expiresAt).toString()
                         : "Never"}
                     </TableCell>

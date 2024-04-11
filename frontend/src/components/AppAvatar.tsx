@@ -1,12 +1,14 @@
 import gradientAvatar from "gradient-avatar";
+import { cn } from "src/lib/utils";
 
 type Props = {
   appName: string;
+  className?: string;
 };
 
-export default function AppAvatar({ appName }: Props) {
+export default function AppAvatar({ appName, className }: Props) {
   return (
-    <div className="rounded-lg border">
+    <div className={cn("rounded-lg border relative", className)}>
       <img
         src={`data:image/svg+xml;base64,${btoa(gradientAvatar(appName))}`}
         alt={appName}
