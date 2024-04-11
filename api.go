@@ -345,6 +345,13 @@ func (api *API) GetNodeConnectionInfo(ctx context.Context) (*lnclient.NodeConnec
 	return api.svc.lnClient.GetNodeConnectionInfo(ctx)
 }
 
+func (api *API) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, error) {
+	if api.svc.lnClient == nil {
+		return nil, errors.New("LNClient not started")
+	}
+	return api.svc.lnClient.ListPeers(ctx)
+}
+
 func (api *API) ConnectPeer(ctx context.Context, connectPeerRequest *models.ConnectPeerRequest) error {
 	if api.svc.lnClient == nil {
 		return errors.New("LNClient not started")
@@ -869,6 +876,61 @@ func (api *API) Setup(ctx context.Context, setupRequest *models.SetupRequest) er
 	}
 
 	return nil
+}
+
+func (api *API) SendPaymentProbes(ctx context.Context, sendPaymentProbesRequest *models.SendPaymentProbesRequest) (*models.SendPaymentProbesResponse, error) {
+	if api.svc.lnClient == nil {
+		return nil, errors.New("LNClient not started")
+	}
+
+	var errMessage string
+	err := api.svc.lnClient.SendPaymentProbes(ctx, sendPaymentProbesRequest.Invoice)
+	if err != nil {
+		errMessage = err.Error()
+	}
+
+	return &models.SendPaymentProbesResponse{Error: errMessage}, nil
+}
+
+func (api *API) SendSpontaneousPaymentProbes(ctx context.Context, sendSpontaneousPaymentProbesRequest *models.SendSpontaneousPaymentProbesRequest) (*models.SendSpontaneousPaymentProbesResponse, error) {
+	if api.svc.lnClient == nil {
+		return nil, errors.New("LNClient not started")
+	}
+
+	var errMessage string
+	err := api.svc.lnClient.SendSpontaneousPaymentProbes(ctx, sendSpontaneousPaymentProbesRequest.Amount, sendSpontaneousPaymentProbesRequest.NodeId)
+	if err != nil {
+		errMessage = err.Error()
+	}
+
+	return &models.SendSpontaneousPaymentProbesResponse{Error: errMessage}, nil
+}
+
+func (api *API) GetLogOutput(ctx context.Context, logType string, getLogRequest *models.GetLogOutputRequest) (*models.GetLogOutputResponse, error) {
+	var err error
+	var logData []byte
+
+	if logType == models.LogTypeNode {
+		if api.svc.lnClient == nil {
+			return nil, errors.New("LNClient not started")
+		}
+
+		logData, err = api.svc.lnClient.GetLogOutput(ctx, getLogRequest.MaxLen)
+		if err != nil {
+			return nil, err
+		}
+	} else if logType == models.LogTypeApp {
+		logFileName := api.svc.LogFilePath()
+
+		logData, err = ReadFileTail(logFileName, getLogRequest.MaxLen)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		return nil, fmt.Errorf("invalid log type: '%s'", logType)
+	}
+
+	return &models.GetLogOutputResponse{Log: string(logData)}, nil
 }
 
 func (api *API) parseExpiresAt(expiresAtString string) (*time.Time, error) {

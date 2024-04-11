@@ -39,6 +39,7 @@ import { OnboardingRedirect } from "src/components/redirects/OnboardingRedirect"
 import { Toaster } from "src/components/ui/toaster";
 import AlbyAuthRedirect from "src/screens/alby/AlbyAuthRedirect";
 import { ChangeUnlockPassword } from "src/screens/settings/ChangeUnlockPassword";
+import DebugTools from "src/screens/settings/DebugTools";
 
 const newChannelRoutes = (
   <Route path="new">
@@ -81,6 +82,9 @@ function App() {
                 <Route index path="" element={<AppList />} />
                 <Route path=":pubkey" element={<ShowApp />} />
                 <Route path="created" element={<AppCreated />} />
+              </Route>
+              <Route path="debug-tools" element={<DefaultRedirect />}>
+                <Route index element={<DebugTools />} />
               </Route>
               <Route path="channels" element={<DefaultRedirect />}>
                 <Route index path="" element={<Channels />} />

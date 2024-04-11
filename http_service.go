@@ -6,14 +6,15 @@ import (
 	"net/http"
 
 	echologrus "github.com/davrux/echo-logrus/v4"
-	"github.com/getAlby/nostr-wallet-connect/alby"
-	"github.com/getAlby/nostr-wallet-connect/events"
-	models "github.com/getAlby/nostr-wallet-connect/models/http"
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"gorm.io/gorm"
+
+	"github.com/getAlby/nostr-wallet-connect/alby"
+	"github.com/getAlby/nostr-wallet-connect/events"
+	models "github.com/getAlby/nostr-wallet-connect/models/http"
 
 	"github.com/getAlby/nostr-wallet-connect/frontend"
 	"github.com/getAlby/nostr-wallet-connect/models/api"
@@ -83,8 +84,9 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	// TODO: review naming
 	e.POST("/api/instant-channel-invoices", httpSvc.newInstantChannelInvoiceHandler, authMiddleware)
 	e.GET("/api/node/connection-info", httpSvc.nodeConnectionInfoHandler, authMiddleware)
-	e.DELETE("/api/peers/:peerId/channels/:channelId", httpSvc.closeChannelHandler, authMiddleware)
+	e.GET("/api/peers", httpSvc.listPeers, authMiddleware)
 	e.POST("/api/peers", httpSvc.connectPeerHandler, authMiddleware)
+	e.DELETE("/api/peers/:peerId/channels/:channelId", httpSvc.closeChannelHandler, authMiddleware)
 	e.POST("/api/wallet/new-address", httpSvc.newOnchainAddressHandler, authMiddleware)
 	e.POST("/api/wallet/redeem-onchain-funds", httpSvc.redeemOnchainFundsHandler, authMiddleware)
 	e.GET("/api/balances", httpSvc.balancesHandler, authMiddleware)
@@ -94,6 +96,10 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	httpSvc.albyHttpSvc.RegisterSharedRoutes(e, authMiddleware)
 
 	e.GET("/api/mempool/lightning/nodes/:pubkey", httpSvc.mempoolLightningNodeHandler, authMiddleware)
+
+	e.POST("/api/send-payment-probes", httpSvc.sendPaymentProbesHandler, authMiddleware)
+	e.POST("/api/send-spontaneous-payment-probes", httpSvc.sendSpontaneousPaymentProbesHandler, authMiddleware)
+	e.GET("/api/log/:type", httpSvc.getLogOutputHandler, authMiddleware)
 
 	frontend.RegisterHandlers(e)
 }
@@ -338,6 +344,17 @@ func (httpSvc *HttpService) mempoolLightningNodeHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, response)
 }
 
+func (httpSvc *HttpService) listPeers(c echo.Context) error {
+	peers, err := httpSvc.api.ListPeers(httpSvc.svc.ctx)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
+			Message: fmt.Sprintf("Failed to list peers: %s", err.Error()),
+		})
+	}
+
+	return c.JSON(http.StatusOK, peers)
+}
+
 func (httpSvc *HttpService) connectPeerHandler(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -571,4 +588,65 @@ func (httpSvc *HttpService) setupHandler(c echo.Context) error {
 	}
 
 	return c.NoContent(http.StatusNoContent)
+}
+
+func (httpSvc *HttpService) sendPaymentProbesHandler(c echo.Context) error {
+	var sendPaymentProbesRequest api.SendPaymentProbesRequest
+	if err := c.Bind(&sendPaymentProbesRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, models.ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	sendPaymentProbesResponse, err := httpSvc.api.SendPaymentProbes(c.Request().Context(), &sendPaymentProbesRequest)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
+			Message: fmt.Sprintf("Failed to send payment probes: %v", err),
+		})
+	}
+
+	return c.JSON(http.StatusOK, sendPaymentProbesResponse)
+}
+
+func (httpSvc *HttpService) sendSpontaneousPaymentProbesHandler(c echo.Context) error {
+	var sendSpontaneousPaymentProbesRequest api.SendSpontaneousPaymentProbesRequest
+	if err := c.Bind(&sendSpontaneousPaymentProbesRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, models.ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	sendSpontaneousPaymentProbesResponse, err := httpSvc.api.SendSpontaneousPaymentProbes(c.Request().Context(), &sendSpontaneousPaymentProbesRequest)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
+			Message: fmt.Sprintf("Failed to send spontaneous payment probes: %v", err),
+		})
+	}
+
+	return c.JSON(http.StatusOK, sendSpontaneousPaymentProbesResponse)
+}
+
+func (httpSvc *HttpService) getLogOutputHandler(c echo.Context) error {
+	var getLogRequest api.GetLogOutputRequest
+	if err := c.Bind(&getLogRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, models.ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	logType := c.Param("type")
+	if logType != api.LogTypeNode && logType != api.LogTypeApp {
+		return c.JSON(http.StatusBadRequest, models.ErrorResponse{
+			Message: fmt.Sprintf("Invalid log type parameter: '%s'", logType),
+		})
+	}
+
+	getLogResponse, err := httpSvc.api.GetLogOutput(c.Request().Context(), logType, &getLogRequest)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
+			Message: fmt.Sprintf("Failed to get log output: %v", err),
+		})
+	}
+
+	return c.JSON(http.StatusOK, getLogResponse)
 }

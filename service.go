@@ -20,18 +20,24 @@ import (
 	"github.com/nbd-wtf/go-nostr/nip04"
 	"github.com/sirupsen/logrus"
 
-	alby "github.com/getAlby/nostr-wallet-connect/alby"
-	"github.com/getAlby/nostr-wallet-connect/events"
 	"github.com/glebarez/sqlite"
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/orandin/lumberjackrus"
 	"gorm.io/gorm"
 
+	alby "github.com/getAlby/nostr-wallet-connect/alby"
+	"github.com/getAlby/nostr-wallet-connect/events"
+
 	"github.com/getAlby/nostr-wallet-connect/migrations"
 	"github.com/getAlby/nostr-wallet-connect/models/config"
 	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 	"github.com/getAlby/nostr-wallet-connect/nip47"
+)
+
+const (
+	logDir      = "log"
+	logFilename = "nwc.log"
 )
 
 type Service struct {
@@ -75,17 +81,13 @@ func NewService(ctx context.Context) (*Service, error) {
 
 	fileLoggerHook, err := lumberjackrus.NewHook(
 		&lumberjackrus.LogFile{
-			Filename: path.Join(appConfig.Workdir, "log/nwc-general.log"),
+			Filename:   filepath.Join(appConfig.Workdir, logDir, logFilename),
+			MaxAge:     3,
+			MaxBackups: 3,
 		},
 		logrus.InfoLevel,
 		&logrus.JSONFormatter{},
-		&lumberjackrus.LogFileOpts{
-			logrus.ErrorLevel: &lumberjackrus.LogFile{
-				Filename:   path.Join(appConfig.Workdir, "log/nwc-error.log"),
-				MaxAge:     1,
-				MaxBackups: 2,
-			},
-		},
+		nil,
 	)
 	if err != nil {
 		return nil, err
@@ -761,4 +763,8 @@ func (svc *Service) PublishNip47Info(ctx context.Context, relay *nostr.Relay) er
 		return fmt.Errorf("nostr publish not successful: %s error: %s", status, err)
 	}
 	return nil
+}
+
+func (svc *Service) LogFilePath() string {
+	return filepath.Join(svc.cfg.Env.Workdir, logDir, logFilename)
 }

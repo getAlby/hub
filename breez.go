@@ -399,6 +399,22 @@ func (bs *BreezService) ResetRouter(ctx context.Context) error {
 	return nil
 }
 
+func (bs *BreezService) SendPaymentProbes(ctx context.Context, invoice string) error {
+	return nil
+}
+
+func (bs *BreezService) SendSpontaneousPaymentProbes(ctx context.Context, amountMsat uint64, nodeId string) error {
+	return nil
+}
+
+func (bs *BreezService) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, error) {
+	return nil, nil
+}
+
+func (bs *BreezService) GetLogOutput(ctx context.Context, maxLen int) ([]byte, error) {
+	return []byte{}, nil
+}
+
 func (bs *BreezService) SignMessage(ctx context.Context, message string) (string, error) {
 	resp, err := bs.svc.SignMessage(breez_sdk.SignMessageRequest{
 		Message: message,

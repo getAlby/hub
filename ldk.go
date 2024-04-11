@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -771,6 +772,73 @@ func (gs *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 		DescriptionHash: descriptionHash,
 		ExpiresAt:       expiresAt,
 	}, nil
+}
+
+func (gs *LDKService) SendPaymentProbes(ctx context.Context, invoice string) error {
+	err := gs.node.Bolt11Payment().SendProbes(invoice)
+	if err != nil {
+		gs.svc.Logger.Errorf("Bolt11Payment.SendProbes failed: %v", err)
+		return err
+	}
+
+	return nil
+}
+
+func (gs *LDKService) SendSpontaneousPaymentProbes(ctx context.Context, amountMsat uint64, nodeId string) error {
+	err := gs.node.SpontaneousPayment().SendProbes(amountMsat, nodeId)
+	if err != nil {
+		gs.svc.Logger.Errorf("SpontaneousPayment.SendProbes failed: %v", err)
+		return err
+	}
+
+	return nil
+}
+
+func (gs *LDKService) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, error) {
+	peers := gs.node.ListPeers()
+	ret := make([]lnclient.PeerDetails, 0, len(peers))
+	for _, peer := range peers {
+		ret = append(ret, lnclient.PeerDetails{
+			NodeId:      peer.NodeId,
+			Address:     peer.Address,
+			IsPersisted: peer.IsPersisted,
+			IsConnected: peer.IsConnected,
+		})
+	}
+	return ret, nil
+}
+
+func (gs *LDKService) GetLogOutput(ctx context.Context, maxLen int) ([]byte, error) {
+	config := gs.node.Config()
+	logPath := ""
+	if config.LogDirPath != nil {
+		logPath = *config.LogDirPath
+	} else {
+		// Default log path if not set explicitly in the config.
+		logPath = filepath.Join(config.StorageDirPath, "logs")
+	}
+
+	allLogFiles, err := filepath.Glob(filepath.Join(logPath, "ldk_node_*.log"))
+	if err != nil {
+		gs.svc.Logger.WithError(err).Error("GetLogOutput failed to list log files")
+		return nil, err
+	}
+
+	if len(allLogFiles) == 0 {
+		return []byte{}, nil
+	}
+
+	// Log filenames are formatted as ldk_node_YYYY_MM_DD.log, hence they
+	// naturally sort by date.
+	lastLogFileName := slices.Max(allLogFiles)
+
+	logData, err := ReadFileTail(lastLogFileName, maxLen)
+	if err != nil {
+		gs.svc.Logger.WithError(err).Error("GetLogOutput failed to read log file")
+		return nil, err
+	}
+
+	return logData, nil
 }
 
 func (ls *LDKService) logLdkEvent(ctx context.Context, event *ldk_node.Event) {

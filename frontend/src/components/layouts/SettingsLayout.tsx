@@ -17,6 +17,7 @@ export default function SettingsLayout() {
           <MenuItem to="/settings/change-unlock-password">
             Unlock Password
           </MenuItem>
+          <MenuItem to="/debug-tools">Debug Tools</MenuItem>
         </nav>
         <div className="flex-1 lg:max-w-2xl">
           <div className="grid gap-6">

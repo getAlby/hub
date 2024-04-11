@@ -357,6 +357,22 @@ func (svc *LNDService) RedeemOnchainFunds(ctx context.Context, toAddress string)
 	return "", nil
 }
 
+func (svc *LNDService) SendPaymentProbes(ctx context.Context, invoice string) error {
+	return nil
+}
+
+func (svc *LNDService) SendSpontaneousPaymentProbes(ctx context.Context, amountMsat uint64, nodeId string) error {
+	return nil
+}
+
+func (svc *LNDService) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, error) {
+	return nil, nil
+}
+
+func (svc *LNDService) GetLogOutput(ctx context.Context, maxLen int) ([]byte, error) {
+	return []byte{}, nil
+}
+
 func (svc *LNDService) SignMessage(ctx context.Context, message string) (string, error) {
 	resp, err := svc.client.SignMessage(ctx, &lnrpc.SignMessageRequest{Msg: []byte(message)})
 	if err != nil {

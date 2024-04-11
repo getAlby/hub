@@ -138,6 +138,37 @@ type NewOnchainAddressResponse struct {
 	Address string `json:"address"`
 }
 
+// debug api
+type SendPaymentProbesRequest struct {
+	Invoice string `json:"invoice"`
+}
+
+type SendPaymentProbesResponse struct {
+	Error string `json:"error"`
+}
+
+type SendSpontaneousPaymentProbesRequest struct {
+	Amount uint64 `json:"amount"`
+	NodeId string `json:"nodeId"`
+}
+
+type SendSpontaneousPaymentProbesResponse struct {
+	Error string `json:"error"`
+}
+
+const (
+	LogTypeNode = "node"
+	LogTypeApp  = "app"
+)
+
+type GetLogOutputRequest struct {
+	MaxLen int `query:"maxLen"`
+}
+
+type GetLogOutputResponse struct {
+	Log string `json:"logs"`
+}
+
 // TODO: move to different file
 type AlbyBalanceResponse struct {
 	Sats int64 `json:"sats"`
