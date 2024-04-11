@@ -120,7 +120,11 @@ export default function NewInstantChannel() {
     <div className="flex flex-col justify-center items-center gap-5">
       <TwoColumnLayoutHeader
         title={"Buy an Instant Channel"}
-        description={"Choose your LSP to open an instant channel to your node"}
+        description={
+          wrappedInvoiceResponse
+            ? "Complete Payment to open an instant channel to your node"
+            : "Choose your LSP to open an instant channel to your node"
+        }
       />
       {!wrappedInvoiceResponse && (
         <form onSubmit={requestWrappedInvoice} className="grid gap-3">
