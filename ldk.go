@@ -30,10 +30,10 @@ type LDKService struct {
 	ldkEventBroadcaster LDKEventBroadcaster
 	cancel              context.CancelFunc
 	network             string
-	eventLogger         events.EventLogger
+	eventPublisher      events.EventPublisher
 }
 
-func NewLDKService(svc *Service, mnemonic, workDir string, network string, esploraServer string, gossipSource string) (result lnclient.LNClient, err error) {
+func NewLDKService(ctx context.Context, svc *Service, mnemonic, workDir string, network string, esploraServer string, gossipSource string) (result lnclient.LNClient, err error) {
 	if mnemonic == "" || workDir == "" {
 		return nil, errors.New("one or more required LDK configuration are missing")
 	}
@@ -88,8 +88,8 @@ func NewLDKService(svc *Service, mnemonic, workDir string, network string, esplo
 	}
 
 	ldkEventConsumer := make(chan *ldk_node.Event)
-	ctx, cancel := context.WithCancel(svc.ctx)
-	ldkEventBroadcaster := NewLDKEventBroadcaster(svc.Logger, ctx, ldkEventConsumer)
+	ldkCtx, cancel := context.WithCancel(ctx)
+	ldkEventBroadcaster := NewLDKEventBroadcaster(svc.Logger, ldkCtx, ldkEventConsumer)
 
 	ls := LDKService{
 		workdir:             newpath,
@@ -98,7 +98,7 @@ func NewLDKService(svc *Service, mnemonic, workDir string, network string, esplo
 		cancel:              cancel,
 		ldkEventBroadcaster: ldkEventBroadcaster,
 		network:             network,
-		eventLogger:         svc.EventLogger,
+		eventPublisher:      svc.EventPublisher,
 	}
 
 	// TODO: remove when LDK supports this
@@ -110,7 +110,7 @@ func NewLDKService(svc *Service, mnemonic, workDir string, network string, esplo
 			select {
 			case <-ticker.C:
 				deleteOldLDKLogs(svc.Logger, logDirPath)
-			case <-svc.ctx.Done():
+			case <-ldkCtx.Done():
 				return
 			}
 		}
@@ -120,7 +120,7 @@ func NewLDKService(svc *Service, mnemonic, workDir string, network string, esplo
 	go func() {
 		for {
 			select {
-			case <-ctx.Done():
+			case <-ldkCtx.Done():
 				return
 			default:
 				// NOTE: currently do not use WaitNextEvent() as it can possibly block the LDK thread (to confirm)
@@ -132,7 +132,7 @@ func NewLDKService(svc *Service, mnemonic, workDir string, network string, esplo
 					continue
 				}
 
-				ls.logLdkEvent(ctx, event)
+				ls.logLdkEvent(ldkCtx, event)
 				ldkEventConsumer <- event
 
 				node.EventHandled()
@@ -179,7 +179,7 @@ func (gs *LDKService) SendPaymentSync(ctx context.Context, invoice string) (prei
 
 	maxSpendable := gs.getMaxSpendable()
 	if paymentRequest.MSatoshi > maxSpendable {
-		gs.eventLogger.Log(&events.Event{
+		gs.eventPublisher.Publish(&events.Event{
 			Event: "nwc_outgoing_liquidity_required",
 			Properties: map[string]interface{}{
 				//"amount":         amount / 1000,
@@ -419,7 +419,7 @@ func (gs *LDKService) MakeInvoice(ctx context.Context, amount int64, description
 	maxReceivable := gs.getMaxReceivable()
 
 	if amount > maxReceivable {
-		gs.eventLogger.Log(&events.Event{
+		gs.eventPublisher.Publish(&events.Event{
 			Event: "nwc_incoming_liquidity_required",
 			Properties: map[string]interface{}{
 				//"amount":         amount / 1000,
@@ -848,7 +848,7 @@ func (ls *LDKService) logLdkEvent(ctx context.Context, event *ldk_node.Event) {
 
 	switch v := (*event).(type) {
 	case ldk_node.EventChannelReady:
-		ls.eventLogger.Log(&events.Event{
+		ls.eventPublisher.Publish(&events.Event{
 			Event: "nwc_channel_ready",
 			Properties: map[string]interface{}{
 				// "counterparty_node_id": v.CounterpartyNodeId,
@@ -856,7 +856,7 @@ func (ls *LDKService) logLdkEvent(ctx context.Context, event *ldk_node.Event) {
 			},
 		})
 	case ldk_node.EventChannelClosed:
-		ls.eventLogger.Log(&events.Event{
+		ls.eventPublisher.Publish(&events.Event{
 			Event: "nwc_channel_closed",
 			Properties: map[string]interface{}{
 				// "counterparty_node_id": v.CounterpartyNodeId,
@@ -865,16 +865,15 @@ func (ls *LDKService) logLdkEvent(ctx context.Context, event *ldk_node.Event) {
 			},
 		})
 	case ldk_node.EventPaymentReceived:
-		ls.eventLogger.Log(&events.Event{
+		ls.eventPublisher.Publish(&events.Event{
 			Event: "nwc_payment_received",
-			Properties: map[string]interface{}{
-				"payment_hash": v.PaymentHash,
-				"amount":       v.AmountMsat / 1000,
-				"node_type":    config.LDKBackendType,
+			Properties: &events.PaymentReceivedEventProperties{
+				PaymentHash: v.PaymentHash,
+				Amount:      v.AmountMsat / 1000,
+				NodeType:    config.LDKBackendType,
 			},
 		})
 	}
-
 }
 
 func (ls *LDKService) GetBalances(ctx context.Context) (*lnclient.BalancesResponse, error) {

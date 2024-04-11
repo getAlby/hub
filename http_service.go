@@ -83,11 +83,10 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.POST("/api/channels", httpSvc.openChannelHandler, authMiddleware)
 	// TODO: review naming
 	e.POST("/api/instant-channel-invoices", httpSvc.newInstantChannelInvoiceHandler, authMiddleware)
-	// TODO: should this be DELETE /api/channels:id?
-	e.POST("/api/channels/close", httpSvc.closeChannelHandler, authMiddleware)
 	e.GET("/api/node/connection-info", httpSvc.nodeConnectionInfoHandler, authMiddleware)
 	e.GET("/api/peers", httpSvc.listPeers, authMiddleware)
 	e.POST("/api/peers", httpSvc.connectPeerHandler, authMiddleware)
+	e.DELETE("/api/peers/:peerId/channels/:channelId", httpSvc.closeChannelHandler, authMiddleware)
 	e.POST("/api/wallet/new-address", httpSvc.newOnchainAddressHandler, authMiddleware)
 	e.POST("/api/wallet/redeem-onchain-funds", httpSvc.redeemOnchainFundsHandler, authMiddleware)
 	e.GET("/api/balances", httpSvc.balancesHandler, authMiddleware)
@@ -197,7 +196,7 @@ func (httpSvc *HttpService) unlockHandler(c echo.Context) error {
 		})
 	}
 
-	httpSvc.svc.EventLogger.Log(&events.Event{
+	httpSvc.svc.EventPublisher.Publish(&events.Event{
 		Event: "nwc_unlocked",
 	})
 
@@ -401,14 +400,7 @@ func (httpSvc *HttpService) openChannelHandler(c echo.Context) error {
 func (httpSvc *HttpService) closeChannelHandler(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	var closeChannelRequest api.CloseChannelRequest
-	if err := c.Bind(&closeChannelRequest); err != nil {
-		return c.JSON(http.StatusBadRequest, models.ErrorResponse{
-			Message: fmt.Sprintf("Bad request: %s", err.Error()),
-		})
-	}
-
-	closeChannelResponse, err := httpSvc.api.CloseChannel(ctx, &closeChannelRequest)
+	closeChannelResponse, err := httpSvc.api.CloseChannel(ctx, c.Param("peerId"), c.Param("channelId"))
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
