@@ -26,7 +26,7 @@ export function SetupWallet() {
           />
           {info?.backendType && (
             <>
-              <Link to={`/setup/finish`}>
+              <Link to="/setup/finish">
                 <Card>
                   <CardContent className="pt-6">
                     <div className="flex gap-3 items-center">
@@ -34,7 +34,6 @@ export function SetupWallet() {
                       <div className="flex-grow">
                         <CardTitle>{info.backendType} Wallet</CardTitle>
                         <CardDescription>
-                          {" "}
                           Connect to preconfigured {info.backendType} Wallet
                         </CardDescription>
                       </div>
