@@ -1,4 +1,5 @@
 import React from "react";
+import Loading from "src/components/Loading";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
@@ -60,7 +61,11 @@ export default function NewOnchainAddress() {
   }
 
   if (!onchainAddress) {
-    return <p>Loading...</p>;
+    return (
+      <div className="flex justify-center">
+        <Loading />
+      </div>
+    );
   }
 
   return (
