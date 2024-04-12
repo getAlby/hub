@@ -10,6 +10,7 @@ import {
   Dot,
   ShieldCheckIcon,
   Sparkles,
+  Unplug,
   WalletIcon,
 } from "lucide-react";
 import AppHeader from "src/components/AppHeader";
@@ -27,6 +28,7 @@ import {
   DropdownMenuTrigger,
 } from "src/components/ui/dropdown-menu";
 import { useToast } from "src/components/ui/use-toast";
+import { localStorageKeys } from "src/constants";
 import { useBalances } from "src/hooks/useBalances";
 import { useCSRF } from "src/hooks/useCSRF";
 import { useInfo } from "src/hooks/useInfo";
@@ -163,26 +165,56 @@ function Wallet() {
 
       <BreezRedeem />
 
-      {info?.showBackupReminder && showBackupPrompt && (
+      {!info?.onboardingCompleted && (
         <>
+          {/* TODO: needs to be more visible that you need to act.
+        (e.g. add it to the sidebar, have a global banner, etc) */}
           <Alert>
-            <ShieldCheckIcon className="h-4 w-4" />
-            <AlertTitle>Back up your recovery phrase!</AlertTitle>
+            <Unplug className="h-4 w-4" />
+            <AlertTitle>
+              You are not connected to the lightning network!
+            </AlertTitle>
             <AlertDescription>
-              Not backing up your key might result in permanently losing access
-              to your funds.
+              Action required to send and receive lightning payments
               <div className="mt-3 flex items-center gap-3">
-                <Button onClick={onSkipBackup} variant="secondary" size="sm">
-                  Skip For Now
-                </Button>
-                <Link to="/backup/mnemonic">
-                  <Button size="sm">Back Up Now</Button>
+                {/* TODO: Find a better place to redirect to. 
+                Onboarding is only correct if they have not migrated Alby funds yet. */}
+                <Link
+                  to="/"
+                  onClick={() => {
+                    localStorage.removeItem(localStorageKeys.onboardingSkipped);
+                  }}
+                >
+                  <Button size="sm">Connect</Button>
                 </Link>
               </div>
             </AlertDescription>
           </Alert>
         </>
       )}
+
+      {info?.onboardingCompleted &&
+        info?.showBackupReminder &&
+        showBackupPrompt && (
+          <>
+            <Alert>
+              <ShieldCheckIcon className="h-4 w-4" />
+              <AlertTitle>Back up your recovery phrase!</AlertTitle>
+              <AlertDescription>
+                Not backing up your key might result in permanently losing
+                access to your funds.
+                <div className="mt-3 flex items-center gap-3">
+                  <Button onClick={onSkipBackup} variant="secondary" size="sm">
+                    Skip For Now
+                  </Button>
+                  <Link to="/backup/mnemonic">
+                    <Button size="sm">Back Up Now</Button>
+                  </Link>
+                </div>
+              </AlertDescription>
+            </Alert>
+          </>
+        )}
 
       {!isWalletUsable && (
         <EmptyState

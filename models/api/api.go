@@ -95,7 +95,7 @@ type User struct {
 type InfoResponse struct {
 	BackendType          string `json:"backendType"`
 	SetupCompleted       bool   `json:"setupCompleted"`
-	OnboardingCompleted  bool   `json:"onboardingCompleted"`
+	OnboardingCompleted  bool   `json:"onboardingCompleted"` // TODO: rename - HasChannel?
 	Running              bool   `json:"running"`
 	Unlocked             bool   `json:"unlocked"`
 	AlbyAuthUrl          string `json:"albyAuthUrl"`

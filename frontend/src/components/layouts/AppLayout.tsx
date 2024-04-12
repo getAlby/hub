@@ -65,7 +65,7 @@ export default function AppLayout() {
 
     navigate("/", { replace: true });
     toast({ title: "You are now logged out." });
-  }, [csrf]);
+  }, [csrf, navigate, toast]);
 
   function UserMenuContent() {
     return (

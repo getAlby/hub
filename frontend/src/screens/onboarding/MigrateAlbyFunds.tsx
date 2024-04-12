@@ -9,9 +9,9 @@ import { LoadingButton } from "src/components/ui/loading-button";
 import { Table, TableBody, TableCell, TableRow } from "src/components/ui/table";
 import { useToast } from "src/components/ui/use-toast";
 import {
-  ALBY_FEE_RESERVE,
+  ALBY_MIN_BALANCE,
   ALBY_SERVICE_FEE,
-  MIN_ALBY_BALANCE,
+  localStorageKeys,
 } from "src/constants";
 import { useAlbyBalance } from "src/hooks/useAlbyBalance";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
@@ -42,7 +42,7 @@ export default function MigrateAlbyFunds() {
   const [hasRequestedInvoice, setRequestedInvoice] = React.useState(false);
   const [isOpeningChannel, setOpeningChannel] = React.useState(false);
   const navigate = useNavigate();
-  const [amount, setAmount] = React.useState(0);
+  const [amount, setAmount] = React.useState<number>(0);
 
   const [instantChannelResponse, setInstantChannelResponse] = React.useState<
     NewInstantChannelInvoiceResponse | undefined
@@ -122,10 +122,11 @@ export default function MigrateAlbyFunds() {
       return;
     }
     setRequestedInvoice(true);
-    const _amount = Math.floor(
-      albyBalance.sats * (1 - ALBY_FEE_RESERVE) * (1 - ALBY_SERVICE_FEE)
-    );
+    const _amount = Math.floor(albyBalance.sats * (1 - ALBY_SERVICE_FEE));
     setAmount(_amount);
+    if (_amount < ALBY_MIN_BALANCE) {
+      return;
+    }
     requestWrappedInvoice(_amount);
   }, [
     hasRequestedInvoice,
@@ -150,21 +151,6 @@ export default function MigrateAlbyFunds() {
     }
   }, [hasOpenedChannel, navigate, refetchInfo, toast]);
 
-  if (!albyMe || !albyBalance || !channels || !instantChannelResponse) {
-    return <Loading />;
-  }
-
-  if (error) {
-    return <p>{error}</p>;
-  }
-
-  /*  TODO: Remove? At least display a link to where to go from here.
-  if (channels.length) {
-    return (
-      <p>You already have a channel.</p>
-    );
-  }*/
-
   return (
     <div className="flex flex-col justify-center gap-5 p-5 max-w-md items-stretch">
       <TwoColumnLayoutHeader
@@ -172,7 +158,20 @@ export default function MigrateAlbyFunds() {
         description="You can use your remaining balance on Alby hosted lightning wallet to
       fund your first lightning channel."
       />
-      {albyBalance.sats >= MIN_ALBY_BALANCE ? (
+      {error ? (
+        <>
+          <Alert>
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Error requesting wrapped invoice</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        </>
+      ) : !albyMe ||
+        !albyBalance ||
+        !channels ||
+        (amount >= ALBY_MIN_BALANCE && !instantChannelResponse) ? (
+        <Loading className="mx-auto" />
+      ) : amount >= ALBY_MIN_BALANCE && instantChannelResponse ? (
         <>
           <div className="border rounded-lg">
             <Table>
@@ -239,6 +238,15 @@ export default function MigrateAlbyFunds() {
           </Link>
         </>
       )}
+      <Button
+        variant="link"
+        onClick={() => {
+          localStorage.setItem(localStorageKeys.onboardingSkipped, "1");
+          navigate("/");
+        }}
+      >
+        Skip Onboarding
+      </Button>
     </div>
   );
 }

@@ -17,7 +17,10 @@ export function HomeRedirect() {
     if (info.setupCompleted && info.running) {
       if (info.unlocked) {
         if (info.albyAccountConnected) {
-          if (info.onboardingCompleted) {
+          const onboardingSkipped = window.localStorage.getItem(
+            localStorageKeys.onboardingSkipped
+          );
+          if (info.onboardingCompleted || onboardingSkipped) {
             const returnTo = window.localStorage.getItem(
               localStorageKeys.returnTo
             );
