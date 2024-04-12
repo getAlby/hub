@@ -1,23 +1,23 @@
-import React from "react";
-import { Link } from "react-router-dom";
-
-import Loading from "src/components/Loading";
-
 import {
   ArrowDownToDot,
   ArrowUpFromDot,
   CopyIcon,
-  Dot,
+  ExternalLink,
+  PlugZap,
   ShieldCheckIcon,
   Sparkles,
-  Unplug,
-  WalletIcon,
+  Unplug
 } from "lucide-react";
+import React from "react";
+import { Link } from "react-router-dom";
+import AlbyHead from "src/assets/images/alby-head.svg";
 import AppHeader from "src/components/AppHeader";
 import BreezRedeem from "src/components/BreezRedeem";
 import EmptyState from "src/components/EmptyState";
+import Loading from "src/components/Loading";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "src/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -93,11 +93,11 @@ function Wallet() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="default">
-                    <Dot className="mr-2 h-4 w-4 text-primary" />
+                    <PlugZap className="mr-2 h-4 w-4 text-primary" />
                     Connected
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-64">
+                <DropdownMenuContent className="w-64" align="end">
                   <DropdownMenuItem>
                     <div className="flex flex-row gap-10 items-center w-full">
                       <div className="whitespace-nowrap flex flex-row items-center gap-2">
@@ -163,8 +163,6 @@ function Wallet() {
         }
       />
 
-      <BreezRedeem />
-
       {!info?.onboardingCompleted && (
         <>
           {/* TODO: needs to be more visible that you need to act.
@@ -172,7 +170,7 @@ function Wallet() {
           <Alert>
             <Unplug className="h-4 w-4" />
             <AlertTitle>
-              You are not connected to the lightning network!
+              Your Alby Hub is not connected to the Lightning network!
             </AlertTitle>
             <AlertDescription>
               Action required to send and receive lightning payments
@@ -192,6 +190,123 @@ function Wallet() {
           </Alert>
         </>
       )}
+
+      {/* TODO: Enable those cards as we know how to handle different balances 
+      
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-5">
+        <div className="text-5xl font-semibold">
+          {new Intl.NumberFormat().format(
+            Math.floor(balances.lightning.totalSpendable / 1000) + balances.onchain.total
+          )}{" "}
+          sats
+        </div>
+        <div className="grid grid-cols-4 gap-3">
+          <Button variant="secondary" disabled>
+            <CreditCard className="w-4 h-4 mr-2" />
+            Buy
+          </Button>
+          <Button variant="secondary" disabled>
+            <Scan className="w-4 h-4 mr-2" />
+            Scan
+          </Button>
+          <Button disabled>
+            <ArrowDown className="w-4 h-4 mr-2" />
+            Receive
+          </Button>
+          <Button disabled>
+            <ArrowUp className="w-4 h-4 mr-2" />
+            Send
+          </Button>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <Card>
+          <CardHeader>
+            <div className="flex flex-row justify-between">
+              <CardTitle>Lightning</CardTitle>
+              <ZapIcon className="w-5 h-5 text-[#FFD648]" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <span className="text-3xl font-semibold">
+              {new Intl.NumberFormat().format(
+                Math.floor(balances.lightning.totalSpendable / 1000)
+              )}{" "}
+              sats
+            </span>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <div className="flex flex-row justify-between">
+              <CardTitle>Onchain</CardTitle>
+              <BitcoinIcon className="w-5 h-5 text-[#F7931A]" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <span className="text-3xl font-semibold">
+              {new Intl.NumberFormat().format(balances.onchain.total)} sats
+            </span>
+          </CardContent>
+        </Card>
+      </div>
+      */}
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <Link to={`https://www.getalby.com/dashboard`} target="_blank">
+          <Card>
+            <CardHeader>
+              <div className="flex flex-row items-center">
+                <img src={AlbyHead} className="w-12 h-12 rounded-xl p-1 border bg-[#FFDF6F]" />
+                <div>
+                  <CardTitle>
+                    <h2 className="flex-1 leading-5 font-semibold text-xl whitespace-nowrap text-ellipsis overflow-hidden ml-4">
+                      Alby Web
+                    </h2>
+                  </CardTitle>
+                  <CardDescription className="ml-4">
+                    You can use it as Progressive Web App on your mobile
+                  </CardDescription>
+                </div>
+              </div>
+
+            </CardHeader>
+            <CardContent className="text-right">
+              <Button variant="outline">
+                Open Alby Web
+                <ExternalLink className="w-4 h-4 ml-2" />
+              </Button>
+            </CardContent>
+          </Card>
+        </Link>
+        <Link to={`https://www.getalby.com`} target="_blank">
+          <Card>
+            <CardHeader>
+              <div className="flex flex-row items-center">
+                <img src={AlbyHead} className="w-12 h-12 rounded-xl p-1 border" />
+                <div>
+                  <CardTitle>
+                    <h2 className="flex-1 leading-5 font-semibold text-xl whitespace-nowrap text-ellipsis overflow-hidden ml-4">
+                      Alby Browser Extension
+                    </h2>
+                  </CardTitle>
+                  <CardDescription className="ml-4">
+                    Best to use when using your favourite Internet browser
+                  </CardDescription>
+                </div>
+              </div>
+
+            </CardHeader>
+            <CardContent className="text-right">
+              <Button variant="outline">Install Alby Extension
+                <ExternalLink className="w-4 h-4 ml-2" />
+              </Button>
+            </CardContent>
+          </Card>
+        </Link>
+      </div>
+
+      <BreezRedeem />
 
       {info?.onboardingCompleted &&
         info?.showBackupReminder &&
@@ -215,16 +330,6 @@ function Wallet() {
             </Alert>
           </>
         )}
-
-      {!isWalletUsable && (
-        <EmptyState
-          icon={<WalletIcon />}
-          title="You have no funds, yet"
-          description="Topup your wallet and make your first transaction."
-          buttonText="Get Started"
-          buttonLink="/channels/first"
-        />
-      )}
 
       {isWalletUsable && (
         <>

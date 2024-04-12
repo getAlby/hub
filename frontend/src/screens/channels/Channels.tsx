@@ -1,4 +1,4 @@
-import { Bitcoin, Cable, ChevronDown, CircleX, Zap } from "lucide-react";
+import { Bitcoin, Cable, ChevronDown, CircleX, CopyIcon, Zap } from "lucide-react";
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader.tsx";
@@ -28,17 +28,21 @@ import {
   TableHeader,
   TableRow,
 } from "src/components/ui/table.tsx";
+import { toast } from "src/components/ui/use-toast.ts";
 import { ONCHAIN_DUST_SATS } from "src/constants.ts";
 import { useBalances } from "src/hooks/useBalances.ts";
 import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
+import { useNodeConnectionInfo } from "src/hooks/useNodeConnectionInfo.ts";
 import { useRedeemOnchainFunds } from "src/hooks/useRedeemOnchainFunds.ts";
+import { copyToClipboard } from "src/lib/clipboard.ts";
 import { CloseChannelResponse, Node } from "src/types";
 import { request } from "src/utils/request";
 import { useCSRF } from "../../hooks/useCSRF.ts";
 
 export default function Channels() {
   const { data: channels, mutate: reloadChannels } = useChannels();
+  const { data: nodeConnectionInfo } = useNodeConnectionInfo();
   const { data: balances } = useBalances();
   const [nodes, setNodes] = React.useState<Node[]>([]);
   const { data: info, mutate: reloadInfo } = useInfo();
@@ -193,6 +197,29 @@ export default function Channels() {
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56">
                 <DropdownMenuGroup>
+                  <DropdownMenuItem>
+                    <div className="flex flex-row gap-10 items-center w-full">
+                      <div className="whitespace-nowrap flex flex-row items-center gap-2">
+                        Node
+                      </div>
+                      <div className="overflow-hidden text-ellipsis">
+                        {/* TODO: replace with skeleton loader */}
+                        {nodeConnectionInfo?.pubkey || "Loading..."}
+                      </div>
+                      {nodeConnectionInfo && (
+                        <CopyIcon
+                          className="shrink-0 w-4 h-4"
+                          onClick={() => {
+                            copyToClipboard(nodeConnectionInfo.pubkey);
+                            toast({ title: "Copied to clipboard." });
+                          }}
+                        />
+                      )}
+                    </div>
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+                <DropdownMenuGroup>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem>
                     <Link to="/channels/onchain/new-address">
                       Onchain Address
