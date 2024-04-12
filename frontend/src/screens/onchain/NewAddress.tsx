@@ -1,5 +1,8 @@
 import React from "react";
-import Loading from "src/components/Loading";
+import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
+import { Input } from "src/components/ui/input";
+import { Label } from "src/components/ui/label";
+import { LoadingButton } from "src/components/ui/loading-button";
 import { localStorageKeys } from "src/constants";
 import { useCSRF } from "src/hooks/useCSRF";
 import { GetOnchainAddressResponse } from "src/types";
@@ -61,22 +64,29 @@ export default function NewOnchainAddress() {
   }
 
   return (
-    <div className="flex flex-col justify-center items-center gap-4">
-      <p>You can deposit Bitcoin to your wallet address below:</p>
-      <input
-        className="w-full font-mono shadow-md"
-        value={onchainAddress}
-      ></input>
-      <p className="italic text-sm">
-        Wait for one block confirmation after depositing.
-      </p>
-      <button
-        className="flex mt-8 bg-red-300 rounded-lg p-4"
-        onClick={confirmGetNewAddress}
-        disabled={isLoading}
-      >
-        Get a new address {isLoading && <Loading />}
-      </button>
+    <div className="grid gap-8">
+      <TwoColumnLayoutHeader
+        title="On Chain Address"
+        description="You can deposit Bitcoin to your wallet address below:"
+      />
+      <div className="grid gap-2">
+        <Label htmlFor="text">On Chain Address</Label>
+        <Input type="text" value={onchainAddress} />
+        <p className="italic text-sm">
+          Wait for one block confirmation after depositing.
+        </p>
+      </div>
+
+      <div>
+        <LoadingButton
+          size={"sm"}
+          onClick={confirmGetNewAddress}
+          disabled={isLoading}
+          loading={isLoading}
+        >
+          Get a new address
+        </LoadingButton>
+      </div>
     </div>
   );
 }
