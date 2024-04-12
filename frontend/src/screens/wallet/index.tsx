@@ -207,7 +207,7 @@ function Wallet() {
                   <Button onClick={onSkipBackup} variant="secondary" size="sm">
                     Skip For Now
                   </Button>
-                  <Link to="/backup/mnemonic">
+                  <Link to="/settings/backup">
                     <Button size="sm">Back Up Now</Button>
                   </Link>
                 </div>
