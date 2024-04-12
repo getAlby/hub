@@ -7,6 +7,7 @@ import Loading from "src/components/Loading";
 import MnemonicInputs from "src/components/MnemonicInputs";
 import SettingsHeader from "src/components/SettingsHeader";
 import { Button } from "src/components/ui/button";
+import { Checkbox } from "src/components/ui/checkbox";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
@@ -28,7 +29,7 @@ export function BackupMnemonic() {
   const [unlockPassword, setUnlockPassword] = React.useState("");
   const [decryptedMnemonic, setDecryptedMnemonic] = React.useState("");
   const [loading, setLoading] = React.useState(false);
-  const [backedUp, isBackedUp] = useState<boolean>(false);
+  const [backedUp, setIsBackedUp] = useState<boolean>(false);
 
   if (!mnemonic) {
     return <Loading />;
@@ -150,22 +151,14 @@ export function BackupMnemonic() {
 
           <MnemonicInputs mnemonic={decryptedMnemonic} readOnly={true}>
             <div className="flex items-center mt-5">
-              <input
-                id="checkbox"
-                type="checkbox"
-                onChange={(event) => {
-                  isBackedUp(event.target.checked);
-                }}
-                checked={backedUp}
-                className="w-4 h-4 text-purple-700 bg-gray-100 border-gray-300 rounded focus:ring-purple-700 dark:focus:ring-purple-800 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+              <Checkbox
+                id="backup"
+                onCheckedChange={() => setIsBackedUp(!backedUp)}
               />
-              <label
-                htmlFor="checkbox"
-                className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-100"
-              >
+              <Label htmlFor="backup" className="ml-2">
                 I've backed my recovery phrase to my wallet in a private and
                 secure place
-              </label>
+              </Label>
             </div>
           </MnemonicInputs>
           <div className="flex justify-center">

@@ -20,6 +20,7 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 import { Input } from "src/components/ui/input";
+import { Label } from "src/components/ui/label";
 import { useToast } from "src/components/ui/use-toast";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request"; // build the project for this to appear
@@ -127,12 +128,9 @@ const NewApp = () => {
         <CardContent>
           {!nameParam && (
             <>
-              <label
-                htmlFor="name"
-                className="block font-medium text-gray-900 dark:text-white"
-              >
+              <Label htmlFor="name" className="font-medium">
                 Name
-              </label>
+              </Label>
               <Input
                 readOnly={!!nameParam}
                 type="text"
@@ -143,17 +141,17 @@ const NewApp = () => {
                 required
                 autoComplete="off"
               />
-              <p className="mt-1 mb-6 text-xs text-gray-500 dark:text-gray-400">
+              <p className="mt-1 mb-6 text-xs text-muted-foreground">
                 Name of the app or purpose of the connection
               </p>
             </>
           )}
-          <div className="flex justify-between items-center mb-2 text-gray-800 dark:text-white">
+          <div className="flex justify-between items-center mb-2">
             <p className="text-lg font-medium">Authorize the app to:</p>
             {!reqMethodsParam && !isEditing && (
               <PencilIcon
                 onClick={() => setEditing(true)}
-                className="text-gray-800 dark:text-gray-300 cursor-pointer w-6"
+                className="cursor-pointer w-6"
               />
             )}
           </div>
@@ -167,7 +165,7 @@ const NewApp = () => {
         </CardContent>
       </Card>
       <div className="mt-6 flex flex-col sm:flex-row sm:justify-center px-4 md:px-8">
-        <Button type="submit" size={"lg"}>
+        <Button type="submit" size="lg">
           {pubkey ? "Connect" : "Next"}
         </Button>
       </div>

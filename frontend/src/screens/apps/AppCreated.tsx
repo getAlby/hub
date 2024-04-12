@@ -1,10 +1,17 @@
-import { CopyIcon, EyeIcon } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { DialogDescription, DialogTrigger } from "@radix-ui/react-dialog";
+import { CopyIcon, ScanIcon } from "lucide-react";
+import { useEffect } from "react";
 import { Link, Navigate, useLocation } from "react-router-dom";
 
 import QRCode from "src/components/QRCode";
 import { NostrWalletConnectIcon } from "src/components/icons/NostrWalletConnectIcon";
 import { Button } from "src/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle
+} from "src/components/ui/dialog";
 import { useToast } from "src/components/ui/use-toast";
 import { copyToClipboard } from "src/lib/clipboard";
 import { CreateAppResponse } from "src/types";
@@ -13,9 +20,6 @@ export default function AppCreated() {
   const { state } = useLocation();
   const { toast } = useToast();
   const createAppResponse = state as CreateAppResponse;
-
-  const [isPopupVisible, setPopupVisible] = useState(false);
-  const popupRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // dispatch a success event which can be listened to by the opener or by the app that embedded the webview
@@ -35,22 +39,6 @@ export default function AppCreated() {
     }
   }, []);
 
-  // TODO: use a modal library instead of doing this manually
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        popupRef.current &&
-        !popupRef.current.contains(event.target as Node)
-      ) {
-        setPopupVisible(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
   if (!createAppResponse) {
     return <Navigate to="/apps/new" />;
   }
@@ -60,10 +48,6 @@ export default function AppCreated() {
   const copy = () => {
     copyToClipboard(pairingUri);
     toast({ title: "Copied to clipboard." });
-  };
-
-  const togglePopup = () => {
-    setPopupVisible(!isPopupVisible);
   };
 
   return (
@@ -80,53 +64,49 @@ export default function AppCreated() {
       <div className="flex flex-col items-center">
         <Link to={pairingUri}>
           <Button size="lg">
-            <NostrWalletConnectIcon className="inline w-6 mr-2" />
-            <p className="font-medium">Open in supported app</p>
+            <NostrWalletConnectIcon className="w-6 h-6 mr-2" />
+            Open in supported app
           </Button>
         </Link>
         <div className="text-center text-xs text-muted-foreground mt-2">
           Only connect with apps you trust!
         </div>
 
-        <div className="dark:text-white text-sm text-center mt-8 mb-1"></div>
+        <div className="text-sm text-center mt-8 mb-1"></div>
         <div className="flex flex-col gap-3">
-          <div className=" text-center text-sm">Manually pair app ↓</div>
+          <div className="text-center text-sm">Manually pair app ↓</div>
           <Button variant="secondary" onClick={copy}>
-            <CopyIcon className="inline w-6 mr-2" />
+            <CopyIcon className="w-4 h-4 mr-2" />
             Copy pairing secret
           </Button>
-          <Button variant="secondary" onClick={togglePopup}>
-            <EyeIcon className="inline w-6 mr-2" />
-            QR Code
-          </Button>
-        </div>
-      </div>
-      <div
-        className={`fixed inset-0 items-center justify-center ${
-          isPopupVisible ? "flex" : "hidden"
-        }`}
-      >
-        <div
-          onClick={togglePopup}
-          className="fixed inset-0 bg-gray-900 opacity-50"
-        ></div>
-        <div className="bg-white dark:bg-surface-02dp p-4 lg:px-6 rounded shadow relative">
-          <h2 className="mb-4 font-semibold text-lg lg:text-xl font-headline dark:text-white">
-            Scan QR Code in the app to pair
-          </h2>
-          <a
-            href={pairingUri}
-            target="_blank"
-            className="block border-4 border-purple-600 rounded-lg p-4 lg:p-6"
-          >
-            <QRCode value={pairingUri} size={256} />
-          </a>
-          <button
-            onClick={togglePopup}
-            className="w-full inline-flex font-semibold items-center justify-center px-3 py-2 cursor-pointer duration-150 transition bg-white text-gray-700 dark:bg-surface-02dp dark:text-neutral-200 dark:border-neutral-800 hover:bg-gray-50 dark:hover:bg-surface-16dp bg-origin-border shadow rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-purple-700 mt-4"
-          >
-            Close
-          </button>
+
+          <Dialog>
+            <DialogTrigger>
+              <Button variant="secondary">
+                <ScanIcon className="w-4 h-4 mr-2" />
+                QR Code
+              </Button>
+            </DialogTrigger>
+
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>
+                  Scan QR Code
+                </DialogTitle>
+                <DialogDescription>
+                  Open the app you want to pair and scan this QR code to connect.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="flex flex-row justify-center p-3">
+                <a
+                  href={pairingUri}
+                  target="_blank"
+                >
+                  <QRCode value={pairingUri} />
+                </a>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </div>

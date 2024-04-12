@@ -1,4 +1,3 @@
-import gradientAvatar from "gradient-avatar";
 import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -11,6 +10,8 @@ import { AppPermissions, BudgetRenewalType, PermissionType } from "src/types";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request"; // build the project for this to appear
 
+import AppAvatar from "src/components/AppAvatar";
+import AppHeader from "src/components/AppHeader";
 import DeleteConfirmationPopup from "src/components/DeleteConfirmationPopup";
 import Loading from "src/components/Loading";
 import Permissions from "src/components/Permissions";
@@ -21,6 +22,7 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { Table, TableBody, TableCell, TableRow } from "src/components/ui/table";
 import { useToast } from "src/components/ui/use-toast";
 
 function ShowApp() {
@@ -91,6 +93,10 @@ function ShowApp() {
     }
   };
 
+  if (!app) {
+    return <Loading />;
+  }
+
   return (
     <>
       {showPopup && (
@@ -100,73 +106,60 @@ function ShowApp() {
           onCancel={() => setShowPopup(false)}
         />
       )}
+
       <div className="w-full">
         <div className="flex flex-col gap-5">
-          <div className="flex flex-row items-center justify-between">
-            <div className="flex flex-row items-center ">
-              {app && (
-                <div className="relative inline-block min-w-9 w-9 h-9 rounded-lg border mr-2">
-                  <img
-                    src={`data:image/svg+xml;base64,${btoa(
-                      gradientAvatar(app.name)
-                    )}`}
-                    alt={app.name}
-                    className="block w-full h-full rounded-lg p-1"
-                  />
-                  <span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-xl font-medium capitalize">
-                    {app.name.charAt(0)}
-                  </span>
-                </div>
-              )}
-              <h2
-                title={app ? app.name : "Fetching app..."}
-                className="text-xl font-semibold dark:text-white overflow-hidden text-ellipsis whitespace-nowrap my-2"
-              >
-                {app ? app.name : "Fetching app..."}
-              </h2>
-            </div>
-            <Button variant="destructive" onClick={() => setShowPopup(true)}>
-              Delete
-            </Button>
-          </div>
+          <AppHeader
+            title={
+              <div className="flex flex-row items-center">
+                <AppAvatar appName={app.name} className="w-10 h-10 mr-2" />
+                <h2
+                  title={app.name}
+                  className="text-xl font-semibold overflow-hidden text-ellipsis whitespace-nowrap"
+                >
+                  {app.name}
+                </h2>
+              </div>
+            }
+            contentRight={
+              <Button variant="destructive" onClick={() => setShowPopup(true)}>
+                Delete
+              </Button>
+            }
+            description={""}
+          ></AppHeader>
           <Card>
             <CardHeader>
               <CardTitle>Info</CardTitle>
             </CardHeader>
             <CardContent>
-              <table>
-                <tbody>
-                  <tr>
-                    <td className="align-top w-32 font-medium dark:text-white">
-                      Public Key
-                    </td>
-                    <td className="text-gray-600 dark:text-neutral-400 break-all">
+              <Table>
+                <TableBody>
+                  <TableRow>
+                    <TableCell className="font-medium">Public Key</TableCell>
+                    <TableCell className="text-muted-foreground break-all">
                       {app.nostrPubkey}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="align-top font-medium dark:text-white">
-                      Last used
-                    </td>
-                    <td className="text-gray-600 dark:text-neutral-400">
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">Last used</TableCell>
+                    <TableCell className="text-muted-foreground">
                       {app.lastEventAt
                         ? new Date(app.lastEventAt).toString()
                         : "Never"}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="align-top font-medium dark:text-white">
-                      Expires At
-                    </td>
-                    <td className="text-gray-600 dark:text-neutral-400">
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">Expires At</TableCell>
+                    <TableCell className="text-muted-foreground">
                       {app.expiresAt &&
-                      new Date(app.expiresAt).getFullYear() !== 1
+                        new Date(app.expiresAt).getFullYear() !== 1
                         ? new Date(app.expiresAt).toString()
                         : "Never"}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
 

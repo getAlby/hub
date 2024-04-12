@@ -57,19 +57,19 @@ export function ImportMnemonic() {
         <Alert>
           <div className="flex flex-col gap-4">
             <div className="flex gap-2 items-center">
-              <div className="shrink-0 text-gray-600 dark:text-neutral-400">
+              <div className="shrink-0 text-muted-foreground">
                 <LifeBuoy className="w-6 h-6" />
               </div>
-              <span className="text-gray-600 dark:text-neutral-400">
+              <span className="text-muted-foreground">
                 Recovery phrase is a set of 12 words that{" "}
                 <b>restores your wallet from a backup</b>
               </span>
             </div>
             <div className="flex gap-2 items-center">
-              <div className="shrink-0 text-gray-600 dark:text-neutral-400">
+              <div className="shrink-0 text-muted-foreground">
                 <ShieldCheck className="w-6 h-6" />
               </div>
-              <span className="text-gray-600 dark:text-neutral-400">
+              <span className="text-muted-foreground">
                 Make sure to enter them somewhere safe and private
               </span>
             </div>

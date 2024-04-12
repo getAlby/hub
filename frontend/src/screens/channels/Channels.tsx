@@ -101,9 +101,8 @@ export default function Channels() {
       }
       if (
         !confirm(
-          `Are you sure you want to close the channel with ${
-            nodes.find((node) => node.public_key === nodeId)?.alias ||
-            "Unknown Node"
+          `Are you sure you want to close the channel with ${nodes.find((node) => node.public_key === nodeId)?.alias ||
+          "Unknown Node"
           }?\n\nNode ID: ${nodeId}\n\nChannel ID: ${channelId}`
         )
       ) {
@@ -181,8 +180,8 @@ export default function Channels() {
   return (
     <>
       <AppHeader
-        title={"Channels"}
-        description={"Manage liquidity on your lightnig node."}
+        title="Channels"
+        description="Manage liquidity on your lightnig node."
         contentRight={
           <>
             <DropdownMenu>
@@ -258,7 +257,7 @@ export default function Channels() {
             {!balances && (
               <div>
                 <div className="animate-pulse d-inline ">
-                  <div className="h-2.5 bg-gray-200 rounded-full dark:bg-gray-700 w-12 my-2"></div>
+                  <div className="h-2.5 bg-primary rounded-full w-12 my-2"></div>
                 </div>
               </div>
             )}
@@ -293,7 +292,7 @@ export default function Channels() {
             {!channels && (
               <div>
                 <div className="animate-pulse d-inline ">
-                  <div className="h-2.5 bg-gray-200 rounded-full dark:bg-gray-700 w-12 my-2"></div>
+                  <div className="h-2.5 bg-primary rounded-full w-12 my-2"></div>
                 </div>
               </div>
             )}
@@ -319,18 +318,6 @@ export default function Channels() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {!channels && (
-            <TableRow>
-              <TableCell colSpan={4} className="text-center p-5">
-                <div role="status" className="animate-pulse flex space-between">
-                  <div className="h-2.5 bg-gray-200 rounded-full w-1/3 dark:bg-gray-700 mr-5"></div>
-                  <div className="h-2.5 bg-gray-200 rounded-full w-20 dark:bg-gray-700 mr-5"></div>
-                  <div className="h-2.5 bg-gray-200 rounded-full w-20 dark:bg-gray-700"></div>
-                  <span className="sr-only">Loading...</span>
-                </div>
-              </TableCell>
-            </TableRow>
-          )}
           {channels && channels.length > 0 && (
             <>
               {channels.map((channel) => {
@@ -404,6 +391,11 @@ export default function Channels() {
               })}
             </>
           )}
+          {!channels && <TableRow>
+            <TableCell colSpan={4}>
+              <Loading className="m-2" />
+            </TableCell>
+          </TableRow>}
         </TableBody>
       </Table>
     </>

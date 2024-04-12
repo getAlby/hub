@@ -1,6 +1,11 @@
 import React from "react";
 import { useSearchParams } from "react-router-dom";
-import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
+import AppHeader from "src/components/AppHeader";
+import { Card, CardContent } from "src/components/ui/card";
+import { Checkbox } from "src/components/ui/checkbox";
+import { Input } from "src/components/ui/input";
+import { Label } from "src/components/ui/label";
+import { LoadingButton } from "src/components/ui/loading-button";
 import { useCSRF } from "src/hooks/useCSRF";
 import {
   ConnectPeerRequest,
@@ -95,8 +100,7 @@ export default function NewCustomChannel() {
 
       if (
         !confirm(
-          `Are you sure you want to open a ${localAmount} sat channel to ${
-            nodeDetails?.alias || pubkey
+          `Are you sure you want to open a ${localAmount} sat channel to ${nodeDetails?.alias || pubkey
           }?`
         )
       ) {
@@ -136,137 +140,105 @@ export default function NewCustomChannel() {
     }
   }
 
+  const description = nodeDetails?.alias ? (
+    <>
+      Open a channel with{" "}
+      <span style={{ color: `${nodeDetails.color}` }}>⬤</span>
+      {" "}
+      {nodeDetails.alias} (${nodeDetails.active_channel_count} channels)
+    </>
+  ) : (
+    "Connect to other nodes on the lightning network"
+  );
+
   return (
-    <div>
-      <TwoColumnLayoutHeader
+    <div className="flex flex-col gap-5">
+      <AppHeader
         title="Open a channel"
-        description="Use one of many options to add liquidity to your node."
+        description={description}
       />
-      <p className="text-gray-500 mb-5">
-        {nodeDetails?.alias && (
-          <>
-            Open a channel with {` `}
-            <span style={{ color: `${nodeDetails.color}` }}>⬤</span>
-            {nodeDetails.alias}({nodeDetails.active_channel_count} channels)
-          </>
-        )}
-        {!nodeDetails?.alias &&
-          "Connect to other nodes on the lightning network"}
-      </p>
+      <Card>
+        <CardContent>
+          <div className="flex flex-col gap-5">
+            <div className="grid gap-1.5">
+              {nodeDetails && (
+                <h3 className="font-medium text-2xl">
+                  <span style={{ color: `${nodeDetails.color}` }}>⬤</span>
+                  {nodeDetails.alias && (
+                    <>
+                      {nodeDetails.alias} ({nodeDetails.active_channel_count}{" "}
+                      channels)
+                    </>
+                  )}
+                </h3>
+              )}
+            </div>
 
-      <div className=" bg-white shadow-md sm:rounded-lg p-4">
-        {nodeDetails && (
-          <h3 className="font-medium text-2xl">
-            <span style={{ color: `${nodeDetails.color}` }}>⬤</span>
-            {nodeDetails.alias && (
-              <>
-                {nodeDetails.alias} ({nodeDetails.active_channel_count}{" "}
-                channels)
-              </>
-            )}
-          </h3>
-        )}
-        <div>{pubkey}</div>
-
-        <div className="flex flex-wrap -mx-3 mt-6">
-          <div className="w-full px-3 mb-6 md:mb-0">
-            <label
-              className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
-              htmlFor="grid-first-name"
-            >
-              Peer
-            </label>
-            <input
-              className="appearance-none block w-full bg-gray-200 text-gray-700 border rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white"
-              type="text"
-              value={pubkey}
-              placeholder="Pubkey of the peer"
-              onChange={(e) => {
-                setPubkey(e.target.value.trim());
-              }}
-            />
-          </div>
-          {!nodeDetails && pubkey && (
-            <div className="w-full px-3 mb-6 md:mb-0">
-              <label
-                className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
-                htmlFor="grid-first-name"
-              >
-                Host:Port
-              </label>
-              <input
-                className="appearance-none block w-full bg-gray-200 text-gray-700 border rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white"
+            <div className="grid gap-1.5">
+              <Label htmlFor="pubkey">
+                Peer
+              </Label>
+              <Input
+                id="pubkey"
                 type="text"
-                value={host}
-                placeholder="0.0.0.0:9735"
+                value={pubkey}
+                placeholder="Pubkey of the peer"
                 onChange={(e) => {
-                  setHost(e.target.value.trim());
+                  setPubkey(e.target.value.trim());
                 }}
               />
             </div>
-          )}
-        </div>
 
-        <div className="flex flex-wrap -mx-3 mt-6">
-          <div className="w-full px-3 mb-6 md:mb-0">
-            <label
-              className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
-              htmlFor="grid-first-name"
-            >
-              Amount (sats)
-            </label>
-            <input
-              className="appearance-none block w-full bg-gray-200 text-gray-700 border rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white"
-              type="text"
-              value={localAmount}
-              onChange={(e) => {
-                setLocalAmount(e.target.value.trim());
-              }}
-            />
-          </div>
-        </div>
-
-        <div className="w-full my-6">
-          <label>
-            <input
-              type="checkbox"
-              defaultChecked={isPublic}
-              onChange={(e) => setPublic(e.target.checked)}
-              className="mr-2"
-            />
-            Public Channel
-          </label>
-        </div>
-
-        <div className="mt-2">
-          <button
-            className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
-            disabled={!pubkey || !localAmount || loading}
-            onClick={openChannel}
-          >
-            {loading && (
-              <svg
-                aria-hidden="true"
-                role="status"
-                className="inline mr-2 w-4 h-4 text-gray-200 animate-spin dark:text-gray-600"
-                viewBox="0 0 100 101"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
-                  fill="currentColor"
+            {!nodeDetails && pubkey && (
+              <div className="grid gap-1.5">
+                <Label htmlFor="host">
+                  Host:Port
+                </Label>
+                <Input
+                  id="host"
+                  type="text"
+                  value={host}
+                  placeholder="0.0.0.0:9735"
+                  onChange={(e) => {
+                    setHost(e.target.value.trim());
+                  }}
                 />
-                <path
-                  d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
-                  fill="#1C64F2"
-                />
-              </svg>
+              </div>
             )}
-            {loading ? "Loading..." : "Open Channel"}
-          </button>
-        </div>
-      </div>
-    </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="amount">
+                Amount (sats)
+              </Label>
+              <Input
+                id="amount"
+                type="text"
+                value={localAmount}
+                onChange={(e) => {
+                  setLocalAmount(e.target.value.trim());
+                }}
+              />
+            </div>
+
+            <div className="flex w-full items-center">
+              <Checkbox
+                id="public-channel"
+                defaultChecked={isPublic}
+                onCheckedChange={() => setPublic(!isPublic)}
+                className="mr-2"
+              />
+              <Label htmlFor="public-channel">Public Channel</Label>
+            </div>
+            <div className="inline">
+              <LoadingButton
+                disabled={!pubkey || !localAmount || loading}
+                onClick={openChannel}
+                loading={loading}
+              >
+                Open Channel
+              </LoadingButton></div>
+          </div>
+        </CardContent>
+      </Card>
+    </div >
   );
 }
