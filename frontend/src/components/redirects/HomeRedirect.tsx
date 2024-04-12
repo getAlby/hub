@@ -42,7 +42,7 @@ export function HomeRedirect() {
     } else if (info.setupCompleted && !info.running) {
       to = "/start";
     } else {
-      to = "/welcome";
+      to = "/intro";
     }
     navigate(to);
   }, [info, location, navigate]);
