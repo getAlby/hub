@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 
+	"github.com/getAlby/nostr-wallet-connect/nip47"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/sirupsen/logrus"
 )
@@ -33,7 +34,7 @@ func (svc *Service) HandleGetBalanceEvent(ctx context.Context, nip47Request *Nip
 		publishResponse(&Nip47Response{
 			ResultType: nip47Request.Method,
 			Error: &Nip47Error{
-				Code:    NIP_47_ERROR_INTERNAL,
+				Code:    nip47.ERROR_INTERNAL,
 				Message: err.Error(),
 			},
 		}, nostr.Tags{})
@@ -45,7 +46,7 @@ func (svc *Service) HandleGetBalanceEvent(ctx context.Context, nip47Request *Nip
 	}
 
 	appPermission := AppPermission{}
-	svc.db.Where("app_id = ? AND request_method = ?", app.ID, NIP_47_PAY_INVOICE_METHOD).First(&appPermission)
+	svc.db.Where("app_id = ? AND request_method = ?", app.ID, nip47.PAY_INVOICE_METHOD).First(&appPermission)
 
 	maxAmount := appPermission.MaxAmount
 	if maxAmount > 0 {

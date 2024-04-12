@@ -69,6 +69,10 @@ func (cfg *Config) Init(db *gorm.DB, env *config.AppConfig, logger *logrus.Logge
 	}
 }
 
+func (cfg *Config) GetNostrPublicKey() string {
+	return cfg.NostrPublicKey
+}
+
 func (cfg *Config) Get(key string, encryptionKey string) (string, error) {
 	return cfg.get(key, encryptionKey, cfg.db)
 }

@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/getAlby/nostr-wallet-connect/events"
+	"github.com/getAlby/nostr-wallet-connect/nip47"
 	"github.com/nbd-wtf/go-nostr"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
@@ -45,7 +46,7 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, nip47Request
 				publishResponse(&Nip47Response{
 					ResultType: nip47Request.Method,
 					Error: &Nip47Error{
-						Code:    NIP_47_ERROR_INTERNAL,
+						Code:    nip47.ERROR_INTERNAL,
 						Message: fmt.Sprintf("Failed to decode bolt11 invoice: %s", err.Error()),
 					},
 				}, nostr.Tags{dTag})
@@ -104,7 +105,7 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, nip47Request
 				publishResponse(&Nip47Response{
 					ResultType: nip47Request.Method,
 					Error: &Nip47Error{
-						Code:    NIP_47_ERROR_INTERNAL,
+						Code:    nip47.ERROR_INTERNAL,
 						Message: err.Error(),
 					},
 				}, nostr.Tags{dTag})

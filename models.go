@@ -8,43 +8,6 @@ import (
 )
 
 const (
-	NIP_47_INFO_EVENT_KIND            = 13194
-	NIP_47_REQUEST_KIND               = 23194
-	NIP_47_RESPONSE_KIND              = 23195
-	NIP_47_NOTIFICATION_KIND          = 23196
-	NIP_47_PAY_INVOICE_METHOD         = "pay_invoice"
-	NIP_47_GET_BALANCE_METHOD         = "get_balance"
-	NIP_47_GET_INFO_METHOD            = "get_info"
-	NIP_47_MAKE_INVOICE_METHOD        = "make_invoice"
-	NIP_47_LOOKUP_INVOICE_METHOD      = "lookup_invoice"
-	NIP_47_LIST_TRANSACTIONS_METHOD   = "list_transactions"
-	NIP_47_PAY_KEYSEND_METHOD         = "pay_keysend"
-	NIP_47_MULTI_PAY_INVOICE_METHOD   = "multi_pay_invoice"
-	NIP_47_MULTI_PAY_KEYSEND_METHOD   = "multi_pay_keysend"
-	NIP_47_SIGN_MESSAGE_METHOD        = "sign_message"
-	NIP_47_ERROR_INTERNAL             = "INTERNAL"
-	NIP_47_ERROR_NOT_IMPLEMENTED      = "NOT_IMPLEMENTED"
-	NIP_47_ERROR_QUOTA_EXCEEDED       = "QUOTA_EXCEEDED"
-	NIP_47_ERROR_INSUFFICIENT_BALANCE = "INSUFFICIENT_BALANCE"
-	NIP_47_ERROR_UNAUTHORIZED         = "UNAUTHORIZED"
-	NIP_47_ERROR_EXPIRED              = "EXPIRED"
-	NIP_47_ERROR_RESTRICTED           = "RESTRICTED"
-	NIP_47_ERROR_BAD_REQUEST          = "BAD_REQUEST"
-	NIP_47_OTHER                      = "OTHER"
-	NIP_47_CAPABILITIES               = "pay_invoice pay_keysend get_balance get_info make_invoice lookup_invoice list_transactions multi_pay_invoice multi_pay_keysend sign_message notifications"
-	NIP_47_NOTIFICATION_TYPES         = "payment_received" // same format as above e.g. "payment_received balance_updated payment_sent channel_opened channel_closed ..."
-)
-
-// TODO: move other permissions here (e.g. all payment methods use pay_invoice)
-const (
-	NIP_47_NOTIFICATIONS_PERMISSION = "notifications"
-)
-
-const (
-	NIP_47_PAYMENT_RECEIVED_NOTIFICATION = "payment_received"
-)
-
-const (
 	REQUEST_EVENT_STATE_HANDLER_EXECUTING = "executing"
 	REQUEST_EVENT_STATE_HANDLER_EXECUTED  = "executed"
 	REQUEST_EVENT_STATE_HANDLER_ERROR     = "error"

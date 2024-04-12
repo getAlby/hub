@@ -1,3 +1,4 @@
+// TODO: move to api/models.go
 package api
 
 import (
@@ -5,6 +6,10 @@ import (
 
 	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 )
+
+type API interface {
+	CreateApp(createAppRequest *CreateAppRequest) (*CreateAppResponse, error)
+}
 
 type App struct {
 	// ID          uint      `json:"id"` // ID unused - pubkey is used as ID

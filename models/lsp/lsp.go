@@ -1,3 +1,4 @@
+// TODO: move to lsp/models.go
 package lsp
 
 type LSP struct {

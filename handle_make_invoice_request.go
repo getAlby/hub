@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 
+	"github.com/getAlby/nostr-wallet-connect/nip47"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/sirupsen/logrus"
 )
@@ -31,7 +32,7 @@ func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, nip47Request *Ni
 		publishResponse(&Nip47Response{
 			ResultType: nip47Request.Method,
 			Error: &Nip47Error{
-				Code:    NIP_47_OTHER,
+				Code:    nip47.OTHER,
 				Message: "Only one of description, description_hash can be provided",
 			},
 		}, nostr.Tags{})
@@ -66,7 +67,7 @@ func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, nip47Request *Ni
 		publishResponse(&Nip47Response{
 			ResultType: nip47Request.Method,
 			Error: &Nip47Error{
-				Code:    NIP_47_ERROR_INTERNAL,
+				Code:    nip47.ERROR_INTERNAL,
 				Message: err.Error(),
 			},
 		}, nostr.Tags{})

@@ -35,7 +35,7 @@ export function useDeleteApp(onSuccess?: (nostrPubkey: string) => void) {
         setDeleting(false);
       }
     },
-    [csrf, onSuccess]
+    [csrf, onSuccess, toast]
   );
 
   return React.useMemo(

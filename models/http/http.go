@@ -1,3 +1,4 @@
+// TODO: move to http/models.go
 package http
 
 type ErrorResponse struct {

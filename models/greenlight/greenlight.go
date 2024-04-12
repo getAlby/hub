@@ -1,3 +1,4 @@
+// TODO: move to greenlight/models.go
 package greenlight
 
 import "github.com/getAlby/nostr-wallet-connect/models/lnclient"

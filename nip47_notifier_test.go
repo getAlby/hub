@@ -27,7 +27,7 @@ func TestSendNotification(t *testing.T) {
 	appPermission := &AppPermission{
 		AppId:         app.ID,
 		App:           *app,
-		RequestMethod: NIP_47_NOTIFICATIONS_PERMISSION,
+		RequestMethod: nip47.NOTIFICATIONS_PERMISSION,
 	}
 	err = svc.db.Create(appPermission).Error
 	assert.NoError(t, err)
@@ -65,7 +65,7 @@ func TestSendNotification(t *testing.T) {
 
 	err = json.Unmarshal([]byte(decrypted), &unmarshalledResponse)
 	assert.NoError(t, err)
-	assert.Equal(t, NIP_47_PAYMENT_RECEIVED_NOTIFICATION, unmarshalledResponse.NotificationType)
+	assert.Equal(t, nip47.PAYMENT_RECEIVED_NOTIFICATION, unmarshalledResponse.NotificationType)
 
 	transaction := (unmarshalledResponse.Notification.(*Nip47PaymentReceivedNotification))
 	assert.Equal(t, mockTransaction.Type, transaction.Type)

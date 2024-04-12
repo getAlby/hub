@@ -6,6 +6,7 @@ import (
 	"errors"
 
 	"github.com/getAlby/nostr-wallet-connect/events"
+	"github.com/getAlby/nostr-wallet-connect/nip47"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip04"
 	"github.com/sirupsen/logrus"
@@ -53,7 +54,7 @@ func (notifier *Nip47Notifier) ConsumeEvent(ctx context.Context, event *events.E
 
 	notifier.notifySubscribers(ctx, &Nip47Notification{
 		Notification:     transaction,
-		NotificationType: NIP_47_PAYMENT_RECEIVED_NOTIFICATION,
+		NotificationType: nip47.PAYMENT_RECEIVED_NOTIFICATION,
 	}, nostr.Tags{})
 	return nil
 }
@@ -65,7 +66,7 @@ func (notifier *Nip47Notifier) notifySubscribers(ctx context.Context, notificati
 	notifier.svc.db.Find(&apps)
 
 	for _, app := range apps {
-		hasPermission, _, _ := notifier.svc.hasPermission(&app, NIP_47_NOTIFICATIONS_PERMISSION, 0)
+		hasPermission, _, _ := notifier.svc.hasPermission(&app, nip47.NOTIFICATIONS_PERMISSION, 0)
 		if !hasPermission {
 			continue
 		}
@@ -111,7 +112,7 @@ func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *App, n
 	event := &nostr.Event{
 		PubKey:    notifier.svc.cfg.NostrPublicKey,
 		CreatedAt: nostr.Now(),
-		Kind:      NIP_47_NOTIFICATION_KIND,
+		Kind:      nip47.NOTIFICATION_KIND,
 		Tags:      allTags,
 		Content:   msg,
 	}

@@ -1,3 +1,4 @@
+// TODO: move to db/models.go
 package db
 
 import "time"
