@@ -191,34 +191,16 @@ function Wallet() {
         </>
       )}
 
-      {/* TODO: Enable those cards as we know how to handle different balances 
-      
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-5">
         <div className="text-5xl font-semibold">
           {new Intl.NumberFormat().format(
-            Math.floor(balances.lightning.totalSpendable / 1000) + balances.onchain.total
+            Math.floor(balances.lightning.totalSpendable / 1000)
           )}{" "}
           sats
         </div>
-        <div className="grid grid-cols-4 gap-3">
-          <Button variant="secondary" disabled>
-            <CreditCard className="w-4 h-4 mr-2" />
-            Buy
-          </Button>
-          <Button variant="secondary" disabled>
-            <Scan className="w-4 h-4 mr-2" />
-            Scan
-          </Button>
-          <Button disabled>
-            <ArrowDown className="w-4 h-4 mr-2" />
-            Receive
-          </Button>
-          <Button disabled>
-            <ArrowUp className="w-4 h-4 mr-2" />
-            Send
-          </Button>
-        </div>
       </div>
+
+      {/* TODO: Enable those cards as we know how to handle different balances 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <Card>
           <CardHeader>
