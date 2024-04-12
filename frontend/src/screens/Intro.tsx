@@ -9,6 +9,7 @@ import {
 import React, { ReactElement } from "react";
 import { useNavigate } from "react-router-dom";
 import Cloud from "src/assets/images/cloud.png";
+import Cloud2 from "src/assets/images/cloud2.png";
 import { Button } from "src/components/ui/button";
 import {
   Carousel,
@@ -48,6 +49,15 @@ export function Intro() {
         style={{
           backgroundImage: `url(${Cloud})`,
           backgroundPositionX: `${-Math.max(progress, 0) * 40}%`,
+          filter: theme === "light" ? "invert(1)" : undefined,
+        }}
+      />
+      <div
+        className="w-full h-full absolute top-0 left-0 bg-no-repeat"
+        style={{
+          backgroundImage: `url(${Cloud2})`,
+          backgroundPositionX: `${150 - Math.max(progress, 0) * 60}%`,
+          backgroundPositionY: "100%",
           filter: theme === "light" ? "invert(1)" : undefined,
         }}
       />
