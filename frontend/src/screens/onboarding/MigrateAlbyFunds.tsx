@@ -245,7 +245,7 @@ export default function MigrateAlbyFunds() {
           navigate("/");
         }}
       >
-        Skip Onboarding
+        Skip For Now
       </Button>
     </div>
   );
