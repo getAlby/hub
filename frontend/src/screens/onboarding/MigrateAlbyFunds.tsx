@@ -218,7 +218,7 @@ export default function MigrateAlbyFunds() {
               Migrate Funds and Open Channel
             </LoadingButton>
             <Link to="../channels/new/instant">
-              <Button variant="link">Open a Channel manually</Button>
+              <Button variant="link">Explore Other Options</Button>
             </Link>
           </form>
         </>
@@ -234,7 +234,7 @@ export default function MigrateAlbyFunds() {
             </AlertDescription>
           </Alert>
           <Link to="../channels/new/instant" className="w-full">
-            <Button className="w-full">Open a Channel manually</Button>
+            <Button className="w-full">Explore Other Options</Button>
           </Link>
         </>
       )}
