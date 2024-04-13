@@ -296,16 +296,6 @@ export default function Channels() {
                 </>
               )}
             </div>
-            <p className="text-xs text-muted-foreground">
-              {balances &&
-                balances.onchain.spendable !== balances.onchain.total && (
-                  <span className="text-xs animate-pulse">
-                    &nbsp;(
-                    {balances.onchain.total - balances.onchain.spendable}{" "}
-                    incoming)
-                  </span>
-                )}
-            </p>
           </CardContent>
         </Card>
         <Card>
