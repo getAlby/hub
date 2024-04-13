@@ -1,3 +1,4 @@
+import { ExternalLink } from "lucide-react";
 import { NavLink, Outlet } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import { buttonVariants } from "src/components/ui/button";
@@ -11,14 +12,19 @@ export default function SettingsLayout() {
         description="Manage your account settings and set e-mail preferences."
       />
       <div className="flex flex-col space-y-8 lg:flex-row lg:space-x-12 lg:space-y-0">
-        <nav className="flex space-x-2 lg:flex-col lg:space-x-0 lg:space-y-1">
-          <MenuItem to="/settings">General</MenuItem>
-          <MenuItem to="/settings/backup">Backup</MenuItem>
-          <MenuItem to="/settings/change-unlock-password">
-            Unlock Password
-          </MenuItem>
-          <MenuItem to="/debug-tools">Debug Tools</MenuItem>
-        </nav>
+        <aside className="-mx-4 lg:w-1/5">
+          <nav className="flex space-x-2 lg:flex-col lg:space-x-0 lg:space-y-1">
+            <MenuItem to="/settings">General</MenuItem>
+            <MenuItem to="/settings/backup">Backup</MenuItem>
+            <MenuItem to="/settings/change-unlock-password">
+              Unlock Password
+            </MenuItem>
+            <MenuItem to="/debug-tools">
+              Debug Tools
+              <ExternalLink className="w-4 h-4 ml-2" />
+            </MenuItem>
+          </nav>
+        </aside>
         <div className="flex-1 lg:max-w-2xl">
           <div className="grid gap-6">
             <Outlet />
