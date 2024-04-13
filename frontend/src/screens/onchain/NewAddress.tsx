@@ -71,11 +71,11 @@ export default function NewOnchainAddress() {
   return (
     <div className="grid gap-8">
       <TwoColumnLayoutHeader
-        title="On Chain Address"
+        title="On-chain Address"
         description="You can deposit Bitcoin to your wallet address below:"
       />
       <div className="grid gap-2">
-        <Label htmlFor="text">On Chain Address</Label>
+        <Label htmlFor="text">On-chain Address</Label>
         <Input type="text" value={onchainAddress} />
         <p className="italic text-sm">
           Wait for one block confirmation after depositing.
