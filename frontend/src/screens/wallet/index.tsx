@@ -1,9 +1,9 @@
 import {
   ArrowDownToDot,
   ArrowUpFromDot,
+  CircleDot,
   CopyIcon,
   ExternalLink,
-  PlugZap,
   ShieldCheckIcon,
   Sparkles,
   Unplug
@@ -93,8 +93,8 @@ function Wallet() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="default">
-                    <PlugZap className="mr-2 h-4 w-4 text-primary" />
-                    Connected
+                    <CircleDot className="mr-2 h-4 w-4 text-primary" />
+                    Online
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-64" align="end">
