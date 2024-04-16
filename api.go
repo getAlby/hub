@@ -950,7 +950,7 @@ func (api *API) parseExpiresAt(expiresAtString string) (*time.Time, error) {
 			api.svc.Logger.WithField("expiresAt", expiresAtString).Error("Invalid expiresAt")
 			return nil, fmt.Errorf("invalid expiresAt: %v", err)
 		}
-		expiresAtValue = time.Date(expiresAt.Year(), expiresAt.Month(), expiresAt.Day(), 23, 59, 59, 0, expiresAt.Location())
+		expiresAtValue = time.Date(expiresAtValue.Year(), expiresAtValue.Month(), expiresAtValue.Day(), 23, 59, 59, 0, expiresAtValue.Location())
 		expiresAt = &expiresAtValue
 	}
 	return expiresAt, nil
