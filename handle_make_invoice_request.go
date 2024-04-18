@@ -23,22 +23,6 @@ func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, nip47Request *Ni
 		return
 	}
 
-	if makeInvoiceParams.Description != "" && makeInvoiceParams.DescriptionHash != "" {
-		svc.Logger.WithFields(logrus.Fields{
-			"requestEventNostrId": requestEvent.NostrId,
-			"appId":               app.ID,
-		}).Errorf("Only one of description, description_hash can be provided")
-
-		publishResponse(&Nip47Response{
-			ResultType: nip47Request.Method,
-			Error: &Nip47Error{
-				Code:    nip47.OTHER,
-				Message: "Only one of description, description_hash can be provided",
-			},
-		}, nostr.Tags{})
-		return
-	}
-
 	svc.Logger.WithFields(logrus.Fields{
 		"requestEventNostrId": requestEvent.NostrId,
 		"appId":               app.ID,
