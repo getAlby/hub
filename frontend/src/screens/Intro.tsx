@@ -100,7 +100,7 @@ export function Intro() {
           <Slide
             api={api}
             icon={Wallet}
-            title="Bring Your Wallet With You"
+            title="Take Your Wallet With You"
             description="Connect your wallet to dozens of apps and participate in the bitcoin digital economy."
           />
         </CarouselItem>
