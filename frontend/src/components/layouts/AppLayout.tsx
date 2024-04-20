@@ -35,6 +35,7 @@ import { Sheet, SheetContent, SheetTrigger } from "src/components/ui/sheet";
 import { useToast } from "src/components/ui/use-toast";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useCSRF } from "src/hooks/useCSRF";
+import { useInfo } from "src/hooks/useInfo";
 import { cn } from "src/lib/utils";
 import { request } from "src/utils/request";
 
@@ -116,15 +117,19 @@ export default function AppLayout() {
   }
 
   function MainNavSecondary() {
+    const { data: info } = useInfo();
     return (
       <nav className="grid items-start p-2 text-sm font-medium lg:px-4">
         <div className="px-3 py-2 mb-5">
           <ModeToggle />
         </div>
-        <MenuItem to="/channels">
-          <SendToBack className="h-4 w-4" />
-          Channels
-        </MenuItem>
+        {(info?.backendType === "LDK" ||
+          info?.backendType === "GREENLIGHT") && (
+          <MenuItem to="/channels">
+            <SendToBack className="h-4 w-4" />
+            Channels
+          </MenuItem>
+        )}
         <MenuItem to="/settings">
           <Settings className="h-4 w-4" />
           Settings
