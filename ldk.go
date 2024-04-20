@@ -671,7 +671,7 @@ func (gs *LDKService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainB
 	}).Debug("Listed Balances")
 	return &lnclient.OnchainBalanceResponse{
 		Spendable: int64(balances.SpendableOnchainBalanceSats),
-		Total:     int64(balances.TotalOnchainBalanceSats),
+		Total:     int64(balances.TotalOnchainBalanceSats - balances.TotalAnchorChannelsReserveSats),
 	}, nil
 }
 

@@ -1,4 +1,11 @@
-import { Bitcoin, Cable, ChevronDown, CircleX, CopyIcon, Zap } from "lucide-react";
+import {
+  Bitcoin,
+  Cable,
+  ChevronDown,
+  CircleX,
+  CopyIcon,
+  Zap,
+} from "lucide-react";
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader.tsx";
@@ -105,8 +112,9 @@ export default function Channels() {
       }
       if (
         !confirm(
-          `Are you sure you want to close the channel with ${nodes.find((node) => node.public_key === nodeId)?.alias ||
-          "Unknown Node"
+          `Are you sure you want to close the channel with ${
+            nodes.find((node) => node.public_key === nodeId)?.alias ||
+            "Unknown Node"
           }?\n\nNode ID: ${nodeId}\n\nChannel ID: ${channelId}`
         )
       ) {
@@ -185,7 +193,7 @@ export default function Channels() {
     <>
       <AppHeader
         title="Channels"
-        description="Manage liquidity on your lightnig node."
+        description="Manage liquidity on your lightning node."
         contentRight={
           <>
             <DropdownMenu>
@@ -293,6 +301,16 @@ export default function Channels() {
                 <>
                   {new Intl.NumberFormat().format(balances.onchain.spendable)}{" "}
                   sats
+                  {balances &&
+                    balances.onchain.spendable !== balances.onchain.total && (
+                      <p className="text-xs text-muted-foreground animate-pulse">
+                        +
+                        {new Intl.NumberFormat().format(
+                          balances.onchain.total - balances.onchain.spendable
+                        )}{" "}
+                        sats incoming
+                      </p>
+                    )}
                 </>
               )}
             </div>
@@ -408,11 +426,13 @@ export default function Channels() {
               })}
             </>
           )}
-          {!channels && <TableRow>
-            <TableCell colSpan={4}>
-              <Loading className="m-2" />
-            </TableCell>
-          </TableRow>}
+          {!channels && (
+            <TableRow>
+              <TableCell colSpan={4}>
+                <Loading className="m-2" />
+              </TableCell>
+            </TableRow>
+          )}
         </TableBody>
       </Table>
     </>
