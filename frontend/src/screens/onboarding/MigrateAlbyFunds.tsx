@@ -171,7 +171,8 @@ export default function MigrateAlbyFunds() {
         !channels ||
         (amount >= ALBY_MIN_BALANCE && !instantChannelResponse) ? (
         <Loading className="mx-auto" />
-      ) : amount >= ALBY_MIN_BALANCE && instantChannelResponse ? (
+      ) : instantChannelResponse &&
+        amount - instantChannelResponse.fee >= ALBY_MIN_BALANCE ? (
         <>
           <div className="border rounded-lg">
             <Table>
