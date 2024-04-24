@@ -160,7 +160,7 @@ Follow the steps to integrate Mutinynet with your NWC Next setup:
 
 1. To create a channel, use the [Mutinynet Faucet](https://faucet.mutinynet.com/) by entering your desired Channel Capacity and Amount to Push
 
-2. Locate your Node ID in the NWC Next logs and input this in the Connection String field on the faucet page to request a Lightning Channel
+2. Locate your Node ID. In the Wallet click on the status on the top right "online". This shows the node ID or look in the NWC Next logs.  Then input this in the Connection String field on the faucet page to request a Lightning Channel
 
 ```
 {"level":"info","msg":"Connected to LDK node","nodeId":"<your node ID>","time":"<timestamp>"}
