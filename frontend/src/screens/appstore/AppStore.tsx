@@ -24,9 +24,6 @@ function AppStore() {
           </>
         }
       />
-      <h2 className="text-md font-medium md:text-xl">Featured</h2>
-      TBD
-      <h2 className="text-md font-medium md:text-xl">All apps</h2>
       <SuggestedApps />
     </>
   );
