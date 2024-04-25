@@ -97,11 +97,11 @@ export default function AppLayout() {
         </MenuItem>
         <MenuItem to="/apps">
           <Cable className="h-4 w-4" />
-          Apps
+          Connections
         </MenuItem>
         <MenuItem to="/appstore">
           <Store className="h-4 w-4" />
-          Store
+          App Store
         </MenuItem>
       </>
     );
