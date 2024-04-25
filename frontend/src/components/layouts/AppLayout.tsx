@@ -1,13 +1,10 @@
 import {
   Cable,
-  CircleHelp,
   Menu,
-  MessageCircle,
   SendToBack,
   Settings,
-  ShieldCheck,
   Store,
-  Wallet,
+  Wallet
 } from "lucide-react";
 import { ModeToggle } from "src/components/ui/mode-toggle";
 
@@ -76,7 +73,7 @@ export default function AppLayout() {
         <DropdownMenuGroup>
           <DropdownMenuItem>
             <a
-              href="https://getalby.com/lightning_addresses/"
+              href="https://getalby.com/settings/alby_page"
               target="_blank"
               rel="noreferer noopener"
               className="w-full"
@@ -84,8 +81,6 @@ export default function AppLayout() {
               Profile
             </a>
           </DropdownMenuItem>
-          <DropdownMenuItem disabled>Billing</DropdownMenuItem>
-          <DropdownMenuItem disabled>Keyboard shortcuts</DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={logout}>Log out</DropdownMenuItem>
@@ -108,10 +103,6 @@ export default function AppLayout() {
           <Store className="h-4 w-4" />
           Store
         </MenuItem>
-        <MenuItem to="/permissions" disabled>
-          <ShieldCheck className="h-4 w-4" />
-          Permissions
-        </MenuItem>
       </>
     );
   }
@@ -125,22 +116,14 @@ export default function AppLayout() {
         </div>
         {(info?.backendType === "LDK" ||
           info?.backendType === "GREENLIGHT") && (
-          <MenuItem to="/channels">
-            <SendToBack className="h-4 w-4" />
-            Channels
-          </MenuItem>
-        )}
+            <MenuItem to="/channels">
+              <SendToBack className="h-4 w-4" />
+              Channels
+            </MenuItem>
+          )}
         <MenuItem to="/settings">
           <Settings className="h-4 w-4" />
           Settings
-        </MenuItem>
-        <MenuItem to="/help" disabled>
-          <CircleHelp className="h-4 w-4" />
-          Help
-        </MenuItem>
-        <MenuItem to="feedback" disabled>
-          <MessageCircle className="h-4 w-4" />
-          Leave Feedback
         </MenuItem>
       </nav>
     );
