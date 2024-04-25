@@ -15,7 +15,7 @@ export default function SettingsLayout() {
         <aside className="-mx-4 lg:w-1/5">
           <nav className="flex space-x-2 lg:flex-col lg:space-x-0 lg:space-y-1">
             <MenuItem to="/settings">General</MenuItem>
-            <MenuItem to="/settings/backup">Backup</MenuItem>
+            <MenuItem to="/settings/backup">Key Backup</MenuItem>
             <MenuItem to="/settings/change-unlock-password">
               Unlock Password
             </MenuItem>
