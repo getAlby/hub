@@ -67,12 +67,13 @@ type LNClient interface {
 }
 
 type Channel struct {
-	LocalBalance  int64  `json:"localBalance"`
-	RemoteBalance int64  `json:"remoteBalance"`
-	Id            string `json:"id"`
-	RemotePubkey  string `json:"remotePubkey"`
-	Active        bool   `json:"active"`
-	Public        bool   `json:"public"`
+	LocalBalance    int64       `json:"localBalance"`
+	RemoteBalance   int64       `json:"remoteBalance"`
+	Id              string      `json:"id"`
+	RemotePubkey    string      `json:"remotePubkey"`
+	Active          bool        `json:"active"`
+	Public          bool        `json:"public"`
+	InternalChannel interface{} `json:"internalChannel"`
 }
 
 type ConnectPeerRequest struct {
