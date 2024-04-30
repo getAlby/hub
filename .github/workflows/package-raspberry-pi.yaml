@@ -17,6 +17,14 @@ jobs:
         with:
           go-version: 1.21.x
 
+      - name: Set up Node for the frontend
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+
+      - name: Build the frontend
+        run: cd frontend && yarn install && yarn build:http && cd ..
+
       - name: Get dependencies
         run: go get -v -t -d ./...
 
