@@ -46,8 +46,8 @@ jobs:
       - name: Find and copy shared libraries
         run: |
           mkdir lib
-          find `go env GOMODCACHE` -name 'libglalby_bindings.so' -exec cp {} lib/ \;
-          find `go env GOMODCACHE` -name 'libldk_node.so' -exec cp {} lib/ \;
+          find `go env GOMODCACHE` -name 'libglalby_bindings.so' | grep arm-unknown-linux-gnueabihf | xargs -I {} cp {} ./lib
+          find `go env GOMODCACHE` -name 'libldk_node.so' | grep arm-unknown-linux-gnueabihf | xargs -I {} cp {} ./lib
 
       - name: Strip and patch RPATH in the executable
         run: |
