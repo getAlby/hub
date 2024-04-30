@@ -1,6 +1,9 @@
 name: Build package for Raspberry Pi
 
-on: [workflow_dispatch]
+on:
+  push:
+  release:
+    types: [published]
 
 jobs:
   build:
