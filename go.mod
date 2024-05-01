@@ -8,8 +8,8 @@ require (
 	github.com/adrg/xdg v0.4.0
 	github.com/breez/breez-sdk-go v0.3.4
 	github.com/davrux/echo-logrus/v4 v4.0.3
-	github.com/getAlby/glalby-go v0.0.0-20240404205246-cf6876807d3a
-	github.com/getAlby/ldk-node-go v0.0.0-20240318131343-7ddfe35d7ce9
+	github.com/getAlby/glalby-go v0.0.0-20240416174357-e6e2faa2fbd8
+	github.com/getAlby/ldk-node-go v0.0.0-20240416174401-47e28c909be7
 	github.com/go-gormigrate/gormigrate/v2 v2.1.1
 	github.com/gorilla/sessions v1.2.1
 	github.com/labstack/echo-contrib v0.14.1

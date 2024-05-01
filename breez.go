@@ -1,3 +1,5 @@
+//go:build !skip_breez
+
 package main
 
 import (

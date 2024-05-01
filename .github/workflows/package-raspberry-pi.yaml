@@ -1,0 +1,64 @@
+name: Build package for Raspberry Pi
+
+on:
+  push:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.21.x
+
+      - name: Set up Node for the frontend
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+
+      - name: Build the frontend
+        run: cd frontend && yarn install && yarn build:http && cd ..
+
+      - name: Get dependencies
+        run: go get -v -t -d ./...
+
+      - name: Install cross-compiler
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf binutils-arm-linux-gnueabi patchelf
+
+      - name: Build
+        env:
+          GOOS: linux
+          GOARCH: arm
+          GOARM: 6
+          CGO_ENABLED: 1
+          CC: arm-linux-gnueabihf-gcc
+          CXX: arm-linux-gnueabihf-g++
+        run: go build -tags skip_breez,netgo -v -o nostr-wallet-connect
+
+      - name: Find and copy shared libraries
+        run: |
+          mkdir lib
+          find `go env GOMODCACHE` -name 'libglalby_bindings.so' | grep arm-unknown-linux-gnueabihf | xargs -I {} cp {} ./lib
+          find `go env GOMODCACHE` -name 'libldk_node.so' | grep arm-unknown-linux-gnueabihf | xargs -I {} cp {} ./lib
+
+      - name: Strip and patch RPATH in the executable
+        run: |
+          arm-linux-gnueabihf-strip ./nostr-wallet-connect
+          patchelf --force-rpath --set-rpath '$ORIGIN/lib' ./nostr-wallet-connect
+
+      - name: Zip application and libraries
+        run: zip -9 -r nostr-wallet-connect.zip nostr-wallet-connect lib/
+
+      - name: Archive the artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nostr-wallet-connect.zip
+          path: nostr-wallet-connect.zip
