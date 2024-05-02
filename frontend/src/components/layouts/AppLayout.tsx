@@ -145,7 +145,7 @@ export default function AppLayout() {
           </div>
           <div className="flex flex-col">
             <MainNavSecondary />
-            <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6 gap-3 border-t border-border justify-between">
+            <div className="flex h-14 items-center px-4 lg:h-[60px] lg:px-6 gap-3 border-t border-border justify-between">
               <div className="grid grid-flow-col gap-2">
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={albyMe?.avatar} alt="@satoshi" />
