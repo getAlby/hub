@@ -25,13 +25,17 @@ type AppConfig struct {
 	LDKLogLevel        string `envconfig:"LDK_LOG_LEVEL"`
 	MempoolApi         string `envconfig:"MEMPOOL_API" default:"https://mempool.space/api"`
 	AlbyAPIURL         string `envconfig:"ALBY_API_URL" default:"https://api.getalby.com"`
-	AlbyClientId       string `envconfig:"ALBY_OAUTH_CLIENT_ID"`
-	AlbyClientSecret   string `envconfig:"ALBY_OAUTH_CLIENT_SECRET"`
+	AlbyClientId       string `envconfig:"ALBY_OAUTH_CLIENT_ID" default:"J2PbXS1yOf"`
+	AlbyClientSecret   string `envconfig:"ALBY_OAUTH_CLIENT_SECRET" default:"rABK2n16IWjLTZ9M1uKU"`
 	AlbyOAuthAuthUrl   string `envconfig:"ALBY_OAUTH_AUTH_URL" default:"https://getalby.com/oauth"`
 	BaseUrl            string `envconfig:"BASE_URL" default:"http://localhost:8080"`
 	FrontendUrl        string `envconfig:"FRONTEND_URL"`
 	LogEvents          bool   `envconfig:"LOG_EVENTS" default:"false"`
 	ConnectAlbyAccount bool   `envconfig:"CONNECT_ALBY_ACCOUNT" default:"true"`
+}
+
+func (c *AppConfig) IsDefaultClientId() bool {
+	return c.AlbyClientId == "J2PbXS1yOf"
 }
 
 type Config interface {

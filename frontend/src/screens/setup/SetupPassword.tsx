@@ -69,6 +69,7 @@ export function SetupPassword() {
                   type="password"
                   name="unlock-password"
                   id="unlock-password"
+                  autoComplete="new-password"
                   placeholder="Enter a password"
                   value={store.unlockPassword}
                   onChange={(e) => store.setUnlockPassword(e.target.value)}
@@ -81,6 +82,7 @@ export function SetupPassword() {
                   type="password"
                   name="confirm-password"
                   id="confirm-password"
+                  autoComplete="new-password"
                   placeholder="Re-enter the password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}

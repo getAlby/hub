@@ -56,12 +56,14 @@ export default function DebugTools() {
         <Button
           onClick={() => {
             const amount = window.prompt("Enter amount in sats:");
-            const nodeId = window.prompt("Enter node pubkey:");
-            if (amount && nodeId)
-              apiRequest("/api/send-spontaneous-payment-probes", "POST", {
-                amount: parseInt(amount) * 1000,
-                nodeId,
-              });
+            if (amount) {
+              const nodeId = window.prompt("Enter node pubkey:");
+              if (nodeId)
+                apiRequest("/api/send-spontaneous-payment-probes", "POST", {
+                  amount: parseInt(amount) * 1000,
+                  nodeId,
+                });
+            }
           }}
         >
           Probe Keysend

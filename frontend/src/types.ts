@@ -132,6 +132,7 @@ export interface AppPermissions {
 export interface InfoResponse {
   backendType: BackendType;
   setupCompleted: boolean;
+  oauthRedirect: boolean;
   onboardingCompleted: boolean;
   albyAccountConnected: boolean;
   running: boolean;
@@ -248,13 +249,6 @@ export type NewInstantChannelInvoiceResponse = {
 
 export type RedeemOnchainFundsResponse = {
   txId: string;
-};
-
-export type SuggestedApp = {
-  to: string;
-  title: string;
-  description: string;
-  logo?: string;
 };
 
 export type LightningBalanceResponse = {

@@ -789,6 +789,7 @@ func (api *API) GetInfo(ctx context.Context) (*models.InfoResponse, error) {
 	info.Running = api.svc.lnClient != nil
 	info.BackendType = backendType
 	info.AlbyAuthUrl = api.svc.AlbyOAuthSvc.GetAuthUrl()
+	info.OAuthRedirect = !api.svc.cfg.Env.IsDefaultClientId()
 	albyUserIdentifier, err := api.svc.AlbyOAuthSvc.GetUserIdentifier()
 	if err != nil {
 		api.svc.Logger.WithError(err).Error("Failed to get alby user identifier")

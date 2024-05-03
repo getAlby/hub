@@ -62,7 +62,12 @@ func NewAlbyOAuthService(logger *logrus.Logger, kvStore config.Config, appConfig
 			AuthURL:   appConfig.AlbyOAuthAuthUrl,
 			AuthStyle: 2, // use HTTP Basic Authorization https://pkg.go.dev/golang.org/x/oauth2#AuthStyle
 		},
-		RedirectURL: appConfig.BaseUrl + "/api/alby/callback",
+	}
+
+	if appConfig.IsDefaultClientId() {
+		conf.RedirectURL = "https://getalby.com/hub/callback"
+	} else {
+		conf.RedirectURL = appConfig.BaseUrl + "/api/alby/callback"
 	}
 
 	albyOAuthSvc := &AlbyOAuthService{
