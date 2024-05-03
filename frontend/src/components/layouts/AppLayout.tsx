@@ -71,7 +71,7 @@ export default function AppLayout() {
               className="w-full flex flex-row items-center gap-2"
             >
               <ExternalLinkIcon className="w-4 h-4"></ExternalLinkIcon>
-              Switch to getalby.com
+              Go to getalby.com
             </ExternalLink>
           </DropdownMenuItem>
         </DropdownMenuGroup>
