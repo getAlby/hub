@@ -27,9 +27,9 @@ export default function AppCard({ app }: Props) {
             <CardTitle>
               <div className="flex flex-row items-center">
                 <AppAvatar className="w-10 h-10" appName={app.name} />
-                <h2 className="flex-1 font-semibold text-xl whitespace-nowrap text-ellipsis overflow-hidden ml-4">
+                <div className="flex-1 font-semibold text-xl whitespace-nowrap text-ellipsis overflow-hidden ml-4">
                   {app.name}
-                </h2>
+                </div>
               </div>
             </CardTitle>
           </CardHeader>

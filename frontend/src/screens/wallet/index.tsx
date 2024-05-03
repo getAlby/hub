@@ -242,9 +242,9 @@ function Wallet() {
                 <img src={AlbyHead} className="w-12 h-12 rounded-xl p-1 border" />
                 <div>
                   <CardTitle>
-                    <h2 className="flex-1 leading-5 font-semibold text-xl whitespace-nowrap text-ellipsis overflow-hidden ml-4">
+                    <div className="flex-1 leading-5 font-semibold text-xl whitespace-nowrap text-ellipsis overflow-hidden ml-4">
                       Alby Web
-                    </h2>
+                    </div>
                   </CardTitle>
                   <CardDescription className="ml-4">
                     You can use it as Progressive Web App on your mobile
@@ -268,9 +268,9 @@ function Wallet() {
                 <img src={AlbyHead} className="w-12 h-12 rounded-xl p-1 border bg-[#FFDF6F]" />
                 <div>
                   <CardTitle>
-                    <h2 className="flex-1 leading-5 font-semibold text-xl whitespace-nowrap text-ellipsis overflow-hidden ml-4">
+                    <div className="flex-1 leading-5 font-semibold text-xl whitespace-nowrap text-ellipsis overflow-hidden ml-4">
                       Alby Browser Extension
-                    </h2>
+                    </div>
                   </CardTitle>
                   <CardDescription className="ml-4">
                     Best to use when using your favourite Internet browser
