@@ -12,9 +12,9 @@ import { request } from "src/utils/request"; // build the project for this to ap
 
 import AppAvatar from "src/components/AppAvatar";
 import AppHeader from "src/components/AppHeader";
-import DeleteConfirmationPopup from "src/components/DeleteConfirmationPopup";
 import Loading from "src/components/Loading";
 import Permissions from "src/components/Permissions";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "src/components/ui/alert-dialog";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -34,10 +34,8 @@ function ShowApp() {
   const navigate = useNavigate();
 
   const [editMode, setEditMode] = React.useState(false);
-  const [showPopup, setShowPopup] = React.useState(false);
 
   const { deleteApp } = useDeleteApp(() => {
-    setShowPopup(false);
     navigate("/apps");
   });
 
@@ -99,14 +97,6 @@ function ShowApp() {
 
   return (
     <>
-      {showPopup && (
-        <DeleteConfirmationPopup
-          appName={app.name}
-          onConfirm={() => deleteApp(app.nostrPubkey)}
-          onCancel={() => setShowPopup(false)}
-        />
-      )}
-
       <div className="w-full">
         <div className="flex flex-col gap-5">
           <AppHeader
@@ -122,12 +112,29 @@ function ShowApp() {
               </div>
             }
             contentRight={
-              <Button variant="destructive" onClick={() => setShowPopup(true)}>
-                Delete
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger>
+                  <Button variant="destructive">
+                    Delete
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will revoke the permission and will no longer allow calls
+                      from this public key.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => deleteApp(app.nostrPubkey)}>Continue</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             }
             description={""}
-          ></AppHeader>
+          />
           <Card>
             <CardHeader>
               <CardTitle>Info</CardTitle>
