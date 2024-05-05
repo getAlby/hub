@@ -517,11 +517,19 @@ func (gs *LDKService) ListTransactions(ctx context.Context, from, until, limit, 
 	payments := gs.node.ListPayments()
 
 	for _, payment := range payments {
-		if payment.Status == ldk_node.PaymentStatusSucceeded {
+		if payment.Status == ldk_node.PaymentStatusSucceeded || unpaid {
 			transaction, err := gs.ldkPaymentToTransaction(&payment)
 
 			if err != nil {
 				gs.svc.Logger.Errorf("Failed to map transaction: %v", err)
+				continue
+			}
+
+			// locally filter
+			if from != 0 && uint64(transaction.CreatedAt) < from {
+				continue
+			}
+			if until != 0 && uint64(transaction.CreatedAt) > until {
 				continue
 			}
 
@@ -534,7 +542,14 @@ func (gs *LDKService) ListTransactions(ctx context.Context, from, until, limit, 
 		return transactions[i].CreatedAt > transactions[j].CreatedAt
 	})
 
-	// locally limit for now
+	if offset > 0 {
+		if offset < uint64(len(transactions)) {
+			transactions = transactions[offset:]
+		} else {
+			transactions = []Nip47Transaction{}
+		}
+	}
+
 	if len(transactions) > int(limit) {
 		transactions = transactions[:limit]
 	}
