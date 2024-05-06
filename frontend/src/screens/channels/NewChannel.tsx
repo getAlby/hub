@@ -216,7 +216,11 @@ function NewChannelInternal({ network }: { network: Network }) {
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink href="/channels">Liquidity</BreadcrumbLink>
+            <BreadcrumbLink asChild>
+              <Link to="/channels">
+                Liquidity
+              </Link>
+            </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>

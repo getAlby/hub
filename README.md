@@ -152,7 +152,7 @@ Follow the steps to integrate Mutinynet with your NWC Next setup:
 
 3. During onboarding, after setting your password and authorizing via Alby OAuth, you'll be directed to `/onboarding/lightning/migrate-alby`. Click "Skip For Now" to access your wallet interface
 
-4. Navigate to `channels/onchain/new-address`, copy your On-chain Address, then visit the [Mutinynet Faucet](https://faucet.mutinynet.com/) to deposit sats. Ensure the transaction confirms on [mempool.space](https://mutinynet.com/)
+4. Navigate to `channels/onchain/new-address`, copy your On-Chain Address, then visit the [Mutinynet Faucet](https://faucet.mutinynet.com/) to deposit sats. Ensure the transaction confirms on [mempool.space](https://mutinynet.com/)
 
 5. Your On-chain balance will update under `/channels`
 
@@ -160,7 +160,7 @@ Follow the steps to integrate Mutinynet with your NWC Next setup:
 
 1. To create a channel, use the [Mutinynet Faucet](https://faucet.mutinynet.com/) by entering your desired Channel Capacity and Amount to Push
 
-2. Locate your Node ID. In the Wallet click on the status on the top right "online". This shows the node ID or look in the NWC Next logs.  Then input this in the Connection String field on the faucet page to request a Lightning Channel
+2. Locate your Node ID. In the Wallet click on the status on the top right "online". This shows the node ID or look in the NWC Next logs. Then input this in the Connection String field on the faucet page to request a Lightning Channel
 
 ```
 {"level":"info","msg":"Connected to LDK node","nodeId":"<your node ID>","time":"<timestamp>"}

@@ -2,8 +2,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@radix
 import { Copy, QrCode, RefreshCw } from "lucide-react";
 import React from "react";
 import QRCode from "react-qr-code";
+import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import Loading from "src/components/Loading";
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "src/components/ui/breadcrumb";
 import { Button } from "src/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "src/components/ui/dialog";
 import { Input } from "src/components/ui/input";
@@ -71,9 +73,25 @@ export default function NewOnchainAddress() {
   }
 
   return (
+
     <div className="grid gap-5">
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link to="/channels">
+                Liquidity
+              </Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>On-Chain Address</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
       <AppHeader
-        title="On-chain Address"
+        title="On-Chain Address"
         description="Deposit bitcoin into your wallet by sending a transaction"
       />
       <div className="grid gap-1.5 max-w-lg">
@@ -133,6 +151,6 @@ export default function NewOnchainAddress() {
           </TooltipProvider>
         </div>
       </div>
-    </div>
+    </div >
   );
 }
