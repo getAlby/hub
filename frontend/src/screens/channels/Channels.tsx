@@ -403,7 +403,7 @@ export default function Channels() {
                       {channel.active ? (
                         <Badge>Online</Badge>
                       ) : (
-                        <Badge>Offline</Badge>
+                        <Badge variant="outline">Offline</Badge>
                       )}{" "}
                     </TableCell>
                     <TableCell className="flex flex-row items-center">
