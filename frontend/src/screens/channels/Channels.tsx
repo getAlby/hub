@@ -116,6 +116,7 @@ export default function Channels() {
           return;
         }
       }
+
       if (
         !confirm(
           `Are you sure you want to close the channel with ${nodes.find((node) => node.public_key === nodeId)?.alias ||
@@ -145,7 +146,7 @@ export default function Channels() {
 
       await reloadChannels();
 
-      alert(`🎉 Channel closed`);
+      toast({ title: "Sucessfully closed channel." })
     } catch (error) {
       console.error(error);
       alert("Something went wrong: " + error);
