@@ -1,15 +1,14 @@
 import useSWR, { SWRConfiguration } from "swr";
 
-import { BalancesResponse } from "src/types";
 import { swrFetcher } from "src/utils/swr";
 
 const pollConfiguration: SWRConfiguration = {
-  refreshInterval: 3000,
+  refreshInterval: 10000,
 };
 
-export function useBalances(poll = false) {
-  return useSWR<BalancesResponse>(
-    "/api/balances",
+export function useMempoolApi<T>(endpoint: string | undefined, poll = false) {
+  return useSWR<T>(
+    endpoint && `/api/mempool?endpoint=${endpoint}`,
     swrFetcher,
     poll ? pollConfiguration : undefined
   );

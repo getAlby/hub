@@ -60,6 +60,7 @@ export default function Start() {
                 <Label htmlFor="password">Password</Label>
                 <Input
                   name="unlock"
+                  autoFocus
                   onChange={(e) => setUnlockPassword(e.target.value)}
                   value={unlockPassword}
                   type="password"

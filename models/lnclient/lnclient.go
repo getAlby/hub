@@ -67,13 +67,16 @@ type LNClient interface {
 }
 
 type Channel struct {
-	LocalBalance    int64       `json:"localBalance"`
-	RemoteBalance   int64       `json:"remoteBalance"`
-	Id              string      `json:"id"`
-	RemotePubkey    string      `json:"remotePubkey"`
-	Active          bool        `json:"active"`
-	Public          bool        `json:"public"`
-	InternalChannel interface{} `json:"internalChannel"`
+	LocalBalance          int64       `json:"localBalance"`
+	RemoteBalance         int64       `json:"remoteBalance"`
+	Id                    string      `json:"id"`
+	RemotePubkey          string      `json:"remotePubkey"`
+	FundingTxId           string      `json:"fundingTxId"`
+	Active                bool        `json:"active"`
+	Public                bool        `json:"public"`
+	InternalChannel       interface{} `json:"internalChannel"`
+	Confirmations         *uint32     `json:"confirmations"`
+	ConfirmationsRequired *uint32     `json:"confirmationsRequired"`
 }
 
 type ConnectPeerRequest struct {
@@ -103,6 +106,7 @@ type CloseChannelResponse struct {
 type OnchainBalanceResponse struct {
 	Spendable int64 `json:"spendable"`
 	Total     int64 `json:"total"`
+	Reserved  int64 `json:"reserved"`
 }
 
 type PeerDetails struct {

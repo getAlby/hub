@@ -188,28 +188,28 @@
   resolved "https://registry.yarnpkg.com/@floating-ui/utils/-/utils-0.2.1.tgz#16308cea045f0fc777b6ff20a9f25474dd8293d2"
   integrity sha512-9TANp6GPoMtYzQdt54kfAyMmz1+osLlXdg2ENroU7zzrtflTLrrC/lgrIfaSe+Wu0b89GKccT7vxXA0MoAIO+Q==
 
-"@getalby/bitcoin-connect-react@^3.2.2":
-  version "3.2.2"
-  resolved "https://registry.yarnpkg.com/@getalby/bitcoin-connect-react/-/bitcoin-connect-react-3.2.2.tgz#536c4c94437f2c2c105517510c324a10b629f882"
-  integrity sha512-JLJBJgYySr7LDIfycDum/pNdqKxKr81Rw+iidO6CW45N3XGyVLEHLMDZI1ZfwV1i/nsOiqL65BUICGXrBSBnHA==
+"@getalby/bitcoin-connect-react@^3.3.0":
+  version "3.3.0"
+  resolved "https://registry.yarnpkg.com/@getalby/bitcoin-connect-react/-/bitcoin-connect-react-3.3.0.tgz#8873297eeaaa10adcd5dd52bc15aa7139b7c9397"
+  integrity sha512-JXCVUtZvOZYfb4fhZHpVZZ6iswpKtXi7onqfaEFYQFJHHCeUPdscSsqJrIZ/gEqF1foqkaaKidUmY3w9klz+jw==
   dependencies:
-    "@getalby/bitcoin-connect" "^3.2.2"
+    "@getalby/bitcoin-connect" "^3.3.0"
 
-"@getalby/bitcoin-connect@^3.2.2":
-  version "3.2.2"
-  resolved "https://registry.yarnpkg.com/@getalby/bitcoin-connect/-/bitcoin-connect-3.2.2.tgz#961374b8a7b91dd6310e714c9c9cc8c87dbc438a"
-  integrity sha512-hqsnTVNojTmLDXhhkJvs1RDFKZIFEQDD4UWNlB/hIV3Bx4INxRZzeOi8SOG7idjGF3ix7I8hpG3zeeJCZWNByQ==
+"@getalby/bitcoin-connect@^3.3.0":
+  version "3.3.0"
+  resolved "https://registry.yarnpkg.com/@getalby/bitcoin-connect/-/bitcoin-connect-3.3.0.tgz#7a53bf884729e8ff3e692e059d2b9c02ba75fa4b"
+  integrity sha512-3e4oGasmz6EdX+xwzS/bFv9nZmZcFSafSgrabpX9ejvBGS93sntZ8yFwLf0ynyvpxcUbeCq4Ww0Vt3TlQmwgug==
   dependencies:
-    "@getalby/lightning-tools" "^5.0.1"
+    "@getalby/lightning-tools" "^5.0.3"
     "@getalby/sdk" "^3.2.3"
     "@lightninglabs/lnc-web" "^0.3.1-alpha"
     qrcode-generator "^1.4.4"
     zustand "^4.4.7"
 
-"@getalby/lightning-tools@^5.0.1":
-  version "5.0.1"
-  resolved "https://registry.yarnpkg.com/@getalby/lightning-tools/-/lightning-tools-5.0.1.tgz#08a974bcdf3d98a86ff9909df838360ee67174c8"
-  integrity sha512-xoBfBYMQrJqwryU9fAYGIW6dzWRpdsAw8rroqTROba2bHdYT0ZvGnt4tjqXUhRswopR2X+wp1QeeWHZNL9A0Kg==
+"@getalby/lightning-tools@^5.0.3":
+  version "5.0.3"
+  resolved "https://registry.yarnpkg.com/@getalby/lightning-tools/-/lightning-tools-5.0.3.tgz#4cc6ef1253a30fb4913af89b842645e0c04994bf"
+  integrity sha512-QG3/SBI5n2py5IgsjP3K+c8eq55eiI3PQB12yo9Pot0b5hcN7TNNoTKn0fgLJjO1iEVCUkF513kDOpjjXwK0hQ==
 
 "@getalby/sdk@^3.2.3":
   version "3.3.1"

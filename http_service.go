@@ -95,7 +95,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 
 	httpSvc.albyHttpSvc.RegisterSharedRoutes(e, authMiddleware)
 
-	e.GET("/api/mempool/lightning/nodes/:pubkey", httpSvc.mempoolLightningNodeHandler, authMiddleware)
+	e.GET("/api/mempool", httpSvc.mempoolApiHandler, authMiddleware)
 
 	e.POST("/api/send-payment-probes", httpSvc.sendPaymentProbesHandler, authMiddleware)
 	e.POST("/api/send-spontaneous-payment-probes", httpSvc.sendSpontaneousPaymentProbesHandler, authMiddleware)
@@ -326,16 +326,17 @@ func (httpSvc *HttpService) balancesHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, balances)
 }
 
-func (httpSvc *HttpService) mempoolLightningNodeHandler(c echo.Context) error {
-	pubkey := c.Param("pubkey")
-	if pubkey == "" {
+func (httpSvc *HttpService) mempoolApiHandler(c echo.Context) error {
+	endpoint := c.QueryParam("endpoint")
+	if endpoint == "" {
 		return c.JSON(http.StatusBadRequest, models.ErrorResponse{
 			Message: "Invalid pubkey parameter",
 		})
 	}
 
-	response, err := httpSvc.api.GetMempoolLightningNode(pubkey)
+	response, err := httpSvc.api.RequestMempoolApi(endpoint)
 	if err != nil {
+		httpSvc.svc.Logger.WithField("endpoint", endpoint).WithError(err).Error("Failed to request mempool API")
 		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
 			Message: fmt.Sprintf("Failed to request mempool API: %s", err.Error()),
 		})

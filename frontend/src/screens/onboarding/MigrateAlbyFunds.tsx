@@ -8,25 +8,18 @@ import { Button } from "src/components/ui/button";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { Table, TableBody, TableCell, TableRow } from "src/components/ui/table";
 import { useToast } from "src/components/ui/use-toast";
-import {
-  ALBY_MIN_BALANCE,
-  ALBY_SERVICE_FEE,
-  localStorageKeys,
-} from "src/constants";
+import { ALBY_MIN_BALANCE, ALBY_SERVICE_FEE } from "src/constants";
 import { useAlbyBalance } from "src/hooks/useAlbyBalance";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useCSRF } from "src/hooks/useCSRF";
 import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
 import {
-  LSPOption,
   NewInstantChannelInvoiceRequest,
   NewInstantChannelInvoiceResponse,
 } from "src/types";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
-
-const DEFAULT_LSP: LSPOption = "ALBY";
 
 export default function MigrateAlbyFunds() {
   const { data: albyMe } = useAlbyMe();
@@ -59,7 +52,7 @@ export default function MigrateAlbyFunds() {
           throw new Error("csrf not loaded");
         }
         const newJITChannelRequest: NewInstantChannelInvoiceRequest = {
-          lsp: DEFAULT_LSP,
+          lsp: "ALBY",
           amount,
         };
         const response = await request<NewInstantChannelInvoiceResponse>(
@@ -218,7 +211,7 @@ export default function MigrateAlbyFunds() {
             >
               Migrate Funds and Open Channel
             </LoadingButton>
-            <Link to="../channels/new/instant">
+            <Link to="/channels/new">
               <Button variant="link">Explore Other Options</Button>
             </Link>
           </form>
@@ -234,20 +227,11 @@ export default function MigrateAlbyFunds() {
               external wallet though.
             </AlertDescription>
           </Alert>
-          <Link to="../channels/new/instant" className="w-full">
+          <Link to="/channels/new" className="w-full">
             <Button className="w-full">Explore Other Options</Button>
           </Link>
         </>
       )}
-      <Button
-        variant="link"
-        onClick={() => {
-          localStorage.setItem(localStorageKeys.onboardingSkipped, "1");
-          navigate("/");
-        }}
-      >
-        Skip For Now
-      </Button>
     </div>
   );
 }

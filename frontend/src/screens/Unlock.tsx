@@ -64,6 +64,7 @@ export default function Unlock() {
             <div className="grid gap-1.5">
               <Label htmlFor="password">Password</Label>
               <Input
+                autoFocus
                 id="password"
                 type="password"
                 required

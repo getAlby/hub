@@ -63,3 +63,9 @@
 input[type="text"]::-webkit-calendar-picker-indicator {
   display: none !important;
 }
+
+html {
+  --bc-color-brand: #000000; /* use a different brand color in dark mode */
+  --bc-color-brand-dark: #ffffff; /* use a different brand color in dark mode */
+  --bc-brand-mix: 100%; /* how much to mix the brand color with default foreground color */
+}

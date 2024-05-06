@@ -66,7 +66,7 @@ export default function AppCreated() {
           Copy pairing secret
         </Button>
         <Dialog>
-          <DialogTrigger>
+          <DialogTrigger asChild>
             <Button variant="secondary">
               <QrCode className="w-4 h-4 mr-2" />
               QR-Code

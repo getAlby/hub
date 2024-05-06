@@ -1,6 +1,5 @@
 import React from "react";
 import { Outlet } from "react-router-dom";
-import { ModeToggle } from "src/components/ui/mode-toggle";
 
 const quotes = [
   {
@@ -41,7 +40,7 @@ export default function TwoColumnFullScreenLayout() {
         <div className="flex-1 w-full h-full flex flex-col">
           <div className="flex flex-row justify-between">
             <h1 className="text-lg font-medium">Alby Hub</h1>
-            <ModeToggle />
+            {/* <ModeToggle /> */}
           </div>
         </div>
         <div className="flex flex-row gap-5">

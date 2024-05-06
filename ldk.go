@@ -56,10 +56,15 @@ func NewLDKService(ctx context.Context, svc *Service, mnemonic, workDir string, 
 		lsp.VoltageLSP().Pubkey,
 		lsp.OlympusLSP().Pubkey,
 		lsp.AlbyPlebsLSP().Pubkey,
+		lsp.AlbyMutinynetPlebsLSP().Pubkey,
+		lsp.OlympusMutinynetFlowLSP().Pubkey,
 	}
 	config.AnchorChannelsConfig.TrustedPeersNoReserve = []string{
 		lsp.OlympusLSP().Pubkey,
+		lsp.OlympusMutinynetLSPS1LSP().Pubkey,
+		lsp.OlympusMutinynetFlowLSP().Pubkey,
 		lsp.AlbyPlebsLSP().Pubkey,
+		lsp.AlbyMutinynetPlebsLSP().Pubkey,
 		"0296b2db342fcf87ea94d981757fdf4d3e545bd5cef4919f58b5d38dfdd73bf5c9", // blocktank
 	}
 
@@ -583,13 +588,16 @@ func (gs *LDKService) ListChannels(ctx context.Context) ([]lnclient.Channel, err
 
 	for _, ldkChannel := range ldkChannels {
 		channels = append(channels, lnclient.Channel{
-			InternalChannel: ldkChannel,
-			LocalBalance:    int64(ldkChannel.OutboundCapacityMsat),
-			RemoteBalance:   int64(ldkChannel.InboundCapacityMsat),
-			RemotePubkey:    ldkChannel.CounterpartyNodeId,
-			Id:              ldkChannel.UserChannelId, // CloseChannel takes the UserChannelId
-			Active:          ldkChannel.IsUsable,      // superset of ldkChannel.IsReady
-			Public:          ldkChannel.IsPublic,
+			InternalChannel:       ldkChannel,
+			LocalBalance:          int64(ldkChannel.OutboundCapacityMsat),
+			RemoteBalance:         int64(ldkChannel.InboundCapacityMsat),
+			RemotePubkey:          ldkChannel.CounterpartyNodeId,
+			Id:                    ldkChannel.UserChannelId, // CloseChannel takes the UserChannelId
+			Active:                ldkChannel.IsUsable,      // superset of ldkChannel.IsReady
+			Public:                ldkChannel.IsPublic,
+			FundingTxId:           ldkChannel.FundingTxo.Txid,
+			Confirmations:         ldkChannel.Confirmations,
+			ConfirmationsRequired: ldkChannel.ConfirmationsRequired,
 		})
 	}
 
@@ -622,7 +630,7 @@ func (gs *LDKService) GetNodeConnectionInfo(ctx context.Context) (nodeConnection
 func (gs *LDKService) ConnectPeer(ctx context.Context, connectPeerRequest *lnclient.ConnectPeerRequest) error {
 	err := gs.node.Connect(connectPeerRequest.Pubkey, connectPeerRequest.Address+":"+strconv.Itoa(int(connectPeerRequest.Port)), true)
 	if err != nil {
-		gs.svc.Logger.WithError(err).Error("ConnectPeer failed")
+		gs.svc.Logger.WithField("request", connectPeerRequest).WithError(err).Error("ConnectPeer failed")
 		return err
 	}
 
@@ -712,6 +720,7 @@ func (gs *LDKService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainB
 	return &lnclient.OnchainBalanceResponse{
 		Spendable: int64(balances.SpendableOnchainBalanceSats),
 		Total:     int64(balances.TotalOnchainBalanceSats - balances.TotalAnchorChannelsReserveSats),
+		Reserved:  int64(balances.TotalAnchorChannelsReserveSats),
 	}, nil
 }
 

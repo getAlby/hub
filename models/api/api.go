@@ -103,6 +103,7 @@ type InfoResponse struct {
 	ShowBackupReminder   bool   `json:"showBackupReminder"`
 	AlbyUserIdentifier   string `json:"albyUserIdentifier"`
 	AlbyAccountConnected bool   `json:"albyAccountConnected"`
+	Network              string `json:"network"`
 }
 
 type EncryptedMnemonicResponse struct {

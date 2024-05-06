@@ -109,15 +109,15 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		}
 	}
 
-	mempoolLightningNodePubkeyRegex := regexp.MustCompile(
-		`/api/mempool/lightning/nodes/([0-9a-f]+)`,
+	mempoolApiRegex := regexp.MustCompile(
+		`/api/mempool\?endpoint=(.+)`,
 	)
-	mempoolLightningNodePubkeyMatch := mempoolLightningNodePubkeyRegex.FindStringSubmatch(route)
+	mempoolApiEndpointMatch := mempoolApiRegex.FindStringSubmatch(route)
 
 	switch {
-	case len(mempoolLightningNodePubkeyMatch) > 1:
-		pubkey := mempoolLightningNodePubkeyMatch[1]
-		node, err := app.api.GetMempoolLightningNode(pubkey)
+	case len(mempoolApiEndpointMatch) > 1:
+		endpoint := mempoolApiEndpointMatch[1]
+		node, err := app.api.RequestMempoolApi(endpoint)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}

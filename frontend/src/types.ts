@@ -140,7 +140,10 @@ export interface InfoResponse {
   albyAuthUrl: string;
   showBackupReminder: boolean;
   albyUserIdentifier: string;
+  network?: Network;
 }
+
+export type Network = "bitcoin" | "testnet" | "signet";
 
 export interface EncryptedMnemonicResponse {
   mnemonic: string;
@@ -159,8 +162,11 @@ export type Channel = {
   remoteBalance: number;
   remotePubkey: string;
   id: string;
+  fundingTxId: string;
   active: boolean;
   public: boolean;
+  confirmations?: number;
+  confirmationsRequired?: number;
 };
 
 export type NodeConnectionInfo = {
@@ -195,6 +201,7 @@ export type GetOnchainAddressResponse = {
 export type OnchainBalanceResponse = {
   spendable: number;
   total: number;
+  reserved: number;
 };
 
 // from https://mempool.space/docs/api/rest#get-node-stats
@@ -233,13 +240,9 @@ export type AlbyBalance = {
   sats: number;
 };
 
-// TODO: move to different file
-export type LSPOption = "ALBY" | "OLYMPUS" | "VOLTAGE";
-export const LSP_OPTIONS: LSPOption[] = ["ALBY", "OLYMPUS", "VOLTAGE"];
-
 export type NewInstantChannelInvoiceRequest = {
   amount: number;
-  lsp: LSPOption;
+  lsp: string;
 };
 
 export type NewInstantChannelInvoiceResponse = {
@@ -264,3 +267,22 @@ export type BalancesResponse = {
   onchain: OnchainBalanceResponse;
   lightning: LightningBalanceResponse;
 };
+
+export type NewChannelOrderStatus = "pay" | "success" | "opening";
+
+export type NewChannelOrder = {
+  amount: string;
+  isPublic: boolean;
+  status: NewChannelOrderStatus;
+  fundingTxId?: string;
+} & (
+  | {
+      paymentMethod: "onchain";
+      pubkey: string;
+      host: string;
+    }
+  | {
+      paymentMethod: "lightning";
+      lsp: string;
+    }
+);

@@ -383,6 +383,7 @@ func (gs *GreenlightService) ListChannels(ctx context.Context) ([]lnclient.Chann
 			RemotePubkey:  glChannel.PeerId,
 			Id:            *glChannel.ChannelId,
 			Active:        glChannel.State == 2,
+			FundingTxId:   glChannel.FundingTxid,
 			// TODO: add Public property
 		})
 	}
@@ -505,7 +506,7 @@ func (gs *GreenlightService) RedeemOnchainFunds(ctx context.Context, toAddress s
 		gs.svc.Logger.WithError(err).Error("Withdraw failed")
 		return "", err
 	}
-	gs.svc.Logger.WithField("txId", txId).Info("Redeeming on-chain funds")
+	gs.svc.Logger.WithField("txId", txId).Info("Redeeming On-Chain funds")
 
 	return txId.Txid, nil
 }

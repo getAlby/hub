@@ -17,22 +17,15 @@ export function HomeRedirect() {
     if (info.setupCompleted && info.running) {
       if (info.unlocked) {
         if (info.albyAccountConnected) {
-          const onboardingSkipped = window.localStorage.getItem(
-            localStorageKeys.onboardingSkipped
+          const returnTo = window.localStorage.getItem(
+            localStorageKeys.returnTo
           );
-          if (info.onboardingCompleted || onboardingSkipped) {
-            const returnTo = window.localStorage.getItem(
-              localStorageKeys.returnTo
-            );
-            // setTimeout hack needed for React strict mode (in development)
-            // because the effect runs twice before the navigation occurs
-            setTimeout(() => {
-              window.localStorage.removeItem(localStorageKeys.returnTo);
-            }, 100);
-            to = returnTo || "/wallet";
-          } else {
-            to = "/onboarding/lightning/migrate-alby";
-          }
+          // setTimeout hack needed for React strict mode (in development)
+          // because the effect runs twice before the navigation occurs
+          setTimeout(() => {
+            window.localStorage.removeItem(localStorageKeys.returnTo);
+          }, 100);
+          to = returnTo || "/wallet";
         } else {
           to = "/alby/auth";
         }

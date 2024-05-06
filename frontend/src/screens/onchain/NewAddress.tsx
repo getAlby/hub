@@ -1,11 +1,18 @@
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@radix-ui/react-tooltip";
+import { Copy, QrCode, RefreshCw } from "lucide-react";
 import React from "react";
+import QRCode from "react-qr-code";
+import AppHeader from "src/components/AppHeader";
 import Loading from "src/components/Loading";
-import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
+import { Button } from "src/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "src/components/ui/dialog";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
+import { toast } from "src/components/ui/use-toast";
 import { localStorageKeys } from "src/constants";
 import { useCSRF } from "src/hooks/useCSRF";
+import { copyToClipboard } from "src/lib/clipboard";
 import { GetOnchainAddressResponse } from "src/types";
 import { request } from "src/utils/request";
 
@@ -54,11 +61,6 @@ export default function NewOnchainAddress() {
     getNewAddress();
   }, [getNewAddress]);
 
-  function confirmGetNewAddress() {
-    if (confirm("Do you want a fresh address?")) {
-      getNewAddress();
-    }
-  }
 
   if (!onchainAddress) {
     return (
@@ -69,28 +71,67 @@ export default function NewOnchainAddress() {
   }
 
   return (
-    <div className="grid gap-8">
-      <TwoColumnLayoutHeader
+    <div className="grid gap-5">
+      <AppHeader
         title="On-chain Address"
-        description="You can deposit Bitcoin to your wallet address below:"
+        description="Deposit bitcoin into your wallet by sending a transaction"
       />
-      <div className="grid gap-2">
-        <Label htmlFor="text">On-chain Address</Label>
-        <Input type="text" value={onchainAddress} />
-        <p className="italic text-sm">
-          Wait for one block confirmation after depositing.
+      <div className="grid gap-1.5 max-w-lg">
+        <Label htmlFor="text">On-Chain Address</Label>
+        <p className="text-xs text-muted-foreground">
+          Funds will show up after one confirmation on the liquidity page.
         </p>
-      </div>
+        <div className="flex flex-row items-center gap-2">
+          <Input type="text" value={onchainAddress} className="flex-1" readOnly />
+          <Button
+            variant="secondary"
+            size="icon"
+            onClick={() => { copyToClipboard(onchainAddress); toast({ title: "Copied to clipboard." }) }}>
+            <Copy className="w-4 h-4" />
+          </Button>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="secondary" size="icon">
+                <QrCode className="w-4 h-4" />
+              </Button>
+            </DialogTrigger>
 
-      <div>
-        <LoadingButton
-          size={"sm"}
-          onClick={confirmGetNewAddress}
-          disabled={isLoading}
-          loading={isLoading}
-        >
-          Get a new address
-        </LoadingButton>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>
+                  Deposit bitcoin
+                </DialogTitle>
+                <DialogDescription>
+                  Scan this QR code with your wallet to send funds.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="flex flex-row justify-center p-3">
+                <a
+                  href={`bitcoin:${onchainAddress}`}
+                  target="_blank"
+                >
+                  <QRCode value={onchainAddress} />
+                </a>
+              </div>
+            </DialogContent>
+          </Dialog>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <LoadingButton
+                  variant="secondary"
+                  size="icon"
+                  onClick={getNewAddress}
+                  loading={isLoading}>
+                  <RefreshCw className="w-4 h-4" />
+                </LoadingButton>
+              </TooltipTrigger>
+              <TooltipContent>
+                Generate a new address
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
       </div>
     </div>
   );

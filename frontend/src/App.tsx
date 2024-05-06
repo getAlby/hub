@@ -17,11 +17,7 @@ import NewApp from "src/screens/apps/NewApp";
 import ShowApp from "src/screens/apps/ShowApp";
 import AppStore from "src/screens/appstore/AppStore";
 import Channels from "src/screens/channels/Channels";
-import NewBlocktankChannel from "src/screens/channels/NewBlocktankChannel";
 import NewChannel from "src/screens/channels/NewChannel";
-import NewCustomChannel from "src/screens/channels/NewCustomChannel";
-import NewInstantChannel from "src/screens/channels/NewInstantChannel";
-import RecommendedChannels from "src/screens/channels/RecommendedChannels";
 import MigrateAlbyFunds from "src/screens/onboarding/MigrateAlbyFunds";
 import NewOnchainAddress from "src/screens/onchain/NewAddress";
 import Settings from "src/screens/settings/Settings";
@@ -39,19 +35,10 @@ import { OnboardingRedirect } from "src/components/redirects/OnboardingRedirect"
 import { Toaster } from "src/components/ui/toaster";
 import { Intro } from "src/screens/Intro";
 import AlbyAuthRedirect from "src/screens/alby/AlbyAuthRedirect";
+import { CurrentChannelOrder } from "src/screens/channels/CurrentChannelOrder";
 import { Success } from "src/screens/onboarding/Success";
 import { ChangeUnlockPassword } from "src/screens/settings/ChangeUnlockPassword";
 import DebugTools from "src/screens/settings/DebugTools";
-
-const newChannelRoutes = (
-  <Route path="new">
-    <Route path="" element={<NewChannel />} />
-    <Route path="instant" element={<NewInstantChannel />} />
-    <Route path="blocktank" element={<NewBlocktankChannel />} />
-    <Route path="recommended" element={<RecommendedChannels />} />
-    <Route path="custom" element={<NewCustomChannel />} />
-  </Route>
-);
 
 function App() {
   usePosthog();
@@ -90,7 +77,8 @@ function App() {
               </Route>
               <Route path="channels" element={<DefaultRedirect />}>
                 <Route index path="" element={<Channels />} />
-                {newChannelRoutes}
+                <Route path="new" element={<NewChannel />} />
+                <Route path="order" element={<CurrentChannelOrder />} />
                 <Route
                   path="onchain/new-address"
                   element={<NewOnchainAddress />}
@@ -121,7 +109,6 @@ function App() {
               <Route path="onboarding" element={<OnboardingRedirect />}>
                 <Route path="lightning">
                   <Route path="migrate-alby" element={<MigrateAlbyFunds />} />
-                  <Route path="channels">{newChannelRoutes}</Route>
                 </Route>
                 <Route path="success" element={<Success />} />
               </Route>

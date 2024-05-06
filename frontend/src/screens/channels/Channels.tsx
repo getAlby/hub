@@ -1,10 +1,12 @@
 import {
+  ArrowDown,
+  ArrowUp,
   Bitcoin,
-  Cable,
   ChevronDown,
-  CircleX,
   CopyIcon,
-  Zap,
+  Hotel,
+  MoreHorizontal,
+  Trash2,
 } from "lucide-react";
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -15,6 +17,7 @@ import { Button } from "src/components/ui/button.tsx";
 import {
   Card,
   CardContent,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "src/components/ui/card.tsx";
@@ -37,12 +40,14 @@ import {
 } from "src/components/ui/table.tsx";
 import { toast } from "src/components/ui/use-toast.ts";
 import { ONCHAIN_DUST_SATS } from "src/constants.ts";
+import { useAlbyBalance } from "src/hooks/useAlbyBalance.ts";
 import { useBalances } from "src/hooks/useBalances.ts";
 import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
 import { useNodeConnectionInfo } from "src/hooks/useNodeConnectionInfo.ts";
 import { useRedeemOnchainFunds } from "src/hooks/useRedeemOnchainFunds.ts";
 import { copyToClipboard } from "src/lib/clipboard.ts";
+import { formatAmount } from "src/lib/utils.ts";
 import { CloseChannelResponse, Node } from "src/types";
 import { request } from "src/utils/request";
 import { useCSRF } from "../../hooks/useCSRF.ts";
@@ -51,6 +56,7 @@ export default function Channels() {
   const { data: channels, mutate: reloadChannels } = useChannels();
   const { data: nodeConnectionInfo } = useNodeConnectionInfo();
   const { data: balances } = useBalances();
+  const { data: albyBalance } = useAlbyBalance();
   const [nodes, setNodes] = React.useState<Node[]>([]);
   const { data: info, mutate: reloadInfo } = useInfo();
   const { data: csrf } = useCSRF();
@@ -72,7 +78,7 @@ export default function Channels() {
       channels?.map(async (channel): Promise<Node | undefined> => {
         try {
           const response = await request<Node>(
-            `/api/mempool/lightning/nodes/${channel.remotePubkey}`
+            `/api/mempool?endpoint=/v1/lightning/nodes/${channel.remotePubkey}`
           );
           return response;
         } catch (error) {
@@ -112,9 +118,8 @@ export default function Channels() {
       }
       if (
         !confirm(
-          `Are you sure you want to close the channel with ${
-            nodes.find((node) => node.public_key === nodeId)?.alias ||
-            "Unknown Node"
+          `Are you sure you want to close the channel with ${nodes.find((node) => node.public_key === nodeId)?.alias ||
+          "Unknown Node"
           }?\n\nNode ID: ${nodeId}\n\nChannel ID: ${channelId}`
         )
       ) {
@@ -192,8 +197,8 @@ export default function Channels() {
   return (
     <>
       <AppHeader
-        title="Channels"
-        description="Manage liquidity on your lightning node."
+        title="Liquidity"
+        description="Manage your lightning node liquidity."
         contentRight={
           <>
             <DropdownMenu>
@@ -211,7 +216,6 @@ export default function Channels() {
                         Node
                       </div>
                       <div className="overflow-hidden text-ellipsis">
-                        {/* TODO: replace with skeleton loader */}
                         {nodeConnectionInfo?.pubkey || "Loading..."}
                       </div>
                       {nodeConnectionInfo && (
@@ -262,29 +266,30 @@ export default function Channels() {
               </DropdownMenuContent>
             </DropdownMenu>
             <Link to="/channels/new">
-              <Button>Open a channel</Button>
+              <Button>Open Channel</Button>
             </Link>
           </>
         }
       ></AppHeader>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+        {(albyBalance?.sats || 0) >= 100 && (
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Alby Hosted Balance
+              </CardTitle>
+              <Hotel className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{albyBalance?.sats} sats</div>
+            </CardContent>
+          </Card>
+        )}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Number of channels
-            </CardTitle>
-            <Cable className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {channels && channels.length}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              On-chain balance
+              Savings Balance
             </CardTitle>
             <Bitcoin className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -315,13 +320,18 @@ export default function Channels() {
               )}
             </div>
           </CardContent>
+          <CardFooter className="flex justify-end">
+            <Link to="onchain/new-address">
+              <Button variant="outline">Deposit</Button>
+            </Link>
+          </CardFooter>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Lightning Balance
+              Spending Balance
             </CardTitle>
-            <Zap className="h-4 w-4 text-muted-foreground" />
+            <ArrowUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             {!channels && (
@@ -341,14 +351,38 @@ export default function Channels() {
             )}
           </CardContent>
         </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Receiving Capacity
+            </CardTitle>
+            <ArrowDown className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {balances &&
+                new Intl.NumberFormat().format(
+                  Math.floor(balances.lightning.totalReceivable / 1000)
+                )}{" "}
+              sats
+            </div>
+          </CardContent>
+          <CardFooter className="flex justify-end">
+            <Link to="/channels/new">
+              <Button variant="outline">Increase</Button>
+            </Link>
+          </CardFooter>
+        </Card>
       </div>
 
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead className="w-[80px]">Status</TableHead>
             <TableHead>Node</TableHead>
-            <TableHead className="w-[100px]">Capacity</TableHead>
-            <TableHead className="w-[300px]">Local / Remote</TableHead>
+            <TableHead className="w-[150px]">Capacity</TableHead>
+            <TableHead className="w-[150px]">Inbound</TableHead>
+            <TableHead className="w-[150px]">Outbound</TableHead>
             <TableHead className="w-[50px]"></TableHead>
           </TableRow>
         </TableHeader>
@@ -356,21 +390,21 @@ export default function Channels() {
           {channels && channels.length > 0 && (
             <>
               {channels.map((channel) => {
-                // const localMaxPercentage =
-                //   maxChannelsBalance.local / 100;
-                // const remoteMaxPercentage =
-                //   maxChannelsBalance.remote / 100;
                 const node = nodes.find(
                   (n) => n.public_key === channel.remotePubkey
                 );
                 const alias = node?.alias || "Unknown";
                 const capacity = channel.localBalance + channel.remoteBalance;
-                const localPercentage = (channel.localBalance / capacity) * 100;
-                const remotePercentage =
-                  (channel.remoteBalance / capacity) * 100;
 
                 return (
                   <TableRow key={channel.id}>
+                    <TableCell>
+                      {channel.active ? (
+                        <Badge>Online</Badge>
+                      ) : (
+                        <Badge>Offline</Badge>
+                      )}{" "}
+                    </TableCell>
                     <TableCell className="flex flex-row items-center">
                       <a
                         title={channel.remotePubkey}
@@ -378,8 +412,7 @@ export default function Channels() {
                         target="_blank"
                         rel="noopener noreferer"
                       >
-                        {channel.active ? "🟢" : "🔴"}{" "}
-                        <Button variant="link">
+                        <Button variant="link" className="p-0 mr-2">
                           {alias ||
                             channel.remotePubkey.substring(0, 5) + "..."}
                         </Button>
@@ -388,38 +421,36 @@ export default function Channels() {
                         {channel.public ? "Public" : "Private"}
                       </Badge>
                     </TableCell>
-                    <TableCell>{formatAmount(capacity)}</TableCell>
+                    <TableCell>{formatAmount(capacity)} sats</TableCell>
                     <TableCell>
-                      <div className="flex justify-between">
-                        <span>{formatAmount(channel.localBalance)}</span>
-                        <span>{formatAmount(channel.remoteBalance)}</span>
-                      </div>
-
-                      <div className="w-full flex justify-center items-center">
-                        <div
-                          className="bg-accent-foreground h-2 rounded-l-lg"
-                          style={{ width: `${localPercentage}%` }}
-                        ></div>
-                        <div
-                          className="bg-muted-foreground h-2 rounded-r-lg"
-                          style={{ width: `${remotePercentage}%` }}
-                        ></div>
-                      </div>
+                      {formatAmount(channel.remoteBalance)} sats
                     </TableCell>
                     <TableCell>
-                      <Button
-                        size="icon"
-                        variant="outline"
-                        onClick={() =>
-                          closeChannel(
-                            channel.id,
-                            channel.remotePubkey,
-                            channel.active
-                          )
-                        }
-                      >
-                        <CircleX />
-                      </Button>
+                      {formatAmount(channel.localBalance)} sats
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger>
+                          <Button size="icon" variant="ghost">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            className="flex flex-row items-center gap-2"
+                            onClick={() =>
+                              closeChannel(
+                                channel.id,
+                                channel.remotePubkey,
+                                channel.active
+                              )
+                            }
+                          >
+                            <Trash2 className="text-destructive" />
+                            Close Channel
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 );
@@ -428,7 +459,7 @@ export default function Channels() {
           )}
           {!channels && (
             <TableRow>
-              <TableCell colSpan={4}>
+              <TableCell colSpan={6}>
                 <Loading className="m-2" />
               </TableCell>
             </TableRow>
@@ -438,12 +469,3 @@ export default function Channels() {
     </>
   );
 }
-
-const formatAmount = (amount: number, decimals = 1) => {
-  amount /= 1000; //msat to sat
-  let i = 0;
-  for (i; amount >= 1000; i++) {
-    amount /= 1000;
-  }
-  return amount.toFixed(i > 0 ? decimals : 0) + ["", "k", "M", "G"][i];
-};

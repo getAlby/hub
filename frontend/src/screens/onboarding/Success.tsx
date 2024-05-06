@@ -1,6 +1,7 @@
 import confetti from "canvas-confetti";
 import React from "react";
 import { Link } from "react-router-dom";
+import ExternalLink from "src/components/ExternalLink";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { Button } from "src/components/ui/button";
 
@@ -10,7 +11,7 @@ export function Success() {
       setTimeout(() => {
         confetti({
           origin: {
-            x: 0.5 + Math.random() * 0.5,
+            x: Math.random(),
             y: Math.random(),
           },
           colors: ["#000", "#333", "#666", "#999", "#BBB", "#FFF"],
@@ -22,17 +23,27 @@ export function Success() {
   return (
     <div className="flex flex-col justify-center gap-5 p-5 max-w-md items-stretch">
       <TwoColumnLayoutHeader
-        title="Setup Completed"
-        description="Your Alby Account is now self-sovereign"
+        title="Channel Opened"
+        description="Your new lightning channel is ready to use"
       />
 
       <p>
-        Congratulations! You're now running your own lightning node connected to
-        the lightning network.
+        Congratulations! Your channel is active and can be used to send and
+        receive payments.
+      </p>
+      <p>
+        To ensure you can both send and receive, make sure to balance your{" "}
+        <ExternalLink
+          to="https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub/liquidity"
+          className="underline"
+        >
+          channel's liquidity
+        </ExternalLink>
+        .
       </p>
 
       <Link to="/" className="flex justify-center mt-8">
-        <Button>Go to your new wallet</Button>
+        <Button>Go to your wallet</Button>
       </Link>
     </div>
   );
