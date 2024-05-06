@@ -79,7 +79,7 @@ export default function NewOnchainAddress() {
       <div className="grid gap-1.5 max-w-lg">
         <Label htmlFor="text">On-Chain Address</Label>
         <p className="text-xs text-muted-foreground">
-          Funds will show up after one confirmation on the liquidity page.
+          Funds will show up after one confirmation in your savings balance on the liquidity page.
         </p>
         <div className="flex flex-row items-center gap-2">
           <Input type="text" value={onchainAddress} className="flex-1" readOnly />

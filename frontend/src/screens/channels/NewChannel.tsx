@@ -236,7 +236,7 @@ function NewChannelInternal({ network }: { network: Network }) {
           <Label htmlFor="amount">Channel size (sats)</Label>
           {order.amount && +order.amount < 200_000 && (
             <p className="text-muted-foreground text-xs">
-              Channels smaller than 200K sats are not recommended.{" "}
+              For a smooth experience consider a opening a channel of 200k sats in size or more.{" "}
               <ExternalLink
                 to="https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-lightning-account/faqs-alby-account"
                 className="underline"
