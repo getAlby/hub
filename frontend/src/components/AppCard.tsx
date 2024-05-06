@@ -21,8 +21,8 @@ type Props = {
 export default function AppCard({ app }: Props) {
   return (
     <>
-      <Link to={`/apps/${app.nostrPubkey}`}>
-        <Card>
+      <Link className="h-full" to={`/apps/${app.nostrPubkey}`}>
+        <Card className="h-full flex flex-col">
           <CardHeader>
             <CardTitle>
               <div className="flex flex-row items-center">
@@ -33,43 +33,45 @@ export default function AppCard({ app }: Props) {
               </div>
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            {app.requestMethods?.includes(NIP_47_PAY_INVOICE_METHOD) ? (
-              app.maxAmount > 0 ? (
-                <>
-                  <div className="flex flex-row justify-between">
-                    <div className="mb-2">
-                      <p className="text-xs text-secondary-foreground font-medium">
-                        You've spent
-                      </p>
-                      <p className="text-xl font-medium">
-                        {new Intl.NumberFormat().format(app.budgetUsage)} sats
-                      </p>
+          <CardContent className="flex-1 flex flex-col">
+            <div className="flex-1">
+              {app.requestMethods?.includes(NIP_47_PAY_INVOICE_METHOD) ? (
+                app.maxAmount > 0 ? (
+                  <>
+                    <div className="flex flex-row justify-between">
+                      <div className="mb-2">
+                        <p className="text-xs text-secondary-foreground font-medium">
+                          You've spent
+                        </p>
+                        <p className="text-xl font-medium">
+                          {new Intl.NumberFormat().format(app.budgetUsage)} sats
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        {" "}
+                        <p className="text-xs text-secondary-foreground font-medium">
+                          Left in budget
+                        </p>
+                        <p className="text-xl font-medium text-muted-foreground">
+                          {new Intl.NumberFormat().format(
+                            app.maxAmount - app.budgetUsage
+                          )}{" "}
+                          sats
+                        </p>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      {" "}
-                      <p className="text-xs text-secondary-foreground font-medium">
-                        Left in budget
-                      </p>
-                      <p className="text-xl font-medium text-muted-foreground">
-                        {new Intl.NumberFormat().format(
-                          app.maxAmount - app.budgetUsage
-                        )}{" "}
-                        sats
-                      </p>
-                    </div>
-                  </div>
-                  <Progress
-                    className="h-4"
-                    value={(app.budgetUsage * 100) / app.maxAmount}
-                  />
-                </>
+                    <Progress
+                      className="h-4"
+                      value={(app.budgetUsage * 100) / app.maxAmount}
+                    />
+                  </>
+                ) : (
+                  "No limits!"
+                )
               ) : (
-                "No limits!"
-              )
-            ) : (
-              "Payments disabled."
-            )}
+                "Payments disabled."
+              )}
+            </div>
             <div className="grid gap-2 mt-5 text-muted-foreground text-sm">
               <div className="flex flex-row justify-between">
                 <div>Budget</div>
