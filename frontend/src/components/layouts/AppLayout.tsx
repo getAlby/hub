@@ -119,11 +119,11 @@ export default function AppLayout() {
         </div> */}
         {(info?.backendType === "LDK" ||
           info?.backendType === "GREENLIGHT") && (
-          <MenuItem to="/channels">
-            <FlaskRound className="h-4 w-4" />
-            Liquidity
-          </MenuItem>
-        )}
+            <MenuItem to="/channels">
+              <FlaskRound className="h-4 w-4" />
+              Liquidity
+            </MenuItem>
+          )}
         <MenuItem to="/settings">
           <Settings className="h-4 w-4" />
           Settings
@@ -161,7 +161,7 @@ export default function AppLayout() {
                       to="#"
                       className="font-semibold text-lg whitespace-nowrap overflow-hidden text-ellipsis"
                     >
-                      {albyMe?.name ?? albyMe?.email}
+                      {albyMe?.name || albyMe?.email}
                     </Link>
                   </div>
                   <DropdownMenu>
