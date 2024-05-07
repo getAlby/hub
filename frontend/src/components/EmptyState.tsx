@@ -1,9 +1,10 @@
-import React, { ReactElement } from "react";
+import { LucideIcon } from "lucide-react";
+import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "src/components/ui/button";
 
 interface Props {
-  icon: ReactElement;
+  icon: LucideIcon;
   title: string;
   description: string;
   buttonText: string;
@@ -11,7 +12,7 @@ interface Props {
 }
 
 const EmptyState: React.FC<Props> = ({
-  icon,
+  icon: Icon,
   title: message,
   description: subMessage,
   buttonText,
@@ -19,10 +20,8 @@ const EmptyState: React.FC<Props> = ({
 }) => {
   return (
     <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm">
-      <div className="flex flex-col items-center gap-1 text-center">
-        {React.cloneElement(icon, {
-          className: "w-10 h-10 text-muted-foreground",
-        })}
+      <div className="flex flex-col items-center gap-1 text-center max-w-sm">
+        <Icon className="w-10 h-10 text-muted-foreground" />
         <h3 className="mt-4 text-lg font-semibold">{message}</h3>
         <p className="text-sm text-muted-foreground">{subMessage}</p>
         <Link to={buttonLink}>

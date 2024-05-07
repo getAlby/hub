@@ -33,7 +33,7 @@ function AppList() {
 
       {!apps.length && (
         <EmptyState
-          icon={<Cable />}
+          icon={Cable}
           title="You have no connections, yet"
           description="Create your first one by checking out our recommended apps"
           buttonText="See Recommended Apps"

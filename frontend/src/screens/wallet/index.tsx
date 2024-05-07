@@ -203,7 +203,7 @@ function Wallet() {
       {isWalletUsable && (
         <>
           <EmptyState
-            icon={<Sparkles />}
+            icon={Sparkles}
             title="You are ready to get started"
             description="Discover the ecosystem of apps."
             buttonText="Get Started"

@@ -7,10 +7,12 @@ import {
   Hotel,
   MoreHorizontal,
   Trash2,
+  Unplug
 } from "lucide-react";
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader.tsx";
+import EmptyState from "src/components/EmptyState.tsx";
 import Loading from "src/components/Loading.tsx";
 import { Badge } from "src/components/ui/badge.tsx";
 import { Button } from "src/components/ui/button.tsx";
@@ -382,97 +384,109 @@ export default function Channels() {
         </Card>
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[80px]">Status</TableHead>
-            <TableHead>Node</TableHead>
-            <TableHead className="w-[150px]">Capacity</TableHead>
-            <TableHead className="w-[150px]">Inbound</TableHead>
-            <TableHead className="w-[150px]">Outbound</TableHead>
-            <TableHead className="w-[50px]"></TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {channels && channels.length > 0 && (
-            <>
-              {channels.map((channel) => {
-                const node = nodes.find(
-                  (n) => n.public_key === channel.remotePubkey
-                );
-                const alias = node?.alias || "Unknown";
-                const capacity = channel.localBalance + channel.remoteBalance;
+      {channels && channels.length === 0 &&
+        <EmptyState
+          icon={Unplug}
+          title={"No Channels Available"}
+          description={"Connect to the Lightning Network by establishing your first channel and start transacting."}
+          buttonText={"Open Channel"}
+          buttonLink={"test"}
+        />
+      }
 
-                return (
-                  <TableRow key={channel.id}>
-                    <TableCell>
-                      {channel.active ? (
-                        <Badge>Online</Badge>
-                      ) : (
-                        <Badge variant="outline">Offline</Badge>
-                      )}{" "}
-                    </TableCell>
-                    <TableCell className="flex flex-row items-center">
-                      <a
-                        title={channel.remotePubkey}
-                        href={`https://amboss.space/node/${channel.remotePubkey}`}
-                        target="_blank"
-                        rel="noopener noreferer"
-                      >
-                        <Button variant="link" className="p-0 mr-2">
-                          {alias ||
-                            channel.remotePubkey.substring(0, 5) + "..."}
-                        </Button>
-                      </a>
-                      <Badge variant="outline">
-                        {channel.public ? "Public" : "Private"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{formatAmount(capacity)} sats</TableCell>
-                    <TableCell>
-                      {formatAmount(channel.remoteBalance)} sats
-                    </TableCell>
-                    <TableCell>
-                      {formatAmount(channel.localBalance)} sats
-                    </TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button size="icon" variant="ghost">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            className="flex flex-row items-center gap-2"
-                            onClick={() =>
-                              closeChannel(
-                                channel.id,
-                                channel.remotePubkey,
-                                channel.active
-                              )
-                            }
-                          >
-                            <Trash2 className="text-destructive" />
-                            Close Channel
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </>
-          )}
-          {!channels && (
+      {!channels || channels.length > 0 && (
+        <Table>
+          <TableHeader>
             <TableRow>
-              <TableCell colSpan={6}>
-                <Loading className="m-2" />
-              </TableCell>
+              <TableHead className="w-[80px]">Status</TableHead>
+              <TableHead>Node</TableHead>
+              <TableHead className="w-[150px]">Capacity</TableHead>
+              <TableHead className="w-[150px]">Inbound</TableHead>
+              <TableHead className="w-[150px]">Outbound</TableHead>
+              <TableHead className="w-[50px]"></TableHead>
             </TableRow>
-          )}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {channels && channels.length > 0 && (
+              <>
+                {channels.map((channel) => {
+                  const node = nodes.find(
+                    (n) => n.public_key === channel.remotePubkey
+                  );
+                  const alias = node?.alias || "Unknown";
+                  const capacity = channel.localBalance + channel.remoteBalance;
+
+                  return (
+                    <TableRow key={channel.id}>
+                      <TableCell>
+                        {channel.active ? (
+                          <Badge>Online</Badge>
+                        ) : (
+                          <Badge variant="outline">Offline</Badge>
+                        )}{" "}
+                      </TableCell>
+                      <TableCell className="flex flex-row items-center">
+                        <a
+                          title={channel.remotePubkey}
+                          href={`https://amboss.space/node/${channel.remotePubkey}`}
+                          target="_blank"
+                          rel="noopener noreferer"
+                        >
+                          <Button variant="link" className="p-0 mr-2">
+                            {alias ||
+                              channel.remotePubkey.substring(0, 5) + "..."}
+                          </Button>
+                        </a>
+                        <Badge variant="outline">
+                          {channel.public ? "Public" : "Private"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{formatAmount(capacity)} sats</TableCell>
+                      <TableCell>
+                        {formatAmount(channel.remoteBalance)} sats
+                      </TableCell>
+                      <TableCell>
+                        {formatAmount(channel.localBalance)} sats
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button size="icon" variant="ghost">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              className="flex flex-row items-center gap-2"
+                              onClick={() =>
+                                closeChannel(
+                                  channel.id,
+                                  channel.remotePubkey,
+                                  channel.active
+                                )
+                              }
+                            >
+                              <Trash2 className="text-destructive" />
+                              Close Channel
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </>
+            )}
+            {!channels && (
+              <TableRow>
+                <TableCell colSpan={6}>
+                  <Loading className="m-2" />
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      )}
     </>
   );
 }
