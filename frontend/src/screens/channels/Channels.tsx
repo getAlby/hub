@@ -94,10 +94,6 @@ export default function Channels() {
     loadNodeStats();
   }, [loadNodeStats]);
 
-  const lightningBalance = channels
-    ?.map((channel) => channel.localBalance)
-    .reduce((a, b) => a + b, 0);
-
   async function closeChannel(
     channelId: string,
     nodeId: string,
@@ -119,8 +115,9 @@ export default function Channels() {
 
       if (
         !confirm(
-          `Are you sure you want to close the channel with ${nodes.find((node) => node.public_key === nodeId)?.alias ||
-          "Unknown Node"
+          `Are you sure you want to close the channel with ${
+            nodes.find((node) => node.public_key === nodeId)?.alias ||
+            "Unknown Node"
           }?\n\nNode ID: ${nodeId}\n\nChannel ID: ${channelId}`
         )
       ) {
@@ -146,7 +143,7 @@ export default function Channels() {
 
       await reloadChannels();
 
-      toast({ title: "Sucessfully closed channel." })
+      toast({ title: "Sucessfully closed channel." });
     } catch (error) {
       console.error(error);
       alert("Something went wrong: " + error);
@@ -256,9 +253,7 @@ export default function Channels() {
                     <DropdownMenuGroup>
                       <DropdownMenuLabel>Management</DropdownMenuLabel>
                       <DropdownMenuItem>
-                        <Link to="/peers/new">
-                          Connect Peer
-                        </Link>
+                        <Link to="/peers/new">Connect Peer</Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={resetRouter}>
                         Reset Router
@@ -340,17 +335,17 @@ export default function Channels() {
             <ArrowUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            {!channels && (
+            {!balances && (
               <div>
                 <div className="animate-pulse d-inline ">
                   <div className="h-2.5 bg-primary rounded-full w-12 my-2"></div>
                 </div>
               </div>
             )}
-            {lightningBalance !== undefined && (
+            {balances && (
               <div className="text-2xl font-bold">
                 {new Intl.NumberFormat(undefined, {}).format(
-                  Math.floor(lightningBalance / 1000)
+                  Math.floor(balances.lightning.totalSpendable / 1000)
                 )}{" "}
                 sats
               </div>
