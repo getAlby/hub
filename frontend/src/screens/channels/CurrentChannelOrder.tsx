@@ -464,6 +464,10 @@ function PayBitcoinChannelOrderWithSpendableFunds({
       if (!openChannelResponse?.fundingTxId) {
         throw new Error("No funding txid in response");
       }
+      console.log(
+        "Channel opening transaction published",
+        openChannelResponse.fundingTxId
+      );
       toast({
         title: "Channel opening transaction published!",
       });

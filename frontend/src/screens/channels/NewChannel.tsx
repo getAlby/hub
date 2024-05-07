@@ -175,7 +175,7 @@ function NewChannelInternal({ network }: { network: Network }) {
     );
 
     setSelectedPeer(recommendedPeer);
-  }, [network, order.paymentMethod, setAmount]);
+  }, [network, order.paymentMethod]);
 
   React.useEffect(() => {
     if (selectedPeer) {

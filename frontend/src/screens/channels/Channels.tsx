@@ -143,6 +143,10 @@ export default function Channels() {
 
       await reloadChannels();
 
+      console.log(
+        "Closed channel",
+        channels?.find((c) => c.id === channelId && c.remotePubkey === nodeId)
+      );
       toast({ title: "Sucessfully closed channel." });
     } catch (error) {
       console.error(error);
