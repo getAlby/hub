@@ -255,6 +255,11 @@ export default function Channels() {
                     <DropdownMenuSeparator />
                     <DropdownMenuGroup>
                       <DropdownMenuLabel>Management</DropdownMenuLabel>
+                      <DropdownMenuItem>
+                        <Link to="/peers/new">
+                          Connect Peer
+                        </Link>
+                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={resetRouter}>
                         Reset Router
                       </DropdownMenuItem>

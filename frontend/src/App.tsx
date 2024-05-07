@@ -20,6 +20,7 @@ import Channels from "src/screens/channels/Channels";
 import NewChannel from "src/screens/channels/NewChannel";
 import MigrateAlbyFunds from "src/screens/onboarding/MigrateAlbyFunds";
 import NewOnchainAddress from "src/screens/onchain/NewAddress";
+import ConnectPeer from "src/screens/peers/ConnectPeer";
 import Settings from "src/screens/settings/Settings";
 import { ImportMnemonic } from "src/screens/setup/ImportMnemonic";
 import { SetupFinish } from "src/screens/setup/SetupFinish";
@@ -83,6 +84,9 @@ function App() {
                   path="onchain/new-address"
                   element={<NewOnchainAddress />}
                 />
+              </Route>
+              <Route path="peers" element={<DefaultRedirect />}>
+                <Route path="new" element={<ConnectPeer />} />
               </Route>
             </Route>
             <Route path="intro" element={<Intro />} />
