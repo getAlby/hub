@@ -34,8 +34,8 @@ function AppList() {
       {!apps.length && (
         <EmptyState
           icon={Cable}
-          title="You have no connections, yet"
-          description="Create your first one by checking out our recommended apps"
+          title="Connect Your First App"
+          description="Connect your app of choice, fine-tune permissions and enjoy a seamless and secure wallet experience."
           buttonText="See Recommended Apps"
           buttonLink="/appstore"
         />
