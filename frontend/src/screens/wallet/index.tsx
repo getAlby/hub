@@ -3,14 +3,12 @@ import {
   ArrowUpFromDot,
   CircleDot,
   CopyIcon,
-  ExternalLink,
-  Sparkles
+  ExternalLink
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import AlbyHead from "src/assets/images/alby-head.svg";
 import AppHeader from "src/components/AppHeader";
 import BreezRedeem from "src/components/BreezRedeem";
-import EmptyState from "src/components/EmptyState";
 import Loading from "src/components/Loading";
 import { Button } from "src/components/ui/button";
 import {
@@ -199,18 +197,6 @@ function Wallet() {
       </div>
 
       <BreezRedeem />
-
-      {isWalletUsable && (
-        <>
-          <EmptyState
-            icon={Sparkles}
-            title="You are ready to get started"
-            description="Discover the ecosystem of apps."
-            buttonText="Get Started"
-            buttonLink="/appstore"
-          />
-        </>
-      )}
     </>
   );
 }
