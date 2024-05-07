@@ -84,7 +84,7 @@ export function Intro() {
           <Slide
             api={api}
             icon={CloudLightning}
-            title="Alby Hub Lives in a Cloud"
+            title="Anywhere & Anytime"
             description="Your wallet is always online and ready to use on any device."
           />
         </CarouselItem>
