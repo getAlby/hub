@@ -176,6 +176,15 @@ type GetLogOutputResponse struct {
 	Log string `json:"logs"`
 }
 
+type SignMessageRequest struct {
+	Message string `json:"message"`
+}
+
+type SignMessageResponse struct {
+	Message   string `json:"message"`
+	Signature string `json:"signature"`
+}
+
 // TODO: move to different file
 type AlbyBalanceResponse struct {
 	Sats int64 `json:"sats"`

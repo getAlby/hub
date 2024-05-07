@@ -115,9 +115,8 @@ export default function Channels() {
 
       if (
         !confirm(
-          `Are you sure you want to close the channel with ${
-            nodes.find((node) => node.public_key === nodeId)?.alias ||
-            "Unknown Node"
+          `Are you sure you want to close the channel with ${nodes.find((node) => node.public_key === nodeId)?.alias ||
+          "Unknown Node"
           }?\n\nNode ID: ${nodeId}\n\nChannel ID: ${channelId}`
         )
       ) {
@@ -258,6 +257,9 @@ export default function Channels() {
                       <DropdownMenuLabel>Management</DropdownMenuLabel>
                       <DropdownMenuItem>
                         <Link to="/peers/new">Connect Peer</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <Link to="/wallet/sign-message">Sign Message</Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={resetRouter}>
                         Reset Router

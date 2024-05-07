@@ -89,6 +89,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.DELETE("/api/peers/:peerId/channels/:channelId", httpSvc.closeChannelHandler, authMiddleware)
 	e.POST("/api/wallet/new-address", httpSvc.newOnchainAddressHandler, authMiddleware)
 	e.POST("/api/wallet/redeem-onchain-funds", httpSvc.redeemOnchainFundsHandler, authMiddleware)
+	e.POST("/api/wallet/sign-message", httpSvc.signMessageHandler, authMiddleware)
 	e.GET("/api/balances", httpSvc.balancesHandler, authMiddleware)
 	e.POST("/api/reset-router", httpSvc.resetRouterHandler, authMiddleware)
 	e.POST("/api/stop", httpSvc.stopHandler, authMiddleware)
@@ -468,6 +469,25 @@ func (httpSvc *HttpService) redeemOnchainFundsHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, redeemOnchainFundsResponse)
 }
 
+func (httpSvc *HttpService) signMessageHandler(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	var signMessageRequest api.SignMessageRequest
+	if err := c.Bind(&signMessageRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, models.ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	signMessageResponse, err := httpSvc.api.SignMessage(ctx, signMessageRequest.Message)
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
+			Message: fmt.Sprintf("Failed to sign messae: %s", err.Error()),
+		})
+	}
+	return c.JSON(http.StatusOK, signMessageResponse)
+}
 func (httpSvc *HttpService) appsListHandler(c echo.Context) error {
 
 	apps, err := httpSvc.api.ListApps()

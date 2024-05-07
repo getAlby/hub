@@ -21,6 +21,7 @@ import NewChannel from "src/screens/channels/NewChannel";
 import MigrateAlbyFunds from "src/screens/onboarding/MigrateAlbyFunds";
 import NewOnchainAddress from "src/screens/onchain/NewAddress";
 import ConnectPeer from "src/screens/peers/ConnectPeer";
+import SignMessage from "src/screens/wallet/SignMessage";
 import Settings from "src/screens/settings/Settings";
 import { ImportMnemonic } from "src/screens/setup/ImportMnemonic";
 import { SetupFinish } from "src/screens/setup/SetupFinish";
@@ -63,6 +64,7 @@ function App() {
               </Route>
               <Route path="wallet" element={<DefaultRedirect />}>
                 <Route index element={<Wallet />} />
+                <Route path="sign-message" element={<SignMessage />} />
               </Route>
               <Route path="appstore" element={<DefaultRedirect />}>
                 <Route index element={<AppStore />} />

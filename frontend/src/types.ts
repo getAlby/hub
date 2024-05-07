@@ -181,6 +181,16 @@ export type ConnectPeerRequest = {
   port: number;
 };
 
+export type SignMessageRequest = {
+  message: string;
+}
+
+export type SignMessageResponse = {
+  message: string;
+  signature: string;
+}
+
+
 export type OpenChannelRequest = {
   pubkey: string;
   amount: number;
@@ -276,13 +286,13 @@ export type NewChannelOrder = {
   status: NewChannelOrderStatus;
   fundingTxId?: string;
 } & (
-  | {
+    | {
       paymentMethod: "onchain";
       pubkey: string;
       host: string;
     }
-  | {
+    | {
       paymentMethod: "lightning";
       lsp: string;
     }
-);
+  );

@@ -69,7 +69,7 @@ export default function ConnectPeer() {
       <div className="max-w-lg">
         <form onSubmit={handleSubmit}>
           <div className="">
-            <Label htmlFor="pubkey">Peer</Label>
+            <Label htmlFor="connectionString">Peer</Label>
             <Input
               id="connectionString"
               type="text"

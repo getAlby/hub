@@ -396,6 +396,20 @@ func (api *API) GetNewOnchainAddress(ctx context.Context) (*models.NewOnchainAdd
 	}, nil
 }
 
+func (api *API) SignMessage(ctx context.Context, message string) (*models.SignMessageResponse, error) {
+	if api.svc.lnClient == nil {
+		return nil, errors.New("LNClient not started")
+	}
+	signature, err := api.svc.lnClient.SignMessage(ctx, message)
+	if err != nil {
+		return nil, err
+	}
+	return &models.SignMessageResponse{
+		Message:   message,
+		Signature: signature,
+	}, nil
+}
+
 func (api *API) RedeemOnchainFunds(ctx context.Context, toAddress string) (*models.RedeemOnchainFundsResponse, error) {
 	if api.svc.lnClient == nil {
 		return nil, errors.New("LNClient not started")
