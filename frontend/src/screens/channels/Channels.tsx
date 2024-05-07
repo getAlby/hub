@@ -387,10 +387,10 @@ export default function Channels() {
       {channels && channels.length === 0 &&
         <EmptyState
           icon={Unplug}
-          title={"No Channels Available"}
-          description={"Connect to the Lightning Network by establishing your first channel and start transacting."}
-          buttonText={"Open Channel"}
-          buttonLink={"test"}
+          title="No Channels Available"
+          description="Connect to the Lightning Network by establishing your first channel and start transacting."
+          buttonText="Open Channel"
+          buttonLink="/channels/new"
         />
       }
 
