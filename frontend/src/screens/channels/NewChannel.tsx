@@ -39,16 +39,16 @@ type RecommendedPeer = {
   name: string;
   minimumChannelSize: number;
 } & (
-    | {
+  | {
       paymentMethod: "onchain";
       pubkey: string;
       host: string;
     }
-    | {
+  | {
       paymentMethod: "lightning";
       lsp: string;
     }
-  );
+);
 
 const recommendedPeers: RecommendedPeer[] = [
   {
@@ -93,7 +93,7 @@ const recommendedPeers: RecommendedPeer[] = [
     paymentMethod: "lightning",
     network: "bitcoin",
     lsp: "OLYMPUS_FLOW_2_0",
-    minimumChannelSize: 10_000,
+    minimumChannelSize: 20_000,
     name: "Olympus (Flow 2.0)",
     image: olympusImage,
   },
@@ -101,7 +101,7 @@ const recommendedPeers: RecommendedPeer[] = [
     paymentMethod: "lightning",
     network: "bitcoin",
     lsp: "VOLTAGE",
-    minimumChannelSize: 10_000,
+    minimumChannelSize: 20_000,
     name: "Voltage (Flow 2.0)",
     image: voltageImage,
   },
@@ -109,7 +109,7 @@ const recommendedPeers: RecommendedPeer[] = [
     paymentMethod: "lightning",
     network: "signet",
     lsp: "OLYMPUS_MUTINYNET_FLOW_2_0",
-    minimumChannelSize: 10_000,
+    minimumChannelSize: 20_000,
     name: "Olympus Mutinynet (Flow 2.0)",
     image: olympusImage,
   },
@@ -217,9 +217,7 @@ function NewChannelInternal({ network }: { network: Network }) {
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
-              <Link to="/channels">
-                Liquidity
-              </Link>
+              <Link to="/channels">Liquidity</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
@@ -240,7 +238,8 @@ function NewChannelInternal({ network }: { network: Network }) {
           <Label htmlFor="amount">Channel size (sats)</Label>
           {order.amount && +order.amount < 200_000 && (
             <p className="text-muted-foreground text-xs">
-              For a smooth experience consider a opening a channel of 200k sats in size or more.{" "}
+              For a smooth experience consider a opening a channel of 200k sats
+              in size or more.{" "}
               <ExternalLink
                 to="https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-lightning-account/faqs-alby-account"
                 className="underline"
@@ -261,9 +260,13 @@ function NewChannelInternal({ network }: { network: Network }) {
           />
           <div className="grid grid-cols-3 gap-1.5 text-muted-foreground text-xs">
             {presetAmounts.map((amount) => (
-              <div key={amount}
-                className={cn("text-center border rounded p-2 cursor-pointer hover:border-muted-foreground",
-                  +(order.amount || "0") === amount && "border-primary hover:border-primary")}
+              <div
+                key={amount}
+                className={cn(
+                  "text-center border rounded p-2 cursor-pointer hover:border-muted-foreground",
+                  +(order.amount || "0") === amount &&
+                    "border-primary hover:border-primary"
+                )}
                 onClick={() => setAmount(amount.toString())}
               >
                 {formatAmount(amount * 1000, 0)}

@@ -21,15 +21,28 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "src/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "src/components/ui/dialog";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { Table, TableBody, TableCell, TableRow } from "src/components/ui/table";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "src/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "src/components/ui/tooltip";
 import { toast, useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
 import { useCSRF } from "src/hooks/useCSRF";
@@ -148,11 +161,11 @@ function PayBitcoinChannelOrder({ order }: { order: NewChannelOrder }) {
     return <Loading />;
   }
 
-  const requiredAmount = +order.amount + estimatedTransactionFee;
-  if (balances.onchain.spendable >= requiredAmount) {
+  // expect at least the user to have more funds than the channel size, hopefully enough to cover mempool fees.
+  if (balances.onchain.spendable > +order.amount) {
     return <PayBitcoinChannelOrderWithSpendableFunds order={order} />;
   }
-  if (balances.onchain.total >= requiredAmount) {
+  if (balances.onchain.total > +order.amount) {
     return <PayBitcoinChannelOrderWaitingDepositConfirmation />;
   }
   return <PayBitcoinChannelOrderTopup order={order} />;
@@ -161,13 +174,19 @@ function PayBitcoinChannelOrder({ order }: { order: NewChannelOrder }) {
 function PayBitcoinChannelOrderWaitingDepositConfirmation() {
   return (
     <>
-      <p>Bitcoin deposited</p>
-      <div className="flex items-center gap-2">
-        <Loading />
-        <p>Waiting for one block confirmation</p>
-      </div>
-
-      <p className="text-muted-foreground">estimated time: 10 minutes</p>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex flex-row items-center gap-2">
+            Bitcoin deposited
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex items-center gap-2">
+          <Loading /> Waiting for one block confirmation
+        </CardContent>
+        <CardFooter className="text-muted-foreground">
+          estimated time: 10 minutes
+        </CardFooter>
+      </Card>
     </>
   );
 }
@@ -177,6 +196,7 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
     throw new Error("incorrect payment method");
   }
 
+  const { data: channels } = useChannels();
   const { data: csrf } = useCSRF();
   const { data: balances } = useBalances();
   const [onchainAddress, setOnchainAddress] = React.useState<string>();
@@ -235,15 +255,24 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
     );
   }
 
-  const requiredAmount = +order.amount + estimatedTransactionFee;
+  // expect at least the user to have more funds than the channel size, hopefully enough to cover mempool fees.
+  // This only considers one UTXO and will not work well if the user generates a new address.
+  // However, this is just a fallback because LDK only updates onchain balances ~ once per minute.
   const unspentAmount =
-    (mempoolAddressUtxos
-      ?.map((utxo) => utxo.value)
-      .reduce((a, b) => a + b, 0) || 0) - balances.onchain.reserved;
+    mempoolAddressUtxos?.map((utxo) => utxo.value).reduce((a, b) => a + b, 0) ||
+    0;
 
-  if (unspentAmount >= requiredAmount) {
+  if (unspentAmount > +order.amount) {
     return <PayBitcoinChannelOrderWaitingDepositConfirmation />;
   }
+
+  const num0ConfChannels =
+    channels?.filter((c) => c.confirmationsRequired === 0).length || 0;
+
+  const estimatedAnchorReserve = Math.max(
+    num0ConfChannels * 25000 - balances.onchain.reserved,
+    0
+  );
 
   return (
     <div className="grid gap-5">
@@ -257,16 +286,30 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
         <div className="grid gap-1.5">
           <Label htmlFor="text">On-Chain Address</Label>
           <p className="text-xs text-muted-foreground">
-            You currently have {balances.onchain.total} sats. You need to deposit at
-            least another {requiredAmount - balances.onchain.total} sats to cover
-            channel opening fees.
+            You currently have {balances.onchain.total} sats. You need to
+            deposit at least another{" "}
+            {+order.amount +
+              estimatedTransactionFee +
+              estimatedAnchorReserve -
+              balances.onchain.total}{" "}
+            sats to cover the cost of opening the channel, including onchain
+            fees and potential onchain channel reserves.
           </p>
           <div className="flex flex-row gap-2 items-center">
-            <Input type="text" value={onchainAddress} readOnly className="flex-1" />
+            <Input
+              type="text"
+              value={onchainAddress}
+              readOnly
+              className="flex-1"
+            />
             <Button
               variant="secondary"
               size="icon"
-              onClick={() => { copyToClipboard(onchainAddress); toast({ title: "Copied to clipboard." }) }}>
+              onClick={() => {
+                copyToClipboard(onchainAddress);
+                toast({ title: "Copied to clipboard." });
+              }}
+            >
               <Copy className="w-4 h-4" />
             </Button>
             <Dialog>
@@ -278,18 +321,13 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
 
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>
-                    Deposit bitcoin
-                  </DialogTitle>
+                  <DialogTitle>Deposit bitcoin</DialogTitle>
                   <DialogDescription>
                     Scan this QR code with your wallet to send funds.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="flex flex-row justify-center p-3">
-                  <a
-                    href={`bitcoin:${onchainAddress}`}
-                    target="_blank"
-                  >
+                  <a href={`bitcoin:${onchainAddress}`} target="_blank">
                     <QRCode value={onchainAddress} />
                   </a>
                 </div>
@@ -302,18 +340,16 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
                     variant="secondary"
                     size="icon"
                     onClick={getNewAddress}
-                    loading={isLoading}>
+                    loading={isLoading}
+                  >
                     <RefreshCw className="w-4 h-4" />
                   </LoadingButton>
                 </TooltipTrigger>
-                <TooltipContent>
-                  Generate a new address
-                </TooltipContent>
+                <TooltipContent>Generate a new address</TooltipContent>
               </Tooltip>
             </TooltipProvider>
           </div>
         </div>
-
 
         <Card>
           <CardHeader>
@@ -321,7 +357,8 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
               <Loading /> Waiting for your transaction
             </CardTitle>
             <CardDescription>
-              Send a bitcoin transaction to the address provided above. You'll be redirected as soon as the transaction is seen in the mempool.
+              Send a bitcoin transaction to the address provided above. You'll
+              be redirected as soon as the transaction is seen in the mempool.
             </CardDescription>
           </CardHeader>
         </Card>
@@ -484,9 +521,9 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
   const newChannel =
     channels && prevChannels
       ? channels.find(
-        (newChannel) =>
-          !prevChannels.some((current) => current.id === newChannel.id)
-      )
+          (newChannel) =>
+            !prevChannels.some((current) => current.id === newChannel.id)
+        )
       : undefined;
 
   React.useEffect(() => {
