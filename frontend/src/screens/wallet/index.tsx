@@ -4,8 +4,7 @@ import {
   CircleDot,
   CopyIcon,
   ExternalLink,
-  Sparkles,
-  Unplug,
+  Sparkles
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import AlbyHead from "src/assets/images/alby-head.svg";
@@ -13,7 +12,6 @@ import AppHeader from "src/components/AppHeader";
 import BreezRedeem from "src/components/BreezRedeem";
 import EmptyState from "src/components/EmptyState";
 import Loading from "src/components/Loading";
-import { Alert, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -131,17 +129,6 @@ function Wallet() {
           )
         }
       />
-
-      {!info?.onboardingCompleted && (
-        <>
-          <Alert>
-            <Unplug className="h-4 w-4" />
-            <AlertTitle>
-              Your Alby Hub is not connected to the Lightning network!
-            </AlertTitle>
-          </Alert>
-        </>
-      )}
 
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-5">
         <div className="text-5xl font-semibold">
