@@ -437,3 +437,6 @@ func lndInvoiceToTransaction(invoice *lnrpc.Invoice) *Nip47Transaction {
 func (svc *LNDService) ResetRouter(ctx context.Context) error {
 	return nil
 }
+func (svc *LNDService) GetNodeStatus(ctx context.Context) (nodeStatus *lnclient.NodeStatus, err error) {
+	return nil, nil
+}

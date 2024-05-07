@@ -92,6 +92,13 @@ export default function DebugTools() {
         >
           Get Node Logs
         </Button>
+        <Button
+          onClick={() => {
+            apiRequest(`/api/node/status`, "GET");
+          }}
+        >
+          Get Node Status
+        </Button>
       </div>
       {apiResponse && (
         <Textarea

@@ -84,6 +84,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	// TODO: review naming
 	e.POST("/api/instant-channel-invoices", httpSvc.newInstantChannelInvoiceHandler, authMiddleware)
 	e.GET("/api/node/connection-info", httpSvc.nodeConnectionInfoHandler, authMiddleware)
+	e.GET("/api/node/status", httpSvc.nodeStatusHandler, authMiddleware)
 	e.GET("/api/peers", httpSvc.listPeers, authMiddleware)
 	e.POST("/api/peers", httpSvc.connectPeerHandler, authMiddleware)
 	e.DELETE("/api/peers/:peerId/channels/:channelId", httpSvc.closeChannelHandler, authMiddleware)
@@ -303,6 +304,20 @@ func (httpSvc *HttpService) nodeConnectionInfoHandler(c echo.Context) error {
 	ctx := c.Request().Context()
 
 	info, err := httpSvc.api.GetNodeConnectionInfo(ctx)
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+
+	return c.JSON(http.StatusOK, info)
+}
+
+func (httpSvc *HttpService) nodeStatusHandler(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	info, err := httpSvc.api.GetNodeStatus(ctx)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{

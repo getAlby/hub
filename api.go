@@ -352,6 +352,13 @@ func (api *API) GetNodeConnectionInfo(ctx context.Context) (*lnclient.NodeConnec
 	return api.svc.lnClient.GetNodeConnectionInfo(ctx)
 }
 
+func (api *API) GetNodeStatus(ctx context.Context) (*lnclient.NodeStatus, error) {
+	if api.svc.lnClient == nil {
+		return nil, errors.New("LNClient not started")
+	}
+	return api.svc.lnClient.GetNodeStatus(ctx)
+}
+
 func (api *API) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, error) {
 	if api.svc.lnClient == nil {
 		return nil, errors.New("LNClient not started")

@@ -417,6 +417,10 @@ func (bs *BreezService) GetLogOutput(ctx context.Context, maxLen int) ([]byte, e
 	return []byte{}, nil
 }
 
+func (bs *BreezService) GetNodeStatus(ctx context.Context) (nodeStatus *lnclient.NodeStatus, err error) {
+	return nil, nil
+}
+
 func (bs *BreezService) SignMessage(ctx context.Context, message string) (string, error) {
 	resp, err := bs.svc.SignMessage(breez_sdk.SignMessageRequest{
 		Message: message,

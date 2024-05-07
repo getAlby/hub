@@ -302,6 +302,12 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: *nodeConnectionInfo, Error: ""}
+	case "/api/node/status":
+		nodeStatus, err := app.api.GetNodeStatus(ctx)
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: *nodeStatus, Error: ""}
 	case "/api/info":
 		infoResponse, err := app.api.GetInfo(ctx)
 		if err != nil {

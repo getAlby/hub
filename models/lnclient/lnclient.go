@@ -51,6 +51,7 @@ type LNClient interface {
 	Shutdown() error
 	ListChannels(ctx context.Context) (channels []Channel, err error)
 	GetNodeConnectionInfo(ctx context.Context) (nodeConnectionInfo *NodeConnectionInfo, err error)
+	GetNodeStatus(ctx context.Context) (nodeStatus *NodeStatus, err error)
 	ConnectPeer(ctx context.Context, connectPeerRequest *ConnectPeerRequest) error
 	OpenChannel(ctx context.Context, openChannelRequest *OpenChannelRequest) (*OpenChannelResponse, error)
 	CloseChannel(ctx context.Context, closeChannelRequest *CloseChannelRequest) (*CloseChannelResponse, error)
@@ -77,6 +78,10 @@ type Channel struct {
 	InternalChannel       interface{} `json:"internalChannel"`
 	Confirmations         *uint32     `json:"confirmations"`
 	ConfirmationsRequired *uint32     `json:"confirmationsRequired"`
+}
+
+type NodeStatus struct {
+	InternalNodeStatus interface{} `json:"internalNodeStatus"`
 }
 
 type ConnectPeerRequest struct {

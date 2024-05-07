@@ -1333,3 +1333,6 @@ func (mln *MockLn) GetLogOutput(ctx context.Context, maxLen int) ([]byte, error)
 func (mln *MockLn) SignMessage(ctx context.Context, message string) (string, error) {
 	return "", nil
 }
+func (mln *MockLn) GetNodeStatus(ctx context.Context) (nodeStatus *lnclient.NodeStatus, err error) {
+	return nil, nil
+}
