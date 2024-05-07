@@ -281,8 +281,6 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
         description="You don't have enough Bitcoin to open your intended channel"
       />
       <div className="grid gap-5 max-w-lg">
-        {unspentAmount > 0 && <p>{unspentAmount} sats deposited</p>}
-
         <div className="grid gap-1.5">
           <Label htmlFor="text">On-Chain Address</Label>
           <p className="text-xs text-muted-foreground">
@@ -318,7 +316,6 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
                   <QrCode className="w-4 h-4" />
                 </Button>
               </DialogTrigger>
-
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Deposit bitcoin</DialogTitle>
@@ -361,9 +358,12 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
               be redirected as soon as the transaction is seen in the mempool.
             </CardDescription>
           </CardHeader>
+          {unspentAmount > 0 &&
+            <CardContent>{unspentAmount} sats deposited</CardContent>
+          }
         </Card>
       </div>
-    </div>
+    </div >
   );
 }
 
@@ -525,9 +525,9 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
   const newChannel =
     channels && prevChannels
       ? channels.find(
-          (newChannel) =>
-            !prevChannels.some((current) => current.id === newChannel.id)
-        )
+        (newChannel) =>
+          !prevChannels.some((current) => current.id === newChannel.id)
+      )
       : undefined;
 
   React.useEffect(() => {
