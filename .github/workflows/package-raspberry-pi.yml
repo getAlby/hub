@@ -7,10 +7,10 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Check out code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -28,10 +28,12 @@ jobs:
       - name: Get dependencies
         run: go get -v -t -d ./...
 
-      - name: Install cross-compiler
+      - name: Install cross-compiler and utilities
         run: |
           sudo apt-get update
-          sudo apt-get install -y gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf binutils-arm-linux-gnueabi patchelf
+          sudo apt-get install -y patchelf
+          wget -nv https://github.com/getAlby/gcc-arm-linux-gnueabihf/releases/download/v1.0.0/armv6-unknown-linux-gnueabihf.tar.bz2
+          tar -xf armv6-unknown-linux-gnueabihf.tar.bz2
 
       - name: Build
         env:
@@ -39,8 +41,7 @@ jobs:
           GOARCH: arm
           GOARM: 6
           CGO_ENABLED: 1
-          CC: arm-linux-gnueabihf-gcc
-          CXX: arm-linux-gnueabihf-g++
+          CC: ${{ github.workspace }}/armv6-unknown-linux-gnueabihf/bin/armv6-unknown-linux-gnueabihf-gcc
         run: go build -tags skip_breez,netgo -v -o nostr-wallet-connect
 
       - name: Find and copy shared libraries
@@ -51,7 +52,7 @@ jobs:
 
       - name: Strip and patch RPATH in the executable
         run: |
-          arm-linux-gnueabihf-strip ./nostr-wallet-connect
+          ${{ github.workspace }}/armv6-unknown-linux-gnueabihf/bin/armv6-unknown-linux-gnueabihf-strip ./nostr-wallet-connect
           patchelf --force-rpath --set-rpath '$ORIGIN/lib' ./nostr-wallet-connect
 
       - name: Zip application and libraries
