@@ -132,6 +132,10 @@ const recommendedPeers: RecommendedPeer[] = [
   },
 ];
 
+function getPeerKey(peer: RecommendedPeer) {
+  return JSON.stringify(peer);
+}
+
 export default function NewChannel() {
   const { data: info } = useInfo();
 
@@ -317,10 +321,10 @@ function NewChannelInternal({ network }: { network: Network }) {
               <div className="grid gap-1.5">
                 <Label>Channel peer</Label>
                 <Select
-                  value={selectedPeer.name}
+                  value={getPeerKey(selectedPeer)}
                   onValueChange={(value) =>
                     setSelectedPeer(
-                      recommendedPeers.find((x) => x.name === value)
+                      recommendedPeers.find((x) => getPeerKey(x) === value)
                     )
                   }
                 >
@@ -335,7 +339,10 @@ function NewChannelInternal({ network }: { network: Network }) {
                           peer.paymentMethod === order.paymentMethod
                       )
                       .map((peer) => (
-                        <SelectItem value={peer.name} key={peer.name}>
+                        <SelectItem
+                          value={getPeerKey(peer)}
+                          key={getPeerKey(peer)}
+                        >
                           <div className="flex items-center space-between gap-3 w-full">
                             <div className="flex items-center gap-3">
                               <img
