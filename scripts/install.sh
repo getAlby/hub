@@ -9,7 +9,7 @@ chmod +x app/nostr-wallet-connect
 rm nostr-wallet-connect.zip
 
 ### Create systemd service
-cat > /etc/systemd/system/albyhub.service << EOF
+sudo tee -a /etc/systemd/system/albyhub.service > /dev/null << EOF
 [Unit]
 Description=Alby Hub
 After=network.target
