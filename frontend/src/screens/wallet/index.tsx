@@ -62,7 +62,7 @@ function Wallet() {
                     Online
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-64" align="end">
+                <DropdownMenuContent className="w-72" align="end">
                   <DropdownMenuItem>
                     <div className="flex flex-row gap-10 items-center w-full">
                       <div className="whitespace-nowrap flex flex-row items-center gap-2">
@@ -93,7 +93,7 @@ function Wallet() {
                             <ArrowDownToDot className="w-4 h-4 " />
                             Receiving Capacity
                           </div>
-                          <div className="text-muted-foreground">
+                          <div className="text-muted-foreground text-right">
                             {new Intl.NumberFormat().format(
                               Math.floor(
                                 balances.lightning.totalReceivable / 1000
@@ -109,7 +109,7 @@ function Wallet() {
                             <ArrowUpFromDot className="w-4 h-4 " />
                             Spending Balance
                           </div>
-                          <div className="text-muted-foreground">
+                          <div className="text-muted-foreground text-right">
                             {new Intl.NumberFormat().format(
                               Math.floor(
                                 balances.lightning.totalSpendable / 1000
