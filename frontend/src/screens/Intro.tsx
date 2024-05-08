@@ -49,7 +49,7 @@ export function Intro() {
         style={{
           backgroundImage: `url(${Cloud})`,
           backgroundPositionX: `${-Math.max(progress, 0) * 40}%`,
-          filter: theme === "light" ? "invert(1)" : undefined,
+          filter: theme === "light" ? "invert(0.3)" : undefined,
         }}
       />
       <div
@@ -58,7 +58,7 @@ export function Intro() {
           backgroundImage: `url(${Cloud2})`,
           backgroundPositionX: `${150 - Math.max(progress, 0) * 60}%`,
           backgroundPositionY: "100%",
-          filter: theme === "light" ? "invert(1)" : undefined,
+          filter: theme === "light" ? "invert(0.3)" : undefined,
         }}
       />
       <CarouselContent className="select-none bg-transparent">
