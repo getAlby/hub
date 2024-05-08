@@ -5,6 +5,7 @@ cd /opt/albyhub
 wget https://nightly.link/getalby/nostr-wallet-connect-next/workflows/package-raspberry-pi/master/nostr-wallet-connect.zip
 
 unzip nostr-wallet-connect.zip -d app
+chmod +x app/nostr-wallet-connect
 rm nostr-wallet-connect.zip
 
 ### Create systemd service
