@@ -13,7 +13,7 @@ import (
 )
 
 type Relay interface {
-	Publish(ctx context.Context, event nostr.Event) (nostr.Status, error)
+	Publish(ctx context.Context, event nostr.Event) error
 }
 
 type Nip47Notifier struct {
@@ -125,19 +125,17 @@ func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *App, n
 		return
 	}
 
-	status, err := notifier.relay.Publish(ctx, *event)
+	err = notifier.relay.Publish(ctx, *event)
 	if err != nil {
 		notifier.svc.Logger.WithFields(logrus.Fields{
 			"notification": notification,
 			"appId":        app.ID,
-			"status":       status,
 		}).WithError(err).Error("Failed to publish notification")
 		return
 	}
 	notifier.svc.Logger.WithFields(logrus.Fields{
 		"notification": notification,
 		"appId":        app.ID,
-		"status":       status,
 	}).Info("Published notification event")
 
 }

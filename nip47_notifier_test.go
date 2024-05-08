@@ -122,8 +122,8 @@ func NewMockRelay() *mockRelay {
 	return &mockRelay{}
 }
 
-func (relay *mockRelay) Publish(ctx context.Context, event nostr.Event) (nostr.Status, error) {
+func (relay *mockRelay) Publish(ctx context.Context, event nostr.Event) error {
 	log.Printf("Mock Publishing event %+v", event)
 	relay.publishedEvent = &event
-	return nostr.PublishStatusSent, nil
+	return nil
 }
