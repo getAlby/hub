@@ -88,7 +88,7 @@ export function BackupMnemonic() {
     <>
       <SettingsHeader
         title="Backup Your Keys"
-        description="Make sure to store them somewhere safe."
+        description="Make sure to your backup somewhere safe."
       />
       {!decryptedMnemonic ? (
         <Container>
@@ -156,7 +156,7 @@ export function BackupMnemonic() {
                 onCheckedChange={() => setIsBackedUp(!backedUp)}
               />
               <Label htmlFor="backup" className="ml-2">
-                I've backed my recovery phrase to my wallet in a private and
+                I've backed up my recovery phrase to my wallet in a private and
                 secure place
               </Label>
             </div>

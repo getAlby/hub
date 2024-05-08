@@ -9,7 +9,7 @@ export default function SettingsLayout() {
     <>
       <AppHeader
         title="Settings"
-        description="Manage your account settings and set e-mail preferences."
+        description="Manage your account settings."
       />
       <div className="flex flex-col space-y-8 lg:flex-row lg:space-x-12 lg:space-y-0">
         <aside className="-mx-4 lg:w-1/5">

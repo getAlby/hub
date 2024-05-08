@@ -91,7 +91,7 @@ function Wallet() {
                         <div className="flex flex-row gap-3 items-center justify-between w-full">
                           <div className="grid grid-flow-col gap-2 items-center">
                             <ArrowDownToDot className="w-4 h-4 " />
-                            Incoming
+                            Receiving Capacity
                           </div>
                           <div className="text-muted-foreground">
                             {new Intl.NumberFormat().format(
@@ -107,7 +107,7 @@ function Wallet() {
                         <div className="flex flex-row gap-3 items-center justify-between w-full">
                           <div className="grid grid-flow-col gap-2 items-center">
                             <ArrowUpFromDot className="w-4 h-4 " />
-                            Outgoing
+                            Spending Balance
                           </div>
                           <div className="text-muted-foreground">
                             {new Intl.NumberFormat().format(

@@ -39,16 +39,16 @@ type RecommendedPeer = {
   name: string;
   minimumChannelSize: number;
 } & (
-  | {
+    | {
       paymentMethod: "onchain";
       pubkey: string;
       host: string;
     }
-  | {
+    | {
       paymentMethod: "lightning";
       lsp: string;
     }
-);
+  );
 
 const recommendedPeers: RecommendedPeer[] = [
   {
@@ -245,7 +245,7 @@ function NewChannelInternal({ network }: { network: Network }) {
               For a smooth experience consider a opening a channel of 200k sats
               in size or more.{" "}
               <ExternalLink
-                to="https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-lightning-account/faqs-alby-account"
+                to="https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub/liquidity"
                 className="underline"
               >
                 Learn more
@@ -269,7 +269,7 @@ function NewChannelInternal({ network }: { network: Network }) {
                 className={cn(
                   "text-center border rounded p-2 cursor-pointer hover:border-muted-foreground",
                   +(order.amount || "0") === amount &&
-                    "border-primary hover:border-primary"
+                  "border-primary hover:border-primary"
                 )}
                 onClick={() => setAmount(amount.toString())}
               >
