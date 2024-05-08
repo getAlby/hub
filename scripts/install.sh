@@ -1,3 +1,9 @@
+echo ""
+echo ""
+echo "⚡️ Welcome to Alby Hub"
+echo "-----------------------------------------"
+echo "Installing..."
+
 
 sudo mkdir -p /opt/albyhub
 sudo chown -R $USER:$USER /opt/albyhub
@@ -32,3 +38,8 @@ EOF
 
 sudo systemctl enable albyhub
 sudo systemctl start albyhub
+
+echo ""
+echo ""
+echo "✅ Installation finished! Please visit http://$HOSTNAME.local to configure your new Alby Hub."
+echo ""
