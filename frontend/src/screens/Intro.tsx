@@ -69,8 +69,7 @@ export function Intro() {
                 Welcome to Alby Hub
               </div>
               <div className="text-2xl text-muted-foreground font-semibold">
-                A powerful, all-in-one lightning wallet with a superpower of
-                connecting into apps
+                A powerful, all-in-one bitcoin lightning wallet with the superpower of connecting to applications.
               </div>
               <div className="mt-5">
                 <Button onClick={() => api?.scrollNext()} size="lg">
