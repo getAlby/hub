@@ -147,7 +147,9 @@ func NewService(ctx context.Context) (*Service, error) {
 		nip47NotificationQueue: nip47NotificationQueue,
 	}
 	// FIXME: tangled dependency
-	svc.AlbyOAuthSvc = alby.NewAlbyOAuthService(logger, cfg, cfg.Env, eventPublisher, NewAPI(svc))
+	svc.AlbyOAuthSvc = alby.NewAlbyOAuthService(logger, cfg, cfg.Env, NewAPI(svc))
+
+	eventPublisher.RegisterSubscriber(svc.AlbyOAuthSvc)
 
 	eventPublisher.Publish(&events.Event{
 		Event: "nwc_started",

@@ -20,12 +20,11 @@ import (
 )
 
 type AlbyOAuthService struct {
-	appConfig      *config.AppConfig
-	config         config.Config
-	oauthConf      *oauth2.Config
-	logger         *logrus.Logger
-	eventPublisher events.EventPublisher
-	api            api.API
+	appConfig *config.AppConfig
+	config    config.Config
+	oauthConf *oauth2.Config
+	logger    *logrus.Logger
+	api       api.API
 }
 
 // TODO: move to models/alby
@@ -52,7 +51,7 @@ const (
 	userIdentifierKey    = "AlbyUserIdentifier"
 )
 
-func NewAlbyOAuthService(logger *logrus.Logger, kvStore config.Config, appConfig *config.AppConfig, eventPublisher events.EventPublisher, api api.API) *AlbyOAuthService {
+func NewAlbyOAuthService(logger *logrus.Logger, kvStore config.Config, appConfig *config.AppConfig, api api.API) *AlbyOAuthService {
 	conf := &oauth2.Config{
 		ClientID:     appConfig.AlbyClientId,
 		ClientSecret: appConfig.AlbyClientSecret,
@@ -71,12 +70,11 @@ func NewAlbyOAuthService(logger *logrus.Logger, kvStore config.Config, appConfig
 	}
 
 	albyOAuthSvc := &AlbyOAuthService{
-		appConfig:      appConfig,
-		oauthConf:      conf,
-		config:         kvStore,
-		logger:         logger,
-		eventPublisher: eventPublisher,
-		api:            api,
+		appConfig: appConfig,
+		oauthConf: conf,
+		config:    kvStore,
+		logger:    logger,
+		api:       api,
 	}
 	return albyOAuthSvc
 }
