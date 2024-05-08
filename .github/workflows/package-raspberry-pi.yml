@@ -55,11 +55,10 @@ jobs:
           ${{ github.workspace }}/armv6-unknown-linux-gnueabihf/bin/armv6-unknown-linux-gnueabihf-strip ./nostr-wallet-connect
           patchelf --force-rpath --set-rpath '$ORIGIN/lib' ./nostr-wallet-connect
 
-      - name: Zip application and libraries
-        run: zip -9 -r nostr-wallet-connect.zip nostr-wallet-connect lib/
-
       - name: Archive the artifacts
         uses: actions/upload-artifact@v4
         with:
           name: nostr-wallet-connect.zip
-          path: nostr-wallet-connect.zip
+          path: |
+            lib/
+            nostr-wallet-connect
