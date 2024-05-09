@@ -231,6 +231,13 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			}
 			return WailsRequestRouterResponse{Body: openChannelResponse, Error: ""}
 		}
+	case "/api/channels/suggestions":
+		suggestions, err := app.api.GetChannelPeerSuggestions(ctx)
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		res := WailsRequestRouterResponse{Body: suggestions, Error: ""}
+		return res
 	case "/api/balances":
 		balancesResponse, err := app.api.GetBalances(ctx)
 		if err != nil {

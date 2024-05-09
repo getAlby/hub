@@ -44,6 +44,17 @@ type AlbyBalance struct {
 	Currency string `json:"currency"`
 }
 
+type ChannelPeerSuggestion struct {
+	Network            string `json:"network"`
+	PaymentMethod      string `json:"paymentMethod"`
+	Pubkey             string `json:"pubkey"`
+	Host               string `json:"host"`
+	MinimumChannelSize uint64 `json:"minimumChannelSize"`
+	Name               string `json:"name"`
+	Image              string `json:"image"`
+	Lsp                string `json:"lsp"`
+}
+
 const (
 	accessTokenKey       = "AlbyOAuthAccessToken"
 	accessTokenExpiryKey = "AlbyOAuthAccessTokenExpiry"
@@ -543,4 +554,38 @@ func (svc *AlbyOAuthService) activateAlbyAccountNWCNode(ctx context.Context) err
 	svc.logger.Info("Activated alby nwc node successfully")
 
 	return nil
+}
+
+func (svc *AlbyOAuthService) GetChannelPeerSuggestions(ctx context.Context) ([]ChannelPeerSuggestion, error) {
+
+	token, err := svc.fetchUserToken(ctx)
+	if err != nil {
+		svc.logger.WithError(err).Error("Failed to fetch user token")
+		return nil, err
+	}
+
+	client := svc.oauthConf.Client(ctx, token)
+
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/internal/channel_suggestions", svc.appConfig.AlbyAPIURL), nil)
+	if err != nil {
+		svc.logger.WithError(err).Error("Error creating request to channel_suggestions endpoint")
+		return nil, err
+	}
+
+	req.Header.Set("User-Agent", "NWC-next")
+
+	res, err := client.Do(req)
+	if err != nil {
+		svc.logger.WithError(err).Error("Failed to fetch channel_suggestions endpoint")
+		return nil, err
+	}
+	var suggestions []ChannelPeerSuggestion
+	err = json.NewDecoder(res.Body).Decode(&suggestions)
+	if err != nil {
+		svc.logger.WithError(err).Errorf("Failed to decode API response")
+		return nil, err
+	}
+
+	svc.logger.WithFields(logrus.Fields{"channel_suggestions": suggestions}).Info("Alby channel peer suggestions response")
+	return suggestions, nil
 }

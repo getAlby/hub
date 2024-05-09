@@ -235,6 +235,23 @@ export type SetupNodeInfo = Partial<{
   lndMacaroonHex?: string;
 }>;
 
+export type RecommendedChannelPeer = {
+  network: Network;
+  image: string;
+  name: string;
+  minimumChannelSize: number;
+} & (
+    | {
+      paymentMethod: "onchain";
+      pubkey: string;
+      host: string;
+    }
+    | {
+      paymentMethod: "lightning";
+      lsp: string;
+    }
+  );
+
 // TODO: move to different file
 export type AlbyMe = {
   identifier: string;

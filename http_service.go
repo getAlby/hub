@@ -81,6 +81,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	// TODO: below could be supported by NIP-47
 	e.GET("/api/channels", httpSvc.channelsListHandler, authMiddleware)
 	e.POST("/api/channels", httpSvc.openChannelHandler, authMiddleware)
+	e.GET("/api/channels/suggestions", httpSvc.channelPeerSuggestionsHandler, authMiddleware)
 	// TODO: review naming
 	e.POST("/api/instant-channel-invoices", httpSvc.newInstantChannelInvoiceHandler, authMiddleware)
 	e.GET("/api/node/connection-info", httpSvc.nodeConnectionInfoHandler, authMiddleware)
@@ -271,6 +272,20 @@ func (httpSvc *HttpService) channelsListHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, channels)
+}
+
+func (httpSvc *HttpService) channelPeerSuggestionsHandler(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	suggestions, err := httpSvc.api.GetChannelPeerSuggestions(ctx)
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+
+	return c.JSON(http.StatusOK, suggestions)
 }
 
 func (httpSvc *HttpService) resetRouterHandler(c echo.Context) error {

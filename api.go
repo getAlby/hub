@@ -19,6 +19,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
+	"github.com/getAlby/nostr-wallet-connect/alby"
 	models "github.com/getAlby/nostr-wallet-connect/models/api"
 	"github.com/getAlby/nostr-wallet-connect/models/config"
 	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
@@ -302,6 +303,10 @@ func (api *API) ListChannels(ctx context.Context) ([]lnclient.Channel, error) {
 		return nil, errors.New("LNClient not started")
 	}
 	return api.svc.lnClient.ListChannels(ctx)
+}
+
+func (api *API) GetChannelPeerSuggestions(ctx context.Context) ([]alby.ChannelPeerSuggestion, error) {
+	return api.svc.AlbyOAuthSvc.GetChannelPeerSuggestions(ctx)
 }
 
 func (api *API) ResetRouter(ctx context.Context) error {

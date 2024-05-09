@@ -1,10 +1,6 @@
 import { Box, Zap } from "lucide-react";
 import React, { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import albyImage from "src/assets/images/peers/alby.svg";
-import mutinynetImage from "src/assets/images/peers/mutinynet.jpeg";
-import olympusImage from "src/assets/images/peers/olympus.svg";
-import voltageImage from "src/assets/images/peers/voltage.webp";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
@@ -27,112 +23,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "src/components/ui/select";
+import { useChannelPeerSuggestions } from "src/hooks/useChannelPeerSuggestions";
 import { useInfo } from "src/hooks/useInfo";
 import { cn, formatAmount } from "src/lib/utils";
 import useChannelOrderStore from "src/state/ChannelOrderStore";
-import { Network, NewChannelOrder, Node } from "src/types";
+import {
+  Network,
+  NewChannelOrder,
+  Node,
+  RecommendedChannelPeer,
+} from "src/types";
 import { request } from "src/utils/request";
 
-type RecommendedPeer = {
-  network: Network;
-  image: string;
-  name: string;
-  minimumChannelSize: number;
-} & (
-    | {
-      paymentMethod: "onchain";
-      pubkey: string;
-      host: string;
-    }
-    | {
-      paymentMethod: "lightning";
-      lsp: string;
-    }
-  );
-
-const recommendedPeers: RecommendedPeer[] = [
-  {
-    paymentMethod: "onchain",
-    network: "bitcoin",
-    pubkey:
-      "029ca15ad2ea3077f5f0524c4c9bc266854c14b9fc81b9cc3d6b48e2460af13f65",
-    host: "141.95.84.44:9735",
-    minimumChannelSize: 250_000,
-    name: "Alby",
-    image: albyImage,
-  },
-  {
-    paymentMethod: "onchain",
-    network: "testnet",
-    pubkey:
-      "030f8fcc69816d90445f450e59304171fd805f4395a0f4950a5956ce3300463f5a",
-    host: "209.38.178.74:9735",
-    minimumChannelSize: 50_000,
-    name: "Alby Testnet LND2",
-    image: albyImage,
-  },
-  {
-    paymentMethod: "onchain",
-    network: "signet",
-    pubkey:
-      "02465ed5be53d04fde66c9418ff14a5f2267723810176c9212b722e542dc1afb1b",
-    host: "45.79.52.207:9735",
-    minimumChannelSize: 50_000,
-    name: "Mutinynet Faucet",
-    image: mutinynetImage,
-  },
-  {
-    paymentMethod: "lightning",
-    network: "signet",
-    lsp: "OLYMPUS_MUTINYNET_LSPS1",
-    minimumChannelSize: 1_000_000,
-    name: "Olympus Mutinynet (LSPS1)",
-    image: olympusImage,
-  },
-  {
-    paymentMethod: "lightning",
-    network: "bitcoin",
-    lsp: "OLYMPUS_FLOW_2_0",
-    minimumChannelSize: 20_000,
-    name: "Olympus (Flow 2.0)",
-    image: olympusImage,
-  },
-  {
-    paymentMethod: "lightning",
-    network: "bitcoin",
-    lsp: "VOLTAGE",
-    minimumChannelSize: 20_000,
-    name: "Voltage (Flow 2.0)",
-    image: voltageImage,
-  },
-  {
-    paymentMethod: "lightning",
-    network: "signet",
-    lsp: "OLYMPUS_MUTINYNET_FLOW_2_0",
-    minimumChannelSize: 20_000,
-    name: "Olympus Mutinynet (Flow 2.0)",
-    image: olympusImage,
-  },
-  {
-    paymentMethod: "lightning",
-    network: "signet",
-    lsp: "ALBY_MUTINYNET",
-    minimumChannelSize: 150_000,
-    name: "Alby Mutinynet",
-    image: albyImage,
-  },
-  {
-    network: "signet",
-    paymentMethod: "onchain",
-    pubkey: "",
-    host: "",
-    minimumChannelSize: 0,
-    name: "Custom",
-    image: albyImage,
-  },
-];
-
-function getPeerKey(peer: RecommendedPeer) {
+function getPeerKey(peer: RecommendedChannelPeer) {
   return JSON.stringify(peer);
 }
 
@@ -147,6 +50,7 @@ export default function NewChannel() {
 }
 
 function NewChannelInternal({ network }: { network: Network }) {
+  const { data: channelPeerSuggestions } = useChannelPeerSuggestions();
   const navigate = useNavigate();
 
   const [order, setOrder] = React.useState<Partial<NewChannelOrder>>({
@@ -155,7 +59,7 @@ function NewChannelInternal({ network }: { network: Network }) {
   });
 
   const [selectedPeer, setSelectedPeer] = React.useState<
-    RecommendedPeer | undefined
+    RecommendedChannelPeer | undefined
   >();
 
   function setPaymentMethod(paymentMethod: "onchain" | "lightning") {
@@ -173,13 +77,16 @@ function NewChannelInternal({ network }: { network: Network }) {
   }, []);
 
   React.useEffect(() => {
-    const recommendedPeer = recommendedPeers.find(
+    if (!channelPeerSuggestions) {
+      return;
+    }
+    const recommendedPeer = channelPeerSuggestions.find(
       (peer) =>
         peer.network === network && peer.paymentMethod === order.paymentMethod
     );
 
     setSelectedPeer(recommendedPeer);
-  }, [network, order.paymentMethod]);
+  }, [network, order.paymentMethod, channelPeerSuggestions]);
 
   React.useEffect(() => {
     if (selectedPeer) {
@@ -213,6 +120,10 @@ function NewChannelInternal({ network }: { network: Network }) {
     e.preventDefault();
     useChannelOrderStore.getState().setOrder(order as NewChannelOrder);
     navigate("/channels/order");
+  }
+
+  if (!channelPeerSuggestions) {
+    return <Loading />;
   }
 
   return (
@@ -256,7 +167,7 @@ function NewChannelInternal({ network }: { network: Network }) {
             id="amount"
             type="number"
             required
-            min={selectedPeer?.minimumChannelSize}
+            min={selectedPeer?.minimumChannelSize || 100000}
             value={order.amount}
             onChange={(e) => {
               setAmount(e.target.value.trim());
@@ -269,7 +180,7 @@ function NewChannelInternal({ network }: { network: Network }) {
                 className={cn(
                   "text-center border rounded p-2 cursor-pointer hover:border-muted-foreground",
                   +(order.amount || "0") === amount &&
-                  "border-primary hover:border-primary"
+                    "border-primary hover:border-primary"
                 )}
                 onClick={() => setAmount(amount.toString())}
               >
@@ -324,7 +235,9 @@ function NewChannelInternal({ network }: { network: Network }) {
                   value={getPeerKey(selectedPeer)}
                   onValueChange={(value) =>
                     setSelectedPeer(
-                      recommendedPeers.find((x) => getPeerKey(x) === value)
+                      channelPeerSuggestions.find(
+                        (x) => getPeerKey(x) === value
+                      )
                     )
                   }
                 >
@@ -332,7 +245,7 @@ function NewChannelInternal({ network }: { network: Network }) {
                     <SelectValue placeholder="Select channel peer" />
                   </SelectTrigger>
                   <SelectContent>
-                    {recommendedPeers
+                    {channelPeerSuggestions
                       .filter(
                         (peer) =>
                           peer.network === network &&
@@ -345,10 +258,12 @@ function NewChannelInternal({ network }: { network: Network }) {
                         >
                           <div className="flex items-center space-between gap-3 w-full">
                             <div className="flex items-center gap-3">
-                              <img
-                                src={peer.image}
-                                className="w-12 h-12 object-contain"
-                              />
+                              {peer.name !== "Custom" && (
+                                <img
+                                  src={peer.image}
+                                  className="w-12 h-12 object-contain"
+                                />
+                              )}
                               <div>
                                 {peer.name}
                                 {peer.minimumChannelSize > 0 && (
