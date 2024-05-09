@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/getAlby/ldk-node-go/ldk_node"
+	// "github.com/getAlby/nostr-wallet-connect/ldk_node"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
 
@@ -201,14 +202,14 @@ func (gs *LDKService) Shutdown() error {
 	return nil
 }
 
-func (gs *LDKService) SendPaymentSync(ctx context.Context, invoice string) (preimage string, err error) {
+func (gs *LDKService) SendPaymentSync(ctx context.Context, invoice string) (*lnclient.Nip47PayInvoiceResponse, error) {
 	paymentRequest, err := decodepay.Decodepay(invoice)
 	if err != nil {
 		gs.svc.Logger.WithFields(logrus.Fields{
 			"bolt11": invoice,
 		}).Errorf("Failed to decode bolt11 invoice: %v", err)
 
-		return "", err
+		return nil, err
 	}
 
 	maxSpendable := gs.getMaxSpendable()
@@ -231,9 +232,10 @@ func (gs *LDKService) SendPaymentSync(ctx context.Context, invoice string) (prei
 	paymentHash, err := gs.node.Bolt11Payment().Send(invoice)
 	if err != nil {
 		gs.svc.Logger.WithError(err).Error("SendPayment failed")
-		return "", err
+		return nil, err
 	}
 	fee := uint64(0)
+	preimage := ""
 
 	for start := time.Now(); time.Since(start) < time.Second*60; {
 		event := <-ldkEventSubscription
@@ -246,7 +248,7 @@ func (gs *LDKService) SendPaymentSync(ctx context.Context, invoice string) (prei
 			payment := gs.node.Payment(paymentHash)
 			if payment == nil {
 				gs.svc.Logger.Errorf("Couldn't find payment by payment hash: %v", paymentHash)
-				return "", errors.New("Payment not found")
+				return nil, errors.New("Payment not found")
 			}
 
 			bolt11PaymentKind, ok := payment.Kind.(ldk_node.PaymentKindBolt11)
@@ -259,7 +261,7 @@ func (gs *LDKService) SendPaymentSync(ctx context.Context, invoice string) (prei
 
 			if bolt11PaymentKind.Preimage == nil {
 				gs.svc.Logger.Errorf("No payment preimage for payment hash: %v", paymentHash)
-				return "", errors.New("Payment preimage not found")
+				return nil, errors.New("Payment preimage not found")
 			}
 			preimage = *bolt11PaymentKind.Preimage
 
@@ -297,19 +299,23 @@ func (gs *LDKService) SendPaymentSync(ctx context.Context, invoice string) (prei
 				"failureReasonMessage": failureReasonMessage,
 			}).Error("Received payment failed event")
 
-			return "", fmt.Errorf("received payment failed event: %v %s", failureReason, failureReasonMessage)
+			return nil, fmt.Errorf("received payment failed event: %v %s", failureReason, failureReasonMessage)
 		}
 	}
 	if preimage == "" {
 		// TODO: this doesn't necessarily mean it will fail - we should return a different response
-		return "", errors.New("Payment timed out")
+		return nil, errors.New("Payment timed out")
 	}
 
 	gs.svc.Logger.WithFields(logrus.Fields{
 		"duration": time.Since(paymentStart).Milliseconds(),
 		"fee":      fee,
 	}).Info("Successful payment")
-	return preimage, nil
+
+	return &lnclient.Nip47PayInvoiceResponse{
+		Preimage: preimage,
+		Fee:      &fee,
+	}, nil
 }
 
 func (gs *LDKService) SendKeysend(ctx context.Context, amount int64, destination, preimage string, custom_records []lnclient.TLVRecord) (preImage string, err error) {
@@ -520,18 +526,18 @@ func (gs *LDKService) LookupInvoice(ctx context.Context, paymentHash string) (tr
 	return transaction, nil
 }
 
-func (gs *LDKService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []Nip47Transaction, err error) {
+func (ls *LDKService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []Nip47Transaction, err error) {
 	transactions = []Nip47Transaction{}
 
 	// TODO: support pagination
-	payments := gs.node.ListPayments()
+	payments := ls.node.ListPayments()
 
 	for _, payment := range payments {
 		if payment.Status == ldk_node.PaymentStatusSucceeded || unpaid {
-			transaction, err := gs.ldkPaymentToTransaction(&payment)
+			transaction, err := ls.ldkPaymentToTransaction(&payment)
 
 			if err != nil {
-				gs.svc.Logger.Errorf("Failed to map transaction: %v", err)
+				ls.svc.Logger.Errorf("Failed to map transaction: %v", err)
 				continue
 			}
 
@@ -540,6 +546,9 @@ func (gs *LDKService) ListTransactions(ctx context.Context, from, until, limit, 
 				continue
 			}
 			if until != 0 && uint64(transaction.CreatedAt) > until {
+				continue
+			}
+			if invoiceType != "" && transaction.Type != invoiceType {
 				continue
 			}
 
@@ -563,6 +572,8 @@ func (gs *LDKService) ListTransactions(ctx context.Context, from, until, limit, 
 	if len(transactions) > int(limit) {
 		transactions = transactions[:limit]
 	}
+
+	// ls.svc.Logger.WithField("transactions", transactions).Debug("Listed transactions")
 
 	return transactions, nil
 }
@@ -764,6 +775,8 @@ func (gs *LDKService) SignMessage(ctx context.Context, message string) (string, 
 }
 
 func (gs *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) (*Nip47Transaction, error) {
+	// gs.svc.Logger.WithField("payment", payment).Debug("Mapping LDK payment to transaction")
+
 	transactionType := "incoming"
 	if payment.Direction == ldk_node.PaymentDirectionOutbound {
 		transactionType = "outgoing"
@@ -813,14 +826,19 @@ func (gs *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 		amount = *payment.AmountMsat
 	}
 
+	var fee uint64 = 0
+	if payment.FeeMsat != nil {
+		fee = *payment.FeeMsat
+	}
+
 	return &Nip47Transaction{
-		Type:        transactionType,
-		Preimage:    preimage,
-		PaymentHash: paymentHash,
-		SettledAt:   settledAt,
-		Amount:      int64(amount),
-		Invoice:     bolt11Invoice,
-		//FeesPaid:        payment.FeeMsat,
+		Type:            transactionType,
+		Preimage:        preimage,
+		PaymentHash:     paymentHash,
+		SettledAt:       settledAt,
+		Amount:          int64(amount),
+		Invoice:         bolt11Invoice,
+		FeesPaid:        int64(fee),
 		CreatedAt:       createdAt,
 		Description:     description,
 		DescriptionHash: descriptionHash,

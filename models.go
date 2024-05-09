@@ -116,7 +116,8 @@ type Nip47PayParams struct {
 	Invoice string `json:"invoice"`
 }
 type Nip47PayResponse struct {
-	Preimage string `json:"preimage"`
+	Preimage string  `json:"preimage"`
+	FeesPaid *uint64 `json:"fees_paid"`
 }
 
 type Nip47MultiPayKeysendParams struct {

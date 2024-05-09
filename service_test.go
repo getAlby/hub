@@ -1256,8 +1256,10 @@ func NewMockLn() (*MockLn, error) {
 	return &MockLn{}, nil
 }
 
-func (mln *MockLn) SendPaymentSync(ctx context.Context, payReq string) (preimage string, err error) {
-	return "123preimage", nil
+func (mln *MockLn) SendPaymentSync(ctx context.Context, payReq string) (*lnclient.Nip47PayInvoiceResponse, error) {
+	return &lnclient.Nip47PayInvoiceResponse{
+		Preimage: "123preimage",
+	}, nil
 }
 
 func (mln *MockLn) SendKeysend(ctx context.Context, amount int64, destination, preimage string, custom_records []lnclient.TLVRecord) (preImage string, err error) {

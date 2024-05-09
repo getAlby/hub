@@ -102,19 +102,21 @@ func (bs *BreezService) Shutdown() error {
 	return bs.svc.Disconnect()
 }
 
-func (bs *BreezService) SendPaymentSync(ctx context.Context, payReq string) (preimage string, err error) {
+func (bs *BreezService) SendPaymentSync(ctx context.Context, payReq string) (*lnclient.Nip47PayInvoiceResponse, error) {
 	sendPaymentRequest := breez_sdk.SendPaymentRequest{
 		Bolt11: payReq,
 	}
 	resp, err := bs.svc.SendPayment(sendPaymentRequest)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	var lnDetails breez_sdk.PaymentDetailsLn
 	if resp.Payment.Details != nil {
 		lnDetails, _ = resp.Payment.Details.(breez_sdk.PaymentDetailsLn)
 	}
-	return lnDetails.Data.PaymentPreimage, nil
+	return &lnclient.Nip47PayInvoiceResponse{
+		Preimage: lnDetails.Data.PaymentPreimage,
+	}, nil
 
 }
 

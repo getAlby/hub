@@ -67,7 +67,7 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, nip47Request *Nip
 		"bolt11":              bolt11,
 	}).Info("Sending payment")
 
-	preimage, err := svc.lnClient.SendPaymentSync(ctx, bolt11)
+	response, err := svc.lnClient.SendPaymentSync(ctx, bolt11)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
 			"requestEventNostrId": requestEvent.NostrId,
@@ -91,7 +91,8 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, nip47Request *Nip
 		}, nostr.Tags{})
 		return
 	}
-	payment.Preimage = &preimage
+	payment.Preimage = &response.Preimage
+	// TODO: save payment fee
 	svc.db.Save(&payment)
 
 	svc.EventPublisher.Publish(&events.Event{
@@ -105,7 +106,8 @@ func (svc *Service) HandlePayInvoiceEvent(ctx context.Context, nip47Request *Nip
 	publishResponse(&Nip47Response{
 		ResultType: nip47Request.Method,
 		Result: Nip47PayResponse{
-			Preimage: preimage,
+			Preimage: response.Preimage,
+			FeesPaid: response.Fee,
 		},
 	}, nostr.Tags{})
 }

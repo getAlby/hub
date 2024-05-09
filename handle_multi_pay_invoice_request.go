@@ -84,7 +84,7 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, nip47Request
 				"bolt11":              bolt11,
 			}).Info("Sending payment")
 
-			preimage, err := svc.lnClient.SendPaymentSync(ctx, bolt11)
+			response, err := svc.lnClient.SendPaymentSync(ctx, bolt11)
 			if err != nil {
 				svc.Logger.WithFields(logrus.Fields{
 					"requestEventNostrId": requestEvent.NostrId,
@@ -111,7 +111,9 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, nip47Request
 				}, nostr.Tags{dTag})
 				return
 			}
-			payment.Preimage = &preimage
+			payment.Preimage = &response.Preimage
+			// TODO: also set fee
+
 			mu.Lock()
 			svc.db.Save(&payment)
 			mu.Unlock()
@@ -125,7 +127,8 @@ func (svc *Service) HandleMultiPayInvoiceEvent(ctx context.Context, nip47Request
 			publishResponse(&Nip47Response{
 				ResultType: nip47Request.Method,
 				Result: Nip47PayResponse{
-					Preimage: preimage,
+					Preimage: response.Preimage,
+					FeesPaid: response.Fee,
 				},
 			}, nostr.Tags{dTag})
 		}(invoiceInfo)
