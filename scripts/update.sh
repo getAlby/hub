@@ -4,7 +4,7 @@ echo "🔃 Updating Alby Hub..."
 sudo systemctl stop albyhub
 
 cd /opt/albyhub
-rm -rf albyhub-backup
+sudo rm -rf albyhub-backup
 mkdir albyhub-backup
 mv app albyhub-backup
 sudo cp -r data albyhub-backup
