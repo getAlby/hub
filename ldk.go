@@ -173,7 +173,7 @@ func NewLDKService(ctx context.Context, svc *Service, mnemonic, workDir string, 
 		}).Info("Waiting for LDK node to sync")
 		time.Sleep(1 * time.Second)
 
-		if node.Status().LatestOnchainWalletSyncTimestamp != nil {
+		if node.Status().LatestOnchainWalletSyncTimestamp != nil || node.Status().LatestWalletSyncTimestamp != nil {
 			svc.Logger.WithFields(logrus.Fields{
 				"nodeId":    nodeId,
 				"status":    node.Status(),
