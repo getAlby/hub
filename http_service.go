@@ -293,9 +293,16 @@ func (httpSvc *HttpService) channelPeerSuggestionsHandler(c echo.Context) error 
 }
 
 func (httpSvc *HttpService) resetRouterHandler(c echo.Context) error {
+	var resetRouterRequest api.ResetRouterRequest
+	if err := c.Bind(&resetRouterRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, models.ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
 	ctx := c.Request().Context()
 
-	err := httpSvc.api.ResetRouter(ctx)
+	err := httpSvc.api.ResetRouter(ctx, resetRouterRequest.Key)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{

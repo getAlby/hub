@@ -749,16 +749,29 @@ func (gs *LDKService) RedeemOnchainFunds(ctx context.Context, toAddress string) 
 	return txId, nil
 }
 
-func (ls *LDKService) ResetRouter(ctx context.Context) error {
+func (ls *LDKService) ResetRouter(ctx context.Context, key string) error {
 	// HACK: to ensure the router is reset correctly we must stop the node first.
 	err := ls.node.Stop()
 	if err != nil {
 		ls.svc.Logger.WithError(err).Error("Failed to stop the node")
 	}
 
-	err = ls.node.ResetRouter()
+	switch key {
+	case "":
+		fallthrough
+	case "ALL":
+		err = ls.node.ResetRouter()
+	case "LatestRgsSyncTimestamp":
+		err = ls.node.ResetRouterRecord(ldk_node.PersistentRecordKeyLatestRgsSyncTimestamp)
+	case "Scorer":
+		err = ls.node.ResetRouterRecord(ldk_node.PersistentRecordKeyScorer)
+	case "NetworkGraph":
+		err = ls.node.ResetRouterRecord(ldk_node.PersistentRecordKeyNetworkGraph)
+	default:
+		err = fmt.Errorf("unknown key: %s", key)
+	}
 	if err != nil {
-		ls.svc.Logger.WithError(err).Error("ResetRouter failed")
+		ls.svc.Logger.WithField("key", key).WithError(err).Error("ResetRouter failed")
 	}
 
 	return err

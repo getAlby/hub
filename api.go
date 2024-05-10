@@ -318,11 +318,11 @@ func (api *API) GetChannelPeerSuggestions(ctx context.Context) ([]alby.ChannelPe
 	return api.svc.AlbyOAuthSvc.GetChannelPeerSuggestions(ctx)
 }
 
-func (api *API) ResetRouter(ctx context.Context) error {
+func (api *API) ResetRouter(ctx context.Context, key string) error {
 	if api.svc.lnClient == nil {
 		return errors.New("LNClient not started")
 	}
-	err := api.svc.lnClient.ResetRouter(ctx)
+	err := api.svc.lnClient.ResetRouter(ctx, key)
 	if err != nil {
 		return err
 	}

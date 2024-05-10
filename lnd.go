@@ -436,7 +436,7 @@ func lndInvoiceToTransaction(invoice *lnrpc.Invoice) *Nip47Transaction {
 	}
 }
 
-func (svc *LNDService) ResetRouter(ctx context.Context) error {
+func (svc *LNDService) ResetRouter(ctx context.Context, key string) error {
 	return nil
 }
 

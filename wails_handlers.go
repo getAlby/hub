@@ -194,7 +194,18 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: createAppResponse, Error: ""}
 		}
 	case "/api/reset-router":
-		err := app.api.ResetRouter(ctx)
+		resetRouterRequest := &api.ResetRouterRequest{}
+		err := json.Unmarshal([]byte(body), resetRouterRequest)
+		if err != nil {
+			app.svc.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).WithError(err).Error("Failed to decode request to wails router")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+
+		err = app.api.ResetRouter(ctx, resetRouterRequest.Key)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
