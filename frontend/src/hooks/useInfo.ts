@@ -1,8 +1,16 @@
-import useSWR from "swr";
+import useSWR, { SWRConfiguration } from "swr";
 
-import { swrFetcher } from "src/utils/swr";
 import { InfoResponse } from "src/types";
+import { swrFetcher } from "src/utils/swr";
 
-export function useInfo() {
-  return useSWR<InfoResponse>("/api/info", swrFetcher);
+const pollConfiguration: SWRConfiguration = {
+  refreshInterval: 3000,
+};
+
+export function useInfo(poll = false) {
+  return useSWR<InfoResponse>(
+    "/api/info",
+    swrFetcher,
+    poll ? pollConfiguration : undefined
+  );
 }

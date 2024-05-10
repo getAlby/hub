@@ -7,11 +7,12 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/getAlby/nostr-wallet-connect/models/config"
-	dbModels "github.com/getAlby/nostr-wallet-connect/models/db"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+
+	"github.com/getAlby/nostr-wallet-connect/models/config"
+	dbModels "github.com/getAlby/nostr-wallet-connect/models/db"
 )
 
 type Config struct {
@@ -79,7 +80,10 @@ func (cfg *Config) Get(key string, encryptionKey string) (string, error) {
 
 func (cfg *Config) get(key string, encryptionKey string, db *gorm.DB) (string, error) {
 	var userConfig dbModels.UserConfig
-	db.Where(&dbModels.UserConfig{Key: key}).Limit(1).Find(&userConfig)
+	err := db.Where(&dbModels.UserConfig{Key: key}).Limit(1).Find(&userConfig).Error
+	if err != nil {
+		return "", fmt.Errorf("failed to get configuration value: %w", db.Error)
+	}
 
 	value := userConfig.Value
 	if userConfig.Value != "" && encryptionKey != "" && userConfig.Encrypted {

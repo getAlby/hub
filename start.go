@@ -5,9 +5,10 @@ import (
 	"errors"
 	"time"
 
-	"github.com/getAlby/nostr-wallet-connect/events"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip19"
+
+	"github.com/getAlby/nostr-wallet-connect/events"
 )
 
 func (svc *Service) StartNostr(ctx context.Context, encryptionKey string) error {
@@ -111,17 +112,28 @@ func (svc *Service) StartApp(encryptionKey string) error {
 		return errors.New("invalid password")
 	}
 
-	err := svc.launchLNBackend(svc.ctx, encryptionKey)
+	ctx, cancelFn := context.WithCancel(svc.ctx)
+
+	err := svc.launchLNBackend(ctx, encryptionKey)
 	if err != nil {
 		svc.Logger.Errorf("Failed to launch LN backend: %v", err)
 		svc.EventPublisher.Publish(&events.Event{
 			Event: "nwc_node_start_failed",
 		})
+		cancelFn()
 		return err
 	}
 
-	svc.StartNostr(svc.ctx, encryptionKey)
+	svc.StartNostr(ctx, encryptionKey)
+	svc.appCancelFn = cancelFn
 	return nil
+}
+
+func (svc *Service) StopApp() {
+	if svc.appCancelFn != nil {
+		svc.appCancelFn()
+		svc.wg.Wait()
+	}
 }
 
 func (svc *Service) Shutdown() {

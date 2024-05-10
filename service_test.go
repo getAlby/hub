@@ -1331,8 +1331,10 @@ func (mln *MockLn) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, error
 func (mln *MockLn) GetLogOutput(ctx context.Context, maxLen int) ([]byte, error) {
 	return []byte{}, nil
 }
-
 func (mln *MockLn) SignMessage(ctx context.Context, message string) (string, error) {
+	return "", nil
+}
+func (mln *MockLn) GetStorageDir() (string, error) {
 	return "", nil
 }
 func (mln *MockLn) GetNodeStatus(ctx context.Context) (nodeStatus *lnclient.NodeStatus, err error) {

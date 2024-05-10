@@ -66,9 +66,9 @@ Go to `/frontend`
 
 _Make sure to have [wails](https://wails.io/docs/gettingstarted/installation) installed and all platform-specific dependencies installed (see wails doctor)_
 
-    $ unset GTK_PATH && wails dev -tags "wails"
+    $ wails dev -tags "wails"
 
-_If you get a blank screen the first load, close the window and start the app again_
+_If you get a blank screen, try running in your normal terminal (outside of vscode, and make sure HTTP frontend is not running)_
 
 #### Wails Production build
 

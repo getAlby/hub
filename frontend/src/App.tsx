@@ -21,7 +21,6 @@ import NewChannel from "src/screens/channels/NewChannel";
 import MigrateAlbyFunds from "src/screens/onboarding/MigrateAlbyFunds";
 import NewOnchainAddress from "src/screens/onchain/NewAddress";
 import ConnectPeer from "src/screens/peers/ConnectPeer";
-import SignMessage from "src/screens/wallet/SignMessage";
 import Settings from "src/screens/settings/Settings";
 import { ImportMnemonic } from "src/screens/setup/ImportMnemonic";
 import { SetupFinish } from "src/screens/setup/SetupFinish";
@@ -29,18 +28,22 @@ import { SetupNode } from "src/screens/setup/SetupNode";
 import { SetupPassword } from "src/screens/setup/SetupPassword";
 import { SetupWallet } from "src/screens/setup/SetupWallet";
 import Wallet from "src/screens/wallet";
+import SignMessage from "src/screens/wallet/SignMessage";
 import { usePosthog } from "./hooks/usePosthog";
 
 import SettingsLayout from "src/components/layouts/SettingsLayout";
 import TwoColumnFullScreenLayout from "src/components/layouts/TwoColumnFullScreenLayout";
 import { OnboardingRedirect } from "src/components/redirects/OnboardingRedirect";
 import { Toaster } from "src/components/ui/toaster";
+import { BackupNode } from "src/screens/BackupNode";
+import { BackupNodeSuccess } from "src/screens/BackupNodeSuccess";
 import { Intro } from "src/screens/Intro";
 import AlbyAuthRedirect from "src/screens/alby/AlbyAuthRedirect";
 import { CurrentChannelOrder } from "src/screens/channels/CurrentChannelOrder";
 import { Success } from "src/screens/onboarding/Success";
 import { ChangeUnlockPassword } from "src/screens/settings/ChangeUnlockPassword";
 import DebugTools from "src/screens/settings/DebugTools";
+import { RestoreNode } from "src/screens/setup/RestoreNode";
 
 function App() {
   usePosthog();
@@ -50,6 +53,10 @@ function App() {
         <Toaster />
         <HashRouter>
           <Routes>
+            <Route
+              path="/node-backup-success"
+              element={<BackupNodeSuccess />}
+            />
             <Route path="/" element={<AppLayout />}>
               <Route path="" element={<HomeRedirect />} />
               <Route path="settings" element={<DefaultRedirect />}>
@@ -59,7 +66,8 @@ function App() {
                     path="change-unlock-password"
                     element={<ChangeUnlockPassword />}
                   />
-                  <Route path="backup" element={<BackupMnemonic />} />
+                  <Route path="key-backup" element={<BackupMnemonic />} />
+                  <Route path="node-backup" element={<BackupNode />} />
                 </Route>
               </Route>
               <Route path="wallet" element={<DefaultRedirect />}>
@@ -110,6 +118,7 @@ function App() {
                 <Route path="node" element={<SetupNode />} />
                 <Route path="wallet" element={<SetupWallet />} />
                 <Route path="import-mnemonic" element={<ImportMnemonic />} />
+                <Route path="node-restore" element={<RestoreNode />} />
                 <Route path="finish" element={<SetupFinish />} />
               </Route>
               <Route path="onboarding" element={<OnboardingRedirect />}>

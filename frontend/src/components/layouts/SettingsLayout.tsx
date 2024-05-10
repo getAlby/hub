@@ -2,9 +2,11 @@ import { ExternalLink } from "lucide-react";
 import { NavLink, Outlet } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import { buttonVariants } from "src/components/ui/button";
+import { useInfo } from "src/hooks/useInfo";
 import { cn } from "src/lib/utils";
 
 export default function SettingsLayout() {
+  const { data: info } = useInfo();
   return (
     <>
       <AppHeader
@@ -15,7 +17,10 @@ export default function SettingsLayout() {
         <aside className="-mx-4 lg:w-1/5">
           <nav className="flex space-x-2 lg:flex-col lg:space-x-0 lg:space-y-1">
             <MenuItem to="/settings">General</MenuItem>
-            <MenuItem to="/settings/backup">Key Backup</MenuItem>
+            <MenuItem to="/settings/key-backup">Key Backup</MenuItem>
+            {info?.backendType === "LDK" && (
+              <MenuItem to="/settings/node-backup">Backup Node</MenuItem>
+            )}
             <MenuItem to="/settings/change-unlock-password">
               Unlock Password
             </MenuItem>

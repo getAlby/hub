@@ -80,7 +80,7 @@ function SidebarHint() {
         description=" Not backing up your key might result in permanently losing
               access to your funds."
         buttonText="Backup Now"
-        buttonLink="/settings/backup"
+        buttonLink="/settings/key-backup"
       />
     );
   }

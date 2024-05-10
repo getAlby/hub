@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import useSetupStore from "src/state/SetupStore";
 
 import * as bip39 from "@scure/bip39";
@@ -19,6 +19,7 @@ export function SetupPassword() {
   const [confirmPassword, setConfirmPassword] = React.useState("");
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const wallet = searchParams.get("wallet");
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -29,8 +30,6 @@ export function SetupPassword() {
       });
       return;
     }
-
-    const wallet = searchParams.get("wallet");
 
     // Pre-configured LND
     if (info?.backendType === "LND") {
@@ -91,6 +90,16 @@ export function SetupPassword() {
               </div>
             </div>
             <Button type="submit">Create Password</Button>
+            {wallet === "import" && (
+              <div className="flex flex-col justify-center items-center gap-4">
+                <p className="text-muted-foreground">or</p>
+                <Link to="/setup/node-restore" className="w-full">
+                  <Button variant="secondary" className="w-full">
+                    Import Backup File
+                  </Button>
+                </Link>
+              </div>
+            )}
           </div>
         </form>
       </Container>

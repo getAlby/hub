@@ -23,7 +23,8 @@ export function Welcome() {
             Welcome to Alby Hub
           </h1>
           <p className="text-muted-foreground">
-            A powerful, all-in-one bitcoin lightning wallet with the superpower of connecting to applications.
+            A powerful, all-in-one bitcoin lightning wallet with the superpower
+            of connecting to applications.
           </p>
         </div>
         <div className="grid gap-2">

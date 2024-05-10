@@ -651,6 +651,10 @@ func (gs *GreenlightService) GetBalances(ctx context.Context) (*lnclient.Balance
 
 }
 
+func (gs *GreenlightService) GetStorageDir() (string, error) {
+	return "", nil
+}
+
 func (gs *GreenlightService) GetNodeStatus(ctx context.Context) (nodeStatus *lnclient.NodeStatus, err error) {
 	return nil, nil
 }
