@@ -88,7 +88,7 @@ export function BackupMnemonic() {
     <>
       <SettingsHeader
         title="Backup Your Keys"
-        description="Make sure to your backup somewhere safe."
+        description="Make sure to your backup somewhere safe"
       />
       {!decryptedMnemonic ? (
         <Container>

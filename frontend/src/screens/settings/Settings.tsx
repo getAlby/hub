@@ -5,7 +5,7 @@ function Settings() {
     <>
       <SettingsHeader
         title="General"
-        description="Adjust general settings of your Alby Hub."
+        description="Adjust general settings of your Alby Hub"
       />
     </>
   );

@@ -17,13 +17,13 @@ export default function SettingsLayout() {
         <aside className="-mx-4 lg:w-1/5">
           <nav className="flex space-x-2 lg:flex-col lg:space-x-0 lg:space-y-1">
             <MenuItem to="/settings">General</MenuItem>
-            <MenuItem to="/settings/key-backup">Key Backup</MenuItem>
-            {info?.backendType === "LDK" && (
-              <MenuItem to="/settings/node-backup">Backup Node</MenuItem>
-            )}
             <MenuItem to="/settings/change-unlock-password">
               Unlock Password
             </MenuItem>
+            <MenuItem to="/settings/key-backup">Key Backup</MenuItem>
+            {info?.backendType === "LDK" && (
+              <MenuItem to="/settings/node-backup">Node Backup</MenuItem>
+            )}
             <MenuItem to="/debug-tools">
               Debug Tools
               <ExternalLink className="w-4 h-4 ml-2" />
