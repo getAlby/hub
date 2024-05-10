@@ -117,9 +117,8 @@ export default function Channels() {
 
       if (
         !confirm(
-          `Are you sure you want to close the channel with ${
-            nodes.find((node) => node.public_key === nodeId)?.alias ||
-            "Unknown Node"
+          `Are you sure you want to close the channel with ${nodes.find((node) => node.public_key === nodeId)?.alias ||
+          "Unknown Node"
           }?\n\nNode ID: ${nodeId}\n\nChannel ID: ${channelId}`
         )
       ) {
@@ -257,7 +256,7 @@ export default function Channels() {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem>
                     <Link to="/channels/onchain/new-address">
-                      Onchain Address
+                      On-Chain Address
                     </Link>
                   </DropdownMenuItem>
                   {(info?.backendType === "LDK" ||
