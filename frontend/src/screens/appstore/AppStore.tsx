@@ -8,7 +8,7 @@ function AppStore() {
     <>
       <AppHeader
         title="Apps"
-        description="Apps that you can connect your wallet to."
+        description="Apps that you can connect your wallet to"
         contentRight={
           <>
             <a

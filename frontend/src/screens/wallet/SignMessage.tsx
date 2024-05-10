@@ -61,7 +61,7 @@ export default function SignMessage() {
     <div className="grid gap-5">
       <AppHeader
         title="Sign Message"
-        description="Manually sign a message with your node's key. Use this for example if you need to proof ownership of your node."
+        description="Manually sign a message with your node's key (e.g. to proof ownership of your node)"
       />
       <div className="max-w-lg">
         <form onSubmit={handleSubmit} className="grid gap-5">

@@ -220,7 +220,7 @@ export default function Channels() {
     <>
       <AppHeader
         title="Liquidity"
-        description="Manage your lightning node liquidity."
+        description="Manage your lightning node liquidity"
         contentRight={
           <>
             <DropdownMenu>
