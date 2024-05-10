@@ -40,13 +40,18 @@ func (albyHttpSvc *AlbyHttpService) albyCallbackHandler(c echo.Context) error {
 		})
 	}
 
-	// FIXME: redirects will not work for wails
+	if albyHttpSvc.albyOAuthSvc.appConfig.IsDefaultClientId() {
+		// do not redirect if using default OAuth client
+		// redirect will be handled by the frontend instead
+		return c.NoContent(http.StatusNoContent)
+	}
+
 	redirectUrl := albyHttpSvc.albyOAuthSvc.appConfig.FrontendUrl
 	if redirectUrl == "" {
 		redirectUrl = albyHttpSvc.albyOAuthSvc.appConfig.BaseUrl
 	}
 
-	return c.Redirect(302, redirectUrl)
+	return c.Redirect(http.StatusFound, redirectUrl)
 }
 
 func (albyHttpSvc *AlbyHttpService) albyMeHandler(c echo.Context) error {
