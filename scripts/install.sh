@@ -31,6 +31,7 @@ Environment="PORT=80"
 Environment="WORK_DIR=/opt/albyhub/data"
 Environment="LDK_ESPLORA_SERVER=https://electrs.albylabs.com"
 Environment="LOG_EVENTS=true"
+Environment="LDK_GOSSIP_SOURCE="
 
 [Install]
 WantedBy=multi-user.target
