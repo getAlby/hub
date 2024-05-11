@@ -936,17 +936,17 @@ func (ls *LDKService) logLdkEvent(ctx context.Context, event *ldk_node.Event) {
 		ls.eventPublisher.Publish(&events.Event{
 			Event: "nwc_channel_ready",
 			Properties: map[string]interface{}{
-				// "counterparty_node_id": v.CounterpartyNodeId,
-				"node_type": config.LDKBackendType,
+				"counterparty_node_id": v.CounterpartyNodeId,
+				"node_type":            config.LDKBackendType,
 			},
 		})
 	case ldk_node.EventChannelClosed:
 		ls.eventPublisher.Publish(&events.Event{
 			Event: "nwc_channel_closed",
 			Properties: map[string]interface{}{
-				// "counterparty_node_id": v.CounterpartyNodeId,
-				// "reason":               fmt.Sprintf("%+v", v.Reason),
-				"node_type": config.LDKBackendType,
+				"counterparty_node_id": v.CounterpartyNodeId,
+				"reason":               fmt.Sprintf("%+v", v.Reason),
+				"node_type":            config.LDKBackendType,
 			},
 		})
 	case ldk_node.EventPaymentReceived:
