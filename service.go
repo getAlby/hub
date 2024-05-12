@@ -724,8 +724,8 @@ func (svc *Service) GetBudgetUsage(appPermission *AppPermission) int64 {
 	var result struct {
 		Sum uint
 	}
-	// TODO: discard failed payments from this check
-	svc.db.Table("payments").Select("SUM(amount) as sum").Where("app_id = ? AND created_at > ?", appPermission.AppId, GetStartOfBudget(appPermission.BudgetRenewal, appPermission.App.CreatedAt)).Scan(&result)
+	// TODO: discard failed payments from this check instead of checking payments that have a preimage
+	svc.db.Table("payments").Select("SUM(amount) as sum").Where("app_id = ? AND preimage IS NOT NULL AND created_at > ?", appPermission.AppId, GetStartOfBudget(appPermission.BudgetRenewal, appPermission.App.CreatedAt)).Scan(&result)
 	return int64(result.Sum)
 }
 
