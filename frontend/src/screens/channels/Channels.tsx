@@ -117,8 +117,9 @@ export default function Channels() {
 
       if (
         !confirm(
-          `Are you sure you want to close the channel with ${nodes.find((node) => node.public_key === nodeId)?.alias ||
-          "Unknown Node"
+          `Are you sure you want to close the channel with ${
+            nodes.find((node) => node.public_key === nodeId)?.alias ||
+            "Unknown Node"
           }?\n\nNode ID: ${nodeId}\n\nChannel ID: ${channelId}`
         )
       ) {
@@ -259,17 +260,15 @@ export default function Channels() {
                       On-Chain Address
                     </Link>
                   </DropdownMenuItem>
-                  {(info?.backendType === "LDK" ||
-                    info?.backendType === "GREENLIGHT") &&
-                    (balances?.onchain.spendable || 0) > ONCHAIN_DUST_SATS && (
-                      <DropdownMenuItem
-                        onClick={redeemOnchainFunds.redeemFunds}
-                        disabled={redeemOnchainFunds.isLoading}
-                      >
-                        Redeem Onchain Funds
-                        {redeemOnchainFunds.isLoading && <Loading />}
-                      </DropdownMenuItem>
-                    )}
+                  {(balances?.onchain.spendable || 0) > ONCHAIN_DUST_SATS && (
+                    <DropdownMenuItem
+                      onClick={redeemOnchainFunds.redeemFunds}
+                      disabled={redeemOnchainFunds.isLoading}
+                    >
+                      Redeem Onchain Funds
+                      {redeemOnchainFunds.isLoading && <Loading />}
+                    </DropdownMenuItem>
+                  )}
                 </DropdownMenuGroup>
                 {info?.backendType === "LDK" && (
                   <>
