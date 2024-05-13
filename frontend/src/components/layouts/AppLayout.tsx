@@ -151,7 +151,7 @@ export default function AppLayout() {
       <div className="font-sans min-h-screen w-full flex flex-col">
         <div className="flex-1 h-full grid md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
           <div className="hidden border-r bg-muted/40 md:block">
-            <div className="flex h-full max-h-screen flex-col gap-2">
+            <div className="flex h-full max-h-screen flex-col gap-2 sticky top-0">
               <div className="flex-1">
                 <nav className="grid items-start px-2 py-2 text-sm font-medium lg:px-4">
                   <div className="p-3 ">
@@ -165,7 +165,7 @@ export default function AppLayout() {
               <div className="flex flex-col">
                 <SidebarHint />
                 <MainNavSecondary />
-                <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6 gap-3 border-t border-border justify-between">
+                <div className="flex h-14 items-center px-4 lg:h-[60px] lg:px-6 gap-3 border-t border-border justify-between">
                   <div className="grid grid-flow-col gap-2">
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={albyMe?.avatar} alt="@satoshi" />
