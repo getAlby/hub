@@ -604,6 +604,11 @@ func (gs *LDKService) ListChannels(ctx context.Context) ([]lnclient.Channel, err
 	// }).Debug("Listed Channels")
 
 	for _, ldkChannel := range ldkChannels {
+		fundingTxId := ""
+		if ldkChannel.FundingTxo != nil {
+			fundingTxId = ldkChannel.FundingTxo.Txid
+		}
+
 		channels = append(channels, lnclient.Channel{
 			InternalChannel:       ldkChannel,
 			LocalBalance:          int64(ldkChannel.OutboundCapacityMsat),
@@ -612,7 +617,7 @@ func (gs *LDKService) ListChannels(ctx context.Context) ([]lnclient.Channel, err
 			Id:                    ldkChannel.UserChannelId, // CloseChannel takes the UserChannelId
 			Active:                ldkChannel.IsUsable,      // superset of ldkChannel.IsReady
 			Public:                ldkChannel.IsPublic,
-			FundingTxId:           ldkChannel.FundingTxo.Txid,
+			FundingTxId:           fundingTxId,
 			Confirmations:         ldkChannel.Confirmations,
 			ConfirmationsRequired: ldkChannel.ConfirmationsRequired,
 		})
