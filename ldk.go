@@ -61,6 +61,7 @@ func NewLDKService(ctx context.Context, svc *Service, mnemonic, workDir string, 
 		lsp.OlympusMutinynetFlowLSP().Pubkey,
 	}
 	config.AnchorChannelsConfig.TrustedPeersNoReserve = []string{
+		lsp.VoltageLSP().Pubkey,
 		lsp.OlympusLSP().Pubkey,
 		lsp.OlympusMutinynetLSPS1LSP().Pubkey,
 		lsp.OlympusMutinynetFlowLSP().Pubkey,
