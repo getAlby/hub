@@ -197,8 +197,11 @@ func NewLDKService(ctx context.Context, svc *Service, mnemonic, workDir string, 
 
 func (gs *LDKService) Shutdown() error {
 	gs.svc.Logger.Infof("shutting down LDK client")
+	gs.svc.Logger.Infof("cancelling LDK context")
 	gs.cancel()
+	gs.svc.Logger.Infof("destroying LDK node")
 	gs.node.Destroy()
+	gs.svc.Logger.Infof("LDK shutdown complete")
 
 	return nil
 }

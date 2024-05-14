@@ -350,12 +350,16 @@ func (api *API) ChangeUnlockPassword(changeUnlockPasswordRequest *models.ChangeU
 }
 
 func (api *API) Stop() error {
+	api.svc.Logger.Info("Running Stop command")
 	if api.svc.lnClient == nil {
 		return errors.New("LNClient not started")
 	}
 	// stop the lnclient
 	// The user will be forced to re-enter their unlock password to restart the node
 	err := api.svc.StopLNClient()
+	if err != nil {
+		api.svc.Logger.WithError(err).Error("Failed to stop LNClient")
+	}
 	return err
 }
 

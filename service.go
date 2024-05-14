@@ -163,6 +163,7 @@ func NewService(ctx context.Context) (*Service, error) {
 
 func (svc *Service) StopLNClient() error {
 	if svc.lnClient != nil {
+		svc.Logger.Info("Shutting down LDK client")
 		err := svc.lnClient.Shutdown()
 		if err != nil {
 			svc.Logger.WithError(err).Error("Failed to stop LN backend")
@@ -174,11 +175,13 @@ func (svc *Service) StopLNClient() error {
 			})
 			return err
 		}
+		svc.Logger.Info("Publishing node shutdown event")
 		svc.lnClient = nil
 		svc.EventPublisher.Publish(&events.Event{
 			Event: "nwc_node_stopped",
 		})
 	}
+	svc.Logger.Info("LNClient stopped successfully")
 	return nil
 }
 
