@@ -1,14 +1,16 @@
 import {
   Cable,
+  EllipsisVertical,
   ExternalLinkIcon,
   FlaskRound,
-  Menu, MessageCircleQuestion,
+  Lock,
+  Menu,
+  MessageCircleQuestion,
   Settings,
   Store,
   Wallet,
 } from "lucide-react";
 
-import { CaretUpIcon } from "@radix-ui/react-icons";
 import React from "react";
 import {
   Link,
@@ -25,7 +27,6 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "src/components/ui/dropdown-menu";
@@ -43,6 +44,7 @@ import ExternalLink from "../ExternalLink";
 export default function AppLayout() {
   const { data: albyMe } = useAlbyMe();
   const { data: csrf } = useCSRF();
+  const { mutate: refetchInfo } = useInfo();
   const { toast } = useToast();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const location = useLocation();
@@ -66,28 +68,33 @@ export default function AppLayout() {
       },
     });
 
+    await refetchInfo();
     navigate("/", { replace: true });
     toast({ title: "You are now logged out." });
-  }, [csrf, navigate, toast]);
+  }, [csrf, navigate, refetchInfo, toast]);
 
   function UserMenuContent() {
     return (
       <DropdownMenuContent align="end">
-        <DropdownMenuLabel>My Account</DropdownMenuLabel>
-        <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem>
             <ExternalLink
-              to="https://getalby.com/dashboard"
+              to="https://getalby.com/settings"
               className="w-full flex flex-row items-center gap-2"
             >
-              <ExternalLinkIcon className="w-4 h-4"></ExternalLinkIcon>
-              Go to getalby.com
+              <ExternalLinkIcon className="w-4 h-4" />
+              <p>Alby Account Settings</p>
             </ExternalLink>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={logout}>Log out</DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={logout}
+          className="w-full flex flex-row items-center gap-2"
+        >
+          <Lock className="w-4 h-4" />
+          <p>Lock Alby Hub</p>
+        </DropdownMenuItem>
       </DropdownMenuContent>
     );
   }
@@ -120,29 +127,32 @@ export default function AppLayout() {
         </div> */}
         {(info?.backendType === "LDK" ||
           info?.backendType === "GREENLIGHT") && (
-            <MenuItem to="/channels">
-              <FlaskRound className="h-4 w-4" />
-              Liquidity
-            </MenuItem>
-          )}
+          <MenuItem to="/channels">
+            <FlaskRound className="h-4 w-4" />
+            Liquidity
+          </MenuItem>
+        )}
         <MenuItem to="/settings">
           <Settings className="h-4 w-4" />
           Settings
         </MenuItem>
-        <MenuItem to="/" onClick={(e) => {
-          const chatwoot = (window as any).$chatwoot;
-          if (chatwoot) {
-            chatwoot.toggle("open");
-          } else {
-            openLink("https://getalby.com/help")
-          }
+        <MenuItem
+          to="/"
+          onClick={(e) => {
+            const chatwoot = (window as any).$chatwoot;
+            if (chatwoot) {
+              chatwoot.toggle("open");
+            } else {
+              openLink("https://getalby.com/help");
+            }
 
-          e.preventDefault();
-        }}>
+            e.preventDefault();
+          }}
+        >
           <MessageCircleQuestion className="h-4 w-4" />
           Live Support
         </MenuItem>
-      </nav >
+      </nav>
     );
   }
 
@@ -168,8 +178,12 @@ export default function AppLayout() {
                 <div className="flex h-14 items-center px-4 lg:h-[60px] lg:px-6 gap-3 border-t border-border justify-between">
                   <div className="grid grid-flow-col gap-2">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={albyMe?.avatar} alt="@satoshi" />
-                      <AvatarFallback>SN</AvatarFallback>
+                      <AvatarImage src={albyMe?.avatar} alt="Avatar" />
+                      <AvatarFallback>
+                        {(albyMe?.name || albyMe?.email || "SN")
+                          .substring(0, 2)
+                          .toUpperCase()}
+                      </AvatarFallback>
                     </Avatar>
                     <Link
                       to="#"
@@ -181,7 +195,7 @@ export default function AppLayout() {
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon">
-                        <CaretUpIcon />
+                        <EllipsisVertical className="w-4 h-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <UserMenuContent />
@@ -274,5 +288,3 @@ const MenuItem = ({
     {children}
   </NavLink>
 );
-
-MenuItem;
