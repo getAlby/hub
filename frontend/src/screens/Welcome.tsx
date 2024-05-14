@@ -34,7 +34,7 @@ export function Welcome() {
           {!info?.backendType && (
             <Link to="/setup/password?wallet=import" className="w-full">
               <Button variant="ghost" className="w-full">
-                Import Existing Wallet
+                Restore Wallet from Master Key
               </Button>
             </Link>
           )}
