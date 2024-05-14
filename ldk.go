@@ -199,8 +199,13 @@ func (gs *LDKService) Shutdown() error {
 	gs.svc.Logger.Infof("shutting down LDK client")
 	gs.svc.Logger.Infof("cancelling LDK context")
 	gs.cancel()
-	gs.svc.Logger.Infof("destroying LDK node")
-	gs.node.Destroy()
+	gs.svc.Logger.Infof("stopping LDK node")
+	err := gs.node.Stop()
+	if err != nil {
+		gs.svc.Logger.WithError(err).Error("Failed to stop LDK node")
+		return err
+	}
+
 	gs.svc.Logger.Infof("LDK shutdown complete")
 
 	return nil
