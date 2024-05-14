@@ -124,7 +124,7 @@ const suggestedApps: Props[] = [
   },
   {
     title: "Zappy Bird",
-    description: "Loose sats quickly",
+    description: "Lose sats quickly",
     to: "https://rolznz.github.io/zappy-bird/",
     logo: zappybird,
   },
