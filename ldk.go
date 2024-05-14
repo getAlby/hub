@@ -205,6 +205,8 @@ func (gs *LDKService) Shutdown() error {
 		gs.svc.Logger.WithError(err).Error("Failed to stop LDK node")
 		return err
 	}
+	gs.svc.Logger.Infof("Destroying node")
+	gs.node.Destroy()
 
 	gs.svc.Logger.Infof("LDK shutdown complete")
 
