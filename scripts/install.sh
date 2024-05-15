@@ -18,7 +18,8 @@ rm nostr-wallet-connect.zip
 sudo tee -a /etc/systemd/system/albyhub.service > /dev/null << EOF
 [Unit]
 Description=Alby Hub
-After=network.target
+After=network-online.target
+Wants=network-online.target
 
 [Service]
 Type=simple
