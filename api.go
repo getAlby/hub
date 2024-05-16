@@ -318,18 +318,21 @@ func (api *API) GetChannelPeerSuggestions(ctx context.Context) ([]alby.ChannelPe
 	return api.svc.AlbyOAuthSvc.GetChannelPeerSuggestions(ctx)
 }
 
-func (api *API) ResetRouter(ctx context.Context, key string) error {
+func (api *API) ResetRouter(key string, stopApp bool) error {
 	if api.svc.lnClient == nil {
 		return errors.New("LNClient not started")
 	}
-	err := api.svc.lnClient.ResetRouter(ctx, key)
+	err := api.svc.lnClient.ResetRouter(key)
 	if err != nil {
 		return err
 	}
 
-	// Because the above method has to stop the node to reset the router,
-	// We also need to stop the lnclient and ask the user to start it again
-	return api.Stop()
+	if stopApp {
+		// Because the above method has to stop the node to reset the router,
+		// We also need to stop the lnclient and ask the user to start it again
+		return api.Stop()
+	}
+	return nil
 }
 
 func (api *API) ChangeUnlockPassword(changeUnlockPasswordRequest *models.ChangeUnlockPasswordRequest) error {
@@ -1287,6 +1290,8 @@ func (api *API) CreateBackup(basicBackupRequest *models.BasicBackupRequest, w io
 		api.svc.Logger.WithField("path", lnStorageDir).Info("Found node storage dir")
 	}
 
+	// Reset the routing data to decrease the LDK DB size
+	api.ResetRouter("ALL", false)
 	// Stop the app to ensure no new requests are processed.
 	api.svc.StopApp()
 	db, err := api.svc.db.DB()
@@ -1349,6 +1354,7 @@ func (api *API) CreateBackup(basicBackupRequest *models.BasicBackupRequest, w io
 	api.svc.Logger.WithField("nwc.db", dbFilePath).Info("adding nwc db to zip")
 	err = addFileToZip(dbFilePath, "nwc.db")
 	if err != nil {
+		api.svc.Logger.WithError(err).Error("Failed to zip nwc db")
 		return fmt.Errorf("failed to write nwc db file to zip: %w", err)
 	}
 
@@ -1356,12 +1362,14 @@ func (api *API) CreateBackup(basicBackupRequest *models.BasicBackupRequest, w io
 		api.svc.Logger.WithField("fileToArchive", fileToArchive).Info("adding file to zip")
 		relPath, err := filepath.Rel(workDir, fileToArchive)
 		if err != nil {
+			api.svc.Logger.WithError(err).Error("Failed to get relative path of input file")
 			return fmt.Errorf("failed to get relative path of input file: %w", err)
 		}
 
 		// Ensure forward slashes for zip format compatibility.
 		err = addFileToZip(fileToArchive, filepath.ToSlash(relPath))
 		if err != nil {
+			api.svc.Logger.WithError(err).Error("Failed to write file to zip")
 			return fmt.Errorf("failed to write input file to zip: %w", err)
 		}
 	}

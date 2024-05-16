@@ -399,7 +399,7 @@ func (bs *BreezService) RedeemOnchainFunds(ctx context.Context, toAddress string
 	return hex.EncodeToString(redeemOnchainFundsResponse.Txid), nil
 }
 
-func (bs *BreezService) ResetRouter(ctx context.Context, key string) error {
+func (bs *BreezService) ResetRouter(key string) error {
 	return nil
 }
 

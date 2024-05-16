@@ -57,7 +57,7 @@ type LNClient interface {
 	OpenChannel(ctx context.Context, openChannelRequest *OpenChannelRequest) (*OpenChannelResponse, error)
 	CloseChannel(ctx context.Context, closeChannelRequest *CloseChannelRequest) (*CloseChannelResponse, error)
 	GetNewOnchainAddress(ctx context.Context) (string, error)
-	ResetRouter(ctx context.Context, key string) error
+	ResetRouter(key string) error
 	GetOnchainBalance(ctx context.Context) (*OnchainBalanceResponse, error)
 	GetBalances(ctx context.Context) (*BalancesResponse, error)
 	RedeemOnchainFunds(ctx context.Context, toAddress string) (txId string, err error)

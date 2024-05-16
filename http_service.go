@@ -300,9 +300,7 @@ func (httpSvc *HttpService) resetRouterHandler(c echo.Context) error {
 		})
 	}
 
-	ctx := c.Request().Context()
-
-	err := httpSvc.api.ResetRouter(ctx, resetRouterRequest.Key)
+	err := httpSvc.api.ResetRouter(resetRouterRequest.Key, true)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{

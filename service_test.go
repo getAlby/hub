@@ -1316,7 +1316,7 @@ func (mln *MockLn) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainBala
 func (mln *MockLn) RedeemOnchainFunds(ctx context.Context, toAddress string) (txId string, err error) {
 	return "", nil
 }
-func (mln *MockLn) ResetRouter(ctx context.Context, key string) error {
+func (mln *MockLn) ResetRouter(key string) error {
 	return nil
 }
 func (mln *MockLn) SendPaymentProbes(ctx context.Context, invoice string) error {

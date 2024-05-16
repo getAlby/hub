@@ -208,7 +208,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 
-		err = app.api.ResetRouter(ctx, resetRouterRequest.Key)
+		err = app.api.ResetRouter(resetRouterRequest.Key, true)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}

@@ -849,7 +849,7 @@ func (gs *LDKService) RedeemOnchainFunds(ctx context.Context, toAddress string) 
 	return txId, nil
 }
 
-func (ls *LDKService) ResetRouter(ctx context.Context, key string) error {
+func (ls *LDKService) ResetRouter(key string) error {
 	ls.svc.cfg.SetUpdate(resetRouterKey, key, "")
 
 	return nil
