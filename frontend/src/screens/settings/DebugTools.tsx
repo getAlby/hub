@@ -99,6 +99,13 @@ export default function DebugTools() {
         >
           Get Node Status
         </Button>
+        <Button
+          onClick={() => {
+            apiRequest(`/api/balances`, "GET");
+          }}
+        >
+          Get Balances
+        </Button>
       </div>
       {apiResponse && (
         <Textarea

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"log"
@@ -33,6 +34,8 @@ type LDKService struct {
 	network             string
 	eventPublisher      events.EventPublisher
 }
+
+const resetRouterKey = "ResetRouter"
 
 func NewLDKService(ctx context.Context, svc *Service, mnemonic, workDir string, network string, esploraServer string, gossipSource string) (result lnclient.LNClient, err error) {
 	if mnemonic == "" || workDir == "" {
@@ -195,22 +198,103 @@ func NewLDKService(ctx context.Context, svc *Service, mnemonic, workDir string, 
 	return &ls, nil
 }
 
-func (gs *LDKService) Shutdown() error {
-	gs.svc.Logger.Infof("shutting down LDK client")
-	gs.svc.Logger.Infof("cancelling LDK context")
-	gs.cancel()
-	/*gs.svc.Logger.Infof("stopping LDK node")
-	err := gs.node.Stop()
-	if err != nil {
-		gs.svc.Logger.WithError(err).Error("Failed to stop LDK node")
-		return err
-	}*/
-	gs.svc.Logger.Infof("Destroying node")
-	gs.node.Destroy()
+func (ls *LDKService) Shutdown() error {
+	if ls.node == nil {
+		ls.svc.Logger.Infof("LDK client already shut down")
+		return nil
+	}
+	// make sure nothing else can use it
+	node := ls.node
+	ls.node = nil
 
-	gs.svc.Logger.Infof("LDK shutdown complete")
+	ls.svc.Logger.Infof("shutting down LDK client")
+	ls.svc.Logger.Infof("cancelling LDK context")
+	ls.cancel()
+
+	ls.svc.Logger.Infof("stopping LDK node")
+	shutdownChannel := make(chan error)
+	go func() {
+		shutdownChannel <- node.Stop()
+	}()
+
+	select {
+	case err := <-shutdownChannel:
+		if err != nil {
+			ls.svc.Logger.WithError(err).Error("Failed to stop LDK node")
+			// do not return error - we still need to destroy the node
+		} else {
+			ls.svc.Logger.Info("LDK stop node succeeded")
+		}
+	case <-time.After(30 * time.Second):
+		ls.svc.Logger.Error("Timeout shutting down LDK node after 30 seconds")
+	}
+
+	ls.svc.Logger.Infof("Destroying node object")
+	node.Destroy()
+
+	ls.resetRouterInternal()
+
+	ls.svc.Logger.Infof("LDK shutdown complete")
 
 	return nil
+}
+
+func (ls *LDKService) resetRouterInternal() {
+	key, err := ls.svc.cfg.Get(resetRouterKey, "")
+
+	if err != nil {
+		ls.svc.Logger.Error("Failed to retrieve ResetRouter key")
+	}
+
+	if key != "" {
+		ls.svc.cfg.SetUpdate(resetRouterKey, "", "")
+		ls.svc.Logger.WithField("key", key).Info("Resetting router")
+
+		ldkDbPath := filepath.Join(ls.workdir, "storage", "ldk_node_data.sqlite")
+		if _, err := os.Stat(ldkDbPath); errors.Is(err, os.ErrNotExist) {
+			ls.svc.Logger.Error("Could not find LDK database")
+			return
+		}
+		ldkDb, err := sql.Open("sqlite", ldkDbPath)
+		if err != nil {
+			ls.svc.Logger.Error("Could not open LDK DB file")
+			return
+		}
+
+		command := ""
+
+		switch key {
+		case "ALL":
+			command = "delete from ldk_node_data where key = 'latest_rgs_sync_timestamp' or key = 'scorer' or key = 'network_graph';VACUUM;"
+		case "LatestRgsSyncTimestamp":
+			command = "delete from ldk_node_data where key = 'latest_rgs_sync_timestamp';VACUUM;"
+		case "Scorer":
+			command = "delete from ldk_node_data where key = 'scorer';VACUUM;"
+		case "NetworkGraph":
+			command = "delete from ldk_node_data where key = 'network_graph';VACUUM;"
+		default:
+			ls.svc.Logger.WithField("key", key).Error("Unknown reset router key")
+			return
+		}
+
+		result, err := ldkDb.Exec(command)
+		if err != nil {
+			ls.svc.Logger.WithError(err).Error("Failed execute reset command")
+			return
+		}
+		rowsAffected, err := result.RowsAffected()
+		if err != nil {
+			ls.svc.Logger.WithError(err).Error("Failed to get rows affected")
+			return
+		}
+		ls.svc.Logger.WithFields(logrus.Fields{
+			"rowsAffected": rowsAffected,
+		}).Info("Reset router")
+
+		if err != nil {
+			ls.svc.Logger.WithField("key", key).WithError(err).Error("ResetRouter failed")
+		}
+	}
 }
 
 func (gs *LDKService) SendPaymentSync(ctx context.Context, invoice string) (*lnclient.Nip47PayInvoiceResponse, error) {
@@ -727,7 +811,7 @@ func (gs *LDKService) CloseChannel(ctx context.Context, closeChannelRequest *lnc
 		"request": closeChannelRequest,
 	}).Info("Closing Channel")
 	// TODO: support passing force option
-	err := gs.node.CloseChannel(closeChannelRequest.ChannelId, closeChannelRequest.NodeId, false)
+	err := gs.node.CloseChannel(closeChannelRequest.ChannelId, closeChannelRequest.NodeId, closeChannelRequest.Force)
 	if err != nil {
 		gs.svc.Logger.WithError(err).Error("CloseChannel failed")
 		return nil, err
@@ -766,31 +850,9 @@ func (gs *LDKService) RedeemOnchainFunds(ctx context.Context, toAddress string) 
 }
 
 func (ls *LDKService) ResetRouter(ctx context.Context, key string) error {
-	// HACK: to ensure the router is reset correctly we must stop the node first.
-	err := ls.node.Stop()
-	if err != nil {
-		ls.svc.Logger.WithError(err).Error("Failed to stop the node")
-	}
+	ls.svc.cfg.SetUpdate(resetRouterKey, key, "")
 
-	switch key {
-	case "":
-		fallthrough
-	case "ALL":
-		err = ls.node.ResetRouter()
-	case "LatestRgsSyncTimestamp":
-		err = ls.node.ResetRouterRecord(ldk_node.PersistentRecordKeyLatestRgsSyncTimestamp)
-	case "Scorer":
-		err = ls.node.ResetRouterRecord(ldk_node.PersistentRecordKeyScorer)
-	case "NetworkGraph":
-		err = ls.node.ResetRouterRecord(ldk_node.PersistentRecordKeyNetworkGraph)
-	default:
-		err = fmt.Errorf("unknown key: %s", key)
-	}
-	if err != nil {
-		ls.svc.Logger.WithField("key", key).WithError(err).Error("ResetRouter failed")
-	}
-
-	return err
+	return nil
 }
 
 func (gs *LDKService) SignMessage(ctx context.Context, message string) (string, error) {

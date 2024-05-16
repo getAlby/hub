@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"syscall"
 	"time"
 
 	echologrus "github.com/davrux/echo-logrus/v4"
@@ -22,7 +23,7 @@ import (
 // this function will only be executed if no wails tag is set
 func main() {
 	log.Info("NWC Starting in HTTP mode")
-	ctx, _ := signal.NotifyContext(context.Background(), os.Interrupt)
+	ctx, _ := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM, os.Kill)
 	svc, _ := NewService(ctx)
 
 	echologrus.Logger = svc.Logger

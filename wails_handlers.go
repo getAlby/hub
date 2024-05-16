@@ -92,23 +92,26 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 	}
 
 	peerChannelRegex := regexp.MustCompile(
-		`/api/peers/([^/]+)/channels/([^/]+)`,
+		`/api/peers/([^/]+)/channels/([^/]+)\?force=.+`,
 	)
 
 	peerChannelMatch := peerChannelRegex.FindStringSubmatch(route)
 
 	switch {
-	case len(peerChannelMatch) > 1:
+	case len(peerChannelMatch) == 3:
 		peerId := peerChannelMatch[1]
 		channelId := peerChannelMatch[2]
+		force := peerChannelMatch[3]
 		switch method {
 		case "DELETE":
-			closeChannelResponse, err := app.api.CloseChannel(ctx, peerId, channelId)
+			closeChannelResponse, err := app.api.CloseChannel(ctx, peerId, channelId, force == "true")
 			if err != nil {
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 			}
 			return WailsRequestRouterResponse{Body: closeChannelResponse, Error: ""}
 		}
+	default:
+		return WailsRequestRouterResponse{Body: nil, Error: "could not parse delete channel request"}
 	}
 
 	mempoolApiRegex := regexp.MustCompile(

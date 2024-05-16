@@ -398,13 +398,19 @@ func (api *API) OpenChannel(ctx context.Context, openChannelRequest *models.Open
 	return api.svc.lnClient.OpenChannel(ctx, openChannelRequest)
 }
 
-func (api *API) CloseChannel(ctx context.Context, peerId, channelId string) (*models.CloseChannelResponse, error) {
+func (api *API) CloseChannel(ctx context.Context, peerId, channelId string, force bool) (*models.CloseChannelResponse, error) {
 	if api.svc.lnClient == nil {
 		return nil, errors.New("LNClient not started")
 	}
+	api.svc.Logger.WithFields(logrus.Fields{
+		"peer_id":    peerId,
+		"channel_id": channelId,
+		"force":      force,
+	}).Info("Closing channel")
 	return api.svc.lnClient.CloseChannel(ctx, &lnclient.CloseChannelRequest{
 		NodeId:    peerId,
 		ChannelId: channelId,
+		Force:     force,
 	})
 }
 

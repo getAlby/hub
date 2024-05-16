@@ -443,7 +443,7 @@ func (httpSvc *HttpService) openChannelHandler(c echo.Context) error {
 func (httpSvc *HttpService) closeChannelHandler(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	closeChannelResponse, err := httpSvc.api.CloseChannel(ctx, c.Param("peerId"), c.Param("channelId"))
+	closeChannelResponse, err := httpSvc.api.CloseChannel(ctx, c.Param("peerId"), c.Param("channelId"), c.QueryParam("force") == "true")
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{

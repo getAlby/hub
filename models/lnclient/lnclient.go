@@ -105,6 +105,7 @@ type OpenChannelResponse struct {
 type CloseChannelRequest struct {
 	ChannelId string `json:"channelId"`
 	NodeId    string `json:"nodeId"`
+	Force     bool   `json:"force"`
 }
 
 type CloseChannelResponse struct {
