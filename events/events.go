@@ -9,7 +9,7 @@ import (
 )
 
 type EventSubscriber interface {
-	ConsumeEvent(ctx context.Context, event *Event) error
+	ConsumeEvent(ctx context.Context, event *Event, globalProperties map[string]interface{}) error
 }
 
 type Event struct {
@@ -24,21 +24,24 @@ type PaymentReceivedEventProperties struct {
 }
 
 type eventPublisher struct {
-	logger        *logrus.Logger
-	listeners     []EventSubscriber
-	subscriberMtx sync.Mutex
+	logger           *logrus.Logger
+	listeners        []EventSubscriber
+	subscriberMtx    sync.Mutex
+	globalProperties map[string]interface{}
 }
 
 type EventPublisher interface {
 	RegisterSubscriber(eventListener EventSubscriber)
 	RemoveSubscriber(eventListener EventSubscriber)
 	Publish(event *Event)
+	SetGlobalProperty(key string, value interface{})
 }
 
 func NewEventPublisher(logger *logrus.Logger) *eventPublisher {
 	eventPublisher := &eventPublisher{
-		logger:    logger,
-		listeners: []EventSubscriber{},
+		logger:           logger,
+		listeners:        []EventSubscriber{},
+		globalProperties: map[string]interface{}{},
 	}
 	return eventPublisher
 }
@@ -69,10 +72,14 @@ func (el *eventPublisher) Publish(event *Event) {
 	el.logger.WithFields(logrus.Fields{"event": event}).Info("Logging event")
 	for _, listener := range el.listeners {
 		go func(listener EventSubscriber) {
-			err := listener.ConsumeEvent(context.Background(), event)
+			err := listener.ConsumeEvent(context.Background(), event, el.globalProperties)
 			if err != nil {
 				el.logger.WithError(err).Error("Failed to consume event")
 			}
 		}(listener)
 	}
+}
+
+func (el *eventPublisher) SetGlobalProperty(key string, value interface{}) {
+	el.globalProperties[key] = value
 }
