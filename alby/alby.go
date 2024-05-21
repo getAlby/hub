@@ -36,6 +36,7 @@ type AlbyMe struct {
 	Name             string `json:"name"`
 	Avatar           string `json:"avatar"`
 	KeysendPubkey    string `json:"keysend_pubkey"`
+	SharedNode       bool   `json:"shared_node"`
 }
 
 type AlbyBalance struct {
@@ -116,15 +117,6 @@ func (svc *AlbyOAuthService) CallbackHandler(ctx context.Context, code string) e
 		}
 
 		svc.config.SetUpdate(userIdentifierKey, me.Identifier, "")
-
-		// setup the Alby Account NWC node and connection
-		if svc.appConfig.ConnectAlbyAccount {
-			err = svc.connectAccount(ctx)
-			if err != nil {
-				svc.logger.WithError(err).Error("Failed to connect alby account")
-				// not sure what to do here, don't return the error for now.
-			}
-		}
 	}
 
 	return nil
@@ -220,7 +212,7 @@ func (svc *AlbyOAuthService) GetMe(ctx context.Context) (*AlbyMe, error) {
 
 	client := svc.oauthConf.Client(ctx, token)
 
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/user/me", svc.appConfig.AlbyAPIURL), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/internal/users", svc.appConfig.AlbyAPIURL), nil)
 	if err != nil {
 		svc.logger.WithError(err).Error("Error creating request /me")
 		return nil, err
@@ -233,6 +225,7 @@ func (svc *AlbyOAuthService) GetMe(ctx context.Context) (*AlbyMe, error) {
 		svc.logger.WithError(err).Error("Failed to fetch /me")
 		return nil, err
 	}
+
 	me := &AlbyMe{}
 	err = json.NewDecoder(res.Body).Decode(me)
 	if err != nil {
@@ -370,7 +363,7 @@ func (svc *AlbyOAuthService) GetAuthUrl() string {
 	return svc.oauthConf.AuthCodeURL("unused")
 }
 
-func (svc *AlbyOAuthService) connectAccount(ctx context.Context) error {
+func (svc *AlbyOAuthService) LinkAccount(ctx context.Context) error {
 	connectionPubkey, err := svc.createAlbyAccountNWCNode(ctx)
 	if err != nil {
 		svc.logger.WithError(err).Error("Failed to create alby account nwc node")

@@ -35,7 +35,7 @@ function ShowApp() {
 
   const [editMode, setEditMode] = React.useState(false);
 
-  const { deleteApp } = useDeleteApp(() => {
+  const { deleteApp, isDeleting } = useDeleteApp(() => {
     navigate("/apps");
   });
 
@@ -128,7 +128,9 @@ function ShowApp() {
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => deleteApp(app.nostrPubkey)}>Continue</AlertDialogAction>
+                    <AlertDialogAction onClick={() => deleteApp(app.nostrPubkey)} disabled={isDeleting}>
+                      Continue
+                    </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
