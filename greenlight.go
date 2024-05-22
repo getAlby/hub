@@ -658,3 +658,7 @@ func (gs *GreenlightService) GetStorageDir() (string, error) {
 func (gs *GreenlightService) GetNodeStatus(ctx context.Context) (nodeStatus *lnclient.NodeStatus, err error) {
 	return nil, nil
 }
+
+func (gs *GreenlightService) GetNetworkGraph(nodeIds []string) (lnclient.NetworkGraphResponse, error) {
+	return nil, nil
+}

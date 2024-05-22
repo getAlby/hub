@@ -1340,3 +1340,6 @@ func (mln *MockLn) GetStorageDir() (string, error) {
 func (mln *MockLn) GetNodeStatus(ctx context.Context) (nodeStatus *lnclient.NodeStatus, err error) {
 	return nil, nil
 }
+func (mln *MockLn) GetNetworkGraph(nodeIds []string) (lnclient.NetworkGraphResponse, error) {
+	return nil, nil
+}

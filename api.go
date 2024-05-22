@@ -1241,6 +1241,13 @@ func (api *API) SendSpontaneousPaymentProbes(ctx context.Context, sendSpontaneou
 	return &models.SendSpontaneousPaymentProbesResponse{Error: errMessage}, nil
 }
 
+func (api *API) GetNetworkGraph(nodeIds []string) (models.NetworkGraphResponse, error) {
+	if api.svc.lnClient == nil {
+		return nil, errors.New("LNClient not started")
+	}
+	return api.svc.lnClient.GetNetworkGraph(nodeIds)
+}
+
 func (api *API) GetLogOutput(ctx context.Context, logType string, getLogRequest *models.GetLogOutputRequest) (*models.GetLogOutputResponse, error) {
 	var err error
 	var logData []byte

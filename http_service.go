@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	echologrus "github.com/davrux/echo-logrus/v4"
 	"github.com/gorilla/sessions"
@@ -87,6 +88,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.POST("/api/instant-channel-invoices", httpSvc.newInstantChannelInvoiceHandler, authMiddleware)
 	e.GET("/api/node/connection-info", httpSvc.nodeConnectionInfoHandler, authMiddleware)
 	e.GET("/api/node/status", httpSvc.nodeStatusHandler, authMiddleware)
+	e.GET("/api/node/network-graph", httpSvc.nodeNetworkGraphHandler, authMiddleware)
 	e.GET("/api/peers", httpSvc.listPeers, authMiddleware)
 	e.POST("/api/peers", httpSvc.connectPeerHandler, authMiddleware)
 	e.DELETE("/api/peers/:peerId/channels/:channelId", httpSvc.closeChannelHandler, authMiddleware)
@@ -342,6 +344,20 @@ func (httpSvc *HttpService) nodeStatusHandler(c echo.Context) error {
 	ctx := c.Request().Context()
 
 	info, err := httpSvc.api.GetNodeStatus(ctx)
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+
+	return c.JSON(http.StatusOK, info)
+}
+
+func (httpSvc *HttpService) nodeNetworkGraphHandler(c echo.Context) error {
+	nodeIds := strings.Split(c.QueryParam("nodeIds"), ",")
+
+	info, err := httpSvc.api.GetNetworkGraph(nodeIds)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, models.ErrorResponse{

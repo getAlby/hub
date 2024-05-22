@@ -92,13 +92,13 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 	}
 
 	peerChannelRegex := regexp.MustCompile(
-		`/api/peers/([^/]+)/channels/([^/]+)\?force=.+`,
+		`/api/peers/([^/]+)/channels/([^/]+)\?force=(.+)`,
 	)
 
 	peerChannelMatch := peerChannelRegex.FindStringSubmatch(route)
 
 	switch {
-	case len(peerChannelMatch) == 3:
+	case len(peerChannelMatch) == 4:
 		peerId := peerChannelMatch[1]
 		channelId := peerChannelMatch[2]
 		force := peerChannelMatch[3]
@@ -110,8 +110,22 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			}
 			return WailsRequestRouterResponse{Body: closeChannelResponse, Error: ""}
 		}
-	default:
-		return WailsRequestRouterResponse{Body: nil, Error: "could not parse delete channel request"}
+	}
+
+	networkGraphRegex := regexp.MustCompile(
+		`/api/node/network-graph\?nodeIds=(.+)`,
+	)
+
+	networkGraphMatch := networkGraphRegex.FindStringSubmatch(route)
+
+	switch {
+	case len(networkGraphMatch) == 2:
+		nodeIds := networkGraphMatch[1]
+		networkGraphResponse, err := app.api.GetNetworkGraph(strings.Split(nodeIds, ","))
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: networkGraphResponse, Error: ""}
 	}
 
 	mempoolApiRegex := regexp.MustCompile(

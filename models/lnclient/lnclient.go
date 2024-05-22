@@ -67,6 +67,7 @@ type LNClient interface {
 	GetLogOutput(ctx context.Context, maxLen int) ([]byte, error)
 	SignMessage(ctx context.Context, message string) (string, error)
 	GetStorageDir() (string, error)
+	GetNetworkGraph(nodeIds []string) (NetworkGraphResponse, error)
 }
 
 type Channel struct {
@@ -141,3 +142,5 @@ type BalancesResponse struct {
 	Onchain   OnchainBalanceResponse   `json:"onchain"`
 	Lightning LightningBalanceResponse `json:"lightning"`
 }
+
+type NetworkGraphResponse = interface{}

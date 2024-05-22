@@ -971,6 +971,39 @@ func (gs *LDKService) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, er
 	return ret, nil
 }
 
+func (ls *LDKService) GetNetworkGraph(nodeIds []string) (lnclient.NetworkGraphResponse, error) {
+	graph := ls.node.NetworkGraph()
+
+	type NodeInfoWithId struct {
+		Node   *ldk_node.NodeInfo `json:"node"`
+		NodeId string             `json:"nodeId"`
+	}
+
+	nodes := []NodeInfoWithId{}
+	channels := []*ldk_node.ChannelInfo{}
+	for _, nodeId := range nodeIds {
+		graphNode := graph.Node(nodeId)
+		if graphNode != nil {
+			nodes = append(nodes, NodeInfoWithId{
+				Node:   graphNode,
+				NodeId: nodeId,
+			})
+		}
+		for _, channelId := range graphNode.Channels {
+			graphChannel := graph.Channel(channelId)
+			if graphChannel != nil {
+				channels = append(channels, graphChannel)
+			}
+		}
+	}
+
+	networkGraph := map[string]interface{}{
+		"nodes":    nodes,
+		"channels": channels,
+	}
+	return networkGraph, nil
+}
+
 func (gs *LDKService) GetLogOutput(ctx context.Context, maxLen int) ([]byte, error) {
 	config := gs.node.Config()
 	logPath := ""

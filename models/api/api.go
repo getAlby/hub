@@ -205,3 +205,5 @@ type BasicBackupRequest struct {
 type BasicRestoreWailsRequest struct {
 	UnlockPassword string `json:"unlockPassword"`
 }
+
+type NetworkGraphResponse = lnclient.NetworkGraphResponse

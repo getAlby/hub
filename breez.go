@@ -459,3 +459,7 @@ func (bs *BreezService) GetBalances(ctx context.Context) (*lnclient.BalancesResp
 func (bs *BreezService) GetStorageDir() (string, error) {
 	return "", nil
 }
+
+func (bs *BreezService) GetNetworkGraph(nodeIds []string) (lnclient.NetworkGraphResponse, error) {
+	return nil, nil
+}
