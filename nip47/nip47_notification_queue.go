@@ -28,7 +28,7 @@ func NewNip47NotificationQueue(logger *logrus.Logger) *nip47NotificationQueue {
 	}
 }
 
-func (q *nip47NotificationQueue) ConsumeEvent(ctx context.Context, event *events.Event) error {
+func (q *nip47NotificationQueue) ConsumeEvent(ctx context.Context, event *events.Event, globalProperties map[string]interface{}) error {
 	select {
 	case q.channel <- event: // Put in the channel unless it is full
 		return nil
