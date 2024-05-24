@@ -275,7 +275,9 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		}
 		res := WailsRequestRouterResponse{Body: *balancesResponse, Error: ""}
 		return res
-
+	case "/api/wallet/sync":
+		app.api.SyncWallet()
+		return WailsRequestRouterResponse{Body: nil, Error: ""}
 	case "/api/wallet/new-address":
 		newAddressResponse, err := app.api.GetNewOnchainAddress(ctx)
 		if err != nil {

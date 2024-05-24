@@ -52,6 +52,7 @@ type Service struct {
 	wg                     *sync.WaitGroup
 	nip47NotificationQueue nip47.Nip47NotificationQueue
 	appCancelFn            context.CancelFunc
+	lastWalletSyncRequest  time.Time
 }
 
 // TODO: move to service.go

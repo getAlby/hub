@@ -1248,6 +1248,10 @@ func (api *API) GetNetworkGraph(nodeIds []string) (models.NetworkGraphResponse, 
 	return api.svc.lnClient.GetNetworkGraph(nodeIds)
 }
 
+func (api *API) SyncWallet() {
+	api.svc.lastWalletSyncRequest = time.Now()
+}
+
 func (api *API) GetLogOutput(ctx context.Context, logType string, getLogRequest *models.GetLogOutputRequest) (*models.GetLogOutputResponse, error) {
 	var err error
 	var logData []byte

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math"
 	"os"
 	"path/filepath"
 	"slices"
@@ -33,6 +34,8 @@ type LDKService struct {
 	cancel              context.CancelFunc
 	network             string
 	eventPublisher      events.EventPublisher
+	syncing             bool
+	lastSync            time.Time
 }
 
 const resetRouterKey = "ResetRouter"
@@ -166,34 +169,26 @@ func NewLDKService(ctx context.Context, svc *Service, mnemonic, workDir string, 
 	svc.Logger.WithFields(logrus.Fields{
 		"nodeId": nodeId,
 		"status": node.Status(),
-	}).Info("Connected to LDK node")
+	}).Info("Started LDK node. Syncing wallet...")
 
-	walletSynced := false
-	for i := 0; i < 10; i++ {
-		svc.Logger.WithFields(logrus.Fields{
-			"nodeId":    nodeId,
-			"status":    node.Status(),
-			"iteration": i,
-		}).Info("Waiting for LDK node to sync")
-		time.Sleep(1 * time.Second)
-
-		if node.Status().LatestOnchainWalletSyncTimestamp != nil || node.Status().LatestWalletSyncTimestamp != nil {
-			svc.Logger.WithFields(logrus.Fields{
-				"nodeId":    nodeId,
-				"status":    node.Status(),
-				"iteration": i,
-			}).Info("LDK node finished sync")
-			walletSynced = true
-			break
+	syncStartTime := time.Now()
+	err = node.SyncWallets()
+	if err != nil {
+		svc.Logger.WithError(err).Error("Failed to sync LDK wallets")
+		shutdownErr := ls.Shutdown()
+		if shutdownErr != nil {
+			svc.Logger.WithError(shutdownErr).Error("Failed to shutdown LDK node")
 		}
+
+		return nil, err
 	}
-	if !walletSynced {
-		svc.Logger.WithFields(logrus.Fields{
-			"nodeId": nodeId,
-			"status": node.Status(),
-		}).Error("Timed out waiting for LDK node to sync")
-		time.Sleep(1 * time.Second)
-	}
+	ls.lastSync = time.Now()
+
+	svc.Logger.WithFields(logrus.Fields{
+		"nodeId":   nodeId,
+		"status":   node.Status(),
+		"duration": math.Ceil(time.Since(syncStartTime).Seconds()),
+	}).Info("LDK node synced successfully")
 
 	if ls.network == "bitcoin" {
 		// try to connect to some peers to retrieve P2P gossip data. TODO: Remove once LDK can correctly do gossip with CLN and Eclair nodes
@@ -222,6 +217,44 @@ func NewLDKService(ctx context.Context, svc *Service, mnemonic, workDir string, 
 		}
 	}
 
+	// setup background sync
+	go func() {
+		MIN_SYNC_INTERVAL := 1 * time.Minute
+		MAX_SYNC_INTERVAL := 1 * time.Hour // NOTE: this could be increased further (possibly to 6 hours)
+		for {
+			select {
+			case <-ldkCtx.Done():
+				return
+			case <-time.After(MIN_SYNC_INTERVAL):
+
+				if time.Since(ls.svc.lastWalletSyncRequest) > MIN_SYNC_INTERVAL && time.Since(ls.lastSync) < MAX_SYNC_INTERVAL {
+					// ls.svc.Logger.Debug("skipping background wallet sync")
+					continue
+				}
+
+				ls.svc.Logger.Info("Starting background wallet sync")
+				syncStartTime := time.Now()
+				ls.syncing = true
+				err = node.SyncWallets()
+				ls.syncing = false
+
+				if err != nil {
+					svc.Logger.WithError(err).Error("Failed to sync LDK wallets")
+					// try again at next MIN_SYNC_INTERVAL
+					continue
+				}
+
+				ls.lastSync = time.Now()
+
+				svc.Logger.WithFields(logrus.Fields{
+					"nodeId":   nodeId,
+					"status":   node.Status(),
+					"duration": math.Ceil(time.Since(syncStartTime).Seconds()),
+				}).Info("LDK node synced successfully")
+			}
+		}
+	}()
+
 	return &ls, nil
 }
 
@@ -238,6 +271,11 @@ func (ls *LDKService) Shutdown() error {
 	ls.svc.Logger.Infof("cancelling LDK context")
 	ls.cancel()
 
+	for ls.syncing {
+		ls.svc.Logger.Infof("Waiting for background sync to finish before stopping LDK node...")
+		time.Sleep(1 * time.Second)
+	}
+
 	ls.svc.Logger.Infof("stopping LDK node")
 	shutdownChannel := make(chan error)
 	go func() {
@@ -252,8 +290,8 @@ func (ls *LDKService) Shutdown() error {
 		} else {
 			ls.svc.Logger.Info("LDK stop node succeeded")
 		}
-	case <-time.After(30 * time.Second):
-		ls.svc.Logger.Error("Timeout shutting down LDK node after 30 seconds")
+	case <-time.After(120 * time.Second):
+		ls.svc.Logger.Error("Timeout shutting down LDK node after 120 seconds")
 	}
 
 	ls.svc.Logger.Infof("Destroying node object")

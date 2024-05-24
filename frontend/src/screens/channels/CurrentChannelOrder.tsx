@@ -48,6 +48,7 @@ import { useBalances } from "src/hooks/useBalances";
 import { useCSRF } from "src/hooks/useCSRF";
 import { useChannels } from "src/hooks/useChannels";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
+import { useSyncWallet } from "src/hooks/useSyncWallet";
 import { copyToClipboard } from "src/lib/clipboard";
 import { Success } from "src/screens/onboarding/Success";
 import useChannelOrderStore from "src/state/ChannelOrderStore";
@@ -76,6 +77,7 @@ export function CurrentChannelOrder() {
 }
 
 function ChannelOrderInternal({ order }: { order: NewChannelOrder }) {
+  useSyncWallet();
   switch (order.status) {
     case "pay":
       switch (order.paymentMethod) {
@@ -358,12 +360,12 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
               be redirected as soon as the transaction is seen in the mempool.
             </CardDescription>
           </CardHeader>
-          {unspentAmount > 0 &&
+          {unspentAmount > 0 && (
             <CardContent>{unspentAmount} sats deposited</CardContent>
-          }
+          )}
         </Card>
       </div>
-    </div >
+    </div>
   );
 }
 
@@ -525,9 +527,9 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
   const newChannel =
     channels && prevChannels
       ? channels.find(
-        (newChannel) =>
-          !prevChannels.some((current) => current.id === newChannel.id)
-      )
+          (newChannel) =>
+            !prevChannels.some((current) => current.id === newChannel.id)
+        )
       : undefined;
 
   React.useEffect(() => {

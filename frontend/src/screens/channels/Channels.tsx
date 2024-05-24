@@ -48,6 +48,7 @@ import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
 import { useNodeConnectionInfo } from "src/hooks/useNodeConnectionInfo.ts";
 import { useRedeemOnchainFunds } from "src/hooks/useRedeemOnchainFunds.ts";
+import { useSyncWallet } from "src/hooks/useSyncWallet.ts";
 import { copyToClipboard } from "src/lib/clipboard.ts";
 import { formatAmount } from "src/lib/utils.ts";
 import { CloseChannelResponse, Node } from "src/types";
@@ -55,6 +56,7 @@ import { request } from "src/utils/request";
 import { useCSRF } from "../../hooks/useCSRF.ts";
 
 export default function Channels() {
+  useSyncWallet();
   const { data: channels, mutate: reloadChannels } = useChannels();
   const { data: nodeConnectionInfo } = useNodeConnectionInfo();
   const { data: balances } = useBalances();
