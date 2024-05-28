@@ -45,7 +45,7 @@ export function ChangeUnlockPassword() {
       });
       await refetchInfo();
       toast({
-        title: "Password changed!",
+        title: "Successfully changed password",
         description: "Please start your node with your new password",
       });
     } catch (error) {

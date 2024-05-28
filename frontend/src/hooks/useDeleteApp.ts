@@ -12,7 +12,7 @@ export function useDeleteApp(onSuccess?: (nostrPubkey: string) => void) {
   const deleteApp = React.useCallback(
     async (nostrPubkey: string) => {
       if (!csrf) {
-        toast({ title: "No CSRF token", variant: "destructive" });
+        toast({ title: "No CSRF token.", variant: "destructive" });
         return;
       }
 

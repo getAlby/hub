@@ -11,7 +11,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
-import { toast } from "src/components/ui/use-toast";
 import { localStorageKeys } from "src/constants";
 import { useCSRF } from "src/hooks/useCSRF";
 import { copyToClipboard } from "src/lib/clipboard";
@@ -104,7 +103,7 @@ export default function NewOnchainAddress() {
           <Button
             variant="secondary"
             size="icon"
-            onClick={() => { copyToClipboard(onchainAddress); toast({ title: "Copied to clipboard." }) }}>
+            onClick={() => { copyToClipboard(onchainAddress); }}>
             <Copy className="w-4 h-4" />
           </Button>
           <Dialog>

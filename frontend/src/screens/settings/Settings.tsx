@@ -39,11 +39,11 @@ function Settings() {
         }
       });
       setLinked(true);
-      toast({ title: "Your Alby Hub has successfully been linked to your Alby Account." })
+      toast({ title: "Your Alby Hub has successfully been linked to your Alby Account" })
     }
     catch (e) {
       toast({
-        title: "Your Alby Hub couldn't be linked to your Alby Account.",
+        title: "Your Alby Hub couldn't be linked to your Alby Account",
         description: "Did you already link another Alby Hub?"
       });
     }

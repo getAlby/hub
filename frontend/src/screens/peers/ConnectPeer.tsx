@@ -46,7 +46,7 @@ export default function ConnectPeer() {
         },
         body: JSON.stringify(connectPeerRequest),
       });
-      toast({ title: "Peer connected!" });
+      toast({ title: "Successfully connected with peer" });
       setConnectionString("");
       navigate("/channels");
     } catch (e) {

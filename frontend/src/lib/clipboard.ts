@@ -1,3 +1,5 @@
+import { toast } from "src/components/ui/use-toast";
+
 export function copyToClipboard(content: string) {
   if (navigator.clipboard && window.isSecureContext) {
     navigator.clipboard.writeText(content);
@@ -14,4 +16,5 @@ export function copyToClipboard(content: string) {
       textArea.remove();
     });
   }
+  toast({ title: "Copied to clipboard." });
 }

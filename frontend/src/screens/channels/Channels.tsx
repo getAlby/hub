@@ -119,9 +119,8 @@ export default function Channels() {
 
       if (
         !confirm(
-          `Are you sure you want to close the channel with ${
-            nodes.find((node) => node.public_key === nodeId)?.alias ||
-            "Unknown Node"
+          `Are you sure you want to close the channel with ${nodes.find((node) => node.public_key === nodeId)?.alias ||
+          "Unknown Node"
           }?\n\nNode ID: ${nodeId}\n\nChannel ID: ${channelId}`
         )
       ) {
@@ -140,8 +139,7 @@ export default function Channels() {
       console.log(`🎬 Closing channel with ${nodeId}`);
 
       const closeChannelResponse = await request<CloseChannelResponse>(
-        `/api/peers/${nodeId}/channels/${channelId}?force=${
-          closeType === "force close"
+        `/api/peers/${nodeId}/channels/${channelId}?force=${closeType === "force close"
         }`,
         {
           method: "DELETE",
@@ -167,7 +165,7 @@ export default function Channels() {
         );
       }
       await reloadChannels();
-      toast({ title: "Sucessfully closed channel." });
+      toast({ title: "Sucessfully closed channel" });
     } catch (error) {
       console.error(error);
       alert("Something went wrong: " + error);
@@ -264,7 +262,6 @@ export default function Channels() {
                           className="shrink-0 w-4 h-4"
                           onClick={() => {
                             copyToClipboard(nodeConnectionInfo.pubkey);
-                            toast({ title: "Copied to clipboard." });
                           }}
                         />
                       )}

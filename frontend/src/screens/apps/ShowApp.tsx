@@ -85,7 +85,7 @@ function ShowApp() {
 
       await refetchApp();
       setEditMode(false);
-      toast({ title: "Permissions updated!" });
+      toast({ title: "Successfully updated permissions" });
     } catch (error) {
       handleRequestError(toast, "Failed to update permissions", error);
     }

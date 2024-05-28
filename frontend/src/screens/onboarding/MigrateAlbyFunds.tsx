@@ -137,7 +137,7 @@ export default function MigrateAlbyFunds() {
   React.useEffect(() => {
     if (hasOpenedChannel) {
       (async () => {
-        toast({ title: "Channel opened!" });
+        toast({ title: "Successfully opened channel" });
         await refetchInfo();
         navigate("/onboarding/success");
       })();

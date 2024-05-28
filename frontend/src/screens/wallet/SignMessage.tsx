@@ -43,7 +43,7 @@ export default function SignMessage() {
       if (signMessageResponse) {
         setSignature(signMessageResponse.signature);
         toast({
-          title: "Successfully signed message.",
+          title: "Successfully signed message",
         })
       }
     } catch (e) {
@@ -107,7 +107,6 @@ export default function SignMessage() {
                     size="icon"
                     onClick={() => {
                       copyToClipboard(signature);
-                      toast({ title: "Copied to clipboard." });
                     }}
                   >
                     <Copy className="w-4 h-4" />

@@ -43,7 +43,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "src/components/ui/tooltip";
-import { toast, useToast } from "src/components/ui/use-toast";
+import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
 import { useCSRF } from "src/hooks/useCSRF";
 import { useChannels } from "src/hooks/useChannels";
@@ -307,7 +307,6 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
               size="icon"
               onClick={() => {
                 copyToClipboard(onchainAddress);
-                toast({ title: "Copied to clipboard." });
               }}
             >
               <Copy className="w-4 h-4" />
@@ -471,7 +470,7 @@ function PayBitcoinChannelOrderWithSpendableFunds({
         openChannelResponse.fundingTxId
       );
       toast({
-        title: "Channel opening transaction published!",
+        title: "Successfully published channel opening transaction",
       });
       useChannelOrderStore.getState().updateOrder({
         fundingTxId: openChannelResponse.fundingTxId,
@@ -527,15 +526,15 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
   const newChannel =
     channels && prevChannels
       ? channels.find(
-          (newChannel) =>
-            !prevChannels.some((current) => current.id === newChannel.id)
-        )
+        (newChannel) =>
+          !prevChannels.some((current) => current.id === newChannel.id)
+      )
       : undefined;
 
   React.useEffect(() => {
     if (newChannel) {
       (async () => {
-        toast({ title: "Channel opened!" });
+        toast({ title: "Successfully opened channel" });
         setTimeout(() => {
           useChannelOrderStore.getState().updateOrder({
             status: "opening",

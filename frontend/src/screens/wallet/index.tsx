@@ -27,7 +27,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "src/components/ui/dropdown-menu";
-import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
 import { useNodeConnectionInfo } from "src/hooks/useNodeConnectionInfo";
@@ -36,7 +35,6 @@ import { copyToClipboard } from "src/lib/clipboard";
 function Wallet() {
   const { data: info } = useInfo();
   const { data: balances } = useBalances();
-  const { toast } = useToast();
   const { data: nodeConnectionInfo } = useNodeConnectionInfo();
 
   if (!info || !balances) {
@@ -77,7 +75,6 @@ function Wallet() {
                           className="shrink-0 w-4 h-4"
                           onClick={() => {
                             copyToClipboard(nodeConnectionInfo.pubkey);
-                            toast({ title: "Copied to clipboard." });
                           }}
                         />
                       )}
