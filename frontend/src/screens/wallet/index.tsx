@@ -16,20 +16,14 @@ import {
 } from "src/components/ui/card";
 import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
-import { useNodeConnectionInfo } from "src/hooks/useNodeConnectionInfo";
 
 function Wallet() {
   const { data: info } = useInfo();
   const { data: balances } = useBalances();
-  const { data: nodeConnectionInfo } = useNodeConnectionInfo();
 
   if (!info || !balances) {
     return <Loading />;
   }
-
-  const isWalletUsable =
-    balances.lightning.totalReceivable > 0 ||
-    balances.lightning.totalSpendable > 0;
 
   return (
     <>
