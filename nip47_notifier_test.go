@@ -7,6 +7,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/getAlby/nostr-wallet-connect/db"
 	"github.com/getAlby/nostr-wallet-connect/events"
 	"github.com/getAlby/nostr-wallet-connect/nip47"
 	"github.com/nbd-wtf/go-nostr"
@@ -24,7 +25,7 @@ func TestSendNotification(t *testing.T) {
 	app, ss, err := createApp(svc)
 	assert.NoError(t, err)
 
-	appPermission := &AppPermission{
+	appPermission := &db.AppPermission{
 		AppId:         app.ID,
 		App:           *app,
 		RequestMethod: nip47.NOTIFICATIONS_PERMISSION,
@@ -32,8 +33,8 @@ func TestSendNotification(t *testing.T) {
 	err = svc.db.Create(appPermission).Error
 	assert.NoError(t, err)
 
-	svc.nip47NotificationQueue = nip47.NewNip47NotificationQueue(svc.Logger)
-	svc.EventPublisher.RegisterSubscriber(svc.nip47NotificationQueue)
+	svc.nip47NotificationQueue = nip47.NewNip47NotificationQueue(svc.logger)
+	svc.eventPublisher.RegisterSubscriber(svc.nip47NotificationQueue)
 
 	testEvent := &events.Event{
 		Event: "nwc_payment_received",
@@ -44,7 +45,7 @@ func TestSendNotification(t *testing.T) {
 		},
 	}
 
-	svc.EventPublisher.Publish(testEvent)
+	svc.eventPublisher.Publish(testEvent)
 
 	receivedEvent := <-svc.nip47NotificationQueue.Channel()
 	assert.Equal(t, testEvent, receivedEvent)
@@ -59,15 +60,15 @@ func TestSendNotification(t *testing.T) {
 
 	decrypted, err := nip04.Decrypt(relay.publishedEvent.Content, ss)
 	assert.NoError(t, err)
-	unmarshalledResponse := Nip47Notification{
-		Notification: &Nip47PaymentReceivedNotification{},
+	unmarshalledResponse := nip47.Notification{
+		Notification: &nip47.PaymentReceivedNotification{},
 	}
 
 	err = json.Unmarshal([]byte(decrypted), &unmarshalledResponse)
 	assert.NoError(t, err)
 	assert.Equal(t, nip47.PAYMENT_RECEIVED_NOTIFICATION, unmarshalledResponse.NotificationType)
 
-	transaction := (unmarshalledResponse.Notification.(*Nip47PaymentReceivedNotification))
+	transaction := (unmarshalledResponse.Notification.(*nip47.PaymentReceivedNotification))
 	assert.Equal(t, mockTransaction.Type, transaction.Type)
 	assert.Equal(t, mockTransaction.Invoice, transaction.Invoice)
 	assert.Equal(t, mockTransaction.Description, transaction.Description)
@@ -89,8 +90,8 @@ func TestSendNotificationNoPermission(t *testing.T) {
 	_, _, err = createApp(svc)
 	assert.NoError(t, err)
 
-	svc.nip47NotificationQueue = nip47.NewNip47NotificationQueue(svc.Logger)
-	svc.EventPublisher.RegisterSubscriber(svc.nip47NotificationQueue)
+	svc.nip47NotificationQueue = nip47.NewNip47NotificationQueue(svc.logger)
+	svc.eventPublisher.RegisterSubscriber(svc.nip47NotificationQueue)
 
 	testEvent := &events.Event{
 		Event: "nwc_payment_received",
@@ -101,7 +102,7 @@ func TestSendNotificationNoPermission(t *testing.T) {
 		},
 	}
 
-	svc.EventPublisher.Publish(testEvent)
+	svc.eventPublisher.Publish(testEvent)
 
 	receivedEvent := <-svc.nip47NotificationQueue.Channel()
 	assert.Equal(t, testEvent, receivedEvent)

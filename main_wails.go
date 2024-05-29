@@ -18,12 +18,12 @@ func main() {
 
 	app := NewApp(svc)
 	LaunchWailsApp(app)
-	svc.Logger.Info("Wails app exited")
+	svc.logger.Info("Wails app exited")
 
-	svc.Logger.Info("Cancelling service context...")
+	svc.logger.Info("Cancelling service context...")
 	// cancel the service context
 	cancel()
-	svc.Logger.Info("Waiting for service to exit...")
+	svc.logger.Info("Waiting for service to exit...")
 	svc.wg.Wait()
-	svc.Logger.Info("Service exited")
+	svc.logger.Info("Service exited")
 }

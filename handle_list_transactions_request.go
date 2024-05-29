@@ -3,14 +3,15 @@ package main
 import (
 	"context"
 
+	"github.com/getAlby/nostr-wallet-connect/db"
 	"github.com/getAlby/nostr-wallet-connect/nip47"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/sirupsen/logrus"
 )
 
-func (svc *Service) HandleListTransactionsEvent(ctx context.Context, nip47Request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, nostr.Tags)) {
+func (svc *Service) HandleListTransactionsEvent(ctx context.Context, nip47Request *nip47.Request, requestEvent *db.RequestEvent, app *db.App, publishResponse func(*nip47.Response, nostr.Tags)) {
 
-	listParams := &Nip47ListTransactionsParams{}
+	listParams := &nip47.ListTransactionsParams{}
 	resp := svc.decodeNip47Request(nip47Request, requestEvent, app, listParams)
 	if resp != nil {
 		publishResponse(resp, nostr.Tags{})
@@ -23,7 +24,7 @@ func (svc *Service) HandleListTransactionsEvent(ctx context.Context, nip47Reques
 		return
 	}
 
-	svc.Logger.WithFields(logrus.Fields{
+	svc.logger.WithFields(logrus.Fields{
 		// TODO: log request fields from listParams
 		"requestEventNostrId": requestEvent.NostrId,
 		"appId":               app.ID,
@@ -37,15 +38,15 @@ func (svc *Service) HandleListTransactionsEvent(ctx context.Context, nip47Reques
 	}
 	transactions, err := svc.lnClient.ListTransactions(ctx, listParams.From, listParams.Until, limit, listParams.Offset, listParams.Unpaid, listParams.Type)
 	if err != nil {
-		svc.Logger.WithFields(logrus.Fields{
+		svc.logger.WithFields(logrus.Fields{
 			// TODO: log request fields from listParams
 			"requestEventNostrId": requestEvent.NostrId,
 			"appId":               app.ID,
 		}).Infof("Failed to fetch transactions: %v", err)
 
-		publishResponse(&Nip47Response{
+		publishResponse(&nip47.Response{
 			ResultType: nip47Request.Method,
-			Error: &Nip47Error{
+			Error: &nip47.Error{
 				Code:    nip47.ERROR_INTERNAL,
 				Message: err.Error(),
 			},
@@ -53,11 +54,11 @@ func (svc *Service) HandleListTransactionsEvent(ctx context.Context, nip47Reques
 		return
 	}
 
-	responsePayload := &Nip47ListTransactionsResponse{
+	responsePayload := &nip47.ListTransactionsResponse{
 		Transactions: transactions,
 	}
 
-	publishResponse(&Nip47Response{
+	publishResponse(&nip47.Response{
 		ResultType: nip47Request.Method,
 		Result:     responsePayload,
 	}, nostr.Tags{})

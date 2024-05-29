@@ -14,6 +14,7 @@ import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
 import { useNodeConnectionInfo } from "src/hooks/useNodeConnectionInfo";
+import { backendTypeHasMnemonic } from "src/lib/utils";
 import useChannelOrderStore from "src/state/ChannelOrderStore";
 
 function SidebarHint() {
@@ -34,7 +35,7 @@ function SidebarHint() {
   }
 
   // User has a channel order
-  if (order) {
+  if (order && order.status !== "pay") {
     return (
       <SidebarHintCard
         icon={Zap}
@@ -64,7 +65,10 @@ function SidebarHint() {
   }
 
   // User has no channels yet
-  if ((info?.backendType === "LDK" || info?.backendType === "GREENLIGHT") && channels?.length === 0) {
+  if (
+    (info?.backendType === "LDK" || info?.backendType === "GREENLIGHT") &&
+    channels?.length === 0
+  ) {
     return (
       <SidebarHintCard
         icon={Zap}
@@ -77,7 +81,11 @@ function SidebarHint() {
   }
 
   // User has not linked their hub to their Alby Account
-  if (albyMe && nodeConnectionInfo && albyMe?.keysend_pubkey !== nodeConnectionInfo?.pubkey) {
+  if (
+    albyMe &&
+    nodeConnectionInfo &&
+    albyMe?.keysend_pubkey !== nodeConnectionInfo?.pubkey
+  ) {
     return (
       <SidebarHintCard
         icon={Link2}
@@ -89,7 +97,12 @@ function SidebarHint() {
     );
   }
 
-  if (info?.backendType === "LDK" && info?.showBackupReminder) {
+  if (
+    info &&
+    backendTypeHasMnemonic(info.backendType) &&
+    (!info.nextBackupReminder ||
+      new Date(info.nextBackupReminder).getTime() < new Date().getTime())
+  ) {
     return (
       <SidebarHintCard
         icon={ShieldAlert}

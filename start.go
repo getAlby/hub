@@ -7,31 +7,28 @@ import (
 
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip19"
+	"github.com/sirupsen/logrus"
 
 	"github.com/getAlby/nostr-wallet-connect/events"
 )
 
 func (svc *Service) StartNostr(ctx context.Context, encryptionKey string) error {
-	relayUrl, _ := svc.cfg.Get("Relay", encryptionKey)
-	nostrSecretKey, _ := svc.cfg.Get("NostrSecretKey", encryptionKey)
-	if nostrSecretKey == "" {
-		nostrSecretKey = nostr.GeneratePrivateKey()
-		svc.cfg.SetUpdate("NostrSecretKey", nostrSecretKey, encryptionKey)
-	}
-	nostrPublicKey, err := nostr.GetPublicKey(nostrSecretKey)
-	if err != nil {
-		svc.Logger.Errorf("Error converting nostr privkey to pubkey: %v", err)
-		return err
-	}
-	svc.cfg.NostrSecretKey = nostrSecretKey
-	svc.cfg.NostrPublicKey = nostrPublicKey
+	relayUrl := svc.cfg.GetRelayUrl()
 
-	npub, err := nip19.EncodePublicKey(svc.cfg.NostrPublicKey)
+	err := svc.cfg.Start(encryptionKey)
 	if err != nil {
-		svc.Logger.Fatalf("Error converting nostr privkey to pubkey: %v", err)
+		svc.logger.WithError(err).Fatal("Failed to start config")
 	}
 
-	svc.Logger.Infof("Starting nostr-wallet-connect. npub: %s hex: %s", npub, svc.cfg.NostrPublicKey)
+	npub, err := nip19.EncodePublicKey(svc.cfg.GetNostrPublicKey())
+	if err != nil {
+		svc.logger.WithError(err).Fatal("Error converting nostr privkey to pubkey")
+	}
+
+	svc.logger.WithFields(logrus.Fields{
+		"npub": npub,
+		"hex":  svc.cfg.GetNostrPublicKey(),
+	}).Info("Starting nostr-wallet-connect")
 	svc.wg.Add(1)
 	go func() {
 		//Start infinite loop which will be only broken by canceling ctx (SIGINT)
@@ -43,11 +40,11 @@ func (svc *Service) StartNostr(ctx context.Context, encryptionKey string) error 
 			if i > 0 {
 				sleepDuration := 10
 				contextCancelled := false
-				svc.Logger.Infof("[Iteration %d] Retrying in %d seconds...", i, sleepDuration)
+				svc.logger.Infof("[Iteration %d] Retrying in %d seconds...", i, sleepDuration)
 
 				select {
 				case <-ctx.Done(): //context cancelled
-					svc.Logger.Info("service context cancelled while waiting for retry")
+					svc.logger.Info("service context cancelled while waiting for retry")
 					contextCancelled = true
 				case <-time.After(time.Duration(sleepDuration) * time.Second): //timeout
 				}
@@ -58,49 +55,49 @@ func (svc *Service) StartNostr(ctx context.Context, encryptionKey string) error 
 			if relay != nil && relay.IsConnected() {
 				err := relay.Close()
 				if err != nil {
-					svc.Logger.WithError(err).Error("Could not close relay connection")
+					svc.logger.WithError(err).Error("Could not close relay connection")
 				}
 			}
 
 			//connect to the relay
-			svc.Logger.Infof("Connecting to the relay: %s", relayUrl)
+			svc.logger.Infof("Connecting to the relay: %s", relayUrl)
 
 			relay, err := nostr.RelayConnect(ctx, relayUrl, nostr.WithNoticeHandler(svc.noticeHandler))
 			if err != nil {
-				svc.Logger.WithError(err).Error("Failed to connect to relay")
+				svc.logger.WithError(err).Error("Failed to connect to relay")
 				continue
 			}
 
 			//publish event with NIP-47 info
 			err = svc.PublishNip47Info(ctx, relay)
 			if err != nil {
-				svc.Logger.WithError(err).Error("Could not publish NIP47 info")
+				svc.logger.WithError(err).Error("Could not publish NIP47 info")
 			}
 
-			svc.Logger.Info("Subscribing to events")
-			sub, err := relay.Subscribe(ctx, svc.createFilters(svc.cfg.NostrPublicKey))
+			svc.logger.Info("Subscribing to events")
+			sub, err := relay.Subscribe(ctx, svc.createFilters(svc.cfg.GetNostrPublicKey()))
 			if err != nil {
-				svc.Logger.WithError(err).Error("Failed to subscribe to events")
+				svc.logger.WithError(err).Error("Failed to subscribe to events")
 				continue
 			}
 			err = svc.StartSubscription(sub.Context, sub)
 			if err != nil {
 				//err being non-nil means that we have an error on the websocket error channel. In this case we just try to reconnect.
-				svc.Logger.WithError(err).Error("Got an error from the relay while listening to subscription.")
+				svc.logger.WithError(err).Error("Got an error from the relay while listening to subscription.")
 				continue
 			}
 			//err being nil means that the context was canceled and we should exit the program.
 			break
 		}
-		svc.Logger.Info("Disconnecting from relay...")
+		svc.logger.Info("Disconnecting from relay...")
 		if relay != nil && relay.IsConnected() {
 			err := relay.Close()
 			if err != nil {
-				svc.Logger.WithError(err).Error("Could not close relay connection")
+				svc.logger.WithError(err).Error("Could not close relay connection")
 			}
 		}
 		svc.Shutdown()
-		svc.Logger.Info("Relay subroutine ended")
+		svc.logger.Info("Relay subroutine ended")
 		svc.wg.Done()
 	}()
 	return nil
@@ -108,7 +105,7 @@ func (svc *Service) StartNostr(ctx context.Context, encryptionKey string) error 
 
 func (svc *Service) StartApp(encryptionKey string) error {
 	if !svc.cfg.CheckUnlockPassword(encryptionKey) {
-		svc.Logger.Errorf("Invalid password")
+		svc.logger.Errorf("Invalid password")
 		return errors.New("invalid password")
 	}
 
@@ -116,8 +113,8 @@ func (svc *Service) StartApp(encryptionKey string) error {
 
 	err := svc.launchLNBackend(ctx, encryptionKey)
 	if err != nil {
-		svc.Logger.Errorf("Failed to launch LN backend: %v", err)
-		svc.EventPublisher.Publish(&events.Event{
+		svc.logger.Errorf("Failed to launch LN backend: %v", err)
+		svc.eventPublisher.Publish(&events.Event{
 			Event: "nwc_node_start_failed",
 		})
 		cancelFn()
@@ -129,6 +126,7 @@ func (svc *Service) StartApp(encryptionKey string) error {
 	return nil
 }
 
+// TODO: remove and call StopLNClient() instead
 func (svc *Service) StopApp() {
 	if svc.appCancelFn != nil {
 		svc.appCancelFn()
@@ -138,7 +136,7 @@ func (svc *Service) StopApp() {
 
 func (svc *Service) Shutdown() {
 	svc.StopLNClient()
-	svc.EventPublisher.Publish(&events.Event{
+	svc.eventPublisher.Publish(&events.Event{
 		Event: "nwc_stopped",
 	})
 	// wait for any remaining events

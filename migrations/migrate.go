@@ -1,7 +1,7 @@
 package migrations
 
 import (
-	"github.com/getAlby/nostr-wallet-connect/models/config"
+	"github.com/getAlby/nostr-wallet-connect/config"
 	"github.com/go-gormigrate/gormigrate/v2"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"

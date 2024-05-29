@@ -14,10 +14,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
 
+	"github.com/getAlby/nostr-wallet-connect/config"
+	"github.com/getAlby/nostr-wallet-connect/db"
 	"github.com/getAlby/nostr-wallet-connect/events"
+	"github.com/getAlby/nostr-wallet-connect/lnclient"
 	"github.com/getAlby/nostr-wallet-connect/migrations"
-	"github.com/getAlby/nostr-wallet-connect/models/config"
-	"github.com/getAlby/nostr-wallet-connect/models/lnclient"
 	"github.com/getAlby/nostr-wallet-connect/nip47"
 )
 
@@ -223,7 +224,7 @@ var mockNodeInfo = lnclient.NodeInfo{
 var mockTime = time.Unix(1693876963, 0)
 var mockTimeUnix = mockTime.Unix()
 
-var mockTransactions = []Nip47Transaction{
+var mockTransactions = []nip47.Transaction{
 	{
 		Type:            "incoming",
 		Invoice:         mockInvoice,
@@ -287,7 +288,7 @@ func TestHasPermission_Expired(t *testing.T) {
 
 	budgetRenewal := "never"
 	expiresAt := time.Now().Add(-24 * time.Hour)
-	appPermission := &AppPermission{
+	appPermission := &db.AppPermission{
 		AppId:         app.ID,
 		App:           *app,
 		RequestMethod: nip47.PAY_INVOICE_METHOD,
@@ -316,7 +317,7 @@ func TestHasPermission_Exceeded(t *testing.T) {
 
 	budgetRenewal := "never"
 	expiresAt := time.Now().Add(24 * time.Hour)
-	appPermission := &AppPermission{
+	appPermission := &db.AppPermission{
 		AppId:         app.ID,
 		App:           *app,
 		RequestMethod: nip47.PAY_INVOICE_METHOD,
@@ -345,7 +346,7 @@ func TestHasPermission_OK(t *testing.T) {
 
 	budgetRenewal := "never"
 	expiresAt := time.Now().Add(24 * time.Hour)
-	appPermission := &AppPermission{
+	appPermission := &db.AppPermission{
 		AppId:         app.ID,
 		App:           *app,
 		RequestMethod: nip47.PAY_INVOICE_METHOD,
@@ -381,12 +382,12 @@ func TestCreateResponse(t *testing.T) {
 
 	reqEvent.ID = "12345"
 
-	ss, err := nip04.ComputeSharedSecret(reqPubkey, svc.cfg.NostrSecretKey)
+	ss, err := nip04.ComputeSharedSecret(reqPubkey, svc.cfg.GetNostrSecretKey())
 	assert.NoError(t, err)
 
-	nip47Response := &Nip47Response{
+	nip47Response := &nip47.Response{
 		ResultType: nip47.GET_BALANCE_METHOD,
-		Result: Nip47BalanceResponse{
+		Result: nip47.BalanceResponse{
 			Balance: 1000,
 		},
 	}
@@ -394,18 +395,18 @@ func TestCreateResponse(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, reqPubkey, res.Tags.GetFirst([]string{"p"}).Value())
 	assert.Equal(t, reqEvent.ID, res.Tags.GetFirst([]string{"e"}).Value())
-	assert.Equal(t, svc.cfg.NostrPublicKey, res.PubKey)
+	assert.Equal(t, svc.cfg.GetNostrPublicKey(), res.PubKey)
 
 	decrypted, err := nip04.Decrypt(res.Content, ss)
 	assert.NoError(t, err)
-	unmarshalledResponse := Nip47Response{
-		Result: &Nip47BalanceResponse{},
+	unmarshalledResponse := nip47.Response{
+		Result: &nip47.BalanceResponse{},
 	}
 
 	err = json.Unmarshal([]byte(decrypted), &unmarshalledResponse)
 	assert.NoError(t, err)
 	assert.Equal(t, nip47Response.ResultType, unmarshalledResponse.ResultType)
-	assert.Equal(t, nip47Response.Result, *unmarshalledResponse.Result.(*Nip47BalanceResponse))
+	assert.Equal(t, nip47Response.Result, *unmarshalledResponse.Result.(*nip47.BalanceResponse))
 }
 
 func TestHandleEncryption(t *testing.T) {}
@@ -420,7 +421,7 @@ func TestHandleMultiPayInvoiceEvent(t *testing.T) {
 	app, ss, err := createApp(svc)
 	assert.NoError(t, err)
 
-	request := &Nip47Request{}
+	request := &nip47.Request{}
 	err = json.Unmarshal([]byte(nip47MultiPayJson), request)
 	assert.NoError(t, err)
 
@@ -432,17 +433,17 @@ func TestHandleMultiPayInvoiceEvent(t *testing.T) {
 		PubKey:  app.NostrPubkey,
 		Content: payload,
 	}
-	requestEvent := &RequestEvent{
+	requestEvent := &db.RequestEvent{
 		Content: reqEvent.Content,
 	}
 
 	reqEvent.ID = "multi_pay_invoice_without_permission"
 	requestEvent.NostrId = reqEvent.ID
 
-	responses := []*Nip47Response{}
+	responses := []*nip47.Response{}
 	dTags := []nostr.Tags{}
 
-	publishResponse := func(response *Nip47Response, tags nostr.Tags) {
+	publishResponse := func(response *nip47.Response, tags nostr.Tags) {
 		responses = append(responses, response)
 		dTags = append(dTags, tags)
 	}
@@ -460,7 +461,7 @@ func TestHandleMultiPayInvoiceEvent(t *testing.T) {
 	maxAmount := 1000
 	budgetRenewal := "never"
 	expiresAt := time.Now().Add(24 * time.Hour)
-	appPermission := &AppPermission{
+	appPermission := &db.AppPermission{
 		AppId:         app.ID,
 		App:           *app,
 		RequestMethod: nip47.PAY_INVOICE_METHOD,
@@ -473,13 +474,13 @@ func TestHandleMultiPayInvoiceEvent(t *testing.T) {
 
 	reqEvent.ID = "multi_pay_invoice_with_permission"
 	requestEvent.NostrId = reqEvent.ID
-	responses = []*Nip47Response{}
+	responses = []*nip47.Response{}
 	dTags = []nostr.Tags{}
 	svc.HandleMultiPayInvoiceEvent(ctx, request, requestEvent, app, publishResponse)
 
 	assert.Equal(t, 2, len(responses))
 	for i := 0; i < len(responses); i++ {
-		assert.Equal(t, responses[i].Result.(Nip47PayResponse).Preimage, "123preimage")
+		assert.Equal(t, responses[i].Result.(nip47.PayResponse).Preimage, "123preimage")
 		assert.Equal(t, mockPaymentHash, dTags[i].GetFirst([]string{"d"}).Value())
 	}
 
@@ -493,7 +494,7 @@ func TestHandleMultiPayInvoiceEvent(t *testing.T) {
 
 	reqEvent.ID = "multi_pay_invoice_with_one_malformed_invoice"
 	requestEvent.NostrId = reqEvent.ID
-	responses = []*Nip47Response{}
+	responses = []*nip47.Response{}
 	dTags = []nostr.Tags{}
 	svc.HandleMultiPayInvoiceEvent(ctx, request, requestEvent, app, publishResponse)
 
@@ -502,13 +503,13 @@ func TestHandleMultiPayInvoiceEvent(t *testing.T) {
 	assert.Equal(t, responses[0].Error.Code, nip47.ERROR_INTERNAL)
 
 	assert.Equal(t, mockPaymentHash, dTags[1].GetFirst([]string{"d"}).Value())
-	assert.Equal(t, responses[1].Result.(Nip47PayResponse).Preimage, "123preimage")
+	assert.Equal(t, responses[1].Result.(nip47.PayResponse).Preimage, "123preimage")
 
 	// we've spent 369 till here in three payments
 
 	// budget overflow
 	newMaxAmount := 500
-	err = svc.db.Model(&AppPermission{}).Where("app_id = ?", app.ID).Update("max_amount", newMaxAmount).Error
+	err = svc.db.Model(&db.AppPermission{}).Where("app_id = ?", app.ID).Update("max_amount", newMaxAmount).Error
 	assert.NoError(t, err)
 
 	err = json.Unmarshal([]byte(nip47MultiPayOneOverflowingBudgetJson), request)
@@ -520,7 +521,7 @@ func TestHandleMultiPayInvoiceEvent(t *testing.T) {
 
 	reqEvent.ID = "multi_pay_invoice_with_budget_overflow"
 	requestEvent.NostrId = reqEvent.ID
-	responses = []*Nip47Response{}
+	responses = []*nip47.Response{}
 	dTags = []nostr.Tags{}
 	svc.HandleMultiPayInvoiceEvent(ctx, request, requestEvent, app, publishResponse)
 
@@ -529,7 +530,7 @@ func TestHandleMultiPayInvoiceEvent(t *testing.T) {
 	// publishResponse as it's called earlier
 	assert.Equal(t, responses[0].Error.Code, nip47.ERROR_QUOTA_EXCEEDED)
 	assert.Equal(t, mockPaymentHash500, dTags[0].GetFirst([]string{"d"}).Value())
-	assert.Equal(t, responses[1].Result.(Nip47PayResponse).Preimage, "123preimage")
+	assert.Equal(t, responses[1].Result.(nip47.PayResponse).Preimage, "123preimage")
 	assert.Equal(t, mockPaymentHash, dTags[1].GetFirst([]string{"d"}).Value())
 }
 
@@ -544,7 +545,7 @@ func TestHandleMultiPayKeysendEvent(t *testing.T) {
 	app, ss, err := createApp(svc)
 	assert.NoError(t, err)
 
-	request := &Nip47Request{}
+	request := &nip47.Request{}
 	err = json.Unmarshal([]byte(nip47MultiPayKeysendJson), request)
 	assert.NoError(t, err)
 
@@ -556,17 +557,17 @@ func TestHandleMultiPayKeysendEvent(t *testing.T) {
 		PubKey:  app.NostrPubkey,
 		Content: payload,
 	}
-	requestEvent := &RequestEvent{
+	requestEvent := &db.RequestEvent{
 		Content: reqEvent.Content,
 	}
 
 	reqEvent.ID = "multi_pay_keysend_without_permission"
 	requestEvent.NostrId = reqEvent.ID
 
-	responses := []*Nip47Response{}
+	responses := []*nip47.Response{}
 	dTags := []nostr.Tags{}
 
-	publishResponse := func(response *Nip47Response, tags nostr.Tags) {
+	publishResponse := func(response *nip47.Response, tags nostr.Tags) {
 		responses = append(responses, response)
 		dTags = append(dTags, tags)
 	}
@@ -585,7 +586,7 @@ func TestHandleMultiPayKeysendEvent(t *testing.T) {
 	// because we need the same permission for keysend although
 	// it works even with nip47.PAY_KEYSEND_METHOD, see
 	// https://github.com/getAlby/nostr-wallet-connect/issues/189
-	appPermission := &AppPermission{
+	appPermission := &db.AppPermission{
 		AppId:         app.ID,
 		App:           *app,
 		RequestMethod: nip47.PAY_INVOICE_METHOD,
@@ -598,13 +599,13 @@ func TestHandleMultiPayKeysendEvent(t *testing.T) {
 
 	reqEvent.ID = "multi_pay_keysend_with_permission"
 	requestEvent.NostrId = reqEvent.ID
-	responses = []*Nip47Response{}
+	responses = []*nip47.Response{}
 	dTags = []nostr.Tags{}
 	svc.HandleMultiPayKeysendEvent(ctx, request, requestEvent, app, publishResponse)
 
 	assert.Equal(t, 2, len(responses))
 	for i := 0; i < len(responses); i++ {
-		assert.Equal(t, responses[i].Result.(Nip47PayResponse).Preimage, "12345preimage")
+		assert.Equal(t, responses[i].Result.(nip47.PayResponse).Preimage, "12345preimage")
 		assert.Equal(t, "123pubkey", dTags[i].GetFirst([]string{"d"}).Value())
 	}
 
@@ -612,7 +613,7 @@ func TestHandleMultiPayKeysendEvent(t *testing.T) {
 
 	// budget overflow
 	newMaxAmount := 500
-	err = svc.db.Model(&AppPermission{}).Where("app_id = ?", app.ID).Update("max_amount", newMaxAmount).Error
+	err = svc.db.Model(&db.AppPermission{}).Where("app_id = ?", app.ID).Update("max_amount", newMaxAmount).Error
 	assert.NoError(t, err)
 
 	err = json.Unmarshal([]byte(nip47MultiPayKeysendOneOverflowingBudgetJson), request)
@@ -624,13 +625,13 @@ func TestHandleMultiPayKeysendEvent(t *testing.T) {
 
 	reqEvent.ID = "multi_pay_keysend_with_budget_overflow"
 	requestEvent.NostrId = reqEvent.ID
-	responses = []*Nip47Response{}
+	responses = []*nip47.Response{}
 	dTags = []nostr.Tags{}
 	svc.HandleMultiPayKeysendEvent(ctx, request, requestEvent, app, publishResponse)
 
 	assert.Equal(t, responses[0].Error.Code, nip47.ERROR_QUOTA_EXCEEDED)
 	assert.Equal(t, "500pubkey", dTags[0].GetFirst([]string{"d"}).Value())
-	assert.Equal(t, responses[1].Result.(Nip47PayResponse).Preimage, "12345preimage")
+	assert.Equal(t, responses[1].Result.(nip47.PayResponse).Preimage, "12345preimage")
 	assert.Equal(t, "customId", dTags[1].GetFirst([]string{"d"}).Value())
 }
 
@@ -644,7 +645,7 @@ func TestHandleGetBalanceEvent(t *testing.T) {
 	app, ss, err := createApp(svc)
 	assert.NoError(t, err)
 
-	request := &Nip47Request{}
+	request := &nip47.Request{}
 	err = json.Unmarshal([]byte(nip47GetBalanceJson), request)
 	assert.NoError(t, err)
 
@@ -656,16 +657,16 @@ func TestHandleGetBalanceEvent(t *testing.T) {
 		PubKey:  app.NostrPubkey,
 		Content: payload,
 	}
-	requestEvent := &RequestEvent{
+	requestEvent := &db.RequestEvent{
 		Content: reqEvent.Content,
 	}
 
 	reqEvent.ID = "test_get_balance_without_permission"
 	requestEvent.NostrId = reqEvent.ID
 
-	responses := []*Nip47Response{}
+	responses := []*nip47.Response{}
 
-	publishResponse := func(response *Nip47Response, tags nostr.Tags) {
+	publishResponse := func(response *nip47.Response, tags nostr.Tags) {
 		responses = append(responses, response)
 	}
 
@@ -678,7 +679,7 @@ func TestHandleGetBalanceEvent(t *testing.T) {
 
 	// with permission
 	expiresAt := time.Now().Add(24 * time.Hour)
-	appPermission := &AppPermission{
+	appPermission := &db.AppPermission{
 		AppId:         app.ID,
 		App:           *app,
 		RequestMethod: nip47.GET_BALANCE_METHOD,
@@ -689,15 +690,15 @@ func TestHandleGetBalanceEvent(t *testing.T) {
 
 	reqEvent.ID = "test_get_balance_with_permission"
 	requestEvent.NostrId = reqEvent.ID
-	responses = []*Nip47Response{}
+	responses = []*nip47.Response{}
 	svc.HandleGetBalanceEvent(ctx, request, requestEvent, app, publishResponse)
 
-	assert.Equal(t, responses[0].Result.(*Nip47BalanceResponse).Balance, int64(21000))
+	assert.Equal(t, responses[0].Result.(*nip47.BalanceResponse).Balance, int64(21000))
 
 	// create pay_invoice permission
 	maxAmount := 1000
 	budgetRenewal := "never"
-	appPermission = &AppPermission{
+	appPermission = &db.AppPermission{
 		AppId:         app.ID,
 		App:           *app,
 		RequestMethod: nip47.PAY_INVOICE_METHOD,
@@ -709,12 +710,12 @@ func TestHandleGetBalanceEvent(t *testing.T) {
 	assert.NoError(t, err)
 
 	reqEvent.ID = "test_get_balance_with_budget"
-	responses = []*Nip47Response{}
+	responses = []*nip47.Response{}
 	svc.HandleGetBalanceEvent(ctx, request, requestEvent, app, publishResponse)
 
-	assert.Equal(t, int64(21000), responses[0].Result.(*Nip47BalanceResponse).Balance)
-	assert.Equal(t, 1000000, responses[0].Result.(*Nip47BalanceResponse).MaxAmount)
-	assert.Equal(t, "never", responses[0].Result.(*Nip47BalanceResponse).BudgetRenewal)
+	assert.Equal(t, int64(21000), responses[0].Result.(*nip47.BalanceResponse).Balance)
+	assert.Equal(t, 1000000, responses[0].Result.(*nip47.BalanceResponse).MaxAmount)
+	assert.Equal(t, "never", responses[0].Result.(*nip47.BalanceResponse).BudgetRenewal)
 }
 
 func TestHandlePayInvoiceEvent(t *testing.T) {
@@ -727,7 +728,7 @@ func TestHandlePayInvoiceEvent(t *testing.T) {
 	app, ss, err := createApp(svc)
 	assert.NoError(t, err)
 
-	request := &Nip47Request{}
+	request := &nip47.Request{}
 	err = json.Unmarshal([]byte(nip47PayJson), request)
 	assert.NoError(t, err)
 
@@ -739,16 +740,16 @@ func TestHandlePayInvoiceEvent(t *testing.T) {
 		PubKey:  app.NostrPubkey,
 		Content: payload,
 	}
-	requestEvent := &RequestEvent{
+	requestEvent := &db.RequestEvent{
 		Content: reqEvent.Content,
 	}
 
 	reqEvent.ID = "pay_invoice_without_permission"
 	requestEvent.NostrId = reqEvent.ID
 
-	responses := []*Nip47Response{}
+	responses := []*nip47.Response{}
 
-	publishResponse := func(response *Nip47Response, tags nostr.Tags) {
+	publishResponse := func(response *nip47.Response, tags nostr.Tags) {
 		responses = append(responses, response)
 	}
 
@@ -760,7 +761,7 @@ func TestHandlePayInvoiceEvent(t *testing.T) {
 	maxAmount := 1000
 	budgetRenewal := "never"
 	expiresAt := time.Now().Add(24 * time.Hour)
-	appPermission := &AppPermission{
+	appPermission := &db.AppPermission{
 		AppId:         app.ID,
 		App:           *app,
 		RequestMethod: nip47.PAY_INVOICE_METHOD,
@@ -773,10 +774,10 @@ func TestHandlePayInvoiceEvent(t *testing.T) {
 
 	reqEvent.ID = "pay_invoice_with_permission"
 	requestEvent.NostrId = reqEvent.ID
-	responses = []*Nip47Response{}
+	responses = []*nip47.Response{}
 	svc.HandlePayInvoiceEvent(ctx, request, requestEvent, app, publishResponse)
 
-	assert.Equal(t, responses[0].Result.(Nip47PayResponse).Preimage, "123preimage")
+	assert.Equal(t, responses[0].Result.(nip47.PayResponse).Preimage, "123preimage")
 
 	// malformed invoice
 	err = json.Unmarshal([]byte(nip47PayJsonNoInvoice), request)
@@ -788,7 +789,7 @@ func TestHandlePayInvoiceEvent(t *testing.T) {
 
 	reqEvent.ID = "pay_invoice_with_malformed_invoice"
 	requestEvent.NostrId = reqEvent.ID
-	responses = []*Nip47Response{}
+	responses = []*nip47.Response{}
 	svc.HandlePayInvoiceEvent(ctx, request, requestEvent, app, publishResponse)
 
 	assert.Equal(t, nip47.ERROR_INTERNAL, responses[0].Error.Code)
@@ -803,14 +804,14 @@ func TestHandlePayInvoiceEvent(t *testing.T) {
 
 	reqEvent.ID = "pay_invoice_with_wrong_request_method"
 	requestEvent.NostrId = reqEvent.ID
-	responses = []*Nip47Response{}
+	responses = []*nip47.Response{}
 	svc.HandlePayInvoiceEvent(ctx, request, requestEvent, app, publishResponse)
 
 	assert.Equal(t, nip47.ERROR_RESTRICTED, responses[0].Error.Code)
 
 	// budget overflow
 	newMaxAmount := 100
-	err = svc.db.Model(&AppPermission{}).Where("app_id = ?", app.ID).Update("max_amount", newMaxAmount).Error
+	err = svc.db.Model(&db.AppPermission{}).Where("app_id = ?", app.ID).Update("max_amount", newMaxAmount).Error
 	assert.NoError(t, err)
 
 	err = json.Unmarshal([]byte(nip47PayJson), request)
@@ -822,33 +823,33 @@ func TestHandlePayInvoiceEvent(t *testing.T) {
 
 	reqEvent.ID = "pay_invoice_with_budget_overflow"
 	requestEvent.NostrId = reqEvent.ID
-	responses = []*Nip47Response{}
+	responses = []*nip47.Response{}
 	svc.HandlePayInvoiceEvent(ctx, request, requestEvent, app, publishResponse)
 
 	assert.Equal(t, nip47.ERROR_QUOTA_EXCEEDED, responses[0].Error.Code)
 
 	// budget expiry
 	newExpiry := time.Now().Add(-24 * time.Hour)
-	err = svc.db.Model(&AppPermission{}).Where("app_id = ?", app.ID).Update("max_amount", maxAmount).Update("expires_at", newExpiry).Error
+	err = svc.db.Model(&db.AppPermission{}).Where("app_id = ?", app.ID).Update("max_amount", maxAmount).Update("expires_at", newExpiry).Error
 	assert.NoError(t, err)
 
 	reqEvent.ID = "pay_invoice_with_budget_expiry"
 	requestEvent.NostrId = reqEvent.ID
-	responses = []*Nip47Response{}
+	responses = []*nip47.Response{}
 	svc.HandlePayInvoiceEvent(ctx, request, requestEvent, app, publishResponse)
 
 	assert.Equal(t, nip47.ERROR_EXPIRED, responses[0].Error.Code)
 
 	// check again
-	err = svc.db.Model(&AppPermission{}).Where("app_id = ?", app.ID).Update("expires_at", nil).Error
+	err = svc.db.Model(&db.AppPermission{}).Where("app_id = ?", app.ID).Update("expires_at", nil).Error
 	assert.NoError(t, err)
 
 	reqEvent.ID = "pay_invoice_after_change"
 	requestEvent.NostrId = reqEvent.ID
-	responses = []*Nip47Response{}
+	responses = []*nip47.Response{}
 	svc.HandlePayInvoiceEvent(ctx, request, requestEvent, app, publishResponse)
 
-	assert.Equal(t, responses[0].Result.(Nip47PayResponse).Preimage, "123preimage")
+	assert.Equal(t, responses[0].Result.(nip47.PayResponse).Preimage, "123preimage")
 }
 
 func TestHandlePayKeysendEvent(t *testing.T) {
@@ -861,7 +862,7 @@ func TestHandlePayKeysendEvent(t *testing.T) {
 	app, ss, err := createApp(svc)
 	assert.NoError(t, err)
 
-	request := &Nip47Request{}
+	request := &nip47.Request{}
 	err = json.Unmarshal([]byte(nip47KeysendJson), request)
 	assert.NoError(t, err)
 
@@ -873,16 +874,16 @@ func TestHandlePayKeysendEvent(t *testing.T) {
 		PubKey:  app.NostrPubkey,
 		Content: payload,
 	}
-	requestEvent := &RequestEvent{
+	requestEvent := &db.RequestEvent{
 		Content: reqEvent.Content,
 	}
 
 	reqEvent.ID = "pay_keysend_without_permission"
 	requestEvent.NostrId = reqEvent.ID
 
-	responses := []*Nip47Response{}
+	responses := []*nip47.Response{}
 
-	publishResponse := func(response *Nip47Response, tags nostr.Tags) {
+	publishResponse := func(response *nip47.Response, tags nostr.Tags) {
 		responses = append(responses, response)
 	}
 
@@ -897,7 +898,7 @@ func TestHandlePayKeysendEvent(t *testing.T) {
 	// because we need the same permission for keysend although
 	// it works even with nip47.PAY_KEYSEND_METHOD, see
 	// https://github.com/getAlby/nostr-wallet-connect/issues/189
-	appPermission := &AppPermission{
+	appPermission := &db.AppPermission{
 		AppId:         app.ID,
 		App:           *app,
 		RequestMethod: nip47.PAY_INVOICE_METHOD,
@@ -910,14 +911,14 @@ func TestHandlePayKeysendEvent(t *testing.T) {
 
 	reqEvent.ID = "pay_keysend_with_permission"
 	requestEvent.NostrId = reqEvent.ID
-	responses = []*Nip47Response{}
+	responses = []*nip47.Response{}
 	svc.HandlePayKeysendEvent(ctx, request, requestEvent, app, publishResponse)
 
-	assert.Equal(t, responses[0].Result.(Nip47PayResponse).Preimage, "12345preimage")
+	assert.Equal(t, responses[0].Result.(nip47.PayResponse).Preimage, "12345preimage")
 
 	// budget overflow
 	newMaxAmount := 100
-	err = svc.db.Model(&AppPermission{}).Where("app_id = ?", app.ID).Update("max_amount", newMaxAmount).Error
+	err = svc.db.Model(&db.AppPermission{}).Where("app_id = ?", app.ID).Update("max_amount", newMaxAmount).Error
 	assert.NoError(t, err)
 
 	err = json.Unmarshal([]byte(nip47KeysendJson), request)
@@ -929,7 +930,7 @@ func TestHandlePayKeysendEvent(t *testing.T) {
 
 	reqEvent.ID = "pay_keysend_with_budget_overflow"
 	requestEvent.NostrId = reqEvent.ID
-	responses = []*Nip47Response{}
+	responses = []*nip47.Response{}
 	svc.HandlePayKeysendEvent(ctx, request, requestEvent, app, publishResponse)
 
 	assert.Equal(t, nip47.ERROR_QUOTA_EXCEEDED, responses[0].Error.Code)
@@ -945,7 +946,7 @@ func TestHandleLookupInvoiceEvent(t *testing.T) {
 	app, ss, err := createApp(svc)
 	assert.NoError(t, err)
 
-	request := &Nip47Request{}
+	request := &nip47.Request{}
 	err = json.Unmarshal([]byte(nip47LookupInvoiceJson), request)
 	assert.NoError(t, err)
 
@@ -957,16 +958,16 @@ func TestHandleLookupInvoiceEvent(t *testing.T) {
 		PubKey:  app.NostrPubkey,
 		Content: payload,
 	}
-	requestEvent := &RequestEvent{
+	requestEvent := &db.RequestEvent{
 		Content: reqEvent.Content,
 	}
 
 	reqEvent.ID = "test_lookup_invoice_without_permission"
 	requestEvent.NostrId = reqEvent.ID
 
-	responses := []*Nip47Response{}
+	responses := []*nip47.Response{}
 
-	publishResponse := func(response *Nip47Response, tags nostr.Tags) {
+	publishResponse := func(response *nip47.Response, tags nostr.Tags) {
 		responses = append(responses, response)
 	}
 
@@ -976,7 +977,7 @@ func TestHandleLookupInvoiceEvent(t *testing.T) {
 
 	// with permission
 	expiresAt := time.Now().Add(24 * time.Hour)
-	appPermission := &AppPermission{
+	appPermission := &db.AppPermission{
 		AppId:         app.ID,
 		App:           *app,
 		RequestMethod: nip47.LOOKUP_INVOICE_METHOD,
@@ -987,10 +988,10 @@ func TestHandleLookupInvoiceEvent(t *testing.T) {
 
 	reqEvent.ID = "test_lookup_invoice_with_permission"
 	requestEvent.NostrId = reqEvent.ID
-	responses = []*Nip47Response{}
+	responses = []*nip47.Response{}
 	svc.HandleLookupInvoiceEvent(ctx, request, requestEvent, app, publishResponse)
 
-	transaction := responses[0].Result.(*Nip47LookupInvoiceResponse)
+	transaction := responses[0].Result.(*nip47.LookupInvoiceResponse)
 	assert.Equal(t, mockTransaction.Type, transaction.Type)
 	assert.Equal(t, mockTransaction.Invoice, transaction.Invoice)
 	assert.Equal(t, mockTransaction.Description, transaction.Description)
@@ -1012,7 +1013,7 @@ func TestHandleMakeInvoiceEvent(t *testing.T) {
 	app, ss, err := createApp(svc)
 	assert.NoError(t, err)
 
-	request := &Nip47Request{}
+	request := &nip47.Request{}
 	err = json.Unmarshal([]byte(nip47MakeInvoiceJson), request)
 	assert.NoError(t, err)
 
@@ -1024,16 +1025,16 @@ func TestHandleMakeInvoiceEvent(t *testing.T) {
 		PubKey:  app.NostrPubkey,
 		Content: payload,
 	}
-	requestEvent := &RequestEvent{
+	requestEvent := &db.RequestEvent{
 		Content: reqEvent.Content,
 	}
 
 	reqEvent.ID = "test_make_invoice_without_permission"
 	requestEvent.NostrId = reqEvent.ID
 
-	responses := []*Nip47Response{}
+	responses := []*nip47.Response{}
 
-	publishResponse := func(response *Nip47Response, tags nostr.Tags) {
+	publishResponse := func(response *nip47.Response, tags nostr.Tags) {
 		responses = append(responses, response)
 	}
 
@@ -1043,7 +1044,7 @@ func TestHandleMakeInvoiceEvent(t *testing.T) {
 
 	// with permission
 	expiresAt := time.Now().Add(24 * time.Hour)
-	appPermission := &AppPermission{
+	appPermission := &db.AppPermission{
 		AppId:         app.ID,
 		App:           *app,
 		RequestMethod: nip47.MAKE_INVOICE_METHOD,
@@ -1054,10 +1055,10 @@ func TestHandleMakeInvoiceEvent(t *testing.T) {
 
 	reqEvent.ID = "test_make_invoice_with_permission"
 	requestEvent.NostrId = reqEvent.ID
-	responses = []*Nip47Response{}
+	responses = []*nip47.Response{}
 	svc.HandleMakeInvoiceEvent(ctx, request, requestEvent, app, publishResponse)
 
-	assert.Equal(t, mockTransaction.Preimage, responses[0].Result.(*Nip47MakeInvoiceResponse).Preimage)
+	assert.Equal(t, mockTransaction.Preimage, responses[0].Result.(*nip47.MakeInvoiceResponse).Preimage)
 }
 
 func TestHandleListTransactionsEvent(t *testing.T) {
@@ -1070,7 +1071,7 @@ func TestHandleListTransactionsEvent(t *testing.T) {
 	app, ss, err := createApp(svc)
 	assert.NoError(t, err)
 
-	request := &Nip47Request{}
+	request := &nip47.Request{}
 	err = json.Unmarshal([]byte(nip47ListTransactionsJson), request)
 	assert.NoError(t, err)
 
@@ -1082,16 +1083,16 @@ func TestHandleListTransactionsEvent(t *testing.T) {
 		PubKey:  app.NostrPubkey,
 		Content: payload,
 	}
-	requestEvent := &RequestEvent{
+	requestEvent := &db.RequestEvent{
 		Content: reqEvent.Content,
 	}
 
 	reqEvent.ID = "test_list_transactions_without_permission"
 	requestEvent.NostrId = reqEvent.ID
 
-	responses := []*Nip47Response{}
+	responses := []*nip47.Response{}
 
-	publishResponse := func(response *Nip47Response, tags nostr.Tags) {
+	publishResponse := func(response *nip47.Response, tags nostr.Tags) {
 		responses = append(responses, response)
 	}
 
@@ -1101,7 +1102,7 @@ func TestHandleListTransactionsEvent(t *testing.T) {
 
 	// with permission
 	expiresAt := time.Now().Add(24 * time.Hour)
-	appPermission := &AppPermission{
+	appPermission := &db.AppPermission{
 		AppId:         app.ID,
 		App:           *app,
 		RequestMethod: nip47.LIST_TRANSACTIONS_METHOD,
@@ -1112,11 +1113,11 @@ func TestHandleListTransactionsEvent(t *testing.T) {
 
 	reqEvent.ID = "test_list_transactions_with_permission"
 	requestEvent.NostrId = reqEvent.ID
-	responses = []*Nip47Response{}
+	responses = []*nip47.Response{}
 	svc.HandleListTransactionsEvent(ctx, request, requestEvent, app, publishResponse)
 
-	assert.Equal(t, 2, len(responses[0].Result.(*Nip47ListTransactionsResponse).Transactions))
-	transaction := responses[0].Result.(*Nip47ListTransactionsResponse).Transactions[0]
+	assert.Equal(t, 2, len(responses[0].Result.(*nip47.ListTransactionsResponse).Transactions))
+	transaction := responses[0].Result.(*nip47.ListTransactionsResponse).Transactions[0]
 	assert.Equal(t, mockTransactions[0].Type, transaction.Type)
 	assert.Equal(t, mockTransactions[0].Invoice, transaction.Invoice)
 	assert.Equal(t, mockTransactions[0].Description, transaction.Description)
@@ -1138,7 +1139,7 @@ func TestHandleGetInfoEvent(t *testing.T) {
 	app, ss, err := createApp(svc)
 	assert.NoError(t, err)
 
-	request := &Nip47Request{}
+	request := &nip47.Request{}
 	err = json.Unmarshal([]byte(nip47GetInfoJson), request)
 	assert.NoError(t, err)
 
@@ -1150,16 +1151,16 @@ func TestHandleGetInfoEvent(t *testing.T) {
 		PubKey:  app.NostrPubkey,
 		Content: payload,
 	}
-	requestEvent := &RequestEvent{
+	requestEvent := &db.RequestEvent{
 		Content: reqEvent.Content,
 	}
 
 	reqEvent.ID = "test_get_info_without_permission"
 	requestEvent.NostrId = reqEvent.ID
 
-	responses := []*Nip47Response{}
+	responses := []*nip47.Response{}
 
-	publishResponse := func(response *Nip47Response, tags nostr.Tags) {
+	publishResponse := func(response *nip47.Response, tags nostr.Tags) {
 		responses = append(responses, response)
 	}
 
@@ -1168,7 +1169,7 @@ func TestHandleGetInfoEvent(t *testing.T) {
 	assert.Equal(t, nip47.ERROR_RESTRICTED, responses[0].Error.Code)
 
 	expiresAt := time.Now().Add(24 * time.Hour)
-	appPermission := &AppPermission{
+	appPermission := &db.AppPermission{
 		AppId:         app.ID,
 		App:           *app,
 		RequestMethod: nip47.GET_INFO_METHOD,
@@ -1179,10 +1180,10 @@ func TestHandleGetInfoEvent(t *testing.T) {
 
 	reqEvent.ID = "test_get_info_with_permission"
 	requestEvent.NostrId = reqEvent.ID
-	responses = []*Nip47Response{}
+	responses = []*nip47.Response{}
 	svc.HandleGetInfoEvent(ctx, request, requestEvent, app, publishResponse)
 
-	nodeInfo := responses[0].Result.(*Nip47GetInfoResponse)
+	nodeInfo := responses[0].Result.(*nip47.GetInfoResponse)
 	assert.Equal(t, mockNodeInfo.Alias, nodeInfo.Alias)
 	assert.Equal(t, mockNodeInfo.Color, nodeInfo.Color)
 	assert.Equal(t, mockNodeInfo.Pubkey, nodeInfo.Pubkey)
@@ -1203,44 +1204,45 @@ func createTestService(ln *MockLn) (svc *Service, err error) {
 	logger.SetOutput(os.Stdout)
 	logger.SetLevel(logrus.InfoLevel)
 
-	err = migrations.Migrate(gormDb, &config.AppConfig{
+	appConfig := &config.AppConfig{
 		Workdir: ".test",
-	}, logger)
-	if err != nil {
-		return nil, err
 	}
-	sk := nostr.GeneratePrivateKey()
-	pk, err := nostr.GetPublicKey(sk)
+
+	err = migrations.Migrate(gormDb, appConfig, logger)
 	if err != nil {
 		return nil, err
 	}
 
+	cfg := config.NewConfig(
+		gormDb,
+		appConfig,
+		logger,
+	)
+
+	cfg.Start("")
+
 	return &Service{
-		cfg: &Config{
-			db:             gormDb,
-			NostrSecretKey: sk,
-			NostrPublicKey: pk,
-		},
+		cfg:            cfg,
 		db:             gormDb,
 		lnClient:       ln,
-		Logger:         logger,
-		EventPublisher: events.NewEventPublisher(logger),
+		logger:         logger,
+		eventPublisher: events.NewEventPublisher(logger),
 	}, nil
 }
 
-func createApp(svc *Service) (app *App, ss []byte, err error) {
+func createApp(svc *Service) (app *db.App, ss []byte, err error) {
 	senderPrivkey := nostr.GeneratePrivateKey()
 	senderPubkey, err := nostr.GetPublicKey(senderPrivkey)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	ss, err = nip04.ComputeSharedSecret(svc.cfg.NostrPublicKey, senderPrivkey)
+	ss, err = nip04.ComputeSharedSecret(svc.cfg.GetNostrPublicKey(), senderPrivkey)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	app = &App{Name: "test", NostrPubkey: senderPubkey}
+	app = &db.App{Name: "test", NostrPubkey: senderPubkey}
 	err = svc.db.Create(app).Error
 	if err != nil {
 		return nil, nil, err
@@ -1256,8 +1258,8 @@ func NewMockLn() (*MockLn, error) {
 	return &MockLn{}, nil
 }
 
-func (mln *MockLn) SendPaymentSync(ctx context.Context, payReq string) (*lnclient.Nip47PayInvoiceResponse, error) {
-	return &lnclient.Nip47PayInvoiceResponse{
+func (mln *MockLn) SendPaymentSync(ctx context.Context, payReq string) (*lnclient.PayInvoiceResponse, error) {
+	return &lnclient.PayInvoiceResponse{
 		Preimage: "123preimage",
 	}, nil
 }
@@ -1274,15 +1276,15 @@ func (mln *MockLn) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, err er
 	return &mockNodeInfo, nil
 }
 
-func (mln *MockLn) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *Nip47Transaction, err error) {
+func (mln *MockLn) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *nip47.Transaction, err error) {
 	return mockTransaction, nil
 }
 
-func (mln *MockLn) LookupInvoice(ctx context.Context, paymentHash string) (transaction *Nip47Transaction, err error) {
+func (mln *MockLn) LookupInvoice(ctx context.Context, paymentHash string) (transaction *nip47.Transaction, err error) {
 	return mockTransaction, nil
 }
 
-func (mln *MockLn) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string) (invoices []Nip47Transaction, err error) {
+func (mln *MockLn) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string) (invoices []nip47.Transaction, err error) {
 	return mockTransactions, nil
 }
 func (mln *MockLn) Shutdown() error {
@@ -1343,3 +1345,4 @@ func (mln *MockLn) GetNodeStatus(ctx context.Context) (nodeStatus *lnclient.Node
 func (mln *MockLn) GetNetworkGraph(nodeIds []string) (lnclient.NetworkGraphResponse, error) {
 	return nil, nil
 }
+func (mln *MockLn) UpdateLastWalletSyncRequest() {}

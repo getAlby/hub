@@ -119,8 +119,9 @@ export default function Channels() {
 
       if (
         !confirm(
-          `Are you sure you want to close the channel with ${nodes.find((node) => node.public_key === nodeId)?.alias ||
-          "Unknown Node"
+          `Are you sure you want to close the channel with ${
+            nodes.find((node) => node.public_key === nodeId)?.alias ||
+            "Unknown Node"
           }?\n\nNode ID: ${nodeId}\n\nChannel ID: ${channelId}`
         )
       ) {
@@ -139,7 +140,8 @@ export default function Channels() {
       console.log(`🎬 Closing channel with ${nodeId}`);
 
       const closeChannelResponse = await request<CloseChannelResponse>(
-        `/api/peers/${nodeId}/channels/${channelId}?force=${closeType === "force close"
+        `/api/peers/${nodeId}/channels/${channelId}?force=${
+          closeType === "force close"
         }`,
         {
           method: "DELETE",
@@ -197,36 +199,6 @@ export default function Channels() {
       });
       await reloadInfo();
       alert(`🎉 Router reset`);
-    } catch (error) {
-      console.error(error);
-      alert("Something went wrong: " + error);
-    }
-  }
-
-  async function stopNode() {
-    try {
-      if (!csrf) {
-        throw new Error("csrf not loaded");
-      }
-
-      if (
-        !confirm(
-          "After restarting, you'll need to re-enter your unlock password."
-        )
-      ) {
-        console.error("User cancelled reset");
-        return;
-      }
-
-      await request("/api/stop", {
-        method: "POST",
-        headers: {
-          "X-CSRF-Token": csrf,
-          "Content-Type": "application/json",
-        },
-      });
-      await reloadInfo();
-      alert(`🎉 Node stopped`);
     } catch (error) {
       console.error(error);
       alert("Something went wrong: " + error);
@@ -298,9 +270,6 @@ export default function Channels() {
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={resetRouter}>
                         Clear Routing Data
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={stopNode}>
-                        Restart
                       </DropdownMenuItem>
                     </DropdownMenuGroup>
                   </>

@@ -11,6 +11,7 @@ import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { useToast } from "src/components/ui/use-toast";
 import { useInfo } from "src/hooks/useInfo";
+import { backendTypeHasMnemonic } from "src/lib/utils";
 
 export function SetupPassword() {
   const { toast } = useToast();
@@ -23,6 +24,9 @@ export function SetupPassword() {
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!info) {
+      return;
+    }
     if (store.unlockPassword !== confirmPassword) {
       toast({
         title: "Passwords don't match",
@@ -31,8 +35,7 @@ export function SetupPassword() {
       return;
     }
 
-    // Pre-configured nodes that do not need a mnemonic
-    if (info?.backendType === "LND" || info?.backendType === "PHOENIX") {
+    if (!backendTypeHasMnemonic(info.backendType)) {
       // NOTE: LND flow does not setup a mnemonic
       navigate(`/setup/finish`);
       return;

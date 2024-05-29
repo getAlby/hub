@@ -5,6 +5,7 @@ import (
 	"embed"
 	"log"
 
+	"github.com/getAlby/nostr-wallet-connect/api"
 	"github.com/sirupsen/logrus"
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
@@ -17,13 +18,13 @@ var assets embed.FS
 type WailsApp struct {
 	ctx context.Context
 	svc *Service
-	api *API
+	api api.API
 }
 
 func NewApp(svc *Service) *WailsApp {
 	return &WailsApp{
 		svc: svc,
-		api: NewAPI(svc),
+		api: api.NewAPI(svc, svc.logger, svc.db),
 	}
 }
 
@@ -34,7 +35,7 @@ func (app *WailsApp) startup(ctx context.Context) {
 }
 
 func LaunchWailsApp(app *WailsApp) {
-	logger := NewWailsLogger(app.svc.Logger)
+	logger := NewWailsLogger(app.svc.logger)
 
 	err := wails.Run(&options.App{
 		Title:  "Nostr Wallet Connect",

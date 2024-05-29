@@ -530,7 +530,8 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
     channels && prevChannels
       ? channels.find(
           (newChannel) =>
-            !prevChannels.some((current) => current.id === newChannel.id)
+            !prevChannels.some((current) => current.id === newChannel.id) &&
+            newChannel.fundingTxId
         )
       : undefined;
 

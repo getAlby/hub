@@ -8,33 +8,11 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type EventSubscriber interface {
-	ConsumeEvent(ctx context.Context, event *Event, globalProperties map[string]interface{}) error
-}
-
-type Event struct {
-	Event      string      `json:"event"`
-	Properties interface{} `json:"properties,omitempty"`
-}
-
-type PaymentReceivedEventProperties struct {
-	PaymentHash string `json:"payment_hash"`
-	Amount      uint64 `json:"amount"`
-	NodeType    string `json:"node_type"`
-}
-
 type eventPublisher struct {
 	logger           *logrus.Logger
 	listeners        []EventSubscriber
 	subscriberMtx    sync.Mutex
 	globalProperties map[string]interface{}
-}
-
-type EventPublisher interface {
-	RegisterSubscriber(eventListener EventSubscriber)
-	RemoveSubscriber(eventListener EventSubscriber)
-	Publish(event *Event)
-	SetGlobalProperty(key string, value interface{})
 }
 
 func NewEventPublisher(logger *logrus.Logger) *eventPublisher {

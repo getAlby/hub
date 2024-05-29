@@ -3,14 +3,15 @@ package main
 import (
 	"context"
 
+	"github.com/getAlby/nostr-wallet-connect/db"
 	"github.com/getAlby/nostr-wallet-connect/nip47"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/sirupsen/logrus"
 )
 
-func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, nip47Request *Nip47Request, requestEvent *RequestEvent, app *App, publishResponse func(*Nip47Response, nostr.Tags)) {
+func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, nip47Request *nip47.Request, requestEvent *db.RequestEvent, app *db.App, publishResponse func(*nip47.Response, nostr.Tags)) {
 
-	makeInvoiceParams := &Nip47MakeInvoiceParams{}
+	makeInvoiceParams := &nip47.MakeInvoiceParams{}
 	resp := svc.decodeNip47Request(nip47Request, requestEvent, app, makeInvoiceParams)
 	if resp != nil {
 		publishResponse(resp, nostr.Tags{})
@@ -23,7 +24,7 @@ func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, nip47Request *Ni
 		return
 	}
 
-	svc.Logger.WithFields(logrus.Fields{
+	svc.logger.WithFields(logrus.Fields{
 		"requestEventNostrId": requestEvent.NostrId,
 		"appId":               app.ID,
 		"amount":              makeInvoiceParams.Amount,
@@ -39,7 +40,7 @@ func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, nip47Request *Ni
 
 	transaction, err := svc.lnClient.MakeInvoice(ctx, makeInvoiceParams.Amount, makeInvoiceParams.Description, makeInvoiceParams.DescriptionHash, expiry)
 	if err != nil {
-		svc.Logger.WithFields(logrus.Fields{
+		svc.logger.WithFields(logrus.Fields{
 			"requestEventNostrId": requestEvent.NostrId,
 			"appId":               app.ID,
 			"amount":              makeInvoiceParams.Amount,
@@ -48,9 +49,9 @@ func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, nip47Request *Ni
 			"expiry":              makeInvoiceParams.Expiry,
 		}).Infof("Failed to make invoice: %v", err)
 
-		publishResponse(&Nip47Response{
+		publishResponse(&nip47.Response{
 			ResultType: nip47Request.Method,
-			Error: &Nip47Error{
+			Error: &nip47.Error{
 				Code:    nip47.ERROR_INTERNAL,
 				Message: err.Error(),
 			},
@@ -58,11 +59,11 @@ func (svc *Service) HandleMakeInvoiceEvent(ctx context.Context, nip47Request *Ni
 		return
 	}
 
-	responsePayload := &Nip47MakeInvoiceResponse{
-		Nip47Transaction: *transaction,
+	responsePayload := &nip47.MakeInvoiceResponse{
+		Transaction: *transaction,
 	}
 
-	publishResponse(&Nip47Response{
+	publishResponse(&nip47.Response{
 		ResultType: nip47Request.Method,
 		Result:     responsePayload,
 	}, nostr.Tags{})
