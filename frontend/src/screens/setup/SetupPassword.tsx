@@ -31,8 +31,8 @@ export function SetupPassword() {
       return;
     }
 
-    // Pre-configured LND
-    if (info?.backendType === "LND") {
+    // Pre-configured nodes that do not need a mnemonic
+    if (info?.backendType === "LND" || info?.backendType === "PHOENIX") {
       // NOTE: LND flow does not setup a mnemonic
       navigate(`/setup/finish`);
       return;

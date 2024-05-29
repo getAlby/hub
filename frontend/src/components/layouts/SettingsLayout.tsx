@@ -87,7 +87,9 @@ export default function SettingsLayout() {
             <MenuItem to="/settings/change-unlock-password">
               Unlock Password
             </MenuItem>
-            <MenuItem to="/settings/key-backup">Key Backup</MenuItem>
+            { (info?.backendType === "LDK" || info?.backendType === "BREEZ" || info?.backendType === "GREENLIGHT") && (
+              <MenuItem to="/settings/key-backup">Key Backup</MenuItem>
+            )}
             {info?.backendType === "LDK" && (
               <MenuItem to="/settings/node-backup">Node Backup</MenuItem>
             )}

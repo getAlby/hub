@@ -59,6 +59,7 @@ export function SetupNode() {
               <SelectItem value="BREEZ">Breez</SelectItem>
               <SelectItem value="GREENLIGHT">Greenlight</SelectItem>
               <SelectItem value="LND">LND</SelectItem>
+              <SelectItem value="PHOENIX">Phoenix</SelectItem>
             </SelectContent>
           </Select>
           {backendType === "BREEZ" && <BreezForm handleSubmit={handleSubmit} />}

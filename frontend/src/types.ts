@@ -20,7 +20,7 @@ export const NIP_47_SIGN_MESSAGE_METHOD = "sign_message";
 
 export const NIP_47_NOTIFICATIONS_PERMISSION = "notifications";
 
-export type BackendType = "LND" | "BREEZ" | "GREENLIGHT" | "LDK";
+export type BackendType = "LND" | "BREEZ" | "GREENLIGHT" | "LDK" | "PHOENIX";
 
 export type RequestMethodType =
   | "pay_invoice"

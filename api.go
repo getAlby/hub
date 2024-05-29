@@ -1130,7 +1130,7 @@ func (api *API) GetInfo(ctx context.Context) (*models.InfoResponse, error) {
 
 		nodeInfo, err := api.svc.lnClient.GetInfo(ctx)
 		if err != nil {
-			api.svc.Logger.WithError(err).Error("Failed to get alby user identifier")
+			api.svc.Logger.WithError(err).Error("Failed to get nodeInfo")
 			return nil, err
 		}
 

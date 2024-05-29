@@ -64,7 +64,7 @@ function SidebarHint() {
   }
 
   // User has no channels yet
-  if (channels?.length === 0) {
+  if ((info?.backendType === "LDK" || info?.backendType === "GREENLIGHT") && channels?.length === 0) {
     return (
       <SidebarHintCard
         icon={Zap}
@@ -89,7 +89,7 @@ function SidebarHint() {
     );
   }
 
-  if (info?.showBackupReminder) {
+  if (info?.backendType === "LDK" && info?.showBackupReminder) {
     return (
       <SidebarHintCard
         icon={ShieldAlert}
