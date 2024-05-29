@@ -13,3 +13,10 @@ export function formatAmount(amount: number, decimals = 1) {
   }
   return amount.toFixed(i > 0 ? decimals : 0) + ["", "k", "M", "G"][i];
 }
+
+export function splitSocketAddress(socketAddress: string) {
+  const lastColonIndex = socketAddress.lastIndexOf(":");
+  const address = socketAddress.slice(0, lastColonIndex);
+  const port = socketAddress.slice(lastColonIndex + 1);
+  return { address, port };
+}

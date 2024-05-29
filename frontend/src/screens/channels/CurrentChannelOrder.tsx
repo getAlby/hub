@@ -50,6 +50,7 @@ import { useChannels } from "src/hooks/useChannels";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
 import { useSyncWallet } from "src/hooks/useSyncWallet";
 import { copyToClipboard } from "src/lib/clipboard";
+import { splitSocketAddress } from "src/lib/utils";
 import { Success } from "src/screens/onboarding/Success";
 import useChannelOrderStore from "src/state/ChannelOrderStore";
 import {
@@ -409,10 +410,12 @@ function PayBitcoinChannelOrderWithSpendableFunds({
     if (!nodeDetails && !host) {
       throw new Error("node details not found");
     }
-    const _host = nodeDetails?.sockets
+    const socketAddress = nodeDetails?.sockets
       ? nodeDetails.sockets.split(",")[0]
       : host;
-    const [address, port] = _host.split(":");
+
+    const { address, port } = splitSocketAddress(socketAddress);
+
     if (!address || !port) {
       throw new Error("host not found");
     }
@@ -526,9 +529,9 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
   const newChannel =
     channels && prevChannels
       ? channels.find(
-        (newChannel) =>
-          !prevChannels.some((current) => current.id === newChannel.id)
-      )
+          (newChannel) =>
+            !prevChannels.some((current) => current.id === newChannel.id)
+        )
       : undefined;
 
   React.useEffect(() => {

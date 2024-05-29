@@ -6,6 +6,7 @@ import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 import { useCSRF } from "src/hooks/useCSRF";
+import { splitSocketAddress } from "src/lib/utils";
 import { ConnectPeerRequest } from "src/types";
 import { request } from "src/utils/request";
 
@@ -25,8 +26,8 @@ export default function ConnectPeer() {
       throw new Error("connection details missing");
     }
     try {
-      const [pubkey, connectionDetails] = connectionString.split("@");
-      const [address, port] = connectionDetails.split(":");
+      const [pubkey, socketAddress] = connectionString.split("@");
+      const { address, port } = splitSocketAddress(socketAddress);
       if (!pubkey || !address || !port) {
         throw new Error("connection details missing");
       }

@@ -416,7 +416,7 @@ function NewChannelOnchain(props: NewChannelOnchainProps) {
                   id="host"
                   type="text"
                   value={host}
-                  placeholder="0.0.0.0:9735"
+                  placeholder="0.0.0.0:9735 or [2600::]:9735"
                   onChange={(e) => {
                     setHost(e.target.value.trim());
                   }}

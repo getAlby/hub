@@ -58,6 +58,7 @@ func NewLDKService(ctx context.Context, svc *Service, mnemonic, workDir string, 
 	config := ldk_node.DefaultConfig()
 	listeningAddresses := []string{
 		"0.0.0.0:9735",
+		"[::]:9735",
 	}
 	config.TrustedPeers0conf = []string{
 		lsp.VoltageLSP().Pubkey,
