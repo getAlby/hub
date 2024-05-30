@@ -349,6 +349,16 @@ func (api *api) OpenChannel(ctx context.Context, openChannelRequest *OpenChannel
 	return api.svc.GetLNClient().OpenChannel(ctx, openChannelRequest)
 }
 
+func (api *api) DisconnectPeer(ctx context.Context, peerId string) error {
+	if api.svc.GetLNClient() == nil {
+		return errors.New("LNClient not started")
+	}
+	api.logger.WithFields(logrus.Fields{
+		"peer_id": peerId,
+	}).Info("Disconnecting peer")
+	return api.svc.GetLNClient().DisconnectPeer(ctx, peerId)
+}
+
 func (api *api) CloseChannel(ctx context.Context, peerId, channelId string, force bool) (*CloseChannelResponse, error) {
 	if api.svc.GetLNClient() == nil {
 		return nil, errors.New("LNClient not started")

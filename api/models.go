@@ -26,6 +26,7 @@ type API interface {
 	GetNodeStatus(ctx context.Context) (*lnclient.NodeStatus, error)
 	ListPeers(ctx context.Context) ([]lnclient.PeerDetails, error)
 	ConnectPeer(ctx context.Context, connectPeerRequest *ConnectPeerRequest) error
+	DisconnectPeer(ctx context.Context, peerId string) error
 	OpenChannel(ctx context.Context, openChannelRequest *OpenChannelRequest) (*OpenChannelResponse, error)
 	CloseChannel(ctx context.Context, peerId, channelId string, force bool) (*CloseChannelResponse, error)
 	GetNewOnchainAddress(ctx context.Context) (*NewOnchainAddressResponse, error)

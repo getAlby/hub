@@ -454,3 +454,7 @@ func (svc *LNDService) GetNetworkGraph(nodeIds []string) (lnclient.NetworkGraphR
 }
 
 func (svc *LNDService) UpdateLastWalletSyncRequest() {}
+
+func (svc *LNDService) DisconnectPeer(ctx context.Context, peerId string) error {
+	return nil
+}

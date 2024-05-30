@@ -481,3 +481,6 @@ func (svc *PhoenixService) GetNetworkGraph(nodeIds []string) (lnclient.NetworkGr
 }
 
 func (svc *PhoenixService) UpdateLastWalletSyncRequest() {}
+func (svc *PhoenixService) DisconnectPeer(ctx context.Context, peerId string) error {
+	return nil
+}

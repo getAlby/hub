@@ -466,3 +466,7 @@ func (bs *BreezService) GetNetworkGraph(nodeIds []string) (lnclient.NetworkGraph
 }
 
 func (bs *BreezService) UpdateLastWalletSyncRequest() {}
+
+func (bs *BreezService) DisconnectPeer(ctx context.Context, peerId string) error {
+	return nil
+}

@@ -115,6 +115,25 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		}
 	}
 
+	peerRegex := regexp.MustCompile(
+		`/api/peers/([^/]+)`,
+	)
+
+	peerMatch := peerRegex.FindStringSubmatch(route)
+
+	switch {
+	case len(peerMatch) == 2:
+		peerId := peerMatch[1]
+		switch method {
+		case "DELETE":
+			err := app.api.DisconnectPeer(ctx, peerId)
+			if err != nil {
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
+			return WailsRequestRouterResponse{Body: nil, Error: ""}
+		}
+	}
+
 	networkGraphRegex := regexp.MustCompile(
 		`/api/node/network-graph\?nodeIds=(.+)`,
 	)

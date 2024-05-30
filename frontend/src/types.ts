@@ -168,6 +168,13 @@ export type Channel = {
   confirmationsRequired?: number;
 };
 
+export type Peer = {
+  nodeId: string;
+  address: string;
+  isPersisted: boolean;
+  isConnected: boolean;
+};
+
 export type NodeConnectionInfo = {
   pubkey: string;
   address: string;

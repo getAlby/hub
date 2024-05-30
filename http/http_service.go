@@ -102,6 +102,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.GET("/api/node/network-graph", httpSvc.nodeNetworkGraphHandler, authMiddleware)
 	e.GET("/api/peers", httpSvc.listPeers, authMiddleware)
 	e.POST("/api/peers", httpSvc.connectPeerHandler, authMiddleware)
+	e.DELETE("/api/peers/:peerId", httpSvc.disconnectPeerHandler, authMiddleware)
 	e.DELETE("/api/peers/:peerId/channels/:channelId", httpSvc.closeChannelHandler, authMiddleware)
 	e.POST("/api/wallet/new-address", httpSvc.newOnchainAddressHandler, authMiddleware)
 	e.POST("/api/wallet/redeem-onchain-funds", httpSvc.redeemOnchainFundsHandler, authMiddleware)
@@ -470,6 +471,20 @@ func (httpSvc *HttpService) openChannelHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, openChannelResponse)
+}
+
+func (httpSvc *HttpService) disconnectPeerHandler(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	err := httpSvc.api.DisconnectPeer(ctx, c.Param("peerId"))
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to disconnect peer: %s", err.Error()),
+		})
+	}
+
+	return c.NoContent(http.StatusNoContent)
 }
 
 func (httpSvc *HttpService) closeChannelHandler(c echo.Context) error {

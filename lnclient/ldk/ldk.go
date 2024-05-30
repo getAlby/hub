@@ -1231,6 +1231,10 @@ func (ls *LDKService) GetNodeStatus(ctx context.Context) (nodeStatus *lnclient.N
 	}, nil
 }
 
+func (ls *LDKService) DisconnectPeer(ctx context.Context, peerId string) error {
+	return ls.node.Disconnect(peerId)
+}
+
 func (ls *LDKService) UpdateLastWalletSyncRequest() {
 	ls.lastWalletSyncRequest = time.Now()
 }

@@ -1346,3 +1346,6 @@ func (mln *MockLn) GetNetworkGraph(nodeIds []string) (lnclient.NetworkGraphRespo
 	return nil, nil
 }
 func (mln *MockLn) UpdateLastWalletSyncRequest() {}
+func (mln *MockLn) DisconnectPeer(ctx context.Context, peerId string) error {
+	return nil
+}
