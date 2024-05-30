@@ -117,6 +117,8 @@ export default function Peers() {
           <TableRow>
             <TableHead className="w-[80px]">Status</TableHead>
             <TableHead>Node</TableHead>
+            <TableHead>Pubkey</TableHead>
+            <TableHead>Address</TableHead>
             <TableHead className="w-[50px]"></TableHead>
           </TableRow>
         </TableHeader>
@@ -145,9 +147,10 @@ export default function Peers() {
                       <Button variant="link" className="p-0 mr-2">
                         {alias}
                       </Button>
-                      {peer.nodeId}
                     </a>
                   </TableCell>
+                  <TableCell>{peer.nodeId}</TableCell>
+                  <TableCell>{peer.address}</TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
