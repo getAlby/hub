@@ -340,13 +340,16 @@ function NewChannelOnchain(props: NewChannelOnchainProps) {
       pubkey,
     });
   }
-  function setHost(host: string) {
-    props.setOrder({
-      ...props.order,
-      paymentMethod: "onchain",
-      host,
-    });
-  }
+  const setHost = React.useCallback(
+    (host: string) => {
+      props.setOrder({
+        ...props.order,
+        paymentMethod: "onchain",
+        host,
+      });
+    },
+    [props]
+  );
   function setPublic(isPublic: boolean) {
     props.setOrder({
       ...props.order,
@@ -364,12 +367,17 @@ function NewChannelOnchain(props: NewChannelOnchainProps) {
       const data = await request<Node>(
         `/api/mempool?endpoint=/v1/lightning/nodes/${pubkey}`
       );
+
       setNodeDetails(data);
+      const socketAddress = data?.sockets?.split(",")?.[0];
+      if (socketAddress) {
+        setHost(socketAddress);
+      }
     } catch (error) {
       console.error(error);
       setNodeDetails(undefined);
     }
-  }, [pubkey]);
+  }, [pubkey, setHost]);
 
   React.useEffect(() => {
     fetchNodeDetails();
@@ -409,20 +417,22 @@ function NewChannelOnchain(props: NewChannelOnchainProps) {
               )}
             </div>
 
-            {!nodeDetails && pubkey && (
-              <div className="grid gap-1.5">
-                <Label htmlFor="host">Host:Port</Label>
-                <Input
-                  id="host"
-                  type="text"
-                  value={host}
-                  placeholder="0.0.0.0:9735 or [2600::]:9735"
-                  onChange={(e) => {
-                    setHost(e.target.value.trim());
-                  }}
-                />
-              </div>
-            )}
+            {
+              /*!nodeDetails && */ pubkey && (
+                <div className="grid gap-1.5">
+                  <Label htmlFor="host">Host:Port</Label>
+                  <Input
+                    id="host"
+                    type="text"
+                    value={host}
+                    placeholder="0.0.0.0:9735 or [2600::]:9735"
+                    onChange={(e) => {
+                      setHost(e.target.value.trim());
+                    }}
+                  />
+                </div>
+              )
+            }
           </>
         )}
 
