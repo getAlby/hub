@@ -320,7 +320,7 @@ function NewChannelLightning(props: NewChannelLightningProps) {
 
 type NewChannelOnchainProps = {
   order: Partial<NewChannelOrder>;
-  setOrder(order: Partial<NewChannelOrder>): void;
+  setOrder: React.Dispatch<React.SetStateAction<Partial<NewChannelOrder>>>;
   showCustomOptions: boolean;
 };
 
@@ -332,30 +332,31 @@ function NewChannelOnchain(props: NewChannelOnchainProps) {
     throw new Error("unexpected payment method");
   }
   const { pubkey, host, isPublic } = props.order;
+  const { setOrder } = props;
 
   function setPubkey(pubkey: string) {
-    props.setOrder({
-      ...props.order,
+    props.setOrder((current) => ({
+      ...current,
       paymentMethod: "onchain",
       pubkey,
-    });
+    }));
   }
   const setHost = React.useCallback(
     (host: string) => {
-      props.setOrder({
-        ...props.order,
+      setOrder((current) => ({
+        ...current,
         paymentMethod: "onchain",
         host,
-      });
+      }));
     },
-    [props]
+    [setOrder]
   );
   function setPublic(isPublic: boolean) {
-    props.setOrder({
-      ...props.order,
+    props.setOrder((current) => ({
+      ...current,
       paymentMethod: "onchain",
       isPublic,
-    });
+    }));
   }
 
   const fetchNodeDetails = React.useCallback(async () => {
