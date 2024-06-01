@@ -6,25 +6,24 @@ import { Button } from "src/components/ui/button";
 import { Separator } from "src/components/ui/separator";
 import { toast } from "src/components/ui/use-toast";
 import { useCSRF } from "src/hooks/useCSRF";
-import { AppPermissions, CreateAppResponse, NIP_47_NOTIFICATIONS_PERMISSION, PermissionType, nip47MethodDescriptions } from "src/types";
+import {
+  AppPermissions,
+  CreateAppResponse,
+  PermissionType,
+  nip47PermissionDescriptions,
+} from "src/types";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 import Permissions from "../../components/Permissions";
-
-// TODO: merge with nip47MethodDescriptions
-export const nip47PermissionDescriptions: Record<PermissionType, string> = {
-  ...nip47MethodDescriptions,
-  [NIP_47_NOTIFICATIONS_PERMISSION]: "Receive wallet notifications",
-};
 
 export default function AppDetail() {
   const params = useParams();
   const navigate = useNavigate();
   const { data: csrf } = useCSRF();
 
-  const app = suggestedApps.find(x => x.id == params.id);
+  const app = suggestedApps.find((x) => x.id == params.id);
 
-  const methods = Object.keys(nip47PermissionDescriptions)
+  const methods = Object.keys(nip47PermissionDescriptions);
   const requestMethodsSet = new Set<PermissionType>(
     methods as PermissionType[]
   );
@@ -69,8 +68,9 @@ export default function AppDetail() {
     }
   };
 
-  if (!app)
+  if (!app) {
     return;
+  }
 
   return (
     <>
@@ -78,9 +78,11 @@ export default function AppDetail() {
         title={`Connect to ${app.title}`}
         description="Configure wallet permissions for the app and follow instructions to finalise the connection"
       />
-      <form onSubmit={handleSubmit} acceptCharset="UTF-8"
-        className="flex flex-col items-start gap-5 max-w-lg">
-
+      <form
+        onSubmit={handleSubmit}
+        acceptCharset="UTF-8"
+        className="flex flex-col items-start gap-5 max-w-lg"
+      >
         <div className="flex flex-row items-center gap-3">
           <img src={app.logo} className="h-12 w-12" />
           <h2 className="font-semibold text-lg">{app.title}</h2>
@@ -98,10 +100,7 @@ export default function AppDetail() {
 
         <Separator />
 
-        <Button type="submit">
-          Create Connection
-        </Button>
-
+        <Button type="submit">Create Connection</Button>
       </form>
     </>
   );

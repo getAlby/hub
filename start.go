@@ -32,7 +32,6 @@ func (svc *Service) StartNostr(ctx context.Context, encryptionKey string) error 
 	svc.wg.Add(1)
 	go func() {
 		//Start infinite loop which will be only broken by canceling ctx (SIGINT)
-		//TODO: we can start this loop for multiple relays
 		var relay *nostr.Relay
 
 		for i := 0; ; i++ {
