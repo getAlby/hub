@@ -25,6 +25,7 @@ import {
 } from "src/components/ui/select";
 import { useChannelPeerSuggestions } from "src/hooks/useChannelPeerSuggestions";
 import { useInfo } from "src/hooks/useInfo";
+import { usePeers } from "src/hooks/usePeers";
 import { cn, formatAmount } from "src/lib/utils";
 import useChannelOrderStore from "src/state/ChannelOrderStore";
 import {
@@ -326,13 +327,15 @@ type NewChannelOnchainProps = {
 
 function NewChannelOnchain(props: NewChannelOnchainProps) {
   const [nodeDetails, setNodeDetails] = React.useState<Node | undefined>();
-
+  const { data: peers } = usePeers();
   // const { data: csrf } = useCSRF();
   if (props.order.paymentMethod !== "onchain") {
     throw new Error("unexpected payment method");
   }
   const { pubkey, host, isPublic } = props.order;
   const { setOrder } = props;
+  const isAlreadyPeered =
+    pubkey && peers?.some((peer) => peer.nodeId === pubkey);
 
   function setPubkey(pubkey: string) {
     props.setOrder((current) => ({
@@ -418,22 +421,20 @@ function NewChannelOnchain(props: NewChannelOnchainProps) {
               )}
             </div>
 
-            {
-              /*!nodeDetails && */ pubkey && (
-                <div className="grid gap-1.5">
-                  <Label htmlFor="host">Host:Port</Label>
-                  <Input
-                    id="host"
-                    type="text"
-                    value={host}
-                    placeholder="0.0.0.0:9735 or [2600::]:9735"
-                    onChange={(e) => {
-                      setHost(e.target.value.trim());
-                    }}
-                  />
-                </div>
-              )
-            }
+            {!isAlreadyPeered && /*!nodeDetails && */ pubkey && (
+              <div className="grid gap-1.5">
+                <Label htmlFor="host">Host:Port</Label>
+                <Input
+                  id="host"
+                  type="text"
+                  value={host}
+                  placeholder="0.0.0.0:9735 or [2600::]:9735"
+                  onChange={(e) => {
+                    setHost(e.target.value.trim());
+                  }}
+                />
+              </div>
+            )}
           </>
         )}
 

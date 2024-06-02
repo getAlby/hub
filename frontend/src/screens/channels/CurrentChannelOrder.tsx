@@ -48,6 +48,7 @@ import { useBalances } from "src/hooks/useBalances";
 import { useCSRF } from "src/hooks/useCSRF";
 import { useChannels } from "src/hooks/useChannels";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
+import { usePeers } from "src/hooks/usePeers";
 import { useSyncWallet } from "src/hooks/useSyncWallet";
 import { copyToClipboard } from "src/lib/clipboard";
 import { splitSocketAddress } from "src/lib/utils";
@@ -61,8 +62,12 @@ import { request } from "src/utils/request";
 init({
   showBalance: false,
 });
+let hasStartedOpenedChannel = false;
 
 export function CurrentChannelOrder() {
+  React.useEffect(() => {
+    hasStartedOpenedChannel = false;
+  }, []);
   const order = useChannelOrderStore((store) => store.order);
   if (!order) {
     return (
@@ -377,10 +382,11 @@ function PayBitcoinChannelOrderWithSpendableFunds({
   if (order.paymentMethod !== "onchain") {
     throw new Error("incorrect payment method");
   }
+  const { data: peers } = usePeers();
   const [nodeDetails, setNodeDetails] = React.useState<Node | undefined>();
+  const [hasLoadedNodeDetails, setLoadedNodeDetails] = React.useState(false);
   const { data: csrf } = useCSRF();
   const { toast } = useToast();
-  const [, setHasCalledOpenChannel] = React.useState(false);
 
   const { pubkey, host } = order;
 
@@ -397,6 +403,7 @@ function PayBitcoinChannelOrderWithSpendableFunds({
       console.error(error);
       setNodeDetails(undefined);
     }
+    setLoadedNodeDetails(true);
   }, [pubkey]);
 
   React.useEffect(() => {
@@ -419,7 +426,7 @@ function PayBitcoinChannelOrderWithSpendableFunds({
     if (!address || !port) {
       throw new Error("host not found");
     }
-    console.log(`🔌 Peering with ${pubkey}`);
+    console.info(`🔌 Peering with ${pubkey}`);
     const connectPeerRequest: ConnectPeerRequest = {
       pubkey,
       address,
@@ -444,9 +451,17 @@ function PayBitcoinChannelOrderWithSpendableFunds({
         throw new Error("csrf not loaded");
       }
 
-      await connectPeer();
+      if (!peers) {
+        throw new Error("peers not loaded");
+      }
 
-      console.log(`🎬 Opening channel with ${pubkey}`);
+      // only pair if necessary
+      // also allows to open channel to existing peer without providing a socket address.
+      if (!peers.some((peer) => peer.nodeId === pubkey)) {
+        await connectPeer();
+      }
+
+      console.info(`🎬 Opening channel with ${pubkey}`);
 
       const openChannelRequest: OpenChannelRequest = {
         pubkey,
@@ -468,7 +483,7 @@ function PayBitcoinChannelOrderWithSpendableFunds({
       if (!openChannelResponse?.fundingTxId) {
         throw new Error("No funding txid in response");
       }
-      console.log(
+      console.info(
         "Channel opening transaction published",
         openChannelResponse.fundingTxId
       );
@@ -483,16 +498,25 @@ function PayBitcoinChannelOrderWithSpendableFunds({
       console.error(error);
       alert("Something went wrong: " + error);
     }
-  }, [connectPeer, csrf, order, pubkey, toast]);
+  }, [
+    connectPeer,
+    csrf,
+    order.amount,
+    order.isPublic,
+    order.paymentMethod,
+    peers,
+    pubkey,
+    toast,
+  ]);
 
   React.useEffect(() => {
-    setHasCalledOpenChannel((hasCalledOpenChannel) => {
-      if (!hasCalledOpenChannel) {
-        openChannel();
-      }
-      return true;
-    });
-  }, [openChannel, order.amount, pubkey]);
+    if (!peers || !csrf || !hasLoadedNodeDetails || hasStartedOpenedChannel) {
+      return;
+    }
+
+    hasStartedOpenedChannel = true;
+    openChannel();
+  }, [csrf, hasLoadedNodeDetails, openChannel, order.amount, peers, pubkey]);
 
   return (
     <div className="flex flex-col gap-5">
