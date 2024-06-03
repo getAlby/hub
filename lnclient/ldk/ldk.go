@@ -863,6 +863,7 @@ func (ls *LDKService) OpenChannel(ctx context.Context, openChannelRequest *lncli
 			ls.logger.WithFields(logrus.Fields{
 				"event": channelClosedEvent,
 			})
+			// TODO: properly decode reason
 			return nil, fmt.Errorf("failed to open channel: %+v", *channelClosedEvent.Reason)
 		}
 
@@ -1141,11 +1142,12 @@ func (ls *LDKService) handleLdkEvent(ctx context.Context, event *ldk_node.Event)
 			},
 		})
 	case ldk_node.EventChannelClosed:
+		// TODO: properly decode reason
 		ls.eventPublisher.Publish(&events.Event{
 			Event: "nwc_channel_closed",
 			Properties: map[string]interface{}{
 				"counterparty_node_id": v.CounterpartyNodeId,
-				"reason":               fmt.Sprintf("%+v", v.Reason),
+				"reason":               fmt.Sprintf("%+v", *v.Reason),
 				"node_type":            config.LDKBackendType,
 			},
 		})
