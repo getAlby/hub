@@ -1,6 +1,7 @@
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Container from "src/components/Container";
+import ExternalLink from "src/components/ExternalLink";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
@@ -91,11 +92,17 @@ function CashuForm({ handleSubmit }: SetupFormProps) {
   return (
     <form className="w-full grid gap-5" onSubmit={onSubmit}>
       <div className="grid gap-1.5">
-        <Label htmlFor="cashu-mint-url">
+        <Label
+          htmlFor="cashu-mint-url"
+          className="flex flex-row justify-between"
+        >
           <span>Cashu Mint URL</span>{" "}
-          <Link to="https://bitcoinmints.com/" target="_blank">
-            <span className="text-purple-500">Find a mint</span>
-          </Link>
+          <ExternalLink
+            to="https://bitcoinmints.com"
+            className="underline hover:no-underline text-xs font-normal"
+          >
+            Find a mint
+          </ExternalLink>
         </Label>
         <Input
           name="cashu-mint-url"
