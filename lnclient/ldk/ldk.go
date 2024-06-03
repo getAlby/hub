@@ -704,7 +704,7 @@ func (ls *LDKService) ListTransactions(ctx context.Context, from, until, limit, 
 			transaction, err := ls.ldkPaymentToTransaction(&payment)
 
 			if err != nil {
-				ls.logger.Errorf("Failed to map transaction: %v", err)
+				ls.logger.WithError(err).Error("Failed to map transaction")
 				continue
 			}
 
@@ -982,6 +982,23 @@ func (ls *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 			}
 		}
 		paymentHash = bolt11PaymentKind.Hash
+	}
+
+	spontaneousPaymentKind, isSpontaneousPaymentKind := payment.Kind.(ldk_node.PaymentKindSpontaneous)
+	if isSpontaneousPaymentKind {
+		// keysend payment
+		// currently no access to created at or the TLVs to get the description
+		// TODO: store these in NWC database
+		lastUpdate := int64(payment.LastUpdate)
+		// TODO: use proper created at time
+		createdAt = lastUpdate
+		if payment.Status == ldk_node.PaymentStatusSucceeded {
+			settledAt = &lastUpdate
+		}
+		paymentHash = spontaneousPaymentKind.Hash
+		if spontaneousPaymentKind.Preimage != nil {
+			preimage = *spontaneousPaymentKind.Preimage
+		}
 	}
 
 	var amount uint64 = 0
