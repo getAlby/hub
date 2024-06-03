@@ -34,6 +34,7 @@ import (
 	"github.com/getAlby/nostr-wallet-connect/db"
 	"github.com/getAlby/nostr-wallet-connect/lnclient"
 	"github.com/getAlby/nostr-wallet-connect/lnclient/breez"
+	"github.com/getAlby/nostr-wallet-connect/lnclient/cashu"
 	"github.com/getAlby/nostr-wallet-connect/lnclient/greenlight"
 	"github.com/getAlby/nostr-wallet-connect/lnclient/ldk"
 	"github.com/getAlby/nostr-wallet-connect/lnclient/lnd"
@@ -231,6 +232,11 @@ func (svc *Service) launchLNBackend(ctx context.Context, encryptionKey string) e
 		lnClient, err = breez.NewBreezService(svc.logger, Mnemonic, BreezAPIKey, GreenlightInviteCode, BreezWorkdir)
 	case config.PhoenixBackendType:
 		lnClient, err = phoenixd.NewPhoenixService(svc.logger, svc.cfg.GetEnv().PhoenixdAddress, svc.cfg.GetEnv().PhoenixdAuthorization)
+	case config.CashuBackendType:
+		cashuMintUrl, _ := svc.cfg.Get("CashuMintUrl", encryptionKey)
+		cashuWorkdir := path.Join(svc.cfg.GetEnv().Workdir, "cashu")
+
+		lnClient, err = cashu.NewCashuService(svc.logger, cashuWorkdir, cashuMintUrl)
 	default:
 		svc.logger.Fatalf("Unsupported LNBackendType: %v", lnBackend)
 	}

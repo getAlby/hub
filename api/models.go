@@ -115,6 +115,9 @@ type SetupRequest struct {
 	LNDCertHex      string `json:"lndCertHex"`
 	LNDMacaroonHex  string `json:"lndMacaroonHex"`
 	UnlockPassword  string `json:"unlockPassword"`
+
+	// Cashu fields
+	CashuMintUrl string `json:"cashuMintUrl"`
 }
 
 type CreateAppResponse struct {

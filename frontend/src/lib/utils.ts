@@ -23,5 +23,5 @@ export function splitSocketAddress(socketAddress: string) {
 }
 
 export function backendTypeHasMnemonic(backendType: BackendType) {
-  return ["LND", "PHOENIX"].indexOf(backendType) === -1;
+  return ["LND", "PHOENIX", "CASHU"].indexOf(backendType) === -1;
 }

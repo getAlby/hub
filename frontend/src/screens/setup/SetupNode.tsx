@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Container from "src/components/Container";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { Button } from "src/components/ui/button";
@@ -60,6 +60,7 @@ export function SetupNode() {
               <SelectItem value="GREENLIGHT">Greenlight</SelectItem>
               <SelectItem value="LND">LND</SelectItem>
               <SelectItem value="PHOENIX">Phoenix</SelectItem>
+              <SelectItem value="CASHU">Cashu</SelectItem>
             </SelectContent>
           </Select>
           {backendType === "BREEZ" && <BreezForm handleSubmit={handleSubmit} />}
@@ -68,6 +69,7 @@ export function SetupNode() {
           )}
           {backendType === "LDK" && <LDKForm handleSubmit={handleSubmit} />}
           {backendType === "LND" && <LNDForm handleSubmit={handleSubmit} />}
+          {backendType === "CASHU" && <CashuForm handleSubmit={handleSubmit} />}
         </div>
       </Container>
     </>
@@ -77,6 +79,37 @@ export function SetupNode() {
 type SetupFormProps = {
   handleSubmit(data: unknown): void;
 };
+
+function CashuForm({ handleSubmit }: SetupFormProps) {
+  const [cashuMintUrl, setCashuMintUrl] = React.useState<string>("");
+
+  function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    handleSubmit({ cashuMintUrl });
+  }
+
+  return (
+    <form className="w-full grid gap-5" onSubmit={onSubmit}>
+      <div className="grid gap-1.5">
+        <Label htmlFor="cashu-mint-url">
+          <span>Cashu Mint URL</span>{" "}
+          <Link to="https://bitcoinmints.com/" target="_blank">
+            <span className="text-purple-500">Find a mint</span>
+          </Link>
+        </Label>
+        <Input
+          name="cashu-mint-url"
+          onChange={(e) => setCashuMintUrl(e.target.value)}
+          value={cashuMintUrl}
+          id="cashu-mint-url"
+          placeholder="https://8333.space:3338"
+        />
+      </div>
+
+      <Button>Next</Button>
+    </form>
+  );
+}
 
 function BreezForm({ handleSubmit }: SetupFormProps) {
   const { toast } = useToast();

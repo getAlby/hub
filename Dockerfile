@@ -3,7 +3,7 @@ WORKDIR /build
 COPY frontend ./frontend
 RUN cd frontend && yarn install && yarn build:http
 
-FROM golang:1.21 as builder
+FROM golang:1.22.2 as builder
 
 ARG TARGETPLATFORM
 ARG BUILDPLATFORM

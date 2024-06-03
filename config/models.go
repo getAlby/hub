@@ -6,6 +6,7 @@ const (
 	LDKBackendType        = "LDK"
 	BreezBackendType      = "BREEZ"
 	PhoenixBackendType    = "PHOENIX"
+	CashuBackendType      = "CASHU"
 )
 
 type AppConfig struct {
