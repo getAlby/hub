@@ -185,7 +185,7 @@ func (cs *CashuService) ListChannels(ctx context.Context) ([]lnclient.Channel, e
 }
 
 func (cs *CashuService) GetNodeConnectionInfo(ctx context.Context) (nodeConnectionInfo *lnclient.NodeConnectionInfo, err error) {
-	return nil, nil
+	return &lnclient.NodeConnectionInfo{}, nil
 }
 
 func (cs *CashuService) ConnectPeer(ctx context.Context, connectPeerRequest *lnclient.ConnectPeerRequest) error {
