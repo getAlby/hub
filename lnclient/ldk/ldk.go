@@ -157,7 +157,7 @@ func NewLDKService(ctx context.Context, logger *logrus.Logger, cfg config.Config
 					continue
 				}
 
-				ls.handleLdkEvent(ldkCtx, event)
+				ls.handleLdkEvent(event)
 				ldkEventConsumer <- event
 
 				node.EventHandled()
@@ -267,23 +267,23 @@ func NewLDKService(ctx context.Context, logger *logrus.Logger, cfg config.Config
 
 func (ls *LDKService) Shutdown() error {
 	if ls.node == nil {
-		ls.logger.Infof("LDK client already shut down")
+		ls.logger.Info("LDK client already shut down")
 		return nil
 	}
 	// make sure nothing else can use it
 	node := ls.node
 	ls.node = nil
 
-	ls.logger.Infof("shutting down LDK client")
-	ls.logger.Infof("cancelling LDK context")
+	ls.logger.Info("shutting down LDK client")
+	ls.logger.Info("cancelling LDK context")
 	ls.cancel()
 
 	for ls.syncing {
-		ls.logger.Infof("Waiting for background sync to finish before stopping LDK node...")
+		ls.logger.Info("Waiting for background sync to finish before stopping LDK node...")
 		time.Sleep(1 * time.Second)
 	}
 
-	ls.logger.Infof("stopping LDK node")
+	ls.logger.Info("stopping LDK node")
 	shutdownChannel := make(chan error)
 	go func() {
 		shutdownChannel <- node.Stop()
@@ -301,12 +301,12 @@ func (ls *LDKService) Shutdown() error {
 		ls.logger.Error("Timeout shutting down LDK node after 120 seconds")
 	}
 
-	ls.logger.Infof("Destroying node object")
+	ls.logger.Info("Destroying node object")
 	node.Destroy()
 
 	ls.resetRouterInternal()
 
-	ls.logger.Infof("LDK shutdown complete")
+	ls.logger.Info("LDK shutdown complete")
 
 	return nil
 }
@@ -504,8 +504,6 @@ func (ls *LDKService) SendKeysend(ctx context.Context, amount int64, destination
 		ls.logger.WithError(err).Error("Keysend failed")
 		return "", err
 	}
-
-	ls.logger.Infof("TODO: listen for events %v", paymentHash)
 
 	fee := uint64(0)
 
@@ -843,7 +841,7 @@ func (ls *LDKService) OpenChannel(ctx context.Context, openChannelRequest *lncli
 	ldkEventSubscription := ls.ldkEventBroadcaster.Subscribe()
 	defer ls.ldkEventBroadcaster.CancelSubscription(ldkEventSubscription)
 
-	ls.logger.Infof("Opening channel with: %v", foundPeer.NodeId)
+	ls.logger.WithField("peer_id", foundPeer.NodeId).Info("Opening channel")
 	userChannelId, err := ls.node.ConnectOpenChannel(foundPeer.NodeId, foundPeer.Address, uint64(openChannelRequest.Amount), nil, nil, openChannelRequest.Public)
 	if err != nil {
 		ls.logger.WithError(err).Error("OpenChannel failed")
@@ -851,7 +849,10 @@ func (ls *LDKService) OpenChannel(ctx context.Context, openChannelRequest *lncli
 	}
 
 	// userChannelId allows to locally keep track of the channel (and is also used to close the channel)
-	ls.logger.Infof("Funded channel: %v", userChannelId)
+	ls.logger.WithFields(logrus.Fields{
+		"peer_id":    foundPeer.NodeId,
+		"channel_id": userChannelId,
+	}).Info("Funded channel")
 
 	for start := time.Now(); time.Since(start) < time.Second*60; {
 		event := <-ldkEventSubscription
@@ -860,11 +861,13 @@ func (ls *LDKService) OpenChannel(ctx context.Context, openChannelRequest *lncli
 		channelClosedEvent, isChannelClosedEvent := (*event).(ldk_node.EventChannelClosed)
 
 		if isChannelClosedEvent {
+			closureReason := ls.getChannelCloseReason(&channelClosedEvent)
 			ls.logger.WithFields(logrus.Fields{
-				"event": channelClosedEvent,
-			})
-			// TODO: properly decode reason
-			return nil, fmt.Errorf("failed to open channel: %+v", *channelClosedEvent.Reason)
+				"event":  channelClosedEvent,
+				"reason": closureReason,
+			}).Info("Failed to open channel")
+
+			return nil, fmt.Errorf("failed to open channel with %s: %s", foundPeer.NodeId, closureReason)
 		}
 
 		if !isChannelPendingEvent {
@@ -1127,27 +1130,32 @@ func (ls *LDKService) GetLogOutput(ctx context.Context, maxLen int) ([]byte, err
 	return logData, nil
 }
 
-func (ls *LDKService) handleLdkEvent(ctx context.Context, event *ldk_node.Event) {
+func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 	ls.logger.WithFields(logrus.Fields{
 		"event": event,
 	}).Info("Received LDK event")
 
-	switch v := (*event).(type) {
+	switch eventType := (*event).(type) {
 	case ldk_node.EventChannelReady:
 		ls.eventPublisher.Publish(&events.Event{
 			Event: "nwc_channel_ready",
 			Properties: map[string]interface{}{
-				"counterparty_node_id": v.CounterpartyNodeId,
+				"counterparty_node_id": eventType.CounterpartyNodeId,
 				"node_type":            config.LDKBackendType,
 			},
 		})
 	case ldk_node.EventChannelClosed:
-		// TODO: properly decode reason
+		closureReason := ls.getChannelCloseReason(&eventType)
+		ls.logger.WithFields(logrus.Fields{
+			"event":  event,
+			"reason": closureReason,
+		}).Info("Channel closed")
+
 		ls.eventPublisher.Publish(&events.Event{
 			Event: "nwc_channel_closed",
 			Properties: map[string]interface{}{
-				"counterparty_node_id": v.CounterpartyNodeId,
-				"reason":               fmt.Sprintf("%+v", *v.Reason),
+				"counterparty_node_id": eventType.CounterpartyNodeId,
+				"reason":               closureReason,
 				"node_type":            config.LDKBackendType,
 			},
 		})
@@ -1155,8 +1163,8 @@ func (ls *LDKService) handleLdkEvent(ctx context.Context, event *ldk_node.Event)
 		ls.eventPublisher.Publish(&events.Event{
 			Event: "nwc_payment_received",
 			Properties: &events.PaymentReceivedEventProperties{
-				PaymentHash: v.PaymentHash,
-				Amount:      v.AmountMsat / 1000,
+				PaymentHash: eventType.PaymentHash,
+				Amount:      eventType.AmountMsat / 1000,
 				NodeType:    config.LDKBackendType,
 			},
 		})
@@ -1238,7 +1246,7 @@ func deleteOldLDKLogs(logger *logrus.Logger, ldkLogDir string) {
 					logger.WithField("filePath", filePath).WithError(err).Error("Failed to get file info")
 					continue
 				}
-				logger.WithField("filePath", filePath).Infof("Deleted old LDK log file")
+				logger.WithField("filePath", filePath).Info("Deleted old LDK log file")
 			}
 		}
 	}
@@ -1256,4 +1264,41 @@ func (ls *LDKService) DisconnectPeer(ctx context.Context, peerId string) error {
 
 func (ls *LDKService) UpdateLastWalletSyncRequest() {
 	ls.lastWalletSyncRequest = time.Now()
+}
+
+func (ls *LDKService) getChannelCloseReason(event *ldk_node.EventChannelClosed) string {
+	var reason string
+
+	switch reasonType := (*event.Reason).(type) {
+	case ldk_node.ClosureReasonCounterpartyForceClosed:
+		reason = fmt.Sprintf("CounterpartyForceClosed (Peer message: %s)", reasonType.PeerMsg)
+	case ldk_node.ClosureReasonHolderForceClosed:
+		reason = "HolderForceClosed"
+	case ldk_node.ClosureReasonLegacyCooperativeClosure:
+		reason = "LegacyCooperativeClosure"
+	case ldk_node.ClosureReasonCounterpartyInitiatedCooperativeClosure:
+		reason = "CounterpartyInitiatedCooperativeClosure"
+	case ldk_node.ClosureReasonLocallyInitiatedCooperativeClosure:
+		reason = "LocallyInitiatedCooperativeClosure"
+	case ldk_node.ClosureReasonCommitmentTxConfirmed:
+		reason = "CommitmentTxConfirmed"
+	case ldk_node.ClosureReasonFundingTimedOut:
+		reason = "FundingTimedOut"
+	case ldk_node.ClosureReasonProcessingError:
+		reason = fmt.Sprintf("ProcessingError: %s", reasonType.Err)
+	case ldk_node.ClosureReasonDisconnectedPeer:
+		reason = "DisconnectedPeer"
+	case ldk_node.ClosureReasonOutdatedChannelManager:
+		reason = "OutdatedChannelManager"
+	case ldk_node.ClosureReasonCounterpartyCoopClosedUnfundedChannel:
+		reason = "CounterpartyCoopClosedUnfundedChannel"
+	case ldk_node.ClosureReasonFundingBatchClosure:
+		reason = "FundingBatchClosure"
+	case ldk_node.ClosureReasonHtlCsTimedOut:
+		reason = "HTLCsTimedOut"
+	default:
+		reason = fmt.Sprintf("Unknown: %s", *event.Reason)
+	}
+
+	return reason
 }
