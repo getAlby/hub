@@ -45,6 +45,8 @@ func (cfg *config) init(db *gorm.DB, env *AppConfig, logger *logrus.Logger) {
 	if cfg.Env.LNBackendType != "" {
 		cfg.SetUpdate("LNBackendType", cfg.Env.LNBackendType, "")
 	}
+
+	// LND specific to support env variables
 	if cfg.Env.LNDAddress != "" {
 		cfg.SetUpdate("LNDAddress", cfg.Env.LNDAddress, "")
 	}
@@ -64,6 +66,14 @@ func (cfg *config) init(db *gorm.DB, env *AppConfig, logger *logrus.Logger) {
 		macHex := hex.EncodeToString(macBytes)
 		cfg.SetUpdate("LNDMacaroonHex", macHex, "")
 	}
+	// Phoenix specific to support env variables
+	if cfg.Env.PhoenixdAddress != "" {
+		cfg.SetUpdate("PhoenixdAddress", cfg.Env.PhoenixdAddress, "")
+	}
+	if cfg.Env.PhoenixdAuthorization != "" {
+		cfg.SetUpdate("PhoenixdAuthorization", cfg.Env.PhoenixdAuthorization, "")
+	}
+
 	// set the cookie secret to the one from the env
 	// if no cookie secret is configured we create a random one and store it in the DB
 	cfg.CookieSecret = cfg.Env.CookieSecret

@@ -244,6 +244,9 @@ export type SetupNodeInfo = Partial<{
   lndAddress?: string;
   lndCertHex?: string;
   lndMacaroonHex?: string;
+
+  phoenixdAddress?: string;
+  phoenixdAuthorization?: string;
 }>;
 
 export type RecommendedChannelPeer = {

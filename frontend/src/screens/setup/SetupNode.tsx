@@ -70,6 +70,9 @@ export function SetupNode() {
           )}
           {backendType === "LDK" && <LDKForm handleSubmit={handleSubmit} />}
           {backendType === "LND" && <LNDForm handleSubmit={handleSubmit} />}
+          {backendType === "PHOENIX" && (
+            <PhoenixForm handleSubmit={handleSubmit} />
+          )}
           {backendType === "CASHU" && <CashuForm handleSubmit={handleSubmit} />}
         </div>
       </Container>
@@ -281,6 +284,57 @@ function LNDForm({ handleSubmit }: SetupFormProps) {
           value={lndMacaroonHex}
           type="text"
           id="lnd-macaroon-hex"
+        />
+      </div>
+      <Button>Next</Button>
+    </form>
+  );
+}
+
+function PhoenixForm({ handleSubmit }: SetupFormProps) {
+  const { toast } = useToast();
+  const setupStore = useSetupStore();
+  const [phoenixdAddress, setPhoenixdAddress] = React.useState<string>(
+    setupStore.nodeInfo.phoenixdAddress || "http://127.0.0.1:9740"
+  );
+  const [phoenixdAuthorization, setPhoenixdAuthorization] =
+    React.useState<string>(setupStore.nodeInfo.phoenixdAuthorization || "");
+
+  function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!phoenixdAddress || !phoenixdAuthorization) {
+      toast({
+        title: "Please fill out all fields",
+        variant: "destructive",
+      });
+      return;
+    }
+    handleSubmit({
+      phoenixdAddress,
+      phoenixdAuthorization,
+    });
+  }
+
+  return (
+    <form className="w-full grid gap-5" onSubmit={onSubmit}>
+      <div className="grid gap-1.5">
+        <Label htmlFor="phoenix-address">Phoneixd Address</Label>
+        <Input
+          name="phoenix-address"
+          onChange={(e) => setPhoenixdAddress(e.target.value)}
+          placeholder="http://127.0.0.1:9740"
+          value={phoenixdAddress}
+          id="phoenix-address"
+        />
+      </div>
+      <div className="grid gap-1.5">
+        <Label htmlFor="lnd-cert-hex">Authorization</Label>
+        <Input
+          name="phoenix-authorization"
+          onChange={(e) => setPhoenixdAuthorization(e.target.value)}
+          value={phoenixdAuthorization}
+          type="password"
+          id="phoenix-authorization"
         />
       </div>
       <Button>Next</Button>

@@ -231,7 +231,10 @@ func (svc *Service) launchLNBackend(ctx context.Context, encryptionKey string) e
 
 		lnClient, err = breez.NewBreezService(svc.logger, Mnemonic, BreezAPIKey, GreenlightInviteCode, BreezWorkdir)
 	case config.PhoenixBackendType:
-		lnClient, err = phoenixd.NewPhoenixService(svc.logger, svc.cfg.GetEnv().PhoenixdAddress, svc.cfg.GetEnv().PhoenixdAuthorization)
+		PhoenixdAddress, _ := svc.cfg.Get("PhoenixdAddress", encryptionKey)
+		PhoenixdAuthorization, _ := svc.cfg.Get("PhoenixdAuthorization", encryptionKey)
+
+		lnClient, err = phoenixd.NewPhoenixService(svc.logger, PhoenixdAddress, PhoenixdAuthorization)
 	case config.CashuBackendType:
 		cashuMintUrl, _ := svc.cfg.Get("CashuMintUrl", encryptionKey)
 		cashuWorkdir := path.Join(svc.cfg.GetEnv().Workdir, "cashu")
