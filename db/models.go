@@ -38,6 +38,8 @@ type RequestEvent struct {
 	App       App
 	NostrId   string `validate:"required"`
 	Content   string
+	ContentData string
+	Method      string
 	State     string
 	CreatedAt time.Time
 	UpdatedAt time.Time
