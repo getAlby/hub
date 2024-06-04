@@ -92,6 +92,35 @@ _If you get a blank screen, try running in your normal terminal (outside of vsco
 
     $ go test
 
+### Profiling
+
+The application supports both the Go pprof library and the DataDog profiler.
+
+#### Go pprof
+
+To enable Go pprof, set the `GO_PROFILER_ADDR` environment variable to the address you want the profiler to be available on (e.g. `localhost:6060`).
+
+Now, you should be able to access the pprof web interface at `http://localhost:6060/debug/pprof`.
+
+You can use the `go tool pprof` command to collect and inspect the profiling data. For example, to profile the application for 30 seconds and then open the pprof web UI, run:
+
+```sh
+go tool pprof -http=localhost:8081 -seconds=30 http://localhost:6060/debug/pprof/profile
+```
+
+For more information on the Go pprof library, see the [official documentation](https://pkg.go.dev/net/http/pprof).
+
+#### DataDog profiler
+
+To enable the DataDog profiler, set the `DD_PROFILER_ENABLED` environment variable to `true`.
+
+Make sure to specify the required DataDog configuration environment variables as well.
+
+For more information refer to:
+
+- [DataDog Profiler documentation](https://docs.datadoghq.com/profiler/enabling/go/)
+- [DataDog Profiler Go library](https://pkg.go.dev/gopkg.in/DataDog/dd-trace-go.v1/profiler)
+
 ### Windows
 
 Breez SDK requires gcc to build the Breez bindings. Run `choco install mingw` and copy the breez SDK bindings file into the root of this directory (from your go installation directory) as per the [Breez SDK instructions](https://github.com/breez/breez-sdk-go?tab=readme-ov-file#windows). ALSO copy the bindings file into the output directory alongside the .exe in order to run it.

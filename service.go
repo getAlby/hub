@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+	"net/http/pprof"
 	"os"
 	"path"
 	"path/filepath"
@@ -19,6 +21,7 @@ import (
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip04"
 	"github.com/sirupsen/logrus"
+	"gopkg.in/DataDog/dd-trace-go.v1/profiler"
 
 	"github.com/glebarez/sqlite"
 	"github.com/joho/godotenv"
@@ -165,6 +168,14 @@ func NewService(ctx context.Context) (*Service, error) {
 	eventPublisher.Publish(&events.Event{
 		Event: "nwc_started",
 	})
+
+	if appConfig.GoProfilerAddr != "" {
+		startProfiler(ctx, appConfig.GoProfilerAddr)
+	}
+
+	if appConfig.DdProfilerEnabled {
+		startDataDogProfiler(ctx)
+	}
 
 	return svc, nil
 }
@@ -818,6 +829,58 @@ func finishRestoreNode(logger *logrus.Logger, workDir string) {
 		}
 		logger.WithField("restoreDir", restoreDir).Info("removed restore directory")
 	}
+}
+
+func startProfiler(ctx context.Context, addr string) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/debug/pprof/", pprof.Index)
+	mux.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+	mux.HandleFunc("/debug/pprof/profile", pprof.Profile)
+	mux.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+	mux.HandleFunc("/debug/pprof/trace", pprof.Trace)
+
+	server := &http.Server{
+		Addr:    addr,
+		Handler: mux,
+	}
+
+	go func() {
+		<-ctx.Done()
+		err := server.Shutdown(context.Background())
+		if err != nil {
+			panic("pprof server shutdown failed: " + err.Error())
+		}
+	}()
+
+	go func() {
+		err := server.ListenAndServe()
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+			panic("pprof server failed: " + err.Error())
+		}
+	}()
+}
+
+func startDataDogProfiler(ctx context.Context) {
+	opts := make([]profiler.Option, 0)
+
+	opts = append(opts, profiler.WithProfileTypes(
+		profiler.CPUProfile,
+		profiler.HeapProfile,
+		// higher overhead
+		profiler.BlockProfile,
+		profiler.MutexProfile,
+		profiler.GoroutineProfile,
+	))
+
+	err := profiler.Start(opts...)
+	if err != nil {
+		panic("failed to start DataDog profiler: " + err.Error())
+	}
+
+	go func() {
+		<-ctx.Done()
+		profiler.Stop()
+	}()
 }
 
 func (svc *Service) StopDb() error {
