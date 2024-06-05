@@ -78,6 +78,9 @@ jobs:
           cp `go list -m -f "{{.Dir}}" github.com/getAlby/ldk-node-go`/ldk_node/x86_64-pc-windows-gnu/ldk_node.dll ./
         shell: bash
 
+      - name: Copy appicon in place
+        run: mkdir -p build && cp appicon.png build
+        shell: bash
 
       - name: Build App
         if: runner.os == 'macOS'
