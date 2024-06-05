@@ -1,6 +1,4 @@
-import {
-  ExternalLink
-} from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
 import AlbyHead from "src/assets/images/alby-head.svg";
 import AppHeader from "src/components/AppHeader";
@@ -21,16 +19,16 @@ function Wallet() {
   const { data: info } = useInfo();
   const { data: balances } = useBalances();
 
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
+  const extensionInstalled = (window as any).alby !== undefined;
+
   if (!info || !balances) {
     return <Loading />;
   }
 
   return (
     <>
-      <AppHeader
-        title="Wallet"
-        description="Send and receive transactions"
-      />
+      <AppHeader title="Wallet" description="Send and receive transactions" />
 
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-5">
         <div className="text-5xl font-semibold">
@@ -70,34 +68,37 @@ function Wallet() {
             </CardContent>
           </Card>
         </Link>
-        <Link to={`https://www.getalby.com`} target="_blank">
-          <Card>
-            <CardHeader>
-              <div className="flex flex-row items-center">
-                <img
-                  src={AlbyHead}
-                  className="w-12 h-12 rounded-xl p-1 border bg-[#FFDF6F]"
-                />
-                <div>
-                  <CardTitle>
-                    <div className="flex-1 leading-5 font-semibold text-xl whitespace-nowrap text-ellipsis overflow-hidden ml-4">
-                      Alby Browser Extension
-                    </div>
-                  </CardTitle>
-                  <CardDescription className="ml-4">
-                    Best to use when using your favourite Internet browser
-                  </CardDescription>
+        {!extensionInstalled && (
+          <Link to={`https://www.getalby.com`} target="_blank">
+            <Card>
+              <CardHeader>
+                <div className="flex flex-row items-center">
+                  <img
+                    src={AlbyHead}
+                    className="w-12 h-12 rounded-xl p-1 border bg-[#FFDF6F]"
+                  />
+                  <div>
+                    <CardTitle>
+                      <div className="flex-1 leading-5 font-semibold text-xl whitespace-nowrap text-ellipsis overflow-hidden ml-4">
+                        Alby Browser Extension
+                      </div>
+                    </CardTitle>
+                    <CardDescription className="ml-4">
+                      Seamless bitcoin payments in your favourite internet
+                      browser.
+                    </CardDescription>
+                  </div>
                 </div>
-              </div>
-            </CardHeader>
-            <CardContent className="text-right">
-              <Button variant="outline">
-                Install Alby Extension
-                <ExternalLink className="w-4 h-4 ml-2" />
-              </Button>
-            </CardContent>
-          </Card>
-        </Link>
+              </CardHeader>
+              <CardContent className="text-right">
+                <Button variant="outline">
+                  Install Alby Extension
+                  <ExternalLink className="w-4 h-4 ml-2" />
+                </Button>
+              </CardContent>
+            </Card>
+          </Link>
+        )}
       </div>
 
       <BreezRedeem />
