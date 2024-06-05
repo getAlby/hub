@@ -43,7 +43,7 @@ func LaunchWailsApp(app *WailsApp) {
 	logger := NewWailsLogger(app.svc.logger)
 
 	err := wails.Run(&options.App{
-		Title:  "Nostr Wallet Connect",
+		Title:  "AlbyHub",
 		Width:  1024,
 		Height: 768,
 		AssetServer: &assetserver.Options{
