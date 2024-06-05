@@ -1,0 +1,185 @@
+name: Wails build - all platforms
+
+on:
+  push:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        build: [
+          {name: albyhub, platform: linux/amd64, os: ubuntu-20.04},
+          {name: albyhub, platform: windows/amd64, os: windows-2019},
+          {name: albyhub, platform: darwin/universal, os: macos-12}
+        ]
+    runs-on: ${{ matrix.build.os }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      #- uses: dAppServer/wails-build-action@v2.2
+      #  with:
+      #    build-name: ${{ matrix.build.name }}
+      #    build-platform: ${{ matrix.build.platform }}
+      #    package: true
+      #    go-version: '1.21'
+      #    wails-version: 'v2.7.1'
+      #    nsis: false
+      #    node-version: '20.x'
+
+      - name: Install dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y patchelf
+
+      - name: Setup GoLang
+        uses: actions/setup-go@v5
+        with:
+          check-latest: true
+          go-version: 1.21
+
+      - name: Get dependencies
+        run: go get -v -t -d ./...
+
+      - name: Setup NodeJS
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.x'
+
+      - name: Install Wails
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.7.1
+        shell: bash
+
+      - name: Install Linux Wails deps
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install libgtk-3-0 libwebkit2gtk-4.0-dev gcc-aarch64-linux-gnu
+        shell: bash
+
+      - name: Install macOS Wails deps
+        if: runner.os == 'macOS'
+        run: brew install mitchellh/gon/gon
+        shell: bash
+
+      - name: Wails Doctor
+        working-directory: .
+        run: wails doctor
+        shell: bash
+
+      # On Windows, we need the shared libraries to be found in the same directory
+      # as the executable. Wails build will fail otherwise.
+      - name: Copy shared libraries
+        if: runner.os == 'Windows'
+        run: |
+          cp `go list -m -f "{{.Dir}}" github.com/breez/breez-sdk-go`/breez_sdk/lib/windows-amd64/breez_sdk_bindings.dll ./
+          cp `go list -m -f "{{.Dir}}" github.com/getAlby/glalby-go`/glalby/x86_64-pc-windows-gnu/glalby_bindings.dll ./
+          cp `go list -m -f "{{.Dir}}" github.com/getAlby/ldk-node-go`/ldk_node/x86_64-pc-windows-gnu/ldk_node.dll ./
+        shell: bash
+
+
+      - name: Build App
+        if: runner.os == 'macOS'
+        run: wails build --platform darwin/universal -webview2 download -o ${{ matrix.build.name }} -tags "wails"
+        shell: bash
+
+      - name: Build App
+        if: runner.os == 'Linux'
+        run: wails build --platform linux/amd64 -webview2 download -o ${{ matrix.build.name }} -tags "wails"
+        shell: bash
+
+      - name: Build Windows App
+        if: runner.os == 'Windows'
+        run: wails build --platform windows/amd64 -webview2 download -o ${{ matrix.build.name }}.exe -tags "wails"
+        shell: bash
+
+      - name: Copy DLLs to the output directory
+        if: runner.os == 'Windows'
+        run: |
+          cp breez_sdk_bindings.dll ./build/bin/
+          cp glalby_bindings.dll ./build/bin/
+          cp ldk_node.dll ./build/bin/
+        shell: bash
+
+      - name: Copy shared libraries to the output directory and adjust directory structure
+        if: runner.os == 'Linux'
+        run: |
+          mkdir -p ./build/bin/albyhub-${{runner.os}}/lib
+          cp `go list -m -f "{{.Dir}}" github.com/breez/breez-sdk-go`/breez_sdk/lib/linux-amd64/libbreez_sdk_bindings.so ./build/bin/albyhub-${{runner.os}}/lib/
+          cp `go list -m -f "{{.Dir}}" github.com/getAlby/glalby-go`/glalby/x86_64-unknown-linux-gnu/libglalby_bindings.so ./build/bin/albyhub-${{runner.os}}/lib/
+          cp `go list -m -f "{{.Dir}}" github.com/getAlby/ldk-node-go`/ldk_node/x86_64-unknown-linux-gnu/libldk_node.so ./build/bin/albyhub-${{runner.os}}/lib/
+          mkdir -p ./build/bin/albyhub-${{runner.os}}/bin
+          mv ./build/bin/${{ matrix.build.name }} ./build/bin/albyhub-${{runner.os}}/bin/
+        shell: bash
+
+      - name: Patch executable RPATH
+        if: runner.os == 'Linux'
+        run: |
+          patchelf --force-rpath --set-rpath '$ORIGIN/../lib' ./build/bin/albyhub-${{runner.os}}/bin/${{ matrix.build.name }}
+
+      - name: Copy shared libraries to the output directory
+        if: runner.os == 'macOS'
+        run: |
+          mkdir -p ./build/bin/${{ matrix.build.name }}.app/Contents/Frameworks
+          lipo -create -output ./build/bin/${{ matrix.build.name }}.app/Contents/Frameworks/libbreez_sdk_bindings.dylib `go list -m -f "{{.Dir}}" github.com/breez/breez-sdk-go`/breez_sdk/lib/darwin-aarch64/libbreez_sdk_bindings.dylib `go list -m -f "{{.Dir}}" github.com/breez/breez-sdk-go`/breez_sdk/lib/darwin-amd64/libbreez_sdk_bindings.dylib
+          cp `go list -m -f "{{.Dir}}" github.com/getAlby/glalby-go`/glalby/universal-macos/libglalby_bindings.dylib ./build/bin/${{ matrix.build.name }}.app/Contents/Frameworks/
+          cp `go list -m -f "{{.Dir}}" github.com/getAlby/ldk-node-go`/ldk_node/universal-macos/libldk_node.dylib ./build/bin/${{ matrix.build.name }}.app/Contents/Frameworks/
+        shell: bash
+
+      - name: Patch executable RPATH
+        if: runner.os == 'macOS'
+        run: |
+          install_name_tool -add_rpath @executable_path/../Frameworks ./build/bin/${{ matrix.build.name }}.app/Contents/MacOS/${{ matrix.build.name }}
+
+      - name: Add macOS perms
+        if: runner.os == 'macOS'
+        run: chmod +x build/bin/${{ matrix.build.name }}.app/Contents/MacOS/${{ matrix.build.name }}
+        shell: bash
+
+      - name: Add Linux perms
+        if: runner.os  == 'Linux'
+        run: chmod +x build/bin/albyhub-${{runner.os}}/bin/${{ matrix.build.name }}
+        shell: bash
+
+      # Store everything in a tar archive to preserve permissions
+      # (specifically, the executable bit on the app executable).
+      - name: Make output tar archive
+        if: runner.os == 'Linux'
+        run: |
+          mkdir -p ./build/out
+          tar -cjf ./build/out/albyhub-${{runner.os}}.tar.bz2 -C ./build/bin .
+          rm -Rf ./build/bin/*
+          mv ./build/out/albyhub-${{runner.os}}.tar.bz2 ./build/bin/
+
+      - name: Make DMG image for macOS
+        if: runner.os == 'macOS'
+        run: |
+          mkdir -p ./build/out
+          hdiutil create -volname "AlbyHub" -srcfolder ./build/bin/${{ matrix.build.name }}.app -ov -format UDZO ./build/out/albyhub-${{runner.os}}.dmg
+          rm -Rf ./build/bin/*
+          mv ./build/out/albyhub-${{runner.os}}.dmg ./build/bin/
+
+      - uses: actions/upload-artifact@v4
+        if: runner.os == 'Linux'
+        with:
+          name: albyhub-${{runner.os}}
+          path: |
+            ./build/bin/albyhub-${{runner.os}}.tar.bz2
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v4
+        if: runner.os == 'macOS'
+        with:
+          name: albyhub-${{runner.os}}
+          path: |
+            ./build/bin/albyhub-${{runner.os}}.dmg
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v4
+        if: runner.os == 'Windows'
+        with:
+          name: albyhub-${{runner.os}}
+          path: |
+            *\bin\*
+          if-no-files-found: error
