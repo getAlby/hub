@@ -23,3 +23,15 @@ type PaymentReceivedEventProperties struct {
 	Amount      uint64 `json:"amount"`
 	NodeType    string `json:"node_type"`
 }
+
+type ChannelBackupEvent struct {
+	Channels []ChannelBackupInfo `json:"channels"`
+}
+
+type ChannelBackupInfo struct {
+	ChannelID   string `json:"channel_id"`
+	NodeID      string `json:"node_id"`
+	PeerID      string `json:"peer_id"`
+	ChannelSize uint64 `json:"channel_size"`
+	FundingTxID string `json:"funding_tx_id"`
+}

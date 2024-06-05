@@ -1144,6 +1144,8 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 				"node_type":            config.LDKBackendType,
 			},
 		})
+
+		ls.publishChannelsBackupEvent()
 	case ldk_node.EventChannelClosed:
 		closureReason := ls.getChannelCloseReason(&eventType)
 		ls.logger.WithFields(logrus.Fields{
@@ -1169,6 +1171,32 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 			},
 		})
 	}
+}
+
+func (ls *LDKService) publishChannelsBackupEvent() {
+	ldkChannels := ls.node.ListChannels()
+	channels := make([]events.ChannelBackupInfo, 0, len(ldkChannels))
+	for _, ldkChannel := range ldkChannels {
+		var fundingTx string
+		if ldkChannel.FundingTxo != nil {
+			fundingTx = ldkChannel.FundingTxo.Txid
+		}
+
+		channels = append(channels, events.ChannelBackupInfo{
+			ChannelID:   ldkChannel.ChannelId,
+			NodeID:      ls.node.NodeId(),
+			PeerID:      ldkChannel.CounterpartyNodeId,
+			ChannelSize: ldkChannel.ChannelValueSats,
+			FundingTxID: fundingTx,
+		})
+	}
+
+	ls.eventPublisher.Publish(&events.Event{
+		Event: "nwc_backup_channels",
+		Properties: &events.ChannelBackupEvent{
+			Channels: channels,
+		},
+	})
 }
 
 func (ls *LDKService) GetBalances(ctx context.Context) (*lnclient.BalancesResponse, error) {

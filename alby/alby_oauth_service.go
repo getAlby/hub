@@ -12,12 +12,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/sirupsen/logrus"
+	"golang.org/x/oauth2"
+
 	"github.com/getAlby/nostr-wallet-connect/config"
 	"github.com/getAlby/nostr-wallet-connect/db"
 	"github.com/getAlby/nostr-wallet-connect/events"
 	"github.com/getAlby/nostr-wallet-connect/nip47"
-	"github.com/sirupsen/logrus"
-	"golang.org/x/oauth2"
 )
 
 type albyOAuthService struct {
@@ -251,15 +252,15 @@ func (svc *albyOAuthService) SendPayment(ctx context.Context, invoice string) er
 
 	client := svc.oauthConf.Client(ctx, token)
 
-	type PayRequest struct {
+	type payRequest struct {
 		Invoice string `json:"invoice"`
 	}
 
 	body := bytes.NewBuffer([]byte{})
-	payload := &PayRequest{
+	payload := payRequest{
 		Invoice: invoice,
 	}
-	err = json.NewEncoder(body).Encode(payload)
+	err = json.NewEncoder(body).Encode(&payload)
 
 	if err != nil {
 		svc.logger.WithError(err).Error("Failed to encode request payload")
@@ -375,6 +376,14 @@ func (svc *albyOAuthService) ConsumeEvent(ctx context.Context, event *events.Eve
 		return nil
 	}
 
+	if event.Event == "nwc_backup_channels" {
+		if err := svc.backupChannels(ctx, event); err != nil {
+			svc.logger.WithError(err).Error("Failed to backup channels")
+			return err
+		}
+		return nil
+	}
+
 	token, err := svc.fetchUserToken(ctx)
 	if err != nil {
 		svc.logger.WithError(err).Error("Failed to fetch user token")
@@ -392,12 +401,12 @@ func (svc *albyOAuthService) ConsumeEvent(ctx context.Context, event *events.Eve
 		return err
 	}
 
-	type EventWithPropertiesMap struct {
+	type eventWithPropertiesMap struct {
 		Event      string                 `json:"event"`
 		Properties map[string]interface{} `json:"properties"`
 	}
 
-	var eventWithGlobalProperties EventWithPropertiesMap
+	var eventWithGlobalProperties eventWithPropertiesMap
 	err = json.Unmarshal(originalEventBuffer.Bytes(), &eventWithGlobalProperties)
 	if err != nil {
 		svc.logger.WithError(err).Error("Failed to decode request payload")
@@ -418,7 +427,7 @@ func (svc *albyOAuthService) ConsumeEvent(ctx context.Context, event *events.Eve
 	}
 
 	body := bytes.NewBuffer([]byte{})
-	err = json.NewEncoder(body).Encode(eventWithGlobalProperties)
+	err = json.NewEncoder(body).Encode(&eventWithGlobalProperties)
 
 	if err != nil {
 		svc.logger.WithError(err).Error("Failed to encode request payload")
@@ -453,6 +462,70 @@ func (svc *albyOAuthService) ConsumeEvent(ctx context.Context, event *events.Eve
 	return nil
 }
 
+func (svc *albyOAuthService) backupChannels(ctx context.Context, event *events.Event) error {
+	bkpEvent, ok := event.Properties.(*events.ChannelBackupEvent)
+	if !ok {
+		return fmt.Errorf("invalid nwc_backup_channels event properties, could not cast to the expected type: %+v", event.Properties)
+	}
+
+	token, err := svc.fetchUserToken(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to fetch user token: %w", err)
+	}
+
+	client := svc.oauthConf.Client(ctx, token)
+
+	type channelsBackup struct {
+		Description string `json:"description"`
+		Data        string `json:"data"`
+	}
+
+	channelsData := bytes.NewBuffer([]byte{})
+	err = json.NewEncoder(channelsData).Encode(bkpEvent.Channels)
+	if err != nil {
+		return fmt.Errorf("failed to encode channels backup data:  %w", err)
+	}
+
+	// use the encrypted mnemonic as the password to encrypt the backup data
+	encryptedMnemonic, err := svc.config.Get("Mnemonic", "")
+	if err != nil {
+		return fmt.Errorf("failed to fetch encryption key: %w", err)
+	}
+
+	encrypted, err := config.AesGcmEncrypt(channelsData.String(), encryptedMnemonic)
+	if err != nil {
+		return fmt.Errorf("failed to encrypt channels backup data: %w", err)
+	}
+
+	body := bytes.NewBuffer([]byte{})
+	err = json.NewEncoder(body).Encode(&channelsBackup{
+		Description: "channels",
+		Data:        encrypted,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to encode channels backup request payload: %w", err)
+	}
+
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/internal/backups", svc.appConfig.AlbyAPIURL), body)
+	if err != nil {
+		return fmt.Errorf("failed to create request: %w", err)
+	}
+
+	req.Header.Set("User-Agent", "NWC-next")
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to send request to /internal/backups: %w", err)
+	}
+
+	if resp.StatusCode >= 300 {
+		return fmt.Errorf("request to /internal/backups returned non-success status: %d", resp.StatusCode)
+	}
+
+	return nil
+}
+
 func (svc *albyOAuthService) createAlbyAccountNWCNode(ctx context.Context) (string, error) {
 	token, err := svc.fetchUserToken(ctx)
 	if err != nil {
@@ -461,16 +534,16 @@ func (svc *albyOAuthService) createAlbyAccountNWCNode(ctx context.Context) (stri
 
 	client := svc.oauthConf.Client(ctx, token)
 
-	type CreateNWCNodeRequest struct {
+	type createNWCNodeRequest struct {
 		WalletPubkey string `json:"wallet_pubkey"`
 	}
 
-	createNodeRequest := CreateNWCNodeRequest{
+	createNodeRequest := createNWCNodeRequest{
 		WalletPubkey: svc.config.GetNostrPublicKey(),
 	}
 
 	body := bytes.NewBuffer([]byte{})
-	err = json.NewEncoder(body).Encode(createNodeRequest)
+	err = json.NewEncoder(body).Encode(&createNodeRequest)
 
 	if err != nil {
 		svc.logger.WithError(err).Error("Failed to encode request payload")
