@@ -112,9 +112,8 @@ export default function Channels() {
 
       if (
         !confirm(
-          `Are you sure you want to close the channel with ${
-            nodes.find((node) => node.public_key === nodeId)?.alias ||
-            "Unknown Node"
+          `Are you sure you want to close the channel with ${nodes.find((node) => node.public_key === nodeId)?.alias ||
+          "Unknown Node"
           }?\n\nNode ID: ${nodeId}\n\nChannel ID: ${channelId}`
         )
       ) {
@@ -133,8 +132,7 @@ export default function Channels() {
       console.log(`🎬 Closing channel with ${nodeId}`);
 
       const closeChannelResponse = await request<CloseChannelResponse>(
-        `/api/peers/${nodeId}/channels/${channelId}?force=${
-          closeType === "force close"
+        `/api/peers/${nodeId}/channels/${channelId}?force=${closeType === "force close"
         }`,
         {
           method: "DELETE",
@@ -285,7 +283,7 @@ export default function Channels() {
       ></AppHeader>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-        {(albyBalance?.sats || 0) >= 100 && (
+        {albyBalance && albyBalance?.sats >= 100 && (
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
@@ -294,7 +292,10 @@ export default function Channels() {
               <Hotel className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{albyBalance?.sats} sats</div>
+              <div className="text-2xl font-bold">
+                {new Intl.NumberFormat().format(albyBalance?.sats)}{" "}
+                sats
+              </div>
             </CardContent>
           </Card>
         )}
