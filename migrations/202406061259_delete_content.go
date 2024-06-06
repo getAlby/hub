@@ -19,6 +19,10 @@ var _202406061259_delete_content = &gormigrate.Migration{
 			return err
 		}
 
+		if err := tx.Exec("VACUUM").Error; err != nil {
+			return err
+		}
+
 		return nil
 	},
 	Rollback: func(tx *gorm.DB) error {
