@@ -1,13 +1,32 @@
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@radix-ui/react-tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@radix-ui/react-tooltip";
 import { Copy, QrCode, RefreshCw } from "lucide-react";
 import React from "react";
 import QRCode from "react-qr-code";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import Loading from "src/components/Loading";
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "src/components/ui/breadcrumb";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "src/components/ui/breadcrumb";
 import { Button } from "src/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "src/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "src/components/ui/dialog";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
@@ -62,7 +81,6 @@ export default function NewOnchainAddress() {
     getNewAddress();
   }, [getNewAddress]);
 
-
   if (!onchainAddress) {
     return (
       <div className="flex justify-center">
@@ -72,15 +90,12 @@ export default function NewOnchainAddress() {
   }
 
   return (
-
     <div className="grid gap-5">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
-              <Link to="/channels">
-                Liquidity
-              </Link>
+              <Link to="/channels">Liquidity</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
@@ -96,14 +111,23 @@ export default function NewOnchainAddress() {
       <div className="grid gap-1.5 max-w-lg">
         <Label htmlFor="text">On-Chain Address</Label>
         <p className="text-xs text-muted-foreground">
-          Funds will show up after one confirmation in your savings balance on the liquidity page.
+          Funds will show up after one confirmation in your savings balance on
+          the liquidity page.
         </p>
         <div className="flex flex-row items-center gap-2">
-          <Input type="text" value={onchainAddress} className="flex-1" readOnly />
+          <Input
+            type="text"
+            value={onchainAddress}
+            className="flex-1"
+            readOnly
+          />
           <Button
             variant="secondary"
             size="icon"
-            onClick={() => { copyToClipboard(onchainAddress); }}>
+            onClick={() => {
+              copyToClipboard(onchainAddress);
+            }}
+          >
             <Copy className="w-4 h-4" />
           </Button>
           <Dialog>
@@ -115,18 +139,13 @@ export default function NewOnchainAddress() {
 
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>
-                  Deposit bitcoin
-                </DialogTitle>
+                <DialogTitle>Deposit bitcoin</DialogTitle>
                 <DialogDescription>
                   Scan this QR code with your wallet to send funds.
                 </DialogDescription>
               </DialogHeader>
               <div className="flex flex-row justify-center p-3">
-                <a
-                  href={`bitcoin:${onchainAddress}`}
-                  target="_blank"
-                >
+                <a href={`bitcoin:${onchainAddress}`} target="_blank">
                   <QRCode value={onchainAddress} />
                 </a>
               </div>
@@ -139,17 +158,16 @@ export default function NewOnchainAddress() {
                   variant="secondary"
                   size="icon"
                   onClick={getNewAddress}
-                  loading={isLoading}>
+                  loading={isLoading}
+                >
                   <RefreshCw className="w-4 h-4" />
                 </LoadingButton>
               </TooltipTrigger>
-              <TooltipContent>
-                Generate a new address
-              </TooltipContent>
+              <TooltipContent>Generate a new address</TooltipContent>
             </Tooltip>
           </TooltipProvider>
         </div>
       </div>
-    </div >
+    </div>
   );
 }

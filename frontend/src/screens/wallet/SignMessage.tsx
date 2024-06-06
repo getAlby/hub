@@ -2,7 +2,13 @@ import { Copy } from "lucide-react";
 import React from "react";
 import AppHeader from "src/components/AppHeader";
 import { Button } from "src/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "src/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "src/components/ui/card";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
@@ -44,7 +50,7 @@ export default function SignMessage() {
         setSignature(signMessageResponse.signature);
         toast({
           title: "Successfully signed message",
-        })
+        });
       }
     } catch (e) {
       toast({

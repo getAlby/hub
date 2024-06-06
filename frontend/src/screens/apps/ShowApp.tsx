@@ -14,7 +14,17 @@ import AppAvatar from "src/components/AppAvatar";
 import AppHeader from "src/components/AppHeader";
 import Loading from "src/components/Loading";
 import Permissions from "src/components/Permissions";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "src/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "src/components/ui/alert-dialog";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -114,21 +124,22 @@ function ShowApp() {
             contentRight={
               <AlertDialog>
                 <AlertDialogTrigger>
-                  <Button variant="destructive">
-                    Delete
-                  </Button>
+                  <Button variant="destructive">Delete</Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
                     <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      This will revoke the permission and will no longer allow calls
-                      from this public key.
+                      This will revoke the permission and will no longer allow
+                      calls from this public key.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => deleteApp(app.nostrPubkey)} disabled={isDeleting}>
+                    <AlertDialogAction
+                      onClick={() => deleteApp(app.nostrPubkey)}
+                      disabled={isDeleting}
+                    >
                       Continue
                     </AlertDialogAction>
                   </AlertDialogFooter>
@@ -162,7 +173,7 @@ function ShowApp() {
                     <TableCell className="font-medium">Expires At</TableCell>
                     <TableCell className="text-muted-foreground">
                       {app.expiresAt &&
-                        new Date(app.expiresAt).getFullYear() !== 1
+                      new Date(app.expiresAt).getFullYear() !== 1
                         ? new Date(app.expiresAt).toString()
                         : "Never"}
                     </TableCell>

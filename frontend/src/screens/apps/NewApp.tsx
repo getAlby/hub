@@ -117,12 +117,14 @@ const NewApp = () => {
         title={nameParam ? `Connect to ${appName}` : "Connect a new app"}
         description="Configure wallet permissions for the app and follow instructions to finalise the connection"
       />
-      <form onSubmit={handleSubmit} acceptCharset="UTF-8" className="flex flex-col items-start gap-5 max-w-lg">
+      <form
+        onSubmit={handleSubmit}
+        acceptCharset="UTF-8"
+        className="flex flex-col items-start gap-5 max-w-lg"
+      >
         {!nameParam && (
           <div className="w-full grid gap-1.5">
-            <Label htmlFor="name">
-              Name
-            </Label>
+            <Label htmlFor="name">Name</Label>
             <Input
               readOnly={!!nameParam}
               type="text"
@@ -131,7 +133,8 @@ const NewApp = () => {
               id="name"
               onChange={(e) => setAppName(e.target.value)}
               required
-              autoComplete="off" />
+              autoComplete="off"
+            />
             <p className="text-xs text-muted-foreground">
               Name of the app or purpose of the connection
             </p>
@@ -143,14 +146,13 @@ const NewApp = () => {
             initialPermissions={permissions}
             onPermissionsChange={setPermissions}
             isEditing={!reqMethodsParam}
-            isNew />
+            isNew
+          />
         </div>
 
         <Separator />
 
-        <Button type="submit">
-          {pubkey ? "Connect" : "Next"}
-        </Button>
+        <Button type="submit">{pubkey ? "Connect" : "Next"}</Button>
       </form>
     </>
   );

@@ -14,8 +14,8 @@
     "lint:js": "eslint src --ext .js,.ts,.tsx --max-warnings 0",
     "lint:js:fix": "eslint src --ext .js,.ts,.tsx --fix",
     "tsc:compile": "tsc --noEmit",
-    "format": "prettier --check '**/*.(md|json)' 'src/**/*.(js|ts)' 'example/**/*.(js|jsx)'",
-    "format:fix": "prettier --loglevel silent --write '**/*.(md|json)' 'src/**/*.(js|ts)' 'example/**/*.(js|jsx)'",
+    "format": "prettier --check '**/*.(md|json)' 'src/**/*.(js|ts|tsx)' '!src/assets/**/*.json' 'platform_specific/**/*.ts'",
+    "format:fix": "prettier --loglevel silent --write '**/*.(md|json)' 'src/**/*.(js|ts|tsx)' '!src/assets/**/*.json' 'platform_specific/**/*.ts'",
     "preview": "vite preview",
     "prepare": "cd .. && husky frontend/.husky"
   },

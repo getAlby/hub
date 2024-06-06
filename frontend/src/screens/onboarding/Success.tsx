@@ -8,15 +8,18 @@ import { Button } from "src/components/ui/button";
 export function Success() {
   React.useEffect(() => {
     for (let i = 0; i < 10; i++) {
-      setTimeout(() => {
-        confetti({
-          origin: {
-            x: Math.random(),
-            y: Math.random(),
-          },
-          colors: ["#000", "#333", "#666", "#999", "#BBB", "#FFF"],
-        });
-      }, Math.floor(Math.random() * 1000));
+      setTimeout(
+        () => {
+          confetti({
+            origin: {
+              x: Math.random(),
+              y: Math.random(),
+            },
+            colors: ["#000", "#333", "#666", "#999", "#BBB", "#FFF"],
+          });
+        },
+        Math.floor(Math.random() * 1000)
+      );
     }
   });
 

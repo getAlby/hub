@@ -106,14 +106,21 @@ const Permissions: React.FC<PermissionsProps> = ({
               return (
                 <li
                   key={index}
-                  className={cn("w-full", rm == "pay_invoice" ? "order-last" : "", !isEditing && !permissions.requestMethods.has(rm)
-                    ? "hidden"
-                    : "")}
+                  className={cn(
+                    "w-full",
+                    rm == "pay_invoice" ? "order-last" : "",
+                    !isEditing && !permissions.requestMethods.has(rm)
+                      ? "hidden"
+                      : ""
+                  )}
                 >
                   <div className="flex items-center mb-2">
                     {RequestMethodIcon && (
                       <RequestMethodIcon
-                        className={cn("text-muted-foreground w-4 mr-3", isEditing ? "hidden" : "")}
+                        className={cn(
+                          "text-muted-foreground w-4 mr-3",
+                          isEditing ? "hidden" : ""
+                        )}
                       />
                     )}
                     <Checkbox
@@ -131,7 +138,8 @@ const Permissions: React.FC<PermissionsProps> = ({
                   </div>
                   {rm == "pay_invoice" && (
                     <div
-                      className={cn("pt-2 pb-2 pl-5 ml-2.5 border-l-2 border-l-primary",
+                      className={cn(
+                        "pt-2 pb-2 pl-5 ml-2.5 border-l-2 border-l-primary",
                         !permissions.requestMethods.has(rm)
                           ? isEditing
                             ? "pointer-events-none opacity-30"
@@ -164,9 +172,9 @@ const Permissions: React.FC<PermissionsProps> = ({
                                     >
                                       {renewalOption
                                         ? renewalOption
-                                          .charAt(0)
-                                          .toUpperCase() +
-                                        renewalOption.slice(1)
+                                            .charAt(0)
+                                            .toUpperCase() +
+                                          renewalOption.slice(1)
                                         : "Never"}
                                     </SelectItem>
                                   ))}
@@ -186,11 +194,12 @@ const Permissions: React.FC<PermissionsProps> = ({
                                   onClick={() =>
                                     handleMaxAmountChange(budgetOptions[budget])
                                   }
-                                  className={`col-span-2 md:col-span-1 cursor-pointer rounded border-2 ${permissions.maxAmount ==
+                                  className={`col-span-2 md:col-span-1 cursor-pointer rounded border-2 ${
+                                    permissions.maxAmount ==
                                     budgetOptions[budget]
-                                    ? "border-primary"
-                                    : "border-muted"
-                                    } text-center py-4 dark:text-white`}
+                                      ? "border-primary"
+                                      : "border-muted"
+                                  } text-center py-4 dark:text-white`}
                                 >
                                   {budget}
                                   <br />
@@ -217,8 +226,8 @@ const Permissions: React.FC<PermissionsProps> = ({
                               <td>
                                 {permissions.maxAmount
                                   ? new Intl.NumberFormat().format(
-                                    permissions.maxAmount
-                                  )
+                                      permissions.maxAmount
+                                    )
                                   : "∞"}{" "}
                                 sats (
                                 {new Intl.NumberFormat().format(
@@ -247,12 +256,16 @@ const Permissions: React.FC<PermissionsProps> = ({
 
       {(isNew ? !permissions.expiresAt || days : isEditing) ? (
         <>
-          {!expireOptions &&
-            <Button type="button" variant="secondary" onClick={() => setExpireOptions(true)}>
+          {!expireOptions && (
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setExpireOptions(true)}
+            >
               <PlusCircle className="w-4 h-4 mr-2" />
               Set expiration date
             </Button>
-          }
+          )}
 
           {expireOptions && (
             <div className="mt-5">
@@ -261,7 +274,7 @@ const Permissions: React.FC<PermissionsProps> = ({
                 <p className="mb-2 text-muted-foreground text-sm">
                   Expires:{" "}
                   {permissions.expiresAt &&
-                    new Date(permissions.expiresAt).getFullYear() !== 1
+                  new Date(permissions.expiresAt).getFullYear() !== 1
                     ? new Date(permissions.expiresAt).toString()
                     : "This app will never expire"}
                 </p>
@@ -272,9 +285,11 @@ const Permissions: React.FC<PermissionsProps> = ({
                     <div
                       key={expiry}
                       onClick={() => handleDaysChange(expiryOptions[expiry])}
-                      className={cn("cursor-pointer rounded border-2 text-center py-4", days == expiryOptions[expiry]
-                        ? "border-primary"
-                        : "border-muted"
+                      className={cn(
+                        "cursor-pointer rounded border-2 text-center py-4",
+                        days == expiryOptions[expiry]
+                          ? "border-primary"
+                          : "border-muted"
                       )}
                     >
                       {expiry}
@@ -290,14 +305,13 @@ const Permissions: React.FC<PermissionsProps> = ({
           <p className="text-sm font-medium mb-2">Connection expiry</p>
           <p className="text-muted-foreground text-sm">
             {permissions.expiresAt &&
-              new Date(permissions.expiresAt).getFullYear() !== 1
+            new Date(permissions.expiresAt).getFullYear() !== 1
               ? new Date(permissions.expiresAt).toString()
               : "This app will never expire"}
           </p>
         </>
-      )
-      }
-    </div >
+      )}
+    </div>
   );
 };
 

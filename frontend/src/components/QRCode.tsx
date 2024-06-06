@@ -2,7 +2,6 @@ import ReactQRCode from "react-qr-code";
 import { useTheme } from "src/components/ui/theme-provider";
 import { cn } from "src/lib/utils";
 
-
 export type Props = {
   value: string;
   size?: number;

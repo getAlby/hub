@@ -9,7 +9,7 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogTitle
+  DialogTitle,
 } from "src/components/ui/dialog";
 import { useToast } from "src/components/ui/use-toast";
 import { copyToClipboard } from "src/lib/clipboard";
@@ -75,24 +75,19 @@ export default function AppCreated() {
 
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>
-                Scan QR Code
-              </DialogTitle>
+              <DialogTitle>Scan QR Code</DialogTitle>
               <DialogDescription>
                 Open the app you want to pair and scan this QR code to connect.
               </DialogDescription>
             </DialogHeader>
             <div className="flex flex-row justify-center p-3">
-              <a
-                href={pairingUri}
-                target="_blank"
-              >
+              <a href={pairingUri} target="_blank">
                 <QRCode value={pairingUri} />
               </a>
             </div>
           </DialogContent>
         </Dialog>
       </div>
-    </div >
+    </div>
   );
 }

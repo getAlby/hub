@@ -18,9 +18,7 @@ function CardButton({ title, description, to }: Props) {
             <div className="font-medium flex flex-row items-center gap-2">
               {title}
             </div>
-            <div className="text-muted-foreground text-sm">
-              {description}
-            </div>
+            <div className="text-muted-foreground text-sm">{description}</div>
           </div>
           <div>
             <ChevronRight />
