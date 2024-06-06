@@ -1,6 +1,6 @@
 {
   "$schema": "https://wails.io/schemas/config.v2.json",
-  "name": "albyhub",
+  "name": "AlbyHub",
   "outputfilename": "Nostr-Wallet-Connect",
   "frontend:install": "yarn install",
   "frontend:build": "yarn build:wails",
