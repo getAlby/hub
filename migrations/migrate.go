@@ -14,6 +14,7 @@ func Migrate(db *gorm.DB, appConfig *config.AppConfig, logger *logrus.Logger) er
 		_202403171120_delete_ldk_payments(appConfig, logger),
 		_202404021909_nullable_expires_at,
 		_202405302121_store_decrypted_request,
+		_202406061259_delete_content,
 	})
 
 	return m.Migrate()

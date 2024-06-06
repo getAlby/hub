@@ -33,23 +33,21 @@ type AppPermission struct {
 }
 
 type RequestEvent struct {
-	ID        uint
-	AppId     *uint
-	App       App
-	NostrId   string `validate:"required"`
-	Content   string
+	ID          uint
+	AppId       *uint
+	App         App
+	NostrId     string `validate:"required"`
 	ContentData string
 	Method      string
-	State     string
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	State       string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
 
 type ResponseEvent struct {
 	ID        uint
 	NostrId   string `validate:"required"`
 	RequestId uint   `validate:"required"`
-	Content   string
 	State     string
 	RepliedAt time.Time
 	CreatedAt time.Time

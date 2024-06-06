@@ -433,12 +433,11 @@ func TestHandleMultiPayInvoiceEvent(t *testing.T) {
 		PubKey:  app.NostrPubkey,
 		Content: payload,
 	}
-	requestEvent := &db.RequestEvent{
-		Content: reqEvent.Content,
-	}
 
 	reqEvent.ID = "multi_pay_invoice_without_permission"
-	requestEvent.NostrId = reqEvent.ID
+	requestEvent := &db.RequestEvent{
+		NostrId: reqEvent.ID,
+	}
 
 	responses := []*nip47.Response{}
 	dTags := []nostr.Tags{}
@@ -557,12 +556,11 @@ func TestHandleMultiPayKeysendEvent(t *testing.T) {
 		PubKey:  app.NostrPubkey,
 		Content: payload,
 	}
-	requestEvent := &db.RequestEvent{
-		Content: reqEvent.Content,
-	}
 
 	reqEvent.ID = "multi_pay_keysend_without_permission"
-	requestEvent.NostrId = reqEvent.ID
+	requestEvent := &db.RequestEvent{
+		NostrId: reqEvent.ID,
+	}
 
 	responses := []*nip47.Response{}
 	dTags := []nostr.Tags{}
@@ -657,12 +655,11 @@ func TestHandleGetBalanceEvent(t *testing.T) {
 		PubKey:  app.NostrPubkey,
 		Content: payload,
 	}
-	requestEvent := &db.RequestEvent{
-		Content: reqEvent.Content,
-	}
 
 	reqEvent.ID = "test_get_balance_without_permission"
-	requestEvent.NostrId = reqEvent.ID
+	requestEvent := &db.RequestEvent{
+		NostrId: reqEvent.ID,
+	}
 
 	responses := []*nip47.Response{}
 
@@ -740,12 +737,11 @@ func TestHandlePayInvoiceEvent(t *testing.T) {
 		PubKey:  app.NostrPubkey,
 		Content: payload,
 	}
-	requestEvent := &db.RequestEvent{
-		Content: reqEvent.Content,
-	}
 
 	reqEvent.ID = "pay_invoice_without_permission"
-	requestEvent.NostrId = reqEvent.ID
+	requestEvent := &db.RequestEvent{
+		NostrId: reqEvent.ID,
+	}
 
 	responses := []*nip47.Response{}
 
@@ -874,12 +870,11 @@ func TestHandlePayKeysendEvent(t *testing.T) {
 		PubKey:  app.NostrPubkey,
 		Content: payload,
 	}
-	requestEvent := &db.RequestEvent{
-		Content: reqEvent.Content,
-	}
 
 	reqEvent.ID = "pay_keysend_without_permission"
-	requestEvent.NostrId = reqEvent.ID
+	requestEvent := &db.RequestEvent{
+		NostrId: reqEvent.ID,
+	}
 
 	responses := []*nip47.Response{}
 
@@ -958,12 +953,11 @@ func TestHandleLookupInvoiceEvent(t *testing.T) {
 		PubKey:  app.NostrPubkey,
 		Content: payload,
 	}
-	requestEvent := &db.RequestEvent{
-		Content: reqEvent.Content,
-	}
 
 	reqEvent.ID = "test_lookup_invoice_without_permission"
-	requestEvent.NostrId = reqEvent.ID
+	requestEvent := &db.RequestEvent{
+		NostrId: reqEvent.ID,
+	}
 
 	responses := []*nip47.Response{}
 
@@ -1025,12 +1019,11 @@ func TestHandleMakeInvoiceEvent(t *testing.T) {
 		PubKey:  app.NostrPubkey,
 		Content: payload,
 	}
-	requestEvent := &db.RequestEvent{
-		Content: reqEvent.Content,
-	}
 
 	reqEvent.ID = "test_make_invoice_without_permission"
-	requestEvent.NostrId = reqEvent.ID
+	requestEvent := &db.RequestEvent{
+		NostrId: reqEvent.ID,
+	}
 
 	responses := []*nip47.Response{}
 
@@ -1083,12 +1076,11 @@ func TestHandleListTransactionsEvent(t *testing.T) {
 		PubKey:  app.NostrPubkey,
 		Content: payload,
 	}
-	requestEvent := &db.RequestEvent{
-		Content: reqEvent.Content,
-	}
 
 	reqEvent.ID = "test_list_transactions_without_permission"
-	requestEvent.NostrId = reqEvent.ID
+	requestEvent := &db.RequestEvent{
+		NostrId: reqEvent.ID,
+	}
 
 	responses := []*nip47.Response{}
 
@@ -1151,12 +1143,11 @@ func TestHandleGetInfoEvent(t *testing.T) {
 		PubKey:  app.NostrPubkey,
 		Content: payload,
 	}
-	requestEvent := &db.RequestEvent{
-		Content: reqEvent.Content,
-	}
 
 	reqEvent.ID = "test_get_info_without_permission"
-	requestEvent.NostrId = reqEvent.ID
+	requestEvent := &db.RequestEvent{
+		NostrId: reqEvent.ID,
+	}
 
 	responses := []*nip47.Response{}
 

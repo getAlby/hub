@@ -334,7 +334,7 @@ func (svc *Service) PublishEvent(ctx context.Context, sub *nostr.Subscription, r
 	if app != nil {
 		appId = &app.ID
 	}
-	responseEvent := db.ResponseEvent{NostrId: resp.ID, RequestId: requestEvent.ID, Content: resp.Content, State: "received"}
+	responseEvent := db.ResponseEvent{NostrId: resp.ID, RequestId: requestEvent.ID, State: "received"}
 	err := svc.db.Create(&responseEvent).Error
 	if err != nil {
 		svc.logger.WithFields(logrus.Fields{
@@ -399,7 +399,7 @@ func (svc *Service) HandleEvent(ctx context.Context, sub *nostr.Subscription, ev
 	}
 
 	// store request event
-	requestEvent := db.RequestEvent{AppId: nil, NostrId: event.ID, Content: event.Content, State: db.REQUEST_EVENT_STATE_HANDLER_EXECUTING}
+	requestEvent := db.RequestEvent{AppId: nil, NostrId: event.ID, State: db.REQUEST_EVENT_STATE_HANDLER_EXECUTING}
 	err = svc.db.Create(&requestEvent).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrDuplicatedKey) {
