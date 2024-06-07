@@ -9,7 +9,7 @@ import { SuggestedApp, suggestedApps } from "./SuggestedAppData";
 
 function SuggestedAppCard({ id, title, description, logo }: SuggestedApp) {
   return (
-    <Link to={`/appstore/${id}`}>
+    <Link to={`/apps/new?app=${id}`}>
       <Card>
         <CardContent className="pt-6">
           <div className="flex gap-3 items-center">

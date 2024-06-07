@@ -1,26 +1,66 @@
-import { DialogDescription, DialogTrigger } from "@radix-ui/react-dialog";
-import { CopyIcon, QrCode } from "lucide-react";
-import { useEffect } from "react";
-import { Navigate, useLocation } from "react-router-dom";
+import { CopyIcon } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 
+import AppHeader from "src/components/AppHeader";
+import ExternalLink from "src/components/ExternalLink";
+import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
+import { suggestedApps } from "src/components/SuggestedAppData";
 import { Button } from "src/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "src/components/ui/dialog";
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "src/components/ui/card";
 import { useToast } from "src/components/ui/use-toast";
+import { useApp } from "src/hooks/useApp";
 import { copyToClipboard } from "src/lib/clipboard";
 import { CreateAppResponse } from "src/types";
 
 export default function AppCreated() {
-  const { state } = useLocation();
+  const { search, state } = useLocation();
+  const navigate = useNavigate();
   const { toast } = useToast();
+
+  const queryParams = new URLSearchParams(search);
+  const appId = queryParams.get("app") ?? "";
+  const appstoreApp = suggestedApps.find((app) => app.id === appId);
+  console.info(appstoreApp, appId);
+
+  const [timeout, setTimeout] = useState(false);
   const createAppResponse = state as CreateAppResponse;
+  const pairingUri = createAppResponse.pairingUri;
+  const { data: app } = useApp(createAppResponse.pairingPublicKey, true);
+
+  const copy = () => {
+    copyToClipboard(pairingUri);
+    toast({ title: "Copied to clipboard." });
+  };
 
   useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setTimeout(true);
+    }, 10000);
+
+    return () => window.clearTimeout(timeoutId);
+  }, []);
+
+  useEffect(() => {
+    if (app?.lastEventAt) {
+      toast({
+        title: "Connection established!",
+        description: "You can now use the app with your Alby Hub.",
+      });
+      navigate("/apps");
+    }
+  }, [app?.lastEventAt, navigate, toast]);
+
+  useEffect(() => {
+    if (appstoreApp) {
+      return;
+    }
     // dispatch a success event which can be listened to by the opener or by the app that embedded the webview
     // this gives those apps the chance to know the user has enabled the connection
     const nwcEvent = new CustomEvent("nwc:success", { detail: {} });
@@ -36,58 +76,72 @@ export default function AppCreated() {
         "*"
       );
     }
-  }, []);
+  }, [appstoreApp]);
 
   if (!createAppResponse) {
     return <Navigate to="/apps/new" />;
   }
 
-  const pairingUri = createAppResponse.pairingUri;
-
-  const copy = () => {
-    copyToClipboard(pairingUri);
-    toast({ title: "Copied to clipboard." });
-  };
-
   return (
-    <div className="w-full max-w-screen-sm mx-auto mt-6 md:px-4 ph-no-capture">
-      <h2 className="font-bold text-2xl font-headline mb-2 text-center">
-        🚀 Almost there!
-      </h2>
-      <div className="font-medium text-muted-foreground text-center mb-6">
-        Complete the last step of the setup by pasting or scanning your
-        connection's pairing secret in the desired app to finalise the
-        connection.
-      </div>
-
-      <div className="flex flex-col items-center gap-3">
-        <Button size="lg" onClick={copy}>
-          <CopyIcon className="w-4 h-4 mr-2" />
-          Copy pairing secret
-        </Button>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button variant="secondary">
-              <QrCode className="w-4 h-4 mr-2" />
-              QR-Code
-            </Button>
-          </DialogTrigger>
-
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Scan QR Code</DialogTitle>
-              <DialogDescription>
-                Open the app you want to pair and scan this QR code to connect.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="flex flex-row justify-center p-3">
-              <a href={pairingUri} target="_blank">
-                <QRCode value={pairingUri} />
-              </a>
+    <>
+      <AppHeader
+        title={`Connect to ${createAppResponse.name}`}
+        description="Configure wallet permissions for the app and follow instructions to finalise the connection"
+      />
+      <div className="flex flex-col gap-3 ph-no-capture">
+        <div>
+          <p>
+            1. Open{" "}
+            {appstoreApp ? (
+              <ExternalLink
+                className="font-semibold underline"
+                to={appstoreApp.to}
+              >
+                {appstoreApp.title}
+              </ExternalLink>
+            ) : (
+              "the app you wish to connect"
+            )}{" "}
+            and look for a way to attach a wallet (most apps provide this option
+            in settings)
+          </p>
+          <p>2. Scan or paste the connection secret</p>
+        </div>
+        <Card className="max-w-sm">
+          <CardHeader>
+            <CardTitle className="text-center">Connection Secret</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col items-center gap-5">
+            <div className="flex flex-row items-center gap-2 text-sm">
+              <Loading className="w-4 h-4" />
+              <p>Waiting for app to connect</p>
             </div>
-          </DialogContent>
-        </Dialog>
+            {timeout && (
+              <div className="text-sm flex flex-col gap-2 items-center text-center">
+                Connecting is taking longer than usual.
+                <Link to={`/apps/${app?.nostrPubkey}`}>
+                  <Button variant="secondary">Continue anyway</Button>
+                </Link>
+              </div>
+            )}
+            <a href={pairingUri} target="_blank" className="relative">
+              <QRCode value={pairingUri} className="w-full" />
+              {appstoreApp && (
+                <img
+                  src={appstoreApp.logo}
+                  className="absolute w-12 h-12 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-muted p-1 rounded-xl"
+                />
+              )}
+            </a>
+            <div>
+              <Button onClick={copy} variant="outline">
+                <CopyIcon className="w-4 h-4 mr-2" />
+                Copy pairing secret
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
-    </div>
+    </>
   );
 }

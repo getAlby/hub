@@ -70,4 +70,5 @@ const LoadingButton = React.forwardRef<HTMLButtonElement, ButtonProps>(
 );
 LoadingButton.displayName = "LoadingButton";
 
+// eslint-disable-next-line react-refresh/only-export-components
 export { LoadingButton, buttonVariants };

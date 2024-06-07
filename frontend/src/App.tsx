@@ -39,8 +39,6 @@ import { BackupNode } from "src/screens/BackupNode";
 import { BackupNodeSuccess } from "src/screens/BackupNodeSuccess";
 import { Intro } from "src/screens/Intro";
 import AlbyAuthRedirect from "src/screens/alby/AlbyAuthRedirect";
-import AppConnect from "src/screens/appstore/AppConnect";
-import AppDetail from "src/screens/appstore/AppDetail";
 import { CurrentChannelOrder } from "src/screens/channels/CurrentChannelOrder";
 import { Success } from "src/screens/onboarding/Success";
 import Peers from "src/screens/peers/Peers";
@@ -79,8 +77,6 @@ function App() {
               </Route>
               <Route path="appstore" element={<DefaultRedirect />}>
                 <Route index element={<AppStore />} />
-                <Route path=":id" element={<AppDetail />} />
-                <Route path=":id/connect" element={<AppConnect />} />
               </Route>
               <Route path="apps" element={<DefaultRedirect />}>
                 <Route path="new" element={<NewApp />} />

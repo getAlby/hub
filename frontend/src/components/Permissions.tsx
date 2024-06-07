@@ -26,20 +26,20 @@ interface PermissionsProps {
   initialPermissions: AppPermissions;
   onPermissionsChange: (permissions: AppPermissions) => void;
   budgetUsage?: number;
-  isEditing: boolean;
-  isNew?: boolean;
+  canEditPermissions: boolean;
+  isNewConnection?: boolean;
 }
 
 const Permissions: React.FC<PermissionsProps> = ({
   initialPermissions,
   onPermissionsChange,
-  isEditing,
-  isNew,
+  canEditPermissions,
+  isNewConnection,
   budgetUsage,
 }) => {
   const [permissions, setPermissions] = React.useState(initialPermissions);
-  const [days, setDays] = useState(isNew ? 0 : -1);
-  const [expireOptions, setExpireOptions] = useState(!isNew);
+  const [days, setDays] = useState(isNewConnection ? 0 : -1);
+  const [expireOptions, setExpireOptions] = useState(!isNewConnection);
 
   useEffect(() => {
     setPermissions(initialPermissions);
@@ -54,7 +54,7 @@ const Permissions: React.FC<PermissionsProps> = ({
   };
 
   const handleRequestMethodChange = (requestMethod: PermissionType) => {
-    if (!isEditing) {
+    if (!canEditPermissions) {
       return;
     }
 
@@ -109,7 +109,7 @@ const Permissions: React.FC<PermissionsProps> = ({
                   className={cn(
                     "w-full",
                     rm == "pay_invoice" ? "order-last" : "",
-                    !isEditing && !permissions.requestMethods.has(rm)
+                    !canEditPermissions && !permissions.requestMethods.has(rm)
                       ? "hidden"
                       : ""
                   )}
@@ -119,19 +119,22 @@ const Permissions: React.FC<PermissionsProps> = ({
                       <RequestMethodIcon
                         className={cn(
                           "text-muted-foreground w-4 mr-3",
-                          isEditing ? "hidden" : ""
+                          canEditPermissions ? "hidden" : ""
                         )}
                       />
                     )}
                     <Checkbox
                       id={rm}
-                      className={cn("mr-2", !isEditing ? "hidden" : "")}
+                      className={cn(
+                        "mr-2",
+                        !canEditPermissions ? "hidden" : ""
+                      )}
                       onCheckedChange={() => handleRequestMethodChange(rm)}
                       checked={permissions.requestMethods.has(rm)}
                     />
                     <Label
                       htmlFor={rm}
-                      className={`${isEditing && "cursor-pointer"}`}
+                      className={`${canEditPermissions && "cursor-pointer"}`}
                     >
                       {nip47PermissionDescriptions[rm]}
                     </Label>
@@ -141,23 +144,23 @@ const Permissions: React.FC<PermissionsProps> = ({
                       className={cn(
                         "pt-2 pb-2 pl-5 ml-2.5 border-l-2 border-l-primary",
                         !permissions.requestMethods.has(rm)
-                          ? isEditing
+                          ? canEditPermissions
                             ? "pointer-events-none opacity-30"
                             : "hidden"
                           : ""
                       )}
                     >
-                      {isEditing ? (
+                      {canEditPermissions ? (
                         <>
                           <div className="flex flex-row gap-2 items-center text-muted-foreground mb-3 text-sm capitalize">
                             <p> Budget Renewal:</p>
-                            {!isEditing ? (
+                            {!canEditPermissions ? (
                               permissions.budgetRenewal
                             ) : (
                               <Select
                                 value={permissions.budgetRenewal}
                                 onValueChange={handleBudgetRenewalChange}
-                                disabled={!isEditing}
+                                disabled={!canEditPermissions}
                               >
                                 <SelectTrigger className="w-[150px]">
                                   <SelectValue
@@ -209,7 +212,7 @@ const Permissions: React.FC<PermissionsProps> = ({
                             })}
                           </div>
                         </>
-                      ) : isNew ? (
+                      ) : isNewConnection ? (
                         <>
                           <p className="text-muted-foreground text-sm">
                             <span className="capitalize">
@@ -254,7 +257,9 @@ const Permissions: React.FC<PermissionsProps> = ({
         </ul>
       </div>
 
-      {(isNew ? !permissions.expiresAt || days : isEditing) ? (
+      {(
+        isNewConnection ? !permissions.expiresAt || days : canEditPermissions
+      ) ? (
         <>
           {!expireOptions && (
             <Button
@@ -270,7 +275,7 @@ const Permissions: React.FC<PermissionsProps> = ({
           {expireOptions && (
             <div className="mt-5">
               <p className="font-medium text-sm mb-2">Connection expiration</p>
-              {!isNew && (
+              {!isNewConnection && (
                 <p className="mb-2 text-muted-foreground text-sm">
                   Expires:{" "}
                   {permissions.expiresAt &&
