@@ -1,5 +1,5 @@
 import { ExternalLink, Power } from "lucide-react";
-import React from "react";
+import React, { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import {
@@ -13,7 +13,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "src/components/ui/alert-dialog";
-import { Button, buttonVariants } from "src/components/ui/button";
+import { buttonVariants } from "src/components/ui/button";
+import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 import { useCSRF } from "src/hooks/useCSRF";
 import { useInfo } from "src/hooks/useInfo";
@@ -26,23 +27,34 @@ export default function SettingsLayout() {
   const { mutate: refetchInfo } = useInfo();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [shuttingDown, setShuttingDown] = useState(false);
 
   const shutdown = React.useCallback(async () => {
     if (!csrf) {
       throw new Error("csrf not loaded");
     }
 
-    await request("/api/stop", {
-      method: "POST",
-      headers: {
-        "X-CSRF-Token": csrf,
-        "Content-Type": "application/json",
-      },
-    });
+    setShuttingDown(true);
+    try {
+      await request("/api/stop", {
+        method: "POST",
+        headers: {
+          "X-CSRF-Token": csrf,
+          "Content-Type": "application/json",
+        },
+      });
 
-    await refetchInfo();
-    navigate("/", { replace: true });
-    toast({ title: "Your node has been turned off." });
+      await refetchInfo();
+      setShuttingDown(false);
+      navigate("/", { replace: true });
+      toast({ title: "Your node has been turned off." });
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Failed to shutdown node: " + error,
+        variant: "destructive",
+      });
+    }
   }, [csrf, navigate, refetchInfo, toast]);
 
   const { data: info } = useInfo();
@@ -55,9 +67,13 @@ export default function SettingsLayout() {
         contentRight={
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="destructive" size="icon">
-                <Power className="w-4 h-4" />
-              </Button>
+              <LoadingButton
+                variant="destructive"
+                size="icon"
+                loading={shuttingDown}
+              >
+                {!shuttingDown && <Power className="w-4 h-4" />}
+              </LoadingButton>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
