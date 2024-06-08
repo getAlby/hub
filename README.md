@@ -325,6 +325,14 @@ Run NWC on your own node!
 
 ## Deploy it yourself
 
+### Digital Ocean
+
+[![Deploy to DO](https://www.deploytodo.com/do-btn-blue.svg)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/getAlby/nostr-wallet-connect-next/tree/master)
+
+### Render
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/getAlby/nostr-wallet-connect-next)
+
 ### Fly
 
 - [install fly](https://fly.io/docs/hands-on/install-flyctl/)
