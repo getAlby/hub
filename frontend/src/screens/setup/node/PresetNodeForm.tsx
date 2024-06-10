@@ -1,0 +1,31 @@
+import { wordlist } from "@scure/bip39/wordlists/english";
+import { useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import useSetupStore from "src/state/SetupStore";
+
+import * as bip39 from "@scure/bip39";
+import Loading from "src/components/Loading";
+import { useInfo } from "src/hooks/useInfo";
+import { backendTypeHasMnemonic } from "src/lib/utils";
+
+export function PresetNodeForm() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { data: info } = useInfo();
+
+  // No configuration needed, automatically proceed with the next step
+  useEffect(() => {
+    if (!info) {
+      return;
+    }
+    if (backendTypeHasMnemonic(info.backendType)) {
+      useSetupStore.getState().updateNodeInfo({
+        mnemonic: bip39.generateMnemonic(wordlist, 128),
+      });
+    }
+
+    navigate("/setup/finish");
+  }, [info, navigate, searchParams]);
+
+  return <Loading />;
+}

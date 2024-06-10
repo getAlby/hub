@@ -98,7 +98,9 @@ export function RestoreNode() {
 
   const handleChangeFile = (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.currentTarget.files;
-    if (files) setFile(files[0]);
+    if (files) {
+      setFile(files[0]);
+    }
   };
 
   return (
@@ -108,8 +110,8 @@ export function RestoreNode() {
         className="flex flex-col gap-5 mx-auto max-w-2xl text-sm"
       >
         <TwoColumnLayoutHeader
-          title="Restore Node Backup"
-          description="Restore a previously created backup to recover your node."
+          title="Import Wallet with Backup File"
+          description="Upload you encrypted wallet backup file."
         />
         <div className="grid gap-2">
           <Label htmlFor="password">Unlock Password</Label>
@@ -135,7 +137,7 @@ export function RestoreNode() {
             />
           </div>
         )}
-        <LoadingButton loading={loading}>Restore Node</LoadingButton>
+        <LoadingButton loading={loading}>Import Wallet</LoadingButton>
       </form>
     </>
   );

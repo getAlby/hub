@@ -37,16 +37,25 @@ export function Welcome() {
           </p>
         </div>
         <div className="grid gap-2">
-          <Link to="/setup/password" className="w-full">
-            <Button className="w-full">Create New Alby Hub</Button>
+          <Link
+            to={
+              info?.backendType
+                ? "/setup/password?node=preset" // node already setup through env variables
+                : "/setup/password?node=ldk"
+            }
+            className="w-full"
+          >
+            <Button className="w-full">
+              Get Started
+              {info?.backendType && ` (${info?.backendType})`}
+            </Button>
           </Link>
-          {!info?.backendType && (
-            <Link to="/setup/password?wallet=import" className="w-full">
-              <Button variant="ghost" className="w-full">
-                Restore Wallet from Master Key
-              </Button>
-            </Link>
-          )}
+
+          <Link to="/setup/advanced" className="w-full">
+            <Button variant="secondary" className="w-full">
+              Advanced Setup
+            </Button>
+          </Link>
         </div>
         <div className="text-sm text-muted-foreground">
           By continuing, you agree to our <br />
