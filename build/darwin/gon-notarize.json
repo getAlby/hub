@@ -1,0 +1,8 @@
+{
+  "notarize": [
+    {
+      "path": "./build/bin/albyhub-macOS.dmg",
+      "bundle_id": "com.getalby.AlbyHub"
+    }
+  ]
+}
