@@ -64,7 +64,7 @@ export default function Channels() {
   const { data: balances } = useBalances();
   const { data: albyBalance } = useAlbyBalance();
   const [nodes, setNodes] = React.useState<Node[]>([]);
-  const { data: info, mutate: reloadInfo } = useInfo();
+  const { mutate: reloadInfo } = useInfo();
   const { data: csrf } = useCSRF();
   const redeemOnchainFunds = useRedeemOnchainFunds();
 
@@ -253,30 +253,26 @@ export default function Channels() {
                     </DropdownMenuItem>
                   )}
                 </DropdownMenuGroup>
-                {info?.backendType === "LDK" && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuGroup>
-                      <DropdownMenuLabel>Management</DropdownMenuLabel>
-                      <DropdownMenuItem>
-                        <Link className="w-full" to="/peers">
-                          Connected Peers
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <Link className="w-full" to="/wallet/sign-message">
-                          Sign Message
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="w-full cursor-pointer"
-                        onClick={resetRouter}
-                      >
-                        Clear Routing Data
-                      </DropdownMenuItem>
-                    </DropdownMenuGroup>
-                  </>
-                )}
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel>Management</DropdownMenuLabel>
+                  <DropdownMenuItem>
+                    <Link className="w-full" to="/peers">
+                      Connected Peers
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Link className="w-full" to="/wallet/sign-message">
+                      Sign Message
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="w-full cursor-pointer"
+                    onClick={resetRouter}
+                  >
+                    Clear Routing Data
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>
             <Link to="/channels/new">

@@ -255,8 +255,7 @@ const CarouselDots = React.forwardRef<
   React.HTMLAttributes<HTMLDivElement>
 >((props, ref) => {
   const { api } = useCarousel();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [_, setUpdateState] = React.useState(false);
+  const [, setUpdateState] = React.useState(false);
   const toggleUpdateState = React.useCallback(
     () => setUpdateState((prevState) => !prevState),
     []

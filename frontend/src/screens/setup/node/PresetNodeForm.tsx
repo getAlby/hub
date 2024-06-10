@@ -6,7 +6,7 @@ import useSetupStore from "src/state/SetupStore";
 import * as bip39 from "@scure/bip39";
 import Loading from "src/components/Loading";
 import { useInfo } from "src/hooks/useInfo";
-import { backendTypeHasMnemonic } from "src/lib/utils";
+import { backendTypeConfigs } from "src/lib/backendType";
 
 export function PresetNodeForm() {
   const navigate = useNavigate();
@@ -18,7 +18,7 @@ export function PresetNodeForm() {
     if (!info) {
       return;
     }
-    if (backendTypeHasMnemonic(info.backendType)) {
+    if (backendTypeConfigs[info.backendType].hasMnemonic) {
       useSetupStore.getState().updateNodeInfo({
         mnemonic: bip39.generateMnemonic(wordlist, 128),
       });

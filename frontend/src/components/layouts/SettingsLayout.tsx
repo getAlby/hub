@@ -24,7 +24,7 @@ import { request } from "src/utils/request";
 
 export default function SettingsLayout() {
   const { data: csrf } = useCSRF();
-  const { mutate: refetchInfo } = useInfo();
+  const { mutate: refetchInfo, hasMnemonic, hasNodeBackup } = useInfo();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [shuttingDown, setShuttingDown] = useState(false);
@@ -56,8 +56,6 @@ export default function SettingsLayout() {
       });
     }
   }, [csrf, navigate, refetchInfo, toast]);
-
-  const { data: info } = useInfo();
 
   return (
     <>
@@ -103,12 +101,10 @@ export default function SettingsLayout() {
             <MenuItem to="/settings/change-unlock-password">
               Unlock Password
             </MenuItem>
-            {(info?.backendType === "LDK" ||
-              info?.backendType === "BREEZ" ||
-              info?.backendType === "GREENLIGHT") && (
+            {hasMnemonic && (
               <MenuItem to="/settings/key-backup">Key Backup</MenuItem>
             )}
-            {info?.backendType === "LDK" && (
+            {hasNodeBackup && (
               <MenuItem to="/settings/node-backup">Node Backup</MenuItem>
             )}
             <MenuItem to="/debug-tools">

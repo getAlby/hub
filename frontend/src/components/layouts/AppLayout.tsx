@@ -119,14 +119,13 @@ export default function AppLayout() {
   }
 
   function MainNavSecondary() {
-    const { data: info } = useInfo();
+    const { hasChannelManagement } = useInfo();
     return (
       <nav className="grid items-start p-2 text-sm font-medium lg:px-4">
         {/* <div className="px-3 py-2 mb-5">
           <ModeToggle />
         </div> */}
-        {(info?.backendType === "LDK" ||
-          info?.backendType === "GREENLIGHT") && (
+        {hasChannelManagement && (
           <MenuItem to="/channels">
             <FlaskRound className="h-4 w-4" />
             Liquidity
@@ -139,6 +138,7 @@ export default function AppLayout() {
         <MenuItem
           to="/"
           onClick={(e) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const chatwoot = (window as any).$chatwoot;
             if (chatwoot) {
               chatwoot.toggle("open");
@@ -274,8 +274,12 @@ const MenuItem = ({
   <NavLink
     to={to}
     onClick={(e) => {
-      if (disabled) e.preventDefault();
-      if (onClick) onClick(e);
+      if (disabled) {
+        e.preventDefault();
+      }
+      if (onClick) {
+        onClick(e);
+      }
     }}
     className={({ isActive }) =>
       cn(

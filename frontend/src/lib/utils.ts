@@ -1,5 +1,4 @@
 import { clsx, type ClassValue } from "clsx";
-import { BackendType } from "src/types";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
@@ -20,8 +19,4 @@ export function splitSocketAddress(socketAddress: string) {
   const address = socketAddress.slice(0, lastColonIndex);
   const port = socketAddress.slice(lastColonIndex + 1);
   return { address, port };
-}
-
-export function backendTypeHasMnemonic(backendType: BackendType) {
-  return ["LND", "PHOENIX", "CASHU"].indexOf(backendType) === -1;
 }

@@ -7,60 +7,65 @@ import { GreenlightIcon } from "src/components/icons/Greenlight";
 import { LDKIcon } from "src/components/icons/LDK";
 import { PhoenixdIcon } from "src/components/icons/Phoenixd";
 import { Button } from "src/components/ui/button";
-import { backendTypeHasMnemonic, cn } from "src/lib/utils";
+import { cn } from "src/lib/utils";
 import { BackendType } from "src/types";
 
 import cashu from "src/assets/images/node/cashu.png";
 import lnd from "src/assets/images/node/lnd.png";
+import { backendTypeConfigs } from "src/lib/backendType";
 import useSetupStore from "src/state/SetupStore";
 
-type BackendTypeDefinition = {
-  id: BackendType;
+type BackendTypeDisplayConfig = {
   title: string;
   icon: ReactElement;
 };
 
-const backendTypes: BackendTypeDefinition[] = [
+const backendTypeDisplayConfigs: Record<BackendType, BackendTypeDisplayConfig> =
   {
-    id: "LDK",
-    title: "LDK",
-    icon: <LDKIcon />,
-  },
-  {
-    id: "PHOENIX",
-    title: "phoenixd",
-    icon: <PhoenixdIcon />,
-  },
-  {
-    id: "BREEZ",
-    title: "Breez SDK",
-    icon: <BreezIcon />,
-  },
-  {
-    id: "GREENLIGHT",
-    title: "Greenlight",
-    icon: <GreenlightIcon />,
-  },
-  {
-    id: "LND",
-    title: "LND",
-    icon: <img src={lnd} />,
-  },
-  {
-    id: "CASHU",
-    title: "Cashu Mint",
-    icon: <img src={cashu} />,
-  },
-];
+    LDK: {
+      title: "LDK",
+      icon: <LDKIcon />,
+    },
+    PHOENIX: {
+      title: "phoenixd",
+      icon: <PhoenixdIcon />,
+    },
+    BREEZ: {
+      title: "Breez SDK",
+      icon: <BreezIcon />,
+    },
+    GREENLIGHT: {
+      title: "Greenlight",
+      icon: <GreenlightIcon />,
+    },
+    LND: {
+      title: "LND",
+      icon: <img src={lnd} />,
+    },
+    CASHU: {
+      title: "Cashu Mint",
+      icon: <img src={cashu} />,
+    },
+  };
+
+const backendTypeDisplayConfigList = Object.entries(
+  backendTypeDisplayConfigs
+).map((entry) => ({
+  ...entry[1],
+  backendType: entry[0] as BackendType,
+}));
 
 export function SetupNode() {
   const navigate = useNavigate();
   const setupStore = useSetupStore();
   const [selectedBackendType, setSelectedBackupType] =
-    React.useState<BackendTypeDefinition>();
+    React.useState<BackendType>();
 
   function next() {
-    navigate(`/setup/node/${selectedBackendType?.id.toLowerCase()}`);
+    if (!selectedBackendType) {
+      return;
+    }
+    navigate(`/setup/node/${selectedBackendType.toLowerCase()}`);
   }
 
   const hasImportedMnemonic = !!setupStore.nodeInfo.mnemonic;
@@ -74,18 +79,20 @@ export function SetupNode() {
         />
         <div className="flex flex-col gap-5 w-full mt-6">
           <div className="w-full grid grid-cols-2 gap-4">
-            {backendTypes
+            {backendTypeDisplayConfigList
               .filter((item) =>
-                hasImportedMnemonic ? backendTypeHasMnemonic(item.id) : true
+                hasImportedMnemonic
+                  ? backendTypeConfigs[item.backendType].hasMnemonic
+                  : true
               )
               .map((item) => (
                 <div
-                  key={item.id}
+                  key={item.backendType}
                   className={cn(
                     "border-foreground-muted border px-4 py-6 flex flex-col gap-3 items-center rounded cursor-pointer",
-                    selectedBackendType === item && "border-primary"
+                    selectedBackendType === item.backendType && "border-primary"
                   )}
-                  onClick={() => setSelectedBackupType(item)}
+                  onClick={() => setSelectedBackupType(item.backendType)}
                 >
                   <div className="h-6 w-6">{item.icon}</div>
                   {item.title}
