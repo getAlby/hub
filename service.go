@@ -125,8 +125,14 @@ func NewService(ctx context.Context) (*Service, error) {
 	if err != nil {
 		return nil, err
 	}
-	// Enable foreign keys for sqlite
-	gormDB.Exec("PRAGMA foreign_keys=ON;")
+	err = gormDB.Exec("PRAGMA foreign_keys=ON;").Error
+	if err != nil {
+		return nil, err
+	}
+	err = gormDB.Exec("PRAGMA auto_vacuum=FULL;").Error
+	if err != nil {
+		return nil, err
+	}
 	sqlDb, err = gormDB.DB()
 	if err != nil {
 		return nil, err

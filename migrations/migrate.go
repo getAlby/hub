@@ -15,6 +15,7 @@ func Migrate(db *gorm.DB, appConfig *config.AppConfig, logger *logrus.Logger) er
 		_202404021909_nullable_expires_at,
 		_202405302121_store_decrypted_request,
 		_202406061259_delete_content,
+		_202406071726_vacuum,
 	})
 
 	return m.Migrate()
