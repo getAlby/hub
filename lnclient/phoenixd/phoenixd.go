@@ -95,8 +95,7 @@ func (svc *PhoenixService) GetBalance(ctx context.Context) (balance int64, err e
 		return 0, err
 	}
 
-	balance = balanceRes.BalanceSat + balanceRes.FeeCreditSat
-	return balance * 1000, nil
+	return balanceRes.BalanceSat * 1000, nil
 }
 
 func (svc *PhoenixService) GetBalances(ctx context.Context) (*lnclient.BalancesResponse, error) {
