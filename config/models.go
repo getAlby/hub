@@ -36,7 +36,7 @@ type AppConfig struct {
 	BaseUrl               string `envconfig:"BASE_URL" default:"http://localhost:8080"`
 	FrontendUrl           string `envconfig:"FRONTEND_URL"`
 	LogEvents             bool   `envconfig:"LOG_EVENTS" default:"false"`
-	PhoenixdAddress       string `envconfig:"PHOENIXD_ADDRESS" default:"http://127.0.0.1:9740"`
+	PhoenixdAddress       string `envconfig:"PHOENIXD_ADDRESS"`
 	PhoenixdAuthorization string `envconfig:"PHOENIXD_AUTHORIZATION"`
 	GoProfilerAddr        string `envconfig:"GO_PROFILER_ADDR"`
 	DdProfilerEnabled     bool   `envconfig:"DD_PROFILER_ENABLED" default:"false"`
