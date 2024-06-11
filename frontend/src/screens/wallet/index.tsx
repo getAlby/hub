@@ -1,8 +1,8 @@
-import { ExternalLink } from "lucide-react";
-import { Link } from "react-router-dom";
+import { ExternalLinkIcon } from "lucide-react";
 import AlbyHead from "src/assets/images/alby-head.svg";
 import AppHeader from "src/components/AppHeader";
 import BreezRedeem from "src/components/BreezRedeem";
+import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
 import { Button } from "src/components/ui/button";
 import {
@@ -63,13 +63,13 @@ function Wallet() {
             <CardContent className="text-right">
               <Button variant="outline">
                 Open Alby Web
-                <ExternalLink className="w-4 h-4 ml-2" />
+                <ExternalLinkIcon className="w-4 h-4 ml-2" />
               </Button>
             </CardContent>
           </Card>
         </ExternalLink>
         {!extensionInstalled && (
-          <Link to={`https://www.getalby.com`} target="_blank">
+          <ExternalLink to="https://www.getalby.com">
             <Card>
               <CardHeader>
                 <div className="flex flex-row items-center">
@@ -93,11 +93,11 @@ function Wallet() {
               <CardContent className="text-right">
                 <Button variant="outline">
                   Install Alby Extension
-                  <ExternalLink className="w-4 h-4 ml-2" />
+                  <ExternalLinkIcon className="w-4 h-4 ml-2" />
                 </Button>
               </CardContent>
             </Card>
-          </Link>
+          </ExternalLink>
         )}
       </div>
 
