@@ -51,6 +51,10 @@ func (ls *lspService) NewInstantChannelInvoice(ctx context.Context, request *New
 		selectedLsp = AlbyPlebsLSP()
 	case "ALBY_MUTINYNET":
 		selectedLsp = AlbyMutinynetPlebsLSP()
+	case "MEGALITH":
+		selectedLsp = MegalithLSP()
+	case "MEGALITH_MUTINYNET":
+		selectedLsp = MegalithMutinynetLSP()
 	default:
 		return nil, errors.New("unknown LSP")
 	}
@@ -591,8 +595,8 @@ func (ls *lspService) requestLSPS1Invoice(ctx context.Context, selectedLsp *LSP,
 	}
 
 	type NewLSPS1ChannelPayment struct {
-		LightningInvoice string `json:"lightning_invoice"`
-		FeeTotalSat      string `json:"fee_total_sat"`
+		Bolt11Invoice string `json:"bolt11_invoice"`
+		FeeTotalSat   string `json:"fee_total_sat"`
 	}
 	type NewLSPS1ChannelResponse struct {
 		Payment NewLSPS1ChannelPayment `json:"payment"`
@@ -608,7 +612,7 @@ func (ls *lspService) requestLSPS1Invoice(ctx context.Context, selectedLsp *LSP,
 		return "", 0, fmt.Errorf("failed to deserialize json %s %s", selectedLsp.Url, string(body))
 	}
 
-	invoice = newChannelResponse.Payment.LightningInvoice
+	invoice = newChannelResponse.Payment.Bolt11Invoice
 	fee, err = strconv.ParseUint(newChannelResponse.Payment.FeeTotalSat, 10, 64)
 	if err != nil {
 		ls.logger.WithError(err).WithFields(logrus.Fields{

@@ -68,17 +68,24 @@ func NewLDKService(ctx context.Context, logger *logrus.Logger, cfg config.Config
 		lsp.VoltageLSP().Pubkey,
 		lsp.OlympusLSP().Pubkey,
 		lsp.AlbyPlebsLSP().Pubkey,
+		lsp.MegalithLSP().Pubkey,
+
+		// Mutinynet
 		lsp.AlbyMutinynetPlebsLSP().Pubkey,
 		lsp.OlympusMutinynetFlowLSP().Pubkey,
+		lsp.MegalithMutinynetLSP().Pubkey,
 	}
 	config.AnchorChannelsConfig.TrustedPeersNoReserve = []string{
 		lsp.VoltageLSP().Pubkey,
 		lsp.OlympusLSP().Pubkey,
-		lsp.OlympusMutinynetLSPS1LSP().Pubkey,
-		lsp.OlympusMutinynetFlowLSP().Pubkey,
 		lsp.AlbyPlebsLSP().Pubkey,
-		lsp.AlbyMutinynetPlebsLSP().Pubkey,
+		lsp.MegalithLSP().Pubkey,
 		"0296b2db342fcf87ea94d981757fdf4d3e545bd5cef4919f58b5d38dfdd73bf5c9", // blocktank
+
+		// Mutinynet
+		lsp.AlbyMutinynetPlebsLSP().Pubkey,
+		lsp.OlympusMutinynetFlowLSP().Pubkey,
+		lsp.MegalithMutinynetLSP().Pubkey,
 	}
 
 	config.ListeningAddresses = &listeningAddresses

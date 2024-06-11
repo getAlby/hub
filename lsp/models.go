@@ -74,6 +74,24 @@ func AlbyMutinynetPlebsLSP() LSP {
 	return lsp
 }
 
+func MegalithMutinynetLSP() LSP {
+	lsp := LSP{
+		Pubkey:  "03e30fda71887a916ef5548a4d02b06fe04aaa1a8de9e24134ce7f139cf79d7579",
+		Url:     "https://lsp1.mutiny.megalith-node.com/api/lsps1/v1",
+		LspType: LSP_TYPE_LSPS1,
+	}
+	return lsp
+}
+
+func MegalithLSP() LSP {
+	lsp := LSP{
+		Pubkey:  "038a9e56512ec98da2b5789761f7af8f280baf98a09282360cd6ff1381b5e889bf",
+		Url:     "https://megalithic.me/api/lsps1/v1",
+		LspType: LSP_TYPE_LSPS1,
+	}
+	return lsp
+}
+
 type LSPService interface {
 	NewInstantChannelInvoice(ctx context.Context, request *NewInstantChannelInvoiceRequest) (*NewInstantChannelInvoiceResponse, error)
 }
