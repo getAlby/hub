@@ -281,6 +281,7 @@ export type AlbyBalance = {
 export type NewInstantChannelInvoiceRequest = {
   amount: number;
   lsp: string;
+  public: boolean;
 };
 
 export type NewInstantChannelInvoiceResponse = {

@@ -51,10 +51,12 @@ export default function MigrateAlbyFunds() {
         if (!csrf) {
           throw new Error("csrf not loaded");
         }
-        const newJITChannelRequest: NewInstantChannelInvoiceRequest = {
-          lsp: "ALBY",
-          amount,
-        };
+        const newInstantChannelInvoiceRequest: NewInstantChannelInvoiceRequest =
+          {
+            lsp: "ALBY",
+            amount,
+            public: false,
+          };
         const response = await request<NewInstantChannelInvoiceResponse>(
           "/api/instant-channel-invoices",
           {
@@ -63,7 +65,7 @@ export default function MigrateAlbyFunds() {
               "X-CSRF-Token": csrf,
               "Content-Type": "application/json",
             },
-            body: JSON.stringify(newJITChannelRequest),
+            body: JSON.stringify(newInstantChannelInvoiceRequest),
           }
         );
         if (!response?.invoice) {

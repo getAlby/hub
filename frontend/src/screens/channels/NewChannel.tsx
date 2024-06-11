@@ -52,6 +52,7 @@ export default function NewChannel() {
 
 function NewChannelInternal({ network }: { network: Network }) {
   const { data: channelPeerSuggestions } = useChannelPeerSuggestions();
+
   const navigate = useNavigate();
 
   const [order, setOrder] = React.useState<Partial<NewChannelOrder>>({
@@ -64,10 +65,17 @@ function NewChannelInternal({ network }: { network: Network }) {
   >();
 
   function setPaymentMethod(paymentMethod: "onchain" | "lightning") {
-    setOrder({
-      ...order,
+    setOrder((current) => ({
+      ...current,
       paymentMethod,
-    });
+    }));
+  }
+
+  function setPublic(isPublic: boolean) {
+    setOrder((current) => ({
+      ...current,
+      isPublic,
+    }));
   }
 
   const setAmount = React.useCallback((amount: string) => {
@@ -301,6 +309,24 @@ function NewChannelInternal({ network }: { network: Network }) {
         {order.paymentMethod === "lightning" && (
           <NewChannelLightning order={order} setOrder={setOrder} />
         )}
+
+        <div className="mt-2 flex items-top space-x-2">
+          <Checkbox
+            id="public-channel"
+            defaultChecked={order.isPublic}
+            onCheckedChange={() => setPublic(!order.isPublic)}
+            className="mr-2"
+          />
+          <div className="grid gap-1.5 leading-none">
+            <Label htmlFor="public-channel" className="flex items-center gap-2">
+              Public Channel
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              Enable if you want to receive keysend payments. (e.g. podcasting)
+            </p>
+          </div>
+        </div>
+
         <Button size="lg">Next</Button>
       </form>
     </>
@@ -332,7 +358,7 @@ function NewChannelOnchain(props: NewChannelOnchainProps) {
   if (props.order.paymentMethod !== "onchain") {
     throw new Error("unexpected payment method");
   }
-  const { pubkey, host, isPublic } = props.order;
+  const { pubkey, host } = props.order;
   const { setOrder } = props;
   const isAlreadyPeered =
     pubkey && peers?.some((peer) => peer.nodeId === pubkey);
@@ -354,13 +380,6 @@ function NewChannelOnchain(props: NewChannelOnchainProps) {
     },
     [setOrder]
   );
-  function setPublic(isPublic: boolean) {
-    props.setOrder((current) => ({
-      ...current,
-      paymentMethod: "onchain",
-      isPublic,
-    }));
-  }
 
   const fetchNodeDetails = React.useCallback(async () => {
     if (!pubkey) {
@@ -437,23 +456,6 @@ function NewChannelOnchain(props: NewChannelOnchainProps) {
             )}
           </>
         )}
-
-        <div className="mt-2 flex items-top space-x-2">
-          <Checkbox
-            id="public-channel"
-            defaultChecked={isPublic}
-            onCheckedChange={() => setPublic(!isPublic)}
-            className="mr-2"
-          />
-          <div className="grid gap-1.5 leading-none">
-            <Label htmlFor="public-channel" className="flex items-center gap-2">
-              Public Channel
-            </Label>
-            <p className="text-xs text-muted-foreground">
-              Enable if you want to receive keysend payments. (e.g. podcasting)
-            </p>
-          </div>
-        </div>
       </div>
     </>
   );

@@ -568,10 +568,12 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
             if (!order.lsp) {
               throw new Error("no lsp selected");
             }
-            const newJITChannelRequest: NewInstantChannelInvoiceRequest = {
-              lsp: order.lsp,
-              amount: parseInt(order.amount),
-            };
+            const newInstantChannelInvoiceRequest: NewInstantChannelInvoiceRequest =
+              {
+                lsp: order.lsp,
+                amount: parseInt(order.amount),
+                public: order.isPublic,
+              };
             const response = await request<NewInstantChannelInvoiceResponse>(
               "/api/instant-channel-invoices",
               {
@@ -580,7 +582,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                   "X-CSRF-Token": csrf,
                   "Content-Type": "application/json",
                 },
-                body: JSON.stringify(newJITChannelRequest),
+                body: JSON.stringify(newInstantChannelInvoiceRequest),
               }
             );
             if (!response?.invoice) {
@@ -594,7 +596,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
       }
       return true;
     });
-  }, [channels, csrf, order.amount, order.lsp]);
+  }, [channels, csrf, order.amount, order.isPublic, order.lsp]);
 
   return (
     <div className="flex flex-col gap-5">

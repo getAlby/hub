@@ -99,6 +99,7 @@ type LSPService interface {
 type NewInstantChannelInvoiceRequest struct {
 	Amount uint64 `json:"amount"`
 	LSP    string `json:"lsp"`
+	Public bool   `json:"public"`
 }
 
 type NewInstantChannelInvoiceResponse struct {

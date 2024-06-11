@@ -63,6 +63,10 @@ func (ls *lspService) NewInstantChannelInvoice(ctx context.Context, request *New
 		return nil, errors.New("LNClient not started")
 	}
 
+	if selectedLsp.LspType != LSP_TYPE_LSPS1 && request.Public {
+		return nil, errors.New("This LSP option does not support public channels")
+	}
+
 	ls.logger.Infoln("Requesting LSP info")
 
 	var lspInfo *lspConnectionInfo
@@ -116,7 +120,7 @@ func (ls *lspService) NewInstantChannelInvoice(ctx context.Context, request *New
 	case LSP_TYPE_PMLSP:
 		invoice, fee, err = ls.requestPMLSPInvoice(&selectedLsp, request.Amount, nodeInfo.Pubkey)
 	case LSP_TYPE_LSPS1:
-		invoice, fee, err = ls.requestLSPS1Invoice(ctx, &selectedLsp, request.Amount, nodeInfo.Pubkey)
+		invoice, fee, err = ls.requestLSPS1Invoice(ctx, &selectedLsp, request.Amount, nodeInfo.Pubkey, request.Public)
 
 	default:
 		return nil, fmt.Errorf("unsupported LSP type: %v", selectedLsp.LspType)
@@ -516,7 +520,7 @@ func (ls *lspService) requestPMLSPInvoice(selectedLsp *LSP, amount uint64, pubke
 	return invoice, fee, nil
 }
 
-func (ls *lspService) requestLSPS1Invoice(ctx context.Context, selectedLsp *LSP, amount uint64, pubkey string) (invoice string, fee uint64, err error) {
+func (ls *lspService) requestLSPS1Invoice(ctx context.Context, selectedLsp *LSP, amount uint64, pubkey string, public bool) (invoice string, fee uint64, err error) {
 	client := http.Client{
 		Timeout: time.Second * 10,
 	}
@@ -548,7 +552,7 @@ func (ls *lspService) requestLSPS1Invoice(ctx context.Context, selectedLsp *LSP,
 		ChannelExpiryBlocks:          13000, // TODO: this should be customizable
 		Token:                        "",
 		RefundOnchainAddress:         refundAddress,
-		AnnounceChannel:              false, // TODO: this should be customizable
+		AnnounceChannel:              public,
 	}
 
 	payloadBytes, err := json.Marshal(newLSPS1ChannelRequest)
