@@ -600,7 +600,7 @@ func (api *api) Setup(ctx context.Context, setupRequest *SetupRequest) error {
 	}
 
 	if setupRequest.PhoenixdAddress != "" {
-		api.svc.GetConfig().SetUpdate("PhoenixAddress", setupRequest.PhoenixdAddress, setupRequest.UnlockPassword)
+		api.svc.GetConfig().SetUpdate("PhoenixdAddress", setupRequest.PhoenixdAddress, setupRequest.UnlockPassword)
 	}
 	if setupRequest.PhoenixdAuthorization != "" {
 		api.svc.GetConfig().SetUpdate("PhoenixdAuthorization", setupRequest.PhoenixdAuthorization, setupRequest.UnlockPassword)
