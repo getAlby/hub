@@ -25,10 +25,11 @@ function SidebarHint() {
   const location = useLocation();
   const { data: nodeConnectionInfo } = useNodeConnectionInfo();
 
-  // Don't distract with hints while opening a channel
+  // Don't distract with hints while opening a channel or on the settings page
   if (
     location.pathname.endsWith("/channels/order") ||
-    location.pathname.endsWith("/channels/new")
+    location.pathname.endsWith("/channels/new") ||
+    location.pathname.startsWith("/settings")
   ) {
     return null;
   }
