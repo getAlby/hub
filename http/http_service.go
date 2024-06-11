@@ -41,7 +41,6 @@ const (
 )
 
 func NewHttpService(svc service.Service, logger *logrus.Logger, db *gorm.DB, eventPublisher events.EventPublisher) *HttpService {
-
 	return &HttpService{
 		api:            api.NewAPI(svc, logger, db),
 		albyHttpSvc:    alby.NewAlbyHttpService(svc.GetAlbyOAuthSvc(), logger, svc.GetConfig().GetEnv()),
@@ -104,6 +103,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.POST("/api/peers", httpSvc.connectPeerHandler, authMiddleware)
 	e.DELETE("/api/peers/:peerId", httpSvc.disconnectPeerHandler, authMiddleware)
 	e.DELETE("/api/peers/:peerId/channels/:channelId", httpSvc.closeChannelHandler, authMiddleware)
+	e.GET("/api/wallet/address", httpSvc.onchainAddressHandler, authMiddleware)
 	e.POST("/api/wallet/new-address", httpSvc.newOnchainAddressHandler, authMiddleware)
 	e.POST("/api/wallet/redeem-onchain-funds", httpSvc.redeemOnchainFundsHandler, authMiddleware)
 	e.POST("/api/wallet/sign-message", httpSvc.signMessageHandler, authMiddleware)
@@ -522,10 +522,10 @@ func (httpSvc *HttpService) newInstantChannelInvoiceHandler(c echo.Context) erro
 	return c.JSON(http.StatusOK, newWrappedInvoiceResponse)
 }
 
-func (httpSvc *HttpService) newOnchainAddressHandler(c echo.Context) error {
+func (httpSvc *HttpService) onchainAddressHandler(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	newAddressResponse, err := httpSvc.api.GetNewOnchainAddress(ctx)
+	address, err := httpSvc.api.GetUnusedOnchainAddress(ctx)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
@@ -533,7 +533,21 @@ func (httpSvc *HttpService) newOnchainAddressHandler(c echo.Context) error {
 		})
 	}
 
-	return c.JSON(http.StatusOK, newAddressResponse)
+	return c.JSON(http.StatusOK, address)
+}
+
+func (httpSvc *HttpService) newOnchainAddressHandler(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	address, err := httpSvc.api.GetNewOnchainAddress(ctx)
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to request new onchain address: %s", err.Error()),
+		})
+	}
+
+	return c.JSON(http.StatusOK, address)
 }
 
 func (httpSvc *HttpService) redeemOnchainFundsHandler(c echo.Context) error {

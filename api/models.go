@@ -29,7 +29,8 @@ type API interface {
 	DisconnectPeer(ctx context.Context, peerId string) error
 	OpenChannel(ctx context.Context, openChannelRequest *OpenChannelRequest) (*OpenChannelResponse, error)
 	CloseChannel(ctx context.Context, peerId, channelId string, force bool) (*CloseChannelResponse, error)
-	GetNewOnchainAddress(ctx context.Context) (*NewOnchainAddressResponse, error)
+	GetNewOnchainAddress(ctx context.Context) (string, error)
+	GetUnusedOnchainAddress(ctx context.Context) (string, error)
 	SignMessage(ctx context.Context, message string) (*SignMessageResponse, error)
 	RedeemOnchainFunds(ctx context.Context, toAddress string) (*RedeemOnchainFundsResponse, error)
 	GetBalances(ctx context.Context) (*BalancesResponse, error)
@@ -98,7 +99,7 @@ type BackupReminderRequest struct {
 }
 
 type SetupRequest struct {
-	LNBackendType string `json:"backendType"`
+	LNBackendType  string `json:"backendType"`
 	UnlockPassword string `json:"unlockPassword"`
 
 	// Breez / Greenlight
@@ -173,10 +174,6 @@ type RedeemOnchainFundsResponse struct {
 
 type OnchainBalanceResponse = lnclient.OnchainBalanceResponse
 type BalancesResponse = lnclient.BalancesResponse
-
-type NewOnchainAddressResponse struct {
-	Address string `json:"address"`
-}
 
 // debug api
 type SendPaymentProbesRequest struct {

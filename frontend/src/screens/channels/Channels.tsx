@@ -238,8 +238,11 @@ export default function Channels() {
                 <DropdownMenuGroup>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem>
-                    <Link to="/channels/onchain/new-address" className="w-full">
-                      On-Chain Address
+                    <Link
+                      to="/channels/onchain/deposit-bitcoin"
+                      className="w-full"
+                    >
+                      Deposit Bitcoin
                     </Link>
                   </DropdownMenuItem>
                   {(balances?.onchain.spendable || 0) > ONCHAIN_DUST_SATS && (
@@ -332,8 +335,11 @@ export default function Channels() {
               )}
             </div>
           </CardContent>
-          <CardFooter className="flex justify-end">
-            <Link to="onchain/new-address">
+          <CardFooter className="flex justify-end space-x-1">
+            <Link to="onchain/buy-bitcoin">
+              <Button variant="outline">Buy</Button>
+            </Link>
+            <Link to="onchain/deposit-bitcoin">
               <Button variant="outline">Deposit</Button>
             </Link>
           </CardFooter>

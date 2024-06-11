@@ -215,10 +215,6 @@ export type OpenChannelResponse = {
 // eslint-disable-next-line @typescript-eslint/ban-types
 export type CloseChannelResponse = {};
 
-export type GetOnchainAddressResponse = {
-  address: string;
-};
-
 export type OnchainBalanceResponse = {
   spendable: number;
   total: number;

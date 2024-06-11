@@ -300,12 +300,18 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 	case "/api/wallet/sync":
 		app.api.SyncWallet()
 		return WailsRequestRouterResponse{Body: nil, Error: ""}
-	case "/api/wallet/new-address":
-		newAddressResponse, err := app.api.GetNewOnchainAddress(ctx)
+	case "/api/wallet/address":
+		address, err := app.api.GetUnusedOnchainAddress(ctx)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
-		return WailsRequestRouterResponse{Body: *newAddressResponse, Error: ""}
+		return WailsRequestRouterResponse{Body: address, Error: ""}
+	case "/api/wallet/new-address":
+		newAddress, err := app.api.GetNewOnchainAddress(ctx)
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: newAddress, Error: ""}
 	case "/api/wallet/redeem-onchain-funds":
 
 		redeemOnchainFundsRequest := &api.RedeemOnchainFundsRequest{}

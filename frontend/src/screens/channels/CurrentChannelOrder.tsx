@@ -1,9 +1,7 @@
 import React from "react";
-import { localStorageKeys } from "src/constants";
 import {
   Channel,
   ConnectPeerRequest,
-  GetOnchainAddressResponse,
   NewChannelOrder,
   Node,
   OpenChannelRequest,
@@ -14,6 +12,7 @@ import { Payment, init } from "@getalby/bitcoin-connect-react";
 import { Copy, QrCode, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
+import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
 import { Button } from "src/components/ui/button";
@@ -48,6 +47,7 @@ import { useBalances } from "src/hooks/useBalances";
 import { useCSRF } from "src/hooks/useCSRF";
 import { useChannels } from "src/hooks/useChannels";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
+import { useOnchainAddress } from "src/hooks/useOnchainAddress";
 import { usePeers } from "src/hooks/usePeers";
 import { useSyncWallet } from "src/hooks/useSyncWallet";
 import { copyToClipboard } from "src/lib/clipboard";
@@ -205,55 +205,19 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
   }
 
   const { data: channels } = useChannels();
-  const { data: csrf } = useCSRF();
+
   const { data: balances } = useBalances();
-  const [onchainAddress, setOnchainAddress] = React.useState<string>();
-  const [isLoading, setLoading] = React.useState(false);
+  const {
+    data: onchainAddress,
+    getNewAddress,
+    loadingAddress,
+  } = useOnchainAddress();
+
   const { data: mempoolAddressUtxos } = useMempoolApi<{ value: number }[]>(
     onchainAddress ? `/address/${onchainAddress}/utxo` : undefined,
     true
   );
   const estimatedTransactionFee = useEstimatedTransactionFee();
-
-  const getNewAddress = React.useCallback(async () => {
-    if (!csrf) {
-      return;
-    }
-    setLoading(true);
-    try {
-      const response = await request<GetOnchainAddressResponse>(
-        "/api/wallet/new-address",
-        {
-          method: "POST",
-          headers: {
-            "X-CSRF-Token": csrf,
-            "Content-Type": "application/json",
-          },
-          //body: JSON.stringify({}),
-        }
-      );
-      if (!response?.address) {
-        throw new Error("No address in response");
-      }
-      localStorage.setItem(localStorageKeys.onchainAddress, response.address);
-      setOnchainAddress(response.address);
-    } catch (error) {
-      alert("Failed to request a new address: " + error);
-    } finally {
-      setLoading(false);
-    }
-  }, [csrf]);
-
-  React.useEffect(() => {
-    const existingAddress = localStorage.getItem(
-      localStorageKeys.onchainAddress
-    );
-    if (existingAddress) {
-      setOnchainAddress(existingAddress);
-      return;
-    }
-    getNewAddress();
-  }, [getNewAddress]);
 
   if (!onchainAddress || !balances || !estimatedTransactionFee) {
     return (
@@ -282,6 +246,15 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
     0
   );
 
+  const missingAmount =
+    +order.amount +
+    estimatedTransactionFee +
+    estimatedAnchorReserve -
+    balances.onchain.total;
+
+  const recommendedAmount = Math.ceil(missingAmount / 10000) * 10000;
+  const topupLink = `https://getalby.com/topup?address=${onchainAddress}&receive_amount=${recommendedAmount}`;
+
   return (
     <div className="grid gap-5">
       <AppHeader
@@ -291,15 +264,17 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
       <div className="grid gap-5 max-w-lg">
         <div className="grid gap-1.5">
           <Label htmlFor="text">On-Chain Address</Label>
+          <p className="text-xs">
+            You currently have{" "}
+            {new Intl.NumberFormat().format(balances.onchain.total)} sats. We
+            recommend to deposit another{" "}
+            {new Intl.NumberFormat().format(recommendedAmount)} sats to open a
+            channel.{" "}
+          </p>
           <p className="text-xs text-muted-foreground">
-            You currently have {balances.onchain.total} sats. You need to
-            deposit at least another{" "}
-            {+order.amount +
-              estimatedTransactionFee +
-              estimatedAnchorReserve -
-              balances.onchain.total}{" "}
-            sats to cover the cost of opening the channel, including onchain
-            fees and potential onchain channel reserves.
+            ~{new Intl.NumberFormat().format(+missingAmount)} sats are missing
+            to cover the cost of opening the channel, including onchain fees and
+            potential onchain channel reserves.
           </p>
           <div className="flex flex-row gap-2 items-center">
             <Input
@@ -344,9 +319,10 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
                     variant="secondary"
                     size="icon"
                     onClick={getNewAddress}
-                    loading={isLoading}
+                    loading={loadingAddress}
+                    className="w-9 h-9"
                   >
-                    <RefreshCw className="w-4 h-4" />
+                    {!loadingAddress && <RefreshCw className="w-4 h-4" />}
                   </LoadingButton>
                 </TooltipTrigger>
                 <TooltipContent>Generate a new address</TooltipContent>
@@ -369,6 +345,12 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
             <CardContent>{unspentAmount} sats deposited</CardContent>
           )}
         </Card>
+
+        <ExternalLink to={topupLink} className="w-full">
+          <Button className="w-full">
+            Topup with your credit card or bank account
+          </Button>
+        </ExternalLink>
       </div>
     </div>
   );

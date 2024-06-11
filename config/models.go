@@ -9,6 +9,10 @@ const (
 	CashuBackendType      = "CASHU"
 )
 
+const (
+	OnchainAddressKey = "OnchainAddress"
+)
+
 type AppConfig struct {
 	Relay                 string `envconfig:"RELAY" default:"wss://relay.getalby.com/v1"`
 	LNBackendType         string `envconfig:"LN_BACKEND_TYPE"`
@@ -21,7 +25,7 @@ type AppConfig struct {
 	CookieSecret          string `envconfig:"COOKIE_SECRET"`
 	LogLevel              string `envconfig:"LOG_LEVEL"`
 	LDKNetwork            string `envconfig:"LDK_NETWORK" default:"bitcoin"`
-	LDKEsploraServer      string `envconfig:"LDK_ESPLORA_SERVER" default:"https://electrs.albylabs.com"`
+	LDKEsploraServer      string `envconfig:"LDK_ESPLORA_SERVER" default:"https://electrs.albylabs.com"` // TODO: remove LDK prefix
 	LDKGossipSource       string `envconfig:"LDK_GOSSIP_SOURCE" default:"https://rapidsync.lightningdevkit.org/snapshot"`
 	LDKLogLevel           string `envconfig:"LDK_LOG_LEVEL"`
 	MempoolApi            string `envconfig:"MEMPOOL_API" default:"https://mempool.space/api"`
