@@ -40,7 +40,7 @@ function Wallet() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        <Link to={`https://www.getalby.com/dashboard`} target="_blank">
+        <ExternalLink to="https://www.getalby.com/dashboard">
           <Card>
             <CardHeader>
               <div className="flex flex-row items-center">
@@ -67,7 +67,7 @@ function Wallet() {
               </Button>
             </CardContent>
           </Card>
-        </Link>
+        </ExternalLink>
         {!extensionInstalled && (
           <Link to={`https://www.getalby.com`} target="_blank">
             <Card>
