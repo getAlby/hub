@@ -257,12 +257,12 @@ function NewChannelInternal({ network }: { network: Network }) {
                           value={getPeerKey(peer)}
                           key={getPeerKey(peer)}
                         >
-                          <div className="flex items-center space-between gap-3 w-full">
+                          <div className="flex items-center gap-3">
                             <div className="flex items-center gap-3">
                               {peer.name !== "Custom" && (
                                 <img
                                   src={peer.image}
-                                  className="w-12 h-12 object-contain"
+                                  className="w-8 h-8 object-contain"
                                 />
                               )}
                               <div>
