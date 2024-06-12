@@ -58,11 +58,12 @@ export default function DebugTools() {
             const amount = window.prompt("Enter amount in sats:");
             if (amount) {
               const nodeId = window.prompt("Enter node pubkey:");
-              if (nodeId)
+              if (nodeId) {
                 apiRequest("/api/send-spontaneous-payment-probes", "POST", {
                   amount: parseInt(amount) * 1000,
                   nodeId,
                 });
+              }
             }
           }}
         >
@@ -78,7 +79,9 @@ export default function DebugTools() {
           onClick={() => {
             const maxLen = window.prompt("Enter max length (in characters):");
 
-            if (maxLen) apiRequest(`/api/log/app?maxLen=${maxLen}`, "GET");
+            if (maxLen) {
+              apiRequest(`/api/log/app?maxLen=${maxLen}`, "GET");
+            }
           }}
         >
           Get App Logs
@@ -87,7 +90,9 @@ export default function DebugTools() {
           onClick={() => {
             const maxLen = window.prompt("Enter max length (in characters):");
 
-            if (maxLen) apiRequest(`/api/log/node?maxLen=${maxLen}`, "GET");
+            if (maxLen) {
+              apiRequest(`/api/log/node?maxLen=${maxLen}`, "GET");
+            }
           }}
         >
           Get Node Logs

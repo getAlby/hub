@@ -35,7 +35,7 @@ export function useRedeemOnchainFunds() {
           body: JSON.stringify({ toAddress }),
         }
       );
-      console.log("Redeemed onchain funds", response);
+      console.info("Redeemed onchain funds", response);
       if (!response?.txId) {
         throw new Error("No address in response");
       }

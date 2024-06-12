@@ -16,7 +16,7 @@ export function SetupRedirect() {
     if (didSetupThisSession) {
       // ensure redirect does not happen as node may still be starting
       // which would then incorrectly redirect to the login page
-      console.log("Skipping setup redirect on initial setup");
+      console.info("Skipping setup redirect on initial setup");
       return;
     }
     if (info.setupCompleted) {

@@ -79,7 +79,7 @@ export default function Peers() {
       ) {
         return;
       }
-      console.log(`Disconnecting from ${peerId}`);
+      console.info(`Disconnecting from ${peerId}`);
 
       await request(`/api/peers/${peerId}`, {
         method: "DELETE",

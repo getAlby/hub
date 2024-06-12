@@ -31,7 +31,7 @@ export default function ConnectPeer() {
       if (!pubkey || !address || !port) {
         throw new Error("connection details missing");
       }
-      console.log(`🔌 Peering with ${pubkey}`);
+      console.info(`🔌 Peering with ${pubkey}`);
       const connectPeerRequest: ConnectPeerRequest = {
         pubkey,
         address,
