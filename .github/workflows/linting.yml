@@ -1,0 +1,35 @@
+name: Code quality - linting and typechecking
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  linting:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 20.x
+          cache: "yarn"
+          cache-dependency-path: frontend/yarn.lock
+
+      - run: yarn install
+      - run: yarn prepare:http
+
+      - name: Linting
+        run: yarn lint:js
+
+      - name: Prettier
+        run: yarn format
+
+      - name: Typechecking
+        run: yarn tsc:compile
