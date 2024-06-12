@@ -72,24 +72,27 @@ func (svc *albyOAuthService) CallbackHandler(ctx context.Context, code string) e
 	}
 	svc.saveToken(token)
 
+	me, err := svc.GetMe(ctx)
+	if err != nil {
+		svc.logger.WithError(err).Error("Failed to fetch user me")
+		// remove token so user can retry
+		svc.config.SetUpdate(accessTokenKey, "", "")
+		return err
+	}
+
 	existingUserIdentifier, err := svc.GetUserIdentifier()
 	if err != nil {
 		svc.logger.WithError(err).Error("Failed to get alby user identifier")
 		return err
 	}
 
-	// setup Alby account on first time login
+	// save the user's alby account ID on first time login
 	if existingUserIdentifier == "" {
-		// fetch and save the user's alby account ID. This cannot be changed.
-		me, err := svc.GetMe(ctx)
-		if err != nil {
-			svc.logger.WithError(err).Error("Failed to fetch user me")
-			// remove token so user can retry
-			svc.config.SetUpdate(accessTokenKey, me.Identifier, "")
-			return err
-		}
-
 		svc.config.SetUpdate(userIdentifierKey, me.Identifier, "")
+	} else if me.Identifier != existingUserIdentifier {
+		// remove token so user can retry with correct account
+		svc.config.SetUpdate(accessTokenKey, "", "")
+		return errors.New("Alby Hub is connected to a different alby account. Please log out of your Alby Account at getalby.com and try again.")
 	}
 
 	return nil
