@@ -29,9 +29,10 @@ type ChannelBackupEvent struct {
 }
 
 type ChannelBackupInfo struct {
-	ChannelID   string `json:"channel_id"`
-	NodeID      string `json:"node_id"`
-	PeerID      string `json:"peer_id"`
-	ChannelSize uint64 `json:"channel_size"`
-	FundingTxID string `json:"funding_tx_id"`
+	ChannelID     string `json:"channel_id"`
+	NodeID        string `json:"node_id"`
+	PeerID        string `json:"peer_id"`
+	ChannelSize   uint64 `json:"channel_size"`
+	FundingTxID   string `json:"funding_tx_id"`
+	FundingTxVout uint32 `json:"funding_tx_vout"`
 }

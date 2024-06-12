@@ -1184,17 +1184,20 @@ func (ls *LDKService) publishChannelsBackupEvent() {
 	ldkChannels := ls.node.ListChannels()
 	channels := make([]events.ChannelBackupInfo, 0, len(ldkChannels))
 	for _, ldkChannel := range ldkChannels {
-		var fundingTx string
+		var fundingTxId string
+		var fundingTxVout uint32
 		if ldkChannel.FundingTxo != nil {
-			fundingTx = ldkChannel.FundingTxo.Txid
+			fundingTxId = ldkChannel.FundingTxo.Txid
+			fundingTxVout = ldkChannel.FundingTxo.Vout
 		}
 
 		channels = append(channels, events.ChannelBackupInfo{
-			ChannelID:   ldkChannel.ChannelId,
-			NodeID:      ls.node.NodeId(),
-			PeerID:      ldkChannel.CounterpartyNodeId,
-			ChannelSize: ldkChannel.ChannelValueSats,
-			FundingTxID: fundingTx,
+			ChannelID:     ldkChannel.ChannelId,
+			NodeID:        ls.node.NodeId(),
+			PeerID:        ldkChannel.CounterpartyNodeId,
+			ChannelSize:   ldkChannel.ChannelValueSats,
+			FundingTxID:   fundingTxId,
+			FundingTxVout: fundingTxVout,
 		})
 	}
 
