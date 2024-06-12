@@ -91,6 +91,14 @@ func (wrapper *LNDWrapper) ListChannels(ctx context.Context, req *lnrpc.ListChan
 	return wrapper.client.ListChannels(ctx, req, options...)
 }
 
+func (wrapper *LNDWrapper) GetTransactions(ctx context.Context, req *lnrpc.GetTransactionsRequest, options ...grpc.CallOption) (*lnrpc.TransactionDetails, error) {
+	return wrapper.client.GetTransactions(ctx, req, options...)
+}
+
+func (wrapper *LNDWrapper) PendingChannels(ctx context.Context, req *lnrpc.PendingChannelsRequest, options ...grpc.CallOption) (*lnrpc.PendingChannelsResponse, error) {
+	return wrapper.client.PendingChannels(ctx, req, options...)
+}
+
 func (wrapper *LNDWrapper) SendPaymentSync(ctx context.Context, req *lnrpc.SendRequest, options ...grpc.CallOption) (*lnrpc.SendResponse, error) {
 	return wrapper.client.SendPaymentSync(ctx, req, options...)
 }
@@ -143,4 +151,28 @@ func (wrapper *LNDWrapper) GetMainPubkey() (pubkey string) {
 
 func (wrapper *LNDWrapper) SignMessage(ctx context.Context, req *lnrpc.SignMessageRequest, options ...grpc.CallOption) (*lnrpc.SignMessageResponse, error) {
 	return wrapper.client.SignMessage(ctx, req, options...)
+}
+
+func (wrapper *LNDWrapper) ConnectPeer(ctx context.Context, req *lnrpc.ConnectPeerRequest, options ...grpc.CallOption) (*lnrpc.ConnectPeerResponse, error) {
+	return wrapper.client.ConnectPeer(ctx, req, options...)
+}
+
+func (wrapper *LNDWrapper) ListPeers(ctx context.Context, req *lnrpc.ListPeersRequest, options ...grpc.CallOption) (*lnrpc.ListPeersResponse, error) {
+	return wrapper.client.ListPeers(ctx, req, options...)
+}
+
+func (wrapper *LNDWrapper) OpenChannelSync(ctx context.Context, req *lnrpc.OpenChannelRequest, options ...grpc.CallOption) (*lnrpc.ChannelPoint, error) {
+	return wrapper.client.OpenChannelSync(ctx, req, options...)
+}
+
+func (wrapper *LNDWrapper) CloseChannel(ctx context.Context, req *lnrpc.CloseChannelRequest, options ...grpc.CallOption) (lnrpc.Lightning_CloseChannelClient, error) {
+	return wrapper.client.CloseChannel(ctx, req, options...)
+}
+
+func (wrapper *LNDWrapper) WalletBalance(ctx context.Context, req *lnrpc.WalletBalanceRequest, options ...grpc.CallOption) (*lnrpc.WalletBalanceResponse, error) {
+	return wrapper.client.WalletBalance(ctx, req, options...)
+}
+
+func (wrapper *LNDWrapper) NewAddress(ctx context.Context, req *lnrpc.NewAddressRequest, options ...grpc.CallOption) (*lnrpc.NewAddressResponse, error) {
+	return wrapper.client.NewAddress(ctx, req, options...)
 }

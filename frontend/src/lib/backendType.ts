@@ -9,7 +9,7 @@ type BackendTypeConfig = {
 export const backendTypeConfigs: Record<BackendType, BackendTypeConfig> = {
   LND: {
     hasMnemonic: false,
-    hasChannelManagement: false, // TODO: set to true soon
+    hasChannelManagement: true,
     hasNodeBackup: false,
   },
   BREEZ: {
