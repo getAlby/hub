@@ -20,7 +20,7 @@ import {
   useNavigate,
 } from "react-router-dom";
 import SidebarHint from "src/components/SidebarHint";
-import { Avatar, AvatarFallback, AvatarImage } from "src/components/ui/avatar";
+import UserAvatar from "src/components/UserAvatar";
 import { Button } from "src/components/ui/button";
 import {
   DropdownMenu,
@@ -177,14 +177,7 @@ export default function AppLayout() {
                 <MainNavSecondary />
                 <div className="flex h-14 items-center px-4 lg:h-[60px] lg:px-6 gap-3 border-t border-border justify-between">
                   <div className="grid grid-flow-col gap-2">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={albyMe?.avatar} alt="Avatar" />
-                      <AvatarFallback>
-                        {(albyMe?.name || albyMe?.email || "SN")
-                          .substring(0, 2)
-                          .toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
+                    <UserAvatar className="h-8 w-8" />
                     <Link
                       to="#"
                       className="font-semibold text-lg whitespace-nowrap overflow-hidden text-ellipsis"
@@ -240,10 +233,7 @@ export default function AppLayout() {
                       to="#"
                       className="grid grid-flow-col gap-2 font-semibold text-lg whitespace-nowrap overflow-hidden text-ellipsis"
                     >
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={albyMe?.avatar} alt="@satoshi" />
-                        <AvatarFallback>SN</AvatarFallback>
-                      </Avatar>
+                      <UserAvatar className="h-8 w-8" />
                     </Link>
                   </DropdownMenuTrigger>
                   <UserMenuContent />
