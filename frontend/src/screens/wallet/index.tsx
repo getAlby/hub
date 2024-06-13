@@ -14,6 +14,7 @@ import {
 } from "src/components/ui/card";
 import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
+import OnboardingChecklist from "src/screens/wallet/OnboardingChecklist";
 
 function Wallet() {
   const { data: info } = useInfo();
@@ -100,6 +101,8 @@ function Wallet() {
           </ExternalLink>
         )}
       </div>
+
+      <OnboardingChecklist />
 
       <BreezRedeem />
     </>

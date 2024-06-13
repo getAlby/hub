@@ -57,6 +57,7 @@ export function SetupPassword() {
               <div className="grid gap-1.5">
                 <Label htmlFor="unlock-password">Password</Label>
                 <Input
+                  autoFocus
                   type="password"
                   name="unlock-password"
                   id="unlock-password"

@@ -26,7 +26,6 @@ import { ImportMnemonic } from "src/screens/setup/ImportMnemonic";
 import { SetupFinish } from "src/screens/setup/SetupFinish";
 import { SetupNode } from "src/screens/setup/SetupNode";
 import { SetupPassword } from "src/screens/setup/SetupPassword";
-import Wallet from "src/screens/wallet";
 import SignMessage from "src/screens/wallet/SignMessage";
 import { usePosthog } from "./hooks/usePosthog";
 
@@ -53,6 +52,7 @@ import { LDKForm } from "src/screens/setup/node/LDKForm";
 import { LNDForm } from "src/screens/setup/node/LNDForm";
 import { PhoenixdForm } from "src/screens/setup/node/PhoenixdForm";
 import { PresetNodeForm } from "src/screens/setup/node/PresetNodeForm";
+import Wallet from "src/screens/wallet";
 
 function App() {
   usePosthog();
