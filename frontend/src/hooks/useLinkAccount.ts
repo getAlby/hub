@@ -28,7 +28,7 @@ export function useLinkAccount() {
     }
   }
 
-  const loadingLinkStatus = !linkStatus;
+  const loadingLinkStatus = linkStatus === undefined;
 
   async function linkAccount() {
     try {
