@@ -1,5 +1,6 @@
 import { Cable, CirclePlus } from "lucide-react";
 import { Link } from "react-router-dom";
+import AlbyConnectionCard from "src/components/AlbyConnectionCard";
 import AppCard from "src/components/AppCard";
 import AppHeader from "src/components/AppHeader";
 import EmptyState from "src/components/EmptyState";
@@ -8,6 +9,8 @@ import { Button } from "src/components/ui/button";
 import { useApps } from "src/hooks/useApps";
 import { useInfo } from "src/hooks/useInfo";
 
+const albyConnectionName = "getalby.com";
+
 function AppList() {
   const { data: apps } = useApps();
   const { data: info } = useInfo();
@@ -15,6 +18,11 @@ function AppList() {
   if (!apps || !info) {
     return <Loading />;
   }
+
+  const albyConnection = apps.find((x) => x.name === albyConnectionName);
+  const otherApps = apps.filter(
+    (x) => x.nostrPubkey !== albyConnection?.nostrPubkey
+  );
 
   return (
     <>
@@ -31,7 +39,9 @@ function AppList() {
         }
       />
 
-      {!apps.length && (
+      <AlbyConnectionCard connection={albyConnection} />
+
+      {!otherApps.length && (
         <EmptyState
           icon={Cable}
           title="Connect Your First App"
@@ -41,9 +51,9 @@ function AppList() {
         />
       )}
 
-      {apps.length > 0 && (
-        <div className="grid sm:grid-cols-1 md:grid-cols-2 gap-4">
-          {apps.map((app, index) => (
+      {otherApps.length > 0 && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {otherApps.map((app, index) => (
             <AppCard key={index} app={app} />
           ))}
         </div>

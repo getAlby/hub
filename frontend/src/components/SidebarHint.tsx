@@ -90,7 +90,7 @@ function SidebarHint() {
         title="Link your Hub"
         description="Finish the setup by linking your Alby Account to this hub."
         buttonText="Link Hub"
-        buttonLink="/settings"
+        buttonLink="/apps"
       />
     );
   }
