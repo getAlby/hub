@@ -4,14 +4,6 @@ import { Link, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "src/components/ui/breadcrumb";
 import { Button } from "src/components/ui/button";
 import { Checkbox } from "src/components/ui/checkbox";
 import { Input } from "src/components/ui/input";
@@ -151,19 +143,6 @@ function NewChannelInternal({ network }: { network: Network }) {
 
   return (
     <>
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link to="/channels">Liquidity</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>Open Channel</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
       <AppHeader
         title="Open a channel"
         description="Funds used to open a channel minus fees will be added to your spending balance"

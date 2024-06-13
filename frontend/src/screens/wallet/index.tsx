@@ -30,7 +30,6 @@ function Wallet() {
   return (
     <>
       <AppHeader title="Wallet" description="Send and receive transactions" />
-
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-5">
         <div className="text-5xl font-semibold">
           {new Intl.NumberFormat().format(

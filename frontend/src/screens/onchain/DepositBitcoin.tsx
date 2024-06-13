@@ -3,14 +3,6 @@ import QRCode from "react-qr-code";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import Loading from "src/components/Loading";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "src/components/ui/breadcrumb";
 import { Button } from "src/components/ui/button";
 import { Card, CardContent } from "src/components/ui/card";
 import { LoadingButton } from "src/components/ui/loading-button";
@@ -35,19 +27,6 @@ export default function DepositBitcoin() {
 
   return (
     <div className="grid gap-5">
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link to="/channels">Liquidity</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>Deposit Bitcoin</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
       <AppHeader
         title="Deposit Bitcoin to Savings Balance"
         description="Deposit bitcoin to your on-chain address which then can be used to open new lightning channels."
