@@ -22,12 +22,20 @@ function OnboardingChecklist() {
   const { data: info, hasChannelManagement, hasMnemonic } = useInfo();
   const { data: nodeConnectionInfo } = useNodeConnectionInfo();
 
+  const isLoading =
+    !albyMe || !apps || !channels || !info || !nodeConnectionInfo;
+
+  if (isLoading) {
+    return;
+  }
+
   /*const hasAlbyBalance =
     hasChannelManagement &&
     albyBalance &&
     albyBalance.sats * (1 - ALBY_SERVICE_FEE) >
       ALBY_MIN_BALANCE + 50000; // accommodate for on-chain fees
       */
+
   const isLinked =
     albyMe &&
     nodeConnectionInfo &&
@@ -40,6 +48,10 @@ function OnboardingChecklist() {
     new Date(info.nextBackupReminder).getTime() > new Date().getTime();
   const hasCustomApp =
     apps && apps.find((x) => x.name !== "getalby.com") !== undefined;
+
+  if (isLinked && hasChannel && (!hasMnemonic || hasBackedUp) && hasCustomApp) {
+    return;
+  }
 
   const checklistItems = [
     {
