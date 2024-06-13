@@ -79,9 +79,9 @@ function AlbyConnectionCard({ connection }: { connection?: App }) {
               )}
               <ExternalLink
                 to="https://www.getalby.com/node"
-                className="w-full md:w-auto"
+                className="w-full sm:w-auto"
               >
-                <Button variant="outline" className="w-full md:w-auto">
+                <Button variant="outline" className="w-full sm:w-auto">
                   <ExternalLinkIcon className="w-4 h-4 mr-2" />
                   Alby Account Settings
                 </Button>
