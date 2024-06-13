@@ -61,12 +61,14 @@ function AuthCodeForm() {
       <form onSubmit={onSubmit} className="flex flex-col items-center w-full">
         <div className="grid gap-5">
           <TwoColumnLayoutHeader
-            title="Alby OAuth"
-            description="Enter your Auth Code to connect to Alby"
+            title="Connect your Alby Account"
+            description="A new window will open. Sign in with your Alby Account, copy the Authorization Code, and paste it here."
           />
           {!hasRequestedCode && (
             <>
-              <Button onClick={requestAuthCode}>Request Auth Code</Button>
+              <Button onClick={requestAuthCode}>
+                Request Authorization Code
+              </Button>
             </>
           )}
           {hasRequestedCode && (
