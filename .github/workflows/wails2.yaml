@@ -87,17 +87,17 @@ jobs:
 
       - name: Build App
         if: runner.os == 'macOS'
-        run: wails build --platform darwin/universal -webview2 download -o ${{ matrix.build.name }} -tags "wails"
+        run: wails build --platform darwin/universal -webview2 embed -o ${{ matrix.build.name }} -tags "wails"
         shell: bash
 
       - name: Build App
         if: runner.os == 'Linux'
-        run: wails build --platform linux/amd64 -webview2 download -o ${{ matrix.build.name }} -tags "wails"
+        run: wails build --platform linux/amd64 -webview2 embed -o ${{ matrix.build.name }} -tags "wails"
         shell: bash
 
       - name: Build Windows App
         if: runner.os == 'Windows'
-        run: wails build --platform windows/amd64 -webview2 download -o ${{ matrix.build.name }}.exe -tags "wails"
+        run: wails build --platform windows/amd64 -webview2 embed -o ${{ matrix.build.name }}.exe -tags "wails"
         shell: bash
 
       - name: Import Code-Signing Certificates for macOS
