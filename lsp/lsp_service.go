@@ -543,11 +543,19 @@ func (ls *lspService) requestLSPS1Invoice(ctx context.Context, selectedLsp *LSP,
 		return "", 0, err
 	}
 
+	var requiredChannelConfirmations uint64 = 0
+
+	if public {
+		// as per BOLT-7 6 confirmations are required for the channel to be gossiped
+		// https://github.com/lightning/bolts/blob/master/07-routing-gossip.md#requirements
+		requiredChannelConfirmations = 6
+	}
+
 	newLSPS1ChannelRequest := NewLSPS1ChannelRequest{
 		PublicKey:                    pubkey,
 		LSPBalanceSat:                strconv.FormatUint(amount, 10),
 		ClientBalanceSat:             "0",
-		RequiredChannelConfirmations: 0,
+		RequiredChannelConfirmations: requiredChannelConfirmations,
 		FundingConfirmsWithinBlocks:  6,
 		ChannelExpiryBlocks:          13000, // TODO: this should be customizable
 		Token:                        "",
