@@ -1,5 +1,4 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
-import { Separator } from "@radix-ui/react-dropdown-menu";
 import { Progress } from "@radix-ui/react-progress";
 import {
   CheckCircle2,
@@ -21,6 +20,7 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 import { LoadingButton } from "src/components/ui/loading-button";
+import { Separator } from "src/components/ui/separator";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { LinkStatus, useLinkAccount } from "src/hooks/useLinkAccount";
 import { App } from "src/types";
