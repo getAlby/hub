@@ -1,8 +1,8 @@
 import { Copy, CreditCard, RefreshCw } from "lucide-react";
-import QRCode from "react-qr-code";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import Loading from "src/components/Loading";
+import QRCode from "src/components/QRCode";
 import { Button } from "src/components/ui/button";
 import { Card, CardContent } from "src/components/ui/card";
 import { LoadingButton } from "src/components/ui/loading-button";
