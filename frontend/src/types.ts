@@ -287,6 +287,9 @@ export type NewInstantChannelInvoiceRequest = {
 export type NewInstantChannelInvoiceResponse = {
   invoice: string;
   fee: number;
+  invoiceAmount: number;
+  incomingLiquidity: number;
+  outgoingLiquidity: number;
 };
 
 export type RedeemOnchainFundsResponse = {

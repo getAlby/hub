@@ -236,6 +236,9 @@ type NewInstantChannelInvoiceRequest struct {
 }
 
 type NewInstantChannelInvoiceResponse struct {
-	Invoice string `json:"invoice"`
-	Fee     uint64 `json:"fee"`
+	Invoice           string `json:"invoice"`
+	Fee               uint64 `json:"fee"`
+	InvoiceAmount     uint64 `json:"invoiceAmount"`
+	IncomingLiquidity uint64 `json:"incomingLiquidity"`
+	OutgoingLiquidity uint64 `json:"outgoingLiquidity"`
 }

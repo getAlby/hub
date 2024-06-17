@@ -16,6 +16,7 @@ import (
 	"github.com/getAlby/nostr-wallet-connect/lnclient"
 	"github.com/getAlby/nostr-wallet-connect/logger"
 	"github.com/getAlby/nostr-wallet-connect/lsp"
+	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
 )
 
@@ -120,9 +121,30 @@ func (api *api) NewInstantChannelInvoice(ctx context.Context, request *NewInstan
 		return nil, err
 	}
 
+	paymentRequest, err := decodepay.Decodepay(invoice)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to decode bolt11 invoice")
+		return nil, err
+	}
+
+	invoiceAmount := uint64(paymentRequest.MSatoshi / 1000)
+	incomingLiquidity := uint64(0)
+	outgoingLiquidity := uint64(0)
+
+	if invoiceAmount < request.Amount {
+		// assume that the invoice is only the fee
+		// and that the user is requesting incoming liquidity (LSPS1)
+		incomingLiquidity = request.Amount
+	} else {
+		outgoingLiquidity = invoiceAmount - fee
+	}
+
 	newChannelResponse := &NewInstantChannelInvoiceResponse{
-		Invoice: invoice,
-		Fee:     fee,
+		Invoice:           invoice,
+		Fee:               fee,
+		InvoiceAmount:     invoiceAmount,
+		IncomingLiquidity: incomingLiquidity,
+		OutgoingLiquidity: outgoingLiquidity,
 	}
 
 	logger.Logger.WithFields(logrus.Fields{

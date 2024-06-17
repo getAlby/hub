@@ -616,6 +616,32 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
             <div className="border rounded-lg">
               <Table>
                 <TableBody>
+                  {wrappedInvoiceResponse.outgoingLiquidity > 0 && (
+                    <TableRow>
+                      <TableCell className="font-medium p-3">
+                        Spending Balance
+                      </TableCell>
+                      <TableCell className="text-right p-3">
+                        {new Intl.NumberFormat().format(
+                          wrappedInvoiceResponse.outgoingLiquidity
+                        )}{" "}
+                        sats
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  {wrappedInvoiceResponse.incomingLiquidity > 0 && (
+                    <TableRow>
+                      <TableCell className="font-medium p-3">
+                        Incoming Liquidity
+                      </TableCell>
+                      <TableCell className="text-right p-3">
+                        {new Intl.NumberFormat().format(
+                          wrappedInvoiceResponse.incomingLiquidity
+                        )}{" "}
+                        sats
+                      </TableCell>
+                    </TableRow>
+                  )}
                   <TableRow>
                     <TableCell className="font-medium p-3 flex flex-row gap-1.5 items-center">
                       Fee
@@ -632,7 +658,9 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                       Amount to pay
                     </TableCell>
                     <TableCell className="font-semibold text-right p-3">
-                      {new Intl.NumberFormat().format(parseInt(order.amount))}{" "}
+                      {new Intl.NumberFormat().format(
+                        wrappedInvoiceResponse.invoiceAmount
+                      )}{" "}
                       sats
                     </TableCell>
                   </TableRow>
