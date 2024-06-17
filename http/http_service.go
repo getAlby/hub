@@ -12,14 +12,13 @@ import (
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
 	"github.com/getAlby/nostr-wallet-connect/alby"
 	"github.com/getAlby/nostr-wallet-connect/config"
 	"github.com/getAlby/nostr-wallet-connect/db"
 	"github.com/getAlby/nostr-wallet-connect/events"
-	"github.com/getAlby/nostr-wallet-connect/lsp"
+	"github.com/getAlby/nostr-wallet-connect/logger"
 	"github.com/getAlby/nostr-wallet-connect/service"
 
 	"github.com/getAlby/nostr-wallet-connect/api"
@@ -30,9 +29,8 @@ type HttpService struct {
 	api            api.API
 	albyHttpSvc    *alby.AlbyHttpService
 	cfg            config.Config
-	db             *gorm.DB
-	logger         *logrus.Logger
 	eventPublisher events.EventPublisher
+	db             *gorm.DB
 }
 
 const (
@@ -40,14 +38,13 @@ const (
 	sessionCookieAuthKey = "authenticated"
 )
 
-func NewHttpService(svc service.Service, logger *logrus.Logger, db *gorm.DB, eventPublisher events.EventPublisher) *HttpService {
+func NewHttpService(svc service.Service, eventPublisher events.EventPublisher) *HttpService {
 	return &HttpService{
-		api:            api.NewAPI(svc, logger, db),
-		albyHttpSvc:    alby.NewAlbyHttpService(svc.GetAlbyOAuthSvc(), logger, svc.GetConfig().GetEnv()),
+		api:            api.NewAPI(svc, svc.GetDB(), svc.GetConfig(), svc.GetKeys(), svc.GetAlbyOAuthSvc(), svc.GetEventPublisher()),
+		albyHttpSvc:    alby.NewAlbyHttpService(svc.GetAlbyOAuthSvc(), svc.GetConfig().GetEnv()),
 		cfg:            svc.GetConfig(),
-		db:             db,
-		logger:         logger,
 		eventPublisher: eventPublisher,
+		db:             svc.GetDB(),
 	}
 }
 
@@ -258,7 +255,7 @@ func (httpSvc *HttpService) saveSessionCookie(c echo.Context) error {
 	sess.Values[sessionCookieAuthKey] = true
 	err := sess.Save(c.Request(), c.Response())
 	if err != nil {
-		httpSvc.logger.WithError(err).Error("Failed to save session")
+		logger.Logger.WithError(err).Error("Failed to save session")
 	}
 	return err
 }
@@ -411,7 +408,7 @@ func (httpSvc *HttpService) mempoolApiHandler(c echo.Context) error {
 
 	response, err := httpSvc.api.RequestMempoolApi(endpoint)
 	if err != nil {
-		httpSvc.logger.WithField("endpoint", endpoint).WithError(err).Error("Failed to request mempool API")
+		logger.Logger.WithField("endpoint", endpoint).WithError(err).Error("Failed to request mempool API")
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: fmt.Sprintf("Failed to request mempool API: %s", err.Error()),
 		})
@@ -504,14 +501,14 @@ func (httpSvc *HttpService) closeChannelHandler(c echo.Context) error {
 func (httpSvc *HttpService) newInstantChannelInvoiceHandler(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	var newWrappedInvoiceRequest lsp.NewInstantChannelInvoiceRequest
+	var newWrappedInvoiceRequest api.NewInstantChannelInvoiceRequest
 	if err := c.Bind(&newWrappedInvoiceRequest); err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
 			Message: fmt.Sprintf("Bad request: %s", err.Error()),
 		})
 	}
 
-	newWrappedInvoiceResponse, err := httpSvc.api.GetLSPService().NewInstantChannelInvoice(ctx, &newWrappedInvoiceRequest)
+	newWrappedInvoiceResponse, err := httpSvc.api.NewInstantChannelInvoice(ctx, &newWrappedInvoiceRequest)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
@@ -604,8 +601,10 @@ func (httpSvc *HttpService) appsListHandler(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) appsShowHandler(c echo.Context) error {
-	app := db.App{}
-	findResult := httpSvc.db.Where("nostr_pubkey = ?", c.Param("pubkey")).First(&app)
+
+	// TODO: move this to DB service
+	dbApp := db.App{}
+	findResult := httpSvc.db.Where("nostr_pubkey = ?", c.Param("pubkey")).First(&dbApp)
 
 	if findResult.RowsAffected == 0 {
 		return c.JSON(http.StatusNotFound, ErrorResponse{
@@ -613,7 +612,7 @@ func (httpSvc *HttpService) appsShowHandler(c echo.Context) error {
 		})
 	}
 
-	response := httpSvc.api.GetApp(&app)
+	response := httpSvc.api.GetApp(&dbApp)
 
 	return c.JSON(http.StatusOK, response)
 }
@@ -626,8 +625,9 @@ func (httpSvc *HttpService) appsUpdateHandler(c echo.Context) error {
 		})
 	}
 
-	app := db.App{}
-	findResult := httpSvc.db.Where("nostr_pubkey = ?", c.Param("pubkey")).First(&app)
+	// TODO: move this to DB service
+	dbApp := db.App{}
+	findResult := httpSvc.db.Where("nostr_pubkey = ?", c.Param("pubkey")).First(&dbApp)
 
 	if findResult.RowsAffected == 0 {
 		return c.JSON(http.StatusNotFound, ErrorResponse{
@@ -635,10 +635,10 @@ func (httpSvc *HttpService) appsUpdateHandler(c echo.Context) error {
 		})
 	}
 
-	err := httpSvc.api.UpdateApp(&app, &requestData)
+	err := httpSvc.api.UpdateApp(&dbApp, &requestData)
 
 	if err != nil {
-		httpSvc.logger.WithError(err).Error("Failed to update app")
+		logger.Logger.WithError(err).Error("Failed to update app")
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: fmt.Sprintf("Failed to update app: %v", err),
 		})
@@ -654,8 +654,9 @@ func (httpSvc *HttpService) appsDeleteHandler(c echo.Context) error {
 			Message: "Invalid pubkey parameter",
 		})
 	}
-	app := db.App{}
-	result := httpSvc.db.Where("nostr_pubkey = ?", pubkey).First(&app)
+	// TODO: move this to DB service
+	dbApp := db.App{}
+	result := httpSvc.db.Where("nostr_pubkey = ?", pubkey).First(&dbApp)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return c.JSON(http.StatusNotFound, ErrorResponse{
@@ -667,7 +668,7 @@ func (httpSvc *HttpService) appsDeleteHandler(c echo.Context) error {
 		})
 	}
 
-	if err := httpSvc.api.DeleteApp(&app); err != nil {
+	if err := httpSvc.api.DeleteApp(&dbApp); err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: "Failed to delete app",
 		})
@@ -686,7 +687,7 @@ func (httpSvc *HttpService) appsCreateHandler(c echo.Context) error {
 	responseBody, err := httpSvc.api.CreateApp(&requestData)
 
 	if err != nil {
-		httpSvc.logger.WithField("requestData", requestData).WithError(err).Error("Failed to save app")
+		logger.Logger.WithField("requestData", requestData).WithError(err).Error("Failed to save app")
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: fmt.Sprintf("Failed to save app: %v", err),
 		})
@@ -789,7 +790,7 @@ func (httpSvc *HttpService) createBackupHandler(c echo.Context) error {
 	}
 
 	var buffer bytes.Buffer
-	err := httpSvc.api.GetBackupService().CreateBackup(backupRequest.UnlockPassword, &buffer)
+	err := httpSvc.api.CreateBackup(backupRequest.UnlockPassword, &buffer)
 	if err != nil {
 		return c.String(500, fmt.Sprintf("Failed to create backup: %v", err))
 	}
@@ -827,7 +828,7 @@ func (httpSvc *HttpService) restoreBackupHandler(c echo.Context) error {
 	}
 	defer file.Close()
 
-	err = httpSvc.api.GetBackupService().RestoreBackup(password, file)
+	err = httpSvc.api.RestoreBackup(password, file)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: fmt.Sprintf("Failed to restore backup: %v", err),

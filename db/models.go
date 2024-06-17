@@ -68,7 +68,7 @@ type Payment struct {
 }
 
 type DBService interface {
-	CreateApp(name string, pubkey string, maxAmount int, budgetRenewal string, expiresAt *time.Time, requestMethods []string) (*App, string, error)
+	CreateApp(name string, pubkey string, maxAmount uint64, budgetRenewal string, expiresAt *time.Time, requestMethods []string) (*App, string, error)
 }
 
 const (

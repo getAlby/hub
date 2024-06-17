@@ -5,19 +5,18 @@ import (
 	"slices"
 	"sync"
 
+	"github.com/getAlby/nostr-wallet-connect/logger"
 	"github.com/sirupsen/logrus"
 )
 
 type eventPublisher struct {
-	logger           *logrus.Logger
 	listeners        []EventSubscriber
 	subscriberMtx    sync.Mutex
 	globalProperties map[string]interface{}
 }
 
-func NewEventPublisher(logger *logrus.Logger) *eventPublisher {
+func NewEventPublisher() *eventPublisher {
 	eventPublisher := &eventPublisher{
-		logger:           logger,
 		listeners:        []EventSubscriber{},
 		globalProperties: map[string]interface{}{},
 	}
@@ -44,15 +43,15 @@ func (el *eventPublisher) RemoveSubscriber(listenerToRemove EventSubscriber) {
 	}
 }
 
-func (el *eventPublisher) Publish(event *Event) {
-	el.subscriberMtx.Lock()
-	defer el.subscriberMtx.Unlock()
-	el.logger.WithFields(logrus.Fields{"event": event}).Info("Logging event")
-	for _, listener := range el.listeners {
+func (ep *eventPublisher) Publish(event *Event) {
+	ep.subscriberMtx.Lock()
+	defer ep.subscriberMtx.Unlock()
+	logger.Logger.WithFields(logrus.Fields{"event": event}).Info("Logging event")
+	for _, listener := range ep.listeners {
 		go func(listener EventSubscriber) {
-			err := listener.ConsumeEvent(context.Background(), event, el.globalProperties)
+			err := listener.ConsumeEvent(context.Background(), event, ep.globalProperties)
 			if err != nil {
-				el.logger.WithError(err).Error("Failed to consume event")
+				logger.Logger.WithError(err).Error("Failed to consume event")
 			}
 		}(listener)
 	}

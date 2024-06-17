@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/getAlby/ldk-node-go/ldk_node"
+	"github.com/getAlby/nostr-wallet-connect/logger"
+
 	// "github.com/getAlby/nostr-wallet-connect/ldk_node"
 	"github.com/sirupsen/logrus"
 )
@@ -20,7 +22,6 @@ There are 3 main channels:
 Based on https://betterprogramming.pub/how-to-broadcast-messages-in-go-using-channels-b68f42bdf32e
 */
 type ldkEventBroadcastServer struct {
-	logger         *logrus.Logger
 	source         <-chan *ldk_node.Event
 	listeners      []chan *ldk_node.Event
 	addListener    chan chan *ldk_node.Event
@@ -32,9 +33,8 @@ type LDKEventBroadcaster interface {
 	CancelSubscription(chan *ldk_node.Event)
 }
 
-func NewLDKEventBroadcaster(logger *logrus.Logger, ctx context.Context, source <-chan *ldk_node.Event) LDKEventBroadcaster {
+func NewLDKEventBroadcaster(ctx context.Context, source <-chan *ldk_node.Event) LDKEventBroadcaster {
 	service := &ldkEventBroadcastServer{
-		logger:         logger,
 		source:         source,
 		listeners:      make([]chan *ldk_node.Event, 0),
 		addListener:    make(chan chan *ldk_node.Event),
@@ -56,7 +56,7 @@ func (s *ldkEventBroadcastServer) CancelSubscription(channel chan *ldk_node.Even
 	func() {
 		defer func() {
 			if r := recover(); r != nil {
-				s.logger.WithField("r", r).Error("Failed to close subscription channel")
+				logger.Logger.WithField("r", r).Error("Failed to close subscription channel")
 			}
 		}()
 		close(channel)
@@ -72,7 +72,7 @@ func (s *ldkEventBroadcastServer) serve(ctx context.Context) {
 			func() {
 				defer func() {
 					if r := recover(); r != nil {
-						s.logger.WithField("r", r).Error("Failed to close subscription channel")
+						logger.Logger.WithField("r", r).Error("Failed to close subscription channel")
 					}
 				}()
 				close(listener)
@@ -101,7 +101,7 @@ func (s *ldkEventBroadcastServer) serve(ctx context.Context) {
 			}
 		case event := <-s.source:
 			// got a new LDK event - send it to all listeners
-			s.logger.WithFields(logrus.Fields{
+			logger.Logger.WithFields(logrus.Fields{
 				"event":         event,
 				"listenerCount": len(s.listeners),
 			}).Debug("Sending LDK event to listeners")
@@ -110,7 +110,7 @@ func (s *ldkEventBroadcastServer) serve(ctx context.Context) {
 					// if we fail to send the event to the listener it was probably closed
 					defer func() {
 						if r := recover(); r != nil {
-							s.logger.WithField("r", r).Error("Failed to send event to listener")
+							logger.Logger.WithField("r", r).Error("Failed to send event to listener")
 						}
 					}()
 
@@ -119,11 +119,11 @@ func (s *ldkEventBroadcastServer) serve(ctx context.Context) {
 					// worst case scenario: it times out because the listener is stuck processing an event
 					select {
 					case listener <- event:
-						s.logger.WithFields(logrus.Fields{
+						logger.Logger.WithFields(logrus.Fields{
 							"event": event,
 						}).Debug("Sent LDK event to listener")
 					case <-time.After(5 * time.Second):
-						s.logger.WithFields(logrus.Fields{
+						logger.Logger.WithFields(logrus.Fields{
 							"event": event,
 						}).Error("Timeout sending LDK event to listener")
 					}

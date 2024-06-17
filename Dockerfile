@@ -33,7 +33,7 @@ COPY . .
 # Copy frontend dist files into the container
 COPY --from=frontend /build/frontend/dist ./frontend/dist
 
-RUN GOARCH=$(echo "$TARGETPLATFORM" | cut -d'/' -f2) go build -o main .
+RUN GOARCH=$(echo "$TARGETPLATFORM" | cut -d'/' -f2) go build -o main cmd/http/main.go
 
 RUN cp `find /go/pkg/mod/github.com/breez/ |grep linux-amd64 |grep libbreez_sdk_bindings.so` ./
 RUN cp `find /go/pkg/mod/github.com/get\!alby/ | grep x86_64-unknown-linux-gnu | grep libglalby_bindings.so` ./

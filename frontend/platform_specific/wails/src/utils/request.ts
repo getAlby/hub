@@ -1,4 +1,4 @@
-import { WailsRequestRouter } from "wailsjs/go/main/WailsApp";
+import { WailsRequestRouter } from "wailsjs/go/wails/WailsApp";
 
 export const request = async <T>(
   ...args: Parameters<typeof fetch>

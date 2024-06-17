@@ -19,7 +19,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Run tests
-        run: mkdir frontend/dist && touch frontend/dist/tmp && go test
+        run: mkdir frontend/dist && touch frontend/dist/tmp && go test ./...
       - name: Docker build
         uses: mr-smithers-excellent/docker-build-push@v6
         id: build

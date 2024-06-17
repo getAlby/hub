@@ -4,34 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"time"
-
-	"github.com/getAlby/nostr-wallet-connect/nip47"
 )
-
-func GetStartOfBudget(budget_type string, createdAt time.Time) time.Time {
-	now := time.Now()
-	switch budget_type {
-	case nip47.BUDGET_RENEWAL_DAILY:
-		// TODO: Use the location of the user, instead of the server
-		return time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
-	case nip47.BUDGET_RENEWAL_WEEKLY:
-		weekday := now.Weekday()
-		var startOfWeek time.Time
-		if weekday == 0 {
-			startOfWeek = now.AddDate(0, 0, -6)
-		} else {
-			startOfWeek = now.AddDate(0, 0, -int(weekday)+1)
-		}
-		return time.Date(startOfWeek.Year(), startOfWeek.Month(), startOfWeek.Day(), 0, 0, 0, 0, startOfWeek.Location())
-	case nip47.BUDGET_RENEWAL_MONTHLY:
-		return time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
-	case nip47.BUDGET_RENEWAL_YEARLY:
-		return time.Date(now.Year(), time.January, 1, 0, 0, 0, 0, now.Location())
-	default: //"never"
-		return createdAt
-	}
-}
 
 func ReadFileTail(filePath string, maxLen int) (data []byte, err error) {
 	f, err := os.Open(filePath)

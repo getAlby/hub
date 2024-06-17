@@ -7,37 +7,32 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/nbd-wtf/go-nostr"
-	"github.com/sirupsen/logrus"
+	"github.com/getAlby/nostr-wallet-connect/db"
+	"github.com/getAlby/nostr-wallet-connect/logger"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
-
-	dbModels "github.com/getAlby/nostr-wallet-connect/db"
 )
 
 type config struct {
-	Env            *AppConfig
-	CookieSecret   string
-	NostrSecretKey string
-	NostrPublicKey string
-	db             *gorm.DB
-	logger         *logrus.Logger
+	Env          *AppConfig
+	CookieSecret string
+	db           *gorm.DB
 }
 
 const (
 	unlockPasswordCheck = "THIS STRING SHOULD MATCH IF PASSWORD IS CORRECT"
 )
 
-func NewConfig(db *gorm.DB, env *AppConfig, logger *logrus.Logger) *config {
-	cfg := &config{}
-	cfg.init(db, env, logger)
+func NewConfig(env *AppConfig, db *gorm.DB) *config {
+	cfg := &config{
+		db: db,
+	}
+	cfg.init(env)
 	return cfg
 }
 
-func (cfg *config) init(db *gorm.DB, env *AppConfig, logger *logrus.Logger) {
-	cfg.db = db
+func (cfg *config) init(env *AppConfig) {
 	cfg.Env = env
-	cfg.logger = logger
 
 	if cfg.Env.Relay != "" {
 		cfg.SetUpdate("Relay", cfg.Env.Relay, "")
@@ -53,7 +48,7 @@ func (cfg *config) init(db *gorm.DB, env *AppConfig, logger *logrus.Logger) {
 	if cfg.Env.LNDCertFile != "" {
 		certBytes, err := os.ReadFile(cfg.Env.LNDCertFile)
 		if err != nil {
-			logger.Fatalf("Failed to read LND cert file: %v", err)
+			logger.Logger.Fatalf("Failed to read LND cert file: %v", err)
 		}
 		certHex := hex.EncodeToString(certBytes)
 		cfg.SetUpdate("LNDCertHex", certHex, "")
@@ -61,7 +56,7 @@ func (cfg *config) init(db *gorm.DB, env *AppConfig, logger *logrus.Logger) {
 	if cfg.Env.LNDMacaroonFile != "" {
 		macBytes, err := os.ReadFile(cfg.Env.LNDMacaroonFile)
 		if err != nil {
-			logger.Fatalf("Failed to read LND macaroon file: %v", err)
+			logger.Logger.Fatalf("Failed to read LND macaroon file: %v", err)
 		}
 		macHex := hex.EncodeToString(macBytes)
 		cfg.SetUpdate("LNDMacaroonHex", macHex, "")
@@ -86,14 +81,6 @@ func (cfg *config) init(db *gorm.DB, env *AppConfig, logger *logrus.Logger) {
 	}
 }
 
-func (cfg *config) GetNostrPublicKey() string {
-	return cfg.NostrPublicKey
-}
-
-func (cfg *config) GetNostrSecretKey() string {
-	return cfg.NostrSecretKey
-}
-
 func (cfg *config) GetCookieSecret() string {
 	return cfg.CookieSecret
 }
@@ -107,11 +94,11 @@ func (cfg *config) Get(key string, encryptionKey string) (string, error) {
 	return cfg.get(key, encryptionKey, cfg.db)
 }
 
-func (cfg *config) get(key string, encryptionKey string, db *gorm.DB) (string, error) {
-	var userConfig dbModels.UserConfig
-	err := db.Where(&dbModels.UserConfig{Key: key}).Limit(1).Find(&userConfig).Error
+func (cfg *config) get(key string, encryptionKey string, gormDB *gorm.DB) (string, error) {
+	var userConfig db.UserConfig
+	err := gormDB.Where(&db.UserConfig{Key: key}).Limit(1).Find(&userConfig).Error
 	if err != nil {
-		return "", fmt.Errorf("failed to get configuration value: %w", db.Error)
+		return "", fmt.Errorf("failed to get configuration value: %w", gormDB.Error)
 	}
 
 	value := userConfig.Value
@@ -125,7 +112,7 @@ func (cfg *config) get(key string, encryptionKey string, db *gorm.DB) (string, e
 	return value, nil
 }
 
-func (cfg *config) set(key string, value string, clauses clause.OnConflict, encryptionKey string, db *gorm.DB) error {
+func (cfg *config) set(key string, value string, clauses clause.OnConflict, encryptionKey string, gormDB *gorm.DB) error {
 	if encryptionKey != "" {
 		encrypted, err := AesGcmEncrypt(value, encryptionKey)
 		if err != nil {
@@ -133,8 +120,8 @@ func (cfg *config) set(key string, value string, clauses clause.OnConflict, encr
 		}
 		value = encrypted
 	}
-	userConfig := dbModels.UserConfig{Key: key, Value: value, Encrypted: encryptionKey != ""}
-	result := db.Clauses(clauses).Create(&userConfig)
+	userConfig := db.UserConfig{Key: key, Value: value, Encrypted: encryptionKey != ""}
+	result := gormDB.Clauses(clauses).Create(&userConfig)
 
 	if result.Error != nil {
 		return fmt.Errorf("failed to save key to config: %v", result.Error)
@@ -149,7 +136,7 @@ func (cfg *config) SetIgnore(key string, value string, encryptionKey string) {
 	}
 	err := cfg.set(key, value, clauses, encryptionKey, cfg.db)
 	if err != nil {
-		cfg.logger.Fatalf("Failed to save config: %v", err)
+		logger.Logger.Fatalf("Failed to save config: %v", err)
 	}
 }
 
@@ -160,7 +147,7 @@ func (cfg *config) SetUpdate(key string, value string, encryptionKey string) {
 	}
 	err := cfg.set(key, value, clauses, encryptionKey, cfg.db)
 	if err != nil {
-		cfg.logger.Fatalf("Failed to save config: %v", err)
+		logger.Logger.Fatalf("Failed to save config: %v", err)
 	}
 }
 
@@ -170,18 +157,18 @@ func (cfg *config) ChangeUnlockPassword(currentUnlockPassword string, newUnlockP
 	}
 	err := cfg.db.Transaction(func(tx *gorm.DB) error {
 
-		var encryptedUserConfigs []dbModels.UserConfig
-		err := tx.Where(&dbModels.UserConfig{Encrypted: true}).Find(&encryptedUserConfigs).Error
+		var encryptedUserConfigs []db.UserConfig
+		err := tx.Where(&db.UserConfig{Encrypted: true}).Find(&encryptedUserConfigs).Error
 		if err != nil {
 			return err
 		}
 
-		cfg.logger.WithField("count", len(encryptedUserConfigs)).Info("Updating encrypted entries")
+		logger.Logger.WithField("count", len(encryptedUserConfigs)).Info("Updating encrypted entries")
 
 		for _, userConfig := range encryptedUserConfigs {
 			decryptedValue, err := cfg.get(userConfig.Key, currentUnlockPassword, tx)
 			if err != nil {
-				cfg.logger.WithField("key", userConfig.Key).WithError(err).Error("Failed to decrypt key")
+				logger.Logger.WithField("key", userConfig.Key).WithError(err).Error("Failed to decrypt key")
 				return err
 			}
 			clauses := clause.OnConflict{
@@ -190,10 +177,10 @@ func (cfg *config) ChangeUnlockPassword(currentUnlockPassword string, newUnlockP
 			}
 			err = cfg.set(userConfig.Key, decryptedValue, clauses, newUnlockPassword, tx)
 			if err != nil {
-				cfg.logger.WithField("key", userConfig.Key).WithError(err).Error("Failed to encrypt key")
+				logger.Logger.WithField("key", userConfig.Key).WithError(err).Error("Failed to encrypt key")
 				return err
 			}
-			cfg.logger.WithField("key", userConfig.Key).Info("re-encrypted key")
+			logger.Logger.WithField("key", userConfig.Key).Info("re-encrypted key")
 		}
 
 		// commit transaction
@@ -201,7 +188,7 @@ func (cfg *config) ChangeUnlockPassword(currentUnlockPassword string, newUnlockP
 	})
 
 	if err != nil {
-		cfg.logger.WithError(err).Error("failed to execute db transaction")
+		logger.Logger.WithError(err).Error("failed to execute db transaction")
 		return err
 	}
 
@@ -214,25 +201,9 @@ func (cfg *config) CheckUnlockPassword(encryptionKey string) bool {
 	return err == nil && (decryptedValue == "" || decryptedValue == unlockPasswordCheck)
 }
 
+// TODO: rename
 func (cfg *config) Setup(encryptionKey string) {
 	cfg.SetUpdate("UnlockPasswordCheck", unlockPasswordCheck, encryptionKey)
-}
-
-func (cfg *config) Start(encryptionKey string) error {
-	nostrSecretKey, _ := cfg.Get("NostrSecretKey", encryptionKey)
-
-	if nostrSecretKey == "" {
-		nostrSecretKey = nostr.GeneratePrivateKey()
-		cfg.SetUpdate("NostrSecretKey", nostrSecretKey, encryptionKey)
-	}
-	nostrPublicKey, err := nostr.GetPublicKey(nostrSecretKey)
-	if err != nil {
-		cfg.logger.WithError(err).Error("Error converting nostr privkey to pubkey")
-		return err
-	}
-	cfg.NostrSecretKey = nostrSecretKey
-	cfg.NostrPublicKey = nostrPublicKey
-	return nil
 }
 
 func (cfg *config) GetEnv() *AppConfig {

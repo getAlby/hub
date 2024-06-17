@@ -73,6 +73,8 @@ export default function AppLayout() {
     toast({ title: "You are now logged out." });
   }, [csrf, navigate, refetchInfo, toast]);
 
+  const isHttpMode = window.location.protocol.startsWith("http");
+
   function UserMenuContent() {
     return (
       <DropdownMenuContent align="end">
@@ -88,13 +90,15 @@ export default function AppLayout() {
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem
-          onClick={logout}
-          className="w-full flex flex-row items-center gap-2"
-        >
-          <Lock className="w-4 h-4" />
-          <p>Lock Alby Hub</p>
-        </DropdownMenuItem>
+        {isHttpMode && (
+          <DropdownMenuItem
+            onClick={logout}
+            className="w-full flex flex-row items-center gap-2"
+          >
+            <Lock className="w-4 h-4" />
+            <p>Lock Alby Hub</p>
+          </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     );
   }
