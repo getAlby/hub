@@ -6,10 +6,10 @@ import { usePosthog } from "./hooks/usePosthog";
 import { Toaster } from "src/components/ui/toaster";
 import routes from "src/routes.tsx";
 
+const router = createHashRouter(routes);
+
 function App() {
   usePosthog();
-
-  const router = createHashRouter(routes);
 
   return (
     <>
