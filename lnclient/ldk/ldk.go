@@ -17,7 +17,8 @@ import (
 
 	"github.com/getAlby/ldk-node-go/ldk_node"
 	// "github.com/getAlby/nostr-wallet-connect/ldk_node"
-	b64 "encoding/base64"
+
+	"encoding/hex"
 
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
@@ -1009,11 +1010,15 @@ func (ls *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 		if spontaneousPaymentKind.Preimage != nil {
 			preimage = *spontaneousPaymentKind.Preimage
 		}
-		customRecords := map[string]string{}
+
+		tlvRecords := []lnclient.TLVRecord{}
 		for _, tlv := range spontaneousPaymentKind.CustomTlvs {
-			customRecords[strconv.FormatUint(tlv.Type, 10)] = b64.StdEncoding.EncodeToString(tlv.Value)
+			tlvRecords = append(tlvRecords, lnclient.TLVRecord{
+				Type:  tlv.Type,
+				Value: hex.EncodeToString(tlv.Value),
+			})
 		}
-		metadata["custom_records"] = customRecords
+		metadata["tlv_records"] = tlvRecords
 	}
 
 	var amount uint64 = 0

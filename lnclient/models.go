@@ -5,7 +5,8 @@ import (
 )
 
 type TLVRecord struct {
-	Type  uint64 `json:"type"`
+	Type uint64 `json:"type"`
+	// hex-encoded value
 	Value string `json:"value"`
 }
 
