@@ -682,6 +682,7 @@ func (svc *LNDService) GetBalances(ctx context.Context) (*lnclient.BalancesRespo
 func lndInvoiceToTransaction(invoice *lnrpc.Invoice) *lnclient.Transaction {
 	var settledAt *int64
 	var preimage string
+	metadata := map[string]interface{}{}
 	if invoice.State == lnrpc.Invoice_SETTLED {
 		settledAt = &invoice.SettleDate
 		// only set preimage if invoice is settled
@@ -691,6 +692,19 @@ func lndInvoiceToTransaction(invoice *lnrpc.Invoice) *lnclient.Transaction {
 	if invoice.Expiry > 0 {
 		expiresAtUnix := invoice.CreationDate + invoice.Expiry
 		expiresAt = &expiresAtUnix
+	}
+
+	if invoice.IsKeysend {
+		tlvRecords := []lnclient.TLVRecord{}
+		for _, htlc := range invoice.Htlcs {
+			for key, value := range htlc.CustomRecords {
+				tlvRecords = append(tlvRecords, lnclient.TLVRecord{
+					Type:  key,
+					Value: hex.EncodeToString(value),
+				})
+			}
+		}
+		metadata["tlv_records"] = tlvRecords
 	}
 
 	return &lnclient.Transaction{
@@ -705,7 +719,7 @@ func lndInvoiceToTransaction(invoice *lnrpc.Invoice) *lnclient.Transaction {
 		CreatedAt:       invoice.CreationDate,
 		SettledAt:       settledAt,
 		ExpiresAt:       expiresAt,
-		// TODO: Metadata (e.g. keysend)
+		Metadata:        metadata,
 	}
 }
 
