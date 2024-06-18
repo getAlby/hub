@@ -247,7 +247,12 @@ func (cs *CashuService) GetNodeStatus(ctx context.Context) (nodeStatus *lnclient
 func (cs *CashuService) SendPaymentProbes(ctx context.Context, invoice string) error {
 	return nil
 }
+
 func (cs *CashuService) SendSpontaneousPaymentProbes(ctx context.Context, amountMsat uint64, nodeId string) error {
+	return nil
+}
+
+func (cs *CashuService) UpdateChannel(ctx context.Context, updateChannelRequest *lnclient.UpdateChannelRequest) error {
 	return nil
 }
 

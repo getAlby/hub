@@ -56,6 +56,7 @@ type LNClient interface {
 	ConnectPeer(ctx context.Context, connectPeerRequest *ConnectPeerRequest) error
 	OpenChannel(ctx context.Context, openChannelRequest *OpenChannelRequest) (*OpenChannelResponse, error)
 	CloseChannel(ctx context.Context, closeChannelRequest *CloseChannelRequest) (*CloseChannelResponse, error)
+	UpdateChannel(ctx context.Context, updateChannelRequest *UpdateChannelRequest) error
 	DisconnectPeer(ctx context.Context, peerId string) error
 	GetNewOnchainAddress(ctx context.Context) (string, error)
 	ResetRouter(key string) error
@@ -83,6 +84,7 @@ type Channel struct {
 	InternalChannel       interface{} `json:"internalChannel"`
 	Confirmations         *uint32     `json:"confirmations"`
 	ConfirmationsRequired *uint32     `json:"confirmationsRequired"`
+	ForwardingFeeBaseMsat uint32      `json:"forwardingFeeBaseMsat"`
 }
 
 type NodeStatus struct {
@@ -109,6 +111,12 @@ type CloseChannelRequest struct {
 	ChannelId string `json:"channelId"`
 	NodeId    string `json:"nodeId"`
 	Force     bool   `json:"force"`
+}
+
+type UpdateChannelRequest struct {
+	ChannelId             string `json:"channelId"`
+	NodeId                string `json:"nodeId"`
+	ForwardingFeeBaseMsat uint32 `json:"forwardingFeeBaseMsat"`
 }
 
 type CloseChannelResponse struct {

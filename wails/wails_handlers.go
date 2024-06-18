@@ -96,19 +96,37 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 	}
 
 	peerChannelRegex := regexp.MustCompile(
-		`/api/peers/([^/]+)/channels/([^/]+)\?force=(.+)`,
+		`/api/peers/([^/]+)/channels/([^/]+)`,
 	)
 
 	peerChannelMatch := peerChannelRegex.FindStringSubmatch(route)
 
 	switch {
-	case len(peerChannelMatch) == 4:
+	case len(peerChannelMatch) == 3:
 		peerId := peerChannelMatch[1]
 		channelId := peerChannelMatch[2]
-		force := peerChannelMatch[3]
 		switch method {
+		case "PATCH":
+			updateChannelRequest := &api.UpdateChannelRequest{}
+			err := json.Unmarshal([]byte(body), updateChannelRequest)
+			if err != nil {
+				logger.Logger.WithFields(logrus.Fields{
+					"route":  route,
+					"method": method,
+					"body":   body,
+				}).WithError(err).Error("Failed to decode request to wails router")
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
+			updateChannelRequest.ChannelId = channelId
+			updateChannelRequest.NodeId = peerId
+
+			err = app.api.UpdateChannel(ctx, updateChannelRequest)
+			if err != nil {
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
+			return WailsRequestRouterResponse{Body: nil, Error: ""}
 		case "DELETE":
-			closeChannelResponse, err := app.api.CloseChannel(ctx, peerId, channelId, force == "true")
+			closeChannelResponse, err := app.api.CloseChannel(ctx, peerId, channelId, strings.Contains(route, "force=true"))
 			if err != nil {
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 			}

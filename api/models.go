@@ -28,6 +28,7 @@ type API interface {
 	DisconnectPeer(ctx context.Context, peerId string) error
 	OpenChannel(ctx context.Context, openChannelRequest *OpenChannelRequest) (*OpenChannelResponse, error)
 	CloseChannel(ctx context.Context, peerId, channelId string, force bool) (*CloseChannelResponse, error)
+	UpdateChannel(ctx context.Context, updateChannelRequest *UpdateChannelRequest) error
 	GetNewOnchainAddress(ctx context.Context) (string, error)
 	GetUnusedOnchainAddress(ctx context.Context) (string, error)
 	SignMessage(ctx context.Context, message string) (*SignMessageResponse, error)
@@ -163,6 +164,7 @@ type ConnectPeerRequest = lnclient.ConnectPeerRequest
 type OpenChannelRequest = lnclient.OpenChannelRequest
 type OpenChannelResponse = lnclient.OpenChannelResponse
 type CloseChannelResponse = lnclient.CloseChannelResponse
+type UpdateChannelRequest = lnclient.UpdateChannelRequest
 
 type RedeemOnchainFundsRequest struct {
 	ToAddress string `json:"toAddress"`

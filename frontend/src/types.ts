@@ -172,6 +172,11 @@ export type Channel = {
   public: boolean;
   confirmations?: number;
   confirmationsRequired?: number;
+  forwardingFeeBaseMsat: number;
+};
+
+export type UpdateChannelRequest = {
+  forwardingFeeBaseMsat: number;
 };
 
 export type Peer = {

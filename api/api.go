@@ -390,6 +390,16 @@ func (api *api) CloseChannel(ctx context.Context, peerId, channelId string, forc
 	})
 }
 
+func (api *api) UpdateChannel(ctx context.Context, updateChannelRequest *UpdateChannelRequest) error {
+	if api.svc.GetLNClient() == nil {
+		return errors.New("LNClient not started")
+	}
+	logger.Logger.WithFields(logrus.Fields{
+		"request": updateChannelRequest,
+	}).Info("updating channel")
+	return api.svc.GetLNClient().UpdateChannel(ctx, updateChannelRequest)
+}
+
 func (api *api) GetNewOnchainAddress(ctx context.Context) (string, error) {
 	if api.svc.GetLNClient() == nil {
 		return "", errors.New("LNClient not started")

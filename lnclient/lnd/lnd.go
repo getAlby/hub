@@ -496,6 +496,8 @@ func (svc *LNDService) OpenChannel(ctx context.Context, openChannelRequest *lncl
 		NodePubkey:         nodePub,
 		Private:            !openChannelRequest.Public,
 		LocalFundingAmount: openChannelRequest.Amount,
+		// set a super-high forwarding fee of 100K sats by default to disable unwanted routing
+		BaseFee: 100_000_000,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to open channel with %s: %s", foundPeer.NodeId, err)
@@ -740,6 +742,52 @@ func (svc *LNDService) GetNetworkGraph(nodeIds []string) (lnclient.NetworkGraphR
 }
 
 func (svc *LNDService) UpdateLastWalletSyncRequest() {}
+
+func (svc *LNDService) UpdateChannel(ctx context.Context, updateChannelRequest *lnclient.UpdateChannelRequest) error {
+	logger.Logger.WithFields(logrus.Fields{
+		"request": updateChannelRequest,
+	}).Info("Updating Channel")
+
+	chanId64, err := strconv.ParseUint(updateChannelRequest.ChannelId, 10, 64)
+	if err != nil {
+		return err
+	}
+
+	channelEdge, err := svc.client.GetChanInfo(ctx, &lnrpc.ChanInfoRequest{
+		ChanId: chanId64,
+	})
+	if err != nil {
+		return err
+	}
+
+	channelPoint, err := svc.parseChannelPoint(channelEdge.ChanPoint)
+	if err != nil {
+		return err
+	}
+
+	var nodePolicy *lnrpc.RoutingPolicy
+	if channelEdge.Node1Pub == svc.client.IdentityPubkey {
+		nodePolicy = channelEdge.Node1Policy
+	} else {
+		nodePolicy = channelEdge.Node2Policy
+	}
+
+	_, err = svc.client.UpdateChannel(ctx, &lnrpc.PolicyUpdateRequest{
+		Scope: &lnrpc.PolicyUpdateRequest_ChanPoint{
+			ChanPoint: channelPoint,
+		},
+		BaseFeeMsat:   int64(updateChannelRequest.ForwardingFeeBaseMsat),
+		FeeRatePpm:    uint32(nodePolicy.FeeRateMilliMsat),
+		TimeLockDelta: nodePolicy.TimeLockDelta,
+		MaxHtlcMsat:   nodePolicy.MaxHtlcMsat,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
 
 func (svc *LNDService) DisconnectPeer(ctx context.Context, peerId string) error {
 	return nil

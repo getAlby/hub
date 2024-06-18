@@ -664,6 +664,10 @@ func (gs *GreenlightService) GetNetworkGraph(nodeIds []string) (lnclient.Network
 
 func (gs *GreenlightService) UpdateLastWalletSyncRequest() {}
 
+func (gs *GreenlightService) UpdateChannel(ctx context.Context, updateChannelRequest *lnclient.UpdateChannelRequest) error {
+	return nil
+}
+
 func (gs *GreenlightService) DisconnectPeer(ctx context.Context, peerId string) error {
 	return nil
 }

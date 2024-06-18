@@ -781,8 +781,18 @@ func (ls *LDKService) ListChannels(ctx context.Context) ([]lnclient.Channel, err
 			fundingTxId = ldkChannel.FundingTxo.Txid
 		}
 
+		internalChannel := map[string]interface{}{}
+		internalChannel["channel"] = ldkChannel
+		internalChannel["config"] = map[string]interface{}{
+			"AcceptUnderpayingHtlcs":              ldkChannel.Config.AcceptUnderpayingHtlcs(),
+			"CltvExpiryDelta":                     ldkChannel.Config.CltvExpiryDelta(),
+			"ForceCloseAvoidanceMaxFeeSatoshis":   ldkChannel.Config.ForceCloseAvoidanceMaxFeeSatoshis(),
+			"ForwardingFeeBaseMsat":               ldkChannel.Config.ForwardingFeeBaseMsat(),
+			"ForwardingFeeProportionalMillionths": ldkChannel.Config.ForwardingFeeProportionalMillionths(),
+		}
+
 		channels = append(channels, lnclient.Channel{
-			InternalChannel:       ldkChannel,
+			InternalChannel:       internalChannel,
 			LocalBalance:          int64(ldkChannel.OutboundCapacityMsat),
 			RemoteBalance:         int64(ldkChannel.InboundCapacityMsat),
 			RemotePubkey:          ldkChannel.CounterpartyNodeId,
@@ -792,6 +802,7 @@ func (ls *LDKService) ListChannels(ctx context.Context) ([]lnclient.Channel, err
 			FundingTxId:           fundingTxId,
 			Confirmations:         ldkChannel.Confirmations,
 			ConfirmationsRequired: ldkChannel.ConfirmationsRequired,
+			ForwardingFeeBaseMsat: ldkChannel.Config.ForwardingFeeBaseMsat(),
 		})
 	}
 
@@ -849,8 +860,13 @@ func (ls *LDKService) OpenChannel(ctx context.Context, openChannelRequest *lncli
 	ldkEventSubscription := ls.ldkEventBroadcaster.Subscribe()
 	defer ls.ldkEventBroadcaster.CancelSubscription(ldkEventSubscription)
 
+	channelConfig := ldk_node.NewChannelConfig()
+
+	// set a super-high forwarding fee of 100K sats by default to disable unwanted routing
+	channelConfig.SetForwardingFeeBaseMsat(100_000_000)
+
 	logger.Logger.WithField("peer_id", foundPeer.NodeId).Info("Opening channel")
-	userChannelId, err := ls.node.ConnectOpenChannel(foundPeer.NodeId, foundPeer.Address, uint64(openChannelRequest.Amount), nil, nil, openChannelRequest.Public)
+	userChannelId, err := ls.node.ConnectOpenChannel(foundPeer.NodeId, foundPeer.Address, uint64(openChannelRequest.Amount), nil, &channelConfig, openChannelRequest.Public)
 	if err != nil {
 		logger.Logger.WithError(err).Error("OpenChannel failed")
 		return nil, err
@@ -888,6 +904,32 @@ func (ls *LDKService) OpenChannel(ctx context.Context, openChannelRequest *lncli
 	}
 
 	return nil, errors.New("open channel timeout")
+}
+
+func (ls *LDKService) UpdateChannel(ctx context.Context, updateChannelRequest *lnclient.UpdateChannelRequest) error {
+	channels := ls.node.ListChannels()
+
+	var foundChannel *ldk_node.ChannelDetails
+	for _, channel := range channels {
+		if channel.UserChannelId == updateChannelRequest.ChannelId && channel.CounterpartyNodeId == updateChannelRequest.NodeId {
+			foundChannel = &channel
+			break
+		}
+	}
+
+	if foundChannel == nil {
+		return errors.New("channel not found")
+	}
+
+	existingConfig := foundChannel.Config
+	existingConfig.SetForwardingFeeBaseMsat(updateChannelRequest.ForwardingFeeBaseMsat)
+
+	err := ls.node.UpdateChannelConfig(updateChannelRequest.ChannelId, updateChannelRequest.NodeId, existingConfig)
+	if err != nil {
+		logger.Logger.WithError(err).Error("UpdateChannelConfig failed")
+		return err
+	}
+	return nil
 }
 
 func (ls *LDKService) CloseChannel(ctx context.Context, closeChannelRequest *lnclient.CloseChannelRequest) (*lnclient.CloseChannelResponse, error) {

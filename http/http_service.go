@@ -100,6 +100,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.POST("/api/peers", httpSvc.connectPeerHandler, authMiddleware)
 	e.DELETE("/api/peers/:peerId", httpSvc.disconnectPeerHandler, authMiddleware)
 	e.DELETE("/api/peers/:peerId/channels/:channelId", httpSvc.closeChannelHandler, authMiddleware)
+	e.PATCH("/api/peers/:peerId/channels/:channelId", httpSvc.updateChannelHandler, authMiddleware)
 	e.GET("/api/wallet/address", httpSvc.onchainAddressHandler, authMiddleware)
 	e.POST("/api/wallet/new-address", httpSvc.newOnchainAddressHandler, authMiddleware)
 	e.POST("/api/wallet/redeem-onchain-funds", httpSvc.redeemOnchainFundsHandler, authMiddleware)
@@ -496,6 +497,30 @@ func (httpSvc *HttpService) closeChannelHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, closeChannelResponse)
+}
+
+func (httpSvc *HttpService) updateChannelHandler(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	var updateChannelRequest api.UpdateChannelRequest
+	if err := c.Bind(&updateChannelRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	updateChannelRequest.NodeId = c.Param("peerId")
+	updateChannelRequest.ChannelId = c.Param("channelId")
+
+	err := httpSvc.api.UpdateChannel(ctx, &updateChannelRequest)
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to update channel: %s", err.Error()),
+		})
+	}
+
+	return c.NoContent(http.StatusNoContent)
 }
 
 func (httpSvc *HttpService) newInstantChannelInvoiceHandler(c echo.Context) error {

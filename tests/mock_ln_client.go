@@ -150,7 +150,13 @@ func (mln *MockLn) GetNodeStatus(ctx context.Context) (nodeStatus *lnclient.Node
 func (mln *MockLn) GetNetworkGraph(nodeIds []string) (lnclient.NetworkGraphResponse, error) {
 	return nil, nil
 }
+
 func (mln *MockLn) UpdateLastWalletSyncRequest() {}
+
 func (mln *MockLn) DisconnectPeer(ctx context.Context, peerId string) error {
+	return nil
+}
+
+func (mln *MockLn) UpdateChannel(ctx context.Context, updateChannelRequest *lnclient.UpdateChannelRequest) error {
 	return nil
 }
