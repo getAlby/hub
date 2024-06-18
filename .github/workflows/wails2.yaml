@@ -77,8 +77,8 @@ jobs:
         if: runner.os == 'Windows'
         run: |
           cp `go list -m -f "{{.Dir}}" github.com/breez/breez-sdk-go`/breez_sdk/lib/windows-amd64/breez_sdk_bindings.dll ./
-          cp `go list -m -f "{{.Dir}}" github.com/getAlby/glalby-go`/glalby/x86_64-pc-windows-gnu/glalby_bindings.dll ./
-          cp `go list -m -f "{{.Dir}}" github.com/getAlby/ldk-node-go`/ldk_node/x86_64-pc-windows-gnu/ldk_node.dll ./
+          cp `go list -m -f "{{.Dir}}" github.com/getAlby/glalby-go`/glalby/x86_64-pc-windows-msvc/glalby_bindings.dll ./
+          cp `go list -m -f "{{.Dir}}" github.com/getAlby/ldk-node-go`/ldk_node/x86_64-pc-windows-msvc/ldk_node.dll ./
         shell: bash
 
       - name: Copy appicon in place
