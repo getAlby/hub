@@ -11,10 +11,10 @@ import (
 // see svc.appCancelFn and how svc.StartNostr works
 func (svc *service) StopLNClient() error {
 	if svc.lnClient != nil {
-		logger.Logger.Info("Shutting down LDK client")
+		logger.Logger.Info("Shutting down LN client")
 		err := svc.lnClient.Shutdown()
 		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to stop LN backend")
+			logger.Logger.WithError(err).Error("Failed to stop LN client")
 			svc.eventPublisher.Publish(&events.Event{
 				Event: "nwc_node_stop_failed",
 				Properties: map[string]interface{}{
