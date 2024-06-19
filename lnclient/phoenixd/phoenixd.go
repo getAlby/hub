@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/getAlby/nostr-wallet-connect/lnclient"
-	"github.com/getAlby/nostr-wallet-connect/nip47"
+	"github.com/getAlby/nostr-wallet-connect/logger"
 
 	"github.com/sirupsen/logrus"
 )
@@ -67,12 +67,11 @@ type BalanceResponse struct {
 type PhoenixService struct {
 	Address       string
 	Authorization string
-	Logger        *logrus.Logger
 }
 
-func NewPhoenixService(logger *logrus.Logger, address string, authorization string) (result lnclient.LNClient, err error) {
+func NewPhoenixService(address string, authorization string) (result lnclient.LNClient, err error) {
 	authorizationBase64 := b64.StdEncoding.EncodeToString([]byte(":" + authorization))
-	phoenixService := &PhoenixService{Logger: logger, Address: address, Authorization: authorizationBase64}
+	phoenixService := &PhoenixService{Address: address, Authorization: authorizationBase64}
 
 	return phoenixService, nil
 }
@@ -120,7 +119,7 @@ func (svc *PhoenixService) GetBalances(ctx context.Context) (*lnclient.BalancesR
 	}, nil
 }
 
-func (svc *PhoenixService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []nip47.Transaction, err error) {
+func (svc *PhoenixService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []lnclient.Transaction, err error) {
 	incomingQuery := url.Values{}
 	if from != 0 {
 		incomingQuery.Add("from", strconv.FormatUint(from*1000, 10))
@@ -138,7 +137,7 @@ func (svc *PhoenixService) ListTransactions(ctx context.Context, from, until, li
 
 	incomingUrl := svc.Address + "/payments/incoming?" + incomingQuery.Encode()
 
-	svc.Logger.WithFields(logrus.Fields{
+	logger.Logger.WithFields(logrus.Fields{
 		"url": incomingUrl,
 	}).Infof("Fetching incoming tranasctions: %s", incomingUrl)
 	incomingReq, err := http.NewRequest(http.MethodGet, incomingUrl, nil)
@@ -158,14 +157,14 @@ func (svc *PhoenixService) ListTransactions(ctx context.Context, from, until, li
 	if err := json.NewDecoder(incomingResp.Body).Decode(&incomingPayments); err != nil {
 		return nil, err
 	}
-	transactions = []nip47.Transaction{}
+	transactions = []lnclient.Transaction{}
 	for _, invoice := range incomingPayments {
 		var settledAt *int64
 		if invoice.CompletedAt != 0 {
 			settledAtUnix := time.UnixMilli(invoice.CompletedAt).Unix()
 			settledAt = &settledAtUnix
 		}
-		transaction := nip47.Transaction{
+		transaction := lnclient.Transaction{
 			Type:        "incoming",
 			Invoice:     invoice.Invoice,
 			Preimage:    invoice.Preimage,
@@ -197,7 +196,7 @@ func (svc *PhoenixService) ListTransactions(ctx context.Context, from, until, li
 
 	outgoingUrl := svc.Address + "/payments/outgoing?" + outgoingQuery.Encode()
 
-	svc.Logger.WithFields(logrus.Fields{
+	logger.Logger.WithFields(logrus.Fields{
 		"url": outgoingUrl,
 	}).Infof("Fetching outgoing tranasctions: %s", outgoingUrl)
 	outgoingReq, err := http.NewRequest(http.MethodGet, outgoingUrl, nil)
@@ -221,7 +220,7 @@ func (svc *PhoenixService) ListTransactions(ctx context.Context, from, until, li
 			settledAtUnix := time.UnixMilli(invoice.CompletedAt).Unix()
 			settledAt = &settledAtUnix
 		}
-		transaction := nip47.Transaction{
+		transaction := lnclient.Transaction{
 			Type:        "outgoing",
 			Invoice:     invoice.Invoice,
 			Preimage:    invoice.Preimage,
@@ -274,7 +273,7 @@ func (svc *PhoenixService) ListChannels(ctx context.Context) ([]lnclient.Channel
 	return channels, nil
 }
 
-func (svc *PhoenixService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *nip47.Transaction, err error) {
+func (svc *PhoenixService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *lnclient.Transaction, err error) {
 	form := url.Values{}
 	amountSat := strconv.FormatInt(amount/1000, 10)
 	form.Add("amountSat", amountSat)
@@ -288,7 +287,7 @@ func (svc *PhoenixService) MakeInvoice(ctx context.Context, amount int64, descri
 
 	today := time.Now().UTC().Format("2006-02-01") // querying is too slow so we limit the invoices we query with the date - see list transactions
 	form.Add("externalId", today)                  // for some resone phoenixd requires an external id to query a list of invoices. thus we set this to nwc
-	svc.Logger.WithFields(logrus.Fields{
+	logger.Logger.WithFields(logrus.Fields{
 		"externalId": today,
 		"amountSat":  amountSat,
 	}).Infof("Requesting phoenix invoice")
@@ -311,7 +310,7 @@ func (svc *PhoenixService) MakeInvoice(ctx context.Context, amount int64, descri
 	}
 	expiresAt := time.Now().Add(1 * time.Hour).Unix()
 
-	tx := &nip47.Transaction{
+	tx := &lnclient.Transaction{
 		Type:        "incoming",
 		Invoice:     invoiceRes.Serialized,
 		Preimage:    "",
@@ -325,7 +324,7 @@ func (svc *PhoenixService) MakeInvoice(ctx context.Context, amount int64, descri
 	return tx, nil
 }
 
-func (svc *PhoenixService) LookupInvoice(ctx context.Context, paymentHash string) (transaction *nip47.Transaction, err error) {
+func (svc *PhoenixService) LookupInvoice(ctx context.Context, paymentHash string) (transaction *lnclient.Transaction, err error) {
 	req, err := http.NewRequest(http.MethodGet, svc.Address+"/payments/incoming/"+paymentHash, nil)
 	if err != nil {
 		return nil, err
@@ -348,7 +347,7 @@ func (svc *PhoenixService) LookupInvoice(ctx context.Context, paymentHash string
 		settledAtUnix := time.UnixMilli(invoiceRes.CompletedAt).Unix()
 		settledAt = &settledAtUnix
 	}
-	transaction = &nip47.Transaction{
+	transaction = &lnclient.Transaction{
 		Type:        "incoming",
 		Invoice:     invoiceRes.Invoice,
 		Preimage:    invoiceRes.Preimage,
@@ -390,7 +389,7 @@ func (svc *PhoenixService) SendPaymentSync(ctx context.Context, payReq string) (
 	}, nil
 }
 
-func (svc *PhoenixService) SendKeysend(ctx context.Context, amount int64, destination, preimage string, custom_records []lnclient.TLVRecord) (respPreimage string, err error) {
+func (svc *PhoenixService) SendKeysend(ctx context.Context, amount uint64, destination, preimage string, custom_records []lnclient.TLVRecord) (respPreimage string, err error) {
 	return "", errors.New("not implemented")
 }
 
@@ -480,6 +479,11 @@ func (svc *PhoenixService) GetNetworkGraph(nodeIds []string) (lnclient.NetworkGr
 }
 
 func (svc *PhoenixService) UpdateLastWalletSyncRequest() {}
+
 func (svc *PhoenixService) DisconnectPeer(ctx context.Context, peerId string) error {
+	return nil
+}
+
+func (svc *PhoenixService) UpdateChannel(ctx context.Context, updateChannelRequest *lnclient.UpdateChannelRequest) error {
 	return nil
 }

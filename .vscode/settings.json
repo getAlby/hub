@@ -4,7 +4,6 @@
     "editor.defaultFormatter": "golang.go"
   },
   "editor.formatOnSave": true,
-  "go.buildTags": "http,wails",
   "typescript.preferences.importModuleSpecifier": "non-relative",
   "editor.codeActionsOnSave": {
     "source.organizeImports": "always"

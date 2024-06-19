@@ -2,13 +2,12 @@ package api
 
 import (
 	"context"
+	"io"
 	"time"
 
 	"github.com/getAlby/nostr-wallet-connect/alby"
-	"github.com/getAlby/nostr-wallet-connect/backup"
 	"github.com/getAlby/nostr-wallet-connect/db"
 	"github.com/getAlby/nostr-wallet-connect/lnclient"
-	"github.com/getAlby/nostr-wallet-connect/lsp"
 )
 
 type API interface {
@@ -29,6 +28,7 @@ type API interface {
 	DisconnectPeer(ctx context.Context, peerId string) error
 	OpenChannel(ctx context.Context, openChannelRequest *OpenChannelRequest) (*OpenChannelResponse, error)
 	CloseChannel(ctx context.Context, peerId, channelId string, force bool) (*CloseChannelResponse, error)
+	UpdateChannel(ctx context.Context, updateChannelRequest *UpdateChannelRequest) error
 	GetNewOnchainAddress(ctx context.Context) (string, error)
 	GetUnusedOnchainAddress(ctx context.Context) (string, error)
 	SignMessage(ctx context.Context, message string) (*SignMessageResponse, error)
@@ -45,8 +45,9 @@ type API interface {
 	GetNetworkGraph(nodeIds []string) (NetworkGraphResponse, error)
 	SyncWallet() error
 	GetLogOutput(ctx context.Context, logType string, getLogRequest *GetLogOutputRequest) (*GetLogOutputResponse, error)
-	GetLSPService() lsp.LSPService
-	GetBackupService() backup.BackupService
+	NewInstantChannelInvoice(ctx context.Context, request *NewInstantChannelInvoiceRequest) (*NewInstantChannelInvoiceResponse, error)
+	CreateBackup(unlockPassword string, w io.Writer) error
+	RestoreBackup(unlockPassword string, r io.Reader) error
 }
 
 type App struct {
@@ -60,8 +61,8 @@ type App struct {
 	LastEventAt    *time.Time `json:"lastEventAt"`
 	ExpiresAt      *time.Time `json:"expiresAt"`
 	RequestMethods []string   `json:"requestMethods"`
-	MaxAmount      int        `json:"maxAmount"`
-	BudgetUsage    int64      `json:"budgetUsage"`
+	MaxAmount      uint64     `json:"maxAmount"`
+	BudgetUsage    uint64     `json:"budgetUsage"`
 	BudgetRenewal  string     `json:"budgetRenewal"`
 }
 
@@ -70,7 +71,7 @@ type ListAppsResponse struct {
 }
 
 type UpdateAppRequest struct {
-	MaxAmount      int    `json:"maxAmount"`
+	MaxAmount      uint64 `json:"maxAmount"`
 	BudgetRenewal  string `json:"budgetRenewal"`
 	ExpiresAt      string `json:"expiresAt"`
 	RequestMethods string `json:"requestMethods"`
@@ -79,7 +80,7 @@ type UpdateAppRequest struct {
 type CreateAppRequest struct {
 	Name           string `json:"name"`
 	Pubkey         string `json:"pubkey"`
-	MaxAmount      int    `json:"maxAmount"`
+	MaxAmount      uint64 `json:"maxAmount"`
 	BudgetRenewal  string `json:"budgetRenewal"`
 	ExpiresAt      string `json:"expiresAt"`
 	RequestMethods string `json:"requestMethods"`
@@ -163,6 +164,7 @@ type ConnectPeerRequest = lnclient.ConnectPeerRequest
 type OpenChannelRequest = lnclient.OpenChannelRequest
 type OpenChannelResponse = lnclient.OpenChannelResponse
 type CloseChannelResponse = lnclient.CloseChannelResponse
+type UpdateChannelRequest = lnclient.UpdateChannelRequest
 
 type RedeemOnchainFundsRequest struct {
 	ToAddress string `json:"toAddress"`
@@ -228,3 +230,17 @@ type BasicRestoreWailsRequest struct {
 }
 
 type NetworkGraphResponse = lnclient.NetworkGraphResponse
+
+type NewInstantChannelInvoiceRequest struct {
+	Amount uint64 `json:"amount"`
+	LSP    string `json:"lsp"`
+	Public bool   `json:"public"`
+}
+
+type NewInstantChannelInvoiceResponse struct {
+	Invoice           string `json:"invoice"`
+	Fee               uint64 `json:"fee"`
+	InvoiceAmount     uint64 `json:"invoiceAmount"`
+	IncomingLiquidity uint64 `json:"incomingLiquidity"`
+	OutgoingLiquidity uint64 `json:"outgoingLiquidity"`
+}

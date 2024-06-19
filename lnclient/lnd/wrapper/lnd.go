@@ -176,3 +176,11 @@ func (wrapper *LNDWrapper) WalletBalance(ctx context.Context, req *lnrpc.WalletB
 func (wrapper *LNDWrapper) NewAddress(ctx context.Context, req *lnrpc.NewAddressRequest, options ...grpc.CallOption) (*lnrpc.NewAddressResponse, error) {
 	return wrapper.client.NewAddress(ctx, req, options...)
 }
+
+func (wrapper *LNDWrapper) GetChanInfo(ctx context.Context, req *lnrpc.ChanInfoRequest, options ...grpc.CallOption) (*lnrpc.ChannelEdge, error) {
+	return wrapper.client.GetChanInfo(ctx, req, options...)
+}
+
+func (wrapper *LNDWrapper) UpdateChannel(ctx context.Context, req *lnrpc.PolicyUpdateRequest, options ...grpc.CallOption) (*lnrpc.PolicyUpdateResponse, error) {
+	return wrapper.client.UpdateChannelPolicy(ctx, req, options...)
+}

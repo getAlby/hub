@@ -1,9 +1,5 @@
 package lsp
 
-import (
-	"context"
-)
-
 type LSP struct {
 	Pubkey  string
 	Url     string
@@ -15,11 +11,6 @@ const (
 	LSP_TYPE_PMLSP    = "PMLSP"
 	LSP_TYPE_LSPS1    = "LSPS1"
 )
-
-type NewInstantChannelResponse struct {
-	FeeAmountMsat uint64 `json:"fee_amount_msat"`
-	Invoice       string `json:"invoice"`
-}
 
 func VoltageLSP() LSP {
 	lsp := LSP{
@@ -90,19 +81,4 @@ func MegalithLSP() LSP {
 		LspType: LSP_TYPE_LSPS1,
 	}
 	return lsp
-}
-
-type LSPService interface {
-	NewInstantChannelInvoice(ctx context.Context, request *NewInstantChannelInvoiceRequest) (*NewInstantChannelInvoiceResponse, error)
-}
-
-type NewInstantChannelInvoiceRequest struct {
-	Amount uint64 `json:"amount"`
-	LSP    string `json:"lsp"`
-	Public bool   `json:"public"`
-}
-
-type NewInstantChannelInvoiceResponse struct {
-	Invoice string `json:"invoice"`
-	Fee     uint64 `json:"fee"`
 }

@@ -5,6 +5,7 @@ import {
   ChevronDown,
   CopyIcon,
   ExternalLinkIcon,
+  HandCoins,
   Hotel,
   MoreHorizontal,
   Trash2,
@@ -53,7 +54,12 @@ import { useRedeemOnchainFunds } from "src/hooks/useRedeemOnchainFunds.ts";
 import { useSyncWallet } from "src/hooks/useSyncWallet.ts";
 import { copyToClipboard } from "src/lib/clipboard.ts";
 import { formatAmount } from "src/lib/utils.ts";
-import { CloseChannelResponse, Node } from "src/types";
+import {
+  Channel,
+  CloseChannelResponse,
+  Node,
+  UpdateChannelRequest,
+} from "src/types";
 import { request } from "src/utils/request";
 import { useCSRF } from "../../hooks/useCSRF.ts";
 
@@ -163,6 +169,48 @@ export default function Channels() {
       }
       await reloadChannels();
       toast({ title: "Sucessfully closed channel" });
+    } catch (error) {
+      console.error(error);
+      alert("Something went wrong: " + error);
+    }
+  }
+
+  async function editChannel(channel: Channel) {
+    try {
+      if (!csrf) {
+        throw new Error("csrf not loaded");
+      }
+
+      const forwardingFeeBaseSats = prompt(
+        "Enter base forwarding fee in sats",
+        Math.floor(channel.forwardingFeeBaseMsat / 1000).toString()
+      );
+
+      if (!forwardingFeeBaseSats) {
+        return;
+      }
+
+      const forwardingFeeBaseMsat = +forwardingFeeBaseSats * 1000;
+
+      console.info(
+        `🎬 Updating channel ${channel.id} with ${channel.remotePubkey}`
+      );
+
+      await request(
+        `/api/peers/${channel.remotePubkey}/channels/${channel.id}`,
+        {
+          method: "PATCH",
+          headers: {
+            "X-CSRF-Token": csrf,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            forwardingFeeBaseMsat: forwardingFeeBaseMsat,
+          } as UpdateChannelRequest),
+        }
+      );
+      await reloadChannels();
+      toast({ title: "Sucessfully updated channel" });
     } catch (error) {
       console.error(error);
       alert("Something went wrong: " + error);
@@ -480,6 +528,15 @@ export default function Channels() {
                                   <p>View Funding Transaction</p>
                                 </ExternalLink>
                               </DropdownMenuItem>
+                              {channel.public && (
+                                <DropdownMenuItem
+                                  className="flex flex-row items-center gap-2 cursor-pointer"
+                                  onClick={() => editChannel(channel)}
+                                >
+                                  <HandCoins className="h-4 w-4" />
+                                  Set Routing Fee
+                                </DropdownMenuItem>
+                              )}
                               <DropdownMenuItem
                                 className="flex flex-row items-center gap-2 cursor-pointer"
                                 onClick={() =>

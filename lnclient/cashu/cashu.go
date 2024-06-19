@@ -12,17 +12,16 @@ import (
 	"github.com/elnosh/gonuts/wallet"
 	"github.com/elnosh/gonuts/wallet/storage"
 	"github.com/getAlby/nostr-wallet-connect/lnclient"
-	"github.com/getAlby/nostr-wallet-connect/nip47"
+	"github.com/getAlby/nostr-wallet-connect/logger"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
 )
 
 type CashuService struct {
-	logger *logrus.Logger
 	wallet *wallet.Wallet
 }
 
-func NewCashuService(logger *logrus.Logger, workDir string, mintUrl string) (result lnclient.LNClient, err error) {
+func NewCashuService(workDir string, mintUrl string) (result lnclient.LNClient, err error) {
 	if workDir == "" {
 		return nil, errors.New("one or more required cashu configuration are missing")
 	}
@@ -38,17 +37,16 @@ func NewCashuService(logger *logrus.Logger, workDir string, mintUrl string) (res
 		return nil, err
 	}
 
-	logger.WithField("mintUrl", mintUrl).Info("Setting up cashu wallet")
+	logger.Logger.WithField("mintUrl", mintUrl).Info("Setting up cashu wallet")
 	config := wallet.Config{WalletPath: newpath, CurrentMintURL: mintUrl}
 
 	wallet, err := wallet.LoadWallet(config)
 	if err != nil {
-		logger.WithError(err).Error("Failed to load cashu wallet")
+		logger.Logger.WithError(err).Error("Failed to load cashu wallet")
 		return nil, err
 	}
 
 	cs := CashuService{
-		logger: logger,
 		wallet: wallet,
 	}
 
@@ -62,7 +60,7 @@ func (cs *CashuService) Shutdown() error {
 func (cs *CashuService) SendPaymentSync(ctx context.Context, invoice string) (response *lnclient.PayInvoiceResponse, err error) {
 	meltResponse, err := cs.wallet.Melt(invoice, cs.wallet.CurrentMint())
 	if err != nil {
-		cs.logger.WithError(err).Error("Failed to melt invoice")
+		logger.Logger.WithError(err).Error("Failed to melt invoice")
 		return nil, err
 	}
 
@@ -73,13 +71,13 @@ func (cs *CashuService) SendPaymentSync(ctx context.Context, invoice string) (re
 	// TODO: get fee from melt response
 	cashuInvoice, err := cs.wallet.GetInvoiceByPaymentRequest(invoice)
 	if err != nil {
-		cs.logger.WithField("invoice", invoice).WithError(err).Error("Failed to get invoice after melting")
+		logger.Logger.WithField("invoice", invoice).WithError(err).Error("Failed to get invoice after melting")
 		return nil, err
 	}
 
 	transaction, err := cs.cashuInvoiceToTransaction(cashuInvoice)
 	if err != nil {
-		cs.logger.WithField("invoice", invoice).WithError(err).Error("Failed to convert invoice to transaction")
+		logger.Logger.WithField("invoice", invoice).WithError(err).Error("Failed to convert invoice to transaction")
 		return nil, err
 	}
 
@@ -91,7 +89,7 @@ func (cs *CashuService) SendPaymentSync(ctx context.Context, invoice string) (re
 	}, nil
 }
 
-func (cs *CashuService) SendKeysend(ctx context.Context, amount int64, destination, preimage string, custom_records []lnclient.TLVRecord) (preImage string, err error) {
+func (cs *CashuService) SendKeysend(ctx context.Context, amount uint64, destination, preimage string, custom_records []lnclient.TLVRecord) (preImage string, err error) {
 	return "", errors.New("Keysend not supported")
 }
 
@@ -106,16 +104,16 @@ func (cs *CashuService) GetBalance(ctx context.Context) (balance int64, err erro
 	return int64(totalBalance * 1000), nil
 }
 
-func (cs *CashuService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *nip47.Transaction, err error) {
+func (cs *CashuService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *lnclient.Transaction, err error) {
 	mintResponse, err := cs.wallet.RequestMint(uint64(amount / 1000))
 	if err != nil {
-		cs.logger.WithError(err).Error("Failed to mint")
+		logger.Logger.WithError(err).Error("Failed to mint")
 		return nil, err
 	}
 
 	paymentRequest, err := decodepay.Decodepay(mintResponse.Request)
 	if err != nil {
-		cs.logger.WithFields(logrus.Fields{
+		logger.Logger.WithFields(logrus.Fields{
 			"invoice": mintResponse.Request,
 		}).WithError(err).Error("Failed to decode bolt11 invoice")
 		return nil, err
@@ -124,11 +122,11 @@ func (cs *CashuService) MakeInvoice(ctx context.Context, amount int64, descripti
 	return cs.LookupInvoice(ctx, paymentRequest.PaymentHash)
 }
 
-func (cs *CashuService) LookupInvoice(ctx context.Context, paymentHash string) (transaction *nip47.Transaction, err error) {
+func (cs *CashuService) LookupInvoice(ctx context.Context, paymentHash string) (transaction *lnclient.Transaction, err error) {
 	cashuInvoice := cs.wallet.GetInvoiceByPaymentHash(paymentHash)
 
 	if cashuInvoice == nil {
-		cs.logger.WithField("paymentHash", paymentHash).Error("Failed to lookup payment request by payment hash")
+		logger.Logger.WithField("paymentHash", paymentHash).Error("Failed to lookup payment request by payment hash")
 		return nil, errors.New("failed to lookup payment request by payment hash")
 	}
 
@@ -139,8 +137,8 @@ func (cs *CashuService) LookupInvoice(ctx context.Context, paymentHash string) (
 	return transaction, nil
 }
 
-func (cs *CashuService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []nip47.Transaction, err error) {
-	transactions = []nip47.Transaction{}
+func (cs *CashuService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []lnclient.Transaction, err error) {
+	transactions = []lnclient.Transaction{}
 
 	invoices := cs.wallet.GetAllInvoices()
 
@@ -249,14 +247,19 @@ func (cs *CashuService) GetNodeStatus(ctx context.Context) (nodeStatus *lnclient
 func (cs *CashuService) SendPaymentProbes(ctx context.Context, invoice string) error {
 	return nil
 }
+
 func (cs *CashuService) SendSpontaneousPaymentProbes(ctx context.Context, amountMsat uint64, nodeId string) error {
+	return nil
+}
+
+func (cs *CashuService) UpdateChannel(ctx context.Context, updateChannelRequest *lnclient.UpdateChannelRequest) error {
 	return nil
 }
 
 func (cs *CashuService) GetBalances(ctx context.Context) (*lnclient.BalancesResponse, error) {
 	balance, err := cs.GetBalance(ctx)
 	if err != nil {
-		cs.logger.WithError(err).Error("Failed to get balance")
+		logger.Logger.WithError(err).Error("Failed to get balance")
 		return nil, err
 	}
 	return &lnclient.BalancesResponse{
@@ -275,10 +278,10 @@ func (cs *CashuService) GetBalances(ctx context.Context) (*lnclient.BalancesResp
 	}, nil
 }
 
-func (cs *CashuService) cashuInvoiceToTransaction(cashuInvoice *storage.Invoice) (*nip47.Transaction, error) {
+func (cs *CashuService) cashuInvoiceToTransaction(cashuInvoice *storage.Invoice) (*lnclient.Transaction, error) {
 	paymentRequest, err := decodepay.Decodepay(cashuInvoice.PaymentRequest)
 	if err != nil {
-		cs.logger.WithFields(logrus.Fields{
+		logger.Logger.WithFields(logrus.Fields{
 			"invoice": cashuInvoice.PaymentRequest,
 		}).WithError(err).Error("Failed to decode bolt11 invoice")
 		return nil, err
@@ -301,7 +304,7 @@ func (cs *CashuService) cashuInvoiceToTransaction(cashuInvoice *storage.Invoice)
 		invoiceType = "incoming"
 	}
 
-	return &nip47.Transaction{
+	return &lnclient.Transaction{
 		Type:            invoiceType,
 		Invoice:         cashuInvoice.PaymentRequest,
 		PaymentHash:     paymentRequest.PaymentHash,
@@ -318,19 +321,19 @@ func (cs *CashuService) cashuInvoiceToTransaction(cashuInvoice *storage.Invoice)
 
 func (cs *CashuService) checkInvoice(cashuInvoice *storage.Invoice) {
 	if cashuInvoice.TransactionType == storage.Mint && !cashuInvoice.Paid {
-		cs.logger.WithFields(logrus.Fields{
+		logger.Logger.WithFields(logrus.Fields{
 			"paymentHash": cashuInvoice.PaymentHash,
 		}).Info("Checking unpaid invoice")
 
 		proofs, err := cs.wallet.MintTokens(cashuInvoice.Id)
 		if err != nil {
-			cs.logger.WithFields(logrus.Fields{
+			logger.Logger.WithFields(logrus.Fields{
 				"paymentHash": cashuInvoice.PaymentHash,
 			}).WithError(err).Warn("failed to mint")
 		}
 
 		if proofs != nil {
-			cs.logger.WithFields(logrus.Fields{
+			logger.Logger.WithFields(logrus.Fields{
 				"paymentHash": cashuInvoice.PaymentHash,
 				"amount":      proofs.Amount(),
 			}).Info("sats successfully minted")

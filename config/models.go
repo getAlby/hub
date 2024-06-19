@@ -50,13 +50,10 @@ type Config interface {
 	Get(key string, encryptionKey string) (string, error)
 	SetIgnore(key string, value string, encryptionKey string)
 	SetUpdate(key string, value string, encryptionKey string)
-	GetNostrPublicKey() string
-	GetNostrSecretKey() string
 	GetCookieSecret() string
 	GetRelayUrl() string
 	GetEnv() *AppConfig
 	CheckUnlockPassword(password string) bool
 	ChangeUnlockPassword(currentUnlockPassword string, newUnlockPassword string) error
 	Setup(encryptionKey string)
-	Start(encryptionKey string) error
 }

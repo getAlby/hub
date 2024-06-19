@@ -3,18 +3,23 @@ package service
 import (
 	"github.com/getAlby/nostr-wallet-connect/alby"
 	"github.com/getAlby/nostr-wallet-connect/config"
-	"github.com/getAlby/nostr-wallet-connect/db"
+	"github.com/getAlby/nostr-wallet-connect/events"
 	"github.com/getAlby/nostr-wallet-connect/lnclient"
+	"github.com/getAlby/nostr-wallet-connect/service/keys"
+	"gorm.io/gorm"
 )
 
 type Service interface {
-	GetLNClient() lnclient.LNClient
-	GetConfig() config.Config
 	StartApp(encryptionKey string) error
 	StopApp()
 	StopLNClient() error
-	StopDb() error
-	GetBudgetUsage(appPermission *db.AppPermission) int64
-	GetLogFilePath() string
+	WaitShutdown()
+
+	// TODO: remove getters (currently used by http / wails services)
 	GetAlbyOAuthSvc() alby.AlbyOAuthService
+	GetEventPublisher() events.EventPublisher
+	GetLNClient() lnclient.LNClient
+	GetDB() *gorm.DB
+	GetConfig() config.Config
+	GetKeys() keys.Keys
 }

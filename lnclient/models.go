@@ -1,4 +1,3 @@
-// TODO: move to lnclient/models.go
 package lnclient
 
 import (
@@ -6,7 +5,8 @@ import (
 )
 
 type TLVRecord struct {
-	Type  uint64 `json:"type"`
+	Type uint64 `json:"type"`
+	// hex-encoded value
 	Value string `json:"value"`
 }
 
@@ -43,7 +43,7 @@ type NodeConnectionInfo struct {
 
 type LNClient interface {
 	SendPaymentSync(ctx context.Context, payReq string) (*PayInvoiceResponse, error)
-	SendKeysend(ctx context.Context, amount int64, destination, preimage string, customRecords []TLVRecord) (preImage string, err error)
+	SendKeysend(ctx context.Context, amount uint64, destination, preimage string, customRecords []TLVRecord) (preImage string, err error)
 	GetBalance(ctx context.Context) (balance int64, err error)
 	GetInfo(ctx context.Context) (info *NodeInfo, err error)
 	MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *Transaction, err error)
@@ -56,6 +56,7 @@ type LNClient interface {
 	ConnectPeer(ctx context.Context, connectPeerRequest *ConnectPeerRequest) error
 	OpenChannel(ctx context.Context, openChannelRequest *OpenChannelRequest) (*OpenChannelResponse, error)
 	CloseChannel(ctx context.Context, closeChannelRequest *CloseChannelRequest) (*CloseChannelResponse, error)
+	UpdateChannel(ctx context.Context, updateChannelRequest *UpdateChannelRequest) error
 	DisconnectPeer(ctx context.Context, peerId string) error
 	GetNewOnchainAddress(ctx context.Context) (string, error)
 	ResetRouter(key string) error
@@ -83,6 +84,7 @@ type Channel struct {
 	InternalChannel       interface{} `json:"internalChannel"`
 	Confirmations         *uint32     `json:"confirmations"`
 	ConfirmationsRequired *uint32     `json:"confirmationsRequired"`
+	ForwardingFeeBaseMsat uint32      `json:"forwardingFeeBaseMsat"`
 }
 
 type NodeStatus struct {
@@ -109,6 +111,12 @@ type CloseChannelRequest struct {
 	ChannelId string `json:"channelId"`
 	NodeId    string `json:"nodeId"`
 	Force     bool   `json:"force"`
+}
+
+type UpdateChannelRequest struct {
+	ChannelId             string `json:"channelId"`
+	NodeId                string `json:"nodeId"`
+	ForwardingFeeBaseMsat uint32 `json:"forwardingFeeBaseMsat"`
 }
 
 type CloseChannelResponse struct {
