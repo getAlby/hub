@@ -1,7 +1,7 @@
 import {
   CheckCircle2,
   CircleX,
-  Edit,
+  EditIcon,
   ExternalLinkIcon,
   Link2Icon,
   ZapIcon,
@@ -10,6 +10,8 @@ import { Link } from "react-router-dom";
 import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
 import UserAvatar from "src/components/UserAvatar";
+import { AppCardConnectionInfo } from "src/components/connections/AppCardConnectionInfo";
+import { AppCardNotice } from "src/components/connections/AppCardNotice";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -19,7 +21,6 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 import { LoadingButton } from "src/components/ui/loading-button";
-import { Progress } from "src/components/ui/progress";
 import { Separator } from "src/components/ui/separator";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { LinkStatus, useLinkAccount } from "src/hooks/useLinkAccount";
@@ -33,21 +34,24 @@ function AlbyConnectionCard({ connection }: { connection?: App }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Alby Account</CardTitle>
+        <CardTitle className="relative">
+          Alby Account
+          {connection && <AppCardNotice app={connection} />}
+        </CardTitle>
         <CardDescription>
           Link Your Alby Account to use your lightning address with Alby Hub and
           use apps that you connected to your Alby Account.
         </CardDescription>
       </CardHeader>
       <Separator />
-      <CardContent>
-        <div className="grid grid-cols-1 xl:grid-cols-2 mt-5 gap-3 items-center">
+      <CardContent className="group">
+        <div className="grid grid-cols-1 xl:grid-cols-2 mt-5 gap-3 items-center relative">
           <div className="flex flex-col gap-4">
             <div className="flex flex-row gap-4 ">
               <UserAvatar className="h-14 w-14" />
               <div className="flex flex-col">
                 <div className="text-xl font-semibold">{albyMe?.name}</div>
-                <div className="flex flex-row items-center gap-1 text-sm">
+                <div className="flex flex-row items-center gap-1 text-sm text-muted-foreground">
                   <ZapIcon className="w-4 h-4" />
                   {albyMe?.lightning_address}
                 </div>
@@ -89,63 +93,13 @@ function AlbyConnectionCard({ connection }: { connection?: App }) {
             </div>
           </div>
           <div>
-            {connection && (
-              <>
-                {connection.maxAmount > 0 && (
-                  <>
-                    <div className="flex flex-row justify-between">
-                      <div className="mb-2">
-                        <p className="text-xs text-secondary-foreground font-medium">
-                          You've spent
-                        </p>
-                        <p className="text-xl font-medium">
-                          {new Intl.NumberFormat().format(
-                            connection.budgetUsage
-                          )}{" "}
-                          sats
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        {" "}
-                        <p className="text-xs text-secondary-foreground font-medium">
-                          Left in budget
-                        </p>
-                        <p className="text-xl font-medium text-muted-foreground">
-                          {new Intl.NumberFormat().format(
-                            connection.maxAmount - connection.budgetUsage
-                          )}{" "}
-                          sats
-                        </p>
-                      </div>
-                    </div>
-                    <Progress
-                      className="h-4"
-                      value={
-                        (connection.budgetUsage * 100) / connection.maxAmount
-                      }
-                    />
-                    <div className="flex flex-row justify-between text-xs items-center mt-2">
-                      {connection.maxAmount > 0 ? (
-                        <>
-                          {new Intl.NumberFormat().format(connection.maxAmount)}{" "}
-                          sats / {connection.budgetRenewal}
-                        </>
-                      ) : (
-                        "Not set"
-                      )}
-                      <div>
-                        <Link to={`/apps/${connection.nostrPubkey}`}>
-                          <Button variant="ghost" size="sm">
-                            <Edit className="w-4 h-4 mr-2" />
-                            Edit
-                          </Button>
-                        </Link>
-                      </div>
-                    </div>
-                  </>
-                )}
-              </>
-            )}
+            <Link
+              to={`/apps/${connection?.nostrPubkey}`}
+              className="absolute top-0 right-0"
+            >
+              <EditIcon className="w-4 h-4 hidden group-hover:inline text-muted-foreground hover:text-card-foreground" />
+            </Link>
+            {connection && <AppCardConnectionInfo connection={connection} />}
           </div>
         </div>
       </CardContent>

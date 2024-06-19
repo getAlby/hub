@@ -1,10 +1,10 @@
 import { Cable, CirclePlus } from "lucide-react";
 import { Link } from "react-router-dom";
-import AlbyConnectionCard from "src/components/AlbyConnectionCard";
-import AppCard from "src/components/AppCard";
 import AppHeader from "src/components/AppHeader";
 import EmptyState from "src/components/EmptyState";
 import Loading from "src/components/Loading";
+import AlbyConnectionCard from "src/components/connections/AlbyConnectionCard";
+import AppCard from "src/components/connections/AppCard";
 import { Button } from "src/components/ui/button";
 import { useApps } from "src/hooks/useApps";
 import { useInfo } from "src/hooks/useInfo";
@@ -52,7 +52,7 @@ function AppList() {
       )}
 
       {otherApps.length > 0 && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
           {otherApps.map((app, index) => (
             <AppCard key={index} app={app} />
           ))}
