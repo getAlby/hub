@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -579,7 +580,14 @@ func (api *api) SetNextBackupReminder(backupReminderRequest *BackupReminderReque
 	return nil
 }
 
+var startMutex sync.Mutex
+
 func (api *api) Start(startRequest *StartRequest) error {
+	if !startMutex.TryLock() {
+		// do not allow to start twice in case this is somehow called twice
+		return errors.New("app is already starting")
+	}
+	defer startMutex.Unlock()
 	return api.svc.StartApp(startRequest.UnlockPassword)
 }
 

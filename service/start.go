@@ -103,6 +103,9 @@ func (svc *service) StartNostr(ctx context.Context, encryptionKey string) error 
 }
 
 func (svc *service) StartApp(encryptionKey string) error {
+	if svc.lnClient != nil {
+		return errors.New("app already started")
+	}
 	if !svc.cfg.CheckUnlockPassword(encryptionKey) {
 		logger.Logger.Errorf("Invalid password")
 		return errors.New("invalid password")
