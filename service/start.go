@@ -62,12 +62,7 @@ func (svc *service) StartNostr(ctx context.Context, encryptionKey string) error 
 					break
 				}
 			}
-			if relay != nil && relay.IsConnected() {
-				err := relay.Close()
-				if err != nil {
-					logger.Logger.WithError(err).Error("Could not close relay connection")
-				}
-			}
+			closeRelay(relay)
 
 			//connect to the relay
 			logger.Logger.Infof("Connecting to the relay: %s", relayUrl)
@@ -99,13 +94,7 @@ func (svc *service) StartNostr(ctx context.Context, encryptionKey string) error 
 			//err being nil means that the context was canceled and we should exit the program.
 			break
 		}
-		logger.Logger.Info("Disconnecting from relay...")
-		if relay != nil && relay.IsConnected() {
-			err := relay.Close()
-			if err != nil {
-				logger.Logger.WithError(err).Error("Could not close relay connection")
-			}
-		}
+		closeRelay(relay)
 		svc.Shutdown()
 		logger.Logger.Info("Relay subroutine ended")
 		svc.wg.Done()
@@ -207,4 +196,21 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 	})
 	svc.lnClient = lnClient
 	return nil
+}
+
+func closeRelay(relay *nostr.Relay) {
+	if relay != nil && relay.IsConnected() {
+		logger.Logger.Info("Closing relay connection...")
+		func() {
+			defer func() {
+				if r := recover(); r != nil {
+					logger.Logger.WithField("r", r).Error("Recovered from panic when closing relay")
+				}
+			}()
+			err := relay.Close()
+			if err != nil {
+				logger.Logger.WithError(err).Error("Could not close relay connection")
+			}
+		}()
+	}
 }
