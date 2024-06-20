@@ -82,7 +82,8 @@ function SidebarHint() {
   if (
     albyMe &&
     nodeConnectionInfo &&
-    albyMe?.keysend_pubkey !== nodeConnectionInfo?.pubkey
+    albyMe?.keysend_pubkey !== nodeConnectionInfo?.pubkey &&
+    !location.pathname.startsWith("/apps")
   ) {
     return (
       <SidebarHintCard

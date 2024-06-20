@@ -92,15 +92,17 @@ function AlbyConnectionCard({ connection }: { connection?: App }) {
               </ExternalLink>
             </div>
           </div>
-          <div>
-            <Link
-              to={`/apps/${connection?.nostrPubkey}`}
-              className="absolute top-0 right-0"
-            >
-              <EditIcon className="w-4 h-4 hidden group-hover:inline text-muted-foreground hover:text-card-foreground" />
-            </Link>
-            {connection && <AppCardConnectionInfo connection={connection} />}
-          </div>
+          {connection && (
+            <div>
+              <Link
+                to={`/apps/${connection.nostrPubkey}`}
+                className="absolute top-0 right-0"
+              >
+                <EditIcon className="w-4 h-4 hidden group-hover:inline text-muted-foreground hover:text-card-foreground" />
+              </Link>
+              <AppCardConnectionInfo connection={connection} />
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
