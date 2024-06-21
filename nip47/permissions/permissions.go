@@ -28,6 +28,7 @@ type PermissionsService interface {
 	HasPermission(app *db.App, requestMethod string, amount uint64) (result bool, code string, message string)
 	GetBudgetUsage(appPermission *db.AppPermission) uint64
 	GetPermittedMethods(app *db.App) []string
+	PermitsNotifications(app *db.App) bool
 }
 
 func NewPermissionsService(db *gorm.DB, eventPublisher events.EventPublisher) *permissionsService {
@@ -88,9 +89,9 @@ func (svc *permissionsService) GetBudgetUsage(appPermission *db.AppPermission) u
 
 func (svc *permissionsService) GetPermittedMethods(app *db.App) []string {
 	appPermissions := []db.AppPermission{}
-	svc.db.Find(&appPermissions, &db.AppPermission{
-		AppId: app.ID,
-	})
+	// TODO: request_method needs to be renamed to scopes or capabilities
+	// see https://github.com/getAlby/nostr-wallet-connect-next/issues/219
+	svc.db.Where("app_id = ? and request_method <> ?", app.ID, "notifications").Find(&appPermissions)
 	requestMethods := make([]string, 0, len(appPermissions))
 	for _, appPermission := range appPermissions {
 		requestMethods = append(requestMethods, appPermission.RequestMethod)
@@ -101,6 +102,19 @@ func (svc *permissionsService) GetPermittedMethods(app *db.App) []string {
 	}
 
 	return requestMethods
+}
+
+func (svc *permissionsService) PermitsNotifications(app *db.App) bool {
+	notificationPermission := db.AppPermission{}
+	err := svc.db.First(&notificationPermission, &db.AppPermission{
+		AppId:         app.ID,
+		RequestMethod: "notifications",
+	}).Error
+	if err != nil {
+		return false
+	}
+
+	return true
 }
 
 func getStartOfBudget(budget_type string) time.Time {

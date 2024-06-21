@@ -2,24 +2,27 @@ package controllers
 
 import (
 	"context"
+	"strings"
 
 	"github.com/getAlby/nostr-wallet-connect/db"
 	"github.com/getAlby/nostr-wallet-connect/lnclient"
 	"github.com/getAlby/nostr-wallet-connect/logger"
 	"github.com/getAlby/nostr-wallet-connect/nip47/models"
+	"github.com/getAlby/nostr-wallet-connect/nip47/notifications"
 	permissions "github.com/getAlby/nostr-wallet-connect/nip47/permissions"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/sirupsen/logrus"
 )
 
 type getInfoResponse struct {
-	Alias       string   `json:"alias"`
-	Color       string   `json:"color"`
-	Pubkey      string   `json:"pubkey"`
-	Network     string   `json:"network"`
-	BlockHeight uint32   `json:"block_height"`
-	BlockHash   string   `json:"block_hash"`
-	Methods     []string `json:"methods"`
+	Alias         string   `json:"alias"`
+	Color         string   `json:"color"`
+	Pubkey        string   `json:"pubkey"`
+	Network       string   `json:"network"`
+	BlockHeight   uint32   `json:"block_height"`
+	BlockHash     string   `json:"block_hash"`
+	Methods       []string `json:"methods"`
+	Notifications []string `json:"notifications"`
 }
 
 type getInfoController struct {
@@ -68,14 +71,21 @@ func (controller *getInfoController) HandleGetInfoEvent(ctx context.Context, nip
 		network = "mainnet"
 	}
 
+	supportedNotifications := []string{}
+	if controller.permissionsService.PermitsNotifications(app) {
+		// TODO: this needs to be LNClient-specific
+		supportedNotifications = strings.Split(notifications.NOTIFICATION_TYPES, " ")
+	}
+
 	responsePayload := &getInfoResponse{
-		Alias:       info.Alias,
-		Color:       info.Color,
-		Pubkey:      info.Pubkey,
-		Network:     network,
-		BlockHeight: info.BlockHeight,
-		BlockHash:   info.BlockHash,
-		Methods:     controller.permissionsService.GetPermittedMethods(app),
+		Alias:         info.Alias,
+		Color:         info.Color,
+		Pubkey:        info.Pubkey,
+		Network:       network,
+		BlockHeight:   info.BlockHeight,
+		BlockHash:     info.BlockHash,
+		Methods:       controller.permissionsService.GetPermittedMethods(app),
+		Notifications: supportedNotifications,
 	}
 
 	publishResponse(&models.Response{

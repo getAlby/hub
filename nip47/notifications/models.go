@@ -8,9 +8,14 @@ type Notification struct {
 }
 
 const (
-	NOTIFICATION_TYPES            = "payment_received" // e.g. "payment_received payment_sent balance_updated payment_sent channel_opened channel_closed ..."
+	NOTIFICATION_TYPES            = "payment_received payment_sent"
 	PAYMENT_RECEIVED_NOTIFICATION = "payment_received"
+	PAYMENT_SENT_NOTIFICATION     = "payment_sent"
 )
+
+type PaymentSentNotification struct {
+	models.Transaction
+}
 
 type PaymentReceivedNotification struct {
 	models.Transaction

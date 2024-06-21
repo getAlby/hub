@@ -19,7 +19,7 @@ const EmptyState: React.FC<Props> = ({
   buttonLink,
 }) => {
   return (
-    <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm">
+    <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm py-8">
       <div className="flex flex-col items-center gap-1 text-center max-w-sm">
         <Icon className="w-10 h-10 text-muted-foreground" />
         <h3 className="mt-4 text-lg font-semibold">{message}</h3>

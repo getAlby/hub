@@ -15,16 +15,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSendNotification(t *testing.T) {
+func TestSendNotification_PaymentReceived(t *testing.T) {
 	ctx := context.TODO()
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
 	assert.NoError(t, err)
-
-	/*mockLn, err := NewMockLn()
-	assert.NoError(t, err)
-	svc, err := createTestService(mockLn)
-	assert.NoError(t, err)*/
 
 	app, ss, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -44,8 +39,6 @@ func TestSendNotification(t *testing.T) {
 		Event: "nwc_payment_received",
 		Properties: &events.PaymentReceivedEventProperties{
 			PaymentHash: tests.MockPaymentHash,
-			Amount:      uint64(tests.MockTransaction.Amount),
-			NodeType:    "LDK",
 		},
 	}
 
@@ -84,6 +77,70 @@ func TestSendNotification(t *testing.T) {
 	assert.Equal(t, tests.MockTransaction.Amount, transaction.Amount)
 	assert.Equal(t, tests.MockTransaction.FeesPaid, transaction.FeesPaid)
 	assert.Equal(t, tests.MockTransaction.SettledAt, transaction.SettledAt)
+
+}
+func TestSendNotification_PaymentSent(t *testing.T) {
+	ctx := context.TODO()
+	defer tests.RemoveTestService()
+	svc, err := tests.CreateTestService()
+	assert.NoError(t, err)
+
+	app, ss, err := tests.CreateApp(svc)
+	assert.NoError(t, err)
+
+	appPermission := &db.AppPermission{
+		AppId:         app.ID,
+		App:           *app,
+		RequestMethod: permissions.NOTIFICATIONS_PERMISSION,
+	}
+	err = svc.DB.Create(appPermission).Error
+	assert.NoError(t, err)
+
+	nip47NotificationQueue := NewNip47NotificationQueue()
+	svc.EventPublisher.RegisterSubscriber(nip47NotificationQueue)
+
+	testEvent := &events.Event{
+		Event: "nwc_payment_sent",
+		Properties: &events.PaymentSentEventProperties{
+			PaymentHash: tests.MockPaymentHash,
+		},
+	}
+
+	svc.EventPublisher.Publish(testEvent)
+
+	receivedEvent := <-nip47NotificationQueue.Channel()
+	assert.Equal(t, testEvent, receivedEvent)
+
+	relay := NewMockRelay()
+
+	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
+
+	notifier := NewNip47Notifier(relay, svc.DB, svc.Cfg, svc.Keys, permissionsSvc, svc.LNClient)
+	notifier.ConsumeEvent(ctx, receivedEvent)
+
+	assert.NotNil(t, relay.publishedEvent)
+	assert.NotEmpty(t, relay.publishedEvent.Content)
+
+	decrypted, err := nip04.Decrypt(relay.publishedEvent.Content, ss)
+	assert.NoError(t, err)
+	unmarshalledResponse := Notification{
+		Notification: &PaymentReceivedNotification{},
+	}
+
+	err = json.Unmarshal([]byte(decrypted), &unmarshalledResponse)
+	assert.NoError(t, err)
+	assert.Equal(t, PAYMENT_SENT_NOTIFICATION, unmarshalledResponse.NotificationType)
+
+	transaction := (unmarshalledResponse.Notification.(*PaymentReceivedNotification))
+	assert.Equal(t, tests.MockTransaction.Type, transaction.Type)
+	assert.Equal(t, tests.MockTransaction.Invoice, transaction.Invoice)
+	assert.Equal(t, tests.MockTransaction.Description, transaction.Description)
+	assert.Equal(t, tests.MockTransaction.DescriptionHash, transaction.DescriptionHash)
+	assert.Equal(t, tests.MockTransaction.Preimage, transaction.Preimage)
+	assert.Equal(t, tests.MockTransaction.PaymentHash, transaction.PaymentHash)
+	assert.Equal(t, tests.MockTransaction.Amount, transaction.Amount)
+	assert.Equal(t, tests.MockTransaction.FeesPaid, transaction.FeesPaid)
+	assert.Equal(t, tests.MockTransaction.SettledAt, transaction.SettledAt)
 }
 
 func TestSendNotificationNoPermission(t *testing.T) {
@@ -101,8 +158,6 @@ func TestSendNotificationNoPermission(t *testing.T) {
 		Event: "nwc_payment_received",
 		Properties: &events.PaymentReceivedEventProperties{
 			PaymentHash: tests.MockPaymentHash,
-			Amount:      uint64(tests.MockTransaction.Amount),
-			NodeType:    "LDK",
 		},
 	}
 

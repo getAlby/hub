@@ -20,8 +20,10 @@ type Event struct {
 
 type PaymentReceivedEventProperties struct {
 	PaymentHash string `json:"payment_hash"`
-	Amount      uint64 `json:"amount"`
-	NodeType    string `json:"node_type"`
+}
+
+type PaymentSentEventProperties struct {
+	PaymentHash string `json:"payment_hash"`
 }
 
 type ChannelBackupEvent struct {

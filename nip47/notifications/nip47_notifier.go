@@ -44,29 +44,56 @@ func NewNip47Notifier(relay Relay, db *gorm.DB, cfg config.Config, keys keys.Key
 }
 
 func (notifier *Nip47Notifier) ConsumeEvent(ctx context.Context, event *events.Event) error {
-	if event.Event != "nwc_payment_received" {
-		return nil
+	switch event.Event {
+	case "nwc_payment_received":
+		paymentReceivedEventProperties, ok := event.Properties.(*events.PaymentReceivedEventProperties)
+		if !ok {
+			logger.Logger.WithField("event", event).Error("Failed to cast event")
+			return errors.New("failed to cast event")
+		}
+
+		transaction, err := notifier.lnClient.LookupInvoice(ctx, paymentReceivedEventProperties.PaymentHash)
+		if err != nil {
+			logger.Logger.
+				WithField("paymentHash", paymentReceivedEventProperties.PaymentHash).
+				WithError(err).
+				Error("Failed to lookup invoice by payment hash")
+			return err
+		}
+		notification := PaymentReceivedNotification{
+			Transaction: *transaction,
+		}
+
+		notifier.notifySubscribers(ctx, &Notification{
+			Notification:     notification,
+			NotificationType: PAYMENT_RECEIVED_NOTIFICATION,
+		}, nostr.Tags{})
+
+	case "nwc_payment_sent":
+		paymentSentEventProperties, ok := event.Properties.(*events.PaymentSentEventProperties)
+		if !ok {
+			logger.Logger.WithField("event", event).Error("Failed to cast event")
+			return errors.New("failed to cast event")
+		}
+
+		transaction, err := notifier.lnClient.LookupInvoice(ctx, paymentSentEventProperties.PaymentHash)
+		if err != nil {
+			logger.Logger.
+				WithField("paymentHash", paymentSentEventProperties.PaymentHash).
+				WithError(err).
+				Error("Failed to lookup invoice by payment hash")
+			return err
+		}
+		notification := PaymentSentNotification{
+			Transaction: *transaction,
+		}
+
+		notifier.notifySubscribers(ctx, &Notification{
+			Notification:     notification,
+			NotificationType: PAYMENT_SENT_NOTIFICATION,
+		}, nostr.Tags{})
 	}
 
-	paymentReceivedEventProperties, ok := event.Properties.(*events.PaymentReceivedEventProperties)
-	if !ok {
-		logger.Logger.WithField("event", event).Error("Failed to cast event")
-		return errors.New("failed to cast event")
-	}
-
-	transaction, err := notifier.lnClient.LookupInvoice(ctx, paymentReceivedEventProperties.PaymentHash)
-	if err != nil {
-		logger.Logger.
-			WithField("paymentHash", paymentReceivedEventProperties.PaymentHash).
-			WithError(err).
-			Error("Failed to lookup invoice by payment hash")
-		return err
-	}
-
-	notifier.notifySubscribers(ctx, &Notification{
-		Notification:     transaction,
-		NotificationType: PAYMENT_RECEIVED_NOTIFICATION,
-	}, nostr.Tags{})
 	return nil
 }
 
