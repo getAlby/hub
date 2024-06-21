@@ -10,7 +10,7 @@ jobs:
     uses: ./.github/workflows/package-raspberry-pi.yml
 
   build-wails:
-    uses: ./.github/workflows/wails2.yaml
+    uses: ./.github/workflows/wails.yml
     secrets:
       APPLE_DEVELOPER_CERTIFICATE_P12_BASE64: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_P12_BASE64 }}
       APPLE_DEVELOPER_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_PASSWORD }}
