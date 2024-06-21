@@ -1,0 +1,62 @@
+name: Create release
+
+on:
+  workflow_call:
+    secrets:
+      repo-token:
+        required: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Raspberry Pi archive
+        uses: actions/download-artifact@v4
+        with:
+          name: nostr-wallet-connect.tar.bz2
+          path: artifacts
+
+      - name: Download Linux desktop archive
+        uses: actions/download-artifact@v4
+        with:
+          name: albyhub-Linux
+          path: artifacts
+
+      - name: Download macOS desktop archive
+        uses: actions/download-artifact@v4
+        with:
+          name: albyhub-macOS
+          path: artifacts
+
+      - name: Download Windows desktop archive
+        uses: actions/download-artifact@v4
+        with:
+          name: albyhub-Windows
+          path: artifacts
+
+      - name: Create release without tag
+        if: github.ref_type != 'tag'
+        env:
+          GH_TOKEN: ${{ secrets.repo-token }}
+          tag: ${{ github.sha }}
+        run: |
+          gh release create                            \
+            --repo="$GITHUB_REPOSITORY"                \
+            --title="${GITHUB_REPOSITORY#*/} ${tag#v}" \
+            --generate-notes                           \
+            --draft                                    \
+            ./artifacts/*
+
+      - name: Create release with tag
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ secrets.repo-token }}
+          tag: ${{ github.ref_name }}
+        run: |
+          gh release create                            \
+            --repo="$GITHUB_REPOSITORY"                \
+            --title="${GITHUB_REPOSITORY#*/} ${tag#v}" \
+            --generate-notes                           \
+            --draft                                    \
+            --verify-tag                               \
+            ./artifacts/*

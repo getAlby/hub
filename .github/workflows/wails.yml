@@ -3,6 +3,19 @@ name: Wails build - all platforms
 on:
   push:
 
+  workflow_call:
+    secrets:
+      APPLE_DEVELOPER_CERTIFICATE_P12_BASE64:
+        required: true
+      APPLE_DEVELOPER_CERTIFICATE_PASSWORD:
+        required: true
+      APPLE_PASSWORD:
+        required: true
+      APPLE_TEAM_ID:
+        required: true
+      APPLE_USERNAME:
+        required: true
+
 jobs:
   build:
     strategy:
@@ -16,7 +29,7 @@ jobs:
           ]
     runs-on: ${{ matrix.build.os }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
 
@@ -46,7 +59,7 @@ jobs:
         run: go get -v -t -d ./...
 
       - name: Setup NodeJS
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: "20.x"
 
@@ -195,6 +208,15 @@ jobs:
           AC_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
           AC_PROVIDER: ${{ secrets.APPLE_TEAM_ID }}
 
+      - name: Make Windows ZIP archive
+        if: runner.os == 'Windows'
+        run: |
+          mkdir -p ./build/out
+          7z a -tzip ./build/out/albyhub-${{runner.os}}.zip ./build/bin/*
+          rm -Rf ./build/bin/*
+          mv ./build/out/albyhub-${{runner.os}}.zip ./build/bin/
+        shell: bash
+
       - uses: actions/upload-artifact@v4
         if: runner.os == 'Linux'
         with:
@@ -216,5 +238,5 @@ jobs:
         with:
           name: albyhub-${{runner.os}}
           path: |
-            *\bin\*
+            ./build/bin/albyhub-${{runner.os}}.zip
           if-no-files-found: error

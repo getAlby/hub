@@ -2,8 +2,8 @@ name: Build package for Raspberry Pi
 
 on:
   push:
-  release:
-    types: [published]
+
+  workflow_call:
 
 jobs:
   build:
@@ -55,6 +55,8 @@ jobs:
           ${{ github.workspace }}/armv6-unknown-linux-gnueabihf/bin/armv6-unknown-linux-gnueabihf-strip ./nostr-wallet-connect
           patchelf --force-rpath --set-rpath '$ORIGIN/lib' ./nostr-wallet-connect
 
+      # TODO: remove this once install.sh and update.sh are updated (they currently use this artifact)
+      # it produces a ZIP archive that loses all permissions
       - name: Archive the artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -62,3 +64,22 @@ jobs:
           path: |
             lib/
             nostr-wallet-connect
+
+      - name: Add Linux perms
+        run: chmod +x ./nostr-wallet-connect
+
+      # Store everything in a tar archive to preserve permissions
+      # (specifically, the executable bit on the app executable).
+      - name: Make output tar archive
+        run: |
+          mkdir -p ./tmp
+          mv ./nostr-wallet-connect ./tmp/
+          mv ./lib ./tmp/
+          tar -cjf nostr-wallet-connect-rpi.tar.bz2 -C ./tmp .
+          rm -Rf ./tmp
+
+      - name: Upload the package
+        uses: actions/upload-artifact@v4
+        with:
+          name: nostr-wallet-connect-rpi.tar.bz2
+          path: nostr-wallet-connect-rpi.tar.bz2

@@ -1,0 +1,27 @@
+name: Release
+
+on:
+  push:
+
+  workflow_dispatch:
+
+jobs:
+  build-raspberry-pi:
+    uses: ./.github/workflows/package-raspberry-pi.yml
+
+  build-wails:
+    uses: ./.github/workflows/wails2.yaml
+    secrets:
+      APPLE_DEVELOPER_CERTIFICATE_P12_BASE64: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_P12_BASE64 }}
+      APPLE_DEVELOPER_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_PASSWORD }}
+      APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      APPLE_USERNAME: ${{ secrets.APPLE_USERNAME }}
+
+  release-draft:
+    needs:
+      - build-raspberry-pi
+      - build-wails
+    uses: ./.github/workflows/create-release.yaml
+    secrets:
+      repo-token: ${{ secrets.GITHUB_TOKEN }}
