@@ -15,7 +15,7 @@ require (
 	github.com/gorilla/sessions v1.2.2
 	github.com/labstack/echo-contrib v0.14.1
 	github.com/labstack/echo/v4 v4.12.0
-	github.com/nbd-wtf/go-nostr v0.30.2
+	github.com/nbd-wtf/go-nostr v0.32.0
 	github.com/nbd-wtf/ln-decodepay v1.12.1
 	github.com/orandin/lumberjackrus v1.0.1
 	github.com/stretchr/testify v1.9.0

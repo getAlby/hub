@@ -505,8 +505,8 @@ github.com/modern-go/reflect2 v1.0.2 h1:xBagoLtFs94CBntxluKeaWgTMpvLxC4ur3nMaC9G
 github.com/modern-go/reflect2 v1.0.2/go.mod h1:yWuevngMOJpCy52FWWMvUC8ws7m/LJsjYzDa0/r8luk=
 github.com/morikuni/aec v1.0.0 h1:nP9CBfwrvYnBRgY6qfDQkygYDmYwOilePFkwzv4dU8A=
 github.com/morikuni/aec v1.0.0/go.mod h1:BbKIizmSmc5MMPqRYbxO4ZU0S0+P200+tUnFx7PXmsc=
-github.com/nbd-wtf/go-nostr v0.30.2 h1:dG/2X52/XDg+7phZH+BClcvA5D+S6dXvxJKkBaySEzI=
-github.com/nbd-wtf/go-nostr v0.30.2/go.mod h1:tiKJY6fWYSujbTQb201Y+IQ3l4szqYVt+fsTnsm7FCk=
+github.com/nbd-wtf/go-nostr v0.32.0 h1:ShRerjhXvqZbiVUc11iPqxLuOImxqbJQ0zTz4t6Tjps=
+github.com/nbd-wtf/go-nostr v0.32.0/go.mod h1:NZQkxl96ggbO8rvDpVjcsojJqKTPwqhP4i82O7K5DJs=
 github.com/nbd-wtf/ln-decodepay v1.12.1 h1:GDBIDZPm35DtRadhO9qBT+OebXgm33+8BpANq0QcwLA=
 github.com/nbd-wtf/ln-decodepay v1.12.1/go.mod h1:+VRpg00geUGDEaBx/9+P5nt2RVmyMCNsKnaFxErYUgo=
 github.com/ncruces/go-strftime v0.1.9 h1:bY0MQC28UADQmHmaF5dgpLmImcShSi2kHU9XLdhx/f4=
