@@ -121,6 +121,10 @@ For more information refer to:
 - [DataDog Profiler documentation](https://docs.datadoghq.com/profiler/enabling/go/)
 - [DataDog Profiler Go library](https://pkg.go.dev/gopkg.in/DataDog/dd-trace-go.v1/profiler)
 
+### Versioning
+
+    $ go run -ldflags="-X 'github.com/getAlby/nostr-wallet-connect/version.Tag=v0.6.0'" cmd/http/main.go
+
 ### Windows
 
 Breez SDK requires gcc to build the Breez bindings. Run `choco install mingw` and copy the breez SDK bindings file into the root of this directory (from your go installation directory) as per the [Breez SDK instructions](https://github.com/breez/breez-sdk-go?tab=readme-ov-file#windows). ALSO copy the bindings file into the output directory alongside the .exe in order to run it.

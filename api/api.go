@@ -26,6 +26,7 @@ import (
 	"github.com/getAlby/nostr-wallet-connect/service"
 	"github.com/getAlby/nostr-wallet-connect/service/keys"
 	"github.com/getAlby/nostr-wallet-connect/utils"
+	"github.com/getAlby/nostr-wallet-connect/version"
 )
 
 type api struct {
@@ -546,6 +547,8 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info.BackendType = backendType
 	info.AlbyAuthUrl = api.albyOAuthSvc.GetAuthUrl()
 	info.OAuthRedirect = !api.cfg.GetEnv().IsDefaultClientId()
+	info.Version = version.Tag
+	info.LatestVersion = version.GetLatestReleaseTag()
 	albyUserIdentifier, err := api.albyOAuthSvc.GetUserIdentifier()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to get alby user identifier")

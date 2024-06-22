@@ -146,6 +146,8 @@ export interface InfoResponse {
   nextBackupReminder: string;
   albyUserIdentifier: string;
   network?: Network;
+  version: string;
+  latestVersion: string;
 }
 
 export type Network = "bitcoin" | "testnet" | "signet";

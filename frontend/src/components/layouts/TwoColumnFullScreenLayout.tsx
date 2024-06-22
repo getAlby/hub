@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
+import { useInfo } from "src/hooks/useInfo";
 
 const quotes = [
   {
@@ -44,6 +45,7 @@ const quotes = [
 ];
 
 export default function TwoColumnFullScreenLayout() {
+  const { data: info } = useInfo();
   const { pathname } = useLocation();
   const [quote, setQuote] = useState(
     quotes[Math.floor(Math.random() * quotes.length)]
@@ -61,8 +63,11 @@ export default function TwoColumnFullScreenLayout() {
         style={{ backgroundImage: `url(${quote.imageUrl})` }}
       >
         <div className="flex-1 w-full h-full flex flex-col">
-          <div className="flex flex-row justify-between">
+          <div className="flex flex-row justify-between items-center">
             <h1 className="text-lg font-medium">Alby Hub</h1>
+            {info?.version && (
+              <p className="text-sm text-muted-foreground">{info.version}</p>
+            )}
             {/* <ModeToggle /> */}
           </div>
         </div>

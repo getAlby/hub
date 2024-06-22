@@ -42,7 +42,8 @@ jobs:
           GOARM: 6
           CGO_ENABLED: 1
           CC: ${{ github.workspace }}/armv6-unknown-linux-gnueabihf/bin/armv6-unknown-linux-gnueabihf-gcc
-        run: go build -tags skip_breez,netgo -v -o nostr-wallet-connect cmd/http/main.go
+          TAG: ${{ github.ref_name }}
+        run: go build -tags skip_breez,netgo -v -o nostr-wallet-connect -ldflags "-X 'github.com/getAlby/nostr-wallet-connect/version.Tag=${{ env.TAG }}'" cmd/http/main.go
 
       - name: Find and copy shared libraries
         run: |

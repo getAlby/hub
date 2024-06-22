@@ -20,6 +20,7 @@ import (
 	"github.com/getAlby/nostr-wallet-connect/events"
 	"github.com/getAlby/nostr-wallet-connect/logger"
 	"github.com/getAlby/nostr-wallet-connect/service/keys"
+	"github.com/getAlby/nostr-wallet-connect/version"
 
 	"github.com/getAlby/nostr-wallet-connect/config"
 	"github.com/getAlby/nostr-wallet-connect/db"
@@ -52,6 +53,7 @@ func NewService(ctx context.Context) (*service, error) {
 	}
 
 	logger.Init(appConfig.LogLevel)
+	logger.Logger.Info("AlbyHub " + version.Tag)
 
 	if appConfig.Workdir == "" {
 		appConfig.Workdir = filepath.Join(xdg.DataHome, "/alby-nwc")
@@ -108,6 +110,9 @@ func NewService(ctx context.Context) (*service, error) {
 
 	eventPublisher.Publish(&events.Event{
 		Event: "nwc_started",
+		Properties: map[string]interface{}{
+			"version": version.Tag,
+		},
 	})
 
 	if appConfig.GoProfilerAddr != "" {
