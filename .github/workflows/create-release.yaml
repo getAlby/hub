@@ -40,12 +40,8 @@ jobs:
           GH_TOKEN: ${{ secrets.repo-token }}
           tag: ${{ github.sha }}
         run: |
-          gh release create                            \
-            --repo="$GITHUB_REPOSITORY"                \
-            --title="${GITHUB_REPOSITORY#*/} ${tag#v}" \
-            --generate-notes                           \
-            --draft                                    \
-            ./artifacts/*
+          echo "Release without tag not supported"
+          exit 1
 
       - name: Create release with tag
         if: github.ref_type == 'tag'
@@ -53,7 +49,7 @@ jobs:
           GH_TOKEN: ${{ secrets.repo-token }}
           tag: ${{ github.ref_name }}
         run: |
-          gh release create                            \
+          gh release create ${{ env.tag }}             \
             --repo="$GITHUB_REPOSITORY"                \
             --title="${GITHUB_REPOSITORY#*/} ${tag#v}" \
             --generate-notes                           \
