@@ -22,6 +22,7 @@ jobs:
       - name: Run tests
         run: mkdir frontend/dist && touch frontend/dist/tmp && go test ./...
       - name: Docker build
+        if: github.actor != 'dependabot[bot]'
         uses: mr-smithers-excellent/docker-build-push@v6
         id: build
         with:
