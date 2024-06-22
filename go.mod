@@ -23,7 +23,7 @@ require (
 	golang.org/x/crypto v0.23.0
 	golang.org/x/oauth2 v0.20.0
 	google.golang.org/grpc v1.64.0
-	gopkg.in/DataDog/dd-trace-go.v1 v1.64.0
+	gopkg.in/DataDog/dd-trace-go.v1 v1.65.0
 	gopkg.in/macaroon.v2 v2.1.0
 	gorm.io/gorm v1.25.10
 )
@@ -157,7 +157,7 @@ require (
 	github.com/prometheus/procfs v0.9.0 // indirect
 	github.com/puzpuzpuz/xsync/v3 v3.0.2 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
-	github.com/richardartoul/molecule v1.0.1-0.20221107223329-32cfee06a052 // indirect
+	github.com/richardartoul/molecule v1.0.1-0.20240531184615-7ca0df43c0b3 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/rogpeppe/fastuuid v1.2.0 // indirect
 	github.com/samber/lo v1.38.1 // indirect
