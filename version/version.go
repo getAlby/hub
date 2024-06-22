@@ -17,9 +17,10 @@ type githubRelease struct {
 }
 
 var latestRelease = ""
+var lastVersionCheck = time.Time{}
 
 func GetLatestReleaseTag() string {
-	if latestRelease != "" {
+	if latestRelease != "" && time.Since(lastVersionCheck) < 5*time.Minute {
 		return latestRelease
 	}
 	url := "https://api.github.com/repos/getAlby/nostr-wallet-connect-next/releases"
@@ -74,6 +75,8 @@ func GetLatestReleaseTag() string {
 		"latest":  latestRelease,
 		"current": Tag,
 	}).Info("Found latest github release")
+
+	lastVersionCheck = time.Now()
 
 	return latestRelease
 }
