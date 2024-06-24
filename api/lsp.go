@@ -156,12 +156,9 @@ func (api *api) NewInstantChannelInvoice(ctx context.Context, request *NewInstan
 
 func (api *api) getLSPS1LSPInfo(url string) (*lspInfo, error) {
 
-	type lsps1LSPInfoOptions struct {
-		MaxChannelExpiryBlocks uint64 `json:"max_channel_expiry_blocks"`
-	}
 	type lsps1LSPInfo struct {
-		Options lsps1LSPInfoOptions `json:"options"`
-		URIs    []string            `json:"uris"`
+		MaxChannelExpiryBlocks uint64   `json:"max_channel_expiry_blocks"`
+		URIs                   []string `json:"uris"`
 	}
 	var lsps1LspInfo lsps1LSPInfo
 	client := http.Client{
@@ -223,7 +220,7 @@ func (api *api) getLSPS1LSPInfo(url string) (*lspInfo, error) {
 		Pubkey:                 parts[1],
 		Address:                parts[2],
 		Port:                   uint16(port),
-		MaxChannelExpiryBlocks: lsps1LspInfo.Options.MaxChannelExpiryBlocks,
+		MaxChannelExpiryBlocks: lsps1LspInfo.MaxChannelExpiryBlocks,
 	}, nil
 }
 func (api *api) getFlowLSPInfo(url string) (*lspInfo, error) {
@@ -627,15 +624,20 @@ func (api *api) requestLSPS1Invoice(ctx context.Context, selectedLsp *lsp.LSP, a
 		return "", 0, fmt.Errorf("create_order endpoint returned non-success code: %s", string(body))
 	}
 
-	type NewLSPS1ChannelPayment struct {
-		Bolt11Invoice string `json:"bolt11_invoice"`
-		FeeTotalSat   string `json:"fee_total_sat"`
-	}
-	type NewLSPS1ChannelResponse struct {
-		Payment NewLSPS1ChannelPayment `json:"payment"`
+	type newLSPS1ChannelPaymentBolt11 struct {
+		Invoice     string `json:"invoice"`
+		FeeTotalSat string `json:"fee_total_sat"`
 	}
 
-	var newChannelResponse NewLSPS1ChannelResponse
+	type newLSPS1ChannelPayment struct {
+		Bolt11 newLSPS1ChannelPaymentBolt11 `json:"bolt11"`
+		// TODO: add onchain
+	}
+	type newLSPS1ChannelResponse struct {
+		Payment newLSPS1ChannelPayment `json:"payment"`
+	}
+
+	var newChannelResponse newLSPS1ChannelResponse
 
 	err = json.Unmarshal(body, &newChannelResponse)
 	if err != nil {
@@ -645,8 +647,8 @@ func (api *api) requestLSPS1Invoice(ctx context.Context, selectedLsp *lsp.LSP, a
 		return "", 0, fmt.Errorf("failed to deserialize json %s %s", selectedLsp.Url, string(body))
 	}
 
-	invoice = newChannelResponse.Payment.Bolt11Invoice
-	fee, err = strconv.ParseUint(newChannelResponse.Payment.FeeTotalSat, 10, 64)
+	invoice = newChannelResponse.Payment.Bolt11.Invoice
+	fee, err = strconv.ParseUint(newChannelResponse.Payment.Bolt11.FeeTotalSat, 10, 64)
 	if err != nil {
 		logger.Logger.WithError(err).WithFields(logrus.Fields{
 			"url": selectedLsp.Url,
