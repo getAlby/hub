@@ -44,8 +44,8 @@ func (controller *multiMultiPayKeysendController) HandleMultiPayKeysendEvent(ctx
 	}
 
 	var wg sync.WaitGroup
+	wg.Add(len(multiPayParams.Keysends))
 	for _, keysendInfo := range multiPayParams.Keysends {
-		wg.Add(1)
 		go func(keysendInfo multiPayKeysendElement) {
 			defer wg.Done()
 

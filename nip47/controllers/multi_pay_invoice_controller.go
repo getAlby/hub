@@ -49,8 +49,8 @@ func (controller *multiMultiPayInvoiceController) HandleMultiPayInvoiceEvent(ctx
 	}
 
 	var wg sync.WaitGroup
+	wg.Add(len(multiPayParams.Invoices))
 	for _, invoiceInfo := range multiPayParams.Invoices {
-		wg.Add(1)
 		go func(invoiceInfo multiPayInvoiceElement) {
 			defer wg.Done()
 			bolt11 := invoiceInfo.Invoice
