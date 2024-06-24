@@ -932,8 +932,13 @@ func (ls *LDKService) CloseChannel(ctx context.Context, closeChannelRequest *lnc
 	logger.Logger.WithFields(logrus.Fields{
 		"request": closeChannelRequest,
 	}).Info("Closing Channel")
-	// TODO: support passing force option
-	err := ls.node.CloseChannel(closeChannelRequest.ChannelId, closeChannelRequest.NodeId, closeChannelRequest.Force)
+
+	var err error
+	if closeChannelRequest.Force {
+		err = ls.node.ForceCloseChannel(closeChannelRequest.ChannelId, closeChannelRequest.NodeId)
+	} else {
+		err = ls.node.CloseChannel(closeChannelRequest.ChannelId, closeChannelRequest.NodeId)
+	}
 	if err != nil {
 		logger.Logger.WithError(err).Error("CloseChannel failed")
 		return nil, err
