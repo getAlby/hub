@@ -237,10 +237,17 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		MIN_SYNC_INTERVAL := 1 * time.Minute
 		MAX_SYNC_INTERVAL := 1 * time.Hour // NOTE: this could be increased further (possibly to 6 hours)
 		for {
+			ls.syncing = false
 			select {
 			case <-ldkCtx.Done():
 				return
 			case <-time.After(MIN_SYNC_INTERVAL):
+				ls.syncing = true
+				// always update fee rates to avoid differences in fee rates with channel partners
+				err = node.UpdateFeeEstimates()
+				if err != nil {
+					logger.Logger.WithError(err).Error("Failed to update fee estimates")
+				}
 
 				if time.Since(ls.lastWalletSyncRequest) > MIN_SYNC_INTERVAL && time.Since(ls.lastSync) < MAX_SYNC_INTERVAL {
 					// logger.Debug("skipping background wallet sync")
@@ -249,9 +256,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 
 				logger.Logger.Info("Starting background wallet sync")
 				syncStartTime := time.Now()
-				ls.syncing = true
 				err = node.SyncWallets()
-				ls.syncing = false
 
 				if err != nil {
 					logger.Logger.WithError(err).Error("Failed to sync LDK wallets")
