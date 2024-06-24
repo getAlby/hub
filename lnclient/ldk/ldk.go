@@ -856,13 +856,8 @@ func (ls *LDKService) OpenChannel(ctx context.Context, openChannelRequest *lncli
 	ldkEventSubscription := ls.ldkEventBroadcaster.Subscribe()
 	defer ls.ldkEventBroadcaster.CancelSubscription(ldkEventSubscription)
 
-	channelConfig := ldk_node.NewChannelConfig()
-
-	// set a super-high forwarding fee of 100K sats by default to disable unwanted routing
-	channelConfig.SetForwardingFeeBaseMsat(100_000_000)
-
 	logger.Logger.WithField("peer_id", foundPeer.NodeId).Info("Opening channel")
-	userChannelId, err := ls.node.ConnectOpenChannel(foundPeer.NodeId, foundPeer.Address, uint64(openChannelRequest.Amount), nil, &channelConfig, openChannelRequest.Public)
+	userChannelId, err := ls.node.ConnectOpenChannel(foundPeer.NodeId, foundPeer.Address, uint64(openChannelRequest.Amount), nil, nil, openChannelRequest.Public)
 	if err != nil {
 		logger.Logger.WithError(err).Error("OpenChannel failed")
 		return nil, err
@@ -914,6 +909,7 @@ func (ls *LDKService) UpdateChannel(ctx context.Context, updateChannelRequest *l
 	}
 
 	if foundChannel == nil {
+		logger.Logger.WithField("request", updateChannelRequest).Error("failed to find channel to update")
 		return errors.New("channel not found")
 	}
 
@@ -1210,6 +1206,23 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 		})
 
 		ls.publishChannelsBackupEvent()
+
+		if eventType.CounterpartyNodeId == nil {
+			logger.Logger.WithField("event", eventType).Error("channel ready event has no counterparty node ID")
+			return
+		}
+		// set a super-high forwarding fee of 100K sats by default to disable unwanted routing
+		err := ls.UpdateChannel(context.Background(), &lnclient.UpdateChannelRequest{
+			ChannelId:             eventType.UserChannelId,
+			NodeId:                *eventType.CounterpartyNodeId,
+			ForwardingFeeBaseMsat: 100_000_000,
+		})
+
+		if err != nil {
+			logger.Logger.WithField("event", eventType).Error("channel ready event has no counterparty node ID")
+			return
+		}
+
 	case ldk_node.EventChannelClosed:
 		closureReason := ls.getChannelCloseReason(&eventType)
 		logger.Logger.WithFields(logrus.Fields{
