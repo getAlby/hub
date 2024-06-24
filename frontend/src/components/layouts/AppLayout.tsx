@@ -4,6 +4,7 @@ import {
   ExternalLinkIcon,
   FlaskRound,
   Lock,
+  Megaphone,
   Menu,
   MessageCircleQuestion,
   Settings,
@@ -146,6 +147,18 @@ export default function AppLayout() {
         <MenuItem to="/settings">
           <Settings className="h-4 w-4" />
           Settings
+        </MenuItem>
+        <MenuItem
+          to="/"
+          onClick={(e) => {
+            openLink(
+              "https://feedback.getalby.com/-alby-hub-request-a-feature"
+            );
+            e.preventDefault();
+          }}
+        >
+          <Megaphone className="h-4 w-4" />
+          Feedback
         </MenuItem>
         <MenuItem
           to="/"
