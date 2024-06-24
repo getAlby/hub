@@ -38,6 +38,14 @@ func TestHandleGetInfoEvent_NoPermission(t *testing.T) {
 	err = svc.DB.Create(&dbRequestEvent).Error
 	assert.NoError(t, err)
 
+	appPermission := &db.AppPermission{
+		AppId:         app.ID,
+		RequestMethod: models.GET_BALANCE_METHOD,
+		ExpiresAt:     nil,
+	}
+	err = svc.DB.Create(appPermission).Error
+	assert.NoError(t, err)
+
 	checkPermission := func(amountMsat uint64) *models.Response {
 		return &models.Response{
 			ResultType: nip47Request.Method,
@@ -58,8 +66,16 @@ func TestHandleGetInfoEvent_NoPermission(t *testing.T) {
 	NewGetInfoController(permissionsSvc, svc.LNClient).
 		HandleGetInfoEvent(ctx, nip47Request, dbRequestEvent.ID, app, checkPermission, publishResponse)
 
-	assert.Nil(t, publishedResponse.Result)
-	assert.Equal(t, models.ERROR_RESTRICTED, publishedResponse.Error.Code)
+	assert.Nil(t, publishedResponse.Error)
+	nodeInfo := publishedResponse.Result.(*getInfoResponse)
+	assert.Empty(t, nodeInfo.Alias)
+	assert.Empty(t, nodeInfo.Color)
+	assert.Empty(t, nodeInfo.Pubkey)
+	assert.Empty(t, nodeInfo.Network)
+	assert.Empty(t, nodeInfo.BlockHeight)
+	assert.Empty(t, nodeInfo.BlockHash)
+	assert.Equal(t, []string{"get_balance"}, nodeInfo.Methods)
+	assert.Equal(t, []string{}, nodeInfo.Notifications)
 }
 
 func TestHandleGetInfoEvent_WithPermission(t *testing.T) {

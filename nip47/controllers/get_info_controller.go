@@ -38,39 +38,6 @@ func NewGetInfoController(permissionsService permissions.PermissionsService, lnC
 }
 
 func (controller *getInfoController) HandleGetInfoEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, app *db.App, checkPermission checkPermissionFunc, publishResponse publishFunc) {
-	// basic permissions check
-	resp := checkPermission(0)
-	if resp != nil {
-		publishResponse(resp, nostr.Tags{})
-		return
-	}
-
-	logger.Logger.WithFields(logrus.Fields{
-		"request_event_id": requestEventId,
-	}).Info("Getting info")
-
-	info, err := controller.lnClient.GetInfo(ctx)
-	if err != nil {
-		logger.Logger.WithFields(logrus.Fields{
-			"request_event_id": requestEventId,
-		}).Infof("Failed to fetch node info: %v", err)
-
-		publishResponse(&models.Response{
-			ResultType: nip47Request.Method,
-			Error: &models.Error{
-				Code:    models.ERROR_INTERNAL,
-				Message: err.Error(),
-			},
-		}, nostr.Tags{})
-		return
-	}
-
-	network := info.Network
-	// Some implementations return "bitcoin" while NIP47 expects "mainnet"
-	if network == "bitcoin" {
-		network = "mainnet"
-	}
-
 	supportedNotifications := []string{}
 	if controller.permissionsService.PermitsNotifications(app) {
 		// TODO: this needs to be LNClient-specific
@@ -78,14 +45,45 @@ func (controller *getInfoController) HandleGetInfoEvent(ctx context.Context, nip
 	}
 
 	responsePayload := &getInfoResponse{
-		Alias:         info.Alias,
-		Color:         info.Color,
-		Pubkey:        info.Pubkey,
-		Network:       network,
-		BlockHeight:   info.BlockHeight,
-		BlockHash:     info.BlockHash,
 		Methods:       controller.permissionsService.GetPermittedMethods(app),
 		Notifications: supportedNotifications,
+	}
+
+	// basic permissions check
+	hasPermission, _, _ := controller.permissionsService.HasPermission(app, nip47Request.Method, 0)
+	if hasPermission {
+		logger.Logger.WithFields(logrus.Fields{
+			"request_event_id": requestEventId,
+		}).Info("Getting info")
+
+		info, err := controller.lnClient.GetInfo(ctx)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"request_event_id": requestEventId,
+			}).Infof("Failed to fetch node info: %v", err)
+
+			publishResponse(&models.Response{
+				ResultType: nip47Request.Method,
+				Error: &models.Error{
+					Code:    models.ERROR_INTERNAL,
+					Message: err.Error(),
+				},
+			}, nostr.Tags{})
+			return
+		}
+
+		network := info.Network
+		// Some implementations return "bitcoin" while NIP47 expects "mainnet"
+		if network == "bitcoin" {
+			network = "mainnet"
+		}
+
+		responsePayload.Alias = info.Alias
+		responsePayload.Color = info.Color
+		responsePayload.Pubkey = info.Pubkey
+		responsePayload.Network = network
+		responsePayload.BlockHeight = info.BlockHeight
+		responsePayload.BlockHash = info.BlockHash
 	}
 
 	publishResponse(&models.Response{
