@@ -1044,8 +1044,12 @@ func (ls *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 	if isSpontaneousPaymentKind {
 		// keysend payment
 		lastUpdate := int64(payment.LastUpdate)
-		// TODO: use proper created at time (currently no access to created time for keysend payments)
-		createdAt = lastUpdate
+		createdAt = int64(payment.CreatedAt)
+		// TODO: remove this check some point in the future
+		// all payments after v0.6.2 will have createdAt set
+		if createdAt == 0 {
+			createdAt = lastUpdate
+		}
 		if payment.Status == ldk_node.PaymentStatusSucceeded {
 			settledAt = &lastUpdate
 		}
@@ -1229,10 +1233,21 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 			},
 		})
 	case ldk_node.EventPaymentSuccessful:
+		var duration uint64 = 0
+		if eventType.PaymentId != nil {
+			payment := ls.node.Payment(*eventType.PaymentId)
+			if payment == nil {
+				logger.Logger.WithField("payment_id", *eventType.PaymentId).Error("could not find LDK payment")
+				return
+			}
+			duration = payment.LastUpdate - payment.CreatedAt
+		}
+
 		ls.eventPublisher.Publish(&events.Event{
 			Event: "nwc_payment_sent",
 			Properties: &events.PaymentSentEventProperties{
 				PaymentHash: eventType.PaymentHash,
+				Duration:    duration,
 			},
 		})
 	}

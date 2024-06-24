@@ -24,6 +24,7 @@ type PaymentReceivedEventProperties struct {
 
 type PaymentSentEventProperties struct {
 	PaymentHash string `json:"payment_hash"`
+	Duration    uint64 `json:"duration"`
 }
 
 type ChannelBackupEvent struct {
