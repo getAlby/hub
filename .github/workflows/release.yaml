@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-raspberry-pi:
-    uses: ./.github/workflows/package-raspberry-pi.yml
+  build-server:
+    uses: ./.github/workflows/http.yml
 
   build-wails:
     uses: ./.github/workflows/wails.yml
@@ -18,7 +18,7 @@ jobs:
 
   release-draft:
     needs:
-      - build-raspberry-pi
+      - build-server
       - build-wails
     uses: ./.github/workflows/create-release.yaml
     secrets:

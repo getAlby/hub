@@ -40,7 +40,9 @@ function OnboardingChecklist() {
     albyMe &&
     nodeConnectionInfo &&
     albyMe?.keysend_pubkey === nodeConnectionInfo?.pubkey;
-  const hasChannel = hasChannelManagement && channels && channels?.length > 0;
+  const hasChannel =
+    !hasChannelManagement ||
+    (hasChannelManagement && channels && channels?.length > 0);
   const hasBackedUp =
     hasMnemonic &&
     info &&

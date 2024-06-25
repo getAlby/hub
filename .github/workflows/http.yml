@@ -1,0 +1,130 @@
+name: Linux build HTTP executable
+on:
+  push:
+  workflow_call:
+  release:
+    types: [published]
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+
+    strategy:
+      matrix:
+        build:
+          [
+            {
+              arch: x86_64,
+              breez_arch: linux-amd64,
+              alby_arch: x86_64-unknown-linux-gnu,
+            },
+            {
+              arch: armv6,
+              breez_arch: "",
+              alby_arch: arm-unknown-linux-gnueabihf,
+            },
+            {
+              arch: aarch64,
+              breez_arch: linux-aarch64,
+              alby_arch: aarch64-unknown-linux-gnu,
+            },
+          ]
+
+    steps:
+      - name: Setup
+        run: |
+          echo "EXEC_NAME=albyhub" >> $GITHUB_ENV
+          echo "PACKAGE_NAME=albyhub-Server-Linux-${{ matrix.build.arch }}" >> $GITHUB_ENV
+
+      - uses: actions/checkout@v4
+        name: Check out code
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y patchelf gcc
+
+      - name: Setup GoLang
+        uses: actions/setup-go@v5
+        with:
+          check-latest: true
+          go-version: 1.21
+
+      - name: Get dependencies
+        run: go get -v -t -d ./...
+
+      - name: Setup NodeJS
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+
+      - name: Run tests
+        run: mkdir frontend/dist && touch frontend/dist/tmp && go test ./...
+
+      - name: Build frontend
+        run: |
+          cd frontend
+          yarn install
+          yarn build:http
+        shell: bash
+
+      - name: Create build directory
+        run: |
+          mkdir -p ./build/bin/${{ env.PACKAGE_NAME }}/lib
+
+      - name: Install ARM6 cross-compiler
+        if: matrix.build.arch == 'armv6'
+        run: |
+          wget -nv https://github.com/getAlby/gcc-arm-linux-gnueabihf/releases/download/v1.0.0/armv6-unknown-linux-gnueabihf.tar.bz2
+          tar -xf armv6-unknown-linux-gnueabihf.tar.bz2
+          echo "GOOS=linux" >> $GITHUB_ENV
+          echo "GOARCH=arm" >> $GITHUB_ENV
+          echo "GOARM=6" >> $GITHUB_ENV
+          echo "CC=$GITHUB_WORKSPACE/armv6-unknown-linux-gnueabihf/bin/armv6-unknown-linux-gnueabihf-gcc" >> $GITHUB_ENV
+          echo "GOTAGS=-tags skip_breez,netgo" >> $GITHUB_ENV
+
+      - name: Install ARM64 cross-compiler
+        if: matrix.build.arch == 'aarch64'
+        run: |
+          sudo apt-get install -y gcc-aarch64-linux-gnu
+          echo "GOOS=linux" >> $GITHUB_ENV
+          echo "GOARCH=arm64" >> $GITHUB_ENV
+          echo "CC=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
+          echo "GOTAGS=-tags netgo" >> $GITHUB_ENV
+
+      - name: Build Binary for linux
+        env:
+          CGO_ENABLED: 1
+        run: go build ${{ env.GOTAGS }} -o build/bin/${{ env.PACKAGE_NAME }}/bin/${{ env.EXEC_NAME }} cmd/http/main.go
+
+      - name: Copy shared libraries to the output directory
+        run: |
+          mkdir -p ./build/bin/${{ env.PACKAGE_NAME }}/lib
+          if [ "${{ matrix.build.breez_arch }}" != "" ]; then
+            cp `go list -m -f "{{.Dir}}" github.com/breez/breez-sdk-go`/breez_sdk/lib/${{ matrix.build.breez_arch }}/libbreez_sdk_bindings.so ./build/bin/${{ env.PACKAGE_NAME }}/lib/
+          fi
+          cp `go list -m -f "{{.Dir}}" github.com/getAlby/glalby-go`/glalby/${{ matrix.build.alby_arch }}/libglalby_bindings.so ./build/bin/${{ env.PACKAGE_NAME }}/lib/
+          cp `go list -m -f "{{.Dir}}" github.com/getAlby/ldk-node-go`/ldk_node/${{ matrix.build.alby_arch }}/libldk_node.so ./build/bin/${{ env.PACKAGE_NAME }}/lib/
+        shell: bash
+
+      - name: Patch executable RPATH
+        run: |
+          patchelf --force-rpath --set-rpath '$ORIGIN/../lib' ./build/bin/${{ env.PACKAGE_NAME }}/bin/${{ env.EXEC_NAME }}
+
+      - name: Add Linux perms
+        run: |
+          chmod +x build/bin/${{ env.PACKAGE_NAME }}/bin/${{ env.EXEC_NAME }}
+        shell: bash
+
+      - name: Make output tar archive to keep file permissions
+        run: |
+          mkdir -p ./build/out
+          tar czf ./build/out/${{ env.PACKAGE_NAME }}.tar.gz -C ./build/bin/${{ env.PACKAGE_NAME }} .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.PACKAGE_NAME }}.tar.gz
+          path: |
+            ./build/out/${{ env.PACKAGE_NAME }}.tar.gz
+          if-no-files-found: error

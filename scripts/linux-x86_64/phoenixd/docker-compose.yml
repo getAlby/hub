@@ -1,0 +1,27 @@
+services:
+  albyhub:
+    platform: linux/amd64
+    container_name: albyhub
+    image: ghcr.io/getalby/nostr-wallet-connect-next:latest
+    volumes:
+      - ./albyhub-phoenixd:/data
+    ports:
+      - "8080:8080"
+    links:
+      - "phoenixd:phoenixd"
+    environment:
+      - PHOENIXD_AUTHORIZATION=dcf0cf3501c04f97890e3bb3204f94f60d6b99d270cc8c40dfd390cced2f3c11
+      - PHOENIXD_ADDRESS=http://phoenixd:9740
+      - WORK_DIR=/data/albyhub
+      - LN_BACKEND_TYPE=PHOENIX
+      - LOG_EVENTS=true
+
+  phoenixd:
+    platform: linux/amd64
+    image: ghcr.io/sethforprivacy/phoenixd:latest
+    container_name: phoenixd
+    volumes:
+      - ./albyhub-phoenixd:/data
+    environment:
+      - PHOENIX_DATADIR=/data/phoenixd
+    command: --agree-to-terms-of-service --http-bind-ip 0.0.0.0 --http-password=dcf0cf3501c04f97890e3bb3204f94f60d6b99d270cc8c40dfd390cced2f3c11

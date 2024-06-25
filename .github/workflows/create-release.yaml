@@ -10,29 +10,15 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - name: Download Raspberry Pi archive
+      - name: Download Linux server archives
         uses: actions/download-artifact@v4
         with:
-          name: nostr-wallet-connect-rpi.tar.bz2
-          path: artifacts
+          pattern: albyhub-Server-Linux-*
 
-      - name: Download Linux desktop archive
+      - name: Download desktop archives
         uses: actions/download-artifact@v4
         with:
-          name: albyhub-Linux
-          path: artifacts
-
-      - name: Download macOS desktop archive
-        uses: actions/download-artifact@v4
-        with:
-          name: albyhub-macOS
-          path: artifacts
-
-      - name: Download Windows desktop archive
-        uses: actions/download-artifact@v4
-        with:
-          name: albyhub-Windows
-          path: artifacts
+          pattern: albyhub-Desktop-*
 
       - name: Create release without tag
         if: github.ref_type != 'tag'
