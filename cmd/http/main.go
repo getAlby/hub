@@ -19,7 +19,13 @@ import (
 
 func main() {
 	log.Info("NWC Starting in HTTP mode")
-	ctx, _ := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM, os.Kill)
+
+	// Create a channel to receive OS signals.
+	osSignalChannel := make(chan os.Signal, 1)
+	// Notify the channel on os.Interrupt, syscall.SIGTERM, and os.Kill.
+	signal.Notify(osSignalChannel, os.Interrupt, syscall.SIGTERM, os.Kill)
+
+	ctx, cancel := context.WithCancel(context.Background())
 	svc, _ := service.NewService(ctx)
 
 	echologrus.Logger = logger.Logger
@@ -34,10 +40,20 @@ func main() {
 			logger.Logger.Fatalf("shutting down the server: %v", err)
 		}
 	}()
+
+	var signal os.Signal
+	go func() {
+		// wait for exit signal
+		signal = <-osSignalChannel
+		logger.Logger.WithField("signal", signal).Info("Received OS signal")
+		cancel()
+	}()
+
 	//handle graceful shutdown
 	<-ctx.Done()
-	logger.Logger.Infof("Shutting down echo server...")
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	logger.Logger.WithField("signal", signal).Info("Context Done")
+	logger.Logger.Info("Shutting down echo server...")
+	ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	e.Shutdown(ctx)
 	logger.Logger.Info("Echo server exited")
