@@ -792,18 +792,25 @@ func (ls *LDKService) ListChannels(ctx context.Context) ([]lnclient.Channel, err
 			"ForwardingFeeProportionalMillionths": ldkChannel.Config.ForwardingFeeProportionalMillionths(),
 		}
 
+		unspendablePunishmentReserve := uint64(0)
+		if ldkChannel.UnspendablePunishmentReserve != nil {
+			unspendablePunishmentReserve = *ldkChannel.UnspendablePunishmentReserve
+		}
+
 		channels = append(channels, lnclient.Channel{
-			InternalChannel:       internalChannel,
-			LocalBalance:          int64(ldkChannel.OutboundCapacityMsat),
-			RemoteBalance:         int64(ldkChannel.InboundCapacityMsat),
-			RemotePubkey:          ldkChannel.CounterpartyNodeId,
-			Id:                    ldkChannel.UserChannelId, // CloseChannel takes the UserChannelId
-			Active:                ldkChannel.IsUsable,      // superset of ldkChannel.IsReady
-			Public:                ldkChannel.IsPublic,
-			FundingTxId:           fundingTxId,
-			Confirmations:         ldkChannel.Confirmations,
-			ConfirmationsRequired: ldkChannel.ConfirmationsRequired,
-			ForwardingFeeBaseMsat: ldkChannel.Config.ForwardingFeeBaseMsat(),
+			InternalChannel:                          internalChannel,
+			LocalBalance:                             int64(ldkChannel.OutboundCapacityMsat),
+			RemoteBalance:                            int64(ldkChannel.InboundCapacityMsat),
+			RemotePubkey:                             ldkChannel.CounterpartyNodeId,
+			Id:                                       ldkChannel.UserChannelId, // CloseChannel takes the UserChannelId
+			Active:                                   ldkChannel.IsUsable,      // superset of ldkChannel.IsReady
+			Public:                                   ldkChannel.IsPublic,
+			FundingTxId:                              fundingTxId,
+			Confirmations:                            ldkChannel.Confirmations,
+			ConfirmationsRequired:                    ldkChannel.ConfirmationsRequired,
+			ForwardingFeeBaseMsat:                    ldkChannel.Config.ForwardingFeeBaseMsat(),
+			UnspendablePunishmentReserve:             unspendablePunishmentReserve,
+			CounterpartyUnspendablePunishmentReserve: ldkChannel.CounterpartyUnspendablePunishmentReserve,
 		})
 	}
 

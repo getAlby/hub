@@ -199,16 +199,18 @@ func (svc *LNDService) ListChannels(ctx context.Context) ([]lnclient.Channel, er
 		confirmations := nodeInfo.BlockHeight - uint32(channelOpeningBlockHeight)
 
 		channels[i] = lnclient.Channel{
-			InternalChannel:       lndChannel,
-			LocalBalance:          lndChannel.LocalBalance * 1000,
-			RemoteBalance:         lndChannel.RemoteBalance * 1000,
-			RemotePubkey:          lndChannel.RemotePubkey,
-			Id:                    strconv.FormatUint(lndChannel.ChanId, 10),
-			Active:                lndChannel.Active,
-			Public:                !lndChannel.Private,
-			FundingTxId:           channelPoint.GetFundingTxidStr(),
-			Confirmations:         &confirmations,
-			ConfirmationsRequired: &confirmationsRequired,
+			InternalChannel:                          lndChannel,
+			LocalBalance:                             lndChannel.LocalBalance * 1000,
+			RemoteBalance:                            lndChannel.RemoteBalance * 1000,
+			RemotePubkey:                             lndChannel.RemotePubkey,
+			Id:                                       strconv.FormatUint(lndChannel.ChanId, 10),
+			Active:                                   lndChannel.Active,
+			Public:                                   !lndChannel.Private,
+			FundingTxId:                              channelPoint.GetFundingTxidStr(),
+			Confirmations:                            &confirmations,
+			ConfirmationsRequired:                    &confirmationsRequired,
+			UnspendablePunishmentReserve:             lndChannel.LocalConstraints.ChanReserveSat,
+			CounterpartyUnspendablePunishmentReserve: lndChannel.RemoteConstraints.ChanReserveSat,
 		}
 	}
 

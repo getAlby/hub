@@ -175,6 +175,8 @@ export type Channel = {
   confirmations?: number;
   confirmationsRequired?: number;
   forwardingFeeBaseMsat: number;
+  unspendablePunishmentReserve: number;
+  counterpartyUnspendablePunishmentReserve: number;
 };
 
 export type UpdateChannelRequest = {

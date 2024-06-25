@@ -74,17 +74,19 @@ type LNClient interface {
 }
 
 type Channel struct {
-	LocalBalance          int64       `json:"localBalance"`
-	RemoteBalance         int64       `json:"remoteBalance"`
-	Id                    string      `json:"id"`
-	RemotePubkey          string      `json:"remotePubkey"`
-	FundingTxId           string      `json:"fundingTxId"`
-	Active                bool        `json:"active"`
-	Public                bool        `json:"public"`
-	InternalChannel       interface{} `json:"internalChannel"`
-	Confirmations         *uint32     `json:"confirmations"`
-	ConfirmationsRequired *uint32     `json:"confirmationsRequired"`
-	ForwardingFeeBaseMsat uint32      `json:"forwardingFeeBaseMsat"`
+	LocalBalance                             int64       `json:"localBalance"`
+	RemoteBalance                            int64       `json:"remoteBalance"`
+	Id                                       string      `json:"id"`
+	RemotePubkey                             string      `json:"remotePubkey"`
+	FundingTxId                              string      `json:"fundingTxId"`
+	Active                                   bool        `json:"active"`
+	Public                                   bool        `json:"public"`
+	InternalChannel                          interface{} `json:"internalChannel"`
+	Confirmations                            *uint32     `json:"confirmations"`
+	ConfirmationsRequired                    *uint32     `json:"confirmationsRequired"`
+	ForwardingFeeBaseMsat                    uint32      `json:"forwardingFeeBaseMsat"`
+	UnspendablePunishmentReserve             uint64      `json:"unspendablePunishmentReserve"`
+	CounterpartyUnspendablePunishmentReserve uint64      `json:"counterpartyUnspendablePunishmentReserve"`
 }
 
 type NodeStatus struct {

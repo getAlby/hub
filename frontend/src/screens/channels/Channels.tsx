@@ -7,6 +7,7 @@ import {
   ExternalLinkIcon,
   HandCoins,
   Hotel,
+  InfoIcon,
   MoreHorizontal,
   Trash2,
   Unplug,
@@ -35,6 +36,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "src/components/ui/dropdown-menu.tsx";
+import { Progress } from "src/components/ui/progress.tsx";
 import {
   Table,
   TableBody,
@@ -43,8 +45,17 @@ import {
   TableHeader,
   TableRow,
 } from "src/components/ui/table.tsx";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "src/components/ui/tooltip.tsx";
 import { toast } from "src/components/ui/use-toast.ts";
-import { ONCHAIN_DUST_SATS } from "src/constants.ts";
+import {
+  ALBY_HIDE_HOSTED_BALANCE_BELOW as ALBY_HIDE_HOSTED_BALANCE_LIMIT,
+  ONCHAIN_DUST_SATS,
+} from "src/constants.ts";
 import { useAlbyBalance } from "src/hooks/useAlbyBalance.ts";
 import { useBalances } from "src/hooks/useBalances.ts";
 import { useChannels } from "src/hooks/useChannels";
@@ -53,7 +64,7 @@ import { useNodeConnectionInfo } from "src/hooks/useNodeConnectionInfo.ts";
 import { useRedeemOnchainFunds } from "src/hooks/useRedeemOnchainFunds.ts";
 import { useSyncWallet } from "src/hooks/useSyncWallet.ts";
 import { copyToClipboard } from "src/lib/clipboard.ts";
-import { formatAmount } from "src/lib/utils.ts";
+import { cn, formatAmount } from "src/lib/utils.ts";
 import {
   Channel,
   CloseChannelResponse,
@@ -248,6 +259,9 @@ export default function Channels() {
     }
   }
 
+  const showHostedBalance =
+    albyBalance && albyBalance.sats > ALBY_HIDE_HOSTED_BALANCE_LIMIT;
+
   return (
     <>
       <AppHeader
@@ -333,8 +347,13 @@ export default function Channels() {
         }
       ></AppHeader>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-        {albyBalance && albyBalance?.sats >= 100 && (
+      <div
+        className={cn(
+          "grid grid-cols-1 gap-3",
+          showHostedBalance ? "xl:grid-cols-4" : "lg:grid-cols-3"
+        )}
+      >
+        {showHostedBalance && (
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
@@ -464,8 +483,30 @@ export default function Channels() {
                 <TableHead className="w-[80px]">Status</TableHead>
                 <TableHead>Node</TableHead>
                 <TableHead className="w-[150px]">Capacity</TableHead>
-                <TableHead className="w-[150px]">Inbound</TableHead>
-                <TableHead className="w-[150px]">Outbound</TableHead>
+                <TableHead className="w-[150px]">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <div className="flex flex-row gap-2 items-center">
+                          Reserve
+                          <InfoIcon className="h-4 w-4 shrink-0" />
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent className="w-[400px]">
+                        Funds each participant sets aside to discourage cheating
+                        by ensuring each party has something at stake. This
+                        reserve cannot be spent during the channel's lifetime
+                        and typically amounts to 1% of the channel capacity.
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </TableHead>
+                <TableHead className="w-[300px]">
+                  <div className="flex flex-row justify-between items-center">
+                    <div>Spending</div>
+                    <div>Receiving</div>
+                  </div>
+                </TableHead>
                 <TableHead className="w-[50px]"></TableHead>
               </TableRow>
             </TableHeader>
@@ -484,7 +525,7 @@ export default function Channels() {
                       <TableRow key={channel.id}>
                         <TableCell>
                           {channel.active ? (
-                            <Badge>Online</Badge>
+                            <Badge variant="positive">Online</Badge>
                           ) : (
                             <Badge variant="outline">Offline</Badge>
                           )}{" "}
@@ -504,12 +545,36 @@ export default function Channels() {
                             {channel.public ? "Public" : "Private"}
                           </Badge>
                         </TableCell>
-                        <TableCell>{formatAmount(capacity)} sats</TableCell>
-                        <TableCell>
-                          {formatAmount(channel.remoteBalance)} sats
+                        <TableCell title={capacity / 1000 + " sats"}>
+                          {formatAmount(capacity)} sats
+                        </TableCell>
+                        <TableCell
+                          title={channel.unspendablePunishmentReserve + " sats"}
+                        >
+                          {formatAmount(
+                            channel.unspendablePunishmentReserve * 1000
+                          )}{" "}
+                          sats
                         </TableCell>
                         <TableCell>
-                          {formatAmount(channel.localBalance)} sats
+                          <div className="relative">
+                            <Progress
+                              value={(channel.localBalance / capacity) * 100}
+                              className="h-6 absolute"
+                            />
+                            <div className="flex flex-row w-full justify-between px-2 text-xs items-center h-6 mix-blend-exclusion text-white">
+                              <span
+                                title={channel.localBalance / 1000 + " sats"}
+                              >
+                                {formatAmount(channel.localBalance)} sats
+                              </span>
+                              <span
+                                title={channel.remoteBalance / 1000 + " sats"}
+                              >
+                                {formatAmount(channel.remoteBalance)} sats
+                              </span>
+                            </div>
+                          </div>
                         </TableCell>
                         <TableCell>
                           <DropdownMenu>
