@@ -38,9 +38,9 @@ RUN GOARCH=$(echo "$TARGETPLATFORM" | cut -d'/' -f2) go build \
    -ldflags="-X 'github.com/getAlby/nostr-wallet-connect/version.Tag=$TAG'" \
    -o main cmd/http/main.go
 
-RUN cp `find /go/pkg/mod/github.com/breez/ |grep linux-amd64 |grep libbreez_sdk_bindings.so` ./
-RUN cp `find /go/pkg/mod/github.com/get\!alby/ | grep x86_64-unknown-linux-gnu | grep libglalby_bindings.so` ./
-RUN cp `find /go/pkg/mod/github.com/get\!alby/ | grep x86_64-unknown-linux-gnu | grep libldk_node.so` ./
+COPY ./build/docker/copy_dylibs.sh .
+RUN chmod +x copy_dylibs.sh
+RUN ./copy_dylibs.sh $(echo "$TARGETPLATFORM" | cut -d'/' -f2)
 
 # Start a new, final image to reduce size.
 FROM debian as final
