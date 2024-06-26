@@ -15,12 +15,14 @@ jobs:
         with:
           pattern: albyhub-Server-Linux-*
           path: artifacts
+          merge-multiple: true
 
       - name: Download desktop archives
         uses: actions/download-artifact@v4
         with:
           pattern: albyhub-Desktop-*
           path: artifacts
+          merge-multiple: true
 
       - name: Create release without tag
         if: github.ref_type != 'tag'
