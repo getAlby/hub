@@ -2,8 +2,6 @@ name: Linux build HTTP executable
 on:
   push:
   workflow_call:
-  release:
-    types: [published]
 jobs:
   build:
     runs-on: ubuntu-20.04
