@@ -19,7 +19,9 @@ import zappybird from "src/assets/suggested-apps/zappy-bird.png";
 
 export type SuggestedApp = {
   id: string;
-  to: string;
+  webLink: string;
+  playLink?: string;
+  appleLink?: string;
   title: string;
   description: string;
   logo?: string;
@@ -30,126 +32,134 @@ export const suggestedApps: SuggestedApp[] = [
     id: "alby-extension",
     title: "Alby Extension",
     description: "Wallet in your browser",
-    to: "https://getalby.com/",
+    webLink: "https://getalby.com/",
     logo: alby,
   },
   {
     id: "damus",
     title: "Damus",
     description: "iOS Nostr client",
-    to: "https://damus.io/?utm_source=getalby",
+    webLink: "https://damus.io/?utm_source=getalby",
+    appleLink: "https://apps.apple.com/ca/app/damus/id1628663131",
     logo: damus,
   },
   {
     id: "amethyst",
     title: "Amethyst",
     description: "Android Nostr client",
-    to: "https://play.google.com/store/apps/details?id=com.vitorpamplona.amethyst&hl=de&gl=US",
+    webLink:
+      "https://play.google.com/store/apps/details?id=com.vitorpamplona.amethyst",
+    playLink:
+      "https://play.google.com/store/apps/details?id=com.vitorpamplona.amethyst",
     logo: amethyst,
   },
   {
     id: "primal",
     title: "Primal",
     description: "Cross-platform social",
-    to: "https://primal.net/",
+    webLink: "https://primal.net/",
+    playLink:
+      "https://play.google.com/store/apps/details?id=net.primal.android",
+    appleLink: "https://apps.apple.com/us/app/primal/id1673134518",
     logo: primal,
   },
   {
     id: "zap-stream",
     title: "Zap Stream",
     description: "Stream and stack sats",
-    to: "https://zap.stream/",
+    webLink: "https://zap.stream/",
     logo: zapstream,
   },
   {
     id: "wavlake",
     title: "Wavlake",
     description: "Creators platform",
-    to: "https://www.wavlake.com/",
+    webLink: "https://www.wavlake.com/",
     logo: wavelake,
   },
   {
     id: "snort",
     title: "Snort",
     description: "Web Nostr client",
-    to: "https://snort.social/",
+    webLink: "https://snort.social/",
     logo: snort,
   },
   {
     id: "habla-news",
     title: "Habla News",
     description: "Blogging platform",
-    to: "https://habla.news/",
+    webLink: "https://habla.news/",
     logo: hablanews,
   },
   {
     id: "nostrudel",
     title: "noStrudel",
     description: "Web Nostr client",
-    to: "https://nostrudel.ninja/",
+    webLink: "https://nostrudel.ninja/",
     logo: nostrudel,
   },
   {
     id: "yakihonne",
     title: "YakiHonne",
     description: "Blogging platform",
-    to: "https://yakihonne.com/",
+    webLink: "https://yakihonne.com/",
     logo: yakihonne,
   },
   {
     id: "zapplanner",
     title: "ZapPlanner",
     description: "Schedule payments",
-    to: "https://zapplanner.albylabs.com/",
+    webLink: "https://zapplanner.albylabs.com/",
     logo: zapplanner,
   },
   {
     id: "zapplepay",
     title: "Zapple Pay",
     description: "Zap from any client",
-    to: "https://www.zapplepay.com/",
+    webLink: "https://www.zapplepay.com/",
     logo: zapplepay,
   },
   {
     id: "lume",
     title: "Lume",
     description: "macOS Nostr client",
-    to: "https://lume.nu/",
+    webLink: "https://lume.nu/",
     logo: lume,
   },
   {
     id: "bitcoin-connect",
     title: "Bitcoin Connect",
     description: "Connect to apps",
-    to: "https://bitcoin-connect.com/",
+    webLink: "https://bitcoin-connect.com/",
     logo: bc,
   },
   {
     id: "kiwi",
     title: "Kiwi",
     description: "Nostr communities",
-    to: "https://nostr.kiwi/",
+    webLink: "https://nostr.kiwi/",
     logo: kiwi,
   },
   {
     id: "zappy-bird",
     title: "Zappy Bird",
     description: "Lose sats quickly",
-    to: "https://rolznz.github.io/zappy-bird/",
+    webLink: "https://rolznz.github.io/zappy-bird/",
     logo: zappybird,
   },
   {
     id: "nostur",
     title: "Nostur",
     description: "Social media",
-    to: "https://nostur.com/",
+    webLink: "https://nostur.com/",
+    appleLink: "https://apps.apple.com/us/app/nostur-nostr-client/id1672780508",
     logo: nostur,
   },
   {
     id: "wherostr",
     title: "Wherostr",
     description: "Map of notes",
-    to: "https://wherostr.social/",
+    webLink: "https://wherostr.social/",
     logo: wherostr,
   },
 ].sort((a, b) => (a.title.toUpperCase() > b.title.toUpperCase() ? 1 : -1));

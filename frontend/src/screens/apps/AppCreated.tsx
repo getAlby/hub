@@ -95,7 +95,7 @@ export default function AppCreated() {
             {appstoreApp ? (
               <ExternalLink
                 className="font-semibold underline"
-                to={appstoreApp.to}
+                to={appstoreApp.webLink}
               >
                 {appstoreApp.title}
               </ExternalLink>
