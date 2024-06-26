@@ -26,7 +26,7 @@ type AppConfig struct {
 	LogLevel              string `envconfig:"LOG_LEVEL"`
 	LDKNetwork            string `envconfig:"LDK_NETWORK" default:"bitcoin"`
 	LDKEsploraServer      string `envconfig:"LDK_ESPLORA_SERVER" default:"https://electrs.albylabs.com"` // TODO: remove LDK prefix
-	LDKGossipSource       string `envconfig:"LDK_GOSSIP_SOURCE" default:"https://rapidsync.lightningdevkit.org/snapshot"`
+	LDKGossipSource       string `envconfig:"LDK_GOSSIP_SOURCE"`
 	LDKLogLevel           string `envconfig:"LDK_LOG_LEVEL"`
 	MempoolApi            string `envconfig:"MEMPOOL_API" default:"https://mempool.space/api"`
 	AlbyAPIURL            string `envconfig:"ALBY_API_URL" default:"https://api.getalby.com"`
