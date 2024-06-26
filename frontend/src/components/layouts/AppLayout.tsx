@@ -181,7 +181,12 @@ export default function AppLayout() {
     );
   }
 
-  const upToDate = info?.version && info.version === info.latestVersion;
+  const upToDate =
+    info?.version &&
+    info.latestVersion &&
+    info.version.startsWith("v") &&
+    info.latestVersion.startsWith("v") &&
+    info.version.substring(1) >= info.latestVersion.substring(1);
 
   return (
     <>
