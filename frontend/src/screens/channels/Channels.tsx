@@ -1,7 +1,6 @@
 import {
   ArrowDown,
   ArrowUp,
-  Bitcoin,
   ChevronDown,
   CopyIcon,
   ExternalLinkIcon,
@@ -311,8 +310,31 @@ export default function Channels() {
                     </div>
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
+                <DropdownMenuSeparator />
                 <DropdownMenuGroup>
-                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel>On-Chain</DropdownMenuLabel>
+                  <DropdownMenuItem>
+                    {balances && (
+                      <>
+                        {new Intl.NumberFormat().format(
+                          balances.onchain.spendable
+                        )}{" "}
+                        sats
+                        {balances &&
+                          balances.onchain.spendable !==
+                            balances.onchain.total && (
+                            <p className="text-xs text-muted-foreground animate-pulse">
+                              +
+                              {new Intl.NumberFormat().format(
+                                balances.onchain.total -
+                                  balances.onchain.spendable
+                              )}{" "}
+                              sats incoming
+                            </p>
+                          )}
+                      </>
+                    )}
+                  </DropdownMenuItem>
                   <DropdownMenuItem>
                     <Link
                       to="/channels/onchain/deposit-bitcoin"
@@ -354,9 +376,9 @@ export default function Channels() {
                 </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>
-            {/* <Link to="/channels/new">
-              <Button>Open Channel</Button>
-            </Link> */}
+            <ExternalLink to="https://www.getalby.com/topup">
+              <Button>Buy Bitcoin</Button>
+            </ExternalLink>
           </>
         }
       ></AppHeader>
@@ -364,7 +386,7 @@ export default function Channels() {
       <div
         className={cn(
           "grid grid-cols-1 gap-3",
-          showHostedBalance ? "xl:grid-cols-4" : "lg:grid-cols-3"
+          showHostedBalance ? "xl:grid-cols-3" : "lg:grid-cols-2"
         )}
       >
         {showHostedBalance && (
@@ -432,49 +454,6 @@ export default function Channels() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Savings Balance
-            </CardTitle>
-            <Bitcoin className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            {!balances && (
-              <div>
-                <div className="animate-pulse d-inline ">
-                  <div className="h-2.5 bg-primary rounded-full w-12 my-2"></div>
-                </div>
-              </div>
-            )}
-            <div className="text-2xl font-bold">
-              {balances && (
-                <>
-                  {new Intl.NumberFormat().format(balances.onchain.spendable)}{" "}
-                  sats
-                  {balances &&
-                    balances.onchain.spendable !== balances.onchain.total && (
-                      <p className="text-xs text-muted-foreground animate-pulse">
-                        +
-                        {new Intl.NumberFormat().format(
-                          balances.onchain.total - balances.onchain.spendable
-                        )}{" "}
-                        sats incoming
-                      </p>
-                    )}
-                </>
-              )}
-            </div>
-          </CardContent>
-          <CardFooter className="flex justify-end space-x-1">
-            <Link to="onchain/buy-bitcoin">
-              <Button variant="outline">Buy</Button>
-            </Link>
-            <Link to="onchain/deposit-bitcoin">
-              <Button variant="outline">Deposit</Button>
-            </Link>
-          </CardFooter>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
               Spending Balance
             </CardTitle>
             <ArrowUp className="h-4 w-4 text-muted-foreground" />
@@ -498,7 +477,7 @@ export default function Channels() {
           </CardContent>
           <CardFooter className="flex justify-end">
             <Link to="/channels/outgoing">
-              <Button variant="outline">Increase</Button>
+              <Button variant="outline">Top Up</Button>
             </Link>
           </CardFooter>
         </Card>
