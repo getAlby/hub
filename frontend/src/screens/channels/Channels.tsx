@@ -279,20 +279,21 @@ export default function Channels() {
               <DropdownMenuContent className="w-56">
                 <DropdownMenuGroup>
                   <DropdownMenuItem>
-                    <div className="flex flex-row gap-10 items-center w-full">
-                      <div className="whitespace-nowrap flex flex-row items-center gap-2">
-                        Node
-                      </div>
-                      <div className="overflow-hidden text-ellipsis">
+                    <div
+                      className="flex flex-row gap-4 items-center w-full cursor-pointer"
+                      onClick={() => {
+                        if (!nodeConnectionInfo) {
+                          return;
+                        }
+                        copyToClipboard(nodeConnectionInfo.pubkey);
+                      }}
+                    >
+                      <div>Node</div>
+                      <div className="overflow-hidden text-ellipsis flex-1">
                         {nodeConnectionInfo?.pubkey || "Loading..."}
                       </div>
                       {nodeConnectionInfo && (
-                        <CopyIcon
-                          className="shrink-0 w-4 h-4"
-                          onClick={() => {
-                            copyToClipboard(nodeConnectionInfo.pubkey);
-                          }}
-                        />
+                        <CopyIcon className="shrink-0 w-4 h-4" />
                       )}
                     </div>
                   </DropdownMenuItem>
@@ -340,9 +341,9 @@ export default function Channels() {
                 </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Link to="/channels/new">
+            {/* <Link to="/channels/new">
               <Button>Open Channel</Button>
-            </Link>
+            </Link> */}
           </>
         }
       ></AppHeader>
@@ -436,7 +437,7 @@ export default function Channels() {
             )}
           </CardContent>
           <CardFooter className="flex justify-end">
-            <Link to="/channels/new">
+            <Link to="/channels/outgoing">
               <Button variant="outline">Increase</Button>
             </Link>
           </CardFooter>
@@ -458,7 +459,7 @@ export default function Channels() {
             </div>
           </CardContent>
           <CardFooter className="flex justify-end">
-            <Link to="/channels/new">
+            <Link to="/channels/incoming">
               <Button variant="outline">Increase</Button>
             </Link>
           </CardFooter>
@@ -471,7 +472,7 @@ export default function Channels() {
           title="No Channels Available"
           description="Connect to the Lightning Network by establishing your first channel and start transacting."
           buttonText="Open Channel"
-          buttonLink="/channels/new"
+          buttonLink="/channels/outgoing"
         />
       )}
 

@@ -67,18 +67,16 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		"[::]:9735",
 	}
 	config.TrustedPeers0conf = []string{
-		lsp.VoltageLSP().Pubkey,
 		lsp.OlympusLSP().Pubkey,
 		lsp.AlbyPlebsLSP().Pubkey,
 		lsp.MegalithLSP().Pubkey,
 
 		// Mutinynet
 		lsp.AlbyMutinynetPlebsLSP().Pubkey,
-		lsp.OlympusMutinynetFlowLSP().Pubkey,
+		lsp.OlympusMutinynetLSP().Pubkey,
 		lsp.MegalithMutinynetLSP().Pubkey,
 	}
 	config.AnchorChannelsConfig.TrustedPeersNoReserve = []string{
-		lsp.VoltageLSP().Pubkey,
 		lsp.OlympusLSP().Pubkey,
 		lsp.AlbyPlebsLSP().Pubkey,
 		lsp.MegalithLSP().Pubkey,
@@ -86,7 +84,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 
 		// Mutinynet
 		lsp.AlbyMutinynetPlebsLSP().Pubkey,
-		lsp.OlympusMutinynetFlowLSP().Pubkey,
+		lsp.OlympusMutinynetLSP().Pubkey,
 		lsp.MegalithMutinynetLSP().Pubkey,
 	}
 
@@ -110,7 +108,8 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 
 	// TODO: remove when https://github.com/lightningdevkit/rust-lightning/issues/2914 is merged
 	// LDK default HTLC inflight value is 10% of the channel size. If an LSPS service is configured this will be set to 0.
-	builder.SetLiquiditySourceLsps2("52.88.33.119:9735", lsp.VoltageLSP().Pubkey, nil)
+	// The liquidity source below is not used because we do not use the native LDK-node LSPS2 API.
+	builder.SetLiquiditySourceLsps2("52.88.33.119:9735", lsp.OlympusLSP().Pubkey, nil)
 
 	//builder.SetLogDirPath (filepath.Join(newpath, "./logs")); // missing?
 	node, err := builder.Build()

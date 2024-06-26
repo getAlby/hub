@@ -52,7 +52,10 @@ type ChannelPeerSuggestion struct {
 	MinimumChannelSize uint64 `json:"minimumChannelSize"`
 	Name               string `json:"name"`
 	Image              string `json:"image"`
-	Lsp                string `json:"lsp"`
+	BrokenLspUrl       string `json:"lsp_url"`
+	BrokenLspType      string `json:"lsp_type"`
+	LspUrl             string `json:"lspUrl"`
+	LspType            string `json:"lspType"`
 }
 
 type ErrorResponse struct {

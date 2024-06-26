@@ -61,7 +61,7 @@ function OnboardingChecklist() {
       description:
         "Establish a new Lightning channel to enable fast and low-fee Bitcoin transactions.",
       checked: hasChannel,
-      to: "/channels/new",
+      to: "/channels",
     },
     {
       title: "Link your Alby Account",

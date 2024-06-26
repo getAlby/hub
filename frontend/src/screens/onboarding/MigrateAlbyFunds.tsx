@@ -53,7 +53,8 @@ export default function MigrateAlbyFunds() {
         }
         const newInstantChannelInvoiceRequest: NewInstantChannelInvoiceRequest =
           {
-            lsp: "ALBY",
+            lspUrl: "https://lsp.albylabs.com",
+            lspType: "PMLSP",
             amount,
             public: false,
           };
@@ -213,7 +214,7 @@ export default function MigrateAlbyFunds() {
             >
               Migrate Funds and Open Channel
             </LoadingButton>
-            <Link to="/channels/new">
+            <Link to="/channels">
               <Button variant="link">Explore Other Options</Button>
             </Link>
           </form>
@@ -229,7 +230,7 @@ export default function MigrateAlbyFunds() {
               external wallet though.
             </AlertDescription>
           </Alert>
-          <Link to="/channels/new" className="w-full">
+          <Link to="/channels" className="w-full">
             <Button className="w-full">Explore Other Options</Button>
           </Link>
         </>

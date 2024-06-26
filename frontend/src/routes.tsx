@@ -23,7 +23,8 @@ import ShowApp from "src/screens/apps/ShowApp";
 import AppStore from "src/screens/appstore/AppStore";
 import Channels from "src/screens/channels/Channels";
 import { CurrentChannelOrder } from "src/screens/channels/CurrentChannelOrder";
-import NewChannel from "src/screens/channels/NewChannel";
+import IncreaseIncomingCapacity from "src/screens/channels/IncreaseIncomingCapacity";
+import IncreaseOutgoingCapacity from "src/screens/channels/IncreaseOutgoingCapacity";
 import MigrateAlbyFunds from "src/screens/onboarding/MigrateAlbyFunds";
 import { Success } from "src/screens/onboarding/Success";
 import BuyBitcoin from "src/screens/onchain/BuyBitcoin";
@@ -146,9 +147,14 @@ const routes = [
             element: <Channels />,
           },
           {
-            path: "new",
-            element: <NewChannel />,
-            handle: { crumb: () => "New Channel" },
+            path: "outgoing",
+            element: <IncreaseOutgoingCapacity />,
+            handle: { crumb: () => "Increase Spending Balance" },
+          },
+          {
+            path: "incoming",
+            element: <IncreaseIncomingCapacity />,
+            handle: { crumb: () => "Increase Receiving Capacity" },
           },
           {
             path: "order",

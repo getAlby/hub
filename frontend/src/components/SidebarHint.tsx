@@ -28,7 +28,7 @@ function SidebarHint() {
   // Don't distract with hints while opening a channel or on the settings page
   if (
     location.pathname.endsWith("/channels/order") ||
-    location.pathname.endsWith("/channels/new") ||
+    location.pathname.endsWith("/channels") ||
     location.pathname.startsWith("/settings")
   ) {
     return null;
@@ -73,7 +73,7 @@ function SidebarHint() {
         title="Open Your First Channel"
         description="Deposit bitcoin by onchain or lightning payment to start using your new wallet."
         buttonText="Begin Now"
-        buttonLink="/channels/new"
+        buttonLink="/channels"
       />
     );
   }

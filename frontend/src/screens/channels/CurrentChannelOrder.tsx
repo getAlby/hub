@@ -565,12 +565,13 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
         (async () => {
           try {
             setPrevChannels(channels);
-            if (!order.lsp) {
-              throw new Error("no lsp selected");
+            if (!order.lspType || !order.lspUrl) {
+              throw new Error("missing lsp info in order");
             }
             const newInstantChannelInvoiceRequest: NewInstantChannelInvoiceRequest =
               {
-                lsp: order.lsp,
+                lspType: order.lspType,
+                lspUrl: order.lspUrl,
                 amount: parseInt(order.amount),
                 public: order.isPublic,
               };
@@ -596,15 +597,22 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
       }
       return true;
     });
-  }, [channels, csrf, order.amount, order.isPublic, order.lsp]);
+  }, [
+    channels,
+    csrf,
+    order.amount,
+    order.isPublic,
+    order.lspType,
+    order.lspUrl,
+  ]);
 
   return (
     <div className="flex flex-col gap-5">
       <AppHeader
-        title={"Buy an Instant Channel"}
+        title={"Buy Channel"}
         description={
           wrappedInvoiceResponse
-            ? "Complete Payment to open an instant channel to your node"
+            ? "Complete Payment to open a channel to your node"
             : "Please wait, loading..."
         }
       />

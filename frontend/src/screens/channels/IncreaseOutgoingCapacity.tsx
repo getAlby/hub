@@ -32,7 +32,7 @@ function getPeerKey(peer: RecommendedChannelPeer) {
   return JSON.stringify(peer);
 }
 
-export default function NewChannel() {
+export default function IncreaseOutgoingCapacity() {
   const { data: info } = useInfo();
 
   if (!info?.network) {
@@ -66,7 +66,13 @@ function NewChannelInternal({ network }: { network: Network }) {
       image: "",
     };
     return _channelPeerSuggestions
-      ? [..._channelPeerSuggestions, customOption]
+      ? [
+          ..._channelPeerSuggestions.filter(
+            (peer) =>
+              peer.paymentMethod !== "lightning" || peer.lspType !== "LSPS1"
+          ),
+          customOption,
+        ]
       : undefined;
   }, [_channelPeerSuggestions, network]);
 
@@ -121,7 +127,8 @@ function NewChannelInternal({ network }: { network: Network }) {
       ) {
         setOrder((current) => ({
           ...current,
-          lsp: selectedPeer.lsp,
+          lspType: selectedPeer.lspType,
+          lspUrl: selectedPeer.lspUrl,
         }));
       }
       setAmount(selectedPeer.minimumChannelSize.toString());
@@ -144,7 +151,7 @@ function NewChannelInternal({ network }: { network: Network }) {
   return (
     <>
       <AppHeader
-        title="Open a channel"
+        title="Increase Spending Balance"
         description="Funds used to open a channel minus fees will be added to your spending balance"
       />
       <form

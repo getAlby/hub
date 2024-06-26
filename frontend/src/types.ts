@@ -254,6 +254,8 @@ export type SetupNodeInfo = Partial<{
   phoenixdAuthorization?: string;
 }>;
 
+export type LSPType = "LSPS1" | "Flow 2.0" | "PMLSP";
+
 export type RecommendedChannelPeer = {
   network: Network;
   image: string;
@@ -267,7 +269,8 @@ export type RecommendedChannelPeer = {
     }
   | {
       paymentMethod: "lightning";
-      lsp: string;
+      lspType: LSPType;
+      lspUrl: string;
     }
 );
 
@@ -289,7 +292,8 @@ export type AlbyBalance = {
 
 export type NewInstantChannelInvoiceRequest = {
   amount: number;
-  lsp: string;
+  lspType: LSPType;
+  lspUrl: string;
   public: boolean;
 };
 
@@ -334,6 +338,7 @@ export type NewChannelOrder = {
     }
   | {
       paymentMethod: "lightning";
-      lsp: string;
+      lspType: LSPType;
+      lspUrl: string;
     }
 );
