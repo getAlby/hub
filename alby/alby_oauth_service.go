@@ -166,7 +166,8 @@ func (svc *albyOAuthService) fetchUserToken(ctx context.Context) (*oauth2.Token,
 		RefreshToken: refreshToken,
 	}
 
-	if currentToken.Expiry.After(time.Now().Add(time.Duration(1) * time.Second)) {
+	// only use the current token if it has at least 20 seconds before expiry
+	if currentToken.Expiry.After(time.Now().Add(time.Duration(20) * time.Second)) {
 		logger.Logger.Info("Using existing Alby OAuth token")
 		return currentToken, nil
 	}
