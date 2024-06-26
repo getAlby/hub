@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"net/http"
 	"strconv"
 	"strings"
@@ -19,6 +20,7 @@ import (
 	"github.com/getAlby/nostr-wallet-connect/config"
 	"github.com/getAlby/nostr-wallet-connect/db"
 	"github.com/getAlby/nostr-wallet-connect/events"
+	"github.com/getAlby/nostr-wallet-connect/lnclient"
 	"github.com/getAlby/nostr-wallet-connect/logger"
 	nip47 "github.com/getAlby/nostr-wallet-connect/nip47/models"
 	"github.com/getAlby/nostr-wallet-connect/service/keys"
@@ -245,6 +247,39 @@ func (svc *albyOAuthService) GetBalance(ctx context.Context) (*AlbyBalance, erro
 
 	logger.Logger.WithFields(logrus.Fields{"balance": balance}).Info("Alby balance response")
 	return balance, nil
+}
+
+func (svc *albyOAuthService) DrainSharedWallet(ctx context.Context, lnClient lnclient.LNClient) error {
+	balance, err := svc.GetBalance(ctx)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to fetch shared balance")
+		return err
+	}
+
+	amount := int64(math.Floor(
+		float64(balance.Balance)*1000* // Alby shared node balance in sats
+			(1-8/1000)* // Alby service fee (0.8%)
+			0.99)) - // Maximum potential routing fees (1%)
+		10000 // Alby fee reserve (10 sats)
+
+	if amount < 1000 {
+		return errors.New("Not enough balance remaining")
+	}
+
+	logger.Logger.WithField("amount", amount).WithError(err).Error("Draining Alby shared wallet funds")
+
+	transaction, err := lnClient.MakeInvoice(ctx, amount, "Send shared wallet funds to Alby Hub", "", 120)
+	if err != nil {
+		logger.Logger.WithField("amount", amount).WithError(err).Error("Failed to make invoice")
+		return err
+	}
+
+	err = svc.SendPayment(ctx, transaction.Invoice)
+	if err != nil {
+		logger.Logger.WithField("amount", amount).WithError(err).Error("Failed to pay invoice from shared node")
+		return err
+	}
+	return nil
 }
 
 func (svc *albyOAuthService) SendPayment(ctx context.Context, invoice string) error {

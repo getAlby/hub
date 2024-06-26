@@ -1,23 +1,27 @@
-package alby
+package http
 
 import (
 	"fmt"
 	"net/http"
 
+	"github.com/getAlby/nostr-wallet-connect/alby"
 	"github.com/getAlby/nostr-wallet-connect/config"
 	"github.com/getAlby/nostr-wallet-connect/logger"
+	"github.com/getAlby/nostr-wallet-connect/service"
 	"github.com/labstack/echo/v4"
 )
 
 type AlbyHttpService struct {
-	albyOAuthSvc AlbyOAuthService
+	albyOAuthSvc alby.AlbyOAuthService
 	appConfig    *config.AppConfig
+	svc          service.Service
 }
 
-func NewAlbyHttpService(albyOAuthSvc AlbyOAuthService, appConfig *config.AppConfig) *AlbyHttpService {
+func NewAlbyHttpService(svc service.Service, albyOAuthSvc alby.AlbyOAuthService, appConfig *config.AppConfig) *AlbyHttpService {
 	return &AlbyHttpService{
 		albyOAuthSvc: albyOAuthSvc,
 		appConfig:    appConfig,
+		svc:          svc,
 	}
 }
 
@@ -26,6 +30,7 @@ func (albyHttpSvc *AlbyHttpService) RegisterSharedRoutes(e *echo.Echo, authMiddl
 	e.GET("/api/alby/me", albyHttpSvc.albyMeHandler, authMiddleware)
 	e.GET("/api/alby/balance", albyHttpSvc.albyBalanceHandler, authMiddleware)
 	e.POST("/api/alby/pay", albyHttpSvc.albyPayHandler, authMiddleware)
+	e.POST("/api/alby/drain", albyHttpSvc.albyDrainHandler, authMiddleware)
 	e.POST("/api/alby/link-account", albyHttpSvc.albyLinkAccountHandler, authMiddleware)
 }
 
@@ -75,13 +80,13 @@ func (albyHttpSvc *AlbyHttpService) albyBalanceHandler(c echo.Context) error {
 		})
 	}
 
-	return c.JSON(http.StatusOK, &AlbyBalanceResponse{
+	return c.JSON(http.StatusOK, &alby.AlbyBalanceResponse{
 		Sats: balance.Balance,
 	})
 }
 
 func (albyHttpSvc *AlbyHttpService) albyPayHandler(c echo.Context) error {
-	var payRequest AlbyPayRequest
+	var payRequest alby.AlbyPayRequest
 	if err := c.Bind(&payRequest); err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
 			Message: fmt.Sprintf("Bad request: %s", err.Error()),
@@ -93,6 +98,20 @@ func (albyHttpSvc *AlbyHttpService) albyPayHandler(c echo.Context) error {
 		logger.Logger.WithError(err).Error("Failed to request alby pay endpoint")
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: fmt.Sprintf("Failed to request alby pay endpoint: %s", err.Error()),
+		})
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
+
+func (albyHttpSvc *AlbyHttpService) albyDrainHandler(c echo.Context) error {
+
+	err := albyHttpSvc.albyOAuthSvc.DrainSharedWallet(c.Request().Context(), albyHttpSvc.svc.GetLNClient())
+
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to drain shared wallet")
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to drain shared wallet: %s", err.Error()),
 		})
 	}
 

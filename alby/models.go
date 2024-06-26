@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/getAlby/nostr-wallet-connect/events"
+	"github.com/getAlby/nostr-wallet-connect/lnclient"
 )
 
 type AlbyOAuthService interface {
@@ -17,6 +18,7 @@ type AlbyOAuthService interface {
 	GetBalance(ctx context.Context) (*AlbyBalance, error)
 	GetMe(ctx context.Context) (*AlbyMe, error)
 	SendPayment(ctx context.Context, invoice string) error
+	DrainSharedWallet(ctx context.Context, lnClient lnclient.LNClient) error
 }
 
 type AlbyBalanceResponse struct {

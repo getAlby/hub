@@ -14,7 +14,6 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"gorm.io/gorm"
 
-	"github.com/getAlby/nostr-wallet-connect/alby"
 	"github.com/getAlby/nostr-wallet-connect/config"
 	"github.com/getAlby/nostr-wallet-connect/db"
 	"github.com/getAlby/nostr-wallet-connect/events"
@@ -27,7 +26,7 @@ import (
 
 type HttpService struct {
 	api            api.API
-	albyHttpSvc    *alby.AlbyHttpService
+	albyHttpSvc    *AlbyHttpService
 	cfg            config.Config
 	eventPublisher events.EventPublisher
 	db             *gorm.DB
@@ -41,7 +40,7 @@ const (
 func NewHttpService(svc service.Service, eventPublisher events.EventPublisher) *HttpService {
 	return &HttpService{
 		api:            api.NewAPI(svc, svc.GetDB(), svc.GetConfig(), svc.GetKeys(), svc.GetAlbyOAuthSvc(), svc.GetEventPublisher()),
-		albyHttpSvc:    alby.NewAlbyHttpService(svc.GetAlbyOAuthSvc(), svc.GetConfig().GetEnv()),
+		albyHttpSvc:    NewAlbyHttpService(svc, svc.GetAlbyOAuthSvc(), svc.GetConfig().GetEnv()),
 		cfg:            svc.GetConfig(),
 		eventPublisher: eventPublisher,
 		db:             svc.GetDB(),

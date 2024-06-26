@@ -36,6 +36,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "src/components/ui/dropdown-menu.tsx";
+import { LoadingButton } from "src/components/ui/loading-button.tsx";
 import { Progress } from "src/components/ui/progress.tsx";
 import {
   Table,
@@ -51,7 +52,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "src/components/ui/tooltip.tsx";
-import { toast } from "src/components/ui/use-toast.ts";
+import { useToast } from "src/components/ui/use-toast.ts";
 import {
   ALBY_HIDE_HOSTED_BALANCE_BELOW as ALBY_HIDE_HOSTED_BALANCE_LIMIT,
   ONCHAIN_DUST_SATS,
@@ -79,11 +80,14 @@ export default function Channels() {
   const { data: channels, mutate: reloadChannels } = useChannels();
   const { data: nodeConnectionInfo } = useNodeConnectionInfo();
   const { data: balances } = useBalances();
-  const { data: albyBalance } = useAlbyBalance();
+  const { data: albyBalance, mutate: reloadAlbyBalance } = useAlbyBalance();
   const [nodes, setNodes] = React.useState<Node[]>([]);
   const { mutate: reloadInfo } = useInfo();
   const { data: csrf } = useCSRF();
   const redeemOnchainFunds = useRedeemOnchainFunds();
+  const { toast } = useToast();
+  const [drainingAlbySharedFunds, setDrainingAlbySharedFunds] =
+    React.useState(false);
 
   // TODO: move to NWC backend
   const loadNodeStats = React.useCallback(async () => {
@@ -182,7 +186,10 @@ export default function Channels() {
       toast({ title: "Sucessfully closed channel" });
     } catch (error) {
       console.error(error);
-      alert("Something went wrong: " + error);
+      toast({
+        variant: "destructive",
+        description: "Something went wrong: " + error,
+      });
     }
   }
 
@@ -224,7 +231,10 @@ export default function Channels() {
       toast({ title: "Sucessfully updated channel" });
     } catch (error) {
       console.error(error);
-      alert("Something went wrong: " + error);
+      toast({
+        variant: "destructive",
+        description: "Something went wrong: " + error,
+      });
     }
   }
 
@@ -252,10 +262,13 @@ export default function Channels() {
         },
       });
       await reloadInfo();
-      alert(`🎉 Router reset`);
+      toast({ description: "🎉 Router reset" });
     } catch (error) {
       console.error(error);
-      alert("Something went wrong: " + error);
+      toast({
+        variant: "destructive",
+        description: "Something went wrong: " + error,
+      });
     }
   }
 
@@ -367,6 +380,53 @@ export default function Channels() {
                 {new Intl.NumberFormat().format(albyBalance?.sats)} sats
               </div>
             </CardContent>
+            <CardFooter className="flex justify-end space-x-1">
+              <LoadingButton
+                loading={drainingAlbySharedFunds}
+                onClick={async () => {
+                  if (
+                    !channels?.some(
+                      (channel) => channel.remoteBalance > albyBalance.sats
+                    )
+                  ) {
+                    toast({
+                      title: "Please increase your receiving capacity first",
+                    });
+                    return;
+                  }
+
+                  setDrainingAlbySharedFunds(true);
+                  try {
+                    if (!csrf) {
+                      throw new Error("csrf not loaded");
+                    }
+
+                    await request("/api/alby/drain", {
+                      method: "POST",
+                      headers: {
+                        "X-CSRF-Token": csrf,
+                        "Content-Type": "application/json",
+                      },
+                    });
+                    await reloadAlbyBalance();
+                    toast({
+                      description:
+                        "🎉 Funds from Alby shared wallet moved to self-custody!",
+                    });
+                  } catch (error) {
+                    console.error(error);
+                    toast({
+                      variant: "destructive",
+                      description: "Something went wrong: " + error,
+                    });
+                  }
+                  setDrainingAlbySharedFunds(false);
+                }}
+                variant="outline"
+              >
+                Take Custody
+              </LoadingButton>
+            </CardFooter>
           </Card>
         )}
         <Card>
