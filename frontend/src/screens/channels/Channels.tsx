@@ -386,7 +386,8 @@ export default function Channels() {
                 onClick={async () => {
                   if (
                     !channels?.some(
-                      (channel) => channel.remoteBalance > albyBalance.sats
+                      (channel) =>
+                        channel.remoteBalance / 1000 > albyBalance.sats
                     )
                   ) {
                     toast({
@@ -411,7 +412,7 @@ export default function Channels() {
                     await reloadAlbyBalance();
                     toast({
                       description:
-                        "🎉 Funds from Alby shared wallet moved to self-custody!",
+                        "🎉 Funds from Alby shared wallet transferred to your Alby Hub!",
                     });
                   } catch (error) {
                     console.error(error);
@@ -424,7 +425,7 @@ export default function Channels() {
                 }}
                 variant="outline"
               >
-                Take Custody
+                Transfer
               </LoadingButton>
             </CardFooter>
           </Card>
