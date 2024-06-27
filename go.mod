@@ -2,8 +2,6 @@ module github.com/getAlby/nostr-wallet-connect
 
 go 1.22.2
 
-toolchain go1.22.3
-
 require (
 	github.com/adrg/xdg v0.4.0
 	github.com/breez/breez-sdk-go v0.3.4
