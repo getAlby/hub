@@ -1,7 +1,7 @@
 FROM node:20-alpine as frontend
 WORKDIR /build
 COPY frontend ./frontend
-RUN cd frontend && yarn install && yarn build:http
+RUN cd frontend && yarn install --network-timeout 3000000 && yarn build:http
 
 FROM golang:1.22.2 as builder
 
