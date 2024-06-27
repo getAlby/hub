@@ -574,114 +574,123 @@ export default function Channels() {
             <TableBody>
               {channels && channels.length > 0 && (
                 <>
-                  {channels.map((channel) => {
-                    const node = nodes.find(
-                      (n) => n.public_key === channel.remotePubkey
-                    );
-                    const alias = node?.alias || "Unknown";
-                    const capacity =
-                      channel.localBalance + channel.remoteBalance;
+                  {channels
+                    .sort((a, b) =>
+                      a.localBalance + a.remoteBalance >
+                      b.localBalance + b.remoteBalance
+                        ? -1
+                        : 1
+                    )
+                    .map((channel) => {
+                      const node = nodes.find(
+                        (n) => n.public_key === channel.remotePubkey
+                      );
+                      const alias = node?.alias || "Unknown";
+                      const capacity =
+                        channel.localBalance + channel.remoteBalance;
 
-                    return (
-                      <TableRow key={channel.id}>
-                        <TableCell>
-                          {channel.active ? (
-                            <Badge variant="positive">Online</Badge>
-                          ) : (
-                            <Badge variant="outline">Offline</Badge>
-                          )}{" "}
-                        </TableCell>
-                        <TableCell className="flex flex-row items-center">
-                          <a
-                            title={channel.remotePubkey}
-                            href={`https://amboss.space/node/${channel.remotePubkey}`}
-                            target="_blank"
-                            rel="noopener noreferer"
-                          >
-                            <Button variant="link" className="p-0 mr-2">
-                              {alias}
-                            </Button>
-                          </a>
-                          <Badge variant="outline">
-                            {channel.public ? "Public" : "Private"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell title={capacity / 1000 + " sats"}>
-                          {formatAmount(capacity)} sats
-                        </TableCell>
-                        <TableCell
-                          title={channel.unspendablePunishmentReserve + " sats"}
-                        >
-                          {formatAmount(
-                            channel.unspendablePunishmentReserve * 1000
-                          )}{" "}
-                          sats
-                        </TableCell>
-                        <TableCell>
-                          <div className="relative">
-                            <Progress
-                              value={(channel.localBalance / capacity) * 100}
-                              className="h-6 absolute"
-                            />
-                            <div className="flex flex-row w-full justify-between px-2 text-xs items-center h-6 mix-blend-exclusion text-white">
-                              <span
-                                title={channel.localBalance / 1000 + " sats"}
-                              >
-                                {formatAmount(channel.localBalance)} sats
-                              </span>
-                              <span
-                                title={channel.remoteBalance / 1000 + " sats"}
-                              >
-                                {formatAmount(channel.remoteBalance)} sats
-                              </span>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button size="icon" variant="ghost">
-                                <MoreHorizontal className="h-4 w-4" />
+                      return (
+                        <TableRow key={channel.id}>
+                          <TableCell>
+                            {channel.active ? (
+                              <Badge variant="positive">Online</Badge>
+                            ) : (
+                              <Badge variant="outline">Offline</Badge>
+                            )}{" "}
+                          </TableCell>
+                          <TableCell className="flex flex-row items-center">
+                            <a
+                              title={channel.remotePubkey}
+                              href={`https://amboss.space/node/${channel.remotePubkey}`}
+                              target="_blank"
+                              rel="noopener noreferer"
+                            >
+                              <Button variant="link" className="p-0 mr-2">
+                                {alias}
                               </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem className="flex flex-row items-center gap-2 cursor-pointer">
-                                <ExternalLink
-                                  to={`https://mempool.space/tx/${channel.fundingTxId}`}
-                                  className="w-full flex flex-row items-center gap-2"
+                            </a>
+                            <Badge variant="outline">
+                              {channel.public ? "Public" : "Private"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell title={capacity / 1000 + " sats"}>
+                            {formatAmount(capacity)} sats
+                          </TableCell>
+                          <TableCell
+                            title={
+                              channel.unspendablePunishmentReserve + " sats"
+                            }
+                          >
+                            {formatAmount(
+                              channel.unspendablePunishmentReserve * 1000
+                            )}{" "}
+                            sats
+                          </TableCell>
+                          <TableCell>
+                            <div className="relative">
+                              <Progress
+                                value={(channel.localBalance / capacity) * 100}
+                                className="h-6 absolute"
+                              />
+                              <div className="flex flex-row w-full justify-between px-2 text-xs items-center h-6 mix-blend-exclusion text-white">
+                                <span
+                                  title={channel.localBalance / 1000 + " sats"}
                                 >
-                                  <ExternalLinkIcon className="w-4 h-4" />
-                                  <p>View Funding Transaction</p>
-                                </ExternalLink>
-                              </DropdownMenuItem>
-                              {channel.public && (
+                                  {formatAmount(channel.localBalance)} sats
+                                </span>
+                                <span
+                                  title={channel.remoteBalance / 1000 + " sats"}
+                                >
+                                  {formatAmount(channel.remoteBalance)} sats
+                                </span>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button size="icon" variant="ghost">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem className="flex flex-row items-center gap-2 cursor-pointer">
+                                  <ExternalLink
+                                    to={`https://mempool.space/tx/${channel.fundingTxId}`}
+                                    className="w-full flex flex-row items-center gap-2"
+                                  >
+                                    <ExternalLinkIcon className="w-4 h-4" />
+                                    <p>View Funding Transaction</p>
+                                  </ExternalLink>
+                                </DropdownMenuItem>
+                                {channel.public && (
+                                  <DropdownMenuItem
+                                    className="flex flex-row items-center gap-2 cursor-pointer"
+                                    onClick={() => editChannel(channel)}
+                                  >
+                                    <HandCoins className="h-4 w-4" />
+                                    Set Routing Fee
+                                  </DropdownMenuItem>
+                                )}
                                 <DropdownMenuItem
                                   className="flex flex-row items-center gap-2 cursor-pointer"
-                                  onClick={() => editChannel(channel)}
+                                  onClick={() =>
+                                    closeChannel(
+                                      channel.id,
+                                      channel.remotePubkey,
+                                      channel.active
+                                    )
+                                  }
                                 >
-                                  <HandCoins className="h-4 w-4" />
-                                  Set Routing Fee
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                  Close Channel
                                 </DropdownMenuItem>
-                              )}
-                              <DropdownMenuItem
-                                className="flex flex-row items-center gap-2 cursor-pointer"
-                                onClick={() =>
-                                  closeChannel(
-                                    channel.id,
-                                    channel.remotePubkey,
-                                    channel.active
-                                  )
-                                }
-                              >
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                                Close Channel
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                 </>
               )}
               {!channels && (
