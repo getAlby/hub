@@ -4,6 +4,10 @@ on:
   push:
 
   workflow_call:
+    inputs:
+      build-release:
+        description: "Build full-featured release (codesigning, notarization, etc.)"
+        type: boolean
     secrets:
       APPLE_DEVELOPER_CERTIFICATE_P12_BASE64:
         required: true
@@ -112,7 +116,7 @@ jobs:
 
       - name: Import Code-Signing Certificates for macOS
         if: runner.os == 'macOS'
-        uses: Apple-Actions/import-codesign-certs@v1
+        uses: Apple-Actions/import-codesign-certs@v3
         with:
           # The certificates in a PKCS12 file encoded as a base64 string
           p12-file-base64: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_P12_BASE64 }}
@@ -196,7 +200,7 @@ jobs:
           mv ./build/out/${{ env.PACKAGE_NAME }}.dmg ./build/bin/
 
       - name: Notarize the DMG image
-        if: runner.os == 'macOS'
+        if: runner.os == 'macOS' && inputs.build-release
         run: |
           echo "Notarizing Zip Files"
           gon -log-level=info -log-json ./build/darwin/gon-notarize.json
