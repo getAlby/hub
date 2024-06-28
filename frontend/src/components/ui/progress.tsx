@@ -1,5 +1,5 @@
-import * as React from "react";
 import * as ProgressPrimitive from "@radix-ui/react-progress";
+import * as React from "react";
 
 import { cn } from "src/lib/utils";
 
@@ -23,4 +23,23 @@ const Progress = React.forwardRef<
 ));
 Progress.displayName = ProgressPrimitive.Root.displayName;
 
-export { Progress };
+const CircleProgress = React.forwardRef<
+  React.ElementRef<typeof ProgressPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root>
+>(({ className, value, ...props }, ref) => (
+  <ProgressPrimitive.Root
+    ref={ref}
+    className={cn(
+      `relative h-20 w-20 overflow-hidden rounded-full bg-primary/20 flex justify-center items-center`,
+      className
+    )}
+    {...props}
+    style={{
+      background: `radial-gradient(closest-side, white 79%, transparent 80% 100%), conic-gradient(hsl(var(--primary)) ${value || 0}%, hsl(var(--secondary)) 0)`,
+    }}
+  >
+    {props.children || <div className="">{`${value || 0}%`}</div>}
+  </ProgressPrimitive.Root>
+));
+
+export { CircleProgress, Progress };
