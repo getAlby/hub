@@ -171,6 +171,9 @@ func (gs *GreenlightService) GetBalance(ctx context.Context) (balance int64, err
 }
 
 func (gs *GreenlightService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *lnclient.Transaction, err error) {
+	if expiry == 0 {
+		expiry = lnclient.DEFAULT_INVOICE_EXPIRY
+	}
 	uexpiry := uint64(expiry)
 	// TODO: it seems description hash cannot be passed to greenlight
 	invoice, err := gs.client.MakeInvoice(glalby.MakeInvoiceRequest{

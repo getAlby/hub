@@ -212,6 +212,16 @@ export type SignMessageResponse = {
   signature: string;
 };
 
+export type PayInvoiceResponse = {
+  preimage: string;
+  fee: number;
+};
+
+export type CreateInvoiceRequest = {
+  amount: number;
+  description: string;
+};
+
 export type OpenChannelRequest = {
   pubkey: string;
   amount: number;
@@ -322,6 +332,21 @@ export type LightningBalanceResponse = {
 export type BalancesResponse = {
   onchain: OnchainBalanceResponse;
   lightning: LightningBalanceResponse;
+};
+
+export type Transaction = {
+  type: string;
+  invoice: string;
+  description: string;
+  description_hash: string;
+  preimage: string;
+  payment_hash: string;
+  amount: number;
+  fees_paid: number;
+  created_at: number;
+  expires_at: number;
+  settled_at: number;
+  metadata: string[];
 };
 
 export type NewChannelOrderStatus = "pay" | "success" | "opening";

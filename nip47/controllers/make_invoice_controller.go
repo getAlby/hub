@@ -54,9 +54,6 @@ func (controller *makeInvoiceController) HandleMakeInvoiceEvent(ctx context.Cont
 	}).Info("Making invoice")
 
 	expiry := makeInvoiceParams.Expiry
-	if expiry == 0 {
-		expiry = 86400
-	}
 
 	transaction, err := controller.lnClient.MakeInvoice(ctx, makeInvoiceParams.Amount, makeInvoiceParams.Description, makeInvoiceParams.DescriptionHash, expiry)
 	if err != nil {

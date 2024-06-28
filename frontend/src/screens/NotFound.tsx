@@ -1,13 +1,13 @@
+import { SearchX } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Button } from "src/components/ui/button";
 import {
   Card,
+  CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
-  CardContent,
 } from "src/components/ui/card";
-import { Button } from "src/components/ui/button";
-import { Link } from "react-router-dom";
-import { SearchX } from "lucide-react";
 
 function NotFound() {
   return (

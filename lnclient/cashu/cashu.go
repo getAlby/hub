@@ -105,6 +105,10 @@ func (cs *CashuService) GetBalance(ctx context.Context) (balance int64, err erro
 }
 
 func (cs *CashuService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *lnclient.Transaction, err error) {
+	// TODO: support expiry
+	if expiry == 0 {
+		expiry = lnclient.DEFAULT_INVOICE_EXPIRY
+	}
 	mintResponse, err := cs.wallet.RequestMint(uint64(amount / 1000))
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to mint")

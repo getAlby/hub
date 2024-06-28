@@ -25,7 +25,7 @@ export function HomeRedirect() {
           setTimeout(() => {
             window.localStorage.removeItem(localStorageKeys.returnTo);
           }, 100);
-          to = returnTo || "/wallet";
+          to = returnTo || "/home";
         } else {
           to = "/alby/auth";
         }

@@ -545,7 +545,7 @@ export default function Channels() {
           </CardContent>
           <CardFooter className="flex justify-end">
             <Link to="/channels/outgoing">
-              <Button variant="outline">Increase</Button>
+              <Button variant="outline">Top Up</Button>
             </Link>
           </CardFooter>
         </Card>

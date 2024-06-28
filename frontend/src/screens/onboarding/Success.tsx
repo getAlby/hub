@@ -45,8 +45,8 @@ export function Success() {
         .
       </p>
 
-      <Link to="/" className="flex justify-center mt-8">
-        <Button>Go to your wallet</Button>
+      <Link to="/home" className="flex justify-center mt-8">
+        <Button>Go to your dashboard</Button>
       </Link>
     </div>
   );

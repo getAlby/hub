@@ -10,6 +10,7 @@ import { StartRedirect } from "src/components/redirects/StartRedirect";
 import { BackupMnemonic } from "src/screens/BackupMnemonic";
 import { BackupNode } from "src/screens/BackupNode";
 import { BackupNodeSuccess } from "src/screens/BackupNodeSuccess";
+import Home from "src/screens/Home";
 import { Intro } from "src/screens/Intro";
 import NotFound from "src/screens/NotFound";
 import Start from "src/screens/Start";
@@ -48,6 +49,8 @@ import { LNDForm } from "src/screens/setup/node/LNDForm";
 import { PhoenixdForm } from "src/screens/setup/node/PhoenixdForm";
 import { PresetNodeForm } from "src/screens/setup/node/PresetNodeForm";
 import Wallet from "src/screens/wallet";
+import Receive from "src/screens/wallet/Receive";
+import Send from "src/screens/wallet/Send";
 import SignMessage from "src/screens/wallet/SignMessage";
 
 const routes = [
@@ -61,6 +64,17 @@ const routes = [
         element: <HomeRedirect />,
       },
       {
+        path: "home",
+        element: <DefaultRedirect />,
+        handle: { crumb: () => "Dashboard" },
+        children: [
+          {
+            index: true,
+            element: <Home />,
+          },
+        ],
+      },
+      {
         path: "wallet",
         element: <DefaultRedirect />,
         handle: { crumb: () => "Wallet" },
@@ -68,6 +82,16 @@ const routes = [
           {
             index: true,
             element: <Wallet />,
+          },
+          {
+            path: "receive",
+            element: <Receive />,
+            handle: { crumb: () => "Receive" },
+          },
+          {
+            path: "send",
+            element: <Send />,
+            handle: { crumb: () => "Send" },
           },
           {
             path: "sign-message",

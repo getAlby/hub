@@ -263,7 +263,12 @@ func (svc *LNDService) MakeInvoice(ctx context.Context, amount int64, descriptio
 		}
 	}
 
+	if expiry == 0 {
+		expiry = lnclient.DEFAULT_INVOICE_EXPIRY
+	}
+
 	resp, err := svc.client.AddInvoice(ctx, &lnrpc.Invoice{ValueMsat: amount, Memo: description, DescriptionHash: descriptionHashBytes, Expiry: expiry})
+
 	if err != nil {
 		return nil, err
 	}

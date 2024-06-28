@@ -34,6 +34,10 @@ type API interface {
 	SignMessage(ctx context.Context, message string) (*SignMessageResponse, error)
 	RedeemOnchainFunds(ctx context.Context, toAddress string) (*RedeemOnchainFundsResponse, error)
 	GetBalances(ctx context.Context) (*BalancesResponse, error)
+	ListTransactions(ctx context.Context) (*ListTransactionsResponse, error)
+	SendPayment(ctx context.Context, invoice string) (*SendPaymentResponse, error)
+	CreateInvoice(ctx context.Context, amount int64, description string) (*MakeInvoiceResponse, error)
+	LookupInvoice(ctx context.Context, paymentHash string) (*LookupInvoiceResponse, error)
 	RequestMempoolApi(endpoint string) (interface{}, error)
 	GetInfo(ctx context.Context) (*InfoResponse, error)
 	GetEncryptedMnemonic() *EncryptedMnemonicResponse
@@ -179,6 +183,11 @@ type RedeemOnchainFundsResponse struct {
 type OnchainBalanceResponse = lnclient.OnchainBalanceResponse
 type BalancesResponse = lnclient.BalancesResponse
 
+type SendPaymentResponse = lnclient.PayInvoiceResponse
+type MakeInvoiceResponse = lnclient.Transaction
+type LookupInvoiceResponse = lnclient.Transaction
+type ListTransactionsResponse = []lnclient.Transaction
+
 // debug api
 type SendPaymentProbesRequest struct {
 	Invoice string `json:"invoice"`
@@ -217,6 +226,11 @@ type SignMessageRequest struct {
 type SignMessageResponse struct {
 	Message   string `json:"message"`
 	Signature string `json:"signature"`
+}
+
+type MakeInvoiceRequest struct {
+	Amount      int64  `json:"amount"`
+	Description string `json:"description"`
 }
 
 type ResetRouterRequest struct {

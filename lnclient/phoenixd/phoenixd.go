@@ -14,6 +14,7 @@ import (
 
 	"github.com/getAlby/nostr-wallet-connect/lnclient"
 	"github.com/getAlby/nostr-wallet-connect/logger"
+	decodepay "github.com/nbd-wtf/ln-decodepay"
 
 	"github.com/sirupsen/logrus"
 )
@@ -274,6 +275,10 @@ func (svc *PhoenixService) ListChannels(ctx context.Context) ([]lnclient.Channel
 }
 
 func (svc *PhoenixService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *lnclient.Transaction, err error) {
+	// TODO: support expiry
+	if expiry == 0 {
+		expiry = lnclient.DEFAULT_INVOICE_EXPIRY
+	}
 	form := url.Values{}
 	amountSat := strconv.FormatInt(amount/1000, 10)
 	form.Add("amountSat", amountSat)
@@ -308,18 +313,30 @@ func (svc *PhoenixService) MakeInvoice(ctx context.Context, amount int64, descri
 	if err := json.NewDecoder(resp.Body).Decode(&invoiceRes); err != nil {
 		return nil, err
 	}
-	expiresAt := time.Now().Add(1 * time.Hour).Unix()
+
+	paymentRequest, err := decodepay.Decodepay(invoiceRes.Serialized)
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"bolt11": invoiceRes.Serialized,
+		}).Errorf("Failed to decode bolt11 invoice: %v", err)
+
+		return nil, err
+	}
+
+	expiresAt := time.UnixMilli(int64(paymentRequest.CreatedAt) * 1000).Add(time.Duration(paymentRequest.Expiry) * time.Second).Unix()
 
 	tx := &lnclient.Transaction{
-		Type:        "incoming",
-		Invoice:     invoiceRes.Serialized,
-		Preimage:    "",
-		PaymentHash: invoiceRes.PaymentHash,
-		FeesPaid:    0,
-		CreatedAt:   time.Now().Unix(),
-		ExpiresAt:   &expiresAt,
-		SettledAt:   nil,
-		Metadata:    nil,
+		Type:            "incoming",
+		Invoice:         invoiceRes.Serialized,
+		Preimage:        "",
+		PaymentHash:     invoiceRes.PaymentHash,
+		FeesPaid:        0,
+		CreatedAt:       time.Now().Unix(),
+		ExpiresAt:       &expiresAt,
+		SettledAt:       nil,
+		Metadata:        nil,
+		Description:     paymentRequest.Description,
+		DescriptionHash: paymentRequest.DescriptionHash,
 	}
 	return tx, nil
 }
@@ -347,16 +364,30 @@ func (svc *PhoenixService) LookupInvoice(ctx context.Context, paymentHash string
 		settledAtUnix := time.UnixMilli(invoiceRes.CompletedAt).Unix()
 		settledAt = &settledAtUnix
 	}
+
+	paymentRequest, err := decodepay.Decodepay(invoiceRes.Invoice)
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"bolt11": invoiceRes.Invoice,
+		}).Errorf("Failed to decode bolt11 invoice: %v", err)
+
+		return nil, err
+	}
+
+	expiresAt := time.UnixMilli(int64(paymentRequest.CreatedAt) * 1000).Add(time.Duration(paymentRequest.Expiry) * time.Second).Unix()
+
 	transaction = &lnclient.Transaction{
-		Type:        "incoming",
-		Invoice:     invoiceRes.Invoice,
-		Preimage:    invoiceRes.Preimage,
-		PaymentHash: invoiceRes.PaymentHash,
-		Amount:      invoiceRes.ReceivedSat * 1000,
-		FeesPaid:    invoiceRes.Fees * 1000,
-		CreatedAt:   time.UnixMilli(invoiceRes.CreatedAt).Unix(),
-		Description: invoiceRes.Description,
-		SettledAt:   settledAt,
+		Type:            "incoming",
+		Invoice:         invoiceRes.Invoice,
+		Preimage:        invoiceRes.Preimage,
+		PaymentHash:     invoiceRes.PaymentHash,
+		Amount:          invoiceRes.ReceivedSat * 1000,
+		FeesPaid:        invoiceRes.Fees * 1000,
+		CreatedAt:       time.UnixMilli(invoiceRes.CreatedAt).Unix(),
+		Description:     invoiceRes.Description,
+		SettledAt:       settledAt,
+		ExpiresAt:       &expiresAt,
+		DescriptionHash: paymentRequest.DescriptionHash,
 	}
 	return transaction, nil
 }

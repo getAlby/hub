@@ -643,6 +643,10 @@ func (ls *LDKService) MakeInvoice(ctx context.Context, amount int64, description
 		})
 	}
 
+	if expiry == 0 {
+		expiry = lnclient.DEFAULT_INVOICE_EXPIRY
+	}
+
 	// TODO: support passing description hash
 	invoice, err := ls.node.Bolt11Payment().Receive(uint64(amount),
 		description,
