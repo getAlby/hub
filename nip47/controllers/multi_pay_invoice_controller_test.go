@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 	"encoding/json"
+	"sync"
 	"testing"
 
 	"github.com/nbd-wtf/go-nostr"
@@ -89,7 +90,11 @@ func TestHandleMultiPayInvoiceEvent_NoPermission(t *testing.T) {
 		}
 	}
 
+	var mu sync.Mutex
+
 	publishResponse := func(response *models.Response, tags nostr.Tags) {
+		mu.Lock()
+		defer mu.Unlock()
 		responses = append(responses, response)
 		dTags = append(dTags, tags)
 	}
@@ -123,7 +128,11 @@ func TestHandleMultiPayInvoiceEvent_WithPermission(t *testing.T) {
 	responses := []*models.Response{}
 	dTags := []nostr.Tags{}
 
+	var mu sync.Mutex
+
 	publishResponse := func(response *models.Response, tags nostr.Tags) {
+		mu.Lock()
+		defer mu.Unlock()
 		responses = append(responses, response)
 		dTags = append(dTags, tags)
 	}
@@ -164,7 +173,11 @@ func TestHandleMultiPayInvoiceEvent_OneMalformedInvoice(t *testing.T) {
 	responses := []*models.Response{}
 	dTags := []nostr.Tags{}
 
+	var mu sync.Mutex
+
 	publishResponse := func(response *models.Response, tags nostr.Tags) {
+		mu.Lock()
+		defer mu.Unlock()
 		responses = append(responses, response)
 		dTags = append(dTags, tags)
 	}
