@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ALBYHUB_URL="https://nightly.link/getAlby/nostr-wallet-connect-next/workflows/http/build-executables/albyhub-Linux-x86_64.tar.gz.zip"
+ALBYHUB_URL="https://getalby.com/install/hub/server-linux-x86_64"
 PHOENIX_VERSION="0.1.5"
 PHOENIX_URL="https://github.com/ACINQ/phoenixd/releases/download/v$PHOENIX_VERSION/phoenix-$PHOENIX_VERSION-linux-x64.zip"
 
@@ -26,11 +26,9 @@ unzip -j phoenix-$PHOENIX_VERSION-linux-x64.zip -d phoenixd
 
 mkdir -p "$INSTALL_DIR/albyhub"
 wget $ALBYHUB_URL
-unzip albyhub-Linux-x86_64.tar.gz.zip
-tar xf albyhub-Linux-x86_64.tar.gz --directory=albyhub
+tar xf albyhub-Server-Linux-x86_64.tar.gz --directory=albyhub
 
-rm albyhub-Linux-x86_64.tar.gz
-rm albyhub-Linux-x86_64.tar.gz.zip
+rm albyhub-Server-Linux-x86_64.tar.gz
 rm phoenix-$PHOENIX_VERSION-linux-x64.zip
 
 ### Create start scripts
@@ -48,7 +46,7 @@ tee -a $INSTALL_DIR/albyhub/start.sh > /dev/null << EOF
 echo "Starting Alby Hub"
 phoenix_config_file=$INSTALL_DIR/phoenixd/data/phoenix.conf
 PHOENIXD_AUTHORIZATION=\$(awk -F'=' '/^http-password/{print \$2}' "\$phoenix_config_file")
-WORK_DIR="$INSTALL_DIR/albyhub/data" LN_BACKEND_TYPE=PHOENIX PHOENIXD_ADDRESS="http://localhost:9740" PHOENIXD_AUTHORIZATION=\$PHOENIXD_AUTHORIZATION LOG_EVENTS=true LDK_GOSSIP_SOURCE="" $INSTALL_DIR/albyhub/bin/albyhub-x86_64
+WORK_DIR="$INSTALL_DIR/albyhub/data" LN_BACKEND_TYPE=PHOENIX PHOENIXD_ADDRESS="http://localhost:9740" PHOENIXD_AUTHORIZATION=\$PHOENIXD_AUTHORIZATION LOG_EVENTS=true LDK_GOSSIP_SOURCE="" $INSTALL_DIR/albyhub/bin/albyhub
 EOF
 
 tee -a $INSTALL_DIR/start.sh > /dev/null << EOF
