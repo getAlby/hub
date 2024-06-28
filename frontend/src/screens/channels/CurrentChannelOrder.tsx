@@ -142,6 +142,10 @@ function ChannelOpening({ fundingTxId }: { fundingTxId: string | undefined }) {
           </div>
         </CardContent>
       </Card>
+      <div className="w-full mt-40 gap-20 flex flex-col items-center justify-center">
+        <p>Feel free to leave this page or browse around Alby Hub!</p>
+        <p>We'll send you an email as soon as your channel is active.</p>
+      </div>
     </div>
   );
 }
