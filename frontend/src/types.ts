@@ -282,6 +282,7 @@ export type RecommendedChannelPeer = {
       paymentMethod: "lightning";
       lspType: LSPType;
       lspUrl: string;
+      pubkey?: string;
     }
 );
 
