@@ -75,6 +75,7 @@ type LNClient interface {
 
 type Channel struct {
 	LocalBalance                             int64       `json:"localBalance"`
+	LocalSpendableBalance                    int64       `json:"localSpendableBalance"`
 	RemoteBalance                            int64       `json:"remoteBalance"`
 	Id                                       string      `json:"id"`
 	RemotePubkey                             string      `json:"remotePubkey"`

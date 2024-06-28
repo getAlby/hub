@@ -27,8 +27,7 @@ function SidebarHint() {
 
   // Don't distract with hints while opening a channel or on the settings page
   if (
-    location.pathname.endsWith("/channels/order") ||
-    location.pathname.endsWith("/channels") ||
+    location.pathname.startsWith("/channels/") ||
     location.pathname.startsWith("/settings")
   ) {
     return null;

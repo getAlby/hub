@@ -1,4 +1,5 @@
 import {
+  AlertTriangle,
   ArrowDown,
   ArrowUp,
   Bitcoin,
@@ -18,6 +19,11 @@ import AppHeader from "src/components/AppHeader.tsx";
 import EmptyState from "src/components/EmptyState.tsx";
 import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading.tsx";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "src/components/ui/alert.tsx";
 import { Badge } from "src/components/ui/badge.tsx";
 import { Button } from "src/components/ui/button.tsx";
 import {
@@ -361,6 +367,46 @@ export default function Channels() {
         }
       ></AppHeader>
 
+      {!!channels?.length && (
+        <>
+          {/* If all channels have less than 20% incoming capacity, show a warning */}
+          {channels?.every(
+            (channel) =>
+              channel.remoteBalance <
+              (channel.localBalance + channel.remoteBalance) * 0.2
+          ) && (
+            <Alert>
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Low receiving capacity</AlertTitle>
+              <AlertDescription>
+                You likely won't be able to receive payments until you{" "}
+                <Link className="underline" to="/channels/incoming">
+                  increase your receiving capacity.
+                </Link>
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* If all channels have less or equal balance than their reserve, show a warning */}
+          {channels?.every(
+            (channel) =>
+              channel.localBalance <=
+              channel.unspendablePunishmentReserve * 1000
+          ) && (
+            <Alert>
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Channel reserves unmet</AlertTitle>
+              <AlertDescription>
+                You won't be able to make payments until you{" "}
+                <Link className="underline" to="/channels/outgoing">
+                  increase your spending balance.
+                </Link>
+              </AlertDescription>
+            </Alert>
+          )}
+        </>
+      )}
+
       <div
         className={cn(
           "grid grid-cols-1 gap-3",
@@ -569,6 +615,7 @@ export default function Channels() {
                     <div>Receiving</div>
                   </div>
                 </TableHead>
+                <TableHead className="w-[24px]"></TableHead>
                 <TableHead className="w-[50px]"></TableHead>
               </TableRow>
             </TableHeader>
@@ -589,6 +636,16 @@ export default function Channels() {
                       const alias = node?.alias || "Unknown";
                       const capacity =
                         channel.localBalance + channel.remoteBalance;
+
+                      let channelWarning = "";
+                      if (channel.localSpendableBalance < capacity * 0.1) {
+                        channelWarning =
+                          "Spending balance low. You may have trouble sending payments through this channel.";
+                      }
+                      if (channel.localSpendableBalance > capacity * 0.9) {
+                        channelWarning =
+                          "Receiving capacity low. You may have trouble receiving payments through this channel.";
+                      }
 
                       return (
                         <TableRow key={channel.id}>
@@ -622,6 +679,18 @@ export default function Channels() {
                               channel.unspendablePunishmentReserve + " sats"
                             }
                           >
+                            {channel.localBalance <
+                              channel.unspendablePunishmentReserve * 1000 && (
+                              <>
+                                {formatAmount(
+                                  Math.min(
+                                    channel.localBalance,
+                                    channel.unspendablePunishmentReserve * 1000
+                                  )
+                                )}{" "}
+                                /{" "}
+                              </>
+                            )}
                             {formatAmount(
                               channel.unspendablePunishmentReserve * 1000
                             )}{" "}
@@ -630,14 +699,21 @@ export default function Channels() {
                           <TableCell>
                             <div className="relative">
                               <Progress
-                                value={(channel.localBalance / capacity) * 100}
+                                value={
+                                  (channel.localSpendableBalance / capacity) *
+                                  100
+                                }
                                 className="h-6 absolute"
                               />
                               <div className="flex flex-row w-full justify-between px-2 text-xs items-center h-6 mix-blend-exclusion text-white">
                                 <span
-                                  title={channel.localBalance / 1000 + " sats"}
+                                  title={
+                                    channel.localSpendableBalance / 1000 +
+                                    " sats"
+                                  }
                                 >
-                                  {formatAmount(channel.localBalance)} sats
+                                  {formatAmount(channel.localSpendableBalance)}{" "}
+                                  sats
                                 </span>
                                 <span
                                   title={channel.remoteBalance / 1000 + " sats"}
@@ -646,6 +722,20 @@ export default function Channels() {
                                 </span>
                               </div>
                             </div>
+                          </TableCell>
+                          <TableCell>
+                            {channelWarning ? (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger>
+                                    <AlertTriangle className="w-4 h-4 mt-1" />
+                                  </TooltipTrigger>
+                                  <TooltipContent className="w-[400px]">
+                                    {channelWarning}
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            ) : null}
                           </TableCell>
                           <TableCell>
                             <DropdownMenu>

@@ -166,6 +166,7 @@ export interface CreateAppResponse {
 
 export type Channel = {
   localBalance: number;
+  localSpendableBalance: number;
   remoteBalance: number;
   remotePubkey: string;
   id: string;

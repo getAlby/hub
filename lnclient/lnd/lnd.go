@@ -201,6 +201,7 @@ func (svc *LNDService) ListChannels(ctx context.Context) ([]lnclient.Channel, er
 		channels[i] = lnclient.Channel{
 			InternalChannel:                          lndChannel,
 			LocalBalance:                             lndChannel.LocalBalance * 1000,
+			LocalSpendableBalance:                    (lndChannel.LocalBalance - int64(lndChannel.LocalConstraints.ChanReserveSat)) * 1000,
 			RemoteBalance:                            lndChannel.RemoteBalance * 1000,
 			RemotePubkey:                             lndChannel.RemotePubkey,
 			Id:                                       strconv.FormatUint(lndChannel.ChanId, 10),

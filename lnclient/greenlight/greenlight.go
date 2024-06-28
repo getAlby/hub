@@ -379,12 +379,13 @@ func (gs *GreenlightService) ListChannels(ctx context.Context) ([]lnclient.Chann
 		}
 
 		channels = append(channels, lnclient.Channel{
-			LocalBalance:  int64(localAmount),
-			RemoteBalance: int64(totalAmount - localAmount),
-			RemotePubkey:  glChannel.PeerId,
-			Id:            *glChannel.ChannelId,
-			Active:        glChannel.State == 2,
-			FundingTxId:   glChannel.FundingTxid,
+			LocalBalance:          int64(localAmount),
+			LocalSpendableBalance: int64(localAmount),
+			RemoteBalance:         int64(totalAmount - localAmount),
+			RemotePubkey:          glChannel.PeerId,
+			Id:                    *glChannel.ChannelId,
+			Active:                glChannel.State == 2,
+			FundingTxId:           glChannel.FundingTxid,
 			// TODO: add Public property
 		})
 	}
