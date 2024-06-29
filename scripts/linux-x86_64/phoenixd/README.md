@@ -16,6 +16,8 @@ To run Alby Hub with phoenixd use [docker-compose](https://docs.docker.com/compo
 
 It will run on localhost:8080 by default. You can configure the port by editing the docker-compose.yml file.
 
+Note: for simplicity it uses a preconfigired phoenixd password (see docker-compose.yml) this is fine as long as the service is not publicly exposed (change this password if you like).
+
 ### Backup
 
 Make sure to backup the `albyhub-phoenixd` which is used as volume for albyhub and phoenixd data files.
