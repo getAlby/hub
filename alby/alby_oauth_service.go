@@ -27,10 +27,11 @@ import (
 )
 
 type albyOAuthService struct {
-	cfg       config.Config
-	oauthConf *oauth2.Config
-	db        *gorm.DB
-	keys      keys.Keys
+	cfg            config.Config
+	oauthConf      *oauth2.Config
+	db             *gorm.DB
+	keys           keys.Keys
+	eventPublisher events.EventPublisher
 }
 
 const (
@@ -40,7 +41,7 @@ const (
 	userIdentifierKey    = "AlbyUserIdentifier"
 )
 
-func NewAlbyOAuthService(db *gorm.DB, cfg config.Config, keys keys.Keys) *albyOAuthService {
+func NewAlbyOAuthService(db *gorm.DB, cfg config.Config, keys keys.Keys, eventPublisher events.EventPublisher) *albyOAuthService {
 	conf := &oauth2.Config{
 		ClientID:     cfg.GetEnv().AlbyClientId,
 		ClientSecret: cfg.GetEnv().AlbyClientSecret,
@@ -59,10 +60,11 @@ func NewAlbyOAuthService(db *gorm.DB, cfg config.Config, keys keys.Keys) *albyOA
 	}
 
 	albyOAuthSvc := &albyOAuthService{
-		oauthConf: conf,
-		cfg:       cfg,
-		db:        db,
-		keys:      keys,
+		oauthConf:      conf,
+		cfg:            cfg,
+		db:             db,
+		keys:           keys,
+		eventPublisher: eventPublisher,
 	}
 	return albyOAuthSvc
 }
@@ -382,7 +384,7 @@ func (svc *albyOAuthService) LinkAccount(ctx context.Context) error {
 		return err
 	}
 
-	app, _, err := db.NewDBService(svc.db).CreateApp(
+	app, _, err := db.NewDBService(svc.db, svc.eventPublisher).CreateApp(
 		"getalby.com",
 		connectionPubkey,
 		1_000_000,

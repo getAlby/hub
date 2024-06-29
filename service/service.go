@@ -100,7 +100,7 @@ func NewService(ctx context.Context) (*service, error) {
 		ctx:            ctx,
 		wg:             &wg,
 		eventPublisher: eventPublisher,
-		albyOAuthSvc:   alby.NewAlbyOAuthService(gormDB, cfg, keys),
+		albyOAuthSvc:   alby.NewAlbyOAuthService(gormDB, cfg, keys, eventPublisher),
 		nip47Service:   nip47.NewNip47Service(gormDB, cfg, keys, eventPublisher),
 		db:             gormDB,
 		keys:           keys,

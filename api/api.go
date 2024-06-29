@@ -39,13 +39,13 @@ type api struct {
 	albyOAuthSvc   alby.AlbyOAuthService
 }
 
-func NewAPI(svc service.Service, gormDB *gorm.DB, config config.Config, keys keys.Keys, albyOAuthSvc alby.AlbyOAuthService, eventsPublisher events.EventPublisher) *api {
+func NewAPI(svc service.Service, gormDB *gorm.DB, config config.Config, keys keys.Keys, albyOAuthSvc alby.AlbyOAuthService, eventPublisher events.EventPublisher) *api {
 	return &api{
 		db:             gormDB,
-		dbSvc:          db.NewDBService(gormDB),
+		dbSvc:          db.NewDBService(gormDB, eventPublisher),
 		cfg:            config,
 		svc:            svc,
-		permissionsSvc: permissions.NewPermissionsService(gormDB, eventsPublisher),
+		permissionsSvc: permissions.NewPermissionsService(gormDB, eventPublisher),
 		keys:           keys,
 		albyOAuthSvc:   albyOAuthSvc,
 	}

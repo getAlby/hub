@@ -5,18 +5,21 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/getAlby/nostr-wallet-connect/events"
 	"github.com/getAlby/nostr-wallet-connect/logger"
 	"github.com/nbd-wtf/go-nostr"
 	"gorm.io/gorm"
 )
 
 type dbService struct {
-	db *gorm.DB
+	db             *gorm.DB
+	eventPublisher events.EventPublisher
 }
 
-func NewDBService(db *gorm.DB) *dbService {
+func NewDBService(db *gorm.DB, eventPublisher events.EventPublisher) *dbService {
 	return &dbService{
-		db: db,
+		db:             db,
+		eventPublisher: eventPublisher,
 	}
 }
 
@@ -66,6 +69,13 @@ func (svc *dbService) CreateApp(name string, pubkey string, maxAmount uint64, bu
 		logger.Logger.WithError(err).Error("Failed to save app")
 		return nil, "", err
 	}
+
+	svc.eventPublisher.Publish(&events.Event{
+		Event: "app_created",
+		Properties: map[string]interface{}{
+			"name": name,
+		},
+	})
 
 	return &app, pairingSecretKey, nil
 }
