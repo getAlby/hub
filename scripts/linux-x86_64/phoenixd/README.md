@@ -14,6 +14,8 @@ To run Alby Hub with phoenixd use [docker-compose](https://docs.docker.com/compo
     $ wget https://raw.githubusercontent.com/getAlby/nostr-wallet-connect-next/master/scripts/linux-x86_64/phoenixd/docker-compose.yml
     $ docker-compose up
 
+It will run on localhost:8080 by default. You can configure the port by editing the docker-compose.yml file.
+
 ### Backup
 
 Make sure to backup the `albyhub-phoenixd` which is used as volume for albyhub and phoenixd data files.
@@ -28,6 +30,8 @@ Make sure to backup the `albyhub-phoenixd` which is used as volume for albyhub a
 The install script will prompt you for a installation folder and will install phoenixd and Alby Hub there.
 
 Optionally it also creates a systemd services.
+
+It will run on localhost:8080 by default.
 
 ### Running the services
 
