@@ -22,6 +22,7 @@ Make sure to backup the `albyhub-phoenixd` which is used as volume for albyhub a
 
 ### Installation (non-Docker)
 
+    $ wget https://raw.githubusercontent.com/getAlby/nostr-wallet-connect-next/master/scripts/linux-x86_64/phoenixd/install.sh
     $ ./install.sh
 
 The install script will prompt you for a installation folder and will install phoenixd and Alby Hub there.
