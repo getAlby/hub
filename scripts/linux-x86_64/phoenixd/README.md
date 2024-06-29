@@ -9,9 +9,9 @@ Run your Alby Hub with phoenixd as a backend.
 
 ## Docker
 
-To run Alby Hub with phoenixd use [docker-compose](https://docs.docker.com/compose/) using the docker-compose.yml file.
+To run Alby Hub with phoenixd use [docker-compose](https://docs.docker.com/compose/) using the [docker-compose.yml file](https://raw.githubusercontent.com/getAlby/nostr-wallet-connect-next/master/scripts/linux-x86_64/phoenixd/docker-compose.yml).
 
-    $ cd folder/with/docker-compose.yml
+    $ wget https://raw.githubusercontent.com/getAlby/nostr-wallet-connect-next/master/scripts/linux-x86_64/phoenixd/docker-compose.yml
     $ docker-compose up
 
 ### Backup
