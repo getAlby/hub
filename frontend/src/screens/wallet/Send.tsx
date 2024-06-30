@@ -39,10 +39,10 @@ export default function Send() {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!csrf) {
-      throw new Error("csrf not loaded");
-    }
     try {
+      if (!csrf) {
+        throw new Error("csrf not loaded");
+      }
       setLoading(true);
       const payInvoiceResponse = await request<PayInvoiceResponse>(
         `/api/payments/${invoice.trim()}`,
@@ -68,9 +68,8 @@ export default function Send() {
         title: "Failed to send: " + e,
       });
       console.error(e);
-    } finally {
-      setLoading(false);
     }
+    setLoading(false);
   };
 
   const copy = () => {
