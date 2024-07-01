@@ -17,12 +17,14 @@ import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
+import { useInfo } from "src/hooks/useInfo";
 import { useCSRF } from "src/hooks/useCSRF";
 import { copyToClipboard } from "src/lib/clipboard";
 import { PayInvoiceResponse } from "src/types";
 import { request } from "src/utils/request";
 
 export default function Send() {
+  const { hasChannelManagement } = useInfo();
   const { data: balances } = useBalances();
   const { data: csrf } = useCSRF();
   const { toast } = useToast();
@@ -221,11 +223,13 @@ export default function Send() {
               </div>
             )}
           </CardContent>
-          <CardFooter className="flex justify-end">
-            <Link to="/channels/outgoing">
-              <Button variant="outline">Top Up</Button>
-            </Link>
-          </CardFooter>
+          {hasChannelManagement && (
+            <CardFooter className="flex justify-end">
+              <Link to="/channels/outgoing">
+                <Button variant="outline">Top Up</Button>
+              </Link>
+            </CardFooter>
+          )}
         </Card>
       </div>
     </div>

@@ -23,7 +23,7 @@ import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
 
 function Wallet() {
-  const { data: info } = useInfo();
+  const { data: info, hasChannelManagement } = useInfo();
   const { data: balances } = useBalances();
 
   if (!info || !balances) {
@@ -88,44 +88,48 @@ function Wallet() {
               </div>
             )}
           </CardContent>
-          <CardFooter className="flex justify-end">
-            <Link to="/channels/outgoing">
-              <Button variant="outline">Top Up</Button>
-            </Link>
-          </CardFooter>
+          {hasChannelManagement && (
+            <CardFooter className="flex justify-end">
+              <Link to="/channels/outgoing">
+                <Button variant="outline">Top Up</Button>
+              </Link>
+            </CardFooter>
+          )}
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Receiving Capacity
-            </CardTitle>
-            <ArrowDown className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            {!balances && (
-              <div>
-                <div className="animate-pulse d-inline ">
-                  <div className="h-2.5 bg-primary rounded-full w-12 my-2"></div>
+        {hasChannelManagement && (
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Receiving Capacity
+              </CardTitle>
+              <ArrowDown className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              {!balances && (
+                <div>
+                  <div className="animate-pulse d-inline ">
+                    <div className="h-2.5 bg-primary rounded-full w-12 my-2"></div>
+                  </div>
                 </div>
-              </div>
-            )}
-            <div className="text-2xl font-bold">
-              {balances && (
-                <>
-                  {new Intl.NumberFormat().format(
-                    Math.floor(balances.lightning.totalReceivable / 1000)
-                  )}{" "}
-                  sats
-                </>
               )}
-            </div>
-          </CardContent>
-          <CardFooter className="flex justify-end">
-            <Link to="/channels/incoming">
-              <Button variant="outline">Increase</Button>
-            </Link>
-          </CardFooter>
-        </Card>
+              <div className="text-2xl font-bold">
+                {balances && (
+                  <>
+                    {new Intl.NumberFormat().format(
+                      Math.floor(balances.lightning.totalReceivable / 1000)
+                    )}{" "}
+                    sats
+                  </>
+                )}
+              </div>
+            </CardContent>
+            <CardFooter className="flex justify-end">
+              <Link to="/channels/incoming">
+                <Button variant="outline">Increase</Button>
+              </Link>
+            </CardFooter>
+          </Card>
+        )}
       </div>
 
       <TransactionsList />
