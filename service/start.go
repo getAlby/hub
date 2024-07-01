@@ -74,7 +74,7 @@ func (svc *service) StartNostr(ctx context.Context, encryptionKey string) error 
 			}
 
 			//publish event with NIP-47 info
-			err = svc.nip47Service.PublishNip47Info(ctx, relay)
+			err = svc.nip47Service.PublishNip47Info(ctx, relay, svc.lnClient)
 			if err != nil {
 				logger.Logger.WithError(err).Error("Could not publish NIP47 info")
 			}

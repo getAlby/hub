@@ -801,3 +801,13 @@ func (svc *LNDService) UpdateChannel(ctx context.Context, updateChannelRequest *
 func (svc *LNDService) DisconnectPeer(ctx context.Context, peerId string) error {
 	return nil
 }
+
+func (svc *LNDService) GetSupportedNIP47Methods() []string {
+	return []string{
+		"pay_invoice", "pay_keysend", "get_balance", "get_info", "make_invoice", "lookup_invoice", "list_transactions", "multi_pay_invoice", "multi_pay_keysend", "sign_message",
+	}
+}
+
+func (svc *LNDService) GetSupportedNIP47NotificationTypes() []string {
+	return []string{}
+}

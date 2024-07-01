@@ -13,6 +13,7 @@ import (
 	"github.com/getAlby/nostr-wallet-connect/logger"
 	controllers "github.com/getAlby/nostr-wallet-connect/nip47/controllers"
 	"github.com/getAlby/nostr-wallet-connect/nip47/models"
+	"github.com/getAlby/nostr-wallet-connect/nip47/permissions"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip04"
 	"github.com/sirupsen/logrus"
@@ -240,7 +241,17 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, sub *nostr.Subscriptio
 	}
 
 	checkPermission := func(amountMsat uint64) *models.Response {
-		hasPermission, code, message := svc.permissionsService.HasPermission(&app, nip47Request.Method, amountMsat)
+		scope, err := permissions.RequestMethodToScope(nip47Request.Method)
+		if err != nil {
+			return &models.Response{
+				ResultType: nip47Request.Method,
+				Error: &models.Error{
+					Code:    models.ERROR_INTERNAL,
+					Message: err.Error(),
+				},
+			}
+		}
+		hasPermission, code, message := svc.permissionsService.HasPermission(&app, scope, amountMsat)
 		if !hasPermission {
 			logger.Logger.WithFields(logrus.Fields{
 				"request_event_id": requestEvent.ID,

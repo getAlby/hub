@@ -55,7 +55,7 @@ export function AppCardConnectionInfo({
             </div>
           )}
         </>
-      ) : connection.requestMethods.indexOf("pay_invoice") > -1 ? (
+      ) : connection.scopes.indexOf("pay_invoice") > -1 ? (
         <>
           <div className="flex flex-row justify-between">
             <div className="mb-2">

@@ -473,3 +473,11 @@ func (bs *BreezService) UpdateChannel(ctx context.Context, updateChannelRequest 
 func (bs *BreezService) DisconnectPeer(ctx context.Context, peerId string) error {
 	return nil
 }
+
+func (bs *BreezService) GetSupportedNIP47Methods() []string {
+	return []string{"pay_invoice", "pay_keysend", "get_balance", "get_info", "make_invoice", "lookup_invoice", "list_transactions", "multi_pay_invoice", "multi_pay_keysend", "sign_message"}
+}
+
+func (bs *BreezService) GetSupportedNIP47NotificationTypes() []string {
+	return []string{}
+}

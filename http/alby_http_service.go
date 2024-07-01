@@ -119,7 +119,7 @@ func (albyHttpSvc *AlbyHttpService) albyDrainHandler(c echo.Context) error {
 }
 
 func (albyHttpSvc *AlbyHttpService) albyLinkAccountHandler(c echo.Context) error {
-	err := albyHttpSvc.albyOAuthSvc.LinkAccount(c.Request().Context())
+	err := albyHttpSvc.albyOAuthSvc.LinkAccount(c.Request().Context(), albyHttpSvc.svc.GetLNClient())
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to connect alby account")
 		return err

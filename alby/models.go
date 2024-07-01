@@ -13,7 +13,7 @@ type AlbyOAuthService interface {
 	GetAuthUrl() string
 	GetUserIdentifier() (string, error)
 	IsConnected(ctx context.Context) bool
-	LinkAccount(ctx context.Context) error
+	LinkAccount(ctx context.Context, lnClient lnclient.LNClient) error
 	CallbackHandler(ctx context.Context, code string) error
 	GetBalance(ctx context.Context) (*AlbyBalance, error)
 	GetMe(ctx context.Context) (*AlbyMe, error)

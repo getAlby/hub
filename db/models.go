@@ -24,7 +24,7 @@ type AppPermission struct {
 	ID            uint
 	AppId         uint `validate:"required"`
 	App           App
-	RequestMethod string `validate:"required"`
+	Scope         string `validate:"required"`
 	MaxAmount     int
 	BudgetRenewal string
 	ExpiresAt     *time.Time
@@ -68,7 +68,7 @@ type Payment struct {
 }
 
 type DBService interface {
-	CreateApp(name string, pubkey string, maxAmount uint64, budgetRenewal string, expiresAt *time.Time, requestMethods []string) (*App, string, error)
+	CreateApp(name string, pubkey string, maxAmount uint64, budgetRenewal string, expiresAt *time.Time, scopes []string) (*App, string, error)
 }
 
 const (

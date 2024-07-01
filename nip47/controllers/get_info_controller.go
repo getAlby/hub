@@ -2,13 +2,11 @@ package controllers
 
 import (
 	"context"
-	"strings"
 
 	"github.com/getAlby/nostr-wallet-connect/db"
 	"github.com/getAlby/nostr-wallet-connect/lnclient"
 	"github.com/getAlby/nostr-wallet-connect/logger"
 	"github.com/getAlby/nostr-wallet-connect/nip47/models"
-	"github.com/getAlby/nostr-wallet-connect/nip47/notifications"
 	permissions "github.com/getAlby/nostr-wallet-connect/nip47/permissions"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/sirupsen/logrus"
@@ -40,17 +38,16 @@ func NewGetInfoController(permissionsService permissions.PermissionsService, lnC
 func (controller *getInfoController) HandleGetInfoEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, app *db.App, checkPermission checkPermissionFunc, publishResponse publishFunc) {
 	supportedNotifications := []string{}
 	if controller.permissionsService.PermitsNotifications(app) {
-		// TODO: this needs to be LNClient-specific
-		supportedNotifications = strings.Split(notifications.NOTIFICATION_TYPES, " ")
+		supportedNotifications = controller.lnClient.GetSupportedNIP47NotificationTypes()
 	}
 
 	responsePayload := &getInfoResponse{
-		Methods:       controller.permissionsService.GetPermittedMethods(app),
+		Methods:       controller.permissionsService.GetPermittedMethods(app, controller.lnClient),
 		Notifications: supportedNotifications,
 	}
 
 	// basic permissions check
-	hasPermission, _, _ := controller.permissionsService.HasPermission(app, nip47Request.Method, 0)
+	hasPermission, _, _ := controller.permissionsService.HasPermission(app, permissions.GET_INFO_SCOPE, 0)
 	if hasPermission {
 		logger.Logger.WithFields(logrus.Fields{
 			"request_event_id": requestEventId,

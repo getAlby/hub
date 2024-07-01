@@ -105,6 +105,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.POST("/api/wallet/redeem-onchain-funds", httpSvc.redeemOnchainFundsHandler, authMiddleware)
 	e.POST("/api/wallet/sign-message", httpSvc.signMessageHandler, authMiddleware)
 	e.POST("/api/wallet/sync", httpSvc.walletSyncHandler, authMiddleware)
+	e.GET("/api/wallet/capabilities", httpSvc.capabilitiesHandler, authMiddleware)
 	e.POST("/api/payments/:invoice", httpSvc.sendPaymentHandler, authMiddleware)
 	e.POST("/api/invoices", httpSvc.makeInvoiceHandler, authMiddleware)
 	e.GET("/api/transactions", httpSvc.listTransactionsHandler, authMiddleware)
@@ -476,6 +477,18 @@ func (httpSvc *HttpService) mempoolApiHandler(c echo.Context) error {
 		logger.Logger.WithField("endpoint", endpoint).WithError(err).Error("Failed to request mempool API")
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: fmt.Sprintf("Failed to request mempool API: %s", err.Error()),
+		})
+	}
+
+	return c.JSON(http.StatusOK, response)
+}
+
+func (httpSvc *HttpService) capabilitiesHandler(c echo.Context) error {
+	response, err := httpSvc.api.GetWalletCapabilities(c.Request().Context())
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to request wallet capabilities")
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to request wallet capabilities: %s", err.Error()),
 		})
 	}
 

@@ -8,7 +8,6 @@ type Notification struct {
 }
 
 const (
-	NOTIFICATION_TYPES            = "payment_received payment_sent"
 	PAYMENT_RECEIVED_NOTIFICATION = "payment_received"
 	PAYMENT_SENT_NOTIFICATION     = "payment_sent"
 )

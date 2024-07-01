@@ -1406,6 +1406,14 @@ func (ls *LDKService) UpdateLastWalletSyncRequest() {
 	ls.lastWalletSyncRequest = time.Now()
 }
 
+func (ls *LDKService) GetSupportedNIP47Methods() []string {
+	return []string{"pay_invoice", "pay_keysend", "get_balance", "get_info", "make_invoice", "lookup_invoice", "list_transactions", "multi_pay_invoice", "multi_pay_keysend", "sign_message"}
+}
+
+func (ls *LDKService) GetSupportedNIP47NotificationTypes() []string {
+	return []string{"payment_received", "payment_sent"}
+}
+
 func (ls *LDKService) getChannelCloseReason(event *ldk_node.EventChannelClosed) string {
 	var reason string
 

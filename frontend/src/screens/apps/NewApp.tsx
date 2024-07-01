@@ -5,28 +5,48 @@ import { useCSRF } from "src/hooks/useCSRF";
 import {
   AppPermissions,
   BudgetRenewalType,
+  CreateAppRequest,
   CreateAppResponse,
-  PermissionType,
-  nip47PermissionDescriptions,
+  Nip47NotificationType,
+  Nip47RequestMethod,
+  Scope,
+  WalletCapabilities,
   validBudgetRenewals,
 } from "src/types";
 
+import React from "react";
 import AppHeader from "src/components/AppHeader";
+import Loading from "src/components/Loading";
 import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { Separator } from "src/components/ui/separator";
 import { useToast } from "src/components/ui/use-toast";
+import { useCapabilities } from "src/hooks/useCapabilities";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request"; // build the project for this to appear
 import Permissions from "../../components/Permissions";
 import { suggestedApps } from "../../components/SuggestedAppData";
 
 const NewApp = () => {
+  const { data: capabilities } = useCapabilities();
+  if (!capabilities) {
+    return <Loading />;
+  }
+
+  return <NewAppInternal capabilities={capabilities} />;
+};
+
+type NewAppInternalProps = {
+  capabilities: WalletCapabilities;
+};
+
+const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
   const location = useLocation();
   const { data: csrf } = useCSRF();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [unsupportedError, setUnsupportedError] = useState<string>();
 
   const queryParams = new URLSearchParams(location.search);
 
@@ -44,21 +64,89 @@ const NewApp = () => {
   const budgetRenewalParam = queryParams.get(
     "budget_renewal"
   ) as BudgetRenewalType;
+
   const reqMethodsParam = queryParams.get("request_methods") ?? "";
+  const notificationTypesParam = queryParams.get("notification_types") ?? "";
   const maxAmountParam = queryParams.get("max_amount") ?? "";
   const expiresAtParam = queryParams.get("expires_at") ?? "";
 
-  const parseRequestMethods = (reqParam: string): Set<PermissionType> => {
-    const methods = reqParam
-      ? reqParam.split(" ")
-      : Object.keys(nip47PermissionDescriptions);
-    // Create a Set of PermissionType from the array
-    const requestMethodsSet = new Set<PermissionType>(
-      methods as PermissionType[]
-    );
+  const initialScopes: Set<Scope> = React.useMemo(() => {
+    const methods = reqMethodsParam
+      ? reqMethodsParam.split(" ")
+      : capabilities.methods;
 
-    return requestMethodsSet;
-  };
+    const requestMethodsSet = new Set<Nip47RequestMethod>(
+      methods as Nip47RequestMethod[]
+    );
+    const unsupportedMethods = Array.from(requestMethodsSet).filter(
+      (method) => capabilities.methods.indexOf(method) < 0
+    );
+    if (unsupportedMethods.length) {
+      setUnsupportedError(
+        "This app requests methods not supported by your wallet: " +
+          unsupportedMethods
+      );
+    }
+
+    const notificationTypes = notificationTypesParam
+      ? notificationTypesParam.split(" ")
+      : capabilities.notificationTypes;
+
+    const notificationTypesSet = new Set<Nip47NotificationType>(
+      notificationTypes as Nip47NotificationType[]
+    );
+    const unsupportedNotificationTypes = Array.from(
+      notificationTypesSet
+    ).filter(
+      (notificationType) =>
+        capabilities.notificationTypes.indexOf(notificationType) < 0
+    );
+    if (unsupportedNotificationTypes.length) {
+      setUnsupportedError(
+        "This app requests notification types not supported by your wallet: " +
+          unsupportedNotificationTypes
+      );
+    }
+
+    const scopes = new Set<Scope>();
+    if (
+      requestMethodsSet.has("pay_keysend") ||
+      requestMethodsSet.has("pay_invoice") ||
+      requestMethodsSet.has("multi_pay_invoice") ||
+      requestMethodsSet.has("multi_pay_keysend")
+    ) {
+      scopes.add("pay_invoice");
+    }
+
+    if (requestMethodsSet.has("get_info")) {
+      scopes.add("get_info");
+    }
+    if (requestMethodsSet.has("get_balance")) {
+      scopes.add("get_balance");
+    }
+    if (requestMethodsSet.has("make_invoice")) {
+      scopes.add("make_invoice");
+    }
+    if (requestMethodsSet.has("lookup_invoice")) {
+      scopes.add("lookup_invoice");
+    }
+    if (requestMethodsSet.has("list_transactions")) {
+      scopes.add("list_transactions");
+    }
+    if (requestMethodsSet.has("sign_message")) {
+      scopes.add("sign_message");
+    }
+    if (notificationTypes.length) {
+      scopes.add("notifications");
+    }
+
+    return scopes;
+  }, [
+    capabilities.methods,
+    capabilities.notificationTypes,
+    notificationTypesParam,
+    reqMethodsParam,
+  ]);
 
   const parseExpiresParam = (expiresParam: string): Date | undefined => {
     const expiresParamTimestamp = parseInt(expiresParam);
@@ -69,7 +157,7 @@ const NewApp = () => {
   };
 
   const [permissions, setPermissions] = useState<AppPermissions>({
-    requestMethods: parseRequestMethods(reqMethodsParam),
+    scopes: initialScopes,
     maxAmount: parseInt(maxAmountParam || "100000"),
     budgetRenewal: validBudgetRenewals.includes(budgetRenewalParam)
       ? budgetRenewalParam
@@ -84,20 +172,23 @@ const NewApp = () => {
     }
 
     try {
+      const createAppRequest: CreateAppRequest = {
+        name: appName,
+        pubkey,
+        budgetRenewal: permissions.budgetRenewal,
+        maxAmount: permissions.maxAmount,
+        scopes: Array.from(permissions.scopes),
+        expiresAt: permissions.expiresAt?.toISOString(),
+        returnTo: returnTo,
+      };
+
       const createAppResponse = await request<CreateAppResponse>("/api/apps", {
         method: "POST",
         headers: {
           "X-CSRF-Token": csrf,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          name: appName,
-          pubkey,
-          ...permissions,
-          requestMethods: [...permissions.requestMethods].join(" "),
-          expiresAt: permissions.expiresAt?.toISOString(),
-          returnTo: returnTo,
-        }),
+        body: JSON.stringify(createAppRequest),
       });
 
       if (!createAppResponse) {
@@ -117,6 +208,15 @@ const NewApp = () => {
       handleRequestError(toast, "Failed to create app", error);
     }
   };
+
+  if (unsupportedError) {
+    return (
+      <>
+        <AppHeader title="Unsupported App" description={unsupportedError} />
+        <p>Try the Alby Hub LDK backend for extra features.</p>
+      </>
+    );
+  }
 
   return (
     <>

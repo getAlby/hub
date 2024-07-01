@@ -25,9 +25,9 @@ func TestSendNotification_PaymentReceived(t *testing.T) {
 	assert.NoError(t, err)
 
 	appPermission := &db.AppPermission{
-		AppId:         app.ID,
-		App:           *app,
-		RequestMethod: permissions.NOTIFICATIONS_PERMISSION,
+		AppId: app.ID,
+		App:   *app,
+		Scope: permissions.NOTIFICATIONS_SCOPE,
 	}
 	err = svc.DB.Create(appPermission).Error
 	assert.NoError(t, err)
@@ -89,9 +89,9 @@ func TestSendNotification_PaymentSent(t *testing.T) {
 	assert.NoError(t, err)
 
 	appPermission := &db.AppPermission{
-		AppId:         app.ID,
-		App:           *app,
-		RequestMethod: permissions.NOTIFICATIONS_PERMISSION,
+		AppId: app.ID,
+		App:   *app,
+		Scope: permissions.NOTIFICATIONS_SCOPE,
 	}
 	err = svc.DB.Create(appPermission).Error
 	assert.NoError(t, err)

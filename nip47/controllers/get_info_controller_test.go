@@ -39,9 +39,9 @@ func TestHandleGetInfoEvent_NoPermission(t *testing.T) {
 	assert.NoError(t, err)
 
 	appPermission := &db.AppPermission{
-		AppId:         app.ID,
-		RequestMethod: models.GET_BALANCE_METHOD,
-		ExpiresAt:     nil,
+		AppId:     app.ID,
+		Scope:     permissions.GET_BALANCE_SCOPE,
+		ExpiresAt: nil,
 	}
 	err = svc.DB.Create(appPermission).Error
 	assert.NoError(t, err)
@@ -96,9 +96,9 @@ func TestHandleGetInfoEvent_WithPermission(t *testing.T) {
 	assert.NoError(t, err)
 
 	appPermission := &db.AppPermission{
-		AppId:         app.ID,
-		RequestMethod: models.GET_INFO_METHOD,
-		ExpiresAt:     nil,
+		AppId:     app.ID,
+		Scope:     permissions.GET_INFO_SCOPE,
+		ExpiresAt: nil,
 	}
 	err = svc.DB.Create(appPermission).Error
 	assert.NoError(t, err)
@@ -148,18 +148,18 @@ func TestHandleGetInfoEvent_WithNotifications(t *testing.T) {
 	assert.NoError(t, err)
 
 	appPermission := &db.AppPermission{
-		AppId:         app.ID,
-		RequestMethod: models.GET_INFO_METHOD,
-		ExpiresAt:     nil,
+		AppId:     app.ID,
+		Scope:     permissions.GET_INFO_SCOPE,
+		ExpiresAt: nil,
 	}
 	err = svc.DB.Create(appPermission).Error
 	assert.NoError(t, err)
 
 	// TODO: AppPermission RequestMethod needs to change to scope
 	appPermission = &db.AppPermission{
-		AppId:         app.ID,
-		RequestMethod: "notifications",
-		ExpiresAt:     nil,
+		AppId:     app.ID,
+		Scope:     permissions.NOTIFICATIONS_SCOPE,
+		ExpiresAt: nil,
 	}
 	err = svc.DB.Create(appPermission).Error
 	assert.NoError(t, err)

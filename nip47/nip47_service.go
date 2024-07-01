@@ -25,7 +25,7 @@ type nip47Service struct {
 type Nip47Service interface {
 	StartNotifier(ctx context.Context, relay *nostr.Relay, lnClient lnclient.LNClient)
 	HandleEvent(ctx context.Context, sub *nostr.Subscription, event *nostr.Event, lnClient lnclient.LNClient)
-	PublishNip47Info(ctx context.Context, relay *nostr.Relay) error
+	PublishNip47Info(ctx context.Context, relay *nostr.Relay, lnClient lnclient.LNClient) error
 	CreateResponse(initialEvent *nostr.Event, content interface{}, tags nostr.Tags, ss []byte) (result *nostr.Event, err error)
 }
 

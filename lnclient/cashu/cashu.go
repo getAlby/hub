@@ -344,3 +344,11 @@ func (cs *CashuService) checkInvoice(cashuInvoice *storage.Invoice) {
 		}
 	}
 }
+
+func (cs *CashuService) GetSupportedNIP47Methods() []string {
+	return []string{"pay_invoice", "get_balance", "get_info", "make_invoice", "lookup_invoice", "list_transactions", "multi_pay_invoice"}
+}
+
+func (cs *CashuService) GetSupportedNIP47NotificationTypes() []string {
+	return []string{}
+}

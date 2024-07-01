@@ -9,7 +9,6 @@ import (
 	"math"
 	"net/http"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 
@@ -377,7 +376,7 @@ func (svc *albyOAuthService) GetAuthUrl() string {
 	return svc.oauthConf.AuthCodeURL("unused")
 }
 
-func (svc *albyOAuthService) LinkAccount(ctx context.Context) error {
+func (svc *albyOAuthService) LinkAccount(ctx context.Context, lnClient lnclient.LNClient) error {
 	connectionPubkey, err := svc.createAlbyAccountNWCNode(ctx)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to create alby account nwc node")
@@ -390,7 +389,7 @@ func (svc *albyOAuthService) LinkAccount(ctx context.Context) error {
 		1_000_000,
 		nip47.BUDGET_RENEWAL_MONTHLY,
 		nil,
-		strings.Split(nip47.CAPABILITIES, " "),
+		lnClient.GetSupportedNIP47Methods(),
 	)
 
 	if err != nil {

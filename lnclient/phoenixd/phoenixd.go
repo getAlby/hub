@@ -518,3 +518,11 @@ func (svc *PhoenixService) DisconnectPeer(ctx context.Context, peerId string) er
 func (svc *PhoenixService) UpdateChannel(ctx context.Context, updateChannelRequest *lnclient.UpdateChannelRequest) error {
 	return nil
 }
+
+func (svc *PhoenixService) GetSupportedNIP47Methods() []string {
+	return []string{"pay_invoice", "get_balance", "get_info", "make_invoice", "lookup_invoice", "list_transactions", "multi_pay_invoice"}
+}
+
+func (svc *PhoenixService) GetSupportedNIP47NotificationTypes() []string {
+	return []string{}
+}
