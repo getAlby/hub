@@ -54,6 +54,7 @@ type ResponseEvent struct {
 	UpdatedAt time.Time
 }
 
+// TODO: remove
 type Payment struct {
 	ID             uint
 	AppId          uint `validate:"required"`
@@ -65,6 +66,25 @@ type Payment struct {
 	Preimage       *string
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
+}
+
+type Transaction struct {
+	ID             uint
+	AppId          *uint
+	App            *App
+	RequestEventId *uint
+	RequestEvent   *RequestEvent
+	Type           string
+	State          string
+	Amount         uint // in millisats
+	Fee            uint // in millisats
+	PaymentRequest string
+	PaymentHash    string
+	Preimage       *string
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+	SettledAt      *time.Time
+	Metadata       string
 }
 
 type DBService interface {
