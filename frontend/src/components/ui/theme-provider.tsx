@@ -9,8 +9,8 @@ type ThemeProviderProps = {
 };
 
 type ThemeProviderState = {
-  theme: Theme;
-  setTheme: (theme: Theme) => void;
+  theme: string;
+  setTheme: (theme: string) => void;
 };
 
 const initialState: ThemeProviderState = {
@@ -32,6 +32,13 @@ export function ThemeProvider({
   useEffect(() => {
     const root = window.document.documentElement;
 
+    // Find and remove classes that start with 'theme-'
+    const classList = root.classList;
+    classList.forEach((className) => {
+      if (className.startsWith("theme-")) {
+        classList.remove(className);
+      }
+    });
     root.classList.remove("light", "dark");
     if (theme === "system") {
       const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")

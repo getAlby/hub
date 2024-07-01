@@ -1,0 +1,48 @@
+
+
+@layer base {
+  .theme-nostr-light {
+    --background: 270 100% 95%;
+    --foreground: 270 5% 10%;
+    --card: 270 50% 90%;
+    --card-foreground: 270 5% 15%;
+    --popover: 270 100% 95%;
+    --popover-foreground: 270 100% 10%;
+    --primary: 270 82.4% 55.5%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 270 30% 70%;
+    --secondary-foreground: 0 0% 0%;
+    --muted: 232 30% 85%;
+    --muted-foreground: 270 5% 35%;
+    --accent: 232 30% 80%;
+    --accent-foreground: 270 5% 15%;
+    --destructive: 0 100% 30%;
+    --destructive-foreground: 270 5% 90%;
+    --border: 270 30% 50%;
+    --input: 270 30% 26%;
+    --ring: 270 82.4% 55.5%;
+    --radius: 0.75rem;
+  }
+  .theme-nostr-dark  {
+    --background: 270 50% 10%;
+    --foreground: 270 5% 90%;
+    --card: 270 50% 10%;
+    --card-foreground: 270 5% 90%;
+    --popover: 270 50% 5%;
+    --popover-foreground: 270 5% 90%;
+    --primary: 270 82.4% 55.5%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 270 30% 20%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 232 30% 25%;
+    --muted-foreground: 270 5% 60%;
+    --accent: 232 30% 25%;
+    --accent-foreground: 270 5% 90%;
+    --destructive: 0 100% 30%;
+    --destructive-foreground: 270 5% 90%;
+    --border: 270 30% 26%;
+    --input: 270 30% 26%;
+    --ring: 270 82.4% 55.5%;
+    --radius: 0.75rem;
+  }
+}
