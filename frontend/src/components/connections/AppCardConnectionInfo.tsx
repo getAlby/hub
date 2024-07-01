@@ -1,5 +1,6 @@
 import dayjs from "dayjs";
 import { PlusCircle } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "src/components/ui/button";
 import { Progress } from "src/components/ui/progress";
 import { formatAmount } from "src/lib/utils";
@@ -68,10 +69,12 @@ export function AppCardConnectionInfo({
             </div>
           </div>
           <div className="flex flex-row justify-end items-center">
-            <Button variant="outline">
-              <PlusCircle className="w-4 h-4 mr-2" />
-              Set Budget
-            </Button>
+            <Link to={`/apps/${connection.nostrPubkey}?edit=true`}>
+              <Button variant="outline">
+                <PlusCircle className="w-4 h-4 mr-2" />
+                Set Budget
+              </Button>
+            </Link>
           </div>
         </>
       ) : (
