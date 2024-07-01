@@ -16,7 +16,7 @@ function Settings() {
     <>
       <SettingsHeader
         title="Theme"
-        description="Alby Hub is your wallet. Make it your style"
+        description="Alby Hub is your wallet, make it your style."
       />
       <form className="w-full flex flex-col gap-3">
         <div className="grid gap-1.5">
