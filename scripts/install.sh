@@ -8,11 +8,13 @@ echo "Installing..."
 sudo mkdir -p /opt/albyhub
 sudo chown -R $USER:$USER /opt/albyhub
 cd /opt/albyhub
-wget https://nightly.link/getalby/nostr-wallet-connect-next/workflows/package-raspberry-pi/master/nostr-wallet-connect.zip
+wget https://github.com/getAlby/nostr-wallet-connect-next/releases/latest/download/albyhub-Server-Linux-armv6.tar.bz2
 
-unzip nostr-wallet-connect.zip -d app
-chmod +x app/nostr-wallet-connect
-rm nostr-wallet-connect.zip
+# Extract archives
+tar -xvf albyhub-Server-Linux-armv6.tar.bz2
+
+# Cleanup
+rm albyhub-Server-Linux-armv6.tar.bz2
 
 ### Create systemd service
 sudo tee -a /etc/systemd/system/albyhub.service > /dev/null << EOF
@@ -26,7 +28,7 @@ Type=simple
 Restart=always
 RestartSec=1
 User=root
-ExecStart=/opt/albyhub/app/nostr-wallet-connect
+ExecStart=/opt/albyhub/bin/albyhub
 
 Environment="PORT=80"
 Environment="WORK_DIR=/opt/albyhub/data"
