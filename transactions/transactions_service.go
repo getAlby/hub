@@ -32,9 +32,8 @@ const (
 	TRANSACTION_TYPE_INCOMING = "incoming"
 	TRANSACTION_TYPE_OUTGOING = "outgoing"
 
-	TRANSACTION_STATE_CREATED = "CREATED"
 	TRANSACTION_STATE_PENDING = "PENDING"
-	TRANSACTION_STATE_PAID    = "PAID"
+	TRANSACTION_STATE_SETTLED = "SETTLED"
 	TRANSACTION_STATE_FAILED  = "FAILED"
 )
 
@@ -76,7 +75,7 @@ func (svc *transactionsService) MakeInvoice(ctx context.Context, amount int64, d
 		AppId:           appId,
 		RequestEventId:  requestEventId,
 		Type:            lnClientTransaction.Type,
-		State:           TRANSACTION_STATE_CREATED,
+		State:           TRANSACTION_STATE_PENDING,
 		Amount:          uint64(lnClientTransaction.Amount),
 		Description:     description,
 		DescriptionHash: descriptionHash,
@@ -162,7 +161,7 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 	// the payment definitely succeeded
 	now := time.Now()
 	dbErr := svc.db.Model(dbTransaction).Updates(&db.Transaction{
-		State:     TRANSACTION_STATE_PAID,
+		State:     TRANSACTION_STATE_SETTLED,
 		Preimage:  &response.Preimage,
 		Fee:       response.Fee,
 		SettledAt: &now,
@@ -193,16 +192,20 @@ func (svc *transactionsService) LookupTransaction(ctx context.Context, paymentHa
 		return nil, nil
 	}
 
-	svc.checkTransaction(&transaction, lnClient)
+	if transaction.State == TRANSACTION_STATE_PENDING {
+		svc.checkUnsettledTransaction(ctx, &transaction, lnClient)
+	}
 
 	return &transaction, nil
 }
 
 func (svc *transactionsService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, transactionType string, lnClient lnclient.LNClient) (transactions []Transaction, err error) {
+	svc.checkUnsettledTransactions(ctx, lnClient)
+
 	// TODO: add other filtering and pagination
 	tx := svc.db
 	if !unpaid {
-		tx = tx.Where("settled_at IS NOT NULL")
+		tx = tx.Where("state == ?", TRANSACTION_STATE_SETTLED)
 	}
 
 	tx = tx.Order("created_at desc")
@@ -216,14 +219,44 @@ func (svc *transactionsService) ListTransactions(ctx context.Context, from, unti
 		return nil, result.Error
 	}
 
-	// TODO: check applicable transactions
-	for index, _ := range transactions {
-		svc.checkTransaction(&transactions[index], lnClient)
-	}
-
 	return transactions, nil
 }
 
-func (svc *transactionsService) checkTransaction(transaction *db.Transaction, lnClient lnclient.LNClient) {
-	logger.Logger.Info("TODO: check transaction if applicable (how long since last check, how long since creation)")
+func (svc *transactionsService) checkUnsettledTransactions(ctx context.Context, lnClient lnclient.LNClient) {
+	// check pending payments less that a day old
+	transactions := []Transaction{}
+	result := svc.db.Where("state == ? AND created_at > ?", TRANSACTION_STATE_PENDING, time.Now().Add(-24*time.Hour)).Find(&transactions)
+	if result.Error != nil {
+		logger.Logger.WithError(result.Error).Error("Failed to list DB transactions")
+		return
+	}
+	for _, transaction := range transactions {
+		svc.checkUnsettledTransaction(ctx, &transaction, lnClient)
+	}
+}
+func (svc *transactionsService) checkUnsettledTransaction(ctx context.Context, transaction *db.Transaction, lnClient lnclient.LNClient) {
+	lnClientTransaction, err := lnClient.LookupInvoice(ctx, transaction.PaymentHash)
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"bolt11": transaction.PaymentRequest,
+		}).WithError(err).Error("Failed to check transaction")
+		return
+	}
+	// update transaction state
+	if lnClientTransaction.SettledAt != nil {
+		// the payment definitely succeeded
+		now := time.Now()
+		fee := uint64(lnClientTransaction.FeesPaid)
+		dbErr := svc.db.Model(transaction).Updates(&db.Transaction{
+			State:     TRANSACTION_STATE_SETTLED,
+			Preimage:  &lnClientTransaction.Preimage,
+			Fee:       &fee,
+			SettledAt: &now,
+		}).Error
+		if dbErr != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"bolt11": transaction.PaymentRequest,
+			}).WithError(dbErr).Error("Failed to update DB transaction")
+		}
+	}
 }
