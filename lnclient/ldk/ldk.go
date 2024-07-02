@@ -479,7 +479,7 @@ func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string) (*lnc
 	}
 	if preimage == "" {
 		// TODO: this doesn't necessarily mean it will fail - we should return a different response
-		return nil, errors.New("Payment timed out")
+		return nil, lnclient.NewTimeoutError()
 	}
 
 	logger.Logger.WithFields(logrus.Fields{
@@ -1255,6 +1255,7 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 			},
 		})
 	case ldk_node.EventPaymentReceived:
+		// TODO: trigger transaction update (reuse below event?)
 		ls.eventPublisher.Publish(&events.Event{
 			Event: "nwc_payment_received",
 			Properties: &events.PaymentReceivedEventProperties{
@@ -1262,6 +1263,8 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 			},
 		})
 	case ldk_node.EventPaymentSuccessful:
+		// TODO: trigger transaction update
+		// TODO: trigger transaction update for payment failed
 		var duration uint64 = 0
 		if eventType.PaymentId != nil {
 			payment := ls.node.Payment(*eventType.PaymentId)

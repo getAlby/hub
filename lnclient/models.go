@@ -4,6 +4,8 @@ import (
 	"context"
 )
 
+// TODO: remove JSON tags from these models (LNClient models should not be exposed directly)
+
 type TLVRecord struct {
 	Type uint64 `json:"type"`
 	// hex-encoded value
@@ -21,18 +23,18 @@ type NodeInfo struct {
 
 // TODO: use uint for fields that cannot be negative
 type Transaction struct {
-	Type            string      `json:"type"`
-	Invoice         string      `json:"invoice"`
-	Description     string      `json:"description"`
-	DescriptionHash string      `json:"description_hash"`
-	Preimage        string      `json:"preimage"`
-	PaymentHash     string      `json:"payment_hash"`
-	Amount          int64       `json:"amount"`
-	FeesPaid        int64       `json:"fees_paid"`
-	CreatedAt       int64       `json:"created_at"`
-	ExpiresAt       *int64      `json:"expires_at"`
-	SettledAt       *int64      `json:"settled_at"`
-	Metadata        interface{} `json:"metadata,omitempty"`
+	Type            string
+	Invoice         string
+	Description     string
+	DescriptionHash string
+	Preimage        string
+	PaymentHash     string
+	Amount          int64
+	FeesPaid        int64
+	CreatedAt       int64
+	ExpiresAt       *int64
+	SettledAt       *int64
+	Metadata        interface{}
 }
 
 type NodeConnectionInfo struct {
@@ -162,3 +164,14 @@ type NetworkGraphResponse = interface{}
 
 // default invoice expiry in seconds (1 day)
 const DEFAULT_INVOICE_EXPIRY = 86400
+
+type timeoutError struct {
+}
+
+func NewTimeoutError() error {
+	return &timeoutError{}
+}
+
+func (err *timeoutError) Error() string {
+	return "Timeout"
+}

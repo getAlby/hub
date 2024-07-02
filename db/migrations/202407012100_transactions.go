@@ -12,10 +12,12 @@ var _202407012100_transactions = &gormigrate.Migration{
 	Migrate: func(tx *gorm.DB) error {
 
 		// request_event_id and app_id are not FKs, as apps and request events can be deleted
-
+		// TODO: create indexes
+		// type + payment hash
+		//
 		if err := tx.Exec(`
 CREATE TABLE transactions(
-	id integer PRIMARY_KEY,
+	id integer,
 	app_id integer,
 	request_event_id integer,
 	type text,
@@ -23,12 +25,16 @@ CREATE TABLE transactions(
 	payment_request text,
 	preimage text,
 	payment_hash text,
+	description text,
+	description_hash text,
 	amount integer,
 	fee integer,
 	created_at datetime,
 	updated_at datetime,
+	expires_at datetime,
 	settled_at datetime,
-	metadata text
+	metadata text,
+	PRIMARY KEY (id)
 )`).Error; err != nil {
 			return err
 		}

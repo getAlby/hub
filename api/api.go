@@ -487,45 +487,6 @@ func (api *api) GetBalances(ctx context.Context) (*BalancesResponse, error) {
 	return balances, nil
 }
 
-// TODO: accept offset, limit params for pagination
-func (api *api) ListTransactions(ctx context.Context) (*ListTransactionsResponse, error) {
-	if api.svc.GetLNClient() == nil {
-		return nil, errors.New("LNClient not started")
-	}
-	transactions, err := api.svc.GetLNClient().ListTransactions(ctx, 0, 0, 20, 0, false, "")
-	if err != nil {
-		return nil, err
-	}
-	return &transactions, nil
-}
-
-func (api *api) SendPayment(ctx context.Context, invoice string) (*SendPaymentResponse, error) {
-	if api.svc.GetLNClient() == nil {
-		return nil, errors.New("LNClient not started")
-	}
-	resp, err := api.svc.GetLNClient().SendPaymentSync(ctx, invoice)
-	if err != nil {
-		return nil, err
-	}
-	return resp, nil
-}
-
-func (api *api) CreateInvoice(ctx context.Context, amount int64, description string) (*MakeInvoiceResponse, error) {
-	if api.svc.GetLNClient() == nil {
-		return nil, errors.New("LNClient not started")
-	}
-	invoice, err := api.svc.GetLNClient().MakeInvoice(ctx, amount, description, "", 0)
-	return invoice, err
-}
-
-func (api *api) LookupInvoice(ctx context.Context, paymentHash string) (*LookupInvoiceResponse, error) {
-	if api.svc.GetLNClient() == nil {
-		return nil, errors.New("LNClient not started")
-	}
-	invoice, err := api.svc.GetLNClient().LookupInvoice(ctx, paymentHash)
-	return invoice, err
-}
-
 // TODO: remove dependency on this endpoint
 func (api *api) RequestMempoolApi(endpoint string) (interface{}, error) {
 	url := api.cfg.GetEnv().MempoolApi + endpoint

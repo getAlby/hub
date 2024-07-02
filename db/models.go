@@ -69,22 +69,25 @@ type Payment struct {
 }
 
 type Transaction struct {
-	ID             uint
-	AppId          *uint
-	App            *App
-	RequestEventId *uint
-	RequestEvent   *RequestEvent
-	Type           string
-	State          string
-	Amount         uint // in millisats
-	Fee            uint // in millisats
-	PaymentRequest string
-	PaymentHash    string
-	Preimage       *string
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
-	SettledAt      *time.Time
-	Metadata       string
+	ID              uint
+	AppId           *uint
+	App             *App
+	RequestEventId  *uint
+	RequestEvent    *RequestEvent
+	Type            string
+	State           string
+	Amount          uint64  // in millisats
+	Fee             *uint64 // in millisats
+	PaymentRequest  string
+	PaymentHash     string
+	Description     string
+	DescriptionHash string
+	Preimage        *string
+	CreatedAt       time.Time
+	ExpiresAt       *time.Time
+	UpdatedAt       time.Time
+	SettledAt       *time.Time
+	Metadata        string
 }
 
 type DBService interface {

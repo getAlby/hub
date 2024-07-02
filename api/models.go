@@ -184,10 +184,24 @@ type RedeemOnchainFundsResponse struct {
 type OnchainBalanceResponse = lnclient.OnchainBalanceResponse
 type BalancesResponse = lnclient.BalancesResponse
 
-type SendPaymentResponse = lnclient.PayInvoiceResponse
-type MakeInvoiceResponse = lnclient.Transaction
-type LookupInvoiceResponse = lnclient.Transaction
-type ListTransactionsResponse = []lnclient.Transaction
+type SendPaymentResponse = Transaction
+type MakeInvoiceResponse = Transaction
+type LookupInvoiceResponse = Transaction
+type ListTransactionsResponse = []Transaction
+
+type Transaction struct {
+	Type            string      `json:"type"`
+	Invoice         string      `json:"invoice"`
+	Description     string      `json:"description"`
+	DescriptionHash string      `json:"description_hash"`
+	Preimage        *string     `json:"preimage"`
+	PaymentHash     string      `json:"payment_hash"`
+	Amount          uint64      `json:"amount"`
+	FeesPaid        uint64      `json:"fees_paid"`
+	CreatedAt       string      `json:"created_at"`
+	SettledAt       *string     `json:"settled_at"`
+	Metadata        interface{} `json:"metadata,omitempty"`
+}
 
 // debug api
 type SendPaymentProbesRequest struct {

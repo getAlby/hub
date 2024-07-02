@@ -6,6 +6,7 @@ import (
 	"github.com/getAlby/nostr-wallet-connect/events"
 	"github.com/getAlby/nostr-wallet-connect/lnclient"
 	"github.com/getAlby/nostr-wallet-connect/service/keys"
+	"github.com/getAlby/nostr-wallet-connect/transactions"
 	"gorm.io/gorm"
 )
 
@@ -19,6 +20,7 @@ type Service interface {
 	GetAlbyOAuthSvc() alby.AlbyOAuthService
 	GetEventPublisher() events.EventPublisher
 	GetLNClient() lnclient.LNClient
+	GetTransactionsService() transactions.TransactionsService
 	GetDB() *gorm.DB
 	GetConfig() config.Config
 	GetKeys() keys.Keys

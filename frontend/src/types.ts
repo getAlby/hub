@@ -362,18 +362,17 @@ export type BalancesResponse = {
 };
 
 export type Transaction = {
-  type: string;
+  type: "incoming" | "outgoing";
   invoice: string;
   description: string;
   description_hash: string;
-  preimage: string;
+  preimage: string | undefined;
   payment_hash: string;
   amount: number;
   fees_paid: number;
-  created_at: number;
-  expires_at: number;
-  settled_at: number;
-  metadata: string[];
+  created_at: string;
+  settled_at: string | undefined;
+  metadata: unknown;
 };
 
 export type NewChannelOrderStatus = "pay" | "success" | "opening";

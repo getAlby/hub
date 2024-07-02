@@ -18,8 +18,8 @@ import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
-import { useInfo } from "src/hooks/useInfo";
 import { useCSRF } from "src/hooks/useCSRF";
+import { useInfo } from "src/hooks/useInfo";
 import { useTransaction } from "src/hooks/useTransaction";
 import { copyToClipboard } from "src/lib/clipboard";
 import { CreateInvoiceRequest, Transaction } from "src/types";
@@ -33,10 +33,12 @@ export default function Receive() {
   const [isLoading, setLoading] = React.useState(false);
   const [amount, setAmount] = React.useState<string>("");
   const [description, setDescription] = React.useState<string>("");
-  const [invoice, setInvoice] = React.useState<Transaction | null>(null);
+  const [transaction, setTransaction] = React.useState<Transaction | null>(
+    null
+  );
   const [paymentDone, setPaymentDone] = React.useState(false);
   const { data: invoiceData } = useTransaction(
-    invoice ? invoice.payment_hash : "",
+    transaction ? transaction.payment_hash : "",
     true
   );
 
@@ -71,7 +73,7 @@ export default function Receive() {
       setAmount("");
       setDescription("");
       if (invoice) {
-        setInvoice(invoice);
+        setTransaction(invoice);
 
         toast({
           title: "Successfully created invoice",
@@ -89,7 +91,7 @@ export default function Receive() {
   };
 
   const copy = () => {
-    copyToClipboard(invoice?.invoice as string);
+    copyToClipboard(transaction?.invoice as string);
     toast({ title: "Copied to clipboard." });
   };
 
@@ -118,7 +120,7 @@ export default function Receive() {
       />
       <div className="flex gap-12 w-full">
         <div className="w-full max-w-lg">
-          {invoice ? (
+          {transaction ? (
             <>
               <Card className="w-full">
                 <CardHeader>
@@ -138,7 +140,7 @@ export default function Receive() {
                         <Loading className="w-4 h-4" />
                         <p>Waiting for payment</p>
                       </div>
-                      <QRCode value={invoice.invoice} className="w-full" />
+                      <QRCode value={transaction.invoice} className="w-full" />
                       <div>
                         <Button onClick={copy} variant="outline">
                           <CopyIcon className="w-4 h-4 mr-2" />
@@ -155,7 +157,7 @@ export default function Receive() {
                     className="mt-4 w-full"
                     onClick={() => {
                       setPaymentDone(false);
-                      setInvoice(null);
+                      setTransaction(null);
                     }}
                   >
                     Receive Another Payment
