@@ -10,7 +10,9 @@ import (
 
 	"github.com/getAlby/nostr-wallet-connect/db"
 	"github.com/getAlby/nostr-wallet-connect/nip47/models"
+	permissions "github.com/getAlby/nostr-wallet-connect/nip47/permissions"
 	"github.com/getAlby/nostr-wallet-connect/tests"
+	"github.com/getAlby/nostr-wallet-connect/transactions"
 )
 
 const nip47ListTransactionsJson = `
@@ -55,7 +57,9 @@ func TestHandleListTransactionsEvent_NoPermission(t *testing.T) {
 		publishedResponse = response
 	}
 
-	NewListTransactionsController(svc.LNClient).
+	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB)
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
 		HandleListTransactionsEvent(ctx, nip47Request, dbRequestEvent.ID, checkPermission, publishResponse)
 
 	assert.Nil(t, publishedResponse.Result)
@@ -86,7 +90,9 @@ func TestHandleListTransactionsEvent_WithPermission(t *testing.T) {
 		publishedResponse = response
 	}
 
-	NewListTransactionsController(svc.LNClient).
+	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB)
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
 		HandleListTransactionsEvent(ctx, nip47Request, dbRequestEvent.ID, checkPermission, publishResponse)
 
 	assert.Nil(t, publishedResponse.Error)

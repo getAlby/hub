@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/getAlby/nostr-wallet-connect/db"
-	"github.com/getAlby/nostr-wallet-connect/lnclient"
 	"github.com/getAlby/nostr-wallet-connect/logger"
 	"github.com/getAlby/nostr-wallet-connect/nip47/models"
 	permissions "github.com/getAlby/nostr-wallet-connect/nip47/permissions"
@@ -23,19 +22,7 @@ type getInfoResponse struct {
 	Notifications []string `json:"notifications"`
 }
 
-type getInfoController struct {
-	lnClient           lnclient.LNClient
-	permissionsService permissions.PermissionsService
-}
-
-func NewGetInfoController(permissionsService permissions.PermissionsService, lnClient lnclient.LNClient) *getInfoController {
-	return &getInfoController{
-		permissionsService: permissionsService,
-		lnClient:           lnClient,
-	}
-}
-
-func (controller *getInfoController) HandleGetInfoEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, app *db.App, checkPermission checkPermissionFunc, publishResponse publishFunc) {
+func (controller *nip47Controller) HandleGetInfoEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, app *db.App, checkPermission checkPermissionFunc, publishResponse publishFunc) {
 	supportedNotifications := []string{}
 	if controller.permissionsService.PermitsNotifications(app) {
 		supportedNotifications = controller.lnClient.GetSupportedNIP47NotificationTypes()

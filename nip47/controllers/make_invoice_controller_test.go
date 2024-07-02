@@ -10,7 +10,9 @@ import (
 
 	"github.com/getAlby/nostr-wallet-connect/db"
 	"github.com/getAlby/nostr-wallet-connect/nip47/models"
+	permissions "github.com/getAlby/nostr-wallet-connect/nip47/permissions"
 	"github.com/getAlby/nostr-wallet-connect/tests"
+	"github.com/getAlby/nostr-wallet-connect/transactions"
 )
 
 const nip47MakeInvoiceJson = `
@@ -53,7 +55,9 @@ func TestHandleMakeInvoiceEvent_NoPermission(t *testing.T) {
 		publishedResponse = response
 	}
 
-	NewMakeInvoiceController(svc.LNClient).
+	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB)
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
 		HandleMakeInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, checkPermission, publishResponse)
 
 	assert.Nil(t, publishedResponse.Result)
@@ -84,7 +88,9 @@ func TestHandleMakeInvoiceEvent_WithPermission(t *testing.T) {
 		publishedResponse = response
 	}
 
-	NewMakeInvoiceController(svc.LNClient).
+	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB)
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
 		HandleMakeInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, checkPermission, publishResponse)
 
 	assert.Nil(t, publishedResponse.Error)

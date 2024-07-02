@@ -23,6 +23,7 @@ import (
 	"github.com/getAlby/nostr-wallet-connect/logger"
 	nip47 "github.com/getAlby/nostr-wallet-connect/nip47/models"
 	"github.com/getAlby/nostr-wallet-connect/service/keys"
+	"github.com/getAlby/nostr-wallet-connect/transactions"
 )
 
 type albyOAuthService struct {
@@ -270,13 +271,13 @@ func (svc *albyOAuthService) DrainSharedWallet(ctx context.Context, lnClient lnc
 
 	logger.Logger.WithField("amount", amount).WithError(err).Error("Draining Alby shared wallet funds")
 
-	transaction, err := lnClient.MakeInvoice(ctx, amount, "Send shared wallet funds to Alby Hub", "", 120)
+	transaction, err := transactions.NewTransactionsService(svc.db).MakeInvoice(ctx, amount, "Send shared wallet funds to Alby Hub", "", 120, lnClient, nil, nil)
 	if err != nil {
 		logger.Logger.WithField("amount", amount).WithError(err).Error("Failed to make invoice")
 		return err
 	}
 
-	err = svc.SendPayment(ctx, transaction.Invoice)
+	err = svc.SendPayment(ctx, transaction.PaymentRequest)
 	if err != nil {
 		logger.Logger.WithField("amount", amount).WithError(err).Error("Failed to pay invoice from shared node")
 		return err

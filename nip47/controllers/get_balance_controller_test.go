@@ -10,7 +10,9 @@ import (
 
 	"github.com/getAlby/nostr-wallet-connect/db"
 	"github.com/getAlby/nostr-wallet-connect/nip47/models"
+	"github.com/getAlby/nostr-wallet-connect/nip47/permissions"
 	"github.com/getAlby/nostr-wallet-connect/tests"
+	"github.com/getAlby/nostr-wallet-connect/transactions"
 )
 
 const nip47GetBalanceJson = `
@@ -48,7 +50,9 @@ func TestHandleGetBalanceEvent_NoPermission(t *testing.T) {
 		publishedResponse = response
 	}
 
-	NewGetBalanceController(svc.LNClient).
+	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB)
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
 		HandleGetBalanceEvent(ctx, nip47Request, dbRequestEvent.ID, checkPermission, publishResponse)
 
 	assert.Nil(t, publishedResponse.Result)
@@ -79,7 +83,9 @@ func TestHandleGetBalanceEvent_WithPermission(t *testing.T) {
 		publishedResponse = response
 	}
 
-	NewGetBalanceController(svc.LNClient).
+	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB)
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
 		HandleGetBalanceEvent(ctx, nip47Request, dbRequestEvent.ID, checkPermission, publishResponse)
 
 	assert.Equal(t, int64(21000), publishedResponse.Result.(*getBalanceResponse).Balance)

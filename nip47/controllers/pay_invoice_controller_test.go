@@ -10,7 +10,9 @@ import (
 
 	"github.com/getAlby/nostr-wallet-connect/db"
 	"github.com/getAlby/nostr-wallet-connect/nip47/models"
+	permissions "github.com/getAlby/nostr-wallet-connect/nip47/permissions"
 	"github.com/getAlby/nostr-wallet-connect/tests"
+	"github.com/getAlby/nostr-wallet-connect/transactions"
 )
 
 const nip47PayInvoiceJson = `
@@ -63,7 +65,9 @@ func TestHandlePayInvoiceEvent_NoPermission(t *testing.T) {
 		publishedResponse = response
 	}
 
-	NewPayInvoiceController(svc.LNClient, svc.DB, svc.EventPublisher).
+	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB)
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
 		HandlePayInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, app, checkPermission, publishResponse, nostr.Tags{})
 
 	assert.Equal(t, models.ERROR_RESTRICTED, publishedResponse.Error.Code)
@@ -97,7 +101,9 @@ func TestHandlePayInvoiceEvent_WithPermission(t *testing.T) {
 		publishedResponse = response
 	}
 
-	NewPayInvoiceController(svc.LNClient, svc.DB, svc.EventPublisher).
+	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB)
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
 		HandlePayInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, app, checkPermission, publishResponse, nostr.Tags{})
 
 	assert.Equal(t, "123preimage", publishedResponse.Result.(payResponse).Preimage)
@@ -130,7 +136,9 @@ func TestHandlePayInvoiceEvent_MalformedInvoice(t *testing.T) {
 		publishedResponse = response
 	}
 
-	NewPayInvoiceController(svc.LNClient, svc.DB, svc.EventPublisher).
+	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB)
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
 		HandlePayInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, app, checkPermission, publishResponse, nostr.Tags{})
 
 	assert.Nil(t, publishedResponse.Result)

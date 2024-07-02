@@ -7,34 +7,18 @@ import (
 
 	"github.com/getAlby/nostr-wallet-connect/db"
 	"github.com/getAlby/nostr-wallet-connect/events"
-	"github.com/getAlby/nostr-wallet-connect/lnclient"
 	"github.com/getAlby/nostr-wallet-connect/logger"
 	"github.com/getAlby/nostr-wallet-connect/nip47/models"
 	"github.com/nbd-wtf/go-nostr"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
-	"gorm.io/gorm"
 )
 
 type payInvoiceParams struct {
 	Invoice string `json:"invoice"`
 }
 
-type payInvoiceController struct {
-	lnClient       lnclient.LNClient
-	db             *gorm.DB
-	eventPublisher events.EventPublisher
-}
-
-func NewPayInvoiceController(lnClient lnclient.LNClient, db *gorm.DB, eventPublisher events.EventPublisher) *payInvoiceController {
-	return &payInvoiceController{
-		lnClient:       lnClient,
-		db:             db,
-		eventPublisher: eventPublisher,
-	}
-}
-
-func (controller *payInvoiceController) HandlePayInvoiceEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, app *db.App, checkPermission checkPermissionFunc, publishResponse publishFunc, tags nostr.Tags) {
+func (controller *nip47Controller) HandlePayInvoiceEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, app *db.App, checkPermission checkPermissionFunc, publishResponse publishFunc, tags nostr.Tags) {
 	payParams := &payInvoiceParams{}
 	resp := decodeRequest(nip47Request, payParams)
 	if resp != nil {
@@ -66,7 +50,7 @@ func (controller *payInvoiceController) HandlePayInvoiceEvent(ctx context.Contex
 	controller.pay(ctx, bolt11, &paymentRequest, nip47Request, requestEventId, app, checkPermission, publishResponse, tags)
 }
 
-func (controller *payInvoiceController) pay(ctx context.Context, bolt11 string, paymentRequest *decodepay.Bolt11, nip47Request *models.Request, requestEventId uint, app *db.App, checkPermission checkPermissionFunc, publishResponse publishFunc, tags nostr.Tags) {
+func (controller *nip47Controller) pay(ctx context.Context, bolt11 string, paymentRequest *decodepay.Bolt11, nip47Request *models.Request, requestEventId uint, app *db.App, checkPermission checkPermissionFunc, publishResponse publishFunc, tags nostr.Tags) {
 	resp := checkPermission(uint64(paymentRequest.MSatoshi))
 	if resp != nil {
 		publishResponse(resp, tags)

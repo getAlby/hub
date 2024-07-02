@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/getAlby/nostr-wallet-connect/lnclient"
 	"github.com/getAlby/nostr-wallet-connect/logger"
 	"github.com/getAlby/nostr-wallet-connect/nip47/models"
 	"github.com/nbd-wtf/go-nostr"
@@ -22,17 +21,7 @@ type lookupInvoiceResponse struct {
 	models.Transaction
 }
 
-type lookupInvoiceController struct {
-	lnClient lnclient.LNClient
-}
-
-func NewLookupInvoiceController(lnClient lnclient.LNClient) *lookupInvoiceController {
-	return &lookupInvoiceController{
-		lnClient: lnClient,
-	}
-}
-
-func (controller *lookupInvoiceController) HandleLookupInvoiceEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, checkPermission checkPermissionFunc, publishResponse publishFunc) {
+func (controller *nip47Controller) HandleLookupInvoiceEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, checkPermission checkPermissionFunc, publishResponse publishFunc) {
 	// basic permissions check
 	resp := checkPermission(0)
 	if resp != nil {

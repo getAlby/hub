@@ -3,7 +3,6 @@ package controllers
 import (
 	"context"
 
-	"github.com/getAlby/nostr-wallet-connect/lnclient"
 	"github.com/getAlby/nostr-wallet-connect/logger"
 	"github.com/getAlby/nostr-wallet-connect/nip47/models"
 	"github.com/nbd-wtf/go-nostr"
@@ -23,17 +22,7 @@ type listTransactionsResponse struct {
 	Transactions []models.Transaction `json:"transactions"`
 }
 
-type listTransactionsController struct {
-	lnClient lnclient.LNClient
-}
-
-func NewListTransactionsController(lnClient lnclient.LNClient) *listTransactionsController {
-	return &listTransactionsController{
-		lnClient: lnClient,
-	}
-}
-
-func (controller *listTransactionsController) HandleListTransactionsEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, checkPermission checkPermissionFunc, publishResponse publishFunc) {
+func (controller *nip47Controller) HandleListTransactionsEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, checkPermission checkPermissionFunc, publishResponse publishFunc) {
 	// basic permissions check
 	resp := checkPermission(0)
 	if resp != nil {

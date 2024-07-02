@@ -11,7 +11,9 @@ import (
 
 	"github.com/getAlby/nostr-wallet-connect/db"
 	"github.com/getAlby/nostr-wallet-connect/nip47/models"
+	permissions "github.com/getAlby/nostr-wallet-connect/nip47/permissions"
 	"github.com/getAlby/nostr-wallet-connect/tests"
+	"github.com/getAlby/nostr-wallet-connect/transactions"
 )
 
 const nip47MultiPayJson = `
@@ -99,7 +101,9 @@ func TestHandleMultiPayInvoiceEvent_NoPermission(t *testing.T) {
 		dTags = append(dTags, tags)
 	}
 
-	NewMultiPayInvoiceController(svc.LNClient, svc.DB, svc.EventPublisher).
+	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB)
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
 		HandleMultiPayInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, app, checkPermission, publishResponse)
 
 	assert.Equal(t, 2, len(responses))
@@ -144,7 +148,9 @@ func TestHandleMultiPayInvoiceEvent_WithPermission(t *testing.T) {
 	err = svc.DB.Create(&dbRequestEvent).Error
 	assert.NoError(t, err)
 
-	NewMultiPayInvoiceController(svc.LNClient, svc.DB, svc.EventPublisher).
+	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB)
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
 		HandleMultiPayInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, app, checkPermission, publishResponse)
 
 	assert.Equal(t, 2, len(responses))
@@ -188,7 +194,9 @@ func TestHandleMultiPayInvoiceEvent_OneMalformedInvoice(t *testing.T) {
 	requestEvent := &db.RequestEvent{}
 	svc.DB.Save(requestEvent)
 
-	NewMultiPayInvoiceController(svc.LNClient, svc.DB, svc.EventPublisher).
+	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB)
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
 		HandleMultiPayInvoiceEvent(ctx, nip47Request, requestEvent.ID, app, checkPermission, publishResponse)
 
 	assert.Equal(t, 2, len(responses))

@@ -2,8 +2,6 @@ package models
 
 import (
 	"encoding/json"
-
-	"github.com/getAlby/nostr-wallet-connect/lnclient"
 )
 
 const (
@@ -43,7 +41,20 @@ const (
 	BUDGET_RENEWAL_NEVER   = "never"
 )
 
-type Transaction = lnclient.Transaction
+type Transaction struct {
+	Type            string      `json:"type"`
+	Invoice         string      `json:"invoice"`
+	Description     string      `json:"description"`
+	DescriptionHash string      `json:"description_hash"`
+	Preimage        string      `json:"preimage"`
+	PaymentHash     string      `json:"payment_hash"`
+	Amount          int64       `json:"amount"`
+	FeesPaid        int64       `json:"fees_paid"`
+	CreatedAt       int64       `json:"created_at"`
+	ExpiresAt       *int64      `json:"expires_at"`
+	SettledAt       *int64      `json:"settled_at"`
+	Metadata        interface{} `json:"metadata,omitempty"`
+}
 
 type PayRequest struct {
 	Invoice string `json:"invoice"`

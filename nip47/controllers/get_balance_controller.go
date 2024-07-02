@@ -3,7 +3,6 @@ package controllers
 import (
 	"context"
 
-	"github.com/getAlby/nostr-wallet-connect/lnclient"
 	"github.com/getAlby/nostr-wallet-connect/logger"
 	"github.com/getAlby/nostr-wallet-connect/nip47/models"
 	"github.com/nbd-wtf/go-nostr"
@@ -20,18 +19,8 @@ type getBalanceResponse struct {
 	// BudgetRenewal string `json:"budget_renewal"`
 }
 
-type getBalanceController struct {
-	lnClient lnclient.LNClient
-}
-
-func NewGetBalanceController(lnClient lnclient.LNClient) *getBalanceController {
-	return &getBalanceController{
-		lnClient: lnClient,
-	}
-}
-
 // TODO: remove checkPermission - can it be a middleware?
-func (controller *getBalanceController) HandleGetBalanceEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, checkPermission checkPermissionFunc, publishResponse publishFunc) {
+func (controller *nip47Controller) HandleGetBalanceEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, checkPermission checkPermissionFunc, publishResponse publishFunc) {
 	// basic permissions check
 	resp := checkPermission(0)
 	if resp != nil {

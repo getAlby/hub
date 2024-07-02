@@ -9,12 +9,14 @@ import (
 	"github.com/getAlby/nostr-wallet-connect/nip47/notifications"
 	permissions "github.com/getAlby/nostr-wallet-connect/nip47/permissions"
 	"github.com/getAlby/nostr-wallet-connect/service/keys"
+	"github.com/getAlby/nostr-wallet-connect/transactions"
 	"github.com/nbd-wtf/go-nostr"
 	"gorm.io/gorm"
 )
 
 type nip47Service struct {
 	permissionsService     permissions.PermissionsService
+	transactionsService    transactions.TransactionsService
 	nip47NotificationQueue notifications.Nip47NotificationQueue
 	cfg                    config.Config
 	keys                   keys.Keys
@@ -37,6 +39,7 @@ func NewNip47Service(db *gorm.DB, cfg config.Config, keys keys.Keys, eventPublis
 		cfg:                    cfg,
 		db:                     db,
 		permissionsService:     permissions.NewPermissionsService(db, eventPublisher),
+		transactionsService:    transactions.NewTransactionsService(db),
 		eventPublisher:         eventPublisher,
 		keys:                   keys,
 	}

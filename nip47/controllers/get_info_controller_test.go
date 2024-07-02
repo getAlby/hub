@@ -12,6 +12,7 @@ import (
 	"github.com/getAlby/nostr-wallet-connect/nip47/models"
 	"github.com/getAlby/nostr-wallet-connect/nip47/permissions"
 	"github.com/getAlby/nostr-wallet-connect/tests"
+	"github.com/getAlby/nostr-wallet-connect/transactions"
 )
 
 const nip47GetInfoJson = `
@@ -62,8 +63,8 @@ func TestHandleGetInfoEvent_NoPermission(t *testing.T) {
 	}
 
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
-
-	NewGetInfoController(permissionsSvc, svc.LNClient).
+	transactionsSvc := transactions.NewTransactionsService(svc.DB)
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
 		HandleGetInfoEvent(ctx, nip47Request, dbRequestEvent.ID, app, checkPermission, publishResponse)
 
 	assert.Nil(t, publishedResponse.Error)
@@ -114,8 +115,8 @@ func TestHandleGetInfoEvent_WithPermission(t *testing.T) {
 	}
 
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
-
-	NewGetInfoController(permissionsSvc, svc.LNClient).
+	transactionsSvc := transactions.NewTransactionsService(svc.DB)
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
 		HandleGetInfoEvent(ctx, nip47Request, dbRequestEvent.ID, app, checkPermission, publishResponse)
 
 	assert.Nil(t, publishedResponse.Error)
@@ -175,8 +176,8 @@ func TestHandleGetInfoEvent_WithNotifications(t *testing.T) {
 	}
 
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
-
-	NewGetInfoController(permissionsSvc, svc.LNClient).
+	transactionsSvc := transactions.NewTransactionsService(svc.DB)
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
 		HandleGetInfoEvent(ctx, nip47Request, dbRequestEvent.ID, app, checkPermission, publishResponse)
 
 	assert.Nil(t, publishedResponse.Error)

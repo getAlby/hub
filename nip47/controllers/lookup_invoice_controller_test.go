@@ -10,7 +10,9 @@ import (
 
 	"github.com/getAlby/nostr-wallet-connect/db"
 	"github.com/getAlby/nostr-wallet-connect/nip47/models"
+	permissions "github.com/getAlby/nostr-wallet-connect/nip47/permissions"
 	"github.com/getAlby/nostr-wallet-connect/tests"
+	"github.com/getAlby/nostr-wallet-connect/transactions"
 )
 
 const nip47LookupInvoiceJson = `
@@ -51,7 +53,9 @@ func TestHandleLookupInvoiceEvent_NoPermission(t *testing.T) {
 		publishedResponse = response
 	}
 
-	NewLookupInvoiceController(svc.LNClient).
+	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB)
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
 		HandleLookupInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, checkPermission, publishResponse)
 
 	assert.Nil(t, publishedResponse.Result)
@@ -82,7 +86,9 @@ func TestHandleLookupInvoiceEvent_WithPermission(t *testing.T) {
 		publishedResponse = response
 	}
 
-	NewLookupInvoiceController(svc.LNClient).
+	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB)
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
 		HandleLookupInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, checkPermission, publishResponse)
 
 	assert.Nil(t, publishedResponse.Error)

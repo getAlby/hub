@@ -13,6 +13,7 @@ import (
 	"github.com/getAlby/nostr-wallet-connect/nip47/models"
 	"github.com/getAlby/nostr-wallet-connect/nip47/permissions"
 	"github.com/getAlby/nostr-wallet-connect/service/keys"
+	"github.com/getAlby/nostr-wallet-connect/transactions"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip04"
 	"github.com/sirupsen/logrus"
@@ -24,22 +25,24 @@ type Relay interface {
 }
 
 type Nip47Notifier struct {
-	relay          Relay
-	cfg            config.Config
-	keys           keys.Keys
-	lnClient       lnclient.LNClient
-	db             *gorm.DB
-	permissionsSvc permissions.PermissionsService
+	relay               Relay
+	cfg                 config.Config
+	keys                keys.Keys
+	lnClient            lnclient.LNClient
+	db                  *gorm.DB
+	permissionsSvc      permissions.PermissionsService
+	transactionsService transactions.TransactionsService
 }
 
-func NewNip47Notifier(relay Relay, db *gorm.DB, cfg config.Config, keys keys.Keys, permissionsSvc permissions.PermissionsService, lnClient lnclient.LNClient) *Nip47Notifier {
+func NewNip47Notifier(relay Relay, db *gorm.DB, cfg config.Config, keys keys.Keys, permissionsSvc permissions.PermissionsService, transactionsService transactions.TransactionsService, lnClient lnclient.LNClient) *Nip47Notifier {
 	return &Nip47Notifier{
-		relay:          relay,
-		cfg:            cfg,
-		db:             db,
-		lnClient:       lnClient,
-		permissionsSvc: permissionsSvc,
-		keys:           keys,
+		relay:               relay,
+		cfg:                 cfg,
+		db:                  db,
+		lnClient:            lnClient,
+		permissionsSvc:      permissionsSvc,
+		transactionsService: transactionsService,
+		keys:                keys,
 	}
 }
 
@@ -52,7 +55,7 @@ func (notifier *Nip47Notifier) ConsumeEvent(ctx context.Context, event *events.E
 			return errors.New("failed to cast event")
 		}
 
-		transaction, err := notifier.lnClient.LookupInvoice(ctx, paymentReceivedEventProperties.PaymentHash)
+		transaction, err := notifier.transactionsService.LookupTransaction(ctx, paymentReceivedEventProperties.PaymentHash, transactions.TRANSACTION_TYPE_INCOMING, notifier.lnClient)
 		if err != nil {
 			logger.Logger.
 				WithField("paymentHash", paymentReceivedEventProperties.PaymentHash).
@@ -60,6 +63,8 @@ func (notifier *Nip47Notifier) ConsumeEvent(ctx context.Context, event *events.E
 				Error("Failed to lookup invoice by payment hash")
 			return err
 		}
+
+		nip47Transaction := toNip47Transaction
 		notification := PaymentReceivedNotification{
 			Transaction: *transaction,
 		}

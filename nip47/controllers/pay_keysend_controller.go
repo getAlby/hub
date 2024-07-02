@@ -10,7 +10,6 @@ import (
 	"github.com/getAlby/nostr-wallet-connect/nip47/models"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/sirupsen/logrus"
-	"gorm.io/gorm"
 )
 
 type payKeysendParams struct {
@@ -20,31 +19,17 @@ type payKeysendParams struct {
 	TLVRecords []lnclient.TLVRecord `json:"tlv_records"`
 }
 
-type payKeysendController struct {
-	lnClient       lnclient.LNClient
-	db             *gorm.DB
-	eventPublisher events.EventPublisher
-}
-
-func NewPayKeysendController(lnClient lnclient.LNClient, db *gorm.DB, eventPublisher events.EventPublisher) *payKeysendController {
-	return &payKeysendController{
-		lnClient:       lnClient,
-		db:             db,
-		eventPublisher: eventPublisher,
-	}
-}
-
-func (controller *payKeysendController) HandlePayKeysendEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, app *db.App, checkPermission checkPermissionFunc, publishResponse publishFunc, tags nostr.Tags) {
+func (controller *nip47Controller) HandlePayKeysendEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, app *db.App, checkPermission checkPermissionFunc, publishResponse publishFunc, tags nostr.Tags) {
 	payKeysendParams := &payKeysendParams{}
 	resp := decodeRequest(nip47Request, payKeysendParams)
 	if resp != nil {
 		publishResponse(resp, tags)
 		return
 	}
-	controller.pay(ctx, payKeysendParams, nip47Request, requestEventId, app, checkPermission, publishResponse, tags)
+	controller.payKeysend(ctx, payKeysendParams, nip47Request, requestEventId, app, checkPermission, publishResponse, tags)
 }
 
-func (controller *payKeysendController) pay(ctx context.Context, payKeysendParams *payKeysendParams, nip47Request *models.Request, requestEventId uint, app *db.App, checkPermission checkPermissionFunc, publishResponse publishFunc, tags nostr.Tags) {
+func (controller *nip47Controller) payKeysend(ctx context.Context, payKeysendParams *payKeysendParams, nip47Request *models.Request, requestEventId uint, app *db.App, checkPermission checkPermissionFunc, publishResponse publishFunc, tags nostr.Tags) {
 	resp := checkPermission(payKeysendParams.Amount)
 	if resp != nil {
 		publishResponse(resp, tags)
