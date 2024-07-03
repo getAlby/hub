@@ -1,8 +1,16 @@
-import { PlusCircle } from "lucide-react";
+import { format } from "date-fns";
+import { CalendarIcon, PlusCircle, XIcon } from "lucide-react";
 import React, { useEffect, useState } from "react";
+import Scopes from "src/components/Scopes";
 import { Button } from "src/components/ui/button";
-import { Checkbox } from "src/components/ui/checkbox";
+import { Calendar } from "src/components/ui/calendar";
+import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "src/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -10,38 +18,49 @@ import {
   SelectTrigger,
   SelectValue,
 } from "src/components/ui/select";
-import { useCapabilities } from "src/hooks/useCapabilities";
 import { cn } from "src/lib/utils";
 import {
   AppPermissions,
   BudgetRenewalType,
+  NIP_47_PAY_INVOICE_METHOD,
   Scope,
+  WalletCapabilities,
   budgetOptions,
   expiryOptions,
-  iconMap,
-  scopeDescriptions,
   validBudgetRenewals,
 } from "src/types";
 
+const daysFromNow = (date?: Date) =>
+  date
+    ? Math.ceil((new Date(date).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+    : 0;
+
 interface PermissionsProps {
+  capabilities: WalletCapabilities;
   initialPermissions: AppPermissions;
   onPermissionsChange: (permissions: AppPermissions) => void;
-  budgetUsage?: number;
   canEditPermissions: boolean;
-  isNewConnection?: boolean;
+  budgetUsage?: number;
 }
 
 const Permissions: React.FC<PermissionsProps> = ({
+  capabilities,
   initialPermissions,
   onPermissionsChange,
   canEditPermissions,
-  isNewConnection,
   budgetUsage,
 }) => {
+  // TODO: EDITABLE LOGIC
   const [permissions, setPermissions] = React.useState(initialPermissions);
-  const [days, setDays] = useState(isNewConnection ? 0 : -1);
-  const [expireOptions, setExpireOptions] = useState(!isNewConnection);
-  const { data: capabilities } = useCapabilities();
+
+  // TODO: set expiry when set to non expiryType value like 24 days for example
+  const [expiryDays, setExpiryDays] = useState(
+    daysFromNow(permissions.expiresAt)
+  );
+  const [budgetOption, setBudgetOption] = useState(!!permissions.maxAmount);
+  const [customBudget, setCustomBudget] = useState(!!permissions.maxAmount);
+  const [expireOption, setExpireOption] = useState(!!permissions.expiresAt);
+  const [customExpiry, setCustomExpiry] = useState(!!permissions.expiresAt);
 
   useEffect(() => {
     setPermissions(initialPermissions);
@@ -55,30 +74,13 @@ const Permissions: React.FC<PermissionsProps> = ({
     onPermissionsChange(updatedPermissions);
   };
 
-  const handleScopeChange = (scope: Scope) => {
-    if (!canEditPermissions) {
-      return;
-    }
-
-    let budgetRenewal = permissions.budgetRenewal;
-
-    const newScopes = new Set(permissions.scopes);
-    if (newScopes.has(scope)) {
-      newScopes.delete(scope);
-    } else {
-      newScopes.add(scope);
-      if (scope === "pay_invoice") {
-        budgetRenewal = "monthly";
-      }
-    }
-
-    handlePermissionsChange({
-      scopes: newScopes,
-      budgetRenewal,
-    });
+  const handleScopeChange = (scopes: Set<Scope>) => {
+    // TODO: what if edit is not set (see prev diff)
+    // TODO: what if we set pay_invoice scope again, what would be the value of budgetRenewal
+    handlePermissionsChange({ scopes });
   };
 
-  const handleMaxAmountChange = (amount: number) => {
+  const handleBudgetMaxAmountChange = (amount: string) => {
     handlePermissionsChange({ maxAmount: amount });
   };
 
@@ -86,234 +88,214 @@ const Permissions: React.FC<PermissionsProps> = ({
     handlePermissionsChange({ budgetRenewal: value as BudgetRenewalType });
   };
 
-  const handleDaysChange = (days: number) => {
-    setDays(days);
-    if (!days) {
+  const handleExpiryDaysChange = (expiryDays: number) => {
+    setExpiryDays(expiryDays);
+    if (!expiryDays) {
       handlePermissionsChange({ expiresAt: undefined });
       return;
     }
     const currentDate = new Date();
-    const expiryDate = new Date(
-      Date.UTC(
-        currentDate.getUTCFullYear(),
-        currentDate.getUTCMonth(),
-        currentDate.getUTCDate() + days,
-        23,
-        59,
-        59,
-        0
-      )
-    );
-    handlePermissionsChange({ expiresAt: expiryDate });
+    // const expiryDate = new Date(
+    //   Date.UTC(
+    //     currentDate.getUTCFullYear(),
+    //     currentDate.getUTCMonth(),
+    //     currentDate.getUTCDate() + expiryDays,
+    //     23,
+    //     59,
+    //     59,
+    //     0
+    //   )
+    // );
+    currentDate.setDate(currentDate.getDate() + expiryDays);
+    currentDate.setHours(23, 59, 59, 0);
+    handlePermissionsChange({ expiresAt: currentDate });
   };
 
   return (
     <div>
-      <div className="mb-6">
-        <ul className="flex flex-col w-full">
-          {capabilities?.scopes.map((scope, index) => {
-            const ScopeIcon = iconMap[scope];
-            return (
-              <li
-                key={index}
-                className={cn(
-                  "w-full",
-                  scope == "pay_invoice" ? "order-last" : "",
-                  !canEditPermissions && !permissions.scopes.has(scope)
-                    ? "hidden"
-                    : ""
-                )}
+      <Scopes
+        capabilities={capabilities}
+        scopes={permissions.scopes}
+        onScopeChange={handleScopeChange}
+      />
+
+      {capabilities.scopes.includes(NIP_47_PAY_INVOICE_METHOD) &&
+        permissions.scopes.has(NIP_47_PAY_INVOICE_METHOD) && (
+          <>
+            {!budgetOption && (
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setBudgetOption(true)}
+                className="mb-4 mr-4"
               >
-                <div className="flex items-center mb-2">
-                  {ScopeIcon && (
-                    <ScopeIcon
-                      className={cn(
-                        "text-muted-foreground w-4 mr-3",
-                        canEditPermissions ? "hidden" : ""
-                      )}
-                    />
-                  )}
-                  <Checkbox
-                    id={scope}
-                    className={cn("mr-2", !canEditPermissions ? "hidden" : "")}
-                    onCheckedChange={() => handleScopeChange(scope)}
-                    checked={permissions.scopes.has(scope)}
-                  />
-                  <Label
-                    htmlFor={scope}
-                    className={`${canEditPermissions && "cursor-pointer"}`}
+                <PlusCircle className="w-4 h-4 mr-2" />
+                Set budget renewal
+              </Button>
+            )}
+            {budgetOption && (
+              <>
+                <p className="font-medium text-sm mb-2">Budget Renewal</p>
+                <div className="flex gap-2 items-center text-muted-foreground mb-4 text-sm capitalize">
+                  <Select
+                    value={permissions.budgetRenewal}
+                    onValueChange={(value) =>
+                      handleBudgetRenewalChange(value as BudgetRenewalType)
+                    }
                   >
-                    {scopeDescriptions[scope]}
-                  </Label>
-                </div>
-                {scope == "pay_invoice" && (
-                  <div
-                    className={cn(
-                      "pt-2 pb-2 pl-5 ml-2.5 border-l-2 border-l-primary",
-                      !permissions.scopes.has(scope)
-                        ? canEditPermissions
-                          ? "pointer-events-none opacity-30"
-                          : "hidden"
-                        : ""
-                    )}
-                  >
-                    {canEditPermissions ? (
-                      <>
-                        <div className="flex flex-row gap-2 items-center text-muted-foreground mb-3 text-sm capitalize">
-                          <p> Budget Renewal:</p>
-                          {!canEditPermissions ? (
-                            permissions.budgetRenewal
-                          ) : (
-                            <Select
-                              value={permissions.budgetRenewal}
-                              onValueChange={handleBudgetRenewalChange}
-                              disabled={!canEditPermissions}
-                            >
-                              <SelectTrigger className="w-[150px]">
-                                <SelectValue
-                                  placeholder={permissions.budgetRenewal}
-                                />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {validBudgetRenewals.map((renewalOption) => (
-                                  <SelectItem
-                                    key={renewalOption}
-                                    value={renewalOption}
-                                  >
-                                    {renewalOption.charAt(0).toUpperCase() +
-                                      renewalOption.slice(1)}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          )}
-                        </div>
-                        <div
-                          id="budget-allowance-limits"
-                          className="grid grid-cols-6 grid-rows-2 md:grid-rows-1 md:grid-cols-6 gap-2 text-xs"
+                    <SelectTrigger className="w-[150px]">
+                      <SelectValue placeholder={permissions.budgetRenewal} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {validBudgetRenewals.map((renewalOption) => (
+                        <SelectItem
+                          key={renewalOption || "never"}
+                          value={renewalOption || "never"}
                         >
-                          {Object.keys(budgetOptions).map((budget) => {
-                            return (
-                              // replace with something else and then remove dark prefixes
-                              <div
-                                key={budget}
-                                onClick={() =>
-                                  handleMaxAmountChange(budgetOptions[budget])
-                                }
-                                className={`col-span-2 md:col-span-1 cursor-pointer rounded border-2 ${
-                                  permissions.maxAmount == budgetOptions[budget]
-                                    ? "border-primary"
-                                    : "border-muted"
-                                } text-center py-4 dark:text-white`}
-                              >
-                                {budget}
-                                <br />
-                                {budgetOptions[budget] ? "sats" : "#reckless"}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </>
-                    ) : isNewConnection ? (
-                      <>
-                        <p className="text-muted-foreground text-sm">
-                          <span className="capitalize">
-                            {permissions.budgetRenewal}
-                          </span>{" "}
-                          budget: {permissions.maxAmount} sats
-                        </p>
-                      </>
-                    ) : (
-                      <table className="text-muted-foreground">
-                        <tbody>
-                          <tr className="text-sm">
-                            <td className="pr-2">Budget Allowance:</td>
-                            <td>
-                              {permissions.maxAmount
-                                ? new Intl.NumberFormat().format(
-                                    permissions.maxAmount
-                                  )
-                                : "∞"}{" "}
-                              sats (
-                              {new Intl.NumberFormat().format(budgetUsage || 0)}{" "}
-                              sats used)
-                            </td>
-                          </tr>
-                          <tr className="text-sm">
-                            <td className="pr-2">Renews:</td>
-                            <td className="capitalize">
-                              {permissions.budgetRenewal || "Never"}
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
+                          {renewalOption
+                            ? renewalOption.charAt(0).toUpperCase() +
+                              renewalOption.slice(1)
+                            : "Never"}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                    <XIcon
+                      className="cursor-pointer w-4 text-muted-foreground"
+                      onClick={() => handleBudgetRenewalChange("never")}
+                    />
+                  </Select>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-xs mb-4">
+                  {Object.keys(budgetOptions).map((budget) => {
+                    return (
+                      // replace with something else and then remove dark prefixes
+                      <div
+                        key={budget}
+                        onClick={() => {
+                          setCustomBudget(false);
+                          handleBudgetMaxAmountChange(
+                            budgetOptions[budget].toString()
+                          );
+                        }}
+                        className={cn(
+                          "cursor-pointer rounded text-nowrap border-2 text-center p-4 dark:text-white",
+                          !customBudget &&
+                            (permissions.maxAmount === ""
+                              ? 100000
+                              : +permissions.maxAmount) == budgetOptions[budget]
+                            ? "border-primary"
+                            : "border-muted"
+                        )}
+                      >
+                        {`${budget} ${budgetOptions[budget] ? " sats" : ""}`}
+                      </div>
+                    );
+                  })}
+                  <div
+                    onClick={() => {
+                      setCustomBudget(true);
+                      handleBudgetMaxAmountChange("");
+                    }}
+                    className={cn(
+                      "cursor-pointer rounded border-2 text-center p-4 dark:text-white",
+                      customBudget ? "border-primary" : "border-muted"
                     )}
+                  >
+                    Custom...
+                  </div>
+                </div>
+                {customBudget && (
+                  <div className="w-full mb-6">
+                    <Label htmlFor="budget" className="block mb-2">
+                      Custom budget amount (sats)
+                    </Label>
+                    <Input
+                      id="budget"
+                      name="budget"
+                      type="number"
+                      required
+                      min={1}
+                      value={permissions.maxAmount}
+                      onChange={(e) => {
+                        handleBudgetMaxAmountChange(e.target.value.trim());
+                      }}
+                    />
                   </div>
                 )}
-              </li>
-            );
-          })}
-        </ul>
-      </div>
+              </>
+            )}
+          </>
+        )}
 
-      {(
-        isNewConnection ? !permissions.expiresAt || days : canEditPermissions
-      ) ? (
-        <>
-          {!expireOptions && (
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => setExpireOptions(true)}
-            >
-              <PlusCircle className="w-4 h-4 mr-2" />
-              Set expiration date
-            </Button>
-          )}
+      {!expireOption && (
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={() => setExpireOption(true)}
+          className="mb-6"
+        >
+          <PlusCircle className="w-4 h-4 mr-2" />
+          Set expiration time
+        </Button>
+      )}
 
-          {expireOptions && (
-            <div className="mt-5">
-              <p className="font-medium text-sm mb-2">Connection expiration</p>
-              {!isNewConnection && (
-                <p className="mb-2 text-muted-foreground text-sm">
-                  Expires:{" "}
-                  {permissions.expiresAt &&
-                  new Date(permissions.expiresAt).getFullYear() !== 1
-                    ? new Date(permissions.expiresAt).toString()
-                    : "This app will never expire"}
-                </p>
-              )}
-              <div id="expiry-days" className="grid grid-cols-4 gap-2 text-xs">
-                {Object.keys(expiryOptions).map((expiry) => {
-                  return (
-                    <div
-                      key={expiry}
-                      onClick={() => handleDaysChange(expiryOptions[expiry])}
-                      className={cn(
-                        "cursor-pointer rounded border-2 text-center py-4",
-                        days == expiryOptions[expiry]
-                          ? "border-primary"
-                          : "border-muted"
-                      )}
-                    >
-                      {expiry}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </>
-      ) : (
-        <>
-          <p className="text-sm font-medium mb-2">Connection expiry</p>
-          <p className="text-muted-foreground text-sm">
-            {permissions.expiresAt &&
-            new Date(permissions.expiresAt).getFullYear() !== 1
-              ? new Date(permissions.expiresAt).toString()
-              : "This app will never expire"}
-          </p>
-        </>
+      {expireOption && (
+        <div className="mb-6">
+          <p className="font-medium text-sm mb-2">Connection expiration</p>
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-2 text-xs mb-4">
+            {Object.keys(expiryOptions).map((expiry) => {
+              return (
+                <div
+                  key={expiry}
+                  onClick={() => {
+                    setCustomExpiry(false);
+                    handleExpiryDaysChange(expiryOptions[expiry]);
+                  }}
+                  className={cn(
+                    "cursor-pointer rounded text-nowrap border-2 text-center p-4 dark:text-white",
+                    !customExpiry && expiryDays == expiryOptions[expiry]
+                      ? "border-primary"
+                      : "border-muted"
+                  )}
+                >
+                  {expiry}
+                </div>
+              );
+            })}
+            <Popover>
+              <PopoverTrigger asChild>
+                <div
+                  onClick={() => {}}
+                  className={cn(
+                    "flex items-center justify-center md:col-span-2 cursor-pointer rounded text-nowrap border-2 text-center px-3 py-4 dark:text-white",
+                    customExpiry ? "border-primary" : "border-muted"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  <span className="truncate">
+                    {customExpiry && permissions.expiresAt
+                      ? format(permissions.expiresAt, "PPP")
+                      : "Custom..."}
+                  </span>
+                </div>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={permissions.expiresAt}
+                  onSelect={(date?: Date) => {
+                    if (daysFromNow(date) == 0) {
+                      return;
+                    }
+                    setCustomExpiry(true);
+                    handleExpiryDaysChange(daysFromNow(date));
+                  }}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+        </div>
       )}
     </div>
   );

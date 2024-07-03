@@ -1,12 +1,15 @@
 import {
+  ArrowDownUp,
   Bell,
   CirclePlus,
   HandCoins,
   Info,
   LucideIcon,
+  MoveDown,
   NotebookTabs,
   PenLine,
   Search,
+  SquarePen,
   WalletMinimal,
 } from "lucide-react";
 
@@ -19,6 +22,10 @@ export const NIP_47_LIST_TRANSACTIONS_METHOD = "list_transactions";
 export const NIP_47_SIGN_MESSAGE_METHOD = "sign_message";
 
 export const NIP_47_NOTIFICATIONS_PERMISSION = "notifications";
+
+export const SCOPE_GROUP_SEND_RECEIVE = "send_receive";
+export const SCOPE_GROUP_ONLY_RECEIVE = "only_receive";
+export const SCOPE_GROUP_CUSTOM = "custom";
 
 export type BackendType =
   | "LND"
@@ -58,10 +65,12 @@ export type Scope =
   | "sign_message"
   | "notifications"; // covers all notification types
 
+export type ScopeGroupType = "send_receive" | "only_receive" | "custom";
+
 export type Nip47NotificationType = "payment_received" | "payment_sent";
 
 export type IconMap = {
-  [key in Scope]: LucideIcon;
+  [key in string]: LucideIcon;
 };
 
 export const iconMap: IconMap = {
@@ -73,6 +82,12 @@ export const iconMap: IconMap = {
   [NIP_47_PAY_INVOICE_METHOD]: HandCoins,
   [NIP_47_SIGN_MESSAGE_METHOD]: PenLine,
   [NIP_47_NOTIFICATIONS_PERMISSION]: Bell,
+};
+
+export const scopeGroupIconMap: IconMap = {
+  [SCOPE_GROUP_SEND_RECEIVE]: ArrowDownUp,
+  [SCOPE_GROUP_ONLY_RECEIVE]: MoveDown,
+  [SCOPE_GROUP_CUSTOM]: SquarePen,
 };
 
 export type WalletCapabilities = {
@@ -100,6 +115,18 @@ export const scopeDescriptions: Record<Scope, string> = {
   [NIP_47_NOTIFICATIONS_PERMISSION]: "Receive wallet notifications",
 };
 
+export const scopeGroupTitle: Record<ScopeGroupType, string> = {
+  [SCOPE_GROUP_SEND_RECEIVE]: "Send & Receive",
+  [SCOPE_GROUP_ONLY_RECEIVE]: "Just Receive",
+  [SCOPE_GROUP_CUSTOM]: "Custom",
+};
+
+export const scopeGroupDescriptions: Record<ScopeGroupType, string> = {
+  [SCOPE_GROUP_SEND_RECEIVE]: "Pay and create invoices",
+  [SCOPE_GROUP_ONLY_RECEIVE]: "Only create invoices",
+  [SCOPE_GROUP_CUSTOM]: "Define permissions",
+};
+
 export const expiryOptions: Record<string, number> = {
   "1 week": 7,
   "1 month": 30,
@@ -109,8 +136,6 @@ export const expiryOptions: Record<string, number> = {
 
 export const budgetOptions: Record<string, number> = {
   "10k": 10_000,
-  "25k": 25_000,
-  "50k": 50_000,
   "100k": 100_000,
   "1M": 1_000_000,
   Unlimited: 0,
@@ -132,14 +157,14 @@ export interface App {
   expiresAt?: string;
 
   scopes: Scope[];
-  maxAmount: number;
+  maxAmount: string;
   budgetUsage: number;
   budgetRenewal: string;
 }
 
 export interface AppPermissions {
   scopes: Set<Scope>;
-  maxAmount: number;
+  maxAmount: string;
   budgetRenewal: BudgetRenewalType;
   expiresAt?: Date;
 }
@@ -184,7 +209,7 @@ export interface CreateAppResponse {
 }
 
 export type UpdateAppRequest = {
-  maxAmount: number;
+  maxAmount: string;
   budgetRenewal: string;
   expiresAt: string | undefined;
   scopes: Scope[];

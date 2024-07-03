@@ -249,8 +249,8 @@ function ShowApp() {
               <Permissions
                 initialPermissions={permissions}
                 onPermissionsChange={setPermissions}
-                budgetUsage={app.budgetUsage}
                 canEditPermissions={editMode}
+                budgetUsage={app.budgetUsage}
               />
             </CardContent>
           </Card>

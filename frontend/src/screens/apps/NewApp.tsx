@@ -7,6 +7,8 @@ import {
   BudgetRenewalType,
   CreateAppRequest,
   CreateAppResponse,
+  NIP_47_MAKE_INVOICE_METHOD,
+  NIP_47_PAY_INVOICE_METHOD,
   Nip47NotificationType,
   Nip47RequestMethod,
   Scope,
@@ -53,31 +55,44 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
   const appId = queryParams.get("app") ?? "";
   const app = suggestedApps.find((app) => app.id === appId);
 
-  const nameParam = app
-    ? app.title
-    : (queryParams.get("name") || queryParams.get("c")) ?? "";
   const pubkey = queryParams.get("pubkey") ?? "";
   const returnTo = queryParams.get("return_to") ?? "";
 
-  const [appName, setAppName] = useState(nameParam);
+  const nameParam = (queryParams.get("name") || queryParams.get("c")) ?? "";
+  const [appName, setAppName] = useState(app ? app.title : nameParam);
 
   const budgetRenewalParam = queryParams.get(
     "budget_renewal"
   ) as BudgetRenewalType;
+  const budgetMaxAmountParam = queryParams.get("max_amount") ?? "";
+  const expiresAtParam = queryParams.get("expires_at") ?? "";
 
   const reqMethodsParam = queryParams.get("request_methods") ?? "";
   const notificationTypesParam = queryParams.get("notification_types") ?? "";
-  const maxAmountParam = queryParams.get("max_amount") ?? "";
-  const expiresAtParam = queryParams.get("expires_at") ?? "";
 
   const initialScopes: Set<Scope> = React.useMemo(() => {
     const methods = reqMethodsParam
       ? reqMethodsParam.split(" ")
-      : capabilities.methods;
-
+      : // this is done for scope grouping
+        capabilities.methods.includes(NIP_47_MAKE_INVOICE_METHOD)
+        ? capabilities.methods.includes(NIP_47_PAY_INVOICE_METHOD)
+          ? [NIP_47_MAKE_INVOICE_METHOD, NIP_47_PAY_INVOICE_METHOD]
+          : [NIP_47_MAKE_INVOICE_METHOD]
+        : capabilities.methods;
     const requestMethodsSet = new Set<Nip47RequestMethod>(
       methods as Nip47RequestMethod[]
     );
+
+    const notificationTypes = notificationTypesParam
+      ? notificationTypesParam.split(" ")
+      : // this is done for scope grouping
+        !capabilities.methods.includes(NIP_47_MAKE_INVOICE_METHOD)
+        ? capabilities.notificationTypes
+        : [];
+    const notificationTypesSet = new Set<Nip47NotificationType>(
+      notificationTypes as Nip47NotificationType[]
+    );
+
     const unsupportedMethods = Array.from(requestMethodsSet).filter(
       (method) => capabilities.methods.indexOf(method) < 0
     );
@@ -88,13 +103,6 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
       );
     }
 
-    const notificationTypes = notificationTypesParam
-      ? notificationTypesParam.split(" ")
-      : capabilities.notificationTypes;
-
-    const notificationTypesSet = new Set<Nip47NotificationType>(
-      notificationTypes as Nip47NotificationType[]
-    );
     const unsupportedNotificationTypes = Array.from(
       notificationTypesSet
     ).filter(
@@ -158,7 +166,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
 
   const [permissions, setPermissions] = useState<AppPermissions>({
     scopes: initialScopes,
-    maxAmount: parseInt(maxAmountParam || "100000"),
+    maxAmount: budgetMaxAmountParam,
     budgetRenewal: validBudgetRenewals.includes(budgetRenewalParam)
       ? budgetRenewalParam
       : "monthly",
@@ -171,12 +179,17 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
       throw new Error("No CSRF token");
     }
 
+    if (!permissions.scopes.size) {
+      toast({ title: "Please specify wallet permissions." });
+      return;
+    }
+
     try {
       const createAppRequest: CreateAppRequest = {
         name: appName,
         pubkey,
         budgetRenewal: permissions.budgetRenewal,
-        maxAmount: permissions.maxAmount,
+        maxAmount: parseInt(permissions.maxAmount),
         scopes: Array.from(permissions.scopes),
         expiresAt: permissions.expiresAt?.toISOString(),
         returnTo: returnTo,
@@ -254,12 +267,11 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
           </div>
         )}
         <div className="flex flex-col gap-2 w-full">
-          <p className="font-medium text-sm">Authorize the app to:</p>
           <Permissions
+            capabilities={capabilities}
             initialPermissions={permissions}
             onPermissionsChange={setPermissions}
             canEditPermissions={!reqMethodsParam}
-            isNewConnection
           />
         </div>
 
