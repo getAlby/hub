@@ -128,6 +128,7 @@ function NewChannelInternal({ network }: { network: Network }) {
         const okPartners = channelPeerSuggestions.filter(
           (partner) =>
             amount >= partner.minimumChannelSize &&
+            amount <= partner.maximumChannelSize &&
             partner.network === network &&
             partner.paymentMethod === "lightning" &&
             partner.lspType === "LSPS1" &&
