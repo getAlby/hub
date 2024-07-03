@@ -264,15 +264,19 @@ function NewChannelInternal({ network }: { network: Network }) {
                                 )}
                                 <div>
                                   {peer.name}
-                                  {peer.minimumChannelSize > 0 && (
-                                    <span className="ml-4 text-xs text-muted-foreground">
-                                      Min.{" "}
-                                      {new Intl.NumberFormat().format(
-                                        peer.minimumChannelSize
-                                      )}{" "}
-                                      sats
-                                    </span>
-                                  )}
+                                  <span className="ml-4 text-xs text-muted-foreground">
+                                    Min.{" "}
+                                    {new Intl.NumberFormat().format(
+                                      peer.minimumChannelSize
+                                    )}
+                                    sats
+                                    <span className="mr-10" />
+                                    Max.{" "}
+                                    {new Intl.NumberFormat().format(
+                                      peer.maximumChannelSize
+                                    )}{" "}
+                                    sats
+                                  </span>
                                 </div>
                               </div>
                             </div>

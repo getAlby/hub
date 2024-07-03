@@ -52,6 +52,7 @@ type ChannelPeerSuggestion struct {
 	Pubkey             string `json:"pubkey"`
 	Host               string `json:"host"`
 	MinimumChannelSize uint64 `json:"minimumChannelSize"`
+	MaximumChannelSize uint64 `json:"maximumChannelSize"`
 	Name               string `json:"name"`
 	Image              string `json:"image"`
 	BrokenLspUrl       string `json:"lsp_url"`
