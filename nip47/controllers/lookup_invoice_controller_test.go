@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/stretchr/testify/assert"
@@ -15,11 +16,11 @@ import (
 	"github.com/getAlby/nostr-wallet-connect/transactions"
 )
 
-const nip47LookupInvoiceJson = `
+var nip47LookupInvoiceJson = `
 {
 	"method": "lookup_invoice",
 	"params": {
-		"payment_hash": "4ad9cd27989b514d868e755178378019903a8d78767e3fceb211af9dd00e7a94"
+		"payment_hash": "` + tests.MockLNClientTransaction.PaymentHash + `"
 	}
 }
 `
@@ -86,6 +87,22 @@ func TestHandleLookupInvoiceEvent_WithPermission(t *testing.T) {
 	err = svc.DB.Create(&dbRequestEvent).Error
 	assert.NoError(t, err)
 
+	feesPaid := uint64(tests.MockLNClientTransaction.FeesPaid)
+	settledAt := time.Unix(*tests.MockLNClientTransaction.SettledAt, 0)
+	err = svc.DB.Create(&db.Transaction{
+		Type:            tests.MockLNClientTransaction.Type,
+		PaymentRequest:  tests.MockLNClientTransaction.Invoice,
+		Description:     tests.MockLNClientTransaction.Description,
+		DescriptionHash: tests.MockLNClientTransaction.DescriptionHash,
+		Preimage:        &tests.MockLNClientTransaction.Preimage,
+		PaymentHash:     tests.MockLNClientTransaction.PaymentHash,
+		Amount:          uint64(tests.MockLNClientTransaction.Amount),
+		Fee:             &feesPaid,
+		SettledAt:       &settledAt,
+		AppId:           &app.ID,
+	}).Error
+	assert.NoError(t, err)
+
 	checkPermission := func(amountMsat uint64) *models.Response {
 		return nil
 	}
@@ -103,13 +120,13 @@ func TestHandleLookupInvoiceEvent_WithPermission(t *testing.T) {
 
 	assert.Nil(t, publishedResponse.Error)
 	transaction := publishedResponse.Result.(*lookupInvoiceResponse)
-	assert.Equal(t, tests.MockTransaction.Type, transaction.Type)
-	assert.Equal(t, tests.MockTransaction.Invoice, transaction.Invoice)
-	assert.Equal(t, tests.MockTransaction.Description, transaction.Description)
-	assert.Equal(t, tests.MockTransaction.DescriptionHash, transaction.DescriptionHash)
-	assert.Equal(t, tests.MockTransaction.Preimage, transaction.Preimage)
-	assert.Equal(t, tests.MockTransaction.PaymentHash, transaction.PaymentHash)
-	assert.Equal(t, tests.MockTransaction.Amount, transaction.Amount)
-	assert.Equal(t, tests.MockTransaction.FeesPaid, transaction.FeesPaid)
-	assert.Equal(t, tests.MockTransaction.SettledAt, transaction.SettledAt)
+	assert.Equal(t, tests.MockLNClientTransaction.Type, transaction.Type)
+	assert.Equal(t, tests.MockLNClientTransaction.Invoice, transaction.Invoice)
+	assert.Equal(t, tests.MockLNClientTransaction.Description, transaction.Description)
+	assert.Equal(t, tests.MockLNClientTransaction.DescriptionHash, transaction.DescriptionHash)
+	assert.Equal(t, tests.MockLNClientTransaction.Preimage, transaction.Preimage)
+	assert.Equal(t, tests.MockLNClientTransaction.PaymentHash, transaction.PaymentHash)
+	assert.Equal(t, tests.MockLNClientTransaction.Amount, transaction.Amount)
+	assert.Equal(t, tests.MockLNClientTransaction.FeesPaid, transaction.FeesPaid)
+	assert.Equal(t, tests.MockLNClientTransaction.SettledAt, transaction.SettledAt)
 }

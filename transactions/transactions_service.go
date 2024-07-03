@@ -196,7 +196,7 @@ func (svc *transactionsService) LookupTransaction(ctx context.Context, paymentHa
 	}
 
 	if result.RowsAffected == 0 {
-		return nil, nil
+		return nil, errors.New("transaction not found")
 	}
 
 	if transaction.State == TRANSACTION_STATE_PENDING {

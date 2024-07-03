@@ -104,5 +104,5 @@ func TestHandleMakeInvoiceEvent_WithPermission(t *testing.T) {
 		HandleMakeInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, *dbRequestEvent.AppId, checkPermission, publishResponse)
 
 	assert.Nil(t, publishedResponse.Error)
-	assert.Equal(t, tests.MockTransaction.Invoice, publishedResponse.Result.(*makeInvoiceResponse).Invoice)
+	assert.Equal(t, tests.MockLNClientTransaction.Invoice, publishedResponse.Result.(*makeInvoiceResponse).Invoice)
 }
