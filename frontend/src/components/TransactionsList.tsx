@@ -85,8 +85,9 @@ function TransactionsList() {
                     <div className="flex items-center gap-2 text-xl">
                       <p
                         className={`font-semibold ${
-                          type == "incoming" &&
-                          "text-green-600 dark:color-green-400"
+                          type == "incoming"
+                            ? "text-green-600 dark:text-green-400"
+                            : "text-red-600 dark:text-red-400"
                         }`}
                       >
                         {type == "outgoing" ? "-" : "+"}{" "}
