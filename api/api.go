@@ -171,15 +171,15 @@ func (api *api) DeleteApp(userApp *db.App) error {
 	return api.db.Delete(userApp).Error
 }
 
-func (api *api) GetApp(userApp *db.App) *App {
+func (api *api) GetApp(dbApp *db.App) *App {
 
 	var lastEvent db.RequestEvent
-	lastEventResult := api.db.Where("app_id = ?", userApp.ID).Order("id desc").Limit(1).Find(&lastEvent)
+	lastEventResult := api.db.Where("app_id = ?", dbApp.ID).Order("id desc").Limit(1).Find(&lastEvent)
 
 	paySpecificPermission := db.AppPermission{}
 	appPermissions := []db.AppPermission{}
 	var expiresAt *time.Time
-	api.db.Where("app_id = ?", userApp.ID).Find(&appPermissions)
+	api.db.Where("app_id = ?", dbApp.ID).Find(&appPermissions)
 
 	requestMethods := []string{}
 	for _, appPerm := range appPermissions {
@@ -199,11 +199,12 @@ func (api *api) GetApp(userApp *db.App) *App {
 	}
 
 	response := App{
-		Name:          userApp.Name,
-		Description:   userApp.Description,
-		CreatedAt:     userApp.CreatedAt,
-		UpdatedAt:     userApp.UpdatedAt,
-		NostrPubkey:   userApp.NostrPubkey,
+		ID:            dbApp.ID,
+		Name:          dbApp.Name,
+		Description:   dbApp.Description,
+		CreatedAt:     dbApp.CreatedAt,
+		UpdatedAt:     dbApp.UpdatedAt,
+		NostrPubkey:   dbApp.NostrPubkey,
 		ExpiresAt:     expiresAt,
 		MaxAmount:     maxAmount,
 		Scopes:        requestMethods,
@@ -233,17 +234,17 @@ func (api *api) ListApps() ([]App, error) {
 	}
 
 	apiApps := []App{}
-	for _, userApp := range dbApps {
+	for _, dbApp := range dbApps {
 		apiApp := App{
-			// ID:          app.ID,
-			Name:        userApp.Name,
-			Description: userApp.Description,
-			CreatedAt:   userApp.CreatedAt,
-			UpdatedAt:   userApp.UpdatedAt,
-			NostrPubkey: userApp.NostrPubkey,
+			ID:          dbApp.ID,
+			Name:        dbApp.Name,
+			Description: dbApp.Description,
+			CreatedAt:   dbApp.CreatedAt,
+			UpdatedAt:   dbApp.UpdatedAt,
+			NostrPubkey: dbApp.NostrPubkey,
 		}
 
-		for _, appPermission := range permissionsMap[userApp.ID] {
+		for _, appPermission := range permissionsMap[dbApp.ID] {
 			apiApp.Scopes = append(apiApp.Scopes, appPermission.Scope)
 			apiApp.ExpiresAt = appPermission.ExpiresAt
 			if appPermission.Scope == permissions.PAY_INVOICE_SCOPE {
@@ -256,7 +257,7 @@ func (api *api) ListApps() ([]App, error) {
 		}
 
 		var lastEvent db.RequestEvent
-		lastEventResult := api.db.Where("app_id = ?", userApp.ID).Order("id desc").Limit(1).Find(&lastEvent)
+		lastEventResult := api.db.Where("app_id = ?", dbApp.ID).Order("id desc").Limit(1).Find(&lastEvent)
 		if lastEventResult.RowsAffected > 0 {
 			apiApp.LastEventAt = &lastEvent.CreatedAt
 		}

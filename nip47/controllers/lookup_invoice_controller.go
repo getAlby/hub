@@ -21,7 +21,7 @@ type lookupInvoiceResponse struct {
 	models.Transaction
 }
 
-func (controller *nip47Controller) HandleLookupInvoiceEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, checkPermission checkPermissionFunc, publishResponse publishFunc) {
+func (controller *nip47Controller) HandleLookupInvoiceEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, appId uint, checkPermission checkPermissionFunc, publishResponse publishFunc) {
 	// basic permissions check
 	resp := checkPermission(0)
 	if resp != nil {
@@ -64,7 +64,7 @@ func (controller *nip47Controller) HandleLookupInvoiceEvent(ctx context.Context,
 		paymentHash = paymentRequest.PaymentHash
 	}
 
-	transaction, err := controller.lnClient.LookupInvoice(ctx, paymentHash)
+	dbTransaction, err := controller.transactionsService.LookupTransaction(ctx, paymentHash, controller.lnClient, &appId)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"request_event_id": requestEventId,
@@ -83,7 +83,7 @@ func (controller *nip47Controller) HandleLookupInvoiceEvent(ctx context.Context,
 	}
 
 	responsePayload := &lookupInvoiceResponse{
-		Transaction: *transaction,
+		Transaction: *models.ToNip47Transaction(dbTransaction),
 	}
 
 	publishResponse(&models.Response{

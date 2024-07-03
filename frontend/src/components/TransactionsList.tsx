@@ -1,12 +1,15 @@
 import dayjs from "dayjs";
 import { ArrowDownIcon, ArrowUpIcon, Drum } from "lucide-react";
+import AppAvatar from "src/components/AppAvatar";
 import EmptyState from "src/components/EmptyState";
 
 import Loading from "src/components/Loading";
+import { useApps } from "src/hooks/useApps";
 import { useTransactions } from "src/hooks/useTransactions";
 
 function TransactionsList() {
   const { data: transactions, isLoading } = useTransactions();
+  const { data: apps } = useApps();
 
   if (isLoading) {
     return <Loading />;
@@ -26,6 +29,7 @@ function TransactionsList() {
         <>
           {transactions?.map((tx, i) => {
             const type = tx.type;
+            const app = tx.app_id && apps?.find((app) => app.id === tx.app_id);
 
             return (
               <div
@@ -35,7 +39,12 @@ function TransactionsList() {
               >
                 <div className="flex gap-3">
                   <div className="flex items-center">
-                    {type == "outgoing" ? (
+                    {app ? (
+                      <AppAvatar
+                        appName={app.name}
+                        className="border-none p-0 rounded-full w-10 h-10 md:w-14 md:h-14"
+                      />
+                    ) : type == "outgoing" ? (
                       <div
                         className={
                           "flex justify-center items-center bg-orange-100 dark:bg-orange-950 rounded-full w-10 h-10 md:w-14 md:h-14"
@@ -58,7 +67,11 @@ function TransactionsList() {
                   <div className="overflow-hidden mr-3">
                     <div className="flex items-center gap-2 truncate dark:text-white">
                       <p className="text-lg md:text-xl font-semibold">
-                        {type == "incoming" ? "Received" : "Sent"}
+                        {app
+                          ? app.name
+                          : type == "incoming"
+                            ? "Received"
+                            : "Sent"}
                       </p>
                       <p className="text-sm md:text-base truncate text-muted-foreground">
                         {dayjs(tx.settled_at).fromNow()}

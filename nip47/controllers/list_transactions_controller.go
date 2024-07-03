@@ -48,7 +48,7 @@ func (controller *nip47Controller) HandleListTransactionsEvent(ctx context.Conte
 		// make sure a sensible limit is passed
 		limit = maxLimit
 	}
-	transactions, err := controller.lnClient.ListTransactions(ctx, listParams.From, listParams.Until, limit, listParams.Offset, listParams.Unpaid, listParams.Type)
+	dbTransactions, err := controller.transactionsService.ListTransactions(ctx, listParams.From, listParams.Until, limit, listParams.Offset, listParams.Unpaid, listParams.Type, controller.lnClient)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"params":           listParams,
@@ -63,6 +63,11 @@ func (controller *nip47Controller) HandleListTransactionsEvent(ctx context.Conte
 			},
 		}, nostr.Tags{})
 		return
+	}
+
+	transactions := []models.Transaction{}
+	for _, dbTransaction := range dbTransactions {
+		transactions = append(transactions, *models.ToNip47Transaction(&dbTransaction))
 	}
 
 	responsePayload := &listTransactionsResponse{

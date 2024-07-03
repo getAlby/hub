@@ -10,6 +10,7 @@ import (
 	"github.com/getAlby/nostr-wallet-connect/events"
 	"github.com/getAlby/nostr-wallet-connect/nip47/permissions"
 	"github.com/getAlby/nostr-wallet-connect/tests"
+	"github.com/getAlby/nostr-wallet-connect/transactions"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip04"
 	"github.com/stretchr/testify/assert"
@@ -50,8 +51,9 @@ func TestSendNotification_PaymentReceived(t *testing.T) {
 	relay := NewMockRelay()
 
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB)
 
-	notifier := NewNip47Notifier(relay, svc.DB, svc.Cfg, svc.Keys, permissionsSvc, svc.LNClient)
+	notifier := NewNip47Notifier(relay, svc.DB, svc.Cfg, svc.Keys, permissionsSvc, transactionsSvc, svc.LNClient)
 	notifier.ConsumeEvent(ctx, receivedEvent)
 
 	assert.NotNil(t, relay.publishedEvent)
@@ -114,8 +116,9 @@ func TestSendNotification_PaymentSent(t *testing.T) {
 	relay := NewMockRelay()
 
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB)
 
-	notifier := NewNip47Notifier(relay, svc.DB, svc.Cfg, svc.Keys, permissionsSvc, svc.LNClient)
+	notifier := NewNip47Notifier(relay, svc.DB, svc.Cfg, svc.Keys, permissionsSvc, transactionsSvc, svc.LNClient)
 	notifier.ConsumeEvent(ctx, receivedEvent)
 
 	assert.NotNil(t, relay.publishedEvent)
@@ -169,8 +172,9 @@ func TestSendNotificationNoPermission(t *testing.T) {
 	relay := NewMockRelay()
 
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB)
 
-	notifier := NewNip47Notifier(relay, svc.DB, svc.Cfg, svc.Keys, permissionsSvc, svc.LNClient)
+	notifier := NewNip47Notifier(relay, svc.DB, svc.Cfg, svc.Keys, permissionsSvc, transactionsSvc, svc.LNClient)
 	notifier.ConsumeEvent(ctx, receivedEvent)
 
 	assert.Nil(t, relay.publishedEvent)

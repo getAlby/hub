@@ -363,6 +363,7 @@ export type BalancesResponse = {
 
 export type Transaction = {
   type: "incoming" | "outgoing";
+  app_id: number | undefined;
   invoice: string;
   description: string;
   description_hash: string;

@@ -46,7 +46,7 @@ func NewNip47Service(db *gorm.DB, cfg config.Config, keys keys.Keys, eventPublis
 }
 
 func (svc *nip47Service) StartNotifier(ctx context.Context, relay *nostr.Relay, lnClient lnclient.LNClient) {
-	nip47Notifier := notifications.NewNip47Notifier(relay, svc.db, svc.cfg, svc.keys, svc.permissionsService, lnClient)
+	nip47Notifier := notifications.NewNip47Notifier(relay, svc.db, svc.cfg, svc.keys, svc.permissionsService, svc.transactionsService, lnClient)
 	go func() {
 		for {
 			select {

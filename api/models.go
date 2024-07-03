@@ -56,13 +56,12 @@ type API interface {
 }
 
 type App struct {
-	// ID          uint      `json:"id"` // ID unused - pubkey is used as ID
-	Name        string    `json:"name"`
-	Description string    `json:"description"`
-	NostrPubkey string    `json:"nostrPubkey"`
-	CreatedAt   time.Time `json:"createdAt"`
-	UpdatedAt   time.Time `json:"updatedAt"`
-
+	ID            uint       `json:"id"`
+	Name          string     `json:"name"`
+	Description   string     `json:"description"`
+	NostrPubkey   string     `json:"nostrPubkey"`
+	CreatedAt     time.Time  `json:"createdAt"`
+	UpdatedAt     time.Time  `json:"updatedAt"`
 	LastEventAt   *time.Time `json:"lastEventAt"`
 	ExpiresAt     *time.Time `json:"expiresAt"`
 	Scopes        []string   `json:"scopes"`
@@ -189,6 +188,7 @@ type MakeInvoiceResponse = Transaction
 type LookupInvoiceResponse = Transaction
 type ListTransactionsResponse = []Transaction
 
+// TODO: camelCase
 type Transaction struct {
 	Type            string      `json:"type"`
 	Invoice         string      `json:"invoice"`
@@ -200,6 +200,7 @@ type Transaction struct {
 	FeesPaid        uint64      `json:"fees_paid"`
 	CreatedAt       string      `json:"created_at"`
 	SettledAt       *string     `json:"settled_at"`
+	AppId           *uint       `json:"app_id"`
 	Metadata        interface{} `json:"metadata,omitempty"`
 }
 

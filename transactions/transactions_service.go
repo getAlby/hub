@@ -21,7 +21,7 @@ type transactionsService struct {
 
 type TransactionsService interface {
 	MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
-	LookupTransaction(ctx context.Context, paymentHash string, transactionType string, lnClient lnclient.LNClient) (*Transaction, error)
+	LookupTransaction(ctx context.Context, paymentHash string, lnClient lnclient.LNClient, appId *uint) (*Transaction, error)
 	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string, lnClient lnclient.LNClient) (transactions []Transaction, err error)
 	SendPaymentSync(ctx context.Context, payReq string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 }
@@ -176,11 +176,18 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 	return dbTransaction, nil
 }
 
-func (svc *transactionsService) LookupTransaction(ctx context.Context, paymentHash string, transactionType string, lnClient lnclient.LNClient) (*Transaction, error) {
+func (svc *transactionsService) LookupTransaction(ctx context.Context, paymentHash string, lnClient lnclient.LNClient, appId *uint) (*Transaction, error) {
 	transaction := db.Transaction{}
+
+	// FIXME: this is not unique
+	// TODO: check if passing AppId: null works for the "Global" view
+	// - wallet page
+	// - notifications
+	// - etc.
 	result := svc.db.Find(&transaction, &db.Transaction{
-		Type:        transactionType,
+		//Type:        transactionType,
 		PaymentHash: paymentHash,
+		AppId:       appId,
 	})
 
 	if result.Error != nil {

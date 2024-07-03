@@ -1,11 +1,10 @@
-package controllers
+package models
 
 import (
-	"github.com/getAlby/nostr-wallet-connect/nip47/models"
 	"github.com/getAlby/nostr-wallet-connect/transactions"
 )
 
-func toNip47Transaction(transaction *transactions.Transaction) *models.Transaction {
+func ToNip47Transaction(transaction *transactions.Transaction) *Transaction {
 	preimage := ""
 	if transaction.Preimage != nil {
 		preimage = *transaction.Preimage
@@ -28,7 +27,7 @@ func toNip47Transaction(transaction *transactions.Transaction) *models.Transacti
 		settledAt = &settledAtUnix
 	}
 
-	return &models.Transaction{
+	return &Transaction{
 		Type:            transaction.Type,
 		Invoice:         transaction.PaymentRequest,
 		Description:     transaction.Description,

@@ -36,7 +36,12 @@ func TestHandleMakeInvoiceEvent_NoPermission(t *testing.T) {
 	err = json.Unmarshal([]byte(nip47MakeInvoiceJson), nip47Request)
 	assert.NoError(t, err)
 
-	dbRequestEvent := &db.RequestEvent{}
+	app, _, err := tests.CreateApp(svc)
+	assert.NoError(t, err)
+
+	dbRequestEvent := &db.RequestEvent{
+		AppId: &app.ID,
+	}
 	err = svc.DB.Create(&dbRequestEvent).Error
 	assert.NoError(t, err)
 
@@ -58,7 +63,7 @@ func TestHandleMakeInvoiceEvent_NoPermission(t *testing.T) {
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
 	transactionsSvc := transactions.NewTransactionsService(svc.DB)
 	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
-		HandleMakeInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, checkPermission, publishResponse)
+		HandleMakeInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, *dbRequestEvent.AppId, checkPermission, publishResponse)
 
 	assert.Nil(t, publishedResponse.Result)
 	assert.Equal(t, models.ERROR_RESTRICTED, publishedResponse.Error.Code)
@@ -74,7 +79,12 @@ func TestHandleMakeInvoiceEvent_WithPermission(t *testing.T) {
 	err = json.Unmarshal([]byte(nip47MakeInvoiceJson), nip47Request)
 	assert.NoError(t, err)
 
-	dbRequestEvent := &db.RequestEvent{}
+	app, _, err := tests.CreateApp(svc)
+	assert.NoError(t, err)
+
+	dbRequestEvent := &db.RequestEvent{
+		AppId: &app.ID,
+	}
 	err = svc.DB.Create(&dbRequestEvent).Error
 	assert.NoError(t, err)
 
@@ -91,7 +101,7 @@ func TestHandleMakeInvoiceEvent_WithPermission(t *testing.T) {
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
 	transactionsSvc := transactions.NewTransactionsService(svc.DB)
 	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
-		HandleMakeInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, checkPermission, publishResponse)
+		HandleMakeInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, *dbRequestEvent.AppId, checkPermission, publishResponse)
 
 	assert.Nil(t, publishedResponse.Error)
 	assert.Equal(t, tests.MockTransaction.Invoice, publishedResponse.Result.(*makeInvoiceResponse).Invoice)

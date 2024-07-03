@@ -64,7 +64,7 @@ func (controller *nip47Controller) HandleMakeInvoiceEvent(ctx context.Context, n
 		return
 	}
 
-	nip47Transaction := toNip47Transaction(transaction)
+	nip47Transaction := models.ToNip47Transaction(transaction)
 	responsePayload := &makeInvoiceResponse{
 		Transaction: *nip47Transaction,
 	}

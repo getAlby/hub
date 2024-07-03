@@ -55,7 +55,7 @@ func (notifier *Nip47Notifier) ConsumeEvent(ctx context.Context, event *events.E
 			return errors.New("failed to cast event")
 		}
 
-		transaction, err := notifier.transactionsService.LookupTransaction(ctx, paymentReceivedEventProperties.PaymentHash, transactions.TRANSACTION_TYPE_INCOMING, notifier.lnClient)
+		transaction, err := notifier.transactionsService.LookupTransaction(ctx, paymentReceivedEventProperties.PaymentHash, notifier.lnClient, nil)
 		if err != nil {
 			logger.Logger.
 				WithField("paymentHash", paymentReceivedEventProperties.PaymentHash).
@@ -64,9 +64,8 @@ func (notifier *Nip47Notifier) ConsumeEvent(ctx context.Context, event *events.E
 			return err
 		}
 
-		nip47Transaction := toNip47Transaction
 		notification := PaymentReceivedNotification{
-			Transaction: *transaction,
+			Transaction: *models.ToNip47Transaction(transaction),
 		}
 
 		notifier.notifySubscribers(ctx, &Notification{
@@ -81,7 +80,7 @@ func (notifier *Nip47Notifier) ConsumeEvent(ctx context.Context, event *events.E
 			return errors.New("failed to cast event")
 		}
 
-		transaction, err := notifier.lnClient.LookupInvoice(ctx, paymentSentEventProperties.PaymentHash)
+		transaction, err := notifier.transactionsService.LookupTransaction(ctx, paymentSentEventProperties.PaymentHash, notifier.lnClient, nil)
 		if err != nil {
 			logger.Logger.
 				WithField("paymentHash", paymentSentEventProperties.PaymentHash).
@@ -90,7 +89,7 @@ func (notifier *Nip47Notifier) ConsumeEvent(ctx context.Context, event *events.E
 			return err
 		}
 		notification := PaymentSentNotification{
-			Transaction: *transaction,
+			Transaction: *models.ToNip47Transaction(transaction),
 		}
 
 		notifier.notifySubscribers(ctx, &Notification{

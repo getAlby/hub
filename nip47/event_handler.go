@@ -310,10 +310,10 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, sub *nostr.Subscriptio
 			HandleGetBalanceEvent(ctx, nip47Request, requestEvent.ID, checkPermission, publishResponse)
 	case models.MAKE_INVOICE_METHOD:
 		controller.
-			HandleMakeInvoiceEvent(ctx, nip47Request, requestEvent.ID, checkPermission, publishResponse)
+			HandleMakeInvoiceEvent(ctx, nip47Request, requestEvent.ID, app.ID, checkPermission, publishResponse)
 	case models.LOOKUP_INVOICE_METHOD:
 		controller.
-			HandleLookupInvoiceEvent(ctx, nip47Request, requestEvent.ID, checkPermission, publishResponse)
+			HandleLookupInvoiceEvent(ctx, nip47Request, requestEvent.ID, app.ID, checkPermission, publishResponse)
 	case models.LIST_TRANSACTIONS_METHOD:
 		controller.
 			HandleListTransactionsEvent(ctx, nip47Request, requestEvent.ID, checkPermission, publishResponse)
