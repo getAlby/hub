@@ -258,15 +258,18 @@ func (svc *albyOAuthService) DrainSharedWallet(ctx context.Context, lnClient lnc
 		return err
 	}
 
-	amount := int64(math.Floor(
-		float64(balance.Balance)*1000* // Alby shared node balance in sats
-			(1-8/1000)* // Alby service fee (0.8%)
-			0.99)) - // Maximum potential routing fees (1%)
-		10000 // Alby fee reserve (10 sats)
+	balanceSat := float64(balance.Balance)
 
-	if amount < 1000 {
+	amountSat := int64(math.Floor(
+		balanceSat- // Alby shared node balance in sats
+			(balanceSat*(8/1000))- // Alby service fee (0.8%)
+			(balanceSat*0.01))) - // Maximum potential routing fees (1%)
+		10 // Alby fee reserve (10 sats)
+
+	if amountSat < 1 {
 		return errors.New("Not enough balance remaining")
 	}
+	amount := amountSat * 1000
 
 	logger.Logger.WithField("amount", amount).WithError(err).Error("Draining Alby shared wallet funds")
 
