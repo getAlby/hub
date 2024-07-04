@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	echologrus "github.com/davrux/echo-logrus/v4"
@@ -447,7 +448,22 @@ func (httpSvc *HttpService) lookupTransactionHandler(c echo.Context) error {
 func (httpSvc *HttpService) listTransactionsHandler(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	transactions, err := httpSvc.api.ListTransactions(ctx)
+	limit := uint64(20)
+	offset := uint64(0)
+
+	if limitParam := c.QueryParam("limit"); limitParam != "" {
+		if parsedLimit, err := strconv.ParseUint(limitParam, 10, 64); err == nil {
+			limit = parsedLimit
+		}
+	}
+
+	if offsetParam := c.QueryParam("offset"); offsetParam != "" {
+		if parsedOffset, err := strconv.ParseUint(offsetParam, 10, 64); err == nil {
+			offset = parsedOffset
+		}
+	}
+
+	transactions, err := httpSvc.api.ListTransactions(ctx, limit, offset)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{

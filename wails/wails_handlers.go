@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/sirupsen/logrus"
@@ -201,6 +202,38 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		return WailsRequestRouterResponse{Body: paymentInfo, Error: ""}
 	}
 
+	listTransactionsRegex := regexp.MustCompile(
+		`/api/transactions`,
+	)
+
+	switch {
+	case listTransactionsRegex.MatchString(route):
+		limit := uint64(20)
+		offset := uint64(0)
+
+		// Extract limit and offset parameters
+		paramRegex := regexp.MustCompile(`[?&](limit|offset)=([^&]+)`)
+		paramMatches := paramRegex.FindAllStringSubmatch(route, -1)
+		for _, match := range paramMatches {
+			switch match[1] {
+			case "limit":
+				if parsedLimit, err := strconv.ParseUint(match[2], 10, 64); err == nil {
+					limit = parsedLimit
+				}
+			case "offset":
+				if parsedOffset, err := strconv.ParseUint(match[2], 10, 64); err == nil {
+					offset = parsedOffset
+				}
+			}
+		}
+
+		transactions, err := app.api.ListTransactions(ctx, limit, offset)
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: transactions, Error: ""}
+	}
+
 	paymentRegex := regexp.MustCompile(
 		`/api/payments/([0-9a-zA-Z]+)`,
 	)
@@ -371,12 +404,6 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		}
 		res := WailsRequestRouterResponse{Body: invoice, Error: ""}
 		return res
-	case "/api/transactions":
-		transactions, err := app.api.ListTransactions(ctx)
-		if err != nil {
-			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
-		}
-		return WailsRequestRouterResponse{Body: transactions, Error: ""}
 	case "/api/wallet/sync":
 		app.api.SyncWallet()
 		return WailsRequestRouterResponse{Body: nil, Error: ""}
