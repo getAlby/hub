@@ -92,7 +92,7 @@ func (svc *permissionsService) GetBudgetUsage(appPermission *db.AppPermission) u
 		Table("transactions").
 		Select("SUM(amount + fee) as sum").
 		Where("app_id = ? AND type = ? AND (state = ? OR state = ?) AND created_at > ?", appPermission.AppId, transactions.TRANSACTION_TYPE_OUTGOING, transactions.TRANSACTION_STATE_SETTLED, transactions.TRANSACTION_STATE_PENDING, getStartOfBudget(appPermission.BudgetRenewal)).Scan(&result)
-	return result.Sum
+	return result.Sum / 1000
 }
 
 func (svc *permissionsService) GetPermittedMethods(app *db.App, lnClient lnclient.LNClient) []string {
