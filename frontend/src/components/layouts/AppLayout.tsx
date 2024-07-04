@@ -140,9 +140,6 @@ export default function AppLayout() {
     const { hasChannelManagement } = useInfo();
     return (
       <nav className="grid items-start p-2 text-sm font-medium lg:px-4">
-        {/* <div className="px-3 py-2 mb-5">
-          <ModeToggle />
-        </div> */}
         {hasChannelManagement && (
           <MenuItem to="/channels">
             <FlaskRound className="h-4 w-4" />
