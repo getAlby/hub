@@ -1,45 +1,61 @@
 .theme-nostr {
-  --background: 266 0% 95%;
-  --foreground: 266 0% 0%;
-  --card: 266 0% 90%;
-  --card-foreground: 266 0% 10%;
-  --popover: 266 0% 95%;
-  --popover-foreground: 266 95% 0%;
-  --primary: 266 100% 50%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 266 10% 70%;
-  --secondary-foreground: 0 0% 0%;
-  --muted: 228 10% 85%;
-  --muted-foreground: 266 0% 35%;
-  --accent: 228 10% 80%;
-  --accent-foreground: 266 0% 10%;
-  --destructive: 0 50% 30%;
-  --destructive-foreground: 266 0% 90%;
-  --border: 266 20% 50%;
-  --input: 266 20% 18%;
-  --ring: 266 100% 50%;
+  --background: 270 8% 95%;
+  --foreground: 270 8% 5%;
+
+  --card: 270 8% 95%;
+  --card-foreground: 270 8% 5%;
+
+  --popover: 270 8% 95%;
+  --popover-foreground: 270 8% 5%;
+
+  --primary: 273 100% 29%;
+  --primary-foreground: 300 9% 98%;
+
+  --secondary: 276 11% 91%;
+  --secondary-foreground: 270 8% 5%;
+
+  --muted: 270 9% 91%;
+  --muted-foreground: 274 9% 45%;
+
+  --accent: 276 11% 91%;
+  --accent-foreground: 270 8% 5%;
+
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+
+  --border: 270 9% 87%;
+  --input: 267 9% 81%;
+  --ring: 273 36% 72%;
+
   --radius: 0.5rem;
 }
 
 .theme-nostr.dark {
-  --background: 266 10% 5%;
-  --foreground: 266 0% 90%;
-  --card: 266 0% 0%;
-  --card-foreground: 266 0% 90%;
-  --popover: 266 10% 5%;
-  --popover-foreground: 266 0% 90%;
-  --primary: 266 100% 50%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 266 10% 10%;
-  --secondary-foreground: 0 0% 100%;
-  --muted: 228 10% 15%;
-  --muted-foreground: 266 0% 60%;
-  --accent: 228 10% 15%;
-  --accent-foreground: 266 0% 90%;
-  --destructive: 0 50% 30%;
-  --destructive-foreground: 266 0% 90%;
-  --border: 266 20% 18%;
-  --input: 266 20% 18%;
-  --ring: 266 100% 50%;
-  --radius: 0.5rem;
+  --background: 300 4% 5%;
+  --foreground: 0 0% 98%;
+
+  --card: 300 4% 5%;
+  --card-foreground: 0 0% 98%;
+
+  --popover: 300 4% 5%;
+  --popover-foreground: 0 0% 98%;
+
+  --primary: 273 42% 47%;
+  --primary-foreground: 0 0% 98%;
+
+  --secondary: 300 2% 10%;
+  --secondary-foreground: 0 0% 98%;
+
+  --muted: 270 3% 15%;
+  --muted-foreground: 276 2% 49%;
+
+  --accent: 273 18% 10%;
+  --accent-foreground: 0 0% 98%;
+
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+
+  --border: 300 2% 12%;
+  --input: 270 2% 18%;
+  --ring: 272 41% 40%;
 }

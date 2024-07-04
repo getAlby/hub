@@ -1,37 +1,61 @@
 .theme-bitcoin {
-  /* Name: custom color palette
-       Author: Ilias Ism
-       URL: https://gradient.page */
+  --background: 0 0% 100%;
+  --foreground: 0 0% 5%;
 
-  /* CSS: .bg-gradient { background: var(--gradient) } */
-  --gradient: #f7931a;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 5%;
 
-  --background: 35 60.45% 4.32%;
-  --foreground: 35 9.3% 97.7%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 5%;
 
-  --muted: 35 93% 3.24%;
-  --muted-foreground: 35 9.3% 55.4%;
+  --primary: 42 100% 47%;
+  --primary-foreground: 0 0% 2%;
 
-  --popover: 35 46.4% 7.0200000000000005%;
-  --popover-foreground: 35 9.3% 97.7%;
+  --secondary: 0 0% 96%;
+  --secondary-foreground: 0 0% 5%;
 
-  --card: 35 46.4% 7.0200000000000005%;
-  --card-foreground: 35 9.3% 97.7%;
+  --muted: 0 0% 96%;
+  --muted-foreground: 0 0% 45%;
 
-  --border: 35 93% 3.24%;
-  --input: 35 93% 3.24%;
+  --accent: 0 0% 96%;
+  --accent-foreground: 0 0% 5%;
 
-  --primary: 35 93% 54%;
-  --primary-foreground: 35 9.3% 5.4%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
 
-  --secondary: 35 93% 3.24%;
-  --secondary-foreground: 35 9.3% 97.7%;
+  --border: 0 0% 92%;
+  --input: 0 0% 85%;
+  --ring: 0 0% 76%;
 
-  --accent: 35 93% 3.24%;
-  --accent-foreground: 35 9.3% 97.7%;
+  --radius: 0.5rem;
+}
 
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 35 9.3% 97.7%;
+.theme-bitcoin.dark {
+  --background: 60 3% 6%;
+  --foreground: 0 0% 98%;
 
-  --ring: 35 93% 54%;
+  --card: 60 3% 6%;
+  --card-foreground: 0 0% 98%;
+
+  --popover: 60 3% 6%;
+  --popover-foreground: 0 0% 98%;
+
+  --primary: 42 100% 47%;
+  --primary-foreground: 0 0% 2%;
+
+  --secondary: 40 5% 12%;
+  --secondary-foreground: 0 0% 98%;
+
+  --muted: 45 4% 18%;
+  --muted-foreground: 40 5% 49%;
+
+  --accent: 42 44% 12%;
+  --accent-foreground: 0 0% 98%;
+
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+
+  --border: 40 5% 12%;
+  --input: 45 4% 18%;
+  --ring: 42 100% 40%;
 }
