@@ -39,7 +39,7 @@ function Breadcrumbs() {
   const filteredCrumbs = isIndexRoute ? crumbs.slice(0, -1) : crumbs;
 
   // Don't render anything if there is only one item
-  if (filteredCrumbs.length < 2) {
+  if (filteredCrumbs.length < 3) {
     return null;
   }
 
