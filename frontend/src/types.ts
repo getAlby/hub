@@ -164,7 +164,7 @@ export interface App {
 
 export interface AppPermissions {
   scopes: Set<Scope>;
-  maxAmount: string;
+  maxAmount: number;
   budgetRenewal: BudgetRenewalType;
   expiresAt?: Date;
 }

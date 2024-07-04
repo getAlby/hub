@@ -166,7 +166,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
 
   const [permissions, setPermissions] = useState<AppPermissions>({
     scopes: initialScopes,
-    maxAmount: budgetMaxAmountParam,
+    maxAmount: parseInt(budgetMaxAmountParam),
     budgetRenewal: validBudgetRenewals.includes(budgetRenewalParam)
       ? budgetRenewalParam
       : "monthly",
@@ -189,7 +189,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
         name: appName,
         pubkey,
         budgetRenewal: permissions.budgetRenewal,
-        maxAmount: parseInt(permissions.maxAmount),
+        maxAmount: permissions.maxAmount,
         scopes: Array.from(permissions.scopes),
         expiresAt: permissions.expiresAt?.toISOString(),
         returnTo: returnTo,

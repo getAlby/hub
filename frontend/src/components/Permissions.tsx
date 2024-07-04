@@ -80,7 +80,7 @@ const Permissions: React.FC<PermissionsProps> = ({
     handlePermissionsChange({ scopes });
   };
 
-  const handleBudgetMaxAmountChange = (amount: string) => {
+  const handleBudgetMaxAmountChange = (amount: number) => {
     handlePermissionsChange({ maxAmount: amount });
   };
 
@@ -162,14 +162,12 @@ const Permissions: React.FC<PermissionsProps> = ({
                         key={budget}
                         onClick={() => {
                           setCustomBudget(false);
-                          handleBudgetMaxAmountChange(
-                            budgetOptions[budget].toString()
-                          );
+                          handleBudgetMaxAmountChange(budgetOptions[budget]);
                         }}
                         className={cn(
                           "cursor-pointer rounded text-nowrap border-2 text-center p-4 dark:text-white",
                           !customBudget &&
-                            (permissions.maxAmount === ""
+                            (Number.isNaN(permissions.maxAmount)
                               ? 100000
                               : +permissions.maxAmount) == budgetOptions[budget]
                             ? "border-primary"
@@ -183,7 +181,7 @@ const Permissions: React.FC<PermissionsProps> = ({
                   <div
                     onClick={() => {
                       setCustomBudget(true);
-                      handleBudgetMaxAmountChange("");
+                      handleBudgetMaxAmountChange(0);
                     }}
                     className={cn(
                       "cursor-pointer rounded border-2 text-center p-4 dark:text-white",
@@ -204,9 +202,9 @@ const Permissions: React.FC<PermissionsProps> = ({
                       type="number"
                       required
                       min={1}
-                      value={permissions.maxAmount}
+                      value={permissions.maxAmount || ""}
                       onChange={(e) => {
-                        handleBudgetMaxAmountChange(e.target.value.trim());
+                        handleBudgetMaxAmountChange(parseInt(e.target.value));
                       }}
                     />
                   </div>
@@ -271,6 +269,9 @@ const Permissions: React.FC<PermissionsProps> = ({
               <PopoverContent className="w-auto p-0">
                 <Calendar
                   mode="single"
+                  disabled={{
+                    before: new Date(),
+                  }}
                   selected={permissions.expiresAt}
                   onSelect={(date?: Date) => {
                     if (daysFromNow(date) == 0) {
