@@ -1,0 +1,66 @@
+.theme-alby {
+  /* Name: custom color palette
+       Author: Ilias Ism
+       URL: https://gradient.page */
+
+  /* CSS: .bg-gradient { background: var(--gradient) } */
+  --background: 60 8% 95%;
+  --foreground: 30 8% 5%;
+
+  --card: 60 8% 95%;
+  --card-foreground: 30 8% 5%;
+
+  --popover: 60 8% 95%;
+  --popover-foreground: 30 8% 5%;
+
+  --primary: 47 100% 72%;
+  --primary-foreground: 0 9% 2%;
+
+  --secondary: 48 11% 91%;
+  --secondary-foreground: 30 8% 5%;
+
+  --muted: 45 9% 91%;
+  --muted-foreground: 46 9% 45%;
+
+  --accent: 48 11% 91%;
+  --accent-foreground: 30 8% 5%;
+
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+
+  --border: 40 9% 87%;
+  --input: 47 9% 81%;
+  --ring: 47 36% 72%;
+
+  --radius: 0.5rem;
+}
+
+.theme-alby.dark {
+  --background: 60 4% 5%;
+  --foreground: 0 0% 98%;
+
+  --card: 60 4% 5%;
+  --card-foreground: 0 0% 98%;
+
+  --popover: 60 4% 5%;
+  --popover-foreground: 0 0% 98%;
+
+  --primary: 47 100% 72%;
+  --primary-foreground: 0 0% 2%;
+
+  --secondary: 60 2% 10%;
+  --secondary-foreground: 0 0% 98%;
+
+  --muted: 60 3% 15%;
+  --muted-foreground: 48 2% 49%;
+
+  --accent: 47 18% 10%;
+  --accent-foreground: 0 0% 98%;
+
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+
+  --border: 60 2% 12%;
+  --input: 30 2% 18%;
+  --ring: 47 100% 40%;
+}

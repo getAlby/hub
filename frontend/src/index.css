@@ -1,14 +1,11 @@
-@import 'themes/dracula.css';
-@import 'themes/nord.css';
-@import 'themes/nostr.css';
-@import 'themes/purple.css';
-@import 'themes/blue.css';
-@import 'themes/default.css';
+@import "themes/default.css";
+@import "themes/alby.css";
+@import "themes/bitcoin.css";
+@import "themes/nostr.css";
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
 
 @layer base {
   * {

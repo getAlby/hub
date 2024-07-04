@@ -1,0 +1,37 @@
+.theme-bitcoin {
+  /* Name: custom color palette
+       Author: Ilias Ism
+       URL: https://gradient.page */
+
+  /* CSS: .bg-gradient { background: var(--gradient) } */
+  --gradient: #f7931a;
+
+  --background: 35 60.45% 4.32%;
+  --foreground: 35 9.3% 97.7%;
+
+  --muted: 35 93% 3.24%;
+  --muted-foreground: 35 9.3% 55.4%;
+
+  --popover: 35 46.4% 7.0200000000000005%;
+  --popover-foreground: 35 9.3% 97.7%;
+
+  --card: 35 46.4% 7.0200000000000005%;
+  --card-foreground: 35 9.3% 97.7%;
+
+  --border: 35 93% 3.24%;
+  --input: 35 93% 3.24%;
+
+  --primary: 35 93% 54%;
+  --primary-foreground: 35 9.3% 5.4%;
+
+  --secondary: 35 93% 3.24%;
+  --secondary-foreground: 35 9.3% 97.7%;
+
+  --accent: 35 93% 3.24%;
+  --accent-foreground: 35 9.3% 97.7%;
+
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 35 9.3% 97.7%;
+
+  --ring: 35 93% 54%;
+}

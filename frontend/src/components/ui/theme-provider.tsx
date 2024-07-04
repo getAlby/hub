@@ -1,34 +1,50 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
-type Theme = "dark" | "light" | "system";
+export type DarkMode = "system" | "light" | "dark";
+export const Themes = ["default", "alby", "bitcoin", "nostr"] as const;
+export type Theme = (typeof Themes)[number];
 
 type ThemeProviderProps = {
   children: React.ReactNode;
   defaultTheme?: Theme;
+  defaultDarkMode?: DarkMode;
   storageKey?: string;
 };
 
 type ThemeProviderState = {
   theme: string;
-  setTheme: (theme: string) => void;
+  darkMode: string;
+  setTheme: (theme: Theme) => void;
+  setDarkMode: (mode: DarkMode) => void;
 };
 
 const initialState: ThemeProviderState = {
-  theme: "system",
+  theme: "default",
   setTheme: () => null,
+  darkMode: "system",
+  setDarkMode: () => null,
 };
 
 const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 
 export function ThemeProvider({
   children,
-  defaultTheme = "system",
+  defaultTheme = "default",
+  defaultDarkMode = "system",
   storageKey = "vite-ui-theme",
   ...props
 }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(() => {
     return (localStorage.getItem(storageKey) as Theme) || defaultTheme;
   });
+
+  const [darkMode, setDarkMode] = useState<DarkMode>(() => {
+    return (
+      (localStorage.getItem(storageKey + "-darkmode") as DarkMode) ||
+      defaultDarkMode
+    );
+  });
+
   useEffect(() => {
     const root = window.document.documentElement;
 
@@ -39,26 +55,33 @@ export function ThemeProvider({
         classList.remove(className);
       }
     });
-    root.classList.remove("light", "dark");
-    if (theme === "system") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
-        .matches
-        ? "dark"
-        : "light";
 
-      root.classList.add(systemTheme);
-      setTheme(systemTheme);
-      return;
+    classList.add(`theme-${theme}`);
+
+    let prefersDark = false;
+    if (darkMode == "system") {
+      prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    } else {
+      prefersDark = darkMode === "dark";
     }
 
-    root.classList.add(theme);
-  }, [theme]);
+    if (prefersDark) {
+      classList.add("dark");
+    } else {
+      classList.remove("dark");
+    }
+  }, [theme, darkMode]);
 
   const value = {
     theme,
     setTheme: (theme: Theme) => {
       localStorage.setItem(storageKey, theme);
       setTheme(theme);
+    },
+    darkMode,
+    setDarkMode: (darkMode: DarkMode) => {
+      localStorage.setItem(storageKey + "-darkmode", darkMode);
+      setDarkMode(darkMode);
     },
   };
 
