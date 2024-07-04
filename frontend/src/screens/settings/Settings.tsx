@@ -13,9 +13,11 @@ import {
   Themes,
   useTheme,
 } from "src/components/ui/theme-provider";
+import { toast } from "src/components/ui/use-toast";
 
 function Settings() {
   const { theme, darkMode, setTheme, setDarkMode } = useTheme();
+
   return (
     <>
       <SettingsHeader
@@ -27,7 +29,10 @@ function Settings() {
           <Label htmlFor="theme">Theme</Label>
           <Select
             value={theme}
-            onValueChange={(value) => setTheme(value as Theme)}
+            onValueChange={(value) => {
+              setTheme(value as Theme);
+              toast({ title: "Theme updated." });
+            }}
           >
             <SelectTrigger className="w-[150px]">
               <SelectValue placeholder="Theme" />
@@ -45,7 +50,10 @@ function Settings() {
           <Label htmlFor="theme">Dark mode</Label>
           <Select
             value={darkMode}
-            onValueChange={(value) => setDarkMode(value as DarkMode)}
+            onValueChange={(value) => {
+              setDarkMode(value as DarkMode);
+              toast({ title: "Dark Mode updated." });
+            }}
           >
             <SelectTrigger className="w-[150px]">
               <SelectValue placeholder="Dark mode" />
