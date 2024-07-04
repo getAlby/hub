@@ -157,7 +157,7 @@ export interface App {
   expiresAt?: string;
 
   scopes: Scope[];
-  maxAmount: string;
+  maxAmount: number;
   budgetUsage: number;
   budgetRenewal: string;
 }
@@ -209,7 +209,7 @@ export interface CreateAppResponse {
 }
 
 export type UpdateAppRequest = {
-  maxAmount: string;
+  maxAmount: number;
   budgetRenewal: string;
   expiresAt: string | undefined;
   scopes: Scope[];

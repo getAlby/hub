@@ -95,17 +95,6 @@ const Permissions: React.FC<PermissionsProps> = ({
       return;
     }
     const currentDate = new Date();
-    // const expiryDate = new Date(
-    //   Date.UTC(
-    //     currentDate.getUTCFullYear(),
-    //     currentDate.getUTCMonth(),
-    //     currentDate.getUTCDate() + expiryDays,
-    //     23,
-    //     59,
-    //     59,
-    //     0
-    //   )
-    // );
     currentDate.setDate(currentDate.getDate() + expiryDays);
     currentDate.setHours(23, 59, 59, 0);
     handlePermissionsChange({ expiresAt: currentDate });
