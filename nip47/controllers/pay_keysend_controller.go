@@ -36,19 +36,6 @@ func (controller *nip47Controller) payKeysend(ctx context.Context, payKeysendPar
 		return
 	}
 
-	payment := db.Payment{App: *app, RequestEventId: requestEventId, Amount: uint(payKeysendParams.Amount / 1000)}
-	err := controller.db.Create(&payment).Error
-	if err != nil {
-		publishResponse(&models.Response{
-			ResultType: nip47Request.Method,
-			Error: &models.Error{
-				Code:    models.ERROR_INTERNAL,
-				Message: err.Error(),
-			},
-		}, tags)
-		return
-	}
-
 	logger.Logger.WithFields(logrus.Fields{
 		"request_event_id": requestEventId,
 		"appId":            app.ID,
@@ -79,8 +66,6 @@ func (controller *nip47Controller) payKeysend(ctx context.Context, payKeysendPar
 		}, tags)
 		return
 	}
-	payment.Preimage = &preimage
-	controller.db.Save(&payment)
 	controller.eventPublisher.Publish(&events.Event{
 		Event: "nwc_payment_succeeded",
 		Properties: map[string]interface{}{

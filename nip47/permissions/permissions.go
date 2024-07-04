@@ -10,6 +10,7 @@ import (
 	"github.com/getAlby/nostr-wallet-connect/lnclient"
 	"github.com/getAlby/nostr-wallet-connect/logger"
 	"github.com/getAlby/nostr-wallet-connect/nip47/models"
+	"github.com/getAlby/nostr-wallet-connect/transactions"
 	"github.com/getAlby/nostr-wallet-connect/utils"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
@@ -86,8 +87,11 @@ func (svc *permissionsService) GetBudgetUsage(appPermission *db.AppPermission) u
 	var result struct {
 		Sum uint64
 	}
-	// TODO: discard failed payments from this check instead of checking payments that have a preimage
-	svc.db.Table("payments").Select("SUM(amount) as sum").Where("app_id = ? AND preimage IS NOT NULL AND created_at > ?", appPermission.AppId, getStartOfBudget(appPermission.BudgetRenewal)).Scan(&result)
+	// TODO: this does not consider unknown fees for pending payments
+	svc.db.
+		Table("transactions").
+		Select("SUM(amount + fee) as sum").
+		Where("app_id = ? AND type = ? AND (state = ? OR state = ?) AND created_at > ?", appPermission.AppId, transactions.TRANSACTION_TYPE_OUTGOING, transactions.TRANSACTION_STATE_SETTLED, transactions.TRANSACTION_STATE_PENDING, getStartOfBudget(appPermission.BudgetRenewal)).Scan(&result)
 	return result.Sum
 }
 

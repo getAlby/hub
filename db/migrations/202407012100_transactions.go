@@ -35,7 +35,10 @@ CREATE TABLE transactions(
 	settled_at datetime,
 	metadata text,
 	PRIMARY KEY (id)
-)`).Error; err != nil {
+);
+
+DROP TABLE payments;
+`).Error; err != nil {
 			return err
 		}
 

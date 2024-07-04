@@ -54,20 +54,6 @@ type ResponseEvent struct {
 	UpdatedAt time.Time
 }
 
-// TODO: remove
-type Payment struct {
-	ID             uint
-	AppId          uint `validate:"required"`
-	App            App
-	RequestEventId uint `validate:"required"`
-	RequestEvent   RequestEvent
-	Amount         uint // in sats
-	PaymentRequest string
-	Preimage       *string
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
-}
-
 type Transaction struct {
 	ID              uint
 	AppId           *uint

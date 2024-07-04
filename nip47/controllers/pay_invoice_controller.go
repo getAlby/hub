@@ -57,19 +57,6 @@ func (controller *nip47Controller) pay(ctx context.Context, bolt11 string, payme
 		return
 	}
 
-	payment := db.Payment{App: *app, RequestEventId: requestEventId, PaymentRequest: bolt11, Amount: uint(paymentRequest.MSatoshi / 1000)}
-	err := controller.db.Create(&payment).Error
-	if err != nil {
-		publishResponse(&models.Response{
-			ResultType: nip47Request.Method,
-			Error: &models.Error{
-				Code:    models.ERROR_INTERNAL,
-				Message: err.Error(),
-			},
-		}, tags)
-		return
-	}
-
 	logger.Logger.WithFields(logrus.Fields{
 		"request_event_id": requestEventId,
 		"app_id":           app.ID,
@@ -100,9 +87,6 @@ func (controller *nip47Controller) pay(ctx context.Context, bolt11 string, payme
 		}, tags)
 		return
 	}
-	payment.Preimage = response.Preimage
-	// TODO: save payment fee
-	controller.db.Save(&payment)
 
 	controller.eventPublisher.Publish(&events.Event{
 		Event: "nwc_payment_succeeded",
