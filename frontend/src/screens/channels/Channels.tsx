@@ -287,8 +287,8 @@ export default function Channels() {
   return (
     <>
       <AppHeader
-        title="Liquidity"
-        description="Manage your lightning node liquidity"
+        title="Node"
+        description="Manage your lightning node"
         contentRight={
           <div className="flex gap-3 items-center justify-center">
             <DropdownMenu>
