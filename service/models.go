@@ -1,11 +1,11 @@
 package service
 
 import (
-	"github.com/getAlby/nostr-wallet-connect/alby"
-	"github.com/getAlby/nostr-wallet-connect/config"
-	"github.com/getAlby/nostr-wallet-connect/events"
-	"github.com/getAlby/nostr-wallet-connect/lnclient"
-	"github.com/getAlby/nostr-wallet-connect/service/keys"
+	"github.com/getAlby/hub/alby"
+	"github.com/getAlby/hub/config"
+	"github.com/getAlby/hub/events"
+	"github.com/getAlby/hub/lnclient"
+	"github.com/getAlby/hub/service/keys"
 	"gorm.io/gorm"
 )
 

@@ -6,10 +6,10 @@ import (
 	"log"
 	"testing"
 
-	"github.com/getAlby/nostr-wallet-connect/db"
-	"github.com/getAlby/nostr-wallet-connect/events"
-	"github.com/getAlby/nostr-wallet-connect/nip47/permissions"
-	"github.com/getAlby/nostr-wallet-connect/tests"
+	"github.com/getAlby/hub/db"
+	"github.com/getAlby/hub/events"
+	"github.com/getAlby/hub/nip47/permissions"
+	"github.com/getAlby/hub/tests"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip04"
 	"github.com/stretchr/testify/assert"
@@ -25,9 +25,9 @@ func TestSendNotification_PaymentReceived(t *testing.T) {
 	assert.NoError(t, err)
 
 	appPermission := &db.AppPermission{
-		AppId:         app.ID,
-		App:           *app,
-		RequestMethod: permissions.NOTIFICATIONS_PERMISSION,
+		AppId: app.ID,
+		App:   *app,
+		Scope: permissions.NOTIFICATIONS_SCOPE,
 	}
 	err = svc.DB.Create(appPermission).Error
 	assert.NoError(t, err)
@@ -89,9 +89,9 @@ func TestSendNotification_PaymentSent(t *testing.T) {
 	assert.NoError(t, err)
 
 	appPermission := &db.AppPermission{
-		AppId:         app.ID,
-		App:           *app,
-		RequestMethod: permissions.NOTIFICATIONS_PERMISSION,
+		AppId: app.ID,
+		App:   *app,
+		Scope: permissions.NOTIFICATIONS_SCOPE,
 	}
 	err = svc.DB.Create(appPermission).Error
 	assert.NoError(t, err)

@@ -25,6 +25,7 @@ export default function MigrateAlbyFunds() {
   const { data: albyMe } = useAlbyMe();
   const { data: albyBalance } = useAlbyBalance();
   const { data: csrf } = useCSRF();
+  const { data: info } = useInfo();
   const { data: channels } = useChannels(true);
   const { mutate: refetchInfo } = useInfo();
   const { toast } = useToast();
@@ -44,6 +45,17 @@ export default function MigrateAlbyFunds() {
   const requestWrappedInvoice = React.useCallback(
     async (amount: number) => {
       try {
+        if (!info) {
+          throw new Error("Info not loaded");
+        }
+        // other node implementations may not work / may not support 0-conf.
+        // so for now we are not allowing other backend types.
+        // They can open a channel with a different method and then migrate
+        // their shared funds once they have enough receiving capacity.
+        if (info.backendType !== "LDK") {
+          throw new Error("Only LDK backend is supported");
+        }
+
         if (!channels) {
           throw new Error("Channels not loaded");
         }
@@ -77,7 +89,7 @@ export default function MigrateAlbyFunds() {
         setError("Failed to connect to request wrapped invoice: " + error);
       }
     },
-    [channels, csrf]
+    [channels, csrf, info]
   );
 
   const payWrappedInvoice = React.useCallback(
@@ -114,7 +126,7 @@ export default function MigrateAlbyFunds() {
   );
 
   React.useEffect(() => {
-    if (hasRequestedInvoice || !channels || !albyMe || !albyBalance) {
+    if (hasRequestedInvoice || !info || !channels || !albyMe || !albyBalance) {
       return;
     }
     setRequestedInvoice(true);
@@ -129,6 +141,7 @@ export default function MigrateAlbyFunds() {
     albyBalance,
     channels,
     albyMe,
+    info,
     requestWrappedInvoice,
   ]);
 

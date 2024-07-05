@@ -4,9 +4,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/getAlby/nostr-wallet-connect/db"
-	"github.com/getAlby/nostr-wallet-connect/nip47/models"
-	"github.com/getAlby/nostr-wallet-connect/tests"
+	"github.com/getAlby/hub/db"
+	"github.com/getAlby/hub/nip47/models"
+	"github.com/getAlby/hub/tests"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -19,10 +19,10 @@ func TestHasPermission_NoPermission(t *testing.T) {
 	assert.NoError(t, err)
 
 	permissionsSvc := NewPermissionsService(svc.DB, svc.EventPublisher)
-	result, code, message := permissionsSvc.HasPermission(app, models.PAY_INVOICE_METHOD, 100)
+	result, code, message := permissionsSvc.HasPermission(app, PAY_INVOICE_SCOPE, 100)
 	assert.False(t, result)
 	assert.Equal(t, models.ERROR_RESTRICTED, code)
-	assert.Equal(t, "This app does not have permission to request pay_invoice", message)
+	assert.Equal(t, "This app does not have the pay_invoice scope", message)
 }
 
 func TestHasPermission_Expired(t *testing.T) {
@@ -38,7 +38,7 @@ func TestHasPermission_Expired(t *testing.T) {
 	appPermission := &db.AppPermission{
 		AppId:         app.ID,
 		App:           *app,
-		RequestMethod: models.PAY_INVOICE_METHOD,
+		Scope:         PAY_INVOICE_SCOPE,
 		MaxAmount:     100,
 		BudgetRenewal: budgetRenewal,
 		ExpiresAt:     &expiresAt,
@@ -47,7 +47,7 @@ func TestHasPermission_Expired(t *testing.T) {
 	assert.NoError(t, err)
 
 	permissionsSvc := NewPermissionsService(svc.DB, svc.EventPublisher)
-	result, code, message := permissionsSvc.HasPermission(app, models.PAY_INVOICE_METHOD, 100)
+	result, code, message := permissionsSvc.HasPermission(app, PAY_INVOICE_SCOPE, 100)
 	assert.False(t, result)
 	assert.Equal(t, models.ERROR_EXPIRED, code)
 	assert.Equal(t, "This app has expired", message)
@@ -66,7 +66,7 @@ func TestHasPermission_Exceeded(t *testing.T) {
 	appPermission := &db.AppPermission{
 		AppId:         app.ID,
 		App:           *app,
-		RequestMethod: models.PAY_INVOICE_METHOD,
+		Scope:         models.PAY_INVOICE_METHOD,
 		MaxAmount:     10,
 		BudgetRenewal: budgetRenewal,
 		ExpiresAt:     &expiresAt,
@@ -75,7 +75,7 @@ func TestHasPermission_Exceeded(t *testing.T) {
 	assert.NoError(t, err)
 
 	permissionsSvc := NewPermissionsService(svc.DB, svc.EventPublisher)
-	result, code, message := permissionsSvc.HasPermission(app, models.PAY_INVOICE_METHOD, 100*1000)
+	result, code, message := permissionsSvc.HasPermission(app, PAY_INVOICE_SCOPE, 100*1000)
 	assert.False(t, result)
 	assert.Equal(t, models.ERROR_QUOTA_EXCEEDED, code)
 	assert.Equal(t, "Insufficient budget remaining to make payment", message)
@@ -94,7 +94,7 @@ func TestHasPermission_OK(t *testing.T) {
 	appPermission := &db.AppPermission{
 		AppId:         app.ID,
 		App:           *app,
-		RequestMethod: models.PAY_INVOICE_METHOD,
+		Scope:         models.PAY_INVOICE_METHOD,
 		MaxAmount:     10,
 		BudgetRenewal: budgetRenewal,
 		ExpiresAt:     &expiresAt,

@@ -166,7 +166,7 @@ export function Welcome() {
                   Subject to the following terms, Alby grants to you a
                   perpetual, worldwide license to the Application pursuant to
                   the Apache-2.0 license.
-                  (https://github.com/getAlby/nostr-wallet-connect-next?tab=Apache-2.0-1-ov-file#readme).
+                  (https://github.com/getAlby/hub?tab=Apache-2.0-1-ov-file#readme).
                   This EULA pertains solely to the Application and does not
                   limit your rights under, or grant you rights that supersede,
                   the license terms of any particular component.
@@ -221,11 +221,11 @@ export function Welcome() {
                 </p>
                 <h2 className="font-semibold">Intellectual Property</h2>
                 <p>
-                  We retain all right, title, and interest in all of Alby’s
+                  We retain all right, title, and interest in all of Alby's
                   brands, logos, and trademarks, including, but not limited to
                   and variations of the wording of the aforementioned brands,
                   logos, and trademarks. This EULA does not permit you to
-                  distribute the Programs using the Company’s trademarks,
+                  distribute the Programs using the Company's trademarks,
                   regardless of whether the Application has been modified.
                 </p>
 
@@ -281,7 +281,7 @@ export function Welcome() {
                   Alby may attempt to calculate such a fee for you. Our
                   calculation may not be sufficient, or it may be excessive. You
                   are solely responsible for selecting and paying any such fee
-                  and Alby shall not advance or fund such a fee on the user’s
+                  and Alby shall not advance or fund such a fee on the user's
                   behalf. Alby shall not be responsible for any excess or
                   insufficient fee calculation.
                 </p>
@@ -384,7 +384,7 @@ export function Welcome() {
                   LIMITATION, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS
                   FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. WE MAKE NO
                   WARRANTIES OR REPRESENTATIONS ABOUT THE ACCURACY OR
-                  COMPLETENESS OF APPLICATION’S CONTENT OR THE CONTENT OF ANY
+                  COMPLETENESS OF APPLICATION'S CONTENT OR THE CONTENT OF ANY
                   WEBSITES LINKED TO THE APPLICATION AND WE WILL ASSUME NO
                   LIABILITY OR RESPONSIBILITY FOR ANY (1) ERRORS, MISTAKES, OR
                   INACCURACIES OF CONTENT AND MATERIALS, (2) PERSONAL INJURY OR

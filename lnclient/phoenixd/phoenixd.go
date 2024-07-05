@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/getAlby/nostr-wallet-connect/lnclient"
-	"github.com/getAlby/nostr-wallet-connect/logger"
+	"github.com/getAlby/hub/lnclient"
+	"github.com/getAlby/hub/logger"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 
 	"github.com/sirupsen/logrus"
@@ -517,4 +517,12 @@ func (svc *PhoenixService) DisconnectPeer(ctx context.Context, peerId string) er
 
 func (svc *PhoenixService) UpdateChannel(ctx context.Context, updateChannelRequest *lnclient.UpdateChannelRequest) error {
 	return nil
+}
+
+func (svc *PhoenixService) GetSupportedNIP47Methods() []string {
+	return []string{"pay_invoice", "get_balance", "get_info", "make_invoice", "lookup_invoice", "list_transactions", "multi_pay_invoice"}
+}
+
+func (svc *PhoenixService) GetSupportedNIP47NotificationTypes() []string {
+	return []string{}
 }

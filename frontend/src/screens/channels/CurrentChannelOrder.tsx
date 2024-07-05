@@ -6,6 +6,7 @@ import {
   Node,
   OpenChannelRequest,
   OpenChannelResponse,
+  PayInvoiceResponse,
 } from "src/types";
 
 import { Payment, init } from "@getalby/bitcoin-connect-react";
@@ -610,6 +611,18 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
     order.lspUrl,
   ]);
 
+  const canPayInternally =
+    channels &&
+    wrappedInvoiceResponse &&
+    channels.some(
+      (channel) =>
+        channel.localSpendableBalance / 1000 >
+        wrappedInvoiceResponse.invoiceAmount
+    );
+  const [isPaying, setPaying] = React.useState(false);
+  const [paid, setPaid] = React.useState(false);
+  const [payExternally, setPayExternally] = React.useState(false);
+
   return (
     <div className="flex flex-col gap-5">
       <AppHeader
@@ -679,11 +692,77 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                 </TableBody>
               </Table>
             </div>
-            <Payment
-              invoice={wrappedInvoiceResponse.invoice}
-              payment={newChannel ? { preimage: "dummy preimage" } : undefined}
-              paymentMethods="external"
-            />
+            {paid ? (
+              <div className="flex gap-2 items-center justify-center">
+                <Loading /> <p>Waiting for channel to be opened...</p>
+              </div>
+            ) : (
+              <>
+                {canPayInternally && (
+                  <>
+                    <LoadingButton
+                      loading={isPaying}
+                      className="mt-4"
+                      onClick={async () => {
+                        try {
+                          if (!csrf) {
+                            throw new Error("csrf not loaded");
+                          }
+                          setPaying(true);
+                          const payInvoiceResponse =
+                            await request<PayInvoiceResponse>(
+                              `/api/payments/${wrappedInvoiceResponse.invoice}`,
+                              {
+                                method: "POST",
+                                headers: {
+                                  "X-CSRF-Token": csrf,
+                                  "Content-Type": "application/json",
+                                },
+                              }
+                            );
+                          if (payInvoiceResponse) {
+                            setPaid(true);
+                            toast({
+                              title: "Channel successfully requested",
+                            });
+                          }
+                          setPaid(true);
+                        } catch (e) {
+                          toast({
+                            variant: "destructive",
+                            title: "Failed to send: " + e,
+                          });
+                          console.error(e);
+                        }
+                        setPaying(false);
+                      }}
+                    >
+                      Pay and open channel
+                    </LoadingButton>
+                    {!payExternally && (
+                      <Button
+                        type="button"
+                        variant="link"
+                        className="text-muted-foreground text-xs"
+                        onClick={() => setPayExternally(true)}
+                      >
+                        Pay with another wallet
+                      </Button>
+                    )}
+                  </>
+                )}
+
+                {(payExternally || !canPayInternally) && (
+                  <Payment
+                    invoice={wrappedInvoiceResponse.invoice}
+                    payment={
+                      newChannel ? { preimage: "dummy preimage" } : undefined
+                    }
+                    paymentMethods="external"
+                  />
+                )}
+              </>
+            )}
           </div>
         </>
       )}

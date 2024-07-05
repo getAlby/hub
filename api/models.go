@@ -5,9 +5,9 @@ import (
 	"io"
 	"time"
 
-	"github.com/getAlby/nostr-wallet-connect/alby"
-	"github.com/getAlby/nostr-wallet-connect/db"
-	"github.com/getAlby/nostr-wallet-connect/lnclient"
+	"github.com/getAlby/hub/alby"
+	"github.com/getAlby/hub/db"
+	"github.com/getAlby/hub/lnclient"
 )
 
 type API interface {
@@ -52,6 +52,7 @@ type API interface {
 	NewInstantChannelInvoice(ctx context.Context, request *NewInstantChannelInvoiceRequest) (*NewInstantChannelInvoiceResponse, error)
 	CreateBackup(unlockPassword string, w io.Writer) error
 	RestoreBackup(unlockPassword string, r io.Reader) error
+	GetWalletCapabilities(ctx context.Context) (*WalletCapabilitiesResponse, error)
 }
 
 type App struct {
@@ -62,12 +63,12 @@ type App struct {
 	CreatedAt   time.Time `json:"createdAt"`
 	UpdatedAt   time.Time `json:"updatedAt"`
 
-	LastEventAt    *time.Time `json:"lastEventAt"`
-	ExpiresAt      *time.Time `json:"expiresAt"`
-	RequestMethods []string   `json:"requestMethods"`
-	MaxAmount      uint64     `json:"maxAmount"`
-	BudgetUsage    uint64     `json:"budgetUsage"`
-	BudgetRenewal  string     `json:"budgetRenewal"`
+	LastEventAt   *time.Time `json:"lastEventAt"`
+	ExpiresAt     *time.Time `json:"expiresAt"`
+	Scopes        []string   `json:"scopes"`
+	MaxAmount     uint64     `json:"maxAmount"`
+	BudgetUsage   uint64     `json:"budgetUsage"`
+	BudgetRenewal string     `json:"budgetRenewal"`
 }
 
 type ListAppsResponse struct {
@@ -75,20 +76,20 @@ type ListAppsResponse struct {
 }
 
 type UpdateAppRequest struct {
-	MaxAmount      uint64 `json:"maxAmount"`
-	BudgetRenewal  string `json:"budgetRenewal"`
-	ExpiresAt      string `json:"expiresAt"`
-	RequestMethods string `json:"requestMethods"`
+	MaxAmount     uint64   `json:"maxAmount"`
+	BudgetRenewal string   `json:"budgetRenewal"`
+	ExpiresAt     string   `json:"expiresAt"`
+	Scopes        []string `json:"scopes"`
 }
 
 type CreateAppRequest struct {
-	Name           string `json:"name"`
-	Pubkey         string `json:"pubkey"`
-	MaxAmount      uint64 `json:"maxAmount"`
-	BudgetRenewal  string `json:"budgetRenewal"`
-	ExpiresAt      string `json:"expiresAt"`
-	RequestMethods string `json:"requestMethods"`
-	ReturnTo       string `json:"returnTo"`
+	Name          string   `json:"name"`
+	Pubkey        string   `json:"pubkey"`
+	MaxAmount     uint64   `json:"maxAmount"`
+	BudgetRenewal string   `json:"budgetRenewal"`
+	ExpiresAt     string   `json:"expiresAt"`
+	Scopes        []string `json:"scopes"`
+	ReturnTo      string   `json:"returnTo"`
 }
 
 type StartRequest struct {
@@ -260,4 +261,10 @@ type NewInstantChannelInvoiceResponse struct {
 	InvoiceAmount     uint64 `json:"invoiceAmount"`
 	IncomingLiquidity uint64 `json:"incomingLiquidity"`
 	OutgoingLiquidity uint64 `json:"outgoingLiquidity"`
+}
+
+type WalletCapabilitiesResponse struct {
+	Scopes            []string `json:"scopes"`
+	Methods           []string `json:"methods"`
+	NotificationTypes []string `json:"notificationTypes"`
 }

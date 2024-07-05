@@ -13,15 +13,15 @@ import (
 	"strings"
 	"time"
 
-	//"github.com/getAlby/nostr-wallet-connect/glalby" // for local development only
+	//"github.com/getAlby/hub/glalby" // for local development only
 
 	"github.com/getAlby/glalby-go/glalby"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
 
-	"github.com/getAlby/nostr-wallet-connect/config"
-	"github.com/getAlby/nostr-wallet-connect/lnclient"
-	"github.com/getAlby/nostr-wallet-connect/logger"
+	"github.com/getAlby/hub/config"
+	"github.com/getAlby/hub/lnclient"
+	"github.com/getAlby/hub/logger"
 )
 
 type GreenlightService struct {
@@ -674,4 +674,12 @@ func (gs *GreenlightService) UpdateChannel(ctx context.Context, updateChannelReq
 
 func (gs *GreenlightService) DisconnectPeer(ctx context.Context, peerId string) error {
 	return nil
+}
+
+func (gs *GreenlightService) GetSupportedNIP47Methods() []string {
+	return []string{"pay_invoice", "pay_keysend", "get_balance", "get_info", "make_invoice", "lookup_invoice", "list_transactions", "multi_pay_invoice", "multi_pay_keysend", "sign_message"}
+}
+
+func (gs *GreenlightService) GetSupportedNIP47NotificationTypes() []string {
+	return []string{}
 }

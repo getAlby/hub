@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"github.com/getAlby/nostr-wallet-connect/events"
-	"github.com/getAlby/nostr-wallet-connect/logger"
+	"github.com/getAlby/hub/events"
+	"github.com/getAlby/hub/logger"
 )
 
 type Nip47NotificationQueue interface {

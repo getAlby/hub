@@ -5,22 +5,25 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/getAlby/nostr-wallet-connect/logger"
+	"github.com/getAlby/hub/events"
+	"github.com/getAlby/hub/logger"
 	"github.com/nbd-wtf/go-nostr"
 	"gorm.io/gorm"
 )
 
 type dbService struct {
-	db *gorm.DB
+	db             *gorm.DB
+	eventPublisher events.EventPublisher
 }
 
-func NewDBService(db *gorm.DB) *dbService {
+func NewDBService(db *gorm.DB, eventPublisher events.EventPublisher) *dbService {
 	return &dbService{
-		db: db,
+		db:             db,
+		eventPublisher: eventPublisher,
 	}
 }
 
-func (svc *dbService) CreateApp(name string, pubkey string, maxAmount uint64, budgetRenewal string, expiresAt *time.Time, requestMethods []string) (*App, string, error) {
+func (svc *dbService) CreateApp(name string, pubkey string, maxAmount uint64, budgetRenewal string, expiresAt *time.Time, scopes []string) (*App, string, error) {
 	var pairingPublicKey string
 	var pairingSecretKey string
 	if pubkey == "" {
@@ -44,11 +47,11 @@ func (svc *dbService) CreateApp(name string, pubkey string, maxAmount uint64, bu
 			return err
 		}
 
-		for _, m := range requestMethods {
+		for _, scope := range scopes {
 			appPermission := AppPermission{
-				App:           app,
-				RequestMethod: m,
-				ExpiresAt:     expiresAt,
+				App:       app,
+				Scope:     scope,
+				ExpiresAt: expiresAt,
 				//these fields are only relevant for pay_invoice
 				MaxAmount:     int(maxAmount),
 				BudgetRenewal: budgetRenewal,
@@ -58,6 +61,7 @@ func (svc *dbService) CreateApp(name string, pubkey string, maxAmount uint64, bu
 				return err
 			}
 		}
+
 		// commit transaction
 		return nil
 	})
@@ -66,6 +70,13 @@ func (svc *dbService) CreateApp(name string, pubkey string, maxAmount uint64, bu
 		logger.Logger.WithError(err).Error("Failed to save app")
 		return nil, "", err
 	}
+
+	svc.eventPublisher.Publish(&events.Event{
+		Event: "app_created",
+		Properties: map[string]interface{}{
+			"name": name,
+		},
+	})
 
 	return &app, pairingSecretKey, nil
 }

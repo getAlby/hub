@@ -1,4 +1,4 @@
-import { CopyIcon } from "lucide-react";
+import { CopyIcon, EyeIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 
@@ -30,6 +30,7 @@ export default function AppCreated() {
   console.info(appstoreApp, appId);
 
   const [timeout, setTimeout] = useState(false);
+  const [isQRCodeVisible, setIsQRCodeVisible] = useState(false);
   const createAppResponse = state as CreateAppResponse;
   const pairingUri = createAppResponse.pairingUri;
   const { data: app } = useApp(createAppResponse.pairingPublicKey, true);
@@ -42,7 +43,7 @@ export default function AppCreated() {
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
       setTimeout(true);
-    }, 10000);
+    }, 30000);
 
     return () => window.clearTimeout(timeoutId);
   }, []);
@@ -125,12 +126,26 @@ export default function AppCreated() {
               </div>
             )}
             <a href={pairingUri} target="_blank" className="relative">
-              <QRCode value={pairingUri} className="w-full" />
-              {appstoreApp && (
-                <img
-                  src={appstoreApp.logo}
-                  className="absolute w-12 h-12 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-muted p-1 rounded-xl"
-                />
+              <div className={!isQRCodeVisible ? "blur-md" : ""}>
+                <QRCode className={"w-full"} value={pairingUri} />
+                {appstoreApp && (
+                  <img
+                    src={appstoreApp.logo}
+                    className="absolute w-12 h-12 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-muted p-1 rounded-xl"
+                  />
+                )}
+              </div>
+              {!isQRCodeVisible && (
+                <Button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setIsQRCodeVisible(true);
+                  }}
+                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                >
+                  <EyeIcon className="h-4 w-4 mr-2" />
+                  Reveal QR
+                </Button>
               )}
             </a>
             <div>

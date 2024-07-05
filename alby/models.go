@@ -3,8 +3,8 @@ package alby
 import (
 	"context"
 
-	"github.com/getAlby/nostr-wallet-connect/events"
-	"github.com/getAlby/nostr-wallet-connect/lnclient"
+	"github.com/getAlby/hub/events"
+	"github.com/getAlby/hub/lnclient"
 )
 
 type AlbyOAuthService interface {
@@ -13,7 +13,7 @@ type AlbyOAuthService interface {
 	GetAuthUrl() string
 	GetUserIdentifier() (string, error)
 	IsConnected(ctx context.Context) bool
-	LinkAccount(ctx context.Context) error
+	LinkAccount(ctx context.Context, lnClient lnclient.LNClient) error
 	CallbackHandler(ctx context.Context, code string) error
 	GetBalance(ctx context.Context) (*AlbyBalance, error)
 	GetMe(ctx context.Context) (*AlbyMe, error)
@@ -52,6 +52,7 @@ type ChannelPeerSuggestion struct {
 	Pubkey             string `json:"pubkey"`
 	Host               string `json:"host"`
 	MinimumChannelSize uint64 `json:"minimumChannelSize"`
+	MaximumChannelSize uint64 `json:"maximumChannelSize"`
 	Name               string `json:"name"`
 	Image              string `json:"image"`
 	BrokenLspUrl       string `json:"lsp_url"`

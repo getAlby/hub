@@ -44,3 +44,14 @@ func ReadFileTail(filePath string, maxLen int) (data []byte, err error) {
 
 	return data, nil
 }
+
+// filters values from a slice
+func Filter[T any](s []T, f func(T) bool) []T {
+	var r []T
+	for _, v := range s {
+		if f(v) {
+			r = append(r, v)
+		}
+	}
+	return r
+}

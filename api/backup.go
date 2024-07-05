@@ -10,15 +10,15 @@ import (
 	"archive/zip"
 	"os"
 	"path/filepath"
-	"slices"
 
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
 	"crypto/sha256"
 
-	"github.com/getAlby/nostr-wallet-connect/db"
-	"github.com/getAlby/nostr-wallet-connect/logger"
+	"github.com/getAlby/hub/db"
+	"github.com/getAlby/hub/logger"
+	"github.com/getAlby/hub/utils"
 	"golang.org/x/crypto/pbkdf2"
 )
 
@@ -73,8 +73,8 @@ func (api *api) CreateBackup(unlockPassword string, w io.Writer) error {
 		logger.Logger.WithField("lnFiles", lnFiles).Info("Listed node storage dir")
 
 		// Avoid backing up log files.
-		slices.DeleteFunc(lnFiles, func(s string) bool {
-			return filepath.Ext(s) == ".log"
+		lnFiles = utils.Filter(lnFiles, func(s string) bool {
+			return filepath.Ext(s) != ".log"
 		})
 
 		filesToArchive = append(filesToArchive, lnFiles...)

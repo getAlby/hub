@@ -3,17 +3,20 @@
 echo "🔃 Updating Alby Hub..."
 sudo systemctl stop albyhub
 
+# Download new artifacts
 cd /opt/albyhub
-sudo rm -rf albyhub-backup
+rm -rf albyhub-backup
 mkdir albyhub-backup
-mv app albyhub-backup
-sudo cp -r data albyhub-backup
-wget https://nightly.link/getalby/nostr-wallet-connect-next/workflows/package-raspberry-pi/master/nostr-wallet-connect.zip
+mv bin albyhub-backup
+cp -r data albyhub-backup
+wget https://getalby.com/install/hub/server-linux-armv6.tar.bz2
 
-unzip nostr-wallet-connect.zip -d app
-chmod +x app/nostr-wallet-connect
-rm nostr-wallet-connect.zip
+# Extract archives
+tar -xvf server-linux-armv6.tar.bz2
+
+# Cleanup
+rm server-linux-armv6.tar.bz2
 
 sudo systemctl start albyhub
 
-echo "✅ Update finished! Please visit http://$HOSTNAME.local to unlock your wallet."
+echo "✅ Update finished! Please login again to start your wallet."

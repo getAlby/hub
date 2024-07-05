@@ -13,9 +13,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/getAlby/nostr-wallet-connect/lnclient"
-	"github.com/getAlby/nostr-wallet-connect/logger"
-	"github.com/getAlby/nostr-wallet-connect/lsp"
+	"github.com/getAlby/hub/lnclient"
+	"github.com/getAlby/hub/logger"
+	"github.com/getAlby/hub/lsp"
+	"github.com/getAlby/hub/utils"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
 )
@@ -174,20 +175,28 @@ func (api *api) getLSPS1LSPInfo(url string) (*lspInfo, error) {
 		return nil, fmt.Errorf("failed to deserialize json %s %s", url, string(body))
 	}
 
-	uri := lsps1LspInfo.URIs[0]
+	httpUris := utils.Filter(lsps1LspInfo.URIs, func(uri string) bool {
+		return !strings.Contains(uri, ".onion")
+	})
+	if len(httpUris) == 0 {
+		logger.Logger.WithField("uris", lsps1LspInfo.URIs).WithError(err).Error("Couldn't find HTTP URI")
+
+		return nil, err
+	}
+	uri := httpUris[0]
 
 	// make sure it's a valid IPv4 URI
 	regex := regexp.MustCompile(`^([0-9a-f]+)@([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+):([0-9]+)$`)
 	parts := regex.FindStringSubmatch(uri)
 	logger.Logger.WithField("parts", parts).Info("Split URI")
 	if parts == nil || len(parts) != 4 {
-		logger.Logger.WithField("parts", parts).Info("Unsupported URI")
+		logger.Logger.WithField("parts", parts).Error("Unsupported URI")
 		return nil, errors.New("could not decode LSP URI")
 	}
 
 	port, err := strconv.Atoi(parts[3])
 	if err != nil {
-		logger.Logger.WithField("port", parts[3]).WithError(err).Info("Failed to decode port number")
+		logger.Logger.WithField("port", parts[3]).WithError(err).Error("Failed to decode port number")
 
 		return nil, err
 	}

@@ -9,7 +9,6 @@ import (
 	"math"
 	"net/http"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 
@@ -17,20 +16,21 @@ import (
 	"golang.org/x/oauth2"
 	"gorm.io/gorm"
 
-	"github.com/getAlby/nostr-wallet-connect/config"
-	"github.com/getAlby/nostr-wallet-connect/db"
-	"github.com/getAlby/nostr-wallet-connect/events"
-	"github.com/getAlby/nostr-wallet-connect/lnclient"
-	"github.com/getAlby/nostr-wallet-connect/logger"
-	nip47 "github.com/getAlby/nostr-wallet-connect/nip47/models"
-	"github.com/getAlby/nostr-wallet-connect/service/keys"
+	"github.com/getAlby/hub/config"
+	"github.com/getAlby/hub/db"
+	"github.com/getAlby/hub/events"
+	"github.com/getAlby/hub/lnclient"
+	"github.com/getAlby/hub/logger"
+	nip47 "github.com/getAlby/hub/nip47/models"
+	"github.com/getAlby/hub/service/keys"
 )
 
 type albyOAuthService struct {
-	cfg       config.Config
-	oauthConf *oauth2.Config
-	db        *gorm.DB
-	keys      keys.Keys
+	cfg            config.Config
+	oauthConf      *oauth2.Config
+	db             *gorm.DB
+	keys           keys.Keys
+	eventPublisher events.EventPublisher
 }
 
 const (
@@ -40,7 +40,7 @@ const (
 	userIdentifierKey    = "AlbyUserIdentifier"
 )
 
-func NewAlbyOAuthService(db *gorm.DB, cfg config.Config, keys keys.Keys) *albyOAuthService {
+func NewAlbyOAuthService(db *gorm.DB, cfg config.Config, keys keys.Keys, eventPublisher events.EventPublisher) *albyOAuthService {
 	conf := &oauth2.Config{
 		ClientID:     cfg.GetEnv().AlbyClientId,
 		ClientSecret: cfg.GetEnv().AlbyClientSecret,
@@ -59,10 +59,11 @@ func NewAlbyOAuthService(db *gorm.DB, cfg config.Config, keys keys.Keys) *albyOA
 	}
 
 	albyOAuthSvc := &albyOAuthService{
-		oauthConf: conf,
-		cfg:       cfg,
-		db:        db,
-		keys:      keys,
+		oauthConf:      conf,
+		cfg:            cfg,
+		db:             db,
+		keys:           keys,
+		eventPublisher: eventPublisher,
 	}
 	return albyOAuthSvc
 }
@@ -257,15 +258,18 @@ func (svc *albyOAuthService) DrainSharedWallet(ctx context.Context, lnClient lnc
 		return err
 	}
 
-	amount := int64(math.Floor(
-		float64(balance.Balance)*1000* // Alby shared node balance in sats
-			(1-8/1000)* // Alby service fee (0.8%)
-			0.99)) - // Maximum potential routing fees (1%)
-		10000 // Alby fee reserve (10 sats)
+	balanceSat := float64(balance.Balance)
 
-	if amount < 1000 {
+	amountSat := int64(math.Floor(
+		balanceSat- // Alby shared node balance in sats
+			(balanceSat*(8/1000))- // Alby service fee (0.8%)
+			(balanceSat*0.01))) - // Maximum potential routing fees (1%)
+		10 // Alby fee reserve (10 sats)
+
+	if amountSat < 1 {
 		return errors.New("Not enough balance remaining")
 	}
+	amount := amountSat * 1000
 
 	logger.Logger.WithField("amount", amount).WithError(err).Error("Draining Alby shared wallet funds")
 
@@ -375,20 +379,20 @@ func (svc *albyOAuthService) GetAuthUrl() string {
 	return svc.oauthConf.AuthCodeURL("unused")
 }
 
-func (svc *albyOAuthService) LinkAccount(ctx context.Context) error {
+func (svc *albyOAuthService) LinkAccount(ctx context.Context, lnClient lnclient.LNClient) error {
 	connectionPubkey, err := svc.createAlbyAccountNWCNode(ctx)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to create alby account nwc node")
 		return err
 	}
 
-	app, _, err := db.NewDBService(svc.db).CreateApp(
+	app, _, err := db.NewDBService(svc.db, svc.eventPublisher).CreateApp(
 		"getalby.com",
 		connectionPubkey,
 		1_000_000,
 		nip47.BUDGET_RENEWAL_MONTHLY,
 		nil,
-		strings.Split(nip47.CAPABILITIES, " "),
+		lnClient.GetSupportedNIP47Methods(),
 	)
 
 	if err != nil {

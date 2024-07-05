@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/getAlby/nostr-wallet-connect/lnclient"
+	"github.com/getAlby/hub/lnclient"
 )
 
 // for the invoice:
@@ -159,4 +159,11 @@ func (mln *MockLn) DisconnectPeer(ctx context.Context, peerId string) error {
 
 func (mln *MockLn) UpdateChannel(ctx context.Context, updateChannelRequest *lnclient.UpdateChannelRequest) error {
 	return nil
+}
+
+func (mln *MockLn) GetSupportedNIP47Methods() []string {
+	return []string{"pay_invoice", "pay_keysend", "get_balance", "get_info", "make_invoice", "lookup_invoice", "list_transactions", "multi_pay_invoice", "multi_pay_keysend", "sign_message"}
+}
+func (mln *MockLn) GetSupportedNIP47NotificationTypes() []string {
+	return []string{"payment_received", "payment_sent"}
 }

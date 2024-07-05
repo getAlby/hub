@@ -93,7 +93,8 @@ jobs:
       - name: Build Binary for linux
         env:
           CGO_ENABLED: 1
-        run: go build ${{ env.GOTAGS }} -o build/bin/${{ env.PACKAGE_NAME }}/bin/${{ env.EXEC_NAME }} cmd/http/main.go
+          TAG: ${{ github.ref_name }}
+        run: go build ${{ env.GOTAGS }} -o build/bin/${{ env.PACKAGE_NAME }}/bin/${{ env.EXEC_NAME }} -ldflags "-X 'github.com/getAlby/hub/version.Tag=${{ env.TAG }}'" cmd/http/main.go
 
       - name: Copy shared libraries to the output directory
         run: |

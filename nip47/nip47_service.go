@@ -3,12 +3,12 @@ package nip47
 import (
 	"context"
 
-	"github.com/getAlby/nostr-wallet-connect/config"
-	"github.com/getAlby/nostr-wallet-connect/events"
-	"github.com/getAlby/nostr-wallet-connect/lnclient"
-	"github.com/getAlby/nostr-wallet-connect/nip47/notifications"
-	permissions "github.com/getAlby/nostr-wallet-connect/nip47/permissions"
-	"github.com/getAlby/nostr-wallet-connect/service/keys"
+	"github.com/getAlby/hub/config"
+	"github.com/getAlby/hub/events"
+	"github.com/getAlby/hub/lnclient"
+	"github.com/getAlby/hub/nip47/notifications"
+	permissions "github.com/getAlby/hub/nip47/permissions"
+	"github.com/getAlby/hub/service/keys"
 	"github.com/nbd-wtf/go-nostr"
 	"gorm.io/gorm"
 )
@@ -25,7 +25,7 @@ type nip47Service struct {
 type Nip47Service interface {
 	StartNotifier(ctx context.Context, relay *nostr.Relay, lnClient lnclient.LNClient)
 	HandleEvent(ctx context.Context, sub *nostr.Subscription, event *nostr.Event, lnClient lnclient.LNClient)
-	PublishNip47Info(ctx context.Context, relay *nostr.Relay) error
+	PublishNip47Info(ctx context.Context, relay *nostr.Relay, lnClient lnclient.LNClient) error
 	CreateResponse(initialEvent *nostr.Event, content interface{}, tags nostr.Tags, ss []byte) (result *nostr.Event, err error)
 }
 

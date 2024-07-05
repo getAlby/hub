@@ -429,14 +429,14 @@ export default function Channels() {
         )}
       >
         {showHostedBalance && (
-          <Card>
+          <Card className="flex flex-col">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Alby Hosted Balance
               </CardTitle>
               <Hotel className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex-grow">
               <div className="text-2xl font-bold">
                 {new Intl.NumberFormat().format(albyBalance?.sats)} sats
               </div>
@@ -491,14 +491,14 @@ export default function Channels() {
             </CardFooter>
           </Card>
         )}
-        <Card>
+        <Card className="flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Savings Balance
             </CardTitle>
             <Bitcoin className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex-grow">
             {!balances && (
               <div>
                 <div className="animate-pulse d-inline ">
@@ -534,14 +534,14 @@ export default function Channels() {
             </Link>
           </CardFooter>
         </Card>
-        <Card>
+        <Card className="flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Spending Balance
             </CardTitle>
             <ArrowUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex-grow">
             {!balances && (
               <div>
                 <div className="animate-pulse d-inline ">
@@ -564,14 +564,14 @@ export default function Channels() {
             </Link>
           </CardFooter>
         </Card>
-        <Card>
+        <Card className="flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Receiving Capacity
             </CardTitle>
             <ArrowDown className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex-grow">
             <div className="text-2xl font-bold">
               {balances &&
                 new Intl.NumberFormat().format(

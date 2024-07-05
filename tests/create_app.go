@@ -1,7 +1,7 @@
 package tests
 
 import (
-	"github.com/getAlby/nostr-wallet-connect/db"
+	"github.com/getAlby/hub/db"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip04"
 )

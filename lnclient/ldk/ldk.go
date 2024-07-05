@@ -16,19 +16,19 @@ import (
 	"time"
 
 	"github.com/getAlby/ldk-node-go/ldk_node"
-	// "github.com/getAlby/nostr-wallet-connect/ldk_node"
+	// "github.com/getAlby/hub/ldk_node"
 
 	"encoding/hex"
 
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
 
-	"github.com/getAlby/nostr-wallet-connect/config"
-	"github.com/getAlby/nostr-wallet-connect/events"
-	"github.com/getAlby/nostr-wallet-connect/lnclient"
-	"github.com/getAlby/nostr-wallet-connect/logger"
-	"github.com/getAlby/nostr-wallet-connect/lsp"
-	"github.com/getAlby/nostr-wallet-connect/utils"
+	"github.com/getAlby/hub/config"
+	"github.com/getAlby/hub/events"
+	"github.com/getAlby/hub/lnclient"
+	"github.com/getAlby/hub/logger"
+	"github.com/getAlby/hub/lsp"
+	"github.com/getAlby/hub/utils"
 )
 
 type LDKService struct {
@@ -1404,6 +1404,14 @@ func (ls *LDKService) DisconnectPeer(ctx context.Context, peerId string) error {
 
 func (ls *LDKService) UpdateLastWalletSyncRequest() {
 	ls.lastWalletSyncRequest = time.Now()
+}
+
+func (ls *LDKService) GetSupportedNIP47Methods() []string {
+	return []string{"pay_invoice", "pay_keysend", "get_balance", "get_info", "make_invoice", "lookup_invoice", "list_transactions", "multi_pay_invoice", "multi_pay_keysend", "sign_message"}
+}
+
+func (ls *LDKService) GetSupportedNIP47NotificationTypes() []string {
+	return []string{"payment_received", "payment_sent"}
 }
 
 func (ls *LDKService) getChannelCloseReason(event *ldk_node.EventChannelClosed) string {

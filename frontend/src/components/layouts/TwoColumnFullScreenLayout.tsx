@@ -18,7 +18,7 @@ const quotes = [
     imageUrl: "/images/quotes/nakamoto.svg",
   },
   {
-    content: `Since we’re all rich with bitcoins, or we will be once they’re worth a million dollars like everyone expects, we ought to put some of this unearned wealth to good use.`,
+    content: `Since we're all rich with bitcoins, or we will be once they're worth a million dollars like everyone expects, we ought to put some of this unearned wealth to good use.`,
     author: "Hal Finney",
     imageUrl: "/images/quotes/finney.svg",
   },
@@ -41,6 +41,11 @@ const quotes = [
     content: `Bitcoin is the new wonder of the world, more work and human ingenuity, than went into the great pyramids of Egypt. The biggest computation ever done, a digital monument, a verifiable artefact of digital gold - the foundation of a new digital age.`,
     author: "Adam Back",
     imageUrl: "/images/quotes/back.svg",
+  },
+  {
+    content: `Create more. Consume less. Seek the truth.`,
+    author: "Roland",
+    imageUrl: "/images/quotes/roland.svg",
   },
 ];
 
@@ -68,7 +73,6 @@ export default function TwoColumnFullScreenLayout() {
             {info?.version && (
               <p className="text-sm text-muted-foreground">{info.version}</p>
             )}
-            {/* <ModeToggle /> */}
           </div>
         </div>
         <div className="flex flex-row gap-5">

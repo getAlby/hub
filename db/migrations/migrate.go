@@ -14,6 +14,7 @@ func Migrate(gormDB *gorm.DB) error {
 		_202405302121_store_decrypted_request,
 		_202406061259_delete_content,
 		_202406071726_vacuum,
+		_202406301207_rename_request_methods,
 	})
 
 	return m.Migrate()

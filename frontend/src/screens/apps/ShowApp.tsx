@@ -1,11 +1,16 @@
 import React from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 import { useApp } from "src/hooks/useApp";
 import { useCSRF } from "src/hooks/useCSRF";
 import { useDeleteApp } from "src/hooks/useDeleteApp";
 import { useInfo } from "src/hooks/useInfo";
-import { AppPermissions, BudgetRenewalType, PermissionType } from "src/types";
+import {
+  AppPermissions,
+  BudgetRenewalType,
+  Scope,
+  UpdateAppRequest,
+} from "src/types";
 
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request"; // build the project for this to appear
@@ -42,15 +47,20 @@ function ShowApp() {
   const { pubkey } = useParams() as { pubkey: string };
   const { data: app, mutate: refetchApp, error } = useApp(pubkey);
   const navigate = useNavigate();
-
+  const location = useLocation();
   const [editMode, setEditMode] = React.useState(false);
+
+  React.useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    setEditMode(queryParams.has("edit"));
+  }, [location.search]);
 
   const { deleteApp, isDeleting } = useDeleteApp(() => {
     navigate("/apps");
   });
 
   const [permissions, setPermissions] = React.useState<AppPermissions>({
-    requestMethods: new Set<PermissionType>(),
+    scopes: new Set<Scope>(),
     maxAmount: 0,
     budgetRenewal: "",
     expiresAt: undefined,
@@ -59,7 +69,7 @@ function ShowApp() {
   React.useEffect(() => {
     if (app) {
       setPermissions({
-        requestMethods: new Set(app.requestMethods as PermissionType[]),
+        scopes: new Set(app.scopes),
         maxAmount: app.maxAmount,
         budgetRenewal: app.budgetRenewal as BudgetRenewalType,
         expiresAt: app.expiresAt ? new Date(app.expiresAt) : undefined,
@@ -81,16 +91,20 @@ function ShowApp() {
         throw new Error("No CSRF token");
       }
 
+      const updateAppRequest: UpdateAppRequest = {
+        scopes: Array.from(permissions.scopes),
+        budgetRenewal: permissions.budgetRenewal,
+        expiresAt: permissions.expiresAt?.toISOString(),
+        maxAmount: permissions.maxAmount,
+      };
+
       await request(`/api/apps/${app.nostrPubkey}`, {
         method: "PATCH",
         headers: {
           "X-CSRF-Token": csrf,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          ...permissions,
-          requestMethods: [...permissions.requestMethods].join(" "),
-        }),
+        body: JSON.stringify(updateAppRequest),
       });
 
       await refetchApp();
@@ -196,9 +210,7 @@ function ShowApp() {
                           variant="outline"
                           onClick={() => {
                             setPermissions({
-                              requestMethods: new Set(
-                                app.requestMethods as PermissionType[]
-                              ),
+                              scopes: new Set(app.scopes as Scope[]),
                               maxAmount: app.maxAmount,
                               budgetRenewal:
                                 app.budgetRenewal as BudgetRenewalType,

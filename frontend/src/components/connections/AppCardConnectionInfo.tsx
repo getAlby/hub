@@ -1,4 +1,7 @@
 import dayjs from "dayjs";
+import { PlusCircle } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Button } from "src/components/ui/button";
 import { Progress } from "src/components/ui/progress";
 import { formatAmount } from "src/lib/utils";
 import { App } from "src/types";
@@ -12,7 +15,7 @@ export function AppCardConnectionInfo({
 }: AppCardConnectionInfoProps) {
   return (
     <>
-      {connection.maxAmount > 0 && (
+      {connection.maxAmount > 0 ? (
         <>
           <div className="flex flex-row justify-between">
             <div className="mb-2">
@@ -52,6 +55,43 @@ export function AppCardConnectionInfo({
               </div>
             </div>
           )}
+        </>
+      ) : connection.scopes.indexOf("pay_invoice") > -1 ? (
+        <>
+          <div className="flex flex-row justify-between">
+            <div className="mb-2">
+              <p className="text-xs text-secondary-foreground font-medium">
+                You've spent
+              </p>
+              <p className="text-xl font-medium">
+                {new Intl.NumberFormat().format(connection.budgetUsage)} sats
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-row justify-end items-center">
+            <Link to={`/apps/${connection.nostrPubkey}?edit=true`}>
+              <Button variant="outline">
+                <PlusCircle className="w-4 h-4 mr-2" />
+                Set Budget
+              </Button>
+            </Link>
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="flex flex-row justify-between h-full">
+            <div className="mb-2">
+              <p className="text-xs text-secondary-foreground font-medium">
+                Read only
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-1 flex-row justify-end items-center">
+            <Button variant="outline">
+              <PlusCircle className="w-4 h-4 mr-2" />
+              Enable Payments
+            </Button>
+          </div>
         </>
       )}
     </>

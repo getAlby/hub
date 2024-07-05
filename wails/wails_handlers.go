@@ -9,10 +9,10 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/getAlby/nostr-wallet-connect/alby"
-	"github.com/getAlby/nostr-wallet-connect/api"
-	"github.com/getAlby/nostr-wallet-connect/db"
-	"github.com/getAlby/nostr-wallet-connect/logger"
+	"github.com/getAlby/hub/alby"
+	"github.com/getAlby/hub/api"
+	"github.com/getAlby/hub/db"
+	"github.com/getAlby/hub/logger"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
@@ -393,7 +393,6 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		}
 		return WailsRequestRouterResponse{Body: newAddress, Error: ""}
 	case "/api/wallet/redeem-onchain-funds":
-
 		redeemOnchainFundsRequest := &api.RedeemOnchainFundsRequest{}
 		err := json.Unmarshal([]byte(body), redeemOnchainFundsRequest)
 		if err != nil {
@@ -418,6 +417,12 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: *signMessageResponse, Error: ""}
+	case "/api/wallet/capabilities":
+		capabilitiesResponse, err := app.api.GetWalletCapabilities(ctx)
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: *capabilitiesResponse, Error: ""}
 	// TODO: review naming
 	case "/api/instant-channel-invoices":
 		newInstantChannelRequest := &api.NewInstantChannelInvoiceRequest{}
@@ -473,7 +478,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		res := WailsRequestRouterResponse{Body: *infoResponse, Error: ""}
 		return res
 	case "/api/alby/link-account":
-		err := app.svc.GetAlbyOAuthSvc().LinkAccount(ctx)
+		err := app.svc.GetAlbyOAuthSvc().LinkAccount(ctx, app.svc.GetLNClient())
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
