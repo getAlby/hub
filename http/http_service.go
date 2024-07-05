@@ -14,14 +14,14 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"gorm.io/gorm"
 
-	"github.com/getAlby/nostr-wallet-connect/config"
-	"github.com/getAlby/nostr-wallet-connect/db"
-	"github.com/getAlby/nostr-wallet-connect/events"
-	"github.com/getAlby/nostr-wallet-connect/logger"
-	"github.com/getAlby/nostr-wallet-connect/service"
+	"github.com/getAlby/hub/config"
+	"github.com/getAlby/hub/db"
+	"github.com/getAlby/hub/events"
+	"github.com/getAlby/hub/logger"
+	"github.com/getAlby/hub/service"
 
-	"github.com/getAlby/nostr-wallet-connect/api"
-	"github.com/getAlby/nostr-wallet-connect/frontend"
+	"github.com/getAlby/hub/api"
+	"github.com/getAlby/hub/frontend"
 )
 
 type HttpService struct {

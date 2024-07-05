@@ -166,7 +166,7 @@ export function Welcome() {
                   Subject to the following terms, Alby grants to you a
                   perpetual, worldwide license to the Application pursuant to
                   the Apache-2.0 license.
-                  (https://github.com/getAlby/nostr-wallet-connect-next?tab=Apache-2.0-1-ov-file#readme).
+                  (https://github.com/getAlby/hub?tab=Apache-2.0-1-ov-file#readme).
                   This EULA pertains solely to the Application and does not
                   limit your rights under, or grant you rights that supersede,
                   the license terms of any particular component.

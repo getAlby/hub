@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/getAlby/ldk-node-go/ldk_node"
-	// "github.com/getAlby/nostr-wallet-connect/ldk_node"
-	"github.com/getAlby/nostr-wallet-connect/logger"
+	// "github.com/getAlby/hub/ldk_node"
+	"github.com/getAlby/hub/logger"
 
 	"github.com/sirupsen/logrus"
 )

@@ -3,8 +3,8 @@ package controllers
 import (
 	"encoding/json"
 
-	"github.com/getAlby/nostr-wallet-connect/logger"
-	"github.com/getAlby/nostr-wallet-connect/nip47/models"
+	"github.com/getAlby/hub/logger"
+	"github.com/getAlby/hub/nip47/models"
 	"github.com/sirupsen/logrus"
 )
 

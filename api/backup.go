@@ -16,9 +16,9 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 
-	"github.com/getAlby/nostr-wallet-connect/db"
-	"github.com/getAlby/nostr-wallet-connect/logger"
-	"github.com/getAlby/nostr-wallet-connect/utils"
+	"github.com/getAlby/hub/db"
+	"github.com/getAlby/hub/logger"
+	"github.com/getAlby/hub/utils"
 	"golang.org/x/crypto/pbkdf2"
 )
 
