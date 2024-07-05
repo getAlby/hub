@@ -1,6 +1,6 @@
-# Nostr Wallet Connect (Next)
+# Alby Hub
 
-This is a self-sovereign, self-custodial, single-user rewrite of NWC currently in an experimental phase development. **❗This version is not backwards compatible with NWC - it requires a fresh database and connections to be re-added**
+This is a self-sovereign, self-custodial, single-user rewrite of the original [Nostr Wallet Connect](https://github.com/getAlby/nostr-wallet-connect) app. **❗This version is not backwards compatible with the original app - it requires a fresh database and connections to be re-added**
 
 This application allows you to control your Lightning node or wallet from any other application that supports [NWC](https://nwc.dev/).
 Connect apps like [Damus](https://damus.io/) or [Amethyst](https://linktr.ee/amethyst.social) to your node. There are many more available on https://nwc.dev/.
@@ -16,10 +16,12 @@ Ideally the app runs 24/7 (on a node, VPS or always-online desktop/laptop machin
 
 ## Supported Backends
 
-- LND (see: lnd.go)
-- Breez (see: breez.go)
-- Greenlight (see: greenlight.go)
-- LDK (see: ldk.go)
+- LND
+- Breez
+- Greenlight
+- LDK
+- Pheonixd
+- Cashu
 - want more? please open an issue.
 
 ## Installation
