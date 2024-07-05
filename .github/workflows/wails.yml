@@ -193,7 +193,7 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           mkdir -p ./build/out
-          hdiutil create -volname "AlbyHub" -srcfolder ./build/bin/${{ matrix.build.name }}.app -ov -format UDZO ./build/out/albyhub-${{runner.os}}.dmg
+          hdiutil create -volname "AlbyHub" -srcfolder ./build/bin/${{ env.EXEC_NAME }}.app -ov -format UDZO ./build/out/${{ env.PACKAGE_NAME }}.dmg
           rm -Rf ./build/bin/*
           mv ./build/out/albyhub-${{runner.os}}.dmg ./build/bin/
 
