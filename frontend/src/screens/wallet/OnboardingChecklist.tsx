@@ -60,7 +60,7 @@ function OnboardingChecklist() {
 
   if (
     isLinked &&
-    !hasChannel &&
+    hasChannel &&
     (!hasMnemonic || hasBackedUp) &&
     hasCustomApp &&
     hasTransaction
