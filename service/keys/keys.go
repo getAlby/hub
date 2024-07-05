@@ -1,8 +1,8 @@
 package keys
 
 import (
-	"github.com/getAlby/nostr-wallet-connect/config"
-	"github.com/getAlby/nostr-wallet-connect/logger"
+	"github.com/getAlby/hub/config"
+	"github.com/getAlby/hub/logger"
 	"github.com/nbd-wtf/go-nostr"
 )
 

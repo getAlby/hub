@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/getAlby/nostr-wallet-connect/lnclient"
-	"github.com/getAlby/nostr-wallet-connect/nip47/models"
+	"github.com/getAlby/hub/lnclient"
+	"github.com/getAlby/hub/nip47/models"
 	"github.com/nbd-wtf/go-nostr"
 )
 

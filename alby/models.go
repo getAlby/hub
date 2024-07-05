@@ -3,8 +3,8 @@ package alby
 import (
 	"context"
 
-	"github.com/getAlby/nostr-wallet-connect/events"
-	"github.com/getAlby/nostr-wallet-connect/lnclient"
+	"github.com/getAlby/hub/events"
+	"github.com/getAlby/hub/lnclient"
 )
 
 type AlbyOAuthService interface {

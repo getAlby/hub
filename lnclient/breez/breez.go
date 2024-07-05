@@ -16,8 +16,8 @@ import (
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
 
-	"github.com/getAlby/nostr-wallet-connect/lnclient"
-	"github.com/getAlby/nostr-wallet-connect/logger"
+	"github.com/getAlby/hub/lnclient"
+	"github.com/getAlby/hub/logger"
 )
 
 type BreezService struct {

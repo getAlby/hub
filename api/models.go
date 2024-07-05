@@ -5,9 +5,9 @@ import (
 	"io"
 	"time"
 
-	"github.com/getAlby/nostr-wallet-connect/alby"
-	"github.com/getAlby/nostr-wallet-connect/db"
-	"github.com/getAlby/nostr-wallet-connect/lnclient"
+	"github.com/getAlby/hub/alby"
+	"github.com/getAlby/hub/db"
+	"github.com/getAlby/hub/lnclient"
 )
 
 type API interface {

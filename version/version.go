@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/getAlby/nostr-wallet-connect/logger"
+	"github.com/getAlby/hub/logger"
 	"github.com/sirupsen/logrus"
 )
 
@@ -23,7 +23,7 @@ func GetLatestReleaseTag() string {
 	if latestRelease != "" && time.Since(lastVersionCheck) < 5*time.Minute {
 		return latestRelease
 	}
-	url := "https://api.github.com/repos/getAlby/nostr-wallet-connect-next/releases"
+	url := "https://api.github.com/repos/getAlby/hub/releases"
 
 	client := http.Client{
 		Timeout: time.Second * 10,

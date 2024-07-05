@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/getAlby/nostr-wallet-connect/lnclient"
+	"github.com/getAlby/hub/lnclient"
 )
 
 // for the invoice:

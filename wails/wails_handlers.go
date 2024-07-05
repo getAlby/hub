@@ -9,10 +9,10 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/getAlby/nostr-wallet-connect/alby"
-	"github.com/getAlby/nostr-wallet-connect/api"
-	"github.com/getAlby/nostr-wallet-connect/db"
-	"github.com/getAlby/nostr-wallet-connect/logger"
+	"github.com/getAlby/hub/alby"
+	"github.com/getAlby/hub/api"
+	"github.com/getAlby/hub/db"
+	"github.com/getAlby/hub/logger"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
