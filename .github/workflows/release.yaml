@@ -2,6 +2,9 @@ name: Release
 
 on:
   workflow_dispatch:
+  create:
+    tags:
+      - v*
 
 jobs:
   build-server:
