@@ -38,7 +38,7 @@ function Breadcrumbs() {
   // Remove the last item if it's an index route to prevent e.g. Wallet > Wallet
   const filteredCrumbs = isIndexRoute ? crumbs.slice(0, -1) : crumbs;
 
-  // Don't render anything if there is only one item
+  // Skip rendering for breadcrumbs consisting of 2 (or less) items 
   if (filteredCrumbs.length < 3) {
     return null;
   }
