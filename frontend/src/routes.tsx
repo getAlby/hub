@@ -164,7 +164,7 @@ const routes = [
       {
         path: "channels",
         element: <DefaultRedirect />,
-        handle: { crumb: () => "Liquidity" },
+        handle: { crumb: () => "Node" },
         children: [
           {
             index: true,
