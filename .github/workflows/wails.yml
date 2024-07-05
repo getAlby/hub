@@ -54,7 +54,7 @@ jobs:
       - name: Setup GoLang
         uses: actions/setup-go@v5
         with:
-          go-version-file: './go.mod'
+          go-version-file: "./go.mod"
 
       - name: Get dependencies
         run: go get -v -t -d ./...
@@ -75,9 +75,7 @@ jobs:
 
       - name: Install macOS Wails deps
         if: runner.os == 'macOS'
-        run: |
-          brew install create-dmg
-          brew install Bearer/tap/gon
+        run: brew install Bearer/tap/gon
         shell: bash
 
       - name: Wails Doctor
@@ -195,9 +193,9 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           mkdir -p ./build/out
-          create-dmg --volname "AlbyHub" --background "./build/darwin/dmgcover.png" --window-pos 200 120 --window-size 800 400 --icon-size 80 --icon "AlbyHub.app" 200 160 --hide-extension "AlbyHub.app" --app-drop-link 600 160 "./build/out/${{ env.PACKAGE_NAME }}.dmg" "./build/bin/${{ env.EXEC_NAME }}.app"
+          hdiutil create -volname "AlbyHub" -srcfolder ./build/bin/${{ matrix.build.name }}.app -ov -format UDZO ./build/out/albyhub-${{runner.os}}.dmg
           rm -Rf ./build/bin/*
-          mv ./build/out/${{ env.PACKAGE_NAME }}.dmg ./build/bin/
+          mv ./build/out/albyhub-${{runner.os}}.dmg ./build/bin/
 
       - name: Notarize the DMG image
         if: runner.os == 'macOS' && inputs.build-release
