@@ -21,7 +21,7 @@ require (
 	golang.org/x/crypto v0.24.0
 	golang.org/x/oauth2 v0.21.0
 	google.golang.org/grpc v1.65.0
-	gopkg.in/DataDog/dd-trace-go.v1 v1.65.0
+	gopkg.in/DataDog/dd-trace-go.v1 v1.65.1
 	gopkg.in/macaroon.v2 v2.1.0
 	gorm.io/gorm v1.25.10
 )
