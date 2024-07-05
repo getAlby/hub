@@ -30,12 +30,12 @@ const CircleProgress = React.forwardRef<
   <ProgressPrimitive.Root
     ref={ref}
     className={cn(
-      `relative h-20 w-20 overflow-hidden rounded-full bg-primary/20 flex justify-center items-center`,
+      `relative h-20 w-20 overflow-hidden rounded-full flex justify-center items-center`,
       className
     )}
     {...props}
     style={{
-      background: `radial-gradient(closest-side, white 79%, transparent 80% 100%), conic-gradient(hsl(var(--primary)) ${value || 0}%, hsl(var(--secondary)) 0)`,
+      background: `radial-gradient(closest-side, hsl(var(--background)) 79%, transparent 80% 100%), conic-gradient(hsl(var(--primary)) ${value || 0}%, hsl(var(--secondary)) 0)`,
     }}
   >
     {props.children || <div className="">{`${value || 0}%`}</div>}

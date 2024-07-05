@@ -834,11 +834,15 @@ function getNodeHealth(channels: Channel[]) {
     channels.map((channel) => channel.remotePubkey)
   ).size;
 
-  const nodeHealth = Math.ceil(
+  let nodeHealth = Math.ceil(
     Math.min(3, numUniqueChannelPartners) *
       (100 / 3) * // 3 channels is great
       (Math.min(totalChannelCapacitySats, 1_000_000) / 1_000_000) * // 1 million sats or more is great
       averageChannelBalance // perfectly balanced is great!
   );
+
+  // above calculation is a bit harsh
+  nodeHealth = Math.min(nodeHealth * 2, 100);
+
   return nodeHealth;
 }
