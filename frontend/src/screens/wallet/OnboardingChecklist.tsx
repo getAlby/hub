@@ -48,7 +48,7 @@ function OnboardingChecklist() {
     nodeConnectionInfo &&
     albyMe?.keysend_pubkey === nodeConnectionInfo?.pubkey;
   const hasChannel =
-    !hasChannelManagement || (hasChannelManagement && channels?.length > 0);
+    !hasChannelManagement || (hasChannelManagement && channels.length > 0);
   const hasBackedUp =
     hasMnemonic &&
     info &&
@@ -56,7 +56,7 @@ function OnboardingChecklist() {
     new Date(info.nextBackupReminder).getTime() > new Date().getTime();
   const hasCustomApp =
     apps && apps.find((x) => x.name !== "getalby.com") !== undefined;
-  const hasTransaction = transactions?.length > 0;
+  const hasTransaction = transactions.length > 0;
 
   if (
     isLinked &&
