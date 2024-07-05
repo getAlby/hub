@@ -15,17 +15,17 @@ import (
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
-	"github.com/getAlby/nostr-wallet-connect/alby"
-	"github.com/getAlby/nostr-wallet-connect/config"
-	"github.com/getAlby/nostr-wallet-connect/db"
-	"github.com/getAlby/nostr-wallet-connect/events"
-	"github.com/getAlby/nostr-wallet-connect/lnclient"
-	"github.com/getAlby/nostr-wallet-connect/logger"
-	permissions "github.com/getAlby/nostr-wallet-connect/nip47/permissions"
-	"github.com/getAlby/nostr-wallet-connect/service"
-	"github.com/getAlby/nostr-wallet-connect/service/keys"
-	"github.com/getAlby/nostr-wallet-connect/utils"
-	"github.com/getAlby/nostr-wallet-connect/version"
+	"github.com/getAlby/hub/alby"
+	"github.com/getAlby/hub/config"
+	"github.com/getAlby/hub/db"
+	"github.com/getAlby/hub/events"
+	"github.com/getAlby/hub/lnclient"
+	"github.com/getAlby/hub/logger"
+	permissions "github.com/getAlby/hub/nip47/permissions"
+	"github.com/getAlby/hub/service"
+	"github.com/getAlby/hub/service/keys"
+	"github.com/getAlby/hub/utils"
+	"github.com/getAlby/hub/version"
 )
 
 type api struct {

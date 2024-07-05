@@ -16,9 +16,9 @@ import (
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 
-	"github.com/getAlby/nostr-wallet-connect/lnclient"
-	"github.com/getAlby/nostr-wallet-connect/lnclient/lnd/wrapper"
-	"github.com/getAlby/nostr-wallet-connect/logger"
+	"github.com/getAlby/hub/lnclient"
+	"github.com/getAlby/hub/lnclient/lnd/wrapper"
+	"github.com/getAlby/hub/logger"
 
 	"github.com/sirupsen/logrus"
 	// "gorm.io/gorm"

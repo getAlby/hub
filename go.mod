@@ -1,4 +1,4 @@
-module github.com/getAlby/nostr-wallet-connect
+module github.com/getAlby/hub
 
 go 1.22.2
 

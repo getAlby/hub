@@ -3,7 +3,7 @@ services:
     runtime: image
     name: albyhub
     image:
-      url: ghcr.io/getalby/nostr-wallet-connect-next:latest
+      url: ghcr.io/getalby/hub:latest
     numInstances: 1
     region: frankfurt # Default: oregon
     plan: starter

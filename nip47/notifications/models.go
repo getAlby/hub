@@ -1,6 +1,6 @@
 package notifications
 
-import "github.com/getAlby/nostr-wallet-connect/nip47/models"
+import "github.com/getAlby/hub/nip47/models"
 
 type Notification struct {
 	Notification     interface{} `json:"notification,omitempty"`

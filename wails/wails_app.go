@@ -5,9 +5,9 @@ import (
 	"embed"
 	"log"
 
-	"github.com/getAlby/nostr-wallet-connect/api"
-	"github.com/getAlby/nostr-wallet-connect/logger"
-	"github.com/getAlby/nostr-wallet-connect/service"
+	"github.com/getAlby/hub/api"
+	"github.com/getAlby/hub/logger"
+	"github.com/getAlby/hub/service"
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"

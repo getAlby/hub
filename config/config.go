@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/getAlby/nostr-wallet-connect/db"
-	"github.com/getAlby/nostr-wallet-connect/logger"
+	"github.com/getAlby/hub/db"
+	"github.com/getAlby/hub/logger"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
