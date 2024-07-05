@@ -73,7 +73,6 @@ export default function TwoColumnFullScreenLayout() {
             {info?.version && (
               <p className="text-sm text-muted-foreground">{info.version}</p>
             )}
-            {/* <ModeToggle /> */}
           </div>
         </div>
         <div className="flex flex-row gap-5">
