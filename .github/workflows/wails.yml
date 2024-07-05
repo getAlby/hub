@@ -195,7 +195,7 @@ jobs:
           mkdir -p ./build/out
           hdiutil create -volname "AlbyHub" -srcfolder ./build/bin/${{ env.EXEC_NAME }}.app -ov -format UDZO ./build/out/${{ env.PACKAGE_NAME }}.dmg
           rm -Rf ./build/bin/*
-          mv ./build/out/albyhub-${{runner.os}}.dmg ./build/bin/
+          mv ./build/out/${{ env.PACKAGE_NAME }}.dmg ./build/bin/
 
       - name: Notarize the DMG image
         if: runner.os == 'macOS' && inputs.build-release
