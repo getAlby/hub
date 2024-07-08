@@ -40,6 +40,7 @@ func (svc *LNDService) GetBalance(ctx context.Context) (balance int64, err error
 	return int64(resp.LocalBalance.Msat), nil
 }
 
+// FIXME: this always returns limit * 2 transactions and offset is not used correctly
 func (svc *LNDService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []lnclient.Transaction, err error) {
 	// Fetch invoices
 	var invoices []*lnrpc.Invoice
