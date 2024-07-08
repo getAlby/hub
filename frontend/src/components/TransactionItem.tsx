@@ -84,9 +84,10 @@ function TransactionItem({ tx }: Props) {
           <div className="flex ml-auto text-right space-x-3 shrink-0 dark:text-white">
             <div className="flex items-center gap-2 text-xl">
               <p
-                className={`font-semibold ${
+                className={cn(
+                  "font-semibold",
                   type == "incoming" && "text-green-600 dark:color-green-400"
-                }`}
+                )}
               >
                 {type == "outgoing" ? "-" : "+"} {Math.floor(tx.amount / 1000)}
               </p>
