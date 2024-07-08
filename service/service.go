@@ -16,18 +16,18 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 
-	"github.com/getAlby/nostr-wallet-connect/alby"
-	"github.com/getAlby/nostr-wallet-connect/events"
-	"github.com/getAlby/nostr-wallet-connect/logger"
-	"github.com/getAlby/nostr-wallet-connect/service/keys"
-	"github.com/getAlby/nostr-wallet-connect/transactions"
-	"github.com/getAlby/nostr-wallet-connect/version"
+	"github.com/getAlby/hub/alby"
+	"github.com/getAlby/hub/events"
+	"github.com/getAlby/hub/logger"
+	"github.com/getAlby/hub/service/keys"
+	"github.com/getAlby/hub/transactions"
+	"github.com/getAlby/hub/version"
 
-	"github.com/getAlby/nostr-wallet-connect/config"
-	"github.com/getAlby/nostr-wallet-connect/db"
-	"github.com/getAlby/nostr-wallet-connect/lnclient"
-	"github.com/getAlby/nostr-wallet-connect/nip47"
-	"github.com/getAlby/nostr-wallet-connect/nip47/models"
+	"github.com/getAlby/hub/config"
+	"github.com/getAlby/hub/db"
+	"github.com/getAlby/hub/lnclient"
+	"github.com/getAlby/hub/nip47"
+	"github.com/getAlby/hub/nip47/models"
 )
 
 type service struct {
@@ -58,7 +58,7 @@ func NewService(ctx context.Context) (*service, error) {
 	logger.Logger.Info("AlbyHub " + version.Tag)
 
 	if appConfig.Workdir == "" {
-		appConfig.Workdir = filepath.Join(xdg.DataHome, "/alby-nwc")
+		appConfig.Workdir = filepath.Join(xdg.DataHome, "/albyhub")
 		logger.Logger.WithField("workdir", appConfig.Workdir).Info("No workdir specified, using default")
 	}
 	// make sure workdir exists

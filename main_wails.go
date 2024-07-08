@@ -7,9 +7,9 @@ import (
 	"context"
 	"embed"
 
-	"github.com/getAlby/nostr-wallet-connect/logger"
-	"github.com/getAlby/nostr-wallet-connect/service"
-	"github.com/getAlby/nostr-wallet-connect/wails"
+	"github.com/getAlby/hub/logger"
+	"github.com/getAlby/hub/service"
+	"github.com/getAlby/hub/wails"
 	log "github.com/sirupsen/logrus"
 )
 

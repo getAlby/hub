@@ -1,10 +1,10 @@
 package controllers
 
 import (
-	"github.com/getAlby/nostr-wallet-connect/events"
-	"github.com/getAlby/nostr-wallet-connect/lnclient"
-	"github.com/getAlby/nostr-wallet-connect/nip47/permissions"
-	"github.com/getAlby/nostr-wallet-connect/transactions"
+	"github.com/getAlby/hub/events"
+	"github.com/getAlby/hub/lnclient"
+	"github.com/getAlby/hub/nip47/permissions"
+	"github.com/getAlby/hub/transactions"
 	"gorm.io/gorm"
 )
 

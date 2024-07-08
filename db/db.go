@@ -3,8 +3,8 @@ package db
 import (
 	"fmt"
 
-	"github.com/getAlby/nostr-wallet-connect/db/migrations"
-	"github.com/getAlby/nostr-wallet-connect/logger"
+	"github.com/getAlby/hub/db/migrations"
+	"github.com/getAlby/hub/logger"
 	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )

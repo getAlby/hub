@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/getAlby/nostr-wallet-connect/transactions"
+	"github.com/getAlby/hub/transactions"
 )
 
 func (api *api) CreateInvoice(ctx context.Context, amount int64, description string) (*MakeInvoiceResponse, error) {
@@ -31,11 +31,11 @@ func (api *api) LookupInvoice(ctx context.Context, paymentHash string) (*LookupI
 }
 
 // TODO: accept offset, limit params for pagination
-func (api *api) ListTransactions(ctx context.Context) (*ListTransactionsResponse, error) {
+func (api *api) ListTransactions(ctx context.Context, limit uint64, offset uint64) (*ListTransactionsResponse, error) {
 	if api.svc.GetLNClient() == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	transactions, err := api.svc.GetTransactionsService().ListTransactions(ctx, 0, 0, 20, 0, false, "", api.svc.GetLNClient())
+	transactions, err := api.svc.GetTransactionsService().ListTransactions(ctx, 0, 0, limit, offset, false, "", api.svc.GetLNClient())
 	if err != nil {
 		return nil, err
 	}

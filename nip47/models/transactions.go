@@ -1,7 +1,7 @@
 package models
 
 import (
-	"github.com/getAlby/nostr-wallet-connect/transactions"
+	"github.com/getAlby/hub/transactions"
 )
 
 func ToNip47Transaction(transaction *transactions.Transaction) *Transaction {

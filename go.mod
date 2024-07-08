@@ -1,4 +1,4 @@
-module github.com/getAlby/nostr-wallet-connect
+module github.com/getAlby/hub
 
 go 1.22.2
 
@@ -10,7 +10,7 @@ require (
 	github.com/getAlby/glalby-go v0.0.0-20240621192717-95673c864d59
 	github.com/getAlby/ldk-node-go v0.0.0-20240624140557-d51c707f10d9
 	github.com/go-gormigrate/gormigrate/v2 v2.1.2
-	github.com/gorilla/sessions v1.2.2
+	github.com/gorilla/sessions v1.3.0
 	github.com/labstack/echo-contrib v0.17.1
 	github.com/labstack/echo/v4 v4.12.0
 	github.com/nbd-wtf/go-nostr v0.32.0
@@ -20,8 +20,8 @@ require (
 	github.com/wailsapp/wails/v2 v2.8.2
 	golang.org/x/crypto v0.24.0
 	golang.org/x/oauth2 v0.21.0
-	google.golang.org/grpc v1.64.0
-	gopkg.in/DataDog/dd-trace-go.v1 v1.65.0
+	google.golang.org/grpc v1.65.0
+	gopkg.in/DataDog/dd-trace-go.v1 v1.65.1
 	gopkg.in/macaroon.v2 v2.1.0
 	gorm.io/gorm v1.25.10
 )
@@ -205,8 +205,8 @@ require (
 	golang.org/x/time v0.5.0 // indirect
 	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d // indirect
 	google.golang.org/genproto v0.0.0-20240227224415-6ceb2ff114de // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20240520151616-dc85e6b867a5 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240520151616-dc85e6b867a5 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20240528184218-531527333157 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240528184218-531527333157 // indirect
 	google.golang.org/protobuf v1.34.1 // indirect
 	gopkg.in/errgo.v1 v1.0.1 // indirect
 	gopkg.in/macaroon-bakery.v2 v2.3.0 // indirect

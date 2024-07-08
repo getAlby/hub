@@ -29,10 +29,12 @@ Restart=always
 RestartSec=1
 User=root
 ExecStart=/opt/albyhub/bin/albyhub
+# Hack to ensure Alby Hub never uses more than 90% CPU
+CPUQuota=90%
 
 Environment="PORT=80"
 Environment="WORK_DIR=/opt/albyhub/data"
-Environment="LDK_ESPLORA_SERVER=https://electrs.albylabs.com"
+Environment="LDK_ESPLORA_SERVER=https://electrs.getalby.com"
 Environment="LOG_EVENTS=true"
 Environment="LDK_GOSSIP_SOURCE="
 

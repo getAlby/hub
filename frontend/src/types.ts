@@ -298,6 +298,7 @@ export type RecommendedChannelPeer = {
   image: string;
   name: string;
   minimumChannelSize: number;
+  maximumChannelSize: number;
 } & (
   | {
       paymentMethod: "onchain";

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/getAlby/nostr-wallet-connect/logger"
-	"github.com/getAlby/nostr-wallet-connect/nip47/models"
+	"github.com/getAlby/hub/logger"
+	"github.com/getAlby/hub/nip47/models"
 	"github.com/nbd-wtf/go-nostr"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"

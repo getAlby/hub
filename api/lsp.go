@@ -13,10 +13,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/getAlby/nostr-wallet-connect/lnclient"
-	"github.com/getAlby/nostr-wallet-connect/logger"
-	"github.com/getAlby/nostr-wallet-connect/lsp"
-	"github.com/getAlby/nostr-wallet-connect/utils"
+	"github.com/getAlby/hub/lnclient"
+	"github.com/getAlby/hub/logger"
+	"github.com/getAlby/hub/lsp"
+	"github.com/getAlby/hub/utils"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
 )

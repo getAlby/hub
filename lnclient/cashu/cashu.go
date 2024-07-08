@@ -11,8 +11,8 @@ import (
 
 	"github.com/elnosh/gonuts/wallet"
 	"github.com/elnosh/gonuts/wallet/storage"
-	"github.com/getAlby/nostr-wallet-connect/lnclient"
-	"github.com/getAlby/nostr-wallet-connect/logger"
+	"github.com/getAlby/hub/lnclient"
+	"github.com/getAlby/hub/logger"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
 )

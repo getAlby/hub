@@ -17,8 +17,8 @@ import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
-import { useInfo } from "src/hooks/useInfo";
 import { useCSRF } from "src/hooks/useCSRF";
+import { useInfo } from "src/hooks/useInfo";
 import { copyToClipboard } from "src/lib/clipboard";
 import { PayInvoiceResponse } from "src/types";
 import { request } from "src/utils/request";
@@ -39,6 +39,20 @@ export default function Send() {
     return <Loading />;
   }
 
+  const handleContinue = () => {
+    try {
+      new Invoice({ pr: invoice });
+      setShowConfirmation(true);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Invalid Payment Request",
+      });
+      console.error(error);
+      setInvoice("");
+    }
+  };
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     try {
@@ -47,7 +61,7 @@ export default function Send() {
       }
       setLoading(true);
       const payInvoiceResponse = await request<PayInvoiceResponse>(
-        `/api/payments/${invoice.trim()}`,
+        `/api/payments/${invoice}`,
         {
           method: "POST",
           headers: {
@@ -69,6 +83,8 @@ export default function Send() {
         variant: "destructive",
         title: "Failed to send: " + e,
       });
+      setInvoice("");
+      setShowConfirmation(false);
       console.error(e);
     }
     setLoading(false);
@@ -81,7 +97,7 @@ export default function Send() {
 
   const paste = async () => {
     const text = await navigator.clipboard.readText();
-    setInvoice(text);
+    setInvoice(text.trim());
   };
 
   return (
@@ -175,7 +191,7 @@ export default function Send() {
                     autoFocus
                     placeholder="Enter an invoice"
                     onChange={(e) => {
-                      setInvoice(e.target.value);
+                      setInvoice(e.target.value.trim());
                     }}
                   />
                   <Button
@@ -189,10 +205,7 @@ export default function Send() {
                 </div>
               </div>
               <div>
-                <Button
-                  onClick={() => setShowConfirmation(true)}
-                  disabled={!invoice}
-                >
+                <Button onClick={handleContinue} disabled={!invoice}>
                   Continue
                 </Button>
               </div>

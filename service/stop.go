@@ -3,8 +3,8 @@ package service
 import (
 	"fmt"
 
-	"github.com/getAlby/nostr-wallet-connect/events"
-	"github.com/getAlby/nostr-wallet-connect/logger"
+	"github.com/getAlby/hub/events"
+	"github.com/getAlby/hub/logger"
 )
 
 // TODO: this should happen on ctx.Done() rather than having to call manually

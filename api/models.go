@@ -5,9 +5,9 @@ import (
 	"io"
 	"time"
 
-	"github.com/getAlby/nostr-wallet-connect/alby"
-	"github.com/getAlby/nostr-wallet-connect/db"
-	"github.com/getAlby/nostr-wallet-connect/lnclient"
+	"github.com/getAlby/hub/alby"
+	"github.com/getAlby/hub/db"
+	"github.com/getAlby/hub/lnclient"
 )
 
 type API interface {
@@ -34,7 +34,7 @@ type API interface {
 	SignMessage(ctx context.Context, message string) (*SignMessageResponse, error)
 	RedeemOnchainFunds(ctx context.Context, toAddress string) (*RedeemOnchainFundsResponse, error)
 	GetBalances(ctx context.Context) (*BalancesResponse, error)
-	ListTransactions(ctx context.Context) (*ListTransactionsResponse, error)
+	ListTransactions(ctx context.Context, limit uint64, offset uint64) (*ListTransactionsResponse, error)
 	SendPayment(ctx context.Context, invoice string) (*SendPaymentResponse, error)
 	CreateInvoice(ctx context.Context, amount int64, description string) (*MakeInvoiceResponse, error)
 	LookupInvoice(ctx context.Context, paymentHash string) (*LookupInvoiceResponse, error)

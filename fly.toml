@@ -7,7 +7,7 @@ app = 'nwc'
 primary_region = 'lax'
 
 [build]
-  image = 'ghcr.io/getalby/nostr-wallet-connect-next:latest'
+  image = 'ghcr.io/getalby/hub:latest'
 
 [env]
   DATABASE_URI = '/data/nwc.db'

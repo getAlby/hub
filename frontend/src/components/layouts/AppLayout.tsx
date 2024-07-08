@@ -2,7 +2,6 @@ import {
   Cable,
   EllipsisVertical,
   ExternalLinkIcon,
-  FlaskRound,
   Home,
   Lock,
   Megaphone,
@@ -15,6 +14,7 @@ import {
   Wallet,
 } from "lucide-react";
 
+import { CubeIcon } from "@radix-ui/react-icons";
 import React from "react";
 import {
   Link,
@@ -140,13 +140,10 @@ export default function AppLayout() {
     const { hasChannelManagement } = useInfo();
     return (
       <nav className="grid items-start p-2 text-sm font-medium lg:px-4">
-        {/* <div className="px-3 py-2 mb-5">
-          <ModeToggle />
-        </div> */}
         {hasChannelManagement && (
           <MenuItem to="/channels">
-            <FlaskRound className="h-4 w-4" />
-            Liquidity
+            <CubeIcon className="h-4 w-4" />
+            Node
           </MenuItem>
         )}
         <MenuItem to="/settings">
@@ -337,7 +334,7 @@ const MenuItem = ({
     }}
     className={({ isActive }) =>
       cn(
-        "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
+        "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-accent-foreground",
         disabled && "cursor-not-allowed",
         !disabled && isActive ? "bg-muted" : ""
       )

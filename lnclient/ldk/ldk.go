@@ -16,19 +16,19 @@ import (
 	"time"
 
 	"github.com/getAlby/ldk-node-go/ldk_node"
-	// "github.com/getAlby/nostr-wallet-connect/ldk_node"
+	// "github.com/getAlby/hub/ldk_node"
 
 	"encoding/hex"
 
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
 
-	"github.com/getAlby/nostr-wallet-connect/config"
-	"github.com/getAlby/nostr-wallet-connect/events"
-	"github.com/getAlby/nostr-wallet-connect/lnclient"
-	"github.com/getAlby/nostr-wallet-connect/logger"
-	"github.com/getAlby/nostr-wallet-connect/lsp"
-	"github.com/getAlby/nostr-wallet-connect/utils"
+	"github.com/getAlby/hub/config"
+	"github.com/getAlby/hub/events"
+	"github.com/getAlby/hub/lnclient"
+	"github.com/getAlby/hub/logger"
+	"github.com/getAlby/hub/lsp"
+	"github.com/getAlby/hub/utils"
 )
 
 type LDKService struct {

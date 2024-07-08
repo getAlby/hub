@@ -70,6 +70,7 @@ function NewChannelInternal({ network }: { network: Network }) {
       network,
       paymentMethod: "onchain",
       minimumChannelSize: 0,
+      maximumChannelSize: 0,
       pubkey: "",
       host: "",
       image: "",

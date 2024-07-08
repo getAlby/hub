@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	echologrus "github.com/davrux/echo-logrus/v4"
@@ -14,14 +15,14 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"gorm.io/gorm"
 
-	"github.com/getAlby/nostr-wallet-connect/config"
-	"github.com/getAlby/nostr-wallet-connect/db"
-	"github.com/getAlby/nostr-wallet-connect/events"
-	"github.com/getAlby/nostr-wallet-connect/logger"
-	"github.com/getAlby/nostr-wallet-connect/service"
+	"github.com/getAlby/hub/config"
+	"github.com/getAlby/hub/db"
+	"github.com/getAlby/hub/events"
+	"github.com/getAlby/hub/logger"
+	"github.com/getAlby/hub/service"
 
-	"github.com/getAlby/nostr-wallet-connect/api"
-	"github.com/getAlby/nostr-wallet-connect/frontend"
+	"github.com/getAlby/hub/api"
+	"github.com/getAlby/hub/frontend"
 )
 
 type HttpService struct {
@@ -180,20 +181,26 @@ func (httpSvc *HttpService) startHandler(c echo.Context) error {
 		})
 	}
 
-	err := httpSvc.api.Start(&startRequest)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to start node: %s", err.Error()),
+	if !httpSvc.cfg.CheckUnlockPassword(startRequest.UnlockPassword) {
+		return c.JSON(http.StatusUnauthorized, ErrorResponse{
+			Message: "Invalid password",
 		})
 	}
 
-	err = httpSvc.saveSessionCookie(c)
+	err := httpSvc.saveSessionCookie(c)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: fmt.Sprintf("Failed to save session: %s", err.Error()),
 		})
 	}
+
+	go func() {
+		err := httpSvc.api.Start(&startRequest)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to start node")
+		}
+	}()
 
 	return c.NoContent(http.StatusNoContent)
 }
@@ -447,7 +454,22 @@ func (httpSvc *HttpService) lookupTransactionHandler(c echo.Context) error {
 func (httpSvc *HttpService) listTransactionsHandler(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	transactions, err := httpSvc.api.ListTransactions(ctx)
+	limit := uint64(20)
+	offset := uint64(0)
+
+	if limitParam := c.QueryParam("limit"); limitParam != "" {
+		if parsedLimit, err := strconv.ParseUint(limitParam, 10, 64); err == nil {
+			limit = parsedLimit
+		}
+	}
+
+	if offsetParam := c.QueryParam("offset"); offsetParam != "" {
+		if parsedOffset, err := strconv.ParseUint(offsetParam, 10, 64); err == nil {
+			offset = parsedOffset
+		}
+	}
+
+	transactions, err := httpSvc.api.ListTransactions(ctx, limit, offset)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{

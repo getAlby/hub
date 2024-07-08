@@ -3,10 +3,10 @@ package controllers
 import (
 	"context"
 
-	"github.com/getAlby/nostr-wallet-connect/db"
-	"github.com/getAlby/nostr-wallet-connect/logger"
-	"github.com/getAlby/nostr-wallet-connect/nip47/models"
-	permissions "github.com/getAlby/nostr-wallet-connect/nip47/permissions"
+	"github.com/getAlby/hub/db"
+	"github.com/getAlby/hub/logger"
+	"github.com/getAlby/hub/nip47/models"
+	permissions "github.com/getAlby/hub/nip47/permissions"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/sirupsen/logrus"
 )
