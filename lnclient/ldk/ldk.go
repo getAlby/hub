@@ -1256,13 +1256,27 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 			},
 		})
 	case ldk_node.EventPaymentReceived:
-		// TODO: trigger transaction update (reuse below event?)
+		if eventType.PaymentId == nil {
+			logger.Logger.WithField("payment_hash", eventType.PaymentHash).Error("payment received event has no payment ID")
+			return
+		}
+		payment := ls.node.Payment(*eventType.PaymentId)
+		if payment == nil {
+			logger.Logger.WithField("payment_id", *eventType.PaymentId).Error("could not find LDK payment")
+			return
+		}
+
+		transaction, err := ls.ldkPaymentToTransaction(payment)
+		if err != nil {
+			logger.Logger.WithField("payment_id", *eventType.PaymentId).Error("failed to convert LDK payment to transaction")
+			return
+		}
+
 		ls.eventPublisher.Publish(&events.Event{
-			Event: "nwc_payment_received",
-			Properties: &events.PaymentReceivedEventProperties{
-				PaymentHash: eventType.PaymentHash,
-			},
+			Event:      "nwc_payment_received",
+			Properties: transaction,
 		})
+
 	case ldk_node.EventPaymentSuccessful:
 		// TODO: trigger transaction update
 		// TODO: trigger transaction update for payment failed

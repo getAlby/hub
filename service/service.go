@@ -110,6 +110,7 @@ func NewService(ctx context.Context) (*service, error) {
 	}
 
 	eventPublisher.RegisterSubscriber(svc.albyOAuthSvc)
+	eventPublisher.RegisterSubscriber(svc.transactionsService)
 
 	eventPublisher.Publish(&events.Event{
 		Event: "nwc_started",

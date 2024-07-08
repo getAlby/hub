@@ -18,10 +18,6 @@ type Event struct {
 	Properties interface{} `json:"properties,omitempty"`
 }
 
-type PaymentReceivedEventProperties struct {
-	PaymentHash string `json:"payment_hash"`
-}
-
 type PaymentSentEventProperties struct {
 	PaymentHash string `json:"payment_hash"`
 	Duration    uint64 `json:"duration"`

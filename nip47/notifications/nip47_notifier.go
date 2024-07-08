@@ -49,18 +49,18 @@ func NewNip47Notifier(relay Relay, db *gorm.DB, cfg config.Config, keys keys.Key
 func (notifier *Nip47Notifier) ConsumeEvent(ctx context.Context, event *events.Event) error {
 	switch event.Event {
 	case "nwc_payment_received":
-		paymentReceivedEventProperties, ok := event.Properties.(*events.PaymentReceivedEventProperties)
+		lnClientTransaction, ok := event.Properties.(*lnclient.Transaction)
 		if !ok {
 			logger.Logger.WithField("event", event).Error("Failed to cast event")
 			return errors.New("failed to cast event")
 		}
 
-		transaction, err := notifier.transactionsService.LookupTransaction(ctx, paymentReceivedEventProperties.PaymentHash, notifier.lnClient, nil)
+		transaction, err := notifier.transactionsService.LookupTransaction(ctx, lnClientTransaction.PaymentHash, notifier.lnClient, nil)
 		if err != nil {
 			logger.Logger.
-				WithField("paymentHash", paymentReceivedEventProperties.PaymentHash).
+				WithField("paymentHash", lnClientTransaction.PaymentHash).
 				WithError(err).
-				Error("Failed to lookup invoice by payment hash")
+				Error("Failed to lookup transaction by payment hash")
 			return err
 		}
 

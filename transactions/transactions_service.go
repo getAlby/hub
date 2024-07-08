@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/getAlby/hub/db"
+	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
@@ -20,6 +21,7 @@ type transactionsService struct {
 }
 
 type TransactionsService interface {
+	events.EventSubscriber
 	MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	LookupTransaction(ctx context.Context, paymentHash string, lnClient lnclient.LNClient, appId *uint) (*Transaction, error)
 	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string, lnClient lnclient.LNClient) (transactions []Transaction, err error)
@@ -266,11 +268,7 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 func (svc *transactionsService) LookupTransaction(ctx context.Context, paymentHash string, lnClient lnclient.LNClient, appId *uint) (*Transaction, error) {
 	transaction := db.Transaction{}
 
-	// FIXME: this is not unique
-	// TODO: check if passing AppId: null works for the "Global" view
-	// - wallet page
-	// - notifications
-	// - etc.
+	// FIXME: this is currently not unique
 	result := svc.db.Find(&transaction, &db.Transaction{
 		//Type:        transactionType,
 		PaymentHash: paymentHash,
@@ -353,4 +351,58 @@ func (svc *transactionsService) checkUnsettledTransaction(ctx context.Context, t
 			}).WithError(dbErr).Error("Failed to update DB transaction")
 		}
 	}
+}
+
+func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.Event, globalProperties map[string]interface{}) error {
+	switch event.Event {
+	case "nwc_payment_received":
+		lnClientTransaction, ok := event.Properties.(*lnclient.Transaction)
+		if !ok {
+			logger.Logger.WithField("event", event).Error("Failed to cast event")
+			return errors.New("failed to cast event")
+		}
+
+		// TODO: copied from makeinvoice
+		var metadata string
+		if lnClientTransaction.Metadata != nil {
+			metadataBytes, err := json.Marshal(lnClientTransaction.Metadata)
+			if err != nil {
+				logger.Logger.WithError(err).Error("Failed to serialize transaction metadata")
+				return err
+			}
+			metadata = string(metadataBytes)
+		}
+
+		// TODO: update the transaction if it already exists!
+		// Note: brand new payments (keysend) cannot be associated with an app
+
+		settledAt := time.Now()
+		dbTransaction := &db.Transaction{
+			Type:            lnClientTransaction.Type,
+			State:           TRANSACTION_STATE_SETTLED,
+			Amount:          uint64(lnClientTransaction.Amount),
+			PaymentRequest:  lnClientTransaction.Invoice,
+			PaymentHash:     lnClientTransaction.PaymentHash,
+			Description:     lnClientTransaction.Description,
+			DescriptionHash: lnClientTransaction.DescriptionHash,
+			// TODO: add missing fields
+			// ExpiresAt:       lnClientTransaction.ExpiresAt,
+			// Fee: lnClientTransaction.FeesPaid,
+			// Preimage: ,
+			SettledAt: &settledAt,
+			Metadata:  metadata,
+		}
+
+		err := svc.db.Create(dbTransaction).Error
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"payment_hash": lnClientTransaction.PaymentHash,
+			}).WithError(err).Error("Failed to create DB transaction")
+			return err
+		}
+
+		// TODO: support nwc_payment_sent and nwc_payment_failed ()
+	}
+
+	return nil
 }
