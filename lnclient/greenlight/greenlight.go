@@ -2,7 +2,6 @@ package greenlight
 
 import (
 	"context"
-	"encoding/hex"
 	"errors"
 	"log"
 	"math/rand"
@@ -126,14 +125,15 @@ func (gs *GreenlightService) SendPaymentSync(ctx context.Context, payReq string)
 	}, nil
 }
 
-func (gs *GreenlightService) SendKeysend(ctx context.Context, amount uint64, destination, preimage string, custom_records []lnclient.TLVRecord) (preImage string, err error) {
+func (gs *GreenlightService) SendKeysend(ctx context.Context, amount uint64, destination string, custom_records []lnclient.TLVRecord) (paymentHash string, preimage string, fee uint64, err error) {
 
 	extraTlvs := []glalby.TlvEntry{}
 
 	for _, customRecord := range custom_records {
+
 		extraTlvs = append(extraTlvs, glalby.TlvEntry{
 			Ty:    customRecord.Type,
-			Value: hex.EncodeToString([]byte(customRecord.Value)),
+			Value: customRecord.Value,
 		})
 	}
 
@@ -146,10 +146,12 @@ func (gs *GreenlightService) SendKeysend(ctx context.Context, amount uint64, des
 
 	if err != nil {
 		logger.Logger.Errorf("Failed to send keysend payment: %v", err)
-		return "", err
+		return "", "", 0, err
 	}
 
-	return response.PaymentPreimage, nil
+	// TODO: get payment hash from response
+
+	return "", response.PaymentPreimage, 0, nil
 }
 
 func (gs *GreenlightService) GetBalance(ctx context.Context) (balance int64, err error) {

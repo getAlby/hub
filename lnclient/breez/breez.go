@@ -116,12 +116,16 @@ func (bs *BreezService) SendPaymentSync(ctx context.Context, payReq string) (*ln
 
 }
 
-func (bs *BreezService) SendKeysend(ctx context.Context, amount uint64, destination, preimage string, custom_records []lnclient.TLVRecord) (preImage string, err error) {
+func (bs *BreezService) SendKeysend(ctx context.Context, amount uint64, destination string, custom_records []lnclient.TLVRecord) (paymentHash string, preimage string, fee uint64, err error) {
 	extraTlvs := []breez_sdk.TlvEntry{}
 	for _, record := range custom_records {
+		decodedValue, err := hex.DecodeString(record.Value)
+		if err != nil {
+			return "", "", 0, err
+		}
 		extraTlvs = append(extraTlvs, breez_sdk.TlvEntry{
 			FieldNumber: record.Type,
-			Value:       []uint8(record.Value),
+			Value:       decodedValue,
 		})
 	}
 
@@ -132,13 +136,13 @@ func (bs *BreezService) SendKeysend(ctx context.Context, amount uint64, destinat
 	}
 	resp, err := bs.svc.SendSpontaneousPayment(sendSpontaneousPaymentRequest)
 	if err != nil {
-		return "", err
+		return "", "", 0, err
 	}
 	var lnDetails breez_sdk.PaymentDetailsLn
 	if resp.Payment.Details != nil {
 		lnDetails, _ = resp.Payment.Details.(breez_sdk.PaymentDetailsLn)
 	}
-	return lnDetails.Data.PaymentPreimage, nil
+	return lnDetails.Data.PaymentHash, lnDetails.Data.PaymentPreimage, resp.Payment.FeeMsat, nil
 }
 
 func (bs *BreezService) GetBalance(ctx context.Context) (balance int64, err error) {

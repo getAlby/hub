@@ -2,10 +2,13 @@ package api
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"time"
 
+	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/transactions"
+	"github.com/sirupsen/logrus"
 )
 
 func (api *api) CreateInvoice(ctx context.Context, amount int64, description string) (*MakeInvoiceResponse, error) {
@@ -72,6 +75,17 @@ func toApiTransaction(transaction *transactions.Transaction) *Transaction {
 		settledAt = &settledAtValue
 	}
 
+	var metadata interface{}
+	if transaction.Metadata != "" {
+		jsonErr := json.Unmarshal([]byte(transaction.Metadata), &metadata)
+		if jsonErr != nil {
+			logger.Logger.WithError(jsonErr).WithFields(logrus.Fields{
+				"id":       transaction.ID,
+				"metadata": transaction.Metadata,
+			}).Error("Failed to deserialize transaction metadata")
+		}
+	}
+
 	return &Transaction{
 		Type:            transaction.Type,
 		Invoice:         transaction.PaymentRequest,
@@ -84,6 +98,6 @@ func toApiTransaction(transaction *transactions.Transaction) *Transaction {
 		FeesPaid:        fee,
 		CreatedAt:       createdAt,
 		SettledAt:       settledAt,
-		Metadata:        transaction.Metadata,
+		Metadata:        metadata,
 	}
 }

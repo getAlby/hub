@@ -1,7 +1,11 @@
 package models
 
 import (
+	"encoding/json"
+
+	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/transactions"
+	"github.com/sirupsen/logrus"
 )
 
 func ToNip47Transaction(transaction *transactions.Transaction) *Transaction {
@@ -27,6 +31,17 @@ func ToNip47Transaction(transaction *transactions.Transaction) *Transaction {
 		settledAt = &settledAtUnix
 	}
 
+	var metadata interface{}
+	if transaction.Metadata != "" {
+		jsonErr := json.Unmarshal([]byte(transaction.Metadata), &metadata)
+		if jsonErr != nil {
+			logger.Logger.WithError(jsonErr).WithFields(logrus.Fields{
+				"id":       transaction.ID,
+				"metadata": transaction.Metadata,
+			}).Error("Failed to deserialize transaction metadata")
+		}
+	}
+
 	return &Transaction{
 		Type:            transaction.Type,
 		Invoice:         transaction.PaymentRequest,
@@ -39,7 +54,6 @@ func ToNip47Transaction(transaction *transactions.Transaction) *Transaction {
 		CreatedAt:       transaction.CreatedAt.Unix(),
 		ExpiresAt:       expiresAt,
 		SettledAt:       settledAt,
-		// FIXME: re-add
-		//Metadata:        metadata,
+		Metadata:        metadata,
 	}
 }

@@ -24,6 +24,7 @@ type TransactionsService interface {
 	LookupTransaction(ctx context.Context, paymentHash string, lnClient lnclient.LNClient, appId *uint) (*Transaction, error)
 	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string, lnClient lnclient.LNClient) (transactions []Transaction, err error)
 	SendPaymentSync(ctx context.Context, payReq string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
+	SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []lnclient.TLVRecord, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 }
 
 type Transaction = db.Transaction
@@ -169,6 +170,92 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 	if dbErr != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"bolt11": payReq,
+		}).WithError(dbErr).Error("Failed to update DB transaction")
+	}
+
+	// TODO: check the fields are updated here
+	return dbTransaction, nil
+}
+
+func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []lnclient.TLVRecord, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
+	// TODO: in transaction, ensure budget
+
+	metadata := map[string]interface{}{}
+
+	metadata["destination"] = destination
+	metadata["tlv_records"] = customRecords
+	metadataBytes, err := json.Marshal(metadata)
+
+	// NOTE: transaction is created without payment hash :scream:
+	dbTransaction := &db.Transaction{
+		AppId:          appId,
+		RequestEventId: requestEventId,
+		Type:           TRANSACTION_TYPE_OUTGOING,
+		State:          TRANSACTION_STATE_PENDING,
+		Amount:         amount,
+		Metadata:       string(metadataBytes),
+	}
+	err = svc.db.Create(dbTransaction).Error
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"destination": destination,
+			"amount":      amount,
+		}).WithError(err).Error("Failed to create DB transaction")
+		return nil, err
+	}
+
+	paymentHash, preimage, fee, err := lnClient.SendKeysend(ctx, amount, destination, customRecords)
+
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"destination": destination,
+			"amount":      amount,
+		}).WithError(err).Error("Failed to send payment")
+
+		// TODO: this is untested
+		if errors.Is(err, lnclient.NewTimeoutError()) {
+			// we cannot update the payment to failed as it still might succeed.
+			// we'll need to check the status of it later
+			dbErr := svc.db.Model(dbTransaction).Updates(&db.Transaction{
+				PaymentHash: paymentHash,
+			}).Error
+			if dbErr != nil {
+				logger.Logger.WithFields(logrus.Fields{
+					"destination": destination,
+					"amount":      amount,
+				}).WithError(dbErr).Error("Failed to update DB transaction")
+			}
+			return nil, err
+		}
+
+		// As the LNClient did not return a timeout error, we assume the payment definitely failed
+		dbErr := svc.db.Model(dbTransaction).Updates(&db.Transaction{
+			PaymentHash: paymentHash,
+			State:       TRANSACTION_STATE_FAILED,
+		}).Error
+		if dbErr != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"destination": destination,
+				"amount":      amount,
+			}).WithError(dbErr).Error("Failed to update DB transaction")
+		}
+
+		return nil, err
+	}
+
+	// the payment definitely succeeded
+	now := time.Now()
+	dbErr := svc.db.Model(dbTransaction).Updates(&db.Transaction{
+		State:       TRANSACTION_STATE_SETTLED,
+		PaymentHash: paymentHash,
+		Preimage:    &preimage,
+		Fee:         &fee,
+		SettledAt:   &now,
+	}).Error
+	if dbErr != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"destination": destination,
+			"amount":      amount,
 		}).WithError(dbErr).Error("Failed to update DB transaction")
 	}
 

@@ -328,19 +328,16 @@ func (svc *LNDService) SendPaymentSync(ctx context.Context, payReq string) (*lnc
 	}, nil
 }
 
-func (svc *LNDService) SendKeysend(ctx context.Context, amount uint64, destination, preimage string, custom_records []lnclient.TLVRecord) (respPreimage string, err error) {
+func (svc *LNDService) SendKeysend(ctx context.Context, amount uint64, destination string, custom_records []lnclient.TLVRecord) (paymentHash string, preimage string, fee uint64, err error) {
 	destBytes, err := hex.DecodeString(destination)
 	if err != nil {
-		return "", err
+		return "", "", 0, err
 	}
 	var preImageBytes []byte
 
-	if preimage == "" {
-		preImageBytes, err = makePreimageHex()
-		preimage = hex.EncodeToString(preImageBytes)
-	} else {
-		preImageBytes, err = hex.DecodeString(preimage)
-	}
+	preImageBytes, err = makePreimageHex()
+	preimage = hex.EncodeToString(preImageBytes)
+
 	if err != nil || len(preImageBytes) != 32 {
 		logger.Logger.WithFields(logrus.Fields{
 			"amount":        amount,
@@ -349,17 +346,21 @@ func (svc *LNDService) SendKeysend(ctx context.Context, amount uint64, destinati
 			"customRecords": custom_records,
 			"error":         err,
 		}).Errorf("Invalid preimage")
-		return "", err
+		return "", "", 0, err
 	}
 
-	paymentHash := sha256.New()
-	paymentHash.Write(preImageBytes)
-	paymentHashBytes := paymentHash.Sum(nil)
-	paymentHashHex := hex.EncodeToString(paymentHashBytes)
+	paymentHash256 := sha256.New()
+	paymentHash256.Write(preImageBytes)
+	paymentHashBytes := paymentHash256.Sum(nil)
+	paymentHash = hex.EncodeToString(paymentHashBytes)
 
 	destCustomRecords := map[uint64][]byte{}
 	for _, record := range custom_records {
-		destCustomRecords[record.Type] = []byte(record.Value)
+		decodedValue, err := hex.DecodeString(record.Value)
+		if err != nil {
+			return "", "", 0, err
+		}
+		destCustomRecords[record.Type] = decodedValue
 	}
 	const KEYSEND_CUSTOM_RECORD = 5482373484
 	destCustomRecords[KEYSEND_CUSTOM_RECORD] = preImageBytes
@@ -376,46 +377,46 @@ func (svc *LNDService) SendKeysend(ctx context.Context, amount uint64, destinati
 		logger.Logger.WithFields(logrus.Fields{
 			"amount":        amount,
 			"payeePubkey":   destination,
-			"paymentHash":   paymentHashHex,
+			"paymentHash":   paymentHash,
 			"preimage":      preimage,
 			"customRecords": custom_records,
 			"error":         err,
 		}).Errorf("Failed to send keysend payment")
-		return "", err
+		return paymentHash, "", 0, err
 	}
 	if resp.PaymentError != "" {
 		logger.Logger.WithFields(logrus.Fields{
 			"amount":        amount,
 			"payeePubkey":   destination,
-			"paymentHash":   paymentHashHex,
+			"paymentHash":   paymentHash,
 			"preimage":      preimage,
 			"customRecords": custom_records,
 			"paymentError":  resp.PaymentError,
 		}).Errorf("Keysend payment has payment error")
-		return "", errors.New(resp.PaymentError)
+		return paymentHash, "", 0, errors.New(resp.PaymentError)
 	}
-	respPreimage = hex.EncodeToString(resp.PaymentPreimage)
-	if respPreimage == "" {
+	respPreimage := hex.EncodeToString(resp.PaymentPreimage)
+	if respPreimage == preimage {
 		logger.Logger.WithFields(logrus.Fields{
 			"amount":        amount,
 			"payeePubkey":   destination,
-			"paymentHash":   paymentHashHex,
+			"paymentHash":   paymentHash,
 			"preimage":      preimage,
 			"customRecords": custom_records,
 			"paymentError":  resp.PaymentError,
-		}).Errorf("No preimage in keysend response")
-		return "", errors.New("no preimage in keysend response")
+		}).Errorf("Preimage in keysend response does not match")
+		return paymentHash, "", 0, errors.New("preimage in keysend response does not match")
 	}
 	logger.Logger.WithFields(logrus.Fields{
 		"amount":        amount,
 		"payeePubkey":   destination,
-		"paymentHash":   paymentHashHex,
+		"paymentHash":   paymentHash,
 		"preimage":      preimage,
 		"customRecords": custom_records,
 		"respPreimage":  respPreimage,
 	}).Info("Keysend payment successful")
 
-	return respPreimage, nil
+	return paymentHash, respPreimage, uint64(resp.PaymentRoute.TotalFeesMsat), nil
 }
 
 func makePreimageHex() ([]byte, error) {

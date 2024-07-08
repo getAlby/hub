@@ -420,8 +420,8 @@ func (svc *PhoenixService) SendPaymentSync(ctx context.Context, payReq string) (
 	}, nil
 }
 
-func (svc *PhoenixService) SendKeysend(ctx context.Context, amount uint64, destination, preimage string, custom_records []lnclient.TLVRecord) (respPreimage string, err error) {
-	return "", errors.New("not implemented")
+func (svc *PhoenixService) SendKeysend(ctx context.Context, amount uint64, destination string, custom_records []lnclient.TLVRecord) (paymentHash string, preimage string, fee uint64, err error) {
+	return "", "", 0, errors.New("not implemented")
 }
 
 func (svc *PhoenixService) RedeemOnchainFunds(ctx context.Context, toAddress string) (txId string, err error) {

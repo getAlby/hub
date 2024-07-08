@@ -45,7 +45,7 @@ type NodeConnectionInfo struct {
 
 type LNClient interface {
 	SendPaymentSync(ctx context.Context, payReq string) (*PayInvoiceResponse, error)
-	SendKeysend(ctx context.Context, amount uint64, destination, preimage string, customRecords []TLVRecord) (preImage string, err error)
+	SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []TLVRecord) (paymentHash string, preimage string, fee uint64, err error)
 	GetBalance(ctx context.Context) (balance int64, err error)
 	GetInfo(ctx context.Context) (info *NodeInfo, err error)
 	MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *Transaction, err error)
