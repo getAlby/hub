@@ -649,8 +649,8 @@ github.com/wailsapp/go-webview2 v1.0.10 h1:PP5Hug6pnQEAhfRzLCoOh2jJaPdrqeRgJKZhy
 github.com/wailsapp/go-webview2 v1.0.10/go.mod h1:Uk2BePfCRzttBBjFrBmqKGJd41P6QIHeV9kTgIeOZNo=
 github.com/wailsapp/mimetype v1.4.1 h1:pQN9ycO7uo4vsUUuPeHEYoUkLVkaRntMnHJxVwYhwHs=
 github.com/wailsapp/mimetype v1.4.1/go.mod h1:9aV5k31bBOv5z6u+QP8TltzvNGJPmNJD4XlAL3U+j3o=
-github.com/wailsapp/wails/v2 v2.8.2 h1:rYOn9p+7bJiZuFSi2wDyq8rBLHrIX/FoUxov+RpdUOI=
-github.com/wailsapp/wails/v2 v2.8.2/go.mod h1:5pTURIST4yZ/wRcmqDUtnM0Mk+caNax/oS610hFiy74=
+github.com/wailsapp/wails/v2 v2.9.1 h1:irsXnoQrCpeKzKTYZ2SUVlRRyeMR6I0vCO9Q1cvlEdc=
+github.com/wailsapp/wails/v2 v2.9.1/go.mod h1:7maJV2h+Egl11Ak8QZN/jlGLj2wg05bsQS+ywJPT0gI=
 github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f/go.mod h1:N2zxlSyiKSe5eX1tZViRH5QA0qijqEDrYZiPEAiq3wU=
 github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb h1:zGWFAtiMcyryUHoUjUJX0/lt1H2+i2Ka2n+D3DImSNo=
 github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb/go.mod h1:N2zxlSyiKSe5eX1tZViRH5QA0qijqEDrYZiPEAiq3wU=
