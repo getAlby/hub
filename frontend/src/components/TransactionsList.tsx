@@ -164,12 +164,17 @@ function TransactionsList() {
                         {dayjs(tx.settled_at).toString()}
                       </p>
                     </div>
-                    <div className="mt-6">
-                      <p className="dark:text-white">Fee</p>
-                      <p className="text-muted-foreground">
-                        {tx.fees_paid} {tx.fees_paid == 1 ? "sat" : "sats"}
-                      </p>
-                    </div>
+                    {type == "outgoing" && (
+                      <div className="mt-6">
+                        <p className="dark:text-white">Fee</p>
+                        <p className="text-muted-foreground">
+                          {Math.floor(tx.fees_paid / 1000)}{" "}
+                          {Math.floor(tx.fees_paid / 1000) == 1
+                            ? "sat"
+                            : "sats"}
+                        </p>
+                      </div>
+                    )}
                     {tx.description && (
                       <div className="mt-6">
                         <p className="dark:text-white">Description</p>
