@@ -18,6 +18,7 @@ import {
 } from "src/components/ui/credenza";
 import { toast } from "src/components/ui/use-toast";
 import { copyToClipboard } from "src/lib/clipboard";
+import { cn } from "src/lib/utils";
 import { Transaction } from "src/types";
 
 type Props = {
@@ -27,6 +28,7 @@ type Props = {
 function TransactionItem({ tx }: Props) {
   const [showDetails, setShowDetails] = React.useState(false);
   const type = tx.type;
+  const Icon = tx.type == "outgoing" ? ArrowUpIcon : ArrowDownIcon;
 
   const copy = (text: string) => {
     copyToClipboard(text);
@@ -47,25 +49,24 @@ function TransactionItem({ tx }: Props) {
       >
         <div className="flex gap-3">
           <div className="flex items-center">
-            {type == "outgoing" ? (
-              <div
-                className={
-                  "flex justify-center items-center bg-orange-100 dark:bg-orange-950 rounded-full w-10 h-10 md:w-14 md:h-14"
-                }
-              >
-                <ArrowUpIcon
-                  strokeWidth={3}
-                  className="w-6 h-6 md:w-8 md:h-8 text-orange-400 dark:text-amber-600 stroke-orange-400 dark:stroke-amber-600"
-                />
-              </div>
-            ) : (
-              <div className="flex justify-center items-center bg-green-100 dark:bg-emerald-950 rounded-full w-10 h-10 md:w-14 md:h-14">
-                <ArrowDownIcon
-                  strokeWidth={3}
-                  className="w-6 h-6 md:w-8 md:h-8 text-green-500 dark:text-emerald-500 stroke-green-400 dark:stroke-emerald-500"
-                />
-              </div>
-            )}
+            <div
+              className={cn(
+                "flex justify-center items-center rounded-full w-10 h-10 md:w-14 md:h-14",
+                type === "outgoing"
+                  ? "bg-orange-100 dark:bg-orange-950"
+                  : "bg-green-100 dark:bg-emerald-950"
+              )}
+            >
+              <Icon
+                strokeWidth={3}
+                className={cn(
+                  "w-6 h-6 md:w-8 md:h-8",
+                  type === "outgoing"
+                    ? "text-orange-400 dark:text-amber-600 stroke-orange-400 dark:stroke-amber-600"
+                    : "text-green-500 dark:text-emerald-500 stroke-green-400 dark:stroke-emerald-500"
+                )}
+              />
+            </div>
           </div>
           <div className="overflow-hidden mr-3">
             <div className="flex items-center gap-2 truncate dark:text-white">
@@ -103,30 +104,29 @@ function TransactionItem({ tx }: Props) {
       <CredenzaContent className="slashed-zero">
         <CredenzaHeader>
           <CredenzaTitle>
-            {type == "outgoing" ? "Sent Bitcoin" : "Received Bitcoin"}
+            {`${type == "outgoing" ? "Sent" : "Received"} Bitcoin`}
           </CredenzaTitle>
         </CredenzaHeader>
         <CredenzaBody>
           <div className="flex items-center mt-6">
-            {type == "outgoing" ? (
-              <div
-                className={
-                  "flex justify-center items-center bg-orange-100 dark:bg-orange-950 rounded-full w-10 h-10 md:w-14 md:h-14"
-                }
-              >
-                <ArrowUpIcon
-                  strokeWidth={3}
-                  className="w-6 h-6 md:w-8 md:h-8 text-orange-400 dark:text-amber-600 stroke-orange-400 dark:stroke-amber-600"
-                />
-              </div>
-            ) : (
-              <div className="flex justify-center items-center bg-green-100 dark:bg-emerald-950 rounded-full w-10 h-10 md:w-14 md:h-14">
-                <ArrowDownIcon
-                  strokeWidth={3}
-                  className="w-6 h-6 md:w-8 md:h-8 text-green-500 dark:text-emerald-500 stroke-green-400 dark:stroke-emerald-500"
-                />
-              </div>
-            )}
+            <div
+              className={cn(
+                "flex justify-center items-center rounded-full w-10 h-10 md:w-14 md:h-14",
+                type === "outgoing"
+                  ? "bg-orange-100 dark:bg-orange-950"
+                  : "bg-green-100 dark:bg-emerald-950"
+              )}
+            >
+              <Icon
+                strokeWidth={3}
+                className={cn(
+                  "w-6 h-6 md:w-8 md:h-8",
+                  type === "outgoing"
+                    ? "text-orange-400 dark:text-amber-600 stroke-orange-400 dark:stroke-amber-600"
+                    : "text-green-500 dark:text-emerald-500 stroke-green-400 dark:stroke-emerald-500"
+                )}
+              />
+            </div>
             <div className="ml-4">
               <p className="text-xl md:text-2xl font-semibold">
                 {Math.floor(tx.amount / 1000)}{" "}
@@ -140,7 +140,7 @@ function TransactionItem({ tx }: Props) {
           <div className="mt-8">
             <p className="dark:text-white">Date & Time</p>
             <p className="text-muted-foreground">
-              {dayjs(tx.settled_at).toString()}
+              {dayjs(tx.settled_at * 1000).toString()}
             </p>
           </div>
           {type == "outgoing" && (
