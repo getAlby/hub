@@ -39,6 +39,7 @@ import {
 } from "src/components/ui/card";
 import { Table, TableBody, TableCell, TableRow } from "src/components/ui/table";
 import { useToast } from "src/components/ui/use-toast";
+import { useCapabilities } from "src/hooks/useCapabilities";
 
 function ShowApp() {
   const { data: info } = useInfo();
@@ -46,6 +47,7 @@ function ShowApp() {
   const { toast } = useToast();
   const { pubkey } = useParams() as { pubkey: string };
   const { data: app, mutate: refetchApp, error } = useApp(pubkey);
+  const { data: capabilities } = useCapabilities();
   const navigate = useNavigate();
   const location = useLocation();
   const [editMode, setEditMode] = React.useState(false);
@@ -81,7 +83,7 @@ function ShowApp() {
     return <p className="text-red-500">{error.message}</p>;
   }
 
-  if (!app || !info) {
+  if (!app || !info || !capabilities) {
     return <Loading />;
   }
 
@@ -247,6 +249,7 @@ function ShowApp() {
             </CardHeader>
             <CardContent>
               <Permissions
+                capabilities={capabilities}
                 initialPermissions={permissions}
                 onPermissionsChange={setPermissions}
                 canEditPermissions={editMode}

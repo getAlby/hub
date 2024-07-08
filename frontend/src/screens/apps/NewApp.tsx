@@ -272,6 +272,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
             initialPermissions={permissions}
             onPermissionsChange={setPermissions}
             canEditPermissions={!reqMethodsParam}
+            isNewConnection
           />
         </div>
 

@@ -27,6 +27,8 @@ import {
   WalletCapabilities,
   budgetOptions,
   expiryOptions,
+  iconMap,
+  scopeDescriptions,
   validBudgetRenewals,
 } from "src/types";
 
@@ -41,6 +43,7 @@ interface PermissionsProps {
   onPermissionsChange: (permissions: AppPermissions) => void;
   canEditPermissions: boolean;
   budgetUsage?: number;
+  isNewConnection?: boolean;
 }
 
 const Permissions: React.FC<PermissionsProps> = ({
@@ -48,6 +51,7 @@ const Permissions: React.FC<PermissionsProps> = ({
   initialPermissions,
   onPermissionsChange,
   canEditPermissions,
+  isNewConnection,
   budgetUsage,
 }) => {
   // TODO: EDITABLE LOGIC
@@ -57,9 +61,13 @@ const Permissions: React.FC<PermissionsProps> = ({
   const [expiryDays, setExpiryDays] = useState(
     daysFromNow(permissions.expiresAt)
   );
-  const [budgetOption, setBudgetOption] = useState(!!permissions.maxAmount);
+  const [budgetOption, setBudgetOption] = useState(
+    isNewConnection ? !!permissions.maxAmount : true
+  );
   const [customBudget, setCustomBudget] = useState(!!permissions.maxAmount);
-  const [expireOption, setExpireOption] = useState(!!permissions.expiresAt);
+  const [expireOption, setExpireOption] = useState(
+    isNewConnection ? !!permissions.expiresAt : true
+  );
   const [customExpiry, setCustomExpiry] = useState(!!permissions.expiresAt);
 
   useEffect(() => {
@@ -100,8 +108,55 @@ const Permissions: React.FC<PermissionsProps> = ({
     handlePermissionsChange({ expiresAt: currentDate });
   };
 
-  return (
-    <div>
+  return !canEditPermissions ? (
+    <>
+      <p className="text-sm font-medium mb-2">Scopes</p>
+      <div className="flex flex-col gap-1">
+        {[...initialPermissions.scopes].map((rm, index) => {
+          const PermissionIcon = iconMap[rm];
+          return (
+            <div
+              key={index}
+              className={cn(
+                "flex items-center mb-2",
+                rm == NIP_47_PAY_INVOICE_METHOD && "order-last"
+              )}
+            >
+              <PermissionIcon className="mr-2 w-4 h-4" />
+              <p className="text-sm">{scopeDescriptions[rm]}</p>
+            </div>
+          );
+        })}
+      </div>
+      {permissions.scopes.has(NIP_47_PAY_INVOICE_METHOD) && (
+        <div className="pt-2 pl-4 ml-2 border-l-2 border-l-primary">
+          <div className="flex flex-col gap-2 text-muted-foreground mb-3 text-sm">
+            <p className="capitalize">
+              Budget Renewal: {permissions.budgetRenewal || "Never"}
+            </p>
+            <p>
+              Budget Amount:{" "}
+              {permissions.maxAmount
+                ? new Intl.NumberFormat().format(permissions.maxAmount)
+                : "∞"}
+              {" sats "}
+              {`(${new Intl.NumberFormat().format(budgetUsage || 0)} sats used)`}
+            </p>
+          </div>
+        </div>
+      )}
+      <div className="mt-4">
+        <p className="text-sm font-medium mb-2">Connection expiry</p>
+        <p className="text-muted-foreground text-sm">
+          {permissions.expiresAt &&
+          new Date(permissions.expiresAt).getFullYear() !== 1
+            ? new Date(permissions.expiresAt).toString()
+            : "This app will never expire"}
+        </p>
+      </div>
+    </>
+  ) : (
+    <div className="max-w-lg">
       <Scopes
         capabilities={capabilities}
         scopes={permissions.scopes}
