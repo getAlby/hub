@@ -9,6 +9,7 @@ import (
 
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/events"
+	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/nip47/permissions"
 	"github.com/getAlby/hub/tests"
 	"github.com/getAlby/hub/transactions"
@@ -55,7 +56,7 @@ func TestSendNotification_PaymentReceived(t *testing.T) {
 
 	testEvent := &events.Event{
 		Event: "nwc_payment_received",
-		Properties: &events.PaymentReceivedEventProperties{
+		Properties: &lnclient.Transaction{
 			PaymentHash: tests.MockLNClientTransaction.PaymentHash,
 		},
 	}
@@ -136,7 +137,7 @@ func TestSendNotification_PaymentSent(t *testing.T) {
 
 	testEvent := &events.Event{
 		Event: "nwc_payment_sent",
-		Properties: &events.PaymentSentEventProperties{
+		Properties: &lnclient.Transaction{
 			PaymentHash: tests.MockLNClientTransaction.PaymentHash,
 		},
 	}
@@ -196,7 +197,7 @@ func TestSendNotificationNoPermission(t *testing.T) {
 
 	testEvent := &events.Event{
 		Event: "nwc_payment_received",
-		Properties: &events.PaymentReceivedEventProperties{
+		Properties: &lnclient.Transaction{
 			PaymentHash: tests.MockPaymentHash,
 		},
 	}
