@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"slices"
 	"strings"
 	"time"
 
@@ -315,7 +316,13 @@ func (svc *transactionsService) ListTransactions(ctx context.Context, from, unti
 }
 
 func (svc *transactionsService) checkUnsettledTransactions(ctx context.Context, lnClient lnclient.LNClient) {
-	// check pending payments less that a day old
+	// Only check unsettled transactions for clients that don't support async events
+	// checkUnsettledTransactions does not work for keysend payments!
+	if slices.Contains(lnClient.GetSupportedNIP47NotificationTypes(), "payment_received") {
+		return
+	}
+
+	// check pending payments less than a day old
 	transactions := []Transaction{}
 	result := svc.db.Where("state == ? AND created_at > ?", TRANSACTION_STATE_PENDING, time.Now().Add(-24*time.Hour)).Find(&transactions)
 	if result.Error != nil {
@@ -327,6 +334,10 @@ func (svc *transactionsService) checkUnsettledTransactions(ctx context.Context, 
 	}
 }
 func (svc *transactionsService) checkUnsettledTransaction(ctx context.Context, transaction *db.Transaction, lnClient lnclient.LNClient) {
+	if slices.Contains(lnClient.GetSupportedNIP47NotificationTypes(), "payment_received") {
+		return
+	}
+
 	lnClientTransaction, err := lnClient.LookupInvoice(ctx, transaction.PaymentHash)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
@@ -362,42 +373,72 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 			return errors.New("failed to cast event")
 		}
 
-		// TODO: copied from makeinvoice
-		var metadata string
-		if lnClientTransaction.Metadata != nil {
-			metadataBytes, err := json.Marshal(lnClientTransaction.Metadata)
+		settledAt := time.Now()
+		err := svc.db.Transaction(func(tx *gorm.DB) error {
+			var dbTransaction *db.Transaction
+
+			result := tx.Find(&dbTransaction, &db.Transaction{
+				Type:        TRANSACTION_TYPE_INCOMING,
+				PaymentHash: lnClientTransaction.PaymentHash,
+			})
+
+			if result.RowsAffected == 0 {
+				// Note: brand new payments (keysend only) cannot be associated with an app
+				var metadata string
+				if lnClientTransaction.Metadata != nil {
+					metadataBytes, err := json.Marshal(lnClientTransaction.Metadata)
+					if err != nil {
+						logger.Logger.WithError(err).Error("Failed to serialize transaction metadata")
+						return err
+					}
+					metadata = string(metadataBytes)
+				}
+				var expiresAt *time.Time
+				if lnClientTransaction.ExpiresAt != nil {
+					expiresAtValue := time.Unix(*lnClientTransaction.ExpiresAt, 0)
+					expiresAt = &expiresAtValue
+				}
+				dbTransaction = &db.Transaction{
+					Type:            TRANSACTION_TYPE_INCOMING,
+					Amount:          uint64(lnClientTransaction.Amount),
+					PaymentRequest:  lnClientTransaction.Invoice,
+					PaymentHash:     lnClientTransaction.PaymentHash,
+					Description:     lnClientTransaction.Description,
+					DescriptionHash: lnClientTransaction.DescriptionHash,
+					ExpiresAt:       expiresAt,
+					Metadata:        metadata,
+				}
+				err := tx.Create(dbTransaction).Error
+				if err != nil {
+					logger.Logger.WithFields(logrus.Fields{
+						"payment_hash": lnClientTransaction.PaymentHash,
+					}).WithError(err).Error("Failed to create transaction")
+					return err
+				}
+			}
+
+			fee := uint64(lnClientTransaction.FeesPaid)
+
+			err := tx.Model(dbTransaction).Updates(&db.Transaction{
+				Fee:       &fee,
+				Preimage:  &lnClientTransaction.Preimage,
+				State:     TRANSACTION_STATE_SETTLED,
+				SettledAt: &settledAt,
+			}).Error
 			if err != nil {
-				logger.Logger.WithError(err).Error("Failed to serialize transaction metadata")
+				logger.Logger.WithFields(logrus.Fields{
+					"payment_hash": lnClientTransaction.PaymentHash,
+				}).WithError(err).Error("Failed to update transaction")
 				return err
 			}
-			metadata = string(metadataBytes)
-		}
 
-		// TODO: update the transaction if it already exists!
-		// Note: brand new payments (keysend) cannot be associated with an app
+			return nil
+		})
 
-		settledAt := time.Now()
-		dbTransaction := &db.Transaction{
-			Type:            lnClientTransaction.Type,
-			State:           TRANSACTION_STATE_SETTLED,
-			Amount:          uint64(lnClientTransaction.Amount),
-			PaymentRequest:  lnClientTransaction.Invoice,
-			PaymentHash:     lnClientTransaction.PaymentHash,
-			Description:     lnClientTransaction.Description,
-			DescriptionHash: lnClientTransaction.DescriptionHash,
-			// TODO: add missing fields
-			// ExpiresAt:       lnClientTransaction.ExpiresAt,
-			// Fee: lnClientTransaction.FeesPaid,
-			// Preimage: ,
-			SettledAt: &settledAt,
-			Metadata:  metadata,
-		}
-
-		err := svc.db.Create(dbTransaction).Error
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"payment_hash": lnClientTransaction.PaymentHash,
-			}).WithError(err).Error("Failed to create DB transaction")
+			}).WithError(err).Error("Failed to execute DB transaction")
 			return err
 		}
 
