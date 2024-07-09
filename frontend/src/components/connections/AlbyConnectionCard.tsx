@@ -35,7 +35,7 @@ function AlbyConnectionCard({ connection }: { connection?: App }) {
     <Card>
       <CardHeader>
         <CardTitle className="relative">
-          Alby Account
+          Linked Alby Account
           {connection && <AppCardNotice app={connection} />}
         </CardTitle>
         <CardDescription>
@@ -47,7 +47,7 @@ function AlbyConnectionCard({ connection }: { connection?: App }) {
       <CardContent className="group">
         <div className="grid grid-cols-1 xl:grid-cols-2 mt-5 gap-3 items-center relative">
           <div className="flex flex-col gap-4">
-            <div className="flex flex-row gap-4 ">
+            <div className="flex flex-row gap-4">
               <UserAvatar className="h-14 w-14" />
               <div className="flex flex-col justify-center">
                 <div className="text-xl font-semibold">

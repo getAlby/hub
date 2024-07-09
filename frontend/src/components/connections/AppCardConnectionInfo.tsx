@@ -1,5 +1,5 @@
 import dayjs from "dayjs";
-import { PlusCircle } from "lucide-react";
+import { CircleCheck, PlusCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "src/components/ui/button";
 import { Progress } from "src/components/ui/progress";
@@ -36,25 +36,21 @@ export function AppCardConnectionInfo({
           />
           <div className="flex flex-row justify-between text-xs items-center text-muted-foreground mt-2">
             <div>
-              {connection.maxAmount && (
-                <>{formatAmount(connection.maxAmount * 1000)} sats</>
+              {connection.lastEventAt && (
+                <>Last used: {dayjs(connection.lastEventAt).fromNow()}</>
               )}
             </div>
             <div>
-              {connection.maxAmount > 0 &&
-                connection.budgetRenewal !== "never" && (
-                  <>Renews {connection.budgetRenewal}</>
-                )}
+              {connection.maxAmount && (
+                <>
+                  {formatAmount(connection.maxAmount * 1000)} sats
+                  {connection.budgetRenewal !== "never" && (
+                    <> / {connection.budgetRenewal.slice(0, -2)}</>
+                  )}
+                </>
+              )}
             </div>
           </div>
-          {connection.lastEventAt && (
-            <div className="flex flex-row justify-between text-xs items-center text-muted-foreground">
-              <div className="flex flex-row justify-between">
-                <div>Last used:&nbsp;</div>
-                <div>{dayjs(connection.lastEventAt).fromNow()}</div>
-              </div>
-            </div>
-          )}
         </>
       ) : connection.scopes.indexOf("pay_invoice") > -1 ? (
         <>
@@ -79,18 +75,30 @@ export function AppCardConnectionInfo({
         </>
       ) : (
         <>
-          <div className="flex flex-row justify-between h-full">
-            <div className="mb-2">
-              <p className="text-xs text-secondary-foreground font-medium">
-                Read only
-              </p>
+          <div className="text-sm text-secondary-foreground font-medium w-full h-full flex flex-col gap-2">
+            <div className="flex flex-row items-center gap-2">
+              <CircleCheck className="w-4 h-4" />
+              Share wallet information
             </div>
+            {connection.scopes.indexOf("make_invoice") > -1 && (
+              <div className="flex flex-row items-center gap-2">
+                <CircleCheck className="w-4 h-4" />
+                Create Invoices
+              </div>
+            )}
           </div>
-          <div className="flex flex-1 flex-row justify-end items-center">
-            <Button variant="outline">
-              <PlusCircle className="w-4 h-4 mr-2" />
-              Enable Payments
-            </Button>
+          <div className="flex flex-row justify-between items-center">
+            <div className="flex flex-row justify-between text-xs items-center text-muted-foreground">
+              {connection.lastEventAt && (
+                <>Last used: {dayjs(connection.lastEventAt).fromNow()}</>
+              )}
+            </div>
+            <Link to={`/apps/${connection.nostrPubkey}?edit=true`}>
+              <Button variant="outline">
+                <PlusCircle className="w-4 h-4 mr-2" />
+                Enable Payments
+              </Button>
+            </Link>
           </div>
         </>
       )}
