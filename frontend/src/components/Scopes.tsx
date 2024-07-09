@@ -63,11 +63,7 @@ const Scopes: React.FC<ScopesProps> = ({
     switch (scopeGroup) {
       case "send_receive":
         onScopeChange(
-          new Set([
-            NIP_47_PAY_INVOICE_METHOD,
-            NIP_47_MAKE_INVOICE_METHOD,
-            NIP_47_NOTIFICATIONS_PERMISSION,
-          ])
+          new Set([NIP_47_PAY_INVOICE_METHOD, NIP_47_MAKE_INVOICE_METHOD])
         );
         break;
       case "only_receive":

@@ -61,12 +61,9 @@ function ShowApp() {
     navigate("/apps");
   });
 
-  const [permissions, setPermissions] = React.useState<AppPermissions>({
-    scopes: new Set<Scope>(),
-    maxAmount: 0,
-    budgetRenewal: "",
-    expiresAt: undefined,
-  });
+  const [permissions, setPermissions] = React.useState<AppPermissions | null>(
+    null
+  );
 
   React.useEffect(() => {
     if (app) {
@@ -83,7 +80,7 @@ function ShowApp() {
     return <p className="text-red-500">{error.message}</p>;
   }
 
-  if (!app || !info || !capabilities) {
+  if (!app || !info || !capabilities || !permissions) {
     return <Loading />;
   }
 
@@ -117,10 +114,6 @@ function ShowApp() {
     }
   };
 
-  if (!app) {
-    return <Loading />;
-  }
-
   return (
     <>
       <div className="w-full">
@@ -139,7 +132,7 @@ function ShowApp() {
             }
             contentRight={
               <AlertDialog>
-                <AlertDialogTrigger>
+                <AlertDialogTrigger asChild>
                   <Button variant="destructive">Delete</Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
@@ -221,7 +214,6 @@ function ShowApp() {
                                 : undefined,
                             });
                             setEditMode(!editMode);
-                            // TODO: clicking cancel and then editing again will leave the days option wrong
                           }}
                         >
                           Cancel

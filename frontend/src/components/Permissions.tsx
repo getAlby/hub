@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { CalendarIcon, PlusCircle, XIcon } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Scopes from "src/components/Scopes";
 import { Button } from "src/components/ui/button";
 import { Calendar } from "src/components/ui/calendar";
@@ -32,10 +32,31 @@ import {
   validBudgetRenewals,
 } from "src/types";
 
-const daysFromNow = (date?: Date) =>
-  date
-    ? Math.ceil((new Date(date).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
-    : 0;
+const getTimeZoneDirection = () => {
+  const offset = new Date().getTimezoneOffset();
+
+  return offset <= 0 ? +1 : -1;
+};
+
+const daysFromNow = (date?: Date) => {
+  if (!date) {
+    return 0;
+  }
+  const utcDate = new Date(
+    Date.UTC(
+      date.getUTCFullYear(),
+      date.getUTCMonth(),
+      date.getUTCDate(),
+      23,
+      59,
+      59,
+      0
+    )
+  );
+  return Math.ceil(
+    (new Date(utcDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+  );
+};
 
 interface PermissionsProps {
   capabilities: WalletCapabilities;
@@ -54,24 +75,45 @@ const Permissions: React.FC<PermissionsProps> = ({
   isNewConnection,
   budgetUsage,
 }) => {
-  // TODO: EDITABLE LOGIC
   const [permissions, setPermissions] = React.useState(initialPermissions);
-
-  // TODO: set expiry when set to non expiryType value like 24 days for example
   const [expiryDays, setExpiryDays] = useState(
     daysFromNow(permissions.expiresAt)
   );
   const [budgetOption, setBudgetOption] = useState(
     isNewConnection ? !!permissions.maxAmount : true
   );
-  const [customBudget, setCustomBudget] = useState(!!permissions.maxAmount);
+  const [customBudget, setCustomBudget] = useState(
+    permissions.maxAmount
+      ? !Object.values(budgetOptions).includes(permissions.maxAmount)
+      : false
+  );
   const [expireOption, setExpireOption] = useState(
     isNewConnection ? !!permissions.expiresAt : true
   );
-  const [customExpiry, setCustomExpiry] = useState(!!permissions.expiresAt);
+  const [customExpiry, setCustomExpiry] = useState(
+    daysFromNow(permissions.expiresAt)
+      ? !Object.values(expiryOptions).includes(
+          daysFromNow(permissions.expiresAt)
+        )
+      : false
+  );
 
-  useEffect(() => {
+  // this is triggered when edit mode is cancelled in show app
+  React.useEffect(() => {
     setPermissions(initialPermissions);
+    setExpiryDays(daysFromNow(initialPermissions.expiresAt));
+    setCustomBudget(
+      initialPermissions.maxAmount
+        ? !Object.values(budgetOptions).includes(initialPermissions.maxAmount)
+        : false
+    );
+    setCustomExpiry(
+      daysFromNow(initialPermissions.expiresAt)
+        ? !Object.values(expiryOptions).includes(
+            daysFromNow(initialPermissions.expiresAt)
+          )
+        : false
+    );
   }, [initialPermissions]);
 
   const handlePermissionsChange = (
@@ -83,8 +125,6 @@ const Permissions: React.FC<PermissionsProps> = ({
   };
 
   const handleScopeChange = (scopes: Set<Scope>) => {
-    // TODO: what if edit is not set (see prev diff)
-    // TODO: what if we set pay_invoice scope again, what would be the value of budgetRenewal
     handlePermissionsChange({ scopes });
   };
 
@@ -97,15 +137,24 @@ const Permissions: React.FC<PermissionsProps> = ({
   };
 
   const handleExpiryDaysChange = (expiryDays: number) => {
-    setExpiryDays(expiryDays);
+    setExpiryDays(expiryDays + getTimeZoneDirection());
     if (!expiryDays) {
       handlePermissionsChange({ expiresAt: undefined });
       return;
     }
     const currentDate = new Date();
-    currentDate.setDate(currentDate.getDate() + expiryDays);
-    currentDate.setHours(23, 59, 59, 0);
-    handlePermissionsChange({ expiresAt: currentDate });
+    const expiryDate = new Date(
+      Date.UTC(
+        currentDate.getUTCFullYear(),
+        currentDate.getUTCMonth(),
+        currentDate.getUTCDate() + expiryDays,
+        23,
+        59,
+        59,
+        0
+      )
+    );
+    handlePermissionsChange({ expiresAt: expiryDate });
   };
 
   return !canEditPermissions ? (
@@ -148,7 +197,8 @@ const Permissions: React.FC<PermissionsProps> = ({
       <div className="mt-4">
         <p className="text-sm font-medium mb-2">Connection expiry</p>
         <p className="text-muted-foreground text-sm">
-          {permissions.expiresAt &&
+          {expiryDays &&
+          permissions.expiresAt &&
           new Date(permissions.expiresAt).getFullYear() !== 1
             ? new Date(permissions.expiresAt).toString()
             : "This app will never expire"}
@@ -180,26 +230,20 @@ const Permissions: React.FC<PermissionsProps> = ({
             {budgetOption && (
               <>
                 <p className="font-medium text-sm mb-2">Budget Renewal</p>
-                <div className="flex gap-2 items-center text-muted-foreground mb-4 text-sm capitalize">
+                <div className="flex gap-2 items-center text-muted-foreground mb-4 text-sm">
                   <Select
-                    value={permissions.budgetRenewal}
+                    value={permissions.budgetRenewal || "never"}
                     onValueChange={(value) =>
                       handleBudgetRenewalChange(value as BudgetRenewalType)
                     }
                   >
-                    <SelectTrigger className="w-[150px]">
+                    <SelectTrigger className="w-[150px] capitalize">
                       <SelectValue placeholder={permissions.budgetRenewal} />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="capitalize">
                       {validBudgetRenewals.map((renewalOption) => (
-                        <SelectItem
-                          key={renewalOption || "never"}
-                          value={renewalOption || "never"}
-                        >
-                          {renewalOption
-                            ? renewalOption.charAt(0).toUpperCase() +
-                              renewalOption.slice(1)
-                            : "Never"}
+                        <SelectItem key={renewalOption} value={renewalOption}>
+                          {renewalOption}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -291,7 +335,9 @@ const Permissions: React.FC<PermissionsProps> = ({
                   key={expiry}
                   onClick={() => {
                     setCustomExpiry(false);
-                    handleExpiryDaysChange(expiryOptions[expiry]);
+                    handleExpiryDaysChange(
+                      expiryOptions[expiry] - getTimeZoneDirection()
+                    );
                   }}
                   className={cn(
                     "cursor-pointer rounded text-nowrap border-2 text-center p-4 dark:text-white",
@@ -329,11 +375,15 @@ const Permissions: React.FC<PermissionsProps> = ({
                   }}
                   selected={permissions.expiresAt}
                   onSelect={(date?: Date) => {
-                    if (daysFromNow(date) == 0) {
+                    if (!date) {
                       return;
                     }
+                    const dateBefore = new Date(date);
+                    dateBefore.setDate(
+                      dateBefore.getDate() - getTimeZoneDirection()
+                    );
                     setCustomExpiry(true);
-                    handleExpiryDaysChange(daysFromNow(date));
+                    handleExpiryDaysChange(daysFromNow(dateBefore));
                   }}
                   initialFocus
                 />

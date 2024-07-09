@@ -189,7 +189,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
         name: appName,
         pubkey,
         budgetRenewal: permissions.budgetRenewal,
-        maxAmount: permissions.maxAmount,
+        maxAmount: permissions.maxAmount || 0,
         scopes: Array.from(permissions.scopes),
         expiresAt: permissions.expiresAt?.toISOString(),
         returnTo: returnTo,
