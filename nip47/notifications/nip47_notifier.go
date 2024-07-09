@@ -74,7 +74,7 @@ func (notifier *Nip47Notifier) ConsumeEvent(ctx context.Context, event *events.E
 		}, nostr.Tags{})
 
 	case "nwc_payment_sent":
-		paymentSentEventProperties, ok := event.Properties.(*events.PaymentSentEventProperties)
+		paymentSentEventProperties, ok := event.Properties.(*lnclient.Transaction)
 		if !ok {
 			logger.Logger.WithField("event", event).Error("Failed to cast event")
 			return errors.New("failed to cast event")

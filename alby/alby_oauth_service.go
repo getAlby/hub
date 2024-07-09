@@ -429,6 +429,35 @@ func (svc *albyOAuthService) ConsumeEvent(ctx context.Context, event *events.Eve
 		return nil
 	}
 
+	if event.Event == "nwc_payment_received" {
+		type paymentReceivedEventProperties struct {
+			PaymentHash string `json:"payment_hash"`
+		}
+		// pass a new custom event with less detail
+		event = &events.Event{
+			Event: event.Event,
+			Properties: &paymentReceivedEventProperties{
+				PaymentHash: event.Properties.(*lnclient.Transaction).PaymentHash,
+			},
+		}
+	}
+
+	if event.Event == "nwc_payment_sent" {
+		type paymentSentEventProperties struct {
+			PaymentHash string `json:"payment_hash"`
+			Duration    uint64 `json:"duration"`
+		}
+
+		// pass a new custom event with less detail
+		event = &events.Event{
+			Event: event.Event,
+			Properties: &paymentSentEventProperties{
+				PaymentHash: event.Properties.(*lnclient.Transaction).PaymentHash,
+				Duration:    uint64(*event.Properties.(*lnclient.Transaction).SettledAt - event.Properties.(*lnclient.Transaction).CreatedAt),
+			},
+		}
+	}
+
 	token, err := svc.fetchUserToken(ctx)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to fetch user token")

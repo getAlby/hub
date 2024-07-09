@@ -478,7 +478,9 @@ func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string) (*lnc
 		}
 	}
 	if preimage == "" {
-		// TODO: this doesn't necessarily mean it will fail - we should return a different response
+		logger.Logger.WithFields(logrus.Fields{
+			"paymentHash": paymentHash,
+		}).Warn("Timed out waiting for payment to be sent")
 		return nil, lnclient.NewTimeoutError()
 	}
 
@@ -583,6 +585,9 @@ func (ls *LDKService) SendKeysend(ctx context.Context, amount uint64, destinatio
 		}
 	}
 	if preimage == "" {
+		logger.Logger.WithFields(logrus.Fields{
+			"paymentHash": paymentHash,
+		}).Warn("Timed out waiting for keysend to be sent")
 		return paymentHash, "", 0, lnclient.NewTimeoutError()
 	}
 
@@ -1276,28 +1281,29 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 			Event:      "nwc_payment_received",
 			Properties: transaction,
 		})
-
 	case ldk_node.EventPaymentSuccessful:
-		// TODO: trigger transaction update
-		// TODO: trigger transaction update for payment failed
-		var duration uint64 = 0
-		if eventType.PaymentId != nil {
-			payment := ls.node.Payment(*eventType.PaymentId)
-			if payment == nil {
-				logger.Logger.WithField("payment_id", *eventType.PaymentId).Error("could not find LDK payment")
-				return
-			}
-			duration = payment.LastUpdate - payment.CreatedAt
+		if eventType.PaymentId == nil {
+			logger.Logger.WithField("payment_hash", eventType.PaymentHash).Error("payment received event has no payment ID")
+			return
+		}
+		payment := ls.node.Payment(*eventType.PaymentId)
+		if payment == nil {
+			logger.Logger.WithField("payment_id", *eventType.PaymentId).Error("could not find LDK payment")
+			return
+		}
+
+		transaction, err := ls.ldkPaymentToTransaction(payment)
+		if err != nil {
+			logger.Logger.WithField("payment_id", *eventType.PaymentId).Error("failed to convert LDK payment to transaction")
+			return
 		}
 
 		ls.eventPublisher.Publish(&events.Event{
-			Event: "nwc_payment_sent",
-			Properties: &events.PaymentSentEventProperties{
-				PaymentHash: eventType.PaymentHash,
-				Duration:    duration,
-			},
+			Event:      "nwc_payment_sent",
+			Properties: transaction,
 		})
 	}
+	// TODO: trigger transaction update for payment failed
 }
 
 func (ls *LDKService) publishChannelsBackupEvent() {
