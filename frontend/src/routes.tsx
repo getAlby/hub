@@ -1,6 +1,5 @@
 import { Navigate } from "react-router-dom";
 import AppLayout from "src/components/layouts/AppLayout";
-import SettingsLayout from "src/components/layouts/SettingsLayout";
 import TwoColumnFullScreenLayout from "src/components/layouts/TwoColumnFullScreenLayout";
 import { DefaultRedirect } from "src/components/redirects/DefaultRedirect";
 import { HomeRedirect } from "src/components/redirects/HomeRedirect";
@@ -102,7 +101,7 @@ const routes = [
       },
       {
         path: "settings",
-        element: <SettingsLayout />,
+        element: <DefaultRedirect />,
         handle: { crumb: () => "Settings" },
         children: [
           {
