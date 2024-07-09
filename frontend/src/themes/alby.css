@@ -1,5 +1,6 @@
 .theme-alby {
   --background: 0 0% 100%;
+  --intro-background: 240 10% 3.9%;
   --foreground: 0 0% 5%;
   --card: 0 0% 100%;
   --card-foreground: 0 0% 5%;
@@ -23,6 +24,7 @@
 
 .theme-alby.dark {
   --background: 0 0% 3%;
+  --intro-background: 240 10% 3.9%;
   --foreground: 0 0% 98%;
 
   --card: 0 0% 3%;

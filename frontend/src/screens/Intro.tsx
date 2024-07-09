@@ -43,7 +43,7 @@ export function Intro() {
   }, [api]);
 
   return (
-    <Carousel className={cn("w-full bg-background")} setApi={setApi}>
+    <Carousel className={cn("w-full bg-introBackground")} setApi={setApi}>
       <div
         className="w-full h-full absolute top-0 left-0 bg-no-repeat"
         style={{
