@@ -1302,8 +1302,28 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 			Event:      "nwc_payment_sent",
 			Properties: transaction,
 		})
+	case ldk_node.EventPaymentFailed:
+		if eventType.PaymentId == nil {
+			logger.Logger.WithField("payment_hash", eventType.PaymentHash).Error("payment failed event has no payment ID")
+			return
+		}
+		payment := ls.node.Payment(*eventType.PaymentId)
+		if payment == nil {
+			logger.Logger.WithField("payment_id", *eventType.PaymentId).Error("could not find LDK payment")
+			return
+		}
+
+		transaction, err := ls.ldkPaymentToTransaction(payment)
+		if err != nil {
+			logger.Logger.WithField("payment_id", *eventType.PaymentId).Error("failed to convert LDK payment to transaction")
+			return
+		}
+
+		ls.eventPublisher.Publish(&events.Event{
+			Event:      "nwc_payment_failed_async",
+			Properties: transaction,
+		})
 	}
-	// TODO: trigger transaction update for payment failed
 }
 
 func (ls *LDKService) publishChannelsBackupEvent() {
