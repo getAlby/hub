@@ -89,7 +89,7 @@ export default function AppCreated() {
         title={`Connect to ${createAppResponse.name}`}
         description="Configure wallet permissions for the app and follow instructions to finalise the connection"
       />
-      <div className="flex flex-col gap-3 ph-no-capture">
+      <div className="flex flex-col gap-3 ph-no-capture sensitive">
         <div>
           <p>
             1. Open{" "}

@@ -40,7 +40,7 @@ export default function MnemonicInputs({
           <CardTitle>Recovery phrase to your wallet</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-5 justify-center">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-5 justify-center backup sensitive ph-no-capture">
             {words.map((word, i) => {
               const isRevealed = revealedIndex === i;
               const inputId = `mnemonic-word-${i}`;

@@ -13,7 +13,7 @@ function TransactionsList() {
   }
 
   return (
-    <div>
+    <div className="transaction-list">
       {!transactions?.length ? (
         <EmptyState
           icon={Drum}
@@ -30,7 +30,7 @@ function TransactionsList() {
             return (
               <div
                 key={`tx-${i}`}
-                className="p-3 mb-4 rounded-md"
+                className="p-3 mb-4 rounded-md transaction sensitive ph-no-capture"
                 // TODO: Add modal onclick to show payment details
               >
                 <div className="flex gap-3">
@@ -103,7 +103,7 @@ function TransactionsList() {
           )} */}
         </>
       )}
-    </div>
+    </div >
   );
 }
 
