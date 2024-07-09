@@ -2,7 +2,6 @@ package greenlight
 
 import (
 	"context"
-	"encoding/hex"
 	"errors"
 	"log"
 	"math/rand"
@@ -133,7 +132,7 @@ func (gs *GreenlightService) SendKeysend(ctx context.Context, amount uint64, des
 	for _, customRecord := range custom_records {
 		extraTlvs = append(extraTlvs, glalby.TlvEntry{
 			Ty:    customRecord.Type,
-			Value: hex.EncodeToString([]byte(customRecord.Value)),
+			Value: customRecord.Value,
 		})
 	}
 

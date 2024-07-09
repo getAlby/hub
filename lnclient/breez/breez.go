@@ -119,9 +119,13 @@ func (bs *BreezService) SendPaymentSync(ctx context.Context, payReq string) (*ln
 func (bs *BreezService) SendKeysend(ctx context.Context, amount uint64, destination, preimage string, custom_records []lnclient.TLVRecord) (preImage string, err error) {
 	extraTlvs := []breez_sdk.TlvEntry{}
 	for _, record := range custom_records {
+		decodedValue, err := hex.DecodeString(record.Value)
+		if err != nil {
+			return "", err
+		}
 		extraTlvs = append(extraTlvs, breez_sdk.TlvEntry{
 			FieldNumber: record.Type,
-			Value:       []uint8(record.Value),
+			Value:       decodedValue,
 		})
 	}
 
