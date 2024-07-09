@@ -1,4 +1,6 @@
 import dayjs from "dayjs";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
 import {
   ArrowDownIcon,
   ArrowUpIcon,
@@ -20,6 +22,9 @@ import { toast } from "src/components/ui/use-toast";
 import { copyToClipboard } from "src/lib/clipboard";
 import { cn } from "src/lib/utils";
 import { Transaction } from "src/types";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 type Props = {
   tx: Transaction;
@@ -89,9 +94,14 @@ function TransactionItem({ tx }: Props) {
                   type == "incoming" && "text-green-600 dark:color-green-400"
                 )}
               >
-                {type == "outgoing" ? "-" : "+"} {Math.floor(tx.amount / 1000)}
+                {type == "outgoing" ? "-" : "+"}
+                {new Intl.NumberFormat(undefined, {}).format(
+                  Math.floor(tx.amount / 1000)
+                )}{" "}
               </p>
-              <p className="text-muted-foreground">sats</p>
+              <p className="text-muted-foreground">
+                {Math.floor(tx.amount / 1000) == 1 ? "sat" : "sats"}
+              </p>
 
               {/* {!!tx.totalAmountFiat && (
                 <p className="text-xs text-gray-400 dark:text-neutral-600">
@@ -130,7 +140,9 @@ function TransactionItem({ tx }: Props) {
             </div>
             <div className="ml-4">
               <p className="text-xl md:text-2xl font-semibold">
-                {Math.floor(tx.amount / 1000)}{" "}
+                {new Intl.NumberFormat(undefined, {}).format(
+                  Math.floor(tx.amount / 1000)
+                )}{" "}
                 {Math.floor(tx.amount / 1000) == 1 ? "sat" : "sats"}
               </p>
               {/* <p className="text-sm md:text-base text-gray-500">
@@ -141,14 +153,18 @@ function TransactionItem({ tx }: Props) {
           <div className="mt-8">
             <p className="dark:text-white">Date & Time</p>
             <p className="text-muted-foreground">
-              {dayjs(tx.settled_at * 1000).toString()}
+              {dayjs(tx.settled_at * 1000)
+                .tz(dayjs.tz.guess())
+                .format("D MMMM YYYY, HH:mm")}
             </p>
           </div>
           {type == "outgoing" && (
             <div className="mt-6">
               <p className="dark:text-white">Fee</p>
               <p className="text-muted-foreground">
-                {Math.floor(tx.fees_paid / 1000)}{" "}
+                {new Intl.NumberFormat(undefined, {}).format(
+                  Math.floor(tx.fees_paid / 1000)
+                )}{" "}
                 {Math.floor(tx.fees_paid / 1000) == 1 ? "sat" : "sats"}
               </p>
             </div>
