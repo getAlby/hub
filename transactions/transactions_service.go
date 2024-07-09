@@ -119,26 +119,66 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 		return nil, err
 	}
 
-	// TODO: in transaction, ensure budget
-	var expiresAt *time.Time
-	if paymentRequest.Expiry > 0 {
-		expiresAtValue := time.Now().Add(time.Duration(paymentRequest.Expiry) * time.Second)
-		expiresAt = &expiresAtValue
-	}
-	dbTransaction := &db.Transaction{
-		AppId:           appId,
-		RequestEventId:  requestEventId,
-		Type:            TRANSACTION_TYPE_OUTGOING,
-		State:           TRANSACTION_STATE_PENDING,
-		Amount:          uint64(paymentRequest.MSatoshi),
-		PaymentRequest:  payReq,
-		PaymentHash:     paymentRequest.PaymentHash,
-		Description:     paymentRequest.Description,
-		DescriptionHash: paymentRequest.DescriptionHash,
-		ExpiresAt:       expiresAt,
-		// Metadata:       metadata,
-	}
-	err = svc.db.Create(dbTransaction).Error
+	var dbTransaction *db.Transaction
+
+	err = svc.db.Transaction(func(tx *gorm.DB) error {
+		// ensure balance for isolated apps
+		if appId != nil {
+			var appPermission db.AppPermission
+			tx.Find(&appPermission, &db.AppPermission{
+				AppId: *appId,
+			})
+
+			if appPermission.BalanceType == "isolated" {
+				var received struct {
+					Sum uint64
+				}
+				tx.
+					Table("transactions").
+					Select("SUM(amount) as sum").
+					Where("app_id = ? AND type = ? AND state = ?", appPermission.AppId, TRANSACTION_TYPE_INCOMING, TRANSACTION_STATE_SETTLED).Scan(&received)
+
+				var spent struct {
+					Sum uint64
+				}
+				tx.
+					Table("transactions").
+					Select("SUM(amount + fee) as sum").
+					Where("app_id = ? AND type = ? AND (state = ? OR state = ?)", appPermission.AppId, TRANSACTION_TYPE_OUTGOING, TRANSACTION_STATE_SETTLED, TRANSACTION_STATE_PENDING).Scan(&spent)
+
+				// TODO: ensure fee reserve for external payment
+				balance := received.Sum - spent.Sum
+				if balance < uint64(paymentRequest.MSatoshi) {
+					// TODO: add a proper error type so INSUFFICIENT_BALANCE is returned
+					return errors.New("Insufficient balance")
+				}
+			}
+		}
+
+		// TODO: ensure budget is not exceeded
+
+		var expiresAt *time.Time
+		if paymentRequest.Expiry > 0 {
+			expiresAtValue := time.Now().Add(time.Duration(paymentRequest.Expiry) * time.Second)
+			expiresAt = &expiresAtValue
+		}
+		dbTransaction = &db.Transaction{
+			AppId:           appId,
+			RequestEventId:  requestEventId,
+			Type:            TRANSACTION_TYPE_OUTGOING,
+			State:           TRANSACTION_STATE_PENDING,
+			Amount:          uint64(paymentRequest.MSatoshi),
+			PaymentRequest:  payReq,
+			PaymentHash:     paymentRequest.PaymentHash,
+			Description:     paymentRequest.Description,
+			DescriptionHash: paymentRequest.DescriptionHash,
+			ExpiresAt:       expiresAt,
+			// Metadata:       metadata,
+		}
+		err = tx.Create(dbTransaction).Error
+		return err
+	})
+
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"bolt11": payReq,
@@ -148,26 +188,7 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 
 	var response *lnclient.PayInvoiceResponse
 	if paymentRequest.Payee != "" && paymentRequest.Payee == lnClient.GetPubkey() {
-		transaction := db.Transaction{}
-		result := svc.db.Find(&transaction, &db.Transaction{
-			Type:        TRANSACTION_TYPE_INCOMING,
-			PaymentHash: dbTransaction.PaymentHash,
-			AppId:       appId,
-		})
-		err = result.Error
-		if err == nil && result.RowsAffected == 0 {
-			err = NewNotFoundError()
-		}
-		if transaction.Preimage == nil {
-			err = errors.New("preimage is not set on transaction. Self payments not supported.")
-		}
-		if err == nil {
-			fee := uint64(0)
-			response = &lnclient.PayInvoiceResponse{
-				Preimage: *transaction.Preimage,
-				Fee:      &fee,
-			}
-		}
+		response, err = svc.interceptSelfPayment(paymentRequest.PaymentHash)
 	} else {
 		response, err = lnClient.SendPaymentSync(ctx, payReq)
 	}
@@ -218,7 +239,7 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 }
 
 func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []lnclient.TLVRecord, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
-	// TODO: in transaction, ensure budget
+	// TODO: add same transaction as SendPayment to ensure balance and budget are not exceeded
 
 	metadata := map[string]interface{}{}
 
@@ -312,11 +333,23 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 func (svc *transactionsService) LookupTransaction(ctx context.Context, paymentHash string, lnClient lnclient.LNClient, appId *uint) (*Transaction, error) {
 	transaction := db.Transaction{}
 
+	tx := svc.db
+
+	if appId != nil {
+		// TODO: optimize
+		var appPermission db.AppPermission
+		svc.db.Find(&appPermission, &db.AppPermission{
+			AppId: *appId,
+		})
+		if appPermission.Visibility == "isolated" {
+			tx = tx.Where("app_id == ?", *appId)
+		}
+	}
+
 	// FIXME: this is currently not unique
-	result := svc.db.Find(&transaction, &db.Transaction{
+	result := tx.Find(&transaction, &db.Transaction{
 		//Type:        transactionType,
 		PaymentHash: paymentHash,
-		AppId:       appId,
 	})
 
 	if result.Error != nil {
@@ -349,7 +382,14 @@ func (svc *transactionsService) ListTransactions(ctx context.Context, from, unti
 	}
 
 	if appId != nil {
-		tx = tx.Where("app_id == ?", *appId)
+		// TODO: optimize
+		var appPermission db.AppPermission
+		svc.db.Find(&appPermission, &db.AppPermission{
+			AppId: *appId,
+		})
+		if appPermission.Visibility == "isolated" {
+			tx = tx.Where("app_id == ?", *appId)
+		}
 	}
 
 	tx = tx.Order("created_at desc")
@@ -560,4 +600,43 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 	}
 
 	return nil
+}
+
+func (svc *transactionsService) interceptSelfPayment(paymentHash string) (*lnclient.PayInvoiceResponse, error) {
+	// TODO: extract into separate function
+	incomingTransaction := db.Transaction{}
+	result := svc.db.Find(&incomingTransaction, &db.Transaction{
+		Type:        TRANSACTION_TYPE_INCOMING,
+		State:       TRANSACTION_STATE_PENDING,
+		PaymentHash: paymentHash,
+	})
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return nil, NewNotFoundError()
+	}
+	if incomingTransaction.Preimage == nil {
+		return nil, errors.New("preimage is not set on transaction. Self payments not supported.")
+	}
+
+	// update the incoming transaction
+	now := time.Now()
+	fee := uint64(0)
+	err := svc.db.Model(incomingTransaction).Updates(&db.Transaction{
+		State:     TRANSACTION_STATE_SETTLED,
+		Fee:       &fee,
+		SettledAt: &now,
+	}).Error
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: publish event for self payment
+
+	return &lnclient.PayInvoiceResponse{
+		Preimage: *incomingTransaction.Preimage,
+		Fee:      &fee,
+	}, nil
 }

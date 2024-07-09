@@ -61,7 +61,7 @@ func TestHandleListTransactionsEvent_NoPermission(t *testing.T) {
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
 	transactionsSvc := transactions.NewTransactionsService(svc.DB)
 	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
-		HandleListTransactionsEvent(ctx, nip47Request, dbRequestEvent.ID, checkPermission, publishResponse)
+		HandleListTransactionsEvent(ctx, nip47Request, dbRequestEvent.ID, *dbRequestEvent.AppId, checkPermission, publishResponse)
 
 	assert.Nil(t, publishedResponse.Result)
 	assert.Equal(t, models.ERROR_RESTRICTED, publishedResponse.Error.Code)
@@ -117,7 +117,7 @@ func TestHandleListTransactionsEvent_WithPermission(t *testing.T) {
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
 	transactionsSvc := transactions.NewTransactionsService(svc.DB)
 	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
-		HandleListTransactionsEvent(ctx, nip47Request, dbRequestEvent.ID, checkPermission, publishResponse)
+		HandleListTransactionsEvent(ctx, nip47Request, dbRequestEvent.ID, *dbRequestEvent.AppId, checkPermission, publishResponse)
 
 	assert.Nil(t, publishedResponse.Error)
 

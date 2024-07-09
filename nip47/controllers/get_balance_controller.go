@@ -3,8 +3,10 @@ package controllers
 import (
 	"context"
 
+	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/nip47/models"
+	"github.com/getAlby/hub/transactions"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/sirupsen/logrus"
 )
@@ -14,13 +16,13 @@ const (
 )
 
 type getBalanceResponse struct {
-	Balance int64 `json:"balance"`
+	Balance uint64 `json:"balance"`
 	// MaxAmount     int    `json:"max_amount"`
 	// BudgetRenewal string `json:"budget_renewal"`
 }
 
 // TODO: remove checkPermission - can it be a middleware?
-func (controller *nip47Controller) HandleGetBalanceEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, checkPermission checkPermissionFunc, publishResponse publishFunc) {
+func (controller *nip47Controller) HandleGetBalanceEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, appId uint, checkPermission checkPermissionFunc, publishResponse publishFunc) {
 	// basic permissions check
 	resp := checkPermission(0)
 	if resp != nil {
@@ -32,19 +34,47 @@ func (controller *nip47Controller) HandleGetBalanceEvent(ctx context.Context, ni
 		"request_event_id": requestEventId,
 	}).Info("Getting balance")
 
-	balance, err := controller.lnClient.GetBalance(ctx)
-	if err != nil {
-		logger.Logger.WithFields(logrus.Fields{
-			"request_event_id": requestEventId,
-		}).WithError(err).Error("Failed to fetch balance")
-		publishResponse(&models.Response{
-			ResultType: nip47Request.Method,
-			Error: &models.Error{
-				Code:    models.ERROR_INTERNAL,
-				Message: err.Error(),
-			},
-		}, nostr.Tags{})
-		return
+	// TODO: optimize
+	var appPermission db.AppPermission
+	controller.db.Find(&appPermission, &db.AppPermission{
+		AppId: appId,
+	})
+	balance := uint64(0)
+	if appPermission.BalanceType == "isolated" {
+		// TODO: remove duplication in transactions service
+		var received struct {
+			Sum uint64
+		}
+		controller.db.
+			Table("transactions").
+			Select("SUM(amount) as sum").
+			Where("app_id = ? AND type = ? AND state = ?", appPermission.AppId, transactions.TRANSACTION_TYPE_INCOMING, transactions.TRANSACTION_STATE_SETTLED).Scan(&received)
+
+		var spent struct {
+			Sum uint64
+		}
+		controller.db.
+			Table("transactions").
+			Select("SUM(amount + fee) as sum").
+			Where("app_id = ? AND type = ? AND (state = ? OR state = ?)", appPermission.AppId, transactions.TRANSACTION_TYPE_OUTGOING, transactions.TRANSACTION_STATE_SETTLED, transactions.TRANSACTION_STATE_PENDING).Scan(&spent)
+
+		balance = received.Sum - spent.Sum
+	} else {
+		balance_signed, err := controller.lnClient.GetBalance(ctx)
+		balance = uint64(balance_signed)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"request_event_id": requestEventId,
+			}).WithError(err).Error("Failed to fetch balance")
+			publishResponse(&models.Response{
+				ResultType: nip47Request.Method,
+				Error: &models.Error{
+					Code:    models.ERROR_INTERNAL,
+					Message: err.Error(),
+				},
+			}, nostr.Tags{})
+			return
+		}
 	}
 
 	responsePayload := &getBalanceResponse{

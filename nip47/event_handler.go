@@ -307,7 +307,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, sub *nostr.Subscriptio
 			HandlePayKeysendEvent(ctx, nip47Request, requestEvent.ID, &app, checkPermission, publishResponse, nostr.Tags{})
 	case models.GET_BALANCE_METHOD:
 		controller.
-			HandleGetBalanceEvent(ctx, nip47Request, requestEvent.ID, checkPermission, publishResponse)
+			HandleGetBalanceEvent(ctx, nip47Request, requestEvent.ID, app.ID, checkPermission, publishResponse)
 	case models.MAKE_INVOICE_METHOD:
 		controller.
 			HandleMakeInvoiceEvent(ctx, nip47Request, requestEvent.ID, app.ID, checkPermission, publishResponse)

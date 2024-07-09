@@ -7,14 +7,15 @@ import (
 	"gorm.io/gorm"
 )
 
+// This migration
+// - Replaces the old payments table with a new transactions table
+// - Adds new properties to app_permissions
+//   - balance_type string - isolated | full
+//   - visibility string - isolated | full
 var _202407012100_transactions = &gormigrate.Migration{
 	ID: "202407012100_transactions",
 	Migrate: func(tx *gorm.DB) error {
 
-		// request_event_id and app_id are not FKs, as apps and request events can be deleted
-		// TODO: create indexes
-		// type + payment hash
-		//
 		if err := tx.Exec(`
 CREATE TABLE transactions(
 	id integer,
@@ -38,6 +39,13 @@ CREATE TABLE transactions(
 );
 
 DROP TABLE payments;
+
+ALTER TABLE app_permissions ADD balance_type string;
+ALTER TABLE app_permissions ADD visibility string;
+
+UPDATE app_permissions set balance_type = "full";
+UPDATE app_permissions set visibility = "full";
+
 `).Error; err != nil {
 			return err
 		}

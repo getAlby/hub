@@ -30,6 +30,9 @@ type AppPermission struct {
 	ExpiresAt     *time.Time
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
+
+	BalanceType string
+	Visibility  string
 }
 
 type RequestEvent struct {

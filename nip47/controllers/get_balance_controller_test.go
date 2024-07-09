@@ -53,7 +53,7 @@ func TestHandleGetBalanceEvent_NoPermission(t *testing.T) {
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
 	transactionsSvc := transactions.NewTransactionsService(svc.DB)
 	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
-		HandleGetBalanceEvent(ctx, nip47Request, dbRequestEvent.ID, checkPermission, publishResponse)
+		HandleGetBalanceEvent(ctx, nip47Request, dbRequestEvent.ID, *dbRequestEvent.AppId, checkPermission, publishResponse)
 
 	assert.Nil(t, publishedResponse.Result)
 	assert.Equal(t, models.ERROR_RESTRICTED, publishedResponse.Error.Code)
@@ -86,7 +86,7 @@ func TestHandleGetBalanceEvent_WithPermission(t *testing.T) {
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
 	transactionsSvc := transactions.NewTransactionsService(svc.DB)
 	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
-		HandleGetBalanceEvent(ctx, nip47Request, dbRequestEvent.ID, checkPermission, publishResponse)
+		HandleGetBalanceEvent(ctx, nip47Request, dbRequestEvent.ID, *dbRequestEvent.AppId, checkPermission, publishResponse)
 
 	assert.Equal(t, int64(21000), publishedResponse.Result.(*getBalanceResponse).Balance)
 	assert.Nil(t, publishedResponse.Error)
