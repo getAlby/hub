@@ -32,6 +32,17 @@ type TransactionsService interface {
 
 type Transaction = db.Transaction
 
+type notFoundError struct {
+}
+
+func NewNotFoundError() error {
+	return &notFoundError{}
+}
+
+func (err *notFoundError) Error() string {
+	return "Not Found"
+}
+
 const (
 	TRANSACTION_TYPE_INCOMING = "incoming"
 	TRANSACTION_TYPE_OUTGOING = "outgoing"
@@ -290,7 +301,7 @@ func (svc *transactionsService) LookupTransaction(ctx context.Context, paymentHa
 	}
 
 	if result.RowsAffected == 0 {
-		return nil, errors.New("transaction not found")
+		return nil, NewNotFoundError()
 	}
 
 	if transaction.State == TRANSACTION_STATE_PENDING {

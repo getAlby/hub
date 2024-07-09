@@ -30,6 +30,7 @@ const (
 	ERROR_EXPIRED              = "EXPIRED"
 	ERROR_RESTRICTED           = "RESTRICTED"
 	ERROR_BAD_REQUEST          = "BAD_REQUEST"
+	ERROR_NOT_FOUND            = "NOT_FOUND"
 	OTHER                      = "OTHER"
 )
 
