@@ -23,6 +23,7 @@ import (
 type BreezService struct {
 	listener *BreezListener
 	svc      *breez_sdk.BlockingBreezServices
+	pubkey   string
 }
 type BreezListener struct {
 }
@@ -91,6 +92,7 @@ func NewBreezService(mnemonic, apiKey, inviteCode, workDir string) (result lncli
 	return &BreezService{
 		listener: &listener,
 		svc:      svc,
+		pubkey:   nodeInfo.Id,
 	}, nil
 }
 
@@ -484,4 +486,8 @@ func (bs *BreezService) GetSupportedNIP47Methods() []string {
 
 func (bs *BreezService) GetSupportedNIP47NotificationTypes() []string {
 	return []string{}
+}
+
+func (bs *BreezService) GetPubkey() string {
+	return bs.pubkey
 }

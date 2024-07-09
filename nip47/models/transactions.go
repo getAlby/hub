@@ -9,11 +9,6 @@ import (
 )
 
 func ToNip47Transaction(transaction *transactions.Transaction) *Transaction {
-	preimage := ""
-	if transaction.Preimage != nil {
-		preimage = *transaction.Preimage
-	}
-
 	fees := int64(0)
 	if transaction.Fee != nil {
 		fees = int64(*transaction.Fee)
@@ -26,9 +21,11 @@ func ToNip47Transaction(transaction *transactions.Transaction) *Transaction {
 	}
 
 	var settledAt *int64
+	preimage := ""
 	if transaction.SettledAt != nil {
 		settledAtUnix := transaction.SettledAt.Unix()
 		settledAt = &settledAtUnix
+		preimage = *transaction.Preimage
 	}
 
 	var metadata interface{}

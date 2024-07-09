@@ -167,3 +167,6 @@ func (mln *MockLn) GetSupportedNIP47Methods() []string {
 func (mln *MockLn) GetSupportedNIP47NotificationTypes() []string {
 	return []string{"payment_received", "payment_sent"}
 }
+func (mln *MockLn) GetPubkey() string {
+	return "123pubkey"
+}

@@ -30,6 +30,7 @@ import (
 // todo: drop dependency on lndhub package
 type LNDService struct {
 	client *wrapper.LNDWrapper
+	pubkey string
 }
 
 func (svc *LNDService) GetBalance(ctx context.Context) (balance int64, err error) {
@@ -447,7 +448,7 @@ func NewLNDService(ctx context.Context, lndAddress, lndCertHex, lndMacaroonHex s
 		return nil, err
 	}
 
-	lndService := &LNDService{client: lndClient}
+	lndService := &LNDService{client: lndClient, pubkey: info.IdentityPubkey}
 
 	logger.Logger.Infof("Connected to LND - alias %s", info.Alias)
 
@@ -694,12 +695,11 @@ func (svc *LNDService) GetBalances(ctx context.Context) (*lnclient.BalancesRespo
 
 func lndInvoiceToTransaction(invoice *lnrpc.Invoice) *lnclient.Transaction {
 	var settledAt *int64
-	var preimage string
+	preimage := hex.EncodeToString(invoice.RPreimage)
 	metadata := map[string]interface{}{}
+
 	if invoice.State == lnrpc.Invoice_SETTLED {
 		settledAt = &invoice.SettleDate
-		// only set preimage if invoice is settled
-		preimage = hex.EncodeToString(invoice.RPreimage)
 	}
 	var expiresAt *int64
 	if invoice.Expiry > 0 {
@@ -812,4 +812,8 @@ func (svc *LNDService) GetSupportedNIP47Methods() []string {
 
 func (svc *LNDService) GetSupportedNIP47NotificationTypes() []string {
 	return []string{}
+}
+
+func (svc *LNDService) GetPubkey() string {
+	return svc.pubkey
 }

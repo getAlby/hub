@@ -316,7 +316,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, sub *nostr.Subscriptio
 			HandleLookupInvoiceEvent(ctx, nip47Request, requestEvent.ID, app.ID, checkPermission, publishResponse)
 	case models.LIST_TRANSACTIONS_METHOD:
 		controller.
-			HandleListTransactionsEvent(ctx, nip47Request, requestEvent.ID, checkPermission, publishResponse)
+			HandleListTransactionsEvent(ctx, nip47Request, requestEvent.ID, app.ID, checkPermission, publishResponse)
 	case models.GET_INFO_METHOD:
 		controller.
 			HandleGetInfoEvent(ctx, nip47Request, requestEvent.ID, &app, checkPermission, publishResponse)

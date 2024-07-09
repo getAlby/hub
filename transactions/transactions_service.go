@@ -25,7 +25,7 @@ type TransactionsService interface {
 	events.EventSubscriber
 	MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	LookupTransaction(ctx context.Context, paymentHash string, lnClient lnclient.LNClient, appId *uint) (*Transaction, error)
-	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string, lnClient lnclient.LNClient) (transactions []Transaction, err error)
+	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string, lnClient lnclient.LNClient, appId *uint) (transactions []Transaction, err error)
 	SendPaymentSync(ctx context.Context, payReq string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []lnclient.TLVRecord, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 }
@@ -146,7 +146,31 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 		return nil, err
 	}
 
-	response, err := lnClient.SendPaymentSync(ctx, payReq)
+	var response *lnclient.PayInvoiceResponse
+	if paymentRequest.Payee != "" && paymentRequest.Payee == lnClient.GetPubkey() {
+		transaction := db.Transaction{}
+		result := svc.db.Find(&transaction, &db.Transaction{
+			Type:        TRANSACTION_TYPE_INCOMING,
+			PaymentHash: dbTransaction.PaymentHash,
+			AppId:       appId,
+		})
+		err = result.Error
+		if err == nil && result.RowsAffected == 0 {
+			err = NewNotFoundError()
+		}
+		if transaction.Preimage == nil {
+			err = errors.New("preimage is not set on transaction. Self payments not supported.")
+		}
+		if err == nil {
+			fee := uint64(0)
+			response = &lnclient.PayInvoiceResponse{
+				Preimage: *transaction.Preimage,
+				Fee:      &fee,
+			}
+		}
+	} else {
+		response, err = lnClient.SendPaymentSync(ctx, payReq)
+	}
 
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
@@ -301,6 +325,10 @@ func (svc *transactionsService) LookupTransaction(ctx context.Context, paymentHa
 	}
 
 	if result.RowsAffected == 0 {
+		logger.Logger.WithFields(logrus.Fields{
+			"payment_hash": paymentHash,
+			"app_id":       appId,
+		}).WithError(result.Error).Error("Failed to lookup DB transaction")
 		return nil, NewNotFoundError()
 	}
 
@@ -311,13 +339,17 @@ func (svc *transactionsService) LookupTransaction(ctx context.Context, paymentHa
 	return &transaction, nil
 }
 
-func (svc *transactionsService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, transactionType string, lnClient lnclient.LNClient) (transactions []Transaction, err error) {
+func (svc *transactionsService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, transactionType string, lnClient lnclient.LNClient, appId *uint) (transactions []Transaction, err error) {
 	svc.checkUnsettledTransactions(ctx, lnClient)
 
 	// TODO: add other filtering and pagination
 	tx := svc.db
 	if !unpaid {
 		tx = tx.Where("state == ?", TRANSACTION_STATE_SETTLED)
+	}
+
+	if appId != nil {
+		tx = tx.Where("app_id == ?", *appId)
 	}
 
 	tx = tx.Order("created_at desc")

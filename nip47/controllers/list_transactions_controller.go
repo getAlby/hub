@@ -22,7 +22,7 @@ type listTransactionsResponse struct {
 	Transactions []models.Transaction `json:"transactions"`
 }
 
-func (controller *nip47Controller) HandleListTransactionsEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, checkPermission checkPermissionFunc, publishResponse publishFunc) {
+func (controller *nip47Controller) HandleListTransactionsEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, appId uint, checkPermission checkPermissionFunc, publishResponse publishFunc) {
 	// basic permissions check
 	resp := checkPermission(0)
 	if resp != nil {
@@ -48,7 +48,7 @@ func (controller *nip47Controller) HandleListTransactionsEvent(ctx context.Conte
 		// make sure a sensible limit is passed
 		limit = maxLimit
 	}
-	dbTransactions, err := controller.transactionsService.ListTransactions(ctx, listParams.From, listParams.Until, limit, listParams.Offset, listParams.Unpaid, listParams.Type, controller.lnClient)
+	dbTransactions, err := controller.transactionsService.ListTransactions(ctx, listParams.From, listParams.Until, limit, listParams.Offset, listParams.Unpaid, listParams.Type, controller.lnClient, &appId)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"params":           listParams,

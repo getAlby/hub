@@ -44,7 +44,7 @@ func (controller *nip47Controller) HandleMakeInvoiceEvent(ctx context.Context, n
 
 	expiry := makeInvoiceParams.Expiry
 
-	transaction, err := controller.transactionsService.MakeInvoice(ctx, makeInvoiceParams.Amount, makeInvoiceParams.Description, makeInvoiceParams.DescriptionHash, expiry, controller.lnClient, &requestEventId, &appId)
+	transaction, err := controller.transactionsService.MakeInvoice(ctx, makeInvoiceParams.Amount, makeInvoiceParams.Description, makeInvoiceParams.DescriptionHash, expiry, controller.lnClient, &appId, &requestEventId)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"request_event_id": requestEventId,

@@ -352,3 +352,7 @@ func (cs *CashuService) GetSupportedNIP47Methods() []string {
 func (cs *CashuService) GetSupportedNIP47NotificationTypes() []string {
 	return []string{}
 }
+
+func (svc *CashuService) GetPubkey() string {
+	return ""
+}

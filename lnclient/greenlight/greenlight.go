@@ -26,6 +26,7 @@ import (
 type GreenlightService struct {
 	workdir string
 	client  *glalby.BlockingGreenlightAlbyClient
+	pubkey  string
 }
 
 const DEVICE_CREDENTIALS_KEY = "GreenlightCreds"
@@ -85,12 +86,13 @@ func NewGreenlightService(cfg config.Config, mnemonic, inviteCode, workDir, encr
 		log.Fatalf("unexpected response from NewBlockingGreenlightAlbyClient")
 	}
 
+	nodeInfo, err := client.GetInfo()
+
 	gs := GreenlightService{
 		workdir: newpath,
 		client:  client,
+		pubkey:  nodeInfo.Pubkey,
 	}
-
-	nodeInfo, err := client.GetInfo()
 
 	if err != nil {
 		return nil, err
@@ -206,6 +208,7 @@ func (gs *GreenlightService) MakeInvoice(ctx context.Context, amount int64, desc
 		Invoice:         invoice.Bolt11,
 		Description:     description,
 		DescriptionHash: descriptionHash,
+		Preimage:        "", // TODO: set preimage to enable self-payments
 		PaymentHash:     invoice.PaymentHash,
 		ExpiresAt:       &expiresAt,
 		Amount:          amount,
@@ -684,4 +687,8 @@ func (gs *GreenlightService) GetSupportedNIP47Methods() []string {
 
 func (gs *GreenlightService) GetSupportedNIP47NotificationTypes() []string {
 	return []string{}
+}
+
+func (gs *GreenlightService) GetPubkey() string {
+	return gs.pubkey
 }

@@ -42,6 +42,7 @@ type LDKService struct {
 	lastSync              time.Time
 	cfg                   config.Config
 	lastWalletSyncRequest time.Time
+	pubkey                string
 }
 
 const resetRouterKey = "ResetRouter"
@@ -122,6 +123,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	ldkEventConsumer := make(chan *ldk_node.Event)
 	ldkCtx, cancel := context.WithCancel(ctx)
 	ldkEventBroadcaster := NewLDKEventBroadcaster(ldkCtx, ldkEventConsumer)
+	nodeId := node.NodeId()
 
 	ls := LDKService{
 		workdir:             newpath,
@@ -131,6 +133,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		network:             network,
 		eventPublisher:      eventPublisher,
 		cfg:                 cfg,
+		pubkey:              nodeId,
 	}
 
 	// TODO: remove when LDK supports this
@@ -178,7 +181,6 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		return nil, err
 	}
 
-	nodeId := node.NodeId()
 	logger.Logger.WithFields(logrus.Fields{
 		"nodeId": nodeId,
 		"status": node.Status(),
@@ -677,10 +679,13 @@ func (ls *LDKService) MakeInvoice(ctx context.Context, amount int64, description
 	description = paymentRequest.Description
 	descriptionHash = paymentRequest.DescriptionHash
 
+	payment := ls.node.Payment(paymentRequest.PaymentHash)
+
 	transaction = &lnclient.Transaction{
 		Type:            "incoming",
 		Invoice:         invoice,
 		PaymentHash:     paymentRequest.PaymentHash,
+		Preimage:        *payment.Kind.(ldk_node.PaymentKindBolt11).Preimage,
 		Amount:          amount,
 		CreatedAt:       int64(paymentRequest.CreatedAt),
 		ExpiresAt:       expiresAt,
@@ -1493,4 +1498,8 @@ func (ls *LDKService) getChannelCloseReason(event *ldk_node.EventChannelClosed) 
 	}
 
 	return reason
+}
+
+func (ls *LDKService) GetPubkey() string {
+	return ls.pubkey
 }

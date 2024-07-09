@@ -38,7 +38,7 @@ func (api *api) ListTransactions(ctx context.Context, limit uint64, offset uint6
 	if api.svc.GetLNClient() == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	transactions, err := api.svc.GetTransactionsService().ListTransactions(ctx, 0, 0, limit, offset, false, "", api.svc.GetLNClient())
+	transactions, err := api.svc.GetTransactionsService().ListTransactions(ctx, 0, 0, limit, offset, false, "", api.svc.GetLNClient(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -70,9 +70,11 @@ func toApiTransaction(transaction *transactions.Transaction) *Transaction {
 
 	createdAt := transaction.CreatedAt.Format(time.RFC3339)
 	var settledAt *string
+	var preimage *string
 	if transaction.SettledAt != nil {
 		settledAtValue := transaction.SettledAt.Format(time.RFC3339)
 		settledAt = &settledAtValue
+		preimage = transaction.Preimage
 	}
 
 	var metadata interface{}
@@ -91,7 +93,7 @@ func toApiTransaction(transaction *transactions.Transaction) *Transaction {
 		Invoice:         transaction.PaymentRequest,
 		Description:     transaction.Description,
 		DescriptionHash: transaction.DescriptionHash,
-		Preimage:        transaction.Preimage,
+		Preimage:        preimage,
 		PaymentHash:     transaction.PaymentHash,
 		Amount:          transaction.Amount,
 		AppId:           transaction.AppId,
