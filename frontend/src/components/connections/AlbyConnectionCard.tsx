@@ -6,9 +6,11 @@ import {
   Link2Icon,
   ZapIcon,
 } from "lucide-react";
-import albyButton from "public/images/illustrations/login-with-alby.png";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+
+import BudgetAmountSelect from "src/components/BudgetAmountSelect";
+import BudgetRenewalSelect from "src/components/BudgetRenewalSelect";
 import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
 import UserAvatar from "src/components/UserAvatar";
@@ -32,23 +34,20 @@ import {
 } from "src/components/ui/dialog";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "src/components/ui/select";
 import { Separator } from "src/components/ui/separator";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { LinkStatus, useLinkAccount } from "src/hooks/useLinkAccount";
-import { App, budgetOptions, validBudgetRenewals } from "src/types";
+import { App, BudgetRenewalType } from "src/types";
+import albyButton from "/images/illustrations/login-with-alby.png";
 
 function AlbyConnectionCard({ connection }: { connection?: App }) {
   const { data: albyMe } = useAlbyMe();
   const { loading, linkStatus, loadingLinkStatus, linkAccount } =
     useLinkAccount();
-  const [maxAmount, setMaxAmount] = useState();
+
+  const [maxAmount, setMaxAmount] = useState(1_000_000);
+  const [budgetRenewal, setBudgetRenewal] =
+    useState<BudgetRenewalType>("monthly");
 
   return (
     <Card>
@@ -91,68 +90,29 @@ function AlbyConnectionCard({ connection }: { connection?: App }) {
                   <DialogContent>
                     <DialogHeader>Link to Alby Account</DialogHeader>
                     <DialogDescription className="flex flex-col gap-4">
-                      <p>
-                        After you link your account, every app you access
-                        through your Alby Account will handle payments via the
-                        Hub.
-                      </p>
+                      After you link your account, every app you access through
+                      your Alby Account will handle payments via the Hub.
                       <img src={albyButton} className="w-56 mx-auto" />
-                      <p>
-                        You can add a budget that will restrict how much can be
-                        spent from the Hub with your Alby Account.
-                      </p>
-                      <div className="grid gap-1.5">
-                        <Label>Budget renewal</Label>
-                        <Select
-                          value={"monthly"}
-                          /*onValueChange={handleBudgetRenewalChange} 
-                        disabled={!canEditPermissions}*/
-                        >
-                          <SelectTrigger className="w-[150px]">
-                            <SelectValue placeholder={"monthly"} />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {validBudgetRenewals.map((renewalOption) => (
-                              <SelectItem
-                                key={renewalOption}
-                                value={renewalOption}
-                              >
-                                {renewalOption.charAt(0).toUpperCase() +
-                                  renewalOption.slice(1)}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div
-                        id="budget-allowance-limits"
-                        className="grid grid-cols-6 grid-rows-2 md:grid-rows-1 md:grid-cols-6 gap-2 text-xs"
-                      >
-                        {Object.keys(budgetOptions).map((budget) => {
-                          return (
-                            // replace with something else and then remove dark prefixes
-                            <div
-                              key={budget}
-                              onClick={() =>
-                                setMaxAmount(budgetOptions[budget])
-                              }
-                              className={`col-span-2 md:col-span-1 cursor-pointer rounded border-2 ${
-                                maxAmount == budgetOptions[budget]
-                                  ? "border-primary"
-                                  : "border-muted"
-                              } text-center py-4`}
-                            >
-                              {budget}
-                              <br />
-                              {budgetOptions[budget] ? "sats" : "#reckless"}
-                            </div>
-                          );
-                        })}
-                      </div>
+                      You can add a budget that will restrict how much can be
+                      spent from the Hub with your Alby Account.
                     </DialogDescription>
+                    <div className="grid gap-1.5">
+                      <Label>Budget renewal</Label>
+                      <BudgetRenewalSelect
+                        value={budgetRenewal}
+                        onChange={setBudgetRenewal}
+                      />
+                    </div>
+                    <BudgetAmountSelect
+                      value={maxAmount}
+                      onChange={setMaxAmount}
+                    />
                     <DialogFooter>
-                      <LoadingButton onClick={linkAccount} loading={loading}>
-                        <div>Link to Alby Account</div>
+                      <LoadingButton
+                        onClick={() => linkAccount(maxAmount, budgetRenewal)}
+                        loading={loading}
+                      >
+                        Link to Alby Account
                       </LoadingButton>
                     </DialogFooter>
                   </DialogContent>

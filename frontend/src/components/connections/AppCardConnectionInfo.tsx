@@ -93,7 +93,10 @@ export function AppCardConnectionInfo({
                 <>Last used: {dayjs(connection.lastEventAt).fromNow()}</>
               )}
             </div>
-            <Link to={`/apps/${connection.nostrPubkey}?edit=true`}>
+            <Link
+              to={`/apps/${connection.nostrPubkey}?edit=true`}
+              onClick={(e) => e.stopPropagation()}
+            >
               <Button variant="outline">
                 <PlusCircle className="w-4 h-4 mr-2" />
                 Enable Payments

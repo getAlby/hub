@@ -13,7 +13,7 @@ type AlbyOAuthService interface {
 	GetAuthUrl() string
 	GetUserIdentifier() (string, error)
 	IsConnected(ctx context.Context) bool
-	LinkAccount(ctx context.Context, lnClient lnclient.LNClient) error
+	LinkAccount(ctx context.Context, lnClient lnclient.LNClient, budget uint64, renewal string) error
 	CallbackHandler(ctx context.Context, code string) error
 	GetBalance(ctx context.Context) (*AlbyBalance, error)
 	GetMe(ctx context.Context) (*AlbyMe, error)
@@ -27,6 +27,11 @@ type AlbyBalanceResponse struct {
 
 type AlbyPayRequest struct {
 	Invoice string `json:"invoice"`
+}
+
+type AlbyLinkAccountRequest struct {
+	Budget  int    `json:"budget"`
+	Renewal string `json:"renewal"`
 }
 
 type AlbyMe struct {

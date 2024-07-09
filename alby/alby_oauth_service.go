@@ -21,7 +21,6 @@ import (
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
-	nip47 "github.com/getAlby/hub/nip47/models"
 	"github.com/getAlby/hub/service/keys"
 )
 
@@ -262,7 +261,7 @@ func (svc *albyOAuthService) DrainSharedWallet(ctx context.Context, lnClient lnc
 
 	amountSat := int64(math.Floor(
 		balanceSat- // Alby shared node balance in sats
-			(balanceSat*(8/1000))- // Alby service fee (0.8%)
+			(balanceSat*(8.0/1000.0))- // Alby service fee (0.8%)
 			(balanceSat*0.01))) - // Maximum potential routing fees (1%)
 		10 // Alby fee reserve (10 sats)
 
@@ -379,7 +378,7 @@ func (svc *albyOAuthService) GetAuthUrl() string {
 	return svc.oauthConf.AuthCodeURL("unused")
 }
 
-func (svc *albyOAuthService) LinkAccount(ctx context.Context, lnClient lnclient.LNClient) error {
+func (svc *albyOAuthService) LinkAccount(ctx context.Context, lnClient lnclient.LNClient, budget uint64, renewal string) error {
 	connectionPubkey, err := svc.createAlbyAccountNWCNode(ctx)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to create alby account nwc node")
@@ -389,8 +388,8 @@ func (svc *albyOAuthService) LinkAccount(ctx context.Context, lnClient lnclient.
 	app, _, err := db.NewDBService(svc.db, svc.eventPublisher).CreateApp(
 		"getalby.com",
 		connectionPubkey,
-		1_000_000,
-		nip47.BUDGET_RENEWAL_MONTHLY,
+		budget,
+		renewal,
 		nil,
 		lnClient.GetSupportedNIP47Methods(),
 	)
