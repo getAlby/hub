@@ -22,7 +22,7 @@ type Props = {
 export default function AppCard({ app }: Props) {
   return (
     <>
-      <Link className="h-fulli app" to={`/apps/${app.nostrPubkey}`}>
+      <Link className="h-full app" to={`/apps/${app.nostrPubkey}`}>
         <Card className="h-full flex flex-col group">
           <CardHeader>
             <CardTitle className="relative">
