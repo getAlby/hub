@@ -80,6 +80,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		lsp.OlympusLSP().Pubkey,
 		lsp.AlbyPlebsLSP().Pubkey,
 		lsp.MegalithLSP().Pubkey,
+		"02b4552a7a85274e4da01a7c71ca57407181752e8568b31d51f13c111a2941dce3", // LNServer_Wave
 		"0296b2db342fcf87ea94d981757fdf4d3e545bd5cef4919f58b5d38dfdd73bf5c9", // blocktank
 
 		// Mutinynet
