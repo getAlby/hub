@@ -382,6 +382,7 @@ export default function Channels() {
                       <Heart
                         className="w-4 h-4"
                         stroke={"hsl(var(--primary))"}
+                        strokeWidth={3}
                         fill={
                           nodeHealth === 100
                             ? "hsl(var(--primary))"
