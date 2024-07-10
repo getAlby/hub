@@ -838,7 +838,7 @@ function getNodeHealth(channels: Channel[]) {
     Math.min(3, numUniqueChannelPartners) *
       (100 / 3) * // 3 channels is great
       (Math.min(totalChannelCapacitySats, 1_000_000) / 1_000_000) * // 1 million sats or more is great
-      averageChannelBalance // perfectly balanced is great!
+      (0.9 + averageChannelBalance * 0.1) // +10% for perfectly balanced channels
   );
 
   // above calculation is a bit harsh
