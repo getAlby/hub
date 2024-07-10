@@ -370,8 +370,22 @@ export default function Channels() {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger>
-                    <CircleProgress value={nodeHealth} className="w-9 h-9">
-                      <Heart className="w-4 h-4" />
+                    <CircleProgress
+                      value={nodeHealth}
+                      className="w-9 h-9 relative"
+                    >
+                      {nodeHealth === 100 && (
+                        <div className="absolute w-full h-full opacity-20">
+                          <div className="absolute w-full h-full bg-primary animate-pulse" />
+                        </div>
+                      )}
+                      <Heart
+                        className="w-4 h-4"
+                        color="primary"
+                        fill={
+                          nodeHealth === 100 ? "hsl(var(--primary))" : undefined
+                        }
+                      />
                     </CircleProgress>
                   </TooltipTrigger>
                   <TooltipContent>Node health: {nodeHealth}%</TooltipContent>
