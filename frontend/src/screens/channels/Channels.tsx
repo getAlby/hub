@@ -857,5 +857,10 @@ function getNodeHealth(channels: Channel[]) {
       (0.9 + averageChannelBalance * 0.1) // +10% for perfectly balanced channels
   );
 
+  if (nodeHealth > 95) {
+    // prevent OCD
+    return 100;
+  }
+
   return nodeHealth;
 }
