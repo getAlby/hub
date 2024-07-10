@@ -50,7 +50,7 @@ function TransactionItem({ tx }: Props) {
     >
       <CredenzaTrigger
         asChild
-        className="p-3 mb-4 hover:bg-muted/50 data-[state=selected]:bg-muted cursor-pointer rounded-md slashed-zero"
+        className="p-3 mb-4 hover:bg-muted/50 data-[state=selected]:bg-muted cursor-pointer rounded-md slashed-zero transaction sensitive ph-no-capture"
       >
         <div className="flex gap-3">
           <div className="flex items-center">

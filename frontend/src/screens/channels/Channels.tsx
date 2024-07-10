@@ -523,7 +523,7 @@ export default function Channels() {
                 </div>
               </div>
             )}
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold balance sensitive ph-no-capture">
               {balances && (
                 <>
                   {new Intl.NumberFormat().format(balances.onchain.spendable)}{" "}
@@ -567,7 +567,7 @@ export default function Channels() {
               </div>
             )}
             {balances && (
-              <div className="text-2xl font-bold">
+              <div className="text-2xl font-bold balance sensitive ph-no-capture">
                 {new Intl.NumberFormat(undefined, {}).format(
                   Math.floor(balances.lightning.totalSpendable / 1000)
                 )}{" "}
@@ -589,7 +589,7 @@ export default function Channels() {
             <ArrowDown className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="flex-grow">
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold balance sensitive ph-no-capture">
               {balances &&
                 new Intl.NumberFormat().format(
                   Math.floor(balances.lightning.totalReceivable / 1000)
@@ -617,7 +617,7 @@ export default function Channels() {
 
       {!channels ||
         (channels.length > 0 && (
-          <Table>
+          <Table className="channel-list">
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[80px]">Status</TableHead>
@@ -680,7 +680,7 @@ export default function Channels() {
                       }
 
                       return (
-                        <TableRow key={channel.id}>
+                        <TableRow key={channel.id} className="channel">
                           <TableCell>
                             {channel.active ? (
                               <Badge variant="positive">Online</Badge>
