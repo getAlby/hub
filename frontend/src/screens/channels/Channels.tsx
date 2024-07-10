@@ -834,7 +834,6 @@ function getNodeHealth(channels: Channel[]) {
   const totalChannelCapacitySats = channels
     .map((channel) => (channel.localBalance + channel.remoteBalance) / 1000)
     .reduce((a, b) => a + b, 0);
-
   const averageChannelBalance =
     channels
       .map((channel) => {
@@ -851,15 +850,12 @@ function getNodeHealth(channels: Channel[]) {
     channels.map((channel) => channel.remotePubkey)
   ).size;
 
-  let nodeHealth = Math.ceil(
-    Math.min(3, numUniqueChannelPartners) *
-      (100 / 3) * // 3 channels is great
+  const nodeHealth = Math.ceil(
+    numUniqueChannelPartners *
+      (100 / 2) * // 2 or more channels is great
       (Math.min(totalChannelCapacitySats, 1_000_000) / 1_000_000) * // 1 million sats or more is great
       (0.9 + averageChannelBalance * 0.1) // +10% for perfectly balanced channels
   );
-
-  // above calculation is a bit harsh
-  nodeHealth = Math.min(nodeHealth * 2, 100);
 
   return nodeHealth;
 }
