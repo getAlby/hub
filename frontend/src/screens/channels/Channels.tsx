@@ -381,9 +381,11 @@ export default function Channels() {
                       )}
                       <Heart
                         className="w-4 h-4"
-                        color="primary"
+                        stroke={"hsl(var(--primary))"}
                         fill={
-                          nodeHealth === 100 ? "hsl(var(--primary))" : undefined
+                          nodeHealth === 100
+                            ? "hsl(var(--primary))"
+                            : "transparent"
                         }
                       />
                     </CircleProgress>
