@@ -727,7 +727,6 @@ func lndInvoiceToTransaction(invoice *lnrpc.Invoice) *lnclient.Transaction {
 		Preimage:        preimage,
 		PaymentHash:     hex.EncodeToString(invoice.RHash),
 		Amount:          invoice.ValueMsat,
-		FeesPaid:        invoice.AmtPaidMsat,
 		CreatedAt:       invoice.CreationDate,
 		SettledAt:       settledAt,
 		ExpiresAt:       expiresAt,
