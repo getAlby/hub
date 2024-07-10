@@ -35,7 +35,8 @@ export function ThemeProvider({
   ...props
 }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(() => {
-    return (localStorage.getItem(storageKey) as Theme) || defaultTheme;
+    const themeFromStorage = localStorage.getItem(storageKey) as Theme;
+    return Themes.includes(themeFromStorage) ? themeFromStorage : defaultTheme;
   });
 
   const [darkMode, setDarkMode] = useState<DarkMode>(() => {
