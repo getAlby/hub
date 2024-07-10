@@ -126,7 +126,7 @@ func (albyHttpSvc *AlbyHttpService) albyLinkAccountHandler(c echo.Context) error
 		})
 	}
 
-	err := albyHttpSvc.albyOAuthSvc.LinkAccount(c.Request().Context(), albyHttpSvc.svc.GetLNClient(), uint64(linkAccountRequest.Budget), linkAccountRequest.Renewal)
+	err := albyHttpSvc.albyOAuthSvc.LinkAccount(c.Request().Context(), albyHttpSvc.svc.GetLNClient(), linkAccountRequest.Budget, linkAccountRequest.Renewal)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to connect alby account")
 		return err

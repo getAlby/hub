@@ -30,7 +30,7 @@ type AlbyPayRequest struct {
 }
 
 type AlbyLinkAccountRequest struct {
-	Budget  int    `json:"budget"`
+	Budget  uint64 `json:"budget"`
 	Renewal string `json:"renewal"`
 }
 

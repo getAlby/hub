@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { Button } from "src/components/ui/button";
 import { Progress } from "src/components/ui/progress";
 import { formatAmount } from "src/lib/utils";
-import { App } from "src/types";
+import { App, BudgetRenewalType } from "src/types";
 
 type AppCardConnectionInfoProps = {
   connection: App;
@@ -13,6 +13,23 @@ type AppCardConnectionInfoProps = {
 export function AppCardConnectionInfo({
   connection,
 }: AppCardConnectionInfoProps) {
+  function getBudgetRenewalLabel(renewalType: BudgetRenewalType): string {
+    switch (renewalType) {
+      case "daily":
+        return "day";
+      case "weekly":
+        return "week";
+      case "monthly":
+        return "month";
+      case "yearly":
+        return "year";
+      case "never":
+        return "never";
+      case "":
+        return "";
+    }
+  }
+
   return (
     <>
       {connection.maxAmount > 0 ? (
@@ -45,7 +62,7 @@ export function AppCardConnectionInfo({
                 <>
                   {formatAmount(connection.maxAmount * 1000)} sats
                   {connection.budgetRenewal !== "never" && (
-                    <> / {connection.budgetRenewal.slice(0, -2)}</>
+                    <> / {getBudgetRenewalLabel(connection.budgetRenewal)}</>
                   )}
                 </>
               )}

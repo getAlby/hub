@@ -515,7 +515,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			}).WithError(err).Error("Failed to decode request to wails router")
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
-		err = app.svc.GetAlbyOAuthSvc().LinkAccount(ctx, app.svc.GetLNClient(), uint64(linkAccountRequest.Budget), linkAccountRequest.Renewal)
+		err = app.svc.GetAlbyOAuthSvc().LinkAccount(ctx, app.svc.GetLNClient(), linkAccountRequest.Budget, linkAccountRequest.Renewal)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}

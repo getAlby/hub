@@ -38,7 +38,7 @@ import { Separator } from "src/components/ui/separator";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { LinkStatus, useLinkAccount } from "src/hooks/useLinkAccount";
 import { App, BudgetRenewalType } from "src/types";
-import albyButton from "/images/illustrations/login-with-alby.png";
+import linkAccountIllustration from "/images/illustrations/link-account.png";
 
 function AlbyConnectionCard({ connection }: { connection?: App }) {
   const { data: albyMe } = useAlbyMe();
@@ -90,9 +90,13 @@ function AlbyConnectionCard({ connection }: { connection?: App }) {
                   <DialogContent>
                     <DialogHeader>Link to Alby Account</DialogHeader>
                     <DialogDescription className="flex flex-col gap-4">
-                      After you link your account, every app you access through
-                      your Alby Account will handle payments via the Hub.
-                      <img src={albyButton} className="w-56 mx-auto" />
+                      After you link your account, your lightning address and
+                      every app you access through your Alby Account will handle
+                      payments via the Hub.
+                      <img
+                        src={linkAccountIllustration}
+                        className="w-80 mx-auto"
+                      />
                       You can add a budget that will restrict how much can be
                       spent from the Hub with your Alby Account.
                     </DialogDescription>
