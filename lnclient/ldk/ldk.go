@@ -526,9 +526,13 @@ func (ls *LDKService) SendKeysend(ctx context.Context, amount uint64, destinatio
 	customTlvs := []ldk_node.TlvEntry{}
 
 	for _, customRecord := range custom_records {
+		decodedValue, err := hex.DecodeString(customRecord.Value)
+		if err != nil {
+			return "", err
+		}
 		customTlvs = append(customTlvs, ldk_node.TlvEntry{
 			Type:  customRecord.Type,
-			Value: []uint8(customRecord.Value),
+			Value: decodedValue,
 		})
 	}
 

@@ -359,7 +359,11 @@ func (svc *LNDService) SendKeysend(ctx context.Context, amount uint64, destinati
 
 	destCustomRecords := map[uint64][]byte{}
 	for _, record := range custom_records {
-		destCustomRecords[record.Type] = []byte(record.Value)
+		decodedValue, err := hex.DecodeString(record.Value)
+		if err != nil {
+			return "", err
+		}
+		destCustomRecords[record.Type] = decodedValue
 	}
 	const KEYSEND_CUSTOM_RECORD = 5482373484
 	destCustomRecords[KEYSEND_CUSTOM_RECORD] = preImageBytes
