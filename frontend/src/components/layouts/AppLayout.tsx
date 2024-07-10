@@ -211,7 +211,7 @@ export default function AppLayout() {
                             className="font-semibold text-xl"
                           >
                             <span className="text-xs flex items-center text-muted-foreground">
-                              {info?.version}&nbsp;
+                              {info?.version && <>{info?.version}&nbsp;</>}
                               {upToDate ? (
                                 <ShieldCheckIcon className="w-4 h-4" />
                               ) : (

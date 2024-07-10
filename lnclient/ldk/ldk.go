@@ -61,12 +61,12 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 
 	logDirPath := filepath.Join(newpath, "./logs")
 
-	config := ldk_node.DefaultConfig()
+	ldkConfig := ldk_node.DefaultConfig()
 	listeningAddresses := []string{
 		"0.0.0.0:9735",
 		"[::]:9735",
 	}
-	config.TrustedPeers0conf = []string{
+	ldkConfig.TrustedPeers0conf = []string{
 		lsp.OlympusLSP().Pubkey,
 		lsp.AlbyPlebsLSP().Pubkey,
 		lsp.MegalithLSP().Pubkey,
@@ -76,7 +76,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		lsp.OlympusMutinynetLSP().Pubkey,
 		lsp.MegalithMutinynetLSP().Pubkey,
 	}
-	config.AnchorChannelsConfig.TrustedPeersNoReserve = []string{
+	ldkConfig.AnchorChannelsConfig.TrustedPeersNoReserve = []string{
 		lsp.OlympusLSP().Pubkey,
 		lsp.AlbyPlebsLSP().Pubkey,
 		lsp.MegalithLSP().Pubkey,
@@ -88,13 +88,13 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		lsp.MegalithMutinynetLSP().Pubkey,
 	}
 
-	config.ListeningAddresses = &listeningAddresses
-	config.LogDirPath = &logDirPath
+	ldkConfig.ListeningAddresses = &listeningAddresses
+	ldkConfig.LogDirPath = &logDirPath
 	logLevel, err := strconv.Atoi(cfg.GetEnv().LDKLogLevel)
 	if err == nil {
-		config.LogLevel = ldk_node.LogLevel(logLevel)
+		ldkConfig.LogLevel = ldk_node.LogLevel(logLevel)
 	}
-	builder := ldk_node.BuilderFromConfig(config)
+	builder := ldk_node.BuilderFromConfig(ldkConfig)
 	builder.SetEntropyBip39Mnemonic(mnemonic, nil)
 	builder.SetNetwork(network)
 	builder.SetEsploraServer(esploraServer)
@@ -188,6 +188,16 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	err = node.SyncWallets()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to sync LDK wallets")
+		ls.eventPublisher.Publish(&events.Event{
+			Event: "nwc_node_sync_failed",
+			Properties: map[string]interface{}{
+				"error":        err.Error(),
+				"sync_type":    "full",
+				"initial_sync": true,
+				"node_type":    config.LDKBackendType,
+			},
+		})
+
 		shutdownErr := ls.Shutdown()
 		if shutdownErr != nil {
 			logger.Logger.WithError(shutdownErr).Error("Failed to shutdown LDK node")
@@ -246,6 +256,14 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 				err = node.UpdateFeeEstimates()
 				if err != nil {
 					logger.Logger.WithError(err).Error("Failed to update fee estimates")
+					ls.eventPublisher.Publish(&events.Event{
+						Event: "nwc_node_sync_failed",
+						Properties: map[string]interface{}{
+							"error":     err.Error(),
+							"sync_type": "fee_estimates",
+							"node_type": config.LDKBackendType,
+						},
+					})
 				}
 
 				if time.Since(ls.lastWalletSyncRequest) > MIN_SYNC_INTERVAL && time.Since(ls.lastSync) < MAX_SYNC_INTERVAL {
@@ -259,6 +277,15 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 
 				if err != nil {
 					logger.Logger.WithError(err).Error("Failed to sync LDK wallets")
+					ls.eventPublisher.Publish(&events.Event{
+						Event: "nwc_node_sync_failed",
+						Properties: map[string]interface{}{
+							"error":     err.Error(),
+							"sync_type": "full",
+							"node_type": config.LDKBackendType,
+						},
+					})
+
 					// try again at next MIN_SYNC_INTERVAL
 					continue
 				}
