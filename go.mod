@@ -17,7 +17,7 @@ require (
 	github.com/nbd-wtf/ln-decodepay v1.12.1
 	github.com/orandin/lumberjackrus v1.0.1
 	github.com/stretchr/testify v1.9.0
-	github.com/wailsapp/wails/v2 v2.8.2
+	github.com/wailsapp/wails/v2 v2.9.1
 	golang.org/x/crypto v0.25.0
 	golang.org/x/oauth2 v0.21.0
 	google.golang.org/grpc v1.65.0
