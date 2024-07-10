@@ -10,7 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var Tag string = "Unknown Version"
+var Tag string = ""
 
 type githubRelease struct {
 	TagName string `json:"tag_name"`

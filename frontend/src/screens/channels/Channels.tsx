@@ -370,8 +370,25 @@ export default function Channels() {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger>
-                    <CircleProgress value={nodeHealth} className="w-9 h-9">
-                      <Heart className="w-4 h-4" />
+                    <CircleProgress
+                      value={nodeHealth}
+                      className="w-9 h-9 relative"
+                    >
+                      {nodeHealth === 100 && (
+                        <div className="absolute w-full h-full opacity-20">
+                          <div className="absolute w-full h-full bg-primary animate-pulse" />
+                        </div>
+                      )}
+                      <Heart
+                        className="w-4 h-4"
+                        stroke={"hsl(var(--primary))"}
+                        strokeWidth={3}
+                        fill={
+                          nodeHealth === 100
+                            ? "hsl(var(--primary))"
+                            : "transparent"
+                        }
+                      />
                     </CircleProgress>
                   </TooltipTrigger>
                   <TooltipContent>Node health: {nodeHealth}%</TooltipContent>
@@ -506,7 +523,7 @@ export default function Channels() {
                 </div>
               </div>
             )}
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold balance sensitive ph-no-capture">
               {balances && (
                 <>
                   {new Intl.NumberFormat().format(balances.onchain.spendable)}{" "}
@@ -550,7 +567,7 @@ export default function Channels() {
               </div>
             )}
             {balances && (
-              <div className="text-2xl font-bold">
+              <div className="text-2xl font-bold balance sensitive ph-no-capture">
                 {new Intl.NumberFormat(undefined, {}).format(
                   Math.floor(balances.lightning.totalSpendable / 1000)
                 )}{" "}
@@ -572,7 +589,7 @@ export default function Channels() {
             <ArrowDown className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="flex-grow">
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold balance sensitive ph-no-capture">
               {balances &&
                 new Intl.NumberFormat().format(
                   Math.floor(balances.lightning.totalReceivable / 1000)
@@ -600,7 +617,7 @@ export default function Channels() {
 
       {!channels ||
         (channels.length > 0 && (
-          <Table>
+          <Table className="channel-list">
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[80px]">Status</TableHead>
@@ -663,7 +680,7 @@ export default function Channels() {
                       }
 
                       return (
-                        <TableRow key={channel.id}>
+                        <TableRow key={channel.id} className="channel">
                           <TableCell>
                             {channel.active ? (
                               <Badge variant="positive">Online</Badge>
@@ -817,7 +834,6 @@ function getNodeHealth(channels: Channel[]) {
   const totalChannelCapacitySats = channels
     .map((channel) => (channel.localBalance + channel.remoteBalance) / 1000)
     .reduce((a, b) => a + b, 0);
-
   const averageChannelBalance =
     channels
       .map((channel) => {
@@ -834,15 +850,17 @@ function getNodeHealth(channels: Channel[]) {
     channels.map((channel) => channel.remotePubkey)
   ).size;
 
-  let nodeHealth = Math.ceil(
-    Math.min(3, numUniqueChannelPartners) *
-      (100 / 3) * // 3 channels is great
+  const nodeHealth = Math.ceil(
+    numUniqueChannelPartners *
+      (100 / 2) * // 2 or more channels is great
       (Math.min(totalChannelCapacitySats, 1_000_000) / 1_000_000) * // 1 million sats or more is great
-      averageChannelBalance // perfectly balanced is great!
+      (0.9 + averageChannelBalance * 0.1) // +10% for perfectly balanced channels
   );
 
-  // above calculation is a bit harsh
-  nodeHealth = Math.min(nodeHealth * 2, 100);
+  if (nodeHealth > 95) {
+    // prevent OCD
+    return 100;
+  }
 
   return nodeHealth;
 }
