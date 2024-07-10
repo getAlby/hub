@@ -27,7 +27,6 @@ export default function AppCreated() {
   const queryParams = new URLSearchParams(search);
   const appId = queryParams.get("app") ?? "";
   const appstoreApp = suggestedApps.find((app) => app.id === appId);
-  console.info(appstoreApp, appId);
 
   const [timeout, setTimeout] = useState(false);
   const [isQRCodeVisible, setIsQRCodeVisible] = useState(false);
