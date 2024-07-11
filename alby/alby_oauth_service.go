@@ -16,13 +16,13 @@ import (
 	"golang.org/x/oauth2"
 	"gorm.io/gorm"
 
-	"github.com/getAlby/nostr-wallet-connect/config"
-	"github.com/getAlby/nostr-wallet-connect/db"
-	"github.com/getAlby/nostr-wallet-connect/events"
-	"github.com/getAlby/nostr-wallet-connect/lnclient"
-	"github.com/getAlby/nostr-wallet-connect/logger"
-	nip47 "github.com/getAlby/nostr-wallet-connect/nip47/models"
-	"github.com/getAlby/nostr-wallet-connect/service/keys"
+	"github.com/getAlby/hub/config"
+	"github.com/getAlby/hub/db"
+	"github.com/getAlby/hub/events"
+	"github.com/getAlby/hub/lnclient"
+	"github.com/getAlby/hub/logger"
+	"github.com/getAlby/hub/nip47/permissions"
+	"github.com/getAlby/hub/service/keys"
 )
 
 type albyOAuthService struct {
@@ -258,15 +258,18 @@ func (svc *albyOAuthService) DrainSharedWallet(ctx context.Context, lnClient lnc
 		return err
 	}
 
-	amount := int64(math.Floor(
-		float64(balance.Balance)*1000* // Alby shared node balance in sats
-			(1-8/1000)* // Alby service fee (0.8%)
-			0.99)) - // Maximum potential routing fees (1%)
-		10000 // Alby fee reserve (10 sats)
+	balanceSat := float64(balance.Balance)
 
-	if amount < 1000 {
+	amountSat := int64(math.Floor(
+		balanceSat- // Alby shared node balance in sats
+			(balanceSat*(8.0/1000.0))- // Alby service fee (0.8%)
+			(balanceSat*0.01))) - // Maximum potential routing fees (1%)
+		10 // Alby fee reserve (10 sats)
+
+	if amountSat < 1 {
 		return errors.New("Not enough balance remaining")
 	}
+	amount := amountSat * 1000
 
 	logger.Logger.WithField("amount", amount).WithError(err).Error("Draining Alby shared wallet funds")
 
@@ -376,20 +379,30 @@ func (svc *albyOAuthService) GetAuthUrl() string {
 	return svc.oauthConf.AuthCodeURL("unused")
 }
 
-func (svc *albyOAuthService) LinkAccount(ctx context.Context, lnClient lnclient.LNClient) error {
+func (svc *albyOAuthService) LinkAccount(ctx context.Context, lnClient lnclient.LNClient, budget uint64, renewal string) error {
 	connectionPubkey, err := svc.createAlbyAccountNWCNode(ctx)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to create alby account nwc node")
 		return err
 	}
 
+	scopes, err := permissions.RequestMethodsToScopes(lnClient.GetSupportedNIP47Methods())
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to get scopes from LNClient request methods")
+		return err
+	}
+	notificationTypes := lnClient.GetSupportedNIP47NotificationTypes()
+	if len(notificationTypes) > 0 {
+		scopes = append(scopes, permissions.NOTIFICATIONS_SCOPE)
+	}
+
 	app, _, err := db.NewDBService(svc.db, svc.eventPublisher).CreateApp(
 		"getalby.com",
 		connectionPubkey,
-		1_000_000,
-		nip47.BUDGET_RENEWAL_MONTHLY,
+		budget,
+		renewal,
 		nil,
-		lnClient.GetSupportedNIP47Methods(),
+		scopes,
 	)
 
 	if err != nil {

@@ -1,6 +1,6 @@
-# Nostr Wallet Connect (Next)
+# Alby Hub
 
-This is a self-sovereign, self-custodial, single-user rewrite of NWC currently in an experimental phase development. **❗This version is not backwards compatible with NWC - it requires a fresh database and connections to be re-added**
+This is a self-sovereign, self-custodial, single-user rewrite of the original [Nostr Wallet Connect](https://github.com/getAlby/nostr-wallet-connect) app. **❗This version is not backwards compatible with the original app - it requires a fresh database and connections to be re-added**
 
 This application allows you to control your Lightning node or wallet from any other application that supports [NWC](https://nwc.dev/).
 Connect apps like [Damus](https://damus.io/) or [Amethyst](https://linktr.ee/amethyst.social) to your node. There are many more available on https://nwc.dev/.
@@ -16,10 +16,12 @@ Ideally the app runs 24/7 (on a node, VPS or always-online desktop/laptop machin
 
 ## Supported Backends
 
-- LND (see: lnd.go)
-- Breez (see: breez.go)
-- Greenlight (see: greenlight.go)
-- LDK (see: ldk.go)
+- LND
+- Breez
+- Greenlight
+- LDK
+- Pheonixd
+- Cashu
 - want more? please open an issue.
 
 ## Installation
@@ -123,7 +125,7 @@ For more information refer to:
 
 ### Versioning
 
-    $ go run -ldflags="-X 'github.com/getAlby/nostr-wallet-connect/version.Tag=v0.6.0'" cmd/http/main.go
+    $ go run -ldflags="-X 'github.com/getAlby/hub/version.Tag=v0.6.0'" cmd/http/main.go
 
 ### Windows
 
@@ -135,9 +137,9 @@ Breez SDK requires gcc to build the Breez bindings. Run `choco install mingw` an
 - `CLIENT_NOSTR_PUBKEY`: if set, this service will only listen to events authored by this public key. You can set this to your own nostr public key.
 - `RELAY`: default: "wss://relay.getalby.com/v1"
 - `COOKIE_SECRET`: a randomly generated secret string. (only needed in http mode)
-- `DATABASE_URI`: a sqlite filename. Default: $XDG_DATA_HOME/nostr-wallet-connect/nwc.db
+- `DATABASE_URI`: a sqlite filename. Default: $XDG_DATA_HOME/albyhub/nwc.db
 - `PORT`: the port on which the app should listen on (default: 8080)
-- `WORK_DIR`: directory to store NWC data files. Default: $XDG_DATA_HOME/nostr-wallet-connect
+- `WORK_DIR`: directory to store NWC data files. Default: $XDG_DATA_HOME/albyhub
 - `LOG_LEVEL`: log level for the application. Higher is more verbose. Default: 4 (info)
 
 ### LND Backend parameters
@@ -179,9 +181,9 @@ Create an OAuth client at the [Alby Developer Portal](https://getalby.com/develo
 
 Follow the steps to integrate Mutinynet with your NWC Next setup:
 
-1. Configure your environment with the [Mutinynet LDK parameters](https://github.com/getAlby/nostr-wallet-connect-next#mutinynet)
+1. Configure your environment with the [Mutinynet LDK parameters](https://github.com/getAlby/hub#mutinynet)
 
-2. Proceed as described in the [Development](https://github.com/getAlby/nostr-wallet-connect-next#Development) section to run the frontend and backend
+2. Proceed as described in the [Development](https://github.com/getAlby/hub#Development) section to run the frontend and backend
 
 3. During onboarding, after setting your password and authorizing via Alby OAuth, you'll be directed to `/onboarding/lightning/migrate-alby`. Click "Skip For Now" to access your wallet interface
 
@@ -332,11 +334,11 @@ Run NWC on your own node!
 
 ### Digital Ocean
 
-[![Deploy to DO](https://www.deploytodo.com/do-btn-blue.svg)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/getAlby/nostr-wallet-connect-next/tree/master)
+[![Deploy to DO](https://www.deploytodo.com/do-btn-blue.svg)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/getAlby/hub/tree/master)
 
 ### Render
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/getAlby/nostr-wallet-connect-next)
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/getAlby/hub)
 
 ### Fly
 
@@ -378,10 +380,16 @@ LDK logs:
 
 _Tested on Linux only_
 
-`docker run -v ~/.local/share/alby-nwc:/data -e WORK_DIR='/data' -p 8080:8080 ghcr.io/getalby/nostr-wallet-connect-next:latest`
+`docker run -v ~/.local/share/albyhub:/data -e WORK_DIR='/data' -p 8080:8080 ghcr.io/getalby/hub:latest`
 
 #### From Source
 
 _Tested on Linux only_
 
-`docker run -v ~/.local/share/alby-nwc:/data -e WORK_DIR='/data' -p 8080:8080 $(docker build -q .)`
+##### Docker Compose
+
+`docker compose up`
+
+##### Manually
+
+`docker run -v ~/.local/share/albyhub:/data -e WORK_DIR='/data' -p 8080:8080 $(docker build -q .)`

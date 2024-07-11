@@ -7,6 +7,7 @@ import {
   CopyIcon,
   ExternalLinkIcon,
   HandCoins,
+  Heart,
   Hotel,
   InfoIcon,
   MoreHorizontal,
@@ -43,7 +44,7 @@ import {
   DropdownMenuTrigger,
 } from "src/components/ui/dropdown-menu.tsx";
 import { LoadingButton } from "src/components/ui/loading-button.tsx";
-import { Progress } from "src/components/ui/progress.tsx";
+import { CircleProgress, Progress } from "src/components/ui/progress.tsx";
 import {
   Table,
   TableBody,
@@ -94,6 +95,8 @@ export default function Channels() {
   const { toast } = useToast();
   const [drainingAlbySharedFunds, setDrainingAlbySharedFunds] =
     React.useState(false);
+
+  const nodeHealth = channels ? getNodeHealth(channels) : 0;
 
   // TODO: move to NWC backend
   const loadNodeStats = React.useCallback(async () => {
@@ -284,10 +287,10 @@ export default function Channels() {
   return (
     <>
       <AppHeader
-        title="Liquidity"
-        description="Manage your lightning node liquidity"
+        title="Node"
+        description="Manage your lightning node"
         contentRight={
-          <>
+          <div className="flex gap-3 items-center justify-center">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="default">
@@ -360,10 +363,39 @@ export default function Channels() {
                 </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>
-            {/* <Link to="/channels/new">
+            <Link to="/channels/outgoing">
               <Button>Open Channel</Button>
-            </Link> */}
-          </>
+            </Link>
+            <ExternalLink to="https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub/liquidity/node-health">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <CircleProgress
+                      value={nodeHealth}
+                      className="w-9 h-9 relative"
+                    >
+                      {nodeHealth === 100 && (
+                        <div className="absolute w-full h-full opacity-20">
+                          <div className="absolute w-full h-full bg-primary animate-pulse" />
+                        </div>
+                      )}
+                      <Heart
+                        className="w-4 h-4"
+                        stroke={"hsl(var(--primary))"}
+                        strokeWidth={3}
+                        fill={
+                          nodeHealth === 100
+                            ? "hsl(var(--primary))"
+                            : "transparent"
+                        }
+                      />
+                    </CircleProgress>
+                  </TooltipTrigger>
+                  <TooltipContent>Node health: {nodeHealth}%</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </ExternalLink>
+          </div>
         }
       ></AppHeader>
 
@@ -414,14 +446,14 @@ export default function Channels() {
         )}
       >
         {showHostedBalance && (
-          <Card>
+          <Card className="flex flex-col">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Alby Hosted Balance
               </CardTitle>
               <Hotel className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex-grow">
               <div className="text-2xl font-bold">
                 {new Intl.NumberFormat().format(albyBalance?.sats)} sats
               </div>
@@ -476,14 +508,14 @@ export default function Channels() {
             </CardFooter>
           </Card>
         )}
-        <Card>
+        <Card className="flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Savings Balance
             </CardTitle>
             <Bitcoin className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex-grow">
             {!balances && (
               <div>
                 <div className="animate-pulse d-inline ">
@@ -491,7 +523,7 @@ export default function Channels() {
                 </div>
               </div>
             )}
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold balance sensitive ph-no-capture">
               {balances && (
                 <>
                   {new Intl.NumberFormat().format(balances.onchain.spendable)}{" "}
@@ -519,14 +551,14 @@ export default function Channels() {
             </Link>
           </CardFooter>
         </Card>
-        <Card>
+        <Card className="flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Spending Balance
             </CardTitle>
             <ArrowUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex-grow">
             {!balances && (
               <div>
                 <div className="animate-pulse d-inline ">
@@ -535,7 +567,7 @@ export default function Channels() {
               </div>
             )}
             {balances && (
-              <div className="text-2xl font-bold">
+              <div className="text-2xl font-bold balance sensitive ph-no-capture">
                 {new Intl.NumberFormat(undefined, {}).format(
                   Math.floor(balances.lightning.totalSpendable / 1000)
                 )}{" "}
@@ -549,15 +581,15 @@ export default function Channels() {
             </Link>
           </CardFooter>
         </Card>
-        <Card>
+        <Card className="flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Receiving Capacity
             </CardTitle>
             <ArrowDown className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
+          <CardContent className="flex-grow">
+            <div className="text-2xl font-bold balance sensitive ph-no-capture">
               {balances &&
                 new Intl.NumberFormat().format(
                   Math.floor(balances.lightning.totalReceivable / 1000)
@@ -585,7 +617,7 @@ export default function Channels() {
 
       {!channels ||
         (channels.length > 0 && (
-          <Table>
+          <Table className="channel-list">
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[80px]">Status</TableHead>
@@ -648,7 +680,7 @@ export default function Channels() {
                       }
 
                       return (
-                        <TableRow key={channel.id}>
+                        <TableRow key={channel.id} className="channel">
                           <TableCell>
                             {channel.active ? (
                               <Badge variant="positive">Online</Badge>
@@ -796,4 +828,39 @@ export default function Channels() {
         ))}
     </>
   );
+}
+
+function getNodeHealth(channels: Channel[]) {
+  const totalChannelCapacitySats = channels
+    .map((channel) => (channel.localBalance + channel.remoteBalance) / 1000)
+    .reduce((a, b) => a + b, 0);
+  const averageChannelBalance =
+    channels
+      .map((channel) => {
+        const totalBalance = channel.localBalance + channel.remoteBalance;
+        const expectedBalance = totalBalance / 2;
+        const actualBalance =
+          Math.min(channel.localBalance, channel.remoteBalance) /
+          expectedBalance;
+        return actualBalance;
+      })
+      .reduce((a, b) => a + b, 0) / (channels.length || 1);
+
+  const numUniqueChannelPartners = new Set(
+    channels.map((channel) => channel.remotePubkey)
+  ).size;
+
+  const nodeHealth = Math.ceil(
+    numUniqueChannelPartners *
+      (100 / 2) * // 2 or more channels is great
+      (Math.min(totalChannelCapacitySats, 1_000_000) / 1_000_000) * // 1 million sats or more is great
+      (0.9 + averageChannelBalance * 0.1) // +10% for perfectly balanced channels
+  );
+
+  if (nodeHealth > 95) {
+    // prevent OCD
+    return 100;
+  }
+
+  return nodeHealth;
 }

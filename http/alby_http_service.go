@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/getAlby/nostr-wallet-connect/alby"
-	"github.com/getAlby/nostr-wallet-connect/config"
-	"github.com/getAlby/nostr-wallet-connect/logger"
-	"github.com/getAlby/nostr-wallet-connect/service"
+	"github.com/getAlby/hub/alby"
+	"github.com/getAlby/hub/config"
+	"github.com/getAlby/hub/logger"
+	"github.com/getAlby/hub/service"
 	"github.com/labstack/echo/v4"
 )
 
@@ -119,7 +119,14 @@ func (albyHttpSvc *AlbyHttpService) albyDrainHandler(c echo.Context) error {
 }
 
 func (albyHttpSvc *AlbyHttpService) albyLinkAccountHandler(c echo.Context) error {
-	err := albyHttpSvc.albyOAuthSvc.LinkAccount(c.Request().Context(), albyHttpSvc.svc.GetLNClient())
+	var linkAccountRequest alby.AlbyLinkAccountRequest
+	if err := c.Bind(&linkAccountRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	err := albyHttpSvc.albyOAuthSvc.LinkAccount(c.Request().Context(), albyHttpSvc.svc.GetLNClient(), linkAccountRequest.Budget, linkAccountRequest.Renewal)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to connect alby account")
 		return err

@@ -4,9 +4,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/getAlby/nostr-wallet-connect/db"
-	"github.com/getAlby/nostr-wallet-connect/nip47/models"
-	"github.com/getAlby/nostr-wallet-connect/tests"
+	"github.com/getAlby/hub/db"
+	"github.com/getAlby/hub/nip47/models"
+	"github.com/getAlby/hub/tests"
 	"github.com/stretchr/testify/assert"
 )
 

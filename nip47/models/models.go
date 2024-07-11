@@ -3,7 +3,7 @@ package models
 import (
 	"encoding/json"
 
-	"github.com/getAlby/nostr-wallet-connect/lnclient"
+	"github.com/getAlby/hub/lnclient"
 )
 
 const (

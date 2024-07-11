@@ -102,26 +102,32 @@ const routes = [
       },
       {
         path: "settings",
-        element: <SettingsLayout />,
+        element: <DefaultRedirect />,
         handle: { crumb: () => "Settings" },
         children: [
           {
-            index: true,
-            element: <Settings />,
-          },
-          {
-            path: "change-unlock-password",
-            element: <ChangeUnlockPassword />,
-            handle: { crumb: () => "Unlock Password" },
-          },
-          {
-            path: "key-backup",
-            element: <BackupMnemonic />,
-            handle: { crumb: () => "Key Backup" },
-          },
-          {
-            path: "node-backup",
-            element: <BackupNode />,
+            path: "",
+            element: <SettingsLayout />,
+            children: [
+              {
+                index: true,
+                element: <Settings />,
+              },
+              {
+                path: "change-unlock-password",
+                element: <ChangeUnlockPassword />,
+                handle: { crumb: () => "Unlock Password" },
+              },
+              {
+                path: "key-backup",
+                element: <BackupMnemonic />,
+                handle: { crumb: () => "Key Backup" },
+              },
+              {
+                path: "node-backup",
+                element: <BackupNode />,
+              },
+            ],
           },
         ],
       },
@@ -164,7 +170,7 @@ const routes = [
       {
         path: "channels",
         element: <DefaultRedirect />,
-        handle: { crumb: () => "Liquidity" },
+        handle: { crumb: () => "Node" },
         children: [
           {
             index: true,

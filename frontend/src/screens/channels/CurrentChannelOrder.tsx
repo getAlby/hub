@@ -356,6 +356,11 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
             Topup with your credit card or bank account
           </Button>
         </ExternalLink>
+        <Link to="/channels/incoming" className="w-full">
+          <Button className="w-full" variant="secondary">
+            Need receiving capacity?
+          </Button>
+        </Link>
       </div>
     </div>
   );

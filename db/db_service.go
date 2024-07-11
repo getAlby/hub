@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/getAlby/nostr-wallet-connect/events"
-	"github.com/getAlby/nostr-wallet-connect/logger"
+	"github.com/getAlby/hub/events"
+	"github.com/getAlby/hub/logger"
 	"github.com/nbd-wtf/go-nostr"
 	"gorm.io/gorm"
 )

@@ -1,6 +1,5 @@
 import alby from "src/assets/suggested-apps/alby.png";
 import amethyst from "src/assets/suggested-apps/amethyst.png";
-import bc from "src/assets/suggested-apps/bitcoin-connect.png";
 import damus from "src/assets/suggested-apps/damus.png";
 import hablanews from "src/assets/suggested-apps/habla-news.png";
 import kiwi from "src/assets/suggested-apps/kiwi.png";
@@ -125,13 +124,6 @@ export const suggestedApps: SuggestedApp[] = [
     description: "macOS Nostr client",
     webLink: "https://lume.nu/",
     logo: lume,
-  },
-  {
-    id: "bitcoin-connect",
-    title: "Bitcoin Connect",
-    description: "Connect to apps",
-    webLink: "https://bitcoin-connect.com/",
-    logo: bc,
   },
   {
     id: "kiwi",

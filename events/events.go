@@ -5,7 +5,7 @@ import (
 	"slices"
 	"sync"
 
-	"github.com/getAlby/nostr-wallet-connect/logger"
+	"github.com/getAlby/hub/logger"
 	"github.com/sirupsen/logrus"
 )
 

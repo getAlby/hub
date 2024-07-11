@@ -2,7 +2,6 @@ package greenlight
 
 import (
 	"context"
-	"encoding/hex"
 	"errors"
 	"log"
 	"math/rand"
@@ -13,15 +12,15 @@ import (
 	"strings"
 	"time"
 
-	//"github.com/getAlby/nostr-wallet-connect/glalby" // for local development only
+	//"github.com/getAlby/hub/glalby" // for local development only
 
 	"github.com/getAlby/glalby-go/glalby"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
 
-	"github.com/getAlby/nostr-wallet-connect/config"
-	"github.com/getAlby/nostr-wallet-connect/lnclient"
-	"github.com/getAlby/nostr-wallet-connect/logger"
+	"github.com/getAlby/hub/config"
+	"github.com/getAlby/hub/lnclient"
+	"github.com/getAlby/hub/logger"
 )
 
 type GreenlightService struct {
@@ -133,7 +132,7 @@ func (gs *GreenlightService) SendKeysend(ctx context.Context, amount uint64, des
 	for _, customRecord := range custom_records {
 		extraTlvs = append(extraTlvs, glalby.TlvEntry{
 			Ty:    customRecord.Type,
-			Value: hex.EncodeToString([]byte(customRecord.Value)),
+			Value: customRecord.Value, // glalby expects hex-encoded TLV values
 		})
 	}
 

@@ -1,23 +1,16 @@
 import { format } from "date-fns";
-import { CalendarIcon, PlusCircle, XIcon } from "lucide-react";
+import { CalendarIcon, PlusCircle } from "lucide-react";
 import React, { useState } from "react";
+import BudgetAmountSelect from "src/components/BudgetAmountSelect";
+import BudgetRenewalSelect from "src/components/BudgetRenewalSelect";
 import Scopes from "src/components/Scopes";
 import { Button } from "src/components/ui/button";
 import { Calendar } from "src/components/ui/calendar";
-import { Input } from "src/components/ui/input";
-import { Label } from "src/components/ui/label";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "src/components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "src/components/ui/select";
 import { cn } from "src/lib/utils";
 import {
   AppPermissions,
@@ -25,11 +18,9 @@ import {
   NIP_47_PAY_INVOICE_METHOD,
   Scope,
   WalletCapabilities,
-  budgetOptions,
   expiryOptions,
   iconMap,
   scopeDescriptions,
-  validBudgetRenewals,
 } from "src/types";
 
 const getTimeZoneDirection = () => {
@@ -82,11 +73,11 @@ const Permissions: React.FC<PermissionsProps> = ({
   const [budgetOption, setBudgetOption] = useState(
     isNewConnection ? !!permissions.maxAmount : true
   );
-  const [customBudget, setCustomBudget] = useState(
-    permissions.maxAmount
-      ? !Object.values(budgetOptions).includes(permissions.maxAmount)
-      : false
-  );
+  // const [customBudget, setCustomBudget] = useState(
+  //   permissions.maxAmount
+  //     ? !Object.values(budgetOptions).includes(permissions.maxAmount)
+  //     : false
+  // );
   const [expireOption, setExpireOption] = useState(
     isNewConnection ? !!permissions.expiresAt : true
   );
@@ -102,11 +93,11 @@ const Permissions: React.FC<PermissionsProps> = ({
   React.useEffect(() => {
     setPermissions(initialPermissions);
     setExpiryDays(daysFromNow(initialPermissions.expiresAt));
-    setCustomBudget(
-      initialPermissions.maxAmount
-        ? !Object.values(budgetOptions).includes(initialPermissions.maxAmount)
-        : false
-    );
+    // setCustomBudget(
+    //   initialPermissions.maxAmount
+    //     ? !Object.values(budgetOptions).includes(initialPermissions.maxAmount)
+    //     : false
+    // );
     setCustomExpiry(
       daysFromNow(initialPermissions.expiresAt)
         ? !Object.values(expiryOptions).includes(
@@ -231,83 +222,16 @@ const Permissions: React.FC<PermissionsProps> = ({
               <>
                 <p className="font-medium text-sm mb-2">Budget Renewal</p>
                 <div className="flex gap-2 items-center text-muted-foreground mb-4 text-sm">
-                  <Select
-                    value={permissions.budgetRenewal || "never"}
-                    onValueChange={(value) =>
-                      handleBudgetRenewalChange(value as BudgetRenewalType)
-                    }
-                  >
-                    <SelectTrigger className="w-[150px] capitalize">
-                      <SelectValue placeholder={permissions.budgetRenewal} />
-                    </SelectTrigger>
-                    <SelectContent className="capitalize">
-                      {validBudgetRenewals.map((renewalOption) => (
-                        <SelectItem key={renewalOption} value={renewalOption}>
-                          {renewalOption}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                    <XIcon
-                      className="cursor-pointer w-4 text-muted-foreground"
-                      onClick={() => handleBudgetRenewalChange("never")}
-                    />
-                  </Select>
+                  <BudgetRenewalSelect
+                    value={permissions.budgetRenewal}
+                    onChange={handleBudgetRenewalChange}
+                    disabled={!canEditPermissions}
+                  />
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-xs mb-4">
-                  {Object.keys(budgetOptions).map((budget) => {
-                    return (
-                      // replace with something else and then remove dark prefixes
-                      <div
-                        key={budget}
-                        onClick={() => {
-                          setCustomBudget(false);
-                          handleBudgetMaxAmountChange(budgetOptions[budget]);
-                        }}
-                        className={cn(
-                          "cursor-pointer rounded text-nowrap border-2 text-center p-4 dark:text-white",
-                          !customBudget &&
-                            (Number.isNaN(permissions.maxAmount)
-                              ? 100000
-                              : +permissions.maxAmount) == budgetOptions[budget]
-                            ? "border-primary"
-                            : "border-muted"
-                        )}
-                      >
-                        {`${budget} ${budgetOptions[budget] ? " sats" : ""}`}
-                      </div>
-                    );
-                  })}
-                  <div
-                    onClick={() => {
-                      setCustomBudget(true);
-                      handleBudgetMaxAmountChange(0);
-                    }}
-                    className={cn(
-                      "cursor-pointer rounded border-2 text-center p-4 dark:text-white",
-                      customBudget ? "border-primary" : "border-muted"
-                    )}
-                  >
-                    Custom...
-                  </div>
-                </div>
-                {customBudget && (
-                  <div className="w-full mb-6">
-                    <Label htmlFor="budget" className="block mb-2">
-                      Custom budget amount (sats)
-                    </Label>
-                    <Input
-                      id="budget"
-                      name="budget"
-                      type="number"
-                      required
-                      min={1}
-                      value={permissions.maxAmount || ""}
-                      onChange={(e) => {
-                        handleBudgetMaxAmountChange(parseInt(e.target.value));
-                      }}
-                    />
-                  </div>
-                )}
+                <BudgetAmountSelect
+                  value={permissions.maxAmount}
+                  onChange={handleBudgetMaxAmountChange}
+                />
               </>
             )}
           </>

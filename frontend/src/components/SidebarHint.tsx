@@ -49,6 +49,7 @@ function SidebarHint() {
   // User has funds to migrate
   if (
     hasChannelManagement &&
+    info?.backendType === "LDK" &&
     albyBalance &&
     albyBalance.sats * (1 - ALBY_SERVICE_FEE) >
       ALBY_MIN_BALANCE + 50000 /* accomodate for onchain fees */
@@ -87,9 +88,9 @@ function SidebarHint() {
     return (
       <SidebarHintCard
         icon={Link2}
-        title="Link your Hub"
-        description="Finish the setup by linking your Alby Account to this hub."
-        buttonText="Link Hub"
+        title="Link to your Alby Account"
+        description="Finish the setup by linking this Hub to your Alby Account."
+        buttonText="Link now"
         buttonLink="/apps"
       />
     );

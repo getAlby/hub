@@ -2,7 +2,6 @@ import {
   Cable,
   EllipsisVertical,
   ExternalLinkIcon,
-  FlaskRound,
   Home,
   Lock,
   Megaphone,
@@ -15,6 +14,7 @@ import {
   Wallet,
 } from "lucide-react";
 
+import { CubeIcon } from "@radix-ui/react-icons";
 import React from "react";
 import {
   Link,
@@ -140,13 +140,10 @@ export default function AppLayout() {
     const { hasChannelManagement } = useInfo();
     return (
       <nav className="grid items-start p-2 text-sm font-medium lg:px-4">
-        {/* <div className="px-3 py-2 mb-5">
-          <ModeToggle />
-        </div> */}
         {hasChannelManagement && (
           <MenuItem to="/channels">
-            <FlaskRound className="h-4 w-4" />
-            Liquidity
+            <CubeIcon className="h-4 w-4" />
+            Node
           </MenuItem>
         )}
         <MenuItem to="/settings">
@@ -188,10 +185,9 @@ export default function AppLayout() {
 
   const upToDate =
     info?.version &&
-    info.latestVersion &&
+    albyMe?.hub.latest_version &&
     info.version.startsWith("v") &&
-    info.latestVersion.startsWith("v") &&
-    info.version.substring(1) >= info.latestVersion.substring(1);
+    info.version.substring(1) >= albyMe?.hub.latest_version;
 
   return (
     <>
@@ -214,7 +210,7 @@ export default function AppLayout() {
                             className="font-semibold text-xl"
                           >
                             <span className="text-xs flex items-center text-muted-foreground">
-                              {info?.version}&nbsp;
+                              {info?.version && <>{info?.version}&nbsp;</>}
                               {upToDate ? (
                                 <ShieldCheckIcon className="w-4 h-4" />
                               ) : (
@@ -227,7 +223,9 @@ export default function AppLayout() {
                           {upToDate ? (
                             <p>Alby Hub is up to date!</p>
                           ) : (
-                            <p>Alby Hub {info?.latestVersion} available!</p>
+                            <p>
+                              Alby Hub {albyMe?.hub.latest_version} available!
+                            </p>
                           )}
                         </TooltipContent>
                       </Tooltip>
@@ -337,7 +335,7 @@ const MenuItem = ({
     }}
     className={({ isActive }) =>
       cn(
-        "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
+        "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-accent-foreground",
         disabled && "cursor-not-allowed",
         !disabled && isActive ? "bg-muted" : ""
       )

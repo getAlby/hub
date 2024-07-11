@@ -10,16 +10,16 @@ import (
 	"github.com/nbd-wtf/go-nostr/nip19"
 	"github.com/sirupsen/logrus"
 
-	"github.com/getAlby/nostr-wallet-connect/config"
-	"github.com/getAlby/nostr-wallet-connect/events"
-	"github.com/getAlby/nostr-wallet-connect/lnclient"
-	"github.com/getAlby/nostr-wallet-connect/lnclient/breez"
-	"github.com/getAlby/nostr-wallet-connect/lnclient/cashu"
-	"github.com/getAlby/nostr-wallet-connect/lnclient/greenlight"
-	"github.com/getAlby/nostr-wallet-connect/lnclient/ldk"
-	"github.com/getAlby/nostr-wallet-connect/lnclient/lnd"
-	"github.com/getAlby/nostr-wallet-connect/lnclient/phoenixd"
-	"github.com/getAlby/nostr-wallet-connect/logger"
+	"github.com/getAlby/hub/config"
+	"github.com/getAlby/hub/events"
+	"github.com/getAlby/hub/lnclient"
+	"github.com/getAlby/hub/lnclient/breez"
+	"github.com/getAlby/hub/lnclient/cashu"
+	"github.com/getAlby/hub/lnclient/greenlight"
+	"github.com/getAlby/hub/lnclient/ldk"
+	"github.com/getAlby/hub/lnclient/lnd"
+	"github.com/getAlby/hub/lnclient/phoenixd"
+	"github.com/getAlby/hub/logger"
 )
 
 func (svc *service) StartNostr(ctx context.Context, encryptionKey string) error {
@@ -39,7 +39,7 @@ func (svc *service) StartNostr(ctx context.Context, encryptionKey string) error 
 	logger.Logger.WithFields(logrus.Fields{
 		"npub": npub,
 		"hex":  svc.keys.GetNostrPublicKey(),
-	}).Info("Starting nostr-wallet-connect")
+	}).Info("Starting Alby Hub")
 	svc.wg.Add(1)
 	go func() {
 		//Start infinite loop which will be only broken by canceling ctx (SIGINT)

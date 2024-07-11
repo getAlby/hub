@@ -1,5 +1,4 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
 import Container from "src/components/Container";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { Input } from "src/components/ui/input";
@@ -11,18 +10,61 @@ import { useInfo } from "src/hooks/useInfo";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 
+const messages: string[] = [
+  "Unlocking",
+  "Starting the wallet",
+  "Connecting to the network",
+  "Syncing",
+  "Still syncing, please wait...",
+];
+
 export default function Start() {
   const [unlockPassword, setUnlockPassword] = React.useState("");
   const [loading, setLoading] = React.useState(false);
-  const navigate = useNavigate();
+  const [buttonText, setButtonText] = React.useState("Login");
+  useInfo(true); // poll the info endpoint to auto-redirect when app is running
   const { data: csrf } = useCSRF();
-  const { mutate: refetchInfo } = useInfo();
   const { toast } = useToast();
+
+  React.useEffect(() => {
+    if (!loading) {
+      return;
+    }
+    let messageIndex = 1;
+    const intervalId = setInterval(() => {
+      if (messageIndex < messages.length) {
+        setButtonText(messages[messageIndex]);
+        messageIndex++;
+      } else {
+        clearInterval(intervalId);
+      }
+    }, 5000);
+
+    const timeoutId = setTimeout(() => {
+      // if redirection didn't happen in 3 minutes info.running is false
+      toast({
+        title: "Failed to start",
+        description: "Please try starting the node again.",
+        variant: "destructive",
+      });
+
+      setLoading(false);
+      setButtonText("Login");
+      setUnlockPassword("");
+      return;
+    }, 180000); // wait for 3 minutes
+
+    return () => {
+      clearInterval(intervalId);
+      clearTimeout(timeoutId);
+    };
+  }, [loading, toast]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     try {
       setLoading(true);
+      setButtonText(messages[0]);
       if (!csrf) {
         throw new Error("csrf not loaded");
       }
@@ -36,13 +78,11 @@ export default function Start() {
           unlockPassword,
         }),
       });
-      await refetchInfo();
-
-      navigate("/");
     } catch (error) {
       handleRequestError(toast, "Failed to connect", error);
-    } finally {
       setLoading(false);
+      setButtonText("Login");
+      setUnlockPassword("");
     }
   }
 
@@ -68,7 +108,7 @@ export default function Start() {
                 />
               </div>
               <LoadingButton type="submit" loading={loading}>
-                Login
+                {buttonText}
               </LoadingButton>
             </div>
           </form>

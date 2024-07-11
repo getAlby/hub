@@ -16,9 +16,9 @@ import (
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 
-	"github.com/getAlby/nostr-wallet-connect/lnclient"
-	"github.com/getAlby/nostr-wallet-connect/lnclient/lnd/wrapper"
-	"github.com/getAlby/nostr-wallet-connect/logger"
+	"github.com/getAlby/hub/lnclient"
+	"github.com/getAlby/hub/lnclient/lnd/wrapper"
+	"github.com/getAlby/hub/logger"
 
 	"github.com/sirupsen/logrus"
 	// "gorm.io/gorm"
@@ -40,6 +40,7 @@ func (svc *LNDService) GetBalance(ctx context.Context) (balance int64, err error
 	return int64(resp.LocalBalance.Msat), nil
 }
 
+// FIXME: this always returns limit * 2 transactions and offset is not used correctly
 func (svc *LNDService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []lnclient.Transaction, err error) {
 	// Fetch invoices
 	var invoices []*lnrpc.Invoice
@@ -358,7 +359,11 @@ func (svc *LNDService) SendKeysend(ctx context.Context, amount uint64, destinati
 
 	destCustomRecords := map[uint64][]byte{}
 	for _, record := range custom_records {
-		destCustomRecords[record.Type] = []byte(record.Value)
+		decodedValue, err := hex.DecodeString(record.Value)
+		if err != nil {
+			return "", err
+		}
+		destCustomRecords[record.Type] = decodedValue
 	}
 	const KEYSEND_CUSTOM_RECORD = 5482373484
 	destCustomRecords[KEYSEND_CUSTOM_RECORD] = preImageBytes
@@ -726,7 +731,6 @@ func lndInvoiceToTransaction(invoice *lnrpc.Invoice) *lnclient.Transaction {
 		Preimage:        preimage,
 		PaymentHash:     hex.EncodeToString(invoice.RHash),
 		Amount:          invoice.ValueMsat,
-		FeesPaid:        invoice.AmtPaidMsat,
 		CreatedAt:       invoice.CreationDate,
 		SettledAt:       settledAt,
 		ExpiresAt:       expiresAt,

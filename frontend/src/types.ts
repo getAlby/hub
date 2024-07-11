@@ -159,7 +159,7 @@ export interface App {
   scopes: Scope[];
   maxAmount: number;
   budgetUsage: number;
-  budgetRenewal: string;
+  budgetRenewal: BudgetRenewalType;
 }
 
 export interface AppPermissions {
@@ -181,7 +181,6 @@ export interface InfoResponse {
   albyUserIdentifier: string;
   network?: Network;
   version: string;
-  latestVersion: string;
 }
 
 export type Network = "bitcoin" | "testnet" | "signet";
@@ -323,6 +322,7 @@ export type RecommendedChannelPeer = {
   image: string;
   name: string;
   minimumChannelSize: number;
+  maximumChannelSize: number;
 } & (
   | {
       paymentMethod: "onchain";
@@ -347,6 +347,9 @@ export type AlbyMe = {
   avatar: string;
   keysend_pubkey: string;
   shared_node: boolean;
+  hub: {
+    latest_version: string;
+  };
 };
 
 export type AlbyBalance = {

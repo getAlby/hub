@@ -2,7 +2,7 @@ services:
   albyhub:
     platform: linux/amd64
     container_name: albyhub
-    image: ghcr.io/getalby/nostr-wallet-connect-next:latest
+    image: ghcr.io/getalby/hub:latest
     volumes:
       - ./albyhub-data:/data
     ports:

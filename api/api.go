@@ -15,17 +15,17 @@ import (
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
-	"github.com/getAlby/nostr-wallet-connect/alby"
-	"github.com/getAlby/nostr-wallet-connect/config"
-	"github.com/getAlby/nostr-wallet-connect/db"
-	"github.com/getAlby/nostr-wallet-connect/events"
-	"github.com/getAlby/nostr-wallet-connect/lnclient"
-	"github.com/getAlby/nostr-wallet-connect/logger"
-	permissions "github.com/getAlby/nostr-wallet-connect/nip47/permissions"
-	"github.com/getAlby/nostr-wallet-connect/service"
-	"github.com/getAlby/nostr-wallet-connect/service/keys"
-	"github.com/getAlby/nostr-wallet-connect/utils"
-	"github.com/getAlby/nostr-wallet-connect/version"
+	"github.com/getAlby/hub/alby"
+	"github.com/getAlby/hub/config"
+	"github.com/getAlby/hub/db"
+	"github.com/getAlby/hub/events"
+	"github.com/getAlby/hub/lnclient"
+	"github.com/getAlby/hub/logger"
+	permissions "github.com/getAlby/hub/nip47/permissions"
+	"github.com/getAlby/hub/service"
+	"github.com/getAlby/hub/service/keys"
+	"github.com/getAlby/hub/utils"
+	"github.com/getAlby/hub/version"
 )
 
 type api struct {
@@ -487,12 +487,11 @@ func (api *api) GetBalances(ctx context.Context) (*BalancesResponse, error) {
 	return balances, nil
 }
 
-// TODO: accept offset, limit params for pagination
-func (api *api) ListTransactions(ctx context.Context) (*ListTransactionsResponse, error) {
+func (api *api) ListTransactions(ctx context.Context, limit uint64, offset uint64) (*ListTransactionsResponse, error) {
 	if api.svc.GetLNClient() == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	transactions, err := api.svc.GetLNClient().ListTransactions(ctx, 0, 0, 20, 0, false, "")
+	transactions, err := api.svc.GetLNClient().ListTransactions(ctx, 0, 0, limit, offset, false, "")
 	if err != nil {
 		return nil, err
 	}
@@ -581,7 +580,6 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info.AlbyAuthUrl = api.albyOAuthSvc.GetAuthUrl()
 	info.OAuthRedirect = !api.cfg.GetEnv().IsDefaultClientId()
 	info.Version = version.Tag
-	info.LatestVersion = version.GetLatestReleaseTag()
 	albyUserIdentifier, err := api.albyOAuthSvc.GetUserIdentifier()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to get alby user identifier")

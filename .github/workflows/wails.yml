@@ -54,7 +54,7 @@ jobs:
       - name: Setup GoLang
         uses: actions/setup-go@v5
         with:
-          go-version-file: './go.mod'
+          go-version-file: "./go.mod"
 
       - name: Get dependencies
         run: go get -v -t -d ./...
@@ -65,7 +65,7 @@ jobs:
           node-version: "20.x"
 
       - name: Install Wails
-        run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.8.2
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.9.1
         shell: bash
 
       - name: Install Linux Wails deps
@@ -101,17 +101,17 @@ jobs:
 
       - name: Build App
         if: runner.os == 'macOS'
-        run: wails build --platform darwin/universal -webview2 embed -o ${{ env.EXEC_NAME }} -tags "wails" -ldflags "-X 'github.com/getAlby/nostr-wallet-connect/version.Tag=${{ env.TAG }}'"
+        run: wails build --platform darwin/universal -webview2 embed -o ${{ env.EXEC_NAME }} -tags "wails" -ldflags "-X 'github.com/getAlby/hub/version.Tag=${{ env.TAG }}'"
         shell: bash
 
       - name: Build App
         if: runner.os == 'Linux'
-        run: wails build --platform linux/amd64 -webview2 embed -o ${{ env.EXEC_NAME }} -tags "wails" -ldflags "-X 'github.com/getAlby/nostr-wallet-connect/version.Tag=${{ env.TAG }}'"
+        run: wails build --platform linux/amd64 -webview2 embed -o ${{ env.EXEC_NAME }} -tags "wails" -ldflags "-X 'github.com/getAlby/hub/version.Tag=${{ env.TAG }}'"
         shell: bash
 
       - name: Build Windows App
         if: runner.os == 'Windows'
-        run: wails build --platform windows/amd64 -webview2 embed -o ${{ env.EXEC_NAME }}.exe -tags "wails" -ldflags "-X 'github.com/getAlby/nostr-wallet-connect/version.Tag=${{ env.TAG }}'"
+        run: wails build --platform windows/amd64 -webview2 embed -o ${{ env.EXEC_NAME }}.exe -tags "wails" -ldflags "-X 'github.com/getAlby/hub/version.Tag=${{ env.TAG }}'"
         shell: bash
 
       - name: Import Code-Signing Certificates for macOS

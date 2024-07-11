@@ -15,9 +15,9 @@ import { request } from "src/utils/request";
 export function SetupFinish() {
   const navigate = useNavigate();
   const { nodeInfo, unlockPassword } = useSetupStore();
-
-  const { mutate: refetchInfo } = useInfo();
+  useInfo(true); // poll the info endpoint to auto-redirect when app is running
   const { data: csrf } = useCSRF();
+  const [loading, setLoading] = React.useState(false);
   const [connectionError, setConnectionError] = React.useState(false);
   const hasFetchedRef = React.useRef(false);
 
@@ -31,6 +31,22 @@ export function SetupFinish() {
   };
 
   useEffect(() => {
+    if (!loading) {
+      return;
+    }
+    const timer = setTimeout(() => {
+      // SetupRedirect takes care of redirection once info.running is true
+      // if it still didn't redirect after 3 minutes, we show an error
+      setLoading(false);
+      setConnectionError(true);
+    }, 180000);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [loading]);
+
+  useEffect(() => {
     // ensure setup call is only called once
     if (!csrf || hasFetchedRef.current) {
       return;
@@ -38,18 +54,15 @@ export function SetupFinish() {
     hasFetchedRef.current = true;
 
     (async () => {
+      setLoading(true);
       const succeeded = await finishSetup(csrf, nodeInfo, unlockPassword);
-      if (succeeded) {
-        const info = await refetchInfo();
-        if (!info) {
-          throw new Error("Failed to re-fetch info");
-        }
-        navigate("/");
-      } else {
+      // only setup call is successful as start is async
+      if (!succeeded) {
+        setLoading(false);
         setConnectionError(true);
       }
     })();
-  }, [csrf, nodeInfo, refetchInfo, navigate, unlockPassword]);
+  }, [csrf, nodeInfo, navigate, unlockPassword]);
 
   if (connectionError) {
     return (
@@ -57,7 +70,7 @@ export function SetupFinish() {
         <div className="flex flex-col gap-5 text-center items-center">
           <div className="grid gap-2">
             <h1 className="font-semibold text-lg">Connection Failed</h1>
-            <p>Please check your node configuration.</p>
+            <p>Please check your node configuration and try again.</p>
           </div>
           <Button
             onClick={() => {

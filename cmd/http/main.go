@@ -10,9 +10,9 @@ import (
 	"time"
 
 	echologrus "github.com/davrux/echo-logrus/v4"
-	"github.com/getAlby/nostr-wallet-connect/http"
-	"github.com/getAlby/nostr-wallet-connect/logger"
-	"github.com/getAlby/nostr-wallet-connect/service"
+	"github.com/getAlby/hub/http"
+	"github.com/getAlby/hub/logger"
+	"github.com/getAlby/hub/service"
 	"github.com/labstack/echo/v4"
 	log "github.com/sirupsen/logrus"
 )
