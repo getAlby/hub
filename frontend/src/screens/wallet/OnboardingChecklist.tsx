@@ -7,6 +7,8 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { ALBY_MIN_BALANCE, ALBY_SERVICE_FEE } from "src/constants";
+import { useAlbyBalance } from "src/hooks/useAlbyBalance";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useApps } from "src/hooks/useApps";
 import { useChannels } from "src/hooks/useChannels";
@@ -16,7 +18,7 @@ import { useTransactions } from "src/hooks/useTransactions";
 import { cn } from "src/lib/utils";
 
 function OnboardingChecklist() {
-  // const { data: albyBalance } = useAlbyBalance();
+  const { data: albyBalance } = useAlbyBalance();
   const { data: albyMe } = useAlbyMe();
   const { data: apps } = useApps();
   const { data: channels } = useChannels();
@@ -30,18 +32,12 @@ function OnboardingChecklist() {
     !channels ||
     !info ||
     !nodeConnectionInfo ||
-    !transactions;
+    !transactions ||
+    !albyBalance;
 
   if (isLoading) {
     return;
   }
-
-  /*const hasAlbyBalance =
-    hasChannelManagement &&
-    albyBalance &&
-    albyBalance.sats * (1 - ALBY_SERVICE_FEE) >
-      ALBY_MIN_BALANCE + 50000; // accommodate for on-chain fees
-      */
 
   const isLinked =
     albyMe &&
@@ -68,13 +64,21 @@ function OnboardingChecklist() {
     return;
   }
 
+  const canMigrateAlbyFundsToNewChannel =
+    hasChannelManagement &&
+    info.backendType === "LDK" &&
+    albyBalance.sats * (1 - ALBY_SERVICE_FEE) >
+      ALBY_MIN_BALANCE + 50000; /* accomodate for onchain fees */
+
   const checklistItems = [
     {
       title: "Open your first channel",
       description:
         "Establish a new Lightning channel to enable fast and low-fee Bitcoin transactions.",
       checked: hasChannel,
-      to: "/channels",
+      to: canMigrateAlbyFundsToNewChannel
+        ? "/onboarding/lightning/migrate-alby"
+        : "/channels",
     },
     {
       title: "Send or receive your first payment",

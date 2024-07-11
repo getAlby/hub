@@ -49,6 +49,7 @@ function SidebarHint() {
   // User has funds to migrate
   if (
     hasChannelManagement &&
+    info?.backendType === "LDK" &&
     albyBalance &&
     albyBalance.sats * (1 - ALBY_SERVICE_FEE) >
       ALBY_MIN_BALANCE + 50000 /* accomodate for onchain fees */
