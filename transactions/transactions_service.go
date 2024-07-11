@@ -122,40 +122,10 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 	var dbTransaction *db.Transaction
 
 	err = svc.db.Transaction(func(tx *gorm.DB) error {
-		// ensure balance for isolated apps
-		if appId != nil {
-			var appPermission db.AppPermission
-			tx.Find(&appPermission, &db.AppPermission{
-				AppId: *appId,
-			})
-
-			if appPermission.BalanceType == "isolated" {
-				var received struct {
-					Sum uint64
-				}
-				tx.
-					Table("transactions").
-					Select("SUM(amount) as sum").
-					Where("app_id = ? AND type = ? AND state = ?", appPermission.AppId, TRANSACTION_TYPE_INCOMING, TRANSACTION_STATE_SETTLED).Scan(&received)
-
-				var spent struct {
-					Sum uint64
-				}
-				tx.
-					Table("transactions").
-					Select("SUM(amount + fee) as sum").
-					Where("app_id = ? AND type = ? AND (state = ? OR state = ?)", appPermission.AppId, TRANSACTION_TYPE_OUTGOING, TRANSACTION_STATE_SETTLED, TRANSACTION_STATE_PENDING).Scan(&spent)
-
-				// TODO: ensure fee reserve for external payment
-				balance := received.Sum - spent.Sum
-				if balance < uint64(paymentRequest.MSatoshi) {
-					// TODO: add a proper error type so INSUFFICIENT_BALANCE is returned
-					return errors.New("Insufficient balance")
-				}
-			}
+		err := svc.validateCanPay(tx, appId, uint64(paymentRequest.MSatoshi))
+		if err != nil {
+			return err
 		}
-
-		// TODO: ensure budget is not exceeded
 
 		var expiresAt *time.Time
 		if paymentRequest.Expiry > 0 {
@@ -239,7 +209,6 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 }
 
 func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []lnclient.TLVRecord, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
-	// TODO: add same transaction as SendPayment to ensure balance and budget are not exceeded
 
 	metadata := map[string]interface{}{}
 
@@ -247,16 +216,28 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 	metadata["tlv_records"] = customRecords
 	metadataBytes, err := json.Marshal(metadata)
 
-	// NOTE: transaction is created without payment hash :scream:
-	dbTransaction := &db.Transaction{
-		AppId:          appId,
-		RequestEventId: requestEventId,
-		Type:           TRANSACTION_TYPE_OUTGOING,
-		State:          TRANSACTION_STATE_PENDING,
-		Amount:         amount,
-		Metadata:       string(metadataBytes),
-	}
-	err = svc.db.Create(dbTransaction).Error
+	var dbTransaction *db.Transaction
+
+	err = svc.db.Transaction(func(tx *gorm.DB) error {
+		err := svc.validateCanPay(tx, appId, amount)
+		if err != nil {
+			return err
+		}
+
+		// NOTE: transaction is created without payment hash :scream:
+		dbTransaction = &db.Transaction{
+			AppId:          appId,
+			RequestEventId: requestEventId,
+			Type:           TRANSACTION_TYPE_OUTGOING,
+			State:          TRANSACTION_STATE_PENDING,
+			Amount:         amount,
+			Metadata:       string(metadataBytes),
+		}
+		err = tx.Create(dbTransaction).Error
+
+		return err
+	})
+
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"destination": destination,
@@ -639,4 +620,43 @@ func (svc *transactionsService) interceptSelfPayment(paymentHash string) (*lncli
 		Preimage: *incomingTransaction.Preimage,
 		Fee:      &fee,
 	}, nil
+}
+
+func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount uint64) error {
+	// ensure balance for isolated apps
+	if appId != nil {
+		var appPermission db.AppPermission
+		tx.Find(&appPermission, &db.AppPermission{
+			AppId: *appId,
+		})
+
+		if appPermission.BalanceType == "isolated" {
+			var received struct {
+				Sum uint64
+			}
+			tx.
+				Table("transactions").
+				Select("SUM(amount) as sum").
+				Where("app_id = ? AND type = ? AND state = ?", appPermission.AppId, TRANSACTION_TYPE_INCOMING, TRANSACTION_STATE_SETTLED).Scan(&received)
+
+			var spent struct {
+				Sum uint64
+			}
+			tx.
+				Table("transactions").
+				Select("SUM(amount + fee) as sum").
+				Where("app_id = ? AND type = ? AND (state = ? OR state = ?)", appPermission.AppId, TRANSACTION_TYPE_OUTGOING, TRANSACTION_STATE_SETTLED, TRANSACTION_STATE_PENDING).Scan(&spent)
+
+			// TODO: ensure fee reserve for external payment
+			balance := received.Sum - spent.Sum
+			if balance < amount {
+				// TODO: add a proper error type so INSUFFICIENT_BALANCE is returned
+				return errors.New("Insufficient balance")
+			}
+		}
+		// TODO: ensure budget is not exceeded
+		// TODO: ensure fee reserve for external payment
+	}
+
+	return nil
 }
