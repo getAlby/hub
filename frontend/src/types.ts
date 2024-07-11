@@ -134,7 +134,7 @@ export interface App {
   scopes: Scope[];
   maxAmount: number;
   budgetUsage: number;
-  budgetRenewal: string;
+  budgetRenewal: BudgetRenewalType;
 }
 
 export interface AppPermissions {

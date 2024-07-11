@@ -88,7 +88,7 @@ function OnboardingChecklist() {
       to: "/wallet",
     },
     {
-      title: "Link your Alby Account",
+      title: "Link to your Alby Account",
       description: "Link your lightning address & other apps to this Hub.",
       checked: isLinked,
       to: "/apps",

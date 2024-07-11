@@ -88,9 +88,9 @@ function SidebarHint() {
     return (
       <SidebarHintCard
         icon={Link2}
-        title="Link your Hub"
-        description="Finish the setup by linking your Alby Account to this hub."
-        buttonText="Link Hub"
+        title="Link to your Alby Account"
+        description="Finish the setup by linking this Hub to your Alby Account."
+        buttonText="Link now"
         buttonLink="/apps"
       />
     );
