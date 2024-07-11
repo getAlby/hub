@@ -9,8 +9,6 @@ import {
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
-import albyAccountDark from "public/images/illustrations/alby-account-dark.svg";
-import albyAccountLight from "public/images/illustrations/alby-account-light.svg";
 import BudgetAmountSelect from "src/components/BudgetAmountSelect";
 import BudgetRenewalSelect from "src/components/BudgetRenewalSelect";
 import ExternalLink from "src/components/ExternalLink";
@@ -40,6 +38,8 @@ import { Separator } from "src/components/ui/separator";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { LinkStatus, useLinkAccount } from "src/hooks/useLinkAccount";
 import { App, BudgetRenewalType } from "src/types";
+import albyAccountDark from "/images/illustrations/alby-account-dark.svg";
+import albyAccountLight from "/images/illustrations/alby-account-light.svg";
 
 function AlbyConnectionCard({ connection }: { connection?: App }) {
   const { data: albyMe } = useAlbyMe();
