@@ -185,10 +185,9 @@ export default function AppLayout() {
 
   const upToDate =
     info?.version &&
-    info.latestVersion &&
+    albyMe?.hub.latest_version &&
     info.version.startsWith("v") &&
-    info.latestVersion.startsWith("v") &&
-    info.version.substring(1) >= info.latestVersion.substring(1);
+    info.version.substring(1) >= albyMe?.hub.latest_version;
 
   return (
     <>
@@ -224,7 +223,9 @@ export default function AppLayout() {
                           {upToDate ? (
                             <p>Alby Hub is up to date!</p>
                           ) : (
-                            <p>Alby Hub {info?.latestVersion} available!</p>
+                            <p>
+                              Alby Hub {albyMe?.hub.latest_version} available!
+                            </p>
                           )}
                         </TooltipContent>
                       </Tooltip>
