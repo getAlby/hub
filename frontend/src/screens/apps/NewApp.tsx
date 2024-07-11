@@ -200,9 +200,13 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
         window.location.href = createAppResponse.returnTo;
         return;
       }
-      navigate(`/apps/created${app ? `?app=${app.id}` : ""}`, {
-        state: createAppResponse,
-      });
+      // Adding a unique id prevents https://github.com/getAlby/hub/issues/252
+      navigate(
+        `/apps/created?id=${createAppResponse.pairingPublicKey}${app ? `&app=${app.id}` : ""}`,
+        {
+          state: createAppResponse,
+        }
+      );
       toast({ title: "App created" });
     } catch (error) {
       handleRequestError(toast, "Failed to create app", error);
