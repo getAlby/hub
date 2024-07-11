@@ -34,14 +34,6 @@ const (
 	OTHER                      = "OTHER"
 )
 
-const (
-	BUDGET_RENEWAL_DAILY   = "daily"
-	BUDGET_RENEWAL_WEEKLY  = "weekly"
-	BUDGET_RENEWAL_MONTHLY = "monthly"
-	BUDGET_RENEWAL_YEARLY  = "yearly"
-	BUDGET_RENEWAL_NEVER   = "never"
-)
-
 type Transaction struct {
 	Type            string      `json:"type"`
 	Invoice         string      `json:"invoice"`

@@ -6,6 +6,7 @@ import (
 	"errors"
 
 	"github.com/getAlby/hub/config"
+	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
@@ -108,7 +109,7 @@ func (notifier *Nip47Notifier) notifySubscribers(ctx context.Context, notificati
 	notifier.db.Find(&apps)
 
 	for _, app := range apps {
-		hasPermission, _, _ := notifier.permissionsSvc.HasPermission(&app, permissions.NOTIFICATIONS_SCOPE, 0)
+		hasPermission, _, _ := notifier.permissionsSvc.HasPermission(&app, constants.NOTIFICATIONS_SCOPE, 0)
 		if !hasPermission {
 			continue
 		}

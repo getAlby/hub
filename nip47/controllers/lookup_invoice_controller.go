@@ -2,13 +2,11 @@ package controllers
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/nip47/models"
-	"github.com/getAlby/hub/transactions"
 	"github.com/nbd-wtf/go-nostr"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
@@ -74,17 +72,9 @@ func (controller *nip47Controller) HandleLookupInvoiceEvent(ctx context.Context,
 			"payment_hash":     paymentHash,
 		}).Infof("Failed to lookup invoice: %v", err)
 
-		code := models.ERROR_INTERNAL
-		if errors.Is(err, transactions.NewNotFoundError()) {
-			code = models.ERROR_NOT_FOUND
-		}
-
 		publishResponse(&models.Response{
 			ResultType: nip47Request.Method,
-			Error: &models.Error{
-				Code:    code,
-				Message: err.Error(),
-			},
+			Error:      mapNip47Error(err),
 		}, nostr.Tags{})
 		return
 	}

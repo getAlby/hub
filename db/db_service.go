@@ -23,7 +23,7 @@ func NewDBService(db *gorm.DB, eventPublisher events.EventPublisher) *dbService 
 	}
 }
 
-func (svc *dbService) CreateApp(name string, pubkey string, maxAmount uint64, budgetRenewal string, expiresAt *time.Time, scopes []string) (*App, string, error) {
+func (svc *dbService) CreateApp(name string, pubkey string, maxAmountSat uint64, budgetRenewal string, expiresAt *time.Time, scopes []string) (*App, string, error) {
 	var pairingPublicKey string
 	var pairingSecretKey string
 	if pubkey == "" {
@@ -53,7 +53,7 @@ func (svc *dbService) CreateApp(name string, pubkey string, maxAmount uint64, bu
 				Scope:     scope,
 				ExpiresAt: expiresAt,
 				//these fields are only relevant for pay_invoice
-				MaxAmount:     int(maxAmount),
+				MaxAmount:     int(maxAmountSat),
 				BudgetRenewal: budgetRenewal,
 			}
 			err = tx.Create(&appPermission).Error

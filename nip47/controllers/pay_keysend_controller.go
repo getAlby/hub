@@ -59,10 +59,7 @@ func (controller *nip47Controller) payKeysend(ctx context.Context, payKeysendPar
 		})
 		publishResponse(&models.Response{
 			ResultType: nip47Request.Method,
-			Error: &models.Error{
-				Code:    models.ERROR_INTERNAL,
-				Message: err.Error(),
-			},
+			Error:      mapNip47Error(err),
 		}, tags)
 		return
 	}

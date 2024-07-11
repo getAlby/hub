@@ -4,11 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"math"
 	"slices"
 	"strings"
 	"time"
 
+	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
+	"github.com/getAlby/hub/db/queries"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
@@ -40,17 +43,30 @@ func NewNotFoundError() error {
 }
 
 func (err *notFoundError) Error() string {
-	return "Not Found"
+	return "The transaction requested was not Found"
 }
 
-const (
-	TRANSACTION_TYPE_INCOMING = "incoming"
-	TRANSACTION_TYPE_OUTGOING = "outgoing"
+type insufficientBalanceError struct {
+}
 
-	TRANSACTION_STATE_PENDING = "PENDING"
-	TRANSACTION_STATE_SETTLED = "SETTLED"
-	TRANSACTION_STATE_FAILED  = "FAILED"
-)
+func NewInsufficientBalanceError() error {
+	return &insufficientBalanceError{}
+}
+
+func (err *insufficientBalanceError) Error() string {
+	return "Insufficient balance remaining to make the requested payment"
+}
+
+type quotaExceededError struct {
+}
+
+func NewQuotaExceededError() error {
+	return &quotaExceededError{}
+}
+
+func (err *quotaExceededError) Error() string {
+	return "Your wallet has exceeded its spending quota"
+}
 
 func NewTransactionsService(db *gorm.DB) *transactionsService {
 	return &transactionsService{
@@ -90,7 +106,7 @@ func (svc *transactionsService) MakeInvoice(ctx context.Context, amount int64, d
 		AppId:           appId,
 		RequestEventId:  requestEventId,
 		Type:            lnClientTransaction.Type,
-		State:           TRANSACTION_STATE_PENDING,
+		State:           constants.TRANSACTION_STATE_PENDING,
 		Amount:          uint64(lnClientTransaction.Amount),
 		Description:     description,
 		DescriptionHash: descriptionHash,
@@ -135,8 +151,8 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 		dbTransaction = &db.Transaction{
 			AppId:           appId,
 			RequestEventId:  requestEventId,
-			Type:            TRANSACTION_TYPE_OUTGOING,
-			State:           TRANSACTION_STATE_PENDING,
+			Type:            constants.TRANSACTION_TYPE_OUTGOING,
+			State:           constants.TRANSACTION_STATE_PENDING,
 			Amount:          uint64(paymentRequest.MSatoshi),
 			PaymentRequest:  payReq,
 			PaymentHash:     paymentRequest.PaymentHash,
@@ -179,7 +195,7 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 
 		// As the LNClient did not return a timeout error, we assume the payment definitely failed
 		dbErr := svc.db.Model(dbTransaction).Updates(&db.Transaction{
-			State: TRANSACTION_STATE_FAILED,
+			State: constants.TRANSACTION_STATE_FAILED,
 		}).Error
 		if dbErr != nil {
 			logger.Logger.WithFields(logrus.Fields{
@@ -193,7 +209,7 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 	// the payment definitely succeeded
 	now := time.Now()
 	dbErr := svc.db.Model(dbTransaction).Updates(&db.Transaction{
-		State:     TRANSACTION_STATE_SETTLED,
+		State:     constants.TRANSACTION_STATE_SETTLED,
 		Preimage:  &response.Preimage,
 		Fee:       response.Fee,
 		SettledAt: &now,
@@ -228,8 +244,8 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 		dbTransaction = &db.Transaction{
 			AppId:          appId,
 			RequestEventId: requestEventId,
-			Type:           TRANSACTION_TYPE_OUTGOING,
-			State:          TRANSACTION_STATE_PENDING,
+			Type:           constants.TRANSACTION_TYPE_OUTGOING,
+			State:          constants.TRANSACTION_STATE_PENDING,
 			Amount:         amount,
 			Metadata:       string(metadataBytes),
 		}
@@ -279,7 +295,7 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 		// As the LNClient did not return a timeout error, we assume the payment definitely failed
 		dbErr := svc.db.Model(dbTransaction).Updates(&db.Transaction{
 			PaymentHash: paymentHash,
-			State:       TRANSACTION_STATE_FAILED,
+			State:       constants.TRANSACTION_STATE_FAILED,
 		}).Error
 		if dbErr != nil {
 			logger.Logger.WithFields(logrus.Fields{
@@ -294,7 +310,7 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 	// the payment definitely succeeded
 	now := time.Now()
 	dbErr := svc.db.Model(dbTransaction).Updates(&db.Transaction{
-		State:       TRANSACTION_STATE_SETTLED,
+		State:       constants.TRANSACTION_STATE_SETTLED,
 		PaymentHash: paymentHash,
 		Preimage:    &preimage,
 		Fee:         &fee,
@@ -346,7 +362,7 @@ func (svc *transactionsService) LookupTransaction(ctx context.Context, paymentHa
 		return nil, NewNotFoundError()
 	}
 
-	if transaction.State == TRANSACTION_STATE_PENDING {
+	if transaction.State == constants.TRANSACTION_STATE_PENDING {
 		svc.checkUnsettledTransaction(ctx, &transaction, lnClient)
 	}
 
@@ -359,7 +375,7 @@ func (svc *transactionsService) ListTransactions(ctx context.Context, from, unti
 	// TODO: add other filtering and pagination
 	tx := svc.db
 	if !unpaid {
-		tx = tx.Where("state == ?", TRANSACTION_STATE_SETTLED)
+		tx = tx.Where("state == ?", constants.TRANSACTION_STATE_SETTLED)
 	}
 
 	if appId != nil {
@@ -396,7 +412,7 @@ func (svc *transactionsService) checkUnsettledTransactions(ctx context.Context, 
 
 	// check pending payments less than a day old
 	transactions := []Transaction{}
-	result := svc.db.Where("state == ? AND created_at > ?", TRANSACTION_STATE_PENDING, time.Now().Add(-24*time.Hour)).Find(&transactions)
+	result := svc.db.Where("state == ? AND created_at > ?", constants.TRANSACTION_STATE_PENDING, time.Now().Add(-24*time.Hour)).Find(&transactions)
 	if result.Error != nil {
 		logger.Logger.WithError(result.Error).Error("Failed to list DB transactions")
 		return
@@ -423,7 +439,7 @@ func (svc *transactionsService) checkUnsettledTransaction(ctx context.Context, t
 		now := time.Now()
 		fee := uint64(lnClientTransaction.FeesPaid)
 		dbErr := svc.db.Model(transaction).Updates(&db.Transaction{
-			State:     TRANSACTION_STATE_SETTLED,
+			State:     constants.TRANSACTION_STATE_SETTLED,
 			Preimage:  &lnClientTransaction.Preimage,
 			Fee:       &fee,
 			SettledAt: &now,
@@ -449,7 +465,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 			var dbTransaction db.Transaction
 
 			result := tx.Find(&dbTransaction, &db.Transaction{
-				Type:        TRANSACTION_TYPE_INCOMING,
+				Type:        constants.TRANSACTION_TYPE_INCOMING,
 				PaymentHash: lnClientTransaction.PaymentHash,
 			})
 
@@ -470,7 +486,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 					expiresAt = &expiresAtValue
 				}
 				dbTransaction = db.Transaction{
-					Type:            TRANSACTION_TYPE_INCOMING,
+					Type:            constants.TRANSACTION_TYPE_INCOMING,
 					Amount:          uint64(lnClientTransaction.Amount),
 					PaymentRequest:  lnClientTransaction.Invoice,
 					PaymentHash:     lnClientTransaction.PaymentHash,
@@ -494,7 +510,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 			err := tx.Model(&dbTransaction).Updates(&db.Transaction{
 				Fee:       &fee,
 				Preimage:  &lnClientTransaction.Preimage,
-				State:     TRANSACTION_STATE_SETTLED,
+				State:     constants.TRANSACTION_STATE_SETTLED,
 				SettledAt: &settledAt,
 			}).Error
 			if err != nil {
@@ -523,7 +539,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 
 		var dbTransaction db.Transaction
 		result := svc.db.Find(&dbTransaction, &db.Transaction{
-			Type:        TRANSACTION_TYPE_OUTGOING,
+			Type:        constants.TRANSACTION_TYPE_OUTGOING,
 			PaymentHash: lnClientTransaction.PaymentHash,
 		})
 
@@ -537,7 +553,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 		err := svc.db.Model(&dbTransaction).Updates(&db.Transaction{
 			Fee:       &fee,
 			Preimage:  &lnClientTransaction.Preimage,
-			State:     TRANSACTION_STATE_SETTLED,
+			State:     constants.TRANSACTION_STATE_SETTLED,
 			SettledAt: &settledAt,
 		}).Error
 		if err != nil {
@@ -557,7 +573,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 
 		var dbTransaction db.Transaction
 		result := svc.db.Find(&dbTransaction, &db.Transaction{
-			Type:        TRANSACTION_TYPE_OUTGOING,
+			Type:        constants.TRANSACTION_TYPE_OUTGOING,
 			PaymentHash: lnClientTransaction.PaymentHash,
 		})
 
@@ -569,7 +585,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 		}
 
 		err := svc.db.Model(dbTransaction).Updates(&db.Transaction{
-			State: TRANSACTION_STATE_FAILED,
+			State: constants.TRANSACTION_STATE_FAILED,
 		}).Error
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
@@ -587,8 +603,8 @@ func (svc *transactionsService) interceptSelfPayment(paymentHash string) (*lncli
 	// TODO: extract into separate function
 	incomingTransaction := db.Transaction{}
 	result := svc.db.Find(&incomingTransaction, &db.Transaction{
-		Type:        TRANSACTION_TYPE_INCOMING,
-		State:       TRANSACTION_STATE_PENDING,
+		Type:        constants.TRANSACTION_TYPE_INCOMING,
+		State:       constants.TRANSACTION_STATE_PENDING,
 		PaymentHash: paymentHash,
 	})
 	if result.Error != nil {
@@ -606,7 +622,7 @@ func (svc *transactionsService) interceptSelfPayment(paymentHash string) (*lncli
 	now := time.Now()
 	fee := uint64(0)
 	err := svc.db.Model(incomingTransaction).Updates(&db.Transaction{
-		State:     TRANSACTION_STATE_SETTLED,
+		State:     constants.TRANSACTION_STATE_SETTLED,
 		Fee:       &fee,
 		SettledAt: &now,
 	}).Error
@@ -623,39 +639,30 @@ func (svc *transactionsService) interceptSelfPayment(paymentHash string) (*lncli
 }
 
 func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount uint64) error {
+	amountWithFeeReserve := amount + uint64(math.Max(math.Ceil(float64(amount)*0.01), 10))
+
 	// ensure balance for isolated apps
 	if appId != nil {
 		var appPermission db.AppPermission
 		tx.Find(&appPermission, &db.AppPermission{
 			AppId: *appId,
+			Scope: constants.PAY_INVOICE_SCOPE,
 		})
 
 		if appPermission.BalanceType == "isolated" {
-			var received struct {
-				Sum uint64
-			}
-			tx.
-				Table("transactions").
-				Select("SUM(amount) as sum").
-				Where("app_id = ? AND type = ? AND state = ?", appPermission.AppId, TRANSACTION_TYPE_INCOMING, TRANSACTION_STATE_SETTLED).Scan(&received)
+			balance := queries.GetIsolatedBalance(tx, appPermission.AppId)
 
-			var spent struct {
-				Sum uint64
-			}
-			tx.
-				Table("transactions").
-				Select("SUM(amount + fee) as sum").
-				Where("app_id = ? AND type = ? AND (state = ? OR state = ?)", appPermission.AppId, TRANSACTION_TYPE_OUTGOING, TRANSACTION_STATE_SETTLED, TRANSACTION_STATE_PENDING).Scan(&spent)
-
-			// TODO: ensure fee reserve for external payment
-			balance := received.Sum - spent.Sum
-			if balance < amount {
-				// TODO: add a proper error type so INSUFFICIENT_BALANCE is returned
-				return errors.New("Insufficient balance")
+			if amountWithFeeReserve > balance {
+				return NewInsufficientBalanceError()
 			}
 		}
-		// TODO: ensure budget is not exceeded
-		// TODO: ensure fee reserve for external payment
+
+		if appPermission.MaxAmount > 0 {
+			budgetUsage := queries.GetBudgetUsage(tx, &appPermission)
+			if int(amountWithFeeReserve/1000) > appPermission.MaxAmount-int(budgetUsage) {
+				return NewQuotaExceededError()
+			}
+		}
 	}
 
 	return nil

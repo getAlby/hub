@@ -3,10 +3,10 @@ package controllers
 import (
 	"context"
 
+	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/nip47/models"
-	permissions "github.com/getAlby/hub/nip47/permissions"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/sirupsen/logrus"
 )
@@ -34,7 +34,7 @@ func (controller *nip47Controller) HandleGetInfoEvent(ctx context.Context, nip47
 	}
 
 	// basic permissions check
-	hasPermission, _, _ := controller.permissionsService.HasPermission(app, permissions.GET_INFO_SCOPE, 0)
+	hasPermission, _, _ := controller.permissionsService.HasPermission(app, constants.GET_INFO_SCOPE, 0)
 	if hasPermission {
 		logger.Logger.WithFields(logrus.Fields{
 			"request_event_id": requestEventId,

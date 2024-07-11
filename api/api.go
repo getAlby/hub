@@ -17,7 +17,9 @@ import (
 
 	"github.com/getAlby/hub/alby"
 	"github.com/getAlby/hub/config"
+	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
+	"github.com/getAlby/hub/db/queries"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
@@ -66,7 +68,7 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 		}
 	}
 
-	app, pairingSecretKey, err := api.dbSvc.CreateApp(createAppRequest.Name, createAppRequest.Pubkey, createAppRequest.MaxAmount, createAppRequest.BudgetRenewal, expiresAt, createAppRequest.Scopes)
+	app, pairingSecretKey, err := api.dbSvc.CreateApp(createAppRequest.Name, createAppRequest.Pubkey, createAppRequest.MaxAmountSat, createAppRequest.BudgetRenewal, expiresAt, createAppRequest.Scopes)
 
 	if err != nil {
 		return nil, err
@@ -102,7 +104,7 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 }
 
 func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) error {
-	maxAmount := updateAppRequest.MaxAmount
+	maxAmount := updateAppRequest.MaxAmountSat
 	budgetRenewal := updateAppRequest.BudgetRenewal
 
 	if len(updateAppRequest.Scopes) == 0 {
@@ -184,7 +186,7 @@ func (api *api) GetApp(dbApp *db.App) *App {
 	requestMethods := []string{}
 	for _, appPerm := range appPermissions {
 		expiresAt = appPerm.ExpiresAt
-		if appPerm.Scope == permissions.PAY_INVOICE_SCOPE {
+		if appPerm.Scope == constants.PAY_INVOICE_SCOPE {
 			//find the pay_invoice-specific permissions
 			paySpecificPermission = appPerm
 		}
@@ -195,7 +197,7 @@ func (api *api) GetApp(dbApp *db.App) *App {
 	budgetUsage := uint64(0)
 	maxAmount := uint64(paySpecificPermission.MaxAmount)
 	if maxAmount > 0 {
-		budgetUsage = api.permissionsSvc.GetBudgetUsage(&paySpecificPermission)
+		budgetUsage = queries.GetBudgetUsage(api.db, &paySpecificPermission)
 	}
 
 	response := App{
@@ -206,7 +208,7 @@ func (api *api) GetApp(dbApp *db.App) *App {
 		UpdatedAt:     dbApp.UpdatedAt,
 		NostrPubkey:   dbApp.NostrPubkey,
 		ExpiresAt:     expiresAt,
-		MaxAmount:     maxAmount,
+		MaxAmountSat:  maxAmount,
 		Scopes:        requestMethods,
 		BudgetUsage:   budgetUsage,
 		BudgetRenewal: paySpecificPermission.BudgetRenewal,
@@ -247,11 +249,11 @@ func (api *api) ListApps() ([]App, error) {
 		for _, appPermission := range permissionsMap[dbApp.ID] {
 			apiApp.Scopes = append(apiApp.Scopes, appPermission.Scope)
 			apiApp.ExpiresAt = appPermission.ExpiresAt
-			if appPermission.Scope == permissions.PAY_INVOICE_SCOPE {
+			if appPermission.Scope == constants.PAY_INVOICE_SCOPE {
 				apiApp.BudgetRenewal = appPermission.BudgetRenewal
-				apiApp.MaxAmount = uint64(appPermission.MaxAmount)
-				if apiApp.MaxAmount > 0 {
-					apiApp.BudgetUsage = api.permissionsSvc.GetBudgetUsage(&appPermission)
+				apiApp.MaxAmountSat = uint64(appPermission.MaxAmount)
+				if apiApp.MaxAmountSat > 0 {
+					apiApp.BudgetUsage = queries.GetBudgetUsage(api.db, &appPermission)
 				}
 			}
 		}
@@ -655,7 +657,7 @@ func (api *api) GetWalletCapabilities(ctx context.Context) (*WalletCapabilitiesR
 		return nil, err
 	}
 	if len(notificationTypes) > 0 {
-		scopes = append(scopes, permissions.NOTIFICATIONS_SCOPE)
+		scopes = append(scopes, constants.NOTIFICATIONS_SCOPE)
 	}
 
 	return &WalletCapabilitiesResponse{

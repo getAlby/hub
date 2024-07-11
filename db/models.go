@@ -25,7 +25,7 @@ type AppPermission struct {
 	AppId         uint `validate:"required"`
 	App           App
 	Scope         string `validate:"required"`
-	MaxAmount     int
+	MaxAmount     int    // TODO: rename to MaxAmountSat
 	BudgetRenewal string
 	ExpiresAt     *time.Time
 	CreatedAt     time.Time
@@ -80,7 +80,7 @@ type Transaction struct {
 }
 
 type DBService interface {
-	CreateApp(name string, pubkey string, maxAmount uint64, budgetRenewal string, expiresAt *time.Time, scopes []string) (*App, string, error)
+	CreateApp(name string, pubkey string, maxAmountSat uint64, budgetRenewal string, expiresAt *time.Time, scopes []string) (*App, string, error)
 }
 
 const (

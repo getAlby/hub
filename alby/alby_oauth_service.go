@@ -17,6 +17,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/getAlby/hub/config"
+	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
@@ -394,7 +395,7 @@ func (svc *albyOAuthService) LinkAccount(ctx context.Context, lnClient lnclient.
 	}
 	notificationTypes := lnClient.GetSupportedNIP47NotificationTypes()
 	if len(notificationTypes) > 0 {
-		scopes = append(scopes, permissions.NOTIFICATIONS_SCOPE)
+		scopes = append(scopes, constants.NOTIFICATIONS_SCOPE)
 	}
 
 	app, _, err := db.NewDBService(svc.db, svc.eventPublisher).CreateApp(

@@ -80,10 +80,7 @@ func (controller *nip47Controller) pay(ctx context.Context, bolt11 string, payme
 		})
 		publishResponse(&models.Response{
 			ResultType: nip47Request.Method,
-			Error: &models.Error{
-				Code:    models.ERROR_INTERNAL,
-				Message: err.Error(),
-			},
+			Error:      mapNip47Error(err),
 		}, tags)
 		return
 	}
