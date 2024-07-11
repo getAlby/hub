@@ -35,12 +35,12 @@ const Permissions: React.FC<PermissionsProps> = ({
 }) => {
   const [permissions, setPermissions] = React.useState(initialPermissions);
 
-  const [canEditBudgetAmount, setCanEditBudgetAmount] = React.useState(
+  const [isBudgetAmountEditable, setBudgetAmountEditable] = React.useState(
     isNewConnection
       ? Number.isNaN(initialPermissions.maxAmount)
       : canEditPermissions
   );
-  const [canEditExpiry, setCanEditExpiry] = React.useState(
+  const [isExpiryEditable, setExpiryEditable] = React.useState(
     isNewConnection ? !initialPermissions.expiresAt : canEditPermissions
   );
 
@@ -54,12 +54,12 @@ const Permissions: React.FC<PermissionsProps> = ({
     if (isNewConnection) {
       return;
     }
-    setCanEditBudgetAmount(
+    setBudgetAmountEditable(
       isNewConnection
         ? Number.isNaN(initialPermissions.maxAmount)
         : canEditPermissions
     );
-    setCanEditExpiry(
+    setExpiryEditable(
       isNewConnection ? !initialPermissions.expiresAt : canEditPermissions
     );
   }, [canEditPermissions, initialPermissions, isNewConnection]);
@@ -147,7 +147,7 @@ const Permissions: React.FC<PermissionsProps> = ({
       )}
       {capabilities.scopes.includes(NIP_47_PAY_INVOICE_METHOD) &&
         permissions.scopes.has(NIP_47_PAY_INVOICE_METHOD) &&
-        (!canEditBudgetAmount ? (
+        (!isBudgetAmountEditable ? (
           <div className="pt-2 pl-4 ml-2 border-l-2 border-l-primary">
             <div className="flex flex-col gap-2 text-muted-foreground mb-3 text-sm">
               <p className="capitalize">
@@ -171,9 +171,8 @@ const Permissions: React.FC<PermissionsProps> = ({
                 type="button"
                 variant="secondary"
                 onClick={() => {
-                  setShowBudgetOptions(true);
-                  handleBudgetRenewalChange("monthly");
                   handleBudgetMaxAmountChange(100000);
+                  setShowBudgetOptions(true);
                 }}
                 className="mb-4 mr-4"
               >
@@ -200,7 +199,7 @@ const Permissions: React.FC<PermissionsProps> = ({
           </>
         ))}
 
-      {!canEditExpiry ? (
+      {!isExpiryEditable ? (
         <div className="mt-4">
           <p className="text-sm font-medium mb-2">Connection expiry</p>
           <p className="text-muted-foreground text-sm">

@@ -171,7 +171,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
     maxAmount: parseInt(budgetMaxAmountParam),
     budgetRenewal: validBudgetRenewals.includes(budgetRenewalParam)
       ? budgetRenewalParam
-      : "never",
+      : "monthly",
     expiresAt: parseExpiresParam(expiresAtParam),
   });
 
