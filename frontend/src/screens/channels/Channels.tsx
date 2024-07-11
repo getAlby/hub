@@ -363,9 +363,9 @@ export default function Channels() {
                 </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>
-            {/* <Link to="/channels/new">
+            <Link to="/channels/outgoing">
               <Button>Open Channel</Button>
-            </Link> */}
+            </Link>
             <ExternalLink to="https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub/liquidity/node-health">
               <TooltipProvider>
                 <Tooltip>

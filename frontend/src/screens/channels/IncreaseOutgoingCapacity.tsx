@@ -1,4 +1,4 @@
-import { Box, ChevronDown, Zap } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import React, { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
@@ -78,20 +78,12 @@ function NewChannelInternal({ network }: { network: Network }) {
     return _channelPeerSuggestions
       ? [
           ..._channelPeerSuggestions.filter(
-            (peer) =>
-              peer.paymentMethod !== "lightning" || peer.lspType !== "LSPS1"
+            (peer) => peer.paymentMethod !== "lightning"
           ),
           customOption,
         ]
       : undefined;
   }, [_channelPeerSuggestions, network]);
-
-  function setPaymentMethod(paymentMethod: "onchain" | "lightning") {
-    setOrder((current) => ({
-      ...current,
-      paymentMethod,
-    }));
-  }
 
   function setPublic(isPublic: boolean) {
     setOrder((current) => ({
@@ -131,20 +123,8 @@ function NewChannelInternal({ network }: { network: Network }) {
           host: selectedPeer.host,
         }));
       }
-      if (
-        selectedPeer.paymentMethod === "lightning" &&
-        order.paymentMethod === "lightning"
-      ) {
-        setOrder((current) => ({
-          ...current,
-          lspType: selectedPeer.lspType,
-          lspUrl: selectedPeer.lspUrl,
-        }));
-      }
     }
   }, [order.paymentMethod, selectedPeer]);
-
-  const selectedCardStyles = "border-primary border-2 font-medium";
 
   const [showAdvanced, setShowAdvanced] = React.useState(false);
 
@@ -219,6 +199,15 @@ function NewChannelInternal({ network }: { network: Network }) {
       <AppHeader
         title="Increase Spending Balance"
         description="Funds used to open a channel minus fees will be added to your spending balance"
+        contentRight={
+          <div className="flex items-end">
+            <Link to="/channels/incoming">
+              <Button className="w-full" variant="secondary">
+                Need receiving capacity?
+              </Button>
+            </Link>
+          </div>
+        }
       />
       <form
         onSubmit={onSubmit}
@@ -270,46 +259,10 @@ function NewChannelInternal({ network }: { network: Network }) {
         </div>
         {showAdvanced && (
           <>
-            <div className="grid gap-3">
-              <Label htmlFor="amount">Payment method</Label>
-              <div className="grid grid-cols-2 gap-3">
-                <Link
-                  to="#"
-                  onClick={() => setPaymentMethod("onchain")}
-                  className="flex-1"
-                >
-                  <div
-                    className={cn(
-                      "rounded-xl border bg-card text-card-foreground shadow p-5 flex flex-col items-center gap-3",
-                      order.paymentMethod === "onchain"
-                        ? selectedCardStyles
-                        : undefined
-                    )}
-                  >
-                    <Box className="w-4 h-4" />
-                    Onchain
-                  </div>
-                </Link>
-                <Link to="#" onClick={() => setPaymentMethod("lightning")}>
-                  <div
-                    className={cn(
-                      "rounded-xl border bg-card text-card-foreground shadow p-5 flex flex-col items-center gap-3",
-                      order.paymentMethod === "lightning"
-                        ? selectedCardStyles
-                        : undefined
-                    )}
-                  >
-                    <Zap className="w-4 h-4" />
-                    Lightning
-                  </div>
-                </Link>
-              </div>
-            </div>
             <div className="flex flex-col gap-3">
               {selectedPeer &&
-                (selectedPeer.paymentMethod === "lightning" ||
-                  (order.paymentMethod === "onchain" &&
-                    selectedPeer.pubkey === order.pubkey)) && (
+                order.paymentMethod === "onchain" &&
+                selectedPeer.pubkey === order.pubkey && (
                   <div className="grid gap-1.5">
                     <Label>Channel peer</Label>
                     <Select
@@ -378,9 +331,6 @@ function NewChannelInternal({ network }: { network: Network }) {
                 showCustomOptions={selectedPeer?.name === "Custom"}
               />
             )}
-            {order.paymentMethod === "lightning" && (
-              <NewChannelLightning order={order} setOrder={setOrder} />
-            )}
 
             <div className="mt-2 flex items-top space-x-2">
               <Checkbox
@@ -419,18 +369,6 @@ function NewChannelInternal({ network }: { network: Network }) {
       </form>
     </>
   );
-}
-
-type NewChannelLightningProps = {
-  order: Partial<NewChannelOrder>;
-  setOrder(order: Partial<NewChannelOrder>): void;
-};
-
-function NewChannelLightning(props: NewChannelLightningProps) {
-  if (props.order.paymentMethod !== "lightning") {
-    throw new Error("unexpected payment method");
-  }
-  return null;
 }
 
 type NewChannelOnchainProps = {

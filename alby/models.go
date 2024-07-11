@@ -34,15 +34,19 @@ type AlbyLinkAccountRequest struct {
 	Renewal string `json:"renewal"`
 }
 
+type AlbyMeHub struct {
+	LatestVersion string `json:"latest_version"`
+}
 type AlbyMe struct {
-	Identifier       string `json:"identifier"`
-	NPub             string `json:"nostr_pubkey"`
-	LightningAddress string `json:"lightning_address"`
-	Email            string `json:"email"`
-	Name             string `json:"name"`
-	Avatar           string `json:"avatar"`
-	KeysendPubkey    string `json:"keysend_pubkey"`
-	SharedNode       bool   `json:"shared_node"`
+	Identifier       string    `json:"identifier"`
+	NPub             string    `json:"nostr_pubkey"`
+	LightningAddress string    `json:"lightning_address"`
+	Email            string    `json:"email"`
+	Name             string    `json:"name"`
+	Avatar           string    `json:"avatar"`
+	KeysendPubkey    string    `json:"keysend_pubkey"`
+	SharedNode       bool      `json:"shared_node"`
+	Hub              AlbyMeHub `json:"hub"`
 }
 
 type AlbyBalance struct {
