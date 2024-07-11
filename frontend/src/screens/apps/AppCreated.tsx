@@ -27,7 +27,6 @@ export default function AppCreated() {
   const queryParams = new URLSearchParams(search);
   const appId = queryParams.get("app") ?? "";
   const appstoreApp = suggestedApps.find((app) => app.id === appId);
-  console.info(appstoreApp, appId);
 
   const [timeout, setTimeout] = useState(false);
   const [isQRCodeVisible, setIsQRCodeVisible] = useState(false);
@@ -89,7 +88,7 @@ export default function AppCreated() {
         title={`Connect to ${createAppResponse.name}`}
         description="Configure wallet permissions for the app and follow instructions to finalise the connection"
       />
-      <div className="flex flex-col gap-3 ph-no-capture">
+      <div className="flex flex-col gap-3 ph-no-capture sensitive">
         <div>
           <p>
             1. Open{" "}

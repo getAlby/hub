@@ -1,26 +1,19 @@
 import { PlusCircle } from "lucide-react";
 import React, { useEffect, useState } from "react";
+import BudgetAmountSelect from "src/components/BudgetAmountSelect";
+import BudgetRenewalSelect from "src/components/BudgetRenewalSelect";
 import { Button } from "src/components/ui/button";
 import { Checkbox } from "src/components/ui/checkbox";
 import { Label } from "src/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "src/components/ui/select";
 import { useCapabilities } from "src/hooks/useCapabilities";
 import { cn } from "src/lib/utils";
 import {
   AppPermissions,
   BudgetRenewalType,
   Scope,
-  budgetOptions,
   expiryOptions,
   iconMap,
   scopeDescriptions,
-  validBudgetRenewals,
 } from "src/types";
 
 interface PermissionsProps {
@@ -164,55 +157,17 @@ const Permissions: React.FC<PermissionsProps> = ({
                           {!canEditPermissions ? (
                             permissions.budgetRenewal
                           ) : (
-                            <Select
+                            <BudgetRenewalSelect
                               value={permissions.budgetRenewal}
-                              onValueChange={handleBudgetRenewalChange}
+                              onChange={handleBudgetRenewalChange}
                               disabled={!canEditPermissions}
-                            >
-                              <SelectTrigger className="w-[150px]">
-                                <SelectValue
-                                  placeholder={permissions.budgetRenewal}
-                                />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {validBudgetRenewals.map((renewalOption) => (
-                                  <SelectItem
-                                    key={renewalOption}
-                                    value={renewalOption}
-                                  >
-                                    {renewalOption.charAt(0).toUpperCase() +
-                                      renewalOption.slice(1)}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                            />
                           )}
                         </div>
-                        <div
-                          id="budget-allowance-limits"
-                          className="grid grid-cols-6 grid-rows-2 md:grid-rows-1 md:grid-cols-6 gap-2 text-xs"
-                        >
-                          {Object.keys(budgetOptions).map((budget) => {
-                            return (
-                              // replace with something else and then remove dark prefixes
-                              <div
-                                key={budget}
-                                onClick={() =>
-                                  handleMaxAmountChange(budgetOptions[budget])
-                                }
-                                className={`col-span-2 md:col-span-1 cursor-pointer rounded border-2 ${
-                                  permissions.maxAmount == budgetOptions[budget]
-                                    ? "border-primary"
-                                    : "border-muted"
-                                } text-center py-4 dark:text-white`}
-                              >
-                                {budget}
-                                <br />
-                                {budgetOptions[budget] ? "sats" : "#reckless"}
-                              </div>
-                            );
-                          })}
-                        </div>
+                        <BudgetAmountSelect
+                          value={permissions.maxAmount}
+                          onChange={handleMaxAmountChange}
+                        />
                       </>
                     ) : isNewConnection ? (
                       <>

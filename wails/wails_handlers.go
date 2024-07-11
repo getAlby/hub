@@ -505,7 +505,17 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		res := WailsRequestRouterResponse{Body: *infoResponse, Error: ""}
 		return res
 	case "/api/alby/link-account":
-		err := app.svc.GetAlbyOAuthSvc().LinkAccount(ctx, app.svc.GetLNClient())
+		linkAccountRequest := &alby.AlbyLinkAccountRequest{}
+		err := json.Unmarshal([]byte(body), linkAccountRequest)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).WithError(err).Error("Failed to decode request to wails router")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		err = app.svc.GetAlbyOAuthSvc().LinkAccount(ctx, app.svc.GetLNClient(), linkAccountRequest.Budget, linkAccountRequest.Renewal)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}

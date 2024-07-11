@@ -27,7 +27,16 @@ export function Intro() {
   const navigate = useNavigate();
   const [api, setApi] = React.useState<CarouselApi>();
   const [progress, setProgress] = React.useState<number>(0);
-  const { theme } = useTheme();
+  const { setDarkMode } = useTheme();
+
+  React.useEffect(() => {
+    // Force dark mode on intro screen
+    setDarkMode("dark");
+    return () => {
+      // Revert to default after exiting intro
+      setDarkMode("system");
+    };
+  }, [setDarkMode]);
 
   React.useEffect(() => {
     if (!info?.setupCompleted) {
@@ -49,7 +58,6 @@ export function Intro() {
         style={{
           backgroundImage: `url(${Cloud})`,
           backgroundPositionX: `${-Math.max(progress, 0) * 40}%`,
-          filter: theme === "light" ? "invert(0.3)" : undefined,
         }}
       />
       <div
@@ -58,7 +66,6 @@ export function Intro() {
           backgroundImage: `url(${Cloud2})`,
           backgroundPositionX: `${150 - Math.max(progress, 0) * 60}%`,
           backgroundPositionY: "100%",
-          filter: theme === "light" ? "invert(0.3)" : undefined,
         }}
       />
       <CarouselContent className="select-none bg-transparent">

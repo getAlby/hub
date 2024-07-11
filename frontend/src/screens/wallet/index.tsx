@@ -22,7 +22,7 @@ function Wallet() {
       <AppHeader title="Wallet" description="" />
       <BreezRedeem />
       <div className="flex flex-col lg:flex-row justify-between lg:items-center gap-5">
-        <div className="text-5xl font-semibold">
+        <div className="text-5xl font-semibold balance sensitive ph-no-capture">
           {new Intl.NumberFormat().format(
             Math.floor(balances.lightning.totalSpendable / 1000)
           )}{" "}

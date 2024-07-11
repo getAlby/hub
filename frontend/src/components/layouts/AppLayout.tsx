@@ -185,10 +185,9 @@ export default function AppLayout() {
 
   const upToDate =
     info?.version &&
-    info.latestVersion &&
+    albyMe?.hub.latest_version &&
     info.version.startsWith("v") &&
-    info.latestVersion.startsWith("v") &&
-    info.version.substring(1) >= info.latestVersion.substring(1);
+    info.version.substring(1) >= albyMe?.hub.latest_version;
 
   return (
     <>
@@ -211,7 +210,7 @@ export default function AppLayout() {
                             className="font-semibold text-xl"
                           >
                             <span className="text-xs flex items-center text-muted-foreground">
-                              {info?.version}&nbsp;
+                              {info?.version && <>{info?.version}&nbsp;</>}
                               {upToDate ? (
                                 <ShieldCheckIcon className="w-4 h-4" />
                               ) : (
@@ -224,7 +223,9 @@ export default function AppLayout() {
                           {upToDate ? (
                             <p>Alby Hub is up to date!</p>
                           ) : (
-                            <p>Alby Hub {info?.latestVersion} available!</p>
+                            <p>
+                              Alby Hub {albyMe?.hub.latest_version} available!
+                            </p>
                           )}
                         </TooltipContent>
                       </Tooltip>

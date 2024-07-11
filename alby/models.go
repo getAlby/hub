@@ -13,7 +13,7 @@ type AlbyOAuthService interface {
 	GetAuthUrl() string
 	GetUserIdentifier() (string, error)
 	IsConnected(ctx context.Context) bool
-	LinkAccount(ctx context.Context, lnClient lnclient.LNClient) error
+	LinkAccount(ctx context.Context, lnClient lnclient.LNClient, budget uint64, renewal string) error
 	CallbackHandler(ctx context.Context, code string) error
 	GetBalance(ctx context.Context) (*AlbyBalance, error)
 	GetMe(ctx context.Context) (*AlbyMe, error)
@@ -29,15 +29,24 @@ type AlbyPayRequest struct {
 	Invoice string `json:"invoice"`
 }
 
+type AlbyLinkAccountRequest struct {
+	Budget  uint64 `json:"budget"`
+	Renewal string `json:"renewal"`
+}
+
+type AlbyMeHub struct {
+	LatestVersion string `json:"latest_version"`
+}
 type AlbyMe struct {
-	Identifier       string `json:"identifier"`
-	NPub             string `json:"nostr_pubkey"`
-	LightningAddress string `json:"lightning_address"`
-	Email            string `json:"email"`
-	Name             string `json:"name"`
-	Avatar           string `json:"avatar"`
-	KeysendPubkey    string `json:"keysend_pubkey"`
-	SharedNode       bool   `json:"shared_node"`
+	Identifier       string    `json:"identifier"`
+	NPub             string    `json:"nostr_pubkey"`
+	LightningAddress string    `json:"lightning_address"`
+	Email            string    `json:"email"`
+	Name             string    `json:"name"`
+	Avatar           string    `json:"avatar"`
+	KeysendPubkey    string    `json:"keysend_pubkey"`
+	SharedNode       bool      `json:"shared_node"`
+	Hub              AlbyMeHub `json:"hub"`
 }
 
 type AlbyBalance struct {

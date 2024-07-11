@@ -135,7 +135,7 @@ func (gs *GreenlightService) SendKeysend(ctx context.Context, amount uint64, des
 
 		extraTlvs = append(extraTlvs, glalby.TlvEntry{
 			Ty:    customRecord.Type,
-			Value: customRecord.Value,
+			Value: customRecord.Value, // glalby expects hex-encoded TLV values
 		})
 	}
 

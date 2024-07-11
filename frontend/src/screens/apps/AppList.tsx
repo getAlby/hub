@@ -52,7 +52,7 @@ function AppList() {
       )}
 
       {otherApps.length > 0 && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch app-list">
           {otherApps.map((app, index) => (
             <AppCard key={index} app={app} />
           ))}

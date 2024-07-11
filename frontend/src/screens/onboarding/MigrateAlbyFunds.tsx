@@ -227,9 +227,6 @@ export default function MigrateAlbyFunds() {
             >
               Migrate Funds and Open Channel
             </LoadingButton>
-            <Link to="/channels">
-              <Button variant="link">Explore Other Options</Button>
-            </Link>
           </form>
         </>
       ) : (
