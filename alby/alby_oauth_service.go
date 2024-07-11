@@ -21,6 +21,7 @@ import (
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
+	"github.com/getAlby/hub/nip47/permissions"
 	"github.com/getAlby/hub/service/keys"
 )
 
@@ -385,13 +386,23 @@ func (svc *albyOAuthService) LinkAccount(ctx context.Context, lnClient lnclient.
 		return err
 	}
 
+	scopes, err := permissions.RequestMethodsToScopes(lnClient.GetSupportedNIP47Methods())
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to get scopes from LNClient request methods")
+		return err
+	}
+	notificationTypes := lnClient.GetSupportedNIP47NotificationTypes()
+	if len(notificationTypes) > 0 {
+		scopes = append(scopes, permissions.NOTIFICATIONS_SCOPE)
+	}
+
 	app, _, err := db.NewDBService(svc.db, svc.eventPublisher).CreateApp(
 		"getalby.com",
 		connectionPubkey,
 		budget,
 		renewal,
 		nil,
-		lnClient.GetSupportedNIP47Methods(),
+		scopes,
 	)
 
 	if err != nil {
