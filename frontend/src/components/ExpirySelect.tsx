@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import dayjs from "dayjs";
 import { CalendarIcon } from "lucide-react";
 import React from "react";
 import { Calendar } from "src/components/ui/calendar";
@@ -14,9 +14,9 @@ const daysFromNow = (date?: Date) => {
   if (!date) {
     return 0;
   }
-  return Math.ceil(
-    (new Date(date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
-  );
+  const now = dayjs();
+  const targetDate = dayjs(date);
+  return targetDate.diff(now, "day");
 };
 
 interface ExpiryProps {
@@ -66,7 +66,9 @@ const ExpirySelect: React.FC<ExpiryProps> = ({ value, onChange }) => {
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
               <span className="truncate">
-                {customExpiry && value ? format(value, "PPP") : "Custom..."}
+                {customExpiry && value
+                  ? dayjs(value).format("DD MMMM YYYY")
+                  : "Custom..."}
               </span>
             </div>
           </PopoverTrigger>
