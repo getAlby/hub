@@ -29,8 +29,7 @@ function BudgetAmountSelect({
               className={cn(
                 "cursor-pointer rounded text-nowrap border-2 text-center p-4 dark:text-white",
                 !customBudget &&
-                  (Number.isNaN(value) ? 100000 : value) ==
-                    budgetOptions[budget]
+                  (Number.isNaN(value) ? 0 : value) == budgetOptions[budget]
                   ? "border-primary"
                   : "border-muted"
               )}

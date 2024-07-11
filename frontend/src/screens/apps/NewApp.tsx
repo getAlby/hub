@@ -159,7 +159,9 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
   const parseExpiresParam = (expiresParam: string): Date | undefined => {
     const expiresParamTimestamp = parseInt(expiresParam);
     if (!isNaN(expiresParamTimestamp)) {
-      return new Date(expiresParamTimestamp * 1000);
+      const expiry = new Date(expiresParamTimestamp * 1000);
+      expiry.setHours(23, 59, 59);
+      return expiry;
     }
     return undefined;
   };
@@ -271,7 +273,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
             capabilities={capabilities}
             initialPermissions={permissions}
             onPermissionsChange={setPermissions}
-            canEditPermissions={!reqMethodsParam}
+            canEditPermissions
             isNewConnection
           />
         </div>
