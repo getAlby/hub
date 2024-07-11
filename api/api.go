@@ -781,7 +781,6 @@ func (api *api) parseExpiresAt(expiresAtString string) (*time.Time, error) {
 			logger.Logger.WithField("expiresAt", expiresAtString).Error("Invalid expiresAt")
 			return nil, fmt.Errorf("invalid expiresAt: %v", err)
 		}
-		expiresAtValue = time.Date(expiresAtValue.Year(), expiresAtValue.Month(), expiresAtValue.Day(), 23, 59, 59, 0, expiresAtValue.Location())
 		expiresAt = &expiresAtValue
 	}
 	return expiresAt, nil
