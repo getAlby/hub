@@ -36,15 +36,24 @@ const Permissions: React.FC<PermissionsProps> = ({
   const [permissions, setPermissions] = React.useState(initialPermissions);
 
   const [canEditBudgetAmount, setCanEditBudgetAmount] = React.useState(
-    isNewConnection ? Number.isNaN(permissions.maxAmount) : canEditPermissions
+    isNewConnection
+      ? Number.isNaN(initialPermissions.maxAmount)
+      : canEditPermissions
   );
   const [canEditExpiry, setCanEditExpiry] = React.useState(
-    isNewConnection ? !permissions.expiresAt : canEditPermissions
+    isNewConnection ? !initialPermissions.expiresAt : canEditPermissions
   );
 
-  // this is triggered when edit mode is cancelled in show app
+  // this is triggered when changes are saved in show app
   React.useEffect(() => {
     setPermissions(initialPermissions);
+  }, [initialPermissions]);
+
+  // this is triggered when edit mode is called
+  React.useEffect(() => {
+    if (isNewConnection) {
+      return;
+    }
     setCanEditBudgetAmount(
       isNewConnection
         ? Number.isNaN(initialPermissions.maxAmount)
@@ -163,6 +172,7 @@ const Permissions: React.FC<PermissionsProps> = ({
                 variant="secondary"
                 onClick={() => {
                   setShowBudgetOptions(true);
+                  handleBudgetRenewalChange("monthly");
                   handleBudgetMaxAmountChange(100000);
                 }}
                 className="mb-4 mr-4"
