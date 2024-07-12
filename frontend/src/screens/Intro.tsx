@@ -100,7 +100,7 @@ export function Intro() {
             api={api}
             icon={ShieldCheck}
             title="Your Keys Are Safe"
-            description="You wallet is encrypted by a password of your choice. No one can access your funds but you."
+            description="Your wallet is encrypted by a password of your choice. No one can access your funds but you."
           />
         </CarouselItem>
         <CarouselItem>
