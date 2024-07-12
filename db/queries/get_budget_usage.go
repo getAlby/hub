@@ -14,7 +14,7 @@ func GetBudgetUsageSat(tx *gorm.DB, appPermission *db.AppPermission) uint64 {
 	}
 	tx.
 		Table("transactions").
-		Select("SUM(amount + coalesce(fee, 0) + coalesce(fee_reserve, 0)) as sum").
+		Select("SUM(amount_msat + coalesce(fee_msat, 0) + coalesce(fee_reserve_msat, 0)) as sum").
 		Where("app_id = ? AND type = ? AND (state = ? OR state = ?) AND created_at > ?", appPermission.AppId, constants.TRANSACTION_TYPE_OUTGOING, constants.TRANSACTION_STATE_SETTLED, constants.TRANSACTION_STATE_PENDING, getStartOfBudget(appPermission.BudgetRenewal)).Scan(&result)
 	return result.Sum / 1000
 }

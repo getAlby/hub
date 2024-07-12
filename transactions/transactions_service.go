@@ -107,7 +107,7 @@ func (svc *transactionsService) MakeInvoice(ctx context.Context, amount int64, d
 		RequestEventId:  requestEventId,
 		Type:            lnClientTransaction.Type,
 		State:           constants.TRANSACTION_STATE_PENDING,
-		Amount:          uint64(lnClientTransaction.Amount),
+		AmountMsat:      uint64(lnClientTransaction.Amount),
 		Description:     description,
 		DescriptionHash: descriptionHash,
 		PaymentRequest:  lnClientTransaction.Invoice,
@@ -154,8 +154,8 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 			RequestEventId:  requestEventId,
 			Type:            constants.TRANSACTION_TYPE_OUTGOING,
 			State:           constants.TRANSACTION_STATE_PENDING,
-			FeeReserve:      &feeReserve,
-			Amount:          uint64(paymentRequest.MSatoshi),
+			FeeReserveMsat:  &feeReserve,
+			AmountMsat:      uint64(paymentRequest.MSatoshi),
 			PaymentRequest:  payReq,
 			PaymentHash:     paymentRequest.PaymentHash,
 			Description:     paymentRequest.Description,
@@ -212,11 +212,11 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 	feeReserve := uint64(0)
 	now := time.Now()
 	dbErr := svc.db.Model(dbTransaction).Updates(&db.Transaction{
-		State:      constants.TRANSACTION_STATE_SETTLED,
-		Preimage:   &response.Preimage,
-		Fee:        response.Fee,
-		FeeReserve: &feeReserve,
-		SettledAt:  &now,
+		State:          constants.TRANSACTION_STATE_SETTLED,
+		Preimage:       &response.Preimage,
+		FeeMsat:        response.Fee,
+		FeeReserveMsat: &feeReserve,
+		SettledAt:      &now,
 	}).Error
 	if dbErr != nil {
 		logger.Logger.WithFields(logrus.Fields{
@@ -251,8 +251,8 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 			RequestEventId: requestEventId,
 			Type:           constants.TRANSACTION_TYPE_OUTGOING,
 			State:          constants.TRANSACTION_STATE_PENDING,
-			FeeReserve:     &feeReserve,
-			Amount:         amount,
+			FeeReserveMsat: &feeReserve,
+			AmountMsat:     amount,
 			Metadata:       string(metadataBytes),
 		}
 		err = tx.Create(dbTransaction).Error
@@ -317,12 +317,12 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 	now := time.Now()
 	feeReserve := uint64(0)
 	dbErr := svc.db.Model(dbTransaction).Updates(&db.Transaction{
-		State:       constants.TRANSACTION_STATE_SETTLED,
-		PaymentHash: paymentHash,
-		Preimage:    &preimage,
-		Fee:         &fee,
-		FeeReserve:  &feeReserve,
-		SettledAt:   &now,
+		State:          constants.TRANSACTION_STATE_SETTLED,
+		PaymentHash:    paymentHash,
+		Preimage:       &preimage,
+		FeeMsat:        &fee,
+		FeeReserveMsat: &feeReserve,
+		SettledAt:      &now,
 	}).Error
 	if dbErr != nil {
 		logger.Logger.WithFields(logrus.Fields{
@@ -449,11 +449,11 @@ func (svc *transactionsService) checkUnsettledTransaction(ctx context.Context, t
 		fee := uint64(lnClientTransaction.FeesPaid)
 		feeReserve := uint64(0)
 		dbErr := svc.db.Model(transaction).Updates(&db.Transaction{
-			State:      constants.TRANSACTION_STATE_SETTLED,
-			Preimage:   &lnClientTransaction.Preimage,
-			Fee:        &fee,
-			FeeReserve: &feeReserve,
-			SettledAt:  &now,
+			State:          constants.TRANSACTION_STATE_SETTLED,
+			Preimage:       &lnClientTransaction.Preimage,
+			FeeMsat:        &fee,
+			FeeReserveMsat: &feeReserve,
+			SettledAt:      &now,
 		}).Error
 		if dbErr != nil {
 			logger.Logger.WithFields(logrus.Fields{
@@ -498,7 +498,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 				}
 				dbTransaction = db.Transaction{
 					Type:            constants.TRANSACTION_TYPE_INCOMING,
-					Amount:          uint64(lnClientTransaction.Amount),
+					AmountMsat:      uint64(lnClientTransaction.Amount),
 					PaymentRequest:  lnClientTransaction.Invoice,
 					PaymentHash:     lnClientTransaction.PaymentHash,
 					Description:     lnClientTransaction.Description,
@@ -519,7 +519,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 			fee := uint64(lnClientTransaction.FeesPaid)
 
 			err := tx.Model(&dbTransaction).Updates(&db.Transaction{
-				Fee:       &fee,
+				FeeMsat:   &fee,
 				Preimage:  &lnClientTransaction.Preimage,
 				State:     constants.TRANSACTION_STATE_SETTLED,
 				SettledAt: &settledAt,
@@ -563,11 +563,11 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 		fee := uint64(lnClientTransaction.FeesPaid)
 		feeReserve := uint64(0)
 		err := svc.db.Model(&dbTransaction).Updates(&db.Transaction{
-			Fee:        &fee,
-			FeeReserve: &feeReserve,
-			Preimage:   &lnClientTransaction.Preimage,
-			State:      constants.TRANSACTION_STATE_SETTLED,
-			SettledAt:  &settledAt,
+			FeeMsat:        &fee,
+			FeeReserveMsat: &feeReserve,
+			Preimage:       &lnClientTransaction.Preimage,
+			State:          constants.TRANSACTION_STATE_SETTLED,
+			SettledAt:      &settledAt,
 		}).Error
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
@@ -636,7 +636,7 @@ func (svc *transactionsService) interceptSelfPayment(paymentHash string) (*lncli
 	fee := uint64(0)
 	err := svc.db.Model(incomingTransaction).Updates(&db.Transaction{
 		State:     constants.TRANSACTION_STATE_SETTLED,
-		Fee:       &fee,
+		FeeMsat:   &fee,
 		SettledAt: &now,
 	}).Error
 	if err != nil {

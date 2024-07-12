@@ -11,7 +11,7 @@ func GetIsolatedBalance(tx *gorm.DB, appId uint) uint64 {
 	}
 	tx.
 		Table("transactions").
-		Select("SUM(amount) as sum").
+		Select("SUM(amount_msat) as sum").
 		Where("app_id = ? AND type = ? AND state = ?", appId, constants.TRANSACTION_TYPE_INCOMING, constants.TRANSACTION_STATE_SETTLED).Scan(&received)
 
 	var spent struct {
@@ -20,7 +20,7 @@ func GetIsolatedBalance(tx *gorm.DB, appId uint) uint64 {
 
 	tx.
 		Table("transactions").
-		Select("SUM(amount + coalesce(fee, 0) + coalesce(fee_reserve, 0)) as sum").
+		Select("SUM(amount_msat + coalesce(fee_msat, 0) + coalesce(fee_reserve_msat, 0)) as sum").
 		Where("app_id = ? AND type = ? AND (state = ? OR state = ?)", appId, constants.TRANSACTION_TYPE_OUTGOING, constants.TRANSACTION_STATE_SETTLED, constants.TRANSACTION_STATE_PENDING).Scan(&spent)
 
 	return received.Sum - spent.Sum

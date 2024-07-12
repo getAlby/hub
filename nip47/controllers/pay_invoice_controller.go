@@ -97,7 +97,7 @@ func (controller *nip47Controller) pay(ctx context.Context, bolt11 string, payme
 		ResultType: nip47Request.Method,
 		Result: payResponse{
 			Preimage: *response.Preimage,
-			FeesPaid: response.Fee,
+			FeesPaid: response.FeeMsat,
 		},
 	}, tags)
 }

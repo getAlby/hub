@@ -65,9 +65,9 @@ type Transaction struct {
 	RequestEvent    *RequestEvent
 	Type            string
 	State           string
-	Amount          uint64  // in millisats
-	Fee             *uint64 // in millisats
-	FeeReserve      *uint64 // in millisats, set for unsettled outgoing payments
+	AmountMsat      uint64
+	FeeMsat         *uint64
+	FeeReserveMsat  *uint64 // non-zero for unsettled outgoing payments only
 	PaymentRequest  string
 	PaymentHash     string
 	Description     string

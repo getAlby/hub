@@ -44,8 +44,8 @@ func TestSendNotification_PaymentReceived(t *testing.T) {
 		DescriptionHash: tests.MockLNClientTransaction.DescriptionHash,
 		Preimage:        &tests.MockLNClientTransaction.Preimage,
 		PaymentHash:     tests.MockLNClientTransaction.PaymentHash,
-		Amount:          uint64(tests.MockLNClientTransaction.Amount),
-		Fee:             &feesPaid,
+		AmountMsat:      uint64(tests.MockLNClientTransaction.Amount),
+		FeeMsat:         &feesPaid,
 		SettledAt:       &settledAt,
 		AppId:           &app.ID,
 	}).Error
@@ -125,8 +125,8 @@ func TestSendNotification_PaymentSent(t *testing.T) {
 		DescriptionHash: tests.MockLNClientTransaction.DescriptionHash,
 		Preimage:        &tests.MockLNClientTransaction.Preimage,
 		PaymentHash:     tests.MockLNClientTransaction.PaymentHash,
-		Amount:          uint64(tests.MockLNClientTransaction.Amount),
-		Fee:             &feesPaid,
+		AmountMsat:      uint64(tests.MockLNClientTransaction.Amount),
+		FeeMsat:         &feesPaid,
 		SettledAt:       &settledAt,
 		AppId:           &app.ID,
 	}).Error

@@ -12,6 +12,8 @@ import (
 // - Adds new properties to app_permissions
 //   - balance_type string - isolated | full
 //   - visibility string - isolated | full
+//
+// - Renames max amount on app permissions to be clear its in sats
 var _202407012100_transactions = &gormigrate.Migration{
 	ID: "202407012100_transactions",
 	Migrate: func(tx *gorm.DB) error {
@@ -28,9 +30,9 @@ CREATE TABLE transactions(
 	payment_hash text,
 	description text,
 	description_hash text,
-	amount integer,
-	fee integer,
-	fee_reserve integer,
+	amount_msat integer,
+	fee_msat integer,
+	fee_reserve_msat integer,
 	created_at datetime,
 	updated_at datetime,
 	expires_at datetime,
