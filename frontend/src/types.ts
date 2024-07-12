@@ -76,15 +76,19 @@ export type ReadOnlyScope =
   | "list_transactions"
   | "notifications";
 
-export type ScopeGroupType = "full_access" | "read_only" | "custom";
+export type ScopeGroup = "full_access" | "read_only" | "custom";
 
 export type Nip47NotificationType = "payment_received" | "payment_sent";
 
-export type IconMap = {
-  [key in string]: LucideIcon;
+export type ScopeIconMap = {
+  [key in Scope]: LucideIcon;
 };
 
-export const iconMap: IconMap = {
+export type ScopeGroupIconMap = {
+  [key in ScopeGroup]: LucideIcon;
+};
+
+export const scopeIconMap: ScopeIconMap = {
   [NIP_47_GET_BALANCE_METHOD]: WalletMinimal,
   [NIP_47_GET_INFO_METHOD]: Info,
   [NIP_47_LIST_TRANSACTIONS_METHOD]: NotebookTabs,
@@ -95,7 +99,7 @@ export const iconMap: IconMap = {
   [NIP_47_NOTIFICATIONS_PERMISSION]: Bell,
 };
 
-export const scopeGroupIconMap: IconMap = {
+export const scopeGroupIconMap: ScopeGroupIconMap = {
   [SCOPE_GROUP_FULL_ACCESS]: ArrowDownUp,
   [SCOPE_GROUP_READ_ONLY]: MoveDown,
   [SCOPE_GROUP_CUSTOM]: SquarePen,
@@ -126,13 +130,13 @@ export const scopeDescriptions: Record<Scope, string> = {
   [NIP_47_NOTIFICATIONS_PERMISSION]: "Receive wallet notifications",
 };
 
-export const scopeGroupTitle: Record<ScopeGroupType, string> = {
+export const scopeGroupTitle: Record<ScopeGroup, string> = {
   [SCOPE_GROUP_FULL_ACCESS]: "Full Access",
   [SCOPE_GROUP_READ_ONLY]: "Read Only",
   [SCOPE_GROUP_CUSTOM]: "Custom",
 };
 
-export const scopeGroupDescriptions: Record<ScopeGroupType, string> = {
+export const scopeGroupDescriptions: Record<ScopeGroup, string> = {
   [SCOPE_GROUP_FULL_ACCESS]: "Complete wallet control",
   [SCOPE_GROUP_READ_ONLY]: "Only view wallet info",
   [SCOPE_GROUP_CUSTOM]: "Define permissions",

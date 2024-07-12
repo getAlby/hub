@@ -12,8 +12,8 @@ import {
   NIP_47_PAY_INVOICE_METHOD,
   Scope,
   WalletCapabilities,
-  iconMap,
   scopeDescriptions,
+  scopeIconMap,
 } from "src/types";
 
 interface PermissionsProps {
@@ -122,7 +122,7 @@ const Permissions: React.FC<PermissionsProps> = ({
           <p className="text-sm font-medium mb-2">Scopes</p>
           <div className="flex flex-col mb-2">
             {[...permissions.scopes].map((rm) => {
-              const PermissionIcon = iconMap[rm];
+              const PermissionIcon = scopeIconMap[rm];
               return (
                 <div
                   key={rm}

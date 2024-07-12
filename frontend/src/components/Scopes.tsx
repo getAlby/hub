@@ -14,7 +14,7 @@ import {
   SCOPE_GROUP_FULL_ACCESS,
   SCOPE_GROUP_READ_ONLY,
   Scope,
-  ScopeGroupType,
+  ScopeGroup,
   WalletCapabilities,
   scopeDescriptions,
   scopeGroupDescriptions,
@@ -55,7 +55,7 @@ const Scopes: React.FC<ScopesProps> = ({
     );
   }, [capabilities.scopes]);
 
-  const [scopeGroup, setScopeGroup] = React.useState<ScopeGroupType>(() => {
+  const [scopeGroup, setScopeGroup] = React.useState<ScopeGroup>(() => {
     if (!scopes.size || isSetEqual(scopes, fullAccessScopes)) {
       return SCOPE_GROUP_FULL_ACCESS;
     } else if (isSetEqual(scopes, readOnlyScopes)) {
@@ -73,7 +73,7 @@ const Scopes: React.FC<ScopesProps> = ({
     }
   }, [fullAccessScopes, onScopeChange, scopeGroup, scopes]);
 
-  const handleScopeGroupChange = (scopeGroup: ScopeGroupType) => {
+  const handleScopeGroupChange = (scopeGroup: ScopeGroup) => {
     setScopeGroup(scopeGroup);
     switch (scopeGroup) {
       case SCOPE_GROUP_FULL_ACCESS:
@@ -109,7 +109,7 @@ const Scopes: React.FC<ScopesProps> = ({
               SCOPE_GROUP_FULL_ACCESS,
               SCOPE_GROUP_READ_ONLY,
               SCOPE_GROUP_CUSTOM,
-            ] as ScopeGroupType[]
+            ] as ScopeGroup[]
           ).map((sg, index) => {
             const ScopeGroupIcon = scopeGroupIconMap[sg];
             return (
