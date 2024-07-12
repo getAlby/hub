@@ -121,7 +121,7 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 		// Update existing permissions with new budget and expiry
 		err := tx.Model(&db.AppPermission{}).Where("app_id", userApp.ID).Updates(map[string]interface{}{
 			"ExpiresAt":     expiresAt,
-			"MaxAmount":     maxAmount,
+			"MaxAmountSat":  maxAmount,
 			"BudgetRenewal": budgetRenewal,
 		}).Error
 		if err != nil {

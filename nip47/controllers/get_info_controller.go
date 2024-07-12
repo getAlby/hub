@@ -22,7 +22,7 @@ type getInfoResponse struct {
 	Notifications []string `json:"notifications"`
 }
 
-func (controller *nip47Controller) HandleGetInfoEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, app *db.App, checkPermission checkPermissionFunc, publishResponse publishFunc) {
+func (controller *nip47Controller) HandleGetInfoEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, app *db.App, publishResponse publishFunc) {
 	supportedNotifications := []string{}
 	if controller.permissionsService.PermitsNotifications(app) {
 		supportedNotifications = controller.lnClient.GetSupportedNIP47NotificationTypes()
@@ -34,7 +34,7 @@ func (controller *nip47Controller) HandleGetInfoEvent(ctx context.Context, nip47
 	}
 
 	// basic permissions check
-	hasPermission, _, _ := controller.permissionsService.HasPermission(app, constants.GET_INFO_SCOPE, 0)
+	hasPermission, _, _ := controller.permissionsService.HasPermission(app, constants.GET_INFO_SCOPE)
 	if hasPermission {
 		logger.Logger.WithFields(logrus.Fields{
 			"request_event_id": requestEventId,

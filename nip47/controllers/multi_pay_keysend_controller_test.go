@@ -108,7 +108,7 @@ func TestHandleMultiPayKeysendEvent_NoPermission(t *testing.T) {
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
 	transactionsSvc := transactions.NewTransactionsService(svc.DB)
 	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
-		HandleMultiPayKeysendEvent(ctx, nip47Request, dbRequestEvent.ID, app, checkPermission, publishResponse)
+		HandleMultiPayKeysendEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
 
 	assert.Equal(t, 2, len(responses))
 	for i := 0; i < len(responses); i++ {
@@ -154,7 +154,7 @@ func TestHandleMultiPayKeysendEvent_WithPermission(t *testing.T) {
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
 	transactionsSvc := transactions.NewTransactionsService(svc.DB)
 	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
-		HandleMultiPayKeysendEvent(ctx, nip47Request, dbRequestEvent.ID, app, checkPermission, publishResponse)
+		HandleMultiPayKeysendEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
 
 	assert.Equal(t, 2, len(responses))
 	for i := 0; i < len(responses); i++ {

@@ -7,7 +7,6 @@ import (
 
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
-	"github.com/getAlby/hub/db/queries"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
@@ -24,7 +23,7 @@ type permissionsService struct {
 
 // TODO: does this need to be a service?
 type PermissionsService interface {
-	HasPermission(app *db.App, requestMethod string, amount uint64) (result bool, code string, message string)
+	HasPermission(app *db.App, requestMethod string) (result bool, code string, message string)
 	GetPermittedMethods(app *db.App, lnClient lnclient.LNClient) []string
 	PermitsNotifications(app *db.App) bool
 }
@@ -36,7 +35,7 @@ func NewPermissionsService(db *gorm.DB, eventPublisher events.EventPublisher) *p
 	}
 }
 
-func (svc *permissionsService) HasPermission(app *db.App, scope string, amountMsat uint64) (result bool, code string, message string) {
+func (svc *permissionsService) HasPermission(app *db.App, scope string) (result bool, code string, message string) {
 
 	appPermission := db.AppPermission{}
 	findPermissionResult := svc.db.Find(&appPermission, &db.AppPermission{
@@ -59,16 +58,6 @@ func (svc *permissionsService) HasPermission(app *db.App, scope string, amountMs
 		return false, models.ERROR_EXPIRED, "This app has expired"
 	}
 
-	if scope == constants.PAY_INVOICE_SCOPE {
-		maxAmount := appPermission.MaxAmountSat
-		if maxAmount != 0 {
-			budgetUsage := queries.GetBudgetUsageSat(svc.db, &appPermission)
-
-			if budgetUsage+amountMsat/1000 > uint64(maxAmount) {
-				return false, models.ERROR_QUOTA_EXCEEDED, "Insufficient budget remaining to make payment"
-			}
-		}
-	}
 	return true, "", ""
 }
 

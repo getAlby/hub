@@ -18,7 +18,7 @@ type payInvoiceParams struct {
 	Invoice string `json:"invoice"`
 }
 
-func (controller *nip47Controller) HandlePayInvoiceEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, app *db.App, checkPermission checkPermissionFunc, publishResponse publishFunc, tags nostr.Tags) {
+func (controller *nip47Controller) HandlePayInvoiceEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, app *db.App, publishResponse publishFunc, tags nostr.Tags) {
 	payParams := &payInvoiceParams{}
 	resp := decodeRequest(nip47Request, payParams)
 	if resp != nil {
@@ -47,16 +47,10 @@ func (controller *nip47Controller) HandlePayInvoiceEvent(ctx context.Context, ni
 		return
 	}
 
-	controller.pay(ctx, bolt11, &paymentRequest, nip47Request, requestEventId, app, checkPermission, publishResponse, tags)
+	controller.pay(ctx, bolt11, &paymentRequest, nip47Request, requestEventId, app, publishResponse, tags)
 }
 
-func (controller *nip47Controller) pay(ctx context.Context, bolt11 string, paymentRequest *decodepay.Bolt11, nip47Request *models.Request, requestEventId uint, app *db.App, checkPermission checkPermissionFunc, publishResponse publishFunc, tags nostr.Tags) {
-	resp := checkPermission(uint64(paymentRequest.MSatoshi))
-	if resp != nil {
-		publishResponse(resp, tags)
-		return
-	}
-
+func (controller *nip47Controller) pay(ctx context.Context, bolt11 string, paymentRequest *decodepay.Bolt11, nip47Request *models.Request, requestEventId uint, app *db.App, publishResponse publishFunc, tags nostr.Tags) {
 	logger.Logger.WithFields(logrus.Fields{
 		"request_event_id": requestEventId,
 		"app_id":           app.ID,

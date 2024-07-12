@@ -19,16 +19,10 @@ type makeInvoiceResponse struct {
 	models.Transaction
 }
 
-func (controller *nip47Controller) HandleMakeInvoiceEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, appId uint, checkPermission checkPermissionFunc, publishResponse publishFunc) {
-	// basic permissions check
-	resp := checkPermission(0)
-	if resp != nil {
-		publishResponse(resp, nostr.Tags{})
-		return
-	}
+func (controller *nip47Controller) HandleMakeInvoiceEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, appId uint, publishResponse publishFunc) {
 
 	makeInvoiceParams := &makeInvoiceParams{}
-	resp = decodeRequest(nip47Request, makeInvoiceParams)
+	resp := decodeRequest(nip47Request, makeInvoiceParams)
 	if resp != nil {
 		publishResponse(resp, nostr.Tags{})
 		return

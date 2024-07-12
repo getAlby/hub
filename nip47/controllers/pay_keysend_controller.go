@@ -19,23 +19,17 @@ type payKeysendParams struct {
 	TLVRecords []lnclient.TLVRecord `json:"tlv_records"`
 }
 
-func (controller *nip47Controller) HandlePayKeysendEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, app *db.App, checkPermission checkPermissionFunc, publishResponse publishFunc, tags nostr.Tags) {
+func (controller *nip47Controller) HandlePayKeysendEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, app *db.App, publishResponse publishFunc, tags nostr.Tags) {
 	payKeysendParams := &payKeysendParams{}
 	resp := decodeRequest(nip47Request, payKeysendParams)
 	if resp != nil {
 		publishResponse(resp, tags)
 		return
 	}
-	controller.payKeysend(ctx, payKeysendParams, nip47Request, requestEventId, app, checkPermission, publishResponse, tags)
+	controller.payKeysend(ctx, payKeysendParams, nip47Request, requestEventId, app, publishResponse, tags)
 }
 
-func (controller *nip47Controller) payKeysend(ctx context.Context, payKeysendParams *payKeysendParams, nip47Request *models.Request, requestEventId uint, app *db.App, checkPermission checkPermissionFunc, publishResponse publishFunc, tags nostr.Tags) {
-	resp := checkPermission(payKeysendParams.Amount)
-	if resp != nil {
-		publishResponse(resp, tags)
-		return
-	}
-
+func (controller *nip47Controller) payKeysend(ctx context.Context, payKeysendParams *payKeysendParams, nip47Request *models.Request, requestEventId uint, app *db.App, publishResponse publishFunc, tags nostr.Tags) {
 	logger.Logger.WithFields(logrus.Fields{
 		"request_event_id": requestEventId,
 		"appId":            app.ID,

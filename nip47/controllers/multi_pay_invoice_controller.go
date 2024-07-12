@@ -23,7 +23,7 @@ type multiPayInvoiceParams struct {
 	Invoices []multiPayInvoiceElement `json:"invoices"`
 }
 
-func (controller *nip47Controller) HandleMultiPayInvoiceEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, app *db.App, checkPermission checkPermissionFunc, publishResponse publishFunc) {
+func (controller *nip47Controller) HandleMultiPayInvoiceEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, app *db.App, publishResponse publishFunc) {
 	multiPayParams := &multiPayInvoiceParams{}
 	resp := decodeRequest(nip47Request, multiPayParams)
 	if resp != nil {
@@ -66,7 +66,7 @@ func (controller *nip47Controller) HandleMultiPayInvoiceEvent(ctx context.Contex
 			dTag := []string{"d", invoiceDTagValue}
 
 			controller.
-				pay(ctx, bolt11, &paymentRequest, nip47Request, requestEventId, app, checkPermission, publishResponse, nostr.Tags{dTag})
+				pay(ctx, bolt11, &paymentRequest, nip47Request, requestEventId, app, publishResponse, nostr.Tags{dTag})
 		}(invoiceInfo)
 	}
 

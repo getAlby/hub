@@ -21,16 +21,10 @@ type lookupInvoiceResponse struct {
 	models.Transaction
 }
 
-func (controller *nip47Controller) HandleLookupInvoiceEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, appId uint, checkPermission checkPermissionFunc, publishResponse publishFunc) {
-	// basic permissions check
-	resp := checkPermission(0)
-	if resp != nil {
-		publishResponse(resp, nostr.Tags{})
-		return
-	}
+func (controller *nip47Controller) HandleLookupInvoiceEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, appId uint, publishResponse publishFunc) {
 
 	lookupInvoiceParams := &lookupInvoiceParams{}
-	resp = decodeRequest(nip47Request, lookupInvoiceParams)
+	resp := decodeRequest(nip47Request, lookupInvoiceParams)
 	if resp != nil {
 		publishResponse(resp, nostr.Tags{})
 		return
