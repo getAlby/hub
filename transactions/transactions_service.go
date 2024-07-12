@@ -343,8 +343,9 @@ func (svc *transactionsService) LookupTransaction(ctx context.Context, paymentHa
 		}
 	}
 
-	// FIXME: this is currently not unique
-	result := tx.Find(&transaction, &db.Transaction{
+	// order settled first, otherwise by created date, as there can be multiple outgoing payments
+	// for the same payment hash (if you tried to pay an invoice multiple times - e.g. the first time failed)
+	result := tx.Order("settled_at desc, created_at desc").Find(&transaction, &db.Transaction{
 		//Type:        transactionType,
 		PaymentHash: paymentHash,
 	})
