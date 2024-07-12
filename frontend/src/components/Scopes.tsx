@@ -7,11 +7,8 @@ import {
   NIP_47_GET_INFO_METHOD,
   NIP_47_LIST_TRANSACTIONS_METHOD,
   NIP_47_LOOKUP_INVOICE_METHOD,
-  NIP_47_MULTI_PAY_INVOICE_METHOD,
-  NIP_47_MULTI_PAY_KEYSEND_METHOD,
   NIP_47_NOTIFICATIONS_PERMISSION,
   NIP_47_PAY_INVOICE_METHOD,
-  NIP_47_PAY_KEYSEND_METHOD,
   ReadOnlyScope,
   SCOPE_GROUP_CUSTOM,
   SCOPE_GROUP_FULL_ACCESS,
@@ -40,30 +37,11 @@ const Scopes: React.FC<ScopesProps> = ({
   onScopeChange,
 }) => {
   const fullAccessScopes: Set<Scope> = React.useMemo(() => {
-    const scopes: Scope[] = capabilities.methods as Scope[];
-    if (capabilities.notificationTypes.length) {
-      scopes.push(NIP_47_NOTIFICATIONS_PERMISSION);
-    }
-    return new Set(
-      scopes
-        .map((scope) =>
-          [
-            NIP_47_PAY_KEYSEND_METHOD,
-            NIP_47_MULTI_PAY_INVOICE_METHOD,
-            NIP_47_MULTI_PAY_KEYSEND_METHOD,
-          ].includes(scope)
-            ? NIP_47_PAY_INVOICE_METHOD
-            : scope
-        )
-        .filter((scope, i, self) => self.indexOf(scope) === i)
-    );
-  }, [capabilities]);
+    return new Set(capabilities.scopes);
+  }, [capabilities.scopes]);
 
   const readOnlyScopes: Set<ReadOnlyScope> = React.useMemo(() => {
-    const scopes: Scope[] = capabilities.methods as Scope[];
-    if (capabilities.notificationTypes.length) {
-      scopes.push(NIP_47_NOTIFICATIONS_PERMISSION);
-    }
+    const scopes: Scope[] = capabilities.scopes;
     return new Set(
       scopes.filter((method): method is ReadOnlyScope =>
         [
@@ -75,7 +53,7 @@ const Scopes: React.FC<ScopesProps> = ({
         ].includes(method)
       )
     );
-  }, [capabilities]);
+  }, [capabilities.scopes]);
 
   const [scopeGroup, setScopeGroup] = React.useState<ScopeGroupType>(() => {
     if (!scopes.size || isSetEqual(scopes, fullAccessScopes)) {
