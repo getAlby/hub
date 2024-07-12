@@ -184,13 +184,10 @@ const Permissions: React.FC<PermissionsProps> = ({
             )}
             {showBudgetOptions && (
               <>
-                <p className="font-medium text-sm mb-2">Budget Renewal</p>
-                <div className="flex gap-2 items-center text-muted-foreground mb-4 text-sm">
-                  <BudgetRenewalSelect
-                    value={permissions.budgetRenewal}
-                    onChange={handleBudgetRenewalChange}
-                  />
-                </div>
+                <BudgetRenewalSelect
+                  value={permissions.budgetRenewal}
+                  onChange={handleBudgetRenewalChange}
+                />
                 <BudgetAmountSelect
                   value={permissions.maxAmount}
                   onChange={handleBudgetMaxAmountChange}
