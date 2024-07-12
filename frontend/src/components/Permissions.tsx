@@ -120,7 +120,7 @@ const Permissions: React.FC<PermissionsProps> = ({
       ) : (
         <>
           <p className="text-sm font-medium mb-2">Scopes</p>
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col mb-2">
             {[...permissions.scopes].map((rm) => {
               const PermissionIcon = iconMap[rm];
               return (
@@ -142,13 +142,18 @@ const Permissions: React.FC<PermissionsProps> = ({
       {capabilities.scopes.includes(NIP_47_PAY_INVOICE_METHOD) &&
         permissions.scopes.has(NIP_47_PAY_INVOICE_METHOD) &&
         (!isBudgetAmountEditable ? (
-          <div className="pt-2 pl-4 ml-2 border-l-2 border-l-primary">
-            <div className="flex flex-col gap-2 text-muted-foreground mb-3 text-sm">
+          <div className="pl-4 ml-2 border-l-2 border-l-primary mb-4">
+            <div className="flex flex-col gap-2 text-muted-foreground text-sm">
               <p className="capitalize">
-                Budget Renewal: {permissions.budgetRenewal || "Never"}
+                <span className="text-primary-foreground font-medium">
+                  Budget Renewal:
+                </span>{" "}
+                {permissions.budgetRenewal || "Never"}
               </p>
               <p>
-                Budget Amount:{" "}
+                <span className="text-primary-foreground font-medium">
+                  Budget Amount:
+                </span>{" "}
                 {permissions.maxAmount
                   ? new Intl.NumberFormat().format(permissions.maxAmount)
                   : "∞"}
@@ -168,7 +173,10 @@ const Permissions: React.FC<PermissionsProps> = ({
                   handleBudgetMaxAmountChange(100000);
                   setShowBudgetOptions(true);
                 }}
-                className="mb-4 mr-4"
+                className={cn(
+                  "mr-4",
+                  (!isExpiryEditable || showExpiryOptions) && "mb-4"
+                )}
               >
                 <PlusCircle className="w-4 h-4 mr-2" />
                 Set budget renewal
@@ -181,7 +189,6 @@ const Permissions: React.FC<PermissionsProps> = ({
                   <BudgetRenewalSelect
                     value={permissions.budgetRenewal}
                     onChange={handleBudgetRenewalChange}
-                    disabled={!canEditPermissions}
                   />
                 </div>
                 <BudgetAmountSelect
@@ -194,7 +201,7 @@ const Permissions: React.FC<PermissionsProps> = ({
         ))}
 
       {!isExpiryEditable ? (
-        <div className="mt-4">
+        <>
           <p className="text-sm font-medium mb-2">Connection expiry</p>
           <p className="text-muted-foreground text-sm">
             {permissions.expiresAt &&
@@ -202,7 +209,7 @@ const Permissions: React.FC<PermissionsProps> = ({
               ? new Date(permissions.expiresAt).toString()
               : "This app will never expire"}
           </p>
-        </div>
+        </>
       ) : (
         <>
           {!showExpiryOptions && (
@@ -210,7 +217,6 @@ const Permissions: React.FC<PermissionsProps> = ({
               type="button"
               variant="secondary"
               onClick={() => setShowExpiryOptions(true)}
-              className="mb-6"
             >
               <PlusCircle className="w-4 h-4 mr-2" />
               Set expiration time

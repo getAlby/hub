@@ -122,8 +122,8 @@ const Scopes: React.FC<ScopesProps> = ({
   };
 
   return (
-    <div className="mb-6">
-      <div className="flex flex-col w-full mb-6">
+    <>
+      <div className="flex flex-col w-full mb-4">
         <p className="font-medium text-sm mb-2">Choose wallet permissions</p>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {(
@@ -154,9 +154,9 @@ const Scopes: React.FC<ScopesProps> = ({
       </div>
 
       {scopeGroup == "custom" && (
-        <>
+        <div className="mb-2">
           <p className="font-medium text-sm">Authorize the app to:</p>
-          <ul className="flex flex-col w-full mt-3">
+          <ul className="flex flex-col w-full mt-2">
             {capabilities.scopes.map((rm, index) => {
               return (
                 <li
@@ -180,30 +180,10 @@ const Scopes: React.FC<ScopesProps> = ({
                 </li>
               );
             })}
-            {capabilities.notificationTypes.length > 0 && (
-              <li className="w-full">
-                <div className="flex items-center mb-2">
-                  <Checkbox
-                    id={NIP_47_NOTIFICATIONS_PERMISSION}
-                    className="mr-2"
-                    onCheckedChange={() =>
-                      handleScopeChange(NIP_47_NOTIFICATIONS_PERMISSION)
-                    }
-                    checked={scopes.has(NIP_47_NOTIFICATIONS_PERMISSION)}
-                  />
-                  <Label
-                    htmlFor={NIP_47_NOTIFICATIONS_PERMISSION}
-                    className="cursor-pointer"
-                  >
-                    {scopeDescriptions[NIP_47_NOTIFICATIONS_PERMISSION]}
-                  </Label>
-                </div>
-              </li>
-            )}
           </ul>
-        </>
+        </div>
       )}
-    </div>
+    </>
   );
 };
 

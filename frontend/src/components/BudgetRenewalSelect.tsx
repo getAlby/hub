@@ -12,20 +12,14 @@ import { BudgetRenewalType, validBudgetRenewals } from "src/types";
 interface BudgetRenewalProps {
   value: BudgetRenewalType;
   onChange: (value: BudgetRenewalType) => void;
-  disabled?: boolean;
 }
 
 const BudgetRenewalSelect: React.FC<BudgetRenewalProps> = ({
   value,
   onChange,
-  disabled,
 }) => {
   return (
-    <Select
-      value={value || "never"}
-      onValueChange={onChange}
-      disabled={disabled}
-    >
+    <Select value={value} onValueChange={onChange}>
       <SelectTrigger className="w-[150px] capitalize">
         <SelectValue placeholder={value} />
       </SelectTrigger>

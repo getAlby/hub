@@ -32,9 +32,9 @@ const ExpirySelect: React.FC<ExpiryProps> = ({ value, onChange }) => {
       : false
   );
   return (
-    <div className="mb-6">
+    <>
       <p className="font-medium text-sm mb-2">Connection expiration</p>
-      <div className="grid grid-cols-2 md:grid-cols-6 gap-2 text-xs mb-4">
+      <div className="grid grid-cols-2 md:grid-cols-6 gap-2 text-xs">
         {Object.keys(expiryOptions).map((expiry) => {
           return (
             <div
@@ -99,7 +99,7 @@ const ExpirySelect: React.FC<ExpiryProps> = ({ value, onChange }) => {
           </PopoverContent>
         </Popover>
       </div>
-    </div>
+    </>
   );
 };
 

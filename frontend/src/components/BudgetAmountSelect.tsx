@@ -19,7 +19,6 @@ function BudgetAmountSelect({
       <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-xs mb-4">
         {Object.keys(budgetOptions).map((budget) => {
           return (
-            // replace with something else and then remove dark prefixes
             <div
               key={budget}
               onClick={() => {
@@ -27,9 +26,8 @@ function BudgetAmountSelect({
                 onChange(budgetOptions[budget]);
               }}
               className={cn(
-                "cursor-pointer rounded text-nowrap border-2 text-center p-4 dark:text-white",
-                !customBudget &&
-                  (Number.isNaN(value) ? 0 : value) == budgetOptions[budget]
+                "cursor-pointer rounded text-nowrap border-2 text-center p-4",
+                !customBudget && value == budgetOptions[budget]
                   ? "border-primary"
                   : "border-muted"
               )}
@@ -61,6 +59,7 @@ function BudgetAmountSelect({
             name="budget"
             type="number"
             required
+            autoFocus
             min={1}
             value={value || ""}
             onChange={(e) => {
@@ -69,25 +68,6 @@ function BudgetAmountSelect({
           />
         </div>
       )}
-      {/* <table className="text-muted-foreground">
-        <tbody>
-          <tr className="text-sm">
-            <td className="pr-2">Budget Allowance:</td>
-            <td>
-              {value ? new Intl.NumberFormat().format(value) : "∞"}
-              {" sats "}
-              ({new Intl.NumberFormat().format(budgetUsage || 0)} sats
-              used)
-            </td>
-          </tr>
-          <tr className="text-sm">
-            <td className="pr-2">Renews:</td>
-            <td className="capitalize">
-              {permissions.budgetRenewal || "Never"}
-            </td>
-          </tr>
-        </tbody>
-      </table> */}
     </>
   );
 }
