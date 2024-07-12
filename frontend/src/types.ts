@@ -133,8 +133,8 @@ export const scopeGroupTitle: Record<ScopeGroupType, string> = {
 };
 
 export const scopeGroupDescriptions: Record<ScopeGroupType, string> = {
-  [SCOPE_GROUP_FULL_ACCESS]: "Pay and create invoices",
-  [SCOPE_GROUP_READ_ONLY]: "Only create invoices",
+  [SCOPE_GROUP_FULL_ACCESS]: "Complete wallet control",
+  [SCOPE_GROUP_READ_ONLY]: "Only view wallet info",
   [SCOPE_GROUP_CUSTOM]: "Define permissions",
 };
 

@@ -122,7 +122,7 @@ const Scopes: React.FC<ScopesProps> = ({
               >
                 <ScopeGroupIcon className="mb-2" />
                 <p className="text-sm font-medium">{scopeGroupTitle[sg]}</p>
-                <p className="text-[10px] text-muted-foreground text-nowrap">
+                <p className="text-xs text-muted-foreground text-nowrap">
                   {scopeGroupDescriptions[sg]}
                 </p>
               </div>
