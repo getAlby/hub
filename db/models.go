@@ -67,6 +67,7 @@ type Transaction struct {
 	State           string
 	Amount          uint64  // in millisats
 	Fee             *uint64 // in millisats
+	FeeReserve      *uint64 // in millisats, set for unsettled outgoing payments
 	PaymentRequest  string
 	PaymentHash     string
 	Description     string

@@ -30,6 +30,7 @@ CREATE TABLE transactions(
 	description_hash text,
 	amount integer,
 	fee integer,
+	fee_reserve integer,
 	created_at datetime,
 	updated_at datetime,
 	expires_at datetime,

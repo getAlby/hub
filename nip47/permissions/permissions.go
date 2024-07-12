@@ -62,7 +62,7 @@ func (svc *permissionsService) HasPermission(app *db.App, scope string, amountMs
 	if scope == constants.PAY_INVOICE_SCOPE {
 		maxAmount := appPermission.MaxAmount
 		if maxAmount != 0 {
-			budgetUsage := queries.GetBudgetUsage(svc.db, &appPermission)
+			budgetUsage := queries.GetBudgetUsageSat(svc.db, &appPermission)
 
 			if budgetUsage+amountMsat/1000 > uint64(maxAmount) {
 				return false, models.ERROR_QUOTA_EXCEEDED, "Insufficient budget remaining to make payment"

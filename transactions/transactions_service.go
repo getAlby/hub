@@ -148,11 +148,13 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 			expiresAtValue := time.Now().Add(time.Duration(paymentRequest.Expiry) * time.Second)
 			expiresAt = &expiresAtValue
 		}
+		feeReserve := svc.calculateFeeReserve(uint64(paymentRequest.MSatoshi))
 		dbTransaction = &db.Transaction{
 			AppId:           appId,
 			RequestEventId:  requestEventId,
 			Type:            constants.TRANSACTION_TYPE_OUTGOING,
 			State:           constants.TRANSACTION_STATE_PENDING,
+			FeeReserve:      &feeReserve,
 			Amount:          uint64(paymentRequest.MSatoshi),
 			PaymentRequest:  payReq,
 			PaymentHash:     paymentRequest.PaymentHash,
@@ -207,12 +209,14 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 	}
 
 	// the payment definitely succeeded
+	feeReserve := uint64(0)
 	now := time.Now()
 	dbErr := svc.db.Model(dbTransaction).Updates(&db.Transaction{
-		State:     constants.TRANSACTION_STATE_SETTLED,
-		Preimage:  &response.Preimage,
-		Fee:       response.Fee,
-		SettledAt: &now,
+		State:      constants.TRANSACTION_STATE_SETTLED,
+		Preimage:   &response.Preimage,
+		Fee:        response.Fee,
+		FeeReserve: &feeReserve,
+		SettledAt:  &now,
 	}).Error
 	if dbErr != nil {
 		logger.Logger.WithFields(logrus.Fields{
@@ -241,11 +245,13 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 		}
 
 		// NOTE: transaction is created without payment hash :scream:
+		feeReserve := svc.calculateFeeReserve(uint64(amount))
 		dbTransaction = &db.Transaction{
 			AppId:          appId,
 			RequestEventId: requestEventId,
 			Type:           constants.TRANSACTION_TYPE_OUTGOING,
 			State:          constants.TRANSACTION_STATE_PENDING,
+			FeeReserve:     &feeReserve,
 			Amount:         amount,
 			Metadata:       string(metadataBytes),
 		}
@@ -309,11 +315,13 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 
 	// the payment definitely succeeded
 	now := time.Now()
+	feeReserve := uint64(0)
 	dbErr := svc.db.Model(dbTransaction).Updates(&db.Transaction{
 		State:       constants.TRANSACTION_STATE_SETTLED,
 		PaymentHash: paymentHash,
 		Preimage:    &preimage,
 		Fee:         &fee,
+		FeeReserve:  &feeReserve,
 		SettledAt:   &now,
 	}).Error
 	if dbErr != nil {
@@ -439,11 +447,13 @@ func (svc *transactionsService) checkUnsettledTransaction(ctx context.Context, t
 		// the payment definitely succeeded
 		now := time.Now()
 		fee := uint64(lnClientTransaction.FeesPaid)
+		feeReserve := uint64(0)
 		dbErr := svc.db.Model(transaction).Updates(&db.Transaction{
-			State:     constants.TRANSACTION_STATE_SETTLED,
-			Preimage:  &lnClientTransaction.Preimage,
-			Fee:       &fee,
-			SettledAt: &now,
+			State:      constants.TRANSACTION_STATE_SETTLED,
+			Preimage:   &lnClientTransaction.Preimage,
+			Fee:        &fee,
+			FeeReserve: &feeReserve,
+			SettledAt:  &now,
 		}).Error
 		if dbErr != nil {
 			logger.Logger.WithFields(logrus.Fields{
@@ -551,11 +561,13 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 
 		settledAt := time.Now()
 		fee := uint64(lnClientTransaction.FeesPaid)
+		feeReserve := uint64(0)
 		err := svc.db.Model(&dbTransaction).Updates(&db.Transaction{
-			Fee:       &fee,
-			Preimage:  &lnClientTransaction.Preimage,
-			State:     constants.TRANSACTION_STATE_SETTLED,
-			SettledAt: &settledAt,
+			Fee:        &fee,
+			FeeReserve: &feeReserve,
+			Preimage:   &lnClientTransaction.Preimage,
+			State:      constants.TRANSACTION_STATE_SETTLED,
+			SettledAt:  &settledAt,
 		}).Error
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
@@ -640,7 +652,7 @@ func (svc *transactionsService) interceptSelfPayment(paymentHash string) (*lncli
 }
 
 func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount uint64) error {
-	amountWithFeeReserve := amount + uint64(math.Max(math.Ceil(float64(amount)*0.01), 10))
+	amountWithFeeReserve := amount + svc.calculateFeeReserve(amount)
 
 	// ensure balance for isolated apps
 	if appId != nil {
@@ -659,12 +671,18 @@ func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount 
 		}
 
 		if appPermission.MaxAmount > 0 {
-			budgetUsage := queries.GetBudgetUsage(tx, &appPermission)
-			if int(amountWithFeeReserve/1000) > appPermission.MaxAmount-int(budgetUsage) {
+			budgetUsageSat := queries.GetBudgetUsageSat(tx, &appPermission)
+			if int(amountWithFeeReserve/1000) > appPermission.MaxAmount-int(budgetUsageSat) {
 				return NewQuotaExceededError()
 			}
 		}
 	}
 
 	return nil
+}
+
+// max of 1% or 10000 millisats (10 sats)
+func (svc *transactionsService) calculateFeeReserve(amount uint64) uint64 {
+	// NOTE: LDK defaults to 1% of the payment amount + 50 sats
+	return uint64(math.Max(math.Ceil(float64(amount)*0.01), 10000))
 }
