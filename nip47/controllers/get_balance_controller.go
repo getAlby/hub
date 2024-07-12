@@ -22,7 +22,7 @@ type getBalanceResponse struct {
 }
 
 // TODO: remove checkPermission - can it be a middleware?
-func (controller *nip47Controller) HandleGetBalanceEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, appId uint, checkPermission checkPermissionFunc, publishResponse publishFunc) {
+func (controller *nip47Controller) HandleGetBalanceEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, app *db.App, checkPermission checkPermissionFunc, publishResponse publishFunc) {
 	// basic permissions check
 	resp := checkPermission(0)
 	if resp != nil {
@@ -34,14 +34,9 @@ func (controller *nip47Controller) HandleGetBalanceEvent(ctx context.Context, ni
 		"request_event_id": requestEventId,
 	}).Info("Getting balance")
 
-	// TODO: optimize
-	var appPermission db.AppPermission
-	controller.db.Find(&appPermission, &db.AppPermission{
-		AppId: appId,
-	})
 	balance := uint64(0)
-	if appPermission.BalanceType == "isolated" {
-		balance = queries.GetIsolatedBalance(controller.db, appPermission.AppId)
+	if app.Isolated {
+		balance = queries.GetIsolatedBalance(controller.db, app.ID)
 	} else {
 		balance_signed, err := controller.lnClient.GetBalance(ctx)
 		balance = uint64(balance_signed)

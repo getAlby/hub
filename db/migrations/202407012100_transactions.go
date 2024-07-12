@@ -43,11 +43,8 @@ CREATE TABLE transactions(
 
 DROP TABLE payments;
 
-ALTER TABLE app_permissions ADD balance_type string;
-ALTER TABLE app_permissions ADD visibility string;
-
-UPDATE app_permissions set balance_type = "full";
-UPDATE app_permissions set visibility = "full";
+ALTER TABLE apps ADD isolated boolean;
+UPDATE apps set isolated = false;
 
 ALTER TABLE app_permissions RENAME COLUMN max_amount TO max_amount_sat;
 

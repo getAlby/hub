@@ -341,12 +341,11 @@ func (svc *transactionsService) LookupTransaction(ctx context.Context, paymentHa
 	tx := svc.db
 
 	if appId != nil {
-		// TODO: optimize
-		var appPermission db.AppPermission
-		svc.db.Find(&appPermission, &db.AppPermission{
-			AppId: *appId,
+		var app db.App
+		svc.db.Find(&app, &db.App{
+			ID: *appId,
 		})
-		if appPermission.Visibility == "isolated" {
+		if app.Isolated {
 			tx = tx.Where("app_id == ?", *appId)
 		}
 	}
@@ -388,12 +387,11 @@ func (svc *transactionsService) ListTransactions(ctx context.Context, from, unti
 	}
 
 	if appId != nil {
-		// TODO: optimize
-		var appPermission db.AppPermission
-		svc.db.Find(&appPermission, &db.AppPermission{
-			AppId: *appId,
+		var app db.App
+		svc.db.Find(&app, &db.App{
+			ID: *appId,
 		})
-		if appPermission.Visibility == "isolated" {
+		if app.Isolated {
 			tx = tx.Where("app_id == ?", *appId)
 		}
 	}
@@ -656,13 +654,17 @@ func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount 
 
 	// ensure balance for isolated apps
 	if appId != nil {
+		var app db.App
+		tx.Find(&app, &db.App{
+			ID: *appId,
+		})
 		var appPermission db.AppPermission
 		tx.Find(&appPermission, &db.AppPermission{
 			AppId: *appId,
 			Scope: constants.PAY_INVOICE_SCOPE,
 		})
 
-		if appPermission.BalanceType == "isolated" {
+		if app.Isolated {
 			balance := queries.GetIsolatedBalance(tx, appPermission.AppId)
 
 			if amountWithFeeReserve > balance {

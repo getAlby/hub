@@ -18,6 +18,7 @@ type App struct {
 	NostrPubkey string `validate:"required"`
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
+	Isolated    bool
 }
 
 type AppPermission struct {
@@ -30,9 +31,6 @@ type AppPermission struct {
 	ExpiresAt     *time.Time
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
-
-	BalanceType string
-	Visibility  string
 }
 
 type RequestEvent struct {
