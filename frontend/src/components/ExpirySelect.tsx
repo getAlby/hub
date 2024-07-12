@@ -21,7 +21,7 @@ const daysFromNow = (date?: Date) => {
 
 interface ExpiryProps {
   value?: Date | undefined;
-  onChange: (expiryDays: number) => void;
+  onChange: (expiryDate?: Date) => void;
 }
 
 const ExpirySelect: React.FC<ExpiryProps> = ({ value, onChange }) => {
@@ -41,7 +41,13 @@ const ExpirySelect: React.FC<ExpiryProps> = ({ value, onChange }) => {
               key={expiry}
               onClick={() => {
                 setCustomExpiry(false);
-                onChange(expiryOptions[expiry]);
+                let date;
+                if (expiryOptions[expiry]) {
+                  date = new Date();
+                  date.setDate(date.getUTCDate() + expiryOptions[expiry]);
+                  date.setHours(23, 59, 59);
+                }
+                onChange(date);
                 setExpiryDays(expiryOptions[expiry]);
               }}
               className={cn(
@@ -83,8 +89,9 @@ const ExpirySelect: React.FC<ExpiryProps> = ({ value, onChange }) => {
                 if (!date) {
                   return;
                 }
+                date.setHours(23, 59, 59);
                 setCustomExpiry(true);
-                onChange(daysFromNow(date));
+                onChange(date);
                 setExpiryDays(daysFromNow(date));
               }}
               initialFocus

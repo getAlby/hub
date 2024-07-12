@@ -1,14 +1,21 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Checkbox } from "src/components/ui/checkbox";
 import { Label } from "src/components/ui/label";
 import { cn } from "src/lib/utils";
 import {
-  NIP_47_MAKE_INVOICE_METHOD,
+  NIP_47_GET_BALANCE_METHOD,
+  NIP_47_GET_INFO_METHOD,
+  NIP_47_LIST_TRANSACTIONS_METHOD,
+  NIP_47_LOOKUP_INVOICE_METHOD,
+  NIP_47_MULTI_PAY_INVOICE_METHOD,
+  NIP_47_MULTI_PAY_KEYSEND_METHOD,
   NIP_47_NOTIFICATIONS_PERMISSION,
   NIP_47_PAY_INVOICE_METHOD,
+  NIP_47_PAY_KEYSEND_METHOD,
+  ReadOnlyScope,
   SCOPE_GROUP_CUSTOM,
-  SCOPE_GROUP_ONLY_RECEIVE,
-  SCOPE_GROUP_SEND_RECEIVE,
+  SCOPE_GROUP_FULL_ACCESS,
+  SCOPE_GROUP_READ_ONLY,
   Scope,
   ScopeGroupType,
   WalletCapabilities,
@@ -18,63 +25,87 @@ import {
   scopeGroupTitle,
 } from "src/types";
 
-// TODO: this runs everytime, use useEffect
-const scopeGrouper = (scopes: Set<Scope>) => {
-  if (
-    scopes.size === 2 &&
-    scopes.has(NIP_47_MAKE_INVOICE_METHOD) &&
-    scopes.has(NIP_47_PAY_INVOICE_METHOD)
-  ) {
-    return "send_receive";
-  } else if (scopes.size === 1 && scopes.has(NIP_47_MAKE_INVOICE_METHOD)) {
-    return "only_receive";
-  }
-  return "custom";
-};
-
-const validScopeGroups = (capabilities: WalletCapabilities) => {
-  const scopeGroups = [SCOPE_GROUP_CUSTOM];
-  if (capabilities.scopes.includes(NIP_47_MAKE_INVOICE_METHOD)) {
-    scopeGroups.unshift(SCOPE_GROUP_ONLY_RECEIVE);
-    if (capabilities.scopes.includes(NIP_47_PAY_INVOICE_METHOD)) {
-      scopeGroups.unshift(SCOPE_GROUP_SEND_RECEIVE);
-    }
-  }
-  return scopeGroups;
-};
-
 interface ScopesProps {
   capabilities: WalletCapabilities;
   scopes: Set<Scope>;
   onScopeChange: (scopes: Set<Scope>) => void;
 }
 
+const isSetEqual = (setA: Set<string>, setB: Set<string>) =>
+  setA.size === setB.size && [...setA].every((value) => setB.has(value));
+
 const Scopes: React.FC<ScopesProps> = ({
   capabilities,
   scopes,
   onScopeChange,
 }) => {
-  const [scopeGroup, setScopeGroup] = React.useState(scopeGrouper(scopes));
-  const scopeGroups = validScopeGroups(capabilities);
+  const fullAccessScopes: Set<Scope> = React.useMemo(() => {
+    const scopes: Scope[] = capabilities.methods as Scope[];
+    if (capabilities.notificationTypes.length) {
+      scopes.push(NIP_47_NOTIFICATIONS_PERMISSION);
+    }
+    return new Set(
+      scopes
+        .map((scope) =>
+          [
+            NIP_47_PAY_KEYSEND_METHOD,
+            NIP_47_MULTI_PAY_INVOICE_METHOD,
+            NIP_47_MULTI_PAY_KEYSEND_METHOD,
+          ].includes(scope)
+            ? NIP_47_PAY_INVOICE_METHOD
+            : scope
+        )
+        .filter((scope, i, self) => self.indexOf(scope) === i)
+    );
+  }, [capabilities]);
 
-  // TODO: EDITABLE PROP
+  const readOnlyScopes: Set<ReadOnlyScope> = React.useMemo(() => {
+    const scopes: Scope[] = capabilities.methods as Scope[];
+    if (capabilities.notificationTypes.length) {
+      scopes.push(NIP_47_NOTIFICATIONS_PERMISSION);
+    }
+    return new Set(
+      scopes.filter((method): method is ReadOnlyScope =>
+        [
+          NIP_47_GET_BALANCE_METHOD,
+          NIP_47_GET_INFO_METHOD,
+          NIP_47_LOOKUP_INVOICE_METHOD,
+          NIP_47_LIST_TRANSACTIONS_METHOD,
+          NIP_47_NOTIFICATIONS_PERMISSION,
+        ].includes(method)
+      )
+    );
+  }, [capabilities]);
+
+  const [scopeGroup, setScopeGroup] = React.useState<ScopeGroupType>(() => {
+    if (!scopes.size || isSetEqual(scopes, fullAccessScopes)) {
+      return SCOPE_GROUP_FULL_ACCESS;
+    } else if (isSetEqual(scopes, readOnlyScopes)) {
+      return SCOPE_GROUP_READ_ONLY;
+    }
+    return SCOPE_GROUP_CUSTOM;
+  });
+
+  // we need scopes to be empty till this point for isScopesEditable
+  // and once this component is mounted we set it to all scopes
+  useEffect(() => {
+    // stop setting scopes on re-renders
+    if (!scopes.size && scopeGroup != SCOPE_GROUP_CUSTOM) {
+      onScopeChange(fullAccessScopes);
+    }
+  }, [fullAccessScopes, onScopeChange, scopeGroup, scopes]);
+
   const handleScopeGroupChange = (scopeGroup: ScopeGroupType) => {
     setScopeGroup(scopeGroup);
     switch (scopeGroup) {
-      case "send_receive":
-        onScopeChange(
-          new Set([NIP_47_PAY_INVOICE_METHOD, NIP_47_MAKE_INVOICE_METHOD])
-        );
+      case SCOPE_GROUP_FULL_ACCESS:
+        onScopeChange(fullAccessScopes);
         break;
-      case "only_receive":
-        onScopeChange(new Set([NIP_47_MAKE_INVOICE_METHOD]));
+      case SCOPE_GROUP_READ_ONLY:
+        onScopeChange(readOnlyScopes);
         break;
       default: {
-        const newSet = new Set(capabilities.scopes);
-        if (capabilities.notificationTypes.length) {
-          newSet.add(NIP_47_NOTIFICATIONS_PERMISSION);
-        }
-        onScopeChange(newSet);
+        onScopeChange(new Set());
         break;
       }
     }
@@ -92,39 +123,37 @@ const Scopes: React.FC<ScopesProps> = ({
 
   return (
     <div className="mb-6">
-      {scopeGroups.length > 1 && (
-        <div className="flex flex-col w-full mb-6">
-          <p className="font-medium text-sm mb-2">Choose wallet permissions</p>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {(scopeGroups as ScopeGroupType[]).map((sg, index) => {
-              if (
-                scopeGroup == SCOPE_GROUP_SEND_RECEIVE &&
-                !capabilities.scopes.includes(NIP_47_PAY_INVOICE_METHOD)
-              ) {
-                return;
-              }
-              const ScopeGroupIcon = scopeGroupIconMap[sg];
-              return (
-                <div
-                  key={index}
-                  className={`flex flex-col items-center border-2 rounded cursor-pointer ${scopeGroup == sg ? "border-primary" : "border-muted"} p-4`}
-                  onClick={() => {
-                    handleScopeGroupChange(sg);
-                  }}
-                >
-                  <ScopeGroupIcon className="mb-2" />
-                  <p className="text-sm font-medium">{scopeGroupTitle[sg]}</p>
-                  <p className="text-[10px] text-muted-foreground text-nowrap">
-                    {scopeGroupDescriptions[sg]}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
+      <div className="flex flex-col w-full mb-6">
+        <p className="font-medium text-sm mb-2">Choose wallet permissions</p>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          {(
+            [
+              SCOPE_GROUP_FULL_ACCESS,
+              SCOPE_GROUP_READ_ONLY,
+              SCOPE_GROUP_CUSTOM,
+            ] as ScopeGroupType[]
+          ).map((sg, index) => {
+            const ScopeGroupIcon = scopeGroupIconMap[sg];
+            return (
+              <div
+                key={index}
+                className={`flex flex-col items-center border-2 rounded cursor-pointer ${scopeGroup == sg ? "border-primary" : "border-muted"} p-4`}
+                onClick={() => {
+                  handleScopeGroupChange(sg);
+                }}
+              >
+                <ScopeGroupIcon className="mb-2" />
+                <p className="text-sm font-medium">{scopeGroupTitle[sg]}</p>
+                <p className="text-[10px] text-muted-foreground text-nowrap">
+                  {scopeGroupDescriptions[sg]}
+                </p>
+              </div>
+            );
+          })}
         </div>
-      )}
+      </div>
 
-      {(scopeGroup == "custom" || scopeGroups.length == 1) && (
+      {scopeGroup == "custom" && (
         <>
           <p className="font-medium text-sm">Authorize the app to:</p>
           <ul className="flex flex-col w-full mt-3">
@@ -134,7 +163,7 @@ const Scopes: React.FC<ScopesProps> = ({
                   key={index}
                   className={cn(
                     "w-full",
-                    rm == "pay_invoice" ? "order-last" : ""
+                    rm == NIP_47_PAY_INVOICE_METHOD ? "order-last" : ""
                   )}
                 >
                   <div className="flex items-center mb-2">

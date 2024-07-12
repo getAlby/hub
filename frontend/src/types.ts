@@ -23,8 +23,12 @@ export const NIP_47_SIGN_MESSAGE_METHOD = "sign_message";
 
 export const NIP_47_NOTIFICATIONS_PERMISSION = "notifications";
 
-export const SCOPE_GROUP_SEND_RECEIVE = "send_receive";
-export const SCOPE_GROUP_ONLY_RECEIVE = "only_receive";
+export const NIP_47_PAY_KEYSEND_METHOD = "pay_keysend";
+export const NIP_47_MULTI_PAY_KEYSEND_METHOD = "multi_pay_keysend";
+export const NIP_47_MULTI_PAY_INVOICE_METHOD = "multi_pay_invoice";
+
+export const SCOPE_GROUP_FULL_ACCESS = "full_access";
+export const SCOPE_GROUP_READ_ONLY = "read_only";
 export const SCOPE_GROUP_CUSTOM = "custom";
 
 export type BackendType =
@@ -65,7 +69,14 @@ export type Scope =
   | "sign_message"
   | "notifications"; // covers all notification types
 
-export type ScopeGroupType = "send_receive" | "only_receive" | "custom";
+export type ReadOnlyScope =
+  | "get_balance"
+  | "get_info"
+  | "lookup_invoice"
+  | "list_transactions"
+  | "notifications";
+
+export type ScopeGroupType = "full_access" | "read_only" | "custom";
 
 export type Nip47NotificationType = "payment_received" | "payment_sent";
 
@@ -85,8 +96,8 @@ export const iconMap: IconMap = {
 };
 
 export const scopeGroupIconMap: IconMap = {
-  [SCOPE_GROUP_SEND_RECEIVE]: ArrowDownUp,
-  [SCOPE_GROUP_ONLY_RECEIVE]: MoveDown,
+  [SCOPE_GROUP_FULL_ACCESS]: ArrowDownUp,
+  [SCOPE_GROUP_READ_ONLY]: MoveDown,
   [SCOPE_GROUP_CUSTOM]: SquarePen,
 };
 
@@ -116,14 +127,14 @@ export const scopeDescriptions: Record<Scope, string> = {
 };
 
 export const scopeGroupTitle: Record<ScopeGroupType, string> = {
-  [SCOPE_GROUP_SEND_RECEIVE]: "Send & Receive",
-  [SCOPE_GROUP_ONLY_RECEIVE]: "Just Receive",
+  [SCOPE_GROUP_FULL_ACCESS]: "Full Access",
+  [SCOPE_GROUP_READ_ONLY]: "Read Only",
   [SCOPE_GROUP_CUSTOM]: "Custom",
 };
 
 export const scopeGroupDescriptions: Record<ScopeGroupType, string> = {
-  [SCOPE_GROUP_SEND_RECEIVE]: "Pay and create invoices",
-  [SCOPE_GROUP_ONLY_RECEIVE]: "Only create invoices",
+  [SCOPE_GROUP_FULL_ACCESS]: "Pay and create invoices",
+  [SCOPE_GROUP_READ_ONLY]: "Only create invoices",
   [SCOPE_GROUP_CUSTOM]: "Define permissions",
 };
 

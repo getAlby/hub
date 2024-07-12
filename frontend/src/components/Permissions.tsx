@@ -35,6 +35,9 @@ const Permissions: React.FC<PermissionsProps> = ({
 }) => {
   const [permissions, setPermissions] = React.useState(initialPermissions);
 
+  const [isScopesEditable, setScopesEditable] = React.useState(
+    isNewConnection ? !initialPermissions.scopes.size : canEditPermissions
+  );
   const [isBudgetAmountEditable, setBudgetAmountEditable] = React.useState(
     isNewConnection
       ? Number.isNaN(initialPermissions.maxAmount)
@@ -44,25 +47,23 @@ const Permissions: React.FC<PermissionsProps> = ({
     isNewConnection ? !initialPermissions.expiresAt : canEditPermissions
   );
 
-  // this is triggered when changes are saved in show app
+  // triggered when changes are saved in show app
   React.useEffect(() => {
+    if (isNewConnection || canEditPermissions) {
+      return;
+    }
     setPermissions(initialPermissions);
-  }, [initialPermissions]);
+  }, [canEditPermissions, isNewConnection, initialPermissions]);
 
-  // this is triggered when edit mode is called
+  // triggered when edit mode is toggled in show app
   React.useEffect(() => {
     if (isNewConnection) {
       return;
     }
-    setBudgetAmountEditable(
-      isNewConnection
-        ? Number.isNaN(initialPermissions.maxAmount)
-        : canEditPermissions
-    );
-    setExpiryEditable(
-      isNewConnection ? !initialPermissions.expiresAt : canEditPermissions
-    );
-  }, [canEditPermissions, initialPermissions, isNewConnection]);
+    setScopesEditable(canEditPermissions);
+    setBudgetAmountEditable(canEditPermissions);
+    setExpiryEditable(canEditPermissions);
+  }, [canEditPermissions, isNewConnection]);
 
   const [showBudgetOptions, setShowBudgetOptions] = React.useState(
     isNewConnection ? !!permissions.maxAmount : true
@@ -101,23 +102,16 @@ const Permissions: React.FC<PermissionsProps> = ({
     [handlePermissionsChange]
   );
 
-  const handleExpiryDaysChange = React.useCallback(
-    (expiryDays: number) => {
-      if (!expiryDays) {
-        handlePermissionsChange({ expiresAt: undefined });
-        return;
-      }
-      const currentDate = new Date();
-      currentDate.setDate(currentDate.getUTCDate() + expiryDays);
-      currentDate.setHours(23, 59, 59);
-      handlePermissionsChange({ expiresAt: currentDate });
+  const handleExpiryChange = React.useCallback(
+    (expiryDate?: Date) => {
+      handlePermissionsChange({ expiresAt: expiryDate });
     },
     [handlePermissionsChange]
   );
 
   return (
     <div className="max-w-lg">
-      {canEditPermissions ? (
+      {isScopesEditable ? (
         <Scopes
           capabilities={capabilities}
           scopes={permissions.scopes}
@@ -127,7 +121,7 @@ const Permissions: React.FC<PermissionsProps> = ({
         <>
           <p className="text-sm font-medium mb-2">Scopes</p>
           <div className="flex flex-col gap-1">
-            {[...initialPermissions.scopes].map((rm) => {
+            {[...permissions.scopes].map((rm) => {
               const PermissionIcon = iconMap[rm];
               return (
                 <div
@@ -226,7 +220,7 @@ const Permissions: React.FC<PermissionsProps> = ({
           {showExpiryOptions && (
             <ExpirySelect
               value={permissions.expiresAt}
-              onChange={handleExpiryDaysChange}
+              onChange={handleExpiryChange}
             />
           )}
         </>

@@ -7,8 +7,17 @@ import {
   BudgetRenewalType,
   CreateAppRequest,
   CreateAppResponse,
+  NIP_47_GET_BALANCE_METHOD,
+  NIP_47_GET_INFO_METHOD,
+  NIP_47_LIST_TRANSACTIONS_METHOD,
+  NIP_47_LOOKUP_INVOICE_METHOD,
   NIP_47_MAKE_INVOICE_METHOD,
+  NIP_47_MULTI_PAY_INVOICE_METHOD,
+  NIP_47_MULTI_PAY_KEYSEND_METHOD,
+  NIP_47_NOTIFICATIONS_PERMISSION,
   NIP_47_PAY_INVOICE_METHOD,
+  NIP_47_PAY_KEYSEND_METHOD,
+  NIP_47_SIGN_MESSAGE_METHOD,
   Nip47NotificationType,
   Nip47RequestMethod,
   Scope,
@@ -71,28 +80,11 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
   const notificationTypesParam = queryParams.get("notification_types") ?? "";
 
   const initialScopes: Set<Scope> = React.useMemo(() => {
-    const methods = reqMethodsParam
-      ? reqMethodsParam.split(" ")
-      : // this is done for scope grouping
-        capabilities.methods.includes(NIP_47_MAKE_INVOICE_METHOD)
-        ? capabilities.methods.includes(NIP_47_PAY_INVOICE_METHOD)
-          ? [NIP_47_MAKE_INVOICE_METHOD, NIP_47_PAY_INVOICE_METHOD]
-          : [NIP_47_MAKE_INVOICE_METHOD]
-        : capabilities.methods;
+    const methods = reqMethodsParam ? reqMethodsParam.split(" ") : [];
+
     const requestMethodsSet = new Set<Nip47RequestMethod>(
       methods as Nip47RequestMethod[]
     );
-
-    const notificationTypes = notificationTypesParam
-      ? notificationTypesParam.split(" ")
-      : // this is done for scope grouping
-        !capabilities.methods.includes(NIP_47_MAKE_INVOICE_METHOD)
-        ? capabilities.notificationTypes
-        : [];
-    const notificationTypesSet = new Set<Nip47NotificationType>(
-      notificationTypes as Nip47NotificationType[]
-    );
-
     const unsupportedMethods = Array.from(requestMethodsSet).filter(
       (method) => capabilities.methods.indexOf(method) < 0
     );
@@ -103,6 +95,13 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
       );
     }
 
+    const notificationTypes = notificationTypesParam
+      ? notificationTypesParam.split(" ")
+      : [];
+
+    const notificationTypesSet = new Set<Nip47NotificationType>(
+      notificationTypes as Nip47NotificationType[]
+    );
     const unsupportedNotificationTypes = Array.from(
       notificationTypesSet
     ).filter(
@@ -118,34 +117,34 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
 
     const scopes = new Set<Scope>();
     if (
-      requestMethodsSet.has("pay_keysend") ||
-      requestMethodsSet.has("pay_invoice") ||
-      requestMethodsSet.has("multi_pay_invoice") ||
-      requestMethodsSet.has("multi_pay_keysend")
+      requestMethodsSet.has(NIP_47_PAY_KEYSEND_METHOD) ||
+      requestMethodsSet.has(NIP_47_PAY_INVOICE_METHOD) ||
+      requestMethodsSet.has(NIP_47_MULTI_PAY_INVOICE_METHOD) ||
+      requestMethodsSet.has(NIP_47_MULTI_PAY_KEYSEND_METHOD)
     ) {
-      scopes.add("pay_invoice");
+      scopes.add(NIP_47_PAY_INVOICE_METHOD);
     }
 
-    if (requestMethodsSet.has("get_info")) {
-      scopes.add("get_info");
+    if (requestMethodsSet.has(NIP_47_GET_INFO_METHOD)) {
+      scopes.add(NIP_47_GET_INFO_METHOD);
     }
-    if (requestMethodsSet.has("get_balance")) {
-      scopes.add("get_balance");
+    if (requestMethodsSet.has(NIP_47_GET_BALANCE_METHOD)) {
+      scopes.add(NIP_47_GET_BALANCE_METHOD);
     }
-    if (requestMethodsSet.has("make_invoice")) {
-      scopes.add("make_invoice");
+    if (requestMethodsSet.has(NIP_47_MAKE_INVOICE_METHOD)) {
+      scopes.add(NIP_47_MAKE_INVOICE_METHOD);
     }
-    if (requestMethodsSet.has("lookup_invoice")) {
-      scopes.add("lookup_invoice");
+    if (requestMethodsSet.has(NIP_47_LOOKUP_INVOICE_METHOD)) {
+      scopes.add(NIP_47_LOOKUP_INVOICE_METHOD);
     }
-    if (requestMethodsSet.has("list_transactions")) {
-      scopes.add("list_transactions");
+    if (requestMethodsSet.has(NIP_47_LIST_TRANSACTIONS_METHOD)) {
+      scopes.add(NIP_47_LIST_TRANSACTIONS_METHOD);
     }
-    if (requestMethodsSet.has("sign_message")) {
-      scopes.add("sign_message");
+    if (requestMethodsSet.has(NIP_47_SIGN_MESSAGE_METHOD)) {
+      scopes.add(NIP_47_SIGN_MESSAGE_METHOD);
     }
     if (notificationTypes.length) {
-      scopes.add("notifications");
+      scopes.add(NIP_47_NOTIFICATIONS_PERMISSION);
     }
 
     return scopes;
