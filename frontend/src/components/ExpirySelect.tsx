@@ -51,7 +51,7 @@ const ExpirySelect: React.FC<ExpiryProps> = ({ value, onChange }) => {
                 setExpiryDays(expiryOptions[expiry]);
               }}
               className={cn(
-                "cursor-pointer rounded text-nowrap border-2 text-center p-4 dark:text-white",
+                "cursor-pointer rounded text-nowrap border-2 text-center p-4",
                 !customExpiry && expiryDays == expiryOptions[expiry]
                   ? "border-primary"
                   : "border-muted"
@@ -66,7 +66,7 @@ const ExpirySelect: React.FC<ExpiryProps> = ({ value, onChange }) => {
             <div
               onClick={() => {}}
               className={cn(
-                "flex items-center justify-center md:col-span-2 cursor-pointer rounded text-nowrap border-2 text-center px-3 py-4 dark:text-white",
+                "flex items-center justify-center md:col-span-2 cursor-pointer rounded text-nowrap border-2 p-4",
                 customExpiry ? "border-primary" : "border-muted"
               )}
             >
