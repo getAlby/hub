@@ -60,7 +60,7 @@ func (svc *permissionsService) HasPermission(app *db.App, scope string, amountMs
 	}
 
 	if scope == constants.PAY_INVOICE_SCOPE {
-		maxAmount := appPermission.MaxAmount
+		maxAmount := appPermission.MaxAmountSat
 		if maxAmount != 0 {
 			budgetUsage := queries.GetBudgetUsageSat(svc.db, &appPermission)
 

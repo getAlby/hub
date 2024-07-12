@@ -145,7 +145,7 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 					App:           *userApp,
 					Scope:         method,
 					ExpiresAt:     expiresAt,
-					MaxAmount:     int(maxAmount),
+					MaxAmountSat:  int(maxAmount),
 					BudgetRenewal: budgetRenewal,
 				}
 				if err := tx.Create(&perm).Error; err != nil {
@@ -195,7 +195,7 @@ func (api *api) GetApp(dbApp *db.App) *App {
 
 	//renewsIn := ""
 	budgetUsage := uint64(0)
-	maxAmount := uint64(paySpecificPermission.MaxAmount)
+	maxAmount := uint64(paySpecificPermission.MaxAmountSat)
 	if maxAmount > 0 {
 		budgetUsage = queries.GetBudgetUsageSat(api.db, &paySpecificPermission)
 	}
@@ -251,7 +251,7 @@ func (api *api) ListApps() ([]App, error) {
 			apiApp.ExpiresAt = appPermission.ExpiresAt
 			if appPermission.Scope == constants.PAY_INVOICE_SCOPE {
 				apiApp.BudgetRenewal = appPermission.BudgetRenewal
-				apiApp.MaxAmountSat = uint64(appPermission.MaxAmount)
+				apiApp.MaxAmountSat = uint64(appPermission.MaxAmountSat)
 				if apiApp.MaxAmountSat > 0 {
 					apiApp.BudgetUsage = queries.GetBudgetUsageSat(api.db, &appPermission)
 				}

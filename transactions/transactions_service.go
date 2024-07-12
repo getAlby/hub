@@ -670,9 +670,9 @@ func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount 
 			}
 		}
 
-		if appPermission.MaxAmount > 0 {
+		if appPermission.MaxAmountSat > 0 {
 			budgetUsageSat := queries.GetBudgetUsageSat(tx, &appPermission)
-			if int(amountWithFeeReserve/1000) > appPermission.MaxAmount-int(budgetUsageSat) {
+			if int(amountWithFeeReserve/1000) > appPermission.MaxAmountSat-int(budgetUsageSat) {
 				return NewQuotaExceededError()
 			}
 		}

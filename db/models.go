@@ -25,7 +25,7 @@ type AppPermission struct {
 	AppId         uint `validate:"required"`
 	App           App
 	Scope         string `validate:"required"`
-	MaxAmount     int    // TODO: rename to MaxAmountSat
+	MaxAmountSat  int
 	BudgetRenewal string
 	ExpiresAt     *time.Time
 	CreatedAt     time.Time

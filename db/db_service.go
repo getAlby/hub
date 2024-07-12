@@ -53,7 +53,7 @@ func (svc *dbService) CreateApp(name string, pubkey string, maxAmountSat uint64,
 				Scope:     scope,
 				ExpiresAt: expiresAt,
 				//these fields are only relevant for pay_invoice
-				MaxAmount:     int(maxAmountSat),
+				MaxAmountSat:  int(maxAmountSat),
 				BudgetRenewal: budgetRenewal,
 			}
 			err = tx.Create(&appPermission).Error

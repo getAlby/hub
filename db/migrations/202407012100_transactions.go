@@ -47,6 +47,8 @@ ALTER TABLE app_permissions ADD visibility string;
 UPDATE app_permissions set balance_type = "full";
 UPDATE app_permissions set visibility = "full";
 
+ALTER TABLE app_permissions RENAME COLUMN max_amount TO max_amount_sat;
+
 `).Error; err != nil {
 			return err
 		}
