@@ -12,8 +12,7 @@ import (
 type Service interface {
 	StartApp(encryptionKey string) error
 	StopApp()
-	StopLNClient() error
-	WaitShutdown()
+	Shutdown()
 
 	// TODO: remove getters (currently used by http / wails services)
 	GetAlbyOAuthSvc() alby.AlbyOAuthService
