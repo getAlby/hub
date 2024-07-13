@@ -833,6 +833,16 @@ func (ls *LDKService) ListChannels(ctx context.Context) ([]lnclient.Channel, err
 			unspendablePunishmentReserve = *ldkChannel.UnspendablePunishmentReserve
 		}
 
+		var channelError *string
+
+		if ldkChannel.CounterpartyForwardingInfoFeeBaseMsat == nil {
+			// if we don't have this, routing will not work (LND <-> LDK interoperability bug - https://github.com/lightningnetwork/lnd/issues/6870 )
+			channelErrorValue := "Counterparty forwarding info not available. Please contact support@getalby.com"
+			channelError = &channelErrorValue
+		}
+
+		isActive := ldkChannel.IsUsable /* superset of ldkChannel.IsReady */ && channelError == nil
+
 		channels = append(channels, lnclient.Channel{
 			InternalChannel:                          internalChannel,
 			LocalBalance:                             int64(ldkChannel.ChannelValueSats*1000 - ldkChannel.InboundCapacityMsat - ldkChannel.CounterpartyUnspendablePunishmentReserve*1000),
@@ -840,7 +850,7 @@ func (ls *LDKService) ListChannels(ctx context.Context) ([]lnclient.Channel, err
 			RemoteBalance:                            int64(ldkChannel.InboundCapacityMsat),
 			RemotePubkey:                             ldkChannel.CounterpartyNodeId,
 			Id:                                       ldkChannel.UserChannelId, // CloseChannel takes the UserChannelId
-			Active:                                   ldkChannel.IsUsable,      // superset of ldkChannel.IsReady
+			Active:                                   isActive,
 			Public:                                   ldkChannel.IsPublic,
 			FundingTxId:                              fundingTxId,
 			Confirmations:                            ldkChannel.Confirmations,
@@ -848,6 +858,7 @@ func (ls *LDKService) ListChannels(ctx context.Context) ([]lnclient.Channel, err
 			ForwardingFeeBaseMsat:                    ldkChannel.Config.ForwardingFeeBaseMsat(),
 			UnspendablePunishmentReserve:             unspendablePunishmentReserve,
 			CounterpartyUnspendablePunishmentReserve: ldkChannel.CounterpartyUnspendablePunishmentReserve,
+			Error:                                    channelError,
 		})
 	}
 
