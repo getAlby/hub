@@ -90,6 +90,7 @@ type Channel struct {
 	ForwardingFeeBaseMsat                    uint32      `json:"forwardingFeeBaseMsat"`
 	UnspendablePunishmentReserve             uint64      `json:"unspendablePunishmentReserve"`
 	CounterpartyUnspendablePunishmentReserve uint64      `json:"counterpartyUnspendablePunishmentReserve"`
+	Error                                    *string     `json:"error"`
 }
 
 type NodeStatus struct {

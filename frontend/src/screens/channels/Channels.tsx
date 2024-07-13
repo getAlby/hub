@@ -670,13 +670,17 @@ export default function Channels() {
                         channel.localBalance + channel.remoteBalance;
 
                       let channelWarning = "";
-                      if (channel.localSpendableBalance < capacity * 0.1) {
-                        channelWarning =
-                          "Spending balance low. You may have trouble sending payments through this channel.";
-                      }
-                      if (channel.localSpendableBalance > capacity * 0.9) {
-                        channelWarning =
-                          "Receiving capacity low. You may have trouble receiving payments through this channel.";
+                      if (channel.error) {
+                        channelWarning = channel.error;
+                      } else {
+                        if (channel.localSpendableBalance < capacity * 0.1) {
+                          channelWarning =
+                            "Spending balance low. You may have trouble sending payments through this channel.";
+                        }
+                        if (channel.localSpendableBalance > capacity * 0.9) {
+                          channelWarning =
+                            "Receiving capacity low. You may have trouble receiving payments through this channel.";
+                        }
                       }
 
                       return (
