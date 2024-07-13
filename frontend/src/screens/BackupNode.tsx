@@ -98,10 +98,11 @@ export function BackupNode() {
         <InfoCircledIcon className="h-4 w-4" />
         <AlertTitle>What Happens Next</AlertTitle>
         <AlertDescription>
-          You'll need to enter your unlock password to download and decrypt a
-          backup of your Alby Hub data. After your backup is downloaded, we'll
-          give you instructions on how to import the backup file on another host
-          or machine.
+          You'll need to enter your unlock password to encrypt and download a
+          backup of your Alby Hub data. After your encrypted backup is
+          downloaded, we'll give you instructions on how to import the backup
+          file on another host or machine. Your unlock password will be needed
+          again to restore your backup.
         </AlertDescription>
       </Alert>
       {showPasswordScreen ? (
