@@ -106,7 +106,7 @@ export default function SettingsLayout() {
               <MenuItem to="/settings/key-backup">Key Backup</MenuItem>
             )}
             {hasNodeBackup && (
-              <MenuItem to="/settings/node-backup">Node Backup</MenuItem>
+              <MenuItem to="/settings/node-backup">Migrate Node</MenuItem>
             )}
             <MenuItem to="/debug-tools">
               Debug Tools
