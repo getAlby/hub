@@ -78,7 +78,7 @@ function OnboardingChecklist() {
       checked: hasChannel,
       to: canMigrateAlbyFundsToNewChannel
         ? "/onboarding/lightning/migrate-alby"
-        : "/channels",
+        : "/channels/outgoing",
     },
     {
       title: "Send or receive your first payment",

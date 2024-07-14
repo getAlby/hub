@@ -57,6 +57,6 @@ func main() {
 	defer cancel()
 	e.Shutdown(ctx)
 	logger.Logger.Info("Echo server exited")
-	svc.WaitShutdown()
+	svc.Shutdown()
 	logger.Logger.Info("Service exited")
 }

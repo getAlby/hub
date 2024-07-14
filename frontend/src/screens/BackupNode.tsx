@@ -1,8 +1,11 @@
+import { InfoCircledIcon } from "@radix-ui/react-icons";
+import { AlertTriangleIcon } from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import Container from "src/components/Container";
 import SettingsHeader from "src/components/SettingsHeader";
+import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
@@ -80,9 +83,28 @@ export function BackupNode() {
   return (
     <>
       <SettingsHeader
-        title="Backup Your Node"
-        description="Your Alby Hub will be stopped and you will receive a backup file you can import on another host or machine"
+        title="Migrate Your Node"
+        description="Your Alby Hub will be stopped and you will receive a backup file you can import on another host or machine."
       />
+      <Alert>
+        <AlertTriangleIcon className="h-4 w-4" />
+        <AlertTitle>Do not run your node on multiple devices</AlertTitle>
+        <AlertDescription>
+          Your node maintains channel state with your channel partners. After
+          you create this backup, do not restart Alby Hub on this device.
+        </AlertDescription>
+      </Alert>
+      <Alert>
+        <InfoCircledIcon className="h-4 w-4" />
+        <AlertTitle>What Happens Next</AlertTitle>
+        <AlertDescription>
+          You'll need to enter your unlock password to encrypt and download a
+          backup of your Alby Hub data. After your encrypted backup is
+          downloaded, we'll give you instructions on how to import the backup
+          file on another host or machine. Your unlock password will be needed
+          again to restore your backup.
+        </AlertDescription>
+      </Alert>
       {showPasswordScreen ? (
         <Container>
           <h1 className="text-xl font-medium">Enter unlock password</h1>
@@ -114,9 +136,10 @@ export function BackupNode() {
             type="submit"
             disabled={loading}
             size="lg"
+            className="w-full"
             onClick={() => setShowPasswordScreen(true)}
           >
-            Create Backup
+            Create Backup To Migrate Node
           </Button>
         </div>
       )}

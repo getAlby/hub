@@ -314,15 +314,11 @@ func (api *api) Stop() error {
 		return errors.New("LNClient not started")
 	}
 
-	// TODO: this should stop everything related to the lnclient
-	// stop the lnclient
+	// stop the lnclient, nostr relay etc.
 	// The user will be forced to re-enter their unlock password to restart the node
-	err := api.svc.StopLNClient()
-	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to stop LNClient")
-	}
+	api.svc.StopApp()
 
-	return err
+	return nil
 }
 
 func (api *api) GetNodeConnectionInfo(ctx context.Context) (*lnclient.NodeConnectionInfo, error) {

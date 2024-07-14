@@ -243,6 +243,7 @@ export type Channel = {
   forwardingFeeBaseMsat: number;
   unspendablePunishmentReserve: number;
   counterpartyUnspendablePunishmentReserve: number;
+  error?: string;
 };
 
 export type UpdateChannelRequest = {
