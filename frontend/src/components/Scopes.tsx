@@ -39,23 +39,24 @@ const scopeGroupDescriptions: Record<ScopeGroup, string> = {
 
 interface ScopesProps {
   capabilities: WalletCapabilities;
-  scopes: Set<Scope>;
+  scopes: Scope[];
   isolated: boolean;
-  onScopesChanged: (scopes: Set<Scope>, isolated: boolean) => void;
+  isNewConnection: boolean;
+  onScopesChanged: (scopes: Scope[], isolated: boolean) => void;
 }
 
 const Scopes: React.FC<ScopesProps> = ({
   capabilities,
   scopes,
   isolated,
+  isNewConnection,
   onScopesChanged,
 }) => {
-  // TODO: remove the use of Set here - it is unnecessary and complicates the code
-  const fullAccessScopes: Set<Scope> = React.useMemo(() => {
-    return new Set(capabilities.scopes);
+  const fullAccessScopes: Scope[] = React.useMemo(() => {
+    return [...capabilities.scopes];
   }, [capabilities.scopes]);
 
-  const readOnlyScopes: Set<Scope> = React.useMemo(() => {
+  const readOnlyScopes: Scope[] = React.useMemo(() => {
     const readOnlyScopes: Scope[] = [
       "get_balance",
       "get_info",
@@ -65,12 +66,12 @@ const Scopes: React.FC<ScopesProps> = ({
       "notifications",
     ];
 
-    return new Set(
-      capabilities.scopes.filter((scope) => readOnlyScopes.includes(scope))
+    return capabilities.scopes.filter((scope) =>
+      readOnlyScopes.includes(scope)
     );
   }, [capabilities.scopes]);
 
-  const isolatedScopes: Set<Scope> = React.useMemo(() => {
+  const isolatedScopes: Scope[] = React.useMemo(() => {
     const isolatedScopes: Scope[] = [
       "pay_invoice",
       "get_balance",
@@ -80,8 +81,8 @@ const Scopes: React.FC<ScopesProps> = ({
       "notifications",
     ];
 
-    return new Set(
-      capabilities.scopes.filter((scope) => isolatedScopes.includes(scope))
+    return capabilities.scopes.filter((scope) =>
+      isolatedScopes.includes(scope)
     );
   }, [capabilities.scopes]);
 
@@ -89,9 +90,16 @@ const Scopes: React.FC<ScopesProps> = ({
     if (isolated) {
       return "isolated";
     }
-    if (!scopes.size) {
+    if (scopes.length === capabilities.scopes.length) {
       return "full_access";
     }
+    if (
+      scopes.length === readOnlyScopes.length &&
+      readOnlyScopes.every((readOnlyScope) => scopes.includes(readOnlyScope))
+    ) {
+      return "read_only";
+    }
+
     return "custom";
   });
 
@@ -108,19 +116,20 @@ const Scopes: React.FC<ScopesProps> = ({
         onScopesChanged(isolatedScopes, true);
         break;
       default: {
-        onScopesChanged(new Set(), false);
+        onScopesChanged([], false);
         break;
       }
     }
   };
 
   const handleScopeChange = (scope: Scope) => {
-    const newScopes = new Set(scopes);
-    if (newScopes.has(scope)) {
-      newScopes.delete(scope);
+    let newScopes = [...scopes];
+    if (newScopes.includes(scope)) {
+      newScopes = newScopes.filter((existing) => existing !== scope);
     } else {
-      newScopes.add(scope);
+      newScopes.push(scope);
     }
+
     onScopesChanged(newScopes, false);
   };
 
@@ -136,6 +145,11 @@ const Scopes: React.FC<ScopesProps> = ({
                 key={index}
                 className={`flex flex-col items-center border-2 rounded cursor-pointer ${scopeGroup == sg ? "border-primary" : "border-muted"} p-4`}
                 onClick={() => {
+                  if (!isNewConnection && !isolated && sg === "isolated") {
+                    // do not allow user to change non-isolated connection to isolated
+                    alert("Please create a new isolated connection instead");
+                    return;
+                  }
                   handleScopeGroupChange(sg);
                 }}
               >
@@ -168,7 +182,7 @@ const Scopes: React.FC<ScopesProps> = ({
                       id={scope}
                       className="mr-2"
                       onCheckedChange={() => handleScopeChange(scope)}
-                      checked={scopes.has(scope)}
+                      checked={scopes.includes(scope)}
                     />
                     <Label htmlFor={scope} className="cursor-pointer">
                       {scopeDescriptions[scope]}

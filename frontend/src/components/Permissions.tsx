@@ -17,73 +17,46 @@ import {
 
 interface PermissionsProps {
   capabilities: WalletCapabilities;
-  initialPermissions: AppPermissions;
-  onPermissionsChange: (permissions: AppPermissions) => void;
-  canEditPermissions?: boolean;
+  permissions: AppPermissions;
+  setPermissions: React.Dispatch<React.SetStateAction<AppPermissions>>;
+  readOnly?: boolean;
+  scopesReadOnly?: boolean;
+  budgetReadOnly?: boolean;
+  expiresAtReadOnly?: boolean;
   budgetUsage?: number;
-  isNewConnection?: boolean;
+  isNewConnection: boolean;
 }
 
 const Permissions: React.FC<PermissionsProps> = ({
   capabilities,
-  initialPermissions,
-  onPermissionsChange,
-  canEditPermissions,
+  permissions,
+  setPermissions,
   isNewConnection,
   budgetUsage,
+  readOnly,
+  scopesReadOnly,
+  budgetReadOnly,
+  expiresAtReadOnly,
 }) => {
-  const [permissions, setPermissions] = React.useState(initialPermissions);
-
-  const [isScopesEditable, setScopesEditable] = React.useState(
-    isNewConnection ? !initialPermissions.scopes.size : canEditPermissions
-  );
-  const [isBudgetAmountEditable, setBudgetAmountEditable] = React.useState(
-    isNewConnection
-      ? Number.isNaN(initialPermissions.maxAmount)
-      : canEditPermissions
-  );
-  const [isExpiryEditable, setExpiryEditable] = React.useState(
-    isNewConnection ? !initialPermissions.expiresAt : canEditPermissions
-  );
-
-  // triggered when changes are saved in show app
-  React.useEffect(() => {
-    if (isNewConnection || canEditPermissions) {
-      return;
-    }
-    setPermissions(initialPermissions);
-  }, [canEditPermissions, isNewConnection, initialPermissions]);
-
-  // triggered when edit mode is toggled in show app
-  React.useEffect(() => {
-    if (isNewConnection) {
-      return;
-    }
-    setScopesEditable(canEditPermissions);
-    setBudgetAmountEditable(canEditPermissions);
-    setExpiryEditable(canEditPermissions);
-  }, [canEditPermissions, isNewConnection]);
-
   const [showBudgetOptions, setShowBudgetOptions] = React.useState(
-    //permissions.scopes.has("pay_invoice")
-    false
+    permissions.scopes.includes("pay_invoice") && permissions.maxAmount > 0
   );
   const [showExpiryOptions, setShowExpiryOptions] = React.useState(
-    false
-    // isNewConnection ? !!permissions.expiresAt : true
+    !!permissions.expiresAt
   );
 
   const handlePermissionsChange = React.useCallback(
     (changedPermissions: Partial<AppPermissions>) => {
-      const updatedPermissions = { ...permissions, ...changedPermissions };
-      setPermissions(updatedPermissions);
-      onPermissionsChange(updatedPermissions);
+      setPermissions((currentPermissions) => ({
+        ...currentPermissions,
+        ...changedPermissions,
+      }));
     },
-    [permissions, onPermissionsChange]
+    [setPermissions]
   );
 
   const onScopesChanged = React.useCallback(
-    (scopes: Set<Scope>, isolated: boolean) => {
+    (scopes: Scope[], isolated: boolean) => {
       handlePermissionsChange({ scopes, isolated });
     },
     [handlePermissionsChange]
@@ -97,8 +70,8 @@ const Permissions: React.FC<PermissionsProps> = ({
   );
 
   const handleBudgetRenewalChange = React.useCallback(
-    (value: string) => {
-      handlePermissionsChange({ budgetRenewal: value as BudgetRenewalType });
+    (budgetRenewal: BudgetRenewalType) => {
+      handlePermissionsChange({ budgetRenewal });
     },
     [handlePermissionsChange]
   );
@@ -112,13 +85,21 @@ const Permissions: React.FC<PermissionsProps> = ({
 
   return (
     <div className="max-w-lg">
-      {isScopesEditable ? (
+      {!readOnly && !scopesReadOnly ? (
         <Scopes
           capabilities={capabilities}
           scopes={permissions.scopes}
           isolated={permissions.isolated}
           onScopesChanged={onScopesChanged}
+          isNewConnection={isNewConnection}
         />
+      ) : permissions.isolated ? (
+        <p>
+          This app will be isolated from the rest of your wallet. This means it
+          will have an isolated balance and only has access to its own
+          transaction history. It will not be able to read your node info,
+          transactions, or sign messages.
+        </p>
       ) : (
         <>
           <p className="text-sm font-medium mb-2">Scopes</p>
@@ -141,19 +122,55 @@ const Permissions: React.FC<PermissionsProps> = ({
           </div>
         </>
       )}
-      {!permissions.isolated && permissions.scopes.has("pay_invoice") && (
+
+      {!permissions.isolated && permissions.scopes.includes("pay_invoice") && (
         <>
-          {!isBudgetAmountEditable ? (
+          {!readOnly && !budgetReadOnly ? (
+            <>
+              {!showBudgetOptions && (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => {
+                    handleBudgetRenewalChange("monthly");
+                    handleBudgetMaxAmountChange(100_000);
+                    setShowBudgetOptions(true);
+                  }}
+                  className={cn("mr-4", showExpiryOptions && "mb-4")}
+                >
+                  <PlusCircle className="w-4 h-4 mr-2" />
+                  Set budget
+                </Button>
+              )}
+              {showBudgetOptions && (
+                <>
+                  <BudgetRenewalSelect
+                    value={permissions.budgetRenewal}
+                    onChange={handleBudgetRenewalChange}
+                    onClose={() => {
+                      handleBudgetRenewalChange("never");
+                      handleBudgetMaxAmountChange(0);
+                      setShowBudgetOptions(false);
+                    }}
+                  />
+                  <BudgetAmountSelect
+                    value={permissions.maxAmount}
+                    onChange={handleBudgetMaxAmountChange}
+                  />
+                </>
+              )}
+            </>
+          ) : (
             <div className="pl-4 ml-2 border-l-2 border-l-primary mb-4">
               <div className="flex flex-col gap-2 text-muted-foreground text-sm">
                 <p className="capitalize">
-                  <span className="text-primary-foreground font-medium">
+                  <span className="text-primary font-medium">
                     Budget Renewal:
                   </span>{" "}
                   {permissions.budgetRenewal || "Never"}
                 </p>
                 <p>
-                  <span className="text-primary-foreground font-medium">
+                  <span className="text-primary font-medium">
                     Budget Amount:
                   </span>{" "}
                   {permissions.maxAmount
@@ -165,55 +182,13 @@ const Permissions: React.FC<PermissionsProps> = ({
                 </p>
               </div>
             </div>
-          ) : (
-            <>
-              {!showBudgetOptions && (
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={() => {
-                    handleBudgetMaxAmountChange(100000);
-                    setShowBudgetOptions(true);
-                  }}
-                  className={cn(
-                    "mr-4",
-                    (!isExpiryEditable || showExpiryOptions) && "mb-4"
-                  )}
-                >
-                  <PlusCircle className="w-4 h-4 mr-2" />
-                  Set budget
-                </Button>
-              )}
-              {showBudgetOptions && (
-                <>
-                  <BudgetRenewalSelect
-                    value={permissions.budgetRenewal}
-                    onChange={handleBudgetRenewalChange}
-                  />
-                  <BudgetAmountSelect
-                    value={permissions.maxAmount}
-                    onChange={handleBudgetMaxAmountChange}
-                  />
-                </>
-              )}
-            </>
           )}
         </>
       )}
 
       {!permissions.isolated && (
         <>
-          {!isExpiryEditable ? (
-            <>
-              <p className="text-sm font-medium mb-2">Connection expiry</p>
-              <p className="text-muted-foreground text-sm">
-                {permissions.expiresAt &&
-                new Date(permissions.expiresAt).getFullYear() !== 1
-                  ? new Date(permissions.expiresAt).toString()
-                  : "This app will never expire"}
-              </p>
-            </>
-          ) : (
+          {!readOnly && !expiresAtReadOnly ? (
             <>
               {!showExpiryOptions && (
                 <Button
@@ -232,6 +207,15 @@ const Permissions: React.FC<PermissionsProps> = ({
                   onChange={handleExpiryChange}
                 />
               )}
+            </>
+          ) : (
+            <>
+              <p className="text-sm font-medium mb-2">Connection expiry</p>
+              <p className="text-muted-foreground text-sm">
+                {permissions.expiresAt
+                  ? new Date(permissions.expiresAt).toString()
+                  : "This app will never expire"}
+              </p>
             </>
           )}
         </>

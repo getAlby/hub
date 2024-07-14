@@ -69,8 +69,10 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
   const reqMethodsParam = queryParams.get("request_methods") ?? "";
   const notificationTypesParam = queryParams.get("notification_types") ?? "";
 
-  const initialScopes: Set<Scope> = React.useMemo(() => {
-    const methods = reqMethodsParam ? reqMethodsParam.split(" ") : [];
+  const initialScopes: Scope[] = React.useMemo(() => {
+    const methods = reqMethodsParam
+      ? reqMethodsParam.split(" ")
+      : capabilities.methods;
 
     const requestMethodsSet = new Set<Nip47RequestMethod>(
       methods as Nip47RequestMethod[]
@@ -87,7 +89,9 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
 
     const notificationTypes = notificationTypesParam
       ? notificationTypesParam.split(" ")
-      : [];
+      : reqMethodsParam
+        ? [] // do not set notifications if only request methods provided
+        : capabilities.notificationTypes;
 
     const notificationTypesSet = new Set<Nip47NotificationType>(
       notificationTypes as Nip47NotificationType[]
@@ -105,42 +109,43 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
       );
     }
 
-    const scopes = new Set<Scope>();
+    const scopes: Scope[] = [];
     if (
       requestMethodsSet.has("pay_invoice") ||
       requestMethodsSet.has("pay_keysend") ||
       requestMethodsSet.has("multi_pay_invoice") ||
       requestMethodsSet.has("multi_pay_keysend")
     ) {
-      scopes.add("pay_invoice");
+      scopes.push("pay_invoice");
     }
 
-    if (requestMethodsSet.has("get_info")) {
-      scopes.add("get_info");
+    if (requestMethodsSet.has("get_info") && isolatedParam !== "true") {
+      scopes.push("get_info");
     }
     if (requestMethodsSet.has("get_balance")) {
-      scopes.add("get_balance");
+      scopes.push("get_balance");
     }
     if (requestMethodsSet.has("make_invoice")) {
-      scopes.add("make_invoice");
+      scopes.push("make_invoice");
     }
     if (requestMethodsSet.has("lookup_invoice")) {
-      scopes.add("lookup_invoice");
+      scopes.push("lookup_invoice");
     }
     if (requestMethodsSet.has("list_transactions")) {
-      scopes.add("list_transactions");
+      scopes.push("list_transactions");
     }
-    if (requestMethodsSet.has("sign_message")) {
-      scopes.add("sign_message");
+    if (requestMethodsSet.has("sign_message") && isolatedParam !== "true") {
+      scopes.push("sign_message");
     }
     if (notificationTypes.length) {
-      scopes.add("notifications");
+      scopes.push("notifications");
     }
 
     return scopes;
   }, [
     capabilities.methods,
     capabilities.notificationTypes,
+    isolatedParam,
     notificationTypesParam,
     reqMethodsParam,
   ]);
@@ -157,10 +162,12 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
 
   const [permissions, setPermissions] = useState<AppPermissions>({
     scopes: initialScopes,
-    maxAmount: parseInt(budgetMaxAmountParam),
+    maxAmount: budgetMaxAmountParam ? parseInt(budgetMaxAmountParam) : 0,
     budgetRenewal: validBudgetRenewals.includes(budgetRenewalParam)
       ? budgetRenewalParam
-      : "monthly",
+      : budgetMaxAmountParam
+        ? "never"
+        : "monthly",
     expiresAt: parseExpiresParam(expiresAtParam),
     isolated: isolatedParam === "true",
   });
@@ -171,7 +178,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
       throw new Error("No CSRF token");
     }
 
-    if (!permissions.scopes.size) {
+    if (!permissions.scopes.length) {
       toast({ title: "Please specify wallet permissions." });
       return;
     }
@@ -182,7 +189,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
         pubkey,
         budgetRenewal: permissions.budgetRenewal,
         maxAmount: permissions.maxAmount || 0,
-        scopes: Array.from(permissions.scopes),
+        scopes: permissions.scopes,
         expiresAt: permissions.expiresAt?.toISOString(),
         returnTo: returnTo,
         isolated: permissions.isolated,
@@ -262,10 +269,14 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
         <div className="flex flex-col gap-2 w-full">
           <Permissions
             capabilities={capabilities}
-            initialPermissions={permissions}
-            onPermissionsChange={setPermissions}
-            canEditPermissions
+            permissions={permissions}
+            setPermissions={setPermissions}
             isNewConnection
+            scopesReadOnly={
+              !!reqMethodsParam || !!notificationTypesParam || !!isolatedParam
+            }
+            budgetReadOnly={!!budgetMaxAmountParam}
+            expiresAtReadOnly={!!expiresAtParam}
           />
         </div>
 

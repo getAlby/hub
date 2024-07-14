@@ -13,11 +13,13 @@ import { BudgetRenewalType, validBudgetRenewals } from "src/types";
 interface BudgetRenewalProps {
   value: BudgetRenewalType;
   onChange: (value: BudgetRenewalType) => void;
+  onClose?: () => void;
 }
 
 const BudgetRenewalSelect: React.FC<BudgetRenewalProps> = ({
   value,
   onChange,
+  onClose,
 }) => {
   return (
     <>
@@ -36,10 +38,12 @@ const BudgetRenewalSelect: React.FC<BudgetRenewalProps> = ({
               </SelectItem>
             ))}
           </SelectContent>
-          <XIcon
-            className="cursor-pointer w-4 text-muted-foreground"
-            onClick={() => onChange("never")}
-          />
+          {onClose && (
+            <XIcon
+              className="cursor-pointer w-4 text-muted-foreground"
+              onClick={onClose}
+            />
+          )}
         </Select>
       </div>
     </>

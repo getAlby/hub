@@ -4,8 +4,13 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useApp } from "src/hooks/useApp";
 import { useCSRF } from "src/hooks/useCSRF";
 import { useDeleteApp } from "src/hooks/useDeleteApp";
-import { useInfo } from "src/hooks/useInfo";
-import { AppPermissions, BudgetRenewalType, UpdateAppRequest } from "src/types";
+import {
+  App,
+  AppPermissions,
+  BudgetRenewalType,
+  UpdateAppRequest,
+  WalletCapabilities,
+} from "src/types";
 
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request"; // build the project for this to appear
@@ -38,12 +43,36 @@ import { useCapabilities } from "src/hooks/useCapabilities";
 import { formatAmount } from "src/lib/utils";
 
 function ShowApp() {
-  const { data: info } = useInfo();
-  const { data: csrf } = useCSRF();
-  const { toast } = useToast();
   const { pubkey } = useParams() as { pubkey: string };
   const { data: app, mutate: refetchApp, error } = useApp(pubkey);
   const { data: capabilities } = useCapabilities();
+
+  if (error) {
+    return <p className="text-red-500">{error.message}</p>;
+  }
+
+  if (!app || !capabilities) {
+    return <Loading />;
+  }
+
+  return (
+    <AppInternal
+      app={app}
+      refetchApp={refetchApp}
+      capabilities={capabilities}
+    />
+  );
+}
+
+type AppInternalProps = {
+  app: App;
+  capabilities: WalletCapabilities;
+  refetchApp: () => void;
+};
+
+function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
+  const { data: csrf } = useCSRF();
+  const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
   const [editMode, setEditMode] = React.useState(false);
@@ -57,29 +86,13 @@ function ShowApp() {
     navigate("/apps");
   });
 
-  const [permissions, setPermissions] = React.useState<AppPermissions | null>(
-    null
-  );
-
-  React.useEffect(() => {
-    if (app) {
-      setPermissions({
-        scopes: new Set(app.scopes),
-        maxAmount: app.maxAmount,
-        budgetRenewal: app.budgetRenewal as BudgetRenewalType,
-        expiresAt: app.expiresAt ? new Date(app.expiresAt) : undefined,
-        isolated: app.isolated,
-      });
-    }
-  }, [app]);
-
-  if (error) {
-    return <p className="text-red-500">{error.message}</p>;
-  }
-
-  if (!app || !info || !capabilities || !permissions) {
-    return <Loading />;
-  }
+  const [permissions, setPermissions] = React.useState<AppPermissions>({
+    scopes: app.scopes,
+    maxAmount: app.maxAmount,
+    budgetRenewal: app.budgetRenewal as BudgetRenewalType,
+    expiresAt: app.expiresAt ? new Date(app.expiresAt) : undefined,
+    isolated: app.isolated,
+  });
 
   const handleSave = async () => {
     try {
@@ -186,8 +199,7 @@ function ShowApp() {
                   <TableRow>
                     <TableCell className="font-medium">Expires At</TableCell>
                     <TableCell className="text-muted-foreground">
-                      {app.expiresAt &&
-                      new Date(app.expiresAt).getFullYear() !== 1
+                      {app.expiresAt
                         ? new Date(app.expiresAt).toString()
                         : "Never"}
                     </TableCell>
@@ -210,16 +222,7 @@ function ShowApp() {
                             type="button"
                             variant="outline"
                             onClick={() => {
-                              // setPermissions({
-                              //   scopes: new Set(app.scopes as Scope[]),
-                              //   maxAmount: app.maxAmount,
-                              //   budgetRenewal:
-                              //     app.budgetRenewal as BudgetRenewalType,
-                              //   expiresAt: app.expiresAt
-                              //     ? new Date(app.expiresAt)
-                              //     : undefined,
-                              // });
-                              setEditMode(!editMode);
+                              window.location.reload();
                             }}
                           >
                             Cancel
@@ -248,9 +251,10 @@ function ShowApp() {
               <CardContent>
                 <Permissions
                   capabilities={capabilities}
-                  initialPermissions={permissions}
-                  onPermissionsChange={setPermissions}
-                  canEditPermissions={editMode}
+                  permissions={permissions}
+                  setPermissions={setPermissions}
+                  readOnly={!editMode}
+                  isNewConnection={false}
                   budgetUsage={app.budgetUsage}
                 />
               </CardContent>

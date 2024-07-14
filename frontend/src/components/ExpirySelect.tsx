@@ -12,7 +12,7 @@ import { expiryOptions } from "src/types";
 
 const daysFromNow = (date?: Date) => {
   if (!date) {
-    return 0;
+    return undefined;
   }
   const now = dayjs();
   const targetDate = dayjs(date);
@@ -26,11 +26,14 @@ interface ExpiryProps {
 
 const ExpirySelect: React.FC<ExpiryProps> = ({ value, onChange }) => {
   const [expiryDays, setExpiryDays] = React.useState(daysFromNow(value));
-  const [customExpiry, setCustomExpiry] = React.useState(
-    daysFromNow(value)
-      ? !Object.values(expiryOptions).includes(daysFromNow(value))
-      : false
-  );
+  const [customExpiry, setCustomExpiry] = React.useState(() => {
+    const _daysFromNow = daysFromNow(value);
+    return _daysFromNow !== undefined
+      ? !Object.values(expiryOptions)
+          .filter((value) => value !== 0)
+          .includes(_daysFromNow)
+      : false;
+  });
   return (
     <>
       <p className="font-medium text-sm mb-2">Connection expiration</p>
@@ -41,11 +44,12 @@ const ExpirySelect: React.FC<ExpiryProps> = ({ value, onChange }) => {
               key={expiry}
               onClick={() => {
                 setCustomExpiry(false);
-                let date;
+                let date: Date | undefined;
                 if (expiryOptions[expiry]) {
-                  date = new Date();
-                  date.setDate(date.getUTCDate() + expiryOptions[expiry]);
-                  date.setHours(23, 59, 59);
+                  date = dayjs()
+                    .add(expiryOptions[expiry], "day")
+                    .endOf("day")
+                    .toDate();
                 }
                 onChange(date);
                 setExpiryDays(expiryOptions[expiry]);
