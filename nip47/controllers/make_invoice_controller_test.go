@@ -10,7 +10,9 @@ import (
 
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/nip47/models"
+	"github.com/getAlby/hub/nip47/permissions"
 	"github.com/getAlby/hub/tests"
+	"github.com/getAlby/hub/transactions"
 )
 
 const nip47MakeInvoiceJson = `
@@ -34,7 +36,12 @@ func TestHandleMakeInvoiceEvent_NoPermission(t *testing.T) {
 	err = json.Unmarshal([]byte(nip47MakeInvoiceJson), nip47Request)
 	assert.NoError(t, err)
 
-	dbRequestEvent := &db.RequestEvent{}
+	app, _, err := tests.CreateApp(svc)
+	assert.NoError(t, err)
+
+	dbRequestEvent := &db.RequestEvent{
+		AppId: &app.ID,
+	}
 	err = svc.DB.Create(&dbRequestEvent).Error
 	assert.NoError(t, err)
 
@@ -53,8 +60,10 @@ func TestHandleMakeInvoiceEvent_NoPermission(t *testing.T) {
 		publishedResponse = response
 	}
 
-	NewMakeInvoiceController(svc.LNClient).
-		HandleMakeInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, checkPermission, publishResponse)
+	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB)
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
+		HandleMakeInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, *dbRequestEvent.AppId, publishResponse)
 
 	assert.Nil(t, publishedResponse.Result)
 	assert.Equal(t, models.ERROR_RESTRICTED, publishedResponse.Error.Code)
@@ -70,7 +79,12 @@ func TestHandleMakeInvoiceEvent_WithPermission(t *testing.T) {
 	err = json.Unmarshal([]byte(nip47MakeInvoiceJson), nip47Request)
 	assert.NoError(t, err)
 
-	dbRequestEvent := &db.RequestEvent{}
+	app, _, err := tests.CreateApp(svc)
+	assert.NoError(t, err)
+
+	dbRequestEvent := &db.RequestEvent{
+		AppId: &app.ID,
+	}
 	err = svc.DB.Create(&dbRequestEvent).Error
 	assert.NoError(t, err)
 
@@ -84,9 +98,11 @@ func TestHandleMakeInvoiceEvent_WithPermission(t *testing.T) {
 		publishedResponse = response
 	}
 
-	NewMakeInvoiceController(svc.LNClient).
-		HandleMakeInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, checkPermission, publishResponse)
+	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB)
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
+		HandleMakeInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, *dbRequestEvent.AppId, publishResponse)
 
 	assert.Nil(t, publishedResponse.Error)
-	assert.Equal(t, tests.MockTransaction.Invoice, publishedResponse.Result.(*makeInvoiceResponse).Invoice)
+	assert.Equal(t, tests.MockLNClientTransaction.Invoice, publishedResponse.Result.(*makeInvoiceResponse).Invoice)
 }

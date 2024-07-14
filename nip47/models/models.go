@@ -2,8 +2,6 @@ package models
 
 import (
 	"encoding/json"
-
-	"github.com/getAlby/hub/lnclient"
 )
 
 const (
@@ -32,18 +30,24 @@ const (
 	ERROR_EXPIRED              = "EXPIRED"
 	ERROR_RESTRICTED           = "RESTRICTED"
 	ERROR_BAD_REQUEST          = "BAD_REQUEST"
+	ERROR_NOT_FOUND            = "NOT_FOUND"
 	OTHER                      = "OTHER"
 )
 
-const (
-	BUDGET_RENEWAL_DAILY   = "daily"
-	BUDGET_RENEWAL_WEEKLY  = "weekly"
-	BUDGET_RENEWAL_MONTHLY = "monthly"
-	BUDGET_RENEWAL_YEARLY  = "yearly"
-	BUDGET_RENEWAL_NEVER   = "never"
-)
-
-type Transaction = lnclient.Transaction
+type Transaction struct {
+	Type            string      `json:"type"`
+	Invoice         string      `json:"invoice"`
+	Description     string      `json:"description"`
+	DescriptionHash string      `json:"description_hash"`
+	Preimage        string      `json:"preimage"`
+	PaymentHash     string      `json:"payment_hash"`
+	Amount          int64       `json:"amount"`
+	FeesPaid        int64       `json:"fees_paid"`
+	CreatedAt       int64       `json:"created_at"`
+	ExpiresAt       *int64      `json:"expires_at"`
+	SettledAt       *int64      `json:"settled_at"`
+	Metadata        interface{} `json:"metadata,omitempty"`
+}
 
 type PayRequest struct {
 	Invoice string `json:"invoice"`

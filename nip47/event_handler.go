@@ -240,18 +240,27 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, sub *nostr.Subscriptio
 		}
 	}
 
-	checkPermission := func(amountMsat uint64) *models.Response {
+	logger.Logger.WithFields(logrus.Fields{
+		"requestEventNostrId": event.ID,
+		"eventKind":           event.Kind,
+		"appId":               app.ID,
+		"method":              nip47Request.Method,
+		"params":              nip47Request.Params,
+	}).Info("Handling NIP-47 request")
+
+	if nip47Request.Method != models.GET_INFO_METHOD {
 		scope, err := permissions.RequestMethodToScope(nip47Request.Method)
 		if err != nil {
-			return &models.Response{
+			publishResponse(&models.Response{
 				ResultType: nip47Request.Method,
 				Error: &models.Error{
 					Code:    models.ERROR_INTERNAL,
 					Message: err.Error(),
 				},
-			}
+			}, nostr.Tags{})
+			return
 		}
-		hasPermission, code, message := svc.permissionsService.HasPermission(&app, scope, amountMsat)
+		hasPermission, code, message := svc.permissionsService.HasPermission(&app, scope)
 		if !hasPermission {
 			logger.Logger.WithFields(logrus.Fields{
 				"request_event_id": requestEvent.ID,
@@ -271,67 +280,50 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, sub *nostr.Subscriptio
 				},
 			})
 
-			return &models.Response{
+			publishResponse(&models.Response{
 				ResultType: nip47Request.Method,
 				Error: &models.Error{
 					Code:    code,
 					Message: message,
 				},
-			}
+			}, nostr.Tags{})
+			return
 		}
-		return nil
 	}
 
-	logger.Logger.WithFields(logrus.Fields{
-		"requestEventNostrId": event.ID,
-		"eventKind":           event.Kind,
-		"appId":               app.ID,
-		"method":              nip47Request.Method,
-		"params":              nip47Request.Params,
-	}).Info("Handling NIP-47 request")
+	controller := controllers.NewNip47Controller(lnClient, svc.db, svc.eventPublisher, svc.permissionsService, svc.transactionsService)
 
-	// TODO: controllers should share a common interface
 	switch nip47Request.Method {
 	case models.MULTI_PAY_INVOICE_METHOD:
-		controllers.
-			NewMultiPayInvoiceController(lnClient, svc.db, svc.eventPublisher).
-			HandleMultiPayInvoiceEvent(ctx, nip47Request, requestEvent.ID, &app, checkPermission, publishResponse)
+		controller.
+			HandleMultiPayInvoiceEvent(ctx, nip47Request, requestEvent.ID, &app, publishResponse)
 	case models.MULTI_PAY_KEYSEND_METHOD:
-		controllers.
-			NewMultiPayKeysendController(lnClient, svc.db, svc.eventPublisher).
-			HandleMultiPayKeysendEvent(ctx, nip47Request, requestEvent.ID, &app, checkPermission, publishResponse)
+		controller.
+			HandleMultiPayKeysendEvent(ctx, nip47Request, requestEvent.ID, &app, publishResponse)
 	case models.PAY_INVOICE_METHOD:
-		controllers.
-			NewPayInvoiceController(lnClient, svc.db, svc.eventPublisher).
-			HandlePayInvoiceEvent(ctx, nip47Request, requestEvent.ID, &app, checkPermission, publishResponse, nostr.Tags{})
+		controller.
+			HandlePayInvoiceEvent(ctx, nip47Request, requestEvent.ID, &app, publishResponse, nostr.Tags{})
 	case models.PAY_KEYSEND_METHOD:
-		controllers.
-			NewPayKeysendController(lnClient, svc.db, svc.eventPublisher).
-			HandlePayKeysendEvent(ctx, nip47Request, requestEvent.ID, &app, checkPermission, publishResponse, nostr.Tags{})
+		controller.
+			HandlePayKeysendEvent(ctx, nip47Request, requestEvent.ID, &app, publishResponse, nostr.Tags{})
 	case models.GET_BALANCE_METHOD:
-		controllers.
-			NewGetBalanceController(lnClient).
-			HandleGetBalanceEvent(ctx, nip47Request, requestEvent.ID, checkPermission, publishResponse)
+		controller.
+			HandleGetBalanceEvent(ctx, nip47Request, requestEvent.ID, &app, publishResponse)
 	case models.MAKE_INVOICE_METHOD:
-		controllers.
-			NewMakeInvoiceController(lnClient).
-			HandleMakeInvoiceEvent(ctx, nip47Request, requestEvent.ID, checkPermission, publishResponse)
+		controller.
+			HandleMakeInvoiceEvent(ctx, nip47Request, requestEvent.ID, app.ID, publishResponse)
 	case models.LOOKUP_INVOICE_METHOD:
-		controllers.
-			NewLookupInvoiceController(lnClient).
-			HandleLookupInvoiceEvent(ctx, nip47Request, requestEvent.ID, checkPermission, publishResponse)
+		controller.
+			HandleLookupInvoiceEvent(ctx, nip47Request, requestEvent.ID, app.ID, publishResponse)
 	case models.LIST_TRANSACTIONS_METHOD:
-		controllers.
-			NewListTransactionsController(lnClient).
-			HandleListTransactionsEvent(ctx, nip47Request, requestEvent.ID, checkPermission, publishResponse)
+		controller.
+			HandleListTransactionsEvent(ctx, nip47Request, requestEvent.ID, app.ID, publishResponse)
 	case models.GET_INFO_METHOD:
-		controllers.
-			NewGetInfoController(svc.permissionsService, lnClient).
-			HandleGetInfoEvent(ctx, nip47Request, requestEvent.ID, &app, checkPermission, publishResponse)
+		controller.
+			HandleGetInfoEvent(ctx, nip47Request, requestEvent.ID, &app, publishResponse)
 	case models.SIGN_MESSAGE_METHOD:
-		controllers.
-			NewSignMessageController(lnClient).
-			HandleSignMessageEvent(ctx, nip47Request, requestEvent.ID, checkPermission, publishResponse)
+		controller.
+			HandleSignMessageEvent(ctx, nip47Request, requestEvent.ID, publishResponse)
 	default:
 		publishResponse(&models.Response{
 			ResultType: nip47Request.Method,

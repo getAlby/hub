@@ -20,6 +20,7 @@ import (
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/service/keys"
+	"github.com/getAlby/hub/transactions"
 	"github.com/getAlby/hub/version"
 
 	"github.com/getAlby/hub/config"
@@ -32,15 +33,16 @@ import (
 type service struct {
 	cfg config.Config
 
-	db             *gorm.DB
-	lnClient       lnclient.LNClient
-	albyOAuthSvc   alby.AlbyOAuthService
-	eventPublisher events.EventPublisher
-	ctx            context.Context
-	wg             *sync.WaitGroup
-	nip47Service   nip47.Nip47Service
-	appCancelFn    context.CancelFunc
-	keys           keys.Keys
+	db                  *gorm.DB
+	lnClient            lnclient.LNClient
+	transactionsService transactions.TransactionsService
+	albyOAuthSvc        alby.AlbyOAuthService
+	eventPublisher      events.EventPublisher
+	ctx                 context.Context
+	wg                  *sync.WaitGroup
+	nip47Service        nip47.Nip47Service
+	appCancelFn         context.CancelFunc
+	keys                keys.Keys
 }
 
 func NewService(ctx context.Context) (*service, error) {
@@ -96,17 +98,19 @@ func NewService(ctx context.Context) (*service, error) {
 
 	var wg sync.WaitGroup
 	svc := &service{
-		cfg:            cfg,
-		ctx:            ctx,
-		wg:             &wg,
-		eventPublisher: eventPublisher,
-		albyOAuthSvc:   alby.NewAlbyOAuthService(gormDB, cfg, keys, eventPublisher),
-		nip47Service:   nip47.NewNip47Service(gormDB, cfg, keys, eventPublisher),
-		db:             gormDB,
-		keys:           keys,
+		cfg:                 cfg,
+		ctx:                 ctx,
+		wg:                  &wg,
+		eventPublisher:      eventPublisher,
+		albyOAuthSvc:        alby.NewAlbyOAuthService(gormDB, cfg, keys, eventPublisher),
+		nip47Service:        nip47.NewNip47Service(gormDB, cfg, keys, eventPublisher),
+		transactionsService: transactions.NewTransactionsService(gormDB),
+		db:                  gormDB,
+		keys:                keys,
 	}
 
 	eventPublisher.RegisterSubscriber(svc.albyOAuthSvc)
+	eventPublisher.RegisterSubscriber(svc.transactionsService)
 
 	eventPublisher.Publish(&events.Event{
 		Event: "nwc_started",
@@ -233,6 +237,10 @@ func (svc *service) GetEventPublisher() events.EventPublisher {
 
 func (svc *service) GetLNClient() lnclient.LNClient {
 	return svc.lnClient
+}
+
+func (svc *service) GetTransactionsService() transactions.TransactionsService {
+	return svc.transactionsService
 }
 
 func (svc *service) GetKeys() keys.Keys {

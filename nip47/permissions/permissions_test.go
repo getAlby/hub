@@ -39,7 +39,7 @@ func TestHasPermission_Expired(t *testing.T) {
 		AppId:         app.ID,
 		App:           *app,
 		Scope:         PAY_INVOICE_SCOPE,
-		MaxAmount:     100,
+		MaxAmountSat:  100,
 		BudgetRenewal: budgetRenewal,
 		ExpiresAt:     &expiresAt,
 	}
@@ -67,7 +67,7 @@ func TestHasPermission_Exceeded(t *testing.T) {
 		AppId:         app.ID,
 		App:           *app,
 		Scope:         models.PAY_INVOICE_METHOD,
-		MaxAmount:     10,
+		MaxAmountSat:  10,
 		BudgetRenewal: budgetRenewal,
 		ExpiresAt:     &expiresAt,
 	}
@@ -95,7 +95,7 @@ func TestHasPermission_OK(t *testing.T) {
 		AppId:         app.ID,
 		App:           *app,
 		Scope:         models.PAY_INVOICE_METHOD,
-		MaxAmount:     10,
+		MaxAmountSat:  10,
 		BudgetRenewal: budgetRenewal,
 		ExpiresAt:     &expiresAt,
 	}

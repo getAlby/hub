@@ -3,7 +3,6 @@ package controllers
 import (
 	"context"
 
-	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/nip47/models"
 	"github.com/nbd-wtf/go-nostr"
@@ -23,26 +22,10 @@ type listTransactionsResponse struct {
 	Transactions []models.Transaction `json:"transactions"`
 }
 
-type listTransactionsController struct {
-	lnClient lnclient.LNClient
-}
-
-func NewListTransactionsController(lnClient lnclient.LNClient) *listTransactionsController {
-	return &listTransactionsController{
-		lnClient: lnClient,
-	}
-}
-
-func (controller *listTransactionsController) HandleListTransactionsEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, checkPermission checkPermissionFunc, publishResponse publishFunc) {
-	// basic permissions check
-	resp := checkPermission(0)
-	if resp != nil {
-		publishResponse(resp, nostr.Tags{})
-		return
-	}
+func (controller *nip47Controller) HandleListTransactionsEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, appId uint, publishResponse publishFunc) {
 
 	listParams := &listTransactionsParams{}
-	resp = decodeRequest(nip47Request, listParams)
+	resp := decodeRequest(nip47Request, listParams)
 	if resp != nil {
 		publishResponse(resp, nostr.Tags{})
 		return
@@ -59,7 +42,7 @@ func (controller *listTransactionsController) HandleListTransactionsEvent(ctx co
 		// make sure a sensible limit is passed
 		limit = maxLimit
 	}
-	transactions, err := controller.lnClient.ListTransactions(ctx, listParams.From, listParams.Until, limit, listParams.Offset, listParams.Unpaid, listParams.Type)
+	dbTransactions, err := controller.transactionsService.ListTransactions(ctx, listParams.From, listParams.Until, limit, listParams.Offset, listParams.Unpaid, listParams.Type, controller.lnClient, &appId)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"params":           listParams,
@@ -74,6 +57,11 @@ func (controller *listTransactionsController) HandleListTransactionsEvent(ctx co
 			},
 		}, nostr.Tags{})
 		return
+	}
+
+	transactions := []models.Transaction{}
+	for _, dbTransaction := range dbTransactions {
+		transactions = append(transactions, *models.ToNip47Transaction(&dbTransaction))
 	}
 
 	responsePayload := &listTransactionsResponse{

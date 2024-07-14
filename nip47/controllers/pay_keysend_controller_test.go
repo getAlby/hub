@@ -10,7 +10,9 @@ import (
 
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/nip47/models"
+	"github.com/getAlby/hub/nip47/permissions"
 	"github.com/getAlby/hub/tests"
+	"github.com/getAlby/hub/transactions"
 )
 
 const nip47KeysendJson = `
@@ -59,8 +61,10 @@ func TestHandlePayKeysendEvent_NoPermission(t *testing.T) {
 		publishedResponse = response
 	}
 
-	NewPayKeysendController(svc.LNClient, svc.DB, svc.EventPublisher).
-		HandlePayKeysendEvent(ctx, nip47Request, dbRequestEvent.ID, app, checkPermission, publishResponse, nostr.Tags{})
+	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB)
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
+		HandlePayKeysendEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse, nostr.Tags{})
 
 	assert.Nil(t, publishedResponse.Result)
 	assert.Equal(t, models.ERROR_RESTRICTED, publishedResponse.Error.Code)
@@ -94,8 +98,10 @@ func TestHandlePayKeysendEvent_WithPermission(t *testing.T) {
 		publishedResponse = response
 	}
 
-	NewPayKeysendController(svc.LNClient, svc.DB, svc.EventPublisher).
-		HandlePayKeysendEvent(ctx, nip47Request, dbRequestEvent.ID, app, checkPermission, publishResponse, nostr.Tags{})
+	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB)
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
+		HandlePayKeysendEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse, nostr.Tags{})
 
 	assert.Nil(t, publishedResponse.Error)
 	assert.Equal(t, "12345preimage", publishedResponse.Result.(payResponse).Preimage)

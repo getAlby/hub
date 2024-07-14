@@ -17,7 +17,9 @@ import (
 
 	"github.com/getAlby/hub/alby"
 	"github.com/getAlby/hub/config"
+	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
+	"github.com/getAlby/hub/db/queries"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
@@ -66,7 +68,7 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 		}
 	}
 
-	app, pairingSecretKey, err := api.dbSvc.CreateApp(createAppRequest.Name, createAppRequest.Pubkey, createAppRequest.MaxAmount, createAppRequest.BudgetRenewal, expiresAt, createAppRequest.Scopes)
+	app, pairingSecretKey, err := api.dbSvc.CreateApp(createAppRequest.Name, createAppRequest.Pubkey, createAppRequest.MaxAmountSat, createAppRequest.BudgetRenewal, expiresAt, createAppRequest.Scopes)
 
 	if err != nil {
 		return nil, err
@@ -102,7 +104,7 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 }
 
 func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) error {
-	maxAmount := updateAppRequest.MaxAmount
+	maxAmount := updateAppRequest.MaxAmountSat
 	budgetRenewal := updateAppRequest.BudgetRenewal
 
 	if len(updateAppRequest.Scopes) == 0 {
@@ -119,7 +121,7 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 		// Update existing permissions with new budget and expiry
 		err := tx.Model(&db.AppPermission{}).Where("app_id", userApp.ID).Updates(map[string]interface{}{
 			"ExpiresAt":     expiresAt,
-			"MaxAmount":     maxAmount,
+			"MaxAmountSat":  maxAmount,
 			"BudgetRenewal": budgetRenewal,
 		}).Error
 		if err != nil {
@@ -143,7 +145,7 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 					App:           *userApp,
 					Scope:         method,
 					ExpiresAt:     expiresAt,
-					MaxAmount:     int(maxAmount),
+					MaxAmountSat:  int(maxAmount),
 					BudgetRenewal: budgetRenewal,
 				}
 				if err := tx.Create(&perm).Error; err != nil {
@@ -171,20 +173,20 @@ func (api *api) DeleteApp(userApp *db.App) error {
 	return api.db.Delete(userApp).Error
 }
 
-func (api *api) GetApp(userApp *db.App) *App {
+func (api *api) GetApp(dbApp *db.App) *App {
 
 	var lastEvent db.RequestEvent
-	lastEventResult := api.db.Where("app_id = ?", userApp.ID).Order("id desc").Limit(1).Find(&lastEvent)
+	lastEventResult := api.db.Where("app_id = ?", dbApp.ID).Order("id desc").Limit(1).Find(&lastEvent)
 
 	paySpecificPermission := db.AppPermission{}
 	appPermissions := []db.AppPermission{}
 	var expiresAt *time.Time
-	api.db.Where("app_id = ?", userApp.ID).Find(&appPermissions)
+	api.db.Where("app_id = ?", dbApp.ID).Find(&appPermissions)
 
 	requestMethods := []string{}
 	for _, appPerm := range appPermissions {
 		expiresAt = appPerm.ExpiresAt
-		if appPerm.Scope == permissions.PAY_INVOICE_SCOPE {
+		if appPerm.Scope == constants.PAY_INVOICE_SCOPE {
 			//find the pay_invoice-specific permissions
 			paySpecificPermission = appPerm
 		}
@@ -193,19 +195,20 @@ func (api *api) GetApp(userApp *db.App) *App {
 
 	//renewsIn := ""
 	budgetUsage := uint64(0)
-	maxAmount := uint64(paySpecificPermission.MaxAmount)
+	maxAmount := uint64(paySpecificPermission.MaxAmountSat)
 	if maxAmount > 0 {
-		budgetUsage = api.permissionsSvc.GetBudgetUsage(&paySpecificPermission)
+		budgetUsage = queries.GetBudgetUsageSat(api.db, &paySpecificPermission)
 	}
 
 	response := App{
-		Name:          userApp.Name,
-		Description:   userApp.Description,
-		CreatedAt:     userApp.CreatedAt,
-		UpdatedAt:     userApp.UpdatedAt,
-		NostrPubkey:   userApp.NostrPubkey,
+		ID:            dbApp.ID,
+		Name:          dbApp.Name,
+		Description:   dbApp.Description,
+		CreatedAt:     dbApp.CreatedAt,
+		UpdatedAt:     dbApp.UpdatedAt,
+		NostrPubkey:   dbApp.NostrPubkey,
 		ExpiresAt:     expiresAt,
-		MaxAmount:     maxAmount,
+		MaxAmountSat:  maxAmount,
 		Scopes:        requestMethods,
 		BudgetUsage:   budgetUsage,
 		BudgetRenewal: paySpecificPermission.BudgetRenewal,
@@ -233,30 +236,30 @@ func (api *api) ListApps() ([]App, error) {
 	}
 
 	apiApps := []App{}
-	for _, userApp := range dbApps {
+	for _, dbApp := range dbApps {
 		apiApp := App{
-			// ID:          app.ID,
-			Name:        userApp.Name,
-			Description: userApp.Description,
-			CreatedAt:   userApp.CreatedAt,
-			UpdatedAt:   userApp.UpdatedAt,
-			NostrPubkey: userApp.NostrPubkey,
+			ID:          dbApp.ID,
+			Name:        dbApp.Name,
+			Description: dbApp.Description,
+			CreatedAt:   dbApp.CreatedAt,
+			UpdatedAt:   dbApp.UpdatedAt,
+			NostrPubkey: dbApp.NostrPubkey,
 		}
 
-		for _, appPermission := range permissionsMap[userApp.ID] {
+		for _, appPermission := range permissionsMap[dbApp.ID] {
 			apiApp.Scopes = append(apiApp.Scopes, appPermission.Scope)
 			apiApp.ExpiresAt = appPermission.ExpiresAt
-			if appPermission.Scope == permissions.PAY_INVOICE_SCOPE {
+			if appPermission.Scope == constants.PAY_INVOICE_SCOPE {
 				apiApp.BudgetRenewal = appPermission.BudgetRenewal
-				apiApp.MaxAmount = uint64(appPermission.MaxAmount)
-				if apiApp.MaxAmount > 0 {
-					apiApp.BudgetUsage = api.permissionsSvc.GetBudgetUsage(&appPermission)
+				apiApp.MaxAmountSat = uint64(appPermission.MaxAmountSat)
+				if apiApp.MaxAmountSat > 0 {
+					apiApp.BudgetUsage = queries.GetBudgetUsageSat(api.db, &appPermission)
 				}
 			}
 		}
 
 		var lastEvent db.RequestEvent
-		lastEventResult := api.db.Where("app_id = ?", userApp.ID).Order("id desc").Limit(1).Find(&lastEvent)
+		lastEventResult := api.db.Where("app_id = ?", dbApp.ID).Order("id desc").Limit(1).Find(&lastEvent)
 		if lastEventResult.RowsAffected > 0 {
 			apiApp.LastEventAt = &lastEvent.CreatedAt
 		}
@@ -483,44 +486,6 @@ func (api *api) GetBalances(ctx context.Context) (*BalancesResponse, error) {
 	return balances, nil
 }
 
-func (api *api) ListTransactions(ctx context.Context, limit uint64, offset uint64) (*ListTransactionsResponse, error) {
-	if api.svc.GetLNClient() == nil {
-		return nil, errors.New("LNClient not started")
-	}
-	transactions, err := api.svc.GetLNClient().ListTransactions(ctx, 0, 0, limit, offset, false, "")
-	if err != nil {
-		return nil, err
-	}
-	return &transactions, nil
-}
-
-func (api *api) SendPayment(ctx context.Context, invoice string) (*SendPaymentResponse, error) {
-	if api.svc.GetLNClient() == nil {
-		return nil, errors.New("LNClient not started")
-	}
-	resp, err := api.svc.GetLNClient().SendPaymentSync(ctx, invoice)
-	if err != nil {
-		return nil, err
-	}
-	return resp, nil
-}
-
-func (api *api) CreateInvoice(ctx context.Context, amount int64, description string) (*MakeInvoiceResponse, error) {
-	if api.svc.GetLNClient() == nil {
-		return nil, errors.New("LNClient not started")
-	}
-	invoice, err := api.svc.GetLNClient().MakeInvoice(ctx, amount, description, "", 0)
-	return invoice, err
-}
-
-func (api *api) LookupInvoice(ctx context.Context, paymentHash string) (*LookupInvoiceResponse, error) {
-	if api.svc.GetLNClient() == nil {
-		return nil, errors.New("LNClient not started")
-	}
-	invoice, err := api.svc.GetLNClient().LookupInvoice(ctx, paymentHash)
-	return invoice, err
-}
-
 // TODO: remove dependency on this endpoint
 func (api *api) RequestMempoolApi(endpoint string) (interface{}, error) {
 	url := api.cfg.GetEnv().MempoolApi + endpoint
@@ -688,7 +653,7 @@ func (api *api) GetWalletCapabilities(ctx context.Context) (*WalletCapabilitiesR
 		return nil, err
 	}
 	if len(notificationTypes) > 0 {
-		scopes = append(scopes, permissions.NOTIFICATIONS_SCOPE)
+		scopes = append(scopes, constants.NOTIFICATIONS_SCOPE)
 	}
 
 	return &WalletCapabilitiesResponse{

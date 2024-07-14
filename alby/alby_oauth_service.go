@@ -17,12 +17,14 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/getAlby/hub/config"
+	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/nip47/permissions"
 	"github.com/getAlby/hub/service/keys"
+	"github.com/getAlby/hub/transactions"
 )
 
 type albyOAuthService struct {
@@ -273,13 +275,13 @@ func (svc *albyOAuthService) DrainSharedWallet(ctx context.Context, lnClient lnc
 
 	logger.Logger.WithField("amount", amount).WithError(err).Error("Draining Alby shared wallet funds")
 
-	transaction, err := lnClient.MakeInvoice(ctx, amount, "Send shared wallet funds to Alby Hub", "", 120)
+	transaction, err := transactions.NewTransactionsService(svc.db).MakeInvoice(ctx, amount, "Send shared wallet funds to Alby Hub", "", 120, lnClient, nil, nil)
 	if err != nil {
 		logger.Logger.WithField("amount", amount).WithError(err).Error("Failed to make invoice")
 		return err
 	}
 
-	err = svc.SendPayment(ctx, transaction.Invoice)
+	err = svc.SendPayment(ctx, transaction.PaymentRequest)
 	if err != nil {
 		logger.Logger.WithField("amount", amount).WithError(err).Error("Failed to pay invoice from shared node")
 		return err
@@ -393,7 +395,7 @@ func (svc *albyOAuthService) LinkAccount(ctx context.Context, lnClient lnclient.
 	}
 	notificationTypes := lnClient.GetSupportedNIP47NotificationTypes()
 	if len(notificationTypes) > 0 {
-		scopes = append(scopes, permissions.NOTIFICATIONS_SCOPE)
+		scopes = append(scopes, constants.NOTIFICATIONS_SCOPE)
 	}
 
 	app, _, err := db.NewDBService(svc.db, svc.eventPublisher).CreateApp(
@@ -436,6 +438,35 @@ func (svc *albyOAuthService) ConsumeEvent(ctx context.Context, event *events.Eve
 			return err
 		}
 		return nil
+	}
+
+	if event.Event == "nwc_payment_received" {
+		type paymentReceivedEventProperties struct {
+			PaymentHash string `json:"payment_hash"`
+		}
+		// pass a new custom event with less detail
+		event = &events.Event{
+			Event: event.Event,
+			Properties: &paymentReceivedEventProperties{
+				PaymentHash: event.Properties.(*lnclient.Transaction).PaymentHash,
+			},
+		}
+	}
+
+	if event.Event == "nwc_payment_sent" {
+		type paymentSentEventProperties struct {
+			PaymentHash string `json:"payment_hash"`
+			Duration    uint64 `json:"duration"`
+		}
+
+		// pass a new custom event with less detail
+		event = &events.Event{
+			Event: event.Event,
+			Properties: &paymentSentEventProperties{
+				PaymentHash: event.Properties.(*lnclient.Transaction).PaymentHash,
+				Duration:    uint64(*event.Properties.(*lnclient.Transaction).SettledAt - event.Properties.(*lnclient.Transaction).CreatedAt),
+			},
+		}
 	}
 
 	token, err := svc.fetchUserToken(ctx)

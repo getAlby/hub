@@ -9,12 +9,14 @@ import (
 	"github.com/getAlby/hub/nip47/notifications"
 	permissions "github.com/getAlby/hub/nip47/permissions"
 	"github.com/getAlby/hub/service/keys"
+	"github.com/getAlby/hub/transactions"
 	"github.com/nbd-wtf/go-nostr"
 	"gorm.io/gorm"
 )
 
 type nip47Service struct {
 	permissionsService     permissions.PermissionsService
+	transactionsService    transactions.TransactionsService
 	nip47NotificationQueue notifications.Nip47NotificationQueue
 	cfg                    config.Config
 	keys                   keys.Keys
@@ -37,13 +39,14 @@ func NewNip47Service(db *gorm.DB, cfg config.Config, keys keys.Keys, eventPublis
 		cfg:                    cfg,
 		db:                     db,
 		permissionsService:     permissions.NewPermissionsService(db, eventPublisher),
+		transactionsService:    transactions.NewTransactionsService(db),
 		eventPublisher:         eventPublisher,
 		keys:                   keys,
 	}
 }
 
 func (svc *nip47Service) StartNotifier(ctx context.Context, relay *nostr.Relay, lnClient lnclient.LNClient) {
-	nip47Notifier := notifications.NewNip47Notifier(relay, svc.db, svc.cfg, svc.keys, svc.permissionsService, lnClient)
+	nip47Notifier := notifications.NewNip47Notifier(relay, svc.db, svc.cfg, svc.keys, svc.permissionsService, svc.transactionsService, lnClient)
 	go func() {
 		for {
 			select {

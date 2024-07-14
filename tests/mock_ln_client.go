@@ -26,7 +26,7 @@ var MockNodeInfo = lnclient.NodeInfo{
 var MockTime = time.Unix(1693876963, 0)
 var MockTimeUnix = MockTime.Unix()
 
-var MockTransactions = []lnclient.Transaction{
+var MockLNClientTransactions = []lnclient.Transaction{
 	{
 		Type:            "incoming",
 		Invoice:         MockInvoice,
@@ -54,7 +54,7 @@ var MockTransactions = []lnclient.Transaction{
 		SettledAt:       &MockTimeUnix,
 	},
 }
-var MockTransaction = &MockTransactions[0]
+var MockLNClientTransaction = &MockLNClientTransactions[0]
 
 type MockLn struct {
 }
@@ -69,8 +69,8 @@ func (mln *MockLn) SendPaymentSync(ctx context.Context, payReq string) (*lnclien
 	}, nil
 }
 
-func (mln *MockLn) SendKeysend(ctx context.Context, amount uint64, destination, preimage string, custom_records []lnclient.TLVRecord) (preImage string, err error) {
-	return "12345preimage", nil
+func (mln *MockLn) SendKeysend(ctx context.Context, amount uint64, destination string, custom_records []lnclient.TLVRecord) (paymentHash string, preimage string, fee uint64, err error) {
+	return "paymenthash", "12345preimage", 0, nil
 }
 
 func (mln *MockLn) GetBalance(ctx context.Context) (balance int64, err error) {
@@ -82,15 +82,15 @@ func (mln *MockLn) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, err er
 }
 
 func (mln *MockLn) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *lnclient.Transaction, err error) {
-	return MockTransaction, nil
+	return MockLNClientTransaction, nil
 }
 
 func (mln *MockLn) LookupInvoice(ctx context.Context, paymentHash string) (transaction *lnclient.Transaction, err error) {
-	return MockTransaction, nil
+	return MockLNClientTransaction, nil
 }
 
 func (mln *MockLn) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string) (invoices []lnclient.Transaction, err error) {
-	return MockTransactions, nil
+	return MockLNClientTransactions, nil
 }
 func (mln *MockLn) Shutdown() error {
 	return nil
@@ -166,4 +166,7 @@ func (mln *MockLn) GetSupportedNIP47Methods() []string {
 }
 func (mln *MockLn) GetSupportedNIP47NotificationTypes() []string {
 	return []string{"payment_received", "payment_sent"}
+}
+func (mln *MockLn) GetPubkey() string {
+	return "123pubkey"
 }

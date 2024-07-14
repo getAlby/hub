@@ -56,17 +56,16 @@ type API interface {
 }
 
 type App struct {
-	// ID          uint      `json:"id"` // ID unused - pubkey is used as ID
-	Name        string    `json:"name"`
-	Description string    `json:"description"`
-	NostrPubkey string    `json:"nostrPubkey"`
-	CreatedAt   time.Time `json:"createdAt"`
-	UpdatedAt   time.Time `json:"updatedAt"`
-
+	ID            uint       `json:"id"`
+	Name          string     `json:"name"`
+	Description   string     `json:"description"`
+	NostrPubkey   string     `json:"nostrPubkey"`
+	CreatedAt     time.Time  `json:"createdAt"`
+	UpdatedAt     time.Time  `json:"updatedAt"`
 	LastEventAt   *time.Time `json:"lastEventAt"`
 	ExpiresAt     *time.Time `json:"expiresAt"`
 	Scopes        []string   `json:"scopes"`
-	MaxAmount     uint64     `json:"maxAmount"`
+	MaxAmountSat  uint64     `json:"maxAmount"`
 	BudgetUsage   uint64     `json:"budgetUsage"`
 	BudgetRenewal string     `json:"budgetRenewal"`
 }
@@ -76,7 +75,7 @@ type ListAppsResponse struct {
 }
 
 type UpdateAppRequest struct {
-	MaxAmount     uint64   `json:"maxAmount"`
+	MaxAmountSat  uint64   `json:"maxAmount"`
 	BudgetRenewal string   `json:"budgetRenewal"`
 	ExpiresAt     string   `json:"expiresAt"`
 	Scopes        []string `json:"scopes"`
@@ -85,7 +84,7 @@ type UpdateAppRequest struct {
 type CreateAppRequest struct {
 	Name          string   `json:"name"`
 	Pubkey        string   `json:"pubkey"`
-	MaxAmount     uint64   `json:"maxAmount"`
+	MaxAmountSat  uint64   `json:"maxAmount"`
 	BudgetRenewal string   `json:"budgetRenewal"`
 	ExpiresAt     string   `json:"expiresAt"`
 	Scopes        []string `json:"scopes"`
@@ -183,10 +182,26 @@ type RedeemOnchainFundsResponse struct {
 type OnchainBalanceResponse = lnclient.OnchainBalanceResponse
 type BalancesResponse = lnclient.BalancesResponse
 
-type SendPaymentResponse = lnclient.PayInvoiceResponse
-type MakeInvoiceResponse = lnclient.Transaction
-type LookupInvoiceResponse = lnclient.Transaction
-type ListTransactionsResponse = []lnclient.Transaction
+type SendPaymentResponse = Transaction
+type MakeInvoiceResponse = Transaction
+type LookupInvoiceResponse = Transaction
+type ListTransactionsResponse = []Transaction
+
+// TODO: camelCase
+type Transaction struct {
+	Type            string      `json:"type"`
+	Invoice         string      `json:"invoice"`
+	Description     string      `json:"description"`
+	DescriptionHash string      `json:"description_hash"`
+	Preimage        *string     `json:"preimage"`
+	PaymentHash     string      `json:"payment_hash"`
+	Amount          uint64      `json:"amount"`
+	FeesPaid        uint64      `json:"fees_paid"`
+	CreatedAt       string      `json:"created_at"`
+	SettledAt       *string     `json:"settled_at"`
+	AppId           *uint       `json:"app_id"`
+	Metadata        interface{} `json:"metadata,omitempty"`
+}
 
 // debug api
 type SendPaymentProbesRequest struct {

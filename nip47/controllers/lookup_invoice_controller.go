@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/nip47/models"
 	"github.com/nbd-wtf/go-nostr"
@@ -22,26 +21,10 @@ type lookupInvoiceResponse struct {
 	models.Transaction
 }
 
-type lookupInvoiceController struct {
-	lnClient lnclient.LNClient
-}
-
-func NewLookupInvoiceController(lnClient lnclient.LNClient) *lookupInvoiceController {
-	return &lookupInvoiceController{
-		lnClient: lnClient,
-	}
-}
-
-func (controller *lookupInvoiceController) HandleLookupInvoiceEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, checkPermission checkPermissionFunc, publishResponse publishFunc) {
-	// basic permissions check
-	resp := checkPermission(0)
-	if resp != nil {
-		publishResponse(resp, nostr.Tags{})
-		return
-	}
+func (controller *nip47Controller) HandleLookupInvoiceEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, appId uint, publishResponse publishFunc) {
 
 	lookupInvoiceParams := &lookupInvoiceParams{}
-	resp = decodeRequest(nip47Request, lookupInvoiceParams)
+	resp := decodeRequest(nip47Request, lookupInvoiceParams)
 	if resp != nil {
 		publishResponse(resp, nostr.Tags{})
 		return
@@ -75,7 +58,7 @@ func (controller *lookupInvoiceController) HandleLookupInvoiceEvent(ctx context.
 		paymentHash = paymentRequest.PaymentHash
 	}
 
-	transaction, err := controller.lnClient.LookupInvoice(ctx, paymentHash)
+	dbTransaction, err := controller.transactionsService.LookupTransaction(ctx, paymentHash, controller.lnClient, &appId)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"request_event_id": requestEventId,
@@ -85,16 +68,13 @@ func (controller *lookupInvoiceController) HandleLookupInvoiceEvent(ctx context.
 
 		publishResponse(&models.Response{
 			ResultType: nip47Request.Method,
-			Error: &models.Error{
-				Code:    models.ERROR_INTERNAL,
-				Message: err.Error(),
-			},
+			Error:      mapNip47Error(err),
 		}, nostr.Tags{})
 		return
 	}
 
 	responsePayload := &lookupInvoiceResponse{
-		Transaction: *transaction,
+		Transaction: *models.ToNip47Transaction(dbTransaction),
 	}
 
 	publishResponse(&models.Response{

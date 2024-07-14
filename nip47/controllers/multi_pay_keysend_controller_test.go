@@ -11,7 +11,9 @@ import (
 
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/nip47/models"
+	"github.com/getAlby/hub/nip47/permissions"
 	"github.com/getAlby/hub/tests"
+	"github.com/getAlby/hub/transactions"
 )
 
 const nip47MultiPayKeysendJson = `
@@ -103,8 +105,10 @@ func TestHandleMultiPayKeysendEvent_NoPermission(t *testing.T) {
 		dTags = append(dTags, tags)
 	}
 
-	NewMultiPayKeysendController(svc.LNClient, svc.DB, svc.EventPublisher).
-		HandleMultiPayKeysendEvent(ctx, nip47Request, dbRequestEvent.ID, app, checkPermission, publishResponse)
+	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB)
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
+		HandleMultiPayKeysendEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
 
 	assert.Equal(t, 2, len(responses))
 	for i := 0; i < len(responses); i++ {
@@ -147,8 +151,10 @@ func TestHandleMultiPayKeysendEvent_WithPermission(t *testing.T) {
 		dTags = append(dTags, tags)
 	}
 
-	NewMultiPayKeysendController(svc.LNClient, svc.DB, svc.EventPublisher).
-		HandleMultiPayKeysendEvent(ctx, nip47Request, dbRequestEvent.ID, app, checkPermission, publishResponse)
+	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB)
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
+		HandleMultiPayKeysendEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
 
 	assert.Equal(t, 2, len(responses))
 	for i := 0; i < len(responses); i++ {

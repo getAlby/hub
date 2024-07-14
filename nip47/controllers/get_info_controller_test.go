@@ -12,6 +12,7 @@ import (
 	"github.com/getAlby/hub/nip47/models"
 	"github.com/getAlby/hub/nip47/permissions"
 	"github.com/getAlby/hub/tests"
+	"github.com/getAlby/hub/transactions"
 )
 
 const nip47GetInfoJson = `
@@ -62,9 +63,9 @@ func TestHandleGetInfoEvent_NoPermission(t *testing.T) {
 	}
 
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
-
-	NewGetInfoController(permissionsSvc, svc.LNClient).
-		HandleGetInfoEvent(ctx, nip47Request, dbRequestEvent.ID, app, checkPermission, publishResponse)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB)
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
+		HandleGetInfoEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
 
 	assert.Nil(t, publishedResponse.Error)
 	nodeInfo := publishedResponse.Result.(*getInfoResponse)
@@ -114,9 +115,9 @@ func TestHandleGetInfoEvent_WithPermission(t *testing.T) {
 	}
 
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
-
-	NewGetInfoController(permissionsSvc, svc.LNClient).
-		HandleGetInfoEvent(ctx, nip47Request, dbRequestEvent.ID, app, checkPermission, publishResponse)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB)
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
+		HandleGetInfoEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
 
 	assert.Nil(t, publishedResponse.Error)
 	nodeInfo := publishedResponse.Result.(*getInfoResponse)
@@ -175,9 +176,9 @@ func TestHandleGetInfoEvent_WithNotifications(t *testing.T) {
 	}
 
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
-
-	NewGetInfoController(permissionsSvc, svc.LNClient).
-		HandleGetInfoEvent(ctx, nip47Request, dbRequestEvent.ID, app, checkPermission, publishResponse)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB)
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
+		HandleGetInfoEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
 
 	assert.Nil(t, publishedResponse.Error)
 	nodeInfo := publishedResponse.Result.(*getInfoResponse)
