@@ -10,16 +10,6 @@ import {
   WalletMinimal,
 } from "lucide-react";
 
-export const NIP_47_PAY_INVOICE_METHOD = "pay_invoice";
-export const NIP_47_GET_BALANCE_METHOD = "get_balance";
-export const NIP_47_GET_INFO_METHOD = "get_info";
-export const NIP_47_MAKE_INVOICE_METHOD = "make_invoice";
-export const NIP_47_LOOKUP_INVOICE_METHOD = "lookup_invoice";
-export const NIP_47_LIST_TRANSACTIONS_METHOD = "list_transactions";
-export const NIP_47_SIGN_MESSAGE_METHOD = "sign_message";
-
-export const NIP_47_NOTIFICATIONS_PERMISSION = "notifications";
-
 export type BackendType =
   | "LND"
   | "BREEZ"
@@ -60,19 +50,19 @@ export type Scope =
 
 export type Nip47NotificationType = "payment_received" | "payment_sent";
 
-export type IconMap = {
+export type ScopeIconMap = {
   [key in Scope]: LucideIcon;
 };
 
-export const iconMap: IconMap = {
-  [NIP_47_GET_BALANCE_METHOD]: WalletMinimal,
-  [NIP_47_GET_INFO_METHOD]: Info,
-  [NIP_47_LIST_TRANSACTIONS_METHOD]: NotebookTabs,
-  [NIP_47_LOOKUP_INVOICE_METHOD]: Search,
-  [NIP_47_MAKE_INVOICE_METHOD]: CirclePlus,
-  [NIP_47_PAY_INVOICE_METHOD]: HandCoins,
-  [NIP_47_SIGN_MESSAGE_METHOD]: PenLine,
-  [NIP_47_NOTIFICATIONS_PERMISSION]: Bell,
+export const scopeIconMap: ScopeIconMap = {
+  get_balance: WalletMinimal,
+  get_info: Info,
+  list_transactions: NotebookTabs,
+  lookup_invoice: Search,
+  make_invoice: CirclePlus,
+  pay_invoice: HandCoins,
+  sign_message: PenLine,
+  notifications: Bell,
 };
 
 export type WalletCapabilities = {
@@ -90,14 +80,14 @@ export const validBudgetRenewals: BudgetRenewalType[] = [
 ];
 
 export const scopeDescriptions: Record<Scope, string> = {
-  [NIP_47_GET_BALANCE_METHOD]: "Read your balance",
-  [NIP_47_GET_INFO_METHOD]: "Read your node info",
-  [NIP_47_LIST_TRANSACTIONS_METHOD]: "Read transaction history",
-  [NIP_47_LOOKUP_INVOICE_METHOD]: "Lookup status of invoices",
-  [NIP_47_MAKE_INVOICE_METHOD]: "Create invoices",
-  [NIP_47_PAY_INVOICE_METHOD]: "Send payments",
-  [NIP_47_SIGN_MESSAGE_METHOD]: "Sign messages",
-  [NIP_47_NOTIFICATIONS_PERMISSION]: "Receive wallet notifications",
+  get_balance: "Read your balance",
+  get_info: "Read your node info",
+  list_transactions: "Read transaction history",
+  lookup_invoice: "Lookup status of invoices",
+  make_invoice: "Create invoices",
+  pay_invoice: "Send payments",
+  sign_message: "Sign messages",
+  notifications: "Receive wallet notifications",
 };
 
 export const expiryOptions: Record<string, number> = {
@@ -109,8 +99,6 @@ export const expiryOptions: Record<string, number> = {
 
 export const budgetOptions: Record<string, number> = {
   "10k": 10_000,
-  "25k": 25_000,
-  "50k": 50_000,
   "100k": 100_000,
   "1M": 1_000_000,
   Unlimited: 0,
@@ -130,6 +118,8 @@ export interface App {
   updatedAt: string;
   lastEventAt?: string;
   expiresAt?: string;
+  isolated: boolean;
+  balance: number;
 
   scopes: Scope[];
   maxAmount: number;
@@ -138,10 +128,11 @@ export interface App {
 }
 
 export interface AppPermissions {
-  scopes: Set<Scope>;
+  scopes: Scope[];
   maxAmount: number;
   budgetRenewal: BudgetRenewalType;
   expiresAt?: Date;
+  isolated: boolean;
 }
 
 export interface InfoResponse {
@@ -172,6 +163,7 @@ export interface CreateAppRequest {
   expiresAt: string | undefined;
   scopes: Scope[];
   returnTo: string;
+  isolated: boolean;
 }
 
 export interface CreateAppResponse {
@@ -203,6 +195,7 @@ export type Channel = {
   forwardingFeeBaseMsat: number;
   unspendablePunishmentReserve: number;
   counterpartyUnspendablePunishmentReserve: number;
+  error?: string;
 };
 
 export type UpdateChannelRequest = {

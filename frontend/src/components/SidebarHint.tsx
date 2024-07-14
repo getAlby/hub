@@ -73,7 +73,7 @@ function SidebarHint() {
         title="Open Your First Channel"
         description="Deposit bitcoin by onchain or lightning payment to start using your new wallet."
         buttonText="Begin Now"
-        buttonLink="/channels"
+        buttonLink="/channels/outgoing"
       />
     );
   }

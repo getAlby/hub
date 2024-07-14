@@ -207,19 +207,12 @@ func finishRestoreNode(workDir string) {
 }
 
 func (svc *service) Shutdown() {
-	svc.StopLNClient()
+	svc.StopApp()
 	svc.eventPublisher.Publish(&events.Event{
 		Event: "nwc_stopped",
 	})
 	// wait for any remaining events
 	time.Sleep(1 * time.Second)
-}
-
-func (svc *service) StopApp() {
-	if svc.appCancelFn != nil {
-		svc.appCancelFn()
-		svc.wg.Wait()
-	}
 }
 
 func (svc *service) GetDB() *gorm.DB {
@@ -252,9 +245,4 @@ func (svc *service) GetTransactionsService() transactions.TransactionsService {
 
 func (svc *service) GetKeys() keys.Keys {
 	return svc.keys
-}
-
-func (svc *service) WaitShutdown() {
-	logger.Logger.Info("Waiting for service to exit...")
-	svc.wg.Wait()
 }

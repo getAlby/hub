@@ -77,15 +77,15 @@ function TransactionItem({ tx }: Props) {
                   className={cn(
                     "w-6 h-6 md:w-8 md:h-8",
                     type === "outgoing"
-                      ? "text-orange-400 dark:text-amber-600 stroke-orange-400 dark:stroke-amber-600"
-                      : "text-green-500 dark:text-emerald-500 stroke-green-400 dark:stroke-emerald-500"
+                      ? "stroke-orange-400 dark:stroke-amber-600"
+                      : "stroke-green-400 dark:stroke-emerald-500"
                   )}
                 />
               </div>
             )}
           </div>
           <div className="overflow-hidden mr-3">
-            <div className="flex items-center gap-2 truncate dark:text-white">
+            <div className="flex items-center gap-2 truncate">
               <p className="text-lg md:text-xl font-semibold">
                 {app ? app.name : type == "incoming" ? "Received" : "Sent"}
               </p>
@@ -97,12 +97,12 @@ function TransactionItem({ tx }: Props) {
               {tx.description || "Lightning invoice"}
             </p>
           </div>
-          <div className="flex ml-auto text-right space-x-3 shrink-0 dark:text-white">
+          <div className="flex ml-auto text-right space-x-3 shrink-0">
             <div className="flex items-center gap-2 text-xl">
               <p
                 className={cn(
                   "font-semibold",
-                  type == "incoming" && "text-green-600 dark:color-green-400"
+                  type == "incoming" && "text-green-600 dark:text-emerald-500"
                 )}
               >
                 {type == "outgoing" ? "-" : "+"}
@@ -115,7 +115,7 @@ function TransactionItem({ tx }: Props) {
               </p>
 
               {/* {!!tx.totalAmountFiat && (
-                <p className="text-xs text-gray-400 dark:text-neutral-600">
+                <p className="text-xs text-muted-foreground">
                   ~{tx.totalAmountFiat}
                 </p>
               )} */}
@@ -144,8 +144,8 @@ function TransactionItem({ tx }: Props) {
                 className={cn(
                   "w-6 h-6 md:w-8 md:h-8",
                   type === "outgoing"
-                    ? "text-orange-400 dark:text-amber-600 stroke-orange-400 dark:stroke-amber-600"
-                    : "text-green-500 dark:text-emerald-500 stroke-green-400 dark:stroke-emerald-500"
+                    ? "stroke-orange-400 dark:stroke-amber-600"
+                    : "stroke-green-400 dark:stroke-emerald-500"
                 )}
               />
             </div>
@@ -156,13 +156,13 @@ function TransactionItem({ tx }: Props) {
                 )}{" "}
                 {Math.floor(tx.amount / 1000) == 1 ? "sat" : "sats"}
               </p>
-              {/* <p className="text-sm md:text-base text-gray-500">
+              {/* <p className="text-sm md:text-base text-muted-foreground">
                 Fiat Amount
               </p> */}
             </div>
           </div>
           <div className="mt-8">
-            <p className="dark:text-white">Date & Time</p>
+            <p>Date & Time</p>
             <p className="text-muted-foreground">
               {dayjs(tx.settled_at)
                 .tz(dayjs.tz.guess())
@@ -171,7 +171,7 @@ function TransactionItem({ tx }: Props) {
           </div>
           {type == "outgoing" && (
             <div className="mt-6">
-              <p className="dark:text-white">Fee</p>
+              <p>Fee</p>
               <p className="text-muted-foreground">
                 {new Intl.NumberFormat(undefined, {}).format(
                   Math.floor(tx.fees_paid / 1000)
@@ -182,7 +182,7 @@ function TransactionItem({ tx }: Props) {
           )}
           {tx.description && (
             <div className="mt-6">
-              <p className="dark:text-white">Description</p>
+              <p>Description</p>
               <p className="text-muted-foreground">{tx.description}</p>
             </div>
           )}
@@ -202,7 +202,7 @@ function TransactionItem({ tx }: Props) {
           {showDetails && (
             <>
               <div className="mt-6 !ml-0">
-                <p className="dark:text-white">Preimage</p>
+                <p>Preimage</p>
                 <div className="flex items-center gap-4">
                   <p className="text-muted-foreground break-all">
                     {tx.preimage}
@@ -219,7 +219,7 @@ function TransactionItem({ tx }: Props) {
                 </div>
               </div>
               <div className="mt-6 !ml-0">
-                <p className="dark:text-white">Hash</p>
+                <p>Hash</p>
                 <div className="flex items-center gap-4">
                   <p className="text-muted-foreground break-all">
                     {tx.payment_hash}

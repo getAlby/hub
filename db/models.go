@@ -79,7 +79,7 @@ type Transaction struct {
 }
 
 type DBService interface {
-	CreateApp(name string, pubkey string, maxAmountSat uint64, budgetRenewal string, expiresAt *time.Time, scopes []string) (*App, string, error)
+	CreateApp(name string, pubkey string, maxAmountSat uint64, budgetRenewal string, expiresAt *time.Time, scopes []string, isolated bool) (*App, string, error)
 }
 
 const (

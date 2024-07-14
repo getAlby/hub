@@ -68,7 +68,14 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 		}
 	}
 
-	app, pairingSecretKey, err := api.dbSvc.CreateApp(createAppRequest.Name, createAppRequest.Pubkey, createAppRequest.MaxAmountSat, createAppRequest.BudgetRenewal, expiresAt, createAppRequest.Scopes)
+	app, pairingSecretKey, err := api.dbSvc.CreateApp(
+		createAppRequest.Name,
+		createAppRequest.Pubkey,
+		createAppRequest.MaxAmountSat,
+		createAppRequest.BudgetRenewal,
+		expiresAt,
+		createAppRequest.Scopes,
+		createAppRequest.Isolated)
 
 	if err != nil {
 		return nil, err
@@ -212,6 +219,11 @@ func (api *api) GetApp(dbApp *db.App) *App {
 		Scopes:        requestMethods,
 		BudgetUsage:   budgetUsage,
 		BudgetRenewal: paySpecificPermission.BudgetRenewal,
+		Isolated:      dbApp.Isolated,
+	}
+
+	if dbApp.Isolated {
+		response.Balance = queries.GetIsolatedBalance(api.db, dbApp.ID)
 	}
 
 	if lastEventResult.RowsAffected > 0 {
@@ -244,6 +256,11 @@ func (api *api) ListApps() ([]App, error) {
 			CreatedAt:   dbApp.CreatedAt,
 			UpdatedAt:   dbApp.UpdatedAt,
 			NostrPubkey: dbApp.NostrPubkey,
+			Isolated:    dbApp.Isolated,
+		}
+
+		if dbApp.Isolated {
+			apiApp.Balance = queries.GetIsolatedBalance(api.db, dbApp.ID)
 		}
 
 		for _, appPermission := range permissionsMap[dbApp.ID] {
@@ -317,15 +334,11 @@ func (api *api) Stop() error {
 		return errors.New("LNClient not started")
 	}
 
-	// TODO: this should stop everything related to the lnclient
-	// stop the lnclient
+	// stop the lnclient, nostr relay etc.
 	// The user will be forced to re-enter their unlock password to restart the node
-	err := api.svc.StopLNClient()
-	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to stop LNClient")
-	}
+	api.svc.StopApp()
 
-	return err
+	return nil
 }
 
 func (api *api) GetNodeConnectionInfo(ctx context.Context) (*lnclient.NodeConnectionInfo, error) {
@@ -746,7 +759,6 @@ func (api *api) parseExpiresAt(expiresAtString string) (*time.Time, error) {
 			logger.Logger.WithField("expiresAt", expiresAtString).Error("Invalid expiresAt")
 			return nil, fmt.Errorf("invalid expiresAt: %v", err)
 		}
-		expiresAtValue = time.Date(expiresAtValue.Year(), expiresAtValue.Month(), expiresAtValue.Day(), 23, 59, 59, 0, expiresAtValue.Location())
 		expiresAt = &expiresAtValue
 	}
 	return expiresAt, nil

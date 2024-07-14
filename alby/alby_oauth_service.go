@@ -405,6 +405,7 @@ func (svc *albyOAuthService) LinkAccount(ctx context.Context, lnClient lnclient.
 		renewal,
 		nil,
 		scopes,
+		false,
 	)
 
 	if err != nil {

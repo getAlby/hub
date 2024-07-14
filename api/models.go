@@ -68,6 +68,8 @@ type App struct {
 	MaxAmountSat  uint64     `json:"maxAmount"`
 	BudgetUsage   uint64     `json:"budgetUsage"`
 	BudgetRenewal string     `json:"budgetRenewal"`
+	Isolated      bool       `json:"isolated"`
+	Balance       uint64     `json:"balance"`
 }
 
 type ListAppsResponse struct {
@@ -89,6 +91,7 @@ type CreateAppRequest struct {
 	ExpiresAt     string   `json:"expiresAt"`
 	Scopes        []string `json:"scopes"`
 	ReturnTo      string   `json:"returnTo"`
+	Isolated      bool     `json:"isolated"`
 }
 
 type StartRequest struct {
