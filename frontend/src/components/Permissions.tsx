@@ -9,7 +9,6 @@ import { cn } from "src/lib/utils";
 import {
   AppPermissions,
   BudgetRenewalType,
-  NIP_47_PAY_INVOICE_METHOD,
   Scope,
   WalletCapabilities,
   scopeDescriptions,
@@ -66,7 +65,7 @@ const Permissions: React.FC<PermissionsProps> = ({
   }, [canEditPermissions, isNewConnection]);
 
   const [showBudgetOptions, setShowBudgetOptions] = React.useState(
-    isNewConnection ? !!permissions.maxAmount : true
+    permissions.scopes.has("pay_invoice")
   );
   const [showExpiryOptions, setShowExpiryOptions] = React.useState(
     isNewConnection ? !!permissions.expiresAt : true
@@ -115,32 +114,31 @@ const Permissions: React.FC<PermissionsProps> = ({
         <Scopes
           capabilities={capabilities}
           scopes={permissions.scopes}
-          onScopeChange={handleScopeChange}
+          onScopesChanged={handleScopeChange}
         />
       ) : (
         <>
           <p className="text-sm font-medium mb-2">Scopes</p>
           <div className="flex flex-col mb-2">
-            {[...permissions.scopes].map((rm) => {
-              const PermissionIcon = scopeIconMap[rm];
+            {[...permissions.scopes].map((scope) => {
+              const PermissionIcon = scopeIconMap[scope];
               return (
                 <div
-                  key={rm}
+                  key={scope}
                   className={cn(
                     "flex items-center mb-2",
-                    rm == NIP_47_PAY_INVOICE_METHOD && "order-last"
+                    scope == "pay_invoice" && "order-last"
                   )}
                 >
                   <PermissionIcon className="mr-2 w-4 h-4" />
-                  <p className="text-sm">{scopeDescriptions[rm]}</p>
+                  <p className="text-sm">{scopeDescriptions[scope]}</p>
                 </div>
               );
             })}
           </div>
         </>
       )}
-      {capabilities.scopes.includes(NIP_47_PAY_INVOICE_METHOD) &&
-        permissions.scopes.has(NIP_47_PAY_INVOICE_METHOD) &&
+      {permissions.scopes.has("pay_invoice") &&
         (!isBudgetAmountEditable ? (
           <div className="pl-4 ml-2 border-l-2 border-l-primary mb-4">
             <div className="flex flex-col gap-2 text-muted-foreground text-sm">
@@ -179,7 +177,7 @@ const Permissions: React.FC<PermissionsProps> = ({
                 )}
               >
                 <PlusCircle className="w-4 h-4 mr-2" />
-                Set budget renewal
+                Set budget
               </Button>
             )}
             {showBudgetOptions && (

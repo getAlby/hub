@@ -1,89 +1,89 @@
-import React, { useEffect } from "react";
+import {
+  ArrowDownUp,
+  BrickWall,
+  LucideIcon,
+  MoveDown,
+  SquarePen,
+} from "lucide-react";
+import React from "react";
 import { Checkbox } from "src/components/ui/checkbox";
 import { Label } from "src/components/ui/label";
 import { cn } from "src/lib/utils";
-import {
-  NIP_47_GET_BALANCE_METHOD,
-  NIP_47_GET_INFO_METHOD,
-  NIP_47_LIST_TRANSACTIONS_METHOD,
-  NIP_47_LOOKUP_INVOICE_METHOD,
-  NIP_47_NOTIFICATIONS_PERMISSION,
-  NIP_47_PAY_INVOICE_METHOD,
-  ReadOnlyScope,
-  SCOPE_GROUP_CUSTOM,
-  SCOPE_GROUP_FULL_ACCESS,
-  SCOPE_GROUP_READ_ONLY,
-  Scope,
-  ScopeGroup,
-  WalletCapabilities,
-  scopeDescriptions,
-  scopeGroupDescriptions,
-  scopeGroupIconMap,
-  scopeGroupTitle,
-} from "src/types";
+import { Scope, WalletCapabilities, scopeDescriptions } from "src/types";
+
+const scopeGroups = ["full_access", "read_only", "isolated", "custom"] as const;
+type ScopeGroup = (typeof scopeGroups)[number];
+type ScopeGroupIconMap = { [key in ScopeGroup]: LucideIcon };
+
+const scopeGroupIconMap: ScopeGroupIconMap = {
+  full_access: ArrowDownUp,
+  read_only: MoveDown,
+  isolated: BrickWall,
+  custom: SquarePen,
+};
+
+const scopeGroupTitle: Record<ScopeGroup, string> = {
+  full_access: "Full Access",
+  read_only: "Read Only",
+  isolated: "Isolated",
+  custom: "Custom",
+};
+
+const scopeGroupDescriptions: Record<ScopeGroup, string> = {
+  full_access: "I trust this app to access my wallet within the budget I set",
+  read_only: "This app can receive payments and read my transaction history",
+  isolated:
+    "This app will have its own balance and only sees its own transactions",
+  custom: "I want to define exactly what access this app has to my wallet",
+};
 
 interface ScopesProps {
   capabilities: WalletCapabilities;
   scopes: Set<Scope>;
-  onScopeChange: (scopes: Set<Scope>) => void;
+  onScopesChanged: (scopes: Set<Scope>) => void;
 }
-
-const isSetEqual = (setA: Set<string>, setB: Set<string>) =>
-  setA.size === setB.size && [...setA].every((value) => setB.has(value));
 
 const Scopes: React.FC<ScopesProps> = ({
   capabilities,
   scopes,
-  onScopeChange,
+  onScopesChanged,
 }) => {
   const fullAccessScopes: Set<Scope> = React.useMemo(() => {
     return new Set(capabilities.scopes);
   }, [capabilities.scopes]);
 
-  const readOnlyScopes: Set<ReadOnlyScope> = React.useMemo(() => {
+  const readOnlyScopes: Set<Scope> = React.useMemo(() => {
+    const readOnlyScopes: Scope[] = [
+      "get_balance",
+      "get_info",
+      "make_invoice",
+      "lookup_invoice",
+      "list_transactions",
+      "notifications",
+    ];
+
     const scopes: Scope[] = capabilities.scopes;
-    return new Set(
-      scopes.filter((method): method is ReadOnlyScope =>
-        [
-          NIP_47_GET_BALANCE_METHOD,
-          NIP_47_GET_INFO_METHOD,
-          NIP_47_LOOKUP_INVOICE_METHOD,
-          NIP_47_LIST_TRANSACTIONS_METHOD,
-          NIP_47_NOTIFICATIONS_PERMISSION,
-        ].includes(method)
-      )
-    );
+    return new Set(scopes.filter((scope) => readOnlyScopes.includes(scope)));
   }, [capabilities.scopes]);
 
   const [scopeGroup, setScopeGroup] = React.useState<ScopeGroup>(() => {
-    if (!scopes.size || isSetEqual(scopes, fullAccessScopes)) {
-      return SCOPE_GROUP_FULL_ACCESS;
-    } else if (isSetEqual(scopes, readOnlyScopes)) {
-      return SCOPE_GROUP_READ_ONLY;
+    if (!scopes.size) {
+      return "full_access";
     }
-    return SCOPE_GROUP_CUSTOM;
+    return "custom";
   });
-
-  // we need scopes to be empty till this point for isScopesEditable
-  // and once this component is mounted we set it to all scopes
-  useEffect(() => {
-    // stop setting scopes on re-renders
-    if (!scopes.size && scopeGroup != SCOPE_GROUP_CUSTOM) {
-      onScopeChange(fullAccessScopes);
-    }
-  }, [fullAccessScopes, onScopeChange, scopeGroup, scopes]);
 
   const handleScopeGroupChange = (scopeGroup: ScopeGroup) => {
     setScopeGroup(scopeGroup);
     switch (scopeGroup) {
-      case SCOPE_GROUP_FULL_ACCESS:
-        onScopeChange(fullAccessScopes);
+      case "full_access":
+        onScopesChanged(fullAccessScopes);
         break;
-      case SCOPE_GROUP_READ_ONLY:
-        onScopeChange(readOnlyScopes);
+      case "read_only":
+        onScopesChanged(readOnlyScopes);
         break;
       default: {
-        onScopeChange(new Set());
+        onScopesChanged(new Set());
         break;
       }
     }
@@ -96,21 +96,15 @@ const Scopes: React.FC<ScopesProps> = ({
     } else {
       newScopes.add(scope);
     }
-    onScopeChange(newScopes);
+    onScopesChanged(newScopes);
   };
 
   return (
     <>
       <div className="flex flex-col w-full mb-4">
         <p className="font-medium text-sm mb-2">Choose wallet permissions</p>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          {(
-            [
-              SCOPE_GROUP_FULL_ACCESS,
-              SCOPE_GROUP_READ_ONLY,
-              SCOPE_GROUP_CUSTOM,
-            ] as ScopeGroup[]
-          ).map((sg, index) => {
+        <div className="grid grid-cols-2 gap-4">
+          {scopeGroups.map((sg, index) => {
             const ScopeGroupIcon = scopeGroupIconMap[sg];
             return (
               <div
@@ -122,7 +116,7 @@ const Scopes: React.FC<ScopesProps> = ({
               >
                 <ScopeGroupIcon className="mb-2" />
                 <p className="text-sm font-medium">{scopeGroupTitle[sg]}</p>
-                <span className="w-full text-center text-xs text-muted-foreground truncate">
+                <span className="w-full text-center text-xs text-muted-foreground">
                   {scopeGroupDescriptions[sg]}
                 </span>
               </div>
@@ -135,24 +129,24 @@ const Scopes: React.FC<ScopesProps> = ({
         <div className="mb-2">
           <p className="font-medium text-sm">Authorize the app to:</p>
           <ul className="flex flex-col w-full mt-2">
-            {capabilities.scopes.map((rm, index) => {
+            {capabilities.scopes.map((scope, index) => {
               return (
                 <li
                   key={index}
                   className={cn(
                     "w-full",
-                    rm == NIP_47_PAY_INVOICE_METHOD ? "order-last" : ""
+                    scope == "pay_invoice" ? "order-last" : ""
                   )}
                 >
                   <div className="flex items-center mb-2">
                     <Checkbox
-                      id={rm}
+                      id={scope}
                       className="mr-2"
-                      onCheckedChange={() => handleScopeChange(rm)}
-                      checked={scopes.has(rm)}
+                      onCheckedChange={() => handleScopeChange(scope)}
+                      checked={scopes.has(scope)}
                     />
-                    <Label htmlFor={rm} className="cursor-pointer">
-                      {scopeDescriptions[rm]}
+                    <Label htmlFor={scope} className="cursor-pointer">
+                      {scopeDescriptions[scope]}
                     </Label>
                   </div>
                 </li>

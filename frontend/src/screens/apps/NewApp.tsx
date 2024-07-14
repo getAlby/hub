@@ -7,17 +7,6 @@ import {
   BudgetRenewalType,
   CreateAppRequest,
   CreateAppResponse,
-  NIP_47_GET_BALANCE_METHOD,
-  NIP_47_GET_INFO_METHOD,
-  NIP_47_LIST_TRANSACTIONS_METHOD,
-  NIP_47_LOOKUP_INVOICE_METHOD,
-  NIP_47_MAKE_INVOICE_METHOD,
-  NIP_47_MULTI_PAY_INVOICE_METHOD,
-  NIP_47_MULTI_PAY_KEYSEND_METHOD,
-  NIP_47_NOTIFICATIONS_PERMISSION,
-  NIP_47_PAY_INVOICE_METHOD,
-  NIP_47_PAY_KEYSEND_METHOD,
-  NIP_47_SIGN_MESSAGE_METHOD,
   Nip47NotificationType,
   Nip47RequestMethod,
   Scope,
@@ -117,34 +106,34 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
 
     const scopes = new Set<Scope>();
     if (
-      requestMethodsSet.has(NIP_47_PAY_KEYSEND_METHOD) ||
-      requestMethodsSet.has(NIP_47_PAY_INVOICE_METHOD) ||
-      requestMethodsSet.has(NIP_47_MULTI_PAY_INVOICE_METHOD) ||
-      requestMethodsSet.has(NIP_47_MULTI_PAY_KEYSEND_METHOD)
+      requestMethodsSet.has("pay_invoice") ||
+      requestMethodsSet.has("pay_keysend") ||
+      requestMethodsSet.has("multi_pay_invoice") ||
+      requestMethodsSet.has("multi_pay_keysend")
     ) {
-      scopes.add(NIP_47_PAY_INVOICE_METHOD);
+      scopes.add("pay_invoice");
     }
 
-    if (requestMethodsSet.has(NIP_47_GET_INFO_METHOD)) {
-      scopes.add(NIP_47_GET_INFO_METHOD);
+    if (requestMethodsSet.has("get_info")) {
+      scopes.add("get_info");
     }
-    if (requestMethodsSet.has(NIP_47_GET_BALANCE_METHOD)) {
-      scopes.add(NIP_47_GET_BALANCE_METHOD);
+    if (requestMethodsSet.has("get_balance")) {
+      scopes.add("get_balance");
     }
-    if (requestMethodsSet.has(NIP_47_MAKE_INVOICE_METHOD)) {
-      scopes.add(NIP_47_MAKE_INVOICE_METHOD);
+    if (requestMethodsSet.has("make_invoice")) {
+      scopes.add("make_invoice");
     }
-    if (requestMethodsSet.has(NIP_47_LOOKUP_INVOICE_METHOD)) {
-      scopes.add(NIP_47_LOOKUP_INVOICE_METHOD);
+    if (requestMethodsSet.has("lookup_invoice")) {
+      scopes.add("lookup_invoice");
     }
-    if (requestMethodsSet.has(NIP_47_LIST_TRANSACTIONS_METHOD)) {
-      scopes.add(NIP_47_LIST_TRANSACTIONS_METHOD);
+    if (requestMethodsSet.has("list_transactions")) {
+      scopes.add("list_transactions");
     }
-    if (requestMethodsSet.has(NIP_47_SIGN_MESSAGE_METHOD)) {
-      scopes.add(NIP_47_SIGN_MESSAGE_METHOD);
+    if (requestMethodsSet.has("sign_message")) {
+      scopes.add("sign_message");
     }
     if (notificationTypes.length) {
-      scopes.add(NIP_47_NOTIFICATIONS_PERMISSION);
+      scopes.add("notifications");
     }
 
     return scopes;

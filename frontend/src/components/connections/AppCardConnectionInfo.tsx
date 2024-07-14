@@ -4,12 +4,7 @@ import { Link } from "react-router-dom";
 import { Button } from "src/components/ui/button";
 import { Progress } from "src/components/ui/progress";
 import { formatAmount } from "src/lib/utils";
-import {
-  App,
-  BudgetRenewalType,
-  NIP_47_MAKE_INVOICE_METHOD,
-  NIP_47_PAY_INVOICE_METHOD,
-} from "src/types";
+import { App, BudgetRenewalType } from "src/types";
 
 type AppCardConnectionInfoProps = {
   connection: App;
@@ -74,7 +69,7 @@ export function AppCardConnectionInfo({
             </div>
           </div>
         </>
-      ) : connection.scopes.indexOf(NIP_47_PAY_INVOICE_METHOD) > -1 ? (
+      ) : connection.scopes.indexOf("pay_invoice") > -1 ? (
         <>
           <div className="flex flex-row justify-between">
             <div className="mb-2">
@@ -102,10 +97,16 @@ export function AppCardConnectionInfo({
               <CircleCheck className="w-4 h-4" />
               Share wallet information
             </div>
-            {connection.scopes.indexOf(NIP_47_MAKE_INVOICE_METHOD) > -1 && (
+            {connection.scopes.indexOf("make_invoice") > -1 && (
               <div className="flex flex-row items-center gap-2">
                 <CircleCheck className="w-4 h-4" />
-                Create Invoices
+                Receive payments
+              </div>
+            )}
+            {connection.scopes.indexOf("list_transactions") > -1 && (
+              <div className="flex flex-row items-center gap-2">
+                <CircleCheck className="w-4 h-4" />
+                Read transaction history
               </div>
             )}
           </div>

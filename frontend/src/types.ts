@@ -1,35 +1,14 @@
 import {
-  ArrowDownUp,
   Bell,
   CirclePlus,
   HandCoins,
   Info,
   LucideIcon,
-  MoveDown,
   NotebookTabs,
   PenLine,
   Search,
-  SquarePen,
   WalletMinimal,
 } from "lucide-react";
-
-export const NIP_47_PAY_INVOICE_METHOD = "pay_invoice";
-export const NIP_47_GET_BALANCE_METHOD = "get_balance";
-export const NIP_47_GET_INFO_METHOD = "get_info";
-export const NIP_47_MAKE_INVOICE_METHOD = "make_invoice";
-export const NIP_47_LOOKUP_INVOICE_METHOD = "lookup_invoice";
-export const NIP_47_LIST_TRANSACTIONS_METHOD = "list_transactions";
-export const NIP_47_SIGN_MESSAGE_METHOD = "sign_message";
-
-export const NIP_47_NOTIFICATIONS_PERMISSION = "notifications";
-
-export const NIP_47_PAY_KEYSEND_METHOD = "pay_keysend";
-export const NIP_47_MULTI_PAY_KEYSEND_METHOD = "multi_pay_keysend";
-export const NIP_47_MULTI_PAY_INVOICE_METHOD = "multi_pay_invoice";
-
-export const SCOPE_GROUP_FULL_ACCESS = "full_access";
-export const SCOPE_GROUP_READ_ONLY = "read_only";
-export const SCOPE_GROUP_CUSTOM = "custom";
 
 export type BackendType =
   | "LND"
@@ -69,40 +48,21 @@ export type Scope =
   | "sign_message"
   | "notifications"; // covers all notification types
 
-export type ReadOnlyScope =
-  | "get_balance"
-  | "get_info"
-  | "lookup_invoice"
-  | "list_transactions"
-  | "notifications";
-
-export type ScopeGroup = "full_access" | "read_only" | "custom";
-
 export type Nip47NotificationType = "payment_received" | "payment_sent";
 
 export type ScopeIconMap = {
   [key in Scope]: LucideIcon;
 };
 
-export type ScopeGroupIconMap = {
-  [key in ScopeGroup]: LucideIcon;
-};
-
 export const scopeIconMap: ScopeIconMap = {
-  [NIP_47_GET_BALANCE_METHOD]: WalletMinimal,
-  [NIP_47_GET_INFO_METHOD]: Info,
-  [NIP_47_LIST_TRANSACTIONS_METHOD]: NotebookTabs,
-  [NIP_47_LOOKUP_INVOICE_METHOD]: Search,
-  [NIP_47_MAKE_INVOICE_METHOD]: CirclePlus,
-  [NIP_47_PAY_INVOICE_METHOD]: HandCoins,
-  [NIP_47_SIGN_MESSAGE_METHOD]: PenLine,
-  [NIP_47_NOTIFICATIONS_PERMISSION]: Bell,
-};
-
-export const scopeGroupIconMap: ScopeGroupIconMap = {
-  [SCOPE_GROUP_FULL_ACCESS]: ArrowDownUp,
-  [SCOPE_GROUP_READ_ONLY]: MoveDown,
-  [SCOPE_GROUP_CUSTOM]: SquarePen,
+  get_balance: WalletMinimal,
+  get_info: Info,
+  list_transactions: NotebookTabs,
+  lookup_invoice: Search,
+  make_invoice: CirclePlus,
+  pay_invoice: HandCoins,
+  sign_message: PenLine,
+  notifications: Bell,
 };
 
 export type WalletCapabilities = {
@@ -120,26 +80,14 @@ export const validBudgetRenewals: BudgetRenewalType[] = [
 ];
 
 export const scopeDescriptions: Record<Scope, string> = {
-  [NIP_47_GET_BALANCE_METHOD]: "Read your balance",
-  [NIP_47_GET_INFO_METHOD]: "Read your node info",
-  [NIP_47_LIST_TRANSACTIONS_METHOD]: "Read transaction history",
-  [NIP_47_LOOKUP_INVOICE_METHOD]: "Lookup status of invoices",
-  [NIP_47_MAKE_INVOICE_METHOD]: "Create invoices",
-  [NIP_47_PAY_INVOICE_METHOD]: "Send payments",
-  [NIP_47_SIGN_MESSAGE_METHOD]: "Sign messages",
-  [NIP_47_NOTIFICATIONS_PERMISSION]: "Receive wallet notifications",
-};
-
-export const scopeGroupTitle: Record<ScopeGroup, string> = {
-  [SCOPE_GROUP_FULL_ACCESS]: "Full Access",
-  [SCOPE_GROUP_READ_ONLY]: "Read Only",
-  [SCOPE_GROUP_CUSTOM]: "Custom",
-};
-
-export const scopeGroupDescriptions: Record<ScopeGroup, string> = {
-  [SCOPE_GROUP_FULL_ACCESS]: "Complete wallet control",
-  [SCOPE_GROUP_READ_ONLY]: "Only view wallet info",
-  [SCOPE_GROUP_CUSTOM]: "Define permissions",
+  get_balance: "Read your balance",
+  get_info: "Read your node info",
+  list_transactions: "Read transaction history",
+  lookup_invoice: "Lookup status of invoices",
+  make_invoice: "Create invoices",
+  pay_invoice: "Send payments",
+  sign_message: "Sign messages",
+  notifications: "Receive wallet notifications",
 };
 
 export const expiryOptions: Record<string, number> = {
