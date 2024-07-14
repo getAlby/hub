@@ -1,5 +1,5 @@
 import dayjs from "dayjs";
-import { CircleCheck, PlusCircle } from "lucide-react";
+import { BrickWall, CircleCheck, PlusCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "src/components/ui/button";
 import { Progress } from "src/components/ui/progress";
@@ -32,7 +32,31 @@ export function AppCardConnectionInfo({
 
   return (
     <>
-      {connection.maxAmount > 0 ? (
+      {connection.isolated ? (
+        <>
+          <div className="text-sm text-secondary-foreground font-medium w-full h-full flex flex-col gap-2">
+            <div className="flex flex-row items-center gap-2">
+              <BrickWall className="w-4 h-4" />
+              Isolated
+            </div>
+          </div>
+          <div className="flex flex-row justify-between text-xs items-end mt-2">
+            <div>
+              {connection.lastEventAt && (
+                <p className="text-muted-foreground">
+                  Last used: {dayjs(connection.lastEventAt).fromNow()}
+                </p>
+              )}
+            </div>
+            <div className="flex flex-col items-end justify-end">
+              <p>Balance</p>
+              <p className="text-xl font-medium">
+                {formatAmount(connection.balance)} sats
+              </p>
+            </div>
+          </div>
+        </>
+      ) : connection.maxAmount > 0 ? (
         <>
           <div className="flex flex-row justify-between">
             <div className="mb-2">

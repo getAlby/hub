@@ -2,9 +2,12 @@ package db
 
 import (
 	"encoding/hex"
+	"errors"
 	"fmt"
+	"slices"
 	"time"
 
+	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/logger"
 	"github.com/nbd-wtf/go-nostr"
@@ -23,7 +26,16 @@ func NewDBService(db *gorm.DB, eventPublisher events.EventPublisher) *dbService 
 	}
 }
 
-func (svc *dbService) CreateApp(name string, pubkey string, maxAmountSat uint64, budgetRenewal string, expiresAt *time.Time, scopes []string) (*App, string, error) {
+func (svc *dbService) CreateApp(name string, pubkey string, maxAmountSat uint64, budgetRenewal string, expiresAt *time.Time, scopes []string, isolated bool) (*App, string, error) {
+	if isolated && (slices.Contains(scopes, constants.GET_INFO_SCOPE)) {
+		// cannot return node info because the isolated app is a custodial subaccount
+		return nil, "", errors.New("Isolated app cannot have get_info scope")
+	}
+	if isolated && (slices.Contains(scopes, constants.SIGN_MESSAGE_SCOPE)) {
+		// cannot sign messages because the isolated app is a custodial subaccount
+		return nil, "", errors.New("Isolated app cannot have sign_message scope")
+	}
+
 	var pairingPublicKey string
 	var pairingSecretKey string
 	if pubkey == "" {
@@ -39,7 +51,7 @@ func (svc *dbService) CreateApp(name string, pubkey string, maxAmountSat uint64,
 		}
 	}
 
-	app := App{Name: name, NostrPubkey: pairingPublicKey}
+	app := App{Name: name, NostrPubkey: pairingPublicKey, Isolated: isolated}
 
 	err := svc.db.Transaction(func(tx *gorm.DB) error {
 		err := tx.Save(&app).Error

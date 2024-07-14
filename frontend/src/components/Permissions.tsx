@@ -65,10 +65,12 @@ const Permissions: React.FC<PermissionsProps> = ({
   }, [canEditPermissions, isNewConnection]);
 
   const [showBudgetOptions, setShowBudgetOptions] = React.useState(
-    permissions.scopes.has("pay_invoice")
+    //permissions.scopes.has("pay_invoice")
+    false
   );
   const [showExpiryOptions, setShowExpiryOptions] = React.useState(
-    isNewConnection ? !!permissions.expiresAt : true
+    false
+    // isNewConnection ? !!permissions.expiresAt : true
   );
 
   const handlePermissionsChange = React.useCallback(
@@ -80,9 +82,9 @@ const Permissions: React.FC<PermissionsProps> = ({
     [permissions, onPermissionsChange]
   );
 
-  const handleScopeChange = React.useCallback(
-    (scopes: Set<Scope>) => {
-      handlePermissionsChange({ scopes });
+  const onScopesChanged = React.useCallback(
+    (scopes: Set<Scope>, isolated: boolean) => {
+      handlePermissionsChange({ scopes, isolated });
     },
     [handlePermissionsChange]
   );
@@ -114,7 +116,8 @@ const Permissions: React.FC<PermissionsProps> = ({
         <Scopes
           capabilities={capabilities}
           scopes={permissions.scopes}
-          onScopesChanged={handleScopeChange}
+          isolated={permissions.isolated}
+          onScopesChanged={onScopesChanged}
         />
       ) : (
         <>
@@ -138,91 +141,98 @@ const Permissions: React.FC<PermissionsProps> = ({
           </div>
         </>
       )}
-      {permissions.scopes.has("pay_invoice") &&
-        (!isBudgetAmountEditable ? (
-          <div className="pl-4 ml-2 border-l-2 border-l-primary mb-4">
-            <div className="flex flex-col gap-2 text-muted-foreground text-sm">
-              <p className="capitalize">
-                <span className="text-primary-foreground font-medium">
-                  Budget Renewal:
-                </span>{" "}
-                {permissions.budgetRenewal || "Never"}
-              </p>
-              <p>
-                <span className="text-primary-foreground font-medium">
-                  Budget Amount:
-                </span>{" "}
-                {permissions.maxAmount
-                  ? new Intl.NumberFormat().format(permissions.maxAmount)
-                  : "∞"}
-                {" sats "}
-                {!isNewConnection &&
-                  `(${new Intl.NumberFormat().format(budgetUsage || 0)} sats used)`}
-              </p>
+      {!permissions.isolated && permissions.scopes.has("pay_invoice") && (
+        <>
+          {!isBudgetAmountEditable ? (
+            <div className="pl-4 ml-2 border-l-2 border-l-primary mb-4">
+              <div className="flex flex-col gap-2 text-muted-foreground text-sm">
+                <p className="capitalize">
+                  <span className="text-primary-foreground font-medium">
+                    Budget Renewal:
+                  </span>{" "}
+                  {permissions.budgetRenewal || "Never"}
+                </p>
+                <p>
+                  <span className="text-primary-foreground font-medium">
+                    Budget Amount:
+                  </span>{" "}
+                  {permissions.maxAmount
+                    ? new Intl.NumberFormat().format(permissions.maxAmount)
+                    : "∞"}
+                  {" sats "}
+                  {!isNewConnection &&
+                    `(${new Intl.NumberFormat().format(budgetUsage || 0)} sats used)`}
+                </p>
+              </div>
             </div>
-          </div>
-        ) : (
-          <>
-            {!showBudgetOptions && (
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => {
-                  handleBudgetMaxAmountChange(100000);
-                  setShowBudgetOptions(true);
-                }}
-                className={cn(
-                  "mr-4",
-                  (!isExpiryEditable || showExpiryOptions) && "mb-4"
-                )}
-              >
-                <PlusCircle className="w-4 h-4 mr-2" />
-                Set budget
-              </Button>
-            )}
-            {showBudgetOptions && (
-              <>
-                <BudgetRenewalSelect
-                  value={permissions.budgetRenewal}
-                  onChange={handleBudgetRenewalChange}
-                />
-                <BudgetAmountSelect
-                  value={permissions.maxAmount}
-                  onChange={handleBudgetMaxAmountChange}
-                />
-              </>
-            )}
-          </>
-        ))}
-
-      {!isExpiryEditable ? (
-        <>
-          <p className="text-sm font-medium mb-2">Connection expiry</p>
-          <p className="text-muted-foreground text-sm">
-            {permissions.expiresAt &&
-            new Date(permissions.expiresAt).getFullYear() !== 1
-              ? new Date(permissions.expiresAt).toString()
-              : "This app will never expire"}
-          </p>
-        </>
-      ) : (
-        <>
-          {!showExpiryOptions && (
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => setShowExpiryOptions(true)}
-            >
-              <PlusCircle className="w-4 h-4 mr-2" />
-              Set expiration time
-            </Button>
+          ) : (
+            <>
+              {!showBudgetOptions && (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => {
+                    handleBudgetMaxAmountChange(100000);
+                    setShowBudgetOptions(true);
+                  }}
+                  className={cn(
+                    "mr-4",
+                    (!isExpiryEditable || showExpiryOptions) && "mb-4"
+                  )}
+                >
+                  <PlusCircle className="w-4 h-4 mr-2" />
+                  Set budget
+                </Button>
+              )}
+              {showBudgetOptions && (
+                <>
+                  <BudgetRenewalSelect
+                    value={permissions.budgetRenewal}
+                    onChange={handleBudgetRenewalChange}
+                  />
+                  <BudgetAmountSelect
+                    value={permissions.maxAmount}
+                    onChange={handleBudgetMaxAmountChange}
+                  />
+                </>
+              )}
+            </>
           )}
+        </>
+      )}
 
-          {showExpiryOptions && (
-            <ExpirySelect
-              value={permissions.expiresAt}
-              onChange={handleExpiryChange}
-            />
+      {!permissions.isolated && (
+        <>
+          {!isExpiryEditable ? (
+            <>
+              <p className="text-sm font-medium mb-2">Connection expiry</p>
+              <p className="text-muted-foreground text-sm">
+                {permissions.expiresAt &&
+                new Date(permissions.expiresAt).getFullYear() !== 1
+                  ? new Date(permissions.expiresAt).toString()
+                  : "This app will never expire"}
+              </p>
+            </>
+          ) : (
+            <>
+              {!showExpiryOptions && (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => setShowExpiryOptions(true)}
+                >
+                  <PlusCircle className="w-4 h-4 mr-2" />
+                  Set expiration time
+                </Button>
+              )}
+
+              {showExpiryOptions && (
+                <ExpirySelect
+                  value={permissions.expiresAt}
+                  onChange={handleExpiryChange}
+                />
+              )}
+            </>
           )}
         </>
       )}

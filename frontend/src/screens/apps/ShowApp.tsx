@@ -5,12 +5,7 @@ import { useApp } from "src/hooks/useApp";
 import { useCSRF } from "src/hooks/useCSRF";
 import { useDeleteApp } from "src/hooks/useDeleteApp";
 import { useInfo } from "src/hooks/useInfo";
-import {
-  AppPermissions,
-  BudgetRenewalType,
-  Scope,
-  UpdateAppRequest,
-} from "src/types";
+import { AppPermissions, BudgetRenewalType, UpdateAppRequest } from "src/types";
 
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request"; // build the project for this to appear
@@ -40,6 +35,7 @@ import {
 import { Table, TableBody, TableCell, TableRow } from "src/components/ui/table";
 import { useToast } from "src/components/ui/use-toast";
 import { useCapabilities } from "src/hooks/useCapabilities";
+import { formatAmount } from "src/lib/utils";
 
 function ShowApp() {
   const { data: info } = useInfo();
@@ -72,6 +68,7 @@ function ShowApp() {
         maxAmount: app.maxAmount,
         budgetRenewal: app.budgetRenewal as BudgetRenewalType,
         expiresAt: app.expiresAt ? new Date(app.expiresAt) : undefined,
+        isolated: app.isolated,
       });
     }
   }, [app]);
@@ -170,6 +167,14 @@ function ShowApp() {
                       {app.nostrPubkey}
                     </TableCell>
                   </TableRow>
+                  {app.isolated && (
+                    <TableRow>
+                      <TableCell className="font-medium">Balance</TableCell>
+                      <TableCell className="text-muted-foreground break-all">
+                        {formatAmount(app.balance)} sats
+                      </TableCell>
+                    </TableRow>
+                  )}
                   <TableRow>
                     <TableCell className="font-medium">Last used</TableCell>
                     <TableCell className="text-muted-foreground">
@@ -192,63 +197,65 @@ function ShowApp() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                <div className="flex flex-row justify-between items-center">
-                  Permissions
-                  <div className="flex flex-row gap-2">
-                    {editMode && (
-                      <div className="flex justify-center items-center gap-2">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => {
-                            setPermissions({
-                              scopes: new Set(app.scopes as Scope[]),
-                              maxAmount: app.maxAmount,
-                              budgetRenewal:
-                                app.budgetRenewal as BudgetRenewalType,
-                              expiresAt: app.expiresAt
-                                ? new Date(app.expiresAt)
-                                : undefined,
-                            });
-                            setEditMode(!editMode);
-                          }}
-                        >
-                          Cancel
-                        </Button>
+          {!app.isolated && (
+            <Card>
+              <CardHeader>
+                <CardTitle>
+                  <div className="flex flex-row justify-between items-center">
+                    Permissions
+                    <div className="flex flex-row gap-2">
+                      {editMode && (
+                        <div className="flex justify-center items-center gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                              // setPermissions({
+                              //   scopes: new Set(app.scopes as Scope[]),
+                              //   maxAmount: app.maxAmount,
+                              //   budgetRenewal:
+                              //     app.budgetRenewal as BudgetRenewalType,
+                              //   expiresAt: app.expiresAt
+                              //     ? new Date(app.expiresAt)
+                              //     : undefined,
+                              // });
+                              setEditMode(!editMode);
+                            }}
+                          >
+                            Cancel
+                          </Button>
 
-                        <Button type="button" onClick={handleSave}>
-                          Save
-                        </Button>
-                      </div>
-                    )}
+                          <Button type="button" onClick={handleSave}>
+                            Save
+                          </Button>
+                        </div>
+                      )}
 
-                    {!editMode && (
-                      <>
-                        <Button
-                          variant="outline"
-                          onClick={() => setEditMode(!editMode)}
-                        >
-                          Edit
-                        </Button>
-                      </>
-                    )}
+                      {!editMode && (
+                        <>
+                          <Button
+                            variant="outline"
+                            onClick={() => setEditMode(!editMode)}
+                          >
+                            Edit
+                          </Button>
+                        </>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Permissions
-                capabilities={capabilities}
-                initialPermissions={permissions}
-                onPermissionsChange={setPermissions}
-                canEditPermissions={editMode}
-                budgetUsage={app.budgetUsage}
-              />
-            </CardContent>
-          </Card>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Permissions
+                  capabilities={capabilities}
+                  initialPermissions={permissions}
+                  onPermissionsChange={setPermissions}
+                  canEditPermissions={editMode}
+                  budgetUsage={app.budgetUsage}
+                />
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </>

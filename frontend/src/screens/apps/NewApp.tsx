@@ -63,6 +63,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
     "budget_renewal"
   ) as BudgetRenewalType;
   const budgetMaxAmountParam = queryParams.get("max_amount") ?? "";
+  const isolatedParam = queryParams.get("isolated") ?? "";
   const expiresAtParam = queryParams.get("expires_at") ?? "";
 
   const reqMethodsParam = queryParams.get("request_methods") ?? "";
@@ -161,6 +162,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
       ? budgetRenewalParam
       : "monthly",
     expiresAt: parseExpiresParam(expiresAtParam),
+    isolated: isolatedParam === "true",
   });
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -183,6 +185,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
         scopes: Array.from(permissions.scopes),
         expiresAt: permissions.expiresAt?.toISOString(),
         returnTo: returnTo,
+        isolated: permissions.isolated,
       };
 
       const createAppResponse = await request<CreateAppResponse>("/api/apps", {

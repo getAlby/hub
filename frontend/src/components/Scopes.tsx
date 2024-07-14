@@ -40,14 +40,17 @@ const scopeGroupDescriptions: Record<ScopeGroup, string> = {
 interface ScopesProps {
   capabilities: WalletCapabilities;
   scopes: Set<Scope>;
-  onScopesChanged: (scopes: Set<Scope>) => void;
+  isolated: boolean;
+  onScopesChanged: (scopes: Set<Scope>, isolated: boolean) => void;
 }
 
 const Scopes: React.FC<ScopesProps> = ({
   capabilities,
   scopes,
+  isolated,
   onScopesChanged,
 }) => {
+  // TODO: remove the use of Set here - it is unnecessary and complicates the code
   const fullAccessScopes: Set<Scope> = React.useMemo(() => {
     return new Set(capabilities.scopes);
   }, [capabilities.scopes]);
@@ -62,11 +65,30 @@ const Scopes: React.FC<ScopesProps> = ({
       "notifications",
     ];
 
-    const scopes: Scope[] = capabilities.scopes;
-    return new Set(scopes.filter((scope) => readOnlyScopes.includes(scope)));
+    return new Set(
+      capabilities.scopes.filter((scope) => readOnlyScopes.includes(scope))
+    );
+  }, [capabilities.scopes]);
+
+  const isolatedScopes: Set<Scope> = React.useMemo(() => {
+    const isolatedScopes: Scope[] = [
+      "pay_invoice",
+      "get_balance",
+      "make_invoice",
+      "lookup_invoice",
+      "list_transactions",
+      "notifications",
+    ];
+
+    return new Set(
+      capabilities.scopes.filter((scope) => isolatedScopes.includes(scope))
+    );
   }, [capabilities.scopes]);
 
   const [scopeGroup, setScopeGroup] = React.useState<ScopeGroup>(() => {
+    if (isolated) {
+      return "isolated";
+    }
     if (!scopes.size) {
       return "full_access";
     }
@@ -77,13 +99,16 @@ const Scopes: React.FC<ScopesProps> = ({
     setScopeGroup(scopeGroup);
     switch (scopeGroup) {
       case "full_access":
-        onScopesChanged(fullAccessScopes);
+        onScopesChanged(fullAccessScopes, false);
         break;
       case "read_only":
-        onScopesChanged(readOnlyScopes);
+        onScopesChanged(readOnlyScopes, false);
+        break;
+      case "isolated":
+        onScopesChanged(isolatedScopes, true);
         break;
       default: {
-        onScopesChanged(new Set());
+        onScopesChanged(new Set(), false);
         break;
       }
     }
@@ -96,7 +121,7 @@ const Scopes: React.FC<ScopesProps> = ({
     } else {
       newScopes.add(scope);
     }
-    onScopesChanged(newScopes);
+    onScopesChanged(newScopes, false);
   };
 
   return (

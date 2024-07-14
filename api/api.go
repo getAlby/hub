@@ -68,7 +68,14 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 		}
 	}
 
-	app, pairingSecretKey, err := api.dbSvc.CreateApp(createAppRequest.Name, createAppRequest.Pubkey, createAppRequest.MaxAmountSat, createAppRequest.BudgetRenewal, expiresAt, createAppRequest.Scopes)
+	app, pairingSecretKey, err := api.dbSvc.CreateApp(
+		createAppRequest.Name,
+		createAppRequest.Pubkey,
+		createAppRequest.MaxAmountSat,
+		createAppRequest.BudgetRenewal,
+		expiresAt,
+		createAppRequest.Scopes,
+		createAppRequest.Isolated)
 
 	if err != nil {
 		return nil, err
@@ -212,6 +219,11 @@ func (api *api) GetApp(dbApp *db.App) *App {
 		Scopes:        requestMethods,
 		BudgetUsage:   budgetUsage,
 		BudgetRenewal: paySpecificPermission.BudgetRenewal,
+		Isolated:      dbApp.Isolated,
+	}
+
+	if dbApp.Isolated {
+		response.Balance = queries.GetIsolatedBalance(api.db, dbApp.ID)
 	}
 
 	if lastEventResult.RowsAffected > 0 {
@@ -244,6 +256,11 @@ func (api *api) ListApps() ([]App, error) {
 			CreatedAt:   dbApp.CreatedAt,
 			UpdatedAt:   dbApp.UpdatedAt,
 			NostrPubkey: dbApp.NostrPubkey,
+			Isolated:    dbApp.Isolated,
+		}
+
+		if dbApp.Isolated {
+			apiApp.Balance = queries.GetIsolatedBalance(api.db, dbApp.ID)
 		}
 
 		for _, appPermission := range permissionsMap[dbApp.ID] {

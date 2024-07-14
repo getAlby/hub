@@ -118,6 +118,8 @@ export interface App {
   updatedAt: string;
   lastEventAt?: string;
   expiresAt?: string;
+  isolated: boolean;
+  balance: number;
 
   scopes: Scope[];
   maxAmount: number;
@@ -130,6 +132,7 @@ export interface AppPermissions {
   maxAmount: number;
   budgetRenewal: BudgetRenewalType;
   expiresAt?: Date;
+  isolated: boolean;
 }
 
 export interface InfoResponse {
@@ -160,6 +163,7 @@ export interface CreateAppRequest {
   expiresAt: string | undefined;
   scopes: Scope[];
   returnTo: string;
+  isolated: boolean;
 }
 
 export interface CreateAppResponse {
