@@ -3,7 +3,7 @@ module github.com/getAlby/hub
 go 1.22.2
 
 require (
-	github.com/adrg/xdg v0.4.0
+	github.com/adrg/xdg v0.5.0
 	github.com/breez/breez-sdk-go v0.3.4
 	github.com/davrux/echo-logrus/v4 v4.0.3
 	github.com/elnosh/gonuts v0.1.1-0.20240602162005-49da741613e4
