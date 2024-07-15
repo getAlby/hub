@@ -18,4 +18,4 @@ services:
       - key: LOG_EVENTS
         value: true
       - key: LDK_ESPLORA_SERVER
-        value: "https://electrs.getalby.com"
+        value: "https://electrs.getalbypro.com"
