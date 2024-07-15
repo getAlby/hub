@@ -19,22 +19,10 @@ var _202407151352_autoincrement = &gormigrate.Migration{
 
 		if err := db.Transaction(func(tx *gorm.DB) error {
 
-			// Request events
+			// drop old request and response event tables
 			if err := tx.Exec(`
 DROP TABLE request_events;
-CREATE TABLE "request_events" (id integer PRIMARY KEY AUTOINCREMENT,app_id integer null,nostr_id text UNIQUE,state text,created_at datetime,updated_at datetime, method TEXT, content_data TEXT,CONSTRAINT fk_request_events_app FOREIGN KEY (app_id) REFERENCES apps(id) ON DELETE CASCADE);
-CREATE INDEX idx_request_events_app_id ON request_events(app_id);
-CREATE INDEX idx_request_events_app_id_and_id ON request_events(app_id, id);
-CREATE INDEX idx_request_events_method ON request_events(method);
-
-`).Error; err != nil {
-				return err
-			}
-
-			// Response events
-			if err := tx.Exec(`
 DROP TABLE response_events;
-CREATE TABLE "response_events" (id integer PRIMARY KEY AUTOINCREMENT,nostr_id text UNIQUE,request_id integer,state text,replied_at datetime,created_at datetime,updated_at datetime,CONSTRAINT fk_response_events_request_event FOREIGN KEY (request_id) REFERENCES request_events(id) ON DELETE CASCADE);
 `).Error; err != nil {
 				return err
 			}
@@ -50,7 +38,7 @@ ALTER TABLE user_configs_2 RENAME TO user_configs;
 			}
 
 			// Apps & app permissions (interdependent)
-			// create new table, copy old values, delete old tables, rename new tables, create new indexes
+			// create new tables, copy old values, delete old tables, rename new tables, create new indexes
 			if err := tx.Exec(`
 CREATE TABLE apps_2 (id integer PRIMARY KEY AUTOINCREMENT,name text,description text,nostr_pubkey text UNIQUE,created_at datetime,updated_at datetime, isolated boolean);
 INSERT INTO apps_2 (id, name, description, nostr_pubkey, created_at, updated_at, isolated) SELECT id, name text, description, nostr_pubkey, created_at, updated_at, isolated FROM apps;
@@ -68,9 +56,13 @@ CREATE INDEX idx_app_permissions_app_id ON app_permissions(app_id);
 				return err
 			}
 
-			// delete old tables and rename new tables for apps and app permissions (they are dependent on eachother)
+			// create fresh request and response event tables
 			if err := tx.Exec(`
-
+CREATE TABLE "request_events" (id integer PRIMARY KEY AUTOINCREMENT,app_id integer null,nostr_id text UNIQUE,state text,created_at datetime,updated_at datetime, method TEXT, content_data TEXT,CONSTRAINT fk_request_events_app FOREIGN KEY (app_id) REFERENCES apps(id) ON DELETE CASCADE);
+CREATE INDEX idx_request_events_app_id ON request_events(app_id);
+CREATE INDEX idx_request_events_app_id_and_id ON request_events(app_id, id);
+CREATE INDEX idx_request_events_method ON request_events(method);
+CREATE TABLE "response_events" (id integer PRIMARY KEY AUTOINCREMENT,nostr_id text UNIQUE,request_id integer,state text,replied_at datetime,created_at datetime,updated_at datetime,CONSTRAINT fk_response_events_request_event FOREIGN KEY (request_id) REFERENCES request_events(id) ON DELETE CASCADE);
 `).Error; err != nil {
 				return err
 			}
