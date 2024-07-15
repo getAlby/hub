@@ -58,7 +58,7 @@ CREATE INDEX idx_app_permissions_app_id ON app_permissions(app_id);
 
 			// create fresh request and response event tables
 			if err := tx.Exec(`
-CREATE TABLE "request_events" (id integer PRIMARY KEY AUTOINCREMENT,app_id integer null,nostr_id text UNIQUE,state text,created_at datetime,updated_at datetime, method TEXT, content_data TEXT,CONSTRAINT fk_request_events_app FOREIGN KEY (app_id) REFERENCES apps(id) ON DELETE CASCADE);
+CREATE TABLE "request_events" (id integer PRIMARY KEY AUTOINCREMENT,app_id integer,nostr_id text UNIQUE,state text,created_at datetime,updated_at datetime, method TEXT, content_data TEXT,CONSTRAINT fk_request_events_app FOREIGN KEY (app_id) REFERENCES apps(id) ON DELETE CASCADE);
 CREATE INDEX idx_request_events_app_id ON request_events(app_id);
 CREATE INDEX idx_request_events_app_id_and_id ON request_events(app_id, id);
 CREATE INDEX idx_request_events_method ON request_events(method);
