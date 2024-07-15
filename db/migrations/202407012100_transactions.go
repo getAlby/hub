@@ -9,9 +9,8 @@ import (
 
 // This migration
 // - Replaces the old payments table with a new transactions table
-// - Adds new properties to app_permissions
-//   - balance_type string - isolated | full
-//   - visibility string - isolated | full
+// - Adds new properties to apps
+//   - isolated boolean
 //
 // - Renames max amount on app permissions to be clear its in sats
 var _202407012100_transactions = &gormigrate.Migration{
@@ -20,7 +19,7 @@ var _202407012100_transactions = &gormigrate.Migration{
 
 		if err := tx.Exec(`
 CREATE TABLE transactions(
-	id integer,
+	id integer PRIMARY KEY AUTOINCREMENT,
 	app_id integer,
 	request_event_id integer,
 	type text,
@@ -37,8 +36,7 @@ CREATE TABLE transactions(
 	updated_at datetime,
 	expires_at datetime,
 	settled_at datetime,
-	metadata text,
-	PRIMARY KEY (id)
+	metadata text
 );
 
 DROP TABLE payments;
