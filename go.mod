@@ -23,7 +23,7 @@ require (
 	google.golang.org/grpc v1.65.0
 	gopkg.in/DataDog/dd-trace-go.v1 v1.65.1
 	gopkg.in/macaroon.v2 v2.1.0
-	gorm.io/gorm v1.25.10
+	gorm.io/gorm v1.25.11
 )
 
 require (
