@@ -3,7 +3,7 @@ package events
 import "context"
 
 type EventSubscriber interface {
-	ConsumeEvent(ctx context.Context, event *Event, globalProperties map[string]interface{}) error
+	ConsumeEvent(ctx context.Context, event *Event, globalProperties map[string]interface{})
 }
 
 type EventPublisher interface {

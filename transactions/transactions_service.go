@@ -102,7 +102,7 @@ func (svc *transactionsService) MakeInvoice(ctx context.Context, amount int64, d
 		expiresAt = &expiresAtValue
 	}
 
-	dbTransaction := &db.Transaction{
+	dbTransaction := db.Transaction{
 		AppId:           appId,
 		RequestEventId:  requestEventId,
 		Type:            lnClientTransaction.Type,
@@ -116,12 +116,12 @@ func (svc *transactionsService) MakeInvoice(ctx context.Context, amount int64, d
 		Preimage:        preimage,
 		Metadata:        metadata,
 	}
-	err = svc.db.Create(dbTransaction).Error
+	err = svc.db.Create(&dbTransaction).Error
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to create DB transaction")
 		return nil, err
 	}
-	return dbTransaction, nil
+	return &dbTransaction, nil
 }
 
 func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
@@ -135,7 +135,7 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 		return nil, err
 	}
 
-	var dbTransaction *db.Transaction
+	var dbTransaction db.Transaction
 
 	err = svc.db.Transaction(func(tx *gorm.DB) error {
 		err := svc.validateCanPay(tx, appId, uint64(paymentRequest.MSatoshi))
@@ -149,7 +149,7 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 			expiresAt = &expiresAtValue
 		}
 		feeReserve := svc.calculateFeeReserve(uint64(paymentRequest.MSatoshi))
-		dbTransaction = &db.Transaction{
+		dbTransaction = db.Transaction{
 			AppId:           appId,
 			RequestEventId:  requestEventId,
 			Type:            constants.TRANSACTION_TYPE_OUTGOING,
@@ -163,7 +163,7 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 			ExpiresAt:       expiresAt,
 			// Metadata:       metadata,
 		}
-		err = tx.Create(dbTransaction).Error
+		err = tx.Create(&dbTransaction).Error
 		return err
 	})
 
@@ -196,7 +196,7 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 		}
 
 		// As the LNClient did not return a timeout error, we assume the payment definitely failed
-		dbErr := svc.db.Model(dbTransaction).Updates(&db.Transaction{
+		dbErr := svc.db.Model(&dbTransaction).Updates(&db.Transaction{
 			State: constants.TRANSACTION_STATE_FAILED,
 		}).Error
 		if dbErr != nil {
@@ -211,7 +211,7 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 	// the payment definitely succeeded
 	feeReserve := uint64(0)
 	now := time.Now()
-	dbErr := svc.db.Model(dbTransaction).Updates(&db.Transaction{
+	dbErr := svc.db.Model(&dbTransaction).Updates(&db.Transaction{
 		State:          constants.TRANSACTION_STATE_SETTLED,
 		Preimage:       &response.Preimage,
 		FeeMsat:        response.Fee,
@@ -225,7 +225,7 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 	}
 
 	// TODO: check the fields are updated here
-	return dbTransaction, nil
+	return &dbTransaction, nil
 }
 
 func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []lnclient.TLVRecord, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
@@ -236,7 +236,7 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 	metadata["tlv_records"] = customRecords
 	metadataBytes, err := json.Marshal(metadata)
 
-	var dbTransaction *db.Transaction
+	var dbTransaction db.Transaction
 
 	err = svc.db.Transaction(func(tx *gorm.DB) error {
 		err := svc.validateCanPay(tx, appId, amount)
@@ -246,7 +246,7 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 
 		// NOTE: transaction is created without payment hash :scream:
 		feeReserve := svc.calculateFeeReserve(uint64(amount))
-		dbTransaction = &db.Transaction{
+		dbTransaction = db.Transaction{
 			AppId:          appId,
 			RequestEventId: requestEventId,
 			Type:           constants.TRANSACTION_TYPE_OUTGOING,
@@ -255,7 +255,7 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 			AmountMsat:     amount,
 			Metadata:       string(metadataBytes),
 		}
-		err = tx.Create(dbTransaction).Error
+		err = tx.Create(&dbTransaction).Error
 
 		return err
 	})
@@ -286,7 +286,7 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 			// we cannot update the payment to failed as it still might succeed.
 			// we'll need to check the status of it later
 			// but we have the payment hash now, so save it on the transaction
-			dbErr := svc.db.Model(dbTransaction).Updates(&db.Transaction{
+			dbErr := svc.db.Model(&dbTransaction).Updates(&db.Transaction{
 				PaymentHash: paymentHash,
 			}).Error
 			if dbErr != nil {
@@ -299,7 +299,7 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 		}
 
 		// As the LNClient did not return a timeout error, we assume the payment definitely failed
-		dbErr := svc.db.Model(dbTransaction).Updates(&db.Transaction{
+		dbErr := svc.db.Model(&dbTransaction).Updates(&db.Transaction{
 			PaymentHash: paymentHash,
 			State:       constants.TRANSACTION_STATE_FAILED,
 		}).Error
@@ -316,7 +316,7 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 	// the payment definitely succeeded
 	now := time.Now()
 	feeReserve := uint64(0)
-	dbErr := svc.db.Model(dbTransaction).Updates(&db.Transaction{
+	dbErr := svc.db.Model(&dbTransaction).Updates(&db.Transaction{
 		State:          constants.TRANSACTION_STATE_SETTLED,
 		PaymentHash:    paymentHash,
 		Preimage:       &preimage,
@@ -332,7 +332,7 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 	}
 
 	// TODO: check the fields are updated here
-	return dbTransaction, nil
+	return &dbTransaction, nil
 }
 
 func (svc *transactionsService) LookupTransaction(ctx context.Context, paymentHash string, lnClient lnclient.LNClient, appId *uint) (*Transaction, error) {
@@ -461,17 +461,17 @@ func (svc *transactionsService) checkUnsettledTransaction(ctx context.Context, t
 	}
 }
 
-func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.Event, globalProperties map[string]interface{}) error {
+func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.Event, globalProperties map[string]interface{}) {
 	switch event.Event {
 	case "nwc_payment_received":
 		lnClientTransaction, ok := event.Properties.(*lnclient.Transaction)
 		if !ok {
 			logger.Logger.WithField("event", event).Error("Failed to cast event")
-			return errors.New("failed to cast event")
+			return
 		}
 
+		var dbTransaction db.Transaction
 		err := svc.db.Transaction(func(tx *gorm.DB) error {
-			var dbTransaction db.Transaction
 
 			result := tx.Find(&dbTransaction, &db.Transaction{
 				Type:        constants.TRANSACTION_TYPE_INCOMING,
@@ -504,7 +504,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 					ExpiresAt:       expiresAt,
 					Metadata:        metadata,
 				}
-				err := tx.Create(dbTransaction).Error
+				err := tx.Create(&dbTransaction).Error
 				if err != nil {
 					logger.Logger.WithFields(logrus.Fields{
 						"payment_hash": lnClientTransaction.PaymentHash,
@@ -529,7 +529,6 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 				return err
 			}
 
-			logger.Logger.WithField("id", dbTransaction.ID).Info("Marked incoming transaction as settled")
 			return nil
 		})
 
@@ -537,13 +536,14 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 			logger.Logger.WithFields(logrus.Fields{
 				"payment_hash": lnClientTransaction.PaymentHash,
 			}).WithError(err).Error("Failed to execute DB transaction")
-			return err
+			return
 		}
+		logger.Logger.WithField("id", dbTransaction.ID).Info("Marked incoming transaction as settled")
 	case "nwc_payment_sent":
 		lnClientTransaction, ok := event.Properties.(*lnclient.Transaction)
 		if !ok {
 			logger.Logger.WithField("event", event).Error("Failed to cast event")
-			return errors.New("failed to cast event")
+			return
 		}
 
 		var dbTransaction db.Transaction
@@ -554,7 +554,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 
 		if result.RowsAffected == 0 {
 			logger.Logger.WithField("event", event).Error("Failed to find outgoing transaction by payment hash")
-			return errors.New("could not find outgoing transaction by payment hash")
+			return
 		}
 
 		settledAt := time.Now()
@@ -571,7 +571,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 			logger.Logger.WithFields(logrus.Fields{
 				"payment_hash": lnClientTransaction.PaymentHash,
 			}).WithError(err).Error("Failed to update transaction")
-			return err
+			return
 		}
 		logger.Logger.WithField("id", dbTransaction.ID).Info("Marked outgoing transaction as settled")
 
@@ -579,7 +579,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 		lnClientTransaction, ok := event.Properties.(*lnclient.Transaction)
 		if !ok {
 			logger.Logger.WithField("event", event).Error("Failed to cast event")
-			return errors.New("failed to cast event")
+			return
 		}
 
 		var dbTransaction db.Transaction
@@ -592,22 +592,20 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 		// hash at this point
 		if result.RowsAffected == 0 {
 			logger.Logger.WithField("event", event).Error("Failed to find outgoing transaction by payment hash")
-			return errors.New("could not find outgoing transaction by payment hash")
+			return
 		}
 
-		err := svc.db.Model(dbTransaction).Updates(&db.Transaction{
+		err := svc.db.Model(&dbTransaction).Updates(&db.Transaction{
 			State: constants.TRANSACTION_STATE_FAILED,
 		}).Error
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"payment_hash": lnClientTransaction.PaymentHash,
 			}).WithError(err).Error("Failed to update transaction")
-			return err
+			return
 		}
 		logger.Logger.WithField("id", dbTransaction.ID).Info("Marked outgoing transaction as failed")
 	}
-
-	return nil
 }
 
 func (svc *transactionsService) interceptSelfPayment(paymentHash string) (*lnclient.PayInvoiceResponse, error) {
@@ -632,7 +630,7 @@ func (svc *transactionsService) interceptSelfPayment(paymentHash string) (*lncli
 	// update the incoming transaction
 	now := time.Now()
 	fee := uint64(0)
-	err := svc.db.Model(incomingTransaction).Updates(&db.Transaction{
+	err := svc.db.Model(&incomingTransaction).Updates(&db.Transaction{
 		State:     constants.TRANSACTION_STATE_SETTLED,
 		FeeMsat:   &fee,
 		SettledAt: &now,

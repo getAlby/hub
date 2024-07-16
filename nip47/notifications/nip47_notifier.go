@@ -3,7 +3,6 @@ package notifications
 import (
 	"context"
 	"encoding/json"
-	"errors"
 
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/constants"
@@ -47,13 +46,16 @@ func NewNip47Notifier(relay Relay, db *gorm.DB, cfg config.Config, keys keys.Key
 	}
 }
 
-func (notifier *Nip47Notifier) ConsumeEvent(ctx context.Context, event *events.Event) error {
+func (notifier *Nip47Notifier) ConsumeEvent(ctx context.Context, event *events.Event) {
+
+	// TODO: should listen to transaction service events instead
+	// then self-payments will also trigger NIP-47 notifications
 	switch event.Event {
 	case "nwc_payment_received":
 		lnClientTransaction, ok := event.Properties.(*lnclient.Transaction)
 		if !ok {
 			logger.Logger.WithField("event", event).Error("Failed to cast event")
-			return errors.New("failed to cast event")
+			return
 		}
 
 		transaction, err := notifier.transactionsService.LookupTransaction(ctx, lnClientTransaction.PaymentHash, notifier.lnClient, nil)
@@ -62,9 +64,8 @@ func (notifier *Nip47Notifier) ConsumeEvent(ctx context.Context, event *events.E
 				WithField("paymentHash", lnClientTransaction.PaymentHash).
 				WithError(err).
 				Error("Failed to lookup transaction by payment hash")
-			return err
+			return
 		}
-
 		notification := PaymentReceivedNotification{
 			Transaction: *models.ToNip47Transaction(transaction),
 		}
@@ -78,7 +79,7 @@ func (notifier *Nip47Notifier) ConsumeEvent(ctx context.Context, event *events.E
 		paymentSentEventProperties, ok := event.Properties.(*lnclient.Transaction)
 		if !ok {
 			logger.Logger.WithField("event", event).Error("Failed to cast event")
-			return errors.New("failed to cast event")
+			return
 		}
 
 		transaction, err := notifier.transactionsService.LookupTransaction(ctx, paymentSentEventProperties.PaymentHash, notifier.lnClient, nil)
@@ -87,7 +88,7 @@ func (notifier *Nip47Notifier) ConsumeEvent(ctx context.Context, event *events.E
 				WithField("paymentHash", paymentSentEventProperties.PaymentHash).
 				WithError(err).
 				Error("Failed to lookup invoice by payment hash")
-			return err
+			return
 		}
 		notification := PaymentSentNotification{
 			Transaction: *models.ToNip47Transaction(transaction),
@@ -98,8 +99,6 @@ func (notifier *Nip47Notifier) ConsumeEvent(ctx context.Context, event *events.E
 			NotificationType: PAYMENT_SENT_NOTIFICATION,
 		}, nostr.Tags{}, transaction.AppId)
 	}
-
-	return nil
 }
 
 func (notifier *Nip47Notifier) notifySubscribers(ctx context.Context, notification *Notification, tags nostr.Tags, appId *uint) {
