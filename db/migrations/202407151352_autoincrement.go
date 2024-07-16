@@ -27,16 +27,6 @@ DROP TABLE response_events;
 				return err
 			}
 
-			// User configs - create new table, copy old values, delete old table, rename new table
-			if err := tx.Exec(`
-CREATE TABLE "user_configs_2" ("id" integer PRIMARY KEY AUTOINCREMENT, "key" text NOT NULL UNIQUE, "value" text, "encrypted" numeric, created_at datetime,updated_at datetime);
-INSERT INTO user_configs_2 (id, key, value, encrypted, created_at, updated_at) SELECT id, key, value, encrypted, created_at, updated_at FROM user_configs;
-DROP TABLE user_configs;
-ALTER TABLE user_configs_2 RENAME TO user_configs;
-`).Error; err != nil {
-				return err
-			}
-
 			// Apps & app permissions (interdependent)
 			// create new tables, copy old values, delete old tables, rename new tables, create new indexes
 			if err := tx.Exec(`
