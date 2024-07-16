@@ -504,7 +504,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 					ExpiresAt:       expiresAt,
 					Metadata:        metadata,
 				}
-				err := tx.Create(dbTransaction).Error
+				err := tx.Create(&dbTransaction).Error
 				if err != nil {
 					logger.Logger.WithFields(logrus.Fields{
 						"payment_hash": lnClientTransaction.PaymentHash,
