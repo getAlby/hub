@@ -72,7 +72,7 @@ func (notifier *Nip47Notifier) ConsumeEvent(ctx context.Context, event *events.E
 		notifier.notifySubscribers(ctx, &Notification{
 			Notification:     notification,
 			NotificationType: PAYMENT_RECEIVED_NOTIFICATION,
-		}, nostr.Tags{})
+		}, nostr.Tags{}, transaction.AppId)
 
 	case "nwc_payment_sent":
 		paymentSentEventProperties, ok := event.Properties.(*lnclient.Transaction)
@@ -96,19 +96,23 @@ func (notifier *Nip47Notifier) ConsumeEvent(ctx context.Context, event *events.E
 		notifier.notifySubscribers(ctx, &Notification{
 			Notification:     notification,
 			NotificationType: PAYMENT_SENT_NOTIFICATION,
-		}, nostr.Tags{})
+		}, nostr.Tags{}, transaction.AppId)
 	}
 
 	return nil
 }
 
-func (notifier *Nip47Notifier) notifySubscribers(ctx context.Context, notification *Notification, tags nostr.Tags) {
+func (notifier *Nip47Notifier) notifySubscribers(ctx context.Context, notification *Notification, tags nostr.Tags, appId *uint) {
 	apps := []db.App{}
 
 	// TODO: join apps and permissions
 	notifier.db.Find(&apps)
 
 	for _, app := range apps {
+		if app.Isolated && (appId == nil || app.ID != *appId) {
+			continue
+		}
+
 		hasPermission, _, _ := notifier.permissionsSvc.HasPermission(&app, constants.NOTIFICATIONS_SCOPE)
 		if !hasPermission {
 			continue
