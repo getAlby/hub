@@ -124,6 +124,8 @@ function OnboardingChecklist() {
     (a, b) => (b && b.checked ? 1 : 0) - (a && a.checked ? 1 : 0)
   );
 
+  const nextStep = checklistItems.find((x) => !x.checked);
+
   return (
     <Card>
       <CardHeader>
@@ -134,15 +136,20 @@ function OnboardingChecklist() {
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col">
-        {sortedChecklistItems.map((item) => (
-          <ChecklistItem
-            key={item.title}
-            title={item.title}
-            description={item.description}
-            checked={!!item.checked}
-            to={item.to}
-          />
-        ))}
+        {sortedChecklistItems.map((item) => {
+          const disabled = nextStep === item;
+
+          return (
+            <ChecklistItem
+              key={item.title}
+              title={item.title}
+              description={item.description}
+              checked={!!item.checked}
+              to={item.to}
+              disabled={!disabled}
+            />
+          );
+        })}
       </CardContent>
     </Card>
   );
@@ -153,6 +160,7 @@ type ChecklistItemProps = {
   checked: boolean;
   description: string;
   to: string;
+  disabled: boolean;
 };
 
 function ChecklistItem({
@@ -160,15 +168,17 @@ function ChecklistItem({
   checked = false,
   description,
   to,
+  disabled = false,
 }: ChecklistItemProps) {
   const content = (
     <div
       className={cn(
         "flex flex-col p-3 relative group rounded-lg",
-        !checked && "hover:bg-muted"
+        !checked && !disabled && "hover:bg-muted",
+        disabled && "blur-sm"
       )}
     >
-      {!checked && (
+      {!checked && !disabled && (
         <div className="absolute top-0 left-0 w-full h-full items-center justify-end pr-1.5 hidden group-hover:flex opacity-25">
           <ChevronRight className="w-8 h-8" />
         </div>
@@ -194,7 +204,7 @@ function ChecklistItem({
     </div>
   );
 
-  return checked ? content : <Link to={to}>{content}</Link>;
+  return checked || disabled ? content : <Link to={to}>{content}</Link>;
 }
 
 export default OnboardingChecklist;
