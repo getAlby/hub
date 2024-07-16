@@ -460,10 +460,7 @@ func NewLNDService(ctx context.Context, eventPublisher events.EventPublisher, ln
 
 	// Subscribe to invoices
 	go func() {
-		// TODO: Fetch index of the last settled invoice
-		invoiceStream, err := lndClient.SubscribeInvoices(lndCtx, &lnrpc.InvoiceSubscription{
-			// SettleIndex: lastInvoiceSettledIndex,
-		})
+		invoiceStream, err := lndClient.SubscribeInvoices(lndCtx, &lnrpc.InvoiceSubscription{})
 		if err != nil {
 			logger.Logger.Errorf("Error subscribing to invoices: %v", err)
 			return
