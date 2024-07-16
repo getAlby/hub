@@ -9,7 +9,9 @@ import (
 
 // This migration (inside a DB transaction),
 // - Adds AUTOINCREMENT to the primary key of:
-// - apps, app_permissions, request_events, response_events, user_configs
+// - apps, app_permissions, request_events, response_events
+//
+// user_configs is not migrated as it has no relations with other tables, therefore hopefully no issue with reusing IDs
 //
 // request_events and response_events are not critical (and also payments are dropped in the same release)
 // so we just drop those tables and re-create them.
