@@ -433,12 +433,12 @@ func NewLNDService(ctx context.Context, eventPublisher events.EventPublisher, ln
 			if lndCtx.Err() == context.Canceled {
 				return
 			}
-			if payment.Status != lnrpc.Payment_SUCCEEDED {
-				continue
-			}
 			if err != nil {
 				logger.Logger.Errorf("Failed to receive payment: %v", err)
 				time.Sleep(2 * time.Second)
+				continue
+			}
+			if payment.Status != lnrpc.Payment_SUCCEEDED {
 				continue
 			}
 
@@ -473,12 +473,12 @@ func NewLNDService(ctx context.Context, eventPublisher events.EventPublisher, ln
 			if lndCtx.Err() == context.Canceled {
 				return
 			}
-			if invoice.State != lnrpc.Invoice_SETTLED {
-				continue
-			}
 			if err != nil {
 				logger.Logger.Errorf("Failed to receive invoice: %v", err)
 				time.Sleep(2 * time.Second)
+				continue
+			}
+			if invoice.State != lnrpc.Invoice_SETTLED {
 				continue
 			}
 
