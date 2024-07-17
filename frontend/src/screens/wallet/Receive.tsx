@@ -133,7 +133,8 @@ export default function Receive() {
           {channels?.every(
             (channel) =>
               channel.remoteBalance <
-              (channel.localBalance + channel.remoteBalance) * 0.2
+                (channel.localBalance + channel.remoteBalance) * 0.2 ||
+              parseInt(amount) * 1000 > channel.remoteBalance
           ) && (
             <Alert>
               <AlertTriangle className="h-4 w-4" />
