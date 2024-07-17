@@ -31,7 +31,9 @@ DROP TABLE response_events;
 
 			// Apps & app permissions (interdependent)
 			// create new tables, copy old values, delete old tables, rename new tables, create new indexes
+			// also deletes broken app permissions no longer linked to apps (from reused app IDs)
 			if err := tx.Exec(`
+DELETE FROM app_permissions WHERE app_id NOT IN (SELECT id FROM apps);
 CREATE TABLE apps_2 (id integer PRIMARY KEY AUTOINCREMENT,name text,description text,nostr_pubkey text UNIQUE,created_at datetime,updated_at datetime, isolated boolean);
 INSERT INTO apps_2 (id, name, description, nostr_pubkey, created_at, updated_at, isolated) SELECT id, name text, description, nostr_pubkey, created_at, updated_at, isolated FROM apps;
 CREATE TABLE app_permissions_2 (id integer PRIMARY KEY AUTOINCREMENT,app_id integer,"scope" text,"max_amount_sat" integer,budget_renewal text,expires_at datetime,created_at datetime,updated_at datetime,CONSTRAINT fk_app_permissions_app FOREIGN KEY (app_id) REFERENCES apps_2(id) ON DELETE CASCADE);
