@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
@@ -17,6 +18,20 @@ import (
 	"github.com/nbd-wtf/go-nostr/nip04"
 	"github.com/stretchr/testify/assert"
 )
+
+type mockConsumer struct {
+	nip47NotificationQueue Nip47NotificationQueue
+}
+
+func NewMockConsumer(nip47NotificationQueue Nip47NotificationQueue) *mockConsumer {
+	return &mockConsumer{
+		nip47NotificationQueue: nip47NotificationQueue,
+	}
+}
+
+func (svc *mockConsumer) ConsumeEvent(ctx context.Context, event *events.Event, globalProperties map[string]interface{}) {
+	svc.nip47NotificationQueue.AddToQueue(event)
+}
 
 func TestSendNotification_PaymentReceived(t *testing.T) {
 	ctx := context.TODO()
@@ -30,7 +45,7 @@ func TestSendNotification_PaymentReceived(t *testing.T) {
 	appPermission := &db.AppPermission{
 		AppId: app.ID,
 		App:   *app,
-		Scope: permissions.NOTIFICATIONS_SCOPE,
+		Scope: constants.NOTIFICATIONS_SCOPE,
 	}
 	err = svc.DB.Create(appPermission).Error
 	assert.NoError(t, err)
@@ -52,7 +67,7 @@ func TestSendNotification_PaymentReceived(t *testing.T) {
 	assert.NoError(t, err)
 
 	nip47NotificationQueue := NewNip47NotificationQueue()
-	svc.EventPublisher.RegisterSubscriber(nip47NotificationQueue)
+	svc.EventPublisher.RegisterSubscriber(NewMockConsumer(nip47NotificationQueue))
 
 	testEvent := &events.Event{
 		Event: "nwc_payment_received",
@@ -111,7 +126,7 @@ func TestSendNotification_PaymentSent(t *testing.T) {
 	appPermission := &db.AppPermission{
 		AppId: app.ID,
 		App:   *app,
-		Scope: permissions.NOTIFICATIONS_SCOPE,
+		Scope: constants.NOTIFICATIONS_SCOPE,
 	}
 	err = svc.DB.Create(appPermission).Error
 	assert.NoError(t, err)
@@ -133,7 +148,7 @@ func TestSendNotification_PaymentSent(t *testing.T) {
 	assert.NoError(t, err)
 
 	nip47NotificationQueue := NewNip47NotificationQueue()
-	svc.EventPublisher.RegisterSubscriber(nip47NotificationQueue)
+	svc.EventPublisher.RegisterSubscriber(NewMockConsumer(nip47NotificationQueue))
 
 	testEvent := &events.Event{
 		Event: "nwc_payment_sent",
@@ -193,7 +208,7 @@ func TestSendNotificationNoPermission(t *testing.T) {
 	})
 
 	nip47NotificationQueue := NewNip47NotificationQueue()
-	svc.EventPublisher.RegisterSubscriber(nip47NotificationQueue)
+	svc.EventPublisher.RegisterSubscriber(NewMockConsumer(nip47NotificationQueue))
 
 	testEvent := &events.Event{
 		Event: "nwc_payment_received",

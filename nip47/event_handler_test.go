@@ -65,3 +65,43 @@ func TestCreateResponse(t *testing.T) {
 	assert.Equal(t, nip47Response.ResultType, unmarshalledResponse.ResultType)
 	assert.Equal(t, nip47Response.Result, *unmarshalledResponse.Result.(*dummyResponse))
 }
+
+func TestHandleResponse_NoPermission(t *testing.T) {
+	assert.True(t, false)
+	/*ctx := context.TODO()
+	defer tests.RemoveTestService()
+	svc, err := tests.CreateTestService()
+	assert.NoError(t, err)
+
+	nip47Request := &models.Request{}
+	err = json.Unmarshal([]byte(nip47LookupInvoiceJson), nip47Request)
+	assert.NoError(t, err)
+
+	app, _, err := tests.CreateApp(svc)
+	assert.NoError(t, err)
+
+	dbRequestEvent := &db.RequestEvent{
+		AppId: &app.ID,
+	}
+	err = svc.DB.Create(&dbRequestEvent).Error
+	assert.NoError(t, err)
+
+	var publishedResponse *models.Response
+
+	publishResponse := func(response *models.Response, tags nostr.Tags) {
+		publishedResponse = response
+	}
+
+	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB)
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
+		HandleLookupInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, *dbRequestEvent.AppId, publishResponse)
+
+	assert.Nil(t, publishedResponse.Result)
+	assert.Equal(t, models.ERROR_RESTRICTED, publishedResponse.Error.Code)*/
+}
+
+func TestHandleResponse_WithPermission(t *testing.T) {
+	assert.True(t, false)
+
+}

@@ -67,7 +67,7 @@ const nip47MultiPayKeysendOneOverflowingBudgetJson = `
 }
 `
 
-func TestHandleMultiPayKeysendEvent_NoPermission(t *testing.T) {
+func TestHandleMultiPayKeysendEvent(t *testing.T) {
 	ctx := context.TODO()
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
@@ -86,61 +86,6 @@ func TestHandleMultiPayKeysendEvent_NoPermission(t *testing.T) {
 
 	responses := []*models.Response{}
 	dTags := []nostr.Tags{}
-
-	checkPermission := func(amountMsat uint64) *models.Response {
-		return &models.Response{
-			ResultType: nip47Request.Method,
-			Error: &models.Error{
-				Code: models.ERROR_RESTRICTED,
-			},
-		}
-	}
-
-	var mu sync.Mutex
-
-	publishResponse := func(response *models.Response, tags nostr.Tags) {
-		mu.Lock()
-		defer mu.Unlock()
-		responses = append(responses, response)
-		dTags = append(dTags, tags)
-	}
-
-	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
-	transactionsSvc := transactions.NewTransactionsService(svc.DB)
-	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
-		HandleMultiPayKeysendEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
-
-	assert.Equal(t, 2, len(responses))
-	for i := 0; i < len(responses); i++ {
-		assert.Equal(t, models.ERROR_RESTRICTED, responses[i].Error.Code)
-		assert.Nil(t, responses[i].Result)
-	}
-
-}
-
-func TestHandleMultiPayKeysendEvent_WithPermission(t *testing.T) {
-	ctx := context.TODO()
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
-
-	app, _, err := tests.CreateApp(svc)
-	assert.NoError(t, err)
-
-	nip47Request := &models.Request{}
-	err = json.Unmarshal([]byte(nip47MultiPayKeysendJson), nip47Request)
-	assert.NoError(t, err)
-
-	dbRequestEvent := &db.RequestEvent{}
-	err = svc.DB.Create(&dbRequestEvent).Error
-	assert.NoError(t, err)
-
-	responses := []*models.Response{}
-	dTags := []nostr.Tags{}
-
-	checkPermission := func(amountMsat uint64) *models.Response {
-		return nil
-	}
 
 	var mu sync.Mutex
 

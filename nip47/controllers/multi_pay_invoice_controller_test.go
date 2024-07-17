@@ -62,60 +62,7 @@ const nip47MultiPayOneMalformedInvoiceJson = `
 }
 `
 
-func TestHandleMultiPayInvoiceEvent_NoPermission(t *testing.T) {
-	ctx := context.TODO()
-
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
-
-	app, _, err := tests.CreateApp(svc)
-	assert.NoError(t, err)
-
-	nip47Request := &models.Request{}
-	err = json.Unmarshal([]byte(nip47MultiPayJson), nip47Request)
-	assert.NoError(t, err)
-
-	responses := []*models.Response{}
-	dTags := []nostr.Tags{}
-
-	dbRequestEvent := &db.RequestEvent{}
-	err = svc.DB.Create(&dbRequestEvent).Error
-	assert.NoError(t, err)
-
-	checkPermission := func(amountMsat uint64) *models.Response {
-		return &models.Response{
-			ResultType: nip47Request.Method,
-			Error: &models.Error{
-				Code: models.ERROR_RESTRICTED,
-			},
-		}
-	}
-
-	var mu sync.Mutex
-
-	publishResponse := func(response *models.Response, tags nostr.Tags) {
-		mu.Lock()
-		defer mu.Unlock()
-		responses = append(responses, response)
-		dTags = append(dTags, tags)
-	}
-
-	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
-	transactionsSvc := transactions.NewTransactionsService(svc.DB)
-	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
-		HandleMultiPayInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
-
-	assert.Equal(t, 2, len(responses))
-	assert.Equal(t, 2, len(dTags))
-	for i := 0; i < len(responses); i++ {
-		assert.Equal(t, models.ERROR_RESTRICTED, responses[i].Error.Code)
-		assert.Equal(t, tests.MockPaymentHash, dTags[i].GetFirst([]string{"d"}).Value())
-		assert.Equal(t, responses[i].Result, nil)
-	}
-}
-
-func TestHandleMultiPayInvoiceEvent_WithPermission(t *testing.T) {
+func TestHandleMultiPayInvoiceEvent(t *testing.T) {
 	ctx := context.TODO()
 
 	defer tests.RemoveTestService()
@@ -141,9 +88,6 @@ func TestHandleMultiPayInvoiceEvent_WithPermission(t *testing.T) {
 		dTags = append(dTags, tags)
 	}
 
-	checkPermission := func(amountMsat uint64) *models.Response {
-		return nil
-	}
 	dbRequestEvent := &db.RequestEvent{}
 	err = svc.DB.Create(&dbRequestEvent).Error
 	assert.NoError(t, err)
@@ -188,9 +132,6 @@ func TestHandleMultiPayInvoiceEvent_OneMalformedInvoice(t *testing.T) {
 		dTags = append(dTags, tags)
 	}
 
-	checkPermission := func(amountMsat uint64) *models.Response {
-		return nil
-	}
 	requestEvent := &db.RequestEvent{}
 	svc.DB.Save(requestEvent)
 
