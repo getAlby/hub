@@ -1,10 +1,15 @@
 import confetti from "canvas-confetti";
-import { ArrowDown, CircleCheck, CopyIcon } from "lucide-react";
+import { AlertTriangle, ArrowDown, CircleCheck, CopyIcon } from "lucide-react";
 import React from "react";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "src/components/ui/alert.tsx";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -18,8 +23,9 @@ import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
-import { useInfo } from "src/hooks/useInfo";
+import { useChannels } from "src/hooks/useChannels";
 import { useCSRF } from "src/hooks/useCSRF";
+import { useInfo } from "src/hooks/useInfo";
 import { useTransaction } from "src/hooks/useTransaction";
 import { copyToClipboard } from "src/lib/clipboard";
 import { CreateInvoiceRequest, Transaction } from "src/types";
@@ -28,6 +34,7 @@ import { request } from "src/utils/request";
 export default function Receive() {
   const { hasChannelManagement } = useInfo();
   const { data: balances } = useBalances();
+  const { data: channels } = useChannels();
   const { data: csrf } = useCSRF();
   const { toast } = useToast();
   const [isLoading, setLoading] = React.useState(false);
@@ -49,6 +56,10 @@ export default function Receive() {
       });
     }
   }, [invoiceData, toast]);
+
+  if (!balances || !channels) {
+    return <Loading />;
+  }
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -116,6 +127,27 @@ export default function Receive() {
         title="Receive"
         description="Create a lightning invoice that can be paid by any bitcoin lightning wallet"
       />
+      {!!channels?.length && (
+        <>
+          {/* If all channels have less than 20% incoming capacity, show a warning */}
+          {channels?.every(
+            (channel) =>
+              channel.remoteBalance <
+              (channel.localBalance + channel.remoteBalance) * 0.2
+          ) && (
+            <Alert>
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Low receiving capacity</AlertTitle>
+              <AlertDescription>
+                You likely won't be able to receive payments until you{" "}
+                <Link className="underline" to="/channels/incoming">
+                  increase your receiving capacity.
+                </Link>
+              </AlertDescription>
+            </Alert>
+          )}
+        </>
+      )}
       <div className="flex gap-12 w-full">
         <div className="w-full max-w-lg">
           {invoice ? (

@@ -1,9 +1,20 @@
 import { Invoice } from "@getalby/lightning-tools";
-import { ArrowUp, CircleCheck, ClipboardPaste, CopyIcon } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowUp,
+  CircleCheck,
+  ClipboardPaste,
+  CopyIcon,
+} from "lucide-react";
 import React from "react";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import Loading from "src/components/Loading";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "src/components/ui/alert.tsx";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -17,6 +28,7 @@ import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
+import { useChannels } from "src/hooks/useChannels";
 import { useCSRF } from "src/hooks/useCSRF";
 import { useInfo } from "src/hooks/useInfo";
 import { copyToClipboard } from "src/lib/clipboard";
@@ -26,6 +38,7 @@ import { request } from "src/utils/request";
 export default function Send() {
   const { hasChannelManagement } = useInfo();
   const { data: balances } = useBalances();
+  const { data: channels } = useChannels();
   const { data: csrf } = useCSRF();
   const { toast } = useToast();
   const [isLoading, setLoading] = React.useState(false);
@@ -35,7 +48,7 @@ export default function Send() {
   const [paymentDone, setPaymentDone] = React.useState(false);
   const [showConfirmation, setShowConfirmation] = React.useState(false);
 
-  if (!balances) {
+  if (!balances || !channels) {
     return <Loading />;
   }
 
@@ -106,6 +119,27 @@ export default function Send() {
         title="Send"
         description="Pay a lightning invoice created by any bitcoin lightning wallet"
       />
+      {!!channels?.length && (
+        <>
+          {/* If all channels have less or equal balance than their reserve, show a warning */}
+          {channels?.every(
+            (channel) =>
+              channel.localBalance <=
+              channel.unspendablePunishmentReserve * 1000
+          ) && (
+            <Alert>
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Channel reserves unmet</AlertTitle>
+              <AlertDescription>
+                You won't be able to make payments until you{" "}
+                <Link className="underline" to="/channels/outgoing">
+                  increase your spending balance.
+                </Link>
+              </AlertDescription>
+            </Alert>
+          )}
+        </>
+      )}
       <div className="flex gap-12 w-full">
         <div className="w-full max-w-lg">
           {paymentDone ? (
