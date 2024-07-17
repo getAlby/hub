@@ -129,7 +129,7 @@ export default function Send() {
           ) && (
             <Alert>
               <AlertTriangle className="h-4 w-4" />
-              <AlertTitle>Channel reserves unmet</AlertTitle>
+              <AlertTitle>Low spending balance</AlertTitle>
               <AlertDescription>
                 You won't be able to make payments until you{" "}
                 <Link className="underline" to="/channels/outgoing">
