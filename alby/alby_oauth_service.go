@@ -426,19 +426,23 @@ func (svc *albyOAuthService) LinkAccount(ctx context.Context, lnClient lnclient.
 	return nil
 }
 
-func (svc *albyOAuthService) ConsumeEvent(ctx context.Context, event *events.Event, globalProperties map[string]interface{}) error {
+func (svc *albyOAuthService) ConsumeEvent(ctx context.Context, event *events.Event, globalProperties map[string]interface{}) {
+	// run non-blocking
+	go svc.consumeEvent(ctx, event, globalProperties)
+}
+
+func (svc *albyOAuthService) consumeEvent(ctx context.Context, event *events.Event, globalProperties map[string]interface{}) {
 	// TODO: rename this config option to be specific to the alby API
 	if !svc.cfg.GetEnv().LogEvents {
 		logger.Logger.WithField("event", event).Debug("Skipped sending to alby events API")
-		return nil
+		return
 	}
 
 	if event.Event == "nwc_backup_channels" {
 		if err := svc.backupChannels(ctx, event); err != nil {
 			logger.Logger.WithError(err).Error("Failed to backup channels")
-			return err
 		}
-		return nil
+		return
 	}
 
 	if event.Event == "nwc_payment_received" {
@@ -473,7 +477,7 @@ func (svc *albyOAuthService) ConsumeEvent(ctx context.Context, event *events.Eve
 	token, err := svc.fetchUserToken(ctx)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to fetch user token")
-		return err
+		return
 	}
 
 	client := svc.oauthConf.Client(ctx, token)
@@ -484,7 +488,7 @@ func (svc *albyOAuthService) ConsumeEvent(ctx context.Context, event *events.Eve
 
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to encode request payload")
-		return err
+		return
 	}
 
 	type eventWithPropertiesMap struct {
@@ -496,7 +500,7 @@ func (svc *albyOAuthService) ConsumeEvent(ctx context.Context, event *events.Eve
 	err = json.Unmarshal(originalEventBuffer.Bytes(), &eventWithGlobalProperties)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to decode request payload")
-		return err
+		return
 	}
 	if eventWithGlobalProperties.Properties == nil {
 		eventWithGlobalProperties.Properties = map[string]interface{}{}
@@ -517,13 +521,13 @@ func (svc *albyOAuthService) ConsumeEvent(ctx context.Context, event *events.Eve
 
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to encode request payload")
-		return err
+		return
 	}
 
 	req, err := http.NewRequest("POST", fmt.Sprintf("%s/events", svc.cfg.GetEnv().AlbyAPIURL), body)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Error creating request /events")
-		return err
+		return
 	}
 
 	req.Header.Set("User-Agent", "NWC-next")
@@ -534,7 +538,7 @@ func (svc *albyOAuthService) ConsumeEvent(ctx context.Context, event *events.Eve
 		logger.Logger.WithFields(logrus.Fields{
 			"event": eventWithGlobalProperties,
 		}).WithError(err).Error("Failed to send request to /events")
-		return err
+		return
 	}
 
 	if resp.StatusCode >= 300 {
@@ -542,10 +546,8 @@ func (svc *albyOAuthService) ConsumeEvent(ctx context.Context, event *events.Eve
 			"event":  eventWithGlobalProperties,
 			"status": resp.StatusCode,
 		}).Error("Request to /events returned non-success status")
-		return errors.New("request to /events returned non-success status")
+		return
 	}
-
-	return nil
 }
 
 func (svc *albyOAuthService) backupChannels(ctx context.Context, event *events.Event) error {

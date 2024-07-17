@@ -16,6 +16,7 @@ func Migrate(gormDB *gorm.DB) error {
 		_202406071726_vacuum,
 		_202406301207_rename_request_methods,
 		_202407012100_transactions,
+		_202407151352_autoincrement,
 	})
 
 	return m.Migrate()

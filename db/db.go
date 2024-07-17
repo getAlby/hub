@@ -15,21 +15,19 @@ func NewDB(uri string) (*gorm.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = gormDB.Exec("PRAGMA foreign_keys=ON;").Error
+	err = gormDB.Exec("PRAGMA foreign_keys = ON", nil).Error
 	if err != nil {
 		return nil, err
 	}
-	err = gormDB.Exec("PRAGMA auto_vacuum=FULL;").Error
+	err = gormDB.Exec("PRAGMA auto_vacuum = FULL", nil).Error
 	if err != nil {
 		return nil, err
 	}
 
-	// sqlDb, err = DB.DB()
-	// if err != nil {
-	// 	return err
-	// }
-	// this causes errors when concurrently saving DB entries and otherwise requires mutexes
-	// sqlDb.SetMaxOpenConns(1)
+	err = gormDB.Exec("PRAGMA busy_timeout = 5000", nil).Error
+	if err != nil {
+		return nil, err
+	}
 
 	err = migrations.Migrate(gormDB)
 	if err != nil {

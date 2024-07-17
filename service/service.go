@@ -109,8 +109,12 @@ func NewService(ctx context.Context) (*service, error) {
 		keys:                keys,
 	}
 
-	eventPublisher.RegisterSubscriber(svc.albyOAuthSvc)
+	// Note: order is important here: transactions service will update transactions
+	// from payment events, which will then be consumed by the NIP-47 service to send notifications
+	// TODO: transactions service should fire its own events
 	eventPublisher.RegisterSubscriber(svc.transactionsService)
+	eventPublisher.RegisterSubscriber(svc.nip47Service)
+	eventPublisher.RegisterSubscriber(svc.albyOAuthSvc)
 
 	eventPublisher.Publish(&events.Event{
 		Event: "nwc_started",

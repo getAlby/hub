@@ -25,6 +25,7 @@ type nip47Service struct {
 }
 
 type Nip47Service interface {
+	events.EventSubscriber
 	StartNotifier(ctx context.Context, relay *nostr.Relay, lnClient lnclient.LNClient)
 	HandleEvent(ctx context.Context, sub *nostr.Subscription, event *nostr.Event, lnClient lnclient.LNClient)
 	PublishNip47Info(ctx context.Context, relay *nostr.Relay, lnClient lnclient.LNClient) error
@@ -32,10 +33,8 @@ type Nip47Service interface {
 }
 
 func NewNip47Service(db *gorm.DB, cfg config.Config, keys keys.Keys, eventPublisher events.EventPublisher) *nip47Service {
-	nip47NotificationQueue := notifications.NewNip47NotificationQueue()
-	eventPublisher.RegisterSubscriber(nip47NotificationQueue)
 	return &nip47Service{
-		nip47NotificationQueue: nip47NotificationQueue,
+		nip47NotificationQueue: notifications.NewNip47NotificationQueue(),
 		cfg:                    cfg,
 		db:                     db,
 		permissionsService:     permissions.NewPermissionsService(db, eventPublisher),
@@ -43,6 +42,10 @@ func NewNip47Service(db *gorm.DB, cfg config.Config, keys keys.Keys, eventPublis
 		eventPublisher:         eventPublisher,
 		keys:                   keys,
 	}
+}
+
+func (svc *nip47Service) ConsumeEvent(ctx context.Context, event *events.Event, globalProperties map[string]interface{}) {
+	svc.nip47NotificationQueue.AddToQueue(event)
 }
 
 func (svc *nip47Service) StartNotifier(ctx context.Context, relay *nostr.Relay, lnClient lnclient.LNClient) {
