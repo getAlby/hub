@@ -72,7 +72,7 @@ function OnboardingChecklist() {
 
   const checklistItems = [
     {
-      title: "Open your first channel",
+      title: "1. Open your first channel",
       description:
         "Establish a new Lightning channel to enable fast and low-fee Bitcoin transactions.",
       checked: hasChannel,
@@ -81,17 +81,17 @@ function OnboardingChecklist() {
         : "/channels/outgoing",
     },
     {
-      title: "Send or receive your first payment",
+      title: "2. Link to your Alby Account",
+      description: "Link your lightning address & other apps to this Hub.",
+      checked: isLinked,
+      to: "/apps",
+    },
+    {
+      title: "3. Send or receive your first payment",
       description:
         "Use your newly opened channel to make a transaction on the Lightning Network.",
       checked: hasTransaction,
       to: "/wallet",
-    },
-    {
-      title: "Link to your Alby Account",
-      description: "Link your lightning address & other apps to this Hub.",
-      checked: isLinked,
-      to: "/apps",
     },
     // TODO: enable when we can always migrate funds
     /*{
@@ -101,7 +101,7 @@ function OnboardingChecklist() {
       to: "/onboarding/lightning/migrate-alby",
     },*/
     {
-      title: "Connect your first app",
+      title: "4. Connect your first app",
       description:
         "Seamlessly connect apps and integrate your wallet with other apps from your Hub.",
       checked: hasCustomApp,
@@ -110,7 +110,7 @@ function OnboardingChecklist() {
     ...(hasMnemonic
       ? [
           {
-            title: "Backup your keys",
+            title: "5. Backup your keys",
             description:
               "Secure your keys by creating a backup to ensure you don't lose access.",
             checked: hasBackedUp,
@@ -174,8 +174,7 @@ function ChecklistItem({
     <div
       className={cn(
         "flex flex-col p-3 relative group rounded-lg",
-        !checked && !disabled && "hover:bg-muted",
-        disabled && "blur-sm"
+        !checked && !disabled && "hover:bg-muted"
       )}
     >
       {!checked && !disabled && (
