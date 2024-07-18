@@ -421,72 +421,80 @@ func NewLNDService(ctx context.Context, eventPublisher events.EventPublisher, ln
 
 	// Subscribe to payments
 	go func() {
-		paymentStream, err := lndClient.SubscribePayments(lndCtx, &routerrpc.TrackPaymentsRequest{
-			NoInflightUpdates: true,
-		})
-		if err != nil {
-			logger.Logger.Errorf("Error subscribing to payments: %v", err)
-			return
-		}
 		for {
-			payment, err := paymentStream.Recv()
-			if lndCtx.Err() == context.Canceled {
-				return
-			}
-			if err != nil {
-				logger.Logger.Errorf("Failed to receive payment: %v", err)
-				time.Sleep(2 * time.Second)
-				continue
-			}
-			if payment.Status != lnrpc.Payment_SUCCEEDED {
-				continue
-			}
-
-			logger.Logger.WithFields(logrus.Fields{
-				"payment": payment,
-			}).Info("Received new payment")
-
-			transaction, err := lndPaymentToTransaction(payment)
-			if err != nil {
-				continue
-			}
-
-			eventPublisher.Publish(&events.Event{
-				Event:      "nwc_payment_sent",
-				Properties: transaction,
+			paymentStream, err := lndClient.SubscribePayments(lndCtx, &routerrpc.TrackPaymentsRequest{
+				NoInflightUpdates: true,
 			})
+			if err != nil {
+				logger.Logger.Errorf("Error subscribing to payments: %v", err)
+				continue
+			}
+			for {
+				select {
+				case <-lndCtx.Done():
+					return
+				default:
+					payment, err := paymentStream.Recv()
+					if err != nil {
+						logger.Logger.Errorf("Failed to receive payment: %v", err)
+						time.Sleep(2 * time.Second)
+						continue
+					}
+					if payment.Status != lnrpc.Payment_SUCCEEDED {
+						continue
+					}
+
+					logger.Logger.WithFields(logrus.Fields{
+						"payment": payment,
+					}).Info("Received new payment")
+
+					transaction, err := lndPaymentToTransaction(payment)
+					if err != nil {
+						continue
+					}
+
+					eventPublisher.Publish(&events.Event{
+						Event:      "nwc_payment_sent",
+						Properties: transaction,
+					})
+				}
+			}
 		}
 	}()
 
 	// Subscribe to invoices
 	go func() {
-		invoiceStream, err := lndClient.SubscribeInvoices(lndCtx, &lnrpc.InvoiceSubscription{})
-		if err != nil {
-			logger.Logger.Errorf("Error subscribing to invoices: %v", err)
-			return
-		}
 		for {
-			invoice, err := invoiceStream.Recv()
-			if lndCtx.Err() == context.Canceled {
-				return
-			}
+			invoiceStream, err := lndClient.SubscribeInvoices(lndCtx, &lnrpc.InvoiceSubscription{})
 			if err != nil {
-				logger.Logger.Errorf("Failed to receive invoice: %v", err)
-				time.Sleep(2 * time.Second)
+				logger.Logger.Errorf("Error subscribing to invoices: %v", err)
 				continue
 			}
-			if invoice.State != lnrpc.Invoice_SETTLED {
-				continue
+			for {
+				select {
+				case <-lndCtx.Done():
+					return
+				default:
+					invoice, err := invoiceStream.Recv()
+					if err != nil {
+						logger.Logger.Errorf("Failed to receive invoice: %v", err)
+						time.Sleep(2 * time.Second)
+						continue
+					}
+					if invoice.State != lnrpc.Invoice_SETTLED {
+						continue
+					}
+
+					logger.Logger.WithFields(logrus.Fields{
+						"invoice": invoice,
+					}).Info("Received new invoice")
+
+					eventPublisher.Publish(&events.Event{
+						Event:      "nwc_payment_received",
+						Properties: lndInvoiceToTransaction(invoice),
+					})
+				}
 			}
-
-			logger.Logger.WithFields(logrus.Fields{
-				"invoice": invoice,
-			}).Info("Received new invoice")
-
-			eventPublisher.Publish(&events.Event{
-				Event:      "nwc_payment_received",
-				Properties: lndInvoiceToTransaction(invoice),
-			})
 		}
 	}()
 
