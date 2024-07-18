@@ -28,6 +28,23 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 		"eventKind":           event.Kind,
 	}).Info("Processing Event")
 
+	// go-nostr already checks this, but just to be sure:
+	validEventSignature, err := event.CheckSignature()
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"requestEventNostrId": event.ID,
+			"eventKind":           event.Kind,
+		}).WithError(err).Error("invalid event signature")
+		return
+	}
+	if !validEventSignature {
+		logger.Logger.WithFields(logrus.Fields{
+			"requestEventNostrId": event.ID,
+			"eventKind":           event.Kind,
+		}).Error("invalid event signature")
+		return
+	}
+
 	ss, err := nip04.ComputeSharedSecret(event.PubKey, svc.keys.GetNostrSecretKey())
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
