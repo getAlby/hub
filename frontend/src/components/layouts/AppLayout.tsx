@@ -86,7 +86,7 @@ export default function AppLayout() {
   const isHttpMode = window.location.protocol.startsWith("http");
 
   if (!info) {
-    return;
+    return null;
   }
 
   function UserMenuContent() {
