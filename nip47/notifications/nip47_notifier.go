@@ -12,6 +12,7 @@ import (
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/nip47/models"
 	"github.com/getAlby/hub/nip47/permissions"
+	nostrmodels "github.com/getAlby/hub/nostr/models"
 	"github.com/getAlby/hub/service/keys"
 	"github.com/getAlby/hub/transactions"
 	"github.com/nbd-wtf/go-nostr"
@@ -20,12 +21,8 @@ import (
 	"gorm.io/gorm"
 )
 
-type Relay interface {
-	Publish(ctx context.Context, event nostr.Event) error
-}
-
 type Nip47Notifier struct {
-	relay               Relay
+	relay               nostrmodels.Relay
 	cfg                 config.Config
 	keys                keys.Keys
 	lnClient            lnclient.LNClient
@@ -34,7 +31,7 @@ type Nip47Notifier struct {
 	transactionsService transactions.TransactionsService
 }
 
-func NewNip47Notifier(relay Relay, db *gorm.DB, cfg config.Config, keys keys.Keys, permissionsSvc permissions.PermissionsService, transactionsService transactions.TransactionsService, lnClient lnclient.LNClient) *Nip47Notifier {
+func NewNip47Notifier(relay nostrmodels.Relay, db *gorm.DB, cfg config.Config, keys keys.Keys, permissionsSvc permissions.PermissionsService, transactionsService transactions.TransactionsService, lnClient lnclient.LNClient) *Nip47Notifier {
 	return &Nip47Notifier{
 		relay:               relay,
 		cfg:                 cfg,

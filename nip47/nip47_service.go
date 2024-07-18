@@ -7,7 +7,8 @@ import (
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/nip47/notifications"
-	permissions "github.com/getAlby/hub/nip47/permissions"
+	"github.com/getAlby/hub/nip47/permissions"
+	nostrmodels "github.com/getAlby/hub/nostr/models"
 	"github.com/getAlby/hub/service/keys"
 	"github.com/getAlby/hub/transactions"
 	"github.com/nbd-wtf/go-nostr"
@@ -27,8 +28,8 @@ type nip47Service struct {
 type Nip47Service interface {
 	events.EventSubscriber
 	StartNotifier(ctx context.Context, relay *nostr.Relay, lnClient lnclient.LNClient)
-	HandleEvent(ctx context.Context, sub *nostr.Subscription, event *nostr.Event, lnClient lnclient.LNClient)
-	PublishNip47Info(ctx context.Context, relay *nostr.Relay, lnClient lnclient.LNClient) error
+	HandleEvent(ctx context.Context, relay nostrmodels.Relay, event *nostr.Event, lnClient lnclient.LNClient)
+	PublishNip47Info(ctx context.Context, relay nostrmodels.Relay, lnClient lnclient.LNClient) error
 	CreateResponse(initialEvent *nostr.Event, content interface{}, tags nostr.Tags, ss []byte) (result *nostr.Event, err error)
 }
 

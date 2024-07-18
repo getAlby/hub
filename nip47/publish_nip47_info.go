@@ -7,10 +7,11 @@ import (
 
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/nip47/models"
+	nostrmodels "github.com/getAlby/hub/nostr/models"
 	"github.com/nbd-wtf/go-nostr"
 )
 
-func (svc *nip47Service) PublishNip47Info(ctx context.Context, relay *nostr.Relay, lnClient lnclient.LNClient) error {
+func (svc *nip47Service) PublishNip47Info(ctx context.Context, relay nostrmodels.Relay, lnClient lnclient.LNClient) error {
 	capabilities := lnClient.GetSupportedNIP47Methods()
 	if len(lnClient.GetSupportedNIP47NotificationTypes()) > 0 {
 		capabilities = append(capabilities, "notifications")

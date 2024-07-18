@@ -8,6 +8,7 @@ import (
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/nip47/models"
 	"github.com/getAlby/hub/nip47/permissions"
@@ -21,7 +22,6 @@ const nip47GetInfoJson = `
 }
 `
 
-// TODO: info event should always return something
 func TestHandleGetInfoEvent_NoPermission(t *testing.T) {
 	ctx := context.TODO()
 	defer tests.RemoveTestService()
@@ -41,20 +41,11 @@ func TestHandleGetInfoEvent_NoPermission(t *testing.T) {
 
 	appPermission := &db.AppPermission{
 		AppId:     app.ID,
-		Scope:     permissions.GET_BALANCE_SCOPE,
+		Scope:     constants.GET_BALANCE_SCOPE,
 		ExpiresAt: nil,
 	}
 	err = svc.DB.Create(appPermission).Error
 	assert.NoError(t, err)
-
-	checkPermission := func(amountMsat uint64) *models.Response {
-		return &models.Response{
-			ResultType: nip47Request.Method,
-			Error: &models.Error{
-				Code: models.ERROR_RESTRICTED,
-			},
-		}
-	}
 
 	var publishedResponse *models.Response
 
@@ -98,15 +89,11 @@ func TestHandleGetInfoEvent_WithPermission(t *testing.T) {
 
 	appPermission := &db.AppPermission{
 		AppId:     app.ID,
-		Scope:     permissions.GET_INFO_SCOPE,
+		Scope:     constants.GET_INFO_SCOPE,
 		ExpiresAt: nil,
 	}
 	err = svc.DB.Create(appPermission).Error
 	assert.NoError(t, err)
-
-	checkPermission := func(amountMsat uint64) *models.Response {
-		return nil
-	}
 
 	var publishedResponse *models.Response
 
@@ -150,24 +137,19 @@ func TestHandleGetInfoEvent_WithNotifications(t *testing.T) {
 
 	appPermission := &db.AppPermission{
 		AppId:     app.ID,
-		Scope:     permissions.GET_INFO_SCOPE,
+		Scope:     constants.GET_INFO_SCOPE,
 		ExpiresAt: nil,
 	}
 	err = svc.DB.Create(appPermission).Error
 	assert.NoError(t, err)
 
-	// TODO: AppPermission RequestMethod needs to change to scope
 	appPermission = &db.AppPermission{
 		AppId:     app.ID,
-		Scope:     permissions.NOTIFICATIONS_SCOPE,
+		Scope:     constants.NOTIFICATIONS_SCOPE,
 		ExpiresAt: nil,
 	}
 	err = svc.DB.Create(appPermission).Error
 	assert.NoError(t, err)
-
-	checkPermission := func(amountMsat uint64) *models.Response {
-		return nil
-	}
 
 	var publishedResponse *models.Response
 

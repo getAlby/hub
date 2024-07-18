@@ -9,6 +9,7 @@ import (
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/nip47/models"
 	"github.com/getAlby/hub/nip47/permissions"
@@ -29,45 +30,7 @@ const nip47ListTransactionsJson = `
 }
 `
 
-func TestHandleListTransactionsEvent_NoPermission(t *testing.T) {
-	ctx := context.TODO()
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
-
-	nip47Request := &models.Request{}
-	err = json.Unmarshal([]byte(nip47ListTransactionsJson), nip47Request)
-	assert.NoError(t, err)
-
-	dbRequestEvent := &db.RequestEvent{}
-	err = svc.DB.Create(&dbRequestEvent).Error
-	assert.NoError(t, err)
-
-	checkPermission := func(amountMsat uint64) *models.Response {
-		return &models.Response{
-			ResultType: nip47Request.Method,
-			Error: &models.Error{
-				Code: models.ERROR_RESTRICTED,
-			},
-		}
-	}
-
-	var publishedResponse *models.Response
-
-	publishResponse := func(response *models.Response, tags nostr.Tags) {
-		publishedResponse = response
-	}
-
-	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
-	transactionsSvc := transactions.NewTransactionsService(svc.DB)
-	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
-		HandleListTransactionsEvent(ctx, nip47Request, dbRequestEvent.ID, *dbRequestEvent.AppId, publishResponse)
-
-	assert.Nil(t, publishedResponse.Result)
-	assert.Equal(t, models.ERROR_RESTRICTED, publishedResponse.Error.Code)
-}
-
-func TestHandleListTransactionsEvent_WithPermission(t *testing.T) {
+func TestHandleListTransactionsEvent(t *testing.T) {
 	ctx := context.TODO()
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
@@ -80,7 +43,9 @@ func TestHandleListTransactionsEvent_WithPermission(t *testing.T) {
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
 
-	dbRequestEvent := &db.RequestEvent{}
+	dbRequestEvent := &db.RequestEvent{
+		AppId: &app.ID,
+	}
 	err = svc.DB.Create(&dbRequestEvent).Error
 	assert.NoError(t, err)
 
@@ -97,15 +62,11 @@ func TestHandleListTransactionsEvent_WithPermission(t *testing.T) {
 			AmountMsat:      uint64(tests.MockLNClientTransactions[i].Amount),
 			FeeMsat:         &feesPaid,
 			SettledAt:       &settledAt,
-			State:           transactions.TRANSACTION_STATE_SETTLED,
+			State:           constants.TRANSACTION_STATE_SETTLED,
 			AppId:           &app.ID,
 			CreatedAt:       time.Now().Add(time.Duration(-i) * time.Hour),
 		}).Error
 		assert.NoError(t, err)
-	}
-
-	checkPermission := func(amountMsat uint64) *models.Response {
-		return nil
 	}
 
 	var publishedResponse *models.Response
