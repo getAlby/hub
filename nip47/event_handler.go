@@ -11,16 +11,17 @@ import (
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
-	controllers "github.com/getAlby/hub/nip47/controllers"
+	"github.com/getAlby/hub/nip47/controllers"
 	"github.com/getAlby/hub/nip47/models"
 	"github.com/getAlby/hub/nip47/permissions"
+	nostrmodels "github.com/getAlby/hub/nostr/models"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip04"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
-func (svc *nip47Service) HandleEvent(ctx context.Context, sub *nostr.Subscription, event *nostr.Event, lnClient lnclient.LNClient) {
+func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Relay, event *nostr.Event, lnClient lnclient.LNClient) {
 	var nip47Response *models.Response
 	logger.Logger.WithFields(logrus.Fields{
 		"requestEventNostrId": event.ID,
@@ -63,7 +64,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, sub *nostr.Subscriptio
 				"eventKind":           event.Kind,
 			}).WithError(err).Error("Failed to process event")
 		}
-		svc.publishResponseEvent(ctx, sub, &requestEvent, resp, nil)
+		svc.publishResponseEvent(ctx, relay, &requestEvent, resp, nil)
 		return
 	}
 
@@ -89,7 +90,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, sub *nostr.Subscriptio
 				"eventKind":           event.Kind,
 			}).WithError(err).Error("Failed to process event")
 		}
-		svc.publishResponseEvent(ctx, sub, &requestEvent, resp, &app)
+		svc.publishResponseEvent(ctx, relay, &requestEvent, resp, &app)
 
 		requestEvent.State = db.REQUEST_EVENT_STATE_HANDLER_ERROR
 		err = svc.db.Save(&requestEvent).Error
@@ -121,7 +122,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, sub *nostr.Subscriptio
 				"eventKind":           event.Kind,
 			}).WithError(err).Error("Failed to process event")
 		}
-		svc.publishResponseEvent(ctx, sub, &requestEvent, resp, &app)
+		svc.publishResponseEvent(ctx, relay, &requestEvent, resp, &app)
 
 		requestEvent.State = db.REQUEST_EVENT_STATE_HANDLER_ERROR
 		err = svc.db.Save(&requestEvent).Error
@@ -215,7 +216,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, sub *nostr.Subscriptio
 			}).WithError(err).Error("Failed to create response")
 			requestEvent.State = db.REQUEST_EVENT_STATE_HANDLER_ERROR
 		} else {
-			err = svc.publishResponseEvent(ctx, sub, &requestEvent, resp, &app)
+			err = svc.publishResponseEvent(ctx, relay, &requestEvent, resp, &app)
 			if err != nil {
 				logger.Logger.WithFields(logrus.Fields{
 					"requestEventNostrId": event.ID,
@@ -362,7 +363,7 @@ func (svc *nip47Service) CreateResponse(initialEvent *nostr.Event, content inter
 	return resp, nil
 }
 
-func (svc *nip47Service) publishResponseEvent(ctx context.Context, sub *nostr.Subscription, requestEvent *db.RequestEvent, resp *nostr.Event, app *db.App) error {
+func (svc *nip47Service) publishResponseEvent(ctx context.Context, relay nostrmodels.Relay, requestEvent *db.RequestEvent, resp *nostr.Event, app *db.App) error {
 	var appId *uint
 	if app != nil {
 		appId = &app.ID
@@ -378,7 +379,7 @@ func (svc *nip47Service) publishResponseEvent(ctx context.Context, sub *nostr.Su
 		return err
 	}
 
-	err = sub.Relay.Publish(ctx, *resp)
+	err = relay.Publish(ctx, *resp)
 	if err != nil {
 		responseEvent.State = db.RESPONSE_EVENT_STATE_PUBLISH_FAILED
 		logger.Logger.WithFields(logrus.Fields{

@@ -3,7 +3,6 @@ package notifications
 import (
 	"context"
 	"encoding/json"
-	"log"
 	"testing"
 	"time"
 
@@ -14,7 +13,6 @@ import (
 	"github.com/getAlby/hub/nip47/permissions"
 	"github.com/getAlby/hub/tests"
 	"github.com/getAlby/hub/transactions"
-	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip04"
 	"github.com/stretchr/testify/assert"
 )
@@ -81,7 +79,7 @@ func TestSendNotification_PaymentReceived(t *testing.T) {
 	receivedEvent := <-nip47NotificationQueue.Channel()
 	assert.Equal(t, testEvent, receivedEvent)
 
-	relay := NewMockRelay()
+	relay := tests.NewMockRelay()
 
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
 	transactionsSvc := transactions.NewTransactionsService(svc.DB)
@@ -89,10 +87,10 @@ func TestSendNotification_PaymentReceived(t *testing.T) {
 	notifier := NewNip47Notifier(relay, svc.DB, svc.Cfg, svc.Keys, permissionsSvc, transactionsSvc, svc.LNClient)
 	notifier.ConsumeEvent(ctx, receivedEvent)
 
-	assert.NotNil(t, relay.publishedEvent)
-	assert.NotEmpty(t, relay.publishedEvent.Content)
+	assert.NotNil(t, relay.PublishedEvent)
+	assert.NotEmpty(t, relay.PublishedEvent.Content)
 
-	decrypted, err := nip04.Decrypt(relay.publishedEvent.Content, ss)
+	decrypted, err := nip04.Decrypt(relay.PublishedEvent.Content, ss)
 	assert.NoError(t, err)
 	unmarshalledResponse := Notification{
 		Notification: &PaymentReceivedNotification{},
@@ -162,7 +160,7 @@ func TestSendNotification_PaymentSent(t *testing.T) {
 	receivedEvent := <-nip47NotificationQueue.Channel()
 	assert.Equal(t, testEvent, receivedEvent)
 
-	relay := NewMockRelay()
+	relay := tests.NewMockRelay()
 
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
 	transactionsSvc := transactions.NewTransactionsService(svc.DB)
@@ -170,10 +168,10 @@ func TestSendNotification_PaymentSent(t *testing.T) {
 	notifier := NewNip47Notifier(relay, svc.DB, svc.Cfg, svc.Keys, permissionsSvc, transactionsSvc, svc.LNClient)
 	notifier.ConsumeEvent(ctx, receivedEvent)
 
-	assert.NotNil(t, relay.publishedEvent)
-	assert.NotEmpty(t, relay.publishedEvent.Content)
+	assert.NotNil(t, relay.PublishedEvent)
+	assert.NotEmpty(t, relay.PublishedEvent.Content)
 
-	decrypted, err := nip04.Decrypt(relay.publishedEvent.Content, ss)
+	decrypted, err := nip04.Decrypt(relay.PublishedEvent.Content, ss)
 	assert.NoError(t, err)
 	unmarshalledResponse := Notification{
 		Notification: &PaymentReceivedNotification{},
@@ -222,7 +220,7 @@ func TestSendNotificationNoPermission(t *testing.T) {
 	receivedEvent := <-nip47NotificationQueue.Channel()
 	assert.Equal(t, testEvent, receivedEvent)
 
-	relay := NewMockRelay()
+	relay := tests.NewMockRelay()
 
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
 	transactionsSvc := transactions.NewTransactionsService(svc.DB)
@@ -230,19 +228,5 @@ func TestSendNotificationNoPermission(t *testing.T) {
 	notifier := NewNip47Notifier(relay, svc.DB, svc.Cfg, svc.Keys, permissionsSvc, transactionsSvc, svc.LNClient)
 	notifier.ConsumeEvent(ctx, receivedEvent)
 
-	assert.Nil(t, relay.publishedEvent)
-}
-
-type mockRelay struct {
-	publishedEvent *nostr.Event
-}
-
-func NewMockRelay() *mockRelay {
-	return &mockRelay{}
-}
-
-func (relay *mockRelay) Publish(ctx context.Context, event nostr.Event) error {
-	log.Printf("Mock Publishing event %+v", event)
-	relay.publishedEvent = &event
-	return nil
+	assert.Nil(t, relay.PublishedEvent)
 }

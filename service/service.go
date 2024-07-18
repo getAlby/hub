@@ -156,7 +156,7 @@ func (svc *service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 
 		// loop through incoming events
 		for event := range sub.Events {
-			go svc.nip47Service.HandleEvent(ctx, sub, event, svc.lnClient)
+			go svc.nip47Service.HandleEvent(ctx, sub.Relay, event, svc.lnClient)
 		}
 		logger.Logger.Info("Relay subscription events channel ended")
 	}()
