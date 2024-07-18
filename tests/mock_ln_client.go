@@ -57,6 +57,8 @@ var MockLNClientTransactions = []lnclient.Transaction{
 var MockLNClientTransaction = &MockLNClientTransactions[0]
 
 type MockLn struct {
+	PayInvoiceResponses []*lnclient.PayInvoiceResponse
+	PayInvoiceErrors    []error
 }
 
 func NewMockLn() (*MockLn, error) {
@@ -64,6 +66,14 @@ func NewMockLn() (*MockLn, error) {
 }
 
 func (mln *MockLn) SendPaymentSync(ctx context.Context, payReq string) (*lnclient.PayInvoiceResponse, error) {
+	if len(mln.PayInvoiceResponses) > 0 {
+		response := mln.PayInvoiceResponses[0]
+		err := mln.PayInvoiceErrors[0]
+		mln.PayInvoiceResponses = mln.PayInvoiceResponses[1:]
+		mln.PayInvoiceErrors = mln.PayInvoiceErrors[1:]
+		return response, err
+	}
+
 	return &lnclient.PayInvoiceResponse{
 		Preimage: "123preimage",
 	}, nil

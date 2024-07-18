@@ -8,6 +8,7 @@ import (
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/nip47/models"
 	"github.com/getAlby/hub/nip47/permissions"
@@ -42,6 +43,14 @@ func TestHandlePayInvoiceEvent(t *testing.T) {
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
 
+	appPermission := &db.AppPermission{
+		AppId: app.ID,
+		App:   *app,
+		Scope: constants.PAY_INVOICE_SCOPE,
+	}
+	err = svc.DB.Create(appPermission).Error
+	assert.NoError(t, err)
+
 	nip47Request := &models.Request{}
 	err = json.Unmarshal([]byte(nip47PayInvoiceJson), nip47Request)
 	assert.NoError(t, err)
@@ -73,6 +82,14 @@ func TestHandlePayInvoiceEvent_MalformedInvoice(t *testing.T) {
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
 
+	appPermission := &db.AppPermission{
+		AppId: app.ID,
+		App:   *app,
+		Scope: constants.PAY_INVOICE_SCOPE,
+	}
+	err = svc.DB.Create(appPermission).Error
+	assert.NoError(t, err)
+
 	nip47Request := &models.Request{}
 	err = json.Unmarshal([]byte(nip47PayJsonNoInvoice), nip47Request)
 	assert.NoError(t, err)
@@ -94,4 +111,5 @@ func TestHandlePayInvoiceEvent_MalformedInvoice(t *testing.T) {
 
 	assert.Nil(t, publishedResponse.Result)
 	assert.Equal(t, models.ERROR_INTERNAL, publishedResponse.Error.Code)
+	assert.Equal(t, "Failed to decode bolt11 invoice: bolt11 too short", publishedResponse.Error.Message)
 }

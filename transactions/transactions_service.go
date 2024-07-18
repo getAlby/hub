@@ -657,10 +657,13 @@ func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount 
 			ID: *appId,
 		})
 		var appPermission db.AppPermission
-		tx.Find(&appPermission, &db.AppPermission{
+		result := tx.Find(&appPermission, &db.AppPermission{
 			AppId: *appId,
 			Scope: constants.PAY_INVOICE_SCOPE,
 		})
+		if result.RowsAffected == 0 {
+			return errors.New("app does not have pay_invoice scope")
+		}
 
 		if app.Isolated {
 			balance := queries.GetIsolatedBalance(tx, appPermission.AppId)
