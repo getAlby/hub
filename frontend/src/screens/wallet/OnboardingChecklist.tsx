@@ -174,7 +174,8 @@ function ChecklistItem({
     <div
       className={cn(
         "flex flex-col p-3 relative group rounded-lg",
-        !checked && !disabled && "hover:bg-muted"
+        !checked && !disabled && "hover:bg-muted",
+        disabled && "opacity-50"
       )}
     >
       {!checked && !disabled && (

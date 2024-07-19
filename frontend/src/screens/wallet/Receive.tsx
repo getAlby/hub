@@ -1,10 +1,15 @@
 import confetti from "canvas-confetti";
-import { ArrowDown, CircleCheck, CopyIcon } from "lucide-react";
+import { AlertTriangle, ArrowDown, CircleCheck, CopyIcon } from "lucide-react";
 import React from "react";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "src/components/ui/alert.tsx";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -51,6 +56,10 @@ export default function Receive() {
       });
     }
   }, [invoiceData, toast]);
+
+  if (!balances) {
+    return <Loading />;
+  }
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -118,6 +127,20 @@ export default function Receive() {
         title="Receive"
         description="Create a lightning invoice that can be paid by any bitcoin lightning wallet"
       />
+      {hasChannelManagement &&
+        parseInt(amount || "0") * 1000 >=
+          0.8 * balances.lightning.totalReceivable && (
+          <Alert>
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Low receiving capacity</AlertTitle>
+            <AlertDescription>
+              You likely won't be able to receive payments until you{" "}
+              <Link className="underline" to="/channels/incoming">
+                increase your receiving capacity.
+              </Link>
+            </AlertDescription>
+          </Alert>
+        )}
       <div className="flex gap-12 w-full">
         <div className="w-full max-w-lg">
           {transaction ? (

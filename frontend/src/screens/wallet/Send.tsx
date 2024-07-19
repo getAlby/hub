@@ -1,9 +1,20 @@
 import { Invoice } from "@getalby/lightning-tools";
-import { ArrowUp, CircleCheck, ClipboardPaste, CopyIcon } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowUp,
+  CircleCheck,
+  ClipboardPaste,
+  CopyIcon,
+} from "lucide-react";
 import React from "react";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import Loading from "src/components/Loading";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "src/components/ui/alert.tsx";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -17,6 +28,7 @@ import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
+import { useChannels } from "src/hooks/useChannels";
 import { useCSRF } from "src/hooks/useCSRF";
 import { useInfo } from "src/hooks/useInfo";
 import { copyToClipboard } from "src/lib/clipboard";
@@ -26,23 +38,25 @@ import { request } from "src/utils/request";
 export default function Send() {
   const { hasChannelManagement } = useInfo();
   const { data: balances } = useBalances();
+  const { data: channels } = useChannels();
   const { data: csrf } = useCSRF();
   const { toast } = useToast();
   const [isLoading, setLoading] = React.useState(false);
   const [invoice, setInvoice] = React.useState("");
+  const [invoiceDetails, setInvoiceDetails] = React.useState<Invoice | null>(
+    null
+  );
   const [payResponse, setPayResponse] =
     React.useState<PayInvoiceResponse | null>(null);
   const [paymentDone, setPaymentDone] = React.useState(false);
-  const [showConfirmation, setShowConfirmation] = React.useState(false);
 
-  if (!balances) {
+  if (!balances || !channels) {
     return <Loading />;
   }
 
   const handleContinue = () => {
     try {
-      new Invoice({ pr: invoice });
-      setShowConfirmation(true);
+      setInvoiceDetails(new Invoice({ pr: invoice }));
     } catch (error) {
       toast({
         variant: "destructive",
@@ -84,7 +98,7 @@ export default function Send() {
         title: "Failed to send: " + e,
       });
       setInvoice("");
-      setShowConfirmation(false);
+      setInvoiceDetails(null);
       console.error(e);
     }
     setLoading(false);
@@ -106,6 +120,20 @@ export default function Send() {
         title="Send"
         description="Pay a lightning invoice created by any bitcoin lightning wallet"
       />
+      {hasChannelManagement &&
+        (invoiceDetails?.satoshi || 0) * 1000 >=
+          0.8 * balances.lightning.totalSpendable && (
+          <Alert>
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Low spending balance</AlertTitle>
+            <AlertDescription>
+              You won't be able to make payments until you{" "}
+              <Link className="underline" to="/channels/outgoing">
+                increase your spending balance.
+              </Link>
+            </AlertDescription>
+          </Alert>
+        )}
       <div className="flex gap-12 w-full">
         <div className="w-full max-w-lg">
           {paymentDone ? (
@@ -130,7 +158,7 @@ export default function Send() {
                     className="mt-4 w-full"
                     onClick={() => {
                       setPaymentDone(false);
-                      setShowConfirmation(false);
+                      setInvoiceDetails(null);
                       setPayResponse(null);
                       setInvoice("");
                     }}
@@ -151,15 +179,13 @@ export default function Send() {
                 </>
               )}
             </>
-          ) : showConfirmation ? (
+          ) : invoiceDetails ? (
             <form onSubmit={handleSubmit} className="grid gap-5">
               <div className="">
                 <p className="text-lg mb-5">Payment Details</p>
-                <p className="font-bold">
-                  {new Invoice({ pr: invoice }).satoshi} sats
-                </p>
+                <p className="font-bold">{invoiceDetails.satoshi} sats</p>
                 <p className="text-muted-foreground">
-                  {new Invoice({ pr: invoice }).description}
+                  {invoiceDetails.description}
                 </p>
               </div>
               <div className="flex gap-5">
@@ -172,7 +198,7 @@ export default function Send() {
                   Confirm Payment
                 </LoadingButton>
                 <Button
-                  onClick={() => setShowConfirmation(false)}
+                  onClick={() => setInvoiceDetails(null)}
                   variant="secondary"
                 >
                   Back
