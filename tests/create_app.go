@@ -8,6 +8,10 @@ import (
 
 func CreateApp(svc *TestService) (app *db.App, ss []byte, err error) {
 	senderPrivkey := nostr.GeneratePrivateKey()
+	return CreateAppWithPrivateKey(svc, senderPrivkey)
+}
+func CreateAppWithPrivateKey(svc *TestService, senderPrivkey string) (app *db.App, ss []byte, err error) {
+
 	senderPubkey, err := nostr.GetPublicKey(senderPrivkey)
 	if err != nil {
 		return nil, nil, err

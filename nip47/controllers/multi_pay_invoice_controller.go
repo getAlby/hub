@@ -7,14 +7,11 @@ import (
 	"sync"
 
 	"github.com/getAlby/hub/db"
-	"github.com/getAlby/hub/events"
-	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/nip47/models"
 	"github.com/nbd-wtf/go-nostr"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
-	"gorm.io/gorm"
 )
 
 type multiPayInvoiceElement struct {
@@ -26,21 +23,7 @@ type multiPayInvoiceParams struct {
 	Invoices []multiPayInvoiceElement `json:"invoices"`
 }
 
-type multiMultiPayInvoiceController struct {
-	lnClient       lnclient.LNClient
-	db             *gorm.DB
-	eventPublisher events.EventPublisher
-}
-
-func NewMultiPayInvoiceController(lnClient lnclient.LNClient, db *gorm.DB, eventPublisher events.EventPublisher) *multiMultiPayInvoiceController {
-	return &multiMultiPayInvoiceController{
-		lnClient:       lnClient,
-		db:             db,
-		eventPublisher: eventPublisher,
-	}
-}
-
-func (controller *multiMultiPayInvoiceController) HandleMultiPayInvoiceEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, app *db.App, checkPermission checkPermissionFunc, publishResponse publishFunc) {
+func (controller *nip47Controller) HandleMultiPayInvoiceEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, app *db.App, publishResponse publishFunc) {
 	multiPayParams := &multiPayInvoiceParams{}
 	resp := decodeRequest(nip47Request, multiPayParams)
 	if resp != nil {
@@ -82,8 +65,8 @@ func (controller *multiMultiPayInvoiceController) HandleMultiPayInvoiceEvent(ctx
 			}
 			dTag := []string{"d", invoiceDTagValue}
 
-			NewPayInvoiceController(controller.lnClient, controller.db, controller.eventPublisher).
-				pay(ctx, bolt11, &paymentRequest, nip47Request, requestEventId, app, checkPermission, publishResponse, nostr.Tags{dTag})
+			controller.
+				pay(ctx, bolt11, &paymentRequest, nip47Request, requestEventId, app, publishResponse, nostr.Tags{dTag})
 		}(invoiceInfo)
 	}
 

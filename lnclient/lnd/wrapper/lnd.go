@@ -115,6 +115,10 @@ func (wrapper *LNDWrapper) SubscribeInvoices(ctx context.Context, req *lnrpc.Inv
 	return wrapper.client.SubscribeInvoices(ctx, req, options...)
 }
 
+func (wrapper *LNDWrapper) SubscribePayments(ctx context.Context, req *routerrpc.TrackPaymentsRequest, options ...grpc.CallOption) (routerrpc.Router_TrackPaymentsClient, error) {
+	return wrapper.routerClient.TrackPayments(ctx, req, options...)
+}
+
 func (wrapper *LNDWrapper) ListInvoices(ctx context.Context, req *lnrpc.ListInvoiceRequest, options ...grpc.CallOption) (*lnrpc.ListInvoiceResponse, error) {
 	return wrapper.client.ListInvoices(ctx, req, options...)
 }

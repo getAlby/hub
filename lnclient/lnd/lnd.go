@@ -16,6 +16,7 @@ import (
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 
+	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/lnclient/lnd/wrapper"
 	"github.com/getAlby/hub/logger"
@@ -24,12 +25,13 @@ import (
 	// "gorm.io/gorm"
 
 	"github.com/lightningnetwork/lnd/lnrpc"
+	"github.com/lightningnetwork/lnd/lnrpc/routerrpc"
 )
 
-// wrap it again :sweat_smile:
-// todo: drop dependency on lndhub package
 type LNDService struct {
 	client *wrapper.LNDWrapper
+	pubkey string
+	cancel context.CancelFunc
 }
 
 func (svc *LNDService) GetBalance(ctx context.Context) (balance int64, err error) {
@@ -76,47 +78,13 @@ func (svc *LNDService) ListTransactions(ctx context.Context, from, until, limit,
 			// this will cause retrieved amount to be less than limit
 			continue
 		}
-		var paymentRequest decodepay.Bolt11
-		var expiresAt *int64
-		var description string
-		var descriptionHash string
-		if payment.PaymentRequest != "" {
-			paymentRequest, err = decodepay.Decodepay(strings.ToLower(payment.PaymentRequest))
-			if err != nil {
-				logger.Logger.WithFields(logrus.Fields{
-					"bolt11": payment.PaymentRequest,
-				}).Errorf("Failed to decode bolt11 invoice: %v", err)
 
-				return nil, err
-			}
-			expiresAtUnix := time.UnixMilli(int64(paymentRequest.CreatedAt) * 1000).Add(time.Duration(paymentRequest.Expiry) * time.Second).Unix()
-			expiresAt = &expiresAtUnix
-			description = paymentRequest.Description
-			descriptionHash = paymentRequest.DescriptionHash
+		transaction, err := lndPaymentToTransaction(payment)
+		if err != nil {
+			return nil, err
 		}
 
-		var settledAt *int64
-		if payment.Status == lnrpc.Payment_SUCCEEDED {
-			// FIXME: how to get the actual settled at time?
-			settledAtUnix := time.Unix(0, payment.CreationTimeNs).Unix()
-			settledAt = &settledAtUnix
-		}
-
-		transaction := lnclient.Transaction{
-			Type:            "outgoing",
-			Invoice:         payment.PaymentRequest,
-			Preimage:        payment.PaymentPreimage,
-			PaymentHash:     payment.PaymentHash,
-			Amount:          payment.ValueMsat,
-			FeesPaid:        payment.FeeMsat,
-			CreatedAt:       time.Unix(0, payment.CreationTimeNs).Unix(),
-			Description:     description,
-			DescriptionHash: descriptionHash,
-			ExpiresAt:       expiresAt,
-			SettledAt:       settledAt,
-			//TODO: Metadata:  (e.g. keysend),
-		}
-		transactions = append(transactions, transaction)
+		transactions = append(transactions, *transaction)
 	}
 
 	// sort by created date descending
@@ -132,11 +100,15 @@ func (svc *LNDService) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, er
 	if err != nil {
 		return nil, err
 	}
+	network := resp.Chains[0].Network
+	if network == "mainnet" {
+		network = "bitcoin"
+	}
 	return &lnclient.NodeInfo{
 		Alias:       resp.Alias,
 		Color:       resp.Color,
 		Pubkey:      resp.IdentityPubkey,
-		Network:     resp.Chains[0].Network,
+		Network:     network,
 		BlockHeight: resp.BlockHeight,
 		BlockHash:   resp.BlockHash,
 	}, nil
@@ -328,19 +300,16 @@ func (svc *LNDService) SendPaymentSync(ctx context.Context, payReq string) (*lnc
 	}, nil
 }
 
-func (svc *LNDService) SendKeysend(ctx context.Context, amount uint64, destination, preimage string, custom_records []lnclient.TLVRecord) (respPreimage string, err error) {
+func (svc *LNDService) SendKeysend(ctx context.Context, amount uint64, destination string, custom_records []lnclient.TLVRecord) (paymentHash string, preimage string, fee uint64, err error) {
 	destBytes, err := hex.DecodeString(destination)
 	if err != nil {
-		return "", err
+		return "", "", 0, err
 	}
 	var preImageBytes []byte
 
-	if preimage == "" {
-		preImageBytes, err = makePreimageHex()
-		preimage = hex.EncodeToString(preImageBytes)
-	} else {
-		preImageBytes, err = hex.DecodeString(preimage)
-	}
+	preImageBytes, err = makePreimageHex()
+	preimage = hex.EncodeToString(preImageBytes)
+
 	if err != nil || len(preImageBytes) != 32 {
 		logger.Logger.WithFields(logrus.Fields{
 			"amount":        amount,
@@ -349,19 +318,19 @@ func (svc *LNDService) SendKeysend(ctx context.Context, amount uint64, destinati
 			"customRecords": custom_records,
 			"error":         err,
 		}).Errorf("Invalid preimage")
-		return "", err
+		return "", "", 0, err
 	}
 
-	paymentHash := sha256.New()
-	paymentHash.Write(preImageBytes)
-	paymentHashBytes := paymentHash.Sum(nil)
-	paymentHashHex := hex.EncodeToString(paymentHashBytes)
+	paymentHash256 := sha256.New()
+	paymentHash256.Write(preImageBytes)
+	paymentHashBytes := paymentHash256.Sum(nil)
+	paymentHash = hex.EncodeToString(paymentHashBytes)
 
 	destCustomRecords := map[uint64][]byte{}
 	for _, record := range custom_records {
 		decodedValue, err := hex.DecodeString(record.Value)
 		if err != nil {
-			return "", err
+			return "", "", 0, err
 		}
 		destCustomRecords[record.Type] = decodedValue
 	}
@@ -380,46 +349,46 @@ func (svc *LNDService) SendKeysend(ctx context.Context, amount uint64, destinati
 		logger.Logger.WithFields(logrus.Fields{
 			"amount":        amount,
 			"payeePubkey":   destination,
-			"paymentHash":   paymentHashHex,
+			"paymentHash":   paymentHash,
 			"preimage":      preimage,
 			"customRecords": custom_records,
 			"error":         err,
 		}).Errorf("Failed to send keysend payment")
-		return "", err
+		return paymentHash, "", 0, err
 	}
 	if resp.PaymentError != "" {
 		logger.Logger.WithFields(logrus.Fields{
 			"amount":        amount,
 			"payeePubkey":   destination,
-			"paymentHash":   paymentHashHex,
+			"paymentHash":   paymentHash,
 			"preimage":      preimage,
 			"customRecords": custom_records,
 			"paymentError":  resp.PaymentError,
 		}).Errorf("Keysend payment has payment error")
-		return "", errors.New(resp.PaymentError)
+		return paymentHash, "", 0, errors.New(resp.PaymentError)
 	}
-	respPreimage = hex.EncodeToString(resp.PaymentPreimage)
-	if respPreimage == "" {
+	respPreimage := hex.EncodeToString(resp.PaymentPreimage)
+	if respPreimage != preimage {
 		logger.Logger.WithFields(logrus.Fields{
 			"amount":        amount,
 			"payeePubkey":   destination,
-			"paymentHash":   paymentHashHex,
+			"paymentHash":   paymentHash,
 			"preimage":      preimage,
 			"customRecords": custom_records,
 			"paymentError":  resp.PaymentError,
-		}).Errorf("No preimage in keysend response")
-		return "", errors.New("no preimage in keysend response")
+		}).Errorf("Preimage in keysend response does not match")
+		return paymentHash, "", 0, errors.New("preimage in keysend response does not match")
 	}
 	logger.Logger.WithFields(logrus.Fields{
 		"amount":        amount,
 		"payeePubkey":   destination,
-		"paymentHash":   paymentHashHex,
+		"paymentHash":   paymentHash,
 		"preimage":      preimage,
 		"customRecords": custom_records,
 		"respPreimage":  respPreimage,
 	}).Info("Keysend payment successful")
 
-	return respPreimage, nil
+	return paymentHash, respPreimage, uint64(resp.PaymentRoute.TotalFeesMsat), nil
 }
 
 func makePreimageHex() ([]byte, error) {
@@ -431,7 +400,7 @@ func makePreimageHex() ([]byte, error) {
 	return bytes, nil
 }
 
-func NewLNDService(ctx context.Context, lndAddress, lndCertHex, lndMacaroonHex string) (result lnclient.LNClient, err error) {
+func NewLNDService(ctx context.Context, eventPublisher events.EventPublisher, lndAddress, lndCertHex, lndMacaroonHex string) (result lnclient.LNClient, err error) {
 	if lndAddress == "" || lndCertHex == "" || lndMacaroonHex == "" {
 		return nil, errors.New("one or more required LND configuration are missing")
 	}
@@ -450,7 +419,93 @@ func NewLNDService(ctx context.Context, lndAddress, lndCertHex, lndMacaroonHex s
 		return nil, err
 	}
 
-	lndService := &LNDService{client: lndClient}
+	lndCtx, cancel := context.WithCancel(ctx)
+
+	lndService := &LNDService{client: lndClient, pubkey: info.IdentityPubkey, cancel: cancel}
+
+	// Subscribe to payments
+	go func() {
+		for {
+			paymentStream, err := lndClient.SubscribePayments(lndCtx, &routerrpc.TrackPaymentsRequest{
+				NoInflightUpdates: true,
+			})
+			if err != nil {
+				logger.Logger.WithError(err).Error("Error subscribing to payments")
+				continue
+			}
+			for {
+				select {
+				case <-lndCtx.Done():
+					return
+				default:
+					payment, err := paymentStream.Recv()
+					if err != nil {
+						logger.Logger.WithError(err).Error("Failed to receive payment")
+						continue
+					}
+
+					var eventName string
+					switch payment.Status {
+					case lnrpc.Payment_FAILED:
+						eventName = "nwc_payment_failed_async"
+					case lnrpc.Payment_SUCCEEDED:
+						eventName = "nwc_payment_sent"
+					default:
+						continue
+					}
+
+					logger.Logger.WithFields(logrus.Fields{
+						"payment": payment,
+					}).Info("Received new payment")
+
+					transaction, err := lndPaymentToTransaction(payment)
+					if err != nil {
+						continue
+					}
+
+					eventPublisher.Publish(&events.Event{
+						Event:      eventName,
+						Properties: transaction,
+					})
+				}
+			}
+		}
+	}()
+
+	// Subscribe to invoices
+	go func() {
+		for {
+			invoiceStream, err := lndClient.SubscribeInvoices(lndCtx, &lnrpc.InvoiceSubscription{})
+			if err != nil {
+				logger.Logger.WithError(err).Error("Error subscribing to invoices")
+				continue
+			}
+			for {
+				select {
+				case <-lndCtx.Done():
+					return
+				default:
+					invoice, err := invoiceStream.Recv()
+					if err != nil {
+						logger.Logger.WithError(err).Error("Failed to receive invoice")
+						continue
+					}
+					if invoice.State != lnrpc.Invoice_SETTLED {
+						continue
+					}
+
+					logger.Logger.WithFields(logrus.Fields{
+						"invoice": invoice,
+					}).Info("Received new invoice")
+
+					eventPublisher.Publish(&events.Event{
+						Event:      "nwc_payment_received",
+						Properties: lndInvoiceToTransaction(invoice),
+					})
+				}
+			}
+		}
+	}()
 
 	logger.Logger.Infof("Connected to LND - alias %s", info.Alias)
 
@@ -458,6 +513,8 @@ func NewLNDService(ctx context.Context, lndAddress, lndCertHex, lndMacaroonHex s
 }
 
 func (svc *LNDService) Shutdown() error {
+	logger.Logger.Info("cancelling LND context")
+	svc.cancel()
 	return nil
 }
 
@@ -607,7 +664,7 @@ func (svc *LNDService) GetOnchainBalance(ctx context.Context) (*lnclient.Onchain
 		"balances": balances,
 	}).Debug("Listed Balances")
 	return &lnclient.OnchainBalanceResponse{
-		Spendable: int64(balances.ConfirmedBalance),
+		Spendable: int64(balances.ConfirmedBalance - balances.ReservedBalanceAnchorChan),
 		Total:     int64(balances.TotalBalance - balances.ReservedBalanceAnchorChan),
 		Reserved:  int64(balances.ReservedBalanceAnchorChan),
 	}, nil
@@ -695,14 +752,54 @@ func (svc *LNDService) GetBalances(ctx context.Context) (*lnclient.BalancesRespo
 	}, nil
 }
 
+func lndPaymentToTransaction(payment *lnrpc.Payment) (*lnclient.Transaction, error) {
+	var expiresAt *int64
+	var description string
+	var descriptionHash string
+	if payment.PaymentRequest != "" {
+		paymentRequest, err := decodepay.Decodepay(strings.ToLower(payment.PaymentRequest))
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"bolt11": payment.PaymentRequest,
+			}).Errorf("Failed to decode bolt11 invoice: %v", err)
+			return nil, err
+		}
+		expiresAtUnix := time.UnixMilli(int64(paymentRequest.CreatedAt) * 1000).Add(time.Duration(paymentRequest.Expiry) * time.Second).Unix()
+		expiresAt = &expiresAtUnix
+		description = paymentRequest.Description
+		descriptionHash = paymentRequest.DescriptionHash
+	}
+
+	var settledAt *int64
+	if payment.Status == lnrpc.Payment_SUCCEEDED {
+		// FIXME: how to get the actual settled at time?
+		settledAtUnix := time.Unix(0, payment.CreationTimeNs).Unix()
+		settledAt = &settledAtUnix
+	}
+
+	return &lnclient.Transaction{
+		Type:            "outgoing",
+		Invoice:         payment.PaymentRequest,
+		Preimage:        payment.PaymentPreimage,
+		PaymentHash:     payment.PaymentHash,
+		Amount:          payment.ValueMsat,
+		FeesPaid:        payment.FeeMsat,
+		CreatedAt:       time.Unix(0, payment.CreationTimeNs).Unix(),
+		Description:     description,
+		DescriptionHash: descriptionHash,
+		ExpiresAt:       expiresAt,
+		SettledAt:       settledAt,
+		//TODO: Metadata:  (e.g. keysend),
+	}, nil
+}
+
 func lndInvoiceToTransaction(invoice *lnrpc.Invoice) *lnclient.Transaction {
 	var settledAt *int64
-	var preimage string
+	preimage := hex.EncodeToString(invoice.RPreimage)
 	metadata := map[string]interface{}{}
+
 	if invoice.State == lnrpc.Invoice_SETTLED {
 		settledAt = &invoice.SettleDate
-		// only set preimage if invoice is settled
-		preimage = hex.EncodeToString(invoice.RPreimage)
 	}
 	var expiresAt *int64
 	if invoice.Expiry > 0 {
@@ -813,5 +910,9 @@ func (svc *LNDService) GetSupportedNIP47Methods() []string {
 }
 
 func (svc *LNDService) GetSupportedNIP47NotificationTypes() []string {
-	return []string{}
+	return []string{"payment_received", "payment_sent"}
+}
+
+func (svc *LNDService) GetPubkey() string {
+	return svc.pubkey
 }

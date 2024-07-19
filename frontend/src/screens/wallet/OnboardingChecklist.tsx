@@ -72,7 +72,7 @@ function OnboardingChecklist() {
 
   const checklistItems = [
     {
-      title: "Open your first channel",
+      title: "1. Open your first channel",
       description:
         "Establish a new Lightning channel to enable fast and low-fee Bitcoin transactions.",
       checked: hasChannel,
@@ -81,17 +81,17 @@ function OnboardingChecklist() {
         : "/channels/outgoing",
     },
     {
-      title: "Send or receive your first payment",
+      title: "2. Link to your Alby Account",
+      description: "Link your lightning address & other apps to this Hub.",
+      checked: isLinked,
+      to: "/apps",
+    },
+    {
+      title: "3. Send or receive your first payment",
       description:
         "Use your newly opened channel to make a transaction on the Lightning Network.",
       checked: hasTransaction,
       to: "/wallet",
-    },
-    {
-      title: "Link to your Alby Account",
-      description: "Link your lightning address & other apps to this Hub.",
-      checked: isLinked,
-      to: "/apps",
     },
     // TODO: enable when we can always migrate funds
     /*{
@@ -101,7 +101,7 @@ function OnboardingChecklist() {
       to: "/onboarding/lightning/migrate-alby",
     },*/
     {
-      title: "Connect your first app",
+      title: "4. Connect your first app",
       description:
         "Seamlessly connect apps and integrate your wallet with other apps from your Hub.",
       checked: hasCustomApp,
@@ -110,7 +110,7 @@ function OnboardingChecklist() {
     ...(hasMnemonic
       ? [
           {
-            title: "Backup your keys",
+            title: "5. Backup your keys",
             description:
               "Secure your keys by creating a backup to ensure you don't lose access.",
             checked: hasBackedUp,
@@ -124,6 +124,8 @@ function OnboardingChecklist() {
     (a, b) => (b && b.checked ? 1 : 0) - (a && a.checked ? 1 : 0)
   );
 
+  const nextStep = checklistItems.find((x) => !x.checked);
+
   return (
     <Card>
       <CardHeader>
@@ -134,15 +136,20 @@ function OnboardingChecklist() {
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col">
-        {sortedChecklistItems.map((item) => (
-          <ChecklistItem
-            key={item.title}
-            title={item.title}
-            description={item.description}
-            checked={!!item.checked}
-            to={item.to}
-          />
-        ))}
+        {sortedChecklistItems.map((item) => {
+          const disabled = nextStep === item;
+
+          return (
+            <ChecklistItem
+              key={item.title}
+              title={item.title}
+              description={item.description}
+              checked={!!item.checked}
+              to={item.to}
+              disabled={!disabled}
+            />
+          );
+        })}
       </CardContent>
     </Card>
   );
@@ -153,6 +160,7 @@ type ChecklistItemProps = {
   checked: boolean;
   description: string;
   to: string;
+  disabled: boolean;
 };
 
 function ChecklistItem({
@@ -160,15 +168,16 @@ function ChecklistItem({
   checked = false,
   description,
   to,
+  disabled = false,
 }: ChecklistItemProps) {
   const content = (
     <div
       className={cn(
         "flex flex-col p-3 relative group rounded-lg",
-        !checked && "hover:bg-muted"
+        !checked && !disabled && "hover:bg-muted"
       )}
     >
-      {!checked && (
+      {!checked && !disabled && (
         <div className="absolute top-0 left-0 w-full h-full items-center justify-end pr-1.5 hidden group-hover:flex opacity-25">
           <ChevronRight className="w-8 h-8" />
         </div>
@@ -194,7 +203,7 @@ function ChecklistItem({
     </div>
   );
 
-  return checked ? content : <Link to={to}>{content}</Link>;
+  return checked || disabled ? content : <Link to={to}>{content}</Link>;
 }
 
 export default OnboardingChecklist;

@@ -53,24 +53,23 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
   const appId = queryParams.get("app") ?? "";
   const app = suggestedApps.find((app) => app.id === appId);
 
-  const nameParam = app
-    ? app.title
-    : (queryParams.get("name") || queryParams.get("c")) ?? "";
   const pubkey = queryParams.get("pubkey") ?? "";
   const returnTo = queryParams.get("return_to") ?? "";
 
-  const [appName, setAppName] = useState(nameParam);
+  const nameParam = (queryParams.get("name") || queryParams.get("c")) ?? "";
+  const [appName, setAppName] = useState(app ? app.title : nameParam);
 
   const budgetRenewalParam = queryParams.get(
     "budget_renewal"
   ) as BudgetRenewalType;
+  const budgetMaxAmountParam = queryParams.get("max_amount") ?? "";
+  const isolatedParam = queryParams.get("isolated") ?? "";
+  const expiresAtParam = queryParams.get("expires_at") ?? "";
 
   const reqMethodsParam = queryParams.get("request_methods") ?? "";
   const notificationTypesParam = queryParams.get("notification_types") ?? "";
-  const maxAmountParam = queryParams.get("max_amount") ?? "";
-  const expiresAtParam = queryParams.get("expires_at") ?? "";
 
-  const initialScopes: Set<Scope> = React.useMemo(() => {
+  const initialScopes: Scope[] = React.useMemo(() => {
     const methods = reqMethodsParam
       ? reqMethodsParam.split(" ")
       : capabilities.methods;
@@ -90,7 +89,9 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
 
     const notificationTypes = notificationTypesParam
       ? notificationTypesParam.split(" ")
-      : capabilities.notificationTypes;
+      : reqMethodsParam
+        ? [] // do not set notifications if only request methods provided
+        : capabilities.notificationTypes;
 
     const notificationTypesSet = new Set<Nip47NotificationType>(
       notificationTypes as Nip47NotificationType[]
@@ -108,42 +109,43 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
       );
     }
 
-    const scopes = new Set<Scope>();
+    const scopes: Scope[] = [];
     if (
-      requestMethodsSet.has("pay_keysend") ||
       requestMethodsSet.has("pay_invoice") ||
+      requestMethodsSet.has("pay_keysend") ||
       requestMethodsSet.has("multi_pay_invoice") ||
       requestMethodsSet.has("multi_pay_keysend")
     ) {
-      scopes.add("pay_invoice");
+      scopes.push("pay_invoice");
     }
 
-    if (requestMethodsSet.has("get_info")) {
-      scopes.add("get_info");
+    if (requestMethodsSet.has("get_info") && isolatedParam !== "true") {
+      scopes.push("get_info");
     }
     if (requestMethodsSet.has("get_balance")) {
-      scopes.add("get_balance");
+      scopes.push("get_balance");
     }
     if (requestMethodsSet.has("make_invoice")) {
-      scopes.add("make_invoice");
+      scopes.push("make_invoice");
     }
     if (requestMethodsSet.has("lookup_invoice")) {
-      scopes.add("lookup_invoice");
+      scopes.push("lookup_invoice");
     }
     if (requestMethodsSet.has("list_transactions")) {
-      scopes.add("list_transactions");
+      scopes.push("list_transactions");
     }
-    if (requestMethodsSet.has("sign_message")) {
-      scopes.add("sign_message");
+    if (requestMethodsSet.has("sign_message") && isolatedParam !== "true") {
+      scopes.push("sign_message");
     }
     if (notificationTypes.length) {
-      scopes.add("notifications");
+      scopes.push("notifications");
     }
 
     return scopes;
   }, [
     capabilities.methods,
     capabilities.notificationTypes,
+    isolatedParam,
     notificationTypesParam,
     reqMethodsParam,
   ]);
@@ -151,18 +153,23 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
   const parseExpiresParam = (expiresParam: string): Date | undefined => {
     const expiresParamTimestamp = parseInt(expiresParam);
     if (!isNaN(expiresParamTimestamp)) {
-      return new Date(expiresParamTimestamp * 1000);
+      const expiry = new Date(expiresParamTimestamp * 1000);
+      expiry.setHours(23, 59, 59);
+      return expiry;
     }
     return undefined;
   };
 
   const [permissions, setPermissions] = useState<AppPermissions>({
     scopes: initialScopes,
-    maxAmount: parseInt(maxAmountParam || "100000"),
+    maxAmount: budgetMaxAmountParam ? parseInt(budgetMaxAmountParam) : 0,
     budgetRenewal: validBudgetRenewals.includes(budgetRenewalParam)
       ? budgetRenewalParam
-      : "monthly",
+      : budgetMaxAmountParam
+        ? "never"
+        : "monthly",
     expiresAt: parseExpiresParam(expiresAtParam),
+    isolated: isolatedParam === "true",
   });
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -171,15 +178,21 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
       throw new Error("No CSRF token");
     }
 
+    if (!permissions.scopes.length) {
+      toast({ title: "Please specify wallet permissions." });
+      return;
+    }
+
     try {
       const createAppRequest: CreateAppRequest = {
         name: appName,
         pubkey,
         budgetRenewal: permissions.budgetRenewal,
-        maxAmount: permissions.maxAmount,
-        scopes: Array.from(permissions.scopes),
+        maxAmount: permissions.maxAmount || 0,
+        scopes: permissions.scopes,
         expiresAt: permissions.expiresAt?.toISOString(),
         returnTo: returnTo,
+        isolated: permissions.isolated,
       };
 
       const createAppResponse = await request<CreateAppResponse>("/api/apps", {
@@ -254,12 +267,16 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
           </div>
         )}
         <div className="flex flex-col gap-2 w-full">
-          <p className="font-medium text-sm">Authorize the app to:</p>
           <Permissions
-            initialPermissions={permissions}
-            onPermissionsChange={setPermissions}
-            canEditPermissions={!reqMethodsParam}
+            capabilities={capabilities}
+            permissions={permissions}
+            setPermissions={setPermissions}
             isNewConnection
+            scopesReadOnly={
+              !!reqMethodsParam || !!notificationTypesParam || !!isolatedParam
+            }
+            budgetReadOnly={!!budgetMaxAmountParam}
+            expiresAtReadOnly={!!expiresAtParam}
           />
         </div>
 

@@ -46,14 +46,11 @@ func (el *eventPublisher) RemoveSubscriber(listenerToRemove EventSubscriber) {
 func (ep *eventPublisher) Publish(event *Event) {
 	ep.subscriberMtx.Lock()
 	defer ep.subscriberMtx.Unlock()
-	logger.Logger.WithFields(logrus.Fields{"event": event}).Info("Logging event")
+	logger.Logger.WithFields(logrus.Fields{"event": event}).Info("Publishing event")
 	for _, listener := range ep.listeners {
-		go func(listener EventSubscriber) {
-			err := listener.ConsumeEvent(context.Background(), event, ep.globalProperties)
-			if err != nil {
-				logger.Logger.WithError(err).Error("Failed to consume event")
-			}
-		}(listener)
+		// events are consumed in sequence as some listeners depend on earlier consumers
+		// (e.g. NIP-47 notifier depends on transactions service updating transactions)
+		listener.ConsumeEvent(context.Background(), event, ep.globalProperties)
 	}
 }
 
