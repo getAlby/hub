@@ -160,7 +160,7 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 		LNDAddress, _ := svc.cfg.Get("LNDAddress", encryptionKey)
 		LNDCertHex, _ := svc.cfg.Get("LNDCertHex", encryptionKey)
 		LNDMacaroonHex, _ := svc.cfg.Get("LNDMacaroonHex", encryptionKey)
-		lnClient, err = lnd.NewLNDService(ctx, LNDAddress, LNDCertHex, LNDMacaroonHex)
+		lnClient, err = lnd.NewLNDService(ctx, svc.eventPublisher, LNDAddress, LNDCertHex, LNDMacaroonHex)
 	case config.LDKBackendType:
 		Mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
 		LDKWorkdir := path.Join(svc.cfg.GetEnv().Workdir, "ldk")
