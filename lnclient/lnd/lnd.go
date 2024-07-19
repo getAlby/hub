@@ -426,7 +426,7 @@ func NewLNDService(ctx context.Context, eventPublisher events.EventPublisher, ln
 				NoInflightUpdates: true,
 			})
 			if err != nil {
-				logger.Logger.Errorf("Error subscribing to payments: %v", err)
+				logger.Logger.WithError(err).Error("Error subscribing to payments")
 				continue
 			}
 			for {
@@ -436,7 +436,7 @@ func NewLNDService(ctx context.Context, eventPublisher events.EventPublisher, ln
 				default:
 					payment, err := paymentStream.Recv()
 					if err != nil {
-						logger.Logger.Errorf("Failed to receive payment: %v", err)
+						logger.Logger.WithError(err).Error("Failed to receive payment")
 						time.Sleep(2 * time.Second)
 						continue
 					}
@@ -474,7 +474,7 @@ func NewLNDService(ctx context.Context, eventPublisher events.EventPublisher, ln
 		for {
 			invoiceStream, err := lndClient.SubscribeInvoices(lndCtx, &lnrpc.InvoiceSubscription{})
 			if err != nil {
-				logger.Logger.Errorf("Error subscribing to invoices: %v", err)
+				logger.Logger.WithError(err).Error("Error subscribing to invoices")
 				continue
 			}
 			for {
@@ -484,7 +484,7 @@ func NewLNDService(ctx context.Context, eventPublisher events.EventPublisher, ln
 				default:
 					invoice, err := invoiceStream.Recv()
 					if err != nil {
-						logger.Logger.Errorf("Failed to receive invoice: %v", err)
+						logger.Logger.WithError(err).Error("Failed to receive invoice")
 						time.Sleep(2 * time.Second)
 						continue
 					}
