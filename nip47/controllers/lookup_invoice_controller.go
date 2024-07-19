@@ -58,7 +58,7 @@ func (controller *nip47Controller) HandleLookupInvoiceEvent(ctx context.Context,
 		paymentHash = paymentRequest.PaymentHash
 	}
 
-	dbTransaction, err := controller.transactionsService.LookupTransaction(ctx, paymentHash, controller.lnClient, &appId)
+	dbTransaction, err := controller.transactionsService.LookupTransaction(ctx, paymentHash, nil, controller.lnClient, &appId)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"request_event_id": requestEventId,

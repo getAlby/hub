@@ -76,6 +76,7 @@ type Transaction struct {
 	UpdatedAt       time.Time
 	SettledAt       *time.Time
 	Metadata        string
+	SelfPayment     bool
 }
 
 type DBService interface {

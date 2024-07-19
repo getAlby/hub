@@ -26,7 +26,7 @@ func (api *api) LookupInvoice(ctx context.Context, paymentHash string) (*LookupI
 	if api.svc.GetLNClient() == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	transaction, err := api.svc.GetTransactionsService().LookupTransaction(ctx, paymentHash, api.svc.GetLNClient(), nil)
+	transaction, err := api.svc.GetTransactionsService().LookupTransaction(ctx, paymentHash, nil, api.svc.GetLNClient(), nil)
 	if err != nil {
 		return nil, err
 	}

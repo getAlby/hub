@@ -36,7 +36,8 @@ CREATE TABLE transactions(
 	updated_at datetime,
 	expires_at datetime,
 	settled_at datetime,
-	metadata text
+	metadata text,
+	self_payment boolean
 );
 
 DROP TABLE payments;

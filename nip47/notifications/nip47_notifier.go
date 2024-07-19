@@ -55,7 +55,8 @@ func (notifier *Nip47Notifier) ConsumeEvent(ctx context.Context, event *events.E
 			return
 		}
 
-		transaction, err := notifier.transactionsService.LookupTransaction(ctx, lnClientTransaction.PaymentHash, notifier.lnClient, nil)
+		transactionType := constants.TRANSACTION_TYPE_INCOMING
+		transaction, err := notifier.transactionsService.LookupTransaction(ctx, lnClientTransaction.PaymentHash, &transactionType, notifier.lnClient, nil)
 		if err != nil {
 			logger.Logger.
 				WithField("paymentHash", lnClientTransaction.PaymentHash).
@@ -79,7 +80,8 @@ func (notifier *Nip47Notifier) ConsumeEvent(ctx context.Context, event *events.E
 			return
 		}
 
-		transaction, err := notifier.transactionsService.LookupTransaction(ctx, paymentSentEventProperties.PaymentHash, notifier.lnClient, nil)
+		transactionType := constants.TRANSACTION_TYPE_OUTGOING
+		transaction, err := notifier.transactionsService.LookupTransaction(ctx, paymentSentEventProperties.PaymentHash, &transactionType, notifier.lnClient, nil)
 		if err != nil {
 			logger.Logger.
 				WithField("paymentHash", paymentSentEventProperties.PaymentHash).

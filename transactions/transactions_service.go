@@ -27,7 +27,7 @@ type transactionsService struct {
 type TransactionsService interface {
 	events.EventSubscriber
 	MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
-	LookupTransaction(ctx context.Context, paymentHash string, lnClient lnclient.LNClient, appId *uint) (*Transaction, error)
+	LookupTransaction(ctx context.Context, paymentHash string, transactionType *string, lnClient lnclient.LNClient, appId *uint) (*Transaction, error)
 	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string, lnClient lnclient.LNClient, appId *uint) (transactions []Transaction, err error)
 	SendPaymentSync(ctx context.Context, payReq string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []lnclient.TLVRecord, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
@@ -135,6 +135,8 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 		return nil, err
 	}
 
+	selfPayment := paymentRequest.Payee != "" && paymentRequest.Payee == lnClient.GetPubkey()
+
 	var dbTransaction db.Transaction
 
 	err = svc.db.Transaction(func(tx *gorm.DB) error {
@@ -161,6 +163,7 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 			Description:     paymentRequest.Description,
 			DescriptionHash: paymentRequest.DescriptionHash,
 			ExpiresAt:       expiresAt,
+			SelfPayment:     selfPayment,
 			// Metadata:       metadata,
 		}
 		err = tx.Create(&dbTransaction).Error
@@ -175,7 +178,7 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 	}
 
 	var response *lnclient.PayInvoiceResponse
-	if paymentRequest.Payee != "" && paymentRequest.Payee == lnClient.GetPubkey() {
+	if selfPayment {
 		response, err = svc.interceptSelfPayment(paymentRequest.PaymentHash)
 	} else {
 		response, err = lnClient.SendPaymentSync(ctx, payReq)
@@ -335,7 +338,7 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 	return &dbTransaction, nil
 }
 
-func (svc *transactionsService) LookupTransaction(ctx context.Context, paymentHash string, lnClient lnclient.LNClient, appId *uint) (*Transaction, error) {
+func (svc *transactionsService) LookupTransaction(ctx context.Context, paymentHash string, transactionType *string, lnClient lnclient.LNClient, appId *uint) (*Transaction, error) {
 	transaction := db.Transaction{}
 
 	tx := svc.db
@@ -348,6 +351,10 @@ func (svc *transactionsService) LookupTransaction(ctx context.Context, paymentHa
 		if app.Isolated {
 			tx = tx.Where("app_id == ?", *appId)
 		}
+	}
+
+	if transactionType != nil {
+		tx = tx.Where("type == ?", *transactionType)
 	}
 
 	// order settled first, otherwise by created date, as there can be multiple outgoing payments
@@ -624,16 +631,17 @@ func (svc *transactionsService) interceptSelfPayment(paymentHash string) (*lncli
 		return nil, NewNotFoundError()
 	}
 	if incomingTransaction.Preimage == nil {
-		return nil, errors.New("preimage is not set on transaction. Self payments not supported.")
+		return nil, errors.New("preimage is not set on transaction. Self payments not supported")
 	}
 
 	// update the incoming transaction
 	now := time.Now()
 	fee := uint64(0)
 	err := svc.db.Model(&incomingTransaction).Updates(&db.Transaction{
-		State:     constants.TRANSACTION_STATE_SETTLED,
-		FeeMsat:   &fee,
-		SettledAt: &now,
+		State:       constants.TRANSACTION_STATE_SETTLED,
+		FeeMsat:     &fee,
+		SettledAt:   &now,
+		SelfPayment: true,
 	}).Error
 	if err != nil {
 		return nil, err

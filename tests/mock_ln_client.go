@@ -59,6 +59,7 @@ var MockLNClientTransaction = &MockLNClientTransactions[0]
 type MockLn struct {
 	PayInvoiceResponses []*lnclient.PayInvoiceResponse
 	PayInvoiceErrors    []error
+	Pubkey              string
 }
 
 func NewMockLn() (*MockLn, error) {
@@ -178,5 +179,9 @@ func (mln *MockLn) GetSupportedNIP47NotificationTypes() []string {
 	return []string{"payment_received", "payment_sent"}
 }
 func (mln *MockLn) GetPubkey() string {
+	if mln.Pubkey != "" {
+		return mln.Pubkey
+	}
+
 	return "123pubkey"
 }
