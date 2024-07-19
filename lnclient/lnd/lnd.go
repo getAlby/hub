@@ -364,7 +364,7 @@ func (svc *LNDService) SendKeysend(ctx context.Context, amount uint64, destinati
 		return paymentHash, "", 0, errors.New(resp.PaymentError)
 	}
 	respPreimage := hex.EncodeToString(resp.PaymentPreimage)
-	if respPreimage == preimage {
+	if respPreimage != preimage {
 		logger.Logger.WithFields(logrus.Fields{
 			"amount":        amount,
 			"payeePubkey":   destination,
@@ -908,7 +908,7 @@ func (svc *LNDService) GetSupportedNIP47Methods() []string {
 }
 
 func (svc *LNDService) GetSupportedNIP47NotificationTypes() []string {
-	return []string{}
+	return []string{"payment_received", "payment_sent"}
 }
 
 func (svc *LNDService) GetPubkey() string {
