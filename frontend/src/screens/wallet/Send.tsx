@@ -43,10 +43,12 @@ export default function Send() {
   const { toast } = useToast();
   const [isLoading, setLoading] = React.useState(false);
   const [invoice, setInvoice] = React.useState("");
+  const [invoiceDetails, setInvoiceDetails] = React.useState<Invoice | null>(
+    null
+  );
   const [payResponse, setPayResponse] =
     React.useState<PayInvoiceResponse | null>(null);
   const [paymentDone, setPaymentDone] = React.useState(false);
-  const [showConfirmation, setShowConfirmation] = React.useState(false);
 
   if (!balances || !channels) {
     return <Loading />;
@@ -54,8 +56,7 @@ export default function Send() {
 
   const handleContinue = () => {
     try {
-      new Invoice({ pr: invoice });
-      setShowConfirmation(true);
+      setInvoiceDetails(new Invoice({ pr: invoice }));
     } catch (error) {
       toast({
         variant: "destructive",
@@ -97,7 +98,7 @@ export default function Send() {
         title: "Failed to send: " + e,
       });
       setInvoice("");
-      setShowConfirmation(false);
+      setInvoiceDetails(null);
       console.error(e);
     }
     setLoading(false);
@@ -119,27 +120,21 @@ export default function Send() {
         title="Send"
         description="Pay a lightning invoice created by any bitcoin lightning wallet"
       />
-      {!!channels?.length && (
-        <>
-          {/* If all channels have less or equal balance than their reserve, show a warning */}
-          {channels?.every(
-            (channel) =>
-              channel.localBalance <=
-              channel.unspendablePunishmentReserve * 1000
-          ) && (
-            <Alert>
-              <AlertTriangle className="h-4 w-4" />
-              <AlertTitle>Low spending balance</AlertTitle>
-              <AlertDescription>
-                You won't be able to make payments until you{" "}
-                <Link className="underline" to="/channels/outgoing">
-                  increase your spending balance.
-                </Link>
-              </AlertDescription>
-            </Alert>
-          )}
-        </>
-      )}
+      {invoiceDetails &&
+        hasChannelManagement &&
+        invoiceDetails.satoshi * 1000 >
+          0.8 * balances.lightning.totalSpendable && (
+          <Alert>
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Low spending balance</AlertTitle>
+            <AlertDescription>
+              You won't be able to make payments until you{" "}
+              <Link className="underline" to="/channels/outgoing">
+                increase your spending balance.
+              </Link>
+            </AlertDescription>
+          </Alert>
+        )}
       <div className="flex gap-12 w-full">
         <div className="w-full max-w-lg">
           {paymentDone ? (
@@ -164,7 +159,7 @@ export default function Send() {
                     className="mt-4 w-full"
                     onClick={() => {
                       setPaymentDone(false);
-                      setShowConfirmation(false);
+                      setInvoiceDetails(null);
                       setPayResponse(null);
                       setInvoice("");
                     }}
@@ -185,15 +180,13 @@ export default function Send() {
                 </>
               )}
             </>
-          ) : showConfirmation ? (
+          ) : invoiceDetails ? (
             <form onSubmit={handleSubmit} className="grid gap-5">
               <div className="">
                 <p className="text-lg mb-5">Payment Details</p>
-                <p className="font-bold">
-                  {new Invoice({ pr: invoice }).satoshi} sats
-                </p>
+                <p className="font-bold">{invoiceDetails.satoshi} sats</p>
                 <p className="text-muted-foreground">
-                  {new Invoice({ pr: invoice }).description}
+                  {invoiceDetails.description}
                 </p>
               </div>
               <div className="flex gap-5">
@@ -206,7 +199,7 @@ export default function Send() {
                   Confirm Payment
                 </LoadingButton>
                 <Button
-                  onClick={() => setShowConfirmation(false)}
+                  onClick={() => setInvoiceDetails(null)}
                   variant="secondary"
                 >
                   Back

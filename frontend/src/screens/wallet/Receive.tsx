@@ -127,28 +127,20 @@ export default function Receive() {
         title="Receive"
         description="Create a lightning invoice that can be paid by any bitcoin lightning wallet"
       />
-      {!!channels?.length && (
-        <>
-          {/* If all channels have less than 20% incoming capacity, show a warning */}
-          {channels?.every(
-            (channel) =>
-              channel.remoteBalance <
-                (channel.localBalance + channel.remoteBalance) * 0.2 ||
-              parseInt(amount) * 1000 > channel.remoteBalance
-          ) && (
-            <Alert>
-              <AlertTriangle className="h-4 w-4" />
-              <AlertTitle>Low receiving capacity</AlertTitle>
-              <AlertDescription>
-                You likely won't be able to receive payments until you{" "}
-                <Link className="underline" to="/channels/incoming">
-                  increase your receiving capacity.
-                </Link>
-              </AlertDescription>
-            </Alert>
-          )}
-        </>
-      )}
+      {hasChannelManagement &&
+        parseInt(amount || "0") * 1000 >
+          0.8 * balances.lightning.totalReceivable && (
+          <Alert>
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Low receiving capacity</AlertTitle>
+            <AlertDescription>
+              You likely won't be able to receive payments until you{" "}
+              <Link className="underline" to="/channels/incoming">
+                increase your receiving capacity.
+              </Link>
+            </AlertDescription>
+          </Alert>
+        )}
       <div className="flex gap-12 w-full">
         <div className="w-full max-w-lg">
           {invoice ? (
