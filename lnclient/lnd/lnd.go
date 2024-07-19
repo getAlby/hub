@@ -440,7 +440,14 @@ func NewLNDService(ctx context.Context, eventPublisher events.EventPublisher, ln
 						time.Sleep(2 * time.Second)
 						continue
 					}
-					if payment.Status != lnrpc.Payment_SUCCEEDED {
+
+					var eventName string
+					switch payment.Status {
+					case lnrpc.Payment_FAILED:
+						eventName = "nwc_payment_failed_async"
+					case lnrpc.Payment_SUCCEEDED:
+						eventName = "nwc_payment_sent"
+					default:
 						continue
 					}
 
@@ -454,7 +461,7 @@ func NewLNDService(ctx context.Context, eventPublisher events.EventPublisher, ln
 					}
 
 					eventPublisher.Publish(&events.Event{
-						Event:      "nwc_payment_sent",
+						Event:      eventName,
 						Properties: transaction,
 					})
 				}
