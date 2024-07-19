@@ -24,7 +24,7 @@ function TransactionsList() {
       ) : (
         <>
           {transactions?.map((tx) => {
-            return <TransactionItem key={tx.payment_hash} tx={tx} />;
+            return <TransactionItem key={tx.payment_hash + tx.type} tx={tx} />;
           })}
         </>
       )}
