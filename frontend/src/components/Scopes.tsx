@@ -8,6 +8,7 @@ import {
 import React from "react";
 import { Checkbox } from "src/components/ui/checkbox";
 import { Label } from "src/components/ui/label";
+import { useInfo } from "src/hooks/useInfo";
 import { cn } from "src/lib/utils";
 import { Scope, WalletCapabilities, scopeDescriptions } from "src/types";
 
@@ -52,6 +53,7 @@ const Scopes: React.FC<ScopesProps> = ({
   isNewConnection,
   onScopesChanged,
 }) => {
+  const { data: info } = useInfo();
   const fullAccessScopes: Scope[] = React.useMemo(() => {
     return [...capabilities.scopes];
   }, [capabilities.scopes]);
@@ -145,6 +147,16 @@ const Scopes: React.FC<ScopesProps> = ({
                 key={index}
                 className={`flex flex-col items-center border-2 rounded cursor-pointer ${scopeGroup == sg ? "border-primary" : "border-muted"} p-4`}
                 onClick={() => {
+                  if (
+                    sg === "isolated" &&
+                    info?.backendType !== "LDK" &&
+                    info?.backendType !== "LND"
+                  ) {
+                    alert(
+                      "Isolated apps are currently not supported on your node backend. Try LDK to access all Alby Hub features."
+                    );
+                    return;
+                  }
                   if (!isNewConnection && !isolated && sg === "isolated") {
                     // do not allow user to change non-isolated connection to isolated
                     alert("Please create a new isolated connection instead");
