@@ -33,7 +33,7 @@ var MockLNClientTransactions = []lnclient.Transaction{
 		Description:     "mock invoice 1",
 		DescriptionHash: "hash1",
 		Preimage:        "preimage1",
-		PaymentHash:     "payment_hash_1",
+		PaymentHash:     MockPaymentHash,
 		Amount:          1000,
 		FeesPaid:        50,
 		SettledAt:       &MockTimeUnix,
@@ -48,7 +48,7 @@ var MockLNClientTransactions = []lnclient.Transaction{
 		Description:     "mock invoice 2",
 		DescriptionHash: "hash2",
 		Preimage:        "preimage2",
-		PaymentHash:     "payment_hash_2",
+		PaymentHash:     MockPaymentHash,
 		Amount:          2000,
 		FeesPaid:        75,
 		SettledAt:       &MockTimeUnix,
@@ -59,6 +59,7 @@ var MockLNClientTransaction = &MockLNClientTransactions[0]
 type MockLn struct {
 	PayInvoiceResponses []*lnclient.PayInvoiceResponse
 	PayInvoiceErrors    []error
+	Pubkey              string
 }
 
 func NewMockLn() (*MockLn, error) {
@@ -178,5 +179,9 @@ func (mln *MockLn) GetSupportedNIP47NotificationTypes() []string {
 	return []string{"payment_received", "payment_sent"}
 }
 func (mln *MockLn) GetPubkey() string {
+	if mln.Pubkey != "" {
+		return mln.Pubkey
+	}
+
 	return "123pubkey"
 }
