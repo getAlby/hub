@@ -3,7 +3,7 @@ package events
 import "context"
 
 type EventSubscriber interface {
-	ConsumeEvent(ctx context.Context, event *Event, globalProperties map[string]interface{}) error
+	ConsumeEvent(ctx context.Context, event *Event, globalProperties map[string]interface{})
 }
 
 type EventPublisher interface {
@@ -16,15 +16,6 @@ type EventPublisher interface {
 type Event struct {
 	Event      string      `json:"event"`
 	Properties interface{} `json:"properties,omitempty"`
-}
-
-type PaymentReceivedEventProperties struct {
-	PaymentHash string `json:"payment_hash"`
-}
-
-type PaymentSentEventProperties struct {
-	PaymentHash string `json:"payment_hash"`
-	Duration    uint64 `json:"duration"`
 }
 
 type ChannelBackupEvent struct {

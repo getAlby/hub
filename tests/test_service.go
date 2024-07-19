@@ -2,6 +2,7 @@ package tests
 
 import (
 	"os"
+	"strconv"
 
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/db"
@@ -9,6 +10,7 @@ import (
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/service/keys"
+	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
@@ -25,7 +27,7 @@ func CreateTestService() (svc *TestService, err error) {
 		return nil, err
 	}
 
-	logger.Init("")
+	logger.Init(strconv.Itoa(int(logrus.DebugLevel)))
 
 	appConfig := &config.AppConfig{
 		Workdir: ".test",

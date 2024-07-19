@@ -9,6 +9,7 @@ import {
   CopyIcon,
 } from "lucide-react";
 import React from "react";
+import AppAvatar from "src/components/AppAvatar";
 import {
   Credenza,
   CredenzaBody,
@@ -20,6 +21,7 @@ import {
   CredenzaTrigger,
 } from "src/components/ui/credenza";
 import { toast } from "src/components/ui/use-toast";
+import { useApps } from "src/hooks/useApps";
 import { copyToClipboard } from "src/lib/clipboard";
 import { cn } from "src/lib/utils";
 import { Transaction } from "src/types";
@@ -32,9 +34,11 @@ type Props = {
 };
 
 function TransactionItem({ tx }: Props) {
+  const { data: apps } = useApps();
   const [showDetails, setShowDetails] = React.useState(false);
   const type = tx.type;
   const Icon = tx.type == "outgoing" ? ArrowUpIcon : ArrowDownIcon;
+  const app = tx.app_id && apps?.find((app) => app.id === tx.app_id);
 
   const copy = (text: string) => {
     copyToClipboard(text);
@@ -56,32 +60,39 @@ function TransactionItem({ tx }: Props) {
         >
           <div className="flex gap-3">
             <div className="flex items-center">
-              <div
-                className={cn(
-                  "flex justify-center items-center rounded-full w-10 h-10 md:w-14 md:h-14",
-                  type === "outgoing"
-                    ? "bg-orange-100 dark:bg-orange-950"
-                    : "bg-green-100 dark:bg-emerald-950"
-                )}
-              >
-                <Icon
-                  strokeWidth={3}
-                  className={cn(
-                    "w-6 h-6 md:w-8 md:h-8",
-                    type === "outgoing"
-                      ? "stroke-orange-400 dark:stroke-amber-600"
-                      : "stroke-green-400 dark:stroke-emerald-500"
-                  )}
+              {app ? (
+                <AppAvatar
+                  appName={app.name}
+                  className="border-none p-0 rounded-full w-10 h-10 md:w-14 md:h-14"
                 />
-              </div>
+              ) : (
+                <div
+                  className={cn(
+                    "flex justify-center items-center rounded-full w-10 h-10 md:w-14 md:h-14",
+                    type === "outgoing"
+                      ? "bg-orange-100 dark:bg-orange-950"
+                      : "bg-green-100 dark:bg-emerald-950"
+                  )}
+                >
+                  <Icon
+                    strokeWidth={3}
+                    className={cn(
+                      "w-6 h-6 md:w-8 md:h-8",
+                      type === "outgoing"
+                        ? "stroke-orange-400 dark:stroke-amber-600"
+                        : "stroke-green-400 dark:stroke-emerald-500"
+                    )}
+                  />
+                </div>
+              )}
             </div>
             <div className="overflow-hidden mr-3">
               <div className="flex items-center gap-2 truncate">
                 <p className="text-lg md:text-xl font-semibold">
-                  {type == "incoming" ? "Received" : "Sent"}
+                  {app ? app.name : type == "incoming" ? "Received" : "Sent"}
                 </p>
                 <p className="text-sm md:text-base truncate text-muted-foreground">
-                  {dayjs(tx.settled_at * 1000).fromNow()}
+                  {dayjs(tx.settled_at).fromNow()}
                 </p>
               </div>
               <p className="text-sm md:text-base text-muted-foreground">
@@ -155,7 +166,7 @@ function TransactionItem({ tx }: Props) {
             <div className="mt-8">
               <p>Date & Time</p>
               <p className="text-muted-foreground">
-                {dayjs(tx.settled_at * 1000)
+                {dayjs(tx.settled_at)
                   .tz(dayjs.tz.guess())
                   .format("D MMMM YYYY, HH:mm")}
               </p>
@@ -201,7 +212,9 @@ function TransactionItem({ tx }: Props) {
                     <CopyIcon
                       className="cursor-pointer text-muted-foreground w-6 h-6"
                       onClick={() => {
-                        copy(tx.preimage);
+                        if (tx.preimage) {
+                          copy(tx.preimage);
+                        }
                       }}
                     />
                   </div>

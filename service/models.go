@@ -6,6 +6,7 @@ import (
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/service/keys"
+	"github.com/getAlby/hub/transactions"
 	"gorm.io/gorm"
 )
 
@@ -18,6 +19,7 @@ type Service interface {
 	GetAlbyOAuthSvc() alby.AlbyOAuthService
 	GetEventPublisher() events.EventPublisher
 	GetLNClient() lnclient.LNClient
+	GetTransactionsService() transactions.TransactionsService
 	GetDB() *gorm.DB
 	GetConfig() config.Config
 	GetKeys() keys.Keys

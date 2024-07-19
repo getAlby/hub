@@ -68,11 +68,18 @@ type BalanceResponse struct {
 type PhoenixService struct {
 	Address       string
 	Authorization string
+	pubkey        string
 }
 
 func NewPhoenixService(address string, authorization string) (result lnclient.LNClient, err error) {
 	authorizationBase64 := b64.StdEncoding.EncodeToString([]byte(":" + authorization))
 	phoenixService := &PhoenixService{Address: address, Authorization: authorizationBase64}
+
+	info, err := phoenixService.GetInfo(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	phoenixService.pubkey = info.Pubkey
 
 	return phoenixService, nil
 }
@@ -328,7 +335,7 @@ func (svc *PhoenixService) MakeInvoice(ctx context.Context, amount int64, descri
 	tx := &lnclient.Transaction{
 		Type:            "incoming",
 		Invoice:         invoiceRes.Serialized,
-		Preimage:        "",
+		Preimage:        "", // TODO: set preimage to enable self-payments
 		PaymentHash:     invoiceRes.PaymentHash,
 		FeesPaid:        0,
 		CreatedAt:       time.Now().Unix(),
@@ -420,8 +427,8 @@ func (svc *PhoenixService) SendPaymentSync(ctx context.Context, payReq string) (
 	}, nil
 }
 
-func (svc *PhoenixService) SendKeysend(ctx context.Context, amount uint64, destination, preimage string, custom_records []lnclient.TLVRecord) (respPreimage string, err error) {
-	return "", errors.New("not implemented")
+func (svc *PhoenixService) SendKeysend(ctx context.Context, amount uint64, destination string, custom_records []lnclient.TLVRecord) (paymentHash string, preimage string, fee uint64, err error) {
+	return "", "", 0, errors.New("not implemented")
 }
 
 func (svc *PhoenixService) RedeemOnchainFunds(ctx context.Context, toAddress string) (txId string, err error) {
@@ -525,4 +532,8 @@ func (svc *PhoenixService) GetSupportedNIP47Methods() []string {
 
 func (svc *PhoenixService) GetSupportedNIP47NotificationTypes() []string {
 	return []string{}
+}
+
+func (svc *PhoenixService) GetPubkey() string {
+	return svc.pubkey
 }

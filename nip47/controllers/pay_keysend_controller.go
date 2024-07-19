@@ -10,7 +10,6 @@ import (
 	"github.com/getAlby/hub/nip47/models"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/sirupsen/logrus"
-	"gorm.io/gorm"
 )
 
 type payKeysendParams struct {
@@ -20,57 +19,24 @@ type payKeysendParams struct {
 	TLVRecords []lnclient.TLVRecord `json:"tlv_records"`
 }
 
-type payKeysendController struct {
-	lnClient       lnclient.LNClient
-	db             *gorm.DB
-	eventPublisher events.EventPublisher
-}
-
-func NewPayKeysendController(lnClient lnclient.LNClient, db *gorm.DB, eventPublisher events.EventPublisher) *payKeysendController {
-	return &payKeysendController{
-		lnClient:       lnClient,
-		db:             db,
-		eventPublisher: eventPublisher,
-	}
-}
-
-func (controller *payKeysendController) HandlePayKeysendEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, app *db.App, checkPermission checkPermissionFunc, publishResponse publishFunc, tags nostr.Tags) {
+func (controller *nip47Controller) HandlePayKeysendEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, app *db.App, publishResponse publishFunc, tags nostr.Tags) {
 	payKeysendParams := &payKeysendParams{}
 	resp := decodeRequest(nip47Request, payKeysendParams)
 	if resp != nil {
 		publishResponse(resp, tags)
 		return
 	}
-	controller.pay(ctx, payKeysendParams, nip47Request, requestEventId, app, checkPermission, publishResponse, tags)
+	controller.payKeysend(ctx, payKeysendParams, nip47Request, requestEventId, app, publishResponse, tags)
 }
 
-func (controller *payKeysendController) pay(ctx context.Context, payKeysendParams *payKeysendParams, nip47Request *models.Request, requestEventId uint, app *db.App, checkPermission checkPermissionFunc, publishResponse publishFunc, tags nostr.Tags) {
-	resp := checkPermission(payKeysendParams.Amount)
-	if resp != nil {
-		publishResponse(resp, tags)
-		return
-	}
-
-	payment := db.Payment{App: *app, RequestEventId: requestEventId, Amount: uint(payKeysendParams.Amount / 1000)}
-	err := controller.db.Create(&payment).Error
-	if err != nil {
-		publishResponse(&models.Response{
-			ResultType: nip47Request.Method,
-			Error: &models.Error{
-				Code:    models.ERROR_INTERNAL,
-				Message: err.Error(),
-			},
-		}, tags)
-		return
-	}
-
+func (controller *nip47Controller) payKeysend(ctx context.Context, payKeysendParams *payKeysendParams, nip47Request *models.Request, requestEventId uint, app *db.App, publishResponse publishFunc, tags nostr.Tags) {
 	logger.Logger.WithFields(logrus.Fields{
 		"request_event_id": requestEventId,
 		"appId":            app.ID,
 		"senderPubkey":     payKeysendParams.Pubkey,
 	}).Info("Sending keysend payment")
 
-	preimage, err := controller.lnClient.SendKeysend(ctx, payKeysendParams.Amount, payKeysendParams.Pubkey, payKeysendParams.Preimage, payKeysendParams.TLVRecords)
+	transaction, err := controller.transactionsService.SendKeysend(ctx, payKeysendParams.Amount, payKeysendParams.Pubkey, payKeysendParams.TLVRecords, controller.lnClient, &app.ID, &requestEventId)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"request_event_id": requestEventId,
@@ -87,15 +53,10 @@ func (controller *payKeysendController) pay(ctx context.Context, payKeysendParam
 		})
 		publishResponse(&models.Response{
 			ResultType: nip47Request.Method,
-			Error: &models.Error{
-				Code:    models.ERROR_INTERNAL,
-				Message: err.Error(),
-			},
+			Error:      mapNip47Error(err),
 		}, tags)
 		return
 	}
-	payment.Preimage = &preimage
-	controller.db.Save(&payment)
 	controller.eventPublisher.Publish(&events.Event{
 		Event: "nwc_payment_succeeded",
 		Properties: map[string]interface{}{
@@ -106,7 +67,7 @@ func (controller *payKeysendController) pay(ctx context.Context, payKeysendParam
 	publishResponse(&models.Response{
 		ResultType: nip47Request.Method,
 		Result: payResponse{
-			Preimage: preimage,
+			Preimage: *transaction.Preimage,
 		},
 	}, tags)
 }

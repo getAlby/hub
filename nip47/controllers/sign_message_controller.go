@@ -3,7 +3,6 @@ package controllers
 import (
 	"context"
 
-	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/nip47/models"
 	"github.com/nbd-wtf/go-nostr"
@@ -19,26 +18,9 @@ type signMessageResponse struct {
 	Signature string `json:"signature"`
 }
 
-type signMessageController struct {
-	lnClient lnclient.LNClient
-}
-
-func NewSignMessageController(lnClient lnclient.LNClient) *signMessageController {
-	return &signMessageController{
-		lnClient: lnClient,
-	}
-}
-
-func (controller *signMessageController) HandleSignMessageEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, checkPermission checkPermissionFunc, publishResponse publishFunc) {
-	// basic permissions check
-	resp := checkPermission(0)
-	if resp != nil {
-		publishResponse(resp, nostr.Tags{})
-		return
-	}
-
+func (controller *nip47Controller) HandleSignMessageEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, publishResponse publishFunc) {
 	signParams := &signMessageParams{}
-	resp = decodeRequest(nip47Request, signParams)
+	resp := decodeRequest(nip47Request, signParams)
 	if resp != nil {
 		publishResponse(resp, nostr.Tags{})
 		return
