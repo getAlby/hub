@@ -21,8 +21,8 @@ const nip47ListTransactionsJson = `
 {
 	"method": "list_transactions",
 	"params": {
-		"from": 1693876973,
-		"until": 1694876973,
+		"from": 0,
+		"until": 0,
 		"limit": 10,
 		"offset": 0,
 		"type": "incoming"
@@ -94,3 +94,5 @@ func TestHandleListTransactionsEvent(t *testing.T) {
 	assert.Equal(t, tests.MockLNClientTransactions[0].FeesPaid, transaction.FeesPaid)
 	assert.Equal(t, tests.MockLNClientTransactions[0].SettledAt, transaction.SettledAt)
 }
+
+// TODO: add tests for pagination args
