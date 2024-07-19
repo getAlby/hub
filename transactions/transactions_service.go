@@ -199,8 +199,10 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 		}
 
 		// As the LNClient did not return a timeout error, we assume the payment definitely failed
+		feeReserve := uint64(0)
 		dbErr := svc.db.Model(&dbTransaction).Updates(&db.Transaction{
-			State: constants.TRANSACTION_STATE_FAILED,
+			State:          constants.TRANSACTION_STATE_FAILED,
+			FeeReserveMsat: &feeReserve,
 		}).Error
 		if dbErr != nil {
 			logger.Logger.WithFields(logrus.Fields{
