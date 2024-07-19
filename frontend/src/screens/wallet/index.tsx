@@ -1,10 +1,20 @@
-import { ArrowDownIcon, ArrowUpIcon, CreditCard } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowDownIcon,
+  ArrowUpIcon,
+  CreditCard,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import BreezRedeem from "src/components/BreezRedeem";
 import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
 import TransactionsList from "src/components/TransactionsList";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "src/components/ui/alert.tsx";
 import { Button } from "src/components/ui/button";
 import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
@@ -20,6 +30,30 @@ function Wallet() {
   return (
     <>
       <AppHeader title="Wallet" description="" />
+      {!balances.lightning.totalSpendable && (
+        <Alert>
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Low spending balance</AlertTitle>
+          <AlertDescription>
+            You won't be able to make payments until you{" "}
+            <Link className="underline" to="/channels/outgoing">
+              increase your spending balance.
+            </Link>
+          </AlertDescription>
+        </Alert>
+      )}
+      {!balances.lightning.totalReceivable && (
+        <Alert>
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Low receiving capacity</AlertTitle>
+          <AlertDescription>
+            You won't be able to receive payments until you{" "}
+            <Link className="underline" to="/channels/incoming">
+              increase your receiving capacity.
+            </Link>
+          </AlertDescription>
+        </Alert>
+      )}
       <BreezRedeem />
       <div className="flex flex-col lg:flex-row justify-between lg:items-center gap-5">
         <div className="text-5xl font-semibold balance sensitive ph-no-capture">

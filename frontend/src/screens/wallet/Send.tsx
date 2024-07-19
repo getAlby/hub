@@ -120,9 +120,8 @@ export default function Send() {
         title="Send"
         description="Pay a lightning invoice created by any bitcoin lightning wallet"
       />
-      {invoiceDetails &&
-        hasChannelManagement &&
-        invoiceDetails.satoshi * 1000 >
+      {hasChannelManagement &&
+        (invoiceDetails?.satoshi || 0) * 1000 >=
           0.8 * balances.lightning.totalSpendable && (
           <Alert>
             <AlertTriangle className="h-4 w-4" />

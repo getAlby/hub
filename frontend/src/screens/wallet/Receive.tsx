@@ -128,7 +128,7 @@ export default function Receive() {
         description="Create a lightning invoice that can be paid by any bitcoin lightning wallet"
       />
       {hasChannelManagement &&
-        parseInt(amount || "0") * 1000 >
+        parseInt(amount || "0") * 1000 >=
           0.8 * balances.lightning.totalReceivable && (
           <Alert>
             <AlertTriangle className="h-4 w-4" />
