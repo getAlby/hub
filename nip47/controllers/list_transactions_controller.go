@@ -42,7 +42,12 @@ func (controller *nip47Controller) HandleListTransactionsEvent(ctx context.Conte
 		// make sure a sensible limit is passed
 		limit = maxLimit
 	}
-	dbTransactions, err := controller.transactionsService.ListTransactions(ctx, listParams.From, listParams.Until, limit, listParams.Offset, listParams.Unpaid, listParams.Type, controller.lnClient, &appId)
+	var transactionType *string
+	if listParams.Type != "" {
+		transactionType = &listParams.Type
+	}
+
+	dbTransactions, err := controller.transactionsService.ListTransactions(ctx, listParams.From, listParams.Until, limit, listParams.Offset, listParams.Unpaid, transactionType, controller.lnClient, &appId)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"params":           listParams,

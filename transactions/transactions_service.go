@@ -28,7 +28,7 @@ type TransactionsService interface {
 	events.EventSubscriber
 	MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	LookupTransaction(ctx context.Context, paymentHash string, transactionType *string, lnClient lnclient.LNClient, appId *uint) (*Transaction, error)
-	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string, lnClient lnclient.LNClient, appId *uint) (transactions []Transaction, err error)
+	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, transactionType *string, lnClient lnclient.LNClient, appId *uint) (transactions []Transaction, err error)
 	SendPaymentSync(ctx context.Context, payReq string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []lnclient.TLVRecord, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 }
@@ -386,13 +386,34 @@ func (svc *transactionsService) LookupTransaction(ctx context.Context, paymentHa
 	return &transaction, nil
 }
 
-func (svc *transactionsService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, transactionType string, lnClient lnclient.LNClient, appId *uint) (transactions []Transaction, err error) {
+func (svc *transactionsService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, transactionType *string, lnClient lnclient.LNClient, appId *uint) (transactions []Transaction, err error) {
 	svc.checkUnsettledTransactions(ctx, lnClient)
 
 	// TODO: add other filtering and pagination
 	tx := svc.db
+
+	tx = tx.Order("created_at desc")
+
 	if !unpaid {
 		tx = tx.Where("state == ?", constants.TRANSACTION_STATE_SETTLED)
+	}
+
+	if transactionType != nil {
+		tx = tx.Where("type == ?", *transactionType)
+	}
+
+	if from > 0 {
+		tx = tx.Where("created_at >= ?", time.Unix(int64(from), 0))
+	}
+	if until > 0 {
+		tx = tx.Where("created_at <= ?", time.Unix(int64(until), 0))
+	}
+
+	if limit > 0 {
+		tx = tx.Limit(int(limit))
+	}
+	if offset > 0 {
+		tx = tx.Offset(int(limit))
 	}
 
 	if appId != nil {
@@ -404,8 +425,6 @@ func (svc *transactionsService) ListTransactions(ctx context.Context, from, unti
 			tx = tx.Where("app_id == ?", *appId)
 		}
 	}
-
-	tx = tx.Order("created_at desc")
 
 	if limit != 0 {
 		tx = tx.Limit(int(limit))
