@@ -38,6 +38,7 @@ function SidebarHint() {
   const openChecklistItems = checklistItems.filter((x) => !x.checked);
   if (
     !location.pathname.startsWith("/home") &&
+    !location.pathname.startsWith("/channels/order") &&
     !isLoading &&
     openChecklistItems.length
   ) {
