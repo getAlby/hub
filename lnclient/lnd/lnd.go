@@ -437,7 +437,6 @@ func NewLNDService(ctx context.Context, eventPublisher events.EventPublisher, ln
 					payment, err := paymentStream.Recv()
 					if err != nil {
 						logger.Logger.WithError(err).Error("Failed to receive payment")
-						time.Sleep(2 * time.Second)
 						continue
 					}
 
@@ -485,7 +484,6 @@ func NewLNDService(ctx context.Context, eventPublisher events.EventPublisher, ln
 					invoice, err := invoiceStream.Recv()
 					if err != nil {
 						logger.Logger.WithError(err).Error("Failed to receive invoice")
-						time.Sleep(2 * time.Second)
 						continue
 					}
 					if invoice.State != lnrpc.Invoice_SETTLED {
