@@ -100,11 +100,15 @@ func (svc *LNDService) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, er
 	if err != nil {
 		return nil, err
 	}
+	network := resp.Chains[0].Network
+	if network == "mainnet" {
+		network = "bitcoin"
+	}
 	return &lnclient.NodeInfo{
 		Alias:       resp.Alias,
 		Color:       resp.Color,
 		Pubkey:      resp.IdentityPubkey,
-		Network:     resp.Chains[0].Network,
+		Network:     network,
 		BlockHeight: resp.BlockHeight,
 		BlockHash:   resp.BlockHash,
 	}, nil
@@ -660,7 +664,7 @@ func (svc *LNDService) GetOnchainBalance(ctx context.Context) (*lnclient.Onchain
 		"balances": balances,
 	}).Debug("Listed Balances")
 	return &lnclient.OnchainBalanceResponse{
-		Spendable: int64(balances.ConfirmedBalance),
+		Spendable: int64(balances.ConfirmedBalance - balances.ReservedBalanceAnchorChan),
 		Total:     int64(balances.TotalBalance - balances.ReservedBalanceAnchorChan),
 		Reserved:  int64(balances.ReservedBalanceAnchorChan),
 	}, nil

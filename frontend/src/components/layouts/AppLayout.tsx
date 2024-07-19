@@ -85,6 +85,10 @@ export default function AppLayout() {
 
   const isHttpMode = window.location.protocol.startsWith("http");
 
+  if (!info) {
+    return null;
+  }
+
   function UserMenuContent() {
     return (
       <DropdownMenuContent align="end">
@@ -184,7 +188,7 @@ export default function AppLayout() {
   }
 
   const upToDate =
-    info?.version &&
+    info.version &&
     albyMe?.hub.latest_version &&
     info.version.startsWith("v") &&
     info.version.substring(1) >= albyMe?.hub.latest_version;
@@ -210,7 +214,7 @@ export default function AppLayout() {
                             className="font-semibold text-xl"
                           >
                             <span className="text-xs flex items-center text-muted-foreground">
-                              {info?.version && <>{info?.version}&nbsp;</>}
+                              {info.version && <>{info.version}&nbsp;</>}
                               {upToDate ? (
                                 <ShieldCheckIcon className="w-4 h-4" />
                               ) : (
