@@ -42,6 +42,7 @@ type LDKService struct {
 	lastSync              time.Time
 	cfg                   config.Config
 	lastWalletSyncRequest time.Time
+	pubkey                string
 }
 
 const resetRouterKey = "ResetRouter"
@@ -123,6 +124,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	ldkEventConsumer := make(chan *ldk_node.Event)
 	ldkCtx, cancel := context.WithCancel(ctx)
 	ldkEventBroadcaster := NewLDKEventBroadcaster(ldkCtx, ldkEventConsumer)
+	nodeId := node.NodeId()
 
 	ls := LDKService{
 		workdir:             newpath,
@@ -132,6 +134,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		network:             network,
 		eventPublisher:      eventPublisher,
 		cfg:                 cfg,
+		pubkey:              nodeId,
 	}
 
 	// TODO: remove when LDK supports this
@@ -179,7 +182,6 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		return nil, err
 	}
 
-	nodeId := node.NodeId()
 	logger.Logger.WithFields(logrus.Fields{
 		"nodeId": nodeId,
 		"status": node.Status(),
@@ -223,6 +225,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 			"035e4ff418fc8b5554c5d9eea66396c227bd429a3251c8cbc711002ba215bfc226@170.75.163.209:9735",  // WoS
 			"02fcc5bfc48e83f06c04483a2985e1c390cb0f35058baa875ad2053858b8e80dbd@35.239.148.251:9735",  // Blink
 			"027100442c3b79f606f80f322d98d499eefcb060599efc5d4ecb00209c2cb54190@3.230.33.224:9735",    // c=
+			"38a9e56512ec98da2b5789761f7af8f280baf98a09282360cd6ff1381b5e889bf@64.23.162.51:9735",     // Megalith LSP
 		}
 		logger.Logger.Info("Connecting to some peers to retrieve P2P gossip data")
 		for _, peer := range peers {
@@ -507,8 +510,10 @@ func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string) (*lnc
 		}
 	}
 	if preimage == "" {
-		// TODO: this doesn't necessarily mean it will fail - we should return a different response
-		return nil, errors.New("Payment timed out")
+		logger.Logger.WithFields(logrus.Fields{
+			"paymentHash": paymentHash,
+		}).Warn("Timed out waiting for payment to be sent")
+		return nil, lnclient.NewTimeoutError()
 	}
 
 	logger.Logger.WithFields(logrus.Fields{
@@ -522,14 +527,14 @@ func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string) (*lnc
 	}, nil
 }
 
-func (ls *LDKService) SendKeysend(ctx context.Context, amount uint64, destination, preimage string, custom_records []lnclient.TLVRecord) (preImage string, err error) {
+func (ls *LDKService) SendKeysend(ctx context.Context, amount uint64, destination string, custom_records []lnclient.TLVRecord) (paymentHash string, preimage string, fee uint64, err error) {
 	paymentStart := time.Now()
 	customTlvs := []ldk_node.TlvEntry{}
 
 	for _, customRecord := range custom_records {
 		decodedValue, err := hex.DecodeString(customRecord.Value)
 		if err != nil {
-			return "", err
+			return "", "", 0, err
 		}
 		customTlvs = append(customTlvs, ldk_node.TlvEntry{
 			Type:  customRecord.Type,
@@ -540,13 +545,11 @@ func (ls *LDKService) SendKeysend(ctx context.Context, amount uint64, destinatio
 	ldkEventSubscription := ls.ldkEventBroadcaster.Subscribe()
 	defer ls.ldkEventBroadcaster.CancelSubscription(ldkEventSubscription)
 
-	paymentHash, err := ls.node.SpontaneousPayment().Send(amount, destination, customTlvs)
+	paymentHash, err = ls.node.SpontaneousPayment().Send(amount, destination, customTlvs)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Keysend failed")
-		return "", err
+		return paymentHash, "", 0, err
 	}
-
-	fee := uint64(0)
 
 	for start := time.Now(); time.Since(start) < time.Second*60; {
 		event := <-ldkEventSubscription
@@ -559,7 +562,7 @@ func (ls *LDKService) SendKeysend(ctx context.Context, amount uint64, destinatio
 			payment := ls.node.Payment(paymentHash)
 			if payment == nil {
 				logger.Logger.Errorf("Couldn't find payment by payment hash: %v", paymentHash)
-				return "", errors.New("Payment not found")
+				return paymentHash, "", 0, errors.New("Payment not found")
 			}
 
 			spontaneousPaymentKind, ok := payment.Kind.(ldk_node.PaymentKindSpontaneous)
@@ -572,7 +575,7 @@ func (ls *LDKService) SendKeysend(ctx context.Context, amount uint64, destinatio
 
 			if spontaneousPaymentKind.Preimage == nil {
 				logger.Logger.Errorf("No payment preimage for payment hash: %v", paymentHash)
-				return "", errors.New("Payment preimage not found")
+				return paymentHash, "", 0, errors.New("Payment preimage not found")
 			}
 			preimage = *spontaneousPaymentKind.Preimage
 
@@ -610,19 +613,21 @@ func (ls *LDKService) SendKeysend(ctx context.Context, amount uint64, destinatio
 				"failureReasonMessage": failureReasonMessage,
 			}).Error("Received payment failed event")
 
-			return "", fmt.Errorf("payment failed event: %v %s", failureReason, failureReasonMessage)
+			return paymentHash, "", 0, fmt.Errorf("payment failed event: %v %s", failureReason, failureReasonMessage)
 		}
 	}
 	if preimage == "" {
-		// TODO: this doesn't necessarily mean it will fail - we should return a different response
-		return "", errors.New("keysend payment timed out")
+		logger.Logger.WithFields(logrus.Fields{
+			"paymentHash": paymentHash,
+		}).Warn("Timed out waiting for keysend to be sent")
+		return paymentHash, "", 0, lnclient.NewTimeoutError()
 	}
 
 	logger.Logger.WithFields(logrus.Fields{
 		"duration": time.Since(paymentStart).Milliseconds(),
 		"fee":      fee,
 	}).Info("Successful keysend payment")
-	return preimage, nil
+	return paymentHash, preimage, fee, nil
 }
 
 func (ls *LDKService) GetBalance(ctx context.Context) (balance int64, err error) {
@@ -704,10 +709,13 @@ func (ls *LDKService) MakeInvoice(ctx context.Context, amount int64, description
 	description = paymentRequest.Description
 	descriptionHash = paymentRequest.DescriptionHash
 
+	payment := ls.node.Payment(paymentRequest.PaymentHash)
+
 	transaction = &lnclient.Transaction{
 		Type:            "incoming",
 		Invoice:         invoice,
 		PaymentHash:     paymentRequest.PaymentHash,
+		Preimage:        *payment.Kind.(ldk_node.PaymentKindBolt11).Preimage,
 		Amount:          amount,
 		CreatedAt:       int64(paymentRequest.CreatedAt),
 		ExpiresAt:       expiresAt,
@@ -1299,29 +1307,67 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 			},
 		})
 	case ldk_node.EventPaymentReceived:
-		ls.eventPublisher.Publish(&events.Event{
-			Event: "nwc_payment_received",
-			Properties: &events.PaymentReceivedEventProperties{
-				PaymentHash: eventType.PaymentHash,
-			},
-		})
-	case ldk_node.EventPaymentSuccessful:
-		var duration uint64 = 0
-		if eventType.PaymentId != nil {
-			payment := ls.node.Payment(*eventType.PaymentId)
-			if payment == nil {
-				logger.Logger.WithField("payment_id", *eventType.PaymentId).Error("could not find LDK payment")
-				return
-			}
-			duration = payment.LastUpdate - payment.CreatedAt
+		if eventType.PaymentId == nil {
+			logger.Logger.WithField("payment_hash", eventType.PaymentHash).Error("payment received event has no payment ID")
+			return
+		}
+		payment := ls.node.Payment(*eventType.PaymentId)
+		if payment == nil {
+			logger.Logger.WithField("payment_id", *eventType.PaymentId).Error("could not find LDK payment")
+			return
+		}
+
+		transaction, err := ls.ldkPaymentToTransaction(payment)
+		if err != nil {
+			logger.Logger.WithField("payment_id", *eventType.PaymentId).Error("failed to convert LDK payment to transaction")
+			return
 		}
 
 		ls.eventPublisher.Publish(&events.Event{
-			Event: "nwc_payment_sent",
-			Properties: &events.PaymentSentEventProperties{
-				PaymentHash: eventType.PaymentHash,
-				Duration:    duration,
-			},
+			Event:      "nwc_payment_received",
+			Properties: transaction,
+		})
+	case ldk_node.EventPaymentSuccessful:
+		if eventType.PaymentId == nil {
+			logger.Logger.WithField("payment_hash", eventType.PaymentHash).Error("payment received event has no payment ID")
+			return
+		}
+		payment := ls.node.Payment(*eventType.PaymentId)
+		if payment == nil {
+			logger.Logger.WithField("payment_id", *eventType.PaymentId).Error("could not find LDK payment")
+			return
+		}
+
+		transaction, err := ls.ldkPaymentToTransaction(payment)
+		if err != nil {
+			logger.Logger.WithField("payment_id", *eventType.PaymentId).Error("failed to convert LDK payment to transaction")
+			return
+		}
+
+		ls.eventPublisher.Publish(&events.Event{
+			Event:      "nwc_payment_sent",
+			Properties: transaction,
+		})
+	case ldk_node.EventPaymentFailed:
+		if eventType.PaymentId == nil {
+			logger.Logger.WithField("payment_hash", eventType.PaymentHash).Error("payment failed event has no payment ID")
+			return
+		}
+		payment := ls.node.Payment(*eventType.PaymentId)
+		if payment == nil {
+			logger.Logger.WithField("payment_id", *eventType.PaymentId).Error("could not find LDK payment")
+			return
+		}
+
+		transaction, err := ls.ldkPaymentToTransaction(payment)
+		if err != nil {
+			logger.Logger.WithField("payment_id", *eventType.PaymentId).Error("failed to convert LDK payment to transaction")
+			return
+		}
+
+		ls.eventPublisher.Publish(&events.Event{
+			Event:      "nwc_payment_failed_async",
+			Properties: transaction,
 		})
 	}
 }
@@ -1493,4 +1539,8 @@ func (ls *LDKService) getChannelCloseReason(event *ldk_node.EventChannelClosed) 
 	}
 
 	return reason
+}
+
+func (ls *LDKService) GetPubkey() string {
+	return ls.pubkey
 }

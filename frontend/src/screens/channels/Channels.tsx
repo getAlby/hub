@@ -617,7 +617,7 @@ export default function Channels() {
 
       {!channels ||
         (channels.length > 0 && (
-          <Table className="channel-list">
+          <Table>
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[80px]">Status</TableHead>
@@ -642,7 +642,7 @@ export default function Channels() {
                   </TooltipProvider>
                 </TableHead>
                 <TableHead className="w-[300px]">
-                  <div className="flex flex-row justify-between items-center">
+                  <div className="flex flex-row justify-between items-center gap-2">
                     <div>Spending</div>
                     <div>Receiving</div>
                   </div>

@@ -1,16 +1,13 @@
 package notifications
 
 import (
-	"context"
-	"errors"
-
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/logger"
 )
 
 type Nip47NotificationQueue interface {
-	events.EventSubscriber
 	Channel() <-chan *events.Event
+	AddToQueue(event *events.Event)
 }
 
 type nip47NotificationQueue struct {
@@ -26,13 +23,13 @@ func NewNip47NotificationQueue() *nip47NotificationQueue {
 	}
 }
 
-func (q *nip47NotificationQueue) ConsumeEvent(ctx context.Context, event *events.Event, globalProperties map[string]interface{}) error {
+func (q *nip47NotificationQueue) AddToQueue(event *events.Event) {
 	select {
 	case q.channel <- event: // Put in the channel unless it is full
-		return nil
+		// successfully sent to channel
 	default:
+		// channel full
 		logger.Logger.WithField("event", event).Error("NIP47NotificationQueue channel full. Discarding value")
-		return errors.New("nip-47 notification queue full")
 	}
 }
 

@@ -11,21 +11,39 @@ import (
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
-	controllers "github.com/getAlby/hub/nip47/controllers"
+	"github.com/getAlby/hub/nip47/controllers"
 	"github.com/getAlby/hub/nip47/models"
 	"github.com/getAlby/hub/nip47/permissions"
+	nostrmodels "github.com/getAlby/hub/nostr/models"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip04"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
-func (svc *nip47Service) HandleEvent(ctx context.Context, sub *nostr.Subscription, event *nostr.Event, lnClient lnclient.LNClient) {
+func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Relay, event *nostr.Event, lnClient lnclient.LNClient) {
 	var nip47Response *models.Response
 	logger.Logger.WithFields(logrus.Fields{
 		"requestEventNostrId": event.ID,
 		"eventKind":           event.Kind,
 	}).Info("Processing Event")
+
+	// go-nostr already checks this, but just to be sure:
+	validEventSignature, err := event.CheckSignature()
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"requestEventNostrId": event.ID,
+			"eventKind":           event.Kind,
+		}).WithError(err).Error("invalid event signature")
+		return
+	}
+	if !validEventSignature {
+		logger.Logger.WithFields(logrus.Fields{
+			"requestEventNostrId": event.ID,
+			"eventKind":           event.Kind,
+		}).Error("invalid event signature")
+		return
+	}
 
 	ss, err := nip04.ComputeSharedSecret(event.PubKey, svc.keys.GetNostrSecretKey())
 	if err != nil {
@@ -63,7 +81,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, sub *nostr.Subscriptio
 				"eventKind":           event.Kind,
 			}).WithError(err).Error("Failed to process event")
 		}
-		svc.publishResponseEvent(ctx, sub, &requestEvent, resp, nil)
+		svc.publishResponseEvent(ctx, relay, &requestEvent, resp, nil)
 		return
 	}
 
@@ -89,7 +107,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, sub *nostr.Subscriptio
 				"eventKind":           event.Kind,
 			}).WithError(err).Error("Failed to process event")
 		}
-		svc.publishResponseEvent(ctx, sub, &requestEvent, resp, &app)
+		svc.publishResponseEvent(ctx, relay, &requestEvent, resp, &app)
 
 		requestEvent.State = db.REQUEST_EVENT_STATE_HANDLER_ERROR
 		err = svc.db.Save(&requestEvent).Error
@@ -121,7 +139,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, sub *nostr.Subscriptio
 				"eventKind":           event.Kind,
 			}).WithError(err).Error("Failed to process event")
 		}
-		svc.publishResponseEvent(ctx, sub, &requestEvent, resp, &app)
+		svc.publishResponseEvent(ctx, relay, &requestEvent, resp, &app)
 
 		requestEvent.State = db.REQUEST_EVENT_STATE_HANDLER_ERROR
 		err = svc.db.Save(&requestEvent).Error
@@ -215,7 +233,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, sub *nostr.Subscriptio
 			}).WithError(err).Error("Failed to create response")
 			requestEvent.State = db.REQUEST_EVENT_STATE_HANDLER_ERROR
 		} else {
-			err = svc.publishResponseEvent(ctx, sub, &requestEvent, resp, &app)
+			err = svc.publishResponseEvent(ctx, relay, &requestEvent, resp, &app)
 			if err != nil {
 				logger.Logger.WithFields(logrus.Fields{
 					"requestEventNostrId": event.ID,
@@ -240,18 +258,27 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, sub *nostr.Subscriptio
 		}
 	}
 
-	checkPermission := func(amountMsat uint64) *models.Response {
+	logger.Logger.WithFields(logrus.Fields{
+		"requestEventNostrId": event.ID,
+		"eventKind":           event.Kind,
+		"appId":               app.ID,
+		"method":              nip47Request.Method,
+		"params":              nip47Request.Params,
+	}).Info("Handling NIP-47 request")
+
+	if nip47Request.Method != models.GET_INFO_METHOD {
 		scope, err := permissions.RequestMethodToScope(nip47Request.Method)
 		if err != nil {
-			return &models.Response{
+			publishResponse(&models.Response{
 				ResultType: nip47Request.Method,
 				Error: &models.Error{
 					Code:    models.ERROR_INTERNAL,
 					Message: err.Error(),
 				},
-			}
+			}, nostr.Tags{})
+			return
 		}
-		hasPermission, code, message := svc.permissionsService.HasPermission(&app, scope, amountMsat)
+		hasPermission, code, message := svc.permissionsService.HasPermission(&app, scope)
 		if !hasPermission {
 			logger.Logger.WithFields(logrus.Fields{
 				"request_event_id": requestEvent.ID,
@@ -271,67 +298,50 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, sub *nostr.Subscriptio
 				},
 			})
 
-			return &models.Response{
+			publishResponse(&models.Response{
 				ResultType: nip47Request.Method,
 				Error: &models.Error{
 					Code:    code,
 					Message: message,
 				},
-			}
+			}, nostr.Tags{})
+			return
 		}
-		return nil
 	}
 
-	logger.Logger.WithFields(logrus.Fields{
-		"requestEventNostrId": event.ID,
-		"eventKind":           event.Kind,
-		"appId":               app.ID,
-		"method":              nip47Request.Method,
-		"params":              nip47Request.Params,
-	}).Info("Handling NIP-47 request")
+	controller := controllers.NewNip47Controller(lnClient, svc.db, svc.eventPublisher, svc.permissionsService, svc.transactionsService)
 
-	// TODO: controllers should share a common interface
 	switch nip47Request.Method {
 	case models.MULTI_PAY_INVOICE_METHOD:
-		controllers.
-			NewMultiPayInvoiceController(lnClient, svc.db, svc.eventPublisher).
-			HandleMultiPayInvoiceEvent(ctx, nip47Request, requestEvent.ID, &app, checkPermission, publishResponse)
+		controller.
+			HandleMultiPayInvoiceEvent(ctx, nip47Request, requestEvent.ID, &app, publishResponse)
 	case models.MULTI_PAY_KEYSEND_METHOD:
-		controllers.
-			NewMultiPayKeysendController(lnClient, svc.db, svc.eventPublisher).
-			HandleMultiPayKeysendEvent(ctx, nip47Request, requestEvent.ID, &app, checkPermission, publishResponse)
+		controller.
+			HandleMultiPayKeysendEvent(ctx, nip47Request, requestEvent.ID, &app, publishResponse)
 	case models.PAY_INVOICE_METHOD:
-		controllers.
-			NewPayInvoiceController(lnClient, svc.db, svc.eventPublisher).
-			HandlePayInvoiceEvent(ctx, nip47Request, requestEvent.ID, &app, checkPermission, publishResponse, nostr.Tags{})
+		controller.
+			HandlePayInvoiceEvent(ctx, nip47Request, requestEvent.ID, &app, publishResponse, nostr.Tags{})
 	case models.PAY_KEYSEND_METHOD:
-		controllers.
-			NewPayKeysendController(lnClient, svc.db, svc.eventPublisher).
-			HandlePayKeysendEvent(ctx, nip47Request, requestEvent.ID, &app, checkPermission, publishResponse, nostr.Tags{})
+		controller.
+			HandlePayKeysendEvent(ctx, nip47Request, requestEvent.ID, &app, publishResponse, nostr.Tags{})
 	case models.GET_BALANCE_METHOD:
-		controllers.
-			NewGetBalanceController(lnClient).
-			HandleGetBalanceEvent(ctx, nip47Request, requestEvent.ID, checkPermission, publishResponse)
+		controller.
+			HandleGetBalanceEvent(ctx, nip47Request, requestEvent.ID, &app, publishResponse)
 	case models.MAKE_INVOICE_METHOD:
-		controllers.
-			NewMakeInvoiceController(lnClient).
-			HandleMakeInvoiceEvent(ctx, nip47Request, requestEvent.ID, checkPermission, publishResponse)
+		controller.
+			HandleMakeInvoiceEvent(ctx, nip47Request, requestEvent.ID, app.ID, publishResponse)
 	case models.LOOKUP_INVOICE_METHOD:
-		controllers.
-			NewLookupInvoiceController(lnClient).
-			HandleLookupInvoiceEvent(ctx, nip47Request, requestEvent.ID, checkPermission, publishResponse)
+		controller.
+			HandleLookupInvoiceEvent(ctx, nip47Request, requestEvent.ID, app.ID, publishResponse)
 	case models.LIST_TRANSACTIONS_METHOD:
-		controllers.
-			NewListTransactionsController(lnClient).
-			HandleListTransactionsEvent(ctx, nip47Request, requestEvent.ID, checkPermission, publishResponse)
+		controller.
+			HandleListTransactionsEvent(ctx, nip47Request, requestEvent.ID, app.ID, publishResponse)
 	case models.GET_INFO_METHOD:
-		controllers.
-			NewGetInfoController(svc.permissionsService, lnClient).
-			HandleGetInfoEvent(ctx, nip47Request, requestEvent.ID, &app, checkPermission, publishResponse)
+		controller.
+			HandleGetInfoEvent(ctx, nip47Request, requestEvent.ID, &app, publishResponse)
 	case models.SIGN_MESSAGE_METHOD:
-		controllers.
-			NewSignMessageController(lnClient).
-			HandleSignMessageEvent(ctx, nip47Request, requestEvent.ID, checkPermission, publishResponse)
+		controller.
+			HandleSignMessageEvent(ctx, nip47Request, requestEvent.ID, publishResponse)
 	default:
 		publishResponse(&models.Response{
 			ResultType: nip47Request.Method,
@@ -370,7 +380,7 @@ func (svc *nip47Service) CreateResponse(initialEvent *nostr.Event, content inter
 	return resp, nil
 }
 
-func (svc *nip47Service) publishResponseEvent(ctx context.Context, sub *nostr.Subscription, requestEvent *db.RequestEvent, resp *nostr.Event, app *db.App) error {
+func (svc *nip47Service) publishResponseEvent(ctx context.Context, relay nostrmodels.Relay, requestEvent *db.RequestEvent, resp *nostr.Event, app *db.App) error {
 	var appId *uint
 	if app != nil {
 		appId = &app.ID
@@ -386,7 +396,7 @@ func (svc *nip47Service) publishResponseEvent(ctx context.Context, sub *nostr.Su
 		return err
 	}
 
-	err = sub.Relay.Publish(ctx, *resp)
+	err = relay.Publish(ctx, *resp)
 	if err != nil {
 		responseEvent.State = db.RESPONSE_EVENT_STATE_PUBLISH_FAILED
 		logger.Logger.WithFields(logrus.Fields{

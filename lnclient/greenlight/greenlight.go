@@ -26,6 +26,7 @@ import (
 type GreenlightService struct {
 	workdir string
 	client  *glalby.BlockingGreenlightAlbyClient
+	pubkey  string
 }
 
 const DEVICE_CREDENTIALS_KEY = "GreenlightCreds"
@@ -85,12 +86,13 @@ func NewGreenlightService(cfg config.Config, mnemonic, inviteCode, workDir, encr
 		log.Fatalf("unexpected response from NewBlockingGreenlightAlbyClient")
 	}
 
+	nodeInfo, err := client.GetInfo()
+
 	gs := GreenlightService{
 		workdir: newpath,
 		client:  client,
+		pubkey:  nodeInfo.Pubkey,
 	}
-
-	nodeInfo, err := client.GetInfo()
 
 	if err != nil {
 		return nil, err
@@ -125,11 +127,12 @@ func (gs *GreenlightService) SendPaymentSync(ctx context.Context, payReq string)
 	}, nil
 }
 
-func (gs *GreenlightService) SendKeysend(ctx context.Context, amount uint64, destination, preimage string, custom_records []lnclient.TLVRecord) (preImage string, err error) {
+func (gs *GreenlightService) SendKeysend(ctx context.Context, amount uint64, destination string, custom_records []lnclient.TLVRecord) (paymentHash string, preimage string, fee uint64, err error) {
 
 	extraTlvs := []glalby.TlvEntry{}
 
 	for _, customRecord := range custom_records {
+
 		extraTlvs = append(extraTlvs, glalby.TlvEntry{
 			Ty:    customRecord.Type,
 			Value: customRecord.Value, // glalby expects hex-encoded TLV values
@@ -145,10 +148,12 @@ func (gs *GreenlightService) SendKeysend(ctx context.Context, amount uint64, des
 
 	if err != nil {
 		logger.Logger.Errorf("Failed to send keysend payment: %v", err)
-		return "", err
+		return "", "", 0, err
 	}
 
-	return response.PaymentPreimage, nil
+	// TODO: get payment hash from response
+
+	return "", response.PaymentPreimage, 0, nil
 }
 
 func (gs *GreenlightService) GetBalance(ctx context.Context) (balance int64, err error) {
@@ -203,6 +208,7 @@ func (gs *GreenlightService) MakeInvoice(ctx context.Context, amount int64, desc
 		Invoice:         invoice.Bolt11,
 		Description:     description,
 		DescriptionHash: descriptionHash,
+		Preimage:        "", // TODO: set preimage to enable self-payments
 		PaymentHash:     invoice.PaymentHash,
 		ExpiresAt:       &expiresAt,
 		Amount:          amount,
@@ -681,4 +687,8 @@ func (gs *GreenlightService) GetSupportedNIP47Methods() []string {
 
 func (gs *GreenlightService) GetSupportedNIP47NotificationTypes() []string {
 	return []string{}
+}
+
+func (gs *GreenlightService) GetPubkey() string {
+	return gs.pubkey
 }

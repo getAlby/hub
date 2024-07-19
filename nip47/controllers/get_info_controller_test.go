@@ -8,10 +8,12 @@ import (
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/nip47/models"
 	"github.com/getAlby/hub/nip47/permissions"
 	"github.com/getAlby/hub/tests"
+	"github.com/getAlby/hub/transactions"
 )
 
 const nip47GetInfoJson = `
@@ -20,7 +22,6 @@ const nip47GetInfoJson = `
 }
 `
 
-// TODO: info event should always return something
 func TestHandleGetInfoEvent_NoPermission(t *testing.T) {
 	ctx := context.TODO()
 	defer tests.RemoveTestService()
@@ -40,20 +41,11 @@ func TestHandleGetInfoEvent_NoPermission(t *testing.T) {
 
 	appPermission := &db.AppPermission{
 		AppId:     app.ID,
-		Scope:     permissions.GET_BALANCE_SCOPE,
+		Scope:     constants.GET_BALANCE_SCOPE,
 		ExpiresAt: nil,
 	}
 	err = svc.DB.Create(appPermission).Error
 	assert.NoError(t, err)
-
-	checkPermission := func(amountMsat uint64) *models.Response {
-		return &models.Response{
-			ResultType: nip47Request.Method,
-			Error: &models.Error{
-				Code: models.ERROR_RESTRICTED,
-			},
-		}
-	}
 
 	var publishedResponse *models.Response
 
@@ -62,9 +54,9 @@ func TestHandleGetInfoEvent_NoPermission(t *testing.T) {
 	}
 
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
-
-	NewGetInfoController(permissionsSvc, svc.LNClient).
-		HandleGetInfoEvent(ctx, nip47Request, dbRequestEvent.ID, app, checkPermission, publishResponse)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB)
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
+		HandleGetInfoEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
 
 	assert.Nil(t, publishedResponse.Error)
 	nodeInfo := publishedResponse.Result.(*getInfoResponse)
@@ -97,15 +89,11 @@ func TestHandleGetInfoEvent_WithPermission(t *testing.T) {
 
 	appPermission := &db.AppPermission{
 		AppId:     app.ID,
-		Scope:     permissions.GET_INFO_SCOPE,
+		Scope:     constants.GET_INFO_SCOPE,
 		ExpiresAt: nil,
 	}
 	err = svc.DB.Create(appPermission).Error
 	assert.NoError(t, err)
-
-	checkPermission := func(amountMsat uint64) *models.Response {
-		return nil
-	}
 
 	var publishedResponse *models.Response
 
@@ -114,9 +102,9 @@ func TestHandleGetInfoEvent_WithPermission(t *testing.T) {
 	}
 
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
-
-	NewGetInfoController(permissionsSvc, svc.LNClient).
-		HandleGetInfoEvent(ctx, nip47Request, dbRequestEvent.ID, app, checkPermission, publishResponse)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB)
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
+		HandleGetInfoEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
 
 	assert.Nil(t, publishedResponse.Error)
 	nodeInfo := publishedResponse.Result.(*getInfoResponse)
@@ -149,24 +137,19 @@ func TestHandleGetInfoEvent_WithNotifications(t *testing.T) {
 
 	appPermission := &db.AppPermission{
 		AppId:     app.ID,
-		Scope:     permissions.GET_INFO_SCOPE,
+		Scope:     constants.GET_INFO_SCOPE,
 		ExpiresAt: nil,
 	}
 	err = svc.DB.Create(appPermission).Error
 	assert.NoError(t, err)
 
-	// TODO: AppPermission RequestMethod needs to change to scope
 	appPermission = &db.AppPermission{
 		AppId:     app.ID,
-		Scope:     permissions.NOTIFICATIONS_SCOPE,
+		Scope:     constants.NOTIFICATIONS_SCOPE,
 		ExpiresAt: nil,
 	}
 	err = svc.DB.Create(appPermission).Error
 	assert.NoError(t, err)
-
-	checkPermission := func(amountMsat uint64) *models.Response {
-		return nil
-	}
 
 	var publishedResponse *models.Response
 
@@ -175,9 +158,9 @@ func TestHandleGetInfoEvent_WithNotifications(t *testing.T) {
 	}
 
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
-
-	NewGetInfoController(permissionsSvc, svc.LNClient).
-		HandleGetInfoEvent(ctx, nip47Request, dbRequestEvent.ID, app, checkPermission, publishResponse)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB)
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
+		HandleGetInfoEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
 
 	assert.Nil(t, publishedResponse.Error)
 	nodeInfo := publishedResponse.Result.(*getInfoResponse)

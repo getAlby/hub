@@ -8,9 +8,12 @@ import (
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/nip47/models"
+	"github.com/getAlby/hub/nip47/permissions"
 	"github.com/getAlby/hub/tests"
+	"github.com/getAlby/hub/transactions"
 )
 
 const nip47PayInvoiceJson = `
@@ -31,13 +34,21 @@ const nip47PayJsonNoInvoice = `
 }
 `
 
-func TestHandlePayInvoiceEvent_NoPermission(t *testing.T) {
+func TestHandlePayInvoiceEvent(t *testing.T) {
 	ctx := context.TODO()
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
 	assert.NoError(t, err)
 
 	app, _, err := tests.CreateApp(svc)
+	assert.NoError(t, err)
+
+	appPermission := &db.AppPermission{
+		AppId: app.ID,
+		App:   *app,
+		Scope: constants.PAY_INVOICE_SCOPE,
+	}
+	err = svc.DB.Create(appPermission).Error
 	assert.NoError(t, err)
 
 	nip47Request := &models.Request{}
@@ -48,57 +59,16 @@ func TestHandlePayInvoiceEvent_NoPermission(t *testing.T) {
 	err = svc.DB.Create(&dbRequestEvent).Error
 	assert.NoError(t, err)
 
-	checkPermission := func(amountMsat uint64) *models.Response {
-		return &models.Response{
-			ResultType: nip47Request.Method,
-			Error: &models.Error{
-				Code: models.ERROR_RESTRICTED,
-			},
-		}
-	}
-
 	var publishedResponse *models.Response
 
 	publishResponse := func(response *models.Response, tags nostr.Tags) {
 		publishedResponse = response
 	}
 
-	NewPayInvoiceController(svc.LNClient, svc.DB, svc.EventPublisher).
-		HandlePayInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, app, checkPermission, publishResponse, nostr.Tags{})
-
-	assert.Equal(t, models.ERROR_RESTRICTED, publishedResponse.Error.Code)
-
-}
-
-func TestHandlePayInvoiceEvent_WithPermission(t *testing.T) {
-	ctx := context.TODO()
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
-
-	app, _, err := tests.CreateApp(svc)
-	assert.NoError(t, err)
-
-	nip47Request := &models.Request{}
-	err = json.Unmarshal([]byte(nip47PayInvoiceJson), nip47Request)
-	assert.NoError(t, err)
-
-	dbRequestEvent := &db.RequestEvent{}
-	err = svc.DB.Create(&dbRequestEvent).Error
-	assert.NoError(t, err)
-
-	checkPermission := func(amountMsat uint64) *models.Response {
-		return nil
-	}
-
-	var publishedResponse *models.Response
-
-	publishResponse := func(response *models.Response, tags nostr.Tags) {
-		publishedResponse = response
-	}
-
-	NewPayInvoiceController(svc.LNClient, svc.DB, svc.EventPublisher).
-		HandlePayInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, app, checkPermission, publishResponse, nostr.Tags{})
+	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB)
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
+		HandlePayInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse, nostr.Tags{})
 
 	assert.Equal(t, "123preimage", publishedResponse.Result.(payResponse).Preimage)
 }
@@ -112,6 +82,14 @@ func TestHandlePayInvoiceEvent_MalformedInvoice(t *testing.T) {
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
 
+	appPermission := &db.AppPermission{
+		AppId: app.ID,
+		App:   *app,
+		Scope: constants.PAY_INVOICE_SCOPE,
+	}
+	err = svc.DB.Create(appPermission).Error
+	assert.NoError(t, err)
+
 	nip47Request := &models.Request{}
 	err = json.Unmarshal([]byte(nip47PayJsonNoInvoice), nip47Request)
 	assert.NoError(t, err)
@@ -120,19 +98,18 @@ func TestHandlePayInvoiceEvent_MalformedInvoice(t *testing.T) {
 	err = svc.DB.Create(&dbRequestEvent).Error
 	assert.NoError(t, err)
 
-	checkPermission := func(amountMsat uint64) *models.Response {
-		return nil
-	}
-
 	var publishedResponse *models.Response
 
 	publishResponse := func(response *models.Response, tags nostr.Tags) {
 		publishedResponse = response
 	}
 
-	NewPayInvoiceController(svc.LNClient, svc.DB, svc.EventPublisher).
-		HandlePayInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, app, checkPermission, publishResponse, nostr.Tags{})
+	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB)
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
+		HandlePayInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse, nostr.Tags{})
 
 	assert.Nil(t, publishedResponse.Result)
 	assert.Equal(t, models.ERROR_INTERNAL, publishedResponse.Error.Code)
+	assert.Equal(t, "Failed to decode bolt11 invoice: bolt11 too short", publishedResponse.Error.Message)
 }

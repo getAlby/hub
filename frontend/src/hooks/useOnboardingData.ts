@@ -14,6 +14,7 @@ interface ChecklistItem {
   description: string;
   checked: boolean;
   to: string;
+  disabled: boolean;
 }
 
 interface UseOnboardingDataResponse {
@@ -64,9 +65,9 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
     albyBalance.sats * (1 - ALBY_SERVICE_FEE) >
       ALBY_MIN_BALANCE + 50000; /* accommodate for onchain fees */
 
-  const checklistItems: ChecklistItem[] = [
+  const checklistItems: Omit<ChecklistItem, "disabled">[] = [
     {
-      title: "Open your first channel",
+      title: "1. Open your first channel",
       description:
         "Establish a new Lightning channel to enable fast and low-fee Bitcoin transactions.",
       checked: hasChannel,
@@ -75,20 +76,20 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
         : "/channels/outgoing",
     },
     {
-      title: "Send or receive your first payment",
+      title: "2. Link to your Alby Account",
+      description: "Link your lightning address & other apps to this Hub.",
+      checked: isLinked,
+      to: "/apps",
+    },
+    {
+      title: "3. Send or receive your first payment",
       description:
         "Use your newly opened channel to make a transaction on the Lightning Network.",
       checked: hasTransaction,
       to: "/wallet",
     },
     {
-      title: "Link to your Alby Account",
-      description: "Link your lightning address & other apps to this Hub.",
-      checked: isLinked,
-      to: "/apps",
-    },
-    {
-      title: "Connect your first app",
+      title: "4. Connect your first app",
       description:
         "Seamlessly connect apps and integrate your wallet with other apps from your Hub.",
       checked: hasCustomApp,
@@ -97,7 +98,7 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
     ...(hasMnemonic
       ? [
           {
-            title: "Backup your keys",
+            title: "5. Backup your keys",
             description:
               "Secure your keys by creating a backup to ensure you don't lose access.",
             checked: hasBackedUp === true,
@@ -110,6 +111,12 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
   const sortedChecklistItems = checklistItems.sort(
     (a, b) => Number(b.checked) - Number(a.checked)
   );
+  const nextStep = checklistItems.find((x) => !x.checked);
 
-  return { isLoading: false, checklistItems: sortedChecklistItems };
+  const sortedChecklistItemsWithDisabled = sortedChecklistItems.map((item) => ({
+    ...item,
+    disabled: item !== nextStep,
+  }));
+
+  return { isLoading: false, checklistItems: sortedChecklistItemsWithDisabled };
 };

@@ -17,6 +17,7 @@ interface ChecklistItemProps {
   checked: boolean;
   description: string;
   to: string;
+  disabled: boolean;
 }
 
 function OnboardingChecklist() {
@@ -43,6 +44,7 @@ function OnboardingChecklist() {
             description={item.description}
             checked={item.checked}
             to={item.to}
+            disabled={item.disabled}
           />
         ))}
       </CardContent>
@@ -55,15 +57,17 @@ function ChecklistItem({
   checked = false,
   description,
   to,
+  disabled = false,
 }: ChecklistItemProps) {
   const content = (
     <div
       className={cn(
         "flex flex-col p-3 relative group rounded-lg",
-        !checked && "hover:bg-muted"
+        !checked && !disabled && "hover:bg-muted",
+        disabled && "opacity-50"
       )}
     >
-      {!checked && (
+      {!checked && !disabled && (
         <div className="absolute top-0 left-0 w-full h-full items-center justify-end pr-1.5 hidden group-hover:flex opacity-25">
           <ChevronRight className="w-8 h-8" />
         </div>
@@ -89,7 +93,7 @@ function ChecklistItem({
     </div>
   );
 
-  return checked ? content : <Link to={to}>{content}</Link>;
+  return checked || disabled ? content : <Link to={to}>{content}</Link>;
 }
 
 export default OnboardingChecklist;

@@ -4,12 +4,12 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useApp } from "src/hooks/useApp";
 import { useCSRF } from "src/hooks/useCSRF";
 import { useDeleteApp } from "src/hooks/useDeleteApp";
-import { useInfo } from "src/hooks/useInfo";
 import {
+  App,
   AppPermissions,
   BudgetRenewalType,
-  Scope,
   UpdateAppRequest,
+  WalletCapabilities,
 } from "src/types";
 
 import { handleRequestError } from "src/utils/handleRequestError";
@@ -39,13 +39,40 @@ import {
 } from "src/components/ui/card";
 import { Table, TableBody, TableCell, TableRow } from "src/components/ui/table";
 import { useToast } from "src/components/ui/use-toast";
+import { useCapabilities } from "src/hooks/useCapabilities";
+import { formatAmount } from "src/lib/utils";
 
 function ShowApp() {
-  const { data: info } = useInfo();
-  const { data: csrf } = useCSRF();
-  const { toast } = useToast();
   const { pubkey } = useParams() as { pubkey: string };
   const { data: app, mutate: refetchApp, error } = useApp(pubkey);
+  const { data: capabilities } = useCapabilities();
+
+  if (error) {
+    return <p className="text-red-500">{error.message}</p>;
+  }
+
+  if (!app || !capabilities) {
+    return <Loading />;
+  }
+
+  return (
+    <AppInternal
+      app={app}
+      refetchApp={refetchApp}
+      capabilities={capabilities}
+    />
+  );
+}
+
+type AppInternalProps = {
+  app: App;
+  capabilities: WalletCapabilities;
+  refetchApp: () => void;
+};
+
+function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
+  const { data: csrf } = useCSRF();
+  const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
   const [editMode, setEditMode] = React.useState(false);
@@ -60,30 +87,12 @@ function ShowApp() {
   });
 
   const [permissions, setPermissions] = React.useState<AppPermissions>({
-    scopes: new Set<Scope>(),
-    maxAmount: 0,
-    budgetRenewal: "",
-    expiresAt: undefined,
+    scopes: app.scopes,
+    maxAmount: app.maxAmount,
+    budgetRenewal: app.budgetRenewal as BudgetRenewalType,
+    expiresAt: app.expiresAt ? new Date(app.expiresAt) : undefined,
+    isolated: app.isolated,
   });
-
-  React.useEffect(() => {
-    if (app) {
-      setPermissions({
-        scopes: new Set(app.scopes),
-        maxAmount: app.maxAmount,
-        budgetRenewal: app.budgetRenewal as BudgetRenewalType,
-        expiresAt: app.expiresAt ? new Date(app.expiresAt) : undefined,
-      });
-    }
-  }, [app]);
-
-  if (error) {
-    return <p className="text-red-500">{error.message}</p>;
-  }
-
-  if (!app || !info) {
-    return <Loading />;
-  }
 
   const handleSave = async () => {
     try {
@@ -115,10 +124,6 @@ function ShowApp() {
     }
   };
 
-  if (!app) {
-    return <Loading />;
-  }
-
   return (
     <>
       <div className="w-full">
@@ -137,7 +142,7 @@ function ShowApp() {
             }
             contentRight={
               <AlertDialog>
-                <AlertDialogTrigger>
+                <AlertDialogTrigger asChild>
                   <Button variant="destructive">Delete</Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
@@ -175,6 +180,14 @@ function ShowApp() {
                       {app.nostrPubkey}
                     </TableCell>
                   </TableRow>
+                  {app.isolated && (
+                    <TableRow>
+                      <TableCell className="font-medium">Balance</TableCell>
+                      <TableCell className="text-muted-foreground break-all">
+                        {formatAmount(app.balance)} sats
+                      </TableCell>
+                    </TableRow>
+                  )}
                   <TableRow>
                     <TableCell className="font-medium">Last used</TableCell>
                     <TableCell className="text-muted-foreground">
@@ -186,8 +199,7 @@ function ShowApp() {
                   <TableRow>
                     <TableCell className="font-medium">Expires At</TableCell>
                     <TableCell className="text-muted-foreground">
-                      {app.expiresAt &&
-                      new Date(app.expiresAt).getFullYear() !== 1
+                      {app.expiresAt
                         ? new Date(app.expiresAt).toString()
                         : "Never"}
                     </TableCell>
@@ -197,63 +209,57 @@ function ShowApp() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                <div className="flex flex-row justify-between items-center">
-                  Permissions
-                  <div className="flex flex-row gap-2">
-                    {editMode && (
-                      <div className="flex justify-center items-center gap-2">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => {
-                            setPermissions({
-                              scopes: new Set(app.scopes as Scope[]),
-                              maxAmount: app.maxAmount,
-                              budgetRenewal:
-                                app.budgetRenewal as BudgetRenewalType,
-                              expiresAt: app.expiresAt
-                                ? new Date(app.expiresAt)
-                                : undefined,
-                            });
-                            setEditMode(!editMode);
-                            // TODO: clicking cancel and then editing again will leave the days option wrong
-                          }}
-                        >
-                          Cancel
-                        </Button>
+          {!app.isolated && (
+            <Card>
+              <CardHeader>
+                <CardTitle>
+                  <div className="flex flex-row justify-between items-center">
+                    Permissions
+                    <div className="flex flex-row gap-2">
+                      {editMode && (
+                        <div className="flex justify-center items-center gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                              window.location.reload();
+                            }}
+                          >
+                            Cancel
+                          </Button>
 
-                        <Button type="button" onClick={handleSave}>
-                          Save
-                        </Button>
-                      </div>
-                    )}
+                          <Button type="button" onClick={handleSave}>
+                            Save
+                          </Button>
+                        </div>
+                      )}
 
-                    {!editMode && (
-                      <>
-                        <Button
-                          variant="outline"
-                          onClick={() => setEditMode(!editMode)}
-                        >
-                          Edit
-                        </Button>
-                      </>
-                    )}
+                      {!editMode && (
+                        <>
+                          <Button
+                            variant="outline"
+                            onClick={() => setEditMode(!editMode)}
+                          >
+                            Edit
+                          </Button>
+                        </>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Permissions
-                initialPermissions={permissions}
-                onPermissionsChange={setPermissions}
-                budgetUsage={app.budgetUsage}
-                canEditPermissions={editMode}
-              />
-            </CardContent>
-          </Card>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Permissions
+                  capabilities={capabilities}
+                  permissions={permissions}
+                  setPermissions={setPermissions}
+                  readOnly={!editMode}
+                  isNewConnection={false}
+                  budgetUsage={app.budgetUsage}
+                />
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </>
