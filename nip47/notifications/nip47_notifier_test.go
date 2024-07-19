@@ -51,7 +51,7 @@ func TestSendNotification_PaymentReceived(t *testing.T) {
 	feesPaid := uint64(tests.MockLNClientTransaction.FeesPaid)
 	settledAt := time.Unix(*tests.MockLNClientTransaction.SettledAt, 0)
 	err = svc.DB.Create(&db.Transaction{
-		Type:            tests.MockLNClientTransaction.Type,
+		Type:            constants.TRANSACTION_TYPE_INCOMING,
 		PaymentRequest:  tests.MockLNClientTransaction.Invoice,
 		Description:     tests.MockLNClientTransaction.Description,
 		DescriptionHash: tests.MockLNClientTransaction.DescriptionHash,
@@ -101,7 +101,7 @@ func TestSendNotification_PaymentReceived(t *testing.T) {
 	assert.Equal(t, PAYMENT_RECEIVED_NOTIFICATION, unmarshalledResponse.NotificationType)
 
 	transaction := (unmarshalledResponse.Notification.(*PaymentReceivedNotification))
-	assert.Equal(t, tests.MockLNClientTransaction.Type, transaction.Type)
+	assert.Equal(t, constants.TRANSACTION_TYPE_INCOMING, transaction.Type)
 	assert.Equal(t, tests.MockLNClientTransaction.Invoice, transaction.Invoice)
 	assert.Equal(t, tests.MockLNClientTransaction.Description, transaction.Description)
 	assert.Equal(t, tests.MockLNClientTransaction.DescriptionHash, transaction.DescriptionHash)
@@ -132,7 +132,7 @@ func TestSendNotification_PaymentSent(t *testing.T) {
 	feesPaid := uint64(tests.MockLNClientTransaction.FeesPaid)
 	settledAt := time.Unix(*tests.MockLNClientTransaction.SettledAt, 0)
 	err = svc.DB.Create(&db.Transaction{
-		Type:            tests.MockLNClientTransaction.Type,
+		Type:            constants.TRANSACTION_TYPE_OUTGOING,
 		PaymentRequest:  tests.MockLNClientTransaction.Invoice,
 		Description:     tests.MockLNClientTransaction.Description,
 		DescriptionHash: tests.MockLNClientTransaction.DescriptionHash,
@@ -182,7 +182,7 @@ func TestSendNotification_PaymentSent(t *testing.T) {
 	assert.Equal(t, PAYMENT_SENT_NOTIFICATION, unmarshalledResponse.NotificationType)
 
 	transaction := (unmarshalledResponse.Notification.(*PaymentReceivedNotification))
-	assert.Equal(t, tests.MockLNClientTransaction.Type, transaction.Type)
+	assert.Equal(t, constants.TRANSACTION_TYPE_OUTGOING, transaction.Type)
 	assert.Equal(t, tests.MockLNClientTransaction.Invoice, transaction.Invoice)
 	assert.Equal(t, tests.MockLNClientTransaction.Description, transaction.Description)
 	assert.Equal(t, tests.MockLNClientTransaction.DescriptionHash, transaction.DescriptionHash)
