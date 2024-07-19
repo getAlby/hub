@@ -225,6 +225,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 			"035e4ff418fc8b5554c5d9eea66396c227bd429a3251c8cbc711002ba215bfc226@170.75.163.209:9735",  // WoS
 			"02fcc5bfc48e83f06c04483a2985e1c390cb0f35058baa875ad2053858b8e80dbd@35.239.148.251:9735",  // Blink
 			"027100442c3b79f606f80f322d98d499eefcb060599efc5d4ecb00209c2cb54190@3.230.33.224:9735",    // c=
+			"38a9e56512ec98da2b5789761f7af8f280baf98a09282360cd6ff1381b5e889bf@64.23.162.51:9735",     // Megalith LSP
 		}
 		logger.Logger.Info("Connecting to some peers to retrieve P2P gossip data")
 		for _, peer := range peers {
