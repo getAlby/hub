@@ -1,0 +1,45 @@
+services:
+  - type: web
+    runtime: image
+    name: albyhub
+    image:
+      url: ghcr.io/getalby/hub:latest
+    numInstances: 1
+    region: frankfurt # Default: oregon
+    plan: starter
+    disk:
+      name: data
+      mountPath: /data
+      sizeGB: 2
+    autoDeploy: false
+    envVars:
+      - key: WORK_DIR
+        value: /data/albyhub
+      - key: LOG_EVENTS
+        value: true
+      - key: LN_BACKEND_TYPE
+        value: PHOENIX
+      - key: PHOENIXD_AUTHORIZATION
+        value: dcf0cf3501c04f97890e3bb3204f94f60d6b99d270cc8c40dfd390cced2f3c11
+      - key: PHOENIXD_ADDRESS
+        fromService:
+          name: phoenixd
+          type: pserv
+          property: hostport
+  - type: pserv
+    runtime: image
+    name: phoenixd
+    image:
+      url: ghcr.io/sethforprivacy/phoenixd:latest
+    numInstances: 1
+    region: frankfurt # Default: oregon
+    plan: starter
+    disk:
+      name: data
+      mountPath: /data
+      sizeGB: 2
+    autoDeploy: false
+    dockerCommand: /phoenix/bin/phoenixd --agree-to-terms-of-service --http-bind-ip 0.0.0.0 --http-password=dcf0cf3501c04f97890e3bb3204f94f60d6b99d270cc8c40dfd390cced2f3c11
+    envVars:
+      - key: PHOENIX_DATADIR
+        value: /data/phoenixd
