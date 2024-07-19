@@ -132,11 +132,15 @@ func (svc *LNDService) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, er
 	if err != nil {
 		return nil, err
 	}
+	network := resp.Chains[0].Network
+	if network == "mainnet" {
+		network = "bitcoin"
+	}
 	return &lnclient.NodeInfo{
 		Alias:       resp.Alias,
 		Color:       resp.Color,
 		Pubkey:      resp.IdentityPubkey,
-		Network:     resp.Chains[0].Network,
+		Network:     network,
 		BlockHeight: resp.BlockHeight,
 		BlockHash:   resp.BlockHash,
 	}, nil
