@@ -20,7 +20,7 @@ import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
 
 function Wallet() {
-  const { data: info } = useInfo();
+  const { data: info, hasChannelManagement } = useInfo();
   const { data: balances } = useBalances();
 
   if (!info || !balances) {
@@ -30,7 +30,7 @@ function Wallet() {
   return (
     <>
       <AppHeader title="Wallet" description="" />
-      {!balances.lightning.totalSpendable && (
+      {hasChannelManagement && !balances.lightning.totalSpendable && (
         <Alert>
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Low spending balance</AlertTitle>
@@ -42,7 +42,7 @@ function Wallet() {
           </AlertDescription>
         </Alert>
       )}
-      {!balances.lightning.totalReceivable && (
+      {hasChannelManagement && !balances.lightning.totalReceivable && (
         <Alert>
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Low receiving capacity</AlertTitle>
