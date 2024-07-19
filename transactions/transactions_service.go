@@ -241,6 +241,11 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 	metadata["tlv_records"] = customRecords
 	metadataBytes, err := json.Marshal(metadata)
 
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to marshal metadata")
+		return nil, err
+	}
+
 	var dbTransaction db.Transaction
 
 	err = svc.db.Transaction(func(tx *gorm.DB) error {
