@@ -523,7 +523,7 @@ func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string) (*lnc
 
 	return &lnclient.PayInvoiceResponse{
 		Preimage: preimage,
-		Fee:      &fee,
+		Fee:      fee,
 	}, nil
 }
 

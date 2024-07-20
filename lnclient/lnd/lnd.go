@@ -286,7 +286,7 @@ func (svc *LNDService) SendPaymentSync(ctx context.Context, payReq string) (*lnc
 	}
 
 	if resp.PaymentPreimage == nil {
-		return nil, errors.New("No preimage in response")
+		return nil, errors.New("no preimage in response")
 	}
 
 	var fee uint64 = 0
@@ -296,7 +296,7 @@ func (svc *LNDService) SendPaymentSync(ctx context.Context, payReq string) (*lnc
 
 	return &lnclient.PayInvoiceResponse{
 		Preimage: hex.EncodeToString(resp.PaymentPreimage),
-		Fee:      &fee,
+		Fee:      fee,
 	}, nil
 }
 

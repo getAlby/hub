@@ -44,7 +44,6 @@ func TestHandleLookupInvoiceEvent(t *testing.T) {
 	err = svc.DB.Create(&dbRequestEvent).Error
 	assert.NoError(t, err)
 
-	feesPaid := uint64(tests.MockLNClientTransaction.FeesPaid)
 	settledAt := time.Unix(*tests.MockLNClientTransaction.SettledAt, 0)
 	err = svc.DB.Create(&db.Transaction{
 		Type:            tests.MockLNClientTransaction.Type,
@@ -54,7 +53,7 @@ func TestHandleLookupInvoiceEvent(t *testing.T) {
 		Preimage:        &tests.MockLNClientTransaction.Preimage,
 		PaymentHash:     tests.MockLNClientTransaction.PaymentHash,
 		AmountMsat:      uint64(tests.MockLNClientTransaction.Amount),
-		FeeMsat:         &feesPaid,
+		FeeMsat:         uint64(tests.MockLNClientTransaction.FeesPaid),
 		SettledAt:       &settledAt,
 		AppId:           &app.ID,
 	}).Error

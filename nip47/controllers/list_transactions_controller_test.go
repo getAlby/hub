@@ -50,7 +50,6 @@ func TestHandleListTransactionsEvent(t *testing.T) {
 	assert.NoError(t, err)
 
 	for i, _ := range tests.MockLNClientTransactions {
-		feesPaid := uint64(tests.MockLNClientTransactions[i].FeesPaid)
 		settledAt := time.Unix(*tests.MockLNClientTransactions[i].SettledAt, 0)
 		err = svc.DB.Create(&db.Transaction{
 			Type:            tests.MockLNClientTransactions[i].Type,
@@ -60,7 +59,7 @@ func TestHandleListTransactionsEvent(t *testing.T) {
 			Preimage:        &tests.MockLNClientTransactions[i].Preimage,
 			PaymentHash:     tests.MockLNClientTransactions[i].PaymentHash,
 			AmountMsat:      uint64(tests.MockLNClientTransactions[i].Amount),
-			FeeMsat:         &feesPaid,
+			FeeMsat:         uint64(tests.MockLNClientTransactions[i].FeesPaid),
 			SettledAt:       &settledAt,
 			State:           constants.TRANSACTION_STATE_SETTLED,
 			AppId:           &app.ID,

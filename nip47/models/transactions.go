@@ -9,11 +9,6 @@ import (
 )
 
 func ToNip47Transaction(transaction *transactions.Transaction) *Transaction {
-	fees := int64(0)
-	if transaction.FeeMsat != nil {
-		fees = int64(*transaction.FeeMsat)
-	}
-
 	var expiresAt *int64
 	if transaction.ExpiresAt != nil {
 		expiresAtUnix := transaction.ExpiresAt.Unix()
@@ -47,7 +42,7 @@ func ToNip47Transaction(transaction *transactions.Transaction) *Transaction {
 		Preimage:        preimage,
 		PaymentHash:     transaction.PaymentHash,
 		Amount:          int64(transaction.AmountMsat),
-		FeesPaid:        fees,
+		FeesPaid:        int64(transaction.FeeMsat),
 		CreatedAt:       transaction.CreatedAt.Unix(),
 		ExpiresAt:       expiresAt,
 		SettledAt:       settledAt,

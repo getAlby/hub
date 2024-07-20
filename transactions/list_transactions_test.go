@@ -44,7 +44,7 @@ func TestListTransactions(t *testing.T) {
 	assert.Equal(t, uint64(123000), incomingTransactions[0].AmountMsat)
 	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, incomingTransactions[0].State)
 	assert.Equal(t, tests.MockLNClientTransaction.Preimage, *incomingTransactions[0].Preimage)
-	assert.Nil(t, incomingTransactions[0].FeeReserveMsat)
+	assert.Zero(t, incomingTransactions[0].FeeReserveMsat)
 }
 
 func TestListTransactions_Unsettled(t *testing.T) {

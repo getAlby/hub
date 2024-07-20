@@ -24,7 +24,7 @@ func TestSendPaymentSync_NoApp(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(123000), transaction.AmountMsat)
 	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, transaction.State)
-	assert.Zero(t, *transaction.FeeReserveMsat)
+	assert.Zero(t, transaction.FeeReserveMsat)
 	assert.Equal(t, "123preimage", *transaction.Preimage)
 }
 
@@ -50,7 +50,7 @@ func TestSendPaymentSync_FailedRemovesFeeReserve(t *testing.T) {
 
 	assert.Equal(t, uint64(123000), transaction.AmountMsat)
 	assert.Equal(t, constants.TRANSACTION_STATE_FAILED, transaction.State)
-	assert.Zero(t, *transaction.FeeReserveMsat)
+	assert.Zero(t, transaction.FeeReserveMsat)
 	assert.Nil(t, transaction.Preimage)
 }
 
@@ -77,6 +77,6 @@ func TestSendPaymentSync_PendingHasFeeReserve(t *testing.T) {
 
 	assert.Equal(t, uint64(123000), transaction.AmountMsat)
 	assert.Equal(t, constants.TRANSACTION_STATE_PENDING, transaction.State)
-	assert.Equal(t, uint64(10000), *transaction.FeeReserveMsat)
+	assert.Equal(t, uint64(10000), transaction.FeeReserveMsat)
 	assert.Nil(t, transaction.Preimage)
 }
