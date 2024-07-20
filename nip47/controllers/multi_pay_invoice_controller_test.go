@@ -160,6 +160,15 @@ func TestHandleMultiPayInvoiceEvent_OneMalformedInvoice(t *testing.T) {
 		HandleMultiPayInvoiceEvent(ctx, nip47Request, requestEvent.ID, app, publishResponse)
 
 	assert.Equal(t, 2, len(responses))
+	assert.Equal(t, 2, len(dTags))
+
+	// we can't guarantee which request was processed first
+	// so swap them if they are back to front
+	if responses[0].Result != nil {
+		responses[0], responses[1] = responses[1], responses[0]
+		dTags[0], dTags[1] = dTags[1], dTags[0]
+	}
+
 	assert.Equal(t, "invoiceId123", dTags[0].GetFirst([]string{"d"}).Value())
 	assert.Equal(t, models.ERROR_INTERNAL, responses[0].Error.Code)
 	assert.Nil(t, responses[0].Result)
@@ -224,6 +233,14 @@ func TestHandleMultiPayInvoiceEvent_IsolatedApp_OneBudgetExceeded(t *testing.T) 
 		HandleMultiPayInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
 
 	assert.Equal(t, 2, len(responses))
+	assert.Equal(t, 2, len(dTags))
+
+	// we can't guarantee which request was processed first
+	// so swap them if they are back to front
+	if responses[0].Result == nil {
+		responses[0], responses[1] = responses[1], responses[0]
+		dTags[0], dTags[1] = dTags[1], dTags[0]
+	}
 
 	assert.Equal(t, "320c2c5a1492ccfd5bc7aa4ad9b657d6aaec3cfcc0d1d98413a29af4ac772ccf", dTags[0].GetFirst([]string{"d"}).Value())
 	assert.Equal(t, "123preimage", responses[0].Result.(payResponse).Preimage)

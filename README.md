@@ -88,11 +88,11 @@ _If you get a blank screen, try running in your normal terminal (outside of vsco
 
 ### Testing
 
-    $ go test -race ./...
+    $ go test ./...
 
 #### Test matching regular expression
 
-    $ go test -race ./... -run TestHandleGetInfoEvent
+    $ go test ./... -run TestHandleGetInfoEvent
 
 ### Profiling
 
