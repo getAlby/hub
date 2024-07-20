@@ -20,7 +20,7 @@ Ideally the app runs 24/7 (on a node, VPS or always-online desktop/laptop machin
 - Breez
 - Greenlight
 - LDK
-- Pheonixd
+- Phoenixd
 - Cashu
 - want more? please open an issue.
 
