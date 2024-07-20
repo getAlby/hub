@@ -664,8 +664,8 @@ func (svc *LNDService) GetOnchainBalance(ctx context.Context) (*lnclient.Onchain
 		"balances": balances,
 	}).Debug("Listed Balances")
 	return &lnclient.OnchainBalanceResponse{
-		Spendable: int64(balances.ConfirmedBalance - balances.ReservedBalanceAnchorChan),
-		Total:     int64(balances.TotalBalance - balances.ReservedBalanceAnchorChan),
+		Spendable: int64(balances.ConfirmedBalance),
+		Total:     int64(balances.TotalBalance),
 		Reserved:  int64(balances.ReservedBalanceAnchorChan),
 	}, nil
 }
