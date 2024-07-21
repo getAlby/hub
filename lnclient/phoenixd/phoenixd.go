@@ -542,3 +542,7 @@ func (svc *PhoenixService) GetSupportedNIP47NotificationTypes() []string {
 func (svc *PhoenixService) GetPubkey() string {
 	return svc.pubkey
 }
+
+func (svc *PhoenixService) PayOfferSync(ctx context.Context, offer string, amount uint64) (string, *lnclient.PayOfferResponse, error) {
+	return "", nil, errors.New("not supported")
+}

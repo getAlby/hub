@@ -51,11 +51,11 @@ func (api *api) ListTransactions(ctx context.Context, limit uint64, offset uint6
 	return &apiTransactions, nil
 }
 
-func (api *api) SendPayment(ctx context.Context, invoice string) (*SendPaymentResponse, error) {
+func (api *api) SendPayment(ctx context.Context, invoice string, amount *uint64) (*SendPaymentResponse, error) {
 	if api.svc.GetLNClient() == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	transaction, err := api.svc.GetTransactionsService().SendPaymentSync(ctx, invoice, api.svc.GetLNClient(), nil, nil)
+	transaction, err := api.svc.GetTransactionsService().SendPaymentSync(ctx, invoice, amount, api.svc.GetLNClient(), nil, nil)
 	if err != nil {
 		return nil, err
 	}

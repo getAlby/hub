@@ -916,3 +916,7 @@ func (svc *LNDService) GetSupportedNIP47NotificationTypes() []string {
 func (svc *LNDService) GetPubkey() string {
 	return svc.pubkey
 }
+
+func (svc *LNDService) PayOfferSync(ctx context.Context, offer string, amount uint64) (string, *lnclient.PayOfferResponse, error) {
+	return "", nil, errors.New("not supported")
+}

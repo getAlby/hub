@@ -35,7 +35,7 @@ type API interface {
 	RedeemOnchainFunds(ctx context.Context, toAddress string) (*RedeemOnchainFundsResponse, error)
 	GetBalances(ctx context.Context) (*BalancesResponse, error)
 	ListTransactions(ctx context.Context, limit uint64, offset uint64) (*ListTransactionsResponse, error)
-	SendPayment(ctx context.Context, invoice string) (*SendPaymentResponse, error)
+	SendPayment(ctx context.Context, invoice string, amount *uint64) (*SendPaymentResponse, error)
 	CreateInvoice(ctx context.Context, amount int64, description string) (*MakeInvoiceResponse, error)
 	LookupInvoice(ctx context.Context, paymentHash string) (*LookupInvoiceResponse, error)
 	RequestMempoolApi(endpoint string) (interface{}, error)

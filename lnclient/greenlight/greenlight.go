@@ -692,3 +692,7 @@ func (gs *GreenlightService) GetSupportedNIP47NotificationTypes() []string {
 func (gs *GreenlightService) GetPubkey() string {
 	return gs.pubkey
 }
+
+func (gs *GreenlightService) PayOfferSync(ctx context.Context, offer string, amount uint64) (string, *lnclient.PayOfferResponse, error) {
+	return "", nil, errors.New("not supported")
+}

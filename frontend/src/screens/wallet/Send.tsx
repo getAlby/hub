@@ -42,7 +42,10 @@ export default function Send() {
   const { data: csrf } = useCSRF();
   const { toast } = useToast();
   const [isLoading, setLoading] = React.useState(false);
+
   const [invoice, setInvoice] = React.useState("");
+  const [offer, setOffer] = React.useState<string>();
+  const [amount, setAmount] = React.useState<string>();
   const [invoiceDetails, setInvoiceDetails] = React.useState<Invoice | null>(
     null
   );
@@ -56,6 +59,11 @@ export default function Send() {
 
   const handleContinue = () => {
     try {
+      if (invoice.startsWith("lno1")) {
+        setOffer(invoice);
+        return;
+      }
+
       setInvoiceDetails(new Invoice({ pr: invoice }));
     } catch (error) {
       toast({
@@ -75,7 +83,7 @@ export default function Send() {
       }
       setLoading(true);
       const payInvoiceResponse = await request<PayInvoiceResponse>(
-        `/api/payments/${invoice}`,
+        `/api/payments/${invoice}?amount=${amount}`,
         {
           method: "POST",
           headers: {
@@ -87,7 +95,6 @@ export default function Send() {
       if (payInvoiceResponse) {
         setPayResponse(payInvoiceResponse);
         setPaymentDone(true);
-        setInvoice("");
         toast({
           title: "Successfully paid invoice",
         });
@@ -97,10 +104,12 @@ export default function Send() {
         variant: "destructive",
         title: "Failed to send: " + e,
       });
-      setInvoice("");
-      setInvoiceDetails(null);
       console.error(e);
     }
+    setInvoice("");
+    setInvoiceDetails(null);
+    setOffer(undefined);
+    setAmount(undefined);
     setLoading(false);
   };
 
@@ -194,6 +203,39 @@ export default function Send() {
                   type="submit"
                   disabled={!invoice}
                   autoFocus
+                >
+                  Confirm Payment
+                </LoadingButton>
+                <Button
+                  onClick={() => setInvoiceDetails(null)}
+                  variant="secondary"
+                >
+                  Back
+                </Button>
+              </div>
+            </form>
+          ) : offer ? (
+            <form onSubmit={handleSubmit} className="grid gap-5">
+              <div className="">
+                <p className="text-lg mb-5">Bolt12 Offer</p>
+                <Input
+                  id="amount"
+                  type="number"
+                  autoFocus
+                  required
+                  placeholder="Amount in sats"
+                  min={1}
+                  value={amount}
+                  onChange={(e) => {
+                    setAmount(e.target.value.trim());
+                  }}
+                />
+              </div>
+              <div className="flex gap-5">
+                <LoadingButton
+                  loading={isLoading}
+                  type="submit"
+                  autoFocus={!!invoiceDetails}
                 >
                   Confirm Payment
                 </LoadingButton>

@@ -29,7 +29,7 @@ type TransactionsService interface {
 	MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	LookupTransaction(ctx context.Context, paymentHash string, transactionType *string, lnClient lnclient.LNClient, appId *uint) (*Transaction, error)
 	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, transactionType *string, lnClient lnclient.LNClient, appId *uint) (transactions []Transaction, err error)
-	SendPaymentSync(ctx context.Context, payReq string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
+	SendPaymentSync(ctx context.Context, payReq string, amount *uint64, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []lnclient.TLVRecord, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 }
 
@@ -124,8 +124,114 @@ func (svc *transactionsService) MakeInvoice(ctx context.Context, amount int64, d
 	return &dbTransaction, nil
 }
 
-func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
+func (svc *transactionsService) PayOffer(ctx context.Context, offer string, amount uint64, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
+
+	var dbTransaction db.Transaction
+
+	err := svc.db.Transaction(func(tx *gorm.DB) error {
+		err := svc.validateCanPay(tx, appId, amount)
+		if err != nil {
+			return err
+		}
+
+		feeReserve := svc.calculateFeeReserve(amount)
+		dbTransaction = db.Transaction{
+			AppId:          appId,
+			RequestEventId: requestEventId,
+			Type:           constants.TRANSACTION_TYPE_OUTGOING,
+			State:          constants.TRANSACTION_STATE_PENDING,
+			FeeReserveMsat: &feeReserve,
+			AmountMsat:     uint64(amount),
+			PaymentRequest: offer, // TODO: should this be a new field? - offer will generate an invoice?
+			//PaymentHash:     paymentRequest.PaymentHash,
+			//Description:     paymentRequest.Description,
+			//DescriptionHash: paymentRequest.DescriptionHash,
+			//ExpiresAt:       expiresAt,
+			//SelfPayment:     selfPayment,
+			// Metadata:       metadata,
+		}
+		err = tx.Create(&dbTransaction).Error
+		return err
+	})
+
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"offer": offer,
+		}).WithError(err).Error("Failed to create DB transaction")
+		return nil, err
+	}
+
+	paymentHash, response, err := lnClient.PayOfferSync(ctx, offer, amount)
+
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"offer": offer,
+		}).WithError(err).Error("Failed to pay offer")
+
+		if errors.Is(err, lnclient.NewTimeoutError()) {
+			logger.Logger.WithFields(logrus.Fields{
+				"offer": offer,
+			}).WithError(err).Error("Timed out waiting for payment to be sent. It may still succeed. Skipping update of transaction status")
+
+			dbErr := svc.db.Model(&dbTransaction).Updates(&db.Transaction{
+				PaymentHash: paymentHash,
+			}).Error
+			if dbErr != nil {
+				logger.Logger.WithFields(logrus.Fields{
+					"offer": offer,
+				}).WithError(dbErr).Error("Failed to update DB transaction")
+			}
+			// we cannot update the payment to failed as it still might succeed.
+			// we'll need to check the status of it later
+			return nil, err
+		}
+
+		// As the LNClient did not return a timeout error, we assume the payment definitely failed
+		feeReserve := uint64(0)
+		dbErr := svc.db.Model(&dbTransaction).Updates(&db.Transaction{
+			State:          constants.TRANSACTION_STATE_FAILED,
+			FeeReserveMsat: &feeReserve,
+			PaymentHash:    paymentHash,
+		}).Error
+		if dbErr != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"offer": offer,
+			}).WithError(dbErr).Error("Failed to update DB transaction")
+		}
+
+		return nil, err
+	}
+
+	// the payment definitely succeeded
+	feeReserve := uint64(0)
+	now := time.Now()
+	dbErr := svc.db.Model(&dbTransaction).Updates(&db.Transaction{
+		PaymentHash:    paymentHash,
+		State:          constants.TRANSACTION_STATE_SETTLED,
+		Preimage:       &response.Preimage,
+		FeeMsat:        response.Fee,
+		FeeReserveMsat: &feeReserve,
+		SettledAt:      &now,
+	}).Error
+	if dbErr != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"offer": offer,
+		}).WithError(dbErr).Error("Failed to update DB transaction")
+	}
+
+	return &dbTransaction, nil
+}
+
+func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq string, amount *uint64, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
 	payReq = strings.ToLower(payReq)
+
+	if strings.HasPrefix(payReq, "lno1") {
+		if amount == nil {
+			return nil, errors.New("no amount provided")
+		}
+		return svc.PayOffer(ctx, payReq, *amount, lnClient, appId, requestEventId)
+	}
+
 	paymentRequest, err := decodepay.Decodepay(payReq)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
@@ -229,7 +335,6 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 		}).WithError(dbErr).Error("Failed to update DB transaction")
 	}
 
-	// TODO: check the fields are updated here
 	return &dbTransaction, nil
 }
 

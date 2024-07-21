@@ -407,7 +407,15 @@ func (httpSvc *HttpService) balancesHandler(c echo.Context) error {
 func (httpSvc *HttpService) sendPaymentHandler(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	paymentResponse, err := httpSvc.api.SendPayment(ctx, c.Param("invoice"))
+	var amount *uint64
+
+	if amountParam := c.QueryParam("amount"); amountParam != "" {
+		if parsedAmount, err := strconv.ParseUint(amountParam, 10, 64); err == nil {
+			amount = &parsedAmount
+		}
+	}
+
+	paymentResponse, err := httpSvc.api.SendPayment(ctx, c.Param("invoice"), amount)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{

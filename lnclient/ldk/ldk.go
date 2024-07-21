@@ -306,6 +306,14 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		}
 	}()
 
+	offer, err := ls.node.Bolt12Payment().ReceiveVariableAmount("Pay to alby hub")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to make Bolt12 offer")
+	} else {
+
+		logger.Logger.WithField("offer", offer).Info("My offer")
+	}
+
 	return &ls, nil
 }
 
@@ -409,6 +417,122 @@ func (ls *LDKService) resetRouterInternal() {
 	}
 }
 
+// TODO: make amount optional
+// TODO: payer note
+func (ls *LDKService) PayOfferSync(ctx context.Context, offer string, amount uint64) (string, *lnclient.PayOfferResponse, error) {
+	payerNote := "Hello from Alby Hub"
+
+	// TODO: send liquidity event if amount too large
+
+	paymentStart := time.Now()
+	ldkEventSubscription := ls.ldkEventBroadcaster.Subscribe()
+	defer ls.ldkEventBroadcaster.CancelSubscription(ldkEventSubscription)
+
+	paymentId, err := ls.node.Bolt12Payment().SendUsingAmount(offer, &payerNote, amount)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to initiate BOLT12 variable amount payment")
+	}
+
+	fee := uint64(0)
+	preimage := ""
+
+	payment := ls.node.Payment(paymentId)
+	if payment == nil {
+		return "", nil, errors.New("payment not found by payment ID")
+	}
+
+	paymentHash := ""
+
+	for start := time.Now(); time.Since(start) < time.Second*60; {
+		event := <-ldkEventSubscription
+
+		eventPaymentSuccessful, isEventPaymentSuccessfulEvent := (*event).(ldk_node.EventPaymentSuccessful)
+		eventPaymentFailed, isEventPaymentFailedEvent := (*event).(ldk_node.EventPaymentFailed)
+
+		if isEventPaymentSuccessfulEvent && eventPaymentSuccessful.PaymentId != nil && *eventPaymentSuccessful.PaymentId == paymentId {
+			logger.Logger.Info("Got payment success event")
+			payment := ls.node.Payment(paymentId)
+			if payment == nil {
+				logger.Logger.Errorf("Couldn't find payment by payment ID: %v", paymentId)
+				return paymentHash, nil, errors.New("Payment not found")
+			}
+
+			bolt12PaymentKind, ok := payment.Kind.(ldk_node.PaymentKindBolt12Offer)
+
+			if !ok {
+				logger.Logger.WithFields(logrus.Fields{
+					"payment": payment,
+				}).Error("Payment is not a bolt12 offer kind")
+				return paymentHash, nil, errors.New("payment is not a bolt12 offer")
+			}
+
+			if bolt12PaymentKind.Preimage == nil {
+				logger.Logger.Errorf("No payment preimage for payment ID: %v", paymentId)
+				return paymentHash, nil, errors.New("payment preimage not found")
+			}
+			preimage = *bolt12PaymentKind.Preimage
+
+			if bolt12PaymentKind.Hash == nil {
+				logger.Logger.Errorf("No payment hash for payment ID: %v", paymentId)
+				return "", nil, errors.New("payment hash not found")
+			}
+			paymentHash = *bolt12PaymentKind.Hash
+
+			if eventPaymentSuccessful.FeePaidMsat != nil {
+				fee = *eventPaymentSuccessful.FeePaidMsat
+			}
+			break
+		}
+		if isEventPaymentFailedEvent && eventPaymentFailed.PaymentId != nil && *eventPaymentFailed.PaymentId == paymentId {
+			var failureReason ldk_node.PaymentFailureReason
+			var failureReasonMessage string
+			if eventPaymentFailed.Reason != nil {
+				failureReason = *eventPaymentFailed.Reason
+			}
+			switch failureReason {
+			case ldk_node.PaymentFailureReasonRecipientRejected:
+				failureReasonMessage = "RecipientRejected"
+			case ldk_node.PaymentFailureReasonUserAbandoned:
+				failureReasonMessage = "UserAbandoned"
+			case ldk_node.PaymentFailureReasonRetriesExhausted:
+				failureReasonMessage = "RetriesExhausted"
+			case ldk_node.PaymentFailureReasonPaymentExpired:
+				failureReasonMessage = "PaymentExpired"
+			case ldk_node.PaymentFailureReasonRouteNotFound:
+				failureReasonMessage = "RouteNotFound"
+			case ldk_node.PaymentFailureReasonUnexpectedError:
+				failureReasonMessage = "UnexpectedError"
+			default:
+				failureReasonMessage = "UnknownError"
+			}
+
+			logger.Logger.WithFields(logrus.Fields{
+				"payment_id":             paymentId,
+				"failure_reason":         failureReason,
+				"failure_reason_message": failureReasonMessage,
+			}).Error("Received payment failed event")
+
+			return paymentHash, nil, fmt.Errorf("received payment failed event: %v %s", failureReason, failureReasonMessage)
+		}
+	}
+	if preimage == "" {
+		logger.Logger.WithFields(logrus.Fields{
+			"payment_id": paymentId,
+		}).Warn("Timed out waiting for payment to be sent")
+		return paymentHash, nil, lnclient.NewTimeoutError()
+	}
+
+	logger.Logger.WithFields(logrus.Fields{
+		"duration": time.Since(paymentStart).Milliseconds(),
+		"fee":      fee,
+	}).Info("Successful payment")
+
+	return paymentHash, &lnclient.PayOfferResponse{
+		Preimage: preimage,
+		Fee:      &fee,
+	}, nil
+}
+
 func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string) (*lnclient.PayInvoiceResponse, error) {
 	paymentRequest, err := decodepay.Decodepay(invoice)
 	if err != nil {
@@ -464,6 +588,7 @@ func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string) (*lnc
 				logger.Logger.WithFields(logrus.Fields{
 					"payment": payment,
 				}).Error("Payment is not a bolt11 kind")
+				return nil, errors.New("payment is not a bolt11 kind")
 			}
 
 			if bolt11PaymentKind.Preimage == nil {

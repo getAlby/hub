@@ -242,7 +242,8 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 	switch {
 	case len(invoiceMatch) > 1:
 		invoice := invoiceMatch[1]
-		paymentResponse, err := app.api.SendPayment(ctx, invoice)
+		// TODO: support amount param
+		paymentResponse, err := app.api.SendPayment(ctx, invoice, nil)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
