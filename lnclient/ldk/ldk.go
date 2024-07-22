@@ -1229,6 +1229,26 @@ func (ls *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 		paymentHash = bolt11PaymentKind.Hash
 	}
 
+	bolt12PaymentKind, isBolt12PaymentKind := payment.Kind.(ldk_node.PaymentKindBolt12Offer)
+
+	if isBolt12PaymentKind {
+		logger.Logger.WithField("bolt12", bolt12PaymentKind).WithField("payment", payment).Info("Received Bolt12 payment!")
+		createdAt = int64(payment.CreatedAt)
+
+		paymentHash = *bolt12PaymentKind.Hash
+		// TODO: get description by decoding offer (how to get the offer from the offer ID?)
+		//description = paymentRequest.Description
+		//descriptionHash = paymentRequest.DescriptionHash
+
+		// TODO: get payer note from BOLT12 payment (how?)
+
+		if payment.Status == ldk_node.PaymentStatusSucceeded {
+			preimage = *bolt12PaymentKind.Preimage
+			lastUpdate := int64(payment.LatestUpdateTimestamp)
+			settledAt = &lastUpdate
+		}
+	}
+
 	spontaneousPaymentKind, isSpontaneousPaymentKind := payment.Kind.(ldk_node.PaymentKindSpontaneous)
 	if isSpontaneousPaymentKind {
 		// keysend payment
