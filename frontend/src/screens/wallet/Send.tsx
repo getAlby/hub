@@ -83,7 +83,7 @@ export default function Send() {
       }
       setLoading(true);
       const payInvoiceResponse = await request<PayInvoiceResponse>(
-        `/api/payments/${invoice}?amount=${amount}`,
+        `/api/payments/${invoice}?amount=${parseInt(amount || "0") * 1000}`,
         {
           method: "POST",
           headers: {
