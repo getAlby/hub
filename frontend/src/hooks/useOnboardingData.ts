@@ -108,15 +108,12 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
       : []),
   ];
 
-  const sortedChecklistItems = checklistItems.sort(
-    (a, b) => Number(b.checked) - Number(a.checked)
-  );
   const nextStep = checklistItems.find((x) => !x.checked);
 
-  const sortedChecklistItemsWithDisabled = sortedChecklistItems.map((item) => ({
+  const sortedChecklistItems = checklistItems.map((item) => ({
     ...item,
     disabled: item !== nextStep,
   }));
 
-  return { isLoading: false, checklistItems: sortedChecklistItemsWithDisabled };
+  return { isLoading: false, checklistItems: sortedChecklistItems };
 };
