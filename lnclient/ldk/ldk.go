@@ -47,7 +47,7 @@ type LDKService struct {
 
 const resetRouterKey = "ResetRouter"
 
-func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events.EventPublisher, mnemonic, workDir string, network string, esploraServer string, gossipSource string) (result lnclient.LNClient, err error) {
+func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events.EventPublisher, mnemonic, workDir string, network string) (result lnclient.LNClient, err error) {
 	if mnemonic == "" || workDir == "" {
 		return nil, errors.New("one or more required LDK configuration are missing")
 	}
@@ -99,10 +99,10 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	builder := ldk_node.BuilderFromConfig(ldkConfig)
 	builder.SetEntropyBip39Mnemonic(mnemonic, nil)
 	builder.SetNetwork(network)
-	builder.SetEsploraServer(esploraServer)
-	if gossipSource != "" {
-		logger.Logger.WithField("gossipSource", gossipSource).Warn("LDK RGS instance set")
-		builder.SetGossipSourceRgs(gossipSource)
+	builder.SetEsploraServer(cfg.GetEnv().LDKEsploraServer)
+	if cfg.GetEnv().LDKGossipSource != "" {
+		logger.Logger.WithField("gossipSource", cfg.GetEnv().LDKGossipSource).Warn("LDK RGS instance set")
+		builder.SetGossipSourceRgs(cfg.GetEnv().LDKGossipSource)
 	} else {
 		logger.Logger.Warn("No LDK RGS instance set")
 	}
@@ -198,6 +198,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 				"sync_type":    "full",
 				"initial_sync": true,
 				"node_type":    config.LDKBackendType,
+				"esplora_url":  ls.cfg.GetEnv().LDKEsploraServer,
 			},
 		})
 
@@ -264,9 +265,10 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 					ls.eventPublisher.Publish(&events.Event{
 						Event: "nwc_node_sync_failed",
 						Properties: map[string]interface{}{
-							"error":     err.Error(),
-							"sync_type": "fee_estimates",
-							"node_type": config.LDKBackendType,
+							"error":       err.Error(),
+							"sync_type":   "fee_estimates",
+							"node_type":   config.LDKBackendType,
+							"esplora_url": ls.cfg.GetEnv().LDKEsploraServer,
 						},
 					})
 				}
@@ -285,9 +287,10 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 					ls.eventPublisher.Publish(&events.Event{
 						Event: "nwc_node_sync_failed",
 						Properties: map[string]interface{}{
-							"error":     err.Error(),
-							"sync_type": "full",
-							"node_type": config.LDKBackendType,
+							"error":       err.Error(),
+							"sync_type":   "full",
+							"node_type":   config.LDKBackendType,
+							"esplora_url": ls.cfg.GetEnv().LDKEsploraServer,
 						},
 					})
 
