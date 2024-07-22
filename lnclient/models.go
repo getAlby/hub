@@ -153,8 +153,8 @@ type LightningBalanceResponse struct {
 }
 
 type PayInvoiceResponse struct {
-	Preimage string  `json:"preimage"`
-	Fee      *uint64 `json:"fee"`
+	Preimage string `json:"preimage"`
+	Fee      uint64 `json:"fee"`
 }
 
 type BalancesResponse struct {

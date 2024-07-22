@@ -26,7 +26,7 @@ func TestSendKeysend(t *testing.T) {
 	assert.Equal(t, uint64(1000), transaction.AmountMsat)
 	assert.Equal(t, constants.TRANSACTION_TYPE_OUTGOING, transaction.Type)
 	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, transaction.State)
-	assert.Zero(t, *transaction.FeeReserveMsat)
+	assert.Zero(t, transaction.FeeReserveMsat)
 }
 
 func TestSendKeysend_App_NoPermission(t *testing.T) {
@@ -83,7 +83,7 @@ func TestSendKeysend_App_WithPermission(t *testing.T) {
 	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, transaction.State)
 	assert.Equal(t, app.ID, *transaction.AppId)
 	assert.Equal(t, dbRequestEvent.ID, *transaction.RequestEventId)
-	assert.Zero(t, *transaction.FeeReserveMsat)
+	assert.Zero(t, transaction.FeeReserveMsat)
 }
 
 func TestSendKeysend_App_BudgetExceeded(t *testing.T) {
@@ -148,7 +148,7 @@ func TestSendKeysend_App_BudgetNotExceeded(t *testing.T) {
 	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, transaction.State)
 	assert.Equal(t, app.ID, *transaction.AppId)
 	assert.Equal(t, dbRequestEvent.ID, *transaction.RequestEventId)
-	assert.Zero(t, *transaction.FeeReserveMsat)
+	assert.Zero(t, transaction.FeeReserveMsat)
 }
 
 func TestSendKeysend_App_BalanceExceeded(t *testing.T) {
@@ -230,7 +230,7 @@ func TestSendKeysend_App_BalanceSufficient(t *testing.T) {
 	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, transaction.State)
 	assert.Equal(t, app.ID, *transaction.AppId)
 	assert.Equal(t, dbRequestEvent.ID, *transaction.RequestEventId)
-	assert.Zero(t, *transaction.FeeReserveMsat)
+	assert.Zero(t, transaction.FeeReserveMsat)
 }
 
 func TestSendKeysend_TLVs(t *testing.T) {
@@ -253,5 +253,5 @@ func TestSendKeysend_TLVs(t *testing.T) {
 	assert.Equal(t, uint64(1000), transaction.AmountMsat)
 	assert.Equal(t, constants.TRANSACTION_TYPE_OUTGOING, transaction.Type)
 	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, transaction.State)
-	assert.Zero(t, *transaction.FeeReserveMsat)
+	assert.Zero(t, transaction.FeeReserveMsat)
 }

@@ -34,7 +34,7 @@ func TestLookupTransaction_IncomingPayment(t *testing.T) {
 	assert.Equal(t, uint64(123000), incomingTransaction.AmountMsat)
 	assert.Equal(t, constants.TRANSACTION_STATE_PENDING, incomingTransaction.State)
 	assert.Equal(t, tests.MockLNClientTransaction.Preimage, *incomingTransaction.Preimage)
-	assert.Nil(t, incomingTransaction.FeeReserveMsat)
+	assert.Zero(t, incomingTransaction.FeeReserveMsat)
 }
 
 func TestLookupTransaction_OutgoingPayment(t *testing.T) {
@@ -61,5 +61,5 @@ func TestLookupTransaction_OutgoingPayment(t *testing.T) {
 	assert.Equal(t, uint64(123000), outgoingTransaction.AmountMsat)
 	assert.Equal(t, constants.TRANSACTION_STATE_PENDING, outgoingTransaction.State)
 	assert.Equal(t, tests.MockLNClientTransaction.Preimage, *outgoingTransaction.Preimage)
-	assert.Nil(t, outgoingTransaction.FeeReserveMsat)
+	assert.Zero(t, outgoingTransaction.FeeReserveMsat)
 }

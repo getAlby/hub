@@ -425,10 +425,9 @@ func (svc *PhoenixService) SendPaymentSync(ctx context.Context, payReq string) (
 		return nil, err
 	}
 
-	fee := uint64(payRes.RoutingFeeSat) * 1000
 	return &lnclient.PayInvoiceResponse{
 		Preimage: payRes.PaymentPreimage,
-		Fee:      &fee,
+		Fee:      uint64(payRes.RoutingFeeSat) * 1000,
 	}, nil
 }
 

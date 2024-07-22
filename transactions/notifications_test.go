@@ -40,7 +40,7 @@ func TestNotifications_ReceivedKnownPayment(t *testing.T) {
 	assert.Equal(t, uint64(123000), incomingTransaction.AmountMsat)
 	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, incomingTransaction.State)
 	assert.Equal(t, tests.MockLNClientTransaction.Preimage, *incomingTransaction.Preimage)
-	assert.Nil(t, incomingTransaction.FeeReserveMsat)
+	assert.Zero(t, incomingTransaction.FeeReserveMsat)
 
 	transactions := []db.Transaction{}
 	result := svc.DB.Find(&transactions)
@@ -67,7 +67,7 @@ func TestNotifications_ReceivedUnknownPayment(t *testing.T) {
 	assert.Equal(t, uint64(tests.MockLNClientTransaction.Amount), incomingTransaction.AmountMsat)
 	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, incomingTransaction.State)
 	assert.Equal(t, tests.MockLNClientTransaction.Preimage, *incomingTransaction.Preimage)
-	assert.Nil(t, incomingTransaction.FeeReserveMsat)
+	assert.Zero(t, incomingTransaction.FeeReserveMsat)
 
 	transactions := []db.Transaction{}
 	result := svc.DB.Find(&transactions)
@@ -81,14 +81,13 @@ func TestNotifications_SentKnownPayment(t *testing.T) {
 	svc, err := tests.CreateTestService()
 	assert.NoError(t, err)
 
-	feeReserve := uint64(10000)
 	svc.DB.Create(&db.Transaction{
 		State:          constants.TRANSACTION_STATE_PENDING,
 		Type:           constants.TRANSACTION_TYPE_OUTGOING,
 		PaymentRequest: tests.MockLNClientTransaction.Invoice,
 		PaymentHash:    tests.MockLNClientTransaction.PaymentHash,
 		AmountMsat:     123000,
-		FeeReserveMsat: &feeReserve,
+		FeeReserveMsat: uint64(10000),
 	})
 
 	transactionsService := NewTransactionsService(svc.DB)
@@ -104,7 +103,7 @@ func TestNotifications_SentKnownPayment(t *testing.T) {
 	assert.Equal(t, uint64(123000), outgoingTransaction.AmountMsat)
 	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, outgoingTransaction.State)
 	assert.Equal(t, tests.MockLNClientTransaction.Preimage, *outgoingTransaction.Preimage)
-	assert.Zero(t, *outgoingTransaction.FeeReserveMsat)
+	assert.Zero(t, outgoingTransaction.FeeReserveMsat)
 
 	transactions := []db.Transaction{}
 	result := svc.DB.Find(&transactions)
@@ -135,7 +134,7 @@ func TestNotifications_SentUnknownPayment(t *testing.T) {
 	assert.Equal(t, uint64(tests.MockLNClientTransaction.Amount), outgoingTransaction.AmountMsat)
 	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, outgoingTransaction.State)
 	assert.Equal(t, tests.MockLNClientTransaction.Preimage, *outgoingTransaction.Preimage)
-	assert.Zero(t, *outgoingTransaction.FeeReserveMsat)
+	assert.Zero(t, outgoingTransaction.FeeReserveMsat)
 
 	transactions = []db.Transaction{}
 	result = svc.DB.Find(&transactions)
@@ -149,14 +148,13 @@ func TestNotifications_FailedKnownPayment(t *testing.T) {
 	svc, err := tests.CreateTestService()
 	assert.NoError(t, err)
 
-	feeReserve := uint64(10000)
 	svc.DB.Create(&db.Transaction{
 		State:          constants.TRANSACTION_STATE_PENDING,
 		Type:           constants.TRANSACTION_TYPE_OUTGOING,
 		PaymentRequest: tests.MockLNClientTransaction.Invoice,
 		PaymentHash:    tests.MockLNClientTransaction.PaymentHash,
 		AmountMsat:     123000,
-		FeeReserveMsat: &feeReserve,
+		FeeReserveMsat: uint64(10000),
 	})
 
 	transactionsService := NewTransactionsService(svc.DB)
@@ -171,7 +169,7 @@ func TestNotifications_FailedKnownPayment(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, constants.TRANSACTION_STATE_FAILED, outgoingTransaction.State)
 	assert.Nil(t, outgoingTransaction.Preimage)
-	assert.Zero(t, *outgoingTransaction.FeeReserveMsat)
+	assert.Zero(t, outgoingTransaction.FeeReserveMsat)
 
 	transactions := []db.Transaction{}
 	result := svc.DB.Find(&transactions)

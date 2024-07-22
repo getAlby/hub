@@ -64,8 +64,8 @@ type Transaction struct {
 	Type            string
 	State           string
 	AmountMsat      uint64
-	FeeMsat         *uint64
-	FeeReserveMsat  *uint64 // non-zero for unsettled outgoing payments only
+	FeeMsat         uint64
+	FeeReserveMsat  uint64
 	PaymentRequest  string
 	PaymentHash     string
 	Description     string
