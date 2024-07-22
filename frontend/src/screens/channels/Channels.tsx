@@ -511,7 +511,19 @@ export default function Channels() {
         <Card className="flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Savings Balance
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <div className="flex flex-row gap-2 items-center">
+                      Savings Balance
+                      <InfoIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    You can use on-chain balance to open new lightning channels
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </CardTitle>
             <Bitcoin className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -554,7 +566,17 @@ export default function Channels() {
         <Card className="flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Spending Balance
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <div className="flex flex-row gap-2 items-center">
+                      Spending Balance
+                      <InfoIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>Your lightning wallet balance</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </CardTitle>
             <ArrowUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -584,7 +606,19 @@ export default function Channels() {
         <Card className="flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Receiving Capacity
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <div className="flex flex-row gap-2 items-center">
+                      Receiving Capacity
+                      <InfoIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    Shows how much bitcoin you can currently receive
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </CardTitle>
             <ArrowDown className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
