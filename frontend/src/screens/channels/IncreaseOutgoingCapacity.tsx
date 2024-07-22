@@ -126,7 +126,9 @@ function NewChannelInternal({ network }: { network: Network }) {
     }
   }, [order.paymentMethod, selectedPeer]);
 
-  const [showAdvanced, setShowAdvanced] = React.useState(false);
+  const [showAdvanced, setShowAdvanced] = React.useState(
+    !channelPeerSuggestions?.length
+  );
 
   function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -184,12 +186,11 @@ function NewChannelInternal({ network }: { network: Network }) {
     }
   }
 
-  if (!channelPeerSuggestions) {
+  if (!channelPeerSuggestions || !balances) {
     return <Loading />;
   }
 
   const openImmediately =
-    balances &&
     order.amount &&
     order.paymentMethod === "onchain" &&
     +order.amount < balances.onchain.spendable;
@@ -241,6 +242,10 @@ function NewChannelInternal({ network }: { network: Network }) {
               setAmount(e.target.value.trim());
             }}
           />
+          <div className="text-muted-foreground text-sm">
+            Balance:{" "}
+            {new Intl.NumberFormat().format(balances.onchain.spendable)} sats
+          </div>
           <div className="grid grid-cols-3 gap-1.5 text-muted-foreground text-xs">
             {presetAmounts.map((amount) => (
               <div
