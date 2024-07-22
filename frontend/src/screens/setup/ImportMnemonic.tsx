@@ -1,12 +1,12 @@
 import * as bip39 from "@scure/bip39";
 import { wordlist } from "@scure/bip39/wordlists/english";
-import { LifeBuoy, ShieldCheck } from "lucide-react";
+import { AlertTriangleIcon, LifeBuoy, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import MnemonicInputs from "src/components/MnemonicInputs";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
-import { Alert } from "src/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
 import { useToast } from "src/components/ui/use-toast";
 import useSetupStore from "src/state/SetupStore";
@@ -61,6 +61,16 @@ export function ImportMnemonic() {
           description="Enter the your Master Key recovery phrase to import your Alby Hub."
         />
 
+        <Alert>
+          <AlertTriangleIcon className="h-4 w-4" />
+          <AlertTitle>
+            Do not re-use the same key on multiple devices
+          </AlertTitle>
+          <AlertDescription>
+            If you want to transfer your existing Hub to another machine please
+            use the migrate feature from the Alby Hub settings.
+          </AlertDescription>
+        </Alert>
         <Alert>
           <div className="flex flex-col gap-4">
             <div className="flex gap-2 items-center">
