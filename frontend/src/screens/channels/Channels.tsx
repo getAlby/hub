@@ -511,7 +511,21 @@ export default function Channels() {
         <Card className="flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Savings Balance
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <div className="flex flex-row gap-2 items-center">
+                      Savings Balance
+                      <InfoIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent className="w-[300px]">
+                    Your savings balance (on-chain balance) can be used to open
+                    new lightning channels. When channels are closed, funds from
+                    your channel will be returned to your savings balance.
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </CardTitle>
             <Bitcoin className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -554,7 +568,20 @@ export default function Channels() {
         <Card className="flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Spending Balance
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <div className="flex flex-row gap-2 items-center">
+                      Spending Balance
+                      <InfoIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent className="w-[300px]">
+                    Your spending balance is the funds on your side of your
+                    channels, which you can use to make lightning payments.
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </CardTitle>
             <ArrowUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -584,7 +611,21 @@ export default function Channels() {
         <Card className="flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Receiving Capacity
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <div className="flex flex-row gap-2 items-center">
+                      Receiving Capacity
+                      <InfoIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent className="w-[300px]">
+                    Your receiving capacity is the funds owned by your channel
+                    partner, which will be moved to your side when you receive
+                    lightning payments.
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </CardTitle>
             <ArrowDown className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
