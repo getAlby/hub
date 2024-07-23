@@ -366,6 +366,11 @@ function NewChannelInternal({ network }: { network: Network }) {
           </Button>
         )}
         <Button size="lg">{openImmediately ? "Open Channel" : "Next"}</Button>
+        <Link to="/channels/incoming" className="w-full">
+          <Button className="w-full" variant="ghost">
+            Need receiving capacity?
+          </Button>
+        </Link>
       </form>
     </>
   );

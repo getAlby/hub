@@ -1,6 +1,6 @@
 import { ChevronDown } from "lucide-react";
 import React, { FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
@@ -188,6 +188,15 @@ function NewChannelInternal({
       <AppHeader
         title="Increase Receiving Capacity"
         description="Purchase a channel with incoming capacity to receive payments"
+        contentRight={
+          <div className="flex items-end">
+            <Link to="/channels/outgoing">
+              <Button className="w-full" variant="secondary">
+                Need spending capacity?
+              </Button>
+            </Link>
+          </div>
+        }
       />
       <form
         onSubmit={onSubmit}
@@ -344,6 +353,11 @@ function NewChannelInternal({
           </Button>
         )}
         <Button size="lg">Next</Button>
+        <Link to="/channels/outgoing" className="w-full">
+          <Button className="w-full" variant="ghost">
+            Need spending capacity?
+          </Button>
+        </Link>
       </form>
     </>
   );

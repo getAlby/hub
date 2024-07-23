@@ -772,6 +772,12 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                   paymentMethods="external"
                 />
               )}
+
+              <Link to="/channels/outgoing" className="w-full">
+                <Button className="w-full" variant="secondary">
+                  Buy or Deposit Onchain Bitcoin
+                </Button>
+              </Link>
             </>
           </div>
         </>
