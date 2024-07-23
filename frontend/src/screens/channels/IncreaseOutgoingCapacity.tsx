@@ -243,7 +243,7 @@ function NewChannelInternal({ network }: { network: Network }) {
             }}
           />
           <div className="text-muted-foreground text-sm">
-            Balance:{" "}
+            Current savings balance:{" "}
             {new Intl.NumberFormat().format(balances.onchain.spendable)} sats
           </div>
           <div className="grid grid-cols-3 gap-1.5 text-muted-foreground text-xs">
