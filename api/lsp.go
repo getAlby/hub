@@ -619,7 +619,7 @@ func (api *api) requestLSPS1Invoice(ctx context.Context, request *NewInstantChan
 		// TODO: add onchain
 	}
 	type newLSPS1ChannelResponse struct {
-		Payment newLSPS1ChannelPayment `json:"payment"`
+		Payment *newLSPS1ChannelPayment `json:"payment"`
 	}
 
 	var newChannelResponse newLSPS1ChannelResponse
@@ -632,13 +632,16 @@ func (api *api) requestLSPS1Invoice(ctx context.Context, request *NewInstantChan
 		return "", 0, fmt.Errorf("failed to deserialize json %s %s", request.LSPUrl, string(body))
 	}
 
-	invoice = newChannelResponse.Payment.Bolt11.Invoice
-	fee, err = strconv.ParseUint(newChannelResponse.Payment.Bolt11.FeeTotalSat, 10, 64)
-	if err != nil {
-		logger.Logger.WithError(err).WithFields(logrus.Fields{
-			"url": request.LSPUrl,
-		}).Error("Failed to parse fee")
-		return "", 0, fmt.Errorf("failed to parse fee %v", err)
+	// if there is no payment, we expect the payment to already be made by the Alby API
+	if newChannelResponse.Payment != nil {
+		invoice = newChannelResponse.Payment.Bolt11.Invoice
+		fee, err = strconv.ParseUint(newChannelResponse.Payment.Bolt11.FeeTotalSat, 10, 64)
+		if err != nil {
+			logger.Logger.WithError(err).WithFields(logrus.Fields{
+				"url": request.LSPUrl,
+			}).Error("Failed to parse fee")
+			return "", 0, fmt.Errorf("failed to parse fee %v", err)
+		}
 	}
 
 	return invoice, fee, nil
