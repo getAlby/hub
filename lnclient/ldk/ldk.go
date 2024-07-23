@@ -83,11 +83,13 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		lsp.MegalithLSP().Pubkey,
 		"02b4552a7a85274e4da01a7c71ca57407181752e8568b31d51f13c111a2941dce3", // LNServer_Wave
 		"0296b2db342fcf87ea94d981757fdf4d3e545bd5cef4919f58b5d38dfdd73bf5c9", // blocktank
+		"038ba8f67ba8ff5c48764cdd3251c33598d55b203546d08a8f0ec9dcd9f27e3637", // flashsats
 
 		// Mutinynet
 		lsp.AlbyMutinynetPlebsLSP().Pubkey,
 		lsp.OlympusMutinynetLSP().Pubkey,
 		lsp.MegalithMutinynetLSP().Pubkey,
+		"0296820bbba5bd33719962bafd69996ee89e03ce7164d8f368cbb85463f5f47876", // flashsats
 	}
 
 	ldkConfig.ListeningAddresses = &listeningAddresses
