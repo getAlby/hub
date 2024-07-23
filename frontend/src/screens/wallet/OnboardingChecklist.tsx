@@ -23,7 +23,7 @@ interface ChecklistItemProps {
 function OnboardingChecklist() {
   const { isLoading, checklistItems } = useOnboardingData();
 
-  if (isLoading) {
+  if (isLoading || !checklistItems.find((x) => !x.checked)) {
     return null;
   }
 
