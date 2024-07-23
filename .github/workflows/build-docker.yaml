@@ -16,7 +16,7 @@ jobs:
         with:
           go-version-file: "./go.mod"
       - name: Run tests
-        run: mkdir frontend/dist && touch frontend/dist/tmp && go test ./...
+        run: mkdir frontend/dist && touch frontend/dist/tmp && go test -race ./...
       - name: Docker build
         if: github.actor != 'dependabot[bot]'
         uses: mr-smithers-excellent/docker-build-push@v6

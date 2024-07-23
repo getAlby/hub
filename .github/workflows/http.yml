@@ -57,7 +57,7 @@ jobs:
           node-version: "20.x"
 
       - name: Run tests
-        run: mkdir frontend/dist && touch frontend/dist/tmp && go test ./...
+        run: mkdir frontend/dist && touch frontend/dist/tmp && go test -race ./...
 
       - name: Build frontend
         run: |
