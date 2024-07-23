@@ -1,6 +1,6 @@
 // src/hooks/useOnboardingData.ts
 
-import { ALBY_MIN_BALANCE, ALBY_SERVICE_FEE } from "src/constants";
+import { ALBY_MIN_BALANCE } from "src/constants";
 import { useAlbyBalance } from "src/hooks/useAlbyBalance";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useApps } from "src/hooks/useApps";
@@ -59,11 +59,11 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
     apps && apps.find((x) => x.name !== "getalby.com") !== undefined;
   const hasTransaction = transactions.length > 0;
 
+  // TODO: remove this check and use /channels/first for everyone
   const canMigrateAlbyFundsToNewChannel =
     hasChannelManagement &&
     info.backendType === "LDK" &&
-    albyBalance.sats * (1 - ALBY_SERVICE_FEE) >
-      ALBY_MIN_BALANCE + 50000; /* accommodate for onchain fees */
+    albyBalance.sats > ALBY_MIN_BALANCE;
 
   const checklistItems: Omit<ChecklistItem, "disabled">[] = [
     {
@@ -72,7 +72,7 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
         "Establish a new Lightning channel to enable fast and low-fee Bitcoin transactions.",
       checked: hasChannel,
       to: canMigrateAlbyFundsToNewChannel
-        ? "/onboarding/lightning/migrate-alby"
+        ? "/channels/first"
         : "/channels/outgoing",
     },
     {

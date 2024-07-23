@@ -372,13 +372,14 @@ export type Transaction = {
   metadata: unknown;
 };
 
-export type NewChannelOrderStatus = "pay" | "success" | "opening";
+export type NewChannelOrderStatus = "pay" | "paid" | "success" | "opening";
 
 export type NewChannelOrder = {
   amount: string;
   isPublic: boolean;
   status: NewChannelOrderStatus;
   fundingTxId?: string;
+  prevChannelIds: string[];
 } & (
   | {
       paymentMethod: "onchain";

@@ -533,11 +533,11 @@ func (api *api) requestLSPS1Invoice(ctx context.Context, request *NewInstantChan
 		LSPBalanceSat                string `json:"lsp_balance_sat"`
 		ClientBalanceSat             string `json:"client_balance_sat"`
 		RequiredChannelConfirmations uint64 `json:"required_channel_confirmations"`
-		FundingConfirmsWithinBlocks  uint64 `json:"funding_confirms_within_blocks"`
-		ChannelExpiryBlocks          uint64 `json:"channel_expiry_blocks"`
-		Token                        string `json:"token"`
-		RefundOnchainAddress         string `json:"refund_onchain_address"`
-		AnnounceChannel              bool   `json:"announce_channel"`
+		// FundingConfirmsWithinBlocks  uint64 `json:"funding_confirms_within_blocks"`
+		ChannelExpiryBlocks  uint64 `json:"channel_expiry_blocks"`
+		Token                string `json:"token"`
+		RefundOnchainAddress string `json:"refund_onchain_address"`
+		AnnounceChannel      bool   `json:"announce_channel"`
 	}
 
 	refundAddress, err := api.svc.GetLNClient().GetNewOnchainAddress(ctx)
@@ -559,11 +559,11 @@ func (api *api) requestLSPS1Invoice(ctx context.Context, request *NewInstantChan
 		LSPBalanceSat:                strconv.FormatUint(request.Amount, 10),
 		ClientBalanceSat:             "0",
 		RequiredChannelConfirmations: requiredChannelConfirmations,
-		FundingConfirmsWithinBlocks:  6,
-		ChannelExpiryBlocks:          channelExpiryBlocks,
-		Token:                        "",
-		RefundOnchainAddress:         refundAddress,
-		AnnounceChannel:              request.Public,
+		// FundingConfirmsWithinBlocks:  6,
+		ChannelExpiryBlocks:  channelExpiryBlocks,
+		Token:                "",
+		RefundOnchainAddress: refundAddress,
+		AnnounceChannel:      request.Public,
 	}
 
 	payloadBytes, err := json.Marshal(newLSPS1ChannelRequest)

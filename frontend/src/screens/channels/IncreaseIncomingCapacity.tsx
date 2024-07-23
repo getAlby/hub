@@ -21,7 +21,12 @@ import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
 import { cn, formatAmount } from "src/lib/utils";
 import useChannelOrderStore from "src/state/ChannelOrderStore";
-import { Network, NewChannelOrder, RecommendedChannelPeer } from "src/types";
+import {
+  Channel,
+  Network,
+  NewChannelOrder,
+  RecommendedChannelPeer,
+} from "src/types";
 
 function getPeerKey(peer: RecommendedChannelPeer) {
   return JSON.stringify(peer);
@@ -29,18 +34,25 @@ function getPeerKey(peer: RecommendedChannelPeer) {
 
 export default function IncreaseIncomingCapacity() {
   const { data: info } = useInfo();
+  const { data: channels } = useChannels();
 
-  if (!info?.network) {
+  if (!info?.network || !channels) {
     return <Loading />;
   }
 
-  return <NewChannelInternal network={info.network} />;
+  return <NewChannelInternal network={info.network} channels={channels} />;
 }
 
-function NewChannelInternal({ network }: { network: Network }) {
+function NewChannelInternal({
+  network,
+  channels,
+}: {
+  network: Network;
+  channels: Channel[];
+}) {
   const { data: _channelPeerSuggestions } = useChannelPeerSuggestions();
   const navigate = useNavigate();
-  const { data: channels } = useChannels();
+
   const { toast } = useToast();
 
   const presetAmounts = [1_000_000, 2_000_000, 3_000_000];
@@ -49,6 +61,7 @@ function NewChannelInternal({ network }: { network: Network }) {
     paymentMethod: "lightning",
     status: "pay",
     amount: presetAmounts[0].toString(),
+    prevChannelIds: channels.map((channel) => channel.id),
   });
 
   const [showAdvanced, setShowAdvanced] = React.useState(false);
@@ -312,7 +325,7 @@ function NewChannelInternal({ network }: { network: Network }) {
                   Public Channel
                 </Label>
                 <p className="text-xs text-muted-foreground">
-                  Enable if you want to receive keysend payments. (e.g.
+                  Only enable if you want to receive keysend payments. (e.g.
                   podcasting)
                 </p>
               </div>

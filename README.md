@@ -185,11 +185,9 @@ Follow the steps to integrate Mutinynet with your NWC Next setup:
 
 2. Proceed as described in the [Development](https://github.com/getAlby/hub#Development) section to run the frontend and backend
 
-3. During onboarding, after setting your password and authorizing via Alby OAuth, you'll be directed to `/onboarding/lightning/migrate-alby`. Click "Skip For Now" to access your wallet interface
+3. Navigate to `channels/outgoing`, copy your On-Chain Address, then visit the [Mutinynet Faucet](https://faucet.mutinynet.com/) to deposit sats. Ensure the transaction confirms on [mempool.space](https://mutinynet.com/)
 
-4. Navigate to `channels/onchain/deposit-bitcoin`, copy your On-Chain Address, then visit the [Mutinynet Faucet](https://faucet.mutinynet.com/) to deposit sats. Ensure the transaction confirms on [mempool.space](https://mutinynet.com/)
-
-5. Your On-chain balance will update under `/channels`
+4. Your On-chain balance will update under `/channels`
 
 ### Opening a channel from Mutinynet
 

@@ -1,6 +1,5 @@
 import React from "react";
 import {
-  Channel,
   ConnectPeerRequest,
   NewChannelOrder,
   Node,
@@ -96,6 +95,9 @@ function ChannelOrderInternal({ order }: { order: NewChannelOrder }) {
           break;
       }
       break;
+    case "paid":
+      // LSPS1 only
+      return <PaidLightningChannelOrder />;
     case "opening":
       return <ChannelOpening fundingTxId={order.fundingTxId} />;
     case "success":
@@ -525,29 +527,18 @@ function PayBitcoinChannelOrderWithSpendableFunds({
   );
 }
 
-function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
-  if (order.paymentMethod !== "lightning") {
-    throw new Error("incorrect payment method");
-  }
-  const { data: csrf } = useCSRF();
-  const { toast } = useToast();
+function useWaitForNewChannel() {
+  const order = useChannelOrderStore((store) => store.order);
   const { data: channels } = useChannels(true);
-  const [, setRequestedInvoice] = React.useState(false);
-  const [prevChannels, setPrevChannels] = React.useState<
-    Channel[] | undefined
-  >();
-  const [wrappedInvoiceResponse, setWrappedInvoiceResponse] = React.useState<
-    NewInstantChannelInvoiceResponse | undefined
-  >();
+  const { toast } = useToast();
 
-  // This is not a good check if user already has enough inbound liquidity
-  // - check balance instead or how else to check the invoice is paid?
   const newChannel =
-    channels && prevChannels
+    channels && order?.prevChannelIds
       ? channels.find(
           (newChannel) =>
-            !prevChannels.some((current) => current.id === newChannel.id) &&
-            newChannel.fundingTxId
+            !order.prevChannelIds.some(
+              (current) => newChannel.id === current
+            ) && newChannel.fundingTxId
         )
       : undefined;
 
@@ -564,9 +555,34 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
       })();
     }
   }, [newChannel, toast]);
+}
+
+function PaidLightningChannelOrder() {
+  useWaitForNewChannel();
+
+  return (
+    <div className="flex w-full h-full gap-2 items-center justify-center">
+      <Loading /> <p>Waiting for channel to be opened...</p>
+    </div>
+  );
+}
+
+function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
+  if (order.paymentMethod !== "lightning") {
+    throw new Error("incorrect payment method");
+  }
+  const { data: csrf } = useCSRF();
+  const { toast } = useToast();
+  const { data: channels } = useChannels(true);
+  const [, setRequestedInvoice] = React.useState(false);
+
+  const [wrappedInvoiceResponse, setWrappedInvoiceResponse] = React.useState<
+    NewInstantChannelInvoiceResponse | undefined
+  >();
+
+  useWaitForNewChannel();
 
   React.useEffect(() => {
-    // TODO: move fetching to NewChannel page otherwise fee cannot be retrieved
     if (!channels || !csrf) {
       return;
     }
@@ -574,7 +590,6 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
       if (!current) {
         (async () => {
           try {
-            setPrevChannels(channels);
             if (!order.lspType || !order.lspUrl) {
               throw new Error("missing lsp info in order");
             }
@@ -625,7 +640,6 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
         wrappedInvoiceResponse.invoiceAmount
     );
   const [isPaying, setPaying] = React.useState(false);
-  const [paid, setPaid] = React.useState(false);
   const [payExternally, setPayExternally] = React.useState(false);
 
   return (
@@ -697,77 +711,68 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                 </TableBody>
               </Table>
             </div>
-            {paid ? (
-              <div className="flex gap-2 items-center justify-center">
-                <Loading /> <p>Waiting for channel to be opened...</p>
-              </div>
-            ) : (
-              <>
-                {canPayInternally && (
-                  <>
-                    <LoadingButton
-                      loading={isPaying}
-                      className="mt-4"
-                      onClick={async () => {
-                        try {
-                          if (!csrf) {
-                            throw new Error("csrf not loaded");
-                          }
-                          setPaying(true);
-                          const payInvoiceResponse =
-                            await request<PayInvoiceResponse>(
-                              `/api/payments/${wrappedInvoiceResponse.invoice}`,
-                              {
-                                method: "POST",
-                                headers: {
-                                  "X-CSRF-Token": csrf,
-                                  "Content-Type": "application/json",
-                                },
-                              }
-                            );
-                          if (payInvoiceResponse) {
-                            setPaid(true);
-                            toast({
-                              title: "Channel successfully requested",
-                            });
-                          }
-                          setPaid(true);
-                        } catch (e) {
-                          toast({
-                            variant: "destructive",
-                            title: "Failed to send: " + e,
-                          });
-                          console.error(e);
+            <>
+              {canPayInternally && (
+                <>
+                  <LoadingButton
+                    loading={isPaying}
+                    className="mt-4"
+                    onClick={async () => {
+                      try {
+                        if (!csrf) {
+                          throw new Error("csrf not loaded");
                         }
-                        setPaying(false);
-                      }}
-                    >
-                      Pay and open channel
-                    </LoadingButton>
-                    {!payExternally && (
-                      <Button
-                        type="button"
-                        variant="link"
-                        className="text-muted-foreground text-xs"
-                        onClick={() => setPayExternally(true)}
-                      >
-                        Pay with another wallet
-                      </Button>
-                    )}
-                  </>
-                )}
+                        setPaying(true);
 
-                {(payExternally || !canPayInternally) && (
-                  <Payment
-                    invoice={wrappedInvoiceResponse.invoice}
-                    payment={
-                      newChannel ? { preimage: "dummy preimage" } : undefined
-                    }
-                    paymentMethods="external"
-                  />
-                )}
-              </>
-            )}
+                        await request<PayInvoiceResponse>(
+                          `/api/payments/${wrappedInvoiceResponse.invoice}`,
+                          {
+                            method: "POST",
+                            headers: {
+                              "X-CSRF-Token": csrf,
+                              "Content-Type": "application/json",
+                            },
+                          }
+                        );
+
+                        useChannelOrderStore.getState().updateOrder({
+                          status: "paid",
+                        });
+                        toast({
+                          title: "Channel successfully requested",
+                        });
+                      } catch (e) {
+                        toast({
+                          variant: "destructive",
+                          title: "Failed to send: " + e,
+                        });
+                        console.error(e);
+                      }
+                      setPaying(false);
+                    }}
+                  >
+                    Pay and open channel
+                  </LoadingButton>
+                  {!payExternally && (
+                    <Button
+                      type="button"
+                      variant="link"
+                      className="text-muted-foreground text-xs"
+                      onClick={() => setPayExternally(true)}
+                    >
+                      Pay with another wallet
+                    </Button>
+                  )}
+                </>
+              )}
+
+              {(payExternally || !canPayInternally) && (
+                <Payment
+                  invoice={wrappedInvoiceResponse.invoice}
+                  paymentMethods="external"
+                />
+              )}
+            </>
           </div>
         </>
       )}

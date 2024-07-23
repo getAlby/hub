@@ -24,9 +24,9 @@ import ShowApp from "src/screens/apps/ShowApp";
 import AppStore from "src/screens/appstore/AppStore";
 import Channels from "src/screens/channels/Channels";
 import { CurrentChannelOrder } from "src/screens/channels/CurrentChannelOrder";
+import { FirstChannel } from "src/screens/channels/FirstChannel";
 import IncreaseIncomingCapacity from "src/screens/channels/IncreaseIncomingCapacity";
 import IncreaseOutgoingCapacity from "src/screens/channels/IncreaseOutgoingCapacity";
-import MigrateAlbyFunds from "src/screens/onboarding/MigrateAlbyFunds";
 import { Success } from "src/screens/onboarding/Success";
 import BuyBitcoin from "src/screens/onchain/BuyBitcoin";
 import DepositBitcoin from "src/screens/onchain/DepositBitcoin";
@@ -177,6 +177,11 @@ const routes = [
             element: <Channels />,
           },
           {
+            path: "first",
+            element: <FirstChannel />,
+            handle: { crumb: () => "Open Your First Channel" },
+          },
+          {
             path: "outgoing",
             element: <IncreaseOutgoingCapacity />,
             handle: { crumb: () => "Increase Spending Balance" },
@@ -325,10 +330,6 @@ const routes = [
         path: "onboarding",
         element: <OnboardingRedirect />,
         children: [
-          {
-            path: "lightning/migrate-alby",
-            element: <MigrateAlbyFunds />,
-          },
           {
             path: "success",
             element: <Success />,
