@@ -519,8 +519,10 @@ export default function Channels() {
                       <InfoIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
                     </div>
                   </TooltipTrigger>
-                  <TooltipContent>
-                    You can use on-chain balance to open new lightning channels
+                  <TooltipContent className="w-[300px]">
+                    Your savings balance (on-chain balance) can be used to open
+                    new lightning channels. When channels are closed, funds from
+                    your channel will be returned to your savings balance.
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -574,7 +576,10 @@ export default function Channels() {
                       <InfoIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
                     </div>
                   </TooltipTrigger>
-                  <TooltipContent>Your lightning wallet balance</TooltipContent>
+                  <TooltipContent className="w-[300px]">
+                    Your spending balance is the funds on your side of your
+                    channels, which you can use to make lightning payments.
+                  </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             </CardTitle>
@@ -614,8 +619,10 @@ export default function Channels() {
                       <InfoIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
                     </div>
                   </TooltipTrigger>
-                  <TooltipContent>
-                    Shows how much bitcoin you can currently receive
+                  <TooltipContent className="w-[300px]">
+                    Your receiving capacity is the funds owned by your channel
+                    partner, which will be moved to your side when you receive
+                    lightning payments.
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
