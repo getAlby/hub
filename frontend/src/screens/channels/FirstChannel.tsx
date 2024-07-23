@@ -1,7 +1,9 @@
+import { ChevronDown } from "lucide-react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import Loading from "src/components/Loading";
+import { Button } from "src/components/ui/button";
 import { Checkbox } from "src/components/ui/checkbox";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
@@ -22,6 +24,7 @@ export function FirstChannel() {
   const { data: info, hasChannelManagement } = useInfo();
   const { data: channels } = useChannels();
   const [isLoading, setLoading] = React.useState(false);
+  const [showAdvanced, setShowAdvanced] = React.useState(false);
   const [isPublic, setPublic] = React.useState(false);
   const { data: csrf } = useCSRF();
   const navigate = useNavigate();
@@ -113,24 +116,42 @@ export function FirstChannel() {
         description="Open a channel to another lightning network node to join the lightning network"
       />
 
-      <div className="mt-2 flex items-top space-x-2">
-        <Checkbox
-          id="public-channel"
-          onCheckedChange={() => setPublic(!isPublic)}
-          className="mr-2"
-        />
-        <div className="grid gap-1.5 leading-none">
-          <Label htmlFor="public-channel" className="flex items-center gap-2">
-            Public Channel
-          </Label>
-          <p className="text-xs text-muted-foreground">
-            Only enable if you want to receive keysend payments. (e.g.
-            podcasting)
-          </p>
-        </div>
-      </div>
+      {showAdvanced && (
+        <>
+          <div className="mt-2 flex items-top space-x-2">
+            <Checkbox
+              id="public-channel"
+              onCheckedChange={() => setPublic(!isPublic)}
+              className="mr-2"
+            />
+            <div className="grid gap-1.5 leading-none">
+              <Label
+                htmlFor="public-channel"
+                className="flex items-center gap-2"
+              >
+                Public Channel
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Only enable if you want to receive keysend payments. (e.g.
+                podcasting)
+              </p>
+            </div>
+          </div>
+        </>
+      )}
 
-      <div>
+      <div className="flex flex-col gap-2 max-w-sm">
+        {!showAdvanced && (
+          <Button
+            type="button"
+            variant="link"
+            className="text-muted-foreground text-xs"
+            onClick={() => setShowAdvanced((current) => !current)}
+          >
+            <ChevronDown className="w-4 h-4 mr-2" />
+            Advanced Options
+          </Button>
+        )}
         <LoadingButton loading={isLoading} onClick={openChannel}>
           Open Channel
         </LoadingButton>
