@@ -733,7 +733,11 @@ export default function Channels() {
                           ? "opening"
                           : "offline";
                       if (channelStatus === "opening") {
-                        channelWarning = `Channel is currently being opened (${channel.confirmations} of ${channel.confirmationsRequired} confirmations)`;
+                        channelWarning = `Channel is currently being opened (${channel.confirmations} of ${channel.confirmationsRequired} confirmations). Once the required confirmation are reached, you will be able to send and receive on this channel.`;
+                      }
+                      if (channelStatus === "offline") {
+                        channelWarning =
+                          "This channel is currently offline and cannot be used to send or receive payments. Please contact Alby Support for more information.";
                       }
 
                       return (
