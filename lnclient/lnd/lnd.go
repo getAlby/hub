@@ -444,29 +444,39 @@ func NewLNDService(ctx context.Context, eventPublisher events.EventPublisher, ln
 						continue
 					}
 
-					var eventName string
 					switch payment.Status {
 					case lnrpc.Payment_FAILED:
-						eventName = "nwc_payment_failed_async"
+						logger.Logger.WithFields(logrus.Fields{
+							"payment": payment,
+						}).Info("Received payment failed notification")
+
+						transaction, err := lndPaymentToTransaction(payment)
+						if err != nil {
+							continue
+						}
+						eventPublisher.Publish(&events.Event{
+							Event: "nwc_payment_failed_async",
+							Properties: &events.PaymentFailedAsyncProperties{
+								Transaction: transaction,
+								Reason:      payment.FailureReason.String(),
+							},
+						})
 					case lnrpc.Payment_SUCCEEDED:
-						eventName = "nwc_payment_sent"
+						logger.Logger.WithFields(logrus.Fields{
+							"payment": payment,
+						}).Info("Received payment sent notification")
+
+						transaction, err := lndPaymentToTransaction(payment)
+						if err != nil {
+							continue
+						}
+						eventPublisher.Publish(&events.Event{
+							Event:      "nwc_payment_sent",
+							Properties: transaction,
+						})
 					default:
 						continue
 					}
-
-					logger.Logger.WithFields(logrus.Fields{
-						"payment": payment,
-					}).Info("Received new payment")
-
-					transaction, err := lndPaymentToTransaction(payment)
-					if err != nil {
-						continue
-					}
-
-					eventPublisher.Publish(&events.Event{
-						Event:      eventName,
-						Properties: transaction,
-					})
 				}
 			}
 		}

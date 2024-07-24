@@ -474,6 +474,28 @@ func (svc *albyOAuthService) consumeEvent(ctx context.Context, event *events.Eve
 		}
 	}
 
+	if event.Event == "nwc_payment_failed_async" {
+		paymentFailedAsyncProperties, ok := event.Properties.(*events.PaymentFailedAsyncProperties)
+		if !ok {
+			logger.Logger.WithField("event", event).Error("Failed to cast event")
+			return
+		}
+
+		type paymentSentEventProperties struct {
+			PaymentHash string `json:"payment_hash"`
+			Reason      string `json:"reason"`
+		}
+
+		// pass a new custom event with less detail
+		event = &events.Event{
+			Event: event.Event,
+			Properties: &paymentSentEventProperties{
+				PaymentHash: paymentFailedAsyncProperties.Transaction.PaymentHash,
+				Reason:      paymentFailedAsyncProperties.Reason,
+			},
+		}
+	}
+
 	token, err := svc.fetchUserToken(ctx)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to fetch user token")
