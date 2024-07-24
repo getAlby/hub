@@ -222,7 +222,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                             type="button"
                             variant="outline"
                             onClick={() => {
-                              window.location.reload();
+                              setEditMode(false);
                             }}
                           >
                             Cancel
