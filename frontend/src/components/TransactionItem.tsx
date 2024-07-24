@@ -95,7 +95,7 @@ function TransactionItem({ tx }: Props) {
                   {dayjs(tx.settled_at).fromNow()}
                 </p>
               </div>
-              <p className="text-sm md:text-base text-muted-foreground">
+              <p className="text-sm md:text-base text-muted-foreground break-all">
                 {tx.description || "Lightning invoice"}
               </p>
             </div>
@@ -185,7 +185,9 @@ function TransactionItem({ tx }: Props) {
             {tx.description && (
               <div className="mt-6">
                 <p>Description</p>
-                <p className="text-muted-foreground">{tx.description}</p>
+                <p className="text-muted-foreground break-all">
+                  {tx.description}
+                </p>
               </div>
             )}
           </CredenzaBody>
