@@ -201,8 +201,8 @@ export default function AppLayout() {
           <div className="hidden border-r bg-muted/40 md:block">
             <div className="flex h-full max-h-screen flex-col gap-2 sticky top-0">
               <div className="flex-1">
-                <nav className="grid items-start px-2 py-2 text-sm font-medium lg:px-4">
-                  <div className="px-3 flex justify-between items-center mt-2 lg:mt-6 mb-6">
+                <nav className="grid items-start px-4 py-2 text-sm font-medium">
+                  <div className="p-3 flex justify-between items-center mt-2 mb-6">
                     <Link to="/">
                       <AlbyHubIcon className="text-primary/80" />
                     </Link>
