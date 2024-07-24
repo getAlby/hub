@@ -724,14 +724,32 @@ export default function Channels() {
                         }
                       }
 
+                      const channelStatus = channel.active
+                        ? "online"
+                        : channel.confirmationsRequired !== undefined &&
+                            channel.confirmations !== undefined &&
+                            channel.confirmationsRequired >
+                              channel.confirmations
+                          ? "opening"
+                          : "offline";
+                      if (channelStatus === "opening") {
+                        channelWarning = `Channel is currently being opened (${channel.confirmations} of ${channel.confirmationsRequired} confirmations). Once the required confirmation are reached, you will be able to send and receive on this channel.`;
+                      }
+                      if (channelStatus === "offline") {
+                        channelWarning =
+                          "This channel is currently offline and cannot be used to send or receive payments. Please contact Alby Support for more information.";
+                      }
+
                       return (
                         <TableRow key={channel.id} className="channel">
                           <TableCell>
-                            {channel.active ? (
+                            {channelStatus == "online" ? (
                               <Badge variant="positive">Online</Badge>
+                            ) : channelStatus == "opening" ? (
+                              <Badge variant="outline">Opening</Badge>
                             ) : (
                               <Badge variant="outline">Offline</Badge>
-                            )}{" "}
+                            )}
                           </TableCell>
                           <TableCell className="flex flex-row items-center">
                             <a
@@ -807,7 +825,7 @@ export default function Channels() {
                                   <TooltipTrigger>
                                     <AlertTriangle className="w-4 h-4 mt-1" />
                                   </TooltipTrigger>
-                                  <TooltipContent className="w-[400px]">
+                                  <TooltipContent className="max-w-[400px]">
                                     {channelWarning}
                                   </TooltipContent>
                                 </Tooltip>
