@@ -143,7 +143,7 @@ export function FirstChannel() {
               <>
                 <p>
                   You're now going to open your first lightning channel and can
-                  begin using your Alby Hub in the booming bitcoin economy!
+                  begin using your Hub in the booming bitcoin economy!
                 </p>
                 <p>
                   After paying a lightning invoice to cover on-chain fees,
