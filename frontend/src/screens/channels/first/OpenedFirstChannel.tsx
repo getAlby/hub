@@ -13,6 +13,7 @@ import { request } from "src/utils/request";
 export function OpenedFirstChannel() {
   const { data: csrf } = useCSRF();
   const { data: albyBalance, mutate: reloadAlbyBalance } = useAlbyBalance();
+  const [, setShowedAlbyMigrationToast] = React.useState(false);
   const { toast } = useToast();
 
   // automatically drain Alby balance into new channel if possible
@@ -35,9 +36,15 @@ export function OpenedFirstChannel() {
           },
         });
         await reloadAlbyBalance();
-        toast({
-          description:
-            "🎉 Funds from Alby shared wallet transferred to your Alby Hub!",
+        // This may run multiple times (to drain the final 1%), but we should only show a toast once
+        setShowedAlbyMigrationToast((current) => {
+          if (!current) {
+            toast({
+              description:
+                "🎉 Funds from Alby shared wallet transferred to your Alby Hub!",
+            });
+          }
+          return true;
         });
       } catch (error) {
         console.error("Failed to transfer any alby shared wallet funds", error);
