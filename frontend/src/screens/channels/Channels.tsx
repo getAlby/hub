@@ -336,7 +336,7 @@ export default function Channels() {
                       disabled={redeemOnchainFunds.isLoading}
                       className="w-full cursor-pointer"
                     >
-                      Redeem Onchain Funds
+                      Withdraw Savings Balance
                       {redeemOnchainFunds.isLoading && <Loading />}
                     </DropdownMenuItem>
                   )}

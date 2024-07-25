@@ -16,7 +16,7 @@ export function useRedeemOnchainFunds() {
     setLoading(true);
     await new Promise((resolve) => setTimeout(resolve, 100));
     const toAddress = prompt(
-      "Please enter an onchain bitcoin address (bc1...) to withdraw your savings balance to another bitcoin wallet (e.g. a cold storage wallet). MAKE SURE YOU OWN THIS ADDRESS!"
+      "Please enter an onchain bitcoin address (bc1...) to withdraw your savings balance to another bitcoin wallet (e.g. a cold storage wallet). Make sure you own the wallet that generated this address."
     );
     if (!toAddress) {
       setLoading(false);
