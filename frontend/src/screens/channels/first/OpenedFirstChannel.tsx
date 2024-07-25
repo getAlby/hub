@@ -60,7 +60,7 @@ export function OpenedFirstChannel() {
         Math.floor(Math.random() * 1000)
       );
     }
-  });
+  }, []);
 
   return (
     <div className="flex flex-col justify-center gap-5 p-5 max-w-md items-stretch">
