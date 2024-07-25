@@ -25,7 +25,7 @@ import {
 } from "react-router-dom";
 import SidebarHint from "src/components/SidebarHint";
 import UserAvatar from "src/components/UserAvatar";
-import { AlbyHubIcon } from "src/components/icons/AlbyHub";
+import { AlbyHubLogo } from "src/components/icons/AlbyHubLogo";
 import { Button } from "src/components/ui/button";
 import {
   DropdownMenu,
@@ -204,7 +204,7 @@ export default function AppLayout() {
                 <nav className="grid items-start px-2 py-2 text-sm font-medium lg:px-4">
                   <div className="p-3 flex justify-between items-center mt-2 mb-6">
                     <Link to="/">
-                      <AlbyHubIcon className="text-primary/80" />
+                      <AlbyHubLogo className="text-primary/80" />
                     </Link>
                     <TooltipProvider>
                       <Tooltip>
