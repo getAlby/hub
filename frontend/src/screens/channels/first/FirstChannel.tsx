@@ -190,7 +190,7 @@ export function FirstChannel() {
             )}
             <LoadingButton loading={isLoading} onClick={openChannel}>
               Open Channel
-              {albyBalance && albyBalance?.sats > 0 && <> and Migrate Funds</>}
+              {canPayForFirstChannel && <> and Migrate Funds</>}
             </LoadingButton>
           </div>
         </>
