@@ -25,6 +25,7 @@ import {
 } from "react-router-dom";
 import SidebarHint from "src/components/SidebarHint";
 import UserAvatar from "src/components/UserAvatar";
+import { AlbyHubLogo } from "src/components/icons/AlbyHubLogo";
 import { Button } from "src/components/ui/button";
 import {
   DropdownMenu,
@@ -201,11 +202,10 @@ export default function AppLayout() {
             <div className="flex h-full max-h-screen flex-col gap-2 sticky top-0">
               <div className="flex-1">
                 <nav className="grid items-start px-2 py-2 text-sm font-medium lg:px-4">
-                  <div className="p-3 flex justify-between items-center">
-                    <Link to="/" className="font-semibold text-xl">
-                      <span className="">Alby Hub</span>
+                  <div className="p-3 flex justify-between items-center mt-2 mb-6">
+                    <Link to="/">
+                      <AlbyHubLogo className="text-primary/80" />
                     </Link>
-
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger>
