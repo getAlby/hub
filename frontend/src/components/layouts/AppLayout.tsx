@@ -217,7 +217,7 @@ export default function AppLayout() {
                 <nav className="grid items-start px-2 py-2 text-sm font-medium lg:px-4">
                   <div className="p-3 flex justify-between items-center mt-2 mb-6">
                     <Link to="/">
-                      <AlbyHubLogo className="text-primary/80" />
+                      <AlbyHubLogo className="text-foreground" />
                     </Link>
                     <TooltipProvider>
                       <Tooltip>
