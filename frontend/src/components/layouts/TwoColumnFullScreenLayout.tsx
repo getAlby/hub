@@ -97,9 +97,9 @@ export default function TwoColumnFullScreenLayout() {
           }}
           className={cn(
             "top-4 left-4 md:top-10 md:left-10 absolute mr-4",
-            (pathname.startsWith("/welcome") ||
+            (!pathname.startsWith("/setup") ||
               pathname.startsWith("/setup/finish")) &&
-              "hidden"
+              "hidden" // show the back button on setup pages, except the setup finish page
           )}
         >
           <ChevronLeft className="w-4 h-4 mr-2" />
