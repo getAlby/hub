@@ -633,11 +633,13 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 		logger.Logger.WithField("id", dbTransaction.ID).Info("Marked outgoing transaction as settled")
 
 	case "nwc_payment_failed_async":
-		lnClientTransaction, ok := event.Properties.(*lnclient.Transaction)
+		paymentFailedAsyncProperties, ok := event.Properties.(*events.PaymentFailedAsyncProperties)
 		if !ok {
 			logger.Logger.WithField("event", event).Error("Failed to cast event")
 			return
 		}
+
+		lnClientTransaction := paymentFailedAsyncProperties.Transaction
 
 		var dbTransaction db.Transaction
 		result := svc.db.Find(&dbTransaction, &db.Transaction{

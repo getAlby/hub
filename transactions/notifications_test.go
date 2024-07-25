@@ -160,8 +160,11 @@ func TestNotifications_FailedKnownPayment(t *testing.T) {
 	transactionsService := NewTransactionsService(svc.DB)
 
 	transactionsService.ConsumeEvent(ctx, &events.Event{
-		Event:      "nwc_payment_failed_async",
-		Properties: tests.MockLNClientTransaction,
+		Event: "nwc_payment_failed_async",
+		Properties: &events.PaymentFailedAsyncProperties{
+			Transaction: tests.MockLNClientTransaction,
+			Reason:      "Some failure reason",
+		},
 	}, map[string]interface{}{})
 
 	transactionType := constants.TRANSACTION_TYPE_OUTGOING
