@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "src/components/ui/button.tsx";
 import { useInfo } from "src/hooks/useInfo";
-import { cn } from "src/lib/utils";
 
 const quotes = [
   {
@@ -89,22 +88,21 @@ export default function TwoColumnFullScreenLayout() {
         </div>
       </div>
       <div className="flex items-center justify-center py-12 text-foreground relative">
-        <Button
-          type="button"
-          variant="secondary"
-          onClick={() => {
-            navigate(-1);
-          }}
-          className={cn(
-            "top-4 left-4 md:top-10 md:left-10 absolute mr-4",
-            (!pathname.startsWith("/setup") ||
-              pathname.startsWith("/setup/finish")) &&
-              "hidden" // show the back button on setup pages, except the setup finish page
+        {pathname.startsWith("/setup") &&
+          !pathname.startsWith("/setup/finish") && (
+            // show the back button on setup pages, except the setup finish page
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => {
+                navigate(-1);
+              }}
+              className="top-4 left-4 md:top-10 md:left-10 absolute mr-4"
+            >
+              <ChevronLeft className="w-4 h-4 mr-2" />
+              Back
+            </Button>
           )}
-        >
-          <ChevronLeft className="w-4 h-4 mr-2" />
-          Back
-        </Button>
         <Outlet />
       </div>
     </div>
