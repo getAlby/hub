@@ -91,8 +91,8 @@ export function OpenedFirstChannel() {
         .
       </p>
 
-      <Link to="/home" className="flex justify-center mt-8">
-        <Button>Go to your dashboard</Button>
+      <Link to="/wallet" className="flex justify-center mt-8">
+        <Button>Go To Your Wallet</Button>
       </Link>
     </div>
   );
