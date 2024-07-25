@@ -816,7 +816,7 @@ func (ls *LDKService) ListChannels(ctx context.Context) ([]lnclient.Channel, err
 			channelError = &channelErrorValue
 		}
 
-		isActive := ldkChannel.IsUsable /* superset of ldkChannel.IsReady */ && channelError == nil
+		isActive := ldkChannel.IsUsable /* superset of ldkChannel.IsReady */ && channelError == nil && fundingTxId != ""
 
 		channels = append(channels, lnclient.Channel{
 			InternalChannel:                          internalChannel,

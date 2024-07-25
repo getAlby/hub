@@ -26,7 +26,9 @@ import Channels from "src/screens/channels/Channels";
 import { CurrentChannelOrder } from "src/screens/channels/CurrentChannelOrder";
 import IncreaseIncomingCapacity from "src/screens/channels/IncreaseIncomingCapacity";
 import IncreaseOutgoingCapacity from "src/screens/channels/IncreaseOutgoingCapacity";
-import MigrateAlbyFunds from "src/screens/onboarding/MigrateAlbyFunds";
+import { FirstChannel } from "src/screens/channels/first/FirstChannel";
+import { OpenedFirstChannel } from "src/screens/channels/first/OpenedFirstChannel";
+import { OpeningFirstChannel } from "src/screens/channels/first/OpeningFirstChannel";
 import { Success } from "src/screens/onboarding/Success";
 import BuyBitcoin from "src/screens/onchain/BuyBitcoin";
 import DepositBitcoin from "src/screens/onchain/DepositBitcoin";
@@ -177,6 +179,21 @@ const routes = [
             element: <Channels />,
           },
           {
+            path: "first",
+            element: <FirstChannel />,
+            handle: { crumb: () => "Open Your First Channel" },
+          },
+          {
+            path: "first/opening",
+            element: <OpeningFirstChannel />,
+            handle: { crumb: () => "Opening Your First Channel" },
+          },
+          {
+            path: "first/opened",
+            element: <OpenedFirstChannel />,
+            handle: { crumb: () => "First Channel Opened!" },
+          },
+          {
             path: "outgoing",
             element: <IncreaseOutgoingCapacity />,
             handle: { crumb: () => "Increase Spending Balance" },
@@ -325,10 +342,6 @@ const routes = [
         path: "onboarding",
         element: <OnboardingRedirect />,
         children: [
-          {
-            path: "lightning/migrate-alby",
-            element: <MigrateAlbyFunds />,
-          },
           {
             path: "success",
             element: <Success />,

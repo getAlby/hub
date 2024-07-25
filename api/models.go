@@ -49,7 +49,7 @@ type API interface {
 	GetNetworkGraph(nodeIds []string) (NetworkGraphResponse, error)
 	SyncWallet() error
 	GetLogOutput(ctx context.Context, logType string, getLogRequest *GetLogOutputRequest) (*GetLogOutputResponse, error)
-	NewInstantChannelInvoice(ctx context.Context, request *NewInstantChannelInvoiceRequest) (*NewInstantChannelInvoiceResponse, error)
+	RequestLSPOrder(ctx context.Context, request *LSPOrderRequest) (*LSPOrderResponse, error)
 	CreateBackup(unlockPassword string, w io.Writer) error
 	RestoreBackup(unlockPassword string, r io.Reader) error
 	GetWalletCapabilities(ctx context.Context) (*WalletCapabilitiesResponse, error)
@@ -265,14 +265,14 @@ type BasicRestoreWailsRequest struct {
 
 type NetworkGraphResponse = lnclient.NetworkGraphResponse
 
-type NewInstantChannelInvoiceRequest struct {
+type LSPOrderRequest struct {
 	Amount  uint64 `json:"amount"`
 	LSPType string `json:"lspType"`
 	LSPUrl  string `json:"lspUrl"`
 	Public  bool   `json:"public"`
 }
 
-type NewInstantChannelInvoiceResponse struct {
+type LSPOrderResponse struct {
 	Invoice           string `json:"invoice"`
 	Fee               uint64 `json:"fee"`
 	InvoiceAmount     uint64 `json:"invoiceAmount"`

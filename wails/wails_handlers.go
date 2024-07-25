@@ -450,11 +450,10 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: *capabilitiesResponse, Error: ""}
-	// TODO: review naming
-	case "/api/instant-channel-invoices":
-		newInstantChannelRequest := &api.NewInstantChannelInvoiceRequest{}
+	case "/api/lsp-orders":
+		newInstantChannelRequest := &api.LSPOrderRequest{}
 		err := json.Unmarshal([]byte(body), newInstantChannelRequest)
-		newInstantChannelResponse, err := app.api.NewInstantChannelInvoice(ctx, newInstantChannelRequest)
+		newInstantChannelResponse, err := app.api.RequestLSPOrder(ctx, newInstantChannelRequest)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
@@ -504,6 +503,24 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		infoResponse.Unlocked = infoResponse.Running
 		res := WailsRequestRouterResponse{Body: *infoResponse, Error: ""}
 		return res
+	case "/api/alby/auto-channel":
+		newAutoChannelRequest := &alby.AutoChannelRequest{}
+		err := json.Unmarshal([]byte(body), newAutoChannelRequest)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).WithError(err).Error("Failed to decode request to wails router")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		autoChannelResponse, err := app.svc.GetAlbyOAuthSvc().RequestAutoChannel(ctx, app.svc.GetLNClient(), newAutoChannelRequest.IsPublic)
+		if err != nil {
+			return WailsRequestRouterResponse{Body: *autoChannelResponse, Error: err.Error()}
+		}
+		res := WailsRequestRouterResponse{Error: ""}
+		return res
+
 	case "/api/alby/link-account":
 		linkAccountRequest := &alby.AlbyLinkAccountRequest{}
 		err := json.Unmarshal([]byte(body), linkAccountRequest)
