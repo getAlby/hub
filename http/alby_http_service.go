@@ -37,7 +37,7 @@ func (albyHttpSvc *AlbyHttpService) RegisterSharedRoutes(e *echo.Echo, authMiddl
 func (albyHttpSvc *AlbyHttpService) albyCallbackHandler(c echo.Context) error {
 	code := c.QueryParam("code")
 
-	err := albyHttpSvc.albyOAuthSvc.CallbackHandler(c.Request().Context(), code)
+	err := albyHttpSvc.albyOAuthSvc.CallbackHandler(c.Request().Context(), code, albyHttpSvc.svc.GetLNClient())
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to handle Alby OAuth callback")
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{

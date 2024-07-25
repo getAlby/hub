@@ -77,7 +77,7 @@ function AuthCodeForm() {
                 <div className="grid gap-1.5">
                   <Label htmlFor="authorization-code">Authorization Code</Label>
                   <Input
-                    type="text"
+                    type="password"
                     name="authorization-code"
                     id="authorization-code"
                     placeholder="Enter code you see in the browser"

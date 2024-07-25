@@ -14,7 +14,7 @@ type AlbyOAuthService interface {
 	GetUserIdentifier() (string, error)
 	IsConnected(ctx context.Context) bool
 	LinkAccount(ctx context.Context, lnClient lnclient.LNClient, budget uint64, renewal string) error
-	CallbackHandler(ctx context.Context, code string) error
+	CallbackHandler(ctx context.Context, code string, lnClient lnclient.LNClient) error
 	GetBalance(ctx context.Context) (*AlbyBalance, error)
 	GetMe(ctx context.Context) (*AlbyMe, error)
 	SendPayment(ctx context.Context, invoice string) error

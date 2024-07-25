@@ -36,6 +36,7 @@ type AppConfig struct {
 	BaseUrl               string `envconfig:"BASE_URL" default:"http://localhost:8080"`
 	FrontendUrl           string `envconfig:"FRONTEND_URL"`
 	LogEvents             bool   `envconfig:"LOG_EVENTS" default:"false"`
+	AutoLinkAlbyAccount   bool   `envconfig:"AUTO_LINK_ALBY_ACCOUNT" default:"true"`
 	PhoenixdAddress       string `envconfig:"PHOENIXD_ADDRESS"`
 	PhoenixdAuthorization string `envconfig:"PHOENIXD_AUTHORIZATION"`
 	GoProfilerAddr        string `envconfig:"GO_PROFILER_ADDR"`
