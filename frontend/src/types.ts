@@ -283,7 +283,7 @@ export type SetupNodeInfo = Partial<{
   phoenixdAuthorization?: string;
 }>;
 
-export type LSPType = "LSPS1" | "Flow 2.0" | "PMLSP";
+export type LSPType = "LSPS1";
 
 export type RecommendedChannelPeer = {
   network: Network;
