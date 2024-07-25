@@ -35,6 +35,7 @@ import {
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
+import { Separator } from "src/components/ui/separator";
 import { Table, TableBody, TableCell, TableRow } from "src/components/ui/table";
 import {
   Tooltip,
@@ -769,11 +770,25 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                 />
               )}
 
-              <Link to="/channels/outgoing" className="w-full">
-                <Button className="w-full" variant="secondary">
-                  Buy or Deposit Onchain Bitcoin
-                </Button>
-              </Link>
+              <div className="flex-1 flex flex-col justify-end items-center gap-4">
+                <Separator className="my-16" />
+                <p className="text-sm text-muted-foreground text-center">
+                  Other options
+                </p>
+                <Link to="/channels/outgoing" className="w-full">
+                  <Button className="w-full" variant="secondary">
+                    Increase spending balance
+                  </Button>
+                </Link>
+                <ExternalLink
+                  to="https://www.getalby.com/topup"
+                  className="w-full"
+                >
+                  <Button className="w-full" variant="secondary">
+                    Buy Bitcoin
+                  </Button>
+                </ExternalLink>
+              </div>
             </>
           </div>
         </>

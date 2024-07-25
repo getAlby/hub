@@ -200,7 +200,7 @@ function NewChannelInternal({
       />
       <form
         onSubmit={onSubmit}
-        className="md:max-w-md max-w-full flex flex-col gap-5"
+        className="md:max-w-md max-w-full flex flex-col gap-5 flex-1"
       >
         <div className="grid gap-1.5">
           <Label htmlFor="amount">Channel size (sats)</Label>
@@ -353,11 +353,21 @@ function NewChannelInternal({
           </Button>
         )}
         <Button size="lg">Next</Button>
-        <Link to="/channels/outgoing" className="w-full">
-          <Button className="w-full" variant="ghost">
-            Need spending capacity?
-          </Button>
-        </Link>
+        <div className="flex-1 flex flex-col justify-end items-center gap-4">
+          <p className="mt-32 text-sm text-muted-foreground text-center">
+            Other options
+          </p>
+          <Link to="/channels/outgoing" className="w-full">
+            <Button className="w-full" variant="secondary">
+              Increase spending balance
+            </Button>
+          </Link>
+          <ExternalLink to="https://www.getalby.com/topup" className="w-full">
+            <Button className="w-full" variant="secondary">
+              Buy Bitcoin
+            </Button>
+          </ExternalLink>
+        </div>
       </form>
     </>
   );
