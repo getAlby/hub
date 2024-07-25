@@ -126,9 +126,7 @@ function NewChannelInternal({ network }: { network: Network }) {
     }
   }, [order.paymentMethod, selectedPeer]);
 
-  const [showAdvanced, setShowAdvanced] = React.useState(
-    !channelPeerSuggestions?.length
-  );
+  const [showAdvanced, setShowAdvanced] = React.useState(false);
 
   function onSubmit(e: FormEvent) {
     e.preventDefault();
