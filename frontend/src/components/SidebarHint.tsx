@@ -39,6 +39,7 @@ function SidebarHint() {
   if (
     !location.pathname.startsWith("/home") &&
     !location.pathname.startsWith("/channels/order") &&
+    !location.pathname.startsWith("/channels/first") &&
     !isLoading &&
     openChecklistItems.length
   ) {
