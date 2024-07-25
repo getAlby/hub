@@ -70,7 +70,7 @@ func NewAlbyOAuthService(db *gorm.DB, cfg config.Config, keys keys.Keys, eventPu
 	return albyOAuthSvc
 }
 
-func (svc *albyOAuthService) CallbackHandler(ctx context.Context, code string) error {
+func (svc *albyOAuthService) CallbackHandler(ctx context.Context, code string, lnClient lnclient.LNClient) error {
 	token, err := svc.oauthConf.Exchange(ctx, code)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to exchange token")
@@ -95,6 +95,15 @@ func (svc *albyOAuthService) CallbackHandler(ctx context.Context, code string) e
 	// save the user's alby account ID on first time login
 	if existingUserIdentifier == "" {
 		svc.cfg.SetUpdate(userIdentifierKey, me.Identifier, "")
+
+		if svc.cfg.GetEnv().AutoLinkAlbyAccount {
+			// link account on first login
+			err := svc.LinkAccount(ctx, lnClient, 1_000_000, constants.BUDGET_RENEWAL_MONTHLY)
+			if err != nil {
+				logger.Logger.WithError(err).Error("Failed to link account on first auth callback")
+			}
+		}
+
 	} else if me.Identifier != existingUserIdentifier {
 		// remove token so user can retry with correct account
 		svc.cfg.SetUpdate(accessTokenKey, "", "")
