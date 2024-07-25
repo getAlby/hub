@@ -24,7 +24,8 @@ export function OpeningFirstChannel() {
     }
   }, [firstChannel, navigate]);
 
-  if (!firstChannel) {
+  if (!firstChannel || !firstChannel.confirmationsRequired) {
+    // 0-conf channel, this should only take a few seconds
     return <Loading />;
   }
 
@@ -35,15 +36,14 @@ export function OpeningFirstChannel() {
           <CardHeader>
             <CardTitle>Your channel is being opened</CardTitle>
             <CardDescription>
-              Waiting for {firstChannel?.confirmationsRequired ?? "unknown"}{" "}
-              confirmations
+              Waiting for {firstChannel.confirmationsRequired} confirmations
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex flex-row gap-2">
               <Loading />
-              {firstChannel?.confirmations ?? "0"} /{" "}
-              {firstChannel?.confirmationsRequired ?? "unknown"} confirmations
+              {firstChannel.confirmations ?? "0"} /{" "}
+              {firstChannel.confirmationsRequired ?? "unknown"} confirmations
             </div>
           </CardContent>
         </Card>
