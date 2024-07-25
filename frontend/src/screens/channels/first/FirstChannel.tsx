@@ -11,7 +11,6 @@ import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { Separator } from "src/components/ui/separator";
 import { useToast } from "src/components/ui/use-toast";
-import { ALBY_MIN_HOSTED_BALANCE_FOR_FIRST_CHANNEL } from "src/constants";
 import { useAlbyBalance } from "src/hooks/useAlbyBalance";
 import { useChannels } from "src/hooks/useChannels";
 import { useCSRF } from "src/hooks/useCSRF";
@@ -19,6 +18,7 @@ import { useInfo } from "src/hooks/useInfo";
 import { AutoChannelRequest, AutoChannelResponse } from "src/types";
 import { request } from "src/utils/request";
 
+import { ALBY_MIN_HOSTED_BALANCE_FOR_FIRST_CHANNEL } from "src/constants";
 import lightningNetworkDark from "/images/illustrations/lightning-network-dark.svg";
 import lightningNetworkLight from "/images/illustrations/lightning-network-light.svg";
 
@@ -119,7 +119,7 @@ export function FirstChannel() {
       )}
       {!invoice && (
         <>
-          <div className="flex flex-col gap-4 max-w-md text-muted-foreground">
+          <div className="flex flex-col gap-6 max-w-md text-muted-foreground">
             <img
               src={lightningNetworkDark}
               className="w-full hidden dark:block"
@@ -128,26 +128,26 @@ export function FirstChannel() {
             {canPayForFirstChannel ? (
               <>
                 <p>
-                  You currently have{" "}
-                  <span className="font-medium">
+                  Your Alby hosted balance currently holds{" "}
+                  <span className="font-medium text-foreground">
                     {new Intl.NumberFormat().format(albyBalance?.sats)} sats
-                  </span>{" "}
-                  on your Alby hosted balance.
+                  </span>
+                  .
                 </p>
                 <p>
                   Those funds will be used to open your first lightning channel
-                  and then migrated to your Alby Hub's spending balance.
+                  and then migrated to your Hub spending balance.
                 </p>
               </>
             ) : (
               <>
                 <p>
                   You're now going to open your first lightning channel and can
-                  begin use your Alby Hub in the booming bitcoin economy!
+                  begin using your Alby Hub in the booming bitcoin economy!
                 </p>
                 <p>
                   After paying a lightning invoice to cover on-chain fees,
-                  you'll immediately be able to receive and send bitcoin with
+                  you'll be immediately able to receive and send bitcoin with
                   your Hub.
                 </p>
               </>
@@ -180,11 +180,11 @@ export function FirstChannel() {
                 <Button
                   type="button"
                   variant="link"
-                  className="text-muted-foreground text-xs"
+                  className="text-muted-foreground text-xs px-0"
                   onClick={() => setShowAdvanced((current) => !current)}
                 >
-                  <ChevronDown className="w-4 h-4 mr-2" />
                   Advanced Options
+                  <ChevronDown className="w-4 h-4 ml-1" />
                 </Button>
               </div>
             )}
