@@ -9,8 +9,10 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 import { useChannels } from "src/hooks/useChannels";
+import { useSyncWallet } from "src/hooks/useSyncWallet";
 
 export function OpeningFirstChannel() {
+  useSyncWallet();
   const { data: channels } = useChannels(true);
   const navigate = useNavigate();
 
