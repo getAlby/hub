@@ -46,10 +46,11 @@ func (svc *service) startNostr(ctx context.Context, encryptionKey string) error 
 		defer svc.wg.Done()
 		//Start infinite loop which will be only broken by canceling ctx (SIGINT)
 		var relay *nostr.Relay
+		immediateRetry := false
 
 		for i := 0; ; i++ {
 			// wait for a delay before retrying except on first iteration
-			if i > 0 {
+			if i > 0 && !immediateRetry {
 				sleepDuration := 10
 				contextCancelled := false
 				logger.Logger.Infof("[Iteration %d] Retrying in %d seconds...", i, sleepDuration)
@@ -63,6 +64,8 @@ func (svc *service) startNostr(ctx context.Context, encryptionKey string) error 
 				if contextCancelled {
 					break
 				}
+			} else if i > 0 {
+				logger.Logger.Infof("[Iteration %d] Retrying immediately...", i)
 			}
 			closeRelay(relay)
 
@@ -72,8 +75,11 @@ func (svc *service) startNostr(ctx context.Context, encryptionKey string) error 
 			relay, err = nostr.RelayConnect(ctx, relayUrl, nostr.WithNoticeHandler(svc.noticeHandler))
 			if err != nil {
 				logger.Logger.WithError(err).Error("Failed to connect to relay")
+				immediateRetry = false
 				continue
 			}
+
+			immediateRetry = true
 
 			//publish event with NIP-47 info
 			err = svc.nip47Service.PublishNip47Info(ctx, relay, svc.lnClient)
