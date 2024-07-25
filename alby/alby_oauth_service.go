@@ -30,6 +30,7 @@ import (
 	"github.com/getAlby/hub/service/keys"
 	"github.com/getAlby/hub/transactions"
 	"github.com/getAlby/hub/utils"
+	"github.com/getAlby/hub/version"
 )
 
 type albyOAuthService struct {
@@ -205,7 +206,7 @@ func (svc *albyOAuthService) GetMe(ctx context.Context) (*AlbyMe, error) {
 		return nil, err
 	}
 
-	req.Header.Set("User-Agent", "NWC-next")
+	setDefaultRequestHeaders(req)
 
 	res, err := client.Do(req)
 	if err != nil {
@@ -240,7 +241,7 @@ func (svc *albyOAuthService) GetBalance(ctx context.Context) (*AlbyBalance, erro
 		return nil, err
 	}
 
-	req.Header.Set("User-Agent", "NWC-next")
+	setDefaultRequestHeaders(req)
 
 	res, err := client.Do(req)
 	if err != nil {
@@ -324,8 +325,7 @@ func (svc *albyOAuthService) SendPayment(ctx context.Context, invoice string) er
 		return err
 	}
 
-	req.Header.Set("User-Agent", "NWC-next")
-	req.Header.Set("Content-Type", "application/json")
+	setDefaultRequestHeaders(req)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -535,8 +535,7 @@ func (svc *albyOAuthService) consumeEvent(ctx context.Context, event *events.Eve
 		return
 	}
 
-	req.Header.Set("User-Agent", "NWC-next")
-	req.Header.Set("Content-Type", "application/json")
+	setDefaultRequestHeaders(req)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -604,8 +603,7 @@ func (svc *albyOAuthService) backupChannels(ctx context.Context, event *events.E
 		return fmt.Errorf("failed to create request: %w", err)
 	}
 
-	req.Header.Set("User-Agent", "NWC-next")
-	req.Header.Set("Content-Type", "application/json")
+	setDefaultRequestHeaders(req)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -649,8 +647,7 @@ func (svc *albyOAuthService) createAlbyAccountNWCNode(ctx context.Context) (stri
 		return "", err
 	}
 
-	req.Header.Set("User-Agent", "NWC-next")
-	req.Header.Set("Content-Type", "application/json")
+	setDefaultRequestHeaders(req)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -700,8 +697,7 @@ func (svc *albyOAuthService) activateAlbyAccountNWCNode(ctx context.Context) err
 		return err
 	}
 
-	req.Header.Set("User-Agent", "NWC-next")
-	req.Header.Set("Content-Type", "application/json")
+	setDefaultRequestHeaders(req)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -737,7 +733,7 @@ func (svc *albyOAuthService) GetChannelPeerSuggestions(ctx context.Context) ([]C
 		return nil, err
 	}
 
-	req.Header.Set("User-Agent", "NWC-next")
+	setDefaultRequestHeaders(req)
 
 	res, err := client.Do(req)
 	if err != nil {
@@ -821,19 +817,11 @@ func (svc *albyOAuthService) requestAutoChannel(ctx context.Context, url string,
 	type autoChannelRequest struct {
 		NodePubkey      string `json:"node_pubkey"`
 		AnnounceChannel bool   `json:"announce_channel"`
-		// TODO: remove when it's handled on Alby API
-		RequiredChannelConfirmations uint16 `json:"required_channel_confirmations"`
-	}
-
-	requiredChannelConfirmations := uint16(0)
-	if isPublic {
-		requiredChannelConfirmations = 6
 	}
 
 	newAutoChannelRequest := autoChannelRequest{
-		NodePubkey:                   pubkey,
-		AnnounceChannel:              isPublic,
-		RequiredChannelConfirmations: requiredChannelConfirmations,
+		NodePubkey:      pubkey,
+		AnnounceChannel: isPublic,
 	}
 
 	payloadBytes, err := json.Marshal(newAutoChannelRequest)
@@ -850,7 +838,7 @@ func (svc *albyOAuthService) requestAutoChannel(ctx context.Context, url string,
 		return nil, err
 	}
 
-	req.Header.Set("Content-Type", "application/json")
+	setDefaultRequestHeaders(req)
 
 	res, err := client.Do(req)
 	if err != nil {
@@ -969,6 +957,8 @@ func (svc *albyOAuthService) getLSPInfo(ctx context.Context, url string) (pubkey
 		return "", "", uint16(0), err
 	}
 
+	setDefaultRequestHeaders(req)
+
 	res, err := client.Do(req)
 	if err != nil {
 		logger.Logger.WithError(err).WithFields(logrus.Fields{
@@ -1022,4 +1012,9 @@ func (svc *albyOAuthService) getLSPInfo(ctx context.Context, url string) (pubkey
 	}
 
 	return parts[1], parts[2], uint16(portValue), nil
+}
+
+func setDefaultRequestHeaders(req *http.Request) {
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("User-Agent", "AlbyHub/"+version.Tag)
 }
