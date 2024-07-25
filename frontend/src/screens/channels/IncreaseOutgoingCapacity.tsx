@@ -184,12 +184,11 @@ function NewChannelInternal({ network }: { network: Network }) {
     }
   }
 
-  if (!channelPeerSuggestions) {
+  if (!channelPeerSuggestions || !balances) {
     return <Loading />;
   }
 
   const openImmediately =
-    balances &&
     order.amount &&
     order.paymentMethod === "onchain" &&
     +order.amount < balances.onchain.spendable;
@@ -241,6 +240,10 @@ function NewChannelInternal({ network }: { network: Network }) {
               setAmount(e.target.value.trim());
             }}
           />
+          <div className="text-muted-foreground text-sm">
+            Current savings balance:{" "}
+            {new Intl.NumberFormat().format(balances.onchain.spendable)} sats
+          </div>
           <div className="grid grid-cols-3 gap-1.5 text-muted-foreground text-xs">
             {presetAmounts.map((amount) => (
               <div
