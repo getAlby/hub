@@ -178,7 +178,7 @@ export default function AppLayout() {
           }}
         >
           <Lightbulb className="h-4 w-4" />
-          Alby Guides
+          Knowledge Base
         </MenuItem>
         <MenuItem
           to="/"
