@@ -3,6 +3,7 @@ import {
   EllipsisVertical,
   ExternalLinkIcon,
   Home,
+  Lightbulb,
   Lock,
   Megaphone,
   Menu,
@@ -166,6 +167,18 @@ export default function AppLayout() {
         >
           <Megaphone className="h-4 w-4" />
           Feedback
+        </MenuItem>
+        <MenuItem
+          to="/"
+          onClick={(e) => {
+            openLink(
+              "https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub"
+            );
+            e.preventDefault();
+          }}
+        >
+          <Lightbulb className="h-4 w-4" />
+          Alby Guides
         </MenuItem>
         <MenuItem
           to="/"
