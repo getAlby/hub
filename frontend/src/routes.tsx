@@ -24,9 +24,11 @@ import ShowApp from "src/screens/apps/ShowApp";
 import AppStore from "src/screens/appstore/AppStore";
 import Channels from "src/screens/channels/Channels";
 import { CurrentChannelOrder } from "src/screens/channels/CurrentChannelOrder";
-import { FirstChannel } from "src/screens/channels/FirstChannel";
 import IncreaseIncomingCapacity from "src/screens/channels/IncreaseIncomingCapacity";
 import IncreaseOutgoingCapacity from "src/screens/channels/IncreaseOutgoingCapacity";
+import { FirstChannel } from "src/screens/channels/first/FirstChannel";
+import { OpenedFirstChannel } from "src/screens/channels/first/OpenedFirstChannel";
+import { OpeningFirstChannel } from "src/screens/channels/first/OpeningFirstChannel";
 import { Success } from "src/screens/onboarding/Success";
 import BuyBitcoin from "src/screens/onchain/BuyBitcoin";
 import DepositBitcoin from "src/screens/onchain/DepositBitcoin";
@@ -180,6 +182,16 @@ const routes = [
             path: "first",
             element: <FirstChannel />,
             handle: { crumb: () => "Open Your First Channel" },
+          },
+          {
+            path: "first/opening",
+            element: <OpeningFirstChannel />,
+            handle: { crumb: () => "Opening Your First Channel" },
+          },
+          {
+            path: "first/opened",
+            element: <OpenedFirstChannel />,
+            handle: { crumb: () => "First Channel Opened!" },
           },
           {
             path: "outgoing",

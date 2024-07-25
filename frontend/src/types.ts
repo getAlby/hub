@@ -324,19 +324,28 @@ export type AlbyBalance = {
   sats: number;
 };
 
-export type NewInstantChannelInvoiceRequest = {
+export type LSPOrderRequest = {
   amount: number;
   lspType: LSPType;
   lspUrl: string;
   public: boolean;
 };
 
-export type NewInstantChannelInvoiceResponse = {
+export type LSPOrderResponse = {
   invoice: string;
   fee: number;
   invoiceAmount: number;
   incomingLiquidity: number;
   outgoingLiquidity: number;
+};
+
+export type AutoChannelRequest = {
+  isPublic: boolean;
+};
+export type AutoChannelResponse = {
+  invoice?: string;
+  fee?: number;
+  channelSize: number;
 };
 
 export type RedeemOnchainFundsResponse = {

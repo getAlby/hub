@@ -5,9 +5,7 @@ type LSP struct {
 }
 
 const (
-	LSP_TYPE_FLOW_2_0 = "Flow 2.0"
-	LSP_TYPE_PMLSP    = "PMLSP"
-	LSP_TYPE_LSPS1    = "LSPS1"
+	LSP_TYPE_LSPS1 = "LSPS1"
 )
 
 func OlympusMutinynetLSP() LSP {

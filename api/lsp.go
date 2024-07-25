@@ -28,32 +28,19 @@ type lspInfo struct {
 	MaxChannelExpiryBlocks uint64
 }
 
-func (api *api) NewInstantChannelInvoice(ctx context.Context, request *NewInstantChannelInvoiceRequest) (*NewInstantChannelInvoiceResponse, error) {
+func (api *api) RequestLSPOrder(ctx context.Context, request *LSPOrderRequest) (*LSPOrderResponse, error) {
 
 	if api.svc.GetLNClient() == nil {
 		return nil, errors.New("LNClient not started")
 	}
 
-	if request.LSPType != lsp.LSP_TYPE_LSPS1 && request.Public {
-		return nil, errors.New("This LSP option does not support public channels")
+	if request.LSPType != lsp.LSP_TYPE_LSPS1 {
+		return nil, fmt.Errorf("unsupported LSP type: %v", request.LSPType)
 	}
 
 	logger.Logger.Infoln("Requesting LSP info")
+	lspInfo, err := api.getLSPS1LSPInfo(request.LSPUrl + "/get_info")
 
-	var lspInfo *lspInfo
-	var err error
-	switch request.LSPType {
-	case lsp.LSP_TYPE_FLOW_2_0:
-		fallthrough
-	case lsp.LSP_TYPE_PMLSP:
-		lspInfo, err = api.getFlowLSPInfo(request.LSPUrl + "/info")
-
-	case lsp.LSP_TYPE_LSPS1:
-		lspInfo, err = api.getLSPS1LSPInfo(request.LSPUrl + "/get_info")
-
-	default:
-		return nil, fmt.Errorf("unsupported LSP type: %v", request.LSPType)
-	}
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to request LSP info")
 		return nil, err
@@ -82,17 +69,8 @@ func (api *api) NewInstantChannelInvoice(ctx context.Context, request *NewInstan
 		return nil, err
 	}
 
-	invoice := ""
-	var fee uint64 = 0
+	invoice, fee, err := api.requestLSPS1Invoice(ctx, request, nodeInfo.Pubkey, lspInfo.MaxChannelExpiryBlocks)
 
-	switch request.LSPType {
-	case lsp.LSP_TYPE_FLOW_2_0:
-		invoice, fee, err = api.requestFlow20WrappedInvoice(ctx, request, nodeInfo.Pubkey)
-	case lsp.LSP_TYPE_PMLSP:
-		invoice, fee, err = api.requestPMLSPInvoice(request, nodeInfo.Pubkey)
-	case lsp.LSP_TYPE_LSPS1:
-		invoice, fee, err = api.requestLSPS1Invoice(ctx, request, nodeInfo.Pubkey, lspInfo.MaxChannelExpiryBlocks)
-	}
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to request invoice")
 		return nil, err
@@ -116,7 +94,7 @@ func (api *api) NewInstantChannelInvoice(ctx context.Context, request *NewInstan
 		outgoingLiquidity = invoiceAmount - fee
 	}
 
-	newChannelResponse := &NewInstantChannelInvoiceResponse{
+	newChannelResponse := &LSPOrderResponse{
 		Invoice:           invoice,
 		Fee:               fee,
 		InvoiceAmount:     invoiceAmount,
@@ -208,336 +186,22 @@ func (api *api) getLSPS1LSPInfo(url string) (*lspInfo, error) {
 		MaxChannelExpiryBlocks: lsps1LspInfo.MaxChannelExpiryBlocks,
 	}, nil
 }
-func (api *api) getFlowLSPInfo(url string) (*lspInfo, error) {
-	type FlowLSPConnectionMethod struct {
-		Address string `json:"address"`
-		Port    uint16 `json:"port"`
-		Type    string `json:"type"`
-	}
-	type FlowLSPInfo struct {
-		Pubkey            string                    `json:"pubkey"`
-		ConnectionMethods []FlowLSPConnectionMethod `json:"connection_methods"`
-	}
-	var flowLspInfo FlowLSPInfo
+
+func (api *api) requestLSPS1Invoice(ctx context.Context, request *LSPOrderRequest, pubkey string, channelExpiryBlocks uint64) (invoice string, fee uint64, err error) {
 	client := http.Client{
-		Timeout: time.Second * 10,
-	}
-	req, err := http.NewRequest(http.MethodGet, url, nil)
-	if err != nil {
-		logger.Logger.WithError(err).WithFields(logrus.Fields{
-			"url": url,
-		}).Error("Failed to create lsp info request")
-		return nil, err
+		Timeout: time.Second * 60,
 	}
 
-	res, err := client.Do(req)
-	if err != nil {
-		logger.Logger.WithError(err).WithFields(logrus.Fields{
-			"url": url,
-		}).Error("Failed to request lsp info")
-		return nil, err
-	}
-
-	defer res.Body.Close()
-
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		logger.Logger.WithError(err).WithFields(logrus.Fields{
-			"url": url,
-		}).Error("Failed to read response body")
-		return nil, errors.New("failed to read response body")
-	}
-
-	err = json.Unmarshal(body, &flowLspInfo)
-	if err != nil {
-		logger.Logger.WithError(err).WithFields(logrus.Fields{
-			"url": url,
-		}).Error("Failed to deserialize json")
-		return nil, fmt.Errorf("failed to deserialize json %s %s", url, string(body))
-	}
-
-	ipIndex := -1
-	for i, cm := range flowLspInfo.ConnectionMethods {
-		if strings.HasPrefix(cm.Type, "ip") {
-			ipIndex = i
-			break
-		}
-	}
-
-	if ipIndex == -1 {
-		logger.Logger.Error("No ipv4/ipv6 connection method found in LSP info")
-		return nil, errors.New("unexpected LSP connection method")
-	}
-
-	return &lspInfo{
-		Pubkey:  flowLspInfo.Pubkey,
-		Address: flowLspInfo.ConnectionMethods[ipIndex].Address,
-		Port:    flowLspInfo.ConnectionMethods[ipIndex].Port,
-	}, nil
-}
-
-func (api *api) requestFlow20WrappedInvoice(ctx context.Context, request *NewInstantChannelInvoiceRequest, pubkey string) (invoice string, fee uint64, err error) {
-	logger.Logger.Infoln("Requesting fee information")
-
-	type FeeRequest struct {
-		AmountMsat uint64 `json:"amount_msat"`
-		Pubkey     string `json:"pubkey"`
-	}
-	type FeeResponse struct {
-		FeeAmountMsat uint64 `json:"fee_amount_msat"`
-		Id            string `json:"id"`
-	}
-
-	var feeResponse FeeResponse
-	{
-		client := http.Client{
-			Timeout: time.Second * 10,
-		}
-		payloadBytes, err := json.Marshal(FeeRequest{
-			AmountMsat: request.Amount * 1000,
-			Pubkey:     pubkey,
-		})
-		if err != nil {
-			return "", 0, err
-		}
-		bodyReader := bytes.NewReader(payloadBytes)
-
-		req, err := http.NewRequest(http.MethodPost, request.LSPUrl+"/fee", bodyReader)
-		if err != nil {
-			logger.Logger.WithError(err).WithFields(logrus.Fields{
-				"url": request.LSPUrl,
-			}).Error("Failed to create lsp fee request")
-			return "", 0, err
-		}
-
-		req.Header.Set("Content-Type", "application/json")
-
-		res, err := client.Do(req)
-		if err != nil {
-			logger.Logger.WithError(err).WithFields(logrus.Fields{
-				"url": request.LSPUrl,
-			}).Error("Failed to request lsp fee")
-			return "", 0, err
-		}
-
-		defer res.Body.Close()
-
-		body, err := io.ReadAll(res.Body)
-		if err != nil {
-			logger.Logger.WithError(err).WithFields(logrus.Fields{
-				"url": request.LSPUrl,
-			}).Error("Failed to read response body")
-			return "", 0, errors.New("failed to read response body")
-		}
-
-		if res.StatusCode >= 300 {
-			logger.Logger.WithFields(logrus.Fields{
-				"body":       string(body),
-				"statusCode": res.StatusCode,
-			}).Error("fee endpoint returned non-success code")
-			return "", 0, fmt.Errorf("fee endpoint returned non-success code: %s", string(body))
-		}
-
-		err = json.Unmarshal(body, &feeResponse)
-		if err != nil {
-			logger.Logger.WithError(err).WithFields(logrus.Fields{
-				"url": request.LSPUrl,
-			}).Error("Failed to deserialize json")
-			return "", 0, fmt.Errorf("failed to deserialize json %s %s", request.LSPUrl, string(body))
-		}
-
-		logger.Logger.WithError(err).WithFields(logrus.Fields{
-			"url":         request.LSPUrl,
-			"feeResponse": feeResponse,
-		}).Info("Got fee response")
-		if feeResponse.Id == "" {
-			logger.Logger.WithError(err).WithFields(logrus.Fields{
-				"feeResponse": feeResponse,
-			}).Error("No fee id in fee response")
-			return "", 0, fmt.Errorf("no fee id in fee response %v", feeResponse)
-		}
-		fee = feeResponse.FeeAmountMsat / 1000
-	}
-
-	// because we don't want the sender to pay the fee
-	// see: https://docs.voltage.cloud/voltage-lsp#gqBqV
-	makeInvoiceResponse, err := api.svc.GetLNClient().MakeInvoice(ctx, int64(request.Amount)*1000-int64(feeResponse.FeeAmountMsat), "", "", 60*60)
-	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to request own invoice")
-		return "", 0, fmt.Errorf("failed to request own invoice %v", err)
-	}
-
-	type ProposalRequest struct {
-		Bolt11 string `json:"bolt11"`
-		FeeId  string `json:"fee_id"`
-	}
-	type ProposalResponse struct {
-		Bolt11 string `json:"jit_bolt11"`
-	}
-
-	logger.Logger.Infoln("Proposing invoice")
-
-	var proposalResponse ProposalResponse
-	{
-		client := http.Client{
-			Timeout: time.Second * 10,
-		}
-		payloadBytes, err := json.Marshal(ProposalRequest{
-			Bolt11: makeInvoiceResponse.Invoice,
-			FeeId:  feeResponse.Id,
-		})
-		if err != nil {
-			return "", 0, err
-		}
-		bodyReader := bytes.NewReader(payloadBytes)
-
-		req, err := http.NewRequest(http.MethodPost, request.LSPUrl+"/proposal", bodyReader)
-		if err != nil {
-			logger.Logger.WithError(err).WithFields(logrus.Fields{
-				"url": request.LSPUrl,
-			}).Error("Failed to create lsp fee request")
-			return "", 0, err
-		}
-
-		req.Header.Set("Content-Type", "application/json")
-
-		res, err := client.Do(req)
-		if err != nil {
-			logger.Logger.WithError(err).WithFields(logrus.Fields{
-				"url": request.LSPUrl,
-			}).Error("Failed to request lsp fee")
-			return "", 0, err
-		}
-
-		defer res.Body.Close()
-
-		body, err := io.ReadAll(res.Body)
-		if err != nil {
-			logger.Logger.WithError(err).WithFields(logrus.Fields{
-				"url": request.LSPUrl,
-			}).Error("Failed to read response body")
-			return "", 0, errors.New("failed to read response body")
-		}
-
-		if res.StatusCode >= 300 {
-			logger.Logger.WithFields(logrus.Fields{
-				"body":       string(body),
-				"statusCode": res.StatusCode,
-			}).Error("proposal endpoint returned non-success code")
-			return "", 0, fmt.Errorf("proposal endpoint returned non-success code: %s", string(body))
-		}
-
-		err = json.Unmarshal(body, &proposalResponse)
-		if err != nil {
-			logger.Logger.WithError(err).WithFields(logrus.Fields{
-				"url": request.LSPUrl,
-			}).Error("Failed to deserialize json")
-			return "", 0, fmt.Errorf("failed to deserialize json %s %s", request.LSPUrl, string(body))
-		}
-		logger.Logger.WithField("proposalResponse", proposalResponse).Info("Got proposal response")
-		if proposalResponse.Bolt11 == "" {
-			logger.Logger.WithError(err).WithFields(logrus.Fields{
-				"url":              request.LSPUrl,
-				"proposalResponse": proposalResponse,
-			}).Error("No bolt11 in proposal response")
-			return "", 0, fmt.Errorf("no bolt11 in proposal response %v", proposalResponse)
-		}
-	}
-	invoice = proposalResponse.Bolt11
-
-	return invoice, fee, nil
-}
-
-func (api *api) requestPMLSPInvoice(request *NewInstantChannelInvoiceRequest, pubkey string) (invoice string, fee uint64, err error) {
-	type NewInstantChannelRequest struct {
-		Amount uint64 `json:"amount"`
-		Pubkey string `json:"pubkey"`
-	}
-
-	client := http.Client{
-		Timeout: time.Second * 10,
-	}
-	payloadBytes, err := json.Marshal(NewInstantChannelRequest{
-		Amount: request.Amount,
-		Pubkey: pubkey,
-	})
-	if err != nil {
-		return "", 0, err
-	}
-	bodyReader := bytes.NewReader(payloadBytes)
-
-	req, err := http.NewRequest(http.MethodPost, request.LSPUrl+"/new-channel", bodyReader)
-	if err != nil {
-		logger.Logger.WithError(err).WithFields(logrus.Fields{
-			"url": request.LSPUrl,
-		}).Error("Failed to create new channel request")
-		return "", 0, err
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-
-	res, err := client.Do(req)
-	if err != nil {
-		logger.Logger.WithError(err).WithFields(logrus.Fields{
-			"url": request.LSPUrl,
-		}).Error("Failed to request new channel invoice")
-		return "", 0, err
-	}
-
-	defer res.Body.Close()
-
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		logger.Logger.WithError(err).WithFields(logrus.Fields{
-			"url": request.LSPUrl,
-		}).Error("Failed to read response body")
-		return "", 0, errors.New("failed to read response body")
-	}
-
-	if res.StatusCode >= 300 {
-		logger.Logger.WithFields(logrus.Fields{
-			"body":       string(body),
-			"statusCode": res.StatusCode,
-		}).Error("new-channel endpoint returned non-success code")
-		return "", 0, fmt.Errorf("new-channel endpoint returned non-success code: %s", string(body))
-	}
-
-	type newInstantChannelResponse struct {
-		FeeAmountMsat uint64 `json:"fee_amount_msat"`
-		Invoice       string `json:"invoice"`
-	}
-
-	var newChannelResponse newInstantChannelResponse
-
-	err = json.Unmarshal(body, &newChannelResponse)
-	if err != nil {
-		logger.Logger.WithError(err).WithFields(logrus.Fields{
-			"url": request.LSPUrl,
-		}).Error("Failed to deserialize json")
-		return "", 0, fmt.Errorf("failed to deserialize json %s %s", request.LSPUrl, string(body))
-	}
-
-	invoice = newChannelResponse.Invoice
-	fee = newChannelResponse.FeeAmountMsat / 1000
-
-	return invoice, fee, nil
-}
-
-func (api *api) requestLSPS1Invoice(ctx context.Context, request *NewInstantChannelInvoiceRequest, pubkey string, channelExpiryBlocks uint64) (invoice string, fee uint64, err error) {
-	client := http.Client{
-		Timeout: time.Second * 10,
-	}
-
-	type NewLSPS1ChannelRequest struct {
+	type lsps1ChannelRequest struct {
 		PublicKey                    string `json:"public_key"`
 		LSPBalanceSat                string `json:"lsp_balance_sat"`
 		ClientBalanceSat             string `json:"client_balance_sat"`
 		RequiredChannelConfirmations uint64 `json:"required_channel_confirmations"`
-		// FundingConfirmsWithinBlocks  uint64 `json:"funding_confirms_within_blocks"`
-		ChannelExpiryBlocks  uint64 `json:"channel_expiry_blocks"`
-		Token                string `json:"token"`
-		RefundOnchainAddress string `json:"refund_onchain_address"`
-		AnnounceChannel      bool   `json:"announce_channel"`
+		FundingConfirmsWithinBlocks  uint64 `json:"funding_confirms_within_blocks"`
+		ChannelExpiryBlocks          uint64 `json:"channel_expiry_blocks"`
+		Token                        string `json:"token"`
+		RefundOnchainAddress         string `json:"refund_onchain_address"`
+		AnnounceChannel              bool   `json:"announce_channel"`
 	}
 
 	refundAddress, err := api.svc.GetLNClient().GetNewOnchainAddress(ctx)
@@ -554,16 +218,16 @@ func (api *api) requestLSPS1Invoice(ctx context.Context, request *NewInstantChan
 		requiredChannelConfirmations = 6
 	}
 
-	newLSPS1ChannelRequest := NewLSPS1ChannelRequest{
+	newLSPS1ChannelRequest := lsps1ChannelRequest{
 		PublicKey:                    pubkey,
 		LSPBalanceSat:                strconv.FormatUint(request.Amount, 10),
 		ClientBalanceSat:             "0",
 		RequiredChannelConfirmations: requiredChannelConfirmations,
-		// FundingConfirmsWithinBlocks:  6,
-		ChannelExpiryBlocks:  channelExpiryBlocks,
-		Token:                "",
-		RefundOnchainAddress: refundAddress,
-		AnnounceChannel:      request.Public,
+		FundingConfirmsWithinBlocks:  6,
+		ChannelExpiryBlocks:          channelExpiryBlocks,
+		Token:                        "",
+		RefundOnchainAddress:         refundAddress,
+		AnnounceChannel:              request.Public,
 	}
 
 	payloadBytes, err := json.Marshal(newLSPS1ChannelRequest)
@@ -632,16 +296,13 @@ func (api *api) requestLSPS1Invoice(ctx context.Context, request *NewInstantChan
 		return "", 0, fmt.Errorf("failed to deserialize json %s %s", request.LSPUrl, string(body))
 	}
 
-	// if there is no payment, we expect the payment to already be made by the Alby API
-	if newChannelResponse.Payment != nil {
-		invoice = newChannelResponse.Payment.Bolt11.Invoice
-		fee, err = strconv.ParseUint(newChannelResponse.Payment.Bolt11.FeeTotalSat, 10, 64)
-		if err != nil {
-			logger.Logger.WithError(err).WithFields(logrus.Fields{
-				"url": request.LSPUrl,
-			}).Error("Failed to parse fee")
-			return "", 0, fmt.Errorf("failed to parse fee %v", err)
-		}
+	invoice = newChannelResponse.Payment.Bolt11.Invoice
+	fee, err = strconv.ParseUint(newChannelResponse.Payment.Bolt11.FeeTotalSat, 10, 64)
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"url": request.LSPUrl,
+		}).Error("Failed to parse fee")
+		return "", 0, fmt.Errorf("failed to parse fee %v", err)
 	}
 
 	return invoice, fee, nil

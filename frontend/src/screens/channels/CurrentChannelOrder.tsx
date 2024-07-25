@@ -54,10 +54,7 @@ import { copyToClipboard } from "src/lib/clipboard";
 import { splitSocketAddress } from "src/lib/utils";
 import { Success } from "src/screens/onboarding/Success";
 import useChannelOrderStore from "src/state/ChannelOrderStore";
-import {
-  NewInstantChannelInvoiceRequest,
-  NewInstantChannelInvoiceResponse,
-} from "src/types";
+import { LSPOrderRequest, LSPOrderResponse } from "src/types";
 import { request } from "src/utils/request";
 init({
   showBalance: false,
@@ -577,7 +574,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
   const [, setRequestedInvoice] = React.useState(false);
 
   const [wrappedInvoiceResponse, setWrappedInvoiceResponse] = React.useState<
-    NewInstantChannelInvoiceResponse | undefined
+    LSPOrderResponse | undefined
   >();
 
   useWaitForNewChannel();
@@ -593,22 +590,21 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
             if (!order.lspType || !order.lspUrl) {
               throw new Error("missing lsp info in order");
             }
-            const newInstantChannelInvoiceRequest: NewInstantChannelInvoiceRequest =
-              {
-                lspType: order.lspType,
-                lspUrl: order.lspUrl,
-                amount: parseInt(order.amount),
-                public: order.isPublic,
-              };
-            const response = await request<NewInstantChannelInvoiceResponse>(
-              "/api/instant-channel-invoices",
+            const newLSPOrderRequest: LSPOrderRequest = {
+              lspType: order.lspType,
+              lspUrl: order.lspUrl,
+              amount: parseInt(order.amount),
+              public: order.isPublic,
+            };
+            const response = await request<LSPOrderResponse>(
+              "/api/lsp-orders",
               {
                 method: "POST",
                 headers: {
                   "X-CSRF-Token": csrf,
                   "Content-Type": "application/json",
                 },
-                body: JSON.stringify(newInstantChannelInvoiceRequest),
+                body: JSON.stringify(newLSPOrderRequest),
               }
             );
             if (!response?.invoice) {

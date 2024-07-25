@@ -6,12 +6,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"math"
 	"net/http"
+	"regexp"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
+	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 	"gorm.io/gorm"
@@ -25,6 +29,7 @@ import (
 	"github.com/getAlby/hub/nip47/permissions"
 	"github.com/getAlby/hub/service/keys"
 	"github.com/getAlby/hub/transactions"
+	"github.com/getAlby/hub/utils"
 )
 
 type albyOAuthService struct {
@@ -758,4 +763,263 @@ func (svc *albyOAuthService) GetChannelPeerSuggestions(ctx context.Context) ([]C
 
 	logger.Logger.WithFields(logrus.Fields{"channel_suggestions": suggestions}).Info("Alby channel peer suggestions response")
 	return suggestions, nil
+}
+
+func (svc *albyOAuthService) RequestAutoChannel(ctx context.Context, lnClient lnclient.LNClient, isPublic bool) (*AutoChannelResponse, error) {
+	nodeInfo, err := lnClient.GetInfo(ctx)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to request own node info", err)
+		return nil, err
+	}
+
+	requestUrl := fmt.Sprintf("https://api.getalby.com/internal/lsp/alby/%s", nodeInfo.Network)
+
+	pubkey, address, port, err := svc.getLSPInfo(ctx, requestUrl+"/v1/get_info")
+
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to request LSP info")
+		return nil, err
+	}
+
+	err = lnClient.ConnectPeer(ctx, &lnclient.ConnectPeerRequest{
+		Pubkey:  pubkey,
+		Address: address,
+		Port:    port,
+	})
+
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"pubkey":  pubkey,
+			"address": address,
+			"port":    port,
+		}).WithError(err).Error("Failed to connect to peer")
+		return nil, err
+	}
+
+	logger.Logger.WithFields(logrus.Fields{
+		"pubkey": pubkey,
+		"public": isPublic,
+	}).Info("Requesting auto channel")
+
+	autoChannelResponse, err := svc.requestAutoChannel(ctx, requestUrl+"/auto_channel", nodeInfo.Pubkey, isPublic)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to request auto channel")
+		return nil, err
+	}
+	return autoChannelResponse, nil
+}
+
+func (svc *albyOAuthService) requestAutoChannel(ctx context.Context, url string, pubkey string, isPublic bool) (*AutoChannelResponse, error) {
+	token, err := svc.fetchUserToken(ctx)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to fetch user token")
+	}
+
+	client := svc.oauthConf.Client(ctx, token)
+	client.Timeout = 60 * time.Second
+
+	type autoChannelRequest struct {
+		NodePubkey      string `json:"node_pubkey"`
+		AnnounceChannel bool   `json:"announce_channel"`
+		// TODO: remove when it's handled on Alby API
+		RequiredChannelConfirmations uint16 `json:"required_channel_confirmations"`
+	}
+
+	requiredChannelConfirmations := uint16(0)
+	if isPublic {
+		requiredChannelConfirmations = 6
+	}
+
+	newAutoChannelRequest := autoChannelRequest{
+		NodePubkey:                   pubkey,
+		AnnounceChannel:              isPublic,
+		RequiredChannelConfirmations: requiredChannelConfirmations,
+	}
+
+	payloadBytes, err := json.Marshal(newAutoChannelRequest)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader := bytes.NewReader(payloadBytes)
+
+	req, err := http.NewRequest(http.MethodPost, url, bodyReader)
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"url": url,
+		}).Error("Failed to create auto channel request")
+		return nil, err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	res, err := client.Do(req)
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"url": url,
+		}).Error("Failed to request auto channel invoice")
+		return nil, err
+	}
+
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"url": url,
+		}).Error("Failed to read response body")
+		return nil, errors.New("failed to read response body")
+	}
+
+	if res.StatusCode >= 300 {
+		logger.Logger.WithFields(logrus.Fields{
+			"newLSPS1ChannelRequest": newAutoChannelRequest,
+			"body":                   string(body),
+			"statusCode":             res.StatusCode,
+		}).Error("auto channel endpoint returned non-success code")
+		return nil, fmt.Errorf("auto channel endpoint returned non-success code: %s", string(body))
+	}
+
+	type newLSPS1ChannelPaymentBolt11 struct {
+		Invoice     string `json:"invoice"`
+		FeeTotalSat string `json:"fee_total_sat"`
+	}
+
+	type newLSPS1ChannelPayment struct {
+		Bolt11 newLSPS1ChannelPaymentBolt11 `json:"bolt11"`
+		// TODO: add onchain
+	}
+	type autoChannelResponse struct {
+		LspBalanceSat string                  `json:"lsp_balance_sat"`
+		Payment       *newLSPS1ChannelPayment `json:"payment"`
+	}
+
+	var newAutoChannelResponse autoChannelResponse
+
+	err = json.Unmarshal(body, &newAutoChannelResponse)
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"url": url,
+		}).Error("Failed to deserialize json")
+		return nil, fmt.Errorf("failed to deserialize json %s %s", url, string(body))
+	}
+
+	var invoice string
+	var fee uint64
+
+	if newAutoChannelResponse.Payment != nil {
+		invoice = newAutoChannelResponse.Payment.Bolt11.Invoice
+		fee, err = strconv.ParseUint(newAutoChannelResponse.Payment.Bolt11.FeeTotalSat, 10, 64)
+		if err != nil {
+			logger.Logger.WithError(err).WithFields(logrus.Fields{
+				"url": url,
+			}).Error("Failed to parse fee")
+			return nil, fmt.Errorf("failed to parse fee %v", err)
+		}
+
+		paymentRequest, err := decodepay.Decodepay(invoice)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to decode bolt11 invoice")
+			return nil, err
+		}
+
+		if fee != uint64(paymentRequest.MSatoshi/1000) {
+			logger.Logger.WithFields(logrus.Fields{
+				"invoice_amount": paymentRequest.MSatoshi / 1000,
+				"fee":            fee,
+			}).WithError(err).Error("Invoice amount does not match LSP fee")
+			return nil, errors.New("invoice amount does not match LSP fee")
+		}
+	}
+
+	channelSize, err := strconv.ParseUint(newAutoChannelResponse.LspBalanceSat, 10, 64)
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"url": url,
+		}).Error("Failed to parse lsp balance sat")
+		return nil, fmt.Errorf("failed to parse lsp balance sat %v", err)
+	}
+
+	return &AutoChannelResponse{
+		Invoice:     invoice,
+		Fee:         fee,
+		ChannelSize: channelSize,
+	}, nil
+}
+
+func (svc *albyOAuthService) getLSPInfo(ctx context.Context, url string) (pubkey string, address string, port uint16, err error) {
+
+	token, err := svc.fetchUserToken(ctx)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to fetch user token")
+	}
+
+	client := svc.oauthConf.Client(ctx, token)
+	client.Timeout = 60 * time.Second
+
+	type lsps1LSPInfo struct {
+		URIs []string `json:"uris"`
+	}
+	var lsps1LspInfo lsps1LSPInfo
+
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"url": url,
+		}).Error("Failed to create lsp info request")
+		return "", "", uint16(0), err
+	}
+
+	res, err := client.Do(req)
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"url": url,
+		}).Error("Failed to request lsp info")
+		return "", "", uint16(0), err
+	}
+
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"url": url,
+		}).Error("Failed to read response body")
+		return "", "", uint16(0), errors.New("failed to read response body")
+	}
+
+	err = json.Unmarshal(body, &lsps1LspInfo)
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"url": url,
+		}).Error("Failed to deserialize json")
+		return "", "", uint16(0), fmt.Errorf("failed to deserialize json %s %s", url, string(body))
+	}
+
+	httpUris := utils.Filter(lsps1LspInfo.URIs, func(uri string) bool {
+		return !strings.Contains(uri, ".onion")
+	})
+	if len(httpUris) == 0 {
+		logger.Logger.WithField("uris", lsps1LspInfo.URIs).WithError(err).Error("Couldn't find HTTP URI")
+
+		return "", "", uint16(0), err
+	}
+	uri := httpUris[0]
+
+	// make sure it's a valid IPv4 URI
+	regex := regexp.MustCompile(`^([0-9a-f]+)@([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+):([0-9]+)$`)
+	parts := regex.FindStringSubmatch(uri)
+	logger.Logger.WithField("parts", parts).Info("Split URI")
+	if parts == nil || len(parts) != 4 {
+		logger.Logger.WithField("parts", parts).Error("Unsupported URI")
+		return "", "", uint16(0), errors.New("could not decode LSP URI")
+	}
+
+	portValue, err := strconv.Atoi(parts[3])
+	if err != nil {
+		logger.Logger.WithField("port", parts[3]).WithError(err).Error("Failed to decode port number")
+
+		return "", "", uint16(0), err
+	}
+
+	return parts[1], parts[2], uint16(portValue), nil
 }
