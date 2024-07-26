@@ -3,11 +3,6 @@ export const localStorageKeys = {
   channelOrder: "channelOrder",
 };
 
-const MIN_0CONF_BALANCE = 200000; // 100,000 for Alby. 20000 works for Olympus and Voltage
-export const ALBY_SERVICE_FEE = 8 / 1000;
-export const ALBY_MIN_BALANCE = Math.ceil(
-  MIN_0CONF_BALANCE * (1 + ALBY_SERVICE_FEE)
-);
-
 export const ONCHAIN_DUST_SATS = 1000;
 export const ALBY_HIDE_HOSTED_BALANCE_BELOW = 100;
+export const ALBY_MIN_HOSTED_BALANCE_FOR_FIRST_CHANNEL = 30_000;

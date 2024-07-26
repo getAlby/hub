@@ -47,7 +47,7 @@ type LDKService struct {
 
 const resetRouterKey = "ResetRouter"
 
-func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events.EventPublisher, mnemonic, workDir string, network string, esploraServer string, gossipSource string) (result lnclient.LNClient, err error) {
+func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events.EventPublisher, mnemonic, workDir string, network string) (result lnclient.LNClient, err error) {
 	if mnemonic == "" || workDir == "" {
 		return nil, errors.New("one or more required LDK configuration are missing")
 	}
@@ -103,10 +103,10 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	builder := ldk_node.BuilderFromConfig(ldkConfig)
 	builder.SetEntropyBip39Mnemonic(mnemonic, nil)
 	builder.SetNetwork(network)
-	builder.SetEsploraServer(esploraServer)
-	if gossipSource != "" {
-		logger.Logger.WithField("gossipSource", gossipSource).Warn("LDK RGS instance set")
-		builder.SetGossipSourceRgs(gossipSource)
+	builder.SetEsploraServer(cfg.GetEnv().LDKEsploraServer)
+	if cfg.GetEnv().LDKGossipSource != "" {
+		logger.Logger.WithField("gossipSource", cfg.GetEnv().LDKGossipSource).Warn("LDK RGS instance set")
+		builder.SetGossipSourceRgs(cfg.GetEnv().LDKGossipSource)
 	} else {
 		logger.Logger.Warn("No LDK RGS instance set")
 	}
@@ -202,6 +202,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 				"sync_type":    "full",
 				"initial_sync": true,
 				"node_type":    config.LDKBackendType,
+				"esplora_url":  ls.cfg.GetEnv().LDKEsploraServer,
 			},
 		})
 
@@ -268,9 +269,10 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 					ls.eventPublisher.Publish(&events.Event{
 						Event: "nwc_node_sync_failed",
 						Properties: map[string]interface{}{
-							"error":     err.Error(),
-							"sync_type": "fee_estimates",
-							"node_type": config.LDKBackendType,
+							"error":       err.Error(),
+							"sync_type":   "fee_estimates",
+							"node_type":   config.LDKBackendType,
+							"esplora_url": ls.cfg.GetEnv().LDKEsploraServer,
 						},
 					})
 				}
@@ -289,9 +291,10 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 					ls.eventPublisher.Publish(&events.Event{
 						Event: "nwc_node_sync_failed",
 						Properties: map[string]interface{}{
-							"error":     err.Error(),
-							"sync_type": "full",
-							"node_type": config.LDKBackendType,
+							"error":       err.Error(),
+							"sync_type":   "full",
+							"node_type":   config.LDKBackendType,
+							"esplora_url": ls.cfg.GetEnv().LDKEsploraServer,
 						},
 					})
 
@@ -459,7 +462,7 @@ func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string) (*lnc
 			payment := ls.node.Payment(paymentHash)
 			if payment == nil {
 				logger.Logger.Errorf("Couldn't find payment by payment hash: %v", paymentHash)
-				return nil, errors.New("Payment not found")
+				return nil, errors.New("payment not found")
 			}
 
 			bolt11PaymentKind, ok := payment.Kind.(ldk_node.PaymentKindBolt11)
@@ -472,7 +475,7 @@ func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string) (*lnc
 
 			if bolt11PaymentKind.Preimage == nil {
 				logger.Logger.Errorf("No payment preimage for payment hash: %v", paymentHash)
-				return nil, errors.New("Payment preimage not found")
+				return nil, errors.New("payment preimage not found")
 			}
 			preimage = *bolt11PaymentKind.Preimage
 
@@ -482,35 +485,15 @@ func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string) (*lnc
 			break
 		}
 		if isEventPaymentFailedEvent && eventPaymentFailed.PaymentHash == paymentHash {
-			var failureReason ldk_node.PaymentFailureReason
-			var failureReasonMessage string
-			if eventPaymentFailed.Reason != nil {
-				failureReason = *eventPaymentFailed.Reason
-			}
-			switch failureReason {
-			case ldk_node.PaymentFailureReasonRecipientRejected:
-				failureReasonMessage = "RecipientRejected"
-			case ldk_node.PaymentFailureReasonUserAbandoned:
-				failureReasonMessage = "UserAbandoned"
-			case ldk_node.PaymentFailureReasonRetriesExhausted:
-				failureReasonMessage = "RetriesExhausted"
-			case ldk_node.PaymentFailureReasonPaymentExpired:
-				failureReasonMessage = "PaymentExpired"
-			case ldk_node.PaymentFailureReasonRouteNotFound:
-				failureReasonMessage = "RouteNotFound"
-			case ldk_node.PaymentFailureReasonUnexpectedError:
-				failureReasonMessage = "UnexpectedError"
-			default:
-				failureReasonMessage = "UnknownError"
-			}
+
+			failureReasonMessage := ls.getPaymentFailReason(&eventPaymentFailed)
 
 			logger.Logger.WithFields(logrus.Fields{
-				"paymentHash":          paymentHash,
-				"failureReason":        failureReason,
-				"failureReasonMessage": failureReasonMessage,
+				"payment_hash": paymentHash,
+				"reason":       failureReasonMessage,
 			}).Error("Received payment failed event")
 
-			return nil, fmt.Errorf("received payment failed event: %v %s", failureReason, failureReasonMessage)
+			return nil, fmt.Errorf("received payment failed event: %s", failureReasonMessage)
 		}
 	}
 	if preimage == "" {
@@ -589,35 +572,15 @@ func (ls *LDKService) SendKeysend(ctx context.Context, amount uint64, destinatio
 			break
 		}
 		if isEventPaymentFailedEvent && eventPaymentFailed.PaymentHash == paymentHash {
-			var failureReason ldk_node.PaymentFailureReason
-			var failureReasonMessage string
-			if eventPaymentFailed.Reason != nil {
-				failureReason = *eventPaymentFailed.Reason
-			}
-			switch failureReason {
-			case ldk_node.PaymentFailureReasonRecipientRejected:
-				failureReasonMessage = "RecipientRejected"
-			case ldk_node.PaymentFailureReasonUserAbandoned:
-				failureReasonMessage = "UserAbandoned"
-			case ldk_node.PaymentFailureReasonRetriesExhausted:
-				failureReasonMessage = "RetriesExhausted"
-			case ldk_node.PaymentFailureReasonPaymentExpired:
-				failureReasonMessage = "PaymentExpired"
-			case ldk_node.PaymentFailureReasonRouteNotFound:
-				failureReasonMessage = "RouteNotFound"
-			case ldk_node.PaymentFailureReasonUnexpectedError:
-				failureReasonMessage = "UnexpectedError"
-			default:
-				failureReasonMessage = "UnknownError"
-			}
+
+			failureReasonMessage := ls.getPaymentFailReason(&eventPaymentFailed)
 
 			logger.Logger.WithFields(logrus.Fields{
-				"paymentHash":          paymentHash,
-				"failureReason":        failureReason,
-				"failureReasonMessage": failureReasonMessage,
+				"payment_hash": paymentHash,
+				"reason":       failureReasonMessage,
 			}).Error("Received payment failed event")
 
-			return paymentHash, "", 0, fmt.Errorf("payment failed event: %v %s", failureReason, failureReasonMessage)
+			return paymentHash, "", 0, fmt.Errorf("payment failed event: %s", failureReasonMessage)
 		}
 	}
 	if preimage == "" {
@@ -853,7 +816,7 @@ func (ls *LDKService) ListChannels(ctx context.Context) ([]lnclient.Channel, err
 			channelError = &channelErrorValue
 		}
 
-		isActive := ldkChannel.IsUsable /* superset of ldkChannel.IsReady */ && channelError == nil
+		isActive := ldkChannel.IsUsable /* superset of ldkChannel.IsReady */ && channelError == nil && fundingTxId != ""
 
 		channels = append(channels, lnclient.Channel{
 			InternalChannel:                          internalChannel,
@@ -1369,9 +1332,14 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 			return
 		}
 
+		reason := ls.getPaymentFailReason(&eventType)
+
 		ls.eventPublisher.Publish(&events.Event{
-			Event:      "nwc_payment_failed_async",
-			Properties: transaction,
+			Event: "nwc_payment_failed_async",
+			Properties: &events.PaymentFailedAsyncProperties{
+				Transaction: transaction,
+				Reason:      reason,
+			},
 		})
 	}
 }
@@ -1506,6 +1474,31 @@ func (ls *LDKService) GetSupportedNIP47Methods() []string {
 
 func (ls *LDKService) GetSupportedNIP47NotificationTypes() []string {
 	return []string{"payment_received", "payment_sent"}
+}
+
+func (ls *LDKService) getPaymentFailReason(eventPaymentFailed *ldk_node.EventPaymentFailed) string {
+	var failureReason ldk_node.PaymentFailureReason
+	var failureReasonMessage string
+	if eventPaymentFailed.Reason != nil {
+		failureReason = *eventPaymentFailed.Reason
+	}
+	switch failureReason {
+	case ldk_node.PaymentFailureReasonRecipientRejected:
+		failureReasonMessage = "RecipientRejected"
+	case ldk_node.PaymentFailureReasonUserAbandoned:
+		failureReasonMessage = "UserAbandoned"
+	case ldk_node.PaymentFailureReasonRetriesExhausted:
+		failureReasonMessage = "RetriesExhausted"
+	case ldk_node.PaymentFailureReasonPaymentExpired:
+		failureReasonMessage = "PaymentExpired"
+	case ldk_node.PaymentFailureReasonRouteNotFound:
+		failureReasonMessage = "RouteNotFound"
+	case ldk_node.PaymentFailureReasonUnexpectedError:
+		failureReasonMessage = "UnexpectedError"
+	default:
+		failureReasonMessage = "UnknownError"
+	}
+	return failureReasonMessage
 }
 
 func (ls *LDKService) getChannelCloseReason(event *ldk_node.EventChannelClosed) string {

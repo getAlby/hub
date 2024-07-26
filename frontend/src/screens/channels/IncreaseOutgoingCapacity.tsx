@@ -184,12 +184,11 @@ function NewChannelInternal({ network }: { network: Network }) {
     }
   }
 
-  if (!channelPeerSuggestions) {
+  if (!channelPeerSuggestions || !balances) {
     return <Loading />;
   }
 
   const openImmediately =
-    balances &&
     order.amount &&
     order.paymentMethod === "onchain" &&
     +order.amount < balances.onchain.spendable;
@@ -211,7 +210,7 @@ function NewChannelInternal({ network }: { network: Network }) {
       />
       <form
         onSubmit={onSubmit}
-        className="md:max-w-md max-w-full flex flex-col gap-5"
+        className="md:max-w-md max-w-full flex flex-col gap-5 flex-1"
       >
         <div className="grid gap-1.5">
           <Label htmlFor="amount">Channel size (sats)</Label>
@@ -241,6 +240,10 @@ function NewChannelInternal({ network }: { network: Network }) {
               setAmount(e.target.value.trim());
             }}
           />
+          <div className="text-muted-foreground text-sm">
+            Current savings balance:{" "}
+            {new Intl.NumberFormat().format(balances.onchain.spendable)} sats
+          </div>
           <div className="grid grid-cols-3 gap-1.5 text-muted-foreground text-xs">
             {presetAmounts.map((amount) => (
               <div
@@ -366,6 +369,22 @@ function NewChannelInternal({ network }: { network: Network }) {
           </Button>
         )}
         <Button size="lg">{openImmediately ? "Open Channel" : "Next"}</Button>
+
+        <div className="flex-1 flex flex-col justify-end items-center gap-4">
+          <p className="mt-32 text-sm text-muted-foreground text-center">
+            Other options
+          </p>
+          <Link to="/channels/incoming" className="w-full">
+            <Button className="w-full" variant="secondary">
+              Increase receiving capacity
+            </Button>
+          </Link>
+          <ExternalLink to="https://www.getalby.com/topup" className="w-full">
+            <Button className="w-full" variant="secondary">
+              Buy Bitcoin
+            </Button>
+          </ExternalLink>
+        </div>
       </form>
     </>
   );

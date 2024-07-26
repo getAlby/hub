@@ -1,6 +1,6 @@
 import { ChevronDown } from "lucide-react";
 import React, { FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
@@ -21,7 +21,12 @@ import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
 import { cn, formatAmount } from "src/lib/utils";
 import useChannelOrderStore from "src/state/ChannelOrderStore";
-import { Network, NewChannelOrder, RecommendedChannelPeer } from "src/types";
+import {
+  Channel,
+  Network,
+  NewChannelOrder,
+  RecommendedChannelPeer,
+} from "src/types";
 
 function getPeerKey(peer: RecommendedChannelPeer) {
   return JSON.stringify(peer);
@@ -29,18 +34,25 @@ function getPeerKey(peer: RecommendedChannelPeer) {
 
 export default function IncreaseIncomingCapacity() {
   const { data: info } = useInfo();
+  const { data: channels } = useChannels();
 
-  if (!info?.network) {
+  if (!info?.network || !channels) {
     return <Loading />;
   }
 
-  return <NewChannelInternal network={info.network} />;
+  return <NewChannelInternal network={info.network} channels={channels} />;
 }
 
-function NewChannelInternal({ network }: { network: Network }) {
+function NewChannelInternal({
+  network,
+  channels,
+}: {
+  network: Network;
+  channels: Channel[];
+}) {
   const { data: _channelPeerSuggestions } = useChannelPeerSuggestions();
   const navigate = useNavigate();
-  const { data: channels } = useChannels();
+
   const { toast } = useToast();
 
   const presetAmounts = [1_000_000, 2_000_000, 3_000_000];
@@ -49,6 +61,7 @@ function NewChannelInternal({ network }: { network: Network }) {
     paymentMethod: "lightning",
     status: "pay",
     amount: presetAmounts[0].toString(),
+    prevChannelIds: channels.map((channel) => channel.id),
   });
 
   const [showAdvanced, setShowAdvanced] = React.useState(false);
@@ -175,10 +188,19 @@ function NewChannelInternal({ network }: { network: Network }) {
       <AppHeader
         title="Increase Receiving Capacity"
         description="Purchase a channel with incoming capacity to receive payments"
+        contentRight={
+          <div className="flex items-end">
+            <Link to="/channels/outgoing">
+              <Button className="w-full" variant="secondary">
+                Need spending capacity?
+              </Button>
+            </Link>
+          </div>
+        }
       />
       <form
         onSubmit={onSubmit}
-        className="md:max-w-md max-w-full flex flex-col gap-5"
+        className="md:max-w-md max-w-full flex flex-col gap-5 flex-1"
       >
         <div className="grid gap-1.5">
           <Label htmlFor="amount">Channel size (sats)</Label>
@@ -312,7 +334,7 @@ function NewChannelInternal({ network }: { network: Network }) {
                   Public Channel
                 </Label>
                 <p className="text-xs text-muted-foreground">
-                  Enable if you want to receive keysend payments. (e.g.
+                  Only enable if you want to receive keysend payments. (e.g.
                   podcasting)
                 </p>
               </div>
@@ -331,6 +353,21 @@ function NewChannelInternal({ network }: { network: Network }) {
           </Button>
         )}
         <Button size="lg">Next</Button>
+        <div className="flex-1 flex flex-col justify-end items-center gap-4">
+          <p className="mt-32 text-sm text-muted-foreground text-center">
+            Other options
+          </p>
+          <Link to="/channels/outgoing" className="w-full">
+            <Button className="w-full" variant="secondary">
+              Increase spending balance
+            </Button>
+          </Link>
+          <ExternalLink to="https://www.getalby.com/topup" className="w-full">
+            <Button className="w-full" variant="secondary">
+              Buy Bitcoin
+            </Button>
+          </ExternalLink>
+        </div>
       </form>
     </>
   );
