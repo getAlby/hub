@@ -110,7 +110,6 @@ export interface ErrorResponse {
 
 export interface App {
   id: number;
-  userId: number;
   name: string;
   description: string;
   nostrPubkey: string;
