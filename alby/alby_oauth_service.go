@@ -395,6 +395,15 @@ func (svc *albyOAuthService) GetAuthUrl() string {
 	return svc.oauthConf.AuthCodeURL("unused")
 }
 
+func (svc *albyOAuthService) UnlinkAccount(ctx context.Context) error {
+	svc.cfg.SetUpdate(userIdentifierKey, "", "")
+	svc.cfg.SetUpdate(accessTokenKey, "", "")
+	svc.cfg.SetUpdate(accessTokenExpiryKey, "", "")
+	svc.cfg.SetUpdate(refreshTokenKey, "", "")
+
+	return nil
+}
+
 func (svc *albyOAuthService) LinkAccount(ctx context.Context, lnClient lnclient.LNClient, budget uint64, renewal string) error {
 	connectionPubkey, err := svc.createAlbyAccountNWCNode(ctx)
 	if err != nil {
