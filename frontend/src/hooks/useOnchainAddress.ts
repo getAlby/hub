@@ -1,4 +1,4 @@
-import useSWR from "swr";
+import useSWRImmutable from "swr/immutable";
 
 import React from "react";
 import { useCSRF } from "src/hooks/useCSRF";
@@ -7,7 +7,10 @@ import { swrFetcher } from "src/utils/swr";
 
 export function useOnchainAddress() {
   const { data: csrf } = useCSRF();
-  const swr = useSWR<string>("/api/wallet/address", swrFetcher);
+  // Use useSWRImmutable to avoid address randomly changing after deposit (e.g. on page re-focus on the channel order page)
+  const swr = useSWRImmutable<string>("/api/wallet/address", swrFetcher, {
+    revalidateOnMount: true,
+  });
   const [isLoading, setLoading] = React.useState(false);
 
   const getNewAddress = React.useCallback(async () => {
