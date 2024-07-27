@@ -147,8 +147,8 @@ export function FirstChannel() {
                 </p>
                 <p>
                   After paying a lightning invoice to cover on-chain fees,
-                  you'll immediately be able to receive and send bitcoin with your
-                  Hub.
+                  you'll immediately be able to receive and send bitcoin with
+                  your Hub.
                 </p>
               </>
             )}
