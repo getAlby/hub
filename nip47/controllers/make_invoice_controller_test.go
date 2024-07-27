@@ -20,8 +20,20 @@ const nip47MakeInvoiceJson = `
 	"method": "make_invoice",
 	"params": {
 		"amount": 1000,
-		"description": "[[\"text/identifier\",\"hello@getalby.com\"],[\"text/plain\",\"Sats for Alby\"]]",
-		"expiry": 3600
+		"description": "Hello, world",
+		"expiry": 3600,
+		"metadata": {
+		  "a": 1,
+			"b": "2",
+			"c": {
+			  "d": 3,
+				"e": [{
+					"f": "g"
+				},{
+					"h": "i"
+				}]
+			}
+		}
 	}
 }
 `
@@ -56,6 +68,19 @@ func TestHandleMakeInvoiceEvent(t *testing.T) {
 	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
 		HandleMakeInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, *dbRequestEvent.AppId, publishResponse)
 
+	expectedMetadata := map[string]interface{}{
+		"a": float64(1),
+		"b": "2",
+		"c": map[string]interface{}{
+			"d": float64(3),
+			"e": []interface{}{
+				map[string]interface{}{"f": "g"},
+				map[string]interface{}{"h": "i"},
+			},
+		},
+	}
+
 	assert.Nil(t, publishedResponse.Error)
 	assert.Equal(t, tests.MockLNClientTransaction.Invoice, publishedResponse.Result.(*makeInvoiceResponse).Invoice)
+	assert.Equal(t, expectedMetadata, publishedResponse.Result.(*makeInvoiceResponse).Metadata)
 }
