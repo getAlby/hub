@@ -58,10 +58,12 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 );
 Button.displayName = "Button";
 
-interface LinkProps extends VariantProps<typeof buttonVariants> {
-  to: string;
-  className?: string;
-}
+type LinkProps = React.PropsWithChildren<
+  VariantProps<typeof buttonVariants> & {
+    to: string;
+    className?: string;
+  }
+>;
 const ExternalLinkButton = React.forwardRef<HTMLAnchorElement, LinkProps>(
   ({ className, variant, size, ...props }, _ref) => {
     return (
