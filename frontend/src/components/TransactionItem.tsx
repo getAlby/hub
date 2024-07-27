@@ -96,7 +96,7 @@ function TransactionItem({ tx }: Props) {
                 </p>
               </div>
               <p className="text-sm md:text-base text-muted-foreground break-all">
-                {tx.description || "Lightning invoice"}
+                {tx.description}
               </p>
             </div>
             <div className="flex ml-auto text-right space-x-3 shrink-0">
