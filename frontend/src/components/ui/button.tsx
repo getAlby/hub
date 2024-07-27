@@ -58,27 +58,32 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 );
 Button.displayName = "Button";
 
-interface LinkProps extends ButtonProps {
+interface LinkProps extends VariantProps<typeof buttonVariants> {
   to: string;
+  className?: string;
 }
 const ExternalLinkButton = React.forwardRef<HTMLAnchorElement, LinkProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
-    const Comp = asChild ? Slot : ExternalLink;
-    const _className = cn(buttonVariants({ variant, size, className }));
-
-    return <Comp className={_className} ref={ref} {...props} />;
+  ({ className, variant, size, ...props }, _ref) => {
+    return (
+      <ExternalLink
+        className={cn(buttonVariants({ variant, size, className }))}
+        {...props}
+      />
+    );
   }
 );
 
 const LinkButton = React.forwardRef<HTMLAnchorElement, LinkProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
-    const Comp = asChild ? Slot : Link;
-    const _className = cn(buttonVariants({ variant, size, className }));
-
-    return <Comp className={_className} ref={ref} {...props} />;
+  ({ className, variant, size, ...props }, _ref) => {
+    return (
+      <Link
+        className={cn(buttonVariants({ variant, size, className }))}
+        {...props}
+      />
+    );
   }
 );
 
 //const ExternalLinkButton = LinkButton
 // eslint-disable-next-line react-refresh/only-export-components
-export { Button, LinkButton, ExternalLinkButton, buttonVariants };
+export { Button, buttonVariants, ExternalLinkButton, LinkButton };
