@@ -18,7 +18,10 @@ import { useInfo } from "src/hooks/useInfo";
 import { AutoChannelRequest, AutoChannelResponse } from "src/types";
 import { request } from "src/utils/request";
 
-import { ALBY_MIN_HOSTED_BALANCE_FOR_FIRST_CHANNEL } from "src/constants";
+import {
+  ALBY_HIDE_HOSTED_BALANCE_BELOW,
+  ALBY_MIN_HOSTED_BALANCE_FOR_FIRST_CHANNEL,
+} from "src/constants";
 import lightningNetworkDark from "/images/illustrations/lightning-network-dark.svg";
 import lightningNetworkLight from "/images/illustrations/lightning-network-light.svg";
 
@@ -85,6 +88,9 @@ export function FirstChannel() {
     albyBalance &&
     albyBalance.sats >= ALBY_MIN_HOSTED_BALANCE_FOR_FIRST_CHANNEL;
 
+  const canMigrateFunds =
+    albyBalance && albyBalance.sats >= ALBY_HIDE_HOSTED_BALANCE_BELOW;
+
   return (
     <>
       <AppHeader
@@ -147,8 +153,8 @@ export function FirstChannel() {
                 </p>
                 <p>
                   After paying a lightning invoice to cover on-chain fees,
-                  you'll immediately be able to receive and send bitcoin with your
-                  Hub.
+                  you'll immediately be able to receive and send bitcoin with
+                  your Hub.
                 </p>
               </>
             )}
@@ -190,7 +196,7 @@ export function FirstChannel() {
             )}
             <LoadingButton loading={isLoading} onClick={openChannel}>
               Open Channel
-              {canPayForFirstChannel && <> and Migrate Funds</>}
+              {canMigrateFunds && <> and Migrate Funds</>}
             </LoadingButton>
           </div>
         </>
