@@ -321,14 +321,28 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 
 	// the payment definitely succeeded
 	now := time.Now()
-	dbErr := svc.db.Model(&dbTransaction).Updates(map[string]interface{}{
-		"State":          constants.TRANSACTION_STATE_SETTLED,
-		"PaymentHash":    paymentHash,
-		"Preimage":       &preimage,
-		"FeeMsat":        &fee,
-		"FeeReserveMsat": 0,
-		"SettledAt":      &now,
-	}).Error
+
+	dbErr := svc.db.Transaction(func(tx *gorm.DB) error {
+		// Because we don't know the payment hash in advance when creating the original keysend transaction,
+		// there may have been another transaction created with the same payment hash by the nwc_payment_sent event.
+		// Delete that one and update the one we already created.
+		// This would not be needed if we always can pass the payment hash when doing keysend.
+		err := tx.Delete(&db.Transaction{}, "payment_hash = ?", paymentHash).Error
+		if err != nil {
+			return err
+		}
+
+		err = tx.Model(&dbTransaction).Updates(map[string]interface{}{
+			"State":          constants.TRANSACTION_STATE_SETTLED,
+			"PaymentHash":    paymentHash,
+			"Preimage":       &preimage,
+			"FeeMsat":        &fee,
+			"FeeReserveMsat": 0,
+			"SettledAt":      &now,
+		}).Error
+		return err
+	})
+
 	if dbErr != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"destination": destination,
