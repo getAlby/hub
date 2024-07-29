@@ -999,9 +999,10 @@ func (ls *LDKService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainB
 }
 
 func (ls *LDKService) RedeemOnchainFunds(ctx context.Context, toAddress string) (string, error) {
-	txId, err := ls.node.OnchainPayment().SendAllToAddress(toAddress)
+	spendableBalance := ls.node.ListBalances().SpendableOnchainBalanceSats
+	txId, err := ls.node.OnchainPayment().SendToAddress(toAddress, spendableBalance)
 	if err != nil {
-		logger.Logger.WithError(err).Error("SendAllToOnchainAddress failed")
+		logger.Logger.WithError(err).Error("SendToAddress failed")
 		return "", err
 	}
 	return txId, nil
