@@ -21,7 +21,7 @@ require (
 	golang.org/x/crypto v0.25.0
 	golang.org/x/oauth2 v0.21.0
 	google.golang.org/grpc v1.65.0
-	gopkg.in/DataDog/dd-trace-go.v1 v1.65.1
+	gopkg.in/DataDog/dd-trace-go.v1 v1.66.0
 	gopkg.in/macaroon.v2 v2.1.0
 	gorm.io/gorm v1.25.11
 )
@@ -65,7 +65,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/fergusstrange/embedded-postgres v1.25.0 // indirect
 	github.com/frankban/quicktest v1.13.0 // indirect
-	github.com/glebarez/go-sqlite v1.21.2 // indirect
+	github.com/glebarez/go-sqlite v1.22.0 // indirect
 	github.com/go-errors/errors v1.5.1 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
