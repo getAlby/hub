@@ -1,5 +1,6 @@
 import { ExitIcon } from "@radix-ui/react-icons";
 import { ExternalLinkIcon } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 import ExternalLink from "src/components/ExternalLink";
 import SettingsHeader from "src/components/SettingsHeader";
@@ -11,25 +12,18 @@ import {
 } from "src/components/ui/card";
 import { useToast } from "src/components/ui/use-toast";
 import { useCSRF } from "src/hooks/useCSRF";
-import { useInfo } from "src/hooks/useInfo";
 import { request } from "src/utils/request";
 
 export function AlbyAccount() {
   const { data: csrf } = useCSRF();
   const { toast } = useToast();
-  const { mutate: refetchInfo } = useInfo();
+  const navigate = useNavigate();
 
   const unlink = async () => {
     if (
       !confirm(
-        "Please log out at https://getalby.com, then click ok to continue."
+        "Are you sure you want to change the Alby Account for your hub? Your Alby Account will be disconnected from your hub and you'll need to login with a new Alby Account to access your hub."
       )
-    ) {
-      return;
-    }
-
-    if (
-      !confirm("Are you sure you want to change the Alby Account for your hub?")
     ) {
       return;
     }
@@ -45,7 +39,7 @@ export function AlbyAccount() {
           "Content-Type": "application/json",
         },
       });
-      await refetchInfo();
+      navigate("/alby/auth?force_login=true");
       toast({
         title: "Alby Account Unlinked",
         description: "Please login with another Alby Account",
