@@ -347,7 +347,9 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
             </CardDescription>
           </CardHeader>
           {unspentAmount > 0 && (
-            <CardContent>{unspentAmount} sats deposited</CardContent>
+            <CardContent>
+              {new Intl.NumberFormat().format(unspentAmount)} sats deposited
+            </CardContent>
           )}
         </Card>
 

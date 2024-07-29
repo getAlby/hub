@@ -522,10 +522,9 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		}
 		autoChannelResponse, err := app.svc.GetAlbyOAuthSvc().RequestAutoChannel(ctx, app.svc.GetLNClient(), newAutoChannelRequest.IsPublic)
 		if err != nil {
-			return WailsRequestRouterResponse{Body: *autoChannelResponse, Error: err.Error()}
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
-		res := WailsRequestRouterResponse{Error: ""}
-		return res
+		return WailsRequestRouterResponse{Body: *autoChannelResponse, Error: ""}
 
 	case "/api/alby/link-account":
 		linkAccountRequest := &alby.AlbyLinkAccountRequest{}
