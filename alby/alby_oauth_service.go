@@ -405,6 +405,11 @@ func (svc *albyOAuthService) UnlinkAccount(ctx context.Context) error {
 }
 
 func (svc *albyOAuthService) LinkAccount(ctx context.Context, lnClient lnclient.LNClient, budget uint64, renewal string) error {
+	appName := "getalby.com"
+
+	// delete any existing getalby.com connections to ensure user only sees the new one
+	svc.db.Where("name = ?", appName).Delete(&db.App{})
+
 	connectionPubkey, err := svc.createAlbyAccountNWCNode(ctx)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to create alby account nwc node")
@@ -422,7 +427,7 @@ func (svc *albyOAuthService) LinkAccount(ctx context.Context, lnClient lnclient.
 	}
 
 	app, _, err := db.NewDBService(svc.db, svc.eventPublisher).CreateApp(
-		"getalby.com",
+		appName,
 		connectionPubkey,
 		budget,
 		renewal,
