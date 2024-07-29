@@ -377,7 +377,17 @@ export type Transaction = {
   fees_paid: number;
   created_at: string;
   settled_at: string | undefined;
-  metadata: unknown;
+  metadata: {
+    tlv_records: TLVRecord[];
+  };
+};
+
+export type TLVRecord = {
+  type: number;
+  /**
+   * hex-encoded value
+   */
+  value: string;
 };
 
 export type NewChannelOrderStatus = "pay" | "paid" | "success" | "opening";

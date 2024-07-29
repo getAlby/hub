@@ -23,7 +23,7 @@ import {
 import { toast } from "src/components/ui/use-toast";
 import { useApps } from "src/hooks/useApps";
 import { copyToClipboard } from "src/lib/clipboard";
-import { cn } from "src/lib/utils";
+import { cn, hexToString } from "src/lib/utils";
 import { Transaction } from "src/types";
 
 dayjs.extend(utc);
@@ -191,52 +191,143 @@ function TransactionItem({ tx }: Props) {
               </div>
             )}
           </CredenzaBody>
-          <CredenzaFooter className="!justify-start mt-4 !flex-col">
-            <div
-              className="flex items-center gap-2 cursor-pointer"
-              onClick={() => setShowDetails(!showDetails)}
-            >
-              Details
-              {showDetails ? (
-                <ChevronUp className="w-4 h-4" />
-              ) : (
-                <ChevronDown className="w-4 h-4" />
+          <CredenzaFooter>
+            <div className="mt-4 w-full">
+              <div
+                className="flex items-center gap-2 cursor-pointer"
+                onClick={() => setShowDetails(!showDetails)}
+              >
+                Details
+                {showDetails ? (
+                  <ChevronUp className="w-4 h-4" />
+                ) : (
+                  <ChevronDown className="w-4 h-4" />
+                )}
+              </div>
+              {showDetails && (
+                <>
+                  {tx.metadata?.tlv_records.map((record) => {
+                    if (record.type === 34349334) {
+                      // Chat message
+                      return (
+                        <div className="mt-6" key={record.type}>
+                          <p>Message</p>
+                          <p className="text-muted-foreground break-all">
+                            {hexToString(record.value)}
+                          </p>
+                        </div>
+                      );
+                    } else if (record.type === 7629169) {
+                      // Podcasting info
+                      const boost = JSON.parse(hexToString(record.value));
+                      return (
+                        <>
+                          {boost?.message && (
+                            <div className="mt-6">
+                              <p>Message</p>
+                              <p className="text-muted-foreground break-all">
+                                {boost.message}
+                              </p>
+                            </div>
+                          )}
+                          {boost?.podcast && (
+                            <div className="mt-6">
+                              <p>Podcast</p>
+                              <p className="text-muted-foreground break-all">
+                                {boost.podcast}
+                              </p>
+                            </div>
+                          )}
+                          {boost?.episode && (
+                            <div className="mt-6">
+                              <p>Episode</p>
+                              <p className="text-muted-foreground break-all">
+                                {boost.episode}
+                              </p>
+                            </div>
+                          )}
+                          {boost?.action && (
+                            <div className="mt-6">
+                              <p>Action</p>
+                              <p className="text-muted-foreground break-all">
+                                {boost.action}
+                              </p>
+                            </div>
+                          )}
+                          {boost?.ts && (
+                            <div className="mt-6">
+                              <p>Timestamp</p>
+                              <p className="text-muted-foreground break-all">
+                                {boost.ts}
+                              </p>
+                            </div>
+                          )}
+                          {boost?.value_msat_total && (
+                            <div className="mt-6">
+                              <p>Total amount</p>
+                              <p className="text-muted-foreground break-all">
+                                {new Intl.NumberFormat(undefined, {}).format(
+                                  Math.floor(boost.value_msat_total / 1000)
+                                )}{" "}
+                                {Math.floor(boost.value_msat_total / 1000) == 1
+                                  ? "sat"
+                                  : "sats"}
+                              </p>
+                            </div>
+                          )}
+                          {boost?.sender_name && (
+                            <div className="mt-6">
+                              <p>Sender</p>
+                              <p className="text-muted-foreground break-all">
+                                {boost.sender_name}
+                              </p>
+                            </div>
+                          )}
+                          {boost?.app_name && (
+                            <div className="mt-6">
+                              <p>App</p>
+                              <p className="text-muted-foreground break-all">
+                                {boost.app_name}
+                              </p>
+                            </div>
+                          )}
+                        </>
+                      );
+                    }
+                  })}
+                  <div className="mt-6">
+                    <p>Preimage</p>
+                    <div className="flex items-center gap-4">
+                      <p className="text-muted-foreground break-all">
+                        {tx.preimage}
+                      </p>
+                      <CopyIcon
+                        className="cursor-pointer text-muted-foreground w-6 h-6"
+                        onClick={() => {
+                          if (tx.preimage) {
+                            copy(tx.preimage);
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <div className="mt-6">
+                    <p>Hash</p>
+                    <div className="flex items-center gap-4">
+                      <p className="text-muted-foreground break-all">
+                        {tx.payment_hash}
+                      </p>
+                      <CopyIcon
+                        className="cursor-pointer text-muted-foreground w-6 h-6"
+                        onClick={() => {
+                          copy(tx.payment_hash);
+                        }}
+                      />
+                    </div>
+                  </div>
+                </>
               )}
             </div>
-            {showDetails && (
-              <>
-                <div className="mt-6 !ml-0">
-                  <p>Preimage</p>
-                  <div className="flex items-center gap-4">
-                    <p className="text-muted-foreground break-all">
-                      {tx.preimage}
-                    </p>
-                    <CopyIcon
-                      className="cursor-pointer text-muted-foreground w-6 h-6"
-                      onClick={() => {
-                        if (tx.preimage) {
-                          copy(tx.preimage);
-                        }
-                      }}
-                    />
-                  </div>
-                </div>
-                <div className="mt-6 !ml-0">
-                  <p>Hash</p>
-                  <div className="flex items-center gap-4">
-                    <p className="text-muted-foreground break-all">
-                      {tx.payment_hash}
-                    </p>
-                    <CopyIcon
-                      className="cursor-pointer text-muted-foreground w-6 h-6"
-                      onClick={() => {
-                        copy(tx.payment_hash);
-                      }}
-                    />
-                  </div>
-                </div>
-              </>
-            )}
           </CredenzaFooter>
         </CredenzaContent>
       </Credenza>

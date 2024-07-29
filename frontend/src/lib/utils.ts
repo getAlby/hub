@@ -20,3 +20,10 @@ export function splitSocketAddress(socketAddress: string) {
   const port = socketAddress.slice(lastColonIndex + 1);
   return { address, port };
 }
+
+export function hexToString(hexString: string) {
+  const bytes = new Uint8Array(
+    hexString.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16))
+  );
+  return new TextDecoder().decode(bytes);
+}
