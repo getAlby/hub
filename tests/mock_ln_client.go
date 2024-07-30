@@ -2,6 +2,7 @@ package tests
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/getAlby/hub/lnclient"
@@ -184,4 +185,8 @@ func (mln *MockLn) GetPubkey() string {
 	}
 
 	return "123pubkey"
+}
+
+func (mln *MockLn) PayOfferSync(ctx context.Context, offer string, amount uint64) (string, *lnclient.PayOfferResponse, error) {
+	return "", nil, errors.New("not supported")
 }

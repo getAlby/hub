@@ -19,7 +19,7 @@ func TestSendPaymentSync_NoApp(t *testing.T) {
 	assert.NoError(t, err)
 
 	transactionsService := NewTransactionsService(svc.DB)
-	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, svc.LNClient, nil, nil)
+	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, nil, svc.LNClient, nil, nil)
 
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(123000), transaction.AmountMsat)
@@ -39,7 +39,7 @@ func TestSendPaymentSync_FailedRemovesFeeReserve(t *testing.T) {
 	svc.LNClient.(*tests.MockLn).PayInvoiceResponses = append(svc.LNClient.(*tests.MockLn).PayInvoiceResponses, nil)
 
 	transactionsService := NewTransactionsService(svc.DB)
-	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, svc.LNClient, nil, nil)
+	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, nil, svc.LNClient, nil, nil)
 
 	assert.Error(t, err)
 	assert.Nil(t, transaction)
@@ -66,7 +66,7 @@ func TestSendPaymentSync_PendingHasFeeReserve(t *testing.T) {
 	svc.LNClient.(*tests.MockLn).PayInvoiceResponses = append(svc.LNClient.(*tests.MockLn).PayInvoiceResponses, nil)
 
 	transactionsService := NewTransactionsService(svc.DB)
-	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, svc.LNClient, nil, nil)
+	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, nil, svc.LNClient, nil, nil)
 
 	assert.Error(t, err)
 	assert.Nil(t, transaction)

@@ -356,3 +356,7 @@ func (cs *CashuService) GetSupportedNIP47NotificationTypes() []string {
 func (svc *CashuService) GetPubkey() string {
 	return ""
 }
+
+func (svc *CashuService) PayOfferSync(ctx context.Context, offer string, amount uint64) (string, *lnclient.PayOfferResponse, error) {
+	return "", nil, errors.New("not supported")
+}

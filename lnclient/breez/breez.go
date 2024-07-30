@@ -491,3 +491,7 @@ func (bs *BreezService) GetSupportedNIP47NotificationTypes() []string {
 func (bs *BreezService) GetPubkey() string {
 	return bs.pubkey
 }
+
+func (bs *BreezService) PayOfferSync(ctx context.Context, offer string, amount uint64) (string, *lnclient.PayOfferResponse, error) {
+	return "", nil, errors.New("not supported")
+}
