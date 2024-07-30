@@ -48,6 +48,8 @@ const (
 	userIdentifierKey    = "AlbyUserIdentifier"
 )
 
+const ALBY_ACCOUNT_APP_NAME = "getalby.com"
+
 func NewAlbyOAuthService(db *gorm.DB, cfg config.Config, keys keys.Keys, eventPublisher events.EventPublisher) *albyOAuthService {
 	conf := &oauth2.Config{
 		ClientID:     cfg.GetEnv().AlbyClientId,
@@ -395,7 +397,24 @@ func (svc *albyOAuthService) GetAuthUrl() string {
 	return svc.oauthConf.AuthCodeURL("unused")
 }
 
+func (svc *albyOAuthService) UnlinkAccount(ctx context.Context) error {
+	err := svc.destroyAlbyAccountNWCNode(ctx)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to destroy Alby Account NWC node")
+	}
+	svc.deleteAlbyAccountApps()
+
+	svc.cfg.SetUpdate(userIdentifierKey, "", "")
+	svc.cfg.SetUpdate(accessTokenKey, "", "")
+	svc.cfg.SetUpdate(accessTokenExpiryKey, "", "")
+	svc.cfg.SetUpdate(refreshTokenKey, "", "")
+
+	return nil
+}
+
 func (svc *albyOAuthService) LinkAccount(ctx context.Context, lnClient lnclient.LNClient, budget uint64, renewal string) error {
+	svc.deleteAlbyAccountApps()
+
 	connectionPubkey, err := svc.createAlbyAccountNWCNode(ctx)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to create alby account nwc node")
@@ -413,7 +432,7 @@ func (svc *albyOAuthService) LinkAccount(ctx context.Context, lnClient lnclient.
 	}
 
 	app, _, err := db.NewDBService(svc.db, svc.eventPublisher).CreateApp(
-		"getalby.com",
+		ALBY_ACCOUNT_APP_NAME,
 		connectionPubkey,
 		budget,
 		renewal,
@@ -712,6 +731,40 @@ func (svc *albyOAuthService) createAlbyAccountNWCNode(ctx context.Context) (stri
 	}).Info("Created alby nwc node successfully")
 
 	return responsePayload.Pubkey, nil
+}
+
+func (svc *albyOAuthService) destroyAlbyAccountNWCNode(ctx context.Context) error {
+	token, err := svc.fetchUserToken(ctx)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to fetch user token")
+	}
+
+	client := svc.oauthConf.Client(ctx, token)
+
+	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/internal/nwcs", svc.cfg.GetEnv().AlbyAPIURL), nil)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Error creating request /internal/nwcs")
+		return err
+	}
+
+	setDefaultRequestHeaders(req)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to send request to /internal/nwcs")
+		return err
+	}
+
+	if resp.StatusCode >= 300 {
+		logger.Logger.WithFields(logrus.Fields{
+			"status": resp.StatusCode,
+		}).Error("Request to /internal/nwcs returned non-success status")
+		return errors.New("request to /internal/nwcs returned non-success status")
+	}
+
+	logger.Logger.Info("Removed alby account nwc node successfully")
+
+	return nil
 }
 
 func (svc *albyOAuthService) activateAlbyAccountNWCNode(ctx context.Context) error {
@@ -1048,4 +1101,12 @@ func (svc *albyOAuthService) getLSPInfo(ctx context.Context, url string) (pubkey
 func setDefaultRequestHeaders(req *http.Request) {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("User-Agent", "AlbyHub/"+version.Tag)
+}
+
+func (svc *albyOAuthService) deleteAlbyAccountApps() {
+	// delete any existing getalby.com connections so when re-linking the user only has one
+	err := svc.db.Where("name = ?", ALBY_ACCOUNT_APP_NAME).Delete(&db.App{}).Error
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to delete Alby Account apps")
+	}
 }
