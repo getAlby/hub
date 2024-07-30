@@ -77,7 +77,7 @@ export function ChannelsCards({
                   <div className="flex flex-col items-start w-full">
                     <CardTitle className="w-full">
                       <div className="flex items-center justify-between">
-                        <div className="flex-1 leading-5 font-semibold text-xl whitespace-nowrap text-ellipsis overflow-hidden">
+                        <div className="flex-1 font-semibold whitespace-nowrap text-ellipsis overflow-hidden">
                           <ExternalLinkButton
                             to={`https://amboss.space/node/${channel.remotePubkey}`}
                             variant="link"
