@@ -5,6 +5,7 @@
 
 app = 'nwc'
 primary_region = 'lax'
+swap_size_mb = 2048
 
 [build]
   image = 'ghcr.io/getalby/hub:latest'
@@ -19,6 +20,9 @@ primary_region = 'lax'
   source = 'nwc_data'
   destination = '/data'
   initial_size = '1'
+  auto_extend_size_threshold = 80
+  auto_extend_size_increment = "1GB"
+  auto_extend_size_limit = "5GB"
 
 [http_service]
   internal_port = 8080

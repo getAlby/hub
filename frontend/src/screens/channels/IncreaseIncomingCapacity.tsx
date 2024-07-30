@@ -4,7 +4,11 @@ import { Link, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
-import { Button } from "src/components/ui/button";
+import {
+  Button,
+  ExternalLinkButton,
+  LinkButton,
+} from "src/components/ui/button";
 import { Checkbox } from "src/components/ui/checkbox";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
@@ -198,177 +202,181 @@ function NewChannelInternal({
           </div>
         }
       />
-      <form
-        onSubmit={onSubmit}
-        className="md:max-w-md max-w-full flex flex-col gap-5 flex-1"
-      >
-        <div className="grid gap-1.5">
-          <Label htmlFor="amount">Channel size (sats)</Label>
-          {order.amount && +order.amount < 200_000 && (
-            <p className="text-muted-foreground text-xs">
-              For a smooth experience consider a opening a channel of 200k sats
-              in size or more.{" "}
-              <ExternalLink
-                to="https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub/liquidity"
-                className="underline"
-              >
-                Learn more
-              </ExternalLink>
-            </p>
-          )}
-          <Input
-            id="amount"
-            type="number"
-            required
-            min={
-              showAdvanced
-                ? selectedPeer?.minimumChannelSize || 100000
-                : undefined
-            }
-            value={order.amount}
-            onChange={(e) => {
-              setAmount(e.target.value.trim());
-            }}
-          />
-          <div className="grid grid-cols-3 gap-1.5 text-muted-foreground text-xs">
-            {presetAmounts.map((amount) => (
-              <div
-                key={amount}
-                className={cn(
-                  "text-center border rounded p-2 cursor-pointer hover:border-muted-foreground",
-                  +(order.amount || "0") === amount &&
-                    "border-primary hover:border-primary"
-                )}
-                onClick={() => setAmount(amount.toString())}
-              >
-                {formatAmount(amount * 1000, 0)}
-              </div>
-            ))}
+      <div className="md:max-w-md max-w-full flex flex-col gap-5 flex-1">
+        <form onSubmit={onSubmit} className="flex flex-col gap-5 flex-1">
+          <div className="grid gap-1.5">
+            <Label htmlFor="amount">Channel size (sats)</Label>
+            {order.amount && +order.amount < 200_000 && (
+              <p className="text-muted-foreground text-xs">
+                For a smooth experience consider a opening a channel of 200k
+                sats in size or more.{" "}
+                <ExternalLink
+                  to="https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub/liquidity"
+                  className="underline"
+                >
+                  Learn more
+                </ExternalLink>
+              </p>
+            )}
+            <Input
+              id="amount"
+              type="number"
+              required
+              min={
+                showAdvanced
+                  ? selectedPeer?.minimumChannelSize || 100000
+                  : undefined
+              }
+              value={order.amount}
+              onChange={(e) => {
+                setAmount(e.target.value.trim());
+              }}
+            />
+            <div className="grid grid-cols-3 gap-1.5 text-muted-foreground text-xs">
+              {presetAmounts.map((amount) => (
+                <div
+                  key={amount}
+                  className={cn(
+                    "text-center border rounded p-2 cursor-pointer hover:border-muted-foreground",
+                    +(order.amount || "0") === amount &&
+                      "border-primary hover:border-primary"
+                  )}
+                  onClick={() => setAmount(amount.toString())}
+                >
+                  {formatAmount(amount * 1000, 0)}
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-        {showAdvanced && (
-          <>
-            <div className="flex flex-col gap-3">
-              {selectedPeer && (
-                <div className="grid gap-1.5">
-                  <Label>Channel peer</Label>
-                  <Select
-                    value={getPeerKey(selectedPeer)}
-                    onValueChange={(value) =>
-                      setSelectedPeer(
-                        channelPeerSuggestions.find(
-                          (x) => getPeerKey(x) === value
+          {showAdvanced && (
+            <>
+              <div className="flex flex-col gap-3">
+                {selectedPeer && (
+                  <div className="grid gap-1.5">
+                    <Label>Channel peer</Label>
+                    <Select
+                      value={getPeerKey(selectedPeer)}
+                      onValueChange={(value) =>
+                        setSelectedPeer(
+                          channelPeerSuggestions.find(
+                            (x) => getPeerKey(x) === value
+                          )
                         )
-                      )
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select channel peer" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {channelPeerSuggestions
-                        .filter(
-                          (peer) =>
-                            peer.network === network &&
-                            peer.paymentMethod === order.paymentMethod
-                        )
-                        .map((peer) => (
-                          <SelectItem
-                            value={getPeerKey(peer)}
-                            key={getPeerKey(peer)}
-                          >
-                            <div className="flex items-center gap-3">
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select channel peer" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {channelPeerSuggestions
+                          .filter(
+                            (peer) =>
+                              peer.network === network &&
+                              peer.paymentMethod === order.paymentMethod
+                          )
+                          .map((peer) => (
+                            <SelectItem
+                              value={getPeerKey(peer)}
+                              key={getPeerKey(peer)}
+                            >
                               <div className="flex items-center gap-3">
-                                {peer.name !== "Custom" && (
-                                  <img
-                                    src={peer.image}
-                                    className="w-8 h-8 object-contain"
-                                  />
-                                )}
-                                <div>
-                                  {peer.name}
-                                  <span className="ml-4 text-xs text-muted-foreground">
-                                    Min.{" "}
-                                    {new Intl.NumberFormat().format(
-                                      peer.minimumChannelSize
-                                    )}
-                                    sats
-                                    <span className="mr-10" />
-                                    Max.{" "}
-                                    {new Intl.NumberFormat().format(
-                                      peer.maximumChannelSize
-                                    )}{" "}
-                                    sats
-                                  </span>
+                                <div className="flex items-center gap-3">
+                                  {peer.name !== "Custom" && (
+                                    <img
+                                      src={peer.image}
+                                      className="w-8 h-8 object-contain"
+                                    />
+                                  )}
+                                  <div>
+                                    {peer.name}
+                                    <span className="ml-4 text-xs text-muted-foreground">
+                                      Min.{" "}
+                                      {new Intl.NumberFormat().format(
+                                        peer.minimumChannelSize
+                                      )}
+                                      sats
+                                      <span className="mr-10" />
+                                      Max.{" "}
+                                      {new Intl.NumberFormat().format(
+                                        peer.maximumChannelSize
+                                      )}{" "}
+                                      sats
+                                    </span>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                  {selectedPeer.name === "Custom" && (
-                    <>
-                      <div className="grid gap-1.5"></div>
-                    </>
-                  )}
-                </div>
-              )}
-            </div>
-            {order.paymentMethod === "lightning" && (
-              <NewChannelLightning order={order} setOrder={setOrder} />
-            )}
-
-            <div className="mt-2 flex items-top space-x-2">
-              <Checkbox
-                id="public-channel"
-                defaultChecked={order.isPublic}
-                onCheckedChange={() => setPublic(!order.isPublic)}
-                className="mr-2"
-              />
-              <div className="grid gap-1.5 leading-none">
-                <Label
-                  htmlFor="public-channel"
-                  className="flex items-center gap-2"
-                >
-                  Public Channel
-                </Label>
-                <p className="text-xs text-muted-foreground">
-                  Only enable if you want to receive keysend payments. (e.g.
-                  podcasting)
-                </p>
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                    {selectedPeer.name === "Custom" && (
+                      <>
+                        <div className="grid gap-1.5"></div>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
-            </div>
-          </>
-        )}
-        {!showAdvanced && (
-          <Button
-            type="button"
-            variant="link"
-            className="text-muted-foreground text-xs"
-            onClick={() => setShowAdvanced((current) => !current)}
-          >
-            <ChevronDown className="w-4 h-4 mr-2" />
-            Advanced Options
-          </Button>
-        )}
-        <Button size="lg">Next</Button>
+              {order.paymentMethod === "lightning" && (
+                <NewChannelLightning order={order} setOrder={setOrder} />
+              )}
+
+              <div className="mt-2 flex items-top space-x-2">
+                <Checkbox
+                  id="public-channel"
+                  defaultChecked={order.isPublic}
+                  onCheckedChange={() => setPublic(!order.isPublic)}
+                  className="mr-2"
+                />
+                <div className="grid gap-1.5 leading-none">
+                  <Label
+                    htmlFor="public-channel"
+                    className="flex items-center gap-2"
+                  >
+                    Public Channel
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Only enable if you want to receive keysend payments. (e.g.
+                    podcasting)
+                  </p>
+                </div>
+              </div>
+            </>
+          )}
+          {!showAdvanced && (
+            <Button
+              type="button"
+              variant="link"
+              className="text-muted-foreground text-xs"
+              onClick={() => setShowAdvanced((current) => !current)}
+            >
+              <ChevronDown className="w-4 h-4 mr-2" />
+              Advanced Options
+            </Button>
+          )}
+          <Button size="lg">Next</Button>
+        </form>
+
         <div className="flex-1 flex flex-col justify-end items-center gap-4">
           <p className="mt-32 text-sm text-muted-foreground text-center">
             Other options
           </p>
-          <Link to="/channels/outgoing" className="w-full">
-            <Button className="w-full" variant="secondary">
-              Increase spending balance
-            </Button>
-          </Link>
-          <ExternalLink to="https://www.getalby.com/topup" className="w-full">
-            <Button className="w-full" variant="secondary">
-              Buy Bitcoin
-            </Button>
-          </ExternalLink>
+          <LinkButton
+            to="/channels/outgoing"
+            className="w-full"
+            variant="secondary"
+          >
+            Increase spending balance
+          </LinkButton>
+          <ExternalLinkButton
+            to="https://www.getalby.com/topup"
+            className="w-full"
+            variant="secondary"
+          >
+            Buy Bitcoin
+          </ExternalLinkButton>
         </div>
-      </form>
+      </div>
     </>
   );
 }
