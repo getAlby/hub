@@ -8,7 +8,7 @@ import {
 import { ChannelWarning } from "src/components/channels/ChannelWarning";
 import ExternalLink from "src/components/ExternalLink";
 import { Badge } from "src/components/ui/badge.tsx";
-import { Button, ExternalLinkButton } from "src/components/ui/button.tsx";
+import { Button } from "src/components/ui/button.tsx";
 import {
   Card,
   CardContent,
@@ -77,14 +77,8 @@ export function ChannelsCards({
                   <div className="flex flex-col items-start w-full">
                     <CardTitle className="w-full">
                       <div className="flex items-center justify-between">
-                        <div className="flex-1 font-semibold whitespace-nowrap text-ellipsis overflow-hidden">
-                          <ExternalLinkButton
-                            to={`https://amboss.space/node/${channel.remotePubkey}`}
-                            variant="link"
-                            className="p-0 font-semibold text-lg"
-                          >
-                            {alias}
-                          </ExternalLinkButton>
+                        <div className="flex-1 whitespace-nowrap text-ellipsis overflow-hidden">
+                          {alias}
                         </div>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -100,6 +94,15 @@ export function ChannelsCards({
                               >
                                 <ExternalLinkIcon className="w-4 h-4" />
                                 <p>View Funding Transaction</p>
+                              </ExternalLink>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="flex flex-row items-center gap-2 cursor-pointer">
+                              <ExternalLink
+                                to={`https://amboss.space/node/${channel.remotePubkey}`}
+                                className="w-full flex flex-row items-center gap-2"
+                              >
+                                <ExternalLinkIcon className="w-4 h-4" />
+                                <p>View Node on amboss.space</p>
                               </ExternalLink>
                             </DropdownMenuItem>
                             {channel.public && (
