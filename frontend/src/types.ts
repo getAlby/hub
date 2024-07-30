@@ -390,6 +390,22 @@ export type TLVRecord = {
   value: string;
 };
 
+export type Boostagram = {
+  app_name: string;
+  name: string;
+  podcast: string;
+  url: string;
+  episode?: string;
+  itemID?: string;
+  ts?: string;
+  message?: string;
+  sender_id: string;
+  sender_name: string;
+  time: string;
+  action: "boost";
+  value_msat_total: number;
+};
+
 export type NewChannelOrderStatus = "pay" | "paid" | "success" | "opening";
 
 export type NewChannelOrder = {
