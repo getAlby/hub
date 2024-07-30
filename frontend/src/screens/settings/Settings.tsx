@@ -76,8 +76,10 @@ function Settings() {
         description={t("language.description")}
       />
       <form className="w-full flex flex-col gap-3">
-        <Label htmlFor="language">{t("language.title")}</Label>
-        <LocaleSwitcher />
+        <div className="grid gap-1.5">
+          <Label htmlFor="language">{t("language.title")}</Label>
+          <LocaleSwitcher />
+        </div>
       </form>
     </>
   );
