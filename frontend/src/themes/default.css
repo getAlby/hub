@@ -26,6 +26,9 @@
   --positive: 138, 68%, 96%;
   --positive-foreground: 142 76% 36%;
 
+  --warning: 33, 90%, 96%;
+  --warning-foreground: 21, 90%, 48%;
+
   --border: 240 5.9% 90%;
   --input: 240 5.9% 90%;
   --ring: 240 5.9% 10%;

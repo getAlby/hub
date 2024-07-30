@@ -142,7 +142,7 @@ export function ChannelsCards({
                         ) : channel.status == "opening" ? (
                           <Badge variant="outline">Opening</Badge>
                         ) : (
-                          <Badge variant="outline">Offline</Badge>
+                          <Badge variant="warning">Offline</Badge>
                         )}
                       </div>
                       <div className="flex w-full justify-between items-center">

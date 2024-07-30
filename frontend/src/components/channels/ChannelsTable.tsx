@@ -116,7 +116,7 @@ export function ChannelsTable({
                         ) : channel.status == "opening" ? (
                           <Badge variant="outline">Opening</Badge>
                         ) : (
-                          <Badge variant="outline">Offline</Badge>
+                          <Badge variant="warning">Offline</Badge>
                         )}
                       </TableCell>
                       <TableCell>
