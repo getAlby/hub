@@ -119,17 +119,8 @@ export function ChannelsTable({
                           <Badge variant="outline">Offline</Badge>
                         )}
                       </TableCell>
-                      <TableCell className="flex flex-row items-center">
-                        <a
-                          title={channel.remotePubkey}
-                          href={`https://amboss.space/node/${channel.remotePubkey}`}
-                          target="_blank"
-                          rel="noopener noreferer"
-                        >
-                          <Button variant="link" className="p-0 mr-2">
-                            {alias}
-                          </Button>
-                        </a>
+                      <TableCell>
+                        <span className="font-medium mr-2">{alias}</span>
                         <Badge variant="outline">
                           {channel.public ? "Public" : "Private"}
                         </Badge>
@@ -199,6 +190,15 @@ export function ChannelsTable({
                               >
                                 <ExternalLinkIcon className="w-4 h-4" />
                                 <p>View Funding Transaction</p>
+                              </ExternalLink>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="flex flex-row items-center gap-2 cursor-pointer">
+                              <ExternalLink
+                                to={`https://amboss.space/node/${channel.remotePubkey}`}
+                                className="w-full flex flex-row items-center gap-2"
+                              >
+                                <ExternalLinkIcon className="w-4 h-4" />
+                                <p>View Node on amboss.space</p>
                               </ExternalLink>
                             </DropdownMenuItem>
                             {channel.public && (
