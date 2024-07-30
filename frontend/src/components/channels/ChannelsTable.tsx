@@ -56,7 +56,7 @@ export function ChannelsTable({
   }
 
   return (
-    <div className="border max-w-full overflow-y-auto">
+    <div className="border rounded-lg max-w-full overflow-y-auto">
       <Table>
         <TableHeader>
           <TableRow>
