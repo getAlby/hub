@@ -1,5 +1,6 @@
 import type { FallbackLng } from "i18next";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Select,
   SelectContent,
@@ -11,21 +12,24 @@ import { toast } from "src/components/ui/use-toast";
 import i18n, { supportedLocales } from "src/i18n/i18nConfig";
 
 export default function LocaleSwitcher() {
+  const { t } = useTranslation("components", {
+    keyPrefix: "locale_switcher",
+  });
   const fallbackLng = i18n.options.fallbackLng?.[0 as keyof FallbackLng];
   const [dropdownLang, setDropdownLang] = useState(
     i18n.language || fallbackLng
   );
 
-  const languageHandler = async (newLanguage: string) => {
+  const onLanguageChange = async (newLanguage: string) => {
     if (dropdownLang !== newLanguage) {
       setDropdownLang(newLanguage);
       i18n.changeLanguage(newLanguage);
-      toast({ title: "Language updated." });
+      toast({ title: t("success") });
     }
   };
 
   return (
-    <Select value={dropdownLang} onValueChange={languageHandler}>
+    <Select value={dropdownLang} onValueChange={onLanguageChange}>
       <SelectTrigger className="w-[150px]">
         <SelectValue placeholder="Language" />
       </SelectTrigger>

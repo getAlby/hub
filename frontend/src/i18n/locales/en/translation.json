@@ -3,11 +3,11 @@
     "settings": {
       "language": {
         "title": "Language",
-        "description": "Translations are not 100% finished yet."
+        "description": "Choose the language to display in Alby Hub"
       },
       "theme": {
         "title": "Theme",
-        "description": "Alby Hub is your wallet, make it your style.",
+        "description": "Alby Hub is your wallet, make it your style",
         "options": {
           "dark": "Dark",
           "light": "Light",
@@ -16,6 +16,9 @@
       }
     }
   },
-  "common": {},
-  "components": {}
+  "components": {
+    "locale_switcher": {
+      "success": "Language updated."
+    }
+  }
 }

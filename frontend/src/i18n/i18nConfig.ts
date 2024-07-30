@@ -12,12 +12,10 @@ export const defaultNS = "translation";
 export const resources = {
   en: {
     translation: en.translation,
-    common: en.common,
     components: en.components,
   },
   hi: {
     translation: hi.translation,
-    common: hi.common,
     components: hi.components,
   },
 } as const;
@@ -38,7 +36,7 @@ i18n
   // for all options read: https://www.i18next.com/overview/configuration-options
   .init({
     fallbackLng: "en",
-    ns: ["translation", "common", "components", "permissions"],
+    ns: ["translation", "components"],
     defaultNS,
     resources,
     supportedLngs: supportedLocales.map(({ locale }) => locale),

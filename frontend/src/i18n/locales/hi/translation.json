@@ -3,7 +3,7 @@
     "settings": {
       "language": {
         "title": "भाषा",
-        "description": "अनुवाद अभी तक 100% पूरा नहीं हुआ है।"
+        "description": "एल्बी हब में प्रदर्शित होने वाली भाषा चुनें।"
       },
       "theme": {
         "title": "थीम",
@@ -16,6 +16,9 @@
       }
     }
   },
-  "common": {},
-  "components": {}
+  "components": {
+    "locale_switcher": {
+      "success": "भाषा अपडेट की गई है"
+    }
+  }
 }
