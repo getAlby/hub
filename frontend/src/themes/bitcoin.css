@@ -23,6 +23,9 @@
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 98%;
 
+  --positive: 138, 68%, 96%;
+  --positive-foreground: 142 76% 36%;
+
   --border: 0 0% 92%;
   --input: 0 0% 85%;
   --ring: 0 0% 76%;
