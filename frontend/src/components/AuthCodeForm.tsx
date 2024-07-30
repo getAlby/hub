@@ -13,11 +13,14 @@ import { handleRequestError } from "src/utils/handleRequestError";
 import { openLink } from "src/utils/openLink";
 import { request } from "src/utils/request"; // build the project for this to appear
 
-function AuthCodeForm() {
+type AuthCodeFormProps = {
+  url: string;
+};
+
+function AuthCodeForm({ url }: AuthCodeFormProps) {
   const [authCode, setAuthCode] = useState("");
   const navigate = useNavigate();
   const { data: csrf } = useCSRF();
-  const { data: info } = useInfo();
   const { mutate: refetchInfo } = useInfo();
 
   const [hasRequestedCode, setRequestedCode] = React.useState(false);
@@ -25,11 +28,11 @@ function AuthCodeForm() {
 
   async function requestAuthCode() {
     setRequestedCode((hasRequestedCode) => {
-      if (!info) {
+      if (!url) {
         return false;
       }
       if (!hasRequestedCode) {
-        openLink(info.albyAuthUrl);
+        openLink(url);
       }
       return true;
     });

@@ -108,6 +108,7 @@ export default function SettingsLayout() {
             {hasNodeBackup && (
               <MenuItem to="/settings/node-backup">Migrate Node</MenuItem>
             )}
+            <MenuItem to="/settings/alby-account">Alby Account</MenuItem>
             <MenuItem to="/debug-tools">
               Debug Tools
               <ExternalLink className="w-4 h-4 ml-2" />
