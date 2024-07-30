@@ -1,11 +1,11 @@
 import {
-  AlertTriangle,
   ExternalLinkIcon,
   HandCoins,
   InfoIcon,
   MoreHorizontal,
   Trash2,
 } from "lucide-react";
+import { ChannelWarning } from "src/components/channels/ChannelWarning";
 import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading.tsx";
 import { Badge } from "src/components/ui/badge.tsx";
@@ -56,7 +56,7 @@ export function ChannelsTable({
   }
 
   return (
-    <div className="border border-red-500 max-w-full overflow-y-auto">
+    <div className="border max-w-full overflow-y-auto">
       <Table>
         <TableHeader>
           <TableRow>
@@ -108,41 +108,12 @@ export function ChannelsTable({
                   const alias = node?.alias || "Unknown";
                   const capacity = channel.localBalance + channel.remoteBalance;
 
-                  let channelWarning = "";
-                  if (channel.error) {
-                    channelWarning = channel.error;
-                  } else {
-                    if (channel.localSpendableBalance < capacity * 0.1) {
-                      channelWarning =
-                        "Spending balance low. You may have trouble sending payments through this channel.";
-                    }
-                    if (channel.localSpendableBalance > capacity * 0.9) {
-                      channelWarning =
-                        "Receiving capacity low. You may have trouble receiving payments through this channel.";
-                    }
-                  }
-
-                  const channelStatus = channel.active
-                    ? "online"
-                    : channel.confirmationsRequired !== undefined &&
-                        channel.confirmations !== undefined &&
-                        channel.confirmationsRequired > channel.confirmations
-                      ? "opening"
-                      : "offline";
-                  if (channelStatus === "opening") {
-                    channelWarning = `Channel is currently being opened (${channel.confirmations} of ${channel.confirmationsRequired} confirmations). Once the required confirmation are reached, you will be able to send and receive on this channel.`;
-                  }
-                  if (channelStatus === "offline") {
-                    channelWarning =
-                      "This channel is currently offline and cannot be used to send or receive payments. Please contact Alby Support for more information.";
-                  }
-
                   return (
                     <TableRow key={channel.id} className="channel">
                       <TableCell>
-                        {channelStatus == "online" ? (
+                        {channel.status == "online" ? (
                           <Badge variant="positive">Online</Badge>
-                        ) : channelStatus == "opening" ? (
+                        ) : channel.status == "opening" ? (
                           <Badge variant="outline">Opening</Badge>
                         ) : (
                           <Badge variant="outline">Offline</Badge>
@@ -211,18 +182,7 @@ export function ChannelsTable({
                         </div>
                       </TableCell>
                       <TableCell>
-                        {channelWarning ? (
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger>
-                                <AlertTriangle className="w-4 h-4 mt-1" />
-                              </TooltipTrigger>
-                              <TooltipContent className="max-w-[400px]">
-                                {channelWarning}
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        ) : null}
+                        <ChannelWarning channel={channel} />
                       </TableCell>
                       <TableCell>
                         <DropdownMenu>

@@ -1,14 +1,14 @@
 import {
-  AlertTriangle,
   ExternalLinkIcon,
   HandCoins,
   InfoIcon,
   MoreHorizontal,
   Trash2,
 } from "lucide-react";
+import { ChannelWarning } from "src/components/channels/ChannelWarning";
 import ExternalLink from "src/components/ExternalLink";
 import { Badge } from "src/components/ui/badge.tsx";
-import { Button } from "src/components/ui/button.tsx";
+import { Button, ExternalLinkButton } from "src/components/ui/button.tsx";
 import {
   Card,
   CardContent,
@@ -23,6 +23,7 @@ import {
   DropdownMenuTrigger,
 } from "src/components/ui/dropdown-menu.tsx";
 import { Progress } from "src/components/ui/progress.tsx";
+import { Separator } from "src/components/ui/separator";
 import {
   Tooltip,
   TooltipContent,
@@ -56,7 +57,7 @@ export function ChannelsCards({
   return (
     <>
       <p className="font-semibold text-lg mt-4">Channels</p>
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-4">
         {channels
           .sort((a, b) =>
             a.localBalance + a.remoteBalance > b.localBalance + b.remoteBalance
@@ -69,58 +70,26 @@ export function ChannelsCards({
             );
             const alias = node?.alias || "Unknown";
             const capacity = channel.localBalance + channel.remoteBalance;
-            // TODO: remove duplication
-            let channelWarning = "";
-            if (channel.error) {
-              channelWarning = channel.error;
-            } else {
-              if (channel.localSpendableBalance < capacity * 0.1) {
-                channelWarning =
-                  "Spending balance low. You may have trouble sending payments through this channel.";
-              }
-              if (channel.localSpendableBalance > capacity * 0.9) {
-                channelWarning =
-                  "Receiving capacity low. You may have trouble receiving payments through this channel.";
-              }
-            }
-
-            const channelStatus = channel.active
-              ? "online"
-              : channel.confirmationsRequired !== undefined &&
-                  channel.confirmations !== undefined &&
-                  channel.confirmationsRequired > channel.confirmations
-                ? "opening"
-                : "offline";
-            if (channelStatus === "opening") {
-              channelWarning = `Channel is currently being opened (${channel.confirmations} of ${channel.confirmationsRequired} confirmations). Once the required confirmation are reached, you will be able to send and receive on this channel.`;
-            }
-            if (channelStatus === "offline") {
-              channelWarning =
-                "This channel is currently offline and cannot be used to send or receive payments. Please contact Alby Support for more information.";
-            }
 
             return (
               <Card>
-                <CardHeader className="w-full">
+                <CardHeader className="w-full pb-4">
                   <div className="flex flex-col items-start w-full">
                     <CardTitle className="w-full">
                       <div className="flex items-center justify-between">
                         <div className="flex-1 leading-5 font-semibold text-xl whitespace-nowrap text-ellipsis overflow-hidden">
-                          <a
-                            title={channel.remotePubkey}
-                            href={`https://amboss.space/node/${channel.remotePubkey}`}
-                            target="_blank"
-                            rel="noopener noreferer"
+                          <ExternalLinkButton
+                            to={`https://amboss.space/node/${channel.remotePubkey}`}
+                            variant="link"
+                            className="p-0 font-semibold text-lg"
                           >
-                            <Button variant="link" className="p-0 mr-2">
-                              {alias}
-                            </Button>
-                          </a>
+                            {alias}
+                          </ExternalLinkButton>
                         </div>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button size="icon" variant="ghost">
-                              <MoreHorizontal className="h-4 w-4" />
+                              <MoreHorizontal className="h-6 w-6" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
@@ -159,32 +128,44 @@ export function ChannelsCards({
                         </DropdownMenu>
                       </div>
                     </CardTitle>
+                    <Separator className="mt-5" />
                     <CardDescription className="w-full flex flex-col gap-4 mt-4">
                       <div className="flex w-full justify-between items-center">
-                        <p>Status</p>
-                        <div className="flex gap-2">
-                          {channelStatus == "online" ? (
-                            <Badge variant="positive">Online</Badge>
-                          ) : channelStatus == "opening" ? (
-                            <Badge variant="outline">Opening</Badge>
-                          ) : (
-                            <Badge variant="outline">Offline</Badge>
-                          )}
-                          <Badge variant="outline">
-                            {channel.public ? "Public" : "Private"}
-                          </Badge>
-                        </div>
+                        <p className="text-muted-foreground font-medium">
+                          Status
+                        </p>
+                        {channel.status == "online" ? (
+                          <Badge variant="positive">Online</Badge>
+                        ) : channel.status == "opening" ? (
+                          <Badge variant="outline">Opening</Badge>
+                        ) : (
+                          <Badge variant="outline">Offline</Badge>
+                        )}
+                      </div>
+                      <div className="flex w-full justify-between items-center">
+                        <p className="text-muted-foreground font-medium">
+                          Type
+                        </p>
+                        <p className="text-foreground">
+                          {channel.public ? "Public" : "Private"}
+                        </p>
                       </div>
                       <div className="flex justify-between items-center">
-                        <p>Capacity</p>
-                        {formatAmount(capacity)} sats
+                        <p className="text-muted-foreground font-medium">
+                          Capacity
+                        </p>
+                        <p className="text-foreground">
+                          {formatAmount(capacity)} sats
+                        </p>
                       </div>
                       <div className="flex justify-between items-center">
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger>
                               <div className="flex flex-row gap-2 items-center">
-                                Reserve
+                                <p className="text-muted-foreground font-medium">
+                                  Reserve
+                                </p>
                                 <InfoIcon className="h-4 w-4 shrink-0" />
                               </div>
                             </TooltipTrigger>
@@ -197,28 +178,39 @@ export function ChannelsCards({
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
-                        {channel.localBalance <
-                          channel.unspendablePunishmentReserve * 1000 && (
-                          <>
-                            {formatAmount(
-                              Math.min(
-                                channel.localBalance,
-                                channel.unspendablePunishmentReserve * 1000
-                              )
-                            )}{" "}
-                            /{" "}
-                          </>
-                        )}
-                        {formatAmount(
-                          channel.unspendablePunishmentReserve * 1000
-                        )}{" "}
-                        sats
+                        <p className="text-foreground">
+                          {channel.localBalance <
+                            channel.unspendablePunishmentReserve * 1000 && (
+                            <>
+                              {formatAmount(
+                                Math.min(
+                                  channel.localBalance,
+                                  channel.unspendablePunishmentReserve * 1000
+                                )
+                              )}{" "}
+                              /{" "}
+                            </>
+                          )}
+                          {formatAmount(
+                            channel.unspendablePunishmentReserve * 1000
+                          )}{" "}
+                          sats
+                        </p>
                       </div>
                     </CardDescription>
                   </div>
                 </CardHeader>
-                <CardContent className="text-right">
-                  <div className="flex gap-2 items-center">
+
+                <CardContent>
+                  <div className="flex justify-between items-center">
+                    <p className="text-muted-foreground font-medium text-sm">
+                      Spending
+                    </p>
+                    <p className="text-muted-foreground font-medium text-sm">
+                      Receiving
+                    </p>
+                  </div>
+                  <div className="flex gap-2 items-center mt-2">
                     <div className="flex-1 relative">
                       <Progress
                         value={(channel.localSpendableBalance / capacity) * 100}
@@ -235,18 +227,7 @@ export function ChannelsCards({
                         </span>
                       </div>
                     </div>
-                    {channelWarning ? (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <AlertTriangle className="w-4 h-4" />
-                          </TooltipTrigger>
-                          <TooltipContent className="max-w-[400px]">
-                            {channelWarning}
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    ) : null}
+                    <ChannelWarning channel={channel} />
                   </div>
                 </CardContent>
               </Card>

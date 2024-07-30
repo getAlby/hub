@@ -16,7 +16,7 @@ type API interface {
 	DeleteApp(userApp *db.App) error
 	GetApp(userApp *db.App) *App
 	ListApps() ([]App, error)
-	ListChannels(ctx context.Context) ([]lnclient.Channel, error)
+	ListChannels(ctx context.Context) ([]Channel, error)
 	GetChannelPeerSuggestions(ctx context.Context) ([]alby.ChannelPeerSuggestion, error)
 	ResetRouter(key string) error
 	ChangeUnlockPassword(changeUnlockPasswordRequest *ChangeUnlockPasswordRequest) error
@@ -284,4 +284,23 @@ type WalletCapabilitiesResponse struct {
 	Scopes            []string `json:"scopes"`
 	Methods           []string `json:"methods"`
 	NotificationTypes []string `json:"notificationTypes"`
+}
+
+type Channel struct {
+	LocalBalance                             int64       `json:"localBalance"`
+	LocalSpendableBalance                    int64       `json:"localSpendableBalance"`
+	RemoteBalance                            int64       `json:"remoteBalance"`
+	Id                                       string      `json:"id"`
+	RemotePubkey                             string      `json:"remotePubkey"`
+	FundingTxId                              string      `json:"fundingTxId"`
+	Active                                   bool        `json:"active"`
+	Public                                   bool        `json:"public"`
+	InternalChannel                          interface{} `json:"internalChannel"`
+	Confirmations                            *uint32     `json:"confirmations"`
+	ConfirmationsRequired                    *uint32     `json:"confirmationsRequired"`
+	ForwardingFeeBaseMsat                    uint32      `json:"forwardingFeeBaseMsat"`
+	UnspendablePunishmentReserve             uint64      `json:"unspendablePunishmentReserve"`
+	CounterpartyUnspendablePunishmentReserve uint64      `json:"counterpartyUnspendablePunishmentReserve"`
+	Error                                    *string     `json:"error"`
+	Status                                   string      `json:"status"`
 }
