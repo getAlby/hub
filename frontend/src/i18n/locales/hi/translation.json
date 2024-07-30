@@ -1,0 +1,21 @@
+{
+  "translation": {
+    "settings": {
+      "language": {
+        "title": "भाषा",
+        "description": "अनुवाद अभी तक 100% पूरा नहीं हुआ है।"
+      },
+      "theme": {
+        "title": "थीम",
+        "description": "एल्बी हब आपका है, इसे अपनी इच्छानुसार स्टाइल करें।",
+        "options": {
+          "dark": "डार्क",
+          "light": "प्रकाश",
+          "system": "सिस्टम"
+        }
+      }
+    }
+  },
+  "common": {},
+  "components": {}
+}

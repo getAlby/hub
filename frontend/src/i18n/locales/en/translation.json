@@ -1,0 +1,21 @@
+{
+  "translation": {
+    "settings": {
+      "language": {
+        "title": "Language",
+        "description": "Translations are not 100% finished yet."
+      },
+      "theme": {
+        "title": "Theme",
+        "description": "Alby Hub is your wallet, make it your style.",
+        "options": {
+          "dark": "Dark",
+          "light": "Light",
+          "system": "System"
+        }
+      }
+    }
+  },
+  "common": {},
+  "components": {}
+}
