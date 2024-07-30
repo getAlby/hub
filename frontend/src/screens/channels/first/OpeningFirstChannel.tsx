@@ -1,5 +1,7 @@
+import { Footprints } from "lucide-react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import EmptyState from "src/components/EmptyState";
 import Loading from "src/components/Loading";
 import {
   Card,
@@ -47,9 +49,14 @@ export function OpeningFirstChannel() {
             </div>
           </CardContent>
         </Card>
-        <div className="w-full mt-40 gap-20 flex flex-col items-center justify-center">
-          <p>Feel free to leave this page or browse around Alby Hub!</p>
-          <p>We'll send you an email as soon as your channel is active.</p>
+        <div className="w-full mt-40 flex flex-col items-center justify-center">
+          <EmptyState
+            icon={Footprints}
+            title="Browse While You Wait"
+            description="Feel free to leave this page or browse around Alby Hub! We'll send you an email as soon as your channel is active."
+            buttonText="Explore Apps"
+            buttonLink="/appstore"
+          />
         </div>
       </div>
     </>
