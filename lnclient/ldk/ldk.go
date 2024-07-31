@@ -1236,11 +1236,20 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 
 	switch eventType := (*event).(type) {
 	case ldk_node.EventChannelReady:
+		channels := ls.node.ListChannels()
+		channelIndex := slices.IndexFunc(channels, func(c ldk_node.ChannelDetails) bool {
+			return c.ChannelId == eventType.ChannelId
+		})
+		if channelIndex == -1 {
+			logger.Logger.WithField("event", eventType).Error("Failed to find channel by ID")
+			return
+		}
 		ls.eventPublisher.Publish(&events.Event{
 			Event: "nwc_channel_ready",
 			Properties: map[string]interface{}{
 				"counterparty_node_id": eventType.CounterpartyNodeId,
 				"node_type":            config.LDKBackendType,
+				"public":               channels[channelIndex].IsPublic,
 			},
 		})
 
