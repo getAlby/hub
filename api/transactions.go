@@ -15,7 +15,7 @@ func (api *api) CreateInvoice(ctx context.Context, amount int64, description str
 	if api.svc.GetLNClient() == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	transaction, err := api.svc.GetTransactionsService().MakeInvoice(ctx, amount, description, "", 0, api.svc.GetLNClient(), nil, nil)
+	transaction, err := api.svc.GetTransactionsService().MakeInvoice(ctx, amount, description, "", 0, nil, api.svc.GetLNClient(), nil, nil)
 	if err != nil {
 		return nil, err
 	}

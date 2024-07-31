@@ -292,7 +292,7 @@ func (svc *albyOAuthService) DrainSharedWallet(ctx context.Context, lnClient lnc
 
 	logger.Logger.WithField("amount", amount).WithError(err).Error("Draining Alby shared wallet funds")
 
-	transaction, err := transactions.NewTransactionsService(svc.db).MakeInvoice(ctx, amount, "Send shared wallet funds to Alby Hub", "", 120, lnClient, nil, nil)
+	transaction, err := transactions.NewTransactionsService(svc.db).MakeInvoice(ctx, amount, "Send shared wallet funds to Alby Hub", "", 120, nil, lnClient, nil, nil)
 	if err != nil {
 		logger.Logger.WithField("amount", amount).WithError(err).Error("Failed to make invoice")
 		return err
