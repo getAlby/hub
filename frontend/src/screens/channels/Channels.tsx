@@ -63,12 +63,7 @@ import { useRedeemOnchainFunds } from "src/hooks/useRedeemOnchainFunds.ts";
 import { useSyncWallet } from "src/hooks/useSyncWallet.ts";
 import { copyToClipboard } from "src/lib/clipboard.ts";
 import { cn } from "src/lib/utils.ts";
-import {
-  Channel,
-  CloseChannelResponse,
-  Node,
-  UpdateChannelRequest,
-} from "src/types";
+import { Channel, Node, UpdateChannelRequest } from "src/types";
 import { request } from "src/utils/request";
 import { useCSRF } from "../../hooks/useCSRF.ts";
 
@@ -113,85 +108,6 @@ export default function Channels() {
   React.useEffect(() => {
     loadNodeStats();
   }, [loadNodeStats]);
-
-  async function closeChannel(
-    channelId: string,
-    nodeId: string,
-    isActive: boolean
-  ) {
-    try {
-      if (!csrf) {
-        throw new Error("csrf not loaded");
-      }
-      if (!isActive) {
-        if (
-          !confirm(
-            `This channel is inactive. Some channels require up to 6 onchain confirmations before they are usable. If you really want to continue, click OK.`
-          )
-        ) {
-          return;
-        }
-      }
-
-      if (
-        !confirm(
-          `Are you sure you want to close the channel with ${
-            nodes.find((node) => node.public_key === nodeId)?.alias ||
-            "Unknown Node"
-          }?\n\nNode ID: ${nodeId}\n\nChannel ID: ${channelId}`
-        )
-      ) {
-        return;
-      }
-
-      const closeType = prompt(
-        "Select way to close the channel. Type 'force close' if you want to force close the channel. Note: your channel balance will be locked for up to two weeks if you force close.",
-        "normal close"
-      );
-      if (!closeType) {
-        console.error("Cancelled close channel");
-        return;
-      }
-
-      console.info(`🎬 Closing channel with ${nodeId}`);
-
-      const closeChannelResponse = await request<CloseChannelResponse>(
-        `/api/peers/${nodeId}/channels/${channelId}?force=${
-          closeType === "force close"
-        }`,
-        {
-          method: "DELETE",
-          headers: {
-            "X-CSRF-Token": csrf,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (!closeChannelResponse) {
-        throw new Error("Error closing channel");
-      }
-
-      const closedChannel = channels?.find(
-        (c) => c.id === channelId && c.remotePubkey === nodeId
-      );
-      console.info("Closed channel", closedChannel);
-      if (closedChannel) {
-        prompt(
-          "Closed channel. Copy channel funding TX to view on mempool",
-          closedChannel.fundingTxId
-        );
-      }
-      await reloadChannels();
-      toast({ title: "Sucessfully closed channel" });
-    } catch (error) {
-      console.error(error);
-      toast({
-        variant: "destructive",
-        description: "Something went wrong: " + error,
-      });
-    }
-  }
 
   async function editChannel(channel: Channel) {
     try {
@@ -651,14 +567,12 @@ export default function Channels() {
         <ChannelsTable
           channels={channels}
           nodes={nodes}
-          closeChannel={closeChannel}
           editChannel={editChannel}
         />
       ) : (
         <ChannelsCards
           channels={channels}
           nodes={nodes}
-          closeChannel={closeChannel}
           editChannel={editChannel}
         />
       )}
