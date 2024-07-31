@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useMediaQuery } from "src/hooks/useMediaQuery";
+import { useIsDesktop } from "src/hooks/useMediaQuery";
 import { cn } from "src/lib/utils";
 import {
   Dialog,
@@ -36,12 +36,10 @@ interface CredenzaProps extends BaseProps {
   asChild?: true;
 }
 
-const desktop = "(min-width: 768px)";
-
 const CredenzaContext = React.createContext(false);
 
 const CredenzaProvider = ({ children }: BaseProps) => {
-  const isDesktop = useMediaQuery(desktop);
+  const isDesktop = useIsDesktop();
   return (
     <CredenzaContext.Provider value={isDesktop}>
       {children}

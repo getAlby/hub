@@ -195,6 +195,7 @@ export type Channel = {
   unspendablePunishmentReserve: number;
   counterpartyUnspendablePunishmentReserve: number;
   error?: string;
+  status: "online" | "opening" | "offline";
 };
 
 export type UpdateChannelRequest = {

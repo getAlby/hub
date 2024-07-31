@@ -62,8 +62,11 @@ function Wallet() {
           )}{" "}
           sats
         </div>
-        <div className="grid grid-cols-3 items-center gap-4">
-          <ExternalLink to="https://www.getalby.com/topup">
+        <div className="grid grid-cols-2 items-center gap-4 sm:grid-cols-3">
+          <ExternalLink
+            to="https://www.getalby.com/topup"
+            className="col-span-2 sm:col-span-1"
+          >
             <Button size="lg" className="w-full" variant="secondary">
               <CreditCard className="h-4 w-4 shrink-0 mr-2" />
               Buy Bitcoin
