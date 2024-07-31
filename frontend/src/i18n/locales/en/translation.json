@@ -18,7 +18,8 @@
   },
   "components": {
     "locale_switcher": {
-      "success": "Language updated."
+      "success": "Language updated.",
+      "language": "Language"
     }
   }
 }
