@@ -1244,12 +1244,15 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 			logger.Logger.WithField("event", eventType).Error("Failed to find channel by ID")
 			return
 		}
+		channel := channels[channelIndex]
 		ls.eventPublisher.Publish(&events.Event{
 			Event: "nwc_channel_ready",
 			Properties: map[string]interface{}{
 				"counterparty_node_id": eventType.CounterpartyNodeId,
 				"node_type":            config.LDKBackendType,
-				"public":               channels[channelIndex].IsPublic,
+				"public":               channel.IsPublic,
+				"capacity":             channel.ChannelValueSats,
+				"is_outbound":          channel.IsOutbound,
 			},
 		})
 
