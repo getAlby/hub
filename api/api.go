@@ -282,11 +282,44 @@ func (api *api) ListApps() ([]App, error) {
 	return apiApps, nil
 }
 
-func (api *api) ListChannels(ctx context.Context) ([]lnclient.Channel, error) {
+func (api *api) ListChannels(ctx context.Context) ([]Channel, error) {
 	if api.svc.GetLNClient() == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	return api.svc.GetLNClient().ListChannels(ctx)
+	channels, err := api.svc.GetLNClient().ListChannels(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	apiChannels := []Channel{}
+	for _, channel := range channels {
+		status := "offline"
+		if channel.Active {
+			status = "online"
+		} else if channel.Confirmations != nil && channel.ConfirmationsRequired != nil && *channel.ConfirmationsRequired > *channel.Confirmations {
+			status = "opening"
+		}
+
+		apiChannels = append(apiChannels, Channel{
+			LocalBalance:                             channel.LocalBalance,
+			LocalSpendableBalance:                    channel.LocalSpendableBalance,
+			RemoteBalance:                            channel.RemoteBalance,
+			Id:                                       channel.Id,
+			RemotePubkey:                             channel.RemotePubkey,
+			FundingTxId:                              channel.FundingTxId,
+			Active:                                   channel.Active,
+			Public:                                   channel.Public,
+			InternalChannel:                          channel.InternalChannel,
+			Confirmations:                            channel.Confirmations,
+			ConfirmationsRequired:                    channel.ConfirmationsRequired,
+			ForwardingFeeBaseMsat:                    channel.ForwardingFeeBaseMsat,
+			UnspendablePunishmentReserve:             channel.UnspendablePunishmentReserve,
+			CounterpartyUnspendablePunishmentReserve: channel.CounterpartyUnspendablePunishmentReserve,
+			Error:                                    channel.Error,
+			Status:                                   status,
+		})
+	}
+	return apiChannels, nil
 }
 
 func (api *api) GetChannelPeerSuggestions(ctx context.Context) ([]alby.ChannelPeerSuggestion, error) {

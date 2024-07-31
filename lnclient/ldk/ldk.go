@@ -263,6 +263,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 			case <-time.After(MIN_SYNC_INTERVAL):
 				ls.syncing = true
 				// always update fee rates to avoid differences in fee rates with channel partners
+				logger.Logger.Info("Updating fee estimates")
 				err = node.UpdateFeeEstimates()
 				if err != nil {
 					logger.Logger.WithError(err).Error("Failed to update fee estimates")
