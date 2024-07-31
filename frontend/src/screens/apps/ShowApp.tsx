@@ -15,6 +15,9 @@ import {
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request"; // build the project for this to appear
 
+import { DotsVerticalIcon } from "@radix-ui/react-icons";
+import { Activity, ArrowDownCircle, ArrowUpCircle, Trash } from "lucide-react";
+import { Bar, BarChart } from "recharts";
 import AppAvatar from "src/components/AppAvatar";
 import AppHeader from "src/components/AppHeader";
 import Loading from "src/components/Loading";
@@ -35,8 +38,11 @@ import {
   Card,
   CardContent,
   CardHeader,
-  CardTitle,
+  CardTitle
 } from "src/components/ui/card";
+import { ChartConfig, ChartContainer } from "src/components/ui/chart";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuTrigger } from "src/components/ui/dropdown-menu";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "src/components/ui/select";
 import { Table, TableBody, TableCell, TableRow } from "src/components/ui/table";
 import { useToast } from "src/components/ui/use-toast";
 import { useCapabilities } from "src/hooks/useCapabilities";
@@ -124,6 +130,26 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
     }
   };
 
+  const chartData = [
+    { month: "January", desktop: 186, mobile: 80 },
+    { month: "February", desktop: 305, mobile: 200 },
+    { month: "March", desktop: 237, mobile: 120 },
+    { month: "April", desktop: 73, mobile: 190 },
+    { month: "May", desktop: 209, mobile: 130 },
+    { month: "June", desktop: 214, mobile: 140 },
+  ]
+
+  const chartConfig = {
+    desktop: {
+      label: "Desktop",
+      color: "#000",
+    },
+    mobile: {
+      label: "Mobile",
+      color: "#000",
+    },
+  } satisfies ChartConfig
+
   return (
     <>
       <div className="w-full">
@@ -142,9 +168,21 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
             }
             contentRight={
               <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive">Delete</Button>
-                </AlertDialogTrigger>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <DotsVerticalIcon className="w-4 h-4" />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56" align="end">
+                    <DropdownMenuGroup>
+                      <AlertDialogTrigger asChild>
+                        <DropdownMenuItem>
+                          <Trash className="mr-2 h-4 w-4" />
+                          <span>Delete app</span>
+                        </DropdownMenuItem>
+                      </AlertDialogTrigger>
+                    </DropdownMenuGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 <AlertDialogContent>
                   <AlertDialogHeader>
                     <AlertDialogTitle>Are you sure?</AlertDialogTitle>
@@ -167,6 +205,107 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
             }
             description={""}
           />
+
+          <div className="flex justify-end items-center">
+            <Select>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Last 30 days" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="light">This week</SelectItem>
+                <SelectItem value="system">This month</SelectItem>
+                <SelectItem value="dark">This year</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            <Card className="flex flex-col">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  <div className="flex flex-row gap-2 items-center">
+                    <ArrowDownCircle className="w-4 h-4" />
+                    Incoming
+                  </div>
+                </CardTitle>
+                <div className="text-2xl font-bold sensitive ph-no-capture">
+                  123.456 sats
+                </div>
+              </CardHeader>
+              <CardContent className="flex-grow">
+                <ChartContainer config={chartConfig} className="h-40 w-full">
+                  <BarChart data={chartData}>
+                    <Bar dataKey="desktop" fill="var(--color-desktop)" radius={4} />
+                  </BarChart>
+                </ChartContainer>
+              </CardContent>
+            </Card>
+            <Card className="flex flex-col">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  <div className="flex flex-row gap-2 items-center">
+                    <ArrowUpCircle className="w-4 h-4" />
+                    Outgoing
+                  </div>
+                </CardTitle>
+                <div className="text-2xl font-bold sensitive ph-no-capture">
+                  123.456 sats
+                </div>
+              </CardHeader>
+              <CardContent className="flex-grow">
+                <ChartContainer config={chartConfig} className="h-40 w-full">
+                  <BarChart data={chartData}>
+                    <Bar dataKey="mobile" fill="var(--color-mobile)" radius={4} />
+                  </BarChart>
+                </ChartContainer>
+
+              </CardContent>
+            </Card>
+            <Card className="flex flex-col">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  <div className="flex flex-row gap-2 items-center">
+                    <Activity className="w-4 h-4" />
+                    Activity
+                  </div>
+                </CardTitle>
+                <div className="text-2xl font-bold sensitive ph-no-capture">
+                  123 usages
+                </div>
+              </CardHeader>
+              <CardContent className="flex-grow">
+                <ChartContainer config={chartConfig} className="h-40 w-full">
+                  <BarChart data={chartData}>
+                    <Bar dataKey="mobile" fill="var(--color-mobile)" radius={4} />
+                  </BarChart>
+                </ChartContainer>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent activity</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {/* <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>test</TableCell>
+                    <TableCell>test</TableCell>
+                    <TableCell>test</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  <TableRow>
+                    <TableCell>test</TableCell>
+                    <TableCell>test</TableCell>
+                    <TableCell>test</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table> */}
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle>Info</CardTitle>
@@ -261,7 +400,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
             </Card>
           )}
         </div>
-      </div>
+      </div >
     </>
   );
 }
