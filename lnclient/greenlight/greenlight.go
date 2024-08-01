@@ -127,9 +127,10 @@ func (gs *GreenlightService) SendPaymentSync(ctx context.Context, payReq string)
 	}, nil
 }
 
-func (gs *GreenlightService) SendKeysend(ctx context.Context, amount uint64, destination string, custom_records []lnclient.TLVRecord) (paymentHash string, preimage string, fee uint64, err error) {
+func (gs *GreenlightService) SendKeysend(ctx context.Context, amount uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
 
-	extraTlvs := []glalby.TlvEntry{}
+	// TODO: re-enable when passing custom preimage is possible
+	/*extraTlvs := []glalby.TlvEntry{}
 
 	for _, customRecord := range custom_records {
 
@@ -153,7 +154,8 @@ func (gs *GreenlightService) SendKeysend(ctx context.Context, amount uint64, des
 
 	// TODO: get payment hash from response
 
-	return "", response.PaymentPreimage, 0, nil
+	return "", response.PaymentPreimage, 0, nil*/
+	return nil, errors.New("not supported")
 }
 
 func (gs *GreenlightService) GetBalance(ctx context.Context) (balance int64, err error) {
@@ -682,7 +684,7 @@ func (gs *GreenlightService) DisconnectPeer(ctx context.Context, peerId string) 
 }
 
 func (gs *GreenlightService) GetSupportedNIP47Methods() []string {
-	return []string{"pay_invoice", "pay_keysend", "get_balance", "get_info", "make_invoice", "lookup_invoice", "list_transactions", "multi_pay_invoice", "multi_pay_keysend", "sign_message"}
+	return []string{"pay_invoice" /*"pay_keysend",*/, "get_balance", "get_info", "make_invoice", "lookup_invoice", "list_transactions", "multi_pay_invoice", "multi_pay_keysend", "sign_message"}
 }
 
 func (gs *GreenlightService) GetSupportedNIP47NotificationTypes() []string {

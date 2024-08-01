@@ -80,7 +80,7 @@ func (mln *MockLn) SendPaymentSync(ctx context.Context, payReq string) (*lnclien
 	}, nil
 }
 
-func (mln *MockLn) SendKeysend(ctx context.Context, amount uint64, destination string, custom_records []lnclient.TLVRecord) (paymentHash string, preimage string, fee uint64, err error) {
+func (mln *MockLn) SendKeysend(ctx context.Context, amount uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
 	return "paymenthash", "12345preimage", 0, nil
 }
 

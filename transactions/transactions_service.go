@@ -2,6 +2,9 @@ package transactions
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -31,7 +34,7 @@ type TransactionsService interface {
 	LookupTransaction(ctx context.Context, paymentHash string, transactionType *string, lnClient lnclient.LNClient, appId *uint) (*Transaction, error)
 	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, transactionType *string, lnClient lnclient.LNClient, appId *uint) (transactions []Transaction, err error)
 	SendPaymentSync(ctx context.Context, payReq string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
-	SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []lnclient.TLVRecord, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
+	SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []lnclient.TLVRecord, preimage string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 }
 
 type Transaction = db.Transaction
@@ -234,7 +237,28 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 	return &dbTransaction, nil
 }
 
-func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []lnclient.TLVRecord, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
+func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []lnclient.TLVRecord, preimage string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
+
+	if preimage == "" {
+		preImageBytes, err := makePreimageHex()
+		if err != nil {
+			return nil, err
+		}
+		preimage = hex.EncodeToString(preImageBytes)
+	}
+
+	preImageBytes, err := hex.DecodeString(preimage)
+	if err != nil || len(preImageBytes) != 32 {
+		logger.Logger.WithFields(logrus.Fields{
+			"preimage": preimage,
+		}).WithError(err).Error("Invalid preimage")
+		return nil, err
+	}
+
+	paymentHash256 := sha256.New()
+	paymentHash256.Write(preImageBytes)
+	paymentHashBytes := paymentHash256.Sum(nil)
+	paymentHash := hex.EncodeToString(paymentHashBytes)
 
 	metadata := map[string]interface{}{}
 
@@ -255,7 +279,6 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 			return err
 		}
 
-		// NOTE: transaction is created without payment hash :scream:
 		dbTransaction = db.Transaction{
 			AppId:          appId,
 			RequestEventId: requestEventId,
@@ -264,6 +287,8 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 			FeeReserveMsat: svc.calculateFeeReserveMsat(uint64(amount)),
 			AmountMsat:     amount,
 			Metadata:       string(metadataBytes),
+			PaymentHash:    paymentHash,
+			Preimage:       &preimage,
 		}
 		err = tx.Create(&dbTransaction).Error
 
@@ -278,7 +303,7 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 		return nil, err
 	}
 
-	paymentHash, preimage, fee, err := lnClient.SendKeysend(ctx, amount, destination, customRecords)
+	payKeysendResponse, err := lnClient.SendKeysend(ctx, amount, destination, customRecords, preimage)
 
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
@@ -327,9 +352,7 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 	now := time.Now()
 	dbErr := svc.db.Model(&dbTransaction).Updates(map[string]interface{}{
 		"State":          constants.TRANSACTION_STATE_SETTLED,
-		"PaymentHash":    paymentHash,
-		"Preimage":       &preimage,
-		"FeeMsat":        &fee,
+		"FeeMsat":        &payKeysendResponse.Fee,
 		"FeeReserveMsat": 0,
 		"SettledAt":      &now,
 	}).Error
@@ -751,4 +774,13 @@ func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount 
 func (svc *transactionsService) calculateFeeReserveMsat(amount uint64) uint64 {
 	// NOTE: LDK defaults to 1% of the payment amount + 50 sats
 	return uint64(math.Max(math.Ceil(float64(amount)*0.01), 10000))
+}
+
+func makePreimageHex() ([]byte, error) {
+	bytes := make([]byte, 32) // 32 bytes * 8 bits/byte = 256 bits
+	_, err := rand.Read(bytes)
+	if err != nil {
+		return nil, err
+	}
+	return bytes, nil
 }
