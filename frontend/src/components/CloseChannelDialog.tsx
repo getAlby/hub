@@ -3,7 +3,8 @@ import React from "react";
 import ExternalLink from "src/components/ExternalLink";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
-import { Checkbox } from "src/components/ui/checkbox";
+import { Label } from "src/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "src/components/ui/radio-group";
 import { toast } from "src/components/ui/use-toast";
 import { useChannels } from "src/hooks/useChannels";
 import { useCSRF } from "src/hooks/useCSRF";
@@ -93,13 +94,12 @@ export function CloseChannelDialog({ alias, channel }: Props) {
             </AlertDialogTitle>
             <AlertDialogDescription>
               This channel is inactive. Some channels require up to 6 onchain
-              confirmations before they are usable. Proceed only if you still
-              want to continue
+              confirmations before they are usable.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <Button onClick={onContinue}>Continue</Button>
+            <Button onClick={onContinue}>Confirm</Button>
           </AlertDialogFooter>
         </>
       )}
@@ -143,50 +143,53 @@ export function CloseChannelDialog({ alias, channel }: Props) {
                   </AlertDescription>
                 </Alert>
               )}
-              <div className="flex flex-col gap-4 text-xs mt-2">
-                <div className="items-top flex space-x-2">
-                  <Checkbox
+              <RadioGroup
+                defaultValue="normal"
+                value={closeType}
+                onValueChange={() =>
+                  setCloseType(closeType === "normal" ? "force" : "normal")
+                }
+                className="mt-2"
+              >
+                <div className="flex items-start space-x-2 mb-2">
+                  <RadioGroupItem
+                    value="normal"
                     id="normal"
-                    onCheckedChange={() =>
-                      setCloseType(closeType === "normal" ? "force" : "normal")
-                    }
-                    checked={closeType === "normal"}
+                    className="shrink-0"
                   />
-                  <div className="grid gap-1.5 leading-none">
-                    <label
+                  <div className="grid gap-1.5">
+                    <Label
                       htmlFor="normal"
-                      className="text-primary text-sm font-medium leading-none cursor-pointer"
+                      className="text-primary font-medium cursor-pointer"
                     >
                       Normal Close
-                    </label>
+                    </Label>
                     <p className="text-sm text-muted-foreground">
                       Closes the channel cooperatively, usually faster and with
                       lower fees
                     </p>
                   </div>
                 </div>
-                <div className="items-top flex space-x-2">
-                  <Checkbox
+                <div className="flex items-start space-x-2">
+                  <RadioGroupItem
+                    value="force"
                     id="force"
-                    onCheckedChange={() =>
-                      setCloseType(closeType === "force" ? "normal" : "force")
-                    }
-                    checked={closeType === "force"}
+                    className="shrink-0"
                   />
-                  <div className="grid gap-1.5 leading-none">
-                    <label
+                  <div className="grid gap-1.5">
+                    <Label
                       htmlFor="force"
-                      className="text-primary text-sm font-medium leading-none cursor-pointer"
+                      className="text-primary font-medium cursor-pointer"
                     >
                       Force Close
-                    </label>
+                    </Label>
                     <p className="text-sm text-muted-foreground">
                       Closes the channel unilaterally, can take longer and might
                       incur higher fees
                     </p>
                   </div>
                 </div>
-              </div>
+              </RadioGroup>
               <ExternalLink
                 to="https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub/faq-alby-hub/how-can-i-close-this-channel-what-happens-to-the-sats-in-this-channel"
                 className="underline flex items-center mt-4"
