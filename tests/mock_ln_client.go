@@ -81,7 +81,9 @@ func (mln *MockLn) SendPaymentSync(ctx context.Context, payReq string) (*lnclien
 }
 
 func (mln *MockLn) SendKeysend(ctx context.Context, amount uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
-	return "paymenthash", "12345preimage", 0, nil
+	return &lnclient.PayKeysendResponse{
+		Fee: 0,
+	}, nil
 }
 
 func (mln *MockLn) GetBalance(ctx context.Context) (balance int64, err error) {

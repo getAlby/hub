@@ -19,7 +19,7 @@ func TestSendKeysend(t *testing.T) {
 	assert.NoError(t, err)
 
 	transactionsService := NewTransactionsService(svc.DB)
-	transaction, err := transactionsService.SendKeysend(ctx, uint64(1000), "fake destination", []lnclient.TLVRecord{}, svc.LNClient, nil, nil)
+	transaction, err := transactionsService.SendKeysend(ctx, uint64(1000), "fake destination", []lnclient.TLVRecord{}, "", svc.LNClient, nil, nil)
 
 	assert.NoError(t, err)
 	assert.Equal(t, `{"destination":"fake destination","tlv_records":[]}`, transaction.Metadata)
@@ -27,6 +27,28 @@ func TestSendKeysend(t *testing.T) {
 	assert.Equal(t, constants.TRANSACTION_TYPE_OUTGOING, transaction.Type)
 	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, transaction.State)
 	assert.Zero(t, transaction.FeeReserveMsat)
+	assert.NotNil(t, transaction.Preimage)
+	assert.Equal(t, 64, len(*transaction.Preimage))
+}
+func TestSendKeysend_CustomPreimage(t *testing.T) {
+	ctx := context.TODO()
+
+	defer tests.RemoveTestService()
+	svc, err := tests.CreateTestService()
+	assert.NoError(t, err)
+
+	customPreimage := "018465013e2337234a7e5530a21c4a8cf70d84231f4a8ff0b1e2cce3cb2bd03b"
+	transactionsService := NewTransactionsService(svc.DB)
+	transaction, err := transactionsService.SendKeysend(ctx, uint64(1000), "fake destination", []lnclient.TLVRecord{}, customPreimage, svc.LNClient, nil, nil)
+
+	assert.NoError(t, err)
+	assert.Equal(t, `{"destination":"fake destination","tlv_records":[]}`, transaction.Metadata)
+	assert.Equal(t, uint64(1000), transaction.AmountMsat)
+	assert.Equal(t, constants.TRANSACTION_TYPE_OUTGOING, transaction.Type)
+	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, transaction.State)
+	assert.Zero(t, transaction.FeeReserveMsat)
+	assert.NotNil(t, transaction.Preimage)
+	assert.Equal(t, customPreimage, *transaction.Preimage)
 }
 
 func TestSendKeysend_App_NoPermission(t *testing.T) {
@@ -44,7 +66,7 @@ func TestSendKeysend_App_NoPermission(t *testing.T) {
 	assert.NoError(t, err)
 
 	transactionsService := NewTransactionsService(svc.DB)
-	transaction, err := transactionsService.SendKeysend(ctx, uint64(1000), "fake destination", []lnclient.TLVRecord{}, svc.LNClient, &app.ID, &dbRequestEvent.ID)
+	transaction, err := transactionsService.SendKeysend(ctx, uint64(1000), "fake destination", []lnclient.TLVRecord{}, "", svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.Error(t, err)
 	assert.Equal(t, "app does not have pay_invoice scope", err.Error())
@@ -74,7 +96,7 @@ func TestSendKeysend_App_WithPermission(t *testing.T) {
 	assert.NoError(t, err)
 
 	transactionsService := NewTransactionsService(svc.DB)
-	transaction, err := transactionsService.SendKeysend(ctx, uint64(1000), "fake destination", []lnclient.TLVRecord{}, svc.LNClient, &app.ID, &dbRequestEvent.ID)
+	transaction, err := transactionsService.SendKeysend(ctx, uint64(1000), "fake destination", []lnclient.TLVRecord{}, "", svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.NoError(t, err)
 	assert.Equal(t, `{"destination":"fake destination","tlv_records":[]}`, transaction.Metadata)
@@ -84,6 +106,8 @@ func TestSendKeysend_App_WithPermission(t *testing.T) {
 	assert.Equal(t, app.ID, *transaction.AppId)
 	assert.Equal(t, dbRequestEvent.ID, *transaction.RequestEventId)
 	assert.Zero(t, transaction.FeeReserveMsat)
+	assert.NotNil(t, transaction.Preimage)
+	assert.Equal(t, 64, len(*transaction.Preimage))
 }
 
 func TestSendKeysend_App_BudgetExceeded(t *testing.T) {
@@ -110,7 +134,7 @@ func TestSendKeysend_App_BudgetExceeded(t *testing.T) {
 	assert.NoError(t, err)
 
 	transactionsService := NewTransactionsService(svc.DB)
-	transaction, err := transactionsService.SendKeysend(ctx, uint64(1000), "fake destination", []lnclient.TLVRecord{}, svc.LNClient, &app.ID, &dbRequestEvent.ID)
+	transaction, err := transactionsService.SendKeysend(ctx, uint64(1000), "fake destination", []lnclient.TLVRecord{}, "", svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.ErrorIs(t, err, NewQuotaExceededError())
 	assert.Nil(t, transaction)
@@ -139,7 +163,7 @@ func TestSendKeysend_App_BudgetNotExceeded(t *testing.T) {
 	assert.NoError(t, err)
 
 	transactionsService := NewTransactionsService(svc.DB)
-	transaction, err := transactionsService.SendKeysend(ctx, uint64(1000), "fake destination", []lnclient.TLVRecord{}, svc.LNClient, &app.ID, &dbRequestEvent.ID)
+	transaction, err := transactionsService.SendKeysend(ctx, uint64(1000), "fake destination", []lnclient.TLVRecord{}, "", svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.NoError(t, err)
 	assert.Equal(t, `{"destination":"fake destination","tlv_records":[]}`, transaction.Metadata)
@@ -149,6 +173,8 @@ func TestSendKeysend_App_BudgetNotExceeded(t *testing.T) {
 	assert.Equal(t, app.ID, *transaction.AppId)
 	assert.Equal(t, dbRequestEvent.ID, *transaction.RequestEventId)
 	assert.Zero(t, transaction.FeeReserveMsat)
+	assert.NotNil(t, transaction.Preimage)
+	assert.Equal(t, 64, len(*transaction.Preimage))
 }
 
 func TestSendKeysend_App_BalanceExceeded(t *testing.T) {
@@ -183,7 +209,7 @@ func TestSendKeysend_App_BalanceExceeded(t *testing.T) {
 	})
 
 	transactionsService := NewTransactionsService(svc.DB)
-	transaction, err := transactionsService.SendKeysend(ctx, uint64(1000), "fake destination", []lnclient.TLVRecord{}, svc.LNClient, &app.ID, &dbRequestEvent.ID)
+	transaction, err := transactionsService.SendKeysend(ctx, uint64(1000), "fake destination", []lnclient.TLVRecord{}, "", svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.ErrorIs(t, err, NewInsufficientBalanceError())
 	assert.Nil(t, transaction)
@@ -221,7 +247,7 @@ func TestSendKeysend_App_BalanceSufficient(t *testing.T) {
 	})
 
 	transactionsService := NewTransactionsService(svc.DB)
-	transaction, err := transactionsService.SendKeysend(ctx, uint64(1000), "fake destination", []lnclient.TLVRecord{}, svc.LNClient, &app.ID, &dbRequestEvent.ID)
+	transaction, err := transactionsService.SendKeysend(ctx, uint64(1000), "fake destination", []lnclient.TLVRecord{}, "", svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.NoError(t, err)
 	assert.Equal(t, `{"destination":"fake destination","tlv_records":[]}`, transaction.Metadata)
@@ -230,6 +256,8 @@ func TestSendKeysend_App_BalanceSufficient(t *testing.T) {
 	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, transaction.State)
 	assert.Equal(t, app.ID, *transaction.AppId)
 	assert.Equal(t, dbRequestEvent.ID, *transaction.RequestEventId)
+	assert.NotNil(t, transaction.Preimage)
+	assert.Equal(t, 64, len(*transaction.Preimage))
 	assert.Zero(t, transaction.FeeReserveMsat)
 }
 
@@ -246,12 +274,14 @@ func TestSendKeysend_TLVs(t *testing.T) {
 			Type:  7629169,
 			Value: "48656C6C6F2C20776F726C64",
 		},
-	}, svc.LNClient, nil, nil)
+	}, "", svc.LNClient, nil, nil)
 
 	assert.NoError(t, err)
 	assert.Equal(t, `{"destination":"fake destination","tlv_records":[{"type":7629169,"value":"48656C6C6F2C20776F726C64"}]}`, transaction.Metadata)
 	assert.Equal(t, uint64(1000), transaction.AmountMsat)
 	assert.Equal(t, constants.TRANSACTION_TYPE_OUTGOING, transaction.Type)
 	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, transaction.State)
+	assert.NotNil(t, transaction.Preimage)
+	assert.Equal(t, 64, len(*transaction.Preimage))
 	assert.Zero(t, transaction.FeeReserveMsat)
 }

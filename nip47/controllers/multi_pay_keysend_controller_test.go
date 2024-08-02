@@ -112,7 +112,7 @@ func TestHandleMultiPayKeysendEvent(t *testing.T) {
 
 	assert.Equal(t, 2, len(responses))
 	for i := 0; i < len(responses); i++ {
-		assert.Equal(t, "12345preimage", responses[i].Result.(payResponse).Preimage)
+		assert.Equal(t, 64, len(responses[i].Result.(payResponse).Preimage))
 		assert.Nil(t, responses[i].Error)
 		assert.Equal(t, "123pubkey", dTags[i].GetFirst([]string{"d"}).Value())
 	}
