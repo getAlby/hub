@@ -35,7 +35,7 @@ type AppConfig struct {
 	AlbyOAuthAuthUrl      string `envconfig:"ALBY_OAUTH_AUTH_URL" default:"https://getalby.com/oauth"`
 	BaseUrl               string `envconfig:"BASE_URL" default:"http://localhost:8080"`
 	FrontendUrl           string `envconfig:"FRONTEND_URL"`
-	LogEvents             bool   `envconfig:"LOG_EVENTS" default:"false"`
+	LogEvents             bool   `envconfig:"LOG_EVENTS" default:"true"`
 	AutoLinkAlbyAccount   bool   `envconfig:"AUTO_LINK_ALBY_ACCOUNT" default:"true"`
 	PhoenixdAddress       string `envconfig:"PHOENIXD_ADDRESS"`
 	PhoenixdAuthorization string `envconfig:"PHOENIXD_AUTHORIZATION"`

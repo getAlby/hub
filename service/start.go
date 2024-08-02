@@ -202,8 +202,9 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to fetch node info")
 	}
-	if info != nil && info.Pubkey != "" {
+	if info != nil {
 		svc.eventPublisher.SetGlobalProperty("node_id", info.Pubkey)
+		svc.eventPublisher.SetGlobalProperty("network", info.Network)
 	}
 
 	svc.eventPublisher.Publish(&events.Event{
