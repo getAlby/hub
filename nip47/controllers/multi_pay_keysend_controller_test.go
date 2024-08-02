@@ -118,26 +118,59 @@ func TestHandleMultiPayKeysendEvent(t *testing.T) {
 	}
 }
 
-// TODO: fix and re-enable this as a separate test
-// budget overflow
-/*newMaxAmount := 500
-err = svc.DB.Model(&db.AppPermission{}).Where("app_id = ?", app.ID).Update("max_amount", newMaxAmount).Error
-assert.NoError(t, err)
+func TestHandleMultiPayKeysendEvent_OneBudgetExceeded(t *testing.T) {
+	ctx := context.TODO()
+	defer tests.RemoveTestService()
+	svc, err := tests.CreateTestService()
+	assert.NoError(t, err)
 
-err = json.Unmarshal([]byte(nip47MultiPayKeysendOneOverflowingBudgetJson), request)
-assert.NoError(t, err)
+	app, _, err := tests.CreateApp(svc)
+	assert.NoError(t, err)
 
-payload, err = nip04.Encrypt(nip47MultiPayKeysendOneOverflowingBudgetJson, ss)
-assert.NoError(t, err)
-reqEvent.Content = payload
+	appPermission := &db.AppPermission{
+		AppId:        app.ID,
+		App:          *app,
+		Scope:        constants.PAY_INVOICE_SCOPE,
+		MaxAmountSat: 400,
+	}
+	err = svc.DB.Create(appPermission).Error
+	assert.NoError(t, err)
 
-reqEvent.ID = "multi_pay_keysend_with_budget_overflow"
-requestEvent.NostrId = reqEvent.ID
-responses = []*models.Response{}
-dTags = []nostr.Tags{}
-svc.nip47Svc.HandleMultiPayKeysendEvent(ctx, request, requestEvent, app, publishResponse)
+	nip47Request := &models.Request{}
+	err = json.Unmarshal([]byte(nip47MultiPayKeysendOneOverflowingBudgetJson), nip47Request)
+	assert.NoError(t, err)
 
-assert.Equal(t, responses[0].Error.Code, models.ERROR_QUOTA_EXCEEDED)
-assert.Equal(t, "500pubkey", dTags[0].GetFirst([]string{"d"}).Value())
-assert.Equal(t, responses[1].Result.(payResponse).Preimage, "12345preimage")
-assert.Equal(t, "customId", dTags[1].GetFirst([]string{"d"}).Value())*/
+	dbRequestEvent := &db.RequestEvent{}
+	err = svc.DB.Create(&dbRequestEvent).Error
+	assert.NoError(t, err)
+
+	responses := []*models.Response{}
+	dTags := []nostr.Tags{}
+
+	var mu sync.Mutex
+
+	publishResponse := func(response *models.Response, tags nostr.Tags) {
+		mu.Lock()
+		defer mu.Unlock()
+		responses = append(responses, response)
+		dTags = append(dTags, tags)
+	}
+
+	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB)
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
+		HandleMultiPayKeysendEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
+
+	// we can't guarantee which request was processed first
+	// so swap them if they are back to front
+	if responses[0].Result == nil {
+		responses[0], responses[1] = responses[1], responses[0]
+		dTags[0], dTags[1] = dTags[1], dTags[0]
+	}
+
+	assert.Equal(t, "customId", dTags[0].GetFirst([]string{"d"}).Value())
+	assert.Nil(t, responses[0].Error)
+
+	assert.Nil(t, responses[1].Result)
+	assert.Equal(t, models.ERROR_QUOTA_EXCEEDED, responses[1].Error.Code)
+}
