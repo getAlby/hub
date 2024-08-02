@@ -241,13 +241,6 @@ func (svc *LNDService) MakeInvoice(ctx context.Context, amount int64, descriptio
 		expiry = lnclient.DEFAULT_INVOICE_EXPIRY
 	}
 
-	addInvoiceRequest := &lnrpc.Invoice{
-		ValueMsat:       amount,
-		Memo:            description,
-		DescriptionHash: descriptionHashBytes,
-		Expiry:          expiry,
-	}
-
 	channels, err := svc.ListChannels(ctx)
 	if err != nil {
 		return nil, err
@@ -260,9 +253,12 @@ func (svc *LNDService) MakeInvoice(ctx context.Context, amount int64, descriptio
 		}
 	}
 
-	// if there is not even one public channel, use private channel hints in the invoice
-	if !hasPublicChannels {
-		addInvoiceRequest.Private = true
+	addInvoiceRequest := &lnrpc.Invoice{
+		ValueMsat:       amount,
+		Memo:            description,
+		DescriptionHash: descriptionHashBytes,
+		Expiry:          expiry,
+		Private:         !hasPublicChannels, // use private channel hints in the invoice
 	}
 
 	resp, err := svc.client.AddInvoice(ctx, addInvoiceRequest)
