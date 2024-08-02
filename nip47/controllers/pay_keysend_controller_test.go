@@ -84,6 +84,7 @@ func TestHandlePayKeysendEvent(t *testing.T) {
 
 	assert.Nil(t, publishedResponse.Error)
 	assert.Equal(t, 64, len(publishedResponse.Result.(payResponse).Preimage))
+	assert.Equal(t, uint64(1), publishedResponse.Result.(payResponse).FeesPaid)
 }
 func TestHandlePayKeysendEvent_WithPreimage(t *testing.T) {
 	ctx := context.TODO()
@@ -124,4 +125,5 @@ func TestHandlePayKeysendEvent_WithPreimage(t *testing.T) {
 
 	assert.Nil(t, publishedResponse.Error)
 	assert.Equal(t, "018465013e2337234a7e5530a21c4a8cf70d84231f4a8ff0b1e2cce3cb2bd03b", publishedResponse.Result.(payResponse).Preimage)
+	assert.Equal(t, uint64(1), publishedResponse.Result.(payResponse).FeesPaid)
 }

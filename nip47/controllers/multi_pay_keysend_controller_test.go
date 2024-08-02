@@ -113,6 +113,7 @@ func TestHandleMultiPayKeysendEvent(t *testing.T) {
 	assert.Equal(t, 2, len(responses))
 	for i := 0; i < len(responses); i++ {
 		assert.Equal(t, 64, len(responses[i].Result.(payResponse).Preimage))
+		assert.Equal(t, uint64(1), responses[i].Result.(payResponse).FeesPaid)
 		assert.Nil(t, responses[i].Error)
 		assert.Equal(t, "123pubkey", dTags[i].GetFirst([]string{"d"}).Value())
 	}
@@ -170,6 +171,8 @@ func TestHandleMultiPayKeysendEvent_OneBudgetExceeded(t *testing.T) {
 
 	assert.Equal(t, "customId", dTags[0].GetFirst([]string{"d"}).Value())
 	assert.Nil(t, responses[0].Error)
+	assert.Equal(t, 64, len(responses[0].Result.(payResponse).Preimage))
+	assert.Equal(t, uint64(1), responses[0].Result.(payResponse).FeesPaid)
 
 	assert.Nil(t, responses[1].Result)
 	assert.Equal(t, models.ERROR_QUOTA_EXCEEDED, responses[1].Error.Code)

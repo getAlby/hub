@@ -82,7 +82,7 @@ func (mln *MockLn) SendPaymentSync(ctx context.Context, payReq string) (*lnclien
 
 func (mln *MockLn) SendKeysend(ctx context.Context, amount uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
 	return &lnclient.PayKeysendResponse{
-		Fee: 0,
+		Fee: 1,
 	}, nil
 }
 
