@@ -133,6 +133,8 @@ Breez SDK requires gcc to build the Breez bindings. Run `choco install mingw` an
 
 ## Optional configuration parameters
 
+The following configuration options can be set as environment variables or in a .env file
+
 - `NOSTR_PRIVKEY`: the private key of this service. Should be a securely randomly generated 32 byte hex string.
 - `CLIENT_NOSTR_PUBKEY`: if set, this service will only listen to events authored by this public key. You can set this to your own nostr public key.
 - `RELAY`: default: "wss://relay.getalby.com/v1"
@@ -333,7 +335,9 @@ Run NWC on your own node!
 
 ### From the release
 
-Download and run the executable
+Download and run the executable. 
+
+Have a look at the [configuration options](#optional-configuration-parameters)
 
 ```bash
 wget https://getalby.com/install/hub/server-linux-x86_64.tar.bz2
