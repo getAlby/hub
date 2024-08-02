@@ -46,34 +46,47 @@ func (svc *service) startNostr(ctx context.Context, encryptionKey string) error 
 		defer svc.wg.Done()
 		//Start infinite loop which will be only broken by canceling ctx (SIGINT)
 		var relay *nostr.Relay
+		waitToReconnectSeconds := 0
 
 		for i := 0; ; i++ {
-			// wait for a delay before retrying except on first iteration
-			if i > 0 {
-				sleepDuration := 10
+
+			// wait for a delay if any before retrying
+			if waitToReconnectSeconds > 0 {
 				contextCancelled := false
-				logger.Logger.Infof("[Iteration %d] Retrying in %d seconds...", i, sleepDuration)
 
 				select {
 				case <-ctx.Done(): //context cancelled
 					logger.Logger.Info("service context cancelled while waiting for retry")
 					contextCancelled = true
-				case <-time.After(time.Duration(sleepDuration) * time.Second): //timeout
+				case <-time.After(time.Duration(waitToReconnectSeconds) * time.Second): //timeout
 				}
 				if contextCancelled {
 					break
 				}
 			}
+
 			closeRelay(relay)
 
 			//connect to the relay
-			logger.Logger.Infof("Connecting to the relay: %s", relayUrl)
+			logger.Logger.WithFields(logrus.Fields{
+				"relay_url": relayUrl,
+				"iteration": i,
+			}).Info("Connecting to the relay")
 
 			relay, err = nostr.RelayConnect(ctx, relayUrl, nostr.WithNoticeHandler(svc.noticeHandler))
 			if err != nil {
-				logger.Logger.WithError(err).Error("Failed to connect to relay")
+				// exponential backoff from 2 - 60 seconds
+				waitToReconnectSeconds = max(waitToReconnectSeconds, 1)
+				waitToReconnectSeconds *= 2
+				waitToReconnectSeconds = min(waitToReconnectSeconds, 60)
+				logger.Logger.WithFields(logrus.Fields{
+					"iteration":     i,
+					"retry_seconds": waitToReconnectSeconds,
+				}).WithError(err).Error("Failed to connect to relay")
 				continue
 			}
+
+			waitToReconnectSeconds = 0
 
 			//publish event with NIP-47 info
 			err = svc.nip47Service.PublishNip47Info(ctx, relay, svc.lnClient)
