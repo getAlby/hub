@@ -118,8 +118,9 @@ func (bs *BreezService) SendPaymentSync(ctx context.Context, payReq string) (*ln
 
 }
 
-func (bs *BreezService) SendKeysend(ctx context.Context, amount uint64, destination string, custom_records []lnclient.TLVRecord) (paymentHash string, preimage string, fee uint64, err error) {
-	extraTlvs := []breez_sdk.TlvEntry{}
+func (bs *BreezService) SendKeysend(ctx context.Context, amount uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
+	// TODO: re-enable when passing custom preimage is possible
+	/*extraTlvs := []breez_sdk.TlvEntry{}
 	for _, record := range custom_records {
 		decodedValue, err := hex.DecodeString(record.Value)
 		if err != nil {
@@ -144,7 +145,8 @@ func (bs *BreezService) SendKeysend(ctx context.Context, amount uint64, destinat
 	if resp.Payment.Details != nil {
 		lnDetails, _ = resp.Payment.Details.(breez_sdk.PaymentDetailsLn)
 	}
-	return lnDetails.Data.PaymentHash, lnDetails.Data.PaymentPreimage, resp.Payment.FeeMsat, nil
+	return lnDetails.Data.PaymentHash, lnDetails.Data.PaymentPreimage, resp.Payment.FeeMsat, nil*/
+	return nil, errors.New("not supported")
 }
 
 func (bs *BreezService) GetBalance(ctx context.Context) (balance int64, err error) {
@@ -481,7 +483,7 @@ func (bs *BreezService) DisconnectPeer(ctx context.Context, peerId string) error
 }
 
 func (bs *BreezService) GetSupportedNIP47Methods() []string {
-	return []string{"pay_invoice", "pay_keysend", "get_balance", "get_info", "make_invoice", "lookup_invoice", "list_transactions", "multi_pay_invoice", "multi_pay_keysend", "sign_message"}
+	return []string{"pay_invoice" /*"pay_keysend",*/, "get_balance", "get_info", "make_invoice", "lookup_invoice", "list_transactions", "multi_pay_invoice", "multi_pay_keysend", "sign_message"}
 }
 
 func (bs *BreezService) GetSupportedNIP47NotificationTypes() []string {

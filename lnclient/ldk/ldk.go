@@ -230,7 +230,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 			"035e4ff418fc8b5554c5d9eea66396c227bd429a3251c8cbc711002ba215bfc226@170.75.163.209:9735",  // WoS
 			"02fcc5bfc48e83f06c04483a2985e1c390cb0f35058baa875ad2053858b8e80dbd@35.239.148.251:9735",  // Blink
 			"027100442c3b79f606f80f322d98d499eefcb060599efc5d4ecb00209c2cb54190@3.230.33.224:9735",    // c=
-			"038a9e56512ec98da2b5789761f7af8f280baf98a09282360cd6ff1381b5e889bf@64.23.162.51:9735",     // Megalith LSP
+			"038a9e56512ec98da2b5789761f7af8f280baf98a09282360cd6ff1381b5e889bf@64.23.162.51:9735",    // Megalith LSP
 		}
 		logger.Logger.Info("Connecting to some peers to retrieve P2P gossip data")
 		for _, peer := range peers {
@@ -515,14 +515,14 @@ func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string) (*lnc
 	}, nil
 }
 
-func (ls *LDKService) SendKeysend(ctx context.Context, amount uint64, destination string, custom_records []lnclient.TLVRecord) (paymentHash string, preimage string, fee uint64, err error) {
+func (ls *LDKService) SendKeysend(ctx context.Context, amount uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
 	paymentStart := time.Now()
 	customTlvs := []ldk_node.TlvEntry{}
 
 	for _, customRecord := range custom_records {
 		decodedValue, err := hex.DecodeString(customRecord.Value)
 		if err != nil {
-			return "", "", 0, err
+			return nil, err
 		}
 		customTlvs = append(customTlvs, ldk_node.TlvEntry{
 			Type:  customRecord.Type,
@@ -533,12 +533,13 @@ func (ls *LDKService) SendKeysend(ctx context.Context, amount uint64, destinatio
 	ldkEventSubscription := ls.ldkEventBroadcaster.Subscribe()
 	defer ls.ldkEventBroadcaster.CancelSubscription(ldkEventSubscription)
 
-	paymentHash, err = ls.node.SpontaneousPayment().Send(amount, destination, customTlvs)
+	paymentHash, err := ls.node.SpontaneousPayment().Send(amount, destination, customTlvs, &preimage)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Keysend failed")
-		return paymentHash, "", 0, err
+		return nil, err
 	}
-
+	fee := uint64(0)
+	paid := false
 	for start := time.Now(); time.Since(start) < time.Second*60; {
 		event := <-ldkEventSubscription
 
@@ -547,25 +548,8 @@ func (ls *LDKService) SendKeysend(ctx context.Context, amount uint64, destinatio
 
 		if isEventPaymentSuccessfulEvent && eventPaymentSuccessful.PaymentHash == paymentHash {
 			logger.Logger.Info("Got payment success event")
-			payment := ls.node.Payment(paymentHash)
-			if payment == nil {
-				logger.Logger.Errorf("Couldn't find payment by payment hash: %v", paymentHash)
-				return paymentHash, "", 0, errors.New("Payment not found")
-			}
 
-			spontaneousPaymentKind, ok := payment.Kind.(ldk_node.PaymentKindSpontaneous)
-
-			if !ok {
-				logger.Logger.WithFields(logrus.Fields{
-					"payment": payment,
-				}).Error("Payment is not a spontaneous kind")
-			}
-
-			if spontaneousPaymentKind.Preimage == nil {
-				logger.Logger.Errorf("No payment preimage for payment hash: %v", paymentHash)
-				return paymentHash, "", 0, errors.New("Payment preimage not found")
-			}
-			preimage = *spontaneousPaymentKind.Preimage
+			paid = true
 
 			if eventPaymentSuccessful.FeePaidMsat != nil {
 				fee = *eventPaymentSuccessful.FeePaidMsat
@@ -581,21 +565,23 @@ func (ls *LDKService) SendKeysend(ctx context.Context, amount uint64, destinatio
 				"reason":       failureReasonMessage,
 			}).Error("Received payment failed event")
 
-			return paymentHash, "", 0, fmt.Errorf("payment failed event: %s", failureReasonMessage)
+			return nil, fmt.Errorf("payment failed event: %s", failureReasonMessage)
 		}
 	}
-	if preimage == "" {
+	if !paid {
 		logger.Logger.WithFields(logrus.Fields{
-			"paymentHash": paymentHash,
+			"payment_hash": paymentHash,
 		}).Warn("Timed out waiting for keysend to be sent")
-		return paymentHash, "", 0, lnclient.NewTimeoutError()
+		return nil, lnclient.NewTimeoutError()
 	}
 
 	logger.Logger.WithFields(logrus.Fields{
 		"duration": time.Since(paymentStart).Milliseconds(),
 		"fee":      fee,
 	}).Info("Successful keysend payment")
-	return paymentHash, preimage, fee, nil
+	return &lnclient.PayKeysendResponse{
+		Fee: fee,
+	}, nil
 }
 
 func (ls *LDKService) GetBalance(ctx context.Context) (balance int64, err error) {

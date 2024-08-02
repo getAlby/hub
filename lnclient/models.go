@@ -45,7 +45,7 @@ type NodeConnectionInfo struct {
 
 type LNClient interface {
 	SendPaymentSync(ctx context.Context, payReq string) (*PayInvoiceResponse, error)
-	SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []TLVRecord) (paymentHash string, preimage string, fee uint64, err error)
+	SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []TLVRecord, preimage string) (*PayKeysendResponse, error)
 	GetBalance(ctx context.Context) (balance int64, err error)
 	GetPubkey() string
 	GetInfo(ctx context.Context) (info *NodeInfo, err error)
@@ -155,6 +155,10 @@ type LightningBalanceResponse struct {
 type PayInvoiceResponse struct {
 	Preimage string `json:"preimage"`
 	Fee      uint64 `json:"fee"`
+}
+
+type PayKeysendResponse struct {
+	Fee uint64 `json:"fee"`
 }
 
 type BalancesResponse struct {
