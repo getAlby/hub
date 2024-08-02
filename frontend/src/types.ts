@@ -110,7 +110,6 @@ export interface ErrorResponse {
 
 export interface App {
   id: number;
-  userId: number;
   name: string;
   description: string;
   nostrPubkey: string;
@@ -196,6 +195,7 @@ export type Channel = {
   unspendablePunishmentReserve: number;
   counterpartyUnspendablePunishmentReserve: number;
   error?: string;
+  status: "online" | "opening" | "offline";
 };
 
 export type UpdateChannelRequest = {
@@ -283,7 +283,7 @@ export type SetupNodeInfo = Partial<{
   phoenixdAuthorization?: string;
 }>;
 
-export type LSPType = "LSPS1" | "Flow 2.0" | "PMLSP";
+export type LSPType = "LSPS1";
 
 export type RecommendedChannelPeer = {
   network: Network;
@@ -324,19 +324,28 @@ export type AlbyBalance = {
   sats: number;
 };
 
-export type NewInstantChannelInvoiceRequest = {
+export type LSPOrderRequest = {
   amount: number;
   lspType: LSPType;
   lspUrl: string;
   public: boolean;
 };
 
-export type NewInstantChannelInvoiceResponse = {
+export type LSPOrderResponse = {
   invoice: string;
   fee: number;
   invoiceAmount: number;
   incomingLiquidity: number;
   outgoingLiquidity: number;
+};
+
+export type AutoChannelRequest = {
+  isPublic: boolean;
+};
+export type AutoChannelResponse = {
+  invoice?: string;
+  fee?: number;
+  channelSize: number;
 };
 
 export type RedeemOnchainFundsResponse = {
@@ -372,13 +381,14 @@ export type Transaction = {
   metadata: unknown;
 };
 
-export type NewChannelOrderStatus = "pay" | "success" | "opening";
+export type NewChannelOrderStatus = "pay" | "paid" | "success" | "opening";
 
 export type NewChannelOrder = {
   amount: string;
   isPublic: boolean;
   status: NewChannelOrderStatus;
   fundingTxId?: string;
+  prevChannelIds: string[];
 } & (
   | {
       paymentMethod: "onchain";

@@ -16,7 +16,7 @@ type API interface {
 	DeleteApp(userApp *db.App) error
 	GetApp(userApp *db.App) *App
 	ListApps() ([]App, error)
-	ListChannels(ctx context.Context) ([]lnclient.Channel, error)
+	ListChannels(ctx context.Context) ([]Channel, error)
 	GetChannelPeerSuggestions(ctx context.Context) ([]alby.ChannelPeerSuggestion, error)
 	ResetRouter(key string) error
 	ChangeUnlockPassword(changeUnlockPasswordRequest *ChangeUnlockPasswordRequest) error
@@ -49,7 +49,7 @@ type API interface {
 	GetNetworkGraph(nodeIds []string) (NetworkGraphResponse, error)
 	SyncWallet() error
 	GetLogOutput(ctx context.Context, logType string, getLogRequest *GetLogOutputRequest) (*GetLogOutputResponse, error)
-	NewInstantChannelInvoice(ctx context.Context, request *NewInstantChannelInvoiceRequest) (*NewInstantChannelInvoiceResponse, error)
+	RequestLSPOrder(ctx context.Context, request *LSPOrderRequest) (*LSPOrderResponse, error)
 	CreateBackup(unlockPassword string, w io.Writer) error
 	RestoreBackup(unlockPassword string, r io.Reader) error
 	GetWalletCapabilities(ctx context.Context) (*WalletCapabilitiesResponse, error)
@@ -265,14 +265,14 @@ type BasicRestoreWailsRequest struct {
 
 type NetworkGraphResponse = lnclient.NetworkGraphResponse
 
-type NewInstantChannelInvoiceRequest struct {
+type LSPOrderRequest struct {
 	Amount  uint64 `json:"amount"`
 	LSPType string `json:"lspType"`
 	LSPUrl  string `json:"lspUrl"`
 	Public  bool   `json:"public"`
 }
 
-type NewInstantChannelInvoiceResponse struct {
+type LSPOrderResponse struct {
 	Invoice           string `json:"invoice"`
 	Fee               uint64 `json:"fee"`
 	InvoiceAmount     uint64 `json:"invoiceAmount"`
@@ -284,4 +284,23 @@ type WalletCapabilitiesResponse struct {
 	Scopes            []string `json:"scopes"`
 	Methods           []string `json:"methods"`
 	NotificationTypes []string `json:"notificationTypes"`
+}
+
+type Channel struct {
+	LocalBalance                             int64       `json:"localBalance"`
+	LocalSpendableBalance                    int64       `json:"localSpendableBalance"`
+	RemoteBalance                            int64       `json:"remoteBalance"`
+	Id                                       string      `json:"id"`
+	RemotePubkey                             string      `json:"remotePubkey"`
+	FundingTxId                              string      `json:"fundingTxId"`
+	Active                                   bool        `json:"active"`
+	Public                                   bool        `json:"public"`
+	InternalChannel                          interface{} `json:"internalChannel"`
+	Confirmations                            *uint32     `json:"confirmations"`
+	ConfirmationsRequired                    *uint32     `json:"confirmationsRequired"`
+	ForwardingFeeBaseMsat                    uint32      `json:"forwardingFeeBaseMsat"`
+	UnspendablePunishmentReserve             uint64      `json:"unspendablePunishmentReserve"`
+	CounterpartyUnspendablePunishmentReserve uint64      `json:"counterpartyUnspendablePunishmentReserve"`
+	Error                                    *string     `json:"error"`
+	Status                                   string      `json:"status"`
 }

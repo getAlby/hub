@@ -10,10 +10,11 @@ import (
 )
 
 type makeInvoiceParams struct {
-	Amount          int64  `json:"amount"`
-	Description     string `json:"description"`
-	DescriptionHash string `json:"description_hash"`
-	Expiry          int64  `json:"expiry"`
+	Amount          int64       `json:"amount"`
+	Description     string      `json:"description"`
+	DescriptionHash string      `json:"description_hash"`
+	Expiry          int64       `json:"expiry"`
+	Metadata        interface{} `json:"metadata,omitempty"`
 }
 type makeInvoiceResponse struct {
 	models.Transaction
@@ -34,11 +35,12 @@ func (controller *nip47Controller) HandleMakeInvoiceEvent(ctx context.Context, n
 		"description":      makeInvoiceParams.Description,
 		"description_hash": makeInvoiceParams.DescriptionHash,
 		"expiry":           makeInvoiceParams.Expiry,
+		"metadata":         makeInvoiceParams.Metadata,
 	}).Info("Making invoice")
 
 	expiry := makeInvoiceParams.Expiry
 
-	transaction, err := controller.transactionsService.MakeInvoice(ctx, makeInvoiceParams.Amount, makeInvoiceParams.Description, makeInvoiceParams.DescriptionHash, expiry, controller.lnClient, &appId, &requestEventId)
+	transaction, err := controller.transactionsService.MakeInvoice(ctx, makeInvoiceParams.Amount, makeInvoiceParams.Description, makeInvoiceParams.DescriptionHash, expiry, makeInvoiceParams.Metadata, controller.lnClient, &appId, &requestEventId)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"request_event_id": requestEventId,

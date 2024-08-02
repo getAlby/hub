@@ -32,6 +32,43 @@ func (albyHttpSvc *AlbyHttpService) RegisterSharedRoutes(e *echo.Echo, authMiddl
 	e.POST("/api/alby/pay", albyHttpSvc.albyPayHandler, authMiddleware)
 	e.POST("/api/alby/drain", albyHttpSvc.albyDrainHandler, authMiddleware)
 	e.POST("/api/alby/link-account", albyHttpSvc.albyLinkAccountHandler, authMiddleware)
+	e.POST("/api/alby/auto-channel", albyHttpSvc.autoChannelHandler, authMiddleware)
+	e.POST("/api/alby/unlink-account", albyHttpSvc.unlinkHandler, authMiddleware)
+}
+
+func (albyHttpSvc *AlbyHttpService) autoChannelHandler(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	var autoChannelRequest alby.AutoChannelRequest
+	if err := c.Bind(&autoChannelRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	autoChannelResponseResponse, err := albyHttpSvc.albyOAuthSvc.RequestAutoChannel(ctx, albyHttpSvc.svc.GetLNClient(), autoChannelRequest.IsPublic)
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to request auto channel: %s", err.Error()),
+		})
+	}
+
+	return c.JSON(http.StatusOK, autoChannelResponseResponse)
+}
+
+func (albyHttpSvc *AlbyHttpService) unlinkHandler(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	err := albyHttpSvc.albyOAuthSvc.UnlinkAccount(ctx)
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to request wrapped invoice: %s", err.Error()),
+		})
+	}
+
+	return c.NoContent(http.StatusNoContent)
 }
 
 func (albyHttpSvc *AlbyHttpService) albyCallbackHandler(c echo.Context) error {

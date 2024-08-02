@@ -5,7 +5,6 @@ import { Button } from "src/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
@@ -39,6 +38,7 @@ function SidebarHint() {
   if (
     !location.pathname.startsWith("/home") &&
     !location.pathname.startsWith("/channels/order") &&
+    !location.pathname.startsWith("/channels/first") &&
     !isLoading &&
     openChecklistItems.length
   ) {
@@ -89,9 +89,9 @@ function SidebarHintCard({
         <CardHeader className="p-4">
           <Icon className="h-8 w-8 mb-4" />
           <CardTitle>{title}</CardTitle>
-          <CardDescription>{description}</CardDescription>
         </CardHeader>
         <CardContent className="p-4 pt-0">
+          <div className="text-muted-foreground mb-4">{description}</div>
           <Link to={buttonLink}>
             <Button size="sm" className="w-full">
               {buttonText}

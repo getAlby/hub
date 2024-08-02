@@ -1,5 +1,7 @@
+import { ChevronLeft } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Button } from "src/components/ui/button.tsx";
 import { useInfo } from "src/hooks/useInfo";
 
 const quotes = [
@@ -51,6 +53,7 @@ const quotes = [
 
 export default function TwoColumnFullScreenLayout() {
   const { data: info } = useInfo();
+  const navigate = useNavigate();
   const { pathname } = useLocation();
   const [quote, setQuote] = useState(
     quotes[Math.floor(Math.random() * quotes.length)]
@@ -84,7 +87,22 @@ export default function TwoColumnFullScreenLayout() {
           </div>
         </div>
       </div>
-      <div className="flex items-center justify-center py-12 text-foreground">
+      <div className="flex items-center justify-center py-12 text-foreground relative">
+        {pathname.startsWith("/setup") &&
+          !pathname.startsWith("/setup/finish") && (
+            // show the back button on setup pages, except the setup finish page
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => {
+                navigate(-1);
+              }}
+              className="top-4 left-4 md:top-10 md:left-10 absolute mr-4"
+            >
+              <ChevronLeft className="w-4 h-4 mr-2" />
+              Back
+            </Button>
+          )}
         <Outlet />
       </div>
     </div>

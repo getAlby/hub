@@ -1,7 +1,9 @@
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
+import { Link } from "react-router-dom";
 
+import ExternalLink from "src/components/ExternalLink";
 import { cn } from "src/lib/utils";
 
 const buttonVariants = cva(
@@ -56,5 +58,34 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 );
 Button.displayName = "Button";
 
+type LinkProps = React.PropsWithChildren<
+  VariantProps<typeof buttonVariants> & {
+    to: string;
+    className?: string;
+  }
+>;
+const ExternalLinkButton = React.forwardRef<HTMLAnchorElement, LinkProps>(
+  ({ className, variant, size, ...props }, _ref) => {
+    return (
+      <ExternalLink
+        className={cn(buttonVariants({ variant, size, className }))}
+        {...props}
+      />
+    );
+  }
+);
+
+const LinkButton = React.forwardRef<HTMLAnchorElement, LinkProps>(
+  ({ className, variant, size, ...props }, _ref) => {
+    return (
+      <Link
+        className={cn(buttonVariants({ variant, size, className }))}
+        {...props}
+      />
+    );
+  }
+);
+
+//const ExternalLinkButton = LinkButton
 // eslint-disable-next-line react-refresh/only-export-components
-export { Button, buttonVariants };
+export { Button, buttonVariants, ExternalLinkButton, LinkButton };

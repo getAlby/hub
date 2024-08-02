@@ -230,7 +230,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 			"035e4ff418fc8b5554c5d9eea66396c227bd429a3251c8cbc711002ba215bfc226@170.75.163.209:9735",  // WoS
 			"02fcc5bfc48e83f06c04483a2985e1c390cb0f35058baa875ad2053858b8e80dbd@35.239.148.251:9735",  // Blink
 			"027100442c3b79f606f80f322d98d499eefcb060599efc5d4ecb00209c2cb54190@3.230.33.224:9735",    // c=
-			"38a9e56512ec98da2b5789761f7af8f280baf98a09282360cd6ff1381b5e889bf@64.23.162.51:9735",     // Megalith LSP
+			"038a9e56512ec98da2b5789761f7af8f280baf98a09282360cd6ff1381b5e889bf@64.23.162.51:9735",     // Megalith LSP
 		}
 		logger.Logger.Info("Connecting to some peers to retrieve P2P gossip data")
 		for _, peer := range peers {
@@ -263,6 +263,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 			case <-time.After(MIN_SYNC_INTERVAL):
 				ls.syncing = true
 				// always update fee rates to avoid differences in fee rates with channel partners
+				logger.Logger.Info("Updating fee estimates")
 				err = node.UpdateFeeEstimates()
 				if err != nil {
 					logger.Logger.WithError(err).Error("Failed to update fee estimates")
@@ -816,7 +817,7 @@ func (ls *LDKService) ListChannels(ctx context.Context) ([]lnclient.Channel, err
 			channelError = &channelErrorValue
 		}
 
-		isActive := ldkChannel.IsUsable /* superset of ldkChannel.IsReady */ && channelError == nil
+		isActive := ldkChannel.IsUsable /* superset of ldkChannel.IsReady */ && channelError == nil && fundingTxId != ""
 
 		channels = append(channels, lnclient.Channel{
 			InternalChannel:                          internalChannel,
@@ -999,9 +1000,12 @@ func (ls *LDKService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainB
 }
 
 func (ls *LDKService) RedeemOnchainFunds(ctx context.Context, toAddress string) (string, error) {
-	txId, err := ls.node.OnchainPayment().SendAllToAddress(toAddress)
+	spendableBalance := ls.node.ListBalances().SpendableOnchainBalanceSats
+	// TODO: estimate the transaction fee and subtract that from the spendable balance
+	// to avoid spending any of the reserved anchor channel balance
+	txId, err := ls.node.OnchainPayment().SendToAddress(toAddress, spendableBalance)
 	if err != nil {
-		logger.Logger.WithError(err).Error("SendAllToOnchainAddress failed")
+		logger.Logger.WithError(err).Error("SendToAddress failed")
 		return "", err
 	}
 	return txId, nil
@@ -1232,11 +1236,23 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 
 	switch eventType := (*event).(type) {
 	case ldk_node.EventChannelReady:
+		channels := ls.node.ListChannels()
+		channelIndex := slices.IndexFunc(channels, func(c ldk_node.ChannelDetails) bool {
+			return c.ChannelId == eventType.ChannelId
+		})
+		if channelIndex == -1 {
+			logger.Logger.WithField("event", eventType).Error("Failed to find channel by ID")
+			return
+		}
+		channel := channels[channelIndex]
 		ls.eventPublisher.Publish(&events.Event{
 			Event: "nwc_channel_ready",
 			Properties: map[string]interface{}{
 				"counterparty_node_id": eventType.CounterpartyNodeId,
 				"node_type":            config.LDKBackendType,
+				"public":               channel.IsPublic,
+				"capacity":             channel.ChannelValueSats,
+				"is_outbound":          channel.IsOutbound,
 			},
 		})
 

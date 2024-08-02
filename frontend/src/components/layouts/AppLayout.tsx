@@ -3,6 +3,7 @@ import {
   EllipsisVertical,
   ExternalLinkIcon,
   Home,
+  Lightbulb,
   Lock,
   Megaphone,
   Menu,
@@ -170,6 +171,18 @@ export default function AppLayout() {
         <MenuItem
           to="/"
           onClick={(e) => {
+            openLink(
+              "https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub"
+            );
+            e.preventDefault();
+          }}
+        >
+          <Lightbulb className="h-4 w-4" />
+          Knowledge Base
+        </MenuItem>
+        <MenuItem
+          to="/"
+          onClick={(e) => {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const chatwoot = (window as any).$chatwoot;
             if (chatwoot) {
@@ -199,12 +212,12 @@ export default function AppLayout() {
       <div className="font-sans min-h-screen w-full flex flex-col">
         <div className="flex-1 h-full grid md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
           <div className="hidden border-r bg-muted/40 md:block">
-            <div className="flex h-full max-h-screen flex-col gap-2 sticky top-0">
+            <div className="flex h-full max-h-screen flex-col gap-2 sticky top-0 overflow-y-auto">
               <div className="flex-1">
                 <nav className="grid items-start px-2 py-2 text-sm font-medium lg:px-4">
                   <div className="p-3 flex justify-between items-center mt-2 mb-6">
                     <Link to="/">
-                      <AlbyHubLogo className="text-primary/80" />
+                      <AlbyHubLogo className="text-foreground" />
                     </Link>
                     <TooltipProvider>
                       <Tooltip>
