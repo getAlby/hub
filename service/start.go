@@ -49,9 +49,7 @@ func (svc *service) startNostr(ctx context.Context, encryptionKey string) error 
 		waitToReconnectSeconds := 0
 
 		for i := 0; ; i++ {
-			if i > 0 {
-				logger.Logger.Infof("[Iteration %d] Retrying in %d seconds...", i, waitToReconnectSeconds)
-			}
+
 			// wait for a delay if any before retrying
 			if waitToReconnectSeconds > 0 {
 				contextCancelled := false
@@ -70,12 +68,21 @@ func (svc *service) startNostr(ctx context.Context, encryptionKey string) error 
 			closeRelay(relay)
 
 			//connect to the relay
-			logger.Logger.Infof("Connecting to the relay: %s", relayUrl)
+			logger.Logger.WithFields(logrus.Fields{
+				"relay_url": relayUrl,
+				"iteration": i,
+			}).Info("Connecting to the relay")
 
 			relay, err = nostr.RelayConnect(ctx, relayUrl, nostr.WithNoticeHandler(svc.noticeHandler))
 			if err != nil {
-				logger.Logger.WithError(err).Error("Failed to connect to relay")
-				waitToReconnectSeconds = 10
+				// exponential backoff from 2 - 60 seconds
+				waitToReconnectSeconds = max(waitToReconnectSeconds, 1)
+				waitToReconnectSeconds *= 2
+				waitToReconnectSeconds = min(waitToReconnectSeconds, 60)
+				logger.Logger.WithFields(logrus.Fields{
+					"iteration":     i,
+					"retry_seconds": waitToReconnectSeconds,
+				}).WithError(err).Error("Failed to connect to relay")
 				continue
 			}
 
