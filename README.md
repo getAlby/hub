@@ -331,17 +331,29 @@ Run NWC on your own node!
 
 ## Deploy it yourself
 
-### Digital Ocean
+### From the release
 
-[![Deploy to DO](https://www.deploytodo.com/do-btn-blue.svg)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/getAlby/hub/tree/master)
+Download and run the executable
 
-### Render
+```bash
+wget https://getalby.com/install/hub/server-linux-x86_64.tar.bz2
+tar -xvjf server-linux-x86_64.tar.bz2
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/getAlby/hub)
+# run Alby Hub and done!
+./bin/albyhub
+```
 
-### Fly
+### Fly.io
 
-- [install fly](https://fly.io/docs/hands-on/install-flyctl/)
+Make sure to have the [fly command line tools installed ](https://fly.io/docs/hands-on/install-flyctl/)
+
+```bash
+wget https://getalby.com/install/hub/fly.toml
+fly launch
+fly apps open
+```
+
+Or manually:
 - update `app = 'nwc'` on **line 6** to a unique name in fly.toml e.g. `app = 'nwc-john-doe-1234'`
 - run `fly launch`
   - press 'y' to copy configuration to the new app and then hit enter
@@ -362,17 +374,6 @@ LDK logs:
 
 - `fly machine exec "tail -100 data/ldk/logs/ldk_node_latest.log"`
 
-### Custom Ubuntu VM
-
-- install go (using snap)
-- install build-essential
-- install nvm (curl script)
-- with nvm, choose node lts
-- install yarn (via npm)
-- run `(cd frontend && yarn install`
-- run `(cd frontend && yarn build:http)`
-- run `go run cmd/http/main.go`
-
 ### Docker
 
 #### From Alby's Container Registry
@@ -381,14 +382,25 @@ _Tested on Linux only_
 
 `docker run -v ~/.local/share/albyhub:/data -e WORK_DIR='/data' -p 8080:8080 ghcr.io/getalby/hub:latest`
 
-#### From Source
+##### Build the image locally
 
-_Tested on Linux only_
+`docker run -v ~/.local/share/albyhub:/data -e WORK_DIR='/data' -p 8080:8080 $(docker build -q .)`
 
 ##### Docker Compose
 
+In this repository. Or manually download the docker-compose.yml file and then run:
+
 `docker compose up`
 
-##### Manually
+#### From source
 
-`docker run -v ~/.local/share/albyhub:/data -e WORK_DIR='/data' -p 8080:8080 $(docker build -q .)`
+- install go (e.g. using snap)
+- install build-essential
+- install yarn
+- run `(cd frontend && yarn install`
+- run `(cd frontend && yarn build:http)`
+- run `go run cmd/http/main.go`
+
+### Render.com
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/getAlby/hub)
