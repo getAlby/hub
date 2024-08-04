@@ -39,66 +39,7 @@ chmod +x $INSTALL_DIR/start.sh
 
 # add an update script to keep the Hub up to date
 # run this to update the hub
-tee -a $INSTALL_DIR/update.sh > /dev/null << EOF
-#!/bin/bash
-
-echo ""
-echo ""
-echo "⚡️ Updating Alby Hub"
-echo "-----------------------------------------"
-echo "This will download the latest version of Alby Hub."
-echo "You will have to unlock Alby Hub after the update."
-echo ""
-echo "Make sure you have your unlock password available and a backup of your seed."
-
-read -p "Do you want continue? (y/n): " -n 1 -r
-if [[ ! \$REPLY =~ ^[Yy]$ ]]
-then
-  exit
-fi
-
-sudo systemctl list-units --type=service --all | grep -Fq albyhub.service
-if [[ \$? -eq 0 ]]; then
-  echo "Stopping Alby Hub"
-  sudo systemctl stop albyhub
-fi
-
-if pgrep -x "albyhub" > /dev/null
-then
-  echo "Alby Hub process is still running, stopping it now."
-  pkill -f albyhub
-fi
-
-# make sure we run this in the install directory
-cd $INSTALL_DIR
-
-echo "Cleaning up old backup"
-rm -rf albyhub-backup
-mkdir albyhub-backup
-
-echo "Creating current backup"
-mv bin albyhub-backup
-mv lib albyhub-backup
-cp -r data albyhub-backup
-
-
-echo "Downloading latest version"
-ALBYHUB_URL="$ALBYHUB_URL"
-wget \$ALBYHUB_URL
-tar -xvf server-linux-x86_64.tar.bz2
-rm server-linux-x86_64.tar.bz2
-
-sudo systemctl list-units --type=service --all | grep -Fq albyhub.service
-if [[ \$? -eq 0 ]]; then
-  echo "Starting Alby Hub"
-  sudo systemctl start albyhub
-fi
-
-echo ""
-echo ""
-echo "✅ Update finished! Please unlock your wallet."
-echo ""
-EOF
+wget https://raw.githubusercontent.com/getAlby/hub/master/scripts/linux-x86_64/update.sh
 chmod +x $INSTALL_DIR/update.sh
 
 echo ""
