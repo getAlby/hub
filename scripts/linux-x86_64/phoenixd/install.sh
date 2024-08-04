@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ALBYHUB_URL="https://getalby.com/install/hub/server-linux-x86_64"
+ALBYHUB_URL="https://getalby.com/install/hub/server-linux-x86_64.tar.bz2"
 PHOENIX_VERSION="0.1.5"
 PHOENIX_URL="https://github.com/ACINQ/phoenixd/releases/download/v$PHOENIX_VERSION/phoenix-$PHOENIX_VERSION-linux-x64.zip"
 
@@ -26,9 +26,13 @@ unzip -j phoenix-$PHOENIX_VERSION-linux-x64.zip -d phoenixd
 
 mkdir -p "$INSTALL_DIR/albyhub"
 wget $ALBYHUB_URL
-tar xf albyhub-Server-Linux-x86_64.tar.gz --directory=albyhub
+tar xvf server-linux-x86_64.tar.bz2 --directory=albyhub
+if [[ $? -eq 0 ]]; then
+  echo "Failed to unpack Alby Hub. Potentially bzip2 is missing"
+  echo "Install it with sudo apt-get install bzip2"
+fi
 
-rm albyhub-Server-Linux-x86_64.tar.gz
+rm server-linux-x86_64.tar.bz2
 rm phoenix-$PHOENIX_VERSION-linux-x64.zip
 
 ### Create start scripts
@@ -53,9 +57,9 @@ tee -a $INSTALL_DIR/start.sh > /dev/null << EOF
 #!/bin/bash
 
 $INSTALL_DIR/phoenixd/start.sh &
-# wait a but until phoenixd is started
+# wait a bit until phoenixd is started
 # especially on the first run to make sure the config is there
-sleep 7
+sleep 8
 $INSTALL_DIR/albyhub/start.sh &
 echo "Started..."
 EOF
@@ -69,7 +73,7 @@ echo ""
 echo "Installation done."
 echo ""
 
-read -p "Do you want to setup a systemd service? " -n 1 -r
+read -p "Do you want to setup a systemd service? (y/n): " -n 1 -r
 if [[ ! $REPLY =~ ^[Yy]$ ]]
 then
   echo "Run $INSTALL_DIR/start.sh to start phoenixd and Alby Hub"
@@ -87,7 +91,7 @@ Wants=network-online.target
 Type=simple
 Restart=always
 RestartSec=1
-User=root
+User=$USER
 ExecStart=$INSTALL_DIR/albyhub/start.sh
 
 [Install]
@@ -104,7 +108,7 @@ Wants=network-online.target
 Type=simple
 Restart=always
 RestartSec=1
-User=root
+User=$USER
 ExecStart=$INSTALL_DIR/phoenixd/start.sh
 
 [Install]
@@ -114,9 +118,13 @@ EOF
 echo ""
 echo ""
 
-echo "Run 'sudo systemctl enable albyhub' to enable the Albyhub service"
-echo "Run 'sudo systemctl enable phoenixd' to enable the phoenixd service"
-echo "Run 'sudo systemctl start albyhub' to start Albyhub"
-echo "Run 'sudo systemctl start phoenixd' to start phoenixd"
+sudo systemctl enable albyhub
+sudo systemctl enable phoenixd
+sudo systemctl start phoenixd
+sudo systemctl start albyhub
+
+echo "Run 'sudo systemctl start/stop albyhub' to start/stop AlbyHub"
+echo "Run 'sudo systemctl start/stop phoenixd' to start/stop phoenixd"
 echo ""
-echo "DONE."
+echo "✅ DONE."
+echo "Alby Hub runs by default on localhost:8080"
