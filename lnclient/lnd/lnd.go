@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"io"
 	"math"
 	"sort"
 	"strconv"
@@ -14,6 +15,8 @@ import (
 
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
@@ -444,6 +447,12 @@ func NewLNDService(ctx context.Context, eventPublisher events.EventPublisher, ln
 				default:
 					payment, err := paymentStream.Recv()
 					if err != nil {
+						if grpcErr, ok := status.FromError(err); ok {
+							if grpcErr.Code() == codes.Unknown {
+								logger.Logger.Error("LND node stopped or unreachable, exiting payment subscription")
+								return
+							}
+						}
 						logger.Logger.WithError(err).Error("Failed to receive payment")
 						continue
 					}
@@ -501,6 +510,10 @@ func NewLNDService(ctx context.Context, eventPublisher events.EventPublisher, ln
 				default:
 					invoice, err := invoiceStream.Recv()
 					if err != nil {
+						if err == io.EOF {
+							logger.Logger.Error("LND node stopped or unreachable, exiting invoice subscription")
+							return
+						}
 						logger.Logger.WithError(err).Error("Failed to receive invoice")
 						continue
 					}
