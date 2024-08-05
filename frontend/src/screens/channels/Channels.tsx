@@ -409,24 +409,6 @@ export default function Channels() {
               </AlertDescription>
             </Alert>
           )}
-
-          {/* If all channels have less or equal balance than their reserve, show a warning */}
-          {channels?.every(
-            (channel) =>
-              channel.localBalance <=
-              channel.unspendablePunishmentReserve * 1000
-          ) && (
-            <Alert>
-              <AlertTriangle className="h-4 w-4" />
-              <AlertTitle>Channel reserves unmet</AlertTitle>
-              <AlertDescription>
-                You won't be able to make payments until you{" "}
-                <Link className="underline" to="/channels/outgoing">
-                  increase your spending balance.
-                </Link>
-              </AlertDescription>
-            </Alert>
-          )}
         </>
       )}
 
