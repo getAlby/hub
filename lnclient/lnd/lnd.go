@@ -546,7 +546,14 @@ func (svc *LNDService) GetNodeConnectionInfo(ctx context.Context) (nodeConnectio
 }
 
 func (svc *LNDService) ConnectPeer(ctx context.Context, connectPeerRequest *lnclient.ConnectPeerRequest) error {
-	_, err := svc.client.ConnectPeer(ctx, &lnrpc.ConnectPeerRequest{
+	peers, err := svc.ListPeers(ctx)
+	for _, peer := range peers {
+		if peer.NodeId == connectPeerRequest.Pubkey {
+			return nil
+		}
+	}
+
+	_, err = svc.client.ConnectPeer(ctx, &lnrpc.ConnectPeerRequest{
 		Addr: &lnrpc.LightningAddress{
 			Pubkey: connectPeerRequest.Pubkey,
 			Host:   connectPeerRequest.Address + ":" + strconv.Itoa(int(connectPeerRequest.Port)),
