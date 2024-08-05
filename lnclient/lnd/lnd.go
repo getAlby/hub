@@ -2,7 +2,6 @@ package lnd
 
 import (
 	"context"
-	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
@@ -241,7 +240,27 @@ func (svc *LNDService) MakeInvoice(ctx context.Context, amount int64, descriptio
 		expiry = lnclient.DEFAULT_INVOICE_EXPIRY
 	}
 
-	resp, err := svc.client.AddInvoice(ctx, &lnrpc.Invoice{ValueMsat: amount, Memo: description, DescriptionHash: descriptionHashBytes, Expiry: expiry})
+	channels, err := svc.ListChannels(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	hasPublicChannels := false
+	for _, channel := range channels {
+		if channel.Active && channel.Public {
+			hasPublicChannels = true
+		}
+	}
+
+	addInvoiceRequest := &lnrpc.Invoice{
+		ValueMsat:       amount,
+		Memo:            description,
+		DescriptionHash: descriptionHashBytes,
+		Expiry:          expiry,
+		Private:         !hasPublicChannels, // use private channel hints in the invoice
+	}
+
+	resp, err := svc.client.AddInvoice(ctx, addInvoiceRequest)
 
 	if err != nil {
 		return nil, err
@@ -300,37 +319,29 @@ func (svc *LNDService) SendPaymentSync(ctx context.Context, payReq string) (*lnc
 	}, nil
 }
 
-func (svc *LNDService) SendKeysend(ctx context.Context, amount uint64, destination string, custom_records []lnclient.TLVRecord) (paymentHash string, preimage string, fee uint64, err error) {
+func (svc *LNDService) SendKeysend(ctx context.Context, amount uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
 	destBytes, err := hex.DecodeString(destination)
 	if err != nil {
-		return "", "", 0, err
+		return nil, err
 	}
-	var preImageBytes []byte
-
-	preImageBytes, err = makePreimageHex()
-	preimage = hex.EncodeToString(preImageBytes)
-
+	preImageBytes, err := hex.DecodeString(preimage)
 	if err != nil || len(preImageBytes) != 32 {
 		logger.Logger.WithFields(logrus.Fields{
-			"amount":        amount,
-			"destination":   destination,
-			"preimage":      preimage,
-			"customRecords": custom_records,
-			"error":         err,
-		}).Errorf("Invalid preimage")
-		return "", "", 0, err
+			"preimage": preimage,
+		}).WithError(err).Error("Invalid preimage")
+		return nil, err
 	}
 
 	paymentHash256 := sha256.New()
 	paymentHash256.Write(preImageBytes)
 	paymentHashBytes := paymentHash256.Sum(nil)
-	paymentHash = hex.EncodeToString(paymentHashBytes)
+	paymentHash := hex.EncodeToString(paymentHashBytes)
 
 	destCustomRecords := map[uint64][]byte{}
 	for _, record := range custom_records {
 		decodedValue, err := hex.DecodeString(record.Value)
 		if err != nil {
-			return "", "", 0, err
+			return nil, err
 		}
 		destCustomRecords[record.Type] = decodedValue
 	}
@@ -354,7 +365,7 @@ func (svc *LNDService) SendKeysend(ctx context.Context, amount uint64, destinati
 			"customRecords": custom_records,
 			"error":         err,
 		}).Errorf("Failed to send keysend payment")
-		return paymentHash, "", 0, err
+		return nil, err
 	}
 	if resp.PaymentError != "" {
 		logger.Logger.WithFields(logrus.Fields{
@@ -365,7 +376,7 @@ func (svc *LNDService) SendKeysend(ctx context.Context, amount uint64, destinati
 			"customRecords": custom_records,
 			"paymentError":  resp.PaymentError,
 		}).Errorf("Keysend payment has payment error")
-		return paymentHash, "", 0, errors.New(resp.PaymentError)
+		return nil, errors.New(resp.PaymentError)
 	}
 	respPreimage := hex.EncodeToString(resp.PaymentPreimage)
 	if respPreimage != preimage {
@@ -377,7 +388,7 @@ func (svc *LNDService) SendKeysend(ctx context.Context, amount uint64, destinati
 			"customRecords": custom_records,
 			"paymentError":  resp.PaymentError,
 		}).Errorf("Preimage in keysend response does not match")
-		return paymentHash, "", 0, errors.New("preimage in keysend response does not match")
+		return nil, errors.New("preimage in keysend response does not match")
 	}
 	logger.Logger.WithFields(logrus.Fields{
 		"amount":        amount,
@@ -388,16 +399,9 @@ func (svc *LNDService) SendKeysend(ctx context.Context, amount uint64, destinati
 		"respPreimage":  respPreimage,
 	}).Info("Keysend payment successful")
 
-	return paymentHash, respPreimage, uint64(resp.PaymentRoute.TotalFeesMsat), nil
-}
-
-func makePreimageHex() ([]byte, error) {
-	bytes := make([]byte, 32) // 32 bytes * 8 bits/byte = 256 bits
-	_, err := rand.Read(bytes)
-	if err != nil {
-		return nil, err
-	}
-	return bytes, nil
+	return &lnclient.PayKeysendResponse{
+		Fee: uint64(resp.PaymentRoute.TotalFeesMsat),
+	}, nil
 }
 
 func NewLNDService(ctx context.Context, eventPublisher events.EventPublisher, lndAddress, lndCertHex, lndMacaroonHex string) (result lnclient.LNClient, err error) {

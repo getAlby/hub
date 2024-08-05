@@ -133,6 +133,8 @@ Breez SDK requires gcc to build the Breez bindings. Run `choco install mingw` an
 
 ## Optional configuration parameters
 
+The following configuration options can be set as environment variables or in a .env file
+
 - `NOSTR_PRIVKEY`: the private key of this service. Should be a securely randomly generated 32 byte hex string.
 - `CLIENT_NOSTR_PUBKEY`: if set, this service will only listen to events authored by this public key. You can set this to your own nostr public key.
 - `RELAY`: default: "wss://relay.getalby.com/v1"
@@ -331,17 +333,31 @@ Run NWC on your own node!
 
 ## Deploy it yourself
 
-### Digital Ocean
+### From the release
 
-[![Deploy to DO](https://www.deploytodo.com/do-btn-blue.svg)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/getAlby/hub/tree/master)
+Download and run the executable. 
 
-### Render
+Have a look at the [configuration options](#optional-configuration-parameters)
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/getAlby/hub)
+```bash
+wget https://getalby.com/install/hub/server-linux-x86_64.tar.bz2
+tar -xvjf server-linux-x86_64.tar.bz2
 
-### Fly
+# run Alby Hub and done!
+./bin/albyhub
+```
 
-- [install fly](https://fly.io/docs/hands-on/install-flyctl/)
+### Fly.io
+
+Make sure to have the [fly command line tools installed ](https://fly.io/docs/hands-on/install-flyctl/)
+
+```bash
+wget https://getalby.com/install/hub/fly.toml
+fly launch
+fly apps open
+```
+
+Or manually:
 - update `app = 'nwc'` on **line 6** to a unique name in fly.toml e.g. `app = 'nwc-john-doe-1234'`
 - run `fly launch`
   - press 'y' to copy configuration to the new app and then hit enter
@@ -362,17 +378,6 @@ LDK logs:
 
 - `fly machine exec "tail -100 data/ldk/logs/ldk_node_latest.log"`
 
-### Custom Ubuntu VM
-
-- install go (using snap)
-- install build-essential
-- install nvm (curl script)
-- with nvm, choose node lts
-- install yarn (via npm)
-- run `(cd frontend && yarn install`
-- run `(cd frontend && yarn build:http)`
-- run `go run cmd/http/main.go`
-
 ### Docker
 
 #### From Alby's Container Registry
@@ -381,14 +386,25 @@ _Tested on Linux only_
 
 `docker run -v ~/.local/share/albyhub:/data -e WORK_DIR='/data' -p 8080:8080 ghcr.io/getalby/hub:latest`
 
-#### From Source
+##### Build the image locally
 
-_Tested on Linux only_
+`docker run -v ~/.local/share/albyhub:/data -e WORK_DIR='/data' -p 8080:8080 $(docker build -q .)`
 
 ##### Docker Compose
 
+In this repository. Or manually download the docker-compose.yml file and then run:
+
 `docker compose up`
 
-##### Manually
+#### From source
 
-`docker run -v ~/.local/share/albyhub:/data -e WORK_DIR='/data' -p 8080:8080 $(docker build -q .)`
+- install go (e.g. using snap)
+- install build-essential
+- install yarn
+- run `(cd frontend && yarn install`
+- run `(cd frontend && yarn build:http)`
+- run `go run cmd/http/main.go`
+
+### Render.com
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/getAlby/hub)

@@ -2,8 +2,12 @@ package transactions
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"math"
 	"slices"
 	"strings"
@@ -26,11 +30,11 @@ type transactionsService struct {
 
 type TransactionsService interface {
 	events.EventSubscriber
-	MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
+	MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, metadata interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	LookupTransaction(ctx context.Context, paymentHash string, transactionType *string, lnClient lnclient.LNClient, appId *uint) (*Transaction, error)
 	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, transactionType *string, lnClient lnclient.LNClient, appId *uint) (transactions []Transaction, err error)
 	SendPaymentSync(ctx context.Context, payReq string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
-	SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []lnclient.TLVRecord, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
+	SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []lnclient.TLVRecord, preimage string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 }
 
 type Transaction = db.Transaction
@@ -74,7 +78,20 @@ func NewTransactionsService(db *gorm.DB) *transactionsService {
 	}
 }
 
-func (svc *transactionsService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
+func (svc *transactionsService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, metadata interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
+	var encodedMetadata string
+	if metadata != nil {
+		metadataBytes, err := json.Marshal(metadata)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to serialize metadata")
+			return nil, err
+		}
+		if len(metadataBytes) > constants.INVOICE_METADATA_MAX_LENGTH {
+			return nil, fmt.Errorf("encoded invoice metadata provided is too large. Limit: %d Received: %d", constants.INVOICE_METADATA_MAX_LENGTH, len(metadataBytes))
+		}
+		encodedMetadata = string(metadataBytes)
+	}
+
 	lnClientTransaction, err := lnClient.MakeInvoice(ctx, amount, description, descriptionHash, expiry)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to create transaction")
@@ -84,16 +101,6 @@ func (svc *transactionsService) MakeInvoice(ctx context.Context, amount int64, d
 	var preimage *string
 	if lnClientTransaction.Preimage != "" {
 		preimage = &lnClientTransaction.Preimage
-	}
-
-	var metadata string
-	if lnClientTransaction.Metadata != nil {
-		metadataBytes, err := json.Marshal(lnClientTransaction.Metadata)
-		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to serialize transaction metadata")
-			return nil, err
-		}
-		metadata = string(metadataBytes)
 	}
 
 	var expiresAt *time.Time
@@ -114,7 +121,7 @@ func (svc *transactionsService) MakeInvoice(ctx context.Context, amount int64, d
 		PaymentHash:     lnClientTransaction.PaymentHash,
 		ExpiresAt:       expiresAt,
 		Preimage:        preimage,
-		Metadata:        metadata,
+		Metadata:        encodedMetadata,
 	}
 	err = svc.db.Create(&dbTransaction).Error
 	if err != nil {
@@ -230,7 +237,28 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 	return &dbTransaction, nil
 }
 
-func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []lnclient.TLVRecord, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
+func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []lnclient.TLVRecord, preimage string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
+
+	if preimage == "" {
+		preImageBytes, err := makePreimageHex()
+		if err != nil {
+			return nil, err
+		}
+		preimage = hex.EncodeToString(preImageBytes)
+	}
+
+	preImageBytes, err := hex.DecodeString(preimage)
+	if err != nil || len(preImageBytes) != 32 {
+		logger.Logger.WithFields(logrus.Fields{
+			"preimage": preimage,
+		}).WithError(err).Error("Invalid preimage")
+		return nil, err
+	}
+
+	paymentHash256 := sha256.New()
+	paymentHash256.Write(preImageBytes)
+	paymentHashBytes := paymentHash256.Sum(nil)
+	paymentHash := hex.EncodeToString(paymentHashBytes)
 
 	metadata := map[string]interface{}{}
 
@@ -251,7 +279,6 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 			return err
 		}
 
-		// NOTE: transaction is created without payment hash :scream:
 		dbTransaction = db.Transaction{
 			AppId:          appId,
 			RequestEventId: requestEventId,
@@ -260,6 +287,8 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 			FeeReserveMsat: svc.calculateFeeReserveMsat(uint64(amount)),
 			AmountMsat:     amount,
 			Metadata:       string(metadataBytes),
+			PaymentHash:    paymentHash,
+			Preimage:       &preimage,
 		}
 		err = tx.Create(&dbTransaction).Error
 
@@ -274,7 +303,7 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 		return nil, err
 	}
 
-	paymentHash, preimage, fee, err := lnClient.SendKeysend(ctx, amount, destination, customRecords)
+	payKeysendResponse, err := lnClient.SendKeysend(ctx, amount, destination, customRecords, preimage)
 
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
@@ -323,9 +352,7 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 	now := time.Now()
 	dbErr := svc.db.Model(&dbTransaction).Updates(map[string]interface{}{
 		"State":          constants.TRANSACTION_STATE_SETTLED,
-		"PaymentHash":    paymentHash,
-		"Preimage":       &preimage,
-		"FeeMsat":        &fee,
+		"FeeMsat":        &payKeysendResponse.Fee,
 		"FeeReserveMsat": 0,
 		"SettledAt":      &now,
 	}).Error
@@ -747,4 +774,13 @@ func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount 
 func (svc *transactionsService) calculateFeeReserveMsat(amount uint64) uint64 {
 	// NOTE: LDK defaults to 1% of the payment amount + 50 sats
 	return uint64(math.Max(math.Ceil(float64(amount)*0.01), 10000))
+}
+
+func makePreimageHex() ([]byte, error) {
+	bytes := make([]byte, 32) // 32 bytes * 8 bits/byte = 256 bits
+	_, err := rand.Read(bytes)
+	if err != nil {
+		return nil, err
+	}
+	return bytes, nil
 }

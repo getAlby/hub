@@ -23,21 +23,21 @@ func NewEventPublisher() *eventPublisher {
 	return eventPublisher
 }
 
-func (el *eventPublisher) RegisterSubscriber(listener EventSubscriber) {
-	el.subscriberMtx.Lock()
-	defer el.subscriberMtx.Unlock()
-	el.listeners = append(el.listeners, listener)
+func (ep *eventPublisher) RegisterSubscriber(listener EventSubscriber) {
+	ep.subscriberMtx.Lock()
+	defer ep.subscriberMtx.Unlock()
+	ep.listeners = append(ep.listeners, listener)
 }
 
-func (el *eventPublisher) RemoveSubscriber(listenerToRemove EventSubscriber) {
-	el.subscriberMtx.Lock()
-	defer el.subscriberMtx.Unlock()
+func (ep *eventPublisher) RemoveSubscriber(listenerToRemove EventSubscriber) {
+	ep.subscriberMtx.Lock()
+	defer ep.subscriberMtx.Unlock()
 
-	for i, listener := range el.listeners {
+	for i, listener := range ep.listeners {
 		// delete the listener from the listeners array
 		if listener == listenerToRemove {
-			el.listeners[i] = el.listeners[len(el.listeners)-1]
-			el.listeners = slices.Delete(el.listeners, len(el.listeners)-1, len(el.listeners))
+			ep.listeners[i] = ep.listeners[len(ep.listeners)-1]
+			ep.listeners = slices.Delete(ep.listeners, len(ep.listeners)-1, len(ep.listeners))
 			break
 		}
 	}
@@ -46,7 +46,7 @@ func (el *eventPublisher) RemoveSubscriber(listenerToRemove EventSubscriber) {
 func (ep *eventPublisher) Publish(event *Event) {
 	ep.subscriberMtx.Lock()
 	defer ep.subscriberMtx.Unlock()
-	logger.Logger.WithFields(logrus.Fields{"event": event}).Info("Publishing event")
+	logger.Logger.WithFields(logrus.Fields{"event": event, "global": ep.globalProperties}).Info("Publishing event")
 	for _, listener := range ep.listeners {
 		// events are consumed in sequence as some listeners depend on earlier consumers
 		// (e.g. NIP-47 notifier depends on transactions service updating transactions)
@@ -54,6 +54,6 @@ func (ep *eventPublisher) Publish(event *Event) {
 	}
 }
 
-func (el *eventPublisher) SetGlobalProperty(key string, value interface{}) {
-	el.globalProperties[key] = value
+func (ep *eventPublisher) SetGlobalProperty(key string, value interface{}) {
+	ep.globalProperties[key] = value
 }

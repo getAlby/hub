@@ -8,7 +8,7 @@ require (
 	github.com/davrux/echo-logrus/v4 v4.0.3
 	github.com/elnosh/gonuts v0.1.1-0.20240602162005-49da741613e4
 	github.com/getAlby/glalby-go v0.0.0-20240621192717-95673c864d59
-	github.com/getAlby/ldk-node-go v0.0.0-20240624140557-d51c707f10d9
+	github.com/getAlby/ldk-node-go v0.0.0-20240801181008-94e3b8403ad3
 	github.com/go-gormigrate/gormigrate/v2 v2.1.2
 	github.com/gorilla/sessions v1.3.0
 	github.com/labstack/echo-contrib v0.17.1
@@ -21,7 +21,7 @@ require (
 	golang.org/x/crypto v0.25.0
 	golang.org/x/oauth2 v0.21.0
 	google.golang.org/grpc v1.65.0
-	gopkg.in/DataDog/dd-trace-go.v1 v1.65.1
+	gopkg.in/DataDog/dd-trace-go.v1 v1.66.0
 	gopkg.in/macaroon.v2 v2.1.0
 	gorm.io/gorm v1.25.11
 )
@@ -65,7 +65,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/fergusstrange/embedded-postgres v1.25.0 // indirect
 	github.com/frankban/quicktest v1.13.0 // indirect
-	github.com/glebarez/go-sqlite v1.21.2 // indirect
+	github.com/glebarez/go-sqlite v1.22.0 // indirect
 	github.com/go-errors/errors v1.5.1 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect

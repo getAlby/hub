@@ -34,6 +34,7 @@ import BuyBitcoin from "src/screens/onchain/BuyBitcoin";
 import DepositBitcoin from "src/screens/onchain/DepositBitcoin";
 import ConnectPeer from "src/screens/peers/ConnectPeer";
 import Peers from "src/screens/peers/Peers";
+import { AlbyAccount } from "src/screens/settings/AlbyAccount";
 import { ChangeUnlockPassword } from "src/screens/settings/ChangeUnlockPassword";
 import DebugTools from "src/screens/settings/DebugTools";
 import Settings from "src/screens/settings/Settings";
@@ -128,6 +129,10 @@ const routes = [
               {
                 path: "node-backup",
                 element: <BackupNode />,
+              },
+              {
+                path: "alby-account",
+                element: <AlbyAccount />,
               },
             ],
           },

@@ -41,12 +41,11 @@ export function AppCardConnectionInfo({
             </div>
           </div>
           <div className="flex flex-row justify-between text-xs items-end mt-2">
-            <div>
-              {connection.lastEventAt && (
-                <p className="text-muted-foreground">
-                  Last used: {dayjs(connection.lastEventAt).fromNow()}
-                </p>
-              )}
+            <div className="text-muted-foreground">
+              Last used:{" "}
+              {connection.lastEventAt
+                ? dayjs(connection.lastEventAt).fromNow()
+                : "Never"}
             </div>
             <div className="flex flex-col items-end justify-end">
               <p>Balance</p>
@@ -77,9 +76,10 @@ export function AppCardConnectionInfo({
           />
           <div className="flex flex-row justify-between text-xs items-center text-muted-foreground mt-2">
             <div>
-              {connection.lastEventAt && (
-                <>Last used: {dayjs(connection.lastEventAt).fromNow()}</>
-              )}
+              Last used:{" "}
+              {connection.lastEventAt
+                ? dayjs(connection.lastEventAt).fromNow()
+                : "Never"}
             </div>
             <div>
               {connection.maxAmount && (
@@ -105,7 +105,13 @@ export function AppCardConnectionInfo({
               </p>
             </div>
           </div>
-          <div className="flex flex-row justify-end items-center">
+          <div className="flex flex-row justify-between items-center">
+            <div className="text-muted-foreground text-xs">
+              Last used:{" "}
+              {connection.lastEventAt
+                ? dayjs(connection.lastEventAt).fromNow()
+                : "Never"}
+            </div>
             <Link to={`/apps/${connection.nostrPubkey}?edit=true`}>
               <Button variant="outline">
                 <PlusCircle className="w-4 h-4 mr-2" />
@@ -136,9 +142,10 @@ export function AppCardConnectionInfo({
           </div>
           <div className="flex flex-row justify-between items-center">
             <div className="flex flex-row justify-between text-xs items-center text-muted-foreground">
-              {connection.lastEventAt && (
-                <>Last used: {dayjs(connection.lastEventAt).fromNow()}</>
-              )}
+              Last used:{" "}
+              {connection.lastEventAt
+                ? dayjs(connection.lastEventAt).fromNow()
+                : "Never"}
             </div>
             <Link
               to={`/apps/${connection.nostrPubkey}?edit=true`}

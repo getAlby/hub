@@ -89,8 +89,8 @@ func (cs *CashuService) SendPaymentSync(ctx context.Context, invoice string) (re
 	}, nil
 }
 
-func (cs *CashuService) SendKeysend(ctx context.Context, amount uint64, destination string, custom_records []lnclient.TLVRecord) (paymentHash string, preimage string, fee uint64, err error) {
-	return "", "", 0, errors.New("keysend not supported")
+func (cs *CashuService) SendKeysend(ctx context.Context, amount uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
+	return nil, errors.New("keysend not supported")
 }
 
 func (cs *CashuService) GetBalance(ctx context.Context) (balance int64, err error) {

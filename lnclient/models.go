@@ -45,7 +45,7 @@ type NodeConnectionInfo struct {
 
 type LNClient interface {
 	SendPaymentSync(ctx context.Context, payReq string) (*PayInvoiceResponse, error)
-	SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []TLVRecord) (paymentHash string, preimage string, fee uint64, err error)
+	SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []TLVRecord, preimage string) (*PayKeysendResponse, error)
 	GetBalance(ctx context.Context) (balance int64, err error)
 	GetPubkey() string
 	GetInfo(ctx context.Context) (info *NodeInfo, err error)
@@ -79,21 +79,21 @@ type LNClient interface {
 }
 
 type Channel struct {
-	LocalBalance                             int64       `json:"localBalance"`
-	LocalSpendableBalance                    int64       `json:"localSpendableBalance"`
-	RemoteBalance                            int64       `json:"remoteBalance"`
-	Id                                       string      `json:"id"`
-	RemotePubkey                             string      `json:"remotePubkey"`
-	FundingTxId                              string      `json:"fundingTxId"`
-	Active                                   bool        `json:"active"`
-	Public                                   bool        `json:"public"`
-	InternalChannel                          interface{} `json:"internalChannel"`
-	Confirmations                            *uint32     `json:"confirmations"`
-	ConfirmationsRequired                    *uint32     `json:"confirmationsRequired"`
-	ForwardingFeeBaseMsat                    uint32      `json:"forwardingFeeBaseMsat"`
-	UnspendablePunishmentReserve             uint64      `json:"unspendablePunishmentReserve"`
-	CounterpartyUnspendablePunishmentReserve uint64      `json:"counterpartyUnspendablePunishmentReserve"`
-	Error                                    *string     `json:"error"`
+	LocalBalance                             int64
+	LocalSpendableBalance                    int64
+	RemoteBalance                            int64
+	Id                                       string
+	RemotePubkey                             string
+	FundingTxId                              string
+	Active                                   bool
+	Public                                   bool
+	InternalChannel                          interface{}
+	Confirmations                            *uint32
+	ConfirmationsRequired                    *uint32
+	ForwardingFeeBaseMsat                    uint32
+	UnspendablePunishmentReserve             uint64
+	CounterpartyUnspendablePunishmentReserve uint64
+	Error                                    *string
 }
 
 type NodeStatus struct {
@@ -155,6 +155,10 @@ type LightningBalanceResponse struct {
 type PayInvoiceResponse struct {
 	Preimage string `json:"preimage"`
 	Fee      uint64 `json:"fee"`
+}
+
+type PayKeysendResponse struct {
+	Fee uint64 `json:"fee"`
 }
 
 type BalancesResponse struct {

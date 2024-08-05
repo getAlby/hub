@@ -97,7 +97,7 @@ export default function SettingsLayout() {
       />
       <div className="flex flex-col space-y-8 lg:flex-row lg:space-x-12 lg:space-y-0">
         <aside className="lg:-mx-4 lg:w-1/5">
-          <nav className="flex space-x-2 lg:flex-col lg:space-x-0 lg:space-y-1">
+          <nav className="flex flex-wrap lg:flex-col -space-x-1 lg:space-x-0 lg:space-y-1">
             <MenuItem to="/settings">Theme</MenuItem>
             <MenuItem to="/settings/change-unlock-password">
               Unlock Password
@@ -108,6 +108,7 @@ export default function SettingsLayout() {
             {hasNodeBackup && (
               <MenuItem to="/settings/node-backup">Migrate Node</MenuItem>
             )}
+            <MenuItem to="/settings/alby-account">Alby Account</MenuItem>
             <MenuItem to="/debug-tools">
               Debug Tools
               <ExternalLink className="w-4 h-4 ml-2" />
