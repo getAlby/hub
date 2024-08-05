@@ -36,7 +36,7 @@ Either use systemd:
 
     $ sudo systemctl [start|stop] albyhub.service
 
-Or us the start scripts:
+Or use the start scripts:
 
     $ [your install path]/start.sh
 
