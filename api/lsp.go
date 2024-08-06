@@ -104,7 +104,7 @@ func (api *api) RequestLSPOrder(ctx context.Context, request *LSPOrderRequest) (
 
 	logger.Logger.WithFields(logrus.Fields{
 		"newChannelResponse": newChannelResponse,
-	}).Info("New Channel response")
+	}).Debug("New Channel response")
 
 	return newChannelResponse, nil
 }

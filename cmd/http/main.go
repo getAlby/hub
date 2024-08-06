@@ -9,7 +9,6 @@ import (
 	"syscall"
 	"time"
 
-	echologrus "github.com/davrux/echo-logrus/v4"
 	"github.com/getAlby/hub/http"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/service"
@@ -28,7 +27,6 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	svc, _ := service.NewService(ctx)
 
-	echologrus.Logger = logger.Logger
 	e := echo.New()
 
 	//register shared routes
