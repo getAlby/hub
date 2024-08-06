@@ -236,15 +236,17 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 			err = svc.publishResponseEvent(ctx, relay, &requestEvent, resp, &app)
 			if err != nil {
 				logger.Logger.WithFields(logrus.Fields{
-					"requestEventNostrId": event.ID,
-					"eventKind":           event.Kind,
-					"appId":               app.ID,
+					"requestEventNostrId":  event.ID,
+					"responseEventNostrId": resp.ID,
+					"eventKind":            event.Kind,
+					"appId":                app.ID,
 				}).WithError(err).Error("Failed to publish event")
 				requestEvent.State = db.REQUEST_EVENT_STATE_HANDLER_ERROR
 			} else {
 				requestEvent.State = db.REQUEST_EVENT_STATE_HANDLER_EXECUTED
 				logger.Logger.WithFields(logrus.Fields{
 					"requestEventNostrId": event.ID,
+					"responseEventNostrId": resp.ID,
 					"eventKind":           event.Kind,
 					"appId":               app.ID,
 				}).Info("Published response")
