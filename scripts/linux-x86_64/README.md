@@ -25,9 +25,9 @@ Or directly through SSH:
 
 The install script will prompt you for an installation folder and will install Alby Hub.
 
-Optionally it can also creates a systemd service for you.
+Optionally it can also create a systemd service for you.
 
-It will run on localhost:8080 by default.
+Alby Hub will run on localhost:8080 by default (configurable using the `PORT` environment variable)
 To run on a public domain we recommend the use of a reverse proxy using [Caddy](https://caddyserver.com/)
 
 ### Running the services
