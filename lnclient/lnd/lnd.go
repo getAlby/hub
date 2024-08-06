@@ -28,9 +28,9 @@ import (
 )
 
 type LNDService struct {
-	client *wrapper.LNDWrapper
-	pubkey string
-	cancel context.CancelFunc
+	client   *wrapper.LNDWrapper
+	nodeInfo *lnclient.NodeInfo
+	cancel   context.CancelFunc
 }
 
 func (svc *LNDService) GetBalance(ctx context.Context) (balance int64, err error) {
@@ -95,7 +95,18 @@ func (svc *LNDService) ListTransactions(ctx context.Context, from, until, limit,
 }
 
 func (svc *LNDService) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, err error) {
-	resp, err := svc.client.GetInfo(ctx, &lnrpc.GetInfoRequest{})
+	if svc.nodeInfo == nil {
+		nodeInfo, err := fetchNodeInfo(ctx, svc.client)
+		if err != nil {
+			return nil, err
+		}
+		svc.nodeInfo = nodeInfo
+	}
+	return svc.nodeInfo, nil
+}
+
+func fetchNodeInfo(ctx context.Context, client *wrapper.LNDWrapper) (*lnclient.NodeInfo, error) {
+	resp, err := client.GetInfo(ctx, &lnrpc.GetInfoRequest{})
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +155,7 @@ func (svc *LNDService) ListChannels(ctx context.Context) ([]lnclient.Channel, er
 		return nil, err
 	}
 
-	nodeInfo, err := svc.GetInfo(ctx)
+	nodeInfo, err := svc.client.GetInfo(ctx, &lnrpc.GetInfoRequest{})
 	if err != nil {
 		return nil, err
 	}
@@ -418,14 +429,14 @@ func NewLNDService(ctx context.Context, eventPublisher events.EventPublisher, ln
 		logger.Logger.Errorf("Failed to create new LND client %v", err)
 		return nil, err
 	}
-	info, err := lndClient.GetInfo(ctx, &lnrpc.GetInfoRequest{})
+	nodeInfo, err := fetchNodeInfo(ctx, lndClient)
 	if err != nil {
 		return nil, err
 	}
 
 	lndCtx, cancel := context.WithCancel(ctx)
 
-	lndService := &LNDService{client: lndClient, pubkey: info.IdentityPubkey, cancel: cancel}
+	lndService := &LNDService{client: lndClient, nodeInfo: nodeInfo, cancel: cancel}
 
 	// Subscribe to payments
 	go func() {
@@ -525,7 +536,7 @@ func NewLNDService(ctx context.Context, eventPublisher events.EventPublisher, ln
 		}
 	}()
 
-	logger.Logger.Infof("Connected to LND - alias %s", info.Alias)
+	logger.Logger.Infof("Connected to LND - alias %s", nodeInfo.Alias)
 
 	return lndService, nil
 }
@@ -932,5 +943,5 @@ func (svc *LNDService) GetSupportedNIP47NotificationTypes() []string {
 }
 
 func (svc *LNDService) GetPubkey() string {
-	return svc.pubkey
+	return svc.nodeInfo.Pubkey
 }
