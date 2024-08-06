@@ -61,13 +61,21 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.HideBanner = true
 
 	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
-		LogURI:    true,
-		LogStatus: true,
+		LogURI:       true,
+		LogStatus:    true,
+		LogRemoteIP:  true,
+		LogUserAgent: true,
+		LogHost:      true,
+		LogRequestID: true,
 		LogValuesFunc: func(c echo.Context, values middleware.RequestLoggerValues) error {
 			logger.Logger.WithFields(logrus.Fields{
-				"uri":    values.URI,
-				"status": values.Status,
-			}).Debug("handled echo request")
+				"uri":        values.URI,
+				"status":     values.Status,
+				"remote_ip":  values.RemoteIP,
+				"user_agent": values.UserAgent,
+				"host":       values.Host,
+				"request_id": values.RequestID,
+			}).Info("handled API request")
 			return nil
 		},
 	}))
