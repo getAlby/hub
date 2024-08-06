@@ -14,6 +14,7 @@ import (
 
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
+	"google.golang.org/grpc/status"
 
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
@@ -552,6 +553,12 @@ func (svc *LNDService) ConnectPeer(ctx context.Context, connectPeerRequest *lncl
 			Host:   connectPeerRequest.Address + ":" + strconv.Itoa(int(connectPeerRequest.Port)),
 		},
 	})
+
+	if grpcErr, ok := status.FromError(err); ok {
+		if strings.HasPrefix(grpcErr.Message(), "already connected to peer") {
+			return nil
+		}
+	}
 	return err
 }
 
