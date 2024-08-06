@@ -483,7 +483,7 @@ func (gs *GreenlightService) GetNewOnchainAddress(ctx context.Context) (string, 
 
 func (gs *GreenlightService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainBalanceResponse, error) {
 	response, err := gs.client.ListFunds(glalby.ListFundsRequest{})
-	logger.Logger.WithField("response", response).Info("Listed funds")
+	logger.Logger.WithField("response", response).Debug("Listed funds")
 
 	if err != nil {
 		logger.Logger.Errorf("Failed to list funds: %v", err)

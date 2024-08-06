@@ -8,11 +8,11 @@ import (
 	"strconv"
 	"strings"
 
-	echologrus "github.com/davrux/echo-logrus/v4"
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
 	"github.com/getAlby/hub/config"
@@ -59,7 +59,19 @@ func (httpSvc *HttpService) validateUserMiddleware(next echo.HandlerFunc) echo.H
 
 func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.HideBanner = true
-	e.Use(echologrus.Middleware())
+
+	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
+		LogURI:    true,
+		LogStatus: true,
+		LogValuesFunc: func(c echo.Context, values middleware.RequestLoggerValues) error {
+			logger.Logger.WithFields(logrus.Fields{
+				"uri":    values.URI,
+				"status": values.Status,
+			}).Debug("handled echo request")
+			return nil
+		},
+	}))
+
 	e.Use(middleware.Recover())
 	e.Use(middleware.RequestID())
 	e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
