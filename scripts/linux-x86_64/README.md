@@ -16,12 +16,7 @@ As a general good practice we recommend creating a new system user.
 
 Run the installation script on your server:
 
-    $ wget https://raw.githubusercontent.com/getAlby/hub/master/scripts/linux-x86_64/install.sh
-    $ ./install.sh
-
-Or directly through SSH:
-    $ ssh albyhub@[YOUR IP] '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/getAlby/hub/master/scripts/linux-x86_64/install.sh)"'
-
+    $ /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/getAlby/hub/master/scripts/linux-x86_64/install.sh)"
 
 The install script will prompt you for an installation folder and will install Alby Hub.
 

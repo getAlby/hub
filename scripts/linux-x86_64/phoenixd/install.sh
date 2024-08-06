@@ -27,9 +27,10 @@ unzip -j phoenix-$PHOENIX_VERSION-linux-x64.zip -d phoenixd
 mkdir -p "$INSTALL_DIR/albyhub"
 wget $ALBYHUB_URL
 tar xvf server-linux-x86_64.tar.bz2 --directory=albyhub
-if [[ $? -eq 0 ]]; then
+if [[ $? -ne 0 ]]; then
   echo "Failed to unpack Alby Hub. Potentially bzip2 is missing"
   echo "Install it with sudo apt-get install bzip2"
+  exit
 fi
 
 rm server-linux-x86_64.tar.bz2
