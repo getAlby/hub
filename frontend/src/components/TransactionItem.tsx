@@ -24,8 +24,8 @@ import {
 import { toast } from "src/components/ui/use-toast";
 import { useApps } from "src/hooks/useApps";
 import { copyToClipboard } from "src/lib/clipboard";
-import { cn, hexToString } from "src/lib/utils";
-import { Transaction } from "src/types";
+import { cn } from "src/lib/utils";
+import { Boostagram, Transaction } from "src/types";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -212,15 +212,15 @@ function TransactionItem({ tx }: Props) {
                       // Chat message
                       return (
                         <div className="mt-6" key={record.type}>
-                          <p>Message</p>
+                          <p>Whatsat Message</p>
                           <p className="text-muted-foreground break-all">
-                            {hexToString(record.value)}
+                            {record.value}
                           </p>
                         </div>
                       );
                     } else if (record.type === 7629169) {
                       // Podcasting info
-                      const boost = JSON.parse(hexToString(record.value));
+                      const boost = JSON.parse(record.value) as Boostagram;
                       return <PodcastingInfo boost={boost} />;
                     }
                   })}

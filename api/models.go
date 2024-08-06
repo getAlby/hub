@@ -192,18 +192,27 @@ type ListTransactionsResponse = []Transaction
 
 // TODO: camelCase
 type Transaction struct {
-	Type            string      `json:"type"`
-	Invoice         string      `json:"invoice"`
-	Description     string      `json:"description"`
-	DescriptionHash string      `json:"description_hash"`
-	Preimage        *string     `json:"preimage"`
-	PaymentHash     string      `json:"payment_hash"`
-	Amount          uint64      `json:"amount"`
-	FeesPaid        uint64      `json:"fees_paid"`
-	CreatedAt       string      `json:"created_at"`
-	SettledAt       *string     `json:"settled_at"`
-	AppId           *uint       `json:"app_id"`
-	Metadata        interface{} `json:"metadata,omitempty"`
+	Type            string   `json:"type"`
+	Invoice         string   `json:"invoice"`
+	Description     string   `json:"description"`
+	DescriptionHash string   `json:"description_hash"`
+	Preimage        *string  `json:"preimage"`
+	PaymentHash     string   `json:"payment_hash"`
+	Amount          uint64   `json:"amount"`
+	FeesPaid        uint64   `json:"fees_paid"`
+	CreatedAt       string   `json:"created_at"`
+	SettledAt       *string  `json:"settled_at"`
+	AppId           *uint    `json:"app_id"`
+	Metadata        Metadata `json:"metadata,omitempty"`
+}
+
+type Metadata struct {
+	TlvRecords []TLVRecord `json:"tlv_records,omitempty"`
+}
+
+type TLVRecord struct {
+	Type  uint64 `json:"type"`
+	Value string `json:"value"`
 }
 
 // debug api

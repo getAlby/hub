@@ -386,7 +386,7 @@ export type Transaction = {
 export type TLVRecord = {
   type: number;
   /**
-   * hex-encoded value
+   * hex-decoded value
    */
   value: string;
 };

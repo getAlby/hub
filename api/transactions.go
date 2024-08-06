@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"time"
@@ -73,7 +74,7 @@ func toApiTransaction(transaction *transactions.Transaction) *Transaction {
 		preimage = transaction.Preimage
 	}
 
-	var metadata interface{}
+	var metadata Metadata
 	if transaction.Metadata != "" {
 		jsonErr := json.Unmarshal([]byte(transaction.Metadata), &metadata)
 		if jsonErr != nil {
@@ -81,6 +82,25 @@ func toApiTransaction(transaction *transactions.Transaction) *Transaction {
 				"id":       transaction.ID,
 				"metadata": transaction.Metadata,
 			}).Error("Failed to deserialize transaction metadata")
+		}
+
+		for i, record := range metadata.TlvRecords {
+			// TODO: skip other un-encoded tlv values
+			// tlv record of type 5482373484 is preimage
+			if record.Type == 5482373484 {
+				continue
+			}
+
+			bytes, err := hex.DecodeString(record.Value)
+			if err != nil {
+				logger.Logger.WithError(err).WithFields(logrus.Fields{
+					"id":    transaction.ID,
+					"type":  record.Type,
+					"value": record.Value,
+				}).Error("Failed to decode hex value in tlv record")
+				continue
+			}
+			metadata.TlvRecords[i].Value = string(bytes)
 		}
 	}
 
