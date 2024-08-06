@@ -20,6 +20,7 @@ Run the installation script on your server:
     $ ./install.sh
 
 Or directly through SSH:
+
     $ ssh albyhub@[YOUR IP] '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/getAlby/hub/master/scripts/linux-x86_64/install.sh)"'
 
 
