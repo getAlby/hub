@@ -797,13 +797,16 @@ func (ls *LDKService) ListChannels(ctx context.Context) ([]lnclient.Channel, err
 
 		var channelError *string
 
-		if ldkChannel.CounterpartyForwardingInfoFeeBaseMsat == nil {
+		if fundingTxId == "" {
+			channelErrorValue := "This channel has no funding transaction. Please contact support@getalby.com"
+			channelError = &channelErrorValue
+		} else if ldkChannel.IsUsable && ldkChannel.CounterpartyForwardingInfoFeeBaseMsat == nil {
 			// if we don't have this, routing will not work (LND <-> LDK interoperability bug - https://github.com/lightningnetwork/lnd/issues/6870 )
 			channelErrorValue := "Counterparty forwarding info not available. Please contact support@getalby.com"
 			channelError = &channelErrorValue
 		}
 
-		isActive := ldkChannel.IsUsable /* superset of ldkChannel.IsReady */ && channelError == nil && fundingTxId != ""
+		isActive := ldkChannel.IsUsable /* superset of ldkChannel.IsReady */ && channelError == nil
 
 		channels = append(channels, lnclient.Channel{
 			InternalChannel:                          internalChannel,
