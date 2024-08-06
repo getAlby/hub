@@ -46,6 +46,28 @@ function TransactionItem({ tx }: Props) {
     toast({ title: "Copied to clipboard." });
   };
 
+  const getDescription = () => {
+    // Check for Boostagram message first
+    for (const record of tx.metadata?.tlv_records || []) {
+      if (record.type === 7629169) {
+        const boost = JSON.parse(record.value) as Boostagram;
+        if (boost.message) {
+          return boost.message;
+        }
+      }
+    }
+
+    // Check for Whatsat message
+    for (const record of tx.metadata?.tlv_records || []) {
+      if (record.type === 34349334 && record.value) {
+        return record.value;
+      }
+    }
+
+    // Default to transaction
+    return tx.description || "";
+  };
+
   return (
     <CredenzaProvider>
       <Credenza
@@ -97,7 +119,7 @@ function TransactionItem({ tx }: Props) {
                 </p>
               </div>
               <p className="text-sm md:text-base text-muted-foreground break-all">
-                {tx.description}
+                {getDescription()}
               </p>
             </div>
             <div className="flex ml-auto text-right space-x-3 shrink-0">
