@@ -21,6 +21,7 @@ import (
 	"github.com/getAlby/hub/logger"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -78,10 +79,12 @@ func NewTransactionsService(db *gorm.DB) *transactionsService {
 	}
 }
 
+// TODO: fix metadata type
 func (svc *transactionsService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, metadata interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
-	var encodedMetadata string
+	var metadataBytes []byte
 	if metadata != nil {
-		metadataBytes, err := json.Marshal(metadata)
+		var err error
+		metadataBytes, err = json.Marshal(metadata)
 		if err != nil {
 			logger.Logger.WithError(err).Error("Failed to serialize metadata")
 			return nil, err
@@ -89,7 +92,6 @@ func (svc *transactionsService) MakeInvoice(ctx context.Context, amount int64, d
 		if len(metadataBytes) > constants.INVOICE_METADATA_MAX_LENGTH {
 			return nil, fmt.Errorf("encoded invoice metadata provided is too large. Limit: %d Received: %d", constants.INVOICE_METADATA_MAX_LENGTH, len(metadataBytes))
 		}
-		encodedMetadata = string(metadataBytes)
 	}
 
 	lnClientTransaction, err := lnClient.MakeInvoice(ctx, amount, description, descriptionHash, expiry)
@@ -121,7 +123,7 @@ func (svc *transactionsService) MakeInvoice(ctx context.Context, amount int64, d
 		PaymentHash:     lnClientTransaction.PaymentHash,
 		ExpiresAt:       expiresAt,
 		Preimage:        preimage,
-		Metadata:        encodedMetadata,
+		Metadata:        datatypes.JSON(metadataBytes),
 	}
 	err = svc.db.Create(&dbTransaction).Error
 	if err != nil {
@@ -263,13 +265,17 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 	metadata := map[string]interface{}{}
 
 	metadata["destination"] = destination
-	metadata["tlv_records"] = customRecords
-	metadataBytes, err := json.Marshal(metadata)
 
+	// we copy records because parseMetadata decodes record values
+	copiedRecords := append([]lnclient.TLVRecord(nil), customRecords...)
+
+	metadata["tlv_records"] = copiedRecords
+	metadataBytes, err := svc.parseMetadata(metadata)
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to marshal metadata")
+		logger.Logger.WithError(err).Error("Failed to serialize transaction metadata")
 		return nil, err
 	}
+	boostagramBytes := svc.getBoostagramFromCustomRecords(copiedRecords)
 
 	var dbTransaction db.Transaction
 
@@ -286,7 +292,8 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 			State:          constants.TRANSACTION_STATE_PENDING,
 			FeeReserveMsat: svc.calculateFeeReserveMsat(uint64(amount)),
 			AmountMsat:     amount,
-			Metadata:       string(metadataBytes),
+			Metadata:       datatypes.JSON(metadataBytes),
+			Boostagram:     datatypes.JSON(boostagramBytes),
 			PaymentHash:    paymentHash,
 			Preimage:       &preimage,
 		}
@@ -533,14 +540,19 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 
 			if result.RowsAffected == 0 {
 				// Note: brand new payments cannot be associated with an app
-				var metadata string
+				var metadataBytes []byte
+				var boostagramBytes []byte
 				if lnClientTransaction.Metadata != nil {
-					metadataBytes, err := json.Marshal(lnClientTransaction.Metadata)
+					var err error
+					metadataBytes, err = svc.parseMetadata(lnClientTransaction.Metadata)
 					if err != nil {
 						logger.Logger.WithError(err).Error("Failed to serialize transaction metadata")
 						return err
 					}
-					metadata = string(metadataBytes)
+
+					var customRecords []lnclient.TLVRecord
+					customRecords, _ = lnClientTransaction.Metadata["tlv_records"].([]lnclient.TLVRecord)
+					boostagramBytes = svc.getBoostagramFromCustomRecords(customRecords)
 				}
 				var expiresAt *time.Time
 				if lnClientTransaction.ExpiresAt != nil {
@@ -555,7 +567,8 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 					Description:     lnClientTransaction.Description,
 					DescriptionHash: lnClientTransaction.DescriptionHash,
 					ExpiresAt:       expiresAt,
-					Metadata:        metadata,
+					Metadata:        datatypes.JSON(metadataBytes),
+					Boostagram:      datatypes.JSON(boostagramBytes),
 				}
 				err := tx.Create(&dbTransaction).Error
 				if err != nil {
@@ -607,14 +620,19 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 
 			if result.RowsAffected == 0 {
 				// Note: brand new payments cannot be associated with an app
-				var metadata string
+				var metadataBytes []byte
+				var boostagramBytes []byte
 				if lnClientTransaction.Metadata != nil {
-					metadataBytes, err := json.Marshal(lnClientTransaction.Metadata)
+					var err error
+					metadataBytes, err = svc.parseMetadata(lnClientTransaction.Metadata)
 					if err != nil {
 						logger.Logger.WithError(err).Error("Failed to serialize transaction metadata")
 						return err
 					}
-					metadata = string(metadataBytes)
+
+					var customRecords []lnclient.TLVRecord
+					customRecords, _ = lnClientTransaction.Metadata["tlv_records"].([]lnclient.TLVRecord)
+					boostagramBytes = svc.getBoostagramFromCustomRecords(customRecords)
 				}
 				var expiresAt *time.Time
 				if lnClientTransaction.ExpiresAt != nil {
@@ -629,7 +647,8 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 					Description:     lnClientTransaction.Description,
 					DescriptionHash: lnClientTransaction.DescriptionHash,
 					ExpiresAt:       expiresAt,
-					Metadata:        metadata,
+					Metadata:        datatypes.JSON(metadataBytes),
+					Boostagram:      datatypes.JSON(boostagramBytes),
 				}
 				err := tx.Create(&dbTransaction).Error
 				if err != nil {
@@ -783,4 +802,44 @@ func makePreimageHex() ([]byte, error) {
 		return nil, err
 	}
 	return bytes, nil
+}
+
+func (svc *transactionsService) parseMetadata(metadata lnclient.Metadata) ([]byte, error) {
+	var tlvRecords []lnclient.TLVRecord
+	tlvRecords, _ = metadata["tlv_records"].([]lnclient.TLVRecord)
+
+	for i, record := range tlvRecords {
+		// TODO: skip other un-encoded tlv values
+		// tlv record of type 5482373484 is preimage
+		if record.Type == 5482373484 {
+			continue
+		}
+
+		bytes, err := hex.DecodeString(record.Value)
+		if err != nil {
+			logger.Logger.WithError(err).WithFields(logrus.Fields{
+				"type":  record.Type,
+				"value": record.Value,
+			}).Error("Failed to decode hex value in tlv record")
+			continue
+		}
+		tlvRecords[i].Value = string(bytes)
+	}
+
+	metadataBytes, err := json.Marshal(metadata)
+	if err != nil {
+		return nil, err
+	}
+
+	return metadataBytes, nil
+}
+
+func (svc *transactionsService) getBoostagramFromCustomRecords(customRecords []lnclient.TLVRecord) []byte {
+	for _, record := range customRecords {
+		if record.Type == 7629169 {
+			return []byte(record.Value)
+		}
+	}
+
+	return nil
 }

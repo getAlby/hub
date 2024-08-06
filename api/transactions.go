@@ -2,11 +2,11 @@ package api
 
 import (
 	"context"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"time"
 
+	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/transactions"
 	"github.com/sirupsen/logrus"
@@ -74,33 +74,25 @@ func toApiTransaction(transaction *transactions.Transaction) *Transaction {
 		preimage = transaction.Preimage
 	}
 
-	var metadata Metadata
-	if transaction.Metadata != "" {
-		jsonErr := json.Unmarshal([]byte(transaction.Metadata), &metadata)
+	var metadata *lnclient.Metadata
+	if transaction.Metadata != nil {
+		jsonErr := json.Unmarshal(transaction.Metadata, &metadata)
 		if jsonErr != nil {
 			logger.Logger.WithError(jsonErr).WithFields(logrus.Fields{
 				"id":       transaction.ID,
 				"metadata": transaction.Metadata,
 			}).Error("Failed to deserialize transaction metadata")
 		}
+	}
 
-		for i, record := range metadata.TlvRecords {
-			// TODO: skip other un-encoded tlv values
-			// tlv record of type 5482373484 is preimage
-			if record.Type == 5482373484 {
-				continue
-			}
-
-			bytes, err := hex.DecodeString(record.Value)
-			if err != nil {
-				logger.Logger.WithError(err).WithFields(logrus.Fields{
-					"id":    transaction.ID,
-					"type":  record.Type,
-					"value": record.Value,
-				}).Error("Failed to decode hex value in tlv record")
-				continue
-			}
-			metadata.TlvRecords[i].Value = string(bytes)
+	var boostagram *Boostagram
+	if transaction.Boostagram != nil {
+		jsonErr := json.Unmarshal(transaction.Boostagram, &boostagram)
+		if jsonErr != nil {
+			logger.Logger.WithError(jsonErr).WithFields(logrus.Fields{
+				"id":         transaction.ID,
+				"boostagram": transaction.Boostagram,
+			}).Error("Failed to deserialize transaction boostagram info")
 		}
 	}
 
@@ -117,5 +109,6 @@ func toApiTransaction(transaction *transactions.Transaction) *Transaction {
 		CreatedAt:       createdAt,
 		SettledAt:       settledAt,
 		Metadata:        metadata,
+		Boostagram:      boostagram,
 	}
 }

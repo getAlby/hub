@@ -25,7 +25,7 @@ import { toast } from "src/components/ui/use-toast";
 import { useApps } from "src/hooks/useApps";
 import { copyToClipboard } from "src/lib/clipboard";
 import { cn } from "src/lib/utils";
-import { Boostagram, Transaction } from "src/types";
+import { Transaction } from "src/types";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -44,28 +44,6 @@ function TransactionItem({ tx }: Props) {
   const copy = (text: string) => {
     copyToClipboard(text);
     toast({ title: "Copied to clipboard." });
-  };
-
-  const getDescription = () => {
-    // Check for Boostagram message first
-    for (const record of tx.metadata?.tlv_records || []) {
-      if (record.type === 7629169) {
-        const boost = JSON.parse(record.value) as Boostagram;
-        if (boost.message) {
-          return boost.message;
-        }
-      }
-    }
-
-    // Check for Whatsat message
-    for (const record of tx.metadata?.tlv_records || []) {
-      if (record.type === 34349334 && record.value) {
-        return record.value;
-      }
-    }
-
-    // Default to transaction
-    return tx.description || "";
   };
 
   return (
@@ -119,7 +97,7 @@ function TransactionItem({ tx }: Props) {
                 </p>
               </div>
               <p className="text-sm md:text-base text-muted-foreground break-all">
-                {getDescription()}
+                {tx.description}
               </p>
             </div>
             <div className="flex ml-auto text-right space-x-3 shrink-0">
@@ -240,12 +218,9 @@ function TransactionItem({ tx }: Props) {
                           </p>
                         </div>
                       );
-                    } else if (record.type === 7629169) {
-                      // Podcasting info
-                      const boost = JSON.parse(record.value) as Boostagram;
-                      return <PodcastingInfo boost={boost} />;
                     }
                   })}
+                  {tx.boostagram && <PodcastingInfo boost={tx.boostagram} />}
                   <div className="mt-6">
                     <p>Preimage</p>
                     <div className="flex items-center gap-4">

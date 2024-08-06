@@ -7,10 +7,11 @@ import (
 // TODO: remove JSON tags from these models (LNClient models should not be exposed directly)
 
 type TLVRecord struct {
-	Type uint64 `json:"type"`
-	// hex-encoded value
+	Type  uint64 `json:"type"`
 	Value string `json:"value"`
 }
+
+type Metadata = map[string]interface{}
 
 type NodeInfo struct {
 	Alias       string
@@ -34,7 +35,7 @@ type Transaction struct {
 	CreatedAt       int64
 	ExpiresAt       *int64
 	SettledAt       *int64
-	Metadata        interface{}
+	Metadata        Metadata
 }
 
 type NodeConnectionInfo struct {

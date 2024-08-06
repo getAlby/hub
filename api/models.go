@@ -192,27 +192,36 @@ type ListTransactionsResponse = []Transaction
 
 // TODO: camelCase
 type Transaction struct {
-	Type            string   `json:"type"`
-	Invoice         string   `json:"invoice"`
-	Description     string   `json:"description"`
-	DescriptionHash string   `json:"description_hash"`
-	Preimage        *string  `json:"preimage"`
-	PaymentHash     string   `json:"payment_hash"`
-	Amount          uint64   `json:"amount"`
-	FeesPaid        uint64   `json:"fees_paid"`
-	CreatedAt       string   `json:"created_at"`
-	SettledAt       *string  `json:"settled_at"`
-	AppId           *uint    `json:"app_id"`
-	Metadata        Metadata `json:"metadata,omitempty"`
+	Type            string             `json:"type"`
+	Invoice         string             `json:"invoice"`
+	Description     string             `json:"description"`
+	DescriptionHash string             `json:"description_hash"`
+	Preimage        *string            `json:"preimage"`
+	PaymentHash     string             `json:"payment_hash"`
+	Amount          uint64             `json:"amount"`
+	FeesPaid        uint64             `json:"fees_paid"`
+	CreatedAt       string             `json:"created_at"`
+	SettledAt       *string            `json:"settled_at"`
+	AppId           *uint              `json:"app_id"`
+	Metadata        *lnclient.Metadata `json:"metadata,omitempty"`
+	Boostagram      *Boostagram        `json:"boostagram,omitempty"`
 }
 
-type Metadata struct {
-	TlvRecords []TLVRecord `json:"tlv_records,omitempty"`
-}
-
-type TLVRecord struct {
-	Type  uint64 `json:"type"`
-	Value string `json:"value"`
+type Boostagram struct {
+	AppName        string `json:"app_name"`
+	Name           string `json:"name"`
+	Podcast        string `json:"podcast"`
+	URL            string `json:"url"`
+	Episode        string `json:"episode,omitempty"`
+	FeedID         string `json:"feedID,omitempty"`
+	ItemID         string `json:"itemID,omitempty"`
+	Timestamp      string `json:"ts,omitempty"`
+	Message        string `json:"message,omitempty"`
+	SenderID       string `json:"sender_id"`
+	SenderName     string `json:"sender_name"`
+	Time           string `json:"time"`
+	Action         string `json:"action"`
+	ValueMsatTotal int    `json:"value_msat_total"`
 }
 
 // debug api

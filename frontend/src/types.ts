@@ -378,9 +378,10 @@ export type Transaction = {
   fees_paid: number;
   created_at: string;
   settled_at: string | undefined;
-  metadata: {
+  metadata?: {
     tlv_records: TLVRecord[];
   };
+  boostagram?: Boostagram;
 };
 
 export type TLVRecord = {
@@ -397,6 +398,7 @@ export type Boostagram = {
   podcast: string;
   url: string;
   episode?: string;
+  feedID?: string;
   itemID?: string;
   ts?: string;
   message?: string;
