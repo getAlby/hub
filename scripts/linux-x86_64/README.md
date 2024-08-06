@@ -3,7 +3,7 @@
 ## Requirements
 
 - Linux distribution
-- Runs pretty much on any VPS or server
+- Runs pretty much on any VPS/server with 512MB RAM or more (+some swap space ideally)
 
 ### Installation (non-Docker)
 
