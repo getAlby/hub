@@ -12,6 +12,10 @@ wget https://getalby.com/install/hub/server-linux-armv6.tar.bz2
 
 # Extract archives
 tar -xvf server-linux-armv6.tar.bz2
+if [[ $? -eq 0 ]]; then
+  echo "Failed to unpack Alby Hub. Potentially bzip2 is missing"
+  echo "Install it with sudo apt-get install bzip2"
+fi
 
 # Cleanup
 rm server-linux-armv6.tar.bz2
@@ -27,7 +31,7 @@ Wants=network-online.target
 Type=simple
 Restart=always
 RestartSec=1
-User=root
+User=$USER
 ExecStart=/opt/albyhub/bin/albyhub
 # Hack to ensure Alby Hub never uses more than 90% CPU
 CPUQuota=90%
