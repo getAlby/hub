@@ -550,7 +550,9 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			logger.Logger.WithFields(logrus.Fields{
 				"route":  route,
 				"method": method,
-				"body":   body,
+				// Skip logging the body for this request as we don't want the
+				// unlock password to end up in any logs
+				// "body": body,
 			}).WithError(err).Error("Failed to parse mnemonic request")
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
@@ -559,7 +561,9 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			logger.Logger.WithFields(logrus.Fields{
 				"route":  route,
 				"method": method,
-				"body":   body,
+				// Skip logging the body for this request as we don't want the
+				// unlock password to end up in any logs
+				// "body": body,
 			}).WithError(err).Error("Failed to get mnemonic")
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
