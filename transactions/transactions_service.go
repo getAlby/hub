@@ -266,16 +266,13 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 
 	metadata["destination"] = destination
 
-	// we copy records because parseMetadata decodes record values
-	copiedRecords := append([]lnclient.TLVRecord(nil), customRecords...)
-
-	metadata["tlv_records"] = copiedRecords
+	metadata["tlv_records"] = customRecords
 	metadataBytes, err := svc.parseMetadata(metadata)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to serialize transaction metadata")
 		return nil, err
 	}
-	boostagramBytes := svc.getBoostagramFromCustomRecords(copiedRecords)
+	boostagramBytes := svc.getBoostagramFromCustomRecords(customRecords)
 
 	var dbTransaction db.Transaction
 
@@ -807,6 +804,7 @@ func makePreimageHex() ([]byte, error) {
 func (svc *transactionsService) parseMetadata(metadata lnclient.Metadata) ([]byte, error) {
 	var tlvRecords []lnclient.TLVRecord
 	tlvRecords, _ = metadata["tlv_records"].([]lnclient.TLVRecord)
+	decodedTlvRecords := append([]lnclient.TLVRecord(nil), tlvRecords...)
 
 	for i, record := range tlvRecords {
 		// TODO: skip other un-encoded tlv values
@@ -823,13 +821,17 @@ func (svc *transactionsService) parseMetadata(metadata lnclient.Metadata) ([]byt
 			}).Error("Failed to decode hex value in tlv record")
 			continue
 		}
-		tlvRecords[i].Value = string(bytes)
+		decodedTlvRecords[i].Value = string(bytes)
 	}
 
+	metadata["tlv_records"] = decodedTlvRecords
 	metadataBytes, err := json.Marshal(metadata)
 	if err != nil {
 		return nil, err
 	}
+
+	// we don't want to modify metadata
+	metadata["tlv_records"] = tlvRecords
 
 	return metadataBytes, nil
 }
@@ -837,7 +839,11 @@ func (svc *transactionsService) parseMetadata(metadata lnclient.Metadata) ([]byt
 func (svc *transactionsService) getBoostagramFromCustomRecords(customRecords []lnclient.TLVRecord) []byte {
 	for _, record := range customRecords {
 		if record.Type == 7629169 {
-			return []byte(record.Value)
+			bytes, err := hex.DecodeString(record.Value)
+			if err != nil {
+				return nil
+			}
+			return bytes
 		}
 	}
 
