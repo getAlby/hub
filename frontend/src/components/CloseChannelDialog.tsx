@@ -165,8 +165,8 @@ export function CloseChannelDialog({ alias, channel }: Props) {
                       Normal Close
                     </Label>
                     <p className="text-sm text-muted-foreground">
-                      Closes the channel cooperatively, usually faster and with
-                      lower fees
+                      Both parties agree to close the channel, usually quicker
+                      and with lower fees
                     </p>
                   </div>
                 </div>
@@ -184,8 +184,8 @@ export function CloseChannelDialog({ alias, channel }: Props) {
                       Force Close
                     </Label>
                     <p className="text-sm text-muted-foreground">
-                      Closes the channel unilaterally, can take longer and might
-                      incur higher fees
+                      You close the channel alone. Takes longer and may incur
+                      higher fees
                     </p>
                   </div>
                 </div>
