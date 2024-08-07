@@ -303,4 +303,5 @@ type Channel struct {
 	CounterpartyUnspendablePunishmentReserve uint64      `json:"counterpartyUnspendablePunishmentReserve"`
 	Error                                    *string     `json:"error"`
 	Status                                   string      `json:"status"`
+	IsOutbound                               bool        `json:"isOutbound"`
 }
