@@ -98,7 +98,7 @@ export default function SettingsLayout() {
       <div className="flex flex-col space-y-8 lg:flex-row lg:space-x-12 lg:space-y-0">
         <aside className="lg:-mx-4 lg:w-1/5">
           <nav className="flex flex-wrap lg:flex-col -space-x-1 lg:space-x-0 lg:space-y-1">
-            <MenuItem to="/settings">Theme</MenuItem>
+            <MenuItem to="/settings">General</MenuItem>
             <MenuItem to="/settings/change-unlock-password">
               Unlock Password
             </MenuItem>

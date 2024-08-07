@@ -1,0 +1,25 @@
+{
+  "translation": {
+    "settings": {
+      "language": {
+        "title": "Language",
+        "description": "Choose the language to display in Alby Hub"
+      },
+      "theme": {
+        "title": "Theme",
+        "description": "Alby Hub is your wallet, make it your style",
+        "options": {
+          "dark": "Dark",
+          "light": "Light",
+          "system": "System"
+        }
+      }
+    }
+  },
+  "components": {
+    "locale_switcher": {
+      "success": "Language updated.",
+      "language": "Language"
+    }
+  }
+}

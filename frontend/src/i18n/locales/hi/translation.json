@@ -1,0 +1,24 @@
+{
+  "translation": {
+    "settings": {
+      "language": {
+        "title": "भाषा",
+        "description": "एल्बी हब में प्रदर्शित होने वाली भाषा चुनें।"
+      },
+      "theme": {
+        "title": "थीम",
+        "description": "एल्बी हब आपका है, इसे अपनी इच्छानुसार स्टाइल करें।",
+        "options": {
+          "dark": "डार्क",
+          "light": "प्रकाश",
+          "system": "सिस्टम"
+        }
+      }
+    }
+  },
+  "components": {
+    "locale_switcher": {
+      "success": "भाषा अपडेट की गई है"
+    }
+  }
+}
