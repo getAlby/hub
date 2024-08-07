@@ -95,13 +95,6 @@ func (svc *LNDService) ListTransactions(ctx context.Context, from, until, limit,
 }
 
 func (svc *LNDService) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, err error) {
-	if svc.nodeInfo == nil {
-		nodeInfo, err := fetchNodeInfo(ctx, svc.client)
-		if err != nil {
-			return nil, err
-		}
-		svc.nodeInfo = nodeInfo
-	}
 	return svc.nodeInfo, nil
 }
 
@@ -441,24 +434,33 @@ func NewLNDService(ctx context.Context, eventPublisher events.EventPublisher, ln
 	// Subscribe to payments
 	go func() {
 		for {
-			paymentStream, err := lndClient.SubscribePayments(lndCtx, &routerrpc.TrackPaymentsRequest{
-				NoInflightUpdates: true,
-			})
-			if err != nil {
-				logger.Logger.WithError(err).Error("Error subscribing to payments")
-				time.Sleep(10 * time.Second)
-				continue
-			}
-		paymentsLoop:
-			for {
-				select {
-				case <-lndCtx.Done():
-					return
-				default:
+			select {
+			case <-lndCtx.Done():
+				return
+			default:
+				paymentStream, err := lndClient.SubscribePayments(lndCtx, &routerrpc.TrackPaymentsRequest{
+					NoInflightUpdates: true,
+				})
+				if err != nil {
+					logger.Logger.WithError(err).Error("Error subscribing to payments")
+					select {
+					case <-lndCtx.Done():
+						return
+					case <-time.After(10 * time.Second):
+						continue
+					}
+				}
+			paymentsLoop:
+				for {
 					payment, err := paymentStream.Recv()
 					if err != nil {
 						logger.Logger.WithError(err).Error("Failed to receive payment")
-						break paymentsLoop
+						select {
+						case <-lndCtx.Done():
+							return
+						case <-time.After(2 * time.Second):
+							break paymentsLoop
+						}
 					}
 
 					switch payment.Status {
@@ -502,23 +504,33 @@ func NewLNDService(ctx context.Context, eventPublisher events.EventPublisher, ln
 	// Subscribe to invoices
 	go func() {
 		for {
-			invoiceStream, err := lndClient.SubscribeInvoices(lndCtx, &lnrpc.InvoiceSubscription{})
-			if err != nil {
-				logger.Logger.WithError(err).Error("Error subscribing to invoices")
-				time.Sleep(10 * time.Second)
-				continue
-			}
-		invoicesLoop:
-			for {
-				select {
-				case <-lndCtx.Done():
-					return
-				default:
+			select {
+			case <-lndCtx.Done():
+				return
+			default:
+				invoiceStream, err := lndClient.SubscribeInvoices(lndCtx, &lnrpc.InvoiceSubscription{})
+				if err != nil {
+					logger.Logger.WithError(err).Error("Error subscribing to invoices")
+					select {
+					case <-lndCtx.Done():
+						return
+					case <-time.After(10 * time.Second):
+						continue
+					}
+				}
+			invoicesLoop:
+				for {
 					invoice, err := invoiceStream.Recv()
 					if err != nil {
-						logger.Logger.WithError(err).Error("Failed to receive invoice")
-						break invoicesLoop
+						logger.Logger.WithError(err).Error("Failed to receive payment")
+						select {
+						case <-lndCtx.Done():
+							return
+						case <-time.After(2 * time.Second):
+							break invoicesLoop
+						}
 					}
+
 					if invoice.State != lnrpc.Invoice_SETTLED {
 						continue
 					}
