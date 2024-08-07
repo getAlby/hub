@@ -12,7 +12,7 @@ require (
 	github.com/gorilla/sessions v1.3.0
 	github.com/labstack/echo-contrib v0.17.1
 	github.com/labstack/echo/v4 v4.12.0
-	github.com/nbd-wtf/go-nostr v0.34.4
+	github.com/nbd-wtf/go-nostr v0.34.5
 	github.com/nbd-wtf/ln-decodepay v1.12.1
 	github.com/orandin/lumberjackrus v1.0.1
 	github.com/stretchr/testify v1.9.0
