@@ -162,11 +162,13 @@ export function CloseChannelDialog({ alias, channel }: Props) {
                       htmlFor="normal"
                       className="text-primary font-medium cursor-pointer"
                     >
-                      Normal Close
+                      Normal Close (Recommended)
                     </Label>
                     <p className="text-sm text-muted-foreground">
-                      Both parties agree to close the channel, usually quicker
-                      and with lower fees
+                      Attempt to agree to with your channel partner to close the
+                      channel, usually quicker and with lower fees. If an
+                      agreement cannot be met or your channel partner is
+                      offline, this will result in a force closure.
                     </p>
                   </div>
                 </div>
@@ -184,8 +186,9 @@ export function CloseChannelDialog({ alias, channel }: Props) {
                       Force Close
                     </Label>
                     <p className="text-sm text-muted-foreground">
-                      You close the channel alone. Takes longer and may incur
-                      higher fees
+                      You close the channel alone. Your funds may be locked for
+                      up to two weeks and may incur higher fees. Only try this
+                      if a normal closure does not work.
                     </p>
                   </div>
                 </div>
