@@ -58,7 +58,6 @@
     "tailwind-merge": "^2.2.2",
     "tailwindcss-animate": "^1.0.7",
     "vaul": "^0.9.1",
-    "vite-plugin-pwa": "^0.20.1",
     "zustand": "^4.5.0"
   },
   "devDependencies": {
@@ -92,6 +91,7 @@
     "tailwindcss": "^3.4.1",
     "typescript": "^5.0.2",
     "vite": "^4.5.3",
+    "vite-plugin-pwa": "^0.20.1",
     "vite-tsconfig-paths": "^4.3.2"
   }
 }
