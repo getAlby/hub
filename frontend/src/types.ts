@@ -150,7 +150,7 @@ export interface InfoResponse {
 
 export type Network = "bitcoin" | "testnet" | "signet";
 
-export interface EncryptedMnemonicResponse {
+export interface MnemonicResponse {
   mnemonic: string;
 }
 

@@ -609,11 +609,15 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	return &info, nil
 }
 
-func (api *api) GetEncryptedMnemonic() *EncryptedMnemonicResponse {
-	resp := EncryptedMnemonicResponse{}
-	mnemonic, _ := api.cfg.Get("Mnemonic", "")
-	resp.Mnemonic = mnemonic
-	return &resp
+func (api *api) GetMnemonic(unlockPassword string) (*MnemonicResponse, error) {
+	resp := MnemonicResponse{}
+	encryptedMnemonic, err := api.cfg.Get("Mnemonic", unlockPassword)
+	if err != nil {
+		return &resp, fmt.Errorf("failed to fetch encryption key: %w", err)
+	}
+
+	resp.Mnemonic = encryptedMnemonic
+	return &resp, err
 }
 
 func (api *api) SetNextBackupReminder(backupReminderRequest *BackupReminderRequest) error {

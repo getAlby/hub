@@ -543,9 +543,27 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		}
 		res := WailsRequestRouterResponse{Error: ""}
 		return res
-	case "/api/encrypted-mnemonic":
-		infoResponse := app.api.GetEncryptedMnemonic()
-		res := WailsRequestRouterResponse{Body: *infoResponse, Error: ""}
+	case "/api/mnemonic":
+		mnemonicRequest := &api.MnemonicRequest{}
+		err := json.Unmarshal([]byte(body), mnemonicRequest)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).WithError(err).Error("Failed to parse mnemonic request")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		mnemonicResponse, err := app.api.GetMnemonic(mnemonicRequest.UnlockPassword)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).WithError(err).Error("Failed to get mnemonic")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		res := WailsRequestRouterResponse{Body: *mnemonicResponse, Error: ""}
 		return res
 	case "/api/backup-reminder":
 		backupReminderRequest := &api.BackupReminderRequest{}
