@@ -11,11 +11,8 @@ import (
 var _202408061737_add_boostagrams_and_use_json = &gormigrate.Migration{
 	ID: "202408061737_add_boostagrams_and_use_json",
 	Migrate: func(tx *gorm.DB) error {
-		if err := tx.Exec("ALTER TABLE transactions ADD COLUMN boostagram JSONB").Error; err != nil {
-			return err
-		}
-
 		if err := tx.Exec(`
+			ALTER TABLE transactions ADD COLUMN boostagram JSONB;
 			ALTER TABLE transactions ADD COLUMN metadata_temp JSONB;
 			UPDATE transactions SET metadata_temp = json(metadata);
 			ALTER TABLE transactions DROP COLUMN metadata;
