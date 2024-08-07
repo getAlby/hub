@@ -29,9 +29,9 @@ import (
 )
 
 type LNDService struct {
-	client *wrapper.LNDWrapper
-	pubkey string
-	cancel context.CancelFunc
+	client   *wrapper.LNDWrapper
+	nodeInfo *lnclient.NodeInfo
+	cancel   context.CancelFunc
 }
 
 func (svc *LNDService) GetBalance(ctx context.Context) (balance int64, err error) {
@@ -96,7 +96,11 @@ func (svc *LNDService) ListTransactions(ctx context.Context, from, until, limit,
 }
 
 func (svc *LNDService) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, err error) {
-	resp, err := svc.client.GetInfo(ctx, &lnrpc.GetInfoRequest{})
+	return svc.nodeInfo, nil
+}
+
+func fetchNodeInfo(ctx context.Context, client *wrapper.LNDWrapper) (*lnclient.NodeInfo, error) {
+	resp, err := client.GetInfo(ctx, &lnrpc.GetInfoRequest{})
 	if err != nil {
 		return nil, err
 	}
@@ -145,7 +149,7 @@ func (svc *LNDService) ListChannels(ctx context.Context) ([]lnclient.Channel, er
 		return nil, err
 	}
 
-	nodeInfo, err := svc.GetInfo(ctx)
+	nodeInfo, err := svc.client.GetInfo(ctx, &lnrpc.GetInfoRequest{})
 	if err != nil {
 		return nil, err
 	}
@@ -419,34 +423,45 @@ func NewLNDService(ctx context.Context, eventPublisher events.EventPublisher, ln
 		logger.Logger.Errorf("Failed to create new LND client %v", err)
 		return nil, err
 	}
-	info, err := lndClient.GetInfo(ctx, &lnrpc.GetInfoRequest{})
+	nodeInfo, err := fetchNodeInfo(ctx, lndClient)
 	if err != nil {
 		return nil, err
 	}
 
 	lndCtx, cancel := context.WithCancel(ctx)
 
-	lndService := &LNDService{client: lndClient, pubkey: info.IdentityPubkey, cancel: cancel}
+	lndService := &LNDService{client: lndClient, nodeInfo: nodeInfo, cancel: cancel}
 
 	// Subscribe to payments
 	go func() {
 		for {
-			paymentStream, err := lndClient.SubscribePayments(lndCtx, &routerrpc.TrackPaymentsRequest{
-				NoInflightUpdates: true,
-			})
-			if err != nil {
-				logger.Logger.WithError(err).Error("Error subscribing to payments")
-				continue
-			}
-			for {
-				select {
-				case <-lndCtx.Done():
-					return
-				default:
+			select {
+			case <-lndCtx.Done():
+				return
+			default:
+				paymentStream, err := lndClient.SubscribePayments(lndCtx, &routerrpc.TrackPaymentsRequest{
+					NoInflightUpdates: true,
+				})
+				if err != nil {
+					logger.Logger.WithError(err).Error("Error subscribing to payments")
+					select {
+					case <-lndCtx.Done():
+						return
+					case <-time.After(10 * time.Second):
+						continue
+					}
+				}
+			paymentsLoop:
+				for {
 					payment, err := paymentStream.Recv()
 					if err != nil {
 						logger.Logger.WithError(err).Error("Failed to receive payment")
-						continue
+						select {
+						case <-lndCtx.Done():
+							return
+						case <-time.After(2 * time.Second):
+							break paymentsLoop
+						}
 					}
 
 					switch payment.Status {
@@ -490,21 +505,33 @@ func NewLNDService(ctx context.Context, eventPublisher events.EventPublisher, ln
 	// Subscribe to invoices
 	go func() {
 		for {
-			invoiceStream, err := lndClient.SubscribeInvoices(lndCtx, &lnrpc.InvoiceSubscription{})
-			if err != nil {
-				logger.Logger.WithError(err).Error("Error subscribing to invoices")
-				continue
-			}
-			for {
-				select {
-				case <-lndCtx.Done():
-					return
-				default:
+			select {
+			case <-lndCtx.Done():
+				return
+			default:
+				invoiceStream, err := lndClient.SubscribeInvoices(lndCtx, &lnrpc.InvoiceSubscription{})
+				if err != nil {
+					logger.Logger.WithError(err).Error("Error subscribing to invoices")
+					select {
+					case <-lndCtx.Done():
+						return
+					case <-time.After(10 * time.Second):
+						continue
+					}
+				}
+			invoicesLoop:
+				for {
 					invoice, err := invoiceStream.Recv()
 					if err != nil {
 						logger.Logger.WithError(err).Error("Failed to receive invoice")
-						continue
+						select {
+						case <-lndCtx.Done():
+							return
+						case <-time.After(2 * time.Second):
+							break invoicesLoop
+						}
 					}
+
 					if invoice.State != lnrpc.Invoice_SETTLED {
 						continue
 					}
@@ -522,7 +549,7 @@ func NewLNDService(ctx context.Context, eventPublisher events.EventPublisher, ln
 		}
 	}()
 
-	logger.Logger.Infof("Connected to LND - alias %s", info.Alias)
+	logger.Logger.Infof("Connected to LND - alias %s", nodeInfo.Alias)
 
 	return lndService, nil
 }
@@ -935,5 +962,5 @@ func (svc *LNDService) GetSupportedNIP47NotificationTypes() []string {
 }
 
 func (svc *LNDService) GetPubkey() string {
-	return svc.pubkey
+	return svc.nodeInfo.Pubkey
 }
