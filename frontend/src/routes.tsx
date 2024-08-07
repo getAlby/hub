@@ -37,6 +37,7 @@ import Peers from "src/screens/peers/Peers";
 import { AlbyAccount } from "src/screens/settings/AlbyAccount";
 import { ChangeUnlockPassword } from "src/screens/settings/ChangeUnlockPassword";
 import DebugTools from "src/screens/settings/DebugTools";
+import DeveloperSettings from "src/screens/settings/DeveloperSettings";
 import Settings from "src/screens/settings/Settings";
 import { ImportMnemonic } from "src/screens/setup/ImportMnemonic";
 import { RestoreNode } from "src/screens/setup/RestoreNode";
@@ -133,6 +134,10 @@ const routes = [
               {
                 path: "alby-account",
                 element: <AlbyAccount />,
+              },
+              {
+                path: "developer",
+                element: <DeveloperSettings />,
               },
             ],
           },

@@ -107,6 +107,7 @@ export default function SettingsLayout() {
               Debug Tools
               <ExternalLink className="w-4 h-4 ml-2" />
             </MenuItem>
+            <MenuItem to="/settings/developer">Developer</MenuItem>
           </nav>
         </aside>
         <div className="flex-1 lg:max-w-2xl">
