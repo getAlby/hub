@@ -14,8 +14,8 @@ export default function DeveloperSettings() {
         <AlertTitle>Power your Apps with NWC</AlertTitle>
         <AlertDescription>
           <div className="mb-2">
-            Alby Hub can power your lightning-powered apps in all environments
-            using the amazing open protocol{" "}
+            Alby Hub can power your lightning apps and services in all
+            environments using the amazing open protocol{" "}
             <span className="font-semibold">Nostr Wallet Connect</span>.
           </div>
           <ExternalLinkButton size={"sm"} to="https://nwc.dev">
@@ -41,13 +41,23 @@ export default function DeveloperSettings() {
         </AlertDescription>
       </Alert>
       {show && (
-        <Textarea
-          className="p-4 max-w-sm font-emoji break-all"
-          value={getAuthToken() || ""}
-          autoFocus
-          onFocus={(e) => e.target.select()}
-          rows={3}
-        ></Textarea>
+        <>
+          <Textarea
+            className="p-4 max-w-sm font-emoji break-all"
+            value={getAuthToken() || ""}
+            autoFocus
+            onFocus={(e) => e.target.select()}
+            rows={3}
+          ></Textarea>
+          <p className="font-bold text-xs">
+            By default, the token expires in 30 days. Set the JWT_EXPIRY_DAYS
+            enviroment variable if you need a longer expiry.
+          </p>
+          <p className="font-bold text-xs">
+            This token can do anything with your hub! keep it safe! In case it
+            somehow is leaked, change your JWT_SECRET environment variable.
+          </p>
+        </>
       )}
     </>
   );
