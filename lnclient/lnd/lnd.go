@@ -522,7 +522,7 @@ func NewLNDService(ctx context.Context, eventPublisher events.EventPublisher, ln
 				for {
 					invoice, err := invoiceStream.Recv()
 					if err != nil {
-						logger.Logger.WithError(err).Error("Failed to receive payment")
+						logger.Logger.WithError(err).Error("Failed to receive invoice")
 						select {
 						case <-lndCtx.Done():
 							return
