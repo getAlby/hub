@@ -177,12 +177,6 @@ func (httpSvc *HttpService) mnemonicHandler(c echo.Context) error {
 		})
 	}
 
-	if !httpSvc.cfg.CheckUnlockPassword(mnemonicRequest.UnlockPassword) {
-		return c.JSON(http.StatusUnauthorized, ErrorResponse{
-			Message: "Invalid password",
-		})
-	}
-
 	responseBody, err := httpSvc.api.GetMnemonic(mnemonicRequest.UnlockPassword)
 
 	if err != nil {
