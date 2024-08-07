@@ -157,6 +157,7 @@ type InfoResponse struct {
 	AlbyAccountConnected bool   `json:"albyAccountConnected"`
 	Version              string `json:"version"`
 	Network              string `json:"network"`
+	EnableAdvancedSetup  bool   `json:"enableAdvancedSetup"`
 }
 
 type EncryptedMnemonicResponse struct {
