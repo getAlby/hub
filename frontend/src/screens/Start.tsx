@@ -5,8 +5,9 @@ import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
-import { useCSRF } from "src/hooks/useCSRF";
+
 import { useInfo } from "src/hooks/useInfo";
+import { saveAuthToken } from "src/lib/auth";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 
@@ -23,7 +24,7 @@ export default function Start() {
   const [loading, setLoading] = React.useState(false);
   const [buttonText, setButtonText] = React.useState("Login");
   useInfo(true); // poll the info endpoint to auto-redirect when app is running
-  const { data: csrf } = useCSRF();
+
   const { toast } = useToast();
 
   React.useEffect(() => {
@@ -65,19 +66,20 @@ export default function Start() {
     try {
       setLoading(true);
       setButtonText(messages[0]);
-      if (!csrf) {
-        throw new Error("csrf not loaded");
-      }
-      await request("/api/start", {
+
+      const token = await request<string>("/api/start", {
         method: "POST",
         headers: {
-          "X-CSRF-Token": csrf,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           unlockPassword,
         }),
       });
+      if (!token) {
+        throw new Error("No token in response");
+      }
+      saveAuthToken(token);
     } catch (error) {
       handleRequestError(toast, "Failed to connect", error);
       setLoading(false);

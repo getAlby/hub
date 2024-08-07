@@ -2,7 +2,7 @@ import React from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 import { useApp } from "src/hooks/useApp";
-import { useCSRF } from "src/hooks/useCSRF";
+
 import { useDeleteApp } from "src/hooks/useDeleteApp";
 import {
   App,
@@ -71,7 +71,6 @@ type AppInternalProps = {
 };
 
 function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
-  const { data: csrf } = useCSRF();
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
@@ -96,10 +95,6 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
 
   const handleSave = async () => {
     try {
-      if (!csrf) {
-        throw new Error("No CSRF token");
-      }
-
       const updateAppRequest: UpdateAppRequest = {
         scopes: Array.from(permissions.scopes),
         budgetRenewal: permissions.budgetRenewal,
@@ -110,7 +105,6 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
       await request(`/api/apps/${app.nostrPubkey}`, {
         method: "PATCH",
         headers: {
-          "X-CSRF-Token": csrf,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(updateAppRequest),

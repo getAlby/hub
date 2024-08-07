@@ -24,14 +24,12 @@ import { usePeers } from "src/hooks/usePeers.ts";
 import { useSyncWallet } from "src/hooks/useSyncWallet.ts";
 import { Node } from "src/types";
 import { request } from "src/utils/request";
-import { useCSRF } from "../../hooks/useCSRF.ts";
 
 export default function Peers() {
   useSyncWallet();
   const { data: peers, mutate: reloadPeers } = usePeers();
   const { data: channels } = useChannels();
   const [nodes, setNodes] = React.useState<Node[]>([]);
-  const { data: csrf } = useCSRF();
 
   // TODO: move to NWC backend
   const loadNodeStats = React.useCallback(async () => {
@@ -60,9 +58,6 @@ export default function Peers() {
 
   async function disconnectPeer(peerId: string) {
     try {
-      if (!csrf) {
-        throw new Error("csrf not loaded");
-      }
       if (!peerId) {
         throw new Error("peer missing");
       }
@@ -83,9 +78,7 @@ export default function Peers() {
 
       await request(`/api/peers/${peerId}`, {
         method: "DELETE",
-        headers: {
-          "X-CSRF-Token": csrf,
-        },
+        headers: {},
       });
       toast({ title: "Successfully disconnected from peer " + peerId });
       await reloadPeers();

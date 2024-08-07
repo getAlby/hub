@@ -22,7 +22,8 @@ type AppConfig struct {
 	Workdir               string `envconfig:"WORK_DIR"`
 	Port                  string `envconfig:"PORT" default:"8080"`
 	DatabaseUri           string `envconfig:"DATABASE_URI" default:"nwc.db"`
-	CookieSecret          string `envconfig:"COOKIE_SECRET"`
+	JWTSecret             string `envconfig:"JWT_SECRET"`
+	JWTExpiryDays         uint64 `envconfig:"JWT_EXPIRY_DAYS" default:"30"`
 	LogLevel              string `envconfig:"LOG_LEVEL"`
 	LDKNetwork            string `envconfig:"LDK_NETWORK" default:"bitcoin"`
 	LDKEsploraServer      string `envconfig:"LDK_ESPLORA_SERVER" default:"https://electrs.getalbypro.com"` // TODO: remove LDK prefix
@@ -51,7 +52,7 @@ type Config interface {
 	Get(key string, encryptionKey string) (string, error)
 	SetIgnore(key string, value string, encryptionKey string)
 	SetUpdate(key string, value string, encryptionKey string)
-	GetCookieSecret() string
+	GetJWTSecret() string
 	GetRelayUrl() string
 	GetEnv() *AppConfig
 	CheckUnlockPassword(password string) bool

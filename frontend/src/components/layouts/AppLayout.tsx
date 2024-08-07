@@ -45,7 +45,7 @@ import {
 } from "src/components/ui/tooltip";
 import { useToast } from "src/components/ui/use-toast";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
-import { useCSRF } from "src/hooks/useCSRF";
+
 import { useInfo } from "src/hooks/useInfo";
 import { useRemoveSuccessfulChannelOrder } from "src/hooks/useRemoveSuccessfulChannelOrder";
 import { cn } from "src/lib/utils";
@@ -55,7 +55,7 @@ import ExternalLink from "../ExternalLink";
 
 export default function AppLayout() {
   const { data: albyMe } = useAlbyMe();
-  const { data: csrf } = useCSRF();
+
   const { data: info, mutate: refetchInfo } = useInfo();
   const { toast } = useToast();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
@@ -68,14 +68,9 @@ export default function AppLayout() {
   }, [location]);
 
   const logout = React.useCallback(async () => {
-    if (!csrf) {
-      throw new Error("csrf not loaded");
-    }
-
     await request("/api/logout", {
       method: "POST",
       headers: {
-        "X-CSRF-Token": csrf,
         "Content-Type": "application/json",
       },
     });
@@ -83,7 +78,7 @@ export default function AppLayout() {
     await refetchInfo();
     navigate("/", { replace: true });
     toast({ title: "You are now logged out." });
-  }, [csrf, navigate, refetchInfo, toast]);
+  }, [navigate, refetchInfo, toast]);
 
   const isHttpMode = window.location.protocol.startsWith("http");
 

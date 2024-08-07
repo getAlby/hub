@@ -7,7 +7,7 @@ import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
-import { useCSRF } from "src/hooks/useCSRF";
+
 import { useInfo } from "src/hooks/useInfo";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
@@ -15,7 +15,7 @@ import { request } from "src/utils/request";
 export function RestoreNode() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { data: csrf } = useCSRF();
+
   const [unlockPassword, setUnlockPassword] = useState("");
   const [file, setFile] = useState<File | null>(null);
 
@@ -56,9 +56,6 @@ export function RestoreNode() {
     );
 
     e.preventDefault();
-    if (!csrf) {
-      throw new Error("No CSRF token");
-    }
 
     try {
       setLoading(true);
@@ -71,17 +68,13 @@ export function RestoreNode() {
         }
         await request("/api/restore", {
           method: "POST",
-          headers: {
-            "X-CSRF-Token": csrf,
-          },
+          headers: {},
           body: formData,
         });
       } else {
         await request("/api/restore", {
           method: "POST",
-          headers: {
-            "X-CSRF-Token": csrf,
-          },
+          headers: {},
           body: JSON.stringify({
             unlockPassword,
           }),

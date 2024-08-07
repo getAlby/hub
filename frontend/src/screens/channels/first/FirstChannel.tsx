@@ -13,7 +13,7 @@ import { Separator } from "src/components/ui/separator";
 import { useToast } from "src/components/ui/use-toast";
 import { useAlbyBalance } from "src/hooks/useAlbyBalance";
 import { useChannels } from "src/hooks/useChannels";
-import { useCSRF } from "src/hooks/useCSRF";
+
 import { useInfo } from "src/hooks/useInfo";
 import { AutoChannelRequest, AutoChannelResponse } from "src/types";
 import { request } from "src/utils/request";
@@ -31,7 +31,7 @@ export function FirstChannel() {
   const [isLoading, setLoading] = React.useState(false);
   const [showAdvanced, setShowAdvanced] = React.useState(false);
   const [isPublic, setPublic] = React.useState(false);
-  const { data: csrf } = useCSRF();
+
   const navigate = useNavigate();
   const { toast } = useToast();
   const [invoice, setInvoice] = React.useState<string>();
@@ -49,7 +49,7 @@ export function FirstChannel() {
   }
 
   async function openChannel() {
-    if (!info || !channels || !csrf) {
+    if (!info || !channels) {
       return;
     }
     setLoading(true);
@@ -62,7 +62,6 @@ export function FirstChannel() {
         {
           method: "POST",
           headers: {
-            "X-CSRF-Token": csrf,
             "Content-Type": "application/json",
           },
           body: JSON.stringify(newInstantChannelInvoiceRequest),

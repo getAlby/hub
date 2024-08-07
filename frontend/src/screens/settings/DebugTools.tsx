@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { Button } from "src/components/ui/button";
 import { Textarea } from "src/components/ui/textarea";
-import { useCSRF } from "src/hooks/useCSRF";
+
 import { request } from "src/utils/request";
 
 export default function DebugTools() {
-  const { data: csrf } = useCSRF();
   const [apiResponse, setApiResponse] = useState<string>("");
 
   async function apiRequest(
@@ -14,14 +13,9 @@ export default function DebugTools() {
     requestBody?: object
   ) {
     try {
-      if (!csrf) {
-        throw new Error("csrf not loaded");
-      }
-
       const requestOptions: RequestInit = {
         method: method,
         headers: {
-          "X-CSRF-Token": csrf,
           "Content-Type": "application/json",
         },
       };

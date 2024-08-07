@@ -16,30 +16,24 @@ import {
 import { buttonVariants } from "src/components/ui/button";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
-import { useCSRF } from "src/hooks/useCSRF";
+
 import { useInfo } from "src/hooks/useInfo";
 
 import { cn } from "src/lib/utils";
 import { request } from "src/utils/request";
 
 export default function SettingsLayout() {
-  const { data: csrf } = useCSRF();
   const { mutate: refetchInfo, hasMnemonic, hasNodeBackup } = useInfo();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [shuttingDown, setShuttingDown] = useState(false);
 
   const shutdown = React.useCallback(async () => {
-    if (!csrf) {
-      throw new Error("csrf not loaded");
-    }
-
     setShuttingDown(true);
     try {
       await request("/api/stop", {
         method: "POST",
         headers: {
-          "X-CSRF-Token": csrf,
           "Content-Type": "application/json",
         },
       });
@@ -55,7 +49,7 @@ export default function SettingsLayout() {
         variant: "destructive",
       });
     }
-  }, [csrf, navigate, refetchInfo, toast]);
+  }, [navigate, refetchInfo, toast]);
 
   return (
     <>

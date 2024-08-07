@@ -7,9 +7,10 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
-	"github.com/gorilla/sessions"
-	"github.com/labstack/echo-contrib/session"
+	"github.com/golang-jwt/jwt/v5"
+	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/sirupsen/logrus"
@@ -25,6 +26,13 @@ import (
 	"github.com/getAlby/hub/frontend"
 )
 
+type jwtCustomClaims struct {
+	// we can add extra claims here
+	// Name  string `json:"name"`
+	// Admin bool   `json:"admin"`
+	jwt.RegisteredClaims
+}
+
 type HttpService struct {
 	api            api.API
 	albyHttpSvc    *AlbyHttpService
@@ -33,11 +41,6 @@ type HttpService struct {
 	db             *gorm.DB
 }
 
-const (
-	sessionCookieName    = "session"
-	sessionCookieAuthKey = "authenticated"
-)
-
 func NewHttpService(svc service.Service, eventPublisher events.EventPublisher) *HttpService {
 	return &HttpService{
 		api:            api.NewAPI(svc, svc.GetDB(), svc.GetConfig(), svc.GetKeys(), svc.GetAlbyOAuthSvc(), svc.GetEventPublisher()),
@@ -45,15 +48,6 @@ func NewHttpService(svc service.Service, eventPublisher events.EventPublisher) *
 		cfg:            svc.GetConfig(),
 		eventPublisher: eventPublisher,
 		db:             svc.GetDB(),
-	}
-}
-
-func (httpSvc *HttpService) validateUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		if !httpSvc.isUnlocked(c) {
-			return c.NoContent(http.StatusUnauthorized)
-		}
-		return next(c)
 	}
 }
 
@@ -82,24 +76,10 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 
 	e.Use(middleware.Recover())
 	e.Use(middleware.RequestID())
-	e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
-		TokenLookup: "header:X-CSRF-Token",
-	}))
-	e.Use(session.Middleware(sessions.NewCookieStore([]byte(httpSvc.cfg.GetCookieSecret()))))
 
-	authMiddleware := httpSvc.validateUserMiddleware
-	e.GET("/api/apps", httpSvc.appsListHandler, authMiddleware)
-	e.GET("/api/apps/:pubkey", httpSvc.appsShowHandler, authMiddleware)
-	e.PATCH("/api/apps/:pubkey", httpSvc.appsUpdateHandler, authMiddleware)
-	e.DELETE("/api/apps/:pubkey", httpSvc.appsDeleteHandler, authMiddleware)
-	e.POST("/api/apps", httpSvc.appsCreateHandler, authMiddleware)
-	e.GET("/api/encrypted-mnemonic", httpSvc.encryptedMnemonicHandler, authMiddleware)
-	e.PATCH("/api/backup-reminder", httpSvc.backupReminderHandler, authMiddleware)
-
-	e.GET("/api/csrf", httpSvc.csrfHandler)
 	e.GET("/api/info", httpSvc.infoHandler)
-	e.POST("/api/logout", httpSvc.logoutHandler)
 	e.POST("/api/setup", httpSvc.setupHandler)
+	e.POST("/api/restore", httpSvc.restoreBackupHandler)
 
 	// allow one unlock request per second
 	unlockRateLimiter := middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(1))
@@ -107,55 +87,58 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.POST("/api/unlock", httpSvc.unlockHandler, unlockRateLimiter)
 	e.PATCH("/api/unlock-password", httpSvc.changeUnlockPasswordHandler, unlockRateLimiter)
 
-	// TODO: below could be supported by NIP-47
-	e.GET("/api/channels", httpSvc.channelsListHandler, authMiddleware)
-	e.POST("/api/channels", httpSvc.openChannelHandler, authMiddleware)
-	e.GET("/api/channels/suggestions", httpSvc.channelPeerSuggestionsHandler, authMiddleware)
-	e.POST("/api/lsp-orders", httpSvc.newInstantChannelInvoiceHandler, authMiddleware)
-	e.GET("/api/node/connection-info", httpSvc.nodeConnectionInfoHandler, authMiddleware)
-	e.GET("/api/node/status", httpSvc.nodeStatusHandler, authMiddleware)
-	e.GET("/api/node/network-graph", httpSvc.nodeNetworkGraphHandler, authMiddleware)
-	e.GET("/api/peers", httpSvc.listPeers, authMiddleware)
-	e.POST("/api/peers", httpSvc.connectPeerHandler, authMiddleware)
-	e.DELETE("/api/peers/:peerId", httpSvc.disconnectPeerHandler, authMiddleware)
-	e.DELETE("/api/peers/:peerId/channels/:channelId", httpSvc.closeChannelHandler, authMiddleware)
-	e.PATCH("/api/peers/:peerId/channels/:channelId", httpSvc.updateChannelHandler, authMiddleware)
-	e.GET("/api/wallet/address", httpSvc.onchainAddressHandler, authMiddleware)
-	e.POST("/api/wallet/new-address", httpSvc.newOnchainAddressHandler, authMiddleware)
-	e.POST("/api/wallet/redeem-onchain-funds", httpSvc.redeemOnchainFundsHandler, authMiddleware)
-	e.POST("/api/wallet/sign-message", httpSvc.signMessageHandler, authMiddleware)
-	e.POST("/api/wallet/sync", httpSvc.walletSyncHandler, authMiddleware)
-	e.GET("/api/wallet/capabilities", httpSvc.capabilitiesHandler, authMiddleware)
-	e.POST("/api/payments/:invoice", httpSvc.sendPaymentHandler, authMiddleware)
-	e.POST("/api/invoices", httpSvc.makeInvoiceHandler, authMiddleware)
-	e.GET("/api/transactions", httpSvc.listTransactionsHandler, authMiddleware)
-	e.GET("/api/transactions/:paymentHash", httpSvc.lookupTransactionHandler, authMiddleware)
-	e.GET("/api/balances", httpSvc.balancesHandler, authMiddleware)
-	e.POST("/api/reset-router", httpSvc.resetRouterHandler, authMiddleware)
-	e.POST("/api/stop", httpSvc.stopHandler, authMiddleware)
-
-	httpSvc.albyHttpSvc.RegisterSharedRoutes(e, authMiddleware)
-
-	e.GET("/api/mempool", httpSvc.mempoolApiHandler, authMiddleware)
-
-	e.POST("/api/send-payment-probes", httpSvc.sendPaymentProbesHandler, authMiddleware)
-	e.POST("/api/send-spontaneous-payment-probes", httpSvc.sendSpontaneousPaymentProbesHandler, authMiddleware)
-	e.GET("/api/log/:type", httpSvc.getLogOutputHandler, authMiddleware)
-
-	e.POST("/api/backup", httpSvc.createBackupHandler, authMiddleware)
-	e.POST("/api/restore", httpSvc.restoreBackupHandler)
-
 	frontend.RegisterHandlers(e)
-}
 
-func (httpSvc *HttpService) csrfHandler(c echo.Context) error {
-	csrf, _ := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
-	if csrf == "" {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: "CSRF token not available",
-		})
+	// restricted routes
+	// Configure middleware with the custom claims type
+	jwtConfig := echojwt.Config{
+		NewClaimsFunc: func(c echo.Context) jwt.Claims {
+			return new(jwtCustomClaims)
+		},
+		SigningKey: []byte(httpSvc.cfg.GetJWTSecret()),
 	}
-	return c.JSON(http.StatusOK, csrf)
+	r := e.Group("")
+	r.Use(echojwt.WithConfig(jwtConfig))
+
+	r.GET("/api/apps", httpSvc.appsListHandler)
+	r.GET("/api/apps/:pubkey", httpSvc.appsShowHandler)
+	r.PATCH("/api/apps/:pubkey", httpSvc.appsUpdateHandler)
+	r.DELETE("/api/apps/:pubkey", httpSvc.appsDeleteHandler)
+	r.POST("/api/apps", httpSvc.appsCreateHandler)
+	r.GET("/api/encrypted-mnemonic", httpSvc.encryptedMnemonicHandler)
+	r.PATCH("/api/backup-reminder", httpSvc.backupReminderHandler)
+	r.GET("/api/channels", httpSvc.channelsListHandler)
+	r.POST("/api/channels", httpSvc.openChannelHandler)
+	r.GET("/api/channels/suggestions", httpSvc.channelPeerSuggestionsHandler)
+	r.POST("/api/lsp-orders", httpSvc.newInstantChannelInvoiceHandler)
+	r.GET("/api/node/connection-info", httpSvc.nodeConnectionInfoHandler)
+	r.GET("/api/node/status", httpSvc.nodeStatusHandler)
+	r.GET("/api/node/network-graph", httpSvc.nodeNetworkGraphHandler)
+	r.GET("/api/peers", httpSvc.listPeers)
+	r.POST("/api/peers", httpSvc.connectPeerHandler)
+	r.DELETE("/api/peers/:peerId", httpSvc.disconnectPeerHandler)
+	r.DELETE("/api/peers/:peerId/channels/:channelId", httpSvc.closeChannelHandler)
+	r.PATCH("/api/peers/:peerId/channels/:channelId", httpSvc.updateChannelHandler)
+	r.GET("/api/wallet/address", httpSvc.onchainAddressHandler)
+	r.POST("/api/wallet/new-address", httpSvc.newOnchainAddressHandler)
+	r.POST("/api/wallet/redeem-onchain-funds", httpSvc.redeemOnchainFundsHandler)
+	r.POST("/api/wallet/sign-message", httpSvc.signMessageHandler)
+	r.POST("/api/wallet/sync", httpSvc.walletSyncHandler)
+	r.GET("/api/wallet/capabilities", httpSvc.capabilitiesHandler)
+	r.POST("/api/payments/:invoice", httpSvc.sendPaymentHandler)
+	r.POST("/api/invoices", httpSvc.makeInvoiceHandler)
+	r.GET("/api/transactions", httpSvc.listTransactionsHandler)
+	r.GET("/api/transactions/:paymentHash", httpSvc.lookupTransactionHandler)
+	r.GET("/api/balances", httpSvc.balancesHandler)
+	r.POST("/api/reset-router", httpSvc.resetRouterHandler)
+	r.POST("/api/stop", httpSvc.stopHandler)
+	r.GET("/api/mempool", httpSvc.mempoolApiHandler)
+	r.POST("/api/send-payment-probes", httpSvc.sendPaymentProbesHandler)
+	r.POST("/api/send-spontaneous-payment-probes", httpSvc.sendSpontaneousPaymentProbesHandler)
+	r.GET("/api/log/:type", httpSvc.getLogOutputHandler)
+	r.POST("/api/backup", httpSvc.createBackupHandler)
+
+	httpSvc.albyHttpSvc.RegisterSharedRoutes(r)
 }
 
 func (httpSvc *HttpService) infoHandler(c echo.Context) error {
@@ -165,7 +148,22 @@ func (httpSvc *HttpService) infoHandler(c echo.Context) error {
 			Message: err.Error(),
 		})
 	}
-	responseBody.Unlocked = httpSvc.isUnlocked(c)
+
+	authHeader := c.Request().Header.Get("Authorization")
+	if authHeader != "" {
+		parts := strings.Split(authHeader, " ")
+		if parts[0] == "Bearer" {
+			tokenString := parts[1]
+			token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+				return []byte(httpSvc.cfg.GetJWTSecret()), nil
+			})
+			if err != nil {
+				logger.Logger.WithError(err).Error("failed to parse token")
+			}
+			responseBody.Unlocked = err == nil && token != nil && token.Valid
+		}
+	}
+
 	return c.JSON(http.StatusOK, responseBody)
 }
 
@@ -206,7 +204,7 @@ func (httpSvc *HttpService) startHandler(c echo.Context) error {
 		})
 	}
 
-	err := httpSvc.saveSessionCookie(c)
+	token, err := httpSvc.createJWT()
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
@@ -221,7 +219,7 @@ func (httpSvc *HttpService) startHandler(c echo.Context) error {
 		}
 	}()
 
-	return c.NoContent(http.StatusNoContent)
+	return c.JSON(http.StatusOK, token)
 }
 
 func (httpSvc *HttpService) unlockHandler(c echo.Context) error {
@@ -238,7 +236,7 @@ func (httpSvc *HttpService) unlockHandler(c echo.Context) error {
 		})
 	}
 
-	err := httpSvc.saveSessionCookie(c)
+	token, err := httpSvc.createJWT()
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
@@ -250,7 +248,7 @@ func (httpSvc *HttpService) unlockHandler(c echo.Context) error {
 		Event: "nwc_unlocked",
 	})
 
-	return c.NoContent(http.StatusNoContent)
+	return c.JSON(http.StatusOK, token)
 }
 
 func (httpSvc *HttpService) changeUnlockPasswordHandler(c echo.Context) error {
@@ -271,40 +269,27 @@ func (httpSvc *HttpService) changeUnlockPasswordHandler(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func (httpSvc *HttpService) isUnlocked(c echo.Context) bool {
-	sess, _ := session.Get(sessionCookieName, c)
-	return sess.Values[sessionCookieAuthKey] == true
-}
+func (httpSvc *HttpService) createJWT() (string, error) {
 
-func (httpSvc *HttpService) saveSessionCookie(c echo.Context) error {
-	sess, _ := session.Get("session", c)
-	sess.Options = &sessions.Options{
-		Path:     "/",
-		MaxAge:   86400 * 7,
-		HttpOnly: true,
+	// Set custom claims
+	claims := &jwtCustomClaims{
+		jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24 * time.Duration(httpSvc.cfg.GetEnv().JWTExpiryDays))),
+		},
 	}
-	sess.Values[sessionCookieAuthKey] = true
-	err := sess.Save(c.Request(), c.Response())
-	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to save session")
-	}
-	return err
-}
 
-func (httpSvc *HttpService) logoutHandler(c echo.Context) error {
-	sess, err := session.Get(sessionCookieName, c)
+	// Create token with claims
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	if token == nil {
+		return "", errors.New("failed to create token")
+	}
+
+	signed, err := token.SignedString([]byte(httpSvc.cfg.GetJWTSecret()))
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: "Failed to get session",
-		})
+		return "", err
 	}
-	sess.Options.MaxAge = -1
-	if err := sess.Save(c.Request(), c.Response()); err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: "Failed to save session",
-		})
-	}
-	return c.NoContent(http.StatusNoContent)
+	return signed, nil
 }
 
 func (httpSvc *HttpService) channelsListHandler(c echo.Context) error {
@@ -730,6 +715,7 @@ func (httpSvc *HttpService) signMessageHandler(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, signMessageResponse)
 }
+
 func (httpSvc *HttpService) appsListHandler(c echo.Context) error {
 
 	apps, err := httpSvc.api.ListApps()

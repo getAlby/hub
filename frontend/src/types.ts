@@ -140,12 +140,12 @@ export interface InfoResponse {
   oauthRedirect: boolean;
   albyAccountConnected: boolean;
   running: boolean;
-  unlocked: boolean;
   albyAuthUrl: string;
   nextBackupReminder: string;
   albyUserIdentifier: string;
   network?: Network;
   version: string;
+  unlocked: boolean;
 }
 
 export type Network = "bitcoin" | "testnet" | "signet";
