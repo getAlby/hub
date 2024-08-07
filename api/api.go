@@ -616,7 +616,7 @@ func (api *api) GetMnemonic(unlockPassword string) (*MnemonicResponse, error) {
 		return &resp, fmt.Errorf("failed to fetch encryption key: %w", err)
 	}
 
-	resp.Mnemonic = encryptedMnemonic
+	resp.Mnemonic = mnemonic
 	return &resp, err
 }
 
