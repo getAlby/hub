@@ -7,3 +7,7 @@ export function getAuthToken() {
 export function saveAuthToken(token: string) {
   localStorage.setItem(localStorageKeys.authToken, token);
 }
+
+export function deleteAuthToken() {
+  localStorage.removeItem(localStorageKeys.authToken);
+}

@@ -48,9 +48,9 @@ import { useAlbyMe } from "src/hooks/useAlbyMe";
 
 import { useInfo } from "src/hooks/useInfo";
 import { useRemoveSuccessfulChannelOrder } from "src/hooks/useRemoveSuccessfulChannelOrder";
+import { deleteAuthToken } from "src/lib/auth";
 import { cn } from "src/lib/utils";
 import { openLink } from "src/utils/openLink";
-import { request } from "src/utils/request";
 import ExternalLink from "../ExternalLink";
 
 export default function AppLayout() {
@@ -68,13 +68,7 @@ export default function AppLayout() {
   }, [location]);
 
   const logout = React.useCallback(async () => {
-    await request("/api/logout", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
+    deleteAuthToken();
     await refetchInfo();
     navigate("/", { replace: true });
     toast({ title: "You are now logged out." });
@@ -104,7 +98,7 @@ export default function AppLayout() {
         {isHttpMode && (
           <DropdownMenuItem
             onClick={logout}
-            className="w-full flex flex-row items-center gap-2"
+            className="w-full flex flex-row items-center gap-2 cursor-pointer"
           >
             <Lock className="w-4 h-4" />
             <p>Lock Alby Hub</p>
