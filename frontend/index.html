@@ -1,36 +1,37 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" class="min-h-screen">
-<head>
-  <meta charset="utf-8" />
-  <link rel="icon" href="/public/favicon.svg" />
-  <link rel="manifest" href="/public/manifest.json" />
-  <meta name="theme-color" content="#000000" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Alby Hub</title>
-  <link rel="icon" href="/favicon.svg" />
-</head>
-<body class="min-h-screen">
-  <div id="root" class="min-h-screen"></div>
-  <script type="module" src="/src/main.tsx"></script>
-  <script>
-    window.chatwootSettings = {
-      hideMessageBubble: true,
-      darkMode: "auto"
-    };
-    (function (d, t) {
-      var BASE_URL = "https://app.chatwoot.com";
-      var g = d.createElement(t), s = d.getElementsByTagName(t)[0];
-      g.src = BASE_URL + "/packs/js/sdk.js";
-      g.defer = true;
-      g.async = true;
-      s.parentNode.insertBefore(g, s);
-      g.onload = function () {
-        window.chatwootSDK.run({
-          websiteToken: 'hXUVDZ3CQKbW4doB7dd5EcWm',
-          baseUrl: BASE_URL
-        });
-      }
-    })(document, "script");
-  </script>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Alby Hub</title>
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/icon-512.png" />
+    <meta name="theme-color" content="#000000" />
+  </head>
+  <body class="min-h-screen">
+    <div id="root" class="min-h-screen"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    <script>
+      window.chatwootSettings = {
+        hideMessageBubble: true,
+        darkMode: "auto",
+      };
+      (function (d, t) {
+        var BASE_URL = "https://app.chatwoot.com";
+        var g = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+        g.src = BASE_URL + "/packs/js/sdk.js";
+        g.defer = true;
+        g.async = true;
+        s.parentNode.insertBefore(g, s);
+        g.onload = function () {
+          window.chatwootSDK.run({
+            websiteToken: "hXUVDZ3CQKbW4doB7dd5EcWm",
+            baseUrl: BASE_URL,
+          });
+        };
+      })(document, "script");
+    </script>
+  </body>
 </html>
