@@ -611,7 +611,7 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 
 func (api *api) GetMnemonic(unlockPassword string) (*MnemonicResponse, error) {
 	resp := MnemonicResponse{}
-	encryptedMnemonic, err := api.cfg.Get("Mnemonic", unlockPassword)
+	mnemonic, err := api.cfg.Get("Mnemonic", unlockPassword)
 	if err != nil {
 		return &resp, fmt.Errorf("failed to fetch encryption key: %w", err)
 	}
