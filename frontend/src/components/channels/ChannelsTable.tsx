@@ -1,21 +1,7 @@
-import {
-  ExternalLinkIcon,
-  HandCoins,
-  InfoIcon,
-  MoreHorizontal,
-  Trash2,
-} from "lucide-react";
+import { InfoIcon } from "lucide-react";
 import { ChannelWarning } from "src/components/channels/ChannelWarning";
-import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading.tsx";
 import { Badge } from "src/components/ui/badge.tsx";
-import { Button } from "src/components/ui/button.tsx";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "src/components/ui/dropdown-menu.tsx";
 import { Progress } from "src/components/ui/progress.tsx";
 import {
   Table,
@@ -33,22 +19,17 @@ import {
 } from "src/components/ui/tooltip.tsx";
 import { formatAmount } from "src/lib/utils.ts";
 import { Channel, Node } from "src/types";
+import { ChannelDropdownMenu } from "./ChannelDropdownMenu";
 
 type ChannelsTableProps = {
   channels?: Channel[];
   nodes?: Node[];
-  closeChannel(
-    channelId: string,
-    counterpartyNodeId: string,
-    isActive: boolean
-  ): void;
   editChannel(channel: Channel): void;
 };
 
 export function ChannelsTable({
   channels,
   nodes,
-  closeChannel,
   editChannel,
 }: ChannelsTableProps) {
   if (channels && !channels.length) {
@@ -176,55 +157,11 @@ export function ChannelsTable({
                         <ChannelWarning channel={channel} />
                       </TableCell>
                       <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button size="icon" variant="ghost">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem className="flex flex-row items-center gap-2 cursor-pointer">
-                              <ExternalLink
-                                to={`https://mempool.space/tx/${channel.fundingTxId}`}
-                                className="w-full flex flex-row items-center gap-2"
-                              >
-                                <ExternalLinkIcon className="w-4 h-4" />
-                                <p>View Funding Transaction</p>
-                              </ExternalLink>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="flex flex-row items-center gap-2 cursor-pointer">
-                              <ExternalLink
-                                to={`https://amboss.space/node/${channel.remotePubkey}`}
-                                className="w-full flex flex-row items-center gap-2"
-                              >
-                                <ExternalLinkIcon className="w-4 h-4" />
-                                <p>View Node on amboss.space</p>
-                              </ExternalLink>
-                            </DropdownMenuItem>
-                            {channel.public && (
-                              <DropdownMenuItem
-                                className="flex flex-row items-center gap-2 cursor-pointer"
-                                onClick={() => editChannel(channel)}
-                              >
-                                <HandCoins className="h-4 w-4" />
-                                Set Routing Fee
-                              </DropdownMenuItem>
-                            )}
-                            <DropdownMenuItem
-                              className="flex flex-row items-center gap-2 cursor-pointer"
-                              onClick={() =>
-                                closeChannel(
-                                  channel.id,
-                                  channel.remotePubkey,
-                                  channel.active
-                                )
-                              }
-                            >
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                              Close Channel
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        <ChannelDropdownMenu
+                          alias={alias}
+                          channel={channel}
+                          editChannel={editChannel}
+                        />
                       </TableCell>
                     </TableRow>
                   );
