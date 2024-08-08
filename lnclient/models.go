@@ -7,7 +7,8 @@ import (
 // TODO: remove JSON tags from these models (LNClient models should not be exposed directly)
 
 type TLVRecord struct {
-	Type  uint64 `json:"type"`
+	Type uint64 `json:"type"`
+	// hex-encoded value
 	Value string `json:"value"`
 }
 

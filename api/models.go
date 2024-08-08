@@ -192,20 +192,22 @@ type ListTransactionsResponse = []Transaction
 
 // TODO: camelCase
 type Transaction struct {
-	Type            string             `json:"type"`
-	Invoice         string             `json:"invoice"`
-	Description     string             `json:"description"`
-	DescriptionHash string             `json:"description_hash"`
-	Preimage        *string            `json:"preimage"`
-	PaymentHash     string             `json:"payment_hash"`
-	Amount          uint64             `json:"amount"`
-	FeesPaid        uint64             `json:"fees_paid"`
-	CreatedAt       string             `json:"created_at"`
-	SettledAt       *string            `json:"settled_at"`
-	AppId           *uint              `json:"app_id"`
-	Metadata        *lnclient.Metadata `json:"metadata,omitempty"`
-	Boostagram      *Boostagram        `json:"boostagram,omitempty"`
+	Type            string      `json:"type"`
+	Invoice         string      `json:"invoice"`
+	Description     string      `json:"description"`
+	DescriptionHash string      `json:"description_hash"`
+	Preimage        *string     `json:"preimage"`
+	PaymentHash     string      `json:"payment_hash"`
+	Amount          uint64      `json:"amount"`
+	FeesPaid        uint64      `json:"fees_paid"`
+	CreatedAt       string      `json:"created_at"`
+	SettledAt       *string     `json:"settled_at"`
+	AppId           *uint       `json:"app_id"`
+	Metadata        *Metadata   `json:"metadata,omitempty"`
+	Boostagram      *Boostagram `json:"boostagram,omitempty"`
 }
+
+type Metadata = lnclient.Metadata
 
 type Boostagram struct {
 	AppName        string `json:"appName"`

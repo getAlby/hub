@@ -6,7 +6,6 @@ import (
 	"errors"
 	"time"
 
-	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/transactions"
 	"github.com/sirupsen/logrus"
@@ -74,7 +73,7 @@ func toApiTransaction(transaction *transactions.Transaction) *Transaction {
 		preimage = transaction.Preimage
 	}
 
-	var metadata *lnclient.Metadata
+	var metadata *Metadata
 	if transaction.Metadata != nil {
 		jsonErr := json.Unmarshal(transaction.Metadata, &metadata)
 		if jsonErr != nil {

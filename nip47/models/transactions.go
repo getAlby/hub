@@ -23,7 +23,7 @@ func ToNip47Transaction(transaction *transactions.Transaction) *Transaction {
 		preimage = *transaction.Preimage
 	}
 
-	var metadata interface{}
+	var metadata map[string]interface{}
 	if transaction.Metadata != nil {
 		jsonErr := json.Unmarshal(transaction.Metadata, &metadata)
 		if jsonErr != nil {
