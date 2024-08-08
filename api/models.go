@@ -40,7 +40,7 @@ type API interface {
 	LookupInvoice(ctx context.Context, paymentHash string) (*LookupInvoiceResponse, error)
 	RequestMempoolApi(endpoint string) (interface{}, error)
 	GetInfo(ctx context.Context) (*InfoResponse, error)
-	GetEncryptedMnemonic() *EncryptedMnemonicResponse
+	GetMnemonic(unlockPassword string) (*MnemonicResponse, error)
 	SetNextBackupReminder(backupReminderRequest *BackupReminderRequest) error
 	Start(startRequest *StartRequest) error
 	Setup(ctx context.Context, setupRequest *SetupRequest) error
@@ -159,7 +159,11 @@ type InfoResponse struct {
 	Network              string `json:"network"`
 }
 
-type EncryptedMnemonicResponse struct {
+type MnemonicRequest struct {
+	UnlockPassword string `json:"unlockPassword"`
+}
+
+type MnemonicResponse struct {
 	Mnemonic string `json:"mnemonic"`
 }
 
@@ -303,4 +307,5 @@ type Channel struct {
 	CounterpartyUnspendablePunishmentReserve uint64      `json:"counterpartyUnspendablePunishmentReserve"`
 	Error                                    *string     `json:"error"`
 	Status                                   string      `json:"status"`
+	IsOutbound                               bool        `json:"isOutbound"`
 }

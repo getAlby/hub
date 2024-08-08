@@ -136,12 +136,25 @@ function NewChannelInternal({ network }: { network: Network }) {
     e.preventDefault();
 
     try {
+      if (!channels) {
+        throw new Error("Channels not loaded");
+      }
+      if (
+        channels.some(
+          (channel) =>
+            channel.status === "opening" &&
+            channel.isOutbound &&
+            !channel.confirmations
+        )
+      ) {
+        throw new Error(
+          "You already are opening a channel which has not been confirmed yet. Please wait for one block confirmation."
+        );
+      }
+
       if (!showAdvanced) {
         if (!channelPeerSuggestions) {
           throw new Error("Channel Peer suggestions not loaded");
-        }
-        if (!channels) {
-          throw new Error("Channels not loaded");
         }
         const amount = parseInt(order.amount || "0");
         if (!amount) {

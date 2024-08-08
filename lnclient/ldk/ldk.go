@@ -824,6 +824,7 @@ func (ls *LDKService) ListChannels(ctx context.Context) ([]lnclient.Channel, err
 			UnspendablePunishmentReserve:             unspendablePunishmentReserve,
 			CounterpartyUnspendablePunishmentReserve: ldkChannel.CounterpartyUnspendablePunishmentReserve,
 			Error:                                    channelError,
+			IsOutbound:                               ldkChannel.IsOutbound,
 		})
 	}
 

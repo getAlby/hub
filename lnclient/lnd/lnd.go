@@ -190,6 +190,7 @@ func (svc *LNDService) ListChannels(ctx context.Context) ([]lnclient.Channel, er
 			ConfirmationsRequired:                    &confirmationsRequired,
 			UnspendablePunishmentReserve:             lndChannel.LocalConstraints.ChanReserveSat,
 			CounterpartyUnspendablePunishmentReserve: lndChannel.RemoteConstraints.ChanReserveSat,
+			IsOutbound:                               lndChannel.Initiator,
 		}
 	}
 

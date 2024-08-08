@@ -105,7 +105,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	r.PATCH("/api/apps/:pubkey", httpSvc.appsUpdateHandler)
 	r.DELETE("/api/apps/:pubkey", httpSvc.appsDeleteHandler)
 	r.POST("/api/apps", httpSvc.appsCreateHandler)
-	r.GET("/api/encrypted-mnemonic", httpSvc.encryptedMnemonicHandler)
+	r.POST("/api/mnemonic", httpSvc.mnemonicHandler)
 	r.PATCH("/api/backup-reminder", httpSvc.backupReminderHandler)
 	r.GET("/api/channels", httpSvc.channelsListHandler)
 	r.POST("/api/channels", httpSvc.openChannelHandler)
@@ -167,8 +167,22 @@ func (httpSvc *HttpService) infoHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, responseBody)
 }
 
-func (httpSvc *HttpService) encryptedMnemonicHandler(c echo.Context) error {
-	responseBody := httpSvc.api.GetEncryptedMnemonic()
+func (httpSvc *HttpService) mnemonicHandler(c echo.Context) error {
+	var mnemonicRequest api.MnemonicRequest
+	if err := c.Bind(&mnemonicRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	responseBody, err := httpSvc.api.GetMnemonic(mnemonicRequest.UnlockPassword)
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+
 	return c.JSON(http.StatusOK, responseBody)
 }
 
