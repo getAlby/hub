@@ -94,6 +94,7 @@ type Channel struct {
 	UnspendablePunishmentReserve             uint64
 	CounterpartyUnspendablePunishmentReserve uint64
 	Error                                    *string
+	IsOutbound                               bool
 }
 
 type NodeStatus struct {

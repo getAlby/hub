@@ -316,6 +316,7 @@ func (api *api) ListChannels(ctx context.Context) ([]Channel, error) {
 			UnspendablePunishmentReserve:             channel.UnspendablePunishmentReserve,
 			CounterpartyUnspendablePunishmentReserve: channel.CounterpartyUnspendablePunishmentReserve,
 			Error:                                    channel.Error,
+			IsOutbound:                               channel.IsOutbound,
 			Status:                                   status,
 		})
 	}

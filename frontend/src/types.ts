@@ -196,6 +196,7 @@ export type Channel = {
   counterpartyUnspendablePunishmentReserve: number;
   error?: string;
   status: "online" | "opening" | "offline";
+  isOutbound: boolean;
 };
 
 export type UpdateChannelRequest = {
