@@ -263,7 +263,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 			case <-time.After(MIN_SYNC_INTERVAL):
 				ls.syncing = true
 				// always update fee rates to avoid differences in fee rates with channel partners
-				logger.Logger.Info("Updating fee estimates")
+				logger.Logger.Debug("Updating fee estimates")
 				err = node.UpdateFeeEstimates()
 				if err != nil {
 					logger.Logger.WithError(err).Error("Failed to update fee estimates")
@@ -283,7 +283,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 					continue
 				}
 
-				logger.Logger.Info("Starting background wallet sync")
+				logger.Logger.Debug("Starting background wallet sync")
 				syncStartTime := time.Now()
 				err = node.SyncWallets()
 
@@ -319,7 +319,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 
 func (ls *LDKService) Shutdown() error {
 	if ls.node == nil {
-		logger.Logger.Info("LDK client already shut down")
+		logger.Logger.Debug("LDK client already shut down")
 		return nil
 	}
 	// make sure nothing else can use it
@@ -331,7 +331,7 @@ func (ls *LDKService) Shutdown() error {
 	ls.cancel()
 
 	for ls.syncing {
-		logger.Logger.Info("Waiting for background sync to finish before stopping LDK node...")
+		logger.Logger.Warn("Waiting for background sync to finish before stopping LDK node...")
 		time.Sleep(1 * time.Second)
 	}
 
@@ -353,7 +353,7 @@ func (ls *LDKService) Shutdown() error {
 		logger.Logger.Error("Timeout shutting down LDK node after 120 seconds")
 	}
 
-	logger.Logger.Info("Destroying node object")
+	logger.Logger.Debug("Destroying LDK node object")
 	node.Destroy()
 
 	ls.resetRouterInternal()
@@ -797,13 +797,16 @@ func (ls *LDKService) ListChannels(ctx context.Context) ([]lnclient.Channel, err
 
 		var channelError *string
 
-		if ldkChannel.CounterpartyForwardingInfoFeeBaseMsat == nil {
+		if fundingTxId == "" {
+			channelErrorValue := "This channel has no funding transaction. Please contact support@getalby.com"
+			channelError = &channelErrorValue
+		} else if ldkChannel.IsUsable && ldkChannel.CounterpartyForwardingInfoFeeBaseMsat == nil {
 			// if we don't have this, routing will not work (LND <-> LDK interoperability bug - https://github.com/lightningnetwork/lnd/issues/6870 )
 			channelErrorValue := "Counterparty forwarding info not available. Please contact support@getalby.com"
 			channelError = &channelErrorValue
 		}
 
-		isActive := ldkChannel.IsUsable /* superset of ldkChannel.IsReady */ && channelError == nil && fundingTxId != ""
+		isActive := ldkChannel.IsUsable /* superset of ldkChannel.IsReady */ && channelError == nil
 
 		channels = append(channels, lnclient.Channel{
 			InternalChannel:                          internalChannel,
@@ -821,6 +824,7 @@ func (ls *LDKService) ListChannels(ctx context.Context) ([]lnclient.Channel, err
 			UnspendablePunishmentReserve:             unspendablePunishmentReserve,
 			CounterpartyUnspendablePunishmentReserve: ldkChannel.CounterpartyUnspendablePunishmentReserve,
 			Error:                                    channelError,
+			IsOutbound:                               ldkChannel.IsOutbound,
 		})
 	}
 
@@ -1427,7 +1431,7 @@ func (ls *LDKService) GetStorageDir() (string, error) {
 }
 
 func deleteOldLDKLogs(ldkLogDir string) {
-	logger.Logger.WithField("ldkLogDir", ldkLogDir).Info("Deleting old LDK logs")
+	logger.Logger.WithField("ldkLogDir", ldkLogDir).Debug("Deleting old LDK logs")
 	files, err := os.ReadDir(ldkLogDir)
 	if err != nil {
 		logger.Logger.WithField("path", ldkLogDir).WithError(err).Error("Failed to list ldk log directory")

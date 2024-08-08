@@ -5,21 +5,20 @@ go 1.22.2
 require (
 	github.com/adrg/xdg v0.5.0
 	github.com/breez/breez-sdk-go v0.3.4
-	github.com/davrux/echo-logrus/v4 v4.0.3
 	github.com/elnosh/gonuts v0.1.1-0.20240602162005-49da741613e4
 	github.com/getAlby/glalby-go v0.0.0-20240621192717-95673c864d59
-	github.com/getAlby/ldk-node-go v0.0.0-20240801181008-94e3b8403ad3
+	github.com/getAlby/ldk-node-go v0.0.0-20240808084450-7598b0953e62
 	github.com/go-gormigrate/gormigrate/v2 v2.1.2
 	github.com/gorilla/sessions v1.3.0
 	github.com/labstack/echo-contrib v0.17.1
 	github.com/labstack/echo/v4 v4.12.0
-	github.com/nbd-wtf/go-nostr v0.34.4
+	github.com/nbd-wtf/go-nostr v0.34.5
 	github.com/nbd-wtf/ln-decodepay v1.12.1
 	github.com/orandin/lumberjackrus v1.0.1
 	github.com/stretchr/testify v1.9.0
 	github.com/wailsapp/wails/v2 v2.9.1
 	golang.org/x/crypto v0.25.0
-	golang.org/x/oauth2 v0.21.0
+	golang.org/x/oauth2 v0.22.0
 	google.golang.org/grpc v1.65.0
 	gopkg.in/DataDog/dd-trace-go.v1 v1.66.0
 	gopkg.in/macaroon.v2 v2.1.0

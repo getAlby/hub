@@ -188,7 +188,7 @@ func (svc *albyOAuthService) fetchUserToken(ctx context.Context) (*oauth2.Token,
 
 	// only use the current token if it has at least 20 seconds before expiry
 	if currentToken.Expiry.After(time.Now().Add(time.Duration(20) * time.Second)) {
-		logger.Logger.Info("Using existing Alby OAuth token")
+		logger.Logger.Debug("Using existing Alby OAuth token")
 		return currentToken, nil
 	}
 
@@ -266,7 +266,7 @@ func (svc *albyOAuthService) GetBalance(ctx context.Context) (*AlbyBalance, erro
 		return nil, err
 	}
 
-	logger.Logger.WithFields(logrus.Fields{"balance": balance}).Info("Alby balance response")
+	logger.Logger.WithFields(logrus.Fields{"balance": balance}).Debug("Alby balance response")
 	return balance, nil
 }
 
@@ -386,7 +386,7 @@ func (svc *albyOAuthService) SendPayment(ctx context.Context, invoice string) er
 		"invoice":     invoice,
 		"paymentHash": responsePayload.PaymentHash,
 		"preimage":    responsePayload.Preimage,
-	}).Info("Payment successful")
+	}).Info("Alby Payment successful")
 	return nil
 }
 
@@ -841,7 +841,7 @@ func (svc *albyOAuthService) GetChannelPeerSuggestions(ctx context.Context) ([]C
 		}
 	}
 
-	logger.Logger.WithFields(logrus.Fields{"channel_suggestions": suggestions}).Info("Alby channel peer suggestions response")
+	logger.Logger.WithFields(logrus.Fields{"channel_suggestions": suggestions}).Debug("Alby channel peer suggestions response")
 	return suggestions, nil
 }
 
@@ -1082,7 +1082,7 @@ func (svc *albyOAuthService) getLSPInfo(ctx context.Context, url string) (pubkey
 	// make sure it's a valid IPv4 URI
 	regex := regexp.MustCompile(`^([0-9a-f]+)@([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+):([0-9]+)$`)
 	parts := regex.FindStringSubmatch(uri)
-	logger.Logger.WithField("parts", parts).Info("Split URI")
+	logger.Logger.WithField("parts", parts).Debug("Split URI")
 	if parts == nil || len(parts) != 4 {
 		logger.Logger.WithField("parts", parts).Error("Unsupported URI")
 		return "", "", uint16(0), errors.New("could not decode LSP URI")

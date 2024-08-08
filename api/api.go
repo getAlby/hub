@@ -316,6 +316,7 @@ func (api *api) ListChannels(ctx context.Context) ([]Channel, error) {
 			UnspendablePunishmentReserve:             channel.UnspendablePunishmentReserve,
 			CounterpartyUnspendablePunishmentReserve: channel.CounterpartyUnspendablePunishmentReserve,
 			Error:                                    channel.Error,
+			IsOutbound:                               channel.IsOutbound,
 			Status:                                   status,
 		})
 	}
@@ -587,6 +588,7 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info.AlbyAuthUrl = api.albyOAuthSvc.GetAuthUrl()
 	info.OAuthRedirect = !api.cfg.GetEnv().IsDefaultClientId()
 	info.Version = version.Tag
+	info.EnableAdvancedSetup = api.cfg.GetEnv().EnableAdvancedSetup
 	albyUserIdentifier, err := api.albyOAuthSvc.GetUserIdentifier()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to get alby user identifier")
@@ -609,11 +611,21 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	return &info, nil
 }
 
-func (api *api) GetEncryptedMnemonic() *EncryptedMnemonicResponse {
-	resp := EncryptedMnemonicResponse{}
-	mnemonic, _ := api.cfg.Get("Mnemonic", "")
-	resp.Mnemonic = mnemonic
-	return &resp
+func (api *api) GetMnemonic(unlockPassword string) (*MnemonicResponse, error) {
+	if !api.cfg.CheckUnlockPassword(unlockPassword) {
+		return nil, fmt.Errorf("wrong password")
+	}
+
+	mnemonic, err := api.cfg.Get("Mnemonic", unlockPassword)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch encryption key: %w", err)
+	}
+
+	resp := MnemonicResponse{
+		Mnemonic: mnemonic,
+	}
+
+	return &resp, err
 }
 
 func (api *api) SetNextBackupReminder(backupReminderRequest *BackupReminderRequest) error {

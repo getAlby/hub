@@ -327,7 +327,7 @@ func (cs *CashuService) checkInvoice(cashuInvoice *storage.Invoice) {
 	if cashuInvoice.TransactionType == storage.Mint && !cashuInvoice.Paid {
 		logger.Logger.WithFields(logrus.Fields{
 			"paymentHash": cashuInvoice.PaymentHash,
-		}).Info("Checking unpaid invoice")
+		}).Debug("Checking unpaid invoice")
 
 		proofs, err := cs.wallet.MintTokens(cashuInvoice.Id)
 		if err != nil {

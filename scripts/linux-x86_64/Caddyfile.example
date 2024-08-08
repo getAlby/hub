@@ -1,0 +1,19 @@
+# Example Caddyfile to run Alby Hub behind a Caddy reverse proxy
+# Caddy has embedded letsencrypt support and creates HTTPS certificates
+# learn more: https://caddyserver.com/docs/getting-started
+
+# Refer to the Caddy docs for more information:
+# https://caddyserver.com/docs/caddyfile
+
+
+:80 {
+        # optional additional basic authentication
+        # the password is hashed, see Caddy documentation: https://caddyserver.com/docs/caddyfile/directives/basic_auth
+        #basicauth {
+                # Username "Bob", password "hiccup"
+		            # Bob $2a$14$Zkx19XLiW6VYouLHR5NmfOFU0z2GTNmpkT/5qqR7hx4IjWJPDhjvG
+        #}
+
+        # Alby Hub runs on 8080 by default
+        reverse_proxy :8080
+}

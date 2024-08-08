@@ -146,11 +146,12 @@ export interface InfoResponse {
   albyUserIdentifier: string;
   network?: Network;
   version: string;
+  enableAdvancedSetup: boolean;
 }
 
 export type Network = "bitcoin" | "testnet" | "signet";
 
-export interface EncryptedMnemonicResponse {
+export interface MnemonicResponse {
   mnemonic: string;
 }
 
@@ -196,6 +197,7 @@ export type Channel = {
   counterpartyUnspendablePunishmentReserve: number;
   error?: string;
   status: "online" | "opening" | "offline";
+  isOutbound: boolean;
 };
 
 export type UpdateChannelRequest = {
