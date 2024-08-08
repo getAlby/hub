@@ -106,7 +106,12 @@ export function RoutingFeeDialog({ channel }: Props) {
       </AlertDialogHeader>
       <AlertDialogFooter>
         <AlertDialogCancel>Cancel</AlertDialogCancel>
-        <AlertDialogAction onClick={updateFee}>Confirm</AlertDialogAction>
+        <AlertDialogAction
+          disabled={parseInt(forwardingFee) == currentFee}
+          onClick={updateFee}
+        >
+          Confirm
+        </AlertDialogAction>
       </AlertDialogFooter>
     </AlertDialogContent>
   );
