@@ -87,13 +87,15 @@ func toApiTransaction(transaction *transactions.Transaction) *Transaction {
 
 	var boostagram *Boostagram
 	if transaction.Boostagram != nil {
-		jsonErr := json.Unmarshal(transaction.Boostagram, &boostagram)
+		var txBoostagram *transactions.Boostagram
+		jsonErr := json.Unmarshal(transaction.Boostagram, &txBoostagram)
 		if jsonErr != nil {
 			logger.Logger.WithError(jsonErr).WithFields(logrus.Fields{
 				"id":         transaction.ID,
 				"boostagram": transaction.Boostagram,
 			}).Error("Failed to deserialize transaction boostagram info")
 		}
+		boostagram = toApiBoostagram(txBoostagram)
 	}
 
 	return &Transaction{
@@ -110,5 +112,24 @@ func toApiTransaction(transaction *transactions.Transaction) *Transaction {
 		SettledAt:       settledAt,
 		Metadata:        metadata,
 		Boostagram:      boostagram,
+	}
+}
+
+func toApiBoostagram(boostagram *transactions.Boostagram) *Boostagram {
+	return &Boostagram{
+		AppName:        boostagram.AppName,
+		Name:           boostagram.Name,
+		Podcast:        boostagram.Podcast,
+		URL:            boostagram.URL,
+		Episode:        boostagram.Episode,
+		FeedId:         boostagram.FeedId,
+		ItemId:         boostagram.ItemId,
+		Timestamp:      boostagram.Timestamp,
+		Message:        boostagram.Message,
+		SenderId:       boostagram.SenderId,
+		SenderName:     boostagram.SenderName,
+		Time:           boostagram.Time,
+		Action:         boostagram.Action,
+		ValueMsatTotal: boostagram.ValueMsatTotal,
 	}
 }

@@ -207,19 +207,6 @@ function TransactionItem({ tx }: Props) {
               </div>
               {showDetails && (
                 <>
-                  {tx.metadata?.tlv_records.map((record) => {
-                    if (record.type === 34349334) {
-                      // Chat message
-                      return (
-                        <div className="mt-6" key={record.type}>
-                          <p>Whatsat Message</p>
-                          <p className="text-muted-foreground break-all">
-                            {record.value}
-                          </p>
-                        </div>
-                      );
-                    }
-                  })}
                   {tx.boostagram && <PodcastingInfo boost={tx.boostagram} />}
                   <div className="mt-6">
                     <p>Preimage</p>

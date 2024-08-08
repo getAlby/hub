@@ -208,20 +208,20 @@ type Transaction struct {
 }
 
 type Boostagram struct {
-	AppName        string `json:"app_name"`
+	AppName        string `json:"appName"`
 	Name           string `json:"name"`
 	Podcast        string `json:"podcast"`
 	URL            string `json:"url"`
 	Episode        string `json:"episode,omitempty"`
-	FeedID         string `json:"feedID,omitempty"`
-	ItemID         string `json:"itemID,omitempty"`
-	Timestamp      string `json:"ts,omitempty"`
+	FeedId         string `json:"feedId,omitempty"`
+	ItemId         string `json:"itemId,omitempty"`
+	Timestamp      int64  `json:"ts,omitempty"`
 	Message        string `json:"message,omitempty"`
-	SenderID       string `json:"sender_id"`
-	SenderName     string `json:"sender_name"`
+	SenderId       string `json:"senderId"`
+	SenderName     string `json:"senderName"`
 	Time           string `json:"time"`
 	Action         string `json:"action"`
-	ValueMsatTotal int    `json:"value_msat_total"`
+	ValueMsatTotal int    `json:"valueMsatTotal"`
 }
 
 // debug api

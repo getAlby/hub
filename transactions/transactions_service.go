@@ -38,7 +38,30 @@ type TransactionsService interface {
 	SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []lnclient.TLVRecord, preimage string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 }
 
+const (
+	BoostagramTlvType = 7629169
+	WhatsatTlvType    = 34349334
+	PreimageTlvType   = 5482373484
+)
+
 type Transaction = db.Transaction
+
+type Boostagram struct {
+	AppName        string `json:"app_name"`
+	Name           string `json:"name"`
+	Podcast        string `json:"podcast"`
+	URL            string `json:"url"`
+	Episode        string `json:"episode,omitempty"`
+	FeedId         string `json:"feedID,omitempty"`
+	ItemId         string `json:"itemID,omitempty"`
+	Timestamp      int64  `json:"ts,omitempty"`
+	Message        string `json:"message,omitempty"`
+	SenderId       string `json:"sender_id"`
+	SenderName     string `json:"sender_name"`
+	Time           string `json:"time"`
+	Action         string `json:"action"`
+	ValueMsatTotal int    `json:"value_msat_total"`
+}
 
 type notFoundError struct {
 }
@@ -284,6 +307,7 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 
 		dbTransaction = db.Transaction{
 			AppId:          appId,
+			Description:    svc.getDescriptionFromCustomRecords(customRecords),
 			RequestEventId: requestEventId,
 			Type:           constants.TRANSACTION_TYPE_OUTGOING,
 			State:          constants.TRANSACTION_STATE_PENDING,
@@ -537,6 +561,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 
 			if result.RowsAffected == 0 {
 				// Note: brand new payments cannot be associated with an app
+				description := lnClientTransaction.Description
 				var metadataBytes []byte
 				var boostagramBytes []byte
 				if lnClientTransaction.Metadata != nil {
@@ -550,6 +575,11 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 					var customRecords []lnclient.TLVRecord
 					customRecords, _ = lnClientTransaction.Metadata["tlv_records"].([]lnclient.TLVRecord)
 					boostagramBytes = svc.getBoostagramFromCustomRecords(customRecords)
+
+					extractedDescription := svc.getDescriptionFromCustomRecords(customRecords)
+					if extractedDescription != "" {
+						description = extractedDescription
+					}
 				}
 				var expiresAt *time.Time
 				if lnClientTransaction.ExpiresAt != nil {
@@ -561,7 +591,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 					AmountMsat:      uint64(lnClientTransaction.Amount),
 					PaymentRequest:  lnClientTransaction.Invoice,
 					PaymentHash:     lnClientTransaction.PaymentHash,
-					Description:     lnClientTransaction.Description,
+					Description:     description,
 					DescriptionHash: lnClientTransaction.DescriptionHash,
 					ExpiresAt:       expiresAt,
 					Metadata:        datatypes.JSON(metadataBytes),
@@ -617,6 +647,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 
 			if result.RowsAffected == 0 {
 				// Note: brand new payments cannot be associated with an app
+				description := lnClientTransaction.Description
 				var metadataBytes []byte
 				var boostagramBytes []byte
 				if lnClientTransaction.Metadata != nil {
@@ -630,6 +661,11 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 					var customRecords []lnclient.TLVRecord
 					customRecords, _ = lnClientTransaction.Metadata["tlv_records"].([]lnclient.TLVRecord)
 					boostagramBytes = svc.getBoostagramFromCustomRecords(customRecords)
+
+					extractedDescription := svc.getDescriptionFromCustomRecords(customRecords)
+					if extractedDescription != "" {
+						description = extractedDescription
+					}
 				}
 				var expiresAt *time.Time
 				if lnClientTransaction.ExpiresAt != nil {
@@ -641,7 +677,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 					AmountMsat:      uint64(lnClientTransaction.Amount),
 					PaymentRequest:  lnClientTransaction.Invoice,
 					PaymentHash:     lnClientTransaction.PaymentHash,
-					Description:     lnClientTransaction.Description,
+					Description:     description,
 					DescriptionHash: lnClientTransaction.DescriptionHash,
 					ExpiresAt:       expiresAt,
 					Metadata:        datatypes.JSON(metadataBytes),
@@ -808,8 +844,7 @@ func (svc *transactionsService) parseMetadata(metadata lnclient.Metadata) ([]byt
 
 	for i, record := range tlvRecords {
 		// TODO: skip other un-encoded tlv values
-		// tlv record of type 5482373484 is preimage
-		if record.Type == 5482373484 {
+		if record.Type == PreimageTlvType {
 			continue
 		}
 
@@ -838,7 +873,7 @@ func (svc *transactionsService) parseMetadata(metadata lnclient.Metadata) ([]byt
 
 func (svc *transactionsService) getBoostagramFromCustomRecords(customRecords []lnclient.TLVRecord) []byte {
 	for _, record := range customRecords {
-		if record.Type == 7629169 {
+		if record.Type == BoostagramTlvType {
 			bytes, err := hex.DecodeString(record.Value)
 			if err != nil {
 				return nil
@@ -848,4 +883,31 @@ func (svc *transactionsService) getBoostagramFromCustomRecords(customRecords []l
 	}
 
 	return nil
+}
+
+func (svc *transactionsService) getDescriptionFromCustomRecords(customRecords []lnclient.TLVRecord) string {
+	var description string
+
+	for _, record := range customRecords {
+		switch record.Type {
+		case BoostagramTlvType:
+			bytes, err := hex.DecodeString(record.Value)
+			if err != nil {
+				continue
+			}
+			var boostagram Boostagram
+			if err := json.Unmarshal(bytes, &boostagram); err != nil {
+				continue
+			}
+			return boostagram.Message
+
+		case WhatsatTlvType:
+			bytes, err := hex.DecodeString(record.Value)
+			if err == nil {
+				description = string(bytes)
+			}
+		}
+	}
+
+	return description
 }
