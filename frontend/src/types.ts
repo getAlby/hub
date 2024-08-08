@@ -146,6 +146,7 @@ export interface InfoResponse {
   albyUserIdentifier: string;
   network?: Network;
   version: string;
+  enableAdvancedSetup: boolean;
 }
 
 export type Network = "bitcoin" | "testnet" | "signet";
