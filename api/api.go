@@ -235,10 +235,18 @@ func (api *api) GetApp(dbApp *db.App) *App {
 func (api *api) ListApps() ([]App, error) {
 	// TODO: join dbApps and permissions
 	dbApps := []db.App{}
-	api.db.Find(&dbApps)
+	err := api.db.Find(&dbApps).Error
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to list apps")
+		return nil, err
+	}
 
 	appPermissions := []db.AppPermission{}
-	api.db.Find(&appPermissions)
+	err = api.db.Find(&appPermissions).Error
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to list app permissions")
+		return nil, err
+	}
 
 	permissionsMap := make(map[uint][]db.AppPermission)
 	for _, perm := range appPermissions {
@@ -272,7 +280,7 @@ func (api *api) ListApps() ([]App, error) {
 		}
 
 		var lastEvent db.RequestEvent
-		lastEventResult := api.db.Where("app_id = ?", dbApp.ID).Order("id desc").Limit(1).Find(&lastEvent)
+		lastEventResult := api.db.Where("app_id = ?", dbApp.ID).Order("id desc").Take(&lastEvent)
 		if lastEventResult.RowsAffected > 0 {
 			apiApp.LastEventAt = &lastEvent.CreatedAt
 		}

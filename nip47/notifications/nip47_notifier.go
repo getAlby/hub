@@ -104,7 +104,11 @@ func (notifier *Nip47Notifier) notifySubscribers(ctx context.Context, notificati
 	apps := []db.App{}
 
 	// TODO: join apps and permissions
-	notifier.db.Find(&apps)
+	err := notifier.db.Find(&apps).Error
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to list apps")
+		return
+	}
 
 	for _, app := range apps {
 		if app.Isolated && (appId == nil || app.ID != *appId) {

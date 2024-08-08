@@ -374,7 +374,7 @@ func (svc *transactionsService) LookupTransaction(ctx context.Context, paymentHa
 
 	if appId != nil {
 		var app db.App
-		svc.db.Find(&app, &db.App{
+		svc.db.Take(&app, &db.App{
 			ID: *appId,
 		})
 		if app.Isolated {
@@ -445,7 +445,7 @@ func (svc *transactionsService) ListTransactions(ctx context.Context, from, unti
 
 	if appId != nil {
 		var app db.App
-		svc.db.Find(&app, &db.App{
+		svc.db.Take(&app, &db.App{
 			ID: *appId,
 		})
 		if app.Isolated {
@@ -526,7 +526,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 		var dbTransaction db.Transaction
 		err := svc.db.Transaction(func(tx *gorm.DB) error {
 
-			result := tx.Find(&dbTransaction, &db.Transaction{
+			result := tx.Take(&dbTransaction, &db.Transaction{
 				Type:        constants.TRANSACTION_TYPE_INCOMING,
 				PaymentHash: lnClientTransaction.PaymentHash,
 			})
@@ -590,7 +590,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 			}).WithError(err).Error("Failed to execute DB transaction")
 			return
 		}
-		logger.Logger.WithField("id", dbTransaction.ID).Info("Marked incoming transaction as settled")
+		logger.Logger.WithField("payment_hash", dbTransaction.PaymentHash).Info("Marked incoming transaction as settled")
 	case "nwc_payment_sent":
 		lnClientTransaction, ok := event.Properties.(*lnclient.Transaction)
 		if !ok {
@@ -600,7 +600,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 
 		var dbTransaction db.Transaction
 		err := svc.db.Transaction(func(tx *gorm.DB) error {
-			result := tx.Find(&dbTransaction, &db.Transaction{
+			result := tx.Take(&dbTransaction, &db.Transaction{
 				Type:        constants.TRANSACTION_TYPE_OUTGOING,
 				PaymentHash: lnClientTransaction.PaymentHash,
 			})
@@ -657,7 +657,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 			}).WithError(err).Error("Failed to update transaction")
 			return
 		}
-		logger.Logger.WithField("id", dbTransaction.ID).Info("Marked outgoing transaction as settled")
+		logger.Logger.WithField("payment_hash", dbTransaction.PaymentHash).Info("Marked outgoing transaction as settled")
 
 	case "nwc_payment_failed_async":
 		paymentFailedAsyncProperties, ok := event.Properties.(*events.PaymentFailedAsyncProperties)
@@ -669,7 +669,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 		lnClientTransaction := paymentFailedAsyncProperties.Transaction
 
 		var dbTransaction db.Transaction
-		result := svc.db.Find(&dbTransaction, &db.Transaction{
+		result := svc.db.Take(&dbTransaction, &db.Transaction{
 			Type:        constants.TRANSACTION_TYPE_OUTGOING,
 			PaymentHash: lnClientTransaction.PaymentHash,
 		})
@@ -691,14 +691,14 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 			}).WithError(err).Error("Failed to update transaction")
 			return
 		}
-		logger.Logger.WithField("id", dbTransaction.ID).Info("Marked outgoing transaction as failed")
+		logger.Logger.WithField("payment_hash", dbTransaction.PaymentHash).Info("Marked outgoing transaction as failed")
 	}
 }
 
 func (svc *transactionsService) interceptSelfPayment(paymentHash string) (*lnclient.PayInvoiceResponse, error) {
 	// TODO: extract into separate function
 	incomingTransaction := db.Transaction{}
-	result := svc.db.Find(&incomingTransaction, &db.Transaction{
+	result := svc.db.Take(&incomingTransaction, &db.Transaction{
 		Type:        constants.TRANSACTION_TYPE_INCOMING,
 		State:       constants.TRANSACTION_STATE_PENDING,
 		PaymentHash: paymentHash,
@@ -739,11 +739,11 @@ func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount 
 	// ensure balance for isolated apps
 	if appId != nil {
 		var app db.App
-		tx.Find(&app, &db.App{
+		tx.Take(&app, &db.App{
 			ID: *appId,
 		})
 		var appPermission db.AppPermission
-		result := tx.Find(&appPermission, &db.AppPermission{
+		result := tx.Take(&appPermission, &db.AppPermission{
 			AppId: *appId,
 			Scope: constants.PAY_INVOICE_SCOPE,
 		})
