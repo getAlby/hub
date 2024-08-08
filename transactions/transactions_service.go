@@ -60,7 +60,7 @@ type Boostagram struct {
 	SenderName     string `json:"sender_name"`
 	Time           string `json:"time"`
 	Action         string `json:"action"`
-	ValueMsatTotal int    `json:"value_msat_total"`
+	ValueMsatTotal int64  `json:"value_msat_total"`
 }
 
 type notFoundError struct {

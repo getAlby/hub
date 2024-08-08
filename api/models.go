@@ -221,7 +221,7 @@ type Boostagram struct {
 	SenderName     string `json:"senderName"`
 	Time           string `json:"time"`
 	Action         string `json:"action"`
-	ValueMsatTotal int    `json:"valueMsatTotal"`
+	ValueMsatTotal int64  `json:"valueMsatTotal"`
 }
 
 // debug api
