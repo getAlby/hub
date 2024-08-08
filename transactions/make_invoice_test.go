@@ -2,6 +2,7 @@ package transactions
 
 import (
 	"context"
+	"encoding/json"
 	"strings"
 	"testing"
 
@@ -18,16 +19,21 @@ func TestMakeInvoice_NoApp(t *testing.T) {
 	svc, err := tests.CreateTestService()
 	assert.NoError(t, err)
 
-	metadata := strings.Repeat("a", constants.INVOICE_METADATA_MAX_LENGTH-2) // json encoding adds 2 characters
+	txMetadata := make(map[string]interface{})
+	txMetadata["randomkey"] = strings.Repeat("a", constants.INVOICE_METADATA_MAX_LENGTH-16) // json encoding adds 16 characters - {"randomkey":""}
 
 	transactionsService := NewTransactionsService(svc.DB)
-	transaction, err := transactionsService.MakeInvoice(ctx, 1234, "Hello world", "", 0, metadata, svc.LNClient, nil, nil)
-
+	transaction, err := transactionsService.MakeInvoice(ctx, 1234, "Hello world", "", 0, txMetadata, svc.LNClient, nil, nil)
 	assert.NoError(t, err)
+
+	var metadata map[string]interface{}
+	err = json.Unmarshal(transaction.Metadata, &metadata)
+	assert.NoError(t, err)
+
 	assert.Equal(t, uint64(tests.MockLNClientTransaction.Amount), transaction.AmountMsat)
 	assert.Equal(t, constants.TRANSACTION_STATE_PENDING, transaction.State)
 	assert.Equal(t, tests.MockLNClientTransaction.Preimage, *transaction.Preimage)
-	assert.Equal(t, `"`+metadata+`"`, transaction.Metadata) // json-encoded
+	assert.Equal(t, txMetadata["randomkey"], metadata["randomkey"])
 }
 
 func TestMakeInvoice_MetadataTooLarge(t *testing.T) {
@@ -36,7 +42,9 @@ func TestMakeInvoice_MetadataTooLarge(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
 	assert.NoError(t, err)
-	metadata := strings.Repeat("a", constants.INVOICE_METADATA_MAX_LENGTH-1) // json encoding adds 2 characters
+
+	metadata := make(map[string]interface{})
+	metadata["randomkey"] = strings.Repeat("a", constants.INVOICE_METADATA_MAX_LENGTH-15) // json encoding adds 16 characters
 
 	transactionsService := NewTransactionsService(svc.DB)
 	transaction, err := transactionsService.MakeInvoice(ctx, 1234, "Hello world", "", 0, metadata, svc.LNClient, nil, nil)
