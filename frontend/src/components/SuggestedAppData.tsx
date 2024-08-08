@@ -8,6 +8,7 @@ import nostrudel from "src/assets/suggested-apps/nostrudel.png";
 import nostur from "src/assets/suggested-apps/nostur.png";
 import primal from "src/assets/suggested-apps/primal.png";
 import snort from "src/assets/suggested-apps/snort.png";
+import stackernews from "src/assets/suggested-apps/stackernews.png";
 import wavelake from "src/assets/suggested-apps/wavelake.png";
 import wherostr from "src/assets/suggested-apps/wherostr.png";
 import yakihonne from "src/assets/suggested-apps/yakihonne.png";
@@ -153,5 +154,12 @@ export const suggestedApps: SuggestedApp[] = [
     description: "Map of notes",
     webLink: "https://wherostr.social/",
     logo: wherostr,
+  },
+  {
+    id: "stackernews",
+    title: "stacker news",
+    description: "Like Hacker News but with Bitcoin",
+    webLink: "https://stacker.news/",
+    logo: stackernews,
   },
 ].sort((a, b) => (a.title.toUpperCase() > b.title.toUpperCase() ? 1 : -1));
