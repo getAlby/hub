@@ -1,4 +1,4 @@
-import { ExternalLink, Power } from "lucide-react";
+import { Power } from "lucide-react";
 import React, { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
@@ -103,11 +103,8 @@ export default function SettingsLayout() {
               <MenuItem to="/settings/node-backup">Migrate Node</MenuItem>
             )}
             <MenuItem to="/settings/alby-account">Alby Account</MenuItem>
-            <MenuItem to="/debug-tools">
-              Debug Tools
-              <ExternalLink className="w-4 h-4 ml-2" />
-            </MenuItem>
             <MenuItem to="/settings/developer">Developer</MenuItem>
+            <MenuItem to="/settings/debug-tools">Debug Tools</MenuItem>
           </nav>
         </aside>
         <div className="flex-1 lg:max-w-2xl">

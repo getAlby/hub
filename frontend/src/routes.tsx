@@ -139,6 +139,10 @@ const routes = [
                 path: "developer",
                 element: <DeveloperSettings />,
               },
+              {
+                path: "debug-tools",
+                element: <DebugTools />,
+              },
             ],
           },
         ],
@@ -243,17 +247,6 @@ const routes = [
             path: "new",
             element: <ConnectPeer />,
             handle: { crumb: () => "Connect Peer" },
-          },
-        ],
-      },
-      {
-        path: "debug-tools",
-        element: <DefaultRedirect />,
-        handle: { crumb: () => "Debug" },
-        children: [
-          {
-            index: true,
-            element: <DebugTools />,
           },
         ],
       },

@@ -36,7 +36,7 @@ export default function DebugTools() {
 
   return (
     <div>
-      <div className="grid gap-6 m-8 md:grid-cols-3 xl:grid-cols-4">
+      <div className="grid gap-6 m-8 md:grid-cols-2 xl:grid-cols-3">
         <Button
           onClick={() => {
             const invoice = window.prompt("enter invoice");
