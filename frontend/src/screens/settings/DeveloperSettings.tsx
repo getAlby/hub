@@ -1,12 +1,15 @@
-import { Rocket, TriangleAlert } from "lucide-react";
+import { Copy, Rocket, TriangleAlert } from "lucide-react";
 import React from "react";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button, ExternalLinkButton } from "src/components/ui/button";
-import { Textarea } from "src/components/ui/textarea";
+import { Input } from "src/components/ui/input";
 import { getAuthToken } from "src/lib/auth";
+import { copyToClipboard } from "src/lib/clipboard";
 
 export default function DeveloperSettings() {
   const [show, setShowToken] = React.useState(false);
+  const authToken = getAuthToken() || "";
+
   return (
     <>
       <Alert>
@@ -28,37 +31,49 @@ export default function DeveloperSettings() {
         <AlertTitle>Experimental</AlertTitle>
         <AlertDescription>
           <div className="mb-2">
-            You can use your auth token in apps to access the Alby Hub internal
-            API.
+            You can use your auth token to access the Alby Hub internal API.
+            However, whenever possible, we recommend using the NWC API directly
+            for more stability. Please note that the internal API may change or
+            be removed entirely in the future.
           </div>
-          <div className="mb-2">
-            If possible, use the NWC API directly! this API is subject to change
-            or be removed entirely.
-          </div>
-          <Button size={"sm"} onClick={() => setShowToken(true)}>
-            Show Token
-          </Button>
+          {!show && (
+            <Button size={"sm"} onClick={() => setShowToken(true)}>
+              Show Token
+            </Button>
+          )}
+          {show && (
+            <>
+              <div className="flex flex-row items-center gap-2 mb-2">
+                <Input
+                  type="password"
+                  value={authToken}
+                  className="flex-1"
+                  readOnly
+                />
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="icon"
+                  onClick={() => {
+                    copyToClipboard(authToken);
+                  }}
+                >
+                  <Copy className="w-4 h-4" />
+                </Button>
+              </div>
+              <p className="text-xs">
+                By default, your token will expire in{" "}
+                <span className="font-bold">30 days</span>. If you need a longer
+                expiry period, you can adjust this by setting the
+                JWT_EXPIRY_DAYS environment variable. This token grants full
+                access to your hub. Please keep it secure. If you suspect that
+                the token has been compromised, immediately change your
+                JWT_SECRET environment variable to protect your data.
+              </p>
+            </>
+          )}
         </AlertDescription>
       </Alert>
-      {show && (
-        <>
-          <Textarea
-            className="p-4 max-w-sm font-emoji break-all"
-            value={getAuthToken() || ""}
-            autoFocus
-            onFocus={(e) => e.target.select()}
-            rows={3}
-          ></Textarea>
-          <p className="font-bold text-xs">
-            By default, the token expires in 30 days. Set the JWT_EXPIRY_DAYS
-            enviroment variable if you need a longer expiry.
-          </p>
-          <p className="font-bold text-xs">
-            This token can do anything with your hub! keep it safe! In case it
-            somehow is leaked, change your JWT_SECRET environment variable.
-          </p>
-        </>
-      )}
     </>
   );
 }
