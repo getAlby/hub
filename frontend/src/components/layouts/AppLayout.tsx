@@ -91,10 +91,6 @@ export default function AppLayout() {
     return null;
   }
 
-  if (!info.setupCompleted || !info.running || !info.unlocked) {
-    return <Outlet />;
-  }
-
   function UserMenuContent() {
     return (
       <DropdownMenuContent align="end">
