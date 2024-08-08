@@ -127,7 +127,7 @@ func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *db.App
 	logger.Logger.WithFields(logrus.Fields{
 		"notification": notification,
 		"appId":        app.ID,
-	}).Info("Notifying subscriber")
+	}).Debug("Notifying subscriber")
 
 	ss, err := nip04.ComputeSharedSecret(app.NostrPubkey, notifier.keys.GetNostrSecretKey())
 	if err != nil {
@@ -183,8 +183,8 @@ func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *db.App
 		return
 	}
 	logger.Logger.WithFields(logrus.Fields{
-		"notification": notification,
-		"appId":        app.ID,
+		// "notification": notification,
+		"appId": app.ID,
 	}).Info("Published notification event")
 
 }
