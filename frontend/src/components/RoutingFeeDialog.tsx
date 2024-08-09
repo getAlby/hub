@@ -72,7 +72,7 @@ export function RoutingFeeDialog({ channel }: Props) {
   return (
     <AlertDialogContent>
       <AlertDialogHeader>
-        <AlertDialogTitle>Update Channel Forwarding Fee</AlertDialogTitle>
+        <AlertDialogTitle>Update Channel Routing Fee</AlertDialogTitle>
         <AlertDialogDescription>
           <p className="mb-4">
             Adjust the fee you charge for each payment passing through your
@@ -81,7 +81,7 @@ export function RoutingFeeDialog({ channel }: Props) {
             {currentFee} sats
           </p>
           <Label htmlFor="fee" className="block mb-2">
-            Base Forwarding Fee (sats)
+            Routing Fee (sats)
           </Label>
           <Input
             id="fee"
