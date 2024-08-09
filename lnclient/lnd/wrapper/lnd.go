@@ -188,3 +188,7 @@ func (wrapper *LNDWrapper) GetChanInfo(ctx context.Context, req *lnrpc.ChanInfoR
 func (wrapper *LNDWrapper) UpdateChannel(ctx context.Context, req *lnrpc.PolicyUpdateRequest, options ...grpc.CallOption) (*lnrpc.PolicyUpdateResponse, error) {
 	return wrapper.client.UpdateChannelPolicy(ctx, req, options...)
 }
+
+func (wrapper *LNDWrapper) DisconnectPeer(ctx context.Context, req *lnrpc.DisconnectPeerRequest, options ...grpc.CallOption) (*lnrpc.DisconnectPeerResponse, error) {
+	return wrapper.client.DisconnectPeer(ctx, req, options...)
+}
