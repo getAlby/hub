@@ -212,7 +212,7 @@ export default function AppLayout() {
                       <Tooltip>
                         <TooltipTrigger>
                           <ExternalLink
-                            to="https://getalby.com/hub_deployment/edit" // TODO: link to general update page
+                            to={`https://getalby.com/update/hub?version=${info.version}`}
                             className="font-semibold text-xl"
                           >
                             <span className="text-xs flex items-center text-muted-foreground">
