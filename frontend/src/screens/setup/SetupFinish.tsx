@@ -5,10 +5,11 @@ import animationData from "src/assets/lotties/loading.json";
 import Container from "src/components/Container";
 import { Button } from "src/components/ui/button";
 import { toast } from "src/components/ui/use-toast";
-import { useCSRF } from "src/hooks/useCSRF";
+
 import { useInfo } from "src/hooks/useInfo";
+import { saveAuthToken } from "src/lib/auth";
 import useSetupStore from "src/state/SetupStore";
-import { SetupNodeInfo } from "src/types";
+import { AuthTokenResponse, SetupNodeInfo } from "src/types";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 
@@ -16,7 +17,7 @@ export function SetupFinish() {
   const navigate = useNavigate();
   const { nodeInfo, unlockPassword } = useSetupStore();
   useInfo(true); // poll the info endpoint to auto-redirect when app is running
-  const { data: csrf } = useCSRF();
+
   const [loading, setLoading] = React.useState(false);
   const [connectionError, setConnectionError] = React.useState(false);
   const hasFetchedRef = React.useRef(false);
@@ -48,21 +49,21 @@ export function SetupFinish() {
 
   useEffect(() => {
     // ensure setup call is only called once
-    if (!csrf || hasFetchedRef.current) {
+    if (hasFetchedRef.current) {
       return;
     }
     hasFetchedRef.current = true;
 
     (async () => {
       setLoading(true);
-      const succeeded = await finishSetup(csrf, nodeInfo, unlockPassword);
+      const succeeded = await finishSetup(nodeInfo, unlockPassword);
       // only setup call is successful as start is async
       if (!succeeded) {
         setLoading(false);
         setConnectionError(true);
       }
     })();
-  }, [csrf, nodeInfo, navigate, unlockPassword]);
+  }, [nodeInfo, navigate, unlockPassword]);
 
   if (connectionError) {
     return (
@@ -97,7 +98,6 @@ export function SetupFinish() {
 }
 
 const finishSetup = async (
-  csrf: string,
   nodeInfo: SetupNodeInfo,
   unlockPassword: string
 ): Promise<boolean> => {
@@ -105,7 +105,6 @@ const finishSetup = async (
     await request("/api/setup", {
       method: "POST",
       headers: {
-        "X-CSRF-Token": csrf,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -113,16 +112,19 @@ const finishSetup = async (
         unlockPassword,
       }),
     });
-    await request("/api/start", {
+
+    const authTokenResponse = await request<AuthTokenResponse>("/api/start", {
       method: "POST",
       headers: {
-        "X-CSRF-Token": csrf,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
         unlockPassword,
       }),
     });
+    if (authTokenResponse) {
+      saveAuthToken(authTokenResponse.token);
+    }
     return true;
   } catch (error) {
     handleRequestError(toast, "Failed to connect", error);

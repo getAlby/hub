@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { useCSRF } from "src/hooks/useCSRF";
 import {
   AppPermissions,
   BudgetRenewalType,
@@ -43,7 +42,7 @@ type NewAppInternalProps = {
 
 const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
   const location = useLocation();
-  const { data: csrf } = useCSRF();
+
   const { toast } = useToast();
   const navigate = useNavigate();
   const [unsupportedError, setUnsupportedError] = useState<string>();
@@ -174,9 +173,6 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!csrf) {
-      throw new Error("No CSRF token");
-    }
 
     if (!permissions.scopes.length) {
       toast({ title: "Please specify wallet permissions." });
@@ -198,7 +194,6 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
       const createAppResponse = await request<CreateAppResponse>("/api/apps", {
         method: "POST",
         headers: {
-          "X-CSRF-Token": csrf,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(createAppRequest),

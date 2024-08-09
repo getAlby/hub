@@ -140,12 +140,12 @@ export interface InfoResponse {
   oauthRedirect: boolean;
   albyAccountConnected: boolean;
   running: boolean;
-  unlocked: boolean;
   albyAuthUrl: string;
   nextBackupReminder: string;
   albyUserIdentifier: string;
   network?: Network;
   version: string;
+  unlocked: boolean;
   enableAdvancedSetup: boolean;
 }
 
@@ -421,3 +421,7 @@ export type NewChannelOrder = {
       lspUrl: string;
     }
 );
+
+export type AuthTokenResponse = {
+  token: string;
+};

@@ -6,12 +6,11 @@ import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
-import { useCSRF } from "src/hooks/useCSRF";
+
 import { useInfo } from "src/hooks/useInfo";
 import { request } from "src/utils/request";
 
 export function ChangeUnlockPassword() {
-  const { data: csrf } = useCSRF();
   const { toast } = useToast();
   const { mutate: refetchInfo } = useInfo();
 
@@ -25,9 +24,6 @@ export function ChangeUnlockPassword() {
     e.preventDefault();
 
     try {
-      if (!csrf) {
-        throw new Error("No CSRF token");
-      }
       if (newUnlockPassword !== confirmNewUnlockPassword) {
         throw new Error("Password confirmation does not match");
       }
@@ -35,7 +31,6 @@ export function ChangeUnlockPassword() {
       await request("/api/unlock-password", {
         method: "PATCH",
         headers: {
-          "X-CSRF-Token": csrf,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({

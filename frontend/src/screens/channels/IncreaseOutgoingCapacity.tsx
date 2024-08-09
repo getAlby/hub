@@ -422,7 +422,7 @@ type NewChannelOnchainProps = {
 function NewChannelOnchain(props: NewChannelOnchainProps) {
   const [nodeDetails, setNodeDetails] = React.useState<Node | undefined>();
   const { data: peers } = usePeers();
-  // const { data: csrf } = useCSRF();
+
   if (props.order.paymentMethod !== "onchain") {
     throw new Error("unexpected payment method");
   }

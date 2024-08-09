@@ -16,7 +16,6 @@ dayjs.extend(relativeTime);
 
 type Props = {
   app: App;
-  csrf?: string;
 };
 
 export default function AppCard({ app }: Props) {

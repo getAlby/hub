@@ -1,6 +1,7 @@
 export const localStorageKeys = {
   returnTo: "returnTo",
   channelOrder: "channelOrder",
+  authToken: "authToken",
 };
 
 export const ONCHAIN_DUST_SATS = 1000;

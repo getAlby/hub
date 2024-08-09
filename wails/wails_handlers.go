@@ -634,8 +634,6 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: nil, Error: ""}
-	case "/api/csrf":
-		return WailsRequestRouterResponse{Body: "dummy", Error: ""}
 	case "/api/setup":
 		setupRequest := &api.SetupRequest{}
 		err := json.Unmarshal([]byte(body), setupRequest)

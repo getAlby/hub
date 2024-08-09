@@ -29,7 +29,7 @@ import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
 import { useChannels } from "src/hooks/useChannels";
-import { useCSRF } from "src/hooks/useCSRF";
+
 import { useInfo } from "src/hooks/useInfo";
 import { copyToClipboard } from "src/lib/clipboard";
 import { PayInvoiceResponse } from "src/types";
@@ -39,7 +39,7 @@ export default function Send() {
   const { hasChannelManagement } = useInfo();
   const { data: balances } = useBalances();
   const { data: channels } = useChannels();
-  const { data: csrf } = useCSRF();
+
   const { toast } = useToast();
   const [isLoading, setLoading] = React.useState(false);
   const [invoice, setInvoice] = React.useState("");
@@ -70,16 +70,12 @@ export default function Send() {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     try {
-      if (!csrf) {
-        throw new Error("csrf not loaded");
-      }
       setLoading(true);
       const payInvoiceResponse = await request<PayInvoiceResponse>(
         `/api/payments/${invoice}`,
         {
           method: "POST",
           headers: {
-            "X-CSRF-Token": csrf,
             "Content-Type": "application/json",
           },
         }
