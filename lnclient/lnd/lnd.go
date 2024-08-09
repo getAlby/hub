@@ -949,6 +949,11 @@ func (svc *LNDService) UpdateChannel(ctx context.Context, updateChannelRequest *
 }
 
 func (svc *LNDService) DisconnectPeer(ctx context.Context, peerId string) error {
+	_, err := svc.client.DisconnectPeer(ctx, &lnrpc.DisconnectPeerRequest{PubKey: peerId})
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
