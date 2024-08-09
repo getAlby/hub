@@ -8,6 +8,7 @@ import { useToast } from "src/components/ui/use-toast";
 
 import { useInfo } from "src/hooks/useInfo";
 import { saveAuthToken } from "src/lib/auth";
+import { AuthTokenResponse } from "src/types";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 
@@ -67,7 +68,7 @@ export default function Start() {
       setLoading(true);
       setButtonText(messages[0]);
 
-      const token = await request<string>("/api/start", {
+      const authTokenResponse = await request<AuthTokenResponse>("/api/start", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -76,10 +77,9 @@ export default function Start() {
           unlockPassword,
         }),
       });
-      if (!token) {
-        throw new Error("No token in response");
+      if (authTokenResponse) {
+        saveAuthToken(authTokenResponse.token);
       }
-      saveAuthToken(token);
     } catch (error) {
       handleRequestError(toast, "Failed to connect", error);
       setLoading(false);

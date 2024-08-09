@@ -421,3 +421,7 @@ export type NewChannelOrder = {
       lspUrl: string;
     }
 );
+
+export type AuthTokenResponse = {
+  token: string;
+};

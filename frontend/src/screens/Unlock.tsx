@@ -8,6 +8,7 @@ import { toast } from "src/components/ui/use-toast";
 
 import { useInfo } from "src/hooks/useInfo";
 import { saveAuthToken } from "src/lib/auth";
+import { AuthTokenResponse } from "src/types";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 
@@ -32,7 +33,7 @@ export default function Unlock() {
     try {
       setLoading(true);
 
-      const token = await request<string>("/api/unlock", {
+      const authTokenResponse = await request<AuthTokenResponse>("/api/start", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -41,10 +42,9 @@ export default function Unlock() {
           unlockPassword,
         }),
       });
-      if (!token) {
-        throw new Error("No token in response");
+      if (authTokenResponse) {
+        saveAuthToken(authTokenResponse.token);
       }
-      saveAuthToken(token);
       await refetchInfo();
       navigate("/");
     } catch (error) {

@@ -26,6 +26,10 @@ import (
 	"github.com/getAlby/hub/frontend"
 )
 
+type authTokenResponse struct {
+	Token string `json:"token"`
+}
+
 type jwtCustomClaims struct {
 	// we can add extra claims here
 	// Name  string `json:"name"`
@@ -233,7 +237,9 @@ func (httpSvc *HttpService) startHandler(c echo.Context) error {
 		}
 	}()
 
-	return c.JSON(http.StatusOK, token)
+	return c.JSON(http.StatusOK, &authTokenResponse{
+		Token: token,
+	})
 }
 
 func (httpSvc *HttpService) unlockHandler(c echo.Context) error {
@@ -262,7 +268,9 @@ func (httpSvc *HttpService) unlockHandler(c echo.Context) error {
 		Event: "nwc_unlocked",
 	})
 
-	return c.JSON(http.StatusOK, token)
+	return c.JSON(http.StatusOK, &authTokenResponse{
+		Token: token,
+	})
 }
 
 func (httpSvc *HttpService) changeUnlockPasswordHandler(c echo.Context) error {

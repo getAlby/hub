@@ -9,7 +9,7 @@ import { toast } from "src/components/ui/use-toast";
 import { useInfo } from "src/hooks/useInfo";
 import { saveAuthToken } from "src/lib/auth";
 import useSetupStore from "src/state/SetupStore";
-import { SetupNodeInfo } from "src/types";
+import { AuthTokenResponse, SetupNodeInfo } from "src/types";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 
@@ -113,7 +113,7 @@ const finishSetup = async (
       }),
     });
 
-    const token = await request<string>("/api/start", {
+    const authTokenResponse = await request<AuthTokenResponse>("/api/start", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -122,10 +122,9 @@ const finishSetup = async (
         unlockPassword,
       }),
     });
-    if (!token) {
-      throw new Error("No token in response");
+    if (authTokenResponse) {
+      saveAuthToken(authTokenResponse.token);
     }
-    saveAuthToken(token);
     return true;
   } catch (error) {
     handleRequestError(toast, "Failed to connect", error);
