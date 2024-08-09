@@ -1332,33 +1332,33 @@
   resolved "https://registry.yarnpkg.com/@floating-ui/utils/-/utils-0.2.1.tgz#16308cea045f0fc777b6ff20a9f25474dd8293d2"
   integrity sha512-9TANp6GPoMtYzQdt54kfAyMmz1+osLlXdg2ENroU7zzrtflTLrrC/lgrIfaSe+Wu0b89GKccT7vxXA0MoAIO+Q==
 
-"@getalby/bitcoin-connect-react@^3.4.1":
-  version "3.4.1"
-  resolved "https://registry.yarnpkg.com/@getalby/bitcoin-connect-react/-/bitcoin-connect-react-3.4.1.tgz#fa55a9c82b106ac4e54f229be324f2311d246da1"
-  integrity sha512-OEDdzRlI2F5YGYTKufyriGg/Mk5QZt34o0BoBQw+Du+XIjzNBo9CY3QG+EMd6HTwadpli6WgnzPf1VOkNL0soQ==
+"@getalby/bitcoin-connect-react@^3.6.1":
+  version "3.6.1"
+  resolved "https://registry.yarnpkg.com/@getalby/bitcoin-connect-react/-/bitcoin-connect-react-3.6.1.tgz#8f5a0f65da1f49b58f8155161724ab0bf2359579"
+  integrity sha512-nUpCE34uVIN6z/sfl8HJNyoC3Hv3+vkpQqVW4W6/NwhMKlE2uTNRPrjAgc/Kei8VhE/OqXMWtsN/FWc3dQx0XA==
   dependencies:
-    "@getalby/bitcoin-connect" "^3.4.1"
+    "@getalby/bitcoin-connect" "^3.6.1"
 
-"@getalby/bitcoin-connect@^3.4.1":
-  version "3.4.1"
-  resolved "https://registry.yarnpkg.com/@getalby/bitcoin-connect/-/bitcoin-connect-3.4.1.tgz#b12b27ecf6c5b7ddbafd962a99880a32ce639a25"
-  integrity sha512-RLfBAMKVWcEjWFU8OidqFDpass2piTjtY/bCaDFYiB79pMCtzGpS/HjfBdqgPITgM0b5kQUySdKylDBfVAnMgw==
+"@getalby/bitcoin-connect@^3.6.1":
+  version "3.6.1"
+  resolved "https://registry.yarnpkg.com/@getalby/bitcoin-connect/-/bitcoin-connect-3.6.1.tgz#4bdc7f95770a905e231572cc56f64cc213569ca2"
+  integrity sha512-zrBOc956MQVYmFEULh7C38TBK8Ks+xCgRBcLDu06mBB8aCL/HH/4y7TsKkqM34+jqWUP92j3KBkVAbmtEUjHkw==
   dependencies:
     "@getalby/lightning-tools" "^5.0.3"
-    "@getalby/sdk" "^3.5.1"
+    "@getalby/sdk" "^3.6.1"
     "@lightninglabs/lnc-web" "^0.3.1-alpha"
     qrcode-generator "^1.4.4"
-    zustand "^4.5.2"
+    zustand "^4.5.4"
 
 "@getalby/lightning-tools@^5.0.3":
   version "5.0.3"
   resolved "https://registry.yarnpkg.com/@getalby/lightning-tools/-/lightning-tools-5.0.3.tgz#4cc6ef1253a30fb4913af89b842645e0c04994bf"
   integrity sha512-QG3/SBI5n2py5IgsjP3K+c8eq55eiI3PQB12yo9Pot0b5hcN7TNNoTKn0fgLJjO1iEVCUkF513kDOpjjXwK0hQ==
 
-"@getalby/sdk@^3.5.1":
-  version "3.5.1"
-  resolved "https://registry.yarnpkg.com/@getalby/sdk/-/sdk-3.5.1.tgz#2549f416e200d42bfa83e4d2f9999305eac5ba8c"
-  integrity sha512-Qz9GgXMoVpupDLqbzA2CHpru+9yqijQrxeRN7CDfV6l39js/BGwin93MFTh7eFj2TsMo+i8JeM3BVn+SJn/iRg==
+"@getalby/sdk@^3.6.1":
+  version "3.6.1"
+  resolved "https://registry.yarnpkg.com/@getalby/sdk/-/sdk-3.6.1.tgz#b25dfd254572a44072a47cf677fcf647b0b19515"
+  integrity sha512-hg3WvRXQUf9S9NE1QZaz50IrOOnBr0QehlTRBENX2wRbZPSdpuyVOc4LWyI9tme8hOabeLbNpEl6iMZ7gZENwQ==
   dependencies:
     eventemitter3 "^5.0.1"
     nostr-tools "^1.17.0"
@@ -6147,9 +6147,9 @@ zustand@^4.5.0:
   dependencies:
     use-sync-external-store "1.2.0"
 
-zustand@^4.5.2:
-  version "4.5.2"
-  resolved "https://registry.yarnpkg.com/zustand/-/zustand-4.5.2.tgz#fddbe7cac1e71d45413b3682cdb47b48034c3848"
-  integrity sha512-2cN1tPkDVkwCy5ickKrI7vijSjPksFRfqS6237NzT0vqSsztTNnQdHw9mmN7uBdk3gceVXU0a+21jFzFzAc9+g==
+zustand@^4.5.4:
+  version "4.5.4"
+  resolved "https://registry.yarnpkg.com/zustand/-/zustand-4.5.4.tgz#63abdd81edfb190bc61e0bbae045cc4d52158a05"
+  integrity sha512-/BPMyLKJPtFEvVL0E9E9BTUM63MNyhPGlvxk1XjrfWTUlV+BR8jufjsovHzrtR6YNcBEcL7cMHovL1n9xHawEg==
   dependencies:
     use-sync-external-store "1.2.0"
