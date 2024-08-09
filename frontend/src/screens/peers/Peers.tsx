@@ -2,6 +2,11 @@ import { MoreHorizontal, Trash2 } from "lucide-react";
 import React from "react";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader.tsx";
+import { DisconnectPeerDialog } from "src/components/DisconnectPeerDialog.tsx";
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+} from "src/components/ui/alert-dialog.tsx";
 import { Badge } from "src/components/ui/badge.tsx";
 import { Button } from "src/components/ui/button.tsx";
 import {
@@ -18,20 +23,19 @@ import {
   TableHeader,
   TableRow,
 } from "src/components/ui/table.tsx";
-import { toast } from "src/components/ui/use-toast.ts";
+import { toast } from "src/components/ui/use-toast";
 import { useChannels } from "src/hooks/useChannels";
 import { usePeers } from "src/hooks/usePeers.ts";
 import { useSyncWallet } from "src/hooks/useSyncWallet.ts";
 import { Node } from "src/types";
 import { request } from "src/utils/request";
-import { useCSRF } from "../../hooks/useCSRF.ts";
 
 export default function Peers() {
   useSyncWallet();
-  const { data: peers, mutate: reloadPeers } = usePeers();
+  const { data: peers } = usePeers();
   const { data: channels } = useChannels();
   const [nodes, setNodes] = React.useState<Node[]>([]);
-  const { data: csrf } = useCSRF();
+  const [openPeerId, setOpenPeerId] = React.useState<string | null>(null);
 
   // TODO: move to NWC backend
   const loadNodeStats = React.useCallback(async () => {
@@ -58,11 +62,8 @@ export default function Peers() {
     loadNodeStats();
   }, [loadNodeStats]);
 
-  async function disconnectPeer(peerId: string) {
+  async function checkDisconnectPeer(peerId: string) {
     try {
-      if (!csrf) {
-        throw new Error("csrf not loaded");
-      }
       if (!peerId) {
         throw new Error("peer missing");
       }
@@ -72,23 +73,7 @@ export default function Peers() {
       if (channels.some((channel) => channel.remotePubkey === peerId)) {
         throw new Error("you have one or more open channels with " + peerId);
       }
-      if (
-        !confirm(
-          "Are you sure you wish to disconnect with peer " + peerId + "?"
-        )
-      ) {
-        return;
-      }
-      console.info(`Disconnecting from ${peerId}`);
-
-      await request(`/api/peers/${peerId}`, {
-        method: "DELETE",
-        headers: {
-          "X-CSRF-Token": csrf,
-        },
-      });
-      toast({ title: "Successfully disconnected from peer " + peerId });
-      await reloadPeers();
+      setOpenPeerId(peerId);
     } catch (e) {
       toast({
         variant: "destructive",
@@ -152,22 +137,34 @@ export default function Peers() {
                   <TableCell>{peer.nodeId}</TableCell>
                   <TableCell>{peer.address}</TableCell>
                   <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button size="icon" variant="ghost">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          className="flex flex-row items-center gap-2"
-                          onClick={() => disconnectPeer(peer.nodeId)}
-                        >
-                          <Trash2 className="text-destructive" />
-                          Disconnect Peer
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <AlertDialog
+                      open={openPeerId === peer.nodeId}
+                      onOpenChange={(open) => {
+                        if (!open) {
+                          setOpenPeerId(null);
+                        }
+                      }}
+                    >
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button size="icon" variant="ghost">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <AlertDialogTrigger asChild>
+                            <DropdownMenuItem
+                              onClick={() => checkDisconnectPeer(peer.nodeId)}
+                              className="flex flex-row items-center gap-2"
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                              Disconnect Peer
+                            </DropdownMenuItem>
+                          </AlertDialogTrigger>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                      <DisconnectPeerDialog peer={peer} />
+                    </AlertDialog>
                   </TableCell>
                 </TableRow>
               );
