@@ -325,6 +325,8 @@ func TestSendKeysend_TLVs(t *testing.T) {
 	assert.Equal(t, "boost", boostagram.Action)
 	assert.Equal(t, int64(1000), boostagram.ValueMsatTotal)
 
+	assert.Equal(t, "Go podcasting!", transaction.Description)
+
 	assert.Equal(t, uint64(1000), transaction.AmountMsat)
 	assert.Equal(t, constants.TRANSACTION_TYPE_OUTGOING, transaction.Type)
 	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, transaction.State)
