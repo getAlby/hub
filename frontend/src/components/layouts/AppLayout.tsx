@@ -145,7 +145,7 @@ export default function AppLayout() {
   function MainNavSecondary() {
     const { hasChannelManagement } = useInfo();
     return (
-      <nav className="grid items-start p-2 text-sm font-medium lg:px-4">
+      <nav className="grid items-start px-4 py-2 text-sm font-medium">
         {hasChannelManagement && (
           <MenuItem to="/channels">
             <CubeIcon className="h-4 w-4" />
@@ -210,11 +210,11 @@ export default function AppLayout() {
   return (
     <>
       <div className="font-sans min-h-screen w-full flex flex-col">
-        <div className="flex-1 h-full grid md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
+        <div className="flex-1 h-full grid md:grid-cols-[280px_1fr]">
           <div className="hidden border-r bg-muted/40 md:block">
             <div className="flex h-full max-h-screen flex-col gap-2 sticky top-0 overflow-y-auto">
               <div className="flex-1">
-                <nav className="grid items-start px-2 py-2 text-sm font-medium lg:px-4">
+                <nav className="grid items-start px-4 py-2 text-sm font-medium">
                   <div className="p-3 flex justify-between items-center mt-2 mb-6">
                     <Link to="/">
                       <AlbyHubLogo className="text-foreground" />
@@ -254,7 +254,7 @@ export default function AppLayout() {
               <div className="flex flex-col">
                 <SidebarHint />
                 <MainNavSecondary />
-                <div className="flex h-14 items-center px-4 lg:h-[60px] lg:px-6 gap-3 border-t border-border justify-between">
+                <div className="flex h-14 items-center px-4 gap-3 border-t border-border justify-between">
                   <div className="grid grid-flow-col gap-2">
                     <UserAvatar className="h-8 w-8" />
                     <Link
