@@ -295,8 +295,8 @@ export default function AppLayout() {
                 >
                   <nav className="grid gap-2 text-lg font-medium">
                     <div className="p-3 ">
-                      <Link to="/" className="font-semibold text-xl">
-                        <span className="">Alby Hub</span>
+                      <Link to="/">
+                        <AlbyHubLogo className="text-foreground" />
                       </Link>
                     </div>
                     <MainMenuContent />
