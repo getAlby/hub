@@ -145,6 +145,10 @@ The following configuration options can be set as environment variables or in a 
 - `WORK_DIR`: directory to store NWC data files. Default: $XDG_DATA_HOME/albyhub
 - `LOG_LEVEL`: log level for the application. Higher is more verbose. Default: 4 (info)
 
+## Node-specific backend parameters
+
+- `ENABLE_ADVANCED_SETUP`: set to `false` to force a specific backend type (combined with backend parameters below)
+
 ### LND Backend parameters
 
 Currently only LND can be configured via env. Other node types must be configured via the UI.
@@ -160,19 +164,25 @@ _To configure via env, the following parameters must be provided:_
 
 - `LDK_ESPLORA_SERVER`: If using the mainnet (bitcoin) network, Recommended to use your own LDK esplora server (The public blockstream one is very slow and can cause onchain syncing and issues with opening channels)
 
-#### Testnet
+#### LDK Network Configuration
+
+##### Mutinynet
+
+- `MEMPOOL_API=https://mutinynet.com/api`
+- `LDK_NETWORK=signet`
+- `LDK_ESPLORA_SERVER=https://mutinynet.com/api`
+- `LDK_GOSSIP_SOURCE=https://rgs.mutinynet.com/snapshot`
+
+##### Testnet (Not recommended - try Mutinynet)
 
 - `MEMPOOL_API=https://mempool.space/testnet/api`
 - `LDK_NETWORK=testnet`
 - `LDK_ESPLORA_SERVER=https://mempool.space/testnet/api`
 - `LDK_GOSSIP_SOURCE=https://rapidsync.lightningdevkit.org/testnet/snapshot`
 
-#### Mutinynet
+### Phoenixd
 
-- `MEMPOOL_API=https://mutinynet.com/api`
-- `LDK_NETWORK=signet`
-- `LDK_ESPLORA_SERVER=https://mutinynet.com/api`
-- `LDK_GOSSIP_SOURCE=https://rgs.mutinynet.com/snapshot`
+See [Phoenixd](scripts/linux-x86_64/phoenixd/README.md)
 
 ### Alby OAuth
 

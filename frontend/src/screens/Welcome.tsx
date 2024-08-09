@@ -51,11 +51,13 @@ export function Welcome() {
             </Button>
           </Link>
 
-          <Link to="/setup/advanced" className="w-full">
-            <Button variant="secondary" className="w-full">
-              Advanced Setup
-            </Button>
-          </Link>
+          {info?.enableAdvancedSetup && (
+            <Link to="/setup/advanced" className="w-full">
+              <Button variant="secondary" className="w-full">
+                Advanced Setup
+              </Button>
+            </Link>
+          )}
         </div>
         <div className="text-sm text-muted-foreground">
           By continuing, you agree to our <br />

@@ -81,7 +81,7 @@ export function Intro() {
               </div>
               <div className="mt-20">
                 <Button onClick={() => api?.scrollNext()} size="lg">
-                  Get Started
+                  Next
                 </Button>
               </div>
             </div>
