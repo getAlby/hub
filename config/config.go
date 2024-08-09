@@ -73,7 +73,7 @@ func (cfg *config) init(env *AppConfig) {
 	// if no JWT secret is configured we create a random one and store it in the DB
 	cfg.JWTSecret = cfg.Env.JWTSecret
 	if cfg.JWTSecret == "" {
-		hex, err := randomHex(20)
+		hex, err := randomHex(32)
 		if err == nil {
 			cfg.SetIgnore("JWTSecret", hex, "")
 		}
