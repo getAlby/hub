@@ -130,15 +130,8 @@ func TestNotifications_SentUnknownPayment(t *testing.T) {
 
 	transactionType := constants.TRANSACTION_TYPE_OUTGOING
 	outgoingTransaction, err := transactionsService.LookupTransaction(ctx, tests.MockLNClientTransaction.PaymentHash, &transactionType, svc.LNClient, nil)
-	assert.NoError(t, err)
-	assert.Equal(t, uint64(tests.MockLNClientTransaction.Amount), outgoingTransaction.AmountMsat)
-	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, outgoingTransaction.State)
-	assert.Equal(t, tests.MockLNClientTransaction.Preimage, *outgoingTransaction.Preimage)
-	assert.Zero(t, outgoingTransaction.FeeReserveMsat)
-
-	transactions = []db.Transaction{}
-	result = svc.DB.Find(&transactions)
-	assert.Equal(t, int64(1), result.RowsAffected)
+	assert.Nil(t, outgoingTransaction)
+	assert.ErrorIs(t, err, NewNotFoundError())
 }
 
 func TestNotifications_FailedKnownPayment(t *testing.T) {
