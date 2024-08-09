@@ -68,13 +68,11 @@ export function RestoreNode() {
         }
         await request("/api/restore", {
           method: "POST",
-          headers: {},
           body: formData,
         });
       } else {
         await request("/api/restore", {
           method: "POST",
-          headers: {},
           body: JSON.stringify({
             unlockPassword,
           }),

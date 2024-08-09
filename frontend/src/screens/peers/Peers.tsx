@@ -78,7 +78,6 @@ export default function Peers() {
 
       await request(`/api/peers/${peerId}`, {
         method: "DELETE",
-        headers: {},
       });
       toast({ title: "Successfully disconnected from peer " + peerId });
       await reloadPeers();
