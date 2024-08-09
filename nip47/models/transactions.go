@@ -28,8 +28,8 @@ func ToNip47Transaction(transaction *transactions.Transaction) *Transaction {
 		jsonErr := json.Unmarshal(transaction.Metadata, &metadata)
 		if jsonErr != nil {
 			logger.Logger.WithError(jsonErr).WithFields(logrus.Fields{
-				"id":       transaction.ID,
-				"metadata": transaction.Metadata,
+				"payment_hash": transaction.PaymentHash,
+				"metadata":     transaction.Metadata,
 			}).Error("Failed to deserialize transaction metadata")
 		}
 	}

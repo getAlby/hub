@@ -39,7 +39,7 @@ function TransactionItem({ tx }: Props) {
   const [showDetails, setShowDetails] = React.useState(false);
   const type = tx.type;
   const Icon = tx.type == "outgoing" ? ArrowUpIcon : ArrowDownIcon;
-  const app = tx.app_id && apps?.find((app) => app.id === tx.app_id);
+  const app = tx.appId && apps?.find((app) => app.id === tx.appId);
 
   const copy = (text: string) => {
     copyToClipboard(text);
@@ -93,7 +93,7 @@ function TransactionItem({ tx }: Props) {
                   {app ? app.name : type == "incoming" ? "Received" : "Sent"}
                 </p>
                 <p className="text-sm md:text-base truncate text-muted-foreground">
-                  {dayjs(tx.settled_at).fromNow()}
+                  {dayjs(tx.settledAt).fromNow()}
                 </p>
               </div>
               <p className="text-sm md:text-base text-muted-foreground break-all">
@@ -167,7 +167,7 @@ function TransactionItem({ tx }: Props) {
             <div className="mt-8">
               <p>Date & Time</p>
               <p className="text-muted-foreground">
-                {dayjs(tx.settled_at)
+                {dayjs(tx.settledAt)
                   .tz(dayjs.tz.guess())
                   .format("D MMMM YYYY, HH:mm")}
               </p>
@@ -177,9 +177,9 @@ function TransactionItem({ tx }: Props) {
                 <p>Fee</p>
                 <p className="text-muted-foreground">
                   {new Intl.NumberFormat(undefined, {}).format(
-                    Math.floor(tx.fees_paid / 1000)
+                    Math.floor(tx.feesPaid / 1000)
                   )}{" "}
-                  {Math.floor(tx.fees_paid / 1000) == 1 ? "sat" : "sats"}
+                  {Math.floor(tx.feesPaid / 1000) == 1 ? "sat" : "sats"}
                 </p>
               </div>
             )}
@@ -228,12 +228,12 @@ function TransactionItem({ tx }: Props) {
                     <p>Hash</p>
                     <div className="flex items-center gap-4">
                       <p className="text-muted-foreground break-all">
-                        {tx.payment_hash}
+                        {tx.paymentHash}
                       </p>
                       <CopyIcon
                         className="cursor-pointer text-muted-foreground w-6 h-6"
                         onClick={() => {
-                          copy(tx.payment_hash);
+                          copy(tx.paymentHash);
                         }}
                       />
                     </div>

@@ -370,35 +370,35 @@ export type BalancesResponse = {
 
 export type Transaction = {
   type: "incoming" | "outgoing";
-  app_id: number | undefined;
+  appId: number | undefined;
   invoice: string;
   description: string;
-  description_hash: string;
+  descriptionHash: string;
   preimage: string | undefined;
-  payment_hash: string;
+  paymentHash: string;
   amount: number;
-  fees_paid: number;
-  created_at: string;
-  settled_at: string | undefined;
+  feesPaid: number;
+  createdAt: string;
+  settledAt: string | undefined;
   metadata?: Record<string, unknown>;
   boostagram?: Boostagram;
 };
 
 export type Boostagram = {
-  app_name: string;
+  appName: string;
   name: string;
   podcast: string;
   url: string;
   episode?: string;
-  feedID?: string;
-  itemID?: string;
+  feedId?: string;
+  itemId?: string;
   ts?: number;
   message?: string;
-  sender_id: string;
-  sender_name: string;
+  senderId: string;
+  senderName: string;
   time: string;
   action: "boost";
-  value_msat_total: number;
+  valueMsatTotal: number;
 };
 
 export type NewChannelOrderStatus = "pay" | "paid" | "success" | "opening";

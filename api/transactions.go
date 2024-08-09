@@ -73,28 +73,28 @@ func toApiTransaction(transaction *transactions.Transaction) *Transaction {
 		preimage = transaction.Preimage
 	}
 
-	var metadata *Metadata
+	var metadata Metadata
 	if transaction.Metadata != nil {
 		jsonErr := json.Unmarshal(transaction.Metadata, &metadata)
 		if jsonErr != nil {
 			logger.Logger.WithError(jsonErr).WithFields(logrus.Fields{
-				"id":       transaction.ID,
-				"metadata": transaction.Metadata,
+				"payment_hash": transaction.PaymentHash,
+				"metadata":     transaction.Metadata,
 			}).Error("Failed to deserialize transaction metadata")
 		}
 	}
 
 	var boostagram *Boostagram
 	if transaction.Boostagram != nil {
-		var txBoostagram *transactions.Boostagram
+		var txBoostagram transactions.Boostagram
 		jsonErr := json.Unmarshal(transaction.Boostagram, &txBoostagram)
 		if jsonErr != nil {
 			logger.Logger.WithError(jsonErr).WithFields(logrus.Fields{
-				"id":         transaction.ID,
-				"boostagram": transaction.Boostagram,
+				"payment_hash": transaction.PaymentHash,
+				"boostagram":   transaction.Boostagram,
 			}).Error("Failed to deserialize transaction boostagram info")
 		}
-		boostagram = toApiBoostagram(txBoostagram)
+		boostagram = toApiBoostagram(&txBoostagram)
 	}
 
 	return &Transaction{

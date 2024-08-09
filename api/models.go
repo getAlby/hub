@@ -200,19 +200,19 @@ type Transaction struct {
 	Type            string      `json:"type"`
 	Invoice         string      `json:"invoice"`
 	Description     string      `json:"description"`
-	DescriptionHash string      `json:"description_hash"`
+	DescriptionHash string      `json:"descriptionHash"`
 	Preimage        *string     `json:"preimage"`
-	PaymentHash     string      `json:"payment_hash"`
+	PaymentHash     string      `json:"paymentHash"`
 	Amount          uint64      `json:"amount"`
-	FeesPaid        uint64      `json:"fees_paid"`
-	CreatedAt       string      `json:"created_at"`
-	SettledAt       *string     `json:"settled_at"`
-	AppId           *uint       `json:"app_id"`
-	Metadata        *Metadata   `json:"metadata,omitempty"`
+	FeesPaid        uint64      `json:"feesPaid"`
+	CreatedAt       string      `json:"createdAt"`
+	SettledAt       *string     `json:"settledAt"`
+	AppId           *uint       `json:"appId"`
+	Metadata        Metadata    `json:"metadata,omitempty"`
 	Boostagram      *Boostagram `json:"boostagram,omitempty"`
 }
 
-type Metadata = lnclient.Metadata
+type Metadata = map[string]interface{}
 
 type Boostagram struct {
 	AppName        string `json:"appName"`

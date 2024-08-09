@@ -33,27 +33,27 @@ function PodcastingInfo({ boost }: { boost: Boostagram }) {
           <p className="text-muted-foreground break-all">{boost.ts}</p>
         </div>
       )}
-      {boost.value_msat_total && (
+      {boost.valueMsatTotal && (
         <div className="mt-6">
           <p>Total amount</p>
           <p className="text-muted-foreground break-all">
             {new Intl.NumberFormat(undefined, {}).format(
-              Math.floor(boost.value_msat_total / 1000)
+              Math.floor(boost.valueMsatTotal / 1000)
             )}{" "}
-            {Math.floor(boost.value_msat_total / 1000) == 1 ? "sat" : "sats"}
+            {Math.floor(boost.valueMsatTotal / 1000) == 1 ? "sat" : "sats"}
           </p>
         </div>
       )}
-      {boost.sender_name && (
+      {boost.senderName && (
         <div className="mt-6">
           <p>Sender</p>
-          <p className="text-muted-foreground break-all">{boost.sender_name}</p>
+          <p className="text-muted-foreground break-all">{boost.senderName}</p>
         </div>
       )}
-      {boost.app_name && (
+      {boost.appName && (
         <div className="mt-6">
           <p>App</p>
-          <p className="text-muted-foreground break-all">{boost.app_name}</p>
+          <p className="text-muted-foreground break-all">{boost.appName}</p>
         </div>
       )}
     </>

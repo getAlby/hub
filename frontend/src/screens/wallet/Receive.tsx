@@ -43,12 +43,12 @@ export default function Receive() {
   );
   const [paymentDone, setPaymentDone] = React.useState(false);
   const { data: invoiceData } = useTransaction(
-    transaction ? transaction.payment_hash : "",
+    transaction ? transaction.paymentHash : "",
     true
   );
 
   React.useEffect(() => {
-    if (invoiceData?.settled_at) {
+    if (invoiceData?.settledAt) {
       setPaymentDone(true);
       popConfetti();
       toast({
