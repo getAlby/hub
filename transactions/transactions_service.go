@@ -41,7 +41,6 @@ type TransactionsService interface {
 const (
 	BoostagramTlvType = 7629169
 	WhatsatTlvType    = 34349334
-	PreimageTlvType   = 5482373484
 )
 
 type Transaction = db.Transaction
@@ -825,6 +824,7 @@ func (svc *transactionsService) getDescriptionFromCustomRecords(customRecords []
 			}
 			return boostagram.Message
 
+		// TODO: consider adding support for this in LDK
 		case WhatsatTlvType:
 			bytes, err := hex.DecodeString(record.Value)
 			if err == nil {
