@@ -176,6 +176,22 @@ func (svc *LNDService) ListChannels(ctx context.Context) ([]lnclient.Channel, er
 		channelOpeningBlockHeight := lndChannel.ChanId >> 40
 		confirmations := nodeInfo.BlockHeight - uint32(channelOpeningBlockHeight)
 
+		var forwardingFee uint32
+		if !lndChannel.Private {
+			channelEdge, err := svc.client.GetChanInfo(ctx, &lnrpc.ChanInfoRequest{
+				ChanId: lndChannel.ChanId,
+			})
+			if err != nil {
+				return nil, err
+			}
+
+			if channelEdge.Node1Pub == nodeInfo.IdentityPubkey {
+				forwardingFee = uint32(channelEdge.Node1Policy.FeeBaseMsat)
+			} else {
+				forwardingFee = uint32(channelEdge.Node2Policy.FeeBaseMsat)
+			}
+		}
+
 		channels[i] = lnclient.Channel{
 			InternalChannel:                          lndChannel,
 			LocalBalance:                             lndChannel.LocalBalance * 1000,
@@ -191,6 +207,7 @@ func (svc *LNDService) ListChannels(ctx context.Context) ([]lnclient.Channel, er
 			UnspendablePunishmentReserve:             lndChannel.LocalConstraints.ChanReserveSat,
 			CounterpartyUnspendablePunishmentReserve: lndChannel.RemoteConstraints.ChanReserveSat,
 			IsOutbound:                               lndChannel.Initiator,
+			ForwardingFeeBaseMsat:                    forwardingFee,
 		}
 	}
 

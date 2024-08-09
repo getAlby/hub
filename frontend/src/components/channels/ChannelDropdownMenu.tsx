@@ -4,8 +4,10 @@ import {
   MoreHorizontal,
   Trash2,
 } from "lucide-react";
+import React from "react";
 import { CloseChannelDialog } from "src/components/CloseChannelDialog";
 import ExternalLink from "src/components/ExternalLink";
+import { RoutingFeeDialog } from "src/components/RoutingFeeDialog";
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -22,14 +24,19 @@ import { Channel } from "src/types";
 type ChannelDropdownMenuProps = {
   alias: string;
   channel: Channel;
-  editChannel(channel: Channel): void;
 };
 
 export function ChannelDropdownMenu({
   alias,
   channel,
-  editChannel,
 }: ChannelDropdownMenuProps) {
+  const [dialog, setDialog] = React.useState<"close" | "routingFee" | null>(
+    null
+  );
+
+  const openCloseDialog = () => setDialog("close");
+  const openRoutingFeeDialog = () => setDialog("routingFee");
+
   return (
     <AlertDialog>
       <DropdownMenu>
@@ -58,23 +65,31 @@ export function ChannelDropdownMenu({
             </ExternalLink>
           </DropdownMenuItem>
           {channel.public && (
-            <DropdownMenuItem
-              className="flex flex-row items-center gap-2 cursor-pointer"
-              onClick={() => editChannel(channel)}
-            >
-              <HandCoins className="h-4 w-4" />
-              Set Routing Fee
-            </DropdownMenuItem>
+            <AlertDialogTrigger asChild>
+              <DropdownMenuItem
+                className="flex flex-row items-center gap-2 cursor-pointer"
+                onClick={openRoutingFeeDialog}
+              >
+                <HandCoins className="h-4 w-4" />
+                Set Routing Fee
+              </DropdownMenuItem>
+            </AlertDialogTrigger>
           )}
           <AlertDialogTrigger asChild>
-            <DropdownMenuItem className="flex flex-row items-center gap-2 cursor-pointer">
+            <DropdownMenuItem
+              className="flex flex-row items-center gap-2 cursor-pointer"
+              onClick={openCloseDialog}
+            >
               <Trash2 className="h-4 w-4 text-destructive" />
               Close Channel
             </DropdownMenuItem>
           </AlertDialogTrigger>
         </DropdownMenuContent>
       </DropdownMenu>
-      <CloseChannelDialog alias={alias} channel={channel} />
+      {dialog === "close" && (
+        <CloseChannelDialog alias={alias} channel={channel} />
+      )}
+      {dialog === "routingFee" && <RoutingFeeDialog channel={channel} />}
     </AlertDialog>
   );
 }

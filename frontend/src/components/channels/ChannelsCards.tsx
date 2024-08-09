@@ -23,14 +23,9 @@ import { Channel, Node } from "src/types";
 type ChannelsCardsProps = {
   channels?: Channel[];
   nodes?: Node[];
-  editChannel(channel: Channel): void;
 };
 
-export function ChannelsCards({
-  channels,
-  nodes,
-  editChannel,
-}: ChannelsCardsProps) {
+export function ChannelsCards({ channels, nodes }: ChannelsCardsProps) {
   if (!channels?.length) {
     return null;
   }
@@ -61,11 +56,7 @@ export function ChannelsCards({
                         <div className="flex-1 whitespace-nowrap text-ellipsis overflow-hidden">
                           {alias}
                         </div>
-                        <ChannelDropdownMenu
-                          alias={alias}
-                          channel={channel}
-                          editChannel={editChannel}
-                        />
+                        <ChannelDropdownMenu alias={alias} channel={channel} />
                       </div>
                     </CardTitle>
                     <Separator className="mt-5" />
