@@ -13,7 +13,7 @@ import { Separator } from "src/components/ui/separator";
 import { useToast } from "src/components/ui/use-toast";
 import { useAlbyBalance } from "src/hooks/useAlbyBalance";
 import { useChannels } from "src/hooks/useChannels";
-import { useCSRF } from "src/hooks/useCSRF";
+
 import { useInfo } from "src/hooks/useInfo";
 import { AutoChannelRequest, AutoChannelResponse } from "src/types";
 import { request } from "src/utils/request";
@@ -22,8 +22,6 @@ import {
   ALBY_HIDE_HOSTED_BALANCE_BELOW,
   ALBY_MIN_HOSTED_BALANCE_FOR_FIRST_CHANNEL,
 } from "src/constants";
-import lightningNetworkDark from "/images/illustrations/lightning-network-dark.svg";
-import lightningNetworkLight from "/images/illustrations/lightning-network-light.svg";
 
 export function FirstChannel() {
   const { data: info } = useInfo();
@@ -31,7 +29,7 @@ export function FirstChannel() {
   const [isLoading, setLoading] = React.useState(false);
   const [showAdvanced, setShowAdvanced] = React.useState(false);
   const [isPublic, setPublic] = React.useState(false);
-  const { data: csrf } = useCSRF();
+
   const navigate = useNavigate();
   const { toast } = useToast();
   const [invoice, setInvoice] = React.useState<string>();
@@ -49,7 +47,7 @@ export function FirstChannel() {
   }
 
   async function openChannel() {
-    if (!info || !channels || !csrf) {
+    if (!info || !channels) {
       return;
     }
     setLoading(true);
@@ -62,7 +60,6 @@ export function FirstChannel() {
         {
           method: "POST",
           headers: {
-            "X-CSRF-Token": csrf,
             "Content-Type": "application/json",
           },
           body: JSON.stringify(newInstantChannelInvoiceRequest),
@@ -127,10 +124,13 @@ export function FirstChannel() {
         <>
           <div className="flex flex-col gap-6 max-w-md text-muted-foreground">
             <img
-              src={lightningNetworkDark}
+              src="/images/illustrations/lightning-network-dark.svg"
               className="w-full hidden dark:block"
             />
-            <img src={lightningNetworkLight} className="w-full dark:hidden" />
+            <img
+              src="/images/illustrations/lightning-network-light.svg"
+              className="w-full dark:hidden"
+            />
             {canPayForFirstChannel ? (
               <>
                 <p>

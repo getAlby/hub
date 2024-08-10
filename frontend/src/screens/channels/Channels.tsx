@@ -65,7 +65,6 @@ import { copyToClipboard } from "src/lib/clipboard.ts";
 import { cn } from "src/lib/utils.ts";
 import { Channel, Node, UpdateChannelRequest } from "src/types";
 import { request } from "src/utils/request";
-import { useCSRF } from "../../hooks/useCSRF.ts";
 
 export default function Channels() {
   useSyncWallet();
@@ -75,7 +74,7 @@ export default function Channels() {
   const { data: albyBalance, mutate: reloadAlbyBalance } = useAlbyBalance();
   const [nodes, setNodes] = React.useState<Node[]>([]);
   const { mutate: reloadInfo } = useInfo();
-  const { data: csrf } = useCSRF();
+
   const redeemOnchainFunds = useRedeemOnchainFunds();
   const { toast } = useToast();
   const [drainingAlbySharedFunds, setDrainingAlbySharedFunds] =
@@ -111,10 +110,6 @@ export default function Channels() {
 
   async function editChannel(channel: Channel) {
     try {
-      if (!csrf) {
-        throw new Error("csrf not loaded");
-      }
-
       const forwardingFeeBaseSats = prompt(
         "Enter base forwarding fee in sats",
         Math.floor(channel.forwardingFeeBaseMsat / 1000).toString()
@@ -135,7 +130,6 @@ export default function Channels() {
         {
           method: "PATCH",
           headers: {
-            "X-CSRF-Token": csrf,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
@@ -156,10 +150,6 @@ export default function Channels() {
 
   async function resetRouter() {
     try {
-      if (!csrf) {
-        throw new Error("csrf not loaded");
-      }
-
       const key = prompt(
         "Enter key to reset (choose one of ALL, LatestRgsSyncTimestamp, Scorer, NetworkGraph). After resetting, you'll need to re-enter your unlock password.",
         "ALL"
@@ -173,7 +163,6 @@ export default function Channels() {
         method: "POST",
         body: JSON.stringify({ key }),
         headers: {
-          "X-CSRF-Token": csrf,
           "Content-Type": "application/json",
         },
       });
@@ -365,14 +354,9 @@ export default function Channels() {
 
                   setDrainingAlbySharedFunds(true);
                   try {
-                    if (!csrf) {
-                      throw new Error("csrf not loaded");
-                    }
-
                     await request("/api/alby/drain", {
                       method: "POST",
                       headers: {
-                        "X-CSRF-Token": csrf,
                         "Content-Type": "application/json",
                       },
                     });
@@ -426,7 +410,7 @@ export default function Channels() {
                 </div>
               </div>
             )}
-            <div className="text-2xl font-bold balance sensitive ph-no-capture">
+            <div className="text-2xl font-bold balance sensitive">
               {balances && (
                 <>
                   {new Intl.NumberFormat().format(balances.onchain.spendable)}{" "}
@@ -483,7 +467,7 @@ export default function Channels() {
               </div>
             )}
             {balances && (
-              <div className="text-2xl font-bold balance sensitive ph-no-capture">
+              <div className="text-2xl font-bold balance sensitive">
                 {new Intl.NumberFormat(undefined, {}).format(
                   Math.floor(balances.lightning.totalSpendable / 1000)
                 )}{" "}
@@ -519,7 +503,7 @@ export default function Channels() {
             <ArrowDown className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="flex-grow">
-            <div className="text-2xl font-bold balance sensitive ph-no-capture">
+            <div className="text-2xl font-bold balance sensitive">
               {balances &&
                 new Intl.NumberFormat().format(
                   Math.floor(balances.lightning.totalReceivable / 1000)

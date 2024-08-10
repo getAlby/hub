@@ -140,12 +140,12 @@ export interface InfoResponse {
   oauthRedirect: boolean;
   albyAccountConnected: boolean;
   running: boolean;
-  unlocked: boolean;
   albyAuthUrl: string;
   nextBackupReminder: string;
   albyUserIdentifier: string;
   network?: Network;
   version: string;
+  unlocked: boolean;
   enableAdvancedSetup: boolean;
 }
 
@@ -370,17 +370,35 @@ export type BalancesResponse = {
 
 export type Transaction = {
   type: "incoming" | "outgoing";
-  app_id: number | undefined;
+  appId: number | undefined;
   invoice: string;
   description: string;
-  description_hash: string;
+  descriptionHash: string;
   preimage: string | undefined;
-  payment_hash: string;
+  paymentHash: string;
   amount: number;
-  fees_paid: number;
-  created_at: string;
-  settled_at: string | undefined;
-  metadata: unknown;
+  feesPaid: number;
+  createdAt: string;
+  settledAt: string | undefined;
+  metadata?: Record<string, unknown>;
+  boostagram?: Boostagram;
+};
+
+export type Boostagram = {
+  appName: string;
+  name: string;
+  podcast: string;
+  url: string;
+  episode?: string;
+  feedId?: string;
+  itemId?: string;
+  ts?: number;
+  message?: string;
+  senderId: string;
+  senderName: string;
+  time: string;
+  action: "boost";
+  valueMsatTotal: number;
 };
 
 export type NewChannelOrderStatus = "pay" | "paid" | "success" | "opening";
@@ -403,3 +421,7 @@ export type NewChannelOrder = {
       lspUrl: string;
     }
 );
+
+export type AuthTokenResponse = {
+  token: string;
+};

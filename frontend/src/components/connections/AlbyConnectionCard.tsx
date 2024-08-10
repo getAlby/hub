@@ -37,8 +37,6 @@ import { Separator } from "src/components/ui/separator";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { LinkStatus, useLinkAccount } from "src/hooks/useLinkAccount";
 import { App, BudgetRenewalType } from "src/types";
-import albyAccountDark from "/images/illustrations/alby-account-dark.svg";
-import albyAccountLight from "/images/illustrations/alby-account-light.svg";
 
 function AlbyConnectionCard({ connection }: { connection?: App }) {
   const { data: albyMe } = useAlbyMe();
@@ -94,11 +92,11 @@ function AlbyConnectionCard({ connection }: { connection?: App }) {
                       every app you access through your Alby Account will handle
                       payments via the Hub.
                       <img
-                        src={albyAccountDark}
+                        src="/images/illustrations/alby-account-dark.svg"
                         className="w-full hidden dark:block"
                       />
                       <img
-                        src={albyAccountLight}
+                        src="/images/illustrations/alby-account-light.svg"
                         className="w-full dark:hidden"
                       />
                       You can add a budget that will restrict how much can be
