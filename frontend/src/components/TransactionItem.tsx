@@ -52,7 +52,7 @@ function TransactionItem({ tx }: Props) {
         }
       }}
     >
-      <DialogTrigger className="p-3 mb-4 hover:bg-muted/50 data-[state=selected]:bg-muted cursor-pointer rounded-md slashed-zero transaction sensitive ph-no-capture">
+      <DialogTrigger className="p-3 mb-4 hover:bg-muted/50 data-[state=selected]:bg-muted cursor-pointer rounded-md slashed-zero transaction sensitive">
         {/* flex wrap is used as a last resort to stop horizontal scrollbar on mobile. */}
         <div className="flex gap-3 flex-wrap">
           <div className="flex items-center">

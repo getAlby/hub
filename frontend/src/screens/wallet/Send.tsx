@@ -250,7 +250,7 @@ export default function Send() {
               </div>
             )}
             {balances && (
-              <div className="text-2xl font-bold balance sensitive ph-no-capture">
+              <div className="text-2xl font-bold balance sensitive">
                 {new Intl.NumberFormat(undefined, {}).format(
                   Math.floor(balances.lightning.totalSpendable / 1000)
                 )}{" "}
