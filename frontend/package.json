@@ -46,7 +46,6 @@
     "date-fns": "^3.6.0",
     "dayjs": "^1.11.10",
     "embla-carousel-react": "^8.0.2",
-    "gradient-avatar": "^1.0.2",
     "lucide-react": "^0.363.0",
     "posthog-js": "^1.116.6",
     "react": "^18.2.0",
