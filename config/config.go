@@ -96,7 +96,7 @@ func (cfg *config) Get(key string, encryptionKey string) (string, error) {
 
 func (cfg *config) get(key string, encryptionKey string, gormDB *gorm.DB) (string, error) {
 	var userConfig db.UserConfig
-	err := gormDB.Where(&db.UserConfig{Key: key}).Take(&userConfig).Error
+	err := gormDB.Where(&db.UserConfig{Key: key}).Limit(1).Find(&userConfig).Error
 	if err != nil {
 		return "", fmt.Errorf("failed to get configuration value: %w", gormDB.Error)
 	}
