@@ -33,15 +33,18 @@ export default function Unlock() {
     try {
       setLoading(true);
 
-      const authTokenResponse = await request<AuthTokenResponse>("/api/start", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          unlockPassword,
-        }),
-      });
+      const authTokenResponse = await request<AuthTokenResponse>(
+        "/api/unlock",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            unlockPassword,
+          }),
+        }
+      );
       if (authTokenResponse) {
         saveAuthToken(authTokenResponse.token);
       }
