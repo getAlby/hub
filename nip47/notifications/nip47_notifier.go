@@ -104,7 +104,11 @@ func (notifier *Nip47Notifier) notifySubscribers(ctx context.Context, notificati
 	apps := []db.App{}
 
 	// TODO: join apps and permissions
-	notifier.db.Find(&apps)
+	err := notifier.db.Find(&apps).Error
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to list apps")
+		return
+	}
 
 	for _, app := range apps {
 		if app.Isolated && (appId == nil || app.ID != *appId) {
@@ -123,7 +127,7 @@ func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *db.App
 	logger.Logger.WithFields(logrus.Fields{
 		"notification": notification,
 		"appId":        app.ID,
-	}).Info("Notifying subscriber")
+	}).Debug("Notifying subscriber")
 
 	ss, err := nip04.ComputeSharedSecret(app.NostrPubkey, notifier.keys.GetNostrSecretKey())
 	if err != nil {
@@ -179,8 +183,6 @@ func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *db.App
 		return
 	}
 	logger.Logger.WithFields(logrus.Fields{
-		"notification": notification,
-		"appId":        app.ID,
-	}).Info("Published notification event")
-
+		"appId": app.ID,
+	}).Debug("Published notification event")
 }
