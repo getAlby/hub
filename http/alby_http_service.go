@@ -25,15 +25,15 @@ func NewAlbyHttpService(svc service.Service, albyOAuthSvc alby.AlbyOAuthService,
 	}
 }
 
-func (albyHttpSvc *AlbyHttpService) RegisterSharedRoutes(e *echo.Echo, authMiddleware func(next echo.HandlerFunc) echo.HandlerFunc) {
-	e.GET("/api/alby/callback", albyHttpSvc.albyCallbackHandler, authMiddleware)
-	e.GET("/api/alby/me", albyHttpSvc.albyMeHandler, authMiddleware)
-	e.GET("/api/alby/balance", albyHttpSvc.albyBalanceHandler, authMiddleware)
-	e.POST("/api/alby/pay", albyHttpSvc.albyPayHandler, authMiddleware)
-	e.POST("/api/alby/drain", albyHttpSvc.albyDrainHandler, authMiddleware)
-	e.POST("/api/alby/link-account", albyHttpSvc.albyLinkAccountHandler, authMiddleware)
-	e.POST("/api/alby/auto-channel", albyHttpSvc.autoChannelHandler, authMiddleware)
-	e.POST("/api/alby/unlink-account", albyHttpSvc.unlinkHandler, authMiddleware)
+func (albyHttpSvc *AlbyHttpService) RegisterSharedRoutes(r *echo.Group) {
+	r.GET("/api/alby/callback", albyHttpSvc.albyCallbackHandler)
+	r.GET("/api/alby/me", albyHttpSvc.albyMeHandler)
+	r.GET("/api/alby/balance", albyHttpSvc.albyBalanceHandler)
+	r.POST("/api/alby/pay", albyHttpSvc.albyPayHandler)
+	r.POST("/api/alby/drain", albyHttpSvc.albyDrainHandler)
+	r.POST("/api/alby/link-account", albyHttpSvc.albyLinkAccountHandler)
+	r.POST("/api/alby/auto-channel", albyHttpSvc.autoChannelHandler)
+	r.POST("/api/alby/unlink-account", albyHttpSvc.unlinkHandler)
 }
 
 func (albyHttpSvc *AlbyHttpService) autoChannelHandler(c echo.Context) error {

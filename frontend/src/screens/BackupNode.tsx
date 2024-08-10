@@ -11,13 +11,13 @@ import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
-import { useCSRF } from "src/hooks/useCSRF";
+
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 
 export function BackupNode() {
   const navigate = useNavigate();
-  const { data: csrf } = useCSRF();
+
   const { toast } = useToast();
 
   const [unlockPassword, setUnlockPassword] = React.useState("");
@@ -26,9 +26,6 @@ export function BackupNode() {
 
   const onSubmitPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!csrf) {
-      throw new Error("No CSRF token");
-    }
 
     const isHttpMode = window.location.protocol.startsWith("http");
 
@@ -39,7 +36,6 @@ export function BackupNode() {
         const response = await fetch("/api/backup", {
           method: "POST",
           headers: {
-            "X-CSRF-Token": csrf,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
@@ -63,7 +59,6 @@ export function BackupNode() {
         await request("/api/backup", {
           method: "POST",
           headers: {
-            "X-CSRF-Token": csrf,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
