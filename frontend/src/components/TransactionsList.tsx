@@ -12,7 +12,7 @@ function TransactionsList() {
   }
 
   return (
-    <div className="transaction-list">
+    <div className="transaction-list flex flex-col">
       {!transactions?.length ? (
         <EmptyState
           icon={Drum}
