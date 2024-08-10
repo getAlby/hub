@@ -400,9 +400,12 @@ func (svc *transactionsService) LookupTransaction(ctx context.Context, paymentHa
 
 	if appId != nil {
 		var app db.App
-		svc.db.Take(&app, &db.App{
+		result := svc.db.Limit(1).Find(&app, &db.App{
 			ID: *appId,
 		})
+		if result.RowsAffected == 0 {
+			return nil, NewNotFoundError()
+		}
 		if app.Isolated {
 			tx = tx.Where("app_id == ?", *appId)
 		}
@@ -471,9 +474,12 @@ func (svc *transactionsService) ListTransactions(ctx context.Context, from, unti
 
 	if appId != nil {
 		var app db.App
-		svc.db.Take(&app, &db.App{
+		result := svc.db.Limit(1).Find(&app, &db.App{
 			ID: *appId,
 		})
+		if result.RowsAffected == 0 {
+			return nil, NewNotFoundError()
+		}
 		if app.Isolated {
 			tx = tx.Where("app_id == ?", *appId)
 		}
@@ -552,7 +558,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 		var dbTransaction db.Transaction
 		err := svc.db.Transaction(func(tx *gorm.DB) error {
 
-			result := tx.Take(&dbTransaction, &db.Transaction{
+			result := tx.Limit(1).Find(&dbTransaction, &db.Transaction{
 				Type:        constants.TRANSACTION_TYPE_INCOMING,
 				PaymentHash: lnClientTransaction.PaymentHash,
 			})
@@ -637,7 +643,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 
 		var dbTransaction db.Transaction
 		err := svc.db.Transaction(func(tx *gorm.DB) error {
-			result := tx.Take(&dbTransaction, &db.Transaction{
+			result := tx.Limit(1).Find(&dbTransaction, &db.Transaction{
 				Type:        constants.TRANSACTION_TYPE_OUTGOING,
 				PaymentHash: lnClientTransaction.PaymentHash,
 			})
@@ -678,7 +684,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 		lnClientTransaction := paymentFailedAsyncProperties.Transaction
 
 		var dbTransaction db.Transaction
-		result := svc.db.Take(&dbTransaction, &db.Transaction{
+		result := svc.db.Limit(1).Find(&dbTransaction, &db.Transaction{
 			Type:        constants.TRANSACTION_TYPE_OUTGOING,
 			PaymentHash: lnClientTransaction.PaymentHash,
 		})
@@ -707,7 +713,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 func (svc *transactionsService) interceptSelfPayment(paymentHash string) (*lnclient.PayInvoiceResponse, error) {
 	// TODO: extract into separate function
 	incomingTransaction := db.Transaction{}
-	result := svc.db.Take(&incomingTransaction, &db.Transaction{
+	result := svc.db.Limit(1).Find(&incomingTransaction, &db.Transaction{
 		Type:        constants.TRANSACTION_TYPE_INCOMING,
 		State:       constants.TRANSACTION_STATE_PENDING,
 		PaymentHash: paymentHash,
@@ -748,11 +754,15 @@ func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount 
 	// ensure balance for isolated apps
 	if appId != nil {
 		var app db.App
-		tx.Take(&app, &db.App{
+		result := tx.Limit(1).Find(&app, &db.App{
 			ID: *appId,
 		})
+		if result.RowsAffected == 0 {
+			return NewNotFoundError()
+		}
+
 		var appPermission db.AppPermission
-		result := tx.Take(&appPermission, &db.AppPermission{
+		result = tx.Limit(1).Find(&appPermission, &db.AppPermission{
 			AppId: *appId,
 			Scope: constants.PAY_INVOICE_SCOPE,
 		})

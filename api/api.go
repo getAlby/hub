@@ -280,7 +280,7 @@ func (api *api) ListApps() ([]App, error) {
 		}
 
 		var lastEvent db.RequestEvent
-		lastEventResult := api.db.Where("app_id = ?", dbApp.ID).Order("id desc").Take(&lastEvent)
+		lastEventResult := api.db.Where("app_id = ?", dbApp.ID).Order("id desc").Limit(1).Find(&lastEvent)
 		if lastEventResult.RowsAffected > 0 {
 			apiApp.LastEventAt = &lastEvent.CreatedAt
 		}

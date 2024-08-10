@@ -38,7 +38,7 @@ func NewPermissionsService(db *gorm.DB, eventPublisher events.EventPublisher) *p
 func (svc *permissionsService) HasPermission(app *db.App, scope string) (result bool, code string, message string) {
 
 	appPermission := db.AppPermission{}
-	findPermissionResult := svc.db.Take(&appPermission, &db.AppPermission{
+	findPermissionResult := svc.db.Limit(1).Find(&appPermission, &db.AppPermission{
 		AppId: app.ID,
 		Scope: scope,
 	})
