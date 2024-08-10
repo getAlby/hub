@@ -183,8 +183,6 @@ func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *db.App
 		return
 	}
 	logger.Logger.WithFields(logrus.Fields{
-		// "notification": notification,
 		"appId": app.ID,
-	}).Info("Published notification event")
-
+	}).Debug("Published notification event")
 }
