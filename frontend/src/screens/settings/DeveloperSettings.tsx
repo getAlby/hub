@@ -3,12 +3,54 @@ import React from "react";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button, ExternalLinkButton } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
-import { getAuthToken } from "src/lib/auth";
+import { Label } from "src/components/ui/label";
+import { LoadingButton } from "src/components/ui/loading-button";
+import { useToast } from "src/components/ui/use-toast";
 import { copyToClipboard } from "src/lib/clipboard";
+import { AuthTokenResponse } from "src/types";
+import { request } from "src/utils/request";
 
 export default function DeveloperSettings() {
-  const [show, setShowToken] = React.useState(false);
-  const authToken = getAuthToken() || "";
+  const [token, setToken] = React.useState<string>();
+  const [expiryDays, setExpiryDays] = React.useState<string>("365");
+  const [unlockPassword, setUnlockPassword] = React.useState<string>();
+  const [showCreateTokenForm, setShowCreateTokenForm] =
+    React.useState<boolean>();
+  const [loading, setLoading] = React.useState<boolean>();
+  const { toast } = useToast();
+
+  async function createToken(e: React.FormEvent) {
+    e.preventDefault();
+    try {
+      setLoading(true);
+      if (!expiryDays || !unlockPassword) {
+        throw new Error("Form not filled");
+      }
+      const authTokenResponse = await request<AuthTokenResponse>(
+        "/api/unlock",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            unlockPassword,
+            tokenExpiryDays: +expiryDays,
+          }),
+        }
+      );
+      if (authTokenResponse) {
+        setToken(authTokenResponse.token);
+      }
+    } catch (error) {
+      console.error(error);
+      toast({
+        variant: "destructive",
+        description: "Something went wrong: " + error,
+      });
+    }
+    setLoading(false);
+  }
 
   return (
     <>
@@ -36,17 +78,43 @@ export default function DeveloperSettings() {
             for more stability. Please note that the internal API may change or
             be removed entirely in the future.
           </div>
-          {!show && (
-            <Button size={"sm"} onClick={() => setShowToken(true)}>
-              Show Token
+          {!token && !showCreateTokenForm && (
+            <Button size={"sm"} onClick={() => setShowCreateTokenForm(true)}>
+              Configure Token
             </Button>
           )}
-          {show && (
+          {showCreateTokenForm && !token && (
+            <form onSubmit={createToken} className="w-full flex flex-col gap-3">
+              <>
+                <div className="grid gap-1.5">
+                  <Label htmlFor="password">Token Expiry (Days)</Label>
+                  <Input
+                    type="number"
+                    name="token-expiry"
+                    onChange={(e) => setExpiryDays(e.target.value)}
+                    value={expiryDays}
+                  />
+                </div>
+                <div className="grid gap-1.5">
+                  <Label htmlFor="password">Unlock Password</Label>
+                  <Input
+                    type="password"
+                    name="password"
+                    onChange={(e) => setUnlockPassword(e.target.value)}
+                    value={unlockPassword}
+                    placeholder="Password"
+                  />
+                </div>
+                <LoadingButton loading={loading}>Create Token</LoadingButton>
+              </>
+            </form>
+          )}
+          {token && (
             <>
               <div className="flex flex-row items-center gap-2 mb-2">
                 <Input
                   type="password"
-                  value={authToken}
+                  value={token}
                   className="flex-1"
                   readOnly
                 />
@@ -55,20 +123,17 @@ export default function DeveloperSettings() {
                   variant="secondary"
                   size="icon"
                   onClick={() => {
-                    copyToClipboard(authToken);
+                    copyToClipboard(token);
                   }}
                 >
                   <Copy className="w-4 h-4" />
                 </Button>
               </div>
               <p className="text-xs">
-                By default, your token will expire in{" "}
-                <span className="font-bold">30 days</span>. If you need a longer
-                expiry period, you can adjust this by setting the
-                JWT_EXPIRY_DAYS environment variable. This token grants full
-                access to your hub. Please keep it secure. If you suspect that
-                the token has been compromised, immediately change your
-                JWT_SECRET environment variable to protect your data.
+                This token grants full access to your hub. Please keep it
+                secure. If you suspect that the token has been compromised,
+                immediately change your JWT_SECRET environment variable or
+                contact support@getalby.com.
               </p>
             </>
           )}

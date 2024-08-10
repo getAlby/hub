@@ -222,7 +222,7 @@ func (httpSvc *HttpService) startHandler(c echo.Context) error {
 		})
 	}
 
-	token, err := httpSvc.createJWT()
+	token, err := httpSvc.createJWT(nil)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
@@ -256,7 +256,7 @@ func (httpSvc *HttpService) unlockHandler(c echo.Context) error {
 		})
 	}
 
-	token, err := httpSvc.createJWT()
+	token, err := httpSvc.createJWT(unlockRequest.TokenExpiryDays)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
@@ -291,12 +291,16 @@ func (httpSvc *HttpService) changeUnlockPasswordHandler(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func (httpSvc *HttpService) createJWT() (string, error) {
+func (httpSvc *HttpService) createJWT(tokenExpiryDays *uint64) (string, error) {
+	expiryDays := uint64(30)
+	if tokenExpiryDays != nil {
+		expiryDays = *tokenExpiryDays
+	}
 
 	// Set custom claims
 	claims := &jwtCustomClaims{
 		jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24 * time.Duration(httpSvc.cfg.GetEnv().JWTExpiryDays))),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24 * time.Duration(expiryDays))),
 		},
 	}
 

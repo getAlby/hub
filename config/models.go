@@ -23,7 +23,6 @@ type AppConfig struct {
 	Port                  string `envconfig:"PORT" default:"8080"`
 	DatabaseUri           string `envconfig:"DATABASE_URI" default:"nwc.db"`
 	JWTSecret             string `envconfig:"JWT_SECRET"`
-	JWTExpiryDays         uint64 `envconfig:"JWT_EXPIRY_DAYS" default:"30"`
 	LogLevel              string `envconfig:"LOG_LEVEL"`
 	LDKNetwork            string `envconfig:"LDK_NETWORK" default:"bitcoin"`
 	LDKEsploraServer      string `envconfig:"LDK_ESPLORA_SERVER" default:"https://electrs.getalbypro.com"` // TODO: remove LDK prefix
