@@ -172,14 +172,7 @@ export default function AppLayout() {
         <MenuItem
           to="/"
           onClick={(e) => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const chatwoot = (window as any).$chatwoot;
-            if (chatwoot) {
-              chatwoot.toggle("open");
-            } else {
-              openLink("https://getalby.com/help");
-            }
-
+            openLink("https://getalby.com/#help");
             e.preventDefault();
           }}
         >

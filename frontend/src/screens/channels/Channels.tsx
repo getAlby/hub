@@ -410,7 +410,7 @@ export default function Channels() {
                 </div>
               </div>
             )}
-            <div className="text-2xl font-bold balance sensitive ph-no-capture">
+            <div className="text-2xl font-bold balance sensitive">
               {balances && (
                 <>
                   {new Intl.NumberFormat().format(balances.onchain.spendable)}{" "}
@@ -467,7 +467,7 @@ export default function Channels() {
               </div>
             )}
             {balances && (
-              <div className="text-2xl font-bold balance sensitive ph-no-capture">
+              <div className="text-2xl font-bold balance sensitive">
                 {new Intl.NumberFormat(undefined, {}).format(
                   Math.floor(balances.lightning.totalSpendable / 1000)
                 )}{" "}
@@ -503,7 +503,7 @@ export default function Channels() {
             <ArrowDown className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="flex-grow">
-            <div className="text-2xl font-bold balance sensitive ph-no-capture">
+            <div className="text-2xl font-bold balance sensitive">
               {balances &&
                 new Intl.NumberFormat().format(
                   Math.floor(balances.lightning.totalReceivable / 1000)

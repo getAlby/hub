@@ -1,7 +1,7 @@
 import { ExternalLinkIcon } from "lucide-react";
-import AlbyHead from "src/assets/images/alby-head.svg";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
+import { AlbyHead } from "src/components/images/AlbyHead";
 import Loading from "src/components/Loading";
 import { Button } from "src/components/ui/button";
 import {
@@ -52,10 +52,7 @@ function Home() {
           <Card>
             <CardHeader>
               <div className="flex flex-row items-center">
-                <img
-                  src={AlbyHead}
-                  className="w-12 h-12 rounded-xl p-1 border"
-                />
+                <AlbyHead className="w-12 h-12 rounded-xl p-1 border" />
                 <div>
                   <CardTitle>
                     <div className="flex-1 leading-5 font-semibold text-xl whitespace-nowrap text-ellipsis overflow-hidden ml-4">
@@ -81,10 +78,7 @@ function Home() {
             <Card>
               <CardHeader>
                 <div className="flex flex-row items-center">
-                  <img
-                    src={AlbyHead}
-                    className="w-12 h-12 rounded-xl p-1 border bg-[#FFDF6F]"
-                  />
+                  <AlbyHead className="w-12 h-12 rounded-xl p-1 border bg-[#FFDF6F]" />
                   <div>
                     <CardTitle>
                       <div className="flex-1 leading-5 font-semibold text-xl whitespace-nowrap text-ellipsis overflow-hidden ml-4">

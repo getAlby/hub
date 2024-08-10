@@ -22,8 +22,6 @@ import {
   ALBY_HIDE_HOSTED_BALANCE_BELOW,
   ALBY_MIN_HOSTED_BALANCE_FOR_FIRST_CHANNEL,
 } from "src/constants";
-import lightningNetworkDark from "/images/illustrations/lightning-network-dark.svg";
-import lightningNetworkLight from "/images/illustrations/lightning-network-light.svg";
 
 export function FirstChannel() {
   const { data: info } = useInfo();
@@ -126,10 +124,13 @@ export function FirstChannel() {
         <>
           <div className="flex flex-col gap-6 max-w-md text-muted-foreground">
             <img
-              src={lightningNetworkDark}
+              src="/images/illustrations/lightning-network-dark.svg"
               className="w-full hidden dark:block"
             />
-            <img src={lightningNetworkLight} className="w-full dark:hidden" />
+            <img
+              src="/images/illustrations/lightning-network-light.svg"
+              className="w-full dark:hidden"
+            />
             {canPayForFirstChannel ? (
               <>
                 <p>
