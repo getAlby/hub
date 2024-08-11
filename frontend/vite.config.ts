@@ -45,7 +45,7 @@ export default defineConfig(({ command }) => ({
         globPatterns: ["**/*.{js,css,html,png,svg,ico}"],
       },
     }),
-    ...(command === "serve" ? [insertDevCSPNoncePlugin] : []),
+    ...(command === "serve" ? [insertDevCSPPlugin] : []),
   ],
   server: {
     proxy: {
@@ -64,19 +64,23 @@ export default defineConfig(({ command }) => ({
   html:
     command === "serve"
       ? {
-          cspNonce: "PLACEHOLDER",
+          cspNonce: "DEVELOPMENT",
         }
       : undefined,
 }));
 
-const insertDevCSPNoncePlugin: Plugin = {
-  name: "transform-html",
+const DEVELOPMENT_NONCE = "'nonce-DEVELOPMENT'";
+
+const insertDevCSPPlugin: Plugin = {
+  name: "dev-csp",
   transformIndexHtml: {
     enforce: "pre",
     transform(html) {
       return html.replace(
-        "default-src 'self'",
-        "default-src 'self' 'nonce-PLACEHOLDER'"
+        "<head>",
+        `<head>
+        <!-- DEV-ONLY CSP - when making changes here, also update the CSP header in http_service.go (without the nonce!) -->
+        <meta http-equiv="Content-Security-Policy" content="default-src 'self' ${DEVELOPMENT_NONCE}; img-src 'self' https://uploads.getalby-assets.com https://getalby.com;"/>`
       );
     },
   },
