@@ -11,6 +11,7 @@ import (
 	"math"
 	"slices"
 	"strings"
+	"strconv"
 	"time"
 
 	"github.com/getAlby/hub/constants"
@@ -41,6 +42,7 @@ type TransactionsService interface {
 const (
 	BoostagramTlvType = 7629169
 	WhatsatTlvType    = 34349334
+	CustomKeyTlvType  = 696969
 )
 
 type Transaction = db.Transaction
@@ -396,7 +398,7 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 func (svc *transactionsService) LookupTransaction(ctx context.Context, paymentHash string, transactionType *string, lnClient lnclient.LNClient, appId *uint) (*Transaction, error) {
 	transaction := db.Transaction{}
 
-	tx := svc.db
+	tx := svc.db.Preload("App")
 
 	if appId != nil {
 		var app db.App
@@ -568,6 +570,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 				description := lnClientTransaction.Description
 				var metadataBytes []byte
 				var boostagramBytes []byte
+				app := db.App{}
 				if lnClientTransaction.Metadata != nil {
 					var err error
 					metadataBytes, err = json.Marshal(lnClientTransaction.Metadata)
@@ -582,6 +585,18 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 					extractedDescription := svc.getDescriptionFromCustomRecords(customRecords)
 					if extractedDescription != "" {
 						description = extractedDescription
+					}
+
+					// find app by custom key/value records
+					for _, record := range customRecords {
+						if record.Type == CustomKeyTlvType {
+							customValue, err := strconv.ParseUint(record.Value, 16, 64)
+							if err == nil {
+								svc.db.Limit(1).First(&app, &db.App{
+									ID: uint(customValue),
+								})
+							}
+						}
 					}
 				}
 				var expiresAt *time.Time
@@ -599,6 +614,10 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 					ExpiresAt:       expiresAt,
 					Metadata:        datatypes.JSON(metadataBytes),
 					Boostagram:      datatypes.JSON(boostagramBytes),
+				}
+				// save app from custom key/value records
+				if dbTransaction.App == nil && app.ID != 0 {
+					dbTransaction.App = &app
 				}
 				err := tx.Create(&dbTransaction).Error
 				if err != nil {
