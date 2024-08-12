@@ -34,7 +34,7 @@ export function ChannelDropdownMenu({
     null
   );
 
-  const openCloseDialog = () => setDialog("close");
+  const openChannelCloseDialog = () => setDialog("close");
   const openRoutingFeeDialog = () => setDialog("routingFee");
 
   return (
@@ -78,7 +78,7 @@ export function ChannelDropdownMenu({
           <AlertDialogTrigger asChild>
             <DropdownMenuItem
               className="flex flex-row items-center gap-2 cursor-pointer"
-              onClick={openCloseDialog}
+              onClick={openChannelCloseDialog}
             >
               <Trash2 className="h-4 w-4 text-destructive" />
               Close Channel
