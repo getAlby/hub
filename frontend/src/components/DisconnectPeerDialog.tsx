@@ -21,10 +21,6 @@ export function DisconnectPeerDialog({ peer }: Props) {
 
   async function disconnectPeer() {
     try {
-      if (!peer.nodeId) {
-        throw new Error("peer missing");
-      }
-
       console.info(`Disconnecting from ${peer.nodeId}`);
 
       await request(`/api/peers/${peer.nodeId}`, {

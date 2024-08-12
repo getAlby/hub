@@ -61,9 +61,6 @@ export default function Peers() {
 
   async function checkDisconnectPeer(peer: Peer) {
     try {
-      if (!peer.nodeId) {
-        throw new Error("peer missing");
-      }
       if (!channels) {
         throw new Error("channels not loaded");
       }
