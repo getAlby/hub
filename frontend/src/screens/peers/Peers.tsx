@@ -32,7 +32,7 @@ export default function Peers() {
   const { data: peers } = usePeers();
   const { data: channels } = useChannels();
   const [nodes, setNodes] = React.useState<Node[]>([]);
-  const [peer, setPeer] = React.useState<Peer>();
+  const [peerToDisconnect, setPeerToDisconnect] = React.useState<Peer>();
 
   // TODO: move to NWC backend
   const loadNodeStats = React.useCallback(async () => {
@@ -69,7 +69,7 @@ export default function Peers() {
           "you have one or more open channels with " + peer.nodeId
         );
       }
-      setPeer(peer);
+      setPeerToDisconnect(peer);
     } catch (e) {
       toast({
         variant: "destructive",
@@ -158,14 +158,14 @@ export default function Peers() {
       </Table>
 
       <AlertDialog
-        open={!!peer}
+        open={!!peerToDisconnect}
         onOpenChange={(open) => {
           if (!open) {
-            setPeer(undefined);
+            setPeerToDisconnect(undefined);
           }
         }}
       >
-        {peer && <DisconnectPeerDialog peer={peer} />}
+        {peerToDisconnect && <DisconnectPeerDialog peer={peerToDisconnect} />}
       </AlertDialog>
     </>
   );
