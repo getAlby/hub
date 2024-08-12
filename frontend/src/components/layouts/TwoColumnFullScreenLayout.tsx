@@ -46,7 +46,7 @@ const quotes = [
     imageUrl: "/images/quotes/back.svg",
   },
   {
-    content: `Create more. Consume less. Seek the truth.`,
+    content: `We who choose Bitcoin, are pioneers of a new world. A world filled with freedom, hope and peace.`,
     author: "Roland",
     imageUrl: "/images/quotes/roland.svg",
   },
