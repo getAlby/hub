@@ -77,5 +77,5 @@ func TestReceiveKeysend(t *testing.T) {
 
 	transaction, err := transactionsService.LookupTransaction(ctx, tx.PaymentHash, nil, svc.LNClient, nil)
 	assert.NoError(t, err)
-	assert.Nil(t, *transaction.AppId)
+	assert.Nil(t, transaction.AppId)
 }
