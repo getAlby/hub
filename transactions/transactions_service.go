@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"math"
 	"slices"
+	"strconv"
 	"strings"
 	"time"
 
@@ -41,6 +42,7 @@ type TransactionsService interface {
 const (
 	BoostagramTlvType = 7629169
 	WhatsatTlvType    = 34349334
+	CustomKeyTlvType  = 696969
 )
 
 type Transaction = db.Transaction
@@ -70,7 +72,7 @@ func NewNotFoundError() error {
 }
 
 func (err *notFoundError) Error() string {
-	return "The transaction requested was not Found"
+	return "The transaction requested was not found"
 }
 
 type insufficientBalanceError struct {
@@ -564,7 +566,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 			})
 
 			if result.RowsAffected == 0 {
-				// TODO: support customkey/customvalue for boostagrams received to isolated apps
+				var appId *uint
 				description := lnClientTransaction.Description
 				var metadataBytes []byte
 				var boostagramBytes []byte
@@ -583,6 +585,8 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 					if extractedDescription != "" {
 						description = extractedDescription
 					}
+					// find app by custom key/value records
+					appId = svc.getAppIdFromCustomRecords(customRecords)
 				}
 				var expiresAt *time.Time
 				if lnClientTransaction.ExpiresAt != nil {
@@ -599,6 +603,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 					ExpiresAt:       expiresAt,
 					Metadata:        datatypes.JSON(metadataBytes),
 					Boostagram:      datatypes.JSON(boostagramBytes),
+					AppId:           appId,
 				}
 				err := tx.Create(&dbTransaction).Error
 				if err != nil {
@@ -844,4 +849,26 @@ func (svc *transactionsService) getDescriptionFromCustomRecords(customRecords []
 	}
 
 	return description
+}
+
+func (svc *transactionsService) getAppIdFromCustomRecords(customRecords []lnclient.TLVRecord) *uint {
+	app := db.App{}
+	for _, record := range customRecords {
+		if record.Type == CustomKeyTlvType {
+			customValue, err := strconv.ParseUint(record.Value, 16, 64)
+			if err != nil {
+				logger.Logger.WithError(err).Error("Failed to parse custom key TLV record")
+				continue
+			}
+			err = svc.db.Take(&app, &db.App{
+				ID: uint(customValue),
+			}).Error
+			if err != nil {
+				logger.Logger.WithError(err).Error("Failed to find app by id from custom key TLV record")
+				continue
+			}
+			return &app.ID
+		}
+	}
+	return nil
 }

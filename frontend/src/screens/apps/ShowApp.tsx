@@ -169,6 +169,12 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
               <Table>
                 <TableBody>
                   <TableRow>
+                    <TableCell className="font-medium">Id</TableCell>
+                    <TableCell className="text-muted-foreground break-all">
+                      {app.id}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
                     <TableCell className="font-medium">Public Key</TableCell>
                     <TableCell className="text-muted-foreground break-all">
                       {app.nostrPubkey}
