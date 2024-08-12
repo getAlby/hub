@@ -14,9 +14,10 @@ import {
 
 type Props = {
   peer: Peer;
+  name: string | undefined;
 };
 
-export function DisconnectPeerDialogContent({ peer }: Props) {
+export function DisconnectPeerDialogContent({ peer, name }: Props) {
   const { mutate: reloadPeers } = usePeers();
 
   async function disconnectPeer() {
@@ -47,12 +48,13 @@ export function DisconnectPeerDialogContent({ peer }: Props) {
   return (
     <AlertDialogContent>
       <AlertDialogHeader>
-        <AlertDialogTitle>
-          Are you sure you wish to disconnect?
-        </AlertDialogTitle>
+        <AlertDialogTitle>Disconnect Peer</AlertDialogTitle>
         <AlertDialogDescription>
           <div>
-            <p className="text-primary font-medium">Peer Pubkey</p>
+            <p>
+              Are you sure you wish to disconnect from {name || "this peer"}?
+            </p>
+            <p className="text-primary font-medium mt-4">Peer Pubkey</p>
             <p className="break-all">{peer.nodeId}</p>
           </div>
         </AlertDialogDescription>

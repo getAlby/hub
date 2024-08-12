@@ -167,7 +167,12 @@ export default function Peers() {
         }}
       >
         {peerToDisconnect && (
-          <DisconnectPeerDialogContent peer={peerToDisconnect} />
+          <DisconnectPeerDialogContent
+            peer={peerToDisconnect}
+            name={
+              nodes.find((n) => n.public_key === peerToDisconnect.nodeId)?.alias
+            }
+          />
         )}
       </AlertDialog>
     </>
