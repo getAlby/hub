@@ -183,12 +183,6 @@ export default function AppLayout() {
     );
   }
 
-  const upToDate =
-    info.version &&
-    albyMe?.hub.latest_version &&
-    info.version.startsWith("v") &&
-    info.version.substring(1) >= albyMe?.hub.latest_version;
-
   return (
     <>
       <div className="font-sans min-h-screen w-full flex flex-col">
@@ -201,34 +195,7 @@ export default function AppLayout() {
                     <Link to="/">
                       <AlbyHubLogo className="text-foreground" />
                     </Link>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <ExternalLink
-                            to={`https://getalby.com/update/hub?version=${info.version}`}
-                            className="font-semibold text-xl"
-                          >
-                            <span className="text-xs flex items-center text-muted-foreground">
-                              {info.version && <>{info.version}&nbsp;</>}
-                              {upToDate ? (
-                                <ShieldCheckIcon className="w-4 h-4" />
-                              ) : (
-                                <ShieldAlertIcon className="w-4 h-4" />
-                              )}
-                            </span>
-                          </ExternalLink>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          {upToDate ? (
-                            <p>Alby Hub is up to date!</p>
-                          ) : (
-                            <p>
-                              Alby Hub {albyMe?.hub.latest_version} available!
-                            </p>
-                          )}
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                    <AppVersion />
                   </div>
                   <MainMenuContent />
                 </nav>
@@ -276,10 +243,14 @@ export default function AppLayout() {
                   className="flex flex-col justify-between max-h-screen"
                 >
                   <nav className="grid gap-2 text-lg font-medium">
-                    <div className="p-3 ">
-                      <Link to="/" className="font-semibold text-xl">
-                        <span className="">Alby Hub</span>
+                    <div className="p-3 pr-0 flex justify-between items-center">
+                      <Link to="/">
+                        <AlbyHubLogo className="text-foreground" />
                       </Link>
+                      {/* align shield with x icon */}
+                      <div className="-mr-2">
+                        <AppVersion />
+                      </div>
                     </div>
                     <MainMenuContent />
                   </nav>
@@ -308,6 +279,49 @@ export default function AppLayout() {
         </div>
       </div>
     </>
+  );
+}
+
+function AppVersion() {
+  const { data: albyMe } = useAlbyMe();
+  const { data: info } = useInfo();
+  if (!info || !albyMe) {
+    return null;
+  }
+
+  const upToDate =
+    info.version &&
+    albyMe.hub.latest_version &&
+    info.version.startsWith("v") &&
+    info.version.substring(1) >= albyMe?.hub.latest_version;
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger>
+          <ExternalLink
+            to={`https://getalby.com/update/hub?version=${info.version}`}
+            className="font-semibold text-xl"
+          >
+            <span className="text-xs flex items-center text-muted-foreground">
+              {info.version && <>{info.version}&nbsp;</>}
+              {upToDate ? (
+                <ShieldCheckIcon className="w-4 h-4" />
+              ) : (
+                <ShieldAlertIcon className="w-4 h-4" />
+              )}
+            </span>
+          </ExternalLink>
+        </TooltipTrigger>
+        <TooltipContent>
+          {upToDate ? (
+            <p>Alby Hub is up to date!</p>
+          ) : (
+            <p>Alby Hub {albyMe?.hub.latest_version} available!</p>
+          )}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
 
