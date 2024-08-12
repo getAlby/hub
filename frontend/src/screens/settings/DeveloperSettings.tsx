@@ -133,8 +133,11 @@ export default function DeveloperSettings() {
               </div>
               <div className="my-4 border rounded-lg p-4">
                 <p className="mb-2">
-                  To make requests from your application, add the following
-                  header{albyMe?.hub.name && "s"}:
+                  To make requests from your application to{" "}
+                  <span className="font-mono font-semibold">
+                    {window.location.origin}/api
+                  </span>{" "}
+                  add the following header{albyMe?.hub.name && "s"}:
                 </p>
                 <ol>
                   <li>
