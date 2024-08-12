@@ -43,13 +43,13 @@ export function DisconnectPeerDialog({ peer }: Props) {
   return (
     <AlertDialogContent>
       <AlertDialogHeader>
-        <AlertDialogTitle className="break-all">
+        <AlertDialogTitle>
           Are you sure you wish to disconnect?
         </AlertDialogTitle>
         <AlertDialogDescription className="break-all">
           <div>
             <p className="text-primary font-medium">Peer Pubkey</p>
-            <p className="break-all">{peer.nodeId}</p>
+            <p>{peer.nodeId}</p>
           </div>
         </AlertDialogDescription>
       </AlertDialogHeader>
