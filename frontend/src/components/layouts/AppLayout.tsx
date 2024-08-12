@@ -172,7 +172,7 @@ export default function AppLayout() {
         <MenuItem
           to="/"
           onClick={(e) => {
-            openLink("https://getalby.com/#help");
+            openLink("https://getalby.com/help");
             e.preventDefault();
           }}
         >
