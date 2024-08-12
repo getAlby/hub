@@ -1,7 +1,6 @@
 import { RouterProvider, createHashRouter } from "react-router-dom";
 
 import { ThemeProvider } from "src/components/ui/theme-provider";
-import { usePosthog } from "./hooks/usePosthog";
 
 import { Toaster } from "src/components/ui/toaster";
 import { useInfo } from "src/hooks/useInfo";
@@ -10,7 +9,6 @@ import routes from "src/routes.tsx";
 const router = createHashRouter(routes);
 
 function App() {
-  usePosthog();
   const { data: info } = useInfo();
 
   return (

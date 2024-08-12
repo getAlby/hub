@@ -23,7 +23,7 @@ import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
-import { useCSRF } from "src/hooks/useCSRF";
+
 import { useInfo } from "src/hooks/useInfo";
 import { useTransaction } from "src/hooks/useTransaction";
 import { copyToClipboard } from "src/lib/clipboard";
@@ -33,7 +33,7 @@ import { request } from "src/utils/request";
 export default function Receive() {
   const { hasChannelManagement } = useInfo();
   const { data: balances } = useBalances();
-  const { data: csrf } = useCSRF();
+
   const { toast } = useToast();
   const [isLoading, setLoading] = React.useState(false);
   const [amount, setAmount] = React.useState<string>("");
@@ -43,12 +43,12 @@ export default function Receive() {
   );
   const [paymentDone, setPaymentDone] = React.useState(false);
   const { data: invoiceData } = useTransaction(
-    transaction ? transaction.payment_hash : "",
+    transaction ? transaction.paymentHash : "",
     true
   );
 
   React.useEffect(() => {
-    if (invoiceData?.settled_at) {
+    if (invoiceData?.settledAt) {
       setPaymentDone(true);
       popConfetti();
       toast({
@@ -63,15 +63,12 @@ export default function Receive() {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!csrf) {
-      throw new Error("csrf not loaded");
-    }
+
     try {
       setLoading(true);
       const invoice = await request<Transaction>("/api/invoices", {
         method: "POST",
         headers: {
-          "X-CSRF-Token": csrf,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({

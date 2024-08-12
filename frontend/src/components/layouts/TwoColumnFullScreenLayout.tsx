@@ -1,6 +1,7 @@
 import { ChevronLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { AlbyHubLogo } from "src/components/icons/AlbyHubLogo";
 import { Button } from "src/components/ui/button.tsx";
 import { useInfo } from "src/hooks/useInfo";
 
@@ -45,7 +46,7 @@ const quotes = [
     imageUrl: "/images/quotes/back.svg",
   },
   {
-    content: `Create more. Consume less. Seek the truth.`,
+    content: `We who choose Bitcoin, are pioneers of a new world. A world filled with freedom, hope and peace.`,
     author: "Roland",
     imageUrl: "/images/quotes/roland.svg",
   },
@@ -72,7 +73,7 @@ export default function TwoColumnFullScreenLayout() {
       >
         <div className="flex-1 w-full h-full flex flex-col">
           <div className="flex flex-row justify-between items-center">
-            <h1 className="text-lg font-medium">Alby Hub</h1>
+            <AlbyHubLogo className="text-background" />
             {info?.version && (
               <p className="text-sm text-muted-foreground">{info.version}</p>
             )}

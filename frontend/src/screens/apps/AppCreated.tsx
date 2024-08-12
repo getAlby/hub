@@ -100,7 +100,7 @@ function AppCreatedInternal() {
         title={`Connect to ${createAppResponse.name}`}
         description="Configure wallet permissions for the app and follow instructions to finalise the connection"
       />
-      <div className="flex flex-col gap-3 ph-no-capture sensitive">
+      <div className="flex flex-col gap-3 sensitive">
         <div>
           <p>
             1. Open{" "}

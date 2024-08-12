@@ -11,11 +11,10 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 import { useToast } from "src/components/ui/use-toast";
-import { useCSRF } from "src/hooks/useCSRF";
+
 import { request } from "src/utils/request";
 
 export function AlbyAccount() {
-  const { data: csrf } = useCSRF();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -29,13 +28,9 @@ export function AlbyAccount() {
     }
 
     try {
-      if (!csrf) {
-        throw new Error("No CSRF token");
-      }
       await request("/api/alby/unlink-account", {
         method: "POST",
         headers: {
-          "X-CSRF-Token": csrf,
           "Content-Type": "application/json",
         },
       });

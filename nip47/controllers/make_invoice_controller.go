@@ -10,11 +10,11 @@ import (
 )
 
 type makeInvoiceParams struct {
-	Amount          int64       `json:"amount"`
-	Description     string      `json:"description"`
-	DescriptionHash string      `json:"description_hash"`
-	Expiry          int64       `json:"expiry"`
-	Metadata        interface{} `json:"metadata,omitempty"`
+	Amount          int64                  `json:"amount"`
+	Description     string                 `json:"description"`
+	DescriptionHash string                 `json:"description_hash"`
+	Expiry          int64                  `json:"expiry"`
+	Metadata        map[string]interface{} `json:"metadata,omitempty"`
 }
 type makeInvoiceResponse struct {
 	models.Transaction

@@ -1,5 +1,4 @@
 import { toast } from "src/components/ui/use-toast";
-import { useCSRF } from "src/hooks/useCSRF";
 import { usePeers } from "src/hooks/usePeers";
 import { Peer } from "src/types";
 import { request } from "src/utils/request";
@@ -18,14 +17,10 @@ type Props = {
 };
 
 export function DisconnectPeerDialog({ peer }: Props) {
-  const { data: csrf } = useCSRF();
   const { mutate: reloadPeers } = usePeers();
 
   async function disconnectPeer() {
     try {
-      if (!csrf) {
-        throw new Error("csrf not loaded");
-      }
       if (!peer.nodeId) {
         throw new Error("peer missing");
       }
@@ -35,7 +30,7 @@ export function DisconnectPeerDialog({ peer }: Props) {
       await request(`/api/peers/${peer.nodeId}`, {
         method: "DELETE",
         headers: {
-          "X-CSRF-Token": csrf,
+          "Content-Type": "application/json",
         },
       });
       toast({ title: "Successfully disconnected from peer " + peer.nodeId });

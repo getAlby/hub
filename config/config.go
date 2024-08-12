@@ -14,9 +14,9 @@ import (
 )
 
 type config struct {
-	Env          *AppConfig
-	CookieSecret string
-	db           *gorm.DB
+	Env       *AppConfig
+	JWTSecret string
+	db        *gorm.DB
 }
 
 const (
@@ -69,20 +69,20 @@ func (cfg *config) init(env *AppConfig) {
 		cfg.SetUpdate("PhoenixdAuthorization", cfg.Env.PhoenixdAuthorization, "")
 	}
 
-	// set the cookie secret to the one from the env
-	// if no cookie secret is configured we create a random one and store it in the DB
-	cfg.CookieSecret = cfg.Env.CookieSecret
-	if cfg.CookieSecret == "" {
-		hex, err := randomHex(20)
+	// set the JWT secret to the one from the env
+	// if no JWT secret is configured we create a random one and store it in the DB
+	cfg.JWTSecret = cfg.Env.JWTSecret
+	if cfg.JWTSecret == "" {
+		hex, err := randomHex(32)
 		if err == nil {
-			cfg.SetIgnore("CookieSecret", hex, "")
+			cfg.SetIgnore("JWTSecret", hex, "")
 		}
-		cfg.CookieSecret, _ = cfg.Get("CookieSecret", "")
+		cfg.JWTSecret, _ = cfg.Get("JWTSecret", "")
 	}
 }
 
-func (cfg *config) GetCookieSecret() string {
-	return cfg.CookieSecret
+func (cfg *config) GetJWTSecret() string {
+	return cfg.JWTSecret
 }
 
 func (cfg *config) GetRelayUrl() string {

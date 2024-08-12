@@ -7,11 +7,10 @@ import { Button } from "src/components/ui/button";
 import { useToast } from "src/components/ui/use-toast";
 import { ALBY_HIDE_HOSTED_BALANCE_BELOW } from "src/constants";
 import { useAlbyBalance } from "src/hooks/useAlbyBalance";
-import { useCSRF } from "src/hooks/useCSRF";
+
 import { request } from "src/utils/request";
 
 export function OpenedFirstChannel() {
-  const { data: csrf } = useCSRF();
   const { data: albyBalance, mutate: reloadAlbyBalance } = useAlbyBalance();
   const [, setShowedAlbyMigrationToast] = React.useState(false);
   const { toast } = useToast();
@@ -20,18 +19,13 @@ export function OpenedFirstChannel() {
   // TODO: remove this code once all Alby users have migrated to Alby Hub
   React.useEffect(() => {
     (async () => {
-      if (
-        !csrf ||
-        !albyBalance ||
-        albyBalance.sats < ALBY_HIDE_HOSTED_BALANCE_BELOW
-      ) {
+      if (!albyBalance || albyBalance.sats < ALBY_HIDE_HOSTED_BALANCE_BELOW) {
         return;
       }
       try {
         await request("/api/alby/drain", {
           method: "POST",
           headers: {
-            "X-CSRF-Token": csrf,
             "Content-Type": "application/json",
           },
         });
@@ -50,7 +44,7 @@ export function OpenedFirstChannel() {
         console.error("Failed to transfer any alby shared wallet funds", error);
       }
     })();
-  }, [albyBalance, csrf, reloadAlbyBalance, toast]);
+  }, [albyBalance, reloadAlbyBalance, toast]);
 
   React.useEffect(() => {
     for (let i = 0; i < 10; i++) {

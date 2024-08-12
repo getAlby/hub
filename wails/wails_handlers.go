@@ -127,7 +127,16 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			}
 			return WailsRequestRouterResponse{Body: nil, Error: ""}
 		case "DELETE":
-			closeChannelResponse, err := app.api.CloseChannel(ctx, peerId, channelId, strings.Contains(route, "force=true"))
+			channelIdParts := strings.SplitN(channelId, "?", 2)
+
+			var force bool
+			if len(channelIdParts) == 2 {
+				channelId = channelIdParts[0]
+				queryParams := channelIdParts[1]
+				force = strings.Contains(queryParams, "force=true")
+			}
+
+			closeChannelResponse, err := app.api.CloseChannel(ctx, peerId, channelId, force)
 			if err != nil {
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 			}
@@ -634,8 +643,6 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: nil, Error: ""}
-	case "/api/csrf":
-		return WailsRequestRouterResponse{Body: "dummy", Error: ""}
 	case "/api/setup":
 		setupRequest := &api.SetupRequest{}
 		err := json.Unmarshal([]byte(body), setupRequest)
