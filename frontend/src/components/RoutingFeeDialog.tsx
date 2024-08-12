@@ -76,7 +76,8 @@ export function RoutingFeeDialog({ channel }: Props) {
         <AlertDialogDescription>
           <p className="mb-4">
             Adjust the fee you charge for each payment passing through your
-            channel.{" "}
+            channel. A high fee (e.g. 100,000 sats) can be set to prevent
+            unwanted routing.{" "}
             <span className="text-primary font-medium">Current fee:</span>{" "}
             {currentFee} sats
           </p>
