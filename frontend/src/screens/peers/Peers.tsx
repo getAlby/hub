@@ -2,7 +2,7 @@ import { MoreHorizontal, Trash2 } from "lucide-react";
 import React from "react";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader.tsx";
-import { DisconnectPeerDialog } from "src/components/DisconnectPeerDialog.tsx";
+import { DisconnectPeerDialogContent } from "src/components/DisconnectPeerDialogContent";
 import { AlertDialog } from "src/components/ui/alert-dialog.tsx";
 import { Badge } from "src/components/ui/badge.tsx";
 import { Button } from "src/components/ui/button.tsx";
@@ -166,7 +166,9 @@ export default function Peers() {
           }
         }}
       >
-        {peerToDisconnect && <DisconnectPeerDialog peer={peerToDisconnect} />}
+        {peerToDisconnect && (
+          <DisconnectPeerDialogContent peer={peerToDisconnect} />
+        )}
       </AlertDialog>
     </>
   );

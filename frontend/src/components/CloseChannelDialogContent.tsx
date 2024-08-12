@@ -24,7 +24,7 @@ type Props = {
   channel: Channel;
 };
 
-export function CloseChannelDialog({ alias, channel }: Props) {
+export function CloseChannelDialogContent({ alias, channel }: Props) {
   const [closeType, setCloseType] = React.useState("normal");
   const [step, setStep] = React.useState(channel.active ? 2 : 1);
   const [fundingTxId, setFundingTxId] = React.useState("");

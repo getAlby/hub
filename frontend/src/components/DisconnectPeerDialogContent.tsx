@@ -16,7 +16,7 @@ type Props = {
   peer: Peer;
 };
 
-export function DisconnectPeerDialog({ peer }: Props) {
+export function DisconnectPeerDialogContent({ peer }: Props) {
   const { mutate: reloadPeers } = usePeers();
 
   async function disconnectPeer() {

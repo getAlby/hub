@@ -4,7 +4,7 @@ import {
   MoreHorizontal,
   Trash2,
 } from "lucide-react";
-import { CloseChannelDialog } from "src/components/CloseChannelDialog";
+import { CloseChannelDialogContent } from "src/components/CloseChannelDialogContent";
 import ExternalLink from "src/components/ExternalLink";
 import {
   AlertDialog,
@@ -74,7 +74,7 @@ export function ChannelDropdownMenu({
           </AlertDialogTrigger>
         </DropdownMenuContent>
       </DropdownMenu>
-      <CloseChannelDialog alias={alias} channel={channel} />
+      <CloseChannelDialogContent alias={alias} channel={channel} />
     </AlertDialog>
   );
 }
