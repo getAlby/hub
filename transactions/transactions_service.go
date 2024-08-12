@@ -570,7 +570,6 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 				description := lnClientTransaction.Description
 				var metadataBytes []byte
 				var boostagramBytes []byte
-				app := db.App{}
 				if lnClientTransaction.Metadata != nil {
 					var err error
 					metadataBytes, err = json.Marshal(lnClientTransaction.Metadata)
@@ -586,25 +585,9 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 					if extractedDescription != "" {
 						description = extractedDescription
 					}
-
 					// find app by custom key/value records
-					for _, record := range customRecords {
-						if record.Type == CustomKeyTlvType {
-							customValue, err := strconv.ParseUint(record.Value, 16, 64)
-							if err != nil {
-								logger.Logger.WithError(err).Error("Failed to parse custom key TLV record")
-								continue
-							}
-							err = svc.db.Take(&app, &db.App{
-								ID: uint(customValue),
-							}).Error
-							if err != nil {
-								logger.Logger.WithError(err).Error("Failed to find app by id from custom key TLV record")
-								continue
-							}
-							appId = &app.ID
-						}
-					}
+					app := svc.getAppFromCustomRecords(customRecords)
+					appId = &app.ID
 				}
 				var expiresAt *time.Time
 				if lnClientTransaction.ExpiresAt != nil {
@@ -867,4 +850,25 @@ func (svc *transactionsService) getDescriptionFromCustomRecords(customRecords []
 	}
 
 	return description
+}
+
+func (svc *transactionsService) getAppFromCustomRecords(customRecords []lnclient.TLVRecord) *db.App {
+	app := db.App{}
+	for _, record := range customRecords {
+		if record.Type == CustomKeyTlvType {
+			customValue, err := strconv.ParseUint(record.Value, 16, 64)
+			if err != nil {
+				logger.Logger.WithError(err).Error("Failed to parse custom key TLV record")
+				continue
+			}
+			err = svc.db.Take(&app, &db.App{
+				ID: uint(customValue),
+			}).Error
+			if err != nil {
+				logger.Logger.WithError(err).Error("Failed to find app by id from custom key TLV record")
+				continue
+			}
+		}
+	}
+	return &app
 }
