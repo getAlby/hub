@@ -73,7 +73,8 @@ export default function Peers() {
     } catch (e) {
       toast({
         variant: "destructive",
-        title: "Failed to disconnect peer: " + e,
+        title: "Cannot disconnect peer",
+        description: "" + e,
       });
       console.error(e);
     }

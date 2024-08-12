@@ -29,12 +29,16 @@ export function DisconnectPeerDialog({ peer }: Props) {
           "Content-Type": "application/json",
         },
       });
-      toast({ title: "Successfully disconnected from peer " + peer.nodeId });
+      toast({
+        title: "Successfully disconnected from peer",
+        description: peer.nodeId,
+      });
       await reloadPeers();
     } catch (e) {
       toast({
         variant: "destructive",
-        title: "Failed to disconnect peer: " + e,
+        title: "Failed to disconnect peer",
+        description: "" + e,
       });
       console.error(e);
     }
