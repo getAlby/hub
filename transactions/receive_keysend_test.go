@@ -2,6 +2,7 @@ package transactions
 
 import (
 	"context"
+	"encoding/hex"
 	"strconv"
 	"testing"
 
@@ -30,7 +31,7 @@ func TestReceiveKeysendWithCustomKey(t *testing.T) {
 	tlv := []lnclient.TLVRecord{
 		{
 			Type:  696969,
-			Value: strconv.FormatUint(uint64(app.ID), 16),
+			Value: hex.EncodeToString([]byte(strconv.FormatUint(uint64(app.ID), 10))),
 		},
 	}
 	tx := lnclient.Transaction{
@@ -55,6 +56,7 @@ func TestReceiveKeysendWithCustomKey(t *testing.T) {
 	transaction, err := transactionsService.LookupTransaction(ctx, tx.PaymentHash, nil, svc.LNClient, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, app.ID, *transaction.AppId)
+	assert.Equal(t, uint(1), app.ID)
 }
 
 func TestReceiveKeysend(t *testing.T) {

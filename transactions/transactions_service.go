@@ -855,9 +855,14 @@ func (svc *transactionsService) getAppIdFromCustomRecords(customRecords []lnclie
 	app := db.App{}
 	for _, record := range customRecords {
 		if record.Type == CustomKeyTlvType {
-			customValue, err := strconv.ParseUint(record.Value, 16, 64)
+			decodedString, err := hex.DecodeString(record.Value)
 			if err != nil {
-				logger.Logger.WithError(err).Error("Failed to parse custom key TLV record")
+				logger.Logger.WithError(err).Error("Failed to parse custom key TLV record as hex")
+				continue
+			}
+			customValue, err := strconv.ParseUint(string(decodedString), 10, 64)
+			if err != nil {
+				logger.Logger.WithError(err).Error("Failed to parse custom key TLV record as number")
 				continue
 			}
 			err = svc.db.Take(&app, &db.App{
