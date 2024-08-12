@@ -5,7 +5,6 @@ import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { toast } from "src/components/ui/use-toast";
 import { useChannels } from "src/hooks/useChannels";
-import { useCSRF } from "src/hooks/useCSRF";
 import { Channel, UpdateChannelRequest } from "src/types";
 import { request } from "src/utils/request";
 import {
@@ -30,14 +29,9 @@ export function RoutingFeeDialog({ channel }: Props) {
     currentFee ? currentFee.toString() : ""
   );
   const { mutate: reloadChannels } = useChannels();
-  const { data: csrf } = useCSRF();
 
   async function updateFee() {
     try {
-      if (!csrf) {
-        throw new Error("csrf not loaded");
-      }
-
       const forwardingFeeBaseMsat = +forwardingFee * 1000;
 
       console.info(
@@ -49,7 +43,6 @@ export function RoutingFeeDialog({ channel }: Props) {
         {
           method: "PATCH",
           headers: {
-            "X-CSRF-Token": csrf,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({

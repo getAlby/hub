@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { Button } from "src/components/ui/button";
 import { Textarea } from "src/components/ui/textarea";
-import { useCSRF } from "src/hooks/useCSRF";
+
 import { request } from "src/utils/request";
 
 export default function DebugTools() {
-  const { data: csrf } = useCSRF();
   const [apiResponse, setApiResponse] = useState<string>("");
 
   async function apiRequest(
@@ -14,14 +13,9 @@ export default function DebugTools() {
     requestBody?: object
   ) {
     try {
-      if (!csrf) {
-        throw new Error("csrf not loaded");
-      }
-
       const requestOptions: RequestInit = {
         method: method,
         headers: {
-          "X-CSRF-Token": csrf,
           "Content-Type": "application/json",
         },
       };
@@ -42,7 +36,7 @@ export default function DebugTools() {
 
   return (
     <div>
-      <div className="grid gap-6 m-8 md:grid-cols-3 xl:grid-cols-4">
+      <div className="grid gap-6 m-8 md:grid-cols-2 xl:grid-cols-3">
         <Button
           onClick={() => {
             const invoice = window.prompt("enter invoice");

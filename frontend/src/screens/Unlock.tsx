@@ -5,8 +5,10 @@ import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { toast } from "src/components/ui/use-toast";
-import { useCSRF } from "src/hooks/useCSRF";
+
 import { useInfo } from "src/hooks/useInfo";
+import { saveAuthToken } from "src/lib/auth";
+import { AuthTokenResponse } from "src/types";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 
@@ -15,7 +17,7 @@ export default function Unlock() {
   const [loading, setLoading] = React.useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { data: csrf } = useCSRF();
+
   const { data: info } = useInfo();
   const { mutate: refetchInfo } = useInfo();
 
@@ -30,19 +32,22 @@ export default function Unlock() {
     e.preventDefault();
     try {
       setLoading(true);
-      if (!csrf) {
-        throw new Error("info not loaded");
+
+      const authTokenResponse = await request<AuthTokenResponse>(
+        "/api/unlock",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            unlockPassword,
+          }),
+        }
+      );
+      if (authTokenResponse) {
+        saveAuthToken(authTokenResponse.token);
       }
-      await request("/api/unlock", {
-        method: "POST",
-        headers: {
-          "X-CSRF-Token": csrf,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          unlockPassword,
-        }),
-      });
       await refetchInfo();
       navigate("/");
     } catch (error) {

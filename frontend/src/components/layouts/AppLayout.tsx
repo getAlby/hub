@@ -45,17 +45,17 @@ import {
 } from "src/components/ui/tooltip";
 import { useToast } from "src/components/ui/use-toast";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
-import { useCSRF } from "src/hooks/useCSRF";
+
 import { useInfo } from "src/hooks/useInfo";
 import { useRemoveSuccessfulChannelOrder } from "src/hooks/useRemoveSuccessfulChannelOrder";
+import { deleteAuthToken } from "src/lib/auth";
 import { cn } from "src/lib/utils";
 import { openLink } from "src/utils/openLink";
-import { request } from "src/utils/request";
 import ExternalLink from "../ExternalLink";
 
 export default function AppLayout() {
   const { data: albyMe } = useAlbyMe();
-  const { data: csrf } = useCSRF();
+
   const { data: info, mutate: refetchInfo } = useInfo();
   const { toast } = useToast();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
@@ -68,22 +68,11 @@ export default function AppLayout() {
   }, [location]);
 
   const logout = React.useCallback(async () => {
-    if (!csrf) {
-      throw new Error("csrf not loaded");
-    }
-
-    await request("/api/logout", {
-      method: "POST",
-      headers: {
-        "X-CSRF-Token": csrf,
-        "Content-Type": "application/json",
-      },
-    });
-
+    deleteAuthToken();
     await refetchInfo();
     navigate("/", { replace: true });
     toast({ title: "You are now logged out." });
-  }, [csrf, navigate, refetchInfo, toast]);
+  }, [navigate, refetchInfo, toast]);
 
   const isHttpMode = window.location.protocol.startsWith("http");
 
@@ -109,7 +98,7 @@ export default function AppLayout() {
         {isHttpMode && (
           <DropdownMenuItem
             onClick={logout}
-            className="w-full flex flex-row items-center gap-2"
+            className="w-full flex flex-row items-center gap-2 cursor-pointer"
           >
             <Lock className="w-4 h-4" />
             <p>Lock Alby Hub</p>
@@ -183,14 +172,7 @@ export default function AppLayout() {
         <MenuItem
           to="/"
           onClick={(e) => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const chatwoot = (window as any).$chatwoot;
-            if (chatwoot) {
-              chatwoot.toggle("open");
-            } else {
-              openLink("https://getalby.com/help");
-            }
-
+            openLink("https://getalby.com/#help");
             e.preventDefault();
           }}
         >
@@ -200,12 +182,6 @@ export default function AppLayout() {
       </nav>
     );
   }
-
-  const upToDate =
-    info.version &&
-    albyMe?.hub.latest_version &&
-    info.version.startsWith("v") &&
-    info.version.substring(1) >= albyMe?.hub.latest_version;
 
   return (
     <>
@@ -219,34 +195,7 @@ export default function AppLayout() {
                     <Link to="/">
                       <AlbyHubLogo className="text-foreground" />
                     </Link>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <ExternalLink
-                            to="https://getalby.com/hub_deployment/edit" // TODO: link to general update page
-                            className="font-semibold text-xl"
-                          >
-                            <span className="text-xs flex items-center text-muted-foreground">
-                              {info.version && <>{info.version}&nbsp;</>}
-                              {upToDate ? (
-                                <ShieldCheckIcon className="w-4 h-4" />
-                              ) : (
-                                <ShieldAlertIcon className="w-4 h-4" />
-                              )}
-                            </span>
-                          </ExternalLink>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          {upToDate ? (
-                            <p>Alby Hub is up to date!</p>
-                          ) : (
-                            <p>
-                              Alby Hub {albyMe?.hub.latest_version} available!
-                            </p>
-                          )}
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                    <AppVersion />
                   </div>
                   <MainMenuContent />
                 </nav>
@@ -294,10 +243,14 @@ export default function AppLayout() {
                   className="flex flex-col justify-between max-h-screen"
                 >
                   <nav className="grid gap-2 text-lg font-medium">
-                    <div className="p-3 ">
-                      <Link to="/" className="font-semibold text-xl">
-                        <span className="">Alby Hub</span>
+                    <div className="p-3 pr-0 flex justify-between items-center">
+                      <Link to="/">
+                        <AlbyHubLogo className="text-foreground" />
                       </Link>
+                      {/* align shield with x icon */}
+                      <div className="-mr-2">
+                        <AppVersion />
+                      </div>
                     </div>
                     <MainMenuContent />
                   </nav>
@@ -326,6 +279,49 @@ export default function AppLayout() {
         </div>
       </div>
     </>
+  );
+}
+
+function AppVersion() {
+  const { data: albyMe } = useAlbyMe();
+  const { data: info } = useInfo();
+  if (!info || !albyMe) {
+    return null;
+  }
+
+  const upToDate =
+    info.version &&
+    albyMe.hub.latest_version &&
+    info.version.startsWith("v") &&
+    info.version.substring(1) >= albyMe?.hub.latest_version;
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger>
+          <ExternalLink
+            to={`https://getalby.com/update/hub?version=${info.version}`}
+            className="font-semibold text-xl"
+          >
+            <span className="text-xs flex items-center text-muted-foreground">
+              {info.version && <>{info.version}&nbsp;</>}
+              {upToDate ? (
+                <ShieldCheckIcon className="w-4 h-4" />
+              ) : (
+                <ShieldAlertIcon className="w-4 h-4" />
+              )}
+            </span>
+          </ExternalLink>
+        </TooltipTrigger>
+        <TooltipContent>
+          {upToDate ? (
+            <p>Alby Hub is up to date!</p>
+          ) : (
+            <p>Alby Hub {albyMe?.hub.latest_version} available!</p>
+          )}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
 

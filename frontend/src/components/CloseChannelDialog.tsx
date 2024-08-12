@@ -7,7 +7,6 @@ import { Label } from "src/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "src/components/ui/radio-group";
 import { toast } from "src/components/ui/use-toast";
 import { useChannels } from "src/hooks/useChannels";
-import { useCSRF } from "src/hooks/useCSRF";
 import { copyToClipboard } from "src/lib/clipboard";
 import { Channel, CloseChannelResponse } from "src/types";
 import { request } from "src/utils/request";
@@ -30,7 +29,6 @@ export function CloseChannelDialog({ alias, channel }: Props) {
   const [step, setStep] = React.useState(channel.active ? 2 : 1);
   const [fundingTxId, setFundingTxId] = React.useState("");
   const { data: channels, mutate: reloadChannels } = useChannels();
-  const { data: csrf } = useCSRF();
 
   const onContinue = () => {
     setStep(step + 1);
@@ -43,10 +41,6 @@ export function CloseChannelDialog({ alias, channel }: Props) {
 
   async function closeChannel() {
     try {
-      if (!csrf) {
-        throw new Error("csrf not loaded");
-      }
-
       console.info(`🎬 Closing channel with ${channel.remotePubkey}`);
 
       const closeChannelResponse = await request<CloseChannelResponse>(
@@ -56,7 +50,6 @@ export function CloseChannelDialog({ alias, channel }: Props) {
         {
           method: "DELETE",
           headers: {
-            "X-CSRF-Token": csrf,
             "Content-Type": "application/json",
           },
         }

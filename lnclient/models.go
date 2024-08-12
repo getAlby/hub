@@ -12,6 +12,8 @@ type TLVRecord struct {
 	Value string `json:"value"`
 }
 
+type Metadata = map[string]interface{}
+
 type NodeInfo struct {
 	Alias       string
 	Color       string
@@ -34,7 +36,7 @@ type Transaction struct {
 	CreatedAt       int64
 	ExpiresAt       *int64
 	SettledAt       *int64
-	Metadata        interface{}
+	Metadata        Metadata
 }
 
 type NodeConnectionInfo struct {

@@ -1,6 +1,10 @@
 package db
 
-import "time"
+import (
+	"time"
+
+	"gorm.io/datatypes"
+)
 
 type UserConfig struct {
 	ID        uint
@@ -75,8 +79,9 @@ type Transaction struct {
 	ExpiresAt       *time.Time
 	UpdatedAt       time.Time
 	SettledAt       *time.Time
-	Metadata        string
+	Metadata        datatypes.JSON
 	SelfPayment     bool
+	Boostagram      datatypes.JSON
 }
 
 type DBService interface {

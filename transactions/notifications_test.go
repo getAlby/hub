@@ -2,11 +2,13 @@ package transactions
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/events"
+	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/tests"
 	"github.com/stretchr/testify/assert"
 )
@@ -74,6 +76,72 @@ func TestNotifications_ReceivedUnknownPayment(t *testing.T) {
 	assert.Equal(t, int64(1), result.RowsAffected)
 }
 
+func TestNotifications_ReceivedKeysend(t *testing.T) {
+	ctx := context.TODO()
+
+	defer tests.RemoveTestService()
+	svc, err := tests.CreateTestService()
+	assert.NoError(t, err)
+
+	transactionsService := NewTransactionsService(svc.DB)
+
+	metadata := map[string]interface{}{}
+
+	metadata["tlv_records"] = []lnclient.TLVRecord{
+		{
+			Type:  7629169,
+			Value: "7b22616374696f6e223a22626f6f7374222c2276616c75655f6d736174223a313030302c2276616c75655f6d7361745f746f74616c223a313030302c226170705f6e616d65223a22e29aa1205765624c4e2044656d6f222c226170705f76657273696f6e223a22312e30222c22666565644944223a2268747470733a2f2f66656564732e706f6463617374696e6465782e6f72672f706332302e786d6c222c22706f6463617374223a22506f6463617374696e6720322e30222c22657069736f6465223a22457069736f6465203130343a2041204e65772044756d70222c227473223a32312c226e616d65223a22e29aa1205765624c4e2044656d6f222c2273656e6465725f6e616d65223a225361746f736869204e616b616d6f746f222c226d657373616765223a22476f20706f6463617374696e6721227d",
+		},
+	}
+
+	transaction := &lnclient.Transaction{
+		Type:            "incoming",
+		Invoice:         tests.MockInvoice,
+		Description:     "",
+		DescriptionHash: "",
+		Preimage:        tests.MockLNClientTransaction.Preimage,
+		PaymentHash:     tests.MockLNClientTransaction.PaymentHash,
+		Amount:          2000,
+		FeesPaid:        75,
+		SettledAt:       &tests.MockTimeUnix,
+		Metadata:        metadata,
+	}
+
+	transactionsService.ConsumeEvent(ctx, &events.Event{
+		Event:      "nwc_payment_received",
+		Properties: transaction,
+	}, map[string]interface{}{})
+
+	transactionType := constants.TRANSACTION_TYPE_INCOMING
+	incomingTransaction, err := transactionsService.LookupTransaction(ctx, tests.MockLNClientTransaction.PaymentHash, &transactionType, svc.LNClient, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, uint64(2000), incomingTransaction.AmountMsat)
+	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, incomingTransaction.State)
+	assert.Equal(t, tests.MockLNClientTransaction.Preimage, *incomingTransaction.Preimage)
+	assert.Zero(t, incomingTransaction.FeeReserveMsat)
+
+	var boostagram Boostagram
+	err = json.Unmarshal(incomingTransaction.Boostagram, &boostagram)
+	assert.NoError(t, err)
+
+	assert.Equal(t, "⚡ WebLN Demo", boostagram.AppName)
+	assert.Equal(t, "⚡ WebLN Demo", boostagram.Name)
+	assert.Equal(t, "Podcasting 2.0", boostagram.Podcast)
+	assert.Equal(t, "Episode 104: A New Dump", boostagram.Episode)
+	assert.Equal(t, "https://feeds.podcastindex.org/pc20.xml", boostagram.FeedId)
+	assert.Equal(t, int64(21), boostagram.Timestamp)
+	assert.Equal(t, "Go podcasting!", boostagram.Message)
+	assert.Equal(t, "Satoshi Nakamoto", boostagram.SenderName)
+	assert.Equal(t, "boost", boostagram.Action)
+	assert.Equal(t, int64(1000), boostagram.ValueMsatTotal)
+
+	assert.Equal(t, "Go podcasting!", incomingTransaction.Description)
+
+	transactions := []db.Transaction{}
+	result := svc.DB.Find(&transactions)
+	assert.Equal(t, int64(1), result.RowsAffected)
+}
+
 func TestNotifications_SentKnownPayment(t *testing.T) {
 	ctx := context.TODO()
 
@@ -130,15 +198,8 @@ func TestNotifications_SentUnknownPayment(t *testing.T) {
 
 	transactionType := constants.TRANSACTION_TYPE_OUTGOING
 	outgoingTransaction, err := transactionsService.LookupTransaction(ctx, tests.MockLNClientTransaction.PaymentHash, &transactionType, svc.LNClient, nil)
-	assert.NoError(t, err)
-	assert.Equal(t, uint64(tests.MockLNClientTransaction.Amount), outgoingTransaction.AmountMsat)
-	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, outgoingTransaction.State)
-	assert.Equal(t, tests.MockLNClientTransaction.Preimage, *outgoingTransaction.Preimage)
-	assert.Zero(t, outgoingTransaction.FeeReserveMsat)
-
-	transactions = []db.Transaction{}
-	result = svc.DB.Find(&transactions)
-	assert.Equal(t, int64(1), result.RowsAffected)
+	assert.Nil(t, outgoingTransaction)
+	assert.ErrorIs(t, err, NewNotFoundError())
 }
 
 func TestNotifications_FailedKnownPayment(t *testing.T) {
