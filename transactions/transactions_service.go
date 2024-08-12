@@ -450,7 +450,7 @@ func (svc *transactionsService) ListTransactions(ctx context.Context, from, unti
 	// TODO: add other filtering and pagination
 	tx := svc.db
 
-	tx = tx.Order("created_at desc")
+	tx = tx.Order("settled_at desc, created_at desc")
 
 	if !unpaid {
 		tx = tx.Where("state == ?", constants.TRANSACTION_STATE_SETTLED)
