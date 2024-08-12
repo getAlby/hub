@@ -30,9 +30,9 @@ export function ChannelDropdownMenu({
   alias,
   channel,
 }: ChannelDropdownMenuProps) {
-  const [dialog, setDialog] = React.useState<"close" | "routingFee">();
+  const [dialog, setDialog] = React.useState<"closeChannel" | "routingFee">();
 
-  const openChannelCloseDialog = () => setDialog("close");
+  const openChannelCloseDialog = () => setDialog("closeChannel");
   const openRoutingFeeDialog = () => setDialog("routingFee");
 
   return (
@@ -90,7 +90,7 @@ export function ChannelDropdownMenu({
           </AlertDialogTrigger>
         </DropdownMenuContent>
       </DropdownMenu>
-      {dialog === "close" && (
+      {dialog === "closeChannel" && (
         <CloseChannelDialogContent alias={alias} channel={channel} />
       )}
       {dialog === "routingFee" && <RoutingFeeDialogContent channel={channel} />}
