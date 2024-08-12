@@ -91,7 +91,7 @@ function TransactionItem({ tx }: Props) {
                 {dayjs(tx.settledAt).fromNow()}
               </p>
             </div>
-            <p className="text-sm md:text-base text-muted-foreground break-all">
+            <p className="text-sm md:text-base text-muted-foreground break-all flex">
               {tx.description}
             </p>
           </div>
@@ -108,7 +108,7 @@ function TransactionItem({ tx }: Props) {
                   Math.floor(tx.amount / 1000)
                 )}{" "}
               </p>
-              <p className="text-muted-foreground">
+              <p className="text-foreground">
                 {Math.floor(tx.amount / 1000) == 1 ? "sat" : "sats"}
               </p>
 
@@ -124,7 +124,7 @@ function TransactionItem({ tx }: Props) {
       <DialogContent className="slashed-zero">
         <DialogHeader>
           <DialogTitle>{`${type == "outgoing" ? "Sent" : "Received"} Bitcoin`}</DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-start text-foreground">
             <div className="flex items-center mt-6">
               <div
                 className={cn(
