@@ -20,6 +20,8 @@ func TestReceiveKeysendWithCustomKey(t *testing.T) {
 
 	transactionsService := NewTransactionsService(svc.DB)
 	app, _, err := tests.CreateApp(svc)
+	assert.NoError(t, err)
+
 	// just to have another app in this test
 	_, _, err = tests.CreateApp(svc)
 
@@ -32,13 +34,13 @@ func TestReceiveKeysendWithCustomKey(t *testing.T) {
 		},
 	}
 	tx := lnclient.Transaction{
-		Type:            "incoming",
-		Description:     "mock invoice 1",
-		Preimage:        "9f59b18f80a77c2930deb8be5ff1143eacdd1891c63c23d61bc9f99c64e57325",
-		PaymentHash:     "ae4277b7be3ca1420cafd24c143866190f52b996856b0e4164763f936e61ea1b",
-		Amount:          1000,
-		FeesPaid:        50,
-		SettledAt:       &tests.MockTimeUnix,
+		Type:        "incoming",
+		Description: "mock invoice 1",
+		Preimage:    "9f59b18f80a77c2930deb8be5ff1143eacdd1891c63c23d61bc9f99c64e57325",
+		PaymentHash: "ae4277b7be3ca1420cafd24c143866190f52b996856b0e4164763f936e61ea1b",
+		Amount:      1000,
+		FeesPaid:    50,
+		SettledAt:   &tests.MockTimeUnix,
 		Metadata: map[string]interface{}{
 			"tlv_records": tlv,
 		},
@@ -46,7 +48,7 @@ func TestReceiveKeysendWithCustomKey(t *testing.T) {
 
 	event := events.Event{
 		Event:      "nwc_payment_received",
-		Properties: tx,
+		Properties: &tx,
 	}
 	transactionsService.ConsumeEvent(ctx, &event, map[string]interface{}{})
 
@@ -75,5 +77,5 @@ func TestReceiveKeysend(t *testing.T) {
 
 	transaction, err := transactionsService.LookupTransaction(ctx, tx.PaymentHash, nil, svc.LNClient, nil)
 	assert.NoError(t, err)
-	assert.Nil(t, *transaction.AppId)
+	assert.Nil(t, transaction.AppId)
 }

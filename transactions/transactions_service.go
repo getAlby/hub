@@ -10,8 +10,8 @@ import (
 	"fmt"
 	"math"
 	"slices"
-	"strings"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/getAlby/hub/constants"
@@ -72,7 +72,7 @@ func NewNotFoundError() error {
 }
 
 func (err *notFoundError) Error() string {
-	return "The transaction requested was not Found"
+	return "The transaction requested was not found"
 }
 
 type insufficientBalanceError struct {
@@ -398,7 +398,7 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 func (svc *transactionsService) LookupTransaction(ctx context.Context, paymentHash string, transactionType *string, lnClient lnclient.LNClient, appId *uint) (*Transaction, error) {
 	transaction := db.Transaction{}
 
-	tx := svc.db.Preload("App")
+	tx := svc.db
 
 	if appId != nil {
 		var app db.App
@@ -566,7 +566,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 			})
 
 			if result.RowsAffected == 0 {
-				// TODO: support customkey/customvalue for boostagrams received to isolated apps
+				var appId *uint
 				description := lnClientTransaction.Description
 				var metadataBytes []byte
 				var boostagramBytes []byte
@@ -591,11 +591,18 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 					for _, record := range customRecords {
 						if record.Type == CustomKeyTlvType {
 							customValue, err := strconv.ParseUint(record.Value, 16, 64)
-							if err == nil {
-								svc.db.Limit(1).First(&app, &db.App{
-									ID: uint(customValue),
-								})
+							if err != nil {
+								logger.Logger.WithError(err).Error("Failed to parse custom key TLV record")
+								continue
 							}
+							err = svc.db.Take(&app, &db.App{
+								ID: uint(customValue),
+							}).Error
+							if err != nil {
+								logger.Logger.WithError(err).Error("Failed to find app by id from custom key TLV record")
+								continue
+							}
+							appId = &app.ID
 						}
 					}
 				}
@@ -614,10 +621,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 					ExpiresAt:       expiresAt,
 					Metadata:        datatypes.JSON(metadataBytes),
 					Boostagram:      datatypes.JSON(boostagramBytes),
-				}
-				// save app from custom key/value records
-				if dbTransaction.App == nil && app.ID != 0 {
-					dbTransaction.App = &app
+					AppId:           appId,
 				}
 				err := tx.Create(&dbTransaction).Error
 				if err != nil {
