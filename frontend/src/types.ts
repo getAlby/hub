@@ -319,6 +319,7 @@ export type AlbyMe = {
   shared_node: boolean;
   hub: {
     latest_version: string;
+    name?: string;
   };
 };
 

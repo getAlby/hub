@@ -48,6 +48,7 @@ type AutoChannelResponse struct {
 
 type AlbyMeHub struct {
 	LatestVersion string `json:"latest_version"`
+	Name          string `json:"name"`
 }
 type AlbyMe struct {
 	Identifier       string    `json:"identifier"`
