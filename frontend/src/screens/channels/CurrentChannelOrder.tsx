@@ -482,7 +482,10 @@ function PayBitcoinChannelOrderWithSpendableFunds({
       });
     } catch (error) {
       console.error(error);
-      alert("Something went wrong: " + error);
+      toast({
+        variant: "destructive",
+        title: "Something went wrong: " + error,
+      });
     }
   }, [
     connectPeer,
@@ -605,13 +608,24 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
             }
             setWrappedInvoiceResponse(response);
           } catch (error) {
-            alert("Failed to connect to request wrapped invoice: " + error);
+            toast({
+              variant: "destructive",
+              title: "Failed to connect to request wrapped invoice",
+              description: "" + error,
+            });
           }
         })();
       }
       return true;
     });
-  }, [channels, order.amount, order.isPublic, order.lspType, order.lspUrl]);
+  }, [
+    channels,
+    order.amount,
+    order.isPublic,
+    order.lspType,
+    order.lspUrl,
+    toast,
+  ]);
 
   const canPayInternally =
     channels &&
