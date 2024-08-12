@@ -5,9 +5,9 @@ import {
   Trash2,
 } from "lucide-react";
 import React from "react";
-import { CloseChannelDialog } from "src/components/CloseChannelDialog";
+import { CloseChannelDialogContent } from "src/components/CloseChannelDialogContent";
 import ExternalLink from "src/components/ExternalLink";
-import { RoutingFeeDialog } from "src/components/RoutingFeeDialog";
+import { RoutingFeeDialogContent } from "src/components/RoutingFeeDialogContent";
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -30,15 +30,17 @@ export function ChannelDropdownMenu({
   alias,
   channel,
 }: ChannelDropdownMenuProps) {
-  const [dialog, setDialog] = React.useState<"close" | "routingFee" | null>(
-    null
-  );
+  const [dialog, setDialog] = React.useState<"close" | "routingFee">();
 
   const openChannelCloseDialog = () => setDialog("close");
   const openRoutingFeeDialog = () => setDialog("routingFee");
 
   return (
-    <AlertDialog>
+    <AlertDialog
+      onOpenChange={() => {
+        setDialog(undefined);
+      }}
+    >
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button size="icon" variant="ghost">
@@ -87,9 +89,9 @@ export function ChannelDropdownMenu({
         </DropdownMenuContent>
       </DropdownMenu>
       {dialog === "close" && (
-        <CloseChannelDialog alias={alias} channel={channel} />
+        <CloseChannelDialogContent alias={alias} channel={channel} />
       )}
-      {dialog === "routingFee" && <RoutingFeeDialog channel={channel} />}
+      {dialog === "routingFee" && <RoutingFeeDialogContent channel={channel} />}
     </AlertDialog>
   );
 }

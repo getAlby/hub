@@ -6,11 +6,13 @@ import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
+import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { copyToClipboard } from "src/lib/clipboard";
 import { AuthTokenResponse } from "src/types";
 import { request } from "src/utils/request";
 
 export default function DeveloperSettings() {
+  const { data: albyMe } = useAlbyMe();
   const [token, setToken] = React.useState<string>();
   const [expiryDays, setExpiryDays] = React.useState<string>("365");
   const [unlockPassword, setUnlockPassword] = React.useState<string>();
@@ -128,6 +130,29 @@ export default function DeveloperSettings() {
                 >
                   <Copy className="w-4 h-4" />
                 </Button>
+              </div>
+              <div className="my-4 border rounded-lg p-4">
+                <p className="mb-2">
+                  To make requests from your application to{" "}
+                  <span className="font-mono font-semibold">
+                    {window.location.origin}/api
+                  </span>{" "}
+                  add the following header{albyMe?.hub.name && "s"}:
+                </p>
+                <ol>
+                  <li>
+                    <span className="font-mono font-semibold">
+                      Authorization: Bearer YOUR_TOKEN
+                    </span>{" "}
+                  </li>
+                  {albyMe?.hub.name && (
+                    <li>
+                      <span className="font-mono font-semibold">
+                        AlbyHub-Name: {albyMe.hub.name}
+                      </span>{" "}
+                    </li>
+                  )}
+                </ol>
               </div>
               <p className="text-xs">
                 This token grants full access to your hub. Please keep it

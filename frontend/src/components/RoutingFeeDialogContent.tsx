@@ -21,7 +21,7 @@ type Props = {
   channel: Channel;
 };
 
-export function RoutingFeeDialog({ channel }: Props) {
+export function RoutingFeeDialogContent({ channel }: Props) {
   const currentFee: number = React.useMemo(() => {
     return Math.floor(channel.forwardingFeeBaseMsat / 1000);
   }, [channel.forwardingFeeBaseMsat]);
