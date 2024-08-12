@@ -38,7 +38,9 @@ export function ChannelDropdownMenu({
   return (
     <AlertDialog
       onOpenChange={() => {
-        setDialog(undefined);
+        if (!open) {
+          setDialog(undefined);
+        }
       }}
     >
       <DropdownMenu>
