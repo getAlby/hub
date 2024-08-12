@@ -138,7 +138,7 @@ The following configuration options can be set as environment variables or in a 
 - `NOSTR_PRIVKEY`: the private key of this service. Should be a securely randomly generated 32 byte hex string.
 - `CLIENT_NOSTR_PUBKEY`: if set, this service will only listen to events authored by this public key. You can set this to your own nostr public key.
 - `RELAY`: default: "wss://relay.getalby.com/v1"
-- `COOKIE_SECRET`: a randomly generated secret string. (only needed in http mode)
+- `JWT_SECRET`: a randomly generated secret string. (only needed in http mode)
 - `DATABASE_URI`: a sqlite filename. Default: $XDG_DATA_HOME/albyhub/nwc.db
 - `PORT`: the port on which the app should listen on (default: 8080)
 - `WORK_DIR`: directory to store NWC data files. Default: $XDG_DATA_HOME/albyhub

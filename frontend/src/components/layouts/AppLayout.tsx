@@ -45,17 +45,17 @@ import {
 } from "src/components/ui/tooltip";
 import { useToast } from "src/components/ui/use-toast";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
-import { useCSRF } from "src/hooks/useCSRF";
+
 import { useInfo } from "src/hooks/useInfo";
 import { useRemoveSuccessfulChannelOrder } from "src/hooks/useRemoveSuccessfulChannelOrder";
+import { deleteAuthToken } from "src/lib/auth";
 import { cn } from "src/lib/utils";
 import { openLink } from "src/utils/openLink";
-import { request } from "src/utils/request";
 import ExternalLink from "../ExternalLink";
 
 export default function AppLayout() {
   const { data: albyMe } = useAlbyMe();
-  const { data: csrf } = useCSRF();
+
   const { data: info, mutate: refetchInfo } = useInfo();
   const { toast } = useToast();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
@@ -68,22 +68,11 @@ export default function AppLayout() {
   }, [location]);
 
   const logout = React.useCallback(async () => {
-    if (!csrf) {
-      throw new Error("csrf not loaded");
-    }
-
-    await request("/api/logout", {
-      method: "POST",
-      headers: {
-        "X-CSRF-Token": csrf,
-        "Content-Type": "application/json",
-      },
-    });
-
+    deleteAuthToken();
     await refetchInfo();
     navigate("/", { replace: true });
     toast({ title: "You are now logged out." });
-  }, [csrf, navigate, refetchInfo, toast]);
+  }, [navigate, refetchInfo, toast]);
 
   const isHttpMode = window.location.protocol.startsWith("http");
 
@@ -109,7 +98,7 @@ export default function AppLayout() {
         {isHttpMode && (
           <DropdownMenuItem
             onClick={logout}
-            className="w-full flex flex-row items-center gap-2"
+            className="w-full flex flex-row items-center gap-2 cursor-pointer"
           >
             <Lock className="w-4 h-4" />
             <p>Lock Alby Hub</p>
@@ -183,14 +172,7 @@ export default function AppLayout() {
         <MenuItem
           to="/"
           onClick={(e) => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const chatwoot = (window as any).$chatwoot;
-            if (chatwoot) {
-              chatwoot.toggle("open");
-            } else {
-              openLink("https://getalby.com/help");
-            }
-
+            openLink("https://getalby.com/#help");
             e.preventDefault();
           }}
         >
@@ -223,7 +205,7 @@ export default function AppLayout() {
                       <Tooltip>
                         <TooltipTrigger>
                           <ExternalLink
-                            to="https://getalby.com/hub_deployment/edit" // TODO: link to general update page
+                            to={`https://getalby.com/update/hub?version=${info.version}`}
                             className="font-semibold text-xl"
                           >
                             <span className="text-xs flex items-center text-muted-foreground">

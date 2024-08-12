@@ -45,7 +45,7 @@ import {
 } from "src/components/ui/tooltip";
 import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
-import { useCSRF } from "src/hooks/useCSRF";
+
 import { useChannels } from "src/hooks/useChannels";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
 import { useOnchainAddress } from "src/hooks/useOnchainAddress";
@@ -379,7 +379,7 @@ function PayBitcoinChannelOrderWithSpendableFunds({
   const { data: peers } = usePeers();
   const [nodeDetails, setNodeDetails] = React.useState<Node | undefined>();
   const [hasLoadedNodeDetails, setLoadedNodeDetails] = React.useState(false);
-  const { data: csrf } = useCSRF();
+
   const { toast } = useToast();
 
   const { pubkey, host } = order;
@@ -405,9 +405,6 @@ function PayBitcoinChannelOrderWithSpendableFunds({
   }, [fetchNodeDetails]);
 
   const connectPeer = React.useCallback(async () => {
-    if (!csrf) {
-      throw new Error("csrf not loaded");
-    }
     if (!nodeDetails && !host) {
       throw new Error("node details not found");
     }
@@ -429,20 +426,16 @@ function PayBitcoinChannelOrderWithSpendableFunds({
     await request("/api/peers", {
       method: "POST",
       headers: {
-        "X-CSRF-Token": csrf,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(connectPeerRequest),
     });
-  }, [csrf, nodeDetails, pubkey, host]);
+  }, [nodeDetails, pubkey, host]);
 
   const openChannel = React.useCallback(async () => {
     try {
       if (order.paymentMethod !== "onchain") {
         throw new Error("incorrect payment method");
-      }
-      if (!csrf) {
-        throw new Error("csrf not loaded");
       }
 
       if (!peers) {
@@ -467,7 +460,6 @@ function PayBitcoinChannelOrderWithSpendableFunds({
         {
           method: "POST",
           headers: {
-            "X-CSRF-Token": csrf,
             "Content-Type": "application/json",
           },
           body: JSON.stringify(openChannelRequest),
@@ -494,7 +486,6 @@ function PayBitcoinChannelOrderWithSpendableFunds({
     }
   }, [
     connectPeer,
-    csrf,
     order.amount,
     order.isPublic,
     order.paymentMethod,
@@ -504,13 +495,13 @@ function PayBitcoinChannelOrderWithSpendableFunds({
   ]);
 
   React.useEffect(() => {
-    if (!peers || !csrf || !hasLoadedNodeDetails || hasStartedOpenedChannel) {
+    if (!peers || !hasLoadedNodeDetails || hasStartedOpenedChannel) {
       return;
     }
 
     hasStartedOpenedChannel = true;
     openChannel();
-  }, [csrf, hasLoadedNodeDetails, openChannel, order.amount, peers, pubkey]);
+  }, [hasLoadedNodeDetails, openChannel, order.amount, peers, pubkey]);
 
   return (
     <div className="flex flex-col gap-5">
@@ -571,7 +562,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
   if (order.paymentMethod !== "lightning") {
     throw new Error("incorrect payment method");
   }
-  const { data: csrf } = useCSRF();
+
   const { toast } = useToast();
   const { data: channels } = useChannels(true);
   const [, setRequestedInvoice] = React.useState(false);
@@ -583,7 +574,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
   useWaitForNewChannel();
 
   React.useEffect(() => {
-    if (!channels || !csrf) {
+    if (!channels) {
       return;
     }
     setRequestedInvoice((current) => {
@@ -604,7 +595,6 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
               {
                 method: "POST",
                 headers: {
-                  "X-CSRF-Token": csrf,
                   "Content-Type": "application/json",
                 },
                 body: JSON.stringify(newLSPOrderRequest),
@@ -621,14 +611,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
       }
       return true;
     });
-  }, [
-    channels,
-    csrf,
-    order.amount,
-    order.isPublic,
-    order.lspType,
-    order.lspUrl,
-  ]);
+  }, [channels, order.amount, order.isPublic, order.lspType, order.lspUrl]);
 
   const canPayInternally =
     channels &&
@@ -718,9 +701,6 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                     className="mt-4"
                     onClick={async () => {
                       try {
-                        if (!csrf) {
-                          throw new Error("csrf not loaded");
-                        }
                         setPaying(true);
 
                         await request<PayInvoiceResponse>(
@@ -728,7 +708,6 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                           {
                             method: "POST",
                             headers: {
-                              "X-CSRF-Token": csrf,
                               "Content-Type": "application/json",
                             },
                           }

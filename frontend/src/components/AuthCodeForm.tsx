@@ -7,7 +7,7 @@ import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { toast } from "src/components/ui/use-toast";
-import { useCSRF } from "src/hooks/useCSRF";
+
 import { useInfo } from "src/hooks/useInfo";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { openLink } from "src/utils/openLink";
@@ -20,7 +20,7 @@ type AuthCodeFormProps = {
 function AuthCodeForm({ url }: AuthCodeFormProps) {
   const [authCode, setAuthCode] = useState("");
   const navigate = useNavigate();
-  const { data: csrf } = useCSRF();
+
   const { mutate: refetchInfo } = useInfo();
 
   const [hasRequestedCode, setRequestedCode] = React.useState(false);
@@ -42,12 +42,8 @@ function AuthCodeForm({ url }: AuthCodeFormProps) {
     e.preventDefault();
     setLoading(true);
     try {
-      if (!csrf) {
-        throw new Error("info not loaded");
-      }
       await request(`/api/alby/callback?code=${authCode}`, {
         headers: {
-          "X-CSRF-Token": csrf,
           "Content-Type": "application/json",
         },
       });

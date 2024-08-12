@@ -21,3 +21,75 @@
 input[type="text"]::-webkit-calendar-picker-indicator {
   display: none !important;
 }
+
+/* used by AppAvatar as fallback for apps without known images  */
+.avatar-gradient-0 {
+  background: linear-gradient(
+    135deg,
+    #ff7e5f,
+    #feb47b
+  ); /* Warm colors: orange */
+}
+.avatar-gradient-1 {
+  background: linear-gradient(
+    135deg,
+    #43cea2,
+    #185a9d
+  ); /* Cool colors: green to blue */
+}
+.avatar-gradient-2 {
+  background: linear-gradient(
+    135deg,
+    #ff9966,
+    #ff5e62
+  ); /* Warm colors: orange to red */
+}
+.avatar-gradient-3 {
+  background: linear-gradient(
+    135deg,
+    #36d1dc,
+    #5b86e5
+  ); /* Cool colors: cyan to blue */
+}
+.avatar-gradient-4 {
+  background: linear-gradient(
+    135deg,
+    #f7971e,
+    #ffd200
+  ); /* Warm colors: yellow to orange */
+}
+.avatar-gradient-5 {
+  background: linear-gradient(
+    135deg,
+    #6a11cb,
+    #2575fc
+  ); /* Cool colors: purple to blue */
+}
+.avatar-gradient-6 {
+  background: linear-gradient(
+    135deg,
+    #ff4b1f,
+    #ff9068
+  ); /* Warm colors: red to peach */
+}
+.avatar-gradient-7 {
+  background: linear-gradient(
+    135deg,
+    #8e2de2,
+    #4a00e0
+  ); /* Cool colors: violet to dark blue */
+}
+.avatar-gradient-8 {
+  background: linear-gradient(
+    135deg,
+    #00c6ff,
+    #0072ff
+  ); /* Cool colors: light blue to blue */
+}
+.avatar-gradient-9 {
+  background: linear-gradient(
+    135deg,
+    #f953c6,
+    #b91d73
+  ); /* Bright colors: pink to purple */
+}
