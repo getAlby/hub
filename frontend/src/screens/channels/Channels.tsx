@@ -19,6 +19,17 @@ import EmptyState from "src/components/EmptyState.tsx";
 import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading.tsx";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "src/components/ui/alert-dialog";
+import {
   Alert,
   AlertDescription,
   AlertTitle,
@@ -40,8 +51,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "src/components/ui/dropdown-menu.tsx";
+import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button.tsx";
 import { CircleProgress } from "src/components/ui/progress.tsx";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "src/components/ui/select";
 import {
   Tooltip,
   TooltipContent,
@@ -66,6 +85,25 @@ import { cn } from "src/lib/utils.ts";
 import { Channel, Node, UpdateChannelRequest } from "src/types";
 import { request } from "src/utils/request";
 
+const RESET_KEY_OPTIONS = [
+  {
+    value: "ALL",
+    label: "All",
+  },
+  {
+    value: "LatestRgsSyncTimestamp",
+    label: "LatestRgsSyncTimestamp",
+  },
+  {
+    value: "Scorer",
+    label: "Scorer",
+  },
+  {
+    value: "NetworkGraph",
+    label: "NetworkGraph",
+  },
+];
+
 export default function Channels() {
   useSyncWallet();
   const { data: channels, mutate: reloadChannels } = useChannels();
@@ -79,6 +117,7 @@ export default function Channels() {
   const { toast } = useToast();
   const [drainingAlbySharedFunds, setDrainingAlbySharedFunds] =
     React.useState(false);
+  const [resetKey, setResetKey] = React.useState<string>();
   const isDesktop = useIsDesktop();
 
   const nodeHealth = channels ? getNodeHealth(channels) : 0;
@@ -150,29 +189,20 @@ export default function Channels() {
 
   async function resetRouter() {
     try {
-      const key = prompt(
-        "Enter key to reset (choose one of ALL, LatestRgsSyncTimestamp, Scorer, NetworkGraph). After resetting, you'll need to re-enter your unlock password.",
-        "ALL"
-      );
-      if (!key) {
-        console.error("Cancelled reset");
-        return;
-      }
-
       await request("/api/reset-router", {
         method: "POST",
-        body: JSON.stringify({ key }),
+        body: JSON.stringify({ key: resetKey }),
         headers: {
           "Content-Type": "application/json",
         },
       });
       await reloadInfo();
-      toast({ description: "🎉 Router reset" });
+      toast({ title: "🎉 Router reset" });
     } catch (error) {
       console.error(error);
       toast({
         variant: "destructive",
-        description: "Something went wrong: " + error,
+        title: "Something went wrong: " + error,
       });
     }
   }
@@ -187,78 +217,123 @@ export default function Channels() {
         description="Manage your lightning node"
         contentRight={
           <div className="flex gap-3 items-center justify-center">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="default">
-                  Advanced
-                  <ChevronDown />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56">
-                <DropdownMenuGroup>
-                  <DropdownMenuItem>
-                    <div
-                      className="flex flex-row gap-4 items-center w-full cursor-pointer"
-                      onClick={() => {
-                        if (!nodeConnectionInfo) {
-                          return;
-                        }
-                        copyToClipboard(nodeConnectionInfo.pubkey);
-                      }}
-                    >
-                      <div>Node</div>
-                      <div className="overflow-hidden text-ellipsis flex-1">
-                        {nodeConnectionInfo?.pubkey || "Loading..."}
+            <AlertDialog>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="default">
+                    Advanced
+                    <ChevronDown />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56">
+                  <DropdownMenuGroup>
+                    <DropdownMenuItem>
+                      <div
+                        className="flex flex-row gap-4 items-center w-full cursor-pointer"
+                        onClick={() => {
+                          if (!nodeConnectionInfo) {
+                            return;
+                          }
+                          copyToClipboard(nodeConnectionInfo.pubkey);
+                        }}
+                      >
+                        <div>Node</div>
+                        <div className="overflow-hidden text-ellipsis flex-1">
+                          {nodeConnectionInfo?.pubkey || "Loading..."}
+                        </div>
+                        {nodeConnectionInfo && (
+                          <CopyIcon className="shrink-0 w-4 h-4" />
+                        )}
                       </div>
-                      {nodeConnectionInfo && (
-                        <CopyIcon className="shrink-0 w-4 h-4" />
-                      )}
-                    </div>
-                  </DropdownMenuItem>
-                </DropdownMenuGroup>
-                <DropdownMenuGroup>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem>
-                    <Link
-                      to="/channels/onchain/deposit-bitcoin"
-                      className="w-full"
-                    >
-                      Deposit Bitcoin
-                    </Link>
-                  </DropdownMenuItem>
-                  {(balances?.onchain.spendable || 0) > ONCHAIN_DUST_SATS && (
-                    <DropdownMenuItem
-                      onClick={redeemOnchainFunds.redeemFunds}
-                      disabled={redeemOnchainFunds.isLoading}
-                      className="w-full cursor-pointer"
-                    >
-                      Withdraw Savings Balance
-                      {redeemOnchainFunds.isLoading && <Loading />}
                     </DropdownMenuItem>
-                  )}
-                </DropdownMenuGroup>
-                <DropdownMenuSeparator />
-                <DropdownMenuGroup>
-                  <DropdownMenuLabel>Management</DropdownMenuLabel>
-                  <DropdownMenuItem>
-                    <Link className="w-full" to="/peers">
-                      Connected Peers
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Link className="w-full" to="/wallet/sign-message">
-                      Sign Message
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className="w-full cursor-pointer"
-                    onClick={resetRouter}
-                  >
-                    Clear Routing Data
-                  </DropdownMenuItem>
-                </DropdownMenuGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  </DropdownMenuGroup>
+                  <DropdownMenuGroup>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem>
+                      <Link
+                        to="/channels/onchain/deposit-bitcoin"
+                        className="w-full"
+                      >
+                        Deposit Bitcoin
+                      </Link>
+                    </DropdownMenuItem>
+                    {(balances?.onchain.spendable || 0) > ONCHAIN_DUST_SATS && (
+                      <DropdownMenuItem
+                        onClick={redeemOnchainFunds.redeemFunds}
+                        disabled={redeemOnchainFunds.isLoading}
+                        className="w-full cursor-pointer"
+                      >
+                        Withdraw Savings Balance
+                        {redeemOnchainFunds.isLoading && <Loading />}
+                      </DropdownMenuItem>
+                    )}
+                  </DropdownMenuGroup>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuGroup>
+                    <DropdownMenuLabel>Management</DropdownMenuLabel>
+                    <DropdownMenuItem>
+                      <Link className="w-full" to="/peers">
+                        Connected Peers
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Link className="w-full" to="/wallet/sign-message">
+                        Sign Message
+                      </Link>
+                    </DropdownMenuItem>
+                    <AlertDialogTrigger asChild>
+                      <DropdownMenuItem className="w-full cursor-pointer">
+                        Clear Routing Data
+                      </DropdownMenuItem>
+                    </AlertDialogTrigger>
+                  </DropdownMenuGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Clear Routing Data</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    <div>
+                      <p>Are you sure you want to clear your routing data?</p>
+                      <div className="grid gap-2 mt-4">
+                        <Label className="text-primary">
+                          Routing Data to Clear
+                        </Label>
+                        <Select
+                          name="resetKey"
+                          value={resetKey}
+                          onValueChange={(value) => setResetKey(value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select Data" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {RESET_KEY_OPTIONS.map((resetKey) => (
+                              <SelectItem
+                                key={resetKey.value}
+                                value={resetKey.value}
+                              >
+                                {resetKey.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <p className="text-primary font-medium mt-4">
+                        After clearing, you'll need to login again to restart
+                        your node.
+                      </p>
+                    </div>
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction disabled={!resetKey} onClick={resetRouter}>
+                    Confirm
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
             <Link to="/channels/outgoing">
               <Button>Open Channel</Button>
             </Link>
