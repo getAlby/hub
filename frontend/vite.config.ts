@@ -10,7 +10,7 @@ export default defineConfig(({ command }) => ({
     tsconfigPaths(),
     VitePWA({
       registerType: "autoUpdate",
-      // TODO: disable service worker - Alby Hub cannot be used offline (and also breaks oauth callback)
+      // disable service worker - Alby Hub cannot be used offline (and also breaks oauth callback)
       injectRegister: false,
       includeAssets: [
         "favicon.ico",
