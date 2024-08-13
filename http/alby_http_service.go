@@ -72,7 +72,6 @@ func (albyHttpSvc *AlbyHttpService) unlinkHandler(c echo.Context) error {
 }
 
 func (albyHttpSvc *AlbyHttpService) albyCallbackHandler(c echo.Context) error {
-	logger.Logger.Info("ALBY CALLBACK HANDLER HIT")
 	code := c.QueryParam("code")
 
 	err := albyHttpSvc.albyOAuthSvc.CallbackHandler(c.Request().Context(), code, albyHttpSvc.svc.GetLNClient())
