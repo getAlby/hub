@@ -1,4 +1,9 @@
 import { useState } from "react";
+import { ResetRoutingDataDialogContent } from "src/components/ResetRoutingDataDialogContent";
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+} from "src/components/ui/alert-dialog";
 import { Button } from "src/components/ui/button";
 import { Textarea } from "src/components/ui/textarea";
 
@@ -118,6 +123,12 @@ export default function DebugTools() {
         >
           Get Network Graph
         </Button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button>Clear Routing Data</Button>
+          </AlertDialogTrigger>
+          <ResetRoutingDataDialogContent />
+        </AlertDialog>
       </div>
       {apiResponse && (
         <Textarea
