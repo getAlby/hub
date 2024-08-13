@@ -10,6 +10,8 @@ export default defineConfig(({ command }) => ({
     tsconfigPaths(),
     VitePWA({
       registerType: "autoUpdate",
+      // TODO: disable service worker - Alby Hub cannot be used offline (and also breaks oauth callback)
+      injectRegister: false,
       includeAssets: [
         "favicon.ico",
         "robots.txt",
@@ -40,9 +42,6 @@ export default defineConfig(({ command }) => ({
         display: "standalone",
         theme_color: "#000000",
         background_color: "#ffffff",
-      },
-      workbox: {
-        globPatterns: ["**/*.{js,css,html,png,svg,ico}"],
       },
     }),
     ...(command === "serve" ? [insertDevCSPPlugin] : []),
