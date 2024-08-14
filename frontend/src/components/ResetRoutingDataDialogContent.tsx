@@ -24,14 +24,18 @@ const RESET_KEY_OPTIONS = [
   {
     value: "ALL",
     label: "All",
+    description: "Clears both the scorer and network graph data",
   },
   {
     value: "Scorer",
     label: "Scorer",
+    description:
+      "Clears the scores/penalties applied to nodes from past payment attempts.",
   },
   {
     value: "NetworkGraph",
     label: "Network Graph",
+    description: "Clears the cache of nodes on the network",
   },
 ];
 
@@ -88,19 +92,15 @@ export function ResetRoutingDataDialogContent() {
             </div>
             <div className="grid gap-2 mt-4 border rounded-md p-3">
               <h3 className="text-primary font-semibold">Clear Data Options</h3>
-              <p>
-                <span className="text-primary font-medium">All</span> - Clears
-                both the scorer and network graph data
-              </p>
-              <p>
-                <span className="text-primary font-medium">Scorer</span> -
-                Clears the scores/penalties applied to nodes from past payment
-                attempts.
-              </p>
-              <p>
-                <span className="text-primary font-medium">Network Graph</span>{" "}
-                - Clears the cache of nodes on the network
-              </p>
+              {RESET_KEY_OPTIONS.map((resetKey) => (
+                <p>
+                  <span className="text-primary font-medium">
+                    {resetKey.label}
+                  </span>
+                  {" - "}
+                  {resetKey.description}
+                </p>
+              ))}
             </div>
             <p className="text-primary font-medium mt-4">
               After clearing, you'll need to login again to restart your node.
@@ -109,7 +109,9 @@ export function ResetRoutingDataDialogContent() {
         </AlertDialogDescription>
       </AlertDialogHeader>
       <AlertDialogFooter>
-        <AlertDialogCancel>Cancel</AlertDialogCancel>
+        <AlertDialogCancel onClick={() => setResetKey(undefined)}>
+          Cancel
+        </AlertDialogCancel>
         <AlertDialogAction disabled={!resetKey} onClick={resetRouter}>
           Confirm
         </AlertDialogAction>
