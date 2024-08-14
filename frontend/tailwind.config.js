@@ -21,6 +21,7 @@ module.exports = {
     fontFamily: {
       // required for Chrome, where e.g. ❤️ in Inter is displayed as a black heart :(
       emoji: ["sans-serif"],
+      mono: ["monospace"],
     },
     extend: {
       colors: {
@@ -60,6 +61,10 @@ module.exports = {
         positive: {
           DEFAULT: "hsl(var(--positive))",
           foreground: "hsl(var(--positive-foreground))",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
         },
       },
       borderRadius: {

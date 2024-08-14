@@ -22,7 +22,7 @@ import (
 	"github.com/getAlby/hub/logger"
 )
 
-func (svc *service) StartNostr(ctx context.Context, encryptionKey string) error {
+func (svc *service) startNostr(ctx context.Context, encryptionKey string) error {
 
 	relayUrl := svc.cfg.GetRelayUrl()
 
@@ -40,38 +40,53 @@ func (svc *service) StartNostr(ctx context.Context, encryptionKey string) error 
 		"npub": npub,
 		"hex":  svc.keys.GetNostrPublicKey(),
 	}).Info("Starting Alby Hub")
-	svc.wg.Add(1)
 	go func() {
+		svc.wg.Add(1)
+		// ensure the relay is properly disconnected before exiting
+		defer svc.wg.Done()
 		//Start infinite loop which will be only broken by canceling ctx (SIGINT)
 		var relay *nostr.Relay
+		waitToReconnectSeconds := 0
 
 		for i := 0; ; i++ {
-			// wait for a delay before retrying except on first iteration
-			if i > 0 {
-				sleepDuration := 10
+
+			// wait for a delay if any before retrying
+			if waitToReconnectSeconds > 0 {
 				contextCancelled := false
-				logger.Logger.Infof("[Iteration %d] Retrying in %d seconds...", i, sleepDuration)
 
 				select {
 				case <-ctx.Done(): //context cancelled
 					logger.Logger.Info("service context cancelled while waiting for retry")
 					contextCancelled = true
-				case <-time.After(time.Duration(sleepDuration) * time.Second): //timeout
+				case <-time.After(time.Duration(waitToReconnectSeconds) * time.Second): //timeout
 				}
 				if contextCancelled {
 					break
 				}
 			}
+
 			closeRelay(relay)
 
 			//connect to the relay
-			logger.Logger.Infof("Connecting to the relay: %s", relayUrl)
+			logger.Logger.WithFields(logrus.Fields{
+				"relay_url": relayUrl,
+				"iteration": i,
+			}).Info("Connecting to the relay")
 
 			relay, err = nostr.RelayConnect(ctx, relayUrl, nostr.WithNoticeHandler(svc.noticeHandler))
 			if err != nil {
-				logger.Logger.WithError(err).Error("Failed to connect to relay")
+				// exponential backoff from 2 - 60 seconds
+				waitToReconnectSeconds = max(waitToReconnectSeconds, 1)
+				waitToReconnectSeconds *= 2
+				waitToReconnectSeconds = min(waitToReconnectSeconds, 60)
+				logger.Logger.WithFields(logrus.Fields{
+					"iteration":     i,
+					"retry_seconds": waitToReconnectSeconds,
+				}).WithError(err).Error("Failed to connect to relay")
 				continue
 			}
+
+			waitToReconnectSeconds = 0
 
 			//publish event with NIP-47 info
 			err = svc.nip47Service.PublishNip47Info(ctx, relay, svc.lnClient)
@@ -95,9 +110,7 @@ func (svc *service) StartNostr(ctx context.Context, encryptionKey string) error 
 			break
 		}
 		closeRelay(relay)
-		svc.Shutdown()
 		logger.Logger.Info("Relay subroutine ended")
-		svc.wg.Done()
 	}()
 	return nil
 }
@@ -123,16 +136,29 @@ func (svc *service) StartApp(encryptionKey string) error {
 		return err
 	}
 
-	svc.StartNostr(ctx, encryptionKey)
+	err = svc.startNostr(ctx, encryptionKey)
+	if err != nil {
+		cancelFn()
+		return err
+	}
+
 	svc.appCancelFn = cancelFn
+
 	return nil
 }
 
 func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) error {
-	err := svc.StopLNClient()
-	if err != nil {
-		return err
+	if svc.lnClient != nil {
+		logger.Logger.Error("LNClient already started")
+		return errors.New("LNClient already started")
 	}
+
+	go func() {
+		// ensure the LNClient is stopped properly before exiting
+		svc.wg.Add(1)
+		<-ctx.Done()
+		svc.stopLNClient()
+	}()
 
 	lnBackend, _ := svc.cfg.Get("LNBackendType", "")
 	if lnBackend == "" {
@@ -141,17 +167,18 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 
 	logger.Logger.Infof("Launching LN Backend: %s", lnBackend)
 	var lnClient lnclient.LNClient
+	var err error
 	switch lnBackend {
 	case config.LNDBackendType:
 		LNDAddress, _ := svc.cfg.Get("LNDAddress", encryptionKey)
 		LNDCertHex, _ := svc.cfg.Get("LNDCertHex", encryptionKey)
 		LNDMacaroonHex, _ := svc.cfg.Get("LNDMacaroonHex", encryptionKey)
-		lnClient, err = lnd.NewLNDService(ctx, LNDAddress, LNDCertHex, LNDMacaroonHex)
+		lnClient, err = lnd.NewLNDService(ctx, svc.eventPublisher, LNDAddress, LNDCertHex, LNDMacaroonHex)
 	case config.LDKBackendType:
 		Mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
 		LDKWorkdir := path.Join(svc.cfg.GetEnv().Workdir, "ldk")
 
-		lnClient, err = ldk.NewLDKService(ctx, svc.cfg, svc.eventPublisher, Mnemonic, LDKWorkdir, svc.cfg.GetEnv().LDKNetwork, svc.cfg.GetEnv().LDKEsploraServer, svc.cfg.GetEnv().LDKGossipSource)
+		lnClient, err = ldk.NewLDKService(ctx, svc.cfg, svc.eventPublisher, Mnemonic, LDKWorkdir, svc.cfg.GetEnv().LDKNetwork)
 	case config.GreenlightBackendType:
 		Mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
 		GreenlightInviteCode, _ := svc.cfg.Get("GreenlightInviteCode", encryptionKey)
@@ -183,12 +210,14 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 		return err
 	}
 
+	svc.lnClient = lnClient
 	info, err := lnClient.GetInfo(ctx)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to fetch node info")
 	}
-	if info != nil && info.Pubkey != "" {
+	if info != nil {
 		svc.eventPublisher.SetGlobalProperty("node_id", info.Pubkey)
+		svc.eventPublisher.SetGlobalProperty("network", info.Network)
 	}
 
 	svc.eventPublisher.Publish(&events.Event{
@@ -197,7 +226,7 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 			"node_type": lnBackend,
 		},
 	})
-	svc.lnClient = lnClient
+
 	return nil
 }
 

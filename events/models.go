@@ -1,9 +1,13 @@
 package events
 
-import "context"
+import (
+	"context"
+
+	"github.com/getAlby/hub/lnclient"
+)
 
 type EventSubscriber interface {
-	ConsumeEvent(ctx context.Context, event *Event, globalProperties map[string]interface{}) error
+	ConsumeEvent(ctx context.Context, event *Event, globalProperties map[string]interface{})
 }
 
 type EventPublisher interface {
@@ -18,15 +22,6 @@ type Event struct {
 	Properties interface{} `json:"properties,omitempty"`
 }
 
-type PaymentReceivedEventProperties struct {
-	PaymentHash string `json:"payment_hash"`
-}
-
-type PaymentSentEventProperties struct {
-	PaymentHash string `json:"payment_hash"`
-	Duration    uint64 `json:"duration"`
-}
-
 type ChannelBackupEvent struct {
 	Channels []ChannelBackupInfo `json:"channels"`
 }
@@ -38,4 +33,9 @@ type ChannelBackupInfo struct {
 	ChannelSize   uint64 `json:"channel_size"`
 	FundingTxID   string `json:"funding_tx_id"`
 	FundingTxVout uint32 `json:"funding_tx_vout"`
+}
+
+type PaymentFailedAsyncProperties struct {
+	Transaction *lnclient.Transaction
+	Reason      string
 }

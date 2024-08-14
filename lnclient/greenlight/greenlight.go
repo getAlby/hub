@@ -26,6 +26,7 @@ import (
 type GreenlightService struct {
 	workdir string
 	client  *glalby.BlockingGreenlightAlbyClient
+	pubkey  string
 }
 
 const DEVICE_CREDENTIALS_KEY = "GreenlightCreds"
@@ -85,12 +86,13 @@ func NewGreenlightService(cfg config.Config, mnemonic, inviteCode, workDir, encr
 		log.Fatalf("unexpected response from NewBlockingGreenlightAlbyClient")
 	}
 
+	nodeInfo, err := client.GetInfo()
+
 	gs := GreenlightService{
 		workdir: newpath,
 		client:  client,
+		pubkey:  nodeInfo.Pubkey,
 	}
-
-	nodeInfo, err := client.GetInfo()
 
 	if err != nil {
 		return nil, err
@@ -125,11 +127,13 @@ func (gs *GreenlightService) SendPaymentSync(ctx context.Context, payReq string)
 	}, nil
 }
 
-func (gs *GreenlightService) SendKeysend(ctx context.Context, amount uint64, destination, preimage string, custom_records []lnclient.TLVRecord) (preImage string, err error) {
+func (gs *GreenlightService) SendKeysend(ctx context.Context, amount uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
 
-	extraTlvs := []glalby.TlvEntry{}
+	// TODO: re-enable when passing custom preimage is possible
+	/*extraTlvs := []glalby.TlvEntry{}
 
 	for _, customRecord := range custom_records {
+
 		extraTlvs = append(extraTlvs, glalby.TlvEntry{
 			Ty:    customRecord.Type,
 			Value: customRecord.Value, // glalby expects hex-encoded TLV values
@@ -145,10 +149,13 @@ func (gs *GreenlightService) SendKeysend(ctx context.Context, amount uint64, des
 
 	if err != nil {
 		logger.Logger.Errorf("Failed to send keysend payment: %v", err)
-		return "", err
+		return "", "", 0, err
 	}
 
-	return response.PaymentPreimage, nil
+	// TODO: get payment hash from response
+
+	return "", response.PaymentPreimage, 0, nil*/
+	return nil, errors.New("not supported")
 }
 
 func (gs *GreenlightService) GetBalance(ctx context.Context) (balance int64, err error) {
@@ -203,6 +210,7 @@ func (gs *GreenlightService) MakeInvoice(ctx context.Context, amount int64, desc
 		Invoice:         invoice.Bolt11,
 		Description:     description,
 		DescriptionHash: descriptionHash,
+		Preimage:        "", // TODO: set preimage to enable self-payments
 		PaymentHash:     invoice.PaymentHash,
 		ExpiresAt:       &expiresAt,
 		Amount:          amount,
@@ -475,7 +483,7 @@ func (gs *GreenlightService) GetNewOnchainAddress(ctx context.Context) (string, 
 
 func (gs *GreenlightService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainBalanceResponse, error) {
 	response, err := gs.client.ListFunds(glalby.ListFundsRequest{})
-	logger.Logger.WithField("response", response).Info("Listed funds")
+	logger.Logger.WithField("response", response).Debug("Listed funds")
 
 	if err != nil {
 		logger.Logger.Errorf("Failed to list funds: %v", err)
@@ -676,9 +684,13 @@ func (gs *GreenlightService) DisconnectPeer(ctx context.Context, peerId string) 
 }
 
 func (gs *GreenlightService) GetSupportedNIP47Methods() []string {
-	return []string{"pay_invoice", "pay_keysend", "get_balance", "get_info", "make_invoice", "lookup_invoice", "list_transactions", "multi_pay_invoice", "multi_pay_keysend", "sign_message"}
+	return []string{"pay_invoice" /*"pay_keysend",*/, "get_balance", "get_info", "make_invoice", "lookup_invoice", "list_transactions", "multi_pay_invoice", "multi_pay_keysend", "sign_message"}
 }
 
 func (gs *GreenlightService) GetSupportedNIP47NotificationTypes() []string {
 	return []string{}
+}
+
+func (gs *GreenlightService) GetPubkey() string {
+	return gs.pubkey
 }

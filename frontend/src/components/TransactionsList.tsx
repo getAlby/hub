@@ -12,7 +12,7 @@ function TransactionsList() {
   }
 
   return (
-    <div className="transaction-list">
+    <div className="transaction-list flex flex-col">
       {!transactions?.length ? (
         <EmptyState
           icon={Drum}
@@ -24,7 +24,7 @@ function TransactionsList() {
       ) : (
         <>
           {transactions?.map((tx) => {
-            return <TransactionItem key={tx.payment_hash} tx={tx} />;
+            return <TransactionItem key={tx.paymentHash + tx.type} tx={tx} />;
           })}
         </>
       )}

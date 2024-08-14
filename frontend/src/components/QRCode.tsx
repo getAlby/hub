@@ -19,9 +19,9 @@ export type Props = {
 };
 
 function QRCode({ value, size, level, className }: Props) {
-  const { theme } = useTheme();
-  const fgColor = theme === "dark" ? "#FFFFFF" : "#242424";
-  const bgColor = theme === "dark" ? "#242424" : "#FFFFFF";
+  const { isDarkMode } = useTheme();
+  const fgColor = isDarkMode ? "#FFFFFF" : "#242424";
+  const bgColor = isDarkMode ? "#242424" : "#FFFFFF";
 
   return (
     <ReactQRCode
@@ -29,7 +29,7 @@ function QRCode({ value, size, level, className }: Props) {
       size={size}
       fgColor={fgColor}
       bgColor={bgColor}
-      className={cn("rounded-md ph-no-capture", className)}
+      className={cn("rounded-md", className)}
       level={level}
     />
   );

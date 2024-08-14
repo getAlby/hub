@@ -1,4 +1,4 @@
-import { ExternalLink, Power } from "lucide-react";
+import { Power } from "lucide-react";
 import React, { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
@@ -16,30 +16,24 @@ import {
 import { buttonVariants } from "src/components/ui/button";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
-import { useCSRF } from "src/hooks/useCSRF";
+
 import { useInfo } from "src/hooks/useInfo";
 
 import { cn } from "src/lib/utils";
 import { request } from "src/utils/request";
 
 export default function SettingsLayout() {
-  const { data: csrf } = useCSRF();
   const { mutate: refetchInfo, hasMnemonic, hasNodeBackup } = useInfo();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [shuttingDown, setShuttingDown] = useState(false);
 
   const shutdown = React.useCallback(async () => {
-    if (!csrf) {
-      throw new Error("csrf not loaded");
-    }
-
     setShuttingDown(true);
     try {
       await request("/api/stop", {
         method: "POST",
         headers: {
-          "X-CSRF-Token": csrf,
           "Content-Type": "application/json",
         },
       });
@@ -55,7 +49,7 @@ export default function SettingsLayout() {
         variant: "destructive",
       });
     }
-  }, [csrf, navigate, refetchInfo, toast]);
+  }, [navigate, refetchInfo, toast]);
 
   return (
     <>
@@ -97,7 +91,7 @@ export default function SettingsLayout() {
       />
       <div className="flex flex-col space-y-8 lg:flex-row lg:space-x-12 lg:space-y-0">
         <aside className="lg:-mx-4 lg:w-1/5">
-          <nav className="flex space-x-2 lg:flex-col lg:space-x-0 lg:space-y-1">
+          <nav className="flex flex-wrap lg:flex-col -space-x-1 lg:space-x-0 lg:space-y-1">
             <MenuItem to="/settings">Theme</MenuItem>
             <MenuItem to="/settings/change-unlock-password">
               Unlock Password
@@ -106,12 +100,11 @@ export default function SettingsLayout() {
               <MenuItem to="/settings/key-backup">Key Backup</MenuItem>
             )}
             {hasNodeBackup && (
-              <MenuItem to="/settings/node-backup">Node Backup</MenuItem>
+              <MenuItem to="/settings/node-backup">Migrate Node</MenuItem>
             )}
-            <MenuItem to="/debug-tools">
-              Debug Tools
-              <ExternalLink className="w-4 h-4 ml-2" />
-            </MenuItem>
+            <MenuItem to="/settings/alby-account">Alby Account</MenuItem>
+            <MenuItem to="/settings/developer">Developer</MenuItem>
+            <MenuItem to="/settings/debug-tools">Debug Tools</MenuItem>
           </nav>
         </aside>
         <div className="flex-1 lg:max-w-2xl">

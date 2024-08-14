@@ -85,12 +85,12 @@ func (cs *CashuService) SendPaymentSync(ctx context.Context, invoice string) (re
 
 	return &lnclient.PayInvoiceResponse{
 		Preimage: meltResponse.Preimage,
-		Fee:      &fee,
+		Fee:      fee,
 	}, nil
 }
 
-func (cs *CashuService) SendKeysend(ctx context.Context, amount uint64, destination, preimage string, custom_records []lnclient.TLVRecord) (preImage string, err error) {
-	return "", errors.New("Keysend not supported")
+func (cs *CashuService) SendKeysend(ctx context.Context, amount uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
+	return nil, errors.New("keysend not supported")
 }
 
 func (cs *CashuService) GetBalance(ctx context.Context) (balance int64, err error) {
@@ -327,7 +327,7 @@ func (cs *CashuService) checkInvoice(cashuInvoice *storage.Invoice) {
 	if cashuInvoice.TransactionType == storage.Mint && !cashuInvoice.Paid {
 		logger.Logger.WithFields(logrus.Fields{
 			"paymentHash": cashuInvoice.PaymentHash,
-		}).Info("Checking unpaid invoice")
+		}).Debug("Checking unpaid invoice")
 
 		proofs, err := cs.wallet.MintTokens(cashuInvoice.Id)
 		if err != nil {
@@ -351,4 +351,8 @@ func (cs *CashuService) GetSupportedNIP47Methods() []string {
 
 func (cs *CashuService) GetSupportedNIP47NotificationTypes() []string {
 	return []string{}
+}
+
+func (svc *CashuService) GetPubkey() string {
+	return ""
 }

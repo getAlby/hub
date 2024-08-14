@@ -1,40 +1,28 @@
-import { Link2, LucideIcon, Plane, ShieldAlert, Zap } from "lucide-react";
+import { ListTodo, LucideIcon, Zap } from "lucide-react";
+import { ReactElement } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "src/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
-import { ALBY_MIN_BALANCE, ALBY_SERVICE_FEE } from "src/constants";
-import { useAlbyBalance } from "src/hooks/useAlbyBalance";
-import { useAlbyMe } from "src/hooks/useAlbyMe";
-import { useChannels } from "src/hooks/useChannels";
-import { useInfo } from "src/hooks/useInfo";
-import { useNodeConnectionInfo } from "src/hooks/useNodeConnectionInfo";
+import { Progress } from "src/components/ui/progress";
+import { useOnboardingData } from "src/hooks/useOnboardingData";
 import useChannelOrderStore from "src/state/ChannelOrderStore";
 
 function SidebarHint() {
-  const { data: channels } = useChannels();
-  const { data: albyBalance } = useAlbyBalance();
-  const { data: info, hasChannelManagement, hasMnemonic } = useInfo();
-  const { data: albyMe } = useAlbyMe();
+  const { isLoading, checklistItems } = useOnboardingData();
   const { order } = useChannelOrderStore();
   const location = useLocation();
-  const { data: nodeConnectionInfo } = useNodeConnectionInfo();
-
-  // Don't distract with hints while opening a channel or on the settings page
-  if (
-    location.pathname.startsWith("/channels/") ||
-    location.pathname.startsWith("/settings")
-  ) {
-    return null;
-  }
 
   // User has a channel order
-  if (order && order.status !== "pay") {
+  if (
+    !location.pathname.startsWith("/channels/") &&
+    order &&
+    order.status !== "pay"
+  ) {
     return (
       <SidebarHintCard
         icon={Zap}
@@ -46,69 +34,36 @@ function SidebarHint() {
     );
   }
 
-  // User has funds to migrate
+  const openChecklistItems = checklistItems.filter((x) => !x.checked);
   if (
-    hasChannelManagement &&
-    albyBalance &&
-    albyBalance.sats * (1 - ALBY_SERVICE_FEE) >
-      ALBY_MIN_BALANCE + 50000 /* accomodate for onchain fees */
+    !location.pathname.startsWith("/home") &&
+    !location.pathname.startsWith("/channels/order") &&
+    !location.pathname.startsWith("/channels/first") &&
+    !isLoading &&
+    openChecklistItems.length
   ) {
     return (
       <SidebarHintCard
-        icon={Plane}
-        title="Migrate Alby Funds"
-        description="You have funds on your Alby shared account ready to migrate to your new node"
-        buttonText="Migrate Now"
-        buttonLink="/onboarding/lightning/migrate-alby"
-      />
-    );
-  }
-
-  // User has no channels yet
-  if (hasChannelManagement && channels?.length === 0) {
-    return (
-      <SidebarHintCard
-        icon={Zap}
-        title="Open Your First Channel"
-        description="Deposit bitcoin by onchain or lightning payment to start using your new wallet."
-        buttonText="Begin Now"
-        buttonLink="/channels"
-      />
-    );
-  }
-
-  // User has not linked their hub to their Alby Account
-  if (
-    albyMe &&
-    nodeConnectionInfo &&
-    albyMe?.keysend_pubkey !== nodeConnectionInfo?.pubkey &&
-    !location.pathname.startsWith("/apps")
-  ) {
-    return (
-      <SidebarHintCard
-        icon={Link2}
-        title="Link your Hub"
-        description="Finish the setup by linking your Alby Account to this hub."
-        buttonText="Link Hub"
-        buttonLink="/apps"
-      />
-    );
-  }
-
-  if (
-    hasMnemonic &&
-    info &&
-    (!info.nextBackupReminder ||
-      new Date(info.nextBackupReminder).getTime() < new Date().getTime())
-  ) {
-    return (
-      <SidebarHintCard
-        icon={ShieldAlert}
-        title="Backup Your Keys"
-        description=" Not backing up your key might result in permanently losing
-              access to your funds."
-        buttonText="Backup Now"
-        buttonLink="/settings/key-backup"
+        icon={ListTodo}
+        title="Finish Setup"
+        description={
+          <>
+            <Progress
+              className="mt-2"
+              value={
+                ((checklistItems.length - openChecklistItems.length) /
+                  checklistItems.length) *
+                100
+              }
+            />
+            <div className="text-xs mt-2">
+              {checklistItems.length - openChecklistItems.length} out of{" "}
+              {checklistItems.length} completed
+            </div>
+          </>
+        }
+        buttonText="See Next Steps"
+        buttonLink="/home"
       />
     );
   }
@@ -116,7 +71,7 @@ function SidebarHint() {
 
 type SidebarHintCardProps = {
   title: string;
-  description: string;
+  description: string | ReactElement;
   buttonText: string;
   buttonLink: string;
   icon: LucideIcon;
@@ -134,9 +89,9 @@ function SidebarHintCard({
         <CardHeader className="p-4">
           <Icon className="h-8 w-8 mb-4" />
           <CardTitle>{title}</CardTitle>
-          <CardDescription>{description}</CardDescription>
         </CardHeader>
         <CardContent className="p-4 pt-0">
+          <div className="text-muted-foreground mb-4">{description}</div>
           <Link to={buttonLink}>
             <Button size="sm" className="w-full">
               {buttonText}

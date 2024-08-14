@@ -37,7 +37,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 	case len(authCodeMatch) > 1:
 		code := authCodeMatch[1]
 
-		err := app.svc.GetAlbyOAuthSvc().CallbackHandler(ctx, code)
+		err := app.svc.GetAlbyOAuthSvc().CallbackHandler(ctx, code, app.svc.GetLNClient())
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"route":  route,
@@ -127,7 +127,16 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			}
 			return WailsRequestRouterResponse{Body: nil, Error: ""}
 		case "DELETE":
-			closeChannelResponse, err := app.api.CloseChannel(ctx, peerId, channelId, strings.Contains(route, "force=true"))
+			channelIdParts := strings.SplitN(channelId, "?", 2)
+
+			var force bool
+			if len(channelIdParts) == 2 {
+				channelId = channelIdParts[0]
+				queryParams := channelIdParts[1]
+				force = strings.Contains(queryParams, "force=true")
+			}
+
+			closeChannelResponse, err := app.api.CloseChannel(ctx, peerId, channelId, force)
 			if err != nil {
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 			}
@@ -277,6 +286,12 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		}, Error: ""}
 	case "/api/alby/drain":
 		err := app.svc.GetAlbyOAuthSvc().DrainSharedWallet(ctx, app.svc.GetLNClient())
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: nil, Error: ""}
+	case "/api/alby/unlink-account":
+		err := app.svc.GetAlbyOAuthSvc().UnlinkAccount(ctx)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
@@ -450,11 +465,10 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: *capabilitiesResponse, Error: ""}
-	// TODO: review naming
-	case "/api/instant-channel-invoices":
-		newInstantChannelRequest := &api.NewInstantChannelInvoiceRequest{}
+	case "/api/lsp-orders":
+		newInstantChannelRequest := &api.LSPOrderRequest{}
 		err := json.Unmarshal([]byte(body), newInstantChannelRequest)
-		newInstantChannelResponse, err := app.api.NewInstantChannelInvoice(ctx, newInstantChannelRequest)
+		newInstantChannelResponse, err := app.api.RequestLSPOrder(ctx, newInstantChannelRequest)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
@@ -504,16 +518,65 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		infoResponse.Unlocked = infoResponse.Running
 		res := WailsRequestRouterResponse{Body: *infoResponse, Error: ""}
 		return res
+	case "/api/alby/auto-channel":
+		newAutoChannelRequest := &alby.AutoChannelRequest{}
+		err := json.Unmarshal([]byte(body), newAutoChannelRequest)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).WithError(err).Error("Failed to decode request to wails router")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		autoChannelResponse, err := app.svc.GetAlbyOAuthSvc().RequestAutoChannel(ctx, app.svc.GetLNClient(), newAutoChannelRequest.IsPublic)
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: *autoChannelResponse, Error: ""}
+
 	case "/api/alby/link-account":
-		err := app.svc.GetAlbyOAuthSvc().LinkAccount(ctx, app.svc.GetLNClient())
+		linkAccountRequest := &alby.AlbyLinkAccountRequest{}
+		err := json.Unmarshal([]byte(body), linkAccountRequest)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).WithError(err).Error("Failed to decode request to wails router")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		err = app.svc.GetAlbyOAuthSvc().LinkAccount(ctx, app.svc.GetLNClient(), linkAccountRequest.Budget, linkAccountRequest.Renewal)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		res := WailsRequestRouterResponse{Error: ""}
 		return res
-	case "/api/encrypted-mnemonic":
-		infoResponse := app.api.GetEncryptedMnemonic()
-		res := WailsRequestRouterResponse{Body: *infoResponse, Error: ""}
+	case "/api/mnemonic":
+		mnemonicRequest := &api.MnemonicRequest{}
+		err := json.Unmarshal([]byte(body), mnemonicRequest)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				// Skip logging the body for this request as we don't want the
+				// unlock password to end up in any logs
+				// "body": body,
+			}).WithError(err).Error("Failed to parse mnemonic request")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		mnemonicResponse, err := app.api.GetMnemonic(mnemonicRequest.UnlockPassword)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				// Skip logging the body for this request as we don't want the
+				// unlock password to end up in any logs
+				// "body": body,
+			}).WithError(err).Error("Failed to get mnemonic")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		res := WailsRequestRouterResponse{Body: *mnemonicResponse, Error: ""}
 		return res
 	case "/api/backup-reminder":
 		backupReminderRequest := &api.BackupReminderRequest{}
@@ -580,8 +643,6 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: nil, Error: ""}
-	case "/api/csrf":
-		return WailsRequestRouterResponse{Body: "dummy", Error: ""}
 	case "/api/setup":
 		setupRequest := &api.SetupRequest{}
 		err := json.Unmarshal([]byte(body), setupRequest)

@@ -20,6 +20,7 @@ import (
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/service/keys"
+	"github.com/getAlby/hub/transactions"
 	"github.com/getAlby/hub/version"
 
 	"github.com/getAlby/hub/config"
@@ -32,15 +33,16 @@ import (
 type service struct {
 	cfg config.Config
 
-	db             *gorm.DB
-	lnClient       lnclient.LNClient
-	albyOAuthSvc   alby.AlbyOAuthService
-	eventPublisher events.EventPublisher
-	ctx            context.Context
-	wg             *sync.WaitGroup
-	nip47Service   nip47.Nip47Service
-	appCancelFn    context.CancelFunc
-	keys           keys.Keys
+	db                  *gorm.DB
+	lnClient            lnclient.LNClient
+	transactionsService transactions.TransactionsService
+	albyOAuthSvc        alby.AlbyOAuthService
+	eventPublisher      events.EventPublisher
+	ctx                 context.Context
+	wg                  *sync.WaitGroup
+	nip47Service        nip47.Nip47Service
+	appCancelFn         context.CancelFunc
+	keys                keys.Keys
 }
 
 func NewService(ctx context.Context) (*service, error) {
@@ -96,16 +98,22 @@ func NewService(ctx context.Context) (*service, error) {
 
 	var wg sync.WaitGroup
 	svc := &service{
-		cfg:            cfg,
-		ctx:            ctx,
-		wg:             &wg,
-		eventPublisher: eventPublisher,
-		albyOAuthSvc:   alby.NewAlbyOAuthService(gormDB, cfg, keys, eventPublisher),
-		nip47Service:   nip47.NewNip47Service(gormDB, cfg, keys, eventPublisher),
-		db:             gormDB,
-		keys:           keys,
+		cfg:                 cfg,
+		ctx:                 ctx,
+		wg:                  &wg,
+		eventPublisher:      eventPublisher,
+		albyOAuthSvc:        alby.NewAlbyOAuthService(gormDB, cfg, keys, eventPublisher),
+		nip47Service:        nip47.NewNip47Service(gormDB, cfg, keys, eventPublisher),
+		transactionsService: transactions.NewTransactionsService(gormDB),
+		db:                  gormDB,
+		keys:                keys,
 	}
 
+	// Note: order is important here: transactions service will update transactions
+	// from payment events, which will then be consumed by the NIP-47 service to send notifications
+	// TODO: transactions service should fire its own events
+	eventPublisher.RegisterSubscriber(svc.transactionsService)
+	eventPublisher.RegisterSubscriber(svc.nip47Service)
 	eventPublisher.RegisterSubscriber(svc.albyOAuthSvc)
 
 	eventPublisher.Publish(&events.Event{
@@ -148,7 +156,7 @@ func (svc *service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 
 		// loop through incoming events
 		for event := range sub.Events {
-			go svc.nip47Service.HandleEvent(ctx, sub, event, svc.lnClient)
+			go svc.nip47Service.HandleEvent(ctx, sub.Relay, event, svc.lnClient)
 		}
 		logger.Logger.Info("Relay subscription events channel ended")
 	}()
@@ -203,19 +211,13 @@ func finishRestoreNode(workDir string) {
 }
 
 func (svc *service) Shutdown() {
-	svc.StopLNClient()
+	svc.StopApp()
 	svc.eventPublisher.Publish(&events.Event{
 		Event: "nwc_stopped",
 	})
+	db.Stop(svc.db)
 	// wait for any remaining events
 	time.Sleep(1 * time.Second)
-}
-
-func (svc *service) StopApp() {
-	if svc.appCancelFn != nil {
-		svc.appCancelFn()
-		svc.wg.Wait()
-	}
 }
 
 func (svc *service) GetDB() *gorm.DB {
@@ -242,11 +244,10 @@ func (svc *service) GetLNClient() lnclient.LNClient {
 	return svc.lnClient
 }
 
-func (svc *service) GetKeys() keys.Keys {
-	return svc.keys
+func (svc *service) GetTransactionsService() transactions.TransactionsService {
+	return svc.transactionsService
 }
 
-func (svc *service) WaitShutdown() {
-	logger.Logger.Info("Waiting for service to exit...")
-	svc.wg.Wait()
+func (svc *service) GetKeys() keys.Keys {
+	return svc.keys
 }

@@ -16,7 +16,7 @@ type API interface {
 	DeleteApp(userApp *db.App) error
 	GetApp(userApp *db.App) *App
 	ListApps() ([]App, error)
-	ListChannels(ctx context.Context) ([]lnclient.Channel, error)
+	ListChannels(ctx context.Context) ([]Channel, error)
 	GetChannelPeerSuggestions(ctx context.Context) ([]alby.ChannelPeerSuggestion, error)
 	ResetRouter(key string) error
 	ChangeUnlockPassword(changeUnlockPasswordRequest *ChangeUnlockPasswordRequest) error
@@ -40,7 +40,7 @@ type API interface {
 	LookupInvoice(ctx context.Context, paymentHash string) (*LookupInvoiceResponse, error)
 	RequestMempoolApi(endpoint string) (interface{}, error)
 	GetInfo(ctx context.Context) (*InfoResponse, error)
-	GetEncryptedMnemonic() *EncryptedMnemonicResponse
+	GetMnemonic(unlockPassword string) (*MnemonicResponse, error)
 	SetNextBackupReminder(backupReminderRequest *BackupReminderRequest) error
 	Start(startRequest *StartRequest) error
 	Setup(ctx context.Context, setupRequest *SetupRequest) error
@@ -49,26 +49,27 @@ type API interface {
 	GetNetworkGraph(nodeIds []string) (NetworkGraphResponse, error)
 	SyncWallet() error
 	GetLogOutput(ctx context.Context, logType string, getLogRequest *GetLogOutputRequest) (*GetLogOutputResponse, error)
-	NewInstantChannelInvoice(ctx context.Context, request *NewInstantChannelInvoiceRequest) (*NewInstantChannelInvoiceResponse, error)
+	RequestLSPOrder(ctx context.Context, request *LSPOrderRequest) (*LSPOrderResponse, error)
 	CreateBackup(unlockPassword string, w io.Writer) error
 	RestoreBackup(unlockPassword string, r io.Reader) error
 	GetWalletCapabilities(ctx context.Context) (*WalletCapabilitiesResponse, error)
 }
 
 type App struct {
-	// ID          uint      `json:"id"` // ID unused - pubkey is used as ID
-	Name        string    `json:"name"`
-	Description string    `json:"description"`
-	NostrPubkey string    `json:"nostrPubkey"`
-	CreatedAt   time.Time `json:"createdAt"`
-	UpdatedAt   time.Time `json:"updatedAt"`
-
+	ID            uint       `json:"id"`
+	Name          string     `json:"name"`
+	Description   string     `json:"description"`
+	NostrPubkey   string     `json:"nostrPubkey"`
+	CreatedAt     time.Time  `json:"createdAt"`
+	UpdatedAt     time.Time  `json:"updatedAt"`
 	LastEventAt   *time.Time `json:"lastEventAt"`
 	ExpiresAt     *time.Time `json:"expiresAt"`
 	Scopes        []string   `json:"scopes"`
-	MaxAmount     uint64     `json:"maxAmount"`
+	MaxAmountSat  uint64     `json:"maxAmount"`
 	BudgetUsage   uint64     `json:"budgetUsage"`
 	BudgetRenewal string     `json:"budgetRenewal"`
+	Isolated      bool       `json:"isolated"`
+	Balance       uint64     `json:"balance"`
 }
 
 type ListAppsResponse struct {
@@ -76,7 +77,7 @@ type ListAppsResponse struct {
 }
 
 type UpdateAppRequest struct {
-	MaxAmount     uint64   `json:"maxAmount"`
+	MaxAmountSat  uint64   `json:"maxAmount"`
 	BudgetRenewal string   `json:"budgetRenewal"`
 	ExpiresAt     string   `json:"expiresAt"`
 	Scopes        []string `json:"scopes"`
@@ -85,11 +86,12 @@ type UpdateAppRequest struct {
 type CreateAppRequest struct {
 	Name          string   `json:"name"`
 	Pubkey        string   `json:"pubkey"`
-	MaxAmount     uint64   `json:"maxAmount"`
+	MaxAmountSat  uint64   `json:"maxAmount"`
 	BudgetRenewal string   `json:"budgetRenewal"`
 	ExpiresAt     string   `json:"expiresAt"`
 	Scopes        []string `json:"scopes"`
 	ReturnTo      string   `json:"returnTo"`
+	Isolated      bool     `json:"isolated"`
 }
 
 type StartRequest struct {
@@ -97,7 +99,8 @@ type StartRequest struct {
 }
 
 type UnlockRequest struct {
-	UnlockPassword string `json:"unlockPassword"`
+	UnlockPassword  string  `json:"unlockPassword"`
+	TokenExpiryDays *uint64 `json:"tokenExpiryDays"`
 }
 
 type BackupReminderRequest struct {
@@ -154,11 +157,15 @@ type InfoResponse struct {
 	AlbyUserIdentifier   string `json:"albyUserIdentifier"`
 	AlbyAccountConnected bool   `json:"albyAccountConnected"`
 	Version              string `json:"version"`
-	LatestVersion        string `json:"latestVersion"`
 	Network              string `json:"network"`
+	EnableAdvancedSetup  bool   `json:"enableAdvancedSetup"`
 }
 
-type EncryptedMnemonicResponse struct {
+type MnemonicRequest struct {
+	UnlockPassword string `json:"unlockPassword"`
+}
+
+type MnemonicResponse struct {
 	Mnemonic string `json:"mnemonic"`
 }
 
@@ -184,10 +191,46 @@ type RedeemOnchainFundsResponse struct {
 type OnchainBalanceResponse = lnclient.OnchainBalanceResponse
 type BalancesResponse = lnclient.BalancesResponse
 
-type SendPaymentResponse = lnclient.PayInvoiceResponse
-type MakeInvoiceResponse = lnclient.Transaction
-type LookupInvoiceResponse = lnclient.Transaction
-type ListTransactionsResponse = []lnclient.Transaction
+type SendPaymentResponse = Transaction
+type MakeInvoiceResponse = Transaction
+type LookupInvoiceResponse = Transaction
+type ListTransactionsResponse = []Transaction
+
+// TODO: camelCase
+type Transaction struct {
+	Type            string      `json:"type"`
+	Invoice         string      `json:"invoice"`
+	Description     string      `json:"description"`
+	DescriptionHash string      `json:"descriptionHash"`
+	Preimage        *string     `json:"preimage"`
+	PaymentHash     string      `json:"paymentHash"`
+	Amount          uint64      `json:"amount"`
+	FeesPaid        uint64      `json:"feesPaid"`
+	CreatedAt       string      `json:"createdAt"`
+	SettledAt       *string     `json:"settledAt"`
+	AppId           *uint       `json:"appId"`
+	Metadata        Metadata    `json:"metadata,omitempty"`
+	Boostagram      *Boostagram `json:"boostagram,omitempty"`
+}
+
+type Metadata = map[string]interface{}
+
+type Boostagram struct {
+	AppName        string `json:"appName"`
+	Name           string `json:"name"`
+	Podcast        string `json:"podcast"`
+	URL            string `json:"url"`
+	Episode        string `json:"episode,omitempty"`
+	FeedId         string `json:"feedId,omitempty"`
+	ItemId         string `json:"itemId,omitempty"`
+	Timestamp      int64  `json:"ts,omitempty"`
+	Message        string `json:"message,omitempty"`
+	SenderId       string `json:"senderId"`
+	SenderName     string `json:"senderName"`
+	Time           string `json:"time"`
+	Action         string `json:"action"`
+	ValueMsatTotal int64  `json:"valueMsatTotal"`
+}
 
 // debug api
 type SendPaymentProbesRequest struct {
@@ -248,14 +291,14 @@ type BasicRestoreWailsRequest struct {
 
 type NetworkGraphResponse = lnclient.NetworkGraphResponse
 
-type NewInstantChannelInvoiceRequest struct {
+type LSPOrderRequest struct {
 	Amount  uint64 `json:"amount"`
 	LSPType string `json:"lspType"`
 	LSPUrl  string `json:"lspUrl"`
 	Public  bool   `json:"public"`
 }
 
-type NewInstantChannelInvoiceResponse struct {
+type LSPOrderResponse struct {
 	Invoice           string `json:"invoice"`
 	Fee               uint64 `json:"fee"`
 	InvoiceAmount     uint64 `json:"invoiceAmount"`
@@ -267,4 +310,24 @@ type WalletCapabilitiesResponse struct {
 	Scopes            []string `json:"scopes"`
 	Methods           []string `json:"methods"`
 	NotificationTypes []string `json:"notificationTypes"`
+}
+
+type Channel struct {
+	LocalBalance                             int64       `json:"localBalance"`
+	LocalSpendableBalance                    int64       `json:"localSpendableBalance"`
+	RemoteBalance                            int64       `json:"remoteBalance"`
+	Id                                       string      `json:"id"`
+	RemotePubkey                             string      `json:"remotePubkey"`
+	FundingTxId                              string      `json:"fundingTxId"`
+	Active                                   bool        `json:"active"`
+	Public                                   bool        `json:"public"`
+	InternalChannel                          interface{} `json:"internalChannel"`
+	Confirmations                            *uint32     `json:"confirmations"`
+	ConfirmationsRequired                    *uint32     `json:"confirmationsRequired"`
+	ForwardingFeeBaseMsat                    uint32      `json:"forwardingFeeBaseMsat"`
+	UnspendablePunishmentReserve             uint64      `json:"unspendablePunishmentReserve"`
+	CounterpartyUnspendablePunishmentReserve uint64      `json:"counterpartyUnspendablePunishmentReserve"`
+	Error                                    *string     `json:"error"`
+	Status                                   string      `json:"status"`
+	IsOutbound                               bool        `json:"isOutbound"`
 }

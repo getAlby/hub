@@ -7,17 +7,20 @@ import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { toast } from "src/components/ui/use-toast";
-import { useCSRF } from "src/hooks/useCSRF";
+
 import { useInfo } from "src/hooks/useInfo";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { openLink } from "src/utils/openLink";
 import { request } from "src/utils/request"; // build the project for this to appear
 
-function AuthCodeForm() {
+type AuthCodeFormProps = {
+  url: string;
+};
+
+function AuthCodeForm({ url }: AuthCodeFormProps) {
   const [authCode, setAuthCode] = useState("");
   const navigate = useNavigate();
-  const { data: csrf } = useCSRF();
-  const { data: info } = useInfo();
+
   const { mutate: refetchInfo } = useInfo();
 
   const [hasRequestedCode, setRequestedCode] = React.useState(false);
@@ -25,11 +28,11 @@ function AuthCodeForm() {
 
   async function requestAuthCode() {
     setRequestedCode((hasRequestedCode) => {
-      if (!info) {
+      if (!url) {
         return false;
       }
       if (!hasRequestedCode) {
-        openLink(info.albyAuthUrl);
+        openLink(url);
       }
       return true;
     });
@@ -39,12 +42,8 @@ function AuthCodeForm() {
     e.preventDefault();
     setLoading(true);
     try {
-      if (!csrf) {
-        throw new Error("info not loaded");
-      }
       await request(`/api/alby/callback?code=${authCode}`, {
         headers: {
-          "X-CSRF-Token": csrf,
           "Content-Type": "application/json",
         },
       });
@@ -77,7 +76,7 @@ function AuthCodeForm() {
                 <div className="grid gap-1.5">
                   <Label htmlFor="authorization-code">Authorization Code</Label>
                   <Input
-                    type="text"
+                    type="password"
                     name="authorization-code"
                     id="authorization-code"
                     placeholder="Enter code you see in the browser"

@@ -17,7 +17,9 @@ import (
 
 	"github.com/getAlby/hub/alby"
 	"github.com/getAlby/hub/config"
+	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
+	"github.com/getAlby/hub/db/queries"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
@@ -66,7 +68,14 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 		}
 	}
 
-	app, pairingSecretKey, err := api.dbSvc.CreateApp(createAppRequest.Name, createAppRequest.Pubkey, createAppRequest.MaxAmount, createAppRequest.BudgetRenewal, expiresAt, createAppRequest.Scopes)
+	app, pairingSecretKey, err := api.dbSvc.CreateApp(
+		createAppRequest.Name,
+		createAppRequest.Pubkey,
+		createAppRequest.MaxAmountSat,
+		createAppRequest.BudgetRenewal,
+		expiresAt,
+		createAppRequest.Scopes,
+		createAppRequest.Isolated)
 
 	if err != nil {
 		return nil, err
@@ -102,7 +111,7 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 }
 
 func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) error {
-	maxAmount := updateAppRequest.MaxAmount
+	maxAmount := updateAppRequest.MaxAmountSat
 	budgetRenewal := updateAppRequest.BudgetRenewal
 
 	if len(updateAppRequest.Scopes) == 0 {
@@ -119,7 +128,7 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 		// Update existing permissions with new budget and expiry
 		err := tx.Model(&db.AppPermission{}).Where("app_id", userApp.ID).Updates(map[string]interface{}{
 			"ExpiresAt":     expiresAt,
-			"MaxAmount":     maxAmount,
+			"MaxAmountSat":  maxAmount,
 			"BudgetRenewal": budgetRenewal,
 		}).Error
 		if err != nil {
@@ -143,7 +152,7 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 					App:           *userApp,
 					Scope:         method,
 					ExpiresAt:     expiresAt,
-					MaxAmount:     int(maxAmount),
+					MaxAmountSat:  int(maxAmount),
 					BudgetRenewal: budgetRenewal,
 				}
 				if err := tx.Create(&perm).Error; err != nil {
@@ -171,20 +180,20 @@ func (api *api) DeleteApp(userApp *db.App) error {
 	return api.db.Delete(userApp).Error
 }
 
-func (api *api) GetApp(userApp *db.App) *App {
+func (api *api) GetApp(dbApp *db.App) *App {
 
 	var lastEvent db.RequestEvent
-	lastEventResult := api.db.Where("app_id = ?", userApp.ID).Order("id desc").Limit(1).Find(&lastEvent)
+	lastEventResult := api.db.Where("app_id = ?", dbApp.ID).Order("id desc").Limit(1).Find(&lastEvent)
 
 	paySpecificPermission := db.AppPermission{}
 	appPermissions := []db.AppPermission{}
 	var expiresAt *time.Time
-	api.db.Where("app_id = ?", userApp.ID).Find(&appPermissions)
+	api.db.Where("app_id = ?", dbApp.ID).Find(&appPermissions)
 
 	requestMethods := []string{}
 	for _, appPerm := range appPermissions {
 		expiresAt = appPerm.ExpiresAt
-		if appPerm.Scope == permissions.PAY_INVOICE_SCOPE {
+		if appPerm.Scope == constants.PAY_INVOICE_SCOPE {
 			//find the pay_invoice-specific permissions
 			paySpecificPermission = appPerm
 		}
@@ -193,22 +202,26 @@ func (api *api) GetApp(userApp *db.App) *App {
 
 	//renewsIn := ""
 	budgetUsage := uint64(0)
-	maxAmount := uint64(paySpecificPermission.MaxAmount)
-	if maxAmount > 0 {
-		budgetUsage = api.permissionsSvc.GetBudgetUsage(&paySpecificPermission)
-	}
+	maxAmount := uint64(paySpecificPermission.MaxAmountSat)
+	budgetUsage = queries.GetBudgetUsageSat(api.db, &paySpecificPermission)
 
 	response := App{
-		Name:          userApp.Name,
-		Description:   userApp.Description,
-		CreatedAt:     userApp.CreatedAt,
-		UpdatedAt:     userApp.UpdatedAt,
-		NostrPubkey:   userApp.NostrPubkey,
+		ID:            dbApp.ID,
+		Name:          dbApp.Name,
+		Description:   dbApp.Description,
+		CreatedAt:     dbApp.CreatedAt,
+		UpdatedAt:     dbApp.UpdatedAt,
+		NostrPubkey:   dbApp.NostrPubkey,
 		ExpiresAt:     expiresAt,
-		MaxAmount:     maxAmount,
+		MaxAmountSat:  maxAmount,
 		Scopes:        requestMethods,
 		BudgetUsage:   budgetUsage,
 		BudgetRenewal: paySpecificPermission.BudgetRenewal,
+		Isolated:      dbApp.Isolated,
+	}
+
+	if dbApp.Isolated {
+		response.Balance = queries.GetIsolatedBalance(api.db, dbApp.ID)
 	}
 
 	if lastEventResult.RowsAffected > 0 {
@@ -222,10 +235,18 @@ func (api *api) GetApp(userApp *db.App) *App {
 func (api *api) ListApps() ([]App, error) {
 	// TODO: join dbApps and permissions
 	dbApps := []db.App{}
-	api.db.Find(&dbApps)
+	err := api.db.Find(&dbApps).Error
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to list apps")
+		return nil, err
+	}
 
 	appPermissions := []db.AppPermission{}
-	api.db.Find(&appPermissions)
+	err = api.db.Find(&appPermissions).Error
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to list app permissions")
+		return nil, err
+	}
 
 	permissionsMap := make(map[uint][]db.AppPermission)
 	for _, perm := range appPermissions {
@@ -233,30 +254,33 @@ func (api *api) ListApps() ([]App, error) {
 	}
 
 	apiApps := []App{}
-	for _, userApp := range dbApps {
+	for _, dbApp := range dbApps {
 		apiApp := App{
-			// ID:          app.ID,
-			Name:        userApp.Name,
-			Description: userApp.Description,
-			CreatedAt:   userApp.CreatedAt,
-			UpdatedAt:   userApp.UpdatedAt,
-			NostrPubkey: userApp.NostrPubkey,
+			ID:          dbApp.ID,
+			Name:        dbApp.Name,
+			Description: dbApp.Description,
+			CreatedAt:   dbApp.CreatedAt,
+			UpdatedAt:   dbApp.UpdatedAt,
+			NostrPubkey: dbApp.NostrPubkey,
+			Isolated:    dbApp.Isolated,
 		}
 
-		for _, appPermission := range permissionsMap[userApp.ID] {
+		if dbApp.Isolated {
+			apiApp.Balance = queries.GetIsolatedBalance(api.db, dbApp.ID)
+		}
+
+		for _, appPermission := range permissionsMap[dbApp.ID] {
 			apiApp.Scopes = append(apiApp.Scopes, appPermission.Scope)
 			apiApp.ExpiresAt = appPermission.ExpiresAt
-			if appPermission.Scope == permissions.PAY_INVOICE_SCOPE {
+			if appPermission.Scope == constants.PAY_INVOICE_SCOPE {
 				apiApp.BudgetRenewal = appPermission.BudgetRenewal
-				apiApp.MaxAmount = uint64(appPermission.MaxAmount)
-				if apiApp.MaxAmount > 0 {
-					apiApp.BudgetUsage = api.permissionsSvc.GetBudgetUsage(&appPermission)
-				}
+				apiApp.MaxAmountSat = uint64(appPermission.MaxAmountSat)
+				apiApp.BudgetUsage = queries.GetBudgetUsageSat(api.db, &appPermission)
 			}
 		}
 
 		var lastEvent db.RequestEvent
-		lastEventResult := api.db.Where("app_id = ?", userApp.ID).Order("id desc").Limit(1).Find(&lastEvent)
+		lastEventResult := api.db.Where("app_id = ?", dbApp.ID).Order("id desc").Limit(1).Find(&lastEvent)
 		if lastEventResult.RowsAffected > 0 {
 			apiApp.LastEventAt = &lastEvent.CreatedAt
 		}
@@ -266,11 +290,45 @@ func (api *api) ListApps() ([]App, error) {
 	return apiApps, nil
 }
 
-func (api *api) ListChannels(ctx context.Context) ([]lnclient.Channel, error) {
+func (api *api) ListChannels(ctx context.Context) ([]Channel, error) {
 	if api.svc.GetLNClient() == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	return api.svc.GetLNClient().ListChannels(ctx)
+	channels, err := api.svc.GetLNClient().ListChannels(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	apiChannels := []Channel{}
+	for _, channel := range channels {
+		status := "offline"
+		if channel.Active {
+			status = "online"
+		} else if channel.Confirmations != nil && channel.ConfirmationsRequired != nil && *channel.ConfirmationsRequired > *channel.Confirmations {
+			status = "opening"
+		}
+
+		apiChannels = append(apiChannels, Channel{
+			LocalBalance:                             channel.LocalBalance,
+			LocalSpendableBalance:                    channel.LocalSpendableBalance,
+			RemoteBalance:                            channel.RemoteBalance,
+			Id:                                       channel.Id,
+			RemotePubkey:                             channel.RemotePubkey,
+			FundingTxId:                              channel.FundingTxId,
+			Active:                                   channel.Active,
+			Public:                                   channel.Public,
+			InternalChannel:                          channel.InternalChannel,
+			Confirmations:                            channel.Confirmations,
+			ConfirmationsRequired:                    channel.ConfirmationsRequired,
+			ForwardingFeeBaseMsat:                    channel.ForwardingFeeBaseMsat,
+			UnspendablePunishmentReserve:             channel.UnspendablePunishmentReserve,
+			CounterpartyUnspendablePunishmentReserve: channel.CounterpartyUnspendablePunishmentReserve,
+			Error:                                    channel.Error,
+			IsOutbound:                               channel.IsOutbound,
+			Status:                                   status,
+		})
+	}
+	return apiChannels, nil
 }
 
 func (api *api) GetChannelPeerSuggestions(ctx context.Context) ([]alby.ChannelPeerSuggestion, error) {
@@ -314,15 +372,11 @@ func (api *api) Stop() error {
 		return errors.New("LNClient not started")
 	}
 
-	// TODO: this should stop everything related to the lnclient
-	// stop the lnclient
+	// stop the lnclient, nostr relay etc.
 	// The user will be forced to re-enter their unlock password to restart the node
-	err := api.svc.StopLNClient()
-	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to stop LNClient")
-	}
+	api.svc.StopApp()
 
-	return err
+	return nil
 }
 
 func (api *api) GetNodeConnectionInfo(ctx context.Context) (*lnclient.NodeConnectionInfo, error) {
@@ -487,44 +541,6 @@ func (api *api) GetBalances(ctx context.Context) (*BalancesResponse, error) {
 	return balances, nil
 }
 
-func (api *api) ListTransactions(ctx context.Context, limit uint64, offset uint64) (*ListTransactionsResponse, error) {
-	if api.svc.GetLNClient() == nil {
-		return nil, errors.New("LNClient not started")
-	}
-	transactions, err := api.svc.GetLNClient().ListTransactions(ctx, 0, 0, limit, offset, false, "")
-	if err != nil {
-		return nil, err
-	}
-	return &transactions, nil
-}
-
-func (api *api) SendPayment(ctx context.Context, invoice string) (*SendPaymentResponse, error) {
-	if api.svc.GetLNClient() == nil {
-		return nil, errors.New("LNClient not started")
-	}
-	resp, err := api.svc.GetLNClient().SendPaymentSync(ctx, invoice)
-	if err != nil {
-		return nil, err
-	}
-	return resp, nil
-}
-
-func (api *api) CreateInvoice(ctx context.Context, amount int64, description string) (*MakeInvoiceResponse, error) {
-	if api.svc.GetLNClient() == nil {
-		return nil, errors.New("LNClient not started")
-	}
-	invoice, err := api.svc.GetLNClient().MakeInvoice(ctx, amount, description, "", 0)
-	return invoice, err
-}
-
-func (api *api) LookupInvoice(ctx context.Context, paymentHash string) (*LookupInvoiceResponse, error) {
-	if api.svc.GetLNClient() == nil {
-		return nil, errors.New("LNClient not started")
-	}
-	invoice, err := api.svc.GetLNClient().LookupInvoice(ctx, paymentHash)
-	return invoice, err
-}
-
 // TODO: remove dependency on this endpoint
 func (api *api) RequestMempoolApi(endpoint string) (interface{}, error) {
 	url := api.cfg.GetEnv().MempoolApi + endpoint
@@ -580,7 +596,7 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info.AlbyAuthUrl = api.albyOAuthSvc.GetAuthUrl()
 	info.OAuthRedirect = !api.cfg.GetEnv().IsDefaultClientId()
 	info.Version = version.Tag
-	info.LatestVersion = version.GetLatestReleaseTag()
+	info.EnableAdvancedSetup = api.cfg.GetEnv().EnableAdvancedSetup
 	albyUserIdentifier, err := api.albyOAuthSvc.GetUserIdentifier()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to get alby user identifier")
@@ -603,11 +619,21 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	return &info, nil
 }
 
-func (api *api) GetEncryptedMnemonic() *EncryptedMnemonicResponse {
-	resp := EncryptedMnemonicResponse{}
-	mnemonic, _ := api.cfg.Get("Mnemonic", "")
-	resp.Mnemonic = mnemonic
-	return &resp
+func (api *api) GetMnemonic(unlockPassword string) (*MnemonicResponse, error) {
+	if !api.cfg.CheckUnlockPassword(unlockPassword) {
+		return nil, fmt.Errorf("wrong password")
+	}
+
+	mnemonic, err := api.cfg.Get("Mnemonic", unlockPassword)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch encryption key: %w", err)
+	}
+
+	resp := MnemonicResponse{
+		Mnemonic: mnemonic,
+	}
+
+	return &resp, err
 }
 
 func (api *api) SetNextBackupReminder(backupReminderRequest *BackupReminderRequest) error {
@@ -693,7 +719,7 @@ func (api *api) GetWalletCapabilities(ctx context.Context) (*WalletCapabilitiesR
 		return nil, err
 	}
 	if len(notificationTypes) > 0 {
-		scopes = append(scopes, permissions.NOTIFICATIONS_SCOPE)
+		scopes = append(scopes, constants.NOTIFICATIONS_SCOPE)
 	}
 
 	return &WalletCapabilitiesResponse{
@@ -782,7 +808,6 @@ func (api *api) parseExpiresAt(expiresAtString string) (*time.Time, error) {
 			logger.Logger.WithField("expiresAt", expiresAtString).Error("Invalid expiresAt")
 			return nil, fmt.Errorf("invalid expiresAt: %v", err)
 		}
-		expiresAtValue = time.Date(expiresAtValue.Year(), expiresAtValue.Month(), expiresAtValue.Day(), 23, 59, 59, 0, expiresAtValue.Location())
 		expiresAt = &expiresAtValue
 	}
 	return expiresAt, nil

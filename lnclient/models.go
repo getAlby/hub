@@ -4,11 +4,15 @@ import (
 	"context"
 )
 
+// TODO: remove JSON tags from these models (LNClient models should not be exposed directly)
+
 type TLVRecord struct {
 	Type uint64 `json:"type"`
 	// hex-encoded value
 	Value string `json:"value"`
 }
+
+type Metadata = map[string]interface{}
 
 type NodeInfo struct {
 	Alias       string
@@ -21,18 +25,18 @@ type NodeInfo struct {
 
 // TODO: use uint for fields that cannot be negative
 type Transaction struct {
-	Type            string      `json:"type"`
-	Invoice         string      `json:"invoice"`
-	Description     string      `json:"description"`
-	DescriptionHash string      `json:"description_hash"`
-	Preimage        string      `json:"preimage"`
-	PaymentHash     string      `json:"payment_hash"`
-	Amount          int64       `json:"amount"`
-	FeesPaid        int64       `json:"fees_paid"`
-	CreatedAt       int64       `json:"created_at"`
-	ExpiresAt       *int64      `json:"expires_at"`
-	SettledAt       *int64      `json:"settled_at"`
-	Metadata        interface{} `json:"metadata,omitempty"`
+	Type            string
+	Invoice         string
+	Description     string
+	DescriptionHash string
+	Preimage        string
+	PaymentHash     string
+	Amount          int64
+	FeesPaid        int64
+	CreatedAt       int64
+	ExpiresAt       *int64
+	SettledAt       *int64
+	Metadata        Metadata
 }
 
 type NodeConnectionInfo struct {
@@ -43,8 +47,9 @@ type NodeConnectionInfo struct {
 
 type LNClient interface {
 	SendPaymentSync(ctx context.Context, payReq string) (*PayInvoiceResponse, error)
-	SendKeysend(ctx context.Context, amount uint64, destination, preimage string, customRecords []TLVRecord) (preImage string, err error)
+	SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []TLVRecord, preimage string) (*PayKeysendResponse, error)
 	GetBalance(ctx context.Context) (balance int64, err error)
+	GetPubkey() string
 	GetInfo(ctx context.Context) (info *NodeInfo, err error)
 	MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *Transaction, err error)
 	LookupInvoice(ctx context.Context, paymentHash string) (transaction *Transaction, err error)
@@ -76,20 +81,22 @@ type LNClient interface {
 }
 
 type Channel struct {
-	LocalBalance                             int64       `json:"localBalance"`
-	LocalSpendableBalance                    int64       `json:"localSpendableBalance"`
-	RemoteBalance                            int64       `json:"remoteBalance"`
-	Id                                       string      `json:"id"`
-	RemotePubkey                             string      `json:"remotePubkey"`
-	FundingTxId                              string      `json:"fundingTxId"`
-	Active                                   bool        `json:"active"`
-	Public                                   bool        `json:"public"`
-	InternalChannel                          interface{} `json:"internalChannel"`
-	Confirmations                            *uint32     `json:"confirmations"`
-	ConfirmationsRequired                    *uint32     `json:"confirmationsRequired"`
-	ForwardingFeeBaseMsat                    uint32      `json:"forwardingFeeBaseMsat"`
-	UnspendablePunishmentReserve             uint64      `json:"unspendablePunishmentReserve"`
-	CounterpartyUnspendablePunishmentReserve uint64      `json:"counterpartyUnspendablePunishmentReserve"`
+	LocalBalance                             int64
+	LocalSpendableBalance                    int64
+	RemoteBalance                            int64
+	Id                                       string
+	RemotePubkey                             string
+	FundingTxId                              string
+	Active                                   bool
+	Public                                   bool
+	InternalChannel                          interface{}
+	Confirmations                            *uint32
+	ConfirmationsRequired                    *uint32
+	ForwardingFeeBaseMsat                    uint32
+	UnspendablePunishmentReserve             uint64
+	CounterpartyUnspendablePunishmentReserve uint64
+	Error                                    *string
+	IsOutbound                               bool
 }
 
 type NodeStatus struct {
@@ -149,8 +156,12 @@ type LightningBalanceResponse struct {
 }
 
 type PayInvoiceResponse struct {
-	Preimage string  `json:"preimage"`
-	Fee      *uint64 `json:"fee"`
+	Preimage string `json:"preimage"`
+	Fee      uint64 `json:"fee"`
+}
+
+type PayKeysendResponse struct {
+	Fee uint64 `json:"fee"`
 }
 
 type BalancesResponse struct {
@@ -162,3 +173,14 @@ type NetworkGraphResponse = interface{}
 
 // default invoice expiry in seconds (1 day)
 const DEFAULT_INVOICE_EXPIRY = 86400
+
+type timeoutError struct {
+}
+
+func NewTimeoutError() error {
+	return &timeoutError{}
+}
+
+func (err *timeoutError) Error() string {
+	return "Timeout"
+}

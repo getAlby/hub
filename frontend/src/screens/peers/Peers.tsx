@@ -2,6 +2,8 @@ import { MoreHorizontal, Trash2 } from "lucide-react";
 import React from "react";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader.tsx";
+import { DisconnectPeerDialogContent } from "src/components/DisconnectPeerDialogContent";
+import { AlertDialog } from "src/components/ui/alert-dialog.tsx";
 import { Badge } from "src/components/ui/badge.tsx";
 import { Button } from "src/components/ui/button.tsx";
 import {
@@ -18,20 +20,19 @@ import {
   TableHeader,
   TableRow,
 } from "src/components/ui/table.tsx";
-import { toast } from "src/components/ui/use-toast.ts";
+import { toast } from "src/components/ui/use-toast";
 import { useChannels } from "src/hooks/useChannels";
 import { usePeers } from "src/hooks/usePeers.ts";
 import { useSyncWallet } from "src/hooks/useSyncWallet.ts";
-import { Node } from "src/types";
+import { Node, Peer } from "src/types";
 import { request } from "src/utils/request";
-import { useCSRF } from "../../hooks/useCSRF.ts";
 
 export default function Peers() {
   useSyncWallet();
-  const { data: peers, mutate: reloadPeers } = usePeers();
+  const { data: peers } = usePeers();
   const { data: channels } = useChannels();
   const [nodes, setNodes] = React.useState<Node[]>([]);
-  const { data: csrf } = useCSRF();
+  const [peerToDisconnect, setPeerToDisconnect] = React.useState<Peer>();
 
   // TODO: move to NWC backend
   const loadNodeStats = React.useCallback(async () => {
@@ -58,41 +59,22 @@ export default function Peers() {
     loadNodeStats();
   }, [loadNodeStats]);
 
-  async function disconnectPeer(peerId: string) {
+  async function checkDisconnectPeer(peer: Peer) {
     try {
-      if (!csrf) {
-        throw new Error("csrf not loaded");
-      }
-      if (!peerId) {
-        throw new Error("peer missing");
-      }
       if (!channels) {
         throw new Error("channels not loaded");
       }
-      if (channels.some((channel) => channel.remotePubkey === peerId)) {
-        throw new Error("you have one or more open channels with " + peerId);
+      if (channels.some((channel) => channel.remotePubkey === peer.nodeId)) {
+        throw new Error(
+          "you have one or more open channels with " + peer.nodeId
+        );
       }
-      if (
-        !confirm(
-          "Are you sure you wish to disconnect with peer " + peerId + "?"
-        )
-      ) {
-        return;
-      }
-      console.info(`Disconnecting from ${peerId}`);
-
-      await request(`/api/peers/${peerId}`, {
-        method: "DELETE",
-        headers: {
-          "X-CSRF-Token": csrf,
-        },
-      });
-      toast({ title: "Successfully disconnected from peer " + peerId });
-      await reloadPeers();
+      setPeerToDisconnect(peer);
     } catch (e) {
       toast({
         variant: "destructive",
-        title: "Failed to disconnect peer: " + e,
+        title: "Cannot disconnect peer",
+        description: "" + e,
       });
       console.error(e);
     }
@@ -160,10 +142,10 @@ export default function Peers() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
+                          onClick={() => checkDisconnectPeer(peer)}
                           className="flex flex-row items-center gap-2"
-                          onClick={() => disconnectPeer(peer.nodeId)}
                         >
-                          <Trash2 className="text-destructive" />
+                          <Trash2 className="h-4 w-4 text-destructive" />
                           Disconnect Peer
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -175,6 +157,24 @@ export default function Peers() {
           </>
         </TableBody>
       </Table>
+
+      <AlertDialog
+        open={!!peerToDisconnect}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPeerToDisconnect(undefined);
+          }
+        }}
+      >
+        {peerToDisconnect && (
+          <DisconnectPeerDialogContent
+            peer={peerToDisconnect}
+            name={
+              nodes.find((n) => n.public_key === peerToDisconnect.nodeId)?.alias
+            }
+          />
+        )}
+      </AlertDialog>
     </>
   );
 }

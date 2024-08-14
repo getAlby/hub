@@ -115,6 +115,10 @@ func (wrapper *LNDWrapper) SubscribeInvoices(ctx context.Context, req *lnrpc.Inv
 	return wrapper.client.SubscribeInvoices(ctx, req, options...)
 }
 
+func (wrapper *LNDWrapper) SubscribePayments(ctx context.Context, req *routerrpc.TrackPaymentsRequest, options ...grpc.CallOption) (routerrpc.Router_TrackPaymentsClient, error) {
+	return wrapper.routerClient.TrackPayments(ctx, req, options...)
+}
+
 func (wrapper *LNDWrapper) ListInvoices(ctx context.Context, req *lnrpc.ListInvoiceRequest, options ...grpc.CallOption) (*lnrpc.ListInvoiceResponse, error) {
 	return wrapper.client.ListInvoices(ctx, req, options...)
 }
@@ -183,4 +187,8 @@ func (wrapper *LNDWrapper) GetChanInfo(ctx context.Context, req *lnrpc.ChanInfoR
 
 func (wrapper *LNDWrapper) UpdateChannel(ctx context.Context, req *lnrpc.PolicyUpdateRequest, options ...grpc.CallOption) (*lnrpc.PolicyUpdateResponse, error) {
 	return wrapper.client.UpdateChannelPolicy(ctx, req, options...)
+}
+
+func (wrapper *LNDWrapper) DisconnectPeer(ctx context.Context, req *lnrpc.DisconnectPeerRequest, options ...grpc.CallOption) (*lnrpc.DisconnectPeerResponse, error) {
+	return wrapper.client.DisconnectPeer(ctx, req, options...)
 }

@@ -13,13 +13,12 @@ import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
-import { useCSRF } from "src/hooks/useCSRF";
+
 import { copyToClipboard } from "src/lib/clipboard";
 import { SignMessageResponse } from "src/types";
 import { request } from "src/utils/request";
 
 export default function SignMessage() {
-  const { data: csrf } = useCSRF();
   const { toast } = useToast();
   const [isLoading, setLoading] = React.useState(false);
   const [message, setMessage] = React.useState("");
@@ -28,9 +27,7 @@ export default function SignMessage() {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!csrf) {
-      throw new Error("csrf not loaded");
-    }
+
     try {
       setLoading(true);
       const signMessageResponse = await request<SignMessageResponse>(
@@ -38,7 +35,6 @@ export default function SignMessage() {
         {
           method: "POST",
           headers: {
-            "X-CSRF-Token": csrf,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ message: message.trim() }),

@@ -31,6 +31,6 @@ func main() {
 	logger.Logger.Info("Cancelling service context...")
 	// cancel the service context
 	cancel()
-	svc.WaitShutdown()
+	svc.Shutdown()
 	logger.Logger.Info("Service exited")
 }

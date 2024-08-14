@@ -5,18 +5,16 @@ import {
   Bitcoin,
   ChevronDown,
   CopyIcon,
-  ExternalLinkIcon,
-  HandCoins,
   Heart,
   Hotel,
   InfoIcon,
-  MoreHorizontal,
-  Trash2,
   Unplug,
 } from "lucide-react";
 import React from "react";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader.tsx";
+import { ChannelsCards } from "src/components/channels/ChannelsCards.tsx";
+import { ChannelsTable } from "src/components/channels/ChannelsTable.tsx";
 import EmptyState from "src/components/EmptyState.tsx";
 import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading.tsx";
@@ -25,7 +23,6 @@ import {
   AlertDescription,
   AlertTitle,
 } from "src/components/ui/alert.tsx";
-import { Badge } from "src/components/ui/badge.tsx";
 import { Button } from "src/components/ui/button.tsx";
 import {
   Card,
@@ -44,15 +41,7 @@ import {
   DropdownMenuTrigger,
 } from "src/components/ui/dropdown-menu.tsx";
 import { LoadingButton } from "src/components/ui/loading-button.tsx";
-import { CircleProgress, Progress } from "src/components/ui/progress.tsx";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "src/components/ui/table.tsx";
+import { CircleProgress } from "src/components/ui/progress.tsx";
 import {
   Tooltip,
   TooltipContent,
@@ -68,19 +57,14 @@ import { useAlbyBalance } from "src/hooks/useAlbyBalance.ts";
 import { useBalances } from "src/hooks/useBalances.ts";
 import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
+import { useIsDesktop } from "src/hooks/useMediaQuery.ts";
 import { useNodeConnectionInfo } from "src/hooks/useNodeConnectionInfo.ts";
 import { useRedeemOnchainFunds } from "src/hooks/useRedeemOnchainFunds.ts";
 import { useSyncWallet } from "src/hooks/useSyncWallet.ts";
 import { copyToClipboard } from "src/lib/clipboard.ts";
-import { cn, formatAmount } from "src/lib/utils.ts";
-import {
-  Channel,
-  CloseChannelResponse,
-  Node,
-  UpdateChannelRequest,
-} from "src/types";
+import { cn } from "src/lib/utils.ts";
+import { Channel, Node, UpdateChannelRequest } from "src/types";
 import { request } from "src/utils/request";
-import { useCSRF } from "../../hooks/useCSRF.ts";
 
 export default function Channels() {
   useSyncWallet();
@@ -90,11 +74,12 @@ export default function Channels() {
   const { data: albyBalance, mutate: reloadAlbyBalance } = useAlbyBalance();
   const [nodes, setNodes] = React.useState<Node[]>([]);
   const { mutate: reloadInfo } = useInfo();
-  const { data: csrf } = useCSRF();
+
   const redeemOnchainFunds = useRedeemOnchainFunds();
   const { toast } = useToast();
   const [drainingAlbySharedFunds, setDrainingAlbySharedFunds] =
     React.useState(false);
+  const isDesktop = useIsDesktop();
 
   const nodeHealth = channels ? getNodeHealth(channels) : 0;
 
@@ -123,91 +108,8 @@ export default function Channels() {
     loadNodeStats();
   }, [loadNodeStats]);
 
-  async function closeChannel(
-    channelId: string,
-    nodeId: string,
-    isActive: boolean
-  ) {
-    try {
-      if (!csrf) {
-        throw new Error("csrf not loaded");
-      }
-      if (!isActive) {
-        if (
-          !confirm(
-            `This channel is inactive. Some channels require up to 6 onchain confirmations before they are usable. If you really want to continue, click OK.`
-          )
-        ) {
-          return;
-        }
-      }
-
-      if (
-        !confirm(
-          `Are you sure you want to close the channel with ${
-            nodes.find((node) => node.public_key === nodeId)?.alias ||
-            "Unknown Node"
-          }?\n\nNode ID: ${nodeId}\n\nChannel ID: ${channelId}`
-        )
-      ) {
-        return;
-      }
-
-      const closeType = prompt(
-        "Select way to close the channel. Type 'force close' if you want to force close the channel. Note: your channel balance will be locked for up to two weeks if you force close.",
-        "normal close"
-      );
-      if (!closeType) {
-        console.error("Cancelled close channel");
-        return;
-      }
-
-      console.info(`🎬 Closing channel with ${nodeId}`);
-
-      const closeChannelResponse = await request<CloseChannelResponse>(
-        `/api/peers/${nodeId}/channels/${channelId}?force=${
-          closeType === "force close"
-        }`,
-        {
-          method: "DELETE",
-          headers: {
-            "X-CSRF-Token": csrf,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (!closeChannelResponse) {
-        throw new Error("Error closing channel");
-      }
-
-      const closedChannel = channels?.find(
-        (c) => c.id === channelId && c.remotePubkey === nodeId
-      );
-      console.info("Closed channel", closedChannel);
-      if (closedChannel) {
-        prompt(
-          "Closed channel. Copy channel funding TX to view on mempool",
-          closedChannel.fundingTxId
-        );
-      }
-      await reloadChannels();
-      toast({ title: "Sucessfully closed channel" });
-    } catch (error) {
-      console.error(error);
-      toast({
-        variant: "destructive",
-        description: "Something went wrong: " + error,
-      });
-    }
-  }
-
   async function editChannel(channel: Channel) {
     try {
-      if (!csrf) {
-        throw new Error("csrf not loaded");
-      }
-
       const forwardingFeeBaseSats = prompt(
         "Enter base forwarding fee in sats",
         Math.floor(channel.forwardingFeeBaseMsat / 1000).toString()
@@ -228,7 +130,6 @@ export default function Channels() {
         {
           method: "PATCH",
           headers: {
-            "X-CSRF-Token": csrf,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
@@ -249,10 +150,6 @@ export default function Channels() {
 
   async function resetRouter() {
     try {
-      if (!csrf) {
-        throw new Error("csrf not loaded");
-      }
-
       const key = prompt(
         "Enter key to reset (choose one of ALL, LatestRgsSyncTimestamp, Scorer, NetworkGraph). After resetting, you'll need to re-enter your unlock password.",
         "ALL"
@@ -266,7 +163,6 @@ export default function Channels() {
         method: "POST",
         body: JSON.stringify({ key }),
         headers: {
-          "X-CSRF-Token": csrf,
           "Content-Type": "application/json",
         },
       });
@@ -336,7 +232,7 @@ export default function Channels() {
                       disabled={redeemOnchainFunds.isLoading}
                       className="w-full cursor-pointer"
                     >
-                      Redeem Onchain Funds
+                      Withdraw Savings Balance
                       {redeemOnchainFunds.isLoading && <Loading />}
                     </DropdownMenuItem>
                   )}
@@ -363,9 +259,9 @@ export default function Channels() {
                 </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>
-            {/* <Link to="/channels/new">
+            <Link to="/channels/outgoing">
               <Button>Open Channel</Button>
-            </Link> */}
+            </Link>
             <ExternalLink to="https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub/liquidity/node-health">
               <TooltipProvider>
                 <Tooltip>
@@ -418,24 +314,6 @@ export default function Channels() {
               </AlertDescription>
             </Alert>
           )}
-
-          {/* If all channels have less or equal balance than their reserve, show a warning */}
-          {channels?.every(
-            (channel) =>
-              channel.localBalance <=
-              channel.unspendablePunishmentReserve * 1000
-          ) && (
-            <Alert>
-              <AlertTriangle className="h-4 w-4" />
-              <AlertTitle>Channel reserves unmet</AlertTitle>
-              <AlertDescription>
-                You won't be able to make payments until you{" "}
-                <Link className="underline" to="/channels/outgoing">
-                  increase your spending balance.
-                </Link>
-              </AlertDescription>
-            </Alert>
-          )}
         </>
       )}
 
@@ -476,14 +354,9 @@ export default function Channels() {
 
                   setDrainingAlbySharedFunds(true);
                   try {
-                    if (!csrf) {
-                      throw new Error("csrf not loaded");
-                    }
-
                     await request("/api/alby/drain", {
                       method: "POST",
                       headers: {
-                        "X-CSRF-Token": csrf,
                         "Content-Type": "application/json",
                       },
                     });
@@ -511,7 +384,21 @@ export default function Channels() {
         <Card className="flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Savings Balance
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <div className="flex flex-row gap-2 items-center">
+                      Savings Balance
+                      <InfoIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent className="w-[300px]">
+                    Your savings balance (on-chain balance) can be used to open
+                    new lightning channels. When channels are closed, funds from
+                    your channel will be returned to your savings balance.
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </CardTitle>
             <Bitcoin className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -523,7 +410,7 @@ export default function Channels() {
                 </div>
               </div>
             )}
-            <div className="text-2xl font-bold balance sensitive ph-no-capture">
+            <div className="text-2xl font-bold balance sensitive">
               {balances && (
                 <>
                   {new Intl.NumberFormat().format(balances.onchain.spendable)}{" "}
@@ -554,7 +441,20 @@ export default function Channels() {
         <Card className="flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Spending Balance
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <div className="flex flex-row gap-2 items-center">
+                      Spending Balance
+                      <InfoIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent className="w-[300px]">
+                    Your spending balance is the funds on your side of your
+                    channels, which you can use to make lightning payments.
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </CardTitle>
             <ArrowUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -567,7 +467,7 @@ export default function Channels() {
               </div>
             )}
             {balances && (
-              <div className="text-2xl font-bold balance sensitive ph-no-capture">
+              <div className="text-2xl font-bold balance sensitive">
                 {new Intl.NumberFormat(undefined, {}).format(
                   Math.floor(balances.lightning.totalSpendable / 1000)
                 )}{" "}
@@ -584,12 +484,26 @@ export default function Channels() {
         <Card className="flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Receiving Capacity
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <div className="flex flex-row gap-2 items-center">
+                      Receiving Capacity
+                      <InfoIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent className="w-[300px]">
+                    Your receiving capacity is the funds owned by your channel
+                    partner, which will be moved to your side when you receive
+                    lightning payments.
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </CardTitle>
             <ArrowDown className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="flex-grow">
-            <div className="text-2xl font-bold balance sensitive ph-no-capture">
+            <div className="text-2xl font-bold balance sensitive">
               {balances &&
                 new Intl.NumberFormat().format(
                   Math.floor(balances.lightning.totalReceivable / 1000)
@@ -615,217 +529,19 @@ export default function Channels() {
         />
       )}
 
-      {!channels ||
-        (channels.length > 0 && (
-          <Table className="channel-list">
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[80px]">Status</TableHead>
-                <TableHead>Node</TableHead>
-                <TableHead className="w-[150px]">Capacity</TableHead>
-                <TableHead className="w-[150px]">
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger>
-                        <div className="flex flex-row gap-2 items-center">
-                          Reserve
-                          <InfoIcon className="h-4 w-4 shrink-0" />
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent className="w-[400px]">
-                        Funds each participant sets aside to discourage cheating
-                        by ensuring each party has something at stake. This
-                        reserve cannot be spent during the channel's lifetime
-                        and typically amounts to 1% of the channel capacity.
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </TableHead>
-                <TableHead className="w-[300px]">
-                  <div className="flex flex-row justify-between items-center">
-                    <div>Spending</div>
-                    <div>Receiving</div>
-                  </div>
-                </TableHead>
-                <TableHead className="w-[24px]"></TableHead>
-                <TableHead className="w-[50px]"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {channels && channels.length > 0 && (
-                <>
-                  {channels
-                    .sort((a, b) =>
-                      a.localBalance + a.remoteBalance >
-                      b.localBalance + b.remoteBalance
-                        ? -1
-                        : 1
-                    )
-                    .map((channel) => {
-                      const node = nodes.find(
-                        (n) => n.public_key === channel.remotePubkey
-                      );
-                      const alias = node?.alias || "Unknown";
-                      const capacity =
-                        channel.localBalance + channel.remoteBalance;
-
-                      let channelWarning = "";
-                      if (channel.localSpendableBalance < capacity * 0.1) {
-                        channelWarning =
-                          "Spending balance low. You may have trouble sending payments through this channel.";
-                      }
-                      if (channel.localSpendableBalance > capacity * 0.9) {
-                        channelWarning =
-                          "Receiving capacity low. You may have trouble receiving payments through this channel.";
-                      }
-
-                      return (
-                        <TableRow key={channel.id} className="channel">
-                          <TableCell>
-                            {channel.active ? (
-                              <Badge variant="positive">Online</Badge>
-                            ) : (
-                              <Badge variant="outline">Offline</Badge>
-                            )}{" "}
-                          </TableCell>
-                          <TableCell className="flex flex-row items-center">
-                            <a
-                              title={channel.remotePubkey}
-                              href={`https://amboss.space/node/${channel.remotePubkey}`}
-                              target="_blank"
-                              rel="noopener noreferer"
-                            >
-                              <Button variant="link" className="p-0 mr-2">
-                                {alias}
-                              </Button>
-                            </a>
-                            <Badge variant="outline">
-                              {channel.public ? "Public" : "Private"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell title={capacity / 1000 + " sats"}>
-                            {formatAmount(capacity)} sats
-                          </TableCell>
-                          <TableCell
-                            title={
-                              channel.unspendablePunishmentReserve + " sats"
-                            }
-                          >
-                            {channel.localBalance <
-                              channel.unspendablePunishmentReserve * 1000 && (
-                              <>
-                                {formatAmount(
-                                  Math.min(
-                                    channel.localBalance,
-                                    channel.unspendablePunishmentReserve * 1000
-                                  )
-                                )}{" "}
-                                /{" "}
-                              </>
-                            )}
-                            {formatAmount(
-                              channel.unspendablePunishmentReserve * 1000
-                            )}{" "}
-                            sats
-                          </TableCell>
-                          <TableCell>
-                            <div className="relative">
-                              <Progress
-                                value={
-                                  (channel.localSpendableBalance / capacity) *
-                                  100
-                                }
-                                className="h-6 absolute"
-                              />
-                              <div className="flex flex-row w-full justify-between px-2 text-xs items-center h-6 mix-blend-exclusion text-white">
-                                <span
-                                  title={
-                                    channel.localSpendableBalance / 1000 +
-                                    " sats"
-                                  }
-                                >
-                                  {formatAmount(channel.localSpendableBalance)}{" "}
-                                  sats
-                                </span>
-                                <span
-                                  title={channel.remoteBalance / 1000 + " sats"}
-                                >
-                                  {formatAmount(channel.remoteBalance)} sats
-                                </span>
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            {channelWarning ? (
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger>
-                                    <AlertTriangle className="w-4 h-4 mt-1" />
-                                  </TooltipTrigger>
-                                  <TooltipContent className="w-[400px]">
-                                    {channelWarning}
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                            ) : null}
-                          </TableCell>
-                          <TableCell>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button size="icon" variant="ghost">
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem className="flex flex-row items-center gap-2 cursor-pointer">
-                                  <ExternalLink
-                                    to={`https://mempool.space/tx/${channel.fundingTxId}`}
-                                    className="w-full flex flex-row items-center gap-2"
-                                  >
-                                    <ExternalLinkIcon className="w-4 h-4" />
-                                    <p>View Funding Transaction</p>
-                                  </ExternalLink>
-                                </DropdownMenuItem>
-                                {channel.public && (
-                                  <DropdownMenuItem
-                                    className="flex flex-row items-center gap-2 cursor-pointer"
-                                    onClick={() => editChannel(channel)}
-                                  >
-                                    <HandCoins className="h-4 w-4" />
-                                    Set Routing Fee
-                                  </DropdownMenuItem>
-                                )}
-                                <DropdownMenuItem
-                                  className="flex flex-row items-center gap-2 cursor-pointer"
-                                  onClick={() =>
-                                    closeChannel(
-                                      channel.id,
-                                      channel.remotePubkey,
-                                      channel.active
-                                    )
-                                  }
-                                >
-                                  <Trash2 className="h-4 w-4 text-destructive" />
-                                  Close Channel
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                </>
-              )}
-              {!channels && (
-                <TableRow>
-                  <TableCell colSpan={6}>
-                    <Loading className="m-2" />
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        ))}
+      {isDesktop ? (
+        <ChannelsTable
+          channels={channels}
+          nodes={nodes}
+          editChannel={editChannel}
+        />
+      ) : (
+        <ChannelsCards
+          channels={channels}
+          nodes={nodes}
+          editChannel={editChannel}
+        />
+      )}
     </>
   );
 }

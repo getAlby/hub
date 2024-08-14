@@ -20,7 +20,7 @@ Ideally the app runs 24/7 (on a node, VPS or always-online desktop/laptop machin
 - Breez
 - Greenlight
 - LDK
-- Pheonixd
+- Phoenixd
 - Cashu
 - want more? please open an issue.
 
@@ -88,11 +88,11 @@ _If you get a blank screen, try running in your normal terminal (outside of vsco
 
 ### Testing
 
-    $ go test -race ./...
+    $ go test ./...
 
 #### Test matching regular expression
 
-    $ go test -race ./... -run TestHandleGetInfoEvent
+    $ go test ./... -run TestHandleGetInfoEvent
 
 ### Profiling
 
@@ -133,14 +133,20 @@ Breez SDK requires gcc to build the Breez bindings. Run `choco install mingw` an
 
 ## Optional configuration parameters
 
+The following configuration options can be set as environment variables or in a .env file
+
 - `NOSTR_PRIVKEY`: the private key of this service. Should be a securely randomly generated 32 byte hex string.
 - `CLIENT_NOSTR_PUBKEY`: if set, this service will only listen to events authored by this public key. You can set this to your own nostr public key.
 - `RELAY`: default: "wss://relay.getalby.com/v1"
-- `COOKIE_SECRET`: a randomly generated secret string. (only needed in http mode)
+- `JWT_SECRET`: a randomly generated secret string. (only needed in http mode)
 - `DATABASE_URI`: a sqlite filename. Default: $XDG_DATA_HOME/albyhub/nwc.db
 - `PORT`: the port on which the app should listen on (default: 8080)
 - `WORK_DIR`: directory to store NWC data files. Default: $XDG_DATA_HOME/albyhub
 - `LOG_LEVEL`: log level for the application. Higher is more verbose. Default: 4 (info)
+
+## Node-specific backend parameters
+
+- `ENABLE_ADVANCED_SETUP`: set to `false` to force a specific backend type (combined with backend parameters below)
 
 ### LND Backend parameters
 
@@ -157,19 +163,25 @@ _To configure via env, the following parameters must be provided:_
 
 - `LDK_ESPLORA_SERVER`: If using the mainnet (bitcoin) network, Recommended to use your own LDK esplora server (The public blockstream one is very slow and can cause onchain syncing and issues with opening channels)
 
-#### Testnet
+#### LDK Network Configuration
+
+##### Mutinynet
+
+- `MEMPOOL_API=https://mutinynet.com/api`
+- `LDK_NETWORK=signet`
+- `LDK_ESPLORA_SERVER=https://mutinynet.com/api`
+- `LDK_GOSSIP_SOURCE=https://rgs.mutinynet.com/snapshot`
+
+##### Testnet (Not recommended - try Mutinynet)
 
 - `MEMPOOL_API=https://mempool.space/testnet/api`
 - `LDK_NETWORK=testnet`
 - `LDK_ESPLORA_SERVER=https://mempool.space/testnet/api`
 - `LDK_GOSSIP_SOURCE=https://rapidsync.lightningdevkit.org/testnet/snapshot`
 
-#### Mutinynet
+### Phoenixd
 
-- `MEMPOOL_API=https://mutinynet.com/api`
-- `LDK_NETWORK=signet`
-- `LDK_ESPLORA_SERVER=https://mutinynet.com/api`
-- `LDK_GOSSIP_SOURCE=https://rgs.mutinynet.com/snapshot`
+See [Phoenixd](scripts/linux-x86_64/phoenixd/README.md)
 
 ### Alby OAuth
 
@@ -185,11 +197,9 @@ Follow the steps to integrate Mutinynet with your NWC Next setup:
 
 2. Proceed as described in the [Development](https://github.com/getAlby/hub#Development) section to run the frontend and backend
 
-3. During onboarding, after setting your password and authorizing via Alby OAuth, you'll be directed to `/onboarding/lightning/migrate-alby`. Click "Skip For Now" to access your wallet interface
+3. Navigate to `channels/outgoing`, copy your On-Chain Address, then visit the [Mutinynet Faucet](https://faucet.mutinynet.com/) to deposit sats. Ensure the transaction confirms on [mempool.space](https://mutinynet.com/)
 
-4. Navigate to `channels/onchain/deposit-bitcoin`, copy your On-Chain Address, then visit the [Mutinynet Faucet](https://faucet.mutinynet.com/) to deposit sats. Ensure the transaction confirms on [mempool.space](https://mutinynet.com/)
-
-5. Your On-chain balance will update under `/channels`
+4. Your On-chain balance will update under `/channels`
 
 ### Opening a channel from Mutinynet
 
@@ -243,6 +253,7 @@ If the client creates the secret the client only needs to share the public key o
 - `budget_renewal` (optional) reset the budget at the end of the given budget renewal. Can be `never` (default), `daily`, `weekly`, `monthly`, `yearly`
 - `request_methods` (optional) url encoded, space separated list of request types that you need permission for: `pay_invoice` (default), `get_balance` (see NIP47). For example: `..&request_methods=pay_invoice%20get_balance`
 - `notification_types` (optional) url encoded, space separated list of notification types that you need permission for: For example: `..&notification_types=payment_received%20payment_sent`
+- `isolated` (optional) makes an isolated app connection with its own balance and only access to its own transaction list. e.g. `&isolated=true`. If using this option, you should not pass any custom request methods or notification types, nor set a budget or expiry.
 
 Example:
 
@@ -332,17 +343,32 @@ Run NWC on your own node!
 
 ## Deploy it yourself
 
-### Digital Ocean
+### From the release
 
-[![Deploy to DO](https://www.deploytodo.com/do-btn-blue.svg)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/getAlby/hub/tree/master)
+Download and run the executable.
 
-### Render
+Have a look at the [configuration options](#optional-configuration-parameters)
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/getAlby/hub)
+```bash
+wget https://getalby.com/install/hub/server-linux-x86_64.tar.bz2
+tar -xvjf server-linux-x86_64.tar.bz2
 
-### Fly
+# run Alby Hub and done!
+./bin/albyhub
+```
 
-- [install fly](https://fly.io/docs/hands-on/install-flyctl/)
+### Fly.io
+
+Make sure to have the [fly command line tools installed ](https://fly.io/docs/hands-on/install-flyctl/)
+
+```bash
+wget https://getalby.com/install/hub/fly.toml
+fly launch
+fly apps open
+```
+
+Or manually:
+
 - update `app = 'nwc'` on **line 6** to a unique name in fly.toml e.g. `app = 'nwc-john-doe-1234'`
 - run `fly launch`
   - press 'y' to copy configuration to the new app and then hit enter
@@ -363,17 +389,6 @@ LDK logs:
 
 - `fly machine exec "tail -100 data/ldk/logs/ldk_node_latest.log"`
 
-### Custom Ubuntu VM
-
-- install go (using snap)
-- install build-essential
-- install nvm (curl script)
-- with nvm, choose node lts
-- install yarn (via npm)
-- run `(cd frontend && yarn install`
-- run `(cd frontend && yarn build:http)`
-- run `go run cmd/http/main.go`
-
 ### Docker
 
 #### From Alby's Container Registry
@@ -382,14 +397,25 @@ _Tested on Linux only_
 
 `docker run -v ~/.local/share/albyhub:/data -e WORK_DIR='/data' -p 8080:8080 ghcr.io/getalby/hub:latest`
 
-#### From Source
+##### Build the image locally
 
-_Tested on Linux only_
+`docker run -v ~/.local/share/albyhub:/data -e WORK_DIR='/data' -p 8080:8080 $(docker build -q .)`
 
 ##### Docker Compose
 
+In this repository. Or manually download the docker-compose.yml file and then run:
+
 `docker compose up`
 
-##### Manually
+#### From source
 
-`docker run -v ~/.local/share/albyhub:/data -e WORK_DIR='/data' -p 8080:8080 $(docker build -q .)`
+- install go (e.g. using snap)
+- install build-essential
+- install yarn
+- run `(cd frontend && yarn install`
+- run `(cd frontend && yarn build:http)`
+- run `go run cmd/http/main.go`
+
+### Render.com
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/getAlby/hub)

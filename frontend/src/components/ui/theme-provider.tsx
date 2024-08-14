@@ -16,6 +16,7 @@ type ThemeProviderState = {
   darkMode: string;
   setTheme: (theme: Theme) => void;
   setDarkMode: (mode: DarkMode) => void;
+  isDarkMode: boolean;
 };
 
 const initialState: ThemeProviderState = {
@@ -23,6 +24,7 @@ const initialState: ThemeProviderState = {
   setTheme: () => null,
   darkMode: "system",
   setDarkMode: () => null,
+  isDarkMode: false,
 };
 
 const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
@@ -35,7 +37,8 @@ export function ThemeProvider({
   ...props
 }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(() => {
-    return (localStorage.getItem(storageKey) as Theme) || defaultTheme;
+    const themeFromStorage = localStorage.getItem(storageKey) as Theme;
+    return Themes.includes(themeFromStorage) ? themeFromStorage : defaultTheme;
   });
 
   const [darkMode, setDarkMode] = useState<DarkMode>(() => {
@@ -44,6 +47,8 @@ export function ThemeProvider({
       defaultDarkMode
     );
   });
+
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -65,6 +70,8 @@ export function ThemeProvider({
       prefersDark = darkMode === "dark";
     }
 
+    setIsDarkMode(prefersDark);
+
     if (prefersDark) {
       classList.add("dark");
     } else {
@@ -83,6 +90,7 @@ export function ThemeProvider({
       localStorage.setItem(storageKey + "-darkmode", darkMode);
       setDarkMode(darkMode);
     },
+    isDarkMode,
   };
 
   return (

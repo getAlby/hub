@@ -211,6 +211,15 @@ func (api *api) RestoreBackup(unlockPassword string, r io.Reader) error {
 
 	go func() {
 		logger.Logger.Info("Backup restored. Shutting down Alby Hub...")
+		api.svc.Shutdown()
+		// ensure no -shm or -wal files exist as they will stop the restore
+		for _, filename := range []string{"nwc.db", "nwc.db-shm", "nwc.db-wal"} {
+			err = os.Remove(filepath.Join(workDir, filename))
+			if err != nil {
+				logger.Logger.WithError(err).WithField("filename", filename).Error("failed to remove old nwc db file before restore")
+			}
+		}
+
 		// schedule node shutdown after a few seconds to ensure frontend updates
 		time.Sleep(5 * time.Second)
 		os.Exit(0)

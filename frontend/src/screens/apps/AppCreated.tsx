@@ -20,6 +20,17 @@ import { copyToClipboard } from "src/lib/clipboard";
 import { CreateAppResponse } from "src/types";
 
 export default function AppCreated() {
+  const { state } = useLocation();
+  const navigate = useNavigate();
+  const createAppResponse = state as CreateAppResponse | undefined;
+  if (!createAppResponse?.pairingUri) {
+    navigate("/");
+    return null;
+  }
+
+  return <AppCreatedInternal />;
+}
+function AppCreatedInternal() {
   const { search, state } = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -30,6 +41,7 @@ export default function AppCreated() {
 
   const [timeout, setTimeout] = useState(false);
   const [isQRCodeVisible, setIsQRCodeVisible] = useState(false);
+
   const createAppResponse = state as CreateAppResponse;
   const pairingUri = createAppResponse.pairingUri;
   const { data: app } = useApp(createAppResponse.pairingPublicKey, true);
@@ -88,7 +100,7 @@ export default function AppCreated() {
         title={`Connect to ${createAppResponse.name}`}
         description="Configure wallet permissions for the app and follow instructions to finalise the connection"
       />
-      <div className="flex flex-col gap-3 ph-no-capture sensitive">
+      <div className="flex flex-col gap-3 sensitive">
         <div>
           <p>
             1. Open{" "}

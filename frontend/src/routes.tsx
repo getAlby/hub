@@ -26,14 +26,18 @@ import Channels from "src/screens/channels/Channels";
 import { CurrentChannelOrder } from "src/screens/channels/CurrentChannelOrder";
 import IncreaseIncomingCapacity from "src/screens/channels/IncreaseIncomingCapacity";
 import IncreaseOutgoingCapacity from "src/screens/channels/IncreaseOutgoingCapacity";
-import MigrateAlbyFunds from "src/screens/onboarding/MigrateAlbyFunds";
+import { FirstChannel } from "src/screens/channels/first/FirstChannel";
+import { OpenedFirstChannel } from "src/screens/channels/first/OpenedFirstChannel";
+import { OpeningFirstChannel } from "src/screens/channels/first/OpeningFirstChannel";
 import { Success } from "src/screens/onboarding/Success";
 import BuyBitcoin from "src/screens/onchain/BuyBitcoin";
 import DepositBitcoin from "src/screens/onchain/DepositBitcoin";
 import ConnectPeer from "src/screens/peers/ConnectPeer";
 import Peers from "src/screens/peers/Peers";
+import { AlbyAccount } from "src/screens/settings/AlbyAccount";
 import { ChangeUnlockPassword } from "src/screens/settings/ChangeUnlockPassword";
 import DebugTools from "src/screens/settings/DebugTools";
+import DeveloperSettings from "src/screens/settings/DeveloperSettings";
 import Settings from "src/screens/settings/Settings";
 import { ImportMnemonic } from "src/screens/setup/ImportMnemonic";
 import { RestoreNode } from "src/screens/setup/RestoreNode";
@@ -127,6 +131,18 @@ const routes = [
                 path: "node-backup",
                 element: <BackupNode />,
               },
+              {
+                path: "alby-account",
+                element: <AlbyAccount />,
+              },
+              {
+                path: "developer",
+                element: <DeveloperSettings />,
+              },
+              {
+                path: "debug-tools",
+                element: <DebugTools />,
+              },
             ],
           },
         ],
@@ -177,6 +193,21 @@ const routes = [
             element: <Channels />,
           },
           {
+            path: "first",
+            element: <FirstChannel />,
+            handle: { crumb: () => "Open Your First Channel" },
+          },
+          {
+            path: "first/opening",
+            element: <OpeningFirstChannel />,
+            handle: { crumb: () => "Opening Your First Channel" },
+          },
+          {
+            path: "first/opened",
+            element: <OpenedFirstChannel />,
+            handle: { crumb: () => "First Channel Opened!" },
+          },
+          {
             path: "outgoing",
             element: <IncreaseOutgoingCapacity />,
             handle: { crumb: () => "Increase Spending Balance" },
@@ -216,17 +247,6 @@ const routes = [
             path: "new",
             element: <ConnectPeer />,
             handle: { crumb: () => "Connect Peer" },
-          },
-        ],
-      },
-      {
-        path: "debug-tools",
-        element: <DefaultRedirect />,
-        handle: { crumb: () => "Debug" },
-        children: [
-          {
-            index: true,
-            element: <DebugTools />,
           },
         ],
       },
@@ -325,10 +345,6 @@ const routes = [
         path: "onboarding",
         element: <OnboardingRedirect />,
         children: [
-          {
-            path: "lightning/migrate-alby",
-            element: <MigrateAlbyFunds />,
-          },
           {
             path: "success",
             element: <Success />,

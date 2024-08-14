@@ -3,31 +3,29 @@ module github.com/getAlby/hub
 go 1.22.2
 
 require (
-	github.com/adrg/xdg v0.4.0
+	github.com/adrg/xdg v0.5.0
 	github.com/breez/breez-sdk-go v0.3.4
-	github.com/davrux/echo-logrus/v4 v4.0.3
 	github.com/elnosh/gonuts v0.1.1-0.20240602162005-49da741613e4
 	github.com/getAlby/glalby-go v0.0.0-20240621192717-95673c864d59
-	github.com/getAlby/ldk-node-go v0.0.0-20240624140557-d51c707f10d9
+	github.com/getAlby/ldk-node-go v0.0.0-20240809074758-18af265ac44a
 	github.com/go-gormigrate/gormigrate/v2 v2.1.2
-	github.com/gorilla/sessions v1.3.0
-	github.com/labstack/echo-contrib v0.17.1
 	github.com/labstack/echo/v4 v4.12.0
-	github.com/nbd-wtf/go-nostr v0.34.1
+	github.com/nbd-wtf/go-nostr v0.34.5
 	github.com/nbd-wtf/ln-decodepay v1.12.1
 	github.com/orandin/lumberjackrus v1.0.1
 	github.com/stretchr/testify v1.9.0
 	github.com/wailsapp/wails/v2 v2.9.1
 	golang.org/x/crypto v0.25.0
-	golang.org/x/oauth2 v0.21.0
+	golang.org/x/oauth2 v0.22.0
 	google.golang.org/grpc v1.65.0
-	gopkg.in/DataDog/dd-trace-go.v1 v1.65.1
+	gopkg.in/DataDog/dd-trace-go.v1 v1.66.0
 	gopkg.in/macaroon.v2 v2.1.0
-	gorm.io/gorm v1.25.10
+	gorm.io/gorm v1.25.11
 )
 
 require (
 	dario.cat/mergo v1.0.0 // indirect
+	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20230124172434-306776ec8161 // indirect
 	github.com/BurntSushi/toml v1.2.1 // indirect
 	github.com/DataDog/datadog-go/v5 v5.3.0 // indirect
@@ -66,12 +64,13 @@ require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/fergusstrange/embedded-postgres v1.25.0 // indirect
 	github.com/frankban/quicktest v1.13.0 // indirect
-	github.com/glebarez/go-sqlite v1.21.2 // indirect
+	github.com/glebarez/go-sqlite v1.22.0 // indirect
 	github.com/go-errors/errors v1.5.1 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-macaroon-bakery/macaroonpb v1.0.0 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
+	github.com/go-sql-driver/mysql v1.8.1 // indirect
 	github.com/gobwas/httphead v0.1.0 // indirect
 	github.com/gobwas/pool v0.2.1 // indirect
 	github.com/gobwas/ws v1.2.1 // indirect
@@ -86,8 +85,6 @@ require (
 	github.com/google/pprof v0.0.0-20240409012703-83162a5b38cd // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/gorilla/context v1.1.2 // indirect
-	github.com/gorilla/securecookie v1.1.2 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0 // indirect
@@ -101,7 +98,7 @@ require (
 	github.com/jackc/pgio v1.0.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgproto3/v2 v2.3.3 // indirect
-	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
+	github.com/jackc/pgservicefile v0.0.0-20231201235250-de7065d80cb9 // indirect
 	github.com/jackc/pgtype v1.14.0 // indirect
 	github.com/jackc/pgx/v4 v4.18.3 // indirect
 	github.com/jchv/go-winloader v0.0.0-20210711035445-715c2860da7e // indirect
@@ -214,6 +211,7 @@ require (
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
+	gorm.io/driver/mysql v1.5.6 // indirect
 	modernc.org/gc/v3 v3.0.0-20240107210532-573471604cb6 // indirect
 	modernc.org/libc v1.49.3 // indirect
 	modernc.org/mathutil v1.6.0 // indirect
@@ -230,12 +228,15 @@ require (
 	github.com/decred/dcrd/crypto/blake256 v1.0.1 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0 // indirect
 	github.com/glebarez/sqlite v1.11.0
+	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/joho/godotenv v1.5.1
 	github.com/kelseyhightower/envconfig v1.4.0
+	github.com/labstack/echo-jwt/v4 v4.2.0
 	github.com/lightningnetwork/lnd v0.18.2-beta
 	github.com/sirupsen/logrus v1.9.3
 	golang.org/x/exp v0.0.0-20240325151524-a685a6edb6d8 // indirect
+	gorm.io/datatypes v1.2.1
 )
 
 // See https://github.com/lightningnetwork/lnd/blob/v0.17.4-beta/go.mod#L12C58-L12C70

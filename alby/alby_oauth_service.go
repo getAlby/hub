@@ -6,23 +6,31 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"math"
 	"net/http"
+	"regexp"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
+	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 	"gorm.io/gorm"
 
 	"github.com/getAlby/hub/config"
+	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
-	nip47 "github.com/getAlby/hub/nip47/models"
+	"github.com/getAlby/hub/nip47/permissions"
 	"github.com/getAlby/hub/service/keys"
+	"github.com/getAlby/hub/transactions"
+	"github.com/getAlby/hub/utils"
+	"github.com/getAlby/hub/version"
 )
 
 type albyOAuthService struct {
@@ -39,6 +47,8 @@ const (
 	refreshTokenKey      = "AlbyOAuthRefreshToken"
 	userIdentifierKey    = "AlbyUserIdentifier"
 )
+
+const ALBY_ACCOUNT_APP_NAME = "getalby.com"
 
 func NewAlbyOAuthService(db *gorm.DB, cfg config.Config, keys keys.Keys, eventPublisher events.EventPublisher) *albyOAuthService {
 	conf := &oauth2.Config{
@@ -68,7 +78,7 @@ func NewAlbyOAuthService(db *gorm.DB, cfg config.Config, keys keys.Keys, eventPu
 	return albyOAuthSvc
 }
 
-func (svc *albyOAuthService) CallbackHandler(ctx context.Context, code string) error {
+func (svc *albyOAuthService) CallbackHandler(ctx context.Context, code string, lnClient lnclient.LNClient) error {
 	token, err := svc.oauthConf.Exchange(ctx, code)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to exchange token")
@@ -93,6 +103,15 @@ func (svc *albyOAuthService) CallbackHandler(ctx context.Context, code string) e
 	// save the user's alby account ID on first time login
 	if existingUserIdentifier == "" {
 		svc.cfg.SetUpdate(userIdentifierKey, me.Identifier, "")
+
+		if svc.cfg.GetEnv().AutoLinkAlbyAccount {
+			// link account on first login
+			err := svc.LinkAccount(ctx, lnClient, 1_000_000, constants.BUDGET_RENEWAL_MONTHLY)
+			if err != nil {
+				logger.Logger.WithError(err).Error("Failed to link account on first auth callback")
+			}
+		}
+
 	} else if me.Identifier != existingUserIdentifier {
 		// remove token so user can retry with correct account
 		svc.cfg.SetUpdate(accessTokenKey, "", "")
@@ -169,7 +188,7 @@ func (svc *albyOAuthService) fetchUserToken(ctx context.Context) (*oauth2.Token,
 
 	// only use the current token if it has at least 20 seconds before expiry
 	if currentToken.Expiry.After(time.Now().Add(time.Duration(20) * time.Second)) {
-		logger.Logger.Info("Using existing Alby OAuth token")
+		logger.Logger.Debug("Using existing Alby OAuth token")
 		return currentToken, nil
 	}
 
@@ -198,7 +217,7 @@ func (svc *albyOAuthService) GetMe(ctx context.Context) (*AlbyMe, error) {
 		return nil, err
 	}
 
-	req.Header.Set("User-Agent", "NWC-next")
+	setDefaultRequestHeaders(req)
 
 	res, err := client.Do(req)
 	if err != nil {
@@ -233,7 +252,7 @@ func (svc *albyOAuthService) GetBalance(ctx context.Context) (*AlbyBalance, erro
 		return nil, err
 	}
 
-	req.Header.Set("User-Agent", "NWC-next")
+	setDefaultRequestHeaders(req)
 
 	res, err := client.Do(req)
 	if err != nil {
@@ -247,7 +266,7 @@ func (svc *albyOAuthService) GetBalance(ctx context.Context) (*AlbyBalance, erro
 		return nil, err
 	}
 
-	logger.Logger.WithFields(logrus.Fields{"balance": balance}).Info("Alby balance response")
+	logger.Logger.WithFields(logrus.Fields{"balance": balance}).Debug("Alby balance response")
 	return balance, nil
 }
 
@@ -262,7 +281,7 @@ func (svc *albyOAuthService) DrainSharedWallet(ctx context.Context, lnClient lnc
 
 	amountSat := int64(math.Floor(
 		balanceSat- // Alby shared node balance in sats
-			(balanceSat*(8/1000))- // Alby service fee (0.8%)
+			(balanceSat*(8.0/1000.0))- // Alby service fee (0.8%)
 			(balanceSat*0.01))) - // Maximum potential routing fees (1%)
 		10 // Alby fee reserve (10 sats)
 
@@ -273,13 +292,13 @@ func (svc *albyOAuthService) DrainSharedWallet(ctx context.Context, lnClient lnc
 
 	logger.Logger.WithField("amount", amount).WithError(err).Error("Draining Alby shared wallet funds")
 
-	transaction, err := lnClient.MakeInvoice(ctx, amount, "Send shared wallet funds to Alby Hub", "", 120)
+	transaction, err := transactions.NewTransactionsService(svc.db).MakeInvoice(ctx, amount, "Send shared wallet funds to Alby Hub", "", 120, nil, lnClient, nil, nil)
 	if err != nil {
 		logger.Logger.WithField("amount", amount).WithError(err).Error("Failed to make invoice")
 		return err
 	}
 
-	err = svc.SendPayment(ctx, transaction.Invoice)
+	err = svc.SendPayment(ctx, transaction.PaymentRequest)
 	if err != nil {
 		logger.Logger.WithField("amount", amount).WithError(err).Error("Failed to pay invoice from shared node")
 		return err
@@ -317,8 +336,7 @@ func (svc *albyOAuthService) SendPayment(ctx context.Context, invoice string) er
 		return err
 	}
 
-	req.Header.Set("User-Agent", "NWC-next")
-	req.Header.Set("Content-Type", "application/json")
+	setDefaultRequestHeaders(req)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -368,7 +386,7 @@ func (svc *albyOAuthService) SendPayment(ctx context.Context, invoice string) er
 		"invoice":     invoice,
 		"paymentHash": responsePayload.PaymentHash,
 		"preimage":    responsePayload.Preimage,
-	}).Info("Payment successful")
+	}).Info("Alby Payment successful")
 	return nil
 }
 
@@ -379,20 +397,48 @@ func (svc *albyOAuthService) GetAuthUrl() string {
 	return svc.oauthConf.AuthCodeURL("unused")
 }
 
-func (svc *albyOAuthService) LinkAccount(ctx context.Context, lnClient lnclient.LNClient) error {
+func (svc *albyOAuthService) UnlinkAccount(ctx context.Context) error {
+	err := svc.destroyAlbyAccountNWCNode(ctx)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to destroy Alby Account NWC node")
+	}
+	svc.deleteAlbyAccountApps()
+
+	svc.cfg.SetUpdate(userIdentifierKey, "", "")
+	svc.cfg.SetUpdate(accessTokenKey, "", "")
+	svc.cfg.SetUpdate(accessTokenExpiryKey, "", "")
+	svc.cfg.SetUpdate(refreshTokenKey, "", "")
+
+	return nil
+}
+
+func (svc *albyOAuthService) LinkAccount(ctx context.Context, lnClient lnclient.LNClient, budget uint64, renewal string) error {
+	svc.deleteAlbyAccountApps()
+
 	connectionPubkey, err := svc.createAlbyAccountNWCNode(ctx)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to create alby account nwc node")
 		return err
 	}
 
+	scopes, err := permissions.RequestMethodsToScopes(lnClient.GetSupportedNIP47Methods())
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to get scopes from LNClient request methods")
+		return err
+	}
+	notificationTypes := lnClient.GetSupportedNIP47NotificationTypes()
+	if len(notificationTypes) > 0 {
+		scopes = append(scopes, constants.NOTIFICATIONS_SCOPE)
+	}
+
 	app, _, err := db.NewDBService(svc.db, svc.eventPublisher).CreateApp(
-		"getalby.com",
+		ALBY_ACCOUNT_APP_NAME,
 		connectionPubkey,
-		1_000_000,
-		nip47.BUDGET_RENEWAL_MONTHLY,
+		budget,
+		renewal,
 		nil,
-		lnClient.GetSupportedNIP47Methods(),
+		scopes,
+		false,
 	)
 
 	if err != nil {
@@ -413,25 +459,80 @@ func (svc *albyOAuthService) LinkAccount(ctx context.Context, lnClient lnclient.
 	return nil
 }
 
-func (svc *albyOAuthService) ConsumeEvent(ctx context.Context, event *events.Event, globalProperties map[string]interface{}) error {
+func (svc *albyOAuthService) ConsumeEvent(ctx context.Context, event *events.Event, globalProperties map[string]interface{}) {
+	// run non-blocking
+	go svc.consumeEvent(ctx, event, globalProperties)
+}
+
+func (svc *albyOAuthService) consumeEvent(ctx context.Context, event *events.Event, globalProperties map[string]interface{}) {
 	// TODO: rename this config option to be specific to the alby API
 	if !svc.cfg.GetEnv().LogEvents {
 		logger.Logger.WithField("event", event).Debug("Skipped sending to alby events API")
-		return nil
+		return
 	}
 
 	if event.Event == "nwc_backup_channels" {
 		if err := svc.backupChannels(ctx, event); err != nil {
 			logger.Logger.WithError(err).Error("Failed to backup channels")
-			return err
 		}
-		return nil
+		return
+	}
+
+	if event.Event == "nwc_payment_received" {
+		type paymentReceivedEventProperties struct {
+			PaymentHash string `json:"payment_hash"`
+		}
+		// pass a new custom event with less detail
+		event = &events.Event{
+			Event: event.Event,
+			Properties: &paymentReceivedEventProperties{
+				PaymentHash: event.Properties.(*lnclient.Transaction).PaymentHash,
+			},
+		}
+	}
+
+	if event.Event == "nwc_payment_sent" {
+		type paymentSentEventProperties struct {
+			PaymentHash string `json:"payment_hash"`
+			Duration    uint64 `json:"duration"`
+		}
+
+		// pass a new custom event with less detail
+		event = &events.Event{
+			Event: event.Event,
+			Properties: &paymentSentEventProperties{
+				PaymentHash: event.Properties.(*lnclient.Transaction).PaymentHash,
+				Duration:    uint64(*event.Properties.(*lnclient.Transaction).SettledAt - event.Properties.(*lnclient.Transaction).CreatedAt),
+			},
+		}
+	}
+
+	if event.Event == "nwc_payment_failed_async" {
+		paymentFailedAsyncProperties, ok := event.Properties.(*events.PaymentFailedAsyncProperties)
+		if !ok {
+			logger.Logger.WithField("event", event).Error("Failed to cast event")
+			return
+		}
+
+		type paymentSentEventProperties struct {
+			PaymentHash string `json:"payment_hash"`
+			Reason      string `json:"reason"`
+		}
+
+		// pass a new custom event with less detail
+		event = &events.Event{
+			Event: event.Event,
+			Properties: &paymentSentEventProperties{
+				PaymentHash: paymentFailedAsyncProperties.Transaction.PaymentHash,
+				Reason:      paymentFailedAsyncProperties.Reason,
+			},
+		}
 	}
 
 	token, err := svc.fetchUserToken(ctx)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to fetch user token")
-		return err
+		return
 	}
 
 	client := svc.oauthConf.Client(ctx, token)
@@ -442,7 +543,7 @@ func (svc *albyOAuthService) ConsumeEvent(ctx context.Context, event *events.Eve
 
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to encode request payload")
-		return err
+		return
 	}
 
 	type eventWithPropertiesMap struct {
@@ -454,7 +555,7 @@ func (svc *albyOAuthService) ConsumeEvent(ctx context.Context, event *events.Eve
 	err = json.Unmarshal(originalEventBuffer.Bytes(), &eventWithGlobalProperties)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to decode request payload")
-		return err
+		return
 	}
 	if eventWithGlobalProperties.Properties == nil {
 		eventWithGlobalProperties.Properties = map[string]interface{}{}
@@ -475,24 +576,23 @@ func (svc *albyOAuthService) ConsumeEvent(ctx context.Context, event *events.Eve
 
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to encode request payload")
-		return err
+		return
 	}
 
 	req, err := http.NewRequest("POST", fmt.Sprintf("%s/events", svc.cfg.GetEnv().AlbyAPIURL), body)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Error creating request /events")
-		return err
+		return
 	}
 
-	req.Header.Set("User-Agent", "NWC-next")
-	req.Header.Set("Content-Type", "application/json")
+	setDefaultRequestHeaders(req)
 
 	resp, err := client.Do(req)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"event": eventWithGlobalProperties,
 		}).WithError(err).Error("Failed to send request to /events")
-		return err
+		return
 	}
 
 	if resp.StatusCode >= 300 {
@@ -500,10 +600,8 @@ func (svc *albyOAuthService) ConsumeEvent(ctx context.Context, event *events.Eve
 			"event":  eventWithGlobalProperties,
 			"status": resp.StatusCode,
 		}).Error("Request to /events returned non-success status")
-		return errors.New("request to /events returned non-success status")
+		return
 	}
-
-	return nil
 }
 
 func (svc *albyOAuthService) backupChannels(ctx context.Context, event *events.Event) error {
@@ -555,8 +653,7 @@ func (svc *albyOAuthService) backupChannels(ctx context.Context, event *events.E
 		return fmt.Errorf("failed to create request: %w", err)
 	}
 
-	req.Header.Set("User-Agent", "NWC-next")
-	req.Header.Set("Content-Type", "application/json")
+	setDefaultRequestHeaders(req)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -600,8 +697,7 @@ func (svc *albyOAuthService) createAlbyAccountNWCNode(ctx context.Context) (stri
 		return "", err
 	}
 
-	req.Header.Set("User-Agent", "NWC-next")
-	req.Header.Set("Content-Type", "application/json")
+	setDefaultRequestHeaders(req)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -637,6 +733,40 @@ func (svc *albyOAuthService) createAlbyAccountNWCNode(ctx context.Context) (stri
 	return responsePayload.Pubkey, nil
 }
 
+func (svc *albyOAuthService) destroyAlbyAccountNWCNode(ctx context.Context) error {
+	token, err := svc.fetchUserToken(ctx)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to fetch user token")
+	}
+
+	client := svc.oauthConf.Client(ctx, token)
+
+	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/internal/nwcs", svc.cfg.GetEnv().AlbyAPIURL), nil)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Error creating request /internal/nwcs")
+		return err
+	}
+
+	setDefaultRequestHeaders(req)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to send request to /internal/nwcs")
+		return err
+	}
+
+	if resp.StatusCode >= 300 {
+		logger.Logger.WithFields(logrus.Fields{
+			"status": resp.StatusCode,
+		}).Error("Request to /internal/nwcs returned non-success status")
+		return errors.New("request to /internal/nwcs returned non-success status")
+	}
+
+	logger.Logger.Info("Removed alby account nwc node successfully")
+
+	return nil
+}
+
 func (svc *albyOAuthService) activateAlbyAccountNWCNode(ctx context.Context) error {
 	token, err := svc.fetchUserToken(ctx)
 	if err != nil {
@@ -651,8 +781,7 @@ func (svc *albyOAuthService) activateAlbyAccountNWCNode(ctx context.Context) err
 		return err
 	}
 
-	req.Header.Set("User-Agent", "NWC-next")
-	req.Header.Set("Content-Type", "application/json")
+	setDefaultRequestHeaders(req)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -688,7 +817,7 @@ func (svc *albyOAuthService) GetChannelPeerSuggestions(ctx context.Context) ([]C
 		return nil, err
 	}
 
-	req.Header.Set("User-Agent", "NWC-next")
+	setDefaultRequestHeaders(req)
 
 	res, err := client.Do(req)
 	if err != nil {
@@ -712,6 +841,272 @@ func (svc *albyOAuthService) GetChannelPeerSuggestions(ctx context.Context) ([]C
 		}
 	}
 
-	logger.Logger.WithFields(logrus.Fields{"channel_suggestions": suggestions}).Info("Alby channel peer suggestions response")
+	logger.Logger.WithFields(logrus.Fields{"channel_suggestions": suggestions}).Debug("Alby channel peer suggestions response")
 	return suggestions, nil
+}
+
+func (svc *albyOAuthService) RequestAutoChannel(ctx context.Context, lnClient lnclient.LNClient, isPublic bool) (*AutoChannelResponse, error) {
+	nodeInfo, err := lnClient.GetInfo(ctx)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to request own node info", err)
+		return nil, err
+	}
+
+	requestUrl := fmt.Sprintf("https://api.getalby.com/internal/lsp/alby/%s", nodeInfo.Network)
+
+	pubkey, address, port, err := svc.getLSPInfo(ctx, requestUrl+"/v1/get_info")
+
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to request LSP info")
+		return nil, err
+	}
+
+	err = lnClient.ConnectPeer(ctx, &lnclient.ConnectPeerRequest{
+		Pubkey:  pubkey,
+		Address: address,
+		Port:    port,
+	})
+
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"pubkey":  pubkey,
+			"address": address,
+			"port":    port,
+		}).WithError(err).Error("Failed to connect to peer")
+		return nil, err
+	}
+
+	logger.Logger.WithFields(logrus.Fields{
+		"pubkey": pubkey,
+		"public": isPublic,
+	}).Info("Requesting auto channel")
+
+	autoChannelResponse, err := svc.requestAutoChannel(ctx, requestUrl+"/auto_channel", nodeInfo.Pubkey, isPublic)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to request auto channel")
+		return nil, err
+	}
+	return autoChannelResponse, nil
+}
+
+func (svc *albyOAuthService) requestAutoChannel(ctx context.Context, url string, pubkey string, isPublic bool) (*AutoChannelResponse, error) {
+	token, err := svc.fetchUserToken(ctx)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to fetch user token")
+	}
+
+	client := svc.oauthConf.Client(ctx, token)
+	client.Timeout = 60 * time.Second
+
+	type autoChannelRequest struct {
+		NodePubkey      string `json:"node_pubkey"`
+		AnnounceChannel bool   `json:"announce_channel"`
+	}
+
+	newAutoChannelRequest := autoChannelRequest{
+		NodePubkey:      pubkey,
+		AnnounceChannel: isPublic,
+	}
+
+	payloadBytes, err := json.Marshal(newAutoChannelRequest)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader := bytes.NewReader(payloadBytes)
+
+	req, err := http.NewRequest(http.MethodPost, url, bodyReader)
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"url": url,
+		}).Error("Failed to create auto channel request")
+		return nil, err
+	}
+
+	setDefaultRequestHeaders(req)
+
+	res, err := client.Do(req)
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"url": url,
+		}).Error("Failed to request auto channel invoice")
+		return nil, err
+	}
+
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"url": url,
+		}).Error("Failed to read response body")
+		return nil, errors.New("failed to read response body")
+	}
+
+	if res.StatusCode >= 300 {
+		logger.Logger.WithFields(logrus.Fields{
+			"newLSPS1ChannelRequest": newAutoChannelRequest,
+			"body":                   string(body),
+			"statusCode":             res.StatusCode,
+		}).Error("auto channel endpoint returned non-success code")
+		return nil, fmt.Errorf("auto channel endpoint returned non-success code: %s", string(body))
+	}
+
+	type newLSPS1ChannelPaymentBolt11 struct {
+		Invoice     string `json:"invoice"`
+		FeeTotalSat string `json:"fee_total_sat"`
+	}
+
+	type newLSPS1ChannelPayment struct {
+		Bolt11 newLSPS1ChannelPaymentBolt11 `json:"bolt11"`
+		// TODO: add onchain
+	}
+	type autoChannelResponse struct {
+		LspBalanceSat string                  `json:"lsp_balance_sat"`
+		Payment       *newLSPS1ChannelPayment `json:"payment"`
+	}
+
+	var newAutoChannelResponse autoChannelResponse
+
+	err = json.Unmarshal(body, &newAutoChannelResponse)
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"url": url,
+		}).Error("Failed to deserialize json")
+		return nil, fmt.Errorf("failed to deserialize json %s %s", url, string(body))
+	}
+
+	var invoice string
+	var fee uint64
+
+	if newAutoChannelResponse.Payment != nil {
+		invoice = newAutoChannelResponse.Payment.Bolt11.Invoice
+		fee, err = strconv.ParseUint(newAutoChannelResponse.Payment.Bolt11.FeeTotalSat, 10, 64)
+		if err != nil {
+			logger.Logger.WithError(err).WithFields(logrus.Fields{
+				"url": url,
+			}).Error("Failed to parse fee")
+			return nil, fmt.Errorf("failed to parse fee %v", err)
+		}
+
+		paymentRequest, err := decodepay.Decodepay(invoice)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to decode bolt11 invoice")
+			return nil, err
+		}
+
+		if fee != uint64(paymentRequest.MSatoshi/1000) {
+			logger.Logger.WithFields(logrus.Fields{
+				"invoice_amount": paymentRequest.MSatoshi / 1000,
+				"fee":            fee,
+			}).WithError(err).Error("Invoice amount does not match LSP fee")
+			return nil, errors.New("invoice amount does not match LSP fee")
+		}
+	}
+
+	channelSize, err := strconv.ParseUint(newAutoChannelResponse.LspBalanceSat, 10, 64)
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"url": url,
+		}).Error("Failed to parse lsp balance sat")
+		return nil, fmt.Errorf("failed to parse lsp balance sat %v", err)
+	}
+
+	return &AutoChannelResponse{
+		Invoice:     invoice,
+		Fee:         fee,
+		ChannelSize: channelSize,
+	}, nil
+}
+
+func (svc *albyOAuthService) getLSPInfo(ctx context.Context, url string) (pubkey string, address string, port uint16, err error) {
+
+	token, err := svc.fetchUserToken(ctx)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to fetch user token")
+	}
+
+	client := svc.oauthConf.Client(ctx, token)
+	client.Timeout = 60 * time.Second
+
+	type lsps1LSPInfo struct {
+		URIs []string `json:"uris"`
+	}
+	var lsps1LspInfo lsps1LSPInfo
+
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"url": url,
+		}).Error("Failed to create lsp info request")
+		return "", "", uint16(0), err
+	}
+
+	setDefaultRequestHeaders(req)
+
+	res, err := client.Do(req)
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"url": url,
+		}).Error("Failed to request lsp info")
+		return "", "", uint16(0), err
+	}
+
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"url": url,
+		}).Error("Failed to read response body")
+		return "", "", uint16(0), errors.New("failed to read response body")
+	}
+
+	err = json.Unmarshal(body, &lsps1LspInfo)
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"url": url,
+		}).Error("Failed to deserialize json")
+		return "", "", uint16(0), fmt.Errorf("failed to deserialize json %s %s", url, string(body))
+	}
+
+	httpUris := utils.Filter(lsps1LspInfo.URIs, func(uri string) bool {
+		return !strings.Contains(uri, ".onion")
+	})
+	if len(httpUris) == 0 {
+		logger.Logger.WithField("uris", lsps1LspInfo.URIs).WithError(err).Error("Couldn't find HTTP URI")
+
+		return "", "", uint16(0), err
+	}
+	uri := httpUris[0]
+
+	// make sure it's a valid IPv4 URI
+	regex := regexp.MustCompile(`^([0-9a-f]+)@([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+):([0-9]+)$`)
+	parts := regex.FindStringSubmatch(uri)
+	logger.Logger.WithField("parts", parts).Debug("Split URI")
+	if parts == nil || len(parts) != 4 {
+		logger.Logger.WithField("parts", parts).Error("Unsupported URI")
+		return "", "", uint16(0), errors.New("could not decode LSP URI")
+	}
+
+	portValue, err := strconv.Atoi(parts[3])
+	if err != nil {
+		logger.Logger.WithField("port", parts[3]).WithError(err).Error("Failed to decode port number")
+
+		return "", "", uint16(0), err
+	}
+
+	return parts[1], parts[2], uint16(portValue), nil
+}
+
+func setDefaultRequestHeaders(req *http.Request) {
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("User-Agent", "AlbyHub/"+version.Tag)
+}
+
+func (svc *albyOAuthService) deleteAlbyAccountApps() {
+	// delete any existing getalby.com connections so when re-linking the user only has one
+	err := svc.db.Where("name = ?", ALBY_ACCOUNT_APP_NAME).Delete(&db.App{}).Error
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to delete Alby Account apps")
+	}
 }

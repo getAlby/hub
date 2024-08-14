@@ -3,7 +3,6 @@ package controllers
 import (
 	"context"
 
-	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/nip47/models"
 	"github.com/nbd-wtf/go-nostr"
@@ -11,35 +10,20 @@ import (
 )
 
 type makeInvoiceParams struct {
-	Amount          int64  `json:"amount"`
-	Description     string `json:"description"`
-	DescriptionHash string `json:"description_hash"`
-	Expiry          int64  `json:"expiry"`
+	Amount          int64                  `json:"amount"`
+	Description     string                 `json:"description"`
+	DescriptionHash string                 `json:"description_hash"`
+	Expiry          int64                  `json:"expiry"`
+	Metadata        map[string]interface{} `json:"metadata,omitempty"`
 }
 type makeInvoiceResponse struct {
 	models.Transaction
 }
 
-type makeInvoiceController struct {
-	lnClient lnclient.LNClient
-}
-
-func NewMakeInvoiceController(lnClient lnclient.LNClient) *makeInvoiceController {
-	return &makeInvoiceController{
-		lnClient: lnClient,
-	}
-}
-
-func (controller *makeInvoiceController) HandleMakeInvoiceEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, checkPermission checkPermissionFunc, publishResponse publishFunc) {
-	// basic permissions check
-	resp := checkPermission(0)
-	if resp != nil {
-		publishResponse(resp, nostr.Tags{})
-		return
-	}
+func (controller *nip47Controller) HandleMakeInvoiceEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, appId uint, publishResponse publishFunc) {
 
 	makeInvoiceParams := &makeInvoiceParams{}
-	resp = decodeRequest(nip47Request, makeInvoiceParams)
+	resp := decodeRequest(nip47Request, makeInvoiceParams)
 	if resp != nil {
 		publishResponse(resp, nostr.Tags{})
 		return
@@ -51,11 +35,12 @@ func (controller *makeInvoiceController) HandleMakeInvoiceEvent(ctx context.Cont
 		"description":      makeInvoiceParams.Description,
 		"description_hash": makeInvoiceParams.DescriptionHash,
 		"expiry":           makeInvoiceParams.Expiry,
+		"metadata":         makeInvoiceParams.Metadata,
 	}).Info("Making invoice")
 
 	expiry := makeInvoiceParams.Expiry
 
-	transaction, err := controller.lnClient.MakeInvoice(ctx, makeInvoiceParams.Amount, makeInvoiceParams.Description, makeInvoiceParams.DescriptionHash, expiry)
+	transaction, err := controller.transactionsService.MakeInvoice(ctx, makeInvoiceParams.Amount, makeInvoiceParams.Description, makeInvoiceParams.DescriptionHash, expiry, makeInvoiceParams.Metadata, controller.lnClient, &appId, &requestEventId)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"request_event_id": requestEventId,
@@ -75,8 +60,9 @@ func (controller *makeInvoiceController) HandleMakeInvoiceEvent(ctx context.Cont
 		return
 	}
 
+	nip47Transaction := models.ToNip47Transaction(transaction)
 	responsePayload := &makeInvoiceResponse{
-		Transaction: *transaction,
+		Transaction: *nip47Transaction,
 	}
 
 	publishResponse(&models.Response{

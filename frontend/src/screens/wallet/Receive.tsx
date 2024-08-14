@@ -1,10 +1,15 @@
 import confetti from "canvas-confetti";
-import { ArrowDown, CircleCheck, CopyIcon } from "lucide-react";
+import { AlertTriangle, ArrowDown, CircleCheck, CopyIcon } from "lucide-react";
 import React from "react";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "src/components/ui/alert.tsx";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -18,8 +23,8 @@ import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
+
 import { useInfo } from "src/hooks/useInfo";
-import { useCSRF } from "src/hooks/useCSRF";
 import { useTransaction } from "src/hooks/useTransaction";
 import { copyToClipboard } from "src/lib/clipboard";
 import { CreateInvoiceRequest, Transaction } from "src/types";
@@ -28,20 +33,22 @@ import { request } from "src/utils/request";
 export default function Receive() {
   const { hasChannelManagement } = useInfo();
   const { data: balances } = useBalances();
-  const { data: csrf } = useCSRF();
+
   const { toast } = useToast();
   const [isLoading, setLoading] = React.useState(false);
   const [amount, setAmount] = React.useState<string>("");
   const [description, setDescription] = React.useState<string>("");
-  const [invoice, setInvoice] = React.useState<Transaction | null>(null);
+  const [transaction, setTransaction] = React.useState<Transaction | null>(
+    null
+  );
   const [paymentDone, setPaymentDone] = React.useState(false);
   const { data: invoiceData } = useTransaction(
-    invoice ? invoice.payment_hash : "",
+    transaction ? transaction.paymentHash : "",
     true
   );
 
   React.useEffect(() => {
-    if (invoiceData?.settled_at) {
+    if (invoiceData?.settledAt) {
       setPaymentDone(true);
       popConfetti();
       toast({
@@ -50,17 +57,18 @@ export default function Receive() {
     }
   }, [invoiceData, toast]);
 
+  if (!balances) {
+    return <Loading />;
+  }
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!csrf) {
-      throw new Error("csrf not loaded");
-    }
+
     try {
       setLoading(true);
       const invoice = await request<Transaction>("/api/invoices", {
         method: "POST",
         headers: {
-          "X-CSRF-Token": csrf,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -71,7 +79,7 @@ export default function Receive() {
       setAmount("");
       setDescription("");
       if (invoice) {
-        setInvoice(invoice);
+        setTransaction(invoice);
 
         toast({
           title: "Successfully created invoice",
@@ -89,7 +97,7 @@ export default function Receive() {
   };
 
   const copy = () => {
-    copyToClipboard(invoice?.invoice as string);
+    copyToClipboard(transaction?.invoice as string);
     toast({ title: "Copied to clipboard." });
   };
 
@@ -116,9 +124,23 @@ export default function Receive() {
         title="Receive"
         description="Create a lightning invoice that can be paid by any bitcoin lightning wallet"
       />
+      {hasChannelManagement &&
+        parseInt(amount || "0") * 1000 >=
+          0.8 * balances.lightning.totalReceivable && (
+          <Alert>
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Low receiving capacity</AlertTitle>
+            <AlertDescription>
+              You likely won't be able to receive payments until you{" "}
+              <Link className="underline" to="/channels/incoming">
+                increase your receiving capacity.
+              </Link>
+            </AlertDescription>
+          </Alert>
+        )}
       <div className="flex gap-12 w-full">
         <div className="w-full max-w-lg">
-          {invoice ? (
+          {transaction ? (
             <>
               <Card className="w-full">
                 <CardHeader>
@@ -138,7 +160,7 @@ export default function Receive() {
                         <Loading className="w-4 h-4" />
                         <p>Waiting for payment</p>
                       </div>
-                      <QRCode value={invoice.invoice} className="w-full" />
+                      <QRCode value={transaction.invoice} className="w-full" />
                       <div>
                         <Button onClick={copy} variant="outline">
                           <CopyIcon className="w-4 h-4 mr-2" />
@@ -155,7 +177,7 @@ export default function Receive() {
                     className="mt-4 w-full"
                     onClick={() => {
                       setPaymentDone(false);
-                      setInvoice(null);
+                      setTransaction(null);
                     }}
                   >
                     Receive Another Payment

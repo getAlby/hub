@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import Container from "src/components/Container";
-import Loading from "src/components/Loading";
 import MnemonicInputs from "src/components/MnemonicInputs";
 import SettingsHeader from "src/components/SettingsHeader";
 import { Button } from "src/components/ui/button";
@@ -12,35 +11,37 @@ import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
-import { useCSRF } from "src/hooks/useCSRF";
-import { useEncryptedMnemonic } from "src/hooks/useEncryptedMnemonic";
 import { useInfo } from "src/hooks/useInfo";
-import { aesGcmDecrypt } from "src/utils/aesgcm";
+import { MnemonicResponse } from "src/types";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 
 export function BackupMnemonic() {
   const navigate = useNavigate();
-  const { data: csrf } = useCSRF();
+
   const { toast } = useToast();
   const { mutate: refetchInfo } = useInfo();
-  const { data: mnemonic } = useEncryptedMnemonic();
 
   const [unlockPassword, setUnlockPassword] = React.useState("");
   const [decryptedMnemonic, setDecryptedMnemonic] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [backedUp, setIsBackedUp] = useState<boolean>(false);
 
-  if (!mnemonic) {
-    return <Loading />;
-  }
-
   const onSubmitPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       setLoading(true);
-      const dec = await aesGcmDecrypt(mnemonic.mnemonic, unlockPassword);
-      setDecryptedMnemonic(dec);
+      const result = await request<MnemonicResponse>("/api/mnemonic", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          unlockPassword,
+        }),
+      });
+
+      setDecryptedMnemonic(result?.mnemonic ?? "");
     } catch (error) {
       toast({
         title: "Incorrect password",
@@ -54,9 +55,6 @@ export function BackupMnemonic() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!csrf) {
-      throw new Error("No CSRF token");
-    }
 
     const currentDate = new Date();
     const sixMonthsLater = new Date(
@@ -67,7 +65,6 @@ export function BackupMnemonic() {
       await request("/api/backup-reminder", {
         method: "PATCH",
         headers: {
-          "X-CSRF-Token": csrf,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({

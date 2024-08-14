@@ -25,19 +25,56 @@ func NewAlbyHttpService(svc service.Service, albyOAuthSvc alby.AlbyOAuthService,
 	}
 }
 
-func (albyHttpSvc *AlbyHttpService) RegisterSharedRoutes(e *echo.Echo, authMiddleware func(next echo.HandlerFunc) echo.HandlerFunc) {
-	e.GET("/api/alby/callback", albyHttpSvc.albyCallbackHandler, authMiddleware)
-	e.GET("/api/alby/me", albyHttpSvc.albyMeHandler, authMiddleware)
-	e.GET("/api/alby/balance", albyHttpSvc.albyBalanceHandler, authMiddleware)
-	e.POST("/api/alby/pay", albyHttpSvc.albyPayHandler, authMiddleware)
-	e.POST("/api/alby/drain", albyHttpSvc.albyDrainHandler, authMiddleware)
-	e.POST("/api/alby/link-account", albyHttpSvc.albyLinkAccountHandler, authMiddleware)
+func (albyHttpSvc *AlbyHttpService) RegisterSharedRoutes(restrictedGroup *echo.Group, e *echo.Echo) {
+	e.GET("/api/alby/callback", albyHttpSvc.albyCallbackHandler)
+	restrictedGroup.GET("/api/alby/me", albyHttpSvc.albyMeHandler)
+	restrictedGroup.GET("/api/alby/balance", albyHttpSvc.albyBalanceHandler)
+	restrictedGroup.POST("/api/alby/pay", albyHttpSvc.albyPayHandler)
+	restrictedGroup.POST("/api/alby/drain", albyHttpSvc.albyDrainHandler)
+	restrictedGroup.POST("/api/alby/link-account", albyHttpSvc.albyLinkAccountHandler)
+	restrictedGroup.POST("/api/alby/auto-channel", albyHttpSvc.autoChannelHandler)
+	restrictedGroup.POST("/api/alby/unlink-account", albyHttpSvc.unlinkHandler)
+}
+
+func (albyHttpSvc *AlbyHttpService) autoChannelHandler(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	var autoChannelRequest alby.AutoChannelRequest
+	if err := c.Bind(&autoChannelRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	autoChannelResponseResponse, err := albyHttpSvc.albyOAuthSvc.RequestAutoChannel(ctx, albyHttpSvc.svc.GetLNClient(), autoChannelRequest.IsPublic)
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to request auto channel: %s", err.Error()),
+		})
+	}
+
+	return c.JSON(http.StatusOK, autoChannelResponseResponse)
+}
+
+func (albyHttpSvc *AlbyHttpService) unlinkHandler(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	err := albyHttpSvc.albyOAuthSvc.UnlinkAccount(ctx)
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to request wrapped invoice: %s", err.Error()),
+		})
+	}
+
+	return c.NoContent(http.StatusNoContent)
 }
 
 func (albyHttpSvc *AlbyHttpService) albyCallbackHandler(c echo.Context) error {
 	code := c.QueryParam("code")
 
-	err := albyHttpSvc.albyOAuthSvc.CallbackHandler(c.Request().Context(), code)
+	err := albyHttpSvc.albyOAuthSvc.CallbackHandler(c.Request().Context(), code, albyHttpSvc.svc.GetLNClient())
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to handle Alby OAuth callback")
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
@@ -119,7 +156,14 @@ func (albyHttpSvc *AlbyHttpService) albyDrainHandler(c echo.Context) error {
 }
 
 func (albyHttpSvc *AlbyHttpService) albyLinkAccountHandler(c echo.Context) error {
-	err := albyHttpSvc.albyOAuthSvc.LinkAccount(c.Request().Context(), albyHttpSvc.svc.GetLNClient())
+	var linkAccountRequest alby.AlbyLinkAccountRequest
+	if err := c.Bind(&linkAccountRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	err := albyHttpSvc.albyOAuthSvc.LinkAccount(c.Request().Context(), albyHttpSvc.svc.GetLNClient(), linkAccountRequest.Budget, linkAccountRequest.Renewal)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to connect alby account")
 		return err

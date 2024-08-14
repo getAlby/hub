@@ -27,7 +27,16 @@ export function Intro() {
   const navigate = useNavigate();
   const [api, setApi] = React.useState<CarouselApi>();
   const [progress, setProgress] = React.useState<number>(0);
-  const { theme } = useTheme();
+  const { setDarkMode } = useTheme();
+
+  React.useEffect(() => {
+    // Force dark mode on intro screen
+    setDarkMode("dark");
+    return () => {
+      // Revert to default after exiting intro
+      setDarkMode("system");
+    };
+  }, [setDarkMode]);
 
   React.useEffect(() => {
     if (!info?.setupCompleted) {
@@ -49,7 +58,6 @@ export function Intro() {
         style={{
           backgroundImage: `url(${Cloud})`,
           backgroundPositionX: `${-Math.max(progress, 0) * 40}%`,
-          filter: theme === "light" ? "invert(0.3)" : undefined,
         }}
       />
       <div
@@ -58,7 +66,6 @@ export function Intro() {
           backgroundImage: `url(${Cloud2})`,
           backgroundPositionX: `${150 - Math.max(progress, 0) * 60}%`,
           backgroundPositionY: "100%",
-          filter: theme === "light" ? "invert(0.3)" : undefined,
         }}
       />
       <CarouselContent className="select-none bg-transparent">
@@ -74,7 +81,7 @@ export function Intro() {
               </div>
               <div className="mt-20">
                 <Button onClick={() => api?.scrollNext()} size="lg">
-                  Get Started
+                  Next
                 </Button>
               </div>
             </div>
@@ -93,7 +100,7 @@ export function Intro() {
             api={api}
             icon={ShieldCheck}
             title="Your Keys Are Safe"
-            description="You wallet is encrypted by a password of your choice. No one can access your funds but you."
+            description="Your wallet is encrypted by a password of your choice. No one can access your funds but you."
           />
         </CarouselItem>
         <CarouselItem>

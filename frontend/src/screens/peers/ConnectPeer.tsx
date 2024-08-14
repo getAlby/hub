@@ -5,13 +5,12 @@ import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
-import { useCSRF } from "src/hooks/useCSRF";
+
 import { splitSocketAddress } from "src/lib/utils";
 import { ConnectPeerRequest } from "src/types";
 import { request } from "src/utils/request";
 
 export default function ConnectPeer() {
-  const { data: csrf } = useCSRF();
   const { toast } = useToast();
   const [isLoading, setLoading] = React.useState(false);
   const [connectionString, setConnectionString] = React.useState("");
@@ -19,9 +18,7 @@ export default function ConnectPeer() {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!csrf) {
-      throw new Error("csrf not loaded");
-    }
+
     if (!connectionString) {
       throw new Error("connection details missing");
     }
@@ -42,7 +39,6 @@ export default function ConnectPeer() {
       await request("/api/peers", {
         method: "POST",
         headers: {
-          "X-CSRF-Token": csrf,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(connectPeerRequest),

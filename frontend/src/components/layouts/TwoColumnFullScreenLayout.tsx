@@ -1,5 +1,8 @@
+import { ChevronLeft } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { AlbyHubLogo } from "src/components/icons/AlbyHubLogo";
+import { Button } from "src/components/ui/button.tsx";
 import { useInfo } from "src/hooks/useInfo";
 
 const quotes = [
@@ -43,7 +46,7 @@ const quotes = [
     imageUrl: "/images/quotes/back.svg",
   },
   {
-    content: `Create more. Consume less. Seek the truth.`,
+    content: `We who choose Bitcoin, are pioneers of a new world. A world filled with freedom, hope and peace.`,
     author: "Roland",
     imageUrl: "/images/quotes/roland.svg",
   },
@@ -51,6 +54,7 @@ const quotes = [
 
 export default function TwoColumnFullScreenLayout() {
   const { data: info } = useInfo();
+  const navigate = useNavigate();
   const { pathname } = useLocation();
   const [quote, setQuote] = useState(
     quotes[Math.floor(Math.random() * quotes.length)]
@@ -69,7 +73,7 @@ export default function TwoColumnFullScreenLayout() {
       >
         <div className="flex-1 w-full h-full flex flex-col">
           <div className="flex flex-row justify-between items-center">
-            <h1 className="text-lg font-medium">Alby Hub</h1>
+            <AlbyHubLogo className="text-background" />
             {info?.version && (
               <p className="text-sm text-muted-foreground">{info.version}</p>
             )}
@@ -84,7 +88,22 @@ export default function TwoColumnFullScreenLayout() {
           </div>
         </div>
       </div>
-      <div className="flex items-center justify-center py-12 text-foreground">
+      <div className="flex items-center justify-center py-12 text-foreground relative">
+        {pathname.startsWith("/setup") &&
+          !pathname.startsWith("/setup/finish") && (
+            // show the back button on setup pages, except the setup finish page
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => {
+                navigate(-1);
+              }}
+              className="top-4 left-4 md:top-10 md:left-10 absolute mr-4"
+            >
+              <ChevronLeft className="w-4 h-4 mr-2" />
+              Back
+            </Button>
+          )}
         <Outlet />
       </div>
     </div>

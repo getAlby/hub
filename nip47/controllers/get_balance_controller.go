@@ -3,7 +3,8 @@ package controllers
 import (
 	"context"
 
-	"github.com/getAlby/hub/lnclient"
+	"github.com/getAlby/hub/db"
+	"github.com/getAlby/hub/db/queries"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/nip47/models"
 	"github.com/nbd-wtf/go-nostr"
@@ -15,47 +16,37 @@ const (
 )
 
 type getBalanceResponse struct {
-	Balance int64 `json:"balance"`
+	Balance uint64 `json:"balance"`
 	// MaxAmount     int    `json:"max_amount"`
 	// BudgetRenewal string `json:"budget_renewal"`
 }
 
-type getBalanceController struct {
-	lnClient lnclient.LNClient
-}
-
-func NewGetBalanceController(lnClient lnclient.LNClient) *getBalanceController {
-	return &getBalanceController{
-		lnClient: lnClient,
-	}
-}
-
 // TODO: remove checkPermission - can it be a middleware?
-func (controller *getBalanceController) HandleGetBalanceEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, checkPermission checkPermissionFunc, publishResponse publishFunc) {
-	// basic permissions check
-	resp := checkPermission(0)
-	if resp != nil {
-		publishResponse(resp, nostr.Tags{})
-		return
-	}
+func (controller *nip47Controller) HandleGetBalanceEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, app *db.App, publishResponse publishFunc) {
 
 	logger.Logger.WithFields(logrus.Fields{
 		"request_event_id": requestEventId,
 	}).Info("Getting balance")
 
-	balance, err := controller.lnClient.GetBalance(ctx)
-	if err != nil {
-		logger.Logger.WithFields(logrus.Fields{
-			"request_event_id": requestEventId,
-		}).WithError(err).Error("Failed to fetch balance")
-		publishResponse(&models.Response{
-			ResultType: nip47Request.Method,
-			Error: &models.Error{
-				Code:    models.ERROR_INTERNAL,
-				Message: err.Error(),
-			},
-		}, nostr.Tags{})
-		return
+	balance := uint64(0)
+	if app.Isolated {
+		balance = queries.GetIsolatedBalance(controller.db, app.ID)
+	} else {
+		balance_signed, err := controller.lnClient.GetBalance(ctx)
+		balance = uint64(balance_signed)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"request_event_id": requestEventId,
+			}).WithError(err).Error("Failed to fetch balance")
+			publishResponse(&models.Response{
+				ResultType: nip47Request.Method,
+				Error: &models.Error{
+					Code:    models.ERROR_INTERNAL,
+					Message: err.Error(),
+				},
+			}, nostr.Tags{})
+			return
+		}
 	}
 
 	responsePayload := &getBalanceResponse{
