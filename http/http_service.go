@@ -96,6 +96,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.POST("/api/start", httpSvc.startHandler, unlockRateLimiter)
 	e.POST("/api/unlock", httpSvc.unlockHandler, unlockRateLimiter)
 	e.PATCH("/api/unlock-password", httpSvc.changeUnlockPasswordHandler, unlockRateLimiter)
+	e.POST("/api/backup", httpSvc.createBackupHandler, unlockRateLimiter)
 
 	frontend.RegisterHandlers(e)
 
@@ -146,7 +147,6 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedGroup.POST("/api/send-payment-probes", httpSvc.sendPaymentProbesHandler)
 	restrictedGroup.POST("/api/send-spontaneous-payment-probes", httpSvc.sendSpontaneousPaymentProbesHandler)
 	restrictedGroup.GET("/api/log/:type", httpSvc.getLogOutputHandler)
-	restrictedGroup.POST("/api/backup", httpSvc.createBackupHandler)
 
 	httpSvc.albyHttpSvc.RegisterSharedRoutes(restrictedGroup, e)
 }

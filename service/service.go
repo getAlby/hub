@@ -215,6 +215,7 @@ func (svc *service) Shutdown() {
 	svc.eventPublisher.Publish(&events.Event{
 		Event: "nwc_stopped",
 	})
+	db.Stop(svc.db)
 	// wait for any remaining events
 	time.Sleep(1 * time.Second)
 }
