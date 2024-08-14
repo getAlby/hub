@@ -60,7 +60,7 @@ export default function SignMessage() {
   };
 
   return (
-    <div className="grid gap-5">
+    <>
       <AppHeader
         title="Sign Message"
         description="Manually sign a message with your node's key (e.g. to proof ownership of your node)"
@@ -119,6 +119,6 @@ export default function SignMessage() {
           )}
         </form>
       </div>
-    </div>
+    </>
   );
 }

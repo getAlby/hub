@@ -58,7 +58,7 @@ export default function ConnectPeer() {
   };
 
   return (
-    <div className="grid gap-5">
+    <>
       <AppHeader
         title="Connect Peer"
         description="Manually connect to a lightning network peer"
@@ -89,6 +89,6 @@ export default function ConnectPeer() {
           </div>
         </form>
       </div>
-    </div>
+    </>
   );
 }

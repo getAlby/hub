@@ -87,7 +87,7 @@ export default function Peers() {
         description="Manage your connections with other lightning nodes"
         contentRight={
           <>
-            <Link to="/peers/new">
+            <Link to="/channels/peers/new">
               <Button>Connect Peer</Button>
             </Link>
           </>

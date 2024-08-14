@@ -97,11 +97,6 @@ const routes = [
             element: <Send />,
             handle: { crumb: () => "Send" },
           },
-          {
-            path: "sign-message",
-            element: <SignMessage />,
-            handle: { crumb: () => "Sign Message" },
-          },
         ],
       },
       {
@@ -232,21 +227,26 @@ const routes = [
             element: <DepositBitcoin />,
             handle: { crumb: () => "Deposit Bitcoin" },
           },
-        ],
-      },
-      {
-        path: "peers",
-        element: <DefaultRedirect />,
-        handle: { crumb: () => "Peers" },
-        children: [
           {
-            index: true,
-            element: <Peers />,
+            path: "peers",
+            element: <DefaultRedirect />,
+            handle: { crumb: () => "Peers" },
+            children: [
+              {
+                index: true,
+                element: <Peers />,
+              },
+              {
+                path: "new",
+                element: <ConnectPeer />,
+                handle: { crumb: () => "Connect Peer" },
+              },
+            ],
           },
           {
-            path: "new",
-            element: <ConnectPeer />,
-            handle: { crumb: () => "Connect Peer" },
+            path: "sign-message",
+            element: <SignMessage />,
+            handle: { crumb: () => "Sign Message" },
           },
         ],
       },

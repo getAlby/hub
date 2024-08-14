@@ -241,12 +241,12 @@ export default function Channels() {
                 <DropdownMenuGroup>
                   <DropdownMenuLabel>Management</DropdownMenuLabel>
                   <DropdownMenuItem>
-                    <Link className="w-full" to="/peers">
+                    <Link className="w-full" to="/channels/peers">
                       Connected Peers
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
-                    <Link className="w-full" to="/wallet/sign-message">
+                    <Link className="w-full" to="/channels/sign-message">
                       Sign Message
                     </Link>
                   </DropdownMenuItem>
