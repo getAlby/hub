@@ -27,7 +27,8 @@ export function BackupNodeSuccess() {
                   <PowerOff className="w-6 h-6" />
                 </div>
                 <span>
-                  Alby Hub has now shut down.{" "}
+                  This Alby Hub has is now in a halted state to prevent further
+                  changes.{" "}
                   <b>
                     Do not restart it otherwise your backup will be invalidated.
                   </b>
