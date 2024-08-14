@@ -1,5 +1,6 @@
 import {
   Cable,
+  Cloud,
   EllipsisVertical,
   ExternalLinkIcon,
   Home,
@@ -172,13 +173,25 @@ export default function AppLayout() {
         <MenuItem
           to="/"
           onClick={(e) => {
-            openLink("https://getalby.com/#help");
+            openLink("https://getalby.com/help");
             e.preventDefault();
           }}
         >
           <MessageCircleQuestion className="h-4 w-4" />
           Live Support
         </MenuItem>
+        {!albyMe?.hub.name && (
+          <MenuItem
+            to="/"
+            onClick={(e) => {
+              openLink("https://getalby.com/subscription/new");
+              e.preventDefault();
+            }}
+          >
+            <Cloud className="h-4 w-4" />
+            Alby Cloud
+          </MenuItem>
+        )}
       </nav>
     );
   }
