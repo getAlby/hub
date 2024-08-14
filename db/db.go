@@ -71,6 +71,11 @@ func Stop(db *gorm.DB) error {
 		return fmt.Errorf("failed to get database connection: %w", err)
 	}
 
+	err = db.Exec("PRAGMA wal_checkpoint(FULL)", nil).Error
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to execute wal endpoint")
+	}
+
 	err = sqlDB.Close()
 	if err != nil {
 		return fmt.Errorf("failed to close database connection: %w", err)
