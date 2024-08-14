@@ -17,6 +17,7 @@ import (
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/lsp"
 	"github.com/getAlby/hub/utils"
+	"github.com/getAlby/hub/version"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
 )
@@ -126,6 +127,7 @@ func (api *api) getLSPS1LSPInfo(url string) (*lspInfo, error) {
 		}).Error("Failed to create lsp info request")
 		return nil, err
 	}
+	setDefaultRequestHeaders(req)
 
 	res, err := client.Do(req)
 	if err != nil {
@@ -244,6 +246,7 @@ func (api *api) requestLSPS1Invoice(ctx context.Context, request *LSPOrderReques
 		return "", 0, err
 	}
 
+	setDefaultRequestHeaders(req)
 	req.Header.Set("Content-Type", "application/json")
 
 	res, err := client.Do(req)
@@ -306,4 +309,8 @@ func (api *api) requestLSPS1Invoice(ctx context.Context, request *LSPOrderReques
 	}
 
 	return invoice, fee, nil
+}
+
+func setDefaultRequestHeaders(req *http.Request) {
+	req.Header.Set("User-Agent", "AlbyHub/"+version.Tag)
 }
