@@ -413,9 +413,11 @@ func (httpSvc *HttpService) nodeStatusHandler(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) nodeNetworkGraphHandler(c echo.Context) error {
+	ctx := c.Request().Context()
+
 	nodeIds := strings.Split(c.QueryParam("nodeIds"), ",")
 
-	info, err := httpSvc.api.GetNetworkGraph(nodeIds)
+	info, err := httpSvc.api.GetNetworkGraph(ctx, nodeIds)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{

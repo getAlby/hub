@@ -757,11 +757,11 @@ func (api *api) SendSpontaneousPaymentProbes(ctx context.Context, sendSpontaneou
 	return &SendSpontaneousPaymentProbesResponse{Error: errMessage}, nil
 }
 
-func (api *api) GetNetworkGraph(nodeIds []string) (NetworkGraphResponse, error) {
+func (api *api) GetNetworkGraph(ctx context.Context, nodeIds []string) (NetworkGraphResponse, error) {
 	if api.svc.GetLNClient() == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	return api.svc.GetLNClient().GetNetworkGraph(nodeIds)
+	return api.svc.GetLNClient().GetNetworkGraph(ctx, nodeIds)
 }
 
 func (api *api) SyncWallet() error {

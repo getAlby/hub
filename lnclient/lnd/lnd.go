@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -562,15 +563,35 @@ func (svc *LNDService) Shutdown() error {
 }
 
 func (svc *LNDService) GetNodeConnectionInfo(ctx context.Context) (nodeConnectionInfo *lnclient.NodeConnectionInfo, err error) {
-	info, err := svc.client.GetInfo(ctx, &lnrpc.GetInfoRequest{})
+	pubkey := svc.GetPubkey()
+	nodeInfo, err := svc.client.GetNodeInfo(ctx, &lnrpc.NodeInfoRequest{
+		PubKey: pubkey,
+	})
 	if err != nil {
 		return nil, err
 	}
 
+	addresses := nodeInfo.Node.Addresses
+
+	if addresses == nil || len(addresses) < 1 {
+		return nil, errors.New("no available listening addresses")
+	}
+
+	firstAddress := addresses[0]
+	parts := strings.Split(firstAddress.Addr, ":")
+	if len(parts) != 2 {
+		return nil, errors.New(fmt.Sprintf("invalid address %v", firstAddress))
+	}
+	port, err := strconv.Atoi(parts[1])
+	if err != nil {
+		logger.Logger.WithError(err).Error("ConnectPeer failed")
+		return nil, err
+	}
+
 	return &lnclient.NodeConnectionInfo{
-		Pubkey: info.IdentityPubkey,
-		//Address: address,
-		//Port:    port,
+		Pubkey:  pubkey,
+		Address: parts[0],
+		Port:    port,
 	}, nil
 }
 
@@ -719,16 +740,14 @@ func (svc *LNDService) GetOnchainBalance(ctx context.Context) (*lnclient.Onchain
 	}, nil
 }
 
+// TODO: SendCoins
 func (svc *LNDService) RedeemOnchainFunds(ctx context.Context, toAddress string) (txId string, err error) {
 	return "", nil
 }
 
-func (svc *LNDService) SendPaymentProbes(ctx context.Context, invoice string) error {
-	return nil
-}
-
-func (svc *LNDService) SendSpontaneousPaymentProbes(ctx context.Context, amountMsat uint64, nodeId string) error {
-	return nil
+// TODO: GetDebugInfo
+func (svc *LNDService) GetLogOutput(ctx context.Context, maxLen int) ([]byte, error) {
+	return []byte{}, nil
 }
 
 func (svc *LNDService) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, error) {
@@ -743,10 +762,6 @@ func (svc *LNDService) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, e
 		})
 	}
 	return ret, err
-}
-
-func (svc *LNDService) GetLogOutput(ctx context.Context, maxLen int) ([]byte, error) {
-	return []byte{}, nil
 }
 
 func (svc *LNDService) SignMessage(ctx context.Context, message string) (string, error) {
@@ -884,23 +899,59 @@ func lndInvoiceToTransaction(invoice *lnrpc.Invoice) *lnclient.Transaction {
 	}
 }
 
-func (svc *LNDService) ResetRouter(key string) error {
-	return nil
-}
-
-func (svc *LNDService) GetStorageDir() (string, error) {
-	return "", nil
-}
-
 func (svc *LNDService) GetNodeStatus(ctx context.Context) (nodeStatus *lnclient.NodeStatus, err error) {
-	return nil, nil
+	info, err := svc.GetInfo(ctx)
+	nodeInfo, err := svc.client.GetNodeInfo(ctx, &lnrpc.NodeInfoRequest{
+		PubKey: svc.GetPubkey(),
+	})
+	networkInfo, err := svc.client.GetNetworkInfo(ctx, &lnrpc.NetworkInfoRequest{})
+	state, err := svc.client.GetState(ctx, &lnrpc.GetStateRequest{})
+
+	return &lnclient.NodeStatus{
+		InternalNodeStatus: map[string]interface{}{
+			"info":         info,
+			"node_info":    nodeInfo,
+			"network_info": networkInfo,
+			"wallet_state": state.GetState().String(),
+		},
+	}, nil
 }
 
-func (svc *LNDService) GetNetworkGraph(nodeIds []string) (lnclient.NetworkGraphResponse, error) {
-	return nil, nil
-}
+func (svc *LNDService) GetNetworkGraph(ctx context.Context, nodeIds []string) (lnclient.NetworkGraphResponse, error) {
+	graph, err := svc.client.DescribeGraph(ctx, &lnrpc.ChannelGraphRequest{})
+	if err != nil {
+		return "", err
+	}
 
-func (svc *LNDService) UpdateLastWalletSyncRequest() {}
+	type NodeInfoWithId struct {
+		Node   *lnrpc.LightningNode `json:"node"`
+		NodeId string               `json:"nodeId"`
+	}
+
+	nodes := []NodeInfoWithId{}
+	channels := []*lnrpc.ChannelEdge{}
+
+	for _, node := range graph.Nodes {
+		if slices.Contains(nodeIds, node.PubKey) {
+			nodes = append(nodes, NodeInfoWithId{
+				Node:   node,
+				NodeId: node.PubKey,
+			})
+		}
+	}
+
+	for _, edge := range graph.Edges {
+		if slices.Contains(nodeIds, edge.Node1Pub) || slices.Contains(nodeIds, edge.Node2Pub) {
+			channels = append(channels, edge)
+		}
+	}
+
+	networkGraph := map[string]interface{}{
+		"nodes":    nodes,
+		"channels": channels,
+	}
+	return networkGraph, nil
+}
 
 func (svc *LNDService) UpdateChannel(ctx context.Context, updateChannelRequest *lnclient.UpdateChannelRequest) error {
 	logger.Logger.WithFields(logrus.Fields{
@@ -970,3 +1021,21 @@ func (svc *LNDService) GetSupportedNIP47NotificationTypes() []string {
 func (svc *LNDService) GetPubkey() string {
 	return svc.nodeInfo.Pubkey
 }
+
+func (svc *LNDService) SendPaymentProbes(ctx context.Context, invoice string) error {
+	return nil
+}
+
+func (svc *LNDService) SendSpontaneousPaymentProbes(ctx context.Context, amountMsat uint64, nodeId string) error {
+	return nil
+}
+
+func (svc *LNDService) ResetRouter(key string) error {
+	return nil
+}
+
+func (svc *LNDService) GetStorageDir() (string, error) {
+	return "", nil
+}
+
+func (svc *LNDService) UpdateLastWalletSyncRequest() {}
