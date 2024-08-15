@@ -60,6 +60,9 @@ export default defineConfig(({ command }) => ({
       wailsjs: path.resolve(__dirname, "./wailsjs"),
     },
   },
+  build: {
+    assetsInlineLimit: 0,
+  },
   html:
     command === "serve"
       ? {
