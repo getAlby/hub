@@ -10,8 +10,6 @@ import { Button } from "src/components/ui/button";
 import { cn } from "src/lib/utils";
 import { BackendType } from "src/types";
 
-import cashu from "src/assets/images/node/cashu.png";
-import lnd from "src/assets/images/node/lnd.png";
 import { backendTypeConfigs } from "src/lib/backendType";
 import useSetupStore from "src/state/SetupStore";
 
@@ -40,11 +38,11 @@ const backendTypeDisplayConfigs: Record<BackendType, BackendTypeDisplayConfig> =
     },
     LND: {
       title: "LND",
-      icon: <img src={lnd} />,
+      icon: <img src="/images/node/lnd.png" height="24" width="auto" />,
     },
     CASHU: {
       title: "Cashu Mint",
-      icon: <img src={cashu} />,
+      icon: <img src="/images/node/cashu.png" height="24" width="auto" />,
     },
   };
 
@@ -94,7 +92,9 @@ export function SetupNode() {
                   )}
                   onClick={() => setSelectedBackupType(item.backendType)}
                 >
-                  <div className="h-6 w-6">{item.icon}</div>
+                  <div className="h-6 w-6 flex items-center justify-center">
+                    {item.icon}
+                  </div>
                   {item.title}
                 </div>
               ))}
