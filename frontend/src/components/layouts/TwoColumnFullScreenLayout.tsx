@@ -94,7 +94,7 @@ export default function TwoColumnFullScreenLayout() {
             // show the back button on setup pages, except the setup finish page
             <Button
               type="button"
-              variant="secondary"
+              variant="outline"
               onClick={() => {
                 navigate(-1);
               }}
