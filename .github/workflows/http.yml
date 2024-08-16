@@ -1,11 +1,25 @@
-name: Linux build HTTP executable
+name: HTTP build - Linux and MacOS
 on:
   push:
   workflow_call:
+    inputs:
+      build-release:
+        description: "Build full-featured http release (codesigning, notarization, etc.)"
+        type: boolean
+    secrets:
+      APPLE_DEVELOPER_CERTIFICATE_P12_BASE64:
+        required: true
+      APPLE_DEVELOPER_CERTIFICATE_PASSWORD:
+        required: true
+      APPLE_PASSWORD:
+        required: true
+      APPLE_TEAM_ID:
+        required: true
+      APPLE_USERNAME:
+        required: true
+
 jobs:
   build:
-    runs-on: ubuntu-20.04
-
     strategy:
       matrix:
         build:
@@ -14,34 +28,50 @@ jobs:
               arch: x86_64,
               breez_arch: linux-amd64,
               alby_arch: x86_64-unknown-linux-gnu,
+              os: ubuntu-20.04,
             },
             {
               arch: armv6,
               breez_arch: "",
               alby_arch: arm-unknown-linux-gnueabihf,
+              os: ubuntu-20.04,
             },
             {
               arch: aarch64,
               breez_arch: linux-aarch64,
               alby_arch: aarch64-unknown-linux-gnu,
+              os: ubuntu-20.04,
             },
+            { arch: darwin/universal, os: macos-12 },
           ]
+    runs-on: ${{ matrix.build.os }}
 
     steps:
       - name: Setup
         run: |
           echo "EXEC_NAME=albyhub" >> $GITHUB_ENV
-          echo "PACKAGE_NAME=albyhub-Server-Linux-${{ matrix.build.arch }}" >> $GITHUB_ENV
+          if [ "${{ matrix.build.os }}" == "macos-12" ]; then
+            echo "PACKAGE_NAME=albyhub-Server-MacOS" >> $GITHUB_ENV
+          else
+            echo "PACKAGE_NAME=albyhub-Server-Linux-${{ matrix.build.arch }}" >> $GITHUB_ENV
+          fi
 
       - uses: actions/checkout@v4
         name: Check out code
         with:
           submodules: recursive
 
-      - name: Install dependencies
+      - name: Install Linux dependencies
+        if: matrix.build.os == 'ubuntu-20.04'
         run: |
           sudo apt-get update
           sudo apt-get install -y patchelf gcc
+
+      - name: Install macOS Wails deps
+        if: matrix.build.os == 'macos-12'
+        run: |
+          brew install Bearer/tap/gon
+        shell: bash
 
       - name: Setup GoLang
         uses: actions/setup-go@v5
@@ -90,13 +120,23 @@ jobs:
           echo "CC=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
           echo "GOTAGS=-tags netgo" >> $GITHUB_ENV
 
-      - name: Build Binary for linux
+      - name: Build Binary for Linux and MacOS
         env:
           CGO_ENABLED: 1
           TAG: ${{ github.ref_name }}
         run: go build ${{ env.GOTAGS }} -o build/bin/${{ env.PACKAGE_NAME }}/bin/${{ env.EXEC_NAME }} -ldflags "-X 'github.com/getAlby/hub/version.Tag=${{ env.TAG }}'" cmd/http/main.go
 
+      - name: Import Code-Signing Certificates for macOS
+        if: matrix.build.os == 'macos-12'
+        uses: Apple-Actions/import-codesign-certs@v3
+        with:
+          # The certificates in a PKCS12 file encoded as a base64 string
+          p12-file-base64: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_P12_BASE64 }}
+          # The password used to import the PKCS12 file.
+          p12-password: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_PASSWORD }}
+
       - name: Copy shared libraries to the output directory
+        if: matrix.build.os == 'ubuntu-20.04'
         run: |
           mkdir -p ./build/bin/${{ env.PACKAGE_NAME }}/lib
           if [ "${{ matrix.build.breez_arch }}" != "" ]; then
@@ -107,22 +147,74 @@ jobs:
         shell: bash
 
       - name: Patch executable RPATH
+        if: matrix.build.os == 'ubuntu-20.04'
         run: |
           patchelf --force-rpath --set-rpath '$ORIGIN/../lib' ./build/bin/${{ env.PACKAGE_NAME }}/bin/${{ env.EXEC_NAME }}
 
-      - name: Add Linux perms
+      - name: Copy shared libraries to the output directory
+        if: matrix.build.os == 'macos-12'
+        run: |
+          lipo -create -output ./build/bin/${{ env.PACKAGE_NAME }}/lib/libbreez_sdk_bindings.dylib `go list -m -f "{{.Dir}}" github.com/breez/breez-sdk-go`/breez_sdk/lib/darwin-aarch64/libbreez_sdk_bindings.dylib `go list -m -f "{{.Dir}}" github.com/breez/breez-sdk-go`/breez_sdk/lib/darwin-amd64/libbreez_sdk_bindings.dylib
+          cp `go list -m -f "{{.Dir}}" github.com/getAlby/glalby-go`/glalby/universal-macos/libglalby_bindings.dylib ./build/bin/${{ env.PACKAGE_NAME }}/lib/
+          cp `go list -m -f "{{.Dir}}" github.com/getAlby/ldk-node-go`/ldk_node/universal-macos/libldk_node.dylib ./build/bin/${{ env.PACKAGE_NAME }}/lib/
+        shell: bash
+
+      - name: Patch executable RPATH
+        if: matrix.build.os == 'macos-12'
+        run: |
+          install_name_tool -add_rpath @executable_path/../lib ./build/bin/${{ env.PACKAGE_NAME }}/bin/${{ env.EXEC_NAME }}
+
+      - name: Add permissions
         run: |
           chmod +x build/bin/${{ env.PACKAGE_NAME }}/bin/${{ env.EXEC_NAME }}
         shell: bash
 
+      - name: Sign the MacOS binary and libraries
+        if: matrix.build.os == 'macos-12'
+        run: |
+          /usr/bin/codesign -s "Developer ID Application: Alby Inc." -f -v --deep --timestamp --options runtime ./build/bin/${{ env.PACKAGE_NAME }}/bin/${{ env.EXEC_NAME }}
+          /usr/bin/codesign -s "Developer ID Application: Alby Inc." -f -v --deep --timestamp --options runtime ./build/bin/${{ env.PACKAGE_NAME }}/lib/*.dylib
+        env:
+          AC_USERNAME: ${{ secrets.APPLE_USERNAME }}
+          AC_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          AC_PROVIDER: ${{ secrets.APPLE_TEAM_ID }}
+
       - name: Make output tar archive to keep file permissions
+        if: matrix.build.os == 'ubuntu-20.04'
         run: |
           mkdir -p ./build/out
           tar -cjf ./build/out/${{ env.PACKAGE_NAME }}.tar.bz2 -C ./build/bin/${{ env.PACKAGE_NAME }} .
 
+      - name: Make output zip archive to keep file permissions
+        if: matrix.build.os == 'macos-12'
+        run: |
+          mkdir -p ./build/out
+          cd ./build/bin/${{ env.PACKAGE_NAME }}
+          zip -r ../../out/${{ env.PACKAGE_NAME }} ./*
+          cd ../../..
+
+      - name: Notarize the zip file
+        if: matrix.build.os == 'macos-12'
+        run: |
+          echo "Notarizing Zip Files"
+          gon -log-level=info -log-json ./build/darwin/http/gon-notarize.json
+        env:
+          AC_USERNAME: ${{ secrets.APPLE_USERNAME }}
+          AC_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          AC_PROVIDER: ${{ secrets.APPLE_TEAM_ID }}
+
       - uses: actions/upload-artifact@v4
+        if: matrix.build.os == 'ubuntu-20.04'
         with:
           name: ${{ env.PACKAGE_NAME }}.tar.bz2
           path: |
             ./build/out/${{ env.PACKAGE_NAME }}.tar.bz2
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v4
+        if: matrix.build.os == 'macos-12'
+        with:
+          name: ${{ env.PACKAGE_NAME }}.zip
+          path: |
+            ./build/out/${{ env.PACKAGE_NAME }}.zip
           if-no-files-found: error
