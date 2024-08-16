@@ -63,6 +63,10 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 		XFrameOptions:         "DENY",
 		ContentSecurityPolicy: "default-src 'self'; img-src 'self' https://uploads.getalby-assets.com https://getalby.com;",
 		ReferrerPolicy:        "no-referrer",
+		Skipper: func(c echo.Context) bool {
+			// only serve the react app on the root
+			return c.Path() != "/"
+		},
 	}))
 	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
 		LogURI:       true,
@@ -97,6 +101,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.POST("/api/unlock", httpSvc.unlockHandler, unlockRateLimiter)
 	e.PATCH("/api/unlock-password", httpSvc.changeUnlockPasswordHandler, unlockRateLimiter)
 	e.POST("/api/backup", httpSvc.createBackupHandler, unlockRateLimiter)
+	e.GET("/logout", httpSvc.logoutHandler, unlockRateLimiter)
 
 	frontend.RegisterHandlers(e)
 
@@ -934,6 +939,15 @@ func (httpSvc *HttpService) getLogOutputHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, getLogResponse)
+}
+
+func (httpSvc *HttpService) logoutHandler(c echo.Context) error {
+	redirectUrl := httpSvc.cfg.GetEnv().FrontendUrl
+	if redirectUrl == "" {
+		redirectUrl = httpSvc.cfg.GetEnv().BaseUrl
+	}
+
+	return c.Redirect(http.StatusFound, redirectUrl)
 }
 
 func (httpSvc *HttpService) createBackupHandler(c echo.Context) error {

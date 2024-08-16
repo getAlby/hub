@@ -71,8 +71,14 @@ export default function AppLayout() {
   const logout = React.useCallback(async () => {
     deleteAuthToken();
     await refetchInfo();
-    navigate("/", { replace: true });
-    toast({ title: "You are now logged out." });
+
+    const isHttpMode = window.location.protocol.startsWith("http");
+    if (isHttpMode) {
+      window.location.href = "/logout";
+    } else {
+      navigate("/", { replace: true });
+      toast({ title: "You are now logged out." });
+    }
   }, [navigate, refetchInfo, toast]);
 
   const isHttpMode = window.location.protocol.startsWith("http");
