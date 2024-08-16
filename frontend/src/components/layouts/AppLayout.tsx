@@ -44,7 +44,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "src/components/ui/tooltip";
-import { useToast } from "src/components/ui/use-toast";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 
 import { useInfo } from "src/hooks/useInfo";
@@ -58,7 +57,6 @@ export default function AppLayout() {
   const { data: albyMe } = useAlbyMe();
 
   const { data: info, mutate: refetchInfo } = useInfo();
-  const { toast } = useToast();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -77,9 +75,8 @@ export default function AppLayout() {
       window.location.href = "/logout";
     } else {
       navigate("/", { replace: true });
-      toast({ title: "You are now logged out." });
     }
-  }, [navigate, refetchInfo, toast]);
+  }, [navigate, refetchInfo]);
 
   const isHttpMode = window.location.protocol.startsWith("http");
 
