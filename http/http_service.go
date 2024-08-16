@@ -63,10 +63,6 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 		XFrameOptions:         "DENY",
 		ContentSecurityPolicy: "default-src 'self'; img-src 'self' https://uploads.getalby-assets.com https://getalby.com;",
 		ReferrerPolicy:        "no-referrer",
-		Skipper: func(c echo.Context) bool {
-			// only serve the react app on the root
-			return c.Path() != "/"
-		},
 	}))
 	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
 		LogURI:       true,
