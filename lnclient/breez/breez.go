@@ -29,9 +29,12 @@ type BreezListener struct {
 }
 
 func (listener BreezListener) Log(l breez_sdk.LogEntry) {
-	if l.Level != "TRACE" && l.Level != "DEBUG" {
-		logger.Logger.WithField("level", l.Level).Print(l.Line)
+	logLevel := logrus.InfoLevel
+	if l.Level == "TRACE" || l.Level == "DEBUG" || strings.Contains(l.Line, "connection to node lost") || strings.Contains(l.Line, "Restore channel") {
+		logLevel = logrus.DebugLevel
 	}
+
+	logger.Logger.WithField("level", l.Level).Log(logLevel, l.Line)
 }
 
 func (BreezListener) OnEvent(e breez_sdk.BreezEvent) {

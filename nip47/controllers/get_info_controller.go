@@ -38,7 +38,7 @@ func (controller *nip47Controller) HandleGetInfoEvent(ctx context.Context, nip47
 	if hasPermission {
 		logger.Logger.WithFields(logrus.Fields{
 			"request_event_id": requestEventId,
-		}).Info("Getting info")
+		}).Debug("Getting info")
 
 		info, err := controller.lnClient.GetInfo(ctx)
 		if err != nil {
