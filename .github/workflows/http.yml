@@ -206,7 +206,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: matrix.build.os == 'ubuntu-20.04'
         with:
-          name: ${{ env.PACKAGE_NAME }}.tar.bz2
+          name: ${{ env.PACKAGE_NAME }}
           path: |
             ./build/out/${{ env.PACKAGE_NAME }}.tar.bz2
           if-no-files-found: error
@@ -214,7 +214,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: matrix.build.os == 'macos-12'
         with:
-          name: ${{ env.PACKAGE_NAME }}.zip
+          name: ${{ env.PACKAGE_NAME }}
           path: |
             ./build/out/${{ env.PACKAGE_NAME }}.zip
           if-no-files-found: error
