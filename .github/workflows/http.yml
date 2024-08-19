@@ -194,7 +194,7 @@ jobs:
           cd ../../..
 
       - name: Notarize the zip file
-        if: matrix.build.os == 'macos-12'
+        if: matrix.build.os == 'macos-12' && inputs.build-release
         run: |
           echo "Notarizing Zip Files"
           gon -log-level=info -log-json ./build/darwin/http/gon-notarize.json
