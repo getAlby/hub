@@ -25,7 +25,7 @@ func TestSendPaymentSync_App_NoPermission(t *testing.T) {
 	err = svc.DB.Create(&dbRequestEvent).Error
 	assert.NoError(t, err)
 
-	transactionsService := NewTransactionsService(svc.DB)
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.Error(t, err)
@@ -54,7 +54,7 @@ func TestSendPaymentSync_App_WithPermission(t *testing.T) {
 	err = svc.DB.Create(&dbRequestEvent).Error
 	assert.NoError(t, err)
 
-	transactionsService := NewTransactionsService(svc.DB)
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.NoError(t, err)
@@ -88,7 +88,7 @@ func TestSendPaymentSync_App_BudgetExceeded(t *testing.T) {
 	err = svc.DB.Create(&dbRequestEvent).Error
 	assert.NoError(t, err)
 
-	transactionsService := NewTransactionsService(svc.DB)
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.Error(t, err)
@@ -128,7 +128,7 @@ func TestSendPaymentSync_App_BudgetExceeded_SettledPayment(t *testing.T) {
 	err = svc.DB.Create(&dbRequestEvent).Error
 	assert.NoError(t, err)
 
-	transactionsService := NewTransactionsService(svc.DB)
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.Error(t, err)
@@ -167,7 +167,7 @@ func TestSendPaymentSync_App_BudgetExceeded_UnsettledPayment(t *testing.T) {
 	err = svc.DB.Create(&dbRequestEvent).Error
 	assert.NoError(t, err)
 
-	transactionsService := NewTransactionsService(svc.DB)
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.Error(t, err)
@@ -207,7 +207,7 @@ func TestSendPaymentSync_App_BudgetNotExceeded_FailedPayment(t *testing.T) {
 	err = svc.DB.Create(&dbRequestEvent).Error
 	assert.NoError(t, err)
 
-	transactionsService := NewTransactionsService(svc.DB)
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.NoError(t, err)

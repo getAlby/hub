@@ -415,13 +415,13 @@ func (svc *transactionsService) LookupTransaction(ctx context.Context, paymentHa
 
 	// order settled first, otherwise by created date, as there can be multiple outgoing payments
 	// for the same payment hash (if you tried to pay an invoice multiple times - e.g. the first time failed)
-	result := tx.Order("settled_at desc, created_at desc").Find(&transaction, &db.Transaction{
+	result := tx.Order("settled_at desc, created_at desc").Limit(1).Find(&transaction, &db.Transaction{
 		//Type:        transactionType,
 		PaymentHash: paymentHash,
 	})
 
 	if result.Error != nil {
-		logger.Logger.WithError(result.Error).Error("Failed to lookup DB transaction")
+		logger.Logger.WithError(result.Error).Error("Failed to lookup transaction")
 		return nil, result.Error
 	}
 
@@ -429,7 +429,7 @@ func (svc *transactionsService) LookupTransaction(ctx context.Context, paymentHa
 		logger.Logger.WithFields(logrus.Fields{
 			"payment_hash": paymentHash,
 			"app_id":       appId,
-		}).WithError(result.Error).Error("Failed to lookup DB transaction")
+		}).WithError(result.Error).Error("transaction not found")
 		return nil, NewNotFoundError()
 	}
 
@@ -603,15 +603,8 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 				}
 			}
 
-			err := svc.db.Transaction(func(tx *gorm.DB) error {
-				return svc.markTransactionSettled(tx, &dbTransaction, lnClientTransaction.Preimage, uint64(lnClientTransaction.FeesPaid), false)
-			})
+			return svc.markTransactionSettled(tx, &dbTransaction, lnClientTransaction.Preimage, uint64(lnClientTransaction.FeesPaid), false)
 
-			if err != nil {
-				return err
-			}
-
-			return nil
 		})
 
 		if err != nil {
@@ -620,7 +613,6 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 			}).WithError(err).Error("Failed to execute DB transaction")
 			return
 		}
-		logger.Logger.WithField("payment_hash", dbTransaction.PaymentHash).Info("Marked incoming transaction as settled")
 	case "nwc_lnclient_payment_sent":
 		lnClientTransaction, ok := event.Properties.(*lnclient.Transaction)
 		if !ok {
@@ -655,8 +647,6 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 			}).WithError(err).Error("Failed to update transaction")
 			return
 		}
-		logger.Logger.WithField("payment_hash", dbTransaction.PaymentHash).Info("Marked outgoing transaction as settled")
-
 	case "nwc_lnclient_payment_failed":
 		paymentFailedAsyncProperties, ok := event.Properties.(*lnclient.PaymentFailedEventProperties)
 		if !ok {
@@ -684,6 +674,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 }
 
 func (svc *transactionsService) interceptSelfPayment(paymentHash string) (*lnclient.PayInvoiceResponse, error) {
+	logger.Logger.WithField("payment_hash", paymentHash).Debug("Intercepting self payment")
 	incomingTransaction := db.Transaction{}
 	result := svc.db.Limit(1).Find(&incomingTransaction, &db.Transaction{
 		Type:        constants.TRANSACTION_TYPE_INCOMING,
@@ -846,7 +837,6 @@ func (svc *transactionsService) markTransactionSettled(tx *gorm.DB, dbTransactio
 		Type:        dbTransaction.Type,
 		PaymentHash: dbTransaction.PaymentHash,
 		State:       constants.TRANSACTION_STATE_SETTLED,
-		SelfPayment: selfPayment,
 	}).RowsAffected > 0 {
 		logger.Logger.WithField("payment_hash", dbTransaction.PaymentHash).Info("payment already marked as sent")
 		return nil
@@ -863,12 +853,19 @@ func (svc *transactionsService) markTransactionSettled(tx *gorm.DB, dbTransactio
 		"FeeMsat":        fee,
 		"FeeReserveMsat": 0,
 		"SettledAt":      &now,
+		"SelfPayment":    selfPayment,
 	}).Error
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"payment_hash": dbTransaction.PaymentHash,
 		}).WithError(err).Error("Failed to update DB transaction")
+		return err
 	}
+
+	logger.Logger.WithFields(logrus.Fields{
+		"payment_hash": dbTransaction.PaymentHash,
+		"type":         dbTransaction.Type,
+	}).Info("Marked transaction as settled")
 
 	event := "nwc_payment_sent"
 	if dbTransaction.Type == constants.TRANSACTION_TYPE_INCOMING {
@@ -899,7 +896,7 @@ func (svc *transactionsService) markPaymentFailed(tx *gorm.DB, dbTransaction *db
 		return nil
 	}
 
-	err := svc.db.Model(dbTransaction).Updates(map[string]interface{}{
+	err := tx.Model(dbTransaction).Updates(map[string]interface{}{
 		"State":          constants.TRANSACTION_STATE_FAILED,
 		"FeeReserveMsat": 0,
 		"FailureReason":  reason,

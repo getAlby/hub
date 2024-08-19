@@ -66,7 +66,7 @@ func TestHandlePayInvoiceEvent(t *testing.T) {
 	}
 
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
-	transactionsSvc := transactions.NewTransactionsService(svc.DB)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
 	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
 		HandlePayInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse, nostr.Tags{})
 
@@ -105,7 +105,7 @@ func TestHandlePayInvoiceEvent_MalformedInvoice(t *testing.T) {
 	}
 
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
-	transactionsSvc := transactions.NewTransactionsService(svc.DB)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
 	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
 		HandlePayInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse, nostr.Tags{})
 

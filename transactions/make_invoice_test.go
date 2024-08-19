@@ -22,7 +22,7 @@ func TestMakeInvoice_NoApp(t *testing.T) {
 	txMetadata := make(map[string]interface{})
 	txMetadata["randomkey"] = strings.Repeat("a", constants.INVOICE_METADATA_MAX_LENGTH-16) // json encoding adds 16 characters - {"randomkey":""}
 
-	transactionsService := NewTransactionsService(svc.DB)
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 	transaction, err := transactionsService.MakeInvoice(ctx, 1234, "Hello world", "", 0, txMetadata, svc.LNClient, nil, nil)
 	assert.NoError(t, err)
 
@@ -46,7 +46,7 @@ func TestMakeInvoice_MetadataTooLarge(t *testing.T) {
 	metadata := make(map[string]interface{})
 	metadata["randomkey"] = strings.Repeat("a", constants.INVOICE_METADATA_MAX_LENGTH-15) // json encoding adds 16 characters
 
-	transactionsService := NewTransactionsService(svc.DB)
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 	transaction, err := transactionsService.MakeInvoice(ctx, 1234, "Hello world", "", 0, metadata, svc.LNClient, nil, nil)
 
 	assert.Error(t, err)
@@ -68,7 +68,7 @@ func TestMakeInvoice_App(t *testing.T) {
 	err = svc.DB.Create(&dbRequestEvent).Error
 	assert.NoError(t, err)
 
-	transactionsService := NewTransactionsService(svc.DB)
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 	transaction, err := transactionsService.MakeInvoice(ctx, 1234, "Hello world", "", 0, nil, svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.NoError(t, err)

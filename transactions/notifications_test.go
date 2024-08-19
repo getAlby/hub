@@ -30,7 +30,7 @@ func TestNotifications_ReceivedKnownPayment(t *testing.T) {
 		AmountMsat:     123000,
 	})
 
-	transactionsService := NewTransactionsService(svc.DB)
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
 	transactionsService.ConsumeEvent(ctx, &events.Event{
 		Event:      "nwc_lnclient_payment_received",
@@ -56,7 +56,7 @@ func TestNotifications_ReceivedUnknownPayment(t *testing.T) {
 	svc, err := tests.CreateTestService()
 	assert.NoError(t, err)
 
-	transactionsService := NewTransactionsService(svc.DB)
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
 	transactionsService.ConsumeEvent(ctx, &events.Event{
 		Event:      "nwc_lnclient_payment_received",
@@ -83,7 +83,7 @@ func TestNotifications_ReceivedKeysend(t *testing.T) {
 	svc, err := tests.CreateTestService()
 	assert.NoError(t, err)
 
-	transactionsService := NewTransactionsService(svc.DB)
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
 	metadata := map[string]interface{}{}
 
@@ -158,7 +158,7 @@ func TestNotifications_SentKnownPayment(t *testing.T) {
 		FeeReserveMsat: uint64(10000),
 	})
 
-	transactionsService := NewTransactionsService(svc.DB)
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
 	transactionsService.ConsumeEvent(ctx, &events.Event{
 		Event:      "nwc_lnclient_payment_sent",
@@ -185,7 +185,7 @@ func TestNotifications_SentUnknownPayment(t *testing.T) {
 	svc, err := tests.CreateTestService()
 	assert.NoError(t, err)
 
-	transactionsService := NewTransactionsService(svc.DB)
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
 	transactions := []db.Transaction{}
 	result := svc.DB.Find(&transactions)
@@ -218,11 +218,11 @@ func TestNotifications_FailedKnownPayment(t *testing.T) {
 		FeeReserveMsat: uint64(10000),
 	})
 
-	transactionsService := NewTransactionsService(svc.DB)
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
 	transactionsService.ConsumeEvent(ctx, &events.Event{
 		Event: "nwc_lnclient_payment_failed",
-		Properties: &events.LNClientPaymentFailedAsyncProperties{
+		Properties: &lnclient.PaymentFailedEventProperties{
 			Transaction: tests.MockLNClientTransaction,
 			Reason:      "Some failure reason",
 		},

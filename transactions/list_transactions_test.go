@@ -36,7 +36,7 @@ func TestListTransactions(t *testing.T) {
 		AmountMsat:     123000,
 	})
 
-	transactionsService := NewTransactionsService(svc.DB)
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
 	incomingTransactions, err := transactionsService.ListTransactions(ctx, 0, 0, 0, 0, false, nil, svc.LNClient, nil)
 	assert.NoError(t, err)
@@ -72,7 +72,7 @@ func TestListTransactions_Unsettled(t *testing.T) {
 		AmountMsat:     123000,
 	})
 
-	transactionsService := NewTransactionsService(svc.DB)
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
 	incomingTransactions, err := transactionsService.ListTransactions(ctx, 0, 0, 0, 0, true, nil, svc.LNClient, nil)
 	assert.NoError(t, err)
@@ -107,7 +107,7 @@ func TestListTransactions_Limit(t *testing.T) {
 		Description:    "second",
 	})
 
-	transactionsService := NewTransactionsService(svc.DB)
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
 	incomingTransactions, err := transactionsService.ListTransactions(ctx, 0, 0, 1, 0, false, nil, svc.LNClient, nil)
 	assert.NoError(t, err)
@@ -143,7 +143,7 @@ func TestListTransactions_Offset(t *testing.T) {
 		Description:    "second",
 	})
 
-	transactionsService := NewTransactionsService(svc.DB)
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
 	incomingTransactions, err := transactionsService.ListTransactions(ctx, 0, 0, 1, 1, false, nil, svc.LNClient, nil)
 	assert.NoError(t, err)
@@ -189,7 +189,7 @@ func TestListTransactions_FromUntil(t *testing.T) {
 		Description:    "third",
 	})
 
-	transactionsService := NewTransactionsService(svc.DB)
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
 	incomingTransactions, err := transactionsService.ListTransactions(ctx, uint64(time.Now().Add(4*time.Minute).Unix()), uint64(time.Now().Add(6*time.Minute).Unix()), 0, 0, false, nil, svc.LNClient, nil)
 	assert.NoError(t, err)

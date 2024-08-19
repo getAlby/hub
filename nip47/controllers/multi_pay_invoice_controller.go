@@ -30,6 +30,7 @@ func (controller *nip47Controller) HandleMultiPayInvoiceEvent(ctx context.Contex
 		publishResponse(resp, nostr.Tags{})
 		return
 	}
+	logger.Logger.WithField("multiPayParams", multiPayParams).Debug("sending multi payment")
 
 	var wg sync.WaitGroup
 	wg.Add(len(multiPayParams.Invoices))
