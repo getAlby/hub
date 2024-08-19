@@ -957,7 +957,7 @@ func (httpSvc *HttpService) createBackupHandler(c echo.Context) error {
 	}
 
 	c.Response().Header().Set("Content-Type", "application/octet-stream")
-	c.Response().Header().Set("Content-Disposition", "attachment; filename=nwc.bkp")
+	c.Response().Header().Set("Content-Disposition", "attachment; filename=albyhub.bkp")
 	c.Response().WriteHeader(http.StatusOK)
 	c.Response().Write(buffer.Bytes())
 	return nil
