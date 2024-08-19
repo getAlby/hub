@@ -5,7 +5,7 @@ import (
 
 	"github.com/getAlby/hub/db/migrations"
 	"github.com/getAlby/hub/logger"
-	"github.com/glebarez/sqlite"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
