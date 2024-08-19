@@ -41,6 +41,7 @@ import {
 import { Input } from "src/components/ui/input";
 import { Table, TableBody, TableCell, TableRow } from "src/components/ui/table";
 import { useToast } from "src/components/ui/use-toast";
+import { useApps } from "src/hooks/useApps";
 import { useCapabilities } from "src/hooks/useCapabilities";
 import { formatAmount } from "src/lib/utils";
 
@@ -76,14 +77,15 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
-  const [canEditName, setCanEditName] = React.useState(false);
-  const [canEditPermissions, setCanEditPermissions] = React.useState(false);
+  const { data: apps } = useApps();
+  const [isEditingName, setIsEditingName] = React.useState(false);
+  const [isEditingPermissions, setIsEditingPermissions] = React.useState(false);
 
   React.useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
     const editMode = queryParams.has("edit");
-    setCanEditName(editMode);
-    setCanEditPermissions(editMode);
+    setIsEditingName(editMode);
+    setIsEditingPermissions(editMode);
   }, [location.search]);
 
   const { deleteApp, isDeleting } = useDeleteApp(() => {
@@ -101,6 +103,13 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
 
   const handleSave = async () => {
     try {
+      if (
+        isEditingName &&
+        apps?.some((existingApp) => existingApp.name === name)
+      ) {
+        throw new Error("A connection with the same name already exists.");
+      }
+
       const updateAppRequest: UpdateAppRequest = {
         name,
         scopes: Array.from(permissions.scopes),
@@ -118,13 +127,13 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
       });
 
       await refetchApp();
-      setCanEditName(false);
-      setCanEditPermissions(false);
+      setIsEditingName(false);
+      setIsEditingPermissions(false);
       toast({
-        title: `Successfully updated ${canEditName ? "name" : "permissions"}`,
+        title: `Successfully updated ${isEditingName ? "name" : "permissions"}`,
       });
     } catch (error) {
-      handleRequestError(toast, "Failed to update permissions", error);
+      handleRequestError(toast, "Failed to update connection", error);
     }
   };
 
@@ -136,7 +145,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
             title={
               <div className="flex flex-row items-center">
                 <AppAvatar appName={app.name} className="w-10 h-10 mr-2" />
-                {canEditName ? (
+                {isEditingName ? (
                   <div className="flex flex-row gap-2 items-center">
                     <Input
                       autoFocus
@@ -156,7 +165,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                 ) : (
                   <div
                     className="flex flex-row gap-2 items-center cursor-pointer"
-                    onClick={() => setCanEditName(true)}
+                    onClick={() => setIsEditingName(true)}
                   >
                     <h2
                       title={app.name}
@@ -251,7 +260,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                   <div className="flex flex-row justify-between items-center">
                     Permissions
                     <div className="flex flex-row gap-2">
-                      {canEditPermissions && (
+                      {isEditingPermissions && (
                         <div className="flex justify-center items-center gap-2">
                           <Button
                             type="button"
@@ -269,12 +278,12 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                         </div>
                       )}
 
-                      {!canEditPermissions && (
+                      {!isEditingPermissions && (
                         <>
                           <Button
                             variant="outline"
                             onClick={() =>
-                              setCanEditPermissions(!canEditPermissions)
+                              setIsEditingPermissions(!isEditingPermissions)
                             }
                           >
                             Edit
@@ -290,7 +299,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                   capabilities={capabilities}
                   permissions={permissions}
                   setPermissions={setPermissions}
-                  readOnly={!canEditPermissions}
+                  readOnly={!isEditingPermissions}
                   isNewConnection={false}
                   budgetUsage={app.budgetUsage}
                 />
