@@ -200,7 +200,7 @@ jobs:
           mv ./build/out/${{ env.PACKAGE_NAME }}.dmg ./build/bin/
 
       - name: Notarize the DMG image
-        if: runner.os == 'macOS' && inputs.build-release
+        if: runner.os == 'macOS'
         run: |
           echo "Notarizing Zip Files"
           gon -log-level=info -log-json ./build/darwin/gon-notarize.json
