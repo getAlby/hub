@@ -133,9 +133,9 @@ func (wrapper *LNDWrapper) LookupInvoice(ctx context.Context, req *lnrpc.Payment
 	return wrapper.client.LookupInvoice(ctx, req, options...)
 }
 
-// func (wrapper *LNDWrapper) GetDebugInfo(ctx context.Context, req *lnrpc.GetInfoRequest, options ...grpc.CallOption) (*lnrpc.GetInfoResponse, error) {
-// 	return wrapper.client.GetDebugInfo(ctx, req, options...)
-// }
+func (wrapper *LNDWrapper) GetDebugInfo(ctx context.Context, req *lnrpc.GetDebugInfoRequest, options ...grpc.CallOption) (*lnrpc.GetDebugInfoResponse, error) {
+	return wrapper.client.GetDebugInfo(ctx, req, options...)
+}
 
 func (wrapper *LNDWrapper) GetInfo(ctx context.Context, req *lnrpc.GetInfoRequest, options ...grpc.CallOption) (*lnrpc.GetInfoResponse, error) {
 	return wrapper.client.GetInfo(ctx, req, options...)
@@ -197,6 +197,10 @@ func (wrapper *LNDWrapper) CloseChannel(ctx context.Context, req *lnrpc.CloseCha
 
 func (wrapper *LNDWrapper) WalletBalance(ctx context.Context, req *lnrpc.WalletBalanceRequest, options ...grpc.CallOption) (*lnrpc.WalletBalanceResponse, error) {
 	return wrapper.client.WalletBalance(ctx, req, options...)
+}
+
+func (wrapper *LNDWrapper) SendCoins(ctx context.Context, req *lnrpc.SendCoinsRequest, options ...grpc.CallOption) (*lnrpc.SendCoinsResponse, error) {
+	return wrapper.client.SendCoins(ctx, req, options...)
 }
 
 func (wrapper *LNDWrapper) NewAddress(ctx context.Context, req *lnrpc.NewAddressRequest, options ...grpc.CallOption) (*lnrpc.NewAddressResponse, error) {

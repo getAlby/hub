@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
@@ -740,14 +741,35 @@ func (svc *LNDService) GetOnchainBalance(ctx context.Context) (*lnclient.Onchain
 	}, nil
 }
 
-// TODO: SendCoins
 func (svc *LNDService) RedeemOnchainFunds(ctx context.Context, toAddress string) (txId string, err error) {
-	return "", nil
+	resp, err := svc.client.SendCoins(ctx, &lnrpc.SendCoinsRequest{
+		Addr:    toAddress,
+		SendAll: true,
+	})
+	if err != nil {
+		return "", err
+	}
+	return resp.Txid, nil
 }
 
-// TODO: GetDebugInfo
 func (svc *LNDService) GetLogOutput(ctx context.Context, maxLen int) ([]byte, error) {
-	return []byte{}, nil
+	resp, err := svc.client.GetDebugInfo(ctx, &lnrpc.GetDebugInfoRequest{})
+	if err != nil {
+		return nil, err
+	}
+	jsonBytes, err := json.MarshalIndent(resp.Log, "", "")
+	if err != nil {
+		return nil, err
+	}
+
+	jsonLength := len(jsonBytes)
+	start := jsonLength - maxLen
+	if maxLen == 0 || start < 0 {
+		start = 0
+	}
+	slicedBytes := jsonBytes[start:]
+
+	return slicedBytes, nil
 }
 
 func (svc *LNDService) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, error) {
@@ -901,15 +923,32 @@ func lndInvoiceToTransaction(invoice *lnrpc.Invoice) *lnclient.Transaction {
 
 func (svc *LNDService) GetNodeStatus(ctx context.Context) (nodeStatus *lnclient.NodeStatus, err error) {
 	info, err := svc.GetInfo(ctx)
+	if err != nil {
+		return nil, err
+	}
 	nodeInfo, err := svc.client.GetNodeInfo(ctx, &lnrpc.NodeInfoRequest{
 		PubKey: svc.GetPubkey(),
 	})
+	if err != nil {
+		return nil, err
+	}
 	networkInfo, err := svc.client.GetNetworkInfo(ctx, &lnrpc.NetworkInfoRequest{})
+	if err != nil {
+		return nil, err
+	}
 	state, err := svc.client.GetState(ctx, &lnrpc.GetStateRequest{})
+	if err != nil {
+		return nil, err
+	}
+	debugInfo, err := svc.client.GetDebugInfo(ctx, &lnrpc.GetDebugInfoRequest{})
+	if err != nil {
+		return nil, err
+	}
 
 	return &lnclient.NodeStatus{
 		InternalNodeStatus: map[string]interface{}{
 			"info":         info,
+			"config":       debugInfo.Config,
 			"node_info":    nodeInfo,
 			"network_info": networkInfo,
 			"wallet_state": state.GetState().String(),
