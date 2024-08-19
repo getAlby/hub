@@ -20,6 +20,7 @@ func Migrate(gormDB *gorm.DB) error {
 		_202407201604_transactions_indexes,
 		_202407262257_remove_invalid_scopes,
 		_202408061737_add_boostagrams_and_use_json,
+		_202408191242_transaction_error,
 	})
 
 	return m.Migrate()

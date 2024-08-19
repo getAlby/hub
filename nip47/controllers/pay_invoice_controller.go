@@ -79,14 +79,6 @@ func (controller *nip47Controller) pay(ctx context.Context, bolt11 string, payme
 		return
 	}
 
-	controller.eventPublisher.Publish(&events.Event{
-		Event: "nwc_payment_succeeded",
-		Properties: map[string]interface{}{
-			"bolt11": bolt11,
-			"amount": paymentRequest.MSatoshi / 1000,
-		},
-	})
-
 	publishResponse(&models.Response{
 		ResultType: nip47Request.Method,
 		Result: payResponse{

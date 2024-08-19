@@ -57,13 +57,7 @@ func (controller *nip47Controller) payKeysend(ctx context.Context, payKeysendPar
 		}, tags)
 		return
 	}
-	controller.eventPublisher.Publish(&events.Event{
-		Event: "nwc_payment_succeeded",
-		Properties: map[string]interface{}{
-			"keysend": true,
-			"amount":  payKeysendParams.Amount / 1000,
-		},
-	})
+
 	publishResponse(&models.Response{
 		ResultType: nip47Request.Method,
 		Result: payResponse{

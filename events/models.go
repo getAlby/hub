@@ -2,8 +2,6 @@ package events
 
 import (
 	"context"
-
-	"github.com/getAlby/hub/lnclient"
 )
 
 type EventSubscriber interface {
@@ -33,9 +31,4 @@ type ChannelBackupInfo struct {
 	ChannelSize   uint64 `json:"channel_size"`
 	FundingTxID   string `json:"funding_tx_id"`
 	FundingTxVout uint32 `json:"funding_tx_vout"`
-}
-
-type PaymentFailedAsyncProperties struct {
-	Transaction *lnclient.Transaction
-	Reason      string
 }

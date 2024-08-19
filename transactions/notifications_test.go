@@ -33,7 +33,7 @@ func TestNotifications_ReceivedKnownPayment(t *testing.T) {
 	transactionsService := NewTransactionsService(svc.DB)
 
 	transactionsService.ConsumeEvent(ctx, &events.Event{
-		Event:      "nwc_payment_received",
+		Event:      "nwc_lnclient_payment_received",
 		Properties: tests.MockLNClientTransaction,
 	}, map[string]interface{}{})
 
@@ -59,7 +59,7 @@ func TestNotifications_ReceivedUnknownPayment(t *testing.T) {
 	transactionsService := NewTransactionsService(svc.DB)
 
 	transactionsService.ConsumeEvent(ctx, &events.Event{
-		Event:      "nwc_payment_received",
+		Event:      "nwc_lnclient_payment_received",
 		Properties: tests.MockLNClientTransaction,
 	}, map[string]interface{}{})
 
@@ -108,7 +108,7 @@ func TestNotifications_ReceivedKeysend(t *testing.T) {
 	}
 
 	transactionsService.ConsumeEvent(ctx, &events.Event{
-		Event:      "nwc_payment_received",
+		Event:      "nwc_lnclient_payment_received",
 		Properties: transaction,
 	}, map[string]interface{}{})
 
@@ -161,7 +161,7 @@ func TestNotifications_SentKnownPayment(t *testing.T) {
 	transactionsService := NewTransactionsService(svc.DB)
 
 	transactionsService.ConsumeEvent(ctx, &events.Event{
-		Event:      "nwc_payment_sent",
+		Event:      "nwc_lnclient_payment_sent",
 		Properties: tests.MockLNClientTransaction,
 	}, map[string]interface{}{})
 
@@ -192,7 +192,7 @@ func TestNotifications_SentUnknownPayment(t *testing.T) {
 	assert.Equal(t, int64(0), result.RowsAffected)
 
 	transactionsService.ConsumeEvent(ctx, &events.Event{
-		Event:      "nwc_payment_sent",
+		Event:      "nwc_lnclient_payment_sent",
 		Properties: tests.MockLNClientTransaction,
 	}, map[string]interface{}{})
 
@@ -221,8 +221,8 @@ func TestNotifications_FailedKnownPayment(t *testing.T) {
 	transactionsService := NewTransactionsService(svc.DB)
 
 	transactionsService.ConsumeEvent(ctx, &events.Event{
-		Event: "nwc_payment_failed_async",
-		Properties: &events.PaymentFailedAsyncProperties{
+		Event: "nwc_lnclient_payment_failed",
+		Properties: &events.LNClientPaymentFailedAsyncProperties{
 			Transaction: tests.MockLNClientTransaction,
 			Reason:      "Some failure reason",
 		},

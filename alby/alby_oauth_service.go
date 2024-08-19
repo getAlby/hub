@@ -460,11 +460,6 @@ func (svc *albyOAuthService) LinkAccount(ctx context.Context, lnClient lnclient.
 }
 
 func (svc *albyOAuthService) ConsumeEvent(ctx context.Context, event *events.Event, globalProperties map[string]interface{}) {
-	// run non-blocking
-	go svc.consumeEvent(ctx, event, globalProperties)
-}
-
-func (svc *albyOAuthService) consumeEvent(ctx context.Context, event *events.Event, globalProperties map[string]interface{}) {
 	// TODO: rename this config option to be specific to the alby API
 	if !svc.cfg.GetEnv().LogEvents {
 		logger.Logger.WithField("event", event).Debug("Skipped sending to alby events API")
@@ -475,6 +470,11 @@ func (svc *albyOAuthService) consumeEvent(ctx context.Context, event *events.Eve
 		if err := svc.backupChannels(ctx, event); err != nil {
 			logger.Logger.WithError(err).Error("Failed to backup channels")
 		}
+		return
+	}
+
+	if strings.HasPrefix(event.Event, "nwc_lnclient_") {
+		// don't consume internal LNClient events
 		return
 	}
 
@@ -507,14 +507,14 @@ func (svc *albyOAuthService) consumeEvent(ctx context.Context, event *events.Eve
 		}
 	}
 
-	if event.Event == "nwc_payment_failed_async" {
-		paymentFailedAsyncProperties, ok := event.Properties.(*events.PaymentFailedAsyncProperties)
+	if event.Event == "nwc_payment_failed" {
+		transaction, ok := event.Properties.(*db.Transaction)
 		if !ok {
 			logger.Logger.WithField("event", event).Error("Failed to cast event")
 			return
 		}
 
-		type paymentSentEventProperties struct {
+		type paymentFailedEventProperties struct {
 			PaymentHash string `json:"payment_hash"`
 			Reason      string `json:"reason"`
 		}
@@ -522,9 +522,9 @@ func (svc *albyOAuthService) consumeEvent(ctx context.Context, event *events.Eve
 		// pass a new custom event with less detail
 		event = &events.Event{
 			Event: event.Event,
-			Properties: &paymentSentEventProperties{
-				PaymentHash: paymentFailedAsyncProperties.Transaction.PaymentHash,
-				Reason:      paymentFailedAsyncProperties.Reason,
+			Properties: &paymentFailedEventProperties{
+				PaymentHash: transaction.PaymentHash,
+				Reason:      transaction.FailureReason,
 			},
 		}
 	}
