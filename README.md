@@ -401,7 +401,7 @@ LDK logs:
 
 _Tested on Linux only_
 
-`docker run -v ~/.local/share/albyhub:/data -e WORK_DIR='/data' -p 8080:8080 ghcr.io/getalby/hub:latest`
+`docker run -v ~/.local/share/albyhub:/data -e WORK_DIR='/data' -p 8080:8080 --pull always ghcr.io/getalby/hub:latest`
 
 ##### Build the image locally
 
