@@ -471,6 +471,10 @@ func TestSendKeysend_IsolatedAppToIsolatedApp(t *testing.T) {
 			Value: hex.EncodeToString([]byte(strconv.FormatUint(uint64(app2.ID), 10))),
 		},
 	}
+
+	mockEventConsumer := tests.NewMockEventConsumer()
+	svc.EventPublisher.RegisterSubscriber(mockEventConsumer)
+
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 	transaction, err := transactionsService.SendKeysend(ctx, 123000, "02a5056398235568fc049a5d563f1adf666041d590b268167e4fa145fbf71aa578", tlvRecords, mockPreimage, svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
@@ -500,4 +504,15 @@ func TestSendKeysend_IsolatedAppToIsolatedApp(t *testing.T) {
 
 	// expect app2 to receive the payment
 	assert.Equal(t, uint64(123000), queries.GetIsolatedBalance(svc.DB, app2.ID))
+
+	// check notifications
+	assert.Equal(t, 2, len(mockEventConsumer.GetConsumeEvents()))
+
+	assert.Equal(t, "nwc_payment_sent", mockEventConsumer.GetConsumeEvents()[1].Event)
+	settledTransaction := mockEventConsumer.GetConsumeEvents()[1].Properties.(*db.Transaction)
+	assert.Equal(t, transaction.ID, settledTransaction.ID)
+
+	assert.Equal(t, "nwc_payment_received", mockEventConsumer.GetConsumeEvents()[0].Event)
+	receivedTransaction := mockEventConsumer.GetConsumeEvents()[0].Properties.(*db.Transaction)
+	assert.Equal(t, incomingTransaction.ID, receivedTransaction.ID)
 }
