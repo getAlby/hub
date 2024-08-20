@@ -336,6 +336,23 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 	var payKeysendResponse *lnclient.PayKeysendResponse
 
 	if selfPayment {
+		// for keysend self-payments we need to create an incoming payment at the time of the payment
+		recipientAppId := svc.getAppIdFromCustomRecords(customRecords)
+		dbTransaction := db.Transaction{
+			AppId:          recipientAppId,
+			RequestEventId: nil,
+			Type:           constants.TRANSACTION_TYPE_INCOMING,
+			State:          constants.TRANSACTION_STATE_PENDING,
+			AmountMsat:     amount,
+			PaymentHash:    paymentHash,
+			Preimage:       &preimage,
+		}
+		err = svc.db.Create(&dbTransaction).Error
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to create DB transaction")
+			return nil, err
+		}
+
 		_, err = svc.interceptSelfPayment(paymentHash)
 		if err == nil {
 			payKeysendResponse = &lnclient.PayKeysendResponse{
