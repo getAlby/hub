@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/getAlby/hub/constants"
+	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/tests"
 	"github.com/stretchr/testify/assert"
@@ -26,6 +27,28 @@ func TestSendPaymentSync_NoApp(t *testing.T) {
 	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, transaction.State)
 	assert.Zero(t, transaction.FeeReserveMsat)
 	assert.Equal(t, "123preimage", *transaction.Preimage)
+}
+
+func TestSendPaymentSync_Duplicate(t *testing.T) {
+	ctx := context.TODO()
+
+	defer tests.RemoveTestService()
+	svc, err := tests.CreateTestService()
+	assert.NoError(t, err)
+
+	svc.DB.Create(&db.Transaction{
+		State:       constants.TRANSACTION_STATE_SETTLED,
+		Type:        constants.TRANSACTION_TYPE_OUTGOING,
+		PaymentHash: tests.MockLNClientTransaction.PaymentHash,
+		AmountMsat:  123000,
+	})
+
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
+	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, svc.LNClient, nil, nil)
+
+	assert.Error(t, err)
+	assert.Equal(t, "this invoice has already been paid", err.Error())
+	assert.Nil(t, transaction)
 }
 
 func TestSendPaymentSync_FailedRemovesFeeReserve(t *testing.T) {
