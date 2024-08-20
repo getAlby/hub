@@ -95,7 +95,7 @@ func NewQuotaExceededError() error {
 }
 
 func (err *quotaExceededError) Error() string {
-	return "Your wallet has exceeded its spending quota"
+	return "Your app does not have enough budget remaining to make this payment. Please review this app in the connections page of your Alby Hub."
 }
 
 func NewTransactionsService(db *gorm.DB, eventPublisher events.EventPublisher) *transactionsService {
