@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 
+	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/db/queries"
 	"github.com/getAlby/hub/logger"
@@ -41,7 +42,7 @@ func (controller *nip47Controller) HandleGetBalanceEvent(ctx context.Context, ni
 			publishResponse(&models.Response{
 				ResultType: nip47Request.Method,
 				Error: &models.Error{
-					Code:    models.ERROR_INTERNAL,
+					Code:    constants.ERROR_INTERNAL,
 					Message: err.Error(),
 				},
 			}, nostr.Tags{})

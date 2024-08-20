@@ -22,7 +22,7 @@ func TestHasPermission_NoPermission(t *testing.T) {
 	permissionsSvc := NewPermissionsService(svc.DB, svc.EventPublisher)
 	result, code, message := permissionsSvc.HasPermission(app, constants.PAY_INVOICE_SCOPE)
 	assert.False(t, result)
-	assert.Equal(t, models.ERROR_RESTRICTED, code)
+	assert.Equal(t, constants.ERROR_RESTRICTED, code)
 	assert.Equal(t, "This app does not have the pay_invoice scope", message)
 }
 
@@ -50,7 +50,7 @@ func TestHasPermission_Expired(t *testing.T) {
 	permissionsSvc := NewPermissionsService(svc.DB, svc.EventPublisher)
 	result, code, message := permissionsSvc.HasPermission(app, constants.PAY_INVOICE_SCOPE)
 	assert.False(t, result)
-	assert.Equal(t, models.ERROR_EXPIRED, code)
+	assert.Equal(t, constants.ERROR_EXPIRED, code)
 	assert.Equal(t, "This app has expired", message)
 }
 
@@ -79,7 +79,7 @@ func TestHasPermission_Expired(t *testing.T) {
 	permissionsSvc := NewPermissionsService(svc.DB, svc.EventPublisher)
 	result, code, message := permissionsSvc.HasPermission(app, PAY_INVOICE_SCOPE, 100*1000)
 	assert.False(t, result)
-	assert.Equal(t, models.ERROR_QUOTA_EXCEEDED, code)
+	assert.Equal(t, constants.ERROR_QUOTA_EXCEEDED, code)
 	assert.Equal(t, "Insufficient budget remaining to make payment", message)
 }*/
 

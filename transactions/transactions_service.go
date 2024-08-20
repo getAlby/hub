@@ -732,6 +732,14 @@ func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount 
 			balance := queries.GetIsolatedBalance(tx, appPermission.AppId)
 
 			if amountWithFeeReserve > balance {
+				svc.eventPublisher.Publish(&events.Event{
+					Event: "nwc_permission_denied",
+					Properties: map[string]interface{}{
+						"app_name": app.Name,
+						"code":     constants.ERROR_INSUFFICIENT_BALANCE,
+						"message":  NewInsufficientBalanceError().Error(),
+					},
+				})
 				return NewInsufficientBalanceError()
 			}
 		}
@@ -739,6 +747,14 @@ func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount 
 		if appPermission.MaxAmountSat > 0 {
 			budgetUsageSat := queries.GetBudgetUsageSat(tx, &appPermission)
 			if int(amountWithFeeReserve/1000) > appPermission.MaxAmountSat-int(budgetUsageSat) {
+				svc.eventPublisher.Publish(&events.Event{
+					Event: "nwc_permission_denied",
+					Properties: map[string]interface{}{
+						"app_name": app.Name,
+						"code":     constants.ERROR_QUOTA_EXCEEDED,
+						"message":  NewQuotaExceededError().Error(),
+					},
+				})
 				return NewQuotaExceededError()
 			}
 		}

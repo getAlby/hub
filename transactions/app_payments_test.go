@@ -88,12 +88,21 @@ func TestSendPaymentSync_App_BudgetExceeded(t *testing.T) {
 	err = svc.DB.Create(&dbRequestEvent).Error
 	assert.NoError(t, err)
 
+	mockEventConsumer := tests.NewMockEventConsumer()
+	svc.EventPublisher.RegisterSubscriber(mockEventConsumer)
+
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.Error(t, err)
 	assert.ErrorIs(t, err, NewQuotaExceededError())
 	assert.Nil(t, transaction)
+
+	assert.Equal(t, 1, len(mockEventConsumer.ConsumedEvents))
+	assert.Equal(t, "nwc_permission_denied", mockEventConsumer.ConsumedEvents[0].Event)
+	assert.Equal(t, app.Name, mockEventConsumer.ConsumedEvents[0].Properties.(map[string]interface{})["app_name"])
+	assert.Equal(t, constants.ERROR_QUOTA_EXCEEDED, mockEventConsumer.ConsumedEvents[0].Properties.(map[string]interface{})["code"])
+	assert.Equal(t, NewQuotaExceededError().Error(), mockEventConsumer.ConsumedEvents[0].Properties.(map[string]interface{})["message"])
 }
 
 func TestSendPaymentSync_App_BudgetExceeded_SettledPayment(t *testing.T) {

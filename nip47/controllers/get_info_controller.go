@@ -49,7 +49,7 @@ func (controller *nip47Controller) HandleGetInfoEvent(ctx context.Context, nip47
 			publishResponse(&models.Response{
 				ResultType: nip47Request.Method,
 				Error: &models.Error{
-					Code:    models.ERROR_INTERNAL,
+					Code:    constants.ERROR_INTERNAL,
 					Message: err.Error(),
 				},
 			}, nostr.Tags{})

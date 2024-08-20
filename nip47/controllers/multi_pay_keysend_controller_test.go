@@ -175,5 +175,5 @@ func TestHandleMultiPayKeysendEvent_OneBudgetExceeded(t *testing.T) {
 	assert.Equal(t, uint64(1), responses[0].Result.(payResponse).FeesPaid)
 
 	assert.Nil(t, responses[1].Result)
-	assert.Equal(t, models.ERROR_QUOTA_EXCEEDED, responses[1].Error.Code)
+	assert.Equal(t, constants.ERROR_QUOTA_EXCEEDED, responses[1].Error.Code)
 }

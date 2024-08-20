@@ -179,7 +179,7 @@ func TestHandleMultiPayInvoiceEvent_OneMalformedInvoice(t *testing.T) {
 	}
 
 	assert.Equal(t, "invoiceId123", dTags[0].GetFirst([]string{"d"}).Value())
-	assert.Equal(t, models.ERROR_INTERNAL, responses[0].Error.Code)
+	assert.Equal(t, constants.ERROR_INTERNAL, responses[0].Error.Code)
 	assert.Nil(t, responses[0].Result)
 
 	assert.Equal(t, tests.MockPaymentHash, dTags[1].GetFirst([]string{"d"}).Value())
@@ -266,7 +266,7 @@ func TestHandleMultiPayInvoiceEvent_IsolatedApp_OneBudgetExceeded(t *testing.T) 
 
 	assert.Equal(t, tests.MockPaymentHash, dTags[1].GetFirst([]string{"d"}).Value())
 	assert.Nil(t, responses[1].Result)
-	assert.Equal(t, models.ERROR_INSUFFICIENT_BALANCE, responses[1].Error.Code)
+	assert.Equal(t, constants.ERROR_INSUFFICIENT_BALANCE, responses[1].Error.Code)
 }
 
 func TestHandleMultiPayInvoiceEvent_LNClient_OnePaymentFailed(t *testing.T) {
@@ -347,6 +347,6 @@ func TestHandleMultiPayInvoiceEvent_LNClient_OnePaymentFailed(t *testing.T) {
 
 	assert.Contains(t, paymentHashes, dTags[1].GetFirst([]string{"d"}).Value())
 	assert.Nil(t, responses[1].Result)
-	assert.Equal(t, models.ERROR_INTERNAL, responses[1].Error.Code)
+	assert.Equal(t, constants.ERROR_INTERNAL, responses[1].Error.Code)
 	assert.Equal(t, "Some error", responses[1].Error.Message)
 }
