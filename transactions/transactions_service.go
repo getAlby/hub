@@ -340,12 +340,16 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 		recipientAppId := svc.getAppIdFromCustomRecords(customRecords)
 		dbTransaction := db.Transaction{
 			AppId:          recipientAppId,
-			RequestEventId: nil,
+			RequestEventId: nil, // it is related to this request but for a different app
 			Type:           constants.TRANSACTION_TYPE_INCOMING,
 			State:          constants.TRANSACTION_STATE_PENDING,
 			AmountMsat:     amount,
 			PaymentHash:    paymentHash,
 			Preimage:       &preimage,
+			Description:    svc.getDescriptionFromCustomRecords(customRecords),
+			Metadata:       datatypes.JSON(metadataBytes),
+			Boostagram:     datatypes.JSON(boostagramBytes),
+			SelfPayment:    true,
 		}
 		err = svc.db.Create(&dbTransaction).Error
 		if err != nil {

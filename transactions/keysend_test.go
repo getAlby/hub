@@ -470,6 +470,10 @@ func TestSendKeysend_IsolatedAppToIsolatedApp(t *testing.T) {
 			Type:  696969,
 			Value: hex.EncodeToString([]byte(strconv.FormatUint(uint64(app2.ID), 10))),
 		},
+		{
+			Type:  7629169,
+			Value: "7b22616374696f6e223a22626f6f7374222c2276616c75655f6d736174223a313030302c2276616c75655f6d7361745f746f74616c223a313030302c226170705f6e616d65223a22e29aa1205765624c4e2044656d6f222c226170705f76657273696f6e223a22312e30222c22666565644944223a2268747470733a2f2f66656564732e706f6463617374696e6465782e6f72672f706332302e786d6c222c22706f6463617374223a22506f6463617374696e6720322e30222c22657069736f6465223a22457069736f6465203130343a2041204e65772044756d70222c227473223a32312c226e616d65223a22e29aa1205765624c4e2044656d6f222c2273656e6465725f6e616d65223a225361746f736869204e616b616d6f746f222c226d657373616765223a22476f20706f6463617374696e6721227d",
+		},
 	}
 
 	mockEventConsumer := tests.NewMockEventConsumer()
@@ -495,6 +499,11 @@ func TestSendKeysend_IsolatedAppToIsolatedApp(t *testing.T) {
 	assert.Equal(t, mockPreimage, *incomingTransaction.Preimage)
 	assert.Equal(t, app2.ID, *incomingTransaction.AppId)
 	assert.True(t, incomingTransaction.SelfPayment)
+
+	// receiving app should have the same data as what was sent
+	assert.Equal(t, transaction.Description, incomingTransaction.Description)
+	assert.Equal(t, transaction.Metadata, incomingTransaction.Metadata)
+	assert.Equal(t, transaction.Boostagram, incomingTransaction.Boostagram)
 
 	transactions := []db.Transaction{}
 	result := svc.DB.Find(&transactions)
