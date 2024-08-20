@@ -4,12 +4,14 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/tests"
 	"github.com/stretchr/testify/assert"
+	"gorm.io/gorm"
 )
 
 func TestSendPaymentSync_NoApp(t *testing.T) {
@@ -49,6 +51,89 @@ func TestSendPaymentSync_Duplicate(t *testing.T) {
 	assert.Error(t, err)
 	assert.Equal(t, "this invoice has already been paid", err.Error())
 	assert.Nil(t, transaction)
+}
+
+func TestMarkSettled_Sent(t *testing.T) {
+	defer tests.RemoveTestService()
+	svc, err := tests.CreateTestService()
+	assert.NoError(t, err)
+
+	dbTransaction := db.Transaction{
+		State:       constants.TRANSACTION_STATE_PENDING,
+		Type:        constants.TRANSACTION_TYPE_OUTGOING,
+		PaymentHash: tests.MockLNClientTransaction.PaymentHash,
+		AmountMsat:  123000,
+	}
+	svc.DB.Create(&dbTransaction)
+
+	mockEventConsumer := tests.NewMockEventConsumer()
+	svc.EventPublisher.RegisterSubscriber(mockEventConsumer)
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
+	err = svc.DB.Transaction(func(tx *gorm.DB) error {
+		return transactionsService.markTransactionSettled(tx, &dbTransaction, "test", 0, false)
+	})
+
+	assert.Nil(t, err)
+	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, dbTransaction.State)
+	assert.Equal(t, 1, len(mockEventConsumer.ConsumedEvents))
+	assert.Equal(t, "nwc_payment_sent", mockEventConsumer.ConsumedEvents[0].Event)
+	settledTransaction := mockEventConsumer.ConsumedEvents[0].Properties.(*db.Transaction)
+	assert.Equal(t, &dbTransaction, settledTransaction)
+}
+
+func TestMarkSettled_Received(t *testing.T) {
+	defer tests.RemoveTestService()
+	svc, err := tests.CreateTestService()
+	assert.NoError(t, err)
+
+	dbTransaction := db.Transaction{
+		State:       constants.TRANSACTION_STATE_PENDING,
+		Type:        constants.TRANSACTION_TYPE_INCOMING,
+		PaymentHash: tests.MockLNClientTransaction.PaymentHash,
+		AmountMsat:  123000,
+	}
+	svc.DB.Create(&dbTransaction)
+
+	mockEventConsumer := tests.NewMockEventConsumer()
+	svc.EventPublisher.RegisterSubscriber(mockEventConsumer)
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
+	err = svc.DB.Transaction(func(tx *gorm.DB) error {
+		return transactionsService.markTransactionSettled(tx, &dbTransaction, "test", 0, false)
+	})
+
+	assert.Nil(t, err)
+	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, dbTransaction.State)
+	assert.Equal(t, 1, len(mockEventConsumer.ConsumedEvents))
+	assert.Equal(t, "nwc_payment_received", mockEventConsumer.ConsumedEvents[0].Event)
+	settledTransaction := mockEventConsumer.ConsumedEvents[0].Properties.(*db.Transaction)
+	assert.Equal(t, &dbTransaction, settledTransaction)
+}
+
+func TestDoNotMarkSettledTwice(t *testing.T) {
+	defer tests.RemoveTestService()
+	svc, err := tests.CreateTestService()
+	assert.NoError(t, err)
+
+	settledAt := time.Now().Add(time.Duration(-1) * time.Minute)
+	dbTransaction := db.Transaction{
+		State:       constants.TRANSACTION_STATE_SETTLED,
+		Type:        constants.TRANSACTION_TYPE_OUTGOING,
+		PaymentHash: tests.MockLNClientTransaction.PaymentHash,
+		AmountMsat:  123000,
+		SettledAt:   &settledAt,
+	}
+	svc.DB.Create(&dbTransaction)
+
+	mockEventConsumer := tests.NewMockEventConsumer()
+	svc.EventPublisher.RegisterSubscriber(mockEventConsumer)
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
+	err = svc.DB.Transaction(func(tx *gorm.DB) error {
+		return transactionsService.markTransactionSettled(tx, &dbTransaction, "test", 0, false)
+	})
+
+	assert.Nil(t, err)
+	assert.Equal(t, settledAt, *dbTransaction.SettledAt)
+	assert.Zero(t, len(mockEventConsumer.ConsumedEvents))
 }
 
 func TestSendPaymentSync_FailedRemovesFeeReserve(t *testing.T) {
