@@ -264,7 +264,7 @@ func TestHandleMultiPayInvoiceEvent_IsolatedApp_OneBudgetExceeded(t *testing.T) 
 	assert.Equal(t, "123preimage", responses[0].Result.(payResponse).Preimage)
 	assert.Nil(t, responses[0].Error)
 
-	assert.Equal(t, tests.MockPaymentHash, dTags[1].GetFirst([]string{"d"}).Value())
+	assert.Contains(t, paymentHashes, dTags[1].GetFirst([]string{"d"}).Value())
 	assert.Nil(t, responses[1].Result)
 	assert.Equal(t, constants.ERROR_INSUFFICIENT_BALANCE, responses[1].Error.Code)
 }
