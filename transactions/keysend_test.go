@@ -22,6 +22,9 @@ func TestSendKeysend(t *testing.T) {
 	svc, err := tests.CreateTestService()
 	assert.NoError(t, err)
 
+	mockEventConsumer := tests.NewMockEventConsumer()
+	svc.EventPublisher.RegisterSubscriber(mockEventConsumer)
+
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 	transaction, err := transactionsService.SendKeysend(ctx, uint64(1000), "fake destination", nil, "", svc.LNClient, nil, nil)
 	assert.NoError(t, err)
@@ -38,6 +41,11 @@ func TestSendKeysend(t *testing.T) {
 	assert.Zero(t, transaction.FeeReserveMsat)
 	assert.NotNil(t, transaction.Preimage)
 	assert.Equal(t, 64, len(*transaction.Preimage))
+
+	assert.Equal(t, 1, len(mockEventConsumer.GetConsumeEvents()))
+	assert.Equal(t, "nwc_payment_sent", mockEventConsumer.GetConsumeEvents()[0].Event)
+	settledTransaction := mockEventConsumer.GetConsumeEvents()[0].Properties.(*db.Transaction)
+	assert.Equal(t, transaction, settledTransaction)
 }
 func TestSendKeysend_CustomPreimage(t *testing.T) {
 	ctx := context.TODO()
@@ -152,11 +160,20 @@ func TestSendKeysend_App_BudgetExceeded(t *testing.T) {
 	err = svc.DB.Create(appPermission).Error
 	assert.NoError(t, err)
 
+	mockEventConsumer := tests.NewMockEventConsumer()
+	svc.EventPublisher.RegisterSubscriber(mockEventConsumer)
+
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 	transaction, err := transactionsService.SendKeysend(ctx, uint64(1000), "fake destination", nil, "", svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.ErrorIs(t, err, NewQuotaExceededError())
 	assert.Nil(t, transaction)
+
+	assert.Equal(t, 1, len(mockEventConsumer.GetConsumeEvents()))
+	assert.Equal(t, "nwc_permission_denied", mockEventConsumer.GetConsumeEvents()[0].Event)
+	assert.Equal(t, app.Name, mockEventConsumer.GetConsumeEvents()[0].Properties.(map[string]interface{})["app_name"])
+	assert.Equal(t, constants.ERROR_QUOTA_EXCEEDED, mockEventConsumer.GetConsumeEvents()[0].Properties.(map[string]interface{})["code"])
+	assert.Equal(t, NewQuotaExceededError().Error(), mockEventConsumer.GetConsumeEvents()[0].Properties.(map[string]interface{})["message"])
 }
 func TestSendKeysend_App_BudgetNotExceeded(t *testing.T) {
 	ctx := context.TODO()

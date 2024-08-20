@@ -202,6 +202,9 @@ func TestSendPaymentSync_FailedRemovesFeeReserve(t *testing.T) {
 	svc.LNClient.(*tests.MockLn).PayInvoiceErrors = append(svc.LNClient.(*tests.MockLn).PayInvoiceErrors, errors.New("Some error"))
 	svc.LNClient.(*tests.MockLn).PayInvoiceResponses = append(svc.LNClient.(*tests.MockLn).PayInvoiceResponses, nil)
 
+	mockEventConsumer := tests.NewMockEventConsumer()
+	svc.EventPublisher.RegisterSubscriber(mockEventConsumer)
+
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, svc.LNClient, nil, nil)
 
@@ -216,6 +219,9 @@ func TestSendPaymentSync_FailedRemovesFeeReserve(t *testing.T) {
 	assert.Equal(t, constants.TRANSACTION_STATE_FAILED, transaction.State)
 	assert.Zero(t, transaction.FeeReserveMsat)
 	assert.Nil(t, transaction.Preimage)
+
+	assert.Equal(t, 1, len(mockEventConsumer.GetConsumeEvents()))
+	assert.Equal(t, "nwc_payment_failed", mockEventConsumer.GetConsumeEvents()[0].Event)
 }
 
 func TestSendPaymentSync_PendingHasFeeReserve(t *testing.T) {
