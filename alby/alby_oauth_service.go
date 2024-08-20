@@ -460,6 +460,13 @@ func (svc *albyOAuthService) LinkAccount(ctx context.Context, lnClient lnclient.
 }
 
 func (svc *albyOAuthService) ConsumeEvent(ctx context.Context, event *events.Event, globalProperties map[string]interface{}) {
+	defer func() {
+		// ensure the app cannot panic if firing events to Alby API fails
+		if r := recover(); r != nil {
+			logger.Logger.WithField("event", event).WithField("r", r).Error("Failed to consume event in alby oauth service")
+		}
+	}()
+
 	// TODO: rename this config option to be specific to the alby API
 	if !svc.cfg.GetEnv().LogEvents {
 		logger.Logger.WithField("event", event).Debug("Skipped sending to alby events API")
@@ -486,7 +493,7 @@ func (svc *albyOAuthService) ConsumeEvent(ctx context.Context, event *events.Eve
 		event = &events.Event{
 			Event: event.Event,
 			Properties: &paymentReceivedEventProperties{
-				PaymentHash: event.Properties.(*lnclient.Transaction).PaymentHash,
+				PaymentHash: event.Properties.(*db.Transaction).PaymentHash,
 			},
 		}
 	}
@@ -501,8 +508,8 @@ func (svc *albyOAuthService) ConsumeEvent(ctx context.Context, event *events.Eve
 		event = &events.Event{
 			Event: event.Event,
 			Properties: &paymentSentEventProperties{
-				PaymentHash: event.Properties.(*lnclient.Transaction).PaymentHash,
-				Duration:    uint64(*event.Properties.(*lnclient.Transaction).SettledAt - event.Properties.(*lnclient.Transaction).CreatedAt),
+				PaymentHash: event.Properties.(*db.Transaction).PaymentHash,
+				Duration:    uint64(event.Properties.(*db.Transaction).SettledAt.Unix() - event.Properties.(*db.Transaction).CreatedAt.Unix()),
 			},
 		}
 	}
