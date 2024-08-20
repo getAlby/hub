@@ -131,7 +131,7 @@ func TestListTransactions_Offset(t *testing.T) {
 		Preimage:       &mockPreimage,
 		AmountMsat:     123000,
 		Description:    "first",
-		CreatedAt:      time.Now().Add(1 * time.Minute),
+		CreatedAt:      time.Now().Add(3 * time.Minute),
 	})
 	svc.DB.Create(&db.Transaction{
 		State:          constants.TRANSACTION_STATE_SETTLED,
@@ -141,14 +141,34 @@ func TestListTransactions_Offset(t *testing.T) {
 		Preimage:       &mockPreimage,
 		AmountMsat:     123000,
 		Description:    "second",
+		CreatedAt:      time.Now().Add(2 * time.Minute),
+	})
+	svc.DB.Create(&db.Transaction{
+		State:          constants.TRANSACTION_STATE_SETTLED,
+		Type:           constants.TRANSACTION_TYPE_INCOMING,
+		PaymentRequest: tests.MockLNClientTransaction.Invoice,
+		PaymentHash:    tests.MockLNClientTransaction.PaymentHash,
+		Preimage:       &mockPreimage,
+		AmountMsat:     123000,
+		Description:    "third",
+		CreatedAt:      time.Now().Add(1 * time.Minute),
+	})
+	svc.DB.Create(&db.Transaction{
+		State:          constants.TRANSACTION_STATE_SETTLED,
+		Type:           constants.TRANSACTION_TYPE_INCOMING,
+		PaymentRequest: tests.MockLNClientTransaction.Invoice,
+		PaymentHash:    tests.MockLNClientTransaction.PaymentHash,
+		Preimage:       &mockPreimage,
+		AmountMsat:     123000,
+		Description:    "fourth",
 	})
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
-	incomingTransactions, err := transactionsService.ListTransactions(ctx, 0, 0, 1, 1, false, nil, svc.LNClient, nil)
+	incomingTransactions, err := transactionsService.ListTransactions(ctx, 0, 0, 1, 2, false, nil, svc.LNClient, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(incomingTransactions))
-	assert.Equal(t, "second", incomingTransactions[0].Description)
+	assert.Equal(t, "third", incomingTransactions[0].Description)
 }
 
 func TestListTransactions_FromUntil(t *testing.T) {

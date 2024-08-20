@@ -467,7 +467,7 @@ func (svc *transactionsService) ListTransactions(ctx context.Context, from, unti
 		tx = tx.Limit(int(limit))
 	}
 	if offset > 0 {
-		tx = tx.Offset(int(limit))
+		tx = tx.Offset(int(offset))
 	}
 
 	if appId != nil {
