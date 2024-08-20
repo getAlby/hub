@@ -131,8 +131,8 @@ func TestDoNotMarkSettledTwice(t *testing.T) {
 		return transactionsService.markTransactionSettled(tx, &dbTransaction, "test", 0, false)
 	})
 
-	assert.Nil(t, err)
-	assert.Equal(t, settledAt, *dbTransaction.SettledAt)
+	assert.Error(t, err)
+	assert.Equal(t, "payment already marked as sent", err.Error())
 	assert.Zero(t, len(mockEventConsumer.GetConsumeEvents()))
 }
 

@@ -249,13 +249,14 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 		return nil, err
 	}
 
-	// the payment definitely succeeded
-	err = svc.db.Transaction(func(tx *gorm.DB) error {
-		return svc.markTransactionSettled(tx, &dbTransaction, response.Preimage, response.Fee, selfPayment)
-	})
-
-	if err != nil {
-		return nil, err
+	// the payment definitely succeeded, but only update it if wasn't already settled via lnclient notification
+	if dbTransaction.State != constants.TRANSACTION_STATE_SETTLED {
+		err = svc.db.Transaction(func(tx *gorm.DB) error {
+			return svc.markTransactionSettled(tx, &dbTransaction, response.Preimage, response.Fee, selfPayment)
+		})
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &dbTransaction, nil
@@ -410,13 +411,15 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 		return nil, err
 	}
 
-	// the payment definitely succeeded
-	err = svc.db.Transaction(func(tx *gorm.DB) error {
-		return svc.markTransactionSettled(tx, &dbTransaction, preimage, payKeysendResponse.Fee, selfPayment)
-	})
+	// the payment definitely succeeded, but only update it if wasn't already settled via lnclient notification
+	if dbTransaction.State != constants.TRANSACTION_STATE_SETTLED {
+		err = svc.db.Transaction(func(tx *gorm.DB) error {
+			return svc.markTransactionSettled(tx, &dbTransaction, preimage, payKeysendResponse.Fee, selfPayment)
+		})
 
-	if err != nil {
-		return nil, err
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &dbTransaction, nil
@@ -885,8 +888,8 @@ func (svc *transactionsService) markTransactionSettled(tx *gorm.DB, dbTransactio
 		PaymentHash: dbTransaction.PaymentHash,
 		State:       constants.TRANSACTION_STATE_SETTLED,
 	}).RowsAffected > 0 {
-		logger.Logger.WithField("payment_hash", dbTransaction.PaymentHash).Info("payment already marked as sent")
-		return nil
+		logger.Logger.WithField("payment_hash", dbTransaction.PaymentHash).Error("payment already marked as sent")
+		return errors.New("payment already marked as sent")
 	}
 
 	if preimage == "" {
