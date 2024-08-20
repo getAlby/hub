@@ -70,7 +70,8 @@ func TestMarkSettled_Sent(t *testing.T) {
 	svc.EventPublisher.RegisterSubscriber(mockEventConsumer)
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 	err = svc.DB.Transaction(func(tx *gorm.DB) error {
-		return transactionsService.markTransactionSettled(tx, &dbTransaction, "test", 0, false)
+		_, err = transactionsService.markTransactionSettled(tx, &dbTransaction, "test", 0, false)
+		return err
 	})
 
 	assert.Nil(t, err)
@@ -98,7 +99,8 @@ func TestMarkSettled_Received(t *testing.T) {
 	svc.EventPublisher.RegisterSubscriber(mockEventConsumer)
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 	err = svc.DB.Transaction(func(tx *gorm.DB) error {
-		return transactionsService.markTransactionSettled(tx, &dbTransaction, "test", 0, false)
+		_, err = transactionsService.markTransactionSettled(tx, &dbTransaction, "test", 0, false)
+		return err
 	})
 
 	assert.Nil(t, err)
@@ -128,11 +130,11 @@ func TestDoNotMarkSettledTwice(t *testing.T) {
 	svc.EventPublisher.RegisterSubscriber(mockEventConsumer)
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 	err = svc.DB.Transaction(func(tx *gorm.DB) error {
-		return transactionsService.markTransactionSettled(tx, &dbTransaction, "test", 0, false)
+		_, err = transactionsService.markTransactionSettled(tx, &dbTransaction, "test", 0, false)
+		return err
 	})
 
-	assert.Error(t, err)
-	assert.Equal(t, "payment already marked as sent", err.Error())
+	assert.Nil(t, err)
 	assert.Zero(t, len(mockEventConsumer.GetConsumeEvents()))
 }
 

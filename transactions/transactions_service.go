@@ -249,17 +249,17 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 		return nil, err
 	}
 
-	// the payment definitely succeeded, but only update it if wasn't already settled via lnclient notification
-	if dbTransaction.State != constants.TRANSACTION_STATE_SETTLED {
-		err = svc.db.Transaction(func(tx *gorm.DB) error {
-			return svc.markTransactionSettled(tx, &dbTransaction, response.Preimage, response.Fee, selfPayment)
-		})
-		if err != nil {
-			return nil, err
-		}
+	// the payment definitely succeeded
+	var settledTransaction *db.Transaction
+	err = svc.db.Transaction(func(tx *gorm.DB) error {
+		settledTransaction, err = svc.markTransactionSettled(tx, &dbTransaction, response.Preimage, response.Fee, selfPayment)
+		return err
+	})
+	if err != nil {
+		return nil, err
 	}
 
-	return &dbTransaction, nil
+	return settledTransaction, nil
 }
 
 func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []lnclient.TLVRecord, preimage string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
@@ -411,18 +411,18 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 		return nil, err
 	}
 
-	// the payment definitely succeeded, but only update it if wasn't already settled via lnclient notification
-	if dbTransaction.State != constants.TRANSACTION_STATE_SETTLED {
-		err = svc.db.Transaction(func(tx *gorm.DB) error {
-			return svc.markTransactionSettled(tx, &dbTransaction, preimage, payKeysendResponse.Fee, selfPayment)
-		})
+	// the payment definitely succeeded
+	var settledTransaction *db.Transaction
+	err = svc.db.Transaction(func(tx *gorm.DB) error {
+		settledTransaction, err = svc.markTransactionSettled(tx, &dbTransaction, preimage, payKeysendResponse.Fee, selfPayment)
+		return err
+	})
 
-		if err != nil {
-			return nil, err
-		}
+	if err != nil {
+		return nil, err
 	}
 
-	return &dbTransaction, nil
+	return settledTransaction, nil
 }
 
 func (svc *transactionsService) LookupTransaction(ctx context.Context, paymentHash string, transactionType *string, lnClient lnclient.LNClient, appId *uint) (*Transaction, error) {
@@ -562,7 +562,8 @@ func (svc *transactionsService) checkUnsettledTransaction(ctx context.Context, t
 	// update transaction state
 	if lnClientTransaction.SettledAt != nil {
 		err = svc.db.Transaction(func(tx *gorm.DB) error {
-			return svc.markTransactionSettled(tx, transaction, lnClientTransaction.Preimage, uint64(lnClientTransaction.FeesPaid), false)
+			_, err = svc.markTransactionSettled(tx, transaction, lnClientTransaction.Preimage, uint64(lnClientTransaction.FeesPaid), false)
+			return err
 		})
 
 		if err != nil {
@@ -637,8 +638,8 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 				}
 			}
 
-			return svc.markTransactionSettled(tx, &dbTransaction, lnClientTransaction.Preimage, uint64(lnClientTransaction.FeesPaid), false)
-
+			_, err := svc.markTransactionSettled(tx, &dbTransaction, lnClientTransaction.Preimage, uint64(lnClientTransaction.FeesPaid), false)
+			return err
 		})
 
 		if err != nil {
@@ -672,7 +673,8 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 				return NewNotFoundError()
 			}
 
-			return svc.markTransactionSettled(tx, &dbTransaction, lnClientTransaction.Preimage, uint64(lnClientTransaction.FeesPaid), false)
+			_, err := svc.markTransactionSettled(tx, &dbTransaction, lnClientTransaction.Preimage, uint64(lnClientTransaction.FeesPaid), false)
+			return err
 		})
 
 		if err != nil {
@@ -727,7 +729,8 @@ func (svc *transactionsService) interceptSelfPayment(paymentHash string) (*lncli
 	}
 
 	err := svc.db.Transaction(func(tx *gorm.DB) error {
-		return svc.markTransactionSettled(tx, &incomingTransaction, *incomingTransaction.Preimage, uint64(0), true)
+		_, err := svc.markTransactionSettled(tx, &incomingTransaction, *incomingTransaction.Preimage, uint64(0), true)
+		return err
 	})
 
 	if err != nil {
@@ -881,7 +884,7 @@ func (svc *transactionsService) getAppIdFromCustomRecords(customRecords []lnclie
 	return nil
 }
 
-func (svc *transactionsService) markTransactionSettled(tx *gorm.DB, dbTransaction *db.Transaction, preimage string, fee uint64, selfPayment bool) error {
+func (svc *transactionsService) markTransactionSettled(tx *gorm.DB, dbTransaction *db.Transaction, preimage string, fee uint64, selfPayment bool) (*db.Transaction, error) {
 	var existingSettledTransaction db.Transaction
 	if tx.Limit(1).Find(&existingSettledTransaction, &db.Transaction{
 		Type:        dbTransaction.Type,
@@ -889,11 +892,11 @@ func (svc *transactionsService) markTransactionSettled(tx *gorm.DB, dbTransactio
 		State:       constants.TRANSACTION_STATE_SETTLED,
 	}).RowsAffected > 0 {
 		logger.Logger.WithField("payment_hash", dbTransaction.PaymentHash).Error("payment already marked as sent")
-		return errors.New("payment already marked as sent")
+		return &existingSettledTransaction, nil
 	}
 
 	if preimage == "" {
-		return errors.New("no preimage in payment")
+		return nil, errors.New("no preimage in payment")
 	}
 
 	now := time.Now()
@@ -909,7 +912,7 @@ func (svc *transactionsService) markTransactionSettled(tx *gorm.DB, dbTransactio
 		logger.Logger.WithFields(logrus.Fields{
 			"payment_hash": dbTransaction.PaymentHash,
 		}).WithError(err).Error("Failed to update DB transaction")
-		return err
+		return nil, err
 	}
 
 	logger.Logger.WithFields(logrus.Fields{
@@ -927,7 +930,7 @@ func (svc *transactionsService) markTransactionSettled(tx *gorm.DB, dbTransactio
 		Properties: dbTransaction,
 	})
 
-	return err
+	return dbTransaction, nil
 }
 
 func (svc *transactionsService) markPaymentFailed(tx *gorm.DB, dbTransaction *db.Transaction, reason string) error {
