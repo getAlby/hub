@@ -148,7 +148,7 @@ func (api *api) RestoreBackup(unlockPassword string, r io.Reader) error {
 		return fmt.Errorf("failed to create decrypted reader: %w", err)
 	}
 
-	tmpF, err := os.CreateTemp(api.cfg.GetEnv().Workdir, "nwc-*.bkp")
+	tmpF, err := os.CreateTemp(api.cfg.GetEnv().Workdir, "albyhub-*.bkp")
 	if err != nil {
 		return fmt.Errorf("failed to create temporary output file: %w", err)
 	}
