@@ -99,7 +99,9 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	ldkConfig.LogDirPath = &logDirPath
 	logLevel, err := strconv.Atoi(cfg.GetEnv().LDKLogLevel)
 	if err == nil {
-		ldkConfig.LogLevel = ldk_node.LogLevel(logLevel)
+		// LogLevelGossip is added due to bug in go bindings which uses an enum that starts at 1 instead of 0
+		// If LogLevelGossip is changed to 0, this addition can be removed
+		ldkConfig.LogLevel = ldk_node.LogLevel(logLevel) + ldk_node.LogLevelGossip
 	}
 	builder := ldk_node.BuilderFromConfig(ldkConfig)
 	builder.SetEntropyBip39Mnemonic(mnemonic, nil)
@@ -108,8 +110,6 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	if cfg.GetEnv().LDKGossipSource != "" {
 		logger.Logger.WithField("gossipSource", cfg.GetEnv().LDKGossipSource).Warn("LDK RGS instance set")
 		builder.SetGossipSourceRgs(cfg.GetEnv().LDKGossipSource)
-	} else {
-		logger.Logger.Warn("No LDK RGS instance set")
 	}
 	builder.SetStorageDirPath(filepath.Join(newpath, "./storage"))
 
