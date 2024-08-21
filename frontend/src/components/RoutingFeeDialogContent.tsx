@@ -3,7 +3,7 @@ import React from "react";
 import ExternalLink from "src/components/ExternalLink";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { toast } from "src/components/ui/use-toast";
+import { useToast } from "src/components/ui/use-toast";
 import { useChannels } from "src/hooks/useChannels";
 import { Channel, UpdateChannelRequest } from "src/types";
 import { request } from "src/utils/request";
@@ -28,6 +28,7 @@ export function RoutingFeeDialogContent({ channel }: Props) {
   const [forwardingFee, setForwardingFee] = React.useState(
     currentFee ? currentFee.toString() : ""
   );
+  const { toast } = useToast();
   const { mutate: reloadChannels } = useChannels();
 
   async function updateFee() {

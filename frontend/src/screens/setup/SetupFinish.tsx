@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import animationData from "src/assets/lotties/loading.json";
 import Container from "src/components/Container";
 import { Button } from "src/components/ui/button";
-import { toast } from "src/components/ui/use-toast";
+import { ToastSignature, useToast } from "src/components/ui/use-toast";
 
 import { useInfo } from "src/hooks/useInfo";
 import { saveAuthToken } from "src/lib/auth";
@@ -16,6 +16,7 @@ import { request } from "src/utils/request";
 export function SetupFinish() {
   const navigate = useNavigate();
   const { nodeInfo, unlockPassword } = useSetupStore();
+  const { toast } = useToast();
   useInfo(true); // poll the info endpoint to auto-redirect when app is running
 
   const [loading, setLoading] = React.useState(false);
@@ -56,14 +57,14 @@ export function SetupFinish() {
 
     (async () => {
       setLoading(true);
-      const succeeded = await finishSetup(nodeInfo, unlockPassword);
+      const succeeded = await finishSetup(nodeInfo, unlockPassword, toast);
       // only setup call is successful as start is async
       if (!succeeded) {
         setLoading(false);
         setConnectionError(true);
       }
     })();
-  }, [nodeInfo, navigate, unlockPassword]);
+  }, [nodeInfo, navigate, unlockPassword, toast]);
 
   if (connectionError) {
     return (
@@ -99,7 +100,8 @@ export function SetupFinish() {
 
 const finishSetup = async (
   nodeInfo: SetupNodeInfo,
-  unlockPassword: string
+  unlockPassword: string,
+  toast: ToastSignature
 ): Promise<boolean> => {
   try {
     await request("/api/setup", {
