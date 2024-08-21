@@ -70,9 +70,8 @@ export function RoutingFeeDialogContent({ channel }: Props) {
           <p className="mb-4">
             Adjust the fee you charge for each payment passing through your
             channel. A high fee (e.g. 100,000 sats) can be set to prevent
-            unwanted routing.{" "}
-            <span className="text-primary font-medium">Current fee:</span>{" "}
-            {currentFee} sats
+            unwanted routing. This does not affect your ability to receive
+            direct payments.{" "}
           </p>
           <Label htmlFor="fee" className="block mb-2">
             Routing Fee (sats)

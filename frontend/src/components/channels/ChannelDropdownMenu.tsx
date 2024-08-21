@@ -32,9 +32,6 @@ export function ChannelDropdownMenu({
 }: ChannelDropdownMenuProps) {
   const [dialog, setDialog] = React.useState<"closeChannel" | "routingFee">();
 
-  const showCloseChannelDialog = () => setDialog("closeChannel");
-  const showRoutingFeeDialog = () => setDialog("routingFee");
-
   return (
     <AlertDialog
       onOpenChange={() => {
@@ -72,7 +69,7 @@ export function ChannelDropdownMenu({
             <AlertDialogTrigger asChild>
               <DropdownMenuItem
                 className="flex flex-row items-center gap-2 cursor-pointer"
-                onClick={showRoutingFeeDialog}
+                onClick={() => setDialog("routingFee")}
               >
                 <HandCoins className="h-4 w-4" />
                 Set Routing Fee
@@ -82,7 +79,7 @@ export function ChannelDropdownMenu({
           <AlertDialogTrigger asChild>
             <DropdownMenuItem
               className="flex flex-row items-center gap-2 cursor-pointer"
-              onClick={showCloseChannelDialog}
+              onClick={() => setDialog("closeChannel")}
             >
               <Trash2 className="h-4 w-4 text-destructive" />
               Close Channel
