@@ -63,12 +63,12 @@ import { useRedeemOnchainFunds } from "src/hooks/useRedeemOnchainFunds.ts";
 import { useSyncWallet } from "src/hooks/useSyncWallet.ts";
 import { copyToClipboard } from "src/lib/clipboard.ts";
 import { cn } from "src/lib/utils.ts";
-import { Channel, Node, UpdateChannelRequest } from "src/types";
+import { Channel, Node } from "src/types";
 import { request } from "src/utils/request";
 
 export default function Channels() {
   useSyncWallet();
-  const { data: channels, mutate: reloadChannels } = useChannels();
+  const { data: channels } = useChannels();
   const { data: nodeConnectionInfo } = useNodeConnectionInfo();
   const { data: balances } = useBalances();
   const { data: albyBalance, mutate: reloadAlbyBalance } = useAlbyBalance();
@@ -107,46 +107,6 @@ export default function Channels() {
   React.useEffect(() => {
     loadNodeStats();
   }, [loadNodeStats]);
-
-  async function editChannel(channel: Channel) {
-    try {
-      const forwardingFeeBaseSats = prompt(
-        "Enter base forwarding fee in sats",
-        Math.floor(channel.forwardingFeeBaseMsat / 1000).toString()
-      );
-
-      if (!forwardingFeeBaseSats) {
-        return;
-      }
-
-      const forwardingFeeBaseMsat = +forwardingFeeBaseSats * 1000;
-
-      console.info(
-        `🎬 Updating channel ${channel.id} with ${channel.remotePubkey}`
-      );
-
-      await request(
-        `/api/peers/${channel.remotePubkey}/channels/${channel.id}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            forwardingFeeBaseMsat: forwardingFeeBaseMsat,
-          } as UpdateChannelRequest),
-        }
-      );
-      await reloadChannels();
-      toast({ title: "Sucessfully updated channel" });
-    } catch (error) {
-      console.error(error);
-      toast({
-        variant: "destructive",
-        description: "Something went wrong: " + error,
-      });
-    }
-  }
 
   async function resetRouter() {
     try {
@@ -530,17 +490,9 @@ export default function Channels() {
       )}
 
       {isDesktop ? (
-        <ChannelsTable
-          channels={channels}
-          nodes={nodes}
-          editChannel={editChannel}
-        />
+        <ChannelsTable channels={channels} nodes={nodes} />
       ) : (
-        <ChannelsCards
-          channels={channels}
-          nodes={nodes}
-          editChannel={editChannel}
-        />
+        <ChannelsCards channels={channels} nodes={nodes} />
       )}
     </>
   );

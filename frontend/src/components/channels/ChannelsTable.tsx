@@ -24,14 +24,9 @@ import { ChannelDropdownMenu } from "./ChannelDropdownMenu";
 type ChannelsTableProps = {
   channels?: Channel[];
   nodes?: Node[];
-  editChannel(channel: Channel): void;
 };
 
-export function ChannelsTable({
-  channels,
-  nodes,
-  editChannel,
-}: ChannelsTableProps) {
+export function ChannelsTable({ channels, nodes }: ChannelsTableProps) {
   if (channels && !channels.length) {
     return null;
   }
@@ -157,11 +152,7 @@ export function ChannelsTable({
                         <ChannelWarning channel={channel} />
                       </TableCell>
                       <TableCell>
-                        <ChannelDropdownMenu
-                          alias={alias}
-                          channel={channel}
-                          editChannel={editChannel}
-                        />
+                        <ChannelDropdownMenu alias={alias} channel={channel} />
                       </TableCell>
                     </TableRow>
                   );
