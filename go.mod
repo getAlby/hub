@@ -20,7 +20,7 @@ require (
 	google.golang.org/grpc v1.65.0
 	gopkg.in/DataDog/dd-trace-go.v1 v1.66.0
 	gopkg.in/macaroon.v2 v2.1.0
-	gorm.io/driver/sqlite v1.4.3
+	gorm.io/driver/sqlite v1.5.6
 	gorm.io/gorm v1.25.11
 )
 
