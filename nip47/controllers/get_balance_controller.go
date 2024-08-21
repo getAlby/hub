@@ -26,7 +26,7 @@ func (controller *nip47Controller) HandleGetBalanceEvent(ctx context.Context, ni
 
 	logger.Logger.WithFields(logrus.Fields{
 		"request_event_id": requestEventId,
-	}).Info("Getting balance")
+	}).Debug("Getting balance")
 
 	balance := uint64(0)
 	if app.Isolated {
