@@ -345,6 +345,12 @@ Run NWC on your own node!
 
 ### From the release
 
+#### Quick start (Linux)
+
+Go to the [Quick start script](https://github.com/getAlby/hub/tree/master/scripts/linux-x86_64) which you can run as a service.
+
+#### Manual (Linux)
+
 Download and run the executable.
 
 Have a look at the [configuration options](#optional-configuration-parameters)
