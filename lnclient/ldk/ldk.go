@@ -39,7 +39,8 @@ type LDKService struct {
 	network               string
 	eventPublisher        events.EventPublisher
 	syncing               bool
-	lastSync              time.Time
+	lastFullSync          time.Time
+	lastFeeEstimatesSync  time.Time
 	cfg                   config.Config
 	lastWalletSyncRequest time.Time
 	pubkey                string
@@ -213,7 +214,8 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 
 		return nil, err
 	}
-	ls.lastSync = time.Now()
+	ls.lastFullSync = time.Now()
+	ls.lastFeeEstimatesSync = time.Now()
 
 	logger.Logger.WithFields(logrus.Fields{
 		"nodeId":   nodeId,
@@ -254,6 +256,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	// setup background sync
 	go func() {
 		MIN_SYNC_INTERVAL := 1 * time.Minute
+		MIN_FEE_ESTIMATES_SYNC_INTERVAL := 5 * time.Minute
 		MAX_SYNC_INTERVAL := 1 * time.Hour // NOTE: this could be increased further (possibly to 6 hours)
 		for {
 			ls.syncing = false
@@ -262,28 +265,35 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 				return
 			case <-time.After(MIN_SYNC_INTERVAL):
 				ls.syncing = true
-				// always update fee rates to avoid differences in fee rates with channel partners
-				logger.Logger.Debug("Updating fee estimates")
-				err = node.UpdateFeeEstimates()
-				if err != nil {
-					logger.Logger.WithError(err).Error("Failed to update fee estimates")
-					ls.eventPublisher.Publish(&events.Event{
-						Event: "nwc_node_sync_failed",
-						Properties: map[string]interface{}{
-							"error":       err.Error(),
-							"sync_type":   "fee_estimates",
-							"node_type":   config.LDKBackendType,
-							"esplora_url": ls.cfg.GetEnv().LDKEsploraServer,
-						},
-					})
-				}
 
-				if time.Since(ls.lastWalletSyncRequest) > MIN_SYNC_INTERVAL && time.Since(ls.lastSync) < MAX_SYNC_INTERVAL {
-					// logger.Debug("skipping background wallet sync")
+				if time.Since(ls.lastWalletSyncRequest) > MIN_SYNC_INTERVAL && time.Since(ls.lastFullSync) < MAX_SYNC_INTERVAL {
+
+					if time.Since(ls.lastFeeEstimatesSync) < MIN_FEE_ESTIMATES_SYNC_INTERVAL {
+						logger.Logger.Debug("Skipping updating fee estimates")
+						continue
+					}
+
+					// only update fee estimates
+					logger.Logger.Debug("Updating fee estimates")
+					err = node.UpdateFeeEstimates()
+					if err != nil {
+						logger.Logger.WithError(err).Error("Failed to update fee estimates")
+						ls.eventPublisher.Publish(&events.Event{
+							Event: "nwc_node_sync_failed",
+							Properties: map[string]interface{}{
+								"error":       err.Error(),
+								"sync_type":   "fee_estimates",
+								"node_type":   config.LDKBackendType,
+								"esplora_url": ls.cfg.GetEnv().LDKEsploraServer,
+							},
+						})
+						continue
+					}
+					ls.lastFeeEstimatesSync = time.Now()
 					continue
 				}
 
-				logger.Logger.Debug("Starting background wallet sync")
+				logger.Logger.Debug("Starting full background wallet sync")
 				syncStartTime := time.Now()
 				err = node.SyncWallets()
 
@@ -303,7 +313,9 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 					continue
 				}
 
-				ls.lastSync = time.Now()
+				ls.lastFullSync = time.Now()
+				// fee estimates happens as part of full sync
+				ls.lastFeeEstimatesSync = time.Now()
 
 				logger.Logger.WithFields(logrus.Fields{
 					"nodeId":   nodeId,

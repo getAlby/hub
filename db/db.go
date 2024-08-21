@@ -5,7 +5,7 @@ import (
 
 	"github.com/getAlby/hub/db/migrations"
 	"github.com/getAlby/hub/logger"
-	"github.com/glebarez/sqlite"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -69,6 +69,11 @@ func Stop(db *gorm.DB) error {
 	sqlDB, err := db.DB()
 	if err != nil {
 		return fmt.Errorf("failed to get database connection: %w", err)
+	}
+
+	err = db.Exec("PRAGMA wal_checkpoint(FULL)", nil).Error
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to execute wal endpoint")
 	}
 
 	err = sqlDB.Close()
