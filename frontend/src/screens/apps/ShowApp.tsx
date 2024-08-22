@@ -105,7 +105,8 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
       if (
         isEditingName &&
         apps?.some(
-          (existingApp) => existingApp.name === name && existingApp.id != app.id
+          (existingApp) =>
+            existingApp.name === name && existingApp.id !== app.id
         )
       ) {
         throw new Error("A connection with the same name already exists.");
