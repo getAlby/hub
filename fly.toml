@@ -13,7 +13,7 @@ swap_size_mb = 2048
 [env]
   DATABASE_URI = '/data/nwc.db'
   LDK_LOG_LEVEL = '3'
-  LOG_LEVEL = '5'
+  LOG_LEVEL = '4'
   WORK_DIR = '/data'
 
 [[mounts]]

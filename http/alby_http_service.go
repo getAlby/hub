@@ -1,6 +1,7 @@
 package http
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -91,6 +92,11 @@ func (albyHttpSvc *AlbyHttpService) albyCallbackHandler(c echo.Context) error {
 	redirectUrl := albyHttpSvc.appConfig.FrontendUrl
 	if redirectUrl == "" {
 		redirectUrl = albyHttpSvc.appConfig.BaseUrl
+	}
+
+	if redirectUrl == "" {
+		// OAuth using a custom client requires a base URL set for the callback
+		return errors.New("no BASE_URL set")
 	}
 
 	return c.Redirect(http.StatusFound, redirectUrl)
