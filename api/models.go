@@ -77,6 +77,7 @@ type ListAppsResponse struct {
 }
 
 type UpdateAppRequest struct {
+	Name          string   `json:"name"`
 	MaxAmountSat  uint64   `json:"maxAmount"`
 	BudgetRenewal string   `json:"budgetRenewal"`
 	ExpiresAt     string   `json:"expiresAt"`

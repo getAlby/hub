@@ -15,6 +15,7 @@ import {
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request"; // build the project for this to appear
 
+import { PencilIcon } from "lucide-react";
 import AppAvatar from "src/components/AppAvatar";
 import AppHeader from "src/components/AppHeader";
 import Loading from "src/components/Loading";
@@ -37,8 +38,10 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { Input } from "src/components/ui/input";
 import { Table, TableBody, TableCell, TableRow } from "src/components/ui/table";
 import { useToast } from "src/components/ui/use-toast";
+import { useApps } from "src/hooks/useApps";
 import { useCapabilities } from "src/hooks/useCapabilities";
 import { formatAmount } from "src/lib/utils";
 
@@ -74,17 +77,21 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
-  const [editMode, setEditMode] = React.useState(false);
+  const { data: apps } = useApps();
+  const [isEditingName, setIsEditingName] = React.useState(false);
+  const [isEditingPermissions, setIsEditingPermissions] = React.useState(false);
 
   React.useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
-    setEditMode(queryParams.has("edit"));
+    const editMode = queryParams.has("edit");
+    setIsEditingPermissions(editMode);
   }, [location.search]);
 
   const { deleteApp, isDeleting } = useDeleteApp(() => {
     navigate("/apps");
   });
 
+  const [name, setName] = React.useState(app.name);
   const [permissions, setPermissions] = React.useState<AppPermissions>({
     scopes: app.scopes,
     maxAmount: app.maxAmount,
@@ -95,7 +102,18 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
 
   const handleSave = async () => {
     try {
+      if (
+        isEditingName &&
+        apps?.some(
+          (existingApp) =>
+            existingApp.name === name && existingApp.id !== app.id
+        )
+      ) {
+        throw new Error("A connection with the same name already exists.");
+      }
+
       const updateAppRequest: UpdateAppRequest = {
+        name,
         scopes: Array.from(permissions.scopes),
         budgetRenewal: permissions.budgetRenewal,
         expiresAt: permissions.expiresAt?.toISOString(),
@@ -111,10 +129,13 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
       });
 
       await refetchApp();
-      setEditMode(false);
-      toast({ title: "Successfully updated permissions" });
+      setIsEditingName(false);
+      setIsEditingPermissions(false);
+      toast({
+        title: "Successfully updated connection",
+      });
     } catch (error) {
-      handleRequestError(toast, "Failed to update permissions", error);
+      handleRequestError(toast, "Failed to update connection", error);
     }
   };
 
@@ -126,12 +147,37 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
             title={
               <div className="flex flex-row items-center">
                 <AppAvatar appName={app.name} className="w-10 h-10 mr-2" />
-                <h2
-                  title={app.name}
-                  className="text-xl font-semibold overflow-hidden text-ellipsis whitespace-nowrap"
-                >
-                  {app.name}
-                </h2>
+                {isEditingName ? (
+                  <div className="flex flex-row gap-2 items-center">
+                    <Input
+                      autoFocus
+                      type="text"
+                      name="name"
+                      value={name}
+                      id="name"
+                      onChange={(e) => setName(e.target.value)}
+                      required
+                      className="text-xl font-semibold w-max max-w-40 md:max-w-fit"
+                      autoComplete="off"
+                    />
+                    <Button type="button" onClick={handleSave}>
+                      Save
+                    </Button>
+                  </div>
+                ) : (
+                  <div
+                    className="flex flex-row gap-2 items-center cursor-pointer"
+                    onClick={() => setIsEditingName(true)}
+                  >
+                    <h2
+                      title={app.name}
+                      className="text-xl font-semibold overflow-hidden text-ellipsis whitespace-nowrap"
+                    >
+                      {app.name}
+                    </h2>
+                    <PencilIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  </div>
+                )}
               </div>
             }
             contentRight={
@@ -216,7 +262,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                   <div className="flex flex-row justify-between items-center">
                     Permissions
                     <div className="flex flex-row gap-2">
-                      {editMode && (
+                      {isEditingPermissions && (
                         <div className="flex justify-center items-center gap-2">
                           <Button
                             type="button"
@@ -234,11 +280,13 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                         </div>
                       )}
 
-                      {!editMode && (
+                      {!isEditingPermissions && (
                         <>
                           <Button
                             variant="outline"
-                            onClick={() => setEditMode(!editMode)}
+                            onClick={() =>
+                              setIsEditingPermissions(!isEditingPermissions)
+                            }
                           >
                             Edit
                           </Button>
@@ -253,7 +301,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                   capabilities={capabilities}
                   permissions={permissions}
                   setPermissions={setPermissions}
-                  readOnly={!editMode}
+                  readOnly={!isEditingPermissions}
                   isNewConnection={false}
                   budgetUsage={app.budgetUsage}
                 />

@@ -21,6 +21,7 @@ import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { Separator } from "src/components/ui/separator";
 import { useToast } from "src/components/ui/use-toast";
+import { useApps } from "src/hooks/useApps";
 import { useCapabilities } from "src/hooks/useCapabilities";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request"; // build the project for this to appear
@@ -45,6 +46,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
 
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { data: apps } = useApps();
   const [unsupportedError, setUnsupportedError] = useState<string>();
 
   const queryParams = new URLSearchParams(location.search);
@@ -180,6 +182,10 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
     }
 
     try {
+      if (apps?.some((existingApp) => existingApp.name === appName)) {
+        throw new Error("A connection with the same name already exists.");
+      }
+
       const createAppRequest: CreateAppRequest = {
         name: appName,
         pubkey,
