@@ -1163,7 +1163,7 @@ func (ls *LDKService) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, er
 	return ret, nil
 }
 
-func (ls *LDKService) GetNetworkGraph(nodeIds []string) (lnclient.NetworkGraphResponse, error) {
+func (ls *LDKService) GetNetworkGraph(ctx context.Context, nodeIds []string) (lnclient.NetworkGraphResponse, error) {
 	graph := ls.node.NetworkGraph()
 
 	type NodeInfoWithId struct {

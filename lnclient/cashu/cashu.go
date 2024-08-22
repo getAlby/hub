@@ -239,7 +239,7 @@ func (cs *CashuService) GetLogOutput(ctx context.Context, maxLen int) ([]byte, e
 func (cs *CashuService) GetStorageDir() (string, error) {
 	return "", nil
 }
-func (cs *CashuService) GetNetworkGraph(nodeIds []string) (lnclient.NetworkGraphResponse, error) {
+func (cs *CashuService) GetNetworkGraph(ctx context.Context, nodeIds []string) (lnclient.NetworkGraphResponse, error) {
 	return nil, nil
 }
 func (cs *CashuService) UpdateLastWalletSyncRequest() {}
