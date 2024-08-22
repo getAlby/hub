@@ -84,7 +84,6 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
   React.useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
     const editMode = queryParams.has("edit");
-    setIsEditingName(editMode);
     setIsEditingPermissions(editMode);
   }, [location.search]);
 
@@ -105,7 +104,9 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
     try {
       if (
         isEditingName &&
-        apps?.some((existingApp) => existingApp.name === name)
+        apps?.some(
+          (existingApp) => existingApp.name === name && existingApp.id != app.id
+        )
       ) {
         throw new Error("A connection with the same name already exists.");
       }
@@ -130,7 +131,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
       setIsEditingName(false);
       setIsEditingPermissions(false);
       toast({
-        title: `Successfully updated ${isEditingName ? "name" : "permissions"}`,
+        title: "Successfully updated connection",
       });
     } catch (error) {
       handleRequestError(toast, "Failed to update connection", error);
