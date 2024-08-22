@@ -6,6 +6,7 @@ import kiwi from "src/assets/suggested-apps/kiwi.png";
 import lume from "src/assets/suggested-apps/lume.png";
 import nostrudel from "src/assets/suggested-apps/nostrudel.png";
 import nostur from "src/assets/suggested-apps/nostur.png";
+import paperScissorsHodl from "src/assets/suggested-apps/paper-scissors-hodl.png";
 import primal from "src/assets/suggested-apps/primal.png";
 import snort from "src/assets/suggested-apps/snort.png";
 import stackernews from "src/assets/suggested-apps/stackernews.png";
@@ -161,5 +162,12 @@ export const suggestedApps: SuggestedApp[] = [
     description: "Like Hacker News but with Bitcoin",
     webLink: "https://stacker.news/",
     logo: stackernews,
+  },
+  {
+    id: "paper-scissors-hodl",
+    title: "Paper Scissors HODL",
+    description: "Paper Scissors Rock with bitcoin at stake",
+    webLink: "https://paper-scissors-hodl.fly.dev",
+    logo: paperScissorsHodl,
   },
 ].sort((a, b) => (a.title.toUpperCase() > b.title.toUpperCase() ? 1 : -1));
