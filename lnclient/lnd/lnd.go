@@ -565,35 +565,39 @@ func (svc *LNDService) Shutdown() error {
 
 func (svc *LNDService) GetNodeConnectionInfo(ctx context.Context) (nodeConnectionInfo *lnclient.NodeConnectionInfo, err error) {
 	pubkey := svc.GetPubkey()
+	nodeConnectionInfo = &lnclient.NodeConnectionInfo{
+		Pubkey: pubkey,
+	}
+
 	nodeInfo, err := svc.client.GetNodeInfo(ctx, &lnrpc.NodeInfoRequest{
 		PubKey: pubkey,
 	})
 	if err != nil {
-		return nil, err
+		return nodeConnectionInfo, nil
 	}
 
 	addresses := nodeInfo.Node.Addresses
-
 	if addresses == nil || len(addresses) < 1 {
-		return nil, errors.New("no available listening addresses")
+		logger.Logger.Error("Error getting node address info: no available listening addresses")
+		return nodeConnectionInfo, nil
 	}
 
 	firstAddress := addresses[0]
 	parts := strings.Split(firstAddress.Addr, ":")
 	if len(parts) != 2 {
-		return nil, errors.New(fmt.Sprintf("invalid address %v", firstAddress))
+		logger.Logger.WithError(err).Error("Error fetching node address info")
+		return nodeConnectionInfo, nil
 	}
 	port, err := strconv.Atoi(parts[1])
 	if err != nil {
-		logger.Logger.WithError(err).Error("ConnectPeer failed")
-		return nil, err
+		logger.Logger.WithError(err).Error("Error getting node address info")
+		return nodeConnectionInfo, nil
 	}
 
-	return &lnclient.NodeConnectionInfo{
-		Pubkey:  pubkey,
-		Address: parts[0],
-		Port:    port,
-	}, nil
+	nodeConnectionInfo.Address = parts[0]
+	nodeConnectionInfo.Port = port
+
+	return nodeConnectionInfo, nil
 }
 
 func (svc *LNDService) ConnectPeer(ctx context.Context, connectPeerRequest *lnclient.ConnectPeerRequest) error {
