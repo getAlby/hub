@@ -401,9 +401,7 @@ func (ls *LDKService) resetRouterInternal() {
 
 		switch key {
 		case "ALL":
-			command = "delete from ldk_node_data where key = 'latest_rgs_sync_timestamp' or key = 'scorer' or key = 'network_graph';VACUUM;"
-		case "LatestRgsSyncTimestamp":
-			command = "delete from ldk_node_data where key = 'latest_rgs_sync_timestamp';VACUUM;"
+			command = "delete from ldk_node_data where key = 'scorer' or key = 'network_graph';VACUUM;"
 		case "Scorer":
 			command = "delete from ldk_node_data where key = 'scorer';VACUUM;"
 		case "NetworkGraph":
@@ -1176,6 +1174,13 @@ func (ls *LDKService) GetNetworkGraph(nodeIds []string) (lnclient.NetworkGraphRe
 	nodes := []NodeInfoWithId{}
 	channels := []*ldk_node.ChannelInfo{}
 	for _, nodeId := range nodeIds {
+		_, err := hex.DecodeString(nodeId)
+		if err != nil {
+			return nil, err
+		}
+		if len(nodeId) != 66 {
+			return nil, errors.New("unexpected node ID length")
+		}
 		graphNode := graph.Node(nodeId)
 		if graphNode != nil {
 			nodes = append(nodes, NodeInfoWithId{

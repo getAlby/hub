@@ -2,6 +2,7 @@ import useSWRImmutable from "swr/immutable";
 
 import React from "react";
 
+import { useToast } from "src/components/ui/use-toast";
 import { request } from "src/utils/request";
 import { swrFetcher } from "src/utils/swr";
 
@@ -10,6 +11,7 @@ export function useOnchainAddress() {
   const swr = useSWRImmutable<string>("/api/wallet/address", swrFetcher, {
     revalidateOnMount: true,
   });
+  const { toast } = useToast();
   const [isLoading, setLoading] = React.useState(false);
 
   const getNewAddress = React.useCallback(async () => {
@@ -26,11 +28,15 @@ export function useOnchainAddress() {
       }
       swr.mutate(address, false);
     } catch (error) {
-      alert("Failed to request a new address: " + error);
+      toast({
+        variant: "destructive",
+        title: "Failed to request a new address",
+        description: "" + error,
+      });
     } finally {
       setLoading(false);
     }
-  }, [swr]);
+  }, [swr, toast]);
 
   return React.useMemo(
     () => ({

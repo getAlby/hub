@@ -64,7 +64,7 @@ func (albyHttpSvc *AlbyHttpService) unlinkHandler(c echo.Context) error {
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to request wrapped invoice: %s", err.Error()),
+			Message: fmt.Sprintf("Failed to unlink: %s", err.Error()),
 		})
 	}
 

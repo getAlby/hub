@@ -482,7 +482,10 @@ function PayBitcoinChannelOrderWithSpendableFunds({
       });
     } catch (error) {
       console.error(error);
-      alert("Something went wrong: " + error);
+      toast({
+        variant: "destructive",
+        title: "Something went wrong: " + error,
+      });
     }
   }, [
     connectPeer,
@@ -567,7 +570,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
   const { data: channels } = useChannels(true);
   const [, setRequestedInvoice] = React.useState(false);
 
-  const [wrappedInvoiceResponse, setWrappedInvoiceResponse] = React.useState<
+  const [lspOrderResponse, setLspOrderResponse] = React.useState<
     LSPOrderResponse | undefined
   >();
 
@@ -603,23 +606,33 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
             if (!response?.invoice) {
               throw new Error("No invoice in response");
             }
-            setWrappedInvoiceResponse(response);
+            setLspOrderResponse(response);
           } catch (error) {
-            alert("Failed to connect to request wrapped invoice: " + error);
+            toast({
+              variant: "destructive",
+              title: "Something went wrong",
+              description: "" + error,
+            });
           }
         })();
       }
       return true;
     });
-  }, [channels, order.amount, order.isPublic, order.lspType, order.lspUrl]);
+  }, [
+    channels,
+    order.amount,
+    order.isPublic,
+    order.lspType,
+    order.lspUrl,
+    toast,
+  ]);
 
   const canPayInternally =
     channels &&
-    wrappedInvoiceResponse &&
+    lspOrderResponse &&
     channels.some(
       (channel) =>
-        channel.localSpendableBalance / 1000 >
-        wrappedInvoiceResponse.invoiceAmount
+        channel.localSpendableBalance / 1000 > lspOrderResponse.invoiceAmount
     );
   const [isPaying, setPaying] = React.useState(false);
   const [payExternally, setPayExternally] = React.useState(false);
@@ -629,40 +642,40 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
       <AppHeader
         title={"Buy Channel"}
         description={
-          wrappedInvoiceResponse
+          lspOrderResponse
             ? "Complete Payment to open a channel to your node"
             : "Please wait, loading..."
         }
       />
-      {!wrappedInvoiceResponse && <Loading />}
+      {!lspOrderResponse && <Loading />}
 
-      {wrappedInvoiceResponse && (
+      {lspOrderResponse && (
         <>
           <div className="max-w-md flex flex-col gap-5">
             <div className="border rounded-lg">
               <Table>
                 <TableBody>
-                  {wrappedInvoiceResponse.outgoingLiquidity > 0 && (
+                  {lspOrderResponse.outgoingLiquidity > 0 && (
                     <TableRow>
                       <TableCell className="font-medium p-3">
                         Spending Balance
                       </TableCell>
                       <TableCell className="text-right p-3">
                         {new Intl.NumberFormat().format(
-                          wrappedInvoiceResponse.outgoingLiquidity
+                          lspOrderResponse.outgoingLiquidity
                         )}{" "}
                         sats
                       </TableCell>
                     </TableRow>
                   )}
-                  {wrappedInvoiceResponse.incomingLiquidity > 0 && (
+                  {lspOrderResponse.incomingLiquidity > 0 && (
                     <TableRow>
                       <TableCell className="font-medium p-3">
                         Incoming Liquidity
                       </TableCell>
                       <TableCell className="text-right p-3">
                         {new Intl.NumberFormat().format(
-                          wrappedInvoiceResponse.incomingLiquidity
+                          lspOrderResponse.incomingLiquidity
                         )}{" "}
                         sats
                       </TableCell>
@@ -673,9 +686,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                       Fee
                     </TableCell>
                     <TableCell className="text-right p-3">
-                      {new Intl.NumberFormat().format(
-                        wrappedInvoiceResponse.fee
-                      )}{" "}
+                      {new Intl.NumberFormat().format(lspOrderResponse.fee)}{" "}
                       sats
                     </TableCell>
                   </TableRow>
@@ -685,7 +696,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                     </TableCell>
                     <TableCell className="font-semibold text-right p-3">
                       {new Intl.NumberFormat().format(
-                        wrappedInvoiceResponse.invoiceAmount
+                        lspOrderResponse.invoiceAmount
                       )}{" "}
                       sats
                     </TableCell>
@@ -704,7 +715,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                         setPaying(true);
 
                         await request<PayInvoiceResponse>(
-                          `/api/payments/${wrappedInvoiceResponse.invoice}`,
+                          `/api/payments/${lspOrderResponse.invoice}`,
                           {
                             method: "POST",
                             headers: {
@@ -746,7 +757,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
 
               {(payExternally || !canPayInternally) && (
                 <Payment
-                  invoice={wrappedInvoiceResponse.invoice}
+                  invoice={lspOrderResponse.invoice}
                   paymentMethods="external"
                 />
               )}

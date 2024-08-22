@@ -56,7 +56,6 @@ import {
 import { useAlbyBalance } from "src/hooks/useAlbyBalance.ts";
 import { useBalances } from "src/hooks/useBalances.ts";
 import { useChannels } from "src/hooks/useChannels";
-import { useInfo } from "src/hooks/useInfo";
 import { useIsDesktop } from "src/hooks/useMediaQuery.ts";
 import { useNodeConnectionInfo } from "src/hooks/useNodeConnectionInfo.ts";
 import { useRedeemOnchainFunds } from "src/hooks/useRedeemOnchainFunds.ts";
@@ -73,7 +72,6 @@ export default function Channels() {
   const { data: balances } = useBalances();
   const { data: albyBalance, mutate: reloadAlbyBalance } = useAlbyBalance();
   const [nodes, setNodes] = React.useState<Node[]>([]);
-  const { mutate: reloadInfo } = useInfo();
 
   const redeemOnchainFunds = useRedeemOnchainFunds();
   const { toast } = useToast();
@@ -107,35 +105,6 @@ export default function Channels() {
   React.useEffect(() => {
     loadNodeStats();
   }, [loadNodeStats]);
-
-  async function resetRouter() {
-    try {
-      const key = prompt(
-        "Enter key to reset (choose one of ALL, LatestRgsSyncTimestamp, Scorer, NetworkGraph). After resetting, you'll need to re-enter your unlock password.",
-        "ALL"
-      );
-      if (!key) {
-        console.error("Cancelled reset");
-        return;
-      }
-
-      await request("/api/reset-router", {
-        method: "POST",
-        body: JSON.stringify({ key }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      await reloadInfo();
-      toast({ description: "🎉 Router reset" });
-    } catch (error) {
-      console.error(error);
-      toast({
-        variant: "destructive",
-        description: "Something went wrong: " + error,
-      });
-    }
-  }
 
   const showHostedBalance =
     albyBalance && albyBalance.sats > ALBY_HIDE_HOSTED_BALANCE_LIMIT;
@@ -209,12 +178,6 @@ export default function Channels() {
                     <Link className="w-full" to="/wallet/sign-message">
                       Sign Message
                     </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className="w-full cursor-pointer"
-                    onClick={resetRouter}
-                  >
-                    Clear Routing Data
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
               </DropdownMenuContent>
