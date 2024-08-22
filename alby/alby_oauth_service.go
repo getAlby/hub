@@ -467,6 +467,8 @@ func (svc *albyOAuthService) ConsumeEvent(ctx context.Context, event *events.Eve
 		}
 	}()
 
+	// TODO: we should have a whitelist rather than a blacklist, so new events are not automatically sent
+
 	// TODO: rename this config option to be specific to the alby API
 	if !svc.cfg.GetEnv().LogEvents {
 		logger.Logger.WithField("event", event).Debug("Skipped sending to alby events API")

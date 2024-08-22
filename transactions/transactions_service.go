@@ -885,6 +885,7 @@ func (svc *transactionsService) getAppIdFromCustomRecords(customRecords []lnclie
 }
 
 func (svc *transactionsService) markTransactionSettled(tx *gorm.DB, dbTransaction *db.Transaction, preimage string, fee uint64, selfPayment bool) (*db.Transaction, error) {
+	// TODO: it would be better to have a database constraint so we cannot have two pending payments
 	var existingSettledTransaction db.Transaction
 	if tx.Limit(1).Find(&existingSettledTransaction, &db.Transaction{
 		Type:        dbTransaction.Type,
