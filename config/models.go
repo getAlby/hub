@@ -27,7 +27,7 @@ type AppConfig struct {
 	LDKNetwork            string `envconfig:"LDK_NETWORK" default:"bitcoin"`
 	LDKEsploraServer      string `envconfig:"LDK_ESPLORA_SERVER" default:"https://electrs.getalbypro.com"` // TODO: remove LDK prefix
 	LDKGossipSource       string `envconfig:"LDK_GOSSIP_SOURCE"`
-	LDKLogLevel           string `envconfig:"LDK_LOG_LEVEL"`
+	LDKLogLevel           string `envconfig:"LDK_LOG_LEVEL" default:"3"`
 	MempoolApi            string `envconfig:"MEMPOOL_API" default:"https://mempool.space/api"`
 	AlbyAPIURL            string `envconfig:"ALBY_API_URL" default:"https://api.getalby.com"`
 	AlbyClientId          string `envconfig:"ALBY_OAUTH_CLIENT_ID" default:"J2PbXS1yOf"`
