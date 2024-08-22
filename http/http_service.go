@@ -942,6 +942,9 @@ func (httpSvc *HttpService) logoutHandler(c echo.Context) error {
 	if redirectUrl == "" {
 		redirectUrl = httpSvc.cfg.GetEnv().BaseUrl
 	}
+	if redirectUrl == "" {
+		redirectUrl = "/"
+	}
 
 	return c.Redirect(http.StatusFound, redirectUrl)
 }

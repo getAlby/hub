@@ -33,7 +33,7 @@ type AppConfig struct {
 	AlbyClientId          string `envconfig:"ALBY_OAUTH_CLIENT_ID" default:"J2PbXS1yOf"`
 	AlbyClientSecret      string `envconfig:"ALBY_OAUTH_CLIENT_SECRET" default:"rABK2n16IWjLTZ9M1uKU"`
 	AlbyOAuthAuthUrl      string `envconfig:"ALBY_OAUTH_AUTH_URL" default:"https://getalby.com/oauth"`
-	BaseUrl               string `envconfig:"BASE_URL" default:"http://localhost:8080"`
+	BaseUrl               string `envconfig:"BASE_URL"`
 	FrontendUrl           string `envconfig:"FRONTEND_URL"`
 	LogEvents             bool   `envconfig:"LOG_EVENTS" default:"true"`
 	AutoLinkAlbyAccount   bool   `envconfig:"AUTO_LINK_ALBY_ACCOUNT" default:"true"`
