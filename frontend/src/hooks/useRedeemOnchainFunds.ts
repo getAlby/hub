@@ -5,6 +5,7 @@ import { useBalances } from "src/hooks/useBalances";
 import { RedeemOnchainFundsResponse } from "src/types";
 import { request } from "src/utils/request";
 
+// TODO: move this to a different screen instead
 export function useRedeemOnchainFunds() {
   const { mutate: reloadBalances } = useBalances();
   const { toast } = useToast();
@@ -17,6 +18,14 @@ export function useRedeemOnchainFunds() {
       "Please enter an onchain bitcoin address (bc1...) to withdraw your savings balance to another bitcoin wallet (e.g. a cold storage wallet). Make sure you own the wallet that generated this address."
     );
     if (!toAddress) {
+      setLoading(false);
+      return;
+    }
+
+    const confirmAddress = prompt(
+      "Please confirm an onchain bitcoin address. Make sure you own the wallet that generated this address!"
+    );
+    if (toAddress !== confirmAddress) {
       setLoading(false);
       return;
     }
