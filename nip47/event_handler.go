@@ -156,7 +156,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 		"requestEventNostrId": event.ID,
 		"eventKind":           event.Kind,
 		"appId":               app.ID,
-	}).Info("App found for nostr event")
+	}).Debug("App found for nostr event")
 
 	//to be extra safe, decrypt using the key found from the app
 	ss, err = nip04.ComputeSharedSecret(app.NostrPubkey, svc.keys.GetNostrSecretKey())
@@ -245,11 +245,11 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 			} else {
 				requestEvent.State = db.REQUEST_EVENT_STATE_HANDLER_EXECUTED
 				logger.Logger.WithFields(logrus.Fields{
-					"requestEventNostrId": event.ID,
+					"requestEventNostrId":  event.ID,
 					"responseEventNostrId": resp.ID,
-					"eventKind":           event.Kind,
-					"appId":               app.ID,
-				}).Info("Published response")
+					"eventKind":            event.Kind,
+					"appId":                app.ID,
+				}).Debug("Published response")
 			}
 		}
 		err = svc.db.Save(&requestEvent).Error
@@ -266,7 +266,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 		"appId":               app.ID,
 		"method":              nip47Request.Method,
 		"params":              nip47Request.Params,
-	}).Info("Handling NIP-47 request")
+	}).Debug("Handling NIP-47 request")
 
 	if nip47Request.Method != models.GET_INFO_METHOD {
 		scope, err := permissions.RequestMethodToScope(nip47Request.Method)
@@ -417,7 +417,7 @@ func (svc *nip47Service) publishResponseEvent(ctx context.Context, relay nostrmo
 			"appId":                appId,
 			"responseEventId":      responseEvent.ID,
 			"responseNostrEventId": resp.ID,
-		}).Info("Published reply")
+		}).Debug("Published reply")
 	}
 
 	err = svc.db.Save(&responseEvent).Error

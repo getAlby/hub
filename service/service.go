@@ -152,13 +152,13 @@ func (svc *service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 	go func() {
 		// block till EOS is received
 		<-sub.EndOfStoredEvents
-		logger.Logger.Info("Received EOS")
+		logger.Logger.Debug("Received EOS")
 
 		// loop through incoming events
 		for event := range sub.Events {
 			go svc.nip47Service.HandleEvent(ctx, sub.Relay, event, svc.lnClient)
 		}
-		logger.Logger.Info("Relay subscription events channel ended")
+		logger.Logger.Debug("Relay subscription events channel ended")
 	}()
 
 	<-ctx.Done()
