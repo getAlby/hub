@@ -1174,6 +1174,13 @@ func (ls *LDKService) GetNetworkGraph(nodeIds []string) (lnclient.NetworkGraphRe
 	nodes := []NodeInfoWithId{}
 	channels := []*ldk_node.ChannelInfo{}
 	for _, nodeId := range nodeIds {
+		_, err := hex.DecodeString(nodeId)
+		if err != nil {
+			return nil, err
+		}
+		if len(nodeId) != 66 {
+			return nil, errors.New("unexpected node ID length")
+		}
 		graphNode := graph.Node(nodeId)
 		if graphNode != nil {
 			nodes = append(nodes, NodeInfoWithId{
