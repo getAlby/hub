@@ -23,7 +23,7 @@ const nip47MultiPayKeysendJson = `
 	"params": {
 		"keysends": [{
 				"amount": 123000,
-				"pubkey": "123pubkey",
+				"pubkey": "123pubkey2",
 				"tlv_records": [{
 					"type": 5482373484,
 					"value": "fajsn341414fq"
@@ -31,7 +31,7 @@ const nip47MultiPayKeysendJson = `
 			},
 			{
 				"amount": 123000,
-				"pubkey": "123pubkey",
+				"pubkey": "123pubkey2",
 				"tlv_records": [{
 					"type": 5482373484,
 					"value": "fajsn341414fq"
@@ -48,7 +48,7 @@ const nip47MultiPayKeysendOneOverflowingBudgetJson = `
 	"params": {
 		"keysends": [{
 				"amount": 123000,
-				"pubkey": "123pubkey",
+				"pubkey": "123pubkey2",
 				"id": "customId",
 				"tlv_records": [{
 					"type": 5482373484,
@@ -68,7 +68,7 @@ const nip47MultiPayKeysendOneOverflowingBudgetJson = `
 }
 `
 
-func TestHandleMultiPayKeysendEvent(t *testing.T) {
+func TestHandleMultiPayKeysendEvent_Success(t *testing.T) {
 	ctx := context.TODO()
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
@@ -106,7 +106,7 @@ func TestHandleMultiPayKeysendEvent(t *testing.T) {
 	}
 
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
-	transactionsSvc := transactions.NewTransactionsService(svc.DB)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
 	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
 		HandleMultiPayKeysendEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
 
@@ -115,7 +115,7 @@ func TestHandleMultiPayKeysendEvent(t *testing.T) {
 		assert.Equal(t, 64, len(responses[i].Result.(payResponse).Preimage))
 		assert.Equal(t, uint64(1), responses[i].Result.(payResponse).FeesPaid)
 		assert.Nil(t, responses[i].Error)
-		assert.Equal(t, "123pubkey", dTags[i].GetFirst([]string{"d"}).Value())
+		assert.Equal(t, "123pubkey2", dTags[i].GetFirst([]string{"d"}).Value())
 	}
 }
 
@@ -158,7 +158,7 @@ func TestHandleMultiPayKeysendEvent_OneBudgetExceeded(t *testing.T) {
 	}
 
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
-	transactionsSvc := transactions.NewTransactionsService(svc.DB)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
 	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
 		HandleMultiPayKeysendEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
 
@@ -175,5 +175,5 @@ func TestHandleMultiPayKeysendEvent_OneBudgetExceeded(t *testing.T) {
 	assert.Equal(t, uint64(1), responses[0].Result.(payResponse).FeesPaid)
 
 	assert.Nil(t, responses[1].Result)
-	assert.Equal(t, models.ERROR_QUOTA_EXCEEDED, responses[1].Error.Code)
+	assert.Equal(t, constants.ERROR_QUOTA_EXCEEDED, responses[1].Error.Code)
 }

@@ -1314,7 +1314,7 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 		}
 
 		ls.eventPublisher.Publish(&events.Event{
-			Event:      "nwc_payment_received",
+			Event:      "nwc_lnclient_payment_received",
 			Properties: transaction,
 		})
 	case ldk_node.EventPaymentSuccessful:
@@ -1335,7 +1335,7 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 		}
 
 		ls.eventPublisher.Publish(&events.Event{
-			Event:      "nwc_payment_sent",
+			Event:      "nwc_lnclient_payment_sent",
 			Properties: transaction,
 		})
 	case ldk_node.EventPaymentFailed:
@@ -1358,8 +1358,8 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 		reason := ls.getPaymentFailReason(&eventType)
 
 		ls.eventPublisher.Publish(&events.Event{
-			Event: "nwc_payment_failed_async",
-			Properties: &events.PaymentFailedAsyncProperties{
+			Event: "nwc_lnclient_payment_failed",
+			Properties: &lnclient.PaymentFailedEventProperties{
 				Transaction: transaction,
 				Reason:      reason,
 			},

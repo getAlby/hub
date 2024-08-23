@@ -171,6 +171,11 @@ type BalancesResponse struct {
 
 type NetworkGraphResponse = interface{}
 
+type PaymentFailedEventProperties struct {
+	Transaction *Transaction
+	Reason      string
+}
+
 // default invoice expiry in seconds (1 day)
 const DEFAULT_INVOICE_EXPIRY = 86400
 
