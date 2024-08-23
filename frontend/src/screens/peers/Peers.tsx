@@ -134,7 +134,7 @@ export default function Peers() {
                   <TableCell>{peer.nodeId}</TableCell>
                   <TableCell>{peer.address}</TableCell>
                   <TableCell>
-                    <DropdownMenu>
+                    <DropdownMenu modal={false}>
                       <DropdownMenuTrigger asChild>
                         <Button size="icon" variant="ghost">
                           <MoreHorizontal className="h-4 w-4" />
