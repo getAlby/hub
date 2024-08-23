@@ -20,7 +20,7 @@ var assets embed.FS
 var appIcon []byte
 
 func main() {
-	log.Info("NWC Starting in WAILS mode")
+	log.Info("Alby Hub starting in WAILS mode")
 	ctx, cancel := context.WithCancel(context.Background())
 	svc, _ := service.NewService(ctx)
 
