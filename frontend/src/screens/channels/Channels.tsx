@@ -116,7 +116,7 @@ export default function Channels() {
         description="Manage your lightning node"
         contentRight={
           <div className="flex gap-3 items-center justify-center">
-            <DropdownMenu>
+            <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="default">
                   Advanced

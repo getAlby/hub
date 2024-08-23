@@ -229,7 +229,7 @@ export default function AppLayout() {
                       {albyMe?.name || albyMe?.email}
                     </Link>
                   </div>
-                  <DropdownMenu>
+                  <DropdownMenu modal={false}>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon">
                         <EllipsisVertical className="w-4 h-4" />
@@ -275,7 +275,7 @@ export default function AppLayout() {
                     <MainNavSecondary />
                   </div>
                 </SheetContent>
-                <DropdownMenu>
+                <DropdownMenu modal={false}>
                   <DropdownMenuTrigger asChild>
                     <Link
                       to="#"
