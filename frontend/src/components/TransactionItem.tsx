@@ -19,7 +19,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "src/components/ui/dialog";
-import { toast } from "src/components/ui/use-toast";
+import { useToast } from "src/components/ui/use-toast";
 import { useApps } from "src/hooks/useApps";
 import { copyToClipboard } from "src/lib/clipboard";
 import { cn } from "src/lib/utils";
@@ -34,13 +34,14 @@ type Props = {
 
 function TransactionItem({ tx }: Props) {
   const { data: apps } = useApps();
+  const { toast } = useToast();
   const [showDetails, setShowDetails] = React.useState(false);
   const type = tx.type;
   const Icon = tx.type == "outgoing" ? ArrowUpIcon : ArrowDownIcon;
   const app = tx.appId && apps?.find((app) => app.id === tx.appId);
 
   const copy = (text: string) => {
-    copyToClipboard(text);
+    copyToClipboard(text, toast);
     toast({ title: "Copied to clipboard." });
   };
 

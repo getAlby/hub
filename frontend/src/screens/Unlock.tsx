@@ -4,7 +4,7 @@ import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
-import { toast } from "src/components/ui/use-toast";
+import { useToast } from "src/components/ui/use-toast";
 
 import { useInfo } from "src/hooks/useInfo";
 import { saveAuthToken } from "src/lib/auth";
@@ -18,6 +18,7 @@ export default function Unlock() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const { toast } = useToast();
   const { data: info } = useInfo();
   const { mutate: refetchInfo } = useInfo();
 

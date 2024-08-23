@@ -13,10 +13,11 @@ import {
   Themes,
   useTheme,
 } from "src/components/ui/theme-provider";
-import { toast } from "src/components/ui/use-toast";
+import { useToast } from "src/components/ui/use-toast";
 
 function Settings() {
   const { theme, darkMode, setTheme, setDarkMode } = useTheme();
+  const { toast } = useToast();
 
   return (
     <>

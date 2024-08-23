@@ -1,10 +1,4 @@
-import { Toast, ToasterToast } from "src/components/ui/use-toast";
-
-type ToastSignature = (props: Toast) => {
-  id: string;
-  dismiss: () => void;
-  update: (props: ToasterToast) => void;
-};
+import { ToastSignature } from "src/components/ui/use-toast";
 
 export function handleRequestError(
   toast: ToastSignature,

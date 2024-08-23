@@ -6,7 +6,7 @@ import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
-import { toast } from "src/components/ui/use-toast";
+import { useToast } from "src/components/ui/use-toast";
 
 import { useInfo } from "src/hooks/useInfo";
 import { handleRequestError } from "src/utils/handleRequestError";
@@ -20,6 +20,7 @@ type AuthCodeFormProps = {
 function AuthCodeForm({ url }: AuthCodeFormProps) {
   const [authCode, setAuthCode] = useState("");
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const { mutate: refetchInfo } = useInfo();
 

@@ -20,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "src/components/ui/table.tsx";
-import { toast } from "src/components/ui/use-toast";
+import { useToast } from "src/components/ui/use-toast";
 import { useChannels } from "src/hooks/useChannels";
 import { usePeers } from "src/hooks/usePeers.ts";
 import { useSyncWallet } from "src/hooks/useSyncWallet.ts";
@@ -31,6 +31,7 @@ export default function Peers() {
   useSyncWallet();
   const { data: peers } = usePeers();
   const { data: channels } = useChannels();
+  const { toast } = useToast();
   const [nodes, setNodes] = React.useState<Node[]>([]);
   const [peerToDisconnect, setPeerToDisconnect] = React.useState<Peer>();
 
