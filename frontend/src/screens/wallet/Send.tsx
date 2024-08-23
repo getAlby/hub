@@ -101,7 +101,7 @@ export default function Send() {
   };
 
   const copy = () => {
-    copyToClipboard(payResponse?.preimage as string);
+    copyToClipboard(payResponse?.preimage as string, toast);
     toast({ title: "Copied to clipboard." });
   };
 

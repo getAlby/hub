@@ -224,6 +224,8 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
   );
   const estimatedTransactionFee = useEstimatedTransactionFee();
 
+  const { toast } = useToast();
+
   if (!onchainAddress || !balances || !estimatedTransactionFee) {
     return (
       <div className="flex justify-center">
@@ -292,7 +294,7 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
               variant="secondary"
               size="icon"
               onClick={() => {
-                copyToClipboard(onchainAddress);
+                copyToClipboard(onchainAddress, toast);
               }}
             >
               <Copy className="w-4 h-4" />

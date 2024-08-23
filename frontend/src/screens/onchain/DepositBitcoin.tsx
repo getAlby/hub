@@ -75,7 +75,7 @@ export default function DepositBitcoin() {
                 variant="secondary"
                 className="w-28"
                 onClick={() => {
-                  copyToClipboard(onchainAddress);
+                  copyToClipboard(onchainAddress, toast);
                   toast({ title: "Copied to clipboard." });
                 }}
               >

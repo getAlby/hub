@@ -132,7 +132,7 @@ export default function Channels() {
                         if (!nodeConnectionInfo) {
                           return;
                         }
-                        copyToClipboard(nodeConnectionInfo.pubkey);
+                        copyToClipboard(nodeConnectionInfo.pubkey, toast);
                       }}
                     >
                       <div>Node</div>

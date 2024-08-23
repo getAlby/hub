@@ -41,7 +41,7 @@ function TransactionItem({ tx }: Props) {
   const app = tx.appId && apps?.find((app) => app.id === tx.appId);
 
   const copy = (text: string) => {
-    copyToClipboard(text);
+    copyToClipboard(text, toast);
     toast({ title: "Copied to clipboard." });
   };
 

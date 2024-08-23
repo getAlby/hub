@@ -97,7 +97,7 @@ export default function Receive() {
   };
 
   const copy = () => {
-    copyToClipboard(transaction?.invoice as string);
+    copyToClipboard(transaction?.invoice as string, toast);
     toast({ title: "Copied to clipboard." });
   };
 
