@@ -104,14 +104,11 @@ func NewService(ctx context.Context) (*service, error) {
 		eventPublisher:      eventPublisher,
 		albyOAuthSvc:        alby.NewAlbyOAuthService(gormDB, cfg, keys, eventPublisher),
 		nip47Service:        nip47.NewNip47Service(gormDB, cfg, keys, eventPublisher),
-		transactionsService: transactions.NewTransactionsService(gormDB),
+		transactionsService: transactions.NewTransactionsService(gormDB, eventPublisher),
 		db:                  gormDB,
 		keys:                keys,
 	}
 
-	// Note: order is important here: transactions service will update transactions
-	// from payment events, which will then be consumed by the NIP-47 service to send notifications
-	// TODO: transactions service should fire its own events
 	eventPublisher.RegisterSubscriber(svc.transactionsService)
 	eventPublisher.RegisterSubscriber(svc.nip47Service)
 	eventPublisher.RegisterSubscriber(svc.albyOAuthSvc)

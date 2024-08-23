@@ -44,26 +44,14 @@ func NewNip47Notifier(relay nostrmodels.Relay, db *gorm.DB, cfg config.Config, k
 }
 
 func (notifier *Nip47Notifier) ConsumeEvent(ctx context.Context, event *events.Event) {
-
-	// TODO: should listen to transaction service events instead
-	// then self-payments will also trigger NIP-47 notifications
 	switch event.Event {
 	case "nwc_payment_received":
-		lnClientTransaction, ok := event.Properties.(*lnclient.Transaction)
+		transaction, ok := event.Properties.(*db.Transaction)
 		if !ok {
 			logger.Logger.WithField("event", event).Error("Failed to cast event")
 			return
 		}
 
-		transactionType := constants.TRANSACTION_TYPE_INCOMING
-		transaction, err := notifier.transactionsService.LookupTransaction(ctx, lnClientTransaction.PaymentHash, &transactionType, notifier.lnClient, nil)
-		if err != nil {
-			logger.Logger.
-				WithField("paymentHash", lnClientTransaction.PaymentHash).
-				WithError(err).
-				Error("Failed to lookup transaction by payment hash")
-			return
-		}
 		notification := PaymentReceivedNotification{
 			Transaction: *models.ToNip47Transaction(transaction),
 		}
@@ -74,21 +62,12 @@ func (notifier *Nip47Notifier) ConsumeEvent(ctx context.Context, event *events.E
 		}, nostr.Tags{}, transaction.AppId)
 
 	case "nwc_payment_sent":
-		paymentSentEventProperties, ok := event.Properties.(*lnclient.Transaction)
+		transaction, ok := event.Properties.(*db.Transaction)
 		if !ok {
 			logger.Logger.WithField("event", event).Error("Failed to cast event")
 			return
 		}
 
-		transactionType := constants.TRANSACTION_TYPE_OUTGOING
-		transaction, err := notifier.transactionsService.LookupTransaction(ctx, paymentSentEventProperties.PaymentHash, &transactionType, notifier.lnClient, nil)
-		if err != nil {
-			logger.Logger.
-				WithField("paymentHash", paymentSentEventProperties.PaymentHash).
-				WithError(err).
-				Error("Failed to lookup invoice by payment hash")
-			return
-		}
 		notification := PaymentSentNotification{
 			Transaction: *models.ToNip47Transaction(transaction),
 		}

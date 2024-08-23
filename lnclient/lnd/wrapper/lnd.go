@@ -32,6 +32,7 @@ type LNDoptions struct {
 type LNDWrapper struct {
 	client         lnrpc.LightningClient
 	routerClient   routerrpc.RouterClient
+	stateClient    lnrpc.StateClient
 	IdentityPubkey string
 }
 
@@ -84,6 +85,7 @@ func NewLNDclient(lndOptions LNDoptions) (result *LNDWrapper, err error) {
 	return &LNDWrapper{
 		client:       lnClient,
 		routerClient: routerrpc.NewRouterClient(conn),
+		stateClient:  lnrpc.NewStateClient(conn),
 	}, nil
 }
 
@@ -131,8 +133,28 @@ func (wrapper *LNDWrapper) LookupInvoice(ctx context.Context, req *lnrpc.Payment
 	return wrapper.client.LookupInvoice(ctx, req, options...)
 }
 
+func (wrapper *LNDWrapper) GetDebugInfo(ctx context.Context, req *lnrpc.GetDebugInfoRequest, options ...grpc.CallOption) (*lnrpc.GetDebugInfoResponse, error) {
+	return wrapper.client.GetDebugInfo(ctx, req, options...)
+}
+
 func (wrapper *LNDWrapper) GetInfo(ctx context.Context, req *lnrpc.GetInfoRequest, options ...grpc.CallOption) (*lnrpc.GetInfoResponse, error) {
 	return wrapper.client.GetInfo(ctx, req, options...)
+}
+
+func (wrapper *LNDWrapper) GetNetworkInfo(ctx context.Context, req *lnrpc.NetworkInfoRequest, options ...grpc.CallOption) (*lnrpc.NetworkInfo, error) {
+	return wrapper.client.GetNetworkInfo(ctx, req, options...)
+}
+
+func (wrapper *LNDWrapper) DescribeGraph(ctx context.Context, req *lnrpc.ChannelGraphRequest, options ...grpc.CallOption) (*lnrpc.ChannelGraph, error) {
+	return wrapper.client.DescribeGraph(ctx, req, options...)
+}
+
+func (wrapper *LNDWrapper) GetState(ctx context.Context, req *lnrpc.GetStateRequest, options ...grpc.CallOption) (*lnrpc.GetStateResponse, error) {
+	return wrapper.stateClient.GetState(ctx, req, options...)
+}
+
+func (wrapper *LNDWrapper) GetNodeInfo(ctx context.Context, req *lnrpc.NodeInfoRequest, options ...grpc.CallOption) (*lnrpc.NodeInfo, error) {
+	return wrapper.client.GetNodeInfo(ctx, req, options...)
 }
 
 func (wrapper *LNDWrapper) DecodeBolt11(ctx context.Context, bolt11 string, options ...grpc.CallOption) (*lnrpc.PayReq, error) {
@@ -175,6 +197,10 @@ func (wrapper *LNDWrapper) CloseChannel(ctx context.Context, req *lnrpc.CloseCha
 
 func (wrapper *LNDWrapper) WalletBalance(ctx context.Context, req *lnrpc.WalletBalanceRequest, options ...grpc.CallOption) (*lnrpc.WalletBalanceResponse, error) {
 	return wrapper.client.WalletBalance(ctx, req, options...)
+}
+
+func (wrapper *LNDWrapper) SendCoins(ctx context.Context, req *lnrpc.SendCoinsRequest, options ...grpc.CallOption) (*lnrpc.SendCoinsResponse, error) {
+	return wrapper.client.SendCoins(ctx, req, options...)
 }
 
 func (wrapper *LNDWrapper) NewAddress(ctx context.Context, req *lnrpc.NewAddressRequest, options ...grpc.CallOption) (*lnrpc.NewAddressResponse, error) {

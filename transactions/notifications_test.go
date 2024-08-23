@@ -30,10 +30,10 @@ func TestNotifications_ReceivedKnownPayment(t *testing.T) {
 		AmountMsat:     123000,
 	})
 
-	transactionsService := NewTransactionsService(svc.DB)
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
 	transactionsService.ConsumeEvent(ctx, &events.Event{
-		Event:      "nwc_payment_received",
+		Event:      "nwc_lnclient_payment_received",
 		Properties: tests.MockLNClientTransaction,
 	}, map[string]interface{}{})
 
@@ -56,10 +56,10 @@ func TestNotifications_ReceivedUnknownPayment(t *testing.T) {
 	svc, err := tests.CreateTestService()
 	assert.NoError(t, err)
 
-	transactionsService := NewTransactionsService(svc.DB)
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
 	transactionsService.ConsumeEvent(ctx, &events.Event{
-		Event:      "nwc_payment_received",
+		Event:      "nwc_lnclient_payment_received",
 		Properties: tests.MockLNClientTransaction,
 	}, map[string]interface{}{})
 
@@ -83,7 +83,7 @@ func TestNotifications_ReceivedKeysend(t *testing.T) {
 	svc, err := tests.CreateTestService()
 	assert.NoError(t, err)
 
-	transactionsService := NewTransactionsService(svc.DB)
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
 	metadata := map[string]interface{}{}
 
@@ -108,7 +108,7 @@ func TestNotifications_ReceivedKeysend(t *testing.T) {
 	}
 
 	transactionsService.ConsumeEvent(ctx, &events.Event{
-		Event:      "nwc_payment_received",
+		Event:      "nwc_lnclient_payment_received",
 		Properties: transaction,
 	}, map[string]interface{}{})
 
@@ -158,10 +158,10 @@ func TestNotifications_SentKnownPayment(t *testing.T) {
 		FeeReserveMsat: uint64(10000),
 	})
 
-	transactionsService := NewTransactionsService(svc.DB)
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
 	transactionsService.ConsumeEvent(ctx, &events.Event{
-		Event:      "nwc_payment_sent",
+		Event:      "nwc_lnclient_payment_sent",
 		Properties: tests.MockLNClientTransaction,
 	}, map[string]interface{}{})
 
@@ -185,14 +185,14 @@ func TestNotifications_SentUnknownPayment(t *testing.T) {
 	svc, err := tests.CreateTestService()
 	assert.NoError(t, err)
 
-	transactionsService := NewTransactionsService(svc.DB)
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
 	transactions := []db.Transaction{}
 	result := svc.DB.Find(&transactions)
 	assert.Equal(t, int64(0), result.RowsAffected)
 
 	transactionsService.ConsumeEvent(ctx, &events.Event{
-		Event:      "nwc_payment_sent",
+		Event:      "nwc_lnclient_payment_sent",
 		Properties: tests.MockLNClientTransaction,
 	}, map[string]interface{}{})
 
@@ -218,11 +218,11 @@ func TestNotifications_FailedKnownPayment(t *testing.T) {
 		FeeReserveMsat: uint64(10000),
 	})
 
-	transactionsService := NewTransactionsService(svc.DB)
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
 	transactionsService.ConsumeEvent(ctx, &events.Event{
-		Event: "nwc_payment_failed_async",
-		Properties: &events.PaymentFailedAsyncProperties{
+		Event: "nwc_lnclient_payment_failed",
+		Properties: &lnclient.PaymentFailedEventProperties{
 			Transaction: tests.MockLNClientTransaction,
 			Reason:      "Some failure reason",
 		},

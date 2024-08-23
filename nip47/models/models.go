@@ -21,17 +21,6 @@ const (
 	MULTI_PAY_INVOICE_METHOD = "multi_pay_invoice"
 	MULTI_PAY_KEYSEND_METHOD = "multi_pay_keysend"
 	SIGN_MESSAGE_METHOD      = "sign_message"
-
-	ERROR_INTERNAL             = "INTERNAL"
-	ERROR_NOT_IMPLEMENTED      = "NOT_IMPLEMENTED"
-	ERROR_QUOTA_EXCEEDED       = "QUOTA_EXCEEDED"
-	ERROR_INSUFFICIENT_BALANCE = "INSUFFICIENT_BALANCE"
-	ERROR_UNAUTHORIZED         = "UNAUTHORIZED"
-	ERROR_EXPIRED              = "EXPIRED"
-	ERROR_RESTRICTED           = "RESTRICTED"
-	ERROR_BAD_REQUEST          = "BAD_REQUEST"
-	ERROR_NOT_FOUND            = "NOT_FOUND"
-	OTHER                      = "OTHER"
 )
 
 type Transaction struct {

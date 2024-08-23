@@ -669,7 +669,7 @@ func (gs *GreenlightService) GetNodeStatus(ctx context.Context) (nodeStatus *lnc
 	return nil, nil
 }
 
-func (gs *GreenlightService) GetNetworkGraph(nodeIds []string) (lnclient.NetworkGraphResponse, error) {
+func (gs *GreenlightService) GetNetworkGraph(ctx context.Context, nodeIds []string) (lnclient.NetworkGraphResponse, error) {
 	return nil, nil
 }
 

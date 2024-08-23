@@ -44,7 +44,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "src/components/ui/tooltip";
-import { useToast } from "src/components/ui/use-toast";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 
 import { useInfo } from "src/hooks/useInfo";
@@ -58,7 +57,6 @@ export default function AppLayout() {
   const { data: albyMe } = useAlbyMe();
 
   const { data: info, mutate: refetchInfo } = useInfo();
-  const { toast } = useToast();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -71,9 +69,14 @@ export default function AppLayout() {
   const logout = React.useCallback(async () => {
     deleteAuthToken();
     await refetchInfo();
-    navigate("/", { replace: true });
-    toast({ title: "You are now logged out." });
-  }, [navigate, refetchInfo, toast]);
+
+    const isHttpMode = window.location.protocol.startsWith("http");
+    if (isHttpMode) {
+      window.location.href = "/logout";
+    } else {
+      navigate("/", { replace: true });
+    }
+  }, [navigate, refetchInfo]);
 
   const isHttpMode = window.location.protocol.startsWith("http");
 
@@ -226,7 +229,7 @@ export default function AppLayout() {
                       {albyMe?.name || albyMe?.email}
                     </Link>
                   </div>
-                  <DropdownMenu>
+                  <DropdownMenu modal={false}>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon">
                         <EllipsisVertical className="w-4 h-4" />
@@ -272,7 +275,7 @@ export default function AppLayout() {
                     <MainNavSecondary />
                   </div>
                 </SheetContent>
-                <DropdownMenu>
+                <DropdownMenu modal={false}>
                   <DropdownMenuTrigger asChild>
                     <Link
                       to="#"

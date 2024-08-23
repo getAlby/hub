@@ -172,7 +172,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 	switch {
 	case len(networkGraphMatch) == 2:
 		nodeIds := networkGraphMatch[1]
-		networkGraphResponse, err := app.api.GetNetworkGraph(strings.Split(nodeIds, ","))
+		networkGraphResponse, err := app.api.GetNetworkGraph(ctx, strings.Split(nodeIds, ","))
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
@@ -720,7 +720,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 
 		saveFilePath, err := runtime.SaveFileDialog(ctx, runtime.SaveDialogOptions{
 			Title:           "Save Backup File",
-			DefaultFilename: "nwc.bkp",
+			DefaultFilename: "albyhub.bkp",
 		})
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
@@ -768,7 +768,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 
 		backupFilePath, err := runtime.OpenFileDialog(ctx, runtime.OpenDialogOptions{
 			Title:           "Select Backup File",
-			DefaultFilename: "nwc.bkp",
+			DefaultFilename: "albyhub.bkp",
 		})
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{

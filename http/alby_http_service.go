@@ -1,6 +1,7 @@
 package http
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -64,7 +65,7 @@ func (albyHttpSvc *AlbyHttpService) unlinkHandler(c echo.Context) error {
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to request wrapped invoice: %s", err.Error()),
+			Message: fmt.Sprintf("Failed to unlink: %s", err.Error()),
 		})
 	}
 
@@ -91,6 +92,11 @@ func (albyHttpSvc *AlbyHttpService) albyCallbackHandler(c echo.Context) error {
 	redirectUrl := albyHttpSvc.appConfig.FrontendUrl
 	if redirectUrl == "" {
 		redirectUrl = albyHttpSvc.appConfig.BaseUrl
+	}
+
+	if redirectUrl == "" {
+		// OAuth using a custom client requires a base URL set for the callback
+		return errors.New("no BASE_URL set")
 	}
 
 	return c.Redirect(http.StatusFound, redirectUrl)

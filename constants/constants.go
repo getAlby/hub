@@ -35,3 +35,17 @@ const (
 // each transaction would have to have a maximum size of 10240
 // accounting for encryption and other metadata in the response, this is set to 2048 characters
 const INVOICE_METADATA_MAX_LENGTH = 2048
+
+// errors used by NIP-47 and the transaction service
+const (
+	ERROR_INTERNAL             = "INTERNAL"
+	ERROR_NOT_IMPLEMENTED      = "NOT_IMPLEMENTED"
+	ERROR_QUOTA_EXCEEDED       = "QUOTA_EXCEEDED"
+	ERROR_INSUFFICIENT_BALANCE = "INSUFFICIENT_BALANCE"
+	ERROR_UNAUTHORIZED         = "UNAUTHORIZED"
+	ERROR_EXPIRED              = "EXPIRED"
+	ERROR_RESTRICTED           = "RESTRICTED"
+	ERROR_BAD_REQUEST          = "BAD_REQUEST"
+	ERROR_NOT_FOUND            = "NOT_FOUND"
+	ERROR_OTHER                = "OTHER"
+)
