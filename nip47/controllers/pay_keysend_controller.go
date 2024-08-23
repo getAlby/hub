@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/getAlby/hub/db"
-	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/nip47/models"
@@ -43,14 +42,6 @@ func (controller *nip47Controller) payKeysend(ctx context.Context, payKeysendPar
 			"appId":            app.ID,
 			"recipientPubkey":  payKeysendParams.Pubkey,
 		}).Infof("Failed to send keysend payment: %v", err)
-		controller.eventPublisher.Publish(&events.Event{
-			Event: "nwc_payment_failed",
-			Properties: map[string]interface{}{
-				"error":   err.Error(),
-				"keysend": true,
-				"amount":  payKeysendParams.Amount / 1000,
-			},
-		})
 		publishResponse(&models.Response{
 			ResultType: nip47Request.Method,
 			Error:      mapNip47Error(err),
