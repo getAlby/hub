@@ -139,6 +139,7 @@ type CreateAppResponse struct {
 	PairingUri    string `json:"pairingUri"`
 	PairingSecret string `json:"pairingSecretKey"`
 	Pubkey        string `json:"pairingPublicKey"`
+	Id            uint   `json:"id"`
 	Name          string `json:"name"`
 	ReturnTo      string `json:"returnTo"`
 }

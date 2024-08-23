@@ -167,6 +167,7 @@ export interface CreateAppRequest {
 }
 
 export interface CreateAppResponse {
+  id: number;
   name: string;
   pairingUri: string;
   pairingPublicKey: string;

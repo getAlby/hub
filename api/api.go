@@ -84,6 +84,7 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 	relayUrl := api.cfg.GetRelayUrl()
 
 	responseBody := &CreateAppResponse{}
+	responseBody.Id = app.ID
 	responseBody.Name = createAppRequest.Name
 	responseBody.Pubkey = app.NostrPubkey
 	responseBody.PairingSecret = pairingSecretKey
