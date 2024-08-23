@@ -1,11 +1,14 @@
 import React from "react";
+import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
 
 import { RedeemOnchainFundsResponse } from "src/types";
 import { request } from "src/utils/request";
 
+// TODO: move this to a different screen instead
 export function useRedeemOnchainFunds() {
   const { mutate: reloadBalances } = useBalances();
+  const { toast } = useToast();
   const [isLoading, setLoading] = React.useState(false);
 
   const redeemFunds = React.useCallback(async () => {
@@ -15,6 +18,14 @@ export function useRedeemOnchainFunds() {
       "Please enter an onchain bitcoin address (bc1...) to withdraw your savings balance to another bitcoin wallet (e.g. a cold storage wallet). Make sure you own the wallet that generated this address."
     );
     if (!toAddress) {
+      setLoading(false);
+      return;
+    }
+
+    const confirmAddress = prompt(
+      "Please confirm an onchain bitcoin address. Make sure you own the wallet that generated this address!"
+    );
+    if (toAddress !== confirmAddress) {
       setLoading(false);
       return;
     }
@@ -45,13 +56,17 @@ export function useRedeemOnchainFunds() {
       }
       prompt("Funds redeemed. Copy TX to view in mempool", response.txId);
     } catch (error) {
-      alert("Failed to request a new address: " + error);
+      toast({
+        variant: "destructive",
+        title: "Failed to request a new address",
+        description: "" + error,
+      });
     } finally {
       setLoading(false);
     }
 
     await reloadBalances();
-  }, [reloadBalances]);
+  }, [reloadBalances, toast]);
 
   return React.useMemo(
     () => ({ redeemFunds, isLoading }),

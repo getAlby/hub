@@ -175,6 +175,7 @@ export interface CreateAppResponse {
 }
 
 export type UpdateAppRequest = {
+  name: string;
   maxAmount: number;
   budgetRenewal: string;
   expiresAt: string | undefined;

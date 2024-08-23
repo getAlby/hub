@@ -35,7 +35,7 @@ func (controller *nip47Controller) HandleListTransactionsEvent(ctx context.Conte
 	logger.Logger.WithFields(logrus.Fields{
 		"params":           listParams,
 		"request_event_id": requestEventId,
-	}).Info("Fetching transactions")
+	}).Debug("Fetching transactions")
 
 	limit := listParams.Limit
 	maxLimit := uint64(50)

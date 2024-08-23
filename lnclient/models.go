@@ -74,7 +74,7 @@ type LNClient interface {
 	GetLogOutput(ctx context.Context, maxLen int) ([]byte, error)
 	SignMessage(ctx context.Context, message string) (string, error)
 	GetStorageDir() (string, error)
-	GetNetworkGraph(nodeIds []string) (NetworkGraphResponse, error)
+	GetNetworkGraph(ctx context.Context, nodeIds []string) (NetworkGraphResponse, error)
 	UpdateLastWalletSyncRequest()
 	GetSupportedNIP47Methods() []string
 	GetSupportedNIP47NotificationTypes() []string

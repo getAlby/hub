@@ -111,6 +111,12 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 }
 
 func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) error {
+	name := updateAppRequest.Name
+
+	if name == "" {
+		return fmt.Errorf("won't update an app to have no name")
+	}
+
 	maxAmount := updateAppRequest.MaxAmountSat
 	budgetRenewal := updateAppRequest.BudgetRenewal
 
@@ -125,6 +131,14 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 	}
 
 	err = api.db.Transaction(func(tx *gorm.DB) error {
+		// Update app name if it is not the same
+		if name != userApp.Name {
+			err := tx.Model(&db.App{}).Where("id", userApp.ID).Update("name", name).Error
+			if err != nil {
+				return err
+			}
+		}
+
 		// Update existing permissions with new budget and expiry
 		err := tx.Model(&db.AppPermission{}).Where("app_id", userApp.ID).Updates(map[string]interface{}{
 			"ExpiresAt":     expiresAt,
@@ -757,11 +771,11 @@ func (api *api) SendSpontaneousPaymentProbes(ctx context.Context, sendSpontaneou
 	return &SendSpontaneousPaymentProbesResponse{Error: errMessage}, nil
 }
 
-func (api *api) GetNetworkGraph(nodeIds []string) (NetworkGraphResponse, error) {
+func (api *api) GetNetworkGraph(ctx context.Context, nodeIds []string) (NetworkGraphResponse, error) {
 	if api.svc.GetLNClient() == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	return api.svc.GetLNClient().GetNetworkGraph(nodeIds)
+	return api.svc.GetLNClient().GetNetworkGraph(ctx, nodeIds)
 }
 
 func (api *api) SyncWallet() error {

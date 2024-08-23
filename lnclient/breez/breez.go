@@ -29,9 +29,12 @@ type BreezListener struct {
 }
 
 func (listener BreezListener) Log(l breez_sdk.LogEntry) {
-	if l.Level != "TRACE" && l.Level != "DEBUG" {
-		logger.Logger.WithField("level", l.Level).Print(l.Line)
+	logLevel := logrus.InfoLevel
+	if l.Level == "TRACE" || l.Level == "DEBUG" || strings.Contains(l.Line, "connection to node lost") || strings.Contains(l.Line, "Restore channel") {
+		logLevel = logrus.DebugLevel
 	}
+
+	logger.Logger.WithField("level", l.Level).Log(logLevel, l.Line)
 }
 
 func (BreezListener) OnEvent(e breez_sdk.BreezEvent) {
@@ -62,16 +65,12 @@ func NewBreezService(mnemonic, apiKey, inviteCode, workDir string) (result lncli
 	config := breez_sdk.DefaultConfig(breez_sdk.EnvironmentTypeProduction, apiKey, nodeConfig)
 	config.WorkingDir = workDir
 	breez_sdk.SetLogStream(listener)
-	svc, err := breez_sdk.Connect(config, seed, listener)
+	svc, err := breez_sdk.Connect(breez_sdk.ConnectRequest{
+		Config: config,
+		Seed:   seed,
+	}, listener)
 	if err != nil {
 		return nil, err
-	}
-	healthCheck, err := svc.ServiceHealthCheck()
-	if err != nil {
-		return nil, err
-	}
-	if err == nil {
-		logger.Logger.WithField("status", healthCheck.Status).Info("Current service status")
 	}
 
 	nodeInfo, err := svc.NodeInfo()
@@ -468,7 +467,7 @@ func (bs *BreezService) GetStorageDir() (string, error) {
 	return "", nil
 }
 
-func (bs *BreezService) GetNetworkGraph(nodeIds []string) (lnclient.NetworkGraphResponse, error) {
+func (bs *BreezService) GetNetworkGraph(ctx context.Context, nodeIds []string) (lnclient.NetworkGraphResponse, error) {
 	return nil, nil
 }
 

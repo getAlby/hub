@@ -56,24 +56,22 @@ import {
 import { useAlbyBalance } from "src/hooks/useAlbyBalance.ts";
 import { useBalances } from "src/hooks/useBalances.ts";
 import { useChannels } from "src/hooks/useChannels";
-import { useInfo } from "src/hooks/useInfo";
 import { useIsDesktop } from "src/hooks/useMediaQuery.ts";
 import { useNodeConnectionInfo } from "src/hooks/useNodeConnectionInfo.ts";
 import { useRedeemOnchainFunds } from "src/hooks/useRedeemOnchainFunds.ts";
 import { useSyncWallet } from "src/hooks/useSyncWallet.ts";
 import { copyToClipboard } from "src/lib/clipboard.ts";
 import { cn } from "src/lib/utils.ts";
-import { Channel, Node, UpdateChannelRequest } from "src/types";
+import { Channel, Node } from "src/types";
 import { request } from "src/utils/request";
 
 export default function Channels() {
   useSyncWallet();
-  const { data: channels, mutate: reloadChannels } = useChannels();
+  const { data: channels } = useChannels();
   const { data: nodeConnectionInfo } = useNodeConnectionInfo();
   const { data: balances } = useBalances();
   const { data: albyBalance, mutate: reloadAlbyBalance } = useAlbyBalance();
   const [nodes, setNodes] = React.useState<Node[]>([]);
-  const { mutate: reloadInfo } = useInfo();
 
   const redeemOnchainFunds = useRedeemOnchainFunds();
   const { toast } = useToast();
@@ -107,75 +105,6 @@ export default function Channels() {
   React.useEffect(() => {
     loadNodeStats();
   }, [loadNodeStats]);
-
-  async function editChannel(channel: Channel) {
-    try {
-      const forwardingFeeBaseSats = prompt(
-        "Enter base forwarding fee in sats",
-        Math.floor(channel.forwardingFeeBaseMsat / 1000).toString()
-      );
-
-      if (!forwardingFeeBaseSats) {
-        return;
-      }
-
-      const forwardingFeeBaseMsat = +forwardingFeeBaseSats * 1000;
-
-      console.info(
-        `🎬 Updating channel ${channel.id} with ${channel.remotePubkey}`
-      );
-
-      await request(
-        `/api/peers/${channel.remotePubkey}/channels/${channel.id}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            forwardingFeeBaseMsat: forwardingFeeBaseMsat,
-          } as UpdateChannelRequest),
-        }
-      );
-      await reloadChannels();
-      toast({ title: "Sucessfully updated channel" });
-    } catch (error) {
-      console.error(error);
-      toast({
-        variant: "destructive",
-        description: "Something went wrong: " + error,
-      });
-    }
-  }
-
-  async function resetRouter() {
-    try {
-      const key = prompt(
-        "Enter key to reset (choose one of ALL, LatestRgsSyncTimestamp, Scorer, NetworkGraph). After resetting, you'll need to re-enter your unlock password.",
-        "ALL"
-      );
-      if (!key) {
-        console.error("Cancelled reset");
-        return;
-      }
-
-      await request("/api/reset-router", {
-        method: "POST",
-        body: JSON.stringify({ key }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      await reloadInfo();
-      toast({ description: "🎉 Router reset" });
-    } catch (error) {
-      console.error(error);
-      toast({
-        variant: "destructive",
-        description: "Something went wrong: " + error,
-      });
-    }
-  }
 
   const showHostedBalance =
     albyBalance && albyBalance.sats > ALBY_HIDE_HOSTED_BALANCE_LIMIT;
@@ -249,12 +178,6 @@ export default function Channels() {
                     <Link className="w-full" to="/wallet/sign-message">
                       Sign Message
                     </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className="w-full cursor-pointer"
-                    onClick={resetRouter}
-                  >
-                    Clear Routing Data
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
               </DropdownMenuContent>
@@ -530,17 +453,9 @@ export default function Channels() {
       )}
 
       {isDesktop ? (
-        <ChannelsTable
-          channels={channels}
-          nodes={nodes}
-          editChannel={editChannel}
-        />
+        <ChannelsTable channels={channels} nodes={nodes} />
       ) : (
-        <ChannelsCards
-          channels={channels}
-          nodes={nodes}
-          editChannel={editChannel}
-        />
+        <ChannelsCards channels={channels} nodes={nodes} />
       )}
     </>
   );
