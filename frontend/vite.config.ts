@@ -52,6 +52,10 @@ export default defineConfig(({ command }) => ({
         target: "http://localhost:8080",
         secure: false,
       },
+      "/logout": {
+        target: "http://localhost:8080",
+        secure: false,
+      },
     },
   },
   resolve: {

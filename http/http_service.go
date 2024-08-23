@@ -97,6 +97,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.POST("/api/unlock", httpSvc.unlockHandler, unlockRateLimiter)
 	e.PATCH("/api/unlock-password", httpSvc.changeUnlockPasswordHandler, unlockRateLimiter)
 	e.POST("/api/backup", httpSvc.createBackupHandler, unlockRateLimiter)
+	e.GET("/logout", httpSvc.logoutHandler, unlockRateLimiter)
 
 	frontend.RegisterHandlers(e)
 
@@ -413,9 +414,11 @@ func (httpSvc *HttpService) nodeStatusHandler(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) nodeNetworkGraphHandler(c echo.Context) error {
+	ctx := c.Request().Context()
+
 	nodeIds := strings.Split(c.QueryParam("nodeIds"), ",")
 
-	info, err := httpSvc.api.GetNetworkGraph(nodeIds)
+	info, err := httpSvc.api.GetNetworkGraph(ctx, nodeIds)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
@@ -668,15 +671,15 @@ func (httpSvc *HttpService) newInstantChannelInvoiceHandler(c echo.Context) erro
 		})
 	}
 
-	newWrappedInvoiceResponse, err := httpSvc.api.RequestLSPOrder(ctx, &newWrappedInvoiceRequest)
+	newLSPOrderResponse, err := httpSvc.api.RequestLSPOrder(ctx, &newWrappedInvoiceRequest)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to request wrapped invoice: %s", err.Error()),
+			Message: fmt.Sprintf("Failed to request new channel order from LSP: %s", err.Error()),
 		})
 	}
 
-	return c.JSON(http.StatusOK, newWrappedInvoiceResponse)
+	return c.JSON(http.StatusOK, newLSPOrderResponse)
 }
 
 func (httpSvc *HttpService) onchainAddressHandler(c echo.Context) error {
@@ -934,6 +937,18 @@ func (httpSvc *HttpService) getLogOutputHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, getLogResponse)
+}
+
+func (httpSvc *HttpService) logoutHandler(c echo.Context) error {
+	redirectUrl := httpSvc.cfg.GetEnv().FrontendUrl
+	if redirectUrl == "" {
+		redirectUrl = httpSvc.cfg.GetEnv().BaseUrl
+	}
+	if redirectUrl == "" {
+		redirectUrl = "/"
+	}
+
+	return c.Redirect(http.StatusFound, redirectUrl)
 }
 
 func (httpSvc *HttpService) createBackupHandler(c echo.Context) error {

@@ -167,6 +167,7 @@ export interface CreateAppRequest {
 }
 
 export interface CreateAppResponse {
+  id: number;
   name: string;
   pairingUri: string;
   pairingPublicKey: string;
@@ -175,6 +176,7 @@ export interface CreateAppResponse {
 }
 
 export type UpdateAppRequest = {
+  name: string;
   maxAmount: number;
   budgetRenewal: string;
   expiresAt: string | undefined;

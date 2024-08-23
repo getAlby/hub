@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 
+	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/nip47/models"
 	"github.com/sirupsen/logrus"
@@ -17,7 +18,7 @@ func decodeRequest(request *models.Request, methodParams interface{}) *models.Re
 		return &models.Response{
 			ResultType: request.Method,
 			Error: &models.Error{
-				Code:    models.ERROR_BAD_REQUEST,
+				Code:    constants.ERROR_BAD_REQUEST,
 				Message: err.Error(),
 			}}
 	}

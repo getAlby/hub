@@ -82,6 +82,7 @@ type Transaction struct {
 	Metadata        datatypes.JSON
 	SelfPayment     bool
 	Boostagram      datatypes.JSON
+	FailureReason   string
 }
 
 type DBService interface {

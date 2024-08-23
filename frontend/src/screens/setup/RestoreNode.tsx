@@ -3,6 +3,17 @@ import React, { ChangeEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Loading from "src/components/Loading";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "src/components/ui/alert-dialog";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
@@ -19,6 +30,7 @@ export function RestoreNode() {
   const [unlockPassword, setUnlockPassword] = useState("");
   const [file, setFile] = useState<File | null>(null);
 
+  const [showAlert, setShowAlert] = useState(false);
   const [loading, setLoading] = useState(false);
   const [restored, setRestored] = useState(false);
   const { data: info } = useInfo(restored);
@@ -50,13 +62,12 @@ export function RestoreNode() {
     );
   }
 
-  const onSubmit = async (e: React.FormEvent) => {
-    alert(
-      "As part of the node restore process your Alby Hub will be shut down. If you're running in the cloud, your Alby Hub will restart automatically. Otherwise, please manually restart your Alby Hub to finish the restore process."
-    );
-
+  const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setShowAlert(true);
+  };
 
+  const restoreNode = async () => {
     try {
       setLoading(true);
 
@@ -83,6 +94,7 @@ export function RestoreNode() {
     } catch (error) {
       handleRequestError(toast, "Failed to restore backup", error);
     } finally {
+      setShowAlert(false);
       setLoading(false);
     }
   };
@@ -101,8 +113,9 @@ export function RestoreNode() {
         className="flex flex-col gap-5 mx-auto max-w-2xl text-sm"
       >
         <TwoColumnLayoutHeader
+          // TODO: Show different message in wails mode
           title="Import Wallet with Backup File"
-          description="Upload you encrypted wallet backup file."
+          description="Upload your encrypted wallet backup file."
         />
         <div className="grid gap-2">
           <Label htmlFor="password">Unlock Password</Label>
@@ -128,7 +141,39 @@ export function RestoreNode() {
             />
           </div>
         )}
-        <LoadingButton loading={loading}>Import Wallet</LoadingButton>
+        <AlertDialog open={showAlert}>
+          <AlertDialogTrigger asChild>
+            <LoadingButton type="submit" loading={loading}>
+              Import Wallet
+            </LoadingButton>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Restore Node from Backup</AlertDialogTitle>
+              <AlertDialogDescription>
+                <div>
+                  <p>
+                    As part of the node restore process your Alby Hub will be
+                    shut down.
+                  </p>
+                  <p className="mt-4">
+                    If you're running in the cloud, your Alby Hub will restart
+                    automatically. Otherwise, please manually restart your Alby
+                    Hub to finish the restore process.
+                  </p>
+                </div>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setShowAlert(false)}>
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction onClick={restoreNode}>
+                Continue
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </form>
     </>
   );

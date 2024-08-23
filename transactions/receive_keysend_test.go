@@ -19,7 +19,7 @@ func TestReceiveKeysendWithCustomKey(t *testing.T) {
 	svc, err := tests.CreateTestService()
 	assert.NoError(t, err)
 
-	transactionsService := NewTransactionsService(svc.DB)
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
 
@@ -48,7 +48,7 @@ func TestReceiveKeysendWithCustomKey(t *testing.T) {
 	}
 
 	event := events.Event{
-		Event:      "nwc_payment_received",
+		Event:      "nwc_lnclient_payment_received",
 		Properties: &tx,
 	}
 	transactionsService.ConsumeEvent(ctx, &event, map[string]interface{}{})
@@ -66,13 +66,13 @@ func TestReceiveKeysend(t *testing.T) {
 	svc, err := tests.CreateTestService()
 	assert.NoError(t, err)
 
-	transactionsService := NewTransactionsService(svc.DB)
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 	_, _, err = tests.CreateApp(svc)
 	assert.NoError(t, err)
 
 	tx := tests.MockLNClientTransaction
 	event := events.Event{
-		Event:      "nwc_payment_received",
+		Event:      "nwc_lnclient_payment_received",
 		Properties: tx,
 	}
 	transactionsService.ConsumeEvent(ctx, &event, map[string]interface{}{})

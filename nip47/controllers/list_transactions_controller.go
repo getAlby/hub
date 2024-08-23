@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 
+	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/nip47/models"
 	"github.com/nbd-wtf/go-nostr"
@@ -34,7 +35,7 @@ func (controller *nip47Controller) HandleListTransactionsEvent(ctx context.Conte
 	logger.Logger.WithFields(logrus.Fields{
 		"params":           listParams,
 		"request_event_id": requestEventId,
-	}).Info("Fetching transactions")
+	}).Debug("Fetching transactions")
 
 	limit := listParams.Limit
 	maxLimit := uint64(50)
@@ -57,7 +58,7 @@ func (controller *nip47Controller) HandleListTransactionsEvent(ctx context.Conte
 		publishResponse(&models.Response{
 			ResultType: nip47Request.Method,
 			Error: &models.Error{
-				Code:    models.ERROR_INTERNAL,
+				Code:    constants.ERROR_INTERNAL,
 				Message: err.Error(),
 			},
 		}, nostr.Tags{})

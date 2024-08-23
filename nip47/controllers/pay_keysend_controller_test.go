@@ -21,7 +21,7 @@ const nip47KeysendJson = `
 	"method": "pay_keysend",
 	"params": {
 		"amount": 123000,
-		"pubkey": "123pubkey",
+		"pubkey": "123pubkey2",
 		"tlv_records": [{
 			"type": 5482373484,
 			"value": "fajsn341414fq"
@@ -35,7 +35,7 @@ const nip47KeysendJsonWithPreimage = `
 	"method": "pay_keysend",
 	"params": {
 		"amount": 123000,
-		"pubkey": "123pubkey",
+		"pubkey": "123pubkey2",
 		"preimage": "018465013e2337234a7e5530a21c4a8cf70d84231f4a8ff0b1e2cce3cb2bd03b",
 		"tlv_records": [{
 			"type": 5482373484,
@@ -78,7 +78,7 @@ func TestHandlePayKeysendEvent(t *testing.T) {
 	}
 
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
-	transactionsSvc := transactions.NewTransactionsService(svc.DB)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
 	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
 		HandlePayKeysendEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse, nostr.Tags{})
 
@@ -119,7 +119,7 @@ func TestHandlePayKeysendEvent_WithPreimage(t *testing.T) {
 	}
 
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
-	transactionsSvc := transactions.NewTransactionsService(svc.DB)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
 	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
 		HandlePayKeysendEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse, nostr.Tags{})
 

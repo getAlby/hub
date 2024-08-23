@@ -4,8 +4,10 @@ import {
   MoreHorizontal,
   Trash2,
 } from "lucide-react";
+import React from "react";
 import { CloseChannelDialogContent } from "src/components/CloseChannelDialogContent";
 import ExternalLink from "src/components/ExternalLink";
+import { RoutingFeeDialogContent } from "src/components/RoutingFeeDialogContent";
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -22,17 +24,23 @@ import { Channel } from "src/types";
 type ChannelDropdownMenuProps = {
   alias: string;
   channel: Channel;
-  editChannel(channel: Channel): void;
 };
 
 export function ChannelDropdownMenu({
   alias,
   channel,
-  editChannel,
 }: ChannelDropdownMenuProps) {
+  const [dialog, setDialog] = React.useState<"closeChannel" | "routingFee">();
+
   return (
-    <AlertDialog>
-      <DropdownMenu>
+    <AlertDialog
+      onOpenChange={() => {
+        if (!open) {
+          setDialog(undefined);
+        }
+      }}
+    >
+      <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
           <Button size="icon" variant="ghost">
             <MoreHorizontal className="h-4 w-4" />
@@ -58,23 +66,31 @@ export function ChannelDropdownMenu({
             </ExternalLink>
           </DropdownMenuItem>
           {channel.public && (
-            <DropdownMenuItem
-              className="flex flex-row items-center gap-2 cursor-pointer"
-              onClick={() => editChannel(channel)}
-            >
-              <HandCoins className="h-4 w-4" />
-              Set Routing Fee
-            </DropdownMenuItem>
+            <AlertDialogTrigger asChild>
+              <DropdownMenuItem
+                className="flex flex-row items-center gap-2 cursor-pointer"
+                onClick={() => setDialog("routingFee")}
+              >
+                <HandCoins className="h-4 w-4" />
+                Set Routing Fee
+              </DropdownMenuItem>
+            </AlertDialogTrigger>
           )}
           <AlertDialogTrigger asChild>
-            <DropdownMenuItem className="flex flex-row items-center gap-2 cursor-pointer">
+            <DropdownMenuItem
+              className="flex flex-row items-center gap-2 cursor-pointer"
+              onClick={() => setDialog("closeChannel")}
+            >
               <Trash2 className="h-4 w-4 text-destructive" />
               Close Channel
             </DropdownMenuItem>
           </AlertDialogTrigger>
         </DropdownMenuContent>
       </DropdownMenu>
-      <CloseChannelDialogContent alias={alias} channel={channel} />
+      {dialog === "closeChannel" && (
+        <CloseChannelDialogContent alias={alias} channel={channel} />
+      )}
+      {dialog === "routingFee" && <RoutingFeeDialogContent channel={channel} />}
     </AlertDialog>
   );
 }

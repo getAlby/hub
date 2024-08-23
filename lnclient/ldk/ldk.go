@@ -99,7 +99,9 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	ldkConfig.LogDirPath = &logDirPath
 	logLevel, err := strconv.Atoi(cfg.GetEnv().LDKLogLevel)
 	if err == nil {
-		ldkConfig.LogLevel = ldk_node.LogLevel(logLevel)
+		// LogLevelGossip is added due to bug in go bindings which uses an enum that starts at 1 instead of 0
+		// If LogLevelGossip is changed to 0, this addition can be removed
+		ldkConfig.LogLevel = ldk_node.LogLevel(logLevel) + ldk_node.LogLevelGossip
 	}
 	builder := ldk_node.BuilderFromConfig(ldkConfig)
 	builder.SetEntropyBip39Mnemonic(mnemonic, nil)
@@ -108,8 +110,6 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	if cfg.GetEnv().LDKGossipSource != "" {
 		logger.Logger.WithField("gossipSource", cfg.GetEnv().LDKGossipSource).Warn("LDK RGS instance set")
 		builder.SetGossipSourceRgs(cfg.GetEnv().LDKGossipSource)
-	} else {
-		logger.Logger.Warn("No LDK RGS instance set")
 	}
 	builder.SetStorageDirPath(filepath.Join(newpath, "./storage"))
 
@@ -401,9 +401,7 @@ func (ls *LDKService) resetRouterInternal() {
 
 		switch key {
 		case "ALL":
-			command = "delete from ldk_node_data where key = 'latest_rgs_sync_timestamp' or key = 'scorer' or key = 'network_graph';VACUUM;"
-		case "LatestRgsSyncTimestamp":
-			command = "delete from ldk_node_data where key = 'latest_rgs_sync_timestamp';VACUUM;"
+			command = "delete from ldk_node_data where key = 'scorer' or key = 'network_graph';VACUUM;"
 		case "Scorer":
 			command = "delete from ldk_node_data where key = 'scorer';VACUUM;"
 		case "NetworkGraph":
@@ -1165,7 +1163,7 @@ func (ls *LDKService) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, er
 	return ret, nil
 }
 
-func (ls *LDKService) GetNetworkGraph(nodeIds []string) (lnclient.NetworkGraphResponse, error) {
+func (ls *LDKService) GetNetworkGraph(ctx context.Context, nodeIds []string) (lnclient.NetworkGraphResponse, error) {
 	graph := ls.node.NetworkGraph()
 
 	type NodeInfoWithId struct {
@@ -1176,6 +1174,13 @@ func (ls *LDKService) GetNetworkGraph(nodeIds []string) (lnclient.NetworkGraphRe
 	nodes := []NodeInfoWithId{}
 	channels := []*ldk_node.ChannelInfo{}
 	for _, nodeId := range nodeIds {
+		_, err := hex.DecodeString(nodeId)
+		if err != nil {
+			return nil, err
+		}
+		if len(nodeId) != 66 {
+			return nil, errors.New("unexpected node ID length")
+		}
 		graphNode := graph.Node(nodeId)
 		if graphNode != nil {
 			nodes = append(nodes, NodeInfoWithId{
@@ -1309,7 +1314,7 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 		}
 
 		ls.eventPublisher.Publish(&events.Event{
-			Event:      "nwc_payment_received",
+			Event:      "nwc_lnclient_payment_received",
 			Properties: transaction,
 		})
 	case ldk_node.EventPaymentSuccessful:
@@ -1330,7 +1335,7 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 		}
 
 		ls.eventPublisher.Publish(&events.Event{
-			Event:      "nwc_payment_sent",
+			Event:      "nwc_lnclient_payment_sent",
 			Properties: transaction,
 		})
 	case ldk_node.EventPaymentFailed:
@@ -1353,8 +1358,8 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 		reason := ls.getPaymentFailReason(&eventType)
 
 		ls.eventPublisher.Publish(&events.Event{
-			Event: "nwc_payment_failed_async",
-			Properties: &events.PaymentFailedAsyncProperties{
+			Event: "nwc_lnclient_payment_failed",
+			Properties: &lnclient.PaymentFailedEventProperties{
 				Transaction: transaction,
 				Reason:      reason,
 			},

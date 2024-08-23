@@ -172,7 +172,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 	switch {
 	case len(networkGraphMatch) == 2:
 		nodeIds := networkGraphMatch[1]
-		networkGraphResponse, err := app.api.GetNetworkGraph(strings.Split(nodeIds, ","))
+		networkGraphResponse, err := app.api.GetNetworkGraph(ctx, strings.Split(nodeIds, ","))
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}

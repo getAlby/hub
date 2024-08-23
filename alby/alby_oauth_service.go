@@ -292,7 +292,7 @@ func (svc *albyOAuthService) DrainSharedWallet(ctx context.Context, lnClient lnc
 
 	logger.Logger.WithField("amount", amount).WithError(err).Error("Draining Alby shared wallet funds")
 
-	transaction, err := transactions.NewTransactionsService(svc.db).MakeInvoice(ctx, amount, "Send shared wallet funds to Alby Hub", "", 120, nil, lnClient, nil, nil)
+	transaction, err := transactions.NewTransactionsService(svc.db, svc.eventPublisher).MakeInvoice(ctx, amount, "Send shared wallet funds to Alby Hub", "", 120, nil, lnClient, nil, nil)
 	if err != nil {
 		logger.Logger.WithField("amount", amount).WithError(err).Error("Failed to make invoice")
 		return err
@@ -460,11 +460,15 @@ func (svc *albyOAuthService) LinkAccount(ctx context.Context, lnClient lnclient.
 }
 
 func (svc *albyOAuthService) ConsumeEvent(ctx context.Context, event *events.Event, globalProperties map[string]interface{}) {
-	// run non-blocking
-	go svc.consumeEvent(ctx, event, globalProperties)
-}
+	defer func() {
+		// ensure the app cannot panic if firing events to Alby API fails
+		if r := recover(); r != nil {
+			logger.Logger.WithField("event", event).WithField("r", r).Error("Failed to consume event in alby oauth service")
+		}
+	}()
 
-func (svc *albyOAuthService) consumeEvent(ctx context.Context, event *events.Event, globalProperties map[string]interface{}) {
+	// TODO: we should have a whitelist rather than a blacklist, so new events are not automatically sent
+
 	// TODO: rename this config option to be specific to the alby API
 	if !svc.cfg.GetEnv().LogEvents {
 		logger.Logger.WithField("event", event).Debug("Skipped sending to alby events API")
@@ -478,6 +482,11 @@ func (svc *albyOAuthService) consumeEvent(ctx context.Context, event *events.Eve
 		return
 	}
 
+	if strings.HasPrefix(event.Event, "nwc_lnclient_") {
+		// don't consume internal LNClient events
+		return
+	}
+
 	if event.Event == "nwc_payment_received" {
 		type paymentReceivedEventProperties struct {
 			PaymentHash string `json:"payment_hash"`
@@ -486,7 +495,7 @@ func (svc *albyOAuthService) consumeEvent(ctx context.Context, event *events.Eve
 		event = &events.Event{
 			Event: event.Event,
 			Properties: &paymentReceivedEventProperties{
-				PaymentHash: event.Properties.(*lnclient.Transaction).PaymentHash,
+				PaymentHash: event.Properties.(*db.Transaction).PaymentHash,
 			},
 		}
 	}
@@ -501,20 +510,20 @@ func (svc *albyOAuthService) consumeEvent(ctx context.Context, event *events.Eve
 		event = &events.Event{
 			Event: event.Event,
 			Properties: &paymentSentEventProperties{
-				PaymentHash: event.Properties.(*lnclient.Transaction).PaymentHash,
-				Duration:    uint64(*event.Properties.(*lnclient.Transaction).SettledAt - event.Properties.(*lnclient.Transaction).CreatedAt),
+				PaymentHash: event.Properties.(*db.Transaction).PaymentHash,
+				Duration:    uint64(event.Properties.(*db.Transaction).SettledAt.Unix() - event.Properties.(*db.Transaction).CreatedAt.Unix()),
 			},
 		}
 	}
 
-	if event.Event == "nwc_payment_failed_async" {
-		paymentFailedAsyncProperties, ok := event.Properties.(*events.PaymentFailedAsyncProperties)
+	if event.Event == "nwc_payment_failed" {
+		transaction, ok := event.Properties.(*db.Transaction)
 		if !ok {
 			logger.Logger.WithField("event", event).Error("Failed to cast event")
 			return
 		}
 
-		type paymentSentEventProperties struct {
+		type paymentFailedEventProperties struct {
 			PaymentHash string `json:"payment_hash"`
 			Reason      string `json:"reason"`
 		}
@@ -522,9 +531,9 @@ func (svc *albyOAuthService) consumeEvent(ctx context.Context, event *events.Eve
 		// pass a new custom event with less detail
 		event = &events.Event{
 			Event: event.Event,
-			Properties: &paymentSentEventProperties{
-				PaymentHash: paymentFailedAsyncProperties.Transaction.PaymentHash,
-				Reason:      paymentFailedAsyncProperties.Reason,
+			Properties: &paymentFailedEventProperties{
+				PaymentHash: transaction.PaymentHash,
+				Reason:      transaction.FailureReason,
 			},
 		}
 	}
