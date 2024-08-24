@@ -658,20 +658,20 @@ func (api *api) SetNextBackupReminder(backupReminderRequest *BackupReminderReque
 var startMutex sync.Mutex
 
 func (api *api) Start(startRequest *StartRequest) error {
-	defer startMutex.Unlock()
 	if !startMutex.TryLock() {
 		// do not allow to start twice in case this is somehow called twice
 		return errors.New("app is already starting")
 	}
+	defer startMutex.Unlock()
 	return api.svc.StartApp(startRequest.UnlockPassword)
 }
 
 func (api *api) Setup(ctx context.Context, setupRequest *SetupRequest) error {
-	defer startMutex.Unlock()
 	if !startMutex.TryLock() {
 		// do not allow to start twice in case this is somehow called twice
 		return errors.New("app is already starting")
 	}
+	defer startMutex.Unlock()
 	info, err := api.GetInfo(ctx)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to get info")
