@@ -211,6 +211,10 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 		return err
 	}
 
+	// TODO: call a method on the LNClient here to check the LNClient is actually connectable,
+	// (e.g. lnClient.CheckConnection()) Rather than it being a side-effect
+	// in the LNClient init function
+
 	svc.lnClient = lnClient
 	info, err := lnClient.GetInfo(ctx)
 	if err != nil {

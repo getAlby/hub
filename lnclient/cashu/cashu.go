@@ -54,7 +54,7 @@ func NewCashuService(workDir string, mintUrl string) (result lnclient.LNClient, 
 	}
 
 	// try to make an invoice to ensure the mint is running
-	// TODO: remove once LoadWallet is improved
+	// TODO: remove once LoadWallet is improved - see https://github.com/elnosh/gonuts/issues/49
 	_, err = cs.MakeInvoice(context.Background(), 10000, "", "", 0)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to load cashu wallet")
