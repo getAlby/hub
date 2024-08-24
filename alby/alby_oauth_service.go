@@ -467,6 +467,19 @@ func (svc *albyOAuthService) ConsumeEvent(ctx context.Context, event *events.Eve
 		}
 	}()
 
+	accessToken, err := svc.cfg.Get(accessTokenKey, "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("failed to get access token from config")
+		return
+	}
+
+	if accessToken == "" {
+		logger.Logger.WithFields(logrus.Fields{
+			"event": event,
+		}).Debug("user has not authed yet, skipping event")
+		return
+	}
+
 	// TODO: we should have a whitelist rather than a blacklist, so new events are not automatically sent
 
 	// TODO: rename this config option to be specific to the alby API
