@@ -46,6 +46,7 @@ import {
 import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
 
+import { ChannelWaitingForConfirmations } from "src/components/channels/ChannelWaitingForConfirmations";
 import { useChannels } from "src/hooks/useChannels";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
 import { useOnchainAddress } from "src/hooks/useOnchainAddress";
@@ -125,30 +126,11 @@ function ChannelOpening({ fundingTxId }: { fundingTxId: string | undefined }) {
     }
   }, [channel]);
 
-  return (
-    <div className="flex flex-col justify-center gap-2">
-      <Card>
-        <CardHeader>
-          <CardTitle>Your channel is being opened</CardTitle>
-          <CardDescription>
-            Waiting for {channel?.confirmationsRequired ?? "unknown"}{" "}
-            confirmations
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-row gap-2">
-            <Loading />
-            {channel?.confirmations ?? "0"} /{" "}
-            {channel?.confirmationsRequired ?? "unknown"} confirmations
-          </div>
-        </CardContent>
-      </Card>
-      <div className="w-full mt-40 gap-20 flex flex-col items-center justify-center">
-        <p>Feel free to leave this page or browse around Alby Hub!</p>
-        <p>We'll send you an email as soon as your channel is active.</p>
-      </div>
-    </div>
-  );
+  if (!channel) {
+    return <Loading />;
+  }
+
+  return <ChannelWaitingForConfirmations channel={channel} />;
 }
 
 function useEstimatedTransactionFee() {
