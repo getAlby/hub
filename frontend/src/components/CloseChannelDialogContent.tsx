@@ -1,6 +1,7 @@
 import { AlertTriangleIcon, CopyIcon, ExternalLinkIcon } from "lucide-react";
 import React from "react";
 import ExternalLink from "src/components/ExternalLink";
+import { MempoolAlert } from "src/components/MempoolAlert";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
 import { Label } from "src/components/ui/label";
@@ -127,6 +128,9 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
           <AlertDialogHeader>
             <AlertDialogTitle>Select mode of channel closure</AlertDialogTitle>
             <AlertDialogDescription className="text-left">
+              <div className="mb-4">
+                <MempoolAlert />
+              </div>
               {closeType === "force" && (
                 <Alert className="mb-4">
                   <AlertTriangleIcon className="h-4 w-4" />
