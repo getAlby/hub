@@ -18,6 +18,7 @@ import { useInfo } from "src/hooks/useInfo";
 import { AutoChannelRequest, AutoChannelResponse } from "src/types";
 import { request } from "src/utils/request";
 
+import { MempoolAlert } from "src/components/MempoolAlert";
 import {
   ALBY_HIDE_HOSTED_BALANCE_BELOW,
   ALBY_MIN_HOSTED_BALANCE_FOR_FIRST_CHANNEL,
@@ -94,6 +95,7 @@ export function FirstChannel() {
         title="Open Your First Channel"
         description="Open a channel to another lightning network node to join the lightning network"
       />
+      <MempoolAlert />
       {invoice && channelSize && (
         <div className="flex flex-col gap-4 items-center justify-center max-w-md">
           <p className="text-muted-foreground">
