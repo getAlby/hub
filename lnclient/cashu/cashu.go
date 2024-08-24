@@ -31,6 +31,9 @@ func NewCashuService(workDir string, mintUrl string) (result lnclient.LNClient, 
 
 	//create dir if not exists
 	newpath := filepath.Join(workDir)
+	_, err = os.Stat(newpath)
+	isFirstSetup := err != nil && errors.Is(err, os.ErrNotExist)
+
 	err = os.MkdirAll(newpath, os.ModePerm)
 	if err != nil {
 		log.Printf("Failed to create cashu working dir: %v", err)
@@ -48,6 +51,22 @@ func NewCashuService(workDir string, mintUrl string) (result lnclient.LNClient, 
 
 	cs := CashuService{
 		wallet: wallet,
+	}
+
+	// try to make an invoice to ensure the mint is running
+	// TODO: remove once LoadWallet is improved
+	_, err = cs.MakeInvoice(context.Background(), 10000, "", "", 0)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to load cashu wallet")
+		if isFirstSetup {
+			// delete wallet to ensure user gets a fresh start when they try a different mint
+			// otherwise the wallet freezes on next startup
+			fileErr := os.RemoveAll(newpath)
+			if fileErr != nil {
+				logger.Logger.WithError(fileErr).Error("Failed to remove broken wallet directory")
+			}
+		}
+		return nil, err
 	}
 
 	return &cs, nil

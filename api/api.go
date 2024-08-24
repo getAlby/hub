@@ -604,8 +604,7 @@ func (api *api) RequestMempoolApi(endpoint string) (interface{}, error) {
 func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info := InfoResponse{}
 	backendType, _ := api.cfg.Get("LNBackendType", "")
-	unlockPasswordCheck, _ := api.cfg.Get("UnlockPasswordCheck", "")
-	info.SetupCompleted = unlockPasswordCheck != ""
+	info.SetupCompleted = api.cfg.SetupCompleted()
 	info.Running = api.svc.GetLNClient() != nil
 	info.BackendType = backendType
 	info.AlbyAuthUrl = api.albyOAuthSvc.GetAuthUrl()
@@ -659,15 +658,20 @@ func (api *api) SetNextBackupReminder(backupReminderRequest *BackupReminderReque
 var startMutex sync.Mutex
 
 func (api *api) Start(startRequest *StartRequest) error {
+	defer startMutex.Unlock()
 	if !startMutex.TryLock() {
 		// do not allow to start twice in case this is somehow called twice
 		return errors.New("app is already starting")
 	}
-	defer startMutex.Unlock()
 	return api.svc.StartApp(startRequest.UnlockPassword)
 }
 
 func (api *api) Setup(ctx context.Context, setupRequest *SetupRequest) error {
+	defer startMutex.Unlock()
+	if !startMutex.TryLock() {
+		// do not allow to start twice in case this is somehow called twice
+		return errors.New("app is already starting")
+	}
 	info, err := api.GetInfo(ctx)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to get info")
@@ -676,6 +680,10 @@ func (api *api) Setup(ctx context.Context, setupRequest *SetupRequest) error {
 	if info.SetupCompleted {
 		logger.Logger.Error("Cannot re-setup node")
 		return errors.New("setup already completed")
+	}
+
+	if setupRequest.UnlockPassword == "" {
+		return errors.New("no unlock password provided")
 	}
 
 	api.cfg.Setup(setupRequest.UnlockPassword)

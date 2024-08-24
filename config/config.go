@@ -9,6 +9,7 @@ import (
 
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/logger"
+	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -79,6 +80,18 @@ func (cfg *config) init(env *AppConfig) {
 		}
 		cfg.JWTSecret, _ = cfg.Get("JWTSecret", "")
 	}
+}
+
+func (cfg *config) SetupCompleted() bool {
+	// TODO: remove access token check after 2025/01/01
+	// to give time for users to update to 1.6.0+
+	accessToken, _ := cfg.Get("AlbyOAuthAccessToken", "")
+	nodeLastStartTime, _ := cfg.Get("NodeLastStartTime", "")
+	logger.Logger.WithFields(logrus.Fields{
+		"has_access_token":         accessToken != "",
+		"has_node_last_start_time": nodeLastStartTime != "",
+	}).Debug("Checking if setup is completed")
+	return accessToken != "" || nodeLastStartTime != ""
 }
 
 func (cfg *config) GetJWTSecret() string {
