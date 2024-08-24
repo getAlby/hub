@@ -6,9 +6,11 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path"
 
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/logger"
+	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -79,6 +81,22 @@ func (cfg *config) init(env *AppConfig) {
 		}
 		cfg.JWTSecret, _ = cfg.Get("JWTSecret", "")
 	}
+}
+
+func (cfg *config) SetupCompleted() bool {
+	// TODO: remove AlbyUserIdentifier and hasLdkDir checks after 2025/01/01
+	// to give time for users to update to 1.6.0+
+	albyUserIdentifier, _ := cfg.Get("AlbyUserIdentifier", "")
+	nodeLastStartTime, _ := cfg.Get("NodeLastStartTime", "")
+	ldkDir, err := os.Stat(path.Join(cfg.GetEnv().Workdir, "ldk"))
+	hasLdkDir := err == nil && ldkDir != nil && ldkDir.IsDir()
+
+	logger.Logger.WithFields(logrus.Fields{
+		"has_ldk_dir":              hasLdkDir,
+		"has_alby_user_identifier": albyUserIdentifier != "",
+		"has_node_last_start_time": nodeLastStartTime != "",
+	}).Debug("Checking if setup is completed")
+	return albyUserIdentifier != "" || nodeLastStartTime != "" || hasLdkDir
 }
 
 func (cfg *config) GetJWTSecret() string {

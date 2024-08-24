@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"path"
+	"strconv"
 	"time"
 
 	"github.com/nbd-wtf/go-nostr"
@@ -210,6 +211,10 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 		return err
 	}
 
+	// TODO: call a method on the LNClient here to check the LNClient is actually connectable,
+	// (e.g. lnClient.CheckConnection()) Rather than it being a side-effect
+	// in the LNClient init function
+
 	svc.lnClient = lnClient
 	info, err := lnClient.GetInfo(ctx)
 	if err != nil {
@@ -219,6 +224,10 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 		svc.eventPublisher.SetGlobalProperty("node_id", info.Pubkey)
 		svc.eventPublisher.SetGlobalProperty("network", info.Network)
 	}
+
+	// Mark that the node has successfully started
+	// This will ensure the user cannot go through the setup again
+	svc.cfg.SetUpdate("NodeLastStartTime", strconv.FormatInt(time.Now().Unix(), 10), "")
 
 	svc.eventPublisher.Publish(&events.Event{
 		Event: "nwc_node_started",

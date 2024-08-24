@@ -58,4 +58,5 @@ type Config interface {
 	CheckUnlockPassword(password string) bool
 	ChangeUnlockPassword(currentUnlockPassword string, newUnlockPassword string) error
 	Setup(encryptionKey string)
+	SetupCompleted() bool
 }

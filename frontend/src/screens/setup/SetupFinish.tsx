@@ -38,10 +38,11 @@ export function SetupFinish() {
     }
     const timer = setTimeout(() => {
       // SetupRedirect takes care of redirection once info.running is true
-      // if it still didn't redirect after 3 minutes, we show an error
+      // if it still didn't redirect after 30 seconds, we show an error
+      // Typically initial startup should complete in less than 10 seconds.
       setLoading(false);
       setConnectionError(true);
-    }, 180000);
+    }, 30000);
 
     return () => {
       clearTimeout(timer);
