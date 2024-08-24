@@ -138,20 +138,20 @@ export default function WithdrawOnchainFunds() {
         title="Withdraw Savings Balance"
         description="Withdraw your onchain funds to another bitcoin wallet"
       />
-      {balances?.onchain.reserved && (
-        <Alert>
-          <AlertTriangleIcon className="h-4 w-4" />
-          <AlertTitle>Channel Anchor Reserves will be depleted</AlertTitle>
-          <AlertDescription>
-            You have channels open and this withdrawal will use some or all of
-            your anchor reserves to publish the transaction, which may make it
-            harder to close channels without depositing additional onchain funds
-            to your savings balance.
-          </AlertDescription>
-        </Alert>
-      )}
 
       <div className="max-w-lg">
+        {balances?.onchain.reserved && (
+          <Alert className="mb-4">
+            <AlertTriangleIcon className="h-4 w-4" />
+            <AlertTitle>Channel Anchor Reserves will be depleted</AlertTitle>
+            <AlertDescription>
+              You have channels open and this withdrawal will use some or all of
+              your anchor reserves to publish the transaction, which may make it
+              harder to close channels without depositing additional onchain
+              funds to your savings balance.
+            </AlertDescription>
+          </Alert>
+        )}
         <p>
           Your savings balance will be withdrawn to the onchain bitcoin wallet
           address you specify below. Please make sure you are the owner of this
