@@ -11,13 +11,12 @@ import {
   Unplug,
 } from "lucide-react";
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader.tsx";
 import { ChannelsCards } from "src/components/channels/ChannelsCards.tsx";
 import { ChannelsTable } from "src/components/channels/ChannelsTable.tsx";
 import EmptyState from "src/components/EmptyState.tsx";
 import ExternalLink from "src/components/ExternalLink";
-import Loading from "src/components/Loading.tsx";
 import {
   Alert,
   AlertDescription,
@@ -58,7 +57,6 @@ import { useBalances } from "src/hooks/useBalances.ts";
 import { useChannels } from "src/hooks/useChannels";
 import { useIsDesktop } from "src/hooks/useMediaQuery.ts";
 import { useNodeConnectionInfo } from "src/hooks/useNodeConnectionInfo.ts";
-import { useRedeemOnchainFunds } from "src/hooks/useRedeemOnchainFunds.ts";
 import { useSyncWallet } from "src/hooks/useSyncWallet.ts";
 import { copyToClipboard } from "src/lib/clipboard.ts";
 import { cn } from "src/lib/utils.ts";
@@ -71,9 +69,9 @@ export default function Channels() {
   const { data: nodeConnectionInfo } = useNodeConnectionInfo();
   const { data: balances } = useBalances();
   const { data: albyBalance, mutate: reloadAlbyBalance } = useAlbyBalance();
+  const navigate = useNavigate();
   const [nodes, setNodes] = React.useState<Node[]>([]);
 
-  const redeemOnchainFunds = useRedeemOnchainFunds();
   const { toast } = useToast();
   const [drainingAlbySharedFunds, setDrainingAlbySharedFunds] =
     React.useState(false);
@@ -157,12 +155,10 @@ export default function Channels() {
                   </DropdownMenuItem>
                   {(balances?.onchain.spendable || 0) > ONCHAIN_DUST_SATS && (
                     <DropdownMenuItem
-                      onClick={redeemOnchainFunds.redeemFunds}
-                      disabled={redeemOnchainFunds.isLoading}
+                      onClick={() => navigate("/wallet/withdraw")}
                       className="w-full cursor-pointer"
                     >
                       Withdraw Savings Balance
-                      {redeemOnchainFunds.isLoading && <Loading />}
                     </DropdownMenuItem>
                   )}
                 </DropdownMenuGroup>

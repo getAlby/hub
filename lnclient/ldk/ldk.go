@@ -1000,12 +1000,26 @@ func (ls *LDKService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainB
 }
 
 func (ls *LDKService) RedeemOnchainFunds(ctx context.Context, toAddress string) (string, error) {
-	spendableBalance := ls.node.ListBalances().SpendableOnchainBalanceSats
-	// TODO: estimate the transaction fee and subtract that from the spendable balance
-	// to avoid spending any of the reserved anchor channel balance
-	txId, err := ls.node.OnchainPayment().SendToAddress(toAddress, spendableBalance)
+
+	// TODO: LDK will improve SendAllToAddress to preserve anchor funds, then this
+	// code below can be removed.
+	///////////////////////////////////////////////////////////////////////////////////
+	balances := ls.node.ListBalances()
+	if balances.TotalAnchorChannelsReserveSats > 0 {
+		// NOTE: this is not good because it uses anchor reserves for the onchain transaction fee
+		spendableBalance := balances.SpendableOnchainBalanceSats
+		txId, err := ls.node.OnchainPayment().SendToAddress(toAddress, spendableBalance)
+		if err != nil {
+			logger.Logger.WithError(err).Error("SendToAddress failed")
+			return "", err
+		}
+		return txId, nil
+	}
+	///////////////////////////////////////////////////////////////////////////////////
+
+	txId, err := ls.node.OnchainPayment().SendAllToAddress(toAddress)
 	if err != nil {
-		logger.Logger.WithError(err).Error("SendToAddress failed")
+		logger.Logger.WithError(err).Error("SendAllToAddress failed")
 		return "", err
 	}
 	return txId, nil

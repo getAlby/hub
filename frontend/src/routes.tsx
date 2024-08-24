@@ -56,6 +56,7 @@ import Wallet from "src/screens/wallet";
 import Receive from "src/screens/wallet/Receive";
 import Send from "src/screens/wallet/Send";
 import SignMessage from "src/screens/wallet/SignMessage";
+import WithdrawOnchainFunds from "src/screens/wallet/WithdrawOnchainFunds";
 
 const routes = [
   {
@@ -101,6 +102,11 @@ const routes = [
             path: "sign-message",
             element: <SignMessage />,
             handle: { crumb: () => "Sign Message" },
+          },
+          {
+            path: "withdraw",
+            element: <WithdrawOnchainFunds />,
+            handle: { crumb: () => "Withdraw Savings Balance" },
           },
         ],
       },
