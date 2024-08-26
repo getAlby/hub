@@ -12,13 +12,6 @@ import { useChannels } from "src/hooks/useChannels";
 
 import { Invoice, LightningAddress } from "@getalby/lightning-tools";
 
-// email regex: https://emailregex.com/
-// modified to allow _ in subdomains
-const LIGHTNING_ADDRESS_REGEX =
-  /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-_0-9]+\.)+[a-zA-Z]{2,}))$/;
-
-const BOLT11_REGEX = /^(lnbc|lntbs)([0-9a-z]+)$/i;
-
 export default function Send() {
   const { data: balances } = useBalances();
   const { data: channels } = useChannels();
@@ -37,27 +30,24 @@ export default function Send() {
     event.preventDefault();
     try {
       setLoading(true);
-      if (LIGHTNING_ADDRESS_REGEX.test(recipient)) {
-        const lnAddress = new LightningAddress(recipient);
-        await lnAddress.fetch();
-        if (!lnAddress.lnurlpData) {
-          throw new Error("invalid lightning address");
-        }
+
+      const lnAddress = new LightningAddress(recipient);
+      await lnAddress.fetch();
+      if (lnAddress.lnurlpData) {
         navigate(`/wallet/send/lnurl-pay`, {
           state: {
             args: { lnAddress: lnAddress },
           },
         });
-      } else if (BOLT11_REGEX.test(recipient)) {
-        const invoice = new Invoice({ pr: recipient });
-        navigate(`/wallet/send/confirm-payment`, {
-          state: {
-            args: { paymentRequest: invoice },
-          },
-        });
-      } else {
-        throw new Error("invalid recipient");
+        return;
       }
+
+      const invoice = new Invoice({ pr: recipient });
+      navigate(`/wallet/send/confirm-payment`, {
+        state: {
+          args: { paymentRequest: invoice },
+        },
+      });
     } catch (error) {
       toast({
         variant: "destructive",
