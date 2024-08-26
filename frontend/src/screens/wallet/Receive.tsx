@@ -1,8 +1,9 @@
 import confetti from "canvas-confetti";
-import { AlertTriangle, CircleCheck, CopyIcon } from "lucide-react";
+import { AlertTriangle, ArrowDown, CircleCheck, CopyIcon } from "lucide-react";
 import React from "react";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
+import BalanceCard from "src/components/BalanceCard";
 import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
 import {
@@ -21,7 +22,6 @@ import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
-import BalanceCard from "src/components/wallet/BalanceCard";
 import { useBalances } from "src/hooks/useBalances";
 
 import { useInfo } from "src/hooks/useInfo";
@@ -236,10 +236,22 @@ export default function Receive() {
             </form>
           )}
         </div>
-        <BalanceCard
-          balances={balances}
-          hasChannelManagement={!!hasChannelManagement}
-        />
+        {hasChannelManagement && (
+          <BalanceCard
+            balance={
+              balances
+                ? new Intl.NumberFormat(undefined, {}).format(
+                    Math.floor(balances.lightning.totalReceivable / 1000)
+                  )
+                : ""
+            }
+            title="Receiving Capacity"
+            buttonTitle="Increase"
+            buttonLink="/channels/incoming"
+            BalanceCardIcon={ArrowDown}
+            hasChannelManagement
+          />
+        )}
       </div>
     </div>
   );

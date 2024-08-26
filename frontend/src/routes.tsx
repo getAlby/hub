@@ -1,5 +1,6 @@
 import { Navigate } from "react-router-dom";
 import AppLayout from "src/components/layouts/AppLayout";
+import SendLayout from "src/components/layouts/SendLayout";
 import SettingsLayout from "src/components/layouts/SettingsLayout";
 import TwoColumnFullScreenLayout from "src/components/layouts/TwoColumnFullScreenLayout";
 import { DefaultRedirect } from "src/components/redirects/DefaultRedirect";
@@ -55,6 +56,9 @@ import { PresetNodeForm } from "src/screens/setup/node/PresetNodeForm";
 import Wallet from "src/screens/wallet";
 import Receive from "src/screens/wallet/Receive";
 import Send from "src/screens/wallet/Send";
+import ConfirmPayment from "src/screens/wallet/Send/ConfirmPayment";
+import LnurlPay from "src/screens/wallet/Send/LnurlPay";
+import PaymentSuccess from "src/screens/wallet/Send/PaymentSuccess";
 import SignMessage from "src/screens/wallet/SignMessage";
 
 const routes = [
@@ -94,9 +98,32 @@ const routes = [
           },
           {
             path: "send",
-            element: <Send />,
+            element: <SendLayout />,
             handle: { crumb: () => "Send" },
+            children: [
+              {
+                index: true,
+                element: <Send />,
+              },
+              {
+                path: "lnurl-pay",
+                element: <LnurlPay />,
+              },
+              {
+                path: "confirm-payment",
+                element: <ConfirmPayment />,
+              },
+              {
+                path: "success",
+                element: <PaymentSuccess />,
+              },
+            ],
           },
+          // {
+          //   path: "send",
+          //   element: <Send />,
+          //   handle: { crumb: () => "Send" },
+          // },
           {
             path: "sign-message",
             element: <SignMessage />,

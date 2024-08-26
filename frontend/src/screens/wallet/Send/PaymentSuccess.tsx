@@ -1,5 +1,5 @@
 import { CircleCheck, CopyIcon } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -10,16 +10,18 @@ import {
 import { useToast } from "src/components/ui/use-toast";
 import { copyToClipboard } from "src/lib/clipboard";
 
-type PaymentSuccessCardProps = {
-  preimage: string;
-  onReset: () => void;
-};
-
-function PaymentSuccessCard({ preimage, onReset }: PaymentSuccessCardProps) {
+export default function PaymentSuccess() {
+  const { state } = useLocation();
+  const navigate = useNavigate();
   const { toast } = useToast();
 
+  if (!state.preimage) {
+    navigate("/wallet/send");
+    return null;
+  }
+
   const copy = () => {
-    copyToClipboard(preimage);
+    copyToClipboard(state.preimage as string);
     toast({ title: "Copied to clipboard." });
   };
 
@@ -37,9 +39,9 @@ function PaymentSuccessCard({ preimage, onReset }: PaymentSuccessCardProps) {
           </Button>
         </CardContent>
       </Card>
-      <Button className="mt-4 w-full" onClick={onReset}>
-        Make Another Payment
-      </Button>
+      <Link to="/wallet/send">
+        <Button className="mt-4 w-full">Make Another Payment</Button>
+      </Link>
       <Link to="/wallet">
         <Button className="mt-4 w-full" variant="secondary">
           Back To Wallet
@@ -48,5 +50,3 @@ function PaymentSuccessCard({ preimage, onReset }: PaymentSuccessCardProps) {
     </>
   );
 }
-
-export default PaymentSuccessCard;
