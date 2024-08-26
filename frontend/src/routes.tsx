@@ -120,11 +120,6 @@ const routes = [
               },
             ],
           },
-          // {
-          //   path: "send",
-          //   element: <Send />,
-          //   handle: { crumb: () => "Send" },
-          // },
           {
             path: "sign-message",
             element: <SignMessage />,
