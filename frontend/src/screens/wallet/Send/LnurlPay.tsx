@@ -25,7 +25,9 @@ export default function LnurlPay() {
     try {
       setLoading(true);
       const lnAddress = new LightningAddress(lnurlDetails.identifier);
-      await lnAddress.fetch();
+      // this is set instead of calling fetch because
+      // requestInvoice uses lnurlpData.callback
+      lnAddress.lnurlpData = lnurlDetails;
       const invoice = await lnAddress.requestInvoice({
         satoshi: parseInt(amount),
         comment,
