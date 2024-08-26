@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
+import { MempoolAlert } from "src/components/MempoolAlert";
 import {
   Button,
   ExternalLinkButton,
@@ -202,6 +203,7 @@ function NewChannelInternal({
           </div>
         }
       />
+      <MempoolAlert />
       <div className="md:max-w-md max-w-full flex flex-col gap-5 flex-1">
         <form onSubmit={onSubmit} className="flex flex-col gap-5 flex-1">
           <div className="grid gap-1.5">

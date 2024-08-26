@@ -27,7 +27,7 @@ func TestLookupTransaction_IncomingPayment(t *testing.T) {
 		AmountMsat:     123000,
 	})
 
-	transactionsService := NewTransactionsService(svc.DB)
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
 	incomingTransaction, err := transactionsService.LookupTransaction(ctx, tests.MockLNClientTransaction.PaymentHash, nil, svc.LNClient, nil)
 	assert.NoError(t, err)
@@ -54,7 +54,7 @@ func TestLookupTransaction_OutgoingPayment(t *testing.T) {
 		AmountMsat:     123000,
 	})
 
-	transactionsService := NewTransactionsService(svc.DB)
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
 	outgoingTransaction, err := transactionsService.LookupTransaction(ctx, tests.MockLNClientTransaction.PaymentHash, nil, svc.LNClient, nil)
 	assert.NoError(t, err)

@@ -84,6 +84,7 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 	relayUrl := api.cfg.GetRelayUrl()
 
 	responseBody := &CreateAppResponse{}
+	responseBody.Id = app.ID
 	responseBody.Name = createAppRequest.Name
 	responseBody.Pubkey = app.NostrPubkey
 	responseBody.PairingSecret = pairingSecretKey
@@ -111,6 +112,12 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 }
 
 func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) error {
+	name := updateAppRequest.Name
+
+	if name == "" {
+		return fmt.Errorf("won't update an app to have no name")
+	}
+
 	maxAmount := updateAppRequest.MaxAmountSat
 	budgetRenewal := updateAppRequest.BudgetRenewal
 
@@ -125,6 +132,14 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 	}
 
 	err = api.db.Transaction(func(tx *gorm.DB) error {
+		// Update app name if it is not the same
+		if name != userApp.Name {
+			err := tx.Model(&db.App{}).Where("id", userApp.ID).Update("name", name).Error
+			if err != nil {
+				return err
+			}
+		}
+
 		// Update existing permissions with new budget and expiry
 		err := tx.Model(&db.AppPermission{}).Where("app_id", userApp.ID).Updates(map[string]interface{}{
 			"ExpiresAt":     expiresAt,
@@ -589,8 +604,7 @@ func (api *api) RequestMempoolApi(endpoint string) (interface{}, error) {
 func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info := InfoResponse{}
 	backendType, _ := api.cfg.Get("LNBackendType", "")
-	unlockPasswordCheck, _ := api.cfg.Get("UnlockPasswordCheck", "")
-	info.SetupCompleted = unlockPasswordCheck != ""
+	info.SetupCompleted = api.cfg.SetupCompleted()
 	info.Running = api.svc.GetLNClient() != nil
 	info.BackendType = backendType
 	info.AlbyAuthUrl = api.albyOAuthSvc.GetAuthUrl()
@@ -653,6 +667,11 @@ func (api *api) Start(startRequest *StartRequest) error {
 }
 
 func (api *api) Setup(ctx context.Context, setupRequest *SetupRequest) error {
+	if !startMutex.TryLock() {
+		// do not allow to start twice in case this is somehow called twice
+		return errors.New("app is already starting")
+	}
+	defer startMutex.Unlock()
 	info, err := api.GetInfo(ctx)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to get info")
@@ -661,6 +680,10 @@ func (api *api) Setup(ctx context.Context, setupRequest *SetupRequest) error {
 	if info.SetupCompleted {
 		logger.Logger.Error("Cannot re-setup node")
 		return errors.New("setup already completed")
+	}
+
+	if setupRequest.UnlockPassword == "" {
+		return errors.New("no unlock password provided")
 	}
 
 	api.cfg.Setup(setupRequest.UnlockPassword)
@@ -757,11 +780,11 @@ func (api *api) SendSpontaneousPaymentProbes(ctx context.Context, sendSpontaneou
 	return &SendSpontaneousPaymentProbesResponse{Error: errMessage}, nil
 }
 
-func (api *api) GetNetworkGraph(nodeIds []string) (NetworkGraphResponse, error) {
+func (api *api) GetNetworkGraph(ctx context.Context, nodeIds []string) (NetworkGraphResponse, error) {
 	if api.svc.GetLNClient() == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	return api.svc.GetLNClient().GetNetworkGraph(nodeIds)
+	return api.svc.GetLNClient().GetNetworkGraph(ctx, nodeIds)
 }
 
 func (api *api) SyncWallet() error {

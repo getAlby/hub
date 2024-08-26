@@ -46,6 +46,7 @@ import {
 import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
 
+import { ChannelWaitingForConfirmations } from "src/components/channels/ChannelWaitingForConfirmations";
 import { useChannels } from "src/hooks/useChannels";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
 import { useOnchainAddress } from "src/hooks/useOnchainAddress";
@@ -125,30 +126,11 @@ function ChannelOpening({ fundingTxId }: { fundingTxId: string | undefined }) {
     }
   }, [channel]);
 
-  return (
-    <div className="flex flex-col justify-center gap-2">
-      <Card>
-        <CardHeader>
-          <CardTitle>Your channel is being opened</CardTitle>
-          <CardDescription>
-            Waiting for {channel?.confirmationsRequired ?? "unknown"}{" "}
-            confirmations
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-row gap-2">
-            <Loading />
-            {channel?.confirmations ?? "0"} /{" "}
-            {channel?.confirmationsRequired ?? "unknown"} confirmations
-          </div>
-        </CardContent>
-      </Card>
-      <div className="w-full mt-40 gap-20 flex flex-col items-center justify-center">
-        <p>Feel free to leave this page or browse around Alby Hub!</p>
-        <p>We'll send you an email as soon as your channel is active.</p>
-      </div>
-    </div>
-  );
+  if (!channel) {
+    return <Loading />;
+  }
+
+  return <ChannelWaitingForConfirmations channel={channel} />;
 }
 
 function useEstimatedTransactionFee() {
@@ -224,6 +206,8 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
   );
   const estimatedTransactionFee = useEstimatedTransactionFee();
 
+  const { toast } = useToast();
+
   if (!onchainAddress || !balances || !estimatedTransactionFee) {
     return (
       <div className="flex justify-center">
@@ -292,7 +276,7 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
               variant="secondary"
               size="icon"
               onClick={() => {
-                copyToClipboard(onchainAddress);
+                copyToClipboard(onchainAddress, toast);
               }}
             >
               <Copy className="w-4 h-4" />
@@ -482,7 +466,10 @@ function PayBitcoinChannelOrderWithSpendableFunds({
       });
     } catch (error) {
       console.error(error);
-      alert("Something went wrong: " + error);
+      toast({
+        variant: "destructive",
+        title: "Something went wrong: " + error,
+      });
     }
   }, [
     connectPeer,
@@ -567,7 +554,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
   const { data: channels } = useChannels(true);
   const [, setRequestedInvoice] = React.useState(false);
 
-  const [wrappedInvoiceResponse, setWrappedInvoiceResponse] = React.useState<
+  const [lspOrderResponse, setLspOrderResponse] = React.useState<
     LSPOrderResponse | undefined
   >();
 
@@ -603,23 +590,33 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
             if (!response?.invoice) {
               throw new Error("No invoice in response");
             }
-            setWrappedInvoiceResponse(response);
+            setLspOrderResponse(response);
           } catch (error) {
-            alert("Failed to connect to request wrapped invoice: " + error);
+            toast({
+              variant: "destructive",
+              title: "Something went wrong",
+              description: "" + error,
+            });
           }
         })();
       }
       return true;
     });
-  }, [channels, order.amount, order.isPublic, order.lspType, order.lspUrl]);
+  }, [
+    channels,
+    order.amount,
+    order.isPublic,
+    order.lspType,
+    order.lspUrl,
+    toast,
+  ]);
 
   const canPayInternally =
     channels &&
-    wrappedInvoiceResponse &&
+    lspOrderResponse &&
     channels.some(
       (channel) =>
-        channel.localSpendableBalance / 1000 >
-        wrappedInvoiceResponse.invoiceAmount
+        channel.localSpendableBalance / 1000 > lspOrderResponse.invoiceAmount
     );
   const [isPaying, setPaying] = React.useState(false);
   const [payExternally, setPayExternally] = React.useState(false);
@@ -629,40 +626,40 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
       <AppHeader
         title={"Buy Channel"}
         description={
-          wrappedInvoiceResponse
+          lspOrderResponse
             ? "Complete Payment to open a channel to your node"
             : "Please wait, loading..."
         }
       />
-      {!wrappedInvoiceResponse && <Loading />}
+      {!lspOrderResponse && <Loading />}
 
-      {wrappedInvoiceResponse && (
+      {lspOrderResponse && (
         <>
           <div className="max-w-md flex flex-col gap-5">
             <div className="border rounded-lg">
               <Table>
                 <TableBody>
-                  {wrappedInvoiceResponse.outgoingLiquidity > 0 && (
+                  {lspOrderResponse.outgoingLiquidity > 0 && (
                     <TableRow>
                       <TableCell className="font-medium p-3">
                         Spending Balance
                       </TableCell>
                       <TableCell className="text-right p-3">
                         {new Intl.NumberFormat().format(
-                          wrappedInvoiceResponse.outgoingLiquidity
+                          lspOrderResponse.outgoingLiquidity
                         )}{" "}
                         sats
                       </TableCell>
                     </TableRow>
                   )}
-                  {wrappedInvoiceResponse.incomingLiquidity > 0 && (
+                  {lspOrderResponse.incomingLiquidity > 0 && (
                     <TableRow>
                       <TableCell className="font-medium p-3">
                         Incoming Liquidity
                       </TableCell>
                       <TableCell className="text-right p-3">
                         {new Intl.NumberFormat().format(
-                          wrappedInvoiceResponse.incomingLiquidity
+                          lspOrderResponse.incomingLiquidity
                         )}{" "}
                         sats
                       </TableCell>
@@ -673,9 +670,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                       Fee
                     </TableCell>
                     <TableCell className="text-right p-3">
-                      {new Intl.NumberFormat().format(
-                        wrappedInvoiceResponse.fee
-                      )}{" "}
+                      {new Intl.NumberFormat().format(lspOrderResponse.fee)}{" "}
                       sats
                     </TableCell>
                   </TableRow>
@@ -685,7 +680,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                     </TableCell>
                     <TableCell className="font-semibold text-right p-3">
                       {new Intl.NumberFormat().format(
-                        wrappedInvoiceResponse.invoiceAmount
+                        lspOrderResponse.invoiceAmount
                       )}{" "}
                       sats
                     </TableCell>
@@ -704,7 +699,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                         setPaying(true);
 
                         await request<PayInvoiceResponse>(
-                          `/api/payments/${wrappedInvoiceResponse.invoice}`,
+                          `/api/payments/${lspOrderResponse.invoice}`,
                           {
                             method: "POST",
                             headers: {
@@ -746,7 +741,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
 
               {(payExternally || !canPayInternally) && (
                 <Payment
-                  invoice={wrappedInvoiceResponse.invoice}
+                  invoice={lspOrderResponse.invoice}
                   paymentMethods="external"
                 />
               )}

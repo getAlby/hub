@@ -516,7 +516,7 @@ func (svc *PhoenixService) GetStorageDir() (string, error) {
 	return "", nil
 }
 
-func (svc *PhoenixService) GetNetworkGraph(nodeIds []string) (lnclient.NetworkGraphResponse, error) {
+func (svc *PhoenixService) GetNetworkGraph(ctx context.Context, nodeIds []string) (lnclient.NetworkGraphResponse, error) {
 	return nil, nil
 }
 

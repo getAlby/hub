@@ -11,7 +11,9 @@ import useSetupStore from "src/state/SetupStore";
 export function CashuForm() {
   const setupStore = useSetupStore();
   const navigate = useNavigate();
-  const [cashuMintUrl, setCashuMintUrl] = React.useState<string>("");
+  const [cashuMintUrl, setCashuMintUrl] = React.useState(
+    "https://mint.minibits.cash/Bitcoin"
+  );
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -51,7 +53,6 @@ export function CashuForm() {
             onChange={(e) => setCashuMintUrl(e.target.value)}
             value={cashuMintUrl}
             id="cashu-mint-url"
-            placeholder="https://8333.space:3338"
           />
         </div>
         <Button>Next</Button>

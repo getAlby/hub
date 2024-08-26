@@ -5,6 +5,17 @@ import { useNavigate } from "react-router-dom";
 import ExternalLink from "src/components/ExternalLink";
 import SettingsHeader from "src/components/SettingsHeader";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "src/components/ui/alert-dialog";
+import {
   Card,
   CardDescription,
   CardHeader,
@@ -19,14 +30,6 @@ export function AlbyAccount() {
   const navigate = useNavigate();
 
   const unlink = async () => {
-    if (
-      !confirm(
-        "Are you sure you want to change the Alby Account for your hub? Your Alby Account will be disconnected from your hub and you'll need to login with a new Alby Account to access your hub."
-      )
-    ) {
-      return;
-    }
-
     try {
       await request("/api/alby/unlink-account", {
         method: "POST",
@@ -68,15 +71,40 @@ export function AlbyAccount() {
           </CardHeader>
         </Card>
       </ExternalLink>
-      <Card className="w-full cursor-pointer" onClick={unlink}>
-        <CardHeader>
-          <CardTitle>Change Alby Account</CardTitle>
-          <CardDescription className="flex gap-2 items-center">
-            <ExitIcon className="w-4 h-4" /> Link your Hub to a different Alby
-            Account
-          </CardDescription>
-        </CardHeader>
-      </Card>
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <Card className="w-full cursor-pointer">
+            <CardHeader>
+              <CardTitle>Change Alby Account</CardTitle>
+              <CardDescription className="flex gap-2 items-center">
+                <ExitIcon className="w-4 h-4" /> Link your Hub to a different
+                Alby Account
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Unlink Alby Account</AlertDialogTitle>
+            <AlertDialogDescription>
+              <div>
+                <p>
+                  Are you sure you want to change the Alby Account for your hub?
+                </p>
+                <p className="text-primary font-medium mt-4">
+                  Your Alby Account will be disconnected from your hub and
+                  you'll need to login with a new Alby Account to access your
+                  hub.
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={unlink}>Confirm</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

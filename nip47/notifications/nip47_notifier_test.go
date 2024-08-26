@@ -49,7 +49,7 @@ func TestSendNotification_PaymentReceived(t *testing.T) {
 	assert.NoError(t, err)
 
 	settledAt := time.Unix(*tests.MockLNClientTransaction.SettledAt, 0)
-	err = svc.DB.Create(&db.Transaction{
+	initialTransaction := db.Transaction{
 		Type:            constants.TRANSACTION_TYPE_INCOMING,
 		PaymentRequest:  tests.MockLNClientTransaction.Invoice,
 		Description:     tests.MockLNClientTransaction.Description,
@@ -60,17 +60,17 @@ func TestSendNotification_PaymentReceived(t *testing.T) {
 		FeeMsat:         uint64(tests.MockLNClientTransaction.FeesPaid),
 		SettledAt:       &settledAt,
 		AppId:           &app.ID,
-	}).Error
+		State:           constants.TRANSACTION_STATE_SETTLED,
+	}
+	err = svc.DB.Create(&initialTransaction).Error
 	assert.NoError(t, err)
 
 	nip47NotificationQueue := NewNip47NotificationQueue()
 	svc.EventPublisher.RegisterSubscriber(NewMockConsumer(nip47NotificationQueue))
 
 	testEvent := &events.Event{
-		Event: "nwc_payment_received",
-		Properties: &lnclient.Transaction{
-			PaymentHash: tests.MockLNClientTransaction.PaymentHash,
-		},
+		Event:      "nwc_payment_received",
+		Properties: &initialTransaction,
 	}
 
 	svc.EventPublisher.Publish(testEvent)
@@ -81,7 +81,7 @@ func TestSendNotification_PaymentReceived(t *testing.T) {
 	relay := tests.NewMockRelay()
 
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
-	transactionsSvc := transactions.NewTransactionsService(svc.DB)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
 
 	notifier := NewNip47Notifier(relay, svc.DB, svc.Cfg, svc.Keys, permissionsSvc, transactionsSvc, svc.LNClient)
 	notifier.ConsumeEvent(ctx, receivedEvent)
@@ -129,7 +129,7 @@ func TestSendNotification_PaymentSent(t *testing.T) {
 	assert.NoError(t, err)
 
 	settledAt := time.Unix(*tests.MockLNClientTransaction.SettledAt, 0)
-	err = svc.DB.Create(&db.Transaction{
+	initialTransaction := db.Transaction{
 		Type:            constants.TRANSACTION_TYPE_OUTGOING,
 		PaymentRequest:  tests.MockLNClientTransaction.Invoice,
 		Description:     tests.MockLNClientTransaction.Description,
@@ -140,17 +140,16 @@ func TestSendNotification_PaymentSent(t *testing.T) {
 		FeeMsat:         uint64(tests.MockLNClientTransaction.FeesPaid),
 		SettledAt:       &settledAt,
 		AppId:           &app.ID,
-	}).Error
+	}
+	err = svc.DB.Create(&initialTransaction).Error
 	assert.NoError(t, err)
 
 	nip47NotificationQueue := NewNip47NotificationQueue()
 	svc.EventPublisher.RegisterSubscriber(NewMockConsumer(nip47NotificationQueue))
 
 	testEvent := &events.Event{
-		Event: "nwc_payment_sent",
-		Properties: &lnclient.Transaction{
-			PaymentHash: tests.MockLNClientTransaction.PaymentHash,
-		},
+		Event:      "nwc_payment_sent",
+		Properties: &initialTransaction,
 	}
 
 	svc.EventPublisher.Publish(testEvent)
@@ -161,7 +160,7 @@ func TestSendNotification_PaymentSent(t *testing.T) {
 	relay := tests.NewMockRelay()
 
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
-	transactionsSvc := transactions.NewTransactionsService(svc.DB)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
 
 	notifier := NewNip47Notifier(relay, svc.DB, svc.Cfg, svc.Keys, permissionsSvc, transactionsSvc, svc.LNClient)
 	notifier.ConsumeEvent(ctx, receivedEvent)
@@ -221,7 +220,7 @@ func TestSendNotificationNoPermission(t *testing.T) {
 	relay := tests.NewMockRelay()
 
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
-	transactionsSvc := transactions.NewTransactionsService(svc.DB)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
 
 	notifier := NewNip47Notifier(relay, svc.DB, svc.Cfg, svc.Keys, permissionsSvc, transactionsSvc, svc.LNClient)
 	notifier.ConsumeEvent(ctx, receivedEvent)

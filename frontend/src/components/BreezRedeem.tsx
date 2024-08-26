@@ -1,10 +1,9 @@
 import { RocketIcon } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
-import { LoadingButton } from "src/components/ui/loading-button";
+import { LinkButton } from "src/components/ui/button";
 import { ONCHAIN_DUST_SATS } from "src/constants";
 import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
-import { useRedeemOnchainFunds } from "src/hooks/useRedeemOnchainFunds";
 
 export default function BreezRedeem() {
   const { data: info } = useInfo();
@@ -16,8 +15,6 @@ export default function BreezRedeem() {
 
 function BreezRedeemInternal() {
   const { data: balances } = useBalances();
-
-  const redeemOnchainFunds = useRedeemOnchainFunds();
 
   if (!balances || balances.onchain.spendable <= ONCHAIN_DUST_SATS) {
     return null;
@@ -33,14 +30,9 @@ function BreezRedeemInternal() {
             One of your Breez channels was closed and you have{" "}
             {balances.onchain.spendable} sats to redeem.
           </div>
-          <LoadingButton
-            size={"sm"}
-            loading={redeemOnchainFunds.isLoading}
-            onClick={redeemOnchainFunds.redeemFunds}
-            disabled={redeemOnchainFunds.isLoading}
-          >
+          <LinkButton to={"/wallet/withdraw"} size={"sm"}>
             Redeem
-          </LoadingButton>
+          </LinkButton>
         </AlertDescription>
       </Alert>
     </div>

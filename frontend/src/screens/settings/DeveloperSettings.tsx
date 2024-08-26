@@ -125,7 +125,7 @@ export default function DeveloperSettings() {
                   variant="secondary"
                   size="icon"
                   onClick={() => {
-                    copyToClipboard(token);
+                    copyToClipboard(token, toast);
                   }}
                 >
                   <Copy className="w-4 h-4" />

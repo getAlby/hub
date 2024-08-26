@@ -1,11 +1,12 @@
 import { AlertTriangleIcon, CopyIcon, ExternalLinkIcon } from "lucide-react";
 import React from "react";
 import ExternalLink from "src/components/ExternalLink";
+import { MempoolAlert } from "src/components/MempoolAlert";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
 import { Label } from "src/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "src/components/ui/radio-group";
-import { toast } from "src/components/ui/use-toast";
+import { useToast } from "src/components/ui/use-toast";
 import { useChannels } from "src/hooks/useChannels";
 import { copyToClipboard } from "src/lib/clipboard";
 import { Channel, CloseChannelResponse } from "src/types";
@@ -29,13 +30,14 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
   const [step, setStep] = React.useState(channel.active ? 2 : 1);
   const [fundingTxId, setFundingTxId] = React.useState("");
   const { data: channels, mutate: reloadChannels } = useChannels();
+  const { toast } = useToast();
 
   const onContinue = () => {
     setStep(step + 1);
   };
 
   const copy = (text: string) => {
-    copyToClipboard(text);
+    copyToClipboard(text, toast);
     toast({ title: "Copied to clipboard." });
   };
 
@@ -126,6 +128,9 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
           <AlertDialogHeader>
             <AlertDialogTitle>Select mode of channel closure</AlertDialogTitle>
             <AlertDialogDescription className="text-left">
+              <div className="mb-4">
+                <MempoolAlert />
+              </div>
               {closeType === "force" && (
                 <Alert className="mb-4">
                   <AlertTriangleIcon className="h-4 w-4" />

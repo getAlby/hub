@@ -57,9 +57,11 @@ var MockLNClientTransactions = []lnclient.Transaction{
 var MockLNClientTransaction = &MockLNClientTransactions[0]
 
 type MockLn struct {
-	PayInvoiceResponses []*lnclient.PayInvoiceResponse
-	PayInvoiceErrors    []error
-	Pubkey              string
+	PayInvoiceResponses        []*lnclient.PayInvoiceResponse
+	PayInvoiceErrors           []error
+	Pubkey                     string
+	MockTransaction            *lnclient.Transaction
+	SupportedNotificationTypes *[]string
 }
 
 func NewMockLn() (*MockLn, error) {
@@ -99,6 +101,9 @@ func (mln *MockLn) MakeInvoice(ctx context.Context, amount int64, description st
 }
 
 func (mln *MockLn) LookupInvoice(ctx context.Context, paymentHash string) (transaction *lnclient.Transaction, err error) {
+	if mln.MockTransaction != nil {
+		return mln.MockTransaction, nil
+	}
 	return MockLNClientTransaction, nil
 }
 
@@ -160,7 +165,7 @@ func (mln *MockLn) GetStorageDir() (string, error) {
 func (mln *MockLn) GetNodeStatus(ctx context.Context) (nodeStatus *lnclient.NodeStatus, err error) {
 	return nil, nil
 }
-func (mln *MockLn) GetNetworkGraph(nodeIds []string) (lnclient.NetworkGraphResponse, error) {
+func (mln *MockLn) GetNetworkGraph(ctx context.Context, nodeIds []string) (lnclient.NetworkGraphResponse, error) {
 	return nil, nil
 }
 
@@ -178,6 +183,10 @@ func (mln *MockLn) GetSupportedNIP47Methods() []string {
 	return []string{"pay_invoice", "pay_keysend", "get_balance", "get_info", "make_invoice", "lookup_invoice", "list_transactions", "multi_pay_invoice", "multi_pay_keysend", "sign_message"}
 }
 func (mln *MockLn) GetSupportedNIP47NotificationTypes() []string {
+	if mln.SupportedNotificationTypes != nil {
+		return *mln.SupportedNotificationTypes
+	}
+
 	return []string{"payment_received", "payment_sent"}
 }
 func (mln *MockLn) GetPubkey() string {

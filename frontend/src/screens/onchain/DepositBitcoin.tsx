@@ -2,11 +2,12 @@ import { Copy, CreditCard, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import Loading from "src/components/Loading";
+import { MempoolAlert } from "src/components/MempoolAlert";
 import QRCode from "src/components/QRCode";
 import { Button } from "src/components/ui/button";
 import { Card, CardContent } from "src/components/ui/card";
 import { LoadingButton } from "src/components/ui/loading-button";
-import { toast } from "src/components/ui/use-toast";
+import { useToast } from "src/components/ui/use-toast";
 import { useOnchainAddress } from "src/hooks/useOnchainAddress";
 import { copyToClipboard } from "src/lib/clipboard";
 
@@ -16,6 +17,7 @@ export default function DepositBitcoin() {
     getNewAddress,
     loadingAddress,
   } = useOnchainAddress();
+  const { toast } = useToast();
 
   if (!onchainAddress) {
     return (
@@ -39,6 +41,7 @@ export default function DepositBitcoin() {
           </Link>
         }
       />
+      <MempoolAlert />
       <div className="w-80">
         <Card>
           <CardContent className="grid gap-6 p-8 justify-center border border-muted">
@@ -74,7 +77,7 @@ export default function DepositBitcoin() {
                 variant="secondary"
                 className="w-28"
                 onClick={() => {
-                  copyToClipboard(onchainAddress);
+                  copyToClipboard(onchainAddress, toast);
                   toast({ title: "Copied to clipboard." });
                 }}
               >

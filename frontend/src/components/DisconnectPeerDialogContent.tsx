@@ -1,4 +1,4 @@
-import { toast } from "src/components/ui/use-toast";
+import { useToast } from "src/components/ui/use-toast";
 import { usePeers } from "src/hooks/usePeers";
 import { Peer } from "src/types";
 import { request } from "src/utils/request";
@@ -19,6 +19,7 @@ type Props = {
 
 export function DisconnectPeerDialogContent({ peer, name }: Props) {
   const { mutate: reloadPeers } = usePeers();
+  const { toast } = useToast();
 
   async function disconnectPeer() {
     try {

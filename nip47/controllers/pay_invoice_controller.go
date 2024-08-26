@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
-	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/nip47/models"
 	"github.com/nbd-wtf/go-nostr"
@@ -40,7 +40,7 @@ func (controller *nip47Controller) HandlePayInvoiceEvent(ctx context.Context, ni
 		publishResponse(&models.Response{
 			ResultType: nip47Request.Method,
 			Error: &models.Error{
-				Code:    models.ERROR_INTERNAL,
+				Code:    constants.ERROR_INTERNAL,
 				Message: fmt.Sprintf("Failed to decode bolt11 invoice: %s", err.Error()),
 			},
 		}, tags)
@@ -64,28 +64,12 @@ func (controller *nip47Controller) pay(ctx context.Context, bolt11 string, payme
 			"app_id":           app.ID,
 			"bolt11":           bolt11,
 		}).Infof("Failed to send payment: %v", err)
-		controller.eventPublisher.Publish(&events.Event{
-			Event: "nwc_payment_failed",
-			Properties: map[string]interface{}{
-				"error":   err.Error(),
-				"invoice": bolt11,
-				"amount":  paymentRequest.MSatoshi / 1000,
-			},
-		})
 		publishResponse(&models.Response{
 			ResultType: nip47Request.Method,
 			Error:      mapNip47Error(err),
 		}, tags)
 		return
 	}
-
-	controller.eventPublisher.Publish(&events.Event{
-		Event: "nwc_payment_succeeded",
-		Properties: map[string]interface{}{
-			"bolt11": bolt11,
-			"amount": paymentRequest.MSatoshi / 1000,
-		},
-	})
 
 	publishResponse(&models.Response{
 		ResultType: nip47Request.Method,

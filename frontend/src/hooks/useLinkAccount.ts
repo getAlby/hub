@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { toast } from "src/components/ui/use-toast";
+import { useToast } from "src/components/ui/use-toast";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useApps } from "src/hooks/useApps";
 
@@ -17,6 +17,7 @@ export function useLinkAccount() {
   const { data: me, mutate: reloadAlbyMe } = useAlbyMe();
   const { mutate: reloadApps } = useApps();
   const { data: nodeConnectionInfo } = useNodeConnectionInfo();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
 
   let linkStatus: LinkStatus | undefined;

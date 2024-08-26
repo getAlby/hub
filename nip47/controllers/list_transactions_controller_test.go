@@ -75,7 +75,7 @@ func TestHandleListTransactionsEvent(t *testing.T) {
 	}
 
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
-	transactionsSvc := transactions.NewTransactionsService(svc.DB)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
 	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
 		HandleListTransactionsEvent(ctx, nip47Request, dbRequestEvent.ID, *dbRequestEvent.AppId, publishResponse)
 

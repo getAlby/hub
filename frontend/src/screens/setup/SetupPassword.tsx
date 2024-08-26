@@ -17,6 +17,7 @@ export function SetupPassword() {
   const { data: info } = useInfo();
   const [confirmPassword, setConfirmPassword] = React.useState("");
   const [isPasswordSecured, setIsPasswordSecured] = useState<boolean>(false);
+  const [isPasswordSecured2, setIsPasswordSecured2] = useState<boolean>(false);
 
   const [searchParams] = useSearchParams();
   const wallet = searchParams.get("wallet") || "new";
@@ -25,6 +26,13 @@ export function SetupPassword() {
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!info) {
+      return;
+    }
+    if (!isPasswordSecured || !isPasswordSecured2) {
+      toast({
+        title: "Please confirm you have saved your password",
+        variant: "destructive",
+      });
       return;
     }
     if (store.unlockPassword !== confirmPassword) {
@@ -65,7 +73,7 @@ export function SetupPassword() {
                   placeholder="Enter a password"
                   value={store.unlockPassword}
                   onChange={(e) => store.setUnlockPassword(e.target.value)}
-                  required={true}
+                  required
                 />
               </div>
               <div className="grid gap-1.5">
@@ -78,7 +86,7 @@ export function SetupPassword() {
                   placeholder="Re-enter the password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  required={true}
+                  required
                 />
               </div>
             </div>
@@ -86,6 +94,7 @@ export function SetupPassword() {
               <div className="flex items-center">
                 <Checkbox
                   id="securePassword"
+                  required
                   onCheckedChange={() =>
                     setIsPasswordSecured(!isPasswordSecured)
                   }
@@ -97,9 +106,24 @@ export function SetupPassword() {
                   I've secured this password in a safe place
                 </Label>
               </div>
-              <Button type="submit" disabled={!isPasswordSecured}>
-                Create Password
-              </Button>
+              {isPasswordSecured && (
+                <div className="flex items-center">
+                  <Checkbox
+                    id="securePassword2"
+                    required
+                    onCheckedChange={() =>
+                      setIsPasswordSecured2(!isPasswordSecured2)
+                    }
+                  />
+                  <Label
+                    htmlFor="securePassword"
+                    className="ml-2 leading-4 font-semibold text-destructive"
+                  >
+                    I understand this password cannot be recovered
+                  </Label>
+                </div>
+              )}
+              <Button type="submit">Create Password</Button>
             </div>
           </div>
         </form>

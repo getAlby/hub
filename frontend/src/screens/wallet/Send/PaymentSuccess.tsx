@@ -21,8 +21,7 @@ export default function PaymentSuccess() {
   }
 
   const copy = () => {
-    copyToClipboard(state.preimage as string);
-    toast({ title: "Copied to clipboard." });
+    copyToClipboard(state.preimage as string, toast);
   };
 
   return (

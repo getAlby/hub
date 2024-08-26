@@ -47,7 +47,7 @@ function AppCreatedInternal() {
   const { data: app } = useApp(createAppResponse.pairingPublicKey, true);
 
   const copy = () => {
-    copyToClipboard(pairingUri);
+    copyToClipboard(pairingUri, toast);
     toast({ title: "Copied to clipboard." });
   };
 

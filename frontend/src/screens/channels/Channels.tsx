@@ -11,13 +11,12 @@ import {
   Unplug,
 } from "lucide-react";
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader.tsx";
 import { ChannelsCards } from "src/components/channels/ChannelsCards.tsx";
 import { ChannelsTable } from "src/components/channels/ChannelsTable.tsx";
 import EmptyState from "src/components/EmptyState.tsx";
 import ExternalLink from "src/components/ExternalLink";
-import Loading from "src/components/Loading.tsx";
 import {
   Alert,
   AlertDescription,
@@ -56,26 +55,23 @@ import {
 import { useAlbyBalance } from "src/hooks/useAlbyBalance.ts";
 import { useBalances } from "src/hooks/useBalances.ts";
 import { useChannels } from "src/hooks/useChannels";
-import { useInfo } from "src/hooks/useInfo";
 import { useIsDesktop } from "src/hooks/useMediaQuery.ts";
 import { useNodeConnectionInfo } from "src/hooks/useNodeConnectionInfo.ts";
-import { useRedeemOnchainFunds } from "src/hooks/useRedeemOnchainFunds.ts";
 import { useSyncWallet } from "src/hooks/useSyncWallet.ts";
 import { copyToClipboard } from "src/lib/clipboard.ts";
 import { cn } from "src/lib/utils.ts";
-import { Channel, Node, UpdateChannelRequest } from "src/types";
+import { Channel, Node } from "src/types";
 import { request } from "src/utils/request";
 
 export default function Channels() {
   useSyncWallet();
-  const { data: channels, mutate: reloadChannels } = useChannels();
+  const { data: channels } = useChannels();
   const { data: nodeConnectionInfo } = useNodeConnectionInfo();
   const { data: balances } = useBalances();
   const { data: albyBalance, mutate: reloadAlbyBalance } = useAlbyBalance();
+  const navigate = useNavigate();
   const [nodes, setNodes] = React.useState<Node[]>([]);
-  const { mutate: reloadInfo } = useInfo();
 
-  const redeemOnchainFunds = useRedeemOnchainFunds();
   const { toast } = useToast();
   const [drainingAlbySharedFunds, setDrainingAlbySharedFunds] =
     React.useState(false);
@@ -108,75 +104,6 @@ export default function Channels() {
     loadNodeStats();
   }, [loadNodeStats]);
 
-  async function editChannel(channel: Channel) {
-    try {
-      const forwardingFeeBaseSats = prompt(
-        "Enter base forwarding fee in sats",
-        Math.floor(channel.forwardingFeeBaseMsat / 1000).toString()
-      );
-
-      if (!forwardingFeeBaseSats) {
-        return;
-      }
-
-      const forwardingFeeBaseMsat = +forwardingFeeBaseSats * 1000;
-
-      console.info(
-        `🎬 Updating channel ${channel.id} with ${channel.remotePubkey}`
-      );
-
-      await request(
-        `/api/peers/${channel.remotePubkey}/channels/${channel.id}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            forwardingFeeBaseMsat: forwardingFeeBaseMsat,
-          } as UpdateChannelRequest),
-        }
-      );
-      await reloadChannels();
-      toast({ title: "Sucessfully updated channel" });
-    } catch (error) {
-      console.error(error);
-      toast({
-        variant: "destructive",
-        description: "Something went wrong: " + error,
-      });
-    }
-  }
-
-  async function resetRouter() {
-    try {
-      const key = prompt(
-        "Enter key to reset (choose one of ALL, LatestRgsSyncTimestamp, Scorer, NetworkGraph). After resetting, you'll need to re-enter your unlock password.",
-        "ALL"
-      );
-      if (!key) {
-        console.error("Cancelled reset");
-        return;
-      }
-
-      await request("/api/reset-router", {
-        method: "POST",
-        body: JSON.stringify({ key }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      await reloadInfo();
-      toast({ description: "🎉 Router reset" });
-    } catch (error) {
-      console.error(error);
-      toast({
-        variant: "destructive",
-        description: "Something went wrong: " + error,
-      });
-    }
-  }
-
   const showHostedBalance =
     albyBalance && albyBalance.sats > ALBY_HIDE_HOSTED_BALANCE_LIMIT;
 
@@ -187,7 +114,7 @@ export default function Channels() {
         description="Manage your lightning node"
         contentRight={
           <div className="flex gap-3 items-center justify-center">
-            <DropdownMenu>
+            <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="default">
                   Advanced
@@ -203,7 +130,7 @@ export default function Channels() {
                         if (!nodeConnectionInfo) {
                           return;
                         }
-                        copyToClipboard(nodeConnectionInfo.pubkey);
+                        copyToClipboard(nodeConnectionInfo.pubkey, toast);
                       }}
                     >
                       <div>Node</div>
@@ -228,12 +155,10 @@ export default function Channels() {
                   </DropdownMenuItem>
                   {(balances?.onchain.spendable || 0) > ONCHAIN_DUST_SATS && (
                     <DropdownMenuItem
-                      onClick={redeemOnchainFunds.redeemFunds}
-                      disabled={redeemOnchainFunds.isLoading}
+                      onClick={() => navigate("/wallet/withdraw")}
                       className="w-full cursor-pointer"
                     >
                       Withdraw Savings Balance
-                      {redeemOnchainFunds.isLoading && <Loading />}
                     </DropdownMenuItem>
                   )}
                 </DropdownMenuGroup>
@@ -249,12 +174,6 @@ export default function Channels() {
                     <Link className="w-full" to="/wallet/sign-message">
                       Sign Message
                     </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className="w-full cursor-pointer"
-                    onClick={resetRouter}
-                  >
-                    Clear Routing Data
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
               </DropdownMenuContent>
@@ -530,17 +449,9 @@ export default function Channels() {
       )}
 
       {isDesktop ? (
-        <ChannelsTable
-          channels={channels}
-          nodes={nodes}
-          editChannel={editChannel}
-        />
+        <ChannelsTable channels={channels} nodes={nodes} />
       ) : (
-        <ChannelsCards
-          channels={channels}
-          nodes={nodes}
-          editChannel={editChannel}
-        />
+        <ChannelsCards channels={channels} nodes={nodes} />
       )}
     </>
   );

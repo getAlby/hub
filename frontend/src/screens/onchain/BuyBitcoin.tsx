@@ -1,5 +1,6 @@
 import React from "react";
 import AppHeader from "src/components/AppHeader";
+import { MempoolAlert } from "src/components/MempoolAlert";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
@@ -172,6 +173,7 @@ export default function BuyBitcoin() {
         title="Buy Bitcoin"
         description="Use one of our partner providers to buy bitcoin and deposit it to your savings balance."
       />
+      <MempoolAlert />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-1 lg:gap-10">
         <div className="flex max-w-lg flex-col gap-4">
           <div className="grid gap-4">

@@ -108,7 +108,7 @@ export default function SignMessage() {
                     variant="secondary"
                     size="icon"
                     onClick={() => {
-                      copyToClipboard(signature);
+                      copyToClipboard(signature, toast);
                     }}
                   >
                     <Copy className="w-4 h-4" />

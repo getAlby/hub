@@ -60,6 +60,7 @@ import ConfirmPayment from "src/screens/wallet/Send/ConfirmPayment";
 import LnurlPay from "src/screens/wallet/Send/LnurlPay";
 import PaymentSuccess from "src/screens/wallet/Send/PaymentSuccess";
 import SignMessage from "src/screens/wallet/SignMessage";
+import WithdrawOnchainFunds from "src/screens/wallet/WithdrawOnchainFunds";
 
 const routes = [
   {
@@ -128,6 +129,11 @@ const routes = [
             path: "sign-message",
             element: <SignMessage />,
             handle: { crumb: () => "Sign Message" },
+          },
+          {
+            path: "withdraw",
+            element: <WithdrawOnchainFunds />,
+            handle: { crumb: () => "Withdraw Savings Balance" },
           },
         ],
       },

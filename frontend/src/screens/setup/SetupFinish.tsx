@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import animationData from "src/assets/lotties/loading.json";
 import Container from "src/components/Container";
 import { Button } from "src/components/ui/button";
-import { toast } from "src/components/ui/use-toast";
+import { ToastSignature, useToast } from "src/components/ui/use-toast";
 
 import { useInfo } from "src/hooks/useInfo";
 import { saveAuthToken } from "src/lib/auth";
@@ -16,6 +16,7 @@ import { request } from "src/utils/request";
 export function SetupFinish() {
   const navigate = useNavigate();
   const { nodeInfo, unlockPassword } = useSetupStore();
+  const { toast } = useToast();
   useInfo(true); // poll the info endpoint to auto-redirect when app is running
 
   const [loading, setLoading] = React.useState(false);
@@ -37,10 +38,11 @@ export function SetupFinish() {
     }
     const timer = setTimeout(() => {
       // SetupRedirect takes care of redirection once info.running is true
-      // if it still didn't redirect after 3 minutes, we show an error
+      // if it still didn't redirect after 30 seconds, we show an error
+      // Typically initial startup should complete in less than 10 seconds.
       setLoading(false);
       setConnectionError(true);
-    }, 180000);
+    }, 30000);
 
     return () => {
       clearTimeout(timer);
@@ -56,14 +58,14 @@ export function SetupFinish() {
 
     (async () => {
       setLoading(true);
-      const succeeded = await finishSetup(nodeInfo, unlockPassword);
+      const succeeded = await finishSetup(nodeInfo, unlockPassword, toast);
       // only setup call is successful as start is async
       if (!succeeded) {
         setLoading(false);
         setConnectionError(true);
       }
     })();
-  }, [nodeInfo, navigate, unlockPassword]);
+  }, [nodeInfo, navigate, unlockPassword, toast]);
 
   if (connectionError) {
     return (
@@ -99,7 +101,8 @@ export function SetupFinish() {
 
 const finishSetup = async (
   nodeInfo: SetupNodeInfo,
-  unlockPassword: string
+  unlockPassword: string,
+  toast: ToastSignature
 ): Promise<boolean> => {
   try {
     await request("/api/setup", {

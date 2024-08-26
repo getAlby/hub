@@ -48,9 +48,8 @@ func (ep *eventPublisher) Publish(event *Event) {
 	defer ep.subscriberMtx.Unlock()
 	logger.Logger.WithFields(logrus.Fields{"event": event, "global": ep.globalProperties}).Debug("Publishing event")
 	for _, listener := range ep.listeners {
-		// events are consumed in sequence as some listeners depend on earlier consumers
-		// (e.g. NIP-47 notifier depends on transactions service updating transactions)
-		listener.ConsumeEvent(context.Background(), event, ep.globalProperties)
+		// consume event without blocking thread
+		go listener.ConsumeEvent(context.Background(), event, ep.globalProperties)
 	}
 }
 

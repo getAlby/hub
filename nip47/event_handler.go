@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
@@ -70,7 +71,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 		}).WithError(err).Error("Failed to save nostr event")
 		nip47Response = &models.Response{
 			Error: &models.Error{
-				Code:    models.ERROR_INTERNAL,
+				Code:    constants.ERROR_INTERNAL,
 				Message: fmt.Sprintf("Failed to save nostr event: %s", err.Error()),
 			},
 		}
@@ -96,7 +97,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 
 		nip47Response = &models.Response{
 			Error: &models.Error{
-				Code:    models.ERROR_UNAUTHORIZED,
+				Code:    constants.ERROR_UNAUTHORIZED,
 				Message: "The public key does not have a wallet connected.",
 			},
 		}
@@ -128,7 +129,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 
 		nip47Response = &models.Response{
 			Error: &models.Error{
-				Code:    models.ERROR_UNAUTHORIZED,
+				Code:    constants.ERROR_UNAUTHORIZED,
 				Message: fmt.Sprintf("Failed to save app to nostr event: %s", err.Error()),
 			},
 		}
@@ -156,7 +157,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 		"requestEventNostrId": event.ID,
 		"eventKind":           event.Kind,
 		"appId":               app.ID,
-	}).Info("App found for nostr event")
+	}).Debug("App found for nostr event")
 
 	//to be extra safe, decrypt using the key found from the app
 	ss, err = nip04.ComputeSharedSecret(app.NostrPubkey, svc.keys.GetNostrSecretKey())
@@ -245,11 +246,11 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 			} else {
 				requestEvent.State = db.REQUEST_EVENT_STATE_HANDLER_EXECUTED
 				logger.Logger.WithFields(logrus.Fields{
-					"requestEventNostrId": event.ID,
+					"requestEventNostrId":  event.ID,
 					"responseEventNostrId": resp.ID,
-					"eventKind":           event.Kind,
-					"appId":               app.ID,
-				}).Info("Published response")
+					"eventKind":            event.Kind,
+					"appId":                app.ID,
+				}).Debug("Published response")
 			}
 		}
 		err = svc.db.Save(&requestEvent).Error
@@ -266,7 +267,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 		"appId":               app.ID,
 		"method":              nip47Request.Method,
 		"params":              nip47Request.Params,
-	}).Info("Handling NIP-47 request")
+	}).Debug("Handling NIP-47 request")
 
 	if nip47Request.Method != models.GET_INFO_METHOD {
 		scope, err := permissions.RequestMethodToScope(nip47Request.Method)
@@ -274,7 +275,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 			publishResponse(&models.Response{
 				ResultType: nip47Request.Method,
 				Error: &models.Error{
-					Code:    models.ERROR_INTERNAL,
+					Code:    constants.ERROR_INTERNAL,
 					Message: err.Error(),
 				},
 			}, nostr.Tags{})
@@ -348,7 +349,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 		publishResponse(&models.Response{
 			ResultType: nip47Request.Method,
 			Error: &models.Error{
-				Code:    models.ERROR_NOT_IMPLEMENTED,
+				Code:    constants.ERROR_NOT_IMPLEMENTED,
 				Message: fmt.Sprintf("Unknown method: %s", nip47Request.Method),
 			},
 		}, nostr.Tags{})
@@ -417,7 +418,7 @@ func (svc *nip47Service) publishResponseEvent(ctx context.Context, relay nostrmo
 			"appId":                appId,
 			"responseEventId":      responseEvent.ID,
 			"responseNostrEventId": resp.ID,
-		}).Info("Published reply")
+		}).Debug("Published reply")
 	}
 
 	err = svc.db.Save(&responseEvent).Error

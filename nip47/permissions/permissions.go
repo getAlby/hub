@@ -44,7 +44,7 @@ func (svc *permissionsService) HasPermission(app *db.App, scope string) (result 
 	})
 	if findPermissionResult.RowsAffected == 0 {
 		// No permission for this request method
-		return false, models.ERROR_RESTRICTED, fmt.Sprintf("This app does not have the %s scope", scope)
+		return false, constants.ERROR_RESTRICTED, fmt.Sprintf("This app does not have the %s scope", scope)
 	}
 	expiresAt := appPermission.ExpiresAt
 	if expiresAt != nil && expiresAt.Before(time.Now()) {
@@ -55,7 +55,7 @@ func (svc *permissionsService) HasPermission(app *db.App, scope string) (result 
 			"pubkey":    app.NostrPubkey,
 		}).Info("This pubkey is expired")
 
-		return false, models.ERROR_EXPIRED, "This app has expired"
+		return false, constants.ERROR_EXPIRED, "This app has expired"
 	}
 
 	return true, "", ""
