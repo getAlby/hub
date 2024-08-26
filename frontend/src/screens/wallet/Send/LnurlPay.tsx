@@ -5,7 +5,7 @@ import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 
-import { LightningAddress } from "@getalby/lightning-tools";
+import { LightningAddress, LnUrlPayResponse } from "@getalby/lightning-tools";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { PayInvoiceResponse } from "src/types";
 import { request } from "src/utils/request";
@@ -15,7 +15,7 @@ export default function LnurlPay() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const lnAddress = state.args?.lnAddress as LightningAddress;
+  const lnurlDetails = state.args?.lnurlDetails as LnUrlPayResponse;
   const [amount, setAmount] = React.useState("");
   const [comment, setComment] = React.useState("");
   const [isLoading, setLoading] = React.useState(false);
@@ -24,6 +24,8 @@ export default function LnurlPay() {
     event.preventDefault();
     try {
       setLoading(true);
+      const lnAddress = new LightningAddress(lnurlDetails.identifier);
+      await lnAddress.fetch();
       const invoice = await lnAddress.requestInvoice({
         satoshi: parseInt(amount),
         comment,
@@ -59,7 +61,7 @@ export default function LnurlPay() {
     }
   };
 
-  if (!state.args?.lnAddress) {
+  if (!state.args?.lnurlDetails) {
     navigate("/wallet/send");
     return null;
   }
@@ -67,13 +69,11 @@ export default function LnurlPay() {
   return (
     <form onSubmit={onSubmit} className="grid gap-4">
       <div>
-        <p className="font-medium text-lg mb-2">{lnAddress.address}</p>
-        {lnAddress.lnurlpData?.description && (
+        <p className="font-medium text-lg mb-2">{lnurlDetails.identifier}</p>
+        {lnurlDetails?.description && (
           <div className="mb-2">
             <Label>Description</Label>
-            <p className="text-muted-foreground">
-              {lnAddress?.lnurlpData.description}
-            </p>
+            <p className="text-muted-foreground">{lnurlDetails.description}</p>
           </div>
         )}
         <div className="mb-2">
@@ -91,7 +91,7 @@ export default function LnurlPay() {
             autoFocus
           />
         </div>
-        {!!lnAddress.lnurlpData?.commentAllowed && (
+        {!!lnurlDetails?.commentAllowed && (
           <div className="mb-2">
             <Label htmlFor="comment">Comment</Label>
             <Input
