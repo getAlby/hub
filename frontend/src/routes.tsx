@@ -56,11 +56,11 @@ import { PresetNodeForm } from "src/screens/setup/node/PresetNodeForm";
 import Wallet from "src/screens/wallet";
 import Receive from "src/screens/wallet/Receive";
 import Send from "src/screens/wallet/Send";
-import ConfirmPayment from "src/screens/wallet/Send/ConfirmPayment";
-import LnurlPay from "src/screens/wallet/Send/LnurlPay";
-import PaymentSuccess from "src/screens/wallet/Send/PaymentSuccess";
 import SignMessage from "src/screens/wallet/SignMessage";
 import WithdrawOnchainFunds from "src/screens/wallet/WithdrawOnchainFunds";
+import ConfirmPayment from "src/screens/wallet/send/ConfirmPayment";
+import LnurlPay from "src/screens/wallet/send/LnurlPay";
+import PaymentSuccess from "src/screens/wallet/send/PaymentSuccess";
 
 const routes = [
   {
