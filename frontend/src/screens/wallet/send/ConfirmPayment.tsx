@@ -31,16 +31,17 @@ export default function ConfirmPayment() {
           },
         }
       );
-      if (payInvoiceResponse) {
-        navigate(`/wallet/send/success`, {
-          state: {
-            preimage: payInvoiceResponse.preimage,
-          },
-        });
-        toast({
-          title: "Successfully paid invoice",
-        });
+      if (!payInvoiceResponse?.preimage) {
+        throw new Error("No preimage in response");
       }
+      navigate(`/wallet/send/success`, {
+        state: {
+          preimage: payInvoiceResponse.preimage,
+        },
+      });
+      toast({
+        title: "Successfully paid invoice",
+      });
     } catch (e) {
       toast({
         variant: "destructive",
