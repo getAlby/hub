@@ -1,5 +1,6 @@
 import { Navigate } from "react-router-dom";
 import AppLayout from "src/components/layouts/AppLayout";
+import SendLayout from "src/components/layouts/SendLayout";
 import SettingsLayout from "src/components/layouts/SettingsLayout";
 import TwoColumnFullScreenLayout from "src/components/layouts/TwoColumnFullScreenLayout";
 import { DefaultRedirect } from "src/components/redirects/DefaultRedirect";
@@ -57,6 +58,9 @@ import Receive from "src/screens/wallet/Receive";
 import Send from "src/screens/wallet/Send";
 import SignMessage from "src/screens/wallet/SignMessage";
 import WithdrawOnchainFunds from "src/screens/wallet/WithdrawOnchainFunds";
+import ConfirmPayment from "src/screens/wallet/send/ConfirmPayment";
+import LnurlPay from "src/screens/wallet/send/LnurlPay";
+import PaymentSuccess from "src/screens/wallet/send/PaymentSuccess";
 
 const routes = [
   {
@@ -95,8 +99,26 @@ const routes = [
           },
           {
             path: "send",
-            element: <Send />,
+            element: <SendLayout />,
             handle: { crumb: () => "Send" },
+            children: [
+              {
+                index: true,
+                element: <Send />,
+              },
+              {
+                path: "lnurl-pay",
+                element: <LnurlPay />,
+              },
+              {
+                path: "confirm-payment",
+                element: <ConfirmPayment />,
+              },
+              {
+                path: "success",
+                element: <PaymentSuccess />,
+              },
+            ],
           },
           {
             path: "sign-message",

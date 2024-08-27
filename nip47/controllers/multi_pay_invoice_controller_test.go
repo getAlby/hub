@@ -116,6 +116,10 @@ func TestHandleMultiPayInvoiceEvent_Success(t *testing.T) {
 	if dTags[0].GetFirst([]string{"d"}).Value() != paymentHashes[0] {
 		responses[0], responses[1] = responses[1], responses[0]
 		dTags[0], dTags[1] = dTags[1], dTags[0]
+	}
+	// we can't guarantee which request was processed first
+	// so swap them if they are back to front
+	if responses[0].Result.(payResponse).Preimage != preimages[0] {
 		preimages[0], preimages[1] = preimages[1], preimages[0]
 	}
 

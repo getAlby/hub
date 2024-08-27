@@ -3,6 +3,7 @@ import { AlertTriangle, ArrowDown, CircleCheck, CopyIcon } from "lucide-react";
 import React from "react";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
+import BalanceCard from "src/components/BalanceCard";
 import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
 import {
@@ -14,7 +15,6 @@ import { Button } from "src/components/ui/button";
 import {
   Card,
   CardContent,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
@@ -237,39 +237,14 @@ export default function Receive() {
           )}
         </div>
         {hasChannelManagement && (
-          <Card className="w-full hidden md:block self-start">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Receiving Capacity
-              </CardTitle>
-              <ArrowDown className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              {!balances && (
-                <div>
-                  <div className="animate-pulse d-inline ">
-                    <div className="h-2.5 bg-primary rounded-full w-12 my-2"></div>
-                  </div>
-                </div>
-              )}
-              <div className="text-2xl font-bold">
-                {balances && (
-                  <>
-                    {new Intl.NumberFormat().format(
-                      Math.floor(balances.lightning.totalReceivable / 1000)
-                    )}{" "}
-                    sats
-                  </>
-                )}
-              </div>
-            </CardContent>
-
-            <CardFooter className="flex justify-end">
-              <Link to="/channels/incoming">
-                <Button variant="outline">Increase</Button>
-              </Link>
-            </CardFooter>
-          </Card>
+          <BalanceCard
+            balance={balances.lightning.totalReceivable}
+            title="Receiving Capacity"
+            buttonTitle="Increase"
+            buttonLink="/channels/incoming"
+            BalanceCardIcon={ArrowDown}
+            hasChannelManagement
+          />
         )}
       </div>
     </div>
