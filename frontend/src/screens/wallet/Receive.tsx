@@ -238,13 +238,7 @@ export default function Receive() {
         </div>
         {hasChannelManagement && (
           <BalanceCard
-            balance={
-              balances
-                ? new Intl.NumberFormat(undefined, {}).format(
-                    Math.floor(balances.lightning.totalReceivable / 1000)
-                  )
-                : ""
-            }
+            balance={balances.lightning.totalReceivable}
             title="Receiving Capacity"
             buttonTitle="Increase"
             buttonLink="/channels/incoming"

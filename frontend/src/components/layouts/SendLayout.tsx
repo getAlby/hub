@@ -28,13 +28,7 @@ export default function Send() {
           <Outlet />
         </div>
         <BalanceCard
-          balance={
-            balances
-              ? new Intl.NumberFormat(undefined, {}).format(
-                  Math.floor(balances.lightning.totalSpendable / 1000)
-                )
-              : ""
-          }
+          balance={balances.lightning.totalSpendable}
           title="Spending Balance"
           buttonTitle="Top Up"
           buttonLink="/channels/outgoing"

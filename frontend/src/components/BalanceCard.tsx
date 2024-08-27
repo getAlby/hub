@@ -11,7 +11,7 @@ import {
 
 type BalanceCardProps = {
   title: string;
-  balance: string;
+  balance: number;
   buttonTitle: string;
   buttonLink: string;
   hasChannelManagement: boolean;
@@ -33,18 +33,12 @@ function BalanceCard({
         <BalanceCardIcon className="h-4 w-4 text-muted-foreground" />
       </CardHeader>
       <CardContent>
-        {!balance && (
-          <div>
-            <div className="animate-pulse d-inline ">
-              <div className="h-2.5 bg-primary rounded-full w-12 my-2"></div>
-            </div>
-          </div>
-        )}
-        {balance && (
-          <div className="text-2xl font-bold balance sensitive">
-            {balance} sats
-          </div>
-        )}
+        <div className="text-2xl font-bold balance sensitive">
+          {new Intl.NumberFormat(undefined, {}).format(
+            Math.floor(balance / 1000)
+          )}{" "}
+          sats
+        </div>
       </CardContent>
       {hasChannelManagement && (
         <CardFooter className="flex justify-end">
