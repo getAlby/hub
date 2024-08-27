@@ -7,15 +7,14 @@ import { useToast } from "src/components/ui/use-toast";
 
 import { LightningAddress, LnUrlPayResponse } from "@getalby/lightning-tools";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { PayInvoiceResponse } from "src/types";
-import { request } from "src/utils/request";
+import Loading from "src/components/Loading";
 
 export default function LnurlPay() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const lnurlDetails = state.args?.lnurlDetails as LnUrlPayResponse;
+  const lnurlDetails = state?.args?.lnurlDetails as LnUrlPayResponse;
   const [amount, setAmount] = React.useState("");
   const [comment, setComment] = React.useState("");
   const [isLoading, setLoading] = React.useState(false);
@@ -32,25 +31,11 @@ export default function LnurlPay() {
         satoshi: parseInt(amount),
         comment,
       });
-      const payInvoiceResponse = await request<PayInvoiceResponse>(
-        `/api/payments/${invoice.paymentRequest}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      if (payInvoiceResponse) {
-        navigate(`/wallet/send/success`, {
-          state: {
-            preimage: payInvoiceResponse.preimage,
-          },
-        });
-        toast({
-          title: "Successfully paid invoice",
-        });
-      }
+      navigate(`/wallet/send/confirm-payment`, {
+        state: {
+          args: { paymentRequest: invoice },
+        },
+      });
     } catch (e) {
       toast({
         variant: "destructive",
@@ -63,9 +48,14 @@ export default function LnurlPay() {
     }
   };
 
-  if (!state.args?.lnurlDetails) {
-    navigate("/wallet/send");
-    return null;
+  React.useEffect(() => {
+    if (!lnurlDetails) {
+      navigate("/wallet/send");
+    }
+  }, [navigate, lnurlDetails]);
+
+  if (!lnurlDetails) {
+    return <Loading />;
   }
 
   return (
@@ -109,8 +99,8 @@ export default function LnurlPay() {
         )}
       </div>
       <div className="flex gap-4">
-        <LoadingButton loading={isLoading} type="submit" disabled={!amount}>
-          Confirm Payment
+        <LoadingButton loading={isLoading} type="submit">
+          Continue
         </LoadingButton>
         <Link to="/wallet/send">
           <Button variant="secondary">Back</Button>

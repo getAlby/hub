@@ -6,6 +6,7 @@ import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 
 import { Invoice } from "@getalby/lightning-tools";
+import Loading from "src/components/Loading";
 import { PayInvoiceResponse } from "src/types";
 import { request } from "src/utils/request";
 
@@ -14,7 +15,7 @@ export default function ConfirmPayment() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const invoice = state.args?.paymentRequest as Invoice;
+  const invoice = state?.args?.paymentRequest as Invoice;
   const [isLoading, setLoading] = React.useState(false);
 
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -52,9 +53,14 @@ export default function ConfirmPayment() {
     }
   };
 
-  if (!state.args?.paymentRequest) {
-    navigate("/wallet/send");
-    return null;
+  React.useEffect(() => {
+    if (!invoice) {
+      navigate("/wallet/send");
+    }
+  }, [navigate, invoice]);
+
+  if (!invoice) {
+    return <Loading />;
   }
 
   return (
