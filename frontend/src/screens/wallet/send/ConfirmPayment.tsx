@@ -69,9 +69,11 @@ export default function ConfirmPayment() {
         <p className="font-medium text-lg mb-2">Payment Details</p>
         <div>
           <Label>Amount</Label>
-          <p className="font-bold">{invoice?.satoshi} sats</p>
+          <p className="font-bold">
+            {new Intl.NumberFormat().format(invoice.satoshi)} sats
+          </p>
         </div>
-        {invoice?.description && (
+        {invoice.description && (
           <div className="mt-2">
             <Label>Description</Label>
             <p className="text-muted-foreground">{invoice.description}</p>
