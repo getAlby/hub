@@ -116,7 +116,7 @@ export function SetupPassword() {
                     }
                   />
                   <Label
-                    htmlFor="securePassword"
+                    htmlFor="securePassword2"
                     className="ml-2 leading-4 font-semibold text-destructive"
                   >
                     I understand this password cannot be recovered
