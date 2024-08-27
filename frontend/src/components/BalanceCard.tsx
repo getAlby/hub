@@ -34,10 +34,7 @@ function BalanceCard({
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold balance sensitive">
-          {new Intl.NumberFormat(undefined, {}).format(
-            Math.floor(balance / 1000)
-          )}{" "}
-          sats
+          {new Intl.NumberFormat().format(Math.floor(balance / 1000))} sats
         </div>
       </CardContent>
       {hasChannelManagement && (

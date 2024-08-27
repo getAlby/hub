@@ -105,7 +105,7 @@ function TransactionItem({ tx }: Props) {
                 )}
               >
                 {type == "outgoing" ? "-" : "+"}
-                {new Intl.NumberFormat(undefined, {}).format(
+                {new Intl.NumberFormat().format(
                   Math.floor(tx.amount / 1000)
                 )}{" "}
               </p>
@@ -147,9 +147,7 @@ function TransactionItem({ tx }: Props) {
               </div>
               <div className="ml-4">
                 <p className="text-xl md:text-2xl font-semibold">
-                  {new Intl.NumberFormat(undefined, {}).format(
-                    Math.floor(tx.amount / 1000)
-                  )}{" "}
+                  {new Intl.NumberFormat().format(Math.floor(tx.amount / 1000))}{" "}
                   {Math.floor(tx.amount / 1000) == 1 ? "sat" : "sats"}
                 </p>
                 {/* <p className="text-sm md:text-base text-muted-foreground">
@@ -169,7 +167,7 @@ function TransactionItem({ tx }: Props) {
               <div className="mt-6">
                 <p>Fee</p>
                 <p className="text-muted-foreground">
-                  {new Intl.NumberFormat(undefined, {}).format(
+                  {new Intl.NumberFormat().format(
                     Math.floor(tx.feesPaid / 1000)
                   )}{" "}
                   {Math.floor(tx.feesPaid / 1000) == 1 ? "sat" : "sats"}

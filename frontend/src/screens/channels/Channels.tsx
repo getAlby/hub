@@ -387,7 +387,7 @@ export default function Channels() {
             )}
             {balances && (
               <div className="text-2xl font-bold balance sensitive">
-                {new Intl.NumberFormat(undefined, {}).format(
+                {new Intl.NumberFormat().format(
                   Math.floor(balances.lightning.totalSpendable / 1000)
                 )}{" "}
                 sats
