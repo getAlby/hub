@@ -54,7 +54,7 @@ export default function Send() {
       } catch (error) {
         toast({
           variant: "destructive",
-          title: "Failed to send payment",
+          title: "Invalid recipient",
           description: "" + error,
         });
         console.error(error);
