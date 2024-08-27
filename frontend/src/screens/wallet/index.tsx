@@ -4,6 +4,7 @@ import {
   ArrowUpIcon,
   CreditCard,
 } from "lucide-react";
+import React from "react";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import BreezRedeem from "src/components/BreezRedeem";
@@ -17,15 +18,24 @@ import {
   AlertTitle,
 } from "src/components/ui/alert.tsx";
 import { Button } from "src/components/ui/button";
+import { LoadingButton } from "src/components/ui/loading-button";
+import { useToast } from "src/components/ui/use-toast";
 import { ALBY_HIDE_HOSTED_BALANCE_BELOW as ALBY_HIDE_HOSTED_BALANCE_LIMIT } from "src/constants.ts";
 import { useAlbyBalance } from "src/hooks/useAlbyBalance";
 import { useBalances } from "src/hooks/useBalances";
+import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
+import { request } from "src/utils/request";
 
 function Wallet() {
   const { data: info, hasChannelManagement } = useInfo();
   const { data: balances } = useBalances();
-  const { data: albyBalance } = useAlbyBalance();
+  const { data: channels } = useChannels();
+  const { data: albyBalance, mutate: reloadAlbyBalance } = useAlbyBalance();
+  const [drainingAlbySharedFunds, setDrainingAlbySharedFunds] =
+    React.useState(false);
+
+  const { toast } = useToast();
 
   if (!info || !balances) {
     return <Loading />;
@@ -52,11 +62,57 @@ function Wallet() {
               sats) still hosted by Alby.
             </h3>
             <p className="text-sm text-muted-foreground">
-              Migrate them to your Alby Hub to start using your wallet.
+              {channels && channels.length > 0
+                ? "Transfer funds to increase your spending capacity."
+                : "Migrate them to your Alby Hub to start using your wallet."}
             </p>
-            <Link to="/channels/first">
-              <Button className="mt-4">Migrate Funds</Button>
-            </Link>
+            {channels && channels.length > 0 ? (
+              <LoadingButton
+                className="mt-4"
+                loading={drainingAlbySharedFunds}
+                onClick={async () => {
+                  if (
+                    !channels?.some(
+                      (channel) =>
+                        channel.remoteBalance / 1000 > albyBalance.sats
+                    )
+                  ) {
+                    toast({
+                      title: "Please increase your receiving capacity first",
+                    });
+                    return;
+                  }
+
+                  setDrainingAlbySharedFunds(true);
+                  try {
+                    await request("/api/alby/drain", {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                    });
+                    await reloadAlbyBalance();
+                    toast({
+                      description:
+                        "🎉 Funds from Alby shared wallet transferred to your Alby Hub!",
+                    });
+                  } catch (error) {
+                    console.error(error);
+                    toast({
+                      variant: "destructive",
+                      description: "Something went wrong: " + error,
+                    });
+                  }
+                  setDrainingAlbySharedFunds(false);
+                }}
+              >
+                Transfer Funds
+              </LoadingButton>
+            ) : (
+              <Link to="/channels/first">
+                <Button className="mt-4">Migrate Funds</Button>
+              </Link>
+            )}
           </div>
         </div>
       )}
