@@ -1,6 +1,6 @@
 import { ClipboardPaste } from "lucide-react";
 import React from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Loading from "src/components/Loading";
 import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
@@ -17,12 +17,8 @@ export default function Send() {
   const { data: channels } = useChannels();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { search } = useLocation();
 
-  const queryParams = new URLSearchParams(search);
-  const recipientParam = queryParams.get("recipient") ?? "";
-
-  const [recipient, setRecipient] = React.useState<string>(recipientParam);
+  const [recipient, setRecipient] = React.useState("");
   const [isLoading, setLoading] = React.useState(false);
 
   const paste = async () => {
@@ -30,51 +26,38 @@ export default function Send() {
     setRecipient(text.trim());
   };
 
-  const handleNavigation = React.useCallback(
-    async (recipient: string) => {
-      try {
-        setLoading(true);
-        const lnAddress = new LightningAddress(recipient);
-        await lnAddress.fetch();
-        if (lnAddress.lnurlpData) {
-          navigate(`/wallet/send/lnurl-pay`, {
-            state: {
-              args: { lnurlDetails: lnAddress.lnurlpData },
-            },
-          });
-          return;
-        }
-
-        const invoice = new Invoice({ pr: recipient });
-        navigate(`/wallet/send/confirm-payment`, {
-          state: {
-            args: { paymentRequest: invoice },
-          },
-        });
-      } catch (error) {
-        toast({
-          variant: "destructive",
-          title: "Invalid recipient",
-          description: "" + error,
-        });
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [navigate, toast]
-  );
-
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    await handleNavigation(recipient);
-  };
+    try {
+      setLoading(true);
+      const lnAddress = new LightningAddress(recipient);
+      await lnAddress.fetch();
+      if (lnAddress.lnurlpData) {
+        navigate(`/wallet/send/lnurl-pay`, {
+          state: {
+            args: { lnurlDetails: lnAddress.lnurlpData },
+          },
+        });
+        return;
+      }
 
-  React.useEffect(() => {
-    if (recipientParam) {
-      handleNavigation(recipientParam);
+      const invoice = new Invoice({ pr: recipient });
+      navigate(`/wallet/send/confirm-payment`, {
+        state: {
+          args: { paymentRequest: invoice },
+        },
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Invalid recipient",
+        description: "" + error,
+      });
+      console.error(error);
+    } finally {
+      setLoading(false);
     }
-  }, [handleNavigation, recipientParam]);
+  };
 
   if (!balances || !channels) {
     return <Loading />;
