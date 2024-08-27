@@ -50,7 +50,7 @@ jobs:
       - name: Setup
         run: |
           echo "EXEC_NAME=albyhub" >> $GITHUB_ENV
-          if [ "${{ matrix.build.os }}" == "macos-12" ]; then
+          if [ "${{ runner.os }}" == "macOS" ]; then
             echo "PACKAGE_NAME=albyhub-Server-MacOS" >> $GITHUB_ENV
           else
             echo "PACKAGE_NAME=albyhub-Server-Linux-${{ matrix.build.arch }}" >> $GITHUB_ENV
@@ -62,13 +62,13 @@ jobs:
           submodules: recursive
 
       - name: Install Linux dependencies
-        if: matrix.build.os == 'ubuntu-20.04'
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y patchelf gcc
 
       - name: Install macOS Wails deps
-        if: matrix.build.os == 'macos-12'
+        if: runner.os == 'macOS'
         run: |
           brew install Bearer/tap/gon
         shell: bash
@@ -127,7 +127,7 @@ jobs:
         run: go build ${{ env.GOTAGS }} -o build/bin/${{ env.PACKAGE_NAME }}/bin/${{ env.EXEC_NAME }} -ldflags "-X 'github.com/getAlby/hub/version.Tag=${{ env.TAG }}'" cmd/http/main.go
 
       - name: Import Code-Signing Certificates for macOS
-        if: matrix.build.os == 'macos-12'
+        if: runner.os == 'macOS'
         uses: Apple-Actions/import-codesign-certs@v3
         with:
           # The certificates in a PKCS12 file encoded as a base64 string
@@ -136,7 +136,7 @@ jobs:
           p12-password: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_PASSWORD }}
 
       - name: Copy shared libraries to the output directory
-        if: matrix.build.os == 'ubuntu-20.04'
+        if: runner.os == 'Linux'
         run: |
           mkdir -p ./build/bin/${{ env.PACKAGE_NAME }}/lib
           if [ "${{ matrix.build.breez_arch }}" != "" ]; then
@@ -147,12 +147,12 @@ jobs:
         shell: bash
 
       - name: Patch executable RPATH
-        if: matrix.build.os == 'ubuntu-20.04'
+        if: runner.os == 'Linux'
         run: |
           patchelf --force-rpath --set-rpath '$ORIGIN/../lib' ./build/bin/${{ env.PACKAGE_NAME }}/bin/${{ env.EXEC_NAME }}
 
       - name: Copy shared libraries to the output directory
-        if: matrix.build.os == 'macos-12'
+        if: runner.os == 'macOS'
         run: |
           lipo -create -output ./build/bin/${{ env.PACKAGE_NAME }}/lib/libbreez_sdk_bindings.dylib `go list -m -f "{{.Dir}}" github.com/breez/breez-sdk-go`/breez_sdk/lib/darwin-aarch64/libbreez_sdk_bindings.dylib `go list -m -f "{{.Dir}}" github.com/breez/breez-sdk-go`/breez_sdk/lib/darwin-amd64/libbreez_sdk_bindings.dylib
           cp `go list -m -f "{{.Dir}}" github.com/getAlby/glalby-go`/glalby/universal-macos/libglalby_bindings.dylib ./build/bin/${{ env.PACKAGE_NAME }}/lib/
@@ -160,7 +160,7 @@ jobs:
         shell: bash
 
       - name: Patch executable RPATH
-        if: matrix.build.os == 'macos-12'
+        if: runner.os == 'macOS'
         run: |
           install_name_tool -add_rpath @executable_path/../lib ./build/bin/${{ env.PACKAGE_NAME }}/bin/${{ env.EXEC_NAME }}
 
@@ -170,7 +170,7 @@ jobs:
         shell: bash
 
       - name: Sign the MacOS binary and libraries
-        if: matrix.build.os == 'macos-12'
+        if: runner.os == 'macOS'
         run: |
           /usr/bin/codesign -s "Developer ID Application: Alby Inc." -f -v --deep --timestamp --options runtime ./build/bin/${{ env.PACKAGE_NAME }}/bin/${{ env.EXEC_NAME }}
           /usr/bin/codesign -s "Developer ID Application: Alby Inc." -f -v --deep --timestamp --options runtime ./build/bin/${{ env.PACKAGE_NAME }}/lib/*.dylib
@@ -180,13 +180,13 @@ jobs:
           AC_PROVIDER: ${{ secrets.APPLE_TEAM_ID }}
 
       - name: Make output tar archive to keep file permissions
-        if: matrix.build.os == 'ubuntu-20.04'
+        if: runner.os == 'Linux'
         run: |
           mkdir -p ./build/out
           tar -cjf ./build/out/${{ env.PACKAGE_NAME }}.tar.bz2 -C ./build/bin/${{ env.PACKAGE_NAME }} .
 
       - name: Make output zip archive to keep file permissions
-        if: matrix.build.os == 'macos-12'
+        if: runner.os == 'macOS'
         run: |
           mkdir -p ./build/out
           cd ./build/bin/${{ env.PACKAGE_NAME }}
@@ -194,7 +194,7 @@ jobs:
           cd ../../..
 
       - name: Notarize the zip file
-        if: matrix.build.os == 'macos-12' && inputs.build-release
+        if: runner.os == 'macOS' && inputs.build-release
         run: |
           echo "Notarizing Zip Files"
           gon -log-level=info -log-json ./build/darwin/http/gon-notarize.json
@@ -204,7 +204,7 @@ jobs:
           AC_PROVIDER: ${{ secrets.APPLE_TEAM_ID }}
 
       - uses: actions/upload-artifact@v4
-        if: matrix.build.os == 'ubuntu-20.04'
+        if: runner.os == 'Linux'
         with:
           name: ${{ env.PACKAGE_NAME }}
           path: |
@@ -212,7 +212,7 @@ jobs:
           if-no-files-found: error
 
       - uses: actions/upload-artifact@v4
-        if: matrix.build.os == 'macos-12'
+        if: runner.os == 'macOS'
         with:
           name: ${{ env.PACKAGE_NAME }}
           path: |
