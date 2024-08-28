@@ -41,8 +41,8 @@ func (svc *service) startNostr(ctx context.Context, encryptionKey string) error 
 		"npub": npub,
 		"hex":  svc.keys.GetNostrPublicKey(),
 	}).Info("Starting Alby Hub")
+	svc.wg.Add(1)
 	go func() {
-		svc.wg.Add(1)
 		// ensure the relay is properly disconnected before exiting
 		defer svc.wg.Done()
 		//Start infinite loop which will be only broken by canceling ctx (SIGINT)
@@ -154,9 +154,9 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 		return errors.New("LNClient already started")
 	}
 
+	svc.wg.Add(1)
 	go func() {
 		// ensure the LNClient is stopped properly before exiting
-		svc.wg.Add(1)
 		<-ctx.Done()
 		svc.stopLNClient()
 	}()
