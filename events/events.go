@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/getAlby/hub/logger"
+	"github.com/getAlby/hub/version"
 	"github.com/sirupsen/logrus"
 )
 
@@ -20,6 +21,7 @@ func NewEventPublisher() *eventPublisher {
 		listeners:        []EventSubscriber{},
 		globalProperties: map[string]interface{}{},
 	}
+	eventPublisher.SetGlobalProperty("version", version.Tag)
 	return eventPublisher
 }
 
