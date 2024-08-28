@@ -63,8 +63,8 @@ function Wallet() {
             </h3>
             <p className="text-sm text-muted-foreground">
               {channels && channels.length > 0
-                ? "Transfer funds to increase your spending capacity."
-                : "Migrate them to your Alby Hub to start using your wallet."}
+                ? "Transfer funds from your Alby hosted balance to your self-custodial wallet."
+                : "Migrate funds from your Alby hosted balance to start using your self-custodial wallet."}
             </p>
             {channels && channels.length > 0 ? (
               <LoadingButton
