@@ -1,6 +1,8 @@
 name: HTTP build - Linux and MacOS
 on:
   push:
+  pull_request:
+    types: [opened, synchronize]
   workflow_call:
     inputs:
       build-release:

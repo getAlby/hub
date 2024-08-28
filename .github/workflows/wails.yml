@@ -2,6 +2,8 @@ name: Wails build - all platforms
 
 on:
   push:
+  pull_request:
+    types: [opened, synchronize]
 
   workflow_call:
     inputs:
