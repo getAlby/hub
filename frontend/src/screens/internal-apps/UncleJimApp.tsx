@@ -178,7 +178,7 @@ export function UncleJimApp() {
               <AccordionTrigger>Alby Extension</AccordionTrigger>
               <AccordionContent>
                 <p className="text-muted-foreground text-sm mb-5">
-                  2. Send {name} the below connection secret which they can add
+                  1. Send {name} the below connection secret which they can add
                   to their Alby Extension by choosing "Bring Your Own Wallet"{" "}
                   {"->"} "Nostr Wallet Connect" and pasting the connection
                   secret. Do not to share this publicly as it contains the
