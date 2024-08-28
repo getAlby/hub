@@ -17,7 +17,7 @@ import (
 )
 
 func main() {
-	log.Info("NWC Starting in HTTP mode")
+	log.Info("AlbyHub Starting in HTTP mode")
 
 	// Create a channel to receive OS signals.
 	osSignalChannel := make(chan os.Signal, 1)
