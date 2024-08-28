@@ -78,7 +78,6 @@ export default function DepositBitcoin() {
                 className="w-28"
                 onClick={() => {
                   copyToClipboard(onchainAddress, toast);
-                  toast({ title: "Copied to clipboard." });
                 }}
               >
                 <Copy className="w-4 h-4 mr-2" />

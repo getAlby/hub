@@ -38,7 +38,6 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
 
   const copy = (text: string) => {
     copyToClipboard(text, toast);
-    toast({ title: "Copied to clipboard." });
   };
 
   async function closeChannel() {

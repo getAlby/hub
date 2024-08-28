@@ -42,7 +42,6 @@ function TransactionItem({ tx }: Props) {
 
   const copy = (text: string) => {
     copyToClipboard(text, toast);
-    toast({ title: "Copied to clipboard." });
   };
 
   return (

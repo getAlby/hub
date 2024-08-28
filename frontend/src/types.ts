@@ -157,13 +157,13 @@ export interface MnemonicResponse {
 
 export interface CreateAppRequest {
   name: string;
-  pubkey: string;
-  maxAmount: number;
-  budgetRenewal: string;
-  expiresAt: string | undefined;
+  pubkey?: string;
+  maxAmount?: number;
+  budgetRenewal?: string;
+  expiresAt?: string;
   scopes: Scope[];
-  returnTo: string;
-  isolated: boolean;
+  returnTo?: string;
+  isolated?: boolean;
 }
 
 export interface CreateAppResponse {

@@ -16,9 +16,9 @@ import {
 import React from "react";
 import AppHeader from "src/components/AppHeader";
 import Loading from "src/components/Loading";
-import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
+import { LoadingButton } from "src/components/ui/loading-button";
 import { Separator } from "src/components/ui/separator";
 import { useToast } from "src/components/ui/use-toast";
 import { useApps } from "src/hooks/useApps";
@@ -48,6 +48,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
   const navigate = useNavigate();
   const { data: apps } = useApps();
   const [unsupportedError, setUnsupportedError] = useState<string>();
+  const [isLoading, setLoading] = React.useState(false);
 
   const queryParams = new URLSearchParams(location.search);
 
@@ -120,7 +121,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
       scopes.push("pay_invoice");
     }
 
-    if (requestMethodsSet.has("get_info") && isolatedParam !== "true") {
+    if (requestMethodsSet.has("get_info")) {
       scopes.push("get_info");
     }
     if (requestMethodsSet.has("get_balance")) {
@@ -181,6 +182,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
       return;
     }
 
+    setLoading(true);
     try {
       if (apps?.some((existingApp) => existingApp.name === appName)) {
         throw new Error("A connection with the same name already exists.");
@@ -221,6 +223,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
     } catch (error) {
       handleRequestError(toast, "Failed to create app", error);
     }
+    setLoading(false);
   };
 
   if (unsupportedError) {
@@ -288,7 +291,9 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
           </p>
         )}
 
-        <Button type="submit">{pubkey ? "Connect" : "Next"}</Button>
+        <LoadingButton loading={isLoading} type="submit">
+          {pubkey ? "Connect" : "Next"}
+        </LoadingButton>
       </form>
     </>
   );

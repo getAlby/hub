@@ -27,7 +27,6 @@ export default function WithdrawOnchainFunds() {
 
   const copy = (text: string) => {
     copyToClipboard(text, toast);
-    toast({ title: "Copied to clipboard." });
   };
 
   const redeemFunds = React.useCallback(
