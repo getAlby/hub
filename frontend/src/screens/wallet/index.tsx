@@ -59,7 +59,7 @@ function Wallet() {
             />
             <h3 className="mt-4 text-lg font-semibold">
               Your funds ({new Intl.NumberFormat().format(albyBalance?.sats)}{" "}
-              sats) still hosted by Alby.
+              sats) are still hosted by Alby.
             </h3>
             <p className="text-sm text-muted-foreground">
               {channels && channels.length > 0
