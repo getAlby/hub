@@ -17,6 +17,7 @@ import { ChannelsCards } from "src/components/channels/ChannelsCards.tsx";
 import { ChannelsTable } from "src/components/channels/ChannelsTable.tsx";
 import EmptyState from "src/components/EmptyState.tsx";
 import ExternalLink from "src/components/ExternalLink";
+import { TransferFundsButton } from "src/components/TransferFundsButton";
 import {
   Alert,
   AlertDescription,
@@ -39,7 +40,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "src/components/ui/dropdown-menu.tsx";
-import { LoadingButton } from "src/components/ui/loading-button.tsx";
 import { CircleProgress } from "src/components/ui/progress.tsx";
 import {
   Tooltip,
@@ -73,8 +73,6 @@ export default function Channels() {
   const [nodes, setNodes] = React.useState<Node[]>([]);
 
   const { toast } = useToast();
-  const [drainingAlbySharedFunds, setDrainingAlbySharedFunds] =
-    React.useState(false);
   const isDesktop = useIsDesktop();
 
   const nodeHealth = channels ? getNodeHealth(channels) : 0;
@@ -252,51 +250,18 @@ export default function Channels() {
             </CardHeader>
             <CardContent className="flex-grow">
               <div className="text-2xl font-bold">
-                {new Intl.NumberFormat().format(albyBalance?.sats)} sats
+                {new Intl.NumberFormat().format(albyBalance.sats)} sats
               </div>
             </CardContent>
             <CardFooter className="flex justify-end space-x-1">
-              <LoadingButton
-                loading={drainingAlbySharedFunds}
-                onClick={async () => {
-                  if (
-                    !channels?.some(
-                      (channel) =>
-                        channel.remoteBalance / 1000 > albyBalance.sats
-                    )
-                  ) {
-                    toast({
-                      title: "Please increase your receiving capacity first",
-                    });
-                    return;
-                  }
-
-                  setDrainingAlbySharedFunds(true);
-                  try {
-                    await request("/api/alby/drain", {
-                      method: "POST",
-                      headers: {
-                        "Content-Type": "application/json",
-                      },
-                    });
-                    await reloadAlbyBalance();
-                    toast({
-                      description:
-                        "🎉 Funds from Alby shared wallet transferred to your Alby Hub!",
-                    });
-                  } catch (error) {
-                    console.error(error);
-                    toast({
-                      variant: "destructive",
-                      description: "Something went wrong: " + error,
-                    });
-                  }
-                  setDrainingAlbySharedFunds(false);
-                }}
+              <TransferFundsButton
                 variant="outline"
+                channels={channels}
+                albyBalance={albyBalance}
+                reloadAlbyBalance={reloadAlbyBalance}
               >
                 Transfer
-              </LoadingButton>
+              </TransferFundsButton>
             </CardFooter>
           </Card>
         )}
