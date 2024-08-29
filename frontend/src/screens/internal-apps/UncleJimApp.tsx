@@ -1,6 +1,7 @@
 import { CopyIcon } from "lucide-react";
 import React from "react";
 import AppHeader from "src/components/AppHeader";
+import AppCard from "src/components/connections/AppCard";
 import ExternalLink from "src/components/ExternalLink";
 import {
   Accordion,
@@ -54,6 +55,9 @@ export function UncleJimApp() {
           "pay_invoice",
         ],
         isolated: true,
+        metadata: {
+          app_store_app_id: "uncle-jim",
+        },
       };
 
       const createAppResponse = await request<CreateAppResponse>("/api/apps", {
@@ -82,6 +86,10 @@ export function UncleJimApp() {
   const valueTag = `<podcast:value type="lightning" method="keysend">
   <podcast:valueRecipient name="${name}" type="node" address="${nodeConnectionInfo?.pubkey}" customKey="696969"  customValue="${app?.id}" split="100"/>
 </podcast:value>`;
+
+  const onboardedApps = apps?.filter(
+    (app) => app.metadata?.app_store_app_id === "uncle-jim"
+  );
 
   return (
     <div className="grid gap-5">
@@ -113,6 +121,20 @@ export function UncleJimApp() {
               Create Wallet
             </LoadingButton>
           </form>
+
+          {!!onboardedApps?.length && (
+            <>
+              <p className="text-sm text-muted-foreground">
+                Great job! You've onboarded {onboardedApps.length} friends and
+                family members so far.
+              </p>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch app-list">
+                {onboardedApps.map((app, index) => (
+                  <AppCard key={index} app={app} />
+                ))}
+              </div>{" "}
+            </>
+          )}
         </>
       )}
       {connectionSecret && (

@@ -38,7 +38,10 @@ function TransactionItem({ tx }: Props) {
   const [showDetails, setShowDetails] = React.useState(false);
   const type = tx.type;
   const Icon = tx.type == "outgoing" ? ArrowUpIcon : ArrowDownIcon;
-  const app = tx.appId && apps?.find((app) => app.id === tx.appId);
+  const app =
+    tx.appId !== undefined
+      ? apps?.find((app) => app.id === tx.appId)
+      : undefined;
 
   const copy = (text: string) => {
     copyToClipboard(text, toast);
@@ -58,7 +61,7 @@ function TransactionItem({ tx }: Props) {
           <div className="flex items-center">
             {app ? (
               <AppAvatar
-                appName={app.name}
+                app={app}
                 className="border-none p-0 rounded-full w-10 h-10 md:w-14 md:h-14"
               />
             ) : (

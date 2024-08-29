@@ -75,7 +75,8 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 		createAppRequest.BudgetRenewal,
 		expiresAt,
 		createAppRequest.Scopes,
-		createAppRequest.Isolated)
+		createAppRequest.Isolated,
+		createAppRequest.Metadata)
 
 	if err != nil {
 		return nil, err
@@ -220,6 +221,16 @@ func (api *api) GetApp(dbApp *db.App) *App {
 	maxAmount := uint64(paySpecificPermission.MaxAmountSat)
 	budgetUsage = queries.GetBudgetUsageSat(api.db, &paySpecificPermission)
 
+	var metadata Metadata
+	if dbApp.Metadata != nil {
+		jsonErr := json.Unmarshal(dbApp.Metadata, &metadata)
+		if jsonErr != nil {
+			logger.Logger.WithError(jsonErr).WithFields(logrus.Fields{
+				"app_id": dbApp.ID,
+			}).Error("Failed to deserialize app metadata")
+		}
+	}
+
 	response := App{
 		ID:            dbApp.ID,
 		Name:          dbApp.Name,
@@ -233,6 +244,7 @@ func (api *api) GetApp(dbApp *db.App) *App {
 		BudgetUsage:   budgetUsage,
 		BudgetRenewal: paySpecificPermission.BudgetRenewal,
 		Isolated:      dbApp.Isolated,
+		Metadata:      metadata,
 	}
 
 	if dbApp.Isolated {
@@ -298,6 +310,17 @@ func (api *api) ListApps() ([]App, error) {
 		lastEventResult := api.db.Where("app_id = ?", dbApp.ID).Order("id desc").Limit(1).Find(&lastEvent)
 		if lastEventResult.RowsAffected > 0 {
 			apiApp.LastEventAt = &lastEvent.CreatedAt
+		}
+
+		var metadata Metadata
+		if dbApp.Metadata != nil {
+			jsonErr := json.Unmarshal(dbApp.Metadata, &metadata)
+			if jsonErr != nil {
+				logger.Logger.WithError(jsonErr).WithFields(logrus.Fields{
+					"app_id": dbApp.ID,
+				}).Error("Failed to deserialize app metadata")
+			}
+			apiApp.Metadata = metadata
 		}
 
 		apiApps = append(apiApps, apiApp)

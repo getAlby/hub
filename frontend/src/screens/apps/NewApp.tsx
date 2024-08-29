@@ -53,13 +53,15 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
   const queryParams = new URLSearchParams(location.search);
 
   const appId = queryParams.get("app") ?? "";
-  const app = suggestedApps.find((app) => app.id === appId);
+  const appStoreApp = suggestedApps.find((app) => app.id === appId);
 
   const pubkey = queryParams.get("pubkey") ?? "";
   const returnTo = queryParams.get("return_to") ?? "";
 
   const nameParam = (queryParams.get("name") || queryParams.get("c")) ?? "";
-  const [appName, setAppName] = useState(app ? app.title : nameParam);
+  const [appName, setAppName] = useState(
+    appStoreApp ? appStoreApp.title : nameParam
+  );
 
   const budgetRenewalParam = queryParams.get(
     "budget_renewal"
@@ -197,6 +199,9 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
         expiresAt: permissions.expiresAt?.toISOString(),
         returnTo: returnTo,
         isolated: permissions.isolated,
+        metadata: {
+          app_store_app_id: appStoreApp?.id,
+        },
       };
 
       const createAppResponse = await request<CreateAppResponse>("/api/apps", {
@@ -216,7 +221,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
         window.location.href = createAppResponse.returnTo;
         return;
       }
-      navigate(`/apps/created${app ? `?app=${app.id}` : ""}`, {
+      navigate(`/apps/created${appStoreApp ? `?app=${appStoreApp.id}` : ""}`, {
         state: createAppResponse,
       });
       toast({ title: "App created" });
@@ -246,10 +251,10 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
         acceptCharset="UTF-8"
         className="flex flex-col items-start gap-5 max-w-lg"
       >
-        {app && (
+        {appStoreApp && (
           <div className="flex flex-row items-center gap-3">
-            <img src={app.logo} className="h-12 w-12" />
-            <h2 className="font-semibold text-lg">{app.title}</h2>
+            <img src={appStoreApp.logo} className="h-12 w-12" />
+            <h2 className="font-semibold text-lg">{appStoreApp.title}</h2>
           </div>
         )}
         {!nameParam && (

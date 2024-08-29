@@ -82,7 +82,7 @@ export default function ConfirmPayment() {
         )}
       </div>
       <div className="flex gap-4">
-        <LoadingButton loading={isLoading} type="submit">
+        <LoadingButton loading={isLoading} type="submit" autoFocus>
           Confirm Payment
         </LoadingButton>
         <Link to="/wallet/send">

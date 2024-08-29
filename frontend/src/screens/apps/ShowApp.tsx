@@ -146,7 +146,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
           <AppHeader
             title={
               <div className="flex flex-row items-center">
-                <AppAvatar appName={app.name} className="w-10 h-10 mr-2" />
+                <AppAvatar app={app} className="w-10 h-10 mr-2" />
                 {isEditingName ? (
                   <div className="flex flex-row gap-2 items-center">
                     <Input
