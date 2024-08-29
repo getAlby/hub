@@ -33,8 +33,8 @@ export type SuggestedApp = {
 export const suggestedApps: SuggestedApp[] = [
   {
     id: "uncle-jim",
-    title: "Uncle Jim",
-    description: "Onboard your friends and family with your hub",
+    title: "Friends & Family",
+    description: "Subaccounts for your friends and family powered by your Hub",
     internal: true,
     logo: uncleJim,
   },

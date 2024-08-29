@@ -86,20 +86,17 @@ export function UncleJimApp() {
   return (
     <div className="grid gap-5">
       <AppHeader
-        title="Uncle Jim"
-        description="Onboard your friends and family with new wallets powered by your hub"
+        title="Friends & Family"
+        description="Create subaccounts for your friends and family powered by your Hub"
       />
       {!connectionSecret && (
         <>
-          <p className="text-muted-foreground text-sm">
-            Step 1. Enter the name of your friend or family member
-          </p>
           <form
             onSubmit={handleSubmit}
             className="flex flex-col items-start gap-5 max-w-lg"
           >
             <div className="w-full grid gap-1.5">
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="name">Name of friend or family member</Label>
               <Input
                 autoFocus
                 type="text"
