@@ -3,6 +3,7 @@ package wails
 import (
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"os"
 	"regexp"
 	"strconv"
@@ -805,18 +806,21 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 
 	if strings.HasPrefix(route, "/api/log/") {
 		logType := strings.TrimPrefix(route, "/api/log/")
+		logType = strings.Split(logType, "?")[0]
 		if logType != api.LogTypeNode && logType != api.LogTypeApp {
 			return WailsRequestRouterResponse{Body: nil, Error: fmt.Sprintf("Invalid log type: '%s'", logType)}
 		}
-		getLogOutputRequest := &api.GetLogOutputRequest{}
-		err := json.Unmarshal([]byte(body), getLogOutputRequest)
+		parsedUrl, err := url.Parse(route)
 		if err != nil {
-			logger.Logger.WithFields(logrus.Fields{
-				"route":  route,
-				"method": method,
-				"body":   body,
-			}).WithError(err).Error("Failed to decode request to wails router")
-			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			return WailsRequestRouterResponse{Body: nil, Error: "Failed to parse route URL"}
+		}
+		queryParams := parsedUrl.Query()
+		getLogOutputRequest := &api.GetLogOutputRequest{}
+		if maxLen := queryParams.Get("maxLen"); maxLen != "" {
+			getLogOutputRequest.MaxLen, err = strconv.Atoi(maxLen)
+			if err != nil {
+				return WailsRequestRouterResponse{Body: nil, Error: "Invalid max length parameter"}
+			}
 		}
 		logOutputResponse, err := app.api.GetLogOutput(ctx, logType, getLogOutputRequest)
 		if err != nil {
