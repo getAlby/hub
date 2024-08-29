@@ -1,6 +1,10 @@
 name: HTTP build - Linux and MacOS
 on:
   push:
+    branches:
+      - master
+  pull_request:
+    types: [opened, synchronize]
   workflow_call:
     inputs:
       build-release:
