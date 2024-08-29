@@ -161,6 +161,7 @@ type InfoResponse struct {
 	Version              string `json:"version"`
 	Network              string `json:"network"`
 	EnableAdvancedSetup  bool   `json:"enableAdvancedSetup"`
+	StartupError         string `json:"startupError"`
 }
 
 type MnemonicRequest struct {

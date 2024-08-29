@@ -605,6 +605,10 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info := InfoResponse{}
 	backendType, _ := api.cfg.Get("LNBackendType", "")
 	info.SetupCompleted = api.cfg.SetupCompleted()
+	startupError := api.svc.GetStartupError()
+	if startupError != nil {
+		info.StartupError = api.svc.GetStartupError().Error()
+	}
 	info.Running = api.svc.GetLNClient() != nil
 	info.BackendType = backendType
 	info.AlbyAuthUrl = api.albyOAuthSvc.GetAuthUrl()
@@ -657,13 +661,19 @@ func (api *api) SetNextBackupReminder(backupReminderRequest *BackupReminderReque
 
 var startMutex sync.Mutex
 
-func (api *api) Start(startRequest *StartRequest) error {
+func (api *api) Start(startRequest *StartRequest) (err error) {
+	api.svc.SetStartupError(nil)
+	defer func() {
+		api.svc.SetStartupError(err)
+	}()
 	if !startMutex.TryLock() {
 		// do not allow to start twice in case this is somehow called twice
-		return errors.New("app is already starting")
+		err = errors.New("app is already starting")
+		return
 	}
 	defer startMutex.Unlock()
-	return api.svc.StartApp(startRequest.UnlockPassword)
+	err = api.svc.StartApp(startRequest.UnlockPassword)
+	return
 }
 
 func (api *api) Setup(ctx context.Context, setupRequest *SetupRequest) error {

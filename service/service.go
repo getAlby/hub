@@ -43,6 +43,7 @@ type service struct {
 	nip47Service        nip47.Nip47Service
 	appCancelFn         context.CancelFunc
 	keys                keys.Keys
+	startupError        error
 }
 
 func NewService(ctx context.Context) (*service, error) {
@@ -88,7 +89,6 @@ func NewService(ctx context.Context) (*service, error) {
 	cfg := config.NewConfig(appConfig, gormDB)
 
 	eventPublisher := events.NewEventPublisher()
-
 
 	keys := keys.NewKeys()
 
@@ -243,4 +243,12 @@ func (svc *service) GetTransactionsService() transactions.TransactionsService {
 
 func (svc *service) GetKeys() keys.Keys {
 	return svc.keys
+}
+
+func (svc *service) SetStartupError(err error) {
+	svc.startupError = err
+}
+
+func (svc *service) GetStartupError() error {
+	return svc.startupError
 }

@@ -17,11 +17,13 @@ export function SetupFinish() {
   const navigate = useNavigate();
   const { nodeInfo, unlockPassword } = useSetupStore();
   const { toast } = useToast();
-  useInfo(true); // poll the info endpoint to auto-redirect when app is running
+  const { data: info, isValidating } = useInfo(true); // poll the info endpoint to auto-redirect when app is running
 
   const [loading, setLoading] = React.useState(false);
+  const [startupError, setStartupError] = React.useState("");
   const [connectionError, setConnectionError] = React.useState(false);
   const hasFetchedRef = React.useRef(false);
+  const fetchSucceededRef = React.useRef(false);
 
   const defaultOptions = {
     loop: true,
@@ -31,6 +33,24 @@ export function SetupFinish() {
       preserveAspectRatio: "xMidYMid slice",
     },
   };
+
+  React.useEffect(() => {
+    if (fetchSucceededRef.current && !isValidating && info?.startupError) {
+      setStartupError(info.startupError);
+    }
+  }, [isValidating, info?.startupError]);
+
+  React.useEffect(() => {
+    if (startupError) {
+      toast({
+        title: "Failed to start",
+        description: startupError,
+        variant: "destructive",
+      });
+      setLoading(false);
+      setConnectionError(true);
+    }
+  }, [startupError, toast]);
 
   useEffect(() => {
     if (!loading) {
@@ -64,6 +84,7 @@ export function SetupFinish() {
         setLoading(false);
         setConnectionError(true);
       }
+      fetchSucceededRef.current = true;
     })();
   }, [nodeInfo, navigate, unlockPassword, toast]);
 

@@ -24,9 +24,30 @@ export default function Start() {
   const [unlockPassword, setUnlockPassword] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [buttonText, setButtonText] = React.useState("Login");
-  useInfo(true); // poll the info endpoint to auto-redirect when app is running
+  const [startupError, setStartupError] = React.useState("");
+
+  const { data: info, isValidating } = useInfo(true); // poll the info endpoint to auto-redirect when app is running
 
   const { toast } = useToast();
+
+  React.useEffect(() => {
+    if (!isValidating && info?.startupError) {
+      setStartupError(info.startupError);
+    }
+  }, [isValidating, info?.startupError]);
+
+  React.useEffect(() => {
+    if (startupError) {
+      toast({
+        title: "Failed to start",
+        description: startupError,
+        variant: "destructive",
+      });
+      setLoading(false);
+      setButtonText("Login");
+      setUnlockPassword("");
+    }
+  }, [startupError, toast]);
 
   React.useEffect(() => {
     if (!loading) {
@@ -54,7 +75,7 @@ export default function Start() {
       setButtonText("Login");
       setUnlockPassword("");
       return;
-    }, 180000); // wait for 3 minutes
+    }, 30000); // wait for 30 seconds
 
     return () => {
       clearInterval(intervalId);
@@ -65,6 +86,7 @@ export default function Start() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     try {
+      setStartupError("");
       setLoading(true);
       setButtonText(messages[0]);
 

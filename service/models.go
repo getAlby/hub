@@ -23,4 +23,11 @@ type Service interface {
 	GetDB() *gorm.DB
 	GetConfig() config.Config
 	GetKeys() keys.Keys
+	SetStartupError(error)
+	GetStartupError() error
+}
+
+type StartupError struct {
+	Error     string `json:"error"`
+	Timestamp int64  `json:"timestamp"`
 }
