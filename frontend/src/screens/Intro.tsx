@@ -163,7 +163,6 @@ function Slide({
       ) : (
         <Icon className="w-16 h-16 text-primary-background" />
       )}
-      <Icon className="w-16 h-16 text-primary-background" />
       <div className="flex flex-col gap-4 text-center items-center max-w-lg">
         <div className="text-3xl font-semibold text-primary-background">
           {title}
