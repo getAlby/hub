@@ -86,7 +86,15 @@ function TransactionItem({ tx }: Props) {
           <div className="overflow-hidden mr-3">
             <div className="flex items-center gap-2 truncate">
               <p className="text-lg md:text-xl font-semibold">
-                {app ? app.name : type == "incoming" ? "Received" : "Sent"}
+                {tx.isPending
+                  ? type == "incoming"
+                    ? "Receiving"
+                    : "Sending"
+                  : app
+                    ? app.name
+                    : type == "incoming"
+                      ? "Received"
+                      : "Sent"}
               </p>
               <p className="text-sm md:text-base truncate text-muted-foreground">
                 {dayjs(tx.settledAt).fromNow()}

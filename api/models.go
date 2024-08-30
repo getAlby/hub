@@ -213,6 +213,7 @@ type Transaction struct {
 	AppId           *uint       `json:"appId"`
 	Metadata        Metadata    `json:"metadata,omitempty"`
 	Boostagram      *Boostagram `json:"boostagram,omitempty"`
+	IsPending       bool        `json:"isPending,omitempty"`
 }
 
 type Metadata = map[string]interface{}

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/transactions"
 	"github.com/sirupsen/logrus"
@@ -38,7 +39,7 @@ func (api *api) ListTransactions(ctx context.Context, limit uint64, offset uint6
 	if api.svc.GetLNClient() == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	transactions, err := api.svc.GetTransactionsService().ListTransactions(ctx, 0, 0, limit, offset, false, nil, api.svc.GetLNClient(), nil)
+	transactions, err := api.svc.GetTransactionsService().ListTransactions(ctx, 0, 0, limit, offset, true, false, nil, api.svc.GetLNClient(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -111,6 +112,7 @@ func toApiTransaction(transaction *transactions.Transaction) *Transaction {
 		SettledAt:       settledAt,
 		Metadata:        metadata,
 		Boostagram:      boostagram,
+		IsPending:       transaction.State == constants.TRANSACTION_STATE_PENDING,
 	}
 }
 

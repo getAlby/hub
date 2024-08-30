@@ -385,6 +385,7 @@ export type Transaction = {
   settledAt: string | undefined;
   metadata?: Record<string, unknown>;
   boostagram?: Boostagram;
+  isPending?: boolean;
 };
 
 export type Boostagram = {
