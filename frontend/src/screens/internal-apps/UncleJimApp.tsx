@@ -75,7 +75,7 @@ export function UncleJimApp() {
       setConnectionSecret(createAppResponse.pairingUri);
       setAppPublicKey(createAppResponse.pairingPublicKey);
 
-      toast({ title: "New wallet created for " + name });
+      toast({ title: "New subaccount created for " + name });
     } catch (error) {
       handleRequestError(toast, "Failed to create app", error);
     }
