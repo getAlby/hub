@@ -11,7 +11,17 @@ export default function AlbyAuthRedirect() {
   const queryParams = new URLSearchParams(location.search);
   const forceLogin = !!queryParams.get("force_login");
   const url = info?.albyAuthUrl
-    ? `${info.albyAuthUrl}${forceLogin ? "&force_login=true" : ""}`
+    ? (() => {
+        const _url = new URL(info.albyAuthUrl);
+        if (forceLogin) {
+          _url.searchParams.append("force_login", "true");
+        }
+        if (info.albyUserIdentifier) {
+          _url.searchParams.append("identifier", info.albyUserIdentifier);
+        }
+
+        return _url.toString();
+      })()
     : undefined;
 
   React.useEffect(() => {
