@@ -85,7 +85,7 @@ function TransactionItem({ tx }: Props) {
               </div>
             )}
           </div>
-          <div className="overflow-hidden mr-3">
+          <div className="overflow-hidden mr-3 flex flex-col items-start justify-center">
             <div className="flex items-center gap-2 truncate">
               <p className="text-lg md:text-xl font-semibold">
                 {type == "incoming" ? "Received" : "Sent"}
@@ -100,9 +100,7 @@ function TransactionItem({ tx }: Props) {
               </p>
             )}
             <p className="text-sm md:text-base text-muted-foreground break-all flex">
-              {tx.description || tx.invoice
-                ? "Lightning invoice"
-                : "Keysend payment"}
+              {tx.description}
             </p>
           </div>
           <div className="flex ml-auto text-right space-x-3 shrink-0">
