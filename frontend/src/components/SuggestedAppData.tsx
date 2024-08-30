@@ -9,8 +9,8 @@ import nostur from "src/assets/suggested-apps/nostur.png";
 import paperScissorsHodl from "src/assets/suggested-apps/paper-scissors-hodl.png";
 import primal from "src/assets/suggested-apps/primal.png";
 import snort from "src/assets/suggested-apps/snort.png";
-import stackernews from "src/assets/suggested-apps/stackernews.png";
-import wavelake from "src/assets/suggested-apps/wavelake.png";
+import stackernews from "src/assets/suggested-apps/stacker-news.png";
+import wavlake from "src/assets/suggested-apps/wavlake.png";
 import wherostr from "src/assets/suggested-apps/wherostr.png";
 import yakihonne from "src/assets/suggested-apps/yakihonne.png";
 import zapstream from "src/assets/suggested-apps/zap-stream.png";
@@ -76,7 +76,7 @@ export const suggestedApps: SuggestedApp[] = [
     title: "Wavlake",
     description: "Creators platform",
     webLink: "https://www.wavlake.com/",
-    logo: wavelake,
+    logo: wavlake,
   },
   {
     id: "snort",
