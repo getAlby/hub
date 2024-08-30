@@ -59,31 +59,24 @@ function TransactionItem({ tx }: Props) {
         {/* flex wrap is used as a last resort to stop horizontal scrollbar on mobile. */}
         <div className="flex gap-3 flex-wrap">
           <div className="flex items-center">
-            {app ? (
-              <AppAvatar
-                app={app}
-                className="border-none p-0 rounded-full w-10 h-10 md:w-14 md:h-14"
-              />
-            ) : (
-              <div
+            <div
+              className={cn(
+                "flex justify-center items-center rounded-full w-10 h-10 md:w-14 md:h-14",
+                type === "outgoing"
+                  ? "bg-orange-100 dark:bg-orange-950"
+                  : "bg-green-100 dark:bg-emerald-950"
+              )}
+            >
+              <Icon
+                strokeWidth={3}
                 className={cn(
-                  "flex justify-center items-center rounded-full w-10 h-10 md:w-14 md:h-14",
+                  "w-6 h-6 md:w-8 md:h-8",
                   type === "outgoing"
-                    ? "bg-orange-100 dark:bg-orange-950"
-                    : "bg-green-100 dark:bg-emerald-950"
+                    ? "stroke-orange-400 dark:stroke-amber-600"
+                    : "stroke-green-400 dark:stroke-emerald-500"
                 )}
-              >
-                <Icon
-                  strokeWidth={3}
-                  className={cn(
-                    "w-6 h-6 md:w-8 md:h-8",
-                    type === "outgoing"
-                      ? "stroke-orange-400 dark:stroke-amber-600"
-                      : "stroke-green-400 dark:stroke-emerald-500"
-                  )}
-                />
-              </div>
-            )}
+              />
+            </div>
           </div>
           <div className="overflow-hidden mr-3 flex flex-col items-start justify-center">
             <div className="flex items-center gap-2 truncate">
@@ -95,9 +88,15 @@ function TransactionItem({ tx }: Props) {
               </p>
             </div>
             {app && (
-              <p className="flex text-xs">
-                via {app.name === "getalby.com" ? "Alby Account" : app.name}
-              </p>
+              <div className="flex items-center justify-start gap-1">
+                <AppAvatar
+                  app={app}
+                  className="border-none p-0 rounded-full w-6 h-6"
+                />
+                <p className="flex text-xs">
+                  via {app.name === "getalby.com" ? "Alby Account" : app.name}
+                </p>
+              </div>
             )}
             <p className="text-sm md:text-base text-muted-foreground break-all flex">
               {tx.description}
