@@ -118,7 +118,7 @@ export function UncleJimApp() {
               />
             </div>
             <LoadingButton loading={isLoading} type="submit">
-              Create Wallet
+              Create Subaccount
             </LoadingButton>
           </form>
 
