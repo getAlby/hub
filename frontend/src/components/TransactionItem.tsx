@@ -88,14 +88,21 @@ function TransactionItem({ tx }: Props) {
           <div className="overflow-hidden mr-3">
             <div className="flex items-center gap-2 truncate">
               <p className="text-lg md:text-xl font-semibold">
-                {app ? app.name : type == "incoming" ? "Received" : "Sent"}
+                {type == "incoming" ? "Received" : "Sent"}
               </p>
               <p className="text-sm md:text-base truncate text-muted-foreground">
                 {dayjs(tx.settledAt).fromNow()}
               </p>
             </div>
+            {app && (
+              <p className="flex text-xs">
+                via {app.name === "getalby.com" ? "Alby Account" : app.name}
+              </p>
+            )}
             <p className="text-sm md:text-base text-muted-foreground break-all flex">
-              {tx.description}
+              {tx.description || tx.invoice
+                ? "Lightning invoice"
+                : "Keysend payment"}
             </p>
           </div>
           <div className="flex ml-auto text-right space-x-3 shrink-0">

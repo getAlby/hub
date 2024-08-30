@@ -1,4 +1,5 @@
 import { suggestedApps } from "src/components/SuggestedAppData";
+import UserAvatar from "src/components/UserAvatar";
 import { cn } from "src/lib/utils";
 import { App } from "src/types";
 
@@ -8,6 +9,9 @@ type Props = {
 };
 
 export default function AppAvatar({ app, className }: Props) {
+  if (app.name === "getalby.com") {
+    return <UserAvatar className={className} />;
+  }
   const appStoreApp = app?.metadata?.app_store_app_id
     ? suggestedApps.find(
         (suggestedApp) => suggestedApp.id === app.metadata?.app_store_app_id
