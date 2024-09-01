@@ -847,8 +847,12 @@ func (httpSvc *HttpService) appsCreateHandler(c echo.Context) error {
 			Message: fmt.Sprintf("Bad request: %s", err.Error()),
 		})
 	}
-
-	responseBody, err := httpSvc.api.CreateApp(&requestData)
+	var lightningAddress string = ""
+	me, _ := httpSvc.albyHttpSvc.albyOAuthSvc.GetMe(c.Request().Context())
+	if me != nil {
+		lightningAddress = me.LightningAddress
+	}
+	responseBody, err := httpSvc.api.CreateApp(&requestData, lightningAddress)
 
 	if err != nil {
 		logger.Logger.WithField("requestData", requestData).WithError(err).Error("Failed to save app")

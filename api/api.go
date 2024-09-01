@@ -52,7 +52,7 @@ func NewAPI(svc service.Service, gormDB *gorm.DB, config config.Config, keys key
 	}
 }
 
-func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppResponse, error) {
+func (api *api) CreateApp(createAppRequest *CreateAppRequest, lightningAddress string) (*CreateAppResponse, error) {
 	expiresAt, err := api.parseExpiresAt(createAppRequest.ExpiresAt)
 	if err != nil {
 		return nil, fmt.Errorf("invalid expiresAt: %v", err)
@@ -95,18 +95,18 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 			query := returnToUrl.Query()
 			query.Add("relay", relayUrl)
 			query.Add("pubkey", api.keys.GetNostrPublicKey())
-			// if user.LightningAddress != "" {
-			// 	query.Add("lud16", user.LightningAddress)
-			// }
+			if lightningAddress != "" {
+				query.Add("lud16", lightningAddress)
+			}
 			returnToUrl.RawQuery = query.Encode()
 			responseBody.ReturnTo = returnToUrl.String()
 		}
 	}
 
 	var lud16 string
-	// if user.LightningAddress != "" {
-	// 	lud16 = fmt.Sprintf("&lud16=%s", user.LightningAddress)
-	// }
+	if lightningAddress != "" {
+		lud16 = fmt.Sprintf("&lud16=%s", lightningAddress)
+	}
 	responseBody.PairingUri = fmt.Sprintf("nostr+walletconnect://%s?relay=%s&secret=%s%s", api.keys.GetNostrPublicKey(), relayUrl, pairingSecretKey, lud16)
 	return responseBody, nil
 }
