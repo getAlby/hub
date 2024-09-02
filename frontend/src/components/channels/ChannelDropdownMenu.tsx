@@ -76,15 +76,17 @@ export function ChannelDropdownMenu({
               </DropdownMenuItem>
             </AlertDialogTrigger>
           )}
-          <AlertDialogTrigger asChild>
-            <DropdownMenuItem
-              className="flex flex-row items-center gap-2 cursor-pointer"
-              onClick={() => setDialog("closeChannel")}
-            >
-              <Trash2 className="h-4 w-4 text-destructive" />
-              Close Channel
-            </DropdownMenuItem>
-          </AlertDialogTrigger>
+          {channel.open && (
+            <AlertDialogTrigger asChild>
+              <DropdownMenuItem
+                className="flex flex-row items-center gap-2 cursor-pointer"
+                onClick={() => setDialog("closeChannel")}
+              >
+                <Trash2 className="h-4 w-4 text-destructive" />
+                Close Channel
+              </DropdownMenuItem>
+            </AlertDialogTrigger>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
       {dialog === "closeChannel" && (

@@ -85,6 +85,20 @@ type Transaction struct {
 	FailureReason   string
 }
 
+type Channel struct {
+	ID             uint
+	Status         string
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+	ChannelID      string
+	PeerID         string
+	ChannelSizeSat uint64
+	FundingTxID    string
+	Open           bool
+
+	// TODO: add other props like PeerAlias so frontend does not need to fetch it
+}
+
 type DBService interface {
 	CreateApp(name string, pubkey string, maxAmountSat uint64, budgetRenewal string, expiresAt *time.Time, scopes []string, isolated bool) (*App, string, error)
 }

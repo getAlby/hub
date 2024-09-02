@@ -1,4 +1,5 @@
 import { InfoIcon } from "lucide-react";
+import { ChannelStatusBadge } from "src/components/channels/ChannelStatusBadge";
 import { ChannelWarning } from "src/components/channels/ChannelWarning";
 import Loading from "src/components/Loading.tsx";
 import { Badge } from "src/components/ui/badge.tsx";
@@ -82,18 +83,12 @@ export function ChannelsTable({ channels, nodes }: ChannelsTableProps) {
                     (n) => n.public_key === channel.remotePubkey
                   );
                   const alias = node?.alias || "Unknown";
-                  const capacity = channel.localBalance + channel.remoteBalance;
+                  const capacity = channel.channelSizeSat * 1000;
 
                   return (
                     <TableRow key={channel.id} className="channel">
                       <TableCell>
-                        {channel.status == "online" ? (
-                          <Badge variant="positive">Online</Badge>
-                        ) : channel.status == "opening" ? (
-                          <Badge variant="outline">Opening</Badge>
-                        ) : (
-                          <Badge variant="warning">Offline</Badge>
-                        )}
+                        <ChannelStatusBadge status={channel.status} />
                       </TableCell>
                       <TableCell>
                         <span className="font-medium mr-2">{alias}</span>

@@ -315,9 +315,11 @@ type WalletCapabilitiesResponse struct {
 }
 
 type Channel struct {
-	LocalBalance                             int64       `json:"localBalance"`
-	LocalSpendableBalance                    int64       `json:"localSpendableBalance"`
-	RemoteBalance                            int64       `json:"remoteBalance"`
+	Open                                     bool        `json:"open"`
+	ChannelSizeSat                           uint64      `json:"channelSizeSat"`
+	LocalBalance                             uint64      `json:"localBalance"`
+	LocalSpendableBalance                    uint64      `json:"localSpendableBalance"`
+	RemoteBalance                            uint64      `json:"remoteBalance"`
 	Id                                       string      `json:"id"`
 	RemotePubkey                             string      `json:"remotePubkey"`
 	FundingTxId                              string      `json:"fundingTxId"`

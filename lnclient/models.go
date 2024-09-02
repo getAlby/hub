@@ -81,9 +81,9 @@ type LNClient interface {
 }
 
 type Channel struct {
-	LocalBalance                             int64
-	LocalSpendableBalance                    int64
-	RemoteBalance                            int64
+	LocalBalanceMsat                         uint64
+	LocalSpendableBalanceMsat                uint64
+	RemoteBalanceMsat                        uint64
 	Id                                       string
 	RemotePubkey                             string
 	FundingTxId                              string

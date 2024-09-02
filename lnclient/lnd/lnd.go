@@ -196,9 +196,9 @@ func (svc *LNDService) ListChannels(ctx context.Context) ([]lnclient.Channel, er
 
 		channels[i] = lnclient.Channel{
 			InternalChannel:                          lndChannel,
-			LocalBalance:                             lndChannel.LocalBalance * 1000,
-			LocalSpendableBalance:                    int64(math.Max(float64((lndChannel.LocalBalance-int64(lndChannel.LocalConstraints.ChanReserveSat))*1000), float64(0))),
-			RemoteBalance:                            lndChannel.RemoteBalance * 1000,
+			LocalBalanceMsat:                         uint64(lndChannel.LocalBalance * 1000),
+			LocalSpendableBalanceMsat:                uint64(math.Max(float64((lndChannel.LocalBalance-int64(lndChannel.LocalConstraints.ChanReserveSat))*1000), float64(0))),
+			RemoteBalanceMsat:                        uint64(lndChannel.RemoteBalance * 1000),
 			RemotePubkey:                             lndChannel.RemotePubkey,
 			Id:                                       strconv.FormatUint(lndChannel.ChanId, 10),
 			Active:                                   lndChannel.Active,
@@ -230,8 +230,8 @@ func (svc *LNDService) ListChannels(ctx context.Context) ([]lnclient.Channel, er
 
 		channels[j+len(activeResp.Channels)] = lnclient.Channel{
 			InternalChannel:       lndChannel,
-			LocalBalance:          lndChannel.Channel.LocalBalance * 1000,
-			RemoteBalance:         lndChannel.Channel.RemoteBalance * 1000,
+			LocalBalanceMsat:      uint64(lndChannel.Channel.LocalBalance * 1000),
+			RemoteBalanceMsat:     uint64(lndChannel.Channel.RemoteBalance * 1000),
 			RemotePubkey:          lndChannel.Channel.RemoteNodePub,
 			Public:                !lndChannel.Channel.Private,
 			FundingTxId:           fundingTxId,

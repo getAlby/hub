@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/getAlby/hub/alby"
+	"github.com/getAlby/hub/channels"
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
@@ -20,6 +21,7 @@ type Service interface {
 	GetEventPublisher() events.EventPublisher
 	GetLNClient() lnclient.LNClient
 	GetTransactionsService() transactions.TransactionsService
+	GetChannelsService() channels.ChannelsService
 	GetDB() *gorm.DB
 	GetConfig() config.Config
 	GetKeys() keys.Keys

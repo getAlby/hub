@@ -309,21 +309,19 @@ func (api *api) ListChannels(ctx context.Context) ([]Channel, error) {
 	if api.svc.GetLNClient() == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	channels, err := api.svc.GetLNClient().ListChannels(ctx)
+
+	channels, err := api.svc.GetChannelsService().ListChannels(ctx, api.svc.GetLNClient())
+
 	if err != nil {
 		return nil, err
 	}
 
 	apiChannels := []Channel{}
 	for _, channel := range channels {
-		status := "offline"
-		if channel.Active {
-			status = "online"
-		} else if channel.Confirmations != nil && channel.ConfirmationsRequired != nil && *channel.ConfirmationsRequired > *channel.Confirmations {
-			status = "opening"
-		}
 
 		apiChannels = append(apiChannels, Channel{
+			Open:                                     channel.Open,
+			ChannelSizeSat:                           channel.ChannelSizeSat,
 			LocalBalance:                             channel.LocalBalance,
 			LocalSpendableBalance:                    channel.LocalSpendableBalance,
 			RemoteBalance:                            channel.RemoteBalance,
@@ -340,7 +338,7 @@ func (api *api) ListChannels(ctx context.Context) ([]Channel, error) {
 			CounterpartyUnspendablePunishmentReserve: channel.CounterpartyUnspendablePunishmentReserve,
 			Error:                                    channel.Error,
 			IsOutbound:                               channel.IsOutbound,
-			Status:                                   status,
+			Status:                                   channel.Status,
 		})
 	}
 	return apiChannels, nil

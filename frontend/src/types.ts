@@ -184,6 +184,7 @@ export type UpdateAppRequest = {
 };
 
 export type Channel = {
+  channelSizeSat: number;
   localBalance: number;
   localSpendableBalance: number;
   remoteBalance: number;
@@ -192,13 +193,14 @@ export type Channel = {
   fundingTxId: string;
   active: boolean;
   public: boolean;
+  open: boolean;
   confirmations?: number;
   confirmationsRequired?: number;
   forwardingFeeBaseMsat: number;
   unspendablePunishmentReserve: number;
   counterpartyUnspendablePunishmentReserve: number;
   error?: string;
-  status: "online" | "opening" | "offline";
+  status: "online" | "opening" | "offline" | "closing";
   isOutbound: boolean;
 };
 

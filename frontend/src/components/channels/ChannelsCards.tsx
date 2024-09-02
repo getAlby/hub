@@ -1,7 +1,7 @@
 import { InfoIcon } from "lucide-react";
 import { ChannelDropdownMenu } from "src/components/channels/ChannelDropdownMenu";
+import { ChannelStatusBadge } from "src/components/channels/ChannelStatusBadge";
 import { ChannelWarning } from "src/components/channels/ChannelWarning";
-import { Badge } from "src/components/ui/badge.tsx";
 import {
   Card,
   CardContent,
@@ -45,7 +45,7 @@ export function ChannelsCards({ channels, nodes }: ChannelsCardsProps) {
               (n) => n.public_key === channel.remotePubkey
             );
             const alias = node?.alias || "Unknown";
-            const capacity = channel.localBalance + channel.remoteBalance;
+            const capacity = channel.channelSizeSat * 1000;
 
             return (
               <Card>
@@ -65,13 +65,7 @@ export function ChannelsCards({ channels, nodes }: ChannelsCardsProps) {
                         <p className="text-muted-foreground font-medium">
                           Status
                         </p>
-                        {channel.status == "online" ? (
-                          <Badge variant="positive">Online</Badge>
-                        ) : channel.status == "opening" ? (
-                          <Badge variant="outline">Opening</Badge>
-                        ) : (
-                          <Badge variant="warning">Offline</Badge>
-                        )}
+                        <ChannelStatusBadge status={channel.status} />
                       </div>
                       <div className="flex w-full justify-between items-center">
                         <p className="text-muted-foreground font-medium">

@@ -70,6 +70,7 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
         setStep(step + 1);
       }
       toast({ title: "Sucessfully closed channel" });
+      await reloadChannels();
     } catch (error) {
       console.error(error);
       toast({

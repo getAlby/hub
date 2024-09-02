@@ -17,6 +17,7 @@ import (
 	"github.com/kelseyhightower/envconfig"
 
 	"github.com/getAlby/hub/alby"
+	"github.com/getAlby/hub/channels"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/service/keys"
@@ -36,6 +37,7 @@ type service struct {
 	db                  *gorm.DB
 	lnClient            lnclient.LNClient
 	transactionsService transactions.TransactionsService
+	channelsService     channels.ChannelsService
 	albyOAuthSvc        alby.AlbyOAuthService
 	eventPublisher      events.EventPublisher
 	ctx                 context.Context
@@ -89,7 +91,6 @@ func NewService(ctx context.Context) (*service, error) {
 
 	eventPublisher := events.NewEventPublisher()
 
-
 	keys := keys.NewKeys()
 
 	var wg sync.WaitGroup
@@ -101,6 +102,7 @@ func NewService(ctx context.Context) (*service, error) {
 		albyOAuthSvc:        alby.NewAlbyOAuthService(gormDB, cfg, keys, eventPublisher),
 		nip47Service:        nip47.NewNip47Service(gormDB, cfg, keys, eventPublisher),
 		transactionsService: transactions.NewTransactionsService(gormDB, eventPublisher),
+		channelsService:     channels.NewChannelsService(gormDB),
 		db:                  gormDB,
 		keys:                keys,
 	}
@@ -239,6 +241,10 @@ func (svc *service) GetLNClient() lnclient.LNClient {
 
 func (svc *service) GetTransactionsService() transactions.TransactionsService {
 	return svc.transactionsService
+}
+
+func (svc *service) GetChannelsService() channels.ChannelsService {
+	return svc.channelsService
 }
 
 func (svc *service) GetKeys() keys.Keys {
