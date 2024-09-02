@@ -52,7 +52,7 @@ func NewAPI(svc service.Service, gormDB *gorm.DB, config config.Config, keys key
 	}
 }
 
-func (api *api) CreateApp(createAppRequest *CreateAppRequest, lightningAddress string) (*CreateAppResponse, error) {
+func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppResponse, error) {
 	expiresAt, err := api.parseExpiresAt(createAppRequest.ExpiresAt)
 	if err != nil {
 		return nil, fmt.Errorf("invalid expiresAt: %v", err)
@@ -88,6 +88,11 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest, lightningAddress s
 	responseBody.Name = createAppRequest.Name
 	responseBody.Pubkey = app.NostrPubkey
 	responseBody.PairingSecret = pairingSecretKey
+
+	lightningAddress, err := api.albyOAuthSvc.GetLightningAddress()
+	if err != nil {
+		return nil, err
+	}
 
 	if createAppRequest.ReturnTo != "" {
 		returnToUrl, err := url.Parse(createAppRequest.ReturnTo)
