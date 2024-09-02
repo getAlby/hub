@@ -7,7 +7,6 @@ import { useDeleteApp } from "src/hooks/useDeleteApp";
 import {
   App,
   AppPermissions,
-  BudgetRenewalType,
   UpdateAppRequest,
   WalletCapabilities,
 } from "src/types";
@@ -95,7 +94,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
   const [permissions, setPermissions] = React.useState<AppPermissions>({
     scopes: app.scopes,
     maxAmount: app.maxAmount,
-    budgetRenewal: app.budgetRenewal as BudgetRenewalType,
+    budgetRenewal: app.budgetRenewal,
     expiresAt: app.expiresAt ? new Date(app.expiresAt) : undefined,
     isolated: app.isolated,
   });

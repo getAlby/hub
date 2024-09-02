@@ -24,7 +24,7 @@ import { CreateAppRequest, CreateAppResponse } from "src/types";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 
-export function UncleJimApp() {
+export function UncleJim() {
   const [name, setName] = React.useState("");
   const [appPublicKey, setAppPublicKey] = React.useState("");
   const [connectionSecret, setConnectionSecret] = React.useState("");

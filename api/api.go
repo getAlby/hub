@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 
 	"github.com/getAlby/hub/alby"
@@ -136,6 +137,20 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 		// Update app name if it is not the same
 		if name != userApp.Name {
 			err := tx.Model(&db.App{}).Where("id", userApp.ID).Update("name", name).Error
+			if err != nil {
+				return err
+			}
+		}
+
+		if updateAppRequest.Metadata != nil {
+			var metadataBytes []byte
+			var err error
+			metadataBytes, err = json.Marshal(updateAppRequest.Metadata)
+			if err != nil {
+				logger.Logger.WithError(err).Error("Failed to serialize metadata")
+				return err
+			}
+			err = tx.Model(&db.App{}).Where("id", userApp.ID).Update("metadata", datatypes.JSON(metadataBytes)).Error
 			if err != nil {
 				return err
 			}

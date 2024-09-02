@@ -33,7 +33,8 @@ import { OpeningAutoChannel } from "src/screens/channels/auto/OpeningAutoChannel
 import { FirstChannel } from "src/screens/channels/first/FirstChannel";
 import { OpenedFirstChannel } from "src/screens/channels/first/OpenedFirstChannel";
 import { OpeningFirstChannel } from "src/screens/channels/first/OpeningFirstChannel";
-import { UncleJimApp } from "src/screens/internal-apps/UncleJimApp";
+import { BuzzPay } from "src/screens/internal-apps/BuzzPay";
+import { UncleJim } from "src/screens/internal-apps/UncleJim";
 import { Success } from "src/screens/onboarding/Success";
 import BuyBitcoin from "src/screens/onchain/BuyBitcoin";
 import DepositBitcoin from "src/screens/onchain/DepositBitcoin";
@@ -210,7 +211,11 @@ const routes = [
         children: [
           {
             path: "uncle-jim",
-            element: <UncleJimApp />,
+            element: <UncleJim />,
+          },
+          {
+            path: "buzzpay",
+            element: <BuzzPay />,
           },
         ],
       },
