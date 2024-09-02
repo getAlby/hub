@@ -75,18 +75,24 @@ function Wallet() {
           </div>
         </div>
       )}
-      {hasChannelManagement && !balances.lightning.totalSpendable && (
-        <Alert>
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Low spending balance</AlertTitle>
-          <AlertDescription>
-            You won't be able to make payments until you{" "}
-            <Link className="underline" to="/channels/outgoing">
-              increase your spending balance.
-            </Link>
-          </AlertDescription>
-        </Alert>
-      )}
+      {hasChannelManagement &&
+        channels?.length &&
+        channels?.every(
+          (channel) =>
+            channel.localBalance < channel.unspendablePunishmentReserve
+        ) && (
+          <Alert>
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Channel Reserves Unmet</AlertTitle>
+            <AlertDescription>
+              You won't be able to make payments until you fill your channel
+              reserve.{" "}
+              <Link to="/channels" className="underline">
+                View channel reserves
+              </Link>
+            </AlertDescription>
+          </Alert>
+        )}
       {hasChannelManagement && !balances.lightning.totalReceivable && (
         <Alert>
           <AlertTriangle className="h-4 w-4" />
