@@ -139,7 +139,7 @@ export default function WithdrawOnchainFunds() {
       />
 
       <div className="max-w-lg">
-        {balances?.onchain.reserved && (
+        {!!balances?.onchain.reserved && (
           <Alert className="mb-4">
             <AlertTriangleIcon className="h-4 w-4" />
             <AlertTitle>Channel Anchor Reserves will be depleted</AlertTitle>

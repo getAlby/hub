@@ -9,6 +9,7 @@ import {
   CopyIcon,
 } from "lucide-react";
 import React from "react";
+import { Link } from "react-router-dom";
 import AppAvatar from "src/components/AppAvatar";
 import PodcastingInfo from "src/components/PodcastingInfo";
 import {
@@ -38,7 +39,10 @@ function TransactionItem({ tx }: Props) {
   const [showDetails, setShowDetails] = React.useState(false);
   const type = tx.type;
   const Icon = tx.type == "outgoing" ? ArrowUpIcon : ArrowDownIcon;
-  const app = tx.appId && apps?.find((app) => app.id === tx.appId);
+  const app =
+    tx.appId !== undefined
+      ? apps?.find((app) => app.id === tx.appId)
+      : undefined;
 
   const copy = (text: string) => {
     copyToClipboard(text, toast);
@@ -56,36 +60,40 @@ function TransactionItem({ tx }: Props) {
         {/* flex wrap is used as a last resort to stop horizontal scrollbar on mobile. */}
         <div className="flex gap-3 flex-wrap">
           <div className="flex items-center">
-            {app ? (
-              <AppAvatar
-                appName={app.name}
-                className="border-none p-0 rounded-full w-10 h-10 md:w-14 md:h-14"
-              />
-            ) : (
-              <div
+            <div
+              className={cn(
+                "flex justify-center items-center rounded-full w-10 h-10 md:w-14 md:h-14 relative",
+                type === "outgoing"
+                  ? "bg-orange-100 dark:bg-orange-950"
+                  : "bg-green-100 dark:bg-emerald-950"
+              )}
+            >
+              <Icon
+                strokeWidth={3}
                 className={cn(
-                  "flex justify-center items-center rounded-full w-10 h-10 md:w-14 md:h-14",
+                  "w-6 h-6 md:w-8 md:h-8",
                   type === "outgoing"
-                    ? "bg-orange-100 dark:bg-orange-950"
-                    : "bg-green-100 dark:bg-emerald-950"
+                    ? "stroke-orange-400 dark:stroke-amber-600"
+                    : "stroke-green-400 dark:stroke-emerald-500"
                 )}
-              >
-                <Icon
-                  strokeWidth={3}
-                  className={cn(
-                    "w-6 h-6 md:w-8 md:h-8",
-                    type === "outgoing"
-                      ? "stroke-orange-400 dark:stroke-amber-600"
-                      : "stroke-green-400 dark:stroke-emerald-500"
-                  )}
-                />
-              </div>
-            )}
+              />
+              {app && (
+                <div
+                  className="absolute -bottom-1 -right-1"
+                  title={`${type == "incoming" ? "Received" : "Sent"} via ${app.name === "getalby.com" ? "Alby Account" : app.name}`}
+                >
+                  <AppAvatar
+                    app={app}
+                    className="border-none p-0 rounded-full w-[18px] h-[18px] md:w-6 md:h-6 shadow-sm"
+                  />
+                </div>
+              )}
+            </div>
           </div>
-          <div className="overflow-hidden mr-3">
+          <div className="overflow-hidden mr-3 flex flex-col items-start justify-center">
             <div className="flex items-center gap-2 truncate">
               <p className="text-lg md:text-xl font-semibold">
-                {app ? app.name : type == "incoming" ? "Received" : "Sent"}
+                {type == "incoming" ? "Received" : "Sent"}
               </p>
               <p className="text-sm md:text-base truncate text-muted-foreground">
                 {dayjs(tx.settledAt).fromNow()}
@@ -154,7 +162,23 @@ function TransactionItem({ tx }: Props) {
               </p> */}
               </div>
             </div>
-            <div className="mt-8">
+            {app && (
+              <div className="mt-8">
+                <p>App</p>
+                <Link to={`/apps/${app.nostrPubkey}`}>
+                  <div className="flex items-center justify-start gap-1 mt-1">
+                    <AppAvatar
+                      app={app}
+                      className="border-none p-0 rounded-full w-6 h-6"
+                    />
+                    <p className="text-muted-foreground">
+                      {app.name === "getalby.com" ? "Alby Account" : app.name}
+                    </p>
+                  </div>
+                </Link>
+              </div>
+            )}
+            <div className="mt-6">
               <p>Date & Time</p>
               <p className="text-muted-foreground">
                 {dayjs(tx.settledAt)

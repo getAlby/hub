@@ -27,6 +27,9 @@ import Channels from "src/screens/channels/Channels";
 import { CurrentChannelOrder } from "src/screens/channels/CurrentChannelOrder";
 import IncreaseIncomingCapacity from "src/screens/channels/IncreaseIncomingCapacity";
 import IncreaseOutgoingCapacity from "src/screens/channels/IncreaseOutgoingCapacity";
+import { AutoChannel } from "src/screens/channels/auto/AutoChannel";
+import { OpenedAutoChannel } from "src/screens/channels/auto/OpenedAutoChannel";
+import { OpeningAutoChannel } from "src/screens/channels/auto/OpeningAutoChannel";
 import { FirstChannel } from "src/screens/channels/first/FirstChannel";
 import { OpenedFirstChannel } from "src/screens/channels/first/OpenedFirstChannel";
 import { OpeningFirstChannel } from "src/screens/channels/first/OpeningFirstChannel";
@@ -233,18 +236,39 @@ const routes = [
           },
           {
             path: "first",
-            element: <FirstChannel />,
-            handle: { crumb: () => "Open Your First Channel" },
+            handle: { crumb: () => "Your First Channel" },
+            children: [
+              {
+                index: true,
+                element: <FirstChannel />,
+              },
+              {
+                path: "opening",
+                element: <OpeningFirstChannel />,
+              },
+              {
+                path: "opened",
+                element: <OpenedFirstChannel />,
+              },
+            ],
           },
           {
-            path: "first/opening",
-            element: <OpeningFirstChannel />,
-            handle: { crumb: () => "Opening Your First Channel" },
-          },
-          {
-            path: "first/opened",
-            element: <OpenedFirstChannel />,
-            handle: { crumb: () => "First Channel Opened!" },
+            path: "auto",
+            handle: { crumb: () => "New Channel" },
+            children: [
+              {
+                index: true,
+                element: <AutoChannel />,
+              },
+              {
+                path: "opening",
+                element: <OpeningAutoChannel />,
+              },
+              {
+                path: "opened",
+                element: <OpenedAutoChannel />,
+              },
+            ],
           },
           {
             path: "outgoing",

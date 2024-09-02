@@ -1,4 +1,4 @@
-import { Globe } from "lucide-react";
+import { ExternalLinkIcon, Globe } from "lucide-react";
 import { Link } from "react-router-dom";
 import ExternalLink from "src/components/ExternalLink";
 import { AppleIcon } from "src/components/icons/Apple";
@@ -84,7 +84,7 @@ function InternalAppCard({ id, title, description, logo }: SuggestedApp) {
       <CardFooter className="flex flex-row justify-end">
         <Link to={`/internal-apps/${id}`}>
           <Button variant="outline">
-            <NostrWalletConnectIcon className="w-4 h-4 mr-2" />
+            <ExternalLinkIcon className="w-4 h-4 mr-2" />
             Open
           </Button>
         </Link>
