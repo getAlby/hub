@@ -245,7 +245,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
       >
         {app && (
           <div className="flex flex-row items-center gap-3">
-            <img src={app.logo} className="h-12 w-12" />
+            <img src={app.logo} className="h-12 w-12 rounded-lg" />
             <h2 className="font-semibold text-lg">{app.title}</h2>
           </div>
         )}
