@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev:http": "yarn prepare:http && vite",
+    "dev:http": "yarn prepare:http && vite --force",
     "dev:wails": "yarn prepare:wails && vite",
     "build:http": "yarn prepare:http && tsc && vite build",
     "build:wails": "yarn prepare:wails && tsc && vite build",
