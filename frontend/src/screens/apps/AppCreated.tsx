@@ -6,7 +6,7 @@ import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
-import { suggestedApps } from "src/components/SuggestedAppData";
+import { SuggestedApp, suggestedApps } from "src/components/SuggestedAppData";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -17,7 +17,7 @@ import {
 import { useToast } from "src/components/ui/use-toast";
 import { useApp } from "src/hooks/useApp";
 import { copyToClipboard } from "src/lib/clipboard";
-import { CreateAppResponse } from "src/types";
+import { App, CreateAppResponse } from "src/types";
 
 export default function AppCreated() {
   const { state } = useLocation();
@@ -39,25 +39,10 @@ function AppCreatedInternal() {
   const appId = queryParams.get("app") ?? "";
   const appstoreApp = suggestedApps.find((app) => app.id === appId);
 
-  const [timeout, setTimeout] = useState(false);
-  const [isQRCodeVisible, setIsQRCodeVisible] = useState(false);
-
   const createAppResponse = state as CreateAppResponse;
+
   const pairingUri = createAppResponse.pairingUri;
   const { data: app } = useApp(createAppResponse.pairingPublicKey, true);
-
-  const copy = () => {
-    copyToClipboard(pairingUri, toast);
-    toast({ title: "Copied to clipboard." });
-  };
-
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      setTimeout(true);
-    }, 30000);
-
-    return () => window.clearTimeout(timeoutId);
-  }, []);
 
   useEffect(() => {
     if (app?.lastEventAt) {
@@ -104,7 +89,7 @@ function AppCreatedInternal() {
         <div>
           <p>
             1. Open{" "}
-            {appstoreApp ? (
+            {appstoreApp?.webLink ? (
               <ExternalLink
                 className="font-semibold underline"
                 to={appstoreApp.webLink}
@@ -119,55 +104,90 @@ function AppCreatedInternal() {
           </p>
           <p>2. Scan or paste the connection secret</p>
         </div>
-        <Card className="max-w-sm">
-          <CardHeader>
-            <CardTitle className="text-center">Connection Secret</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col items-center gap-5">
-            <div className="flex flex-row items-center gap-2 text-sm">
-              <Loading className="w-4 h-4" />
-              <p>Waiting for app to connect</p>
-            </div>
-            {timeout && (
-              <div className="text-sm flex flex-col gap-2 items-center text-center">
-                Connecting is taking longer than usual.
-                <Link to={`/apps/${app?.nostrPubkey}`}>
-                  <Button variant="secondary">Continue anyway</Button>
-                </Link>
-              </div>
-            )}
-            <a href={pairingUri} target="_blank" className="relative">
-              <div className={!isQRCodeVisible ? "blur-md" : ""}>
-                <QRCode className={"w-full"} value={pairingUri} />
-                {appstoreApp && (
-                  <img
-                    src={appstoreApp.logo}
-                    className="absolute w-12 h-12 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-muted p-1 rounded-xl"
-                  />
-                )}
-              </div>
-              {!isQRCodeVisible && (
-                <Button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setIsQRCodeVisible(true);
-                  }}
-                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-                >
-                  <EyeIcon className="h-4 w-4 mr-2" />
-                  Reveal QR
-                </Button>
-              )}
-            </a>
-            <div>
-              <Button onClick={copy} variant="outline">
-                <CopyIcon className="w-4 h-4 mr-2" />
-                Copy pairing secret
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        {app && (
+          <ConnectAppCard
+            app={app}
+            pairingUri={pairingUri}
+            appstoreApp={appstoreApp}
+          />
+        )}
       </div>
     </>
+  );
+}
+
+export function ConnectAppCard({
+  app,
+  pairingUri,
+  appstoreApp,
+}: {
+  app: App;
+  pairingUri: string;
+  appstoreApp?: SuggestedApp;
+}) {
+  const [timeout, setTimeout] = useState(false);
+  const [isQRCodeVisible, setIsQRCodeVisible] = useState(false);
+  const { toast } = useToast();
+  const copy = () => {
+    copyToClipboard(pairingUri, toast);
+  };
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setTimeout(true);
+    }, 30000);
+
+    return () => window.clearTimeout(timeoutId);
+  }, []);
+
+  return (
+    <Card className="max-w-sm">
+      <CardHeader>
+        <CardTitle className="text-center">Connection Secret</CardTitle>
+      </CardHeader>
+      <CardContent className="flex flex-col items-center gap-5">
+        <div className="flex flex-row items-center gap-2 text-sm">
+          <Loading className="w-4 h-4" />
+          <p>Waiting for app to connect</p>
+        </div>
+        {timeout && (
+          <div className="text-sm flex flex-col gap-2 items-center text-center">
+            Connecting is taking longer than usual.
+            <Link to={`/apps/${app?.nostrPubkey}`}>
+              <Button variant="secondary">Continue anyway</Button>
+            </Link>
+          </div>
+        )}
+        <a href={pairingUri} target="_blank" className="relative">
+          <div className={!isQRCodeVisible ? "blur-md" : ""}>
+            <QRCode className={"w-full"} value={pairingUri} />
+            {appstoreApp && (
+              <img
+                src={appstoreApp.logo}
+                className="absolute w-12 h-12 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-muted p-1 rounded-xl"
+              />
+            )}
+          </div>
+          {!isQRCodeVisible && (
+            <Button
+              onClick={(e) => {
+                e.preventDefault();
+                setIsQRCodeVisible(true);
+              }}
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+            >
+              <EyeIcon className="h-4 w-4 mr-2" />
+              Reveal QR
+            </Button>
+          )}
+        </a>
+        <div>
+          <Button onClick={copy} variant="outline">
+            <CopyIcon className="w-4 h-4 mr-2" />
+            Copy pairing secret
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

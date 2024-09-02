@@ -139,6 +139,8 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
     }
   };
 
+  const appName = app.name === "getalby.com" ? "Alby Account" : app.name;
+
   return (
     <>
       <div className="w-full">
@@ -146,7 +148,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
           <AppHeader
             title={
               <div className="flex flex-row items-center">
-                <AppAvatar appName={app.name} className="w-10 h-10 mr-2" />
+                <AppAvatar app={app} className="w-10 h-10 mr-2" />
                 {isEditingName ? (
                   <div className="flex flex-row gap-2 items-center">
                     <Input
@@ -170,12 +172,14 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                     onClick={() => setIsEditingName(true)}
                   >
                     <h2
-                      title={app.name}
+                      title={appName}
                       className="text-xl font-semibold overflow-hidden text-ellipsis whitespace-nowrap"
                     >
-                      {app.name}
+                      {appName}
                     </h2>
-                    <PencilIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    {app.name !== "getalby.com" && (
+                      <PencilIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    )}
                   </div>
                 )}
               </div>

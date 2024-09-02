@@ -70,6 +70,7 @@ type App struct {
 	BudgetRenewal string     `json:"budgetRenewal"`
 	Isolated      bool       `json:"isolated"`
 	Balance       uint64     `json:"balance"`
+	Metadata      Metadata   `json:"metadata,omitempty"`
 }
 
 type ListAppsResponse struct {
@@ -93,6 +94,7 @@ type CreateAppRequest struct {
 	Scopes        []string `json:"scopes"`
 	ReturnTo      string   `json:"returnTo"`
 	Isolated      bool     `json:"isolated"`
+	Metadata      Metadata `json:"metadata,omitempty"`
 }
 
 type StartRequest struct {

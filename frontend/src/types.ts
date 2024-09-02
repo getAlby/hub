@@ -124,6 +124,7 @@ export interface App {
   maxAmount: number;
   budgetUsage: number;
   budgetRenewal: BudgetRenewalType;
+  metadata?: AppMetadata;
 }
 
 export interface AppPermissions {
@@ -151,19 +152,24 @@ export interface InfoResponse {
 
 export type Network = "bitcoin" | "testnet" | "signet";
 
+export type AppMetadata =
+  | Record<string, unknown>
+  | { app_store_app_id?: string };
+
 export interface MnemonicResponse {
   mnemonic: string;
 }
 
 export interface CreateAppRequest {
   name: string;
-  pubkey: string;
-  maxAmount: number;
-  budgetRenewal: string;
-  expiresAt: string | undefined;
+  pubkey?: string;
+  maxAmount?: number;
+  budgetRenewal?: string;
+  expiresAt?: string;
   scopes: Scope[];
-  returnTo: string;
-  isolated: boolean;
+  returnTo?: string;
+  isolated?: boolean;
+  metadata?: AppMetadata;
 }
 
 export interface CreateAppResponse {

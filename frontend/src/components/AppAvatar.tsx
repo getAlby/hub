@@ -1,27 +1,48 @@
+import { suggestedApps } from "src/components/SuggestedAppData";
+import UserAvatar from "src/components/UserAvatar";
 import { cn } from "src/lib/utils";
+import { App } from "src/types";
 
 type Props = {
-  appName: string;
+  app: App;
   className?: string;
 };
 
-export default function AppAvatar({ appName, className }: Props) {
+export default function AppAvatar({ app, className }: Props) {
+  if (app.name === "getalby.com") {
+    return <UserAvatar className={className} />;
+  }
+  const appStoreApp = app?.metadata?.app_store_app_id
+    ? suggestedApps.find(
+        (suggestedApp) => suggestedApp.id === app.metadata?.app_store_app_id
+      )
+    : undefined;
+  const image = appStoreApp?.logo;
+
   const gradient =
-    appName
+    app.name
       .split("")
       .map((c) => c.charCodeAt(0))
       .reduce((a, b) => a + b, 0) % 10;
   return (
     <div
       className={cn(
-        "rounded-lg border relative",
-        `avatar-gradient-${gradient}`,
+        "rounded-lg border relative overflow-hidden",
+        !image && `avatar-gradient-${gradient}`,
         className
       )}
     >
-      <span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-xl font-medium capitalize">
-        {appName.charAt(0)}
-      </span>
+      {image && (
+        <img
+          src={image}
+          className={cn("absolute w-full h-full rounded-lg", className)}
+        />
+      )}
+      {!image && (
+        <span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-xl font-medium capitalize">
+          {app.name.charAt(0)}
+        </span>
+      )}
     </div>
   );
 }

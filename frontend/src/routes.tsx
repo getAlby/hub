@@ -33,6 +33,7 @@ import { OpeningAutoChannel } from "src/screens/channels/auto/OpeningAutoChannel
 import { FirstChannel } from "src/screens/channels/first/FirstChannel";
 import { OpenedFirstChannel } from "src/screens/channels/first/OpenedFirstChannel";
 import { OpeningFirstChannel } from "src/screens/channels/first/OpeningFirstChannel";
+import { UncleJimApp } from "src/screens/internal-apps/UncleJimApp";
 import { Success } from "src/screens/onboarding/Success";
 import BuyBitcoin from "src/screens/onchain/BuyBitcoin";
 import DepositBitcoin from "src/screens/onchain/DepositBitcoin";
@@ -187,7 +188,6 @@ const routes = [
             index: true,
             element: <AppList />,
           },
-
           {
             path: ":pubkey",
             element: <ShowApp />,
@@ -200,6 +200,17 @@ const routes = [
           {
             path: "created",
             element: <AppCreated />,
+          },
+        ],
+      },
+      {
+        path: "internal-apps",
+        element: <DefaultRedirect />,
+        handle: { crumb: () => "Connections" },
+        children: [
+          {
+            path: "uncle-jim",
+            element: <UncleJimApp />,
           },
         ],
       },

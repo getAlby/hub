@@ -30,7 +30,7 @@ export default function AppCard({ app }: Props) {
         <CardTitle className="relative">
           <AppCardNotice app={app} />
           <div className="flex flex-row items-center">
-            <AppAvatar className="w-10 h-10" appName={app.name} />
+            <AppAvatar className="w-10 h-10" app={app} />
             <div className="flex-1 font-semibold text-xl whitespace-nowrap text-ellipsis overflow-hidden ml-4">
               {app.name}
             </div>

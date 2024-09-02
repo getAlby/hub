@@ -16,9 +16,9 @@ import {
 import React from "react";
 import AppHeader from "src/components/AppHeader";
 import Loading from "src/components/Loading";
-import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
+import { LoadingButton } from "src/components/ui/loading-button";
 import { Separator } from "src/components/ui/separator";
 import { useToast } from "src/components/ui/use-toast";
 import { useApps } from "src/hooks/useApps";
@@ -48,17 +48,20 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
   const navigate = useNavigate();
   const { data: apps } = useApps();
   const [unsupportedError, setUnsupportedError] = useState<string>();
+  const [isLoading, setLoading] = React.useState(false);
 
   const queryParams = new URLSearchParams(location.search);
 
   const appId = queryParams.get("app") ?? "";
-  const app = suggestedApps.find((app) => app.id === appId);
+  const appStoreApp = suggestedApps.find((app) => app.id === appId);
 
   const pubkey = queryParams.get("pubkey") ?? "";
   const returnTo = queryParams.get("return_to") ?? "";
 
   const nameParam = (queryParams.get("name") || queryParams.get("c")) ?? "";
-  const [appName, setAppName] = useState(app ? app.title : nameParam);
+  const [appName, setAppName] = useState(
+    appStoreApp ? appStoreApp.title : nameParam
+  );
 
   const budgetRenewalParam = queryParams.get(
     "budget_renewal"
@@ -120,7 +123,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
       scopes.push("pay_invoice");
     }
 
-    if (requestMethodsSet.has("get_info") && isolatedParam !== "true") {
+    if (requestMethodsSet.has("get_info")) {
       scopes.push("get_info");
     }
     if (requestMethodsSet.has("get_balance")) {
@@ -181,6 +184,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
       return;
     }
 
+    setLoading(true);
     try {
       if (apps?.some((existingApp) => existingApp.name === appName)) {
         throw new Error("A connection with the same name already exists.");
@@ -195,6 +199,9 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
         expiresAt: permissions.expiresAt?.toISOString(),
         returnTo: returnTo,
         isolated: permissions.isolated,
+        metadata: {
+          app_store_app_id: appStoreApp?.id,
+        },
       };
 
       const createAppResponse = await request<CreateAppResponse>("/api/apps", {
@@ -214,13 +221,14 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
         window.location.href = createAppResponse.returnTo;
         return;
       }
-      navigate(`/apps/created${app ? `?app=${app.id}` : ""}`, {
+      navigate(`/apps/created${appStoreApp ? `?app=${appStoreApp.id}` : ""}`, {
         state: createAppResponse,
       });
       toast({ title: "App created" });
     } catch (error) {
       handleRequestError(toast, "Failed to create app", error);
     }
+    setLoading(false);
   };
 
   if (unsupportedError) {
@@ -243,10 +251,10 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
         acceptCharset="UTF-8"
         className="flex flex-col items-start gap-5 max-w-lg"
       >
-        {app && (
+        {appStoreApp && (
           <div className="flex flex-row items-center gap-3">
-            <img src={app.logo} className="h-12 w-12 rounded-lg" />
-            <h2 className="font-semibold text-lg">{app.title}</h2>
+            <img src={appStoreApp.logo} className="h-12 w-12 rounded-lg" />
+            <h2 className="font-semibold text-lg">{appStoreApp.title}</h2>
           </div>
         )}
         {!nameParam && (
@@ -288,7 +296,9 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
           </p>
         )}
 
-        <Button type="submit">{pubkey ? "Connect" : "Next"}</Button>
+        <LoadingButton loading={isLoading} type="submit">
+          {pubkey ? "Connect" : "Next"}
+        </LoadingButton>
       </form>
     </>
   );

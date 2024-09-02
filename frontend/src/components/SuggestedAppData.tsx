@@ -10,6 +10,7 @@ import paperScissorsHodl from "src/assets/suggested-apps/paper-scissors-hodl.png
 import primal from "src/assets/suggested-apps/primal.png";
 import snort from "src/assets/suggested-apps/snort.png";
 import stackernews from "src/assets/suggested-apps/stacker-news.png";
+import uncleJim from "src/assets/suggested-apps/uncle-jim.png";
 import wavlake from "src/assets/suggested-apps/wavlake.png";
 import wherostr from "src/assets/suggested-apps/wherostr.png";
 import yakihonne from "src/assets/suggested-apps/yakihonne.png";
@@ -20,7 +21,8 @@ import zappybird from "src/assets/suggested-apps/zappy-bird.png";
 
 export type SuggestedApp = {
   id: string;
-  webLink: string;
+  webLink?: string;
+  internal?: boolean;
   playLink?: string;
   appleLink?: string;
   title: string;
@@ -29,6 +31,13 @@ export type SuggestedApp = {
 };
 
 export const suggestedApps: SuggestedApp[] = [
+  {
+    id: "uncle-jim",
+    title: "Friends & Family",
+    description: "Subaccounts powered by your Hub",
+    internal: true,
+    logo: uncleJim,
+  },
   {
     id: "alby-extension",
     title: "Alby Extension",
