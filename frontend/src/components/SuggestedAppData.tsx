@@ -34,7 +34,7 @@ export const suggestedApps: SuggestedApp[] = [
   {
     id: "uncle-jim",
     title: "Friends & Family",
-    description: "Subaccounts for your friends and family powered by your Hub",
+    description: "Subaccounts powered by your Hub",
     internal: true,
     logo: uncleJim,
   },
