@@ -10,6 +10,7 @@ import React, { ReactElement } from "react";
 import { useNavigate } from "react-router-dom";
 import Cloud from "src/assets/images/cloud.png";
 import Cloud2 from "src/assets/images/cloud2.png";
+import { SelfCustodyIcon } from "src/components/icons/SelfCustodyIcon";
 import { Button } from "src/components/ui/button";
 import {
   Carousel,
@@ -90,6 +91,14 @@ export function Intro() {
         <CarouselItem>
           <Slide
             api={api}
+            icon={SelfCustodyIcon}
+            title="Take Self-Custody in One Click"
+            description="Easily move your funds from Alby hosted balance to your own, self-custodial wallet."
+          />
+        </CarouselItem>
+        <CarouselItem>
+          <Slide
+            api={api}
             icon={CloudLightning}
             title="Anywhere & Anytime"
             description="Your wallet is always online and ready to use on any device."
@@ -143,7 +152,17 @@ function Slide({
 
   return (
     <div className="flex flex-col justify-center items-center h-screen gap-8 p-5">
-      <Icon className="w-16 h-16 text-primary-background" />
+      {Icon === SelfCustodyIcon ? (
+        <Icon
+          width="211"
+          height="64"
+          viewBox="0 0 211 64"
+          strokeWidth="0"
+          className="text-primary-background"
+        />
+      ) : (
+        <Icon className="w-16 h-16 text-primary-background" />
+      )}
       <div className="flex flex-col gap-4 text-center items-center max-w-lg">
         <div className="text-3xl font-semibold text-primary-background">
           {title}

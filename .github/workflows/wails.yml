@@ -2,6 +2,10 @@ name: Wails build - all platforms
 
 on:
   push:
+    branches:
+      - master
+  pull_request:
+    types: [opened, synchronize]
 
   workflow_call:
     inputs:

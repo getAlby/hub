@@ -89,10 +89,6 @@ func NewService(ctx context.Context) (*service, error) {
 
 	eventPublisher := events.NewEventPublisher()
 
-	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to create Alby OAuth service")
-		return nil, err
-	}
 
 	keys := keys.NewKeys()
 
