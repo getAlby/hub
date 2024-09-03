@@ -508,7 +508,10 @@ func (gs *GreenlightService) GetOnchainBalance(ctx context.Context) (*lnclient.O
 	}, nil
 }
 
-func (gs *GreenlightService) RedeemOnchainFunds(ctx context.Context, toAddress string) (string, error) {
+func (gs *GreenlightService) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, sendAll bool) (string, error) {
+	if !sendAll {
+		return "", errors.New("only send all is supported")
+	}
 	amountAll := glalby.AmountOrAll(glalby.AmountOrAllAll{})
 	txId, err := gs.client.Withdraw(glalby.WithdrawRequest{
 		Destination: toAddress,

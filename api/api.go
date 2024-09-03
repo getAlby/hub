@@ -560,11 +560,11 @@ func (api *api) SignMessage(ctx context.Context, message string) (*SignMessageRe
 	}, nil
 }
 
-func (api *api) RedeemOnchainFunds(ctx context.Context, toAddress string) (*RedeemOnchainFundsResponse, error) {
+func (api *api) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, sendAll bool) (*RedeemOnchainFundsResponse, error) {
 	if api.svc.GetLNClient() == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	txId, err := api.svc.GetLNClient().RedeemOnchainFunds(ctx, toAddress)
+	txId, err := api.svc.GetLNClient().RedeemOnchainFunds(ctx, toAddress, amount, sendAll)
 	if err != nil {
 		return nil, err
 	}

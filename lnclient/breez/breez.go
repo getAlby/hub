@@ -373,7 +373,11 @@ func (bs *BreezService) GetOnchainBalance(ctx context.Context) (*lnclient.Onchai
 	}, nil
 }
 
-func (bs *BreezService) RedeemOnchainFunds(ctx context.Context, toAddress string) (txId string, err error) {
+func (bs *BreezService) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, sendAll bool) (txId string, err error) {
+	if !sendAll {
+		return "", errors.New("only send all is supported")
+	}
+
 	if toAddress == "" {
 		return "", errors.New("No address provided")
 	}

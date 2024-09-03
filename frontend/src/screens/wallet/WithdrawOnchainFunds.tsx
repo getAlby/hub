@@ -23,6 +23,8 @@ export default function WithdrawOnchainFunds() {
   const [onchainAddress, setOnchainAddress] = React.useState("");
   const [confirmOnchainAddress, setConfirmOnchainAddress] = React.useState("");
   const [checkedConfirmation, setCheckedConfirmation] = React.useState(false);
+  const [amount, setAmount] = React.useState("");
+  const [sendAll, setSendAll] = React.useState(false);
   const [transactionId, setTransactionId] = React.useState("");
 
   const copy = (text: string) => {
@@ -67,7 +69,11 @@ export default function WithdrawOnchainFunds() {
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({ toAddress: onchainAddress }),
+            body: JSON.stringify({
+              toAddress: onchainAddress,
+              amount: +amount,
+              sendAll,
+            }),
           }
         );
         console.info("Redeemed onchain funds", response);
@@ -85,7 +91,14 @@ export default function WithdrawOnchainFunds() {
       }
       setLoading(false);
     },
-    [checkedConfirmation, confirmOnchainAddress, onchainAddress, toast]
+    [
+      amount,
+      checkedConfirmation,
+      confirmOnchainAddress,
+      onchainAddress,
+      sendAll,
+      toast,
+    ]
   );
 
   if (transactionId) {
@@ -139,18 +152,19 @@ export default function WithdrawOnchainFunds() {
       />
 
       <div className="max-w-lg">
-        {!!balances?.onchain.reserved && (
-          <Alert className="mb-4">
-            <AlertTriangleIcon className="h-4 w-4" />
-            <AlertTitle>Channel Anchor Reserves will be depleted</AlertTitle>
-            <AlertDescription>
-              You have channels open and this withdrawal will use some or all of
-              your anchor reserves to publish the transaction, which may make it
-              harder to close channels without depositing additional onchain
-              funds to your savings balance.
-            </AlertDescription>
-          </Alert>
-        )}
+        {!!balances?.onchain.reserved &&
+          (sendAll || +amount > balances.onchain.total * 0.9) && (
+            <Alert className="mb-4">
+              <AlertTriangleIcon className="h-4 w-4" />
+              <AlertTitle>Channel Anchor Reserves may be depleted</AlertTitle>
+              <AlertDescription>
+                You have channels open and this withdrawal may deplete your
+                anchor reserves, which may make it harder to close channels
+                without depositing additional onchain funds to your savings
+                balance.
+              </AlertDescription>
+            </Alert>
+          )}
         <p>
           Your savings balance will be withdrawn to the onchain bitcoin wallet
           address you specify below. Please make sure you are the owner of this
@@ -159,6 +173,34 @@ export default function WithdrawOnchainFunds() {
           and have the seed phrase for.
         </p>
         <form onSubmit={redeemFunds} className="grid gap-5 mt-4">
+          <div className="">
+            <Label htmlFor="amount">Amount</Label>
+            <div className="flex justify-between items-center mb-1">
+              <p className="text-sm text-muted-foreground">
+                Current onchain balance:{" "}
+                {new Intl.NumberFormat().format(balances.onchain.total)} sats
+              </p>
+              <div className="flex items-center gap-1">
+                <Checkbox
+                  id="send-all"
+                  onCheckedChange={() => setSendAll(!sendAll)}
+                />
+                <Label htmlFor="send-all" className="text-xs">
+                  Send All
+                </Label>
+              </div>
+            </div>
+            <Input
+              id="amount"
+              type="number"
+              value={sendAll ? balances.onchain.total : amount}
+              disabled={sendAll}
+              required
+              onChange={(e) => {
+                setAmount(e.target.value);
+              }}
+            />
+          </div>
           <div className="">
             <Label htmlFor="onchain-address">Onchain Address</Label>
             <Input
