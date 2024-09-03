@@ -76,7 +76,7 @@ function Wallet() {
         </div>
       )}
       {hasChannelManagement &&
-        channels?.length &&
+        !!channels?.length &&
         channels?.every(
           (channel) =>
             channel.localBalance < channel.unspendablePunishmentReserve
@@ -95,6 +95,7 @@ function Wallet() {
           </Alert>
         )}
       {hasChannelManagement &&
+        !!channels?.length &&
         !balances.lightning.totalReceivable &&
         !showMigrateCard && (
           <Alert>
@@ -108,6 +109,19 @@ function Wallet() {
             </AlertDescription>
           </Alert>
         )}
+      {hasChannelManagement && !channels?.length && !showMigrateCard && (
+        <Alert>
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Open Your First Channel</AlertTitle>
+          <AlertDescription>
+            You won't be able to receive or send payments until you{" "}
+            <Link className="underline" to="/channels/first">
+              open your first channel
+            </Link>
+            .
+          </AlertDescription>
+        </Alert>
+      )}
       <BreezRedeem />
       <div className="flex flex-col lg:flex-row justify-between lg:items-center gap-5">
         <div className="text-5xl font-semibold balance sensitive">
