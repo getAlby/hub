@@ -6,29 +6,20 @@ import { ExternalLinkButton } from "src/components/ui/button";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 import { useApps } from "src/hooks/useApps";
-import {
-  App,
-  AppPermissions,
-  CreateAppRequest,
-  CreateAppResponse,
-  UpdateAppRequest,
-} from "src/types";
+import { CreateAppRequest, CreateAppResponse } from "src/types";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 
 export function BuzzPay() {
   const { data: apps, mutate: reloadApps } = useApps();
   const [creatingApp, setCreatingApp] = React.useState(false);
+  const [connectionSecret, setConnectionSecret] = React.useState("");
   const { toast } = useToast();
 
   if (!apps) {
     return <Loading />;
   }
-  const app = apps.find(
-    (app) =>
-      app.metadata?.app_store_app_id === "buzzpay" &&
-      app.metadata.connection_secret
-  );
+  const app = apps.find((app) => app.metadata?.app_store_app_id === "buzzpay");
 
   function createApp() {
     setCreatingApp(true);
@@ -63,44 +54,8 @@ export function BuzzPay() {
           throw new Error("no create app response received");
         }
 
-        const app = await request<App>(
-          `/api/apps/${createAppResponse.pairingPublicKey}`
-        );
+        setConnectionSecret(createAppResponse.pairingUri);
 
-        if (!app) {
-          throw new Error("failed to fetch buzzpay app");
-        }
-
-        const permissions: AppPermissions = {
-          scopes: app.scopes,
-          maxAmount: app.maxAmount,
-          budgetRenewal: app.budgetRenewal,
-          expiresAt: app.expiresAt ? new Date(app.expiresAt) : undefined,
-          isolated: app.isolated,
-        };
-
-        // TODO: should be able to partially update app rather than having to pass everything
-        // we are only updating the metadata
-        const updateAppRequest: UpdateAppRequest = {
-          name,
-          scopes: Array.from(permissions.scopes),
-          budgetRenewal: permissions.budgetRenewal,
-          expiresAt: permissions.expiresAt?.toISOString(),
-          maxAmount: permissions.maxAmount,
-          metadata: {
-            ...app.metadata,
-            // read-only connection secret
-            connection_secret: createAppResponse.pairingUri,
-          },
-        };
-
-        await request(`/api/apps/${app.nostrPubkey}`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(updateAppRequest),
-        });
         await reloadApps();
 
         toast({ title: "BuzzPay app created" });
@@ -122,7 +77,7 @@ export function BuzzPay() {
           <AppCard app={app} />
           <ExternalLinkButton
             className="mt-4"
-            to={`https://pos.albylabs.com/#/wallet/${encodeURIComponent(app.metadata?.connection_secret as string)}/new`}
+            to={`https://pos.albylabs.com${connectionSecret && `/#/wallet/${encodeURIComponent(connectionSecret)}/new`}`}
           >
             Go to BuzzPay PoS
           </ExternalLinkButton>
