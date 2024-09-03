@@ -33,16 +33,17 @@ import (
 type service struct {
 	cfg config.Config
 
-	db                  *gorm.DB
-	lnClient            lnclient.LNClient
-	transactionsService transactions.TransactionsService
-	albyOAuthSvc        alby.AlbyOAuthService
-	eventPublisher      events.EventPublisher
-	ctx                 context.Context
-	wg                  *sync.WaitGroup
-	nip47Service        nip47.Nip47Service
-	appCancelFn         context.CancelFunc
-	keys                keys.Keys
+	db                     *gorm.DB
+	lnClient               lnclient.LNClient
+	transactionsService    transactions.TransactionsService
+	albyOAuthSvc           alby.AlbyOAuthService
+	eventPublisher         events.EventPublisher
+	ctx                    context.Context
+	wg                     *sync.WaitGroup
+	nip47Service           nip47.Nip47Service
+	appCancelFn            context.CancelFunc
+	keys                   keys.Keys
+	isLNClientShuttingDown bool
 }
 
 func NewService(ctx context.Context) (*service, error) {
@@ -88,7 +89,6 @@ func NewService(ctx context.Context) (*service, error) {
 	cfg := config.NewConfig(appConfig, gormDB)
 
 	eventPublisher := events.NewEventPublisher()
-
 
 	keys := keys.NewKeys()
 
@@ -234,6 +234,9 @@ func (svc *service) GetEventPublisher() events.EventPublisher {
 }
 
 func (svc *service) GetLNClient() lnclient.LNClient {
+	if svc.isLNClientShuttingDown {
+		return nil
+	}
 	return svc.lnClient
 }
 
