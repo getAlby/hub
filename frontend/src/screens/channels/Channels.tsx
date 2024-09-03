@@ -260,7 +260,7 @@ export default function Channels() {
                 albyBalance={albyBalance}
                 reloadAlbyBalance={reloadAlbyBalance}
               >
-                Transfer
+                Migrate
               </TransferFundsButton>
             </CardFooter>
           </Card>
