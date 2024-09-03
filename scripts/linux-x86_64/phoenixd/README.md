@@ -11,7 +11,8 @@ Run your Alby Hub with phoenixd as a backend.
 
 To run Alby Hub with phoenixd use [docker-compose](https://docs.docker.com/compose/) using the [docker-compose.yml file](https://raw.githubusercontent.com/getAlby/hub/master/scripts/linux-x86_64/phoenixd/docker-compose.yml).
 
-    $ wget https://raw.githubusercontent.com/getAlby/hub/master/scripts/linux-x86_64/phoenixd/docker-compose.yml
+    $ wget https://raw.githubusercontent.com/getAlby/hub/master/scripts/linux-x86_64/phoenixd/docker-compose.yml # <- edit for your needs, but defaults should work well
+    $ mkdir -p ./albyhub-phoenixd/phoenixd && mkdir -p ./albyhub-phoenixd/albyhub # <- create the data directories for phoenixd and albyhub. make sure to have backups of this
     $ docker-compose up # or docker-compose up --pull=always <- to make sure you get the latest images
 
 It will run on localhost:8080 by default. You can configure the port by editing the docker-compose.yml file.
