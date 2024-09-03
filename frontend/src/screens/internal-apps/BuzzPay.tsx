@@ -33,7 +33,7 @@ export function BuzzPay() {
         const createAppRequest: CreateAppRequest = {
           name,
           scopes: ["get_info", "lookup_invoice", "make_invoice"],
-          isolated: false,
+          isolated: true,
           metadata: {
             app_store_app_id: "buzzpay",
           },
