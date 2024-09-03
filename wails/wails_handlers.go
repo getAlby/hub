@@ -633,15 +633,9 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			}).WithError(err).Error("Failed to decode request to wails router")
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
-		err = app.api.Start(startRequest)
-		if err != nil {
-			logger.Logger.WithFields(logrus.Fields{
-				"route":  route,
-				"method": method,
-				"body":   body,
-			}).WithError(err).Error("Failed to setup node")
-			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
-		}
+
+		go app.api.Start(startRequest)
+
 		return WailsRequestRouterResponse{Body: nil, Error: ""}
 	case "/api/setup":
 		setupRequest := &api.SetupRequest{}

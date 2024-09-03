@@ -231,12 +231,7 @@ func (httpSvc *HttpService) startHandler(c echo.Context) error {
 		})
 	}
 
-	go func() {
-		err := httpSvc.api.Start(&startRequest)
-		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to start node")
-		}
-	}()
+	go httpSvc.api.Start(&startRequest)
 
 	return c.JSON(http.StatusOK, &authTokenResponse{
 		Token: token,
