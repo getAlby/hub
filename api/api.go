@@ -38,6 +38,7 @@ type api struct {
 	permissionsSvc permissions.PermissionsService
 	keys           keys.Keys
 	albyOAuthSvc   alby.AlbyOAuthService
+	startupError   error
 }
 
 func NewAPI(svc service.Service, gormDB *gorm.DB, config config.Config, keys keys.Keys, albyOAuthSvc alby.AlbyOAuthService, eventPublisher events.EventPublisher) *api {
@@ -605,9 +606,8 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info := InfoResponse{}
 	backendType, _ := api.cfg.Get("LNBackendType", "")
 	info.SetupCompleted = api.cfg.SetupCompleted()
-	startupError := api.svc.GetStartupError()
-	if startupError != nil {
-		info.StartupError = api.svc.GetStartupError().Error()
+	if api.startupError != nil {
+		info.StartupError = api.startupError.Error()
 	}
 	info.Running = api.svc.GetLNClient() != nil
 	info.BackendType = backendType
@@ -662,9 +662,9 @@ func (api *api) SetNextBackupReminder(backupReminderRequest *BackupReminderReque
 var startMutex sync.Mutex
 
 func (api *api) Start(startRequest *StartRequest) (err error) {
-	api.svc.SetStartupError(nil)
+	api.startupError = nil
 	defer func() {
-		api.svc.SetStartupError(err)
+		api.startupError = err
 	}()
 	if !startMutex.TryLock() {
 		// do not allow to start twice in case this is somehow called twice
