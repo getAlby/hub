@@ -73,14 +73,18 @@ export function BuzzPay() {
         description="Receive-only PoS you can safely share with your employees"
       />
       {app && (
-        <div>
-          <AppCard app={app} />
+        <div className="max-w-lg flex flex-col gap-5">
+          <p className="text-muted-foreground">
+            Simply click the button below to access your PoS which you can
+            instantly receive payments, manage your items, and share your PoS
+            with your employees.
+          </p>
           <ExternalLinkButton
-            className="mt-4"
             to={`https://pos.albylabs.com${connectionSecret && `/#/wallet/${encodeURIComponent(connectionSecret)}/new`}`}
           >
             Go to BuzzPay PoS
           </ExternalLinkButton>
+          <AppCard app={app} />
         </div>
       )}
       {!app && (
