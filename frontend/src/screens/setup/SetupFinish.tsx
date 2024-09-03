@@ -17,13 +17,11 @@ export function SetupFinish() {
   const navigate = useNavigate();
   const { nodeInfo, unlockPassword } = useSetupStore();
   const { toast } = useToast();
-  const { data: info, isValidating } = useInfo(true); // poll the info endpoint to auto-redirect when app is running
+  const { data: info } = useInfo(true); // poll the info endpoint to auto-redirect when app is running
 
   const [loading, setLoading] = React.useState(false);
-  const [startupError, setStartupError] = React.useState("");
   const [connectionError, setConnectionError] = React.useState(false);
   const hasFetchedRef = React.useRef(false);
-  const fetchSucceededRef = React.useRef(false);
 
   const defaultOptions = {
     loop: true,
@@ -34,11 +32,7 @@ export function SetupFinish() {
     },
   };
 
-  React.useEffect(() => {
-    if (fetchSucceededRef.current && !isValidating && info?.startupError) {
-      setStartupError(info.startupError);
-    }
-  }, [isValidating, info?.startupError]);
+  const startupError = info?.startupError;
 
   React.useEffect(() => {
     if (startupError) {
@@ -50,7 +44,7 @@ export function SetupFinish() {
       setLoading(false);
       setConnectionError(true);
     }
-  }, [startupError, toast]);
+  }, [startupError, toast, info?.startupErrorTime]);
 
   useEffect(() => {
     if (!loading) {
@@ -84,7 +78,6 @@ export function SetupFinish() {
         setLoading(false);
         setConnectionError(true);
       }
-      fetchSucceededRef.current = true;
     })();
   }, [nodeInfo, navigate, unlockPassword, toast]);
 
