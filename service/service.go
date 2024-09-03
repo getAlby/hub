@@ -89,7 +89,6 @@ func NewService(ctx context.Context) (*service, error) {
 
 	eventPublisher := events.NewEventPublisher()
 
-
 	keys := keys.NewKeys()
 
 	var wg sync.WaitGroup
@@ -122,6 +121,10 @@ func NewService(ctx context.Context) (*service, error) {
 
 	if appConfig.DdProfilerEnabled {
 		startDataDogProfiler(ctx)
+	}
+
+	if appConfig.AutoUnlockPassword != "" {
+		svc.StartApp(appConfig.AutoUnlockPassword)
 	}
 
 	return svc, nil
