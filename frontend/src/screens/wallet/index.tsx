@@ -35,7 +35,7 @@ function Wallet() {
   }
 
   const showMigrateCard =
-    albyBalance && (albyBalance.sats > ALBY_HIDE_HOSTED_BALANCE_LIMIT || true);
+    albyBalance && albyBalance.sats > ALBY_HIDE_HOSTED_BALANCE_LIMIT;
 
   return (
     <>
