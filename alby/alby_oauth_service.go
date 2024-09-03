@@ -420,6 +420,7 @@ func (svc *albyOAuthService) UnlinkAccount(ctx context.Context) error {
 	svc.cfg.SetUpdate(accessTokenKey, "", "")
 	svc.cfg.SetUpdate(accessTokenExpiryKey, "", "")
 	svc.cfg.SetUpdate(refreshTokenKey, "", "")
+	svc.cfg.SetUpdate(lightningAddressKey, "", "")
 
 	return nil
 }
