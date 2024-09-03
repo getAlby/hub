@@ -80,7 +80,8 @@ function Wallet() {
         channels?.every(
           (channel) =>
             channel.localBalance < channel.unspendablePunishmentReserve
-        ) && (
+        ) &&
+        !showMigrateCard && (
           <Alert>
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>Channel Reserves Unmet</AlertTitle>
@@ -93,18 +94,20 @@ function Wallet() {
             </AlertDescription>
           </Alert>
         )}
-      {hasChannelManagement && !balances.lightning.totalReceivable && (
-        <Alert>
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Low receiving capacity</AlertTitle>
-          <AlertDescription>
-            You won't be able to receive payments until you{" "}
-            <Link className="underline" to="/channels/incoming">
-              increase your receiving capacity.
-            </Link>
-          </AlertDescription>
-        </Alert>
-      )}
+      {hasChannelManagement &&
+        !balances.lightning.totalReceivable &&
+        !showMigrateCard && (
+          <Alert>
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Low receiving capacity</AlertTitle>
+            <AlertDescription>
+              You won't be able to receive payments until you{" "}
+              <Link className="underline" to="/channels/incoming">
+                increase your receiving capacity.
+              </Link>
+            </AlertDescription>
+          </Alert>
+        )}
       <BreezRedeem />
       <div className="flex flex-col lg:flex-row justify-between lg:items-center gap-5">
         <div className="text-5xl font-semibold balance sensitive">
