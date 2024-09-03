@@ -12,6 +12,7 @@ type AlbyOAuthService interface {
 	GetChannelPeerSuggestions(ctx context.Context) ([]ChannelPeerSuggestion, error)
 	GetAuthUrl() string
 	GetUserIdentifier() (string, error)
+	GetLightningAddress() (string, error)
 	IsConnected(ctx context.Context) bool
 	LinkAccount(ctx context.Context, lnClient lnclient.LNClient, budget uint64, renewal string) error
 	CallbackHandler(ctx context.Context, code string, lnClient lnclient.LNClient) error
