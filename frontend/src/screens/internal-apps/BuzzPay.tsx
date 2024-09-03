@@ -75,7 +75,7 @@ export function BuzzPay() {
         <div className="max-w-lg flex flex-col gap-5">
           <p className="text-muted-foreground">
             By creating a new buzzpay app, a read-only wallet connection will be
-            created and you will receive a link you can share with your
+            created and you will receive a link to a PoS you can share with your
             employees, on any device.
           </p>
           <LoadingButton loading={creatingApp} onClick={handleCreateApp}>
