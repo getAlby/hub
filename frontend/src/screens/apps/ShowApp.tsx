@@ -258,59 +258,57 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
             </CardContent>
           </Card>
 
-          {!app.isolated && (
-            <Card>
-              <CardHeader>
-                <CardTitle>
-                  <div className="flex flex-row justify-between items-center">
-                    Permissions
-                    <div className="flex flex-row gap-2">
-                      {isEditingPermissions && (
-                        <div className="flex justify-center items-center gap-2">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => {
-                              window.location.reload();
-                            }}
-                          >
-                            Cancel
-                          </Button>
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                <div className="flex flex-row justify-between items-center">
+                  Permissions
+                  <div className="flex flex-row gap-2">
+                    {isEditingPermissions && (
+                      <div className="flex justify-center items-center gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            window.location.reload();
+                          }}
+                        >
+                          Cancel
+                        </Button>
 
-                          <Button type="button" onClick={handleSave}>
-                            Save
-                          </Button>
-                        </div>
-                      )}
+                        <Button type="button" onClick={handleSave}>
+                          Save
+                        </Button>
+                      </div>
+                    )}
 
-                      {!isEditingPermissions && (
-                        <>
-                          <Button
-                            variant="outline"
-                            onClick={() =>
-                              setIsEditingPermissions(!isEditingPermissions)
-                            }
-                          >
-                            Edit
-                          </Button>
-                        </>
-                      )}
-                    </div>
+                    {!app.isolated && !isEditingPermissions && (
+                      <>
+                        <Button
+                          variant="outline"
+                          onClick={() =>
+                            setIsEditingPermissions(!isEditingPermissions)
+                          }
+                        >
+                          Edit
+                        </Button>
+                      </>
+                    )}
                   </div>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Permissions
-                  capabilities={capabilities}
-                  permissions={permissions}
-                  setPermissions={setPermissions}
-                  readOnly={!isEditingPermissions}
-                  isNewConnection={false}
-                  budgetUsage={app.budgetUsage}
-                />
-              </CardContent>
-            </Card>
-          )}
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Permissions
+                capabilities={capabilities}
+                permissions={permissions}
+                setPermissions={setPermissions}
+                readOnly={!isEditingPermissions}
+                isNewConnection={false}
+                budgetUsage={app.budgetUsage}
+              />
+            </CardContent>
+          </Card>
         </div>
       </div>
     </>
