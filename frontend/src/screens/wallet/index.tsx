@@ -35,7 +35,7 @@ function Wallet() {
   }
 
   const showMigrateCard =
-    albyBalance && albyBalance.sats > ALBY_HIDE_HOSTED_BALANCE_LIMIT;
+    albyBalance && (albyBalance.sats > ALBY_HIDE_HOSTED_BALANCE_LIMIT || true);
 
   return (
     <>
@@ -45,8 +45,11 @@ function Wallet() {
           <div className="flex flex-col items-center gap-1 text-center max-w-md">
             <ArrowLeftRight className="w-10 h-10 text-primary-background" />
             <h3 className="mt-4 text-lg font-semibold">
-              Your funds ({new Intl.NumberFormat().format(albyBalance.sats)}{" "}
-              sats) are still on your Alby shared wallet.
+              You still have{" "}
+              <span className="font-bold">
+                {new Intl.NumberFormat().format(albyBalance.sats)}
+              </span>{" "}
+              sats in your Alby shared wallet
             </h3>
             <p className="text-sm text-muted-foreground mb-4">
               {channels && channels.length > 0
