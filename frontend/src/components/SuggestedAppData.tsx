@@ -1,5 +1,6 @@
 import alby from "src/assets/suggested-apps/alby.png";
 import amethyst from "src/assets/suggested-apps/amethyst.png";
+import buzzpay from "src/assets/suggested-apps/buzzpay.png";
 import damus from "src/assets/suggested-apps/damus.png";
 import hablanews from "src/assets/suggested-apps/habla-news.png";
 import kiwi from "src/assets/suggested-apps/kiwi.png";
@@ -37,6 +38,13 @@ export const suggestedApps: SuggestedApp[] = [
     description: "Subaccounts powered by your Hub",
     internal: true,
     logo: uncleJim,
+  },
+  {
+    id: "buzzpay",
+    title: "BuzzPay PoS",
+    description: "Receive-only PoS you can safely share with your employees",
+    internal: true,
+    logo: buzzpay,
   },
   {
     id: "alby-extension",

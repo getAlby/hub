@@ -85,6 +85,14 @@ const Permissions: React.FC<PermissionsProps> = ({
 
   return (
     <div className="max-w-lg">
+      {permissions.isolated && (
+        <p className="mb-4">
+          This app is isolated from the rest of your wallet. This means it will
+          have an isolated balance and only has access to its own transaction
+          history. It will not be able to sign messages on your node's behalf.
+        </p>
+      )}
+
       {!readOnly && !scopesReadOnly ? (
         <Scopes
           capabilities={capabilities}
@@ -93,13 +101,6 @@ const Permissions: React.FC<PermissionsProps> = ({
           onScopesChanged={onScopesChanged}
           isNewConnection={isNewConnection}
         />
-      ) : permissions.isolated ? (
-        <p>
-          This app will be isolated from the rest of your wallet. This means it
-          will have an isolated balance and only has access to its own
-          transaction history. It will not be able to read your node info,
-          transactions, or sign messages.
-        </p>
       ) : (
         <>
           <p className="text-sm font-medium mb-2">Scopes</p>

@@ -5,7 +5,6 @@ import {
   AppPermissions,
   BudgetRenewalType,
   CreateAppRequest,
-  CreateAppResponse,
   Nip47NotificationType,
   Nip47RequestMethod,
   Scope,
@@ -23,8 +22,8 @@ import { Separator } from "src/components/ui/separator";
 import { useToast } from "src/components/ui/use-toast";
 import { useApps } from "src/hooks/useApps";
 import { useCapabilities } from "src/hooks/useCapabilities";
+import { createApp } from "src/requests/createApp";
 import { handleRequestError } from "src/utils/handleRequestError";
-import { request } from "src/utils/request"; // build the project for this to appear
 import Permissions from "../../components/Permissions";
 import { suggestedApps } from "../../components/SuggestedAppData";
 
@@ -204,17 +203,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
         },
       };
 
-      const createAppResponse = await request<CreateAppResponse>("/api/apps", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(createAppRequest),
-      });
-
-      if (!createAppResponse) {
-        throw new Error("no create app response received");
-      }
+      const createAppResponse = await createApp(createAppRequest);
 
       if (createAppResponse.returnTo) {
         // open connection URI directly in an app

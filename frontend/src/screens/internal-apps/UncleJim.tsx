@@ -24,7 +24,7 @@ import { ConnectAppCard } from "src/screens/apps/AppCreated";
 import { CreateAppRequest } from "src/types";
 import { handleRequestError } from "src/utils/handleRequestError";
 
-export function UncleJimApp() {
+export function UncleJim() {
   const [name, setName] = React.useState("");
   const [appPublicKey, setAppPublicKey] = React.useState("");
   const [connectionSecret, setConnectionSecret] = React.useState("");
@@ -122,7 +122,7 @@ export function UncleJimApp() {
                 {onboardedApps.map((app, index) => (
                   <AppCard key={index} app={app} />
                 ))}
-              </div>
+              </div>{" "}
             </>
           )}
         </>
@@ -130,15 +130,15 @@ export function UncleJimApp() {
       {connectionSecret && (
         <div className="grid gap-5 max-w-lg">
           <p className="text-muted-foreground text-sm">
-            Choose how you want to onboard {name} to their new wallet:
+            Step 2. Onboard {name} to their new wallet
           </p>
           <Accordion type="single" collapsible>
             <AccordionItem value="mobile">
-              <AccordionTrigger>Alby Go</AccordionTrigger>
+              <AccordionTrigger>Alby Mobile</AccordionTrigger>
               <AccordionContent>
                 <p className="text-muted-foreground text-sm mb-5">
-                  1. Ask {name} to download the Alby Go app from Google Play or
-                  the iOS App Store
+                  1. Ask {name} to download the Alby Mobile app from Google Play
+                  or the iOS App Store
                 </p>
                 <p className="text-muted-foreground text-sm mb-5">
                   2. Ask {name} to scan the below QR code.
