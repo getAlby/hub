@@ -7,6 +7,7 @@ import {
   CopyIcon,
   Heart,
   Hotel,
+  HourglassIcon,
   InfoIcon,
   Unplug,
 } from "lucide-react";
@@ -300,11 +301,15 @@ export default function Channels() {
                   {new Intl.NumberFormat().format(balances.onchain.spendable)}{" "}
                   sats
                   {balances &&
-                    balances.onchain.spendable !== balances.onchain.total && (
+                    (balances.onchain.spendable !== balances.onchain.total ||
+                      balances.onchain.pendingBalancesFromChannelClosures >
+                        0) && (
                       <p className="text-xs text-muted-foreground animate-pulse">
                         +
                         {new Intl.NumberFormat().format(
-                          balances.onchain.total - balances.onchain.spendable
+                          balances.onchain.total -
+                            balances.onchain.spendable +
+                            balances.onchain.pendingBalancesFromChannelClosures
                         )}{" "}
                         sats incoming
                       </p>
@@ -402,6 +407,27 @@ export default function Channels() {
           </CardFooter>
         </Card>
       </div>
+
+      {balances && balances.onchain.pendingBalancesFromChannelClosures > 0 && (
+        <Alert>
+          <HourglassIcon className="h-4 w-4" />
+          <AlertTitle>Pending Closed Channels</AlertTitle>
+          <AlertDescription>
+            You have{" "}
+            {new Intl.NumberFormat().format(
+              balances.onchain.pendingBalancesFromChannelClosures
+            )}{" "}
+            sats pending from one or more closed channels. These may take up to
+            2 weeks to return to your savings balance.{" "}
+            <ExternalLink
+              to="https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub/faq-alby-hub/why-was-my-lightning-channel-closed-and-what-to-do-next"
+              className="underline"
+            >
+              Learn more
+            </ExternalLink>
+          </AlertDescription>
+        </Alert>
+      )}
 
       {channels && channels.length === 0 && (
         <EmptyState
