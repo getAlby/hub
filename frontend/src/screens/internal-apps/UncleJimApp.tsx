@@ -19,10 +19,10 @@ import { useApp } from "src/hooks/useApp";
 import { useApps } from "src/hooks/useApps";
 import { useNodeConnectionInfo } from "src/hooks/useNodeConnectionInfo";
 import { copyToClipboard } from "src/lib/clipboard";
+import { createApp } from "src/requests/createApp";
 import { ConnectAppCard } from "src/screens/apps/AppCreated";
-import { CreateAppRequest, CreateAppResponse } from "src/types";
+import { CreateAppRequest } from "src/types";
 import { handleRequestError } from "src/utils/handleRequestError";
-import { request } from "src/utils/request";
 
 export function UncleJimApp() {
   const [name, setName] = React.useState("");
@@ -60,17 +60,7 @@ export function UncleJimApp() {
         },
       };
 
-      const createAppResponse = await request<CreateAppResponse>("/api/apps", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(createAppRequest),
-      });
-
-      if (!createAppResponse) {
-        throw new Error("no create app response received");
-      }
+      const createAppResponse = await createApp(createAppRequest);
 
       setConnectionSecret(createAppResponse.pairingUri);
       setAppPublicKey(createAppResponse.pairingPublicKey);

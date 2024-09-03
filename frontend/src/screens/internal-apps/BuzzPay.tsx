@@ -6,9 +6,8 @@ import { ExternalLinkButton } from "src/components/ui/button";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 import { useApps } from "src/hooks/useApps";
-import { CreateAppRequest, CreateAppResponse } from "src/types";
+import { createApp } from "src/requests/createApp";
 import { handleRequestError } from "src/utils/handleRequestError";
-import { request } from "src/utils/request";
 
 export function BuzzPay() {
   const { data: apps, mutate: reloadApps } = useApps();
@@ -21,7 +20,7 @@ export function BuzzPay() {
   }
   const app = apps.find((app) => app.metadata?.app_store_app_id === "buzzpay");
 
-  function createApp() {
+  function handleCreateApp() {
     setCreatingApp(true);
     (async () => {
       try {
@@ -30,29 +29,14 @@ export function BuzzPay() {
           throw new Error("A connection with the same name already exists.");
         }
 
-        const createAppRequest: CreateAppRequest = {
+        const createAppResponse = await createApp({
           name,
           scopes: ["get_info", "lookup_invoice", "make_invoice"],
           isolated: true,
           metadata: {
             app_store_app_id: "buzzpay",
           },
-        };
-
-        const createAppResponse = await request<CreateAppResponse>(
-          "/api/apps",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(createAppRequest),
-          }
-        );
-
-        if (!createAppResponse) {
-          throw new Error("no create app response received");
-        }
+        });
 
         setConnectionSecret(createAppResponse.pairingUri);
 
@@ -94,7 +78,7 @@ export function BuzzPay() {
             created and you will receive a link you can share with your
             employees, on any device.
           </p>
-          <LoadingButton loading={creatingApp} onClick={createApp}>
+          <LoadingButton loading={creatingApp} onClick={handleCreateApp}>
             Create BuzzPay App
           </LoadingButton>
         </div>
