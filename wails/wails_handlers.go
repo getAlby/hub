@@ -332,6 +332,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 				}).WithError(err).Error("Failed to decode request to wails router")
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 			}
+
 			createAppResponse, err := app.api.CreateApp(createAppRequest)
 			if err != nil {
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
@@ -455,6 +456,9 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 	case "/api/wallet/sign-message":
 		signMessageRequest := &api.SignMessageRequest{}
 		err := json.Unmarshal([]byte(body), signMessageRequest)
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
 		signMessageResponse, err := app.api.SignMessage(ctx, signMessageRequest.Message)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
@@ -469,6 +473,9 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 	case "/api/lsp-orders":
 		newInstantChannelRequest := &api.LSPOrderRequest{}
 		err := json.Unmarshal([]byte(body), newInstantChannelRequest)
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
 		newInstantChannelResponse, err := app.api.RequestLSPOrder(ctx, newInstantChannelRequest)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}

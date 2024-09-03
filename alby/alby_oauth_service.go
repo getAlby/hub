@@ -46,6 +46,7 @@ const (
 	accessTokenExpiryKey = "AlbyOAuthAccessTokenExpiry"
 	refreshTokenKey      = "AlbyOAuthRefreshToken"
 	userIdentifierKey    = "AlbyUserIdentifier"
+	lightningAddressKey  = "AlbyLightningAddress"
 )
 
 const ALBY_ACCOUNT_APP_NAME = "getalby.com"
@@ -128,6 +129,15 @@ func (svc *albyOAuthService) GetUserIdentifier() (string, error) {
 		return "", err
 	}
 	return userIdentifier, nil
+}
+
+func (svc *albyOAuthService) GetLightningAddress() (string, error) {
+	lightningAddress, err := svc.cfg.Get(lightningAddressKey, "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to fetch lightning address from user configs")
+		return "", err
+	}
+	return lightningAddress, nil
 }
 
 func (svc *albyOAuthService) IsConnected(ctx context.Context) bool {
@@ -231,6 +241,8 @@ func (svc *albyOAuthService) GetMe(ctx context.Context) (*AlbyMe, error) {
 		logger.Logger.WithError(err).Error("Failed to decode API response")
 		return nil, err
 	}
+
+	svc.cfg.SetUpdate(lightningAddressKey, me.LightningAddress, "")
 
 	logger.Logger.WithFields(logrus.Fields{"me": me}).Info("Alby me response")
 	return me, nil
@@ -408,6 +420,7 @@ func (svc *albyOAuthService) UnlinkAccount(ctx context.Context) error {
 	svc.cfg.SetUpdate(accessTokenKey, "", "")
 	svc.cfg.SetUpdate(accessTokenExpiryKey, "", "")
 	svc.cfg.SetUpdate(refreshTokenKey, "", "")
+	svc.cfg.SetUpdate(lightningAddressKey, "", "")
 
 	return nil
 }

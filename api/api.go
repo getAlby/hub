@@ -91,24 +91,29 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 	responseBody.Pubkey = app.NostrPubkey
 	responseBody.PairingSecret = pairingSecretKey
 
+	lightningAddress, err := api.albyOAuthSvc.GetLightningAddress()
+	if err != nil {
+		return nil, err
+	}
+
 	if createAppRequest.ReturnTo != "" {
 		returnToUrl, err := url.Parse(createAppRequest.ReturnTo)
 		if err == nil {
 			query := returnToUrl.Query()
 			query.Add("relay", relayUrl)
 			query.Add("pubkey", api.keys.GetNostrPublicKey())
-			// if user.LightningAddress != "" {
-			// 	query.Add("lud16", user.LightningAddress)
-			// }
+			if lightningAddress != "" {
+				query.Add("lud16", lightningAddress)
+			}
 			returnToUrl.RawQuery = query.Encode()
 			responseBody.ReturnTo = returnToUrl.String()
 		}
 	}
 
 	var lud16 string
-	// if user.LightningAddress != "" {
-	// 	lud16 = fmt.Sprintf("&lud16=%s", user.LightningAddress)
-	// }
+	if lightningAddress != "" {
+		lud16 = fmt.Sprintf("&lud16=%s", lightningAddress)
+	}
 	responseBody.PairingUri = fmt.Sprintf("nostr+walletconnect://%s?relay=%s&secret=%s%s", api.keys.GetNostrPublicKey(), relayUrl, pairingSecretKey, lud16)
 	return responseBody, nil
 }

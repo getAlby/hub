@@ -53,7 +53,10 @@ func main() {
 	logger.Logger.Info("Shutting down echo server...")
 	ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	e.Shutdown(ctx)
+	err := e.Shutdown(ctx)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to shutdown echo server")
+	}
 	logger.Logger.Info("Echo server exited")
 	svc.Shutdown()
 	logger.Logger.Info("Service exited")
