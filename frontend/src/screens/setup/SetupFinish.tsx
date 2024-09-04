@@ -13,11 +13,12 @@ import { AuthTokenResponse, SetupNodeInfo } from "src/types";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 
+let lastStartupErrorTime: string;
 export function SetupFinish() {
   const navigate = useNavigate();
   const { nodeInfo, unlockPassword } = useSetupStore();
   const { toast } = useToast();
-  useInfo(true); // poll the info endpoint to auto-redirect when app is running
+  const { data: info } = useInfo(true); // poll the info endpoint to auto-redirect when app is running
 
   const [loading, setLoading] = React.useState(false);
   const [connectionError, setConnectionError] = React.useState(false);
@@ -31,6 +32,28 @@ export function SetupFinish() {
       preserveAspectRatio: "xMidYMid slice",
     },
   };
+
+  const startupError = info?.startupError;
+  const startupErrorTime = info?.startupErrorTime;
+
+  React.useEffect(() => {
+    // lastStartupErrorTime check is required because user may leave page and come back
+    // after re-configuring settings
+    if (
+      startupError &&
+      startupErrorTime &&
+      startupErrorTime !== lastStartupErrorTime
+    ) {
+      lastStartupErrorTime = startupErrorTime;
+      toast({
+        title: "Failed to start",
+        description: startupError,
+        variant: "destructive",
+      });
+      setLoading(false);
+      setConnectionError(true);
+    }
+  }, [startupError, toast, startupErrorTime]);
 
   useEffect(() => {
     if (!loading) {

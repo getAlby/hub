@@ -32,13 +32,15 @@ import (
 )
 
 type api struct {
-	db             *gorm.DB
-	dbSvc          db.DBService
-	cfg            config.Config
-	svc            service.Service
-	permissionsSvc permissions.PermissionsService
-	keys           keys.Keys
-	albyOAuthSvc   alby.AlbyOAuthService
+	db               *gorm.DB
+	dbSvc            db.DBService
+	cfg              config.Config
+	svc              service.Service
+	permissionsSvc   permissions.PermissionsService
+	keys             keys.Keys
+	albyOAuthSvc     alby.AlbyOAuthService
+	startupError     error
+	startupErrorTime time.Time
 }
 
 func NewAPI(svc service.Service, gormDB *gorm.DB, config config.Config, keys keys.Keys, albyOAuthSvc alby.AlbyOAuthService, eventPublisher events.EventPublisher) *api {
@@ -648,6 +650,10 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info := InfoResponse{}
 	backendType, _ := api.cfg.Get("LNBackendType", "")
 	info.SetupCompleted = api.cfg.SetupCompleted()
+	if api.startupError != nil {
+		info.StartupError = api.startupError.Error()
+		info.StartupErrorTime = api.startupErrorTime
+	}
 	info.Running = api.svc.GetLNClient() != nil
 	info.BackendType = backendType
 	info.AlbyAuthUrl = api.albyOAuthSvc.GetAuthUrl()
@@ -700,7 +706,17 @@ func (api *api) SetNextBackupReminder(backupReminderRequest *BackupReminderReque
 
 var startMutex sync.Mutex
 
-func (api *api) Start(startRequest *StartRequest) error {
+func (api *api) Start(startRequest *StartRequest) {
+	api.startupError = nil
+	err := api.StartInternal(startRequest)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to start node")
+		api.startupError = err
+		api.startupErrorTime = time.Now()
+	}
+}
+
+func (api *api) StartInternal(startRequest *StartRequest) (err error) {
 	if !startMutex.TryLock() {
 		// do not allow to start twice in case this is somehow called twice
 		return errors.New("app is already starting")

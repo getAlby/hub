@@ -42,7 +42,7 @@ type API interface {
 	GetInfo(ctx context.Context) (*InfoResponse, error)
 	GetMnemonic(unlockPassword string) (*MnemonicResponse, error)
 	SetNextBackupReminder(backupReminderRequest *BackupReminderRequest) error
-	Start(startRequest *StartRequest) error
+	Start(startRequest *StartRequest)
 	Setup(ctx context.Context, setupRequest *SetupRequest) error
 	SendPaymentProbes(ctx context.Context, sendPaymentProbesRequest *SendPaymentProbesRequest) (*SendPaymentProbesResponse, error)
 	SendSpontaneousPaymentProbes(ctx context.Context, sendSpontaneousPaymentProbesRequest *SendSpontaneousPaymentProbesRequest) (*SendSpontaneousPaymentProbesResponse, error)
@@ -152,18 +152,20 @@ type User struct {
 }
 
 type InfoResponse struct {
-	BackendType          string `json:"backendType"`
-	SetupCompleted       bool   `json:"setupCompleted"`
-	OAuthRedirect        bool   `json:"oauthRedirect"`
-	Running              bool   `json:"running"`
-	Unlocked             bool   `json:"unlocked"`
-	AlbyAuthUrl          string `json:"albyAuthUrl"`
-	NextBackupReminder   string `json:"nextBackupReminder"`
-	AlbyUserIdentifier   string `json:"albyUserIdentifier"`
-	AlbyAccountConnected bool   `json:"albyAccountConnected"`
-	Version              string `json:"version"`
-	Network              string `json:"network"`
-	EnableAdvancedSetup  bool   `json:"enableAdvancedSetup"`
+	BackendType          string    `json:"backendType"`
+	SetupCompleted       bool      `json:"setupCompleted"`
+	OAuthRedirect        bool      `json:"oauthRedirect"`
+	Running              bool      `json:"running"`
+	Unlocked             bool      `json:"unlocked"`
+	AlbyAuthUrl          string    `json:"albyAuthUrl"`
+	NextBackupReminder   string    `json:"nextBackupReminder"`
+	AlbyUserIdentifier   string    `json:"albyUserIdentifier"`
+	AlbyAccountConnected bool      `json:"albyAccountConnected"`
+	Version              string    `json:"version"`
+	Network              string    `json:"network"`
+	EnableAdvancedSetup  bool      `json:"enableAdvancedSetup"`
+	StartupError         string    `json:"startupError"`
+	StartupErrorTime     time.Time `json:"startupErrorTime"`
 }
 
 type MnemonicRequest struct {
