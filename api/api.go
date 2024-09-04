@@ -427,6 +427,12 @@ func (api *api) ChangeUnlockPassword(changeUnlockPasswordRequest *ChangeUnlockPa
 }
 
 func (api *api) Stop() error {
+	if !startMutex.TryLock() {
+		// do not allow to stop twice in case this is somehow called twice
+		return errors.New("app is busy")
+	}
+	defer startMutex.Unlock()
+
 	logger.Logger.Info("Running Stop command")
 	if api.svc.GetLNClient() == nil {
 		return errors.New("LNClient not started")
@@ -719,7 +725,7 @@ func (api *api) Start(startRequest *StartRequest) {
 func (api *api) StartInternal(startRequest *StartRequest) (err error) {
 	if !startMutex.TryLock() {
 		// do not allow to start twice in case this is somehow called twice
-		return errors.New("app is already starting")
+		return errors.New("app is busy")
 	}
 	defer startMutex.Unlock()
 	return api.svc.StartApp(startRequest.UnlockPassword)
@@ -728,7 +734,7 @@ func (api *api) StartInternal(startRequest *StartRequest) (err error) {
 func (api *api) Setup(ctx context.Context, setupRequest *SetupRequest) error {
 	if !startMutex.TryLock() {
 		// do not allow to start twice in case this is somehow called twice
-		return errors.New("app is already starting")
+		return errors.New("app is busy")
 	}
 	defer startMutex.Unlock()
 	info, err := api.GetInfo(ctx)
