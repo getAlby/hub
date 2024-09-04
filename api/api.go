@@ -428,7 +428,7 @@ func (api *api) ChangeUnlockPassword(changeUnlockPasswordRequest *ChangeUnlockPa
 
 func (api *api) Stop() error {
 	if !startMutex.TryLock() {
-		// do not allow to start twice in case this is somehow called twice
+		// do not allow to stop twice in case this is somehow called twice
 		return errors.New("app is busy")
 	}
 	defer startMutex.Unlock()
