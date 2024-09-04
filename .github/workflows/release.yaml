@@ -6,14 +6,14 @@ on:
 jobs:
   build-server:
     uses: ./.github/workflows/http.yml
-  with:
-    build-release: true
-  secrets:
-    APPLE_DEVELOPER_CERTIFICATE_P12_BASE64: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_P12_BASE64 }}
-    APPLE_DEVELOPER_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_PASSWORD }}
-    APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
-    APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-    APPLE_USERNAME: ${{ secrets.APPLE_USERNAME }}
+    with:
+      build-release: true
+    secrets:
+      APPLE_DEVELOPER_CERTIFICATE_P12_BASE64: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_P12_BASE64 }}
+      APPLE_DEVELOPER_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_PASSWORD }}
+      APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      APPLE_USERNAME: ${{ secrets.APPLE_USERNAME }}
 
   build-wails:
     uses: ./.github/workflows/wails.yml
