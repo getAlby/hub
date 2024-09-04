@@ -988,14 +988,57 @@ func (ls *LDKService) GetNewOnchainAddress(ctx context.Context) (string, error) 
 }
 
 func (ls *LDKService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainBalanceResponse, error) {
+	channels := ls.node.ListChannels()
 	balances := ls.node.ListBalances()
 	logger.Logger.WithFields(logrus.Fields{
 		"balances": balances,
 	}).Debug("Listed Balances")
+
+	pendingBalancesFromChannelClosures := uint64(0)
+	// increase pending balance from any lightning balances for channels that are pending closure
+	// (they do not exist in our list of open channels)
+	for _, balance := range balances.LightningBalances {
+		increasePendingBalance := func(channelId string, amount uint64) {
+			if !slices.ContainsFunc(channels, func(channel ldk_node.ChannelDetails) bool {
+				return channel.ChannelId == channelId
+			}) {
+				pendingBalancesFromChannelClosures += amount
+			}
+		}
+
+		switch balanceType := (balance).(type) {
+		case ldk_node.LightningBalanceClaimableOnChannelClose:
+			increasePendingBalance(balanceType.ChannelId, balanceType.AmountSatoshis)
+		case ldk_node.LightningBalanceClaimableAwaitingConfirmations:
+			increasePendingBalance(balanceType.ChannelId, balanceType.AmountSatoshis)
+		case ldk_node.LightningBalanceContentiousClaimable:
+			increasePendingBalance(balanceType.ChannelId, balanceType.AmountSatoshis)
+		case ldk_node.LightningBalanceMaybeTimeoutClaimableHtlc:
+			increasePendingBalance(balanceType.ChannelId, balanceType.AmountSatoshis)
+		case ldk_node.LightningBalanceMaybePreimageClaimableHtlc:
+			increasePendingBalance(balanceType.ChannelId, balanceType.AmountSatoshis)
+		case ldk_node.LightningBalanceCounterpartyRevokedOutputClaimable:
+			increasePendingBalance(balanceType.ChannelId, balanceType.AmountSatoshis)
+		}
+	}
+
+	// increase pending balance from any lightning balances for channels that were closed
+	for _, balance := range balances.PendingBalancesFromChannelClosures {
+		switch pendingType := (balance).(type) {
+		case ldk_node.PendingSweepBalancePendingBroadcast:
+			pendingBalancesFromChannelClosures += pendingType.AmountSatoshis
+		case ldk_node.PendingSweepBalanceBroadcastAwaitingConfirmation:
+			pendingBalancesFromChannelClosures += pendingType.AmountSatoshis
+		case ldk_node.PendingSweepBalanceAwaitingThresholdConfirmations:
+			pendingBalancesFromChannelClosures += pendingType.AmountSatoshis
+		}
+	}
+
 	return &lnclient.OnchainBalanceResponse{
-		Spendable: int64(balances.SpendableOnchainBalanceSats),
-		Total:     int64(balances.TotalOnchainBalanceSats - balances.TotalAnchorChannelsReserveSats),
-		Reserved:  int64(balances.TotalAnchorChannelsReserveSats),
+		Spendable:                          int64(balances.SpendableOnchainBalanceSats),
+		Total:                              int64(balances.TotalOnchainBalanceSats - balances.TotalAnchorChannelsReserveSats),
+		Reserved:                           int64(balances.TotalAnchorChannelsReserveSats),
+		PendingBalancesFromChannelClosures: pendingBalancesFromChannelClosures,
 	}, nil
 }
 
