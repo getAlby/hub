@@ -138,7 +138,7 @@ func (mln *MockLn) GetBalances(ctx context.Context) (*lnclient.BalancesResponse,
 func (mln *MockLn) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainBalanceResponse, error) {
 	return nil, nil
 }
-func (mln *MockLn) RedeemOnchainFunds(ctx context.Context, toAddress string) (txId string, err error) {
+func (mln *MockLn) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, sendAll bool) (txId string, err error) {
 	return "", nil
 }
 func (mln *MockLn) ResetRouter(key string) error {

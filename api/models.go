@@ -32,7 +32,7 @@ type API interface {
 	GetNewOnchainAddress(ctx context.Context) (string, error)
 	GetUnusedOnchainAddress(ctx context.Context) (string, error)
 	SignMessage(ctx context.Context, message string) (*SignMessageResponse, error)
-	RedeemOnchainFunds(ctx context.Context, toAddress string) (*RedeemOnchainFundsResponse, error)
+	RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, sendAll bool) (*RedeemOnchainFundsResponse, error)
 	GetBalances(ctx context.Context) (*BalancesResponse, error)
 	ListTransactions(ctx context.Context, limit uint64, offset uint64) (*ListTransactionsResponse, error)
 	SendPayment(ctx context.Context, invoice string) (*SendPaymentResponse, error)
@@ -187,6 +187,8 @@ type UpdateChannelRequest = lnclient.UpdateChannelRequest
 
 type RedeemOnchainFundsRequest struct {
 	ToAddress string `json:"toAddress"`
+	Amount    uint64 `json:"amount"`
+	SendAll   bool   `json:"sendAll"`
 }
 
 type RedeemOnchainFundsResponse struct {

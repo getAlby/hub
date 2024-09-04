@@ -1042,24 +1042,19 @@ func (ls *LDKService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainB
 	}, nil
 }
 
-func (ls *LDKService) RedeemOnchainFunds(ctx context.Context, toAddress string) (string, error) {
-
-	// TODO: LDK will improve SendAllToAddress to preserve anchor funds, then this
-	// code below can be removed.
-	///////////////////////////////////////////////////////////////////////////////////
-	balances := ls.node.ListBalances()
-	if balances.TotalAnchorChannelsReserveSats > 0 {
-		// NOTE: this is not good because it uses anchor reserves for the onchain transaction fee
-		spendableBalance := balances.SpendableOnchainBalanceSats
-		txId, err := ls.node.OnchainPayment().SendToAddress(toAddress, spendableBalance)
+func (ls *LDKService) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, sendAll bool) (string, error) {
+	if !sendAll {
+		// NOTE: this may fail if user does not reserve enough for the onchain transaction
+		// and can also drain the anchor reserves if the user provides a too high amount.
+		txId, err := ls.node.OnchainPayment().SendToAddress(toAddress, amount)
 		if err != nil {
 			logger.Logger.WithError(err).Error("SendToAddress failed")
 			return "", err
 		}
 		return txId, nil
 	}
-	///////////////////////////////////////////////////////////////////////////////////
 
+	// TODO: this could be improved to preserve anchor reserves once LDK supports this
 	txId, err := ls.node.OnchainPayment().SendAllToAddress(toAddress)
 	if err != nil {
 		logger.Logger.WithError(err).Error("SendAllToAddress failed")

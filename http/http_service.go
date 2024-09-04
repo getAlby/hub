@@ -720,7 +720,7 @@ func (httpSvc *HttpService) redeemOnchainFundsHandler(c echo.Context) error {
 		})
 	}
 
-	redeemOnchainFundsResponse, err := httpSvc.api.RedeemOnchainFunds(ctx, redeemOnchainFundsRequest.ToAddress)
+	redeemOnchainFundsResponse, err := httpSvc.api.RedeemOnchainFunds(ctx, redeemOnchainFundsRequest.ToAddress, redeemOnchainFundsRequest.Amount, redeemOnchainFundsRequest.SendAll)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
