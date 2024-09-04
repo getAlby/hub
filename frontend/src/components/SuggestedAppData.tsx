@@ -187,4 +187,14 @@ export const suggestedApps: SuggestedApp[] = [
     webLink: "https://paper-scissors-hodl.fly.dev",
     logo: paperScissorsHodl,
   },
+  {
+    id: "alby-go",
+    title: "Alby Go",
+    description:
+      "A simple lightning mobile wallet interface that works great with Alby Hub.",
+    appleLink: "https://apps.apple.com/app/alby-mobile/id6471335774",
+    playLink:
+      "https://play.google.com/store/apps/details?id=com.getalby.mobile",
+    logo: paperScissorsHodl,
+  },
 ].sort((a, b) => (a.title.toUpperCase() > b.title.toUpperCase() ? 1 : -1));
