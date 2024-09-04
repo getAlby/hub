@@ -30,9 +30,10 @@ export default function Start() {
   const { toast } = useToast();
 
   const startupError = info?.startupError;
+  const startupErrorTime = info?.startupErrorTime;
 
   React.useEffect(() => {
-    if (startupError) {
+    if (startupError && startupErrorTime) {
       toast({
         title: "Failed to start",
         description: startupError,
@@ -42,7 +43,7 @@ export default function Start() {
       setButtonText("Login");
       setUnlockPassword("");
     }
-  }, [startupError, toast, info?.startupErrorTime]);
+  }, [startupError, toast, startupErrorTime]);
 
   React.useEffect(() => {
     if (!loading) {

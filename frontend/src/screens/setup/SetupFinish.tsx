@@ -13,6 +13,7 @@ import { AuthTokenResponse, SetupNodeInfo } from "src/types";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 
+let lastStartupErrorTime: string;
 export function SetupFinish() {
   const navigate = useNavigate();
   const { nodeInfo, unlockPassword } = useSetupStore();
@@ -33,9 +34,17 @@ export function SetupFinish() {
   };
 
   const startupError = info?.startupError;
+  const startupErrorTime = info?.startupErrorTime;
 
   React.useEffect(() => {
-    if (startupError) {
+    // lastStartupErrorTime check is required because user may leave page and come back
+    // after re-configuring settings
+    if (
+      startupError &&
+      startupErrorTime &&
+      startupErrorTime !== lastStartupErrorTime
+    ) {
+      lastStartupErrorTime = startupErrorTime;
       toast({
         title: "Failed to start",
         description: startupError,
@@ -44,7 +53,7 @@ export function SetupFinish() {
       setLoading(false);
       setConnectionError(true);
     }
-  }, [startupError, toast, info?.startupErrorTime]);
+  }, [startupError, toast, startupErrorTime]);
 
   useEffect(() => {
     if (!loading) {
