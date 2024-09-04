@@ -83,6 +83,7 @@ type UpdateAppRequest struct {
 	BudgetRenewal string   `json:"budgetRenewal"`
 	ExpiresAt     string   `json:"expiresAt"`
 	Scopes        []string `json:"scopes"`
+	Metadata      Metadata `json:"metadata,omitempty"`
 }
 
 type CreateAppRequest struct {

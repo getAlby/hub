@@ -1,6 +1,7 @@
 import {
   AlertTriangle,
   ArrowDownIcon,
+  ArrowLeftRight,
   ArrowUpIcon,
   CreditCard,
 } from "lucide-react";
@@ -8,7 +9,6 @@ import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import BreezRedeem from "src/components/BreezRedeem";
 import ExternalLink from "src/components/ExternalLink";
-import { SelfCustodyIcon } from "src/components/icons/SelfCustodyIcon";
 import Loading from "src/components/Loading";
 import TransactionsList from "src/components/TransactionsList";
 import { TransferFundsButton } from "src/components/TransferFundsButton";
@@ -43,16 +43,13 @@ function Wallet() {
       {showMigrateCard && (
         <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm p-8">
           <div className="flex flex-col items-center gap-1 text-center max-w-md">
-            <SelfCustodyIcon
-              width="211"
-              height="64"
-              viewBox="0 0 211 64"
-              strokeWidth="0"
-              className="text-primary-background"
-            />
+            <ArrowLeftRight className="w-10 h-10 text-primary-background" />
             <h3 className="mt-4 text-lg font-semibold">
-              Your funds ({new Intl.NumberFormat().format(albyBalance.sats)}{" "}
-              sats) are still hosted by Alby.
+              You still have{" "}
+              <span className="font-bold">
+                {new Intl.NumberFormat().format(albyBalance.sats)}
+              </span>{" "}
+              sats in your Alby shared wallet
             </h3>
             <p className="text-sm text-muted-foreground mb-4">
               {channels && channels.length > 0

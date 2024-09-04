@@ -42,6 +42,7 @@ type AppConfig struct {
 	GoProfilerAddr        string `envconfig:"GO_PROFILER_ADDR"`
 	DdProfilerEnabled     bool   `envconfig:"DD_PROFILER_ENABLED" default:"false"`
 	EnableAdvancedSetup   bool   `envconfig:"ENABLE_ADVANCED_SETUP" default:"true"`
+	AutoUnlockPassword    string `envconfig:"AUTO_UNLOCK_PASSWORD"`
 }
 
 func (c *AppConfig) IsDefaultClientId() bool {

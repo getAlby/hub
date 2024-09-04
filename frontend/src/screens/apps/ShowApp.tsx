@@ -7,7 +7,6 @@ import { useDeleteApp } from "src/hooks/useDeleteApp";
 import {
   App,
   AppPermissions,
-  BudgetRenewalType,
   UpdateAppRequest,
   WalletCapabilities,
 } from "src/types";
@@ -95,7 +94,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
   const [permissions, setPermissions] = React.useState<AppPermissions>({
     scopes: app.scopes,
     maxAmount: app.maxAmount,
-    budgetRenewal: app.budgetRenewal as BudgetRenewalType,
+    budgetRenewal: app.budgetRenewal,
     expiresAt: app.expiresAt ? new Date(app.expiresAt) : undefined,
     isolated: app.isolated,
   });
@@ -259,59 +258,57 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
             </CardContent>
           </Card>
 
-          {!app.isolated && (
-            <Card>
-              <CardHeader>
-                <CardTitle>
-                  <div className="flex flex-row justify-between items-center">
-                    Permissions
-                    <div className="flex flex-row gap-2">
-                      {isEditingPermissions && (
-                        <div className="flex justify-center items-center gap-2">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => {
-                              window.location.reload();
-                            }}
-                          >
-                            Cancel
-                          </Button>
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                <div className="flex flex-row justify-between items-center">
+                  Permissions
+                  <div className="flex flex-row gap-2">
+                    {isEditingPermissions && (
+                      <div className="flex justify-center items-center gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            window.location.reload();
+                          }}
+                        >
+                          Cancel
+                        </Button>
 
-                          <Button type="button" onClick={handleSave}>
-                            Save
-                          </Button>
-                        </div>
-                      )}
+                        <Button type="button" onClick={handleSave}>
+                          Save
+                        </Button>
+                      </div>
+                    )}
 
-                      {!isEditingPermissions && (
-                        <>
-                          <Button
-                            variant="outline"
-                            onClick={() =>
-                              setIsEditingPermissions(!isEditingPermissions)
-                            }
-                          >
-                            Edit
-                          </Button>
-                        </>
-                      )}
-                    </div>
+                    {!app.isolated && !isEditingPermissions && (
+                      <>
+                        <Button
+                          variant="outline"
+                          onClick={() =>
+                            setIsEditingPermissions(!isEditingPermissions)
+                          }
+                        >
+                          Edit
+                        </Button>
+                      </>
+                    )}
                   </div>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Permissions
-                  capabilities={capabilities}
-                  permissions={permissions}
-                  setPermissions={setPermissions}
-                  readOnly={!isEditingPermissions}
-                  isNewConnection={false}
-                  budgetUsage={app.budgetUsage}
-                />
-              </CardContent>
-            </Card>
-          )}
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Permissions
+                capabilities={capabilities}
+                permissions={permissions}
+                setPermissions={setPermissions}
+                readOnly={!isEditingPermissions}
+                isNewConnection={false}
+                budgetUsage={app.budgetUsage}
+              />
+            </CardContent>
+          </Card>
         </div>
       </div>
     </>

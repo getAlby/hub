@@ -152,9 +152,10 @@ export interface InfoResponse {
 
 export type Network = "bitcoin" | "testnet" | "signet";
 
-export type AppMetadata =
-  | Record<string, unknown>
-  | { app_store_app_id?: string };
+export type AppMetadata = { app_store_app_id?: string } & Record<
+  string,
+  unknown
+>;
 
 export interface MnemonicResponse {
   mnemonic: string;
@@ -187,6 +188,7 @@ export type UpdateAppRequest = {
   budgetRenewal: string;
   expiresAt: string | undefined;
   scopes: Scope[];
+  metadata?: AppMetadata;
 };
 
 export type Channel = {
@@ -267,6 +269,7 @@ export type OnchainBalanceResponse = {
   spendable: number;
   total: number;
   reserved: number;
+  pendingBalancesFromChannelClosures: number;
 };
 
 // from https://mempool.space/docs/api/rest#get-node-stats
