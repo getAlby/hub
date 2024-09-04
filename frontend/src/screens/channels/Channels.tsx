@@ -417,8 +417,8 @@ export default function Channels() {
             {new Intl.NumberFormat().format(
               balances.onchain.pendingBalancesFromChannelClosures
             )}{" "}
-            sats pending from one or more closed channels. These may take up to
-            2 weeks to return to your savings balance.{" "}
+            sats pending from one or more closed channels. Once spendable again these 
+            will become available in your savings balance.{" "}
             <ExternalLink
               to="https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub/faq-alby-hub/why-was-my-lightning-channel-closed-and-what-to-do-next"
               className="underline"
