@@ -21,8 +21,11 @@ func (svc *service) stopLNClient() {
 	if svc.lnClient == nil {
 		return
 	}
+	lnClient := svc.lnClient
+	svc.lnClient = nil
+
 	logger.Logger.Info("Shutting down LN client")
-	err := svc.lnClient.Shutdown()
+	err := lnClient.Shutdown()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to stop LN client")
 		svc.eventPublisher.Publish(&events.Event{
@@ -34,7 +37,6 @@ func (svc *service) stopLNClient() {
 		return
 	}
 	logger.Logger.Info("Publishing node shutdown event")
-	svc.lnClient = nil
 	svc.eventPublisher.Publish(&events.Event{
 		Event: "nwc_node_stopped",
 	})
