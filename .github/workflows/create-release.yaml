@@ -13,7 +13,7 @@ jobs:
       - name: Download Linux server archives
         uses: actions/download-artifact@v4
         with:
-          pattern: albyhub-Server-Linux-*
+          pattern: albyhub-Server-*
           path: artifacts
           merge-multiple: true
 
