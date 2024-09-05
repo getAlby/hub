@@ -752,13 +752,22 @@ func (svc *LNDService) GetOnchainBalance(ctx context.Context) (*lnclient.Onchain
 	if err != nil {
 		return nil, err
 	}
+	pendingChannels, err := svc.client.PendingChannels(ctx, &lnrpc.PendingChannelsRequest{})
+	if err != nil {
+		return nil, err
+	}
+	pendingBalancesFromChannelClosures := uint64(0)
+	for _, closingChannel := range pendingChannels.WaitingCloseChannels {
+		pendingBalancesFromChannelClosures += uint64(closingChannel.LimboBalance)
+	}
 	logger.Logger.WithFields(logrus.Fields{
 		"balances": balances,
 	}).Debug("Listed Balances")
 	return &lnclient.OnchainBalanceResponse{
-		Spendable: int64(balances.ConfirmedBalance),
-		Total:     int64(balances.TotalBalance),
-		Reserved:  int64(balances.ReservedBalanceAnchorChan),
+		Spendable:                          int64(balances.ConfirmedBalance),
+		Total:                              int64(balances.TotalBalance),
+		Reserved:                           int64(balances.ReservedBalanceAnchorChan),
+		PendingBalancesFromChannelClosures: pendingBalancesFromChannelClosures,
 	}, nil
 }
 
