@@ -33,8 +33,7 @@ else
 fi
 
 ### Create systemd service
-if [[ ! -e /etc/systemd/system/albyhub.service ]]; then
-  sudo tee -a /etc/systemd/system/albyhub.service > /dev/null << EOF
+sudo tee /etc/systemd/system/albyhub.service > /dev/null << EOF
 [Unit]
 Description=Alby Hub
 After=network-online.target
@@ -58,7 +57,6 @@ Environment="LDK_GOSSIP_SOURCE="
 [Install]
 WantedBy=multi-user.target
 EOF
-fi
 
 sudo systemctl enable albyhub
 sudo systemctl start albyhub
