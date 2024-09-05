@@ -342,6 +342,7 @@ func (svc *PhoenixService) MakeInvoice(ctx context.Context, amount int64, descri
 		Invoice:         invoiceRes.Serialized,
 		Preimage:        "", // TODO: set preimage to enable self-payments
 		PaymentHash:     invoiceRes.PaymentHash,
+		Amount:          amount,
 		FeesPaid:        0,
 		CreatedAt:       time.Now().Unix(),
 		ExpiresAt:       &expiresAt,
