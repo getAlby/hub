@@ -111,44 +111,45 @@ export function BuzzPay() {
         </div>
       )}
       {!posUrl && (
-        <div className="max-w-lg flex flex-col gap-5">
-          <p className="text-muted-foreground">
-            BuzzPay works by creating read-only connections to your Alby Hub.
-          </p>
-          <ul className="text-muted-foreground">
-            <li>🔒 Allow employees to collect but never spend your funds</li>
-            <li>🔗 Sharable link that can be used on any device</li>
-            <li>⚡ Lightning fast transactions directly to your Alby Hub</li>
-          </ul>
-          <form
-            onSubmit={handleSubmit}
-            className="flex flex-col items-start gap-5 max-w-lg"
-          >
-            <div className="w-full grid gap-1.5">
-              <Label htmlFor="name">PoS Name</Label>
-              <Input
-                autoFocus
-                type="text"
-                name="name"
-                value={name}
-                id="name"
-                onChange={(e) => setName(e.target.value)}
-                required
-                autoComplete="off"
-              />
-            </div>
-            <LoadingButton loading={isLoading} type="submit">
-              Next
-            </LoadingButton>
-          </form>
-        </div>
+        <>
+          <div className="max-w-lg flex flex-col gap-5">
+            <p className="text-muted-foreground">
+              BuzzPay works by creating read-only connections to your Alby Hub.
+            </p>
+            <ul className="text-muted-foreground">
+              <li>🔒 Allow employees to collect but never spend your funds</li>
+              <li>🔗 Sharable link that can be used on any device</li>
+              <li>⚡ Lightning fast transactions directly to your Alby Hub</li>
+            </ul>
+            <form
+              onSubmit={handleSubmit}
+              className="flex flex-col items-start gap-5 max-w-lg"
+            >
+              <div className="w-full grid gap-1.5">
+                <Label htmlFor="name">PoS Name</Label>
+                <Input
+                  autoFocus
+                  type="text"
+                  name="name"
+                  value={name}
+                  id="name"
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  autoComplete="off"
+                />
+              </div>
+              <LoadingButton loading={isLoading} type="submit">
+                Next
+              </LoadingButton>
+            </form>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch app-list">
+            {buzzpayApps.map((app, index) => (
+              <AppCard key={index} app={app} />
+            ))}
+          </div>
+        </>
       )}
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch app-list">
-        {buzzpayApps.map((app, index) => (
-          <AppCard key={index} app={app} />
-        ))}
-      </div>
     </div>
   );
 }
