@@ -196,11 +196,12 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                     <AlertDialogDescription>
                       Connected apps will no longer be able to use this
                       connection.
-                      {app.isolated && app.balance > 0 && (
-                        <div>
-                          No funds will be lost during this process. The balance
+                      {app.isolated && (
+                        <>
+                          {" "}
+                          No funds will be lost during this process, the balance
                           will remain in your wallet.
-                        </div>
+                        </>
                       )}
                     </AlertDialogDescription>
                   </AlertDialogHeader>
