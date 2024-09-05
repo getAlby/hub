@@ -2,6 +2,7 @@ import { AlertTriangleIcon, CopyIcon, ExternalLinkIcon } from "lucide-react";
 import React from "react";
 import buzzpay from "src/assets/suggested-apps/buzzpay.png";
 import AppHeader from "src/components/AppHeader";
+import AppCard from "src/components/connections/AppCard";
 import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
@@ -26,6 +27,10 @@ export function BuzzPay() {
   if (!apps) {
     return <Loading />;
   }
+
+  const buzzpayApps = apps?.filter(
+    (app) => app.metadata?.app_store_app_id === "buzzpay"
+  );
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -73,7 +78,9 @@ export function BuzzPay() {
           </p>
           <Alert>
             <AlertTriangleIcon className="h-4 w-4" />
-            <AlertTitle>Save this link</AlertTitle>
+            <AlertTitle>
+              Save this link and add it to your home screen
+            </AlertTitle>
             <AlertDescription>
               This link will only be shown once and can't be retrieved
               afterwards. Please make sure to keep it somewhere safe.
@@ -136,6 +143,12 @@ export function BuzzPay() {
           </form>
         </div>
       )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch app-list">
+        {buzzpayApps.map((app, index) => (
+          <AppCard key={index} app={app} />
+        ))}
+      </div>
     </div>
   );
 }
