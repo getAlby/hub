@@ -59,11 +59,7 @@ then
   exit
 fi
 
-if [ -s /etc/systemd/system/albyhub.service ]; then
-  sudo truncate -s 0 /etc/systemd/system/albyhub.service
-fi
-
-sudo tee -a /etc/systemd/system/albyhub.service > /dev/null << EOF
+sudo tee /etc/systemd/system/albyhub.service > /dev/null << EOF
 [Unit]
 Description=Alby Hub
 After=network-online.target
