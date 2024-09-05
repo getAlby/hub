@@ -190,10 +190,18 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                    <AlertDialogTitle>
+                      Are you sure you want to delete this connection?
+                    </AlertDialogTitle>
                     <AlertDialogDescription>
-                      This will revoke the permission and will no longer allow
-                      calls from this public key.
+                      Connected apps will no longer be able to use this
+                      connection.
+                      {app.isolated && app.balance > 0 && (
+                        <div>
+                          No funds will be lost during this process. The balance
+                          will remain in your wallet.
+                        </div>
+                      )}
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
