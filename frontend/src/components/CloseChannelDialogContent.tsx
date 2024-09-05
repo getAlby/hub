@@ -7,6 +7,7 @@ import { Button } from "src/components/ui/button";
 import { Label } from "src/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "src/components/ui/radio-group";
 import { useToast } from "src/components/ui/use-toast";
+import { useBalances } from "src/hooks/useBalances";
 import { useChannels } from "src/hooks/useChannels";
 import { copyToClipboard } from "src/lib/clipboard";
 import { Channel, CloseChannelResponse } from "src/types";
@@ -29,6 +30,7 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
   const [closeType, setCloseType] = React.useState("normal");
   const [step, setStep] = React.useState(channel.active ? 2 : 1);
   const [fundingTxId, setFundingTxId] = React.useState("");
+  const { mutate: reloadBalances } = useBalances();
   const { data: channels, mutate: reloadChannels } = useChannels();
   const { toast } = useToast();
 
@@ -234,6 +236,7 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
             <AlertDialogCancel
               onClick={async () => {
                 await reloadChannels();
+                await reloadBalances();
               }}
             >
               Done
