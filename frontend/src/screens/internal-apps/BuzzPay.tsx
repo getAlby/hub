@@ -1,20 +1,20 @@
-import { CopyIcon } from "lucide-react";
-import { ExternalLinkIcon } from "lucide-react";
-import buzzpay from "src/assets/suggested-apps/buzzpay.png";
+import { AlertTriangleIcon, CopyIcon, ExternalLinkIcon } from "lucide-react";
 import React from "react";
+import buzzpay from "src/assets/suggested-apps/buzzpay.png";
 import AppHeader from "src/components/AppHeader";
 import Loading from "src/components/Loading";
+import QRCode from "src/components/QRCode";
+import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import QRCode from "src/components/QRCode";
 import { LoadingButton } from "src/components/ui/loading-button";
-import { copyToClipboard } from "src/lib/clipboard";
-import { openLink } from "src/utils/openLink";
 import { useToast } from "src/components/ui/use-toast";
 import { useApps } from "src/hooks/useApps";
+import { copyToClipboard } from "src/lib/clipboard";
 import { createApp } from "src/requests/createApp";
 import { handleRequestError } from "src/utils/handleRequestError";
+import { openLink } from "src/utils/openLink";
 
 export function BuzzPay() {
   const [name, setName] = React.useState("");
@@ -68,15 +68,25 @@ export function BuzzPay() {
       {posUrl && (
         <div className="max-w-lg flex flex-col gap-5">
           <p>
-            <strong>🎉 PoS connection created!</strong>
-            <br />
-            Open your PoS link below and share it with the employees and devices
-            you want to use.
-            <br />
-            Please save this link. It will not be shown again but you can create
-            new PoS connections for your Alby Hub anytime.
+            Open the PoS link below and share it with your employees and devices
+            you want to use the PoS with.
           </p>
+          <Alert>
+            <AlertTriangleIcon className="h-4 w-4" />
+            <AlertTitle>Save this link</AlertTitle>
+            <AlertDescription>
+              This link will only be shown once and can't be retrieved
+              afterwards. Please make sure to keep it somewhere safe.
+            </AlertDescription>
+          </Alert>
 
+          <div className="flex flex-col items-center relative">
+            <QRCode value={posUrl} />
+            <img
+              src={buzzpay}
+              className="absolute w-12 h-12 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-muted p-1 rounded-xl"
+            />
+          </div>
           <div className="flex gap-2">
             <Input disabled readOnly type="text" value={posUrl} />
             <Button
@@ -91,26 +101,17 @@ export function BuzzPay() {
               Open
             </Button>
           </div>
-          <div>
-            <QRCode className={"w-full"} value={posUrl} />
-            <img
-              src={buzzpay}
-              className="absolute w-12 h-12 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-muted p-1 rounded-xl"
-            />
-          </div>
         </div>
       )}
       {!posUrl && (
         <div className="max-w-lg flex flex-col gap-5">
           <p className="text-muted-foreground">
             BuzzPay works by creating read-only connections to your Alby Hub.
-            You can share the link safely with employees and use it on any
-            device.
           </p>
           <ul className="text-muted-foreground">
-            <li>🔒 One-Click Setup: Secure read-only link</li>
-            <li>🔗 Sharable with all your employees and devices</li>
-            <li>⚡ Lightning-Fast Transactions directly to your Alby Hub</li>
+            <li>🔒 Allow employees to collect but never spend your funds</li>
+            <li>🔗 Sharable link that can be used on any device</li>
+            <li>⚡ Lightning fast transactions directly to your Alby Hub</li>
           </ul>
           <form
             onSubmit={handleSubmit}
