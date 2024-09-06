@@ -18,7 +18,7 @@ export function useDeleteApp(onSuccess?: (nostrPubkey: string) => void) {
             "Content-Type": "application/json",
           },
         });
-        toast({ title: "App disconnected" });
+        toast({ title: "App deleted" });
         if (onSuccess) {
           onSuccess(nostrPubkey);
         }
