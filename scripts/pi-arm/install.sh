@@ -23,7 +23,7 @@ rm server-linux-armv6.tar.bz2
 # allow albyhub to bind on port 80
 sudo setcap CAP_NET_BIND_SERVICE=+eip /opt/albyhub/bin/albyhub
 
-echo "/opt/albyhub/lib" | sudo tee -a /etc/ld.so.conf.d/albyhub.conf
+echo "/opt/albyhub/lib" | sudo tee /etc/ld.so.conf.d/albyhub.conf
 sudo ldconfig
 
 PORT=80
