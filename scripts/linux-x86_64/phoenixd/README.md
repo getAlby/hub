@@ -5,7 +5,7 @@ Run your Alby Hub with phoenixd as a backend.
 ## Requirements
 
 - Linux distribution
-- Runs pretty much on any VPS or server
+- Runs pretty much on any VPS or server (512MB+ memory recommended)
 
 ## Docker
 
