@@ -1,4 +1,4 @@
-### Installation on a Raspberry Pi Zero (arm)
+### Installation on a Raspberry Pi 4/5 (aarch64)
 
 This install scripts will help you installing Alby Hub on a Raspberry Pi with Raspberry Pi OS (previously called Raspbian).
 You should have some basic Linux understanding to install and operate it.
@@ -7,14 +7,14 @@ Have a look at our [installation guide](https://guides.getalby.com/user-guide/v/
 
 SSH into your Pi and run:
 ```shell
-/bin/bash -c "$(curl -fsSL https://getalby.com/install/hub/pi-zero-install.sh)"
+/bin/bash -c "$(curl -fsSL https://getalby.com/install/hub/pi-aarch64-install.sh)"
 ```
 
 ### Updating a running instance
 
 SSH into your Pi and run:
 ```shell
-/bin/bash -c "$(curl -fsSL https://getalby.com/install/hub/pi-zero-update.sh)"
+/bin/bash -c "$(curl -fsSL https://getalby.com/install/hub/pi-aarch64-update.sh)"
 ```
 
 And see install.sh and update.sh for details.

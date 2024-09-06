@@ -37,7 +37,7 @@ rm server-linux-x86_64.tar.bz2
 rm phoenix-$PHOENIX_VERSION-linux-x64.zip
 
 ### Create start scripts
-tee -a $INSTALL_DIR/phoenixd/start.sh > /dev/null << EOF
+tee $INSTALL_DIR/phoenixd/start.sh > /dev/null << EOF
 #!/bin/bash
 
 echo "Starting phoenixd"
@@ -45,7 +45,7 @@ echo "Make sure to backup your phoenixd data in $INSTALL_DIR/phoenixd/data"
 PHOENIX_DATADIR="$INSTALL_DIR/phoenixd/data" $INSTALL_DIR/phoenixd/phoenixd --agree-to-terms-of-service --http-bind-ip=0.0.0.0
 EOF
 
-tee -a $INSTALL_DIR/albyhub/start.sh > /dev/null << EOF
+tee $INSTALL_DIR/albyhub/start.sh > /dev/null << EOF
 #!/bin/bash
 
 echo "Starting Alby Hub"
@@ -54,7 +54,7 @@ PHOENIXD_AUTHORIZATION=\$(awk -F'=' '/^http-password/{print \$2}' "\$phoenix_con
 WORK_DIR="$INSTALL_DIR/albyhub/data" LN_BACKEND_TYPE=PHOENIX PHOENIXD_ADDRESS="http://localhost:9740" PHOENIXD_AUTHORIZATION=\$PHOENIXD_AUTHORIZATION LOG_EVENTS=true LDK_GOSSIP_SOURCE="" $INSTALL_DIR/albyhub/bin/albyhub
 EOF
 
-tee -a $INSTALL_DIR/start.sh > /dev/null << EOF
+tee $INSTALL_DIR/start.sh > /dev/null << EOF
 #!/bin/bash
 
 $INSTALL_DIR/phoenixd/start.sh &
@@ -82,7 +82,7 @@ then
   exit
 fi
 
-sudo tee -a /etc/systemd/system/albyhub.service > /dev/null << EOF
+sudo tee /etc/systemd/system/albyhub.service > /dev/null << EOF
 [Unit]
 Description=Alby Hub
 After=network-online.target
@@ -99,7 +99,7 @@ ExecStart=$INSTALL_DIR/albyhub/start.sh
 WantedBy=multi-user.target
 EOF
 
-sudo tee -a /etc/systemd/system/phoenixd.service > /dev/null << EOF
+sudo tee /etc/systemd/system/phoenixd.service > /dev/null << EOF
 [Unit]
 Description=Phoenixd
 After=network-online.target

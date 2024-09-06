@@ -8,17 +8,17 @@ echo "Installing..."
 sudo mkdir -p /opt/albyhub
 sudo chown -R $USER:$USER /opt/albyhub
 cd /opt/albyhub
-wget https://getalby.com/install/hub/server-linux-armv6.tar.bz2
+wget https://getalby.com/install/hub/server-linux-aarch64.tar.bz2
 
 # Extract archives
-tar -xvf server-linux-armv6.tar.bz2
+tar -xvf server-linux-aarch64.tar.bz2
 if [[ $? -ne 0 ]]; then
   echo "Failed to unpack Alby Hub. Potentially bzip2 is missing"
   echo "Install it with sudo apt-get install bzip2"
 fi
 
 # Cleanup
-rm server-linux-armv6.tar.bz2
+rm server-linux-aarch64.tar.bz2
 
 # allow albyhub to bind on port 80
 sudo setcap CAP_NET_BIND_SERVICE=+eip /opt/albyhub/bin/albyhub
@@ -33,7 +33,7 @@ else
 fi
 
 ### Create systemd service
-sudo tee /etc/systemd/system/albyhub.service > /dev/null << EOF
+sudo tee -a /etc/systemd/system/albyhub.service > /dev/null << EOF
 [Unit]
 Description=Alby Hub
 After=network-online.target

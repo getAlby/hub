@@ -11,13 +11,13 @@ mv bin albyhub-backup
 mv lib albyhub-backup
 cp -r data albyhub-backup
 
-wget https://getalby.com/install/hub/server-linux-armv6.tar.bz2
+wget https://getalby.com/install/hub/server-linux-aarch64.tar.bz2
 
 # Extract archives
-tar -xvf server-linux-armv6.tar.bz2
+tar -xvf server-linux-aarch64.tar.bz2
 
 # Cleanup
-rm server-linux-armv6.tar.bz2
+rm server-linux-aarch64.tar.bz2
 
 sudo systemctl start albyhub
 

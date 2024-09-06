@@ -3,7 +3,8 @@
 ## Requirements
 
 - Linux distribution
-- Runs pretty much on any VPS/server with 512MB RAM or more (+some swap space ideally)
+- Runs pretty much on any VPS/server with 512MB RAM or more (1GB recommended / plus some swap space ideally)
+- lightning port 9735 must be available
 
 ### Installation (non-Docker)
 
@@ -46,3 +47,17 @@ Make sure to backup your data directories:
 The install script will add an update.sh script to update Alby Hub. It will download the latest version for you.
 
 After the update you will have to unlock Alby Hub again.
+
+### Using Docker
+
+Alby Hub comes as docker image: [ghcr.io/getalby/hub:latest](https://github.com/getAlby/hub/pkgs/container/hub)
+
+    $ docker run -v .albyhub-data:/data -e WORK_DIR='/data' -p 8080:8080 ghcr.io/getalby/hub:latest`
+
+We also provide a simple docker-compose file:
+
+    $ wget https://raw.githubusercontent.com/getAlby/hub/master/docker-compose.yml # <- edit for your needs, but defaults should work well
+    $ mkdir ./albyhub-data
+    $ docker-compose up # or docker-compose up --pull=always <- to make sure you get the latest images
+
+Make sure to mount and backup the data working directory.

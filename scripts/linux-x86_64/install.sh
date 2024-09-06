@@ -59,7 +59,7 @@ then
   exit
 fi
 
-sudo tee -a /etc/systemd/system/albyhub.service > /dev/null << EOF
+sudo tee /etc/systemd/system/albyhub.service > /dev/null << EOF
 [Unit]
 Description=Alby Hub
 After=network-online.target
