@@ -27,6 +27,9 @@ sudo setcap CAP_NET_BIND_SERVICE=+eip /opt/albyhub/bin/albyhub
 echo "/opt/albyhub/lib" | sudo tee /etc/ld.so.conf.d/albyhub.conf
 sudo ldconfig
 
+PORT=80
+URL="http://$HOSTNAME.local"
+
 ### Create systemd service
 sudo tee /etc/systemd/system/albyhub.service > /dev/null << EOF
 [Unit]
