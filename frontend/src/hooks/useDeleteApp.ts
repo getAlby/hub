@@ -18,12 +18,12 @@ export function useDeleteApp(onSuccess?: (nostrPubkey: string) => void) {
             "Content-Type": "application/json",
           },
         });
-        toast({ title: "App disconnected" });
+        toast({ title: "Connection deleted" });
         if (onSuccess) {
           onSuccess(nostrPubkey);
         }
       } catch (error) {
-        await handleRequestError(toast, "Failed to delete app", error);
+        await handleRequestError(toast, "Failed to delete connection", error);
       } finally {
         setDeleting(false);
       }
