@@ -1,4 +1,4 @@
-import { CopyIcon } from "lucide-react";
+import { AlertTriangleIcon, CopyIcon } from "lucide-react";
 import React from "react";
 import AppHeader from "src/components/AppHeader";
 import AppCard from "src/components/connections/AppCard";
@@ -9,6 +9,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "src/components/ui/accordion";
+import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
@@ -129,16 +130,23 @@ export function UncleJim() {
       )}
       {connectionSecret && (
         <div className="grid gap-5 max-w-lg">
-          <p className="text-muted-foreground text-sm">
-            Step 2. Onboard {name} to their new wallet
-          </p>
+          <Alert>
+            <AlertTriangleIcon className="h-4 w-4" />
+            <AlertTitle>Onboard {name} now</AlertTitle>
+            <AlertDescription>
+              For security reasons these wallet connection details will only be
+              shown once and can not be retrieved afterwards. You can save them
+              and keep them somewhere safe.
+            </AlertDescription>
+          </Alert>
+          <p className="">Onboard {name} to their new wallet:</p>
           <Accordion type="single" collapsible>
             <AccordionItem value="mobile">
-              <AccordionTrigger>Alby Mobile</AccordionTrigger>
+              <AccordionTrigger>Alby Go Mobile App</AccordionTrigger>
               <AccordionContent>
                 <p className="text-muted-foreground text-sm mb-5">
-                  1. Ask {name} to download the Alby Mobile app from Google Play
-                  or the iOS App Store
+                  1. Ask {name} to download the Alby Go app from Google Play or
+                  the iOS App Store
                 </p>
                 <p className="text-muted-foreground text-sm mb-5">
                   2. Ask {name} to scan the below QR code.
@@ -187,11 +195,36 @@ export function UncleJim() {
               <AccordionTrigger>Alby Extension</AccordionTrigger>
               <AccordionContent>
                 <p className="text-muted-foreground text-sm mb-5">
-                  1. Send {name} the below connection secret which they can add
-                  to their Alby Extension by choosing "Bring Your Own Wallet"{" "}
+                  Send {name} the below connection secret which they can add to
+                  their Alby Extension by choosing "Bring Your Own Wallet"{" "}
                   {"->"} "Nostr Wallet Connect" and pasting the connection
                   secret. Do not to share this publicly as it contains the
                   connection secret for their wallet.
+                </p>
+                <div className="flex gap-2">
+                  <Input
+                    disabled
+                    readOnly
+                    type="password"
+                    value={connectionSecret}
+                  />
+                  <Button
+                    onClick={() => copyToClipboard(connectionSecret, toast)}
+                    variant="outline"
+                  >
+                    <CopyIcon className="w-4 h-4 mr-2" />
+                    Copy
+                  </Button>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="other">
+              <AccordionTrigger>Other NWC applications</AccordionTrigger>
+              <AccordionContent>
+                <p className="text-muted-foreground text-sm mb-5">
+                  {name} can use any other application that supports NWC. Send
+                  the below connection secret. Do not to share this publicly as
+                  it contains the connection secret for their wallet.
                 </p>
                 <div className="flex gap-2">
                   <Input
@@ -214,13 +247,19 @@ export function UncleJim() {
               <AccordionTrigger>Podcasting 2.0</AccordionTrigger>
               <AccordionContent>
                 <p className="text-muted-foreground text-sm mb-5">
-                  1. Make sure to give {name} access to their wallet with one of
-                  the options above.
+                  To receive podcasting 2.0 payments make sure to give {name}{" "}
+                  access to their wallet with one of the options above and share
+                  the following details:
                 </p>
                 <p className="text-muted-foreground text-sm mb-5">
-                  2. Send them this value tag which they can add to their RSS
-                  feed.
+                  <strong>Address:</strong>{" "}
+                  <code>{nodeConnectionInfo?.pubkey}</code>
+                  <br />
+                  <strong>Custom Key:</strong> <code>696969</code>
+                  <br />
+                  <strong>Custom Value:</strong> <code>{app?.id}</code>
                 </p>
+                <p>Example podcast:value tag:</p>
                 <div className="flex gap-2">
                   <Textarea readOnly className="h-36" value={valueTag} />
                   <Button
