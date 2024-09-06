@@ -23,14 +23,11 @@ rm server-linux-armv6.tar.bz2
 # allow albyhub to bind on port 80
 sudo setcap CAP_NET_BIND_SERVICE=+eip /opt/albyhub/bin/albyhub
 
-# Use port 80 if available otherwise 8029
-if sudo lsof -Pi :80 -sTCP:LISTEN -t >/dev/null ; then
-  PORT=8029
-  URL="http://$HOSTNAME.local:8029"
-else
-  PORT=80
-  URL="http://$HOSTNAME.local"
-fi
+echo "/opt/albyhub/lib" | sudo tee /etc/ld.so.conf.d/albyhub.conf
+sudo ldconfig
+
+PORT=80
+URL="http://$HOSTNAME.local"
 
 ### Create systemd service
 sudo tee /etc/systemd/system/albyhub.service > /dev/null << EOF

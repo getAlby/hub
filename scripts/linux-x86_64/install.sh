@@ -30,7 +30,7 @@ rm server-linux-x86_64.tar.bz2
 mkdir -p $INSTALL_DIR/data
 
 # create a simple start script that sets the default configuration variables
-tee -a $INSTALL_DIR/start.sh > /dev/null << EOF
+tee $INSTALL_DIR/start.sh > /dev/null << EOF
 #!/bin/bash
 
 echo "Starting Alby Hub"
