@@ -170,9 +170,10 @@ export function UncleJim() {
                   if they don't have one yet.
                 </p>
                 <p className="text-muted-foreground text-sm mb-5">
-                  2. Send {name} the below link which will link the new wallet
-                  to their Alby Account. Do not to share this publicly as it
-                  contains the connection secret for their wallet.
+                  2. Send {name} the below URL which when they open it in their
+                  browser, will automatically connect the new wallet to their
+                  Alby Account. Do not to share this publicly as it contains the
+                  connection secret for their wallet.
                 </p>
                 <div className="flex gap-2">
                   <Input
@@ -186,9 +187,18 @@ export function UncleJim() {
                     variant="outline"
                   >
                     <CopyIcon className="w-4 h-4 mr-2" />
-                    Copy
+                    Copy URL
                   </Button>
                 </div>
+                <Alert className="mt-5">
+                  <AlertTriangleIcon className="h-4 w-4" />
+                  <AlertTitle>Managing multiple Alby accounts</AlertTitle>
+                  <AlertDescription>
+                    In case you are managing multiple alby accounts from the
+                    same device, we recommend to use multiple browsers (or
+                    browser profiles).
+                  </AlertDescription>
+                </Alert>
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="extension">
