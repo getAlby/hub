@@ -18,7 +18,7 @@ require (
 	golang.org/x/crypto v0.26.0
 	golang.org/x/oauth2 v0.22.0
 	google.golang.org/grpc v1.66.0
-	gopkg.in/DataDog/dd-trace-go.v1 v1.67.0
+	gopkg.in/DataDog/dd-trace-go.v1 v1.67.1
 	gopkg.in/macaroon.v2 v2.1.0
 	gorm.io/driver/sqlite v1.5.6
 	gorm.io/gorm v1.25.11
