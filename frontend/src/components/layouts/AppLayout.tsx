@@ -138,7 +138,7 @@ export default function AppLayout() {
   function MainNavSecondary() {
     const { hasChannelManagement } = useInfo();
     return (
-      <nav className="grid items-start px-4 py-2 text-sm font-medium">
+      <nav className="grid items-start md:px-4 md:py-2 text-sm font-medium">
         {hasChannelManagement && (
           <MenuItem to="/channels">
             <CubeIcon className="h-4 w-4" />
@@ -242,7 +242,7 @@ export default function AppLayout() {
             </div>
           </div>
           <main className="flex flex-col">
-            <header className="md:hidden flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6 justify-between">
+            <header className="md:hidden sticky top-0 z-50 flex h-14 items-center gap-4 border-b bg-muted/40 backdrop-blur px-4 lg:h-[60px] lg:px-6 justify-between">
               <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
                 <SheetTrigger asChild>
                   <Button
@@ -256,15 +256,15 @@ export default function AppLayout() {
                 </SheetTrigger>
                 <SheetContent
                   side="left"
-                  className="flex flex-col justify-between max-h-screen"
+                  className="flex flex-col justify-between max-h-screen px-4"
                 >
-                  <nav className="grid gap-2 text-lg font-medium">
+                  <nav className="grid text-sm font-medium">
                     <div className="p-3 pr-0 flex justify-between items-center">
                       <Link to="/">
                         <AlbyHubLogo className="text-foreground" />
                       </Link>
                       {/* align shield with x icon */}
-                      <div className="-mr-2">
+                      <div className="mr-2">
                         <AppVersion />
                       </div>
                     </div>
