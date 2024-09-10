@@ -202,7 +202,7 @@ export default function AppLayout() {
   return (
     <>
       <div className="font-sans min-h-screen w-full flex flex-col">
-        <div className="flex-1 h-full grid md:grid-cols-[280px_1fr]">
+        <div className="flex-1 h-full md:grid md:grid-cols-[280px_minmax(0,1fr)]">
           <div className="hidden border-r bg-muted/40 md:block">
             <div className="flex h-full max-h-screen flex-col gap-2 sticky top-0 overflow-y-auto">
               <div className="flex-1">
