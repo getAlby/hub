@@ -197,7 +197,7 @@ function NewChannelInternal({
           <div className="flex items-end">
             <Link to="/channels/outgoing">
               <Button className="w-full" variant="secondary">
-                Need spending capacity?
+                Need spending balance?
               </Button>
             </Link>
           </div>
