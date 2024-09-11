@@ -215,7 +215,12 @@ func (api *api) requestLSPS1Invoice(ctx context.Context, request *LSPOrderReques
 
 	var requiredChannelConfirmations uint64 = 0
 
-	if api.cfg.GetEnv().LNBackendType != config.LDKBackendType {
+	backendType, err := api.cfg.Get("LNBackendType", "")
+	if err != nil {
+		return "", 0, errors.New("failed to get LN backend type")
+	}
+
+	if backendType != config.LDKBackendType {
 		requiredChannelConfirmations = 1
 	}
 
