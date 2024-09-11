@@ -31,20 +31,19 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
   const { data: transactions } = useTransactions(false, 1);
 
   const isLoading =
-    !albyMe ||
     !apps ||
     !channels ||
     !info ||
     !nodeConnectionInfo ||
     !transactions ||
-    !albyBalance;
+    (info.albyAccountConnected && (!albyMe || !albyBalance));
 
   if (isLoading) {
     return { isLoading: true, checklistItems: [] };
   }
 
   const isLinked =
-    albyMe &&
+    !!albyMe &&
     nodeConnectionInfo &&
     albyMe?.keysend_pubkey === nodeConnectionInfo?.pubkey;
   const hasChannel =
