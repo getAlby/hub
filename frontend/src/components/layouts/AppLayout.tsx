@@ -9,6 +9,7 @@ import {
   Megaphone,
   Menu,
   MessageCircleQuestion,
+  PlugZapIcon,
   Settings,
   ShieldAlertIcon,
   ShieldCheckIcon,
@@ -88,15 +89,28 @@ export default function AppLayout() {
     return (
       <DropdownMenuContent align="end">
         <DropdownMenuGroup>
-          <DropdownMenuItem>
-            <ExternalLink
-              to="https://getalby.com/settings"
-              className="w-full flex flex-row items-center gap-2"
-            >
-              <ExternalLinkIcon className="w-4 h-4" />
-              <p>Alby Account Settings</p>
-            </ExternalLink>
-          </DropdownMenuItem>
+          {!info?.albyAccountConnected && (
+            <DropdownMenuItem>
+              <Link
+                to="/alby/account"
+                className="w-full flex flex-row items-center gap-2"
+              >
+                <PlugZapIcon className="w-4 h-4" />
+                <p>Connect Alby Account</p>
+              </Link>
+            </DropdownMenuItem>
+          )}
+          {info?.albyAccountConnected && (
+            <DropdownMenuItem>
+              <ExternalLink
+                to="https://getalby.com/settings"
+                className="w-full flex flex-row items-center gap-2"
+              >
+                <ExternalLinkIcon className="w-4 h-4" />
+                <p>Alby Account Settings</p>
+              </ExternalLink>
+            </DropdownMenuItem>
+          )}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         {isHttpMode && (
@@ -220,13 +234,15 @@ export default function AppLayout() {
                 <SidebarHint />
                 <MainNavSecondary />
                 <div className="flex h-14 items-center px-4 gap-3 border-t border-border justify-between">
-                  <div className="grid grid-flow-col gap-2">
+                  <div className="grid grid-flow-col gap-2 items-center">
                     <UserAvatar className="h-8 w-8" />
                     <Link
                       to="#"
                       className="font-semibold text-lg whitespace-nowrap overflow-hidden text-ellipsis"
                     >
-                      {albyMe?.name || albyMe?.email}
+                      {albyMe?.name ||
+                        albyMe?.email ||
+                        (!info.albyAccountConnected && "Satoshi Nakamoto")}
                     </Link>
                   </div>
                   <DropdownMenu modal={false}>

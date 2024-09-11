@@ -23,7 +23,12 @@ import { cn } from "src/lib/utils";
 import { request } from "src/utils/request";
 
 export default function SettingsLayout() {
-  const { mutate: refetchInfo, hasMnemonic, hasNodeBackup } = useInfo();
+  const {
+    data: info,
+    mutate: refetchInfo,
+    hasMnemonic,
+    hasNodeBackup,
+  } = useInfo();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [shuttingDown, setShuttingDown] = useState(false);
@@ -102,7 +107,12 @@ export default function SettingsLayout() {
             {hasNodeBackup && (
               <MenuItem to="/settings/node-backup">Migrate Node</MenuItem>
             )}
-            <MenuItem to="/settings/alby-account">Alby Account</MenuItem>
+            {info?.albyAccountConnected && (
+              <MenuItem to="/settings/alby-account">Your Alby Account</MenuItem>
+            )}
+            {info && !info.albyAccountConnected && (
+              <MenuItem to="/alby/account">Alby Account</MenuItem>
+            )}
             <MenuItem to="/settings/developer">Developer</MenuItem>
             <MenuItem to="/settings/debug-tools">Debug Tools</MenuItem>
           </nav>

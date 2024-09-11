@@ -28,7 +28,7 @@ function getGreeting(name: string | undefined) {
     greeting = "Good Evening";
   }
 
-  return `${greeting}${name && `, ${name}`}!`;
+  return `${greeting}${name ? `, ${name}` : ""}!`;
 }
 
 function Home() {
@@ -39,7 +39,7 @@ function Home() {
   /* eslint-disable  @typescript-eslint/no-explicit-any */
   const extensionInstalled = (window as any).alby !== undefined;
 
-  if (!info || !balances || !albyMe) {
+  if (!info || !balances) {
     return <Loading />;
   }
 
@@ -48,31 +48,33 @@ function Home() {
       <AppHeader title={getGreeting(albyMe?.name)} description="" />
       <OnboardingChecklist />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        <ExternalLink to="https://www.getalby.com/dashboard">
-          <Card>
-            <CardHeader>
-              <div className="flex flex-row items-center">
-                <AlbyHead className="w-12 h-12 rounded-xl p-1 border" />
-                <div>
-                  <CardTitle>
-                    <div className="flex-1 leading-5 font-semibold text-xl whitespace-nowrap text-ellipsis overflow-hidden ml-4">
-                      Alby Web
-                    </div>
-                  </CardTitle>
-                  <CardDescription className="ml-4">
-                    Install Alby Web on your phone and use your Hub on the go.
-                  </CardDescription>
+        {info.albyAccountConnected && (
+          <ExternalLink to="https://www.getalby.com/dashboard">
+            <Card>
+              <CardHeader>
+                <div className="flex flex-row items-center">
+                  <AlbyHead className="w-12 h-12 rounded-xl p-1 border" />
+                  <div>
+                    <CardTitle>
+                      <div className="flex-1 leading-5 font-semibold text-xl whitespace-nowrap text-ellipsis overflow-hidden ml-4">
+                        Alby Web
+                      </div>
+                    </CardTitle>
+                    <CardDescription className="ml-4">
+                      Install Alby Web on your phone and use your Hub on the go.
+                    </CardDescription>
+                  </div>
                 </div>
-              </div>
-            </CardHeader>
-            <CardContent className="text-right">
-              <Button variant="outline">
-                Open Alby Web
-                <ExternalLinkIcon className="w-4 h-4 ml-2" />
-              </Button>
-            </CardContent>
-          </Card>
-        </ExternalLink>
+              </CardHeader>
+              <CardContent className="text-right">
+                <Button variant="outline">
+                  Open Alby Web
+                  <ExternalLinkIcon className="w-4 h-4 ml-2" />
+                </Button>
+              </CardContent>
+            </Card>
+          </ExternalLink>
+        )}
         {!extensionInstalled && (
           <ExternalLink to="https://www.getalby.com">
             <Card>

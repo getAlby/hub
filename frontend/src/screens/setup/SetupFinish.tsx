@@ -5,6 +5,7 @@ import animationData from "src/assets/lotties/loading.json";
 import Container from "src/components/Container";
 import { Button } from "src/components/ui/button";
 import { ToastSignature, useToast } from "src/components/ui/use-toast";
+import { localStorageKeys } from "src/constants";
 
 import { useInfo } from "src/hooks/useInfo";
 import { saveAuthToken } from "src/lib/auth";
@@ -128,6 +129,13 @@ const finishSetup = async (
   toast: ToastSignature
 ): Promise<boolean> => {
   try {
+    let redirectTo = "/alby/account";
+    if (window.location.origin === "https://my.albyhub.com") {
+      redirectTo = "/alby/auth";
+    }
+
+    window.localStorage.setItem(localStorageKeys.returnTo, redirectTo);
+
     await request("/api/setup", {
       method: "POST",
       headers: {

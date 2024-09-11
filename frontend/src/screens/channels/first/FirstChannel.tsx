@@ -43,6 +43,12 @@ export function FirstChannel() {
     }
   }, [channels, navigate]);
 
+  React.useEffect(() => {
+    if (info && !info.albyAccountConnected) {
+      navigate("/channels/outgoing");
+    }
+  }, [info, navigate]);
+
   if (!info || !channels) {
     return <Loading />;
   }

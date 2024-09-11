@@ -487,6 +487,7 @@ function NewChannelOnchain(props: NewChannelOnchainProps) {
                 id="pubkey"
                 type="text"
                 value={pubkey}
+                required
                 placeholder="Pubkey of the peer"
                 onChange={(e) => {
                   setPubkey(e.target.value.trim());
@@ -517,6 +518,7 @@ function NewChannelOnchain(props: NewChannelOnchainProps) {
                   id="host"
                   type="text"
                   value={host}
+                  required
                   placeholder="0.0.0.0:9735 or [2600::]:9735"
                   onChange={(e) => {
                     setHost(e.target.value.trim());

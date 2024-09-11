@@ -16,19 +16,13 @@ export function HomeRedirect() {
     let to: string | undefined;
     if (info.setupCompleted && info.running) {
       if (info.unlocked) {
-        if (info.albyAccountConnected) {
-          const returnTo = window.localStorage.getItem(
-            localStorageKeys.returnTo
-          );
-          // setTimeout hack needed for React strict mode (in development)
-          // because the effect runs twice before the navigation occurs
-          setTimeout(() => {
-            window.localStorage.removeItem(localStorageKeys.returnTo);
-          }, 100);
-          to = returnTo || "/home";
-        } else {
-          to = "/alby/auth";
-        }
+        const returnTo = window.localStorage.getItem(localStorageKeys.returnTo);
+        // setTimeout hack needed for React strict mode (in development)
+        // because the effect runs twice before the navigation occurs
+        setTimeout(() => {
+          window.localStorage.removeItem(localStorageKeys.returnTo);
+        }, 100);
+        to = returnTo || "/home";
       } else {
         to = "/unlock";
       }

@@ -18,6 +18,7 @@ interface ChecklistItemProps {
   description: string;
   to: string;
   disabled: boolean;
+  index: number;
 }
 
 function OnboardingChecklist() {
@@ -37,9 +38,10 @@ function OnboardingChecklist() {
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col">
-        {checklistItems.map((item) => (
+        {checklistItems.map((item, index) => (
           <ChecklistItem
             key={item.title}
+            index={index}
             title={item.title}
             description={item.description}
             checked={item.checked}
@@ -58,6 +60,7 @@ function ChecklistItem({
   description,
   to,
   disabled = false,
+  index,
 }: ChecklistItemProps) {
   const content = (
     <div
@@ -84,7 +87,7 @@ function ChecklistItem({
             checked && "line-through"
           )}
         >
-          {title}
+          {index + 1}. {title}
         </div>
       </div>
       {!checked && (
