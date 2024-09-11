@@ -1,10 +1,19 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import Container from "src/components/Container";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { Button } from "src/components/ui/button";
+import useSetupStore from "src/state/SetupStore";
 
 export function SetupAdvanced() {
+  const navigate = useNavigate();
+  function importLDKMnemonic() {
+    useSetupStore.getState().updateNodeInfo({
+      backendType: "LDK",
+    });
+    navigate("/setup/password?wallet=import");
+  }
+
   return (
     <>
       <Container>
@@ -17,11 +26,13 @@ export function SetupAdvanced() {
             <Link to="/setup/node-restore">
               <Button className="w-full">Import Wallet with Backup File</Button>
             </Link>
-            <Link to="/setup/password?wallet=import" className="w-full">
-              <Button className="w-full" variant="secondary">
-                Import Existing Mnemonic
-              </Button>
-            </Link>
+            <Button
+              className="w-full"
+              variant="secondary"
+              onClick={importLDKMnemonic}
+            >
+              Import Existing Mnemonic
+            </Button>
             <Link to="/setup/password" className="w-full">
               <Button className="w-full" variant="secondary">
                 Create Wallet with Custom Node
