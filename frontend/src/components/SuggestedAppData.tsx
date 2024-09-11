@@ -1,3 +1,4 @@
+import albyGo from "src/assets/suggested-apps/alby-go.png";
 import alby from "src/assets/suggested-apps/alby.png";
 import amethyst from "src/assets/suggested-apps/amethyst.png";
 import buzzpay from "src/assets/suggested-apps/buzzpay.png";
@@ -190,11 +191,10 @@ export const suggestedApps: SuggestedApp[] = [
   {
     id: "alby-go",
     title: "Alby Go",
-    description:
-      "A simple lightning mobile wallet interface that works great with Alby Hub.",
+    description: "A simple mobile wallet that works great with Alby Hub",
     appleLink: "https://apps.apple.com/app/alby-mobile/id6471335774",
     playLink:
       "https://play.google.com/store/apps/details?id=com.getalby.mobile",
-    logo: paperScissorsHodl,
+    logo: albyGo,
   },
 ].sort((a, b) => (a.title.toUpperCase() > b.title.toUpperCase() ? 1 : -1));
