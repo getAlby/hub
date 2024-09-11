@@ -2,7 +2,7 @@ import { LinkButton } from "src/components/ui/button";
 
 export function LinkAlbyAccount() {
   return (
-    <div className="w-full h-full min-h-screen flex flex-col items-center justify-center gap-5">
+    <div className="w-full h-full flex flex-col items-center justify-center gap-5">
       <div className="w-full max-w-screen-sm">
         <img
           src="/images/illustrations/alby-account-dark.svg"

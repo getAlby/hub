@@ -197,7 +197,7 @@ export default function AppLayout() {
           <MessageCircleQuestion className="h-4 w-4" />
           Live Support
         </MenuItem>
-        {!albyMe?.hub.name && (
+        {!albyMe?.hub.name && info?.albyAccountConnected && (
           <MenuItem
             to="/"
             onClick={(e) => {
@@ -323,11 +323,14 @@ function AppVersion() {
 
   if (!info.albyAccountConnected) {
     return (
-      <div className="font-semibold text-xl">
+      <ExternalLink
+        to={`https://getalby.com/update/hub?version=${info.version}`}
+        className="font-semibold text-xl"
+      >
         <span className="text-xs flex items-center text-muted-foreground">
           {info.version && <>{info.version}&nbsp;</>}
         </span>
-      </div>
+      </ExternalLink>
     );
   }
 

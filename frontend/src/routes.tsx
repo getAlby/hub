@@ -333,6 +333,10 @@ const routes = [
         ),
       },
       {
+        path: "alby/account",
+        element: <LinkAlbyAccount />,
+      },
+      {
         path: "alby/auth",
         element: <AlbyAuthRedirect />,
       },
@@ -425,10 +429,6 @@ const routes = [
         element: <AlbyAuthRedirect />,
       },
     ],
-  },
-  {
-    path: "alby/account",
-    element: <LinkAlbyAccount />,
   },
   {
     path: "node-backup-success",
