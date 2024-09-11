@@ -228,6 +228,14 @@ function NewChannelInternal({ network }: { network: Network }) {
       />
       <MempoolAlert />
       <div className="md:max-w-md max-w-full flex flex-col gap-5 flex-1">
+        <img
+          src="/images/illustrations/lightning-network-dark.svg"
+          className="w-full hidden dark:block"
+        />
+        <img
+          src="/images/illustrations/lightning-network-light.svg"
+          className="w-full dark:hidden"
+        />
         <form
           onSubmit={onSubmit}
           className="md:max-w-md max-w-full flex flex-col gap-5 flex-1"
