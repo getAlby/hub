@@ -46,7 +46,9 @@ import {
 import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
 
+import confetti from "canvas-confetti";
 import { ChannelWaitingForConfirmations } from "src/components/channels/ChannelWaitingForConfirmations";
+import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { useChannels } from "src/hooks/useChannels";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
 import { useOnchainAddress } from "src/hooks/useOnchainAddress";
@@ -54,7 +56,6 @@ import { usePeers } from "src/hooks/usePeers";
 import { useSyncWallet } from "src/hooks/useSyncWallet";
 import { copyToClipboard } from "src/lib/clipboard";
 import { splitSocketAddress } from "src/lib/utils";
-import { Success } from "src/screens/onboarding/Success";
 import useChannelOrderStore from "src/state/ChannelOrderStore";
 import { LSPOrderRequest, LSPOrderResponse } from "src/types";
 import { request } from "src/utils/request";
@@ -109,6 +110,53 @@ function ChannelOrderInternal({ order }: { order: NewChannelOrder }) {
     <p>
       TODO: {order.status} {order.paymentMethod}
     </p>
+  );
+}
+
+function Success() {
+  React.useEffect(() => {
+    for (let i = 0; i < 10; i++) {
+      setTimeout(
+        () => {
+          confetti({
+            origin: {
+              x: Math.random(),
+              y: Math.random(),
+            },
+            colors: ["#000", "#333", "#666", "#999", "#BBB", "#FFF"],
+          });
+        },
+        Math.floor(Math.random() * 1000)
+      );
+    }
+  }, []);
+
+  return (
+    <div className="flex flex-col justify-center gap-5 p-5 max-w-md items-stretch">
+      <TwoColumnLayoutHeader
+        title="Channel Opened"
+        description="Your new lightning channel is ready to use"
+      />
+
+      <p>
+        Congratulations! Your channel is active and can be used to send and
+        receive payments.
+      </p>
+      <p>
+        To ensure you can both send and receive, make sure to balance your{" "}
+        <ExternalLink
+          to="https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub/liquidity"
+          className="underline"
+        >
+          channel's liquidity
+        </ExternalLink>
+        .
+      </p>
+
+      <Link to="/home" className="flex justify-center mt-8">
+        <Button>Go to your dashboard</Button>
+      </Link>
+    </div>
   );
 }
 

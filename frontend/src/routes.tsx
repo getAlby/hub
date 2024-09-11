@@ -5,7 +5,6 @@ import SettingsLayout from "src/components/layouts/SettingsLayout";
 import TwoColumnFullScreenLayout from "src/components/layouts/TwoColumnFullScreenLayout";
 import { DefaultRedirect } from "src/components/redirects/DefaultRedirect";
 import { HomeRedirect } from "src/components/redirects/HomeRedirect";
-import { OnboardingRedirect } from "src/components/redirects/OnboardingRedirect";
 import { SetupRedirect } from "src/components/redirects/SetupRedirect";
 import { StartRedirect } from "src/components/redirects/StartRedirect";
 import { BackupMnemonic } from "src/screens/BackupMnemonic";
@@ -36,7 +35,6 @@ import { OpenedFirstChannel } from "src/screens/channels/first/OpenedFirstChanne
 import { OpeningFirstChannel } from "src/screens/channels/first/OpeningFirstChannel";
 import { BuzzPay } from "src/screens/internal-apps/BuzzPay";
 import { UncleJim } from "src/screens/internal-apps/UncleJim";
-import { Success } from "src/screens/onboarding/Success";
 import BuyBitcoin from "src/screens/onchain/BuyBitcoin";
 import DepositBitcoin from "src/screens/onchain/DepositBitcoin";
 import ConnectPeer from "src/screens/peers/ConnectPeer";
@@ -411,16 +409,6 @@ const routes = [
           {
             path: "finish",
             element: <SetupFinish />,
-          },
-        ],
-      },
-      {
-        path: "onboarding",
-        element: <OnboardingRedirect />,
-        children: [
-          {
-            path: "success",
-            element: <Success />,
           },
         ],
       },
