@@ -317,7 +317,21 @@ export default function AppLayout() {
 function AppVersion() {
   const { data: albyMe } = useAlbyMe();
   const { data: info } = useInfo();
-  if (!info || !albyMe) {
+  if (!info) {
+    return null;
+  }
+
+  if (!info.albyAccountConnected) {
+    return (
+      <div className="font-semibold text-xl">
+        <span className="text-xs flex items-center text-muted-foreground">
+          {info.version && <>{info.version}&nbsp;</>}
+        </span>
+      </div>
+    );
+  }
+
+  if (!albyMe) {
     return null;
   }
 
