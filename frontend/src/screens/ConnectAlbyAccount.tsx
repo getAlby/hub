@@ -1,6 +1,6 @@
 import { LinkButton } from "src/components/ui/button";
 
-export function LinkAlbyAccount() {
+export function ConnectAlbyAccount() {
   return (
     <div className="w-full h-full flex flex-col items-center justify-center gap-5">
       <div className="w-full max-w-screen-sm">

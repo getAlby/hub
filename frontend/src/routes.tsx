@@ -10,9 +10,9 @@ import { StartRedirect } from "src/components/redirects/StartRedirect";
 import { BackupMnemonic } from "src/screens/BackupMnemonic";
 import { BackupNode } from "src/screens/BackupNode";
 import { BackupNodeSuccess } from "src/screens/BackupNodeSuccess";
+import { ConnectAlbyAccount } from "src/screens/ConnectAlbyAccount";
 import Home from "src/screens/Home";
 import { Intro } from "src/screens/Intro";
-import { LinkAlbyAccount } from "src/screens/LinkAlbyAccount";
 import NotFound from "src/screens/NotFound";
 import Start from "src/screens/Start";
 import Unlock from "src/screens/Unlock";
@@ -332,7 +332,7 @@ const routes = [
       },
       {
         path: "alby/account",
-        element: <LinkAlbyAccount />,
+        element: <ConnectAlbyAccount />,
       },
       {
         path: "alby/auth",
