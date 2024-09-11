@@ -937,11 +937,17 @@ func (svc *albyOAuthService) requestAutoChannel(ctx context.Context, url string,
 	type autoChannelRequest struct {
 		NodePubkey      string `json:"node_pubkey"`
 		AnnounceChannel bool   `json:"announce_channel"`
+		NodeType        string `json:"node_type"`
 	}
 
+	backendType, err := svc.cfg.Get("LNBackendType", "")
+	if err != nil {
+		return nil, errors.New("failed to get LN backend type")
+	}
 	newAutoChannelRequest := autoChannelRequest{
 		NodePubkey:      pubkey,
 		AnnounceChannel: isPublic,
+		NodeType:        backendType,
 	}
 
 	payloadBytes, err := json.Marshal(newAutoChannelRequest)
