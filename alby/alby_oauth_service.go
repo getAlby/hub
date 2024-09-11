@@ -839,15 +839,9 @@ func (svc *albyOAuthService) activateAlbyAccountNWCNode(ctx context.Context) err
 
 func (svc *albyOAuthService) GetChannelPeerSuggestions(ctx context.Context) ([]ChannelPeerSuggestion, error) {
 
-	token, err := svc.fetchUserToken(ctx)
-	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to fetch user token")
-		return nil, err
-	}
+	client := &http.Client{Timeout: 10 * time.Second}
 
-	client := svc.oauthConf.Client(ctx, token)
-
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/internal/channel_suggestions", svc.cfg.GetEnv().AlbyAPIURL), nil)
+	req, err := http.NewRequest("GET", "https://getalby.com/api/internal/channel_suggestions", nil)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Error creating request to channel_suggestions endpoint")
 		return nil, err

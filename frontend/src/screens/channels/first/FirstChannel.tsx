@@ -45,11 +45,11 @@ export function FirstChannel() {
 
   React.useEffect(() => {
     if (info && !info.albyAccountConnected) {
-      navigate("/channels/outgoing");
+      navigate("/channels/incoming");
     }
   }, [info, navigate]);
 
-  if (!info || !channels) {
+  if (!info?.albyAccountConnected || !channels) {
     return <Loading />;
   }
 

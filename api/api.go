@@ -392,16 +392,6 @@ func (api *api) ListChannels(ctx context.Context) ([]Channel, error) {
 }
 
 func (api *api) GetChannelPeerSuggestions(ctx context.Context) ([]alby.ChannelPeerSuggestion, error) {
-	albyUserIdentifier, err := api.albyOAuthSvc.GetUserIdentifier()
-	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to get alby user identifier")
-		return nil, err
-	}
-
-	if albyUserIdentifier == "" {
-		return []alby.ChannelPeerSuggestion{}, nil
-	}
-
 	return api.albyOAuthSvc.GetChannelPeerSuggestions(ctx)
 }
 
