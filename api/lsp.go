@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/lsp"
@@ -213,6 +214,15 @@ func (api *api) requestLSPS1Invoice(ctx context.Context, request *LSPOrderReques
 	}
 
 	var requiredChannelConfirmations uint64 = 0
+
+	backendType, err := api.cfg.Get("LNBackendType", "")
+	if err != nil {
+		return "", 0, errors.New("failed to get LN backend type")
+	}
+
+	if backendType != config.LDKBackendType {
+		requiredChannelConfirmations = 1
+	}
 
 	if request.Public {
 		// as per BOLT-7 6 confirmations are required for the channel to be gossiped

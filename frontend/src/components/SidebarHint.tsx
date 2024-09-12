@@ -84,7 +84,7 @@ function SidebarHintCard({
   buttonLink,
 }: SidebarHintCardProps) {
   return (
-    <div className="md:m-4">
+    <div className="my-4 md:mx-4">
       <Card>
         <CardHeader className="p-4">
           <Icon className="h-8 w-8 mb-4" />

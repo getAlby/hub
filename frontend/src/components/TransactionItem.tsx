@@ -57,8 +57,7 @@ function TransactionItem({ tx }: Props) {
       }}
     >
       <DialogTrigger className="p-3 mb-4 hover:bg-muted/50 data-[state=selected]:bg-muted cursor-pointer rounded-md slashed-zero transaction sensitive">
-        {/* flex wrap is used as a last resort to stop horizontal scrollbar on mobile. */}
-        <div className="flex gap-3 flex-wrap">
+        <div className="flex gap-3">
           <div className="flex items-center">
             <div
               className={cn(
@@ -90,21 +89,23 @@ function TransactionItem({ tx }: Props) {
               )}
             </div>
           </div>
-          <div className="overflow-hidden mr-3 flex flex-col items-start justify-center">
-            <div className="flex items-center gap-2 truncate">
-              <p className="text-lg md:text-xl font-semibold">
-                {type == "incoming" ? "Received" : "Sent"}
-              </p>
-              <p className="text-sm md:text-base truncate text-muted-foreground">
-                {dayjs(tx.settledAt).fromNow()}
+          <div className="overflow-hidden mr-3 max-w-full text-left flex flex-col items-start justify-center">
+            <div>
+              <p className="flex items-center gap-2 truncate">
+                <span className="md:text-xl font-semibold">
+                  {type == "incoming" ? "Received" : "Sent"}
+                </span>
+                <span className="text-xs md:text-base truncate text-muted-foreground">
+                  {dayjs(tx.settledAt).fromNow()}
+                </span>
               </p>
             </div>
-            <p className="text-sm md:text-base text-muted-foreground break-all flex">
+            <p className="text-sm md:text-base text-muted-foreground break-all w-full truncate">
               {tx.description}
             </p>
           </div>
           <div className="flex ml-auto text-right space-x-3 shrink-0">
-            <div className="flex items-center gap-2 text-xl">
+            <div className="flex items-center gap-2 md:text-xl">
               <p
                 className={cn(
                   "font-semibold",

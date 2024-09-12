@@ -53,7 +53,9 @@ function Home() {
             <Card>
               <CardHeader>
                 <div className="flex flex-row items-center">
-                  <AlbyHead className="w-12 h-12 rounded-xl p-1 border" />
+                  <div className="flex-shrink-0">
+                    <AlbyHead className="w-12 h-12 rounded-xl p-1 border" />
+                  </div>
                   <div>
                     <CardTitle>
                       <div className="flex-1 leading-5 font-semibold text-xl whitespace-nowrap text-ellipsis overflow-hidden ml-4">
@@ -80,7 +82,9 @@ function Home() {
             <Card>
               <CardHeader>
                 <div className="flex flex-row items-center">
-                  <AlbyHead className="w-12 h-12 rounded-xl p-1 border bg-[#FFDF6F]" />
+                  <div className="flex-1">
+                    <AlbyHead className="w-12 h-12 rounded-xl p-1 border bg-[#FFDF6F]" />
+                  </div>
                   <div>
                     <CardTitle>
                       <div className="flex-1 leading-5 font-semibold text-xl whitespace-nowrap text-ellipsis overflow-hidden ml-4">
