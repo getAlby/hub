@@ -192,9 +192,7 @@ export const suggestedApps: SuggestedApp[] = [
     id: "alby-go",
     title: "Alby Go",
     description: "A simple mobile wallet that works great with Alby Hub",
-    appleLink: "https://apps.apple.com/app/alby-mobile/id6471335774",
-    playLink:
-      "https://play.google.com/store/apps/details?id=com.getalby.mobile",
+    webLink: "https://albygo.com",
     logo: albyGo,
   },
 ].sort((a, b) => (a.title.toUpperCase() > b.title.toUpperCase() ? 1 : -1));
