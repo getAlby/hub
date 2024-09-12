@@ -23,7 +23,7 @@ export default function AppCard({ app }: Props) {
 
   return (
     <Card
-      className="h-full flex flex-col group cursor-pointer"
+      className="flex flex-col group cursor-pointer"
       onClick={() => navigate(`/apps/${app.nostrPubkey}`)}
     >
       <CardHeader>
