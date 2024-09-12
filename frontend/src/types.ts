@@ -320,7 +320,14 @@ export type RecommendedChannelPeer = {
     }
 );
 
-// TODO: move to different file
+export type AlbyInfo = {
+  hub: {
+    latestVersion: string;
+    latestReleaseNotes: string;
+  };
+};
+
+// TODO: use camel case (needs mapping in the Alby OAuth Service - see how AlbyInfo is done above)
 export type AlbyMe = {
   identifier: string;
   nostr_pubkey: string;
@@ -331,7 +338,6 @@ export type AlbyMe = {
   keysend_pubkey: string;
   shared_node: boolean;
   hub: {
-    latest_version: string;
     name?: string;
   };
 };

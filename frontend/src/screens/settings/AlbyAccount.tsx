@@ -29,6 +29,27 @@ export function AlbyAccount() {
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  const disconnect = async () => {
+    try {
+      await request("/api/alby/unlink-account", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      navigate("/");
+      toast({
+        title: "Alby Account Disconnected",
+        description: "Your hub is no longer connected to an Alby Account.",
+      });
+    } catch (error) {
+      toast({
+        title: "Disconnect account failed",
+        description: (error as Error).message,
+        variant: "destructive",
+      });
+    }
+  };
   const unlink = async () => {
     try {
       await request("/api/alby/unlink-account", {
@@ -102,6 +123,37 @@ export function AlbyAccount() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={unlink}>Confirm</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <Card className="w-full cursor-pointer">
+            <CardHeader>
+              <CardTitle>Disconnect Alby Account</CardTitle>
+              <CardDescription className="flex gap-2 items-center">
+                <ExitIcon className="w-4 h-4" /> Use Alby Hub without an Alby
+                Account
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Disconnect Alby Account</AlertDialogTitle>
+            <AlertDialogDescription>
+              <div>
+                <p>Are you sure you want to disconnect your Alby Account?</p>
+                <p className="text-destructive font-medium mt-4">
+                  Your Alby Account will be disconnected and all Alby Account
+                  features such as your lightning address will stop working.
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={disconnect}>Confirm</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

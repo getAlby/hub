@@ -31,20 +31,19 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
   const { data: transactions } = useTransactions(false, 1);
 
   const isLoading =
-    !albyMe ||
     !apps ||
     !channels ||
     !info ||
     !nodeConnectionInfo ||
     !transactions ||
-    !albyBalance;
+    (info.albyAccountConnected && (!albyMe || !albyBalance));
 
   if (isLoading) {
     return { isLoading: true, checklistItems: [] };
   }
 
   const isLinked =
-    albyMe &&
+    !!albyMe &&
     nodeConnectionInfo &&
     albyMe?.keysend_pubkey === nodeConnectionInfo?.pubkey;
   const hasChannel =
@@ -60,27 +59,32 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
 
   const checklistItems: Omit<ChecklistItem, "disabled">[] = [
     {
-      title: "1. Open your first channel",
+      title: "Open your first channel",
       description:
         "Establish a new Lightning channel to enable fast and low-fee Bitcoin transactions.",
       checked: hasChannel,
       to: "/channels/first",
     },
+    ...(info.albyAccountConnected
+      ? [
+          {
+            title: "Link to your Alby Account",
+            description:
+              "Link your lightning address & other apps to this Hub.",
+            checked: isLinked,
+            to: "/apps",
+          },
+        ]
+      : []),
     {
-      title: "2. Link to your Alby Account",
-      description: "Link your lightning address & other apps to this Hub.",
-      checked: isLinked,
-      to: "/apps",
-    },
-    {
-      title: "3. Send or receive your first payment",
+      title: "Send or receive your first payment",
       description:
         "Use your newly opened channel to make a transaction on the Lightning Network.",
       checked: hasTransaction,
       to: "/wallet",
     },
     {
-      title: "4. Connect your first app",
+      title: "Connect your first app",
       description:
         "Seamlessly connect apps and integrate your wallet with other apps from your Hub.",
       checked: hasCustomApp,
@@ -89,7 +93,7 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
     ...(hasMnemonic
       ? [
           {
-            title: "5. Backup your keys",
+            title: "Backup your keys",
             description:
               "Secure your keys by creating a backup to ensure you don't lose access.",
             checked: hasBackedUp === true,

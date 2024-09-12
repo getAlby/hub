@@ -9,6 +9,7 @@ import (
 
 type AlbyOAuthService interface {
 	events.EventSubscriber
+	GetInfo(ctx context.Context) (*AlbyInfo, error)
 	GetChannelPeerSuggestions(ctx context.Context) ([]ChannelPeerSuggestion, error)
 	GetAuthUrl() string
 	GetUserIdentifier() (string, error)
@@ -47,9 +48,18 @@ type AutoChannelResponse struct {
 	Fee         uint64 `json:"fee"`
 }
 
+type AlbyInfoHub struct {
+	LatestVersion      string `json:"latestVersion"`
+	LatestReleaseNotes string `json:"latestReleaseNotes"`
+}
+
+type AlbyInfo struct {
+	Hub AlbyInfoHub `json:"hub"`
+	// TODO: consider getting healthcheck/incident info and showing in the hub
+}
+
 type AlbyMeHub struct {
-	LatestVersion string `json:"latest_version"`
-	Name          string `json:"name"`
+	Name string `json:"name"`
 }
 type AlbyMe struct {
 	Identifier       string    `json:"identifier"`

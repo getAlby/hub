@@ -9,6 +9,7 @@ import {
   Megaphone,
   Menu,
   MessageCircleQuestion,
+  PlugZapIcon,
   Settings,
   ShieldAlertIcon,
   ShieldCheckIcon,
@@ -46,6 +47,7 @@ import {
 } from "src/components/ui/tooltip";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 
+import { useAlbyInfo } from "src/hooks/useAlbyInfo";
 import { useInfo } from "src/hooks/useInfo";
 import { useRemoveSuccessfulChannelOrder } from "src/hooks/useRemoveSuccessfulChannelOrder";
 import { deleteAuthToken } from "src/lib/auth";
@@ -88,15 +90,28 @@ export default function AppLayout() {
     return (
       <DropdownMenuContent align="end">
         <DropdownMenuGroup>
-          <DropdownMenuItem>
-            <ExternalLink
-              to="https://getalby.com/settings"
-              className="w-full flex flex-row items-center gap-2"
-            >
-              <ExternalLinkIcon className="w-4 h-4" />
-              <p>Alby Account Settings</p>
-            </ExternalLink>
-          </DropdownMenuItem>
+          {!info?.albyAccountConnected && (
+            <DropdownMenuItem>
+              <Link
+                to="/alby/account"
+                className="w-full flex flex-row items-center gap-2"
+              >
+                <PlugZapIcon className="w-4 h-4" />
+                <p>Connect Alby Account</p>
+              </Link>
+            </DropdownMenuItem>
+          )}
+          {info?.albyAccountConnected && (
+            <DropdownMenuItem>
+              <ExternalLink
+                to="https://getalby.com/settings"
+                className="w-full flex flex-row items-center gap-2"
+              >
+                <ExternalLinkIcon className="w-4 h-4" />
+                <p>Alby Account Settings</p>
+              </ExternalLink>
+            </DropdownMenuItem>
+          )}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         {isHttpMode && (
@@ -183,7 +198,7 @@ export default function AppLayout() {
           <MessageCircleQuestion className="h-4 w-4" />
           Live Support
         </MenuItem>
-        {!albyMe?.hub.name && (
+        {!albyMe?.hub.name && info?.albyAccountConnected && (
           <MenuItem
             to="/"
             onClick={(e) => {
@@ -204,7 +219,7 @@ export default function AppLayout() {
       <div className="font-sans min-h-screen w-full flex flex-col">
         <div className="flex-1 h-full md:grid md:grid-cols-[280px_minmax(0,1fr)]">
           <div className="hidden border-r bg-muted/40 md:block">
-            <div className="flex h-full max-h-screen flex-col gap-2 sticky top-0 overflow-y-auto">
+            <div className="flex h-full max-h-screen flex-col gap-2 sticky z-10 top-0 overflow-y-auto">
               <div className="flex-1">
                 <nav className="grid items-start px-4 py-2 text-sm font-medium">
                   <div className="p-3 flex justify-between items-center mt-2 mb-6">
@@ -220,15 +235,19 @@ export default function AppLayout() {
                 <SidebarHint />
                 <MainNavSecondary />
                 <div className="flex h-14 items-center px-4 gap-3 border-t border-border justify-between">
-                  <div className="grid grid-flow-col gap-2">
-                    <UserAvatar className="h-8 w-8" />
-                    <Link
-                      to="#"
-                      className="font-semibold text-lg whitespace-nowrap overflow-hidden text-ellipsis"
-                    >
-                      {albyMe?.name || albyMe?.email}
-                    </Link>
-                  </div>
+                  {info.albyAccountConnected ? (
+                    <div className="grid grid-flow-col gap-2 items-center">
+                      <UserAvatar className="h-8 w-8" />
+                      <Link
+                        to="#"
+                        className="font-semibold text-lg whitespace-nowrap overflow-hidden text-ellipsis"
+                      >
+                        {albyMe?.name || albyMe?.email}
+                      </Link>
+                    </div>
+                  ) : (
+                    <div></div>
+                  )}
                   <DropdownMenu modal={false}>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon">
@@ -299,17 +318,16 @@ export default function AppLayout() {
 }
 
 function AppVersion() {
-  const { data: albyMe } = useAlbyMe();
+  const { data: albyInfo } = useAlbyInfo();
   const { data: info } = useInfo();
-  if (!info || !albyMe) {
+  if (!info || !albyInfo) {
     return null;
   }
 
   const upToDate =
     info.version &&
-    albyMe.hub.latest_version &&
     info.version.startsWith("v") &&
-    info.version.substring(1) >= albyMe?.hub.latest_version;
+    info.version.substring(1) >= albyInfo.hub.latestVersion;
 
   return (
     <TooltipProvider>
@@ -333,7 +351,14 @@ function AppVersion() {
           {upToDate ? (
             <p>Alby Hub is up to date!</p>
           ) : (
-            <p>Alby Hub {albyMe?.hub.latest_version} available!</p>
+            <div>
+              <p className="font-semibold">
+                Alby Hub {albyInfo.hub.latestVersion} available!
+              </p>
+              <p className="mt-2 max-w-xs whitespace-pre-wrap">
+                {albyInfo.hub.latestReleaseNotes}
+              </p>
+            </div>
           )}
         </TooltipContent>
       </Tooltip>

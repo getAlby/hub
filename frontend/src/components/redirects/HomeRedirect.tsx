@@ -16,7 +16,7 @@ export function HomeRedirect() {
     let to: string | undefined;
     if (info.setupCompleted && info.running) {
       if (info.unlocked) {
-        if (info.albyAccountConnected) {
+        if (info.albyAccountConnected || !info.albyUserIdentifier) {
           const returnTo = window.localStorage.getItem(
             localStorageKeys.returnTo
           );

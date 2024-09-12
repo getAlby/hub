@@ -5,6 +5,7 @@ import animationData from "src/assets/lotties/loading.json";
 import Container from "src/components/Container";
 import { Button } from "src/components/ui/button";
 import { ToastSignature, useToast } from "src/components/ui/use-toast";
+import { localStorageKeys } from "src/constants";
 
 import { useInfo } from "src/hooks/useInfo";
 import { saveAuthToken } from "src/lib/auth";
@@ -73,6 +74,9 @@ export function SetupFinish() {
   }, [loading]);
 
   useEffect(() => {
+    if (!info) {
+      return;
+    }
     // ensure setup call is only called once
     if (hasFetchedRef.current) {
       return;
@@ -81,14 +85,19 @@ export function SetupFinish() {
 
     (async () => {
       setLoading(true);
-      const succeeded = await finishSetup(nodeInfo, unlockPassword, toast);
+      const succeeded = await finishSetup(
+        nodeInfo,
+        unlockPassword,
+        toast,
+        info.oauthRedirect
+      );
       // only setup call is successful as start is async
       if (!succeeded) {
         setLoading(false);
         setConnectionError(true);
       }
     })();
-  }, [nodeInfo, navigate, unlockPassword, toast]);
+  }, [nodeInfo, navigate, unlockPassword, toast, info]);
 
   if (connectionError) {
     return (
@@ -125,9 +134,17 @@ export function SetupFinish() {
 const finishSetup = async (
   nodeInfo: SetupNodeInfo,
   unlockPassword: string,
-  toast: ToastSignature
+  toast: ToastSignature,
+  autoAuth: boolean
 ): Promise<boolean> => {
   try {
+    let redirectTo = "/alby/account";
+    if (autoAuth) {
+      redirectTo = "/alby/auth";
+    }
+
+    window.localStorage.setItem(localStorageKeys.returnTo, redirectTo);
+
     await request("/api/setup", {
       method: "POST",
       headers: {

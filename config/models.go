@@ -29,10 +29,8 @@ type AppConfig struct {
 	LDKGossipSource       string `envconfig:"LDK_GOSSIP_SOURCE"`
 	LDKLogLevel           string `envconfig:"LDK_LOG_LEVEL" default:"3"`
 	MempoolApi            string `envconfig:"MEMPOOL_API" default:"https://mempool.space/api"`
-	AlbyAPIURL            string `envconfig:"ALBY_API_URL" default:"https://api.getalby.com"`
 	AlbyClientId          string `envconfig:"ALBY_OAUTH_CLIENT_ID" default:"J2PbXS1yOf"`
 	AlbyClientSecret      string `envconfig:"ALBY_OAUTH_CLIENT_SECRET" default:"rABK2n16IWjLTZ9M1uKU"`
-	AlbyOAuthAuthUrl      string `envconfig:"ALBY_OAUTH_AUTH_URL" default:"https://getalby.com/oauth"`
 	BaseUrl               string `envconfig:"BASE_URL"`
 	FrontendUrl           string `envconfig:"FRONTEND_URL"`
 	LogEvents             bool   `envconfig:"LOG_EVENTS" default:"true"`

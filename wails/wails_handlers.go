@@ -261,6 +261,17 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 	}
 
 	switch route {
+	case "/api/alby/info":
+		info, err := app.svc.GetAlbyOAuthSvc().GetInfo(ctx)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).WithError(err).Error("Failed to decode request to wails router")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: info, Error: ""}
 	case "/api/alby/me":
 		me, err := app.svc.GetAlbyOAuthSvc().GetMe(ctx)
 		if err != nil {

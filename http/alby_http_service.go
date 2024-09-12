@@ -28,6 +28,7 @@ func NewAlbyHttpService(svc service.Service, albyOAuthSvc alby.AlbyOAuthService,
 
 func (albyHttpSvc *AlbyHttpService) RegisterSharedRoutes(restrictedGroup *echo.Group, e *echo.Echo) {
 	e.GET("/api/alby/callback", albyHttpSvc.albyCallbackHandler)
+	e.GET("/api/alby/info", albyHttpSvc.albyInfoHandler)
 	restrictedGroup.GET("/api/alby/me", albyHttpSvc.albyMeHandler)
 	restrictedGroup.GET("/api/alby/balance", albyHttpSvc.albyBalanceHandler)
 	restrictedGroup.POST("/api/alby/pay", albyHttpSvc.albyPayHandler)
@@ -70,6 +71,18 @@ func (albyHttpSvc *AlbyHttpService) unlinkHandler(c echo.Context) error {
 	}
 
 	return c.NoContent(http.StatusNoContent)
+}
+
+func (albyHttpSvc *AlbyHttpService) albyInfoHandler(c echo.Context) error {
+	info, err := albyHttpSvc.albyOAuthSvc.GetInfo(c.Request().Context())
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to request alby info endpoint")
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to request alby info endpoint: %s", err.Error()),
+		})
+	}
+
+	return c.JSON(http.StatusOK, info)
 }
 
 func (albyHttpSvc *AlbyHttpService) albyCallbackHandler(c echo.Context) error {

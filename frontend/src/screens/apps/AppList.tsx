@@ -39,7 +39,9 @@ function AppList() {
         }
       />
 
-      <AlbyConnectionCard connection={albyConnection} />
+      {info.albyAccountConnected && (
+        <AlbyConnectionCard connection={albyConnection} />
+      )}
 
       {!otherApps.length && (
         <EmptyState
