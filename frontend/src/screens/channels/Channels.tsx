@@ -9,6 +9,7 @@ import {
   Hotel,
   HourglassIcon,
   InfoIcon,
+  Settings2,
   Unplug,
 } from "lucide-react";
 import React from "react";
@@ -115,10 +116,20 @@ export default function Channels() {
           <div className="flex gap-3 items-center justify-center">
             <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="default">
-                  Advanced
-                  <ChevronDown />
-                </Button>
+                {isDesktop ? (
+                  <Button
+                    className="inline-flex"
+                    variant="outline"
+                    size="default"
+                  >
+                    Advanced
+                    <ChevronDown />
+                  </Button>
+                ) : (
+                  <Button variant="outline" size="icon">
+                    <Settings2 className="w-4 h-4" />
+                  </Button>
+                )}
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56">
                 <DropdownMenuGroup>

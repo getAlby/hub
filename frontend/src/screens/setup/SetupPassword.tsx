@@ -44,6 +44,9 @@ export function SetupPassword() {
     }
 
     if (wallet === "import") {
+      useSetupStore.getState().updateNodeInfo({
+        backendType: "LDK",
+      });
       navigate(`/setup/import-mnemonic`);
     } else if (node) {
       navigate(`/setup/node/${node}`);
