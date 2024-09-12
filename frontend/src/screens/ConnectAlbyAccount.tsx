@@ -19,8 +19,10 @@ export function ConnectAlbyAccount() {
         podcasting apps & more.
       </p>
       <div className="flex flex-col items-center justify-center mt-5 gap-2">
-        <LinkButton to="/alby/auth">Connect now</LinkButton>
-        <LinkButton variant="ghost" to="/">
+        <LinkButton to="/alby/auth" size="lg">
+          Connect now
+        </LinkButton>
+        <LinkButton variant="link" to="/">
           Maybe later
         </LinkButton>
       </div>
