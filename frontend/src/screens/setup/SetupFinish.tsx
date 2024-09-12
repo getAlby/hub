@@ -74,6 +74,9 @@ export function SetupFinish() {
   }, [loading]);
 
   useEffect(() => {
+    if (!info) {
+      return;
+    }
     // ensure setup call is only called once
     if (hasFetchedRef.current) {
       return;
@@ -82,14 +85,19 @@ export function SetupFinish() {
 
     (async () => {
       setLoading(true);
-      const succeeded = await finishSetup(nodeInfo, unlockPassword, toast);
+      const succeeded = await finishSetup(
+        nodeInfo,
+        unlockPassword,
+        toast,
+        info.oauthRedirect
+      );
       // only setup call is successful as start is async
       if (!succeeded) {
         setLoading(false);
         setConnectionError(true);
       }
     })();
-  }, [nodeInfo, navigate, unlockPassword, toast]);
+  }, [nodeInfo, navigate, unlockPassword, toast, info]);
 
   if (connectionError) {
     return (
@@ -126,11 +134,12 @@ export function SetupFinish() {
 const finishSetup = async (
   nodeInfo: SetupNodeInfo,
   unlockPassword: string,
-  toast: ToastSignature
+  toast: ToastSignature,
+  autoAuth: boolean
 ): Promise<boolean> => {
   try {
     let redirectTo = "/alby/account";
-    if (window.location.origin === "https://my.albyhub.com") {
+    if (autoAuth) {
       redirectTo = "/alby/auth";
     }
 
