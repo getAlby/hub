@@ -13,16 +13,16 @@ export function ConnectAlbyAccount() {
           className="w-full dark:hidden"
         />
       </div>
-      <p className="max-w-md text-muted-foreground text-center">
+      <p className="max-w-sm md:max-w-lg text-muted-foreground text-center mt-5">
         Your Alby Account gives your hub a lightning address, Nostr address and
-        zaps, email notifications, automatic channel backups, access to
-        podcasting apps & more.
+        zaps, email notifications, fiat topups, priority support, automatic
+        channel backups, access to podcasting apps & more.
       </p>
-      <div className="flex flex-col items-center justify-center mt-5 gap-2">
+      <div className="flex flex-col items-center justify-center mt-5 gap-5">
         <LinkButton to="/alby/auth" size="lg">
           Connect now
         </LinkButton>
-        <LinkButton variant="link" to="/">
+        <LinkButton variant="link" to="/" className="text-muted-foreground">
           Maybe later
         </LinkButton>
       </div>
