@@ -105,7 +105,6 @@ export function UncleJim() {
                 onChange={(e) => setName(e.target.value)}
                 required
                 autoComplete="off"
-                placeholder="John Galt"
               />
             </div>
             <LoadingButton loading={isLoading} type="submit">
