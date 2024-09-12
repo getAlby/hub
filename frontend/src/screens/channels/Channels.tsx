@@ -118,7 +118,7 @@ export default function Channels() {
               <DropdownMenuTrigger asChild>
                 {isDesktop ? (
                   <Button
-                    className="hidden md:inline-flex"
+                    className="inline-flex"
                     variant="outline"
                     size="default"
                   >
@@ -126,7 +126,7 @@ export default function Channels() {
                     <ChevronDown />
                   </Button>
                 ) : (
-                  <Button className="md:hidden" variant="outline" size="icon">
+                  <Button variant="outline" size="icon">
                     <Settings2 className="w-4 h-4" />
                   </Button>
                 )}

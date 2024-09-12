@@ -89,7 +89,7 @@ function TransactionItem({ tx }: Props) {
               )}
             </div>
           </div>
-          <div className="overflow-hidden mr-3 max-w-full text-left">
+          <div className="overflow-hidden mr-3 max-w-full text-left flex flex-col items-start justify-center">
             <div>
               <p className="flex items-center gap-2 truncate">
                 <span className="md:text-xl font-semibold">
@@ -100,8 +100,8 @@ function TransactionItem({ tx }: Props) {
                 </span>
               </p>
             </div>
-            <p className="text-sm md:text-base text-muted-foreground break-all flex">
-              <p className="truncate">{tx.description}</p>
+            <p className="text-sm md:text-base text-muted-foreground break-all w-full truncate">
+              {tx.description}
             </p>
           </div>
           <div className="flex ml-auto text-right space-x-3 shrink-0">

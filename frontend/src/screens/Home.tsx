@@ -52,7 +52,7 @@ function Home() {
           <Card>
             <CardHeader>
               <div className="flex flex-row items-center">
-                <div className="flex-1">
+                <div className="flex-shrink-0">
                   <AlbyHead className="w-12 h-12 rounded-xl p-1 border" />
                 </div>
                 <div>
