@@ -212,6 +212,48 @@ func (svc *albyOAuthService) fetchUserToken(ctx context.Context) (*oauth2.Token,
 	return newToken, nil
 }
 
+func (svc *albyOAuthService) GetInfo(ctx context.Context) (*AlbyInfo, error) {
+	client := &http.Client{Timeout: 10 * time.Second}
+
+	req, err := http.NewRequest("GET", "https://getalby.com/api/internal/info", nil)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Error creating request to alby info endpoint")
+		return nil, err
+	}
+
+	setDefaultRequestHeaders(req)
+
+	res, err := client.Do(req)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to fetch /info")
+		return nil, err
+	}
+
+	type albyInfoHub struct {
+		LatestVersion      string `json:"latest_version"`
+		LatestReleaseNotes string `json:"latest_release_notes"`
+	}
+
+	type albyInfo struct {
+		Hub albyInfoHub `json:"hub"`
+		// TODO: consider getting healthcheck/incident info and showing in the hub
+	}
+
+	info := &albyInfo{}
+	err = json.NewDecoder(res.Body).Decode(info)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to decode API response")
+		return nil, err
+	}
+
+	return &AlbyInfo{
+		Hub: AlbyInfoHub{
+			LatestVersion:      info.Hub.LatestVersion,
+			LatestReleaseNotes: info.Hub.LatestReleaseNotes,
+		},
+	}, nil
+}
+
 func (svc *albyOAuthService) GetMe(ctx context.Context) (*AlbyMe, error) {
 	token, err := svc.fetchUserToken(ctx)
 	if err != nil {
