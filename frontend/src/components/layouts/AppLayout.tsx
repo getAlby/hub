@@ -235,17 +235,19 @@ export default function AppLayout() {
                 <SidebarHint />
                 <MainNavSecondary />
                 <div className="flex h-14 items-center px-4 gap-3 border-t border-border justify-between">
-                  <div className="grid grid-flow-col gap-2 items-center">
-                    <UserAvatar className="h-8 w-8" />
-                    <Link
-                      to="#"
-                      className="font-semibold text-lg whitespace-nowrap overflow-hidden text-ellipsis"
-                    >
-                      {albyMe?.name ||
-                        albyMe?.email ||
-                        (!info.albyAccountConnected && "Satoshi Nakamoto")}
-                    </Link>
-                  </div>
+                  {info.albyAccountConnected ? (
+                    <div className="grid grid-flow-col gap-2 items-center">
+                      <UserAvatar className="h-8 w-8" />
+                      <Link
+                        to="#"
+                        className="font-semibold text-lg whitespace-nowrap overflow-hidden text-ellipsis"
+                      >
+                        {albyMe?.name || albyMe?.email}
+                      </Link>
+                    </div>
+                  ) : (
+                    <div></div>
+                  )}
                   <DropdownMenu modal={false}>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon">
