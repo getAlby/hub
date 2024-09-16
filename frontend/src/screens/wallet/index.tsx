@@ -36,6 +36,7 @@ function Wallet() {
 
   const showMigrateCard =
     albyBalance && albyBalance.sats > ALBY_HIDE_HOSTED_BALANCE_LIMIT;
+  const needsChannels = hasChannelManagement && channels && channels.length < 1;
 
   return (
     <>
@@ -52,11 +53,13 @@ function Wallet() {
               sats in your Alby shared wallet
             </h3>
             <p className="text-sm text-muted-foreground mb-4">
-              {channels && channels.length > 0
-                ? "Transfer funds from your Alby hosted balance to your self-custodial wallet."
-                : "Migrate funds from your Alby hosted balance to start using your self-custodial wallet."}
+              Transfer funds from your Alby hosted balance.
             </p>
-            {channels && channels.length > 0 ? (
+            {needsChannels ? (
+              <Link to="/channels/first">
+                <Button className="mt-4">Migrate Funds</Button>
+              </Link>
+            ) : (
               <TransferFundsButton
                 channels={channels}
                 albyBalance={albyBalance}
@@ -64,10 +67,6 @@ function Wallet() {
               >
                 Transfer Funds
               </TransferFundsButton>
-            ) : (
-              <Link to="/channels/first">
-                <Button className="mt-4">Migrate Funds</Button>
-              </Link>
             )}
           </div>
         </div>
