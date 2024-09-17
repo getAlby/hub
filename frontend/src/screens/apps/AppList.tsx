@@ -20,9 +20,13 @@ function AppList() {
   }
 
   const albyConnection = apps.find((x) => x.name === albyConnectionName);
-  const otherApps = apps.filter(
-    (x) => x.nostrPubkey !== albyConnection?.nostrPubkey
-  );
+  const otherApps = apps
+    .filter((x) => x.nostrPubkey !== albyConnection?.nostrPubkey)
+    .sort(
+      (a, b) =>
+        new Date(b.lastEventAt ?? 0).getTime() -
+        new Date(a.lastEventAt ?? 0).getTime()
+    );
 
   return (
     <>
