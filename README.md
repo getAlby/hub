@@ -166,7 +166,7 @@ _To configure via env, the following parameters must be provided:_
 
 ### LDK Backend parameters
 
-- `LDK_ESPLORA_SERVER`: If using the mainnet (bitcoin) network, Recommended to use your own LDK esplora server (The public blockstream one is very slow and can cause onchain syncing and issues with opening channels)
+- `LDK_ESPLORA_SERVER`: By default the optimized Alby esplora is used. You can configure your own esplora server (note: the public blockstream one is slow and can cause onchain syncing and issues with opening channels)
 
 #### LDK Network Configuration
 
