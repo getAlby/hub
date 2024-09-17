@@ -50,7 +50,10 @@ export function AppCardConnectionInfo({
             <div className="flex flex-col items-end justify-end">
               <p>Balance</p>
               <p className="text-xl font-medium">
-                {formatAmount(connection.balance)} sats
+                {new Intl.NumberFormat().format(
+                  Math.floor(connection.balance / 1000)
+                )}{" "}
+                sats
               </p>
             </div>
           </div>
