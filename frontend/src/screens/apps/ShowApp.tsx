@@ -42,7 +42,6 @@ import { Table, TableBody, TableCell, TableRow } from "src/components/ui/table";
 import { useToast } from "src/components/ui/use-toast";
 import { useApps } from "src/hooks/useApps";
 import { useCapabilities } from "src/hooks/useCapabilities";
-import { formatAmount } from "src/lib/utils";
 
 function ShowApp() {
   const { pubkey } = useParams() as { pubkey: string };
@@ -242,7 +241,10 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                     <TableRow>
                       <TableCell className="font-medium">Balance</TableCell>
                       <TableCell className="text-muted-foreground break-all">
-                        {formatAmount(app.balance)} sats
+                        {new Intl.NumberFormat().format(
+                          Math.floor(app.balance / 1000)
+                        )}{" "}
+                        sats
                       </TableCell>
                     </TableRow>
                   )}
