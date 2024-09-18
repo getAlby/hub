@@ -17,7 +17,7 @@ import {
   AlertDescription,
   AlertTitle,
 } from "src/components/ui/alert.tsx";
-import { Button } from "src/components/ui/button";
+import { Button, LinkButton } from "src/components/ui/button";
 import { ALBY_HIDE_HOSTED_BALANCE_BELOW as ALBY_HIDE_HOSTED_BALANCE_LIMIT } from "src/constants.ts";
 import { useAlbyBalance } from "src/hooks/useAlbyBalance";
 import { useBalances } from "src/hooks/useBalances";
@@ -36,6 +36,7 @@ function Wallet() {
 
   const showMigrateCard =
     albyBalance && albyBalance.sats > ALBY_HIDE_HOSTED_BALANCE_LIMIT;
+  const needsChannels = hasChannelManagement && channels && channels.length < 1;
 
   return (
     <>
@@ -52,22 +53,18 @@ function Wallet() {
               sats in your Alby shared wallet
             </h3>
             <p className="text-sm text-muted-foreground mb-4">
-              {channels && channels.length > 0
-                ? "Transfer funds from your Alby hosted balance to your self-custodial wallet."
-                : "Migrate funds from your Alby hosted balance to start using your self-custodial wallet."}
+              Migrate funds from your Alby hosted balance.
             </p>
-            {channels && channels.length > 0 ? (
+            {needsChannels ? (
+              <LinkButton to="/channels/first">Migrate Funds</LinkButton>
+            ) : (
               <TransferFundsButton
                 channels={channels}
                 albyBalance={albyBalance}
                 reloadAlbyBalance={reloadAlbyBalance}
               >
-                Transfer Funds
+                Migrate Funds
               </TransferFundsButton>
-            ) : (
-              <Link to="/channels/first">
-                <Button className="mt-4">Migrate Funds</Button>
-              </Link>
             )}
           </div>
         </div>
