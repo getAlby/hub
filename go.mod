@@ -16,7 +16,7 @@ require (
 	github.com/stretchr/testify v1.9.0
 	github.com/wailsapp/wails/v2 v2.9.1
 	golang.org/x/crypto v0.27.0
-	golang.org/x/oauth2 v0.22.0
+	golang.org/x/oauth2 v0.23.0
 	google.golang.org/grpc v1.66.0
 	gopkg.in/DataDog/dd-trace-go.v1 v1.67.1
 	gopkg.in/macaroon.v2 v2.1.0
