@@ -304,14 +304,9 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
           <p className="text-xs">
             You currently have{" "}
             {new Intl.NumberFormat().format(balances.onchain.total)} sats. We
-            recommend to deposit another{" "}
+            recommend to deposit {" "}
             {new Intl.NumberFormat().format(recommendedAmount)} sats to open a
-            channel.{" "}
-          </p>
-          <p className="text-xs text-muted-foreground">
-            ~{new Intl.NumberFormat().format(+missingAmount)} sats are missing
-            to cover the cost of opening the channel, including onchain fees and
-            potential onchain channel reserves.
+            channel. This amount includes cost for the channel opening and potential channel onchain reserves.{" "}
           </p>
           <div className="flex flex-row gap-2 items-center">
             <Input
