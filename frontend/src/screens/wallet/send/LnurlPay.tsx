@@ -60,14 +60,12 @@ export default function LnurlPay() {
   return (
     <form onSubmit={onSubmit} className="grid gap-4">
       <div>
-        <p className="font-medium text-lg mb-2">
-          {lnAddress.lnurlpData?.identifier}
-        </p>
+        <p className="font-medium text-lg mb-2">{lnAddress.address}</p>
         {lnAddress.lnurlpData?.description && (
           <div className="mb-2">
             <Label>Description</Label>
             <p className="text-muted-foreground">
-              {lnAddress.lnurlpData?.description}
+              {lnAddress.lnurlpData.description}
             </p>
           </div>
         )}
