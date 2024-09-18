@@ -37,15 +37,15 @@ func (cfg *config) init(env *AppConfig) {
 	cfg.Env = env
 
 	if cfg.Env.Relay != "" {
-		cfg.SetUpdate("Relay", cfg.Env.Relay, "")
+		cfg.SetIgnore("Relay", cfg.Env.Relay, "")
 	}
 	if cfg.Env.LNBackendType != "" {
-		cfg.SetUpdate("LNBackendType", cfg.Env.LNBackendType, "")
+		cfg.SetIgnore("LNBackendType", cfg.Env.LNBackendType, "")
 	}
 
 	// LND specific to support env variables
 	if cfg.Env.LNDAddress != "" {
-		cfg.SetUpdate("LNDAddress", cfg.Env.LNDAddress, "")
+		cfg.SetIgnore("LNDAddress", cfg.Env.LNDAddress, "")
 	}
 	if cfg.Env.LNDCertFile != "" {
 		certBytes, err := os.ReadFile(cfg.Env.LNDCertFile)
@@ -53,7 +53,7 @@ func (cfg *config) init(env *AppConfig) {
 			logger.Logger.Fatalf("Failed to read LND cert file: %v", err)
 		}
 		certHex := hex.EncodeToString(certBytes)
-		cfg.SetUpdate("LNDCertHex", certHex, "")
+		cfg.SetIgnore("LNDCertHex", certHex, "")
 	}
 	if cfg.Env.LNDMacaroonFile != "" {
 		macBytes, err := os.ReadFile(cfg.Env.LNDMacaroonFile)
@@ -61,14 +61,14 @@ func (cfg *config) init(env *AppConfig) {
 			logger.Logger.Fatalf("Failed to read LND macaroon file: %v", err)
 		}
 		macHex := hex.EncodeToString(macBytes)
-		cfg.SetUpdate("LNDMacaroonHex", macHex, "")
+		cfg.SetIgnore("LNDMacaroonHex", macHex, "")
 	}
 	// Phoenix specific to support env variables
 	if cfg.Env.PhoenixdAddress != "" {
-		cfg.SetUpdate("PhoenixdAddress", cfg.Env.PhoenixdAddress, "")
+		cfg.SetIgnore("PhoenixdAddress", cfg.Env.PhoenixdAddress, "")
 	}
 	if cfg.Env.PhoenixdAuthorization != "" {
-		cfg.SetUpdate("PhoenixdAuthorization", cfg.Env.PhoenixdAuthorization, "")
+		cfg.SetIgnore("PhoenixdAuthorization", cfg.Env.PhoenixdAuthorization, "")
 	}
 
 	// set the JWT secret to the one from the env
