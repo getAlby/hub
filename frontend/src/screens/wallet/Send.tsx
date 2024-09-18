@@ -35,7 +35,7 @@ export default function Send() {
       if (lnAddress.lnurlpData) {
         navigate(`/wallet/send/lnurl-pay`, {
           state: {
-            args: { lnurlDetails: lnAddress.lnurlpData },
+            args: { lnAddress },
           },
         });
         return;
