@@ -17,7 +17,7 @@ require (
 	github.com/wailsapp/wails/v2 v2.9.1
 	golang.org/x/crypto v0.27.0
 	golang.org/x/oauth2 v0.23.0
-	google.golang.org/grpc v1.66.0
+	google.golang.org/grpc v1.66.2
 	gopkg.in/DataDog/dd-trace-go.v1 v1.67.1
 	gopkg.in/macaroon.v2 v2.1.0
 	gorm.io/driver/sqlite v1.5.6
