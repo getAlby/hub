@@ -42,7 +42,7 @@ jobs:
       - name: Setup
         shell: bash
         run: |
-          echo "EXEC_NAME=albyhub" >> $GITHUB_ENV
+          echo "EXEC_NAME=Alby Hub" >> $GITHUB_ENV
           echo "PACKAGE_NAME=albyhub-Desktop-${{ runner.os }}" >> $GITHUB_ENV
 
       - uses: actions/checkout@v4
@@ -105,17 +105,17 @@ jobs:
 
       - name: Build App
         if: runner.os == 'macOS'
-        run: wails build --platform darwin/universal -webview2 embed -o ${{ env.EXEC_NAME }} -tags "wails" -ldflags "-X 'github.com/getAlby/hub/version.Tag=${{ env.TAG }}'"
+        run: wails build --platform darwin/universal -webview2 embed -o "${{ env.EXEC_NAME }}" -tags "wails" -ldflags "-X 'github.com/getAlby/hub/version.Tag=${{ env.TAG }}'"
         shell: bash
 
       - name: Build App
         if: runner.os == 'Linux'
-        run: wails build --platform linux/amd64 -webview2 embed -o ${{ env.EXEC_NAME }} -tags "wails" -ldflags "-X 'github.com/getAlby/hub/version.Tag=${{ env.TAG }}'"
+        run: wails build --platform linux/amd64 -webview2 embed -o "${{ env.EXEC_NAME }}" -tags "wails" -ldflags "-X 'github.com/getAlby/hub/version.Tag=${{ env.TAG }}'"
         shell: bash
 
       - name: Build Windows App
         if: runner.os == 'Windows'
-        run: wails build --platform windows/amd64 -webview2 embed -o ${{ env.EXEC_NAME }}.exe -tags "wails" -ldflags "-X 'github.com/getAlby/hub/version.Tag=${{ env.TAG }}'"
+        run: wails build --platform windows/amd64 -webview2 embed -o "${{ env.EXEC_NAME }}.exe" -tags "wails" -ldflags "-X 'github.com/getAlby/hub/version.Tag=${{ env.TAG }}'"
         shell: bash
 
       - name: Import Code-Signing Certificates for macOS
@@ -143,36 +143,36 @@ jobs:
           cp `go list -m -f "{{.Dir}}" github.com/getAlby/glalby-go`/glalby/x86_64-unknown-linux-gnu/libglalby_bindings.so ./build/bin/${{ env.PACKAGE_NAME }}/lib/
           cp `go list -m -f "{{.Dir}}" github.com/getAlby/ldk-node-go`/ldk_node/x86_64-unknown-linux-gnu/libldk_node.so ./build/bin/${{ env.PACKAGE_NAME }}/lib/
           mkdir -p ./build/bin/${{ env.PACKAGE_NAME }}/bin
-          mv ./build/bin/${{ env.EXEC_NAME }} ./build/bin/${{ env.PACKAGE_NAME }}/bin/
+          mv "./build/bin/${{ env.EXEC_NAME }}" ./build/bin/${{ env.PACKAGE_NAME }}/bin/
         shell: bash
 
       - name: Patch executable RPATH
         if: runner.os == 'Linux'
         run: |
-          patchelf --force-rpath --set-rpath '$ORIGIN/../lib' ./build/bin/${{ env.PACKAGE_NAME }}/bin/${{ env.EXEC_NAME }}
+          patchelf --force-rpath --set-rpath '$ORIGIN/../lib' "./build/bin/${{ env.PACKAGE_NAME }}/bin/${{ env.EXEC_NAME }}"
 
       - name: Copy shared libraries to the output directory
         if: runner.os == 'macOS'
         run: |
-          mkdir -p ./build/bin/${{ env.EXEC_NAME }}.app/Contents/Frameworks
-          lipo -create -output ./build/bin/${{ env.EXEC_NAME }}.app/Contents/Frameworks/libbreez_sdk_bindings.dylib `go list -m -f "{{.Dir}}" github.com/breez/breez-sdk-go`/breez_sdk/lib/darwin-aarch64/libbreez_sdk_bindings.dylib `go list -m -f "{{.Dir}}" github.com/breez/breez-sdk-go`/breez_sdk/lib/darwin-amd64/libbreez_sdk_bindings.dylib
-          cp `go list -m -f "{{.Dir}}" github.com/getAlby/glalby-go`/glalby/universal-macos/libglalby_bindings.dylib ./build/bin/${{ env.EXEC_NAME }}.app/Contents/Frameworks/
-          cp `go list -m -f "{{.Dir}}" github.com/getAlby/ldk-node-go`/ldk_node/universal-macos/libldk_node.dylib ./build/bin/${{ env.EXEC_NAME }}.app/Contents/Frameworks/
+          mkdir -p "./build/bin/${{ env.EXEC_NAME }}.app/Contents/Frameworks"
+          lipo -create -output "./build/bin/${{ env.EXEC_NAME }}.app/Contents/Frameworks/libbreez_sdk_bindings.dylib" `go list -m -f "{{.Dir}}" github.com/breez/breez-sdk-go`/breez_sdk/lib/darwin-aarch64/libbreez_sdk_bindings.dylib `go list -m -f "{{.Dir}}" github.com/breez/breez-sdk-go`/breez_sdk/lib/darwin-amd64/libbreez_sdk_bindings.dylib
+          cp `go list -m -f "{{.Dir}}" github.com/getAlby/glalby-go`/glalby/universal-macos/libglalby_bindings.dylib "./build/bin/${{ env.EXEC_NAME }}.app/Contents/Frameworks/"
+          cp `go list -m -f "{{.Dir}}" github.com/getAlby/ldk-node-go`/ldk_node/universal-macos/libldk_node.dylib "./build/bin/${{ env.EXEC_NAME }}.app/Contents/Frameworks/"
         shell: bash
 
       - name: Patch executable RPATH
         if: runner.os == 'macOS'
         run: |
-          install_name_tool -add_rpath @executable_path/../Frameworks ./build/bin/${{ env.EXEC_NAME }}.app/Contents/MacOS/${{ env.EXEC_NAME }}
+          install_name_tool -add_rpath @executable_path/../Frameworks "./build/bin/${{ env.EXEC_NAME }}.app/Contents/MacOS/${{ env.EXEC_NAME }}"
 
       - name: Add macOS perms
         if: runner.os == 'macOS'
-        run: chmod +x build/bin/${{ env.EXEC_NAME }}.app/Contents/MacOS/${{ env.EXEC_NAME }}
+        run: chmod +x "build/bin/${{ env.EXEC_NAME }}.app/Contents/MacOS/${{ env.EXEC_NAME }}"
         shell: bash
 
       - name: Add Linux perms
         if: runner.os  == 'Linux'
-        run: chmod +x build/bin/${{ env.PACKAGE_NAME }}/bin/${{ env.EXEC_NAME }}
+        run: chmod +x "build/bin/${{ env.PACKAGE_NAME }}/bin/${{ env.EXEC_NAME }}"
         shell: bash
 
       # Store everything in a tar archive to preserve permissions
@@ -189,7 +189,7 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           echo "Signing Package"
-          /usr/bin/codesign -s "Developer ID Application: Alby Inc." -f -v --deep --timestamp --options runtime --entitlements ./build/darwin/entitlements.plist ./build/bin/AlbyHub.app
+          /usr/bin/codesign -s "Developer ID Application: Alby Inc." -f -v --deep --timestamp --options runtime --entitlements ./build/darwin/entitlements.plist "./build/bin/${{ env.EXEC_NAME }}.app"
         env:
           AC_USERNAME: ${{ secrets.APPLE_USERNAME }}
           AC_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
@@ -199,12 +199,26 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           mkdir -p ./build/out
-          create-dmg --volname "AlbyHub" --background "./build/darwin/dmgcover.png" --window-pos 200 120 --window-size 800 400 --icon-size 80 --icon "AlbyHub.app" 200 160 --hide-extension "AlbyHub.app" --app-drop-link 600 160 "./build/out/${{ env.PACKAGE_NAME }}.dmg" "./build/bin/${{ env.EXEC_NAME }}.app"
+          create-dmg --volname "Alby Hub" --background "./build/darwin/dmgcover.png" --window-pos 200 120 --window-size 800 400 --icon-size 80 --icon "${{ env.EXEC_NAME }}.app" 200 160 --hide-extension "${{ env.EXEC_NAME }}.app" --app-drop-link 600 160 "./build/out/${{ env.PACKAGE_NAME }}.dmg" "./build/bin/${{ env.EXEC_NAME }}.app"
           rm -Rf ./build/bin/*
           mv ./build/out/${{ env.PACKAGE_NAME }}.dmg ./build/bin/
 
+      - name: Generate gon-notarize.json
+        if: runner.os == 'macOS'
+        run: |
+          cat > ./build/darwin/gon-notarize.json << EOF
+          {
+            "notarize": [
+              {
+                "path": "./build/bin/${PACKAGE_NAME}.dmg",
+                "bundle_id": "com.getalby.AlbyHub"
+              }
+            ]
+          }
+          EOF
+
       - name: Notarize the DMG image
-        if: runner.os == 'macOS' && inputs.build-release
+        if: runner.os == 'macOS'
         run: |
           echo "Notarizing Zip Files"
           gon -log-level=info -log-json ./build/darwin/gon-notarize.json
