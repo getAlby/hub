@@ -56,46 +56,48 @@ type API interface {
 }
 
 type App struct {
-	ID            uint       `json:"id"`
-	Name          string     `json:"name"`
-	Description   string     `json:"description"`
-	NostrPubkey   string     `json:"nostrPubkey"`
-	CreatedAt     time.Time  `json:"createdAt"`
-	UpdatedAt     time.Time  `json:"updatedAt"`
-	LastEventAt   *time.Time `json:"lastEventAt"`
-	ExpiresAt     *time.Time `json:"expiresAt"`
-	Scopes        []string   `json:"scopes"`
-	MaxAmountSat  uint64     `json:"maxAmount"`
-	BudgetUsage   uint64     `json:"budgetUsage"`
-	BudgetRenewal string     `json:"budgetRenewal"`
-	Isolated      bool       `json:"isolated"`
-	Balance       uint64     `json:"balance"`
-	Metadata      Metadata   `json:"metadata,omitempty"`
+	ID            uint        `json:"id"`
+	Name          string      `json:"name"`
+	Description   string      `json:"description"`
+	NostrPubkey   string      `json:"nostrPubkey"`
+	CreatedAt     time.Time   `json:"createdAt"`
+	UpdatedAt     time.Time   `json:"updatedAt"`
+	LastEventAt   *time.Time  `json:"lastEventAt"`
+	ExpiresAt     *time.Time  `json:"expiresAt"`
+	Scopes        []string    `json:"scopes"`
+	MaxAmountSat  uint64      `json:"maxAmount"`
+	BudgetUsage   uint64      `json:"budgetUsage"`
+	BudgetRenewal string      `json:"budgetRenewal"`
+	Isolated      bool        `json:"isolated"`
+	Balance       uint64      `json:"balance"`
+	Metadata      AppMetadata `json:"metadata,omitempty"`
 }
+
+type AppMetadata = map[string]interface{}
 
 type ListAppsResponse struct {
 	Apps []App `json:"apps"`
 }
 
 type UpdateAppRequest struct {
-	Name          string   `json:"name"`
-	MaxAmountSat  uint64   `json:"maxAmount"`
-	BudgetRenewal string   `json:"budgetRenewal"`
-	ExpiresAt     string   `json:"expiresAt"`
-	Scopes        []string `json:"scopes"`
-	Metadata      Metadata `json:"metadata,omitempty"`
+	Name          string      `json:"name"`
+	MaxAmountSat  uint64      `json:"maxAmount"`
+	BudgetRenewal string      `json:"budgetRenewal"`
+	ExpiresAt     string      `json:"expiresAt"`
+	Scopes        []string    `json:"scopes"`
+	Metadata      AppMetadata `json:"metadata,omitempty"`
 }
 
 type CreateAppRequest struct {
-	Name          string   `json:"name"`
-	Pubkey        string   `json:"pubkey"`
-	MaxAmountSat  uint64   `json:"maxAmount"`
-	BudgetRenewal string   `json:"budgetRenewal"`
-	ExpiresAt     string   `json:"expiresAt"`
-	Scopes        []string `json:"scopes"`
-	ReturnTo      string   `json:"returnTo"`
-	Isolated      bool     `json:"isolated"`
-	Metadata      Metadata `json:"metadata,omitempty"`
+	Name          string      `json:"name"`
+	Pubkey        string      `json:"pubkey"`
+	MaxAmountSat  uint64      `json:"maxAmount"`
+	BudgetRenewal string      `json:"budgetRenewal"`
+	ExpiresAt     string      `json:"expiresAt"`
+	Scopes        []string    `json:"scopes"`
+	ReturnTo      string      `json:"returnTo"`
+	Isolated      bool        `json:"isolated"`
+	Metadata      AppMetadata `json:"metadata,omitempty"`
 }
 
 type StartRequest struct {
@@ -218,11 +220,31 @@ type Transaction struct {
 	CreatedAt       string      `json:"createdAt"`
 	SettledAt       *string     `json:"settledAt"`
 	AppId           *uint       `json:"appId"`
-	Metadata        Metadata    `json:"metadata,omitempty"`
+	Metadata        *Metadata   `json:"metadata,omitempty"`
 	Boostagram      *Boostagram `json:"boostagram,omitempty"`
 }
 
-type Metadata = map[string]interface{}
+type Metadata struct {
+	Comment   string      `json:"comment,omitempty"`
+	Nostr     *NostrEvent `json:"nostr,omitempty"`
+	PayerData *PayerData  `json:"payerData,omitempty"`
+}
+
+type NostrEvent struct {
+	Content   string     `json:"content"`
+	CreatedAt int64      `json:"createdAt"`
+	ID        string     `json:"id"`
+	Kind      int        `json:"kind"`
+	PubKey    string     `json:"pubkey"`
+	Sig       string     `json:"sig"`
+	Tags      [][]string `json:"tags"`
+}
+
+type PayerData struct {
+	Email  string `json:"email,omitempty"`
+	Name   string `json:"name,omitempty"`
+	Pubkey string `json:"pubkey,omitempty"`
+}
 
 type Boostagram struct {
 	AppName        string `json:"appName"`

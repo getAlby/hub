@@ -243,7 +243,7 @@ func (api *api) GetApp(dbApp *db.App) *App {
 	maxAmount := uint64(paySpecificPermission.MaxAmountSat)
 	budgetUsage = queries.GetBudgetUsageSat(api.db, &paySpecificPermission)
 
-	var metadata Metadata
+	var metadata AppMetadata
 	if dbApp.Metadata != nil {
 		jsonErr := json.Unmarshal(dbApp.Metadata, &metadata)
 		if jsonErr != nil {
@@ -334,7 +334,7 @@ func (api *api) ListApps() ([]App, error) {
 			apiApp.LastEventAt = &lastEvent.CreatedAt
 		}
 
-		var metadata Metadata
+		var metadata AppMetadata
 		if dbApp.Metadata != nil {
 			jsonErr := json.Unmarshal(dbApp.Metadata, &metadata)
 			if jsonErr != nil {

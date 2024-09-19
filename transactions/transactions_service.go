@@ -65,6 +65,29 @@ type Boostagram struct {
 	ValueMsatTotal int64  `json:"value_msat_total"`
 }
 
+type Metadata struct {
+	Comment          string      `json:"comment"`
+	Nostr            *NostrEvent `json:"nostr"`
+	PayerData        *PayerData  `json:"payer_data"`
+	AdditionalFields map[string]interface{}
+}
+
+type NostrEvent struct {
+	Content   string     `json:"content"`
+	CreatedAt int64      `json:"created_at"`
+	ID        string     `json:"id"`
+	Kind      int        `json:"kind"`
+	PubKey    string     `json:"pubkey"`
+	Sig       string     `json:"sig"`
+	Tags      [][]string `json:"tags"`
+}
+
+type PayerData struct {
+	Email  string `json:"email"`
+	Name   string `json:"name"`
+	Pubkey string `json:"pubkey"`
+}
+
 type notFoundError struct {
 }
 

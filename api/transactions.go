@@ -73,15 +73,17 @@ func toApiTransaction(transaction *transactions.Transaction) *Transaction {
 		preimage = transaction.Preimage
 	}
 
-	var metadata Metadata
+	var metadata *Metadata
 	if transaction.Metadata != nil {
-		jsonErr := json.Unmarshal(transaction.Metadata, &metadata)
+		var txMetadata transactions.Metadata
+		jsonErr := json.Unmarshal(transaction.Metadata, &txMetadata)
 		if jsonErr != nil {
 			logger.Logger.WithError(jsonErr).WithFields(logrus.Fields{
 				"payment_hash": transaction.PaymentHash,
 				"metadata":     transaction.Metadata,
-			}).Error("Failed to deserialize transaction metadata")
+			}).Error("Failed to deserialize transaction metadata info")
 		}
+		metadata = toApiMetadata(&txMetadata)
 	}
 
 	var boostagram *Boostagram
@@ -131,4 +133,32 @@ func toApiBoostagram(boostagram *transactions.Boostagram) *Boostagram {
 		Action:         boostagram.Action,
 		ValueMsatTotal: boostagram.ValueMsatTotal,
 	}
+}
+
+func toApiMetadata(metadata *transactions.Metadata) *Metadata {
+	apiMetadata := &Metadata{
+		Comment: metadata.Comment,
+	}
+
+	if metadata.Nostr != nil {
+		apiMetadata.Nostr = &NostrEvent{
+			Content:   metadata.Nostr.Content,
+			CreatedAt: metadata.Nostr.CreatedAt,
+			ID:        metadata.Nostr.ID,
+			Kind:      metadata.Nostr.Kind,
+			PubKey:    metadata.Nostr.PubKey,
+			Sig:       metadata.Nostr.Sig,
+			Tags:      metadata.Nostr.Tags,
+		}
+	}
+
+	if metadata.PayerData != nil {
+		apiMetadata.PayerData = &PayerData{
+			Email:  metadata.PayerData.Email,
+			Name:   metadata.PayerData.Name,
+			Pubkey: metadata.PayerData.Pubkey,
+		}
+	}
+
+	return apiMetadata
 }

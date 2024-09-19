@@ -400,8 +400,30 @@ export type Transaction = {
   feesPaid: number;
   createdAt: string;
   settledAt: string | undefined;
-  metadata?: Record<string, unknown>;
+  metadata?: Metadata;
   boostagram?: Boostagram;
+};
+
+export type Metadata = {
+  comment?: string;
+  nostr?: NostrEvent;
+  payerData?: PayerData;
+};
+
+export type NostrEvent = {
+  content: string;
+  createdAt: number;
+  id: string;
+  kind: number;
+  pubkey: string;
+  sig: string;
+  tags: string[][];
+};
+
+export type PayerData = {
+  email?: string;
+  name?: string;
+  pubkey?: string;
 };
 
 export type Boostagram = {
