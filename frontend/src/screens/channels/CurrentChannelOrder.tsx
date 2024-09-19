@@ -304,10 +304,10 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
           <p className="text-xs">
             You currently have{" "}
             {new Intl.NumberFormat().format(balances.onchain.total)} sats. We
-            recommend to deposit{" "}
+            recommend depositing{" "}
             {new Intl.NumberFormat().format(recommendedAmount)} sats to open a
             channel. This amount includes cost for the channel opening and
-            potential channel onchain reserves.{" "}
+            potential channel onchain reserves.
           </p>
           <div className="flex flex-row gap-2 items-center">
             <Input
