@@ -833,13 +833,24 @@ func (svc *LNDService) GetBalances(ctx context.Context) (*lnclient.BalancesRespo
 		return nil, err
 	}
 
+	balances, err := svc.client.ChannelBalance(ctx, &lnrpc.ChannelBalanceRequest{})
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to retrieve lightning balance")
+		return nil, err
+	}
+
 	var totalReceivable int64 = 0
 	var totalSpendable int64 = 0
 	var nextMaxReceivable int64 = 0
 	var nextMaxSpendable int64 = 0
 	var nextMaxReceivableMPP int64 = 0
 	var nextMaxSpendableMPP int64 = 0
+
 	resp, err := svc.client.ListChannels(ctx, &lnrpc.ListChannelsRequest{})
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to list channels")
+		return nil, err
+	}
 
 	for _, channel := range resp.Channels {
 		// Unnecessary since ListChannels only returns active channels
@@ -858,11 +869,11 @@ func (svc *LNDService) GetBalances(ctx context.Context) (*lnclient.BalancesRespo
 	return &lnclient.BalancesResponse{
 		Onchain: *onchainBalance,
 		Lightning: lnclient.LightningBalanceResponse{
-			TotalSpendable:    totalSpendable,
-			TotalReceivable:   totalReceivable,
+			TotalSpendable:    int64(balances.LocalBalance.Msat),
+			TotalReceivable:   int64(balances.RemoteBalance.Msat),
 			NextMaxSpendable:  nextMaxSpendable,
 			NextMaxReceivable: nextMaxReceivable,
-			// TODO: return actuall MPP instead of 0
+			// TODO: return actual MPP instead of 0
 			NextMaxSpendableMPP:  nextMaxSpendableMPP,
 			NextMaxReceivableMPP: nextMaxReceivableMPP,
 		},
