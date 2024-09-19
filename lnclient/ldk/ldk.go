@@ -594,19 +594,6 @@ func (ls *LDKService) SendKeysend(ctx context.Context, amount uint64, destinatio
 	}, nil
 }
 
-func (ls *LDKService) GetBalance(ctx context.Context) (balance int64, err error) {
-	channels := ls.node.ListChannels()
-
-	balance = 0
-	for _, channel := range channels {
-		if channel.IsUsable {
-			balance += int64(channel.OutboundCapacityMsat)
-		}
-	}
-
-	return balance, nil
-}
-
 func (ls *LDKService) getMaxReceivable() int64 {
 	var receivable int64 = 0
 	channels := ls.node.ListChannels()

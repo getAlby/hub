@@ -148,14 +148,6 @@ func (bs *BreezService) SendKeysend(ctx context.Context, amount uint64, destinat
 	return nil, errors.New("not supported")
 }
 
-func (bs *BreezService) GetBalance(ctx context.Context) (balance int64, err error) {
-	info, err := bs.svc.NodeInfo()
-	if err != nil {
-		return 0, err
-	}
-	return int64(info.MaxPayableMsat), nil
-}
-
 func (bs *BreezService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *lnclient.Transaction, err error) {
 	if expiry == 0 {
 		expiry = lnclient.DEFAULT_INVOICE_EXPIRY

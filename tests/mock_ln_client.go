@@ -23,6 +23,12 @@ var MockNodeInfo = lnclient.NodeInfo{
 	BlockHash:   "123blockhash",
 }
 
+var MockLNClientBalances = lnclient.BalancesResponse{
+	Lightning: lnclient.LightningBalanceResponse{
+		TotalSpendable: 21000,
+	},
+}
+
 var MockTime = time.Unix(1693876963, 0)
 var MockTimeUnix = MockTime.Unix()
 
@@ -88,10 +94,6 @@ func (mln *MockLn) SendKeysend(ctx context.Context, amount uint64, destination s
 	}, nil
 }
 
-func (mln *MockLn) GetBalance(ctx context.Context) (balance int64, err error) {
-	return 21000, nil
-}
-
 func (mln *MockLn) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, err error) {
 	return &MockNodeInfo, nil
 }
@@ -133,7 +135,7 @@ func (mln *MockLn) GetNewOnchainAddress(ctx context.Context) (string, error) {
 	return "", nil
 }
 func (mln *MockLn) GetBalances(ctx context.Context) (*lnclient.BalancesResponse, error) {
-	return nil, nil
+	return &MockLNClientBalances, nil
 }
 func (mln *MockLn) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainBalanceResponse, error) {
 	return nil, nil
