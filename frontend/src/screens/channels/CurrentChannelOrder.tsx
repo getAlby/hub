@@ -303,15 +303,18 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
           <Label htmlFor="text">On-Chain Address</Label>
           <p className="text-xs">
             You currently have{" "}
-            {new Intl.NumberFormat().format(balances.onchain.total)} sats. We
-            recommend to deposit another{" "}
-            {new Intl.NumberFormat().format(recommendedAmount)} sats to open a
-            channel.{" "}
+            <span className="font-semibold">
+              {new Intl.NumberFormat().format(balances.onchain.total)}
+            </span>{" "}
+            sats. We recommend depositing{" "}
+            <span className="font-semibold">
+              {new Intl.NumberFormat().format(recommendedAmount)}
+            </span>{" "}
+            sats to open this channel.
           </p>
           <p className="text-xs text-muted-foreground">
-            ~{new Intl.NumberFormat().format(+missingAmount)} sats are missing
-            to cover the cost of opening the channel, including onchain fees and
-            potential onchain channel reserves.
+            This amount includes cost for the channel opening and potential
+            channel onchain reserves.
           </p>
           <div className="flex flex-row gap-2 items-center">
             <Input
