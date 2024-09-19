@@ -897,7 +897,13 @@ func (svc *transactionsService) markTransactionSettled(tx *gorm.DB, dbTransactio
 	}
 
 	if preimage == "" {
-		return nil, errors.New("no preimage in payment")
+		// outgoing payments MUST have a preimage
+		if dbTransaction.Type == constants.TRANSACTION_TYPE_OUTGOING {
+			return nil, errors.New("no preimage in payment")
+		}
+		// incoming payments SHOULD have a preimage
+		// (currently cashu backend does not)
+		logger.Logger.WithField("payment_hash", dbTransaction.PaymentHash).Warn("no preimage in settled incoming transaction")
 	}
 
 	now := time.Now()
