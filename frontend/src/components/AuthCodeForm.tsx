@@ -1,3 +1,4 @@
+import { RefreshCw } from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Container from "src/components/Container";
@@ -87,7 +88,19 @@ function AuthCodeForm({ url }: AuthCodeFormProps) {
                   />
                 </div>
               </div>
-              <LoadingButton loading={isLoading}>Submit</LoadingButton>
+              <div className="flex gap-4">
+                <LoadingButton loading={isLoading} className="flex-1">
+                  Submit
+                </LoadingButton>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="outline"
+                  onClick={() => url && openLink(url)}
+                >
+                  <RefreshCw className="w-4 h-4" />
+                </Button>
+              </div>
             </>
           )}
         </div>
