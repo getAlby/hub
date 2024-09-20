@@ -4,19 +4,23 @@
 
 ## [Alby Hub](https://albyhub.com) - Your Own Center for Internet Money
 
-Alby Hub is a self-sovereign, self-custodial, single-user rewrite of the original [Nostr Wallet Connect](https://github.com/getAlby/nostr-wallet-connect) app.
-
 Alby Hub allows you to control your Lightning node or wallet from any other application that supports [NWC](https://nwc.dev/).
 Connect apps like [Damus](https://damus.io/) or [Amethyst](https://linktr.ee/amethyst.social) to your node. There are many more available on https://nwc.dev/.
 
-**Specification**: [NIP-47](https://github.com/nostr-protocol/nips/blob/master/47.md)
-
 The application can run in two modes:
 
-- Wails (Desktop app): Mac (arm64), Windows (amd64), Linux (amd64)
-- HTTP (Web app): Docker, Linux (amd64)
+- Desktop (Wails app): Mac (arm64), Windows (amd64), Linux (amd64)
+- HTTP (Web app): Docker, Linux (amd64), Mac (arm64)
 
 Ideally the app runs 24/7 (on a node, VPS or always-online desktop/laptop machine) so it can be connected to a lightning address and receive online payments.
+
+## Run on Alby Cloud
+
+Visit [albyhub.com](https://albyhub.com) to learn more and get started and get Alby Hub running in minutes.
+
+## Self Hosted
+
+Go to the [Deploy it yourself](#deploy-it-yourself) section below.
 
 ## Supported Backends
 
@@ -28,18 +32,6 @@ Ideally the app runs 24/7 (on a node, VPS or always-online desktop/laptop machin
 - Cashu
 - want more? please open an issue.
 
-## Installation
-
-### Requirements
-
-The application has no runtime dependencies. (simple Go executable).
-
-As data storage SQLite is used.
-
-    $ cp .env.example .env
-    # edit the config for your needs
-    vim .env
-
 ## Development
 
 ### Required Software
@@ -48,6 +40,11 @@ As data storage SQLite is used.
 - Node
 - NPM
 - Yarn
+
+### Environment setup
+    $ cp .env.example .env
+    # edit the config for your needs (Read further down for all the available env options)
+    $ vim .env
 
 ### Server (HTTP mode)
 
@@ -348,13 +345,25 @@ Run NWC on your own node!
 
 ## Deploy it yourself
 
+### Requirements
+
+The application has no runtime dependencies. (simple Go executable).
+
+As data storage SQLite is used.
+
+For the default backend which runs a node internally we recommend 1+GB of disk space and 2GB of RAM (or 512GB Ram + 2GB swap can also be used). For connecting to an external node, Alby Hub uses very little RAM (256mb is enough).
+
 ### From the release
 
-#### Quick start (Linux)
+#### Quick start (Linux Server)
 
 Go to the [Quick start script](https://github.com/getAlby/hub/tree/master/scripts/linux-x86_64) which you can run as a service.
 
-#### Manual (Linux)
+#### Quick start (Desktop)
+
+View the [release binaries](https://github.com/getAlby/hub/releases/latest)
+
+#### Manual (Linux Server)
 
 Download and run the executable.
 
@@ -493,3 +502,7 @@ All requests to the wallet service are made with one of the following ways:
 - NIP-47 - requests encrypted by NIP-04 using randomly-generated keypairs (one per app connection) and sent via websocket through the configured relay.
 - HTTP - requests encrypted by JWT and ideally HTTPS (except self-hosted, which can be protected by firewall)
 - Desktop mode - requests are made internally through the Wails router, without any kind of network traffic.
+
+## Alby Hub Origin
+
+Alby Hub is a self-sovereign, self-custodial, single-user [NWC](https://nwc.dev)-first rewrite of the original [Nostr Wallet Connect](https://github.com/getAlby/nostr-wallet-connect) app which was originally created to support V4V by enabling seamless zaps in nostr clients such as Amethyst and Damus. From there the NIP-47 protocol was grown until it is possible to create many micro apps that connect to your hub, with full control over what each app can do.
