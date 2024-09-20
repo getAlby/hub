@@ -112,17 +112,6 @@ func (cs *CashuService) SendKeysend(ctx context.Context, amount uint64, destinat
 	return nil, errors.New("keysend not supported")
 }
 
-func (cs *CashuService) GetBalance(ctx context.Context) (balance int64, err error) {
-	balanceByMints := cs.wallet.GetBalanceByMints()
-	totalBalance := uint64(0)
-
-	for _, balance := range balanceByMints {
-		totalBalance += balance
-	}
-
-	return int64(totalBalance * 1000), nil
-}
-
 func (cs *CashuService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *lnclient.Transaction, err error) {
 	// TODO: support expiry
 	if expiry == 0 {
@@ -280,11 +269,15 @@ func (cs *CashuService) UpdateChannel(ctx context.Context, updateChannelRequest 
 }
 
 func (cs *CashuService) GetBalances(ctx context.Context) (*lnclient.BalancesResponse, error) {
-	balance, err := cs.GetBalance(ctx)
-	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to get balance")
-		return nil, err
+	balanceByMints := cs.wallet.GetBalanceByMints()
+	totalBalance := uint64(0)
+
+	for _, balance := range balanceByMints {
+		totalBalance += balance
 	}
+
+	balance := int64(totalBalance * 1000)
+
 	return &lnclient.BalancesResponse{
 		Onchain: lnclient.OnchainBalanceResponse{
 			Spendable: 0,

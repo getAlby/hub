@@ -33,8 +33,8 @@ func (controller *nip47Controller) HandleGetBalanceEvent(ctx context.Context, ni
 	if app.Isolated {
 		balance = queries.GetIsolatedBalance(controller.db, app.ID)
 	} else {
-		balance_signed, err := controller.lnClient.GetBalance(ctx)
-		balance = uint64(balance_signed)
+		balances, err := controller.lnClient.GetBalances(ctx)
+		balance = uint64(balances.Lightning.TotalSpendable)
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"request_event_id": requestEventId,

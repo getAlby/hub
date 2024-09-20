@@ -89,32 +89,25 @@ func NewPhoenixService(address string, authorization string) (result lnclient.LN
 	return phoenixService, nil
 }
 
-func (svc *PhoenixService) GetBalance(ctx context.Context) (balance int64, err error) {
+func (svc *PhoenixService) GetBalances(ctx context.Context) (*lnclient.BalancesResponse, error) {
 	req, err := http.NewRequest(http.MethodGet, svc.Address+"/getbalance", nil)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 	req.Header.Add("Authorization", "Basic "+svc.Authorization)
 	client := &http.Client{Timeout: 5 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	var balanceRes BalanceResponse
 	if err := json.NewDecoder(resp.Body).Decode(&balanceRes); err != nil {
-		return 0, err
-	}
-
-	return balanceRes.BalanceSat * 1000, nil
-}
-
-func (svc *PhoenixService) GetBalances(ctx context.Context) (*lnclient.BalancesResponse, error) {
-	balance, err := svc.GetBalance(ctx)
-	if err != nil {
 		return nil, err
 	}
+
+	balance := balanceRes.BalanceSat * 1000
 
 	return &lnclient.BalancesResponse{
 		Onchain: lnclient.OnchainBalanceResponse{

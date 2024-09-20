@@ -158,24 +158,6 @@ func (gs *GreenlightService) SendKeysend(ctx context.Context, amount uint64, des
 	return nil, errors.New("not supported")
 }
 
-func (gs *GreenlightService) GetBalance(ctx context.Context) (balance int64, err error) {
-	response, err := gs.client.ListFunds(glalby.ListFundsRequest{})
-
-	if err != nil {
-		logger.Logger.Errorf("Failed to list funds: %v", err)
-		return 0, err
-	}
-
-	balance = 0
-	for _, channel := range response.Channels {
-		if channel.OurAmountMsat != nil && channel.Connected {
-			balance += int64(*channel.OurAmountMsat)
-		}
-	}
-
-	return balance, nil
-}
-
 func (gs *GreenlightService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *lnclient.Transaction, err error) {
 	if expiry == 0 {
 		expiry = lnclient.DEFAULT_INVOICE_EXPIRY
