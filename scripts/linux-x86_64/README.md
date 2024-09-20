@@ -37,6 +37,15 @@ Or use the start scripts:
 
     $ [your install path]/start.sh
 
+### Viewing Logs (systemd)
+
+    $ sudo journalctl -u albyhub
+
+### Editing The Service (systemd)
+    $ sudo nano /etc/systemd/system/albyhub.service
+    $ sudo systemctl daemon-reload
+    $ sudo systemctl restart albyhub.service
+
 ### Backup !
 
 Make sure to backup your data directories:
