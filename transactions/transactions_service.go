@@ -479,16 +479,14 @@ func (svc *transactionsService) ListTransactions(ctx context.Context, from, unti
 
 	tx := svc.db
 
-	tx = tx.Order("settled_at desc, created_at desc")
-
 	if !unpaidOutgoing && !unpaidIncoming {
 		tx = tx.Where("state == ?", constants.TRANSACTION_STATE_SETTLED)
 	} else if unpaidOutgoing && !unpaidIncoming {
-		tx = tx.Where("state == ?", constants.TRANSACTION_STATE_SETTLED).
-			Or("type == ?", constants.TRANSACTION_TYPE_OUTGOING)
+		tx = tx.Where(tx.Where("state == ?", constants.TRANSACTION_STATE_SETTLED).
+			Or("type == ?", constants.TRANSACTION_TYPE_OUTGOING))
 	} else if unpaidIncoming && !unpaidOutgoing {
-		tx = tx.Where("state == ?", constants.TRANSACTION_STATE_SETTLED).
-			Or("type == ?", constants.TRANSACTION_TYPE_INCOMING)
+		tx = tx.Where(tx.Where("state == ?", constants.TRANSACTION_STATE_SETTLED).
+			Or("type == ?", constants.TRANSACTION_TYPE_INCOMING))
 	}
 
 	if transactionType != nil {
@@ -500,13 +498,6 @@ func (svc *transactionsService) ListTransactions(ctx context.Context, from, unti
 	}
 	if until > 0 {
 		tx = tx.Where("created_at <= ?", time.Unix(int64(until), 0))
-	}
-
-	if limit > 0 {
-		tx = tx.Limit(int(limit))
-	}
-	if offset > 0 {
-		tx = tx.Offset(int(offset))
 	}
 
 	if appId != nil {
@@ -522,9 +513,15 @@ func (svc *transactionsService) ListTransactions(ctx context.Context, from, unti
 		}
 	}
 
-	if limit != 0 {
+	tx = tx.Order("updated_at desc")
+
+	if limit > 0 {
 		tx = tx.Limit(int(limit))
 	}
+	if offset > 0 {
+		tx = tx.Offset(int(offset))
+	}
+
 	result := tx.Find(&transactions)
 	if result.Error != nil {
 		logger.Logger.WithError(result.Error).Error("Failed to list DB transactions")

@@ -70,7 +70,7 @@ func TestListTransactions_UnpaidIncoming(t *testing.T) {
 		PaymentHash:    tests.MockLNClientTransaction.PaymentHash,
 		Preimage:       &mockPreimage,
 		AmountMsat:     123000,
-		CreatedAt:      time.Now(),
+		UpdatedAt:      time.Now(),
 	})
 	svc.DB.Create(&db.Transaction{
 		State:          constants.TRANSACTION_STATE_FAILED,
@@ -79,7 +79,7 @@ func TestListTransactions_UnpaidIncoming(t *testing.T) {
 		PaymentHash:    tests.MockLNClientTransaction.PaymentHash,
 		Preimage:       &mockPreimage,
 		AmountMsat:     123000,
-		CreatedAt:      time.Now().Add(-1 * time.Second),
+		UpdatedAt:      time.Now().Add(-1 * time.Second),
 	})
 	svc.DB.Create(&db.Transaction{
 		State:          constants.TRANSACTION_STATE_PENDING,
@@ -88,7 +88,7 @@ func TestListTransactions_UnpaidIncoming(t *testing.T) {
 		PaymentHash:    tests.MockLNClientTransaction.PaymentHash,
 		Preimage:       &mockPreimage,
 		AmountMsat:     123000,
-		CreatedAt:      time.Now().Add(-2 * time.Second),
+		UpdatedAt:      time.Now().Add(-2 * time.Second),
 	})
 	svc.DB.Create(&db.Transaction{
 		State:          constants.TRANSACTION_STATE_FAILED,
@@ -97,7 +97,7 @@ func TestListTransactions_UnpaidIncoming(t *testing.T) {
 		PaymentHash:    tests.MockLNClientTransaction.PaymentHash,
 		Preimage:       &mockPreimage,
 		AmountMsat:     123000,
-		CreatedAt:      time.Now().Add(-2 * time.Second),
+		UpdatedAt:      time.Now().Add(-2 * time.Second),
 	})
 	svc.DB.Create(&db.Transaction{
 		State:          constants.TRANSACTION_STATE_PENDING,
@@ -106,7 +106,7 @@ func TestListTransactions_UnpaidIncoming(t *testing.T) {
 		PaymentHash:    tests.MockLNClientTransaction.PaymentHash,
 		Preimage:       &mockPreimage,
 		AmountMsat:     123000,
-		CreatedAt:      time.Now().Add(-2 * time.Second),
+		UpdatedAt:      time.Now().Add(-2 * time.Second),
 	})
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
@@ -137,7 +137,7 @@ func TestListTransactions_UnpaidOutgoing(t *testing.T) {
 		PaymentHash:    tests.MockLNClientTransaction.PaymentHash,
 		Preimage:       &mockPreimage,
 		AmountMsat:     123000,
-		CreatedAt:      time.Now(),
+		UpdatedAt:      time.Now(),
 	})
 	svc.DB.Create(&db.Transaction{
 		State:          constants.TRANSACTION_STATE_FAILED,
@@ -146,7 +146,7 @@ func TestListTransactions_UnpaidOutgoing(t *testing.T) {
 		PaymentHash:    tests.MockLNClientTransaction.PaymentHash,
 		Preimage:       &mockPreimage,
 		AmountMsat:     123000,
-		CreatedAt:      time.Now().Add(-1 * time.Second),
+		UpdatedAt:      time.Now().Add(-1 * time.Second),
 	})
 	svc.DB.Create(&db.Transaction{
 		State:          constants.TRANSACTION_STATE_PENDING,
@@ -155,7 +155,7 @@ func TestListTransactions_UnpaidOutgoing(t *testing.T) {
 		PaymentHash:    tests.MockLNClientTransaction.PaymentHash,
 		Preimage:       &mockPreimage,
 		AmountMsat:     123000,
-		CreatedAt:      time.Now().Add(-2 * time.Second),
+		UpdatedAt:      time.Now().Add(-2 * time.Second),
 	})
 	svc.DB.Create(&db.Transaction{
 		State:          constants.TRANSACTION_STATE_FAILED,
@@ -164,7 +164,7 @@ func TestListTransactions_UnpaidOutgoing(t *testing.T) {
 		PaymentHash:    tests.MockLNClientTransaction.PaymentHash,
 		Preimage:       &mockPreimage,
 		AmountMsat:     123000,
-		CreatedAt:      time.Now().Add(-2 * time.Second),
+		UpdatedAt:      time.Now().Add(-2 * time.Second),
 	})
 	svc.DB.Create(&db.Transaction{
 		State:          constants.TRANSACTION_STATE_PENDING,
@@ -173,7 +173,7 @@ func TestListTransactions_UnpaidOutgoing(t *testing.T) {
 		PaymentHash:    tests.MockLNClientTransaction.PaymentHash,
 		Preimage:       &mockPreimage,
 		AmountMsat:     123000,
-		CreatedAt:      time.Now().Add(-2 * time.Second),
+		UpdatedAt:      time.Now().Add(-2 * time.Second),
 	})
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
@@ -204,7 +204,7 @@ func TestListTransactions_Unpaid(t *testing.T) {
 		PaymentHash:    tests.MockLNClientTransaction.PaymentHash,
 		Preimage:       &mockPreimage,
 		AmountMsat:     123000,
-		CreatedAt:      time.Now(),
+		UpdatedAt:      time.Now(),
 	})
 	svc.DB.Create(&db.Transaction{
 		State:          constants.TRANSACTION_STATE_FAILED,
@@ -213,7 +213,7 @@ func TestListTransactions_Unpaid(t *testing.T) {
 		PaymentHash:    tests.MockLNClientTransaction.PaymentHash,
 		Preimage:       &mockPreimage,
 		AmountMsat:     123000,
-		CreatedAt:      time.Now().Add(-1 * time.Second),
+		UpdatedAt:      time.Now().Add(-1 * time.Second),
 	})
 	svc.DB.Create(&db.Transaction{
 		State:          constants.TRANSACTION_STATE_PENDING,
@@ -222,7 +222,7 @@ func TestListTransactions_Unpaid(t *testing.T) {
 		PaymentHash:    tests.MockLNClientTransaction.PaymentHash,
 		Preimage:       &mockPreimage,
 		AmountMsat:     123000,
-		CreatedAt:      time.Now().Add(-2 * time.Second),
+		UpdatedAt:      time.Now().Add(-2 * time.Second),
 	})
 	svc.DB.Create(&db.Transaction{
 		State:          constants.TRANSACTION_STATE_FAILED,
@@ -231,7 +231,7 @@ func TestListTransactions_Unpaid(t *testing.T) {
 		PaymentHash:    tests.MockLNClientTransaction.PaymentHash,
 		Preimage:       &mockPreimage,
 		AmountMsat:     123000,
-		CreatedAt:      time.Now().Add(-2 * time.Second),
+		UpdatedAt:      time.Now().Add(-2 * time.Second),
 	})
 	svc.DB.Create(&db.Transaction{
 		State:          constants.TRANSACTION_STATE_PENDING,
@@ -240,7 +240,7 @@ func TestListTransactions_Unpaid(t *testing.T) {
 		PaymentHash:    tests.MockLNClientTransaction.PaymentHash,
 		Preimage:       &mockPreimage,
 		AmountMsat:     123000,
-		CreatedAt:      time.Now().Add(-2 * time.Second),
+		UpdatedAt:      time.Now().Add(-2 * time.Second),
 	})
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
@@ -266,7 +266,7 @@ func TestListTransactions_Limit(t *testing.T) {
 		Preimage:       &mockPreimage,
 		AmountMsat:     123000,
 		Description:    "first",
-		CreatedAt:      time.Now().Add(1 * time.Minute),
+		UpdatedAt:      time.Now().Add(1 * time.Minute),
 	})
 	svc.DB.Create(&db.Transaction{
 		State:          constants.TRANSACTION_STATE_SETTLED,
@@ -302,7 +302,7 @@ func TestListTransactions_Offset(t *testing.T) {
 		Preimage:       &mockPreimage,
 		AmountMsat:     123000,
 		Description:    "first",
-		CreatedAt:      time.Now().Add(3 * time.Minute),
+		UpdatedAt:      time.Now().Add(3 * time.Minute),
 	})
 	svc.DB.Create(&db.Transaction{
 		State:          constants.TRANSACTION_STATE_SETTLED,
@@ -312,7 +312,7 @@ func TestListTransactions_Offset(t *testing.T) {
 		Preimage:       &mockPreimage,
 		AmountMsat:     123000,
 		Description:    "second",
-		CreatedAt:      time.Now().Add(2 * time.Minute),
+		UpdatedAt:      time.Now().Add(2 * time.Minute),
 	})
 	svc.DB.Create(&db.Transaction{
 		State:          constants.TRANSACTION_STATE_SETTLED,
@@ -322,7 +322,7 @@ func TestListTransactions_Offset(t *testing.T) {
 		Preimage:       &mockPreimage,
 		AmountMsat:     123000,
 		Description:    "third",
-		CreatedAt:      time.Now().Add(1 * time.Minute),
+		UpdatedAt:      time.Now().Add(1 * time.Minute),
 	})
 	svc.DB.Create(&db.Transaction{
 		State:          constants.TRANSACTION_STATE_SETTLED,
@@ -358,6 +358,7 @@ func TestListTransactions_FromUntil(t *testing.T) {
 		Preimage:       &mockPreimage,
 		AmountMsat:     123000,
 		Description:    "first",
+		UpdatedAt:      time.Now().Add(10 * time.Minute),
 		CreatedAt:      time.Now().Add(10 * time.Minute),
 	})
 	svc.DB.Create(&db.Transaction{
@@ -368,6 +369,7 @@ func TestListTransactions_FromUntil(t *testing.T) {
 		Preimage:       &mockPreimage,
 		AmountMsat:     123000,
 		Description:    "second",
+		UpdatedAt:      time.Now().Add(5 * time.Minute),
 		CreatedAt:      time.Now().Add(5 * time.Minute),
 	})
 	svc.DB.Create(&db.Transaction{
@@ -378,6 +380,8 @@ func TestListTransactions_FromUntil(t *testing.T) {
 		Preimage:       &mockPreimage,
 		AmountMsat:     123000,
 		Description:    "third",
+		CreatedAt:      time.Now(),
+		UpdatedAt:      time.Now(),
 	})
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)

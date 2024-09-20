@@ -63,7 +63,7 @@ func TestHandleListTransactionsEvent(t *testing.T) {
 			SettledAt:       &settledAt,
 			State:           constants.TRANSACTION_STATE_SETTLED,
 			AppId:           &app.ID,
-			CreatedAt:       time.Now().Add(time.Duration(-i) * time.Hour),
+			UpdatedAt:       time.Now().Add(time.Duration(-i) * time.Hour),
 		}).Error
 		assert.NoError(t, err)
 	}

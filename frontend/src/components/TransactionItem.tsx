@@ -127,7 +127,7 @@ function TransactionItem({ tx }: Props) {
                   {typeStateText}
                 </span>
                 <span className="text-xs md:text-base truncate text-muted-foreground">
-                  {dayjs(tx.settledAt).fromNow()}
+                  {dayjs(tx.settledAt || tx.createdAt).fromNow()}
                 </span>
               </p>
             </div>
@@ -194,7 +194,7 @@ function TransactionItem({ tx }: Props) {
             <div className="mt-6">
               <p>Date & Time</p>
               <p className="text-muted-foreground">
-                {dayjs(tx.settledAt)
+                {dayjs(tx.settledAt || tx.createdAt)
                   .tz(dayjs.tz.guess())
                   .format("D MMMM YYYY, HH:mm")}
               </p>
