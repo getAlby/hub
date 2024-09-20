@@ -208,6 +208,7 @@ type ListTransactionsResponse = []Transaction
 // TODO: camelCase
 type Transaction struct {
 	Type            string      `json:"type"`
+	State           string      `json:"state"`
 	Invoice         string      `json:"invoice"`
 	Description     string      `json:"description"`
 	DescriptionHash string      `json:"descriptionHash"`
