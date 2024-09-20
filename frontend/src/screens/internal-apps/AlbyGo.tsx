@@ -98,9 +98,11 @@ export function AlbyGo() {
           <ul className="list-inside list-decimal">
             <li>Download the app from the app store</li>
             <li>
-              Create a new app connection for Alby Go by clicking on{" "}
               <Link to="/apps/new?app=alby-go">
-                <Button variant="link">Connect to Alby Go</Button>
+                <Button variant="link" className="px-0">
+                  Create a new app connection
+                </Button>{" "}
+                for Alby Go
               </Link>
             </li>
             <li>Open the Alby Go app on your mobile and scan the QR code</li>
