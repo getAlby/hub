@@ -69,9 +69,11 @@ function TransactionItem({ tx }: Props) {
           "flex justify-center items-center rounded-full w-10 h-10 md:w-14 md:h-14 relative",
           tx.state === "failed"
             ? "bg-red-100 dark:bg-red-950"
-            : type === "outgoing"
-              ? "bg-orange-100 dark:bg-orange-950"
-              : "bg-green-100 dark:bg-emerald-950"
+            : tx.state === "pending"
+              ? "bg-gray-100 dark:bg-gray-950"
+              : type === "outgoing"
+                ? "bg-orange-100 dark:bg-orange-950"
+                : "bg-green-100 dark:bg-emerald-950"
         )}
       >
         <Icon
@@ -80,9 +82,11 @@ function TransactionItem({ tx }: Props) {
             "w-6 h-6 md:w-8 md:h-8",
             tx.state === "failed"
               ? "stroke-rose-400 dark:stroke-red-600"
-              : type === "outgoing"
-                ? "stroke-orange-400 dark:stroke-amber-600"
-                : "stroke-green-400 dark:stroke-emerald-500"
+              : tx.state === "pending"
+                ? "stroke-gray-400 dark:stroke-gray-600"
+                : type === "outgoing"
+                  ? "stroke-orange-400 dark:stroke-amber-600"
+                  : "stroke-green-400 dark:stroke-emerald-500"
           )}
         />
         {app && (
