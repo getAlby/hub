@@ -355,15 +355,24 @@ For the default backend which runs a node internally we recommend 1+GB of disk s
 
 ### From the release
 
-#### Quick start (Linux Server)
+#### Quick start (x86 Linux Server)
 
 Go to the [Quick start script](https://github.com/getAlby/hub/tree/master/scripts/linux-x86_64) which you can run as a service.
+
+#### Quick start (Arm64 Linux Server or Raspberry PI 4/5)
+
+Go to the [Quick start script](https://github.com/getAlby/hub/blob/master/scripts/pi-aarch64) which you can run as a service.
+
+
+#### Quick start (Raspberry PI Zero)
+
+Go to the [Quick start script](https://github.com/getAlby/hub/tree/master/scripts/pi-arm) which you can run as a service.
 
 #### Quick start (Desktop)
 
 View the [release binaries](https://github.com/getAlby/hub/releases/latest)
 
-#### Manual (Linux Server)
+#### Manual (x86 Linux Server)
 
 Download and run the executable.
 
