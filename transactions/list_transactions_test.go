@@ -391,3 +391,127 @@ func TestListTransactions_FromUntil(t *testing.T) {
 	assert.Equal(t, 1, len(incomingTransactions))
 	assert.Equal(t, "second", incomingTransactions[0].Description)
 }
+
+func TestListTransactions_FromUntilUnpaidOutgoing(t *testing.T) {
+	ctx := context.TODO()
+
+	defer tests.RemoveTestService()
+	svc, err := tests.CreateTestService()
+	assert.NoError(t, err)
+
+	mockPreimage := tests.MockLNClientTransaction.Preimage
+	svc.DB.Create(&db.Transaction{
+		State:          constants.TRANSACTION_STATE_PENDING,
+		Type:           constants.TRANSACTION_TYPE_OUTGOING,
+		PaymentRequest: tests.MockLNClientTransaction.Invoice,
+		PaymentHash:    tests.MockLNClientTransaction.PaymentHash,
+		Preimage:       &mockPreimage,
+		AmountMsat:     123000,
+		Description:    "first",
+		UpdatedAt:      time.Now().Add(10 * time.Minute),
+		CreatedAt:      time.Now().Add(10 * time.Minute),
+	})
+	svc.DB.Create(&db.Transaction{
+		State:          constants.TRANSACTION_STATE_PENDING,
+		Type:           constants.TRANSACTION_TYPE_OUTGOING,
+		PaymentRequest: tests.MockLNClientTransaction.Invoice,
+		PaymentHash:    tests.MockLNClientTransaction.PaymentHash,
+		Preimage:       &mockPreimage,
+		AmountMsat:     123000,
+		Description:    "second",
+		UpdatedAt:      time.Now().Add(5 * time.Minute),
+		CreatedAt:      time.Now().Add(5 * time.Minute),
+	})
+	svc.DB.Create(&db.Transaction{
+		State:          constants.TRANSACTION_STATE_PENDING,
+		Type:           constants.TRANSACTION_TYPE_INCOMING,
+		PaymentRequest: tests.MockLNClientTransaction.Invoice,
+		PaymentHash:    tests.MockLNClientTransaction.PaymentHash,
+		Preimage:       &mockPreimage,
+		AmountMsat:     123000,
+		Description:    "second",
+		UpdatedAt:      time.Now().Add(5 * time.Minute),
+		CreatedAt:      time.Now().Add(5 * time.Minute),
+	})
+	svc.DB.Create(&db.Transaction{
+		State:          constants.TRANSACTION_STATE_PENDING,
+		Type:           constants.TRANSACTION_TYPE_OUTGOING,
+		PaymentRequest: tests.MockLNClientTransaction.Invoice,
+		PaymentHash:    tests.MockLNClientTransaction.PaymentHash,
+		Preimage:       &mockPreimage,
+		AmountMsat:     123000,
+		Description:    "third",
+		CreatedAt:      time.Now(),
+		UpdatedAt:      time.Now(),
+	})
+
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
+
+	incomingTransactions, err := transactionsService.ListTransactions(ctx, uint64(time.Now().Add(4*time.Minute).Unix()), uint64(time.Now().Add(6*time.Minute).Unix()), 0, 0, true, false, nil, svc.LNClient, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(incomingTransactions))
+	assert.Equal(t, "second", incomingTransactions[0].Description)
+	assert.Equal(t, constants.TRANSACTION_TYPE_OUTGOING, incomingTransactions[0].Type)
+}
+
+func TestListTransactions_FromUntilUnpaidIncoming(t *testing.T) {
+	ctx := context.TODO()
+
+	defer tests.RemoveTestService()
+	svc, err := tests.CreateTestService()
+	assert.NoError(t, err)
+
+	mockPreimage := tests.MockLNClientTransaction.Preimage
+	svc.DB.Create(&db.Transaction{
+		State:          constants.TRANSACTION_STATE_PENDING,
+		Type:           constants.TRANSACTION_TYPE_INCOMING,
+		PaymentRequest: tests.MockLNClientTransaction.Invoice,
+		PaymentHash:    tests.MockLNClientTransaction.PaymentHash,
+		Preimage:       &mockPreimage,
+		AmountMsat:     123000,
+		Description:    "first",
+		UpdatedAt:      time.Now().Add(10 * time.Minute),
+		CreatedAt:      time.Now().Add(10 * time.Minute),
+	})
+	svc.DB.Create(&db.Transaction{
+		State:          constants.TRANSACTION_STATE_PENDING,
+		Type:           constants.TRANSACTION_TYPE_INCOMING,
+		PaymentRequest: tests.MockLNClientTransaction.Invoice,
+		PaymentHash:    tests.MockLNClientTransaction.PaymentHash,
+		Preimage:       &mockPreimage,
+		AmountMsat:     123000,
+		Description:    "second",
+		UpdatedAt:      time.Now().Add(5 * time.Minute),
+		CreatedAt:      time.Now().Add(5 * time.Minute),
+	})
+	svc.DB.Create(&db.Transaction{
+		State:          constants.TRANSACTION_STATE_PENDING,
+		Type:           constants.TRANSACTION_TYPE_OUTGOING,
+		PaymentRequest: tests.MockLNClientTransaction.Invoice,
+		PaymentHash:    tests.MockLNClientTransaction.PaymentHash,
+		Preimage:       &mockPreimage,
+		AmountMsat:     123000,
+		Description:    "second",
+		UpdatedAt:      time.Now().Add(5 * time.Minute),
+		CreatedAt:      time.Now().Add(5 * time.Minute),
+	})
+	svc.DB.Create(&db.Transaction{
+		State:          constants.TRANSACTION_STATE_PENDING,
+		Type:           constants.TRANSACTION_TYPE_INCOMING,
+		PaymentRequest: tests.MockLNClientTransaction.Invoice,
+		PaymentHash:    tests.MockLNClientTransaction.PaymentHash,
+		Preimage:       &mockPreimage,
+		AmountMsat:     123000,
+		Description:    "third",
+		CreatedAt:      time.Now(),
+		UpdatedAt:      time.Now(),
+	})
+
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
+
+	incomingTransactions, err := transactionsService.ListTransactions(ctx, uint64(time.Now().Add(4*time.Minute).Unix()), uint64(time.Now().Add(6*time.Minute).Unix()), 0, 0, false, true, nil, svc.LNClient, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(incomingTransactions))
+	assert.Equal(t, "second", incomingTransactions[0].Description)
+	assert.Equal(t, constants.TRANSACTION_TYPE_INCOMING, incomingTransactions[0].Type)
+}
