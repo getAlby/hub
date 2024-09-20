@@ -93,7 +93,7 @@ function Home() {
                     </div>
                   </CardTitle>
                   <CardDescription className="ml-4">
-                    A simple mobile wallet that works great with Alby Hub.
+                    The easiest Bitcoin mobile app that works great with Alby Hub.
                   </CardDescription>
                 </div>
               </div>
