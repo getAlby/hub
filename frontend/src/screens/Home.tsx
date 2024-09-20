@@ -1,4 +1,6 @@
 import { ExternalLinkIcon } from "lucide-react";
+import { Link } from "react-router-dom";
+import albyGo from "src/assets/suggested-apps/alby-go.png";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import { AlbyHead } from "src/components/images/AlbyHead";
@@ -77,6 +79,35 @@ function Home() {
             </Card>
           </ExternalLink>
         )}
+
+        <Link to="/internal-apps/alby-go">
+          <Card>
+            <CardHeader>
+              <div className="flex flex-row items-center">
+                <div className="flex-shrink-0">
+                  <img src={albyGo} className="w-12 h-12 rounded-xl border" />
+                </div>
+                <div>
+                  <CardTitle>
+                    <div className="flex-1 leading-5 font-semibold text-xl whitespace-nowrap text-ellipsis overflow-hidden ml-4">
+                      Alby Go
+                    </div>
+                  </CardTitle>
+                  <CardDescription className="ml-4">
+                    The easiest Bitcoin mobile app that works great with Alby
+                    Hub.
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="text-right">
+              <Button variant="outline">
+                Learn more
+                <ExternalLinkIcon className="w-4 h-4 ml-2" />
+              </Button>
+            </CardContent>
+          </Card>
+        </Link>
         {!extensionInstalled && (
           <ExternalLink to="https://www.getalby.com">
             <Card>
