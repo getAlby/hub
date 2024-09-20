@@ -80,7 +80,7 @@ func NewService(ctx context.Context) (*service, error) {
 		}
 	}
 
-	gormDB, err := db.NewDB(appConfig.DatabaseUri)
+	gormDB, err := db.NewDB(appConfig.DatabaseUri, appConfig.LogDBQueries)
 	if err != nil {
 		return nil, err
 	}

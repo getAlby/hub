@@ -17,7 +17,7 @@ import (
 const testDB = "test.db"
 
 func CreateTestService() (svc *TestService, err error) {
-	gormDb, err := db.NewDB(testDB)
+	gormDb, err := db.NewDB(testDB, true)
 	if err != nil {
 		return nil, err
 	}
