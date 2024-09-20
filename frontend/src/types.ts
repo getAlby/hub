@@ -390,6 +390,7 @@ export type BalancesResponse = {
 
 export type Transaction = {
   type: "incoming" | "outgoing";
+  state: "settled" | "pending" | "failed";
   appId: number | undefined;
   invoice: string;
   description: string;

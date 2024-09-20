@@ -48,7 +48,8 @@ func (controller *nip47Controller) HandleListTransactionsEvent(ctx context.Conte
 		transactionType = &listParams.Type
 	}
 
-	dbTransactions, err := controller.transactionsService.ListTransactions(ctx, listParams.From, listParams.Until, limit, listParams.Offset, listParams.Unpaid, transactionType, controller.lnClient, &appId)
+	// TODO: listParams.Unpaid needs to be updated to support ability to fetch only unpaid outgoing transactions
+	dbTransactions, err := controller.transactionsService.ListTransactions(ctx, listParams.From, listParams.Until, limit, listParams.Offset, listParams.Unpaid, listParams.Unpaid, transactionType, controller.lnClient, &appId)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"params":           listParams,

@@ -7,11 +7,18 @@ import (
 	"github.com/getAlby/hub/logger"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	gorm_logger "gorm.io/gorm/logger"
 )
 
-func NewDB(uri string) (*gorm.DB, error) {
+func NewDB(uri string, logDBQueries bool) (*gorm.DB, error) {
+
+	config := &gorm.Config{}
+	if logDBQueries {
+		config.Logger = gorm_logger.Default.LogMode(gorm_logger.Info)
+	}
+
 	// avoid SQLITE_BUSY errors with _txlock=IMMEDIATE
-	gormDB, err := gorm.Open(sqlite.Open(uri+"?_txlock=IMMEDIATE"), &gorm.Config{})
+	gormDB, err := gorm.Open(sqlite.Open(uri+"?_txlock=IMMEDIATE"), config)
 	if err != nil {
 		return nil, err
 	}

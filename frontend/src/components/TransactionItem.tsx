@@ -7,6 +7,7 @@ import {
   ChevronDown,
   ChevronUp,
   CopyIcon,
+  XIcon,
 } from "lucide-react";
 import React from "react";
 import { Link } from "react-router-dom";
@@ -38,7 +39,20 @@ function TransactionItem({ tx }: Props) {
   const { toast } = useToast();
   const [showDetails, setShowDetails] = React.useState(false);
   const type = tx.type;
-  const Icon = tx.type == "outgoing" ? ArrowUpIcon : ArrowDownIcon;
+  const typeStateText =
+    type == "incoming"
+      ? "Received"
+      : tx.state === "settled" // we only fetch settled incoming payments
+        ? "Sent"
+        : tx.state === "pending"
+          ? "Sending"
+          : "Failed";
+  const Icon =
+    tx.state === "failed"
+      ? XIcon
+      : tx.type == "outgoing"
+        ? ArrowUpIcon
+        : ArrowDownIcon;
   const app =
     tx.appId !== undefined
       ? apps?.find((app) => app.id === tx.appId)
@@ -47,6 +61,48 @@ function TransactionItem({ tx }: Props) {
   const copy = (text: string) => {
     copyToClipboard(text, toast);
   };
+
+  const typeStateIcon = (
+    <div className="flex items-center">
+      <div
+        className={cn(
+          "flex justify-center items-center rounded-full w-10 h-10 md:w-14 md:h-14 relative",
+          tx.state === "failed"
+            ? "bg-red-100 dark:bg-red-950"
+            : tx.state === "pending"
+              ? "bg-gray-100 dark:bg-gray-950"
+              : type === "outgoing"
+                ? "bg-orange-100 dark:bg-orange-950"
+                : "bg-green-100 dark:bg-emerald-950"
+        )}
+      >
+        <Icon
+          strokeWidth={3}
+          className={cn(
+            "w-6 h-6 md:w-8 md:h-8",
+            tx.state === "failed"
+              ? "stroke-rose-400 dark:stroke-red-600"
+              : tx.state === "pending"
+                ? "stroke-gray-400 dark:stroke-gray-600"
+                : type === "outgoing"
+                  ? "stroke-orange-400 dark:stroke-amber-600"
+                  : "stroke-green-400 dark:stroke-emerald-500"
+          )}
+        />
+        {app && (
+          <div
+            className="absolute -bottom-1 -right-1"
+            title={`${typeStateText} via ${app.name === "getalby.com" ? "Alby Account" : app.name}`}
+          >
+            <AppAvatar
+              app={app}
+              className="border-none p-0 rounded-full w-[18px] h-[18px] md:w-6 md:h-6 shadow-sm"
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  );
 
   return (
     <Dialog
@@ -57,46 +113,21 @@ function TransactionItem({ tx }: Props) {
       }}
     >
       <DialogTrigger className="p-3 mb-4 hover:bg-muted/50 data-[state=selected]:bg-muted cursor-pointer rounded-md slashed-zero transaction sensitive">
-        <div className="flex gap-3">
-          <div className="flex items-center">
-            <div
-              className={cn(
-                "flex justify-center items-center rounded-full w-10 h-10 md:w-14 md:h-14 relative",
-                type === "outgoing"
-                  ? "bg-orange-100 dark:bg-orange-950"
-                  : "bg-green-100 dark:bg-emerald-950"
-              )}
-            >
-              <Icon
-                strokeWidth={3}
-                className={cn(
-                  "w-6 h-6 md:w-8 md:h-8",
-                  type === "outgoing"
-                    ? "stroke-orange-400 dark:stroke-amber-600"
-                    : "stroke-green-400 dark:stroke-emerald-500"
-                )}
-              />
-              {app && (
-                <div
-                  className="absolute -bottom-1 -right-1"
-                  title={`${type == "incoming" ? "Received" : "Sent"} via ${app.name === "getalby.com" ? "Alby Account" : app.name}`}
-                >
-                  <AppAvatar
-                    app={app}
-                    className="border-none p-0 rounded-full w-[18px] h-[18px] md:w-6 md:h-6 shadow-sm"
-                  />
-                </div>
-              )}
-            </div>
-          </div>
+        <div
+          className={cn(
+            "flex gap-3",
+            tx.state === "pending" && "animate-pulse"
+          )}
+        >
+          {typeStateIcon}
           <div className="overflow-hidden mr-3 max-w-full text-left flex flex-col items-start justify-center">
             <div>
               <p className="flex items-center gap-2 truncate">
                 <span className="md:text-xl font-semibold">
-                  {type == "incoming" ? "Received" : "Sent"}
+                  {typeStateText}
                 </span>
                 <span className="text-xs md:text-base truncate text-muted-foreground">
-                  {dayjs(tx.settledAt).fromNow()}
+                  {dayjs(tx.settledAt || tx.createdAt).fromNow()}
                 </span>
               </p>
             </div>
@@ -132,57 +163,38 @@ function TransactionItem({ tx }: Props) {
       </DialogTrigger>
       <DialogContent className="slashed-zero">
         <DialogHeader>
-          <DialogTitle>{`${type == "outgoing" ? "Sent" : "Received"} Bitcoin`}</DialogTitle>
+          <DialogTitle
+            className={cn(tx.state === "pending" && "animate-pulse")}
+          >{`${typeStateText} Bitcoin Payment`}</DialogTitle>
           <DialogDescription className="text-start text-foreground">
-            <div className="flex items-center mt-6">
-              <div
-                className={cn(
-                  "flex justify-center items-center rounded-full w-10 h-10 md:w-14 md:h-14",
-                  type === "outgoing"
-                    ? "bg-orange-100 dark:bg-orange-950"
-                    : "bg-green-100 dark:bg-emerald-950"
-                )}
-              >
-                <Icon
-                  strokeWidth={3}
-                  className={cn(
-                    "w-6 h-6 md:w-8 md:h-8",
-                    type === "outgoing"
-                      ? "stroke-orange-400 dark:stroke-amber-600"
-                      : "stroke-green-400 dark:stroke-emerald-500"
-                  )}
-                />
-              </div>
+            <div
+              className={cn(
+                "flex items-center mt-6",
+                tx.state === "pending" && "animate-pulse"
+              )}
+            >
+              {typeStateIcon}
               <div className="ml-4">
                 <p className="text-xl md:text-2xl font-semibold">
                   {new Intl.NumberFormat().format(Math.floor(tx.amount / 1000))}{" "}
                   {Math.floor(tx.amount / 1000) == 1 ? "sat" : "sats"}
                 </p>
-                {/* <p className="text-sm md:text-base text-muted-foreground">
-                Fiat Amount
-              </p> */}
               </div>
             </div>
             {app && (
               <div className="mt-8">
                 <p>App</p>
                 <Link to={`/apps/${app.nostrPubkey}`}>
-                  <div className="flex items-center justify-start gap-1 mt-1">
-                    <AppAvatar
-                      app={app}
-                      className="border-none p-0 rounded-full w-6 h-6"
-                    />
-                    <p className="text-muted-foreground">
-                      {app.name === "getalby.com" ? "Alby Account" : app.name}
-                    </p>
-                  </div>
+                  <p className="font-semibold">
+                    {app.name === "getalby.com" ? "Alby Account" : app.name}
+                  </p>
                 </Link>
               </div>
             )}
             <div className="mt-6">
               <p>Date & Time</p>
               <p className="text-muted-foreground">
-                {dayjs(tx.settledAt)
+                {dayjs(tx.settledAt || tx.createdAt)
                   .tz(dayjs.tz.guess())
                   .format("D MMMM YYYY, HH:mm")}
               </p>

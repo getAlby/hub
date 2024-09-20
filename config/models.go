@@ -41,6 +41,7 @@ type AppConfig struct {
 	DdProfilerEnabled     bool   `envconfig:"DD_PROFILER_ENABLED" default:"false"`
 	EnableAdvancedSetup   bool   `envconfig:"ENABLE_ADVANCED_SETUP" default:"true"`
 	AutoUnlockPassword    string `envconfig:"AUTO_UNLOCK_PASSWORD"`
+	LogDBQueries          bool   `envconfig:"LOG_DB_QUERIES" default:"false"`
 }
 
 func (c *AppConfig) IsDefaultClientId() bool {
