@@ -418,7 +418,7 @@ func (svc *nip47Service) publishResponseEvent(ctx context.Context, relay nostrmo
 			"appId":                appId,
 			"responseEventId":      responseEvent.ID,
 			"responseNostrEventId": resp.ID,
-		}).Debug("Published reply")
+		}).Info("Published reply")
 	}
 
 	err = svc.db.Save(&responseEvent).Error
