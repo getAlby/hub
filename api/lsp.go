@@ -230,6 +230,11 @@ func (api *api) requestLSPS1Invoice(ctx context.Context, request *LSPOrderReques
 		requiredChannelConfirmations = 6
 	}
 
+	token := ""
+	if request.LSPUrl == "https://lsps1.lnolymp.us/api/v1" {
+		token = "AlbyHub/" + version.Tag
+	}
+
 	newLSPS1ChannelRequest := lsps1ChannelRequest{
 		PublicKey:                    pubkey,
 		LSPBalanceSat:                strconv.FormatUint(request.Amount, 10),
@@ -237,7 +242,7 @@ func (api *api) requestLSPS1Invoice(ctx context.Context, request *LSPOrderReques
 		RequiredChannelConfirmations: requiredChannelConfirmations,
 		FundingConfirmsWithinBlocks:  6,
 		ChannelExpiryBlocks:          channelExpiryBlocks,
-		Token:                        "",
+		Token:                        token,
 		RefundOnchainAddress:         refundAddress,
 		AnnounceChannel:              request.Public,
 	}
