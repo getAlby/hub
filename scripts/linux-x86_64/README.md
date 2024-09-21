@@ -13,7 +13,6 @@ We recommend inspecting the install script and if needed adjusting it or taking 
 
 If you do a fresh server setup make sure to do the basic setup like for example creating a new user and configuring the firewall. Here is a [simple tutorial for this](https://www.digitalocean.com/community/tutorials/initial-server-setup-with-ubuntu).
 
-
 Run the installation script on your server:
 
     $ /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/getAlby/hub/master/scripts/linux-x86_64/install.sh)"
@@ -23,7 +22,7 @@ Optionally it can also create a systemd service for you.
 
 You can also do these quite simple steps manually, have a look in the install script for details.
 
-Alby Hub will run on localhost:8080 by default (configurable using the `PORT` environment variable or by adding `Environment="PORT=8081"` to the `[Service]` section of the albyhub.service file - See "Editing The Service" below)
+Alby Hub will run on localhost:8080 (standalone) or localhost:8029 (as a service) configurable using the `PORT` environment variable or by editing `Environment="PORT=8029"` in the albyhub.service file - See "Editing The Service" below)
 
 To run on a public domain we recommend the use of a reverse proxy using [Caddy](https://caddyserver.com/)
 
@@ -42,6 +41,7 @@ Or use the start scripts:
     $ sudo journalctl -u albyhub
 
 ### Editing The Service (systemd)
+
     $ sudo nano /etc/systemd/system/albyhub.service
     $ sudo systemctl daemon-reload
     $ sudo systemctl restart albyhub.service
