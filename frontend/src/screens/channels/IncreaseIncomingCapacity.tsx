@@ -337,6 +337,12 @@ function NewChannelInternal({
                   defaultChecked={order.isPublic}
                   onCheckedChange={() => setPublic(!order.isPublic)}
                   className="mr-2"
+                  disabled={selectedPeer && !selectedPeer.publicChannelsAllowed}
+                  title={
+                    selectedPeer && !selectedPeer.publicChannelsAllowed
+                      ? "This channel partner does not support public channels."
+                      : undefined
+                  }
                 />
                 <div className="grid gap-1.5 leading-none">
                   <Label

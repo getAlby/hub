@@ -909,16 +909,6 @@ func (svc *albyOAuthService) GetChannelPeerSuggestions(ctx context.Context) ([]C
 		return nil, err
 	}
 
-	// TODO: remove once alby API is updated
-	for i, suggestion := range suggestions {
-		if suggestion.BrokenLspType != "" {
-			suggestions[i].LspType = suggestion.BrokenLspType
-		}
-		if suggestion.BrokenLspUrl != "" {
-			suggestions[i].LspUrl = suggestion.BrokenLspUrl
-		}
-	}
-
 	logger.Logger.WithFields(logrus.Fields{"channel_suggestions": suggestions}).Debug("Alby channel peer suggestions response")
 	return suggestions, nil
 }
