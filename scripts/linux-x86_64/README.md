@@ -22,7 +22,7 @@ Optionally it can also create a systemd service for you.
 
 You can also do these quite simple steps manually, have a look in the install script for details.
 
-Alby Hub will run on localhost:8080 (standalone) or localhost:8029 (as a service) configurable using the `PORT` environment variable or by editing `Environment="PORT=8029"` in the albyhub.service file - See "Editing The Service" below)
+Alby Hub will run on localhost:8080 (standalone) or localhost:8029 (when run with a systemd service) configurable using the `PORT` environment variable or by editing `Environment="PORT=8029"` in the albyhub.service systemd config file - See "Editing The Service" below)
 
 To run on a public domain we recommend the use of a reverse proxy using [Caddy](https://caddyserver.com/)
 
