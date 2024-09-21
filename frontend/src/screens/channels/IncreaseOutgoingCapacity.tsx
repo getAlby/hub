@@ -79,6 +79,7 @@ function NewChannelInternal({ network }: { network: Network }) {
       pubkey: "",
       host: "",
       image: "",
+      publicChannelsAllowed: true,
     };
     return _channelPeerSuggestions
       ? [
@@ -369,6 +370,12 @@ function NewChannelInternal({ network }: { network: Network }) {
                   defaultChecked={order.isPublic}
                   onCheckedChange={() => setPublic(!order.isPublic)}
                   className="mr-2"
+                  disabled={selectedPeer && !selectedPeer.publicChannelsAllowed}
+                  title={
+                    selectedPeer && !selectedPeer.publicChannelsAllowed
+                      ? "This channel partner does not support public channels."
+                      : undefined
+                  }
                 />
                 <div className="grid gap-1.5 leading-none">
                   <Label

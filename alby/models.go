@@ -80,18 +80,19 @@ type AlbyBalance struct {
 }
 
 type ChannelPeerSuggestion struct {
-	Network            string `json:"network"`
-	PaymentMethod      string `json:"paymentMethod"`
-	Pubkey             string `json:"pubkey"`
-	Host               string `json:"host"`
-	MinimumChannelSize uint64 `json:"minimumChannelSize"`
-	MaximumChannelSize uint64 `json:"maximumChannelSize"`
-	Name               string `json:"name"`
-	Image              string `json:"image"`
-	BrokenLspUrl       string `json:"lsp_url"`
-	BrokenLspType      string `json:"lsp_type"`
-	LspUrl             string `json:"lspUrl"`
-	LspType            string `json:"lspType"`
+	Network               string `json:"network"`
+	PaymentMethod         string `json:"paymentMethod"`
+	Pubkey                string `json:"pubkey"`
+	Host                  string `json:"host"`
+	MinimumChannelSize    uint64 `json:"minimumChannelSize"`
+	MaximumChannelSize    uint64 `json:"maximumChannelSize"`
+	Name                  string `json:"name"`
+	Image                 string `json:"image"`
+	BrokenLspUrl          string `json:"lsp_url"`
+	BrokenLspType         string `json:"lsp_type"`
+	LspUrl                string `json:"lspUrl"`
+	LspType               string `json:"lspType"`
+	PublicChannelsAllowed bool   `json:"publicChannelsAllowed"`
 }
 
 type ErrorResponse struct {

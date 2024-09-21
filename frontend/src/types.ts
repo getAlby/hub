@@ -306,6 +306,7 @@ export type RecommendedChannelPeer = {
   name: string;
   minimumChannelSize: number;
   maximumChannelSize: number;
+  publicChannelsAllowed: boolean;
 } & (
   | {
       paymentMethod: "onchain";
