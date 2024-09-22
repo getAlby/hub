@@ -71,6 +71,7 @@ Restart=always
 RestartSec=1
 User=$USER
 ExecStart=$INSTALL_DIR/start.sh
+Environment="PORT=8029"
 
 [Install]
 WantedBy=multi-user.target
@@ -86,4 +87,4 @@ echo "Run 'sudo systemctl start/stop albyhub' to start/stop AlbyHub"
 echo ""
 echo ""
 echo " ✅ DONE. Open Alby Hub to get started"
-echo "Alby Hub runs by default on localhost:8080"
+echo "Alby Hub runs by default on localhost:8029"

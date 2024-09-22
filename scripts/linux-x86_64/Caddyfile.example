@@ -14,6 +14,6 @@
 		            # Bob $2a$14$Zkx19XLiW6VYouLHR5NmfOFU0z2GTNmpkT/5qqR7hx4IjWJPDhjvG
         #}
 
-        # Alby Hub runs on 8080 by default
-        reverse_proxy :8080
+        # Alby Hub runs on 8029 by default
+        reverse_proxy :8029
 }
