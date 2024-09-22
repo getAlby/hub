@@ -2,8 +2,6 @@ import React, { ReactElement } from "react";
 import { useNavigate } from "react-router-dom";
 import Container from "src/components/Container";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
-import { BreezIcon } from "src/components/icons/Breez";
-import { GreenlightIcon } from "src/components/icons/Greenlight";
 import { LDKIcon } from "src/components/icons/LDK";
 import { PhoenixdIcon } from "src/components/icons/Phoenixd";
 import { Button } from "src/components/ui/button";
@@ -20,33 +18,26 @@ type BackendTypeDisplayConfig = {
   icon: ReactElement;
 };
 
-const backendTypeDisplayConfigs: Record<BackendType, BackendTypeDisplayConfig> =
-  {
-    LDK: {
-      title: "LDK",
-      icon: <LDKIcon />,
-    },
-    PHOENIX: {
-      title: "phoenixd",
-      icon: <PhoenixdIcon />,
-    },
-    BREEZ: {
-      title: "Breez SDK",
-      icon: <BreezIcon />,
-    },
-    GREENLIGHT: {
-      title: "Greenlight",
-      icon: <GreenlightIcon />,
-    },
-    LND: {
-      title: "LND",
-      icon: <img src={lnd} />,
-    },
-    CASHU: {
-      title: "Cashu Mint",
-      icon: <img src={cashu} />,
-    },
-  };
+const backendTypeDisplayConfigs: Partial<
+  Record<BackendType, BackendTypeDisplayConfig>
+> = {
+  LDK: {
+    title: "LDK",
+    icon: <LDKIcon />,
+  },
+  PHOENIX: {
+    title: "phoenixd",
+    icon: <PhoenixdIcon />,
+  },
+  LND: {
+    title: "LND",
+    icon: <img src={lnd} />,
+  },
+  CASHU: {
+    title: "Cashu Mint",
+    icon: <img src={cashu} />,
+  },
+};
 
 const backendTypeDisplayConfigList = Object.entries(
   backendTypeDisplayConfigs
