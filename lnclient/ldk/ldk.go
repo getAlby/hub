@@ -1485,15 +1485,17 @@ func (ls *LDKService) GetBalances(ctx context.Context) (*lnclient.BalancesRespon
 	channels := ls.node.ListChannels()
 	for _, channel := range channels {
 		if channel.IsUsable {
-			channelMinSpendable := min(int64(channel.OutboundCapacityMsat), int64(*channel.CounterpartyOutboundHtlcMaximumMsat))
-			channelMinReceivable := min(int64(channel.InboundCapacityMsat), int64(*channel.InboundHtlcMaximumMsat))
+			// spending or receiving amount may be constrained by channel configuration (e.g. ACINQ does this)
+			channelConstrainedSpendable := min(int64(channel.OutboundCapacityMsat), int64(*channel.CounterpartyOutboundHtlcMaximumMsat))
+			channelConstrainedReceivable := min(int64(channel.InboundCapacityMsat), int64(*channel.InboundHtlcMaximumMsat))
 
-			nextMaxSpendable = max(nextMaxSpendable, channelMinSpendable)
-			nextMaxReceivable = max(nextMaxReceivable, channelMinReceivable)
+			nextMaxSpendable = max(nextMaxSpendable, channelConstrainedSpendable)
+			nextMaxReceivable = max(nextMaxReceivable, channelConstrainedReceivable)
 
-			nextMaxSpendableMPP += channelMinSpendable
-			nextMaxReceivableMPP += channelMinReceivable
+			nextMaxSpendableMPP += channelConstrainedSpendable
+			nextMaxReceivableMPP += channelConstrainedReceivable
 
+			// these are what the wallet can send and receive, but not necessarily in one go
 			totalSpendable += int64(channel.OutboundCapacityMsat)
 			totalReceivable += int64(channel.InboundCapacityMsat)
 		}

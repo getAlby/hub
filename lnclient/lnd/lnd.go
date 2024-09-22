@@ -831,30 +831,42 @@ func (svc *LNDService) GetBalances(ctx context.Context) (*lnclient.BalancesRespo
 	var nextMaxSpendable int64 = 0
 	var nextMaxReceivableMPP int64 = 0
 	var nextMaxSpendableMPP int64 = 0
+
 	resp, err := svc.client.ListChannels(ctx, &lnrpc.ListChannelsRequest{})
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to list channels")
+		return nil, err
+	}
 
 	for _, channel := range resp.Channels {
 		// Unnecessary since ListChannels only returns active channels
 		if channel.Active {
-			channelMinSpendable := channel.LocalBalance * 1000
-			channelMinReceivable := channel.RemoteBalance * 1000
+			channelSpendable := max(channel.LocalBalance*1000-int64(channel.LocalConstraints.ChanReserveSat*1000), 0)
+			channelReceivable := max(channel.RemoteBalance*1000-int64(channel.RemoteConstraints.ChanReserveSat*1000), 0)
 
-			nextMaxSpendable = max(nextMaxSpendable, channelMinSpendable)
-			nextMaxReceivable = max(nextMaxReceivable, channelMinReceivable)
+			// spending or receiving amount may be constrained by channel configuration (e.g. ACINQ does this)
+			channelConstrainedSpendable := min(channelSpendable, int64(channel.RemoteConstraints.MaxPendingAmtMsat))
+			channelConstrainedReceivable := min(channelReceivable, int64(channel.LocalConstraints.MaxPendingAmtMsat))
 
-			totalSpendable += channelMinSpendable
-			totalReceivable += channelMinReceivable
+			nextMaxSpendable = max(nextMaxSpendable, channelConstrainedSpendable)
+			nextMaxReceivable = max(nextMaxReceivable, channelConstrainedReceivable)
+
+			nextMaxSpendableMPP += channelConstrainedSpendable
+			nextMaxReceivableMPP += channelConstrainedReceivable
+
+			// these are what the wallet can send and receive, but not necessarily in one go
+			totalSpendable += channelSpendable
+			totalReceivable += channelReceivable
 		}
 	}
 
 	return &lnclient.BalancesResponse{
 		Onchain: *onchainBalance,
 		Lightning: lnclient.LightningBalanceResponse{
-			TotalSpendable:    totalSpendable,
-			TotalReceivable:   totalReceivable,
-			NextMaxSpendable:  nextMaxSpendable,
-			NextMaxReceivable: nextMaxReceivable,
-			// TODO: return actuall MPP instead of 0
+			TotalSpendable:       totalSpendable,
+			TotalReceivable:      totalReceivable,
+			NextMaxSpendable:     nextMaxSpendable,
+			NextMaxReceivable:    nextMaxReceivable,
 			NextMaxSpendableMPP:  nextMaxSpendableMPP,
 			NextMaxReceivableMPP: nextMaxReceivableMPP,
 		},
