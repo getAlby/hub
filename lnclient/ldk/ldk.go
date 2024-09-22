@@ -19,6 +19,7 @@ import (
 	// "github.com/getAlby/hub/ldk_node"
 
 	"encoding/hex"
+	"encoding/json"
 
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
@@ -1311,7 +1312,7 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 			},
 		})
 
-		ls.publishChannelsBackupEvent()
+		ls.backupChannels()
 
 		if eventType.CounterpartyNodeId == nil {
 			logger.Logger.WithField("event", eventType).Error("channel ready event has no counterparty node ID")
@@ -1415,7 +1416,7 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 	}
 }
 
-func (ls *LDKService) publishChannelsBackupEvent() {
+func (ls *LDKService) backupChannels() {
 	ldkChannels := ls.node.ListChannels()
 	channels := make([]events.ChannelBackupInfo, 0, len(ldkChannels))
 	for _, ldkChannel := range ldkChannels {
@@ -1436,12 +1437,36 @@ func (ls *LDKService) publishChannelsBackupEvent() {
 		})
 	}
 
+	ls.saveStaticChannelBackupToDisk(channels)
+
 	ls.eventPublisher.Publish(&events.Event{
 		Event: "nwc_backup_channels",
 		Properties: &events.ChannelBackupEvent{
 			Channels: channels,
 		},
 	})
+}
+
+func (ls *LDKService) saveStaticChannelBackupToDisk(channels []events.ChannelBackupInfo) {
+	backupDirectory := filepath.Join(ls.workdir, "static_channel_backups")
+	err := os.MkdirAll(backupDirectory, os.ModePerm)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to make static channel backup directory")
+		return
+	}
+
+	backupFilePath := filepath.Join(backupDirectory, time.Now().Format("2006-01-02T15-04-05")+".json")
+	channelsBytes, err := json.Marshal(channels)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to serialize static channel backup to json")
+		return
+	}
+	err = os.WriteFile(backupFilePath, channelsBytes, 0644)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to write static channel backup to disk")
+		return
+	}
+	logger.Logger.WithField("backupPath", backupFilePath).Debug("Saved static channel backup to disk")
 }
 
 func (ls *LDKService) GetBalances(ctx context.Context) (*lnclient.BalancesResponse, error) {
