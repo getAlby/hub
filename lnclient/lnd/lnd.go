@@ -849,20 +849,22 @@ func (svc *LNDService) GetBalances(ctx context.Context) (*lnclient.BalancesRespo
 	for _, channel := range resp.Channels {
 		// Unnecessary since ListChannels only returns active channels
 		if channel.Active {
-			channelSpendable := min(max(channel.LocalBalance*1000-int64(channel.LocalConstraints.ChanReserveSat*1000), 0), int64(channel.RemoteConstraints.MaxPendingAmtMsat))
-			channelReceivable := min(max(channel.RemoteBalance*1000-int64(channel.RemoteConstraints.ChanReserveSat*1000), 0), int64(channel.LocalConstraints.MaxPendingAmtMsat))
+			channelSpendable := max(channel.LocalBalance*1000-int64(channel.LocalConstraints.ChanReserveSat*1000), 0)
+			channelReceivable := max(channel.RemoteBalance*1000-int64(channel.RemoteConstraints.ChanReserveSat*1000), 0)
 
-			channelMinSpendable := min(channelSpendable, int64(channel.RemoteConstraints.MaxPendingAmtMsat))
-			channelMinReceivable := min(channelReceivable, int64(channel.LocalConstraints.MaxPendingAmtMsat))
+			// spending or receiving amount may be constrained by channel configuration (e.g. ACINQ does this)
+			channelConstrainedSpendable := min(channelSpendable, int64(channel.RemoteConstraints.MaxPendingAmtMsat))
+			channelConstrainedReceivable := min(channelReceivable, int64(channel.LocalConstraints.MaxPendingAmtMsat))
 
-			nextMaxSpendable = max(nextMaxSpendable, channelMinSpendable)
-			nextMaxReceivable = max(nextMaxReceivable, channelMinReceivable)
+			nextMaxSpendable = max(nextMaxSpendable, channelConstrainedSpendable)
+			nextMaxReceivable = max(nextMaxReceivable, channelConstrainedReceivable)
 
+			nextMaxSpendableMPP += channelConstrainedSpendable
+			nextMaxReceivableMPP += channelConstrainedReceivable
+
+			// these are what the wallet can send and receive, but not necessarily in one go
 			totalSpendable += channelSpendable
 			totalReceivable += channelReceivable
-
-			nextMaxSpendableMPP += channelMinSpendable
-			nextMaxReceivableMPP += channelMinReceivable
 		}
 	}
 
