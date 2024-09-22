@@ -833,12 +833,6 @@ func (svc *LNDService) GetBalances(ctx context.Context) (*lnclient.BalancesRespo
 		return nil, err
 	}
 
-	balances, err := svc.client.ChannelBalance(ctx, &lnrpc.ChannelBalanceRequest{})
-	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to retrieve lightning balance")
-		return nil, err
-	}
-
 	var totalReceivable int64 = 0
 	var totalSpendable int64 = 0
 	var nextMaxReceivable int64 = 0
@@ -855,25 +849,30 @@ func (svc *LNDService) GetBalances(ctx context.Context) (*lnclient.BalancesRespo
 	for _, channel := range resp.Channels {
 		// Unnecessary since ListChannels only returns active channels
 		if channel.Active {
-			channelMinSpendable := channel.LocalBalance * 1000
-			channelMinReceivable := channel.RemoteBalance * 1000
+			channelSpendable := min(max(channel.LocalBalance*1000-int64(channel.LocalConstraints.ChanReserveSat*1000), 0), int64(channel.RemoteConstraints.MaxPendingAmtMsat))
+			channelReceivable := min(max(channel.RemoteBalance*1000-int64(channel.RemoteConstraints.ChanReserveSat*1000), 0), int64(channel.LocalConstraints.MaxPendingAmtMsat))
+
+			channelMinSpendable := min(channelSpendable, int64(channel.RemoteConstraints.MaxPendingAmtMsat))
+			channelMinReceivable := min(channelReceivable, int64(channel.LocalConstraints.MaxPendingAmtMsat))
 
 			nextMaxSpendable = max(nextMaxSpendable, channelMinSpendable)
 			nextMaxReceivable = max(nextMaxReceivable, channelMinReceivable)
 
-			totalSpendable += channelMinSpendable
-			totalReceivable += channelMinReceivable
+			totalSpendable += channelSpendable
+			totalReceivable += channelReceivable
+
+			nextMaxSpendableMPP += channelMinSpendable
+			nextMaxReceivableMPP += channelMinReceivable
 		}
 	}
 
 	return &lnclient.BalancesResponse{
 		Onchain: *onchainBalance,
 		Lightning: lnclient.LightningBalanceResponse{
-			TotalSpendable:    int64(balances.LocalBalance.Msat),
-			TotalReceivable:   int64(balances.RemoteBalance.Msat),
-			NextMaxSpendable:  nextMaxSpendable,
-			NextMaxReceivable: nextMaxReceivable,
-			// TODO: return actual MPP instead of 0
+			TotalSpendable:       totalSpendable,
+			TotalReceivable:      totalReceivable,
+			NextMaxSpendable:     nextMaxSpendable,
+			NextMaxReceivable:    nextMaxReceivable,
 			NextMaxSpendableMPP:  nextMaxSpendableMPP,
 			NextMaxReceivableMPP: nextMaxReceivableMPP,
 		},
