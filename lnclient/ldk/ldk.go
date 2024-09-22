@@ -266,6 +266,15 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 			case <-time.After(MIN_SYNC_INTERVAL):
 				ls.syncing = true
 
+				channels := ls.node.ListChannels()
+				for _, channel := range channels {
+					if channel.Confirmations != nil && channel.ConfirmationsRequired != nil && *channel.Confirmations < *channel.ConfirmationsRequired {
+						logger.Logger.WithField("channel_id", channel.UserChannelId).Debug("Using short sync time while opening channel")
+						ls.lastWalletSyncRequest = time.Now()
+						break
+					}
+				}
+
 				if time.Since(ls.lastWalletSyncRequest) > MIN_SYNC_INTERVAL && time.Since(ls.lastFullSync) < MAX_SYNC_INTERVAL {
 
 					if time.Since(ls.lastFeeEstimatesSync) < MIN_FEE_ESTIMATES_SYNC_INTERVAL {
