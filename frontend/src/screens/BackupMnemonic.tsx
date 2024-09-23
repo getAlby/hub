@@ -137,7 +137,9 @@ export function BackupMnemonic() {
                   <b>
                     Make sure to also backup your data directory as this is
                     required to recover funds on your channels. You can also
-                    connect your Alby Account for automatic backups.
+                    connect your Alby Account for automatic encrypted backups
+                    (you still need your seed and unlock password to decrypt
+                    those).
                   </b>
                 )}
               </span>
