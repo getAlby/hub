@@ -1441,7 +1441,7 @@ func (ls *LDKService) backupChannels() {
 		})
 	}
 
-	monitors, err := ls.node.GetChannelMonitors()
+	monitors, err := ls.node.GetEncodedChannelMonitors()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to list channel monitors")
 		return
