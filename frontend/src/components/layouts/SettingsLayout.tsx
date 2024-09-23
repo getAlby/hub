@@ -101,9 +101,7 @@ export default function SettingsLayout() {
             <MenuItem to="/settings/change-unlock-password">
               Unlock Password
             </MenuItem>
-            {hasMnemonic && (
-              <MenuItem to="/settings/key-backup">Key Backup</MenuItem>
-            )}
+            {hasMnemonic && <MenuItem to="/settings/backup">Backup</MenuItem>}
             {hasNodeBackup && (
               <MenuItem to="/settings/node-backup">Migrate Node</MenuItem>
             )}
