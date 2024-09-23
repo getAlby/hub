@@ -5,6 +5,13 @@ import BudgetRenewalSelect from "src/components/BudgetRenewalSelect";
 import ExpirySelect from "src/components/ExpirySelect";
 import Scopes from "src/components/Scopes";
 import { Button } from "src/components/ui/button";
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "src/components/ui/card";
+import { Switch } from "src/components/ui/switch";
 import { cn } from "src/lib/utils";
 import {
   AppPermissions,
@@ -221,6 +228,17 @@ const Permissions: React.FC<PermissionsProps> = ({
           )}
         </>
       )}
+      <Card className="mt-5">
+        <CardHeader className="flex flex-row justify-between items-center">
+          <div>
+            <CardTitle>💰️ Support Amethyst with 1000 sats / month</CardTitle>
+            <CardDescription>
+              Setup a recurring payment to support developers
+            </CardDescription>
+          </div>
+          <Switch />
+        </CardHeader>
+      </Card>
     </div>
   );
 };
