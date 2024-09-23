@@ -21,7 +21,13 @@ type Event struct {
 }
 
 type ChannelBackupEvent struct {
-	Channels []ChannelBackupInfo `json:"channels"`
+	Channels []ChannelBackupInfo    `json:"channels"`
+	Monitors []ChannelMonitorBackup `json:"monitors"`
+}
+
+type ChannelMonitorBackup struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
 }
 
 type ChannelBackupInfo struct {

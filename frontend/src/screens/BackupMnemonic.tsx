@@ -26,6 +26,7 @@ export function BackupMnemonic() {
   const [decryptedMnemonic, setDecryptedMnemonic] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [backedUp, setIsBackedUp] = useState<boolean>(false);
+  const { data: info } = useInfo();
 
   const onSubmitPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -124,7 +125,21 @@ export function BackupMnemonic() {
               </div>
               <span>
                 Your recovery phrase is a set of 12 words that{" "}
-                <b>backs up your wallet</b>
+                <b>backs up your wallet savings balance</b>.
+                {info?.albyAccountConnected && (
+                  <b>
+                    You also need to make sure you do not forget your unlock
+                    password as this will be used to recover funds from
+                    channels.
+                  </b>
+                )}
+                {!info?.albyAccountConnected && (
+                  <b>
+                    Make sure to also backup your data directory as this is
+                    required to recover funds on your channels. You can also
+                    connect your Alby Account for automatic backups.
+                  </b>
+                )}
               </span>
             </div>
             <div className="flex gap-2 items-center">

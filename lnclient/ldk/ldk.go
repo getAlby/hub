@@ -15,8 +15,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/getAlby/ldk-node-go/ldk_node"
-	// "github.com/getAlby/hub/ldk_node"
+	// "github.com/getAlby/ldk-node-go/ldk_node"
+	"github.com/getAlby/hub/ldk_node"
 
 	"encoding/hex"
 	"encoding/json"
@@ -223,6 +223,10 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		"status":   node.Status(),
 		"duration": math.Ceil(time.Since(syncStartTime).Seconds()),
 	}).Info("LDK node synced successfully")
+
+	// backup channels after successful startup
+	// TODO: consider removing after all hubs are updated past 1.9.1
+	ls.backupChannels()
 
 	if ls.network == "bitcoin" {
 		// try to connect to some peers to retrieve P2P gossip data. TODO: Remove once LDK can correctly do gossip with CLN and Eclair nodes
@@ -1437,17 +1441,34 @@ func (ls *LDKService) backupChannels() {
 		})
 	}
 
-	ls.saveStaticChannelBackupToDisk(channels)
+	monitors, err := ls.node.GetChannelMonitors()
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to list channel monitors")
+		return
+	}
+	encodedMonitors := []events.ChannelMonitorBackup{}
+
+	for _, monitor := range monitors {
+		encodedMonitors = append(encodedMonitors, events.ChannelMonitorBackup{
+			Key:   monitor.Key,
+			Value: hex.EncodeToString(monitor.Value),
+		})
+	}
+
+	event := &events.ChannelBackupEvent{
+		Channels: channels,
+		Monitors: encodedMonitors,
+	}
+
+	ls.saveStaticChannelBackupToDisk(event)
 
 	ls.eventPublisher.Publish(&events.Event{
-		Event: "nwc_backup_channels",
-		Properties: &events.ChannelBackupEvent{
-			Channels: channels,
-		},
+		Event:      "nwc_backup_channels",
+		Properties: event,
 	})
 }
 
-func (ls *LDKService) saveStaticChannelBackupToDisk(channels []events.ChannelBackupInfo) {
+func (ls *LDKService) saveStaticChannelBackupToDisk(event *events.ChannelBackupEvent) {
 	backupDirectory := filepath.Join(ls.workdir, "static_channel_backups")
 	err := os.MkdirAll(backupDirectory, os.ModePerm)
 	if err != nil {
@@ -1456,12 +1477,12 @@ func (ls *LDKService) saveStaticChannelBackupToDisk(channels []events.ChannelBac
 	}
 
 	backupFilePath := filepath.Join(backupDirectory, time.Now().Format("2006-01-02T15-04-05")+".json")
-	channelsBytes, err := json.Marshal(channels)
+	eventBytes, err := json.Marshal(event)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to serialize static channel backup to json")
 		return
 	}
-	err = os.WriteFile(backupFilePath, channelsBytes, 0644)
+	err = os.WriteFile(backupFilePath, eventBytes, 0644)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to write static channel backup to disk")
 		return
