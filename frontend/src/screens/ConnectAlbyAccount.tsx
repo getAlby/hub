@@ -1,7 +1,7 @@
 import {
   CreditCard,
-  DatabaseBackup,
   Headphones,
+  LifeBuoy,
   Mail,
   PartyPopper,
   Zap,
@@ -45,10 +45,10 @@ export function ConnectAlbyAccount() {
           </Card>
           <Card className="w-full">
             <CardHeader className="flex flex-col justify-center items-center text-center p-4">
-              <DatabaseBackup className="w-6 h-6" />
-              <CardTitle className="text-sm">Encrypted Backups</CardTitle>
+              <LifeBuoy className="w-6 h-6" />
+              <CardTitle className="text-sm">Support</CardTitle>
               <CardDescription className="text-xs">
-                Enjoy peace of mind with automated backups
+                Human support via live chat when you need a helping hand
               </CardDescription>
             </CardHeader>
           </Card>
