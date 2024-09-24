@@ -133,6 +133,62 @@ func TestHandleResponse_WithPermission(t *testing.T) {
 	assert.Equal(t, []interface{}{"get_balance"}, unmarshalledResponse.Result.(map[string]interface{})["methods"])
 }
 
+func TestHandleResponse_DuplicateRequest(t *testing.T) {
+	defer tests.RemoveTestService()
+	svc, err := tests.CreateTestService()
+	assert.NoError(t, err)
+	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
+
+	reqPrivateKey := nostr.GeneratePrivateKey()
+	reqPubkey, err := nostr.GetPublicKey(reqPrivateKey)
+	assert.NoError(t, err)
+
+	app, ss, err := tests.CreateAppWithPrivateKey(svc, reqPrivateKey)
+	assert.NoError(t, err)
+
+	appPermission := &db.AppPermission{
+		AppId: app.ID,
+		App:   *app,
+		Scope: constants.GET_BALANCE_SCOPE,
+	}
+	err = svc.DB.Create(appPermission).Error
+	assert.NoError(t, err)
+
+	content := map[string]interface{}{
+		"method": models.GET_INFO_METHOD,
+	}
+
+	payloadBytes, err := json.Marshal(content)
+	assert.NoError(t, err)
+
+	msg, err := nip04.Encrypt(string(payloadBytes), ss)
+	assert.NoError(t, err)
+
+	reqEvent := &nostr.Event{
+		Kind:      models.REQUEST_KIND,
+		PubKey:    reqPubkey,
+		CreatedAt: nostr.Now(),
+		Tags:      nostr.Tags{},
+		Content:   msg,
+	}
+	err = reqEvent.Sign(reqPrivateKey)
+	assert.NoError(t, err)
+
+	relay := tests.NewMockRelay()
+
+	nip47svc.HandleEvent(context.TODO(), relay, reqEvent, svc.LNClient)
+
+	assert.NotNil(t, relay.PublishedEvent)
+	assert.NotEmpty(t, relay.PublishedEvent.Content)
+
+	relay.PublishedEvent = nil
+
+	nip47svc.HandleEvent(context.TODO(), relay, reqEvent, svc.LNClient)
+
+	// second time it should not publish
+	assert.Nil(t, relay.PublishedEvent)
+}
+
 func TestHandleResponse_NoPermission(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
