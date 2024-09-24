@@ -12,7 +12,9 @@ import (
 
 func NewDB(uri string, logDBQueries bool) (*gorm.DB, error) {
 
-	config := &gorm.Config{}
+	config := &gorm.Config{
+		TranslateError: true,
+	}
 	if logDBQueries {
 		config.Logger = gorm_logger.Default.LogMode(gorm_logger.Info)
 	}
