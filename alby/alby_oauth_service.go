@@ -689,7 +689,7 @@ func (svc *albyOAuthService) ConsumeEvent(ctx context.Context, event *events.Eve
 }
 
 func (svc *albyOAuthService) backupChannels(ctx context.Context, event *events.Event) error {
-	bkpEvent, ok := event.Properties.(*events.ChannelBackupEvent)
+	bkpEvent, ok := event.Properties.(*events.StaticChannelsBackupEvent)
 	if !ok {
 		return fmt.Errorf("invalid nwc_backup_channels event properties, could not cast to the expected type: %+v", event.Properties)
 	}
@@ -706,8 +706,8 @@ func (svc *albyOAuthService) backupChannels(ctx context.Context, event *events.E
 		Data        string `json:"data"`
 	}
 
-	channelsData := bytes.NewBuffer([]byte{})
-	err = json.NewEncoder(channelsData).Encode(bkpEvent.Channels)
+	eventData := bytes.NewBuffer([]byte{})
+	err = json.NewEncoder(eventData).Encode(bkpEvent)
 	if err != nil {
 		return fmt.Errorf("failed to encode channels backup data:  %w", err)
 	}
@@ -718,7 +718,7 @@ func (svc *albyOAuthService) backupChannels(ctx context.Context, event *events.E
 		return fmt.Errorf("failed to fetch encryption key: %w", err)
 	}
 
-	encrypted, err := config.AesGcmEncrypt(channelsData.String(), encryptedMnemonic)
+	encrypted, err := config.AesGcmEncrypt(eventData.String(), encryptedMnemonic)
 	if err != nil {
 		return fmt.Errorf("failed to encrypt channels backup data: %w", err)
 	}

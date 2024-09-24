@@ -97,7 +97,7 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
             description:
               "Secure your keys by creating a backup to ensure you don't lose access.",
             checked: hasBackedUp === true,
-            to: "/settings/key-backup",
+            to: "/settings/backup",
           },
         ]
       : []),

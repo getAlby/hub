@@ -156,9 +156,9 @@ const routes = [
                 handle: { crumb: () => "Unlock Password" },
               },
               {
-                path: "key-backup",
+                path: "backup",
                 element: <BackupMnemonic />,
-                handle: { crumb: () => "Key Backup" },
+                handle: { crumb: () => "Backup" },
               },
               {
                 path: "node-backup",

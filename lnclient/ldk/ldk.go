@@ -49,7 +49,7 @@ type LDKService struct {
 
 const resetRouterKey = "ResetRouter"
 
-func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events.EventPublisher, mnemonic, workDir string, network string) (result lnclient.LNClient, err error) {
+func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events.EventPublisher, mnemonic, workDir string, network string, staticChannelsBackup *events.StaticChannelsBackupEvent, restoredFromSeed bool) (result lnclient.LNClient, err error) {
 	if mnemonic == "" || workDir == "" {
 		return nil, errors.New("one or more required LDK configuration are missing")
 	}
@@ -118,6 +118,12 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	// LDK default HTLC inflight value is 10% of the channel size. If an LSPS service is configured this will be set to 0.
 	// The liquidity source below is not used because we do not use the native LDK-node LSPS2 API.
 	builder.SetLiquiditySourceLsps2("52.88.33.119:9735", lsp.OlympusLSP().Pubkey, nil)
+
+	// recover from backup
+	if staticChannelsBackup != nil {
+		// add backed up channel monitors to LDK DB
+		builder.RestoreEncodedChannelMonitors(getEncodedChannelMonitorsFromStaticChannelsBackup(staticChannelsBackup))
+	}
 
 	//builder.SetLogDirPath (filepath.Join(newpath, "./logs")); // missing?
 	node, err := builder.Build()
@@ -188,6 +194,22 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		return nil, err
 	}
 
+	if restoredFromSeed {
+		// generate some onchain addresses in case there were funds on them (when importing from an existing seed)
+		// NOTE: this may not be enough. The user could click the get new address button to fetch more addresses
+		// (this will probably be improved with BDK 1.0 anyway)
+		func() {
+			for i := 0; i < 10; i++ {
+				ls.node.OnchainPayment().NewAddress()
+			}
+		}()
+	}
+
+	// recover from backup
+	if staticChannelsBackup != nil {
+		forceCloseChannelsFromStaticChannelsBackup(node, staticChannelsBackup)
+	}
+
 	logger.Logger.WithFields(logrus.Fields{
 		"nodeId": nodeId,
 		"status": node.Status(),
@@ -223,6 +245,9 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		"status":   node.Status(),
 		"duration": math.Ceil(time.Since(syncStartTime).Seconds()),
 	}).Info("LDK node synced successfully")
+
+	// backup channels after successful startup
+	ls.backupChannels()
 
 	if ls.network == "bitcoin" {
 		// try to connect to some peers to retrieve P2P gossip data. TODO: Remove once LDK can correctly do gossip with CLN and Eclair nodes
@@ -1418,7 +1443,8 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 
 func (ls *LDKService) backupChannels() {
 	ldkChannels := ls.node.ListChannels()
-	channels := make([]events.ChannelBackupInfo, 0, len(ldkChannels))
+	ldkPeers := ls.node.ListPeers()
+	channels := make([]events.ChannelBackup, 0, len(ldkChannels))
 	for _, ldkChannel := range ldkChannels {
 		var fundingTxId string
 		var fundingTxVout uint32
@@ -1427,27 +1453,56 @@ func (ls *LDKService) backupChannels() {
 			fundingTxVout = ldkChannel.FundingTxo.Vout
 		}
 
-		channels = append(channels, events.ChannelBackupInfo{
-			ChannelID:     ldkChannel.ChannelId,
-			NodeID:        ls.node.NodeId(),
-			PeerID:        ldkChannel.CounterpartyNodeId,
-			ChannelSize:   ldkChannel.ChannelValueSats,
-			FundingTxID:   fundingTxId,
-			FundingTxVout: fundingTxVout,
+		var peer *ldk_node.PeerDetails
+		for _, matchingPeer := range ldkPeers {
+			if matchingPeer.NodeId == ldkChannel.CounterpartyNodeId {
+				peer = &matchingPeer
+			}
+		}
+		if peer == nil {
+			logger.Logger.WithField("peer_id", ldkChannel.CounterpartyNodeId).Error("failed to find peer for channel")
+			continue
+		}
+
+		channels = append(channels, events.ChannelBackup{
+			ChannelID:         ldkChannel.ChannelId,
+			PeerID:            ldkChannel.CounterpartyNodeId,
+			PeerSocketAddress: peer.Address,
+			ChannelSize:       ldkChannel.ChannelValueSats,
+			FundingTxID:       fundingTxId,
+			FundingTxVout:     fundingTxVout,
 		})
 	}
 
-	ls.saveStaticChannelBackupToDisk(channels)
+	monitors, err := ls.node.GetEncodedChannelMonitors()
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to list channel monitors")
+		return
+	}
+	encodedMonitors := []events.EncodedChannelMonitorBackup{}
+
+	for _, monitor := range monitors {
+		encodedMonitors = append(encodedMonitors, events.EncodedChannelMonitorBackup{
+			Key:   monitor.Key,
+			Value: hex.EncodeToString(monitor.Value),
+		})
+	}
+
+	event := &events.StaticChannelsBackupEvent{
+		Channels: channels,
+		Monitors: encodedMonitors,
+		NodeID:   ls.node.NodeId(),
+	}
+
+	ls.saveStaticChannelBackupToDisk(event)
 
 	ls.eventPublisher.Publish(&events.Event{
-		Event: "nwc_backup_channels",
-		Properties: &events.ChannelBackupEvent{
-			Channels: channels,
-		},
+		Event:      "nwc_backup_channels",
+		Properties: event,
 	})
 }
 
-func (ls *LDKService) saveStaticChannelBackupToDisk(channels []events.ChannelBackupInfo) {
+func (ls *LDKService) saveStaticChannelBackupToDisk(event *events.StaticChannelsBackupEvent) {
 	backupDirectory := filepath.Join(ls.workdir, "static_channel_backups")
 	err := os.MkdirAll(backupDirectory, os.ModePerm)
 	if err != nil {
@@ -1456,12 +1511,12 @@ func (ls *LDKService) saveStaticChannelBackupToDisk(channels []events.ChannelBac
 	}
 
 	backupFilePath := filepath.Join(backupDirectory, time.Now().Format("2006-01-02T15-04-05")+".json")
-	channelsBytes, err := json.Marshal(channels)
+	eventBytes, err := json.Marshal(event)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to serialize static channel backup to json")
 		return
 	}
-	err = os.WriteFile(backupFilePath, channelsBytes, 0644)
+	err = os.WriteFile(backupFilePath, eventBytes, 0644)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to write static channel backup to disk")
 		return
@@ -1638,4 +1693,32 @@ func (ls *LDKService) getChannelCloseReason(event *ldk_node.EventChannelClosed) 
 
 func (ls *LDKService) GetPubkey() string {
 	return ls.pubkey
+}
+
+func getEncodedChannelMonitorsFromStaticChannelsBackup(channelsBackup *events.StaticChannelsBackupEvent) []ldk_node.KeyValue {
+	encodedMonitors := []ldk_node.KeyValue{}
+	for _, monitor := range channelsBackup.Monitors {
+		value, err := hex.DecodeString(monitor.Value)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to decode LDK channel monitor hex")
+			continue
+		}
+		encodedMonitors = append(encodedMonitors, ldk_node.KeyValue{
+			Key:   monitor.Key,
+			Value: value,
+		})
+	}
+	return encodedMonitors
+}
+
+func forceCloseChannelsFromStaticChannelsBackup(node *ldk_node.Node, staticChannelsBackup *events.StaticChannelsBackupEvent) {
+	// peer with original peers from channels so that we can send closing channel messages
+	for _, channel := range staticChannelsBackup.Channels {
+		err := node.Connect(channel.PeerID, channel.PeerSocketAddress, true)
+		if err != nil {
+			logger.Logger.WithField("peer_id", channel.PeerID).WithError(err).Error("failed to peer to node from channel backup")
+		}
+	}
+
+	node.ForceCloseAllChannelsWithoutBroadcastingTxn()
 }

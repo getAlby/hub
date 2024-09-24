@@ -20,15 +20,22 @@ type Event struct {
 	Properties interface{} `json:"properties,omitempty"`
 }
 
-type ChannelBackupEvent struct {
-	Channels []ChannelBackupInfo `json:"channels"`
+type StaticChannelsBackupEvent struct {
+	NodeID   string                        `json:"node_id"`
+	Channels []ChannelBackup               `json:"channels"`
+	Monitors []EncodedChannelMonitorBackup `json:"monitors"`
 }
 
-type ChannelBackupInfo struct {
-	ChannelID     string `json:"channel_id"`
-	NodeID        string `json:"node_id"`
-	PeerID        string `json:"peer_id"`
-	ChannelSize   uint64 `json:"channel_size"`
-	FundingTxID   string `json:"funding_tx_id"`
-	FundingTxVout uint32 `json:"funding_tx_vout"`
+type EncodedChannelMonitorBackup struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+type ChannelBackup struct {
+	ChannelID         string `json:"channel_id"`
+	PeerID            string `json:"peer_id"`
+	PeerSocketAddress string `json:"peer_socket_address"`
+	ChannelSize       uint64 `json:"channel_size"`
+	FundingTxID       string `json:"funding_tx_id"`
+	FundingTxVout     uint32 `json:"funding_tx_vout"`
 }
