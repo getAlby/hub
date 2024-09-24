@@ -21,6 +21,7 @@ type Event struct {
 }
 
 type ChannelBackupEvent struct {
+	NodeID   string                 `json:"node_id"`
 	Channels []ChannelBackupInfo    `json:"channels"`
 	Monitors []ChannelMonitorBackup `json:"monitors"`
 }
@@ -31,10 +32,10 @@ type ChannelMonitorBackup struct {
 }
 
 type ChannelBackupInfo struct {
-	ChannelID     string `json:"channel_id"`
-	NodeID        string `json:"node_id"`
-	PeerID        string `json:"peer_id"`
-	ChannelSize   uint64 `json:"channel_size"`
-	FundingTxID   string `json:"funding_tx_id"`
-	FundingTxVout uint32 `json:"funding_tx_vout"`
+	ChannelID         string `json:"channel_id"`
+	PeerID            string `json:"peer_id"`
+	PeerSocketAddress string `json:"peer_socket_address"`
+	ChannelSize       uint64 `json:"channel_size"`
+	FundingTxID       string `json:"funding_tx_id"`
+	FundingTxVout     uint32 `json:"funding_tx_vout"`
 }

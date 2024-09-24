@@ -15,8 +15,8 @@ import (
 	"strings"
 	"time"
 
-	// "github.com/getAlby/ldk-node-go/ldk_node"
-	"github.com/getAlby/hub/ldk_node"
+	"github.com/getAlby/ldk-node-go/ldk_node"
+	// "github.com/getAlby/hub/ldk_node"
 
 	"encoding/hex"
 	"encoding/json"
@@ -49,7 +49,7 @@ type LDKService struct {
 
 const resetRouterKey = "ResetRouter"
 
-func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events.EventPublisher, mnemonic, workDir string, network string) (result lnclient.LNClient, err error) {
+func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events.EventPublisher, mnemonic, workDir string, network string, channelBackup *events.ChannelBackupEvent, restoredFromSeed bool) (result lnclient.LNClient, err error) {
 	if mnemonic == "" || workDir == "" {
 		return nil, errors.New("one or more required LDK configuration are missing")
 	}
@@ -118,6 +118,24 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	// LDK default HTLC inflight value is 10% of the channel size. If an LSPS service is configured this will be set to 0.
 	// The liquidity source below is not used because we do not use the native LDK-node LSPS2 API.
 	builder.SetLiquiditySourceLsps2("52.88.33.119:9735", lsp.OlympusLSP().Pubkey, nil)
+
+	// recover from backup
+	if channelBackup != nil {
+		// add backed up channel monitors to LDK DB
+		encodedMonitors := []ldk_node.KeyValue{}
+		for _, monitor := range channelBackup.Monitors {
+			value, err := hex.DecodeString(monitor.Value)
+			if err != nil {
+				logger.Logger.WithError(err).Error("Failed to decode LDK channel monitor hex")
+				continue
+			}
+			encodedMonitors = append(encodedMonitors, ldk_node.KeyValue{
+				Key:   monitor.Key,
+				Value: value,
+			})
+		}
+		builder.RestoreEncodedChannelMonitors(encodedMonitors)
+	}
 
 	//builder.SetLogDirPath (filepath.Join(newpath, "./logs")); // missing?
 	node, err := builder.Build()
@@ -188,6 +206,30 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		return nil, err
 	}
 
+	if restoredFromSeed {
+		// generate some onchain addresses in case there were funds on them (when importing from an existing seed)
+		// NOTE: this may not be enough. The user could click the get new address button to fetch more addresses
+		// (this will probably be improved with BDK 1.0 anyway)
+		func() {
+			for i := 0; i < 10; i++ {
+				ls.node.OnchainPayment().NewAddress()
+			}
+		}()
+	}
+
+	// recover from backup
+	if channelBackup != nil {
+		// peer with original peers from channels so that we can send closing channel messages
+		for _, channel := range channelBackup.Channels {
+			err := ls.node.Connect(channel.PeerID, channel.PeerSocketAddress, true)
+			if err != nil {
+				logger.Logger.WithField("peer_id", channel.PeerID).WithError(err).Error("failed to peer to node from channel backup")
+			}
+		}
+
+		node.ForceCloseAllChannelsWithoutBroadcastingTxn()
+	}
+
 	logger.Logger.WithFields(logrus.Fields{
 		"nodeId": nodeId,
 		"status": node.Status(),
@@ -225,7 +267,6 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	}).Info("LDK node synced successfully")
 
 	// backup channels after successful startup
-	// TODO: consider removing after all hubs are updated past 1.9.1
 	ls.backupChannels()
 
 	if ls.network == "bitcoin" {
@@ -1422,6 +1463,7 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 
 func (ls *LDKService) backupChannels() {
 	ldkChannels := ls.node.ListChannels()
+	ldkPeers := ls.node.ListPeers()
 	channels := make([]events.ChannelBackupInfo, 0, len(ldkChannels))
 	for _, ldkChannel := range ldkChannels {
 		var fundingTxId string
@@ -1431,13 +1473,24 @@ func (ls *LDKService) backupChannels() {
 			fundingTxVout = ldkChannel.FundingTxo.Vout
 		}
 
+		var peer *ldk_node.PeerDetails
+		for _, matchingPeer := range ldkPeers {
+			if matchingPeer.NodeId == ldkChannel.CounterpartyNodeId {
+				peer = &matchingPeer
+			}
+		}
+		if peer == nil {
+			logger.Logger.WithField("peer_id", ldkChannel.CounterpartyNodeId).Error("failed to find peer for channel")
+			continue
+		}
+
 		channels = append(channels, events.ChannelBackupInfo{
-			ChannelID:     ldkChannel.ChannelId,
-			NodeID:        ls.node.NodeId(),
-			PeerID:        ldkChannel.CounterpartyNodeId,
-			ChannelSize:   ldkChannel.ChannelValueSats,
-			FundingTxID:   fundingTxId,
-			FundingTxVout: fundingTxVout,
+			ChannelID:         ldkChannel.ChannelId,
+			PeerID:            ldkChannel.CounterpartyNodeId,
+			PeerSocketAddress: peer.Address,
+			ChannelSize:       ldkChannel.ChannelValueSats,
+			FundingTxID:       fundingTxId,
+			FundingTxVout:     fundingTxVout,
 		})
 	}
 
@@ -1458,6 +1511,7 @@ func (ls *LDKService) backupChannels() {
 	event := &events.ChannelBackupEvent{
 		Channels: channels,
 		Monitors: encodedMonitors,
+		NodeID:   ls.node.NodeId(),
 	}
 
 	ls.saveStaticChannelBackupToDisk(event)
