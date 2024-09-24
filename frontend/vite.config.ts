@@ -85,8 +85,7 @@ const insertDevCSPPlugin: Plugin = {
       return html.replace(
         "<head>",
         `<head>
-        <!-- DEV-ONLY CSP - when making changes here, also update the CSP header in http_service.go (without the nonce!) -->
-        <meta http-equiv="Content-Security-Policy" content="default-src 'self' ${DEVELOPMENT_NONCE}; img-src 'self' https://uploads.getalby-assets.com https://getalby.com; connect-src 'self' https://api.getalby.com"/>`
+        <!-- DEV-ONLY CSP - when making changes here, also update the CSP header in http_service.go (without the nonce!) -->`
       );
     },
   },

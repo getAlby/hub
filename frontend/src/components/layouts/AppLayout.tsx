@@ -47,6 +47,8 @@ import {
 } from "src/components/ui/tooltip";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 
+import bitrefill from "src/assets/suggested-apps/bitrefill.png";
+import { Badge } from "src/components/ui/badge";
 import { useAlbyInfo } from "src/hooks/useAlbyInfo";
 import { useInfo } from "src/hooks/useInfo";
 import { useRemoveSuccessfulChannelOrder } from "src/hooks/useRemoveSuccessfulChannelOrder";
@@ -146,6 +148,12 @@ export default function AppLayout() {
           <Store className="h-4 w-4" />
           App Store
         </MenuItem>
+        <div className="ml-6 mt-2">
+          <MenuItem to="/internal-apps/bitrefill">
+            <img src={bitrefill} className="h-4 w-4 rounded" />
+            Bitrefill <Badge variant="destructive">NEW</Badge>
+          </MenuItem>
+        </div>
       </>
     );
   }

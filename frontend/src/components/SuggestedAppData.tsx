@@ -1,6 +1,7 @@
 import albyGo from "src/assets/suggested-apps/alby-go.png";
 import alby from "src/assets/suggested-apps/alby.png";
 import amethyst from "src/assets/suggested-apps/amethyst.png";
+import bitrefill from "src/assets/suggested-apps/bitrefill.png";
 import buzzpay from "src/assets/suggested-apps/buzzpay.png";
 import damus from "src/assets/suggested-apps/damus.png";
 import hablanews from "src/assets/suggested-apps/habla-news.png";
@@ -197,6 +198,15 @@ export const suggestedApps: SuggestedApp[] = [
       "https://play.google.com/store/apps/details?id=com.getalby.mobile",
     appleLink: "https://apps.apple.com/us/app/alby-go/id6471335774",
     logo: albyGo,
+    internal: true,
+  },
+  {
+    id: "bitrefill",
+    title: "Bitrefill",
+    description:
+      "Live on Bitcoin - Shop for Gift Cards, eSIMs, and Mobile Recharges",
+    webLink: "https://bitrefill.com",
+    logo: bitrefill,
     internal: true,
   },
 ].sort((a, b) => (a.title.toUpperCase() > b.title.toUpperCase() ? 1 : -1));
