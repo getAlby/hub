@@ -67,10 +67,12 @@ export default function TwoColumnFullScreenLayout() {
 
   return (
     <div className="w-full lg:grid lg:h-screen lg:grid-cols-2 items-stretch text-background">
-      <div
-        className="hidden lg:flex flex-col bg-foreground justify-end p-10 gap-2 bg-cover bg-no-repeat bg-bottom"
-        style={{ backgroundImage: `url(${quote.imageUrl})` }}
-      >
+      <div className="hidden lg:flex flex-col bg-foreground justify-end p-10 gap-2 relative">
+        <img
+          src={quote.imageUrl}
+          alt={quote.author}
+          className="absolute inset-0 w-full h-full object-cover object-top opacity-20 pointer-events-none"
+        />
         <div className="flex-1 w-full h-full flex flex-col">
           <div className="flex flex-row justify-between items-center">
             <AlbyHubLogo className="text-background" />
