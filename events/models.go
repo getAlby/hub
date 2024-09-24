@@ -20,18 +20,18 @@ type Event struct {
 	Properties interface{} `json:"properties,omitempty"`
 }
 
-type ChannelBackupEvent struct {
-	NodeID   string                 `json:"node_id"`
-	Channels []ChannelBackupInfo    `json:"channels"`
-	Monitors []ChannelMonitorBackup `json:"monitors"`
+type StaticChannelsBackupEvent struct {
+	NodeID   string                        `json:"node_id"`
+	Channels []ChannelBackup               `json:"channels"`
+	Monitors []EncodedChannelMonitorBackup `json:"monitors"`
 }
 
-type ChannelMonitorBackup struct {
+type EncodedChannelMonitorBackup struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
 }
 
-type ChannelBackupInfo struct {
+type ChannelBackup struct {
 	ChannelID         string `json:"channel_id"`
 	PeerID            string `json:"peer_id"`
 	PeerSocketAddress string `json:"peer_socket_address"`

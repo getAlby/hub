@@ -49,7 +49,7 @@ type LDKService struct {
 
 const resetRouterKey = "ResetRouter"
 
-func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events.EventPublisher, mnemonic, workDir string, network string, channelBackup *events.ChannelBackupEvent, restoredFromSeed bool) (result lnclient.LNClient, err error) {
+func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events.EventPublisher, mnemonic, workDir string, network string, channelBackup *events.StaticChannelsBackupEvent, restoredFromSeed bool) (result lnclient.LNClient, err error) {
 	if mnemonic == "" || workDir == "" {
 		return nil, errors.New("one or more required LDK configuration are missing")
 	}
@@ -1464,7 +1464,7 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 func (ls *LDKService) backupChannels() {
 	ldkChannels := ls.node.ListChannels()
 	ldkPeers := ls.node.ListPeers()
-	channels := make([]events.ChannelBackupInfo, 0, len(ldkChannels))
+	channels := make([]events.ChannelBackup, 0, len(ldkChannels))
 	for _, ldkChannel := range ldkChannels {
 		var fundingTxId string
 		var fundingTxVout uint32
@@ -1484,7 +1484,7 @@ func (ls *LDKService) backupChannels() {
 			continue
 		}
 
-		channels = append(channels, events.ChannelBackupInfo{
+		channels = append(channels, events.ChannelBackup{
 			ChannelID:         ldkChannel.ChannelId,
 			PeerID:            ldkChannel.CounterpartyNodeId,
 			PeerSocketAddress: peer.Address,
@@ -1499,16 +1499,16 @@ func (ls *LDKService) backupChannels() {
 		logger.Logger.WithError(err).Error("Failed to list channel monitors")
 		return
 	}
-	encodedMonitors := []events.ChannelMonitorBackup{}
+	encodedMonitors := []events.EncodedChannelMonitorBackup{}
 
 	for _, monitor := range monitors {
-		encodedMonitors = append(encodedMonitors, events.ChannelMonitorBackup{
+		encodedMonitors = append(encodedMonitors, events.EncodedChannelMonitorBackup{
 			Key:   monitor.Key,
 			Value: hex.EncodeToString(monitor.Value),
 		})
 	}
 
-	event := &events.ChannelBackupEvent{
+	event := &events.StaticChannelsBackupEvent{
 		Channels: channels,
 		Monitors: encodedMonitors,
 		NodeID:   ls.node.NodeId(),
@@ -1522,7 +1522,7 @@ func (ls *LDKService) backupChannels() {
 	})
 }
 
-func (ls *LDKService) saveStaticChannelBackupToDisk(event *events.ChannelBackupEvent) {
+func (ls *LDKService) saveStaticChannelBackupToDisk(event *events.StaticChannelsBackupEvent) {
 	backupDirectory := filepath.Join(ls.workdir, "static_channel_backups")
 	err := os.MkdirAll(backupDirectory, os.ModePerm)
 	if err != nil {

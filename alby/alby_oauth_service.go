@@ -689,7 +689,7 @@ func (svc *albyOAuthService) ConsumeEvent(ctx context.Context, event *events.Eve
 }
 
 func (svc *albyOAuthService) backupChannels(ctx context.Context, event *events.Event) error {
-	bkpEvent, ok := event.Properties.(*events.ChannelBackupEvent)
+	bkpEvent, ok := event.Properties.(*events.StaticChannelsBackupEvent)
 	if !ok {
 		return fmt.Errorf("invalid nwc_backup_channels event properties, could not cast to the expected type: %+v", event.Properties)
 	}
