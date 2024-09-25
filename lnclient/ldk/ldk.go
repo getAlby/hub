@@ -415,10 +415,15 @@ func (ls *LDKService) resetRouterInternal() {
 
 	if err != nil {
 		logger.Logger.Error("Failed to retrieve ResetRouter key")
+		return
 	}
 
 	if key != "" {
-		ls.cfg.SetUpdate(resetRouterKey, "", "")
+		err = ls.cfg.SetUpdate(resetRouterKey, "", "")
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to remove reset router key")
+			return
+		}
 		logger.Logger.WithField("key", key).Info("Resetting router")
 
 		ldkDbPath := filepath.Join(ls.workdir, "storage", "ldk_node_data.sqlite")
@@ -1086,7 +1091,11 @@ func (ls *LDKService) RedeemOnchainFunds(ctx context.Context, toAddress string, 
 }
 
 func (ls *LDKService) ResetRouter(key string) error {
-	ls.cfg.SetUpdate(resetRouterKey, key, "")
+	err := ls.cfg.SetUpdate(resetRouterKey, key, "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to set reset router key")
+		return err
+	}
 
 	return nil
 }

@@ -12,6 +12,7 @@ type EventPublisher interface {
 	RegisterSubscriber(eventListener EventSubscriber)
 	RemoveSubscriber(eventListener EventSubscriber)
 	Publish(event *Event)
+	PublishSync(event *Event)
 	SetGlobalProperty(key string, value interface{})
 }
 

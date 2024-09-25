@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"path"
 	"strconv"
 	"time"
@@ -29,12 +30,14 @@ func (svc *service) startNostr(ctx context.Context, encryptionKey string) error 
 
 	err := svc.keys.Init(svc.cfg, encryptionKey)
 	if err != nil {
-		logger.Logger.WithError(err).Fatal("Failed to init nostr keys")
+		logger.Logger.WithError(err).Error("Failed to init nostr keys")
+		return err
 	}
 
 	npub, err := nip19.EncodePublicKey(svc.keys.GetNostrPublicKey())
 	if err != nil {
-		logger.Logger.WithError(err).Fatal("Error converting nostr privkey to pubkey")
+		logger.Logger.WithError(err).Error("Error converting nostr privkey to pubkey")
+		return err
 	}
 
 	logger.Logger.WithFields(logrus.Fields{
@@ -204,7 +207,8 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 
 		lnClient, err = cashu.NewCashuService(cashuWorkdir, cashuMintUrl)
 	default:
-		logger.Logger.Fatalf("Unsupported LNBackendType: %v", lnBackend)
+		logger.Logger.WithField("backend_type", lnBackend).Error("Unsupported LNBackendType")
+		return fmt.Errorf("unsupported backend type: %s", lnBackend)
 	}
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to launch LN backend")
@@ -227,7 +231,10 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 
 	// Mark that the node has successfully started
 	// This will ensure the user cannot go through the setup again
-	svc.cfg.SetUpdate("NodeLastStartTime", strconv.FormatInt(time.Now().Unix(), 10), "")
+	err = svc.cfg.SetUpdate("NodeLastStartTime", strconv.FormatInt(time.Now().Unix(), 10), "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to set last node start time")
+	}
 
 	svc.eventPublisher.Publish(&events.Event{
 		Event: "nwc_node_started",

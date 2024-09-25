@@ -3,7 +3,6 @@ package wails
 import (
 	"context"
 	"embed"
-	"log"
 
 	"github.com/getAlby/hub/api"
 	"github.com/getAlby/hub/logger"
@@ -65,7 +64,7 @@ func LaunchWailsApp(app *WailsApp, assets embed.FS, appIcon []byte) {
 	})
 
 	if err != nil {
-		log.Fatalf("Error %v", err)
+		logger.Logger.WithError(err).Error("failed to run Wails app")
 	}
 }
 

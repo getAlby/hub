@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"time"
 
 	"os"
 	"path/filepath"
@@ -69,7 +68,11 @@ func NewService(ctx context.Context) (*service, error) {
 		return nil, err
 	}
 
-	finishRestoreNode(appConfig.Workdir)
+	err = finishRestoreNode(appConfig.Workdir)
+	if err != nil {
+		logger.Logger.WithError(err).Error("failed to restore backup")
+		return nil, err
+	}
 
 	// If DATABASE_URI is a URI or a path, leave it unchanged.
 	// If it only contains a filename, prepend the workdir.
@@ -85,7 +88,10 @@ func NewService(ctx context.Context) (*service, error) {
 		return nil, err
 	}
 
-	cfg := config.NewConfig(appConfig, gormDB)
+	cfg, err := config.NewConfig(appConfig, gormDB)
+	if err != nil {
+		return nil, err
+	}
 
 	eventPublisher := events.NewEventPublisher()
 
@@ -167,21 +173,23 @@ func (svc *service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 	return nil
 }
 
-func finishRestoreNode(workDir string) {
+func finishRestoreNode(workDir string) error {
 	restoreDir := filepath.Join(workDir, "restore")
 	if restoreDirStat, err := os.Stat(restoreDir); err == nil && restoreDirStat.IsDir() {
 		logger.Logger.WithField("restoreDir", restoreDir).Infof("Restore directory found. Finishing Node restore")
 
 		existingFiles, err := os.ReadDir(restoreDir)
 		if err != nil {
-			logger.Logger.WithError(err).Fatal("Failed to read WORK_DIR")
+			logger.Logger.WithError(err).Error("Failed to read WORK_DIR")
+			return err
 		}
 
 		for _, file := range existingFiles {
 			if file.Name() != "restore" {
 				err = os.RemoveAll(filepath.Join(workDir, file.Name()))
 				if err != nil {
-					logger.Logger.WithField("filename", file.Name()).WithError(err).Fatal("Failed to remove file")
+					logger.Logger.WithField("filename", file.Name()).WithError(err).Error("Failed to remove file")
+					return err
 				}
 				logger.Logger.WithField("filename", file.Name()).Info("removed file")
 			}
@@ -189,31 +197,33 @@ func finishRestoreNode(workDir string) {
 
 		files, err := os.ReadDir(restoreDir)
 		if err != nil {
-			logger.Logger.WithError(err).Fatal("Failed to read restore directory")
+			logger.Logger.WithError(err).Error("Failed to read restore directory")
+			return err
 		}
 		for _, file := range files {
 			err = os.Rename(filepath.Join(restoreDir, file.Name()), filepath.Join(workDir, file.Name()))
 			if err != nil {
-				logger.Logger.WithField("filename", file.Name()).WithError(err).Fatal("Failed to move file")
+				logger.Logger.WithField("filename", file.Name()).WithError(err).Error("Failed to move file")
+				return err
 			}
 			logger.Logger.WithField("filename", file.Name()).Info("copied file from restore directory")
 		}
 		err = os.RemoveAll(restoreDir)
 		if err != nil {
-			logger.Logger.WithError(err).Fatal("Failed to remove restore directory")
+			logger.Logger.WithError(err).Error("Failed to remove restore directory")
+			return err
 		}
 		logger.Logger.WithField("restoreDir", restoreDir).Info("removed restore directory")
 	}
+	return nil
 }
 
 func (svc *service) Shutdown() {
 	svc.StopApp()
-	svc.eventPublisher.Publish(&events.Event{
+	svc.eventPublisher.PublishSync(&events.Event{
 		Event: "nwc_stopped",
 	})
 	db.Stop(svc.db)
-	// wait for any remaining events
-	time.Sleep(1 * time.Second)
 }
 
 func (svc *service) GetDB() *gorm.DB {

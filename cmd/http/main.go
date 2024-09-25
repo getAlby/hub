@@ -21,8 +21,8 @@ func main() {
 
 	// Create a channel to receive OS signals.
 	osSignalChannel := make(chan os.Signal, 1)
-	// Notify the channel on os.Interrupt, syscall.SIGTERM, and os.Kill.
-	signal.Notify(osSignalChannel, os.Interrupt, syscall.SIGTERM, os.Kill)
+	// Notify the channel on os.Interrupt, syscall.SIGTERM. os.Kill cannot be caught.
+	signal.Notify(osSignalChannel, os.Interrupt, syscall.SIGTERM)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	svc, _ := service.NewService(ctx)
@@ -35,7 +35,8 @@ func main() {
 	//start Echo server
 	go func() {
 		if err := e.Start(fmt.Sprintf(":%v", svc.GetConfig().GetEnv().Port)); err != nil && err != nethttp.ErrServerClosed {
-			logger.Logger.Fatalf("shutting down the server: %v", err)
+			logger.Logger.WithError(err).Error("echo server failed to start")
+			ctx.Done()
 		}
 	}()
 

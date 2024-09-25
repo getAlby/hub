@@ -33,10 +33,13 @@ func CreateTestService() (svc *TestService, err error) {
 		Workdir: ".test",
 	}
 
-	cfg := config.NewConfig(
+	cfg, err := config.NewConfig(
 		appConfig,
 		gormDb,
 	)
+	if err != nil {
+		return nil, err
+	}
 
 	keys := keys.NewKeys()
 	keys.Init(cfg, "")
