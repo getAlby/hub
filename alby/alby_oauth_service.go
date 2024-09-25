@@ -97,9 +97,9 @@ func (svc *albyOAuthService) CallbackHandler(ctx context.Context, code string, l
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to fetch user me")
 		// remove token so user can retry
-		err2 := svc.cfg.SetUpdate(accessTokenKey, "", "")
-		if err2 != nil {
-			logger.Logger.WithError(err2).Error("failed to remove existing access token")
+		cfgErr := svc.cfg.SetUpdate(accessTokenKey, "", "")
+		if cfgErr != nil {
+			logger.Logger.WithError(cfgErr).Error("failed to remove existing access token")
 		}
 		return err
 	}
