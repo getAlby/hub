@@ -49,20 +49,44 @@ const (
 type Transaction = db.Transaction
 
 type Boostagram struct {
-	AppName        string `json:"app_name"`
-	Name           string `json:"name"`
-	Podcast        string `json:"podcast"`
-	URL            string `json:"url"`
-	Episode        string `json:"episode,omitempty"`
-	FeedId         string `json:"feedID,omitempty"`
-	ItemId         string `json:"itemID,omitempty"`
-	Timestamp      int64  `json:"ts,omitempty"`
-	Message        string `json:"message,omitempty"`
-	SenderId       string `json:"sender_id"`
-	SenderName     string `json:"sender_name"`
-	Time           string `json:"time"`
-	Action         string `json:"action"`
-	ValueMsatTotal int64  `json:"value_msat_total"`
+	AppName        string         `json:"app_name"`
+	Name           string         `json:"name"`
+	Podcast        string         `json:"podcast"`
+	URL            string         `json:"url"`
+	Episode        StringOrNumber `json:"episode,omitempty"`
+	FeedId         StringOrNumber `json:"feedID,omitempty"`
+	ItemId         StringOrNumber `json:"itemID,omitempty"`
+	Timestamp      int64          `json:"ts,omitempty"`
+	Message        string         `json:"message,omitempty"`
+	SenderId       StringOrNumber `json:"sender_id"`
+	SenderName     string         `json:"sender_name"`
+	Time           string         `json:"time"`
+	Action         string         `json:"action"`
+	ValueMsatTotal int64          `json:"value_msat_total"`
+}
+
+type StringOrNumber struct {
+	StringData string
+	NumberData int64
+}
+
+func (sn *StringOrNumber) UnmarshalJSON(data []byte) error {
+	if err := json.Unmarshal(data, &sn.StringData); err == nil {
+		return nil
+	}
+
+	if err := json.Unmarshal(data, &sn.NumberData); err == nil {
+		return nil
+	}
+
+	return fmt.Errorf("cannot unmarshal %s into StringOrNumber type", data)
+}
+
+func (sn StringOrNumber) String() string {
+	if sn.StringData != "" {
+		return sn.StringData
+	}
+	return fmt.Sprintf("%d", sn.NumberData)
 }
 
 type notFoundError struct {
