@@ -199,7 +199,7 @@ function TransactionItem({ tx }: Props) {
                   .format("D MMMM YYYY, HH:mm")}
               </p>
             </div>
-            {type == "outgoing" && (
+            {tx.state != "failed" && type == "outgoing" && (
               <div className="mt-6">
                 <p>Fee</p>
                 <p className="text-muted-foreground">
