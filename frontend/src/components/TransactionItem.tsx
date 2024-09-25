@@ -199,7 +199,7 @@ function TransactionItem({ tx }: Props) {
                   .format("D MMMM YYYY, HH:mm")}
               </p>
             </div>
-            {type == "outgoing" && (
+            {tx.state != "failed" && type == "outgoing" && (
               <div className="mt-6">
                 <p>Fee</p>
                 <p className="text-muted-foreground">
@@ -233,22 +233,24 @@ function TransactionItem({ tx }: Props) {
               {showDetails && (
                 <>
                   {tx.boostagram && <PodcastingInfo boost={tx.boostagram} />}
-                  <div className="mt-6">
-                    <p>Preimage</p>
-                    <div className="flex items-center gap-4">
-                      <p className="text-muted-foreground break-all">
-                        {tx.preimage}
-                      </p>
-                      <CopyIcon
-                        className="cursor-pointer text-muted-foreground w-6 h-6"
-                        onClick={() => {
-                          if (tx.preimage) {
-                            copy(tx.preimage);
-                          }
-                        }}
-                      />
+                  {tx.preimage && (
+                    <div className="mt-6">
+                      <p>Preimage</p>
+                      <div className="flex items-center gap-4">
+                        <p className="text-muted-foreground break-all">
+                          {tx.preimage}
+                        </p>
+                        <CopyIcon
+                          className="cursor-pointer text-muted-foreground w-6 h-6"
+                          onClick={() => {
+                            if (tx.preimage) {
+                              copy(tx.preimage);
+                            }
+                          }}
+                        />
+                      </div>
                     </div>
-                  </div>
+                  )}
                   <div className="mt-6">
                     <p>Hash</p>
                     <div className="flex items-center gap-4">
