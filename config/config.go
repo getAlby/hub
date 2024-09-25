@@ -187,7 +187,7 @@ func (cfg *config) SetIgnore(key string, value string, encryptionKey string) err
 	}
 	err := cfg.set(key, value, clauses, encryptionKey, cfg.db)
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to save config", err)
+		logger.Logger.WithField("key", key).WithError(err).Error("Failed to set config key with ignore", err)
 		return err
 	}
 	return nil
@@ -200,7 +200,8 @@ func (cfg *config) SetUpdate(key string, value string, encryptionKey string) err
 	}
 	err := cfg.set(key, value, clauses, encryptionKey, cfg.db)
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to save config")
+		logger.Logger.WithField("key", key).WithError(err).Error("Failed to set config key with update", err)
+		return err
 	}
 	return nil
 }
