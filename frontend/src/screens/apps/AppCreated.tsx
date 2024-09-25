@@ -4,6 +4,7 @@ import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
+import { IsolatedAppTopupDialog } from "src/components/IsolatedAppTopupDialog";
 import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
 import { SuggestedApp, suggestedApps } from "src/components/SuggestedAppData";
@@ -87,22 +88,36 @@ function AppCreatedInternal() {
       />
       <div className="flex flex-col gap-3 sensitive">
         <div>
-          <p>
-            1. Open{" "}
-            {appstoreApp?.webLink ? (
-              <ExternalLink
-                className="font-semibold underline"
-                to={appstoreApp.webLink}
-              >
-                {appstoreApp.title}
-              </ExternalLink>
-            ) : (
-              "the app you wish to connect"
-            )}{" "}
-            and look for a way to attach a wallet (most apps provide this option
-            in settings)
-          </p>
-          <p>2. Scan or paste the connection secret</p>
+          <ol className="list-decimal list-inside">
+            <li>
+              Open{" "}
+              {appstoreApp?.webLink ? (
+                <ExternalLink
+                  className="font-semibold underline"
+                  to={appstoreApp.webLink}
+                >
+                  {appstoreApp.title}
+                </ExternalLink>
+              ) : (
+                "the app you wish to connect"
+              )}{" "}
+              and look for a way to attach a wallet (most apps provide this
+              option in settings)
+            </li>
+            {app?.isolated && (
+              <li>
+                Optional: Increase isolated balance (
+                {new Intl.NumberFormat().format(Math.floor(app.balance / 1000))}{" "}
+                sats){" "}
+                <IsolatedAppTopupDialog appPubkey={app.nostrPubkey}>
+                  <Button size="sm" variant="secondary">
+                    Increase
+                  </Button>
+                </IsolatedAppTopupDialog>
+              </li>
+            )}
+            <li>Scan or paste the connection secret</li>
+          </ol>
         </div>
         {app && (
           <ConnectAppCard

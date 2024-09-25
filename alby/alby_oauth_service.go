@@ -20,6 +20,7 @@ import (
 	"golang.org/x/oauth2"
 	"gorm.io/gorm"
 
+	"github.com/getAlby/hub/apps"
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
@@ -346,9 +347,9 @@ func (svc *albyOAuthService) DrainSharedWallet(ctx context.Context, lnClient lnc
 		10 // Alby fee reserve (10 sats)
 
 	if amountSat < 1 {
-		return errors.New("Not enough balance remaining")
+		return errors.New("not enough balance remaining")
 	}
-	amount := amountSat * 1000
+	amount := uint64(amountSat * 1000)
 
 	logger.Logger.WithField("amount", amount).WithError(err).Error("Draining Alby shared wallet funds")
 
@@ -492,7 +493,7 @@ func (svc *albyOAuthService) LinkAccount(ctx context.Context, lnClient lnclient.
 		scopes = append(scopes, constants.NOTIFICATIONS_SCOPE)
 	}
 
-	app, _, err := db.NewDBService(svc.db, svc.eventPublisher).CreateApp(
+	app, _, err := apps.NewAppsService(svc.db, svc.eventPublisher).CreateApp(
 		ALBY_ACCOUNT_APP_NAME,
 		connectionPubkey,
 		budget,

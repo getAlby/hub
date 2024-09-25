@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/getAlby/hub/api"
+	"github.com/getAlby/hub/apps"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/service"
 	"github.com/wailsapp/wails/v2"
@@ -17,17 +18,19 @@ import (
 )
 
 type WailsApp struct {
-	ctx context.Context
-	svc service.Service
-	api api.API
-	db  *gorm.DB
+	ctx     context.Context
+	svc     service.Service
+	api     api.API
+	db      *gorm.DB
+	appsSvc apps.AppsService
 }
 
 func NewApp(svc service.Service) *WailsApp {
 	return &WailsApp{
-		svc: svc,
-		api: api.NewAPI(svc, svc.GetDB(), svc.GetConfig(), svc.GetKeys(), svc.GetAlbyOAuthSvc(), svc.GetEventPublisher()),
-		db:  svc.GetDB(),
+		svc:     svc,
+		api:     api.NewAPI(svc, svc.GetDB(), svc.GetConfig(), svc.GetKeys(), svc.GetAlbyOAuthSvc(), svc.GetEventPublisher()),
+		db:      svc.GetDB(),
+		appsSvc: apps.NewAppsService(svc.GetDB(), svc.GetEventPublisher()),
 	}
 }
 
