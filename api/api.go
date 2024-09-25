@@ -757,7 +757,7 @@ func (api *api) Setup(ctx context.Context, setupRequest *SetupRequest) error {
 		return errors.New("no unlock password provided")
 	}
 
-	err = api.cfg.Setup(setupRequest.UnlockPassword)
+	err = api.cfg.SaveUnlockPasswordCheck(setupRequest.UnlockPassword)
 	if err != nil {
 		return err
 	}

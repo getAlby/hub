@@ -256,8 +256,7 @@ func (cfg *config) CheckUnlockPassword(encryptionKey string) bool {
 	return err == nil && (decryptedValue == "" || decryptedValue == unlockPasswordCheck)
 }
 
-// TODO: rename
-func (cfg *config) Setup(encryptionKey string) error {
+func (cfg *config) SaveUnlockPasswordCheck(encryptionKey string) error {
 	err := cfg.SetUpdate("UnlockPasswordCheck", unlockPasswordCheck, encryptionKey)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to save unlock password check to config")

@@ -57,6 +57,6 @@ type Config interface {
 	GetEnv() *AppConfig
 	CheckUnlockPassword(password string) bool
 	ChangeUnlockPassword(currentUnlockPassword string, newUnlockPassword string) error
-	Setup(encryptionKey string) error
+	SaveUnlockPasswordCheck(encryptionKey string) error
 	SetupCompleted() bool
 }
