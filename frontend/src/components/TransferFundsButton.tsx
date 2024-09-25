@@ -7,7 +7,7 @@ import { request } from "src/utils/request";
 type TransferFundsButtonProps = {
   channels: Channel[] | undefined;
   albyBalance: AlbyBalance;
-  onTransferComplete: () => Promise<void>;
+  onTransferComplete: () => Promise<unknown>;
 } & ButtonProps;
 
 export function TransferFundsButton({

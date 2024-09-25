@@ -63,11 +63,13 @@ function Wallet() {
               <TransferFundsButton
                 channels={channels}
                 albyBalance={albyBalance}
-                onTransferComplete={async () => {
-                  await reloadAlbyBalance();
-                  await reloadBalances();
-                  await reloadTransactions();
-                }}
+                onTransferComplete={() =>
+                  Promise.all([
+                    reloadAlbyBalance(),
+                    reloadBalances(),
+                    reloadTransactions(),
+                  ])
+                }
               >
                 Migrate Funds
               </TransferFundsButton>

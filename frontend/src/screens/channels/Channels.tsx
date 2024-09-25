@@ -270,11 +270,13 @@ export default function Channels() {
                 variant="outline"
                 channels={channels}
                 albyBalance={albyBalance}
-                onTransferComplete={async () => {
-                  await reloadAlbyBalance();
-                  await reloadBalances();
-                  await reloadChannels();
-                }}
+                onTransferComplete={() =>
+                  Promise.all([
+                    reloadAlbyBalance(),
+                    reloadBalances(),
+                    reloadChannels(),
+                  ])
+                }
               >
                 Migrate
               </TransferFundsButton>
