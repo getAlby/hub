@@ -51,7 +51,7 @@ export function BuzzPay() {
         });
 
         setPosUrl(
-          `https://pos.albylabs.com/?name=${encodeURIComponent(name)}#/wallet/${encodeURIComponent(createAppResponse.pairingUri)}/new`
+          `https://pos.albylabs.com/?name=${encodeURIComponent(name)}&nwc=${encodeURIComponent(btoa(createAppResponse.pairingUri))}`
         );
 
         await reloadApps();
