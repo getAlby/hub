@@ -23,12 +23,14 @@ import { useAlbyBalance } from "src/hooks/useAlbyBalance";
 import { useBalances } from "src/hooks/useBalances";
 import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
+import { useTransactions } from "src/hooks/useTransactions";
 
 function Wallet() {
   const { data: info, hasChannelManagement } = useInfo();
-  const { data: balances } = useBalances();
+  const { data: balances, mutate: reloadBalances } = useBalances();
   const { data: channels } = useChannels();
   const { data: albyBalance, mutate: reloadAlbyBalance } = useAlbyBalance();
+  const { mutate: reloadTransactions } = useTransactions();
 
   if (!info || !balances) {
     return <Loading />;
@@ -61,7 +63,13 @@ function Wallet() {
               <TransferFundsButton
                 channels={channels}
                 albyBalance={albyBalance}
-                reloadAlbyBalance={reloadAlbyBalance}
+                onTransferComplete={() =>
+                  Promise.all([
+                    reloadAlbyBalance(),
+                    reloadBalances(),
+                    reloadTransactions(),
+                  ])
+                }
               >
                 Migrate Funds
               </TransferFundsButton>

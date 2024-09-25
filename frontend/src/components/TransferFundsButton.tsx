@@ -7,13 +7,13 @@ import { request } from "src/utils/request";
 type TransferFundsButtonProps = {
   channels: Channel[] | undefined;
   albyBalance: AlbyBalance;
-  reloadAlbyBalance: () => void;
+  onTransferComplete: () => Promise<unknown>;
 } & ButtonProps;
 
 export function TransferFundsButton({
   channels,
   albyBalance,
-  reloadAlbyBalance,
+  onTransferComplete,
   children,
   ...props
 }: TransferFundsButtonProps) {
@@ -46,7 +46,7 @@ export function TransferFundsButton({
               "Content-Type": "application/json",
             },
           });
-          await reloadAlbyBalance();
+          await onTransferComplete();
           toast({
             title:
               "🎉 Funds from Alby shared wallet transferred to your Alby Hub!",
