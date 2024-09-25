@@ -67,9 +67,9 @@ import { request } from "src/utils/request";
 
 export default function Channels() {
   useSyncWallet();
-  const { data: channels } = useChannels();
+  const { data: channels, mutate: reloadChannels } = useChannels();
   const { data: nodeConnectionInfo } = useNodeConnectionInfo();
-  const { data: balances } = useBalances();
+  const { data: balances, mutate: reloadBalances } = useBalances();
   const { data: albyBalance, mutate: reloadAlbyBalance } = useAlbyBalance();
   const navigate = useNavigate();
   const [nodes, setNodes] = React.useState<Node[]>([]);
@@ -270,7 +270,11 @@ export default function Channels() {
                 variant="outline"
                 channels={channels}
                 albyBalance={albyBalance}
-                reloadAlbyBalance={reloadAlbyBalance}
+                onTransferComplete={async () => {
+                  await reloadAlbyBalance();
+                  await reloadBalances();
+                  await reloadChannels();
+                }}
               >
                 Migrate
               </TransferFundsButton>
