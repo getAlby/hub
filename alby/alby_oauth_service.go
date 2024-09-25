@@ -131,7 +131,6 @@ func (svc *albyOAuthService) CallbackHandler(ctx context.Context, code string, l
 		err := svc.cfg.SetUpdate(accessTokenKey, "", "")
 		if err != nil {
 			logger.Logger.WithError(err).Error("Failed to set user access token")
-			return err
 		}
 		return errors.New("Alby Hub is connected to a different alby account. Please log out of your Alby Account at getalby.com and try again.")
 	}
