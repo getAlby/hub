@@ -25,50 +25,77 @@ const (
 	unlockPasswordCheck = "THIS STRING SHOULD MATCH IF PASSWORD IS CORRECT"
 )
 
-func NewConfig(env *AppConfig, db *gorm.DB) *config {
+func NewConfig(env *AppConfig, db *gorm.DB) (*config, error) {
 	cfg := &config{
 		db: db,
 	}
-	cfg.init(env)
-	return cfg
+	err := cfg.init(env)
+	if err != nil {
+		return nil, err
+	}
+
+	return cfg, nil
 }
 
-func (cfg *config) init(env *AppConfig) {
+func (cfg *config) init(env *AppConfig) error {
 	cfg.Env = env
 
 	if cfg.Env.Relay != "" {
-		cfg.SetIgnore("Relay", cfg.Env.Relay, "")
+		err := cfg.SetIgnore("Relay", cfg.Env.Relay, "")
+		if err != nil {
+			return err
+		}
 	}
 	if cfg.Env.LNBackendType != "" {
-		cfg.SetIgnore("LNBackendType", cfg.Env.LNBackendType, "")
+		err := cfg.SetIgnore("LNBackendType", cfg.Env.LNBackendType, "")
+		if err != nil {
+			return err
+		}
 	}
 
 	// LND specific to support env variables
 	if cfg.Env.LNDAddress != "" {
-		cfg.SetIgnore("LNDAddress", cfg.Env.LNDAddress, "")
+		err := cfg.SetIgnore("LNDAddress", cfg.Env.LNDAddress, "")
+		if err != nil {
+			return err
+		}
 	}
 	if cfg.Env.LNDCertFile != "" {
 		certBytes, err := os.ReadFile(cfg.Env.LNDCertFile)
 		if err != nil {
-			logger.Logger.Fatalf("Failed to read LND cert file: %v", err)
+			logger.Logger.WithError(err).Error("Failed to read LND cert file")
+			return err
 		}
 		certHex := hex.EncodeToString(certBytes)
-		cfg.SetIgnore("LNDCertHex", certHex, "")
+		err = cfg.SetIgnore("LNDCertHex", certHex, "")
+		if err != nil {
+			return err
+		}
 	}
 	if cfg.Env.LNDMacaroonFile != "" {
 		macBytes, err := os.ReadFile(cfg.Env.LNDMacaroonFile)
 		if err != nil {
-			logger.Logger.Fatalf("Failed to read LND macaroon file: %v", err)
+			logger.Logger.WithError(err).Error("Failed to read LND macaroon file")
+			return err
 		}
 		macHex := hex.EncodeToString(macBytes)
-		cfg.SetIgnore("LNDMacaroonHex", macHex, "")
+		err = cfg.SetIgnore("LNDMacaroonHex", macHex, "")
+		if err != nil {
+			return err
+		}
 	}
 	// Phoenix specific to support env variables
 	if cfg.Env.PhoenixdAddress != "" {
-		cfg.SetIgnore("PhoenixdAddress", cfg.Env.PhoenixdAddress, "")
+		err := cfg.SetIgnore("PhoenixdAddress", cfg.Env.PhoenixdAddress, "")
+		if err != nil {
+			return err
+		}
 	}
 	if cfg.Env.PhoenixdAuthorization != "" {
-		cfg.SetIgnore("PhoenixdAuthorization", cfg.Env.PhoenixdAuthorization, "")
+		err := cfg.SetIgnore("PhoenixdAuthorization", cfg.Env.PhoenixdAuthorization, "")
+		if err != nil {
+			return err
+		}
 	}
 
 	// set the JWT secret to the one from the env
@@ -76,11 +103,17 @@ func (cfg *config) init(env *AppConfig) {
 	cfg.JWTSecret = cfg.Env.JWTSecret
 	if cfg.JWTSecret == "" {
 		hex, err := randomHex(32)
-		if err == nil {
-			cfg.SetIgnore("JWTSecret", hex, "")
+		if err != nil {
+			logger.Logger.WithError(err).Error("failed to generate JWT secret")
+			return err
+		}
+		err = cfg.SetIgnore("JWTSecret", hex, "")
+		if err != nil {
+			return err
 		}
 		cfg.JWTSecret, _ = cfg.Get("JWTSecret", "")
 	}
+	return nil
 }
 
 func (cfg *config) SetupCompleted() bool {
@@ -147,26 +180,29 @@ func (cfg *config) set(key string, value string, clauses clause.OnConflict, encr
 	return nil
 }
 
-func (cfg *config) SetIgnore(key string, value string, encryptionKey string) {
+func (cfg *config) SetIgnore(key string, value string, encryptionKey string) error {
 	clauses := clause.OnConflict{
 		Columns:   []clause.Column{{Name: "key"}},
 		DoNothing: true,
 	}
 	err := cfg.set(key, value, clauses, encryptionKey, cfg.db)
 	if err != nil {
-		logger.Logger.Fatalf("Failed to save config: %v", err)
+		logger.Logger.WithError(err).Error("Failed to save config", err)
+		return err
 	}
+	return nil
 }
 
-func (cfg *config) SetUpdate(key string, value string, encryptionKey string) {
+func (cfg *config) SetUpdate(key string, value string, encryptionKey string) error {
 	clauses := clause.OnConflict{
 		Columns:   []clause.Column{{Name: "key"}},
 		DoUpdates: clause.AssignmentColumns([]string{"value"}),
 	}
 	err := cfg.set(key, value, clauses, encryptionKey, cfg.db)
 	if err != nil {
-		logger.Logger.Fatalf("Failed to save config: %v", err)
+		logger.Logger.WithError(err).Error("Failed to save config")
 	}
+	return nil
 }
 
 func (cfg *config) ChangeUnlockPassword(currentUnlockPassword string, newUnlockPassword string) error {
@@ -220,8 +256,13 @@ func (cfg *config) CheckUnlockPassword(encryptionKey string) bool {
 }
 
 // TODO: rename
-func (cfg *config) Setup(encryptionKey string) {
-	cfg.SetUpdate("UnlockPasswordCheck", unlockPasswordCheck, encryptionKey)
+func (cfg *config) Setup(encryptionKey string) error {
+	err := cfg.SetUpdate("UnlockPasswordCheck", unlockPasswordCheck, encryptionKey)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to save unlock password check to config")
+		return err
+	}
+	return nil
 }
 
 func (cfg *config) GetEnv() *AppConfig {

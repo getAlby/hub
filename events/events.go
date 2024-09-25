@@ -46,12 +46,23 @@ func (ep *eventPublisher) RemoveSubscriber(listenerToRemove EventSubscriber) {
 }
 
 func (ep *eventPublisher) Publish(event *Event) {
+	ep.publish(event, false)
+}
+func (ep *eventPublisher) PublishSync(event *Event) {
+	ep.publish(event, true)
+}
+
+func (ep *eventPublisher) publish(event *Event, sync bool) {
 	ep.subscriberMtx.Lock()
 	defer ep.subscriberMtx.Unlock()
 	logger.Logger.WithFields(logrus.Fields{"event": event, "global": ep.globalProperties}).Debug("Publishing event")
 	for _, listener := range ep.listeners {
-		// consume event without blocking thread
-		go listener.ConsumeEvent(context.Background(), event, ep.globalProperties)
+		if sync {
+			listener.ConsumeEvent(context.Background(), event, ep.globalProperties)
+		} else {
+			// consume event without blocking thread
+			go listener.ConsumeEvent(context.Background(), event, ep.globalProperties)
+		}
 	}
 }
 

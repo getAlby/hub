@@ -50,13 +50,13 @@ func (c *AppConfig) IsDefaultClientId() bool {
 
 type Config interface {
 	Get(key string, encryptionKey string) (string, error)
-	SetIgnore(key string, value string, encryptionKey string)
-	SetUpdate(key string, value string, encryptionKey string)
+	SetIgnore(key string, value string, encryptionKey string) error
+	SetUpdate(key string, value string, encryptionKey string) error
 	GetJWTSecret() string
 	GetRelayUrl() string
 	GetEnv() *AppConfig
 	CheckUnlockPassword(password string) bool
 	ChangeUnlockPassword(currentUnlockPassword string, newUnlockPassword string) error
-	Setup(encryptionKey string)
+	Setup(encryptionKey string) error
 	SetupCompleted() bool
 }

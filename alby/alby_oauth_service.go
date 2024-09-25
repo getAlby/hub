@@ -97,7 +97,10 @@ func (svc *albyOAuthService) CallbackHandler(ctx context.Context, code string, l
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to fetch user me")
 		// remove token so user can retry
-		svc.cfg.SetUpdate(accessTokenKey, "", "")
+		err2 := svc.cfg.SetUpdate(accessTokenKey, "", "")
+		if err2 != nil {
+			logger.Logger.WithError(err2).Error("failed to remove existing access token")
+		}
 		return err
 	}
 
@@ -109,7 +112,11 @@ func (svc *albyOAuthService) CallbackHandler(ctx context.Context, code string, l
 
 	// save the user's alby account ID on first time login
 	if existingUserIdentifier == "" {
-		svc.cfg.SetUpdate(userIdentifierKey, me.Identifier, "")
+		err := svc.cfg.SetUpdate(userIdentifierKey, me.Identifier, "")
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to set user identifier")
+			return err
+		}
 
 		if svc.cfg.GetEnv().AutoLinkAlbyAccount {
 			// link account on first login
@@ -121,7 +128,11 @@ func (svc *albyOAuthService) CallbackHandler(ctx context.Context, code string, l
 
 	} else if me.Identifier != existingUserIdentifier {
 		// remove token so user can retry with correct account
-		svc.cfg.SetUpdate(accessTokenKey, "", "")
+		err := svc.cfg.SetUpdate(accessTokenKey, "", "")
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to set user access token")
+			return err
+		}
 		return errors.New("Alby Hub is connected to a different alby account. Please log out of your Alby Account at getalby.com and try again.")
 	}
 
@@ -155,9 +166,18 @@ func (svc *albyOAuthService) IsConnected(ctx context.Context) bool {
 }
 
 func (svc *albyOAuthService) saveToken(token *oauth2.Token) {
-	svc.cfg.SetUpdate(accessTokenExpiryKey, strconv.FormatInt(token.Expiry.Unix(), 10), "")
-	svc.cfg.SetUpdate(accessTokenKey, token.AccessToken, "")
-	svc.cfg.SetUpdate(refreshTokenKey, token.RefreshToken, "")
+	err := svc.cfg.SetUpdate(accessTokenExpiryKey, strconv.FormatInt(token.Expiry.Unix(), 10), "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to save access token expiry")
+	}
+	err = svc.cfg.SetUpdate(accessTokenKey, token.AccessToken, "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to save access token")
+	}
+	err = svc.cfg.SetUpdate(refreshTokenKey, token.RefreshToken, "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to save refresh token")
+	}
 }
 
 var tokenMutex sync.Mutex
@@ -202,8 +222,8 @@ func (svc *albyOAuthService) fetchUserToken(ctx context.Context) (*oauth2.Token,
 		RefreshToken: refreshToken,
 	}
 
-	// only use the current token if it has at least 20 seconds before expiry
-	if currentToken.Expiry.After(time.Now().Add(time.Duration(20) * time.Second)) {
+	// only use the current token if it has at least 60 seconds before expiry
+	if currentToken.Expiry.After(time.Now().Add(time.Duration(60) * time.Second)) {
 		logger.Logger.Debug("Using existing Alby OAuth token")
 		return currentToken, nil
 	}
@@ -290,7 +310,10 @@ func (svc *albyOAuthService) GetMe(ctx context.Context) (*AlbyMe, error) {
 		return nil, err
 	}
 
-	svc.cfg.SetUpdate(lightningAddressKey, me.LightningAddress, "")
+	err = svc.cfg.SetUpdate(lightningAddressKey, me.LightningAddress, "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to save lightning address")
+	}
 
 	logger.Logger.WithFields(logrus.Fields{"me": me}).Info("Alby me response")
 	return me, nil
@@ -451,9 +474,6 @@ func (svc *albyOAuthService) SendPayment(ctx context.Context, invoice string) er
 }
 
 func (svc *albyOAuthService) GetAuthUrl() string {
-	if svc.cfg.GetEnv().AlbyClientId == "" || svc.cfg.GetEnv().AlbyClientSecret == "" {
-		logger.Logger.Fatalf("No ALBY_OAUTH_CLIENT_ID or ALBY_OAUTH_CLIENT_SECRET set")
-	}
 	return svc.oauthConf.AuthCodeURL("unused")
 }
 
@@ -464,11 +484,26 @@ func (svc *albyOAuthService) UnlinkAccount(ctx context.Context) error {
 	}
 	svc.deleteAlbyAccountApps()
 
-	svc.cfg.SetUpdate(userIdentifierKey, "", "")
-	svc.cfg.SetUpdate(accessTokenKey, "", "")
-	svc.cfg.SetUpdate(accessTokenExpiryKey, "", "")
-	svc.cfg.SetUpdate(refreshTokenKey, "", "")
-	svc.cfg.SetUpdate(lightningAddressKey, "", "")
+	err = svc.cfg.SetUpdate(userIdentifierKey, "", "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to remove user identifier from config")
+	}
+	err = svc.cfg.SetUpdate(accessTokenKey, "", "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to remove access token from config")
+	}
+	err = svc.cfg.SetUpdate(accessTokenExpiryKey, "", "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to remove access token expiry from config")
+	}
+	err = svc.cfg.SetUpdate(refreshTokenKey, "", "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to remove refresh token from config")
+	}
+	err = svc.cfg.SetUpdate(lightningAddressKey, "", "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to remove lightning address from config")
+	}
 
 	return nil
 }

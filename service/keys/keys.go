@@ -28,7 +28,11 @@ func (keys *keys) Init(cfg config.Config, encryptionKey string) error {
 
 	if nostrSecretKey == "" {
 		nostrSecretKey = nostr.GeneratePrivateKey()
-		cfg.SetUpdate("NostrSecretKey", nostrSecretKey, encryptionKey)
+		err := cfg.SetUpdate("NostrSecretKey", nostrSecretKey, encryptionKey)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to save generated nostr secret key")
+			return err
+		}
 	}
 	nostrPublicKey, err := nostr.GetPublicKey(nostrSecretKey)
 	if err != nil {
@@ -41,15 +45,9 @@ func (keys *keys) Init(cfg config.Config, encryptionKey string) error {
 }
 
 func (keys *keys) GetNostrPublicKey() string {
-	if keys.nostrPublicKey == "" {
-		logger.Logger.Fatal("keys not initialized")
-	}
 	return keys.nostrPublicKey
 }
 
 func (keys *keys) GetNostrSecretKey() string {
-	if keys.nostrSecretKey == "" {
-		logger.Logger.Fatal("keys not initialized")
-	}
 	return keys.nostrSecretKey
 }

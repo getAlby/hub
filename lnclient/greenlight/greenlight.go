@@ -66,14 +66,19 @@ func NewGreenlightService(cfg config.Config, mnemonic, inviteCode, workDir, encr
 			credentials = &recoveredCredentials
 
 			if err != nil {
-				logger.Logger.Fatalf("Failed to register new node")
+				logger.Logger.WithError(err).Error("Failed to register new node")
+				return nil, err
 			}
 		}
 
 		if credentials == nil || credentials.GlCreds == "" {
 			return nil, errors.New("unexpected response from Recover")
 		}
-		cfg.SetUpdate(DEVICE_CREDENTIALS_KEY, credentials.GlCreds, encryptionKey)
+		err = cfg.SetUpdate(DEVICE_CREDENTIALS_KEY, credentials.GlCreds, encryptionKey)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to save greenlight credentials")
+			return nil, err
+		}
 	}
 
 	client, err := glalby.NewBlockingGreenlightAlbyClient(mnemonic, *credentials)
@@ -83,7 +88,7 @@ func NewGreenlightService(cfg config.Config, mnemonic, inviteCode, workDir, encr
 		return nil, err
 	}
 	if client == nil {
-		log.Fatalf("unexpected response from NewBlockingGreenlightAlbyClient")
+		logger.Logger.Error("unexpected response from NewBlockingGreenlightAlbyClient")
 	}
 
 	nodeInfo, err := client.GetInfo()

@@ -525,7 +525,10 @@ func (api *api) GetNewOnchainAddress(ctx context.Context) (string, error) {
 		return "", err
 	}
 
-	api.cfg.SetUpdate(config.OnchainAddressKey, address, "")
+	err = api.cfg.SetUpdate(config.OnchainAddressKey, address, "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to save new onchain address to config")
+	}
 
 	return address, nil
 }
@@ -706,7 +709,10 @@ func (api *api) GetMnemonic(unlockPassword string) (*MnemonicResponse, error) {
 }
 
 func (api *api) SetNextBackupReminder(backupReminderRequest *BackupReminderRequest) error {
-	api.cfg.SetUpdate("NextBackupReminder", backupReminderRequest.NextBackupReminder, "")
+	err := api.cfg.SetUpdate("NextBackupReminder", backupReminderRequest.NextBackupReminder, "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to save next backup reminder to config")
+	}
 	return nil
 }
 
@@ -751,44 +757,89 @@ func (api *api) Setup(ctx context.Context, setupRequest *SetupRequest) error {
 		return errors.New("no unlock password provided")
 	}
 
-	api.cfg.Setup(setupRequest.UnlockPassword)
-
-	// TODO: move all below code to cfg.Setup()
+	err = api.cfg.Setup(setupRequest.UnlockPassword)
+	if err != nil {
+		return err
+	}
 
 	// update next backup reminder
-	api.cfg.SetUpdate("NextBackupReminder", setupRequest.NextBackupReminder, "")
+	err = api.cfg.SetUpdate("NextBackupReminder", setupRequest.NextBackupReminder, "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to save next backup reminder")
+	}
+
 	// only update non-empty values
 	if setupRequest.LNBackendType != "" {
-		api.cfg.SetUpdate("LNBackendType", setupRequest.LNBackendType, "")
+		err = api.cfg.SetUpdate("LNBackendType", setupRequest.LNBackendType, "")
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to save backend type")
+			return err
+		}
 	}
 	if setupRequest.BreezAPIKey != "" {
-		api.cfg.SetUpdate("BreezAPIKey", setupRequest.BreezAPIKey, setupRequest.UnlockPassword)
+		err = api.cfg.SetUpdate("BreezAPIKey", setupRequest.BreezAPIKey, setupRequest.UnlockPassword)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to save breez api key")
+			return err
+		}
 	}
 	if setupRequest.Mnemonic != "" {
-		api.cfg.SetUpdate("Mnemonic", setupRequest.Mnemonic, setupRequest.UnlockPassword)
+		err = api.cfg.SetUpdate("Mnemonic", setupRequest.Mnemonic, setupRequest.UnlockPassword)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to save encrypted mnemonic")
+			return err
+		}
 	}
 	if setupRequest.GreenlightInviteCode != "" {
-		api.cfg.SetUpdate("GreenlightInviteCode", setupRequest.GreenlightInviteCode, setupRequest.UnlockPassword)
+		err = api.cfg.SetUpdate("GreenlightInviteCode", setupRequest.GreenlightInviteCode, setupRequest.UnlockPassword)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to save greenlight invite code")
+			return err
+		}
 	}
 	if setupRequest.LNDAddress != "" {
-		api.cfg.SetUpdate("LNDAddress", setupRequest.LNDAddress, setupRequest.UnlockPassword)
+		err = api.cfg.SetUpdate("LNDAddress", setupRequest.LNDAddress, setupRequest.UnlockPassword)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to save lnd address")
+			return err
+		}
 	}
 	if setupRequest.LNDCertHex != "" {
-		api.cfg.SetUpdate("LNDCertHex", setupRequest.LNDCertHex, setupRequest.UnlockPassword)
+		err = api.cfg.SetUpdate("LNDCertHex", setupRequest.LNDCertHex, setupRequest.UnlockPassword)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to save lnd cert hex")
+			return err
+		}
 	}
 	if setupRequest.LNDMacaroonHex != "" {
-		api.cfg.SetUpdate("LNDMacaroonHex", setupRequest.LNDMacaroonHex, setupRequest.UnlockPassword)
+		err = api.cfg.SetUpdate("LNDMacaroonHex", setupRequest.LNDMacaroonHex, setupRequest.UnlockPassword)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to save lnd macaroon hex")
+			return err
+		}
 	}
 
 	if setupRequest.PhoenixdAddress != "" {
-		api.cfg.SetUpdate("PhoenixdAddress", setupRequest.PhoenixdAddress, setupRequest.UnlockPassword)
+		err = api.cfg.SetUpdate("PhoenixdAddress", setupRequest.PhoenixdAddress, setupRequest.UnlockPassword)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to save phoenix address")
+			return err
+		}
 	}
 	if setupRequest.PhoenixdAuthorization != "" {
-		api.cfg.SetUpdate("PhoenixdAuthorization", setupRequest.PhoenixdAuthorization, setupRequest.UnlockPassword)
+		err = api.cfg.SetUpdate("PhoenixdAuthorization", setupRequest.PhoenixdAuthorization, setupRequest.UnlockPassword)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to save phoenix auth")
+			return err
+		}
 	}
 
 	if setupRequest.CashuMintUrl != "" {
-		api.cfg.SetUpdate("CashuMintUrl", setupRequest.CashuMintUrl, setupRequest.UnlockPassword)
+		err = api.cfg.SetUpdate("CashuMintUrl", setupRequest.CashuMintUrl, setupRequest.UnlockPassword)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to save cashu mint url")
+			return err
+		}
 	}
 
 	return nil
