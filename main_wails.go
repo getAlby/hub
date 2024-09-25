@@ -6,6 +6,7 @@ package main
 import (
 	"context"
 	"embed"
+	"net"
 
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/service"
@@ -20,6 +21,14 @@ var assets embed.FS
 var appIcon []byte
 
 func main() {
+	// Get a port lock on a rare port to prevent the app running twice
+	listener, err := net.Listen("tcp", "0.0.0.0:21420")
+	if err != nil {
+		log.Println("Another instance of Alby Hub is already running.")
+		return
+	}
+	defer listener.Close()
+
 	log.Info("Alby Hub starting in WAILS mode")
 	ctx, cancel := context.WithCancel(context.Background())
 	svc, _ := service.NewService(ctx)
