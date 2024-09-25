@@ -104,7 +104,7 @@ export function FirstChannel() {
       <MempoolAlert />
       {invoice && channelSize && (
         <div className="flex flex-col gap-4 items-center justify-center max-w-md">
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground slashed-zero">
             Please pay the lightning invoice below which will cover the costs of
             opening your first channel. You will receive a channel with{" "}
             {new Intl.NumberFormat().format(channelSize)} sats of incoming
@@ -143,7 +143,7 @@ export function FirstChannel() {
               <>
                 <p>
                   Your Alby hosted balance currently holds{" "}
-                  <span className="font-medium text-foreground">
+                  <span className="font-medium text-foreground sensitive slashed-zero">
                     {new Intl.NumberFormat().format(albyBalance?.sats)} sats
                   </span>
                   .

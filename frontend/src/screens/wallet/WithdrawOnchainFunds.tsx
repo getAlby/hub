@@ -154,7 +154,7 @@ export default function WithdrawOnchainFunds() {
           <div className="">
             <Label htmlFor="amount">Amount</Label>
             <div className="flex justify-between items-center mb-1">
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground sensitive slashed-zero">
                 Current onchain balance:{" "}
                 {new Intl.NumberFormat().format(balances.onchain.spendable)}{" "}
                 sats
@@ -187,14 +187,14 @@ export default function WithdrawOnchainFunds() {
                 <AlertDescription>
                   Your entire wallet balance
                   {balances.onchain.reserved > 0 && (
-                    <>
+                    <span className="sensitive slashed-zero">
                       {" "}
                       including reserves (
                       {new Intl.NumberFormat().format(
                         balances.onchain.reserved
                       )}{" "}
                       sats)
-                    </>
+                    </span>
                   )}{" "}
                   will be sent minus onchain transaction fees. The exact amount
                   cannot be determined until the payment is made.
@@ -264,7 +264,7 @@ export default function WithdrawOnchainFunds() {
                     </p>
                     <p className="mt-4">
                       Amount:{" "}
-                      <span className="font-bold">
+                      <span className="font-bold slashed-zero">
                         {sendAll ? (
                           "entire savings balance"
                         ) : (

@@ -175,7 +175,7 @@ function TransactionItem({ tx }: Props) {
             >
               {typeStateIcon}
               <div className="ml-4">
-                <p className="text-xl md:text-2xl font-semibold">
+                <p className="text-xl md:text-2xl font-semibold sensitive">
                   {new Intl.NumberFormat().format(Math.floor(tx.amount / 1000))}{" "}
                   {Math.floor(tx.amount / 1000) == 1 ? "sat" : "sats"}
                 </p>

@@ -36,7 +36,7 @@ function PodcastingInfo({ boost }: { boost: Boostagram }) {
       {boost.valueMsatTotal && (
         <div className="mt-6">
           <p>Total amount</p>
-          <p className="text-muted-foreground break-all">
+          <p className="text-muted-foreground break-all sensitive">
             {new Intl.NumberFormat().format(
               Math.floor(boost.valueMsatTotal / 1000)
             )}{" "}

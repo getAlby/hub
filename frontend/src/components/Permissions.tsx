@@ -170,7 +170,7 @@ const Permissions: React.FC<PermissionsProps> = ({
                   </span>{" "}
                   {permissions.budgetRenewal || "Never"}
                 </p>
-                <p>
+                <p className="slashed-zero">
                   <span className="text-primary font-medium">
                     Budget Amount:
                   </span>{" "}

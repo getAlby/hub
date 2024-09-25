@@ -301,9 +301,9 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
       <div className="grid gap-5 max-w-lg">
         <div className="grid gap-1.5">
           <Label htmlFor="text">On-Chain Address</Label>
-          <p className="text-xs">
+          <p className="text-xs slashed-zero">
             You currently have{" "}
-            <span className="font-semibold">
+            <span className="font-semibold sensitive">
               {new Intl.NumberFormat().format(balances.onchain.total)}
             </span>{" "}
             sats. We recommend depositing{" "}
@@ -382,7 +382,7 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
             </CardDescription>
           </CardHeader>
           {unspentAmount > 0 && (
-            <CardContent>
+            <CardContent className="slashed-zero">
               {new Intl.NumberFormat().format(unspentAmount)} sats deposited
             </CardContent>
           )}
@@ -687,7 +687,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
       {lspOrderResponse && (
         <>
           <div className="max-w-md flex flex-col gap-5">
-            <div className="border rounded-lg">
+            <div className="border rounded-lg slashed-zero">
               <Table>
                 <TableBody>
                   {lspOrderResponse.outgoingLiquidity > 0 && (

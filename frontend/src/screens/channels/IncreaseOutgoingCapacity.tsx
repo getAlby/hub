@@ -269,7 +269,7 @@ function NewChannelInternal({ network }: { network: Network }) {
                 setAmount(e.target.value.trim());
               }}
             />
-            <div className="text-muted-foreground text-sm">
+            <div className="text-muted-foreground text-sm sensitive slashed-zero">
               Current savings balance:{" "}
               {new Intl.NumberFormat().format(balances.onchain.spendable)} sats
             </div>
@@ -333,7 +333,7 @@ function NewChannelInternal({ network }: { network: Network }) {
                                     <div>
                                       {peer.name}
                                       {peer.minimumChannelSize > 0 && (
-                                        <span className="ml-4 text-xs text-muted-foreground">
+                                        <span className="ml-4 text-xs text-muted-foreground slashed-zero">
                                           Min.{" "}
                                           {new Intl.NumberFormat().format(
                                             peer.minimumChannelSize
