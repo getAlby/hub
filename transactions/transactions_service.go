@@ -66,10 +66,10 @@ type Boostagram struct {
 }
 
 type Metadata struct {
-	Comment          string      `json:"comment"`
-	Nostr            *NostrEvent `json:"nostr"`
-	PayerData        *PayerData  `json:"payer_data"`
-	AdditionalFields map[string]interface{}
+	Comment          string                 `json:"comment"`
+	Nostr            *NostrEvent            `json:"nostr"`
+	PayerData        *PayerData             `json:"payer_data"`
+	AdditionalFields map[string]interface{} `json:"-"`
 }
 
 type NostrEvent struct {

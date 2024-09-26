@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"encoding/json"
 	"io"
 	"time"
 
@@ -230,6 +231,24 @@ type Metadata struct {
 	PayerData *PayerData  `json:"payerData,omitempty"`
 }
 
+func (m *Metadata) UnmarshalJSON(data []byte) error {
+	var t struct {
+		Comment   string      `json:"comment"`
+		Nostr     *NostrEvent `json:"nostr"`
+		PayerData *PayerData  `json:"payer_data"`
+	}
+
+	if err := json.Unmarshal(data, &t); err != nil {
+		return err
+	}
+
+	m.Comment = t.Comment
+	m.Nostr = t.Nostr
+	m.PayerData = t.PayerData
+
+	return nil
+}
+
 type NostrEvent struct {
 	Content   string     `json:"content"`
 	CreatedAt int64      `json:"createdAt"`
@@ -240,12 +259,41 @@ type NostrEvent struct {
 	Tags      [][]string `json:"tags"`
 }
 
+func (ne *NostrEvent) UnmarshalJSON(data []byte) error {
+	var t struct {
+		Content   string     `json:"content"`
+		CreatedAt int64      `json:"created_at"`
+		ID        string     `json:"id"`
+		Kind      int        `json:"kind"`
+		PubKey    string     `json:"pubkey"`
+		Sig       string     `json:"sig"`
+		Tags      [][]string `json:"tags"`
+	}
+
+	if err := json.Unmarshal(data, &t); err != nil {
+		return err
+	}
+
+	ne.Content = t.Content
+	ne.CreatedAt = t.CreatedAt
+	ne.ID = t.ID
+	ne.Kind = t.Kind
+	ne.PubKey = t.PubKey
+	ne.Sig = t.Sig
+	ne.Tags = t.Tags
+
+	return nil
+}
+
+// unmarshal method is only needed for structs with snake_case fields
 type PayerData struct {
 	Email  string `json:"email,omitempty"`
 	Name   string `json:"name,omitempty"`
 	Pubkey string `json:"pubkey,omitempty"`
 }
 
+// we did not add the unmarshal method here as Boostagram
+// struct is anyways being used in transaction service
 type Boostagram struct {
 	AppName        string `json:"appName"`
 	Name           string `json:"name"`

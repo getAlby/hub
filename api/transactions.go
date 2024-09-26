@@ -75,15 +75,13 @@ func toApiTransaction(transaction *transactions.Transaction) *Transaction {
 
 	var metadata *Metadata
 	if transaction.Metadata != nil {
-		var txMetadata transactions.Metadata
-		jsonErr := json.Unmarshal(transaction.Metadata, &txMetadata)
+		jsonErr := json.Unmarshal(transaction.Metadata, &metadata)
 		if jsonErr != nil {
 			logger.Logger.WithError(jsonErr).WithFields(logrus.Fields{
 				"payment_hash": transaction.PaymentHash,
 				"metadata":     transaction.Metadata,
 			}).Error("Failed to deserialize transaction metadata info")
 		}
-		metadata = toApiMetadata(&txMetadata)
 	}
 
 	var boostagram *Boostagram
@@ -96,7 +94,7 @@ func toApiTransaction(transaction *transactions.Transaction) *Transaction {
 				"boostagram":   transaction.Boostagram,
 			}).Error("Failed to deserialize transaction boostagram info")
 		}
-		boostagram = toApiBoostagram(&txBoostagram)
+		boostagram = (*Boostagram)(&txBoostagram)
 	}
 
 	return &Transaction{
@@ -114,51 +112,4 @@ func toApiTransaction(transaction *transactions.Transaction) *Transaction {
 		Metadata:        metadata,
 		Boostagram:      boostagram,
 	}
-}
-
-func toApiBoostagram(boostagram *transactions.Boostagram) *Boostagram {
-	return &Boostagram{
-		AppName:        boostagram.AppName,
-		Name:           boostagram.Name,
-		Podcast:        boostagram.Podcast,
-		URL:            boostagram.URL,
-		Episode:        boostagram.Episode,
-		FeedId:         boostagram.FeedId,
-		ItemId:         boostagram.ItemId,
-		Timestamp:      boostagram.Timestamp,
-		Message:        boostagram.Message,
-		SenderId:       boostagram.SenderId,
-		SenderName:     boostagram.SenderName,
-		Time:           boostagram.Time,
-		Action:         boostagram.Action,
-		ValueMsatTotal: boostagram.ValueMsatTotal,
-	}
-}
-
-func toApiMetadata(metadata *transactions.Metadata) *Metadata {
-	apiMetadata := &Metadata{
-		Comment: metadata.Comment,
-	}
-
-	if metadata.Nostr != nil {
-		apiMetadata.Nostr = &NostrEvent{
-			Content:   metadata.Nostr.Content,
-			CreatedAt: metadata.Nostr.CreatedAt,
-			ID:        metadata.Nostr.ID,
-			Kind:      metadata.Nostr.Kind,
-			PubKey:    metadata.Nostr.PubKey,
-			Sig:       metadata.Nostr.Sig,
-			Tags:      metadata.Nostr.Tags,
-		}
-	}
-
-	if metadata.PayerData != nil {
-		apiMetadata.PayerData = &PayerData{
-			Email:  metadata.PayerData.Email,
-			Name:   metadata.PayerData.Name,
-			Pubkey: metadata.PayerData.Pubkey,
-		}
-	}
-
-	return apiMetadata
 }
