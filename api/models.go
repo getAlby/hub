@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"encoding/json"
 	"io"
 	"time"
 
@@ -56,46 +57,48 @@ type API interface {
 }
 
 type App struct {
-	ID            uint       `json:"id"`
-	Name          string     `json:"name"`
-	Description   string     `json:"description"`
-	NostrPubkey   string     `json:"nostrPubkey"`
-	CreatedAt     time.Time  `json:"createdAt"`
-	UpdatedAt     time.Time  `json:"updatedAt"`
-	LastEventAt   *time.Time `json:"lastEventAt"`
-	ExpiresAt     *time.Time `json:"expiresAt"`
-	Scopes        []string   `json:"scopes"`
-	MaxAmountSat  uint64     `json:"maxAmount"`
-	BudgetUsage   uint64     `json:"budgetUsage"`
-	BudgetRenewal string     `json:"budgetRenewal"`
-	Isolated      bool       `json:"isolated"`
-	Balance       uint64     `json:"balance"`
-	Metadata      Metadata   `json:"metadata,omitempty"`
+	ID            uint        `json:"id"`
+	Name          string      `json:"name"`
+	Description   string      `json:"description"`
+	NostrPubkey   string      `json:"nostrPubkey"`
+	CreatedAt     time.Time   `json:"createdAt"`
+	UpdatedAt     time.Time   `json:"updatedAt"`
+	LastEventAt   *time.Time  `json:"lastEventAt"`
+	ExpiresAt     *time.Time  `json:"expiresAt"`
+	Scopes        []string    `json:"scopes"`
+	MaxAmountSat  uint64      `json:"maxAmount"`
+	BudgetUsage   uint64      `json:"budgetUsage"`
+	BudgetRenewal string      `json:"budgetRenewal"`
+	Isolated      bool        `json:"isolated"`
+	Balance       uint64      `json:"balance"`
+	Metadata      AppMetadata `json:"metadata,omitempty"`
 }
+
+type AppMetadata = map[string]interface{}
 
 type ListAppsResponse struct {
 	Apps []App `json:"apps"`
 }
 
 type UpdateAppRequest struct {
-	Name          string   `json:"name"`
-	MaxAmountSat  uint64   `json:"maxAmount"`
-	BudgetRenewal string   `json:"budgetRenewal"`
-	ExpiresAt     string   `json:"expiresAt"`
-	Scopes        []string `json:"scopes"`
-	Metadata      Metadata `json:"metadata,omitempty"`
+	Name          string      `json:"name"`
+	MaxAmountSat  uint64      `json:"maxAmount"`
+	BudgetRenewal string      `json:"budgetRenewal"`
+	ExpiresAt     string      `json:"expiresAt"`
+	Scopes        []string    `json:"scopes"`
+	Metadata      AppMetadata `json:"metadata,omitempty"`
 }
 
 type CreateAppRequest struct {
-	Name          string   `json:"name"`
-	Pubkey        string   `json:"pubkey"`
-	MaxAmountSat  uint64   `json:"maxAmount"`
-	BudgetRenewal string   `json:"budgetRenewal"`
-	ExpiresAt     string   `json:"expiresAt"`
-	Scopes        []string `json:"scopes"`
-	ReturnTo      string   `json:"returnTo"`
-	Isolated      bool     `json:"isolated"`
-	Metadata      Metadata `json:"metadata,omitempty"`
+	Name          string      `json:"name"`
+	Pubkey        string      `json:"pubkey"`
+	MaxAmountSat  uint64      `json:"maxAmount"`
+	BudgetRenewal string      `json:"budgetRenewal"`
+	ExpiresAt     string      `json:"expiresAt"`
+	Scopes        []string    `json:"scopes"`
+	ReturnTo      string      `json:"returnTo"`
+	Isolated      bool        `json:"isolated"`
+	Metadata      AppMetadata `json:"metadata,omitempty"`
 }
 
 type StartRequest struct {
@@ -219,12 +222,79 @@ type Transaction struct {
 	CreatedAt       string      `json:"createdAt"`
 	SettledAt       *string     `json:"settledAt"`
 	AppId           *uint       `json:"appId"`
-	Metadata        Metadata    `json:"metadata,omitempty"`
+	Metadata        *Metadata   `json:"metadata,omitempty"`
 	Boostagram      *Boostagram `json:"boostagram,omitempty"`
 }
 
-type Metadata = map[string]interface{}
+type Metadata struct {
+	Comment   string      `json:"comment,omitempty"`
+	Nostr     *NostrEvent `json:"nostr,omitempty"`
+	PayerData *PayerData  `json:"payerData,omitempty"`
+}
 
+func (m *Metadata) UnmarshalJSON(data []byte) error {
+	var t struct {
+		Comment   string      `json:"comment"`
+		Nostr     *NostrEvent `json:"nostr"`
+		PayerData *PayerData  `json:"payer_data"`
+	}
+
+	if err := json.Unmarshal(data, &t); err != nil {
+		return err
+	}
+
+	m.Comment = t.Comment
+	m.Nostr = t.Nostr
+	m.PayerData = t.PayerData
+
+	return nil
+}
+
+type NostrEvent struct {
+	Content   string     `json:"content"`
+	CreatedAt int64      `json:"createdAt"`
+	ID        string     `json:"id"`
+	Kind      int        `json:"kind"`
+	PubKey    string     `json:"pubkey"`
+	Sig       string     `json:"sig"`
+	Tags      [][]string `json:"tags"`
+}
+
+func (ne *NostrEvent) UnmarshalJSON(data []byte) error {
+	var t struct {
+		Content   string     `json:"content"`
+		CreatedAt int64      `json:"created_at"`
+		ID        string     `json:"id"`
+		Kind      int        `json:"kind"`
+		PubKey    string     `json:"pubkey"`
+		Sig       string     `json:"sig"`
+		Tags      [][]string `json:"tags"`
+	}
+
+	if err := json.Unmarshal(data, &t); err != nil {
+		return err
+	}
+
+	ne.Content = t.Content
+	ne.CreatedAt = t.CreatedAt
+	ne.ID = t.ID
+	ne.Kind = t.Kind
+	ne.PubKey = t.PubKey
+	ne.Sig = t.Sig
+	ne.Tags = t.Tags
+
+	return nil
+}
+
+// unmarshal method is only needed for structs with snake_case fields
+type PayerData struct {
+	Email  string `json:"email,omitempty"`
+	Name   string `json:"name,omitempty"`
+	Pubkey string `json:"pubkey,omitempty"`
+}
+
+// we did not add the unmarshal method here as Boostagram
+// struct is anyways being used in transaction service
 type Boostagram struct {
 	AppName        string `json:"appName"`
 	Name           string `json:"name"`
