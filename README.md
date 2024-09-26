@@ -24,10 +24,9 @@ Go to the [Deploy it yourself](#deploy-it-yourself) section below.
 
 ## Supported Backends
 
+By default Alby Hub uses the embedded LDK based lightning node. Optionally it can be configured to use an external node: 
+
 - LND
-- Breez
-- Greenlight
-- LDK
 - Phoenixd
 - Cashu
 - want more? please open an issue.
