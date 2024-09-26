@@ -1,6 +1,7 @@
 package api
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -94,9 +95,21 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 	responseBody.Pubkey = app.NostrPubkey
 	responseBody.PairingSecret = pairingSecretKey
 
-	lightningAddress, err := api.albyOAuthSvc.GetLightningAddress()
-	if err != nil {
-		return nil, err
+	var lightningAddress string
+
+	if !app.Isolated {
+		lightningAddress, err = api.albyOAuthSvc.GetLightningAddress()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	connectionSecret := fmt.Sprintf("nostr+walletconnect://%s?relay=%s&secret=%s", api.keys.GetNostrPublicKey(), relayUrl, pairingSecretKey)
+	if app.Isolated /* TODO: && createAppRequest.GenerateLightningAddress */ {
+		lightningAddress, err = api.generateLightningAddress(connectionSecret)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if createAppRequest.ReturnTo != "" {
@@ -105,7 +118,7 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 			query := returnToUrl.Query()
 			query.Add("relay", relayUrl)
 			query.Add("pubkey", api.keys.GetNostrPublicKey())
-			if lightningAddress != "" && !app.Isolated {
+			if lightningAddress != "" {
 				query.Add("lud16", lightningAddress)
 			}
 			returnToUrl.RawQuery = query.Encode()
@@ -114,10 +127,10 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 	}
 
 	var lud16 string
-	if lightningAddress != "" && !app.Isolated {
+	if lightningAddress != "" {
 		lud16 = fmt.Sprintf("&lud16=%s", lightningAddress)
 	}
-	responseBody.PairingUri = fmt.Sprintf("nostr+walletconnect://%s?relay=%s&secret=%s%s", api.keys.GetNostrPublicKey(), relayUrl, pairingSecretKey, lud16)
+	responseBody.PairingUri = fmt.Sprintf("%s%s", connectionSecret, lud16)
 	return responseBody, nil
 }
 
@@ -900,4 +913,52 @@ func (api *api) parseExpiresAt(expiresAtString string) (*time.Time, error) {
 		expiresAt = &expiresAtValue
 	}
 	return expiresAt, nil
+}
+
+func (api *api) generateLightningAddress(connectionSecret string) (string, error) {
+
+	client := &http.Client{Timeout: 10 * time.Second}
+
+	type createUserRequest struct {
+		ConnectionSecret string `json:"connectionSecret"`
+	}
+	request := createUserRequest{
+		ConnectionSecret: connectionSecret,
+	}
+	body := bytes.NewBuffer([]byte{})
+	err := json.NewEncoder(body).Encode(&request)
+	if err != nil {
+		return "", err
+	}
+
+	// TODO: update URL
+	albyLiteURL := "http://localhost:8081"
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/users", albyLiteURL), body)
+	if err != nil {
+		return "", err
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to create new alby lite user")
+		return "", err
+	}
+
+	if resp.StatusCode >= 300 {
+		logger.Logger.WithFields(logrus.Fields{
+			"status": resp.StatusCode,
+		}).Error("Request to create new alby lite user returned non-success status")
+		return "", fmt.Errorf("unexpected status code from alby lite: %d", resp.StatusCode)
+	}
+
+	type createUserResponse struct {
+		LightningAddress string `json:"lightningAddress"`
+	}
+	response := &createUserResponse{}
+	err = json.NewDecoder(resp.Body).Decode(response)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to decode API response")
+		return "", err
+	}
+	return response.LightningAddress, nil
 }
