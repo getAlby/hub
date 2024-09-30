@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import albyGo from "src/assets/suggested-apps/alby-go.png";
 import alby from "src/assets/suggested-apps/alby.png";
 import amethyst from "src/assets/suggested-apps/amethyst.png";
@@ -23,13 +24,24 @@ import zappybird from "src/assets/suggested-apps/zappy-bird.png";
 
 export type SuggestedApp = {
   id: string;
-  webLink?: string;
-  internal?: boolean;
-  playLink?: string;
-  appleLink?: string;
   title: string;
   description: string;
   logo?: string;
+
+  // General links
+  webLink?: string;
+
+  // App store links
+  playLink?: string;
+  appleLink?: string;
+  zapStoreLink?: string;
+
+  // Extension store links
+  chromeLink?: string;
+  firefoxLink?: string;
+
+  guide?: React.ReactNode;
+  internal?: boolean;
 };
 
 export const suggestedApps: SuggestedApp[] = [
@@ -52,6 +64,9 @@ export const suggestedApps: SuggestedApp[] = [
     title: "Alby Extension",
     description: "Wallet in your browser",
     webLink: "https://getalby.com/",
+    chromeLink:
+      "https://chromewebstore.google.com/detail/iokeahhehimjnekafflcihljlcjccdbe",
+    firefoxLink: "https://addons.mozilla.org/en-US/firefox/addon/alby/",
     logo: alby,
   },
   {
@@ -61,6 +76,46 @@ export const suggestedApps: SuggestedApp[] = [
     webLink: "https://damus.io/?utm_source=getalby",
     appleLink: "https://apps.apple.com/ca/app/damus/id1628663131",
     logo: damus,
+    guide: (
+      <>
+        <div>
+          <h3 className="font-medium">In Damus</h3>
+          <ul className="list-inside text-muted-foreground">
+            <li>
+              1. Download and open{" "}
+              <span className="font-medium text-foreground">Damus</span> on your
+              iOS device
+            </li>
+            <li>
+              2. Go to{" "}
+              <span className="font-medium text-foreground">Wallet</span> →{" "}
+              <span className="font-medium text-foreground">Attach Wallet</span>
+            </li>
+          </ul>
+        </div>
+        <div>
+          <h3 className="font-medium">In Alby Hub</h3>
+          <ul className="list-inside text-muted-foreground">
+            <li>
+              3. Click{" "}
+              <Link
+                to="/apps/new?app=damus"
+                className="font-semibold text-foreground underline"
+              >
+                Connect to Damus
+              </Link>
+            </li>
+            <li>4. Set app's wallet permissions (full access recommended)</li>
+          </ul>
+        </div>
+        <div>
+          <h3 className="font-medium">In Damus</h3>
+          <ul className="list-inside text-muted-foreground">
+            <li>5. Scan or paste the connection secret from Alby Hub</li>
+          </ul>
+        </div>
+      </>
+    ),
   },
   {
     id: "amethyst",
@@ -199,7 +254,7 @@ export const suggestedApps: SuggestedApp[] = [
     playLink:
       "https://play.google.com/store/apps/details?id=com.getalby.mobile",
     appleLink: "https://apps.apple.com/us/app/alby-go/id6471335774",
+    zapStoreLink: "https://zap.store",
     logo: albyGo,
-    internal: true,
   },
 ].sort((a, b) => (a.title.toUpperCase() > b.title.toUpperCase() ? 1 : -1));

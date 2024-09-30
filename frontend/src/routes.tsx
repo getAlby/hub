@@ -23,6 +23,7 @@ import AppList from "src/screens/apps/AppList";
 import NewApp from "src/screens/apps/NewApp";
 import ShowApp from "src/screens/apps/ShowApp";
 import AppStore from "src/screens/appstore/AppStore";
+import { AppStoreDetail } from "src/screens/appstore/AppStoreDetail";
 import Channels from "src/screens/channels/Channels";
 import { CurrentChannelOrder } from "src/screens/channels/CurrentChannelOrder";
 import IncreaseIncomingCapacity from "src/screens/channels/IncreaseIncomingCapacity";
@@ -33,7 +34,6 @@ import { OpeningAutoChannel } from "src/screens/channels/auto/OpeningAutoChannel
 import { FirstChannel } from "src/screens/channels/first/FirstChannel";
 import { OpenedFirstChannel } from "src/screens/channels/first/OpenedFirstChannel";
 import { OpeningFirstChannel } from "src/screens/channels/first/OpeningFirstChannel";
-import { AlbyGo } from "src/screens/internal-apps/AlbyGo";
 import { BuzzPay } from "src/screens/internal-apps/BuzzPay";
 import { UncleJim } from "src/screens/internal-apps/UncleJim";
 import BuyBitcoin from "src/screens/onchain/BuyBitcoin";
@@ -217,10 +217,6 @@ const routes = [
             path: "buzzpay",
             element: <BuzzPay />,
           },
-          {
-            path: "alby-go",
-            element: <AlbyGo />,
-          },
         ],
       },
       {
@@ -231,6 +227,10 @@ const routes = [
           {
             index: true,
             element: <AppStore />,
+          },
+          {
+            path: ":appId",
+            element: <AppStoreDetail />,
           },
         ],
       },

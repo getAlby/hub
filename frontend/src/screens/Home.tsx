@@ -80,7 +80,7 @@ function Home() {
           </ExternalLink>
         )}
 
-        <Link to="/internal-apps/alby-go">
+        <Link to="/appstore/alby-go">
           <Card>
             <CardHeader>
               <div className="flex flex-row items-center">

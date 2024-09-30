@@ -58,7 +58,7 @@ function SuggestedAppCard({
             </ExternalLink>
           )}
         </div>
-        <Link to={`/apps/new?app=${id}`}>
+        <Link to={`/appstore/${id}`}>
           <Button variant="outline">
             <NostrWalletConnectIcon className="w-4 h-4 mr-2" />
             Connect
