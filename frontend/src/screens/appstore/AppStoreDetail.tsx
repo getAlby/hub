@@ -135,11 +135,11 @@ export function AppStoreDetail() {
             <ul className="list-inside list-decimal">
               <li>Install the app</li>
               <li>
+                Click{" "}
                 <Link to={`/apps/new?app=${appId}`}>
                   <Button variant="link" className="px-0">
-                    Create a new app connection
-                  </Button>{" "}
-                  for {app.title}
+                    Connect to {app.title}
+                  </Button>
                 </Link>
               </li>
               <li>Open the Alby Go app on your mobile and scan the QR code</li>
