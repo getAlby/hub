@@ -130,6 +130,7 @@ export const suggestedApps: SuggestedApp[] = [
     description: "Schedule payments",
     webLink: "https://zapplanner.albylabs.com/",
     logo: zapplanner,
+    internal: true,
   },
   {
     id: "zapplepay",
