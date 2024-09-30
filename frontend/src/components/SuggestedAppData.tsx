@@ -647,65 +647,7 @@ export const suggestedApps: SuggestedApp[] = [
     description: "Schedule payments",
     webLink: "https://zapplanner.albylabs.com/",
     logo: zapplanner,
-    guide: (
-      <>
-        <div>
-          <h3 className="font-medium">In ZapPlanner</h3>
-          <ul className="list-inside text-muted-foreground">
-            <li>
-              1. Open{" "}
-              <ExternalLink
-                to="https://zapplanner.albylabs.com"
-                className="font-medium text-foreground underline"
-              >
-                ZapPlanner
-              </ExternalLink>{" "}
-              in your browser
-            </li>
-            <li>
-              2. Click on{" "}
-              <span className="font-medium text-foreground">
-                New Recurring Payment
-              </span>{" "}
-              → add the details and click{" "}
-              <span className="font-medium text-foreground">Continue</span>
-            </li>
-            <li>
-              3. Choose{" "}
-              <span className="font-medium text-foreground">
-                Nostr Wallet Connect URL
-              </span>
-            </li>
-          </ul>
-        </div>
-        <div>
-          <h3 className="font-medium">In Alby Hub</h3>
-          <ul className="list-inside text-muted-foreground">
-            <li>
-              4. Click{" "}
-              <Link
-                to="/apps/new?app=zapplanner"
-                className="font-medium text-foreground underline"
-              >
-                Connect to ZapPlanner
-              </Link>
-            </li>
-            <li>5. Set app's wallet permissions (full access recommended)</li>
-          </ul>
-        </div>
-        <div>
-          <h3 className="font-medium">In ZapPlanner</h3>
-          <ul className="list-inside text-muted-foreground">
-            <li>
-              6. Paste the connection secret from Alby Hub and click{" "}
-              <span className="font-medium text-foreground">
-                Create Recurring Payment
-              </span>
-            </li>
-          </ul>
-        </div>
-      </>
-    ),
+    internal: true,
   },
   {
     id: "zapplepay",
