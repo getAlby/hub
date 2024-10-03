@@ -1,3 +1,4 @@
+import { compare } from "compare-versions";
 import {
   Cable,
   Cloud,
@@ -327,7 +328,7 @@ function AppVersion() {
   const upToDate =
     info.version &&
     info.version.startsWith("v") &&
-    info.version.substring(1) >= albyInfo.hub.latestVersion;
+    compare(info.version.substring(1), albyInfo.hub.latestVersion, ">=");
 
   return (
     <TooltipProvider>
