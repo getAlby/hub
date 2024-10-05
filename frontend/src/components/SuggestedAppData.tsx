@@ -120,8 +120,11 @@ export const suggestedApps: SuggestedApp[] = [
   {
     id: "yakihonne",
     title: "YakiHonne",
-    description: "Blogging platform",
+    description: "Your all in one nostr client",
     webLink: "https://yakihonne.com/",
+    playLink:
+      "https://play.google.com/store/apps/details?id=com.yakihonne.yakihonne",
+    appleLink: "https://apps.apple.com/us/app/yakihonne/id6472556189",
     logo: yakihonne,
   },
   {
