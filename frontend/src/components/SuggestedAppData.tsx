@@ -21,6 +21,7 @@ import zapstream from "src/assets/suggested-apps/zap-stream.png";
 import zapplanner from "src/assets/suggested-apps/zapplanner.png";
 import zapplepay from "src/assets/suggested-apps/zapple-pay.png";
 import zappybird from "src/assets/suggested-apps/zappy-bird.png";
+import ExternalLink from "src/components/ExternalLink";
 
 export type SuggestedApp = {
   id: string;
@@ -75,21 +76,33 @@ export const suggestedApps: SuggestedApp[] = [
           <ul className="list-inside text-muted-foreground">
             <li>
               1. Download and open{" "}
-              <span className="font-medium text-foreground">Alby Extension</span> in your desktop browser or for Firefox mobile
+              <span className="font-medium text-foreground">
+                Alby Extension
+              </span>{" "}
+              in your desktop browser or for Firefox mobile
             </li>
             <li>
               2. Set your access passcode →{" "}
-              <span className="font-medium text-foreground">Continue with Alby Account</span>. Connecting an Alby account provides you with more features
+              <span className="font-medium text-foreground">
+                Continue with Alby Account
+              </span>
+              . Connecting an Alby account provides you with more features
             </li>
             <li>
-              3. If you don't have an Alby account, click {" "}
-              <span className="font-medium text-foreground">Find Your Wallet</span> →{" "}
-              <span className="font-medium text-foreground">Nostr Wallet Connect</span>
+              3. If you don't have an Alby account, click{" "}
+              <span className="font-medium text-foreground">
+                Find Your Wallet
+              </span>{" "}
+              →{" "}
+              <span className="font-medium text-foreground">
+                Nostr Wallet Connect
+              </span>
             </li>
           </ul>
         </div>
         <div>
-          <h3 className="font-medium">In Alby Hub</h3> only if you don't have an Alby account
+          <h3 className="font-medium">In Alby Hub</h3> only if you don't have an
+          Alby account
           <ul className="list-inside text-muted-foreground">
             <li>
               4. Click{" "}
@@ -106,8 +119,9 @@ export const suggestedApps: SuggestedApp[] = [
         <div>
           <h3 className="font-medium">In Alby Browser Extension</h3>
           <ul className="list-inside text-muted-foreground">
-            <li>6. Paste the connection secret from Alby Hub →{" "}
-            <span className="font-medium text-foreground">Continue</span>
+            <li>
+              6. Paste the connection secret from Alby Hub →{" "}
+              <span className="font-medium text-foreground">Continue</span>
             </li>
           </ul>
         </div>
@@ -178,17 +192,22 @@ export const suggestedApps: SuggestedApp[] = [
           <ul className="list-inside text-muted-foreground">
             <li>
               1. Download and open{" "}
-              <span className="font-medium text-foreground">Amethyst</span> on your
-              Android device
+              <span className="font-medium text-foreground">Amethyst</span> on
+              your Android device
             </li>
             <li>
-              2. Click long on the {" "}
-              <span className="font-medium text-foreground">lightning icon</span> below a post in your feed
+              2. Click long on the{" "}
+              <span className="font-medium text-foreground">
+                lightning icon
+              </span>{" "}
+              below a post in your feed
             </li>
             <li>
-              3. Click on the {" "}
-              <span className="font-medium text-foreground">Alby icon</span> if you use an Alby account or click on the {" "}
-              <span className="font-medium text-foreground">QR code icon</span> to activate the QR code scanner if you don't have an Alby account
+              3. Click on the{" "}
+              <span className="font-medium text-foreground">Alby icon</span> if
+              you use an Alby account or click on the{" "}
+              <span className="font-medium text-foreground">QR code icon</span>{" "}
+              to activate the QR code scanner if you don't have an Alby account
             </li>
           </ul>
         </div>
@@ -232,19 +251,29 @@ export const suggestedApps: SuggestedApp[] = [
           <ul className="list-inside text-muted-foreground">
             <li>
               1. Download and open{" "}
-              <span className="font-medium text-foreground">Primal</span> on your Android device
+              <span className="font-medium text-foreground">Primal</span> on
+              your Android device
             </li>
             <li>
-              2. Click on your {" "}
-              <span className="font-medium text-foreground">profile image</span> in the top left corner →{" "}
+              2. Click on your{" "}
+              <span className="font-medium text-foreground">profile image</span>{" "}
+              in the top left corner →{" "}
               <span className="font-medium text-foreground">Settings</span> →{" "}
               <span className="font-medium text-foreground">Wallet</span> →{" "}
-              <span className="font-medium text-foreground">untoggle Primal wallet</span>
+              <span className="font-medium text-foreground">
+                untoggle Primal wallet
+              </span>
             </li>
             <li>
-            3. Choose {" "}
-            <span className="font-medium text-foreground">Connect Alby Wallet</span> or {" "}
-            <span className="font-medium text-foreground">Connect Other Wallet</span> if you don’t have an Alby account
+              3. Choose{" "}
+              <span className="font-medium text-foreground">
+                Connect Alby Wallet
+              </span>{" "}
+              or{" "}
+              <span className="font-medium text-foreground">
+                Connect Other Wallet
+              </span>{" "}
+              if you don’t have an Alby account
             </li>
           </ul>
         </div>
@@ -283,13 +312,12 @@ export const suggestedApps: SuggestedApp[] = [
         <div>
           <h3 className="font-medium">In Zap Stream</h3>
           <ul className="list-inside text-muted-foreground">
-            <li>
-              1. Open https://zap.stream/ in your browser and log in
-            </li>
+            <li>1. Open https://zap.stream/ in your browser and log in</li>
             <li>
               2. Click on your{" "}
-              <span className="font-medium text-foreground">Profile Image</span> →{" "}
-              <span className="font-medium text-foreground">Settings</span> →{" "}scroll to{" "}
+              <span className="font-medium text-foreground">Profile Image</span>{" "}
+              → <span className="font-medium text-foreground">Settings</span> →{" "}
+              scroll to{" "}
               <span className="font-medium text-foreground">Wallet</span>
             </li>
           </ul>
@@ -312,8 +340,10 @@ export const suggestedApps: SuggestedApp[] = [
         <div>
           <h3 className="font-medium">In Zap Stream</h3>
           <ul className="list-inside text-muted-foreground">
-            <li>5. Paste connection secret from Alby Hub and click on {" "}
-            <span className="font-medium text-foreground">Connect</span></li>
+            <li>
+              5. Paste connection secret from Alby Hub and click on{" "}
+              <span className="font-medium text-foreground">Connect</span>
+            </li>
           </ul>
         </div>
       </>
@@ -332,14 +362,15 @@ export const suggestedApps: SuggestedApp[] = [
           <ul className="list-inside text-muted-foreground">
             <li>
               1. Download and open{" "}
-              <span className="font-medium text-foreground">Wavlake</span> on your
-              iOS or Android device
+              <span className="font-medium text-foreground">Wavlake</span> on
+              your iOS or Android device
             </li>
             <li>
-              2. Click on{" "}
-              <span className="font-medium text-foreground">≡</span> →{" "}
-              <span className="font-medium text-foreground">Settings</span> →{" "}
-              <span className="font-medium text-foreground">Add a NWC compatible wallet</span>
+              2. Click on <span className="font-medium text-foreground">≡</span>{" "}
+              → <span className="font-medium text-foreground">Settings</span> →{" "}
+              <span className="font-medium text-foreground">
+                Add a NWC compatible wallet
+              </span>
             </li>
           </ul>
         </div>
@@ -379,8 +410,11 @@ export const suggestedApps: SuggestedApp[] = [
           <h3 className="font-medium">In Snort</h3>
           <ul className="list-inside text-muted-foreground">
             <li>
-              1. Open {" "}
-              <span className="font-medium text-foreground">https://snort.social/</span> in your browser
+              1. Open{" "}
+              <span className="font-medium text-foreground">
+                https://snort.social/
+              </span>{" "}
+              in your browser
             </li>
             <li>
               2. Click on{" "}
@@ -388,9 +422,12 @@ export const suggestedApps: SuggestedApp[] = [
               <span className="font-medium text-foreground">Wallet</span>
             </li>
             <li>
-              3. Choose {" "}
-              <span className="font-medium text-foreground">Alby</span> or {" "}
-              <span className="font-medium text-foreground">Nostr Wallet Connect</span> if you don’t have an Alby account
+              3. Choose{" "}
+              <span className="font-medium text-foreground">Alby</span> or{" "}
+              <span className="font-medium text-foreground">
+                Nostr Wallet Connect
+              </span>{" "}
+              if you don’t have an Alby account
             </li>
           </ul>
         </div>
@@ -431,18 +468,25 @@ export const suggestedApps: SuggestedApp[] = [
           <ul className="list-inside text-muted-foreground">
             <li>
               1. Open{" "}
-              <span className="font-medium text-foreground">https://habla.news/</span> in your browser
+              <span className="font-medium text-foreground">
+                https://habla.news/
+              </span>{" "}
+              in your browser
             </li>
             <li>
               2. Go to{" "}
               <span className="font-medium text-foreground">Settings</span> →{" "}
-              <span className="font-medium text-foreground">Wallet</span> →{" "}Click{" "}
-              <span className="font-medium text-foreground">Connect Wallet</span>
+              <span className="font-medium text-foreground">Wallet</span> →{" "}
+              Click{" "}
+              <span className="font-medium text-foreground">
+                Connect Wallet
+              </span>
             </li>
             <li>
               3. Choose{" "}
               <span className="font-medium text-foreground">Alby NWC</span> or{" "}
-              <span className="font-medium text-foreground">NWC Generic</span> if you don’t have an Alby account
+              <span className="font-medium text-foreground">NWC Generic</span>{" "}
+              if you don’t have an Alby account
             </li>
           </ul>
         </div>
@@ -483,18 +527,32 @@ export const suggestedApps: SuggestedApp[] = [
           <ul className="list-inside text-muted-foreground">
             <li>
               1. Open{" "}
-              <span className="font-medium text-foreground">https://nostrudel.ninja/</span> in your browser
+              <ExternalLink
+                to="https://nostrudel.ninja"
+                className="font-medium text-foreground"
+              >
+                NoStrudel
+              </ExternalLink>{" "}
+              in your browser
             </li>
             <li>
               2. Click on{" "}
               <span className="font-medium text-foreground">Settings</span> →{" "}
               <span className="font-medium text-foreground">Lightning</span> →{" "}
-              <span className="font-medium text-foreground">Connect Wallet</span>
+              <span className="font-medium text-foreground">
+                Connect Wallet
+              </span>
             </li>
             <li>
               3. Choose{" "}
-              <span className="font-medium text-foreground">Alby Nostr Wallet Connect</span> →{" "} or
-              <span className="font-medium text-foreground">Custom Nostr Wallet Connect</span> if you don’t have an Alby account
+              <span className="font-medium text-foreground">
+                Alby Nostr Wallet Connect
+              </span>{" "}
+              → or
+              <span className="font-medium text-foreground">
+                Custom Nostr Wallet Connect
+              </span>{" "}
+              if you don’t have an Alby account
             </li>
           </ul>
         </div>
@@ -507,7 +565,7 @@ export const suggestedApps: SuggestedApp[] = [
                 to="/apps/new?app=nostrudel"
                 className="font-semibold text-foreground underline"
               >
-                Connect to Nostrudel
+                Connect to noStrudel
               </Link>
             </li>
             <li>5. Set app's wallet permissions (full access recommended)</li>
@@ -538,7 +596,10 @@ export const suggestedApps: SuggestedApp[] = [
           <ul className="list-inside text-muted-foreground">
             <li>
               1. Open{" "}
-              <span className="font-medium text-foreground">https://yakihonne.com/wallet</span> in your browser
+              <span className="font-medium text-foreground">
+                https://yakihonne.com/wallet
+              </span>{" "}
+              in your browser
             </li>
             <li>
               2. Click on{" "}
@@ -546,8 +607,11 @@ export const suggestedApps: SuggestedApp[] = [
             </li>
             <li>
               3. Choose{" "}
-              <span className="font-medium text-foreground">Alby</span> →{" "} or
-              <span className="font-medium text-foreground">Nostr Wallet Connect</span> if you don’t have an Alby account
+              <span className="font-medium text-foreground">Alby</span> → or
+              <span className="font-medium text-foreground">
+                Nostr Wallet Connect
+              </span>{" "}
+              if you don’t have an Alby account
             </li>
           </ul>
         </div>
@@ -588,17 +652,29 @@ export const suggestedApps: SuggestedApp[] = [
           <ul className="list-inside text-muted-foreground">
             <li>
               1. Open{" "}
-              <span className="font-medium text-foreground">https://zapplanner.albylabs.com/</span> in your browser
+              <span className="font-medium text-foreground">
+                https://zapplanner.albylabs.com/
+              </span>{" "}
+              in your browser
             </li>
             <li>
               2. Click on{" "}
-              <span className="font-medium text-foreground">New Recurring Payment</span> →{" "} add the details and click
+              <span className="font-medium text-foreground">
+                New Recurring Payment
+              </span>{" "}
+              → add the details and click
               <span className="font-medium text-foreground">Continue</span>
             </li>
             <li>
-              3. Choose {" "}
-              <span className="font-medium text-foreground">Connect with Alby</span> or {" "}
-              <span className="font-medium text-foreground">Nostr Wallet Connect URL</span> if you don’t have an Alby account
+              3. Choose{" "}
+              <span className="font-medium text-foreground">
+                Connect with Alby
+              </span>{" "}
+              or{" "}
+              <span className="font-medium text-foreground">
+                Nostr Wallet Connect URL
+              </span>{" "}
+              if you don’t have an Alby account
             </li>
           </ul>
         </div>
@@ -620,7 +696,12 @@ export const suggestedApps: SuggestedApp[] = [
         <div>
           <h3 className="font-medium">In ZapPlanner</h3>
           <ul className="list-inside text-muted-foreground">
-            <li>6. Paste the connection secret from Alby Hub and click <span className="font-medium text-foreground">Create Recurring Payment</span></li>
+            <li>
+              6. Paste the connection secret from Alby Hub and click{" "}
+              <span className="font-medium text-foreground">
+                Create Recurring Payment
+              </span>
+            </li>
           </ul>
         </div>
       </>
@@ -639,13 +720,20 @@ export const suggestedApps: SuggestedApp[] = [
           <ul className="list-inside text-muted-foreground">
             <li>
               1. Open{" "}
-              <span className="font-medium text-foreground">https://www.zapplepay.com/</span> in your browser
+              <span className="font-medium text-foreground">
+                https://www.zapplepay.com/
+              </span>{" "}
+              in your browser
             </li>
             <li>
               2. Add your details (e.g. you npub, etc.){" "}
-              <span className="font-medium text-foreground">Wallet</span> →{" "}Choose{" "}
-              <span className="font-medium text-foreground">Alby</span> or {" "}
-              <span className="font-medium text-foreground">Manual Connect</span> if you don’t have an Alby account
+              <span className="font-medium text-foreground">Wallet</span> →{" "}
+              Choose <span className="font-medium text-foreground">Alby</span>{" "}
+              or{" "}
+              <span className="font-medium text-foreground">
+                Manual Connect
+              </span>{" "}
+              if you don’t have an Alby account
             </li>
           </ul>
         </div>
@@ -686,18 +774,27 @@ export const suggestedApps: SuggestedApp[] = [
           <ul className="list-inside text-muted-foreground">
             <li>
               1. Download Lume from{" "}
-              <span className="font-medium text-foreground">https://github.com/lumehq/lume/releases</span> and install it on your computer
+              <span className="font-medium text-foreground">
+                https://github.com/lumehq/lume/releases
+              </span>{" "}
+              and install it on your computer
             </li>
             <li>
               2. Click on your profile image →{" "}
               <span className="font-medium text-foreground">Settings</span> →{" "}
               <span className="font-medium text-foreground">Wallet</span> →{" "}
-              <span className="font-medium text-foreground">Connect Wallet</span>
+              <span className="font-medium text-foreground">
+                Connect Wallet
+              </span>
             </li>
             <li>
               3. Choose{" "}
-              <span className="font-medium text-foreground">Alby Account</span> or{" "}
-              <span className="font-medium text-foreground">Nostr Wallet Connect</span> if you don’t have an Alby account
+              <span className="font-medium text-foreground">Alby Account</span>{" "}
+              or{" "}
+              <span className="font-medium text-foreground">
+                Nostr Wallet Connect
+              </span>{" "}
+              if you don’t have an Alby account
             </li>
           </ul>
         </div>
@@ -738,17 +835,25 @@ export const suggestedApps: SuggestedApp[] = [
           <ul className="list-inside text-muted-foreground">
             <li>
               1. Open{" "}
-              <span className="font-medium text-foreground">https://nostr.kiwi/</span> in your browser
+              <span className="font-medium text-foreground">
+                https://nostr.kiwi/
+              </span>{" "}
+              in your browser
             </li>
             <li>
-              2. Click on{" "}
-              <span className="font-medium text-foreground">⋮</span> →{" "}
-              <span className="font-medium text-foreground">Settings</span>
+              2. Click on <span className="font-medium text-foreground">⋮</span>{" "}
+              → <span className="font-medium text-foreground">Settings</span>
             </li>
             <li>
               3. Choose{" "}
-              <span className="font-medium text-foreground">Alby Nostr Wallet Connect</span> or{" "}
-              <span className="font-medium text-foreground">Custom Nostr Wallet Connect</span> if you don’t have an Alby account
+              <span className="font-medium text-foreground">
+                Alby Nostr Wallet Connect
+              </span>{" "}
+              or{" "}
+              <span className="font-medium text-foreground">
+                Custom Nostr Wallet Connect
+              </span>{" "}
+              if you don’t have an Alby account
             </li>
           </ul>
         </div>
@@ -789,16 +894,26 @@ export const suggestedApps: SuggestedApp[] = [
           <ul className="list-inside text-muted-foreground">
             <li>
               1. Open{" "}
-              <span className="font-medium text-foreground">https://rolznz.github.io/zappy-bird/</span> in your browser
+              <span className="font-medium text-foreground">
+                https://rolznz.github.io/zappy-bird/
+              </span>{" "}
+              in your browser
             </li>
             <li>
               2. Click on{" "}
-              <span className="font-medium text-foreground">Connect Wallet</span> in the top right corner
+              <span className="font-medium text-foreground">
+                Connect Wallet
+              </span>{" "}
+              in the top right corner
             </li>
             <li>
               3. Choose{" "}
-              <span className="font-medium text-foreground">Alby Account</span> or {" "}
-              <span className="font-medium text-foreground">Nostr Wallet Connect</span> if you don’t have an Alby account
+              <span className="font-medium text-foreground">Alby Account</span>{" "}
+              or{" "}
+              <span className="font-medium text-foreground">
+                Nostr Wallet Connect
+              </span>{" "}
+              if you don’t have an Alby account
             </li>
           </ul>
         </div>
@@ -840,17 +955,25 @@ export const suggestedApps: SuggestedApp[] = [
           <ul className="list-inside text-muted-foreground">
             <li>
               1. Download and open{" "}
-              <span className="font-medium text-foreground">Nostur</span> on your iOS device
+              <span className="font-medium text-foreground">Nostur</span> on
+              your iOS device
             </li>
             <li>
-              2. Click on your profile image → {" "}
-              <span className="font-medium text-foreground">Settings</span> → scroll to{" "}
+              2. Click on your profile image →{" "}
+              <span className="font-medium text-foreground">Settings</span> →
+              scroll to{" "}
               <span className="font-medium text-foreground">Zapping</span>
             </li>
             <li>
-              3. Choose → {" "}
-              <span className="font-medium text-foreground">Alby (Nostr Wallet Connect)</span> →{" "}or{" "}
-              <span className="font-medium text-foreground">Custom Nostr Wallet Connect</span> if you don’t have an Alby account
+              3. Choose →{" "}
+              <span className="font-medium text-foreground">
+                Alby (Nostr Wallet Connect)
+              </span>{" "}
+              → or{" "}
+              <span className="font-medium text-foreground">
+                Custom Nostr Wallet Connect
+              </span>{" "}
+              if you don’t have an Alby account
             </li>
           </ul>
         </div>
@@ -891,18 +1014,24 @@ export const suggestedApps: SuggestedApp[] = [
           <ul className="list-inside text-muted-foreground">
             <li>
               1. Open{" "}
-              <span className="font-medium text-foreground">https://wherostr.social/</span> in your browser and log in
+              <span className="font-medium text-foreground">
+                https://wherostr.social/
+              </span>{" "}
+              in your browser and log in
             </li>
             <li>
-              2. Click on{" "}
-              <span className="font-medium text-foreground">≡</span> →{" "}
-              <span className="font-medium text-foreground">Settings</span> →{" "}
+              2. Click on <span className="font-medium text-foreground">≡</span>{" "}
+              → <span className="font-medium text-foreground">Settings</span> →{" "}
               <span className="font-medium text-foreground">Wallet</span>
             </li>
             <li>
               3. Choose{" "}
-              <span className="font-medium text-foreground">Alby Account</span> →{" "}
-              <span className="font-medium text-foreground">Nostr Wallet Connect</span> if you don’t have an Alby account
+              <span className="font-medium text-foreground">Alby Account</span>{" "}
+              →{" "}
+              <span className="font-medium text-foreground">
+                Nostr Wallet Connect
+              </span>{" "}
+              if you don’t have an Alby account
             </li>
           </ul>
         </div>
@@ -943,18 +1072,25 @@ export const suggestedApps: SuggestedApp[] = [
           <ul className="list-inside text-muted-foreground">
             <li>
               1. Open{" "}
-              <span className="font-medium text-foreground">https://stacker.news/</span> in your browser
+              <span className="font-medium text-foreground">
+                https://stacker.news/
+              </span>{" "}
+              in your browser
             </li>
             <li>
               2. Click on your username →{" "}
               <span className="font-medium text-foreground">Wallet</span> →{" "}
-              <span className="font-medium text-foreground">attach wallets</span> →{" "}
-              <span className="font-medium text-foreground">attach NWC</span>
+              <span className="font-medium text-foreground">
+                attach wallets
+              </span>{" "}
+              → <span className="font-medium text-foreground">attach NWC</span>
             </li>
           </ul>
         </div>
         <div>
-          <h3 className="font-medium">In Alby Hub: Configure the connection secret for sending</h3>
+          <h3 className="font-medium">
+            In Alby Hub: Configure the connection secret for sending
+          </h3>
           <ul className="list-inside text-muted-foreground">
             <li>
               3. Click{" "}
@@ -971,13 +1107,18 @@ export const suggestedApps: SuggestedApp[] = [
         <div>
           <h3 className="font-medium">In stacker news</h3>
           <ul className="list-inside text-muted-foreground">
-            <li>5. Paste the connection secret from Alby Hub into {" "}
-            <span className="font-medium text-foreground">connection for sending</span>
+            <li>
+              5. Paste the connection secret from Alby Hub into{" "}
+              <span className="font-medium text-foreground">
+                connection for sending
+              </span>
             </li>
           </ul>
         </div>
         <div>
-          <h3 className="font-medium">In Alby Hub: Configure the connection secret for receiving</h3>
+          <h3 className="font-medium">
+            In Alby Hub: Configure the connection secret for receiving
+          </h3>
           <ul className="list-inside text-muted-foreground">
             <li>
               6. Click{" "}
@@ -988,18 +1129,25 @@ export const suggestedApps: SuggestedApp[] = [
                 Connect to stacker news
               </Link>
             </li>
-            <li>7. Set app's wallet permissions: {" "}
-            <span className="font-medium text-foreground">Custom</span> →{" "}only check{" "}
-            <span className="font-medium text-foreground">Create invoices</span> → {" "}
-            <span className="font-medium text-foreground">Next</span>
+            <li>
+              7. Set app's wallet permissions:{" "}
+              <span className="font-medium text-foreground">Custom</span> → only
+              check{" "}
+              <span className="font-medium text-foreground">
+                Create invoices
+              </span>{" "}
+              → <span className="font-medium text-foreground">Next</span>
             </li>
           </ul>
         </div>
         <div>
           <h3 className="font-medium">In stacker news</h3>
           <ul className="list-inside text-muted-foreground">
-            <li>8. Paste the connection secret from Alby Hub into {" "}
-            <span className="font-medium text-foreground">connection for receiving</span>
+            <li>
+              8. Paste the connection secret from Alby Hub into{" "}
+              <span className="font-medium text-foreground">
+                connection for receiving
+              </span>
             </li>
           </ul>
         </div>
@@ -1019,15 +1167,20 @@ export const suggestedApps: SuggestedApp[] = [
           <ul className="list-inside text-muted-foreground">
             <li>
               1. Open{" "}
-              <span className="font-medium text-foreground">https://paper-scissors-hodl.fly.dev/</span> in your browser
+              <span className="font-medium text-foreground">
+                https://paper-scissors-hodl.fly.dev/
+              </span>{" "}
+              in your browser
             </li>
-            <li>
-              2. Start playing until the Bitcoin Connect screen pops up{" "}
-            </li>
+            <li>2. Start playing until the Bitcoin Connect screen pops up </li>
             <li>
               3. Choose{" "}
-              <span className="font-medium text-foreground">Alby Account</span>or{" "}
-              <span className="font-medium text-foreground">Nostr Wallet Connect</span> if you don’t have an Alby account
+              <span className="font-medium text-foreground">Alby Account</span>
+              or{" "}
+              <span className="font-medium text-foreground">
+                Nostr Wallet Connect
+              </span>{" "}
+              if you don’t have an Alby account
             </li>
           </ul>
         </div>
@@ -1072,11 +1225,14 @@ export const suggestedApps: SuggestedApp[] = [
           <ul className="list-inside text-muted-foreground">
             <li>
               1. Download and open{" "}
-              <span className="font-medium text-foreground">Alby Go</span> on your Android or iOS device
+              <span className="font-medium text-foreground">Alby Go</span> on
+              your Android or iOS device
             </li>
             <li>
-              2. Click on {" "}
-              <span className="font-medium text-foreground">Connect Wallet</span>
+              2. Click on{" "}
+              <span className="font-medium text-foreground">
+                Connect Wallet
+              </span>
             </li>
           </ul>
         </div>
