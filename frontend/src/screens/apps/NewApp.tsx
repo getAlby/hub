@@ -128,6 +128,9 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
     if (requestMethodsSet.has("get_balance")) {
       scopes.push("get_balance");
     }
+    if (requestMethodsSet.has("get_budget")) {
+      scopes.push("get_budget");
+    }
     if (requestMethodsSet.has("make_invoice")) {
       scopes.push("make_invoice");
     }

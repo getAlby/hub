@@ -109,6 +109,8 @@ func scopeToRequestMethods(scope string) []string {
 		return []string{models.PAY_INVOICE_METHOD, models.PAY_KEYSEND_METHOD, models.MULTI_PAY_INVOICE_METHOD, models.MULTI_PAY_KEYSEND_METHOD}
 	case constants.GET_BALANCE_SCOPE:
 		return []string{models.GET_BALANCE_METHOD}
+	case constants.GET_BUDGET_SCOPE:
+		return []string{models.GET_BUDGET_METHOD}
 	case constants.GET_INFO_SCOPE:
 		return []string{models.GET_INFO_METHOD}
 	case constants.MAKE_INVOICE_SCOPE:
@@ -144,6 +146,8 @@ func RequestMethodToScope(requestMethod string) (string, error) {
 		return constants.PAY_INVOICE_SCOPE, nil
 	case models.GET_BALANCE_METHOD:
 		return constants.GET_BALANCE_SCOPE, nil
+	case models.GET_BUDGET_METHOD:
+		return constants.GET_BUDGET_SCOPE, nil
 	case models.GET_INFO_METHOD:
 		return constants.GET_INFO_SCOPE, nil
 	case models.MAKE_INVOICE_METHOD:
@@ -163,6 +167,7 @@ func AllScopes() []string {
 	return []string{
 		constants.PAY_INVOICE_SCOPE,
 		constants.GET_BALANCE_SCOPE,
+		constants.GET_BUDGET_SCOPE,
 		constants.GET_INFO_SCOPE,
 		constants.MAKE_INVOICE_SCOPE,
 		constants.LOOKUP_INVOICE_SCOPE,

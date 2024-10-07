@@ -42,3 +42,20 @@ func getStartOfBudget(budget_type string) time.Time {
 		return time.Time{}
 	}
 }
+
+func GetBudgetRenewsAt(budgetRenewal string) int64 {
+	now := time.Now()
+	budgetStart := getStartOfBudget(budgetRenewal)
+	switch budgetRenewal {
+	case constants.BUDGET_RENEWAL_DAILY:
+		return budgetStart.AddDate(0, 0, 1).Unix()
+	case constants.BUDGET_RENEWAL_WEEKLY:
+		return budgetStart.AddDate(0, 0, 7).Unix()
+	case constants.BUDGET_RENEWAL_MONTHLY:
+		return budgetStart.AddDate(0, 1, 0).Unix()
+	case constants.BUDGET_RENEWAL_YEARLY:
+		return budgetStart.AddDate(1, 0, 0).Unix()
+	default: //"never"
+		return now.Unix()
+	}
+}

@@ -22,6 +22,7 @@ const (
 const (
 	PAY_INVOICE_SCOPE       = "pay_invoice" // also covers pay_keysend and multi_* payment methods
 	GET_BALANCE_SCOPE       = "get_balance"
+	GET_BUDGET_SCOPE        = "get_budget"
 	GET_INFO_SCOPE          = "get_info"
 	MAKE_INVOICE_SCOPE      = "make_invoice"
 	LOOKUP_INVOICE_SCOPE    = "lookup_invoice"

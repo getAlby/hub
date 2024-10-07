@@ -63,6 +63,7 @@ const Scopes: React.FC<ScopesProps> = ({
   const readOnlyScopes: Scope[] = React.useMemo(() => {
     const readOnlyScopes: Scope[] = [
       "get_balance",
+      "get_budget",
       "get_info",
       "make_invoice",
       "lookup_invoice",
@@ -79,6 +80,7 @@ const Scopes: React.FC<ScopesProps> = ({
     const isolatedScopes: Scope[] = [
       "pay_invoice",
       "get_balance",
+      "get_budget",
       "make_invoice",
       "lookup_invoice",
       "list_transactions",

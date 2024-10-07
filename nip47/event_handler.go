@@ -330,6 +330,9 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 	case models.GET_BALANCE_METHOD:
 		controller.
 			HandleGetBalanceEvent(ctx, nip47Request, requestEvent.ID, &app, publishResponse)
+	case models.GET_BUDGET_METHOD:
+		controller.
+			HandleGetBudgetEvent(ctx, nip47Request, requestEvent.ID, &app, publishResponse)
 	case models.MAKE_INVOICE_METHOD:
 		controller.
 			HandleMakeInvoiceEvent(ctx, nip47Request, requestEvent.ID, app.ID, publishResponse)
