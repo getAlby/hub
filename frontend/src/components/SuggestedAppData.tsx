@@ -97,7 +97,7 @@ export const suggestedApps: SuggestedApp[] = [
                 to="/apps/new?app=alby-extension"
                 className="font-semibold text-foreground underline"
               >
-                Connect to Alby Browser Extension
+                Connect to Alby Extension
               </Link>
             </li>
             <li>5. Set app's wallet permissions (full access recommended)</li>
@@ -196,7 +196,7 @@ export const suggestedApps: SuggestedApp[] = [
           <h3 className="font-medium">In Alby Hub</h3>
           <ul className="list-inside text-muted-foreground">
             <li>
-              3. Click{" "}
+              4. Click{" "}
               <Link
                 to="/apps/new?app=amthyst"
                 className="font-semibold text-foreground underline"
@@ -204,13 +204,13 @@ export const suggestedApps: SuggestedApp[] = [
                 Connect to Amethyst
               </Link>
             </li>
-            <li>4. Set app's wallet permissions (full access recommended)</li>
+            <li>5. Set app's wallet permissions (full access recommended)</li>
           </ul>
         </div>
         <div>
           <h3 className="font-medium">In Amethyst</h3>
           <ul className="list-inside text-muted-foreground">
-            <li>5. Scan or paste the connection secret from Alby Hub</li>
+            <li>6. Scan or paste the connection secret from Alby Hub</li>
           </ul>
         </div>
       </>
