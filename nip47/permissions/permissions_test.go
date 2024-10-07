@@ -1,12 +1,12 @@
 package permissions
 
 import (
+	"github.com/getAlby/hub/nip47/models"
 	"testing"
 	"time"
 
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
-	"github.com/getAlby/hub/nip47/models"
 	"github.com/getAlby/hub/tests"
 	"github.com/stretchr/testify/assert"
 )
@@ -68,7 +68,7 @@ func TestHasPermission_Expired(t *testing.T) {
 	appPermission := &db.AppPermission{
 		AppId:         app.ID,
 		App:           *app,
-		Scope:         models.PAY_INVOICE_METHOD,
+		Scope:         constants.PAY_INVOICE_SCOPE,
 		MaxAmountSat:  10,
 		BudgetRenewal: budgetRenewal,
 		ExpiresAt:     &expiresAt,
@@ -96,7 +96,7 @@ func TestHasPermission_OK(t *testing.T) {
 	appPermission := &db.AppPermission{
 		AppId:         app.ID,
 		App:           *app,
-		Scope:         models.PAY_INVOICE_METHOD,
+		Scope:         constants.PAY_INVOICE_SCOPE,
 		MaxAmountSat:  10,
 		BudgetRenewal: budgetRenewal,
 		ExpiresAt:     &expiresAt,
@@ -105,8 +105,57 @@ func TestHasPermission_OK(t *testing.T) {
 	assert.NoError(t, err)
 
 	permissionsSvc := NewPermissionsService(svc.DB, svc.EventPublisher)
-	result, code, message := permissionsSvc.HasPermission(app, models.PAY_INVOICE_METHOD)
+	result, code, message := permissionsSvc.HasPermission(app, constants.PAY_INVOICE_SCOPE)
 	assert.True(t, result)
 	assert.Empty(t, code)
 	assert.Empty(t, message)
+}
+
+func TestHasPermission_AlwaysGranted(t *testing.T) {
+	defer tests.RemoveTestService()
+	svc, err := tests.CreateTestService()
+	assert.NoError(t, err)
+
+	app, _, err := tests.CreateApp(svc)
+	assert.NoError(t, err)
+
+	budgetRenewal := "never"
+	expiresAt := time.Now().Add(24 * time.Hour)
+	appPermission := &db.AppPermission{
+		AppId:         app.ID,
+		App:           *app,
+		Scope:         constants.PAY_INVOICE_SCOPE,
+		MaxAmountSat:  10,
+		BudgetRenewal: budgetRenewal,
+		ExpiresAt:     &expiresAt,
+	}
+	err = svc.DB.Create(appPermission).Error
+	assert.NoError(t, err)
+
+	permissionsSvc := NewPermissionsService(svc.DB, svc.EventPublisher)
+	result, code, message := permissionsSvc.HasPermission(app, constants.ALWAYS_GRANTED_SCOPE)
+	assert.True(t, result)
+	assert.Empty(t, code)
+	assert.Empty(t, message)
+}
+
+func TestGetPermittedMethods_AlwaysGranted(t *testing.T) {
+	defer tests.RemoveTestService()
+	svc, err := tests.CreateTestService()
+	assert.NoError(t, err)
+
+	app, _, err := tests.CreateApp(svc)
+	assert.NoError(t, err)
+
+	appPermission := &db.AppPermission{
+		AppId: app.ID,
+		App:   *app,
+		Scope: constants.GET_INFO_SCOPE,
+	}
+	err = svc.DB.Create(appPermission).Error
+	assert.NoError(t, err)
+
+	permissionsSvc := NewPermissionsService(svc.DB, svc.EventPublisher)
+	result := permissionsSvc.GetPermittedMethods(app, svc.LNClient)
+	assert.Equal(t, []string{models.GET_INFO_METHOD, models.GET_BUDGET_METHOD}, result)
 }

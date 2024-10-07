@@ -42,7 +42,6 @@ export type BudgetRenewalType =
 export type Scope =
   | "pay_invoice" // also used for pay_keysend, multi_pay_invoice, multi_pay_keysend
   | "get_balance"
-  | "get_budget"
   | "get_info"
   | "make_invoice"
   | "lookup_invoice"
@@ -58,7 +57,6 @@ export type ScopeIconMap = {
 
 export const scopeIconMap: ScopeIconMap = {
   get_balance: WalletMinimal,
-  get_budget: WalletMinimal,
   get_info: Info,
   list_transactions: NotebookTabs,
   lookup_invoice: Search,
@@ -84,7 +82,6 @@ export const validBudgetRenewals: BudgetRenewalType[] = [
 
 export const scopeDescriptions: Record<Scope, string> = {
   get_balance: "Read your balance",
-  get_budget: "See its remaining budget",
   get_info: "Read your node info",
   list_transactions: "Read transaction history",
   lookup_invoice: "Lookup status of invoices",

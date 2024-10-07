@@ -48,7 +48,6 @@ export function UncleJim() {
         name,
         scopes: [
           "get_balance",
-          "get_budget",
           "get_info",
           "list_transactions",
           "lookup_invoice",
