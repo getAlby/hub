@@ -222,7 +222,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
             <CardHeader>
               <CardTitle>Info</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="slashed-zero">
               <Table>
                 <TableBody>
                   <TableRow>

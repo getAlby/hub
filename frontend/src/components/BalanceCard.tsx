@@ -33,7 +33,7 @@ function BalanceCard({
         <BalanceCardIcon className="h-4 w-4 text-muted-foreground" />
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold balance sensitive">
+        <div className="text-2xl font-bold balance sensitive slashed-zero">
           {new Intl.NumberFormat().format(Math.floor(balance / 1000))} sats
         </div>
       </CardContent>

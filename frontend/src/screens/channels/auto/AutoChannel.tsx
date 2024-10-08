@@ -105,7 +105,7 @@ export function AutoChannel() {
       <MempoolAlert />
       {invoice && channelSize && (
         <div className="flex flex-col gap-4 items-center justify-center max-w-md">
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground slashed-zero">
             Please pay the lightning invoice below which will cover the costs of
             opening your channel. You will receive a channel with{" "}
             {new Intl.NumberFormat().format(channelSize)} sats of incoming

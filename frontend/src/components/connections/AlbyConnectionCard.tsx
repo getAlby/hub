@@ -151,7 +151,7 @@ function AlbyConnectionCard({ connection }: { connection?: App }) {
             </div>
           </div>
           {connection && (
-            <div>
+            <div className="slashed-zero">
               <Link
                 to={`/apps/${connection.nostrPubkey}?edit=true`}
                 className="absolute top-0 right-0"

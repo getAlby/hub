@@ -33,7 +33,7 @@ export function ChannelsCards({ channels, nodes }: ChannelsCardsProps) {
   return (
     <>
       <p className="font-semibold text-lg mt-4">Channels</p>
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 slashed-zero">
         {channels
           .sort((a, b) =>
             a.localBalance + a.remoteBalance > b.localBalance + b.remoteBalance

@@ -37,7 +37,7 @@ export default function AppCard({ app }: Props) {
           </div>
         </CardTitle>
       </CardHeader>
-      <CardContent className="flex-1 flex flex-col">
+      <CardContent className="flex-1 flex flex-col slashed-zero">
         <AppCardConnectionInfo connection={app} />
       </CardContent>
     </Card>

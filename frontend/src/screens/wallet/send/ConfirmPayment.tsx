@@ -70,7 +70,7 @@ export default function ConfirmPayment() {
         <p className="font-medium text-lg mb-2">Payment Details</p>
         <div>
           <Label>Amount</Label>
-          <p className="font-bold">
+          <p className="font-bold slashed-zero">
             {new Intl.NumberFormat().format(invoice.satoshi)} sats
           </p>
         </div>

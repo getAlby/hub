@@ -299,7 +299,7 @@ function NewChannelInternal({
                                   )}
                                   <div>
                                     {peer.name}
-                                    <span className="ml-4 text-xs text-muted-foreground">
+                                    <span className="ml-4 text-xs text-muted-foreground slashed-zero">
                                       Min.{" "}
                                       {new Intl.NumberFormat().format(
                                         peer.minimumChannelSize

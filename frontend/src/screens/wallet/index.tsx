@@ -49,7 +49,7 @@ function Wallet() {
             <ArrowLeftRight className="w-10 h-10 text-primary-background" />
             <h3 className="mt-4 text-lg font-semibold">
               You still have{" "}
-              <span className="font-bold">
+              <span className="font-bold slashed-zero sensitive">
                 {new Intl.NumberFormat().format(albyBalance.sats)}
               </span>{" "}
               sats in your Alby shared wallet

@@ -26,7 +26,7 @@ function BudgetAmountSelect({
                 onChange(budgetOptions[budget]);
               }}
               className={cn(
-                "cursor-pointer rounded text-nowrap border-2 text-center p-4",
+                "cursor-pointer rounded text-nowrap border-2 text-center p-4 slashed-zero",
                 !customBudget && value == budgetOptions[budget]
                   ? "border-primary"
                   : "border-muted"

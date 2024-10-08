@@ -32,7 +32,7 @@ export function ChannelsTable({ channels, nodes }: ChannelsTableProps) {
   }
 
   return (
-    <div className="border rounded-lg max-w-full overflow-y-auto">
+    <div className="border rounded-lg max-w-full overflow-y-auto slashed-zero">
       <Table>
         <TableHeader>
           <TableRow>

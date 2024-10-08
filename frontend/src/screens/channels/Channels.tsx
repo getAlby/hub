@@ -248,7 +248,7 @@ export default function Channels() {
 
       <div
         className={cn(
-          "grid grid-cols-1 gap-3",
+          "grid grid-cols-1 gap-3 slashed-zero",
           showHostedBalance ? "xl:grid-cols-4" : "lg:grid-cols-3"
         )}
       >
