@@ -71,7 +71,7 @@ export default function TwoColumnFullScreenLayout() {
         <img
           src={quote.imageUrl}
           alt={quote.author}
-          className="absolute inset-0 w-full h-full object-cover object-top opacity-40 dark:opacity-20 pointer-events-none"
+          className="absolute inset-0 w-full h-full object-cover object-top opacity-30 dark:opacity-20 pointer-events-none"
         />
         <div className="flex-1 w-full h-full flex flex-col">
           <div className="flex flex-row justify-between items-center">
