@@ -18,15 +18,11 @@ export default defineConfig(({ command }) => ({
         "icon-512.png",
         "icon-192.png",
       ],
+      useCredentials: true, // because the manifest might sit behind authentication
       manifest: {
         short_name: "Alby Hub",
         name: "Alby Hub",
         icons: [
-          {
-            src: "favicon.svg",
-            sizes: "any",
-            type: "image/svg+xml",
-          },
           {
             src: "icon-192.png",
             sizes: "192x192",
@@ -35,6 +31,11 @@ export default defineConfig(({ command }) => ({
           {
             src: "icon-512.png",
             sizes: "512x512",
+            type: "image/png",
+          },
+          {
+            src: "icon-1024.png",
+            sizes: "1024x1024",
             type: "image/png",
           },
         ],
