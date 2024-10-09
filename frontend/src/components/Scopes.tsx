@@ -79,6 +79,7 @@ const Scopes: React.FC<ScopesProps> = ({
     const isolatedScopes: Scope[] = [
       "pay_invoice",
       "get_balance",
+      "get_info",
       "make_invoice",
       "lookup_invoice",
       "list_transactions",
