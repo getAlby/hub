@@ -3,6 +3,7 @@ package transactions
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -50,7 +51,7 @@ func TestMakeInvoice_MetadataTooLarge(t *testing.T) {
 	transaction, err := transactionsService.MakeInvoice(ctx, 1234, "Hello world", "", 0, metadata, svc.LNClient, nil, nil)
 
 	assert.Error(t, err)
-	assert.Equal(t, "encoded invoice metadata provided is too large. Limit: 2048 Received: 2049", err.Error())
+	assert.Equal(t, fmt.Sprintf("encoded invoice metadata provided is too large. Limit: %d Received: %d", constants.INVOICE_METADATA_MAX_LENGTH, constants.INVOICE_METADATA_MAX_LENGTH+1), err.Error())
 	assert.Nil(t, transaction)
 }
 
