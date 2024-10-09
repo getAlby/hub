@@ -18,7 +18,7 @@ export default defineConfig(({ command }) => ({
         "icon-512.png",
         "icon-192.png",
       ],
-      useCredentials: true, // because the icons sit behind authentication
+      useCredentials: true, // because the manifest might sit behind authentication
       manifest: {
         short_name: "Alby Hub",
         name: "Alby Hub",
