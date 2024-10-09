@@ -34,7 +34,7 @@ const (
 // given a relay limit of 512000 bytes and ideally being able to list 50 transactions,
 // each transaction would have to have a maximum size of 10240
 // accounting for encryption and other metadata in the response, this is set to 2048 characters
-const INVOICE_METADATA_MAX_LENGTH = 2048
+const INVOICE_METADATA_MAX_LENGTH = 4096
 
 // errors used by NIP-47 and the transaction service
 const (
