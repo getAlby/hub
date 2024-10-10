@@ -17,6 +17,7 @@ import { request } from "src/utils/request"; // build the project for this to ap
 import { PencilIcon } from "lucide-react";
 import AppAvatar from "src/components/AppAvatar";
 import AppHeader from "src/components/AppHeader";
+import { IsolatedAppTopupDialog } from "src/components/IsolatedAppTopupDialog";
 import Loading from "src/components/Loading";
 import Permissions from "src/components/Permissions";
 import {
@@ -244,7 +245,12 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                         {new Intl.NumberFormat().format(
                           Math.floor(app.balance / 1000)
                         )}{" "}
-                        sats
+                        sats{" "}
+                        <IsolatedAppTopupDialog appPubkey={app.nostrPubkey}>
+                          <Button size="sm" variant="secondary">
+                            Increase
+                          </Button>
+                        </IsolatedAppTopupDialog>
                       </TableCell>
                     </TableRow>
                   )}
