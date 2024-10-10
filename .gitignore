@@ -8,6 +8,7 @@ nostr-wallet-connect
 nwc.db
 .breez
 .data
+.idea
 
 frontend/dist
 frontend/node_modules
