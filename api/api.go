@@ -860,6 +860,10 @@ func (api *api) GetWalletCapabilities(ctx context.Context) (*WalletCapabilitiesR
 	if len(notificationTypes) > 0 {
 		scopes = append(scopes, constants.NOTIFICATIONS_SCOPE)
 	}
+	// Don't return the always granted scope, since it's implicit.
+	scopes = slices.DeleteFunc(scopes, func(scope string) bool {
+		return scope == constants.ALWAYS_GRANTED_SCOPE
+	})
 
 	return &WalletCapabilitiesResponse{
 		Methods:           methods,
