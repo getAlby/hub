@@ -104,7 +104,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 				Message: "The public key does not have a wallet connected.",
 			},
 		}
-		resp, err := svc.CreateResponse(event, nip47Response, nostr.Tags{}, ss, appWalletPrivKey)
+		resp, err := svc.CreateResponse(event, nip47Response, nostr.Tags{}, ss, svc.keys.GetNostrSecretKey())
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"requestEventNostrId": event.ID,

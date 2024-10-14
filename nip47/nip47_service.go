@@ -30,7 +30,7 @@ type Nip47Service interface {
 	StartNotifier(ctx context.Context, relay *nostr.Relay, lnClient lnclient.LNClient)
 	HandleEvent(ctx context.Context, relay nostrmodels.Relay, event *nostr.Event, lnClient lnclient.LNClient)
 	PublishNip47Info(ctx context.Context, relay nostrmodels.Relay, lnClient lnclient.LNClient) error
-	CreateResponse(initialEvent *nostr.Event, content interface{}, tags nostr.Tags, ss []byte) (result *nostr.Event, err error)
+	CreateResponse(initialEvent *nostr.Event, content interface{}, tags nostr.Tags, ss []byte, walletPrivKey string) (result *nostr.Event, err error)
 }
 
 func NewNip47Service(db *gorm.DB, cfg config.Config, keys keys.Keys, eventPublisher events.EventPublisher) *nip47Service {
