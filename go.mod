@@ -238,7 +238,7 @@ require (
 	github.com/lightningnetwork/lnd v0.18.2-beta
 	github.com/sirupsen/logrus v1.9.3
 	golang.org/x/exp v0.0.0-20240325151524-a685a6edb6d8 // indirect
-	gorm.io/datatypes v1.2.2
+	gorm.io/datatypes v1.2.3
 )
 
 // See https://github.com/lightningnetwork/lnd/blob/v0.17.4-beta/go.mod#L12C58-L12C70
