@@ -51,7 +51,7 @@ func TestCreateResponse(t *testing.T) {
 
 	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
 
-	res, err := nip47svc.CreateResponse(reqEvent, nip47Response, nostr.Tags{}, ss)
+	res, err := nip47svc.CreateResponse(reqEvent, nip47Response, nostr.Tags{}, ss, svc.Keys.GetNostrSecretKey())
 	assert.NoError(t, err)
 	assert.Equal(t, reqPubkey, res.Tags.GetFirst([]string{"p"}).Value())
 	assert.Equal(t, reqEvent.ID, res.Tags.GetFirst([]string{"e"}).Value())

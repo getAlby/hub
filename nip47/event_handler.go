@@ -2,6 +2,7 @@ package nip47
 
 import (
 	"context"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -75,7 +76,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 				Message: fmt.Sprintf("Failed to save nostr event: %s", err.Error()),
 			},
 		}
-		resp, err := svc.CreateResponse(event, nip47Response, nostr.Tags{}, ss)
+		resp, err := svc.CreateResponse(event, nip47Response, nostr.Tags{}, ss, svc.keys.GetNostrSecretKey())
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"requestEventNostrId": event.ID,
@@ -87,9 +88,11 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 	}
 
 	app := db.App{}
+
 	err = svc.db.First(&app, &db.App{
 		NostrPubkey: event.PubKey,
 	}).Error
+
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"nostrPubkey": event.PubKey,
@@ -101,7 +104,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 				Message: "The public key does not have a wallet connected.",
 			},
 		}
-		resp, err := svc.CreateResponse(event, nip47Response, nostr.Tags{}, ss)
+		resp, err := svc.CreateResponse(event, nip47Response, nostr.Tags{}, ss, appWalletPrivKey)
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"requestEventNostrId": event.ID,
@@ -133,7 +136,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 				Message: fmt.Sprintf("Failed to save app to nostr event: %s", err.Error()),
 			},
 		}
-		resp, err := svc.CreateResponse(event, nip47Response, nostr.Tags{}, ss)
+		resp, err := svc.CreateResponse(event, nip47Response, nostr.Tags{}, ss, svc.keys.GetNostrSecretKey())
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"requestEventNostrId": event.ID,
@@ -159,8 +162,17 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 		"appId":               app.ID,
 	}).Debug("App found for nostr event")
 
+	appWalletPrivKeyBip32, err := svc.keys.GetBIP32ChildKey(uint32(app.ID))
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"appId": app.ID,
+		}).WithError(err).Error("error deriving child key")
+		return
+	}
+	appWalletPrivKey, _ := nostr.GetPublicKey(hex.EncodeToString(appWalletPrivKeyBip32.Serialize()))
+
 	//to be extra safe, decrypt using the key found from the app
-	ss, err = nip04.ComputeSharedSecret(app.NostrPubkey, svc.keys.GetNostrSecretKey())
+	ss, err = nip04.ComputeSharedSecret(app.NostrPubkey, appWalletPrivKey)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"requestEventNostrId": event.ID,
@@ -225,7 +237,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 	// TODO: replace with a channel
 	// TODO: update all previous occurences of svc.publishResponseEvent to also use the channel
 	publishResponse := func(nip47Response *models.Response, tags nostr.Tags) {
-		resp, err := svc.CreateResponse(event, nip47Response, tags, ss)
+		resp, err := svc.CreateResponse(event, nip47Response, tags, ss, appWalletPrivKey)
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"requestEventNostrId": event.ID,
@@ -356,7 +368,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 	}
 }
 
-func (svc *nip47Service) CreateResponse(initialEvent *nostr.Event, content interface{}, tags nostr.Tags, ss []byte) (result *nostr.Event, err error) {
+func (svc *nip47Service) CreateResponse(initialEvent *nostr.Event, content interface{}, tags nostr.Tags, ss []byte, walletPrivKey string) (result *nostr.Event, err error) {
 	payloadBytes, err := json.Marshal(content)
 	if err != nil {
 		return nil, err
@@ -369,14 +381,16 @@ func (svc *nip47Service) CreateResponse(initialEvent *nostr.Event, content inter
 	allTags := nostr.Tags{[]string{"p", initialEvent.PubKey}, []string{"e", initialEvent.ID}}
 	allTags = append(allTags, tags...)
 
+	appWalletPubKey, _ := nostr.GetPublicKey(walletPrivKey)
+
 	resp := &nostr.Event{
-		PubKey:    svc.keys.GetNostrPublicKey(),
+		PubKey:    appWalletPubKey,
 		CreatedAt: nostr.Now(),
 		Kind:      models.RESPONSE_KIND,
 		Tags:      allTags,
 		Content:   msg,
 	}
-	err = resp.Sign(svc.keys.GetNostrSecretKey())
+	err = resp.Sign(walletPrivKey)
 	if err != nil {
 		return nil, err
 	}

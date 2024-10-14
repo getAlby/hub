@@ -59,7 +59,7 @@ func (svc *dbService) CreateApp(name string, pubkey string, maxAmountSat uint64,
 		}
 	}
 
-	app := App{Name: name, NostrPubkey: pairingPublicKey, Isolated: isolated, Metadata: datatypes.JSON(metadataBytes)}
+	app := App{Name: name, NostrPubkey: pairingPublicKey, walletChildIdx: 2, Isolated: isolated, Metadata: datatypes.JSON(metadataBytes)}
 
 	err := svc.db.Transaction(func(tx *gorm.DB) error {
 		err := tx.Save(&app).Error
