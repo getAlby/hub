@@ -1,6 +1,8 @@
 package service
 
 import (
+	"context"
+
 	"github.com/getAlby/hub/alby"
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/events"
@@ -14,6 +16,7 @@ type Service interface {
 	StartApp(encryptionKey string) error
 	StopApp()
 	Shutdown()
+	SubscribeToAppRequests(ctx context.Context, appWalletPubKey string) error
 
 	// TODO: remove getters (currently used by http / wails services)
 	GetAlbyOAuthSvc() alby.AlbyOAuthService

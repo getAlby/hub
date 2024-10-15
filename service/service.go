@@ -138,7 +138,7 @@ func NewService(ctx context.Context) (*service, error) {
 
 func (svc *service) createFilters(identityPubkey string) nostr.Filters {
 	filter := nostr.Filter{
-		// Tags:  nostr.TagMap{"p": []string{identityPubkey}},
+		Tags:  nostr.TagMap{"p": []string{identityPubkey}},
 		Kinds: []int{models.REQUEST_KIND},
 	}
 	return []nostr.Filter{filter}

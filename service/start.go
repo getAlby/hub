@@ -119,6 +119,82 @@ func (svc *service) startNostr(ctx context.Context, encryptionKey string) error 
 	return nil
 }
 
+func (svc *service) SubscribeToAppRequests(ctx context.Context, appWalletPubKey string) error {
+	relayUrl := svc.cfg.GetRelayUrl()
+	go func() {
+		// ensure the relay is properly disconnected before exiting
+		defer svc.wg.Done()
+		//Start infinite loop which will be only broken by canceling ctx (SIGINT)
+		var relay *nostr.Relay
+		waitToReconnectSeconds := 0
+
+		for i := 0; ; i++ {
+
+			// wait for a delay if any before retrying
+			if waitToReconnectSeconds > 0 {
+				contextCancelled := false
+
+				select {
+				case <-ctx.Done(): //context cancelled
+					logger.Logger.Info("service context cancelled while waiting for retry")
+					contextCancelled = true
+				case <-time.After(time.Duration(waitToReconnectSeconds) * time.Second): //timeout
+				}
+				if contextCancelled {
+					break
+				}
+			}
+
+			closeRelay(relay)
+
+			//connect to the relay
+			logger.Logger.WithFields(logrus.Fields{
+				"relay_url": relayUrl,
+				"iteration": i,
+			}).Info("Connecting to the relay")
+
+			relay, err := nostr.RelayConnect(ctx, relayUrl, nostr.WithNoticeHandler(svc.noticeHandler))
+			if err != nil {
+				// exponential backoff from 2 - 60 seconds
+				waitToReconnectSeconds = max(waitToReconnectSeconds, 1)
+				waitToReconnectSeconds *= 2
+				waitToReconnectSeconds = min(waitToReconnectSeconds, 60)
+				logger.Logger.WithFields(logrus.Fields{
+					"iteration":     i,
+					"retry_seconds": waitToReconnectSeconds,
+				}).WithError(err).Error("Failed to connect to relay")
+				continue
+			}
+
+			waitToReconnectSeconds = 0
+
+			//publish event with NIP-47 info
+			err = svc.nip47Service.PublishNip47Info(ctx, relay, svc.lnClient)
+			if err != nil {
+				logger.Logger.WithError(err).Error("Could not publish NIP47 info")
+			}
+
+			logger.Logger.Info("Subscribing to events")
+			sub, err := relay.Subscribe(ctx, svc.createFilters(appWalletPubKey))
+			if err != nil {
+				logger.Logger.WithError(err).Error("Failed to subscribe to events")
+				continue
+			}
+			err = svc.StartSubscription(sub.Context, sub)
+			if err != nil {
+				//err being non-nil means that we have an error on the websocket error channel. In this case we just try to reconnect.
+				logger.Logger.WithError(err).Error("Got an error from the relay while listening to subscription.")
+				continue
+			}
+			//err being nil means that the context was canceled and we should exit the program.
+			break
+		}
+		closeRelay(relay)
+		logger.Logger.Info("Relay subroutine ended")
+	}()
+	return nil
+}
+
 func (svc *service) StartApp(encryptionKey string) error {
 	if svc.lnClient != nil {
 		return errors.New("app already started")

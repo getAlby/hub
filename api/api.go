@@ -57,7 +57,7 @@ func NewAPI(svc service.Service, gormDB *gorm.DB, config config.Config, keys key
 	}
 }
 
-func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppResponse, error) {
+func (api *api) CreateApp(ctx context.Context, createAppRequest *CreateAppRequest) (*CreateAppResponse, error) {
 	expiresAt, err := api.parseExpiresAt(createAppRequest.ExpiresAt)
 	if err != nil {
 		return nil, fmt.Errorf("invalid expiresAt: %v", err)
@@ -128,6 +128,14 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 		lud16 = fmt.Sprintf("&lud16=%s", lightningAddress)
 	}
 	responseBody.PairingUri = fmt.Sprintf("nostr+walletconnect://%s?relay=%s&secret=%s%s", appWalletPubKey, relayUrl, pairingSecretKey, lud16)
+
+	fmt.Println("~+~+~+~+~+~+~+~+~+ GOING TO SUBSCRIBE TO NEW APP WALLET!!!!!!!!!!!!!! ")
+	err = api.svc.SubscribeToAppRequests(ctx, appWalletPubKey)
+	if err != nil {
+		fmt.Println("error subscribing to new app wallet key: ", err)
+		return nil, err
+	}
+
 	return responseBody, nil
 }
 

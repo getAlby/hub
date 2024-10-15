@@ -11,7 +11,7 @@ import (
 )
 
 type API interface {
-	CreateApp(createAppRequest *CreateAppRequest) (*CreateAppResponse, error)
+	CreateApp(ctx context.Context, createAppRequest *CreateAppRequest) (*CreateAppResponse, error)
 	UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) error
 	DeleteApp(userApp *db.App) error
 	GetApp(userApp *db.App) *App
