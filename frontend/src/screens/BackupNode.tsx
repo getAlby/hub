@@ -27,7 +27,9 @@ export function BackupNode() {
   const onSubmitPassword = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const isHttpMode = window.location.protocol.startsWith("http");
+    const isHttpMode =
+      window.location.protocol.startsWith("http") &&
+      !window.location.hostname.startsWith("wails");
 
     try {
       setLoading(true);

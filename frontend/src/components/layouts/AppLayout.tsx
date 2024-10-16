@@ -73,7 +73,9 @@ export default function AppLayout() {
     deleteAuthToken();
     await refetchInfo();
 
-    const isHttpMode = window.location.protocol.startsWith("http");
+    const isHttpMode =
+      window.location.protocol.startsWith("http") &&
+      !window.location.hostname.startsWith("wails");
     if (isHttpMode) {
       window.location.href = "/logout";
     } else {
@@ -81,7 +83,9 @@ export default function AppLayout() {
     }
   }, [navigate, refetchInfo]);
 
-  const isHttpMode = window.location.protocol.startsWith("http");
+  const isHttpMode =
+    window.location.protocol.startsWith("http") &&
+    !window.location.hostname.startsWith("wails");
 
   if (!info) {
     return null;

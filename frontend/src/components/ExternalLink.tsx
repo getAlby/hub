@@ -8,7 +8,9 @@ type Props = {
 };
 
 export default function ExternalLink({ to, className, children }: Props) {
-  const isHttpMode = window.location.protocol.startsWith("http");
+  const isHttpMode =
+    window.location.protocol.startsWith("http") &&
+    !window.location.hostname.startsWith("wails");
 
   return isHttpMode ? (
     <Link
