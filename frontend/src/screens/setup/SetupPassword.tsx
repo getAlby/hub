@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import useSetupStore from "src/state/SetupStore";
 
+import { Eye, EyeOff } from "lucide-react";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { Button } from "src/components/ui/button";
 import { Checkbox } from "src/components/ui/checkbox";
@@ -18,6 +19,9 @@ export function SetupPassword() {
   const [confirmPassword, setConfirmPassword] = React.useState("");
   const [isPasswordSecured, setIsPasswordSecured] = useState<boolean>(false);
   const [isPasswordSecured2, setIsPasswordSecured2] = useState<boolean>(false);
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [showConfirmPassword, setShowConfirmPassword] =
+    useState<boolean>(false);
 
   const [searchParams] = useSearchParams();
   const wallet = searchParams.get("wallet") || "new";
@@ -67,30 +71,56 @@ export function SetupPassword() {
             <div className="grid gap-4 w-full">
               <div className="grid gap-1.5">
                 <Label htmlFor="unlock-password">Password</Label>
-                <Input
-                  autoFocus
-                  type="password"
-                  name="unlock-password"
-                  id="unlock-password"
-                  autoComplete="new-password"
-                  placeholder="Enter a password"
-                  value={store.unlockPassword}
-                  onChange={(e) => store.setUnlockPassword(e.target.value)}
-                  required
-                />
+                <div className="relative">
+                  <Input
+                    autoFocus
+                    type={showPassword ? "text" : "password"}
+                    name="unlock-password"
+                    id="unlock-password"
+                    autoComplete="new-password"
+                    placeholder="Enter a password"
+                    value={store.unlockPassword}
+                    onChange={(e) => store.setUnlockPassword(e.target.value)}
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-2.5 top-2.5"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </button>
+                </div>
               </div>
               <div className="grid gap-1.5">
                 <Label htmlFor="confirm-password">Repeat Password</Label>
-                <Input
-                  type="password"
-                  name="confirm-password"
-                  id="confirm-password"
-                  autoComplete="new-password"
-                  placeholder="Re-enter the password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                />
+                <div className="relative">
+                  <Input
+                    type={showConfirmPassword ? "text" : "password"}
+                    name="confirm-password"
+                    id="confirm-password"
+                    autoComplete="new-password"
+                    placeholder="Re-enter the password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-2.5 top-2.5"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
             <div className="grid gap-6">
