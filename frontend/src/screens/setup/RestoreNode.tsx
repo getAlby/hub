@@ -34,7 +34,9 @@ export function RestoreNode() {
   const [loading, setLoading] = useState(false);
   const [restored, setRestored] = useState(false);
   const { data: info } = useInfo(restored);
-  const isHttpMode = window.location.protocol.startsWith("http");
+  const isHttpMode =
+    window.location.protocol.startsWith("http") &&
+    !window.location.hostname.startsWith("wails");
 
   React.useEffect(() => {
     if (restored && info?.setupCompleted) {
