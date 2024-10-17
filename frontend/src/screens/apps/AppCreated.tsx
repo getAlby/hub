@@ -184,7 +184,7 @@ export function ConnectAppCard({
         <div>
           <Button onClick={copy} variant="outline">
             <CopyIcon className="w-4 h-4 mr-2" />
-            Copy pairing secret
+            Copy
           </Button>
         </div>
       </CardContent>
