@@ -108,13 +108,9 @@ func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *db.App
 		"appId":        app.ID,
 	}).Debug("Notifying subscriber")
 
-	appWalletPrivKey, err := notifier.keys.GetBIP32ChildKey(uint32(app.ID))
-	if err != nil {
-		logger.Logger.WithFields(logrus.Fields{
-			"notification": notification,
-			"appId":        app.ID,
-		}).WithError(err).Error("error derivingchild key")
-		return
+	appWalletPrivKey := notifier.keys.GetNostrSecretKey()
+	if app.WalletChildPubkey != "" {
+		appWalletPrivKey, _ = notifier.keys.GetBIP32ChildKey(uint32(app.ID))
 	}
 
 	ss, err := nip04.ComputeSharedSecret(app.NostrPubkey, appWalletPrivKey)

@@ -53,25 +53,6 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 		}).Error("invalid event, missing p tag")
 		return
 	}
-	appWalletPubKey := pTag.Value()
-
-	app := db.App{}
-	err = svc.db.First(&app, &db.App{
-		NostrPubkey: event.PubKey,
-	}).Error
-
-	appWalletPrivKey := svc.keys.GetNostrSecretKey()
-
-	if appWalletPubKey != svc.keys.GetNostrPublicKey() {
-		// This is a new child key derived from master using app ID as index
-		appWalletPrivKey, err = svc.keys.GetBIP32ChildKey(uint32(app.ID))
-		if err != nil {
-			logger.Logger.WithFields(logrus.Fields{
-				"appId": app.ID,
-			}).WithError(err).Error("error deriving child key")
-			return
-		}
-	}
 
 	ss, err := nip04.ComputeSharedSecret(event.PubKey, svc.keys.GetNostrSecretKey())
 	if err != nil {
@@ -111,6 +92,25 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 		}
 		svc.publishResponseEvent(ctx, relay, &requestEvent, resp, nil)
 		return
+	}
+	appWalletPubKey := pTag.Value()
+
+	app := db.App{}
+	err = svc.db.First(&app, &db.App{
+		NostrPubkey: event.PubKey,
+	}).Error
+
+	appWalletPrivKey := svc.keys.GetNostrSecretKey()
+
+	if appWalletPubKey != svc.keys.GetNostrPublicKey() {
+		// This is a new child key derived from master using app ID as index
+		appWalletPrivKey, err = svc.keys.GetBIP32ChildKey(uint32(app.ID))
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"appId": app.ID,
+			}).WithError(err).Error("error deriving child key")
+			return
+		}
 	}
 
 	if err != nil {
