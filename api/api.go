@@ -55,7 +55,7 @@ func NewAPI(svc service.Service, gormDB *gorm.DB, config config.Config, keys key
 	}
 }
 
-func (api *api) CreateApp(ctx context.Context, createAppRequest *CreateAppRequest) (*CreateAppResponse, error) {
+func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppResponse, error) {
 	expiresAt, err := api.parseExpiresAt(createAppRequest.ExpiresAt)
 	if err != nil {
 		return nil, fmt.Errorf("invalid expiresAt: %v", err)

@@ -837,7 +837,7 @@ func (httpSvc *HttpService) appsCreateHandler(c echo.Context) error {
 		})
 	}
 
-	responseBody, err := httpSvc.api.CreateApp(c.Request().Context(), &requestData)
+	responseBody, err := httpSvc.api.CreateApp(&requestData)
 
 	if err != nil {
 		logger.Logger.WithField("requestData", requestData).WithError(err).Error("Failed to save app")
