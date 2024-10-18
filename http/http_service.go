@@ -16,8 +16,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
+	"github.com/getAlby/hub/apps"
 	"github.com/getAlby/hub/config"
-	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/service"
@@ -43,6 +43,7 @@ type HttpService struct {
 	cfg            config.Config
 	eventPublisher events.EventPublisher
 	db             *gorm.DB
+	appsSvc        apps.AppsService
 }
 
 func NewHttpService(svc service.Service, eventPublisher events.EventPublisher) *HttpService {
@@ -52,6 +53,7 @@ func NewHttpService(svc service.Service, eventPublisher events.EventPublisher) *
 		cfg:            svc.GetConfig(),
 		eventPublisher: eventPublisher,
 		db:             svc.GetDB(),
+		appsSvc:        apps.NewAppsService(svc.GetDB(), eventPublisher),
 	}
 }
 
@@ -116,6 +118,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedGroup.GET("/api/apps/:pubkey", httpSvc.appsShowHandler)
 	restrictedGroup.PATCH("/api/apps/:pubkey", httpSvc.appsUpdateHandler)
 	restrictedGroup.DELETE("/api/apps/:pubkey", httpSvc.appsDeleteHandler)
+	restrictedGroup.POST("/api/apps/:pubkey/topup", httpSvc.isolatedAppTopupHandler)
 	restrictedGroup.POST("/api/apps", httpSvc.appsCreateHandler)
 	restrictedGroup.POST("/api/mnemonic", httpSvc.mnemonicHandler)
 	restrictedGroup.PATCH("/api/backup-reminder", httpSvc.backupReminderHandler)
@@ -756,16 +759,15 @@ func (httpSvc *HttpService) appsListHandler(c echo.Context) error {
 func (httpSvc *HttpService) appsShowHandler(c echo.Context) error {
 
 	// TODO: move this to DB service
-	dbApp := db.App{}
-	findResult := httpSvc.db.Where("nostr_pubkey = ?", c.Param("pubkey")).First(&dbApp)
+	dbApp := httpSvc.appsSvc.GetAppByPubkey(c.Param("pubkey"))
 
-	if findResult.RowsAffected == 0 {
+	if dbApp == nil {
 		return c.JSON(http.StatusNotFound, ErrorResponse{
-			Message: "App does not exist",
+			Message: "App not found",
 		})
 	}
 
-	response := httpSvc.api.GetApp(&dbApp)
+	response := httpSvc.api.GetApp(dbApp)
 
 	return c.JSON(http.StatusOK, response)
 }
@@ -778,17 +780,15 @@ func (httpSvc *HttpService) appsUpdateHandler(c echo.Context) error {
 		})
 	}
 
-	// TODO: move this to DB service
-	dbApp := db.App{}
-	findResult := httpSvc.db.Where("nostr_pubkey = ?", c.Param("pubkey")).First(&dbApp)
+	dbApp := httpSvc.appsSvc.GetAppByPubkey(c.Param("pubkey"))
 
-	if findResult.RowsAffected == 0 {
+	if dbApp == nil {
 		return c.JSON(http.StatusNotFound, ErrorResponse{
-			Message: "App does not exist",
+			Message: "App not found",
 		})
 	}
 
-	err := httpSvc.api.UpdateApp(&dbApp, &requestData)
+	err := httpSvc.api.UpdateApp(dbApp, &requestData)
 
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to update app")
@@ -800,28 +800,43 @@ func (httpSvc *HttpService) appsUpdateHandler(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func (httpSvc *HttpService) appsDeleteHandler(c echo.Context) error {
-	pubkey := c.Param("pubkey")
-	if pubkey == "" {
+func (httpSvc *HttpService) isolatedAppTopupHandler(c echo.Context) error {
+	var requestData api.TopupIsolatedAppRequest
+	if err := c.Bind(&requestData); err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
-			Message: "Invalid pubkey parameter",
-		})
-	}
-	// TODO: move this to DB service
-	dbApp := db.App{}
-	result := httpSvc.db.Where("nostr_pubkey = ?", pubkey).First(&dbApp)
-	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return c.JSON(http.StatusNotFound, ErrorResponse{
-				Message: "App not found",
-			})
-		}
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: "Failed to fetch app",
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
 		})
 	}
 
-	if err := httpSvc.api.DeleteApp(&dbApp); err != nil {
+	dbApp := httpSvc.appsSvc.GetAppByPubkey(c.Param("pubkey"))
+
+	if dbApp == nil {
+		return c.JSON(http.StatusNotFound, ErrorResponse{
+			Message: "App not found",
+		})
+	}
+
+	err := httpSvc.api.TopupIsolatedApp(c.Request().Context(), dbApp, requestData.AmountSat*1000)
+
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to topup isolated app")
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to topup isolated app: %v", err),
+		})
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
+
+func (httpSvc *HttpService) appsDeleteHandler(c echo.Context) error {
+	dbApp := httpSvc.appsSvc.GetAppByPubkey(c.Param("pubkey"))
+	if dbApp == nil {
+		return c.JSON(http.StatusNotFound, ErrorResponse{
+			Message: "App not found",
+		})
+	}
+
+	if err := httpSvc.api.DeleteApp(dbApp); err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: "Failed to delete app",
 		})
