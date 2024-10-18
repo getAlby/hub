@@ -79,7 +79,9 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 		expiresAt,
 		createAppRequest.Scopes,
 		createAppRequest.Isolated,
-		createAppRequest.Metadata)
+		createAppRequest.Metadata,
+		api.svc.GetKeys().GetBIP32ChildKey,
+	)
 
 	if err != nil {
 		return nil, err
@@ -103,7 +105,7 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 		if err == nil {
 			query := returnToUrl.Query()
 			query.Add("relay", relayUrl)
-			query.Add("pubkey", api.keys.GetNostrPublicKey())
+			query.Add("pubkey", app.WalletChildPubkey)
 			if lightningAddress != "" && !app.Isolated {
 				query.Add("lud16", lightningAddress)
 			}
@@ -116,7 +118,8 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 	if lightningAddress != "" && !app.Isolated {
 		lud16 = fmt.Sprintf("&lud16=%s", lightningAddress)
 	}
-	responseBody.PairingUri = fmt.Sprintf("nostr+walletconnect://%s?relay=%s&secret=%s%s", api.keys.GetNostrPublicKey(), relayUrl, pairingSecretKey, lud16)
+	responseBody.PairingUri = fmt.Sprintf("nostr+walletconnect://%s?relay=%s&secret=%s%s", app.WalletChildPubkey, relayUrl, pairingSecretKey, lud16)
+
 	return responseBody, nil
 }
 
@@ -215,7 +218,7 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 }
 
 func (api *api) DeleteApp(userApp *db.App) error {
-	return api.db.Delete(userApp).Error
+	return api.dbSvc.DeleteApp(userApp)
 }
 
 func (api *api) GetApp(dbApp *db.App) *App {

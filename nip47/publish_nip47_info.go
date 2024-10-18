@@ -3,6 +3,7 @@ package nip47
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/getAlby/hub/lnclient"
@@ -11,7 +12,7 @@ import (
 	"github.com/nbd-wtf/go-nostr"
 )
 
-func (svc *nip47Service) PublishNip47Info(ctx context.Context, relay nostrmodels.Relay, lnClient lnclient.LNClient) error {
+func (svc *nip47Service) PublishNip47Info(ctx context.Context, relay nostrmodels.Relay, appWalletPubKey string, appWalletPrivKey string, lnClient lnclient.LNClient) (*nostr.Event, error) {
 	capabilities := lnClient.GetSupportedNIP47Methods()
 	if len(lnClient.GetSupportedNIP47NotificationTypes()) > 0 {
 		capabilities = append(capabilities, "notifications")
@@ -21,9 +22,27 @@ func (svc *nip47Service) PublishNip47Info(ctx context.Context, relay nostrmodels
 	ev.Kind = models.INFO_EVENT_KIND
 	ev.Content = strings.Join(capabilities, " ")
 	ev.CreatedAt = nostr.Now()
-	ev.PubKey = svc.keys.GetNostrPublicKey()
+	ev.PubKey = appWalletPubKey
 	ev.Tags = nostr.Tags{[]string{"notifications", strings.Join(lnClient.GetSupportedNIP47NotificationTypes(), " ")}}
-	err := ev.Sign(svc.keys.GetNostrSecretKey())
+	err := ev.Sign(appWalletPrivKey)
+	if err != nil {
+		return nil, err
+	}
+	err = relay.Publish(ctx, *ev)
+	if err != nil {
+		return nil, fmt.Errorf("nostr publish not successful: %s", err)
+	}
+	return ev, nil
+}
+
+func (svc *nip47Service) PublishNip47InfoDeletion(ctx context.Context, relay nostrmodels.Relay, appWalletPubKey string, appWalletPrivKey string, infoEventId string) error {
+	ev := &nostr.Event{}
+	ev.Kind = nostr.KindDeletion
+	ev.Content = "deleting nip47 info since app connection for this key was deleted"
+	ev.Tags = nostr.Tags{[]string{"e", infoEventId}, []string{"k", strconv.Itoa(models.INFO_EVENT_KIND)}}
+	ev.CreatedAt = nostr.Now()
+	ev.PubKey = appWalletPubKey
+	err := ev.Sign(appWalletPrivKey)
 	if err != nil {
 		return err
 	}
