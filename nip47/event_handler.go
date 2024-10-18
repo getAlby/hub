@@ -2,7 +2,6 @@ package nip47
 
 import (
 	"context"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -46,6 +45,33 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 		}).Error("invalid event signature")
 		return
 	}
+	pTag := event.Tags.GetFirst([]string{"p"})
+	if pTag == nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"requestEventNostrId": event.ID,
+			"eventKind":           event.Kind,
+		}).Error("invalid event, missing p tag")
+		return
+	}
+	appWalletPubKey := pTag.Value()
+
+	app := db.App{}
+	err = svc.db.First(&app, &db.App{
+		NostrPubkey: event.PubKey,
+	}).Error
+
+	appWalletPrivKey := svc.keys.GetNostrSecretKey()
+
+	if appWalletPubKey != svc.keys.GetNostrPublicKey() {
+		// This is a new child key derived from master using app ID as index
+		appWalletPrivKey, err = svc.keys.GetBIP32ChildKey(uint32(app.ID))
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"appId": app.ID,
+			}).WithError(err).Error("error deriving child key")
+			return
+		}
+	}
 
 	ss, err := nip04.ComputeSharedSecret(event.PubKey, svc.keys.GetNostrSecretKey())
 	if err != nil {
@@ -86,12 +112,6 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 		svc.publishResponseEvent(ctx, relay, &requestEvent, resp, nil)
 		return
 	}
-
-	app := db.App{}
-
-	err = svc.db.First(&app, &db.App{
-		NostrPubkey: event.PubKey,
-	}).Error
 
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
@@ -161,15 +181,6 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 		"eventKind":           event.Kind,
 		"appId":               app.ID,
 	}).Debug("App found for nostr event")
-
-	appWalletPrivKeyBip32, err := svc.keys.GetBIP32ChildKey(uint32(app.ID))
-	if err != nil {
-		logger.Logger.WithFields(logrus.Fields{
-			"appId": app.ID,
-		}).WithError(err).Error("error deriving child key")
-		return
-	}
-	appWalletPrivKey, _ := nostr.GetPublicKey(hex.EncodeToString(appWalletPrivKeyBip32.Serialize()))
 
 	//to be extra safe, decrypt using the key found from the app
 	ss, err = nip04.ComputeSharedSecret(app.NostrPubkey, appWalletPrivKey)
@@ -368,7 +379,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 	}
 }
 
-func (svc *nip47Service) CreateResponse(initialEvent *nostr.Event, content interface{}, tags nostr.Tags, ss []byte, walletPrivKey string) (result *nostr.Event, err error) {
+func (svc *nip47Service) CreateResponse(initialEvent *nostr.Event, content interface{}, tags nostr.Tags, ss []byte, appWalletPrivKey string) (result *nostr.Event, err error) {
 	payloadBytes, err := json.Marshal(content)
 	if err != nil {
 		return nil, err
@@ -381,7 +392,7 @@ func (svc *nip47Service) CreateResponse(initialEvent *nostr.Event, content inter
 	allTags := nostr.Tags{[]string{"p", initialEvent.PubKey}, []string{"e", initialEvent.ID}}
 	allTags = append(allTags, tags...)
 
-	appWalletPubKey, _ := nostr.GetPublicKey(walletPrivKey)
+	appWalletPubKey, _ := nostr.GetPublicKey(appWalletPrivKey)
 
 	resp := &nostr.Event{
 		PubKey:    appWalletPubKey,
@@ -390,7 +401,7 @@ func (svc *nip47Service) CreateResponse(initialEvent *nostr.Event, content inter
 		Tags:      allTags,
 		Content:   msg,
 	}
-	err = resp.Sign(walletPrivKey)
+	err = resp.Sign(appWalletPrivKey)
 	if err != nil {
 		return nil, err
 	}

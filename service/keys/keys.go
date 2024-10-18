@@ -17,7 +17,7 @@ type Keys interface {
 	// Wallet Service Nostr secret key
 	GetNostrSecretKey() string
 	// GetBIP32ChildKey derives a BIP32 child key from the nostrSecretKey given a child key index
-	GetBIP32ChildKey(childIndex uint32) (*btcec.PrivateKey, error)
+	GetBIP32ChildKey(childIndex uint32) (string, error)
 }
 
 type keys struct {
@@ -58,28 +58,28 @@ func (keys *keys) GetNostrSecretKey() string {
 	return keys.nostrSecretKey
 }
 
-func (keys *keys) GetBIP32ChildKey(childIndex uint32) (*btcec.PrivateKey, error) {
+func (keys *keys) GetBIP32ChildKey(childIndex uint32) (string, error) {
 	// Convert nostrSecretKey to btcec private key
 	privKeyBytes, err := hex.DecodeString(keys.nostrSecretKey)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	privKey, _ := btcec.PrivKeyFromBytes(privKeyBytes)
 
 	// Create a BIP32 master key from the private key
 	masterKey, err := bip32.NewMasterKey(privKey.Serialize())
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	// Derive child key
 	childKey, err := masterKey.NewChildKey(childIndex)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	// Convert child key to btcec private key
 	childPrivKey, _ := btcec.PrivKeyFromBytes(childKey.Key)
 
-	return childPrivKey, nil
+	return hex.EncodeToString(childPrivKey.Serialize()), nil
 }

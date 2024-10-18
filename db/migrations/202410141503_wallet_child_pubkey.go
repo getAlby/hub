@@ -7,13 +7,12 @@ import (
 	"gorm.io/gorm"
 )
 
-var _202410141503_wallet_child_idx = &gormigrate.Migration{
-	ID: "202410141503_wallet_child_idx",
+var _202410141503_wallet_child_pubkey = &gormigrate.Migration{
+	ID: "202410141503_wallet_child_pubkey",
 	Migrate: func(tx *gorm.DB) error {
 
 		if err := tx.Exec(`
-	ALTER TABLE apps ADD COLUMN wallet_child_idx INTEGER;
-	CREATE UNIQUE INDEX idx_wallet_child_idx ON apps (wallet_child_idx);
+	ALTER TABLE apps ADD COLUMN wallet_child_pubkey TEXT;
 `).Error; err != nil {
 			return err
 		}

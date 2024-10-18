@@ -2,7 +2,6 @@ package api
 
 import (
 	"context"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -30,7 +29,6 @@ import (
 	"github.com/getAlby/hub/service/keys"
 	"github.com/getAlby/hub/utils"
 	"github.com/getAlby/hub/version"
-	"github.com/nbd-wtf/go-nostr"
 )
 
 type api struct {
@@ -81,7 +79,9 @@ func (api *api) CreateApp(ctx context.Context, createAppRequest *CreateAppReques
 		expiresAt,
 		createAppRequest.Scopes,
 		createAppRequest.Isolated,
-		createAppRequest.Metadata)
+		createAppRequest.Metadata,
+		api.svc.GetKeys().GetBIP32ChildKey,
+	)
 
 	if err != nil {
 		return nil, err
@@ -100,21 +100,12 @@ func (api *api) CreateApp(ctx context.Context, createAppRequest *CreateAppReques
 		return nil, err
 	}
 
-	appWalletKey, err := api.keys.GetBIP32ChildKey(uint32(app.ID))
-	if err != nil {
-		fmt.Println("error creating child key: ", err)
-		return nil, err
-	}
-	fmt.Println("!+!+!+!+!+!+!+ app secret key: ", hex.EncodeToString(appWalletKey.Serialize()))
-	appWalletPubKey, _ := nostr.GetPublicKey(hex.EncodeToString(appWalletKey.Serialize()))
-	fmt.Println("!+!+!+!+!+!+!+ app public key: ", appWalletPubKey)
-
 	if createAppRequest.ReturnTo != "" {
 		returnToUrl, err := url.Parse(createAppRequest.ReturnTo)
 		if err == nil {
 			query := returnToUrl.Query()
 			query.Add("relay", relayUrl)
-			query.Add("pubkey", appWalletPubKey)
+			query.Add("pubkey", app.WalletChildPubkey)
 			if lightningAddress != "" && !app.Isolated {
 				query.Add("lud16", lightningAddress)
 			}
@@ -127,14 +118,7 @@ func (api *api) CreateApp(ctx context.Context, createAppRequest *CreateAppReques
 	if lightningAddress != "" && !app.Isolated {
 		lud16 = fmt.Sprintf("&lud16=%s", lightningAddress)
 	}
-	responseBody.PairingUri = fmt.Sprintf("nostr+walletconnect://%s?relay=%s&secret=%s%s", appWalletPubKey, relayUrl, pairingSecretKey, lud16)
-
-	fmt.Println("~+~+~+~+~+~+~+~+~+ GOING TO SUBSCRIBE TO NEW APP WALLET!!!!!!!!!!!!!! ")
-	err = api.svc.SubscribeToAppRequests(ctx, appWalletPubKey)
-	if err != nil {
-		fmt.Println("error subscribing to new app wallet key: ", err)
-		return nil, err
-	}
+	responseBody.PairingUri = fmt.Sprintf("nostr+walletconnect://%s?relay=%s&secret=%s%s", app.WalletChildPubkey, relayUrl, pairingSecretKey, lud16)
 
 	return responseBody, nil
 }
@@ -234,7 +218,7 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 }
 
 func (api *api) DeleteApp(userApp *db.App) error {
-	return api.db.Delete(userApp).Error
+	return api.dbSvc.DeleteApp(userApp)
 }
 
 func (api *api) GetApp(dbApp *db.App) *App {

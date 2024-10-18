@@ -28,7 +28,17 @@ func NewDBService(db *gorm.DB, eventPublisher events.EventPublisher) *dbService 
 	}
 }
 
-func (svc *dbService) CreateApp(name string, pubkey string, maxAmountSat uint64, budgetRenewal string, expiresAt *time.Time, scopes []string, isolated bool, metadata map[string]interface{}) (*App, string, error) {
+func (svc *dbService) CreateApp(
+	name string,
+	pubkey string,
+	maxAmountSat uint64,
+	budgetRenewal string,
+	expiresAt *time.Time,
+	scopes []string,
+	isolated bool,
+	metadata map[string]interface{},
+	walletChildPrivKeyGeneratorFunc func(appId uint32) (string, error),
+) (*App, string, error) {
 	if isolated && (slices.Contains(scopes, constants.SIGN_MESSAGE_SCOPE)) {
 		// cannot sign messages because the isolated app is a custodial subaccount
 		return nil, "", errors.New("isolated app cannot have sign_message scope")
@@ -59,7 +69,7 @@ func (svc *dbService) CreateApp(name string, pubkey string, maxAmountSat uint64,
 		}
 	}
 
-	app := App{Name: name, NostrPubkey: pairingPublicKey, walletChildIdx: 2, Isolated: isolated, Metadata: datatypes.JSON(metadataBytes)}
+	app := App{Name: name, NostrPubkey: pairingPublicKey, Isolated: isolated, Metadata: datatypes.JSON(metadataBytes)}
 
 	err := svc.db.Transaction(func(tx *gorm.DB) error {
 		err := tx.Save(&app).Error
@@ -82,6 +92,21 @@ func (svc *dbService) CreateApp(name string, pubkey string, maxAmountSat uint64,
 			}
 		}
 
+		appWalletChildPrivKey, err := walletChildPrivKeyGeneratorFunc(uint32(app.ID))
+		if err != nil {
+			return fmt.Errorf("error generating wallet child private key: %w", err)
+		}
+
+		app.WalletChildPubkey, err = nostr.GetPublicKey(appWalletChildPrivKey)
+		if err != nil {
+			return fmt.Errorf("error generating wallet child public key: %w", err)
+		}
+
+		err = tx.Model(&App{}).Where("id", app.ID).Update("wallet_child_pubkey", app.WalletChildPubkey).Error
+		if err != nil {
+			return err
+		}
+
 		// commit transaction
 		return nil
 	})
@@ -94,9 +119,28 @@ func (svc *dbService) CreateApp(name string, pubkey string, maxAmountSat uint64,
 	svc.eventPublisher.Publish(&events.Event{
 		Event: "app_created",
 		Properties: map[string]interface{}{
-			"name": name,
+			"name":              name,
+			"id":                app.ID,
+			"walletChildPubkey": app.WalletChildPubkey,
 		},
 	})
 
 	return &app, pairingSecretKey, nil
+}
+
+func (svc *dbService) DeleteApp(app *App) error {
+
+	err := svc.db.Delete(app).Error
+	if err != nil {
+		return err
+	}
+	svc.eventPublisher.Publish(&events.Event{
+		Event: "app_deleted",
+		Properties: map[string]interface{}{
+			"name":              app.Name,
+			"id":                app.ID,
+			"walletChildPubkey": app.WalletChildPubkey,
+		},
+	})
+	return nil
 }

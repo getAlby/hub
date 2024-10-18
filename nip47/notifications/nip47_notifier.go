@@ -2,7 +2,6 @@ package notifications
 
 import (
 	"context"
-	"encoding/hex"
 	"encoding/json"
 
 	"github.com/getAlby/hub/config"
@@ -109,7 +108,7 @@ func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *db.App
 		"appId":        app.ID,
 	}).Debug("Notifying subscriber")
 
-	appWalletPrivKeyBIP32, err := notifier.keys.GetBIP32ChildKey(uint32(app.ID))
+	appWalletPrivKey, err := notifier.keys.GetBIP32ChildKey(uint32(app.ID))
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"notification": notification,
@@ -117,7 +116,6 @@ func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *db.App
 		}).WithError(err).Error("error derivingchild key")
 		return
 	}
-	appWalletPrivKey := hex.EncodeToString(appWalletPrivKeyBIP32.Serialize())
 
 	ss, err := nip04.ComputeSharedSecret(app.NostrPubkey, appWalletPrivKey)
 	if err != nil {
