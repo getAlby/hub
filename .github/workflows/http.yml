@@ -53,11 +53,12 @@ jobs:
     steps:
       - name: Setup
         run: |
+          SANITIZED_TAG=$(echo "${GITHUB_REF_NAME}" | sed 's/[./]/-/g')
           echo "EXEC_NAME=albyhub" >> $GITHUB_ENV
           if [ "${{ runner.os }}" == "macOS" ]; then
-            echo "PACKAGE_NAME=albyhub-Server-MacOS" >> $GITHUB_ENV
+            echo "PACKAGE_NAME=AlbyHub-Server-MacOS-${SANITIZED_TAG}" >> $GITHUB_ENV
           else
-            echo "PACKAGE_NAME=albyhub-Server-Linux-${{ matrix.build.arch }}" >> $GITHUB_ENV
+            echo "PACKAGE_NAME=AlbyHub-Server-Linux-${{ matrix.build.arch }}-${SANITIZED_TAG}" >> $GITHUB_ENV
           fi
 
       - uses: actions/checkout@v4
