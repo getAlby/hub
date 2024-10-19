@@ -12,9 +12,10 @@ import (
 
 type API interface {
 	CreateApp(createAppRequest *CreateAppRequest) (*CreateAppResponse, error)
-	UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) error
-	DeleteApp(userApp *db.App) error
-	GetApp(userApp *db.App) *App
+	UpdateApp(app *db.App, updateAppRequest *UpdateAppRequest) error
+	TopupIsolatedApp(ctx context.Context, app *db.App, amountMsat uint64) error
+	DeleteApp(app *db.App) error
+	GetApp(app *db.App) *App
 	ListApps() ([]App, error)
 	ListChannels(ctx context.Context) ([]Channel, error)
 	GetChannelPeerSuggestions(ctx context.Context) ([]alby.ChannelPeerSuggestion, error)
@@ -36,7 +37,7 @@ type API interface {
 	GetBalances(ctx context.Context) (*BalancesResponse, error)
 	ListTransactions(ctx context.Context, limit uint64, offset uint64) (*ListTransactionsResponse, error)
 	SendPayment(ctx context.Context, invoice string) (*SendPaymentResponse, error)
-	CreateInvoice(ctx context.Context, amount int64, description string) (*MakeInvoiceResponse, error)
+	CreateInvoice(ctx context.Context, amount uint64, description string) (*MakeInvoiceResponse, error)
 	LookupInvoice(ctx context.Context, paymentHash string) (*LookupInvoiceResponse, error)
 	RequestMempoolApi(endpoint string) (interface{}, error)
 	GetInfo(ctx context.Context) (*InfoResponse, error)
@@ -84,6 +85,10 @@ type UpdateAppRequest struct {
 	ExpiresAt     string   `json:"expiresAt"`
 	Scopes        []string `json:"scopes"`
 	Metadata      Metadata `json:"metadata,omitempty"`
+}
+
+type TopupIsolatedAppRequest struct {
+	AmountSat uint64 `json:"amountSat"`
 }
 
 type CreateAppRequest struct {
@@ -283,7 +288,7 @@ type SignMessageResponse struct {
 }
 
 type MakeInvoiceRequest struct {
-	Amount      int64  `json:"amount"`
+	Amount      uint64 `json:"amount"`
 	Description string `json:"description"`
 }
 
