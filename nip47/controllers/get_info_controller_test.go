@@ -66,7 +66,8 @@ func TestHandleGetInfoEvent_NoPermission(t *testing.T) {
 	assert.Empty(t, nodeInfo.Network)
 	assert.Empty(t, nodeInfo.BlockHeight)
 	assert.Empty(t, nodeInfo.BlockHash)
-	assert.NotContains(t, nodeInfo.Methods, "get_info")
+	// get_info method is always granted, but does not return pubkey
+	assert.Contains(t, nodeInfo.Methods, models.GET_INFO_METHOD)
 	assert.Equal(t, []string{}, nodeInfo.Notifications)
 }
 

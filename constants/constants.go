@@ -20,8 +20,7 @@ const (
 )
 
 const (
-	ALWAYS_GRANTED_SCOPE    = "always_granted" // granted for all connections
-	PAY_INVOICE_SCOPE       = "pay_invoice"    // also covers pay_keysend and multi_* payment methods
+	PAY_INVOICE_SCOPE       = "pay_invoice" // also covers pay_keysend and multi_* payment methods
 	GET_BALANCE_SCOPE       = "get_balance"
 	GET_INFO_SCOPE          = "get_info"
 	MAKE_INVOICE_SCOPE      = "make_invoice"

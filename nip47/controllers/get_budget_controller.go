@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+
 	"github.com/getAlby/hub/db/queries"
 	"github.com/nbd-wtf/go-nostr"
 
@@ -12,10 +13,10 @@ import (
 )
 
 type getBudgetResponse struct {
-	UsedBudget    uint64 `json:"used_budget"`
-	TotalBudget   uint64 `json:"total_budget"`
-	RenewsAt      uint64 `json:"renews_at"`
-	RenewalPeriod string `json:"renewal_period"`
+	UsedBudget    uint64  `json:"used_budget"`
+	TotalBudget   uint64  `json:"total_budget"`
+	RenewsAt      *uint64 `json:"renews_at"`
+	RenewalPeriod string  `json:"renewal_period"`
 }
 
 func (controller *nip47Controller) HandleGetBudgetEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, app *db.App, publishResponse publishFunc) {
@@ -41,7 +42,7 @@ func (controller *nip47Controller) HandleGetBudgetEvent(ctx context.Context, nip
 		TotalBudget:   uint64(maxAmount * 1000),
 		UsedBudget:    usedBudget * 1000,
 		RenewalPeriod: appPermission.BudgetRenewal,
-		RenewsAt:      uint64(queries.GetBudgetRenewsAt(appPermission.BudgetRenewal)),
+		RenewsAt:      queries.GetBudgetRenewsAt(appPermission.BudgetRenewal),
 	}
 
 	publishResponse(&models.Response{

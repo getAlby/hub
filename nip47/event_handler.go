@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/getAlby/hub/constants"
@@ -269,7 +270,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 		"params":              nip47Request.Params,
 	}).Debug("Handling NIP-47 request")
 
-	if nip47Request.Method != models.GET_INFO_METHOD {
+	if !slices.Contains(permissions.GetAlwaysGrantedMethods(), nip47Request.Method) {
 		scope, err := permissions.RequestMethodToScope(nip47Request.Method)
 		if err != nil {
 			publishResponse(&models.Response{
