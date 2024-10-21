@@ -19,11 +19,13 @@ type App struct {
 	ID          uint
 	Name        string `validate:"required"`
 	Description string
-	NostrPubkey string `validate:"required"`
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	Isolated    bool
-	Metadata    datatypes.JSON
+	// TODO rename to AppPubKey
+	NostrPubkey  string `validate:"required"`
+	WalletPubkey string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	Isolated     bool
+	Metadata     datatypes.JSON
 }
 
 type AppPermission struct {
@@ -87,7 +89,8 @@ type Transaction struct {
 }
 
 type DBService interface {
-	CreateApp(name string, pubkey string, maxAmountSat uint64, budgetRenewal string, expiresAt *time.Time, scopes []string, isolated bool, metadata map[string]interface{}) (*App, string, error)
+	CreateApp(name string, pubkey string, maxAmountSat uint64, budgetRenewal string, expiresAt *time.Time, scopes []string, isolated bool, metadata map[string]interface{}, walletChildPrivKeyGeneratorFunc func(uint32) (string, error)) (*App, string, error)
+	DeleteApp(app *App) error
 }
 
 const (

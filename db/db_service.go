@@ -28,7 +28,17 @@ func NewDBService(db *gorm.DB, eventPublisher events.EventPublisher) *dbService 
 	}
 }
 
-func (svc *dbService) CreateApp(name string, pubkey string, maxAmountSat uint64, budgetRenewal string, expiresAt *time.Time, scopes []string, isolated bool, metadata map[string]interface{}) (*App, string, error) {
+func (svc *dbService) CreateApp(
+	name string,
+	pubkey string,
+	maxAmountSat uint64,
+	budgetRenewal string,
+	expiresAt *time.Time,
+	scopes []string,
+	isolated bool,
+	metadata map[string]interface{},
+	walletChildPrivKeyGeneratorFunc func(appId uint32) (string, error),
+) (*App, string, error) {
 	if isolated && (slices.Contains(scopes, constants.SIGN_MESSAGE_SCOPE)) {
 		// cannot sign messages because the isolated app is a custodial subaccount
 		return nil, "", errors.New("isolated app cannot have sign_message scope")
@@ -82,6 +92,21 @@ func (svc *dbService) CreateApp(name string, pubkey string, maxAmountSat uint64,
 			}
 		}
 
+		appWalletPrivKey, err := walletChildPrivKeyGeneratorFunc(uint32(app.ID))
+		if err != nil {
+			return fmt.Errorf("error generating wallet child private key: %w", err)
+		}
+
+		app.WalletPubkey, err = nostr.GetPublicKey(appWalletPrivKey)
+		if err != nil {
+			return fmt.Errorf("error generating wallet child public key: %w", err)
+		}
+
+		err = tx.Model(&App{}).Where("id", app.ID).Update("wallet_pubkey", app.WalletPubkey).Error
+		if err != nil {
+			return err
+		}
+
 		// commit transaction
 		return nil
 	})
@@ -95,8 +120,25 @@ func (svc *dbService) CreateApp(name string, pubkey string, maxAmountSat uint64,
 		Event: "app_created",
 		Properties: map[string]interface{}{
 			"name": name,
+			"id":   app.ID,
 		},
 	})
 
 	return &app, pairingSecretKey, nil
+}
+
+func (svc *dbService) DeleteApp(app *App) error {
+
+	err := svc.db.Delete(app).Error
+	if err != nil {
+		return err
+	}
+	svc.eventPublisher.Publish(&events.Event{
+		Event: "app_deleted",
+		Properties: map[string]interface{}{
+			"name": app.Name,
+			"id":   app.ID,
+		},
+	})
+	return nil
 }
