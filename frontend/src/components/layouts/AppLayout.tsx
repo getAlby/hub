@@ -53,6 +53,7 @@ import { useInfo } from "src/hooks/useInfo";
 import { useRemoveSuccessfulChannelOrder } from "src/hooks/useRemoveSuccessfulChannelOrder";
 import { deleteAuthToken } from "src/lib/auth";
 import { cn } from "src/lib/utils";
+import { isHttpMode } from "src/utils/isHttpMode";
 import { openLink } from "src/utils/openLink";
 import ExternalLink from "../ExternalLink";
 
@@ -65,6 +66,8 @@ export default function AppLayout() {
   const navigate = useNavigate();
   useRemoveSuccessfulChannelOrder();
 
+  const _isHttpMode = isHttpMode();
+
   React.useEffect(() => {
     setMobileMenuOpen(false);
   }, [location]);
@@ -73,19 +76,12 @@ export default function AppLayout() {
     deleteAuthToken();
     await refetchInfo();
 
-    const isHttpMode =
-      window.location.protocol.startsWith("http") &&
-      !window.location.hostname.startsWith("wails");
-    if (isHttpMode) {
+    if (_isHttpMode) {
       window.location.href = "/logout";
     } else {
       navigate("/", { replace: true });
     }
-  }, [navigate, refetchInfo]);
-
-  const isHttpMode =
-    window.location.protocol.startsWith("http") &&
-    !window.location.hostname.startsWith("wails");
+  }, [_isHttpMode, navigate, refetchInfo]);
 
   if (!info) {
     return null;
@@ -119,7 +115,7 @@ export default function AppLayout() {
           )}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        {isHttpMode && (
+        {_isHttpMode && (
           <DropdownMenuItem
             onClick={logout}
             className="w-full flex flex-row items-center gap-2 cursor-pointer"

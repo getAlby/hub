@@ -13,6 +13,7 @@ import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 
 import { handleRequestError } from "src/utils/handleRequestError";
+import { isHttpMode } from "src/utils/isHttpMode";
 import { request } from "src/utils/request";
 
 export function BackupNode() {
@@ -27,14 +28,12 @@ export function BackupNode() {
   const onSubmitPassword = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const isHttpMode =
-      window.location.protocol.startsWith("http") &&
-      !window.location.hostname.startsWith("wails");
+    const _isHttpMode = isHttpMode();
 
     try {
       setLoading(true);
 
-      if (isHttpMode) {
+      if (_isHttpMode) {
         const response = await fetch("/api/backup", {
           method: "POST",
           headers: {
