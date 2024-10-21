@@ -100,6 +100,27 @@ export function BackupNode() {
           again to restore your backup.
         </AlertDescription>
       </Alert>
+      <Alert>
+        <InfoCircledIcon className="h-4 w-4" />
+        <AlertTitle>Window Information</AlertTitle>
+        <AlertDescription>
+          {JSON.stringify(
+            {
+              href: window.location.href,
+              protocol: window.location.protocol,
+              host: window.location.host,
+              hostname: window.location.hostname,
+              port: window.location.port,
+              pathname: window.location.pathname,
+              search: window.location.search,
+              hash: window.location.hash,
+              origin: window.location.origin,
+            },
+            null,
+            2
+          )}
+        </AlertDescription>
+      </Alert>
       {showPasswordScreen ? (
         <Container>
           <h1 className="text-xl font-medium">Enter unlock password</h1>
