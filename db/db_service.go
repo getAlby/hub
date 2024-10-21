@@ -119,9 +119,8 @@ func (svc *dbService) CreateApp(
 	svc.eventPublisher.Publish(&events.Event{
 		Event: "app_created",
 		Properties: map[string]interface{}{
-			"name":         name,
-			"id":           app.ID,
-			"walletPubkey": app.WalletPubkey,
+			"name": name,
+			"id":   app.ID,
 		},
 	})
 
@@ -137,9 +136,8 @@ func (svc *dbService) DeleteApp(app *App) error {
 	svc.eventPublisher.Publish(&events.Event{
 		Event: "app_deleted",
 		Properties: map[string]interface{}{
-			"name":         app.Name,
-			"id":           app.ID,
-			"walletPubkey": app.WalletPubkey,
+			"name": app.Name,
+			"id":   app.ID,
 		},
 	})
 	return nil

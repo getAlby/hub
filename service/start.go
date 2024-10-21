@@ -130,23 +130,20 @@ func (s *createAppSubscriber) ConsumeEvent(ctx context.Context, event *events.Ev
 		logger.Logger.WithField("event", event).Error("Failed to cast event.Properties to map")
 		return
 	}
-	walletPubkey, ok := properties["walletPubkey"].(string)
-	if !ok {
-		logger.Logger.WithField("event", event).Error("Failed to get app walletPubkey")
-		return
-	}
 	id, ok := properties["id"].(uint)
 	if !ok {
 		logger.Logger.WithField("event", event).Error("Failed to get app id")
 		return
 	}
-	if walletPubkey != "" {
+	walletPrivKey, err := s.svc.keys.GetAppWalletKey(uint32(id))
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to calculate app wallet priv key")
+	}
+	walletPubKey, _ := nostr.GetPublicKey(walletPrivKey)
+
+	if walletPubKey != "" {
 		go func() {
-			walletPrivkey, err := s.svc.keys.GetAppWalletKey(uint32(id))
-			if err != nil {
-				logger.Logger.WithError(err).Error("Failed to calculate app wallet priv key")
-			}
-			err = s.svc.startAppWalletSubscription(ctx, s.relay, walletPubkey, walletPrivkey)
+			err = s.svc.startAppWalletSubscription(ctx, s.relay, walletPubKey, walletPrivKey)
 			if err != nil {
 				logger.Logger.WithError(err).WithFields(logrus.Fields{
 					"app_id": id}).Error("Failed to subscribe to wallet")
@@ -175,13 +172,16 @@ func (s *deleteAppSubscriber) ConsumeEvent(ctx context.Context, event *events.Ev
 		logger.Logger.WithField("event", event).Error("Failed to cast event.Properties to map")
 		return
 	}
+	id, _ := properties["id"].(uint)
 
-	walletChildPubkey, ok := properties["walletPubkey"].(string)
-	if s.walletPubkey == walletChildPubkey {
-		id, _ := properties["id"].(uint)
+	walletPrivKey, err := s.svc.keys.GetAppWalletKey(uint32(id))
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to calculate app wallet priv key")
+	}
+	walletPubKey, _ := nostr.GetPublicKey(walletPrivKey)
+	if s.walletPubkey == walletPubKey {
 		s.nostrSubscription.Unsub()
-		appWalletPrivKey, _ := s.svc.keys.GetAppWalletKey(uint32(id))
-		err := s.svc.nip47Service.PublishNip47InfoDeletion(ctx, s.relay, walletChildPubkey, appWalletPrivKey, s.infoEventId)
+		err := s.svc.nip47Service.PublishNip47InfoDeletion(ctx, s.relay, walletPubKey, walletPrivKey, s.infoEventId)
 		if err != nil {
 			logger.Logger.WithField("event", event).Error("Failed to publish nip47 info deletion")
 		}
