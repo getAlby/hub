@@ -16,9 +16,10 @@ type UserConfig struct {
 }
 
 type App struct {
-	ID           uint
-	Name         string `validate:"required"`
-	Description  string
+	ID          uint
+	Name        string `validate:"required"`
+	Description string
+	// TODO rename to AppPubKey
 	NostrPubkey  string `validate:"required"`
 	WalletPubkey string
 	CreatedAt    time.Time
