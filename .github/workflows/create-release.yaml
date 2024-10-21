@@ -10,17 +10,17 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - name: Download Linux server archives
+      - name: Download server archives
         uses: actions/download-artifact@v4
         with:
-          pattern: albyhub-Server-*
+          pattern: AlbyHub-Server-*
           path: artifacts
           merge-multiple: true
 
       - name: Download desktop archives
         uses: actions/download-artifact@v4
         with:
-          pattern: albyhub-Desktop-*
+          pattern: AlbyHub-Desktop-*
           path: artifacts
           merge-multiple: true
 
