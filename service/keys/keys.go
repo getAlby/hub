@@ -16,8 +16,8 @@ type Keys interface {
 	GetNostrPublicKey() string
 	// Wallet Service Nostr secret key
 	GetNostrSecretKey() string
-	// GetBIP32ChildKey derives a BIP32 child key from the nostrSecretKey given a child key index
-	GetBIP32ChildKey(childIndex uint32) (string, error)
+	// Derives a BIP32 child key from the nostrSecretKey given a child key index
+	GetAppWalletKey(childIndex uint32) (string, error)
 }
 
 type keys struct {
@@ -58,7 +58,7 @@ func (keys *keys) GetNostrSecretKey() string {
 	return keys.nostrSecretKey
 }
 
-func (keys *keys) GetBIP32ChildKey(childIndex uint32) (string, error) {
+func (keys *keys) GetAppWalletKey(childIndex uint32) (string, error) {
 	// Convert nostrSecretKey to btcec private key
 	privKeyBytes, err := hex.DecodeString(keys.nostrSecretKey)
 	if err != nil {

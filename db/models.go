@@ -16,15 +16,15 @@ type UserConfig struct {
 }
 
 type App struct {
-	ID                uint
-	Name              string `validate:"required"`
-	Description       string
-	NostrPubkey       string `validate:"required"`
-	WalletChildPubkey string
-	CreatedAt         time.Time
-	UpdatedAt         time.Time
-	Isolated          bool
-	Metadata          datatypes.JSON
+	ID           uint
+	Name         string `validate:"required"`
+	Description  string
+	NostrPubkey  string `validate:"required"`
+	WalletPubkey string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	Isolated     bool
+	Metadata     datatypes.JSON
 }
 
 type AppPermission struct {

@@ -7,12 +7,12 @@ import (
 	"gorm.io/gorm"
 )
 
-var _202410141503_wallet_child_pubkey = &gormigrate.Migration{
-	ID: "202410141503_wallet_child_pubkey",
+var _202410141503_add_wallet_pubkey = &gormigrate.Migration{
+	ID: "202410141503_add_wallet_pubkey",
 	Migrate: func(tx *gorm.DB) error {
 
 		if err := tx.Exec(`
-	ALTER TABLE apps ADD COLUMN wallet_child_pubkey TEXT;
+	ALTER TABLE apps ADD COLUMN wallet_pubkey TEXT;
 `).Error; err != nil {
 			return err
 		}

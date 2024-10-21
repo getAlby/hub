@@ -92,17 +92,17 @@ func (svc *dbService) CreateApp(
 			}
 		}
 
-		appWalletChildPrivKey, err := walletChildPrivKeyGeneratorFunc(uint32(app.ID))
+		appWalletPrivKey, err := walletChildPrivKeyGeneratorFunc(uint32(app.ID))
 		if err != nil {
 			return fmt.Errorf("error generating wallet child private key: %w", err)
 		}
 
-		app.WalletChildPubkey, err = nostr.GetPublicKey(appWalletChildPrivKey)
+		app.WalletPubkey, err = nostr.GetPublicKey(appWalletPrivKey)
 		if err != nil {
 			return fmt.Errorf("error generating wallet child public key: %w", err)
 		}
 
-		err = tx.Model(&App{}).Where("id", app.ID).Update("wallet_child_pubkey", app.WalletChildPubkey).Error
+		err = tx.Model(&App{}).Where("id", app.ID).Update("wallet_pubkey", app.WalletPubkey).Error
 		if err != nil {
 			return err
 		}
@@ -119,9 +119,9 @@ func (svc *dbService) CreateApp(
 	svc.eventPublisher.Publish(&events.Event{
 		Event: "app_created",
 		Properties: map[string]interface{}{
-			"name":              name,
-			"id":                app.ID,
-			"walletChildPubkey": app.WalletChildPubkey,
+			"name":         name,
+			"id":           app.ID,
+			"walletPubkey": app.WalletPubkey,
 		},
 	})
 
@@ -137,9 +137,9 @@ func (svc *dbService) DeleteApp(app *App) error {
 	svc.eventPublisher.Publish(&events.Event{
 		Event: "app_deleted",
 		Properties: map[string]interface{}{
-			"name":              app.Name,
-			"id":                app.ID,
-			"walletChildPubkey": app.WalletChildPubkey,
+			"name":         app.Name,
+			"id":           app.ID,
+			"walletPubkey": app.WalletPubkey,
 		},
 	})
 	return nil

@@ -109,8 +109,8 @@ func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *db.App
 	}).Debug("Notifying subscriber")
 
 	appWalletPrivKey := notifier.keys.GetNostrSecretKey()
-	if app.WalletChildPubkey != "" {
-		appWalletPrivKey, _ = notifier.keys.GetBIP32ChildKey(uint32(app.ID))
+	if app.WalletPubkey != "" {
+		appWalletPrivKey, _ = notifier.keys.GetAppWalletKey(uint32(app.ID))
 	}
 
 	ss, err := nip04.ComputeSharedSecret(app.NostrPubkey, appWalletPrivKey)

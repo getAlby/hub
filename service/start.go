@@ -122,42 +122,44 @@ type createAppSubscriber struct {
 }
 
 func (s *createAppSubscriber) ConsumeEvent(ctx context.Context, event *events.Event, globalProperties map[string]interface{}) {
-	switch event.Event {
-	case "app_created":
-		properties, ok := event.Properties.(map[string]interface{})
-		if !ok {
-			logger.Logger.WithField("event", event).Error("Failed to cast event.Properties to map")
-			return
-		}
-		walletChildPubkey, ok := properties["walletChildPubkey"].(string)
-		if !ok {
-			logger.Logger.WithField("event", event).Error("Failed to get app walletChildPubkey")
-			return
-		}
-		id, ok := properties["id"].(uint)
-		if !ok {
-			logger.Logger.WithField("event", event).Error("Failed to get app id")
-			return
-		}
-		if walletChildPubkey != "" {
-			go func() {
-				appWalletPrivKey, err := s.svc.keys.GetBIP32ChildKey(uint32(id))
-				if err != nil {
-					logger.Logger.WithError(err).Error("Failed to calculate app wallet priv key")
-				}
-				err = s.svc.startAppWalletSubscription(ctx, s.relay, walletChildPubkey, appWalletPrivKey)
-				if err != nil {
-					logger.Logger.WithError(err).Error("Failed to subscribe to wallet")
-				}
-				// TODO what should we do?
-			}()
-		}
+	if event.Event != "app_created" {
+		return
+	}
+	properties, ok := event.Properties.(map[string]interface{})
+	if !ok {
+		logger.Logger.WithField("event", event).Error("Failed to cast event.Properties to map")
+		return
+	}
+	walletPubkey, ok := properties["walletPubkey"].(string)
+	if !ok {
+		logger.Logger.WithField("event", event).Error("Failed to get app walletPubkey")
+		return
+	}
+	id, ok := properties["id"].(uint)
+	if !ok {
+		logger.Logger.WithField("event", event).Error("Failed to get app id")
+		return
+	}
+	if walletPubkey != "" {
+		go func() {
+			walletPrivkey, err := s.svc.keys.GetAppWalletKey(uint32(id))
+			if err != nil {
+				logger.Logger.WithError(err).Error("Failed to calculate app wallet priv key")
+			}
+			err = s.svc.startAppWalletSubscription(ctx, s.relay, walletPubkey, walletPrivkey)
+			if err != nil {
+				logger.Logger.WithError(err).WithFields(logrus.Fields{
+					"app_id": id}).Error("Failed to subscribe to wallet")
+			}
+			logger.Logger.WithFields(logrus.Fields{
+				"app_id": id}).Info("App Nostr Subscription ended")
+		}()
 	}
 }
 
 type deleteAppSubscriber struct {
 	events.EventSubscriber
-	walletChildPubkey string
+	walletPubkey      string
 	relay             *nostr.Relay
 	nostrSubscription *nostr.Subscription
 	svc               *service
@@ -165,41 +167,42 @@ type deleteAppSubscriber struct {
 }
 
 func (s *deleteAppSubscriber) ConsumeEvent(ctx context.Context, event *events.Event, globalProperties map[string]interface{}) {
-	switch event.Event {
-	case "app_deleted":
-		properties, ok := event.Properties.(map[string]interface{})
-		if !ok {
-			logger.Logger.WithField("event", event).Error("Failed to cast event.Properties to map")
-			return
-		}
+	if event.Event != "app_deleted" {
+		return
+	}
+	properties, ok := event.Properties.(map[string]interface{})
+	if !ok {
+		logger.Logger.WithField("event", event).Error("Failed to cast event.Properties to map")
+		return
+	}
 
-		walletChildPubkey, ok := properties["walletChildPubkey"].(string)
-		if s.walletChildPubkey == walletChildPubkey {
-			id, _ := properties["id"].(uint)
-			s.nostrSubscription.Unsub()
-			appWalletPrivKey, _ := s.svc.keys.GetBIP32ChildKey(uint32(id))
-			err := s.svc.nip47Service.PublishNip47InfoDeletion(ctx, s.relay, walletChildPubkey, appWalletPrivKey, s.infoEventId)
-			if err != nil {
-				logger.Logger.WithField("event", event).Error("Failed to publish nip47 info deletion")
-			}
+	walletChildPubkey, ok := properties["walletPubkey"].(string)
+	if s.walletPubkey == walletChildPubkey {
+		id, _ := properties["id"].(uint)
+		s.nostrSubscription.Unsub()
+		appWalletPrivKey, _ := s.svc.keys.GetAppWalletKey(uint32(id))
+		err := s.svc.nip47Service.PublishNip47InfoDeletion(ctx, s.relay, walletChildPubkey, appWalletPrivKey, s.infoEventId)
+		if err != nil {
+			logger.Logger.WithField("event", event).Error("Failed to publish nip47 info deletion")
 		}
 	}
 }
 
 func (svc *service) startAllExistingAppsWalletSubscriptions(ctx context.Context, relay *nostr.Relay) {
 	var apps []db.App
-	result := svc.db.Where("wallet_child_pubkey != ?", "").Find(&apps)
+	result := svc.db.Where("wallet_pubkey != ?", "").Find(&apps)
 	if result.Error != nil {
-		logger.Logger.WithError(result.Error).Error("Failed to fetch App records with non-empty WalletChildPubkey")
+		logger.Logger.WithError(result.Error).Error("Failed to fetch App records with non-empty WalletPubkey")
 		return
 	}
 
 	for _, app := range apps {
 		go func(app db.App) {
-			if app.WalletChildPubkey != "" {
-				err := svc.startAppWalletSubscription(ctx, relay, app.WalletChildPubkey, "")
+			if app.WalletPubkey != "" {
+				err := svc.startAppWalletSubscription(ctx, relay, app.WalletPubkey, "")
 				if err != nil {
-					logger.Logger.WithError(err).Error("Failed to subscribe to wallet")
+					logger.Logger.WithError(err).WithFields(logrus.Fields{
+						"app_id": app.ID}).Error("Failed to subscribe to wallet")
 				}
 			}
 		}(app)
@@ -216,13 +219,14 @@ func (svc *service) startAppWalletSubscription(ctx context.Context, relay *nostr
 		infoEventId = infoEvent.ID
 	}
 
-	sub, err := svc.subscribeToRequests(ctx, relay, appWalletPubKey)
+	logger.Logger.Info("Subscribing to events for wallet ", appWalletPubKey)
+	sub, err := relay.Subscribe(ctx, svc.createFilters(appWalletPubKey))
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to subscribe to app requests")
+		logger.Logger.WithError(err).Error("Failed to subscribe to events")
 	}
 
 	// register a subscriber for "app_deleted" events, which handles nostr subscription cancel and nip47 info event deletion
-	svc.eventPublisher.RegisterSubscriber(&deleteAppSubscriber{nostrSubscription: sub, walletChildPubkey: appWalletPubKey, svc: svc, relay: relay, infoEventId: infoEventId})
+	svc.eventPublisher.RegisterSubscriber(&deleteAppSubscriber{nostrSubscription: sub, walletPubkey: appWalletPubKey, svc: svc, relay: relay, infoEventId: infoEventId})
 
 	err = svc.StartSubscription(sub.Context, sub)
 	if err != nil {
@@ -230,15 +234,6 @@ func (svc *service) startAppWalletSubscription(ctx context.Context, relay *nostr
 		return err
 	}
 	return nil
-}
-
-func (svc *service) subscribeToRequests(ctx context.Context, relay *nostr.Relay, appWalletPubKey string) (*nostr.Subscription, error) {
-	logger.Logger.Info("Subscribing to events for wallet ", appWalletPubKey)
-	sub, err := relay.Subscribe(ctx, svc.createFilters(appWalletPubKey))
-	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to subscribe to events")
-	}
-	return sub, nil
 }
 
 func (svc *service) StartApp(encryptionKey string) error {

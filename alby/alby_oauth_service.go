@@ -535,7 +535,7 @@ func (svc *albyOAuthService) LinkAccount(ctx context.Context, lnClient lnclient.
 		scopes,
 		false,
 		nil,
-		svc.keys.GetBIP32ChildKey,
+		svc.keys.GetAppWalletKey,
 	)
 
 	if err != nil {
