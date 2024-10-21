@@ -21,6 +21,7 @@ import { useToast } from "src/components/ui/use-toast";
 
 import { useInfo } from "src/hooks/useInfo";
 import { handleRequestError } from "src/utils/handleRequestError";
+import { isHttpMode } from "src/utils/isHttpMode";
 import { request } from "src/utils/request";
 
 export function RestoreNode() {
@@ -34,7 +35,7 @@ export function RestoreNode() {
   const [loading, setLoading] = useState(false);
   const [restored, setRestored] = useState(false);
   const { data: info } = useInfo(restored);
-  const isHttpMode = window.location.protocol.startsWith("http");
+  const _isHttpMode = isHttpMode();
 
   React.useEffect(() => {
     if (restored && info?.setupCompleted) {
@@ -71,7 +72,7 @@ export function RestoreNode() {
     try {
       setLoading(true);
 
-      if (isHttpMode) {
+      if (_isHttpMode) {
         const formData = new FormData();
         formData.append("unlockPassword", unlockPassword);
         if (file !== null) {
@@ -128,7 +129,7 @@ export function RestoreNode() {
             placeholder="Unlock Password"
           />
         </div>
-        {isHttpMode && (
+        {_isHttpMode && (
           <div className="grid gap-2">
             <Label htmlFor="backup">Backup File</Label>
             <Input
