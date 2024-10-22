@@ -7,9 +7,11 @@ import { budgetOptions } from "src/types";
 function BudgetAmountSelect({
   value,
   onChange,
+  minAmount,
 }: {
   value: number;
   onChange: (value: number) => void;
+  minAmount?: number;
 }) {
   const [customBudget, setCustomBudget] = React.useState(
     value ? !Object.values(budgetOptions).includes(value) : false
@@ -17,25 +19,32 @@ function BudgetAmountSelect({
   return (
     <>
       <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-xs mb-4">
-        {Object.keys(budgetOptions).map((budget) => {
-          return (
-            <div
-              key={budget}
-              onClick={() => {
-                setCustomBudget(false);
-                onChange(budgetOptions[budget]);
-              }}
-              className={cn(
-                "cursor-pointer rounded text-nowrap border-2 text-center p-4 slashed-zero",
-                !customBudget && value == budgetOptions[budget]
-                  ? "border-primary"
-                  : "border-muted"
-              )}
-            >
-              {`${budget} ${budgetOptions[budget] ? " sats" : ""}`}
-            </div>
-          );
-        })}
+        {Object.keys(budgetOptions)
+          .filter(
+            (budget) =>
+              !minAmount ||
+              !budgetOptions[budget] ||
+              budgetOptions[budget] > minAmount
+          )
+          .map((budget) => {
+            return (
+              <div
+                key={budget}
+                onClick={() => {
+                  setCustomBudget(false);
+                  onChange(budgetOptions[budget]);
+                }}
+                className={cn(
+                  "cursor-pointer rounded text-nowrap border-2 text-center p-4 slashed-zero",
+                  !customBudget && value == budgetOptions[budget]
+                    ? "border-primary"
+                    : "border-muted"
+                )}
+              >
+                {`${budget} ${budgetOptions[budget] ? " sats" : ""}`}
+              </div>
+            );
+          })}
         <div
           onClick={() => {
             setCustomBudget(true);
@@ -60,7 +69,7 @@ function BudgetAmountSelect({
             type="number"
             required
             autoFocus
-            min={1}
+            min={minAmount || 1}
             value={value || ""}
             onChange={(e) => {
               onChange(parseInt(e.target.value));

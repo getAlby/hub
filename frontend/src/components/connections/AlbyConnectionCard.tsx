@@ -6,7 +6,7 @@ import {
   Link2Icon,
   ZapIcon,
 } from "lucide-react";
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 import { Link } from "react-router-dom";
 
 import BudgetAmountSelect from "src/components/BudgetAmountSelect";
@@ -47,6 +47,12 @@ function AlbyConnectionCard({ connection }: { connection?: App }) {
   const [budgetRenewal, setBudgetRenewal] =
     useState<BudgetRenewalType>("monthly");
 
+  function onSubmit(e: FormEvent) {
+    e.preventDefault();
+
+    linkAccount(maxAmount, budgetRenewal);
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -86,40 +92,40 @@ function AlbyConnectionCard({ connection }: { connection?: App }) {
                     </LoadingButton>
                   </DialogTrigger>
                   <DialogContent>
-                    <DialogHeader>Link to Alby Account</DialogHeader>
-                    <DialogDescription className="flex flex-col gap-4">
-                      After you link your account, your lightning address and
-                      every app you access through your Alby Account will handle
-                      payments via the Hub.
-                      <img
-                        src="/images/illustrations/alby-account-dark.svg"
-                        className="w-full hidden dark:block"
-                      />
-                      <img
-                        src="/images/illustrations/alby-account-light.svg"
-                        className="w-full dark:hidden"
-                      />
-                      You can add a budget that will restrict how much can be
-                      spent from the Hub with your Alby Account.
-                    </DialogDescription>
-                    <div>
-                      <BudgetRenewalSelect
-                        value={budgetRenewal}
-                        onChange={setBudgetRenewal}
-                      />
-                      <BudgetAmountSelect
-                        value={maxAmount}
-                        onChange={setMaxAmount}
-                      />
-                    </div>
-                    <DialogFooter>
-                      <LoadingButton
-                        onClick={() => linkAccount(maxAmount, budgetRenewal)}
-                        loading={loading}
-                      >
-                        Link to Alby Account
-                      </LoadingButton>
-                    </DialogFooter>
+                    <form onSubmit={onSubmit}>
+                      <DialogHeader>Link to Alby Account</DialogHeader>
+                      <DialogDescription className="flex flex-col gap-4">
+                        After you link your account, your lightning address and
+                        every app you access through your Alby Account will
+                        handle payments via the Hub.
+                        <img
+                          src="/images/illustrations/alby-account-dark.svg"
+                          className="w-full hidden dark:block"
+                        />
+                        <img
+                          src="/images/illustrations/alby-account-light.svg"
+                          className="w-full dark:hidden"
+                        />
+                        You can add a budget that will restrict how much can be
+                        spent from the Hub with your Alby Account.
+                      </DialogDescription>
+                      <div>
+                        <BudgetRenewalSelect
+                          value={budgetRenewal}
+                          onChange={setBudgetRenewal}
+                        />
+                        <BudgetAmountSelect
+                          value={maxAmount}
+                          onChange={setMaxAmount}
+                          minAmount={21000}
+                        />
+                      </div>
+                      <DialogFooter>
+                        <LoadingButton loading={loading}>
+                          Link to Alby Account
+                        </LoadingButton>
+                      </DialogFooter>
+                    </form>
                   </DialogContent>
                 </Dialog>
               ) : linkStatus === LinkStatus.ThisNode ? (
