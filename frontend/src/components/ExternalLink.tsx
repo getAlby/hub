@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { isHttpMode } from "src/utils/isHttpMode";
 import { openLink } from "src/utils/openLink";
 
 type Props = {
@@ -8,9 +9,9 @@ type Props = {
 };
 
 export default function ExternalLink({ to, className, children }: Props) {
-  const isHttpMode = window.location.protocol.startsWith("http");
+  const _isHttpMode = isHttpMode();
 
-  return isHttpMode ? (
+  return _isHttpMode ? (
     <Link
       to={to}
       target="_blank"
