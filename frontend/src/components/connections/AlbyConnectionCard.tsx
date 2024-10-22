@@ -117,7 +117,9 @@ function AlbyConnectionCard({ connection }: { connection?: App }) {
                         <BudgetAmountSelect
                           value={maxAmount}
                           onChange={setMaxAmount}
-                          minAmount={21210}
+                          minAmount={
+                            25000 /* the minimum should be a bit more than the Alby monthly fee */
+                          }
                         />
                       </div>
                       <DialogFooter>
