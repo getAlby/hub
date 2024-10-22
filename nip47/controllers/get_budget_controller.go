@@ -15,7 +15,7 @@ import (
 type getBudgetResponse struct {
 	UsedBudget    uint64  `json:"used_budget"`
 	TotalBudget   uint64  `json:"total_budget"`
-	RenewsAt      *uint64 `json:"renews_at"`
+	RenewsAt      *uint64 `json:"renews_at,omitempty"`
 	RenewalPeriod string  `json:"renewal_period"`
 }
 
