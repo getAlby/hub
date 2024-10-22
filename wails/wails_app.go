@@ -38,7 +38,7 @@ func (app *WailsApp) startup(ctx context.Context) {
 
 func LaunchWailsApp(app *WailsApp, assets embed.FS, appIcon []byte) {
 	err := wails.Run(&options.App{
-		Title:  "AlbyHub",
+		Title:  "Alby Hub",
 		Width:  1024,
 		Height: 768,
 		AssetServer: &assetserver.Options{
@@ -54,7 +54,7 @@ func LaunchWailsApp(app *WailsApp, assets embed.FS, appIcon []byte) {
 		},
 		Mac: &mac.Options{
 			About: &mac.AboutInfo{
-				Title: "AlbyHub",
+				Title: "Alby Hub",
 				Icon:  appIcon,
 			},
 		},
