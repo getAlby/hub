@@ -1,6 +1,11 @@
 import * as bip39 from "@scure/bip39";
 import { wordlist } from "@scure/bip39/wordlists/english";
-import { AlertTriangleIcon, LifeBuoy, ShieldCheck } from "lucide-react";
+import {
+  AlertTriangleIcon,
+  LifeBuoy,
+  ShieldAlert,
+  ShieldCheck,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -79,7 +84,7 @@ export function ImportMnemonic() {
               </div>
               <span className="text-muted-foreground">
                 Recovery phrase is a set of 12 words that{" "}
-                <b>restores your wallet from a backup</b>
+                <b>restores your savings balance from a backup</b>.
               </span>
             </div>
             <div className="flex gap-2 items-center">
@@ -88,6 +93,16 @@ export function ImportMnemonic() {
               </div>
               <span className="text-muted-foreground">
                 Make sure to enter them somewhere safe and private
+              </span>
+            </div>
+            <div className="flex gap-2 items-center">
+              <div className="shrink-0 text-destructive">
+                <ShieldAlert className="w-6 h-6" />
+              </div>
+              <span className="text-destructive">
+                Your recovery phrase <b>cannot</b> restore funds in lightning
+                channels. Please contact Alby support before proceeding if you
+                had channels on a different device.
               </span>
             </div>
           </div>
