@@ -109,7 +109,7 @@ function AlbyConnectionCard({ connection }: { connection?: App }) {
                         You can add a budget that will restrict how much can be
                         spent from the Hub with your Alby Account.
                       </DialogDescription>
-                      <div>
+                      <div className="mt-4">
                         <BudgetRenewalSelect
                           value={budgetRenewal}
                           onChange={setBudgetRenewal}
