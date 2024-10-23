@@ -650,7 +650,7 @@ func (svc *LNDService) OpenChannel(ctx context.Context, openChannelRequest *lncl
 	channel, err := svc.client.OpenChannelSync(ctx, &lnrpc.OpenChannelRequest{
 		NodePubkey:         nodePub,
 		Private:            !openChannelRequest.Public,
-		LocalFundingAmount: openChannelRequest.Amount,
+		LocalFundingAmount: openChannelRequest.AmountSats,
 		// set a super-high forwarding fee of 100K sats by default to disable unwanted routing
 		BaseFee: 100_000_000,
 	})

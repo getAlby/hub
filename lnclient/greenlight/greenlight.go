@@ -424,7 +424,7 @@ func (gs *GreenlightService) ConnectPeer(ctx context.Context, connectPeerRequest
 
 func (gs *GreenlightService) OpenChannel(ctx context.Context, openChannelRequest *lnclient.OpenChannelRequest) (*lnclient.OpenChannelResponse, error) {
 
-	amountMsat := uint64(openChannelRequest.Amount) * 1000
+	amountMsat := uint64(openChannelRequest.AmountSats) * 1000
 	// minConf := uint32(0) //
 	response, err := gs.client.FundChannel(glalby.FundChannelRequest{
 		Id:         openChannelRequest.Pubkey,
