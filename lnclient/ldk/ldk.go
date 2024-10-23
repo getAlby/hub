@@ -978,6 +978,9 @@ func (ls *LDKService) UpdateChannel(ctx context.Context, updateChannelRequest *l
 
 	existingConfig := foundChannel.Config
 	existingConfig.SetForwardingFeeBaseMsat(updateChannelRequest.ForwardingFeeBaseMsat)
+	if updateChannelRequest.MaxDustHtlcExposureFromFeeRateMultiplier > 0 {
+		existingConfig.SetMaxDustHtlcExposureFromFeeRateMultiplier(updateChannelRequest.MaxDustHtlcExposureFromFeeRateMultiplier)
+	}
 
 	err := ls.node.UpdateChannelConfig(updateChannelRequest.ChannelId, updateChannelRequest.NodeId, existingConfig)
 	if err != nil {
@@ -1334,6 +1337,9 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 			logger.Logger.WithField("event", eventType).Error("Failed to find channel by ID")
 			return
 		}
+
+		isTrusted := eventType.CounterpartyNodeId != nil && slices.Contains(ls.node.Config().AnchorChannelsConfig.TrustedPeersNoReserve, *eventType.CounterpartyNodeId)
+
 		channel := channels[channelIndex]
 		ls.eventPublisher.Publish(&events.Event{
 			Event: "nwc_channel_ready",
@@ -1343,6 +1349,7 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 				"public":               channel.IsPublic,
 				"capacity":             channel.ChannelValueSats,
 				"is_outbound":          channel.IsOutbound,
+				"trusted":              isTrusted,
 			},
 		})
 
@@ -1352,11 +1359,22 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 			logger.Logger.WithField("event", eventType).Error("channel ready event has no counterparty node ID")
 			return
 		}
+
+		maxDustHtlcExposureFromFeeRateMultiplier := uint64(0)
+		if isTrusted {
+			// avoid closures like "ProcessingError: Peer sent update_fee with a feerate (62500)
+			// which may over-expose us to dust-in-flight on our counterparty's transactions (totaling 69348000 msat)"
+			maxDustHtlcExposureFromFeeRateMultiplier = 1_000_000 // default * 100
+		}
+
 		// set a super-high forwarding fee of 100K sats by default to disable unwanted routing
+		forwardingFeeBaseMsat := uint32(100_000_000)
+
 		err := ls.UpdateChannel(context.Background(), &lnclient.UpdateChannelRequest{
-			ChannelId:             eventType.UserChannelId,
-			NodeId:                *eventType.CounterpartyNodeId,
-			ForwardingFeeBaseMsat: 100_000_000,
+			ChannelId:                                eventType.UserChannelId,
+			NodeId:                                   *eventType.CounterpartyNodeId,
+			ForwardingFeeBaseMsat:                    forwardingFeeBaseMsat,
+			MaxDustHtlcExposureFromFeeRateMultiplier: maxDustHtlcExposureFromFeeRateMultiplier,
 		})
 
 		if err != nil {
@@ -1377,6 +1395,8 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 				"counterparty_node_id": eventType.CounterpartyNodeId,
 				"reason":               closureReason,
 				"node_type":            config.LDKBackendType,
+				// TODO: store channel info in table so we can know more info here
+				// "public": ...
 			},
 		})
 	case ldk_node.EventPaymentReceived:
