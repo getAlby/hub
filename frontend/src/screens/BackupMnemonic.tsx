@@ -201,17 +201,24 @@ export function BackupMnemonic() {
                 secure place
               </Label>
             </div>
-            <div className="flex items-center mt-5">
-              <Checkbox
-                id="backup2"
-                required
-                onCheckedChange={() => setIsBackedUp2(!backedUp2)}
-              />
-              <Label htmlFor="backup2" className="ml-2">
-                I understand the recovery phrase alone will not restore funds
-                from my lightning channels.{" "}
-              </Label>
-            </div>
+            {backedUp && (
+              <div className="flex mt-5">
+                <Checkbox
+                  id="backup2"
+                  required
+                  onCheckedChange={() => setIsBackedUp2(!backedUp2)}
+                />
+                <Label htmlFor="backup2" className="ml-2">
+                  I understand the <b>recovery phrase</b> AND{" "}
+                  {info?.albyAccountConnected ? (
+                    <b>unlock password</b>
+                  ) : (
+                    <b>a backup of my hub data directory</b>
+                  )}{" "}
+                  is required to recover funds from my lightning channels.{" "}
+                </Label>
+              </div>
+            )}
           </MnemonicInputs>
           <div className="flex justify-center">
             <Button type="submit" size="lg">
