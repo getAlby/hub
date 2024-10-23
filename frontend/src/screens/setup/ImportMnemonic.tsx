@@ -13,6 +13,8 @@ import MnemonicInputs from "src/components/MnemonicInputs";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
+import { Checkbox } from "src/components/ui/checkbox";
+import { Label } from "src/components/ui/label";
 import { useToast } from "src/components/ui/use-toast";
 import useSetupStore from "src/state/SetupStore";
 
@@ -20,6 +22,7 @@ export function ImportMnemonic() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const setupStore = useSetupStore();
+  const [backedUp, setIsBackedUp] = useState<boolean>(false);
 
   useEffect(() => {
     // in case the user presses back, remove their last-saved mnemonic
@@ -73,7 +76,7 @@ export function ImportMnemonic() {
           </AlertTitle>
           <AlertDescription>
             If you want to transfer your existing Hub to another machine please
-            use the migrate feature from the Alby Hub settings.
+            use the <b>migrate feature</b> from the Alby Hub settings.
           </AlertDescription>
         </Alert>
         <Alert>
@@ -100,15 +103,26 @@ export function ImportMnemonic() {
                 <ShieldAlert className="w-6 h-6" />
               </div>
               <span className="text-destructive">
-                Your recovery phrase <b>cannot</b> restore funds in lightning
-                channels. Please contact Alby support before proceeding if you
-                had channels on a different device.
+                Your recovery phrase alone currently <b>cannot</b> restore funds
+                in lightning channels.
               </span>
             </div>
           </div>
         </Alert>
 
         <MnemonicInputs mnemonic={mnemonic} setMnemonic={setMnemonic} />
+
+        <div className="flex items-center mt-5">
+          <Checkbox
+            id="confirmedNoChannels"
+            required
+            onCheckedChange={() => setIsBackedUp(!backedUp)}
+          />
+          <Label htmlFor="confirmedNoChannels" className="ml-2">
+            I don't have another Alby Hub to migrate or open channels (funds
+            from channels will be lost!).
+          </Label>
+        </div>
         <Button>Next</Button>
       </form>
     </>
