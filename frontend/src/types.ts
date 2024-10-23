@@ -256,7 +256,7 @@ export type CreateInvoiceRequest = {
 
 export type OpenChannelRequest = {
   pubkey: string;
-  amount: number;
+  amountSats: number;
   public: boolean;
 };
 
