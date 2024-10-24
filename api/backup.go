@@ -23,6 +23,7 @@ import (
 )
 
 func (api *api) CreateBackup(unlockPassword string, w io.Writer) error {
+	logger.Logger.Info("Creating backup to migrate Alby Hub to another device")
 	var err error
 
 	if !api.cfg.CheckUnlockPassword(unlockPassword) {
@@ -130,10 +131,14 @@ func (api *api) CreateBackup(unlockPassword string, w io.Writer) error {
 		}
 	}
 
+	logger.Logger.Info("Successfully created backup to migrate Alby Hub to another device")
+
 	return nil
 }
 
 func (api *api) RestoreBackup(unlockPassword string, r io.Reader) error {
+	logger.Logger.Info("Restoring migration backup file")
+
 	workDir, err := filepath.Abs(api.cfg.GetEnv().Workdir)
 	if err != nil {
 		return fmt.Errorf("failed to get absolute workdir: %w", err)
