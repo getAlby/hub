@@ -525,7 +525,7 @@ func (svc *PhoenixService) UpdateChannel(ctx context.Context, updateChannelReque
 }
 
 func (svc *PhoenixService) GetSupportedNIP47Methods() []string {
-	return []string{"pay_invoice", "get_balance", "get_info", "make_invoice", "lookup_invoice", "list_transactions", "multi_pay_invoice"}
+	return []string{"pay_invoice", "get_balance", "get_budget", "get_info", "make_invoice", "lookup_invoice", "list_transactions", "multi_pay_invoice"}
 }
 
 func (svc *PhoenixService) GetSupportedNIP47NotificationTypes() []string {

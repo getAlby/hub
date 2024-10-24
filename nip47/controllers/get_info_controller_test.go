@@ -66,7 +66,8 @@ func TestHandleGetInfoEvent_NoPermission(t *testing.T) {
 	assert.Empty(t, nodeInfo.Network)
 	assert.Empty(t, nodeInfo.BlockHeight)
 	assert.Empty(t, nodeInfo.BlockHash)
-	assert.Equal(t, []string{"get_balance"}, nodeInfo.Methods)
+	// get_info method is always granted, but does not return pubkey
+	assert.Contains(t, nodeInfo.Methods, models.GET_INFO_METHOD)
 	assert.Equal(t, []string{}, nodeInfo.Notifications)
 }
 
@@ -114,7 +115,7 @@ func TestHandleGetInfoEvent_WithPermission(t *testing.T) {
 	assert.Equal(t, tests.MockNodeInfo.Network, nodeInfo.Network)
 	assert.Equal(t, tests.MockNodeInfo.BlockHeight, nodeInfo.BlockHeight)
 	assert.Equal(t, tests.MockNodeInfo.BlockHash, nodeInfo.BlockHash)
-	assert.Equal(t, []string{"get_info"}, nodeInfo.Methods)
+	assert.Contains(t, nodeInfo.Methods, "get_info")
 	assert.Equal(t, []string{}, nodeInfo.Notifications)
 }
 
@@ -170,6 +171,6 @@ func TestHandleGetInfoEvent_WithNotifications(t *testing.T) {
 	assert.Equal(t, tests.MockNodeInfo.Network, nodeInfo.Network)
 	assert.Equal(t, tests.MockNodeInfo.BlockHeight, nodeInfo.BlockHeight)
 	assert.Equal(t, tests.MockNodeInfo.BlockHash, nodeInfo.BlockHash)
-	assert.Equal(t, []string{"get_info"}, nodeInfo.Methods)
+	assert.Contains(t, nodeInfo.Methods, "get_info")
 	assert.Equal(t, []string{"payment_received", "payment_sent"}, nodeInfo.Notifications)
 }

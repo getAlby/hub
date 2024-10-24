@@ -34,6 +34,8 @@ func (controller *nip47Controller) HandleGetInfoEvent(ctx context.Context, nip47
 	}
 
 	// basic permissions check
+	// this is inconsistent with other methods. Ideally we move fetching node info to a separate method,
+	// so that get_info does not require its own scope. This would require a change in the NIP-47 spec.
 	hasPermission, _, _ := controller.permissionsService.HasPermission(app, constants.GET_INFO_SCOPE)
 	if hasPermission {
 		logger.Logger.WithFields(logrus.Fields{
