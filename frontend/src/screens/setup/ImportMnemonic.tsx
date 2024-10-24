@@ -86,8 +86,8 @@ export function ImportMnemonic() {
                 <LifeBuoy className="w-6 h-6" />
               </div>
               <span className="text-muted-foreground">
-                Recovery phrase is a set of 12 words that{" "}
-                <b>restores your savings balance from a backup</b>.
+                Your recovery phrase is a set of 12 words used to restore your
+                savings balance from a backup.
               </span>
             </div>
             <div className="flex gap-2 items-center">
@@ -95,16 +95,17 @@ export function ImportMnemonic() {
                 <ShieldCheck className="w-6 h-6" />
               </div>
               <span className="text-muted-foreground">
-                Make sure to enter them somewhere safe and private
+                Keep it safe and private to ensure your funds remain secure.
               </span>
             </div>
             <div className="flex gap-2 items-center">
-              <div className="shrink-0 text-destructive">
+              <div className="shrink-0 text-muted-foreground">
                 <ShieldAlert className="w-6 h-6" />
               </div>
-              <span className="text-destructive">
-                Your recovery phrase alone currently <b>cannot</b> restore funds
-                in lightning channels.
+              <span className="text-muted-foreground">
+                Your recovery phrase cannot restore funds from lightning
+                channels. If you had active channels on a different device,
+                contact Alby support before proceeding.
               </span>
             </div>
           </div>
