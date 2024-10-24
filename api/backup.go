@@ -23,7 +23,7 @@ import (
 )
 
 func (api *api) CreateBackup(unlockPassword string, w io.Writer) error {
-	logger.Logger.Info("Creating backup for migrating Alby Hub to another device")
+	logger.Logger.Info("Creating backup to migrate Alby Hub to another device")
 	var err error
 
 	if !api.cfg.CheckUnlockPassword(unlockPassword) {
@@ -131,7 +131,7 @@ func (api *api) CreateBackup(unlockPassword string, w io.Writer) error {
 		}
 	}
 
-	logger.Logger.Info("Successfully created backup for migrating Alby Hub to another device")
+	logger.Logger.Info("Successfully created backup to migrate Alby Hub to another device")
 
 	return nil
 }
