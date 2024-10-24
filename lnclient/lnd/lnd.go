@@ -760,6 +760,10 @@ func (svc *LNDService) GetOnchainBalance(ctx context.Context) (*lnclient.Onchain
 		Total:                              int64(balances.TotalBalance),
 		Reserved:                           int64(balances.ReservedBalanceAnchorChan),
 		PendingBalancesFromChannelClosures: pendingBalancesFromChannelClosures,
+		InternalBalances: map[string]interface{}{
+			"balances":         balances,
+			"pending_channels": pendingChannels,
+		},
 	}, nil
 }
 

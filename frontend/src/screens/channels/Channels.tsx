@@ -318,15 +318,11 @@ export default function Channels() {
                   {new Intl.NumberFormat().format(balances.onchain.spendable)}{" "}
                   sats
                   {balances &&
-                    (balances.onchain.spendable !== balances.onchain.total ||
-                      balances.onchain.pendingBalancesFromChannelClosures >
-                        0) && (
+                    balances.onchain.spendable !== balances.onchain.total && (
                       <p className="text-xs text-muted-foreground animate-pulse">
                         +
                         {new Intl.NumberFormat().format(
-                          balances.onchain.total -
-                            balances.onchain.spendable +
-                            balances.onchain.pendingBalancesFromChannelClosures
+                          balances.onchain.total - balances.onchain.spendable
                         )}{" "}
                         sats incoming
                       </p>
@@ -435,7 +431,9 @@ export default function Channels() {
               balances.onchain.pendingBalancesFromChannelClosures
             )}{" "}
             sats pending from one or more closed channels. Once spendable again
-            these will become available in your savings balance.{" "}
+            these will become available in your savings balance. Funds from
+            channels that were force closed may take up to 2 weeks to become
+            available.{" "}
             <ExternalLink
               to="https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub/faq-alby-hub/why-was-my-lightning-channel-closed-and-what-to-do-next"
               className="underline"
