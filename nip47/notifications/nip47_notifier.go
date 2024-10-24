@@ -108,7 +108,12 @@ func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *db.App
 		"appId":        app.ID,
 	}).Debug("Notifying subscriber")
 
-	ss, err := nip04.ComputeSharedSecret(app.NostrPubkey, notifier.keys.GetNostrSecretKey())
+	appWalletPrivKey := notifier.keys.GetNostrSecretKey()
+	if app.WalletPubkey != "" {
+		appWalletPrivKey, _ = notifier.keys.GetAppWalletKey(uint32(app.ID))
+	}
+
+	ss, err := nip04.ComputeSharedSecret(app.NostrPubkey, appWalletPrivKey)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"notification": notification,
@@ -137,14 +142,16 @@ func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *db.App
 	allTags := nostr.Tags{[]string{"p", app.NostrPubkey}}
 	allTags = append(allTags, tags...)
 
+	appWalletPubKey, _ := nostr.GetPublicKey(appWalletPrivKey)
+
 	event := &nostr.Event{
-		PubKey:    notifier.keys.GetNostrPublicKey(),
+		PubKey:    appWalletPubKey,
 		CreatedAt: nostr.Now(),
 		Kind:      models.NOTIFICATION_KIND,
 		Tags:      allTags,
 		Content:   msg,
 	}
-	err = event.Sign(notifier.keys.GetNostrSecretKey())
+	err = event.Sign(appWalletPrivKey)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"notification": notification,
