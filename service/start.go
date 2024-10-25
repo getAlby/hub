@@ -198,12 +198,10 @@ func (svc *service) startAllExistingAppsWalletSubscriptions(ctx context.Context,
 
 	for _, app := range apps {
 		go func(app db.App) {
-			if app.WalletPubkey != "" {
-				err := svc.startAppWalletSubscription(ctx, relay, app.WalletPubkey, "")
-				if err != nil {
-					logger.Logger.WithError(err).WithFields(logrus.Fields{
-						"app_id": app.ID}).Error("Failed to subscribe to wallet")
-				}
+			err := svc.startAppWalletSubscription(ctx, relay, app.WalletPubkey, "")
+			if err != nil {
+				logger.Logger.WithError(err).WithFields(logrus.Fields{
+					"app_id": app.ID}).Error("Failed to subscribe to wallet")
 			}
 		}(app)
 	}
