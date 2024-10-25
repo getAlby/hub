@@ -139,19 +139,20 @@ func (s *createAppSubscriber) ConsumeEvent(ctx context.Context, event *events.Ev
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to calculate app wallet priv key")
 	}
-	walletPubKey, _ := nostr.GetPublicKey(walletPrivKey)
-
-	if walletPubKey != "" {
-		go func() {
-			err = s.svc.startAppWalletSubscription(ctx, s.relay, walletPubKey, walletPrivKey)
-			if err != nil {
-				logger.Logger.WithError(err).WithFields(logrus.Fields{
-					"app_id": id}).Error("Failed to subscribe to wallet")
-			}
-			logger.Logger.WithFields(logrus.Fields{
-				"app_id": id}).Info("App Nostr Subscription ended")
-		}()
+	walletPubKey, err := nostr.GetPublicKey(walletPrivKey)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to calculate app wallet pub key")
 	}
+
+	go func() {
+		err = s.svc.startAppWalletSubscription(ctx, s.relay, walletPubKey, walletPrivKey)
+		if err != nil {
+			logger.Logger.WithError(err).WithFields(logrus.Fields{
+				"app_id": id}).Error("Failed to subscribe to wallet")
+		}
+		logger.Logger.WithFields(logrus.Fields{
+			"app_id": id}).Info("App Nostr Subscription ended")
+	}()
 }
 
 type deleteAppSubscriber struct {
