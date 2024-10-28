@@ -182,7 +182,7 @@ func (mln *MockLn) UpdateChannel(ctx context.Context, updateChannelRequest *lncl
 }
 
 func (mln *MockLn) GetSupportedNIP47Methods() []string {
-	return []string{"pay_invoice", "pay_keysend", "get_balance", "get_info", "make_invoice", "lookup_invoice", "list_transactions", "multi_pay_invoice", "multi_pay_keysend", "sign_message"}
+	return []string{"pay_invoice", "pay_keysend", "get_balance", "get_budget", "get_info", "make_invoice", "lookup_invoice", "list_transactions", "multi_pay_invoice", "multi_pay_keysend", "sign_message"}
 }
 func (mln *MockLn) GetSupportedNIP47NotificationTypes() []string {
 	if mln.SupportedNotificationTypes != nil {
