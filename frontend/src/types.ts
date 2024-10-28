@@ -21,6 +21,7 @@ export type BackendType =
 export type Nip47RequestMethod =
   | "get_info"
   | "get_balance"
+  | "get_budget"
   | "make_invoice"
   | "pay_invoice"
   | "pay_keysend"

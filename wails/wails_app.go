@@ -5,6 +5,7 @@ import (
 	"embed"
 
 	"github.com/getAlby/hub/api"
+	"github.com/getAlby/hub/apps"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/service"
 	"github.com/wailsapp/wails/v2"
@@ -16,17 +17,19 @@ import (
 )
 
 type WailsApp struct {
-	ctx context.Context
-	svc service.Service
-	api api.API
-	db  *gorm.DB
+	ctx     context.Context
+	svc     service.Service
+	api     api.API
+	db      *gorm.DB
+	appsSvc apps.AppsService
 }
 
 func NewApp(svc service.Service) *WailsApp {
 	return &WailsApp{
-		svc: svc,
-		api: api.NewAPI(svc, svc.GetDB(), svc.GetConfig(), svc.GetKeys(), svc.GetAlbyOAuthSvc(), svc.GetEventPublisher()),
-		db:  svc.GetDB(),
+		svc:     svc,
+		api:     api.NewAPI(svc, svc.GetDB(), svc.GetConfig(), svc.GetKeys(), svc.GetAlbyOAuthSvc(), svc.GetEventPublisher()),
+		db:      svc.GetDB(),
+		appsSvc: apps.NewAppsService(svc.GetDB(), svc.GetEventPublisher(), svc.GetKeys()),
 	}
 }
 
@@ -38,7 +41,7 @@ func (app *WailsApp) startup(ctx context.Context) {
 
 func LaunchWailsApp(app *WailsApp, assets embed.FS, appIcon []byte) {
 	err := wails.Run(&options.App{
-		Title:  "AlbyHub",
+		Title:  "Alby Hub",
 		Width:  1024,
 		Height: 768,
 		AssetServer: &assetserver.Options{
@@ -54,7 +57,7 @@ func LaunchWailsApp(app *WailsApp, assets embed.FS, appIcon []byte) {
 		},
 		Mac: &mac.Options{
 			About: &mac.AboutInfo{
-				Title: "AlbyHub",
+				Title: "Alby Hub",
 				Icon:  appIcon,
 			},
 		},

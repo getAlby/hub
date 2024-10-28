@@ -17,6 +17,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/getAlby/hub/alby"
+	"github.com/getAlby/hub/apps"
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
@@ -33,7 +34,7 @@ import (
 
 type api struct {
 	db               *gorm.DB
-	dbSvc            db.DBService
+	appsSvc          apps.AppsService
 	cfg              config.Config
 	svc              service.Service
 	permissionsSvc   permissions.PermissionsService
@@ -46,7 +47,7 @@ type api struct {
 func NewAPI(svc service.Service, gormDB *gorm.DB, config config.Config, keys keys.Keys, albyOAuthSvc alby.AlbyOAuthService, eventPublisher events.EventPublisher) *api {
 	return &api{
 		db:             gormDB,
-		dbSvc:          db.NewDBService(gormDB, eventPublisher),
+		appsSvc:        apps.NewAppsService(gormDB, eventPublisher, keys),
 		cfg:            config,
 		svc:            svc,
 		permissionsSvc: permissions.NewPermissionsService(gormDB, eventPublisher),
@@ -71,7 +72,7 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 		}
 	}
 
-	app, pairingSecretKey, err := api.dbSvc.CreateApp(
+	app, pairingSecretKey, err := api.appsSvc.CreateApp(
 		createAppRequest.Name,
 		createAppRequest.Pubkey,
 		createAppRequest.MaxAmountSat,
@@ -80,7 +81,6 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 		createAppRequest.Scopes,
 		createAppRequest.Isolated,
 		createAppRequest.Metadata,
-		api.svc.GetKeys().GetAppWalletKey,
 	)
 
 	if err != nil {
@@ -218,7 +218,7 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 }
 
 func (api *api) DeleteApp(userApp *db.App) error {
-	return api.dbSvc.DeleteApp(userApp)
+	return api.appsSvc.DeleteApp(userApp)
 }
 
 func (api *api) GetApp(dbApp *db.App) *App {

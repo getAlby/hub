@@ -88,11 +88,6 @@ type Transaction struct {
 	FailureReason   string
 }
 
-type DBService interface {
-	CreateApp(name string, pubkey string, maxAmountSat uint64, budgetRenewal string, expiresAt *time.Time, scopes []string, isolated bool, metadata map[string]interface{}, walletChildPrivKeyGeneratorFunc func(uint32) (string, error)) (*App, string, error)
-	DeleteApp(app *App) error
-}
-
 const (
 	REQUEST_EVENT_STATE_HANDLER_EXECUTING = "executing"
 	REQUEST_EVENT_STATE_HANDLER_EXECUTED  = "executed"

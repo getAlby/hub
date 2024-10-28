@@ -10,7 +10,7 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - name: Download Linux server archives
+      - name: Download server archives
         uses: actions/download-artifact@v4
         with:
           pattern: albyhub-Server-*

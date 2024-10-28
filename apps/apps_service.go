@@ -1,4 +1,4 @@
-package db
+package apps
 
 import (
 	"encoding/hex"
@@ -9,36 +9,36 @@ import (
 	"time"
 
 	"github.com/getAlby/hub/constants"
+	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/logger"
+	"github.com/getAlby/hub/service/keys"
 	"github.com/nbd-wtf/go-nostr"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
-type dbService struct {
-	db             *gorm.DB
-	eventPublisher events.EventPublisher
+type AppsService interface {
+	CreateApp(name string, pubkey string, maxAmountSat uint64, budgetRenewal string, expiresAt *time.Time, scopes []string, isolated bool, metadata map[string]interface{}) (*db.App, string, error)
+	DeleteApp(app *db.App) error
+	GetAppByPubkey(pubkey string) *db.App
 }
 
-func NewDBService(db *gorm.DB, eventPublisher events.EventPublisher) *dbService {
-	return &dbService{
+type appsService struct {
+	db             *gorm.DB
+	eventPublisher events.EventPublisher
+	keys           keys.Keys
+}
+
+func NewAppsService(db *gorm.DB, eventPublisher events.EventPublisher, keys keys.Keys) *appsService {
+	return &appsService{
 		db:             db,
 		eventPublisher: eventPublisher,
+		keys:           keys,
 	}
 }
 
-func (svc *dbService) CreateApp(
-	name string,
-	pubkey string,
-	maxAmountSat uint64,
-	budgetRenewal string,
-	expiresAt *time.Time,
-	scopes []string,
-	isolated bool,
-	metadata map[string]interface{},
-	walletChildPrivKeyGeneratorFunc func(appId uint32) (string, error),
-) (*App, string, error) {
+func (svc *appsService) CreateApp(name string, pubkey string, maxAmountSat uint64, budgetRenewal string, expiresAt *time.Time, scopes []string, isolated bool, metadata map[string]interface{}) (*db.App, string, error) {
 	if isolated && (slices.Contains(scopes, constants.SIGN_MESSAGE_SCOPE)) {
 		// cannot sign messages because the isolated app is a custodial subaccount
 		return nil, "", errors.New("isolated app cannot have sign_message scope")
@@ -69,7 +69,7 @@ func (svc *dbService) CreateApp(
 		}
 	}
 
-	app := App{Name: name, NostrPubkey: pairingPublicKey, Isolated: isolated, Metadata: datatypes.JSON(metadataBytes)}
+	app := db.App{Name: name, NostrPubkey: pairingPublicKey, Isolated: isolated, Metadata: datatypes.JSON(metadataBytes)}
 
 	err := svc.db.Transaction(func(tx *gorm.DB) error {
 		err := tx.Save(&app).Error
@@ -78,7 +78,7 @@ func (svc *dbService) CreateApp(
 		}
 
 		for _, scope := range scopes {
-			appPermission := AppPermission{
+			appPermission := db.AppPermission{
 				App:       app,
 				Scope:     scope,
 				ExpiresAt: expiresAt,
@@ -92,7 +92,7 @@ func (svc *dbService) CreateApp(
 			}
 		}
 
-		appWalletPrivKey, err := walletChildPrivKeyGeneratorFunc(uint32(app.ID))
+		appWalletPrivKey, err := svc.keys.GetAppWalletKey(uint32(app.ID))
 		if err != nil {
 			return fmt.Errorf("error generating wallet child private key: %w", err)
 		}
@@ -102,7 +102,7 @@ func (svc *dbService) CreateApp(
 			return fmt.Errorf("error generating wallet child public key: %w", err)
 		}
 
-		err = tx.Model(&App{}).Where("id", app.ID).Update("wallet_pubkey", app.WalletPubkey).Error
+		err = tx.Model(&db.App{}).Where("id", app.ID).Update("wallet_pubkey", app.WalletPubkey).Error
 		if err != nil {
 			return err
 		}
@@ -127,7 +127,7 @@ func (svc *dbService) CreateApp(
 	return &app, pairingSecretKey, nil
 }
 
-func (svc *dbService) DeleteApp(app *App) error {
+func (svc *appsService) DeleteApp(app *db.App) error {
 
 	err := svc.db.Delete(app).Error
 	if err != nil {
@@ -141,4 +141,13 @@ func (svc *dbService) DeleteApp(app *App) error {
 		},
 	})
 	return nil
+}
+
+func (svc *appsService) GetAppByPubkey(pubkey string) *db.App {
+	dbApp := db.App{}
+	findResult := svc.db.Where("nostr_pubkey = ?", pubkey).First(&dbApp)
+	if findResult.RowsAffected == 0 {
+		return nil
+	}
+	return &dbApp
 }
