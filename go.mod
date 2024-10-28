@@ -4,7 +4,7 @@ go 1.22.2
 
 require (
 	github.com/adrg/xdg v0.5.0
-	github.com/breez/breez-sdk-go v0.5.2
+	github.com/breez/breez-sdk-go v0.6.2
 	github.com/elnosh/gonuts v0.2.0
 	github.com/getAlby/glalby-go v0.0.0-20240621192717-95673c864d59
 	github.com/getAlby/ldk-node-go v0.0.0-20240924080718-27f0fdd2a75d
