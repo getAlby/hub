@@ -1,4 +1,4 @@
-package db
+package apps
 
 import (
 	"encoding/hex"
@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/getAlby/hub/constants"
+	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/logger"
 	"github.com/nbd-wtf/go-nostr"
@@ -16,19 +17,24 @@ import (
 	"gorm.io/gorm"
 )
 
-type dbService struct {
+type AppsService interface {
+	CreateApp(name string, pubkey string, maxAmountSat uint64, budgetRenewal string, expiresAt *time.Time, scopes []string, isolated bool, metadata map[string]interface{}) (*db.App, string, error)
+	GetAppByPubkey(pubkey string) *db.App
+}
+
+type appsService struct {
 	db             *gorm.DB
 	eventPublisher events.EventPublisher
 }
 
-func NewDBService(db *gorm.DB, eventPublisher events.EventPublisher) *dbService {
-	return &dbService{
+func NewAppsService(db *gorm.DB, eventPublisher events.EventPublisher) *appsService {
+	return &appsService{
 		db:             db,
 		eventPublisher: eventPublisher,
 	}
 }
 
-func (svc *dbService) CreateApp(name string, pubkey string, maxAmountSat uint64, budgetRenewal string, expiresAt *time.Time, scopes []string, isolated bool, metadata map[string]interface{}) (*App, string, error) {
+func (svc *appsService) CreateApp(name string, pubkey string, maxAmountSat uint64, budgetRenewal string, expiresAt *time.Time, scopes []string, isolated bool, metadata map[string]interface{}) (*db.App, string, error) {
 	if isolated && (slices.Contains(scopes, constants.SIGN_MESSAGE_SCOPE)) {
 		// cannot sign messages because the isolated app is a custodial subaccount
 		return nil, "", errors.New("isolated app cannot have sign_message scope")
@@ -59,7 +65,7 @@ func (svc *dbService) CreateApp(name string, pubkey string, maxAmountSat uint64,
 		}
 	}
 
-	app := App{Name: name, NostrPubkey: pairingPublicKey, Isolated: isolated, Metadata: datatypes.JSON(metadataBytes)}
+	app := db.App{Name: name, NostrPubkey: pairingPublicKey, Isolated: isolated, Metadata: datatypes.JSON(metadataBytes)}
 
 	err := svc.db.Transaction(func(tx *gorm.DB) error {
 		err := tx.Save(&app).Error
@@ -68,7 +74,7 @@ func (svc *dbService) CreateApp(name string, pubkey string, maxAmountSat uint64,
 		}
 
 		for _, scope := range scopes {
-			appPermission := AppPermission{
+			appPermission := db.AppPermission{
 				App:       app,
 				Scope:     scope,
 				ExpiresAt: expiresAt,
@@ -99,4 +105,13 @@ func (svc *dbService) CreateApp(name string, pubkey string, maxAmountSat uint64,
 	})
 
 	return &app, pairingSecretKey, nil
+}
+
+func (svc *appsService) GetAppByPubkey(pubkey string) *db.App {
+	dbApp := db.App{}
+	findResult := svc.db.Where("nostr_pubkey = ?", pubkey).First(&dbApp)
+	if findResult.RowsAffected == 0 {
+		return nil
+	}
+	return &dbApp
 }
