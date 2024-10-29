@@ -36,10 +36,9 @@ func CreateAppWithPrivateKey(svc *TestService, senderPrivkey string) (app *db.Ap
 	return app, ss, nil
 }
 
-func CreateLegacyApp(svc *TestService) (app *db.App, ss []byte, err error) {
+func CreateLegacyApp(svc *TestService, senderPrivkey string) (app *db.App, ss []byte, err error) {
 
-	pairingSecretKey := nostr.GeneratePrivateKey()
-	pairingPublicKey, _ := nostr.GetPublicKey(pairingSecretKey)
+	pairingPublicKey, _ := nostr.GetPublicKey(senderPrivkey)
 
 	app = &db.App{Name: "test", AppPubkey: pairingPublicKey, Isolated: false}
 
@@ -65,6 +64,6 @@ func CreateLegacyApp(svc *TestService) (app *db.App, ss []byte, err error) {
 		},
 	})
 
-	ss, err = nip04.ComputeSharedSecret(*app.WalletPubkey, pairingSecretKey)
+	ss, err = nip04.ComputeSharedSecret(svc.Keys.GetNostrPublicKey(), senderPrivkey)
 	return app, ss, nil
 }
