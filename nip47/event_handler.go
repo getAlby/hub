@@ -47,14 +47,6 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 		return
 	}
 
-	if err != nil {
-		logger.Logger.WithFields(logrus.Fields{
-			"requestEventNostrId": event.ID,
-			"eventKind":           event.Kind,
-		}).WithError(err).Error("Failed to compute shared secret")
-		return
-	}
-
 	// store request event
 	requestEvent := db.RequestEvent{AppId: nil, NostrId: event.ID, State: db.REQUEST_EVENT_STATE_HANDLER_EXECUTING}
 	err = svc.db.Create(&requestEvent).Error
@@ -106,7 +98,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 		logger.Logger.WithFields(logrus.Fields{
 			"requestEventNostrId": event.ID,
 			"eventKind":           event.Kind,
-		}).WithError(err).Error("Failed to process event")
+		}).WithError(err).Error("Failed to compute shared secret")
 
 		requestEvent.State = db.REQUEST_EVENT_STATE_HANDLER_ERROR
 		err = svc.db.Save(&requestEvent).Error
