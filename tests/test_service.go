@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"github.com/getAlby/hub/apps"
 	"os"
 	"strconv"
 
@@ -46,12 +47,15 @@ func CreateTestService() (svc *TestService, err error) {
 
 	eventPublisher := events.NewEventPublisher()
 
+	appsService := apps.NewAppsService(gormDb, eventPublisher, keys)
+
 	return &TestService{
 		Cfg:            cfg,
 		LNClient:       mockLn,
 		EventPublisher: eventPublisher,
 		DB:             gormDb,
 		Keys:           keys,
+		AppsService:    appsService,
 	}, nil
 }
 
@@ -60,6 +64,7 @@ type TestService struct {
 	Cfg            config.Config
 	LNClient       lnclient.LNClient
 	EventPublisher events.EventPublisher
+	AppsService    apps.AppsService
 	DB             *gorm.DB
 }
 

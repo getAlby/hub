@@ -120,9 +120,6 @@ func TestHandleResponse_WithPermission(t *testing.T) {
 	assert.NotNil(t, relay.PublishedEvent)
 	assert.NotEmpty(t, relay.PublishedEvent.Content)
 
-	ss, err = nip04.ComputeSharedSecret(svc.Keys.GetNostrPublicKey(), reqPrivateKey)
-	assert.NoError(t, err)
-
 	decrypted, err := nip04.Decrypt(relay.PublishedEvent.Content, ss)
 	assert.NoError(t, err)
 
@@ -241,9 +238,6 @@ func TestHandleResponse_NoPermission(t *testing.T) {
 	assert.NotNil(t, relay.PublishedEvent)
 	assert.NotEmpty(t, relay.PublishedEvent.Content)
 
-	ss, err = nip04.ComputeSharedSecret(svc.Keys.GetNostrPublicKey(), reqPrivateKey)
-	assert.NoError(t, err)
-
 	decrypted, err := nip04.Decrypt(relay.PublishedEvent.Content, ss)
 	assert.NoError(t, err)
 
@@ -298,23 +292,8 @@ func TestHandleResponse_NoApp(t *testing.T) {
 
 	nip47svc.HandleEvent(context.TODO(), relay, reqEvent, svc.LNClient)
 
-	assert.NotNil(t, relay.PublishedEvent)
-	assert.NotEmpty(t, relay.PublishedEvent.Content)
-
-	ss, err = nip04.ComputeSharedSecret(svc.Keys.GetNostrPublicKey(), reqPrivateKey)
-	assert.NoError(t, err)
-
-	decrypted, err := nip04.Decrypt(relay.PublishedEvent.Content, ss)
-	assert.NoError(t, err)
-
-	unmarshalledResponse := models.Response{}
-
-	err = json.Unmarshal([]byte(decrypted), &unmarshalledResponse)
-	assert.NoError(t, err)
-	assert.Nil(t, unmarshalledResponse.Result)
-	assert.Equal(t, "", unmarshalledResponse.ResultType)
-	assert.Equal(t, "UNAUTHORIZED", unmarshalledResponse.Error.Code)
-	assert.Equal(t, "The public key does not have a wallet connected.", unmarshalledResponse.Error.Message)
+	// it shouldn't return anything for an invalid app key
+	assert.Nil(t, relay.PublishedEvent)
 }
 
 func TestHandleResponse_IncorrectPubkey(t *testing.T) {
