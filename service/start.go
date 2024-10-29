@@ -118,7 +118,7 @@ func (svc *service) startNostr(ctx context.Context, encryptionKey string) error 
 
 func (svc *service) startAllExistingAppsWalletSubscriptions(ctx context.Context, relay *nostr.Relay) {
 	var apps []db.App
-	result := svc.db.Where("wallet_pubkey IS NOT NIL").Find(&apps)
+	result := svc.db.Where("wallet_pubkey IS NOT NULL").Find(&apps)
 	if result.Error != nil {
 		logger.Logger.WithError(result.Error).Error("Failed to fetch App records with non-empty WalletPubkey")
 		return
