@@ -61,12 +61,6 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 			"requestEventNostrId": event.ID,
 			"eventKind":           event.Kind,
 		}).WithError(err).Error("Failed to save nostr event")
-		nip47Response = &models.Response{
-			Error: &models.Error{
-				Code:    constants.ERROR_INTERNAL,
-				Message: fmt.Sprintf("Failed to save nostr event: %s", err.Error()),
-			},
-		}
 		return
 	}
 	app := db.App{}
