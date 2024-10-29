@@ -145,7 +145,7 @@ func (svc *appsService) DeleteApp(app *db.App) error {
 
 func (svc *appsService) GetAppByPubkey(pubkey string) *db.App {
 	dbApp := db.App{}
-	findResult := svc.db.Where("nostr_pubkey = ?", pubkey).First(&dbApp)
+	findResult := svc.db.Where("app_pubkey = ?", pubkey).First(&dbApp)
 	if findResult.RowsAffected == 0 {
 		return nil
 	}

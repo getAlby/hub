@@ -4,15 +4,15 @@ import { useToast } from "src/components/ui/use-toast";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 
-export function useDeleteApp(onSuccess?: (nostrPubkey: string) => void) {
+export function useDeleteApp(onSuccess?: (appPubkey: string) => void) {
   const [isDeleting, setDeleting] = React.useState(false);
   const { toast } = useToast();
 
   const deleteApp = React.useCallback(
-    async (nostrPubkey: string) => {
+    async (appPubkey: string) => {
       setDeleting(true);
       try {
-        await request(`/api/apps/${nostrPubkey}`, {
+        await request(`/api/apps/${appPubkey}`, {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
@@ -20,7 +20,7 @@ export function useDeleteApp(onSuccess?: (nostrPubkey: string) => void) {
         });
         toast({ title: "Connection deleted" });
         if (onSuccess) {
-          onSuccess(nostrPubkey);
+          onSuccess(appPubkey);
         }
       } catch (error) {
         await handleRequestError(toast, "Failed to delete connection", error);
