@@ -74,6 +74,12 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 		return
 	}
 
+	logger.Logger.WithFields(logrus.Fields{
+		"requestEventNostrId": event.ID,
+		"eventKind":           event.Kind,
+		"appId":               app.ID,
+	}).Debug("App found for nostr event")
+
 	appWalletPrivKey := svc.keys.GetNostrSecretKey()
 
 	if app.WalletPubkey != nil {
@@ -113,7 +119,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 
 		nip47Response = &models.Response{
 			Error: &models.Error{
-				Code:    constants.ERROR_UNAUTHORIZED,
+				Code:    constants.ERROR_INTERNAL,
 				Message: fmt.Sprintf("Failed to save app to nostr event: %s", err.Error()),
 			},
 		}
@@ -137,12 +143,6 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 		return
 	}
 
-	logger.Logger.WithFields(logrus.Fields{
-		"requestEventNostrId": event.ID,
-		"eventKind":           event.Kind,
-		"appId":               app.ID,
-	}).Debug("App found for nostr event")
-
 	payload, err := nip04.Decrypt(event.Content, ss)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
@@ -153,7 +153,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 		logger.Logger.WithFields(logrus.Fields{
 			"requestEventNostrId": event.ID,
 			"eventKind":           event.Kind,
-		}).WithError(err).Error("Failed to process event")
+		}).WithError(err).Error("Failed to decrypt request event")
 
 		requestEvent.State = db.REQUEST_EVENT_STATE_HANDLER_ERROR
 		err = svc.db.Save(&requestEvent).Error
