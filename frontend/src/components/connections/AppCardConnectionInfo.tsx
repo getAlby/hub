@@ -115,7 +115,7 @@ export function AppCardConnectionInfo({
                 ? dayjs(connection.lastEventAt).fromNow()
                 : "Never"}
             </div>
-            <Link to={`/apps/${connection.nostrPubkey}?edit=true`}>
+            <Link to={`/apps/${connection.appPubkey}?edit=true`}>
               <Button variant="outline">
                 <PlusCircle className="w-4 h-4 mr-2" />
                 Set Budget
@@ -151,7 +151,7 @@ export function AppCardConnectionInfo({
                 : "Never"}
             </div>
             <Link
-              to={`/apps/${connection.nostrPubkey}?edit=true`}
+              to={`/apps/${connection.appPubkey}?edit=true`}
               onClick={(e) => e.stopPropagation()}
             >
               <Button variant="outline">

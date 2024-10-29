@@ -51,7 +51,7 @@ func (svc *permissionsService) HasPermission(app *db.App, scope string) (result 
 			"scope":     scope,
 			"expiresAt": expiresAt.Unix(),
 			"appId":     app.ID,
-			"pubkey":    app.NostrPubkey,
+			"pubkey":    app.AppPubkey,
 		}).Info("This pubkey is expired")
 
 		return false, constants.ERROR_EXPIRED, "This app has expired"

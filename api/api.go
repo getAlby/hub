@@ -92,7 +92,7 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 	responseBody := &CreateAppResponse{}
 	responseBody.Id = app.ID
 	responseBody.Name = createAppRequest.Name
-	responseBody.Pubkey = app.NostrPubkey
+	responseBody.Pubkey = app.AppPubkey
 	responseBody.PairingSecret = pairingSecretKey
 
 	lightningAddress, err := api.albyOAuthSvc.GetLightningAddress()
@@ -105,7 +105,7 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 		if err == nil {
 			query := returnToUrl.Query()
 			query.Add("relay", relayUrl)
-			query.Add("pubkey", app.WalletPubkey)
+			query.Add("pubkey", *app.WalletPubkey)
 			if lightningAddress != "" && !app.Isolated {
 				query.Add("lud16", lightningAddress)
 			}
@@ -118,7 +118,7 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 	if lightningAddress != "" && !app.Isolated {
 		lud16 = fmt.Sprintf("&lud16=%s", lightningAddress)
 	}
-	responseBody.PairingUri = fmt.Sprintf("nostr+walletconnect://%s?relay=%s&secret=%s%s", app.WalletPubkey, relayUrl, pairingSecretKey, lud16)
+	responseBody.PairingUri = fmt.Sprintf("nostr+walletconnect://%s?relay=%s&secret=%s%s", *app.WalletPubkey, relayUrl, pairingSecretKey, lud16)
 
 	return responseBody, nil
 }
@@ -262,7 +262,7 @@ func (api *api) GetApp(dbApp *db.App) *App {
 		Description:   dbApp.Description,
 		CreatedAt:     dbApp.CreatedAt,
 		UpdatedAt:     dbApp.UpdatedAt,
-		NostrPubkey:   dbApp.NostrPubkey,
+		AppPubkey:     dbApp.AppPubkey,
 		ExpiresAt:     expiresAt,
 		MaxAmountSat:  maxAmount,
 		Scopes:        requestMethods,
@@ -313,7 +313,7 @@ func (api *api) ListApps() ([]App, error) {
 			Description: dbApp.Description,
 			CreatedAt:   dbApp.CreatedAt,
 			UpdatedAt:   dbApp.UpdatedAt,
-			NostrPubkey: dbApp.NostrPubkey,
+			AppPubkey:   dbApp.AppPubkey,
 			Isolated:    dbApp.Isolated,
 		}
 

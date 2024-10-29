@@ -109,7 +109,7 @@ function AppCreatedInternal() {
                 Optional: Increase isolated balance (
                 {new Intl.NumberFormat().format(Math.floor(app.balance / 1000))}{" "}
                 sats){" "}
-                <IsolatedAppTopupDialog appPubkey={app.nostrPubkey}>
+                <IsolatedAppTopupDialog appPubkey={app.appPubkey}>
                   <Button size="sm" variant="secondary">
                     Increase
                   </Button>
@@ -168,7 +168,7 @@ export function ConnectAppCard({
         {timeout && (
           <div className="text-sm flex flex-col gap-2 items-center text-center">
             Connecting is taking longer than usual.
-            <Link to={`/apps/${app?.nostrPubkey}`}>
+            <Link to={`/apps/${app?.appPubkey}`}>
               <Button variant="secondary">Continue anyway</Button>
             </Link>
           </div>

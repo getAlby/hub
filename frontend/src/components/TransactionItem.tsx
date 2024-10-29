@@ -184,7 +184,7 @@ function TransactionItem({ tx }: Props) {
             {app && (
               <div className="mt-8">
                 <p>App</p>
-                <Link to={`/apps/${app.nostrPubkey}`}>
+                <Link to={`/apps/${app.appPubkey}`}>
                   <p className="font-semibold">
                     {app.name === "getalby.com" ? "Alby Account" : app.name}
                   </p>

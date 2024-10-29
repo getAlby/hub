@@ -87,14 +87,14 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 	}
 	app := db.App{}
 	err = svc.db.First(&app, &db.App{
-		NostrPubkey: event.PubKey,
+		AppPubkey: event.PubKey,
 	}).Error
 
 	appWalletPrivKey := svc.keys.GetNostrSecretKey()
 
-	if app.WalletPubkey != "" {
+	if app.WalletPubkey != nil {
 		// This is a new child key derived from master using app ID as index
-		appWalletPrivKey, err = svc.keys.GetAppWalletKey(uint32(app.ID))
+		appWalletPrivKey, err = svc.keys.GetAppWalletKey(app.ID)
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"appId": app.ID,
@@ -173,7 +173,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 	}).Debug("App found for nostr event")
 
 	//to be extra safe, decrypt using the key found from the app
-	ss, err = nip04.ComputeSharedSecret(app.NostrPubkey, appWalletPrivKey)
+	ss, err = nip04.ComputeSharedSecret(app.AppPubkey, appWalletPrivKey)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"requestEventNostrId": event.ID,

@@ -113,7 +113,7 @@ export interface App {
   id: number;
   name: string;
   description: string;
-  nostrPubkey: string;
+  appPubkey: string;
   createdAt: string;
   updatedAt: string;
   lastEventAt?: string;

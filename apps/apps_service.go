@@ -69,7 +69,7 @@ func (svc *appsService) CreateApp(name string, pubkey string, maxAmountSat uint6
 		}
 	}
 
-	app := db.App{Name: name, NostrPubkey: pairingPublicKey, Isolated: isolated, Metadata: datatypes.JSON(metadataBytes)}
+	app := db.App{Name: name, AppPubkey: pairingPublicKey, Isolated: isolated, Metadata: datatypes.JSON(metadataBytes)}
 
 	err := svc.db.Transaction(func(tx *gorm.DB) error {
 		err := tx.Save(&app).Error
@@ -92,17 +92,17 @@ func (svc *appsService) CreateApp(name string, pubkey string, maxAmountSat uint6
 			}
 		}
 
-		appWalletPrivKey, err := svc.keys.GetAppWalletKey(uint32(app.ID))
+		appWalletPrivKey, err := svc.keys.GetAppWalletKey(app.ID)
 		if err != nil {
 			return fmt.Errorf("error generating wallet child private key: %w", err)
 		}
 
-		app.WalletPubkey, err = nostr.GetPublicKey(appWalletPrivKey)
+		appWalletPubkey, err := nostr.GetPublicKey(appWalletPrivKey)
 		if err != nil {
 			return fmt.Errorf("error generating wallet child public key: %w", err)
 		}
 
-		err = tx.Model(&db.App{}).Where("id", app.ID).Update("wallet_pubkey", app.WalletPubkey).Error
+		err = tx.Model(&db.App{}).Where("id", app.ID).Update("wallet_pubkey", appWalletPubkey).Error
 		if err != nil {
 			return err
 		}

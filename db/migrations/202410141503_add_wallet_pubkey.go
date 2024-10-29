@@ -13,6 +13,7 @@ var _202410141503_add_wallet_pubkey = &gormigrate.Migration{
 
 		if err := tx.Exec(`
 	ALTER TABLE apps ADD COLUMN wallet_pubkey TEXT;
+	ALTER TABLE apps RENAME COLUMN nostr_pubkey TO app_pubkey;
 `).Error; err != nil {
 			return err
 		}

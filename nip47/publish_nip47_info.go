@@ -13,6 +13,7 @@ import (
 )
 
 func (svc *nip47Service) PublishNip47Info(ctx context.Context, relay nostrmodels.Relay, appWalletPubKey string, appWalletPrivKey string, lnClient lnclient.LNClient) (*nostr.Event, error) {
+	// TODO: should the capabilities be based on the app permissions? (for non-legacy apps)
 	capabilities := lnClient.GetSupportedNIP47Methods()
 	if len(lnClient.GetSupportedNIP47NotificationTypes()) > 0 {
 		capabilities = append(capabilities, "notifications")
