@@ -162,6 +162,31 @@ func (svc *service) startAppWalletSubscription(ctx context.Context, relay *nostr
 	return nil
 }
 
+func (svc *service) StartSubscription(ctx context.Context, sub *nostr.Subscription) error {
+	svc.nip47Service.StartNotifier(ctx, sub.Relay, svc.lnClient)
+
+	go func() {
+		// block till EOS is received
+		<-sub.EndOfStoredEvents
+		logger.Logger.Debug("Received EOS")
+
+		// loop through incoming events
+		for event := range sub.Events {
+			go svc.nip47Service.HandleEvent(ctx, sub.Relay, event, svc.lnClient)
+		}
+		logger.Logger.Debug("Relay subscription events channel ended")
+	}()
+
+	<-ctx.Done()
+
+	if sub.Relay.ConnectionError != nil {
+		logger.Logger.WithField("connectionError", sub.Relay.ConnectionError).Error("Relay error")
+		return sub.Relay.ConnectionError
+	}
+	logger.Logger.Info("Exiting subscription...")
+	return nil
+}
+
 func (svc *service) StartApp(encryptionKey string) error {
 	if svc.lnClient != nil {
 		return errors.New("app already started")
