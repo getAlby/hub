@@ -151,7 +151,7 @@ func TestHandleResponse_LegacyApp_IncorrectPubkey(t *testing.T) {
 
 	reqPrivateKey2 := nostr.GeneratePrivateKey()
 
-	app, _, err := tests.CreateLegacyApp(svc, reqPrivateKey)
+	app, ss, err := tests.CreateLegacyApp(svc, reqPrivateKey)
 	assert.NoError(t, err)
 
 	appPermission := &db.AppPermission{
@@ -160,9 +160,6 @@ func TestHandleResponse_LegacyApp_IncorrectPubkey(t *testing.T) {
 		Scope: constants.GET_BALANCE_SCOPE,
 	}
 	err = svc.DB.Create(appPermission).Error
-	assert.NoError(t, err)
-
-	_, ss, err := tests.CreateAppWithPrivateKey(svc, reqPrivateKey2)
 	assert.NoError(t, err)
 
 	content := map[string]interface{}{
