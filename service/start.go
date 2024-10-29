@@ -141,6 +141,7 @@ func (svc *service) startAppWalletSubscription(ctx context.Context, relay *nostr
 		infoEvent, err := svc.GetNip47Service().PublishNip47Info(ctx, relay, appWalletPubKey, appWalletPrivKey, svc.lnClient)
 		if err != nil {
 			logger.Logger.WithError(err).Error("Could not publish NIP47 info")
+			return err
 		}
 		infoEventId = infoEvent.ID
 	}
@@ -149,6 +150,7 @@ func (svc *service) startAppWalletSubscription(ctx context.Context, relay *nostr
 	sub, err := relay.Subscribe(ctx, svc.createFilters(appWalletPubKey))
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to subscribe to events")
+		return err
 	}
 
 	// register a subscriber for "app_deleted" events, which handles nostr subscription cancel and nip47 info event deletion
