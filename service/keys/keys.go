@@ -17,12 +17,13 @@ type Keys interface {
 	// Wallet Service Nostr secret key
 	GetNostrSecretKey() string
 	// Derives a BIP32 child key from the nostrSecretKey given a child key index
-	GetAppWalletKey(childIndex uint32) (string, error)
+	GetAppWalletKey(childIndex uint) (string, error)
 }
 
 type keys struct {
 	nostrSecretKey string
 	nostrPublicKey string
+	masterKey      *bip32.Key
 }
 
 func NewKeys() *keys {
@@ -47,6 +48,21 @@ func (keys *keys) Init(cfg config.Config, encryptionKey string) error {
 	}
 	keys.nostrSecretKey = nostrSecretKey
 	keys.nostrPublicKey = nostrPublicKey
+
+	// Convert nostrSecretKey to btcec private key
+	privKeyBytes, err := hex.DecodeString(keys.nostrSecretKey)
+	if err != nil {
+		return err
+	}
+	privKey, _ := btcec.PrivKeyFromBytes(privKeyBytes)
+
+	// Create a BIP32 master key from the private key
+	masterKey, err := bip32.NewMasterKey(privKey.Serialize())
+	if err != nil {
+		return err
+	}
+	keys.masterKey = masterKey
+
 	return nil
 }
 
@@ -58,22 +74,9 @@ func (keys *keys) GetNostrSecretKey() string {
 	return keys.nostrSecretKey
 }
 
-func (keys *keys) GetAppWalletKey(childIndex uint32) (string, error) {
-	// Convert nostrSecretKey to btcec private key
-	privKeyBytes, err := hex.DecodeString(keys.nostrSecretKey)
-	if err != nil {
-		return "", err
-	}
-	privKey, _ := btcec.PrivKeyFromBytes(privKeyBytes)
-
-	// Create a BIP32 master key from the private key
-	masterKey, err := bip32.NewMasterKey(privKey.Serialize())
-	if err != nil {
-		return "", err
-	}
-
+func (keys *keys) GetAppWalletKey(childIndex uint) (string, error) {
 	// Derive child key
-	childKey, err := masterKey.NewChildKey(childIndex)
+	childKey, err := keys.masterKey.NewChildKey(uint32(childIndex))
 	if err != nil {
 		return "", err
 	}
