@@ -352,7 +352,11 @@ func (svc *nip47Service) CreateResponse(initialEvent *nostr.Event, content inter
 	allTags := nostr.Tags{[]string{"p", initialEvent.PubKey}, []string{"e", initialEvent.ID}}
 	allTags = append(allTags, tags...)
 
-	appWalletPubKey, _ := nostr.GetPublicKey(appWalletPrivKey)
+	appWalletPubKey, err := nostr.GetPublicKey(appWalletPrivKey)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Error converting nostr privkey to pubkey")
+		return
+	}
 
 	resp := &nostr.Event{
 		PubKey:    appWalletPubKey,
