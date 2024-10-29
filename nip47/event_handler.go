@@ -46,7 +46,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 		}).Error("invalid event signature")
 		return
 	}
-	ss, err := nip04.ComputeSharedSecret(event.PubKey, svc.keys.GetNostrSecretKey())
+
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"requestEventNostrId": event.ID,
@@ -75,20 +75,18 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 				Message: fmt.Sprintf("Failed to save nostr event: %s", err.Error()),
 			},
 		}
-		resp, err := svc.CreateResponse(event, nip47Response, nostr.Tags{}, ss, svc.keys.GetNostrSecretKey())
-		if err != nil {
-			logger.Logger.WithFields(logrus.Fields{
-				"requestEventNostrId": event.ID,
-				"eventKind":           event.Kind,
-			}).WithError(err).Error("Failed to process event")
-		}
-		svc.publishResponseEvent(ctx, relay, &requestEvent, resp, nil)
 		return
 	}
 	app := db.App{}
 	err = svc.db.First(&app, &db.App{
 		AppPubkey: event.PubKey,
 	}).Error
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"appPubkey": event.PubKey,
+		}).WithError(err).Error("Failed to find app for nostr pubkey")
+		return
+	}
 
 	appWalletPrivKey := svc.keys.GetNostrSecretKey()
 
@@ -103,31 +101,18 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 		}
 	}
 
+	ss, err := nip04.ComputeSharedSecret(app.AppPubkey, appWalletPrivKey)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
-			"nostrPubkey": event.PubKey,
-		}).WithError(err).Error("Failed to find app for nostr pubkey")
-
-		nip47Response = &models.Response{
-			Error: &models.Error{
-				Code:    constants.ERROR_UNAUTHORIZED,
-				Message: "The public key does not have a wallet connected.",
-			},
-		}
-		resp, err := svc.CreateResponse(event, nip47Response, nostr.Tags{}, ss, svc.keys.GetNostrSecretKey())
-		if err != nil {
-			logger.Logger.WithFields(logrus.Fields{
-				"requestEventNostrId": event.ID,
-				"eventKind":           event.Kind,
-			}).WithError(err).Error("Failed to process event")
-		}
-		svc.publishResponseEvent(ctx, relay, &requestEvent, resp, &app)
+			"requestEventNostrId": event.ID,
+			"eventKind":           event.Kind,
+		}).WithError(err).Error("Failed to process event")
 
 		requestEvent.State = db.REQUEST_EVENT_STATE_HANDLER_ERROR
 		err = svc.db.Save(&requestEvent).Error
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
-				"nostrPubkey": event.PubKey,
+				"appPubkey": event.PubKey,
 			}).WithError(err).Error("Failed to save state to nostr event")
 		}
 		return
@@ -137,7 +122,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 	err = svc.db.Save(&requestEvent).Error
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
-			"nostrPubkey": event.PubKey,
+			"appPubkey": event.PubKey,
 		}).WithError(err).Error("Failed to save app to nostr event")
 
 		nip47Response = &models.Response{
@@ -146,7 +131,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 				Message: fmt.Sprintf("Failed to save app to nostr event: %s", err.Error()),
 			},
 		}
-		resp, err := svc.CreateResponse(event, nip47Response, nostr.Tags{}, ss, svc.keys.GetNostrSecretKey())
+		resp, err := svc.CreateResponse(event, nip47Response, nostr.Tags{}, ss, appWalletPrivKey)
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"requestEventNostrId": event.ID,
@@ -159,7 +144,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 		err = svc.db.Save(&requestEvent).Error
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
-				"nostrPubkey": event.PubKey,
+				"appPubkey": event.PubKey,
 			}).WithError(err).Error("Failed to save state to nostr event")
 		}
 
@@ -172,24 +157,6 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 		"appId":               app.ID,
 	}).Debug("App found for nostr event")
 
-	//to be extra safe, decrypt using the key found from the app
-	ss, err = nip04.ComputeSharedSecret(app.AppPubkey, appWalletPrivKey)
-	if err != nil {
-		logger.Logger.WithFields(logrus.Fields{
-			"requestEventNostrId": event.ID,
-			"eventKind":           event.Kind,
-		}).WithError(err).Error("Failed to process event")
-
-		requestEvent.State = db.REQUEST_EVENT_STATE_HANDLER_ERROR
-		err = svc.db.Save(&requestEvent).Error
-		if err != nil {
-			logger.Logger.WithFields(logrus.Fields{
-				"nostrPubkey": event.PubKey,
-			}).WithError(err).Error("Failed to save state to nostr event")
-		}
-
-		return
-	}
 	payload, err := nip04.Decrypt(event.Content, ss)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
@@ -206,7 +173,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 		err = svc.db.Save(&requestEvent).Error
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
-				"nostrPubkey": event.PubKey,
+				"appPubkey": event.PubKey,
 			}).WithError(err).Error("Failed to save state to nostr event")
 		}
 
@@ -224,7 +191,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 		err = svc.db.Save(&requestEvent).Error
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
-				"nostrPubkey": event.PubKey,
+				"appPubkey": event.PubKey,
 			}).WithError(err).Error("Failed to save state to nostr event")
 		}
 
@@ -269,7 +236,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 		err = svc.db.Save(&requestEvent).Error
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
-				"nostrPubkey": event.PubKey,
+				"appPubkey": event.PubKey,
 			}).WithError(err).Error("Failed to save state to nostr event")
 		}
 	}
@@ -308,7 +275,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 				Properties: map[string]interface{}{
 					"request_method": nip47Request.Method,
 					"app_name":       app.Name,
-					// "app_pubkey":     app.NostrPubkey,
+					// "app_pubkey":     app.AppPubkey,
 					"code":    code,
 					"message": message,
 				},
