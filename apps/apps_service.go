@@ -102,7 +102,7 @@ func (svc *appsService) CreateApp(name string, pubkey string, maxAmountSat uint6
 			return fmt.Errorf("error generating wallet child public key: %w", err)
 		}
 
-		err = tx.Model(&db.App{}).Where("id", app.ID).Update("wallet_pubkey", appWalletPubkey).Error
+		err = tx.Model(&app).Update("wallet_pubkey", appWalletPubkey).Error
 		if err != nil {
 			return err
 		}
