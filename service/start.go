@@ -99,13 +99,32 @@ func (svc *service) startNostr(ctx context.Context, encryptionKey string) error 
 			// register a subscriber for events of "app_created" which handles creation of nostr subscription for new app
 			svc.eventPublisher.RegisterSubscriber(&createAppConsumer{svc: svc, relay: relay})
 
-			// legacy single wallet subscription - only subscribe once for all legacy apps
-			// to ensure we do not get duplicate events
-			err = svc.startAppWalletSubscription(ctx, relay, svc.keys.GetNostrPublicKey(), svc.keys.GetNostrSecretKey())
-			if err != nil {
-				//err being non-nil means that we have an error on the websocket error channel. In this case we just try to reconnect.
-				logger.Logger.WithError(err).Error("Got an error from the relay while listening to subscription.")
-				continue
+			// check if there are still legacy apps in DB
+			var legacyAppCount int64
+			result := svc.db.Model(&db.App{}).Where("wallet_pubkey IS NULL").Count(&legacyAppCount)
+			if result.Error != nil {
+				logger.Logger.WithError(result.Error).Error("Failed to count Legacy Apps")
+				return
+			}
+			if legacyAppCount > 0 {
+				// re-publish single NIP47 event info for legacy apps
+				_, err := svc.GetNip47Service().PublishNip47Info(ctx, relay, svc.keys.GetNostrPublicKey(), svc.keys.GetNostrSecretKey(), svc.lnClient)
+				if err != nil {
+					logger.Logger.WithError(err).Error("Could not publish NIP47 info for legacy apps")
+					continue
+				}
+
+				// legacy single wallet subscription - only subscribe once for all legacy apps
+				// to ensure we do not get duplicate events
+				err = svc.startAppWalletSubscription(ctx, relay, svc.keys.GetNostrPublicKey(), nil)
+				if err != nil {
+					//err being non-nil means that we have an error on the websocket error channel. In this case we just try to reconnect.
+					logger.Logger.WithError(err).Error("Got an error from the relay while listening to subscription.")
+					continue
+				}
+			} else {
+				// there is only new apps, so no single master key nostr subscription needed
+				<-ctx.Done()
 			}
 			//err being nil means that the context was canceled and we should exit the program.
 			break
@@ -126,25 +145,41 @@ func (svc *service) startAllExistingAppsWalletSubscriptions(ctx context.Context,
 
 	for _, app := range apps {
 		go func(app db.App) {
-			err := svc.startAppWalletSubscription(ctx, relay, *app.WalletPubkey, "")
+
+			// get nip47 event info for this app wallet key
+			nip47InfoEvent, err := svc.GetNip47Service().GetNip47Info(ctx, relay, *app.WalletPubkey)
+			if err != nil {
+				logger.Logger.WithError(err).Error("Could not get nip47 info event")
+				return
+			}
+			if nip47InfoEvent == nil {
+				// nip47 info event missing for this app, re-publish it
+				walletPrivKey, err := svc.keys.GetAppWalletKey(app.ID)
+				if err != nil {
+					logger.Logger.WithError(err).WithFields(logrus.Fields{
+						"app_id": app.ID}).Error("Failed to calculate app wallet priv key")
+					return
+				}
+
+				nip47InfoEvent, err = svc.GetNip47Service().PublishNip47Info(ctx, relay, *app.WalletPubkey, walletPrivKey, svc.lnClient)
+				if err != nil {
+					logger.Logger.WithError(err).WithFields(logrus.Fields{
+						"app_id": app.ID}).Error("Could not re-publish NIP47 info for app")
+					return
+				}
+			}
+
+			err = svc.startAppWalletSubscription(ctx, relay, *app.WalletPubkey, nip47InfoEvent)
 			if err != nil {
 				logger.Logger.WithError(err).WithFields(logrus.Fields{
 					"app_id": app.ID}).Error("Failed to subscribe to wallet")
+				return
 			}
 		}(app)
 	}
 }
 
-func (svc *service) startAppWalletSubscription(ctx context.Context, relay *nostr.Relay, appWalletPubKey string, appWalletPrivKey string) error {
-	var infoEventId string
-	if appWalletPrivKey != "" {
-		infoEvent, err := svc.GetNip47Service().PublishNip47Info(ctx, relay, appWalletPubKey, appWalletPrivKey, svc.lnClient)
-		if err != nil {
-			logger.Logger.WithError(err).Error("Could not publish NIP47 info")
-			return err
-		}
-		infoEventId = infoEvent.ID
-	}
+func (svc *service) startAppWalletSubscription(ctx context.Context, relay *nostr.Relay, appWalletPubKey string, nip47InfoEvent *nostr.Event) error {
 
 	logger.Logger.Info("Subscribing to events for wallet ", appWalletPubKey)
 	sub, err := relay.Subscribe(ctx, svc.createFilters(appWalletPubKey))
@@ -154,7 +189,7 @@ func (svc *service) startAppWalletSubscription(ctx context.Context, relay *nostr
 	}
 
 	// register a subscriber for "app_deleted" events, which handles nostr subscription cancel and nip47 info event deletion
-	svc.eventPublisher.RegisterSubscriber(&deleteAppConsumer{nostrSubscription: sub, walletPubkey: appWalletPubKey, svc: svc, relay: relay, infoEventId: infoEventId})
+	svc.eventPublisher.RegisterSubscriber(&deleteAppConsumer{nostrSubscription: sub, walletPubkey: appWalletPubKey, svc: svc, relay: relay, nip47InfoEvent: nip47InfoEvent})
 
 	err = svc.StartSubscription(sub.Context, sub)
 	if err != nil {

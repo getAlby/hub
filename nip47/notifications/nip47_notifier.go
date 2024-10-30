@@ -151,7 +151,14 @@ func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *db.App
 	allTags := nostr.Tags{[]string{"p", app.AppPubkey}}
 	allTags = append(allTags, tags...)
 
-	appWalletPubKey, _ := nostr.GetPublicKey(appWalletPrivKey)
+	appWalletPubKey, err := nostr.GetPublicKey(appWalletPrivKey)
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"notification": notification,
+			"appId":        app.ID,
+		}).WithError(err).Error("Failed to calculate app wallet pub key")
+		return
+	}
 
 	event := &nostr.Event{
 		PubKey:    appWalletPubKey,

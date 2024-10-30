@@ -12,6 +12,25 @@ import (
 	"github.com/nbd-wtf/go-nostr"
 )
 
+func (svc *nip47Service) GetNip47Info(ctx context.Context, relay *nostr.Relay, appWalletPubKey string) (*nostr.Event, error) {
+	filter := nostr.Filter{
+		Kinds:   []int{models.INFO_EVENT_KIND},
+		Authors: []string{appWalletPubKey},
+		Limit:   1,
+	}
+
+	events, err := relay.QuerySync(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(events) == 0 {
+		return nil, nil
+	}
+
+	return events[0], nil
+}
+
 func (svc *nip47Service) PublishNip47Info(ctx context.Context, relay nostrmodels.Relay, appWalletPubKey string, appWalletPrivKey string, lnClient lnclient.LNClient) (*nostr.Event, error) {
 	// TODO: should the capabilities be based on the app permissions? (for non-legacy apps)
 	capabilities := lnClient.GetSupportedNIP47Methods()
