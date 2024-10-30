@@ -31,6 +31,8 @@ require (
 	github.com/BurntSushi/toml v1.2.1 // indirect
 	github.com/DataDog/datadog-go/v5 v5.3.0 // indirect
 	github.com/DataDog/gostackparse v0.7.0 // indirect
+	github.com/FactomProject/basen v0.0.0-20150613233007-fe3947df716e // indirect
+	github.com/FactomProject/btcutilecc v0.0.0-20130527213604-d3a63a5752ec // indirect
 	github.com/Microsoft/go-winio v0.6.1 // indirect
 	github.com/Nvveen/Gotty v0.0.0-20120604004816-cd527374f1e5 // indirect
 	github.com/aead/chacha20 v0.0.0-20180709150244-8b13a72661da // indirect
@@ -237,6 +239,7 @@ require (
 	github.com/labstack/echo-jwt/v4 v4.2.0
 	github.com/lightningnetwork/lnd v0.18.2-beta
 	github.com/sirupsen/logrus v1.9.3
+	github.com/tyler-smith/go-bip32 v1.0.0
 	golang.org/x/exp v0.0.0-20240325151524-a685a6edb6d8 // indirect
 	gorm.io/datatypes v1.2.4
 )

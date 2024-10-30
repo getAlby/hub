@@ -723,10 +723,42 @@ func (svc *albyOAuthService) ConsumeEvent(ctx context.Context, event *events.Eve
 	}
 }
 
+type channelsBackup struct {
+	Description string `json:"description"`
+	Data        string `json:"data"`
+}
+
+func (svc *albyOAuthService) createEncryptedChannelBackup(event *events.StaticChannelsBackupEvent) (*channelsBackup, error) {
+
+	eventData := bytes.NewBuffer([]byte{})
+	err := json.NewEncoder(eventData).Encode(event)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encode channels backup data:  %w", err)
+	}
+
+	// use the encrypted mnemonic as the password to encrypt the backup data
+
+	encrypted, err := svc.keys.EncryptChannelBackupData(eventData.String())
+	if err != nil {
+		return nil, fmt.Errorf("failed to encrypt channels backup data: %w", err)
+	}
+
+	backup := &channelsBackup{
+		Description: "channels_v2",
+		Data:        encrypted,
+	}
+	return backup, nil
+}
+
 func (svc *albyOAuthService) backupChannels(ctx context.Context, event *events.Event) error {
 	bkpEvent, ok := event.Properties.(*events.StaticChannelsBackupEvent)
 	if !ok {
 		return fmt.Errorf("invalid nwc_backup_channels event properties, could not cast to the expected type: %+v", event.Properties)
+	}
+
+	backup, err := svc.createEncryptedChannelBackup(bkpEvent)
+	if err != nil {
+		return fmt.Errorf("failed to encrypt channel backup: %w", err)
 	}
 
 	token, err := svc.fetchUserToken(ctx)
@@ -736,33 +768,8 @@ func (svc *albyOAuthService) backupChannels(ctx context.Context, event *events.E
 
 	client := svc.oauthConf.Client(ctx, token)
 
-	type channelsBackup struct {
-		Description string `json:"description"`
-		Data        string `json:"data"`
-	}
-
-	eventData := bytes.NewBuffer([]byte{})
-	err = json.NewEncoder(eventData).Encode(bkpEvent)
-	if err != nil {
-		return fmt.Errorf("failed to encode channels backup data:  %w", err)
-	}
-
-	// use the encrypted mnemonic as the password to encrypt the backup data
-	encryptedMnemonic, err := svc.cfg.Get("Mnemonic", "")
-	if err != nil {
-		return fmt.Errorf("failed to fetch encryption key: %w", err)
-	}
-
-	encrypted, err := config.AesGcmEncrypt(eventData.String(), encryptedMnemonic)
-	if err != nil {
-		return fmt.Errorf("failed to encrypt channels backup data: %w", err)
-	}
-
 	body := bytes.NewBuffer([]byte{})
-	err = json.NewEncoder(body).Encode(&channelsBackup{
-		Description: "channels",
-		Data:        encrypted,
-	})
+	err = json.NewEncoder(body).Encode(backup)
 	if err != nil {
 		return fmt.Errorf("failed to encode channels backup request payload: %w", err)
 	}
