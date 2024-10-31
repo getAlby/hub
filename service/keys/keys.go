@@ -1,6 +1,8 @@
 package keys
 
 import (
+	"errors"
+
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/logger"
 	"github.com/nbd-wtf/go-nostr"
@@ -81,6 +83,9 @@ func (keys *keys) GetNostrSecretKey() string {
 }
 
 func (keys *keys) DeriveKey(path []uint32) (*bip32.Key, error) {
+	if keys.appKey == nil {
+		return nil, errors.New("app key not set")
+	}
 	key := keys.appKey
 	for _, index := range path {
 		var err error
