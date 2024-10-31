@@ -17,6 +17,7 @@ import (
 
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
+	"github.com/tyler-smith/go-bip32"
 	"golang.org/x/oauth2"
 	"gorm.io/gorm"
 
@@ -736,7 +737,7 @@ func (svc *albyOAuthService) createEncryptedChannelBackup(event *events.StaticCh
 		return nil, fmt.Errorf("failed to encode channels backup data:  %w", err)
 	}
 
-	path := []uint32{0} // TODO: choose path
+	path := []uint32{bip32.FirstHardenedChild}
 	backupKey, err := svc.keys.DeriveKey(path)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to generate channels backup key")

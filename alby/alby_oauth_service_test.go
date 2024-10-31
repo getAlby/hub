@@ -22,14 +22,14 @@ func TestExistingEncryptedBackup(t *testing.T) {
 	err = svc.Keys.Init(svc.Cfg, unlockPassword)
 	assert.Nil(t, err)
 
-	encryptedBackup := "69defec3014a6ab9c6abc612-44266b33b8bfaa3bdee45c03dc60b659416ad957d101068607ed120c27573b6d61ad63fcfddf427d0a4f0a1e488585e57479183acb45cd7f26663d1f2de9c154b84f68b9f01f420e1b6f6ce6ae31d89f327a5b393ff49c3456994355a22fd965725523f37c393afc369001dcaf46ef2d8ef062f4bb17edc263985dfca4"
+	encryptedBackup := "3fd21f9a393d8345ddbdd449-ba05c3dbafdfb7eea574373b7763d0c81c599b2cd1735e59a1c5571379498f4da8fe834c3403824ab02b61005abc1f563c638f425c65420e82941efe94794555c8b145a0603733ee115277f860011e6a17fd8c22f1d73a096ff7275582aac19b430940b40a2559c7ff59a063305290ef7c9ba46f9de17b0ddbac9030b0"
 
 	masterKey, err := bip32.NewMasterKey(bip39.NewSeed(mnemonic, ""))
 	assert.Nil(t, err)
 
-	appKey, err := masterKey.NewChildKey(0)
+	appKey, err := masterKey.NewChildKey(bip32.FirstHardenedChild + 128029 /* 🐝 */)
 	assert.Nil(t, err)
-	encryptedChannelsBackupKey, err := appKey.NewChildKey(0)
+	encryptedChannelsBackupKey, err := appKey.NewChildKey(bip32.FirstHardenedChild)
 	assert.Nil(t, err)
 
 	decrypted, err := config.AesGcmDecryptWithKey(encryptedBackup, encryptedChannelsBackupKey.Key)
@@ -62,9 +62,9 @@ func TestEncryptedBackup(t *testing.T) {
 	masterKey, err := bip32.NewMasterKey(bip39.NewSeed(mnemonic, ""))
 	assert.Nil(t, err)
 
-	appKey, err := masterKey.NewChildKey(0)
+	appKey, err := masterKey.NewChildKey(bip32.FirstHardenedChild + 128029 /* 🐝 */)
 	assert.Nil(t, err)
-	encryptedChannelsBackupKey, err := appKey.NewChildKey(0)
+	encryptedChannelsBackupKey, err := appKey.NewChildKey(bip32.FirstHardenedChild)
 	assert.Nil(t, err)
 
 	decrypted, err := config.AesGcmDecryptWithKey(encryptedBackup.Data, encryptedChannelsBackupKey.Key)

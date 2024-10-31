@@ -60,8 +60,8 @@ func (keys *keys) Init(cfg config.Config, encryptionKey string) error {
 			return err
 		}
 
-		APP_INDEX := uint32(0) // TODO: choose an index
-		appKey, err := masterKey.NewChildKey(APP_INDEX)
+		albyHubIndex := uint32(bip32.FirstHardenedChild + 128029 /* 🐝 */)
+		appKey, err := masterKey.NewChildKey(albyHubIndex)
 		if err != nil {
 			logger.Logger.WithError(err).Error("Failed to create seed from mnemonic")
 			return err
