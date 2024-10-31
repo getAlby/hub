@@ -736,9 +736,14 @@ func (svc *albyOAuthService) createEncryptedChannelBackup(event *events.StaticCh
 		return nil, fmt.Errorf("failed to encode channels backup data:  %w", err)
 	}
 
-	// use the encrypted mnemonic as the password to encrypt the backup data
+	path := []uint32{0} // TODO: choose path
+	backupKey, err := svc.keys.DeriveKey(path)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to generate channels backup key")
+		return nil, err
+	}
 
-	encrypted, err := svc.keys.EncryptChannelBackupData(eventData.String())
+	encrypted, err := config.AesGcmEncryptWithKey(eventData.String(), backupKey.Key)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encrypt channels backup data: %w", err)
 	}

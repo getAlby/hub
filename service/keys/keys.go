@@ -14,8 +14,8 @@ type Keys interface {
 	GetNostrPublicKey() string
 	// Wallet Service Nostr secret key (DEPRECATED)
 	GetNostrSecretKey() string
-
-	EncryptChannelBackupData(channelBackupData string) (string, error)
+	// Derives a child BIP-32 key from the app key (derived from the mnemonic)
+	DeriveKey(path []uint32) (*bip32.Key, error)
 }
 
 type keys struct {
@@ -80,15 +80,15 @@ func (keys *keys) GetNostrSecretKey() string {
 	return keys.nostrSecretKey
 }
 
-// TODO: move somewhere else
-func (keys *keys) EncryptChannelBackupData(channelBackupData string) (string, error) {
-
-	ENCRYPTED_SCB_INDEX := uint32(0) // TODO: choose an index
-	encryptedChannelsBackupKey, err := keys.appKey.NewChildKey(ENCRYPTED_SCB_INDEX)
-	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to create seed from mnemonic")
-		return "", err
+func (keys *keys) DeriveKey(path []uint32) (*bip32.Key, error) {
+	key := keys.appKey
+	for _, index := range path {
+		var err error
+		key, err = key.NewChildKey(index)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return config.AesGcmEncryptWithKey(channelBackupData, encryptedChannelsBackupKey.Key)
+	return key, nil
 }
