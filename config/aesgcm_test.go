@@ -2,7 +2,6 @@ package config
 
 import (
 	"encoding/hex"
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -43,7 +42,6 @@ func TestEncryptDecryptWithKey(t *testing.T) {
 	assert.Equal(t, "409e902eafba273b21dff921f0eb4bec6cbb0b657fdce8d245ca78d2920f8b73", hex.EncodeToString(masterKey.Key))
 
 	encrypted, err := AesGcmEncryptWithKey(plaintext, masterKey.Key)
-	fmt.Print(encrypted)
 	assert.NoError(t, err)
 	value, err := AesGcmDecryptWithKey(encrypted, masterKey.Key)
 	assert.NoError(t, err)
