@@ -29,55 +29,24 @@ func AesGcmEncryptWithPassword(plaintext string, password string) (string, error
 	if err != nil {
 		return "", err
 	}
-	plaintextBytes := []byte(plaintext)
 
-	aes, err := aes.NewCipher([]byte(secretKey))
+	ciphertext, err := AesGcmEncryptWithKey(plaintext, secretKey)
 	if err != nil {
 		return "", err
 	}
 
-	aesgcm, err := cipher.NewGCM(aes)
-	if err != nil {
-		return "", err
-	}
-
-	nonce := make([]byte, aesgcm.NonceSize())
-	_, err = rand.Read(nonce)
-	if err != nil {
-		return "", err
-	}
-
-	ciphertext := aesgcm.Seal(nil, nonce, plaintextBytes, nil)
-
-	return hex.EncodeToString(salt) + "-" + hex.EncodeToString(nonce) + "-" + hex.EncodeToString(ciphertext), nil
+	return hex.EncodeToString(salt) + "-" + ciphertext, nil
 }
 
 func AesGcmDecryptWithPassword(ciphertext string, password string) (string, error) {
 	arr := strings.Split(ciphertext, "-")
 	salt, _ := hex.DecodeString(arr[0])
-	nonce, _ := hex.DecodeString(arr[1])
-	data, _ := hex.DecodeString(arr[2])
-
 	secretKey, _, err := DeriveKey(password, salt)
 	if err != nil {
 		return "", err
 	}
-	aes, err := aes.NewCipher([]byte(secretKey))
-	if err != nil {
-		return "", err
-	}
 
-	aesgcm, err := cipher.NewGCM(aes)
-	if err != nil {
-		return "", err
-	}
-
-	plaintext, err := aesgcm.Open(nil, nonce, data, nil)
-	if err != nil {
-		return "", err
-	}
-
-	return string(plaintext), nil
+	return AesGcmDecryptWithKey(arr[1]+"-"+arr[2], secretKey)
 }
 
 func AesGcmEncryptWithKey(plaintext string, key []byte) (string, error) {
