@@ -135,8 +135,8 @@ export function BackupMnemonic() {
                 <b>backs up your wallet savings balance</b>.&nbsp;
                 {info?.albyAccountConnected && (
                   <>
-                    Encrypted channel backups are saved automatically to your
-                    Alby Account.
+                    Channel backups are saved automatically to your Alby
+                    Account, encrypted with your recovery phrase.
                   </>
                 )}
                 {!info?.albyAccountConnected && (
