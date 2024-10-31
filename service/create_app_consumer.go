@@ -43,11 +43,11 @@ func (s *createAppConsumer) ConsumeEvent(ctx context.Context, event *events.Even
 	}
 
 	go func() {
-		nip47EventInfo, err := s.svc.GetNip47Service().PublishNip47Info(ctx, s.relay, walletPubKey, walletPrivKey, s.svc.lnClient)
+		_, err := s.svc.GetNip47Service().PublishNip47Info(ctx, s.relay, walletPubKey, walletPrivKey, s.svc.lnClient)
 		if err != nil {
 			logger.Logger.WithError(err).Error("Could not publish NIP47 info")
 		}
-		err = s.svc.startAppWalletSubscription(ctx, s.relay, walletPubKey, nip47EventInfo)
+		err = s.svc.startAppWalletSubscription(ctx, s.relay, walletPubKey)
 		if err != nil {
 			logger.Logger.WithError(err).WithFields(logrus.Fields{
 				"app_id": id}).Error("Failed to subscribe to wallet")
