@@ -1,8 +1,6 @@
 package keys
 
 import (
-	"encoding/hex"
-
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/logger"
 	"github.com/nbd-wtf/go-nostr"
@@ -21,9 +19,9 @@ type Keys interface {
 }
 
 type keys struct {
-	nostrSecretKey             string
-	nostrPublicKey             string
-	encryptedChannelsBackupKey string
+	nostrSecretKey string
+	nostrPublicKey string
+	appKey         *bip32.Key
 }
 
 func NewKeys() *keys {
@@ -68,14 +66,7 @@ func (keys *keys) Init(cfg config.Config, encryptionKey string) error {
 			logger.Logger.WithError(err).Error("Failed to create seed from mnemonic")
 			return err
 		}
-
-		ENCRYPTED_SCB_INDEX := uint32(0) // TODO: choose an index
-		encryptedChannelsBackupKey, err := appKey.NewChildKey(ENCRYPTED_SCB_INDEX)
-		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to create seed from mnemonic")
-			return err
-		}
-		keys.encryptedChannelsBackupKey = hex.EncodeToString(encryptedChannelsBackupKey.Key)
+		keys.appKey = appKey
 	}
 
 	return nil
@@ -89,7 +80,15 @@ func (keys *keys) GetNostrSecretKey() string {
 	return keys.nostrSecretKey
 }
 
+// TODO: move somewhere else
 func (keys *keys) EncryptChannelBackupData(channelBackupData string) (string, error) {
-	// FIXME: this is not the right way to encrypt the data (we already have a key, no need to generate a new one)
-	return config.AesGcmEncrypt(channelBackupData, keys.encryptedChannelsBackupKey)
+
+	ENCRYPTED_SCB_INDEX := uint32(0) // TODO: choose an index
+	encryptedChannelsBackupKey, err := keys.appKey.NewChildKey(ENCRYPTED_SCB_INDEX)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to create seed from mnemonic")
+		return "", err
+	}
+
+	return config.AesGcmEncryptWithKey(channelBackupData, encryptedChannelsBackupKey.Key)
 }

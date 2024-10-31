@@ -1,7 +1,6 @@
 package alby
 
 import (
-	"encoding/hex"
 	"testing"
 
 	"github.com/getAlby/hub/config"
@@ -41,7 +40,7 @@ func TestEncryptedBackup(t *testing.T) {
 	encryptedChannelsBackupKey, err := appKey.NewChildKey(0)
 	assert.Nil(t, err)
 
-	decrypted, err := config.AesGcmDecrypt(encryptedBackup.Data, hex.EncodeToString(encryptedChannelsBackupKey.Key))
+	decrypted, err := config.AesGcmDecryptWithKey(encryptedBackup.Data, encryptedChannelsBackupKey.Key)
 	assert.Nil(t, err)
 
 	assert.Equal(t, "{\"node_id\":\"037e702144c4fa485d42f0f69864e943605823763866cf4bf619d2d2cf2eda420b\",\"channels\":[],\"monitors\":[]}\n", decrypted)
