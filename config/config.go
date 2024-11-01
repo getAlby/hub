@@ -154,7 +154,7 @@ func (cfg *config) get(key string, encryptionKey string, gormDB *gorm.DB) (strin
 
 	value := userConfig.Value
 	if userConfig.Value != "" && encryptionKey != "" && userConfig.Encrypted {
-		decrypted, err := AesGcmDecrypt(value, encryptionKey)
+		decrypted, err := AesGcmDecryptWithPassword(value, encryptionKey)
 		if err != nil {
 			return "", err
 		}
@@ -165,7 +165,7 @@ func (cfg *config) get(key string, encryptionKey string, gormDB *gorm.DB) (strin
 
 func (cfg *config) set(key string, value string, clauses clause.OnConflict, encryptionKey string, gormDB *gorm.DB) error {
 	if encryptionKey != "" {
-		encrypted, err := AesGcmEncrypt(value, encryptionKey)
+		encrypted, err := AesGcmEncryptWithPassword(value, encryptionKey)
 		if err != nil {
 			return fmt.Errorf("failed to encrypt: %v", err)
 		}

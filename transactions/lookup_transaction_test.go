@@ -8,6 +8,7 @@ import (
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/tests"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestLookupTransaction_IncomingPayment(t *testing.T) {
@@ -15,7 +16,7 @@ func TestLookupTransaction_IncomingPayment(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	mockPreimage := tests.MockLNClientTransaction.Preimage
 	svc.DB.Create(&db.Transaction{
@@ -42,7 +43,7 @@ func TestLookupTransaction_OutgoingPayment(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	mockPreimage := tests.MockLNClientTransaction.Preimage
 	svc.DB.Create(&db.Transaction{

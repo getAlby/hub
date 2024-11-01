@@ -10,6 +10,7 @@ import (
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
@@ -57,7 +58,7 @@ func TestHandleMultiPayInvoiceEvent_Success(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	var preimages = []string{"123preimage", "123preimage2"}
 
@@ -135,7 +136,7 @@ func TestHandleMultiPayInvoiceEvent_OneMalformedInvoice(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -197,7 +198,7 @@ func TestHandleMultiPayInvoiceEvent_IsolatedApp_OneBudgetExceeded(t *testing.T) 
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -279,7 +280,7 @@ func TestHandleMultiPayInvoiceEvent_LNClient_OnePaymentFailed(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	svc.LNClient.(*tests.MockLn).PayInvoiceResponses = []*lnclient.PayInvoiceResponse{{
 		Preimage: "123preimage",
 	}, nil}

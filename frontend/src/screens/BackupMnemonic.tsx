@@ -135,19 +135,15 @@ export function BackupMnemonic() {
                 <b>backs up your wallet savings balance</b>.&nbsp;
                 {info?.albyAccountConnected && (
                   <>
-                    You also need to make sure you do not forget your{" "}
-                    <b>unlock password</b> as this will be used to recover funds
-                    from channels. Encrypted channel backups are saved
-                    automatically to your Alby Account.
+                    Channel backups are saved automatically to your Alby
+                    Account, encrypted with your recovery phrase.
                   </>
                 )}
                 {!info?.albyAccountConnected && (
                   <>
                     Make sure to also backup your <b>data directory</b> as this
                     is required to recover funds on your channels. You can also
-                    connect your Alby Account for automatic encrypted backups
-                    (you still need your seed and unlock password to decrypt
-                    those).
+                    connect your Alby Account for automatic encrypted backups.
                   </>
                 )}
               </span>
@@ -166,14 +162,9 @@ export function BackupMnemonic() {
               </div>
               <span>
                 If you lose access to your hub and do not have your{" "}
-                <b>recovery phrase</b>&nbsp;
-                {info?.albyAccountConnected && (
-                  <>
-                    or your <b>unlock password</b>
-                  </>
-                )}
+                <b>recovery phrase</b>
                 {!info?.albyAccountConnected && (
-                  <>or do not backup your data directory</>
+                  <>&nbsp;or do not backup your data directory</>
                 )}
                 , you will lose access to your funds.
               </span>
@@ -201,7 +192,7 @@ export function BackupMnemonic() {
                 secure place
               </Label>
             </div>
-            {backedUp && (
+            {backedUp && !info?.albyAccountConnected && (
               <div className="flex mt-5">
                 <Checkbox
                   id="backup2"
@@ -210,12 +201,8 @@ export function BackupMnemonic() {
                 />
                 <Label htmlFor="backup2" className="ml-2">
                   I understand the <b>recovery phrase</b> AND{" "}
-                  {info?.albyAccountConnected ? (
-                    <b>unlock password</b>
-                  ) : (
-                    <b>a backup of my hub data directory</b>
-                  )}{" "}
-                  is required to recover funds from my lightning channels.{" "}
+                  <b>a backup of my hub data directory</b> is required to
+                  recover funds from my lightning channels.{" "}
                 </Label>
               </div>
             )}

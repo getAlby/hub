@@ -9,6 +9,7 @@ import (
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/tests"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestListTransactions_Paid(t *testing.T) {
@@ -16,7 +17,7 @@ func TestListTransactions_Paid(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	mockPreimage := tests.MockLNClientTransaction.Preimage
 	svc.DB.Create(&db.Transaction{
@@ -60,7 +61,7 @@ func TestListTransactions_UnpaidIncoming(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	mockPreimage := tests.MockLNClientTransaction.Preimage
 	svc.DB.Create(&db.Transaction{
@@ -127,7 +128,7 @@ func TestListTransactions_UnpaidOutgoing(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	mockPreimage := tests.MockLNClientTransaction.Preimage
 	svc.DB.Create(&db.Transaction{
@@ -194,7 +195,7 @@ func TestListTransactions_Unpaid(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	mockPreimage := tests.MockLNClientTransaction.Preimage
 	svc.DB.Create(&db.Transaction{
@@ -255,7 +256,7 @@ func TestListTransactions_Limit(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	mockPreimage := tests.MockLNClientTransaction.Preimage
 	svc.DB.Create(&db.Transaction{
@@ -291,7 +292,7 @@ func TestListTransactions_Offset(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	mockPreimage := tests.MockLNClientTransaction.Preimage
 	svc.DB.Create(&db.Transaction{
@@ -347,7 +348,7 @@ func TestListTransactions_FromUntil(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	mockPreimage := tests.MockLNClientTransaction.Preimage
 	svc.DB.Create(&db.Transaction{
@@ -397,7 +398,7 @@ func TestListTransactions_FromUntilUnpaidOutgoing(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	mockPreimage := tests.MockLNClientTransaction.Preimage
 	svc.DB.Create(&db.Transaction{
@@ -459,7 +460,7 @@ func TestListTransactions_FromUntilUnpaidIncoming(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	mockPreimage := tests.MockLNClientTransaction.Preimage
 	svc.DB.Create(&db.Transaction{

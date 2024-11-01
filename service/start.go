@@ -26,15 +26,9 @@ import (
 	"github.com/getAlby/hub/logger"
 )
 
-func (svc *service) startNostr(ctx context.Context, encryptionKey string) error {
+func (svc *service) startNostr(ctx context.Context) error {
 
 	relayUrl := svc.cfg.GetRelayUrl()
-
-	err := svc.keys.Init(svc.cfg, encryptionKey)
-	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to init nostr keys")
-		return err
-	}
 
 	npub, err := nip19.EncodePublicKey(svc.keys.GetNostrPublicKey())
 	if err != nil {
@@ -211,7 +205,14 @@ func (svc *service) StartApp(encryptionKey string) error {
 
 	ctx, cancelFn := context.WithCancel(svc.ctx)
 
-	err := svc.launchLNBackend(ctx, encryptionKey)
+	err := svc.keys.Init(svc.cfg, encryptionKey)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to init nostr keys")
+		cancelFn()
+		return err
+	}
+
+	err = svc.launchLNBackend(ctx, encryptionKey)
 	if err != nil {
 		logger.Logger.Errorf("Failed to launch LN backend: %v", err)
 		svc.eventPublisher.Publish(&events.Event{
@@ -221,7 +222,7 @@ func (svc *service) StartApp(encryptionKey string) error {
 		return err
 	}
 
-	err = svc.startNostr(ctx, encryptionKey)
+	err = svc.startNostr(ctx)
 	if err != nil {
 		cancelFn()
 		return err

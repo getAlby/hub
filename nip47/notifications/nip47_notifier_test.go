@@ -17,6 +17,7 @@ import (
 	"github.com/getAlby/hub/transactions"
 	"github.com/nbd-wtf/go-nostr/nip04"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type mockConsumer struct {

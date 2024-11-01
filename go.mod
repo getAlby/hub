@@ -240,6 +240,7 @@ require (
 	github.com/labstack/echo-jwt/v4 v4.2.0
 	github.com/lightningnetwork/lnd v0.18.2-beta
 	github.com/sirupsen/logrus v1.9.3
+	github.com/tyler-smith/go-bip32 v1.0.0
 	golang.org/x/exp v0.0.0-20240325151524-a685a6edb6d8 // indirect
 	gorm.io/datatypes v1.2.4
 )

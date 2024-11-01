@@ -14,6 +14,7 @@ import (
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip04"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // TODO: test HandleEvent
@@ -23,7 +24,7 @@ import (
 func TestCreateResponse(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	reqPrivateKey := nostr.GeneratePrivateKey()
 	reqPubkey, err := nostr.GetPublicKey(reqPrivateKey)
@@ -75,7 +76,7 @@ func TestCreateResponse(t *testing.T) {
 func TestHandleResponse_WithPermission(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
 
 	reqPrivateKey := nostr.GeneratePrivateKey()
@@ -145,7 +146,7 @@ func TestHandleResponse_WithPermission(t *testing.T) {
 func TestHandleResponse_DuplicateRequest(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
 
 	reqPrivateKey := nostr.GeneratePrivateKey()
@@ -201,7 +202,7 @@ func TestHandleResponse_DuplicateRequest(t *testing.T) {
 func TestHandleResponse_NoPermission(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
 
 	reqPrivateKey := nostr.GeneratePrivateKey()
@@ -254,7 +255,7 @@ func TestHandleResponse_NoPermission(t *testing.T) {
 func TestHandleResponse_NoApp(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
 
 	reqPrivateKey := nostr.GeneratePrivateKey()
@@ -299,7 +300,7 @@ func TestHandleResponse_NoApp(t *testing.T) {
 func TestHandleResponse_IncorrectPubkey(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
 
 	reqPrivateKey := nostr.GeneratePrivateKey()
