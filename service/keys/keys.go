@@ -2,9 +2,8 @@ package keys
 
 import (
 	"encoding/hex"
-
-	"github.com/btcsuite/btcd/btcec/v2"
 	"errors"
+	"github.com/btcsuite/btcd/btcec/v2"
 
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/logger"
@@ -87,10 +86,14 @@ func (keys *keys) GetNostrSecretKey() string {
 	return keys.nostrSecretKey
 }
 
-func (keys *keys) GetAppWalletKey(childIndex uint) (string, error) {
-	// Derive child key
-  // TODO
-	return "", nil
+func (keys *keys) GetAppWalletKey(appID uint) (string, error) {
+	path := []uint32{bip32.FirstHardenedChild + 1, uint32(appID)}
+	key, err := keys.DeriveKey(path)
+	if err != nil {
+		return "", err
+	}
+	childPrivKey, _ := btcec.PrivKeyFromBytes(key.Key)
+	return hex.EncodeToString(childPrivKey.Serialize()), nil
 }
 
 func (keys *keys) DeriveKey(path []uint32) (*bip32.Key, error) {
