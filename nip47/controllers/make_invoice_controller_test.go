@@ -7,6 +7,7 @@ import (
 
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/nip47/models"
@@ -42,7 +43,7 @@ func TestHandleMakeInvoiceEvent(t *testing.T) {
 	ctx := context.TODO()
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	nip47Request := &models.Request{}
 	err = json.Unmarshal([]byte(nip47MakeInvoiceJson), nip47Request)

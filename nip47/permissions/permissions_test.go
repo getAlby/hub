@@ -9,12 +9,13 @@ import (
 	"github.com/getAlby/hub/nip47/models"
 	"github.com/getAlby/hub/tests"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestHasPermission_NoPermission(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -29,7 +30,7 @@ func TestHasPermission_NoPermission(t *testing.T) {
 func TestHasPermission_Expired(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -58,7 +59,7 @@ func TestHasPermission_Expired(t *testing.T) {
 /*func TestHasPermission_Exceeded(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -86,7 +87,7 @@ func TestHasPermission_Expired(t *testing.T) {
 func TestHasPermission_OK(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -117,7 +118,7 @@ func TestRequestMethodToScope_GetBudget(t *testing.T) {
 	assert.NoError(t, err)
 
 	scope, err := RequestMethodToScope(models.GET_BUDGET_METHOD)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, "", scope)
 }
 
@@ -146,7 +147,7 @@ func TestRequestMethodsToScopes_GetInfo(t *testing.T) {
 func TestGetPermittedMethods_AlwaysGranted(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -159,7 +160,7 @@ func TestGetPermittedMethods_AlwaysGranted(t *testing.T) {
 func TestGetPermittedMethods_PayInvoiceScopeGivesAllPaymentMethods(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)

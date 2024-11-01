@@ -9,6 +9,7 @@ import (
 	"github.com/getAlby/hub/db/queries"
 	"github.com/getAlby/hub/tests"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSendPaymentSync_SelfPayment_NoAppToNoApp(t *testing.T) {
@@ -16,7 +17,7 @@ func TestSendPaymentSync_SelfPayment_NoAppToNoApp(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// pubkey matches mock invoice = self payment
 	svc.LNClient.(*tests.MockLn).Pubkey = "02a5056398235568fc049a5d563f1adf666041d590b268167e4fa145fbf71aa578"
@@ -58,7 +59,7 @@ func TestSendPaymentSync_SelfPayment_NoAppToIsolatedApp(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// pubkey matches mock invoice = self payment
 	svc.LNClient.(*tests.MockLn).Pubkey = "02a5056398235568fc049a5d563f1adf666041d590b268167e4fa145fbf71aa578"
@@ -113,7 +114,7 @@ func TestSendPaymentSync_SelfPayment_NoAppToApp(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// pubkey matches mock invoice = self payment
 	svc.LNClient.(*tests.MockLn).Pubkey = "02a5056398235568fc049a5d563f1adf666041d590b268167e4fa145fbf71aa578"
@@ -164,7 +165,7 @@ func TestSendPaymentSync_SelfPayment_IsolatedAppToNoApp(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// pubkey matches mock invoice = self payment
 	svc.LNClient.(*tests.MockLn).Pubkey = "02a5056398235568fc049a5d563f1adf666041d590b268167e4fa145fbf71aa578"
@@ -236,7 +237,7 @@ func TestSendPaymentSync_SelfPayment_IsolatedAppToApp(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// pubkey matches mock invoice = self payment
 	svc.LNClient.(*tests.MockLn).Pubkey = "02a5056398235568fc049a5d563f1adf666041d590b268167e4fa145fbf71aa578"
@@ -312,7 +313,7 @@ func TestSendPaymentSync_SelfPayment_IsolatedAppToIsolatedApp(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// pubkey matches mock invoice = self payment
 	svc.LNClient.(*tests.MockLn).Pubkey = "02a5056398235568fc049a5d563f1adf666041d590b268167e4fa145fbf71aa578"
@@ -405,7 +406,7 @@ func TestSendPaymentSync_SelfPayment_IsolatedAppToSelf(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// pubkey matches mock invoice = self payment
 	svc.LNClient.(*tests.MockLn).Pubkey = "02a5056398235568fc049a5d563f1adf666041d590b268167e4fa145fbf71aa578"

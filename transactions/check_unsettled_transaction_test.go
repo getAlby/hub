@@ -10,12 +10,13 @@ import (
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/tests"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCheckUnsettledTransaction(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	dbTransaction := db.Transaction{
 		State:       constants.TRANSACTION_STATE_PENDING,
@@ -41,7 +42,7 @@ func TestCheckUnsettledTransaction(t *testing.T) {
 	svc.LNClient.(*tests.MockLn).SupportedNotificationTypes = &[]string{}
 	transactionsService.checkUnsettledTransaction(context.TODO(), &dbTransaction, svc.LNClient)
 
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, dbTransaction.State)
 	assert.Equal(t, 1, len(mockEventConsumer.GetConsumeEvents()))
 	assert.Equal(t, "nwc_payment_sent", mockEventConsumer.GetConsumeEvents()[0].Event)
@@ -52,7 +53,7 @@ func TestCheckUnsettledTransaction(t *testing.T) {
 func TestCheckUnsettledTransactions(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	dbTransaction := db.Transaction{
 		State:       constants.TRANSACTION_STATE_PENDING,
@@ -87,7 +88,7 @@ func TestCheckUnsettledTransactions(t *testing.T) {
 	svc.DB.Find(&dbTransaction, db.Transaction{
 		ID: dbTransaction.ID,
 	})
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, dbTransaction.State)
 	assert.Equal(t, 1, len(mockEventConsumer.GetConsumeEvents()))
 	assert.Equal(t, "nwc_payment_sent", mockEventConsumer.GetConsumeEvents()[0].Event)
