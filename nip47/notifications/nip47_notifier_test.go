@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/nbd-wtf/go-nostr"
+	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
 
@@ -109,7 +110,7 @@ func doTestSendNotificationPaymentReceived(t *testing.T, svc *tests.TestService,
 func TestSendNotification_PaymentReceived(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	app, ss, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -119,7 +120,7 @@ func TestSendNotification_PaymentReceived(t *testing.T) {
 func TestSendNotification_Legacy_PaymentReceived(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	app, ss, err := tests.CreateLegacyApp(svc, nostr.GeneratePrivateKey())
 	assert.NoError(t, err)
@@ -202,7 +203,7 @@ func doTestSendNotificationPaymentSent(t *testing.T, svc *tests.TestService, app
 func TestSendNotification_PaymentSent(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	app, ss, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -212,7 +213,7 @@ func TestSendNotification_PaymentSent(t *testing.T) {
 func TestSendNotification_Legacy_PaymentSent(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	app, ss, err := tests.CreateLegacyApp(svc, nostr.GeneratePrivateKey())
 	assert.NoError(t, err)
@@ -255,7 +256,7 @@ func doTestSendNotificationNoPermission(t *testing.T, svc *tests.TestService) {
 func TestSendNotification_NoPermission(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	_, _, err = tests.CreateApp(svc)
 	assert.NoError(t, err)
 	doTestSendNotificationNoPermission(t, svc)
@@ -263,7 +264,7 @@ func TestSendNotification_NoPermission(t *testing.T) {
 func TestSendNotification_Legacy_NoPermission(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	_, _, err = tests.CreateLegacyApp(svc, nostr.GeneratePrivateKey())
 	assert.NoError(t, err)
 	doTestSendNotificationNoPermission(t, svc)
