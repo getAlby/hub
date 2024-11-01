@@ -10,6 +10,7 @@ import (
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/tests"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestReceiveKeysendWithCustomKey(t *testing.T) {
@@ -17,7 +18,7 @@ func TestReceiveKeysendWithCustomKey(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 	app, _, err := tests.CreateApp(svc)
@@ -64,7 +65,7 @@ func TestReceiveKeysend(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 	_, _, err = tests.CreateApp(svc)

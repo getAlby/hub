@@ -11,6 +11,7 @@ import (
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/tests"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
 )
 
@@ -19,7 +20,7 @@ func TestSendPaymentSync_NoApp(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, svc.LNClient, nil, nil)
@@ -36,7 +37,7 @@ func TestSendPaymentSync_Duplicate(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	svc.DB.Create(&db.Transaction{
 		State:       constants.TRANSACTION_STATE_SETTLED,
@@ -56,7 +57,7 @@ func TestSendPaymentSync_Duplicate(t *testing.T) {
 func TestMarkSettled_Sent(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	dbTransaction := db.Transaction{
 		State:       constants.TRANSACTION_STATE_PENDING,
@@ -74,7 +75,7 @@ func TestMarkSettled_Sent(t *testing.T) {
 		return err
 	})
 
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, dbTransaction.State)
 	assert.Equal(t, 1, len(mockEventConsumer.GetConsumeEvents()))
 	assert.Equal(t, "nwc_payment_sent", mockEventConsumer.GetConsumeEvents()[0].Event)
@@ -85,7 +86,7 @@ func TestMarkSettled_Sent(t *testing.T) {
 func TestMarkSettled_Received(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	dbTransaction := db.Transaction{
 		State:       constants.TRANSACTION_STATE_PENDING,
@@ -103,7 +104,7 @@ func TestMarkSettled_Received(t *testing.T) {
 		return err
 	})
 
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, dbTransaction.State)
 	assert.Equal(t, 1, len(mockEventConsumer.GetConsumeEvents()))
 	assert.Equal(t, "nwc_payment_received", mockEventConsumer.GetConsumeEvents()[0].Event)
@@ -114,7 +115,7 @@ func TestMarkSettled_Received(t *testing.T) {
 func TestDoNotMarkSettledTwice(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	settledAt := time.Now().Add(time.Duration(-1) * time.Minute)
 	dbTransaction := db.Transaction{
@@ -134,14 +135,14 @@ func TestDoNotMarkSettledTwice(t *testing.T) {
 		return err
 	})
 
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Zero(t, len(mockEventConsumer.GetConsumeEvents()))
 }
 
 func TestMarkFailed(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	dbTransaction := db.Transaction{
 		State:       constants.TRANSACTION_STATE_PENDING,
@@ -158,7 +159,7 @@ func TestMarkFailed(t *testing.T) {
 		return transactionsService.markPaymentFailed(tx, &dbTransaction, "some routing error")
 	})
 
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, constants.TRANSACTION_STATE_FAILED, dbTransaction.State)
 	assert.Equal(t, 1, len(mockEventConsumer.GetConsumeEvents()))
 	assert.Equal(t, "nwc_payment_failed", mockEventConsumer.GetConsumeEvents()[0].Event)
@@ -170,7 +171,7 @@ func TestMarkFailed(t *testing.T) {
 func TestDoNotMarkFailedTwice(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	updatedAt := time.Now().Add(time.Duration(-1) * time.Minute)
 	dbTransaction := db.Transaction{
@@ -189,7 +190,7 @@ func TestDoNotMarkFailedTwice(t *testing.T) {
 		return transactionsService.markPaymentFailed(tx, &dbTransaction, "some routing error")
 	})
 
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, updatedAt, dbTransaction.UpdatedAt)
 	assert.Zero(t, len(mockEventConsumer.GetConsumeEvents()))
 }
@@ -199,7 +200,7 @@ func TestSendPaymentSync_FailedRemovesFeeReserve(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	svc.LNClient.(*tests.MockLn).PayInvoiceErrors = append(svc.LNClient.(*tests.MockLn).PayInvoiceErrors, errors.New("Some error"))
 	svc.LNClient.(*tests.MockLn).PayInvoiceResponses = append(svc.LNClient.(*tests.MockLn).PayInvoiceResponses, nil)
@@ -215,7 +216,7 @@ func TestSendPaymentSync_FailedRemovesFeeReserve(t *testing.T) {
 
 	transactionType := constants.TRANSACTION_TYPE_OUTGOING
 	transaction, err = transactionsService.LookupTransaction(ctx, tests.MockLNClientTransaction.PaymentHash, &transactionType, svc.LNClient, nil)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t, uint64(123000), transaction.AmountMsat)
 	assert.Equal(t, constants.TRANSACTION_STATE_FAILED, transaction.State)
@@ -231,7 +232,7 @@ func TestSendPaymentSync_PendingHasFeeReserve(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// timeout will leave the payment as pending
 	svc.LNClient.(*tests.MockLn).PayInvoiceErrors = append(svc.LNClient.(*tests.MockLn).PayInvoiceErrors, lnclient.NewTimeoutError())
@@ -245,7 +246,7 @@ func TestSendPaymentSync_PendingHasFeeReserve(t *testing.T) {
 
 	transactionType := constants.TRANSACTION_TYPE_OUTGOING
 	transaction, err = transactionsService.LookupTransaction(ctx, tests.MockLNClientTransaction.PaymentHash, &transactionType, svc.LNClient, nil)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t, uint64(123000), transaction.AmountMsat)
 	assert.Equal(t, constants.TRANSACTION_STATE_PENDING, transaction.State)
