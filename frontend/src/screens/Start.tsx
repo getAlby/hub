@@ -71,7 +71,7 @@ export default function Start() {
       setButtonText("Login");
       setUnlockPassword("");
       return;
-    }, 30000); // wait for 30 seconds
+    }, 60000); // wait for 60 seconds
 
     return () => {
       clearInterval(intervalId);
