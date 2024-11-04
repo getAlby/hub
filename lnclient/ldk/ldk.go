@@ -105,6 +105,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		ldkConfig.LogLevel = ldk_node.LogLevel(logLevel) + ldk_node.LogLevelGossip
 	}
 	builder := ldk_node.BuilderFromConfig(ldkConfig)
+	builder.SetNodeAlias("Alby Hub") // TODO: allow users to customize
 	builder.SetEntropyBip39Mnemonic(mnemonic, nil)
 	builder.SetNetwork(network)
 	builder.SetChainSourceEsplora(cfg.GetEnv().LDKEsploraServer, nil)
@@ -125,7 +126,6 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		builder.RestoreEncodedChannelMonitors(getEncodedChannelMonitorsFromStaticChannelsBackup(staticChannelsBackup))
 	}
 
-	//builder.SetLogDirPath (filepath.Join(newpath, "./logs")); // missing?
 	node, err := builder.Build()
 
 	if err != nil {
@@ -176,7 +176,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 				if event == nil {
 					// if there is no event, wait before polling again to avoid 100% CPU usage
 					// TODO: remove this and use WaitNextEvent()
-					time.Sleep(time.Duration(1) * time.Millisecond)
+					time.Sleep(time.Duration(1000) * time.Millisecond)
 					continue
 				}
 
