@@ -48,6 +48,9 @@ func (s *deleteAppConsumer) ConsumeEvent(ctx context.Context, event *events.Even
 	if s.walletPubkey == walletPubKey {
 		s.nostrSubscription.Unsub()
 
+		// remove this consumer as subscriber in eventPublisher
+		s.svc.eventPublisher.RemoveSubscriber(s)
+
 		// get nip47 event info for this app wallet key
 		nip47InfoEvent, err := s.svc.GetNip47Service().GetNip47Info(ctx, s.relay, s.walletPubkey)
 		if err != nil {
@@ -55,7 +58,7 @@ func (s *deleteAppConsumer) ConsumeEvent(ctx context.Context, event *events.Even
 			return
 		}
 		if nip47InfoEvent != nil {
-			err := s.svc.nip47Service.PublishNip47InfoDeletion(ctx, s.relay, walletPubKey, walletPrivKey, nip47InfoEvent.ID)
+			err = s.svc.nip47Service.PublishNip47InfoDeletion(ctx, s.relay, walletPubKey, walletPrivKey, nip47InfoEvent.ID)
 			if err != nil {
 				logger.Logger.WithError(err).WithField("event", event).Error("Failed to publish nip47 info deletion")
 			}
