@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/nbd-wtf/go-nostr"
-	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
 

@@ -75,6 +75,23 @@ func (keys *keys) Init(cfg config.Config, encryptionKey string) error {
 		keys.appKey = appKey
 	}
 
+	// for backends that don't use a mnemonic, create appKey from nostrSecretKey
+	if keys.appKey == nil {
+		// Convert nostrSecretKey to btcec private key
+		privKeyBytes, err := hex.DecodeString(keys.nostrSecretKey)
+		if err != nil {
+			return err
+		}
+		privKey, _ := btcec.PrivKeyFromBytes(privKeyBytes)
+
+		// Create a BIP32 master key from the private key
+		masterKey, err := bip32.NewMasterKey(privKey.Serialize())
+		if err != nil {
+			return err
+		}
+		keys.appKey = masterKey
+	}
+
 	return nil
 }
 
