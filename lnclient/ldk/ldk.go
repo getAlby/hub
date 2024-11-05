@@ -1061,7 +1061,8 @@ func (ls *LDKService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainB
 		case ldk_node.LightningBalanceClaimableOnChannelClose:
 			increasePendingBalance(balanceType.ChannelId, balanceType.AmountSatoshis)
 		case ldk_node.LightningBalanceClaimableAwaitingConfirmations:
-			increasePendingBalance(balanceType.ChannelId, balanceType.AmountSatoshis)
+			// this will show in the total balance (as incoming).
+			// increasePendingBalance(balanceType.ChannelId, balanceType.AmountSatoshis)
 		case ldk_node.LightningBalanceContentiousClaimable:
 			increasePendingBalance(balanceType.ChannelId, balanceType.AmountSatoshis)
 		case ldk_node.LightningBalanceMaybeTimeoutClaimableHtlc:
