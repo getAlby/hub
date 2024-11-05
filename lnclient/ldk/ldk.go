@@ -1033,6 +1033,13 @@ func (ls *LDKService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainB
 		"balances": balances,
 	}).Debug("Listed Balances")
 
+	type internalLightningBalance struct {
+		BalanceType string
+		Balance     ldk_node.LightningBalance
+	}
+
+	internalLightningBalances := []internalLightningBalance{}
+
 	pendingBalancesFromChannelClosures := uint64(0)
 	// increase pending balance from any lightning balances for channels that are pending closure
 	// (they do not exist in our list of open channels)
@@ -1045,6 +1052,11 @@ func (ls *LDKService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainB
 			}
 		}
 
+		// include the balance type as it's useful to know the state of the channel
+		internalLightningBalances = append(internalLightningBalances, internalLightningBalance{
+			BalanceType: fmt.Sprintf("%T", balance),
+			Balance:     balance,
+		})
 		switch balanceType := (balance).(type) {
 		case ldk_node.LightningBalanceClaimableOnChannelClose:
 			increasePendingBalance(balanceType.ChannelId, balanceType.AmountSatoshis)
@@ -1078,6 +1090,10 @@ func (ls *LDKService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainB
 		Total:                              int64(balances.TotalOnchainBalanceSats - balances.TotalAnchorChannelsReserveSats),
 		Reserved:                           int64(balances.TotalAnchorChannelsReserveSats),
 		PendingBalancesFromChannelClosures: pendingBalancesFromChannelClosures,
+		InternalBalances: map[string]interface{}{
+			"internal_lightning_balances": internalLightningBalances,
+			"all_balances":                balances,
+		},
 	}, nil
 }
 
@@ -1655,7 +1671,7 @@ func (ls *LDKService) UpdateLastWalletSyncRequest() {
 }
 
 func (ls *LDKService) GetSupportedNIP47Methods() []string {
-	return []string{"pay_invoice", "pay_keysend", "get_balance", "get_info", "make_invoice", "lookup_invoice", "list_transactions", "multi_pay_invoice", "multi_pay_keysend", "sign_message"}
+	return []string{"pay_invoice", "pay_keysend", "get_balance", "get_budget", "get_info", "make_invoice", "lookup_invoice", "list_transactions", "multi_pay_invoice", "multi_pay_keysend", "sign_message"}
 }
 
 func (ls *LDKService) GetSupportedNIP47NotificationTypes() []string {

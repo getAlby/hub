@@ -135,10 +135,11 @@ type CloseChannelResponse struct {
 }
 
 type OnchainBalanceResponse struct {
-	Spendable                          int64  `json:"spendable"`
-	Total                              int64  `json:"total"`
-	Reserved                           int64  `json:"reserved"`
-	PendingBalancesFromChannelClosures uint64 `json:"pendingBalancesFromChannelClosures"`
+	Spendable                          int64       `json:"spendable"`
+	Total                              int64       `json:"total"`
+	Reserved                           int64       `json:"reserved"`
+	PendingBalancesFromChannelClosures uint64      `json:"pendingBalancesFromChannelClosures"`
+	InternalBalances                   interface{} `json:"internalBalances"`
 }
 
 type PeerDetails struct {

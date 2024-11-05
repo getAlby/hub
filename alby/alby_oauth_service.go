@@ -17,9 +17,11 @@ import (
 
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
+	"github.com/tyler-smith/go-bip32"
 	"golang.org/x/oauth2"
 	"gorm.io/gorm"
 
+	"github.com/getAlby/hub/apps"
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
@@ -368,9 +370,9 @@ func (svc *albyOAuthService) DrainSharedWallet(ctx context.Context, lnClient lnc
 		10 // Alby fee reserve (10 sats)
 
 	if amountSat < 1 {
-		return errors.New("Not enough balance remaining")
+		return errors.New("not enough balance remaining")
 	}
-	amount := amountSat * 1000
+	amount := uint64(amountSat * 1000)
 
 	logger.Logger.WithField("amount", amount).WithError(err).Error("Draining Alby shared wallet funds")
 
@@ -526,7 +528,7 @@ func (svc *albyOAuthService) LinkAccount(ctx context.Context, lnClient lnclient.
 		scopes = append(scopes, constants.NOTIFICATIONS_SCOPE)
 	}
 
-	app, _, err := db.NewDBService(svc.db, svc.eventPublisher).CreateApp(
+	app, _, err := apps.NewAppsService(svc.db, svc.eventPublisher).CreateApp(
 		ALBY_ACCOUNT_APP_NAME,
 		connectionPubkey,
 		budget,
@@ -722,10 +724,47 @@ func (svc *albyOAuthService) ConsumeEvent(ctx context.Context, event *events.Eve
 	}
 }
 
+type channelsBackup struct {
+	Description string `json:"description"`
+	Data        string `json:"data"`
+}
+
+func (svc *albyOAuthService) createEncryptedChannelBackup(event *events.StaticChannelsBackupEvent) (*channelsBackup, error) {
+
+	eventData := bytes.NewBuffer([]byte{})
+	err := json.NewEncoder(eventData).Encode(event)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encode channels backup data:  %w", err)
+	}
+
+	path := []uint32{bip32.FirstHardenedChild}
+	backupKey, err := svc.keys.DeriveKey(path)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to generate channels backup key")
+		return nil, err
+	}
+
+	encrypted, err := config.AesGcmEncryptWithKey(eventData.String(), backupKey.Key)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encrypt channels backup data: %w", err)
+	}
+
+	backup := &channelsBackup{
+		Description: "channels_v2",
+		Data:        encrypted,
+	}
+	return backup, nil
+}
+
 func (svc *albyOAuthService) backupChannels(ctx context.Context, event *events.Event) error {
 	bkpEvent, ok := event.Properties.(*events.StaticChannelsBackupEvent)
 	if !ok {
 		return fmt.Errorf("invalid nwc_backup_channels event properties, could not cast to the expected type: %+v", event.Properties)
+	}
+
+	backup, err := svc.createEncryptedChannelBackup(bkpEvent)
+	if err != nil {
+		return fmt.Errorf("failed to encrypt channel backup: %w", err)
 	}
 
 	token, err := svc.fetchUserToken(ctx)
@@ -735,33 +774,8 @@ func (svc *albyOAuthService) backupChannels(ctx context.Context, event *events.E
 
 	client := svc.oauthConf.Client(ctx, token)
 
-	type channelsBackup struct {
-		Description string `json:"description"`
-		Data        string `json:"data"`
-	}
-
-	eventData := bytes.NewBuffer([]byte{})
-	err = json.NewEncoder(eventData).Encode(bkpEvent)
-	if err != nil {
-		return fmt.Errorf("failed to encode channels backup data:  %w", err)
-	}
-
-	// use the encrypted mnemonic as the password to encrypt the backup data
-	encryptedMnemonic, err := svc.cfg.Get("Mnemonic", "")
-	if err != nil {
-		return fmt.Errorf("failed to fetch encryption key: %w", err)
-	}
-
-	encrypted, err := config.AesGcmEncrypt(eventData.String(), encryptedMnemonic)
-	if err != nil {
-		return fmt.Errorf("failed to encrypt channels backup data: %w", err)
-	}
-
 	body := bytes.NewBuffer([]byte{})
-	err = json.NewEncoder(body).Encode(&channelsBackup{
-		Description: "channels",
-		Data:        encrypted,
-	})
+	err = json.NewEncoder(body).Encode(backup)
 	if err != nil {
 		return fmt.Errorf("failed to encode channels backup request payload: %w", err)
 	}

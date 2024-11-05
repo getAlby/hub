@@ -8,6 +8,7 @@ import (
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/tests"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSendPaymentSync_IsolatedApp_NoBalance(t *testing.T) {
@@ -15,7 +16,7 @@ func TestSendPaymentSync_IsolatedApp_NoBalance(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -47,7 +48,7 @@ func TestSendPaymentSync_IsolatedApp_BalanceInsufficient(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -95,7 +96,7 @@ func TestSendPaymentSync_IsolatedApp_BalanceSufficient(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -137,7 +138,7 @@ func TestSendPaymentSync_IsolatedApp_BalanceInsufficient_OutstandingPayment(t *t
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -183,7 +184,7 @@ func TestSendPaymentSync_IsolatedApp_BalanceInsufficient_SettledPayment(t *testi
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -229,7 +230,7 @@ func TestSendPaymentSync_IsolatedApp_BalanceSufficient_UnrelatedPayment(t *testi
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -277,7 +278,7 @@ func TestSendPaymentSync_IsolatedApp_BalanceSufficient_FailedPayment(t *testing.
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)

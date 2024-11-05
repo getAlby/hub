@@ -3,15 +3,18 @@ package nip47
 import (
 	"context"
 	"encoding/json"
+	"slices"
 	"testing"
 
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/nip47/models"
+	"github.com/getAlby/hub/nip47/permissions"
 	"github.com/getAlby/hub/tests"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip04"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // TODO: test HandleEvent
@@ -21,7 +24,7 @@ import (
 func TestCreateResponse(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	reqPrivateKey := nostr.GeneratePrivateKey()
 	reqPubkey, err := nostr.GetPublicKey(reqPrivateKey)
@@ -73,7 +76,7 @@ func TestCreateResponse(t *testing.T) {
 func TestHandleResponse_WithPermission(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
 
 	reqPrivateKey := nostr.GeneratePrivateKey()
@@ -124,19 +127,29 @@ func TestHandleResponse_WithPermission(t *testing.T) {
 	decrypted, err := nip04.Decrypt(relay.PublishedEvent.Content, ss)
 	assert.NoError(t, err)
 
-	unmarshalledResponse := models.Response{}
+	type getInfoResult struct {
+		Methods []string `json:"methods"`
+	}
+
+	type getInfoResponseWrapper struct {
+		models.Response
+		Result getInfoResult `json:"result"`
+	}
+
+	unmarshalledResponse := getInfoResponseWrapper{}
 
 	err = json.Unmarshal([]byte(decrypted), &unmarshalledResponse)
 	assert.NoError(t, err)
 	assert.Nil(t, unmarshalledResponse.Error)
 	assert.Equal(t, models.GET_INFO_METHOD, unmarshalledResponse.ResultType)
-	assert.Equal(t, []interface{}{"get_balance"}, unmarshalledResponse.Result.(map[string]interface{})["methods"])
+	expectedMethods := slices.Concat([]string{constants.GET_BALANCE_SCOPE}, permissions.GetAlwaysGrantedMethods())
+	assert.Equal(t, expectedMethods, unmarshalledResponse.Result.Methods)
 }
 
 func TestHandleResponse_DuplicateRequest(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
 
 	reqPrivateKey := nostr.GeneratePrivateKey()
@@ -192,7 +205,7 @@ func TestHandleResponse_DuplicateRequest(t *testing.T) {
 func TestHandleResponse_NoPermission(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
 
 	reqPrivateKey := nostr.GeneratePrivateKey()
@@ -248,7 +261,7 @@ func TestHandleResponse_NoPermission(t *testing.T) {
 func TestHandleResponse_NoApp(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
 
 	reqPrivateKey := nostr.GeneratePrivateKey()
@@ -308,7 +321,7 @@ func TestHandleResponse_NoApp(t *testing.T) {
 func TestHandleResponse_IncorrectPubkey(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
 
 	reqPrivateKey := nostr.GeneratePrivateKey()

@@ -15,6 +15,7 @@ import (
 	"github.com/getAlby/hub/transactions"
 	"github.com/nbd-wtf/go-nostr/nip04"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type mockConsumer struct {
@@ -35,7 +36,7 @@ func TestSendNotification_PaymentReceived(t *testing.T) {
 	ctx := context.TODO()
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	app, ss, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -115,7 +116,7 @@ func TestSendNotification_PaymentSent(t *testing.T) {
 	ctx := context.TODO()
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	app, ss, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -194,7 +195,7 @@ func TestSendNotificationNoPermission(t *testing.T) {
 	ctx := context.TODO()
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	_, _, err = tests.CreateApp(svc)
 	assert.NoError(t, err)
 
