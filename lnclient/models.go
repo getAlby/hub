@@ -109,9 +109,9 @@ type ConnectPeerRequest struct {
 }
 
 type OpenChannelRequest struct {
-	Pubkey string `json:"pubkey"`
-	Amount int64  `json:"amount"`
-	Public bool   `json:"public"`
+	Pubkey     string `json:"pubkey"`
+	AmountSats int64  `json:"amountSats"`
+	Public     bool   `json:"public"`
 }
 
 type OpenChannelResponse struct {
@@ -125,9 +125,10 @@ type CloseChannelRequest struct {
 }
 
 type UpdateChannelRequest struct {
-	ChannelId             string `json:"channelId"`
-	NodeId                string `json:"nodeId"`
-	ForwardingFeeBaseMsat uint32 `json:"forwardingFeeBaseMsat"`
+	ChannelId                                string `json:"channelId"`
+	NodeId                                   string `json:"nodeId"`
+	ForwardingFeeBaseMsat                    uint32 `json:"forwardingFeeBaseMsat"`
+	MaxDustHtlcExposureFromFeeRateMultiplier uint64 `json:"maxDustHtlcExposureFromFeeRateMultiplier"`
 }
 
 type CloseChannelResponse struct {
