@@ -1370,7 +1370,7 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 		if isTrusted {
 			// avoid closures like "ProcessingError: Peer sent update_fee with a feerate (62500)
 			// which may over-expose us to dust-in-flight on our counterparty's transactions (totaling 69348000 msat)"
-			maxDustHtlcExposureFromFeeRateMultiplier = 1_000_000 // default * 100
+			maxDustHtlcExposureFromFeeRateMultiplier = 100_000 // default * 10
 		}
 
 		// set a super-high forwarding fee of 100K sats by default to disable unwanted routing by default
