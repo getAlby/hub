@@ -15,8 +15,8 @@ import (
 	"strings"
 	"time"
 
-	//"github.com/getAlby/ldk-node-go/ldk_node"
-	"github.com/getAlby/hub/ldk_node"
+	"github.com/getAlby/ldk-node-go/ldk_node"
+	// "github.com/getAlby/hub/ldk_node"
 
 	"encoding/hex"
 	"encoding/json"
