@@ -125,9 +125,10 @@ type CloseChannelRequest struct {
 }
 
 type UpdateChannelRequest struct {
-	ChannelId             string `json:"channelId"`
-	NodeId                string `json:"nodeId"`
-	ForwardingFeeBaseMsat uint32 `json:"forwardingFeeBaseMsat"`
+	ChannelId                                string `json:"channelId"`
+	NodeId                                   string `json:"nodeId"`
+	ForwardingFeeBaseMsat                    uint32 `json:"forwardingFeeBaseMsat"`
+	MaxDustHtlcExposureFromFeeRateMultiplier uint64 `json:"maxDustHtlcExposureFromFeeRateMultiplier"`
 }
 
 type CloseChannelResponse struct {
