@@ -359,6 +359,14 @@ const routes = [
             element: <Navigate to="password" replace />,
           },
           {
+            path: "alby",
+            element: <ConnectAlbyAccount connectUrl="/setup/auth" />,
+          },
+          {
+            path: "auth",
+            element: <AlbyAuthRedirect />,
+          },
+          {
             path: "password",
             element: <SetupPassword />,
           },
@@ -416,10 +424,6 @@ const routes = [
             element: <SetupFinish />,
           },
         ],
-      },
-      {
-        path: "alby/auth",
-        element: <AlbyAuthRedirect />,
       },
     ],
   },

@@ -16,7 +16,11 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 
-export function ConnectAlbyAccount() {
+type ConnectAlbyAccountProps = {
+  connectUrl?: string;
+};
+
+export function ConnectAlbyAccount({ connectUrl }: ConnectAlbyAccountProps) {
   return (
     <div className="w-full h-full flex flex-col items-center justify-center gap-5">
       <Container>
@@ -81,7 +85,7 @@ export function ConnectAlbyAccount() {
           </Card>
         </div>
         <div className="flex flex-col items-center justify-center mt-8 gap-2">
-          <LinkButton to="/alby/auth" size="lg">
+          <LinkButton to={connectUrl || "/alby/auth"} size="lg">
             Connect now
           </LinkButton>
           <LinkButton
