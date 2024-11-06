@@ -3,6 +3,7 @@ package keys
 import (
 	"encoding/hex"
 	"errors"
+
 	"github.com/btcsuite/btcd/btcec/v2"
 
 	"github.com/getAlby/hub/config"
@@ -59,38 +60,38 @@ func (keys *keys) Init(cfg config.Config, encryptionKey string) error {
 		return err
 	}
 
-	if mnemonic != "" {
-		masterKey, err := bip32.NewMasterKey(bip39.NewSeed(mnemonic, ""))
+	if mnemonic == "" {
+		// for backends that don't use a mnemonic, create one anyway for deriving keys
+		entropy, err := bip39.NewEntropy(128)
 		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to create seed from mnemonic")
+			logger.Logger.WithError(err).Error("Failed to generate entropy for mnemonic")
 			return err
 		}
-
-		albyHubIndex := uint32(bip32.FirstHardenedChild + 128029 /* 🐝 */)
-		appKey, err := masterKey.NewChildKey(albyHubIndex)
+		mnemonic, err = bip39.NewMnemonic(entropy)
 		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to create seed from mnemonic")
+			logger.Logger.WithError(err).Error("Failed to generate mnemonic")
 			return err
 		}
-		keys.appKey = appKey
+		err = cfg.SetUpdate("Mnemonic", mnemonic, encryptionKey)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to save mnemonic")
+			return err
+		}
 	}
 
-	// for backends that don't use a mnemonic, create appKey from nostrSecretKey
-	if keys.appKey == nil {
-		// Convert nostrSecretKey to btcec private key
-		privKeyBytes, err := hex.DecodeString(keys.nostrSecretKey)
-		if err != nil {
-			return err
-		}
-		privKey, _ := btcec.PrivKeyFromBytes(privKeyBytes)
-
-		// Create a BIP32 master key from the private key
-		masterKey, err := bip32.NewMasterKey(privKey.Serialize())
-		if err != nil {
-			return err
-		}
-		keys.appKey = masterKey
+	masterKey, err := bip32.NewMasterKey(bip39.NewSeed(mnemonic, ""))
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to create seed from mnemonic")
+		return err
 	}
+
+	albyHubIndex := uint32(bip32.FirstHardenedChild + 128029 /* 🐝 */)
+	appKey, err := masterKey.NewChildKey(albyHubIndex)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to create seed from mnemonic")
+		return err
+	}
+	keys.appKey = appKey
 
 	return nil
 }
