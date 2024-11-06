@@ -1,9 +1,10 @@
 package tests
 
 import (
-	"github.com/getAlby/hub/apps"
 	"os"
 	"strconv"
+
+	"github.com/getAlby/hub/apps"
 
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/db"
@@ -18,6 +19,10 @@ import (
 const testDB = "test.db"
 
 func CreateTestService() (svc *TestService, err error) {
+	return CreateTestServiceWithMnemonic("", "")
+}
+
+func CreateTestServiceWithMnemonic(mnemonic string, unlockPassword string) (svc *TestService, err error) {
 	gormDb, err := db.NewDB(testDB, true)
 	if err != nil {
 		return nil, err
@@ -41,9 +46,13 @@ func CreateTestService() (svc *TestService, err error) {
 	if err != nil {
 		return nil, err
 	}
-
 	keys := keys.NewKeys()
-	keys.Init(cfg, "")
+
+	if mnemonic != "" {
+		cfg.SetUpdate("Mnemonic", mnemonic, unlockPassword)
+	}
+
+	keys.Init(cfg, unlockPassword)
 
 	eventPublisher := events.NewEventPublisher()
 
