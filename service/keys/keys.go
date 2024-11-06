@@ -104,7 +104,7 @@ func (keys *keys) GetNostrSecretKey() string {
 }
 
 func (keys *keys) GetAppWalletKey(appID uint) (string, error) {
-	path := []uint32{bip32.FirstHardenedChild + 1, uint32(appID)}
+	path := []uint32{bip32.FirstHardenedChild + 1, bip32.FirstHardenedChild + uint32(appID)}
 	key, err := keys.DeriveKey(path)
 	if err != nil {
 		return "", err
