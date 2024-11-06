@@ -122,10 +122,17 @@ func (svc *service) startNostr(ctx context.Context) error {
 				}
 				break
 			}
-			<-relay.Context().Done()
-			if relay.ConnectionError != nil {
+			select {
+			case <-ctx.Done():
+				logger.Logger.Info("Main context cancelled, exiting...")
+				break
+			case <-relay.Context().Done():
 				//err being non-nil means that we have an error on the websocket error channel. In this case we just try to reconnect.
-				logger.Logger.WithError(relay.ConnectionError).Error("Got an error from the relay, trying to reconnect")
+				if relay.ConnectionError != nil {
+					logger.Logger.WithError(relay.ConnectionError).Error("Got an error from the relay, trying to reconnect")
+				} else {
+					logger.Logger.Error("Relay context cancelled, but no connection error...trying to reconnect")
+				}
 				continue
 			}
 			//err being nil means that the context was canceled and we should exit the program.
