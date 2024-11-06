@@ -281,6 +281,44 @@ func (svc *albyOAuthService) GetInfo(ctx context.Context) (*AlbyInfo, error) {
 	}, nil
 }
 
+func (svc *albyOAuthService) GetVssToken(ctx context.Context) (string, error) {
+	token, err := svc.fetchUserToken(ctx)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to fetch user token")
+		return "", err
+	}
+
+	client := svc.oauthConf.Client(ctx, token)
+
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/internal/users/vss", albyOAuthAPIURL), nil)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Error creating request for vss endpoint")
+		return "", err
+	}
+
+	setDefaultRequestHeaders(req)
+
+	res, err := client.Do(req)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to fetch vss endpoint")
+		return "", err
+	}
+
+	type vssTokenResponse struct {
+		Token string `json:"token"`
+	}
+
+	vssResponse := &vssTokenResponse{}
+	err = json.NewDecoder(res.Body).Decode(vssResponse)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to decode API response")
+		return "", err
+	}
+
+	logger.Logger.WithFields(logrus.Fields{"vssTokenResponse": vssResponse}).Info("Alby vss response")
+	return vssResponse.Token, nil
+}
+
 func (svc *albyOAuthService) GetMe(ctx context.Context) (*AlbyMe, error) {
 	token, err := svc.fetchUserToken(ctx)
 	if err != nil {

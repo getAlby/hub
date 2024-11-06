@@ -23,6 +23,7 @@ type AlbyOAuthService interface {
 	DrainSharedWallet(ctx context.Context, lnClient lnclient.LNClient) error
 	UnlinkAccount(ctx context.Context) error
 	RequestAutoChannel(ctx context.Context, lnClient lnclient.LNClient, isPublic bool) (*AutoChannelResponse, error)
+	GetVssToken(ctx context.Context) (string, error)
 }
 
 type AlbyBalanceResponse struct {
@@ -61,16 +62,23 @@ type AlbyInfo struct {
 type AlbyMeHub struct {
 	Name string `json:"name"`
 }
+
+type AlbyMeSubscription struct {
+	// PlanCode string `json:"plan_code"`
+	Buzz bool `json:"buzz"`
+}
+
 type AlbyMe struct {
-	Identifier       string    `json:"identifier"`
-	NPub             string    `json:"nostr_pubkey"`
-	LightningAddress string    `json:"lightning_address"`
-	Email            string    `json:"email"`
-	Name             string    `json:"name"`
-	Avatar           string    `json:"avatar"`
-	KeysendPubkey    string    `json:"keysend_pubkey"`
-	SharedNode       bool      `json:"shared_node"`
-	Hub              AlbyMeHub `json:"hub"`
+	Identifier       string             `json:"identifier"`
+	NPub             string             `json:"nostr_pubkey"`
+	LightningAddress string             `json:"lightning_address"`
+	Email            string             `json:"email"`
+	Name             string             `json:"name"`
+	Avatar           string             `json:"avatar"`
+	KeysendPubkey    string             `json:"keysend_pubkey"`
+	SharedNode       bool               `json:"shared_node"`
+	Hub              AlbyMeHub          `json:"hub"`
+	Subscription     AlbyMeSubscription `json:"subscription"`
 }
 
 type AlbyBalance struct {

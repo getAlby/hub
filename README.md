@@ -24,7 +24,7 @@ Go to the [Deploy it yourself](#deploy-it-yourself) section below.
 
 ## Supported Backends
 
-By default Alby Hub uses the embedded LDK based lightning node. Optionally it can be configured to use an external node: 
+By default Alby Hub uses the embedded LDK based lightning node. Optionally it can be configured to use an external node:
 
 - LND
 - Phoenixd
@@ -41,6 +41,7 @@ By default Alby Hub uses the embedded LDK based lightning node. Optionally it ca
 - Yarn
 
 ### Environment setup
+
     $ cp .env.example .env
     # edit the config for your needs (Read further down for all the available env options)
     $ vim .env
@@ -163,6 +164,7 @@ _To configure via env, the following parameters must be provided:_
 ### LDK Backend parameters
 
 - `LDK_ESPLORA_SERVER`: By default the optimized Alby esplora is used. You can configure your own esplora server (note: the public blockstream one is slow and can cause onchain syncing and issues with opening channels)
+- `LDK_VSS_URL`: Use VSS (encrypted remote storage) rather than local sqlite store for lightning and bitcoin data. Currently this feature only works for brand new Alby Hub instances that are connected to Alby Accounts with an active subscription plan.
 
 #### LDK Network Configuration
 
@@ -361,7 +363,6 @@ Go to the [Quick start script](https://github.com/getAlby/hub/tree/master/script
 #### Quick start (Arm64 Linux Server or Raspberry PI 4/5)
 
 Go to the [Quick start script](https://github.com/getAlby/hub/blob/master/scripts/pi-aarch64) which you can run as a service.
-
 
 #### Quick start (Raspberry PI Zero)
 
