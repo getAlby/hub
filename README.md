@@ -24,7 +24,7 @@ Go to the [Deploy it yourself](#deploy-it-yourself) section below.
 
 ## Supported Backends
 
-By default Alby Hub uses the embedded LDK based lightning node. Optionally it can be configured to use an external node: 
+By default Alby Hub uses the embedded LDK based lightning node. Optionally it can be configured to use an external node:
 
 - LND
 - Phoenixd
@@ -41,6 +41,7 @@ By default Alby Hub uses the embedded LDK based lightning node. Optionally it ca
 - Yarn
 
 ### Environment setup
+
     $ cp .env.example .env
     # edit the config for your needs (Read further down for all the available env options)
     $ vim .env
@@ -135,8 +136,6 @@ Breez SDK requires gcc to build the Breez bindings. Run `choco install mingw` an
 
 The following configuration options can be set as environment variables or in a .env file
 
-- `NOSTR_PRIVKEY`: the private key of this service. Should be a securely randomly generated 32 byte hex string.
-- `CLIENT_NOSTR_PUBKEY`: if set, this service will only listen to events authored by this public key. You can set this to your own nostr public key.
 - `RELAY`: default: "wss://relay.getalby.com/v1"
 - `JWT_SECRET`: a randomly generated secret string. (only needed in http mode)
 - `DATABASE_URI`: a sqlite filename. Default: $XDG_DATA_HOME/albyhub/nwc.db
@@ -361,7 +360,6 @@ Go to the [Quick start script](https://github.com/getAlby/hub/tree/master/script
 #### Quick start (Arm64 Linux Server or Raspberry PI 4/5)
 
 Go to the [Quick start script](https://github.com/getAlby/hub/blob/master/scripts/pi-aarch64) which you can run as a service.
-
 
 #### Quick start (Raspberry PI Zero)
 
