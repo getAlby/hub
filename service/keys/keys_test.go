@@ -6,6 +6,7 @@ import (
 
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/db"
+	"github.com/nbd-wtf/go-nostr"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tyler-smith/go-bip32"
@@ -33,6 +34,7 @@ func TestUseExistingMnemonic(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, mnemonic, mnemonicFromConfig)
 
+	// ensure backup key uses correct derivation path
 	derivedKeyFromKeys, err := keys.DeriveKey([]uint32{bip32.FirstHardenedChild})
 	require.NoError(t, err)
 
@@ -46,6 +48,14 @@ func TestUseExistingMnemonic(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t, encryptedChannelsBackupKey.String(), derivedKeyFromKeys.String())
+
+	// get a wallet key for app ID 2, expect it is derived correctly
+	appWalletPrivateKey, err := keys.GetAppWalletKey(2)
+	require.NoError(t, err)
+	appWalletPubkey, err := nostr.GetPublicKey(appWalletPrivateKey)
+	require.NoError(t, err)
+
+	assert.Equal(t, "dd9e304d24f29f3481d5cf18a76c85ca3e95931aee3c997a27f267e975e72976", appWalletPubkey)
 }
 
 func TestGenerateNewMnemonic(t *testing.T) {
