@@ -487,7 +487,7 @@ function PayBitcoinChannelOrderWithSpendableFunds({
 
       const openChannelRequest: OpenChannelRequest = {
         pubkey,
-        amount: +order.amount,
+        amountSats: +order.amount,
         public: order.isPublic,
       };
       const openChannelResponse = await request<OpenChannelResponse>(
