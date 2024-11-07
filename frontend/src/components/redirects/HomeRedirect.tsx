@@ -41,6 +41,8 @@ export function HomeRedirect() {
       } else if (info.setupCompleted && !info.running) {
         to = "/start";
       } else if (info.albyAccountConnected) {
+        // in case user goes back after authenticating in setup
+        // we don't want to show the intro twice
         to = "/welcome";
       } else {
         to = "/intro";
