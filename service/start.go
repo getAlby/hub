@@ -85,6 +85,9 @@ func (svc *service) startNostr(ctx context.Context) error {
 				}).WithError(err).Error("Failed to connect to relay")
 				continue
 			}
+			logger.Logger.WithFields(logrus.Fields{
+				"relay_url": relayUrl,
+			}).Info("Connected to the relay")
 			waitToReconnectSeconds = 0
 
 			// register a subscriber for events of "app_created" which handles creation of nostr subscription for new app
