@@ -26,6 +26,13 @@ export function Welcome() {
   }, [info, navigate]);
 
   function navigateToAuthPage(returnTo: string) {
+    if (info?.albyAccountConnected) {
+      // in case user goes back after authenticating in setup
+      // we don't want to show the auth screen twice
+      navigate(returnTo);
+      return;
+    }
+
     window.localStorage.setItem(localStorageKeys.setupReturnTo, returnTo);
 
     // by default, allow the user to choose whether or not to connect to alby account
