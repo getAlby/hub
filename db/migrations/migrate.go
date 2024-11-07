@@ -22,6 +22,7 @@ func Migrate(gormDB *gorm.DB) error {
 		_202408061737_add_boostagrams_and_use_json,
 		_202408191242_transaction_failure_reason,
 		_202408291715_app_metadata,
+		_202410141503_add_wallet_pubkey,
 	})
 
 	return m.Migrate()

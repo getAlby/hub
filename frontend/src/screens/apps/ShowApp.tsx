@@ -119,7 +119,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
         maxAmount: permissions.maxAmount,
       };
 
-      await request(`/api/apps/${app.nostrPubkey}`, {
+      await request(`/api/apps/${app.appPubkey}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -208,7 +208,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction
-                      onClick={() => deleteApp(app.nostrPubkey)}
+                      onClick={() => deleteApp(app.appPubkey)}
                       disabled={isDeleting}
                     >
                       Continue
@@ -235,7 +235,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                   <TableRow>
                     <TableCell className="font-medium">Public Key</TableCell>
                     <TableCell className="text-muted-foreground break-all">
-                      {app.nostrPubkey}
+                      {app.appPubkey}
                     </TableCell>
                   </TableRow>
                   {app.isolated && (
@@ -246,7 +246,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                           Math.floor(app.balance / 1000)
                         )}{" "}
                         sats{" "}
-                        <IsolatedAppTopupDialog appPubkey={app.nostrPubkey}>
+                        <IsolatedAppTopupDialog appPubkey={app.appPubkey}>
                           <Button size="sm" variant="secondary">
                             Increase
                           </Button>

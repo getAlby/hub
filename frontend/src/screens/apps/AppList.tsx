@@ -21,7 +21,7 @@ function AppList() {
 
   const albyConnection = apps.find((x) => x.name === albyConnectionName);
   const otherApps = apps
-    .filter((x) => x.nostrPubkey !== albyConnection?.nostrPubkey)
+    .filter((x) => x.appPubkey !== albyConnection?.appPubkey)
     .sort(
       (a, b) =>
         new Date(b.lastEventAt ?? 0).getTime() -

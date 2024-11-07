@@ -4,6 +4,8 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/getAlby/hub/apps"
+
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/events"
@@ -17,6 +19,10 @@ import (
 const testDB = "test.db"
 
 func CreateTestService() (svc *TestService, err error) {
+	return CreateTestServiceWithMnemonic("", "")
+}
+
+func CreateTestServiceWithMnemonic(mnemonic string, unlockPassword string) (svc *TestService, err error) {
 	gormDb, err := db.NewDB(testDB, true)
 	if err != nil {
 		return nil, err
@@ -40,11 +46,17 @@ func CreateTestService() (svc *TestService, err error) {
 	if err != nil {
 		return nil, err
 	}
-
 	keys := keys.NewKeys()
-	keys.Init(cfg, "")
+
+	if mnemonic != "" {
+		cfg.SetUpdate("Mnemonic", mnemonic, unlockPassword)
+	}
+
+	keys.Init(cfg, unlockPassword)
 
 	eventPublisher := events.NewEventPublisher()
+
+	appsService := apps.NewAppsService(gormDb, eventPublisher, keys)
 
 	return &TestService{
 		Cfg:            cfg,
@@ -52,6 +64,7 @@ func CreateTestService() (svc *TestService, err error) {
 		EventPublisher: eventPublisher,
 		DB:             gormDb,
 		Keys:           keys,
+		AppsService:    appsService,
 	}, nil
 }
 
@@ -60,6 +73,7 @@ type TestService struct {
 	Cfg            config.Config
 	LNClient       lnclient.LNClient
 	EventPublisher events.EventPublisher
+	AppsService    apps.AppsService
 	DB             *gorm.DB
 }
 

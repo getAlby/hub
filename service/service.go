@@ -130,7 +130,10 @@ func NewService(ctx context.Context) (*service, error) {
 	}
 
 	if appConfig.AutoUnlockPassword != "" {
-		svc.StartApp(appConfig.AutoUnlockPassword)
+		nodeLastStartTime, _ := cfg.Get("NodeLastStartTime", "")
+		if nodeLastStartTime != "" {
+			svc.StartApp(appConfig.AutoUnlockPassword)
+		}
 	}
 
 	return svc, nil
@@ -146,31 +149,6 @@ func (svc *service) createFilters(identityPubkey string) nostr.Filters {
 
 func (svc *service) noticeHandler(notice string) {
 	logger.Logger.Infof("Received a notice %s", notice)
-}
-
-func (svc *service) StartSubscription(ctx context.Context, sub *nostr.Subscription) error {
-	svc.nip47Service.StartNotifier(ctx, sub.Relay, svc.lnClient)
-
-	go func() {
-		// block till EOS is received
-		<-sub.EndOfStoredEvents
-		logger.Logger.Debug("Received EOS")
-
-		// loop through incoming events
-		for event := range sub.Events {
-			go svc.nip47Service.HandleEvent(ctx, sub.Relay, event, svc.lnClient)
-		}
-		logger.Logger.Debug("Relay subscription events channel ended")
-	}()
-
-	<-ctx.Done()
-
-	if sub.Relay.ConnectionError != nil {
-		logger.Logger.WithField("connectionError", sub.Relay.ConnectionError).Error("Relay error")
-		return sub.Relay.ConnectionError
-	}
-	logger.Logger.Info("Exiting subscription...")
-	return nil
 }
 
 func finishRestoreNode(workDir string) error {

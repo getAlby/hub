@@ -47,7 +47,7 @@ type api struct {
 func NewAPI(svc service.Service, gormDB *gorm.DB, config config.Config, keys keys.Keys, albyOAuthSvc alby.AlbyOAuthService, eventPublisher events.EventPublisher) *api {
 	return &api{
 		db:             gormDB,
-		appsSvc:        apps.NewAppsService(gormDB, eventPublisher),
+		appsSvc:        apps.NewAppsService(gormDB, eventPublisher, keys),
 		cfg:            config,
 		svc:            svc,
 		permissionsSvc: permissions.NewPermissionsService(gormDB, eventPublisher),
@@ -80,7 +80,8 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 		expiresAt,
 		createAppRequest.Scopes,
 		createAppRequest.Isolated,
-		createAppRequest.Metadata)
+		createAppRequest.Metadata,
+	)
 
 	if err != nil {
 		return nil, err
@@ -91,7 +92,7 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 	responseBody := &CreateAppResponse{}
 	responseBody.Id = app.ID
 	responseBody.Name = createAppRequest.Name
-	responseBody.Pubkey = app.NostrPubkey
+	responseBody.Pubkey = app.AppPubkey
 	responseBody.PairingSecret = pairingSecretKey
 
 	lightningAddress, err := api.albyOAuthSvc.GetLightningAddress()
@@ -104,7 +105,7 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 		if err == nil {
 			query := returnToUrl.Query()
 			query.Add("relay", relayUrl)
-			query.Add("pubkey", api.keys.GetNostrPublicKey())
+			query.Add("pubkey", *app.WalletPubkey)
 			if lightningAddress != "" && !app.Isolated {
 				query.Add("lud16", lightningAddress)
 			}
@@ -117,7 +118,8 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 	if lightningAddress != "" && !app.Isolated {
 		lud16 = fmt.Sprintf("&lud16=%s", lightningAddress)
 	}
-	responseBody.PairingUri = fmt.Sprintf("nostr+walletconnect://%s?relay=%s&secret=%s%s", api.keys.GetNostrPublicKey(), relayUrl, pairingSecretKey, lud16)
+	responseBody.PairingUri = fmt.Sprintf("nostr+walletconnect://%s?relay=%s&secret=%s%s", *app.WalletPubkey, relayUrl, pairingSecretKey, lud16)
+
 	return responseBody, nil
 }
 
@@ -216,7 +218,7 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 }
 
 func (api *api) DeleteApp(userApp *db.App) error {
-	return api.db.Delete(userApp).Error
+	return api.appsSvc.DeleteApp(userApp)
 }
 
 func (api *api) GetApp(dbApp *db.App) *App {
@@ -260,7 +262,7 @@ func (api *api) GetApp(dbApp *db.App) *App {
 		Description:   dbApp.Description,
 		CreatedAt:     dbApp.CreatedAt,
 		UpdatedAt:     dbApp.UpdatedAt,
-		NostrPubkey:   dbApp.NostrPubkey,
+		AppPubkey:     dbApp.AppPubkey,
 		ExpiresAt:     expiresAt,
 		MaxAmountSat:  maxAmount,
 		Scopes:        requestMethods,
@@ -311,7 +313,7 @@ func (api *api) ListApps() ([]App, error) {
 			Description: dbApp.Description,
 			CreatedAt:   dbApp.CreatedAt,
 			UpdatedAt:   dbApp.UpdatedAt,
-			NostrPubkey: dbApp.NostrPubkey,
+			AppPubkey:   dbApp.AppPubkey,
 			Isolated:    dbApp.Isolated,
 		}
 

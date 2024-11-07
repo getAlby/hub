@@ -108,7 +108,21 @@ func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *db.App
 		"appId":        app.ID,
 	}).Debug("Notifying subscriber")
 
-	ss, err := nip04.ComputeSharedSecret(app.NostrPubkey, notifier.keys.GetNostrSecretKey())
+	var err error
+
+	appWalletPrivKey := notifier.keys.GetNostrSecretKey()
+	if app.WalletPubkey != nil {
+		appWalletPrivKey, err = notifier.keys.GetAppWalletKey(app.ID)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"notification": notification,
+				"appId":        app.ID,
+			}).WithError(err).Error("error deriving child key")
+			return
+		}
+	}
+
+	ss, err := nip04.ComputeSharedSecret(app.AppPubkey, appWalletPrivKey)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"notification": notification,
@@ -134,17 +148,26 @@ func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *db.App
 		return
 	}
 
-	allTags := nostr.Tags{[]string{"p", app.NostrPubkey}}
+	allTags := nostr.Tags{[]string{"p", app.AppPubkey}}
 	allTags = append(allTags, tags...)
 
+	appWalletPubKey, err := nostr.GetPublicKey(appWalletPrivKey)
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"notification": notification,
+			"appId":        app.ID,
+		}).WithError(err).Error("Failed to calculate app wallet pub key")
+		return
+	}
+
 	event := &nostr.Event{
-		PubKey:    notifier.keys.GetNostrPublicKey(),
+		PubKey:    appWalletPubKey,
 		CreatedAt: nostr.Now(),
 		Kind:      models.NOTIFICATION_KIND,
 		Tags:      allTags,
 		Content:   msg,
 	}
-	err = event.Sign(notifier.keys.GetNostrSecretKey())
+	err = event.Sign(appWalletPrivKey)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"notification": notification,

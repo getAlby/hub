@@ -161,7 +161,7 @@ function AlbyConnectionCard({ connection }: { connection?: App }) {
           {connection && (
             <div className="slashed-zero">
               <Link
-                to={`/apps/${connection.nostrPubkey}?edit=true`}
+                to={`/apps/${connection.appPubkey}?edit=true`}
                 className="absolute top-0 right-0"
               >
                 <EditIcon className="w-4 h-4 hidden group-hover:inline text-muted-foreground hover:text-card-foreground" />

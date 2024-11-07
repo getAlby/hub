@@ -41,14 +41,10 @@ func TestExistingEncryptedBackup(t *testing.T) {
 
 func TestEncryptedBackup(t *testing.T) {
 	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
-	require.NoError(t, err)
-
 	mnemonic := "limit reward expect search tissue call visa fit thank cream brave jump"
 	unlockPassword := "123"
-	svc.Cfg.SetUpdate("Mnemonic", mnemonic, unlockPassword)
-	err = svc.Keys.Init(svc.Cfg, unlockPassword)
-	assert.NoError(t, err)
+	svc, err := tests.CreateTestServiceWithMnemonic(mnemonic, unlockPassword)
+	require.NoError(t, err)
 
 	albyOAuthSvc := NewAlbyOAuthService(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
 	encryptedBackup, err := albyOAuthSvc.createEncryptedChannelBackup(&events.StaticChannelsBackupEvent{
