@@ -130,7 +130,10 @@ func NewService(ctx context.Context) (*service, error) {
 	}
 
 	if appConfig.AutoUnlockPassword != "" {
-		svc.StartApp(appConfig.AutoUnlockPassword)
+		nodeLastStartTime, _ := cfg.Get("NodeLastStartTime", "")
+		if nodeLastStartTime != "" {
+			svc.StartApp(appConfig.AutoUnlockPassword)
+		}
 	}
 
 	return svc, nil
