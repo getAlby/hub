@@ -5,7 +5,6 @@ import animationData from "src/assets/lotties/loading.json";
 import Container from "src/components/Container";
 import { Button } from "src/components/ui/button";
 import { ToastSignature, useToast } from "src/components/ui/use-toast";
-import { localStorageKeys } from "src/constants";
 
 import { useInfo } from "src/hooks/useInfo";
 import { saveAuthToken } from "src/lib/auth";
@@ -17,7 +16,6 @@ import { request } from "src/utils/request";
 let lastStartupErrorTime: string;
 export function SetupFinish() {
   const navigate = useNavigate();
-  const { nodeInfo, unlockPassword } = useSetupStore();
   const { toast } = useToast();
   const { data: info } = useInfo(true); // poll the info endpoint to auto-redirect when app is running
 
@@ -86,10 +84,9 @@ export function SetupFinish() {
     (async () => {
       setLoading(true);
       const succeeded = await finishSetup(
-        nodeInfo,
-        unlockPassword,
-        toast,
-        info.oauthRedirect
+        useSetupStore.getState().nodeInfo,
+        useSetupStore.getState().unlockPassword,
+        toast
       );
       // only setup call is successful as start is async
       if (!succeeded) {
@@ -97,7 +94,7 @@ export function SetupFinish() {
         setConnectionError(true);
       }
     })();
-  }, [nodeInfo, navigate, unlockPassword, toast, info]);
+  }, [navigate, toast, info]);
 
   if (connectionError) {
     return (
@@ -134,17 +131,9 @@ export function SetupFinish() {
 const finishSetup = async (
   nodeInfo: SetupNodeInfo,
   unlockPassword: string,
-  toast: ToastSignature,
-  autoAuth: boolean
+  toast: ToastSignature
 ): Promise<boolean> => {
   try {
-    let redirectTo = "/alby/account";
-    if (autoAuth) {
-      redirectTo = "/alby/auth";
-    }
-
-    window.localStorage.setItem(localStorageKeys.returnTo, redirectTo);
-
     await request("/api/setup", {
       method: "POST",
       headers: {

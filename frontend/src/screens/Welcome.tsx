@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Container from "src/components/Container";
 import { Button } from "src/components/ui/button";
 import {
@@ -11,6 +11,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "src/components/ui/dialog";
+import { localStorageKeys } from "src/constants";
 import { useInfo } from "src/hooks/useInfo";
 
 export function Welcome() {
@@ -23,6 +24,26 @@ export function Welcome() {
     }
     navigate("/");
   }, [info, navigate]);
+
+  function navigateToAuthPage(returnTo: string) {
+    if (info?.albyAccountConnected) {
+      // in case user goes back after authenticating in setup
+      // we don't want to show the auth screen twice
+      navigate(returnTo);
+      return;
+    }
+
+    window.localStorage.setItem(localStorageKeys.setupReturnTo, returnTo);
+
+    // by default, allow the user to choose whether or not to connect to alby account
+    let navigateTo = "/setup/alby";
+    if (info?.oauthRedirect) {
+      // if using a custom OAuth client (e.g. Alby Cloud) the user must connect their Alby account
+      // but they are already logged in at getalby.com, so it should be an instant redirect.
+      navigateTo = "/alby/auth";
+    }
+    navigate(navigateTo);
+  }
 
   return (
     <Container>
@@ -37,26 +58,28 @@ export function Welcome() {
           </p>
         </div>
         <div className="grid gap-2">
-          <Link
-            to={
-              info?.backendType
-                ? "/setup/password?node=preset" // node already setup through env variables
-                : "/setup/password?node=ldk"
-            }
+          <Button
             className="w-full"
+            onClick={() =>
+              navigateToAuthPage(
+                info?.backendType
+                  ? "/setup/password?node=preset" // node already setup through env variables
+                  : "/setup/password?node=ldk"
+              )
+            }
           >
-            <Button className="w-full">
-              Get Started
-              {info?.backendType && ` (${info?.backendType})`}
-            </Button>
-          </Link>
+            Get Started
+            {info?.backendType && ` (${info?.backendType})`}
+          </Button>
 
           {info?.enableAdvancedSetup && (
-            <Link to="/setup/advanced" className="w-full">
-              <Button variant="secondary" className="w-full">
-                Advanced Setup
-              </Button>
-            </Link>
+            <Button
+              variant="secondary"
+              className="w-full"
+              onClick={() => navigateToAuthPage("/setup/advanced")}
+            >
+              Advanced Setup
+            </Button>
           )}
         </div>
         <div className="text-sm text-muted-foreground">
