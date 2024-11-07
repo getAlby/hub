@@ -330,7 +330,7 @@ func (svc *albyOAuthService) GetVssAuthToken(ctx context.Context, nodeIdentifier
 		return "", err
 	}
 
-	logger.Logger.WithFields(logrus.Fields{"vssTokenResponse": vssResponse}).Info("Alby auth token response")
+	logger.Logger.WithFields(logrus.Fields{"vssTokenResponse": vssResponse}).Info("Alby vss auth token response")
 	return vssResponse.Token, nil
 }
 
