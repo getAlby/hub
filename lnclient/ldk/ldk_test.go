@@ -10,7 +10,7 @@ import (
 
 func TestGetVssNodeIdentifier(t *testing.T) {
 	mnemonic := "thought turkey ask pottery head say catalog desk pledge elbow naive mimic"
-	expectedPubkey := "0488b2"
+	expectedVssNodeIdentifier := "0488b2"
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestServiceWithMnemonic(mnemonic, "123")
@@ -19,5 +19,5 @@ func TestGetVssNodeIdentifier(t *testing.T) {
 	vssNodeIdentifier, err := GetVssNodeIdentifier(svc.Keys)
 	require.NoError(t, err)
 
-	assert.Equal(t, expectedPubkey, vssNodeIdentifier)
+	assert.Equal(t, expectedVssNodeIdentifier, vssNodeIdentifier)
 }
