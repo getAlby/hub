@@ -131,7 +131,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	}
 
 	logger.Logger.WithFields(logrus.Fields{
-		"vss_token": vssToken,
+		"vss": vssToken != "",
 	}).Info("Creating node")
 	var node *ldk_node.Node
 	if vssToken != "" {
