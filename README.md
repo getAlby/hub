@@ -136,8 +136,6 @@ Breez SDK requires gcc to build the Breez bindings. Run `choco install mingw` an
 
 The following configuration options can be set as environment variables or in a .env file
 
-- `NOSTR_PRIVKEY`: the private key of this service. Should be a securely randomly generated 32 byte hex string.
-- `CLIENT_NOSTR_PUBKEY`: if set, this service will only listen to events authored by this public key. You can set this to your own nostr public key.
 - `RELAY`: default: "wss://relay.getalby.com/v1"
 - `JWT_SECRET`: a randomly generated secret string. (only needed in http mode)
 - `DATABASE_URI`: a sqlite filename. Default: $XDG_DATA_HOME/albyhub/nwc.db

@@ -1,7 +1,10 @@
 package keys
 
 import (
+	"encoding/hex"
 	"errors"
+
+	"github.com/btcsuite/btcd/btcec/v2"
 
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/logger"
@@ -16,6 +19,8 @@ type Keys interface {
 	GetNostrPublicKey() string
 	// Wallet Service Nostr secret key (DEPRECATED)
 	GetNostrSecretKey() string
+	// Derives a BIP32 child key from appKey derived child dedicated for app wallet keys
+	GetAppWalletKey(childIndex uint) (string, error)
 	// Derives a child BIP-32 key from the app key (derived from the mnemonic)
 	DeriveKey(path []uint32) (*bip32.Key, error)
 }
@@ -55,21 +60,38 @@ func (keys *keys) Init(cfg config.Config, encryptionKey string) error {
 		return err
 	}
 
-	if mnemonic != "" {
-		masterKey, err := bip32.NewMasterKey(bip39.NewSeed(mnemonic, ""))
+	if mnemonic == "" {
+		// for backends that don't use a mnemonic, create one anyway for deriving keys
+		entropy, err := bip39.NewEntropy(128)
 		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to create seed from mnemonic")
+			logger.Logger.WithError(err).Error("Failed to generate entropy for mnemonic")
 			return err
 		}
-
-		albyHubIndex := uint32(bip32.FirstHardenedChild + 128029 /* 🐝 */)
-		appKey, err := masterKey.NewChildKey(albyHubIndex)
+		mnemonic, err = bip39.NewMnemonic(entropy)
 		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to create seed from mnemonic")
+			logger.Logger.WithError(err).Error("Failed to generate mnemonic")
 			return err
 		}
-		keys.appKey = appKey
+		err = cfg.SetUpdate("Mnemonic", mnemonic, encryptionKey)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to save mnemonic")
+			return err
+		}
 	}
+
+	masterKey, err := bip32.NewMasterKey(bip39.NewSeed(mnemonic, ""))
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to create seed from mnemonic")
+		return err
+	}
+
+	albyHubIndex := uint32(bip32.FirstHardenedChild + 128029 /* 🐝 */)
+	appKey, err := masterKey.NewChildKey(albyHubIndex)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to create seed from mnemonic")
+		return err
+	}
+	keys.appKey = appKey
 
 	return nil
 }
@@ -80,6 +102,16 @@ func (keys *keys) GetNostrPublicKey() string {
 
 func (keys *keys) GetNostrSecretKey() string {
 	return keys.nostrSecretKey
+}
+
+func (keys *keys) GetAppWalletKey(appID uint) (string, error) {
+	path := []uint32{bip32.FirstHardenedChild + 1, bip32.FirstHardenedChild + uint32(appID)}
+	key, err := keys.DeriveKey(path)
+	if err != nil {
+		return "", err
+	}
+	childPrivKey, _ := btcec.PrivKeyFromBytes(key.Key)
+	return hex.EncodeToString(childPrivKey.Serialize()), nil
 }
 
 func (keys *keys) DeriveKey(path []uint32) (*bip32.Key, error) {

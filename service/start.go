@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/getAlby/hub/db"
+
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip19"
 	"github.com/sirupsen/logrus"
@@ -45,7 +47,7 @@ func (svc *service) startNostr(ctx context.Context) error {
 		//Start infinite loop which will be only broken by canceling ctx (SIGINT)
 		var relay *nostr.Relay
 		waitToReconnectSeconds := 0
-
+		var createAppEventListener events.EventSubscriber
 		for i := 0; ; i++ {
 
 			// wait for a delay if any before retrying
@@ -83,25 +85,56 @@ func (svc *service) startNostr(ctx context.Context) error {
 				}).WithError(err).Error("Failed to connect to relay")
 				continue
 			}
-
+			logger.Logger.WithFields(logrus.Fields{
+				"relay_url": relayUrl,
+			}).Info("Connected to the relay")
 			waitToReconnectSeconds = 0
 
-			//publish event with NIP-47 info
-			err = svc.nip47Service.PublishNip47Info(ctx, relay, svc.lnClient)
-			if err != nil {
-				logger.Logger.WithError(err).Error("Could not publish NIP47 info")
+			// register a subscriber for events of "app_created" which handles creation of nostr subscription for new app
+			if createAppEventListener != nil {
+				svc.eventPublisher.RemoveSubscriber(createAppEventListener)
 			}
+			createAppEventListener = &createAppConsumer{svc: svc, relay: relay}
+			svc.eventPublisher.RegisterSubscriber(createAppEventListener)
 
-			logger.Logger.Info("Subscribing to events")
-			sub, err := relay.Subscribe(ctx, svc.createFilters(svc.keys.GetNostrPublicKey()))
-			if err != nil {
-				logger.Logger.WithError(err).Error("Failed to subscribe to events")
-				continue
+			// start each app wallet subscription which have a child derived wallet key
+			svc.startAllExistingAppsWalletSubscriptions(ctx, relay)
+
+			// check if there are still legacy apps in DB
+			var legacyAppCount int64
+			result := svc.db.Model(&db.App{}).Where("wallet_pubkey IS NULL").Count(&legacyAppCount)
+			if result.Error != nil {
+				logger.Logger.WithError(result.Error).Error("Failed to count Legacy Apps")
+				return
 			}
-			err = svc.StartSubscription(sub.Context, sub)
-			if err != nil {
+			if legacyAppCount > 0 {
+				// re-publish single NIP47 event info for legacy apps
+				_, err := svc.GetNip47Service().PublishNip47Info(ctx, relay, svc.keys.GetNostrPublicKey(), svc.keys.GetNostrSecretKey(), svc.lnClient)
+				if err != nil {
+					logger.Logger.WithError(err).Error("Could not publish NIP47 info for legacy apps")
+					continue
+				}
+				logger.Logger.WithField("legacy_app_count", legacyAppCount).Info("Starting legacy app subscription")
+				// legacy single wallet subscription - only subscribe once for all legacy apps
+				// to ensure we do not get duplicate events
+				err = svc.startAppWalletSubscription(ctx, relay, svc.keys.GetNostrPublicKey())
+				if err != nil {
+					//err being non-nil means that we have an error on the websocket error channel. In this case we just try to reconnect.
+					logger.Logger.WithError(err).Error("Got an error from the relay while listening to subscription.")
+					continue
+				}
+				break
+			}
+			select {
+			case <-ctx.Done():
+				logger.Logger.Info("Main context cancelled, exiting...")
+			case <-relay.Context().Done():
 				//err being non-nil means that we have an error on the websocket error channel. In this case we just try to reconnect.
-				logger.Logger.WithError(err).Error("Got an error from the relay while listening to subscription.")
+				if relay.ConnectionError != nil {
+					logger.Logger.WithError(relay.ConnectionError).Error("Got an error from the relay, trying to reconnect")
+				} else {
+					logger.Logger.Error("Relay context cancelled, but no connection error...trying to reconnect")
+				}
 				continue
 			}
 			//err being nil means that the context was canceled and we should exit the program.
@@ -110,6 +143,73 @@ func (svc *service) startNostr(ctx context.Context) error {
 		closeRelay(relay)
 		logger.Logger.Info("Relay subroutine ended")
 	}()
+	return nil
+}
+
+func (svc *service) startAllExistingAppsWalletSubscriptions(ctx context.Context, relay *nostr.Relay) {
+	var apps []db.App
+	result := svc.db.Where("wallet_pubkey IS NOT NULL").Find(&apps)
+	if result.Error != nil {
+		logger.Logger.WithError(result.Error).Error("Failed to fetch App records with non-empty WalletPubkey")
+		return
+	}
+
+	for _, app := range apps {
+		go func(app db.App) {
+			err := svc.startAppWalletSubscription(ctx, relay, *app.WalletPubkey)
+			if err != nil {
+				logger.Logger.WithError(err).WithFields(logrus.Fields{
+					"app_id": app.ID}).Error("Subscription error")
+				return
+			}
+		}(app)
+	}
+}
+
+func (svc *service) startAppWalletSubscription(ctx context.Context, relay *nostr.Relay, appWalletPubKey string) error {
+
+	logger.Logger.Info("Subscribing to events for wallet ", appWalletPubKey)
+	sub, err := relay.Subscribe(ctx, svc.createFilters(appWalletPubKey))
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to subscribe to events")
+		return err
+	}
+
+	// register a subscriber for "app_deleted" events, which handles nostr subscription cancel and nip47 info event deletion
+	deleteEventSubscriber := deleteAppConsumer{nostrSubscription: sub, walletPubkey: appWalletPubKey, svc: svc, relay: relay}
+	svc.eventPublisher.RegisterSubscriber(&deleteEventSubscriber)
+
+	err = svc.StartSubscription(sub.Context, sub)
+	svc.eventPublisher.RemoveSubscriber(&deleteEventSubscriber)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Got an error from the relay while listening to subscription.")
+		return err
+	}
+	return nil
+}
+
+func (svc *service) StartSubscription(ctx context.Context, sub *nostr.Subscription) error {
+	svc.nip47Service.StartNotifier(ctx, sub.Relay, svc.lnClient)
+
+	go func() {
+		// block till EOS is received
+		<-sub.EndOfStoredEvents
+		logger.Logger.Debug("Received EOS")
+
+		// loop through incoming events
+		for event := range sub.Events {
+			go svc.nip47Service.HandleEvent(ctx, sub.Relay, event, svc.lnClient)
+		}
+		logger.Logger.Debug("Relay subscription events channel ended")
+	}()
+
+	<-ctx.Done()
+
+	if sub.Relay.ConnectionError != nil {
+		logger.Logger.WithField("connectionError", sub.Relay.ConnectionError).Error("Relay error")
+		return sub.Relay.ConnectionError
+	}
+	logger.Logger.Info("Exiting subscription...")
 	return nil
 }
 

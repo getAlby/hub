@@ -566,7 +566,7 @@ func (svc *albyOAuthService) LinkAccount(ctx context.Context, lnClient lnclient.
 		scopes = append(scopes, constants.NOTIFICATIONS_SCOPE)
 	}
 
-	app, _, err := apps.NewAppsService(svc.db, svc.eventPublisher).CreateApp(
+	app, _, err := apps.NewAppsService(svc.db, svc.eventPublisher, svc.keys).CreateApp(
 		ALBY_ACCOUNT_APP_NAME,
 		connectionPubkey,
 		budget,
