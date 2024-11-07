@@ -281,7 +281,7 @@ func (svc *albyOAuthService) GetInfo(ctx context.Context) (*AlbyInfo, error) {
 	}, nil
 }
 
-func (svc *albyOAuthService) GetVssToken(ctx context.Context) (string, error) {
+func (svc *albyOAuthService) GetVssAuthToken(ctx context.Context, nodeIdentifier string) (string, error) {
 	token, err := svc.fetchUserToken(ctx)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to fetch user token")
@@ -290,9 +290,24 @@ func (svc *albyOAuthService) GetVssToken(ctx context.Context) (string, error) {
 
 	client := svc.oauthConf.Client(ctx, token)
 
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/internal/users/vss", albyOAuthAPIURL), nil)
+	type vssAuthTokenRequest struct {
+		Identifier string `json:"identifier"`
+	}
+
+	body := bytes.NewBuffer([]byte{})
+	payload := vssAuthTokenRequest{
+		Identifier: nodeIdentifier,
+	}
+	err = json.NewEncoder(body).Encode(&payload)
+
 	if err != nil {
-		logger.Logger.WithError(err).Error("Error creating request for vss endpoint")
+		logger.Logger.WithError(err).Error("Failed to encode request payload")
+		return "", err
+	}
+
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/internal/auth_tokens", albyInternalAPIURL), body)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Error creating request for vss auth token endpoint")
 		return "", err
 	}
 
@@ -300,7 +315,7 @@ func (svc *albyOAuthService) GetVssToken(ctx context.Context) (string, error) {
 
 	res, err := client.Do(req)
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to fetch vss endpoint")
+		logger.Logger.WithError(err).Error("Failed to fetch vss auth token endpoint")
 		return "", err
 	}
 
@@ -315,7 +330,7 @@ func (svc *albyOAuthService) GetVssToken(ctx context.Context) (string, error) {
 		return "", err
 	}
 
-	logger.Logger.WithFields(logrus.Fields{"vssTokenResponse": vssResponse}).Info("Alby vss response")
+	logger.Logger.WithFields(logrus.Fields{"vssTokenResponse": vssResponse}).Info("Alby auth token response")
 	return vssResponse.Token, nil
 }
 
@@ -775,8 +790,7 @@ func (svc *albyOAuthService) createEncryptedChannelBackup(event *events.StaticCh
 		return nil, fmt.Errorf("failed to encode channels backup data:  %w", err)
 	}
 
-	path := []uint32{bip32.FirstHardenedChild}
-	backupKey, err := svc.keys.DeriveKey(path)
+	backupKey, err := svc.keys.DeriveKey([]uint32{bip32.FirstHardenedChild})
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to generate channels backup key")
 		return nil, err

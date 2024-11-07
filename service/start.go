@@ -286,7 +286,7 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 		nodeLastStartTime, _ := svc.cfg.Get("NodeLastStartTime", "")
 
 		// for brand new nodes, consider enabling VSS
-		if nodeLastStartTime == "" {
+		if nodeLastStartTime == "" && svc.cfg.GetEnv().LDKVssUrl != "" {
 			albyUserIdentifier, err := svc.albyOAuthSvc.GetUserIdentifier()
 			if err != nil {
 				logger.Logger.WithError(err).Error("Failed to fetch alby user identifier")
@@ -308,7 +308,12 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 		vssToken := ""
 		vssEnabled, _ := svc.cfg.Get("LdkVssEnabled", "")
 		if vssEnabled == "true" {
-			vssToken, err = svc.albyOAuthSvc.GetVssToken(ctx)
+			vssNodeIdentifier, err := ldk.GetVssNodeIdentifier(svc.keys)
+			if err != nil {
+				logger.Logger.WithError(err).Error("Failed to get VSS node identifier")
+				return err
+			}
+			vssToken, err = svc.albyOAuthSvc.GetVssAuthToken(ctx, vssNodeIdentifier)
 			if err != nil {
 				logger.Logger.WithError(err).Error("Failed to fetch VSS JWT token")
 				return err

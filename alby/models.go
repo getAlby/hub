@@ -23,7 +23,7 @@ type AlbyOAuthService interface {
 	DrainSharedWallet(ctx context.Context, lnClient lnclient.LNClient) error
 	UnlinkAccount(ctx context.Context) error
 	RequestAutoChannel(ctx context.Context, lnClient lnclient.LNClient, isPublic bool) (*AutoChannelResponse, error)
-	GetVssToken(ctx context.Context) (string, error)
+	GetVssAuthToken(ctx context.Context, nodeIdentifier string) (string, error)
 }
 
 type AlbyBalanceResponse struct {

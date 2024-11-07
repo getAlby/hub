@@ -16,6 +16,8 @@ import (
 	"time"
 
 	"github.com/getAlby/ldk-node-go/ldk_node"
+	"github.com/tyler-smith/go-bip32"
+
 	// "github.com/getAlby/hub/ldk_node"
 
 	"encoding/hex"
@@ -29,6 +31,7 @@ import (
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/lsp"
+	"github.com/getAlby/hub/service/keys"
 	"github.com/getAlby/hub/utils"
 )
 
@@ -1782,4 +1785,19 @@ func forceCloseChannelsFromStaticChannelsBackup(node *ldk_node.Node, staticChann
 	}
 
 	node.ForceCloseAllChannelsWithoutBroadcastingTxn()
+}
+
+func GetVssNodeIdentifier(keys keys.Keys) (string, error) {
+	key, err := keys.DeriveKey([]uint32{bip32.FirstHardenedChild + 2})
+
+	if err != nil {
+		return "", err
+	}
+
+	pubkeyBytes, err := key.PublicKey().Serialize()
+	if err != nil {
+		return "", err
+	}
+
+	return hex.EncodeToString(pubkeyBytes[0:3]), nil
 }
