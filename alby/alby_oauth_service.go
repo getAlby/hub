@@ -319,6 +319,10 @@ func (svc *albyOAuthService) GetVssAuthToken(ctx context.Context, nodeIdentifier
 		return "", err
 	}
 
+	if res.StatusCode >= 300 {
+		return "", fmt.Errorf("request to /internal/auth_tokens returned non-success status: %d", res.StatusCode)
+	}
+
 	type vssTokenResponse struct {
 		Token string `json:"token"`
 	}
@@ -328,6 +332,11 @@ func (svc *albyOAuthService) GetVssAuthToken(ctx context.Context, nodeIdentifier
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to decode API response")
 		return "", err
+	}
+
+	if vssResponse.Token == "" {
+		logger.Logger.WithField("vssResponse", vssResponse).WithError(err).Error("No token in API response")
+		return "", errors.New("no token in vss response")
 	}
 
 	return vssResponse.Token, nil
