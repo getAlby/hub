@@ -117,6 +117,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
         budgetRenewal: permissions.budgetRenewal,
         expiresAt: permissions.expiresAt?.toISOString(),
         maxAmount: permissions.maxAmount,
+        isolated: permissions.isolated,
       };
 
       await request(`/api/apps/${app.appPubkey}`, {
@@ -293,13 +294,39 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                           Cancel
                         </Button>
 
-                        <Button type="button" onClick={handleSave}>
-                          Save
-                        </Button>
+                        {app.isolated && !permissions.isolated ? (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button type="button">Save</Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogTitle>Update App</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                <b>
+                                  Are you sure you wish to remove isolation
+                                  status from this app? this could cause loss of
+                                  funds.
+                                </b>
+                              </AlertDialogDescription>
+                              <AlertDialogFooter className="mt-5">
+                                <AlertDialogCancel
+                                  onClick={() => {
+                                    window.location.reload();
+                                  }}
+                                >
+                                  Cancel
+                                </AlertDialogCancel>
+                                <Button onClick={handleSave}>Save</Button>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        ) : (
+                          <Button onClick={handleSave}>Save</Button>
+                        )}
                       </div>
                     )}
 
-                    {!app.isolated && !isEditingPermissions && (
+                    {!isEditingPermissions && (
                       <>
                         <Button
                           variant="outline"

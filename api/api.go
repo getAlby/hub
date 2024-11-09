@@ -57,6 +57,14 @@ func NewAPI(svc service.Service, gormDB *gorm.DB, config config.Config, keys key
 }
 
 func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppResponse, error) {
+	backendType, _ := api.cfg.Get("LNBackendType", "")
+	if createAppRequest.Isolated &&
+		backendType != "LDK" &&
+		backendType != "LND" {
+		return nil, fmt.Errorf(
+			"isolated apps are currently not supported on your node backend. Try LDK or LND")
+	}
+
 	expiresAt, err := api.parseExpiresAt(createAppRequest.ExpiresAt)
 	if err != nil {
 		return nil, fmt.Errorf("invalid expiresAt: %v", err)
@@ -152,6 +160,15 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 			}
 		}
 
+		// Update app isolation if it is not the same
+		if updateAppRequest.Isolated != userApp.Isolated {
+			err := tx.Model(&db.App{}).Where("id", userApp.ID).Update("isolated", updateAppRequest.Isolated).Error
+			if err != nil {
+				return err
+			}
+		}
+
+		// Update the app metadata
 		if updateAppRequest.Metadata != nil {
 			var metadataBytes []byte
 			var err error
@@ -167,7 +184,7 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 		}
 
 		// Update existing permissions with new budget and expiry
-		err := tx.Model(&db.AppPermission{}).Where("app_id", userApp.ID).Updates(map[string]interface{}{
+		err = tx.Model(&db.AppPermission{}).Where("app_id", userApp.ID).Updates(map[string]interface{}{
 			"ExpiresAt":     expiresAt,
 			"MaxAmountSat":  maxAmount,
 			"BudgetRenewal": budgetRenewal,

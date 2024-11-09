@@ -85,6 +85,7 @@ type UpdateAppRequest struct {
 	ExpiresAt     string   `json:"expiresAt"`
 	Scopes        []string `json:"scopes"`
 	Metadata      Metadata `json:"metadata,omitempty"`
+	Isolated      bool     `json:"isolated"`
 }
 
 type TopupIsolatedAppRequest struct {
