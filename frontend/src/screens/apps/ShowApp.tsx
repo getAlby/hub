@@ -294,19 +294,29 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                           Cancel
                         </Button>
 
-                        {app.isolated && !permissions.isolated ? (
+                        {(app.isolated && !permissions.isolated) ||
+                        (!app.scopes.includes("pay_invoice") &&
+                          permissions.scopes.includes("pay_invoice")) ? (
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button type="button">Save</Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
-                              <AlertDialogTitle>Update App</AlertDialogTitle>
+                              <AlertDialogTitle>
+                                Confirm Update App
+                              </AlertDialogTitle>
                               <AlertDialogDescription>
-                                <b>
-                                  Are you sure you wish to remove isolation
-                                  status from this app? this could cause loss of
-                                  funds.
-                                </b>
+                                {app.isolated && !permissions.isolated ? (
+                                  <b>
+                                    Are you sure you wish to remove the isolated
+                                    status from this connection?
+                                  </b>
+                                ) : (
+                                  <b>
+                                    Are you sure you wish to give this
+                                    connection pay permissions?
+                                  </b>
+                                )}
                               </AlertDialogDescription>
                               <AlertDialogFooter className="mt-5">
                                 <AlertDialogCancel
