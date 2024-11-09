@@ -135,7 +135,7 @@ const Scopes: React.FC<ScopesProps> = ({
       newScopes.push(scope);
     }
 
-    onScopesChanged(newScopes, false);
+    onScopesChanged(newScopes, isolated);
   };
 
   return (
@@ -187,7 +187,19 @@ const Scopes: React.FC<ScopesProps> = ({
 
       {scopeGroup == "custom" && (
         <div className="mb-2">
-          <p className="font-medium text-sm">Authorize the app to:</p>
+          <p className="font-medium text-sm mt-4">Isolation</p>
+          <div className="flex items-center mt-2">
+            <Checkbox
+              id="isolated"
+              className="mr-2"
+              onCheckedChange={() => onScopesChanged(scopes, !isolated)}
+              checked={isolated}
+            />
+            <Label htmlFor="isolated" className="cursor-pointer">
+              Isolate this app's balance and transactions
+            </Label>
+          </div>
+          <p className="font-medium text-sm mt-4">Authorize the app to:</p>
           <ul className="flex flex-col w-full mt-2">
             {capabilities.scopes.map((scope, index) => {
               return (

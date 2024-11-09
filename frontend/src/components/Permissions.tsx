@@ -1,4 +1,4 @@
-import { PlusCircle } from "lucide-react";
+import { BrickWall, PlusCircle } from "lucide-react";
 import React from "react";
 import BudgetAmountSelect from "src/components/BudgetAmountSelect";
 import BudgetRenewalSelect from "src/components/BudgetRenewalSelect";
@@ -85,14 +85,6 @@ const Permissions: React.FC<PermissionsProps> = ({
 
   return (
     <div className="max-w-lg">
-      {permissions.isolated && (
-        <p className="mb-4">
-          This app is isolated from the rest of your wallet. This means it will
-          have an isolated balance and only has access to its own transaction
-          history. It will not be able to sign messages on your node's behalf.
-        </p>
-      )}
-
       {!readOnly && !scopesReadOnly ? (
         <Scopes
           capabilities={capabilities}
@@ -103,7 +95,7 @@ const Permissions: React.FC<PermissionsProps> = ({
         />
       ) : (
         <>
-          <p className="text-sm font-medium mb-2">Scopes</p>
+          <p className="text-sm font-medium mb-2">This app can:</p>
           <div className="flex flex-col mb-2">
             {[...permissions.scopes].map((scope) => {
               const PermissionIcon = scopeIconMap[scope];
@@ -121,6 +113,22 @@ const Permissions: React.FC<PermissionsProps> = ({
               );
             })}
           </div>
+        </>
+      )}
+
+      {permissions.isolated && (
+        <>
+          <div className="flex items-center gap-2 mb-2">
+            <BrickWall className="w-4 h-4" />
+            <p className="text-sm font-medium">Isolated App</p>
+          </div>
+
+          <p className="mb-4">
+            This app is isolated from the rest of your wallet. This means it
+            will have an isolated balance and only has access to its own
+            transaction history. It will not be able to sign messages on your
+            node's behalf.
+          </p>
         </>
       )}
 
@@ -187,40 +195,38 @@ const Permissions: React.FC<PermissionsProps> = ({
         </>
       )}
 
-      {!permissions.isolated && (
-        <>
-          {!readOnly && !expiresAtReadOnly ? (
-            <>
-              {!showExpiryOptions && (
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={() => setShowExpiryOptions(true)}
-                >
-                  <PlusCircle className="w-4 h-4 mr-2" />
-                  Set expiration time
-                </Button>
-              )}
+      <>
+        {!readOnly && !expiresAtReadOnly ? (
+          <>
+            {!showExpiryOptions && (
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setShowExpiryOptions(true)}
+              >
+                <PlusCircle className="w-4 h-4 mr-2" />
+                Set expiration time
+              </Button>
+            )}
 
-              {showExpiryOptions && (
-                <ExpirySelect
-                  value={permissions.expiresAt}
-                  onChange={handleExpiryChange}
-                />
-              )}
-            </>
-          ) : (
-            <>
-              <p className="text-sm font-medium mb-2">Connection expiry</p>
-              <p className="text-muted-foreground text-sm">
-                {permissions.expiresAt
-                  ? new Date(permissions.expiresAt).toString()
-                  : "This app will never expire"}
-              </p>
-            </>
-          )}
-        </>
-      )}
+            {showExpiryOptions && (
+              <ExpirySelect
+                value={permissions.expiresAt}
+                onChange={handleExpiryChange}
+              />
+            )}
+          </>
+        ) : (
+          <>
+            <p className="text-sm font-medium mb-2">Connection expiry</p>
+            <p className="text-muted-foreground text-sm">
+              {permissions.expiresAt
+                ? new Date(permissions.expiresAt).toString()
+                : "This app will never expire"}
+            </p>
+          </>
+        )}
+      </>
     </div>
   );
 };
