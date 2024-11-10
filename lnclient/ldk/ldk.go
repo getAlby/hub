@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log"
 	"math"
 	"os"
 	"path/filepath"
@@ -58,7 +57,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	newpath := filepath.Join(workDir)
 	err = os.MkdirAll(newpath, os.ModePerm)
 	if err != nil {
-		log.Printf("Failed to create LDK working dir: %v", err)
+		logger.Logger.WithError(err).Error("Failed to create LDK working dir")
 		return nil, err
 	}
 
@@ -129,7 +128,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	node, err := builder.Build()
 
 	if err != nil {
-		logger.Logger.Errorf("Failed to create LDK node: %v", err)
+		logger.Logger.WithError(err).Error("Failed to create LDK node")
 		return nil, err
 	}
 
@@ -190,7 +189,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 
 	err = node.Start()
 	if err != nil {
-		logger.Logger.Errorf("Failed to start LDK node: %v", err)
+		logger.Logger.WithError(err).Error("Failed to start LDK node")
 		return nil, err
 	}
 
@@ -274,7 +273,9 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 				Port:    uint16(port),
 			})
 			if err != nil {
-				logger.Logger.WithField("peer", peer).WithError(err).Error("Failed to connect to peer")
+				logger.Logger.WithFields(logrus.Fields{
+					"peer": peer,
+				}).WithError(err).Error("Failed to connect to peer")
 			}
 		}
 	}
@@ -472,7 +473,7 @@ func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string) (*lnc
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"bolt11": invoice,
-		}).Errorf("Failed to decode bolt11 invoice: %v", err)
+		}).WithError(err).Error("Failed to decode bolt11 invoice")
 
 		return nil, err
 	}
@@ -512,7 +513,7 @@ func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string) (*lnc
 			logger.Logger.Info("Got payment success event")
 			payment := ls.node.Payment(paymentHash)
 			if payment == nil {
-				logger.Logger.Errorf("Couldn't find payment by payment hash: %v", paymentHash)
+				logger.Logger.WithField("payment_hash", paymentHash).Error("Couldn't find payment by payment hash")
 				return nil, errors.New("payment not found")
 			}
 
@@ -525,7 +526,7 @@ func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string) (*lnc
 			}
 
 			if bolt11PaymentKind.Preimage == nil {
-				logger.Logger.Errorf("No payment preimage for payment hash: %v", paymentHash)
+				logger.Logger.WithField("payment_hash", paymentHash).Error("No payment preimage for payment hash")
 				return nil, errors.New("payment preimage not found")
 			}
 			preimage = *bolt11PaymentKind.Preimage
@@ -690,7 +691,7 @@ func (ls *LDKService) MakeInvoice(ctx context.Context, amount int64, description
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"bolt11": invoice,
-		}).Errorf("Failed to decode bolt11 invoice: %v", err)
+		}).WithError(err).Error("Failed to decode bolt11 invoice")
 
 		return nil, err
 	}
@@ -720,14 +721,14 @@ func (ls *LDKService) LookupInvoice(ctx context.Context, paymentHash string) (tr
 
 	payment := ls.node.Payment(paymentHash)
 	if payment == nil {
-		logger.Logger.Errorf("Couldn't find payment by payment hash: %v", paymentHash)
-		return nil, errors.New("Payment not found")
+		logger.Logger.WithField("payment_hash", paymentHash).Errorf("couldn't find payment by payment hash")
+		return nil, errors.New("payment not found")
 	}
 
 	transaction, err = ls.ldkPaymentToTransaction(payment)
 
 	if err != nil {
-		logger.Logger.Errorf("Failed to map transaction: %v", err)
+		logger.Logger.WithError(err).Error("Failed to map transaction")
 		return nil, err
 	}
 
@@ -1161,7 +1162,7 @@ func (ls *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"bolt11": bolt11Invoice,
-			}).Errorf("Failed to decode bolt11 invoice: %v", err)
+			}).WithError(err).Error("Failed to decode bolt11 invoice")
 
 			return nil, err
 		}
@@ -1240,7 +1241,7 @@ func (ls *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 func (ls *LDKService) SendPaymentProbes(ctx context.Context, invoice string) error {
 	err := ls.node.Bolt11Payment().SendProbes(invoice)
 	if err != nil {
-		logger.Logger.Errorf("Bolt11Payment.SendProbes failed: %v", err)
+		logger.Logger.WithError(err).Error("Bolt11Payment.SendProbes failed")
 		return err
 	}
 
@@ -1250,7 +1251,7 @@ func (ls *LDKService) SendPaymentProbes(ctx context.Context, invoice string) err
 func (ls *LDKService) SendSpontaneousPaymentProbes(ctx context.Context, amountMsat uint64, nodeId string) error {
 	err := ls.node.SpontaneousPayment().SendProbes(amountMsat, nodeId)
 	if err != nil {
-		logger.Logger.Errorf("SpontaneousPayment.SendProbes failed: %v", err)
+		logger.Logger.WithError(err).Error("SpontaneousPayment.SendProbes failed")
 		return err
 	}
 
