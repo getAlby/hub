@@ -139,8 +139,7 @@ export function UncleJim() {
               and keep them somewhere safe.
             </AlertDescription>
           </Alert>
-          <p className="">Onboard {name} to their new wallet:</p>
-          <Accordion type="single" collapsible>
+          <Accordion type="single" collapsible defaultValue="mobile">
             <AccordionItem value="mobile">
               <AccordionTrigger>Alby Go Mobile App</AccordionTrigger>
               <AccordionContent>
