@@ -540,7 +540,17 @@ func (svc *albyOAuthService) GetAuthUrl() string {
 }
 
 func (svc *albyOAuthService) UnlinkAccount(ctx context.Context) error {
-	err := svc.destroyAlbyAccountNWCNode(ctx)
+	ldkVssEnabled, err := svc.cfg.Get("LdkVssEnabled", "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to fetch LdkVssEnabled user config")
+		return err
+	}
+
+	if ldkVssEnabled == "true" {
+		return errors.New("alby account cannot be unlinked while VSS is activated")
+	}
+
+	err = svc.destroyAlbyAccountNWCNode(ctx)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to destroy Alby Account NWC node")
 	}
