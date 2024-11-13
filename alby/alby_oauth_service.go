@@ -372,6 +372,9 @@ func (svc *albyOAuthService) DrainSharedWallet(ctx context.Context, lnClient lnc
 	if amountSat < 1 {
 		return errors.New("not enough balance remaining")
 	}
+	// limit the maximum to 1M sats to ensure the funds can easily be migrated
+	// the user can migrate more if they still have sats left over
+	amountSat = min(amountSat, 1_000_000)
 	amount := uint64(amountSat * 1000)
 
 	logger.Logger.WithField("amount", amount).WithError(err).Error("Draining Alby shared wallet funds")

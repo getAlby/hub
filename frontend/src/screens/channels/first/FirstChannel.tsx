@@ -204,7 +204,7 @@ export function FirstChannel() {
             )}
             <LoadingButton loading={isLoading} onClick={openChannel}>
               Open Channel
-              {canMigrateFunds && <> and Migrate Funds</>}
+              {canMigrateFunds && <> and Transfer Funds</>}
             </LoadingButton>
           </div>
         </>
