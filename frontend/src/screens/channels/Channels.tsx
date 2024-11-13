@@ -278,7 +278,7 @@ export default function Channels() {
                   ])
                 }
               >
-                Migrate
+                Transfer
               </TransferFundsButton>
             </CardFooter>
           </Card>

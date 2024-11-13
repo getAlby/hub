@@ -12,7 +12,7 @@ import { request } from "src/utils/request";
 
 export function OpenedFirstChannel() {
   const { data: albyBalance, mutate: reloadAlbyBalance } = useAlbyBalance();
-  const [, setShowedAlbyMigrationToast] = React.useState(false);
+  const [hasTransferredFunds, setTransferredFunds] = React.useState(false);
   const { toast } = useToast();
 
   // automatically drain Alby balance into new channel if possible
@@ -22,6 +22,14 @@ export function OpenedFirstChannel() {
       if (!albyBalance || albyBalance.sats < ALBY_HIDE_HOSTED_BALANCE_BELOW) {
         return;
       }
+
+      if (hasTransferredFunds && albyBalance.sats > 100_000) {
+        // do not transfer all funds in one go in case the user still has a large number of sats
+        // left over - only transfer if the user has ~1% remaining.
+        // A maximum of 1M sats will be transferred in the first request.
+        return;
+      }
+
       try {
         await request("/api/alby/drain", {
           method: "POST",
@@ -31,7 +39,7 @@ export function OpenedFirstChannel() {
         });
         await reloadAlbyBalance();
         // This may run multiple times (to drain the final 1%), but we should only show a toast once
-        setShowedAlbyMigrationToast((current) => {
+        setTransferredFunds((current) => {
           if (!current) {
             toast({
               description:
@@ -44,7 +52,7 @@ export function OpenedFirstChannel() {
         console.error("Failed to transfer any alby shared wallet funds", error);
       }
     })();
-  }, [albyBalance, reloadAlbyBalance, toast]);
+  }, [albyBalance, hasTransferredFunds, reloadAlbyBalance, toast]);
 
   React.useEffect(() => {
     for (let i = 0; i < 10; i++) {
