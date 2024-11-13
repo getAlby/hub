@@ -688,7 +688,7 @@ func (svc *albyOAuthService) ConsumeEvent(ctx context.Context, event *events.Eve
 	for k, v := range globalProperties {
 		_, exists := eventWithGlobalProperties.Properties[k]
 		if exists {
-			logger.Logger.WithField("key", k).Error("Key already exists in event properties, skipping global property")
+			logger.Logger.WithField("key", k).Debug("Key already exists in event properties, skipping global property")
 			continue
 		}
 		eventWithGlobalProperties.Properties[k] = v
