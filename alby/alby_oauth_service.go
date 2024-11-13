@@ -231,7 +231,7 @@ func (svc *albyOAuthService) fetchUserToken(ctx context.Context) (*oauth2.Token,
 
 	newToken, err := svc.oauthConf.TokenSource(ctx, currentToken).Token()
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to refresh existing token")
+		logger.Logger.WithError(err).Warn("Failed to refresh existing token")
 		return nil, err
 	}
 
