@@ -51,7 +51,7 @@ export function BuzzPay() {
         });
 
         setPosUrl(
-          `https://pos.albylabs.com/#/?nwc=${btoa(createAppResponse.pairingUri)}&name=${encodeURIComponent(name)}`
+          `https://pos.albylabs.com/#/?nwc=${btoa(createAppResponse.pairingUri)}&label=${encodeURIComponent(name)}`
         );
 
         await reloadApps();
