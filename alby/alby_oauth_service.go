@@ -282,6 +282,7 @@ func (svc *albyOAuthService) GetInfo(ctx context.Context) (*AlbyInfo, error) {
 }
 
 func (svc *albyOAuthService) GetVssAuthToken(ctx context.Context, nodeIdentifier string) (string, error) {
+	logger.Logger.WithField("node_identifier", nodeIdentifier).Debug("fetching VSS token")
 	token, err := svc.fetchUserToken(ctx)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to fetch user token")
