@@ -2,6 +2,7 @@ package ldk
 
 import (
 	"context"
+	"crypto/sha256"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -1794,10 +1795,11 @@ func GetVssNodeIdentifier(keys keys.Keys) (string, error) {
 		return "", err
 	}
 
-	pubkeyBytes, err := key.PublicKey().Serialize()
-	if err != nil {
-		return "", err
-	}
-
-	return hex.EncodeToString(pubkeyBytes[0:3]), nil
+	// return a 6-character hex string of the hash of a derived key to ensure if same user
+	// runs multiple hubs with different mnemonics, they are all
+	// saved in the VSS under different user_tokens.
+	pubkeyHash256 := sha256.New()
+	pubkeyHash256.Write(key.Key)
+	pubkeyHashBytes := pubkeyHash256.Sum(nil)
+	return hex.EncodeToString(pubkeyHashBytes[0:3]), nil
 }
