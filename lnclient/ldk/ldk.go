@@ -2,6 +2,7 @@ package ldk
 
 import (
 	"context"
+	"crypto/sha256"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -15,6 +16,8 @@ import (
 	"time"
 
 	"github.com/getAlby/ldk-node-go/ldk_node"
+	"github.com/tyler-smith/go-bip32"
+
 	// "github.com/getAlby/hub/ldk_node"
 
 	"encoding/hex"
@@ -28,6 +31,7 @@ import (
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/lsp"
+	"github.com/getAlby/hub/service/keys"
 	"github.com/getAlby/hub/utils"
 )
 
@@ -48,7 +52,8 @@ type LDKService struct {
 
 const resetRouterKey = "ResetRouter"
 
-func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events.EventPublisher, mnemonic, workDir string, network string, staticChannelsBackup *events.StaticChannelsBackupEvent, restoredFromSeed bool) (result lnclient.LNClient, err error) {
+// TODO: remove staticChannelsBackup *events.StaticChannelsBackupEvent, restoredFromSeed bool (we have a dedicated SCB recovery tool)
+func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events.EventPublisher, mnemonic, workDir string, network string, staticChannelsBackup *events.StaticChannelsBackupEvent, restoredFromSeed bool, vssToken string) (result lnclient.LNClient, err error) {
 	if mnemonic == "" || workDir == "" {
 		return nil, errors.New("one or more required LDK configuration are missing")
 	}
@@ -125,7 +130,17 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		builder.RestoreEncodedChannelMonitors(getEncodedChannelMonitorsFromStaticChannelsBackup(staticChannelsBackup))
 	}
 
-	node, err := builder.Build()
+	logger.Logger.WithFields(logrus.Fields{
+		"vss": vssToken != "",
+	}).Info("Creating node")
+	var node *ldk_node.Node
+	if vssToken != "" {
+		node, err = builder.BuildWithVssStoreAndFixedHeaders(cfg.GetEnv().LDKVssUrl, "albyhub", map[string]string{
+			"Authorization": fmt.Sprintf("Bearer %s", vssToken),
+		})
+	} else {
+		node, err = builder.Build()
+	}
 
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to create LDK node")
@@ -1772,4 +1787,20 @@ func forceCloseChannelsFromStaticChannelsBackup(node *ldk_node.Node, staticChann
 	}
 
 	node.ForceCloseAllChannelsWithoutBroadcastingTxn()
+}
+
+func GetVssNodeIdentifier(keys keys.Keys) (string, error) {
+	key, err := keys.DeriveKey([]uint32{bip32.FirstHardenedChild + 2})
+
+	if err != nil {
+		return "", err
+	}
+
+	// return a 6-character hex string of the hash of a derived key to ensure if same user
+	// runs multiple hubs with different mnemonics, they are all
+	// saved in the VSS under different user_tokens.
+	pubkeyHash256 := sha256.New()
+	pubkeyHash256.Write(key.Key)
+	pubkeyHashBytes := pubkeyHash256.Sum(nil)
+	return hex.EncodeToString(pubkeyHashBytes[0:3]), nil
 }

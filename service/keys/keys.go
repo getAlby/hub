@@ -115,6 +115,9 @@ func (keys *keys) GetAppWalletKey(appID uint) (string, error) {
 }
 
 func (keys *keys) DeriveKey(path []uint32) (*bip32.Key, error) {
+	if len(path) == 0 {
+		return nil, errors.New("path must have at least one element")
+	}
 	if keys.appKey == nil {
 		return nil, errors.New("app key not set")
 	}

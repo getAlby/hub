@@ -280,10 +280,16 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 		LNDMacaroonHex, _ := svc.cfg.Get("LNDMacaroonHex", encryptionKey)
 		lnClient, err = lnd.NewLNDService(ctx, svc.eventPublisher, LNDAddress, LNDCertHex, LNDMacaroonHex)
 	case config.LDKBackendType:
-		Mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
-		LDKWorkdir := path.Join(svc.cfg.GetEnv().Workdir, "ldk")
+		mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
+		ldkWorkdir := path.Join(svc.cfg.GetEnv().Workdir, "ldk")
+		var vssToken string
+		vssToken, err = svc.requestVssToken(ctx)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to request VSS token")
+			return err
+		}
 
-		lnClient, err = ldk.NewLDKService(ctx, svc.cfg, svc.eventPublisher, Mnemonic, LDKWorkdir, svc.cfg.GetEnv().LDKNetwork, nil, false)
+		lnClient, err = ldk.NewLDKService(ctx, svc.cfg, svc.eventPublisher, mnemonic, ldkWorkdir, svc.cfg.GetEnv().LDKNetwork, nil, false, vssToken)
 	case config.GreenlightBackendType:
 		Mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
 		GreenlightInviteCode, _ := svc.cfg.Get("GreenlightInviteCode", encryptionKey)
@@ -362,4 +368,44 @@ func closeRelay(relay *nostr.Relay) {
 			}
 		}()
 	}
+}
+
+func (svc *service) requestVssToken(ctx context.Context) (string, error) {
+	nodeLastStartTime, _ := svc.cfg.Get("NodeLastStartTime", "")
+
+	// for brand new nodes, consider enabling VSS
+	if nodeLastStartTime == "" && svc.cfg.GetEnv().LDKVssUrl != "" {
+		albyUserIdentifier, err := svc.albyOAuthSvc.GetUserIdentifier()
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to fetch alby user identifier")
+			return "", err
+		}
+		if albyUserIdentifier != "" {
+			me, err := svc.albyOAuthSvc.GetMe(ctx)
+			if err != nil {
+				logger.Logger.WithError(err).Error("Failed to fetch alby user")
+				return "", err
+			}
+			// only activate VSS for Alby paid subscribers
+			if me.Subscription.Buzz {
+				svc.cfg.SetUpdate("LdkVssEnabled", "true", "")
+			}
+		}
+	}
+
+	vssToken := ""
+	vssEnabled, _ := svc.cfg.Get("LdkVssEnabled", "")
+	if vssEnabled == "true" {
+		vssNodeIdentifier, err := ldk.GetVssNodeIdentifier(svc.keys)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to get VSS node identifier")
+			return "", err
+		}
+		vssToken, err = svc.albyOAuthSvc.GetVssAuthToken(ctx, vssNodeIdentifier)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to fetch VSS JWT token")
+			return "", err
+		}
+	}
+	return vssToken, nil
 }

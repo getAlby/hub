@@ -281,6 +281,68 @@ func (svc *albyOAuthService) GetInfo(ctx context.Context) (*AlbyInfo, error) {
 	}, nil
 }
 
+func (svc *albyOAuthService) GetVssAuthToken(ctx context.Context, nodeIdentifier string) (string, error) {
+	logger.Logger.WithField("node_identifier", nodeIdentifier).Debug("fetching VSS token")
+	token, err := svc.fetchUserToken(ctx)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to fetch user token")
+		return "", err
+	}
+
+	client := svc.oauthConf.Client(ctx, token)
+
+	type vssAuthTokenRequest struct {
+		Identifier string `json:"identifier"`
+	}
+
+	body := bytes.NewBuffer([]byte{})
+	payload := vssAuthTokenRequest{
+		Identifier: nodeIdentifier,
+	}
+	err = json.NewEncoder(body).Encode(&payload)
+
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to encode request payload")
+		return "", err
+	}
+
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/internal/auth_tokens", albyOAuthAPIURL), body)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Error creating request for vss auth token endpoint")
+		return "", err
+	}
+
+	setDefaultRequestHeaders(req)
+
+	res, err := client.Do(req)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to fetch vss auth token endpoint")
+		return "", err
+	}
+
+	if res.StatusCode >= 300 {
+		return "", fmt.Errorf("request to /internal/auth_tokens returned non-success status: %d", res.StatusCode)
+	}
+
+	type vssTokenResponse struct {
+		Token string `json:"token"`
+	}
+
+	vssResponse := &vssTokenResponse{}
+	err = json.NewDecoder(res.Body).Decode(vssResponse)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to decode API response")
+		return "", err
+	}
+
+	if vssResponse.Token == "" {
+		logger.Logger.WithField("vssResponse", vssResponse).WithError(err).Error("No token in API response")
+		return "", errors.New("no token in vss response")
+	}
+
+	return vssResponse.Token, nil
+}
+
 func (svc *albyOAuthService) GetMe(ctx context.Context) (*AlbyMe, error) {
 	token, err := svc.fetchUserToken(ctx)
 	if err != nil {
@@ -482,7 +544,17 @@ func (svc *albyOAuthService) GetAuthUrl() string {
 }
 
 func (svc *albyOAuthService) UnlinkAccount(ctx context.Context) error {
-	err := svc.destroyAlbyAccountNWCNode(ctx)
+	ldkVssEnabled, err := svc.cfg.Get("LdkVssEnabled", "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to fetch LdkVssEnabled user config")
+		return err
+	}
+
+	if ldkVssEnabled == "true" {
+		return errors.New("alby account cannot be unlinked while VSS is activated")
+	}
+
+	err = svc.destroyAlbyAccountNWCNode(ctx)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to destroy Alby Account NWC node")
 	}
@@ -740,8 +812,7 @@ func (svc *albyOAuthService) createEncryptedChannelBackup(event *events.StaticCh
 		return nil, fmt.Errorf("failed to encode channels backup data:  %w", err)
 	}
 
-	path := []uint32{bip32.FirstHardenedChild}
-	backupKey, err := svc.keys.DeriveKey(path)
+	backupKey, err := svc.keys.DeriveKey([]uint32{bip32.FirstHardenedChild})
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to generate channels backup key")
 		return nil, err
