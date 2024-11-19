@@ -4,8 +4,16 @@ import Loading from "src/components/Loading";
 import TransactionItem from "src/components/TransactionItem";
 import { useTransactions } from "src/hooks/useTransactions";
 
-function TransactionsList() {
-  const { data: transactions, isLoading } = useTransactions();
+type TransactionsListProps = {
+  appId?: number;
+  showReceiveButton?: boolean;
+};
+
+function TransactionsList({
+  appId,
+  showReceiveButton = true,
+}: TransactionsListProps) {
+  const { data: transactions, isLoading } = useTransactions(appId);
 
   if (isLoading) {
     return <Loading />;
@@ -20,6 +28,7 @@ function TransactionsList() {
           description="Your most recent incoming and outgoing payments will show up here."
           buttonText="Receive Your First Payment"
           buttonLink="/wallet/receive"
+          showButton={showReceiveButton}
         />
       ) : (
         <>
