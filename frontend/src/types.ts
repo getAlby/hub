@@ -403,7 +403,18 @@ export type Transaction = {
   feesPaid: number;
   createdAt: string;
   settledAt: string | undefined;
-  metadata?: Record<string, unknown>;
+  metadata?: {
+    comment?: string; // LUD-12
+    payer_data?: {
+      email?: string;
+      name?: string;
+      pubkey?: string;
+    }; // LUD-18
+    nostr?: {
+      pubkey: string;
+      tags: string[][];
+    }; // NIP-57
+  } & Record<string, unknown>;
   boostagram?: Boostagram;
 };
 
