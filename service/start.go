@@ -192,10 +192,6 @@ func (svc *service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 	svc.nip47Service.StartNotifier(ctx, sub.Relay, svc.lnClient)
 
 	go func() {
-		// block till EOS is received
-		<-sub.EndOfStoredEvents
-		logger.Logger.Debug("Received EOS")
-
 		// loop through incoming events
 		for event := range sub.Events {
 			go svc.nip47Service.HandleEvent(ctx, sub.Relay, event, svc.lnClient)
