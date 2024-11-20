@@ -796,7 +796,7 @@ func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount 
 			if amountWithFeeReserve > balance {
 				message := NewInsufficientBalanceError().Error()
 				if description != "" {
-					message += " Invoice description: " + description
+					message += " " + description
 				}
 
 				svc.eventPublisher.Publish(&events.Event{
@@ -816,7 +816,7 @@ func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount 
 			if int(amountWithFeeReserve/1000) > appPermission.MaxAmountSat-int(budgetUsageSat) {
 				message := NewQuotaExceededError().Error()
 				if description != "" {
-					message += " Invoice description: " + description
+					message += " " + description
 				}
 				svc.eventPublisher.Publish(&events.Event{
 					Event: "nwc_permission_denied",
