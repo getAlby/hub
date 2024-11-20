@@ -90,7 +90,7 @@ func (svc *service) startNostr(ctx context.Context) error {
 			}).Info("Connected to the relay")
 			waitToReconnectSeconds = 0
 
-			// register a subscriber for events of "app_created" which handles creation of nostr subscription for new app
+			// register a subscriber for events of "nwc_app_created" which handles creation of nostr subscription for new app
 			if createAppEventListener != nil {
 				svc.eventPublisher.RemoveSubscriber(createAppEventListener)
 			}
@@ -175,7 +175,7 @@ func (svc *service) startAppWalletSubscription(ctx context.Context, relay *nostr
 		return err
 	}
 
-	// register a subscriber for "app_deleted" events, which handles nostr subscription cancel and nip47 info event deletion
+	// register a subscriber for "nwc_app_deleted" events, which handles nostr subscription cancel and nip47 info event deletion
 	deleteEventSubscriber := deleteAppConsumer{nostrSubscription: sub, walletPubkey: appWalletPubKey, svc: svc, relay: relay}
 	svc.eventPublisher.RegisterSubscriber(&deleteEventSubscriber)
 

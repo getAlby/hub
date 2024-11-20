@@ -117,7 +117,7 @@ func (svc *appsService) CreateApp(name string, pubkey string, maxAmountSat uint6
 	}
 
 	svc.eventPublisher.Publish(&events.Event{
-		Event: "app_created",
+		Event: "nwc_app_created",
 		Properties: map[string]interface{}{
 			"name": name,
 			"id":   app.ID,
@@ -134,7 +134,7 @@ func (svc *appsService) DeleteApp(app *db.App) error {
 		return err
 	}
 	svc.eventPublisher.Publish(&events.Event{
-		Event: "app_deleted",
+		Event: "nwc_app_deleted",
 		Properties: map[string]interface{}{
 			"name": app.Name,
 			"id":   app.ID,

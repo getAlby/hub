@@ -957,7 +957,47 @@ func (svc *transactionsService) markTransactionSettled(tx *gorm.DB, dbTransactio
 		Properties: dbTransaction,
 	})
 
+	if dbTransaction.Type == constants.TRANSACTION_TYPE_OUTGOING && dbTransaction.AppId != nil {
+		svc.checkBudgetUsage(dbTransaction)
+	}
+
 	return dbTransaction, nil
+}
+
+func (svc *transactionsService) checkBudgetUsage(dbTransaction *db.Transaction) {
+	var app db.App
+	result := svc.db.Limit(1).Find(&app, &db.App{
+		ID: *dbTransaction.AppId,
+	})
+	if result.RowsAffected == 0 {
+		logger.Logger.WithField("app_id", dbTransaction.AppId).Error("failed to find app by id")
+		return
+	}
+	if app.Isolated {
+		return
+	}
+
+	var appPermission db.AppPermission
+	result = svc.db.Limit(1).Find(&appPermission, &db.AppPermission{
+		AppId: app.ID,
+		Scope: constants.PAY_INVOICE_SCOPE,
+	})
+	if result.RowsAffected == 0 {
+		logger.Logger.WithField("app_id", dbTransaction.AppId).Error("failed to find pay_invoice scope")
+		return
+	}
+
+	budgetUsage := queries.GetBudgetUsageSat(svc.db, &appPermission)
+	warningUsage := uint64(math.Floor(float64(appPermission.MaxAmountSat) * 0.8))
+	if budgetUsage >= warningUsage && budgetUsage-dbTransaction.AmountMsat/1000 < warningUsage {
+		svc.eventPublisher.Publish(&events.Event{
+			Event: "nwc_budget_warning",
+			Properties: map[string]interface{}{
+				"name": app.Name,
+				"id":   app.ID,
+			},
+		})
+	}
 }
 
 func (svc *transactionsService) markPaymentFailed(tx *gorm.DB, dbTransaction *db.Transaction, reason string) error {

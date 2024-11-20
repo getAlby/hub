@@ -1,12 +1,13 @@
 package tests
 
 import (
+	"time"
+
 	db "github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/events"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip04"
 	"gorm.io/gorm"
-	"time"
 )
 
 func CreateApp(svc *TestService) (app *db.App, ss []byte, err error) {
@@ -57,7 +58,7 @@ func CreateLegacyApp(svc *TestService, senderPrivkey string) (app *db.App, ss []
 	}
 
 	svc.EventPublisher.Publish(&events.Event{
-		Event: "app_created",
+		Event: "nwc_app_created",
 		Properties: map[string]interface{}{
 			"name": "test",
 			"id":   app.ID,
