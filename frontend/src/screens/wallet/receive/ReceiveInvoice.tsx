@@ -1,4 +1,3 @@
-import confetti from "canvas-confetti";
 import { AlertTriangle, CircleCheck, CopyIcon } from "lucide-react";
 import React from "react";
 import { Link } from "react-router-dom";
@@ -48,7 +47,6 @@ export default function ReceiveInvoice() {
   React.useEffect(() => {
     if (invoiceData?.settledAt) {
       setPaymentDone(true);
-      popConfetti();
       toast({
         title: "Payment received!",
       });
@@ -96,23 +94,6 @@ export default function ReceiveInvoice() {
 
   const copy = () => {
     copyToClipboard(transaction?.invoice as string, toast);
-  };
-
-  const popConfetti = () => {
-    for (let i = 0; i < 10; i++) {
-      setTimeout(
-        () => {
-          confetti({
-            origin: {
-              x: Math.random(),
-              y: Math.random(),
-            },
-            colors: ["#000", "#333", "#666", "#999", "#BBB", "#FFF"],
-          });
-        },
-        Math.floor(Math.random() * 1000)
-      );
-    }
   };
 
   return (
