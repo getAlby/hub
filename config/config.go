@@ -67,7 +67,7 @@ func (cfg *config) init(env *AppConfig) error {
 			return err
 		}
 		certHex := hex.EncodeToString(certBytes)
-		err = cfg.SetIgnore("LNDCertHex", certHex, "")
+		err = cfg.SetUpdate("LNDCertHex", certHex, "")
 		if err != nil {
 			return err
 		}
