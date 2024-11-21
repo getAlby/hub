@@ -25,6 +25,7 @@ import { useChannelPeerSuggestions } from "src/hooks/useChannelPeerSuggestions";
 import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
 import { cn, formatAmount } from "src/lib/utils";
+import { ChannelPublicPrivateAlert } from "src/screens/channels/ChannelPublicPrivateAlert";
 import useChannelOrderStore from "src/state/ChannelOrderStore";
 import {
   Channel,
@@ -369,6 +370,9 @@ function NewChannelInternal({
               <ChevronDown className="w-4 h-4 mr-2" />
               Advanced Options
             </Button>
+          )}
+          {channels?.some((channel) => channel.public !== !!order.isPublic) && (
+            <ChannelPublicPrivateAlert />
           )}
           <Button size="lg">Next</Button>
         </form>

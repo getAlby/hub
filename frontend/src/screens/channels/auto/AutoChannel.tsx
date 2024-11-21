@@ -18,6 +18,7 @@ import { AutoChannelRequest, AutoChannelResponse } from "src/types";
 import { request } from "src/utils/request";
 
 import { MempoolAlert } from "src/components/MempoolAlert";
+import { ChannelPublicPrivateAlert } from "src/screens/channels/ChannelPublicPrivateAlert";
 
 export function AutoChannel() {
   const { data: info } = useInfo();
@@ -189,6 +190,9 @@ export function AutoChannel() {
                   <ChevronDown className="w-4 h-4 ml-1" />
                 </Button>
               </div>
+            )}
+            {channels?.some((channel) => channel.public !== !!isPublic) && (
+              <ChannelPublicPrivateAlert />
             )}
             <LoadingButton loading={isLoading} onClick={openChannel}>
               Open Channel
