@@ -208,7 +208,7 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 			return errors.New("this invoice has already been paid")
 		}
 
-		err := svc.validateCanPay(tx, appId, uint64(paymentRequest.MSatoshi))
+		err := svc.validateCanPay(tx, appId, uint64(paymentRequest.MSatoshi), paymentRequest.Description)
 		if err != nil {
 			return err
 		}
@@ -287,7 +287,6 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 }
 
 func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []lnclient.TLVRecord, preimage string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
-
 	if preimage == "" {
 		preImageBytes, err := makePreimageHex()
 		if err != nil {
@@ -326,7 +325,7 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 	selfPayment := destination == lnClient.GetPubkey()
 
 	err = svc.db.Transaction(func(tx *gorm.DB) error {
-		err := svc.validateCanPay(tx, appId, amount)
+		err := svc.validateCanPay(tx, appId, amount, "")
 		if err != nil {
 			return err
 		}
@@ -769,7 +768,7 @@ func (svc *transactionsService) interceptSelfPayment(paymentHash string) (*lncli
 	}, nil
 }
 
-func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount uint64) error {
+func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount uint64, description string) error {
 	amountWithFeeReserve := amount + svc.calculateFeeReserveMsat(amount)
 
 	// ensure balance for isolated apps
@@ -795,12 +794,17 @@ func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount 
 			balance := queries.GetIsolatedBalance(tx, appPermission.AppId)
 
 			if amountWithFeeReserve > balance {
+				message := NewInsufficientBalanceError().Error()
+				if description != "" {
+					message += " " + description
+				}
+
 				svc.eventPublisher.Publish(&events.Event{
 					Event: "nwc_permission_denied",
 					Properties: map[string]interface{}{
 						"app_name": app.Name,
 						"code":     constants.ERROR_INSUFFICIENT_BALANCE,
-						"message":  NewInsufficientBalanceError().Error(),
+						"message":  message,
 					},
 				})
 				return NewInsufficientBalanceError()
@@ -810,12 +814,16 @@ func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount 
 		if appPermission.MaxAmountSat > 0 {
 			budgetUsageSat := queries.GetBudgetUsageSat(tx, &appPermission)
 			if int(amountWithFeeReserve/1000) > appPermission.MaxAmountSat-int(budgetUsageSat) {
+				message := NewQuotaExceededError().Error()
+				if description != "" {
+					message += " " + description
+				}
 				svc.eventPublisher.Publish(&events.Event{
 					Event: "nwc_permission_denied",
 					Properties: map[string]interface{}{
 						"app_name": app.Name,
 						"code":     constants.ERROR_QUOTA_EXCEEDED,
-						"message":  NewQuotaExceededError().Error(),
+						"message":  message,
 					},
 				})
 				return NewQuotaExceededError()

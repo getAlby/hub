@@ -88,7 +88,8 @@ func TestSendPaymentSync_IsolatedApp_BalanceInsufficient(t *testing.T) {
 	assert.Equal(t, "nwc_permission_denied", mockEventConsumer.GetConsumeEvents()[0].Event)
 	assert.Equal(t, app.Name, mockEventConsumer.GetConsumeEvents()[0].Properties.(map[string]interface{})["app_name"])
 	assert.Equal(t, constants.ERROR_INSUFFICIENT_BALANCE, mockEventConsumer.GetConsumeEvents()[0].Properties.(map[string]interface{})["code"])
-	assert.Equal(t, NewInsufficientBalanceError().Error(), mockEventConsumer.GetConsumeEvents()[0].Properties.(map[string]interface{})["message"])
+	expectedMessage := NewInsufficientBalanceError().Error() + " te" // invoice description is "te" in the mock invoice
+	assert.Equal(t, expectedMessage, mockEventConsumer.GetConsumeEvents()[0].Properties.(map[string]interface{})["message"])
 }
 
 func TestSendPaymentSync_IsolatedApp_BalanceSufficient(t *testing.T) {
