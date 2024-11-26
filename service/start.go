@@ -73,7 +73,7 @@ func (svc *service) startNostr(ctx context.Context) error {
 				"iteration": i,
 			}).Info("Connecting to the relay")
 
-			relay, err = nostr.RelayConnect(ctx, relayUrl, nostr.WithNoticeHandler(svc.noticeHandler))
+			relay, err = svc.relayConnect(ctx, relayUrl)
 			if err != nil {
 				// exponential backoff from 2 - 60 seconds
 				waitToReconnectSeconds = max(waitToReconnectSeconds, 1)
@@ -347,6 +347,22 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 	})
 
 	return nil
+}
+
+func (svc *service) relayConnect(ctx context.Context, relayUrl string) (*nostr.Relay, error) {
+	var err error
+	var relay *nostr.Relay
+	func() {
+		defer func() {
+			if r := recover(); r != nil {
+				logger.Logger.WithField("r", r).Error("Recovered from panic when connecting to relay")
+				err = fmt.Errorf("panic occurred when connecting to relay: %v", r)
+			}
+		}()
+
+		relay, err = nostr.RelayConnect(ctx, relayUrl, nostr.WithNoticeHandler(svc.noticeHandler))
+	}()
+	return relay, err
 }
 
 func closeRelay(relay *nostr.Relay) {
