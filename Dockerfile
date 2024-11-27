@@ -3,7 +3,7 @@ WORKDIR /build
 COPY frontend ./frontend
 RUN cd frontend && yarn install --network-timeout 3000000 && yarn build:http
 
-FROM golang:1.22.2 as builder
+FROM golang:1.23.1 as builder
 
 ARG TARGETPLATFORM
 ARG BUILDPLATFORM
