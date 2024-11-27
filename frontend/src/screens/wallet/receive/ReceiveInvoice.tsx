@@ -47,9 +47,6 @@ export default function ReceiveInvoice() {
   React.useEffect(() => {
     if (invoiceData?.settledAt) {
       setPaymentDone(true);
-      toast({
-        title: "Payment received!",
-      });
     }
   }, [invoiceData, toast]);
 

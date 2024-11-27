@@ -50,6 +50,7 @@ import { useAlbyMe } from "src/hooks/useAlbyMe";
 
 import { useAlbyInfo } from "src/hooks/useAlbyInfo";
 import { useInfo } from "src/hooks/useInfo";
+import { useNotifyReceivedPayments } from "src/hooks/useNotifyReceivedPayments";
 import { useRemoveSuccessfulChannelOrder } from "src/hooks/useRemoveSuccessfulChannelOrder";
 import { deleteAuthToken } from "src/lib/auth";
 import { cn } from "src/lib/utils";
@@ -65,6 +66,7 @@ export default function AppLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   useRemoveSuccessfulChannelOrder();
+  useNotifyReceivedPayments();
 
   const _isHttpMode = isHttpMode();
 
