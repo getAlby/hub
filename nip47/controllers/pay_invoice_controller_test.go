@@ -21,7 +21,8 @@ const nip47PayInvoiceJson = `
 {
 	"method": "pay_invoice",
 	"params": {
-		"invoice": "lntb1230n1pjypux0pp5xgxzcks5jtx06k784f9dndjh664wc08ucrganpqn52d0ftrh9n8sdqyw3jscqzpgxqyz5vqsp5rkx7cq252p3frx8ytjpzc55rkgyx2mfkzzraa272dqvr2j6leurs9qyyssqhutxa24r5hqxstchz5fxlslawprqjnarjujp5sm3xj7ex73s32sn54fthv2aqlhp76qmvrlvxppx9skd3r5ut5xutgrup8zuc6ay73gqmra29m"
+		"invoice": "lntb1230n1pjypux0pp5xgxzcks5jtx06k784f9dndjh664wc08ucrganpqn52d0ftrh9n8sdqyw3jscqzpgxqyz5vqsp5rkx7cq252p3frx8ytjpzc55rkgyx2mfkzzraa272dqvr2j6leurs9qyyssqhutxa24r5hqxstchz5fxlslawprqjnarjujp5sm3xj7ex73s32sn54fthv2aqlhp76qmvrlvxppx9skd3r5ut5xutgrup8zuc6ay73gqmra29m",
+		"metadata": {"a": 123}
 	}
 }
 `
@@ -72,6 +73,18 @@ func TestHandlePayInvoiceEvent(t *testing.T) {
 		HandlePayInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse, nostr.Tags{})
 
 	assert.Equal(t, "123preimage", publishedResponse.Result.(payResponse).Preimage)
+
+	transactionType := constants.TRANSACTION_TYPE_OUTGOING
+	transaction, err := transactionsSvc.LookupTransaction(ctx, "320c2c5a1492ccfd5bc7aa4ad9b657d6aaec3cfcc0d1d98413a29af4ac772ccf", &transactionType, svc.LNClient, &app.ID)
+	assert.NoError(t, err)
+
+	type dummyMetadata struct {
+		A int `json:"a"`
+	}
+	var decodedMetadata dummyMetadata
+	err = json.Unmarshal(transaction.Metadata, &decodedMetadata)
+	assert.NoError(t, err)
+	assert.Equal(t, 123, decodedMetadata.A)
 }
 
 func TestHandlePayInvoiceEvent_MalformedInvoice(t *testing.T) {
