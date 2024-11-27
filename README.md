@@ -486,6 +486,9 @@ Internally Alby Hub uses a basic implementation of the pubsub messaging pattern 
     - `nwc_payment_failed` - failed to make a lightning payment
     - `nwc_payment_sent` - successfully made a lightning payment
     - `nwc_payment_received` - received a lightning payment
+    - `nwc_budget_warning` - successfully made a lightning payment, but budget is nearly exceeded
+    - `nwc_app_created` - a new app connection was created
+    - `nwc_app_deleted` - a new app connection was deleted
     - `nwc_lnclient_*` - underlying LNClient events, consumed only by the transactions service.
 
 ### NIP-47 Handlers
