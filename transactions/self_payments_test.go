@@ -390,14 +390,14 @@ func TestSendPaymentSync_SelfPayment_IsolatedAppToIsolatedApp(t *testing.T) {
 	assert.Equal(t, uint64(10000), queries.GetIsolatedBalance(svc.DB, app.ID))
 
 	// check notifications
-	assert.Equal(t, 2, len(mockEventConsumer.GetConsumeEvents()))
+	assert.Equal(t, 2, len(mockEventConsumer.GetConsumedEvents()))
 
-	assert.Equal(t, "nwc_payment_sent", mockEventConsumer.GetConsumeEvents()[1].Event)
-	settledTransaction := mockEventConsumer.GetConsumeEvents()[1].Properties.(*db.Transaction)
+	assert.Equal(t, "nwc_payment_sent", mockEventConsumer.GetConsumedEvents()[1].Event)
+	settledTransaction := mockEventConsumer.GetConsumedEvents()[1].Properties.(*db.Transaction)
 	assert.Equal(t, transaction.ID, settledTransaction.ID)
 
-	assert.Equal(t, "nwc_payment_received", mockEventConsumer.GetConsumeEvents()[0].Event)
-	receivedTransaction := mockEventConsumer.GetConsumeEvents()[0].Properties.(*db.Transaction)
+	assert.Equal(t, "nwc_payment_received", mockEventConsumer.GetConsumedEvents()[0].Event)
+	receivedTransaction := mockEventConsumer.GetConsumedEvents()[0].Properties.(*db.Transaction)
 	assert.Equal(t, incomingTransaction.ID, receivedTransaction.ID)
 }
 
