@@ -141,6 +141,7 @@ export interface InfoResponse {
   setupCompleted: boolean;
   oauthRedirect: boolean;
   albyAccountConnected: boolean;
+  ldkVssEnabled: boolean;
   running: boolean;
   albyAuthUrl: string;
   nextBackupReminder: string;

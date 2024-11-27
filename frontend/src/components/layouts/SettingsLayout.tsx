@@ -113,6 +113,9 @@ export default function SettingsLayout() {
             )}
             <MenuItem to="/settings/developer">Developer</MenuItem>
             <MenuItem to="/settings/debug-tools">Debug Tools</MenuItem>
+            {info?.backendType === "LDK" && (
+              <MenuItem to="/settings/vss">VSS</MenuItem>
+            )}
           </nav>
         </aside>
         <div className="flex-1 lg:max-w-2xl">

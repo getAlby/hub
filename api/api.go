@@ -678,6 +678,7 @@ func (api *api) RequestMempoolApi(endpoint string) (interface{}, error) {
 func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info := InfoResponse{}
 	backendType, _ := api.cfg.Get("LNBackendType", "")
+	ldkVssEnabled, _ := api.cfg.Get("LdkVssEnabled", "")
 	info.SetupCompleted = api.cfg.SetupCompleted()
 	if api.startupError != nil {
 		info.StartupError = api.startupError.Error()
@@ -689,6 +690,7 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info.OAuthRedirect = !api.cfg.GetEnv().IsDefaultClientId()
 	info.Version = version.Tag
 	info.EnableAdvancedSetup = api.cfg.GetEnv().EnableAdvancedSetup
+	info.LdkVssEnabled = ldkVssEnabled == "true"
 	albyUserIdentifier, err := api.albyOAuthSvc.GetUserIdentifier()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to get alby user identifier")
