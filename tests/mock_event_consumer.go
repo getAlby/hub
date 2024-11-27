@@ -21,8 +21,8 @@ func (e *mockEventConsumer) ConsumeEvent(ctx context.Context, event *events.Even
 	e.consumedEvents = append(e.consumedEvents, event)
 }
 
-func (e *mockEventConsumer) GetConsumeEvents() []*events.Event {
+func (e *mockEventConsumer) GetConsumedEvents() []*events.Event {
 	// events are consumed async - give it a bit of time for tests
-	time.Sleep(1 * time.Millisecond)
+	time.Sleep(10 * time.Millisecond)
 	return e.consumedEvents
 }

@@ -1,20 +1,20 @@
 import { compare } from "compare-versions";
 import {
-  Cable,
   Cloud,
   EllipsisVertical,
   ExternalLinkIcon,
   Home,
+  LayoutGrid,
   Lightbulb,
   Lock,
   Megaphone,
   Menu,
   MessageCircleQuestion,
+  Plug2,
   PlugZapIcon,
   Settings,
   ShieldAlertIcon,
   ShieldCheckIcon,
-  Store,
   Wallet,
 } from "lucide-react";
 
@@ -139,13 +139,13 @@ export default function AppLayout() {
           <Wallet className="h-4 w-4" />
           Wallet
         </MenuItem>
-        <MenuItem to="/apps">
-          <Cable className="h-4 w-4" />
-          Connections
-        </MenuItem>
         <MenuItem to="/appstore">
-          <Store className="h-4 w-4" />
+          <LayoutGrid className="h-4 w-4" />
           App Store
+        </MenuItem>
+        <MenuItem to="/apps">
+          <Plug2 className="h-4 w-4" />
+          Connections
         </MenuItem>
       </>
     );

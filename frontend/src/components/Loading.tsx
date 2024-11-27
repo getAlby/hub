@@ -1,12 +1,26 @@
-import { Loader2 } from "lucide-react";
+import { Loader, Loader2 } from "lucide-react";
 import { cn } from "src/lib/utils";
 
-function Loading({ className }: { className?: string }) {
+function Loading({
+  className,
+  variant = "loader2",
+}: {
+  className?: string;
+  variant?: "loader2" | "loader";
+}) {
+  const Component = variant === "loader2" ? Loader2 : Loader;
+
   return (
     <>
-      <Loader2 className={cn("h-6 w-6 animate-spin", className)}>
+      <Component
+        className={cn(
+          "h-6 w-6",
+          variant === "loader2" ? "animate-spin" : "animate-spin-slow",
+          className
+        )}
+      >
         <span className="sr-only">Loading...</span>
-      </Loader2>
+      </Component>
     </>
   );
 }

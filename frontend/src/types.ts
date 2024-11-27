@@ -192,6 +192,7 @@ export type UpdateAppRequest = {
   expiresAt: string | undefined;
   scopes: Scope[];
   metadata?: AppMetadata;
+  isolated: boolean;
 };
 
 export type Channel = {

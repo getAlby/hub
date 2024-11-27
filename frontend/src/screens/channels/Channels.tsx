@@ -338,6 +338,11 @@ export default function Channels() {
             <Link to="onchain/deposit-bitcoin">
               <Button variant="outline">Deposit</Button>
             </Link>
+            {(balances?.onchain.spendable || 0) > ONCHAIN_DUST_SATS && (
+              <Link to="/wallet/withdraw">
+                <Button variant="outline">Withdraw</Button>
+              </Link>
+            )}
           </CardFooter>
         </Card>
         <Card className="flex flex-col">

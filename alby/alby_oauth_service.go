@@ -883,10 +883,12 @@ func (svc *albyOAuthService) createAlbyAccountNWCNode(ctx context.Context) (stri
 
 	type createNWCNodeRequest struct {
 		WalletPubkey string `json:"wallet_pubkey"`
+		RelayUrl     string `json:"relay_url"`
 	}
 
 	createNodeRequest := createNWCNodeRequest{
 		WalletPubkey: svc.keys.GetNostrPublicKey(),
+		RelayUrl:     svc.cfg.GetRelayUrl(),
 	}
 
 	body := bytes.NewBuffer([]byte{})

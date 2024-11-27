@@ -36,7 +36,7 @@ type TransactionsService interface {
 	MakeInvoice(ctx context.Context, amount uint64, description string, descriptionHash string, expiry uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	LookupTransaction(ctx context.Context, paymentHash string, transactionType *string, lnClient lnclient.LNClient, appId *uint) (*Transaction, error)
 	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, transactionType *string, lnClient lnclient.LNClient, appId *uint, forceFilterByAppId bool) (transactions []Transaction, err error)
-	SendPaymentSync(ctx context.Context, payReq string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
+	SendPaymentSync(ctx context.Context, payReq string, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []lnclient.TLVRecord, preimage string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 }
 
@@ -182,7 +182,20 @@ func (svc *transactionsService) MakeInvoice(ctx context.Context, amount uint64, 
 	return &dbTransaction, nil
 }
 
-func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
+func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq string, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
+	var metadataBytes []byte
+	if metadata != nil {
+		var err error
+		metadataBytes, err = json.Marshal(metadata)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to serialize metadata")
+			return nil, err
+		}
+		if len(metadataBytes) > constants.INVOICE_METADATA_MAX_LENGTH {
+			return nil, fmt.Errorf("encoded payment metadata provided is too large. Limit: %d Received: %d", constants.INVOICE_METADATA_MAX_LENGTH, len(metadataBytes))
+		}
+	}
+
 	payReq = strings.ToLower(payReq)
 	paymentRequest, err := decodepay.Decodepay(payReq)
 	if err != nil {
@@ -208,7 +221,7 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 			return errors.New("this invoice has already been paid")
 		}
 
-		err := svc.validateCanPay(tx, appId, uint64(paymentRequest.MSatoshi))
+		err := svc.validateCanPay(tx, appId, uint64(paymentRequest.MSatoshi), paymentRequest.Description)
 		if err != nil {
 			return err
 		}
@@ -231,7 +244,7 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 			DescriptionHash: paymentRequest.DescriptionHash,
 			ExpiresAt:       expiresAt,
 			SelfPayment:     selfPayment,
-			// Metadata:       metadata,
+			Metadata:        datatypes.JSON(metadataBytes),
 		}
 		err = tx.Create(&dbTransaction).Error
 		return err
@@ -287,7 +300,6 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 }
 
 func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []lnclient.TLVRecord, preimage string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
-
 	if preimage == "" {
 		preImageBytes, err := makePreimageHex()
 		if err != nil {
@@ -326,7 +338,7 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 	selfPayment := destination == lnClient.GetPubkey()
 
 	err = svc.db.Transaction(func(tx *gorm.DB) error {
-		err := svc.validateCanPay(tx, appId, amount)
+		err := svc.validateCanPay(tx, appId, amount, "")
 		if err != nil {
 			return err
 		}
@@ -769,7 +781,7 @@ func (svc *transactionsService) interceptSelfPayment(paymentHash string) (*lncli
 	}, nil
 }
 
-func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount uint64) error {
+func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount uint64, description string) error {
 	amountWithFeeReserve := amount + svc.calculateFeeReserveMsat(amount)
 
 	// ensure balance for isolated apps
@@ -795,12 +807,17 @@ func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount 
 			balance := queries.GetIsolatedBalance(tx, appPermission.AppId)
 
 			if amountWithFeeReserve > balance {
+				message := NewInsufficientBalanceError().Error()
+				if description != "" {
+					message += " " + description
+				}
+
 				svc.eventPublisher.Publish(&events.Event{
 					Event: "nwc_permission_denied",
 					Properties: map[string]interface{}{
 						"app_name": app.Name,
 						"code":     constants.ERROR_INSUFFICIENT_BALANCE,
-						"message":  NewInsufficientBalanceError().Error(),
+						"message":  message,
 					},
 				})
 				return NewInsufficientBalanceError()
@@ -810,12 +827,16 @@ func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount 
 		if appPermission.MaxAmountSat > 0 {
 			budgetUsageSat := queries.GetBudgetUsageSat(tx, &appPermission)
 			if int(amountWithFeeReserve/1000) > appPermission.MaxAmountSat-int(budgetUsageSat) {
+				message := NewQuotaExceededError().Error()
+				if description != "" {
+					message += " " + description
+				}
 				svc.eventPublisher.Publish(&events.Event{
 					Event: "nwc_permission_denied",
 					Properties: map[string]interface{}{
 						"app_name": app.Name,
 						"code":     constants.ERROR_QUOTA_EXCEEDED,
-						"message":  NewQuotaExceededError().Error(),
+						"message":  message,
 					},
 				})
 				return NewQuotaExceededError()

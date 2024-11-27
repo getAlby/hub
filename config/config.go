@@ -55,7 +55,7 @@ func (cfg *config) init(env *AppConfig) error {
 
 	// LND specific to support env variables
 	if cfg.Env.LNDAddress != "" {
-		err := cfg.SetIgnore("LNDAddress", cfg.Env.LNDAddress, "")
+		err := cfg.SetUpdate("LNDAddress", cfg.Env.LNDAddress, "")
 		if err != nil {
 			return err
 		}
@@ -67,7 +67,7 @@ func (cfg *config) init(env *AppConfig) error {
 			return err
 		}
 		certHex := hex.EncodeToString(certBytes)
-		err = cfg.SetIgnore("LNDCertHex", certHex, "")
+		err = cfg.SetUpdate("LNDCertHex", certHex, "")
 		if err != nil {
 			return err
 		}
@@ -79,7 +79,7 @@ func (cfg *config) init(env *AppConfig) error {
 			return err
 		}
 		macHex := hex.EncodeToString(macBytes)
-		err = cfg.SetIgnore("LNDMacaroonHex", macHex, "")
+		err = cfg.SetUpdate("LNDMacaroonHex", macHex, "")
 		if err != nil {
 			return err
 		}

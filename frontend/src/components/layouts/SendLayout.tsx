@@ -12,7 +12,7 @@ import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { LinkButton } from "src/components/ui/button";
 import { useInfo } from "src/hooks/useInfo";
 
-export default function Send() {
+export default function SendLayout() {
   const { hasChannelManagement } = useInfo();
   const { data: balances } = useBalances();
   const { data: channels } = useChannels();

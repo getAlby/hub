@@ -1,4 +1,3 @@
-import { Payment } from "@getalby/bitcoin-connect-react";
 import { ChevronDown } from "lucide-react";
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -19,6 +18,7 @@ import { AutoChannelRequest, AutoChannelResponse } from "src/types";
 import { request } from "src/utils/request";
 
 import { MempoolAlert } from "src/components/MempoolAlert";
+import { PayLightningInvoice } from "src/components/PayLightningInvoice";
 import {
   ALBY_HIDE_HOSTED_BALANCE_BELOW,
   ALBY_MIN_HOSTED_BALANCE_FOR_FIRST_CHANNEL,
@@ -110,7 +110,7 @@ export function FirstChannel() {
             {new Intl.NumberFormat().format(channelSize)} sats of incoming
             liquidity.
           </p>
-          <Payment invoice={invoice} paymentMethods="external" />
+          <PayLightningInvoice invoice={invoice} />
 
           <Separator className="mt-8" />
           <p className="mt-8 text-sm mb-2 text-muted-foreground">
