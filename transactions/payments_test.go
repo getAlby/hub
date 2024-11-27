@@ -77,9 +77,9 @@ func TestMarkSettled_Sent(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, dbTransaction.State)
-	assert.Equal(t, 1, len(mockEventConsumer.GetConsumeEvents()))
-	assert.Equal(t, "nwc_payment_sent", mockEventConsumer.GetConsumeEvents()[0].Event)
-	settledTransaction := mockEventConsumer.GetConsumeEvents()[0].Properties.(*db.Transaction)
+	assert.Equal(t, 1, len(mockEventConsumer.GetConsumedEvents()))
+	assert.Equal(t, "nwc_payment_sent", mockEventConsumer.GetConsumedEvents()[0].Event)
+	settledTransaction := mockEventConsumer.GetConsumedEvents()[0].Properties.(*db.Transaction)
 	assert.Equal(t, &dbTransaction, settledTransaction)
 }
 
@@ -106,9 +106,9 @@ func TestMarkSettled_Received(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, dbTransaction.State)
-	assert.Equal(t, 1, len(mockEventConsumer.GetConsumeEvents()))
-	assert.Equal(t, "nwc_payment_received", mockEventConsumer.GetConsumeEvents()[0].Event)
-	settledTransaction := mockEventConsumer.GetConsumeEvents()[0].Properties.(*db.Transaction)
+	assert.Equal(t, 1, len(mockEventConsumer.GetConsumedEvents()))
+	assert.Equal(t, "nwc_payment_received", mockEventConsumer.GetConsumedEvents()[0].Event)
+	settledTransaction := mockEventConsumer.GetConsumedEvents()[0].Properties.(*db.Transaction)
 	assert.Equal(t, &dbTransaction, settledTransaction)
 }
 
@@ -136,7 +136,7 @@ func TestDoNotMarkSettledTwice(t *testing.T) {
 	})
 
 	assert.NoError(t, err)
-	assert.Zero(t, len(mockEventConsumer.GetConsumeEvents()))
+	assert.Zero(t, len(mockEventConsumer.GetConsumedEvents()))
 }
 
 func TestMarkFailed(t *testing.T) {
@@ -161,9 +161,9 @@ func TestMarkFailed(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, constants.TRANSACTION_STATE_FAILED, dbTransaction.State)
-	assert.Equal(t, 1, len(mockEventConsumer.GetConsumeEvents()))
-	assert.Equal(t, "nwc_payment_failed", mockEventConsumer.GetConsumeEvents()[0].Event)
-	settledTransaction := mockEventConsumer.GetConsumeEvents()[0].Properties.(*db.Transaction)
+	assert.Equal(t, 1, len(mockEventConsumer.GetConsumedEvents()))
+	assert.Equal(t, "nwc_payment_failed", mockEventConsumer.GetConsumedEvents()[0].Event)
+	settledTransaction := mockEventConsumer.GetConsumedEvents()[0].Properties.(*db.Transaction)
 	assert.Equal(t, &dbTransaction, settledTransaction)
 	assert.Equal(t, "some routing error", settledTransaction.FailureReason)
 }
@@ -192,7 +192,7 @@ func TestDoNotMarkFailedTwice(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, updatedAt, dbTransaction.UpdatedAt)
-	assert.Zero(t, len(mockEventConsumer.GetConsumeEvents()))
+	assert.Zero(t, len(mockEventConsumer.GetConsumedEvents()))
 }
 
 func TestSendPaymentSync_FailedRemovesFeeReserve(t *testing.T) {
@@ -223,8 +223,8 @@ func TestSendPaymentSync_FailedRemovesFeeReserve(t *testing.T) {
 	assert.Zero(t, transaction.FeeReserveMsat)
 	assert.Nil(t, transaction.Preimage)
 
-	assert.Equal(t, 1, len(mockEventConsumer.GetConsumeEvents()))
-	assert.Equal(t, "nwc_payment_failed", mockEventConsumer.GetConsumeEvents()[0].Event)
+	assert.Equal(t, 1, len(mockEventConsumer.GetConsumedEvents()))
+	assert.Equal(t, "nwc_payment_failed", mockEventConsumer.GetConsumedEvents()[0].Event)
 }
 
 func TestSendPaymentSync_PendingHasFeeReserve(t *testing.T) {
