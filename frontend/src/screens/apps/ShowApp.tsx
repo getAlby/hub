@@ -117,6 +117,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
         budgetRenewal: permissions.budgetRenewal,
         expiresAt: permissions.expiresAt?.toISOString(),
         maxAmount: permissions.maxAmount,
+        isolated: permissions.isolated,
       };
 
       await request(`/api/apps/${app.appPubkey}`, {
@@ -293,13 +294,49 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                           Cancel
                         </Button>
 
-                        <Button type="button" onClick={handleSave}>
-                          Save
-                        </Button>
+                        {(app.isolated && !permissions.isolated) ||
+                        (!app.scopes.includes("pay_invoice") &&
+                          permissions.scopes.includes("pay_invoice")) ? (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button type="button">Save</Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogTitle>
+                                Confirm Update App
+                              </AlertDialogTitle>
+                              <AlertDialogDescription>
+                                {app.isolated && !permissions.isolated ? (
+                                  <b>
+                                    Are you sure you wish to remove the isolated
+                                    status from this connection?
+                                  </b>
+                                ) : (
+                                  <b>
+                                    Are you sure you wish to give this
+                                    connection pay permissions?
+                                  </b>
+                                )}
+                              </AlertDialogDescription>
+                              <AlertDialogFooter className="mt-5">
+                                <AlertDialogCancel
+                                  onClick={() => {
+                                    window.location.reload();
+                                  }}
+                                >
+                                  Cancel
+                                </AlertDialogCancel>
+                                <Button onClick={handleSave}>Save</Button>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        ) : (
+                          <Button onClick={handleSave}>Save</Button>
+                        )}
                       </div>
                     )}
 
-                    {!app.isolated && !isEditingPermissions && (
+                    {!isEditingPermissions && (
                       <>
                         <Button
                           variant="outline"
