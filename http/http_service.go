@@ -487,6 +487,7 @@ func (httpSvc *HttpService) listTransactionsHandler(c echo.Context) error {
 
 	limit := uint64(20)
 	offset := uint64(0)
+	var appId *uint
 
 	if limitParam := c.QueryParam("limit"); limitParam != "" {
 		if parsedLimit, err := strconv.ParseUint(limitParam, 10, 64); err == nil {
@@ -500,7 +501,14 @@ func (httpSvc *HttpService) listTransactionsHandler(c echo.Context) error {
 		}
 	}
 
-	transactions, err := httpSvc.api.ListTransactions(ctx, limit, offset)
+	if appIdParam := c.QueryParam("appId"); appIdParam != "" {
+		if parsedAppId, err := strconv.ParseUint(appIdParam, 10, 64); err == nil {
+			var unsignedAppId = uint(parsedAppId)
+			appId = &unsignedAppId
+		}
+	}
+
+	transactions, err := httpSvc.api.ListTransactions(ctx, appId, limit, offset)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
