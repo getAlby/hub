@@ -1,6 +1,5 @@
 import { ExitIcon } from "@radix-ui/react-icons";
 import { ExternalLinkIcon } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 
 import ExternalLink from "src/components/ExternalLink";
 import SettingsHeader from "src/components/SettingsHeader";
@@ -21,56 +20,14 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
-import { useToast } from "src/components/ui/use-toast";
-
-import { request } from "src/utils/request";
+import { useUnlinkAlbyAccount } from "src/hooks/useUnlinkAlbyAccount";
 
 export function AlbyAccount() {
-  const { toast } = useToast();
-  const navigate = useNavigate();
-
-  const disconnect = async () => {
-    try {
-      await request("/api/alby/unlink-account", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      navigate("/");
-      toast({
-        title: "Alby Account Disconnected",
-        description: "Your hub is no longer connected to an Alby Account.",
-      });
-    } catch (error) {
-      toast({
-        title: "Disconnect account failed",
-        description: (error as Error).message,
-        variant: "destructive",
-      });
-    }
-  };
-  const unlink = async () => {
-    try {
-      await request("/api/alby/unlink-account", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      navigate("/alby/auth?force_login=true");
-      toast({
-        title: "Alby Account Unlinked",
-        description: "Please login with another Alby Account",
-      });
-    } catch (error) {
-      toast({
-        title: "Unlink account failed",
-        description: (error as Error).message,
-        variant: "destructive",
-      });
-    }
-  };
+  const unlinkAccount = useUnlinkAlbyAccount();
+  const switchAccount = useUnlinkAlbyAccount(
+    "/alby/auth?force_login=true",
+    "Please login with another Alby Account"
+  );
 
   return (
     <>
@@ -122,7 +79,9 @@ export function AlbyAccount() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={unlink}>Confirm</AlertDialogAction>
+            <AlertDialogAction onClick={switchAccount}>
+              Confirm
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -153,7 +112,9 @@ export function AlbyAccount() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={disconnect}>Confirm</AlertDialogAction>
+            <AlertDialogAction onClick={unlinkAccount}>
+              Confirm
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
