@@ -8,9 +8,9 @@ import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
+import { UnlinkAlbyAccount } from "src/components/UnlinkAlbyAccount";
 
 import { useInfo } from "src/hooks/useInfo";
-import { useUnlinkAlbyAccount } from "src/hooks/useUnlinkAlbyAccount";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { openLink } from "src/utils/openLink";
 import { request } from "src/utils/request"; // build the project for this to appear
@@ -28,7 +28,6 @@ function AuthCodeForm({ url }: AuthCodeFormProps) {
 
   const [hasRequestedCode, setRequestedCode] = React.useState(false);
   const [isLoading, setLoading] = React.useState(false);
-  const unlinkAccount = useUnlinkAlbyAccount();
 
   async function requestAuthCode() {
     setRequestedCode((hasRequestedCode) => {
@@ -108,9 +107,11 @@ function AuthCodeForm({ url }: AuthCodeFormProps) {
           {info?.albyUserIdentifier && (
             <div className="flex flex-col justify-center items-center mt-15 gap-5">
               <p className="text-muted-foreground">or</p>
-              <Button variant="outline" size="sm" onClick={unlinkAccount}>
-                Disconnect Alby Account
-              </Button>
+              <UnlinkAlbyAccount>
+                <Button variant="outline" size="sm">
+                  Disconnect Alby Account
+                </Button>
+              </UnlinkAlbyAccount>
             </div>
           )}
         </div>
