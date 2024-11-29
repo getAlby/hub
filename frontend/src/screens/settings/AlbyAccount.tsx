@@ -22,12 +22,14 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 import { useToast } from "src/components/ui/use-toast";
+import { useInfo } from "src/hooks/useInfo";
 
 import { request } from "src/utils/request";
 
 export function AlbyAccount() {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { data: info } = useInfo();
 
   const disconnect = async () => {
     try {
@@ -157,6 +159,23 @@ export function AlbyAccount() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <div /* spacing */ />
+      <SettingsHeader title="VSS" description="Versioned Storage Service" />
+      <p>
+        Versioned Storage Service (VSS) provides a secure, encrypted server-side
+        storage of essential lightning and onchain data.
+      </p>
+      <p>
+        This service is enabled by your Alby account and provides additional
+        backup security which allows you to recover your lightning data with
+        your recovery phrase alone, without having to close your channels.
+      </p>
+      {info && (
+        <p>
+          VSS is <b>{info.ldkVssEnabled ? "enabled" : "disabled"}</b>. Migration
+          to and from VSS will be available shortly.
+        </p>
+      )}
     </>
   );
 }
