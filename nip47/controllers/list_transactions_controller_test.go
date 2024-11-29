@@ -93,6 +93,7 @@ func TestHandleListTransactionsEvent(t *testing.T) {
 	assert.Equal(t, tests.MockLNClientTransactions[0].Amount, transaction.Amount)
 	assert.Equal(t, tests.MockLNClientTransactions[0].FeesPaid, transaction.FeesPaid)
 	assert.Equal(t, tests.MockLNClientTransactions[0].SettledAt, transaction.SettledAt)
+	assert.Equal(t, "settled", transaction.State)
 }
 
 // TODO: add tests for pagination args
