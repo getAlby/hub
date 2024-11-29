@@ -19,7 +19,7 @@ type deleteAppConsumer struct {
 // When an app is deleted, unsubscribe from events for that app on the relay
 // and publish a deletion event for that app's info event
 func (s *deleteAppConsumer) ConsumeEvent(ctx context.Context, event *events.Event, globalProperties map[string]interface{}) {
-	if event.Event != "app_deleted" {
+	if event.Event != "nwc_app_deleted" {
 		return
 	}
 	properties, ok := event.Properties.(map[string]interface{})

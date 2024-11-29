@@ -28,7 +28,7 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
   const { data: channels } = useChannels();
   const { data: info, hasChannelManagement, hasMnemonic } = useInfo();
   const { data: nodeConnectionInfo } = useNodeConnectionInfo();
-  const { data: transactions } = useTransactions(false, 1);
+  const { data: transactions } = useTransactions(undefined, false, 1);
 
   const isLoading =
     !apps ||

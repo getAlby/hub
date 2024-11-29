@@ -554,8 +554,9 @@ func (svc *albyOAuthService) UnlinkAccount(ctx context.Context) error {
 		return errors.New("alby account cannot be unlinked while VSS is activated")
 	}
 
-	err = svc.destroyAlbyAccountNWCNode(ctx)
-	if err != nil {
+	destroyAlbyAccountErr := svc.destroyAlbyAccountNWCNode(ctx)
+	if destroyAlbyAccountErr != nil {
+		// non-critical error - we still want to disconnect
 		logger.Logger.WithError(err).Error("Failed to destroy Alby Account NWC node")
 	}
 	svc.deleteAlbyAccountApps()

@@ -35,7 +35,7 @@ type TransactionsService interface {
 	events.EventSubscriber
 	MakeInvoice(ctx context.Context, amount uint64, description string, descriptionHash string, expiry uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	LookupTransaction(ctx context.Context, paymentHash string, transactionType *string, lnClient lnclient.LNClient, appId *uint) (*Transaction, error)
-	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, transactionType *string, lnClient lnclient.LNClient, appId *uint) (transactions []Transaction, err error)
+	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, transactionType *string, lnClient lnclient.LNClient, appId *uint, forceFilterByAppId bool) (transactions []Transaction, err error)
 	SendPaymentSync(ctx context.Context, payReq string, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []lnclient.TLVRecord, preimage string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 }
@@ -510,7 +510,7 @@ func (svc *transactionsService) LookupTransaction(ctx context.Context, paymentHa
 	return &transaction, nil
 }
 
-func (svc *transactionsService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, transactionType *string, lnClient lnclient.LNClient, appId *uint) (transactions []Transaction, err error) {
+func (svc *transactionsService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, transactionType *string, lnClient lnclient.LNClient, appId *uint, forceFilterByAppId bool) (transactions []Transaction, err error) {
 	svc.checkUnsettledTransactions(ctx, lnClient)
 
 	tx := svc.db
@@ -544,7 +544,7 @@ func (svc *transactionsService) ListTransactions(ctx context.Context, from, unti
 		if result.RowsAffected == 0 {
 			return nil, NewNotFoundError()
 		}
-		if app.Isolated {
+		if app.Isolated || forceFilterByAppId {
 			tx = tx.Where("app_id == ?", *appId)
 		}
 	}
@@ -978,7 +978,47 @@ func (svc *transactionsService) markTransactionSettled(tx *gorm.DB, dbTransactio
 		Properties: dbTransaction,
 	})
 
+	if dbTransaction.Type == constants.TRANSACTION_TYPE_OUTGOING && dbTransaction.AppId != nil {
+		svc.checkBudgetUsage(dbTransaction)
+	}
+
 	return dbTransaction, nil
+}
+
+func (svc *transactionsService) checkBudgetUsage(dbTransaction *db.Transaction) {
+	var app db.App
+	result := svc.db.Limit(1).Find(&app, &db.App{
+		ID: *dbTransaction.AppId,
+	})
+	if result.RowsAffected == 0 {
+		logger.Logger.WithField("app_id", dbTransaction.AppId).Error("failed to find app by id")
+		return
+	}
+	if app.Isolated {
+		return
+	}
+
+	var appPermission db.AppPermission
+	result = svc.db.Limit(1).Find(&appPermission, &db.AppPermission{
+		AppId: app.ID,
+		Scope: constants.PAY_INVOICE_SCOPE,
+	})
+	if result.RowsAffected == 0 {
+		logger.Logger.WithField("app_id", dbTransaction.AppId).Error("failed to find pay_invoice scope")
+		return
+	}
+
+	budgetUsage := queries.GetBudgetUsageSat(svc.db, &appPermission)
+	warningUsage := uint64(math.Floor(float64(appPermission.MaxAmountSat) * 0.8))
+	if budgetUsage >= warningUsage && budgetUsage-dbTransaction.AmountMsat/1000 < warningUsage {
+		svc.eventPublisher.Publish(&events.Event{
+			Event: "nwc_budget_warning",
+			Properties: map[string]interface{}{
+				"name": app.Name,
+				"id":   app.ID,
+			},
+		})
+	}
 }
 
 func (svc *transactionsService) markPaymentFailed(tx *gorm.DB, dbTransaction *db.Transaction, reason string) error {

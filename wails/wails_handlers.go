@@ -246,9 +246,10 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 	case listTransactionsRegex.MatchString(route):
 		limit := uint64(20)
 		offset := uint64(0)
+		var appId *uint
 
 		// Extract limit and offset parameters
-		paramRegex := regexp.MustCompile(`[?&](limit|offset)=([^&]+)`)
+		paramRegex := regexp.MustCompile(`[?&](limit|offset|appId)=([^&]+)`)
 		paramMatches := paramRegex.FindAllStringSubmatch(route, -1)
 		for _, match := range paramMatches {
 			switch match[1] {
@@ -260,10 +261,15 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 				if parsedOffset, err := strconv.ParseUint(match[2], 10, 64); err == nil {
 					offset = parsedOffset
 				}
+			case "appId":
+				if parsedAppId, err := strconv.ParseUint(match[2], 10, 64); err == nil {
+					var unsignedAppId = uint(parsedAppId)
+					appId = &unsignedAppId
+				}
 			}
 		}
 
-		transactions, err := app.api.ListTransactions(ctx, limit, offset)
+		transactions, err := app.api.ListTransactions(ctx, appId, limit, offset)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}

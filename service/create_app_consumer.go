@@ -17,7 +17,7 @@ type createAppConsumer struct {
 
 // When a new app is created, subscribe to it on the relay
 func (s *createAppConsumer) ConsumeEvent(ctx context.Context, event *events.Event, globalProperties map[string]interface{}) {
-	if event.Event != "app_created" {
+	if event.Event != "nwc_app_created" {
 		return
 	}
 

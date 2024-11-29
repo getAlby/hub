@@ -20,6 +20,7 @@ import AppHeader from "src/components/AppHeader";
 import { IsolatedAppTopupDialog } from "src/components/IsolatedAppTopupDialog";
 import Loading from "src/components/Loading";
 import Permissions from "src/components/Permissions";
+import TransactionsList from "src/components/TransactionsList";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -222,7 +223,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
           />
           <Card>
             <CardHeader>
-              <CardTitle>Info</CardTitle>
+              <CardTitle>Connection Summary</CardTitle>
             </CardHeader>
             <CardContent className="slashed-zero">
               <Table>
@@ -361,6 +362,19 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                 isNewConnection={false}
                 budgetUsage={app.budgetUsage}
               />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                <div className="flex flex-row justify-between items-center">
+                  Transactions
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <TransactionsList appId={app.id} showReceiveButton={false} />
             </CardContent>
           </Card>
         </div>
