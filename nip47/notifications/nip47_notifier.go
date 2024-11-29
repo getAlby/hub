@@ -17,6 +17,7 @@ import (
 	"github.com/getAlby/hub/transactions"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip04"
+	"github.com/nbd-wtf/go-nostr/nip44"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
@@ -98,38 +99,40 @@ func (notifier *Nip47Notifier) notifySubscribers(ctx context.Context, notificati
 		if !hasPermission {
 			continue
 		}
-		notifier.notifySubscriber(ctx, &app, notification, tags)
+
+		appWalletPrivKey := notifier.keys.GetNostrSecretKey()
+		if app.WalletPubkey != nil {
+			appWalletPrivKey, err = notifier.keys.GetAppWalletKey(app.ID)
+			if err != nil {
+				logger.Logger.WithFields(logrus.Fields{
+					"notification": notification,
+					"appId":        app.ID,
+				}).WithError(err).Error("error deriving child key")
+				return
+			}
+		}
+
+		appWalletPubKey, err := nostr.GetPublicKey(appWalletPrivKey)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"notification": notification,
+				"appId":        app.ID,
+			}).WithError(err).Error("Failed to calculate app wallet pub key")
+			return
+		}
+
+		go notifier.notifySubscriber(ctx, &app, notification, tags, appWalletPubKey, appWalletPrivKey, false)
+		go notifier.notifySubscriber(ctx, &app, notification, tags, appWalletPubKey, appWalletPrivKey, true)
 	}
 }
 
-func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *db.App, notification *Notification, tags nostr.Tags) {
+func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *db.App, notification *Notification, tags nostr.Tags, appWalletPubKey, appWalletPrivKey string, legacy bool) {
 	logger.Logger.WithFields(logrus.Fields{
 		"notification": notification,
 		"appId":        app.ID,
 	}).Debug("Notifying subscriber")
 
 	var err error
-
-	appWalletPrivKey := notifier.keys.GetNostrSecretKey()
-	if app.WalletPubkey != nil {
-		appWalletPrivKey, err = notifier.keys.GetAppWalletKey(app.ID)
-		if err != nil {
-			logger.Logger.WithFields(logrus.Fields{
-				"notification": notification,
-				"appId":        app.ID,
-			}).WithError(err).Error("error deriving child key")
-			return
-		}
-	}
-
-	ss, err := nip04.ComputeSharedSecret(app.AppPubkey, appWalletPrivKey)
-	if err != nil {
-		logger.Logger.WithFields(logrus.Fields{
-			"notification": notification,
-			"appId":        app.ID,
-		}).WithError(err).Error("Failed to compute shared secret")
-		return
-	}
 
 	payloadBytes, err := json.Marshal(notification)
 	if err != nil {
@@ -139,39 +142,65 @@ func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *db.App
 		}).WithError(err).Error("Failed to stringify notification")
 		return
 	}
-	msg, err := nip04.Encrypt(string(payloadBytes), ss)
-	if err != nil {
-		logger.Logger.WithFields(logrus.Fields{
-			"notification": notification,
-			"appId":        app.ID,
-		}).WithError(err).Error("Failed to encrypt notification payload")
-		return
+
+	var msg string
+	if legacy {
+		ss, err := nip04.ComputeSharedSecret(app.AppPubkey, appWalletPrivKey)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"notification": notification,
+				"appId":        app.ID,
+			}).WithError(err).Error("Failed to compute shared secret")
+			return
+		}
+		msg, err = nip04.Encrypt(string(payloadBytes), ss)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"notification": notification,
+				"appId":        app.ID,
+			}).WithError(err).Error("Failed to encrypt notification payload")
+			return
+		}
+	} else {
+		ck, err := nip44.GenerateConversationKey(app.AppPubkey, appWalletPrivKey)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"notification": notification,
+				"appId":        app.ID,
+			}).WithError(err).Error("Failed to compute conversation key")
+			return
+		}
+		msg, err = nip44.Encrypt(string(payloadBytes), ck)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"notification": notification,
+				"appId":        app.ID,
+			}).WithError(err).Error("Failed to encrypt notification payload")
+			return
+		}
 	}
 
 	allTags := nostr.Tags{[]string{"p", app.AppPubkey}}
 	allTags = append(allTags, tags...)
 
-	appWalletPubKey, err := nostr.GetPublicKey(appWalletPrivKey)
-	if err != nil {
-		logger.Logger.WithFields(logrus.Fields{
-			"notification": notification,
-			"appId":        app.ID,
-		}).WithError(err).Error("Failed to calculate app wallet pub key")
-		return
-	}
-
 	event := &nostr.Event{
 		PubKey:    appWalletPubKey,
 		CreatedAt: nostr.Now(),
-		Kind:      models.NOTIFICATION_KIND,
 		Tags:      allTags,
 		Content:   msg,
 	}
+	if legacy {
+		event.Kind = models.LEGACY_NOTIFICATION_KIND
+	} else {
+		event.Kind = models.NOTIFICATION_KIND
+	}
+
 	err = event.Sign(appWalletPrivKey)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"notification": notification,
 			"appId":        app.ID,
+			"isLegacy":     legacy,
 		}).WithError(err).Error("Failed to sign event")
 		return
 	}
@@ -181,10 +210,12 @@ func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *db.App
 		logger.Logger.WithFields(logrus.Fields{
 			"notification": notification,
 			"appId":        app.ID,
+			"isLegacy":     legacy,
 		}).WithError(err).Error("Failed to publish notification")
 		return
 	}
 	logger.Logger.WithFields(logrus.Fields{
-		"appId": app.ID,
+		"appId":    app.ID,
+		"isLegacy": legacy,
 	}).Debug("Published notification event")
 }
