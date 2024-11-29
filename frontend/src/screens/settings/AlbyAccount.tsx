@@ -10,8 +10,10 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 import { UnlinkAlbyAccount } from "src/components/UnlinkAlbyAccount";
+import { useInfo } from "src/hooks/useInfo";
 
 export function AlbyAccount() {
+  const { data: info } = useInfo();
   return (
     <>
       <SettingsHeader
@@ -27,7 +29,7 @@ export function AlbyAccount() {
             <CardTitle>Your Alby Account</CardTitle>
             <CardDescription className="flex gap-2 items-center">
               <ExternalLinkIcon className="w-4 h-4" /> Manage your Alby Account
-              Settings
+              Settings such as your lightning address on getalby.com
             </CardDescription>
           </CardHeader>
         </Card>
@@ -58,6 +60,23 @@ export function AlbyAccount() {
           </CardHeader>
         </Card>
       </UnlinkAlbyAccount>
+      <div /* spacing */ />
+      <SettingsHeader title="VSS" description="Versioned Storage Service" />
+      <p>
+        Versioned Storage Service (VSS) provides a secure, encrypted server-side
+        storage of essential lightning and onchain data.
+      </p>
+      <p>
+        This service is enabled by your Alby account and provides additional
+        backup security which allows you to recover your lightning data with
+        your recovery phrase alone, without having to close your channels.
+      </p>
+      {info && (
+        <p>
+          VSS is <b>{info.ldkVssEnabled ? "enabled" : "disabled"}</b>. Migration
+          to and from VSS will be available shortly.
+        </p>
+      )}
     </>
   );
 }

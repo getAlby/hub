@@ -2,7 +2,6 @@ import { compare } from "compare-versions";
 import {
   Cloud,
   EllipsisVertical,
-  ExternalLinkIcon,
   Home,
   LayoutGrid,
   Lightbulb,
@@ -15,6 +14,7 @@ import {
   Settings,
   ShieldAlertIcon,
   ShieldCheckIcon,
+  User2,
   Wallet,
 } from "lucide-react";
 
@@ -104,13 +104,13 @@ export default function AppLayout() {
           )}
           {info?.albyAccountConnected && (
             <DropdownMenuItem>
-              <ExternalLink
-                to="https://getalby.com/settings"
+              <Link
+                to="/settings/alby-account"
                 className="w-full flex flex-row items-center gap-2"
               >
-                <ExternalLinkIcon className="w-4 h-4" />
+                <User2 className="w-4 h-4" />
                 <p>Alby Account Settings</p>
-              </ExternalLink>
+              </Link>
             </DropdownMenuItem>
           )}
         </DropdownMenuGroup>

@@ -1,5 +1,6 @@
 import React from "react";
 import { ResetRoutingDataDialogContent } from "src/components/ResetRoutingDataDialogContent";
+import SettingsHeader from "src/components/SettingsHeader";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -253,6 +254,10 @@ export default function DebugTools() {
 
   return (
     <div>
+      <SettingsHeader
+        title="Debug Tools"
+        description="Extra tools for debugging purposes"
+      />
       <div className="grid gap-6 mb-8 lg:mb-8 md:grid-cols-2 xl:grid-cols-3">
         <AlertDialog
           onOpenChange={() => {
@@ -261,20 +266,9 @@ export default function DebugTools() {
             }
           }}
         >
-          {info?.backendType === "LDK" && (
-            <AlertDialogTrigger asChild>
-              <Button onClick={() => setDialog("probeInvoice")}>
-                Probe Invoice
-              </Button>
-            </AlertDialogTrigger>
-          )}
-          {info?.backendType === "LDK" && (
-            <AlertDialogTrigger asChild>
-              <Button onClick={() => setDialog("probeKeysend")}>
-                Probe Keysend
-              </Button>
-            </AlertDialogTrigger>
-          )}
+          <Button onClick={() => apiRequest("/api/info", "GET")}>
+            Get Info
+          </Button>
           <Button onClick={() => apiRequest("/api/peers", "GET")}>
             List Peers
           </Button>
@@ -317,6 +311,21 @@ export default function DebugTools() {
               </Button>
             </AlertDialogTrigger>
           )}
+          {/* probing functions are not useful */}
+          {/*info?.backendType === "LDK" && (
+            <AlertDialogTrigger asChild>
+              <Button onClick={() => setDialog("probeInvoice")}>
+                Probe Invoice
+              </Button>
+            </AlertDialogTrigger>
+          )*/}
+          {/*info?.backendType === "LDK" && (
+            <AlertDialogTrigger asChild>
+              <Button onClick={() => setDialog("probeKeysend")}>
+                Probe Keysend
+              </Button>
+            </AlertDialogTrigger>
+          )*/}
 
           {dialog === "probeInvoice" && (
             <ProbeInvoiceDialogContent apiRequest={apiRequest} />

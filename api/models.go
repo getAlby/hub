@@ -170,6 +170,7 @@ type InfoResponse struct {
 	Version              string    `json:"version"`
 	Network              string    `json:"network"`
 	EnableAdvancedSetup  bool      `json:"enableAdvancedSetup"`
+	LdkVssEnabled        bool      `json:"ldkVssEnabled"`
 	StartupError         string    `json:"startupError"`
 	StartupErrorTime     time.Time `json:"startupErrorTime"`
 }
