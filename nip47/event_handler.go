@@ -247,6 +247,21 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 			}, nostr.Tags{})
 			return
 		}
+
+		// The relay could forward old requests, which is fine and actually also intended
+		// as it makes sure we can respond even after a downtime or network issue.
+		// but we should check the creation date of a request and ignore too old requests
+		// for payments and invoice creation.
+		if (scope == constants.PAY_INVOICE_SCOPE || scope == constants.MAKE_INVOICE_SCOPE) && time.Since(event.CreatedAt.Time()).Hours() > 6 {
+			logger.Logger.WithFields(logrus.Fields{
+				"request_event_id": requestEvent.ID,
+				"app_id":           app.ID,
+			}).Error("Received request more than 6 hours old")
+
+			// ignore the request
+			return
+		}
+
 		hasPermission, code, message := svc.permissionsService.HasPermission(&app, scope)
 		if !hasPermission {
 			logger.Logger.WithFields(logrus.Fields{
