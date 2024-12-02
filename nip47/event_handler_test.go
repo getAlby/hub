@@ -332,7 +332,7 @@ func TestHandleResponse_OldRequestForPayment(t *testing.T) {
 	reqEvent := &nostr.Event{
 		Kind:      models.REQUEST_KIND,
 		PubKey:    reqPubkey,
-		CreatedAt: nostr.Timestamp(time.Now().Add(time.Duration(-24) * time.Hour).Unix()),
+		CreatedAt: nostr.Timestamp(time.Now().Add(time.Duration(-6) * time.Hour).Unix()),
 		Tags:      nostr.Tags{},
 		Content:   msg,
 	}
