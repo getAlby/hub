@@ -4,7 +4,7 @@ import { useTransactions } from "src/hooks/useTransactions";
 import { Transaction } from "src/types";
 
 export function useNotifyReceivedPayments() {
-  const { data: transactions } = useTransactions(true, 1);
+  const { data: transactions } = useTransactions(undefined, true, 1);
   const [prevTransaction, setPrevTransaction] = React.useState<Transaction>();
   const { toast } = useToast();
 
