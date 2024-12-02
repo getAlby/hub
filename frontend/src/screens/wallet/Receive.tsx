@@ -35,7 +35,7 @@ export default function Receive() {
             <QRCode value={me.lightning_address} className="w-full h-auto" />
             <UserAvatar className="w-16 h-auto absolute border-6 border-primary-foreground" />
           </div>
-          <p className="font-semibold">{me.lightning_address}</p>
+          <p className="font-semibold break-all">{me.lightning_address}</p>
           <div className="flex gap-4 w-full">
             <LinkButton
               to="invoice"
