@@ -164,10 +164,10 @@ github.com/eapache/queue/v2 v2.0.0-20230407133247-75960ed334e4 h1:8EXxF+tCLqaVk8
 github.com/eapache/queue/v2 v2.0.0-20230407133247-75960ed334e4/go.mod h1:I5sHm0Y0T1u5YjlyqC5GVArM7aNZRUYtTjmJ8mPJFds=
 github.com/ebitengine/purego v0.6.0-alpha.5 h1:EYID3JOAdmQ4SNZYJHu9V6IqOeRQDBYxqKAg9PyoHFY=
 github.com/ebitengine/purego v0.6.0-alpha.5/go.mod h1:ah1In8AOtksoNK6yk5z1HTJeUkC1Ez4Wk2idgGslMwQ=
-github.com/elnosh/btc-docker-test v0.0.0-20240730150514-6d94d76b8881 h1:iHr0CRNKU9ilxf+LGUon9XB39lRvLlbbm9C9dx2Y/u0=
-github.com/elnosh/btc-docker-test v0.0.0-20240730150514-6d94d76b8881/go.mod h1:W2G5BhKocXfbC61N4Jy8Z+0rSPGAbDcZsKIr+4B5v9Y=
-github.com/elnosh/gonuts v0.2.0 h1:EP0gDmsD3oUuTLoEvo21rLSWHAu1f46DN/xpivi7skc=
-github.com/elnosh/gonuts v0.2.0/go.mod h1:vIrJdoCw2Qy9zHQhed6izBgHKtB8mzMoYBJPPyGkF4Q=
+github.com/elnosh/btc-docker-test v0.0.0-20240927160251-93a4da3d1754 h1:LYVrpWL+RI13UBb36U0TkFu09X7+haLR/ix2zJVQ+Ac=
+github.com/elnosh/btc-docker-test v0.0.0-20240927160251-93a4da3d1754/go.mod h1:OZ/LMGKylMDHiAh47vr2MjzJGzE2iRafZyqseh7RppA=
+github.com/elnosh/gonuts v0.3.0 h1:nOC+S4008TQbyYokiUSTfTRQs7p+Bq+t+gMePDZXPrI=
+github.com/elnosh/gonuts v0.3.0/go.mod h1:or/FtN7nOQRG6834wck4pwcbLauspc9Dlr6R8hBZpmU=
 github.com/envoyproxy/go-control-plane v0.9.0/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/go-control-plane v0.9.1-0.20191026205805-5f8ba28d4473/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/go-control-plane v0.9.4/go.mod h1:6rpuAdCZL397s3pYoYcLgu1mIlRU8Am5FuJP05cCM98=
@@ -186,6 +186,8 @@ github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMo
 github.com/fsnotify/fsnotify v1.4.9/go.mod h1:znqG4EE+3YCdAaPaxE2ZRY/06pZUdp0tY4IgpuI1SZQ=
 github.com/fsnotify/fsnotify v1.5.4 h1:jRbGcIw6P2Meqdwuo0H1p6JVLbL5DHKAKlYndzMwVZI=
 github.com/fsnotify/fsnotify v1.5.4/go.mod h1:OVB6XrOHzAwXMpEM7uPOzcehqUV2UqJxmVXmkdnm1bU=
+github.com/fxamacker/cbor/v2 v2.7.0 h1:iM5WgngdRBanHcxugY4JySA0nk1wZorNOpTgCMedv5E=
+github.com/fxamacker/cbor/v2 v2.7.0/go.mod h1:pxXPTn3joSm21Gbwsv0w9OSA2y1HFR9qXEeXQVeNoDQ=
 github.com/getAlby/glalby-go v0.0.0-20240621192717-95673c864d59 h1:fSqdXE9uKhLcOOQaLtzN+D8RN3oEcZQkGX5E8PyiKy0=
 github.com/getAlby/glalby-go v0.0.0-20240621192717-95673c864d59/go.mod h1:ViyJvjlvv0GCesTJ7mb3fBo4G+/qsujDAFN90xZ7a9U=
 github.com/getAlby/ldk-node-go v0.0.0-20241126182233-197f9bcdd475 h1:rsOFBWZE94kgbv7lWI2kuhco6qY5p3kJnFrNh3nFZuQ=
@@ -675,6 +677,8 @@ github.com/wailsapp/mimetype v1.4.1 h1:pQN9ycO7uo4vsUUuPeHEYoUkLVkaRntMnHJxVwYhw
 github.com/wailsapp/mimetype v1.4.1/go.mod h1:9aV5k31bBOv5z6u+QP8TltzvNGJPmNJD4XlAL3U+j3o=
 github.com/wailsapp/wails/v2 v2.9.2 h1:Xb5YRTos1w5N7DTMyYegWaGukCP2fIaX9WF21kPPF2k=
 github.com/wailsapp/wails/v2 v2.9.2/go.mod h1:uehvlCwJSFcBq7rMCGfk4rxca67QQGsbg5Nm4m9UnBs=
+github.com/x448/float16 v0.8.4 h1:qLwI1I70+NjRFUR3zs1JPUCgaCXSh3SW62uAKT1mSBM=
+github.com/x448/float16 v0.8.4/go.mod h1:14CWIYCyZA/cWjXOioeEpHeN/83MdbZDRQHoFcYsOfg=
 github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f/go.mod h1:N2zxlSyiKSe5eX1tZViRH5QA0qijqEDrYZiPEAiq3wU=
 github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb h1:zGWFAtiMcyryUHoUjUJX0/lt1H2+i2Ka2n+D3DImSNo=
 github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb/go.mod h1:N2zxlSyiKSe5eX1tZViRH5QA0qijqEDrYZiPEAiq3wU=
