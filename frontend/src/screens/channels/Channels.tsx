@@ -1,7 +1,5 @@
 import {
   AlertTriangle,
-  ArrowDown,
-  ArrowUp,
   Bitcoin,
   ChevronDown,
   CopyIcon,
@@ -11,6 +9,7 @@ import {
   InfoIcon,
   Settings2,
   Unplug,
+  ZapIcon,
 } from "lucide-react";
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -153,8 +152,9 @@ export default function Channels() {
                     </div>
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
+                <DropdownMenuSeparator />
                 <DropdownMenuGroup>
-                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel>On-Chain</DropdownMenuLabel>
                   <DropdownMenuItem>
                     <Link
                       to="/channels/onchain/deposit-bitcoin"
@@ -163,12 +163,17 @@ export default function Channels() {
                       Deposit Bitcoin
                     </Link>
                   </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Link to="onchain/buy-bitcoin" className="w-full">
+                      Buy Bitcoin
+                    </Link>
+                  </DropdownMenuItem>
                   {(balances?.onchain.spendable || 0) > ONCHAIN_DUST_SATS && (
                     <DropdownMenuItem
                       onClick={() => navigate("/wallet/withdraw")}
                       className="w-full cursor-pointer"
                     >
-                      Withdraw Savings Balance
+                      Withdraw On-Chain Balance
                     </DropdownMenuItem>
                   )}
                 </DropdownMenuGroup>
@@ -188,7 +193,7 @@ export default function Channels() {
                 </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Link to="/channels/outgoing">
+            <Link to="/channels/incoming">
               <Button>Open Channel</Button>
             </Link>
             <ExternalLink to="https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub/liquidity/node-health">
@@ -247,10 +252,7 @@ export default function Channels() {
       )}
 
       <div
-        className={cn(
-          "grid grid-cols-1 gap-3 slashed-zero",
-          showHostedBalance ? "xl:grid-cols-4" : "lg:grid-cols-3"
-        )}
+        className={cn("flex flex-col sm:flex-row flex-wrap gap-3 slashed-zero")}
       >
         {showHostedBalance && (
           <Card className="flex flex-col">
@@ -283,28 +285,110 @@ export default function Channels() {
             </CardFooter>
           </Card>
         )}
-        <Card className="flex flex-col">
+
+        <Card className="flex flex-1 sm:flex-[2] flex-col">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <div className="flex flex-row gap-2 items-center">
-                      Savings Balance
-                      <InfoIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <CardTitle className="font-semibold">Lightning</CardTitle>
+            <ZapIcon className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+
+          <CardContent className="flex pl-0 flex-wrap">
+            <div className="flex flex-col flex-1">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pr-0">
+                <CardTitle className="text-sm font-medium">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <div className="flex flex-row gap-2 items-center justify-start text-sm">
+                          Spending Balance
+                          <InfoIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent className="w-[300px]">
+                        Your spending balance is the funds on your side of your
+                        channels, which you can use to make lightning payments.
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex-grow pb-0">
+                {!balances && (
+                  <div>
+                    <div className="animate-pulse d-inline ">
+                      <div className="h-2.5 bg-primary rounded-full w-12 my-2"></div>
                     </div>
-                  </TooltipTrigger>
-                  <TooltipContent className="w-[300px]">
-                    Your savings balance (on-chain balance) can be used to open
-                    new lightning channels. When channels are closed, funds from
-                    your channel will be returned to your savings balance.
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </CardTitle>
+                  </div>
+                )}
+                {balances && (
+                  <div className="text-2xl font-bold balance sensitive">
+                    {new Intl.NumberFormat().format(
+                      Math.floor(balances.lightning.totalSpendable / 1000)
+                    )}{" "}
+                    sats
+                  </div>
+                )}
+              </CardContent>
+            </div>
+            <div className="flex flex-col flex-1">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pr-0">
+                <CardTitle className="text-sm font-medium">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <div className="flex flex-row gap-2 items-center justify-start text-sm">
+                          Receiving Capacity
+                          <InfoIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent className="w-[300px]">
+                        Your receiving capacity is the funds owned by your
+                        channel partner, which will be moved to your side when
+                        you receive lightning payments.
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex-grow pb-0">
+                <div className="text-2xl font-bold balance sensitive">
+                  {balances &&
+                    new Intl.NumberFormat().format(
+                      Math.floor(balances.lightning.totalReceivable / 1000)
+                    )}{" "}
+                  sats
+                </div>
+              </CardContent>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="flex flex-1 flex-col">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="font-semibold">On-Chain</CardTitle>
+
             <Bitcoin className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent className="flex-grow">
+          <CardContent className="flex-grow pb-0">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pl-0">
+              <CardTitle className="text-sm font-medium">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <div className="flex flex-row gap-2 items-center text-sm">
+                        Balance
+                        <InfoIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="w-[300px]">
+                      Your on-chain balance can be used to open new outgoing
+                      lightning channels. When channels are closed, funds on
+                      your side of your channel will be returned to your savings
+                      balance.
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </CardTitle>
+            </CardHeader>
             {!balances && (
               <div>
                 <div className="animate-pulse d-inline ">
@@ -331,98 +415,6 @@ export default function Channels() {
               )}
             </div>
           </CardContent>
-          <CardFooter className="flex justify-end space-x-1">
-            <Link to="onchain/buy-bitcoin">
-              <Button variant="outline">Buy</Button>
-            </Link>
-            <Link to="onchain/deposit-bitcoin">
-              <Button variant="outline">Deposit</Button>
-            </Link>
-            {(balances?.onchain.spendable || 0) > ONCHAIN_DUST_SATS && (
-              <Link to="/wallet/withdraw">
-                <Button variant="outline">Withdraw</Button>
-              </Link>
-            )}
-          </CardFooter>
-        </Card>
-        <Card className="flex flex-col">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <div className="flex flex-row gap-2 items-center">
-                      Spending Balance
-                      <InfoIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent className="w-[300px]">
-                    Your spending balance is the funds on your side of your
-                    channels, which you can use to make lightning payments.
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </CardTitle>
-            <ArrowUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent className="flex-grow">
-            {!balances && (
-              <div>
-                <div className="animate-pulse d-inline ">
-                  <div className="h-2.5 bg-primary rounded-full w-12 my-2"></div>
-                </div>
-              </div>
-            )}
-            {balances && (
-              <div className="text-2xl font-bold balance sensitive">
-                {new Intl.NumberFormat().format(
-                  Math.floor(balances.lightning.totalSpendable / 1000)
-                )}{" "}
-                sats
-              </div>
-            )}
-          </CardContent>
-          <CardFooter className="flex justify-end">
-            <Link to="/channels/outgoing">
-              <Button variant="outline">Top Up</Button>
-            </Link>
-          </CardFooter>
-        </Card>
-        <Card className="flex flex-col">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <div className="flex flex-row gap-2 items-center">
-                      Receiving Capacity
-                      <InfoIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent className="w-[300px]">
-                    Your receiving capacity is the funds owned by your channel
-                    partner, which will be moved to your side when you receive
-                    lightning payments.
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </CardTitle>
-            <ArrowDown className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent className="flex-grow">
-            <div className="text-2xl font-bold balance sensitive">
-              {balances &&
-                new Intl.NumberFormat().format(
-                  Math.floor(balances.lightning.totalReceivable / 1000)
-                )}{" "}
-              sats
-            </div>
-          </CardContent>
-          <CardFooter className="flex justify-end">
-            <Link to="/channels/incoming">
-              <Button variant="outline">Increase</Button>
-            </Link>
-          </CardFooter>
         </Card>
       </div>
 
@@ -436,7 +428,7 @@ export default function Channels() {
               balances.onchain.pendingBalancesFromChannelClosures
             )}{" "}
             sats pending from one or more closed channels. Once spendable again
-            these will become available in your savings balance. Funds from
+            these will become available in your on-chain balance. Funds from
             channels that were force closed may take up to 2 weeks to become
             available.{" "}
             <ExternalLink
@@ -455,7 +447,7 @@ export default function Channels() {
           title="No Channels Available"
           description="Connect to the Lightning Network by establishing your first channel and start transacting."
           buttonText="Open Channel"
-          buttonLink="/channels/outgoing"
+          buttonLink="/channels/incoming"
         />
       )}
 

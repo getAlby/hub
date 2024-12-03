@@ -115,7 +115,7 @@ export default function WithdrawOnchainFunds() {
           View on Mempool
           <ExternalLinkIcon className="w-4 h-4 ml-2" />
         </ExternalLink>
-        <p>Your savings balance in Alby Hub may take some time to update.</p>
+        <p>Your on-chain balance in Alby Hub may take some time to update.</p>
       </div>
     );
   }
@@ -135,13 +135,13 @@ export default function WithdrawOnchainFunds() {
   return (
     <div className="grid gap-5">
       <AppHeader
-        title="Withdraw Savings Balance"
+        title="Withdraw On-Chain Balance"
         description="Withdraw your onchain funds to another bitcoin wallet"
       />
 
       <div className="max-w-lg">
         <p>
-          Your savings balance will be withdrawn to the onchain bitcoin wallet
+          Your on-chain balance will be withdrawn to the onchain bitcoin wallet
           address you specify below.
         </p>
         <form
@@ -204,7 +204,7 @@ export default function WithdrawOnchainFunds() {
                       You have channels open and this withdrawal will deplete
                       your anchor reserves, which may make it harder to close
                       channels without depositing additional onchain funds to
-                      your savings balance.
+                      your on-chain balance.
                     </>
                   )}
                 </AlertDescription>
@@ -266,7 +266,7 @@ export default function WithdrawOnchainFunds() {
                       Amount:{" "}
                       <span className="font-bold slashed-zero">
                         {sendAll ? (
-                          "entire savings balance"
+                          "entire on-chain balance"
                         ) : (
                           <>{new Intl.NumberFormat().format(+amount)} sats</>
                         )}

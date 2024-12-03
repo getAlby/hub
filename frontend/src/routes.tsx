@@ -146,7 +146,7 @@ const routes = [
           {
             path: "withdraw",
             element: <WithdrawOnchainFunds />,
-            handle: { crumb: () => "Withdraw Savings Balance" },
+            handle: { crumb: () => "Withdraw On-Chain Balance" },
           },
         ],
       },
@@ -295,12 +295,12 @@ const routes = [
           {
             path: "outgoing",
             element: <IncreaseOutgoingCapacity />,
-            handle: { crumb: () => "Increase Spending Balance" },
+            handle: { crumb: () => "Open Channel with On-Chain" },
           },
           {
             path: "incoming",
             element: <IncreaseIncomingCapacity />,
-            handle: { crumb: () => "Increase Receiving Capacity" },
+            handle: { crumb: () => "Open Channel with Lightning" },
           },
           {
             path: "order",
