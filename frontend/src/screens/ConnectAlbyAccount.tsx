@@ -59,7 +59,7 @@ export function ConnectAlbyAccount({ connectUrl }: ConnectAlbyAccountProps) {
           <Card className="w-full">
             <CardHeader className="flex flex-col justify-center items-center text-center p-4">
               <LifeBuoy className="w-6 h-6" />
-              <CardTitle className="text-sm">Real Support</CardTitle>
+              <CardTitle className="text-sm">Support</CardTitle>
               <CardDescription className="text-xs">
                 Human support via live chat when you need a helping hand
               </CardDescription>
