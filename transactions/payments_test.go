@@ -116,6 +116,31 @@ func TestMarkSettled_Sent(t *testing.T) {
 	assert.Equal(t, &dbTransaction, settledTransaction)
 }
 
+func TestMarkSettled_SentNoPreimage(t *testing.T) {
+	defer tests.RemoveTestService()
+	svc, err := tests.CreateTestService()
+	assert.NoError(t, err)
+
+	dbTransaction := db.Transaction{
+		State:       constants.TRANSACTION_STATE_PENDING,
+		Type:        constants.TRANSACTION_TYPE_OUTGOING,
+		PaymentHash: tests.MockLNClientTransaction.PaymentHash,
+		AmountMsat:  123000,
+	}
+	svc.DB.Create(&dbTransaction)
+
+	mockEventConsumer := tests.NewMockEventConsumer()
+	svc.EventPublisher.RegisterSubscriber(mockEventConsumer)
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
+	err = svc.DB.Transaction(func(tx *gorm.DB) error {
+		_, err = transactionsService.markTransactionSettled(tx, &dbTransaction, "", 0, false)
+		return err
+	})
+
+	assert.Error(t, err)
+	assert.ErrorContains(t, err, "no preimage in payment")
+}
+
 func TestMarkSettled_Received(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
@@ -142,6 +167,36 @@ func TestMarkSettled_Received(t *testing.T) {
 	assert.Equal(t, 1, len(mockEventConsumer.GetConsumedEvents()))
 	assert.Equal(t, "nwc_payment_received", mockEventConsumer.GetConsumedEvents()[0].Event)
 	settledTransaction := mockEventConsumer.GetConsumedEvents()[0].Properties.(*db.Transaction)
+	assert.Equal(t, &dbTransaction, settledTransaction)
+}
+
+func TestMarkSettled_ReceivedNoPreimage(t *testing.T) {
+	defer tests.RemoveTestService()
+	svc, err := tests.CreateTestService()
+	assert.NoError(t, err)
+
+	dbTransaction := db.Transaction{
+		State:       constants.TRANSACTION_STATE_PENDING,
+		Type:        constants.TRANSACTION_TYPE_INCOMING,
+		PaymentHash: tests.MockLNClientTransaction.PaymentHash,
+		AmountMsat:  123000,
+	}
+	svc.DB.Create(&dbTransaction)
+
+	mockEventConsumer := tests.NewMockEventConsumer()
+	svc.EventPublisher.RegisterSubscriber(mockEventConsumer)
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
+	err = svc.DB.Transaction(func(tx *gorm.DB) error {
+		_, err = transactionsService.markTransactionSettled(tx, &dbTransaction, "", 0, false)
+		return err
+	})
+
+	// incoming payment does not necessarily need preimage
+	assert.Nil(t, err)
+	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, dbTransaction.State)
+	assert.Equal(t, 1, len(mockEventConsumer.GetConsumeEvents()))
+	assert.Equal(t, "nwc_payment_received", mockEventConsumer.GetConsumeEvents()[0].Event)
+	settledTransaction := mockEventConsumer.GetConsumeEvents()[0].Properties.(*db.Transaction)
 	assert.Equal(t, &dbTransaction, settledTransaction)
 }
 
