@@ -87,7 +87,7 @@ export function ImportMnemonic() {
               </div>
               <span className="text-muted-foreground">
                 Your recovery phrase is a set of 12 words used to restore your
-                savings balance from a backup.
+                on-chain balance from a backup.
               </span>
             </div>
             <div className="flex gap-2 items-center">

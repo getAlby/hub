@@ -132,7 +132,7 @@ export function BackupMnemonic() {
               </div>
               <span>
                 Your recovery phrase is a set of 12 words that{" "}
-                <b>backs up your wallet savings balance</b>.&nbsp;
+                <b>backs up your wallet on-chain balance</b>.&nbsp;
                 {info?.albyAccountConnected && (
                   <>
                     Channel backups are saved automatically to your Alby

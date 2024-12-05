@@ -171,7 +171,7 @@ export default function BuyBitcoin() {
     <div className="grid gap-5">
       <AppHeader
         title="Buy Bitcoin"
-        description="Use one of our partner providers to buy bitcoin and deposit it to your savings balance."
+        description="Use one of our partner providers to buy bitcoin and deposit it to your on-chain balance."
       />
       <MempoolAlert />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-1 lg:gap-10">
