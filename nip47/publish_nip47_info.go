@@ -43,7 +43,10 @@ func (svc *nip47Service) PublishNip47Info(ctx context.Context, relay nostrmodels
 	ev.Content = strings.Join(capabilities, " ")
 	ev.CreatedAt = nostr.Now()
 	ev.PubKey = appWalletPubKey
-	ev.Tags = nostr.Tags{[]string{"notifications", strings.Join(lnClient.GetSupportedNIP47NotificationTypes(), " ")}}
+	ev.Tags = nostr.Tags{
+		[]string{"notifications", strings.Join(lnClient.GetSupportedNIP47NotificationTypes(), " ")},
+		[]string{"v", models.SUPPORTED_VERSIONS},
+	}
 	err := ev.Sign(appWalletPrivKey)
 	if err != nil {
 		return nil, err
