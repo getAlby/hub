@@ -221,6 +221,17 @@ function NewChannelInternal({
           src="/images/illustrations/lightning-network-light.svg"
           className="w-full dark:hidden"
         />
+        <p className="text-muted-foreground">
+          Alby Hub works with selected service providers (LSPs) which provide
+          the best network connectivity and liquidity to receive payments. The
+          channel typically stays open as long as there is usage.{" "}
+          <ExternalLink
+            className="underline"
+            to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/how-to-open-a-channel"
+          >
+            Learn more
+          </ExternalLink>
+        </p>
         <form onSubmit={onSubmit} className="flex flex-col gap-5 flex-1">
           <div className="grid gap-1.5">
             <TooltipProvider>
