@@ -292,7 +292,7 @@ export default function Channels() {
             <ZapIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
 
-          <CardContent className="flex pl-0 flex-wrap">
+          <CardContent className="flex flex-col sm:flex-row pl-0 flex-wrap">
             <div className="flex flex-col flex-1">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pr-0">
                 <CardTitle className="text-sm font-medium">
