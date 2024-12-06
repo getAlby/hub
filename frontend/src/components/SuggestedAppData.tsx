@@ -62,6 +62,13 @@ export const suggestedApps: SuggestedApp[] = [
     logo: buzzpay,
   },
   {
+    id: "simpleboost",
+    title: "SimpleBoost",
+    description: "Donation widget for your website",
+    internal: true,
+    logo: buzzpay,
+  },
+  {
     id: "alby-extension",
     title: "Alby Extension",
     description: "Wallet in your browser",
