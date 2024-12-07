@@ -65,7 +65,8 @@ function Home() {
                       </div>
                     </CardTitle>
                     <CardDescription className="ml-4">
-                      Get an Alby Account with a web wallet interface, lightning address and other features.
+                      Get an Alby Account with a web wallet interface, lightning
+                      address and other features.
                     </CardDescription>
                   </div>
                 </div>
