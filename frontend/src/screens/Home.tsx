@@ -73,7 +73,7 @@ function Home() {
               </CardHeader>
               <CardContent className="text-right">
                 <Button variant="outline">
-                  Get Alby Account
+                  Open Alby Account
                   <ExternalLinkIcon className="w-4 h-4 ml-2" />
                 </Button>
               </CardContent>
