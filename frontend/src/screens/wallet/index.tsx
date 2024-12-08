@@ -81,7 +81,7 @@ function Wallet() {
         !!channels?.length &&
         channels?.every(
           (channel) =>
-            channel.localBalance < channel.unspendablePunishmentReserve
+            channel.localBalance < channel.unspendablePunishmentReserve * 1000
         ) &&
         !showMigrateCard && (
           <Alert>
