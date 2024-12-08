@@ -26,6 +26,15 @@ const nip47PayInvoiceJson = `
 	}
 }
 `
+const nip47PayInvoice0AmountJson = `
+{
+	"method": "pay_invoice",
+	"params": {
+		"invoice": "lnbc1pn428a6pp5njn604kl6x7eruycwzpwapwe97uer8et084kru4r0hsql9ttpmusdp82pshjgr5dusyymrfde4jq4mpd3kx2apq24ek2uscqzpuxqr8pqsp50nvadnrqlvghx44ftl89gjvx9lvrfpy5sypt2zahmpehvex4lp7q9p4gqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqpqysgq395pa893uux2agv8jlqxsppyyx5e4rfdjn9dhynlzxhuq3sgwnv48akdqxut7s4fqrre8adnt8kmfmjaexdcevajqlxvmtjpp823cmspud7udk",
+		"amount": 1234
+	}
+}
+`
 
 const nip47PayJsonNoInvoice = `
 {
@@ -85,6 +94,51 @@ func TestHandlePayInvoiceEvent(t *testing.T) {
 	err = json.Unmarshal(transaction.Metadata, &decodedMetadata)
 	assert.NoError(t, err)
 	assert.Equal(t, 123, decodedMetadata.A)
+}
+
+func TestHandlePayInvoiceEvent_0Amount(t *testing.T) {
+	ctx := context.TODO()
+	defer tests.RemoveTestService()
+	svc, err := tests.CreateTestService()
+	require.NoError(t, err)
+
+	app, _, err := tests.CreateApp(svc)
+	assert.NoError(t, err)
+
+	appPermission := &db.AppPermission{
+		AppId: app.ID,
+		App:   *app,
+		Scope: constants.PAY_INVOICE_SCOPE,
+	}
+	err = svc.DB.Create(appPermission).Error
+	assert.NoError(t, err)
+
+	nip47Request := &models.Request{}
+	err = json.Unmarshal([]byte(nip47PayInvoice0AmountJson), nip47Request)
+	assert.NoError(t, err)
+
+	dbRequestEvent := &db.RequestEvent{}
+	err = svc.DB.Create(&dbRequestEvent).Error
+	assert.NoError(t, err)
+
+	var publishedResponse *models.Response
+
+	publishResponse := func(response *models.Response, tags nostr.Tags) {
+		publishedResponse = response
+	}
+
+	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
+		HandlePayInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse, nostr.Tags{})
+
+	assert.Equal(t, "123preimage", publishedResponse.Result.(payResponse).Preimage)
+
+	transactionType := constants.TRANSACTION_TYPE_OUTGOING
+	transaction, err := transactionsSvc.LookupTransaction(ctx, "9ca7a7d6dfd1bd91f0987082ee85d92fb9919f2b79eb61f2a37de00f956b0ef9", &transactionType, svc.LNClient, &app.ID)
+	assert.NoError(t, err)
+	// from the request amount
+	assert.Equal(t, uint64(1234), transaction.AmountMsat)
 }
 
 func TestHandlePayInvoiceEvent_MalformedInvoice(t *testing.T) {
