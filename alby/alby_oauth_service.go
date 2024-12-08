@@ -883,14 +883,9 @@ func (svc *albyOAuthService) createAlbyAccountNWCNode(ctx context.Context) (stri
 	client := svc.oauthConf.Client(ctx, token)
 
 	type createNWCNodeRequest struct {
-		// TODO: remove once Alby backend supports not passing wallet pubkey parameter
-		WalletPubkey string `json:"wallet_pubkey"`
 	}
 
-	createNodeRequest := createNWCNodeRequest{
-		// NOTE: the wallet pubkey will be overwritten in /activate
-		WalletPubkey: "",
-	}
+	createNodeRequest := createNWCNodeRequest{}
 
 	body := bytes.NewBuffer([]byte{})
 	err = json.NewEncoder(body).Encode(&createNodeRequest)
