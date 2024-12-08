@@ -311,7 +311,11 @@ func (svc *LNDService) LookupInvoice(ctx context.Context, paymentHash string) (t
 	return transaction, nil
 }
 
-func (svc *LNDService) SendPaymentSync(ctx context.Context, payReq string) (*lnclient.PayInvoiceResponse, error) {
+func (svc *LNDService) SendPaymentSync(ctx context.Context, payReq string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
+	// TODO: support 0-amount invoices
+	if amount != nil {
+		return nil, errors.New("0-amount invoices not supported")
+	}
 	resp, err := svc.client.SendPaymentSync(ctx, &lnrpc.SendRequest{PaymentRequest: payReq})
 	if err != nil {
 		return nil, err
