@@ -83,7 +83,9 @@ function AlbyConnectionCard({ connection }: { connection?: App }) {
             </div>
             <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
               {loadingLinkStatus && <Loading />}
-              {!connection || linkStatus === LinkStatus.SharedNode ? (
+              {!connection ||
+              linkStatus === LinkStatus.SharedNode ||
+              linkStatus === LinkStatus.Unlinked ? (
                 <Dialog>
                   <DialogTrigger asChild>
                     <LoadingButton loading={loading}>
