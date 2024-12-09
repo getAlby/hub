@@ -130,8 +130,18 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		builder.RestoreEncodedChannelMonitors(getEncodedChannelMonitorsFromStaticChannelsBackup(staticChannelsBackup))
 	}
 
+	migrateStorage, _ := cfg.Get("LdkMigrateStorage", "")
+	if migrateStorage == "VSS" {
+		cfg.SetUpdate("LdkMigrateStorage", "", "")
+		if vssToken == "" {
+			return nil, errors.New("migration enabled but no vss token found")
+		}
+		builder.MigrateStorage(ldk_node.MigrateStorageVss)
+	}
+
 	logger.Logger.WithFields(logrus.Fields{
-		"vss_enabled": vssToken != "",
+		"migrate_storage": migrateStorage,
+		"vss_enabled":     vssToken != "",
 	}).Info("Creating node")
 	var node *ldk_node.Node
 	if vssToken != "" {
