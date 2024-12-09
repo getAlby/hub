@@ -42,6 +42,15 @@ export default function Send() {
       }
 
       const invoice = new Invoice({ pr: recipient });
+      if (invoice.satoshi === 0) {
+        navigate(`/wallet/send/0-amount`, {
+          state: {
+            args: { paymentRequest: invoice },
+          },
+        });
+        return;
+      }
+
       navigate(`/wallet/send/confirm-payment`, {
         state: {
           args: { paymentRequest: invoice },

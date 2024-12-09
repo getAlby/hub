@@ -16,6 +16,7 @@ import (
 
 type payInvoiceParams struct {
 	Invoice  string                 `json:"invoice"`
+	Amount   *uint64                `json:"amount"`
 	Metadata map[string]interface{} `json:"metadata,omitempty"`
 }
 
@@ -48,17 +49,17 @@ func (controller *nip47Controller) HandlePayInvoiceEvent(ctx context.Context, ni
 		return
 	}
 
-	controller.pay(ctx, bolt11, payParams.Metadata, &paymentRequest, nip47Request, requestEventId, app, publishResponse, tags)
+	controller.pay(ctx, bolt11, payParams.Amount, payParams.Metadata, &paymentRequest, nip47Request, requestEventId, app, publishResponse, tags)
 }
 
-func (controller *nip47Controller) pay(ctx context.Context, bolt11 string, metadata map[string]interface{}, paymentRequest *decodepay.Bolt11, nip47Request *models.Request, requestEventId uint, app *db.App, publishResponse publishFunc, tags nostr.Tags) {
+func (controller *nip47Controller) pay(ctx context.Context, bolt11 string, amount *uint64, metadata map[string]interface{}, paymentRequest *decodepay.Bolt11, nip47Request *models.Request, requestEventId uint, app *db.App, publishResponse publishFunc, tags nostr.Tags) {
 	logger.Logger.WithFields(logrus.Fields{
 		"request_event_id": requestEventId,
 		"app_id":           app.ID,
 		"bolt11":           bolt11,
 	}).Info("Sending payment")
 
-	transaction, err := controller.transactionsService.SendPaymentSync(ctx, bolt11, metadata, controller.lnClient, &app.ID, &requestEventId)
+	transaction, err := controller.transactionsService.SendPaymentSync(ctx, bolt11, amount, metadata, controller.lnClient, &app.ID, &requestEventId)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"request_event_id": requestEventId,

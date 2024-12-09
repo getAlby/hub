@@ -36,7 +36,7 @@ type TransactionsService interface {
 	MakeInvoice(ctx context.Context, amount uint64, description string, descriptionHash string, expiry uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	LookupTransaction(ctx context.Context, paymentHash string, transactionType *string, lnClient lnclient.LNClient, appId *uint) (*Transaction, error)
 	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, transactionType *string, lnClient lnclient.LNClient, appId *uint, forceFilterByAppId bool) (transactions []Transaction, err error)
-	SendPaymentSync(ctx context.Context, payReq string, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
+	SendPaymentSync(ctx context.Context, payReq string, amountMsat *uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []lnclient.TLVRecord, preimage string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 }
 
@@ -182,7 +182,7 @@ func (svc *transactionsService) MakeInvoice(ctx context.Context, amount uint64, 
 	return &dbTransaction, nil
 }
 
-func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq string, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
+func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq string, amountMsat *uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
 	var metadataBytes []byte
 	if metadata != nil {
 		var err error
@@ -210,6 +210,11 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 
 	var dbTransaction db.Transaction
 
+	paymentAmount := uint64(paymentRequest.MSatoshi)
+	if amountMsat != nil {
+		paymentAmount = *amountMsat
+	}
+
 	err = svc.db.Transaction(func(tx *gorm.DB) error {
 		var existingSettledTransaction db.Transaction
 		if tx.Limit(1).Find(&existingSettledTransaction, &db.Transaction{
@@ -221,7 +226,7 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 			return errors.New("this invoice has already been paid")
 		}
 
-		err := svc.validateCanPay(tx, appId, uint64(paymentRequest.MSatoshi), paymentRequest.Description)
+		err := svc.validateCanPay(tx, appId, paymentAmount, paymentRequest.Description)
 		if err != nil {
 			return err
 		}
@@ -236,8 +241,8 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 			RequestEventId:  requestEventId,
 			Type:            constants.TRANSACTION_TYPE_OUTGOING,
 			State:           constants.TRANSACTION_STATE_PENDING,
-			FeeReserveMsat:  svc.calculateFeeReserveMsat(uint64(paymentRequest.MSatoshi)),
-			AmountMsat:      uint64(paymentRequest.MSatoshi),
+			FeeReserveMsat:  svc.calculateFeeReserveMsat(paymentAmount),
+			AmountMsat:      paymentAmount,
 			PaymentRequest:  payReq,
 			PaymentHash:     paymentRequest.PaymentHash,
 			Description:     paymentRequest.Description,
@@ -261,7 +266,7 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 	if selfPayment {
 		response, err = svc.interceptSelfPayment(paymentRequest.PaymentHash)
 	} else {
-		response, err = lnClient.SendPaymentSync(ctx, payReq)
+		response, err = lnClient.SendPaymentSync(ctx, payReq, amountMsat)
 	}
 
 	if err != nil {

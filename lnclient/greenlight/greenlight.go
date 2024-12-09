@@ -117,7 +117,10 @@ func (gs *GreenlightService) Shutdown() error {
 	return nil
 }
 
-func (gs *GreenlightService) SendPaymentSync(ctx context.Context, payReq string) (*lnclient.PayInvoiceResponse, error) {
+func (gs *GreenlightService) SendPaymentSync(ctx context.Context, payReq string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
+	if amount != nil {
+		return nil, errors.New("0-amount invoices not supported")
+	}
 	response, err := gs.client.Pay(glalby.PayRequest{
 		Bolt11: payReq,
 	})
