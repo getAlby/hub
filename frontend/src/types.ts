@@ -344,6 +344,9 @@ export type AlbyMe = {
   hub: {
     name?: string;
   };
+  subscription: {
+    buzz: boolean;
+  };
 };
 
 export type AlbyBalance = {

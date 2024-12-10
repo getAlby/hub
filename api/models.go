@@ -53,6 +53,7 @@ type API interface {
 	RequestLSPOrder(ctx context.Context, request *LSPOrderRequest) (*LSPOrderResponse, error)
 	CreateBackup(unlockPassword string, w io.Writer) error
 	RestoreBackup(unlockPassword string, r io.Reader) error
+	MigrateNodeStorage(ctx context.Context, to string) error
 	GetWalletCapabilities(ctx context.Context) (*WalletCapabilitiesResponse, error)
 }
 
@@ -347,4 +348,8 @@ type Channel struct {
 	Error                                    *string     `json:"error"`
 	Status                                   string      `json:"status"`
 	IsOutbound                               bool        `json:"isOutbound"`
+}
+
+type MigrateNodeStorageRequest struct {
+	To string `json:"to"`
 }
