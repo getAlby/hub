@@ -2,18 +2,39 @@ import { ExitIcon } from "@radix-ui/react-icons";
 import { ExternalLinkIcon } from "lucide-react";
 
 import ExternalLink from "src/components/ExternalLink";
+import Loading from "src/components/Loading";
 import SettingsHeader from "src/components/SettingsHeader";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "src/components/ui/alert-dialog";
 import {
   Card,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { LoadingButton } from "src/components/ui/loading-button";
 import { UnlinkAlbyAccount } from "src/components/UnlinkAlbyAccount";
+import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useInfo } from "src/hooks/useInfo";
+import { useMigrateLDKStorage } from "src/hooks/useMigrateLDKStorage";
 
 export function AlbyAccount() {
   const { data: info } = useInfo();
+  const { data: me } = useAlbyMe();
+  const { isMigratingStorage, migrateLDKStorage } = useMigrateLDKStorage();
+  if (!info || !me) {
+    return <Loading />;
+  }
+
   return (
     <>
       <SettingsHeader
@@ -72,10 +93,50 @@ export function AlbyAccount() {
         your recovery phrase alone, without having to close your channels.
       </p>
       {info && (
-        <p>
-          VSS is <b>{info.ldkVssEnabled ? "enabled" : "disabled"}</b>. Migration
-          to and from VSS will be available shortly.
-        </p>
+        <>
+          {info.ldkVssEnabled && (
+            <p>
+              ✅ VSS <b>enabled</b>.{" "}
+              {info.ldkVssEnabled && (
+                <>Migration from VSS will be available shortly.</>
+              )}
+            </p>
+          )}
+          {!me.subscription.buzz && (
+            <p>VSS is only available to Alby users with a paid subscription.</p>
+          )}
+          {!info.ldkVssEnabled && me.subscription.buzz && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                {
+                  <LoadingButton loading={isMigratingStorage}>
+                    Enable VSS
+                  </LoadingButton>
+                }
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Alby Hub Restart Required</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    <div>
+                      <p>
+                        As part of enabling VSS your hub will be shut down, and
+                        you will need to enter your unlock password to start it
+                        again.
+                      </p>
+                    </div>
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => migrateLDKStorage("VSS")}>
+                    Confirm
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+        </>
       )}
     </>
   );
