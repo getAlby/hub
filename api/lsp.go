@@ -24,10 +24,12 @@ import (
 )
 
 type lspInfo struct {
-	Pubkey                 string
-	Address                string
-	Port                   uint16
-	MaxChannelExpiryBlocks uint64
+	Pubkey                          string
+	Address                         string
+	Port                            uint16
+	MaxChannelExpiryBlocks          uint64
+	MinRequiredChannelConfirmations uint64
+	MinFundingConfirmsWithinBlocks  uint64
 }
 
 func (api *api) RequestLSPOrder(ctx context.Context, request *LSPOrderRequest) (*LSPOrderResponse, error) {
@@ -71,7 +73,7 @@ func (api *api) RequestLSPOrder(ctx context.Context, request *LSPOrderRequest) (
 		return nil, err
 	}
 
-	invoice, fee, err := api.requestLSPS1Invoice(ctx, request, nodeInfo.Pubkey, lspInfo.MaxChannelExpiryBlocks)
+	invoice, fee, err := api.requestLSPS1Invoice(ctx, request, nodeInfo.Pubkey, lspInfo.MaxChannelExpiryBlocks, lspInfo.MinRequiredChannelConfirmations, lspInfo.MinFundingConfirmsWithinBlocks)
 
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to request invoice")
@@ -114,8 +116,10 @@ func (api *api) RequestLSPOrder(ctx context.Context, request *LSPOrderRequest) (
 func (api *api) getLSPS1LSPInfo(url string) (*lspInfo, error) {
 
 	type lsps1LSPInfo struct {
-		MaxChannelExpiryBlocks uint64   `json:"max_channel_expiry_blocks"`
-		URIs                   []string `json:"uris"`
+		MinRequiredChannelConfirmations uint64   `json:"min_required_channel_confirmations"`
+		MinFundingConfirmsWithinBlocks  uint64   `json:"min_funding_confirms_within_blocks"`
+		MaxChannelExpiryBlocks          uint64   `json:"max_channel_expiry_blocks"`
+		URIs                            []string `json:"uris"`
 	}
 	var lsps1LspInfo lsps1LSPInfo
 	client := http.Client{
@@ -183,14 +187,16 @@ func (api *api) getLSPS1LSPInfo(url string) (*lspInfo, error) {
 	}
 
 	return &lspInfo{
-		Pubkey:                 parts[1],
-		Address:                parts[2],
-		Port:                   uint16(port),
-		MaxChannelExpiryBlocks: lsps1LspInfo.MaxChannelExpiryBlocks,
+		Pubkey:                          parts[1],
+		Address:                         parts[2],
+		Port:                            uint16(port),
+		MaxChannelExpiryBlocks:          lsps1LspInfo.MaxChannelExpiryBlocks,
+		MinRequiredChannelConfirmations: lsps1LspInfo.MinRequiredChannelConfirmations,
+		MinFundingConfirmsWithinBlocks:  lsps1LspInfo.MinFundingConfirmsWithinBlocks,
 	}, nil
 }
 
-func (api *api) requestLSPS1Invoice(ctx context.Context, request *LSPOrderRequest, pubkey string, channelExpiryBlocks uint64) (invoice string, fee uint64, err error) {
+func (api *api) requestLSPS1Invoice(ctx context.Context, request *LSPOrderRequest, pubkey string, channelExpiryBlocks uint64, minRequiredChannelConfirmations uint64, minFundingConfirmsWithinBlocks uint64) (invoice string, fee uint64, err error) {
 	client := http.Client{
 		Timeout: time.Second * 60,
 	}
@@ -221,8 +227,12 @@ func (api *api) requestLSPS1Invoice(ctx context.Context, request *LSPOrderReques
 	}
 
 	if backendType != config.LDKBackendType {
+		// LND does not support 0-conf by default
 		requiredChannelConfirmations = 1
 	}
+
+	// Some LSPs (e.g. Olympus) require more min confirmations, as per the spec ours must be at least as many blocks
+	requiredChannelConfirmations = max(requiredChannelConfirmations, minRequiredChannelConfirmations)
 
 	if request.Public {
 		// as per BOLT-7 6 confirmations are required for the channel to be gossiped
@@ -240,7 +250,7 @@ func (api *api) requestLSPS1Invoice(ctx context.Context, request *LSPOrderReques
 		LSPBalanceSat:                strconv.FormatUint(request.Amount, 10),
 		ClientBalanceSat:             "0",
 		RequiredChannelConfirmations: requiredChannelConfirmations,
-		FundingConfirmsWithinBlocks:  6,
+		FundingConfirmsWithinBlocks:  minFundingConfirmsWithinBlocks,
 		ChannelExpiryBlocks:          channelExpiryBlocks,
 		Token:                        token,
 		RefundOnchainAddress:         refundAddress,
