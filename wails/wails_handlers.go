@@ -284,7 +284,17 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 	switch {
 	case len(invoiceMatch) > 1:
 		invoice := invoiceMatch[1]
-		paymentResponse, err := app.api.SendPayment(ctx, invoice)
+		payRequest := &api.PayInvoiceRequest{}
+		err := json.Unmarshal([]byte(body), payRequest)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).WithError(err).Error("Failed to decode request to wails router")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		paymentResponse, err := app.api.SendPayment(ctx, invoice, payRequest.Amount)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
