@@ -52,8 +52,7 @@ type LDKService struct {
 
 const resetRouterKey = "ResetRouter"
 
-// TODO: remove staticChannelsBackup *events.StaticChannelsBackupEvent, restoredFromSeed bool (we have a dedicated SCB recovery tool)
-func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events.EventPublisher, mnemonic, workDir string, network string, staticChannelsBackup *events.StaticChannelsBackupEvent, restoredFromSeed bool, vssToken string) (result lnclient.LNClient, err error) {
+func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events.EventPublisher, mnemonic, workDir string, network string, vssToken string) (result lnclient.LNClient, err error) {
 	if mnemonic == "" || workDir == "" {
 		return nil, errors.New("one or more required LDK configuration are missing")
 	}
@@ -123,12 +122,6 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	// LDK default HTLC inflight value is 10% of the channel size. If an LSPS service is configured this will be set to 0.
 	// The liquidity source below is not used because we do not use the native LDK-node LSPS2 API.
 	builder.SetLiquiditySourceLsps2("52.88.33.119:9735", lsp.OlympusLSP().Pubkey, nil)
-
-	// recover from backup
-	if staticChannelsBackup != nil {
-		// add backed up channel monitors to LDK DB
-		builder.RestoreEncodedChannelMonitors(getEncodedChannelMonitorsFromStaticChannelsBackup(staticChannelsBackup))
-	}
 
 	logger.Logger.WithFields(logrus.Fields{
 		"vss_enabled": vssToken != "",
@@ -206,22 +199,6 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to start LDK node")
 		return nil, err
-	}
-
-	if restoredFromSeed {
-		// generate some onchain addresses in case there were funds on them (when importing from an existing seed)
-		// NOTE: this may not be enough. The user could click the get new address button to fetch more addresses
-		// (this will probably be improved with BDK 1.0 anyway)
-		func() {
-			for i := 0; i < 10; i++ {
-				ls.node.OnchainPayment().NewAddress()
-			}
-		}()
-	}
-
-	// recover from backup
-	if staticChannelsBackup != nil {
-		forceCloseChannelsFromStaticChannelsBackup(node, staticChannelsBackup)
 	}
 
 	logger.Logger.WithFields(logrus.Fields{
