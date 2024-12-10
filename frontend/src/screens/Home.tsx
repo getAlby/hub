@@ -61,18 +61,19 @@ function Home() {
                   <div>
                     <CardTitle>
                       <div className="flex-1 leading-5 font-semibold text-xl whitespace-nowrap text-ellipsis overflow-hidden ml-4">
-                        Alby Web
+                        Alby Account
                       </div>
                     </CardTitle>
                     <CardDescription className="ml-4">
-                      Install Alby Web on your phone and use your Hub on the go.
+                      Get an Alby Account with a web wallet interface, lightning
+                      address and other features.
                     </CardDescription>
                   </div>
                 </div>
               </CardHeader>
               <CardContent className="text-right">
                 <Button variant="outline">
-                  Open Alby Web
+                  Open Alby Account
                   <ExternalLinkIcon className="w-4 h-4 ml-2" />
                 </Button>
               </CardContent>
@@ -109,7 +110,7 @@ function Home() {
           </Card>
         </Link>
         {!extensionInstalled && (
-          <ExternalLink to="https://www.getalby.com">
+          <ExternalLink to="https://getalby.com/products/browser-extension">
             <Card>
               <CardHeader>
                 <div className="flex flex-row items-center">
@@ -123,7 +124,7 @@ function Home() {
                       </div>
                     </CardTitle>
                     <CardDescription className="ml-4">
-                      Seamless bitcoin payments in your favourite internet
+                      Seamless bitcoin payments in your favorite internet
                       browser.
                     </CardDescription>
                   </div>

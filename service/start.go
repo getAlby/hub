@@ -269,6 +269,7 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 	logger.Logger.Infof("Launching LN Backend: %s", lnBackend)
 	var lnClient lnclient.LNClient
 	var err error
+	vssEnabled := false
 	switch lnBackend {
 	case config.LNDBackendType:
 		LNDAddress, _ := svc.cfg.Get("LNDAddress", encryptionKey)
@@ -284,8 +285,9 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 			logger.Logger.WithError(err).Error("Failed to request VSS token")
 			return err
 		}
+		vssEnabled = vssToken != ""
 
-		lnClient, err = ldk.NewLDKService(ctx, svc.cfg, svc.eventPublisher, mnemonic, ldkWorkdir, svc.cfg.GetEnv().LDKNetwork, nil, false, vssToken)
+		lnClient, err = ldk.NewLDKService(ctx, svc.cfg, svc.eventPublisher, mnemonic, ldkWorkdir, svc.cfg.GetEnv().LDKNetwork, vssToken)
 	case config.GreenlightBackendType:
 		Mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
 		GreenlightInviteCode, _ := svc.cfg.Get("GreenlightInviteCode", encryptionKey)
@@ -342,7 +344,8 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 	svc.eventPublisher.Publish(&events.Event{
 		Event: "nwc_node_started",
 		Properties: map[string]interface{}{
-			"node_type": lnBackend,
+			"node_type":   lnBackend,
+			"vss_enabled": vssEnabled,
 		},
 	})
 
