@@ -605,6 +605,25 @@ func (svc *LNDService) subscribeChannelEvents(ctx context.Context) {
 				}
 
 				switch update := event.Channel.(type) {
+				case *lnrpc.ChannelEventUpdate_OpenChannel:
+					channel := update.OpenChannel
+					logger.Logger.WithFields(logrus.Fields{
+						"counterparty_node_id": channel.RemotePubkey,
+						"public":               !channel.Private,
+						"capacity":             channel.Capacity,
+						"is_outbound":          channel.Initiator,
+					}).Info("Channel opened")
+
+					svc.eventPublisher.Publish(&events.Event{
+						Event: "nwc_channel_ready",
+						Properties: map[string]interface{}{
+							"counterparty_node_id": channel.RemotePubkey,
+							"node_type":            config.LNDBackendType,
+							"public":               !channel.Private,
+							"capacity":             channel.Capacity,
+							"is_outbound":          channel.Initiator,
+						},
+					})
 				case *lnrpc.ChannelEventUpdate_ClosedChannel:
 					closureReason := update.ClosedChannel.CloseType.String()
 					counterpartyNodeId := update.ClosedChannel.RemotePubkey
