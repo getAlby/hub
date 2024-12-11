@@ -124,7 +124,7 @@ export function AlbyAccount() {
                         you will need to enter your unlock password to start it
                         again.
                       </p>
-                      <p>
+                      <p className="mt-2">
                         Please ensure you have no pending payments or channel
                         closures before continuing.
                       </p>
