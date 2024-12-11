@@ -125,7 +125,10 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 
 	migrateStorage, _ := cfg.Get("LdkMigrateStorage", "")
 	if migrateStorage == "VSS" {
-		cfg.SetUpdate("LdkMigrateStorage", "", "")
+		err = cfg.SetUpdate("LdkMigrateStorage", "", "")
+		if err != nil {
+			return nil, err
+		}
 		if vssToken == "" {
 			return nil, errors.New("migration enabled but no vss token found")
 		}
