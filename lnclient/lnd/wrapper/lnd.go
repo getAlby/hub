@@ -49,10 +49,7 @@ func NewLNDclient(lndOptions LNDoptions) (result *LNDWrapper, err error) {
 		if !cp.AppendCertsFromPEM(cert) {
 			return nil, errors.New("failed to append certificate")
 		}
-		creds = credentials.NewTLS(&tls.Config{
-			ClientCAs:          cp,
-			InsecureSkipVerify: true,
-		})
+		creds = credentials.NewClientTLSFromCert(cp, "")
 		// if a path to a cert file is provided
 	} else {
 		creds = credentials.NewTLS(&tls.Config{InsecureSkipVerify: true})
