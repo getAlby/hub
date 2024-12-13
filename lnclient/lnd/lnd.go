@@ -312,11 +312,13 @@ func (svc *LNDService) LookupInvoice(ctx context.Context, paymentHash string) (t
 }
 
 func (svc *LNDService) SendPaymentSync(ctx context.Context, payReq string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
-	// TODO: support 0-amount invoices
+	sendRequest := &lnrpc.SendRequest{PaymentRequest: payReq}
+
 	if amount != nil {
-		return nil, errors.New("0-amount invoices not supported")
+		sendRequest.AmtMsat = int64(*amount)
 	}
-	resp, err := svc.client.SendPaymentSync(ctx, &lnrpc.SendRequest{PaymentRequest: payReq})
+
+	resp, err := svc.client.SendPaymentSync(ctx, sendRequest)
 	if err != nil {
 		return nil, err
 	}
