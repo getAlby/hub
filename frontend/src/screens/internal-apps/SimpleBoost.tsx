@@ -1,11 +1,22 @@
+import { CopyIcon } from "lucide-react";
 import React from "react";
 import AppHeader from "src/components/AppHeader";
+import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
+import { Button } from "src/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "src/components/ui/card";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
+import { Textarea } from "src/components/ui/textarea";
 import { useToast } from "src/components/ui/use-toast";
 import { useApps } from "src/hooks/useApps";
+import { copyToClipboard } from "src/lib/clipboard";
 import { createApp } from "src/requests/createApp";
 import { handleRequestError } from "src/utils/handleRequestError";
 
@@ -55,13 +66,47 @@ export function SimpleBoost() {
         description="The donation button for your website."
       />
       {nwcUri && (
-        <div className="max-w-lg flex flex-col gap-5">
-          <p>Add the following widget to your website.</p>
-
-          <div className="flex flex-col items-center relative">
-            <textarea>{nwcUri}</textarea>
-          </div>
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>How to Add Widget</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3">
+            <ul className="list-inside list-decimal">
+              <li>
+                Add SimpleBoost to your website using a CDN or install it via
+                npm from{" "}
+                <ExternalLink
+                  to="https://getalby.github.io/simple-boost/install/"
+                  className="font-medium text-foreground underline"
+                >
+                  here
+                </ExternalLink>
+              </li>
+              <li>
+                Add the following widget anywhere on your website:
+                <div className="flex gap-2 mt-4">
+                  <Textarea
+                    readOnly
+                    className="h-36"
+                    value={`<simple-boost nwc="${nwcUri}"></simple-boost>`}
+                  />
+                  <Button
+                    onClick={() =>
+                      copyToClipboard(
+                        `<simple-boost nwc="${nwcUri}"></simple-boost>`,
+                        toast
+                      )
+                    }
+                    variant="outline"
+                  >
+                    <CopyIcon className="w-4 h-4 mr-2" />
+                    Copy
+                  </Button>
+                </div>{" "}
+              </li>
+            </ul>
+          </CardContent>
+        </Card>
       )}
       {!nwcUri && (
         <>
