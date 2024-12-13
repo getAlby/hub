@@ -22,7 +22,7 @@ export default function ZeroAmount() {
     event.preventDefault();
     try {
       if (!paymentRequest) {
-        throw new Error("no lightning address set");
+        throw new Error("no invoice set");
       }
       setLoading(true);
 
