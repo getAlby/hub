@@ -119,15 +119,6 @@ func (svc *albyOAuthService) CallbackHandler(ctx context.Context, code string, l
 			logger.Logger.WithError(err).Error("Failed to set user identifier")
 			return err
 		}
-
-		if svc.cfg.GetEnv().AutoLinkAlbyAccount {
-			// link account on first login
-			err := svc.LinkAccount(ctx, lnClient, 1_000_000, constants.BUDGET_RENEWAL_MONTHLY)
-			if err != nil {
-				logger.Logger.WithError(err).Error("Failed to link account on first auth callback")
-			}
-		}
-
 	} else if me.Identifier != existingUserIdentifier {
 		// remove token so user can retry with correct account
 		err := svc.cfg.SetUpdate(accessTokenKey, "", "")
@@ -624,7 +615,7 @@ func (svc *albyOAuthService) LinkAccount(ctx context.Context, lnClient lnclient.
 		"app": app,
 	}).Info("Created alby app connection")
 
-	err = svc.activateAlbyAccountNWCNode(ctx)
+	err = svc.activateAlbyAccountNWCNode(ctx, *app.WalletPubkey)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to activate alby account nwc node")
 		return err
@@ -883,14 +874,9 @@ func (svc *albyOAuthService) createAlbyAccountNWCNode(ctx context.Context) (stri
 	client := svc.oauthConf.Client(ctx, token)
 
 	type createNWCNodeRequest struct {
-		WalletPubkey string `json:"wallet_pubkey"`
-		RelayUrl     string `json:"relay_url"`
 	}
 
-	createNodeRequest := createNWCNodeRequest{
-		WalletPubkey: svc.keys.GetNostrPublicKey(),
-		RelayUrl:     svc.cfg.GetRelayUrl(),
-	}
+	createNodeRequest := createNWCNodeRequest{}
 
 	body := bytes.NewBuffer([]byte{})
 	err = json.NewEncoder(body).Encode(&createNodeRequest)
@@ -910,16 +896,13 @@ func (svc *albyOAuthService) createAlbyAccountNWCNode(ctx context.Context) (stri
 
 	resp, err := client.Do(req)
 	if err != nil {
-		logger.Logger.WithFields(logrus.Fields{
-			"createNodeRequest": createNodeRequest,
-		}).WithError(err).Error("Failed to send request to /internal/nwcs")
+		logger.Logger.WithError(err).Error("Failed to send request to /internal/nwcs")
 		return "", err
 	}
 
 	if resp.StatusCode >= 300 {
 		logger.Logger.WithFields(logrus.Fields{
-			"createNodeRequest": createNodeRequest,
-			"status":            resp.StatusCode,
+			"status": resp.StatusCode,
 		}).Error("Request to /internal/nwcs returned non-success status")
 		return "", errors.New("request to /internal/nwcs returned non-success status")
 	}
@@ -976,7 +959,7 @@ func (svc *albyOAuthService) destroyAlbyAccountNWCNode(ctx context.Context) erro
 	return nil
 }
 
-func (svc *albyOAuthService) activateAlbyAccountNWCNode(ctx context.Context) error {
+func (svc *albyOAuthService) activateAlbyAccountNWCNode(ctx context.Context, walletServicePubkey string) error {
 	token, err := svc.fetchUserToken(ctx)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to fetch user token")
@@ -984,7 +967,20 @@ func (svc *albyOAuthService) activateAlbyAccountNWCNode(ctx context.Context) err
 
 	client := svc.oauthConf.Client(ctx, token)
 
-	req, err := http.NewRequest("PUT", fmt.Sprintf("%s/internal/nwcs/activate", albyOAuthAPIURL), nil)
+	type activateNWCNodeRequest struct {
+		WalletPubkey string `json:"wallet_pubkey"`
+		RelayUrl     string `json:"relay_url"`
+	}
+
+	activateNodeRequest := activateNWCNodeRequest{
+		WalletPubkey: walletServicePubkey,
+		RelayUrl:     svc.cfg.GetRelayUrl(),
+	}
+
+	body := bytes.NewBuffer([]byte{})
+	err = json.NewEncoder(body).Encode(&activateNodeRequest)
+
+	req, err := http.NewRequest("PUT", fmt.Sprintf("%s/internal/nwcs/activate", albyOAuthAPIURL), body)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Error creating request /internal/nwcs/activate")
 		return err
@@ -994,13 +990,28 @@ func (svc *albyOAuthService) activateAlbyAccountNWCNode(ctx context.Context) err
 
 	resp, err := client.Do(req)
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to send request to /internal/nwcs/activate")
+		logger.Logger.WithFields(logrus.Fields{
+			"activate_node_request": activateNodeRequest,
+		}).WithError(err).Error("Failed to send request to /internal/nwcs/activate")
 		return err
 	}
 
 	if resp.StatusCode >= 300 {
+		bodyString := ""
+		bodyBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"activate_node_request": activateNodeRequest,
+				"status":                resp.StatusCode,
+			}).Error("Failed to read response body from to /internal/nwcs/activate")
+		}
+		if bodyBytes != nil {
+			bodyString = string(bodyBytes)
+		}
+
 		logger.Logger.WithFields(logrus.Fields{
-			"status": resp.StatusCode,
+			"status":  resp.StatusCode,
+			"message": bodyString,
 		}).Error("Request to /internal/nwcs/activate returned non-success status")
 		return errors.New("request to /internal/nwcs/activate returned non-success status")
 	}

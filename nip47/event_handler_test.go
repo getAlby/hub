@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"slices"
 	"testing"
+	"time"
 
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
@@ -295,6 +296,63 @@ func TestHandleResponse_NoApp(t *testing.T) {
 
 	// it shouldn't return anything for an invalid app key
 	assert.Nil(t, relay.PublishedEvent)
+}
+
+func TestHandleResponse_OldRequestForPayment(t *testing.T) {
+	defer tests.RemoveTestService()
+	svc, err := tests.CreateTestService()
+	require.NoError(t, err)
+	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
+
+	reqPrivateKey := nostr.GeneratePrivateKey()
+	reqPubkey, err := nostr.GetPublicKey(reqPrivateKey)
+	assert.NoError(t, err)
+
+	app, ss, err := tests.CreateAppWithPrivateKey(svc, reqPrivateKey)
+	assert.NoError(t, err)
+
+	content := map[string]interface{}{
+		"method": models.PAY_INVOICE_METHOD,
+	}
+
+	appPermission := &db.AppPermission{
+		AppId: app.ID,
+		App:   *app,
+		Scope: constants.PAY_INVOICE_SCOPE,
+	}
+	err = svc.DB.Create(appPermission).Error
+	assert.NoError(t, err)
+
+	payloadBytes, err := json.Marshal(content)
+	assert.NoError(t, err)
+
+	msg, err := nip04.Encrypt(string(payloadBytes), ss)
+	assert.NoError(t, err)
+
+	reqEvent := &nostr.Event{
+		Kind:      models.REQUEST_KIND,
+		PubKey:    reqPubkey,
+		CreatedAt: nostr.Timestamp(time.Now().Add(time.Duration(-6) * time.Hour).Unix()),
+		Tags:      nostr.Tags{},
+		Content:   msg,
+	}
+	err = reqEvent.Sign(reqPrivateKey)
+	assert.NoError(t, err)
+
+	relay := tests.NewMockRelay()
+
+	nip47svc.HandleEvent(context.TODO(), relay, reqEvent, svc.LNClient)
+
+	// it shouldn't return anything for an old request
+	assert.Nil(t, relay.PublishedEvent)
+
+	// change the request to now
+	reqEvent.CreatedAt = nostr.Now()
+	err = reqEvent.Sign(reqPrivateKey)
+	assert.NoError(t, err)
+
+	nip47svc.HandleEvent(context.TODO(), relay, reqEvent, svc.LNClient)
+	assert.NotNil(t, relay.PublishedEvent)
 }
 
 func TestHandleResponse_IncorrectPubkey(t *testing.T) {

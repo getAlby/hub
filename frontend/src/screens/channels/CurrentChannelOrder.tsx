@@ -804,7 +804,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                 </p>
                 <Link to="/channels/outgoing" className="w-full">
                   <Button className="w-full" variant="secondary">
-                    Increase spending balance
+                    Increase Spending Balance
                   </Button>
                 </Link>
                 <ExternalLink
