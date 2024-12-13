@@ -115,7 +115,6 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
             <AlertDialogDescription className="text-left">
               <Alert className="mb-4">
                 <AlertCircleIcon className="h-4 w-4" />
-                <AlertTitle>For Your Information</AlertTitle>
                 <AlertDescription>
                   Closing this channel will move{" "}
                   {formatAmount(channel.localBalance)} sats in this channel to
