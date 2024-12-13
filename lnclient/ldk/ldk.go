@@ -111,7 +111,15 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	builder.SetNodeAlias("Alby Hub") // TODO: allow users to customize
 	builder.SetEntropyBip39Mnemonic(mnemonic, nil)
 	builder.SetNetwork(network)
-	builder.SetChainSourceEsplora(cfg.GetEnv().LDKEsploraServer, nil)
+	if cfg.GetEnv().LDKBitcoindRpcHost != "" {
+		bitcoindPort, err := strconv.Atoi(cfg.GetEnv().LDKBitcoindRpcPort)
+		if err == nil {
+			bitcoindPort = 8332
+		}
+		builder.SetChainSourceBitcoindRpc(cfg.GetEnv().LDKBitcoindRpcHost, uint16(bitcoindPort), cfg.GetEnv().LDKBitcoindRpcUser, cfg.GetEnv().LDKBitcoindRpcPassword)
+	} else {
+		builder.SetChainSourceEsplora(cfg.GetEnv().LDKEsploraServer, nil)
+	}
 	if cfg.GetEnv().LDKGossipSource != "" {
 		logger.Logger.WithField("gossipSource", cfg.GetEnv().LDKGossipSource).Warn("LDK RGS instance set")
 		builder.SetGossipSourceRgs(cfg.GetEnv().LDKGossipSource)
