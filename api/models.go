@@ -211,7 +211,11 @@ type BalancesResponse = lnclient.BalancesResponse
 type SendPaymentResponse = Transaction
 type MakeInvoiceResponse = Transaction
 type LookupInvoiceResponse = Transaction
-type ListTransactionsResponse = []Transaction
+
+type ListTransactionsResponse struct {
+	TotalCount   int64         `json:"totalCount"`
+	Transactions []Transaction `json:"transactions"`
+}
 
 // TODO: camelCase
 type Transaction struct {

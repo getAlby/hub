@@ -47,8 +47,9 @@ func TestListTransactions_Paid(t *testing.T) {
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
-	incomingTransactions, err := transactionsService.ListTransactions(ctx, 0, 0, 0, 0, false, false, nil, svc.LNClient, nil, false)
+	incomingTransactions, totalCount, err := transactionsService.ListTransactions(ctx, 0, 0, 0, 0, false, false, nil, svc.LNClient, nil, false)
 	assert.NoError(t, err)
+	assert.Equal(t, int64(1), totalCount)
 	assert.Equal(t, 1, len(incomingTransactions))
 	assert.Equal(t, uint64(123000), incomingTransactions[0].AmountMsat)
 	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, incomingTransactions[0].State)
@@ -112,8 +113,9 @@ func TestListTransactions_UnpaidIncoming(t *testing.T) {
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
-	incomingTransactions, err := transactionsService.ListTransactions(ctx, 0, 0, 0, 0, false, true, nil, svc.LNClient, nil, false)
+	incomingTransactions, totalCount, err := transactionsService.ListTransactions(ctx, 0, 0, 0, 0, false, true, nil, svc.LNClient, nil, false)
 	assert.NoError(t, err)
+	assert.Equal(t, int64(3), totalCount)
 	assert.Equal(t, 3, len(incomingTransactions))
 	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, incomingTransactions[0].State)
 	assert.Equal(t, constants.TRANSACTION_STATE_FAILED, incomingTransactions[1].State)
@@ -179,8 +181,9 @@ func TestListTransactions_UnpaidOutgoing(t *testing.T) {
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
-	outgoingTransactions, err := transactionsService.ListTransactions(ctx, 0, 0, 0, 0, true, false, nil, svc.LNClient, nil, false)
+	outgoingTransactions, totalCount, err := transactionsService.ListTransactions(ctx, 0, 0, 0, 0, true, false, nil, svc.LNClient, nil, false)
 	assert.NoError(t, err)
+	assert.Equal(t, int64(3), totalCount)
 	assert.Equal(t, 3, len(outgoingTransactions))
 	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, outgoingTransactions[0].State)
 	assert.Equal(t, constants.TRANSACTION_STATE_FAILED, outgoingTransactions[1].State)
@@ -246,8 +249,9 @@ func TestListTransactions_Unpaid(t *testing.T) {
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
-	outgoingTransactions, err := transactionsService.ListTransactions(ctx, 0, 0, 0, 0, true, true, nil, svc.LNClient, nil, false)
+	outgoingTransactions, totalCount, err := transactionsService.ListTransactions(ctx, 0, 0, 0, 0, true, true, nil, svc.LNClient, nil, false)
 	assert.NoError(t, err)
+	assert.Equal(t, int64(5), totalCount)
 	assert.Equal(t, 5, len(outgoingTransactions))
 }
 
@@ -281,8 +285,9 @@ func TestListTransactions_Limit(t *testing.T) {
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
-	incomingTransactions, err := transactionsService.ListTransactions(ctx, 0, 0, 1, 0, false, false, nil, svc.LNClient, nil, false)
+	incomingTransactions, totalCount, err := transactionsService.ListTransactions(ctx, 0, 0, 1, 0, false, false, nil, svc.LNClient, nil, false)
 	assert.NoError(t, err)
+	assert.Equal(t, int64(2), totalCount)
 	assert.Equal(t, 1, len(incomingTransactions))
 	assert.Equal(t, "first", incomingTransactions[0].Description)
 }
@@ -337,8 +342,9 @@ func TestListTransactions_Offset(t *testing.T) {
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
-	incomingTransactions, err := transactionsService.ListTransactions(ctx, 0, 0, 1, 2, false, false, nil, svc.LNClient, nil, false)
+	incomingTransactions, totalCount, err := transactionsService.ListTransactions(ctx, 0, 0, 1, 2, false, false, nil, svc.LNClient, nil, false)
 	assert.NoError(t, err)
+	assert.Equal(t, int64(4), totalCount)
 	assert.Equal(t, 1, len(incomingTransactions))
 	assert.Equal(t, "third", incomingTransactions[0].Description)
 }
@@ -387,8 +393,9 @@ func TestListTransactions_FromUntil(t *testing.T) {
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
-	incomingTransactions, err := transactionsService.ListTransactions(ctx, uint64(time.Now().Add(4*time.Minute).Unix()), uint64(time.Now().Add(6*time.Minute).Unix()), 0, 0, false, false, nil, svc.LNClient, nil, false)
+	incomingTransactions, totalCount, err := transactionsService.ListTransactions(ctx, uint64(time.Now().Add(4*time.Minute).Unix()), uint64(time.Now().Add(6*time.Minute).Unix()), 0, 0, false, false, nil, svc.LNClient, nil, false)
 	assert.NoError(t, err)
+	assert.Equal(t, int64(1), totalCount)
 	assert.Equal(t, 1, len(incomingTransactions))
 	assert.Equal(t, "second", incomingTransactions[0].Description)
 }
@@ -448,9 +455,9 @@ func TestListTransactions_FromUntilUnpaidOutgoing(t *testing.T) {
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
-	incomingTransactions, err := transactionsService.ListTransactions(ctx, uint64(time.Now().Add(4*time.Minute).Unix()), uint64(time.Now().Add(6*time.Minute).Unix()), 0, 0, true, false, nil, svc.LNClient, nil, false)
+	incomingTransactions, totalCount, err := transactionsService.ListTransactions(ctx, uint64(time.Now().Add(4*time.Minute).Unix()), uint64(time.Now().Add(6*time.Minute).Unix()), 0, 0, true, false, nil, svc.LNClient, nil, false)
 	assert.NoError(t, err)
-	assert.Equal(t, 1, len(incomingTransactions))
+	assert.Equal(t, int64(1), totalCount)
 	assert.Equal(t, "second", incomingTransactions[0].Description)
 	assert.Equal(t, constants.TRANSACTION_TYPE_OUTGOING, incomingTransactions[0].Type)
 }
@@ -510,9 +517,9 @@ func TestListTransactions_FromUntilUnpaidIncoming(t *testing.T) {
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
-	incomingTransactions, err := transactionsService.ListTransactions(ctx, uint64(time.Now().Add(4*time.Minute).Unix()), uint64(time.Now().Add(6*time.Minute).Unix()), 0, 0, false, true, nil, svc.LNClient, nil, false)
+	incomingTransactions, totalCount, err := transactionsService.ListTransactions(ctx, uint64(time.Now().Add(4*time.Minute).Unix()), uint64(time.Now().Add(6*time.Minute).Unix()), 0, 0, false, true, nil, svc.LNClient, nil, false)
 	assert.NoError(t, err)
-	assert.Equal(t, 1, len(incomingTransactions))
+	assert.Equal(t, int64(1), totalCount)
 	assert.Equal(t, "second", incomingTransactions[0].Description)
 	assert.Equal(t, constants.TRANSACTION_TYPE_INCOMING, incomingTransactions[0].Type)
 }
