@@ -182,7 +182,7 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
                       Attempt to settle with your channel partner for a quick,
                       low-cost closure. Your funds should be available on-chain
                       within an hour. If your partner is offline or agreement
-                      cannot be met, it will initiate a force closure.
+                      cannot be met, a force closure will be initiated.
                     </p>
                   </div>
                 </div>
