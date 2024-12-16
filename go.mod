@@ -9,7 +9,7 @@ require (
 	github.com/breez/breez-sdk-go v0.5.2
 	github.com/elnosh/gonuts v0.2.0
 	github.com/getAlby/glalby-go v0.0.0-20240621192717-95673c864d59
-	github.com/getAlby/ldk-node-go v0.0.0-20241126182233-197f9bcdd475
+	github.com/getAlby/ldk-node-go v0.0.0-20241211081207-8911834564db
 	github.com/go-gormigrate/gormigrate/v2 v2.1.3
 	github.com/labstack/echo/v4 v4.12.0
 	github.com/nbd-wtf/go-nostr v0.42.3

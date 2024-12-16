@@ -123,8 +123,21 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	// The liquidity source below is not used because we do not use the native LDK-node LSPS2 API.
 	builder.SetLiquiditySourceLsps2("52.88.33.119:9735", lsp.OlympusLSP().Pubkey, nil)
 
+	migrateStorage, _ := cfg.Get("LdkMigrateStorage", "")
+	if migrateStorage == "VSS" {
+		err = cfg.SetUpdate("LdkMigrateStorage", "", "")
+		if err != nil {
+			return nil, err
+		}
+		if vssToken == "" {
+			return nil, errors.New("migration enabled but no vss token found")
+		}
+		builder.MigrateStorage(ldk_node.MigrateStorageVss)
+	}
+
 	logger.Logger.WithFields(logrus.Fields{
-		"vss_enabled": vssToken != "",
+		"migrate_storage": migrateStorage,
+		"vss_enabled":     vssToken != "",
 	}).Info("Creating node")
 	var node *ldk_node.Node
 	if vssToken != "" {

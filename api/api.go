@@ -904,6 +904,28 @@ func (api *api) SendPaymentProbes(ctx context.Context, sendPaymentProbesRequest 
 	return &SendPaymentProbesResponse{Error: errMessage}, nil
 }
 
+func (api *api) MigrateNodeStorage(ctx context.Context, to string) error {
+	if api.svc.GetLNClient() == nil {
+		return errors.New("LNClient not started")
+	}
+	if to != "VSS" {
+		return fmt.Errorf("Migration type not supported: %s", to)
+	}
+
+	ldkVssEnabled, err := api.cfg.Get("LdkVssEnabled", "")
+	if err != nil {
+		return err
+	}
+
+	if ldkVssEnabled == "true" {
+		return errors.New("VSS already enabled")
+	}
+
+	api.cfg.SetUpdate("LdkVssEnabled", "true", "")
+	api.cfg.SetUpdate("LdkMigrateStorage", "VSS", "")
+	return api.Stop()
+}
+
 func (api *api) SendSpontaneousPaymentProbes(ctx context.Context, sendSpontaneousPaymentProbesRequest *SendSpontaneousPaymentProbesRequest) (*SendSpontaneousPaymentProbesResponse, error) {
 	if api.svc.GetLNClient() == nil {
 		return nil, errors.New("LNClient not started")
