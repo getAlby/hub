@@ -42,7 +42,6 @@ export default function Send() {
       }
 
       const invoice = new Invoice({ pr: recipient });
-
       navigate(`/wallet/send/confirm-payment`, {
         state: {
           args: { paymentRequest: invoice },
