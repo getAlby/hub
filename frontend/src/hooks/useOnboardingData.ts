@@ -28,14 +28,14 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
   const { data: channels } = useChannels();
   const { data: info, hasChannelManagement, hasMnemonic } = useInfo();
   const { data: nodeConnectionInfo } = useNodeConnectionInfo();
-  const { data: transactions } = useTransactions(undefined, false, 1);
+  const { data: transactionData } = useTransactions(undefined, false, 1);
 
   const isLoading =
     !apps ||
     !channels ||
     !info ||
     !nodeConnectionInfo ||
-    !transactions ||
+    !transactionData ||
     (info.albyAccountConnected && (!albyMe || !albyBalance));
 
   if (isLoading) {
@@ -55,7 +55,7 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
     new Date(info.nextBackupReminder).getTime() > new Date().getTime();
   const hasCustomApp =
     apps && apps.find((x) => x.name !== "getalby.com") !== undefined;
-  const hasTransaction = transactions.length > 0;
+  const hasTransaction = transactionData.totalCount > 0;
 
   const checklistItems: Omit<ChecklistItem, "disabled">[] = [
     {

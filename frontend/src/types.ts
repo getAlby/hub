@@ -440,6 +440,11 @@ export type Boostagram = {
   valueMsatTotal: number;
 };
 
+export type ListTransactionsResponse = {
+  transactions: Transaction[];
+  totalCount: number;
+};
+
 export type NewChannelOrderStatus = "pay" | "paid" | "success" | "opening";
 
 export type NewChannelOrder = {

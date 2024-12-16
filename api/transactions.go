@@ -35,12 +35,11 @@ func (api *api) LookupInvoice(ctx context.Context, paymentHash string) (*LookupI
 	return toApiTransaction(transaction), nil
 }
 
-// TODO: accept offset, limit params for pagination
 func (api *api) ListTransactions(ctx context.Context, appId *uint, limit uint64, offset uint64) (*ListTransactionsResponse, error) {
 	if api.svc.GetLNClient() == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	transactions, err := api.svc.GetTransactionsService().ListTransactions(ctx, 0, 0, limit, offset, true, false, nil, api.svc.GetLNClient(), appId, true)
+	transactions, totalCount, err := api.svc.GetTransactionsService().ListTransactions(ctx, 0, 0, limit, offset, true, false, nil, api.svc.GetLNClient(), appId, true)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +49,10 @@ func (api *api) ListTransactions(ctx context.Context, appId *uint, limit uint64,
 		apiTransactions = append(apiTransactions, *toApiTransaction(&transaction))
 	}
 
-	return &apiTransactions, nil
+	return &ListTransactionsResponse{
+		Transactions: apiTransactions,
+		TotalCount:   totalCount,
+	}, nil
 }
 
 func (api *api) SendPayment(ctx context.Context, invoice string) (*SendPaymentResponse, error) {

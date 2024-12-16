@@ -35,7 +35,7 @@ type TransactionsService interface {
 	events.EventSubscriber
 	MakeInvoice(ctx context.Context, amount uint64, description string, descriptionHash string, expiry uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	LookupTransaction(ctx context.Context, paymentHash string, transactionType *string, lnClient lnclient.LNClient, appId *uint) (*Transaction, error)
-	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, transactionType *string, lnClient lnclient.LNClient, appId *uint, forceFilterByAppId bool) (transactions []Transaction, err error)
+	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, transactionType *string, lnClient lnclient.LNClient, appId *uint, forceFilterByAppId bool) (transactions []Transaction, totalCount int64, err error)
 	SendPaymentSync(ctx context.Context, payReq string, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []lnclient.TLVRecord, preimage string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 }
@@ -510,7 +510,7 @@ func (svc *transactionsService) LookupTransaction(ctx context.Context, paymentHa
 	return &transaction, nil
 }
 
-func (svc *transactionsService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, transactionType *string, lnClient lnclient.LNClient, appId *uint, forceFilterByAppId bool) (transactions []Transaction, err error) {
+func (svc *transactionsService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, transactionType *string, lnClient lnclient.LNClient, appId *uint, forceFilterByAppId bool) (transactions []Transaction, totalCount int64, err error) {
 	svc.checkUnsettledTransactions(ctx, lnClient)
 
 	tx := svc.db
@@ -542,7 +542,7 @@ func (svc *transactionsService) ListTransactions(ctx context.Context, from, unti
 			ID: *appId,
 		})
 		if result.RowsAffected == 0 {
-			return nil, NewNotFoundError()
+			return nil, 0, NewNotFoundError()
 		}
 		if app.Isolated || forceFilterByAppId {
 			tx = tx.Where("app_id == ?", *appId)
@@ -551,6 +551,12 @@ func (svc *transactionsService) ListTransactions(ctx context.Context, from, unti
 
 	tx = tx.Order("updated_at desc")
 
+	result := tx.Model(&db.Transaction{}).Count(&totalCount)
+	if result.Error != nil {
+		logger.Logger.WithError(result.Error).Error("Failed to count DB transactions")
+		return nil, 0, result.Error
+	}
+
 	if limit > 0 {
 		tx = tx.Limit(int(limit))
 	}
@@ -558,13 +564,13 @@ func (svc *transactionsService) ListTransactions(ctx context.Context, from, unti
 		tx = tx.Offset(int(offset))
 	}
 
-	result := tx.Find(&transactions)
+	result = tx.Find(&transactions)
 	if result.Error != nil {
 		logger.Logger.WithError(result.Error).Error("Failed to list DB transactions")
-		return nil, result.Error
+		return nil, 0, result.Error
 	}
 
-	return transactions, nil
+	return transactions, totalCount, nil
 }
 
 func (svc *transactionsService) checkUnsettledTransactions(ctx context.Context, lnClient lnclient.LNClient) {
