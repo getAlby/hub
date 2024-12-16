@@ -27,10 +27,10 @@ const nip47MultiPayJson = `
 	"method": "multi_pay_invoice",
 	"params": {
 		"invoices": [{
-				"invoice": "lntb1230n1pjypux0pp5xgxzcks5jtx06k784f9dndjh664wc08ucrganpqn52d0ftrh9n8sdqyw3jscqzpgxqyz5vqsp5rkx7cq252p3frx8ytjpzc55rkgyx2mfkzzraa272dqvr2j6leurs9qyyssqhutxa24r5hqxstchz5fxlslawprqjnarjujp5sm3xj7ex73s32sn54fthv2aqlhp76qmvrlvxppx9skd3r5ut5xutgrup8zuc6ay73gqmra29m"
+				"invoice": "lntbs1230n1pnkqautdqyw3jsnp4q09a0z84kg4a2m38zjllw43h953fx5zvqe8qxfgw694ymkq26u8zcpp5yvnh6hsnlnj4xnuh2trzlnunx732dv8ta2wjr75pdfxf6p2vlyassp5hyeg97a3ft5u769kjwsn7p0e85h79pzz8kladmnqhpcypz2uawjs9qyysgqcqpcxq8zals8sq9yeg2pa9eywkgj50cyzxd5elatujuc0c0wh6j9nat5mn34pgk8u9ufpgs99tw9ldlfk42cqlkr48au3lmuh09269prg4qkggh4a8cyqpfl0y6j"
 			},
 			{
-				"invoice": "lntbs1230n1pnvxqc2dqqnp4q0w0f29u6f7yrrpr5y6wj45gtnyhtch9u2m2j7qrws8eevrw90c72pp57gnea9rwqh9c62dl67akgyhuxm7dd3fgwufyuyctgx3awuv8f7cqsp56rtp7kryxssfp3lk7h79uv7n55dc4nwuvslva64caxz45ysefmeq9qyysgqcqpcxqyz5vq7trlnnrjjtfkaw3evfgqh7nxayppkvlkxa2nzhg39zs372j7hff8kht7j40hl0elh2ukhu26nzawvk3aqszdl8ppxhzsgtumemewtccq3xryqt"
+				"invoice": "lntbs1230n1pnkq7q2dqqnp4q09a0z84kg4a2m38zjllw43h953fx5zvqe8qxfgw694ymkq26u8zcpp54sde879ktfrwnt4re3t2ckkrt5tr6dgv6cfdjgkar7942ruccvuqsp52qlk3rxr926s630fmnc5mg6sexnng4cyyfas4msrms8j6q28j8ys9qyysgqcqpcxq8zals8sqgjd3a60n6dy92jn7ggtkywhw952sc302qj0cwfupp7gayadznaj5cahvuq7py8p7hnq8yxylru6279urzxta3783cxze2atj9zmwadcq36muep"
 			}
 		]
 	}
@@ -46,7 +46,7 @@ const nip47MultiPayOneMalformedInvoiceJson = `
 				"id": "invoiceId123"
 			},
 			{
-				"invoice": "lntb1230n1pjypux0pp5xgxzcks5jtx06k784f9dndjh664wc08ucrganpqn52d0ftrh9n8sdqyw3jscqzpgxqyz5vqsp5rkx7cq252p3frx8ytjpzc55rkgyx2mfkzzraa272dqvr2j6leurs9qyyssqhutxa24r5hqxstchz5fxlslawprqjnarjujp5sm3xj7ex73s32sn54fthv2aqlhp76qmvrlvxppx9skd3r5ut5xutgrup8zuc6ay73gqmra29m"
+				"invoice": "lntbs1230n1pnkqautdqyw3jsnp4q09a0z84kg4a2m38zjllw43h953fx5zvqe8qxfgw694ymkq26u8zcpp5yvnh6hsnlnj4xnuh2trzlnunx732dv8ta2wjr75pdfxf6p2vlyassp5hyeg97a3ft5u769kjwsn7p0e85h79pzz8kladmnqhpcypz2uawjs9qyysgqcqpcxq8zals8sq9yeg2pa9eywkgj50cyzxd5elatujuc0c0wh6j9nat5mn34pgk8u9ufpgs99tw9ldlfk42cqlkr48au3lmuh09269prg4qkggh4a8cyqpfl0y6j"
 			}
 		]
 	}
@@ -106,8 +106,8 @@ func TestHandleMultiPayInvoiceEvent_Success(t *testing.T) {
 		HandleMultiPayInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
 
 	var paymentHashes = []string{
-		"320c2c5a1492ccfd5bc7aa4ad9b657d6aaec3cfcc0d1d98413a29af4ac772ccf",
-		"f2279e946e05cb8d29bfd7bb6412fc36fcd6c52877124e130b41a3d771874fb0",
+		"23277d5e13fce5534f9752c62fcf9337a2a6b0ebea9d21fa816a4c9d054cf93b",
+		"ac1b93f8b65a46e9aea3cc56ac5ac35d163d350cd612d922dd1f8b550f98c338",
 	}
 
 	assert.Equal(t, 2, len(responses))
@@ -259,8 +259,8 @@ func TestHandleMultiPayInvoiceEvent_IsolatedApp_OneBudgetExceeded(t *testing.T) 
 	// we cannot guarantee which payment will be made first,
 	// so ensure we have results for both payment hashes
 	var paymentHashes = []string{
-		"320c2c5a1492ccfd5bc7aa4ad9b657d6aaec3cfcc0d1d98413a29af4ac772ccf",
-		"f2279e946e05cb8d29bfd7bb6412fc36fcd6c52877124e130b41a3d771874fb0",
+		"23277d5e13fce5534f9752c62fcf9337a2a6b0ebea9d21fa816a4c9d054cf93b",
+		"ac1b93f8b65a46e9aea3cc56ac5ac35d163d350cd612d922dd1f8b550f98c338",
 	}
 
 	assert.NotEqual(t, dTags[0].GetFirst([]string{"d"}).Value(), dTags[1].GetFirst([]string{"d"}).Value())
@@ -340,8 +340,8 @@ func TestHandleMultiPayInvoiceEvent_LNClient_OnePaymentFailed(t *testing.T) {
 	// we cannot guarantee which payment will be made first,
 	// so ensure we have results for both payment hashes
 	var paymentHashes = []string{
-		"320c2c5a1492ccfd5bc7aa4ad9b657d6aaec3cfcc0d1d98413a29af4ac772ccf",
-		"f2279e946e05cb8d29bfd7bb6412fc36fcd6c52877124e130b41a3d771874fb0",
+		"23277d5e13fce5534f9752c62fcf9337a2a6b0ebea9d21fa816a4c9d054cf93b",
+		"ac1b93f8b65a46e9aea3cc56ac5ac35d163d350cd612d922dd1f8b550f98c338",
 	}
 
 	assert.NotEqual(t, dTags[0].GetFirst([]string{"d"}).Value(), dTags[1].GetFirst([]string{"d"}).Value())
