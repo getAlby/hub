@@ -46,11 +46,13 @@ func NewLNDclient(lndOptions LNDoptions) (result *LNDWrapper, err error) {
 		if err != nil {
 			return nil, err
 		}
-		cp.AppendCertsFromPEM(cert)
+		if !cp.AppendCertsFromPEM(cert) {
+			return nil, errors.New("failed to append certificate")
+		}
 		creds = credentials.NewClientTLSFromCert(cp, "")
 		// if a path to a cert file is provided
 	} else {
-		creds = credentials.NewTLS(&tls.Config{})
+		creds = credentials.NewTLS(&tls.Config{InsecureSkipVerify: true})
 	}
 	opts := []grpc.DialOption{
 		grpc.WithTransportCredentials(creds),
@@ -77,7 +79,7 @@ func NewLNDclient(lndOptions LNDoptions) (result *LNDWrapper, err error) {
 	}
 	opts = append(opts, grpc.WithPerRPCCredentials(macCred))
 
-	conn, err := grpc.Dial(lndOptions.Address, opts...)
+	conn, err := grpc.NewClient(lndOptions.Address, opts...)
 	if err != nil {
 		return nil, err
 	}

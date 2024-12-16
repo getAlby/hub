@@ -422,7 +422,7 @@ func (svc *LNDService) SendKeysend(ctx context.Context, amount uint64, destinati
 }
 
 func NewLNDService(ctx context.Context, eventPublisher events.EventPublisher, lndAddress, lndCertHex, lndMacaroonHex string) (result lnclient.LNClient, err error) {
-	if lndAddress == "" || lndCertHex == "" || lndMacaroonHex == "" {
+	if lndAddress == "" || lndMacaroonHex == "" {
 		return nil, errors.New("one or more required LND configuration are missing")
 	}
 
