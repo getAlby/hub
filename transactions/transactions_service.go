@@ -206,6 +206,14 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 		return nil, err
 	}
 
+	if time.Now().After(time.Unix(int64(paymentRequest.CreatedAt+paymentRequest.Expiry), 0)) {
+		logger.Logger.WithFields(logrus.Fields{
+			"bolt11": payReq,
+		}).Errorf("Failed to decode bolt11 invoice: %v", err)
+
+		return nil, errors.New("this invoice has expired")
+	}
+
 	selfPayment := paymentRequest.Payee != "" && paymentRequest.Payee == lnClient.GetPubkey()
 
 	var dbTransaction db.Transaction
