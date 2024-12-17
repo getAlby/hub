@@ -12,7 +12,7 @@ require (
 	github.com/getAlby/ldk-node-go v0.0.0-20241211081207-8911834564db
 	github.com/go-gormigrate/gormigrate/v2 v2.1.3
 	github.com/labstack/echo/v4 v4.12.0
-	github.com/nbd-wtf/go-nostr v0.42.3
+	github.com/nbd-wtf/go-nostr v0.44.0
 	github.com/nbd-wtf/ln-decodepay v1.13.0
 	github.com/orandin/lumberjackrus v1.0.1
 	github.com/stretchr/testify v1.10.0
