@@ -459,7 +459,14 @@ func (httpSvc *HttpService) balancesHandler(c echo.Context) error {
 func (httpSvc *HttpService) sendPaymentHandler(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	paymentResponse, err := httpSvc.api.SendPayment(ctx, c.Param("invoice"))
+	var payInvoiceRequest api.PayInvoiceRequest
+	if err := c.Bind(&payInvoiceRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	paymentResponse, err := httpSvc.api.SendPayment(ctx, c.Param("invoice"), payInvoiceRequest.Amount)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{

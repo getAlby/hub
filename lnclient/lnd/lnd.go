@@ -313,8 +313,14 @@ func (svc *LNDService) LookupInvoice(ctx context.Context, paymentHash string) (t
 	return transaction, nil
 }
 
-func (svc *LNDService) SendPaymentSync(ctx context.Context, payReq string) (*lnclient.PayInvoiceResponse, error) {
-	resp, err := svc.client.SendPaymentSync(ctx, &lnrpc.SendRequest{PaymentRequest: payReq})
+func (svc *LNDService) SendPaymentSync(ctx context.Context, payReq string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
+	sendRequest := &lnrpc.SendRequest{PaymentRequest: payReq}
+
+	if amount != nil {
+		sendRequest.AmtMsat = int64(*amount)
+	}
+
+	resp, err := svc.client.SendPaymentSync(ctx, sendRequest)
 	if err != nil {
 		return nil, err
 	}
