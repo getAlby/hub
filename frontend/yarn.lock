@@ -1355,15 +1355,15 @@
     qrcode-generator "^1.4.4"
     zustand "^4.5.4"
 
-"@getalby/lightning-tools@5.1.2":
-  version "5.1.2"
-  resolved "https://registry.yarnpkg.com/@getalby/lightning-tools/-/lightning-tools-5.1.2.tgz#8a018e98d5c13097dd98d93192cf5e4e455f4c20"
-  integrity sha512-BwGm8eGbPh59BVa1gI5yJMantBl/Fdps6X4p1ZACnmxz9vDINX8/3aFoOnDlF7yyA2boXWCsReVQSr26Q2yjiQ==
-
 "@getalby/lightning-tools@^5.0.3":
   version "5.0.3"
   resolved "https://registry.yarnpkg.com/@getalby/lightning-tools/-/lightning-tools-5.0.3.tgz#4cc6ef1253a30fb4913af89b842645e0c04994bf"
   integrity sha512-QG3/SBI5n2py5IgsjP3K+c8eq55eiI3PQB12yo9Pot0b5hcN7TNNoTKn0fgLJjO1iEVCUkF513kDOpjjXwK0hQ==
+
+"@getalby/lightning-tools@^5.1.2":
+  version "5.1.2"
+  resolved "https://registry.yarnpkg.com/@getalby/lightning-tools/-/lightning-tools-5.1.2.tgz#8a018e98d5c13097dd98d93192cf5e4e455f4c20"
+  integrity sha512-BwGm8eGbPh59BVa1gI5yJMantBl/Fdps6X4p1ZACnmxz9vDINX8/3aFoOnDlF7yyA2boXWCsReVQSr26Q2yjiQ==
 
 "@getalby/sdk@^3.6.1":
   version "3.6.1"
