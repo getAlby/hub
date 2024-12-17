@@ -48,13 +48,14 @@ export default defineConfig(({ command }) => ({
     ...(command === "serve" ? [insertDevCSPPlugin] : []),
   ],
   server: {
+    port: process.env.VITE_PORT ? parseInt(process.env.VITE_PORT) : undefined,
     proxy: {
       "/api": {
-        target: "http://localhost:8080",
+        target: process.env.VITE_API_URL || "http://localhost:8080",
         secure: false,
       },
       "/logout": {
-        target: "http://localhost:8080",
+        target: process.env.VITE_API_URL || "http://localhost:8080",
         secure: false,
       },
     },

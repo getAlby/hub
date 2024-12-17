@@ -8,7 +8,6 @@ import {
   PayInvoiceResponse,
 } from "src/types";
 
-import { Payment, init } from "@getalby/bitcoin-connect-react";
 import { Copy, QrCode, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
@@ -48,6 +47,7 @@ import { useBalances } from "src/hooks/useBalances";
 
 import confetti from "canvas-confetti";
 import { ChannelWaitingForConfirmations } from "src/components/channels/ChannelWaitingForConfirmations";
+import { PayLightningInvoice } from "src/components/PayLightningInvoice";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { useChannels } from "src/hooks/useChannels";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
@@ -59,9 +59,6 @@ import { splitSocketAddress } from "src/lib/utils";
 import useChannelOrderStore from "src/state/ChannelOrderStore";
 import { LSPOrderRequest, LSPOrderResponse } from "src/types";
 import { request } from "src/utils/request";
-init({
-  showBalance: false,
-});
 let hasStartedOpenedChannel = false;
 
 export function CurrentChannelOrder() {
@@ -791,10 +788,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
               )}
 
               {(payExternally || !canPayInternally) && (
-                <Payment
-                  invoice={lspOrderResponse.invoice}
-                  paymentMethods="external"
-                />
+                <PayLightningInvoice invoice={lspOrderResponse.invoice} />
               )}
 
               <div className="flex-1 flex flex-col justify-end items-center gap-4">

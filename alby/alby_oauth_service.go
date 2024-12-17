@@ -119,15 +119,6 @@ func (svc *albyOAuthService) CallbackHandler(ctx context.Context, code string, l
 			logger.Logger.WithError(err).Error("Failed to set user identifier")
 			return err
 		}
-
-		if svc.cfg.GetEnv().AutoLinkAlbyAccount {
-			// link account on first login
-			err := svc.LinkAccount(ctx, lnClient, 1_000_000, constants.BUDGET_RENEWAL_MONTHLY)
-			if err != nil {
-				logger.Logger.WithError(err).Error("Failed to link account on first auth callback")
-			}
-		}
-
 	} else if me.Identifier != existingUserIdentifier {
 		// remove token so user can retry with correct account
 		err := svc.cfg.SetUpdate(accessTokenKey, "", "")

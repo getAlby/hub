@@ -579,6 +579,22 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		infoResponse.Unlocked = infoResponse.Running
 		res := WailsRequestRouterResponse{Body: *infoResponse, Error: ""}
 		return res
+	case "/api/node/migrate-storage":
+		migrateNodeStorageRequest := &api.MigrateNodeStorageRequest{}
+		err := json.Unmarshal([]byte(body), migrateNodeStorageRequest)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).WithError(err).Error("Failed to decode request to wails router")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		err = app.api.MigrateNodeStorage(ctx, migrateNodeStorageRequest.To)
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: nil, Error: ""}
 	case "/api/alby/auto-channel":
 		newAutoChannelRequest := &alby.AutoChannelRequest{}
 		err := json.Unmarshal([]byte(body), newAutoChannelRequest)
