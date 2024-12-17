@@ -1,3 +1,4 @@
+import { InfoIcon } from "lucide-react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import Container from "src/components/Container";
@@ -5,11 +6,9 @@ import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { useToast } from "src/components/ui/use-toast";
 import useSetupStore from "src/state/SetupStore";
 
 export function LNDForm() {
-  const { toast } = useToast();
   const navigate = useNavigate();
   const setupStore = useSetupStore();
   const [lndAddress, setLndAddress] = React.useState<string>(
@@ -25,13 +24,6 @@ export function LNDForm() {
   // TODO: proper onboarding
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!lndAddress || !lndCertHex || !lndMacaroonHex) {
-      toast({
-        title: "Please fill out all fields",
-        variant: "destructive",
-      });
-      return;
-    }
     handleSubmit({
       lndAddress,
       lndCertHex,
@@ -57,6 +49,7 @@ export function LNDForm() {
         <div className="grid gap-1.5">
           <Label htmlFor="lnd-address">LND Address (GRPC)</Label>
           <Input
+            required
             name="lnd-address"
             onChange={(e) => setLndAddress(e.target.value)}
             value={lndAddress}
@@ -64,7 +57,18 @@ export function LNDForm() {
           />
         </div>
         <div className="grid gap-1.5">
-          <Label htmlFor="lnd-cert-hex">TLS Certificate (Hex)</Label>
+          <Label htmlFor="lnd-macaroon-hex">Admin Macaroon (Hex)</Label>
+          <Input
+            required
+            name="lnd-macaroon-hex"
+            onChange={(e) => setLndMacaroonHex(e.target.value)}
+            value={lndMacaroonHex}
+            type="text"
+            id="lnd-macaroon-hex"
+          />
+        </div>
+        <div className="grid gap-1.5">
+          <Label htmlFor="lnd-cert-hex">TLS Certificate (Hex) (optional)</Label>
           <Input
             name="lnd-cert-hex"
             onChange={(e) => setLndCertHex(e.target.value)}
@@ -72,16 +76,13 @@ export function LNDForm() {
             type="text"
             id="lnd-cert-hex"
           />
-        </div>
-        <div className="grid gap-1.5">
-          <Label htmlFor="lnd-macaroon-hex">Admin Macaroon (Hex)</Label>
-          <Input
-            name="lnd-macaroon-hex"
-            onChange={(e) => setLndMacaroonHex(e.target.value)}
-            value={lndMacaroonHex}
-            type="text"
-            id="lnd-macaroon-hex"
-          />
+          {!lndCertHex && (
+            <div className="flex flex-row gap-2 items-center justify-start text-sm text-muted-foreground mt-2">
+              <InfoIcon className="h-4 w-4 shrink-0" />
+              Skipping TLS certificate is not recommended as it may expose your
+              connection to security risks
+            </div>
+          )}
         </div>
         <Button>Next</Button>
       </form>

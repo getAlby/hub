@@ -11,6 +11,7 @@ export enum LinkStatus {
   SharedNode,
   ThisNode,
   OtherNode,
+  Unlinked,
 }
 
 export function useLinkAccount() {
@@ -22,12 +23,14 @@ export function useLinkAccount() {
 
   let linkStatus: LinkStatus | undefined;
   if (me && nodeConnectionInfo) {
-    if (me?.keysend_pubkey === nodeConnectionInfo.pubkey) {
+    if (me.keysend_pubkey === nodeConnectionInfo.pubkey) {
       linkStatus = LinkStatus.ThisNode;
     } else if (me.shared_node) {
       linkStatus = LinkStatus.SharedNode;
-    } else {
+    } else if (me.keysend_pubkey) {
       linkStatus = LinkStatus.OtherNode;
+    } else {
+      linkStatus = LinkStatus.Unlinked;
     }
   }
 
@@ -54,6 +57,7 @@ export function useLinkAccount() {
           "Your Alby Hub has successfully been linked to your Alby Account",
       });
     } catch (e) {
+      console.error(e);
       toast({
         title: "Your Alby Hub couldn't be linked to your Alby Account",
         description: "Did you already link another Alby Hub?",

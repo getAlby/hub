@@ -46,7 +46,7 @@ jobs:
               alby_arch: aarch64-unknown-linux-gnu,
               os: ubuntu-20.04,
             },
-            { arch: darwin/universal, os: macos-12 },
+            { arch: darwin/universal, os: macos-13 },
           ]
     runs-on: ${{ matrix.build.os }}
 

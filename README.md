@@ -366,7 +366,7 @@ The application has no runtime dependencies. (simple Go executable).
 
 As data storage SQLite is used.
 
-For the default backend which runs a node internally we recommend 1+GB of disk space and 2GB of RAM (or 512GB Ram + 2GB swap can also be used). For connecting to an external node, Alby Hub uses very little RAM (256mb is enough).
+For the default backend which runs a node internally we recommend 2GB of RAM + 1GB of disk space (or 512MB RAM + 2GB swap can also be used). For connecting to an external node, Alby Hub uses very little RAM (256MB is enough).
 
 ### From the release
 
