@@ -794,6 +794,7 @@ func (svc *albyOAuthService) ConsumeEvent(ctx context.Context, event *events.Eve
 type channelsBackup struct {
 	Description string `json:"description"`
 	Data        string `json:"data"`
+	NodePubkey  string `json:"node_pubkey"`
 }
 
 func (svc *albyOAuthService) createEncryptedChannelBackup(event *events.StaticChannelsBackupEvent) (*channelsBackup, error) {
@@ -818,6 +819,7 @@ func (svc *albyOAuthService) createEncryptedChannelBackup(event *events.StaticCh
 	backup := &channelsBackup{
 		Description: "channels_v2",
 		Data:        encrypted,
+		NodePubkey:  event.NodeID,
 	}
 	return backup, nil
 }

@@ -691,6 +691,7 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info.Version = version.Tag
 	info.EnableAdvancedSetup = api.cfg.GetEnv().EnableAdvancedSetup
 	info.LdkVssEnabled = ldkVssEnabled == "true"
+	info.VssSupported = backendType == config.LDKBackendType && api.cfg.GetEnv().LDKVssUrl != ""
 	albyUserIdentifier, err := api.albyOAuthSvc.GetUserIdentifier()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to get alby user identifier")
@@ -919,6 +920,10 @@ func (api *api) MigrateNodeStorage(ctx context.Context, to string) error {
 
 	if ldkVssEnabled == "true" {
 		return errors.New("VSS already enabled")
+	}
+
+	if api.cfg.GetEnv().LDKVssUrl == "" {
+		return errors.New("No VSS URL set")
 	}
 
 	api.cfg.SetUpdate("LdkVssEnabled", "true", "")
