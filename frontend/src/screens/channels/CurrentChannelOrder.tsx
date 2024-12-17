@@ -45,7 +45,6 @@ import {
 import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
 
-import confetti from "canvas-confetti";
 import { ChannelWaitingForConfirmations } from "src/components/channels/ChannelWaitingForConfirmations";
 import { PayLightningInvoice } from "src/components/PayLightningInvoice";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
@@ -111,23 +110,6 @@ function ChannelOrderInternal({ order }: { order: NewChannelOrder }) {
 }
 
 function Success() {
-  React.useEffect(() => {
-    for (let i = 0; i < 10; i++) {
-      setTimeout(
-        () => {
-          confetti({
-            origin: {
-              x: Math.random(),
-              y: Math.random(),
-            },
-            colors: ["#000", "#333", "#666", "#999", "#BBB", "#FFF"],
-          });
-        },
-        Math.floor(Math.random() * 1000)
-      );
-    }
-  }, []);
-
   return (
     <div className="flex flex-col justify-center gap-5 p-5 max-w-md items-stretch">
       <TwoColumnLayoutHeader

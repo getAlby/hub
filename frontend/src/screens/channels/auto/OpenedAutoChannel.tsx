@@ -1,28 +1,9 @@
-import confetti from "canvas-confetti";
-import React from "react";
 import { Link } from "react-router-dom";
 import ExternalLink from "src/components/ExternalLink";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { Button } from "src/components/ui/button";
 
 export function OpenedAutoChannel() {
-  React.useEffect(() => {
-    for (let i = 0; i < 10; i++) {
-      setTimeout(
-        () => {
-          confetti({
-            origin: {
-              x: Math.random(),
-              y: Math.random(),
-            },
-            colors: ["#000", "#333", "#666", "#999", "#BBB", "#FFF"],
-          });
-        },
-        Math.floor(Math.random() * 1000)
-      );
-    }
-  }, []);
-
   return (
     <div className="flex flex-col justify-center gap-5 p-5 max-w-md items-stretch">
       <TwoColumnLayoutHeader
