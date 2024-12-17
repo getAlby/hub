@@ -84,7 +84,10 @@ const HybridTooltipContent = (
   return isTouch ? (
     <PopoverContent
       {...props}
-      className={cn("bg-primary text-primary-foreground", props.className)}
+      className={cn(
+        "bg-primary text-primary-foreground text-sm",
+        props.className
+      )}
     />
   ) : (
     <TooltipContent {...props} />
