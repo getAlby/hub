@@ -68,10 +68,8 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	logDirPath := filepath.Join(newpath, "./logs")
 
 	ldkConfig := ldk_node.DefaultConfig()
-	listeningAddresses := []string{
-		"0.0.0.0:9735",
-		"[::]:9735",
-	}
+	listeningAddresses := strings.Split(cfg.GetEnv().LDKListeningAddresses, ",")
+
 	ldkConfig.TrustedPeers0conf = []string{
 		lsp.OlympusLSP().Pubkey,
 		lsp.AlbyPlebsLSP().Pubkey,
@@ -136,8 +134,9 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	}
 
 	logger.Logger.WithFields(logrus.Fields{
-		"migrate_storage": migrateStorage,
-		"vss_enabled":     vssToken != "",
+		"migrate_storage":     migrateStorage,
+		"vss_enabled":         vssToken != "",
+		"listening_addresses": listeningAddresses,
 	}).Info("Creating node")
 	var node *ldk_node.Node
 	if vssToken != "" {
