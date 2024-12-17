@@ -4,8 +4,11 @@ import (
 	"context"
 	"crypto/sha256"
 	"database/sql"
+	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io/fs"
 	"math"
 	"os"
 	"path/filepath"
@@ -19,9 +22,6 @@ import (
 	"github.com/tyler-smith/go-bip32"
 
 	// "github.com/getAlby/hub/ldk_node"
-
-	"encoding/hex"
-	"encoding/json"
 
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
@@ -1560,6 +1560,8 @@ func (ls *LDKService) backupChannels() {
 
 	ls.saveStaticChannelBackupToDisk(event)
 
+	ls.cleanupStaticChannelBackupFiles()
+
 	ls.eventPublisher.Publish(&events.Event{
 		Event:      "nwc_backup_channels",
 		Properties: event,
@@ -1586,6 +1588,43 @@ func (ls *LDKService) saveStaticChannelBackupToDisk(event *events.StaticChannels
 		return
 	}
 	logger.Logger.WithField("backupPath", backupFilePath).Debug("Saved static channel backup to disk")
+}
+
+func (ls *LDKService) cleanupStaticChannelBackupFiles() {
+	const keepBackupFiles = 3
+
+	backupDirectory := filepath.Join(ls.workdir, "static_channel_backups")
+	logger.Logger.WithField("backupDirectory", backupDirectory).Debug("Deleting old static channel backup files")
+	files, err := os.ReadDir(backupDirectory)
+	if err != nil {
+		logger.Logger.WithField("path", backupDirectory).WithError(err).Error("Failed to list static channel backups directory")
+		return
+	}
+
+	backupFiles := make([]fs.DirEntry, 0, len(files))
+
+	for _, file := range files {
+		name := file.Name()
+		if strings.HasPrefix(name, "20") && filepath.Ext(name) == ".json" && !file.IsDir() {
+			backupFiles = append(backupFiles, file)
+		}
+	}
+
+	if len(backupFiles) <= keepBackupFiles {
+		return
+	}
+
+	// ReadDir() returns file entries listed alphabetically, so we can just
+	// remove the first few entries to keep the most recent backups.
+	backupFiles = backupFiles[:len(backupFiles)-keepBackupFiles]
+	for _, file := range backupFiles {
+		filePath := filepath.Join(backupDirectory, file.Name())
+		err := os.Remove(filePath)
+		if err != nil {
+			logger.Logger.WithField("filePath", filePath).WithError(err).Error("Failed to delete static channel backup file")
+		}
+		logger.Logger.WithField("filePath", filePath).Debug("Deleted old static channel backup file")
+	}
 }
 
 func (ls *LDKService) GetBalances(ctx context.Context) (*lnclient.BalancesResponse, error) {
