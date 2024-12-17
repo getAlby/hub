@@ -81,19 +81,19 @@ export function AlbyAccount() {
           </CardHeader>
         </Card>
       </UnlinkAlbyAccount>
-      <div /* spacing */ />
-      <SettingsHeader title="VSS" description="Versioned Storage Service" />
-      <p>
-        Versioned Storage Service (VSS) provides a secure, encrypted server-side
-        storage of essential lightning and onchain data.
-      </p>
-      <p>
-        This service is enabled by your Alby account and provides additional
-        backup security which allows you to recover your lightning data with
-        your recovery phrase alone, without having to close your channels.
-      </p>
-      {info && (
+      {info?.vssSupported && (
         <>
+          <div /* spacing */ />
+          <SettingsHeader title="VSS" description="Versioned Storage Service" />
+          <p>
+            Versioned Storage Service (VSS) provides a secure, encrypted
+            server-side storage of essential lightning and onchain data.
+          </p>
+          <p>
+            This service is enabled by your Alby account and provides additional
+            backup security which allows you to recover your lightning data with
+            your recovery phrase alone, without having to close your channels.
+          </p>
           {info.ldkVssEnabled && (
             <p>
               ✅ VSS <b>enabled</b>.{" "}
