@@ -220,3 +220,7 @@ func (wrapper *LNDWrapper) UpdateChannel(ctx context.Context, req *lnrpc.PolicyU
 func (wrapper *LNDWrapper) DisconnectPeer(ctx context.Context, req *lnrpc.DisconnectPeerRequest, options ...grpc.CallOption) (*lnrpc.DisconnectPeerResponse, error) {
 	return wrapper.client.DisconnectPeer(ctx, req, options...)
 }
+
+func (wrapper *LNDWrapper) SubscribeChannelEvents(ctx context.Context, in *lnrpc.ChannelEventSubscription, options ...grpc.CallOption) (lnrpc.Lightning_SubscribeChannelEventsClient, error) {
+	return wrapper.client.SubscribeChannelEvents(ctx, in, options...)
+}
