@@ -67,9 +67,6 @@ module.exports = {
           foreground: "hsl(var(--warning-foreground))",
         },
       },
-      borderWidth: {
-        6: "6px",
-      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
