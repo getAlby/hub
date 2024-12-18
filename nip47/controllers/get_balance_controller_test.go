@@ -48,7 +48,7 @@ func TestHandleGetBalanceEvent(t *testing.T) {
 
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
 	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
-	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc, svc.AppsService).
 		HandleGetBalanceEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
 
 	assert.Equal(t, uint64(21000), publishedResponse.Result.(*getBalanceResponse).Balance)
@@ -82,7 +82,7 @@ func TestHandleGetBalanceEvent_IsolatedApp_NoTransactions(t *testing.T) {
 
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
 	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
-	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc, svc.AppsService).
 		HandleGetBalanceEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
 
 	assert.Equal(t, uint64(0), publishedResponse.Result.(*getBalanceResponse).Balance)
@@ -129,7 +129,7 @@ func TestHandleGetBalanceEvent_IsolatedApp_Transactions(t *testing.T) {
 
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
 	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
-	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc, svc.AppsService).
 		HandleGetBalanceEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
 
 	assert.Equal(t, uint64(1000), publishedResponse.Result.(*getBalanceResponse).Balance)

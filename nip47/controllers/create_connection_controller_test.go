@@ -1,0 +1,81 @@
+package controllers
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"testing"
+
+	"github.com/nbd-wtf/go-nostr"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/getAlby/hub/constants"
+	"github.com/getAlby/hub/db"
+	"github.com/getAlby/hub/nip47/models"
+	"github.com/getAlby/hub/nip47/permissions"
+	"github.com/getAlby/hub/tests"
+	"github.com/getAlby/hub/transactions"
+)
+
+func TestHandleCreateConnectionEvent(t *testing.T) {
+	ctx := context.TODO()
+	defer tests.RemoveTestService()
+	svc, err := tests.CreateTestService()
+	require.NoError(t, err)
+
+	pairingSecretKey := nostr.GeneratePrivateKey()
+	pairingPublicKey, err := nostr.GetPublicKey(pairingSecretKey)
+	require.NoError(t, err)
+
+	nip47CreateConnectionJson := fmt.Sprintf(`
+{
+	"method": "create_connection",
+	"params": {
+		"pubkey": "%s",
+		"name": "Test 123",
+		"scopes": ["get_info"]
+	}
+}
+`, pairingPublicKey)
+
+	nip47Request := &models.Request{}
+	err = json.Unmarshal([]byte(nip47CreateConnectionJson), nip47Request)
+	assert.NoError(t, err)
+
+	dbRequestEvent := &db.RequestEvent{}
+	err = svc.DB.Create(&dbRequestEvent).Error
+	assert.NoError(t, err)
+
+	var publishedResponse *models.Response
+
+	publishResponse := func(response *models.Response, tags nostr.Tags) {
+		publishedResponse = response
+	}
+
+	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc, svc.AppsService).
+		HandleCreateConnectionEvent(ctx, nip47Request, dbRequestEvent.ID, publishResponse)
+
+	assert.Nil(t, publishedResponse.Error)
+	assert.Equal(t, models.CREATE_CONNECTION_METHOD, publishedResponse.ResultType)
+	createAppResult := publishedResponse.Result.(createConnectionResponse)
+
+	assert.NotNil(t, createAppResult.WalletPubkey)
+	app := db.App{}
+	err = svc.DB.First(&app).Error
+	assert.NoError(t, err)
+	assert.Equal(t, pairingPublicKey, app.AppPubkey)
+	assert.Equal(t, createAppResult.WalletPubkey, *app.WalletPubkey)
+
+	permissions := []db.AppPermission{}
+	err = svc.DB.Find(&permissions).Error
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(permissions))
+	assert.Equal(t, constants.GET_INFO_SCOPE, permissions[0].Scope)
+}
+
+// TODO: app already exists test
+// TODO: validation - no pubkey, no scopes, wrong budget etc,
+// TODO: review scopes

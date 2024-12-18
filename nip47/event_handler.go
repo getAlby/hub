@@ -293,7 +293,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 		}
 	}
 
-	controller := controllers.NewNip47Controller(lnClient, svc.db, svc.eventPublisher, svc.permissionsService, svc.transactionsService)
+	controller := controllers.NewNip47Controller(lnClient, svc.db, svc.eventPublisher, svc.permissionsService, svc.transactionsService, svc.appsService)
 
 	switch nip47Request.Method {
 	case models.MULTI_PAY_INVOICE_METHOD:
@@ -329,6 +329,9 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 	case models.SIGN_MESSAGE_METHOD:
 		controller.
 			HandleSignMessageEvent(ctx, nip47Request, requestEvent.ID, publishResponse)
+	case models.CREATE_CONNECTION_METHOD:
+		controller.
+			HandleCreateConnectionEvent(ctx, nip47Request, requestEvent.ID, publishResponse)
 	default:
 		publishResponse(&models.Response{
 			ResultType: nip47Request.Method,

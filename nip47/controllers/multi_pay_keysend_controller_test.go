@@ -108,7 +108,7 @@ func TestHandleMultiPayKeysendEvent_Success(t *testing.T) {
 
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
 	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
-	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc, svc.AppsService).
 		HandleMultiPayKeysendEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
 
 	assert.Equal(t, 2, len(responses))
@@ -160,7 +160,7 @@ func TestHandleMultiPayKeysendEvent_OneBudgetExceeded(t *testing.T) {
 
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
 	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
-	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc, svc.AppsService).
 		HandleMultiPayKeysendEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
 
 	// we can't guarantee which request was processed first

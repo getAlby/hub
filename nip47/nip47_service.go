@@ -2,6 +2,8 @@ package nip47
 
 import (
 	"context"
+
+	"github.com/getAlby/hub/apps"
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
@@ -17,6 +19,7 @@ import (
 type nip47Service struct {
 	permissionsService     permissions.PermissionsService
 	transactionsService    transactions.TransactionsService
+	appsService            apps.AppsService
 	nip47NotificationQueue notifications.Nip47NotificationQueue
 	cfg                    config.Config
 	keys                   keys.Keys
@@ -41,6 +44,7 @@ func NewNip47Service(db *gorm.DB, cfg config.Config, keys keys.Keys, eventPublis
 		db:                     db,
 		permissionsService:     permissions.NewPermissionsService(db, eventPublisher),
 		transactionsService:    transactions.NewTransactionsService(db, eventPublisher),
+		appsService:            apps.NewAppsService(db, eventPublisher, keys),
 		eventPublisher:         eventPublisher,
 		keys:                   keys,
 	}
