@@ -646,38 +646,15 @@ func (svc *albyOAuthService) ConsumeEvent(ctx context.Context, event *events.Eve
 		return
 	}
 
-	// ensure we do not send unintended events to Alby API
-	eventWhitelist := []string{
-		"nwc_backup_channels",
-		"nwc_payment_received",
-		"nwc_payment_sent",
-		"nwc_payment_failed",
-		"nwc_app_created",
-		"nwc_app_deleted",
-		"nwc_unlocked",
-		"nwc_node_sync_failed",
-		"nwc_outgoing_liquidity_required",
-		"nwc_incoming_liquidity_required",
-		"nwc_budget_warning",
-		"nwc_channel_ready",
-		"nwc_channel_closed",
-		"nwc_permission_denied",
-		"nwc_started",
-		"nwc_stopped",
-		"nwc_node_started",
-		"nwc_node_start_failed",
-		"nwc_node_stop_failed",
-		"nwc_node_stopped",
-	}
-
-	if !slices.Contains(eventWhitelist, event.Event) {
-		logger.Logger.WithField("event", event).Debug("Skipped sending non-whitelisted event to alby events API")
-		return
-	}
-
 	// TODO: rename this config option to be specific to the alby API
 	if !svc.cfg.GetEnv().LogEvents {
 		logger.Logger.WithField("event", event).Debug("Skipped sending to alby events API (alby event logging disabled)")
+		return
+	}
+
+	// ensure we do not send unintended events to Alby API
+	if !slices.Contains(getEventWhitelist(), event.Event) {
+		logger.Logger.WithField("event", event).Debug("Skipped sending non-whitelisted event to alby events API")
 		return
 	}
 
@@ -1343,5 +1320,32 @@ func (svc *albyOAuthService) deleteAlbyAccountApps() {
 	err := svc.db.Where("name = ?", ALBY_ACCOUNT_APP_NAME).Delete(&db.App{}).Error
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to delete Alby Account apps")
+	}
+}
+
+// whitelist of events that can be sent to the alby API
+// (e.g. to enable encrypted static channel backups and sending email notifications)
+func getEventWhitelist() []string {
+	return []string{
+		"nwc_backup_channels",
+		"nwc_payment_received",
+		"nwc_payment_sent",
+		"nwc_payment_failed",
+		"nwc_app_created",
+		"nwc_app_deleted",
+		"nwc_unlocked",
+		"nwc_node_sync_failed",
+		"nwc_outgoing_liquidity_required",
+		"nwc_incoming_liquidity_required",
+		"nwc_budget_warning",
+		"nwc_channel_ready",
+		"nwc_channel_closed",
+		"nwc_permission_denied",
+		"nwc_started",
+		"nwc_stopped",
+		"nwc_node_started",
+		"nwc_node_start_failed",
+		"nwc_node_stop_failed",
+		"nwc_node_stopped",
 	}
 }
