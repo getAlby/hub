@@ -53,6 +53,23 @@ const nip47MultiPayOneMalformedInvoiceJson = `
 }
 `
 
+// the first invoice is expired
+const nip47MultiPayOneExpiredInvoiceJson = `
+{
+	"method": "multi_pay_invoice",
+	"params": {
+		"invoices": [{
+				"invoice": "lntb1230n1pjypux0pp5xgxzcks5jtx06k784f9dndjh664wc08ucrganpqn52d0ftrh9n8sdqyw3jscqzpgxqyz5vqsp5rkx7cq252p3frx8ytjpzc55rkgyx2mfkzzraa272dqvr2j6leurs9qyyssqhutxa24r5hqxstchz5fxlslawprqjnarjujp5sm3xj7ex73s32sn54fthv2aqlhp76qmvrlvxppx9skd3r5ut5xutgrup8zuc6ay73gqmra29m"
+			},
+			{
+				"invoice": "lntbs1230n1pnkqautdqyw3jsnp4q09a0z84kg4a2m38zjllw43h953fx5zvqe8qxfgw694ymkq26u8zcpp5yvnh6hsnlnj4xnuh2trzlnunx732dv8ta2wjr75pdfxf6p2vlyassp5hyeg97a3ft5u769kjwsn7p0e85h79pzz8kladmnqhpcypz2uawjs9qyysgqcqpcxq8zals8sq9yeg2pa9eywkgj50cyzxd5elatujuc0c0wh6j9nat5mn34pgk8u9ufpgs99tw9ldlfk42cqlkr48au3lmuh09269prg4qkggh4a8cyqpfl0y6j"
+			}
+		]
+	}
+}
+`
+const MockExpiredPaymentHash = "320c2c5a1492ccfd5bc7aa4ad9b657d6aaec3cfcc0d1d98413a29af4ac772ccf" // for the expired invoice
+
 func TestHandleMultiPayInvoiceEvent_Success(t *testing.T) {
 	ctx := context.TODO()
 
@@ -190,7 +207,68 @@ func TestHandleMultiPayInvoiceEvent_OneMalformedInvoice(t *testing.T) {
 	assert.Equal(t, tests.MockPaymentHash, dTags[1].GetFirst([]string{"d"}).Value())
 	assert.Equal(t, "123preimage", responses[1].Result.(payResponse).Preimage)
 	assert.Nil(t, responses[1].Error)
+}
 
+func TestHandleMultiPayInvoiceEvent_OneExpiredInvoice(t *testing.T) {
+	ctx := context.TODO()
+
+	defer tests.RemoveTestService()
+	svc, err := tests.CreateTestService()
+	require.NoError(t, err)
+
+	app, _, err := tests.CreateApp(svc)
+	assert.NoError(t, err)
+
+	appPermission := &db.AppPermission{
+		AppId: app.ID,
+		App:   *app,
+		Scope: constants.PAY_INVOICE_SCOPE,
+	}
+	err = svc.DB.Create(appPermission).Error
+	assert.NoError(t, err)
+
+	nip47Request := &models.Request{}
+	err = json.Unmarshal([]byte(nip47MultiPayOneExpiredInvoiceJson), nip47Request)
+	assert.NoError(t, err)
+
+	responses := []*models.Response{}
+	dTags := []nostr.Tags{}
+
+	var mu sync.Mutex
+
+	publishResponse := func(response *models.Response, tags nostr.Tags) {
+		mu.Lock()
+		defer mu.Unlock()
+		responses = append(responses, response)
+		dTags = append(dTags, tags)
+	}
+
+	requestEvent := &db.RequestEvent{}
+	svc.DB.Save(requestEvent)
+
+	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
+		HandleMultiPayInvoiceEvent(ctx, nip47Request, requestEvent.ID, app, publishResponse)
+
+	assert.Equal(t, 2, len(responses))
+	assert.Equal(t, 2, len(dTags))
+
+	// we can't guarantee which request was processed first
+	// so swap them if they are back to front
+	if responses[0].Result != nil {
+		responses[0], responses[1] = responses[1], responses[0]
+		dTags[0], dTags[1] = dTags[1], dTags[0]
+	}
+
+	assert.Equal(t, MockExpiredPaymentHash, dTags[0].GetFirst([]string{"d"}).Value())
+	assert.Equal(t, constants.ERROR_INTERNAL, responses[0].Error.Code)
+	assert.Equal(t, "this invoice has expired", responses[0].Error.Message)
+	assert.Nil(t, responses[0].Result)
+
+	assert.Equal(t, tests.MockPaymentHash, dTags[1].GetFirst([]string{"d"}).Value())
+	assert.Equal(t, "123preimage", responses[1].Result.(payResponse).Preimage)
+	assert.Nil(t, responses[1].Error)
 }
 
 func TestHandleMultiPayInvoiceEvent_IsolatedApp_OneBudgetExceeded(t *testing.T) {
