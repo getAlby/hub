@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
 
 	"github.com/nbd-wtf/go-nostr"
@@ -220,6 +221,8 @@ func (svc *service) StartApp(encryptionKey string) error {
 		return err
 	}
 
+	nodeLastStartTime, _ := svc.cfg.Get("NodeLastStartTime", "")
+
 	err = svc.launchLNBackend(ctx, encryptionKey)
 	if err != nil {
 		logger.Logger.Errorf("Failed to launch LN backend: %v", err)
@@ -234,6 +237,14 @@ func (svc *service) StartApp(encryptionKey string) error {
 	if err != nil {
 		cancelFn()
 		return err
+	}
+
+	if nodeLastStartTime == "" && svc.cfg.GetEnv().AutoLinkAlbyAccount {
+		// link account on first start
+		err := svc.albyOAuthSvc.LinkAccount(ctx, svc.lnClient, 1_000_000, constants.BUDGET_RENEWAL_MONTHLY)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to link account on first auth callback")
+		}
 	}
 
 	svc.appCancelFn = cancelFn
