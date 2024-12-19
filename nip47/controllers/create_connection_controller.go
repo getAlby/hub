@@ -2,11 +2,13 @@ package controllers
 
 import (
 	"context"
+	"slices"
 	"time"
 
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/nip47/models"
+	"github.com/getAlby/hub/nip47/permissions"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/sirupsen/logrus"
 )
@@ -19,7 +21,7 @@ type createConnectionBudgetParams struct {
 type createConnectionParams struct {
 	Pubkey    string                       `json:"pubkey"` // pubkey of the app connection
 	Name      string                       `json:"name"`
-	Scopes    []string                     `json:"scopes"`
+	Methods   []string                     `json:"methods"`
 	Budget    createConnectionBudgetParams `json:"budget"`
 	ExpiresAt *uint64                      `json:"expires_at"` // unix timestamp
 	Isolated  bool                         `json:"isolated"`
@@ -51,7 +53,23 @@ func (controller *nip47Controller) HandleCreateConnectionEvent(ctx context.Conte
 		expiresAt = &expiresAtValue
 	}
 
-	app, _, err := controller.appsService.CreateApp(params.Name, params.Pubkey, params.Budget.Budget, params.Budget.RenewalPeriod, expiresAt, params.Scopes, params.Isolated, params.Metadata)
+	// TODO: verify the LNClient supports the methods
+	supportedMethods := controller.lnClient.GetSupportedNIP47Methods()
+	if slices.ContainsFunc(params.Methods, func(method string) bool {
+		return !slices.Contains(supportedMethods, method)
+	}) {
+		publishResponse(&models.Response{
+			ResultType: nip47Request.Method,
+			Error: &models.Error{
+				Code:    constants.ERROR_INTERNAL,
+				Message: "One or more methods are not supported by the current LNClient",
+			},
+		}, nostr.Tags{})
+		return
+	}
+	scopes, err := permissions.RequestMethodsToScopes(params.Methods)
+
+	app, _, err := controller.appsService.CreateApp(params.Name, params.Pubkey, params.Budget.Budget, params.Budget.RenewalPeriod, expiresAt, scopes, params.Isolated, params.Metadata)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"request_event_id": requestEventId,

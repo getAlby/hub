@@ -34,7 +34,7 @@ func TestHandleCreateConnectionEvent(t *testing.T) {
 	"params": {
 		"pubkey": "%s",
 		"name": "Test 123",
-		"scopes": ["get_info"]
+		"methods": ["get_info"]
 	}
 }
 `, pairingPublicKey)
@@ -78,4 +78,4 @@ func TestHandleCreateConnectionEvent(t *testing.T) {
 
 // TODO: app already exists test
 // TODO: validation - no pubkey, no scopes, wrong budget etc,
-// TODO: review scopes
+// TODO: ensure lnclient supports the methods
