@@ -44,6 +44,10 @@ func (svc *appsService) CreateApp(name string, pubkey string, maxAmountSat uint6
 		return nil, "", errors.New("isolated app cannot have sign_message scope")
 	}
 
+	// TODO: ensure there is at least one scope
+
+	// TODO: validate budget renewal
+
 	var pairingPublicKey string
 	var pairingSecretKey string
 	if pubkey == "" {

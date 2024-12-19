@@ -28,6 +28,7 @@ const (
 	LIST_TRANSACTIONS_SCOPE = "list_transactions"
 	SIGN_MESSAGE_SCOPE      = "sign_message"
 	NOTIFICATIONS_SCOPE     = "notifications" // covers all notification types
+	SUPERUSER_SCOPE         = "superuser"
 )
 
 // limit encoded metadata length, otherwise relays may have trouble listing multiple transactions
