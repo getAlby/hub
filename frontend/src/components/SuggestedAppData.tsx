@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import albyGo from "src/assets/suggested-apps/alby-go.png";
 import alby from "src/assets/suggested-apps/alby.png";
 import amethyst from "src/assets/suggested-apps/amethyst.png";
+import bitrefill from "src/assets/suggested-apps/bitrefill.png";
 import buzzpay from "src/assets/suggested-apps/buzzpay.png";
 import damus from "src/assets/suggested-apps/damus.png";
 import hablanews from "src/assets/suggested-apps/habla-news.png";
@@ -1253,6 +1254,23 @@ export const suggestedApps: SuggestedApp[] = [
             <li>6. Scan or paste the connection secret from Alby Hub</li>
           </ul>
         </div>
+      </>
+    ),
+  },
+  {
+    id: "bitrefill",
+    title: "Bitrefill",
+    description: "Live on bitcoin",
+    webLink: "https://bitrefill.com",
+    logo: bitrefill,
+    guide: (
+      <>
+        <iframe
+          width="100%"
+          height="667"
+          src="https://embed.bitrefill.com/?showPaymentInfo=true"
+          sandbox="allow-same-origin allow-popups allow-scripts allow-forms"
+        ></iframe>
       </>
     ),
   },
