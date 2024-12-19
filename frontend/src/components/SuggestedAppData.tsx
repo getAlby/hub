@@ -1754,7 +1754,7 @@ export const suggestedApps: SuggestedApp[] = [
         <iframe
           width="100%"
           height="667"
-          src="https://embed.bitrefill.com/?showPaymentInfo=true"
+          src="https://embed.bitrefill.com/?utm_source=bitrefill_demo"
           sandbox="allow-same-origin allow-popups allow-scripts allow-forms"
         ></iframe>
       </>
