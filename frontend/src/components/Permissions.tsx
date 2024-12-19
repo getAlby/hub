@@ -1,4 +1,4 @@
-import { BrickWall, PlusCircle } from "lucide-react";
+import { AlertTriangleIcon, BrickWall, PlusCircle } from "lucide-react";
 import React from "react";
 import BudgetAmountSelect from "src/components/BudgetAmountSelect";
 import BudgetRenewalSelect from "src/components/BudgetRenewalSelect";
@@ -128,6 +128,20 @@ const Permissions: React.FC<PermissionsProps> = ({
             will have an isolated balance and only has access to its own
             transaction history. It will not be able to sign messages on your
             node's behalf.
+          </p>
+        </>
+      )}
+
+      {permissions.scopes.includes("superuser") && (
+        <>
+          <div className="flex items-center gap-2 mb-2">
+            <AlertTriangleIcon className="w-4 h-4" />
+            <p className="text-sm font-medium">Superuser Access</p>
+          </div>
+
+          <p className="mb-4">
+            This app can create other app connections. Please make sure you
+            trust this app.
           </p>
         </>
       )}

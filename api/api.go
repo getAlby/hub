@@ -883,6 +883,8 @@ func (api *api) GetWalletCapabilities(ctx context.Context) (*WalletCapabilitiesR
 	if len(notificationTypes) > 0 {
 		scopes = append(scopes, constants.NOTIFICATIONS_SCOPE)
 	}
+	// add always-supported capabilities
+	scopes = append(scopes, constants.SUPERUSER_SCOPE)
 
 	return &WalletCapabilitiesResponse{
 		Methods:           methods,
