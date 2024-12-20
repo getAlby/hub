@@ -6,10 +6,13 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/lnclient"
+	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/nip47/models"
 	nostrmodels "github.com/getAlby/hub/nostr/models"
 	"github.com/nbd-wtf/go-nostr"
+	"github.com/sirupsen/logrus"
 )
 
 func (svc *nip47Service) GetNip47Info(ctx context.Context, relay *nostr.Relay, appWalletPubKey string) (*nostr.Event, error) {
@@ -32,8 +35,23 @@ func (svc *nip47Service) GetNip47Info(ctx context.Context, relay *nostr.Relay, a
 }
 
 func (svc *nip47Service) PublishNip47Info(ctx context.Context, relay nostrmodels.Relay, appWalletPubKey string, appWalletPrivKey string, lnClient lnclient.LNClient) (*nostr.Event, error) {
-	// TODO: should the capabilities be based on the app permissions? (for non-legacy apps)
-	capabilities := lnClient.GetSupportedNIP47Methods()
+	var capabilities []string
+	if svc.keys.GetNostrPublicKey() == appWalletPubKey {
+		// legacy app, so return lnClient.GetSupportedNIP47Methods()
+		capabilities = lnClient.GetSupportedNIP47Methods()
+	} else {
+		app := db.App{}
+		err := svc.db.First(&app, &db.App{
+			WalletPubkey: &appWalletPubKey,
+		}).Error
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"walletPubKey": appWalletPubKey,
+			}).WithError(err).Error("Failed to find app for wallet pubkey")
+			return nil, err
+		}
+		capabilities = svc.permissionsService.GetPermittedMethods(&app, lnClient)
+	}
 	if len(lnClient.GetSupportedNIP47NotificationTypes()) > 0 {
 		capabilities = append(capabilities, "notifications")
 	}

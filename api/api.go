@@ -226,6 +226,13 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 				return err
 			}
 		}
+		api.svc.GetEventPublisher().Publish(&events.Event{
+			Event: "nwc_app_updated",
+			Properties: map[string]interface{}{
+				"name": name,
+				"id":   userApp.ID,
+			},
+		})
 
 		// commit transaction
 		return nil
