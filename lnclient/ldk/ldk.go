@@ -132,6 +132,11 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		builder.MigrateStorage(ldk_node.MigrateStorageVss)
 	}
 
+	resetStateRequest := getResetStateRequest(cfg)
+	if resetStateRequest != nil {
+		builder.ResetState(*resetStateRequest)
+	}
+
 	logger.Logger.WithFields(logrus.Fields{
 		"migrate_storage":     migrateStorage,
 		"vss_enabled":         vssToken != "",
@@ -1808,4 +1813,34 @@ func GetVssNodeIdentifier(keys keys.Keys) (string, error) {
 	pubkeyHash256.Write(key.Key)
 	pubkeyHashBytes := pubkeyHash256.Sum(nil)
 	return hex.EncodeToString(pubkeyHashBytes[0:3]), nil
+}
+
+func getResetStateRequest(cfg config.Config) *ldk_node.ResetState {
+	resetKey, err := cfg.Get(resetRouterKey, "")
+	if err != nil {
+		logger.Logger.Error("Failed to retrieve ResetRouter key")
+		return nil
+	}
+
+	err = cfg.SetUpdate(resetRouterKey, "", "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to remove reset router key")
+		return nil
+	}
+
+	var ret ldk_node.ResetState
+
+	switch resetKey {
+	case "ALL":
+		ret = ldk_node.ResetStateAll
+	case "Scorer":
+		ret = ldk_node.ResetStateScorer
+	case "NetworkGraph":
+		ret = ldk_node.ResetStateNetworkGraph
+	default:
+		logger.Logger.WithField("key", resetKey).Error("Unknown reset router key")
+		return nil
+	}
+
+	return &ret
 }
