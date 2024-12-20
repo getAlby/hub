@@ -48,6 +48,7 @@ func (svc *service) startNostr(ctx context.Context) error {
 		var relay *nostr.Relay
 		waitToReconnectSeconds := 0
 		var createAppEventListener events.EventSubscriber
+		var updateAppEventListener events.EventSubscriber
 		for i := 0; ; i++ {
 
 			// wait for a delay if any before retrying
@@ -96,6 +97,13 @@ func (svc *service) startNostr(ctx context.Context) error {
 			}
 			createAppEventListener = &createAppConsumer{svc: svc, relay: relay}
 			svc.eventPublisher.RegisterSubscriber(createAppEventListener)
+
+			// register a subscriber for events of "nwc_app_updated" which handles re-publishing of nip47 event info
+			if updateAppEventListener != nil {
+				svc.eventPublisher.RemoveSubscriber(updateAppEventListener)
+			}
+			updateAppEventListener = &updateAppConsumer{svc: svc, relay: relay}
+			svc.eventPublisher.RegisterSubscriber(updateAppEventListener)
 
 			// start each app wallet subscription which have a child derived wallet key
 			svc.startAllExistingAppsWalletSubscriptions(ctx, relay)
