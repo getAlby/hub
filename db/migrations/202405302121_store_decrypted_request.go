@@ -16,7 +16,7 @@ var _202405302121_store_decrypted_request = &gormigrate.Migration{
 			return err
 		}
 
-		err = tx.Exec("CREATE INDEX `idx_request_events_method` ON `request_events`(`method`);").Error
+		err = tx.Exec("CREATE INDEX \"idx_request_events_method\" ON \"request_events\"(\"method\");").Error
 		if err != nil {
 			return err
 		}
