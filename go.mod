@@ -23,6 +23,7 @@ require (
 	google.golang.org/grpc v1.68.0
 	gopkg.in/DataDog/dd-trace-go.v1 v1.69.1
 	gopkg.in/macaroon.v2 v2.1.0
+	gorm.io/driver/postgres v1.5.0
 	gorm.io/driver/sqlite v1.5.6
 	gorm.io/gorm v1.25.12
 )

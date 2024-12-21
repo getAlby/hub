@@ -2,16 +2,18 @@ package db
 
 import (
 	"fmt"
+	"strings"
 
-	"github.com/getAlby/hub/db/migrations"
-	"github.com/getAlby/hub/logger"
+	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	gorm_logger "gorm.io/gorm/logger"
+
+	"github.com/getAlby/hub/db/migrations"
+	"github.com/getAlby/hub/logger"
 )
 
 func NewDB(uri string, logDBQueries bool) (*gorm.DB, error) {
-
 	config := &gorm.Config{
 		TranslateError: true,
 	}
@@ -19,6 +21,14 @@ func NewDB(uri string, logDBQueries bool) (*gorm.DB, error) {
 		config.Logger = gorm_logger.Default.LogMode(gorm_logger.Info)
 	}
 
+	if strings.HasPrefix(uri, "postgresql://") {
+		return newPostgresDB(uri, config)
+	}
+
+	return newSqliteDB(uri, config)
+}
+
+func newSqliteDB(uri string, config *gorm.Config) (*gorm.DB, error) {
 	// avoid SQLITE_BUSY errors with _txlock=IMMEDIATE
 	gormDB, err := gorm.Open(sqlite.Open(uri+"?_txlock=IMMEDIATE"), config)
 	if err != nil {
@@ -74,15 +84,34 @@ func NewDB(uri string, logDBQueries bool) (*gorm.DB, error) {
 	return gormDB, nil
 }
 
+func newPostgresDB(uri string, config *gorm.Config) (*gorm.DB, error) {
+	gormDB, err := gorm.Open(postgres.Open(uri), config)
+	if err != nil {
+		return nil, err
+	}
+
+	err = migrations.Migrate(gormDB)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to migrate")
+		return nil, err
+	}
+
+	return gormDB, nil
+}
+
 func Stop(db *gorm.DB) error {
 	sqlDB, err := db.DB()
 	if err != nil {
 		return fmt.Errorf("failed to get database connection: %w", err)
 	}
 
-	err = db.Exec("PRAGMA wal_checkpoint(FULL)", nil).Error
-	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to execute wal endpoint")
+	dbBackend := db.Dialector.Name()
+
+	if dbBackend == "sqlite" {
+		err = db.Exec("PRAGMA wal_checkpoint(FULL)", nil).Error
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to execute wal endpoint")
+		}
 	}
 
 	err = sqlDB.Close()
