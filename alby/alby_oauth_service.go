@@ -1332,6 +1332,7 @@ func getEventWhitelist() []string {
 		"nwc_payment_sent",
 		"nwc_payment_failed",
 		"nwc_app_created",
+		"nwc_app_updated",
 		"nwc_app_deleted",
 		"nwc_unlocked",
 		"nwc_node_sync_failed",
