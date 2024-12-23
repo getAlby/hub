@@ -48,9 +48,9 @@ const nip47KeysendJsonWithPreimage = `
 
 func TestHandlePayKeysendEvent(t *testing.T) {
 	ctx := context.TODO()
-	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -89,9 +89,9 @@ func TestHandlePayKeysendEvent(t *testing.T) {
 }
 func TestHandlePayKeysendEvent_WithPreimage(t *testing.T) {
 	ctx := context.TODO()
-	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)

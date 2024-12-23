@@ -20,9 +20,9 @@ import (
 
 func TestHandleListTransactionsEvent(t *testing.T) {
 	ctx := context.TODO()
-	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	const nip47ListTransactionsJson = `
 {
@@ -98,9 +98,9 @@ func TestHandleListTransactionsEvent(t *testing.T) {
 
 func TestHandleListTransactionsEvent_UnpaidOutgoingOnly(t *testing.T) {
 	ctx := context.TODO()
-	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	const nip47ListTransactionsJson = `
 {
@@ -160,9 +160,9 @@ func TestHandleListTransactionsEvent_UnpaidOutgoingOnly(t *testing.T) {
 
 func TestHandleListTransactionsEvent_UnpaidIncomingOnly(t *testing.T) {
 	ctx := context.TODO()
-	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	const nip47ListTransactionsJson = `
 {
@@ -222,9 +222,9 @@ func TestHandleListTransactionsEvent_UnpaidIncomingOnly(t *testing.T) {
 
 func TestHandleListTransactionsEvent_Unpaid(t *testing.T) {
 	ctx := context.TODO()
-	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	const nip47ListTransactionsJson = `
 {
@@ -282,9 +282,9 @@ func TestHandleListTransactionsEvent_Unpaid(t *testing.T) {
 
 func TestHandleListTransactionsEvent_Paid(t *testing.T) {
 	ctx := context.TODO()
-	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	const nip47ListTransactionsJson = `
 {
