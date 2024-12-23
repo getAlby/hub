@@ -13,24 +13,68 @@ import (
 	"github.com/getAlby/hub/logger"
 )
 
-func NewDB(uri string, logDBQueries bool) (*gorm.DB, error) {
-	config := &gorm.Config{
-		TranslateError: true,
-	}
-	if logDBQueries {
-		config.Logger = gorm_logger.Default.LogMode(gorm_logger.Info)
-	}
-
-	if strings.HasPrefix(uri, "postgresql://") {
-		return newPostgresDB(uri, config)
-	}
-
-	return newSqliteDB(uri, config)
+type Config struct {
+	URI        string
+	LogQueries bool
+	DriverName string
 }
 
-func newSqliteDB(uri string, config *gorm.Config) (*gorm.DB, error) {
-	// avoid SQLITE_BUSY errors with _txlock=IMMEDIATE
-	gormDB, err := gorm.Open(sqlite.Open(uri+"?_txlock=IMMEDIATE"), config)
+func NewDB(uri string, logDBQueries bool) (*gorm.DB, error) {
+	return NewDBWithConfig(&Config{
+		URI:        uri,
+		LogQueries: logDBQueries,
+		DriverName: "",
+	})
+}
+
+func NewDBWithConfig(cfg *Config) (*gorm.DB, error) {
+	gormConfig := &gorm.Config{
+		TranslateError: true,
+	}
+	if cfg.LogQueries {
+		gormConfig.Logger = gorm_logger.Default.LogMode(gorm_logger.Info)
+	}
+
+	var ret *gorm.DB
+
+	if IsPostgresURI(cfg.URI) {
+		pgConfig := postgres.Config{
+			DriverName: cfg.DriverName,
+			DSN:        cfg.URI,
+		}
+		var err error
+		ret, err = newPostgresDB(pgConfig, gormConfig)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		sqliteURI := cfg.URI
+		// avoid SQLITE_BUSY errors with _txlock=IMMEDIATE
+		if !strings.Contains(sqliteURI, "_txlock=") {
+			sqliteURI = sqliteURI + "?_txlock=IMMEDIATE"
+		}
+		sqliteConfig := sqlite.Config{
+			DriverName: cfg.DriverName,
+			DSN:        sqliteURI,
+		}
+		var err error
+		ret, err = newSqliteDB(sqliteConfig, gormConfig)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	err := migrations.Migrate(ret)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to migrate")
+		return nil, err
+	}
+
+	return ret, nil
+}
+
+func newSqliteDB(sqliteConfig sqlite.Config, gormConfig *gorm.Config) (*gorm.DB, error) {
+	gormDB, err := gorm.Open(sqlite.New(sqliteConfig), gormConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -75,24 +119,12 @@ func newSqliteDB(uri string, config *gorm.Config) (*gorm.DB, error) {
 		return nil, err
 	}
 
-	err = migrations.Migrate(gormDB)
-	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to migrate")
-		return nil, err
-	}
-
 	return gormDB, nil
 }
 
-func newPostgresDB(uri string, config *gorm.Config) (*gorm.DB, error) {
-	gormDB, err := gorm.Open(postgres.Open(uri), config)
+func newPostgresDB(pgConfig postgres.Config, gormConfig *gorm.Config) (*gorm.DB, error) {
+	gormDB, err := gorm.Open(postgres.New(pgConfig), gormConfig)
 	if err != nil {
-		return nil, err
-	}
-
-	err = migrations.Migrate(gormDB)
-	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to migrate")
 		return nil, err
 	}
 
@@ -119,4 +151,8 @@ func Stop(db *gorm.DB) error {
 		return fmt.Errorf("failed to close database connection: %w", err)
 	}
 	return nil
+}
+
+func IsPostgresURI(uri string) bool {
+	return strings.HasPrefix(uri, "postgresql://")
 }
