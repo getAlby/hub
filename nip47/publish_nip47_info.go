@@ -36,8 +36,8 @@ func (svc *nip47Service) GetNip47Info(ctx context.Context, relay *nostr.Relay, a
 
 func (svc *nip47Service) PublishNip47Info(ctx context.Context, relay nostrmodels.Relay, appWalletPubKey string, appWalletPrivKey string, lnClient lnclient.LNClient) (*nostr.Event, error) {
 	var capabilities []string
-	var notifications []string
 	var permitsNotifications bool
+	tags := nostr.Tags{[]string{}}
 	if svc.keys.GetNostrPublicKey() == appWalletPubKey {
 		// legacy app, so return lnClient.GetSupportedNIP47Methods()
 		capabilities = lnClient.GetSupportedNIP47Methods()
@@ -58,7 +58,7 @@ func (svc *nip47Service) PublishNip47Info(ctx context.Context, relay nostrmodels
 	}
 	if permitsNotifications && len(lnClient.GetSupportedNIP47NotificationTypes()) > 0 {
 		capabilities = append(capabilities, "notifications")
-		notifications = lnClient.GetSupportedNIP47NotificationTypes()
+		tags = append(tags, []string{"notifications", strings.Join(lnClient.GetSupportedNIP47NotificationTypes(), " ")})
 	}
 
 	ev := &nostr.Event{}
@@ -66,10 +66,7 @@ func (svc *nip47Service) PublishNip47Info(ctx context.Context, relay nostrmodels
 	ev.Content = strings.Join(capabilities, " ")
 	ev.CreatedAt = nostr.Now()
 	ev.PubKey = appWalletPubKey
-	ev.Tags = nostr.Tags{[]string{}}
-	if len(notifications) > 0 {
-		ev.Tags = append(ev.Tags, []string{"notifications", strings.Join(notifications, " ")})
-	}
+	ev.Tags = tags
 	err := ev.Sign(appWalletPrivKey)
 	if err != nil {
 		return nil, err
