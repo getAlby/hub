@@ -71,9 +71,9 @@ const nip47MultiPayKeysendOneOverflowingBudgetJson = `
 
 func TestHandleMultiPayKeysendEvent_Success(t *testing.T) {
 	ctx := context.TODO()
-	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -122,9 +122,9 @@ func TestHandleMultiPayKeysendEvent_Success(t *testing.T) {
 
 func TestHandleMultiPayKeysendEvent_OneBudgetExceeded(t *testing.T) {
 	ctx := context.TODO()
-	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)

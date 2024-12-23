@@ -41,9 +41,9 @@ const nip47MakeInvoiceJson = `
 
 func TestHandleMakeInvoiceEvent(t *testing.T) {
 	ctx := context.TODO()
-	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	nip47Request := &models.Request{}
 	err = json.Unmarshal([]byte(nip47MakeInvoiceJson), nip47Request)

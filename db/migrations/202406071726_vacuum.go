@@ -2,6 +2,7 @@ package migrations
 
 import (
 	_ "embed"
+	"testing"
 
 	"github.com/go-gormigrate/gormigrate/v2"
 	"gorm.io/gorm"
@@ -15,8 +16,11 @@ import (
 var _202406071726_vacuum = &gormigrate.Migration{
 	ID: "202406071726_vacuum",
 	Migrate: func(tx *gorm.DB) error {
-		if err := tx.Exec("VACUUM").Error; err != nil {
-			return err
+		// Cannot run when testing with txdb: VACUUM must be run outside of transaction.
+		if !testing.Testing() {
+			if err := tx.Exec("VACUUM").Error; err != nil {
+				return err
+			}
 		}
 
 		return nil

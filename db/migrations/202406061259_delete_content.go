@@ -2,6 +2,7 @@ package migrations
 
 import (
 	_ "embed"
+	"testing"
 
 	"github.com/go-gormigrate/gormigrate/v2"
 	"gorm.io/gorm"
@@ -19,8 +20,11 @@ var _202406061259_delete_content = &gormigrate.Migration{
 			return err
 		}
 
-		if err := tx.Exec("VACUUM").Error; err != nil {
-			return err
+		// Cannot run when testing with txdb: VACUUM must be run outside of transaction.
+		if !testing.Testing() {
+			if err := tx.Exec("VACUUM").Error; err != nil {
+				return err
+			}
 		}
 
 		return nil

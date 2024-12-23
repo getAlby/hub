@@ -5,21 +5,22 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/tests"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestNotifications_ReceivedKnownPayment(t *testing.T) {
 	ctx := context.TODO()
 
-	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	mockPreimage := tests.MockLNClientTransaction.Preimage
 	svc.DB.Create(&db.Transaction{
@@ -53,9 +54,9 @@ func TestNotifications_ReceivedKnownPayment(t *testing.T) {
 func TestNotifications_ReceivedUnknownPayment(t *testing.T) {
 	ctx := context.TODO()
 
-	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
@@ -80,9 +81,9 @@ func TestNotifications_ReceivedUnknownPayment(t *testing.T) {
 func TestNotifications_ReceivedKeysend(t *testing.T) {
 	ctx := context.TODO()
 
-	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
@@ -146,9 +147,9 @@ func TestNotifications_ReceivedKeysend(t *testing.T) {
 func TestNotifications_SentKnownPayment(t *testing.T) {
 	ctx := context.TODO()
 
-	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	svc.DB.Create(&db.Transaction{
 		State:          constants.TRANSACTION_STATE_PENDING,
@@ -182,9 +183,9 @@ func TestNotifications_SentKnownPayment(t *testing.T) {
 func TestNotifications_SentUnknownPayment(t *testing.T) {
 	ctx := context.TODO()
 
-	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
@@ -206,9 +207,9 @@ func TestNotifications_SentUnknownPayment(t *testing.T) {
 func TestNotifications_FailedKnownPayment(t *testing.T) {
 	ctx := context.TODO()
 
-	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	svc.DB.Create(&db.Transaction{
 		State:          constants.TRANSACTION_STATE_PENDING,
