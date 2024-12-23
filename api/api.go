@@ -226,6 +226,13 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 				return err
 			}
 		}
+		api.svc.GetEventPublisher().Publish(&events.Event{
+			Event: "nwc_app_updated",
+			Properties: map[string]interface{}{
+				"name": name,
+				"id":   userApp.ID,
+			},
+		})
 
 		// commit transaction
 		return nil
@@ -252,13 +259,13 @@ func (api *api) GetApp(dbApp *db.App) *App {
 	for _, appPerm := range appPermissions {
 		expiresAt = appPerm.ExpiresAt
 		if appPerm.Scope == constants.PAY_INVOICE_SCOPE {
-			//find the pay_invoice-specific permissions
+			// find the pay_invoice-specific permissions
 			paySpecificPermission = appPerm
 		}
 		requestMethods = append(requestMethods, appPerm.Scope)
 	}
 
-	//renewsIn := ""
+	// renewsIn := ""
 	budgetUsage := uint64(0)
 	maxAmount := uint64(paySpecificPermission.MaxAmountSat)
 	budgetUsage = queries.GetBudgetUsageSat(api.db, &paySpecificPermission)
@@ -975,10 +982,13 @@ func (api *api) GetLogOutput(ctx context.Context, logType string, getLogRequest 
 		}
 	} else if logType == LogTypeApp {
 		logFileName := logger.GetLogFilePath()
-
-		logData, err = utils.ReadFileTail(logFileName, getLogRequest.MaxLen)
-		if err != nil {
-			return nil, err
+		if logFileName == "" {
+			logData = []byte("file log is disabled")
+		} else {
+			logData, err = utils.ReadFileTail(logFileName, getLogRequest.MaxLen)
+			if err != nil {
+				return nil, err
+			}
 		}
 	} else {
 		return nil, fmt.Errorf("invalid log type: '%s'", logType)

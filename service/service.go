@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-
 	"os"
 	"path/filepath"
 	"strings"
@@ -63,9 +62,11 @@ func NewService(ctx context.Context) (*service, error) {
 	// make sure workdir exists
 	os.MkdirAll(appConfig.Workdir, os.ModePerm)
 
-	err = logger.AddFileLogger(appConfig.Workdir)
-	if err != nil {
-		return nil, err
+	if appConfig.LogToFile {
+		err = logger.AddFileLogger(appConfig.Workdir)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	err = finishRestoreNode(appConfig.Workdir)

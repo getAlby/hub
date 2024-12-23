@@ -30,7 +30,7 @@ const nip47PayInvoice0AmountJson = `
 {
 	"method": "pay_invoice",
 	"params": {
-		"invoice": "lnbc1pn428a6pp5njn604kl6x7eruycwzpwapwe97uer8et084kru4r0hsql9ttpmusdp82pshjgr5dusyymrfde4jq4mpd3kx2apq24ek2uscqzpuxqr8pqsp50nvadnrqlvghx44ftl89gjvx9lvrfpy5sypt2zahmpehvex4lp7q9p4gqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqpqysgq395pa893uux2agv8jlqxsppyyx5e4rfdjn9dhynlzxhuq3sgwnv48akdqxut7s4fqrre8adnt8kmfmjaexdcevajqlxvmtjpp823cmspud7udk",
+		"invoice": "` + tests.Mock0AmountInvoice + `",
 		"amount": 1234
 	}
 }
@@ -144,7 +144,7 @@ func TestHandlePayInvoiceEvent_0Amount(t *testing.T) {
 	assert.Equal(t, "123preimage", publishedResponse.Result.(payResponse).Preimage)
 
 	transactionType := constants.TRANSACTION_TYPE_OUTGOING
-	transaction, err := transactionsSvc.LookupTransaction(ctx, "9ca7a7d6dfd1bd91f0987082ee85d92fb9919f2b79eb61f2a37de00f956b0ef9", &transactionType, svc.LNClient, &app.ID)
+	transaction, err := transactionsSvc.LookupTransaction(ctx, tests.Mock0AmountPaymentHash, &transactionType, svc.LNClient, &app.ID)
 	assert.NoError(t, err)
 	// from the request amount
 	assert.Equal(t, uint64(1234), transaction.AmountMsat)
