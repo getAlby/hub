@@ -24,7 +24,7 @@ type AppConfig struct {
 	DatabaseUri           string `envconfig:"DATABASE_URI" default:"nwc.db"`
 	JWTSecret             string `envconfig:"JWT_SECRET"`
 	LogLevel              string `envconfig:"LOG_LEVEL" default:"4"`
-	LogToFile             bool   `envconfig:"LOG_FILE" default:"true"`
+	LogToFile             bool   `envconfig:"LOG_TO_FILE" default:"true"`
 	LDKNetwork            string `envconfig:"LDK_NETWORK" default:"bitcoin"`
 	LDKEsploraServer      string `envconfig:"LDK_ESPLORA_SERVER" default:"https://electrs.getalbypro.com"` // TODO: remove LDK prefix
 	LDKGossipSource       string `envconfig:"LDK_GOSSIP_SOURCE"`
