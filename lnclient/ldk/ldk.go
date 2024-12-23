@@ -4,6 +4,8 @@ import (
 	"context"
 	"crypto/sha256"
 	"database/sql"
+	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
@@ -19,9 +21,6 @@ import (
 	"github.com/tyler-smith/go-bip32"
 
 	// "github.com/getAlby/hub/ldk_node"
-
-	"encoding/hex"
-	"encoding/json"
 
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
@@ -57,7 +56,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		return nil, errors.New("one or more required LDK configuration are missing")
 	}
 
-	//create dir if not exists
+	// create dir if not exists
 	newpath := filepath.Join(workDir)
 	err = os.MkdirAll(newpath, os.ModePerm)
 	if err != nil {
@@ -131,6 +130,11 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 			return nil, errors.New("migration enabled but no vss token found")
 		}
 		builder.MigrateStorage(ldk_node.MigrateStorageVss)
+	}
+
+	resetStateRequest := getResetStateRequest(cfg)
+	if resetStateRequest != nil {
+		builder.ResetState(*resetStateRequest)
 	}
 
 	logger.Logger.WithFields(logrus.Fields{
@@ -492,9 +496,9 @@ func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string, amoun
 		ls.eventPublisher.Publish(&events.Event{
 			Event: "nwc_outgoing_liquidity_required",
 			Properties: map[string]interface{}{
-				//"amount":         amount / 1000,
-				//"max_receivable": maxReceivable,
-				//"num_channels":   len(gs.node.ListChannels()),
+				// "amount":         amount / 1000,
+				// "max_receivable": maxReceivable,
+				// "num_channels":   len(gs.node.ListChannels()),
 				"node_type": config.LDKBackendType,
 			},
 		})
@@ -678,9 +682,9 @@ func (ls *LDKService) MakeInvoice(ctx context.Context, amount int64, description
 		ls.eventPublisher.Publish(&events.Event{
 			Event: "nwc_incoming_liquidity_required",
 			Properties: map[string]interface{}{
-				//"amount":         amount / 1000,
-				//"max_receivable": maxReceivable,
-				//"num_channels":   len(gs.node.ListChannels()),
+				// "amount":         amount / 1000,
+				// "max_receivable": maxReceivable,
+				// "num_channels":   len(gs.node.ListChannels()),
 				"node_type": config.LDKBackendType,
 			},
 		})
@@ -901,8 +905,8 @@ func (ls *LDKService) GetNodeConnectionInfo(ctx context.Context) (nodeConnection
 
 	return &lnclient.NodeConnectionInfo{
 		Pubkey: ls.node.NodeId(),
-		//Address: parts[0],
-		//Port:    port,
+		// Address: parts[0],
+		// Port:    port,
 	}, nil
 }
 
@@ -1801,4 +1805,34 @@ func GetVssNodeIdentifier(keys keys.Keys) (string, error) {
 	pubkeyHash256.Write(key.Key)
 	pubkeyHashBytes := pubkeyHash256.Sum(nil)
 	return hex.EncodeToString(pubkeyHashBytes[0:3]), nil
+}
+
+func getResetStateRequest(cfg config.Config) *ldk_node.ResetState {
+	resetKey, err := cfg.Get(resetRouterKey, "")
+	if err != nil {
+		logger.Logger.Error("Failed to retrieve ResetRouter key")
+		return nil
+	}
+
+	err = cfg.SetUpdate(resetRouterKey, "", "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to remove reset router key")
+		return nil
+	}
+
+	var ret ldk_node.ResetState
+
+	switch resetKey {
+	case "ALL":
+		ret = ldk_node.ResetStateAll
+	case "Scorer":
+		ret = ldk_node.ResetStateScorer
+	case "NetworkGraph":
+		ret = ldk_node.ResetStateNetworkGraph
+	default:
+		logger.Logger.WithField("key", resetKey).Error("Unknown reset router key")
+		return nil
+	}
+
+	return &ret
 }
