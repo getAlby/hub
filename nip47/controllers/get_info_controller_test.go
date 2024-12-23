@@ -56,7 +56,7 @@ func TestHandleGetInfoEvent_NoPermission(t *testing.T) {
 
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
 	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
-	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc, svc.AppsService).
 		HandleGetInfoEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
 
 	assert.Nil(t, publishedResponse.Error)
@@ -105,7 +105,7 @@ func TestHandleGetInfoEvent_WithPermission(t *testing.T) {
 
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
 	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
-	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc, svc.AppsService).
 		HandleGetInfoEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
 
 	assert.Nil(t, publishedResponse.Error)
@@ -161,7 +161,7 @@ func TestHandleGetInfoEvent_WithNotifications(t *testing.T) {
 
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
 	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
-	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc, svc.AppsService).
 		HandleGetInfoEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
 
 	assert.Nil(t, publishedResponse.Error)

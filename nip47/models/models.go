@@ -22,6 +22,7 @@ const (
 	MULTI_PAY_INVOICE_METHOD = "multi_pay_invoice"
 	MULTI_PAY_KEYSEND_METHOD = "multi_pay_keysend"
 	SIGN_MESSAGE_METHOD      = "sign_message"
+	CREATE_CONNECTION_METHOD = "create_connection"
 )
 
 type Transaction struct {
