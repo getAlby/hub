@@ -1,8 +1,8 @@
 import { Copy, Edit } from "lucide-react";
 import React from "react";
-import QRCode from "react-qr-code";
 import { useNavigate } from "react-router-dom";
 import Loading from "src/components/Loading";
+import QRCode from "src/components/QRCode";
 import { Button, LinkButton } from "src/components/ui/button";
 import { useToast } from "src/components/ui/use-toast";
 import UserAvatar from "src/components/UserAvatar";
@@ -33,7 +33,7 @@ export default function Receive() {
         <div className="flex flex-col items-center justify-center gap-6 w-full sm:w-64">
           <div className="relative flex flex-col items-center justify-center w-full">
             <QRCode value={me.lightning_address} className="w-full h-auto" />
-            <UserAvatar className="w-16 h-auto absolute border-6 border-primary-foreground" />
+            <UserAvatar className="w-14 h-auto absolute border-4 border-white" />
           </div>
           <p className="font-semibold break-all">{me.lightning_address}</p>
           <div className="flex gap-4 w-full">

@@ -142,6 +142,7 @@ export interface InfoResponse {
   oauthRedirect: boolean;
   albyAccountConnected: boolean;
   ldkVssEnabled: boolean;
+  vssSupported: boolean;
   running: boolean;
   albyAuthUrl: string;
   nextBackupReminder: string;
@@ -343,6 +344,9 @@ export type AlbyMe = {
   shared_node: boolean;
   hub: {
     name?: string;
+  };
+  subscription: {
+    buzz: boolean;
   };
 };
 

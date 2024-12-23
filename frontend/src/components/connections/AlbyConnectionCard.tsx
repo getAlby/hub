@@ -3,7 +3,9 @@ import {
   CircleX,
   EditIcon,
   ExternalLinkIcon,
+  InfoIcon,
   Link2Icon,
+  User2Icon,
   ZapIcon,
 } from "lucide-react";
 import { FormEvent, useState } from "react";
@@ -34,6 +36,12 @@ import {
 } from "src/components/ui/dialog";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { Separator } from "src/components/ui/separator";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "src/components/ui/tooltip";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { LinkStatus, useLinkAccount } from "src/hooks/useLinkAccount";
 import { App, BudgetRenewalType } from "src/types";
@@ -149,15 +157,25 @@ function AlbyConnectionCard({ connection }: { connection?: App }) {
                   </Button>
                 )
               )}
-              <ExternalLink
-                to="https://www.getalby.com/node"
-                className="w-full sm:w-auto"
-              >
-                <Button variant="outline" className="w-full sm:w-auto">
-                  <ExternalLinkIcon className="w-4 h-4 mr-2" />
-                  Alby Account Settings
-                </Button>
-              </ExternalLink>
+              {!connection && (
+                <ExternalLink
+                  to="https://www.getalby.com/node"
+                  className="w-full sm:w-auto"
+                >
+                  <Button variant="outline" className="w-full sm:w-auto">
+                    <ExternalLinkIcon className="w-4 h-4 mr-2" />
+                    Alby Account Settings
+                  </Button>
+                </ExternalLink>
+              )}
+              {connection && (
+                <Link to="/settings/alby-account" className="w-full sm:w-auto">
+                  <Button variant="outline" className="w-full sm:w-auto">
+                    <User2Icon className="w-4 h-4 mr-2" />
+                    Alby Account Settings
+                  </Button>
+                </Link>
+              )}
             </div>
           </div>
           {connection && (
@@ -168,7 +186,30 @@ function AlbyConnectionCard({ connection }: { connection?: App }) {
               >
                 <EditIcon className="w-4 h-4 hidden group-hover:inline text-muted-foreground hover:text-card-foreground" />
               </Link>
-              <AppCardConnectionInfo connection={connection} />
+              <AppCardConnectionInfo
+                connection={connection}
+                budgetRemainingText={
+                  <span className="flex items-center gap-2 justify-end">
+                    Left in Alby Account budget
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <div className="flex flex-row items-center">
+                            <InfoIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-sm">
+                          Control what access your Alby Account has to your Hub
+                          by editing the budget. Every app you access through
+                          your Alby Account (such as your lightning address,
+                          Alby Extension, podcasting 2.0 apps) will handle
+                          payments via your Hub.
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </span>
+                }
+              />
             </div>
           )}
         </div>

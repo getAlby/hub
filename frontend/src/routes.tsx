@@ -68,6 +68,7 @@ import ReceiveInvoice from "src/screens/wallet/receive/ReceiveInvoice";
 import ConfirmPayment from "src/screens/wallet/send/ConfirmPayment";
 import LnurlPay from "src/screens/wallet/send/LnurlPay";
 import PaymentSuccess from "src/screens/wallet/send/PaymentSuccess";
+import ZeroAmount from "src/screens/wallet/send/ZeroAmount";
 
 const routes = [
   {
@@ -127,6 +128,10 @@ const routes = [
               {
                 path: "lnurl-pay",
                 element: <LnurlPay />,
+              },
+              {
+                path: "0-amount",
+                element: <ZeroAmount />,
               },
               {
                 path: "confirm-payment",

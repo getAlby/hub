@@ -259,13 +259,13 @@ func (api *api) GetApp(dbApp *db.App) *App {
 	for _, appPerm := range appPermissions {
 		expiresAt = appPerm.ExpiresAt
 		if appPerm.Scope == constants.PAY_INVOICE_SCOPE {
-			//find the pay_invoice-specific permissions
+			// find the pay_invoice-specific permissions
 			paySpecificPermission = appPerm
 		}
 		requestMethods = append(requestMethods, appPerm.Scope)
 	}
 
-	//renewsIn := ""
+	// renewsIn := ""
 	budgetUsage := uint64(0)
 	maxAmount := uint64(paySpecificPermission.MaxAmountSat)
 	budgetUsage = queries.GetBudgetUsageSat(api.db, &paySpecificPermission)
@@ -698,6 +698,7 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info.Version = version.Tag
 	info.EnableAdvancedSetup = api.cfg.GetEnv().EnableAdvancedSetup
 	info.LdkVssEnabled = ldkVssEnabled == "true"
+	info.VssSupported = backendType == config.LDKBackendType && api.cfg.GetEnv().LDKVssUrl != ""
 	albyUserIdentifier, err := api.albyOAuthSvc.GetUserIdentifier()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to get alby user identifier")
@@ -911,6 +912,32 @@ func (api *api) SendPaymentProbes(ctx context.Context, sendPaymentProbesRequest 
 	return &SendPaymentProbesResponse{Error: errMessage}, nil
 }
 
+func (api *api) MigrateNodeStorage(ctx context.Context, to string) error {
+	if api.svc.GetLNClient() == nil {
+		return errors.New("LNClient not started")
+	}
+	if to != "VSS" {
+		return fmt.Errorf("Migration type not supported: %s", to)
+	}
+
+	ldkVssEnabled, err := api.cfg.Get("LdkVssEnabled", "")
+	if err != nil {
+		return err
+	}
+
+	if ldkVssEnabled == "true" {
+		return errors.New("VSS already enabled")
+	}
+
+	if api.cfg.GetEnv().LDKVssUrl == "" {
+		return errors.New("No VSS URL set")
+	}
+
+	api.cfg.SetUpdate("LdkVssEnabled", "true", "")
+	api.cfg.SetUpdate("LdkMigrateStorage", "VSS", "")
+	return api.Stop()
+}
+
 func (api *api) SendSpontaneousPaymentProbes(ctx context.Context, sendSpontaneousPaymentProbesRequest *SendSpontaneousPaymentProbesRequest) (*SendSpontaneousPaymentProbesResponse, error) {
 	if api.svc.GetLNClient() == nil {
 		return nil, errors.New("LNClient not started")
@@ -955,10 +982,13 @@ func (api *api) GetLogOutput(ctx context.Context, logType string, getLogRequest 
 		}
 	} else if logType == LogTypeApp {
 		logFileName := logger.GetLogFilePath()
-
-		logData, err = utils.ReadFileTail(logFileName, getLogRequest.MaxLen)
-		if err != nil {
-			return nil, err
+		if logFileName == "" {
+			logData = []byte("file log is disabled")
+		} else {
+			logData, err = utils.ReadFileTail(logFileName, getLogRequest.MaxLen)
+			if err != nil {
+				return nil, err
+			}
 		}
 	} else {
 		return nil, fmt.Errorf("invalid log type: '%s'", logType)

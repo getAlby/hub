@@ -50,20 +50,17 @@ func (svc *service) startNostr(ctx context.Context) error {
 		var createAppEventListener events.EventSubscriber
 		var updateAppEventListener events.EventSubscriber
 		for i := 0; ; i++ {
-
 			// wait for a delay if any before retrying
-			if waitToReconnectSeconds > 0 {
-				contextCancelled := false
+			contextCancelled := false
 
-				select {
-				case <-ctx.Done(): //context cancelled
-					logger.Logger.Info("service context cancelled while waiting for retry")
-					contextCancelled = true
-				case <-time.After(time.Duration(waitToReconnectSeconds) * time.Second): //timeout
-				}
-				if contextCancelled {
-					break
-				}
+			select {
+			case <-ctx.Done(): // application service context cancelled
+				logger.Logger.Info("service context cancelled")
+				contextCancelled = true
+			case <-time.After(time.Duration(waitToReconnectSeconds) * time.Second): //timeout
+			}
+			if contextCancelled {
+				break
 			}
 
 			closeRelay(relay)
@@ -131,7 +128,6 @@ func (svc *service) startNostr(ctx context.Context) error {
 					logger.Logger.WithError(err).Error("Got an error from the relay while listening to subscription.")
 					continue
 				}
-				break
 			}
 			select {
 			case <-ctx.Done():
@@ -143,10 +139,7 @@ func (svc *service) startNostr(ctx context.Context) error {
 				} else {
 					logger.Logger.Error("Relay context cancelled, but no connection error...trying to reconnect")
 				}
-				continue
 			}
-			//err being nil means that the context was canceled and we should exit the program.
-			break
 		}
 		closeRelay(relay)
 		logger.Logger.Info("Relay subroutine ended")

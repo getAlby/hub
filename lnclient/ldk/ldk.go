@@ -68,10 +68,8 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	logDirPath := filepath.Join(newpath, "./logs")
 
 	ldkConfig := ldk_node.DefaultConfig()
-	listeningAddresses := []string{
-		"0.0.0.0:9735",
-		"[::]:9735",
-	}
+	listeningAddresses := strings.Split(cfg.GetEnv().LDKListeningAddresses, ",")
+
 	ldkConfig.TrustedPeers0conf = []string{
 		lsp.OlympusLSP().Pubkey,
 		lsp.AlbyPlebsLSP().Pubkey,
@@ -123,8 +121,22 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	// The liquidity source below is not used because we do not use the native LDK-node LSPS2 API.
 	builder.SetLiquiditySourceLsps2("52.88.33.119:9735", lsp.OlympusLSP().Pubkey, nil)
 
+	migrateStorage, _ := cfg.Get("LdkMigrateStorage", "")
+	if migrateStorage == "VSS" {
+		err = cfg.SetUpdate("LdkMigrateStorage", "", "")
+		if err != nil {
+			return nil, err
+		}
+		if vssToken == "" {
+			return nil, errors.New("migration enabled but no vss token found")
+		}
+		builder.MigrateStorage(ldk_node.MigrateStorageVss)
+	}
+
 	logger.Logger.WithFields(logrus.Fields{
-		"vss_enabled": vssToken != "",
+		"migrate_storage":     migrateStorage,
+		"vss_enabled":         vssToken != "",
+		"listening_addresses": listeningAddresses,
 	}).Info("Creating node")
 	var node *ldk_node.Node
 	if vssToken != "" {
@@ -460,7 +472,7 @@ func (ls *LDKService) resetRouterInternal() {
 	}
 }
 
-func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string) (*lnclient.PayInvoiceResponse, error) {
+func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
 	paymentRequest, err := decodepay.Decodepay(invoice)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
@@ -470,8 +482,13 @@ func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string) (*lnc
 		return nil, err
 	}
 
+	paymentAmount := uint64(paymentRequest.MSatoshi)
+	if amount != nil {
+		paymentAmount = *amount
+	}
+
 	maxSpendable := ls.getMaxSpendable()
-	if paymentRequest.MSatoshi > maxSpendable {
+	if paymentAmount > maxSpendable {
 		ls.eventPublisher.Publish(&events.Event{
 			Event: "nwc_outgoing_liquidity_required",
 			Properties: map[string]interface{}{
@@ -487,7 +504,12 @@ func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string) (*lnc
 	ldkEventSubscription := ls.ldkEventBroadcaster.Subscribe()
 	defer ls.ldkEventBroadcaster.CancelSubscription(ldkEventSubscription)
 
-	paymentHash, err := ls.node.Bolt11Payment().Send(invoice, nil)
+	var paymentHash string
+	if amount == nil {
+		paymentHash, err = ls.node.Bolt11Payment().Send(invoice, nil)
+	} else {
+		paymentHash, err = ls.node.Bolt11Payment().SendUsingAmount(invoice, *amount, nil)
+	}
 	if err != nil {
 		logger.Logger.WithError(err).Error("SendPayment failed")
 		return nil, err
@@ -637,15 +659,15 @@ func (ls *LDKService) getMaxReceivable() int64 {
 	return int64(receivable)
 }
 
-func (ls *LDKService) getMaxSpendable() int64 {
-	var spendable int64 = 0
+func (ls *LDKService) getMaxSpendable() uint64 {
+	var spendable uint64 = 0
 	channels := ls.node.ListChannels()
 	for _, channel := range channels {
 		if channel.IsUsable {
-			spendable += min(int64(channel.OutboundCapacityMsat), int64(*channel.CounterpartyOutboundHtlcMaximumMsat))
+			spendable += min(channel.OutboundCapacityMsat, *channel.CounterpartyOutboundHtlcMaximumMsat)
 		}
 	}
-	return int64(spendable)
+	return spendable
 }
 
 func (ls *LDKService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *lnclient.Transaction, err error) {

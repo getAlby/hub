@@ -1,4 +1,9 @@
-import { AlertTriangleIcon, CopyIcon, ExternalLinkIcon } from "lucide-react";
+import {
+  AlertCircleIcon,
+  AlertTriangleIcon,
+  CopyIcon,
+  ExternalLinkIcon,
+} from "lucide-react";
 import React from "react";
 import ExternalLink from "src/components/ExternalLink";
 import { MempoolAlert } from "src/components/MempoolAlert";
@@ -10,6 +15,7 @@ import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
 import { useChannels } from "src/hooks/useChannels";
 import { copyToClipboard } from "src/lib/clipboard";
+import { formatAmount } from "src/lib/utils";
 import { Channel, CloseChannelResponse } from "src/types";
 import { request } from "src/utils/request";
 import {
@@ -107,6 +113,15 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
               Are you sure you want to close the channel with {alias}?
             </AlertDialogTitle>
             <AlertDialogDescription className="text-left">
+              <Alert className="mb-4">
+                <AlertCircleIcon className="h-4 w-4" />
+                <AlertDescription>
+                  Closing this channel will move{" "}
+                  {formatAmount(channel.localBalance)} sats in this channel to
+                  your on-chain balance and reduce your receive limit by{" "}
+                  {formatAmount(channel.remoteBalance)} sats.
+                </AlertDescription>
+              </Alert>
               <div>
                 <p className="text-primary font-medium">Node ID</p>
                 <p className="break-all">{channel.remotePubkey}</p>
@@ -164,10 +179,10 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
                       Normal Close (Recommended)
                     </Label>
                     <p className="text-sm text-muted-foreground">
-                      Attempt to agree to with your channel partner to close the
-                      channel, usually quicker and with lower fees. If an
-                      agreement cannot be met or your channel partner is
-                      offline, this will result in a force closure.
+                      Attempt to settle with your channel partner for a quick,
+                      low-cost closure. Your funds should be available on-chain
+                      within an hour. If your partner is offline or agreement
+                      cannot be met, a force closure will be initiated.
                     </p>
                   </div>
                 </div>
