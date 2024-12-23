@@ -85,7 +85,7 @@ export function AppStoreDetail() {
                 <ExternalLink to="https://zapstore.dev/download/">
                   <Button variant="outline">
                     <ZapStoreIcon className="w-4 h-4 mr-2" />
-                    zap.store
+                    Zapstore
                   </Button>
                 </ExternalLink>
               )}
