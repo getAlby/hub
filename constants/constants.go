@@ -19,6 +19,16 @@ const (
 	BUDGET_RENEWAL_NEVER   = "never"
 )
 
+func GetBudgetRenewals() []string {
+	return []string{
+		BUDGET_RENEWAL_DAILY,
+		BUDGET_RENEWAL_WEEKLY,
+		BUDGET_RENEWAL_MONTHLY,
+		BUDGET_RENEWAL_YEARLY,
+		BUDGET_RENEWAL_NEVER,
+	}
+}
+
 const (
 	PAY_INVOICE_SCOPE       = "pay_invoice" // also covers pay_keysend and multi_* payment methods
 	GET_BALANCE_SCOPE       = "get_balance"

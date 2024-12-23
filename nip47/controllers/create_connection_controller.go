@@ -69,6 +69,18 @@ func (controller *nip47Controller) HandleCreateConnectionEvent(ctx context.Conte
 	}
 	scopes, err := permissions.RequestMethodsToScopes(params.Methods)
 
+	// ensure there is at least one scope
+	if len(scopes) == 0 {
+		publishResponse(&models.Response{
+			ResultType: nip47Request.Method,
+			Error: &models.Error{
+				Code:    constants.ERROR_INTERNAL,
+				Message: "No methods provided",
+			},
+		}, nostr.Tags{})
+		return
+	}
+
 	app, _, err := controller.appsService.CreateApp(params.Name, params.Pubkey, params.Budget.Budget, params.Budget.RenewalPeriod, expiresAt, scopes, params.Isolated, params.Metadata)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{

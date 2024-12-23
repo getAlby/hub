@@ -141,7 +141,7 @@ func TestHandleResponse_WithPermission(t *testing.T) {
 	assert.Nil(t, unmarshalledResponse.Error)
 	assert.Equal(t, models.GET_INFO_METHOD, unmarshalledResponse.ResultType)
 	expectedMethods := slices.Concat([]string{constants.GET_BALANCE_SCOPE}, permissions.GetAlwaysGrantedMethods())
-	assert.Equal(t, expectedMethods, unmarshalledResponse.Result.Methods)
+	assert.ElementsMatch(t, expectedMethods, unmarshalledResponse.Result.Methods)
 }
 
 func TestHandleResponse_DuplicateRequest(t *testing.T) {

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/getAlby/hub/constants"
@@ -44,9 +45,13 @@ func (svc *appsService) CreateApp(name string, pubkey string, maxAmountSat uint6
 		return nil, "", errors.New("isolated app cannot have sign_message scope")
 	}
 
-	// TODO: ensure there is at least one scope
+	if budgetRenewal == "" {
+		budgetRenewal = constants.BUDGET_RENEWAL_NEVER
+	}
 
-	// TODO: validate budget renewal
+	if !slices.Contains(constants.GetBudgetRenewals(), budgetRenewal) {
+		return nil, "", fmt.Errorf("invalid budget renewal. Must be one of %s", strings.Join(constants.GetBudgetRenewals(), ","))
+	}
 
 	var pairingPublicKey string
 	var pairingSecretKey string
