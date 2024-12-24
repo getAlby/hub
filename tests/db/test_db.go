@@ -18,6 +18,10 @@ func init() {
 		uri := GetTestDatabaseURI()
 		if db.IsPostgresURI(uri) {
 			txdb.Register(testDriver, "pgx", uri)
+
+			// txdb fails when transactions are run concurrently in goroutines
+			// (concurrent begins/commits/rollback confuse its checkpoints logic).
+			db.SerializeTransactions = true
 		}
 	}
 }
