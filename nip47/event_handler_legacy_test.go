@@ -6,20 +6,21 @@ import (
 	"slices"
 	"testing"
 
+	"github.com/nbd-wtf/go-nostr"
+	"github.com/nbd-wtf/go-nostr/nip04"
+	"github.com/stretchr/testify/assert"
+
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/nip47/models"
 	"github.com/getAlby/hub/nip47/permissions"
 	"github.com/getAlby/hub/tests"
-	"github.com/nbd-wtf/go-nostr"
-	"github.com/nbd-wtf/go-nostr/nip04"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestHandleResponse_LegacyApp_WithPermission(t *testing.T) {
-	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
 	assert.NoError(t, err)
+	defer svc.Remove()
 	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
 
 	reqPrivateKey := nostr.GeneratePrivateKey()
@@ -87,9 +88,9 @@ func TestHandleResponse_LegacyApp_WithPermission(t *testing.T) {
 }
 
 func TestHandleResponse_LegacyApp_NoPermission(t *testing.T) {
-	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
 	assert.NoError(t, err)
+	defer svc.Remove()
 	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
 
 	reqPrivateKey := nostr.GeneratePrivateKey()
@@ -140,9 +141,9 @@ func TestHandleResponse_LegacyApp_NoPermission(t *testing.T) {
 }
 
 func TestHandleResponse_LegacyApp_IncorrectPubkey(t *testing.T) {
-	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
 	assert.NoError(t, err)
+	defer svc.Remove()
 	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
 
 	reqPrivateKey := nostr.GeneratePrivateKey()

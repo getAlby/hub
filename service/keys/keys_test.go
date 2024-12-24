@@ -5,7 +5,8 @@ import (
 	"testing"
 
 	"github.com/getAlby/hub/config"
-	"github.com/getAlby/hub/db"
+	"github.com/getAlby/hub/tests/db"
+
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -13,11 +14,10 @@ import (
 	"github.com/tyler-smith/go-bip39"
 )
 
-const testDB = "test.db"
-
 func TestUseExistingMnemonic(t *testing.T) {
-	gormDb, err := db.NewDB(testDB, true)
+	gormDb, err := db.NewDB()
 	require.NoError(t, err)
+	defer db.CloseDB(gormDb)
 
 	mnemonic := "thought turkey ask pottery head say catalog desk pledge elbow naive mimic"
 	unlockPassword := "123"
@@ -59,8 +59,9 @@ func TestUseExistingMnemonic(t *testing.T) {
 }
 
 func TestGenerateNewMnemonic(t *testing.T) {
-	gormDb, err := db.NewDB(testDB, true)
+	gormDb, err := db.NewDB()
 	require.NoError(t, err)
+	defer db.CloseDB(gormDb)
 
 	unlockPassword := "123"
 

@@ -5,6 +5,7 @@ go 1.23.1
 toolchain go1.23.3
 
 require (
+	github.com/DATA-DOG/go-txdb v0.2.0
 	github.com/adrg/xdg v0.5.3
 	github.com/breez/breez-sdk-go v0.5.2
 	github.com/elnosh/gonuts v0.2.0
@@ -23,6 +24,7 @@ require (
 	google.golang.org/grpc v1.68.0
 	gopkg.in/DataDog/dd-trace-go.v1 v1.69.1
 	gopkg.in/macaroon.v2 v2.1.0
+	gorm.io/driver/postgres v1.5.0
 	gorm.io/driver/sqlite v1.5.6
 	gorm.io/gorm v1.25.12
 )
