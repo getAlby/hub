@@ -324,9 +324,9 @@ func TestSendPaymentSync_IsolatedApp_BalanceSufficient_FailedPayment(t *testing.
 }
 
 func TestCalculateFeeReserve(t *testing.T) {
-	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
+	defer svc.Remove()
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
 	assert.Equal(t, uint64(10_000), transactionsService.calculateFeeReserveMsat(0))
