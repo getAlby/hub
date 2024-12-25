@@ -254,10 +254,10 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 	}).Debug("Handling NIP-47 request")
 
 	version := "0.0"
-	vTag := event.Tags.GetFirst([]string{"v"}).Value()
+	vTag := event.Tags.GetFirst([]string{"v"})
 
-	if vTag != "" {
-		version = vTag
+	if vTag != nil && vTag.Value() != "" {
+		version = vTag.Value()
 	}
 
 	isVersionSupported, err := svc.isVersionSupported(version, isNip04Encrypted)
