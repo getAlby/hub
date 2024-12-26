@@ -332,6 +332,14 @@ export type AlbyInfo = {
   };
 };
 
+export type BitcoinRate = {
+  code: string;
+  symbol: string;
+  rate: string;
+  rate_float: number;
+  rate_cents: number;
+};
+
 // TODO: use camel case (needs mapping in the Alby OAuth Service - see how AlbyInfo is done above)
 export type AlbyMe = {
   identifier: string;

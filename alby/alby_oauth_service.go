@@ -1051,6 +1051,34 @@ func (svc *albyOAuthService) GetChannelPeerSuggestions(ctx context.Context) ([]C
 	return suggestions, nil
 }
 
+func (svc *albyOAuthService) GetBitcoinRate(ctx context.Context, currency string) (*BitcoinRate, error) {
+	client := &http.Client{Timeout: 10 * time.Second}
+
+	url := fmt.Sprintf("%s/rates/%s", albyInternalAPIURL, currency)
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Error creating request to Bitcoin rate endpoint")
+		return nil, err
+	}
+	setDefaultRequestHeaders(req)
+
+	res, err := client.Do(req)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to fetch Bitcoin rate from API")
+		return nil, err
+	}
+
+	var rate = &BitcoinRate{}
+	err = json.NewDecoder(res.Body).Decode(rate)
+	if err != nil {
+		logger.Logger.WithError(err).Error(`Failed to decode Bitcoin rate API response `)
+		return nil, err
+	}
+
+	return rate, nil
+}
+
 func (svc *albyOAuthService) RequestAutoChannel(ctx context.Context, lnClient lnclient.LNClient, isPublic bool) (*AutoChannelResponse, error) {
 	nodeInfo, err := lnClient.GetInfo(ctx)
 	if err != nil {
