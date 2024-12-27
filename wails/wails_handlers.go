@@ -92,6 +92,28 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		}
 	}
 
+	btcRateRegex := regexp.MustCompile(
+		`/api/alby/btc_rate\?currency=([^&]+)`,
+	)
+
+	btcRateMatch := btcRateRegex.FindStringSubmatch(route)
+
+	switch {
+	case len(btcRateMatch) > 1:
+		currency := btcRateMatch[1]
+		rate, err := app.svc.GetAlbyOAuthSvc().GetBitcoinRate(ctx, currency)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":    route,
+				"method":   method,
+				"body":     body,
+				"currency": currency,
+			}).WithError(err).Error("Failed to get Bitcoin rate")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: rate, Error: ""}
+	}
+
 	appTopupRegex := regexp.MustCompile(
 		`/api/apps/([0-9a-f]+)/topup`,
 	)
