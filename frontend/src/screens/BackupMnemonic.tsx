@@ -7,7 +7,6 @@ import {
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import Container from "src/components/Container";
 import ExternalLink from "src/components/ExternalLink";
 import MnemonicInputs from "src/components/MnemonicInputs";
 import SettingsHeader from "src/components/SettingsHeader";
@@ -92,34 +91,43 @@ export function BackupMnemonic() {
   return (
     <>
       <SettingsHeader
-        title="Backup Your Keys"
-        description="Make sure to your backup somewhere safe"
+        title="Backup"
+        description="Backup your wallet recovery phrase and your channels state."
       />
       {!decryptedMnemonic ? (
-        <Container>
-          <h1 className="text-xl font-medium">Please confirm it's you</h1>
-          <p className="text-center text-md text-muted-foreground mb-14">
-            Enter your unlock password to continue
-          </p>
+        <div>
+          <div>
+            <h3 className="text-lg font-medium">Wallet Keys Backup</h3>
+            <p className="text-sm text-muted-foreground">
+              Key recovery phrase is a group of 12 random words that are the
+              only way to recover access to your wallet on another machine or
+              when you lose your unlock password.
+            </p>
+          </div>
           <form
             onSubmit={onSubmitPassword}
-            className="w-full flex flex-col gap-3"
+            className="max-w-md flex flex-col gap-3 mt-8"
           >
-            <>
-              <div className="grid gap-1.5">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  type="password"
-                  name="password"
-                  onChange={(e) => setUnlockPassword(e.target.value)}
-                  value={unlockPassword}
-                  placeholder="Password"
-                />
-              </div>
-              <LoadingButton loading={loading}>Continue</LoadingButton>
-            </>
+            <div className="grid gap-1.5 mb-8">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                type="password"
+                name="password"
+                onChange={(e) => setUnlockPassword(e.target.value)}
+                value={unlockPassword}
+                placeholder="Password"
+              />
+              <p className="text-sm text-muted-foreground">
+                Enter your unlock password to view your recovery phrase.
+              </p>
+            </div>
+            <div className="flex justify-start">
+              <LoadingButton loading={loading} variant="secondary">
+                View Recovery Phrase
+              </LoadingButton>
+            </div>
           </form>
-        </Container>
+        </div>
       ) : (
         <form
           onSubmit={onSubmit}
