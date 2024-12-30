@@ -4,6 +4,8 @@ import (
 	"context"
 	"crypto/sha256"
 	"database/sql"
+	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
@@ -19,9 +21,6 @@ import (
 	"github.com/tyler-smith/go-bip32"
 
 	// "github.com/getAlby/hub/ldk_node"
-
-	"encoding/hex"
-	"encoding/json"
 
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
@@ -57,7 +56,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		return nil, errors.New("one or more required LDK configuration are missing")
 	}
 
-	//create dir if not exists
+	// create dir if not exists
 	newpath := filepath.Join(workDir)
 	err = os.MkdirAll(newpath, os.ModePerm)
 	if err != nil {
@@ -492,9 +491,9 @@ func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string, amoun
 		ls.eventPublisher.Publish(&events.Event{
 			Event: "nwc_outgoing_liquidity_required",
 			Properties: map[string]interface{}{
-				//"amount":         amount / 1000,
-				//"max_receivable": maxReceivable,
-				//"num_channels":   len(gs.node.ListChannels()),
+				// "amount":         amount / 1000,
+				// "max_receivable": maxReceivable,
+				// "num_channels":   len(gs.node.ListChannels()),
 				"node_type": config.LDKBackendType,
 			},
 		})
@@ -678,9 +677,9 @@ func (ls *LDKService) MakeInvoice(ctx context.Context, amount int64, description
 		ls.eventPublisher.Publish(&events.Event{
 			Event: "nwc_incoming_liquidity_required",
 			Properties: map[string]interface{}{
-				//"amount":         amount / 1000,
-				//"max_receivable": maxReceivable,
-				//"num_channels":   len(gs.node.ListChannels()),
+				// "amount":         amount / 1000,
+				// "max_receivable": maxReceivable,
+				// "num_channels":   len(gs.node.ListChannels()),
 				"node_type": config.LDKBackendType,
 			},
 		})
@@ -901,8 +900,8 @@ func (ls *LDKService) GetNodeConnectionInfo(ctx context.Context) (nodeConnection
 
 	return &lnclient.NodeConnectionInfo{
 		Pubkey: ls.node.NodeId(),
-		//Address: parts[0],
-		//Port:    port,
+		// Address: parts[0],
+		// Port:    port,
 	}, nil
 }
 
@@ -1055,15 +1054,22 @@ func (ls *LDKService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainB
 
 	internalLightningBalances := []internalLightningBalance{}
 
+	pendingBalancesDetails := make([]lnclient.PendingBalanceDetails, 0)
+
 	pendingBalancesFromChannelClosures := uint64(0)
 	// increase pending balance from any lightning balances for channels that are pending closure
 	// (they do not exist in our list of open channels)
 	for _, balance := range balances.LightningBalances {
-		increasePendingBalance := func(channelId string, amount uint64) {
+		increasePendingBalance := func(nodeId, channelId string, amount uint64) {
 			if !slices.ContainsFunc(channels, func(channel ldk_node.ChannelDetails) bool {
 				return channel.ChannelId == channelId
 			}) {
 				pendingBalancesFromChannelClosures += amount
+				pendingBalancesDetails = append(pendingBalancesDetails, lnclient.PendingBalanceDetails{
+					NodeId:    nodeId,
+					ChannelId: channelId,
+					Amount:    amount,
+				})
 			}
 		}
 
@@ -1074,17 +1080,17 @@ func (ls *LDKService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainB
 		})
 		switch balanceType := (balance).(type) {
 		case ldk_node.LightningBalanceClaimableOnChannelClose:
-			increasePendingBalance(balanceType.ChannelId, balanceType.AmountSatoshis)
+			increasePendingBalance(balanceType.CounterpartyNodeId, balanceType.ChannelId, balanceType.AmountSatoshis)
 		case ldk_node.LightningBalanceClaimableAwaitingConfirmations:
-			increasePendingBalance(balanceType.ChannelId, balanceType.AmountSatoshis)
+			increasePendingBalance(balanceType.CounterpartyNodeId, balanceType.ChannelId, balanceType.AmountSatoshis)
 		case ldk_node.LightningBalanceContentiousClaimable:
-			increasePendingBalance(balanceType.ChannelId, balanceType.AmountSatoshis)
+			increasePendingBalance(balanceType.CounterpartyNodeId, balanceType.ChannelId, balanceType.AmountSatoshis)
 		case ldk_node.LightningBalanceMaybeTimeoutClaimableHtlc:
-			increasePendingBalance(balanceType.ChannelId, balanceType.AmountSatoshis)
+			increasePendingBalance(balanceType.CounterpartyNodeId, balanceType.ChannelId, balanceType.AmountSatoshis)
 		case ldk_node.LightningBalanceMaybePreimageClaimableHtlc:
-			increasePendingBalance(balanceType.ChannelId, balanceType.AmountSatoshis)
+			increasePendingBalance(balanceType.CounterpartyNodeId, balanceType.ChannelId, balanceType.AmountSatoshis)
 		case ldk_node.LightningBalanceCounterpartyRevokedOutputClaimable:
-			increasePendingBalance(balanceType.ChannelId, balanceType.AmountSatoshis)
+			increasePendingBalance(balanceType.CounterpartyNodeId, balanceType.ChannelId, balanceType.AmountSatoshis)
 		}
 	}
 
