@@ -427,10 +427,25 @@ export default function Channels() {
             {new Intl.NumberFormat().format(
               balances.onchain.pendingBalancesFromChannelClosures
             )}{" "}
-            sats pending from one or more closed channels. Once spendable again
-            these will become available in your on-chain balance. Funds from
-            channels that were force closed may take up to 2 weeks to become
-            available.{" "}
+            sats pending from closed channels with
+            {balances.onchain.pendingBalancesDetails.map((details, index) => (
+              <div key={details.channelId} className="inline">
+                &nbsp;
+                <ExternalLink
+                  to={`https://amboss.space/node/${details.nodeId}`}
+                  className="underline"
+                >
+                  {nodes.find((node) => node.public_key === details.nodeId)
+                    ?.alias || "Unknown"}
+                </ExternalLink>{" "}
+                ({new Intl.NumberFormat().format(details.amount)} sats)
+                {index < balances.onchain.pendingBalancesDetails.length - 1 &&
+                  ","}
+              </div>
+            ))}
+            . Once spendable again these will become available in your on-chain
+            balance. Funds from channels that were force closed may take up to 2
+            weeks to become available.{" "}
             <ExternalLink
               to="https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub/faq-alby-hub/why-was-my-lightning-channel-closed-and-what-to-do-next"
               className="underline"

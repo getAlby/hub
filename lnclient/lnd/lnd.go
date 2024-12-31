@@ -836,8 +836,15 @@ func (svc *LNDService) GetOnchainBalance(ctx context.Context) (*lnclient.Onchain
 		return nil, err
 	}
 	pendingBalancesFromChannelClosures := uint64(0)
+	pendingBalancesDetails := []lnclient.PendingBalanceDetails{}
 	for _, closingChannel := range pendingChannels.WaitingCloseChannels {
 		pendingBalancesFromChannelClosures += uint64(closingChannel.LimboBalance)
+		if closingChannel.Channel != nil {
+			pendingBalancesDetails = append(pendingBalancesDetails, lnclient.PendingBalanceDetails{
+				NodeId: closingChannel.Channel.RemoteNodePub,
+				Amount: uint64(closingChannel.LimboBalance),
+			})
+		}
 	}
 	logger.Logger.WithFields(logrus.Fields{
 		"balances": balances,
@@ -847,6 +854,7 @@ func (svc *LNDService) GetOnchainBalance(ctx context.Context) (*lnclient.Onchain
 		Total:                              int64(balances.TotalBalance),
 		Reserved:                           int64(balances.ReservedBalanceAnchorChan),
 		PendingBalancesFromChannelClosures: pendingBalancesFromChannelClosures,
+		PendingBalancesDetails:             pendingBalancesDetails,
 		InternalBalances: map[string]interface{}{
 			"balances":         balances,
 			"pending_channels": pendingChannels,
