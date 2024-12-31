@@ -276,6 +276,11 @@ export type OnchainBalanceResponse = {
   total: number;
   reserved: number;
   pendingBalancesFromChannelClosures: number;
+  pendingBalancesDetails: {
+    channelId: string;
+    nodeId: string;
+    amount: number;
+  }[];
 };
 
 // from https://mempool.space/docs/api/rest#get-node-stats

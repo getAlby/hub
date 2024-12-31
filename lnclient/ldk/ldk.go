@@ -1111,6 +1111,7 @@ func (ls *LDKService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainB
 		Total:                              int64(balances.TotalOnchainBalanceSats - balances.TotalAnchorChannelsReserveSats),
 		Reserved:                           int64(balances.TotalAnchorChannelsReserveSats),
 		PendingBalancesFromChannelClosures: pendingBalancesFromChannelClosures,
+		PendingBalancesDetails:             pendingBalancesDetails,
 		InternalBalances: map[string]interface{}{
 			"internal_lightning_balances": internalLightningBalances,
 			"all_balances":                balances,
