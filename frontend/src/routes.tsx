@@ -37,7 +37,7 @@ import { OpenedFirstChannel } from "src/screens/channels/first/OpenedFirstChanne
 import { OpeningFirstChannel } from "src/screens/channels/first/OpeningFirstChannel";
 import { BuzzPay } from "src/screens/internal-apps/BuzzPay";
 import { UncleJim } from "src/screens/internal-apps/UncleJim";
-import { Zapplanner } from "src/screens/internal-apps/Zapplanner";
+import { ZapPlanner } from "src/screens/internal-apps/ZapPlanner";
 import BuyBitcoin from "src/screens/onchain/BuyBitcoin";
 import DepositBitcoin from "src/screens/onchain/DepositBitcoin";
 import ConnectPeer from "src/screens/peers/ConnectPeer";
@@ -238,7 +238,7 @@ const routes = [
           },
           {
             path: "zapplanner",
-            element: <Zapplanner />,
+            element: <ZapPlanner />,
           },
         ],
       },
