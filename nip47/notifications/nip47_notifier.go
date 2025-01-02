@@ -170,14 +170,13 @@ func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *db.App
 	event := &nostr.Event{
 		PubKey:    appWalletPubKey,
 		CreatedAt: nostr.Now(),
+		Kind:      models.NOTIFICATION_KIND,
 		Tags:      allTags,
 		Content:   msg,
 	}
 
 	if version == "0.0" {
 		event.Kind = models.LEGACY_NOTIFICATION_KIND
-	} else {
-		event.Kind = models.NOTIFICATION_KIND
 	}
 
 	err = event.Sign(appWalletPrivKey)
