@@ -274,6 +274,14 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                         : "Never"}
                     </TableCell>
                   </TableRow>
+                  {app.metadata && (
+                    <TableRow>
+                      <TableCell className="font-medium">Metadata</TableCell>
+                      <TableCell className="text-muted-foreground whitespace-pre-wrap">
+                        {JSON.stringify(app.metadata, null, 4)}
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </CardContent>
