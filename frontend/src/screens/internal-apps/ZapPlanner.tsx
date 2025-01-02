@@ -18,6 +18,7 @@ import { handleRequestError } from "src/utils/handleRequestError";
 import alby from "src/assets/suggested-apps/alby.png";
 import hrf from "src/assets/zapplanner/hrf.png";
 import opensats from "src/assets/zapplanner/opensats.png";
+import { Input } from "src/components/ui/input";
 
 type Recipient = {
   name: string;
