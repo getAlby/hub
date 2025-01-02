@@ -3,6 +3,7 @@ package notifications
 import (
 	"context"
 	"encoding/json"
+	"strings"
 
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/constants"
@@ -121,8 +122,12 @@ func (notifier *Nip47Notifier) notifySubscribers(ctx context.Context, notificati
 			return
 		}
 
-		go notifier.notifySubscriber(ctx, &app, notification, tags, appWalletPubKey, appWalletPrivKey, false)
-		go notifier.notifySubscriber(ctx, &app, notification, tags, appWalletPubKey, appWalletPrivKey, true)
+		if strings.Contains(models.SUPPORTED_VERSIONS, "0.0") {
+			go notifier.notifySubscriber(ctx, &app, notification, tags, appWalletPubKey, appWalletPrivKey, true)
+		}
+		if strings.Contains(models.SUPPORTED_VERSIONS, "1.0") {
+			go notifier.notifySubscriber(ctx, &app, notification, tags, appWalletPubKey, appWalletPrivKey, false)
+		}
 	}
 }
 
