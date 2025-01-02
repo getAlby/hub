@@ -24,7 +24,7 @@ function AppHeader({
             {description}
           </p>
         </div>
-        <div className="flex gap-3">{contentRight}</div>
+        <div className="flex gap-3 h-full">{contentRight}</div>
       </div>
     </>
   );

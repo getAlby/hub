@@ -2,6 +2,7 @@ package models
 
 import (
 	"encoding/json"
+	"strings"
 
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/transactions"
@@ -36,6 +37,7 @@ func ToNip47Transaction(transaction *transactions.Transaction) *Transaction {
 
 	return &Transaction{
 		Type:            transaction.Type,
+		State:           strings.ToLower(transaction.State),
 		Invoice:         transaction.PaymentRequest,
 		Description:     transaction.Description,
 		DescriptionHash: transaction.DescriptionHash,

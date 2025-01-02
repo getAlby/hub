@@ -16,6 +16,7 @@ export default function ConfirmPayment() {
   const { toast } = useToast();
 
   const invoice = state?.args?.paymentRequest as Invoice;
+  const amount = state?.args?.amount as number | undefined;
   const [isLoading, setLoading] = React.useState(false);
 
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -26,6 +27,9 @@ export default function ConfirmPayment() {
         `/api/payments/${invoice.paymentRequest}`,
         {
           method: "POST",
+          body: JSON.stringify({
+            amount: amount ? amount * 1000 : undefined,
+          }),
           headers: {
             "Content-Type": "application/json",
           },
@@ -71,7 +75,7 @@ export default function ConfirmPayment() {
         <div>
           <Label>Amount</Label>
           <p className="font-bold slashed-zero">
-            {new Intl.NumberFormat().format(invoice.satoshi)} sats
+            {new Intl.NumberFormat().format(amount || invoice.satoshi)} sats
           </p>
         </div>
         {invoice.description && (

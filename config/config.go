@@ -41,7 +41,7 @@ func (cfg *config) init(env *AppConfig) error {
 	cfg.Env = env
 
 	if cfg.Env.Relay != "" {
-		err := cfg.SetIgnore("Relay", cfg.Env.Relay, "")
+		err := cfg.SetUpdate("Relay", cfg.Env.Relay, "")
 		if err != nil {
 			return err
 		}

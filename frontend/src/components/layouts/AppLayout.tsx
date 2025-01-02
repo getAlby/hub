@@ -2,19 +2,19 @@ import { compare } from "compare-versions";
 import {
   Cloud,
   EllipsisVertical,
-  ExternalLinkIcon,
   Home,
   LayoutGrid,
+  LifeBuoy,
   Lightbulb,
   Lock,
   Megaphone,
   Menu,
-  MessageCircleQuestion,
   Plug2,
   PlugZapIcon,
   Settings,
   ShieldAlertIcon,
   ShieldCheckIcon,
+  User2,
   Wallet,
 } from "lucide-react";
 
@@ -50,6 +50,7 @@ import { useAlbyMe } from "src/hooks/useAlbyMe";
 
 import { useAlbyInfo } from "src/hooks/useAlbyInfo";
 import { useInfo } from "src/hooks/useInfo";
+import { useNotifyReceivedPayments } from "src/hooks/useNotifyReceivedPayments";
 import { useRemoveSuccessfulChannelOrder } from "src/hooks/useRemoveSuccessfulChannelOrder";
 import { deleteAuthToken } from "src/lib/auth";
 import { cn } from "src/lib/utils";
@@ -65,6 +66,7 @@ export default function AppLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   useRemoveSuccessfulChannelOrder();
+  useNotifyReceivedPayments();
 
   const _isHttpMode = isHttpMode();
 
@@ -104,13 +106,13 @@ export default function AppLayout() {
           )}
           {info?.albyAccountConnected && (
             <DropdownMenuItem>
-              <ExternalLink
-                to="https://getalby.com/settings"
+              <Link
+                to="/settings/alby-account"
                 className="w-full flex flex-row items-center gap-2"
               >
-                <ExternalLinkIcon className="w-4 h-4" />
+                <User2 className="w-4 h-4" />
                 <p>Alby Account Settings</p>
-              </ExternalLink>
+              </Link>
             </DropdownMenuItem>
           )}
         </DropdownMenuGroup>
@@ -168,14 +170,12 @@ export default function AppLayout() {
         <MenuItem
           to="/"
           onClick={(e) => {
-            openLink(
-              "https://feedback.getalby.com/-alby-hub-request-a-feature"
-            );
+            openLink("https://getalby.com/help");
             e.preventDefault();
           }}
         >
-          <Megaphone className="h-4 w-4" />
-          Feedback
+          <LifeBuoy className="h-4 w-4" />
+          Live Support
         </MenuItem>
         <MenuItem
           to="/"
@@ -187,17 +187,19 @@ export default function AppLayout() {
           }}
         >
           <Lightbulb className="h-4 w-4" />
-          Knowledge Base
+          Guides
         </MenuItem>
         <MenuItem
           to="/"
           onClick={(e) => {
-            openLink("https://getalby.com/help");
+            openLink(
+              "https://feedback.getalby.com/-alby-hub-request-a-feature"
+            );
             e.preventDefault();
           }}
         >
-          <MessageCircleQuestion className="h-4 w-4" />
-          Live Support
+          <Megaphone className="h-4 w-4" />
+          Feedback
         </MenuItem>
         {!albyMe?.hub.name && info?.albyAccountConnected && (
           <MenuItem

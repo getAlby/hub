@@ -48,21 +48,19 @@ func (svc *service) startNostr(ctx context.Context) error {
 		var relay *nostr.Relay
 		waitToReconnectSeconds := 0
 		var createAppEventListener events.EventSubscriber
+		var updateAppEventListener events.EventSubscriber
 		for i := 0; ; i++ {
-
 			// wait for a delay if any before retrying
-			if waitToReconnectSeconds > 0 {
-				contextCancelled := false
+			contextCancelled := false
 
-				select {
-				case <-ctx.Done(): //context cancelled
-					logger.Logger.Info("service context cancelled while waiting for retry")
-					contextCancelled = true
-				case <-time.After(time.Duration(waitToReconnectSeconds) * time.Second): //timeout
-				}
-				if contextCancelled {
-					break
-				}
+			select {
+			case <-ctx.Done(): // application service context cancelled
+				logger.Logger.Info("service context cancelled")
+				contextCancelled = true
+			case <-time.After(time.Duration(waitToReconnectSeconds) * time.Second): //timeout
+			}
+			if contextCancelled {
+				break
 			}
 
 			closeRelay(relay)
@@ -97,6 +95,13 @@ func (svc *service) startNostr(ctx context.Context) error {
 			createAppEventListener = &createAppConsumer{svc: svc, relay: relay}
 			svc.eventPublisher.RegisterSubscriber(createAppEventListener)
 
+			// register a subscriber for events of "nwc_app_updated" which handles re-publishing of nip47 event info
+			if updateAppEventListener != nil {
+				svc.eventPublisher.RemoveSubscriber(updateAppEventListener)
+			}
+			updateAppEventListener = &updateAppConsumer{svc: svc, relay: relay}
+			svc.eventPublisher.RegisterSubscriber(updateAppEventListener)
+
 			// start each app wallet subscription which have a child derived wallet key
 			svc.startAllExistingAppsWalletSubscriptions(ctx, relay)
 
@@ -123,7 +128,6 @@ func (svc *service) startNostr(ctx context.Context) error {
 					logger.Logger.WithError(err).Error("Got an error from the relay while listening to subscription.")
 					continue
 				}
-				break
 			}
 			select {
 			case <-ctx.Done():
@@ -135,10 +139,7 @@ func (svc *service) startNostr(ctx context.Context) error {
 				} else {
 					logger.Logger.Error("Relay context cancelled, but no connection error...trying to reconnect")
 				}
-				continue
 			}
-			//err being nil means that the context was canceled and we should exit the program.
-			break
 		}
 		closeRelay(relay)
 		logger.Logger.Info("Relay subroutine ended")
@@ -269,6 +270,7 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 	logger.Logger.Infof("Launching LN Backend: %s", lnBackend)
 	var lnClient lnclient.LNClient
 	var err error
+	vssEnabled := false
 	switch lnBackend {
 	case config.LNDBackendType:
 		LNDAddress, _ := svc.cfg.Get("LNDAddress", encryptionKey)
@@ -284,8 +286,9 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 			logger.Logger.WithError(err).Error("Failed to request VSS token")
 			return err
 		}
+		vssEnabled = vssToken != ""
 
-		lnClient, err = ldk.NewLDKService(ctx, svc.cfg, svc.eventPublisher, mnemonic, ldkWorkdir, svc.cfg.GetEnv().LDKNetwork, nil, false, vssToken)
+		lnClient, err = ldk.NewLDKService(ctx, svc.cfg, svc.eventPublisher, mnemonic, ldkWorkdir, svc.cfg.GetEnv().LDKNetwork, vssToken)
 	case config.GreenlightBackendType:
 		Mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
 		GreenlightInviteCode, _ := svc.cfg.Get("GreenlightInviteCode", encryptionKey)
@@ -342,7 +345,8 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 	svc.eventPublisher.Publish(&events.Event{
 		Event: "nwc_node_started",
 		Properties: map[string]interface{}{
-			"node_type": lnBackend,
+			"node_type":   lnBackend,
+			"vss_enabled": vssEnabled,
 		},
 	})
 

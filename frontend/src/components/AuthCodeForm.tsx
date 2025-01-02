@@ -8,6 +8,7 @@ import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
+import { UnlinkAlbyAccount } from "src/components/UnlinkAlbyAccount";
 
 import { useInfo } from "src/hooks/useInfo";
 import { handleRequestError } from "src/utils/handleRequestError";
@@ -23,7 +24,7 @@ function AuthCodeForm({ url }: AuthCodeFormProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const { mutate: refetchInfo } = useInfo();
+  const { data: info, mutate: refetchInfo } = useInfo();
 
   const [hasRequestedCode, setRequestedCode] = React.useState(false);
   const [isLoading, setLoading] = React.useState(false);
@@ -102,6 +103,16 @@ function AuthCodeForm({ url }: AuthCodeFormProps) {
                 </Button>
               </div>
             </>
+          )}
+          {info?.albyUserIdentifier && (
+            <div className="flex flex-col justify-center items-center mt-15 gap-5">
+              <p className="text-muted-foreground">or</p>
+              <UnlinkAlbyAccount>
+                <Button variant="outline" size="sm">
+                  Disconnect Alby Account
+                </Button>
+              </UnlinkAlbyAccount>
+            </div>
           )}
         </div>
       </form>

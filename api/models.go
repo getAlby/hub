@@ -36,7 +36,7 @@ type API interface {
 	RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, sendAll bool) (*RedeemOnchainFundsResponse, error)
 	GetBalances(ctx context.Context) (*BalancesResponse, error)
 	ListTransactions(ctx context.Context, appId *uint, limit uint64, offset uint64) (*ListTransactionsResponse, error)
-	SendPayment(ctx context.Context, invoice string) (*SendPaymentResponse, error)
+	SendPayment(ctx context.Context, invoice string, amountMsat *uint64) (*SendPaymentResponse, error)
 	CreateInvoice(ctx context.Context, amount uint64, description string) (*MakeInvoiceResponse, error)
 	LookupInvoice(ctx context.Context, paymentHash string) (*LookupInvoiceResponse, error)
 	RequestMempoolApi(endpoint string) (interface{}, error)
@@ -53,6 +53,7 @@ type API interface {
 	RequestLSPOrder(ctx context.Context, request *LSPOrderRequest) (*LSPOrderResponse, error)
 	CreateBackup(unlockPassword string, w io.Writer) error
 	RestoreBackup(unlockPassword string, r io.Reader) error
+	MigrateNodeStorage(ctx context.Context, to string) error
 	GetWalletCapabilities(ctx context.Context) (*WalletCapabilitiesResponse, error)
 }
 
@@ -170,6 +171,8 @@ type InfoResponse struct {
 	Version              string    `json:"version"`
 	Network              string    `json:"network"`
 	EnableAdvancedSetup  bool      `json:"enableAdvancedSetup"`
+	LdkVssEnabled        bool      `json:"ldkVssEnabled"`
+	VssSupported         bool      `json:"vssSupported"`
 	StartupError         string    `json:"startupError"`
 	StartupErrorTime     time.Time `json:"startupErrorTime"`
 }
@@ -288,6 +291,10 @@ type SignMessageResponse struct {
 	Signature string `json:"signature"`
 }
 
+type PayInvoiceRequest struct {
+	Amount *uint64 `json:"amount"`
+}
+
 type MakeInvoiceRequest struct {
 	Amount      uint64 `json:"amount"`
 	Description string `json:"description"`
@@ -346,4 +353,8 @@ type Channel struct {
 	Error                                    *string     `json:"error"`
 	Status                                   string      `json:"status"`
 	IsOutbound                               bool        `json:"isOutbound"`
+}
+
+type MigrateNodeStorageRequest struct {
+	To string `json:"to"`
 }

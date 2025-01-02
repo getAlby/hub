@@ -8,10 +8,12 @@ import { App, BudgetRenewalType } from "src/types";
 
 type AppCardConnectionInfoProps = {
   connection: App;
+  budgetRemainingText?: string | React.ReactNode;
 };
 
 export function AppCardConnectionInfo({
   connection,
+  budgetRemainingText = "Left in budget",
 }: AppCardConnectionInfoProps) {
   function getBudgetRenewalLabel(renewalType: BudgetRenewalType): string {
     switch (renewalType) {
@@ -63,7 +65,7 @@ export function AppCardConnectionInfo({
           <div className="flex flex-row justify-between">
             <div className="mb-2">
               <p className="text-xs text-secondary-foreground font-medium">
-                Left in budget
+                {budgetRemainingText}
               </p>
               <p className="text-xl font-medium">
                 {new Intl.NumberFormat().format(

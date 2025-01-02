@@ -68,6 +68,7 @@ import ReceiveInvoice from "src/screens/wallet/receive/ReceiveInvoice";
 import ConfirmPayment from "src/screens/wallet/send/ConfirmPayment";
 import LnurlPay from "src/screens/wallet/send/LnurlPay";
 import PaymentSuccess from "src/screens/wallet/send/PaymentSuccess";
+import ZeroAmount from "src/screens/wallet/send/ZeroAmount";
 
 const routes = [
   {
@@ -129,6 +130,10 @@ const routes = [
                 element: <LnurlPay />,
               },
               {
+                path: "0-amount",
+                element: <ZeroAmount />,
+              },
+              {
                 path: "confirm-payment",
                 element: <ConfirmPayment />,
               },
@@ -146,7 +151,7 @@ const routes = [
           {
             path: "withdraw",
             element: <WithdrawOnchainFunds />,
-            handle: { crumb: () => "Withdraw Savings Balance" },
+            handle: { crumb: () => "Withdraw On-Chain Balance" },
           },
         ],
       },
@@ -295,12 +300,12 @@ const routes = [
           {
             path: "outgoing",
             element: <IncreaseOutgoingCapacity />,
-            handle: { crumb: () => "Increase Spending Balance" },
+            handle: { crumb: () => "Open Channel with On-Chain" },
           },
           {
             path: "incoming",
             element: <IncreaseIncomingCapacity />,
-            handle: { crumb: () => "Increase Receiving Capacity" },
+            handle: { crumb: () => "Open Channel with Lightning" },
           },
           {
             path: "order",

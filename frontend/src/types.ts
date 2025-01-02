@@ -141,6 +141,8 @@ export interface InfoResponse {
   setupCompleted: boolean;
   oauthRedirect: boolean;
   albyAccountConnected: boolean;
+  ldkVssEnabled: boolean;
+  vssSupported: boolean;
   running: boolean;
   albyAuthUrl: string;
   nextBackupReminder: string;
@@ -274,6 +276,11 @@ export type OnchainBalanceResponse = {
   total: number;
   reserved: number;
   pendingBalancesFromChannelClosures: number;
+  pendingBalancesDetails: {
+    channelId: string;
+    nodeId: string;
+    amount: number;
+  }[];
 };
 
 // from https://mempool.space/docs/api/rest#get-node-stats
@@ -343,6 +350,9 @@ export type AlbyMe = {
   hub: {
     name?: string;
   };
+  subscription: {
+    buzz: boolean;
+  };
 };
 
 export type AlbyBalance = {
@@ -404,7 +414,18 @@ export type Transaction = {
   feesPaid: number;
   createdAt: string;
   settledAt: string | undefined;
-  metadata?: Record<string, unknown>;
+  metadata?: {
+    comment?: string; // LUD-12
+    payer_data?: {
+      email?: string;
+      name?: string;
+      pubkey?: string;
+    }; // LUD-18
+    nostr?: {
+      pubkey: string;
+      tags: string[][];
+    }; // NIP-57
+  } & Record<string, unknown>;
   boostagram?: Boostagram;
 };
 

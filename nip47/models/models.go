@@ -29,6 +29,7 @@ const (
 
 type Transaction struct {
 	Type            string      `json:"type"`
+	State           string      `json:"state"`
 	Invoice         string      `json:"invoice"`
 	Description     string      `json:"description"`
 	DescriptionHash string      `json:"description_hash"`

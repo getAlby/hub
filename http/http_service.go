@@ -129,6 +129,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedGroup.GET("/api/node/connection-info", httpSvc.nodeConnectionInfoHandler)
 	restrictedGroup.GET("/api/node/status", httpSvc.nodeStatusHandler)
 	restrictedGroup.GET("/api/node/network-graph", httpSvc.nodeNetworkGraphHandler)
+	restrictedGroup.POST("/api/node/migrate-storage", httpSvc.migrateNodeStorageHandler)
 	restrictedGroup.GET("/api/peers", httpSvc.listPeers)
 	restrictedGroup.POST("/api/peers", httpSvc.connectPeerHandler)
 	restrictedGroup.DELETE("/api/peers/:peerId", httpSvc.disconnectPeerHandler)
@@ -421,6 +422,26 @@ func (httpSvc *HttpService) nodeNetworkGraphHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, info)
 }
 
+func (httpSvc *HttpService) migrateNodeStorageHandler(c echo.Context) error {
+	ctx := c.Request().Context()
+	var migrateNodeStorageRequest api.MigrateNodeStorageRequest
+	if err := c.Bind(&migrateNodeStorageRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	err := httpSvc.api.MigrateNodeStorage(ctx, migrateNodeStorageRequest.To)
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
+
 func (httpSvc *HttpService) balancesHandler(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -438,7 +459,14 @@ func (httpSvc *HttpService) balancesHandler(c echo.Context) error {
 func (httpSvc *HttpService) sendPaymentHandler(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	paymentResponse, err := httpSvc.api.SendPayment(ctx, c.Param("invoice"))
+	var payInvoiceRequest api.PayInvoiceRequest
+	if err := c.Bind(&payInvoiceRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	paymentResponse, err := httpSvc.api.SendPayment(ctx, c.Param("invoice"), payInvoiceRequest.Amount)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
