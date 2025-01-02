@@ -6,8 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"slices"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/getAlby/hub/constants"
@@ -432,38 +430,4 @@ func (svc *nip47Service) publishResponseEvent(ctx context.Context, relay nostrmo
 	}
 
 	return nil
-}
-
-func (svc *nip47Service) isVersionSupported(version string) (bool, error) {
-	versionParts := strings.Split(version, ".")
-	if len(versionParts) != 2 {
-		return false, fmt.Errorf("invalid version format: %s", version)
-	}
-
-	major, err := strconv.Atoi(versionParts[0])
-	if err != nil {
-		return false, fmt.Errorf("invalid major version: %s", versionParts[0])
-	}
-	minor, err := strconv.Atoi(versionParts[1])
-	if err != nil {
-		return false, fmt.Errorf("invalid minor version: %s", versionParts[1])
-	}
-
-	for _, supported := range strings.Split(models.SUPPORTED_VERSIONS, " ") {
-		supportedParts := strings.Split(supported, ".")
-		if len(supportedParts) != 2 {
-			continue
-		}
-
-		supportedMajor, _ := strconv.Atoi(supportedParts[0])
-		supportedMinor, _ := strconv.Atoi(supportedParts[1])
-
-		if major == supportedMajor {
-			if minor <= supportedMinor {
-				return true, nil
-			}
-			return false, fmt.Errorf("invalid version: %s", version)
-		}
-	}
-	return false, fmt.Errorf("invalid version: %s", version)
 }
