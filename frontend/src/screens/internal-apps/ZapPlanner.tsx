@@ -70,19 +70,19 @@ export function ZapPlanner() {
 
   const [open, setOpen] = React.useState(false);
   const [isSubmitting, setSubmitting] = React.useState(false);
-  const [customName, setCustomName] = React.useState("");
-  const [customLightningAddress, setCustomLightningAddress] =
-    React.useState("");
+  const [name, setName] = React.useState("");
+  const [lightningAddress, setLightningAddress] = React.useState("");
+  const [amount, setAmount] = React.useState(5000);
+  const [comment, setComment] = React.useState("");
 
   const handleSubmit = async () => {
     setSubmitting(true);
     try {
-      if (apps?.some((existingApp) => existingApp.name === customName)) {
+      if (apps?.some((existingApp) => existingApp.name === name)) {
         throw new Error("A connection with the same name already exists.");
       }
 
-      const amountSats = 5000;
-      const maxAmount = Math.floor(amountSats * 1.01) + 10; // with fee reserve
+      const maxAmount = Math.floor(amount * 1.01) + 10; // with fee reserve
       const isolated = false;
 
       const createAppRequest: CreateAppRequest = {
@@ -93,7 +93,7 @@ export function ZapPlanner() {
         isolated,
         metadata: {
           app_store_app_id: "zapplanner",
-          recipient_lightning_address: customLightningAddress,
+          recipient_lightning_address: lightningAddress,
         },
       };
 
@@ -108,8 +108,8 @@ export function ZapPlanner() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            recipientLightningAddress: customLightningAddress,
-            amount: amountSats,
+            recipientLightningAddress: lightningAddress,
+            amount: amount,
             message: "ZapPlanner payment from Alby Hub", // TODO: allow customization
             payerData: JSON.stringify({}),
             nostrWalletConnectUrl: createAppResponse.pairingUri,
@@ -160,6 +160,7 @@ export function ZapPlanner() {
       handleRequestError(toast, "Failed to create app", error);
     } finally {
       setSubmitting(false);
+      setOpen(false);
     }
   };
 
@@ -202,7 +203,8 @@ export function ZapPlanner() {
                     </Label>
                     <Input
                       id="name"
-                      value={customName}
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
                       className="col-span-3"
                     />
                   </div>
@@ -212,21 +214,33 @@ export function ZapPlanner() {
                     </Label>
                     <Input
                       id="receiver"
-                      value={customLightningAddress}
+                      value={lightningAddress}
+                      onChange={(e) => setLightningAddress(e.target.value)}
                       className="col-span-3"
                     />
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="amount" className="text-right">
-                      Amount
+                      Amount / month (sats)
                     </Label>
-                    <Input id="amount" value={5000} className="col-span-3" />
+                    <Input
+                      id="amount"
+                      value={amount}
+                      onChange={(e) => setAmount(parseInt(e.target.value))}
+                      className="col-span-3"
+                    />
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="comment" className="text-right">
                       Comment
                     </Label>
-                    <Input id="comment" value="" className="col-span-3" />
+                    <Input
+                      id="comment"
+                      value={comment}
+                      onChange={(e) => setComment(e.target.value)}
+                      placeholder="Optional comment"
+                      className="col-span-3"
+                    />
                   </div>
                 </div>
                 <DialogFooter>
@@ -255,8 +269,8 @@ export function ZapPlanner() {
                   <LoadingButton
                     size="sm"
                     onClick={() => {
-                      setCustomName(recipient.name);
-                      setCustomLightningAddress(recipient.lightningAddress);
+                      setName(recipient.name);
+                      setLightningAddress(recipient.lightningAddress);
                       setOpen(true);
                     }}
                   >
