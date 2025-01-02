@@ -15,9 +15,11 @@ import { createApp } from "src/requests/createApp";
 import { CreateAppRequest, UpdateAppRequest } from "src/types";
 import { handleRequestError } from "src/utils/handleRequestError";
 
+import { ExternalLinkIcon } from "lucide-react";
 import alby from "src/assets/suggested-apps/alby.png";
 import hrf from "src/assets/zapplanner/hrf.png";
 import opensats from "src/assets/zapplanner/opensats.png";
+import { ExternalLinkButton } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
 import { request } from "src/utils/request";
 
@@ -221,7 +223,20 @@ export function ZapPlanner() {
           <h2 className="font-semibold text-xl">Recurring Payments</h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch app-list">
             {zapplannerApps.map((app, index) => (
-              <AppCard key={index} app={app} />
+              <AppCard
+                key={index}
+                app={app}
+                actions={
+                  app.metadata?.zapplanner_subscription_id ? (
+                    <ExternalLinkButton
+                      to={`https://zapplanner.albylabs.com/subscriptions/${app.metadata.zapplanner_subscription_id}`}
+                      size="sm"
+                    >
+                      View <ExternalLinkIcon className="w-4 h-4 ml-2" />
+                    </ExternalLinkButton>
+                  ) : undefined
+                }
+              />
             ))}
           </div>
         </>
