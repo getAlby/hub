@@ -13,9 +13,9 @@ var _202407262257_remove_invalid_scopes = &gormigrate.Migration{
 	Migrate: func(tx *gorm.DB) error {
 
 		if err := tx.Exec(`
-delete from app_permissions where scope = "pay_keysend";
-delete from app_permissions where scope = "multi_pay_keysend";
-delete from app_permissions where scope = "multi_pay_invoice";
+delete from app_permissions where scope = 'pay_keysend';
+delete from app_permissions where scope = 'multi_pay_keysend';
+delete from app_permissions where scope = 'multi_pay_invoice';
 `).Error; err != nil {
 			return err
 		}

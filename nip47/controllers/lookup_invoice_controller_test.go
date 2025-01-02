@@ -28,9 +28,9 @@ var nip47LookupInvoiceJson = `
 
 func TestHandleLookupInvoiceEvent(t *testing.T) {
 	ctx := context.TODO()
-	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	nip47Request := &models.Request{}
 	err = json.Unmarshal([]byte(nip47LookupInvoiceJson), nip47Request)
@@ -45,7 +45,7 @@ func TestHandleLookupInvoiceEvent(t *testing.T) {
 	err = svc.DB.Create(&dbRequestEvent).Error
 	assert.NoError(t, err)
 
-	settledAt := time.Unix(*tests.MockLNClientTransaction.SettledAt, 0)
+	settledAt := time.Unix(*tests.MockLNClientTransaction.SettledAt, 0).UTC()
 	err = svc.DB.Create(&db.Transaction{
 		Type:            tests.MockLNClientTransaction.Type,
 		PaymentRequest:  tests.MockLNClientTransaction.Invoice,
