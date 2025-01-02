@@ -12,13 +12,14 @@ import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 import { useApps } from "src/hooks/useApps";
 import { createApp } from "src/requests/createApp";
-import { CreateAppRequest } from "src/types";
+import { CreateAppRequest, UpdateAppRequest } from "src/types";
 import { handleRequestError } from "src/utils/handleRequestError";
 
 import alby from "src/assets/suggested-apps/alby.png";
 import hrf from "src/assets/zapplanner/hrf.png";
 import opensats from "src/assets/zapplanner/opensats.png";
 import { Input } from "src/components/ui/input";
+import { request } from "src/utils/request";
 
 type Recipient = {
   name: string;
@@ -68,21 +69,15 @@ export function ZapPlanner() {
       }
 
       const amountSats = 5000;
+      const maxAmount = Math.floor(amountSats * 1.01) + 10; // with fee reserve
+      const isolated = false;
 
       const createAppRequest: CreateAppRequest = {
         name: `ZapPlanner - ${name}`,
-        scopes: [
-          "get_balance",
-          "get_info",
-          "list_transactions",
-          "lookup_invoice",
-          "make_invoice",
-          "notifications",
-          "pay_invoice",
-        ],
+        scopes: ["pay_invoice"],
         budgetRenewal: "monthly",
-        maxAmount: Math.floor(amountSats * 1.01) + 10 /* with fee reserve */,
-        isolated: false,
+        maxAmount,
+        isolated,
         metadata: {
           app_store_app_id: "zapplanner",
           recipient_lightning_address: lightningAddress,
@@ -90,18 +85,62 @@ export function ZapPlanner() {
       };
 
       const createAppResponse = await createApp(createAppRequest);
-      /*toast({
-        title: "Created subscription",
-        description: "The first payment is scheduled for 1st of October.",
-      });*/
-      const comment = encodeURIComponent("ZapPlanner payment from Alby Hub"); // TODO: allow customization
-      const payerData = ""; //encodeURIComponent(JSON.stringify({}));
-      // TODO: consider fiat conversion
-      // TODO: consider using the ZapPlanner API to make the connection, then the subscription ID can be saved in the app metadata
-      window.open(
-        `https://zapplanner.albylabs.com/confirm?amount=${amountSats}&recipient=${lightningAddress}&timeframe=31%20days&comment=${comment}&payerdata=${payerData}&nwcUrl=${encodeURIComponent(createAppResponse.pairingUri)}`,
-        "_blank"
+
+      // TODO: proxy through hub backend and remove CSRF exceptions for zapplanner.albylabs.com
+      const createSubscriptionResponse = await fetch(
+        "https://zapplanner.albylabs.com/api/subscriptions",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            recipientLightningAddress: lightningAddress,
+            amount: amountSats,
+            message: "ZapPlanner payment from Alby Hub", // TODO: allow customization
+            payerData: JSON.stringify({}),
+            nostrWalletConnectUrl: createAppResponse.pairingUri,
+            sleepDuration: "31 days",
+          }),
+        }
       );
+      if (!createSubscriptionResponse.ok) {
+        throw new Error(
+          "Failed to create subscription: " + createSubscriptionResponse.status
+        );
+      }
+
+      const { subscriptionId } = await createSubscriptionResponse.json();
+      if (!subscriptionId) {
+        throw new Error("no subscription ID in create subscription response");
+      }
+
+      // add the ZapPlanner subscription ID to the app metadata
+      const updateAppRequest: UpdateAppRequest = {
+        name: createAppRequest.name,
+        scopes: createAppRequest.scopes,
+        budgetRenewal: createAppRequest.budgetRenewal!,
+        expiresAt: createAppRequest.expiresAt,
+        maxAmount,
+        isolated,
+        metadata: {
+          ...createAppRequest.metadata,
+          zapplanner_subscription_id: subscriptionId,
+        },
+      };
+
+      await request(`/api/apps/${createAppResponse.pairingPublicKey}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updateAppRequest),
+      });
+
+      toast({
+        title: "Created subscription",
+        description: "The first payment is scheduled immediately.",
+      });
 
       reloadApps();
     } catch (error) {
