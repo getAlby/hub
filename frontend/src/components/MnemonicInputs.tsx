@@ -1,8 +1,8 @@
 import { wordlist } from "@scure/bip39/wordlists/english";
-import { useState } from "react";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
@@ -12,6 +12,7 @@ type MnemonicInputsProps = {
   mnemonic?: string;
   setMnemonic?(mnemonic: string): void;
   readOnly?: boolean;
+  description?: string;
 };
 
 export default function MnemonicInputs({
@@ -19,11 +20,8 @@ export default function MnemonicInputs({
   setMnemonic,
   readOnly,
   children,
+  description,
 }: React.PropsWithChildren<MnemonicInputsProps>) {
-  const [revealedIndex, setRevealedIndex] = useState<number | undefined>(
-    undefined
-  );
-
   const words = mnemonic?.split(" ") || [];
   while (words.length < 12) {
     words.push("");
@@ -37,32 +35,29 @@ export default function MnemonicInputs({
     <>
       <Card>
         <CardHeader>
-          <CardTitle>Recovery phrase to your wallet</CardTitle>
+          <CardTitle className="text-xl text-center">
+            Wallet Recovery Phrase
+          </CardTitle>
+          <CardDescription className="text-muted-foreground text-sm max-w-xs text-right mt-2">
+            {description}
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-5 justify-center backup sensitive">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5 justify-center backup sensitive">
             {words.map((word, i) => {
-              const isRevealed = revealedIndex === i;
               const inputId = `mnemonic-word-${i}`;
               return (
                 <div key={i} className="flex justify-center items-center gap-2">
-                  <span className="text-muted-foreground text-right">
-                    {i + 1}.
-                  </span>
+                  <span className="text-foreground text-right">{i + 1}.</span>
                   <div className="relative">
                     <Input
                       id={inputId}
                       autoFocus={!readOnly && i === 0}
-                      onFocus={() => setRevealedIndex(i)}
-                      onBlur={() => setRevealedIndex(undefined)}
                       readOnly={readOnly}
-                      className="w-32 text-center"
+                      className="w-32 text-center bg-muted border-zinc-200 text-muted-foreground"
                       list={readOnly ? undefined : "wordlist"}
-                      value={isRevealed ? word : word.length ? "•••••" : ""}
+                      value={word}
                       onChange={(e) => {
-                        if (revealedIndex !== i) {
-                          return;
-                        }
                         words[i] = e.target.value;
                         setMnemonic?.(
                           words

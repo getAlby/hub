@@ -1,7 +1,8 @@
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import React from "react";
 
-import Container from "src/components/Container";
 import SettingsHeader from "src/components/SettingsHeader";
+import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
@@ -57,12 +58,21 @@ export function ChangeUnlockPassword() {
   return (
     <>
       <SettingsHeader
-        title="Change Unlock Password"
-        description="Enter your current and new unlock password. Your node
-          will be stopped as part of this process."
+        title="Unlock Password"
+        description="Change unlock password to your Hub. Your node will restart after password change."
       />
-      <Container>
-        <form onSubmit={onSubmit} className="w-full flex flex-col gap-3">
+      <div>
+        <Alert variant={"destructive"} className="mb-8">
+          <AlertTitle>
+            <div className="flex gap-2">
+              <ExclamationTriangleIcon /> Important!
+            </div>
+          </AlertTitle>
+          <AlertDescription>
+            Password can't be reset or recovered. Make sure to back it up!
+          </AlertDescription>
+        </Alert>
+        <form onSubmit={onSubmit} className="max-w-md flex flex-col gap-8">
           <div className="grid gap-1.5">
             <Label htmlFor="current-password">Current Password</Label>
             <Input
@@ -96,9 +106,11 @@ export function ChangeUnlockPassword() {
               placeholder="Password"
             />
           </div>
-          <LoadingButton loading={loading}>Change Password</LoadingButton>
+          <div className="flex justify-start">
+            <LoadingButton loading={loading}>Change Password</LoadingButton>
+          </div>
         </form>
-      </Container>
+      </div>
     </>
   );
 }
