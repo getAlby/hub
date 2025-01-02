@@ -8,7 +8,6 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
-import { Input } from "src/components/ui/input";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 import { useApps } from "src/hooks/useApps";
@@ -16,15 +15,21 @@ import { createApp } from "src/requests/createApp";
 import { CreateAppRequest } from "src/types";
 import { handleRequestError } from "src/utils/handleRequestError";
 
+import alby from "src/assets/suggested-apps/alby.png";
+import hrf from "src/assets/zapplanner/hrf.png";
+import opensats from "src/assets/zapplanner/opensats.png";
+
 type Recipient = {
   name: string;
   description: string;
   lightningAddress: string;
+  logo?: string;
 };
 
 const recipients: Recipient[] = [
   {
     name: "Alby",
+    logo: alby,
     description:
       "Support the open source development of Alby Hub, Alby Go, Alby developer tools, NWC protocol development, and more.",
     lightningAddress: "hello@getalby.com",
@@ -34,12 +39,14 @@ const recipients: Recipient[] = [
     description:
       "We collaborate with transformative activists to develop innovative solutions that bring the world together in the fight against tyranny.",
     lightningAddress: "hrf@btcpay.hrf.org",
+    logo: hrf,
   },
   {
     name: "OpenSats",
     description:
       "Help us to provide sustainable funding for free and open-source contributors working on freedom tech and projects that help bitcoin flourish.",
     lightningAddress: "opensats@btcpay0.voltageapp.io",
+    logo: opensats,
   },
 ];
 
@@ -50,6 +57,7 @@ export function ZapPlanner() {
   const [customName, setCustomName] = React.useState("");
   const [customLightningAddress, setCustomLightningAddress] =
     React.useState("");
+
   const handleSubmit = async (name: string, lightningAddress: string) => {
     setSubmittingFor(lightningAddress);
 
@@ -111,27 +119,27 @@ export function ZapPlanner() {
         title="ZapPlanner"
         description="Schedule automatic recurring lightning payments"
       />
-      <h2 className="font-semibold text-xl">Inspiration</h2>
-      <p className="text-muted-foreground -mt-5">
-        Be the change you want to see in the world and do your part
-      </p>
       {/* TODO: add a dialog so a comment can be passed */}
       <div className="grid grid-cols-3 gap-3">
         {recipients.map((recipient) => (
           <Card key={recipient.lightningAddress}>
             <CardHeader className="h-32">
-              <CardTitle>{recipient.name}</CardTitle>
+              <div className="flex flex-row items-center gap-3">
+                <img src={recipient.logo} className="rounded-lg w-10 h-10" />
+                <CardTitle>{recipient.name}</CardTitle>
+              </div>
               <CardDescription>{recipient.description}</CardDescription>
             </CardHeader>
             <CardFooter className="flex justify-end">
               <LoadingButton
                 disabled={!!submittingFor}
+                size="sm"
                 loading={submittingFor === recipient.lightningAddress}
                 onClick={() => {
                   handleSubmit(recipient.name, recipient.lightningAddress);
                 }}
               >
-                Support with ~5$ / month
+                Support with 5000 sats / month
               </LoadingButton>
             </CardFooter>
           </Card>
@@ -162,7 +170,7 @@ export function ZapPlanner() {
                 handleSubmit(customName, customLightningAddress);
               }}
             >
-              Support with ~5$ / month
+              Support with 5000 sats / month
             </LoadingButton>
           </CardFooter>
         </Card>
