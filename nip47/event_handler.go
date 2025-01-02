@@ -15,13 +15,12 @@ import (
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
+	"github.com/getAlby/hub/nip47/cipher"
 	"github.com/getAlby/hub/nip47/controllers"
 	"github.com/getAlby/hub/nip47/models"
 	"github.com/getAlby/hub/nip47/permissions"
 	nostrmodels "github.com/getAlby/hub/nostr/models"
 	"github.com/nbd-wtf/go-nostr"
-	"github.com/nbd-wtf/go-nostr/nip04"
-	"github.com/nbd-wtf/go-nostr/nip44"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
@@ -96,21 +95,21 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 		}
 	}
 
-	var ss []byte
-	var ck [32]byte
-	isNip04Encrypted := strings.Contains(event.Content, "?iv=")
-	if isNip04Encrypted {
-		ss, err = nip04.ComputeSharedSecret(app.AppPubkey, appWalletPrivKey)
-	} else {
-		ck, err = nip44.GenerateConversationKey(app.AppPubkey, appWalletPrivKey)
+	version := "0.0"
+	vTag := event.Tags.GetFirst([]string{"v"})
+
+	if vTag != nil && vTag.Value() != "" {
+		version = vTag.Value()
 	}
 
+	nip47Cipher, err := cipher.NewNip47Cipher(version, app.AppPubkey, appWalletPrivKey)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"requestEventNostrId": event.ID,
 			"eventKind":           event.Kind,
-			"isNip04Encrypted":    isNip04Encrypted,
-		}).WithError(err).Error("Failed to compute shared secret or conversation key")
+			"appId":               app.ID,
+			"version":             version,
+		}).WithError(err).Error("Failed to initialize cipher")
 
 		requestEvent.State = db.REQUEST_EVENT_STATE_HANDLER_ERROR
 		err = svc.db.Save(&requestEvent).Error
@@ -135,7 +134,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 				Message: fmt.Sprintf("Failed to save app to nostr event: %s", err.Error()),
 			},
 		}
-		resp, err := svc.CreateResponse(event, nip47Response, nostr.Tags{}, ss, ck, appWalletPrivKey)
+		resp, err := svc.CreateResponse(event, nip47Response, nostr.Tags{}, nip47Cipher, appWalletPrivKey)
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"requestEventNostrId": event.ID,
@@ -155,23 +154,13 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 		return
 	}
 
-	var payload string
-	if isNip04Encrypted {
-		payload, err = nip04.Decrypt(event.Content, ss)
-	} else {
-		payload, err = nip44.Decrypt(event.Content, ck)
-	}
-
+	payload, err := nip47Cipher.Decrypt(event.Content)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"requestEventNostrId": event.ID,
 			"eventKind":           event.Kind,
 			"appId":               app.ID,
 		}).WithError(err).Error("Failed to decrypt content")
-		logger.Logger.WithFields(logrus.Fields{
-			"requestEventNostrId": event.ID,
-			"eventKind":           event.Kind,
-		}).WithError(err).Error("Failed to decrypt request event")
 
 		requestEvent.State = db.REQUEST_EVENT_STATE_HANDLER_ERROR
 		err = svc.db.Save(&requestEvent).Error
@@ -209,7 +198,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 	// TODO: replace with a channel
 	// TODO: update all previous occurences of svc.publishResponseEvent to also use the channel
 	publishResponse := func(nip47Response *models.Response, tags nostr.Tags) {
-		resp, err := svc.CreateResponse(event, nip47Response, tags, ss, ck, appWalletPrivKey)
+		resp, err := svc.CreateResponse(event, nip47Response, tags, nip47Cipher, appWalletPrivKey)
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"requestEventNostrId": event.ID,
@@ -252,31 +241,6 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 		"method":              nip47Request.Method,
 		"params":              nip47Request.Params,
 	}).Debug("Handling NIP-47 request")
-
-	version := "0.0"
-	vTag := event.Tags.GetFirst([]string{"v"})
-
-	if vTag != nil && vTag.Value() != "" {
-		version = vTag.Value()
-	}
-
-	isVersionSupported, err := svc.isVersionSupported(version, isNip04Encrypted)
-	if !isVersionSupported {
-		logger.Logger.WithFields(logrus.Fields{
-			"request_event_id": requestEvent.ID,
-			"app_id":           app.ID,
-			"version":          version,
-		}).Error(err.Error())
-
-		publishResponse(&models.Response{
-			ResultType: nip47Request.Method,
-			Error: &models.Error{
-				Code:    constants.ERROR_UNSUPPORTED_VERSION,
-				Message: err.Error(),
-			},
-		}, nostr.Tags{})
-		return
-	}
 
 	if !slices.Contains(permissions.GetAlwaysGrantedMethods(), nip47Request.Method) {
 		scope, err := permissions.RequestMethodToScope(nip47Request.Method)
@@ -383,23 +347,15 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 	}
 }
 
-func (svc *nip47Service) CreateResponse(initialEvent *nostr.Event, content interface{}, tags nostr.Tags, ss []byte, ck [32]byte, appWalletPrivKey string) (result *nostr.Event, err error) {
+func (svc *nip47Service) CreateResponse(initialEvent *nostr.Event, content interface{}, tags nostr.Tags, cipher *cipher.Nip47Cipher, appWalletPrivKey string) (result *nostr.Event, err error) {
 	payloadBytes, err := json.Marshal(content)
 	if err != nil {
 		return nil, err
 	}
 
-	var msg string
-	if ss != nil {
-		msg, err = nip04.Encrypt(string(payloadBytes), ss)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		msg, err = nip44.Encrypt(string(payloadBytes), ck)
-		if err != nil {
-			return nil, err
-		}
+	msg, err := cipher.Encrypt(string(payloadBytes))
+	if err != nil {
+		return nil, err
 	}
 
 	allTags := nostr.Tags{[]string{"p", initialEvent.PubKey}, []string{"e", initialEvent.ID}}
@@ -478,7 +434,7 @@ func (svc *nip47Service) publishResponseEvent(ctx context.Context, relay nostrmo
 	return nil
 }
 
-func (svc *nip47Service) isVersionSupported(version string, isNip04Encrypted bool) (bool, error) {
+func (svc *nip47Service) isVersionSupported(version string) (bool, error) {
 	versionParts := strings.Split(version, ".")
 	if len(versionParts) != 2 {
 		return false, fmt.Errorf("invalid version format: %s", version)
@@ -504,9 +460,6 @@ func (svc *nip47Service) isVersionSupported(version string, isNip04Encrypted boo
 
 		if major == supportedMajor {
 			if minor <= supportedMinor {
-				if major > 0 && isNip04Encrypted {
-					return false, fmt.Errorf("used nip-04 encryption with version: %s", version)
-				}
 				return true, nil
 			}
 			return false, fmt.Errorf("invalid version: %s", version)

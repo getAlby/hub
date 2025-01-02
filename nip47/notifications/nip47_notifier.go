@@ -3,7 +3,6 @@ package notifications
 import (
 	"context"
 	"encoding/json"
-	"strings"
 
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/constants"
@@ -11,14 +10,13 @@ import (
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
+	"github.com/getAlby/hub/nip47/cipher"
 	"github.com/getAlby/hub/nip47/models"
 	"github.com/getAlby/hub/nip47/permissions"
 	nostrmodels "github.com/getAlby/hub/nostr/models"
 	"github.com/getAlby/hub/service/keys"
 	"github.com/getAlby/hub/transactions"
 	"github.com/nbd-wtf/go-nostr"
-	"github.com/nbd-wtf/go-nostr/nip04"
-	"github.com/nbd-wtf/go-nostr/nip44"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
@@ -122,19 +120,16 @@ func (notifier *Nip47Notifier) notifySubscribers(ctx context.Context, notificati
 			return
 		}
 
-		if strings.Contains(models.SUPPORTED_VERSIONS, "0.0") {
-			go notifier.notifySubscriber(ctx, &app, notification, tags, appWalletPubKey, appWalletPrivKey, true)
-		}
-		if strings.Contains(models.SUPPORTED_VERSIONS, "1.0") {
-			go notifier.notifySubscriber(ctx, &app, notification, tags, appWalletPubKey, appWalletPrivKey, false)
-		}
+		go notifier.notifySubscriber(ctx, &app, notification, tags, appWalletPubKey, appWalletPrivKey, "0.0")
+		go notifier.notifySubscriber(ctx, &app, notification, tags, appWalletPubKey, appWalletPrivKey, "1.0")
 	}
 }
 
-func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *db.App, notification *Notification, tags nostr.Tags, appWalletPubKey, appWalletPrivKey string, legacy bool) {
+func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *db.App, notification *Notification, tags nostr.Tags, appWalletPubKey, appWalletPrivKey string, version string) {
 	logger.Logger.WithFields(logrus.Fields{
 		"notification": notification,
 		"appId":        app.ID,
+		"version":      version,
 	}).Debug("Notifying subscriber")
 
 	var err error
@@ -144,45 +139,29 @@ func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *db.App
 		logger.Logger.WithFields(logrus.Fields{
 			"notification": notification,
 			"appId":        app.ID,
+			"version":      version,
 		}).WithError(err).Error("Failed to stringify notification")
 		return
 	}
 
-	var msg string
-	if legacy {
-		ss, err := nip04.ComputeSharedSecret(app.AppPubkey, appWalletPrivKey)
-		if err != nil {
-			logger.Logger.WithFields(logrus.Fields{
-				"notification": notification,
-				"appId":        app.ID,
-			}).WithError(err).Error("Failed to compute shared secret")
-			return
-		}
-		msg, err = nip04.Encrypt(string(payloadBytes), ss)
-		if err != nil {
-			logger.Logger.WithFields(logrus.Fields{
-				"notification": notification,
-				"appId":        app.ID,
-			}).WithError(err).Error("Failed to encrypt notification payload")
-			return
-		}
-	} else {
-		ck, err := nip44.GenerateConversationKey(app.AppPubkey, appWalletPrivKey)
-		if err != nil {
-			logger.Logger.WithFields(logrus.Fields{
-				"notification": notification,
-				"appId":        app.ID,
-			}).WithError(err).Error("Failed to compute conversation key")
-			return
-		}
-		msg, err = nip44.Encrypt(string(payloadBytes), ck)
-		if err != nil {
-			logger.Logger.WithFields(logrus.Fields{
-				"notification": notification,
-				"appId":        app.ID,
-			}).WithError(err).Error("Failed to encrypt notification payload")
-			return
-		}
+	nip47Cipher, err := cipher.NewNip47Cipher(version, app.AppPubkey, appWalletPrivKey)
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"notification": notification,
+			"appId":        app.ID,
+			"version":      version,
+		}).WithError(err).Error("Failed to initialize cipher")
+		return
+	}
+
+	msg, err := nip47Cipher.Encrypt(string(payloadBytes))
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"notification": notification,
+			"appId":        app.ID,
+			"version":      version,
+		}).WithError(err).Error("Failed to encrypt notification payload")
+		return
 	}
 
 	allTags := nostr.Tags{[]string{"p", app.AppPubkey}}
@@ -194,7 +173,8 @@ func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *db.App
 		Tags:      allTags,
 		Content:   msg,
 	}
-	if legacy {
+
+	if version == "0.0" {
 		event.Kind = models.LEGACY_NOTIFICATION_KIND
 	} else {
 		event.Kind = models.NOTIFICATION_KIND
@@ -205,7 +185,7 @@ func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *db.App
 		logger.Logger.WithFields(logrus.Fields{
 			"notification": notification,
 			"appId":        app.ID,
-			"isLegacy":     legacy,
+			"version":      version,
 		}).WithError(err).Error("Failed to sign event")
 		return
 	}
@@ -215,12 +195,12 @@ func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *db.App
 		logger.Logger.WithFields(logrus.Fields{
 			"notification": notification,
 			"appId":        app.ID,
-			"isLegacy":     legacy,
+			"version":      version,
 		}).WithError(err).Error("Failed to publish notification")
 		return
 	}
 	logger.Logger.WithFields(logrus.Fields{
-		"appId":    app.ID,
-		"isLegacy": legacy,
+		"appId":   app.ID,
+		"version": version,
 	}).Debug("Published notification event")
 }
