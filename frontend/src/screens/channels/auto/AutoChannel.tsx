@@ -1,4 +1,3 @@
-import { Payment } from "@getalby/bitcoin-connect-react";
 import { ChevronDown } from "lucide-react";
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -18,6 +17,8 @@ import { AutoChannelRequest, AutoChannelResponse } from "src/types";
 import { request } from "src/utils/request";
 
 import { MempoolAlert } from "src/components/MempoolAlert";
+import { PayLightningInvoice } from "src/components/PayLightningInvoice";
+import { ChannelPublicPrivateAlert } from "src/screens/channels/ChannelPublicPrivateAlert";
 
 export function AutoChannel() {
   const { data: info } = useInfo();
@@ -111,7 +112,7 @@ export function AutoChannel() {
             {new Intl.NumberFormat().format(channelSize)} sats of incoming
             liquidity.
           </p>
-          <Payment invoice={invoice} paymentMethods="external" />
+          <PayLightningInvoice invoice={invoice} />
 
           <Separator className="mt-8" />
           <p className="mt-8 text-sm mb-2 text-muted-foreground">
@@ -189,6 +190,9 @@ export function AutoChannel() {
                   <ChevronDown className="w-4 h-4 ml-1" />
                 </Button>
               </div>
+            )}
+            {channels?.some((channel) => channel.public !== !!isPublic) && (
+              <ChannelPublicPrivateAlert />
             )}
             <LoadingButton loading={isLoading} onClick={openChannel}>
               Open Channel

@@ -1,5 +1,6 @@
 import { Copy, Rocket, TriangleAlert } from "lucide-react";
 import React from "react";
+import SettingsHeader from "src/components/SettingsHeader";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button, ExternalLinkButton } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
@@ -56,6 +57,10 @@ export default function DeveloperSettings() {
 
   return (
     <>
+      <SettingsHeader
+        title="Developer"
+        description="Power your apps with Alby Hub"
+      />
       <Alert>
         <Rocket className="h-4 w-4" />
         <AlertTitle>Power your Apps with NWC</AlertTitle>

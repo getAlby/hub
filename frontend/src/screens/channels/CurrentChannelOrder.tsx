@@ -8,7 +8,6 @@ import {
   PayInvoiceResponse,
 } from "src/types";
 
-import { Payment, init } from "@getalby/bitcoin-connect-react";
 import { Copy, QrCode, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
@@ -46,8 +45,8 @@ import {
 import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
 
-import confetti from "canvas-confetti";
 import { ChannelWaitingForConfirmations } from "src/components/channels/ChannelWaitingForConfirmations";
+import { PayLightningInvoice } from "src/components/PayLightningInvoice";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { useChannels } from "src/hooks/useChannels";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
@@ -59,9 +58,6 @@ import { splitSocketAddress } from "src/lib/utils";
 import useChannelOrderStore from "src/state/ChannelOrderStore";
 import { LSPOrderRequest, LSPOrderResponse } from "src/types";
 import { request } from "src/utils/request";
-init({
-  showBalance: false,
-});
 let hasStartedOpenedChannel = false;
 
 export function CurrentChannelOrder() {
@@ -114,23 +110,6 @@ function ChannelOrderInternal({ order }: { order: NewChannelOrder }) {
 }
 
 function Success() {
-  React.useEffect(() => {
-    for (let i = 0; i < 10; i++) {
-      setTimeout(
-        () => {
-          confetti({
-            origin: {
-              x: Math.random(),
-              y: Math.random(),
-            },
-            colors: ["#000", "#333", "#666", "#999", "#BBB", "#FFF"],
-          });
-        },
-        Math.floor(Math.random() * 1000)
-      );
-    }
-  }, []);
-
   return (
     <div className="flex flex-col justify-center gap-5 p-5 max-w-md items-stretch">
       <TwoColumnLayoutHeader
@@ -487,7 +466,7 @@ function PayBitcoinChannelOrderWithSpendableFunds({
 
       const openChannelRequest: OpenChannelRequest = {
         pubkey,
-        amount: +order.amount,
+        amountSats: +order.amount,
         public: order.isPublic,
       };
       const openChannelResponse = await request<OpenChannelResponse>(
@@ -791,10 +770,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
               )}
 
               {(payExternally || !canPayInternally) && (
-                <Payment
-                  invoice={lspOrderResponse.invoice}
-                  paymentMethods="external"
-                />
+                <PayLightningInvoice invoice={lspOrderResponse.invoice} />
               )}
 
               <div className="flex-1 flex flex-col justify-end items-center gap-4">
@@ -804,7 +780,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                 </p>
                 <Link to="/channels/outgoing" className="w-full">
                   <Button className="w-full" variant="secondary">
-                    Increase spending balance
+                    Increase Spending Balance
                   </Button>
                 </Link>
                 <ExternalLink

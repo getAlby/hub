@@ -21,6 +21,7 @@ export type BackendType =
 export type Nip47RequestMethod =
   | "get_info"
   | "get_balance"
+  | "get_budget"
   | "make_invoice"
   | "pay_invoice"
   | "pay_keysend"
@@ -112,7 +113,7 @@ export interface App {
   id: number;
   name: string;
   description: string;
-  nostrPubkey: string;
+  appPubkey: string;
   createdAt: string;
   updatedAt: string;
   lastEventAt?: string;
@@ -140,6 +141,8 @@ export interface InfoResponse {
   setupCompleted: boolean;
   oauthRedirect: boolean;
   albyAccountConnected: boolean;
+  ldkVssEnabled: boolean;
+  vssSupported: boolean;
   running: boolean;
   albyAuthUrl: string;
   nextBackupReminder: string;
@@ -191,6 +194,7 @@ export type UpdateAppRequest = {
   expiresAt: string | undefined;
   scopes: Scope[];
   metadata?: AppMetadata;
+  isolated: boolean;
 };
 
 export type Channel = {
@@ -256,7 +260,7 @@ export type CreateInvoiceRequest = {
 
 export type OpenChannelRequest = {
   pubkey: string;
-  amount: number;
+  amountSats: number;
   public: boolean;
 };
 
@@ -272,6 +276,11 @@ export type OnchainBalanceResponse = {
   total: number;
   reserved: number;
   pendingBalancesFromChannelClosures: number;
+  pendingBalancesDetails: {
+    channelId: string;
+    nodeId: string;
+    amount: number;
+  }[];
 };
 
 // from https://mempool.space/docs/api/rest#get-node-stats
@@ -341,6 +350,9 @@ export type AlbyMe = {
   hub: {
     name?: string;
   };
+  subscription: {
+    buzz: boolean;
+  };
 };
 
 export type AlbyBalance = {
@@ -402,7 +414,18 @@ export type Transaction = {
   feesPaid: number;
   createdAt: string;
   settledAt: string | undefined;
-  metadata?: Record<string, unknown>;
+  metadata?: {
+    comment?: string; // LUD-12
+    payer_data?: {
+      email?: string;
+      name?: string;
+      pubkey?: string;
+    }; // LUD-18
+    nostr?: {
+      pubkey: string;
+      tags: string[][];
+    }; // NIP-57
+  } & Record<string, unknown>;
   boostagram?: Boostagram;
 };
 

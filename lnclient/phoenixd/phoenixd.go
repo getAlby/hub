@@ -398,7 +398,11 @@ func (svc *PhoenixService) LookupInvoice(ctx context.Context, paymentHash string
 	return transaction, nil
 }
 
-func (svc *PhoenixService) SendPaymentSync(ctx context.Context, payReq string) (*lnclient.PayInvoiceResponse, error) {
+func (svc *PhoenixService) SendPaymentSync(ctx context.Context, payReq string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
+	// TODO: support 0-amount invoices
+	if amount != nil {
+		return nil, errors.New("0-amount invoices not supported")
+	}
 	form := url.Values{}
 	form.Add("invoice", payReq)
 	req, err := http.NewRequest(http.MethodPost, svc.Address+"/payinvoice", strings.NewReader(form.Encode()))
@@ -525,7 +529,7 @@ func (svc *PhoenixService) UpdateChannel(ctx context.Context, updateChannelReque
 }
 
 func (svc *PhoenixService) GetSupportedNIP47Methods() []string {
-	return []string{"pay_invoice", "get_balance", "get_info", "make_invoice", "lookup_invoice", "list_transactions", "multi_pay_invoice"}
+	return []string{"pay_invoice", "get_balance", "get_budget", "get_info", "make_invoice", "lookup_invoice", "list_transactions", "multi_pay_invoice"}
 }
 
 func (svc *PhoenixService) GetSupportedNIP47NotificationTypes() []string {

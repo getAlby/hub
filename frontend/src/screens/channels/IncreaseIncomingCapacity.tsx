@@ -1,4 +1,4 @@
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, InfoIcon } from "lucide-react";
 import React, { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
@@ -20,11 +20,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "src/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "src/components/ui/tooltip";
 import { useToast } from "src/components/ui/use-toast";
 import { useChannelPeerSuggestions } from "src/hooks/useChannelPeerSuggestions";
 import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
 import { cn, formatAmount } from "src/lib/utils";
+import { ChannelPublicPrivateAlert } from "src/screens/channels/ChannelPublicPrivateAlert";
 import useChannelOrderStore from "src/state/ChannelOrderStore";
 import {
   Channel,
@@ -191,14 +198,15 @@ function NewChannelInternal({
   return (
     <>
       <AppHeader
-        title="Increase Receiving Capacity"
-        description="Purchase a channel with incoming capacity to receive payments"
+        title="Open Channel with Lightning"
+        description="Purchase a channel that allows you to receive payments"
         contentRight={
           <div className="flex items-end">
-            <Link to="/channels/outgoing">
-              <Button className="w-full" variant="secondary">
-                Need spending balance?
-              </Button>
+            <Link
+              to="/channels/outgoing"
+              className="underline break-words text-sm"
+            >
+              Open Channel with On-Chain
             </Link>
           </div>
         }
@@ -213,9 +221,37 @@ function NewChannelInternal({
           src="/images/illustrations/lightning-network-light.svg"
           className="w-full dark:hidden"
         />
+        <p className="text-muted-foreground">
+          Alby Hub works with selected service providers (LSPs) which provide
+          the best network connectivity and liquidity to receive payments. The
+          channel typically stays open as long as there is usage.{" "}
+          <ExternalLink
+            className="underline"
+            to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/how-to-open-a-channel"
+          >
+            Learn more
+          </ExternalLink>
+        </p>
         <form onSubmit={onSubmit} className="flex flex-col gap-5 flex-1">
           <div className="grid gap-1.5">
-            <Label htmlFor="amount">Channel size (sats)</Label>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger type="button">
+                  <div className="flex flex-row gap-2 items-center justify-start text-sm">
+                    <Label htmlFor="amount">
+                      Increase receiving capacity (sats)
+                    </Label>
+                    <InfoIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent className="w-[300px]">
+                  Configure the amount of receiving capacity you need. You will
+                  only pay for the liquidity fee which will be shown in the next
+                  step.
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
             {order.amount && +order.amount < 200_000 && (
               <p className="text-muted-foreground text-xs">
                 For a smooth experience consider a opening a channel of 200k
@@ -370,6 +406,9 @@ function NewChannelInternal({
               Advanced Options
             </Button>
           )}
+          {channels?.some((channel) => channel.public !== !!order.isPublic) && (
+            <ChannelPublicPrivateAlert />
+          )}
           <Button size="lg">Next</Button>
         </form>
 
@@ -382,7 +421,7 @@ function NewChannelInternal({
             className="w-full"
             variant="secondary"
           >
-            Increase spending balance
+            Increase Spending Balance
           </LinkButton>
           <ExternalLinkButton
             to="https://www.getalby.com/topup"

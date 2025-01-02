@@ -9,6 +9,7 @@ import (
 	"github.com/getAlby/hub/db/queries"
 	"github.com/getAlby/hub/tests"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSendPaymentSync_SelfPayment_NoAppToNoApp(t *testing.T) {
@@ -16,10 +17,10 @@ func TestSendPaymentSync_SelfPayment_NoAppToNoApp(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// pubkey matches mock invoice = self payment
-	svc.LNClient.(*tests.MockLn).Pubkey = "02a5056398235568fc049a5d563f1adf666041d590b268167e4fa145fbf71aa578"
+	svc.LNClient.(*tests.MockLn).Pubkey = "03cbd788f5b22bd56e2714bff756372d2293504c064e03250ed16a4dd80ad70e2c"
 
 	mockPreimage := "123preimage"
 	svc.DB.Create(&db.Transaction{
@@ -32,7 +33,7 @@ func TestSendPaymentSync_SelfPayment_NoAppToNoApp(t *testing.T) {
 	})
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockInvoice, svc.LNClient, nil, nil)
+	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockInvoice, nil, nil, svc.LNClient, nil, nil)
 
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(123000), transaction.AmountMsat)
@@ -58,10 +59,10 @@ func TestSendPaymentSync_SelfPayment_NoAppToIsolatedApp(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// pubkey matches mock invoice = self payment
-	svc.LNClient.(*tests.MockLn).Pubkey = "02a5056398235568fc049a5d563f1adf666041d590b268167e4fa145fbf71aa578"
+	svc.LNClient.(*tests.MockLn).Pubkey = "03cbd788f5b22bd56e2714bff756372d2293504c064e03250ed16a4dd80ad70e2c"
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -84,7 +85,7 @@ func TestSendPaymentSync_SelfPayment_NoAppToIsolatedApp(t *testing.T) {
 	})
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockInvoice, svc.LNClient, nil, nil)
+	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockInvoice, nil, nil, svc.LNClient, nil, nil)
 
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(123000), transaction.AmountMsat)
@@ -113,10 +114,10 @@ func TestSendPaymentSync_SelfPayment_NoAppToApp(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// pubkey matches mock invoice = self payment
-	svc.LNClient.(*tests.MockLn).Pubkey = "02a5056398235568fc049a5d563f1adf666041d590b268167e4fa145fbf71aa578"
+	svc.LNClient.(*tests.MockLn).Pubkey = "03cbd788f5b22bd56e2714bff756372d2293504c064e03250ed16a4dd80ad70e2c"
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -137,7 +138,7 @@ func TestSendPaymentSync_SelfPayment_NoAppToApp(t *testing.T) {
 	})
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockInvoice, svc.LNClient, nil, nil)
+	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockInvoice, nil, nil, svc.LNClient, nil, nil)
 
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(123000), transaction.AmountMsat)
@@ -164,10 +165,10 @@ func TestSendPaymentSync_SelfPayment_IsolatedAppToNoApp(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// pubkey matches mock invoice = self payment
-	svc.LNClient.(*tests.MockLn).Pubkey = "02a5056398235568fc049a5d563f1adf666041d590b268167e4fa145fbf71aa578"
+	svc.LNClient.(*tests.MockLn).Pubkey = "03cbd788f5b22bd56e2714bff756372d2293504c064e03250ed16a4dd80ad70e2c"
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -206,7 +207,7 @@ func TestSendPaymentSync_SelfPayment_IsolatedAppToNoApp(t *testing.T) {
 	})
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockInvoice, svc.LNClient, &app.ID, &dbRequestEvent.ID)
+	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockInvoice, nil, nil, svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(123000), transaction.AmountMsat)
@@ -236,10 +237,10 @@ func TestSendPaymentSync_SelfPayment_IsolatedAppToApp(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// pubkey matches mock invoice = self payment
-	svc.LNClient.(*tests.MockLn).Pubkey = "02a5056398235568fc049a5d563f1adf666041d590b268167e4fa145fbf71aa578"
+	svc.LNClient.(*tests.MockLn).Pubkey = "03cbd788f5b22bd56e2714bff756372d2293504c064e03250ed16a4dd80ad70e2c"
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -281,7 +282,7 @@ func TestSendPaymentSync_SelfPayment_IsolatedAppToApp(t *testing.T) {
 	})
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockInvoice, svc.LNClient, &app.ID, &dbRequestEvent.ID)
+	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockInvoice, nil, nil, svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(123000), transaction.AmountMsat)
@@ -312,10 +313,10 @@ func TestSendPaymentSync_SelfPayment_IsolatedAppToIsolatedApp(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// pubkey matches mock invoice = self payment
-	svc.LNClient.(*tests.MockLn).Pubkey = "02a5056398235568fc049a5d563f1adf666041d590b268167e4fa145fbf71aa578"
+	svc.LNClient.(*tests.MockLn).Pubkey = "03cbd788f5b22bd56e2714bff756372d2293504c064e03250ed16a4dd80ad70e2c"
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -363,7 +364,7 @@ func TestSendPaymentSync_SelfPayment_IsolatedAppToIsolatedApp(t *testing.T) {
 	svc.EventPublisher.RegisterSubscriber(mockEventConsumer)
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockInvoice, svc.LNClient, &app.ID, &dbRequestEvent.ID)
+	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockInvoice, nil, nil, svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(123000), transaction.AmountMsat)
@@ -389,14 +390,14 @@ func TestSendPaymentSync_SelfPayment_IsolatedAppToIsolatedApp(t *testing.T) {
 	assert.Equal(t, uint64(10000), queries.GetIsolatedBalance(svc.DB, app.ID))
 
 	// check notifications
-	assert.Equal(t, 2, len(mockEventConsumer.GetConsumeEvents()))
+	assert.Equal(t, 2, len(mockEventConsumer.GetConsumedEvents()))
 
-	assert.Equal(t, "nwc_payment_sent", mockEventConsumer.GetConsumeEvents()[1].Event)
-	settledTransaction := mockEventConsumer.GetConsumeEvents()[1].Properties.(*db.Transaction)
+	assert.Equal(t, "nwc_payment_sent", mockEventConsumer.GetConsumedEvents()[1].Event)
+	settledTransaction := mockEventConsumer.GetConsumedEvents()[1].Properties.(*db.Transaction)
 	assert.Equal(t, transaction.ID, settledTransaction.ID)
 
-	assert.Equal(t, "nwc_payment_received", mockEventConsumer.GetConsumeEvents()[0].Event)
-	receivedTransaction := mockEventConsumer.GetConsumeEvents()[0].Properties.(*db.Transaction)
+	assert.Equal(t, "nwc_payment_received", mockEventConsumer.GetConsumedEvents()[0].Event)
+	receivedTransaction := mockEventConsumer.GetConsumedEvents()[0].Properties.(*db.Transaction)
 	assert.Equal(t, incomingTransaction.ID, receivedTransaction.ID)
 }
 
@@ -405,10 +406,10 @@ func TestSendPaymentSync_SelfPayment_IsolatedAppToSelf(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// pubkey matches mock invoice = self payment
-	svc.LNClient.(*tests.MockLn).Pubkey = "02a5056398235568fc049a5d563f1adf666041d590b268167e4fa145fbf71aa578"
+	svc.LNClient.(*tests.MockLn).Pubkey = "03cbd788f5b22bd56e2714bff756372d2293504c064e03250ed16a4dd80ad70e2c"
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -448,7 +449,7 @@ func TestSendPaymentSync_SelfPayment_IsolatedAppToSelf(t *testing.T) {
 	})
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockInvoice, svc.LNClient, &app.ID, &dbRequestEvent.ID)
+	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockInvoice, nil, nil, svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(123000), transaction.AmountMsat)

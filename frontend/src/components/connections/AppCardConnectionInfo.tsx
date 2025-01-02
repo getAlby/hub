@@ -8,10 +8,12 @@ import { App, BudgetRenewalType } from "src/types";
 
 type AppCardConnectionInfoProps = {
   connection: App;
+  budgetRemainingText?: string | React.ReactNode;
 };
 
 export function AppCardConnectionInfo({
   connection,
+  budgetRemainingText = "Left in budget",
 }: AppCardConnectionInfoProps) {
   function getBudgetRenewalLabel(renewalType: BudgetRenewalType): string {
     switch (renewalType) {
@@ -63,7 +65,7 @@ export function AppCardConnectionInfo({
           <div className="flex flex-row justify-between">
             <div className="mb-2">
               <p className="text-xs text-secondary-foreground font-medium">
-                Left in budget
+                {budgetRemainingText}
               </p>
               <p className="text-xl font-medium">
                 {new Intl.NumberFormat().format(
@@ -115,7 +117,7 @@ export function AppCardConnectionInfo({
                 ? dayjs(connection.lastEventAt).fromNow()
                 : "Never"}
             </div>
-            <Link to={`/apps/${connection.nostrPubkey}?edit=true`}>
+            <Link to={`/apps/${connection.appPubkey}?edit=true`}>
               <Button variant="outline">
                 <PlusCircle className="w-4 h-4 mr-2" />
                 Set Budget
@@ -151,7 +153,7 @@ export function AppCardConnectionInfo({
                 : "Never"}
             </div>
             <Link
-              to={`/apps/${connection.nostrPubkey}?edit=true`}
+              to={`/apps/${connection.appPubkey}?edit=true`}
               onClick={(e) => e.stopPropagation()}
             >
               <Button variant="outline">

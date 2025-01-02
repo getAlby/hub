@@ -46,7 +46,7 @@ type NodeConnectionInfo struct {
 }
 
 type LNClient interface {
-	SendPaymentSync(ctx context.Context, payReq string) (*PayInvoiceResponse, error)
+	SendPaymentSync(ctx context.Context, payReq string, amount *uint64) (*PayInvoiceResponse, error)
 	SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []TLVRecord, preimage string) (*PayKeysendResponse, error)
 	GetPubkey() string
 	GetInfo(ctx context.Context) (info *NodeInfo, err error)
@@ -109,9 +109,9 @@ type ConnectPeerRequest struct {
 }
 
 type OpenChannelRequest struct {
-	Pubkey string `json:"pubkey"`
-	Amount int64  `json:"amount"`
-	Public bool   `json:"public"`
+	Pubkey     string `json:"pubkey"`
+	AmountSats int64  `json:"amountSats"`
+	Public     bool   `json:"public"`
 }
 
 type OpenChannelResponse struct {
@@ -125,19 +125,28 @@ type CloseChannelRequest struct {
 }
 
 type UpdateChannelRequest struct {
-	ChannelId             string `json:"channelId"`
-	NodeId                string `json:"nodeId"`
-	ForwardingFeeBaseMsat uint32 `json:"forwardingFeeBaseMsat"`
+	ChannelId                                string `json:"channelId"`
+	NodeId                                   string `json:"nodeId"`
+	ForwardingFeeBaseMsat                    uint32 `json:"forwardingFeeBaseMsat"`
+	MaxDustHtlcExposureFromFeeRateMultiplier uint64 `json:"maxDustHtlcExposureFromFeeRateMultiplier"`
 }
 
 type CloseChannelResponse struct {
 }
 
+type PendingBalanceDetails struct {
+	ChannelId string `json:"channelId"`
+	NodeId    string `json:"nodeId"`
+	Amount    uint64 `json:"amount"`
+}
+
 type OnchainBalanceResponse struct {
-	Spendable                          int64  `json:"spendable"`
-	Total                              int64  `json:"total"`
-	Reserved                           int64  `json:"reserved"`
-	PendingBalancesFromChannelClosures uint64 `json:"pendingBalancesFromChannelClosures"`
+	Spendable                          int64                   `json:"spendable"`
+	Total                              int64                   `json:"total"`
+	Reserved                           int64                   `json:"reserved"`
+	PendingBalancesFromChannelClosures uint64                  `json:"pendingBalancesFromChannelClosures"`
+	PendingBalancesDetails             []PendingBalanceDetails `json:"pendingBalancesDetails"`
+	InternalBalances                   interface{}             `json:"internalBalances"`
 }
 
 type PeerDetails struct {

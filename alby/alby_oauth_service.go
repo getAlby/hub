@@ -10,6 +10,7 @@ import (
 	"math"
 	"net/http"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -17,9 +18,11 @@ import (
 
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
+	"github.com/tyler-smith/go-bip32"
 	"golang.org/x/oauth2"
 	"gorm.io/gorm"
 
+	"github.com/getAlby/hub/apps"
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
@@ -117,15 +120,6 @@ func (svc *albyOAuthService) CallbackHandler(ctx context.Context, code string, l
 			logger.Logger.WithError(err).Error("Failed to set user identifier")
 			return err
 		}
-
-		if svc.cfg.GetEnv().AutoLinkAlbyAccount {
-			// link account on first login
-			err := svc.LinkAccount(ctx, lnClient, 1_000_000, constants.BUDGET_RENEWAL_MONTHLY)
-			if err != nil {
-				logger.Logger.WithError(err).Error("Failed to link account on first auth callback")
-			}
-		}
-
 	} else if me.Identifier != existingUserIdentifier {
 		// remove token so user can retry with correct account
 		err := svc.cfg.SetUpdate(accessTokenKey, "", "")
@@ -229,7 +223,7 @@ func (svc *albyOAuthService) fetchUserToken(ctx context.Context) (*oauth2.Token,
 
 	newToken, err := svc.oauthConf.TokenSource(ctx, currentToken).Token()
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to refresh existing token")
+		logger.Logger.WithError(err).Warn("Failed to refresh existing token")
 		return nil, err
 	}
 
@@ -277,6 +271,68 @@ func (svc *albyOAuthService) GetInfo(ctx context.Context) (*AlbyInfo, error) {
 			LatestReleaseNotes: info.Hub.LatestReleaseNotes,
 		},
 	}, nil
+}
+
+func (svc *albyOAuthService) GetVssAuthToken(ctx context.Context, nodeIdentifier string) (string, error) {
+	logger.Logger.WithField("node_identifier", nodeIdentifier).Debug("fetching VSS token")
+	token, err := svc.fetchUserToken(ctx)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to fetch user token")
+		return "", err
+	}
+
+	client := svc.oauthConf.Client(ctx, token)
+
+	type vssAuthTokenRequest struct {
+		Identifier string `json:"identifier"`
+	}
+
+	body := bytes.NewBuffer([]byte{})
+	payload := vssAuthTokenRequest{
+		Identifier: nodeIdentifier,
+	}
+	err = json.NewEncoder(body).Encode(&payload)
+
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to encode request payload")
+		return "", err
+	}
+
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/internal/auth_tokens", albyOAuthAPIURL), body)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Error creating request for vss auth token endpoint")
+		return "", err
+	}
+
+	setDefaultRequestHeaders(req)
+
+	res, err := client.Do(req)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to fetch vss auth token endpoint")
+		return "", err
+	}
+
+	if res.StatusCode >= 300 {
+		return "", fmt.Errorf("request to /internal/auth_tokens returned non-success status: %d", res.StatusCode)
+	}
+
+	type vssTokenResponse struct {
+		Token string `json:"token"`
+	}
+
+	vssResponse := &vssTokenResponse{}
+	err = json.NewDecoder(res.Body).Decode(vssResponse)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to decode API response")
+		return "", err
+	}
+
+	if vssResponse.Token == "" {
+		logger.Logger.WithField("vssResponse", vssResponse).WithError(err).Error("No token in API response")
+		return "", errors.New("no token in vss response")
+	}
+
+	return vssResponse.Token, nil
 }
 
 func (svc *albyOAuthService) GetMe(ctx context.Context) (*AlbyMe, error) {
@@ -368,9 +424,12 @@ func (svc *albyOAuthService) DrainSharedWallet(ctx context.Context, lnClient lnc
 		10 // Alby fee reserve (10 sats)
 
 	if amountSat < 1 {
-		return errors.New("Not enough balance remaining")
+		return errors.New("not enough balance remaining")
 	}
-	amount := amountSat * 1000
+	// limit the maximum to 1M sats to ensure the funds can easily be migrated
+	// the user can migrate more if they still have sats left over
+	amountSat = min(amountSat, 1_000_000)
+	amount := uint64(amountSat * 1000)
 
 	logger.Logger.WithField("amount", amount).WithError(err).Error("Draining Alby shared wallet funds")
 
@@ -477,8 +536,19 @@ func (svc *albyOAuthService) GetAuthUrl() string {
 }
 
 func (svc *albyOAuthService) UnlinkAccount(ctx context.Context) error {
-	err := svc.destroyAlbyAccountNWCNode(ctx)
+	ldkVssEnabled, err := svc.cfg.Get("LdkVssEnabled", "")
 	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to fetch LdkVssEnabled user config")
+		return err
+	}
+
+	if ldkVssEnabled == "true" {
+		return errors.New("alby account cannot be unlinked while VSS is activated")
+	}
+
+	destroyAlbyAccountErr := svc.destroyAlbyAccountNWCNode(ctx)
+	if destroyAlbyAccountErr != nil {
+		// non-critical error - we still want to disconnect
 		logger.Logger.WithError(err).Error("Failed to destroy Alby Account NWC node")
 	}
 	svc.deleteAlbyAccountApps()
@@ -526,7 +596,7 @@ func (svc *albyOAuthService) LinkAccount(ctx context.Context, lnClient lnclient.
 		scopes = append(scopes, constants.NOTIFICATIONS_SCOPE)
 	}
 
-	app, _, err := db.NewDBService(svc.db, svc.eventPublisher).CreateApp(
+	app, _, err := apps.NewAppsService(svc.db, svc.eventPublisher, svc.keys).CreateApp(
 		ALBY_ACCOUNT_APP_NAME,
 		connectionPubkey,
 		budget,
@@ -546,7 +616,7 @@ func (svc *albyOAuthService) LinkAccount(ctx context.Context, lnClient lnclient.
 		"app": app,
 	}).Info("Created alby app connection")
 
-	err = svc.activateAlbyAccountNWCNode(ctx)
+	err = svc.activateAlbyAccountNWCNode(ctx, *app.WalletPubkey)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to activate alby account nwc node")
 		return err
@@ -576,11 +646,15 @@ func (svc *albyOAuthService) ConsumeEvent(ctx context.Context, event *events.Eve
 		return
 	}
 
-	// TODO: we should have a whitelist rather than a blacklist, so new events are not automatically sent
-
 	// TODO: rename this config option to be specific to the alby API
 	if !svc.cfg.GetEnv().LogEvents {
-		logger.Logger.WithField("event", event).Debug("Skipped sending to alby events API")
+		logger.Logger.WithField("event", event).Debug("Skipped sending to alby events API (alby event logging disabled)")
+		return
+	}
+
+	// ensure we do not send unintended events to Alby API
+	if !slices.Contains(getEventWhitelist(), event.Event) {
+		logger.Logger.WithField("event", event).Debug("Skipped sending non-whitelisted event to alby events API")
 		return
 	}
 
@@ -588,11 +662,6 @@ func (svc *albyOAuthService) ConsumeEvent(ctx context.Context, event *events.Eve
 		if err := svc.backupChannels(ctx, event); err != nil {
 			logger.Logger.WithError(err).Error("Failed to backup channels")
 		}
-		return
-	}
-
-	if strings.HasPrefix(event.Event, "nwc_lnclient_") {
-		// don't consume internal LNClient events
 		return
 	}
 
@@ -683,7 +752,7 @@ func (svc *albyOAuthService) ConsumeEvent(ctx context.Context, event *events.Eve
 	for k, v := range globalProperties {
 		_, exists := eventWithGlobalProperties.Properties[k]
 		if exists {
-			logger.Logger.WithField("key", k).Error("Key already exists in event properties, skipping global property")
+			logger.Logger.WithField("key", k).Debug("Key already exists in event properties, skipping global property")
 			continue
 		}
 		eventWithGlobalProperties.Properties[k] = v
@@ -722,10 +791,48 @@ func (svc *albyOAuthService) ConsumeEvent(ctx context.Context, event *events.Eve
 	}
 }
 
+type channelsBackup struct {
+	Description string `json:"description"`
+	Data        string `json:"data"`
+	NodePubkey  string `json:"node_pubkey"`
+}
+
+func (svc *albyOAuthService) createEncryptedChannelBackup(event *events.StaticChannelsBackupEvent) (*channelsBackup, error) {
+
+	eventData := bytes.NewBuffer([]byte{})
+	err := json.NewEncoder(eventData).Encode(event)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encode channels backup data:  %w", err)
+	}
+
+	backupKey, err := svc.keys.DeriveKey([]uint32{bip32.FirstHardenedChild})
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to generate channels backup key")
+		return nil, err
+	}
+
+	encrypted, err := config.AesGcmEncryptWithKey(eventData.String(), backupKey.Key)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encrypt channels backup data: %w", err)
+	}
+
+	backup := &channelsBackup{
+		Description: "channels_v2",
+		Data:        encrypted,
+		NodePubkey:  event.NodeID,
+	}
+	return backup, nil
+}
+
 func (svc *albyOAuthService) backupChannels(ctx context.Context, event *events.Event) error {
 	bkpEvent, ok := event.Properties.(*events.StaticChannelsBackupEvent)
 	if !ok {
 		return fmt.Errorf("invalid nwc_backup_channels event properties, could not cast to the expected type: %+v", event.Properties)
+	}
+
+	backup, err := svc.createEncryptedChannelBackup(bkpEvent)
+	if err != nil {
+		return fmt.Errorf("failed to encrypt channel backup: %w", err)
 	}
 
 	token, err := svc.fetchUserToken(ctx)
@@ -735,33 +842,8 @@ func (svc *albyOAuthService) backupChannels(ctx context.Context, event *events.E
 
 	client := svc.oauthConf.Client(ctx, token)
 
-	type channelsBackup struct {
-		Description string `json:"description"`
-		Data        string `json:"data"`
-	}
-
-	eventData := bytes.NewBuffer([]byte{})
-	err = json.NewEncoder(eventData).Encode(bkpEvent)
-	if err != nil {
-		return fmt.Errorf("failed to encode channels backup data:  %w", err)
-	}
-
-	// use the encrypted mnemonic as the password to encrypt the backup data
-	encryptedMnemonic, err := svc.cfg.Get("Mnemonic", "")
-	if err != nil {
-		return fmt.Errorf("failed to fetch encryption key: %w", err)
-	}
-
-	encrypted, err := config.AesGcmEncrypt(eventData.String(), encryptedMnemonic)
-	if err != nil {
-		return fmt.Errorf("failed to encrypt channels backup data: %w", err)
-	}
-
 	body := bytes.NewBuffer([]byte{})
-	err = json.NewEncoder(body).Encode(&channelsBackup{
-		Description: "channels",
-		Data:        encrypted,
-	})
+	err = json.NewEncoder(body).Encode(backup)
 	if err != nil {
 		return fmt.Errorf("failed to encode channels backup request payload: %w", err)
 	}
@@ -794,12 +876,9 @@ func (svc *albyOAuthService) createAlbyAccountNWCNode(ctx context.Context) (stri
 	client := svc.oauthConf.Client(ctx, token)
 
 	type createNWCNodeRequest struct {
-		WalletPubkey string `json:"wallet_pubkey"`
 	}
 
-	createNodeRequest := createNWCNodeRequest{
-		WalletPubkey: svc.keys.GetNostrPublicKey(),
-	}
+	createNodeRequest := createNWCNodeRequest{}
 
 	body := bytes.NewBuffer([]byte{})
 	err = json.NewEncoder(body).Encode(&createNodeRequest)
@@ -819,16 +898,13 @@ func (svc *albyOAuthService) createAlbyAccountNWCNode(ctx context.Context) (stri
 
 	resp, err := client.Do(req)
 	if err != nil {
-		logger.Logger.WithFields(logrus.Fields{
-			"createNodeRequest": createNodeRequest,
-		}).WithError(err).Error("Failed to send request to /internal/nwcs")
+		logger.Logger.WithError(err).Error("Failed to send request to /internal/nwcs")
 		return "", err
 	}
 
 	if resp.StatusCode >= 300 {
 		logger.Logger.WithFields(logrus.Fields{
-			"createNodeRequest": createNodeRequest,
-			"status":            resp.StatusCode,
+			"status": resp.StatusCode,
 		}).Error("Request to /internal/nwcs returned non-success status")
 		return "", errors.New("request to /internal/nwcs returned non-success status")
 	}
@@ -885,7 +961,7 @@ func (svc *albyOAuthService) destroyAlbyAccountNWCNode(ctx context.Context) erro
 	return nil
 }
 
-func (svc *albyOAuthService) activateAlbyAccountNWCNode(ctx context.Context) error {
+func (svc *albyOAuthService) activateAlbyAccountNWCNode(ctx context.Context, walletServicePubkey string) error {
 	token, err := svc.fetchUserToken(ctx)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to fetch user token")
@@ -893,7 +969,20 @@ func (svc *albyOAuthService) activateAlbyAccountNWCNode(ctx context.Context) err
 
 	client := svc.oauthConf.Client(ctx, token)
 
-	req, err := http.NewRequest("PUT", fmt.Sprintf("%s/internal/nwcs/activate", albyOAuthAPIURL), nil)
+	type activateNWCNodeRequest struct {
+		WalletPubkey string `json:"wallet_pubkey"`
+		RelayUrl     string `json:"relay_url"`
+	}
+
+	activateNodeRequest := activateNWCNodeRequest{
+		WalletPubkey: walletServicePubkey,
+		RelayUrl:     svc.cfg.GetRelayUrl(),
+	}
+
+	body := bytes.NewBuffer([]byte{})
+	err = json.NewEncoder(body).Encode(&activateNodeRequest)
+
+	req, err := http.NewRequest("PUT", fmt.Sprintf("%s/internal/nwcs/activate", albyOAuthAPIURL), body)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Error creating request /internal/nwcs/activate")
 		return err
@@ -903,13 +992,28 @@ func (svc *albyOAuthService) activateAlbyAccountNWCNode(ctx context.Context) err
 
 	resp, err := client.Do(req)
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to send request to /internal/nwcs/activate")
+		logger.Logger.WithFields(logrus.Fields{
+			"activate_node_request": activateNodeRequest,
+		}).WithError(err).Error("Failed to send request to /internal/nwcs/activate")
 		return err
 	}
 
 	if resp.StatusCode >= 300 {
+		bodyString := ""
+		bodyBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"activate_node_request": activateNodeRequest,
+				"status":                resp.StatusCode,
+			}).Error("Failed to read response body from to /internal/nwcs/activate")
+		}
+		if bodyBytes != nil {
+			bodyString = string(bodyBytes)
+		}
+
 		logger.Logger.WithFields(logrus.Fields{
-			"status": resp.StatusCode,
+			"status":  resp.StatusCode,
+			"message": bodyString,
 		}).Error("Request to /internal/nwcs/activate returned non-success status")
 		return errors.New("request to /internal/nwcs/activate returned non-success status")
 	}
@@ -1216,5 +1320,33 @@ func (svc *albyOAuthService) deleteAlbyAccountApps() {
 	err := svc.db.Where("name = ?", ALBY_ACCOUNT_APP_NAME).Delete(&db.App{}).Error
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to delete Alby Account apps")
+	}
+}
+
+// whitelist of events that can be sent to the alby API
+// (e.g. to enable encrypted static channel backups and sending email notifications)
+func getEventWhitelist() []string {
+	return []string{
+		"nwc_backup_channels",
+		"nwc_payment_received",
+		"nwc_payment_sent",
+		"nwc_payment_failed",
+		"nwc_app_created",
+		"nwc_app_updated",
+		"nwc_app_deleted",
+		"nwc_unlocked",
+		"nwc_node_sync_failed",
+		"nwc_outgoing_liquidity_required",
+		"nwc_incoming_liquidity_required",
+		"nwc_budget_warning",
+		"nwc_channel_ready",
+		"nwc_channel_closed",
+		"nwc_permission_denied",
+		"nwc_started",
+		"nwc_stopped",
+		"nwc_node_started",
+		"nwc_node_start_failed",
+		"nwc_node_stop_failed",
+		"nwc_node_stopped",
 	}
 }

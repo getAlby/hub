@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/getAlby/hub/constants"
@@ -46,15 +47,6 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 		return
 	}
 
-	ss, err := nip04.ComputeSharedSecret(event.PubKey, svc.keys.GetNostrSecretKey())
-	if err != nil {
-		logger.Logger.WithFields(logrus.Fields{
-			"requestEventNostrId": event.ID,
-			"eventKind":           event.Kind,
-		}).WithError(err).Error("Failed to compute shared secret")
-		return
-	}
-
 	// store request event
 	requestEvent := db.RequestEvent{AppId: nil, NostrId: event.ID, State: db.REQUEST_EVENT_STATE_HANDLER_EXECUTING}
 	err = svc.db.Create(&requestEvent).Error
@@ -69,87 +61,16 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 			"requestEventNostrId": event.ID,
 			"eventKind":           event.Kind,
 		}).WithError(err).Error("Failed to save nostr event")
-		nip47Response = &models.Response{
-			Error: &models.Error{
-				Code:    constants.ERROR_INTERNAL,
-				Message: fmt.Sprintf("Failed to save nostr event: %s", err.Error()),
-			},
-		}
-		resp, err := svc.CreateResponse(event, nip47Response, nostr.Tags{}, ss)
-		if err != nil {
-			logger.Logger.WithFields(logrus.Fields{
-				"requestEventNostrId": event.ID,
-				"eventKind":           event.Kind,
-			}).WithError(err).Error("Failed to process event")
-		}
-		svc.publishResponseEvent(ctx, relay, &requestEvent, resp, nil)
 		return
 	}
-
 	app := db.App{}
 	err = svc.db.First(&app, &db.App{
-		NostrPubkey: event.PubKey,
+		AppPubkey: event.PubKey,
 	}).Error
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
-			"nostrPubkey": event.PubKey,
+			"appPubkey": event.PubKey,
 		}).WithError(err).Error("Failed to find app for nostr pubkey")
-
-		nip47Response = &models.Response{
-			Error: &models.Error{
-				Code:    constants.ERROR_UNAUTHORIZED,
-				Message: "The public key does not have a wallet connected.",
-			},
-		}
-		resp, err := svc.CreateResponse(event, nip47Response, nostr.Tags{}, ss)
-		if err != nil {
-			logger.Logger.WithFields(logrus.Fields{
-				"requestEventNostrId": event.ID,
-				"eventKind":           event.Kind,
-			}).WithError(err).Error("Failed to process event")
-		}
-		svc.publishResponseEvent(ctx, relay, &requestEvent, resp, &app)
-
-		requestEvent.State = db.REQUEST_EVENT_STATE_HANDLER_ERROR
-		err = svc.db.Save(&requestEvent).Error
-		if err != nil {
-			logger.Logger.WithFields(logrus.Fields{
-				"nostrPubkey": event.PubKey,
-			}).WithError(err).Error("Failed to save state to nostr event")
-		}
-		return
-	}
-
-	requestEvent.AppId = &app.ID
-	err = svc.db.Save(&requestEvent).Error
-	if err != nil {
-		logger.Logger.WithFields(logrus.Fields{
-			"nostrPubkey": event.PubKey,
-		}).WithError(err).Error("Failed to save app to nostr event")
-
-		nip47Response = &models.Response{
-			Error: &models.Error{
-				Code:    constants.ERROR_UNAUTHORIZED,
-				Message: fmt.Sprintf("Failed to save app to nostr event: %s", err.Error()),
-			},
-		}
-		resp, err := svc.CreateResponse(event, nip47Response, nostr.Tags{}, ss)
-		if err != nil {
-			logger.Logger.WithFields(logrus.Fields{
-				"requestEventNostrId": event.ID,
-				"eventKind":           event.Kind,
-			}).WithError(err).Error("Failed to process event")
-		}
-		svc.publishResponseEvent(ctx, relay, &requestEvent, resp, &app)
-
-		requestEvent.State = db.REQUEST_EVENT_STATE_HANDLER_ERROR
-		err = svc.db.Save(&requestEvent).Error
-		if err != nil {
-			logger.Logger.WithFields(logrus.Fields{
-				"nostrPubkey": event.PubKey,
-			}).WithError(err).Error("Failed to save state to nostr event")
-		}
-
 		return
 	}
 
@@ -159,24 +80,69 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 		"appId":               app.ID,
 	}).Debug("App found for nostr event")
 
-	//to be extra safe, decrypt using the key found from the app
-	ss, err = nip04.ComputeSharedSecret(app.NostrPubkey, svc.keys.GetNostrSecretKey())
+	appWalletPrivKey := svc.keys.GetNostrSecretKey()
+
+	if app.WalletPubkey != nil {
+		// This is a new child key derived from master using app ID as index
+		appWalletPrivKey, err = svc.keys.GetAppWalletKey(app.ID)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"appId": app.ID,
+			}).WithError(err).Error("error deriving child key")
+			return
+		}
+	}
+
+	ss, err := nip04.ComputeSharedSecret(app.AppPubkey, appWalletPrivKey)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"requestEventNostrId": event.ID,
 			"eventKind":           event.Kind,
-		}).WithError(err).Error("Failed to process event")
+		}).WithError(err).Error("Failed to compute shared secret")
 
 		requestEvent.State = db.REQUEST_EVENT_STATE_HANDLER_ERROR
 		err = svc.db.Save(&requestEvent).Error
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
-				"nostrPubkey": event.PubKey,
+				"appPubkey": event.PubKey,
+			}).WithError(err).Error("Failed to save state to nostr event")
+		}
+		return
+	}
+
+	requestEvent.AppId = &app.ID
+	err = svc.db.Save(&requestEvent).Error
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"appPubkey": event.PubKey,
+		}).WithError(err).Error("Failed to save app to nostr event")
+
+		nip47Response = &models.Response{
+			Error: &models.Error{
+				Code:    constants.ERROR_INTERNAL,
+				Message: fmt.Sprintf("Failed to save app to nostr event: %s", err.Error()),
+			},
+		}
+		resp, err := svc.CreateResponse(event, nip47Response, nostr.Tags{}, ss, appWalletPrivKey)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"requestEventNostrId": event.ID,
+				"eventKind":           event.Kind,
+			}).WithError(err).Error("Failed to process event")
+		}
+		svc.publishResponseEvent(ctx, relay, &requestEvent, resp, &app)
+
+		requestEvent.State = db.REQUEST_EVENT_STATE_HANDLER_ERROR
+		err = svc.db.Save(&requestEvent).Error
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"appPubkey": event.PubKey,
 			}).WithError(err).Error("Failed to save state to nostr event")
 		}
 
 		return
 	}
+
 	payload, err := nip04.Decrypt(event.Content, ss)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
@@ -187,13 +153,13 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 		logger.Logger.WithFields(logrus.Fields{
 			"requestEventNostrId": event.ID,
 			"eventKind":           event.Kind,
-		}).WithError(err).Error("Failed to process event")
+		}).WithError(err).Error("Failed to decrypt request event")
 
 		requestEvent.State = db.REQUEST_EVENT_STATE_HANDLER_ERROR
 		err = svc.db.Save(&requestEvent).Error
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
-				"nostrPubkey": event.PubKey,
+				"appPubkey": event.PubKey,
 			}).WithError(err).Error("Failed to save state to nostr event")
 		}
 
@@ -211,7 +177,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 		err = svc.db.Save(&requestEvent).Error
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
-				"nostrPubkey": event.PubKey,
+				"appPubkey": event.PubKey,
 			}).WithError(err).Error("Failed to save state to nostr event")
 		}
 
@@ -225,7 +191,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 	// TODO: replace with a channel
 	// TODO: update all previous occurences of svc.publishResponseEvent to also use the channel
 	publishResponse := func(nip47Response *models.Response, tags nostr.Tags) {
-		resp, err := svc.CreateResponse(event, nip47Response, tags, ss)
+		resp, err := svc.CreateResponse(event, nip47Response, tags, ss, appWalletPrivKey)
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"requestEventNostrId": event.ID,
@@ -256,7 +222,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 		err = svc.db.Save(&requestEvent).Error
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
-				"nostrPubkey": event.PubKey,
+				"appPubkey": event.PubKey,
 			}).WithError(err).Error("Failed to save state to nostr event")
 		}
 	}
@@ -269,7 +235,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 		"params":              nip47Request.Params,
 	}).Debug("Handling NIP-47 request")
 
-	if nip47Request.Method != models.GET_INFO_METHOD {
+	if !slices.Contains(permissions.GetAlwaysGrantedMethods(), nip47Request.Method) {
 		scope, err := permissions.RequestMethodToScope(nip47Request.Method)
 		if err != nil {
 			publishResponse(&models.Response{
@@ -281,6 +247,21 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 			}, nostr.Tags{})
 			return
 		}
+
+		// The relay could forward old requests, which is fine and actually also intended
+		// as it makes sure we can respond even after a downtime or network issue.
+		// but we should check the creation date of a request and ignore too old requests
+		// for payments and invoice creation.
+		if (scope == constants.PAY_INVOICE_SCOPE || scope == constants.MAKE_INVOICE_SCOPE) && time.Since(event.CreatedAt.Time()).Hours() > 6 {
+			logger.Logger.WithFields(logrus.Fields{
+				"request_event_id": requestEvent.ID,
+				"app_id":           app.ID,
+			}).Error("Received request more than 6 hours old")
+
+			// ignore the request
+			return
+		}
+
 		hasPermission, code, message := svc.permissionsService.HasPermission(&app, scope)
 		if !hasPermission {
 			logger.Logger.WithFields(logrus.Fields{
@@ -295,7 +276,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 				Properties: map[string]interface{}{
 					"request_method": nip47Request.Method,
 					"app_name":       app.Name,
-					// "app_pubkey":     app.NostrPubkey,
+					// "app_pubkey":     app.AppPubkey,
 					"code":    code,
 					"message": message,
 				},
@@ -330,6 +311,9 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 	case models.GET_BALANCE_METHOD:
 		controller.
 			HandleGetBalanceEvent(ctx, nip47Request, requestEvent.ID, &app, publishResponse)
+	case models.GET_BUDGET_METHOD:
+		controller.
+			HandleGetBudgetEvent(ctx, nip47Request, requestEvent.ID, &app, publishResponse)
 	case models.MAKE_INVOICE_METHOD:
 		controller.
 			HandleMakeInvoiceEvent(ctx, nip47Request, requestEvent.ID, app.ID, publishResponse)
@@ -356,7 +340,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 	}
 }
 
-func (svc *nip47Service) CreateResponse(initialEvent *nostr.Event, content interface{}, tags nostr.Tags, ss []byte) (result *nostr.Event, err error) {
+func (svc *nip47Service) CreateResponse(initialEvent *nostr.Event, content interface{}, tags nostr.Tags, ss []byte, appWalletPrivKey string) (result *nostr.Event, err error) {
 	payloadBytes, err := json.Marshal(content)
 	if err != nil {
 		return nil, err
@@ -369,14 +353,20 @@ func (svc *nip47Service) CreateResponse(initialEvent *nostr.Event, content inter
 	allTags := nostr.Tags{[]string{"p", initialEvent.PubKey}, []string{"e", initialEvent.ID}}
 	allTags = append(allTags, tags...)
 
+	appWalletPubKey, err := nostr.GetPublicKey(appWalletPrivKey)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Error converting nostr privkey to pubkey")
+		return
+	}
+
 	resp := &nostr.Event{
-		PubKey:    svc.keys.GetNostrPublicKey(),
+		PubKey:    appWalletPubKey,
 		CreatedAt: nostr.Now(),
 		Kind:      models.RESPONSE_KIND,
 		Tags:      allTags,
 		Content:   msg,
 	}
-	err = resp.Sign(svc.keys.GetNostrSecretKey())
+	err = resp.Sign(appWalletPrivKey)
 	if err != nil {
 		return nil, err
 	}

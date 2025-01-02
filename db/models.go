@@ -16,14 +16,15 @@ type UserConfig struct {
 }
 
 type App struct {
-	ID          uint
-	Name        string `validate:"required"`
-	Description string
-	NostrPubkey string `validate:"required"`
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	Isolated    bool
-	Metadata    datatypes.JSON
+	ID           uint
+	Name         string `validate:"required"`
+	Description  string
+	AppPubkey    string `validate:"required"`
+	WalletPubkey *string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	Isolated     bool
+	Metadata     datatypes.JSON
 }
 
 type AppPermission struct {
@@ -84,10 +85,6 @@ type Transaction struct {
 	SelfPayment     bool
 	Boostagram      datatypes.JSON
 	FailureReason   string
-}
-
-type DBService interface {
-	CreateApp(name string, pubkey string, maxAmountSat uint64, budgetRenewal string, expiresAt *time.Time, scopes []string, isolated bool, metadata map[string]interface{}) (*App, string, error)
 }
 
 const (

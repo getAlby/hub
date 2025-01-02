@@ -11,6 +11,7 @@ import (
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/tests"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNotifications_ReceivedKnownPayment(t *testing.T) {
@@ -18,7 +19,7 @@ func TestNotifications_ReceivedKnownPayment(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	mockPreimage := tests.MockLNClientTransaction.Preimage
 	svc.DB.Create(&db.Transaction{
@@ -54,7 +55,7 @@ func TestNotifications_ReceivedUnknownPayment(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
@@ -81,7 +82,7 @@ func TestNotifications_ReceivedKeysend(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
@@ -147,7 +148,7 @@ func TestNotifications_SentKnownPayment(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	svc.DB.Create(&db.Transaction{
 		State:          constants.TRANSACTION_STATE_PENDING,
@@ -183,7 +184,7 @@ func TestNotifications_SentUnknownPayment(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
@@ -207,7 +208,7 @@ func TestNotifications_FailedKnownPayment(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	svc.DB.Create(&db.Transaction{
 		State:          constants.TRANSACTION_STATE_PENDING,

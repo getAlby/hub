@@ -41,7 +41,7 @@ func (cfg *config) init(env *AppConfig) error {
 	cfg.Env = env
 
 	if cfg.Env.Relay != "" {
-		err := cfg.SetIgnore("Relay", cfg.Env.Relay, "")
+		err := cfg.SetUpdate("Relay", cfg.Env.Relay, "")
 		if err != nil {
 			return err
 		}
@@ -55,7 +55,7 @@ func (cfg *config) init(env *AppConfig) error {
 
 	// LND specific to support env variables
 	if cfg.Env.LNDAddress != "" {
-		err := cfg.SetIgnore("LNDAddress", cfg.Env.LNDAddress, "")
+		err := cfg.SetUpdate("LNDAddress", cfg.Env.LNDAddress, "")
 		if err != nil {
 			return err
 		}
@@ -67,7 +67,7 @@ func (cfg *config) init(env *AppConfig) error {
 			return err
 		}
 		certHex := hex.EncodeToString(certBytes)
-		err = cfg.SetIgnore("LNDCertHex", certHex, "")
+		err = cfg.SetUpdate("LNDCertHex", certHex, "")
 		if err != nil {
 			return err
 		}
@@ -79,7 +79,7 @@ func (cfg *config) init(env *AppConfig) error {
 			return err
 		}
 		macHex := hex.EncodeToString(macBytes)
-		err = cfg.SetIgnore("LNDMacaroonHex", macHex, "")
+		err = cfg.SetUpdate("LNDMacaroonHex", macHex, "")
 		if err != nil {
 			return err
 		}
@@ -117,19 +117,17 @@ func (cfg *config) init(env *AppConfig) error {
 }
 
 func (cfg *config) SetupCompleted() bool {
-	// TODO: remove AlbyUserIdentifier and hasLdkDir checks after 2025/01/01
+	// TODO: remove hasLdkDir check after 2025/01/01
 	// to give time for users to update to 1.6.0+
-	albyUserIdentifier, _ := cfg.Get("AlbyUserIdentifier", "")
 	nodeLastStartTime, _ := cfg.Get("NodeLastStartTime", "")
 	ldkDir, err := os.Stat(path.Join(cfg.GetEnv().Workdir, "ldk"))
 	hasLdkDir := err == nil && ldkDir != nil && ldkDir.IsDir()
 
 	logger.Logger.WithFields(logrus.Fields{
 		"has_ldk_dir":              hasLdkDir,
-		"has_alby_user_identifier": albyUserIdentifier != "",
 		"has_node_last_start_time": nodeLastStartTime != "",
 	}).Debug("Checking if setup is completed")
-	return albyUserIdentifier != "" || nodeLastStartTime != "" || hasLdkDir
+	return nodeLastStartTime != "" || hasLdkDir
 }
 
 func (cfg *config) GetJWTSecret() string {
@@ -154,7 +152,7 @@ func (cfg *config) get(key string, encryptionKey string, gormDB *gorm.DB) (strin
 
 	value := userConfig.Value
 	if userConfig.Value != "" && encryptionKey != "" && userConfig.Encrypted {
-		decrypted, err := AesGcmDecrypt(value, encryptionKey)
+		decrypted, err := AesGcmDecryptWithPassword(value, encryptionKey)
 		if err != nil {
 			return "", err
 		}
@@ -165,7 +163,7 @@ func (cfg *config) get(key string, encryptionKey string, gormDB *gorm.DB) (strin
 
 func (cfg *config) set(key string, value string, clauses clause.OnConflict, encryptionKey string, gormDB *gorm.DB) error {
 	if encryptionKey != "" {
-		encrypted, err := AesGcmEncrypt(value, encryptionKey)
+		encrypted, err := AesGcmEncryptWithPassword(value, encryptionKey)
 		if err != nil {
 			return fmt.Errorf("failed to encrypt: %v", err)
 		}

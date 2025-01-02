@@ -33,10 +33,10 @@ type transactionsService struct {
 
 type TransactionsService interface {
 	events.EventSubscriber
-	MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
+	MakeInvoice(ctx context.Context, amount uint64, description string, descriptionHash string, expiry uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	LookupTransaction(ctx context.Context, paymentHash string, transactionType *string, lnClient lnclient.LNClient, appId *uint) (*Transaction, error)
-	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, transactionType *string, lnClient lnclient.LNClient, appId *uint) (transactions []Transaction, err error)
-	SendPaymentSync(ctx context.Context, payReq string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
+	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, transactionType *string, lnClient lnclient.LNClient, appId *uint, forceFilterByAppId bool) (transactions []Transaction, err error)
+	SendPaymentSync(ctx context.Context, payReq string, amountMsat *uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []lnclient.TLVRecord, preimage string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 }
 
@@ -129,7 +129,7 @@ func NewTransactionsService(db *gorm.DB, eventPublisher events.EventPublisher) *
 	}
 }
 
-func (svc *transactionsService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
+func (svc *transactionsService) MakeInvoice(ctx context.Context, amount uint64, description string, descriptionHash string, expiry uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
 	var metadataBytes []byte
 	if metadata != nil {
 		var err error
@@ -143,7 +143,7 @@ func (svc *transactionsService) MakeInvoice(ctx context.Context, amount int64, d
 		}
 	}
 
-	lnClientTransaction, err := lnClient.MakeInvoice(ctx, amount, description, descriptionHash, expiry)
+	lnClientTransaction, err := lnClient.MakeInvoice(ctx, int64(amount), description, descriptionHash, int64(expiry))
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to create transaction")
 		return nil, err
@@ -182,7 +182,20 @@ func (svc *transactionsService) MakeInvoice(ctx context.Context, amount int64, d
 	return &dbTransaction, nil
 }
 
-func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
+func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq string, amountMsat *uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
+	var metadataBytes []byte
+	if metadata != nil {
+		var err error
+		metadataBytes, err = json.Marshal(metadata)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to serialize metadata")
+			return nil, err
+		}
+		if len(metadataBytes) > constants.INVOICE_METADATA_MAX_LENGTH {
+			return nil, fmt.Errorf("encoded payment metadata provided is too large. Limit: %d Received: %d", constants.INVOICE_METADATA_MAX_LENGTH, len(metadataBytes))
+		}
+	}
+
 	payReq = strings.ToLower(payReq)
 	paymentRequest, err := decodepay.Decodepay(payReq)
 	if err != nil {
@@ -193,9 +206,23 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 		return nil, err
 	}
 
+	if time.Now().After(time.Unix(int64(paymentRequest.CreatedAt+paymentRequest.Expiry), 0)) {
+		logger.Logger.WithFields(logrus.Fields{
+			"bolt11": payReq,
+			"expiry": time.Unix(int64(paymentRequest.CreatedAt+paymentRequest.Expiry), 0),
+		}).Errorf("this invoice has expired")
+
+		return nil, errors.New("this invoice has expired")
+	}
+
 	selfPayment := paymentRequest.Payee != "" && paymentRequest.Payee == lnClient.GetPubkey()
 
 	var dbTransaction db.Transaction
+
+	paymentAmount := uint64(paymentRequest.MSatoshi)
+	if amountMsat != nil {
+		paymentAmount = *amountMsat
+	}
 
 	err = svc.db.Transaction(func(tx *gorm.DB) error {
 		var existingSettledTransaction db.Transaction
@@ -208,7 +235,7 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 			return errors.New("this invoice has already been paid")
 		}
 
-		err := svc.validateCanPay(tx, appId, uint64(paymentRequest.MSatoshi))
+		err := svc.validateCanPay(tx, appId, paymentAmount, paymentRequest.Description)
 		if err != nil {
 			return err
 		}
@@ -223,15 +250,15 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 			RequestEventId:  requestEventId,
 			Type:            constants.TRANSACTION_TYPE_OUTGOING,
 			State:           constants.TRANSACTION_STATE_PENDING,
-			FeeReserveMsat:  svc.calculateFeeReserveMsat(uint64(paymentRequest.MSatoshi)),
-			AmountMsat:      uint64(paymentRequest.MSatoshi),
+			FeeReserveMsat:  svc.calculateFeeReserveMsat(paymentAmount),
+			AmountMsat:      paymentAmount,
 			PaymentRequest:  payReq,
 			PaymentHash:     paymentRequest.PaymentHash,
 			Description:     paymentRequest.Description,
 			DescriptionHash: paymentRequest.DescriptionHash,
 			ExpiresAt:       expiresAt,
 			SelfPayment:     selfPayment,
-			// Metadata:       metadata,
+			Metadata:        datatypes.JSON(metadataBytes),
 		}
 		err = tx.Create(&dbTransaction).Error
 		return err
@@ -248,7 +275,7 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 	if selfPayment {
 		response, err = svc.interceptSelfPayment(paymentRequest.PaymentHash)
 	} else {
-		response, err = lnClient.SendPaymentSync(ctx, payReq)
+		response, err = lnClient.SendPaymentSync(ctx, payReq, amountMsat)
 	}
 
 	if err != nil {
@@ -287,7 +314,6 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 }
 
 func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []lnclient.TLVRecord, preimage string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
-
 	if preimage == "" {
 		preImageBytes, err := makePreimageHex()
 		if err != nil {
@@ -326,7 +352,7 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 	selfPayment := destination == lnClient.GetPubkey()
 
 	err = svc.db.Transaction(func(tx *gorm.DB) error {
-		err := svc.validateCanPay(tx, appId, amount)
+		err := svc.validateCanPay(tx, appId, amount, "")
 		if err != nil {
 			return err
 		}
@@ -498,7 +524,7 @@ func (svc *transactionsService) LookupTransaction(ctx context.Context, paymentHa
 	return &transaction, nil
 }
 
-func (svc *transactionsService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, transactionType *string, lnClient lnclient.LNClient, appId *uint) (transactions []Transaction, err error) {
+func (svc *transactionsService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, transactionType *string, lnClient lnclient.LNClient, appId *uint, forceFilterByAppId bool) (transactions []Transaction, err error) {
 	svc.checkUnsettledTransactions(ctx, lnClient)
 
 	tx := svc.db
@@ -532,7 +558,7 @@ func (svc *transactionsService) ListTransactions(ctx context.Context, from, unti
 		if result.RowsAffected == 0 {
 			return nil, NewNotFoundError()
 		}
-		if app.Isolated {
+		if app.Isolated || forceFilterByAppId {
 			tx = tx.Where("app_id == ?", *appId)
 		}
 	}
@@ -769,7 +795,7 @@ func (svc *transactionsService) interceptSelfPayment(paymentHash string) (*lncli
 	}, nil
 }
 
-func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount uint64) error {
+func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount uint64, description string) error {
 	amountWithFeeReserve := amount + svc.calculateFeeReserveMsat(amount)
 
 	// ensure balance for isolated apps
@@ -795,12 +821,17 @@ func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount 
 			balance := queries.GetIsolatedBalance(tx, appPermission.AppId)
 
 			if amountWithFeeReserve > balance {
+				message := NewInsufficientBalanceError().Error()
+				if description != "" {
+					message += " " + description
+				}
+
 				svc.eventPublisher.Publish(&events.Event{
 					Event: "nwc_permission_denied",
 					Properties: map[string]interface{}{
 						"app_name": app.Name,
 						"code":     constants.ERROR_INSUFFICIENT_BALANCE,
-						"message":  NewInsufficientBalanceError().Error(),
+						"message":  message,
 					},
 				})
 				return NewInsufficientBalanceError()
@@ -810,12 +841,16 @@ func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount 
 		if appPermission.MaxAmountSat > 0 {
 			budgetUsageSat := queries.GetBudgetUsageSat(tx, &appPermission)
 			if int(amountWithFeeReserve/1000) > appPermission.MaxAmountSat-int(budgetUsageSat) {
+				message := NewQuotaExceededError().Error()
+				if description != "" {
+					message += " " + description
+				}
 				svc.eventPublisher.Publish(&events.Event{
 					Event: "nwc_permission_denied",
 					Properties: map[string]interface{}{
 						"app_name": app.Name,
 						"code":     constants.ERROR_QUOTA_EXCEEDED,
-						"message":  NewQuotaExceededError().Error(),
+						"message":  message,
 					},
 				})
 				return NewQuotaExceededError()
@@ -957,7 +992,47 @@ func (svc *transactionsService) markTransactionSettled(tx *gorm.DB, dbTransactio
 		Properties: dbTransaction,
 	})
 
+	if dbTransaction.Type == constants.TRANSACTION_TYPE_OUTGOING && dbTransaction.AppId != nil {
+		svc.checkBudgetUsage(dbTransaction)
+	}
+
 	return dbTransaction, nil
+}
+
+func (svc *transactionsService) checkBudgetUsage(dbTransaction *db.Transaction) {
+	var app db.App
+	result := svc.db.Limit(1).Find(&app, &db.App{
+		ID: *dbTransaction.AppId,
+	})
+	if result.RowsAffected == 0 {
+		logger.Logger.WithField("app_id", dbTransaction.AppId).Error("failed to find app by id")
+		return
+	}
+	if app.Isolated {
+		return
+	}
+
+	var appPermission db.AppPermission
+	result = svc.db.Limit(1).Find(&appPermission, &db.AppPermission{
+		AppId: app.ID,
+		Scope: constants.PAY_INVOICE_SCOPE,
+	})
+	if result.RowsAffected == 0 {
+		logger.Logger.WithField("app_id", dbTransaction.AppId).Error("failed to find pay_invoice scope")
+		return
+	}
+
+	budgetUsage := queries.GetBudgetUsageSat(svc.db, &appPermission)
+	warningUsage := uint64(math.Floor(float64(appPermission.MaxAmountSat) * 0.8))
+	if budgetUsage >= warningUsage && budgetUsage-dbTransaction.AmountMsat/1000 < warningUsage {
+		svc.eventPublisher.Publish(&events.Event{
+			Event: "nwc_budget_warning",
+			Properties: map[string]interface{}{
+				"name": app.Name,
+				"id":   app.ID,
+			},
+		})
+	}
 }
 
 func (svc *transactionsService) markPaymentFailed(tx *gorm.DB, dbTransaction *db.Transaction, reason string) error {

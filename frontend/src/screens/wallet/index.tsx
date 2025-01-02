@@ -55,10 +55,10 @@ function Wallet() {
               sats in your Alby shared wallet
             </h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Migrate funds from your Alby hosted balance.
+              Transfer funds from your Alby hosted balance.
             </p>
             {needsChannels ? (
-              <LinkButton to="/channels/first">Migrate Funds</LinkButton>
+              <LinkButton to="/channels/first">Transfer Funds</LinkButton>
             ) : (
               <TransferFundsButton
                 channels={channels}
@@ -71,7 +71,7 @@ function Wallet() {
                   ])
                 }
               >
-                Migrate Funds
+                Transfer Funds
               </TransferFundsButton>
             )}
           </div>
@@ -81,7 +81,7 @@ function Wallet() {
         !!channels?.length &&
         channels?.every(
           (channel) =>
-            channel.localBalance < channel.unspendablePunishmentReserve
+            channel.localBalance < channel.unspendablePunishmentReserve * 1000
         ) &&
         !showMigrateCard && (
           <Alert>

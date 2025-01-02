@@ -99,7 +99,10 @@ func (bs *BreezService) Shutdown() error {
 	return bs.svc.Disconnect()
 }
 
-func (bs *BreezService) SendPaymentSync(ctx context.Context, payReq string) (*lnclient.PayInvoiceResponse, error) {
+func (bs *BreezService) SendPaymentSync(ctx context.Context, payReq string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
+	if amount != nil {
+		return nil, errors.New("0-amount invoices not supported")
+	}
 	sendPaymentRequest := breez_sdk.SendPaymentRequest{
 		Bolt11: payReq,
 	}
@@ -478,7 +481,7 @@ func (bs *BreezService) DisconnectPeer(ctx context.Context, peerId string) error
 }
 
 func (bs *BreezService) GetSupportedNIP47Methods() []string {
-	return []string{"pay_invoice" /*"pay_keysend",*/, "get_balance", "get_info", "make_invoice", "lookup_invoice", "list_transactions", "multi_pay_invoice", "multi_pay_keysend", "sign_message"}
+	return []string{"pay_invoice" /*"pay_keysend",*/, "get_balance", "get_budget", "get_info", "make_invoice", "lookup_invoice", "list_transactions", "multi_pay_invoice", "multi_pay_keysend", "sign_message"}
 }
 
 func (bs *BreezService) GetSupportedNIP47NotificationTypes() []string {

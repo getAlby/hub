@@ -1,8 +1,14 @@
-import { LifeBuoy, ShieldAlert, ShieldCheck } from "lucide-react";
+import {
+  ExternalLinkIcon,
+  LifeBuoy,
+  ShieldAlert,
+  ShieldCheck,
+} from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import Container from "src/components/Container";
+import ExternalLink from "src/components/ExternalLink";
 import MnemonicInputs from "src/components/MnemonicInputs";
 import SettingsHeader from "src/components/SettingsHeader";
 import { Button } from "src/components/ui/button";
@@ -26,6 +32,7 @@ export function BackupMnemonic() {
   const [decryptedMnemonic, setDecryptedMnemonic] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [backedUp, setIsBackedUp] = useState<boolean>(false);
+  const [backedUp2, setIsBackedUp2] = useState<boolean>(false);
   const { data: info } = useInfo();
 
   const onSubmitPassword = async (e: React.FormEvent) => {
@@ -125,22 +132,19 @@ export function BackupMnemonic() {
               </div>
               <span>
                 Your recovery phrase is a set of 12 words that{" "}
-                <b>backs up your wallet savings balance</b>.
+                <b>backs up your wallet on-chain balance</b>.&nbsp;
                 {info?.albyAccountConnected && (
-                  <b>
-                    You also need to make sure you do not forget your unlock
-                    password as this will be used to recover funds from
-                    channels.
-                  </b>
+                  <>
+                    Channel backups are saved automatically to your Alby
+                    Account, encrypted with your recovery phrase.
+                  </>
                 )}
                 {!info?.albyAccountConnected && (
-                  <b>
-                    Make sure to also backup your data directory as this is
-                    required to recover funds on your channels. You can also
-                    connect your Alby Account for automatic encrypted backups
-                    (you still need your seed and unlock password to decrypt
-                    those).
-                  </b>
+                  <>
+                    Make sure to also backup your <b>data directory</b> as this
+                    is required to recover funds on your channels. You can also
+                    connect your Alby Account for automatic encrypted backups.
+                  </>
                 )}
               </span>
             </div>
@@ -149,7 +153,7 @@ export function BackupMnemonic() {
                 <ShieldCheck className="w-6 h-6" />
               </div>
               <span>
-                Make sure to write them down somewhere safe and private
+                Make sure to write them down somewhere safe and private.
               </span>
             </div>
             <div className="flex gap-2 items-center text-destructive">
@@ -157,16 +161,30 @@ export function BackupMnemonic() {
                 <ShieldAlert className="w-6 h-6" />
               </div>
               <span>
-                If you lose your recovery phrase, you will lose access to your
-                funds
+                If you lose access to your hub and do not have your{" "}
+                <b>recovery phrase</b>
+                {!info?.albyAccountConnected && (
+                  <>&nbsp;or do not backup your data directory</>
+                )}
+                , you will lose access to your funds.
               </span>
             </div>
+          </div>
+          <div className="mb-5">
+            <ExternalLink
+              className="underline flex items-center"
+              to="https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub/backups"
+            >
+              Learn more about backups
+              <ExternalLinkIcon className="w-4 h-4 ml-2" />
+            </ExternalLink>
           </div>
 
           <MnemonicInputs mnemonic={decryptedMnemonic} readOnly={true}>
             <div className="flex items-center mt-5">
               <Checkbox
                 id="backup"
+                required
                 onCheckedChange={() => setIsBackedUp(!backedUp)}
               />
               <Label htmlFor="backup" className="ml-2">
@@ -174,9 +192,23 @@ export function BackupMnemonic() {
                 secure place
               </Label>
             </div>
+            {backedUp && !info?.albyAccountConnected && (
+              <div className="flex mt-5">
+                <Checkbox
+                  id="backup2"
+                  required
+                  onCheckedChange={() => setIsBackedUp2(!backedUp2)}
+                />
+                <Label htmlFor="backup2" className="ml-2">
+                  I understand the <b>recovery phrase</b> AND{" "}
+                  <b>a backup of my hub data directory</b> is required to
+                  recover funds from my lightning channels.{" "}
+                </Label>
+              </div>
+            )}
           </MnemonicInputs>
           <div className="flex justify-center">
-            <Button type="submit" disabled={!backedUp} size="lg">
+            <Button type="submit" size="lg">
               Continue
             </Button>
           </div>

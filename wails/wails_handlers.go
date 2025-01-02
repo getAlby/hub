@@ -13,7 +13,6 @@ import (
 
 	"github.com/getAlby/hub/alby"
 	"github.com/getAlby/hub/api"
-	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/logger"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -59,18 +58,14 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 	switch {
 	case len(appMatch) > 1:
 		pubkey := appMatch[1]
-
-		// TODO: move this to DB service
-		dbApp := db.App{}
-		findResult := app.db.Where("nostr_pubkey = ?", pubkey).First(&dbApp)
-
-		if findResult.RowsAffected == 0 {
+		dbApp := app.appsSvc.GetAppByPubkey(pubkey)
+		if dbApp == nil {
 			return WailsRequestRouterResponse{Body: nil, Error: "App does not exist"}
 		}
 
 		switch method {
 		case "GET":
-			app := app.api.GetApp(&dbApp)
+			app := app.api.GetApp(dbApp)
 			return WailsRequestRouterResponse{Body: app, Error: ""}
 		case "PATCH":
 			updateAppRequest := &api.UpdateAppRequest{}
@@ -83,18 +78,49 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 				}).WithError(err).Error("Failed to decode request to wails router")
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 			}
-			err = app.api.UpdateApp(&dbApp, updateAppRequest)
+			err = app.api.UpdateApp(dbApp, updateAppRequest)
 			if err != nil {
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 			}
 			return WailsRequestRouterResponse{Body: nil, Error: ""}
 		case "DELETE":
-			err := app.api.DeleteApp(&dbApp)
+			err := app.api.DeleteApp(dbApp)
 			if err != nil {
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 			}
 			return WailsRequestRouterResponse{Body: nil, Error: ""}
 		}
+	}
+
+	appTopupRegex := regexp.MustCompile(
+		`/api/apps/([0-9a-f]+)/topup`,
+	)
+
+	appTopupMatch := appTopupRegex.FindStringSubmatch(route)
+
+	switch {
+	case len(appTopupMatch) > 1:
+		pubkey := appTopupMatch[1]
+		dbApp := app.appsSvc.GetAppByPubkey(pubkey)
+		if dbApp == nil {
+			return WailsRequestRouterResponse{Body: nil, Error: "App does not exist"}
+		}
+
+		topupIsolatedAppRequest := &api.TopupIsolatedAppRequest{}
+		err := json.Unmarshal([]byte(body), topupIsolatedAppRequest)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).WithError(err).Error("Failed to decode request to wails router")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		err = app.api.TopupIsolatedApp(ctx, dbApp, topupIsolatedAppRequest.AmountSat*1000)
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: nil, Error: ""}
 	}
 
 	peerChannelRegex := regexp.MustCompile(
@@ -220,9 +246,10 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 	case listTransactionsRegex.MatchString(route):
 		limit := uint64(20)
 		offset := uint64(0)
+		var appId *uint
 
 		// Extract limit and offset parameters
-		paramRegex := regexp.MustCompile(`[?&](limit|offset)=([^&]+)`)
+		paramRegex := regexp.MustCompile(`[?&](limit|offset|appId)=([^&]+)`)
 		paramMatches := paramRegex.FindAllStringSubmatch(route, -1)
 		for _, match := range paramMatches {
 			switch match[1] {
@@ -234,10 +261,15 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 				if parsedOffset, err := strconv.ParseUint(match[2], 10, 64); err == nil {
 					offset = parsedOffset
 				}
+			case "appId":
+				if parsedAppId, err := strconv.ParseUint(match[2], 10, 64); err == nil {
+					var unsignedAppId = uint(parsedAppId)
+					appId = &unsignedAppId
+				}
 			}
 		}
 
-		transactions, err := app.api.ListTransactions(ctx, limit, offset)
+		transactions, err := app.api.ListTransactions(ctx, appId, limit, offset)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
@@ -252,7 +284,17 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 	switch {
 	case len(invoiceMatch) > 1:
 		invoice := invoiceMatch[1]
-		paymentResponse, err := app.api.SendPayment(ctx, invoice)
+		payRequest := &api.PayInvoiceRequest{}
+		err := json.Unmarshal([]byte(body), payRequest)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).WithError(err).Error("Failed to decode request to wails router")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		paymentResponse, err := app.api.SendPayment(ctx, invoice, payRequest.Amount)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
@@ -537,6 +579,22 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		infoResponse.Unlocked = infoResponse.Running
 		res := WailsRequestRouterResponse{Body: *infoResponse, Error: ""}
 		return res
+	case "/api/node/migrate-storage":
+		migrateNodeStorageRequest := &api.MigrateNodeStorageRequest{}
+		err := json.Unmarshal([]byte(body), migrateNodeStorageRequest)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).WithError(err).Error("Failed to decode request to wails router")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		err = app.api.MigrateNodeStorage(ctx, migrateNodeStorageRequest.To)
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: nil, Error: ""}
 	case "/api/alby/auto-channel":
 		newAutoChannelRequest := &alby.AutoChannelRequest{}
 		err := json.Unmarshal([]byte(body), newAutoChannelRequest)

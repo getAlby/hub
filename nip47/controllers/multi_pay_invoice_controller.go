@@ -39,6 +39,7 @@ func (controller *nip47Controller) HandleMultiPayInvoiceEvent(ctx context.Contex
 		go func(invoiceInfo multiPayInvoiceElement) {
 			defer wg.Done()
 			bolt11 := invoiceInfo.Invoice
+			metadata := invoiceInfo.Metadata
 			// Convert invoice to lowercase string
 			bolt11 = strings.ToLower(bolt11)
 			paymentRequest, err := decodepay.Decodepay(bolt11)
@@ -68,7 +69,7 @@ func (controller *nip47Controller) HandleMultiPayInvoiceEvent(ctx context.Contex
 			dTag := []string{"d", invoiceDTagValue}
 
 			controller.
-				pay(ctx, bolt11, &paymentRequest, nip47Request, requestEventId, app, publishResponse, nostr.Tags{dTag})
+				pay(ctx, bolt11, invoiceInfo.Amount, metadata, &paymentRequest, nip47Request, requestEventId, app, publishResponse, nostr.Tags{dTag})
 		}(invoiceInfo)
 	}
 

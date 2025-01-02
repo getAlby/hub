@@ -9,9 +9,11 @@ import {
   CopyIcon,
   XIcon,
 } from "lucide-react";
+import { nip19 } from "nostr-tools";
 import React from "react";
 import { Link } from "react-router-dom";
 import AppAvatar from "src/components/AppAvatar";
+import ExternalLink from "src/components/ExternalLink";
 import PodcastingInfo from "src/components/PodcastingInfo";
 import {
   Dialog,
@@ -104,6 +106,17 @@ function TransactionItem({ tx }: Props) {
     </div>
   );
 
+  let from;
+
+  if (tx.metadata?.payer_data?.name) {
+    from = "from " + tx.metadata.payer_data.name;
+  } else if (tx.metadata?.nostr) {
+    const npub = nip19.npubEncode(tx.metadata.nostr.pubkey);
+    from = "zap from " + npub.substring(0, 12) + "...";
+  }
+
+  const eventId = tx.metadata?.nostr?.tags.find((t) => t[0] === "e")?.[1];
+
   return (
     <Dialog
       onOpenChange={(open) => {
@@ -122,11 +135,12 @@ function TransactionItem({ tx }: Props) {
           {typeStateIcon}
           <div className="overflow-hidden mr-3 max-w-full text-left flex flex-col items-start justify-center">
             <div>
-              <p className="flex items-center gap-2 truncate">
+              <p className="flex items-end truncate">
                 <span className="md:text-xl font-semibold">
                   {typeStateText}
                 </span>
-                <span className="text-xs md:text-base truncate text-muted-foreground">
+                {from !== undefined && <>&nbsp;{from}</>}
+                <span className="text-xs md:text-base ml-2 truncate text-muted-foreground">
                   {dayjs(tx.settledAt || tx.createdAt).fromNow()}
                 </span>
               </p>
@@ -184,7 +198,7 @@ function TransactionItem({ tx }: Props) {
             {app && (
               <div className="mt-8">
                 <p>App</p>
-                <Link to={`/apps/${app.nostrPubkey}`}>
+                <Link to={`/apps/${app.appPubkey}`}>
                   <p className="font-semibold">
                     {app.name === "getalby.com" ? "Alby Account" : app.name}
                   </p>
@@ -218,6 +232,23 @@ function TransactionItem({ tx }: Props) {
                 </p>
               </div>
             )}
+            {tx.metadata?.nostr && eventId && (
+              <div className="mt-6">
+                <p>
+                  <ExternalLink
+                    to={`https://njump.me/${nip19.neventEncode({
+                      id: eventId,
+                    })}`}
+                    className="underline"
+                  >
+                    Nostr Zap
+                  </ExternalLink>{" "}
+                  <span className="text-muted-foreground break-all">
+                    from {nip19.npubEncode(tx.metadata.nostr.pubkey)}
+                  </span>
+                </p>
+              </div>
+            )}
             <div className="mt-4 w-full">
               <div
                 className="flex items-center gap-2 cursor-pointer"
@@ -241,7 +272,7 @@ function TransactionItem({ tx }: Props) {
                           {tx.preimage}
                         </p>
                         <CopyIcon
-                          className="cursor-pointer text-muted-foreground w-6 h-6"
+                          className="cursor-pointer text-muted-foreground w-4 h-4 flex-shrink-0"
                           onClick={() => {
                             if (tx.preimage) {
                               copy(tx.preimage);
@@ -258,13 +289,29 @@ function TransactionItem({ tx }: Props) {
                         {tx.paymentHash}
                       </p>
                       <CopyIcon
-                        className="cursor-pointer text-muted-foreground w-6 h-6"
+                        className="cursor-pointer text-muted-foreground w-4 h-4 flex-shrink-0"
                         onClick={() => {
                           copy(tx.paymentHash);
                         }}
                       />
                     </div>
                   </div>
+                  {tx.metadata && (
+                    <div className="mt-6">
+                      <p>Metadata</p>
+                      <div className="flex items-center gap-4">
+                        <p className="text-muted-foreground break-all">
+                          {JSON.stringify(tx.metadata)}
+                        </p>
+                        <CopyIcon
+                          className="cursor-pointer text-muted-foreground w-4 h-4 flex-shrink-0"
+                          onClick={() => {
+                            copy(JSON.stringify(tx.metadata));
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </>
               )}
             </div>

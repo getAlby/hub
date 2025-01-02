@@ -1,6 +1,11 @@
 import * as bip39 from "@scure/bip39";
 import { wordlist } from "@scure/bip39/wordlists/english";
-import { AlertTriangleIcon, LifeBuoy, ShieldCheck } from "lucide-react";
+import {
+  AlertTriangleIcon,
+  LifeBuoy,
+  ShieldAlert,
+  ShieldCheck,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -8,6 +13,8 @@ import MnemonicInputs from "src/components/MnemonicInputs";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
+import { Checkbox } from "src/components/ui/checkbox";
+import { Label } from "src/components/ui/label";
 import { useToast } from "src/components/ui/use-toast";
 import useSetupStore from "src/state/SetupStore";
 
@@ -15,6 +22,7 @@ export function ImportMnemonic() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const setupStore = useSetupStore();
+  const [backedUp, setIsBackedUp] = useState<boolean>(false);
 
   useEffect(() => {
     // in case the user presses back, remove their last-saved mnemonic
@@ -68,7 +76,7 @@ export function ImportMnemonic() {
           </AlertTitle>
           <AlertDescription>
             If you want to transfer your existing Hub to another machine please
-            use the migrate feature from the Alby Hub settings.
+            use the <b>migrate feature</b> from the Alby Hub settings.
           </AlertDescription>
         </Alert>
         <Alert>
@@ -78,8 +86,8 @@ export function ImportMnemonic() {
                 <LifeBuoy className="w-6 h-6" />
               </div>
               <span className="text-muted-foreground">
-                Recovery phrase is a set of 12 words that{" "}
-                <b>restores your wallet from a backup</b>
+                Your recovery phrase is a set of 12 words used to restore your
+                on-chain balance from a backup.
               </span>
             </div>
             <div className="flex gap-2 items-center">
@@ -87,13 +95,35 @@ export function ImportMnemonic() {
                 <ShieldCheck className="w-6 h-6" />
               </div>
               <span className="text-muted-foreground">
-                Make sure to enter them somewhere safe and private
+                Keep it safe and private to ensure your funds remain secure.
+              </span>
+            </div>
+            <div className="flex gap-2 items-center">
+              <div className="shrink-0 text-muted-foreground">
+                <ShieldAlert className="w-6 h-6" />
+              </div>
+              <span className="text-muted-foreground">
+                Your recovery phrase cannot restore funds from lightning
+                channels. If you had active channels on a different device,
+                contact Alby support before proceeding.
               </span>
             </div>
           </div>
         </Alert>
 
         <MnemonicInputs mnemonic={mnemonic} setMnemonic={setMnemonic} />
+
+        <div className="flex items-center mt-5">
+          <Checkbox
+            id="confirmedNoChannels"
+            required
+            onCheckedChange={() => setIsBackedUp(!backedUp)}
+          />
+          <Label htmlFor="confirmedNoChannels" className="ml-2">
+            I don't have another Alby Hub to migrate or open channels (funds
+            from channels will be lost!).
+          </Label>
+        </div>
         <Button>Next</Button>
       </form>
     </>

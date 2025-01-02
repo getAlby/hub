@@ -1,9 +1,9 @@
 import {
   CreditCard,
+  DatabaseBackup,
   Headphones,
   LifeBuoy,
   Mail,
-  PartyPopper,
   Zap,
 } from "lucide-react";
 import Container from "src/components/Container";
@@ -16,7 +16,11 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 
-export function ConnectAlbyAccount() {
+type ConnectAlbyAccountProps = {
+  connectUrl?: string;
+};
+
+export function ConnectAlbyAccount({ connectUrl }: ConnectAlbyAccountProps) {
   return (
     <div className="w-full h-full flex flex-col items-center justify-center gap-5">
       <Container>
@@ -40,6 +44,15 @@ export function ConnectAlbyAccount() {
               <CardTitle className="text-sm">Email Notifications</CardTitle>
               <CardDescription className="text-xs">
                 Instant notifications about incoming transactions and more
+              </CardDescription>
+            </CardHeader>
+          </Card>
+          <Card className="w-full">
+            <CardHeader className="flex flex-col justify-center items-center text-center p-4">
+              <DatabaseBackup className="w-6 h-6" />
+              <CardTitle className="text-sm">Encrypted Backups</CardTitle>
+              <CardDescription className="text-xs">
+                Ensures you can always recover funds from lightning channels
               </CardDescription>
             </CardHeader>
           </Card>
@@ -70,18 +83,15 @@ export function ConnectAlbyAccount() {
               </CardDescription>
             </CardHeader>
           </Card>
-          <Card className="w-full">
-            <CardHeader className="flex flex-col justify-center items-center text-center p-4">
-              <PartyPopper className="w-6 h-6" />
-              <CardTitle className="text-sm">and there's more...</CardTitle>
-              <CardDescription className="text-xs">
-                Claim your Nostr address, discover apps, etc
-              </CardDescription>
-            </CardHeader>
-          </Card>
         </div>
-        <div className="flex flex-col items-center justify-center mt-8 gap-2">
-          <LinkButton to="/alby/auth" size="lg">
+        <div className="flex flex-col justify-center items-center text-center p-4 mt-4">
+          <CardTitle className="text-sm">and there's more...</CardTitle>
+          <CardDescription className="text-xs">
+            Claim your Nostr address, discover apps, etc
+          </CardDescription>
+        </div>
+        <div className="flex flex-col items-center justify-center gap-2">
+          <LinkButton to={connectUrl || "/alby/auth"} size="lg">
             Connect now
           </LinkButton>
           <LinkButton

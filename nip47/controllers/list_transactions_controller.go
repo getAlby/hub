@@ -11,12 +11,14 @@ import (
 )
 
 type listTransactionsParams struct {
-	From   uint64 `json:"from,omitempty"`
-	Until  uint64 `json:"until,omitempty"`
-	Limit  uint64 `json:"limit,omitempty"`
-	Offset uint64 `json:"offset,omitempty"`
-	Unpaid bool   `json:"unpaid,omitempty"`
-	Type   string `json:"type,omitempty"`
+	From           uint64 `json:"from,omitempty"`
+	Until          uint64 `json:"until,omitempty"`
+	Limit          uint64 `json:"limit,omitempty"`
+	Offset         uint64 `json:"offset,omitempty"`
+	Unpaid         bool   `json:"unpaid,omitempty"`
+	UnpaidOutgoing bool   `json:"unpaid_outgoing,omitempty"`
+	UnpaidIncoming bool   `json:"unpaid_incoming,omitempty"`
+	Type           string `json:"type,omitempty"`
 }
 
 type listTransactionsResponse struct {
@@ -48,8 +50,7 @@ func (controller *nip47Controller) HandleListTransactionsEvent(ctx context.Conte
 		transactionType = &listParams.Type
 	}
 
-	// TODO: listParams.Unpaid needs to be updated to support ability to fetch only unpaid outgoing transactions
-	dbTransactions, err := controller.transactionsService.ListTransactions(ctx, listParams.From, listParams.Until, limit, listParams.Offset, listParams.Unpaid, listParams.Unpaid, transactionType, controller.lnClient, &appId)
+	dbTransactions, err := controller.transactionsService.ListTransactions(ctx, listParams.From, listParams.Until, limit, listParams.Offset, listParams.Unpaid || listParams.UnpaidOutgoing, listParams.Unpaid || listParams.UnpaidIncoming, transactionType, controller.lnClient, &appId, false)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"params":           listParams,

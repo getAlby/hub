@@ -1,20 +1,20 @@
 import { compare } from "compare-versions";
 import {
-  Cable,
   Cloud,
   EllipsisVertical,
-  ExternalLinkIcon,
   Home,
+  LayoutGrid,
+  LifeBuoy,
   Lightbulb,
   Lock,
   Megaphone,
   Menu,
-  MessageCircleQuestion,
+  Plug2,
   PlugZapIcon,
   Settings,
   ShieldAlertIcon,
   ShieldCheckIcon,
-  Store,
+  User2,
   Wallet,
 } from "lucide-react";
 
@@ -50,9 +50,11 @@ import { useAlbyMe } from "src/hooks/useAlbyMe";
 
 import { useAlbyInfo } from "src/hooks/useAlbyInfo";
 import { useInfo } from "src/hooks/useInfo";
+import { useNotifyReceivedPayments } from "src/hooks/useNotifyReceivedPayments";
 import { useRemoveSuccessfulChannelOrder } from "src/hooks/useRemoveSuccessfulChannelOrder";
 import { deleteAuthToken } from "src/lib/auth";
 import { cn } from "src/lib/utils";
+import { isHttpMode } from "src/utils/isHttpMode";
 import { openLink } from "src/utils/openLink";
 import ExternalLink from "../ExternalLink";
 
@@ -64,6 +66,9 @@ export default function AppLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   useRemoveSuccessfulChannelOrder();
+  useNotifyReceivedPayments();
+
+  const _isHttpMode = isHttpMode();
 
   React.useEffect(() => {
     setMobileMenuOpen(false);
@@ -73,15 +78,12 @@ export default function AppLayout() {
     deleteAuthToken();
     await refetchInfo();
 
-    const isHttpMode = window.location.protocol.startsWith("http");
-    if (isHttpMode) {
+    if (_isHttpMode) {
       window.location.href = "/logout";
     } else {
       navigate("/", { replace: true });
     }
-  }, [navigate, refetchInfo]);
-
-  const isHttpMode = window.location.protocol.startsWith("http");
+  }, [_isHttpMode, navigate, refetchInfo]);
 
   if (!info) {
     return null;
@@ -104,18 +106,18 @@ export default function AppLayout() {
           )}
           {info?.albyAccountConnected && (
             <DropdownMenuItem>
-              <ExternalLink
-                to="https://getalby.com/settings"
+              <Link
+                to="/settings/alby-account"
                 className="w-full flex flex-row items-center gap-2"
               >
-                <ExternalLinkIcon className="w-4 h-4" />
+                <User2 className="w-4 h-4" />
                 <p>Alby Account Settings</p>
-              </ExternalLink>
+              </Link>
             </DropdownMenuItem>
           )}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        {isHttpMode && (
+        {_isHttpMode && (
           <DropdownMenuItem
             onClick={logout}
             className="w-full flex flex-row items-center gap-2 cursor-pointer"
@@ -139,13 +141,13 @@ export default function AppLayout() {
           <Wallet className="h-4 w-4" />
           Wallet
         </MenuItem>
-        <MenuItem to="/apps">
-          <Cable className="h-4 w-4" />
-          Connections
-        </MenuItem>
         <MenuItem to="/appstore">
-          <Store className="h-4 w-4" />
+          <LayoutGrid className="h-4 w-4" />
           App Store
+        </MenuItem>
+        <MenuItem to="/apps">
+          <Plug2 className="h-4 w-4" />
+          Connections
         </MenuItem>
       </>
     );
@@ -168,14 +170,12 @@ export default function AppLayout() {
         <MenuItem
           to="/"
           onClick={(e) => {
-            openLink(
-              "https://feedback.getalby.com/-alby-hub-request-a-feature"
-            );
+            openLink("https://getalby.com/help");
             e.preventDefault();
           }}
         >
-          <Megaphone className="h-4 w-4" />
-          Feedback
+          <LifeBuoy className="h-4 w-4" />
+          Live Support
         </MenuItem>
         <MenuItem
           to="/"
@@ -187,17 +187,19 @@ export default function AppLayout() {
           }}
         >
           <Lightbulb className="h-4 w-4" />
-          Knowledge Base
+          Guides
         </MenuItem>
         <MenuItem
           to="/"
           onClick={(e) => {
-            openLink("https://getalby.com/help");
+            openLink(
+              "https://feedback.getalby.com/-alby-hub-request-a-feature"
+            );
             e.preventDefault();
           }}
         >
-          <MessageCircleQuestion className="h-4 w-4" />
-          Live Support
+          <Megaphone className="h-4 w-4" />
+          Feedback
         </MenuItem>
         {!albyMe?.hub.name && info?.albyAccountConnected && (
           <MenuItem

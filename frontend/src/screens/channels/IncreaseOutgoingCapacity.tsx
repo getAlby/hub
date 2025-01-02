@@ -1,4 +1,4 @@
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, InfoIcon } from "lucide-react";
 import React, { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
@@ -20,6 +20,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "src/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "src/components/ui/tooltip";
 import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
 import { useChannelPeerSuggestions } from "src/hooks/useChannelPeerSuggestions";
@@ -27,6 +33,7 @@ import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
 import { usePeers } from "src/hooks/usePeers";
 import { cn, formatAmount } from "src/lib/utils";
+import { ChannelPublicPrivateAlert } from "src/screens/channels/ChannelPublicPrivateAlert";
 import useChannelOrderStore from "src/state/ChannelOrderStore";
 import {
   Network,
@@ -215,14 +222,12 @@ function NewChannelInternal({ network }: { network: Network }) {
   return (
     <>
       <AppHeader
-        title="Increase Spending Balance"
+        title="Open Channel with On-Chain"
         description="Funds used to open a channel minus fees will be added to your spending balance"
         contentRight={
           <div className="flex items-end">
-            <Link to="/channels/incoming">
-              <Button className="w-full" variant="secondary">
-                Need receiving capacity?
-              </Button>
+            <Link to="/channels/incoming" className="underline text-sm">
+              Open Channel with Lightning
             </Link>
           </div>
         }
@@ -242,7 +247,24 @@ function NewChannelInternal({ network }: { network: Network }) {
           className="md:max-w-md max-w-full flex flex-col gap-5 flex-1"
         >
           <div className="grid gap-1.5">
-            <Label htmlFor="amount">Channel size (sats)</Label>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger type="button">
+                  <div className="flex flex-row gap-2 items-center justify-start text-sm">
+                    <Label htmlFor="amount">
+                      Increase spending balance (sats)
+                    </Label>
+                    <InfoIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent className="w-[300px]">
+                  Configure the amount of spending capacity you need. You will
+                  need to deposit on-chain bitcoin to cover the entire channel
+                  size, plus on-chain fees.
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
             {order.amount && +order.amount < 200_000 && (
               <p className="text-muted-foreground text-xs">
                 For a smooth experience consider a opening a channel of 200k
@@ -270,7 +292,7 @@ function NewChannelInternal({ network }: { network: Network }) {
               }}
             />
             <div className="text-muted-foreground text-sm sensitive slashed-zero">
-              Current savings balance:{" "}
+              Current on-chain balance:{" "}
               {new Intl.NumberFormat().format(balances.onchain.spendable)} sats
             </div>
             <div className="grid grid-cols-3 gap-1.5 text-muted-foreground text-xs">
@@ -403,6 +425,9 @@ function NewChannelInternal({ network }: { network: Network }) {
               Advanced Options
             </Button>
           )}
+          {channels?.some((channel) => channel.public !== !!order.isPublic) && (
+            <ChannelPublicPrivateAlert />
+          )}
           <Button size="lg">{openImmediately ? "Open Channel" : "Next"}</Button>
         </form>
 
@@ -415,7 +440,7 @@ function NewChannelInternal({ network }: { network: Network }) {
             className="w-full"
             variant="secondary"
           >
-            Increase receiving capacity
+            Increase Receiving Capacity
           </LinkButton>
           <ExternalLinkButton
             to="https://www.getalby.com/topup"

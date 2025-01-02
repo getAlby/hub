@@ -9,6 +9,7 @@ interface Props {
   description: string;
   buttonText: string;
   buttonLink: string;
+  showButton?: boolean;
 }
 
 const EmptyState: React.FC<Props> = ({
@@ -17,6 +18,7 @@ const EmptyState: React.FC<Props> = ({
   description: subMessage,
   buttonText,
   buttonLink,
+  showButton = true,
 }) => {
   return (
     <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm p-8">
@@ -24,9 +26,11 @@ const EmptyState: React.FC<Props> = ({
         <Icon className="w-10 h-10 text-muted-foreground" />
         <h3 className="mt-4 text-lg font-semibold">{message}</h3>
         <p className="text-sm text-muted-foreground">{subMessage}</p>
-        <Link to={buttonLink}>
-          <Button className="mt-4">{buttonText}</Button>
-        </Link>
+        {showButton && (
+          <Link to={buttonLink}>
+            <Button className="mt-4">{buttonText}</Button>
+          </Link>
+        )}
       </div>
     </div>
   );

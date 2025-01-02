@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/getAlby/hub/db"
+
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip19"
 	"github.com/sirupsen/logrus"
@@ -24,15 +26,9 @@ import (
 	"github.com/getAlby/hub/logger"
 )
 
-func (svc *service) startNostr(ctx context.Context, encryptionKey string) error {
+func (svc *service) startNostr(ctx context.Context) error {
 
 	relayUrl := svc.cfg.GetRelayUrl()
-
-	err := svc.keys.Init(svc.cfg, encryptionKey)
-	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to init nostr keys")
-		return err
-	}
 
 	npub, err := nip19.EncodePublicKey(svc.keys.GetNostrPublicKey())
 	if err != nil {
@@ -51,22 +47,20 @@ func (svc *service) startNostr(ctx context.Context, encryptionKey string) error 
 		//Start infinite loop which will be only broken by canceling ctx (SIGINT)
 		var relay *nostr.Relay
 		waitToReconnectSeconds := 0
-
+		var createAppEventListener events.EventSubscriber
+		var updateAppEventListener events.EventSubscriber
 		for i := 0; ; i++ {
-
 			// wait for a delay if any before retrying
-			if waitToReconnectSeconds > 0 {
-				contextCancelled := false
+			contextCancelled := false
 
-				select {
-				case <-ctx.Done(): //context cancelled
-					logger.Logger.Info("service context cancelled while waiting for retry")
-					contextCancelled = true
-				case <-time.After(time.Duration(waitToReconnectSeconds) * time.Second): //timeout
-				}
-				if contextCancelled {
-					break
-				}
+			select {
+			case <-ctx.Done(): // application service context cancelled
+				logger.Logger.Info("service context cancelled")
+				contextCancelled = true
+			case <-time.After(time.Duration(waitToReconnectSeconds) * time.Second): //timeout
+			}
+			if contextCancelled {
+				break
 			}
 
 			closeRelay(relay)
@@ -89,33 +83,130 @@ func (svc *service) startNostr(ctx context.Context, encryptionKey string) error 
 				}).WithError(err).Error("Failed to connect to relay")
 				continue
 			}
-
+			logger.Logger.WithFields(logrus.Fields{
+				"relay_url": relayUrl,
+			}).Info("Connected to the relay")
 			waitToReconnectSeconds = 0
 
-			//publish event with NIP-47 info
-			err = svc.nip47Service.PublishNip47Info(ctx, relay, svc.lnClient)
-			if err != nil {
-				logger.Logger.WithError(err).Error("Could not publish NIP47 info")
+			// register a subscriber for events of "nwc_app_created" which handles creation of nostr subscription for new app
+			if createAppEventListener != nil {
+				svc.eventPublisher.RemoveSubscriber(createAppEventListener)
 			}
+			createAppEventListener = &createAppConsumer{svc: svc, relay: relay}
+			svc.eventPublisher.RegisterSubscriber(createAppEventListener)
 
-			logger.Logger.Info("Subscribing to events")
-			sub, err := relay.Subscribe(ctx, svc.createFilters(svc.keys.GetNostrPublicKey()))
-			if err != nil {
-				logger.Logger.WithError(err).Error("Failed to subscribe to events")
-				continue
+			// register a subscriber for events of "nwc_app_updated" which handles re-publishing of nip47 event info
+			if updateAppEventListener != nil {
+				svc.eventPublisher.RemoveSubscriber(updateAppEventListener)
 			}
-			err = svc.StartSubscription(sub.Context, sub)
-			if err != nil {
+			updateAppEventListener = &updateAppConsumer{svc: svc, relay: relay}
+			svc.eventPublisher.RegisterSubscriber(updateAppEventListener)
+
+			// start each app wallet subscription which have a child derived wallet key
+			svc.startAllExistingAppsWalletSubscriptions(ctx, relay)
+
+			// check if there are still legacy apps in DB
+			var legacyAppCount int64
+			result := svc.db.Model(&db.App{}).Where("wallet_pubkey IS NULL").Count(&legacyAppCount)
+			if result.Error != nil {
+				logger.Logger.WithError(result.Error).Error("Failed to count Legacy Apps")
+				return
+			}
+			if legacyAppCount > 0 {
+				// re-publish single NIP47 event info for legacy apps
+				_, err := svc.GetNip47Service().PublishNip47Info(ctx, relay, svc.keys.GetNostrPublicKey(), svc.keys.GetNostrSecretKey(), svc.lnClient)
+				if err != nil {
+					logger.Logger.WithError(err).Error("Could not publish NIP47 info for legacy apps")
+					continue
+				}
+				logger.Logger.WithField("legacy_app_count", legacyAppCount).Info("Starting legacy app subscription")
+				// legacy single wallet subscription - only subscribe once for all legacy apps
+				// to ensure we do not get duplicate events
+				err = svc.startAppWalletSubscription(ctx, relay, svc.keys.GetNostrPublicKey())
+				if err != nil {
+					//err being non-nil means that we have an error on the websocket error channel. In this case we just try to reconnect.
+					logger.Logger.WithError(err).Error("Got an error from the relay while listening to subscription.")
+					continue
+				}
+			}
+			select {
+			case <-ctx.Done():
+				logger.Logger.Info("Main context cancelled, exiting...")
+			case <-relay.Context().Done():
 				//err being non-nil means that we have an error on the websocket error channel. In this case we just try to reconnect.
-				logger.Logger.WithError(err).Error("Got an error from the relay while listening to subscription.")
-				continue
+				if relay.ConnectionError != nil {
+					logger.Logger.WithError(relay.ConnectionError).Error("Got an error from the relay, trying to reconnect")
+				} else {
+					logger.Logger.Error("Relay context cancelled, but no connection error...trying to reconnect")
+				}
 			}
-			//err being nil means that the context was canceled and we should exit the program.
-			break
 		}
 		closeRelay(relay)
 		logger.Logger.Info("Relay subroutine ended")
 	}()
+	return nil
+}
+
+func (svc *service) startAllExistingAppsWalletSubscriptions(ctx context.Context, relay *nostr.Relay) {
+	var apps []db.App
+	result := svc.db.Where("wallet_pubkey IS NOT NULL").Find(&apps)
+	if result.Error != nil {
+		logger.Logger.WithError(result.Error).Error("Failed to fetch App records with non-empty WalletPubkey")
+		return
+	}
+
+	for _, app := range apps {
+		go func(app db.App) {
+			err := svc.startAppWalletSubscription(ctx, relay, *app.WalletPubkey)
+			if err != nil {
+				logger.Logger.WithError(err).WithFields(logrus.Fields{
+					"app_id": app.ID}).Error("Subscription error")
+				return
+			}
+		}(app)
+	}
+}
+
+func (svc *service) startAppWalletSubscription(ctx context.Context, relay *nostr.Relay, appWalletPubKey string) error {
+
+	logger.Logger.Info("Subscribing to events for wallet ", appWalletPubKey)
+	sub, err := relay.Subscribe(ctx, svc.createFilters(appWalletPubKey))
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to subscribe to events")
+		return err
+	}
+
+	// register a subscriber for "nwc_app_deleted" events, which handles nostr subscription cancel and nip47 info event deletion
+	deleteEventSubscriber := deleteAppConsumer{nostrSubscription: sub, walletPubkey: appWalletPubKey, svc: svc, relay: relay}
+	svc.eventPublisher.RegisterSubscriber(&deleteEventSubscriber)
+
+	err = svc.StartSubscription(sub.Context, sub)
+	svc.eventPublisher.RemoveSubscriber(&deleteEventSubscriber)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Got an error from the relay while listening to subscription.")
+		return err
+	}
+	return nil
+}
+
+func (svc *service) StartSubscription(ctx context.Context, sub *nostr.Subscription) error {
+	svc.nip47Service.StartNotifier(ctx, sub.Relay, svc.lnClient)
+
+	go func() {
+		// loop through incoming events
+		for event := range sub.Events {
+			go svc.nip47Service.HandleEvent(ctx, sub.Relay, event, svc.lnClient)
+		}
+		logger.Logger.Debug("Relay subscription events channel ended")
+	}()
+
+	<-ctx.Done()
+
+	if sub.Relay.ConnectionError != nil {
+		logger.Logger.WithField("connectionError", sub.Relay.ConnectionError).Error("Relay error")
+		return sub.Relay.ConnectionError
+	}
+	logger.Logger.Info("Exiting subscription...")
 	return nil
 }
 
@@ -130,7 +221,14 @@ func (svc *service) StartApp(encryptionKey string) error {
 
 	ctx, cancelFn := context.WithCancel(svc.ctx)
 
-	err := svc.launchLNBackend(ctx, encryptionKey)
+	err := svc.keys.Init(svc.cfg, encryptionKey)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to init nostr keys")
+		cancelFn()
+		return err
+	}
+
+	err = svc.launchLNBackend(ctx, encryptionKey)
 	if err != nil {
 		logger.Logger.Errorf("Failed to launch LN backend: %v", err)
 		svc.eventPublisher.Publish(&events.Event{
@@ -140,7 +238,7 @@ func (svc *service) StartApp(encryptionKey string) error {
 		return err
 	}
 
-	err = svc.startNostr(ctx, encryptionKey)
+	err = svc.startNostr(ctx)
 	if err != nil {
 		cancelFn()
 		return err
@@ -172,6 +270,7 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 	logger.Logger.Infof("Launching LN Backend: %s", lnBackend)
 	var lnClient lnclient.LNClient
 	var err error
+	vssEnabled := false
 	switch lnBackend {
 	case config.LNDBackendType:
 		LNDAddress, _ := svc.cfg.Get("LNDAddress", encryptionKey)
@@ -179,10 +278,17 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 		LNDMacaroonHex, _ := svc.cfg.Get("LNDMacaroonHex", encryptionKey)
 		lnClient, err = lnd.NewLNDService(ctx, svc.eventPublisher, LNDAddress, LNDCertHex, LNDMacaroonHex)
 	case config.LDKBackendType:
-		Mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
-		LDKWorkdir := path.Join(svc.cfg.GetEnv().Workdir, "ldk")
+		mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
+		ldkWorkdir := path.Join(svc.cfg.GetEnv().Workdir, "ldk")
+		var vssToken string
+		vssToken, err = svc.requestVssToken(ctx)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to request VSS token")
+			return err
+		}
+		vssEnabled = vssToken != ""
 
-		lnClient, err = ldk.NewLDKService(ctx, svc.cfg, svc.eventPublisher, Mnemonic, LDKWorkdir, svc.cfg.GetEnv().LDKNetwork, nil, false)
+		lnClient, err = ldk.NewLDKService(ctx, svc.cfg, svc.eventPublisher, mnemonic, ldkWorkdir, svc.cfg.GetEnv().LDKNetwork, vssToken)
 	case config.GreenlightBackendType:
 		Mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
 		GreenlightInviteCode, _ := svc.cfg.Get("GreenlightInviteCode", encryptionKey)
@@ -239,7 +345,8 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 	svc.eventPublisher.Publish(&events.Event{
 		Event: "nwc_node_started",
 		Properties: map[string]interface{}{
-			"node_type": lnBackend,
+			"node_type":   lnBackend,
+			"vss_enabled": vssEnabled,
 		},
 	})
 
@@ -261,4 +368,44 @@ func closeRelay(relay *nostr.Relay) {
 			}
 		}()
 	}
+}
+
+func (svc *service) requestVssToken(ctx context.Context) (string, error) {
+	nodeLastStartTime, _ := svc.cfg.Get("NodeLastStartTime", "")
+
+	// for brand new nodes, consider enabling VSS
+	if nodeLastStartTime == "" && svc.cfg.GetEnv().LDKVssUrl != "" {
+		albyUserIdentifier, err := svc.albyOAuthSvc.GetUserIdentifier()
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to fetch alby user identifier")
+			return "", err
+		}
+		if albyUserIdentifier != "" {
+			me, err := svc.albyOAuthSvc.GetMe(ctx)
+			if err != nil {
+				logger.Logger.WithError(err).Error("Failed to fetch alby user")
+				return "", err
+			}
+			// only activate VSS for Alby paid subscribers
+			if me.Subscription.Buzz {
+				svc.cfg.SetUpdate("LdkVssEnabled", "true", "")
+			}
+		}
+	}
+
+	vssToken := ""
+	vssEnabled, _ := svc.cfg.Get("LdkVssEnabled", "")
+	if vssEnabled == "true" {
+		vssNodeIdentifier, err := ldk.GetVssNodeIdentifier(svc.keys)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to get VSS node identifier")
+			return "", err
+		}
+		vssToken, err = svc.albyOAuthSvc.GetVssAuthToken(ctx, vssNodeIdentifier)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to fetch VSS JWT token")
+			return "", err
+		}
+	}
+	return vssToken, nil
 }

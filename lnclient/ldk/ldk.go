@@ -2,10 +2,12 @@ package ldk
 
 import (
 	"context"
+	"crypto/sha256"
 	"database/sql"
+	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"math"
 	"os"
 	"path/filepath"
@@ -16,10 +18,9 @@ import (
 	"time"
 
 	"github.com/getAlby/ldk-node-go/ldk_node"
-	// "github.com/getAlby/hub/ldk_node"
+	"github.com/tyler-smith/go-bip32"
 
-	"encoding/hex"
-	"encoding/json"
+	// "github.com/getAlby/hub/ldk_node"
 
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
@@ -29,6 +30,7 @@ import (
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/lsp"
+	"github.com/getAlby/hub/service/keys"
 	"github.com/getAlby/hub/utils"
 )
 
@@ -49,26 +51,24 @@ type LDKService struct {
 
 const resetRouterKey = "ResetRouter"
 
-func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events.EventPublisher, mnemonic, workDir string, network string, staticChannelsBackup *events.StaticChannelsBackupEvent, restoredFromSeed bool) (result lnclient.LNClient, err error) {
+func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events.EventPublisher, mnemonic, workDir string, network string, vssToken string) (result lnclient.LNClient, err error) {
 	if mnemonic == "" || workDir == "" {
 		return nil, errors.New("one or more required LDK configuration are missing")
 	}
 
-	//create dir if not exists
+	// create dir if not exists
 	newpath := filepath.Join(workDir)
 	err = os.MkdirAll(newpath, os.ModePerm)
 	if err != nil {
-		log.Printf("Failed to create LDK working dir: %v", err)
+		logger.Logger.WithError(err).Error("Failed to create LDK working dir")
 		return nil, err
 	}
 
 	logDirPath := filepath.Join(newpath, "./logs")
 
 	ldkConfig := ldk_node.DefaultConfig()
-	listeningAddresses := []string{
-		"0.0.0.0:9735",
-		"[::]:9735",
-	}
+	listeningAddresses := strings.Split(cfg.GetEnv().LDKListeningAddresses, ",")
+
 	ldkConfig.TrustedPeers0conf = []string{
 		lsp.OlympusLSP().Pubkey,
 		lsp.AlbyPlebsLSP().Pubkey,
@@ -105,9 +105,10 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		ldkConfig.LogLevel = ldk_node.LogLevel(logLevel) + ldk_node.LogLevelGossip
 	}
 	builder := ldk_node.BuilderFromConfig(ldkConfig)
+	builder.SetNodeAlias("Alby Hub") // TODO: allow users to customize
 	builder.SetEntropyBip39Mnemonic(mnemonic, nil)
 	builder.SetNetwork(network)
-	builder.SetEsploraServer(cfg.GetEnv().LDKEsploraServer)
+	builder.SetChainSourceEsplora(cfg.GetEnv().LDKEsploraServer, nil)
 	if cfg.GetEnv().LDKGossipSource != "" {
 		logger.Logger.WithField("gossipSource", cfg.GetEnv().LDKGossipSource).Warn("LDK RGS instance set")
 		builder.SetGossipSourceRgs(cfg.GetEnv().LDKGossipSource)
@@ -119,17 +120,34 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	// The liquidity source below is not used because we do not use the native LDK-node LSPS2 API.
 	builder.SetLiquiditySourceLsps2("52.88.33.119:9735", lsp.OlympusLSP().Pubkey, nil)
 
-	// recover from backup
-	if staticChannelsBackup != nil {
-		// add backed up channel monitors to LDK DB
-		builder.RestoreEncodedChannelMonitors(getEncodedChannelMonitorsFromStaticChannelsBackup(staticChannelsBackup))
+	migrateStorage, _ := cfg.Get("LdkMigrateStorage", "")
+	if migrateStorage == "VSS" {
+		err = cfg.SetUpdate("LdkMigrateStorage", "", "")
+		if err != nil {
+			return nil, err
+		}
+		if vssToken == "" {
+			return nil, errors.New("migration enabled but no vss token found")
+		}
+		builder.MigrateStorage(ldk_node.MigrateStorageVss)
 	}
 
-	//builder.SetLogDirPath (filepath.Join(newpath, "./logs")); // missing?
-	node, err := builder.Build()
+	logger.Logger.WithFields(logrus.Fields{
+		"migrate_storage":     migrateStorage,
+		"vss_enabled":         vssToken != "",
+		"listening_addresses": listeningAddresses,
+	}).Info("Creating node")
+	var node *ldk_node.Node
+	if vssToken != "" {
+		node, err = builder.BuildWithVssStoreAndFixedHeaders(cfg.GetEnv().LDKVssUrl, "albyhub", map[string]string{
+			"Authorization": fmt.Sprintf("Bearer %s", vssToken),
+		})
+	} else {
+		node, err = builder.Build()
+	}
 
 	if err != nil {
-		logger.Logger.Errorf("Failed to create LDK node: %v", err)
+		logger.Logger.WithError(err).Error("Failed to create LDK node")
 		return nil, err
 	}
 
@@ -176,7 +194,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 				if event == nil {
 					// if there is no event, wait before polling again to avoid 100% CPU usage
 					// TODO: remove this and use WaitNextEvent()
-					time.Sleep(time.Duration(1) * time.Millisecond)
+					time.Sleep(time.Duration(1000) * time.Millisecond)
 					continue
 				}
 
@@ -190,24 +208,8 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 
 	err = node.Start()
 	if err != nil {
-		logger.Logger.Errorf("Failed to start LDK node: %v", err)
+		logger.Logger.WithError(err).Error("Failed to start LDK node")
 		return nil, err
-	}
-
-	if restoredFromSeed {
-		// generate some onchain addresses in case there were funds on them (when importing from an existing seed)
-		// NOTE: this may not be enough. The user could click the get new address button to fetch more addresses
-		// (this will probably be improved with BDK 1.0 anyway)
-		func() {
-			for i := 0; i < 10; i++ {
-				ls.node.OnchainPayment().NewAddress()
-			}
-		}()
-	}
-
-	// recover from backup
-	if staticChannelsBackup != nil {
-		forceCloseChannelsFromStaticChannelsBackup(node, staticChannelsBackup)
 	}
 
 	logger.Logger.WithFields(logrus.Fields{
@@ -274,7 +276,9 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 				Port:    uint16(port),
 			})
 			if err != nil {
-				logger.Logger.WithField("peer", peer).WithError(err).Error("Failed to connect to peer")
+				logger.Logger.WithFields(logrus.Fields{
+					"peer": peer,
+				}).WithError(err).Error("Failed to connect to peer")
 			}
 		}
 	}
@@ -467,24 +471,29 @@ func (ls *LDKService) resetRouterInternal() {
 	}
 }
 
-func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string) (*lnclient.PayInvoiceResponse, error) {
+func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
 	paymentRequest, err := decodepay.Decodepay(invoice)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"bolt11": invoice,
-		}).Errorf("Failed to decode bolt11 invoice: %v", err)
+		}).WithError(err).Error("Failed to decode bolt11 invoice")
 
 		return nil, err
 	}
 
+	paymentAmount := uint64(paymentRequest.MSatoshi)
+	if amount != nil {
+		paymentAmount = *amount
+	}
+
 	maxSpendable := ls.getMaxSpendable()
-	if paymentRequest.MSatoshi > maxSpendable {
+	if paymentAmount > maxSpendable {
 		ls.eventPublisher.Publish(&events.Event{
 			Event: "nwc_outgoing_liquidity_required",
 			Properties: map[string]interface{}{
-				//"amount":         amount / 1000,
-				//"max_receivable": maxReceivable,
-				//"num_channels":   len(gs.node.ListChannels()),
+				// "amount":         amount / 1000,
+				// "max_receivable": maxReceivable,
+				// "num_channels":   len(gs.node.ListChannels()),
 				"node_type": config.LDKBackendType,
 			},
 		})
@@ -494,7 +503,12 @@ func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string) (*lnc
 	ldkEventSubscription := ls.ldkEventBroadcaster.Subscribe()
 	defer ls.ldkEventBroadcaster.CancelSubscription(ldkEventSubscription)
 
-	paymentHash, err := ls.node.Bolt11Payment().Send(invoice)
+	var paymentHash string
+	if amount == nil {
+		paymentHash, err = ls.node.Bolt11Payment().Send(invoice, nil)
+	} else {
+		paymentHash, err = ls.node.Bolt11Payment().SendUsingAmount(invoice, *amount, nil)
+	}
 	if err != nil {
 		logger.Logger.WithError(err).Error("SendPayment failed")
 		return nil, err
@@ -512,7 +526,7 @@ func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string) (*lnc
 			logger.Logger.Info("Got payment success event")
 			payment := ls.node.Payment(paymentHash)
 			if payment == nil {
-				logger.Logger.Errorf("Couldn't find payment by payment hash: %v", paymentHash)
+				logger.Logger.WithField("payment_hash", paymentHash).Error("Couldn't find payment by payment hash")
 				return nil, errors.New("payment not found")
 			}
 
@@ -525,7 +539,7 @@ func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string) (*lnc
 			}
 
 			if bolt11PaymentKind.Preimage == nil {
-				logger.Logger.Errorf("No payment preimage for payment hash: %v", paymentHash)
+				logger.Logger.WithField("payment_hash", paymentHash).Error("No payment preimage for payment hash")
 				return nil, errors.New("payment preimage not found")
 			}
 			preimage = *bolt11PaymentKind.Preimage
@@ -535,8 +549,7 @@ func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string) (*lnc
 			}
 			break
 		}
-		if isEventPaymentFailedEvent && eventPaymentFailed.PaymentHash == paymentHash {
-
+		if isEventPaymentFailedEvent && eventPaymentFailed.PaymentHash != nil && *eventPaymentFailed.PaymentHash == paymentHash {
 			failureReasonMessage := ls.getPaymentFailReason(&eventPaymentFailed)
 
 			logger.Logger.WithFields(logrus.Fields{
@@ -583,7 +596,7 @@ func (ls *LDKService) SendKeysend(ctx context.Context, amount uint64, destinatio
 	ldkEventSubscription := ls.ldkEventBroadcaster.Subscribe()
 	defer ls.ldkEventBroadcaster.CancelSubscription(ldkEventSubscription)
 
-	paymentHash, err := ls.node.SpontaneousPayment().Send(amount, destination, customTlvs, &preimage)
+	paymentHash, err := ls.node.SpontaneousPayment().Send(amount, destination, nil, customTlvs, &preimage)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Keysend failed")
 		return nil, err
@@ -606,7 +619,7 @@ func (ls *LDKService) SendKeysend(ctx context.Context, amount uint64, destinatio
 			}
 			break
 		}
-		if isEventPaymentFailedEvent && eventPaymentFailed.PaymentHash == paymentHash {
+		if isEventPaymentFailedEvent && eventPaymentFailed.PaymentHash != nil && *eventPaymentFailed.PaymentHash == paymentHash {
 
 			failureReasonMessage := ls.getPaymentFailReason(&eventPaymentFailed)
 
@@ -645,15 +658,15 @@ func (ls *LDKService) getMaxReceivable() int64 {
 	return int64(receivable)
 }
 
-func (ls *LDKService) getMaxSpendable() int64 {
-	var spendable int64 = 0
+func (ls *LDKService) getMaxSpendable() uint64 {
+	var spendable uint64 = 0
 	channels := ls.node.ListChannels()
 	for _, channel := range channels {
 		if channel.IsUsable {
-			spendable += min(int64(channel.OutboundCapacityMsat), int64(*channel.CounterpartyOutboundHtlcMaximumMsat))
+			spendable += min(channel.OutboundCapacityMsat, *channel.CounterpartyOutboundHtlcMaximumMsat)
 		}
 	}
-	return int64(spendable)
+	return spendable
 }
 
 func (ls *LDKService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *lnclient.Transaction, err error) {
@@ -664,9 +677,9 @@ func (ls *LDKService) MakeInvoice(ctx context.Context, amount int64, description
 		ls.eventPublisher.Publish(&events.Event{
 			Event: "nwc_incoming_liquidity_required",
 			Properties: map[string]interface{}{
-				//"amount":         amount / 1000,
-				//"max_receivable": maxReceivable,
-				//"num_channels":   len(gs.node.ListChannels()),
+				// "amount":         amount / 1000,
+				// "max_receivable": maxReceivable,
+				// "num_channels":   len(gs.node.ListChannels()),
 				"node_type": config.LDKBackendType,
 			},
 		})
@@ -691,7 +704,7 @@ func (ls *LDKService) MakeInvoice(ctx context.Context, amount int64, description
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"bolt11": invoice,
-		}).Errorf("Failed to decode bolt11 invoice: %v", err)
+		}).WithError(err).Error("Failed to decode bolt11 invoice")
 
 		return nil, err
 	}
@@ -721,14 +734,14 @@ func (ls *LDKService) LookupInvoice(ctx context.Context, paymentHash string) (tr
 
 	payment := ls.node.Payment(paymentHash)
 	if payment == nil {
-		logger.Logger.Errorf("Couldn't find payment by payment hash: %v", paymentHash)
-		return nil, errors.New("Payment not found")
+		logger.Logger.WithField("payment_hash", paymentHash).Errorf("couldn't find payment by payment hash")
+		return nil, errors.New("payment not found")
 	}
 
 	transaction, err = ls.ldkPaymentToTransaction(payment)
 
 	if err != nil {
-		logger.Logger.Errorf("Failed to map transaction: %v", err)
+		logger.Logger.WithError(err).Error("Failed to map transaction")
 		return nil, err
 	}
 
@@ -820,11 +833,12 @@ func (ls *LDKService) ListChannels(ctx context.Context) ([]lnclient.Channel, err
 		internalChannel := map[string]interface{}{}
 		internalChannel["channel"] = ldkChannel
 		internalChannel["config"] = map[string]interface{}{
-			"AcceptUnderpayingHtlcs":              ldkChannel.Config.AcceptUnderpayingHtlcs(),
-			"CltvExpiryDelta":                     ldkChannel.Config.CltvExpiryDelta(),
-			"ForceCloseAvoidanceMaxFeeSatoshis":   ldkChannel.Config.ForceCloseAvoidanceMaxFeeSatoshis(),
-			"ForwardingFeeBaseMsat":               ldkChannel.Config.ForwardingFeeBaseMsat(),
-			"ForwardingFeeProportionalMillionths": ldkChannel.Config.ForwardingFeeProportionalMillionths(),
+			"AcceptUnderpayingHtlcs":              ldkChannel.Config.AcceptUnderpayingHtlcs,
+			"CltvExpiryDelta":                     ldkChannel.Config.CltvExpiryDelta,
+			"ForceCloseAvoidanceMaxFeeSatoshis":   ldkChannel.Config.ForceCloseAvoidanceMaxFeeSatoshis,
+			"ForwardingFeeBaseMsat":               ldkChannel.Config.ForwardingFeeBaseMsat,
+			"ForwardingFeeProportionalMillionths": ldkChannel.Config.ForwardingFeeProportionalMillionths,
+			"MaxDustHtlcExposure":                 ldkChannel.Config.MaxDustHtlcExposure,
 		}
 
 		unspendablePunishmentReserve := uint64(0)
@@ -853,11 +867,11 @@ func (ls *LDKService) ListChannels(ctx context.Context) ([]lnclient.Channel, err
 			RemotePubkey:                             ldkChannel.CounterpartyNodeId,
 			Id:                                       ldkChannel.UserChannelId, // CloseChannel takes the UserChannelId
 			Active:                                   isActive,
-			Public:                                   ldkChannel.IsPublic,
+			Public:                                   ldkChannel.IsAnnounced,
 			FundingTxId:                              fundingTxId,
 			Confirmations:                            ldkChannel.Confirmations,
 			ConfirmationsRequired:                    ldkChannel.ConfirmationsRequired,
-			ForwardingFeeBaseMsat:                    ldkChannel.Config.ForwardingFeeBaseMsat(),
+			ForwardingFeeBaseMsat:                    ldkChannel.Config.ForwardingFeeBaseMsat,
 			UnspendablePunishmentReserve:             unspendablePunishmentReserve,
 			CounterpartyUnspendablePunishmentReserve: ldkChannel.CounterpartyUnspendablePunishmentReserve,
 			Error:                                    channelError,
@@ -886,8 +900,8 @@ func (ls *LDKService) GetNodeConnectionInfo(ctx context.Context) (nodeConnection
 
 	return &lnclient.NodeConnectionInfo{
 		Pubkey: ls.node.NodeId(),
-		//Address: parts[0],
-		//Port:    port,
+		// Address: parts[0],
+		// Port:    port,
 	}, nil
 }
 
@@ -920,7 +934,13 @@ func (ls *LDKService) OpenChannel(ctx context.Context, openChannelRequest *lncli
 	defer ls.ldkEventBroadcaster.CancelSubscription(ldkEventSubscription)
 
 	logger.Logger.WithField("peer_id", foundPeer.NodeId).Info("Opening channel")
-	userChannelId, err := ls.node.ConnectOpenChannel(foundPeer.NodeId, foundPeer.Address, uint64(openChannelRequest.Amount), nil, nil, openChannelRequest.Public)
+	var userChannelId string
+	var err error
+	if openChannelRequest.Public {
+		userChannelId, err = ls.node.OpenAnnouncedChannel(foundPeer.NodeId, foundPeer.Address, uint64(openChannelRequest.AmountSats), nil, nil)
+	} else {
+		userChannelId, err = ls.node.OpenChannel(foundPeer.NodeId, foundPeer.Address, uint64(openChannelRequest.AmountSats), nil, nil)
+	}
 	if err != nil {
 		logger.Logger.WithError(err).Error("OpenChannel failed")
 		return nil, err
@@ -977,7 +997,13 @@ func (ls *LDKService) UpdateChannel(ctx context.Context, updateChannelRequest *l
 	}
 
 	existingConfig := foundChannel.Config
-	existingConfig.SetForwardingFeeBaseMsat(updateChannelRequest.ForwardingFeeBaseMsat)
+	existingConfig.ForwardingFeeBaseMsat = updateChannelRequest.ForwardingFeeBaseMsat
+
+	if updateChannelRequest.MaxDustHtlcExposureFromFeeRateMultiplier > 0 {
+		existingConfig.MaxDustHtlcExposure = ldk_node.MaxDustHtlcExposureFeeRateMultiplier{
+			Multiplier: updateChannelRequest.MaxDustHtlcExposureFromFeeRateMultiplier,
+		}
+	}
 
 	err := ls.node.UpdateChannelConfig(updateChannelRequest.ChannelId, updateChannelRequest.NodeId, existingConfig)
 	if err != nil {
@@ -994,7 +1020,7 @@ func (ls *LDKService) CloseChannel(ctx context.Context, closeChannelRequest *lnc
 
 	var err error
 	if closeChannelRequest.Force {
-		err = ls.node.ForceCloseChannel(closeChannelRequest.ChannelId, closeChannelRequest.NodeId)
+		err = ls.node.ForceCloseChannel(closeChannelRequest.ChannelId, closeChannelRequest.NodeId, nil)
 	} else {
 		err = ls.node.CloseChannel(closeChannelRequest.ChannelId, closeChannelRequest.NodeId)
 	}
@@ -1021,31 +1047,50 @@ func (ls *LDKService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainB
 		"balances": balances,
 	}).Debug("Listed Balances")
 
+	type internalLightningBalance struct {
+		BalanceType string
+		Balance     ldk_node.LightningBalance
+	}
+
+	internalLightningBalances := []internalLightningBalance{}
+
+	pendingBalancesDetails := make([]lnclient.PendingBalanceDetails, 0)
+
 	pendingBalancesFromChannelClosures := uint64(0)
 	// increase pending balance from any lightning balances for channels that are pending closure
 	// (they do not exist in our list of open channels)
 	for _, balance := range balances.LightningBalances {
-		increasePendingBalance := func(channelId string, amount uint64) {
+		increasePendingBalance := func(nodeId, channelId string, amount uint64) {
 			if !slices.ContainsFunc(channels, func(channel ldk_node.ChannelDetails) bool {
 				return channel.ChannelId == channelId
 			}) {
 				pendingBalancesFromChannelClosures += amount
+				pendingBalancesDetails = append(pendingBalancesDetails, lnclient.PendingBalanceDetails{
+					NodeId:    nodeId,
+					ChannelId: channelId,
+					Amount:    amount,
+				})
 			}
 		}
 
+		// include the balance type as it's useful to know the state of the channel
+		internalLightningBalances = append(internalLightningBalances, internalLightningBalance{
+			BalanceType: fmt.Sprintf("%T", balance),
+			Balance:     balance,
+		})
 		switch balanceType := (balance).(type) {
 		case ldk_node.LightningBalanceClaimableOnChannelClose:
-			increasePendingBalance(balanceType.ChannelId, balanceType.AmountSatoshis)
+			increasePendingBalance(balanceType.CounterpartyNodeId, balanceType.ChannelId, balanceType.AmountSatoshis)
 		case ldk_node.LightningBalanceClaimableAwaitingConfirmations:
-			increasePendingBalance(balanceType.ChannelId, balanceType.AmountSatoshis)
+			increasePendingBalance(balanceType.CounterpartyNodeId, balanceType.ChannelId, balanceType.AmountSatoshis)
 		case ldk_node.LightningBalanceContentiousClaimable:
-			increasePendingBalance(balanceType.ChannelId, balanceType.AmountSatoshis)
+			increasePendingBalance(balanceType.CounterpartyNodeId, balanceType.ChannelId, balanceType.AmountSatoshis)
 		case ldk_node.LightningBalanceMaybeTimeoutClaimableHtlc:
-			increasePendingBalance(balanceType.ChannelId, balanceType.AmountSatoshis)
+			increasePendingBalance(balanceType.CounterpartyNodeId, balanceType.ChannelId, balanceType.AmountSatoshis)
 		case ldk_node.LightningBalanceMaybePreimageClaimableHtlc:
-			increasePendingBalance(balanceType.ChannelId, balanceType.AmountSatoshis)
+			increasePendingBalance(balanceType.CounterpartyNodeId, balanceType.ChannelId, balanceType.AmountSatoshis)
 		case ldk_node.LightningBalanceCounterpartyRevokedOutputClaimable:
-			increasePendingBalance(balanceType.ChannelId, balanceType.AmountSatoshis)
+			increasePendingBalance(balanceType.CounterpartyNodeId, balanceType.ChannelId, balanceType.AmountSatoshis)
 		}
 	}
 
@@ -1066,6 +1111,11 @@ func (ls *LDKService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainB
 		Total:                              int64(balances.TotalOnchainBalanceSats - balances.TotalAnchorChannelsReserveSats),
 		Reserved:                           int64(balances.TotalAnchorChannelsReserveSats),
 		PendingBalancesFromChannelClosures: pendingBalancesFromChannelClosures,
+		PendingBalancesDetails:             pendingBalancesDetails,
+		InternalBalances: map[string]interface{}{
+			"internal_lightning_balances": internalLightningBalances,
+			"all_balances":                balances,
+		},
 	}, nil
 }
 
@@ -1101,13 +1151,9 @@ func (ls *LDKService) ResetRouter(key string) error {
 }
 
 func (ls *LDKService) SignMessage(ctx context.Context, message string) (string, error) {
-	sign, err := ls.node.SignMessage([]byte(message))
-	if err != nil {
-		logger.Logger.Errorf("SignMessage failed: %v", err)
-		return "", err
-	}
+	signedMessage := ls.node.SignMessage([]byte(message))
 
-	return sign, nil
+	return signedMessage, nil
 }
 
 func (ls *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) (*lnclient.Transaction, error) {
@@ -1136,7 +1182,7 @@ func (ls *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"bolt11": bolt11Invoice,
-			}).Errorf("Failed to decode bolt11 invoice: %v", err)
+			}).WithError(err).Error("Failed to decode bolt11 invoice")
 
 			return nil, err
 		}
@@ -1215,7 +1261,7 @@ func (ls *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 func (ls *LDKService) SendPaymentProbes(ctx context.Context, invoice string) error {
 	err := ls.node.Bolt11Payment().SendProbes(invoice)
 	if err != nil {
-		logger.Logger.Errorf("Bolt11Payment.SendProbes failed: %v", err)
+		logger.Logger.WithError(err).Error("Bolt11Payment.SendProbes failed")
 		return err
 	}
 
@@ -1225,7 +1271,7 @@ func (ls *LDKService) SendPaymentProbes(ctx context.Context, invoice string) err
 func (ls *LDKService) SendSpontaneousPaymentProbes(ctx context.Context, amountMsat uint64, nodeId string) error {
 	err := ls.node.SpontaneousPayment().SendProbes(amountMsat, nodeId)
 	if err != nil {
-		logger.Logger.Errorf("SpontaneousPayment.SendProbes failed: %v", err)
+		logger.Logger.WithError(err).Error("SpontaneousPayment.SendProbes failed")
 		return err
 	}
 
@@ -1334,15 +1380,19 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 			logger.Logger.WithField("event", eventType).Error("Failed to find channel by ID")
 			return
 		}
+
+		isTrusted := eventType.CounterpartyNodeId != nil && slices.Contains(ls.node.Config().AnchorChannelsConfig.TrustedPeersNoReserve, *eventType.CounterpartyNodeId)
+
 		channel := channels[channelIndex]
 		ls.eventPublisher.Publish(&events.Event{
 			Event: "nwc_channel_ready",
 			Properties: map[string]interface{}{
 				"counterparty_node_id": eventType.CounterpartyNodeId,
 				"node_type":            config.LDKBackendType,
-				"public":               channel.IsPublic,
+				"public":               channel.IsAnnounced,
 				"capacity":             channel.ChannelValueSats,
 				"is_outbound":          channel.IsOutbound,
+				"trusted":              isTrusted,
 			},
 		})
 
@@ -1352,11 +1402,23 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 			logger.Logger.WithField("event", eventType).Error("channel ready event has no counterparty node ID")
 			return
 		}
-		// set a super-high forwarding fee of 100K sats by default to disable unwanted routing
+
+		// also
+		maxDustHtlcExposureFromFeeRateMultiplier := uint64(0)
+		if isTrusted {
+			// avoid closures like "ProcessingError: Peer sent update_fee with a feerate (62500)
+			// which may over-expose us to dust-in-flight on our counterparty's transactions (totaling 69348000 msat)"
+			maxDustHtlcExposureFromFeeRateMultiplier = 100_000 // default * 10
+		}
+
+		// set a super-high forwarding fee of 100K sats by default to disable unwanted routing by default
+		forwardingFeeBaseMsat := uint32(100_000_000)
+
 		err := ls.UpdateChannel(context.Background(), &lnclient.UpdateChannelRequest{
-			ChannelId:             eventType.UserChannelId,
-			NodeId:                *eventType.CounterpartyNodeId,
-			ForwardingFeeBaseMsat: 100_000_000,
+			ChannelId:                                eventType.UserChannelId,
+			NodeId:                                   *eventType.CounterpartyNodeId,
+			MaxDustHtlcExposureFromFeeRateMultiplier: maxDustHtlcExposureFromFeeRateMultiplier,
+			ForwardingFeeBaseMsat:                    forwardingFeeBaseMsat,
 		})
 
 		if err != nil {
@@ -1631,7 +1693,7 @@ func (ls *LDKService) UpdateLastWalletSyncRequest() {
 }
 
 func (ls *LDKService) GetSupportedNIP47Methods() []string {
-	return []string{"pay_invoice", "pay_keysend", "get_balance", "get_info", "make_invoice", "lookup_invoice", "list_transactions", "multi_pay_invoice", "multi_pay_keysend", "sign_message"}
+	return []string{"pay_invoice", "pay_keysend", "get_balance", "get_budget", "get_info", "make_invoice", "lookup_invoice", "list_transactions", "multi_pay_invoice", "multi_pay_keysend", "sign_message"}
 }
 
 func (ls *LDKService) GetSupportedNIP47NotificationTypes() []string {
@@ -1730,4 +1792,20 @@ func forceCloseChannelsFromStaticChannelsBackup(node *ldk_node.Node, staticChann
 	}
 
 	node.ForceCloseAllChannelsWithoutBroadcastingTxn()
+}
+
+func GetVssNodeIdentifier(keys keys.Keys) (string, error) {
+	key, err := keys.DeriveKey([]uint32{bip32.FirstHardenedChild + 2})
+
+	if err != nil {
+		return "", err
+	}
+
+	// return a 6-character hex string of the hash of a derived key to ensure if same user
+	// runs multiple hubs with different mnemonics, they are all
+	// saved in the VSS under different user_tokens.
+	pubkeyHash256 := sha256.New()
+	pubkeyHash256.Write(key.Key)
+	pubkeyHashBytes := pubkeyHash256.Sum(nil)
+	return hex.EncodeToString(pubkeyHashBytes[0:3]), nil
 }

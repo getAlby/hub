@@ -7,10 +7,15 @@ const pollConfiguration: SWRConfiguration = {
   refreshInterval: 3000,
 };
 
-export function useTransactions(poll = false, limit = 100, page = 1) {
+export function useTransactions(
+  appId?: number,
+  poll = false,
+  limit = 100,
+  page = 1
+) {
   const offset = (page - 1) * limit;
   return useSWR<Transaction[]>(
-    `/api/transactions?limit=${limit}&offset=${offset}`,
+    `/api/transactions?limit=${limit}&offset=${offset}&appId=${appId}`,
     swrFetcher,
     poll ? pollConfiguration : undefined
   );

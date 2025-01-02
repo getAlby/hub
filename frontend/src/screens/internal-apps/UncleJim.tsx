@@ -3,6 +3,7 @@ import React from "react";
 import AppHeader from "src/components/AppHeader";
 import AppCard from "src/components/connections/AppCard";
 import ExternalLink from "src/components/ExternalLink";
+import { IsolatedAppTopupDialog } from "src/components/IsolatedAppTopupDialog";
 import {
   Accordion,
   AccordionContent,
@@ -138,8 +139,7 @@ export function UncleJim() {
               and keep them somewhere safe.
             </AlertDescription>
           </Alert>
-          <p className="">Onboard {name} to their new wallet:</p>
-          <Accordion type="single" collapsible>
+          <Accordion type="single" collapsible defaultValue="mobile">
             <AccordionItem value="mobile">
               <AccordionTrigger>Alby Go Mobile App</AccordionTrigger>
               <AccordionContent>
@@ -282,6 +282,21 @@ export function UncleJim() {
               </AccordionContent>
             </AccordionItem>
           </Accordion>
+
+          {app && (
+            <>
+              <p className="mt-5">
+                {name} currently has{" "}
+                {new Intl.NumberFormat().format(Math.floor(app.balance / 1000))}{" "}
+                sats
+              </p>
+              <IsolatedAppTopupDialog appPubkey={appPublicKey}>
+                <Button size="sm" variant="secondary">
+                  Increase
+                </Button>
+              </IsolatedAppTopupDialog>
+            </>
+          )}
         </div>
       )}
     </div>

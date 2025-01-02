@@ -3,6 +3,7 @@ package notifications
 import (
 	"context"
 	"encoding/json"
+	"github.com/nbd-wtf/go-nostr"
 	"testing"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 	"github.com/getAlby/hub/transactions"
 	"github.com/nbd-wtf/go-nostr/nip04"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type mockConsumer struct {
@@ -31,21 +33,15 @@ func (svc *mockConsumer) ConsumeEvent(ctx context.Context, event *events.Event, 
 	svc.nip47NotificationQueue.AddToQueue(event)
 }
 
-func TestSendNotification_PaymentReceived(t *testing.T) {
+func doTestSendNotificationPaymentReceived(t *testing.T, svc *tests.TestService, app *db.App, ss []byte) {
 	ctx := context.TODO()
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
-
-	app, ss, err := tests.CreateApp(svc)
-	assert.NoError(t, err)
 
 	appPermission := &db.AppPermission{
 		AppId: app.ID,
 		App:   *app,
 		Scope: constants.NOTIFICATIONS_SCOPE,
 	}
-	err = svc.DB.Create(appPermission).Error
+	err := svc.DB.Create(appPermission).Error
 	assert.NoError(t, err)
 
 	settledAt := time.Unix(*tests.MockLNClientTransaction.SettledAt, 0)
@@ -109,23 +105,37 @@ func TestSendNotification_PaymentReceived(t *testing.T) {
 	assert.Equal(t, tests.MockLNClientTransaction.Amount, transaction.Amount)
 	assert.Equal(t, tests.MockLNClientTransaction.FeesPaid, transaction.FeesPaid)
 	assert.Equal(t, tests.MockLNClientTransaction.SettledAt, transaction.SettledAt)
-
 }
-func TestSendNotification_PaymentSent(t *testing.T) {
-	ctx := context.TODO()
+
+func TestSendNotification_PaymentReceived(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	app, ss, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
+	doTestSendNotificationPaymentReceived(t, svc, app, ss)
+}
+
+func TestSendNotification_Legacy_PaymentReceived(t *testing.T) {
+	defer tests.RemoveTestService()
+	svc, err := tests.CreateTestService()
+	require.NoError(t, err)
+
+	app, ss, err := tests.CreateLegacyApp(svc, nostr.GeneratePrivateKey())
+	assert.NoError(t, err)
+	doTestSendNotificationPaymentReceived(t, svc, app, ss)
+}
+
+func doTestSendNotificationPaymentSent(t *testing.T, svc *tests.TestService, app *db.App, ss []byte) {
+	ctx := context.TODO()
 
 	appPermission := &db.AppPermission{
 		AppId: app.ID,
 		App:   *app,
 		Scope: constants.NOTIFICATIONS_SCOPE,
 	}
-	err = svc.DB.Create(appPermission).Error
+	err := svc.DB.Create(appPermission).Error
 	assert.NoError(t, err)
 
 	settledAt := time.Unix(*tests.MockLNClientTransaction.SettledAt, 0)
@@ -190,13 +200,28 @@ func TestSendNotification_PaymentSent(t *testing.T) {
 	assert.Equal(t, tests.MockLNClientTransaction.SettledAt, transaction.SettledAt)
 }
 
-func TestSendNotificationNoPermission(t *testing.T) {
-	ctx := context.TODO()
+func TestSendNotification_PaymentSent(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
+	require.NoError(t, err)
+
+	app, ss, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
-	_, _, err = tests.CreateApp(svc)
+	doTestSendNotificationPaymentSent(t, svc, app, ss)
+}
+
+func TestSendNotification_Legacy_PaymentSent(t *testing.T) {
+	defer tests.RemoveTestService()
+	svc, err := tests.CreateTestService()
+	require.NoError(t, err)
+
+	app, ss, err := tests.CreateLegacyApp(svc, nostr.GeneratePrivateKey())
 	assert.NoError(t, err)
+	doTestSendNotificationPaymentSent(t, svc, app, ss)
+}
+
+func doTestSendNotificationNoPermission(t *testing.T, svc *tests.TestService) {
+	ctx := context.TODO()
 
 	svc.DB.Create(&db.Transaction{
 		PaymentHash: tests.MockPaymentHash,
@@ -226,4 +251,21 @@ func TestSendNotificationNoPermission(t *testing.T) {
 	notifier.ConsumeEvent(ctx, receivedEvent)
 
 	assert.Nil(t, relay.PublishedEvent)
+}
+
+func TestSendNotification_NoPermission(t *testing.T) {
+	defer tests.RemoveTestService()
+	svc, err := tests.CreateTestService()
+	require.NoError(t, err)
+	_, _, err = tests.CreateApp(svc)
+	assert.NoError(t, err)
+	doTestSendNotificationNoPermission(t, svc)
+}
+func TestSendNotification_Legacy_NoPermission(t *testing.T) {
+	defer tests.RemoveTestService()
+	svc, err := tests.CreateTestService()
+	require.NoError(t, err)
+	_, _, err = tests.CreateLegacyApp(svc, nostr.GeneratePrivateKey())
+	assert.NoError(t, err)
+	doTestSendNotificationNoPermission(t, svc)
 }

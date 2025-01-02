@@ -11,6 +11,7 @@ import (
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/tests"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestMakeInvoice_NoApp(t *testing.T) {
@@ -18,7 +19,7 @@ func TestMakeInvoice_NoApp(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	txMetadata := make(map[string]interface{})
 	txMetadata["randomkey"] = strings.Repeat("a", constants.INVOICE_METADATA_MAX_LENGTH-16) // json encoding adds 16 characters - {"randomkey":""}
@@ -42,7 +43,7 @@ func TestMakeInvoice_MetadataTooLarge(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	metadata := make(map[string]interface{})
 	metadata["randomkey"] = strings.Repeat("a", constants.INVOICE_METADATA_MAX_LENGTH-15) // json encoding adds 16 characters
@@ -60,7 +61,7 @@ func TestMakeInvoice_App(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)

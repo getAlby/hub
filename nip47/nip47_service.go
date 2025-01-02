@@ -2,7 +2,6 @@ package nip47
 
 import (
 	"context"
-
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
@@ -29,8 +28,10 @@ type Nip47Service interface {
 	events.EventSubscriber
 	StartNotifier(ctx context.Context, relay *nostr.Relay, lnClient lnclient.LNClient)
 	HandleEvent(ctx context.Context, relay nostrmodels.Relay, event *nostr.Event, lnClient lnclient.LNClient)
-	PublishNip47Info(ctx context.Context, relay nostrmodels.Relay, lnClient lnclient.LNClient) error
-	CreateResponse(initialEvent *nostr.Event, content interface{}, tags nostr.Tags, ss []byte) (result *nostr.Event, err error)
+	GetNip47Info(ctx context.Context, relay *nostr.Relay, appWalletPubKey string) (*nostr.Event, error)
+	PublishNip47Info(ctx context.Context, relay nostrmodels.Relay, appWalletPubKey string, appWalletPrivKey string, lnClient lnclient.LNClient) (*nostr.Event, error)
+	PublishNip47InfoDeletion(ctx context.Context, relay nostrmodels.Relay, appWalletPubKey string, appWalletPrivKey string, infoEventId string) error
+	CreateResponse(initialEvent *nostr.Event, content interface{}, tags nostr.Tags, ss []byte, walletPrivKey string) (result *nostr.Event, err error)
 }
 
 func NewNip47Service(db *gorm.DB, cfg config.Config, keys keys.Keys, eventPublisher events.EventPublisher) *nip47Service {

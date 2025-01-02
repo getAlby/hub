@@ -76,7 +76,12 @@ func (cs *CashuService) Shutdown() error {
 	return nil
 }
 
-func (cs *CashuService) SendPaymentSync(ctx context.Context, invoice string) (response *lnclient.PayInvoiceResponse, err error) {
+func (cs *CashuService) SendPaymentSync(ctx context.Context, invoice string, amount *uint64) (response *lnclient.PayInvoiceResponse, err error) {
+	// TODO: support 0-amount invoices
+	if amount != nil {
+		return nil, errors.New("0-amount invoices not supported")
+	}
+
 	meltResponse, err := cs.wallet.Melt(invoice, cs.wallet.CurrentMint())
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to melt invoice")
@@ -358,7 +363,7 @@ func (cs *CashuService) checkInvoice(cashuInvoice *storage.Invoice) {
 }
 
 func (cs *CashuService) GetSupportedNIP47Methods() []string {
-	return []string{"pay_invoice", "get_balance", "get_info", "make_invoice", "lookup_invoice", "list_transactions", "multi_pay_invoice"}
+	return []string{"pay_invoice", "get_balance", "get_budget", "get_info", "make_invoice", "lookup_invoice", "list_transactions", "multi_pay_invoice"}
 }
 
 func (cs *CashuService) GetSupportedNIP47NotificationTypes() []string {

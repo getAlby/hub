@@ -17,8 +17,10 @@ import { request } from "src/utils/request"; // build the project for this to ap
 import { PencilIcon } from "lucide-react";
 import AppAvatar from "src/components/AppAvatar";
 import AppHeader from "src/components/AppHeader";
+import { IsolatedAppTopupDialog } from "src/components/IsolatedAppTopupDialog";
 import Loading from "src/components/Loading";
 import Permissions from "src/components/Permissions";
+import TransactionsList from "src/components/TransactionsList";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -116,9 +118,10 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
         budgetRenewal: permissions.budgetRenewal,
         expiresAt: permissions.expiresAt?.toISOString(),
         maxAmount: permissions.maxAmount,
+        isolated: permissions.isolated,
       };
 
-      await request(`/api/apps/${app.nostrPubkey}`, {
+      await request(`/api/apps/${app.appPubkey}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -207,7 +210,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction
-                      onClick={() => deleteApp(app.nostrPubkey)}
+                      onClick={() => deleteApp(app.appPubkey)}
                       disabled={isDeleting}
                     >
                       Continue
@@ -220,7 +223,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
           />
           <Card>
             <CardHeader>
-              <CardTitle>Info</CardTitle>
+              <CardTitle>Connection Summary</CardTitle>
             </CardHeader>
             <CardContent className="slashed-zero">
               <Table>
@@ -234,7 +237,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                   <TableRow>
                     <TableCell className="font-medium">Public Key</TableCell>
                     <TableCell className="text-muted-foreground break-all">
-                      {app.nostrPubkey}
+                      {app.appPubkey}
                     </TableCell>
                   </TableRow>
                   {app.isolated && (
@@ -244,7 +247,12 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                         {new Intl.NumberFormat().format(
                           Math.floor(app.balance / 1000)
                         )}{" "}
-                        sats
+                        sats{" "}
+                        <IsolatedAppTopupDialog appPubkey={app.appPubkey}>
+                          <Button size="sm" variant="secondary">
+                            Increase
+                          </Button>
+                        </IsolatedAppTopupDialog>
                       </TableCell>
                     </TableRow>
                   )}
@@ -287,13 +295,49 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                           Cancel
                         </Button>
 
-                        <Button type="button" onClick={handleSave}>
-                          Save
-                        </Button>
+                        {(app.isolated && !permissions.isolated) ||
+                        (!app.scopes.includes("pay_invoice") &&
+                          permissions.scopes.includes("pay_invoice")) ? (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button type="button">Save</Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogTitle>
+                                Confirm Update App
+                              </AlertDialogTitle>
+                              <AlertDialogDescription>
+                                {app.isolated && !permissions.isolated ? (
+                                  <b>
+                                    Are you sure you wish to remove the isolated
+                                    status from this connection?
+                                  </b>
+                                ) : (
+                                  <b>
+                                    Are you sure you wish to give this
+                                    connection pay permissions?
+                                  </b>
+                                )}
+                              </AlertDialogDescription>
+                              <AlertDialogFooter className="mt-5">
+                                <AlertDialogCancel
+                                  onClick={() => {
+                                    window.location.reload();
+                                  }}
+                                >
+                                  Cancel
+                                </AlertDialogCancel>
+                                <Button onClick={handleSave}>Save</Button>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        ) : (
+                          <Button onClick={handleSave}>Save</Button>
+                        )}
                       </div>
                     )}
 
-                    {!app.isolated && !isEditingPermissions && (
+                    {!isEditingPermissions && (
                       <>
                         <Button
                           variant="outline"
@@ -318,6 +362,19 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                 isNewConnection={false}
                 budgetUsage={app.budgetUsage}
               />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                <div className="flex flex-row justify-between items-center">
+                  Transactions
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <TransactionsList appId={app.id} showReceiveButton={false} />
             </CardContent>
           </Card>
         </div>

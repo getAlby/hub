@@ -24,7 +24,7 @@ Go to the [Deploy it yourself](#deploy-it-yourself) section below.
 
 ## Supported Backends
 
-By default Alby Hub uses the embedded LDK based lightning node. Optionally it can be configured to use an external node: 
+By default Alby Hub uses the embedded LDK based lightning node. Optionally it can be configured to use an external node:
 
 - LND
 - Phoenixd
@@ -41,6 +41,7 @@ By default Alby Hub uses the embedded LDK based lightning node. Optionally it ca
 - Yarn
 
 ### Environment setup
+
     $ cp .env.example .env
     # edit the config for your needs (Read further down for all the available env options)
     $ vim .env
@@ -135,8 +136,6 @@ Breez SDK requires gcc to build the Breez bindings. Run `choco install mingw` an
 
 The following configuration options can be set as environment variables or in a .env file
 
-- `NOSTR_PRIVKEY`: the private key of this service. Should be a securely randomly generated 32 byte hex string.
-- `CLIENT_NOSTR_PUBKEY`: if set, this service will only listen to events authored by this public key. You can set this to your own nostr public key.
 - `RELAY`: default: "wss://relay.getalby.com/v1"
 - `JWT_SECRET`: a randomly generated secret string. (only needed in http mode)
 - `DATABASE_URI`: a sqlite filename. Default: $XDG_DATA_HOME/albyhub/nwc.db
@@ -163,6 +162,8 @@ _To configure via env, the following parameters must be provided:_
 ### LDK Backend parameters
 
 - `LDK_ESPLORA_SERVER`: By default the optimized Alby esplora is used. You can configure your own esplora server (note: the public blockstream one is slow and can cause onchain syncing and issues with opening channels)
+- `LDK_VSS_URL`: Use VSS (encrypted remote storage) rather than local sqlite store for lightning and bitcoin data. Currently this feature only works for brand new Alby Hub instances that are connected to Alby Accounts with an active subscription plan.
+- `LDK_LISTENING_ADDRESSES`: configure listening addresses, required for public channels, and ideally reachable if you would like others to be able to initiate peering with your node.
 
 #### LDK Network Configuration
 
@@ -188,7 +189,7 @@ See [Phoenixd](scripts/linux-x86_64/phoenixd/README.md)
 
 Create an OAuth client at the [Alby Developer Portal](https://getalby.com/developer) and set your `ALBY_OAUTH_CLIENT_ID` and `ALBY_OAUTH_CLIENT_SECRET` in your .env. If not running locally, you'll also need to change your `BASE_URL`.
 
-> If running the React app locally, OAuth redirects will not work locally if running the react app you will need to manually change the port to 5173. **Login in Wails mode is not yet supported**
+> If running the React app locally, make sure to set `FRONTEND_URL=http://localhost:5173` so that the OAuth redirect works.
 
 ## Getting Started with Mutinynet
 
@@ -214,13 +215,28 @@ Follow the steps to integrate Mutinynet with your NWC Next setup:
 
 3. After the transaction confirms, the new channel will appear in the Channels section
 
-### Opening a Channel in NWC Next
+### Opening a Channel from Alby Hub
 
 1. From the Channels interface (`/channels`), select "Open a Channel" and opt for "Custom Channel."
 
 2. Enter the pubkey of the Faucet Lightning Node (omit host and port details) available on the [Mutinynet Faucet](https://faucet.mutinynet.com/) page.
 
 3. Specify a channel capacity greater than 25,000 sats, confirm the action, and return to the Channels page to view your newly established channel.
+
+### Running Multiple Hubs Locally
+
+You can run multiple hubs locally to e.g. open channels between the two nodes or test sending payments between them. Currently this will only work with LDK.
+
+You will need two copies of the alby hub repository.
+
+For the second hub, you will need to update your .env with the following changes:
+
+    FRONTEND_URL=http://localhost:5174
+    BASE_URL=http://localhost:8081
+    PORT=8081
+    LDK_LISTENING_ADDRESSES=0.0.0.0:9736,[::]:9736
+
+Then launch the frontend with `VITE_PORT=5174 VITE_API_URL=http://localhost:8081 yarn dev:http`
 
 ## Application deeplink options
 
@@ -350,7 +366,7 @@ The application has no runtime dependencies. (simple Go executable).
 
 As data storage SQLite is used.
 
-For the default backend which runs a node internally we recommend 1+GB of disk space and 2GB of RAM (or 512GB Ram + 2GB swap can also be used). For connecting to an external node, Alby Hub uses very little RAM (256mb is enough).
+For the default backend which runs a node internally we recommend 2GB of RAM + 1GB of disk space (or 512MB RAM + 2GB swap can also be used). For connecting to an external node, Alby Hub uses very little RAM (256MB is enough).
 
 ### From the release
 
@@ -361,7 +377,6 @@ Go to the [Quick start script](https://github.com/getAlby/hub/tree/master/script
 #### Quick start (Arm64 Linux Server or Raspberry PI 4/5)
 
 Go to the [Quick start script](https://github.com/getAlby/hub/blob/master/scripts/pi-aarch64) which you can run as a service.
-
 
 #### Quick start (Raspberry PI Zero)
 
@@ -487,6 +502,9 @@ Internally Alby Hub uses a basic implementation of the pubsub messaging pattern 
     - `nwc_payment_failed` - failed to make a lightning payment
     - `nwc_payment_sent` - successfully made a lightning payment
     - `nwc_payment_received` - received a lightning payment
+    - `nwc_budget_warning` - successfully made a lightning payment, but budget is nearly exceeded
+    - `nwc_app_created` - a new app connection was created
+    - `nwc_app_deleted` - a new app connection was deleted
     - `nwc_lnclient_*` - underlying LNClient events, consumed only by the transactions service.
 
 ### NIP-47 Handlers

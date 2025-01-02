@@ -17,6 +17,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/getAlby/hub/alby"
+	"github.com/getAlby/hub/apps"
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
@@ -33,7 +34,7 @@ import (
 
 type api struct {
 	db               *gorm.DB
-	dbSvc            db.DBService
+	appsSvc          apps.AppsService
 	cfg              config.Config
 	svc              service.Service
 	permissionsSvc   permissions.PermissionsService
@@ -46,7 +47,7 @@ type api struct {
 func NewAPI(svc service.Service, gormDB *gorm.DB, config config.Config, keys keys.Keys, albyOAuthSvc alby.AlbyOAuthService, eventPublisher events.EventPublisher) *api {
 	return &api{
 		db:             gormDB,
-		dbSvc:          db.NewDBService(gormDB, eventPublisher),
+		appsSvc:        apps.NewAppsService(gormDB, eventPublisher, keys),
 		cfg:            config,
 		svc:            svc,
 		permissionsSvc: permissions.NewPermissionsService(gormDB, eventPublisher),
@@ -56,6 +57,14 @@ func NewAPI(svc service.Service, gormDB *gorm.DB, config config.Config, keys key
 }
 
 func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppResponse, error) {
+	backendType, _ := api.cfg.Get("LNBackendType", "")
+	if createAppRequest.Isolated &&
+		backendType != "LDK" &&
+		backendType != "LND" {
+		return nil, fmt.Errorf(
+			"isolated apps are currently not supported on your node backend. Try LDK or LND")
+	}
+
 	expiresAt, err := api.parseExpiresAt(createAppRequest.ExpiresAt)
 	if err != nil {
 		return nil, fmt.Errorf("invalid expiresAt: %v", err)
@@ -71,7 +80,7 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 		}
 	}
 
-	app, pairingSecretKey, err := api.dbSvc.CreateApp(
+	app, pairingSecretKey, err := api.appsSvc.CreateApp(
 		createAppRequest.Name,
 		createAppRequest.Pubkey,
 		createAppRequest.MaxAmountSat,
@@ -79,7 +88,8 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 		expiresAt,
 		createAppRequest.Scopes,
 		createAppRequest.Isolated,
-		createAppRequest.Metadata)
+		createAppRequest.Metadata,
+	)
 
 	if err != nil {
 		return nil, err
@@ -90,7 +100,7 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 	responseBody := &CreateAppResponse{}
 	responseBody.Id = app.ID
 	responseBody.Name = createAppRequest.Name
-	responseBody.Pubkey = app.NostrPubkey
+	responseBody.Pubkey = app.AppPubkey
 	responseBody.PairingSecret = pairingSecretKey
 
 	lightningAddress, err := api.albyOAuthSvc.GetLightningAddress()
@@ -103,7 +113,7 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 		if err == nil {
 			query := returnToUrl.Query()
 			query.Add("relay", relayUrl)
-			query.Add("pubkey", api.keys.GetNostrPublicKey())
+			query.Add("pubkey", *app.WalletPubkey)
 			if lightningAddress != "" && !app.Isolated {
 				query.Add("lud16", lightningAddress)
 			}
@@ -116,7 +126,8 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 	if lightningAddress != "" && !app.Isolated {
 		lud16 = fmt.Sprintf("&lud16=%s", lightningAddress)
 	}
-	responseBody.PairingUri = fmt.Sprintf("nostr+walletconnect://%s?relay=%s&secret=%s%s", api.keys.GetNostrPublicKey(), relayUrl, pairingSecretKey, lud16)
+	responseBody.PairingUri = fmt.Sprintf("nostr+walletconnect://%s?relay=%s&secret=%s%s", *app.WalletPubkey, relayUrl, pairingSecretKey, lud16)
+
 	return responseBody, nil
 }
 
@@ -149,6 +160,15 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 			}
 		}
 
+		// Update app isolation if it is not the same
+		if updateAppRequest.Isolated != userApp.Isolated {
+			err := tx.Model(&db.App{}).Where("id", userApp.ID).Update("isolated", updateAppRequest.Isolated).Error
+			if err != nil {
+				return err
+			}
+		}
+
+		// Update the app metadata
 		if updateAppRequest.Metadata != nil {
 			var metadataBytes []byte
 			var err error
@@ -164,7 +184,7 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 		}
 
 		// Update existing permissions with new budget and expiry
-		err := tx.Model(&db.AppPermission{}).Where("app_id", userApp.ID).Updates(map[string]interface{}{
+		err = tx.Model(&db.AppPermission{}).Where("app_id", userApp.ID).Updates(map[string]interface{}{
 			"ExpiresAt":     expiresAt,
 			"MaxAmountSat":  maxAmount,
 			"BudgetRenewal": budgetRenewal,
@@ -206,6 +226,13 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 				return err
 			}
 		}
+		api.svc.GetEventPublisher().Publish(&events.Event{
+			Event: "nwc_app_updated",
+			Properties: map[string]interface{}{
+				"name": name,
+				"id":   userApp.ID,
+			},
+		})
 
 		// commit transaction
 		return nil
@@ -215,7 +242,7 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 }
 
 func (api *api) DeleteApp(userApp *db.App) error {
-	return api.db.Delete(userApp).Error
+	return api.appsSvc.DeleteApp(userApp)
 }
 
 func (api *api) GetApp(dbApp *db.App) *App {
@@ -232,13 +259,13 @@ func (api *api) GetApp(dbApp *db.App) *App {
 	for _, appPerm := range appPermissions {
 		expiresAt = appPerm.ExpiresAt
 		if appPerm.Scope == constants.PAY_INVOICE_SCOPE {
-			//find the pay_invoice-specific permissions
+			// find the pay_invoice-specific permissions
 			paySpecificPermission = appPerm
 		}
 		requestMethods = append(requestMethods, appPerm.Scope)
 	}
 
-	//renewsIn := ""
+	// renewsIn := ""
 	budgetUsage := uint64(0)
 	maxAmount := uint64(paySpecificPermission.MaxAmountSat)
 	budgetUsage = queries.GetBudgetUsageSat(api.db, &paySpecificPermission)
@@ -259,7 +286,7 @@ func (api *api) GetApp(dbApp *db.App) *App {
 		Description:   dbApp.Description,
 		CreatedAt:     dbApp.CreatedAt,
 		UpdatedAt:     dbApp.UpdatedAt,
-		NostrPubkey:   dbApp.NostrPubkey,
+		AppPubkey:     dbApp.AppPubkey,
 		ExpiresAt:     expiresAt,
 		MaxAmountSat:  maxAmount,
 		Scopes:        requestMethods,
@@ -310,7 +337,7 @@ func (api *api) ListApps() ([]App, error) {
 			Description: dbApp.Description,
 			CreatedAt:   dbApp.CreatedAt,
 			UpdatedAt:   dbApp.UpdatedAt,
-			NostrPubkey: dbApp.NostrPubkey,
+			AppPubkey:   dbApp.AppPubkey,
 			Isolated:    dbApp.Isolated,
 		}
 
@@ -658,6 +685,7 @@ func (api *api) RequestMempoolApi(endpoint string) (interface{}, error) {
 func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info := InfoResponse{}
 	backendType, _ := api.cfg.Get("LNBackendType", "")
+	ldkVssEnabled, _ := api.cfg.Get("LdkVssEnabled", "")
 	info.SetupCompleted = api.cfg.SetupCompleted()
 	if api.startupError != nil {
 		info.StartupError = api.startupError.Error()
@@ -669,6 +697,8 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info.OAuthRedirect = !api.cfg.GetEnv().IsDefaultClientId()
 	info.Version = version.Tag
 	info.EnableAdvancedSetup = api.cfg.GetEnv().EnableAdvancedSetup
+	info.LdkVssEnabled = ldkVssEnabled == "true"
+	info.VssSupported = backendType == config.LDKBackendType && api.cfg.GetEnv().LDKVssUrl != ""
 	albyUserIdentifier, err := api.albyOAuthSvc.GetUserIdentifier()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to get alby user identifier")
@@ -882,6 +912,32 @@ func (api *api) SendPaymentProbes(ctx context.Context, sendPaymentProbesRequest 
 	return &SendPaymentProbesResponse{Error: errMessage}, nil
 }
 
+func (api *api) MigrateNodeStorage(ctx context.Context, to string) error {
+	if api.svc.GetLNClient() == nil {
+		return errors.New("LNClient not started")
+	}
+	if to != "VSS" {
+		return fmt.Errorf("Migration type not supported: %s", to)
+	}
+
+	ldkVssEnabled, err := api.cfg.Get("LdkVssEnabled", "")
+	if err != nil {
+		return err
+	}
+
+	if ldkVssEnabled == "true" {
+		return errors.New("VSS already enabled")
+	}
+
+	if api.cfg.GetEnv().LDKVssUrl == "" {
+		return errors.New("No VSS URL set")
+	}
+
+	api.cfg.SetUpdate("LdkVssEnabled", "true", "")
+	api.cfg.SetUpdate("LdkMigrateStorage", "VSS", "")
+	return api.Stop()
+}
+
 func (api *api) SendSpontaneousPaymentProbes(ctx context.Context, sendSpontaneousPaymentProbesRequest *SendSpontaneousPaymentProbesRequest) (*SendSpontaneousPaymentProbesResponse, error) {
 	if api.svc.GetLNClient() == nil {
 		return nil, errors.New("LNClient not started")
@@ -926,10 +982,13 @@ func (api *api) GetLogOutput(ctx context.Context, logType string, getLogRequest 
 		}
 	} else if logType == LogTypeApp {
 		logFileName := logger.GetLogFilePath()
-
-		logData, err = utils.ReadFileTail(logFileName, getLogRequest.MaxLen)
-		if err != nil {
-			return nil, err
+		if logFileName == "" {
+			logData = []byte("file log is disabled")
+		} else {
+			logData, err = utils.ReadFileTail(logFileName, getLogRequest.MaxLen)
+			if err != nil {
+				return nil, err
+			}
 		}
 	} else {
 		return nil, fmt.Errorf("invalid log type: '%s'", logType)

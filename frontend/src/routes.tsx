@@ -1,5 +1,6 @@
 import { Navigate } from "react-router-dom";
 import AppLayout from "src/components/layouts/AppLayout";
+import ReceiveLayout from "src/components/layouts/ReceiveLayout";
 import SendLayout from "src/components/layouts/SendLayout";
 import SettingsLayout from "src/components/layouts/SettingsLayout";
 import TwoColumnFullScreenLayout from "src/components/layouts/TwoColumnFullScreenLayout";
@@ -64,9 +65,11 @@ import Receive from "src/screens/wallet/Receive";
 import Send from "src/screens/wallet/Send";
 import SignMessage from "src/screens/wallet/SignMessage";
 import WithdrawOnchainFunds from "src/screens/wallet/WithdrawOnchainFunds";
+import ReceiveInvoice from "src/screens/wallet/receive/ReceiveInvoice";
 import ConfirmPayment from "src/screens/wallet/send/ConfirmPayment";
 import LnurlPay from "src/screens/wallet/send/LnurlPay";
 import PaymentSuccess from "src/screens/wallet/send/PaymentSuccess";
+import ZeroAmount from "src/screens/wallet/send/ZeroAmount";
 
 const routes = [
   {
@@ -100,8 +103,19 @@ const routes = [
           },
           {
             path: "receive",
-            element: <Receive />,
             handle: { crumb: () => "Receive" },
+            element: <ReceiveLayout />,
+            children: [
+              {
+                index: true,
+                element: <Receive />,
+              },
+              {
+                handle: { crumb: () => "Invoice" },
+                path: "invoice",
+                element: <ReceiveInvoice />,
+              },
+            ],
           },
           {
             path: "send",
@@ -115,6 +129,10 @@ const routes = [
               {
                 path: "lnurl-pay",
                 element: <LnurlPay />,
+              },
+              {
+                path: "0-amount",
+                element: <ZeroAmount />,
               },
               {
                 path: "confirm-payment",
@@ -134,7 +152,7 @@ const routes = [
           {
             path: "withdraw",
             element: <WithdrawOnchainFunds />,
-            handle: { crumb: () => "Withdraw Savings Balance" },
+            handle: { crumb: () => "Withdraw On-Chain Balance" },
           },
         ],
       },
@@ -287,12 +305,12 @@ const routes = [
           {
             path: "outgoing",
             element: <IncreaseOutgoingCapacity />,
-            handle: { crumb: () => "Increase Spending Balance" },
+            handle: { crumb: () => "Open Channel with On-Chain" },
           },
           {
             path: "incoming",
             element: <IncreaseIncomingCapacity />,
-            handle: { crumb: () => "Increase Receiving Capacity" },
+            handle: { crumb: () => "Open Channel with Lightning" },
           },
           {
             path: "order",
@@ -364,6 +382,14 @@ const routes = [
             element: <Navigate to="password" replace />,
           },
           {
+            path: "alby",
+            element: <ConnectAlbyAccount connectUrl="/setup/auth" />,
+          },
+          {
+            path: "auth",
+            element: <AlbyAuthRedirect />,
+          },
+          {
             path: "password",
             element: <SetupPassword />,
           },
@@ -421,10 +447,6 @@ const routes = [
             element: <SetupFinish />,
           },
         ],
-      },
-      {
-        path: "alby/auth",
-        element: <AlbyAuthRedirect />,
       },
     ],
   },

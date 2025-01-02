@@ -8,6 +8,7 @@ import (
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/tests"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSendPaymentSync_IsolatedApp_NoBalance(t *testing.T) {
@@ -15,7 +16,7 @@ func TestSendPaymentSync_IsolatedApp_NoBalance(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -35,7 +36,7 @@ func TestSendPaymentSync_IsolatedApp_NoBalance(t *testing.T) {
 	assert.NoError(t, err)
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, svc.LNClient, &app.ID, &dbRequestEvent.ID)
+	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, nil, nil, svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.Error(t, err)
 	assert.ErrorIs(t, err, NewInsufficientBalanceError())
@@ -47,7 +48,7 @@ func TestSendPaymentSync_IsolatedApp_BalanceInsufficient(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -77,17 +78,18 @@ func TestSendPaymentSync_IsolatedApp_BalanceInsufficient(t *testing.T) {
 	svc.EventPublisher.RegisterSubscriber(mockEventConsumer)
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, svc.LNClient, &app.ID, &dbRequestEvent.ID)
+	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, nil, nil, svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.Error(t, err)
 	assert.ErrorIs(t, err, NewInsufficientBalanceError())
 	assert.Nil(t, transaction)
 
-	assert.Equal(t, 1, len(mockEventConsumer.GetConsumeEvents()))
-	assert.Equal(t, "nwc_permission_denied", mockEventConsumer.GetConsumeEvents()[0].Event)
-	assert.Equal(t, app.Name, mockEventConsumer.GetConsumeEvents()[0].Properties.(map[string]interface{})["app_name"])
-	assert.Equal(t, constants.ERROR_INSUFFICIENT_BALANCE, mockEventConsumer.GetConsumeEvents()[0].Properties.(map[string]interface{})["code"])
-	assert.Equal(t, NewInsufficientBalanceError().Error(), mockEventConsumer.GetConsumeEvents()[0].Properties.(map[string]interface{})["message"])
+	assert.Equal(t, 1, len(mockEventConsumer.GetConsumedEvents()))
+	assert.Equal(t, "nwc_permission_denied", mockEventConsumer.GetConsumedEvents()[0].Event)
+	assert.Equal(t, app.Name, mockEventConsumer.GetConsumedEvents()[0].Properties.(map[string]interface{})["app_name"])
+	assert.Equal(t, constants.ERROR_INSUFFICIENT_BALANCE, mockEventConsumer.GetConsumedEvents()[0].Properties.(map[string]interface{})["code"])
+	expectedMessage := NewInsufficientBalanceError().Error() + " te" // invoice description is "te" in the mock invoice
+	assert.Equal(t, expectedMessage, mockEventConsumer.GetConsumedEvents()[0].Properties.(map[string]interface{})["message"])
 }
 
 func TestSendPaymentSync_IsolatedApp_BalanceSufficient(t *testing.T) {
@@ -95,7 +97,7 @@ func TestSendPaymentSync_IsolatedApp_BalanceSufficient(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -122,7 +124,7 @@ func TestSendPaymentSync_IsolatedApp_BalanceSufficient(t *testing.T) {
 	})
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, svc.LNClient, &app.ID, &dbRequestEvent.ID)
+	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, nil, nil, svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(123000), transaction.AmountMsat)
@@ -137,7 +139,7 @@ func TestSendPaymentSync_IsolatedApp_BalanceInsufficient_OutstandingPayment(t *t
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -171,7 +173,7 @@ func TestSendPaymentSync_IsolatedApp_BalanceInsufficient_OutstandingPayment(t *t
 	})
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, svc.LNClient, &app.ID, &dbRequestEvent.ID)
+	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, nil, nil, svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.Error(t, err)
 	assert.ErrorIs(t, err, NewInsufficientBalanceError())
@@ -183,7 +185,7 @@ func TestSendPaymentSync_IsolatedApp_BalanceInsufficient_SettledPayment(t *testi
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -217,7 +219,7 @@ func TestSendPaymentSync_IsolatedApp_BalanceInsufficient_SettledPayment(t *testi
 	})
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, svc.LNClient, &app.ID, &dbRequestEvent.ID)
+	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, nil, nil, svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.Error(t, err)
 	assert.ErrorIs(t, err, NewInsufficientBalanceError())
@@ -229,7 +231,7 @@ func TestSendPaymentSync_IsolatedApp_BalanceSufficient_UnrelatedPayment(t *testi
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -262,7 +264,7 @@ func TestSendPaymentSync_IsolatedApp_BalanceSufficient_UnrelatedPayment(t *testi
 	})
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, svc.LNClient, &app.ID, &dbRequestEvent.ID)
+	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, nil, nil, svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(123000), transaction.AmountMsat)
@@ -277,7 +279,7 @@ func TestSendPaymentSync_IsolatedApp_BalanceSufficient_FailedPayment(t *testing.
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -310,7 +312,7 @@ func TestSendPaymentSync_IsolatedApp_BalanceSufficient_FailedPayment(t *testing.
 	})
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, svc.LNClient, &app.ID, &dbRequestEvent.ID)
+	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, nil, nil, svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(123000), transaction.AmountMsat)
@@ -318,4 +320,17 @@ func TestSendPaymentSync_IsolatedApp_BalanceSufficient_FailedPayment(t *testing.
 	assert.Equal(t, "123preimage", *transaction.Preimage)
 	assert.Equal(t, app.ID, *transaction.AppId)
 	assert.Equal(t, dbRequestEvent.ID, *transaction.RequestEventId)
+}
+
+func TestCalculateFeeReserve(t *testing.T) {
+	defer tests.RemoveTestService()
+	svc, err := tests.CreateTestService()
+	require.NoError(t, err)
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
+
+	assert.Equal(t, uint64(10_000), transactionsService.calculateFeeReserveMsat(0))
+	assert.Equal(t, uint64(10_000), transactionsService.calculateFeeReserveMsat(10_000))
+	assert.Equal(t, uint64(10_000), transactionsService.calculateFeeReserveMsat(100_000))
+	assert.Equal(t, uint64(10_000), transactionsService.calculateFeeReserveMsat(1000_000))
+	assert.Equal(t, uint64(20_000), transactionsService.calculateFeeReserveMsat(2000_000))
 }

@@ -12,9 +12,10 @@ import (
 
 type API interface {
 	CreateApp(createAppRequest *CreateAppRequest) (*CreateAppResponse, error)
-	UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) error
-	DeleteApp(userApp *db.App) error
-	GetApp(userApp *db.App) *App
+	UpdateApp(app *db.App, updateAppRequest *UpdateAppRequest) error
+	TopupIsolatedApp(ctx context.Context, app *db.App, amountMsat uint64) error
+	DeleteApp(app *db.App) error
+	GetApp(app *db.App) *App
 	ListApps() ([]App, error)
 	ListChannels(ctx context.Context) ([]Channel, error)
 	GetChannelPeerSuggestions(ctx context.Context) ([]alby.ChannelPeerSuggestion, error)
@@ -34,9 +35,9 @@ type API interface {
 	SignMessage(ctx context.Context, message string) (*SignMessageResponse, error)
 	RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, sendAll bool) (*RedeemOnchainFundsResponse, error)
 	GetBalances(ctx context.Context) (*BalancesResponse, error)
-	ListTransactions(ctx context.Context, limit uint64, offset uint64) (*ListTransactionsResponse, error)
-	SendPayment(ctx context.Context, invoice string) (*SendPaymentResponse, error)
-	CreateInvoice(ctx context.Context, amount int64, description string) (*MakeInvoiceResponse, error)
+	ListTransactions(ctx context.Context, appId *uint, limit uint64, offset uint64) (*ListTransactionsResponse, error)
+	SendPayment(ctx context.Context, invoice string, amountMsat *uint64) (*SendPaymentResponse, error)
+	CreateInvoice(ctx context.Context, amount uint64, description string) (*MakeInvoiceResponse, error)
 	LookupInvoice(ctx context.Context, paymentHash string) (*LookupInvoiceResponse, error)
 	RequestMempoolApi(endpoint string) (interface{}, error)
 	GetInfo(ctx context.Context) (*InfoResponse, error)
@@ -52,6 +53,7 @@ type API interface {
 	RequestLSPOrder(ctx context.Context, request *LSPOrderRequest) (*LSPOrderResponse, error)
 	CreateBackup(unlockPassword string, w io.Writer) error
 	RestoreBackup(unlockPassword string, r io.Reader) error
+	MigrateNodeStorage(ctx context.Context, to string) error
 	GetWalletCapabilities(ctx context.Context) (*WalletCapabilitiesResponse, error)
 }
 
@@ -59,7 +61,7 @@ type App struct {
 	ID            uint       `json:"id"`
 	Name          string     `json:"name"`
 	Description   string     `json:"description"`
-	NostrPubkey   string     `json:"nostrPubkey"`
+	AppPubkey     string     `json:"appPubkey"`
 	CreatedAt     time.Time  `json:"createdAt"`
 	UpdatedAt     time.Time  `json:"updatedAt"`
 	LastEventAt   *time.Time `json:"lastEventAt"`
@@ -84,6 +86,11 @@ type UpdateAppRequest struct {
 	ExpiresAt     string   `json:"expiresAt"`
 	Scopes        []string `json:"scopes"`
 	Metadata      Metadata `json:"metadata,omitempty"`
+	Isolated      bool     `json:"isolated"`
+}
+
+type TopupIsolatedAppRequest struct {
+	AmountSat uint64 `json:"amountSat"`
 }
 
 type CreateAppRequest struct {
@@ -164,6 +171,8 @@ type InfoResponse struct {
 	Version              string    `json:"version"`
 	Network              string    `json:"network"`
 	EnableAdvancedSetup  bool      `json:"enableAdvancedSetup"`
+	LdkVssEnabled        bool      `json:"ldkVssEnabled"`
+	VssSupported         bool      `json:"vssSupported"`
 	StartupError         string    `json:"startupError"`
 	StartupErrorTime     time.Time `json:"startupErrorTime"`
 }
@@ -282,8 +291,12 @@ type SignMessageResponse struct {
 	Signature string `json:"signature"`
 }
 
+type PayInvoiceRequest struct {
+	Amount *uint64 `json:"amount"`
+}
+
 type MakeInvoiceRequest struct {
-	Amount      int64  `json:"amount"`
+	Amount      uint64 `json:"amount"`
 	Description string `json:"description"`
 }
 
@@ -340,4 +353,8 @@ type Channel struct {
 	Error                                    *string     `json:"error"`
 	Status                                   string      `json:"status"`
 	IsOutbound                               bool        `json:"isOutbound"`
+}
+
+type MigrateNodeStorageRequest struct {
+	To string `json:"to"`
 }

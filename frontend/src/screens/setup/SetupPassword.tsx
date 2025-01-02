@@ -113,7 +113,6 @@ export function SetupPassword() {
                 <div className="flex items-center">
                   <Checkbox
                     id="securePassword2"
-                    className="border-destructive"
                     required
                     onCheckedChange={() =>
                       setIsPasswordSecured2(!isPasswordSecured2)
@@ -121,7 +120,7 @@ export function SetupPassword() {
                   />
                   <Label
                     htmlFor="securePassword2"
-                    className="ml-2 leading-4 font-semibold text-destructive"
+                    className="ml-2 leading-4 font-semibold"
                   >
                     I understand this password cannot be recovered
                   </Label>

@@ -13,6 +13,7 @@ const (
 	// request methods
 	PAY_INVOICE_METHOD       = "pay_invoice"
 	GET_BALANCE_METHOD       = "get_balance"
+	GET_BUDGET_METHOD        = "get_budget"
 	GET_INFO_METHOD          = "get_info"
 	MAKE_INVOICE_METHOD      = "make_invoice"
 	LOOKUP_INVOICE_METHOD    = "lookup_invoice"
@@ -25,6 +26,7 @@ const (
 
 type Transaction struct {
 	Type            string      `json:"type"`
+	State           string      `json:"state"`
 	Invoice         string      `json:"invoice"`
 	Description     string      `json:"description"`
 	DescriptionHash string      `json:"description_hash"`

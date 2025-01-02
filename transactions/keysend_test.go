@@ -13,6 +13,7 @@ import (
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/tests"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSendKeysend(t *testing.T) {
@@ -20,7 +21,7 @@ func TestSendKeysend(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	mockEventConsumer := tests.NewMockEventConsumer()
 	svc.EventPublisher.RegisterSubscriber(mockEventConsumer)
@@ -42,9 +43,9 @@ func TestSendKeysend(t *testing.T) {
 	assert.NotNil(t, transaction.Preimage)
 	assert.Equal(t, 64, len(*transaction.Preimage))
 
-	assert.Equal(t, 1, len(mockEventConsumer.GetConsumeEvents()))
-	assert.Equal(t, "nwc_payment_sent", mockEventConsumer.GetConsumeEvents()[0].Event)
-	settledTransaction := mockEventConsumer.GetConsumeEvents()[0].Properties.(*db.Transaction)
+	assert.Equal(t, 1, len(mockEventConsumer.GetConsumedEvents()))
+	assert.Equal(t, "nwc_payment_sent", mockEventConsumer.GetConsumedEvents()[0].Event)
+	settledTransaction := mockEventConsumer.GetConsumedEvents()[0].Properties.(*db.Transaction)
 	assert.Equal(t, transaction, settledTransaction)
 }
 func TestSendKeysend_CustomPreimage(t *testing.T) {
@@ -52,7 +53,7 @@ func TestSendKeysend_CustomPreimage(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	customPreimage := "018465013e2337234a7e5530a21c4a8cf70d84231f4a8ff0b1e2cce3cb2bd03b"
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
@@ -78,7 +79,7 @@ func TestSendKeysend_App_NoPermission(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -100,7 +101,7 @@ func TestSendKeysend_App_WithPermission(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -142,7 +143,7 @@ func TestSendKeysend_App_BudgetExceeded(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -169,18 +170,18 @@ func TestSendKeysend_App_BudgetExceeded(t *testing.T) {
 	assert.ErrorIs(t, err, NewQuotaExceededError())
 	assert.Nil(t, transaction)
 
-	assert.Equal(t, 1, len(mockEventConsumer.GetConsumeEvents()))
-	assert.Equal(t, "nwc_permission_denied", mockEventConsumer.GetConsumeEvents()[0].Event)
-	assert.Equal(t, app.Name, mockEventConsumer.GetConsumeEvents()[0].Properties.(map[string]interface{})["app_name"])
-	assert.Equal(t, constants.ERROR_QUOTA_EXCEEDED, mockEventConsumer.GetConsumeEvents()[0].Properties.(map[string]interface{})["code"])
-	assert.Equal(t, NewQuotaExceededError().Error(), mockEventConsumer.GetConsumeEvents()[0].Properties.(map[string]interface{})["message"])
+	assert.Equal(t, 1, len(mockEventConsumer.GetConsumedEvents()))
+	assert.Equal(t, "nwc_permission_denied", mockEventConsumer.GetConsumedEvents()[0].Event)
+	assert.Equal(t, app.Name, mockEventConsumer.GetConsumedEvents()[0].Properties.(map[string]interface{})["app_name"])
+	assert.Equal(t, constants.ERROR_QUOTA_EXCEEDED, mockEventConsumer.GetConsumedEvents()[0].Properties.(map[string]interface{})["code"])
+	assert.Equal(t, NewQuotaExceededError().Error(), mockEventConsumer.GetConsumedEvents()[0].Properties.(map[string]interface{})["message"])
 }
 func TestSendKeysend_App_BudgetNotExceeded(t *testing.T) {
 	ctx := context.TODO()
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -223,7 +224,7 @@ func TestSendKeysend_App_BalanceExceeded(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -261,7 +262,7 @@ func TestSendKeysend_App_BalanceSufficient(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -312,7 +313,7 @@ func TestSendKeysend_TLVs(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 	transaction, err := transactionsService.SendKeysend(ctx, uint64(1000), "fake destination", []lnclient.TLVRecord{
@@ -360,10 +361,10 @@ func TestSendKeysend_IsolatedAppToNoApp(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// setup for self payment
-	svc.LNClient.(*tests.MockLn).Pubkey = "02a5056398235568fc049a5d563f1adf666041d590b268167e4fa145fbf71aa578"
+	svc.LNClient.(*tests.MockLn).Pubkey = "03cbd788f5b22bd56e2714bff756372d2293504c064e03250ed16a4dd80ad70e2c"
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -394,7 +395,7 @@ func TestSendKeysend_IsolatedAppToNoApp(t *testing.T) {
 	mockPreimage := "c8aeb44ae8eb269c8dbfb7ec5c263f0bfa3d755bc0ca641b8ee118673afda657"
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendKeysend(ctx, 123000, "02a5056398235568fc049a5d563f1adf666041d590b268167e4fa145fbf71aa578", []lnclient.TLVRecord{}, mockPreimage, svc.LNClient, &app.ID, &dbRequestEvent.ID)
+	transaction, err := transactionsService.SendKeysend(ctx, 123000, "03cbd788f5b22bd56e2714bff756372d2293504c064e03250ed16a4dd80ad70e2c", []lnclient.TLVRecord{}, mockPreimage, svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, transaction)
@@ -425,10 +426,10 @@ func TestSendKeysend_IsolatedAppToIsolatedApp(t *testing.T) {
 
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// setup for self payment
-	svc.LNClient.(*tests.MockLn).Pubkey = "02a5056398235568fc049a5d563f1adf666041d590b268167e4fa145fbf71aa578"
+	svc.LNClient.(*tests.MockLn).Pubkey = "03cbd788f5b22bd56e2714bff756372d2293504c064e03250ed16a4dd80ad70e2c"
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -480,7 +481,7 @@ func TestSendKeysend_IsolatedAppToIsolatedApp(t *testing.T) {
 	svc.EventPublisher.RegisterSubscriber(mockEventConsumer)
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendKeysend(ctx, 123000, "02a5056398235568fc049a5d563f1adf666041d590b268167e4fa145fbf71aa578", tlvRecords, mockPreimage, svc.LNClient, &app.ID, &dbRequestEvent.ID)
+	transaction, err := transactionsService.SendKeysend(ctx, 123000, "03cbd788f5b22bd56e2714bff756372d2293504c064e03250ed16a4dd80ad70e2c", tlvRecords, mockPreimage, svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, transaction)
@@ -515,13 +516,13 @@ func TestSendKeysend_IsolatedAppToIsolatedApp(t *testing.T) {
 	assert.Equal(t, uint64(123000), queries.GetIsolatedBalance(svc.DB, app2.ID))
 
 	// check notifications
-	assert.Equal(t, 2, len(mockEventConsumer.GetConsumeEvents()))
+	assert.Equal(t, 2, len(mockEventConsumer.GetConsumedEvents()))
 
-	assert.Equal(t, "nwc_payment_sent", mockEventConsumer.GetConsumeEvents()[1].Event)
-	settledTransaction := mockEventConsumer.GetConsumeEvents()[1].Properties.(*db.Transaction)
+	assert.Equal(t, "nwc_payment_sent", mockEventConsumer.GetConsumedEvents()[1].Event)
+	settledTransaction := mockEventConsumer.GetConsumedEvents()[1].Properties.(*db.Transaction)
 	assert.Equal(t, transaction.ID, settledTransaction.ID)
 
-	assert.Equal(t, "nwc_payment_received", mockEventConsumer.GetConsumeEvents()[0].Event)
-	receivedTransaction := mockEventConsumer.GetConsumeEvents()[0].Properties.(*db.Transaction)
+	assert.Equal(t, "nwc_payment_received", mockEventConsumer.GetConsumedEvents()[0].Event)
+	receivedTransaction := mockEventConsumer.GetConsumedEvents()[0].Properties.(*db.Transaction)
 	assert.Equal(t, incomingTransaction.ID, receivedTransaction.ID)
 }

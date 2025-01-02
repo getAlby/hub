@@ -36,7 +36,6 @@ func NewPermissionsService(db *gorm.DB, eventPublisher events.EventPublisher) *p
 }
 
 func (svc *permissionsService) HasPermission(app *db.App, scope string) (result bool, code string, message string) {
-
 	appPermission := db.AppPermission{}
 	findPermissionResult := svc.db.Limit(1).Find(&appPermission, &db.AppPermission{
 		AppId: app.ID,
@@ -52,7 +51,7 @@ func (svc *permissionsService) HasPermission(app *db.App, scope string) (result 
 			"scope":     scope,
 			"expiresAt": expiresAt.Unix(),
 			"appId":     app.ID,
-			"pubkey":    app.NostrPubkey,
+			"pubkey":    app.AppPubkey,
 		}).Info("This pubkey is expired")
 
 		return false, constants.ERROR_EXPIRED, "This app has expired"
@@ -71,6 +70,12 @@ func (svc *permissionsService) GetPermittedMethods(app *db.App, lnClient lnclien
 
 	requestMethods := scopesToRequestMethods(scopes)
 
+	for _, method := range GetAlwaysGrantedMethods() {
+		if !slices.Contains(requestMethods, method) {
+			requestMethods = append(requestMethods, method)
+		}
+	}
+
 	// only return methods supported by the lnClient
 	lnClientSupportedMethods := lnClient.GetSupportedNIP47Methods()
 	requestMethods = utils.Filter(requestMethods, func(requestMethod string) bool {
@@ -86,11 +91,8 @@ func (svc *permissionsService) PermitsNotifications(app *db.App) bool {
 		AppId: app.ID,
 		Scope: constants.NOTIFICATIONS_SCOPE,
 	}).Error
-	if err != nil {
-		return false
-	}
 
-	return true
+	return err == nil
 }
 
 func scopesToRequestMethods(scopes []string) []string {
@@ -131,7 +133,7 @@ func RequestMethodsToScopes(requestMethods []string) ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
-		if !slices.Contains(scopes, scope) {
+		if scope != "" && !slices.Contains(scopes, scope) {
 			scopes = append(scopes, scope)
 		}
 	}
@@ -144,6 +146,8 @@ func RequestMethodToScope(requestMethod string) (string, error) {
 		return constants.PAY_INVOICE_SCOPE, nil
 	case models.GET_BALANCE_METHOD:
 		return constants.GET_BALANCE_SCOPE, nil
+	case models.GET_BUDGET_METHOD:
+		return "", nil
 	case models.GET_INFO_METHOD:
 		return constants.GET_INFO_SCOPE, nil
 	case models.MAKE_INVOICE_METHOD:
@@ -170,4 +174,8 @@ func AllScopes() []string {
 		constants.SIGN_MESSAGE_SCOPE,
 		constants.NOTIFICATIONS_SCOPE,
 	}
+}
+
+func GetAlwaysGrantedMethods() []string {
+	return []string{models.GET_INFO_METHOD, models.GET_BUDGET_METHOD}
 }
