@@ -1,8 +1,8 @@
 import {
+  CopyIcon,
   ExternalLinkIcon,
   LifeBuoy,
   ShieldAlert,
-  ShieldCheck,
 } from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -17,6 +17,7 @@ import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 import { useInfo } from "src/hooks/useInfo";
+import { copyToClipboard } from "src/lib/clipboard";
 import { MnemonicResponse } from "src/types";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
@@ -91,19 +92,14 @@ export function BackupMnemonic() {
   return (
     <>
       <SettingsHeader
-        title="Backup"
-        description="Backup your wallet recovery phrase and your channels state."
+        title="Key Backup"
+        description="Key recovery phrase is a group of 12 random words that are the only way to recover access to your wallet on another machine or when you loose your unlock password."
       />
       {!decryptedMnemonic ? (
         <div>
-          <div>
-            <h3 className="text-lg font-medium">Wallet Keys Backup</h3>
-            <p className="text-sm text-muted-foreground">
-              Key recovery phrase is a group of 12 random words that are the
-              only way to recover access to your wallet on another machine or
-              when you lose your unlock password.
-            </p>
-          </div>
+          <p className="text-muted-foreground">
+            Enter your unlock password to view your recovery phrase.
+          </p>
           <form
             onSubmit={onSubmitPassword}
             className="max-w-md flex flex-col gap-3 mt-8"
@@ -117,12 +113,9 @@ export function BackupMnemonic() {
                 value={unlockPassword}
                 placeholder="Password"
               />
-              <p className="text-sm text-muted-foreground">
-                Enter your unlock password to view your recovery phrase.
-              </p>
             </div>
             <div className="flex justify-start">
-              <LoadingButton loading={loading} variant="secondary">
+              <LoadingButton loading={loading}>
                 View Recovery Phrase
               </LoadingButton>
             </div>
@@ -131,7 +124,7 @@ export function BackupMnemonic() {
       ) : (
         <form
           onSubmit={onSubmit}
-          className="flex mt-6 flex-col gap-2 mx-auto max-w-2xl text-sm"
+          className="flex mt-6 flex-col gap-2 mx-auto max-w-md text-sm"
         >
           <div className="flex flex-col gap-4 mb-4 text-muted-foreground">
             <div className="flex gap-2 items-center ">
@@ -154,14 +147,6 @@ export function BackupMnemonic() {
                     connect your Alby Account for automatic encrypted backups.
                   </>
                 )}
-              </span>
-            </div>
-            <div className="flex gap-2 items-center">
-              <div className="shrink-0">
-                <ShieldCheck className="w-6 h-6" />
-              </div>
-              <span>
-                Make sure to write them down somewhere safe and private.
               </span>
             </div>
             <div className="flex gap-2 items-center text-destructive">
@@ -188,8 +173,13 @@ export function BackupMnemonic() {
             </ExternalLink>
           </div>
 
-          <MnemonicInputs mnemonic={decryptedMnemonic} readOnly={true}>
-            <div className="flex items-center mt-5">
+          <MnemonicInputs
+            mnemonic={decryptedMnemonic}
+            readOnly={true}
+            description="  Writing these words down, store them somewhere safe and keep them
+            secret."
+          >
+            <div className="flex items-center mt-5 text-muted-foreground">
               <Checkbox
                 id="backup"
                 required
@@ -201,7 +191,7 @@ export function BackupMnemonic() {
               </Label>
             </div>
             {backedUp && !info?.albyAccountConnected && (
-              <div className="flex mt-5">
+              <div className="flex mt-5 text-muted-foreground">
                 <Checkbox
                   id="backup2"
                   required
@@ -214,6 +204,15 @@ export function BackupMnemonic() {
                 </Label>
               </div>
             )}
+            <Button
+              type="button"
+              variant={"destructive"}
+              className="flex gap-2 items-center justify-center mt-5 mx-auto"
+              onClick={() => copyToClipboard(decryptedMnemonic, toast)}
+            >
+              <CopyIcon className="w-4 h-4 mr-2" />
+              Dangerously Copy
+            </Button>
           </MnemonicInputs>
           <div className="flex justify-center">
             <Button type="submit" size="lg">

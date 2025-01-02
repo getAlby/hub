@@ -29,9 +29,8 @@ export default function SettingsLayout() {
             <MenuItem to="/settings/change-unlock-password">
               Unlock Password
             </MenuItem>
-            {hasMnemonic && <MenuItem to="/settings/backup">Backup</MenuItem>}
-            {hasNodeBackup && (
-              <MenuItem to="/settings/node-backup">Migrate Node</MenuItem>
+            {(hasMnemonic || hasNodeBackup) && (
+              <MenuItem to="/settings/backup">Backup</MenuItem>
             )}
             {info?.albyAccountConnected && (
               <MenuItem to="/settings/alby-account">Your Alby Account</MenuItem>

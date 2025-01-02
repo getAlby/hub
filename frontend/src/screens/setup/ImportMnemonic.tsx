@@ -62,7 +62,7 @@ export function ImportMnemonic() {
     <>
       <form
         onSubmit={onSubmit}
-        className="flex flex-col gap-5 mx-auto max-w-2xl text-sm"
+        className="flex flex-col gap-5 mx-auto max-w-md text-sm"
       >
         <TwoColumnLayoutHeader
           title="Import Master Key"

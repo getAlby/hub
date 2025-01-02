@@ -42,6 +42,7 @@ import DepositBitcoin from "src/screens/onchain/DepositBitcoin";
 import ConnectPeer from "src/screens/peers/ConnectPeer";
 import Peers from "src/screens/peers/Peers";
 import { AlbyAccount } from "src/screens/settings/AlbyAccount";
+import Backup from "src/screens/settings/Backup";
 import { ChangeUnlockPassword } from "src/screens/settings/ChangeUnlockPassword";
 import DebugTools from "src/screens/settings/DebugTools";
 import DeveloperSettings from "src/screens/settings/DeveloperSettings";
@@ -176,8 +177,13 @@ const routes = [
               },
               {
                 path: "backup",
-                element: <BackupMnemonic />,
+                element: <Backup />,
                 handle: { crumb: () => "Backup" },
+              },
+              {
+                path: "mnemonic-backup",
+                element: <BackupMnemonic />,
+                handle: { crumb: () => "Key Backup" },
               },
               {
                 path: "node-backup",
