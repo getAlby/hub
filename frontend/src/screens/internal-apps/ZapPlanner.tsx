@@ -32,6 +32,7 @@ import {
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
+import { Textarea } from "src/components/ui/textarea";
 import { request } from "src/utils/request";
 
 type Recipient = {
@@ -260,11 +261,11 @@ export function ZapPlanner() {
                         className="col-span-3"
                       />
                     </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="comment" className="text-right">
+                    <div className="grid grid-cols-4 gap-4">
+                      <Label htmlFor="comment" className="text-right pt-2">
                         Comment
                       </Label>
-                      <Input
+                      <Textarea
                         id="comment"
                         value={comment}
                         onChange={(e) => setComment(e.target.value)}
