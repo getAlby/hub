@@ -11,8 +11,6 @@ const (
 	LEGACY_NOTIFICATION_KIND = 23196
 	NOTIFICATION_KIND        = 23197
 
-	SUPPORTED_VERSIONS = "1.0 0.0"
-
 	// request methods
 	PAY_INVOICE_METHOD       = "pay_invoice"
 	GET_BALANCE_METHOD       = "get_balance"

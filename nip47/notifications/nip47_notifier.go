@@ -120,8 +120,8 @@ func (notifier *Nip47Notifier) notifySubscribers(ctx context.Context, notificati
 			return
 		}
 
-		go notifier.notifySubscriber(ctx, &app, notification, tags, appWalletPubKey, appWalletPrivKey, "0.0")
-		go notifier.notifySubscriber(ctx, &app, notification, tags, appWalletPubKey, appWalletPrivKey, "1.0")
+		notifier.notifySubscriber(ctx, &app, notification, tags, appWalletPubKey, appWalletPrivKey, "0.0")
+		notifier.notifySubscriber(ctx, &app, notification, tags, appWalletPubKey, appWalletPrivKey, "1.0")
 	}
 }
 

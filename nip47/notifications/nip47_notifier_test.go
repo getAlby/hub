@@ -3,18 +3,19 @@ package notifications
 import (
 	"context"
 	"encoding/json"
-	"github.com/nbd-wtf/go-nostr"
 	"testing"
 	"time"
+
+	"github.com/nbd-wtf/go-nostr"
 
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
+	"github.com/getAlby/hub/nip47/cipher"
 	"github.com/getAlby/hub/nip47/permissions"
 	"github.com/getAlby/hub/tests"
 	"github.com/getAlby/hub/transactions"
-	"github.com/nbd-wtf/go-nostr/nip04"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -33,7 +34,7 @@ func (svc *mockConsumer) ConsumeEvent(ctx context.Context, event *events.Event, 
 	svc.nip47NotificationQueue.AddToQueue(event)
 }
 
-func doTestSendNotificationPaymentReceived(t *testing.T, svc *tests.TestService, app *db.App, ss []byte) {
+func doTestSendNotificationPaymentReceived(t *testing.T, svc *tests.TestService, app *db.App, cipher *cipher.Nip47Cipher) {
 	ctx := context.TODO()
 
 	appPermission := &db.AppPermission{
@@ -82,10 +83,10 @@ func doTestSendNotificationPaymentReceived(t *testing.T, svc *tests.TestService,
 	notifier := NewNip47Notifier(relay, svc.DB, svc.Cfg, svc.Keys, permissionsSvc, transactionsSvc, svc.LNClient)
 	notifier.ConsumeEvent(ctx, receivedEvent)
 
-	assert.NotNil(t, relay.PublishedEvent)
-	assert.NotEmpty(t, relay.PublishedEvent.Content)
+	assert.NotNil(t, relay.PublishedEvents[1])
+	assert.NotEmpty(t, relay.PublishedEvents[1].Content)
 
-	decrypted, err := nip04.Decrypt(relay.PublishedEvent.Content, ss)
+	decrypted, err := cipher.Decrypt(relay.PublishedEvents[1].Content)
 	assert.NoError(t, err)
 	unmarshalledResponse := Notification{
 		Notification: &PaymentReceivedNotification{},
@@ -112,9 +113,9 @@ func TestSendNotification_PaymentReceived(t *testing.T) {
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
 
-	app, ss, err := tests.CreateApp(svc)
+	app, cipher, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
-	doTestSendNotificationPaymentReceived(t, svc, app, ss)
+	doTestSendNotificationPaymentReceived(t, svc, app, cipher)
 }
 
 func TestSendNotification_Legacy_PaymentReceived(t *testing.T) {
@@ -122,12 +123,12 @@ func TestSendNotification_Legacy_PaymentReceived(t *testing.T) {
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
 
-	app, ss, err := tests.CreateLegacyApp(svc, nostr.GeneratePrivateKey())
+	app, cipher, err := tests.CreateLegacyApp(svc, nostr.GeneratePrivateKey())
 	assert.NoError(t, err)
-	doTestSendNotificationPaymentReceived(t, svc, app, ss)
+	doTestSendNotificationPaymentReceived(t, svc, app, cipher)
 }
 
-func doTestSendNotificationPaymentSent(t *testing.T, svc *tests.TestService, app *db.App, ss []byte) {
+func doTestSendNotificationPaymentSent(t *testing.T, svc *tests.TestService, app *db.App, cipher *cipher.Nip47Cipher) {
 	ctx := context.TODO()
 
 	appPermission := &db.AppPermission{
@@ -175,10 +176,10 @@ func doTestSendNotificationPaymentSent(t *testing.T, svc *tests.TestService, app
 	notifier := NewNip47Notifier(relay, svc.DB, svc.Cfg, svc.Keys, permissionsSvc, transactionsSvc, svc.LNClient)
 	notifier.ConsumeEvent(ctx, receivedEvent)
 
-	assert.NotNil(t, relay.PublishedEvent)
-	assert.NotEmpty(t, relay.PublishedEvent.Content)
+	assert.NotNil(t, relay.PublishedEvents[1])
+	assert.NotEmpty(t, relay.PublishedEvents[1].Content)
 
-	decrypted, err := nip04.Decrypt(relay.PublishedEvent.Content, ss)
+	decrypted, err := cipher.Decrypt(relay.PublishedEvents[1].Content)
 	assert.NoError(t, err)
 	unmarshalledResponse := Notification{
 		Notification: &PaymentReceivedNotification{},
@@ -215,9 +216,9 @@ func TestSendNotification_Legacy_PaymentSent(t *testing.T) {
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
 
-	app, ss, err := tests.CreateLegacyApp(svc, nostr.GeneratePrivateKey())
+	app, cipher, err := tests.CreateLegacyApp(svc, nostr.GeneratePrivateKey())
 	assert.NoError(t, err)
-	doTestSendNotificationPaymentSent(t, svc, app, ss)
+	doTestSendNotificationPaymentSent(t, svc, app, cipher)
 }
 
 func doTestSendNotificationNoPermission(t *testing.T, svc *tests.TestService) {
@@ -250,7 +251,7 @@ func doTestSendNotificationNoPermission(t *testing.T, svc *tests.TestService) {
 	notifier := NewNip47Notifier(relay, svc.DB, svc.Cfg, svc.Keys, permissionsSvc, transactionsSvc, svc.LNClient)
 	notifier.ConsumeEvent(ctx, receivedEvent)
 
-	assert.Nil(t, relay.PublishedEvent)
+	assert.Nil(t, relay.PublishedEvents)
 }
 
 func TestSendNotification_NoPermission(t *testing.T) {

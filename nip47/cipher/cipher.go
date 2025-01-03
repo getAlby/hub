@@ -5,9 +5,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/getAlby/hub/nip47/models"
 	"github.com/nbd-wtf/go-nostr/nip04"
 	"github.com/nbd-wtf/go-nostr/nip44"
+)
+
+const (
+	SUPPORTED_VERSIONS = "1.0 0.0"
 )
 
 type Nip47Cipher struct {
@@ -92,7 +95,7 @@ func isVersionSupported(version string) (bool, error) {
 		return false, fmt.Errorf("invalid minor version: %s", versionParts[1])
 	}
 
-	for _, supported := range strings.Split(models.SUPPORTED_VERSIONS, " ") {
+	for _, supported := range strings.Split(SUPPORTED_VERSIONS, " ") {
 		supportedParts := strings.Split(supported, ".")
 		if len(supportedParts) != 2 {
 			continue
