@@ -12,7 +12,6 @@ import (
 	"github.com/getAlby/hub/nip47/permissions"
 	"github.com/getAlby/hub/tests"
 	"github.com/nbd-wtf/go-nostr"
-	"github.com/nbd-wtf/go-nostr/nip04"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -26,7 +25,7 @@ func TestHandleResponse_LegacyApp_WithPermission(t *testing.T) {
 	reqPubkey, err := nostr.GetPublicKey(reqPrivateKey)
 	assert.NoError(t, err)
 
-	app, ss, err := tests.CreateLegacyApp(svc, reqPrivateKey)
+	app, cipher, err := tests.CreateLegacyApp(svc, reqPrivateKey)
 	assert.NoError(t, err)
 
 	appPermission := &db.AppPermission{
@@ -44,14 +43,14 @@ func TestHandleResponse_LegacyApp_WithPermission(t *testing.T) {
 	payloadBytes, err := json.Marshal(content)
 	assert.NoError(t, err)
 
-	msg, err := nip04.Encrypt(string(payloadBytes), ss)
+	msg, err := cipher.Encrypt(string(payloadBytes))
 	assert.NoError(t, err)
 
 	reqEvent := &nostr.Event{
 		Kind:      models.REQUEST_KIND,
 		PubKey:    reqPubkey,
 		CreatedAt: nostr.Now(),
-		Tags:      nostr.Tags{},
+		Tags:      nostr.Tags{[]string{"v", "1.0"}},
 		Content:   msg,
 	}
 	err = reqEvent.Sign(reqPrivateKey)
@@ -61,10 +60,10 @@ func TestHandleResponse_LegacyApp_WithPermission(t *testing.T) {
 
 	nip47svc.HandleEvent(context.TODO(), relay, reqEvent, svc.LNClient)
 
-	assert.NotNil(t, relay.PublishedEvent)
-	assert.NotEmpty(t, relay.PublishedEvent.Content)
+	assert.NotNil(t, relay.PublishedEvents[0])
+	assert.NotEmpty(t, relay.PublishedEvents[0].Content)
 
-	decrypted, err := nip04.Decrypt(relay.PublishedEvent.Content, ss)
+	decrypted, err := cipher.Decrypt(relay.PublishedEvents[0].Content)
 	assert.NoError(t, err)
 
 	type getInfoResult struct {
@@ -96,7 +95,7 @@ func TestHandleResponse_LegacyApp_NoPermission(t *testing.T) {
 	reqPubkey, err := nostr.GetPublicKey(reqPrivateKey)
 	assert.NoError(t, err)
 
-	_, ss, err := tests.CreateLegacyApp(svc, reqPrivateKey)
+	_, cipher, err := tests.CreateLegacyApp(svc, reqPrivateKey)
 	assert.NoError(t, err)
 
 	content := map[string]interface{}{
@@ -106,14 +105,14 @@ func TestHandleResponse_LegacyApp_NoPermission(t *testing.T) {
 	payloadBytes, err := json.Marshal(content)
 	assert.NoError(t, err)
 
-	msg, err := nip04.Encrypt(string(payloadBytes), ss)
+	msg, err := cipher.Encrypt(string(payloadBytes))
 	assert.NoError(t, err)
 
 	reqEvent := &nostr.Event{
 		Kind:      models.REQUEST_KIND,
 		PubKey:    reqPubkey,
 		CreatedAt: nostr.Now(),
-		Tags:      nostr.Tags{},
+		Tags:      nostr.Tags{[]string{"v", "1.0"}},
 		Content:   msg,
 	}
 	err = reqEvent.Sign(reqPrivateKey)
@@ -123,10 +122,10 @@ func TestHandleResponse_LegacyApp_NoPermission(t *testing.T) {
 
 	nip47svc.HandleEvent(context.TODO(), relay, reqEvent, svc.LNClient)
 
-	assert.NotNil(t, relay.PublishedEvent)
-	assert.NotEmpty(t, relay.PublishedEvent.Content)
+	assert.NotNil(t, relay.PublishedEvents[0])
+	assert.NotEmpty(t, relay.PublishedEvents[0].Content)
 
-	decrypted, err := nip04.Decrypt(relay.PublishedEvent.Content, ss)
+	decrypted, err := cipher.Decrypt(relay.PublishedEvents[0].Content)
 	assert.NoError(t, err)
 
 	unmarshalledResponse := models.Response{}
@@ -151,7 +150,7 @@ func TestHandleResponse_LegacyApp_IncorrectPubkey(t *testing.T) {
 
 	reqPrivateKey2 := nostr.GeneratePrivateKey()
 
-	app, ss, err := tests.CreateLegacyApp(svc, reqPrivateKey)
+	app, cipher, err := tests.CreateLegacyApp(svc, reqPrivateKey)
 	assert.NoError(t, err)
 
 	appPermission := &db.AppPermission{
@@ -169,13 +168,13 @@ func TestHandleResponse_LegacyApp_IncorrectPubkey(t *testing.T) {
 	payloadBytes, err := json.Marshal(content)
 	assert.NoError(t, err)
 
-	msg, err := nip04.Encrypt(string(payloadBytes), ss)
+	msg, err := cipher.Encrypt(string(payloadBytes))
 	assert.NoError(t, err)
 
 	reqEvent := &nostr.Event{
 		Kind:      models.REQUEST_KIND,
 		CreatedAt: nostr.Now(),
-		Tags:      nostr.Tags{},
+		Tags:      nostr.Tags{[]string{"v", "1.0"}},
 		Content:   msg,
 	}
 	err = reqEvent.Sign(reqPrivateKey2)
@@ -188,5 +187,5 @@ func TestHandleResponse_LegacyApp_IncorrectPubkey(t *testing.T) {
 
 	nip47svc.HandleEvent(context.TODO(), relay, reqEvent, svc.LNClient)
 
-	assert.Nil(t, relay.PublishedEvent)
+	assert.Nil(t, relay.PublishedEvents)
 }

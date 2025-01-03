@@ -6,6 +6,7 @@ import (
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/nip47/models"
+	"github.com/getAlby/hub/transactions"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/sirupsen/logrus"
 )
@@ -67,13 +68,13 @@ func (controller *nip47Controller) HandleListTransactionsEvent(ctx context.Conte
 		return
 	}
 
-	transactions := []models.Transaction{}
+	txs := []models.Transaction{}
 	for _, dbTransaction := range dbTransactions {
-		transactions = append(transactions, *models.ToNip47Transaction(&dbTransaction))
+		txs = append(txs, *transactions.ToNip47Transaction(&dbTransaction))
 	}
 
 	responsePayload := &listTransactionsResponse{
-		Transactions: transactions,
+		Transactions: txs,
 	}
 
 	publishResponse(&models.Response{

@@ -1,15 +1,15 @@
-package models
+package transactions
 
 import (
 	"encoding/json"
 	"strings"
 
 	"github.com/getAlby/hub/logger"
-	"github.com/getAlby/hub/transactions"
+	"github.com/getAlby/hub/nip47/models"
 	"github.com/sirupsen/logrus"
 )
 
-func ToNip47Transaction(transaction *transactions.Transaction) *Transaction {
+func ToNip47Transaction(transaction *Transaction) *models.Transaction {
 	var expiresAt *int64
 	if transaction.ExpiresAt != nil {
 		expiresAtUnix := transaction.ExpiresAt.Unix()
@@ -35,7 +35,7 @@ func ToNip47Transaction(transaction *transactions.Transaction) *Transaction {
 		}
 	}
 
-	return &Transaction{
+	return &models.Transaction{
 		Type:            transaction.Type,
 		State:           strings.ToLower(transaction.State),
 		Invoice:         transaction.PaymentRequest,

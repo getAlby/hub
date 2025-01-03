@@ -9,11 +9,11 @@ import (
 
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
+	"github.com/getAlby/hub/nip47/cipher"
 	"github.com/getAlby/hub/nip47/models"
 	"github.com/getAlby/hub/nip47/permissions"
 	"github.com/getAlby/hub/tests"
 	"github.com/nbd-wtf/go-nostr"
-	"github.com/nbd-wtf/go-nostr/nip04"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -39,7 +39,7 @@ func TestCreateResponse(t *testing.T) {
 
 	reqEvent.ID = "12345"
 
-	ss, err := nip04.ComputeSharedSecret(reqPubkey, svc.Keys.GetNostrSecretKey())
+	nip47Cipher, err := cipher.NewNip47Cipher("1.0", reqPubkey, svc.Keys.GetNostrSecretKey())
 	assert.NoError(t, err)
 
 	type dummyResponse struct {
@@ -55,13 +55,13 @@ func TestCreateResponse(t *testing.T) {
 
 	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
 
-	res, err := nip47svc.CreateResponse(reqEvent, nip47Response, nostr.Tags{}, ss, svc.Keys.GetNostrSecretKey())
+	res, err := nip47svc.CreateResponse(reqEvent, nip47Response, nostr.Tags{}, nip47Cipher, svc.Keys.GetNostrSecretKey())
 	assert.NoError(t, err)
 	assert.Equal(t, reqPubkey, res.Tags.GetFirst([]string{"p"}).Value())
 	assert.Equal(t, reqEvent.ID, res.Tags.GetFirst([]string{"e"}).Value())
 	assert.Equal(t, svc.Keys.GetNostrPublicKey(), res.PubKey)
 
-	decrypted, err := nip04.Decrypt(res.Content, ss)
+	decrypted, err := nip47Cipher.Decrypt(res.Content)
 	assert.NoError(t, err)
 	unmarshalledResponse := models.Response{
 		Result: &dummyResponse{},
@@ -78,13 +78,26 @@ func TestHandleResponse_WithPermission(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
+
+	doTestHandleResponse_WithPermission(t, svc, "1.0")
+}
+
+func TestHandleResponse_WithPermission_LegacyVersion(t *testing.T) {
+	defer tests.RemoveTestService()
+	svc, err := tests.CreateTestService()
+	require.NoError(t, err)
+
+	doTestHandleResponse_WithPermission(t, svc, "0.0")
+}
+
+func doTestHandleResponse_WithPermission(t *testing.T, svc *tests.TestService, version string) {
 	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
 
 	reqPrivateKey := nostr.GeneratePrivateKey()
 	reqPubkey, err := nostr.GetPublicKey(reqPrivateKey)
 	assert.NoError(t, err)
 
-	app, ss, err := tests.CreateAppWithPrivateKey(svc, reqPrivateKey)
+	app, cipher, err := tests.CreateAppWithPrivateKey(svc, reqPrivateKey, version)
 	assert.NoError(t, err)
 
 	appPermission := &db.AppPermission{
@@ -102,7 +115,7 @@ func TestHandleResponse_WithPermission(t *testing.T) {
 	payloadBytes, err := json.Marshal(content)
 	assert.NoError(t, err)
 
-	msg, err := nip04.Encrypt(string(payloadBytes), ss)
+	msg, err := cipher.Encrypt(string(payloadBytes))
 	assert.NoError(t, err)
 
 	reqEvent := &nostr.Event{
@@ -112,6 +125,11 @@ func TestHandleResponse_WithPermission(t *testing.T) {
 		Tags:      nostr.Tags{},
 		Content:   msg,
 	}
+
+	if version != "0.0" {
+		reqEvent.Tags = append(reqEvent.Tags, []string{"v", version})
+	}
+
 	err = reqEvent.Sign(reqPrivateKey)
 	assert.NoError(t, err)
 
@@ -119,10 +137,10 @@ func TestHandleResponse_WithPermission(t *testing.T) {
 
 	nip47svc.HandleEvent(context.TODO(), relay, reqEvent, svc.LNClient)
 
-	assert.NotNil(t, relay.PublishedEvent)
-	assert.NotEmpty(t, relay.PublishedEvent.Content)
+	assert.NotNil(t, relay.PublishedEvents[0])
+	assert.NotEmpty(t, relay.PublishedEvents[0].Content)
 
-	decrypted, err := nip04.Decrypt(relay.PublishedEvent.Content, ss)
+	decrypted, err := cipher.Decrypt(relay.PublishedEvents[0].Content)
 	assert.NoError(t, err)
 
 	type getInfoResult struct {
@@ -148,13 +166,29 @@ func TestHandleResponse_DuplicateRequest(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
+
+	doTestHandleResponse_DuplicateRequest(t, svc, "1.0")
+}
+
+func TestHandleResponse_DuplicateRequest_LegacyVersion(t *testing.T) {
+	defer tests.RemoveTestService()
+	svc, err := tests.CreateTestService()
+	require.NoError(t, err)
+
+	doTestHandleResponse_DuplicateRequest(t, svc, "0.0")
+}
+
+func doTestHandleResponse_DuplicateRequest(t *testing.T, svc *tests.TestService, version string) {
+	defer tests.RemoveTestService()
+	svc, err := tests.CreateTestService()
+	require.NoError(t, err)
 	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
 
 	reqPrivateKey := nostr.GeneratePrivateKey()
 	reqPubkey, err := nostr.GetPublicKey(reqPrivateKey)
 	assert.NoError(t, err)
 
-	app, ss, err := tests.CreateAppWithPrivateKey(svc, reqPrivateKey)
+	app, cipher, err := tests.CreateAppWithPrivateKey(svc, reqPrivateKey, version)
 	assert.NoError(t, err)
 
 	appPermission := &db.AppPermission{
@@ -172,7 +206,7 @@ func TestHandleResponse_DuplicateRequest(t *testing.T) {
 	payloadBytes, err := json.Marshal(content)
 	assert.NoError(t, err)
 
-	msg, err := nip04.Encrypt(string(payloadBytes), ss)
+	msg, err := cipher.Encrypt(string(payloadBytes))
 	assert.NoError(t, err)
 
 	reqEvent := &nostr.Event{
@@ -182,6 +216,11 @@ func TestHandleResponse_DuplicateRequest(t *testing.T) {
 		Tags:      nostr.Tags{},
 		Content:   msg,
 	}
+
+	if version != "0.0" {
+		reqEvent.Tags = append(reqEvent.Tags, []string{"v", version})
+	}
+
 	err = reqEvent.Sign(reqPrivateKey)
 	assert.NoError(t, err)
 
@@ -189,18 +228,33 @@ func TestHandleResponse_DuplicateRequest(t *testing.T) {
 
 	nip47svc.HandleEvent(context.TODO(), relay, reqEvent, svc.LNClient)
 
-	assert.NotNil(t, relay.PublishedEvent)
-	assert.NotEmpty(t, relay.PublishedEvent.Content)
+	assert.NotNil(t, relay.PublishedEvents[0])
+	assert.NotEmpty(t, relay.PublishedEvents[0].Content)
 
-	relay.PublishedEvent = nil
+	relay.PublishedEvents = nil
 
 	nip47svc.HandleEvent(context.TODO(), relay, reqEvent, svc.LNClient)
 
 	// second time it should not publish
-	assert.Nil(t, relay.PublishedEvent)
+	assert.Nil(t, relay.PublishedEvents)
 }
 
 func TestHandleResponse_NoPermission(t *testing.T) {
+	defer tests.RemoveTestService()
+	svc, err := tests.CreateTestService()
+	require.NoError(t, err)
+
+	doTestHandleResponse_NoPermission(t, svc, "1.0")
+}
+
+func TestHandleResponse_NoPermission_LegacyVersion(t *testing.T) {
+	defer tests.RemoveTestService()
+	svc, err := tests.CreateTestService()
+	require.NoError(t, err)
+
+	doTestHandleResponse_NoPermission(t, svc, "0.0")
+}
+func doTestHandleResponse_NoPermission(t *testing.T, svc *tests.TestService, version string) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
@@ -210,7 +264,7 @@ func TestHandleResponse_NoPermission(t *testing.T) {
 	reqPubkey, err := nostr.GetPublicKey(reqPrivateKey)
 	assert.NoError(t, err)
 
-	_, ss, err := tests.CreateAppWithPrivateKey(svc, reqPrivateKey)
+	_, cipher, err := tests.CreateAppWithPrivateKey(svc, reqPrivateKey, version)
 	assert.NoError(t, err)
 
 	content := map[string]interface{}{
@@ -220,7 +274,7 @@ func TestHandleResponse_NoPermission(t *testing.T) {
 	payloadBytes, err := json.Marshal(content)
 	assert.NoError(t, err)
 
-	msg, err := nip04.Encrypt(string(payloadBytes), ss)
+	msg, err := cipher.Encrypt(string(payloadBytes))
 	assert.NoError(t, err)
 
 	reqEvent := &nostr.Event{
@@ -230,6 +284,11 @@ func TestHandleResponse_NoPermission(t *testing.T) {
 		Tags:      nostr.Tags{},
 		Content:   msg,
 	}
+
+	if version != "0.0" {
+		reqEvent.Tags = append(reqEvent.Tags, []string{"v", version})
+	}
+
 	err = reqEvent.Sign(reqPrivateKey)
 	assert.NoError(t, err)
 
@@ -237,10 +296,10 @@ func TestHandleResponse_NoPermission(t *testing.T) {
 
 	nip47svc.HandleEvent(context.TODO(), relay, reqEvent, svc.LNClient)
 
-	assert.NotNil(t, relay.PublishedEvent)
-	assert.NotEmpty(t, relay.PublishedEvent.Content)
+	assert.NotNil(t, relay.PublishedEvents[0])
+	assert.NotEmpty(t, relay.PublishedEvents[0].Content)
 
-	decrypted, err := nip04.Decrypt(relay.PublishedEvent.Content, ss)
+	decrypted, err := cipher.Decrypt(relay.PublishedEvents[0].Content)
 	assert.NoError(t, err)
 
 	unmarshalledResponse := models.Response{}
@@ -263,7 +322,7 @@ func TestHandleResponse_NoApp(t *testing.T) {
 	reqPubkey, err := nostr.GetPublicKey(reqPrivateKey)
 	assert.NoError(t, err)
 
-	app, ss, err := tests.CreateAppWithPrivateKey(svc, reqPrivateKey)
+	app, cipher, err := tests.CreateAppWithPrivateKey(svc, reqPrivateKey, "1.0")
 	assert.NoError(t, err)
 
 	// delete the app
@@ -277,9 +336,59 @@ func TestHandleResponse_NoApp(t *testing.T) {
 	payloadBytes, err := json.Marshal(content)
 	assert.NoError(t, err)
 
-	msg, err := nip04.Encrypt(string(payloadBytes), ss)
+	msg, err := cipher.Encrypt(string(payloadBytes))
 	assert.NoError(t, err)
 
+	reqEvent := &nostr.Event{
+		Kind:      models.REQUEST_KIND,
+		PubKey:    reqPubkey,
+		CreatedAt: nostr.Now(),
+		Tags:      nostr.Tags{[]string{"v", "1.0"}},
+		Content:   msg,
+	}
+	err = reqEvent.Sign(reqPrivateKey)
+	assert.NoError(t, err)
+
+	relay := tests.NewMockRelay()
+
+	nip47svc.HandleEvent(context.TODO(), relay, reqEvent, svc.LNClient)
+
+	// it shouldn't return anything for an invalid app key
+	assert.Nil(t, relay.PublishedEvents)
+}
+
+func TestHandleResponse_IncorrectVersion(t *testing.T) {
+	defer tests.RemoveTestService()
+	svc, err := tests.CreateTestService()
+	require.NoError(t, err)
+	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
+
+	reqPrivateKey := nostr.GeneratePrivateKey()
+	reqPubkey, err := nostr.GetPublicKey(reqPrivateKey)
+	assert.NoError(t, err)
+
+	app, cipher, err := tests.CreateAppWithPrivateKey(svc, reqPrivateKey, "1.0")
+	assert.NoError(t, err)
+
+	appPermission := &db.AppPermission{
+		AppId: app.ID,
+		App:   *app,
+		Scope: constants.GET_BALANCE_SCOPE,
+	}
+	err = svc.DB.Create(appPermission).Error
+	assert.NoError(t, err)
+
+	content := map[string]interface{}{
+		"method": models.GET_INFO_METHOD,
+	}
+
+	payloadBytes, err := json.Marshal(content)
+	assert.NoError(t, err)
+
+	msg, err := cipher.Encrypt(string(payloadBytes))
+	assert.NoError(t, err)
+
+	// don't pass correct version
 	reqEvent := &nostr.Event{
 		Kind:      models.REQUEST_KIND,
 		PubKey:    reqPubkey,
@@ -294,8 +403,8 @@ func TestHandleResponse_NoApp(t *testing.T) {
 
 	nip47svc.HandleEvent(context.TODO(), relay, reqEvent, svc.LNClient)
 
-	// it shouldn't return anything for an invalid app key
-	assert.Nil(t, relay.PublishedEvent)
+	// it shouldn't return anything for an invalid version
+	assert.Nil(t, relay.PublishedEvents)
 }
 
 func TestHandleResponse_OldRequestForPayment(t *testing.T) {
@@ -308,7 +417,7 @@ func TestHandleResponse_OldRequestForPayment(t *testing.T) {
 	reqPubkey, err := nostr.GetPublicKey(reqPrivateKey)
 	assert.NoError(t, err)
 
-	app, ss, err := tests.CreateAppWithPrivateKey(svc, reqPrivateKey)
+	app, cipher, err := tests.CreateAppWithPrivateKey(svc, reqPrivateKey, "1.0")
 	assert.NoError(t, err)
 
 	content := map[string]interface{}{
@@ -326,14 +435,14 @@ func TestHandleResponse_OldRequestForPayment(t *testing.T) {
 	payloadBytes, err := json.Marshal(content)
 	assert.NoError(t, err)
 
-	msg, err := nip04.Encrypt(string(payloadBytes), ss)
+	msg, err := cipher.Encrypt(string(payloadBytes))
 	assert.NoError(t, err)
 
 	reqEvent := &nostr.Event{
 		Kind:      models.REQUEST_KIND,
 		PubKey:    reqPubkey,
 		CreatedAt: nostr.Timestamp(time.Now().Add(time.Duration(-6) * time.Hour).Unix()),
-		Tags:      nostr.Tags{},
+		Tags:      nostr.Tags{[]string{"v", "1.0"}},
 		Content:   msg,
 	}
 	err = reqEvent.Sign(reqPrivateKey)
@@ -344,7 +453,7 @@ func TestHandleResponse_OldRequestForPayment(t *testing.T) {
 	nip47svc.HandleEvent(context.TODO(), relay, reqEvent, svc.LNClient)
 
 	// it shouldn't return anything for an old request
-	assert.Nil(t, relay.PublishedEvent)
+	assert.Nil(t, relay.PublishedEvents)
 
 	// change the request to now
 	reqEvent.CreatedAt = nostr.Now()
@@ -352,7 +461,7 @@ func TestHandleResponse_OldRequestForPayment(t *testing.T) {
 	assert.NoError(t, err)
 
 	nip47svc.HandleEvent(context.TODO(), relay, reqEvent, svc.LNClient)
-	assert.NotNil(t, relay.PublishedEvent)
+	assert.NotNil(t, relay.PublishedEvents)
 }
 
 func TestHandleResponse_IncorrectPubkey(t *testing.T) {
@@ -367,7 +476,7 @@ func TestHandleResponse_IncorrectPubkey(t *testing.T) {
 
 	reqPrivateKey2 := nostr.GeneratePrivateKey()
 
-	app, ss, err := tests.CreateAppWithPrivateKey(svc, reqPrivateKey)
+	app, cipher, err := tests.CreateAppWithPrivateKey(svc, reqPrivateKey, "1.0")
 	assert.NoError(t, err)
 
 	appPermission := &db.AppPermission{
@@ -385,13 +494,13 @@ func TestHandleResponse_IncorrectPubkey(t *testing.T) {
 	payloadBytes, err := json.Marshal(content)
 	assert.NoError(t, err)
 
-	msg, err := nip04.Encrypt(string(payloadBytes), ss)
+	msg, err := cipher.Encrypt(string(payloadBytes))
 	assert.NoError(t, err)
 
 	reqEvent := &nostr.Event{
 		Kind:      models.REQUEST_KIND,
 		CreatedAt: nostr.Now(),
-		Tags:      nostr.Tags{},
+		Tags:      nostr.Tags{[]string{"v", "1.0"}},
 		Content:   msg,
 	}
 	err = reqEvent.Sign(reqPrivateKey2)
@@ -404,5 +513,5 @@ func TestHandleResponse_IncorrectPubkey(t *testing.T) {
 
 	nip47svc.HandleEvent(context.TODO(), relay, reqEvent, svc.LNClient)
 
-	assert.Nil(t, relay.PublishedEvent)
+	assert.Nil(t, relay.PublishedEvents)
 }
