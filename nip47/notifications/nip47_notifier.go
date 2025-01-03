@@ -53,7 +53,7 @@ func (notifier *Nip47Notifier) ConsumeEvent(ctx context.Context, event *events.E
 		}
 
 		notification := PaymentReceivedNotification{
-			Transaction: *models.ToNip47Transaction(transaction),
+			Transaction: *transactions.ToNip47Transaction(transaction),
 		}
 
 		notifier.notifySubscribers(ctx, &Notification{
@@ -69,7 +69,7 @@ func (notifier *Nip47Notifier) ConsumeEvent(ctx context.Context, event *events.E
 		}
 
 		notification := PaymentSentNotification{
-			Transaction: *models.ToNip47Transaction(transaction),
+			Transaction: *transactions.ToNip47Transaction(transaction),
 		}
 
 		notifier.notifySubscribers(ctx, &Notification{

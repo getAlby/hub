@@ -6,6 +6,7 @@ import (
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/nip47/models"
+	"github.com/getAlby/hub/transactions"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/sirupsen/logrus"
 )
@@ -61,7 +62,7 @@ func (controller *nip47Controller) HandleMakeInvoiceEvent(ctx context.Context, n
 		return
 	}
 
-	nip47Transaction := models.ToNip47Transaction(transaction)
+	nip47Transaction := transactions.ToNip47Transaction(transaction)
 	responsePayload := &makeInvoiceResponse{
 		Transaction: *nip47Transaction,
 	}
