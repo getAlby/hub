@@ -13,6 +13,7 @@ import { createApp } from "src/requests/createApp";
 import { CreateAppRequest, UpdateAppRequest } from "src/types";
 import { handleRequestError } from "src/utils/handleRequestError";
 
+import { LightningAddress } from "@getalby/lightning-tools";
 import { ExternalLinkIcon, PlusCircle } from "lucide-react";
 import alby from "src/assets/suggested-apps/alby.png";
 import hrf from "src/assets/zapplanner/hrf.png";
@@ -71,7 +72,8 @@ export function ZapPlanner() {
   const [open, setOpen] = React.useState(false);
   const [isSubmitting, setSubmitting] = React.useState(false);
   const [recipientName, setRecipientName] = React.useState("");
-  const [lightningAddress, setLightningAddress] = React.useState("");
+  const [recipientLightningAddress, setRecipientLightningAddress] =
+    React.useState("");
   const [amount, setAmount] = React.useState(0);
   const [comment, setComment] = React.useState("");
   const [senderName, setSenderName] = React.useState("");
@@ -80,7 +82,7 @@ export function ZapPlanner() {
     // reset form on close
     if (!open) {
       setRecipientName("");
-      setLightningAddress("");
+      setRecipientLightningAddress("");
       setComment("");
       setAmount(5000);
       setSenderName("");
@@ -95,6 +97,13 @@ export function ZapPlanner() {
         throw new Error("A connection with the same name already exists.");
       }
 
+      // validate lighning address
+      const ln = new LightningAddress(recipientLightningAddress);
+      await ln.fetch();
+      if (!ln.lnurlpData) {
+        throw new Error("invalid recipient lightning address");
+      }
+
       const maxAmount = Math.floor(amount * 1.01) + 10; // with fee reserve
       const isolated = false;
 
@@ -106,7 +115,7 @@ export function ZapPlanner() {
         isolated,
         metadata: {
           app_store_app_id: "zapplanner",
-          recipient_lightning_address: lightningAddress,
+          recipient_lightning_address: recipientLightningAddress,
         },
       };
 
@@ -121,7 +130,7 @@ export function ZapPlanner() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            recipientLightningAddress: lightningAddress,
+            recipientLightningAddress: recipientLightningAddress,
             amount: amount,
             message: comment || "ZapPlanner payment from Alby Hub",
             payerData: JSON.stringify({
@@ -171,11 +180,11 @@ export function ZapPlanner() {
       });
 
       reloadApps();
+      setOpen(false);
     } catch (error) {
       handleRequestError(toast, "Failed to create app", error);
     } finally {
       setSubmitting(false);
-      setOpen(false);
     }
   };
 
@@ -233,8 +242,10 @@ export function ZapPlanner() {
                       <Input
                         id="receiver"
                         required
-                        value={lightningAddress}
-                        onChange={(e) => setLightningAddress(e.target.value)}
+                        value={recipientLightningAddress}
+                        onChange={(e) =>
+                          setRecipientLightningAddress(e.target.value)
+                        }
                         className="col-span-3"
                       />
                     </div>
@@ -301,7 +312,7 @@ export function ZapPlanner() {
                     size="sm"
                     onClick={() => {
                       setRecipientName(recipient.name);
-                      setLightningAddress(recipient.lightningAddress);
+                      setRecipientLightningAddress(recipient.lightningAddress);
                       setOpen(true);
                     }}
                   >
