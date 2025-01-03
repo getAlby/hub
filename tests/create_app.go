@@ -11,9 +11,10 @@ import (
 )
 
 func CreateApp(svc *TestService) (app *db.App, cipher *cipher.Nip47Cipher, err error) {
-	return CreateAppWithPrivateKey(svc, "")
+	return CreateAppWithPrivateKey(svc, "", "1.0")
 }
-func CreateAppWithPrivateKey(svc *TestService, senderPrivkey string) (app *db.App, nip47Cipher *cipher.Nip47Cipher, err error) {
+
+func CreateAppWithPrivateKey(svc *TestService, senderPrivkey, version string) (app *db.App, nip47Cipher *cipher.Nip47Cipher, err error) {
 	senderPubkey := ""
 	if senderPrivkey != "" {
 		var err error
@@ -29,7 +30,7 @@ func CreateAppWithPrivateKey(svc *TestService, senderPrivkey string) (app *db.Ap
 		pairingSecretKey = senderPrivkey
 	}
 
-	nip47Cipher, err = cipher.NewNip47Cipher("1.0", *app.WalletPubkey, pairingSecretKey)
+	nip47Cipher, err = cipher.NewNip47Cipher(version, *app.WalletPubkey, pairingSecretKey)
 	if err != nil {
 		return nil, nil, err
 	}

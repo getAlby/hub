@@ -83,10 +83,17 @@ func doTestSendNotificationPaymentReceived(t *testing.T, svc *tests.TestService,
 	notifier := NewNip47Notifier(relay, svc.DB, svc.Cfg, svc.Keys, permissionsSvc, transactionsSvc, svc.LNClient)
 	notifier.ConsumeEvent(ctx, receivedEvent)
 
-	assert.NotNil(t, relay.PublishedEvents[1])
-	assert.NotEmpty(t, relay.PublishedEvents[1].Content)
+	var publishedEvent *nostr.Event
+	if cipher.Version == "0.0" {
+		publishedEvent = relay.PublishedEvents[0]
+	} else {
+		publishedEvent = relay.PublishedEvents[1]
+	}
 
-	decrypted, err := cipher.Decrypt(relay.PublishedEvents[1].Content)
+	assert.NotNil(t, publishedEvent)
+	assert.NotEmpty(t, publishedEvent.Content)
+
+	decrypted, err := cipher.Decrypt(publishedEvent.Content)
 	assert.NoError(t, err)
 	unmarshalledResponse := Notification{
 		Notification: &PaymentReceivedNotification{},
@@ -113,12 +120,22 @@ func TestSendNotification_PaymentReceived(t *testing.T) {
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
 
-	app, cipher, err := tests.CreateApp(svc)
+	app, cipher, err := tests.CreateAppWithPrivateKey(svc, "", "1.0")
 	assert.NoError(t, err)
 	doTestSendNotificationPaymentReceived(t, svc, app, cipher)
 }
 
-func TestSendNotification_Legacy_PaymentReceived(t *testing.T) {
+func TestSendNotification_LegacyVersion_PaymentReceived(t *testing.T) {
+	defer tests.RemoveTestService()
+	svc, err := tests.CreateTestService()
+	require.NoError(t, err)
+
+	app, cipher, err := tests.CreateAppWithPrivateKey(svc, "", "0.0")
+	assert.NoError(t, err)
+	doTestSendNotificationPaymentReceived(t, svc, app, cipher)
+}
+
+func TestSendNotification_LegacyApp_PaymentReceived(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
@@ -176,10 +193,17 @@ func doTestSendNotificationPaymentSent(t *testing.T, svc *tests.TestService, app
 	notifier := NewNip47Notifier(relay, svc.DB, svc.Cfg, svc.Keys, permissionsSvc, transactionsSvc, svc.LNClient)
 	notifier.ConsumeEvent(ctx, receivedEvent)
 
-	assert.NotNil(t, relay.PublishedEvents[1])
-	assert.NotEmpty(t, relay.PublishedEvents[1].Content)
+	var publishedEvent *nostr.Event
+	if cipher.Version == "0.0" {
+		publishedEvent = relay.PublishedEvents[0]
+	} else {
+		publishedEvent = relay.PublishedEvents[1]
+	}
 
-	decrypted, err := cipher.Decrypt(relay.PublishedEvents[1].Content)
+	assert.NotNil(t, publishedEvent)
+	assert.NotEmpty(t, publishedEvent.Content)
+
+	decrypted, err := cipher.Decrypt(publishedEvent.Content)
 	assert.NoError(t, err)
 	unmarshalledResponse := Notification{
 		Notification: &PaymentReceivedNotification{},
@@ -206,12 +230,22 @@ func TestSendNotification_PaymentSent(t *testing.T) {
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
 
-	app, ss, err := tests.CreateApp(svc)
+	app, cipher, err := tests.CreateAppWithPrivateKey(svc, "", "1.0")
 	assert.NoError(t, err)
-	doTestSendNotificationPaymentSent(t, svc, app, ss)
+	doTestSendNotificationPaymentSent(t, svc, app, cipher)
 }
 
-func TestSendNotification_Legacy_PaymentSent(t *testing.T) {
+func TestSendNotification_LegacyVersion_PaymentSent(t *testing.T) {
+	defer tests.RemoveTestService()
+	svc, err := tests.CreateTestService()
+	require.NoError(t, err)
+
+	app, cipher, err := tests.CreateAppWithPrivateKey(svc, "", "0.0")
+	assert.NoError(t, err)
+	doTestSendNotificationPaymentSent(t, svc, app, cipher)
+}
+
+func TestSendNotification_LegacyApp_PaymentSent(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
