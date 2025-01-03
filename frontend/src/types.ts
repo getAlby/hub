@@ -170,7 +170,7 @@ export interface CreateAppRequest {
   name: string;
   pubkey?: string;
   maxAmount?: number;
-  budgetRenewal?: string;
+  budgetRenewal?: BudgetRenewalType;
   expiresAt?: string;
   scopes: Scope[];
   returnTo?: string;

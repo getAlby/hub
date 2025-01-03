@@ -16,9 +16,10 @@ dayjs.extend(relativeTime);
 
 type Props = {
   app: App;
+  actions?: React.ReactNode;
 };
 
-export default function AppCard({ app }: Props) {
+export default function AppCard({ app, actions }: Props) {
   const navigate = useNavigate();
 
   return (
@@ -34,6 +35,10 @@ export default function AppCard({ app }: Props) {
             <div className="flex-1 font-semibold text-xl whitespace-nowrap text-ellipsis overflow-hidden ml-4">
               {app.name}
             </div>
+            {!!actions && (
+              // stop the above navigation click handler
+              <div onClick={(e) => e.stopPropagation()}>{actions}</div>
+            )}
           </div>
         </CardTitle>
       </CardHeader>
