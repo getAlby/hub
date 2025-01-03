@@ -1,5 +1,6 @@
 import {
   AlertTriangle,
+  ArrowRight,
   Bitcoin,
   ChevronDown,
   CopyIcon,
@@ -8,6 +9,7 @@ import {
   Hotel,
   HourglassIcon,
   InfoIcon,
+  LinkIcon,
   Settings2,
   Unplug,
   ZapIcon,
@@ -177,6 +179,28 @@ export default function Channels() {
                       Withdraw On-Chain Balance
                     </DropdownMenuItem>
                   )}
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel>Swaps</DropdownMenuLabel>
+                  <DropdownMenuItem>
+                    Swap in
+                    <div className="ml-2 text-muted-foreground flex flex-row items-center">
+                      (
+                      <LinkIcon className="w-4 h-4" />
+                      <ArrowRight className="w-4 h-4" />
+                      <ZapIcon className="w-4 h-4" />)
+                    </div>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    Swap out
+                    <div className="ml-2 text-muted-foreground flex flex-row items-center">
+                      (
+                      <ZapIcon className="w-4 h-4" />
+                      <ArrowRight className="w-4 h-4" />
+                      <LinkIcon className="w-4 h-4" />)
+                    </div>
+                  </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
