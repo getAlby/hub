@@ -97,7 +97,7 @@ function Home() {
                 <div>
                   <CardTitle>
                     <div className="flex-1 leading-5 font-semibold text-xl whitespace-nowrap text-ellipsis overflow-hidden ml-4 flex gap-2">
-                      Zapplanner <Badge>NEW</Badge>
+                      ZapPlanner <Badge>NEW</Badge>
                     </div>
                   </CardTitle>
                   <CardDescription className="ml-4">
@@ -107,10 +107,7 @@ function Home() {
               </div>
             </CardHeader>
             <CardContent className="text-right">
-              <Button variant="outline">
-                Learn more
-                <ExternalLinkIcon className="w-4 h-4 ml-2" />
-              </Button>
+              <Button variant="outline">Open</Button>
             </CardContent>
           </Card>
         </Link>
@@ -136,10 +133,7 @@ function Home() {
               </div>
             </CardHeader>
             <CardContent className="text-right">
-              <Button variant="outline">
-                Learn more
-                <ExternalLinkIcon className="w-4 h-4 ml-2" />
-              </Button>
+              <Button variant="outline">Open</Button>
             </CardContent>
           </Card>
         </Link>

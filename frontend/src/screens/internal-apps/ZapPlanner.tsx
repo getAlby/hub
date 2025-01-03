@@ -218,8 +218,7 @@ export function ZapPlanner() {
                         to="https://zapplanner.albylabs.com"
                       >
                         zapplanner.albylabs.com
-                      </ExternalLink>{" "}
-                      and create your recurring payment there.
+                      </ExternalLink>
                     </DialogDescription>
                   </DialogHeader>
 
