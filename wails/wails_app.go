@@ -13,6 +13,7 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
 	"github.com/wailsapp/wails/v2/pkg/options/linux"
 	"github.com/wailsapp/wails/v2/pkg/options/mac"
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 	"gorm.io/gorm"
 )
 
@@ -39,6 +40,21 @@ func (app *WailsApp) startup(ctx context.Context) {
 	app.ctx = ctx
 }
 
+func (app *WailsApp) onBeforeClose(ctx context.Context) bool {
+	response, err := runtime.MessageDialog(ctx, runtime.MessageDialogOptions{
+		Type:          runtime.QuestionDialog,
+		Title:         "Confirm Exit",
+		Message:       "Are you sure you want to close Alby Hub? App needs to stay online to send and receive transactions.",
+		Buttons:       []string{"Yes", "No"},
+		DefaultButton: "No",
+	})
+	if err != nil {
+		logger.Logger.WithError(err).Error("failed to show confirmation dialog")
+		return false
+	}
+	return response != "Yes"
+}
+
 func LaunchWailsApp(app *WailsApp, assets embed.FS, appIcon []byte) {
 	err := wails.Run(&options.App{
 		Title:  "Alby Hub",
@@ -52,6 +68,9 @@ func LaunchWailsApp(app *WailsApp, assets embed.FS, appIcon []byte) {
 
 		//BackgroundColour: &options.RGBA{R: 27, G: 38, B: 54, A: 1},
 		OnStartup: app.startup,
+		OnBeforeClose: func(ctx context.Context) bool {
+			return app.onBeforeClose(ctx)
+		},
 		Bind: []interface{}{
 			app,
 		},
