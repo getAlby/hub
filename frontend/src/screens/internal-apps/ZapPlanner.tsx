@@ -70,15 +70,28 @@ export function ZapPlanner() {
 
   const [open, setOpen] = React.useState(false);
   const [isSubmitting, setSubmitting] = React.useState(false);
-  const [name, setName] = React.useState("");
+  const [recipientName, setRecipientName] = React.useState("");
   const [lightningAddress, setLightningAddress] = React.useState("");
-  const [amount, setAmount] = React.useState(5000);
+  const [amount, setAmount] = React.useState(0);
   const [comment, setComment] = React.useState("");
+  const [senderName, setSenderName] = React.useState("");
 
-  const handleSubmit = async () => {
+  React.useEffect(() => {
+    // reset form on close
+    if (!open) {
+      setRecipientName("");
+      setLightningAddress("");
+      setComment("");
+      setAmount(5000);
+      setSenderName("");
+    }
+  }, [open]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setSubmitting(true);
     try {
-      if (apps?.some((existingApp) => existingApp.name === name)) {
+      if (apps?.some((existingApp) => existingApp.name === recipientName)) {
         throw new Error("A connection with the same name already exists.");
       }
 
@@ -86,7 +99,7 @@ export function ZapPlanner() {
       const isolated = false;
 
       const createAppRequest: CreateAppRequest = {
-        name: `ZapPlanner - ${name}`,
+        name: `ZapPlanner - ${recipientName}`,
         scopes: ["pay_invoice"],
         budgetRenewal: "monthly",
         maxAmount,
@@ -110,8 +123,10 @@ export function ZapPlanner() {
           body: JSON.stringify({
             recipientLightningAddress: lightningAddress,
             amount: amount,
-            message: "ZapPlanner payment from Alby Hub", // TODO: allow customization
-            payerData: JSON.stringify({}),
+            message: comment || "ZapPlanner payment from Alby Hub",
+            payerData: JSON.stringify({
+              ...(senderName ? { name: senderName } : {}),
+            }),
             nostrWalletConnectUrl: createAppResponse.pairingUri,
             sleepDuration: "31 days",
           }),
@@ -183,76 +198,92 @@ export function ZapPlanner() {
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[600px]">
-                <DialogHeader>
-                  <DialogTitle>New Recurring Payment</DialogTitle>
-                  <DialogDescription>
-                    For advanced options go to{" "}
-                    <ExternalLink
-                      className="underline"
-                      to="https://zapplanner.albylabs.com"
+                <form onSubmit={handleSubmit}>
+                  <DialogHeader>
+                    <DialogTitle>New Recurring Payment</DialogTitle>
+                    <DialogDescription>
+                      For advanced options go to{" "}
+                      <ExternalLink
+                        className="underline"
+                        to="https://zapplanner.albylabs.com"
+                      >
+                        zapplanner.albylabs.com
+                      </ExternalLink>{" "}
+                      and create your recurring payment there.
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="name" className="text-right">
+                        Recipient Name
+                      </Label>
+                      <Input
+                        id="name"
+                        value={recipientName}
+                        required
+                        onChange={(e) => setRecipientName(e.target.value)}
+                        className="col-span-3"
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="name" className="text-right">
+                        Recipient Lightning Address
+                      </Label>
+                      <Input
+                        id="receiver"
+                        required
+                        value={lightningAddress}
+                        onChange={(e) => setLightningAddress(e.target.value)}
+                        className="col-span-3"
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="amount" className="text-right">
+                        Amount / month (sats)
+                      </Label>
+                      <Input
+                        id="amount"
+                        value={amount}
+                        onChange={(e) => setAmount(parseInt(e.target.value))}
+                        className="col-span-3"
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="comment" className="text-right">
+                        Comment
+                      </Label>
+                      <Input
+                        id="comment"
+                        value={comment}
+                        onChange={(e) => setComment(e.target.value)}
+                        placeholder="Optional comment"
+                        className="col-span-3"
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="comment" className="text-right">
+                        Your Name
+                      </Label>
+                      <Input
+                        id="sender-name"
+                        value={senderName}
+                        onChange={(e) => setSenderName(e.target.value)}
+                        placeholder={`Let ${recipientName || "them"} know it was from you`}
+                        className="col-span-3"
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <LoadingButton
+                      type="submit"
+                      disabled={!!isSubmitting}
+                      loading={isSubmitting}
                     >
-                      zapplanner.albylabs.com
-                    </ExternalLink>{" "}
-                    and create your recurring payment there.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="name" className="text-right">
-                      Name
-                    </Label>
-                    <Input
-                      id="name"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      className="col-span-3"
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="name" className="text-right">
-                      Receiver
-                    </Label>
-                    <Input
-                      id="receiver"
-                      value={lightningAddress}
-                      onChange={(e) => setLightningAddress(e.target.value)}
-                      className="col-span-3"
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="amount" className="text-right">
-                      Amount / month (sats)
-                    </Label>
-                    <Input
-                      id="amount"
-                      value={amount}
-                      onChange={(e) => setAmount(parseInt(e.target.value))}
-                      className="col-span-3"
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="comment" className="text-right">
-                      Comment
-                    </Label>
-                    <Input
-                      id="comment"
-                      value={comment}
-                      onChange={(e) => setComment(e.target.value)}
-                      placeholder="Optional comment"
-                      className="col-span-3"
-                    />
-                  </div>
-                </div>
-                <DialogFooter>
-                  <LoadingButton
-                    type="submit"
-                    onClick={() => handleSubmit()}
-                    disabled={!!isSubmitting}
-                    loading={isSubmitting}
-                  >
-                    Create
-                  </LoadingButton>
-                </DialogFooter>
+                      Create
+                    </LoadingButton>
+                  </DialogFooter>
+                </form>
               </DialogContent>
             </Dialog>
           </>
@@ -269,7 +300,7 @@ export function ZapPlanner() {
                   <LoadingButton
                     size="sm"
                     onClick={() => {
-                      setName(recipient.name);
+                      setRecipientName(recipient.name);
                       setLightningAddress(recipient.lightningAddress);
                       setOpen(true);
                     }}
