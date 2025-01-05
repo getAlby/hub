@@ -23,6 +23,7 @@ import (
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/lnclient/lnd/wrapper"
 	"github.com/getAlby/hub/logger"
+	"github.com/getAlby/hub/transactions"
 
 	"github.com/sirupsen/logrus"
 	// "gorm.io/gorm"
@@ -314,7 +315,24 @@ func (svc *LNDService) LookupInvoice(ctx context.Context, paymentHash string) (t
 }
 
 func (svc *LNDService) SendPaymentSync(ctx context.Context, payReq string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
-	sendRequest := &lnrpc.SendRequest{PaymentRequest: payReq}
+	paymentRequest, err := decodepay.Decodepay(payReq)
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"bolt11": payReq,
+		}).WithError(err).Error("Failed to decode bolt11 invoice")
+
+		return nil, err
+	}
+
+	paymentAmountMsat := uint64(paymentRequest.MSatoshi)
+	if amount != nil {
+		paymentAmountMsat = *amount
+	}
+	sendRequest := &lnrpc.SendRequest{PaymentRequest: payReq, FeeLimit: &lnrpc.FeeLimit{
+		Limit: &lnrpc.FeeLimit_FixedMsat{
+			FixedMsat: int64(transactions.CalculateFeeReserveMsat(paymentAmountMsat)),
+		},
+	}}
 
 	if amount != nil {
 		sendRequest.AmtMsat = int64(*amount)
@@ -378,6 +396,11 @@ func (svc *LNDService) SendKeysend(ctx context.Context, amount uint64, destinati
 		PaymentHash:       paymentHashBytes,
 		DestFeatures:      []lnrpc.FeatureBit{lnrpc.FeatureBit_TLV_ONION_REQ},
 		DestCustomRecords: destCustomRecords,
+		FeeLimit: &lnrpc.FeeLimit{
+			Limit: &lnrpc.FeeLimit_FixedMsat{
+				FixedMsat: int64(transactions.CalculateFeeReserveMsat(amount)),
+			},
+		},
 	}
 
 	resp, err := svc.client.SendPaymentSync(ctx, sendPaymentRequest)

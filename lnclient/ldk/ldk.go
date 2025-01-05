@@ -31,6 +31,7 @@ import (
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/lsp"
 	"github.com/getAlby/hub/service/keys"
+	"github.com/getAlby/hub/transactions"
 	"github.com/getAlby/hub/utils"
 )
 
@@ -471,6 +472,12 @@ func (ls *LDKService) resetRouterInternal() {
 	}
 }
 
+func getMaxTotalRoutingFeeLimit(amountMsat uint64) ldk_node.MaxTotalRoutingFeeLimit {
+	return ldk_node.MaxTotalRoutingFeeLimitSome{
+		AmountMsat: transactions.CalculateFeeReserveMsat(amountMsat),
+	}
+}
+
 func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
 	paymentRequest, err := decodepay.Decodepay(invoice)
 	if err != nil {
@@ -481,13 +488,13 @@ func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string, amoun
 		return nil, err
 	}
 
-	paymentAmount := uint64(paymentRequest.MSatoshi)
+	paymentAmountMsat := uint64(paymentRequest.MSatoshi)
 	if amount != nil {
-		paymentAmount = *amount
+		paymentAmountMsat = *amount
 	}
 
 	maxSpendable := ls.getMaxSpendable()
-	if paymentAmount > maxSpendable {
+	if paymentAmountMsat > maxSpendable {
 		ls.eventPublisher.Publish(&events.Event{
 			Event: "nwc_outgoing_liquidity_required",
 			Properties: map[string]interface{}{
@@ -504,10 +511,15 @@ func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string, amoun
 	defer ls.ldkEventBroadcaster.CancelSubscription(ldkEventSubscription)
 
 	var paymentHash string
+	maxTotalRoutingFeeMsat := getMaxTotalRoutingFeeLimit(paymentAmountMsat)
+	sendingParams := &ldk_node.SendingParameters{
+		MaxTotalRoutingFeeMsat: &maxTotalRoutingFeeMsat,
+	}
+
 	if amount == nil {
-		paymentHash, err = ls.node.Bolt11Payment().Send(invoice, nil)
+		paymentHash, err = ls.node.Bolt11Payment().Send(invoice, sendingParams)
 	} else {
-		paymentHash, err = ls.node.Bolt11Payment().SendUsingAmount(invoice, *amount, nil)
+		paymentHash, err = ls.node.Bolt11Payment().SendUsingAmount(invoice, *amount, sendingParams)
 	}
 	if err != nil {
 		logger.Logger.WithError(err).Error("SendPayment failed")
@@ -596,7 +608,12 @@ func (ls *LDKService) SendKeysend(ctx context.Context, amount uint64, destinatio
 	ldkEventSubscription := ls.ldkEventBroadcaster.Subscribe()
 	defer ls.ldkEventBroadcaster.CancelSubscription(ldkEventSubscription)
 
-	paymentHash, err := ls.node.SpontaneousPayment().Send(amount, destination, nil, customTlvs, &preimage)
+	maxTotalRoutingFeeMsat := getMaxTotalRoutingFeeLimit(amount)
+	sendingParams := &ldk_node.SendingParameters{
+		MaxTotalRoutingFeeMsat: &maxTotalRoutingFeeMsat,
+	}
+
+	paymentHash, err := ls.node.SpontaneousPayment().Send(amount, destination, sendingParams, customTlvs, &preimage)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Keysend failed")
 		return nil, err
