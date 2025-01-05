@@ -4,6 +4,7 @@ import albyGo from "src/assets/suggested-apps/alby-go.png";
 import alby from "src/assets/suggested-apps/alby.png";
 import amethyst from "src/assets/suggested-apps/amethyst.png";
 import buzzpay from "src/assets/suggested-apps/buzzpay.png";
+import clams from "src/assets/suggested-apps/clams.png";
 import damus from "src/assets/suggested-apps/damus.png";
 import hablanews from "src/assets/suggested-apps/habla-news.png";
 import kiwi from "src/assets/suggested-apps/kiwi.png";
@@ -519,6 +520,41 @@ export const suggestedApps: SuggestedApp[] = [
         </div>
       </>
     ),
+  },
+   {
+    id: "clams",
+    title: "Clams",
+    description: "Multi wallet accounting tool",
+    webLink: "https://clams.tech/",
+    logo: clams,
+    guide: (
+  <>
+    <div>
+      <h3 className="font-medium">In Clams</h3>
+      <ul className="list-inside text-muted-foreground">
+        <li>1. Download and open Clams on your device</li>
+        <li>2. Add a connection: "+ Add Connection" → NWC</li>
+      </ul>
+    </div>
+    <div>
+      <h3 className="font-medium">In Alby Hub</h3>
+      <ul className="list-inside text-muted-foreground">
+        <li> 3. Click{" "}
+          <Link to="/apps/new?app=clams" className="font-medium text-foreground underline">
+            Connect to Clams
+          </Link></li>
+        <li>4. Set wallet permissions (Read Only)</li>
+      </ul>
+    </div>
+    <div>
+      <h3 className="font-medium">In Clams</h3>
+      <ul className="list-inside text-muted-foreground">
+        <li>5. Add label & paste connection secret</li>
+        <li>6. Click Connect and Save</li>
+      </ul>
+    </div>
+  </>
+),
   },
   {
     id: "nostrudel",
