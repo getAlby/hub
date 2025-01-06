@@ -342,6 +342,7 @@ type Channel struct {
 	Id                                       string      `json:"id"`
 	RemotePubkey                             string      `json:"remotePubkey"`
 	FundingTxId                              string      `json:"fundingTxId"`
+	FundingTxVout                            uint32      `json:"fundingTxVout"`
 	Active                                   bool        `json:"active"`
 	Public                                   bool        `json:"public"`
 	InternalChannel                          interface{} `json:"internalChannel"`

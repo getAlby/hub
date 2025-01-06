@@ -198,6 +198,7 @@ func (svc *LNDService) ListChannels(ctx context.Context) ([]lnclient.Channel, er
 			Active:                                   lndChannel.Active,
 			Public:                                   !lndChannel.Private,
 			FundingTxId:                              channelPoint.GetFundingTxidStr(),
+			FundingTxVout:                            channelPoint.GetOutputIndex(),
 			Confirmations:                            &confirmations,
 			ConfirmationsRequired:                    &confirmationsRequired,
 			UnspendablePunishmentReserve:             lndChannel.LocalConstraints.ChanReserveSat,
@@ -840,9 +841,15 @@ func (svc *LNDService) GetOnchainBalance(ctx context.Context) (*lnclient.Onchain
 	for _, closingChannel := range pendingChannels.WaitingCloseChannels {
 		pendingBalancesFromChannelClosures += uint64(closingChannel.LimboBalance)
 		if closingChannel.Channel != nil {
+			channelPoint, err := svc.parseChannelPoint(closingChannel.Channel.ChannelPoint)
+			if err != nil {
+				return nil, err
+			}
 			pendingBalancesDetails = append(pendingBalancesDetails, lnclient.PendingBalanceDetails{
-				NodeId: closingChannel.Channel.RemoteNodePub,
-				Amount: uint64(closingChannel.LimboBalance),
+				NodeId:        closingChannel.Channel.RemoteNodePub,
+				Amount:        uint64(closingChannel.LimboBalance),
+				FundingTxId:   channelPoint.GetFundingTxidStr(),
+				FundingTxVout: channelPoint.GetOutputIndex(),
 			})
 		}
 	}

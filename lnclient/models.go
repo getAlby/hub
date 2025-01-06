@@ -86,6 +86,7 @@ type Channel struct {
 	Id                                       string
 	RemotePubkey                             string
 	FundingTxId                              string
+	FundingTxVout                            uint32
 	Active                                   bool
 	Public                                   bool
 	InternalChannel                          interface{}
@@ -135,9 +136,11 @@ type CloseChannelResponse struct {
 }
 
 type PendingBalanceDetails struct {
-	ChannelId string `json:"channelId"`
-	NodeId    string `json:"nodeId"`
-	Amount    uint64 `json:"amount"`
+	ChannelId     string `json:"channelId"`
+	NodeId        string `json:"nodeId"`
+	Amount        uint64 `json:"amount"`
+	FundingTxId   string `json:"fundingTxId"`
+	FundingTxVout uint32 `json:"fundingTxVout"`
 }
 
 type OnchainBalanceResponse struct {

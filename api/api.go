@@ -402,6 +402,7 @@ func (api *api) ListChannels(ctx context.Context) ([]Channel, error) {
 			Id:                                       channel.Id,
 			RemotePubkey:                             channel.RemotePubkey,
 			FundingTxId:                              channel.FundingTxId,
+			FundingTxVout:                            channel.FundingTxVout,
 			Active:                                   channel.Active,
 			Public:                                   channel.Public,
 			InternalChannel:                          channel.InternalChannel,
