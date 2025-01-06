@@ -685,8 +685,13 @@ func (svc *albyOAuthService) ConsumeEvent(ctx context.Context, event *events.Eve
 	}
 
 	if event.Event == "nwc_backup_channels" {
-		if err := svc.backupChannels(ctx, event); err != nil {
-			logger.Logger.WithError(err).Error("Failed to backup channels")
+		// if backup fails, try again (max 3 attempts)
+		for i := 0; i < 3; i++ {
+			if err := svc.backupChannels(ctx, event); err != nil {
+				logger.Logger.WithField("attempt", i).WithError(err).Error("Failed to backup channels")
+				continue
+			}
+			break
 		}
 		return
 	}

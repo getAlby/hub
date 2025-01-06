@@ -253,9 +253,6 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		"duration": math.Ceil(time.Since(syncStartTime).Seconds()),
 	}).Info("LDK node synced successfully")
 
-	// backup channels after successful startup
-	ls.backupChannels()
-
 	if ls.network == "bitcoin" {
 		// try to connect to some peers to retrieve P2P gossip data. TODO: Remove once LDK can correctly do gossip with CLN and Eclair nodes
 		// see https://github.com/lightningdevkit/rust-lightning/issues/3075
