@@ -44,7 +44,7 @@ func (app *WailsApp) onBeforeClose(ctx context.Context) bool {
 	response, err := runtime.MessageDialog(ctx, runtime.MessageDialogOptions{
 		Type:          runtime.QuestionDialog,
 		Title:         "Confirm Exit",
-		Message:       "Are you sure you want to close Alby Hub? App needs to stay online to send and receive transactions.",
+		Message:       "Are you sure you want to shut down Alby Hub? Alby Hub needs to stay online to send and receive transactions.",
 		Buttons:       []string{"Yes", "No"},
 		DefaultButton: "No",
 	})
