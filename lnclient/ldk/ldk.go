@@ -3,7 +3,6 @@ package ldk
 import (
 	"context"
 	"crypto/sha256"
-	"database/sql"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -130,6 +129,11 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 			return nil, errors.New("migration enabled but no vss token found")
 		}
 		builder.MigrateStorage(ldk_node.MigrateStorageVss)
+	}
+
+	resetStateRequest := getResetStateRequest(cfg)
+	if resetStateRequest != nil {
+		builder.ResetState(*resetStateRequest)
 	}
 
 	logger.Logger.WithFields(logrus.Fields{
@@ -407,68 +411,9 @@ func (ls *LDKService) Shutdown() error {
 	logger.Logger.Debug("Destroying LDK node object")
 	node.Destroy()
 
-	ls.resetRouterInternal()
-
 	logger.Logger.Info("LDK shutdown complete")
 
 	return nil
-}
-
-func (ls *LDKService) resetRouterInternal() {
-	key, err := ls.cfg.Get(resetRouterKey, "")
-
-	if err != nil {
-		logger.Logger.Error("Failed to retrieve ResetRouter key")
-		return
-	}
-
-	if key != "" {
-		err = ls.cfg.SetUpdate(resetRouterKey, "", "")
-		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to remove reset router key")
-			return
-		}
-		logger.Logger.WithField("key", key).Info("Resetting router")
-
-		ldkDbPath := filepath.Join(ls.workdir, "storage", "ldk_node_data.sqlite")
-		if _, err := os.Stat(ldkDbPath); errors.Is(err, os.ErrNotExist) {
-			logger.Logger.Error("Could not find LDK database")
-			return
-		}
-		ldkDb, err := sql.Open("sqlite", ldkDbPath)
-		if err != nil {
-			logger.Logger.Error("Could not open LDK DB file")
-			return
-		}
-
-		command := ""
-
-		switch key {
-		case "ALL":
-			command = "delete from ldk_node_data where key = 'scorer' or key = 'network_graph';VACUUM;"
-		case "Scorer":
-			command = "delete from ldk_node_data where key = 'scorer';VACUUM;"
-		case "NetworkGraph":
-			command = "delete from ldk_node_data where key = 'network_graph';VACUUM;"
-		default:
-			logger.Logger.WithField("key", key).Error("Unknown reset router key")
-			return
-		}
-
-		result, err := ldkDb.Exec(command)
-		if err != nil {
-			logger.Logger.WithError(err).Error("Failed execute reset command")
-			return
-		}
-		rowsAffected, err := result.RowsAffected()
-		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to get rows affected")
-			return
-		}
-		logger.Logger.WithFields(logrus.Fields{
-			"rowsAffected": rowsAffected,
-		}).Info("Reset router")
-	}
 }
 
 func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
@@ -1808,4 +1753,34 @@ func GetVssNodeIdentifier(keys keys.Keys) (string, error) {
 	pubkeyHash256.Write(key.Key)
 	pubkeyHashBytes := pubkeyHash256.Sum(nil)
 	return hex.EncodeToString(pubkeyHashBytes[0:3]), nil
+}
+
+func getResetStateRequest(cfg config.Config) *ldk_node.ResetState {
+	resetKey, err := cfg.Get(resetRouterKey, "")
+	if err != nil {
+		logger.Logger.Error("Failed to retrieve ResetRouter key")
+		return nil
+	}
+
+	err = cfg.SetUpdate(resetRouterKey, "", "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to remove reset router key")
+		return nil
+	}
+
+	var ret ldk_node.ResetState
+
+	switch resetKey {
+	case "ALL":
+		ret = ldk_node.ResetStateAll
+	case "Scorer":
+		ret = ldk_node.ResetStateScorer
+	case "NetworkGraph":
+		ret = ldk_node.ResetStateNetworkGraph
+	default:
+		logger.Logger.WithField("key", resetKey).Error("Unknown reset router key")
+		return nil
+	}
+
+	return &ret
 }
