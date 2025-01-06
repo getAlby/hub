@@ -786,8 +786,10 @@ func (ls *LDKService) ListChannels(ctx context.Context) ([]lnclient.Channel, err
 
 	for _, ldkChannel := range ldkChannels {
 		fundingTxId := ""
+		fundingTxVout := uint32(0)
 		if ldkChannel.FundingTxo != nil {
 			fundingTxId = ldkChannel.FundingTxo.Txid
+			fundingTxVout = ldkChannel.FundingTxo.Vout
 		}
 
 		internalChannel := map[string]interface{}{}
@@ -829,6 +831,7 @@ func (ls *LDKService) ListChannels(ctx context.Context) ([]lnclient.Channel, err
 			Active:                                   isActive,
 			Public:                                   ldkChannel.IsAnnounced,
 			FundingTxId:                              fundingTxId,
+			FundingTxVout:                            fundingTxVout,
 			Confirmations:                            ldkChannel.Confirmations,
 			ConfirmationsRequired:                    ldkChannel.ConfirmationsRequired,
 			ForwardingFeeBaseMsat:                    ldkChannel.Config.ForwardingFeeBaseMsat,
@@ -1020,15 +1023,17 @@ func (ls *LDKService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainB
 	// increase pending balance from any lightning balances for channels that are pending closure
 	// (they do not exist in our list of open channels)
 	for _, balance := range balances.LightningBalances {
-		increasePendingBalance := func(nodeId, channelId string, amount uint64) {
+		increasePendingBalance := func(nodeId, channelId string, amount uint64, fundingTxId ldk_node.Txid, fundingTxIndex uint16) {
 			if !slices.ContainsFunc(channels, func(channel ldk_node.ChannelDetails) bool {
 				return channel.ChannelId == channelId
 			}) {
 				pendingBalancesFromChannelClosures += amount
 				pendingBalancesDetails = append(pendingBalancesDetails, lnclient.PendingBalanceDetails{
-					NodeId:    nodeId,
-					ChannelId: channelId,
-					Amount:    amount,
+					NodeId:        nodeId,
+					ChannelId:     channelId,
+					Amount:        amount,
+					FundingTxId:   fundingTxId,
+					FundingTxVout: uint32(fundingTxIndex),
 				})
 			}
 		}
@@ -1040,17 +1045,17 @@ func (ls *LDKService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainB
 		})
 		switch balanceType := (balance).(type) {
 		case ldk_node.LightningBalanceClaimableOnChannelClose:
-			increasePendingBalance(balanceType.CounterpartyNodeId, balanceType.ChannelId, balanceType.AmountSatoshis)
+			increasePendingBalance(balanceType.CounterpartyNodeId, balanceType.ChannelId, balanceType.AmountSatoshis, balanceType.FundingTxId, balanceType.FundingTxIndex)
 		case ldk_node.LightningBalanceClaimableAwaitingConfirmations:
-			increasePendingBalance(balanceType.CounterpartyNodeId, balanceType.ChannelId, balanceType.AmountSatoshis)
+			increasePendingBalance(balanceType.CounterpartyNodeId, balanceType.ChannelId, balanceType.AmountSatoshis, balanceType.FundingTxId, balanceType.FundingTxIndex)
 		case ldk_node.LightningBalanceContentiousClaimable:
-			increasePendingBalance(balanceType.CounterpartyNodeId, balanceType.ChannelId, balanceType.AmountSatoshis)
+			increasePendingBalance(balanceType.CounterpartyNodeId, balanceType.ChannelId, balanceType.AmountSatoshis, balanceType.FundingTxId, balanceType.FundingTxIndex)
 		case ldk_node.LightningBalanceMaybeTimeoutClaimableHtlc:
-			increasePendingBalance(balanceType.CounterpartyNodeId, balanceType.ChannelId, balanceType.AmountSatoshis)
+			increasePendingBalance(balanceType.CounterpartyNodeId, balanceType.ChannelId, balanceType.AmountSatoshis, balanceType.FundingTxId, balanceType.FundingTxIndex)
 		case ldk_node.LightningBalanceMaybePreimageClaimableHtlc:
-			increasePendingBalance(balanceType.CounterpartyNodeId, balanceType.ChannelId, balanceType.AmountSatoshis)
+			increasePendingBalance(balanceType.CounterpartyNodeId, balanceType.ChannelId, balanceType.AmountSatoshis, balanceType.FundingTxId, balanceType.FundingTxIndex)
 		case ldk_node.LightningBalanceCounterpartyRevokedOutputClaimable:
-			increasePendingBalance(balanceType.CounterpartyNodeId, balanceType.ChannelId, balanceType.AmountSatoshis)
+			increasePendingBalance(balanceType.CounterpartyNodeId, balanceType.ChannelId, balanceType.AmountSatoshis, balanceType.FundingTxId, balanceType.FundingTxIndex)
 		}
 	}
 

@@ -204,6 +204,7 @@ export type Channel = {
   remotePubkey: string;
   id: string;
   fundingTxId: string;
+  fundingTxVout: number;
   active: boolean;
   public: boolean;
   confirmations?: number;
@@ -280,6 +281,8 @@ export type OnchainBalanceResponse = {
     channelId: string;
     nodeId: string;
     amount: number;
+    fundingTxId: string;
+    fundingTxVout: number;
   }[];
 };
 
