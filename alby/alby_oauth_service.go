@@ -277,7 +277,7 @@ func (svc *albyOAuthService) GetInfo(ctx context.Context) (*AlbyInfo, error) {
 	}
 
 	incidents := []AlbyInfoIncident{}
-	for _, incident := range incidents {
+	for _, incident := range info.Incidents {
 		incidents = append(incidents, AlbyInfoIncident{
 			Name:    incident.Name,
 			Started: incident.Started,
