@@ -71,7 +71,7 @@ type App struct {
 	BudgetUsage   uint64     `json:"budgetUsage"`
 	BudgetRenewal string     `json:"budgetRenewal"`
 	Isolated      bool       `json:"isolated"`
-	Balance       uint64     `json:"balance"`
+	Balance       int64      `json:"balance"`
 	Metadata      Metadata   `json:"metadata,omitempty"`
 }
 

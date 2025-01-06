@@ -250,7 +250,7 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 			RequestEventId:  requestEventId,
 			Type:            constants.TRANSACTION_TYPE_OUTGOING,
 			State:           constants.TRANSACTION_STATE_PENDING,
-			FeeReserveMsat:  svc.calculateFeeReserveMsat(paymentAmount),
+			FeeReserveMsat:  CalculateFeeReserveMsat(paymentAmount),
 			AmountMsat:      paymentAmount,
 			PaymentRequest:  payReq,
 			PaymentHash:     paymentRequest.PaymentHash,
@@ -363,7 +363,7 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 			RequestEventId: requestEventId,
 			Type:           constants.TRANSACTION_TYPE_OUTGOING,
 			State:          constants.TRANSACTION_STATE_PENDING,
-			FeeReserveMsat: svc.calculateFeeReserveMsat(uint64(amount)),
+			FeeReserveMsat: CalculateFeeReserveMsat(uint64(amount)),
 			AmountMsat:     amount,
 			Metadata:       datatypes.JSON(metadataBytes),
 			Boostagram:     datatypes.JSON(boostagramBytes),
@@ -796,7 +796,7 @@ func (svc *transactionsService) interceptSelfPayment(paymentHash string) (*lncli
 }
 
 func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount uint64, description string) error {
-	amountWithFeeReserve := amount + svc.calculateFeeReserveMsat(amount)
+	amountWithFeeReserve := amount + CalculateFeeReserveMsat(amount)
 
 	// ensure balance for isolated apps
 	if appId != nil {
@@ -820,7 +820,7 @@ func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount 
 		if app.Isolated {
 			balance := queries.GetIsolatedBalance(tx, appPermission.AppId)
 
-			if amountWithFeeReserve > balance {
+			if int64(amountWithFeeReserve) > balance {
 				message := NewInsufficientBalanceError().Error()
 				if description != "" {
 					message += " " + description
@@ -862,9 +862,8 @@ func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount 
 }
 
 // max of 1% or 10000 millisats (10 sats)
-func (svc *transactionsService) calculateFeeReserveMsat(amount uint64) uint64 {
-	// NOTE: LDK defaults to 1% of the payment amount + 50 sats
-	return uint64(math.Max(math.Ceil(float64(amount)*0.01), 10000))
+func CalculateFeeReserveMsat(amountMsat uint64) uint64 {
+	return uint64(math.Max(math.Ceil(float64(amountMsat)*0.01), 10000))
 }
 
 func makePreimageHex() ([]byte, error) {
