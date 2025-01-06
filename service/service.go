@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"sync/atomic"
 
 	"github.com/adrg/xdg"
 	"github.com/nbd-wtf/go-nostr"
@@ -41,6 +42,7 @@ type service struct {
 	nip47Service        nip47.Nip47Service
 	appCancelFn         context.CancelFunc
 	keys                keys.Keys
+	isRelayReady        atomic.Bool
 }
 
 func NewService(ctx context.Context) (*service, error) {
