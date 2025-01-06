@@ -103,6 +103,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		// If LogLevelGossip is changed to 0, this addition can be removed
 		ldkConfig.LogLevel = ldk_node.LogLevel(logLevel) + ldk_node.LogLevelGossip
 	}
+	ldkConfig.TransientNetworkGraph = cfg.GetEnv().LDKTransientNetworkGraph
 	builder := ldk_node.BuilderFromConfig(ldkConfig)
 	builder.SetNodeAlias("Alby Hub") // TODO: allow users to customize
 	builder.SetEntropyBip39Mnemonic(mnemonic, nil)
