@@ -13,6 +13,7 @@ import nostrudel from "src/assets/suggested-apps/nostrudel.png";
 import nostur from "src/assets/suggested-apps/nostur.png";
 import paperScissorsHodl from "src/assets/suggested-apps/paper-scissors-hodl.png";
 import primal from "src/assets/suggested-apps/primal.png";
+import simpleboost from "src/assets/suggested-apps/simple-boost.png";
 import snort from "src/assets/suggested-apps/snort.png";
 import stackernews from "src/assets/suggested-apps/stacker-news.png";
 import uncleJim from "src/assets/suggested-apps/uncle-jim.png";
@@ -61,6 +62,13 @@ export const suggestedApps: SuggestedApp[] = [
     description: "Receive-only PoS you can safely share with your employees",
     internal: true,
     logo: buzzpay,
+  },
+  {
+    id: "simpleboost",
+    title: "SimpleBoost",
+    description: "Donation widget for your website",
+    internal: true,
+    logo: simpleboost,
   },
   {
     id: "alby-extension",

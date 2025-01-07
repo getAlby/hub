@@ -36,6 +36,7 @@ import { FirstChannel } from "src/screens/channels/first/FirstChannel";
 import { OpenedFirstChannel } from "src/screens/channels/first/OpenedFirstChannel";
 import { OpeningFirstChannel } from "src/screens/channels/first/OpeningFirstChannel";
 import { BuzzPay } from "src/screens/internal-apps/BuzzPay";
+import { SimpleBoost } from "src/screens/internal-apps/SimpleBoost";
 import { UncleJim } from "src/screens/internal-apps/UncleJim";
 import { ZapPlanner } from "src/screens/internal-apps/ZapPlanner";
 import BuyBitcoin from "src/screens/onchain/BuyBitcoin";
@@ -241,6 +242,10 @@ const routes = [
           {
             path: "buzzpay",
             element: <BuzzPay />,
+          },
+          {
+            path: "simpleboost",
+            element: <SimpleBoost />,
           },
           {
             path: "zapplanner",
