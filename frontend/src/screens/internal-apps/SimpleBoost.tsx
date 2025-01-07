@@ -25,7 +25,15 @@ export function SimpleBoost() {
   const [isLoading, setLoading] = React.useState(false);
   const { data: apps } = useApps();
   const [nwcUri, setNwcUri] = React.useState("");
+  const [scriptContent, setScriptContent] = React.useState("");
   const { toast } = useToast();
+
+  React.useEffect(() => {
+    if (nwcUri) {
+      setScriptContent(`<script type="module" src="https://esm.sh/simple-boost@latest"></script>
+<simple-boost currency="usd" amount="1.0" nwc="${nwcUri}">Boost $1.00</simple-boost>`);
+    }
+  }, [nwcUri]);
 
   if (!apps) {
     return <Loading />;
@@ -86,17 +94,12 @@ export function SimpleBoost() {
                 Add the following widget anywhere on your website:
                 <div className="flex gap-2 mt-4">
                   <Textarea
-                    readOnly
-                    className="h-36"
-                    value={`<simple-boost nwc="${nwcUri}"></simple-boost>`}
+                    className="h-36 font-mono"
+                    value={scriptContent}
+                    onChange={(e) => setScriptContent(e.target.value)}
                   />
                   <Button
-                    onClick={() =>
-                      copyToClipboard(
-                        `<simple-boost nwc="${nwcUri}"></simple-boost>`,
-                        toast
-                      )
-                    }
+                    onClick={() => copyToClipboard(scriptContent, toast)}
                     variant="outline"
                   >
                     <CopyIcon className="w-4 h-4 mr-2" />
@@ -119,7 +122,10 @@ export function SimpleBoost() {
             <ul className="text-muted-foreground">
               <li>⚡ Lightning fast transactions directly to your Alby Hub</li>
               <li>🔗 Set amounts in Bitcoin or any other currency</li>
-              <li>🔒 Supports any wallet</li>
+              <li>
+                🔒 No lightning address required, secure read-only connection
+              </li>
+              <li>🤙 Can be paid from any lightning wallet</li>
             </ul>
             <form
               onSubmit={handleSubmit}
