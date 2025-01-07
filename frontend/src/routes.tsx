@@ -43,10 +43,12 @@ import DepositBitcoin from "src/screens/onchain/DepositBitcoin";
 import ConnectPeer from "src/screens/peers/ConnectPeer";
 import Peers from "src/screens/peers/Peers";
 import { AlbyAccount } from "src/screens/settings/AlbyAccount";
+import Backup from "src/screens/settings/Backup";
 import { ChangeUnlockPassword } from "src/screens/settings/ChangeUnlockPassword";
 import DebugTools from "src/screens/settings/DebugTools";
 import DeveloperSettings from "src/screens/settings/DeveloperSettings";
 import Settings from "src/screens/settings/Settings";
+import Shutdown from "src/screens/settings/Shutdown";
 import { ImportMnemonic } from "src/screens/setup/ImportMnemonic";
 import { RestoreNode } from "src/screens/setup/RestoreNode";
 import { SetupAdvanced } from "src/screens/setup/SetupAdvanced";
@@ -176,8 +178,13 @@ const routes = [
               },
               {
                 path: "backup",
-                element: <BackupMnemonic />,
+                element: <Backup />,
                 handle: { crumb: () => "Backup" },
+              },
+              {
+                path: "mnemonic-backup",
+                element: <BackupMnemonic />,
+                handle: { crumb: () => "Key Backup" },
               },
               {
                 path: "node-backup",
@@ -194,6 +201,10 @@ const routes = [
               {
                 path: "debug-tools",
                 element: <DebugTools />,
+              },
+              {
+                path: "shutdown",
+                element: <Shutdown />,
               },
             ],
           },
