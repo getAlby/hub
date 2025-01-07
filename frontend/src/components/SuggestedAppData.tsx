@@ -521,40 +521,46 @@ export const suggestedApps: SuggestedApp[] = [
       </>
     ),
   },
-   {
+  {
     id: "clams",
     title: "Clams",
     description: "Multi wallet accounting tool",
     webLink: "https://clams.tech/",
     logo: clams,
     guide: (
-  <>
-    <div>
-      <h3 className="font-medium">In Clams</h3>
-      <ul className="list-inside text-muted-foreground">
-        <li>1. Download and open Clams on your device</li>
-        <li>2. Add a connection: "+ Add Connection" → NWC</li>
-      </ul>
-    </div>
-    <div>
-      <h3 className="font-medium">In Alby Hub</h3>
-      <ul className="list-inside text-muted-foreground">
-        <li> 3. Click{" "}
-          <Link to="/apps/new?app=clams" className="font-medium text-foreground underline">
-            Connect to Clams
-          </Link></li>
-        <li>4. Set wallet permissions (Read Only)</li>
-      </ul>
-    </div>
-    <div>
-      <h3 className="font-medium">In Clams</h3>
-      <ul className="list-inside text-muted-foreground">
-        <li>5. Add label & paste connection secret</li>
-        <li>6. Click Connect and Save</li>
-      </ul>
-    </div>
-  </>
-),
+      <>
+        <div>
+          <h3 className="font-medium">In Clams</h3>
+          <ul className="list-inside text-muted-foreground">
+            <li>1. Download and open Clams on your device</li>
+            <li>2. Add a connection: "+ Add Connection" → NWC</li>
+          </ul>
+        </div>
+        <div>
+          <h3 className="font-medium">In Alby Hub</h3>
+          <ul className="list-inside text-muted-foreground">
+            <li>
+              {" "}
+              3. Click{" "}
+              <Link
+                to="/apps/new?app=clams"
+                className="font-medium text-foreground underline"
+              >
+                Connect to Clams
+              </Link>
+            </li>
+            <li>4. Set wallet permissions (Read Only)</li>
+          </ul>
+        </div>
+        <div>
+          <h3 className="font-medium">In Clams</h3>
+          <ul className="list-inside text-muted-foreground">
+            <li>5. Add label & paste connection secret</li>
+            <li>6. Click Connect and Save</li>
+          </ul>
+        </div>
+      </>
+    ),
   },
   {
     id: "nostrudel",
