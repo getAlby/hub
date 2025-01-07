@@ -1747,17 +1747,8 @@ export const suggestedApps: SuggestedApp[] = [
     id: "bitrefill",
     title: "Bitrefill",
     description: "Live on bitcoin",
+    internal: true,
     webLink: "https://bitrefill.com",
     logo: bitrefill,
-    guide: (
-      <>
-        <iframe
-          width="100%"
-          height="667"
-          src="https://embed.bitrefill.com/?utm_source=bitrefill_demo"
-          sandbox="allow-same-origin allow-popups allow-scripts allow-forms"
-        ></iframe>
-      </>
-    ),
   },
 ].sort((a, b) => (a.title.toUpperCase() > b.title.toUpperCase() ? 1 : -1));
