@@ -153,6 +153,8 @@ export interface InfoResponse {
   enableAdvancedSetup: boolean;
   startupError: string;
   startupErrorTime: string;
+  autoUnlockPasswordSupported: boolean;
+  autoUnlockPasswordEnabled: boolean;
 }
 
 export type Network = "bitcoin" | "testnet" | "signet";

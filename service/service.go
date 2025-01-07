@@ -96,6 +96,18 @@ func NewService(ctx context.Context) (*service, error) {
 		return nil, err
 	}
 
+	// write auto unlock password from env to user config
+	if appConfig.AutoUnlockPassword != "" {
+		err = cfg.SetUpdate("AutoUnlockPassword", appConfig.AutoUnlockPassword, "")
+		if err != nil {
+			return nil, err
+		}
+	}
+	autoUnlockPassword, err := cfg.Get("AutoUnlockPassword", "")
+	if err != nil {
+		return nil, err
+	}
+
 	eventPublisher := events.NewEventPublisher()
 
 	keys := keys.NewKeys()
@@ -132,10 +144,10 @@ func NewService(ctx context.Context) (*service, error) {
 		startDataDogProfiler(ctx)
 	}
 
-	if appConfig.AutoUnlockPassword != "" {
+	if autoUnlockPassword != "" {
 		nodeLastStartTime, _ := cfg.Get("NodeLastStartTime", "")
 		if nodeLastStartTime != "" {
-			svc.StartApp(appConfig.AutoUnlockPassword)
+			svc.StartApp(autoUnlockPassword)
 		}
 	}
 
