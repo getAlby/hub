@@ -532,7 +532,16 @@ export const suggestedApps: SuggestedApp[] = [
         <div>
           <h3 className="font-medium">In Clams</h3>
           <ul className="list-inside text-muted-foreground">
-            <li>1. Download and open Clams on your device</li>
+            <li>
+              1. Download and open{" "}
+              <ExternalLink
+                to="https://clams.tech/"
+                className="font-medium text-foreground underline"
+              >
+                Clams
+              </ExternalLink>{" "}
+              on your device
+            </li>
             <li>2. Add a connection: "+ Add Connection" → NWC</li>
           </ul>
         </div>
