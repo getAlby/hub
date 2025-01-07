@@ -96,13 +96,16 @@ func NewService(ctx context.Context) (*service, error) {
 		return nil, err
 	}
 
-	// read auto unlock password from user config or env
+	// write auto unlock password from env to user config
+	if appConfig.AutoUnlockPassword != "" {
+		err = cfg.SetUpdate("AutoUnlockPassword", appConfig.AutoUnlockPassword, "")
+		if err != nil {
+			return nil, err
+		}
+	}
 	autoUnlockPassword, err := cfg.Get("AutoUnlockPassword", "")
 	if err != nil {
 		return nil, err
-	}
-	if autoUnlockPassword == "" {
-		autoUnlockPassword = appConfig.AutoUnlockPassword
 	}
 
 	eventPublisher := events.NewEventPublisher()
