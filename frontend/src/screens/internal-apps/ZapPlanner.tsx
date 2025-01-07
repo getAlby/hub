@@ -300,6 +300,12 @@ export function ZapPlanner() {
           </>
         }
       />
+      <p className="text-muted-foreground">
+        ZapPlanner is a tool to securely schedule recurring payments. A new
+        special app connection with a strict budget is created for each
+        scheduled payment. This allows you to securely setup recurring payments
+        and be in full control.
+      </p>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         {recipients.map((recipient) => (
           <Card key={recipient.lightningAddress}>
