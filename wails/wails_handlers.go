@@ -93,7 +93,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 	}
 
 	btcRateRegex := regexp.MustCompile(
-		`/api/alby/btc_rate\?currency=([^&]+)`,
+		`/api/alby/rates\?currency=([^&]+)`,
 	)
 
 	btcRateMatch := btcRateRegex.FindStringSubmatch(route)

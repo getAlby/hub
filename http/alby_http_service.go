@@ -29,7 +29,7 @@ func NewAlbyHttpService(svc service.Service, albyOAuthSvc alby.AlbyOAuthService,
 func (albyHttpSvc *AlbyHttpService) RegisterSharedRoutes(restrictedGroup *echo.Group, e *echo.Echo) {
 	e.GET("/api/alby/callback", albyHttpSvc.albyCallbackHandler)
 	e.GET("/api/alby/info", albyHttpSvc.albyInfoHandler)
-	e.GET("/api/alby/btc_rate", albyHttpSvc.albyBitcoinRateHandler)
+	e.GET("/api/alby/rates", albyHttpSvc.albyBitcoinRateHandler)
 	restrictedGroup.GET("/api/alby/me", albyHttpSvc.albyMeHandler)
 	restrictedGroup.GET("/api/alby/balance", albyHttpSvc.albyBalanceHandler)
 	restrictedGroup.POST("/api/alby/pay", albyHttpSvc.albyPayHandler)
