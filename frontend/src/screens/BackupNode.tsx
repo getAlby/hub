@@ -92,7 +92,7 @@ export function BackupNode() {
       </Alert>
       <Alert>
         <AlertTriangleIcon className="h-4 w-4" />
-        <AlertTitle>Migration Requires a Fresh Alby Hub</AlertTitle>
+        <AlertTitle>Migration requires a fresh Alby Hub</AlertTitle>
         <AlertDescription>
           To import the migration file, you must have a brand new Alby Hub on
           another device and use the "Advanced" option in the onboarding.
