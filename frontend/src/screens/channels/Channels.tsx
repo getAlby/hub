@@ -3,6 +3,7 @@ import {
   Bitcoin,
   ChevronDown,
   CopyIcon,
+  ExternalLinkIcon,
   Heart,
   Hotel,
   HourglassIcon,
@@ -368,7 +369,7 @@ export default function Channels() {
 
             <Bitcoin className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent className="flex-grow pb-0">
+          <CardContent className="flex-grow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pl-0">
               <CardTitle className="text-sm font-medium">
                 <TooltipProvider>
@@ -427,10 +428,33 @@ export default function Channels() {
             {new Intl.NumberFormat().format(
               balances.onchain.pendingBalancesFromChannelClosures
             )}{" "}
-            sats pending from one or more closed channels. Once spendable again
-            these will become available in your on-chain balance. Funds from
-            channels that were force closed may take up to 2 weeks to become
-            available.{" "}
+            sats pending from closed channels with
+            {balances.onchain.pendingBalancesDetails.map((details, index) => (
+              <div key={details.channelId} className="inline">
+                &nbsp;
+                <ExternalLink
+                  to={`https://amboss.space/node/${details.nodeId}`}
+                  className="underline"
+                >
+                  {nodes.find((node) => node.public_key === details.nodeId)
+                    ?.alias || "Unknown"}
+                  <ExternalLinkIcon className="ml-1 w-4 h-4 inline" />
+                </ExternalLink>{" "}
+                ({new Intl.NumberFormat().format(details.amount)} sats)&nbsp;
+                <ExternalLink
+                  to={`https://mempool.space/tx/${details.fundingTxId}#flow=&vout=${details.fundingTxVout}`}
+                  className="underline"
+                >
+                  funding tx
+                  <ExternalLinkIcon className="ml-1 w-4 h-4 inline" />
+                </ExternalLink>
+                {index < balances.onchain.pendingBalancesDetails.length - 1 &&
+                  ","}
+              </div>
+            ))}
+            . Once spendable again these will become available in your on-chain
+            balance. Funds from channels that were force closed may take up to 2
+            weeks to become available.{" "}
             <ExternalLink
               to="https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub/faq-alby-hub/why-was-my-lightning-channel-closed-and-what-to-do-next"
               className="underline"

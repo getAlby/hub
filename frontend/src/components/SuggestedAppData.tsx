@@ -4,6 +4,7 @@ import albyGo from "src/assets/suggested-apps/alby-go.png";
 import alby from "src/assets/suggested-apps/alby.png";
 import amethyst from "src/assets/suggested-apps/amethyst.png";
 import buzzpay from "src/assets/suggested-apps/buzzpay.png";
+import clams from "src/assets/suggested-apps/clams.png";
 import damus from "src/assets/suggested-apps/damus.png";
 import hablanews from "src/assets/suggested-apps/habla-news.png";
 import kiwi from "src/assets/suggested-apps/kiwi.png";
@@ -528,6 +529,56 @@ export const suggestedApps: SuggestedApp[] = [
     ),
   },
   {
+    id: "clams",
+    title: "Clams",
+    description: "Multi wallet accounting tool",
+    webLink: "https://clams.tech/",
+    logo: clams,
+    guide: (
+      <>
+        <div>
+          <h3 className="font-medium">In Clams</h3>
+          <ul className="list-inside text-muted-foreground">
+            <li>
+              1. Download and open{" "}
+              <ExternalLink
+                to="https://clams.tech/"
+                className="font-medium text-foreground underline"
+              >
+                Clams
+              </ExternalLink>{" "}
+              on your device
+            </li>
+            <li>2. Add a connection: "+ Add Connection" → NWC</li>
+          </ul>
+        </div>
+        <div>
+          <h3 className="font-medium">In Alby Hub</h3>
+          <ul className="list-inside text-muted-foreground">
+            <li>
+              {" "}
+              3. Click{" "}
+              <Link
+                to="/apps/new?app=clams"
+                className="font-medium text-foreground underline"
+              >
+                Connect to Clams
+              </Link>
+            </li>
+            <li>4. Set wallet permissions (Read Only)</li>
+          </ul>
+        </div>
+        <div>
+          <h3 className="font-medium">In Clams</h3>
+          <ul className="list-inside text-muted-foreground">
+            <li>5. Add label & paste connection secret</li>
+            <li>6. Click Connect and Save</li>
+          </ul>
+        </div>
+      </>
+    ),
+  },
+  {
     id: "nostrudel",
     title: "noStrudel",
     description: "Web Nostr client",
@@ -654,65 +705,7 @@ export const suggestedApps: SuggestedApp[] = [
     description: "Schedule payments",
     webLink: "https://zapplanner.albylabs.com/",
     logo: zapplanner,
-    guide: (
-      <>
-        <div>
-          <h3 className="font-medium">In ZapPlanner</h3>
-          <ul className="list-inside text-muted-foreground">
-            <li>
-              1. Open{" "}
-              <ExternalLink
-                to="https://zapplanner.albylabs.com"
-                className="font-medium text-foreground underline"
-              >
-                ZapPlanner
-              </ExternalLink>{" "}
-              in your browser
-            </li>
-            <li>
-              2. Click on{" "}
-              <span className="font-medium text-foreground">
-                New Recurring Payment
-              </span>{" "}
-              → add the details and click{" "}
-              <span className="font-medium text-foreground">Continue</span>
-            </li>
-            <li>
-              3. Choose{" "}
-              <span className="font-medium text-foreground">
-                Nostr Wallet Connect URL
-              </span>
-            </li>
-          </ul>
-        </div>
-        <div>
-          <h3 className="font-medium">In Alby Hub</h3>
-          <ul className="list-inside text-muted-foreground">
-            <li>
-              4. Click{" "}
-              <Link
-                to="/apps/new?app=zapplanner"
-                className="font-medium text-foreground underline"
-              >
-                Connect to ZapPlanner
-              </Link>
-            </li>
-            <li>5. Set app's wallet permissions (full access recommended)</li>
-          </ul>
-        </div>
-        <div>
-          <h3 className="font-medium">In ZapPlanner</h3>
-          <ul className="list-inside text-muted-foreground">
-            <li>
-              6. Paste the connection secret from Alby Hub and click{" "}
-              <span className="font-medium text-foreground">
-                Create Recurring Payment
-              </span>
-            </li>
-          </ul>
-        </div>
-      </>
-    ),
+    internal: true,
   },
   {
     id: "zapplepay",
@@ -1219,7 +1212,7 @@ export const suggestedApps: SuggestedApp[] = [
     playLink:
       "https://play.google.com/store/apps/details?id=com.getalby.mobile",
     appleLink: "https://apps.apple.com/us/app/alby-go/id6471335774",
-    zapStoreLink: "https://zap.store",
+    zapStoreLink: "https://zapstore.dev",
     logo: albyGo,
     guide: (
       <>

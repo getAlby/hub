@@ -1,9 +1,9 @@
 import { Invoice, fiat } from "@getalby/lightning-tools";
 import { CopyIcon, LightbulbIcon } from "lucide-react";
 import React from "react";
-import QRCode from "react-qr-code";
 import { LightningIcon } from "src/components/icons/Lightning";
 import Loading from "src/components/Loading";
+import QRCode from "src/components/QRCode";
 import { Button, ExternalLinkButton } from "src/components/ui/button";
 import { useToast } from "src/components/ui/use-toast";
 import { copyToClipboard } from "src/lib/clipboard";

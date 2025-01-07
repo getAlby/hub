@@ -44,30 +44,30 @@ func (svc *service) startNostr(ctx context.Context) error {
 	go func() {
 		// ensure the relay is properly disconnected before exiting
 		defer svc.wg.Done()
-		//Start infinite loop which will be only broken by canceling ctx (SIGINT)
+		// Start infinite loop which will be only broken by canceling ctx (SIGINT)
 		var relay *nostr.Relay
 		waitToReconnectSeconds := 0
 		var createAppEventListener events.EventSubscriber
+		var updateAppEventListener events.EventSubscriber
 		for i := 0; ; i++ {
-
 			// wait for a delay if any before retrying
-			if waitToReconnectSeconds > 0 {
-				contextCancelled := false
+			contextCancelled := false
 
-				select {
-				case <-ctx.Done(): //context cancelled
-					logger.Logger.Info("service context cancelled while waiting for retry")
-					contextCancelled = true
-				case <-time.After(time.Duration(waitToReconnectSeconds) * time.Second): //timeout
-				}
-				if contextCancelled {
-					break
-				}
+			svc.setRelayReady(false)
+
+			select {
+			case <-ctx.Done(): // application service context cancelled
+				logger.Logger.Info("service context cancelled")
+				contextCancelled = true
+			case <-time.After(time.Duration(waitToReconnectSeconds) * time.Second): // timeout
+			}
+			if contextCancelled {
+				break
 			}
 
 			closeRelay(relay)
 
-			//connect to the relay
+			// connect to the relay
 			logger.Logger.WithFields(logrus.Fields{
 				"relay_url": relayUrl,
 				"iteration": i,
@@ -97,6 +97,13 @@ func (svc *service) startNostr(ctx context.Context) error {
 			createAppEventListener = &createAppConsumer{svc: svc, relay: relay}
 			svc.eventPublisher.RegisterSubscriber(createAppEventListener)
 
+			// register a subscriber for events of "nwc_app_updated" which handles re-publishing of nip47 event info
+			if updateAppEventListener != nil {
+				svc.eventPublisher.RemoveSubscriber(updateAppEventListener)
+			}
+			updateAppEventListener = &updateAppConsumer{svc: svc, relay: relay}
+			svc.eventPublisher.RegisterSubscriber(updateAppEventListener)
+
 			// start each app wallet subscription which have a child derived wallet key
 			svc.startAllExistingAppsWalletSubscriptions(ctx, relay)
 
@@ -119,26 +126,25 @@ func (svc *service) startNostr(ctx context.Context) error {
 				// to ensure we do not get duplicate events
 				err = svc.startAppWalletSubscription(ctx, relay, svc.keys.GetNostrPublicKey())
 				if err != nil {
-					//err being non-nil means that we have an error on the websocket error channel. In this case we just try to reconnect.
+					// err being non-nil means that we have an error on the websocket error channel. In this case we just try to reconnect.
 					logger.Logger.WithError(err).Error("Got an error from the relay while listening to subscription.")
 					continue
 				}
-				break
 			}
+
+			svc.setRelayReady(true)
+
 			select {
 			case <-ctx.Done():
 				logger.Logger.Info("Main context cancelled, exiting...")
 			case <-relay.Context().Done():
-				//err being non-nil means that we have an error on the websocket error channel. In this case we just try to reconnect.
+				// err being non-nil means that we have an error on the websocket error channel. In this case we just try to reconnect.
 				if relay.ConnectionError != nil {
 					logger.Logger.WithError(relay.ConnectionError).Error("Got an error from the relay, trying to reconnect")
 				} else {
 					logger.Logger.Error("Relay context cancelled, but no connection error...trying to reconnect")
 				}
-				continue
 			}
-			//err being nil means that the context was canceled and we should exit the program.
-			break
 		}
 		closeRelay(relay)
 		logger.Logger.Info("Relay subroutine ended")
@@ -210,6 +216,14 @@ func (svc *service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 }
 
 func (svc *service) StartApp(encryptionKey string) error {
+	albyIdentifier, err := svc.albyOAuthSvc.GetUserIdentifier()
+	if err != nil {
+		return err
+	}
+	if albyIdentifier != "" && !svc.albyOAuthSvc.IsConnected(svc.ctx) {
+		return errors.New("alby account is not authenticated")
+	}
+
 	if svc.lnClient != nil {
 		return errors.New("app already started")
 	}
@@ -220,7 +234,7 @@ func (svc *service) StartApp(encryptionKey string) error {
 
 	ctx, cancelFn := context.WithCancel(svc.ctx)
 
-	err := svc.keys.Init(svc.cfg, encryptionKey)
+	err = svc.keys.Init(svc.cfg, encryptionKey)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to init nostr keys")
 		cancelFn()
@@ -407,4 +421,12 @@ func (svc *service) requestVssToken(ctx context.Context) (string, error) {
 		}
 	}
 	return vssToken, nil
+}
+
+func (svc *service) setRelayReady(ready bool) {
+	svc.isRelayReady.Store(ready)
+}
+
+func (svc *service) IsRelayReady() bool {
+	return svc.isRelayReady.Load()
 }

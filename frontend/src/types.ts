@@ -142,6 +142,7 @@ export interface InfoResponse {
   oauthRedirect: boolean;
   albyAccountConnected: boolean;
   ldkVssEnabled: boolean;
+  vssSupported: boolean;
   running: boolean;
   albyAuthUrl: string;
   nextBackupReminder: string;
@@ -169,7 +170,7 @@ export interface CreateAppRequest {
   name: string;
   pubkey?: string;
   maxAmount?: number;
-  budgetRenewal?: string;
+  budgetRenewal?: BudgetRenewalType;
   expiresAt?: string;
   scopes: Scope[];
   returnTo?: string;
@@ -203,6 +204,7 @@ export type Channel = {
   remotePubkey: string;
   id: string;
   fundingTxId: string;
+  fundingTxVout: number;
   active: boolean;
   public: boolean;
   confirmations?: number;
@@ -275,6 +277,13 @@ export type OnchainBalanceResponse = {
   total: number;
   reserved: number;
   pendingBalancesFromChannelClosures: number;
+  pendingBalancesDetails: {
+    channelId: string;
+    nodeId: string;
+    amount: number;
+    fundingTxId: string;
+    fundingTxVout: number;
+  }[];
 };
 
 // from https://mempool.space/docs/api/rest#get-node-stats
@@ -343,6 +352,9 @@ export type AlbyMe = {
   shared_node: boolean;
   hub: {
     name?: string;
+  };
+  subscription: {
+    buzz: boolean;
   };
 };
 

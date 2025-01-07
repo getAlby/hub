@@ -1,5 +1,4 @@
 import ReactQRCode from "react-qr-code";
-import { useTheme } from "src/components/ui/theme-provider";
 import { cn } from "src/lib/utils";
 
 export type Props = {
@@ -19,19 +18,22 @@ export type Props = {
 };
 
 function QRCode({ value, size, level, className }: Props) {
-  const { isDarkMode } = useTheme();
-  const fgColor = isDarkMode ? "#FFFFFF" : "#242424";
-  const bgColor = isDarkMode ? "#242424" : "#FFFFFF";
+  // Do not use dark mode: some apps do not handle it well (e.g. Phoenix)
+  // const { isDarkMode } = useTheme();
+  const fgColor = "#242424"; // isDarkMode ? "#FFFFFF" : "#242424";
+  const bgColor = "#FFFFFF"; // isDarkMode ? "#242424" : "#FFFFFF";
 
   return (
-    <ReactQRCode
-      value={value}
-      size={size}
-      fgColor={fgColor}
-      bgColor={bgColor}
-      className={cn("rounded-md", className)}
-      level={level}
-    />
+    <div className="bg-white p-2 rounded-md">
+      <ReactQRCode
+        value={value}
+        size={size}
+        fgColor={fgColor}
+        bgColor={bgColor}
+        className={cn("rounded-md", className)}
+        level={level}
+      />
+    </div>
   );
 }
 

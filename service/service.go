@@ -2,11 +2,11 @@ package service
 
 import (
 	"context"
-
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
+	"sync/atomic"
 
 	"github.com/adrg/xdg"
 	"github.com/nbd-wtf/go-nostr"
@@ -42,6 +42,7 @@ type service struct {
 	nip47Service        nip47.Nip47Service
 	appCancelFn         context.CancelFunc
 	keys                keys.Keys
+	isRelayReady        atomic.Bool
 }
 
 func NewService(ctx context.Context) (*service, error) {
@@ -63,9 +64,11 @@ func NewService(ctx context.Context) (*service, error) {
 	// make sure workdir exists
 	os.MkdirAll(appConfig.Workdir, os.ModePerm)
 
-	err = logger.AddFileLogger(appConfig.Workdir)
-	if err != nil {
-		return nil, err
+	if appConfig.LogToFile {
+		err = logger.AddFileLogger(appConfig.Workdir)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	err = finishRestoreNode(appConfig.Workdir)

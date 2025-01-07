@@ -48,13 +48,14 @@ export default defineConfig(({ command }) => ({
     ...(command === "serve" ? [insertDevCSPPlugin] : []),
   ],
   server: {
+    port: process.env.VITE_PORT ? parseInt(process.env.VITE_PORT) : undefined,
     proxy: {
       "/api": {
-        target: "http://localhost:8080",
+        target: process.env.VITE_API_URL || "http://localhost:8080",
         secure: false,
       },
       "/logout": {
-        target: "http://localhost:8080",
+        target: process.env.VITE_API_URL || "http://localhost:8080",
         secure: false,
       },
     },
@@ -87,7 +88,7 @@ const insertDevCSPPlugin: Plugin = {
         "<head>",
         `<head>
         <!-- DEV-ONLY CSP - when making changes here, also update the CSP header in http_service.go (without the nonce!) -->
-        <meta http-equiv="Content-Security-Policy" content="default-src 'self' ${DEVELOPMENT_NONCE}; img-src 'self' https://uploads.getalby-assets.com https://getalby.com; connect-src 'self' https://api.getalby.com https://getalby.com"/>`
+        <meta http-equiv="Content-Security-Policy" content="default-src 'self' ${DEVELOPMENT_NONCE}; img-src 'self' https://uploads.getalby-assets.com https://getalby.com; connect-src 'self' https://api.getalby.com https://getalby.com https://zapplanner.albylabs.com"/>`
       );
     },
   },

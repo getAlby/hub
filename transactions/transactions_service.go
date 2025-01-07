@@ -36,7 +36,7 @@ type TransactionsService interface {
 	MakeInvoice(ctx context.Context, amount uint64, description string, descriptionHash string, expiry uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	LookupTransaction(ctx context.Context, paymentHash string, transactionType *string, lnClient lnclient.LNClient, appId *uint) (*Transaction, error)
 	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, transactionType *string, lnClient lnclient.LNClient, appId *uint, forceFilterByAppId bool) (transactions []Transaction, err error)
-	SendPaymentSync(ctx context.Context, payReq string, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
+	SendPaymentSync(ctx context.Context, payReq string, amountMsat *uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []lnclient.TLVRecord, preimage string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 }
 
@@ -182,7 +182,7 @@ func (svc *transactionsService) MakeInvoice(ctx context.Context, amount uint64, 
 	return &dbTransaction, nil
 }
 
-func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq string, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
+func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq string, amountMsat *uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
 	var metadataBytes []byte
 	if metadata != nil {
 		var err error
@@ -206,9 +206,23 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 		return nil, err
 	}
 
+	if time.Now().After(time.Unix(int64(paymentRequest.CreatedAt+paymentRequest.Expiry), 0)) {
+		logger.Logger.WithFields(logrus.Fields{
+			"bolt11": payReq,
+			"expiry": time.Unix(int64(paymentRequest.CreatedAt+paymentRequest.Expiry), 0),
+		}).Errorf("this invoice has expired")
+
+		return nil, errors.New("this invoice has expired")
+	}
+
 	selfPayment := paymentRequest.Payee != "" && paymentRequest.Payee == lnClient.GetPubkey()
 
 	var dbTransaction db.Transaction
+
+	paymentAmount := uint64(paymentRequest.MSatoshi)
+	if amountMsat != nil {
+		paymentAmount = *amountMsat
+	}
 
 	err = svc.db.Transaction(func(tx *gorm.DB) error {
 		var existingSettledTransaction db.Transaction
@@ -221,7 +235,7 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 			return errors.New("this invoice has already been paid")
 		}
 
-		err := svc.validateCanPay(tx, appId, uint64(paymentRequest.MSatoshi), paymentRequest.Description)
+		err := svc.validateCanPay(tx, appId, paymentAmount, paymentRequest.Description)
 		if err != nil {
 			return err
 		}
@@ -236,8 +250,8 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 			RequestEventId:  requestEventId,
 			Type:            constants.TRANSACTION_TYPE_OUTGOING,
 			State:           constants.TRANSACTION_STATE_PENDING,
-			FeeReserveMsat:  svc.calculateFeeReserveMsat(uint64(paymentRequest.MSatoshi)),
-			AmountMsat:      uint64(paymentRequest.MSatoshi),
+			FeeReserveMsat:  CalculateFeeReserveMsat(paymentAmount),
+			AmountMsat:      paymentAmount,
 			PaymentRequest:  payReq,
 			PaymentHash:     paymentRequest.PaymentHash,
 			Description:     paymentRequest.Description,
@@ -261,7 +275,7 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 	if selfPayment {
 		response, err = svc.interceptSelfPayment(paymentRequest.PaymentHash)
 	} else {
-		response, err = lnClient.SendPaymentSync(ctx, payReq)
+		response, err = lnClient.SendPaymentSync(ctx, payReq, amountMsat)
 	}
 
 	if err != nil {
@@ -349,7 +363,7 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 			RequestEventId: requestEventId,
 			Type:           constants.TRANSACTION_TYPE_OUTGOING,
 			State:          constants.TRANSACTION_STATE_PENDING,
-			FeeReserveMsat: svc.calculateFeeReserveMsat(uint64(amount)),
+			FeeReserveMsat: CalculateFeeReserveMsat(uint64(amount)),
 			AmountMsat:     amount,
 			Metadata:       datatypes.JSON(metadataBytes),
 			Boostagram:     datatypes.JSON(boostagramBytes),
@@ -782,7 +796,7 @@ func (svc *transactionsService) interceptSelfPayment(paymentHash string) (*lncli
 }
 
 func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount uint64, description string) error {
-	amountWithFeeReserve := amount + svc.calculateFeeReserveMsat(amount)
+	amountWithFeeReserve := amount + CalculateFeeReserveMsat(amount)
 
 	// ensure balance for isolated apps
 	if appId != nil {
@@ -806,7 +820,7 @@ func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount 
 		if app.Isolated {
 			balance := queries.GetIsolatedBalance(tx, appPermission.AppId)
 
-			if amountWithFeeReserve > balance {
+			if int64(amountWithFeeReserve) > balance {
 				message := NewInsufficientBalanceError().Error()
 				if description != "" {
 					message += " " + description
@@ -848,9 +862,8 @@ func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount 
 }
 
 // max of 1% or 10000 millisats (10 sats)
-func (svc *transactionsService) calculateFeeReserveMsat(amount uint64) uint64 {
-	// NOTE: LDK defaults to 1% of the payment amount + 50 sats
-	return uint64(math.Max(math.Ceil(float64(amount)*0.01), 10000))
+func CalculateFeeReserveMsat(amountMsat uint64) uint64 {
+	return uint64(math.Max(math.Ceil(float64(amountMsat)*0.01), 10000))
 }
 
 func makePreimageHex() ([]byte, error) {

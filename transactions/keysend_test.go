@@ -364,7 +364,7 @@ func TestSendKeysend_IsolatedAppToNoApp(t *testing.T) {
 	require.NoError(t, err)
 
 	// setup for self payment
-	svc.LNClient.(*tests.MockLn).Pubkey = "02a5056398235568fc049a5d563f1adf666041d590b268167e4fa145fbf71aa578"
+	svc.LNClient.(*tests.MockLn).Pubkey = "03cbd788f5b22bd56e2714bff756372d2293504c064e03250ed16a4dd80ad70e2c"
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -395,7 +395,7 @@ func TestSendKeysend_IsolatedAppToNoApp(t *testing.T) {
 	mockPreimage := "c8aeb44ae8eb269c8dbfb7ec5c263f0bfa3d755bc0ca641b8ee118673afda657"
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendKeysend(ctx, 123000, "02a5056398235568fc049a5d563f1adf666041d590b268167e4fa145fbf71aa578", []lnclient.TLVRecord{}, mockPreimage, svc.LNClient, &app.ID, &dbRequestEvent.ID)
+	transaction, err := transactionsService.SendKeysend(ctx, 123000, "03cbd788f5b22bd56e2714bff756372d2293504c064e03250ed16a4dd80ad70e2c", []lnclient.TLVRecord{}, mockPreimage, svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, transaction)
@@ -418,7 +418,7 @@ func TestSendKeysend_IsolatedAppToNoApp(t *testing.T) {
 	result := svc.DB.Find(&transactions)
 	assert.Equal(t, int64(3), result.RowsAffected)
 	// expect balance to be decreased
-	assert.Equal(t, uint64(10000), queries.GetIsolatedBalance(svc.DB, app.ID))
+	assert.Equal(t, int64(10000), queries.GetIsolatedBalance(svc.DB, app.ID))
 }
 
 func TestSendKeysend_IsolatedAppToIsolatedApp(t *testing.T) {
@@ -429,7 +429,7 @@ func TestSendKeysend_IsolatedAppToIsolatedApp(t *testing.T) {
 	require.NoError(t, err)
 
 	// setup for self payment
-	svc.LNClient.(*tests.MockLn).Pubkey = "02a5056398235568fc049a5d563f1adf666041d590b268167e4fa145fbf71aa578"
+	svc.LNClient.(*tests.MockLn).Pubkey = "03cbd788f5b22bd56e2714bff756372d2293504c064e03250ed16a4dd80ad70e2c"
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -481,7 +481,7 @@ func TestSendKeysend_IsolatedAppToIsolatedApp(t *testing.T) {
 	svc.EventPublisher.RegisterSubscriber(mockEventConsumer)
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendKeysend(ctx, 123000, "02a5056398235568fc049a5d563f1adf666041d590b268167e4fa145fbf71aa578", tlvRecords, mockPreimage, svc.LNClient, &app.ID, &dbRequestEvent.ID)
+	transaction, err := transactionsService.SendKeysend(ctx, 123000, "03cbd788f5b22bd56e2714bff756372d2293504c064e03250ed16a4dd80ad70e2c", tlvRecords, mockPreimage, svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, transaction)
@@ -510,10 +510,10 @@ func TestSendKeysend_IsolatedAppToIsolatedApp(t *testing.T) {
 	result := svc.DB.Find(&transactions)
 	assert.Equal(t, int64(3), result.RowsAffected)
 	// expect balance to be decreased
-	assert.Equal(t, uint64(10000), queries.GetIsolatedBalance(svc.DB, app.ID))
+	assert.Equal(t, int64(10000), queries.GetIsolatedBalance(svc.DB, app.ID))
 
 	// expect app2 to receive the payment
-	assert.Equal(t, uint64(123000), queries.GetIsolatedBalance(svc.DB, app2.ID))
+	assert.Equal(t, int64(123000), queries.GetIsolatedBalance(svc.DB, app2.ID))
 
 	// check notifications
 	assert.Equal(t, 2, len(mockEventConsumer.GetConsumedEvents()))

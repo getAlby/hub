@@ -4,11 +4,11 @@ import {
   EllipsisVertical,
   Home,
   LayoutGrid,
+  LifeBuoy,
   Lightbulb,
   Lock,
   Megaphone,
   Menu,
-  MessageCircleQuestion,
   Plug2,
   PlugZapIcon,
   Settings,
@@ -170,14 +170,12 @@ export default function AppLayout() {
         <MenuItem
           to="/"
           onClick={(e) => {
-            openLink(
-              "https://feedback.getalby.com/-alby-hub-request-a-feature"
-            );
+            openLink("https://getalby.com/help");
             e.preventDefault();
           }}
         >
-          <Megaphone className="h-4 w-4" />
-          Feedback
+          <LifeBuoy className="h-4 w-4" />
+          Live Support
         </MenuItem>
         <MenuItem
           to="/"
@@ -189,17 +187,19 @@ export default function AppLayout() {
           }}
         >
           <Lightbulb className="h-4 w-4" />
-          Knowledge Base
+          Guides
         </MenuItem>
         <MenuItem
           to="/"
           onClick={(e) => {
-            openLink("https://getalby.com/help");
+            openLink(
+              "https://feedback.getalby.com/-alby-hub-request-a-feature"
+            );
             e.preventDefault();
           }}
         >
-          <MessageCircleQuestion className="h-4 w-4" />
-          Live Support
+          <Megaphone className="h-4 w-4" />
+          Feedback
         </MenuItem>
         {!albyMe?.hub.name && info?.albyAccountConnected && (
           <MenuItem

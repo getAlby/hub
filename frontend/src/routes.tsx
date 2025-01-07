@@ -38,6 +38,7 @@ import { OpeningFirstChannel } from "src/screens/channels/first/OpeningFirstChan
 import { BuzzPay } from "src/screens/internal-apps/BuzzPay";
 import { SimpleBoost } from "src/screens/internal-apps/SimpleBoost";
 import { UncleJim } from "src/screens/internal-apps/UncleJim";
+import { ZapPlanner } from "src/screens/internal-apps/ZapPlanner";
 import BuyBitcoin from "src/screens/onchain/BuyBitcoin";
 import DepositBitcoin from "src/screens/onchain/DepositBitcoin";
 import ConnectPeer from "src/screens/peers/ConnectPeer";
@@ -69,6 +70,7 @@ import ReceiveInvoice from "src/screens/wallet/receive/ReceiveInvoice";
 import ConfirmPayment from "src/screens/wallet/send/ConfirmPayment";
 import LnurlPay from "src/screens/wallet/send/LnurlPay";
 import PaymentSuccess from "src/screens/wallet/send/PaymentSuccess";
+import ZeroAmount from "src/screens/wallet/send/ZeroAmount";
 
 const routes = [
   {
@@ -128,6 +130,10 @@ const routes = [
               {
                 path: "lnurl-pay",
                 element: <LnurlPay />,
+              },
+              {
+                path: "0-amount",
+                element: <ZeroAmount />,
               },
               {
                 path: "confirm-payment",
@@ -234,6 +240,10 @@ const routes = [
           {
             path: "simpleboost",
             element: <SimpleBoost />,
+          },
+          {
+            path: "zapplanner",
+            element: <ZapPlanner />,
           },
         ],
       },
