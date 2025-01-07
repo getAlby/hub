@@ -42,7 +42,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "src/components/ui/dialog";
 import {
   DropdownMenu,
@@ -88,7 +87,8 @@ export default function Channels() {
   const { data: albyBalance, mutate: reloadAlbyBalance } = useAlbyBalance();
   const navigate = useNavigate();
   const [nodes, setNodes] = React.useState<Node[]>([]);
-  const [amount, setAmount] = React.useState(0);
+  const [swapOutAmount, setSwapOutAmount] = React.useState(0);
+  const [swapOutDialogOpen, setSwapOutDialogOpen] = React.useState(false);
   const { getNewAddress, data: onchainAddress } = useOnchainAddress();
 
   const { toast } = useToast();
@@ -119,12 +119,14 @@ export default function Channels() {
 
   React.useEffect(() => {
     loadNodeStats();
+  }, [loadNodeStats]);
 
-    // TODO: Execute this only when user opens swap window
-    setAmount(
+  function openSwapOutDialog() {
+    setSwapOutAmount(
       ((findLargestChannel()?.localSpendableBalance || 0) * 0.9) / 1000
     );
-  }, [loadNodeStats]);
+    setSwapOutDialogOpen(true);
+  }
 
   function findLargestChannel(): Channel | undefined {
     if (!channels || channels.length === 0) {
@@ -148,7 +150,10 @@ export default function Channels() {
         description="Manage your lightning node"
         contentRight={
           <div className="flex gap-3 items-center justify-center">
-            <Dialog>
+            <Dialog
+              open={swapOutDialogOpen}
+              onOpenChange={setSwapOutDialogOpen}
+            >
               <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
                   {isDesktop ? (
@@ -226,17 +231,15 @@ export default function Channels() {
                         <ZapIcon className="w-4 h-4" />)
                       </div>
                     </DropdownMenuItem> */}
-                    <DialogTrigger asChild>
-                      <DropdownMenuItem>
-                        Swap out
-                        <div className="ml-2 text-muted-foreground flex flex-row items-center">
-                          (
-                          <ZapIcon className="w-4 h-4" />
-                          <ArrowRight className="w-4 h-4" />
-                          <LinkIcon className="w-4 h-4" />)
-                        </div>
-                      </DropdownMenuItem>
-                    </DialogTrigger>
+                    <DropdownMenuItem onClick={openSwapOutDialog}>
+                      Swap out
+                      <div className="ml-2 text-muted-foreground flex flex-row items-center">
+                        (
+                        <ZapIcon className="w-4 h-4" />
+                        <ArrowRight className="w-4 h-4" />
+                        <LinkIcon className="w-4 h-4" />)
+                      </div>
+                    </DropdownMenuItem>
                   </DropdownMenuGroup>
                   <DropdownMenuSeparator />
                   <DropdownMenuGroup>
@@ -259,17 +262,24 @@ export default function Channels() {
                   <DialogTitle>Swap out funds</DialogTitle>
                   <DialogDescription>
                     Funds from one of your channels will be sent to your savings
-                    balance via a swap service in order to restore some of your
-                    inbound liquidity.
+                    balance via a swap service. This helps restore your inbound
+                    liquidity.
                   </DialogDescription>
                 </DialogHeader>
-                <div className="grid grid-cols-4 items-center">
-                  <Label>Amount</Label>
-                  <Input
-                    className="col-span-3"
-                    value={amount}
-                    onChange={(e) => setAmount(parseInt(e.target.value))}
-                  />
+                <div className="grid grid-cols-4">
+                  <Label className="pt-3">Amount (sats)</Label>
+                  <div className="col-span-3">
+                    <Input
+                      value={swapOutAmount}
+                      onChange={(e) =>
+                        setSwapOutAmount(parseInt(e.target.value))
+                      }
+                    />
+                    <p className="text-muted-foreground text-xs p-2">
+                      The amount is set to 90% of the funds held in the channel
+                      with the most outbound capacity.
+                    </p>
+                  </div>
                 </div>
                 <DialogFooter>
                   <Button
@@ -277,7 +287,7 @@ export default function Channels() {
                     onClick={async () => {
                       await getNewAddress();
                       openLink(
-                        `https://boltz.exchange/?sendAsset=LN&receiveAsset=BTC&sendAmount=${amount}&destination=${onchainAddress}`
+                        `https://boltz.exchange/?sendAsset=LN&receiveAsset=BTC&sendAmount=${swapOutAmount}&destination=${onchainAddress}`
                       );
                     }}
                   >
