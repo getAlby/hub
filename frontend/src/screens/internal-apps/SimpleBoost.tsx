@@ -78,36 +78,34 @@ export function SimpleBoost() {
           <CardHeader>
             <CardTitle>How to Add Widget</CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-col gap-3">
-            <ul className="list-inside list-decimal">
-              <li>
-                Add SimpleBoost to your website using a CDN or install it via
-                npm from{" "}
-                <ExternalLink
-                  to="https://getalby.github.io/simple-boost/install/"
-                  className="font-medium text-foreground underline"
-                >
-                  here
-                </ExternalLink>
-              </li>
-              <li>
-                Add the following widget anywhere on your website:
-                <div className="flex gap-2 mt-4">
-                  <Textarea
-                    className="h-36 font-mono"
-                    value={scriptContent}
-                    onChange={(e) => setScriptContent(e.target.value)}
-                  />
-                  <Button
-                    onClick={() => copyToClipboard(scriptContent, toast)}
-                    variant="outline"
-                  >
-                    <CopyIcon className="w-4 h-4 mr-2" />
-                    Copy
-                  </Button>
-                </div>{" "}
-              </li>
-            </ul>
+          <CardContent className="flex flex-col">
+            <p className="text-foreground">
+              Paste the following code into an HTML block on your website.
+            </p>
+            <div className="flex gap-2 mt-4">
+              <Textarea
+                className="h-36 font-mono"
+                value={scriptContent}
+                onChange={(e) => setScriptContent(e.target.value)}
+              />
+              <Button
+                onClick={() => copyToClipboard(scriptContent, toast)}
+                variant="outline"
+              >
+                <CopyIcon className="w-4 h-4 mr-2" />
+                Copy
+              </Button>
+            </div>
+            <p className="text-sm text-muted-foreground mt-3">
+              By default the SimpleBoost widget is loaded from a CDN. See other
+              options{" "}
+              <ExternalLink
+                to="https://getalby.github.io/simple-boost/install/"
+                className="font-medium text-foreground underline"
+              >
+                here
+              </ExternalLink>
+            </p>
           </CardContent>
         </Card>
       )}
