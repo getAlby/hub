@@ -314,7 +314,7 @@ export function ZapPlanner() {
                 <img src={recipient.logo} className="rounded-lg w-10 h-10" />
                 <div className="flex flex-row gap-3 grow justify-between items-center">
                   <CardTitle>{recipient.name}</CardTitle>
-                  <LoadingButton
+                  <Button
                     size="sm"
                     onClick={() => {
                       setRecipientName(recipient.name);
@@ -323,7 +323,7 @@ export function ZapPlanner() {
                     }}
                   >
                     Support
-                  </LoadingButton>
+                  </Button>
                 </div>
               </div>
               <CardDescription>{recipient.description}</CardDescription>
