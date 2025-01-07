@@ -1782,6 +1782,10 @@ func getResetStateRequest(cfg config.Config) *ldk_node.ResetState {
 		return nil
 	}
 
+	if resetKey == "" {
+		return nil
+	}
+
 	err = cfg.SetUpdate(resetRouterKey, "", "")
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to remove reset router key")
