@@ -47,7 +47,7 @@ const recipients: Recipient[] = [
     name: "Alby",
     logo: alby,
     description:
-      "Support the Open Source development of Hub, Go, Lightning Browser Extension, developer tools, NWC, WebLN, Podcasting 2.0 & more.",
+      "Support the open-source development of Hub, Go, Lightning Browser Extension, developer tools, NWC, WebLN, Podcasting 2.0 & more.",
     lightningAddress: "hello@getalby.com",
   },
   {
