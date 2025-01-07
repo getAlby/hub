@@ -64,22 +64,22 @@ export function AutoUnlock() {
         description="Configure Alby Hub will automatically unlock on start (e.g. after machine reboot)"
       />
       <Container>
+        <p className="text-muted-foreground">
+          In some situations it can be impractical to manually unlock the wallet
+          every time Alby Hub is started. In those cases you can save the unlock
+          password in plaintext so that Alby Hub can auto-unlock itself.
+        </p>
+        <Alert className="mt-3">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Attention</AlertTitle>
+          <AlertDescription>
+            Everyone who has access to the machine running this hub could read
+            that password and take your funds. Use this only in a secure
+            environment.
+          </AlertDescription>
+        </Alert>
         {!info.autoUnlockPasswordEnabled && (
           <>
-            <Alert>
-              <AlertTriangle className="h-4 w-4" />
-              <AlertTitle>Security Warning</AlertTitle>
-              <AlertDescription>
-                By enabling this feature your unlock password will be saved in
-                plaintext on the device running this hub. If the device is
-                compromised,{" "}
-                <span className="underline">your funds will be lost</span>.{" "}
-                <span className="font-semibold">
-                  Do not enable this feature if you do not physically own the
-                  machine Alby Hub is running on.
-                </span>
-              </AlertDescription>
-            </Alert>
             <form
               onSubmit={onSubmit}
               className="w-full flex flex-col gap-3 mt-3"
@@ -104,15 +104,6 @@ export function AutoUnlock() {
         )}
         {info.autoUnlockPasswordEnabled && (
           <>
-            <Alert>
-              <AlertTriangle className="h-4 w-4" />
-              <AlertTitle>Security Warning</AlertTitle>
-              <AlertDescription>
-                Your unlock password is currently saved in plaintext on the
-                device running this hub. If your device is compromised, your
-                funds will be lost.
-              </AlertDescription>
-            </Alert>
             <form
               onSubmit={onSubmit}
               className="w-full flex flex-col gap-3 mt-3"
