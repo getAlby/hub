@@ -1,10 +1,10 @@
 import { ExternalLinkIcon } from "lucide-react";
 import { Link } from "react-router-dom";
-import albyGo from "src/assets/suggested-apps/alby-go.png";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import { AlbyHead } from "src/components/images/AlbyHead";
 import Loading from "src/components/Loading";
+import { Badge } from "src/components/ui/badge";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -17,6 +17,9 @@ import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
 import OnboardingChecklist from "src/screens/wallet/OnboardingChecklist";
+
+import albyGo from "src/assets/suggested-apps/alby-go.png";
+import zapplanner from "src/assets/suggested-apps/zapplanner.png";
 
 function getGreeting(name: string | undefined) {
   const hours = new Date().getHours();
@@ -81,6 +84,34 @@ function Home() {
           </ExternalLink>
         )}
 
+        <Link to="/internal-apps/zapplanner">
+          <Card>
+            <CardHeader>
+              <div className="flex flex-row items-center">
+                <div className="flex-shrink-0">
+                  <img
+                    src={zapplanner}
+                    className="w-12 h-12 rounded-xl border"
+                  />
+                </div>
+                <div>
+                  <CardTitle>
+                    <div className="flex-1 leading-5 font-semibold text-xl whitespace-nowrap text-ellipsis overflow-hidden ml-4 flex gap-2">
+                      ZapPlanner <Badge>NEW</Badge>
+                    </div>
+                  </CardTitle>
+                  <CardDescription className="ml-4">
+                    Schedule automatic recurring lightning payments.
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="text-right">
+              <Button variant="outline">Open</Button>
+            </CardContent>
+          </Card>
+        </Link>
+
         <Link to="/appstore/alby-go">
           <Card>
             <CardHeader>
@@ -102,10 +133,7 @@ function Home() {
               </div>
             </CardHeader>
             <CardContent className="text-right">
-              <Button variant="outline">
-                Learn more
-                <ExternalLinkIcon className="w-4 h-4 ml-2" />
-              </Button>
+              <Button variant="outline">Open</Button>
             </CardContent>
           </Card>
         </Link>
