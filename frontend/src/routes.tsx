@@ -43,6 +43,7 @@ import DepositBitcoin from "src/screens/onchain/DepositBitcoin";
 import ConnectPeer from "src/screens/peers/ConnectPeer";
 import Peers from "src/screens/peers/Peers";
 import { AlbyAccount } from "src/screens/settings/AlbyAccount";
+import { AutoUnlock } from "src/screens/settings/AutoUnlock";
 import { ChangeUnlockPassword } from "src/screens/settings/ChangeUnlockPassword";
 import DebugTools from "src/screens/settings/DebugTools";
 import DeveloperSettings from "src/screens/settings/DeveloperSettings";
@@ -168,6 +169,11 @@ const routes = [
               {
                 index: true,
                 element: <Settings />,
+              },
+              {
+                path: "auto-unlock",
+                element: <AutoUnlock />,
+                handle: { crumb: () => "Auto Unlock" },
               },
               {
                 path: "change-unlock-password",
