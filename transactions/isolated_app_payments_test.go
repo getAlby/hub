@@ -323,14 +323,9 @@ func TestSendPaymentSync_IsolatedApp_BalanceSufficient_FailedPayment(t *testing.
 }
 
 func TestCalculateFeeReserve(t *testing.T) {
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
-	require.NoError(t, err)
-	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-
-	assert.Equal(t, uint64(10_000), transactionsService.calculateFeeReserveMsat(0))
-	assert.Equal(t, uint64(10_000), transactionsService.calculateFeeReserveMsat(10_000))
-	assert.Equal(t, uint64(10_000), transactionsService.calculateFeeReserveMsat(100_000))
-	assert.Equal(t, uint64(10_000), transactionsService.calculateFeeReserveMsat(1000_000))
-	assert.Equal(t, uint64(20_000), transactionsService.calculateFeeReserveMsat(2000_000))
+	assert.Equal(t, uint64(10_000), CalculateFeeReserveMsat(0))
+	assert.Equal(t, uint64(10_000), CalculateFeeReserveMsat(10_000))
+	assert.Equal(t, uint64(10_000), CalculateFeeReserveMsat(100_000))
+	assert.Equal(t, uint64(10_000), CalculateFeeReserveMsat(1000_000))
+	assert.Equal(t, uint64(20_000), CalculateFeeReserveMsat(2000_000))
 }

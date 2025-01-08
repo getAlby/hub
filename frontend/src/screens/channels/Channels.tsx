@@ -3,6 +3,7 @@ import {
   Bitcoin,
   ChevronDown,
   CopyIcon,
+  ExternalLinkIcon,
   Heart,
   Hotel,
   HourglassIcon,
@@ -437,8 +438,16 @@ export default function Channels() {
                 >
                   {nodes.find((node) => node.public_key === details.nodeId)
                     ?.alias || "Unknown"}
+                  <ExternalLinkIcon className="ml-1 w-4 h-4 inline" />
                 </ExternalLink>{" "}
-                ({new Intl.NumberFormat().format(details.amount)} sats)
+                ({new Intl.NumberFormat().format(details.amount)} sats)&nbsp;
+                <ExternalLink
+                  to={`https://mempool.space/tx/${details.fundingTxId}#flow=&vout=${details.fundingTxVout}`}
+                  className="underline"
+                >
+                  funding tx
+                  <ExternalLinkIcon className="ml-1 w-4 h-4 inline" />
+                </ExternalLink>
                 {index < balances.onchain.pendingBalancesDetails.length - 1 &&
                   ","}
               </div>

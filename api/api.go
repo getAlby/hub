@@ -402,6 +402,7 @@ func (api *api) ListChannels(ctx context.Context) ([]Channel, error) {
 			Id:                                       channel.Id,
 			RemotePubkey:                             channel.RemotePubkey,
 			FundingTxId:                              channel.FundingTxId,
+			FundingTxVout:                            channel.FundingTxVout,
 			Active:                                   channel.Active,
 			Public:                                   channel.Public,
 			InternalChannel:                          channel.InternalChannel,
@@ -441,7 +442,15 @@ func (api *api) ChangeUnlockPassword(changeUnlockPasswordRequest *ChangeUnlockPa
 		return errors.New("LNClient not started")
 	}
 
-	err := api.cfg.ChangeUnlockPassword(changeUnlockPasswordRequest.CurrentUnlockPassword, changeUnlockPasswordRequest.NewUnlockPassword)
+	autoUnlockPassword, err := api.cfg.Get("AutoUnlockPassword", "")
+	if err != nil {
+		return err
+	}
+	if autoUnlockPassword != "" {
+		return errors.New("Please disable auto-unlock before using this feature")
+	}
+
+	err = api.cfg.ChangeUnlockPassword(changeUnlockPasswordRequest.CurrentUnlockPassword, changeUnlockPasswordRequest.NewUnlockPassword)
 
 	if err != nil {
 		logger.Logger.WithError(err).Error("failed to change unlock password")
@@ -451,6 +460,21 @@ func (api *api) ChangeUnlockPassword(changeUnlockPasswordRequest *ChangeUnlockPa
 	// Because all the encrypted fields have changed
 	// we also need to stop the lnclient and ask the user to start it again
 	return api.Stop()
+}
+
+func (api *api) SetAutoUnlockPassword(unlockPassword string) error {
+	if api.svc.GetLNClient() == nil {
+		return errors.New("LNClient not started")
+	}
+
+	err := api.cfg.SetAutoUnlockPassword(unlockPassword)
+
+	if err != nil {
+		logger.Logger.WithError(err).Error("failed to set auto unlock password")
+		return err
+	}
+
+	return nil
 }
 
 func (api *api) Stop() error {
@@ -686,6 +710,7 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info := InfoResponse{}
 	backendType, _ := api.cfg.Get("LNBackendType", "")
 	ldkVssEnabled, _ := api.cfg.Get("LdkVssEnabled", "")
+	autoUnlockPassword, _ := api.cfg.Get("AutoUnlockPassword", "")
 	info.SetupCompleted = api.cfg.SetupCompleted()
 	if api.startupError != nil {
 		info.StartupError = api.startupError.Error()
@@ -699,6 +724,8 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info.EnableAdvancedSetup = api.cfg.GetEnv().EnableAdvancedSetup
 	info.LdkVssEnabled = ldkVssEnabled == "true"
 	info.VssSupported = backendType == config.LDKBackendType && api.cfg.GetEnv().LDKVssUrl != ""
+	info.AutoUnlockPasswordEnabled = autoUnlockPassword != ""
+	info.AutoUnlockPasswordSupported = api.cfg.GetEnv().IsDefaultClientId()
 	albyUserIdentifier, err := api.albyOAuthSvc.GetUserIdentifier()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to get alby user identifier")

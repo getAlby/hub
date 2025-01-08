@@ -21,6 +21,7 @@ type API interface {
 	GetChannelPeerSuggestions(ctx context.Context) ([]alby.ChannelPeerSuggestion, error)
 	ResetRouter(key string) error
 	ChangeUnlockPassword(changeUnlockPasswordRequest *ChangeUnlockPasswordRequest) error
+	SetAutoUnlockPassword(unlockPassword string) error
 	Stop() error
 	GetNodeConnectionInfo(ctx context.Context) (*lnclient.NodeConnectionInfo, error)
 	GetNodeStatus(ctx context.Context) (*lnclient.NodeStatus, error)
@@ -71,7 +72,7 @@ type App struct {
 	BudgetUsage   uint64     `json:"budgetUsage"`
 	BudgetRenewal string     `json:"budgetRenewal"`
 	Isolated      bool       `json:"isolated"`
-	Balance       uint64     `json:"balance"`
+	Balance       int64      `json:"balance"`
 	Metadata      Metadata   `json:"metadata,omitempty"`
 }
 
@@ -159,22 +160,24 @@ type User struct {
 }
 
 type InfoResponse struct {
-	BackendType          string    `json:"backendType"`
-	SetupCompleted       bool      `json:"setupCompleted"`
-	OAuthRedirect        bool      `json:"oauthRedirect"`
-	Running              bool      `json:"running"`
-	Unlocked             bool      `json:"unlocked"`
-	AlbyAuthUrl          string    `json:"albyAuthUrl"`
-	NextBackupReminder   string    `json:"nextBackupReminder"`
-	AlbyUserIdentifier   string    `json:"albyUserIdentifier"`
-	AlbyAccountConnected bool      `json:"albyAccountConnected"`
-	Version              string    `json:"version"`
-	Network              string    `json:"network"`
-	EnableAdvancedSetup  bool      `json:"enableAdvancedSetup"`
-	LdkVssEnabled        bool      `json:"ldkVssEnabled"`
-	VssSupported         bool      `json:"vssSupported"`
-	StartupError         string    `json:"startupError"`
-	StartupErrorTime     time.Time `json:"startupErrorTime"`
+	BackendType                 string    `json:"backendType"`
+	SetupCompleted              bool      `json:"setupCompleted"`
+	OAuthRedirect               bool      `json:"oauthRedirect"`
+	Running                     bool      `json:"running"`
+	Unlocked                    bool      `json:"unlocked"`
+	AlbyAuthUrl                 string    `json:"albyAuthUrl"`
+	NextBackupReminder          string    `json:"nextBackupReminder"`
+	AlbyUserIdentifier          string    `json:"albyUserIdentifier"`
+	AlbyAccountConnected        bool      `json:"albyAccountConnected"`
+	Version                     string    `json:"version"`
+	Network                     string    `json:"network"`
+	EnableAdvancedSetup         bool      `json:"enableAdvancedSetup"`
+	LdkVssEnabled               bool      `json:"ldkVssEnabled"`
+	VssSupported                bool      `json:"vssSupported"`
+	StartupError                string    `json:"startupError"`
+	StartupErrorTime            time.Time `json:"startupErrorTime"`
+	AutoUnlockPasswordSupported bool      `json:"autoUnlockPasswordSupported"`
+	AutoUnlockPasswordEnabled   bool      `json:"autoUnlockPasswordEnabled"`
 }
 
 type MnemonicRequest struct {
@@ -188,6 +191,9 @@ type MnemonicResponse struct {
 type ChangeUnlockPasswordRequest struct {
 	CurrentUnlockPassword string `json:"currentUnlockPassword"`
 	NewUnlockPassword     string `json:"newUnlockPassword"`
+}
+type AutoUnlockRequest struct {
+	UnlockPassword string `json:"unlockPassword"`
 }
 
 type ConnectPeerRequest = lnclient.ConnectPeerRequest
@@ -342,6 +348,7 @@ type Channel struct {
 	Id                                       string      `json:"id"`
 	RemotePubkey                             string      `json:"remotePubkey"`
 	FundingTxId                              string      `json:"fundingTxId"`
+	FundingTxVout                            uint32      `json:"fundingTxVout"`
 	Active                                   bool        `json:"active"`
 	Public                                   bool        `json:"public"`
 	InternalChannel                          interface{} `json:"internalChannel"`
