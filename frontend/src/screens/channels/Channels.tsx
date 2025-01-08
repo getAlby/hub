@@ -287,7 +287,7 @@ export default function Channels() {
                     onClick={async () => {
                       await getNewAddress();
                       openLink(
-                        `https://boltz.exchange/?sendAsset=LN&receiveAsset=BTC&sendAmount=${swapOutAmount}&destination=${onchainAddress}`
+                        `https://boltz.exchange/?sendAsset=LN&receiveAsset=BTC&sendAmount=${swapOutAmount}&destination=${onchainAddress}&ref=alby`
                       );
                     }}
                   >
