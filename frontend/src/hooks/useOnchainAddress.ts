@@ -27,6 +27,7 @@ export function useOnchainAddress() {
         throw new Error("No address in response");
       }
       swr.mutate(address, false);
+      return address;
     } catch (error) {
       toast({
         variant: "destructive",
