@@ -1069,6 +1069,14 @@ func (svc *albyOAuthService) GetBitcoinRate(ctx context.Context, currency string
 		return nil, err
 	}
 
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		err := fmt.Errorf("unexpected status code: %d", res.StatusCode)
+		logger.Logger.WithError(err).Error("Received non-OK status while fetching Bitcoin rate from API")
+		return nil, err
+	}
+
 	var rate = &BitcoinRate{}
 	err = json.NewDecoder(res.Body).Decode(rate)
 	if err != nil {
