@@ -54,6 +54,7 @@ import {
 } from "src/components/ui/dropdown-menu.tsx";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
+import { LoadingButton } from "src/components/ui/loading-button";
 import { CircleProgress } from "src/components/ui/progress.tsx";
 import {
   Tooltip,
@@ -87,9 +88,10 @@ export default function Channels() {
   const { data: albyBalance, mutate: reloadAlbyBalance } = useAlbyBalance();
   const navigate = useNavigate();
   const [nodes, setNodes] = React.useState<Node[]>([]);
-  const [swapOutAmount, setSwapOutAmount] = React.useState(0);
+  const [swapOutAmount, setSwapOutAmount] = React.useState("");
   const [swapOutDialogOpen, setSwapOutDialogOpen] = React.useState(false);
-  const { getNewAddress, data: onchainAddress } = useOnchainAddress();
+  const [loadingAddress, setLoadingAddress] = React.useState(false);
+  const { getNewAddress } = useOnchainAddress();
 
   const { toast } = useToast();
   const isDesktop = useIsDesktop();
@@ -123,7 +125,9 @@ export default function Channels() {
 
   function openSwapOutDialog() {
     setSwapOutAmount(
-      ((findLargestChannel()?.localSpendableBalance || 0) * 0.9) / 1000
+      Math.floor(
+        ((findLargestChannel()?.localSpendableBalance || 0) * 0.9) / 1000
+      ).toString()
     );
     setSwapOutDialogOpen(true);
   }
@@ -231,7 +235,10 @@ export default function Channels() {
                         <ZapIcon className="w-4 h-4" />)
                       </div>
                     </DropdownMenuItem> */}
-                    <DropdownMenuItem onClick={openSwapOutDialog}>
+                    <DropdownMenuItem
+                      onClick={openSwapOutDialog}
+                      className="cursor-pointer"
+                    >
                       Swap out
                       <div className="ml-2 text-muted-foreground flex flex-row items-center">
                         (
@@ -271,9 +278,7 @@ export default function Channels() {
                   <div className="col-span-3">
                     <Input
                       value={swapOutAmount}
-                      onChange={(e) =>
-                        setSwapOutAmount(parseInt(e.target.value))
-                      }
+                      onChange={(e) => setSwapOutAmount(e.target.value)}
                     />
                     <p className="text-muted-foreground text-xs p-2">
                       The amount is set to 90% of the funds held in the channel
@@ -282,17 +287,22 @@ export default function Channels() {
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button
+                  <LoadingButton
+                    loading={loadingAddress}
                     type="submit"
                     onClick={async () => {
-                      await getNewAddress();
-                      openLink(
-                        `https://boltz.exchange/?sendAsset=LN&receiveAsset=BTC&sendAmount=${swapOutAmount}&destination=${onchainAddress}&ref=alby`
-                      );
+                      setLoadingAddress(true);
+                      const onchainAddress = await getNewAddress();
+                      if (onchainAddress) {
+                        openLink(
+                          `https://boltz.exchange/?sendAsset=LN&receiveAsset=BTC&sendAmount=${swapOutAmount}&destination=${onchainAddress}&ref=alby`
+                        );
+                      }
+                      setLoadingAddress(false);
                     }}
                   >
                     Swap out
-                  </Button>
+                  </LoadingButton>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
