@@ -14,7 +14,7 @@ const (
 )
 
 type Nip47Cipher struct {
-	Version         string
+	version         string
 	pubkey          string
 	privkey         string
 	sharedSecret    []byte
@@ -42,7 +42,7 @@ func NewNip47Cipher(version, pubkey, privkey string) (*Nip47Cipher, error) {
 	}
 
 	return &Nip47Cipher{
-		Version:         version,
+		version:         version,
 		pubkey:          pubkey,
 		privkey:         privkey,
 		sharedSecret:    ss,
@@ -51,7 +51,7 @@ func NewNip47Cipher(version, pubkey, privkey string) (*Nip47Cipher, error) {
 }
 
 func (c *Nip47Cipher) Encrypt(message string) (msg string, err error) {
-	if c.Version == "0.0" {
+	if c.version == "0.0" {
 		msg, err = nip04.Encrypt(message, c.sharedSecret)
 		if err != nil {
 			return "", err
@@ -66,7 +66,7 @@ func (c *Nip47Cipher) Encrypt(message string) (msg string, err error) {
 }
 
 func (c *Nip47Cipher) Decrypt(content string) (payload string, err error) {
-	if c.Version == "0.0" {
+	if c.version == "0.0" {
 		payload, err = nip04.Decrypt(content, c.sharedSecret)
 		if err != nil {
 			return "", err

@@ -12,7 +12,6 @@ import (
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
-	"github.com/getAlby/hub/nip47/cipher"
 	"github.com/getAlby/hub/nip47/permissions"
 	"github.com/getAlby/hub/tests"
 	"github.com/getAlby/hub/transactions"
@@ -34,15 +33,18 @@ func (svc *mockConsumer) ConsumeEvent(ctx context.Context, event *events.Event, 
 	svc.nip47NotificationQueue.AddToQueue(event)
 }
 
-func doTestSendNotificationPaymentReceived(t *testing.T, svc *tests.TestService, app *db.App, cipher *cipher.Nip47Cipher) {
+func doTestSendNotificationPaymentReceived(t *testing.T, svc *tests.TestService, createAppFn tests.CreateAppFn, nip47Version string) {
 	ctx := context.TODO()
+
+	app, cipher, err := createAppFn(svc, nostr.GeneratePrivateKey(), nip47Version)
+	assert.NoError(t, err)
 
 	appPermission := &db.AppPermission{
 		AppId: app.ID,
 		App:   *app,
 		Scope: constants.NOTIFICATIONS_SCOPE,
 	}
-	err := svc.DB.Create(appPermission).Error
+	err = svc.DB.Create(appPermission).Error
 	assert.NoError(t, err)
 
 	settledAt := time.Unix(*tests.MockLNClientTransaction.SettledAt, 0)
@@ -84,7 +86,7 @@ func doTestSendNotificationPaymentReceived(t *testing.T, svc *tests.TestService,
 	notifier.ConsumeEvent(ctx, receivedEvent)
 
 	var publishedEvent *nostr.Event
-	if cipher.Version == "0.0" {
+	if nip47Version == "0.0" {
 		publishedEvent = relay.PublishedEvents[0]
 	} else {
 		publishedEvent = relay.PublishedEvents[1]
@@ -115,45 +117,50 @@ func doTestSendNotificationPaymentReceived(t *testing.T, svc *tests.TestService,
 	assert.Equal(t, tests.MockLNClientTransaction.SettledAt, transaction.SettledAt)
 }
 
-func TestSendNotification_PaymentReceived(t *testing.T) {
+func TestSendNotification_Nip04_PaymentReceived(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
 
-	app, cipher, err := tests.CreateAppWithPrivateKey(svc, "", "1.0")
-	assert.NoError(t, err)
-	doTestSendNotificationPaymentReceived(t, svc, app, cipher)
+	doTestSendNotificationPaymentReceived(t, svc, tests.CreateAppWithPrivateKey, "0.0")
 }
 
-func TestSendNotification_LegacyVersion_PaymentReceived(t *testing.T) {
+func TestSendNotification_Nip44_PaymentReceived(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
 
-	app, cipher, err := tests.CreateAppWithPrivateKey(svc, "", "0.0")
-	assert.NoError(t, err)
-	doTestSendNotificationPaymentReceived(t, svc, app, cipher)
+	doTestSendNotificationPaymentReceived(t, svc, tests.CreateAppWithPrivateKey, "1.0")
 }
 
-func TestSendNotification_LegacyApp_PaymentReceived(t *testing.T) {
+func TestSendNotification_SharedWalletPubkey_Nip04_PaymentReceived(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
 
-	app, cipher, err := tests.CreateLegacyApp(svc, nostr.GeneratePrivateKey())
-	assert.NoError(t, err)
-	doTestSendNotificationPaymentReceived(t, svc, app, cipher)
+	doTestSendNotificationPaymentReceived(t, svc, tests.CreateAppWithSharedWalletPubkey, "0.0")
 }
 
-func doTestSendNotificationPaymentSent(t *testing.T, svc *tests.TestService, app *db.App, cipher *cipher.Nip47Cipher) {
+func TestSendNotification_SharedWalletPubkey_Nip44_PaymentReceived(t *testing.T) {
+	defer tests.RemoveTestService()
+	svc, err := tests.CreateTestService()
+	require.NoError(t, err)
+
+	doTestSendNotificationPaymentReceived(t, svc, tests.CreateAppWithSharedWalletPubkey, "1.0")
+}
+
+func doTestSendNotificationPaymentSent(t *testing.T, svc *tests.TestService, createAppFn tests.CreateAppFn, nip47Version string) {
 	ctx := context.TODO()
+
+	app, cipher, err := createAppFn(svc, nostr.GeneratePrivateKey(), nip47Version)
+	assert.NoError(t, err)
 
 	appPermission := &db.AppPermission{
 		AppId: app.ID,
 		App:   *app,
 		Scope: constants.NOTIFICATIONS_SCOPE,
 	}
-	err := svc.DB.Create(appPermission).Error
+	err = svc.DB.Create(appPermission).Error
 	assert.NoError(t, err)
 
 	settledAt := time.Unix(*tests.MockLNClientTransaction.SettledAt, 0)
@@ -194,7 +201,7 @@ func doTestSendNotificationPaymentSent(t *testing.T, svc *tests.TestService, app
 	notifier.ConsumeEvent(ctx, receivedEvent)
 
 	var publishedEvent *nostr.Event
-	if cipher.Version == "0.0" {
+	if nip47Version == "0.0" {
 		publishedEvent = relay.PublishedEvents[0]
 	} else {
 		publishedEvent = relay.PublishedEvents[1]
@@ -225,34 +232,36 @@ func doTestSendNotificationPaymentSent(t *testing.T, svc *tests.TestService, app
 	assert.Equal(t, tests.MockLNClientTransaction.SettledAt, transaction.SettledAt)
 }
 
-func TestSendNotification_PaymentSent(t *testing.T) {
+func TestSendNotification_Nip04_PaymentSent(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
 
-	app, cipher, err := tests.CreateAppWithPrivateKey(svc, "", "1.0")
-	assert.NoError(t, err)
-	doTestSendNotificationPaymentSent(t, svc, app, cipher)
+	doTestSendNotificationPaymentSent(t, svc, tests.CreateAppWithPrivateKey, "0.0")
 }
 
-func TestSendNotification_LegacyVersion_PaymentSent(t *testing.T) {
+func TestSendNotification_Nip44_PaymentSent(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
 
-	app, cipher, err := tests.CreateAppWithPrivateKey(svc, "", "0.0")
-	assert.NoError(t, err)
-	doTestSendNotificationPaymentSent(t, svc, app, cipher)
+	doTestSendNotificationPaymentSent(t, svc, tests.CreateAppWithPrivateKey, "1.0")
 }
 
-func TestSendNotification_LegacyApp_PaymentSent(t *testing.T) {
+func TestSendNotification_SharedWalletPubkey_Nip04_PaymentSent(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
 
-	app, cipher, err := tests.CreateLegacyApp(svc, nostr.GeneratePrivateKey())
-	assert.NoError(t, err)
-	doTestSendNotificationPaymentSent(t, svc, app, cipher)
+	doTestSendNotificationPaymentSent(t, svc, tests.CreateAppWithSharedWalletPubkey, "0.0")
+}
+
+func TestSendNotification_SharedWalletPubkey_Nip44_PaymentSent(t *testing.T) {
+	defer tests.RemoveTestService()
+	svc, err := tests.CreateTestService()
+	require.NoError(t, err)
+
+	doTestSendNotificationPaymentSent(t, svc, tests.CreateAppWithSharedWalletPubkey, "1.0")
 }
 
 func doTestSendNotificationNoPermission(t *testing.T, svc *tests.TestService) {
@@ -292,15 +301,16 @@ func TestSendNotification_NoPermission(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
-	_, _, err = tests.CreateApp(svc)
+	_, _, err = tests.CreateAppWithPrivateKey(svc, nostr.GeneratePrivateKey(), "1.0")
 	assert.NoError(t, err)
 	doTestSendNotificationNoPermission(t, svc)
 }
-func TestSendNotification_Legacy_NoPermission(t *testing.T) {
+
+func TestSendNotification_SharedWalletPubkey_NoPermission(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
-	_, _, err = tests.CreateLegacyApp(svc, nostr.GeneratePrivateKey())
+	_, _, err = tests.CreateAppWithSharedWalletPubkey(svc, nostr.GeneratePrivateKey(), "1.0")
 	assert.NoError(t, err)
 	doTestSendNotificationNoPermission(t, svc)
 }
