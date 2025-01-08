@@ -41,7 +41,7 @@ func TestHandleListTransactionsEvent(t *testing.T) {
 	err = json.Unmarshal([]byte(nip47ListTransactionsJson), nip47Request)
 	assert.NoError(t, err)
 
-	app, _, err := tests.CreateApp(svc)
+	app, _, err := tests.CreateApp(svc, "1.0")
 	assert.NoError(t, err)
 
 	dbRequestEvent := &db.RequestEvent{
@@ -119,7 +119,7 @@ func TestHandleListTransactionsEvent_UnpaidOutgoingOnly(t *testing.T) {
 	err = json.Unmarshal([]byte(nip47ListTransactionsJson), nip47Request)
 	assert.NoError(t, err)
 
-	app, _, err := tests.CreateApp(svc)
+	app, _, err := tests.CreateApp(svc, "1.0")
 	assert.NoError(t, err)
 
 	dbRequestEvent := &db.RequestEvent{
@@ -181,7 +181,7 @@ func TestHandleListTransactionsEvent_UnpaidIncomingOnly(t *testing.T) {
 	err = json.Unmarshal([]byte(nip47ListTransactionsJson), nip47Request)
 	assert.NoError(t, err)
 
-	app, _, err := tests.CreateApp(svc)
+	app, _, err := tests.CreateApp(svc, "1.0")
 	assert.NoError(t, err)
 
 	dbRequestEvent := &db.RequestEvent{
@@ -243,7 +243,7 @@ func TestHandleListTransactionsEvent_Unpaid(t *testing.T) {
 	err = json.Unmarshal([]byte(nip47ListTransactionsJson), nip47Request)
 	assert.NoError(t, err)
 
-	app, _, err := tests.CreateApp(svc)
+	app, _, err := tests.CreateApp(svc, "1.0")
 	assert.NoError(t, err)
 
 	dbRequestEvent := &db.RequestEvent{
@@ -302,7 +302,7 @@ func TestHandleListTransactionsEvent_Paid(t *testing.T) {
 	err = json.Unmarshal([]byte(nip47ListTransactionsJson), nip47Request)
 	assert.NoError(t, err)
 
-	app, _, err := tests.CreateApp(svc)
+	app, _, err := tests.CreateApp(svc, "1.0")
 	assert.NoError(t, err)
 
 	dbRequestEvent := &db.RequestEvent{

@@ -49,7 +49,7 @@ func TestHandleMakeInvoiceEvent(t *testing.T) {
 	err = json.Unmarshal([]byte(nip47MakeInvoiceJson), nip47Request)
 	assert.NoError(t, err)
 
-	app, _, err := tests.CreateApp(svc)
+	app, _, err := tests.CreateApp(svc, "1.0")
 	assert.NoError(t, err)
 
 	dbRequestEvent := &db.RequestEvent{

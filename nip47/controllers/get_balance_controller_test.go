@@ -33,7 +33,7 @@ func TestHandleGetBalanceEvent(t *testing.T) {
 	err = json.Unmarshal([]byte(nip47GetBalanceJson), nip47Request)
 	assert.NoError(t, err)
 
-	app, _, err := tests.CreateApp(svc)
+	app, _, err := tests.CreateApp(svc, "1.0")
 	assert.NoError(t, err)
 
 	dbRequestEvent := &db.RequestEvent{}
@@ -65,7 +65,7 @@ func TestHandleGetBalanceEvent_IsolatedApp_NoTransactions(t *testing.T) {
 	err = json.Unmarshal([]byte(nip47GetBalanceJson), nip47Request)
 	assert.NoError(t, err)
 
-	app, _, err := tests.CreateApp(svc)
+	app, _, err := tests.CreateApp(svc, "1.0")
 	assert.NoError(t, err)
 	app.Isolated = true
 	svc.DB.Save(&app)
@@ -98,7 +98,7 @@ func TestHandleGetBalanceEvent_IsolatedApp_Transactions(t *testing.T) {
 	err = json.Unmarshal([]byte(nip47GetBalanceJson), nip47Request)
 	assert.NoError(t, err)
 
-	app, _, err := tests.CreateApp(svc)
+	app, _, err := tests.CreateApp(svc, "1.0")
 	assert.NoError(t, err)
 	app.Isolated = true
 	svc.DB.Save(&app)

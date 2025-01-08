@@ -34,7 +34,7 @@ func TestHandleGetBudgetEvent_NoRenewal(t *testing.T) {
 	err = json.Unmarshal([]byte(nip47GetBudgetJson), nip47Request)
 	assert.NoError(t, err)
 
-	app, _, err := tests.CreateApp(svc)
+	app, _, err := tests.CreateApp(svc, "1.0")
 	assert.NoError(t, err)
 
 	appPermission := &db.AppPermission{
@@ -79,7 +79,7 @@ func TestHandleGetBudgetEvent_NoneUsed(t *testing.T) {
 	err = json.Unmarshal([]byte(nip47GetBudgetJson), nip47Request)
 	assert.NoError(t, err)
 
-	app, _, err := tests.CreateApp(svc)
+	app, _, err := tests.CreateApp(svc, "1.0")
 	assert.NoError(t, err)
 	now := time.Now()
 
@@ -126,7 +126,7 @@ func TestHandleGetBudgetEvent_HalfUsed(t *testing.T) {
 	err = json.Unmarshal([]byte(nip47GetBudgetJson), nip47Request)
 	assert.NoError(t, err)
 
-	app, _, err := tests.CreateApp(svc)
+	app, _, err := tests.CreateApp(svc, "1.0")
 	assert.NoError(t, err)
 	now := time.Now()
 
@@ -180,7 +180,7 @@ func TestHandleGetBudgetEvent_NoBudget(t *testing.T) {
 	err = json.Unmarshal([]byte(nip47GetBudgetJson), nip47Request)
 	assert.NoError(t, err)
 
-	app, _, err := tests.CreateApp(svc)
+	app, _, err := tests.CreateApp(svc, "1.0")
 	assert.NoError(t, err)
 
 	appPermission := &db.AppPermission{
@@ -227,7 +227,7 @@ func TestHandleGetBudgetEvent_NoPayInvoicePermission(t *testing.T) {
 	err = json.Unmarshal([]byte(nip47GetBudgetJson), nip47Request)
 	assert.NoError(t, err)
 
-	app, _, err := tests.CreateApp(svc)
+	app, _, err := tests.CreateApp(svc, "1.0")
 	assert.NoError(t, err)
 
 	dbRequestEvent := &db.RequestEvent{}

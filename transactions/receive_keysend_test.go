@@ -21,11 +21,11 @@ func TestReceiveKeysendWithCustomKey(t *testing.T) {
 	require.NoError(t, err)
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	app, _, err := tests.CreateApp(svc)
+	app, _, err := tests.CreateApp(svc, "1.0")
 	assert.NoError(t, err)
 
 	// just to have another app in this test
-	_, _, err = tests.CreateApp(svc)
+	_, _, err = tests.CreateApp(svc, "1.0")
 
 	assert.NoError(t, err)
 
@@ -68,7 +68,7 @@ func TestReceiveKeysend(t *testing.T) {
 	require.NoError(t, err)
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	_, _, err = tests.CreateApp(svc)
+	_, _, err = tests.CreateApp(svc, "1.0")
 	assert.NoError(t, err)
 
 	tx := tests.MockLNClientTransaction
