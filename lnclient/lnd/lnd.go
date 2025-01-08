@@ -330,7 +330,7 @@ func (svc *LNDService) getPaymentResult(stream routerrpc.Router_SendPaymentV2Cli
 
 func (svc *LNDService) SendPaymentSync(ctx context.Context, payReq string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
 	const MAX_PARTIAL_PAYMENTS = 16
-	const SEND_PAYMENT_TIMEOUT = 60
+	const SEND_PAYMENT_TIMEOUT = 50
 	paymentRequest, err := decodepay.Decodepay(payReq)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
@@ -405,6 +405,8 @@ func (svc *LNDService) SendKeysend(ctx context.Context, amount uint64, destinati
 		}
 		destCustomRecords[record.Type] = decodedValue
 	}
+	const MAX_PARTIAL_PAYMENTS = 16
+	const SEND_PAYMENT_TIMEOUT = 50
 	const KEYSEND_CUSTOM_RECORD = 5482373484
 	destCustomRecords[KEYSEND_CUSTOM_RECORD] = preImageBytes
 	sendPaymentRequest := &routerrpc.SendPaymentRequest{
@@ -413,6 +415,8 @@ func (svc *LNDService) SendKeysend(ctx context.Context, amount uint64, destinati
 		PaymentHash:       paymentHashBytes,
 		DestFeatures:      []lnrpc.FeatureBit{lnrpc.FeatureBit_TLV_ONION_REQ},
 		DestCustomRecords: destCustomRecords,
+		MaxParts:          MAX_PARTIAL_PAYMENTS,
+		TimeoutSeconds:    SEND_PAYMENT_TIMEOUT,
 		FeeLimitMsat:      int64(transactions.CalculateFeeReserveMsat(amount)),
 	}
 
