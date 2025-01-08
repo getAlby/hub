@@ -10,25 +10,15 @@ import (
 )
 
 func TestCipher(t *testing.T) {
-	reqPrivateKey := nostr.GeneratePrivateKey()
-	reqPubkey, err := nostr.GetPublicKey(reqPrivateKey)
-
-	nip47Cipher, err := NewNip47Cipher("1.0", reqPubkey, reqPrivateKey)
-	assert.NoError(t, err)
-
-	payload := "test payload"
-	msg, err := nip47Cipher.Encrypt(payload)
-	assert.NoError(t, err)
-
-	decrypted, err := nip47Cipher.Decrypt(msg)
-	assert.Equal(t, payload, decrypted)
+	doTestCipher(t, "0.0")
+	doTestCipher(t, "1.0")
 }
 
-func TestCipher_LegacyVersion(t *testing.T) {
+func doTestCipher(t *testing.T, version string) {
 	reqPrivateKey := nostr.GeneratePrivateKey()
 	reqPubkey, err := nostr.GetPublicKey(reqPrivateKey)
 
-	nip47Cipher, err := NewNip47Cipher("0.0", reqPubkey, reqPrivateKey)
+	nip47Cipher, err := NewNip47Cipher(version, reqPubkey, reqPrivateKey)
 	assert.NoError(t, err)
 
 	payload := "test payload"
