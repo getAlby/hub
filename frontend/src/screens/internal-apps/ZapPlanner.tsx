@@ -75,7 +75,7 @@ export function ZapPlanner() {
   const [recipientName, setRecipientName] = React.useState("");
   const [recipientLightningAddress, setRecipientLightningAddress] =
     React.useState("");
-  const [amount, setAmount] = React.useState(0);
+  const [amount, setAmount] = React.useState("");
   const [comment, setComment] = React.useState("");
   const [senderName, setSenderName] = React.useState("");
 
@@ -85,7 +85,7 @@ export function ZapPlanner() {
       setRecipientName("");
       setRecipientLightningAddress("");
       setComment("");
-      setAmount(5000);
+      setAmount("5000");
       setSenderName("");
     }
   }, [open]);
@@ -104,8 +104,12 @@ export function ZapPlanner() {
       if (!ln.lnurlpData) {
         throw new Error("invalid recipient lightning address");
       }
+      const parsedAmount = parseInt(amount);
+      if (isNaN(parsedAmount) || parsedAmount < 1) {
+        throw new Error("Invalid amount");
+      }
 
-      const maxAmount = Math.floor(amount * 1.01) + 10; // with fee reserve
+      const maxAmount = Math.floor(parsedAmount * 1.01) + 10; // with fee reserve
       const isolated = false;
 
       const createAppRequest: CreateAppRequest = {
@@ -132,7 +136,7 @@ export function ZapPlanner() {
           },
           body: JSON.stringify({
             recipientLightningAddress: recipientLightningAddress,
-            amount: amount,
+            amount: parsedAmount,
             message: comment || "ZapPlanner payment from Alby Hub",
             payerData: JSON.stringify({
               ...(senderName ? { name: senderName } : {}),
@@ -256,7 +260,7 @@ export function ZapPlanner() {
                       <Input
                         id="amount"
                         value={amount}
-                        onChange={(e) => setAmount(parseInt(e.target.value))}
+                        onChange={(e) => setAmount(e.target.value)}
                         className="col-span-3"
                       />
                     </div>
