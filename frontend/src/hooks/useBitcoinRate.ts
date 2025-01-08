@@ -3,7 +3,7 @@ import useSWR from "swr";
 import { BitcoinRate } from "src/types";
 import { swrFetcher } from "src/utils/swr";
 
-export function useBitcoinRate(currency: string) {
+export function useBitcoinRate(currency: string = "usd") {
   return useSWR<BitcoinRate>(
     `/api/alby/rates?currency=${currency}`,
     swrFetcher,

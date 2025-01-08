@@ -18,6 +18,7 @@ import { ChannelsCards } from "src/components/channels/ChannelsCards.tsx";
 import { ChannelsTable } from "src/components/channels/ChannelsTable.tsx";
 import EmptyState from "src/components/EmptyState.tsx";
 import ExternalLink from "src/components/ExternalLink";
+import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import { TransferFundsButton } from "src/components/TransferFundsButton";
 import {
   Alert,
@@ -55,7 +56,6 @@ import {
 } from "src/constants.ts";
 import { useAlbyBalance } from "src/hooks/useAlbyBalance.ts";
 import { useBalances } from "src/hooks/useBalances.ts";
-import { useBitcoinRate } from "src/hooks/useBitcoinRate";
 import { useChannels } from "src/hooks/useChannels";
 import { useIsDesktop } from "src/hooks/useMediaQuery.ts";
 import { useNodeConnectionInfo } from "src/hooks/useNodeConnectionInfo.ts";
@@ -70,7 +70,6 @@ export default function Channels() {
   const { data: channels, mutate: reloadChannels } = useChannels();
   const { data: nodeConnectionInfo } = useNodeConnectionInfo();
   const { data: balances, mutate: reloadBalances } = useBalances();
-  const { data: bitcoinRate } = useBitcoinRate("usd");
   const { data: albyBalance, mutate: reloadAlbyBalance } = useAlbyBalance();
   const navigate = useNavigate();
   const [nodes, setNodes] = React.useState<Node[]>([]);
@@ -323,23 +322,9 @@ export default function Channels() {
                   </div>
                 )}
                 {balances && (
-                  <div className="text-2xl font-bold balance sensitive">
-                    {new Intl.NumberFormat().format(
-                      Math.floor(balances.lightning.totalSpendable / 1000)
-                    )}{" "}
-                    sats
-                  </div>
-                )}
-                {balances && bitcoinRate && (
-                  <div className="text-sm text-muted-foreground">
-                    {new Intl.NumberFormat("en-US", {
-                      style: "currency",
-                      currency: "USD",
-                    }).format(
-                      (balances.lightning.totalSpendable / 100_000_000_000) *
-                        bitcoinRate.rate_float
-                    )}
-                  </div>
+                  <FormattedFiatAmount
+                    amount={balances.lightning.totalSpendable / 1000}
+                  />
                 )}
               </CardContent>
             </div>
@@ -365,23 +350,9 @@ export default function Channels() {
               </CardHeader>
               <CardContent className="flex-grow pb-0">
                 {balances && (
-                  <div className="text-2xl font-bold balance sensitive">
-                    {new Intl.NumberFormat().format(
-                      Math.floor(balances.lightning.totalReceivable / 1000)
-                    )}{" "}
-                    sats
-                  </div>
-                )}
-                {balances && bitcoinRate && (
-                  <div className="text-sm text-muted-foreground">
-                    {new Intl.NumberFormat("en-US", {
-                      style: "currency",
-                      currency: "USD",
-                    }).format(
-                      (balances.lightning.totalReceivable / 100_000_000_000) *
-                        bitcoinRate.rate_float
-                    )}
-                  </div>
+                  <FormattedFiatAmount
+                    amount={balances.lightning.totalReceivable / 1000}
+                  />
                 )}
               </CardContent>
             </div>
@@ -424,21 +395,7 @@ export default function Channels() {
             <div className="text-2xl balance sensitive">
               {balances && (
                 <>
-                  <div className="font-bold">
-                    {new Intl.NumberFormat().format(balances.onchain.spendable)}{" "}
-                    sats
-                  </div>
-                  {bitcoinRate && (
-                    <div className="text-sm text-muted-foreground">
-                      {new Intl.NumberFormat("en-US", {
-                        style: "currency",
-                        currency: "USD",
-                      }).format(
-                        (balances.onchain.spendable / 100_000_000) *
-                          bitcoinRate.rate_float
-                      )}
-                    </div>
-                  )}
+                  <FormattedFiatAmount amount={balances.onchain.spendable} />
                   {balances &&
                     balances.onchain.spendable !== balances.onchain.total && (
                       <p className="text-xs text-muted-foreground animate-pulse">
