@@ -30,30 +30,17 @@ func doTestCipher(t *testing.T, version string) {
 }
 
 func TestCipher_UnsupportedVersions(t *testing.T) {
+	doTestCipher_UnsupportedVersions(t, "1")
+	doTestCipher_UnsupportedVersions(t, "x.1")
+	doTestCipher_UnsupportedVersions(t, "1.x")
+	doTestCipher_UnsupportedVersions(t, "2.0")
+	doTestCipher_UnsupportedVersions(t, "0.5")
+}
+
+func doTestCipher_UnsupportedVersions(t *testing.T, version string) {
 	reqPrivateKey := nostr.GeneratePrivateKey()
 	reqPubkey, err := nostr.GetPublicKey(reqPrivateKey)
 
-	version := "1"
-	_, err = NewNip47Cipher(version, reqPubkey, reqPrivateKey)
-	assert.Error(t, err)
-	assert.Equal(t, fmt.Sprintf("invalid version format: %s", version), err.Error())
-
-	version = "x.1"
-	_, err = NewNip47Cipher(version, reqPubkey, reqPrivateKey)
-	assert.Error(t, err)
-	assert.Equal(t, "invalid major version: x", err.Error())
-
-	version = "1.x"
-	_, err = NewNip47Cipher(version, reqPubkey, reqPrivateKey)
-	assert.Error(t, err)
-	assert.Equal(t, "invalid minor version: x", err.Error())
-
-	version = "2.0"
-	_, err = NewNip47Cipher(version, reqPubkey, reqPrivateKey)
-	assert.Error(t, err)
-	assert.Equal(t, fmt.Sprintf("invalid version: %s", version), err.Error())
-
-	version = "0.5"
 	_, err = NewNip47Cipher(version, reqPubkey, reqPrivateKey)
 	assert.Error(t, err)
 	assert.Equal(t, fmt.Sprintf("invalid version: %s", version), err.Error())
