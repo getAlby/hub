@@ -12,8 +12,8 @@ import (
 
 type CreateAppFn func(svc *TestService, senderPrivkey string, nip47Version string) (app *db.App, nip47Cipher *cipher.Nip47Cipher, err error)
 
-func CreateApp(svc *TestService, nip47Version string) (app *db.App, cipher *cipher.Nip47Cipher, err error) {
-	return CreateAppWithPrivateKey(svc, "", nip47Version)
+func CreateApp(svc *TestService) (app *db.App, cipher *cipher.Nip47Cipher, err error) {
+	return CreateAppWithPrivateKey(svc, "", "1.0")
 }
 
 func CreateAppWithPrivateKey(svc *TestService, senderPrivkey, nip47Version string) (app *db.App, nip47Cipher *cipher.Nip47Cipher, err error) {

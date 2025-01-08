@@ -63,7 +63,7 @@ func TestMakeInvoice_App(t *testing.T) {
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
 
-	app, _, err := tests.CreateApp(svc, "1.0")
+	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
 
 	dbRequestEvent := &db.RequestEvent{}

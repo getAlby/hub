@@ -64,7 +64,7 @@ func TestSendPaymentSync_SelfPayment_NoAppToIsolatedApp(t *testing.T) {
 	// pubkey matches mock invoice = self payment
 	svc.LNClient.(*tests.MockLn).Pubkey = "03cbd788f5b22bd56e2714bff756372d2293504c064e03250ed16a4dd80ad70e2c"
 
-	app, _, err := tests.CreateApp(svc, "1.0")
+	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
 	app.Isolated = true
 	svc.DB.Save(&app)
@@ -119,7 +119,7 @@ func TestSendPaymentSync_SelfPayment_NoAppToApp(t *testing.T) {
 	// pubkey matches mock invoice = self payment
 	svc.LNClient.(*tests.MockLn).Pubkey = "03cbd788f5b22bd56e2714bff756372d2293504c064e03250ed16a4dd80ad70e2c"
 
-	app, _, err := tests.CreateApp(svc, "1.0")
+	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
 
 	dbRequestEvent := &db.RequestEvent{}
@@ -170,7 +170,7 @@ func TestSendPaymentSync_SelfPayment_IsolatedAppToNoApp(t *testing.T) {
 	// pubkey matches mock invoice = self payment
 	svc.LNClient.(*tests.MockLn).Pubkey = "03cbd788f5b22bd56e2714bff756372d2293504c064e03250ed16a4dd80ad70e2c"
 
-	app, _, err := tests.CreateApp(svc, "1.0")
+	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
 	app.Isolated = true
 	err = svc.DB.Save(&app).Error
@@ -242,12 +242,12 @@ func TestSendPaymentSync_SelfPayment_IsolatedAppToApp(t *testing.T) {
 	// pubkey matches mock invoice = self payment
 	svc.LNClient.(*tests.MockLn).Pubkey = "03cbd788f5b22bd56e2714bff756372d2293504c064e03250ed16a4dd80ad70e2c"
 
-	app, _, err := tests.CreateApp(svc, "1.0")
+	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
 	app.Isolated = true
 	err = svc.DB.Save(&app).Error
 	assert.NoError(t, err)
-	app2, _, err := tests.CreateApp(svc, "1.0")
+	app2, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
 
 	appPermission := &db.AppPermission{
@@ -318,12 +318,12 @@ func TestSendPaymentSync_SelfPayment_IsolatedAppToIsolatedApp(t *testing.T) {
 	// pubkey matches mock invoice = self payment
 	svc.LNClient.(*tests.MockLn).Pubkey = "03cbd788f5b22bd56e2714bff756372d2293504c064e03250ed16a4dd80ad70e2c"
 
-	app, _, err := tests.CreateApp(svc, "1.0")
+	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
 	app.Isolated = true
 	err = svc.DB.Save(&app).Error
 	assert.NoError(t, err)
-	app2, _, err := tests.CreateApp(svc, "1.0")
+	app2, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
 	app2.Isolated = true
 	err = svc.DB.Save(&app2).Error
@@ -411,7 +411,7 @@ func TestSendPaymentSync_SelfPayment_IsolatedAppToSelf(t *testing.T) {
 	// pubkey matches mock invoice = self payment
 	svc.LNClient.(*tests.MockLn).Pubkey = "03cbd788f5b22bd56e2714bff756372d2293504c064e03250ed16a4dd80ad70e2c"
 
-	app, _, err := tests.CreateApp(svc, "1.0")
+	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
 	app.Isolated = true
 	err = svc.DB.Save(&app).Error

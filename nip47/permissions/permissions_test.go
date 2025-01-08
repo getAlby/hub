@@ -17,7 +17,7 @@ func TestHasPermission_NoPermission(t *testing.T) {
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
 
-	app, _, err := tests.CreateApp(svc, "1.0")
+	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
 
 	permissionsSvc := NewPermissionsService(svc.DB, svc.EventPublisher)
@@ -32,7 +32,7 @@ func TestHasPermission_Expired(t *testing.T) {
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
 
-	app, _, err := tests.CreateApp(svc, "1.0")
+	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
 
 	budgetRenewal := "never"
@@ -61,7 +61,7 @@ func TestHasPermission_Expired(t *testing.T) {
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
 
-	app, _, err := tests.CreateApp(svc, "1.0")
+	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
 
 	budgetRenewal := "never"
@@ -89,7 +89,7 @@ func TestHasPermission_OK(t *testing.T) {
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
 
-	app, _, err := tests.CreateApp(svc, "1.0")
+	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
 
 	budgetRenewal := "never"
@@ -149,7 +149,7 @@ func TestGetPermittedMethods_AlwaysGranted(t *testing.T) {
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
 
-	app, _, err := tests.CreateApp(svc, "1.0")
+	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
 
 	permissionsSvc := NewPermissionsService(svc.DB, svc.EventPublisher)
@@ -162,7 +162,7 @@ func TestGetPermittedMethods_PayInvoiceScopeGivesAllPaymentMethods(t *testing.T)
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
 
-	app, _, err := tests.CreateApp(svc, "1.0")
+	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
 
 	appPermission := &db.AppPermission{

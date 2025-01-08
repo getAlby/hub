@@ -81,7 +81,7 @@ func TestSendKeysend_App_NoPermission(t *testing.T) {
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
 
-	app, _, err := tests.CreateApp(svc, "1.0")
+	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
 
 	dbRequestEvent := &db.RequestEvent{}
@@ -103,7 +103,7 @@ func TestSendKeysend_App_WithPermission(t *testing.T) {
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
 
-	app, _, err := tests.CreateApp(svc, "1.0")
+	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
 
 	dbRequestEvent := &db.RequestEvent{}
@@ -145,7 +145,7 @@ func TestSendKeysend_App_BudgetExceeded(t *testing.T) {
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
 
-	app, _, err := tests.CreateApp(svc, "1.0")
+	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
 
 	dbRequestEvent := &db.RequestEvent{}
@@ -183,7 +183,7 @@ func TestSendKeysend_App_BudgetNotExceeded(t *testing.T) {
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
 
-	app, _, err := tests.CreateApp(svc, "1.0")
+	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
 
 	dbRequestEvent := &db.RequestEvent{}
@@ -226,7 +226,7 @@ func TestSendKeysend_App_BalanceExceeded(t *testing.T) {
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
 
-	app, _, err := tests.CreateApp(svc, "1.0")
+	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
 
 	dbRequestEvent := &db.RequestEvent{}
@@ -264,7 +264,7 @@ func TestSendKeysend_App_BalanceSufficient(t *testing.T) {
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
 
-	app, _, err := tests.CreateApp(svc, "1.0")
+	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
 
 	dbRequestEvent := &db.RequestEvent{}
@@ -366,7 +366,7 @@ func TestSendKeysend_IsolatedAppToNoApp(t *testing.T) {
 	// setup for self payment
 	svc.LNClient.(*tests.MockLn).Pubkey = "03cbd788f5b22bd56e2714bff756372d2293504c064e03250ed16a4dd80ad70e2c"
 
-	app, _, err := tests.CreateApp(svc, "1.0")
+	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
 	app.Isolated = true
 	err = svc.DB.Save(&app).Error
@@ -431,13 +431,13 @@ func TestSendKeysend_IsolatedAppToIsolatedApp(t *testing.T) {
 	// setup for self payment
 	svc.LNClient.(*tests.MockLn).Pubkey = "03cbd788f5b22bd56e2714bff756372d2293504c064e03250ed16a4dd80ad70e2c"
 
-	app, _, err := tests.CreateApp(svc, "1.0")
+	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
 	app.Isolated = true
 	err = svc.DB.Save(&app).Error
 	assert.NoError(t, err)
 
-	app2, _, err := tests.CreateApp(svc, "1.0")
+	app2, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
 	app2.Isolated = true
 	err = svc.DB.Save(&app2).Error

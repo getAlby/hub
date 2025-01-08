@@ -60,7 +60,7 @@ func TestHandlePayInvoiceEvent(t *testing.T) {
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
 
-	app, _, err := tests.CreateApp(svc, "1.0")
+	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
 
 	appPermission := &db.AppPermission{
@@ -111,7 +111,7 @@ func TestHandlePayInvoiceEvent_0Amount(t *testing.T) {
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
 
-	app, _, err := tests.CreateApp(svc, "1.0")
+	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
 
 	appPermission := &db.AppPermission{
@@ -156,7 +156,7 @@ func TestHandlePayInvoiceEvent_MalformedInvoice(t *testing.T) {
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
 
-	app, _, err := tests.CreateApp(svc, "1.0")
+	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
 
 	appPermission := &db.AppPermission{
@@ -197,7 +197,7 @@ func TestHandlePayInvoiceEvent_ExpiredInvoice(t *testing.T) {
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
 
-	app, _, err := tests.CreateApp(svc, "1.0")
+	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
 
 	appPermission := &db.AppPermission{

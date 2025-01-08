@@ -18,7 +18,7 @@ func TestSendPaymentSync_IsolatedApp_NoBalance(t *testing.T) {
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
 
-	app, _, err := tests.CreateApp(svc, "1.0")
+	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
 	app.Isolated = true
 	svc.DB.Save(&app)
@@ -50,7 +50,7 @@ func TestSendPaymentSync_IsolatedApp_BalanceInsufficient(t *testing.T) {
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
 
-	app, _, err := tests.CreateApp(svc, "1.0")
+	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
 	app.Isolated = true
 	svc.DB.Save(&app)
@@ -99,7 +99,7 @@ func TestSendPaymentSync_IsolatedApp_BalanceSufficient(t *testing.T) {
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
 
-	app, _, err := tests.CreateApp(svc, "1.0")
+	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
 	app.Isolated = true
 	svc.DB.Save(&app)
@@ -141,7 +141,7 @@ func TestSendPaymentSync_IsolatedApp_BalanceInsufficient_OutstandingPayment(t *t
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
 
-	app, _, err := tests.CreateApp(svc, "1.0")
+	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
 	app.Isolated = true
 	svc.DB.Save(&app)
@@ -187,7 +187,7 @@ func TestSendPaymentSync_IsolatedApp_BalanceInsufficient_SettledPayment(t *testi
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
 
-	app, _, err := tests.CreateApp(svc, "1.0")
+	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
 	app.Isolated = true
 	svc.DB.Save(&app)
@@ -233,7 +233,7 @@ func TestSendPaymentSync_IsolatedApp_BalanceSufficient_UnrelatedPayment(t *testi
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
 
-	app, _, err := tests.CreateApp(svc, "1.0")
+	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
 	app.Isolated = true
 	svc.DB.Save(&app)
@@ -281,7 +281,7 @@ func TestSendPaymentSync_IsolatedApp_BalanceSufficient_FailedPayment(t *testing.
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
 
-	app, _, err := tests.CreateApp(svc, "1.0")
+	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
 	app.Isolated = true
 	svc.DB.Save(&app)

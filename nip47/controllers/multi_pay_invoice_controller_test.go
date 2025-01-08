@@ -86,7 +86,7 @@ func TestHandleMultiPayInvoiceEvent_Success(t *testing.T) {
 	}}
 	svc.LNClient.(*tests.MockLn).PayInvoiceErrors = []error{nil, nil}
 
-	app, _, err := tests.CreateApp(svc, "1.0")
+	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
 
 	appPermission := &db.AppPermission{
@@ -155,7 +155,7 @@ func TestHandleMultiPayInvoiceEvent_OneMalformedInvoice(t *testing.T) {
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
 
-	app, _, err := tests.CreateApp(svc, "1.0")
+	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
 
 	appPermission := &db.AppPermission{
@@ -216,7 +216,7 @@ func TestHandleMultiPayInvoiceEvent_OneExpiredInvoice(t *testing.T) {
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
 
-	app, _, err := tests.CreateApp(svc, "1.0")
+	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
 
 	appPermission := &db.AppPermission{
@@ -278,7 +278,7 @@ func TestHandleMultiPayInvoiceEvent_IsolatedApp_OneBudgetExceeded(t *testing.T) 
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
 
-	app, _, err := tests.CreateApp(svc, "1.0")
+	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
 	app.Isolated = true
 	svc.DB.Save(&app)
@@ -364,7 +364,7 @@ func TestHandleMultiPayInvoiceEvent_LNClient_OnePaymentFailed(t *testing.T) {
 	}, nil}
 	svc.LNClient.(*tests.MockLn).PayInvoiceErrors = []error{nil, errors.New("Some error")}
 
-	app, _, err := tests.CreateApp(svc, "1.0")
+	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
 
 	appPermission := &db.AppPermission{

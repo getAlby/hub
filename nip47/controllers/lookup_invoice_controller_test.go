@@ -36,7 +36,7 @@ func TestHandleLookupInvoiceEvent(t *testing.T) {
 	err = json.Unmarshal([]byte(nip47LookupInvoiceJson), nip47Request)
 	assert.NoError(t, err)
 
-	app, _, err := tests.CreateApp(svc, "1.0")
+	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
 
 	dbRequestEvent := &db.RequestEvent{
