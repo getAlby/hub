@@ -30,6 +30,7 @@ import (
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/lsp"
 	"github.com/getAlby/hub/service/keys"
+	"github.com/getAlby/hub/transactions"
 	"github.com/getAlby/hub/utils"
 )
 
@@ -253,9 +254,6 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		"duration": math.Ceil(time.Since(syncStartTime).Seconds()),
 	}).Info("LDK node synced successfully")
 
-	// backup channels after successful startup
-	ls.backupChannels()
-
 	if ls.network == "bitcoin" {
 		// try to connect to some peers to retrieve P2P gossip data. TODO: Remove once LDK can correctly do gossip with CLN and Eclair nodes
 		// see https://github.com/lightningdevkit/rust-lightning/issues/3075
@@ -417,6 +415,12 @@ func (ls *LDKService) Shutdown() error {
 	return nil
 }
 
+func getMaxTotalRoutingFeeLimit(amountMsat uint64) ldk_node.MaxTotalRoutingFeeLimit {
+	return ldk_node.MaxTotalRoutingFeeLimitSome{
+		AmountMsat: transactions.CalculateFeeReserveMsat(amountMsat),
+	}
+}
+
 func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
 	paymentRequest, err := decodepay.Decodepay(invoice)
 	if err != nil {
@@ -427,13 +431,13 @@ func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string, amoun
 		return nil, err
 	}
 
-	paymentAmount := uint64(paymentRequest.MSatoshi)
+	paymentAmountMsat := uint64(paymentRequest.MSatoshi)
 	if amount != nil {
-		paymentAmount = *amount
+		paymentAmountMsat = *amount
 	}
 
 	maxSpendable := ls.getMaxSpendable()
-	if paymentAmount > maxSpendable {
+	if paymentAmountMsat > maxSpendable {
 		ls.eventPublisher.Publish(&events.Event{
 			Event: "nwc_outgoing_liquidity_required",
 			Properties: map[string]interface{}{
@@ -450,10 +454,15 @@ func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string, amoun
 	defer ls.ldkEventBroadcaster.CancelSubscription(ldkEventSubscription)
 
 	var paymentHash string
+	maxTotalRoutingFeeMsat := getMaxTotalRoutingFeeLimit(paymentAmountMsat)
+	sendingParams := &ldk_node.SendingParameters{
+		MaxTotalRoutingFeeMsat: &maxTotalRoutingFeeMsat,
+	}
+
 	if amount == nil {
-		paymentHash, err = ls.node.Bolt11Payment().Send(invoice, nil)
+		paymentHash, err = ls.node.Bolt11Payment().Send(invoice, sendingParams)
 	} else {
-		paymentHash, err = ls.node.Bolt11Payment().SendUsingAmount(invoice, *amount, nil)
+		paymentHash, err = ls.node.Bolt11Payment().SendUsingAmount(invoice, *amount, sendingParams)
 	}
 	if err != nil {
 		logger.Logger.WithError(err).Error("SendPayment failed")
@@ -542,7 +551,12 @@ func (ls *LDKService) SendKeysend(ctx context.Context, amount uint64, destinatio
 	ldkEventSubscription := ls.ldkEventBroadcaster.Subscribe()
 	defer ls.ldkEventBroadcaster.CancelSubscription(ldkEventSubscription)
 
-	paymentHash, err := ls.node.SpontaneousPayment().Send(amount, destination, nil, customTlvs, &preimage)
+	maxTotalRoutingFeeMsat := getMaxTotalRoutingFeeLimit(amount)
+	sendingParams := &ldk_node.SendingParameters{
+		MaxTotalRoutingFeeMsat: &maxTotalRoutingFeeMsat,
+	}
+
+	paymentHash, err := ls.node.SpontaneousPayment().Send(amount, destination, sendingParams, customTlvs, &preimage)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Keysend failed")
 		return nil, err
@@ -772,8 +786,10 @@ func (ls *LDKService) ListChannels(ctx context.Context) ([]lnclient.Channel, err
 
 	for _, ldkChannel := range ldkChannels {
 		fundingTxId := ""
+		fundingTxVout := uint32(0)
 		if ldkChannel.FundingTxo != nil {
 			fundingTxId = ldkChannel.FundingTxo.Txid
+			fundingTxVout = ldkChannel.FundingTxo.Vout
 		}
 
 		internalChannel := map[string]interface{}{}
@@ -815,6 +831,7 @@ func (ls *LDKService) ListChannels(ctx context.Context) ([]lnclient.Channel, err
 			Active:                                   isActive,
 			Public:                                   ldkChannel.IsAnnounced,
 			FundingTxId:                              fundingTxId,
+			FundingTxVout:                            fundingTxVout,
 			Confirmations:                            ldkChannel.Confirmations,
 			ConfirmationsRequired:                    ldkChannel.ConfirmationsRequired,
 			ForwardingFeeBaseMsat:                    ldkChannel.Config.ForwardingFeeBaseMsat,
@@ -1006,15 +1023,17 @@ func (ls *LDKService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainB
 	// increase pending balance from any lightning balances for channels that are pending closure
 	// (they do not exist in our list of open channels)
 	for _, balance := range balances.LightningBalances {
-		increasePendingBalance := func(nodeId, channelId string, amount uint64) {
+		increasePendingBalance := func(nodeId, channelId string, amount uint64, fundingTxId ldk_node.Txid, fundingTxIndex uint16) {
 			if !slices.ContainsFunc(channels, func(channel ldk_node.ChannelDetails) bool {
 				return channel.ChannelId == channelId
 			}) {
 				pendingBalancesFromChannelClosures += amount
 				pendingBalancesDetails = append(pendingBalancesDetails, lnclient.PendingBalanceDetails{
-					NodeId:    nodeId,
-					ChannelId: channelId,
-					Amount:    amount,
+					NodeId:        nodeId,
+					ChannelId:     channelId,
+					Amount:        amount,
+					FundingTxId:   fundingTxId,
+					FundingTxVout: uint32(fundingTxIndex),
 				})
 			}
 		}
@@ -1026,17 +1045,17 @@ func (ls *LDKService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainB
 		})
 		switch balanceType := (balance).(type) {
 		case ldk_node.LightningBalanceClaimableOnChannelClose:
-			increasePendingBalance(balanceType.CounterpartyNodeId, balanceType.ChannelId, balanceType.AmountSatoshis)
+			increasePendingBalance(balanceType.CounterpartyNodeId, balanceType.ChannelId, balanceType.AmountSatoshis, balanceType.FundingTxId, balanceType.FundingTxIndex)
 		case ldk_node.LightningBalanceClaimableAwaitingConfirmations:
-			increasePendingBalance(balanceType.CounterpartyNodeId, balanceType.ChannelId, balanceType.AmountSatoshis)
+			increasePendingBalance(balanceType.CounterpartyNodeId, balanceType.ChannelId, balanceType.AmountSatoshis, balanceType.FundingTxId, balanceType.FundingTxIndex)
 		case ldk_node.LightningBalanceContentiousClaimable:
-			increasePendingBalance(balanceType.CounterpartyNodeId, balanceType.ChannelId, balanceType.AmountSatoshis)
+			increasePendingBalance(balanceType.CounterpartyNodeId, balanceType.ChannelId, balanceType.AmountSatoshis, balanceType.FundingTxId, balanceType.FundingTxIndex)
 		case ldk_node.LightningBalanceMaybeTimeoutClaimableHtlc:
-			increasePendingBalance(balanceType.CounterpartyNodeId, balanceType.ChannelId, balanceType.AmountSatoshis)
+			increasePendingBalance(balanceType.CounterpartyNodeId, balanceType.ChannelId, balanceType.AmountSatoshis, balanceType.FundingTxId, balanceType.FundingTxIndex)
 		case ldk_node.LightningBalanceMaybePreimageClaimableHtlc:
-			increasePendingBalance(balanceType.CounterpartyNodeId, balanceType.ChannelId, balanceType.AmountSatoshis)
+			increasePendingBalance(balanceType.CounterpartyNodeId, balanceType.ChannelId, balanceType.AmountSatoshis, balanceType.FundingTxId, balanceType.FundingTxIndex)
 		case ldk_node.LightningBalanceCounterpartyRevokedOutputClaimable:
-			increasePendingBalance(balanceType.CounterpartyNodeId, balanceType.ChannelId, balanceType.AmountSatoshis)
+			increasePendingBalance(balanceType.CounterpartyNodeId, balanceType.ChannelId, balanceType.AmountSatoshis, balanceType.FundingTxId, balanceType.FundingTxIndex)
 		}
 	}
 
@@ -1760,6 +1779,10 @@ func getResetStateRequest(cfg config.Config) *ldk_node.ResetState {
 	resetKey, err := cfg.Get(resetRouterKey, "")
 	if err != nil {
 		logger.Logger.Error("Failed to retrieve ResetRouter key")
+		return nil
+	}
+
+	if resetKey == "" {
 		return nil
 	}
 

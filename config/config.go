@@ -248,6 +248,20 @@ func (cfg *config) ChangeUnlockPassword(currentUnlockPassword string, newUnlockP
 	return nil
 }
 
+func (cfg *config) SetAutoUnlockPassword(unlockPassword string) error {
+	if unlockPassword != "" && !cfg.CheckUnlockPassword(unlockPassword) {
+		return errors.New("incorrect password")
+	}
+
+	err := cfg.SetUpdate("AutoUnlockPassword", unlockPassword, "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("failed to update auto unlock password")
+		return err
+	}
+
+	return nil
+}
+
 func (cfg *config) CheckUnlockPassword(encryptionKey string) bool {
 	decryptedValue, err := cfg.Get("UnlockPasswordCheck", encryptionKey)
 

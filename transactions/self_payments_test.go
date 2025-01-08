@@ -107,7 +107,7 @@ func TestSendPaymentSync_SelfPayment_NoAppToIsolatedApp(t *testing.T) {
 	result := svc.DB.Find(&transactions)
 	assert.Equal(t, int64(2), result.RowsAffected)
 	// expect balance to be increased
-	assert.Equal(t, uint64(123000), queries.GetIsolatedBalance(svc.DB, app.ID))
+	assert.Equal(t, int64(123000), queries.GetIsolatedBalance(svc.DB, app.ID))
 }
 
 func TestSendPaymentSync_SelfPayment_NoAppToApp(t *testing.T) {
@@ -230,7 +230,7 @@ func TestSendPaymentSync_SelfPayment_IsolatedAppToNoApp(t *testing.T) {
 	result := svc.DB.Find(&transactions)
 	assert.Equal(t, int64(3), result.RowsAffected)
 	// expect balance to be decreased
-	assert.Equal(t, uint64(10000), queries.GetIsolatedBalance(svc.DB, app.ID))
+	assert.Equal(t, int64(10000), queries.GetIsolatedBalance(svc.DB, app.ID))
 }
 
 func TestSendPaymentSync_SelfPayment_IsolatedAppToApp(t *testing.T) {
@@ -306,7 +306,7 @@ func TestSendPaymentSync_SelfPayment_IsolatedAppToApp(t *testing.T) {
 	result := svc.DB.Find(&transactions)
 	assert.Equal(t, int64(3), result.RowsAffected)
 	// expect balance to be decreased
-	assert.Equal(t, uint64(10000), queries.GetIsolatedBalance(svc.DB, app.ID))
+	assert.Equal(t, int64(10000), queries.GetIsolatedBalance(svc.DB, app.ID))
 }
 
 func TestSendPaymentSync_SelfPayment_IsolatedAppToIsolatedApp(t *testing.T) {
@@ -388,7 +388,7 @@ func TestSendPaymentSync_SelfPayment_IsolatedAppToIsolatedApp(t *testing.T) {
 	result := svc.DB.Find(&transactions)
 	assert.Equal(t, int64(3), result.RowsAffected)
 	// expect balance to be decreased
-	assert.Equal(t, uint64(10000), queries.GetIsolatedBalance(svc.DB, app.ID))
+	assert.Equal(t, int64(10000), queries.GetIsolatedBalance(svc.DB, app.ID))
 
 	// check notifications
 	assert.Equal(t, 2, len(mockEventConsumer.GetConsumedEvents()))
@@ -474,5 +474,5 @@ func TestSendPaymentSync_SelfPayment_IsolatedAppToSelf(t *testing.T) {
 	assert.Equal(t, int64(3), result.RowsAffected)
 
 	// expect balance to be unchanged
-	assert.Equal(t, uint64(133000), queries.GetIsolatedBalance(svc.DB, app.ID))
+	assert.Equal(t, int64(133000), queries.GetIsolatedBalance(svc.DB, app.ID))
 }

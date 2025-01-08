@@ -36,12 +36,15 @@ import { FirstChannel } from "src/screens/channels/first/FirstChannel";
 import { OpenedFirstChannel } from "src/screens/channels/first/OpenedFirstChannel";
 import { OpeningFirstChannel } from "src/screens/channels/first/OpeningFirstChannel";
 import { BuzzPay } from "src/screens/internal-apps/BuzzPay";
+import { SimpleBoost } from "src/screens/internal-apps/SimpleBoost";
 import { UncleJim } from "src/screens/internal-apps/UncleJim";
+import { ZapPlanner } from "src/screens/internal-apps/ZapPlanner";
 import BuyBitcoin from "src/screens/onchain/BuyBitcoin";
 import DepositBitcoin from "src/screens/onchain/DepositBitcoin";
 import ConnectPeer from "src/screens/peers/ConnectPeer";
 import Peers from "src/screens/peers/Peers";
 import { AlbyAccount } from "src/screens/settings/AlbyAccount";
+import { AutoUnlock } from "src/screens/settings/AutoUnlock";
 import { ChangeUnlockPassword } from "src/screens/settings/ChangeUnlockPassword";
 import DebugTools from "src/screens/settings/DebugTools";
 import DeveloperSettings from "src/screens/settings/DeveloperSettings";
@@ -169,6 +172,11 @@ const routes = [
                 element: <Settings />,
               },
               {
+                path: "auto-unlock",
+                element: <AutoUnlock />,
+                handle: { crumb: () => "Auto Unlock" },
+              },
+              {
                 path: "change-unlock-password",
                 element: <ChangeUnlockPassword />,
                 handle: { crumb: () => "Unlock Password" },
@@ -234,6 +242,14 @@ const routes = [
           {
             path: "buzzpay",
             element: <BuzzPay />,
+          },
+          {
+            path: "simpleboost",
+            element: <SimpleBoost />,
+          },
+          {
+            path: "zapplanner",
+            element: <ZapPlanner />,
           },
         ],
       },
