@@ -216,6 +216,14 @@ func (svc *service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 }
 
 func (svc *service) StartApp(encryptionKey string) error {
+	albyIdentifier, err := svc.albyOAuthSvc.GetUserIdentifier()
+	if err != nil {
+		return err
+	}
+	if albyIdentifier != "" && !svc.albyOAuthSvc.IsConnected(svc.ctx) {
+		return errors.New("alby account is not authenticated")
+	}
+
 	if svc.lnClient != nil {
 		return errors.New("app already started")
 	}
@@ -226,7 +234,7 @@ func (svc *service) StartApp(encryptionKey string) error {
 
 	ctx, cancelFn := context.WithCancel(svc.ctx)
 
-	err := svc.keys.Init(svc.cfg, encryptionKey)
+	err = svc.keys.Init(svc.cfg, encryptionKey)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to init nostr keys")
 		cancelFn()

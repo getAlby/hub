@@ -23,6 +23,7 @@ import (
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/lnclient/lnd/wrapper"
 	"github.com/getAlby/hub/logger"
+	"github.com/getAlby/hub/transactions"
 
 	"github.com/sirupsen/logrus"
 	// "gorm.io/gorm"
@@ -198,6 +199,7 @@ func (svc *LNDService) ListChannels(ctx context.Context) ([]lnclient.Channel, er
 			Active:                                   lndChannel.Active,
 			Public:                                   !lndChannel.Private,
 			FundingTxId:                              channelPoint.GetFundingTxidStr(),
+			FundingTxVout:                            channelPoint.GetOutputIndex(),
 			Confirmations:                            &confirmations,
 			ConfirmationsRequired:                    &confirmationsRequired,
 			UnspendablePunishmentReserve:             lndChannel.LocalConstraints.ChanReserveSat,
@@ -327,13 +329,26 @@ func (svc *LNDService) getPaymentResult(stream routerrpc.Router_SendPaymentV2Cli
 }
 
 func (svc *LNDService) SendPaymentSync(ctx context.Context, payReq string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
-	const MAX_PARTIAL_PAYMENTS = 21
+	const MAX_PARTIAL_PAYMENTS = 16
 	const SEND_PAYMENT_TIMEOUT = 60
+	paymentRequest, err := decodepay.Decodepay(payReq)
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"bolt11": payReq,
+		}).WithError(err).Error("Failed to decode bolt11 invoice")
+
+		return nil, err
+	}
+
+	paymentAmountMsat := uint64(paymentRequest.MSatoshi)
+	if amount != nil {
+		paymentAmountMsat = *amount
+	}
 	sendRequest := &routerrpc.SendPaymentRequest{
 		PaymentRequest: payReq,
 		MaxParts:       MAX_PARTIAL_PAYMENTS,
 		TimeoutSeconds: SEND_PAYMENT_TIMEOUT,
-		FeeLimitSat:    math.MaxInt64,
+		FeeLimitMsat:   int64(transactions.CalculateFeeReserveMsat(paymentAmountMsat)),
 	}
 
 	if amount != nil {
@@ -398,7 +413,7 @@ func (svc *LNDService) SendKeysend(ctx context.Context, amount uint64, destinati
 		PaymentHash:       paymentHashBytes,
 		DestFeatures:      []lnrpc.FeatureBit{lnrpc.FeatureBit_TLV_ONION_REQ},
 		DestCustomRecords: destCustomRecords,
-		FeeLimitSat:       math.MaxInt64,
+		FeeLimitMsat:      int64(transactions.CalculateFeeReserveMsat(amount)),
 	}
 
 	payStream, err := svc.client.SendPayment(ctx, sendPaymentRequest)
@@ -866,9 +881,15 @@ func (svc *LNDService) GetOnchainBalance(ctx context.Context) (*lnclient.Onchain
 	for _, closingChannel := range pendingChannels.WaitingCloseChannels {
 		pendingBalancesFromChannelClosures += uint64(closingChannel.LimboBalance)
 		if closingChannel.Channel != nil {
+			channelPoint, err := svc.parseChannelPoint(closingChannel.Channel.ChannelPoint)
+			if err != nil {
+				return nil, err
+			}
 			pendingBalancesDetails = append(pendingBalancesDetails, lnclient.PendingBalanceDetails{
-				NodeId: closingChannel.Channel.RemoteNodePub,
-				Amount: uint64(closingChannel.LimboBalance),
+				NodeId:        closingChannel.Channel.RemoteNodePub,
+				Amount:        uint64(closingChannel.LimboBalance),
+				FundingTxId:   channelPoint.GetFundingTxidStr(),
+				FundingTxVout: channelPoint.GetOutputIndex(),
 			})
 		}
 	}
