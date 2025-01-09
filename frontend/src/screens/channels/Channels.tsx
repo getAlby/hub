@@ -1,7 +1,6 @@
 import {
   AlertTriangle,
   ArrowRight,
-  Bitcoin,
   ChevronDown,
   CopyIcon,
   ExternalLinkIcon,
@@ -76,7 +75,7 @@ import { useOnchainAddress } from "src/hooks/useOnchainAddress";
 import { useSyncWallet } from "src/hooks/useSyncWallet.ts";
 import { copyToClipboard } from "src/lib/clipboard.ts";
 import { cn } from "src/lib/utils.ts";
-import { Channel, Node } from "src/types";
+import { Channel, CreateInvoiceRequest, Node, Transaction } from "src/types";
 import { openLink } from "src/utils/openLink";
 import { request } from "src/utils/request";
 
@@ -88,9 +87,11 @@ export default function Channels() {
   const { data: albyBalance, mutate: reloadAlbyBalance } = useAlbyBalance();
   const navigate = useNavigate();
   const [nodes, setNodes] = React.useState<Node[]>([]);
+  const [swapInAmount, setSwapInAmount] = React.useState("");
   const [swapOutAmount, setSwapOutAmount] = React.useState("");
   const [swapOutDialogOpen, setSwapOutDialogOpen] = React.useState(false);
-  const [loadingAddress, setLoadingAddress] = React.useState(false);
+  const [swapInDialogOpen, setSwapInDialogOpen] = React.useState(false);
+  const [loadingSwap, setLoadingSwap] = React.useState(false);
   const { getNewAddress } = useOnchainAddress();
 
   const { toast } = useToast();
@@ -126,19 +127,34 @@ export default function Channels() {
   function openSwapOutDialog() {
     setSwapOutAmount(
       Math.floor(
-        ((findLargestChannel()?.localSpendableBalance || 0) * 0.9) / 1000
+        ((findChannelWithLargestBalance("localSpendableBalance")
+          ?.localSpendableBalance || 0) *
+          0.9) /
+          1000
       ).toString()
     );
     setSwapOutDialogOpen(true);
   }
+  function openSwapInDialog() {
+    setSwapInAmount(
+      Math.floor(
+        ((findChannelWithLargestBalance("remoteBalance")?.remoteBalance || 0) *
+          0.9) /
+          1000
+      ).toString()
+    );
+    setSwapInDialogOpen(true);
+  }
 
-  function findLargestChannel(): Channel | undefined {
+  function findChannelWithLargestBalance(
+    balanceType: "remoteBalance" | "localSpendableBalance"
+  ): Channel | undefined {
     if (!channels || channels.length === 0) {
       return undefined;
     }
 
     return channels.reduce((prevLargest, current) => {
-      return current.localSpendableBalance > prevLargest.localSpendableBalance
+      return current[balanceType] > prevLargest[balanceType]
         ? current
         : prevLargest;
     }, channels[0]);
@@ -154,123 +170,18 @@ export default function Channels() {
         description="Manage your lightning node"
         contentRight={
           <div className="flex gap-3 items-center justify-center">
+            {/* TODO: move these dialogs to a new file */}
             <Dialog
               open={swapOutDialogOpen}
               onOpenChange={setSwapOutDialogOpen}
             >
-              <DropdownMenu modal={false}>
-                <DropdownMenuTrigger asChild>
-                  {isDesktop ? (
-                    <Button
-                      className="inline-flex"
-                      variant="outline"
-                      size="default"
-                    >
-                      Advanced
-                      <ChevronDown />
-                    </Button>
-                  ) : (
-                    <Button variant="outline" size="icon">
-                      <Settings2 className="w-4 h-4" />
-                    </Button>
-                  )}
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56">
-                  <DropdownMenuGroup>
-                    <DropdownMenuItem>
-                      <div
-                        className="flex flex-row gap-4 items-center w-full cursor-pointer"
-                        onClick={() => {
-                          if (!nodeConnectionInfo) {
-                            return;
-                          }
-                          copyToClipboard(nodeConnectionInfo.pubkey, toast);
-                        }}
-                      >
-                        <div>Node</div>
-                        <div className="overflow-hidden text-ellipsis flex-1">
-                          {nodeConnectionInfo?.pubkey || "Loading..."}
-                        </div>
-                        {nodeConnectionInfo && (
-                          <CopyIcon className="shrink-0 w-4 h-4" />
-                        )}
-                      </div>
-                    </DropdownMenuItem>
-                  </DropdownMenuGroup>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuGroup>
-                    <DropdownMenuLabel>On-Chain</DropdownMenuLabel>
-                    <DropdownMenuItem>
-                      <Link
-                        to="/channels/onchain/deposit-bitcoin"
-                        className="w-full"
-                      >
-                        Deposit Bitcoin
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <Link to="onchain/buy-bitcoin" className="w-full">
-                        Buy Bitcoin
-                      </Link>
-                    </DropdownMenuItem>
-                    {(balances?.onchain.spendable || 0) > ONCHAIN_DUST_SATS && (
-                      <DropdownMenuItem
-                        onClick={() => navigate("/wallet/withdraw")}
-                        className="w-full cursor-pointer"
-                      >
-                        Withdraw On-Chain Balance
-                      </DropdownMenuItem>
-                    )}
-                  </DropdownMenuGroup>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuGroup>
-                    <DropdownMenuLabel>Swaps</DropdownMenuLabel>
-                    {/* TODO: Implement swap in 
-                    <DropdownMenuItem>
-                      Swap in
-                      <div className="ml-2 text-muted-foreground flex flex-row items-center">
-                        (
-                        <LinkIcon className="w-4 h-4" />
-                        <ArrowRight className="w-4 h-4" />
-                        <ZapIcon className="w-4 h-4" />)
-                      </div>
-                    </DropdownMenuItem> */}
-                    <DropdownMenuItem
-                      onClick={openSwapOutDialog}
-                      className="cursor-pointer"
-                    >
-                      Swap out
-                      <div className="ml-2 text-muted-foreground flex flex-row items-center">
-                        (
-                        <ZapIcon className="w-4 h-4" />
-                        <ArrowRight className="w-4 h-4" />
-                        <LinkIcon className="w-4 h-4" />)
-                      </div>
-                    </DropdownMenuItem>
-                  </DropdownMenuGroup>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuGroup>
-                    <DropdownMenuLabel>Management</DropdownMenuLabel>
-                    <DropdownMenuItem>
-                      <Link className="w-full" to="/peers">
-                        Connected Peers
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <Link className="w-full" to="/wallet/sign-message">
-                        Sign Message
-                      </Link>
-                    </DropdownMenuItem>
-                  </DropdownMenuGroup>
-                </DropdownMenuContent>
-              </DropdownMenu>
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Swap out funds</DialogTitle>
                   <DialogDescription>
-                    Funds from one of your channels will be sent to your savings
-                    balance via a swap service. This helps restore your inbound
-                    liquidity.
+                    Funds from one of your channels will be sent to your
+                    on-chain balance via a swap service. This helps restore your
+                    inbound liquidity.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="grid grid-cols-4">
@@ -288,17 +199,17 @@ export default function Channels() {
                 </div>
                 <DialogFooter>
                   <LoadingButton
-                    loading={loadingAddress}
+                    loading={loadingSwap}
                     type="submit"
                     onClick={async () => {
-                      setLoadingAddress(true);
+                      setLoadingSwap(true);
                       const onchainAddress = await getNewAddress();
                       if (onchainAddress) {
                         openLink(
                           `https://boltz.exchange/?sendAsset=LN&receiveAsset=BTC&sendAmount=${swapOutAmount}&destination=${onchainAddress}&ref=alby`
                         );
                       }
-                      setLoadingAddress(false);
+                      setLoadingSwap(false);
                     }}
                   >
                     Swap out
@@ -306,6 +217,182 @@ export default function Channels() {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
+            <Dialog open={swapInDialogOpen} onOpenChange={setSwapInDialogOpen}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Swap in funds</DialogTitle>
+                  <DialogDescription>
+                    Swap on-chain funds into your lightning channels via a swap
+                    service, increasing your spending balance using on-chain
+                    funds from{" "}
+                    <Link to="/wallet/withdraw" className="underline">
+                      your hub
+                    </Link>{" "}
+                    or an external wallet.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid grid-cols-4">
+                  <Label className="pt-3">Amount (sats)</Label>
+                  <div className="col-span-3">
+                    <Input
+                      value={swapInAmount}
+                      onChange={(e) => setSwapInAmount(e.target.value)}
+                    />
+                    <p className="text-muted-foreground text-xs p-2">
+                      The amount is set to 90% of the funds held by the
+                      counterparty in the channel with the most receiving
+                      capacity.
+                    </p>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <LoadingButton
+                    loading={loadingSwap}
+                    type="submit"
+                    onClick={async () => {
+                      setLoadingSwap(true);
+                      try {
+                        const transaction = await request<Transaction>(
+                          "/api/invoices",
+                          {
+                            method: "POST",
+                            headers: {
+                              "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify({
+                              amount: parseInt(swapInAmount) * 1000,
+                              description: "Boltz Swap In",
+                            } as CreateInvoiceRequest),
+                          }
+                        );
+                        if (!transaction) {
+                          throw new Error("no transaction in response");
+                        }
+                        openLink(
+                          `https://boltz.exchange/?sendAsset=BTC&receiveAsset=LN&sendAmount=${swapInAmount}&destination=${transaction.invoice}&ref=alby`
+                        );
+                      } catch (error) {
+                        toast({
+                          variant: "destructive",
+                          title: "Failed to generate swap invoice",
+                          description: "" + error,
+                        });
+                      }
+                      setLoadingSwap(false);
+                    }}
+                  >
+                    Swap in
+                  </LoadingButton>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+            <DropdownMenu modal={false}>
+              <DropdownMenuTrigger asChild>
+                {isDesktop ? (
+                  <Button
+                    className="inline-flex"
+                    variant="outline"
+                    size="default"
+                  >
+                    Advanced
+                    <ChevronDown />
+                  </Button>
+                ) : (
+                  <Button variant="outline" size="icon">
+                    <Settings2 className="w-4 h-4" />
+                  </Button>
+                )}
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56">
+                <DropdownMenuGroup>
+                  <DropdownMenuItem>
+                    <div
+                      className="flex flex-row gap-4 items-center w-full cursor-pointer"
+                      onClick={() => {
+                        if (!nodeConnectionInfo) {
+                          return;
+                        }
+                        copyToClipboard(nodeConnectionInfo.pubkey, toast);
+                      }}
+                    >
+                      <div>Node</div>
+                      <div className="overflow-hidden text-ellipsis flex-1">
+                        {nodeConnectionInfo?.pubkey || "Loading..."}
+                      </div>
+                      {nodeConnectionInfo && (
+                        <CopyIcon className="shrink-0 w-4 h-4" />
+                      )}
+                    </div>
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel>On-Chain</DropdownMenuLabel>
+                  <DropdownMenuItem>
+                    <Link
+                      to="/channels/onchain/deposit-bitcoin"
+                      className="w-full"
+                    >
+                      Deposit Bitcoin
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Link to="onchain/buy-bitcoin" className="w-full">
+                      Buy Bitcoin
+                    </Link>
+                  </DropdownMenuItem>
+                  {(balances?.onchain.spendable || 0) > ONCHAIN_DUST_SATS && (
+                    <DropdownMenuItem
+                      onClick={() => navigate("/wallet/withdraw")}
+                      className="w-full cursor-pointer"
+                    >
+                      Withdraw On-Chain Balance
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel>Swaps</DropdownMenuLabel>
+                  <DropdownMenuItem
+                    onClick={openSwapInDialog}
+                    className="cursor-pointer"
+                  >
+                    <div className="mr-2 text-muted-foreground flex flex-row items-center">
+                      <LinkIcon className="w-4 h-4" />
+                      <ArrowRight className="w-4 h-4" />
+                      <ZapIcon className="w-4 h-4" />
+                    </div>
+                    Swap in
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={openSwapOutDialog}
+                    className="cursor-pointer"
+                  >
+                    <div className="mr-2 text-muted-foreground flex flex-row items-center">
+                      <ZapIcon className="w-4 h-4" />
+                      <ArrowRight className="w-4 h-4" />
+                      <LinkIcon className="w-4 h-4" />
+                    </div>
+                    Swap out
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel>Management</DropdownMenuLabel>
+                  <DropdownMenuItem>
+                    <Link className="w-full" to="/peers">
+                      Connected Peers
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Link className="w-full" to="/wallet/sign-message">
+                      Sign Message
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             <Link to="/channels/incoming">
               <Button>Open Channel</Button>
             </Link>
@@ -478,8 +565,7 @@ export default function Channels() {
         <Card className="flex flex-1 flex-col">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="font-semibold">On-Chain</CardTitle>
-
-            <Bitcoin className="h-4 w-4 text-muted-foreground" />
+            <LinkIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="flex-grow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pl-0">
