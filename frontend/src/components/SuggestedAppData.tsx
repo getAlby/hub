@@ -25,6 +25,7 @@ import zapstream from "src/assets/suggested-apps/zap-stream.png";
 import zapplanner from "src/assets/suggested-apps/zapplanner.png";
 import zapplepay from "src/assets/suggested-apps/zapple-pay.png";
 import zappybird from "src/assets/suggested-apps/zappy-bird.png";
+import zapstore from "src/assets/suggested-apps/zapstore.png";
 import ExternalLink from "src/components/ExternalLink";
 
 export type SuggestedApp = {
@@ -1307,6 +1308,54 @@ export const suggestedApps: SuggestedApp[] = [
         </div>
         <div>
           <h3 className="font-medium">In Pull That Up Jamie!</h3>
+          <ul className="list-inside text-muted-foreground">
+            <li>6. Paste the connection secret from Alby Hub</li>
+          </ul>
+        </div>
+      </>
+    ),
+  },
+  {
+    id: "zapstore",
+    title: "Zapstore",
+    description: "Discover great apps through your social connections",
+    webLink: "https://zapstore.dev/",
+    logo: zapstore,
+    guide: (
+      <>
+        <div>
+          <h3 className="font-medium">In Zapstore</h3>
+          <ul className="list-inside text-muted-foreground">
+            <li>
+              1. Install{" "}
+              <ExternalLink
+                to="https://www.zapstore.dev/"
+                className="font-medium text-foreground underline"
+              >
+                Zapstore
+              </ExternalLink>{" "}
+              on your Android smartphone
+            </li>
+            <li>2. Open the settings</li>
+          </ul>
+        </div>
+        <div>
+          <h3 className="font-medium">In Alby Hub</h3>
+          <ul className="list-inside text-muted-foreground">
+            <li>
+              4. Click{" "}
+              <Link
+                to="/apps/new?app=zapstore"
+                className="font-medium text-foreground underline"
+              >
+                Connect to Zapstore
+              </Link>
+            </li>
+            <li>5. Set app's wallet permissions (full access recommended)</li>
+          </ul>
+        </div>
+        <div>
+          <h3 className="font-medium">In Zapstore</h3>
           <ul className="list-inside text-muted-foreground">
             <li>6. Paste the connection secret from Alby Hub</li>
           </ul>
