@@ -162,7 +162,15 @@ func (svc *service) startAllExistingAppsWalletSubscriptions(ctx context.Context,
 
 	for _, app := range apps {
 		go func(app db.App) {
-			err := svc.startAppWalletSubscription(ctx, relay, *app.WalletPubkey)
+			// republish info event for all existing apps
+			walletPrivKey, err := svc.keys.GetAppWalletKey(app.ID)
+			_, err = svc.GetNip47Service().PublishNip47Info(ctx, relay, *app.WalletPubkey, walletPrivKey, svc.lnClient)
+			if err != nil {
+				logger.Logger.WithError(err).WithFields(logrus.Fields{
+					"app_id": app.ID}).Error("Could not publish NIP47 info")
+			}
+
+			err = svc.startAppWalletSubscription(ctx, relay, *app.WalletPubkey)
 			if err != nil {
 				logger.Logger.WithError(err).WithFields(logrus.Fields{
 					"app_id": app.ID}).Error("Subscription error")
