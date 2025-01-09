@@ -1644,8 +1644,10 @@ func deleteOldLDKLogs(ldkLogDir string) {
 }
 
 func (ls *LDKService) GetNodeStatus(ctx context.Context) (nodeStatus *lnclient.NodeStatus, err error) {
+	status := ls.node.Status()
 	return &lnclient.NodeStatus{
-		InternalNodeStatus: ls.node.Status(),
+		IsReady:            status.IsRunning && status.IsListening,
+		InternalNodeStatus: status,
 	}, nil
 }
 
