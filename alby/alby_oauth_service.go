@@ -1071,10 +1071,20 @@ func (svc *albyOAuthService) GetBitcoinRate(ctx context.Context) (*BitcoinRate, 
 
 	defer res.Body.Close()
 
-	if res.StatusCode != http.StatusOK {
-		err := fmt.Errorf("unexpected status code: %d", res.StatusCode)
-		logger.Logger.WithError(err).Error("Received non-OK status while fetching Bitcoin rate from API")
-		return nil, err
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"url": url,
+		}).Error("Failed to read response body")
+		return nil, errors.New("failed to read response body")
+	}
+
+	if res.StatusCode >= 300 {
+		logger.Logger.WithFields(logrus.Fields{
+			"body":       string(body),
+			"statusCode": res.StatusCode,
+		}).Error("bitcoin rate endpoint returned non-success code")
+		return nil, fmt.Errorf("bitcoin rate endpoint returned non-success code: %s", string(body))
 	}
 
 	var rate = &BitcoinRate{}
