@@ -1,7 +1,6 @@
 import {
   AlertTriangle,
   ArrowRight,
-  Bitcoin,
   ChevronDown,
   CopyIcon,
   ExternalLinkIcon,
@@ -128,8 +127,8 @@ export default function Channels() {
   function openSwapOutDialog() {
     setSwapOutAmount(
       Math.floor(
-        ((findChannelWithLargestSpendableBalance()?.localSpendableBalance ||
-          0) *
+        ((findChannelWithLargestBalance("localSpendableBalance")
+          ?.localSpendableBalance || 0) *
           0.9) /
           1000
       ).toString()
@@ -139,7 +138,7 @@ export default function Channels() {
   function openSwapInDialog() {
     setSwapInAmount(
       Math.floor(
-        ((findChannelWithLargestReceivableBalance()?.remoteBalance || 0) *
+        ((findChannelWithLargestBalance("remoteBalance")?.remoteBalance || 0) *
           0.9) /
           1000
       ).toString()
@@ -147,25 +146,15 @@ export default function Channels() {
     setSwapInDialogOpen(true);
   }
 
-  function findChannelWithLargestReceivableBalance(): Channel | undefined {
+  function findChannelWithLargestBalance(
+    balanceType: "remoteBalance" | "localSpendableBalance"
+  ): Channel | undefined {
     if (!channels || channels.length === 0) {
       return undefined;
     }
 
     return channels.reduce((prevLargest, current) => {
-      return current.remoteBalance > prevLargest.remoteBalance
-        ? current
-        : prevLargest;
-    }, channels[0]);
-  }
-
-  function findChannelWithLargestSpendableBalance(): Channel | undefined {
-    if (!channels || channels.length === 0) {
-      return undefined;
-    }
-
-    return channels.reduce((prevLargest, current) => {
-      return current.localSpendableBalance > prevLargest.localSpendableBalance
+      return current[balanceType] > prevLargest[balanceType]
         ? current
         : prevLargest;
     }, channels[0]);
@@ -233,13 +222,13 @@ export default function Channels() {
                 <DialogHeader>
                   <DialogTitle>Swap in funds</DialogTitle>
                   <DialogDescription>
-                    Swap Funds from an on-chain wallet into your lightning
-                    channels via a swap service. This helps increase your
-                    spending balance. You can transfer on-chain funds from an
-                    external wallet or from your hub{" "}
+                    Swap on-chain funds into your lightning channels via a swap
+                    service, increasing your spending balance using on-chain
+                    funds from{" "}
                     <Link to="/wallet/withdraw" className="underline">
-                      on-chain balance
-                    </Link>
+                      your hub
+                    </Link>{" "}
+                    or an external wallet.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="grid grid-cols-4">
@@ -576,8 +565,7 @@ export default function Channels() {
         <Card className="flex flex-1 flex-col">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="font-semibold">On-Chain</CardTitle>
-
-            <Bitcoin className="h-4 w-4 text-muted-foreground" />
+            <LinkIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="flex-grow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pl-0">
