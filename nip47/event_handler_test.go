@@ -22,11 +22,23 @@ import (
 // TODO: test a request cannot be processed twice
 // TODO: test if an app doesn't exist it returns the right error code
 
-func TestCreateResponse(t *testing.T) {
+func TestCreateResponse_Nip04(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
 
+	doTestCreateResponse(t, svc, "0.0")
+}
+
+func TestCreateResponse_Nip44(t *testing.T) {
+	defer tests.RemoveTestService()
+	svc, err := tests.CreateTestService()
+	require.NoError(t, err)
+
+	doTestCreateResponse(t, svc, "1.0")
+}
+
+func doTestCreateResponse(t *testing.T, svc *tests.TestService, nip47Version string) {
 	reqPrivateKey := nostr.GeneratePrivateKey()
 	reqPubkey, err := nostr.GetPublicKey(reqPrivateKey)
 	assert.NoError(t, err)
@@ -39,7 +51,7 @@ func TestCreateResponse(t *testing.T) {
 
 	reqEvent.ID = "12345"
 
-	nip47Cipher, err := cipher.NewNip47Cipher("1.0", reqPubkey, svc.Keys.GetNostrSecretKey())
+	nip47Cipher, err := cipher.NewNip47Cipher(nip47Version, reqPubkey, svc.Keys.GetNostrSecretKey())
 	assert.NoError(t, err)
 
 	type dummyResponse struct {
