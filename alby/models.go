@@ -11,7 +11,7 @@ type AlbyOAuthService interface {
 	events.EventSubscriber
 	GetInfo(ctx context.Context) (*AlbyInfo, error)
 	GetChannelPeerSuggestions(ctx context.Context) ([]ChannelPeerSuggestion, error)
-	GetBitcoinRate(ctx context.Context, currency string) (*BitcoinRate, error)
+	GetBitcoinRate(ctx context.Context) (*BitcoinRate, error)
 	GetAuthUrl() string
 	GetUserIdentifier() (string, error)
 	GetLightningAddress() (string, error)

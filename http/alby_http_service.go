@@ -87,12 +87,11 @@ func (albyHttpSvc *AlbyHttpService) albyInfoHandler(c echo.Context) error {
 }
 
 func (albyHttpSvc *AlbyHttpService) albyBitcoinRateHandler(c echo.Context) error {
-	currency := c.QueryParam("currency")
-	rate, err := albyHttpSvc.albyOAuthSvc.GetBitcoinRate(c.Request().Context(), currency)
+	rate, err := albyHttpSvc.albyOAuthSvc.GetBitcoinRate(c.Request().Context())
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to get Bitcoin rate")
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to get Bitcoin rate for currency %s: %s", currency, err.Error()),
+			Message: fmt.Sprintf("Failed to get Bitcoin rate for currency %s: %s", "usd", err.Error()),
 		})
 	}
 	return c.JSON(http.StatusOK, rate)
