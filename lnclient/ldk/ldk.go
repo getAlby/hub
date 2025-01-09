@@ -471,7 +471,7 @@ func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string, amoun
 	fee := uint64(0)
 	preimage := ""
 
-	for start := time.Now(); time.Since(start) < time.Second*60; {
+	for start := time.Now(); time.Since(start) < time.Second*50; {
 		event := <-ldkEventSubscription
 
 		eventPaymentSuccessful, isEventPaymentSuccessfulEvent := (*event).(ldk_node.EventPaymentSuccessful)
@@ -563,7 +563,7 @@ func (ls *LDKService) SendKeysend(ctx context.Context, amount uint64, destinatio
 	}
 	fee := uint64(0)
 	paid := false
-	for start := time.Now(); time.Since(start) < time.Second*60; {
+	for start := time.Now(); time.Since(start) < time.Second*50; {
 		event := <-ldkEventSubscription
 
 		eventPaymentSuccessful, isEventPaymentSuccessfulEvent := (*event).(ldk_node.EventPaymentSuccessful)
