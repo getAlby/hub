@@ -80,7 +80,7 @@ func TestHandlePayKeysendEvent(t *testing.T) {
 
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
 	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
-	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc, svc.AppsService).
 		HandlePayKeysendEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse, nostr.Tags{})
 
 	assert.Nil(t, publishedResponse.Error)
@@ -121,7 +121,7 @@ func TestHandlePayKeysendEvent_WithPreimage(t *testing.T) {
 
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
 	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
-	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc, svc.AppsService).
 		HandlePayKeysendEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse, nostr.Tags{})
 
 	assert.Nil(t, publishedResponse.Error)
