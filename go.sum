@@ -188,8 +188,8 @@ github.com/ebitengine/purego v0.6.0-alpha.5 h1:EYID3JOAdmQ4SNZYJHu9V6IqOeRQDBYxq
 github.com/ebitengine/purego v0.6.0-alpha.5/go.mod h1:ah1In8AOtksoNK6yk5z1HTJeUkC1Ez4Wk2idgGslMwQ=
 github.com/elnosh/btc-docker-test v0.0.0-20241223164556-146e52a0433b h1:JbZVAqKBVRkvHuZZJsf8MvO+I7HGaVNCMQvp7WMFGqs=
 github.com/elnosh/btc-docker-test v0.0.0-20241223164556-146e52a0433b/go.mod h1:4PlP53czOHN+XvjyQZh+zgrzkI7BYFvJajxKK2zquyE=
-github.com/elnosh/gonuts v0.3.1-0.20250107155549-ae74d5ac3a23 h1:L74EHKPpS5PDMHc/yhP24S7KaxHQBfCHudYpNXFmPI8=
-github.com/elnosh/gonuts v0.3.1-0.20250107155549-ae74d5ac3a23/go.mod h1:s1lwjLf5HjrkgiMvdYPCz7HNAUjYS94C2WQcYaFbijc=
+github.com/elnosh/gonuts v0.3.1-0.20250109171605-ee81d0d42b97 h1:m+BmGO3iJuX9QFbk1ClOPUgo758w1SF/OxQNONe62ow=
+github.com/elnosh/gonuts v0.3.1-0.20250109171605-ee81d0d42b97/go.mod h1:s1lwjLf5HjrkgiMvdYPCz7HNAUjYS94C2WQcYaFbijc=
 github.com/envoyproxy/go-control-plane v0.9.0/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/go-control-plane v0.9.1-0.20191026205805-5f8ba28d4473/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/go-control-plane v0.9.4/go.mod h1:6rpuAdCZL397s3pYoYcLgu1mIlRU8Am5FuJP05cCM98=

@@ -13,6 +13,7 @@ import (
 	"github.com/elnosh/gonuts/cashu/nuts/nut05"
 	"github.com/elnosh/gonuts/wallet"
 	"github.com/elnosh/gonuts/wallet/storage"
+	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
@@ -21,10 +22,11 @@ import (
 )
 
 type CashuService struct {
-	wallet *wallet.Wallet
+	wallet  *wallet.Wallet
+	workDir string
 }
 
-func NewCashuService(workDir string, mintUrl string) (result lnclient.LNClient, err error) {
+func NewCashuService(cfg config.Config, workDir, encryptionKey, mintUrl string) (result lnclient.LNClient, err error) {
 	if workDir == "" {
 		return nil, errors.New("one or more required cashu configuration are missing")
 	}
@@ -43,21 +45,31 @@ func NewCashuService(workDir string, mintUrl string) (result lnclient.LNClient, 
 	logger.Logger.WithField("mintUrl", mintUrl).Info("Setting up cashu wallet")
 	config := wallet.Config{WalletPath: newpath, CurrentMintURL: mintUrl}
 
-	wallet, err := wallet.LoadWallet(config)
+	cashuWallet, err := wallet.LoadWallet(config)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to load cashu wallet")
 		return nil, err
 	}
 
 	cs := CashuService{
-		wallet: wallet,
+		wallet:  cashuWallet,
+		workDir: workDir,
+	}
+
+	cashuWalletMnemonic := cashuWallet.Mnemonic()
+	mnemonic, _ := cfg.Get("Mnemonic", encryptionKey)
+	if mnemonic != cashuWalletMnemonic {
+		if err := cfg.SetUpdate("Mnemonic", cashuWalletMnemonic, encryptionKey); err != nil {
+			logger.Logger.WithError(err).Error("Failed to save mnemonic from cashu wallet")
+			return nil, err
+		}
 	}
 
 	return &cs, nil
 }
 
 func (cs *CashuService) Shutdown() error {
-	return nil
+	return cs.wallet.Shutdown()
 }
 
 func (cs *CashuService) SendPaymentSync(ctx context.Context, invoice string, amount *uint64) (response *lnclient.PayInvoiceResponse, err error) {
@@ -208,6 +220,25 @@ func (cs *CashuService) RedeemOnchainFunds(ctx context.Context, toAddress string
 }
 
 func (cs *CashuService) ResetRouter(key string) error {
+	mnemonic := cs.wallet.Mnemonic()
+	currentMint := cs.wallet.CurrentMint()
+
+	if err := cs.wallet.Shutdown(); err != nil {
+		return err
+	}
+
+	if err := os.RemoveAll(cs.workDir); err != nil {
+		logger.Logger.WithError(err).Error("Failed to remove wallet directory")
+		return err
+	}
+
+	amountRestored, err := wallet.Restore(cs.workDir, mnemonic, []string{currentMint})
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed restore cashu wallet")
+		return err
+	}
+
+	logger.Logger.WithField("amountRestored", amountRestored).Info("Successfully restored cashu wallet")
 	return nil
 }
 
@@ -288,9 +319,11 @@ func (cs *CashuService) cashuMintQuoteToTransaction(mintQuote *storage.MintQuote
 	descriptionHash := paymentRequest.DescriptionHash
 
 	return &lnclient.Transaction{
-		Type:            constants.TRANSACTION_TYPE_INCOMING,
-		Invoice:         mintQuote.PaymentRequest,
-		PaymentHash:     paymentRequest.PaymentHash,
+		Type:        constants.TRANSACTION_TYPE_INCOMING,
+		Invoice:     mintQuote.PaymentRequest,
+		PaymentHash: paymentRequest.PaymentHash,
+		// note: setting dummy preimage so that it gets marked as settled
+		Preimage:        paymentRequest.PaymentHash,
 		Amount:          paymentRequest.MSatoshi,
 		CreatedAt:       int64(paymentRequest.CreatedAt),
 		ExpiresAt:       expiresAt,
