@@ -46,7 +46,7 @@ var sqlDialectSqlite = sqlDialectDef{
 }
 
 var sqlDialectPostgres = sqlDialectDef{
-	Timestamp:               "timestamp",
+	Timestamp:               "timestamptz",
 	AutoincrementPrimaryKey: "SERIAL PRIMARY KEY",
 	DropTableCascade:        "CASCADE",
 }
