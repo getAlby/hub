@@ -513,9 +513,11 @@ func TestHandleResponse_IncorrectVersions(t *testing.T) {
 	defer tests.RemoveTestService()
 	svc, err := tests.CreateTestService()
 	require.NoError(t, err)
-
+	// version specifies what cipher will use. If "1.0" is passed,
+	// cipher must be NIP-44, otherwise cipher MUST be NIP-04
 	doTestHandleResponse_IncorrectVersion(t, svc, "0.0", "1.0")
 	doTestHandleResponse_IncorrectVersion(t, svc, "1.0", "0.0")
+	doTestHandleResponse_IncorrectVersion(t, svc, "1.0", "")
 }
 
 func doTestHandleResponse_IncorrectVersion(t *testing.T, svc *tests.TestService, appVersion, requestVersion string) {
@@ -551,11 +553,11 @@ func doTestHandleResponse_IncorrectVersion(t *testing.T, svc *tests.TestService,
 		Kind:      models.REQUEST_KIND,
 		PubKey:    reqPubkey,
 		CreatedAt: nostr.Now(),
-		Tags:      nostr.Tags{[]string{"v", requestVersion}},
+		Tags:      nostr.Tags{},
 		Content:   msg,
 	}
 
-	if requestVersion != "0.0" {
+	if requestVersion != "" {
 		reqEvent.Tags = append(reqEvent.Tags, []string{"v", requestVersion})
 	}
 
