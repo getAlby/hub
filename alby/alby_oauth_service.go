@@ -253,9 +253,20 @@ func (svc *albyOAuthService) GetInfo(ctx context.Context) (*AlbyInfo, error) {
 		LatestReleaseNotes string `json:"latest_release_notes"`
 	}
 
+	type albyInfoIncident struct {
+		Name    string `json:"name"`
+		Started string `json:"started"`
+		Status  string `json:"status"`
+		Impact  string `json:"impact"`
+		Url     string `json:"url"`
+	}
+
 	type albyInfo struct {
-		Hub albyInfoHub `json:"hub"`
-		// TODO: consider getting healthcheck/incident info and showing in the hub
+		Hub              albyInfoHub        `json:"hub"`
+		Status           string             `json:"status"`
+		Healthy          bool               `json:"healthy"`
+		AccountAvailable bool               `json:"account_available"` // false if country is blocked (can still use Alby Hub without an Alby Account)
+		Incidents        []albyInfoIncident `json:"incidents"`
 	}
 
 	body, err := io.ReadAll(res.Body)
@@ -279,11 +290,26 @@ func (svc *albyOAuthService) GetInfo(ctx context.Context) (*AlbyInfo, error) {
 		return nil, err
 	}
 
+	incidents := []AlbyInfoIncident{}
+	for _, incident := range info.Incidents {
+		incidents = append(incidents, AlbyInfoIncident{
+			Name:    incident.Name,
+			Started: incident.Started,
+			Status:  incident.Status,
+			Impact:  incident.Impact,
+			Url:     incident.Url,
+		})
+	}
+
 	return &AlbyInfo{
 		Hub: AlbyInfoHub{
 			LatestVersion:      info.Hub.LatestVersion,
 			LatestReleaseNotes: info.Hub.LatestReleaseNotes,
 		},
+		Status:           info.Status,
+		Healthy:          info.Healthy,
+		AccountAvailable: info.AccountAvailable,
+		Incidents:        incidents,
 	}, nil
 }
 
@@ -702,8 +728,13 @@ func (svc *albyOAuthService) ConsumeEvent(ctx context.Context, event *events.Eve
 	}
 
 	if event.Event == "nwc_backup_channels" {
-		if err := svc.backupChannels(ctx, event); err != nil {
-			logger.Logger.WithError(err).Error("Failed to backup channels")
+		// if backup fails, try again (max 3 attempts)
+		for i := 0; i < 3; i++ {
+			if err := svc.backupChannels(ctx, event); err != nil {
+				logger.Logger.WithField("attempt", i).WithError(err).Error("Failed to backup channels")
+				continue
+			}
+			break
 		}
 		return
 	}

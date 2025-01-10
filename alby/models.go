@@ -55,9 +55,20 @@ type AlbyInfoHub struct {
 	LatestReleaseNotes string `json:"latestReleaseNotes"`
 }
 
+type AlbyInfoIncident struct {
+	Name    string `json:"name"`
+	Started string `json:"started"`
+	Status  string `json:"status"`
+	Impact  string `json:"impact"`
+	Url     string `json:"url"`
+}
+
 type AlbyInfo struct {
-	Hub AlbyInfoHub `json:"hub"`
-	// TODO: consider getting healthcheck/incident info and showing in the hub
+	Hub              AlbyInfoHub        `json:"hub"`
+	Status           string             `json:"status"`
+	Healthy          bool               `json:"healthy"`
+	AccountAvailable bool               `json:"accountAvailable"` // false if country is blocked (can still use Alby Hub without an Alby Account)
+	Incidents        []AlbyInfoIncident `json:"incidents"`
 }
 
 type AlbyMeHub struct {

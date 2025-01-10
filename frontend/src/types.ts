@@ -153,6 +153,8 @@ export interface InfoResponse {
   enableAdvancedSetup: boolean;
   startupError: string;
   startupErrorTime: string;
+  autoUnlockPasswordSupported: boolean;
+  autoUnlockPasswordEnabled: boolean;
 }
 
 export type Network = "bitcoin" | "testnet" | "signet";
@@ -170,7 +172,7 @@ export interface CreateAppRequest {
   name: string;
   pubkey?: string;
   maxAmount?: number;
-  budgetRenewal?: string;
+  budgetRenewal?: BudgetRenewalType;
   expiresAt?: string;
   scopes: Scope[];
   returnTo?: string;
@@ -204,6 +206,7 @@ export type Channel = {
   remotePubkey: string;
   id: string;
   fundingTxId: string;
+  fundingTxVout: number;
   active: boolean;
   public: boolean;
   confirmations?: number;
@@ -276,6 +279,13 @@ export type OnchainBalanceResponse = {
   total: number;
   reserved: number;
   pendingBalancesFromChannelClosures: number;
+  pendingBalancesDetails: {
+    channelId: string;
+    nodeId: string;
+    amount: number;
+    fundingTxId: string;
+    fundingTxVout: number;
+  }[];
 };
 
 // from https://mempool.space/docs/api/rest#get-node-stats

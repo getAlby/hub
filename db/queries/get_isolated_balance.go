@@ -5,9 +5,9 @@ import (
 	"gorm.io/gorm"
 )
 
-func GetIsolatedBalance(tx *gorm.DB, appId uint) uint64 {
+func GetIsolatedBalance(tx *gorm.DB, appId uint) int64 {
 	var received struct {
-		Sum uint64
+		Sum int64
 	}
 	tx.
 		Table("transactions").
@@ -15,7 +15,7 @@ func GetIsolatedBalance(tx *gorm.DB, appId uint) uint64 {
 		Where("app_id = ? AND type = ? AND state = ?", appId, constants.TRANSACTION_TYPE_INCOMING, constants.TRANSACTION_STATE_SETTLED).Scan(&received)
 
 	var spent struct {
-		Sum uint64
+		Sum int64
 	}
 
 	tx.

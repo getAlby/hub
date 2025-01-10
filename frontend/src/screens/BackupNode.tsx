@@ -44,8 +44,8 @@ export function BackupNode() {
           }),
         });
 
-        if (!response?.ok) {
-          throw new Error(`Error:${response?.statusText}`);
+        if (!response.ok) {
+          throw new Error(await response.text());
         }
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
@@ -88,6 +88,14 @@ export function BackupNode() {
         <AlertDescription>
           Your node maintains channel state with your channel partners. After
           you create this backup, do not restart Alby Hub on this device.
+        </AlertDescription>
+      </Alert>
+      <Alert>
+        <AlertTriangleIcon className="h-4 w-4" />
+        <AlertTitle>Migration requires a fresh Alby Hub</AlertTitle>
+        <AlertDescription>
+          To import the migration file, you must have a brand new Alby Hub on
+          another device and use the "Advanced" option in the onboarding.
         </AlertDescription>
       </Alert>
       <Alert>
