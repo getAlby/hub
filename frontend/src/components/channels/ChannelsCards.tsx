@@ -10,7 +10,6 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 import { Progress } from "src/components/ui/progress.tsx";
-import { Separator } from "src/components/ui/separator";
 import {
   Tooltip,
   TooltipContent,
@@ -189,7 +188,6 @@ export function ChannelsCards({ channels, nodes }: ChannelsCardsProps) {
                       <ChannelWarning channel={channel} />
                     </div>
                   </CardContent>
-                  <Separator className="mt-5" />
                 </>
               );
             })}
