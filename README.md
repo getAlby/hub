@@ -144,6 +144,18 @@ The following configuration options can be set as environment variables or in a 
 - `LOG_LEVEL`: log level for the application. Higher is more verbose. Default: 4 (info)
 - `AUTO_UNLOCK_PASSWORD`: provide unlock password to auto-unlock Alby Hub on startup (e.g. after a machine restart). Unlock password still be required to access the interface.
 
+### Migrating the database (Sqlite <-> Postgres)
+
+Migration of the database is currently experimental. Please make a backup before continuing.
+
+#### Migration from Sqlite to Postgres
+
+1. Stop the running hub
+2. Update the `DATABASE_URI` to your destination e.g. `postgresql://myuser:mypass@localhost:5432/nwc`
+3. Run the migration:
+
+   go run cmd/migrate/main.go .data/nwc.db postgresql://myuser:mypass@localhost:5432/nwc
+
 ## Node-specific backend parameters
 
 - `ENABLE_ADVANCED_SETUP`: set to `false` to force a specific backend type (combined with backend parameters below)
