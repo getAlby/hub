@@ -20,6 +20,7 @@ import { ChannelsCards } from "src/components/channels/ChannelsCards.tsx";
 import { ChannelsTable } from "src/components/channels/ChannelsTable.tsx";
 import EmptyState from "src/components/EmptyState.tsx";
 import ExternalLink from "src/components/ExternalLink";
+import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import { TransferFundsButton } from "src/components/TransferFundsButton";
 import {
   Alert,
@@ -167,7 +168,7 @@ export default function Channels() {
     <>
       <AppHeader
         title="Node"
-        description="Manage your lightning node"
+        description="Manage your lightning node liquidity."
         contentRight={
           <div className="flex gap-3 items-center justify-center">
             {/* TODO: move these dialogs to a new file */}
@@ -439,11 +440,11 @@ export default function Channels() {
           ) && (
             <Alert>
               <AlertTriangle className="h-4 w-4" />
-              <AlertTitle>Low receiving capacity</AlertTitle>
+              <AlertTitle>Low receiving limit</AlertTitle>
               <AlertDescription>
                 You likely won't be able to receive payments until you{" "}
                 <Link className="underline" to="/channels/incoming">
-                  increase your receiving capacity.
+                  increase your receiving limits.
                 </Link>
               </AlertDescription>
             </Alert>
@@ -499,9 +500,9 @@ export default function Channels() {
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger>
-                        <div className="flex flex-row gap-2 items-center justify-start text-sm">
+                        <div className="flex flex-row gap-1 items-center justify-start text-sm text-secondary-foreground">
                           Spending Balance
-                          <InfoIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                          <InfoIcon className="h-3 w-3 shrink-0 text-muted-foreground" />
                         </div>
                       </TooltipTrigger>
                       <TooltipContent className="w-[300px]">
@@ -521,12 +522,9 @@ export default function Channels() {
                   </div>
                 )}
                 {balances && (
-                  <div className="text-2xl font-bold balance sensitive">
-                    {new Intl.NumberFormat().format(
-                      Math.floor(balances.lightning.totalSpendable / 1000)
-                    )}{" "}
-                    sats
-                  </div>
+                  <FormattedFiatAmount
+                    amount={balances.lightning.totalSpendable / 1000}
+                  />
                 )}
               </CardContent>
             </div>
@@ -536,28 +534,26 @@ export default function Channels() {
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger>
-                        <div className="flex flex-row gap-2 items-center justify-start text-sm">
-                          Receiving Capacity
-                          <InfoIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                        <div className="flex flex-row gap-1 items-center justify-start text-sm text-secondary-foreground">
+                          Receive Limit
+                          <InfoIcon className="h-3 w-3 shrink-0 text-muted-foreground" />
                         </div>
                       </TooltipTrigger>
                       <TooltipContent className="w-[300px]">
-                        Your receiving capacity is the funds owned by your
-                        channel partner, which will be moved to your side when
-                        you receive lightning payments.
+                        Your receiving limit is the funds owned by your channel
+                        partner, which will be moved to your side when you
+                        receive lightning payments.
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                 </CardTitle>
               </CardHeader>
               <CardContent className="flex-grow pb-0">
-                <div className="text-2xl font-bold balance sensitive">
-                  {balances &&
-                    new Intl.NumberFormat().format(
-                      Math.floor(balances.lightning.totalReceivable / 1000)
-                    )}{" "}
-                  sats
-                </div>
+                {balances && (
+                  <FormattedFiatAmount
+                    amount={balances.lightning.totalReceivable / 1000}
+                  />
+                )}
               </CardContent>
             </div>
           </CardContent>
@@ -573,9 +569,9 @@ export default function Channels() {
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger>
-                      <div className="flex flex-row gap-2 items-center text-sm">
+                      <div className="flex flex-row gap-1 items-center text-sm text-secondary-foreground">
                         Balance
-                        <InfoIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                        <InfoIcon className="h-3 w-3 shrink-0 text-muted-foreground" />
                       </div>
                     </TooltipTrigger>
                     <TooltipContent className="w-[300px]">
@@ -595,11 +591,10 @@ export default function Channels() {
                 </div>
               </div>
             )}
-            <div className="text-2xl font-bold balance sensitive">
+            <div className="text-2xl balance sensitive">
               {balances && (
                 <>
-                  {new Intl.NumberFormat().format(balances.onchain.spendable)}{" "}
-                  sats
+                  <FormattedFiatAmount amount={balances.onchain.spendable} />
                   {balances &&
                     balances.onchain.spendable !== balances.onchain.total && (
                       <p className="text-xs text-muted-foreground animate-pulse">
