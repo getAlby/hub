@@ -27,7 +27,7 @@ func Migrate(gormDB *gorm.DB) error {
 		_202408191242_transaction_failure_reason,
 		_202408291715_app_metadata,
 		_202410141503_add_wallet_pubkey,
-		_20241221234500_fix_types,
+		_202412212345_fix_types,
 	})
 
 	return m.Migrate()

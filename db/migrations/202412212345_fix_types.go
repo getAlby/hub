@@ -5,7 +5,17 @@ import (
 	"gorm.io/gorm"
 )
 
-var _20241221234500_fix_types = &gormigrate.Migration{
+// This migration fixes column types for Postgres compatibility.
+//
+// First, an autoincrement sequence is created for user_configs.id (this works
+// in sqlite, because an integer primary key becomes "autoincrement"
+// automatically).
+//
+// Second, user_configs.encrypted is converted into a boolean; otherwise,
+// it fails to de/serialize from/to the Go model's `Encrypted bool` field.
+// Again, this happens to work in sqlite due to the way booleans are handled
+// (they're just an alias for numeric).
+var _202412212345_fix_types = &gormigrate.Migration{
 	ID: "20241221234500_fix_types",
 	Migrate: func(tx *gorm.DB) error {
 		if tx.Dialector.Name() == "postgres" {
