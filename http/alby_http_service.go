@@ -91,7 +91,7 @@ func (albyHttpSvc *AlbyHttpService) albyBitcoinRateHandler(c echo.Context) error
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to get Bitcoin rate")
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to get Bitcoin rate for currency %s: %s", "usd", err.Error()),
+			Message: fmt.Sprintf("Failed to get Bitcoin rate: %s", err.Error()),
 		})
 	}
 	return c.JSON(http.StatusOK, rate)
