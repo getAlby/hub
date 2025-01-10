@@ -16,6 +16,7 @@ import { handleRequestError } from "src/utils/handleRequestError";
 import { LightningAddress } from "@getalby/lightning-tools";
 import { ExternalLinkIcon, PlusCircle } from "lucide-react";
 import alby from "src/assets/suggested-apps/alby.png";
+import bitcoinbrink from "src/assets/zapplanner/bitcoinbrink.png";
 import hrf from "src/assets/zapplanner/hrf.png";
 import opensats from "src/assets/zapplanner/opensats.png";
 import ExternalLink from "src/components/ExternalLink";
@@ -47,7 +48,7 @@ const recipients: Recipient[] = [
     name: "Alby",
     logo: alby,
     description:
-      "Support the open-source development of Hub, Go, Lightning Browser Extension, developer tools, NWC, WebLN, Podcasting 2.0 & more.",
+      "Support the open-source development of Hub, Go, Lightning Browser Extension, developer tools and open protocols.",
     lightningAddress: "hello@getalby.com",
   },
   {
@@ -61,8 +62,15 @@ const recipients: Recipient[] = [
     name: "OpenSats",
     description:
       "Help us to provide sustainable funding for free and open-source contributors working on freedom tech and projects that help bitcoin flourish.",
-    lightningAddress: "opensats@btcpay0.voltageapp.io",
+    lightningAddress: "opensats@vlt.ge",
     logo: opensats,
+  },
+  {
+    name: "Brink",
+    description:
+      "Brink exists to strengthen the Bitcoin protocol and network through fundamental research, development, funding, mentoring.",
+    lightningAddress: "bitcoinbrink@zbd.gg",
+    logo: bitcoinbrink,
   },
 ];
 
