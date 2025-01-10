@@ -258,8 +258,22 @@ func (svc *albyOAuthService) GetInfo(ctx context.Context) (*AlbyInfo, error) {
 		// TODO: consider getting healthcheck/incident info and showing in the hub
 	}
 
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to read response body")
+		return nil, errors.New("failed to read response body")
+	}
+
+	if res.StatusCode >= 300 {
+		logger.Logger.WithFields(logrus.Fields{
+			"body":       string(body),
+			"statusCode": res.StatusCode,
+		}).Error("info endpoint returned non-success code")
+		return nil, fmt.Errorf("info endpoint returned non-success code: %s", string(body))
+	}
+
 	info := &albyInfo{}
-	err = json.NewDecoder(res.Body).Decode(info)
+	err = json.Unmarshal(body, info)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to decode API response")
 		return nil, err
@@ -358,8 +372,22 @@ func (svc *albyOAuthService) GetMe(ctx context.Context) (*AlbyMe, error) {
 		return nil, err
 	}
 
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to read response body")
+		return nil, errors.New("failed to read response body")
+	}
+
+	if res.StatusCode >= 300 {
+		logger.Logger.WithFields(logrus.Fields{
+			"body":       string(body),
+			"statusCode": res.StatusCode,
+		}).Error("users endpoint returned non-success code")
+		return nil, fmt.Errorf("users endpoint returned non-success code: %s", string(body))
+	}
+
 	me := &AlbyMe{}
-	err = json.NewDecoder(res.Body).Decode(me)
+	err = json.Unmarshal(body, me)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to decode API response")
 		return nil, err
@@ -397,8 +425,23 @@ func (svc *albyOAuthService) GetBalance(ctx context.Context) (*AlbyBalance, erro
 		logger.Logger.WithError(err).Error("Failed to fetch balance endpoint")
 		return nil, err
 	}
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to read response body")
+		return nil, errors.New("failed to read response body")
+	}
+
+	if res.StatusCode >= 300 {
+		logger.Logger.WithFields(logrus.Fields{
+			"body":       string(body),
+			"statusCode": res.StatusCode,
+		}).Error("balance endpoint returned non-success code")
+		return nil, fmt.Errorf("balance endpoint returned non-success code: %s", string(body))
+	}
+
 	balance := &AlbyBalance{}
-	err = json.NewDecoder(res.Body).Decode(balance)
+	err = json.Unmarshal(body, balance)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to decode API response")
 		return nil, err
@@ -1040,8 +1083,23 @@ func (svc *albyOAuthService) GetChannelPeerSuggestions(ctx context.Context) ([]C
 		logger.Logger.WithError(err).Error("Failed to fetch channel_suggestions endpoint")
 		return nil, err
 	}
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to read response body")
+		return nil, errors.New("failed to read response body")
+	}
+
+	if res.StatusCode >= 300 {
+		logger.Logger.WithFields(logrus.Fields{
+			"body":       string(body),
+			"statusCode": res.StatusCode,
+		}).Error("channel suggestions endpoint returned non-success code")
+		return nil, fmt.Errorf("channel suggestions endpoint returned non-success code: %s", string(body))
+	}
+
 	var suggestions []ChannelPeerSuggestion
-	err = json.NewDecoder(res.Body).Decode(&suggestions)
+	err = json.Unmarshal(body, &suggestions)
 	if err != nil {
 		logger.Logger.WithError(err).Errorf("Failed to decode API response")
 		return nil, err
@@ -1088,9 +1146,9 @@ func (svc *albyOAuthService) GetBitcoinRate(ctx context.Context) (*BitcoinRate, 
 	}
 
 	var rate = &BitcoinRate{}
-	err = json.NewDecoder(res.Body).Decode(rate)
+	err = json.Unmarshal(body, rate)
 	if err != nil {
-		logger.Logger.WithError(err).Error(`Failed to decode Bitcoin rate API response `)
+		logger.Logger.WithField("body", string(body)).WithError(err).Error("Failed to decode Bitcoin rate API response")
 		return nil, err
 	}
 
