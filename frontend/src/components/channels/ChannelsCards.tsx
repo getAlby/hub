@@ -1,3 +1,4 @@
+import { InfoIcon } from "lucide-react";
 import { ChannelDropdownMenu } from "src/components/channels/ChannelDropdownMenu";
 import { ChannelWarning } from "src/components/channels/ChannelWarning";
 import { Badge } from "src/components/ui/badge.tsx";
@@ -10,6 +11,12 @@ import {
 } from "src/components/ui/card";
 import { Progress } from "src/components/ui/progress.tsx";
 import { Separator } from "src/components/ui/separator";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "src/components/ui/tooltip";
 import { formatAmount } from "src/lib/utils.ts";
 import { Channel, Node } from "src/types";
 
@@ -67,25 +74,65 @@ export function ChannelsCards({ channels, nodes }: ChannelsCardsProps) {
                         )}
                       </div>
                       <div className="flex w-full justify-between items-center">
-                        <p className="text-muted-foreground font-medium">
-                          Type
-                        </p>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <div className="flex flex-row gap-1 items-center text-muted-foreground">
+                                Type
+                                <InfoIcon className="h-3 w-3 shrink-0" />
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent className="w-[400px]">
+                              The type of lightning channel, By default private
+                              channel is recommended. If you a podcaster or
+                              musician and expect to receive keysend or
+                              Value4Value payments you will need a public
+                              channel.
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                         <p className="text-foreground">
                           {channel.public ? "Public" : "Private"}
                         </p>
                       </div>
                       <div className="flex justify-between items-center">
-                        <p className="text-muted-foreground font-medium">
-                          Capacity
-                        </p>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <div className="flex flex-row gap-1 items-center text-muted-foreground">
+                                Capacity
+                                <InfoIcon className="h-3 w-3 shrink-0" />
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent className="w-[400px]">
+                              Total Spending and Receiving capacity of your
+                              lightning channel.
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+
                         <p className="text-foreground">
                           {formatAmount(capacity)} sats
                         </p>
                       </div>
                       <div className="flex justify-between items-center">
-                        <p className="text-muted-foreground font-medium">
-                          Reserve
-                        </p>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <div className="flex flex-row gap-1 items-center text-muted-foreground">
+                                Reserve
+                                <InfoIcon className="h-3 w-3 shrink-0" />
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent className="w-[400px]">
+                              Funds each participant sets aside to discourage
+                              cheating by ensuring each party has something at
+                              stake. This reserve cannot be spent during the
+                              channel's lifetime and typically amounts to 1% of
+                              the channel capacity.
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
 
                         <p className="text-foreground">
                           {channel.localBalance <
