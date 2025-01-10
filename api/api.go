@@ -1027,12 +1027,12 @@ func (api *api) GetLogOutput(ctx context.Context, logType string, getLogRequest 
 func (api *api) Health(ctx context.Context) (*HealthResponse, error) {
 	var alarms []HealthAlarm
 
-	oauthStatus, err := api.albyOAuthSvc.GetInfo(ctx)
+	albyInfo, err := api.albyOAuthSvc.GetInfo(ctx)
 	if err != nil {
 		return nil, err
 	}
-	if !oauthStatus.Healthy {
-		alarms = append(alarms, NewHealthAlarm(HealthAlarmKindAlbyService, oauthStatus))
+	if !albyInfo.Healthy {
+		alarms = append(alarms, NewHealthAlarm(HealthAlarmKindAlbyService, albyInfo))
 	}
 
 	isNostrRelayReady := api.svc.IsRelayReady()
