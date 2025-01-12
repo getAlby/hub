@@ -592,7 +592,7 @@ export const suggestedApps: SuggestedApp[] = [
           <h3 className="font-medium">In Alby Hub</h3>
           <ul className="list-inside text-muted-foreground">
             <li>
-              4. Click{" "}
+              1. Click{" "}
               <Link
                 to="/apps/new?app=nostrcheck-server"
                 className="font-medium text-foreground underline"
@@ -600,7 +600,7 @@ export const suggestedApps: SuggestedApp[] = [
                 Connect to Nostrcheck Server
               </Link>
             </li>
-            <li>5. Set app's wallet permissions (full access recommended)</li>
+            <li>2. Set app's wallet permissions (full access recommended)</li>
           </ul>
         </div>
         <div>
@@ -613,19 +613,19 @@ export const suggestedApps: SuggestedApp[] = [
               <span className="font-medium text-foreground">
                 Payments
               </span>
-              tab
+              {" "}tab
             </li>
             <li>
               2. Scroll to Nostr wallet connect settings and paste the {" "}
               <span className="font-medium text-foreground">connection secret</span>
-               from Alby Hub
+              {" "}from Alby Hub
             </li>
             <li>
               3. Press the {" "}
               <span className="font-medium text-foreground">
                 Save 
               </span>
-               button
+              {" "}button
             </li>
           </ul>
         </div>
