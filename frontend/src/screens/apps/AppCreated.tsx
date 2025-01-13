@@ -106,7 +106,7 @@ function AppCreatedInternal() {
             </li>
             {app?.isolated && (
               <li>
-                Optional: Increase isolated balance (
+                Optional: Increase sub-wallet balance (
                 {new Intl.NumberFormat().format(Math.floor(app.balance / 1000))}{" "}
                 sats){" "}
                 <IsolatedAppTopupDialog appPubkey={app.appPubkey}>
