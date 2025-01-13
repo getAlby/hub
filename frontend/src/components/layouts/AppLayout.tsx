@@ -48,12 +48,15 @@ import {
 } from "src/components/ui/tooltip";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 
+import clsx from "clsx";
 import { useAlbyInfo } from "src/hooks/useAlbyInfo";
+import { useHealthCheck } from "src/hooks/useHealthCheck";
 import { useInfo } from "src/hooks/useInfo";
 import { useNotifyReceivedPayments } from "src/hooks/useNotifyReceivedPayments";
 import { useRemoveSuccessfulChannelOrder } from "src/hooks/useRemoveSuccessfulChannelOrder";
 import { deleteAuthToken } from "src/lib/auth";
 import { cn } from "src/lib/utils";
+import { HealthAlarm } from "src/types";
 import { isHttpMode } from "src/utils/isHttpMode";
 import { openLink } from "src/utils/openLink";
 import ExternalLink from "../ExternalLink";
@@ -230,6 +233,7 @@ export default function AppLayout() {
                       <AlbyHubLogo className="text-foreground" />
                     </Link>
                     <AppVersion />
+                    <HealthIndicator />
                   </div>
                   <MainMenuContent />
                 </nav>
@@ -288,6 +292,7 @@ export default function AppLayout() {
                       {/* align shield with x icon */}
                       <div className="mr-2">
                         <AppVersion />
+                        <HealthIndicator />
                       </div>
                     </div>
                     <MainMenuContent />
@@ -361,6 +366,65 @@ function AppVersion() {
               <p className="mt-2 max-w-xs whitespace-pre-wrap">
                 {albyInfo.hub.latestReleaseNotes}
               </p>
+            </div>
+          )}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
+
+function HealthIndicator() {
+  const { data: health } = useHealthCheck();
+  if (!health) {
+    return null;
+  }
+
+  const ok = !health.alarms?.length;
+
+  function getAlarmTitle(alarm: HealthAlarm) {
+    // TODO: could show extra data from alarm.rawDetails
+    // for some alarm types
+    switch (alarm.kind) {
+      case "alby_service":
+        return "One or more Alby Services are offline";
+      case "channels_offline":
+        return "One or more channels are offline";
+      case "node_not_ready":
+        return "Node is not ready";
+      case "nostr_relay_offline":
+        return "Could not connect to relay";
+      default:
+        return "Unknown error";
+    }
+  }
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger>
+          <span className="text-xs flex items-center text-muted-foreground">
+            <div
+              className={clsx(
+                "w-2 h-2 rounded-full",
+                ok ? "bg-green-300" : "bg-destructive"
+              )}
+            />
+          </span>
+        </TooltipTrigger>
+        <TooltipContent>
+          {ok ? (
+            <p>Alby Hub is running</p>
+          ) : (
+            <div>
+              <p className="font-semibold">
+                {health.alarms.length} issues were found
+              </p>
+              <ul className="mt-2 max-w-xs whitespace-pre-wrap list-disc list-inside">
+                {health.alarms.map((alarm) => (
+                  <li key={alarm.kind}>{getAlarmTitle(alarm)}</li>
+                ))}
+              </ul>
             </div>
           )}
         </TooltipContent>

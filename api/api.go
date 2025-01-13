@@ -1032,7 +1032,7 @@ func (api *api) Health(ctx context.Context) (*HealthResponse, error) {
 		return nil, err
 	}
 	if !albyInfo.Healthy {
-		alarms = append(alarms, NewHealthAlarm(HealthAlarmKindAlbyService, albyInfo))
+		alarms = append(alarms, NewHealthAlarm(HealthAlarmKindAlbyService, albyInfo.Incidents))
 	}
 
 	isNostrRelayReady := api.svc.IsRelayReady()
@@ -1061,23 +1061,8 @@ func (api *api) Health(ctx context.Context) (*HealthResponse, error) {
 		})
 
 		if len(offlineChannels) > 0 {
-			alarms = append(alarms, NewHealthAlarm(HealthAlarmKindChannelsOffline, offlineChannels))
+			alarms = append(alarms, NewHealthAlarm(HealthAlarmKindChannelsOffline, nil))
 		}
-
-		peers, err := lnClient.ListPeers(ctx)
-		if err != nil {
-			return nil, err
-		}
-
-		disconnectedPeers := slices.DeleteFunc(peers, func(peer lnclient.PeerDetails) bool {
-			return peer.IsConnected
-		})
-
-		if len(peers) == 0 || len(disconnectedPeers) > 0 {
-			alarms = append(alarms, NewHealthAlarm(HealthAlarmKindPeerConnectivity, disconnectedPeers))
-		}
-	} else {
-		alarms = append(alarms, NewHealthAlarm(HealthAlarmKindNodeNotInitialized, nil))
 	}
 
 	return &HealthResponse{Alarms: alarms}, nil

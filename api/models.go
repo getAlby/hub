@@ -370,12 +370,10 @@ type MigrateNodeStorageRequest struct {
 type HealthAlarmKind string
 
 const (
-	HealthAlarmKindAlbyService        HealthAlarmKind = "alby_service"
-	HealthAlarmKindNodeNotInitialized                 = "node_not_initialized"
-	HealthAlarmKindNodeNotReady                       = "node_not_ready"
-	HealthAlarmKindChannelsOffline                    = "channels_offline"
-	HealthAlarmKindNostrRelayOffline                  = "nostr_relay_offline"
-	HealthAlarmKindPeerConnectivity                   = "peer_connectivity"
+	HealthAlarmKindAlbyService       HealthAlarmKind = "alby_service"
+	HealthAlarmKindNodeNotReady                      = "node_not_ready"
+	HealthAlarmKindChannelsOffline                   = "channels_offline"
+	HealthAlarmKindNostrRelayOffline                 = "nostr_relay_offline"
 )
 
 type HealthAlarm struct {
