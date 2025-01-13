@@ -459,8 +459,8 @@ github.com/lightninglabs/protobuf-go-hex-display v1.30.0-hex-display h1:pRdza2wl
 github.com/lightninglabs/protobuf-go-hex-display v1.30.0-hex-display/go.mod h1:HV8QOd/L58Z+nl8r43ehVNZIU/HEI6OcFqwMG9pJV4I=
 github.com/lightningnetwork/lightning-onion v1.2.1-0.20240712235311-98bd56499dfb h1:yfM05S8DXKhuCBp5qSMZdtSwvJ+GFzl94KbXMNB1JDY=
 github.com/lightningnetwork/lightning-onion v1.2.1-0.20240712235311-98bd56499dfb/go.mod h1:c0kvRShutpj3l6B9WtTsNTBUtjSmjZXbJd9ZBRQOSKI=
-github.com/lightningnetwork/lnd v0.18.4-beta.rc1 h1:z6hFKvtbfo8udPrIb81GbSoKlUWd06d4LRxTkD19IMQ=
-github.com/lightningnetwork/lnd v0.18.4-beta.rc1/go.mod h1:nPRQzLla5uHPQFyyZn8r9Vgddkd23PBUDa9rggEPOfY=
+github.com/lightningnetwork/lnd v0.18.4-beta.rc2 h1:HJTccweV5i/0JM0C5flhjx+fKZg4EDIz4dhEs8ZWSQs=
+github.com/lightningnetwork/lnd v0.18.4-beta.rc2/go.mod h1:nPRQzLla5uHPQFyyZn8r9Vgddkd23PBUDa9rggEPOfY=
 github.com/lightningnetwork/lnd/clock v1.1.1 h1:OfR3/zcJd2RhH0RU+zX/77c0ZiOnIMsDIBjgjWdZgA0=
 github.com/lightningnetwork/lnd/clock v1.1.1/go.mod h1:mGnAhPyjYZQJmebS7aevElXKTFDuO+uNFFfMXK1W8xQ=
 github.com/lightningnetwork/lnd/fn v1.2.3 h1:Q1OrgNSgQynVheBNa16CsKVov1JI5N2AR6G07x9Mles=
