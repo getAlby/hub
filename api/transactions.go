@@ -114,6 +114,7 @@ func toApiTransaction(transaction *transactions.Transaction) *Transaction {
 		SettledAt:       settledAt,
 		Metadata:        metadata,
 		Boostagram:      boostagram,
+		FailureReason:   transaction.FailureReason,
 	}
 }
 

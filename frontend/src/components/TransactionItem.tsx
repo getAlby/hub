@@ -296,6 +296,22 @@ function TransactionItem({ tx }: Props) {
                       />
                     </div>
                   </div>
+                  {!!tx.failureReason && (
+                    <div className="mt-6">
+                      <p>Failure Reason</p>
+                      <div className="flex items-center gap-4">
+                        <p className="text-muted-foreground break-words">
+                          {tx.failureReason}
+                        </p>
+                        <CopyIcon
+                          className="cursor-pointer text-muted-foreground w-4 h-4 flex-shrink-0"
+                          onClick={() => {
+                            copy(tx.failureReason);
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
                   {tx.metadata && (
                     <div className="mt-6">
                       <p>Metadata</p>
