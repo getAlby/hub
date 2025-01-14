@@ -70,11 +70,11 @@ function TransactionItem({ tx }: Props) {
         className={cn(
           "flex justify-center items-center rounded-full w-10 h-10 md:w-14 md:h-14 relative",
           tx.state === "failed"
-            ? "bg-red-100 dark:bg-red-950"
+            ? "bg-red-100 dark:bg-rose-950"
             : tx.state === "pending"
-              ? "bg-blue-100 dark:bg-blue-900"
+              ? "bg-blue-500 dark:bg-sky-500"
               : type === "outgoing"
-                ? "bg-orange-100 dark:bg-orange-950"
+                ? "bg-orange-100 dark:bg-amber-950"
                 : "bg-green-100 dark:bg-emerald-950"
         )}
       >
@@ -83,12 +83,12 @@ function TransactionItem({ tx }: Props) {
           className={cn(
             "w-6 h-6 md:w-8 md:h-8",
             tx.state === "failed"
-              ? "stroke-rose-400 dark:stroke-red-600"
+              ? "stroke-red-500 dark:stroke-rose-500"
               : tx.state === "pending"
-                ? "stroke-blue-500"
+                ? "stroke-blue-500 dark:stroke-sky-500"
                 : type === "outgoing"
-                  ? "stroke-orange-400 dark:stroke-amber-600"
-                  : "stroke-green-400 dark:stroke-emerald-500"
+                  ? "stroke-orange-500 dark:stroke-amber-500"
+                  : "stroke-green-500 dark:stroke-teal-500"
           )}
         />
         {app && (
