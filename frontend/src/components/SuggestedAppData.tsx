@@ -52,7 +52,7 @@ export const suggestedApps: SuggestedApp[] = [
   {
     id: "uncle-jim",
     title: "Friends & Family",
-    description: "Subaccounts powered by your Hub",
+    description: "Sub-wallets powered by your Hub",
     internal: true,
     logo: uncleJim,
   },

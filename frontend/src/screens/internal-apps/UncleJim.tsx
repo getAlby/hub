@@ -67,7 +67,7 @@ export function UncleJim() {
       setConnectionSecret(createAppResponse.pairingUri);
       setAppPublicKey(createAppResponse.pairingPublicKey);
 
-      toast({ title: "New subaccount created for " + name });
+      toast({ title: "New sub-wallet created for " + name });
     } catch (error) {
       handleRequestError(toast, "Failed to create app", error);
     }
@@ -87,7 +87,7 @@ export function UncleJim() {
     <div className="grid gap-5">
       <AppHeader
         title="Friends & Family"
-        description="Create subaccounts for your friends and family powered by your Hub"
+        description="Create sub-wallets for your friends and family powered by your Hub"
       />
       {!connectionSecret && (
         <>
@@ -109,7 +109,7 @@ export function UncleJim() {
               />
             </div>
             <LoadingButton loading={isLoading} type="submit">
-              Create Subaccount
+              Create Sub-wallet
             </LoadingButton>
           </form>
 
