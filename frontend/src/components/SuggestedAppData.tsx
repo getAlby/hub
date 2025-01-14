@@ -60,7 +60,7 @@ export const suggestedApps: SuggestedApp[] = [
   {
     id: "buzzpay",
     title: "BuzzPay PoS",
-    description: "Receive-only PoS you can safely share with your employees",
+    description: "Point of sale app for merchants and vendors",
     internal: true,
     logo: buzzpay,
   },
@@ -74,7 +74,7 @@ export const suggestedApps: SuggestedApp[] = [
   {
     id: "alby-extension",
     title: "Alby Extension",
-    description: "Wallet in your browser",
+    description: "Wallet and Nostr signer in your browser",
     webLink: "https://getalby.com/",
     chromeLink:
       "https://chromewebstore.google.com/detail/iokeahhehimjnekafflcihljlcjccdbe",
@@ -187,7 +187,7 @@ export const suggestedApps: SuggestedApp[] = [
   {
     id: "amethyst",
     title: "Amethyst",
-    description: "Android Nostr client",
+    description: "Multi-feature Nostr client for Android",
     webLink:
       "https://play.google.com/store/apps/details?id=com.vitorpamplona.amethyst",
     playLink:
@@ -244,7 +244,7 @@ export const suggestedApps: SuggestedApp[] = [
   {
     id: "primal",
     title: "Primal",
-    description: "Cross-platform social",
+    description: "Cross-platform bitcoin social app",
     webLink: "https://primal.net/",
     playLink:
       "https://play.google.com/store/apps/details?id=net.primal.android",
@@ -306,7 +306,7 @@ export const suggestedApps: SuggestedApp[] = [
   {
     id: "zap-stream",
     title: "Zap Stream",
-    description: "Stream and stack sats",
+    description: "Stream videos and stack sats",
     webLink: "https://zap.stream/",
     logo: zapstream,
     guide: (
@@ -363,7 +363,7 @@ export const suggestedApps: SuggestedApp[] = [
   {
     id: "wavlake",
     title: "Wavlake",
-    description: "Creators platform",
+    description: "Platform for music creators and listeners",
     webLink: "https://www.wavlake.com/",
     playLink:
       "https://play.google.com/store/apps/details?id=com.wavlake.mobile",
@@ -631,7 +631,7 @@ export const suggestedApps: SuggestedApp[] = [
   {
     id: "nostrudel",
     title: "noStrudel",
-    description: "Web Nostr client",
+    description: "Minimalistic, yet multi-feature Nostr client for web",
     webLink: "https://nostrudel.ninja/",
     logo: nostrudel,
     guide: (
@@ -752,7 +752,7 @@ export const suggestedApps: SuggestedApp[] = [
   {
     id: "zapplanner",
     title: "ZapPlanner",
-    description: "Schedule payments",
+    description: "Schedule recurring payments",
     webLink: "https://zapplanner.albylabs.com/",
     logo: zapplanner,
     internal: true,
@@ -760,7 +760,7 @@ export const suggestedApps: SuggestedApp[] = [
   {
     id: "zapplepay",
     title: "Zapple Pay",
-    description: "Zap from any client",
+    description: "Convert emojis into zaps, from any client",
     webLink: "https://www.zapplepay.com/",
     logo: zapplepay,
     guide: (
@@ -814,7 +814,7 @@ export const suggestedApps: SuggestedApp[] = [
   {
     id: "lume",
     title: "Lume",
-    description: "macOS Nostr client",
+    description: "Standalone desktop Nostr client",
     webLink: "https://lume.nu/",
     logo: lume,
     guide: (
@@ -875,7 +875,7 @@ export const suggestedApps: SuggestedApp[] = [
   {
     id: "kiwi",
     title: "Kiwi",
-    description: "Nostr communities",
+    description: "Web based client for Nostr communities",
     webLink: "https://nostr.kiwi/",
     logo: kiwi,
     guide: (
@@ -932,7 +932,7 @@ export const suggestedApps: SuggestedApp[] = [
   {
     id: "zappy-bird",
     title: "Zappy Bird",
-    description: "Lose sats quickly",
+    description: "Simple game to lose sats quickly",
     webLink: "https://rolznz.github.io/zappy-bird/",
     logo: zappybird,
     guide: (
@@ -992,7 +992,7 @@ export const suggestedApps: SuggestedApp[] = [
   {
     id: "nostur",
     title: "Nostur",
-    description: "Social media",
+    description: "Social media Nostr client for iOS",
     webLink: "https://nostur.com/",
     appleLink: "https://apps.apple.com/us/app/nostur-nostr-client/id1672780508",
     logo: nostur,
@@ -1257,7 +1257,7 @@ export const suggestedApps: SuggestedApp[] = [
   {
     id: "alby-go",
     title: "Alby Go",
-    description: "A simple mobile wallet that works great with Alby Hub",
+    description: "The simplest mobile lightning wallet that works great with Alby Hub",
     webLink: "https://albygo.com",
     playLink:
       "https://play.google.com/store/apps/details?id=com.getalby.mobile",
