@@ -15,7 +15,7 @@ import (
 )
 
 func TestCheckUnsettledTransaction(t *testing.T) {
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -52,7 +52,7 @@ func TestCheckUnsettledTransaction(t *testing.T) {
 }
 
 func TestCheckUnsettledTransactions(t *testing.T) {
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 

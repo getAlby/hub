@@ -26,7 +26,7 @@ const nip47GetBudgetJson = `
 
 func TestHandleGetBudgetEvent_NoRenewal(t *testing.T) {
 	ctx := context.TODO()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -71,7 +71,7 @@ func TestHandleGetBudgetEvent_NoRenewal(t *testing.T) {
 
 func TestHandleGetBudgetEvent_NoneUsed(t *testing.T) {
 	ctx := context.TODO()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -118,7 +118,7 @@ func TestHandleGetBudgetEvent_NoneUsed(t *testing.T) {
 
 func TestHandleGetBudgetEvent_HalfUsed(t *testing.T) {
 	ctx := context.TODO()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -172,7 +172,7 @@ func TestHandleGetBudgetEvent_HalfUsed(t *testing.T) {
 
 func TestHandleGetBudgetEvent_NoBudget(t *testing.T) {
 	ctx := context.TODO()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -219,7 +219,7 @@ func TestHandleGetBudgetEvent_NoBudget(t *testing.T) {
 
 func TestHandleGetBudgetEvent_NoPayInvoicePermission(t *testing.T) {
 	ctx := context.TODO()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 

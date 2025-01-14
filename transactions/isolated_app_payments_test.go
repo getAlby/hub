@@ -15,7 +15,7 @@ import (
 func TestSendPaymentSync_IsolatedApp_NoBalance(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -47,7 +47,7 @@ func TestSendPaymentSync_IsolatedApp_NoBalance(t *testing.T) {
 func TestSendPaymentSync_IsolatedApp_BalanceInsufficient(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -96,7 +96,7 @@ func TestSendPaymentSync_IsolatedApp_BalanceInsufficient(t *testing.T) {
 func TestSendPaymentSync_IsolatedApp_BalanceSufficient(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -138,7 +138,7 @@ func TestSendPaymentSync_IsolatedApp_BalanceSufficient(t *testing.T) {
 func TestSendPaymentSync_IsolatedApp_BalanceInsufficient_OutstandingPayment(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -184,7 +184,7 @@ func TestSendPaymentSync_IsolatedApp_BalanceInsufficient_OutstandingPayment(t *t
 func TestSendPaymentSync_IsolatedApp_BalanceInsufficient_SettledPayment(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -230,7 +230,7 @@ func TestSendPaymentSync_IsolatedApp_BalanceInsufficient_SettledPayment(t *testi
 func TestSendPaymentSync_IsolatedApp_BalanceSufficient_UnrelatedPayment(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -278,7 +278,7 @@ func TestSendPaymentSync_IsolatedApp_BalanceSufficient_UnrelatedPayment(t *testi
 func TestSendPaymentSync_IsolatedApp_BalanceSufficient_FailedPayment(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 

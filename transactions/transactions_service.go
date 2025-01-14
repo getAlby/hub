@@ -225,7 +225,7 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 		paymentAmount = *amountMsat
 	}
 
-	err = db.RunTransaction(svc.db, func(tx *gorm.DB) error {
+	err = svc.db.Transaction(func(tx *gorm.DB) error {
 		var existingSettledTransaction db.Transaction
 		if tx.Limit(1).Find(&existingSettledTransaction, &db.Transaction{
 			Type:        constants.TRANSACTION_TYPE_OUTGOING,
@@ -294,7 +294,7 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 		}
 
 		// As the LNClient did not return a timeout error, we assume the payment definitely failed
-		db.RunTransaction(svc.db, func(tx *gorm.DB) error {
+		svc.db.Transaction(func(tx *gorm.DB) error {
 			return svc.markPaymentFailed(tx, &dbTransaction, err.Error())
 		})
 
@@ -303,7 +303,7 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 
 	// the payment definitely succeeded
 	var settledTransaction *db.Transaction
-	err = db.RunTransaction(svc.db, func(tx *gorm.DB) error {
+	err = svc.db.Transaction(func(tx *gorm.DB) error {
 		settledTransaction, err = svc.markTransactionSettled(tx, &dbTransaction, response.Preimage, response.Fee, selfPayment)
 		return err
 	})
@@ -352,7 +352,7 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 
 	selfPayment := destination == lnClient.GetPubkey()
 
-	err = db.RunTransaction(svc.db, func(tx *gorm.DB) error {
+	err = svc.db.Transaction(func(tx *gorm.DB) error {
 		err := svc.validateCanPay(tx, appId, amount, "")
 		if err != nil {
 			return err
@@ -464,7 +464,7 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 
 	// the payment definitely succeeded
 	var settledTransaction *db.Transaction
-	err = db.RunTransaction(svc.db, func(tx *gorm.DB) error {
+	err = svc.db.Transaction(func(tx *gorm.DB) error {
 		settledTransaction, err = svc.markTransactionSettled(tx, &dbTransaction, preimage, payKeysendResponse.Fee, selfPayment)
 		return err
 	})

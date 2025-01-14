@@ -24,7 +24,7 @@ import (
 // TODO: test if an app doesn't exist it returns the right error code
 
 func TestCreateResponse(t *testing.T) {
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -76,7 +76,7 @@ func TestCreateResponse(t *testing.T) {
 }
 
 func TestHandleResponse_WithPermission(t *testing.T) {
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
@@ -146,7 +146,7 @@ func TestHandleResponse_WithPermission(t *testing.T) {
 }
 
 func TestHandleResponse_DuplicateRequest(t *testing.T) {
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
@@ -202,7 +202,7 @@ func TestHandleResponse_DuplicateRequest(t *testing.T) {
 }
 
 func TestHandleResponse_NoPermission(t *testing.T) {
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
@@ -255,7 +255,7 @@ func TestHandleResponse_NoPermission(t *testing.T) {
 }
 
 func TestHandleResponse_NoApp(t *testing.T) {
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
@@ -300,7 +300,7 @@ func TestHandleResponse_NoApp(t *testing.T) {
 }
 
 func TestHandleResponse_OldRequestForPayment(t *testing.T) {
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
@@ -357,7 +357,7 @@ func TestHandleResponse_OldRequestForPayment(t *testing.T) {
 }
 
 func TestHandleResponse_IncorrectPubkey(t *testing.T) {
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)

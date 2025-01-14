@@ -16,7 +16,7 @@ import (
 func TestSendPaymentSync_App_NoPermission(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -37,7 +37,7 @@ func TestSendPaymentSync_App_NoPermission(t *testing.T) {
 func TestSendPaymentSync_App_WithPermission(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -70,7 +70,7 @@ func TestSendPaymentSync_App_WithPermission(t *testing.T) {
 func TestSendPaymentSync_App_BudgetExceeded(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -111,7 +111,7 @@ func TestSendPaymentSync_App_BudgetExceeded(t *testing.T) {
 func TestSendPaymentSync_App_BudgetExceeded_SettledPayment(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -150,7 +150,7 @@ func TestSendPaymentSync_App_BudgetExceeded_SettledPayment(t *testing.T) {
 func TestSendPaymentSync_App_BudgetExceeded_UnsettledPayment(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -190,7 +190,7 @@ func TestSendPaymentSync_App_BudgetExceeded_UnsettledPayment(t *testing.T) {
 func TestSendPaymentSync_App_BudgetNotExceeded_FailedPayment(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 

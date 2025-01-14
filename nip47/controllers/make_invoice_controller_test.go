@@ -41,7 +41,7 @@ const nip47MakeInvoiceJson = `
 
 func TestHandleMakeInvoiceEvent(t *testing.T) {
 	ctx := context.TODO()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 

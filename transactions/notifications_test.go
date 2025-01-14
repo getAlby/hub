@@ -18,7 +18,7 @@ import (
 func TestNotifications_ReceivedKnownPayment(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -54,7 +54,7 @@ func TestNotifications_ReceivedKnownPayment(t *testing.T) {
 func TestNotifications_ReceivedUnknownPayment(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -81,7 +81,7 @@ func TestNotifications_ReceivedUnknownPayment(t *testing.T) {
 func TestNotifications_ReceivedKeysend(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -147,7 +147,7 @@ func TestNotifications_ReceivedKeysend(t *testing.T) {
 func TestNotifications_SentKnownPayment(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -183,7 +183,7 @@ func TestNotifications_SentKnownPayment(t *testing.T) {
 func TestNotifications_SentUnknownPayment(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -207,7 +207,7 @@ func TestNotifications_SentUnknownPayment(t *testing.T) {
 func TestNotifications_FailedKnownPayment(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 

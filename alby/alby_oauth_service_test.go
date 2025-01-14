@@ -14,7 +14,7 @@ import (
 )
 
 func TestExistingEncryptedBackup(t *testing.T) {
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -43,7 +43,7 @@ func TestExistingEncryptedBackup(t *testing.T) {
 func TestEncryptedBackup(t *testing.T) {
 	mnemonic := "limit reward expect search tissue call visa fit thank cream brave jump"
 	unlockPassword := "123"
-	svc, err := tests.CreateTestServiceWithMnemonic(mnemonic, unlockPassword)
+	svc, err := tests.CreateTestServiceWithMnemonic(t, mnemonic, unlockPassword)
 	require.NoError(t, err)
 	defer svc.Remove()
 

@@ -20,7 +20,7 @@ import (
 func TestSendKeysend(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -52,7 +52,7 @@ func TestSendKeysend(t *testing.T) {
 func TestSendKeysend_CustomPreimage(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -78,7 +78,7 @@ func TestSendKeysend_CustomPreimage(t *testing.T) {
 func TestSendKeysend_App_NoPermission(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -100,7 +100,7 @@ func TestSendKeysend_App_NoPermission(t *testing.T) {
 func TestSendKeysend_App_WithPermission(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -142,7 +142,7 @@ func TestSendKeysend_App_WithPermission(t *testing.T) {
 func TestSendKeysend_App_BudgetExceeded(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -180,7 +180,7 @@ func TestSendKeysend_App_BudgetExceeded(t *testing.T) {
 func TestSendKeysend_App_BudgetNotExceeded(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -223,7 +223,7 @@ func TestSendKeysend_App_BudgetNotExceeded(t *testing.T) {
 func TestSendKeysend_App_BalanceExceeded(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -261,7 +261,7 @@ func TestSendKeysend_App_BalanceExceeded(t *testing.T) {
 func TestSendKeysend_App_BalanceSufficient(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -312,7 +312,7 @@ func TestSendKeysend_App_BalanceSufficient(t *testing.T) {
 func TestSendKeysend_TLVs(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -360,7 +360,7 @@ func TestSendKeysend_TLVs(t *testing.T) {
 func TestSendKeysend_IsolatedAppToNoApp(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -425,7 +425,7 @@ func TestSendKeysend_IsolatedAppToNoApp(t *testing.T) {
 func TestSendKeysend_IsolatedAppToIsolatedApp(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 

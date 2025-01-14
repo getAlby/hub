@@ -13,8 +13,6 @@ import (
 	"github.com/getAlby/hub/logger"
 )
 
-var SerializeTransactions = false
-
 type Config struct {
 	URI        string
 	LogQueries bool
@@ -156,17 +154,6 @@ func Stop(db *gorm.DB) error {
 }
 
 func IsPostgresURI(uri string) bool {
-	return strings.HasPrefix(uri, "postgresql://")
-}
-
-var txSerializer = make(chan struct{}, 1)
-
-func RunTransaction(db *gorm.DB, txFunc func(tx *gorm.DB) error) error {
-	if SerializeTransactions {
-		txSerializer <- struct{}{}
-		defer func() {
-			<-txSerializer
-		}()
-	}
-	return db.Transaction(txFunc)
+	return strings.HasPrefix(uri, "postgresql://") ||
+		strings.HasPrefix(uri, "postgres://") // Schema used by the "testdb" package.
 }

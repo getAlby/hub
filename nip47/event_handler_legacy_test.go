@@ -18,7 +18,7 @@ import (
 )
 
 func TestHandleResponse_LegacyApp_WithPermission(t *testing.T) {
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	assert.NoError(t, err)
 	defer svc.Remove()
 	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
@@ -88,7 +88,7 @@ func TestHandleResponse_LegacyApp_WithPermission(t *testing.T) {
 }
 
 func TestHandleResponse_LegacyApp_NoPermission(t *testing.T) {
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	assert.NoError(t, err)
 	defer svc.Remove()
 	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
@@ -141,7 +141,7 @@ func TestHandleResponse_LegacyApp_NoPermission(t *testing.T) {
 }
 
 func TestHandleResponse_LegacyApp_IncorrectPubkey(t *testing.T) {
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	assert.NoError(t, err)
 	defer svc.Remove()
 	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)

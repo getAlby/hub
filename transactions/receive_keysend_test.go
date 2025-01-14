@@ -17,7 +17,7 @@ import (
 func TestReceiveKeysendWithCustomKey(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -64,7 +64,7 @@ func TestReceiveKeysendWithCustomKey(t *testing.T) {
 func TestReceiveKeysend(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 

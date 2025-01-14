@@ -110,7 +110,7 @@ func doTestSendNotificationPaymentReceived(t *testing.T, svc *tests.TestService,
 }
 
 func TestSendNotification_PaymentReceived(t *testing.T) {
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -120,7 +120,7 @@ func TestSendNotification_PaymentReceived(t *testing.T) {
 }
 
 func TestSendNotification_Legacy_PaymentReceived(t *testing.T) {
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -203,7 +203,7 @@ func doTestSendNotificationPaymentSent(t *testing.T, svc *tests.TestService, app
 }
 
 func TestSendNotification_PaymentSent(t *testing.T) {
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -213,7 +213,7 @@ func TestSendNotification_PaymentSent(t *testing.T) {
 }
 
 func TestSendNotification_Legacy_PaymentSent(t *testing.T) {
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -256,7 +256,7 @@ func doTestSendNotificationNoPermission(t *testing.T, svc *tests.TestService) {
 }
 
 func TestSendNotification_NoPermission(t *testing.T) {
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 	_, _, err = tests.CreateApp(svc)
@@ -264,7 +264,7 @@ func TestSendNotification_NoPermission(t *testing.T) {
 	doTestSendNotificationNoPermission(t, svc)
 }
 func TestSendNotification_Legacy_NoPermission(t *testing.T) {
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	defer svc.Remove()
 	require.NoError(t, err)
 	_, _, err = tests.CreateLegacyApp(svc, nostr.GeneratePrivateKey())

@@ -18,7 +18,7 @@ import (
 func TestMakeInvoice_NoApp(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -42,7 +42,7 @@ func TestMakeInvoice_NoApp(t *testing.T) {
 func TestMakeInvoice_MetadataTooLarge(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -60,7 +60,7 @@ func TestMakeInvoice_MetadataTooLarge(t *testing.T) {
 func TestMakeInvoice_App(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 

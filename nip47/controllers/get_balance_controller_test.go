@@ -25,7 +25,7 @@ const nip47GetBalanceJson = `
 
 func TestHandleGetBalanceEvent(t *testing.T) {
 	ctx := context.TODO()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -57,7 +57,7 @@ func TestHandleGetBalanceEvent(t *testing.T) {
 
 func TestHandleGetBalanceEvent_IsolatedApp_NoTransactions(t *testing.T) {
 	ctx := context.TODO()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -90,7 +90,7 @@ func TestHandleGetBalanceEvent_IsolatedApp_NoTransactions(t *testing.T) {
 }
 func TestHandleGetBalanceEvent_IsolatedApp_Transactions(t *testing.T) {
 	ctx := context.TODO()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 

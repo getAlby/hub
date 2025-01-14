@@ -2,6 +2,7 @@ package tests
 
 import (
 	"strconv"
+	"testing"
 
 	"github.com/getAlby/hub/apps"
 	"github.com/getAlby/hub/tests/db"
@@ -16,12 +17,12 @@ import (
 	"github.com/getAlby/hub/service/keys"
 )
 
-func CreateTestService() (svc *TestService, err error) {
-	return CreateTestServiceWithMnemonic("", "")
+func CreateTestService(t *testing.T) (svc *TestService, err error) {
+	return CreateTestServiceWithMnemonic(t, "", "")
 }
 
-func CreateTestServiceWithMnemonic(mnemonic string, unlockPassword string) (svc *TestService, err error) {
-	gormDb, err := db.NewDB()
+func CreateTestServiceWithMnemonic(t *testing.T, mnemonic string, unlockPassword string) (svc *TestService, err error) {
+	gormDb, err := db.NewDB(t)
 	if err != nil {
 		return nil, err
 	}

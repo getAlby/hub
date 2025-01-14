@@ -16,7 +16,7 @@ import (
 func TestListTransactions_Paid(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -60,7 +60,7 @@ func TestListTransactions_Paid(t *testing.T) {
 func TestListTransactions_UnpaidIncoming(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -127,7 +127,7 @@ func TestListTransactions_UnpaidIncoming(t *testing.T) {
 func TestListTransactions_UnpaidOutgoing(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -194,7 +194,7 @@ func TestListTransactions_UnpaidOutgoing(t *testing.T) {
 func TestListTransactions_Unpaid(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -255,7 +255,7 @@ func TestListTransactions_Unpaid(t *testing.T) {
 func TestListTransactions_Limit(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -291,7 +291,7 @@ func TestListTransactions_Limit(t *testing.T) {
 func TestListTransactions_Offset(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -347,7 +347,7 @@ func TestListTransactions_Offset(t *testing.T) {
 func TestListTransactions_FromUntil(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -397,7 +397,7 @@ func TestListTransactions_FromUntil(t *testing.T) {
 func TestListTransactions_FromUntilUnpaidOutgoing(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -459,7 +459,7 @@ func TestListTransactions_FromUntilUnpaidOutgoing(t *testing.T) {
 func TestListTransactions_FromUntilUnpaidIncoming(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 

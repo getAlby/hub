@@ -22,7 +22,7 @@ import (
 func TestSendPaymentSync_NoApp(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -51,7 +51,7 @@ func TestSendPaymentSync_NoApp(t *testing.T) {
 func TestSendPaymentSync_0Amount(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -73,7 +73,7 @@ func TestSendPaymentSync_0Amount(t *testing.T) {
 func TestSendPaymentSync_MetadataTooLarge(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -91,7 +91,7 @@ func TestSendPaymentSync_MetadataTooLarge(t *testing.T) {
 func TestSendPaymentSync_Duplicate(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -111,7 +111,7 @@ func TestSendPaymentSync_Duplicate(t *testing.T) {
 }
 
 func TestMarkSettled_Sent(t *testing.T) {
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -140,7 +140,7 @@ func TestMarkSettled_Sent(t *testing.T) {
 }
 
 func TestMarkSettled_Received(t *testing.T) {
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -169,7 +169,7 @@ func TestMarkSettled_Received(t *testing.T) {
 }
 
 func TestDoNotMarkSettledTwice(t *testing.T) {
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -196,7 +196,7 @@ func TestDoNotMarkSettledTwice(t *testing.T) {
 }
 
 func TestMarkFailed(t *testing.T) {
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -225,7 +225,7 @@ func TestMarkFailed(t *testing.T) {
 }
 
 func TestDoNotMarkFailedTwice(t *testing.T) {
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -254,7 +254,7 @@ func TestDoNotMarkFailedTwice(t *testing.T) {
 func TestSendPaymentSync_FailedRemovesFeeReserve(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -286,7 +286,7 @@ func TestSendPaymentSync_FailedRemovesFeeReserve(t *testing.T) {
 func TestSendPaymentSync_PendingHasFeeReserve(t *testing.T) {
 	ctx := context.TODO()
 
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 

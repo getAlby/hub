@@ -1,30 +1,19 @@
 package db
 
 import (
+	"fmt"
+	"net/url"
 	"os"
+	"strings"
 	"testing"
 
-	"github.com/DATA-DOG/go-txdb"
+	"github.com/peterldowns/pgtestdb"
 	"gorm.io/gorm"
 
 	"github.com/getAlby/hub/db"
 )
 
 const defaultTestDB = "test.db"
-const testDriver = "txdb"
-
-func init() {
-	if testing.Testing() {
-		uri := GetTestDatabaseURI()
-		if db.IsPostgresURI(uri) {
-			txdb.Register(testDriver, "pgx", uri)
-
-			// txdb fails when transactions are run concurrently in goroutines
-			// (concurrent begins/commits/rollback confuse its checkpoints logic).
-			db.SerializeTransactions = true
-		}
-	}
-}
 
 func GetTestDatabaseURI() string {
 	ret := os.Getenv("TEST_DATABASE_URI")
@@ -36,17 +25,37 @@ func GetTestDatabaseURI() string {
 	return ret
 }
 
-func NewDB() (*gorm.DB, error) {
+func NewDB(t *testing.T) (*gorm.DB, error) {
 	uri := GetTestDatabaseURI()
-	driverName := ""
 	if db.IsPostgresURI(uri) {
-		driverName = testDriver
+		parsedURI, err := url.Parse(uri)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse postgres DB URI: %w", err)
+		}
+
+		var user, password string
+		if userInfo := parsedURI.User; userInfo != nil {
+			user = userInfo.Username()
+			password, _ = userInfo.Password()
+		}
+
+		dbName := strings.TrimPrefix(parsedURI.Path, "/")
+
+		config := pgtestdb.Custom(t, pgtestdb.Config{
+			DriverName: "pgx",
+			Host:       parsedURI.Hostname(),
+			Port:       parsedURI.Port(),
+			User:       user,
+			Password:   password,
+			Database:   dbName,
+		}, pgtestdb.NoopMigrator{})
+
+		uri = config.URL()
 	}
 
 	return db.NewDBWithConfig(&db.Config{
 		URI:        uri,
 		LogQueries: true,
-		DriverName: driverName,
 	})
 }
 

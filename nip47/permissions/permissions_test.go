@@ -14,7 +14,7 @@ import (
 )
 
 func TestHasPermission_NoPermission(t *testing.T) {
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -29,7 +29,7 @@ func TestHasPermission_NoPermission(t *testing.T) {
 }
 
 func TestHasPermission_Expired(t *testing.T) {
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -59,7 +59,7 @@ func TestHasPermission_Expired(t *testing.T) {
 // TODO: move to transactions service
 /*func TestHasPermission_Exceeded(t *testing.T) {
 	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 
 	app, _, err := tests.CreateApp(svc)
@@ -86,7 +86,7 @@ func TestHasPermission_Expired(t *testing.T) {
 }*/
 
 func TestHasPermission_OK(t *testing.T) {
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -114,7 +114,7 @@ func TestHasPermission_OK(t *testing.T) {
 }
 
 func TestRequestMethodToScope_GetBudget(t *testing.T) {
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	assert.NoError(t, err)
 	defer svc.Remove()
 
@@ -124,7 +124,7 @@ func TestRequestMethodToScope_GetBudget(t *testing.T) {
 }
 
 func TestRequestMethodsToScopes_GetBudget(t *testing.T) {
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	assert.NoError(t, err)
 	defer svc.Remove()
 
@@ -146,7 +146,7 @@ func TestRequestMethodsToScopes_GetInfo(t *testing.T) {
 }
 
 func TestGetPermittedMethods_AlwaysGranted(t *testing.T) {
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -159,7 +159,7 @@ func TestGetPermittedMethods_AlwaysGranted(t *testing.T) {
 }
 
 func TestGetPermittedMethods_PayInvoiceScopeGivesAllPaymentMethods(t *testing.T) {
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 

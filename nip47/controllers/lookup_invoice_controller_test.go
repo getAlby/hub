@@ -28,7 +28,7 @@ var nip47LookupInvoiceJson = `
 
 func TestHandleLookupInvoiceEvent(t *testing.T) {
 	ctx := context.TODO()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 

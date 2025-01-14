@@ -15,7 +15,7 @@ import (
 )
 
 func TestUseExistingMnemonic(t *testing.T) {
-	gormDb, err := db.NewDB()
+	gormDb, err := db.NewDB(t)
 	require.NoError(t, err)
 	defer db.CloseDB(gormDb)
 
@@ -59,7 +59,7 @@ func TestUseExistingMnemonic(t *testing.T) {
 }
 
 func TestGenerateNewMnemonic(t *testing.T) {
-	gormDb, err := db.NewDB()
+	gormDb, err := db.NewDB(t)
 	require.NoError(t, err)
 	defer db.CloseDB(gormDb)
 

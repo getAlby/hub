@@ -12,7 +12,7 @@ import (
 )
 
 func TestGetIsolatedBalance_PendingNoOverflow(t *testing.T) {
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -41,7 +41,7 @@ func TestGetIsolatedBalance_PendingNoOverflow(t *testing.T) {
 }
 
 func TestGetIsolatedBalance_SettledNoOverflow(t *testing.T) {
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 

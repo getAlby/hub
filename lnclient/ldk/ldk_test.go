@@ -13,7 +13,7 @@ func TestGetVssNodeIdentifier(t *testing.T) {
 	mnemonic := "thought turkey ask pottery head say catalog desk pledge elbow naive mimic"
 	expectedVssNodeIdentifier := "751636"
 
-	svc, err := tests.CreateTestServiceWithMnemonic(mnemonic, "123")
+	svc, err := tests.CreateTestServiceWithMnemonic(t, mnemonic, "123")
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -26,7 +26,7 @@ func TestGetVssNodeIdentifier2(t *testing.T) {
 	mnemonic := "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
 	expectedVssNodeIdentifier := "770256"
 
-	svc, err := tests.CreateTestServiceWithMnemonic(mnemonic, "123")
+	svc, err := tests.CreateTestServiceWithMnemonic(t, mnemonic, "123")
 	require.NoError(t, err)
 	defer svc.Remove()
 

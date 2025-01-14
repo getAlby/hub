@@ -20,7 +20,7 @@ import (
 
 func TestHandleListTransactionsEvent(t *testing.T) {
 	ctx := context.TODO()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -98,7 +98,7 @@ func TestHandleListTransactionsEvent(t *testing.T) {
 
 func TestHandleListTransactionsEvent_UnpaidOutgoingOnly(t *testing.T) {
 	ctx := context.TODO()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -160,7 +160,7 @@ func TestHandleListTransactionsEvent_UnpaidOutgoingOnly(t *testing.T) {
 
 func TestHandleListTransactionsEvent_UnpaidIncomingOnly(t *testing.T) {
 	ctx := context.TODO()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -222,7 +222,7 @@ func TestHandleListTransactionsEvent_UnpaidIncomingOnly(t *testing.T) {
 
 func TestHandleListTransactionsEvent_Unpaid(t *testing.T) {
 	ctx := context.TODO()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -282,7 +282,7 @@ func TestHandleListTransactionsEvent_Unpaid(t *testing.T) {
 
 func TestHandleListTransactionsEvent_Paid(t *testing.T) {
 	ctx := context.TODO()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
