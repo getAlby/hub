@@ -12,7 +12,7 @@ require (
 	github.com/getAlby/ldk-node-go v0.0.0-20250106052504-d4191410486f
 	github.com/go-gormigrate/gormigrate/v2 v2.1.3
 	github.com/labstack/echo/v4 v4.13.0
-	github.com/nbd-wtf/go-nostr v0.45.0
+	github.com/nbd-wtf/go-nostr v0.46.0
 	github.com/nbd-wtf/ln-decodepay v1.13.0
 	github.com/orandin/lumberjackrus v1.0.1
 	github.com/stretchr/testify v1.10.0
@@ -56,6 +56,7 @@ require (
 	github.com/btcsuite/winsvc v1.0.0 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
+	github.com/coder/websocket v1.8.12 // indirect
 	github.com/containerd/continuity v0.4.3 // indirect
 	github.com/coreos/go-semver v0.3.1 // indirect
 	github.com/coreos/go-systemd/v22 v22.5.0 // indirect
@@ -75,9 +76,6 @@ require (
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/go-sql-driver/mysql v1.8.1 // indirect
 	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
-	github.com/gobwas/httphead v0.1.0 // indirect
-	github.com/gobwas/pool v0.2.1 // indirect
-	github.com/gobwas/ws v1.4.0 // indirect
 	github.com/godbus/dbus/v5 v5.1.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
