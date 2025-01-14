@@ -9,6 +9,7 @@ import (
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
+	"github.com/getAlby/hub/nip47/cipher"
 	"github.com/getAlby/hub/nip47/models"
 	nostrmodels "github.com/getAlby/hub/nostr/models"
 	"github.com/nbd-wtf/go-nostr"
@@ -37,7 +38,7 @@ func (svc *nip47Service) GetNip47Info(ctx context.Context, relay *nostr.Relay, a
 func (svc *nip47Service) PublishNip47Info(ctx context.Context, relay nostrmodels.Relay, appWalletPubKey string, appWalletPrivKey string, lnClient lnclient.LNClient) (*nostr.Event, error) {
 	var capabilities []string
 	var permitsNotifications bool
-	tags := nostr.Tags{[]string{}}
+	tags := nostr.Tags{[]string{"v", cipher.SUPPORTED_VERSIONS}}
 	if svc.keys.GetNostrPublicKey() == appWalletPubKey {
 		// legacy app, so return lnClient.GetSupportedNIP47Methods()
 		capabilities = lnClient.GetSupportedNIP47Methods()

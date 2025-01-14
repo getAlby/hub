@@ -19,6 +19,6 @@ export function useMediaQuery(query: string) {
 }
 
 export function useIsDesktop() {
-  const desktop = "(min-width: 768px)";
+  const desktop = "(min-width: 1366px)";
   return useMediaQuery(desktop);
 }

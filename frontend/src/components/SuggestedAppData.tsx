@@ -9,6 +9,7 @@ import damus from "src/assets/suggested-apps/damus.png";
 import hablanews from "src/assets/suggested-apps/habla-news.png";
 import kiwi from "src/assets/suggested-apps/kiwi.png";
 import lume from "src/assets/suggested-apps/lume.png";
+import nostrcheckserver from "src/assets/suggested-apps/nostrcheck-server.png";
 import nostrudel from "src/assets/suggested-apps/nostrudel.png";
 import nostur from "src/assets/suggested-apps/nostur.png";
 import paperScissorsHodl from "src/assets/suggested-apps/paper-scissors-hodl.png";
@@ -52,7 +53,7 @@ export const suggestedApps: SuggestedApp[] = [
   {
     id: "uncle-jim",
     title: "Friends & Family",
-    description: "Subaccounts powered by your Hub",
+    description: "Sub-wallets powered by your Hub",
     internal: true,
     logo: uncleJim,
   },
@@ -574,6 +575,54 @@ export const suggestedApps: SuggestedApp[] = [
           <ul className="list-inside text-muted-foreground">
             <li>5. Add label & paste connection secret</li>
             <li>6. Click Connect and Save</li>
+          </ul>
+        </div>
+      </>
+    ),
+  },
+  {
+    id: "nostrcheck-server",
+    title: "Nostrcheck Server",
+    description: "Sovereign Nostr services",
+    webLink: "https://github.com/quentintaranpino/nostrcheck-server",
+    logo: nostrcheckserver,
+    guide: (
+      <>
+        <div>
+          <h3 className="font-medium">In Alby Hub</h3>
+          <ul className="list-inside text-muted-foreground">
+            <li>
+              1. Click{" "}
+              <Link
+                to="/apps/new?app=nostrcheck-server"
+                className="font-medium text-foreground underline"
+              >
+                Connect to Nostrcheck Server
+              </Link>
+            </li>
+            <li>2. Set app's wallet permissions (full access recommended)</li>
+          </ul>
+        </div>
+        <div>
+          <h3 className="font-medium">In Nostrcheck server</h3>
+          <ul className="list-inside text-muted-foreground">
+            <li>
+              1. Go to{" "}
+              <span className="font-medium text-foreground">Settings</span> and
+              choose{" "}
+              <span className="font-medium text-foreground">Payments</span> tab
+            </li>
+            <li>
+              2. Scroll to Nostr wallet connect settings and paste the{" "}
+              <span className="font-medium text-foreground">
+                connection secret
+              </span>{" "}
+              from Alby Hub
+            </li>
+            <li>
+              3. Press the{" "}
+              <span className="font-medium text-foreground">Save</span> button
+            </li>
           </ul>
         </div>
       </>

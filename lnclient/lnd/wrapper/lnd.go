@@ -103,8 +103,8 @@ func (wrapper *LNDWrapper) PendingChannels(ctx context.Context, req *lnrpc.Pendi
 	return wrapper.client.PendingChannels(ctx, req, options...)
 }
 
-func (wrapper *LNDWrapper) SendPaymentSync(ctx context.Context, req *lnrpc.SendRequest, options ...grpc.CallOption) (*lnrpc.SendResponse, error) {
-	return wrapper.client.SendPaymentSync(ctx, req, options...)
+func (wrapper *LNDWrapper) SendPayment(ctx context.Context, req *routerrpc.SendPaymentRequest, options ...grpc.CallOption) (routerrpc.Router_SendPaymentV2Client, error) {
+	return wrapper.routerClient.SendPaymentV2(ctx, req, options...)
 }
 
 func (wrapper *LNDWrapper) ChannelBalance(ctx context.Context, req *lnrpc.ChannelBalanceRequest, options ...grpc.CallOption) (*lnrpc.ChannelBalanceResponse, error) {

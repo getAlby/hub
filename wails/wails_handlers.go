@@ -366,6 +366,18 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: nil, Error: ""}
+	case "/api/alby/rates":
+		rate, err := app.svc.GetAlbyOAuthSvc().GetBitcoinRate(ctx)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":    route,
+				"method":   method,
+				"body":     body,
+				"currency": "usd",
+			}).WithError(err).Error("Failed to get Bitcoin rate")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: rate, Error: ""}
 	case "/api/apps":
 		switch method {
 		case "GET":
@@ -569,6 +581,9 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		nodeStatus, err := app.api.GetNodeStatus(ctx)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		if nodeStatus == nil {
+			return WailsRequestRouterResponse{Body: nil, Error: ""}
 		}
 		return WailsRequestRouterResponse{Body: *nodeStatus, Error: ""}
 	case "/api/info":

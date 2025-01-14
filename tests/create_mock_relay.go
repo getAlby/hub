@@ -8,7 +8,7 @@ import (
 )
 
 type mockRelay struct {
-	PublishedEvent *nostr.Event
+	PublishedEvents []*nostr.Event
 }
 
 func NewMockRelay() *mockRelay {
@@ -17,6 +17,6 @@ func NewMockRelay() *mockRelay {
 
 func (relay *mockRelay) Publish(ctx context.Context, event nostr.Event) error {
 	logger.Logger.WithField("event", event).Info("Mock Publishing event")
-	relay.PublishedEvent = &event
+	relay.PublishedEvents = append(relay.PublishedEvents, &event)
 	return nil
 }

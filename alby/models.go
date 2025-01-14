@@ -11,6 +11,7 @@ type AlbyOAuthService interface {
 	events.EventSubscriber
 	GetInfo(ctx context.Context) (*AlbyInfo, error)
 	GetChannelPeerSuggestions(ctx context.Context) ([]ChannelPeerSuggestion, error)
+	GetBitcoinRate(ctx context.Context) (*BitcoinRate, error)
 	GetAuthUrl() string
 	GetUserIdentifier() (string, error)
 	GetLightningAddress() (string, error)
@@ -114,6 +115,13 @@ type ChannelPeerSuggestion struct {
 	PublicChannelsAllowed bool   `json:"publicChannelsAllowed"`
 }
 
+type BitcoinRate struct {
+	Code      string  `json:"code"`
+	Symbol    string  `json:"symbol"`
+	Rate      string  `json:"rate"`
+	RateFloat float64 `json:"rate_float"`
+	RateCents int64   `json:"rate_cents"`
+}
 type ErrorResponse struct {
 	Message string `json:"message"`
 }

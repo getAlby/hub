@@ -446,6 +446,8 @@ LDK logs:
 
 ### Docker
 
+Alby provides container images for each release. Please make sure to use a persistent volume. The lightning state and application state is persisted to disk.  
+
 #### From Alby's Container Registry
 
 _Tested on Linux only_
