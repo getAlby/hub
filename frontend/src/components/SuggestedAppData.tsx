@@ -373,32 +373,39 @@ export const suggestedApps: SuggestedApp[] = [
     guide: (
       <>
         <div>
-        <p>
-        You can use your Alby Hub as a lightning wallet funding source for your{" "}
-        <ExternalLink
-          to="https://btcpayserver.org/"
-          className="font-medium text-foreground underline"
-        >
-          BTCPay Server
-        </ExternalLink>{" "}
-        store, to accept and create payments. In order for this feature to work, your BTCPay
-        Server instance needs to have the{" "}
-        <span className="font-medium text-foreground">Nostr</span> plugin installed.
-        </p>
+          <p>
+            You can use your Alby Hub as a lightning wallet funding source for
+            your{" "}
+            <ExternalLink
+              to="https://btcpayserver.org/"
+              className="font-medium text-foreground underline"
+            >
+              BTCPay Server
+            </ExternalLink>{" "}
+            store, to accept and create payments. In order for this feature to
+            work, your BTCPay Server instance needs to have the{" "}
+            <span className="font-medium text-foreground">Nostr</span> plugin
+            installed.
+          </p>
+        </div>
+        <div>
           <h3 className="font-medium">In BTCPay Server</h3>
           <ul className="list-inside text-muted-foreground">
-            <li>
-              1. Log in to your BTCPay Server dashboard
-            </li>
+            <li>1. Log in to your BTCPay Server dashboard</li>
             <li>
               2. Find connection configuration for your Lightning node (
-              <span className="font-medium text-foreground">Lightning</span> → 
-              <span className="font-medium text-foreground">Settings</span> → 
-              <span className="font-medium text-foreground">Change connection</span>)
+              <span className="font-medium text-foreground">Lightning</span> →
+              <span className="font-medium text-foreground">Settings</span> →
+              <span className="font-medium text-foreground">
+                Change connection
+              </span>
+              )
             </li>
             <li>
               3. Choose{" "}
-              <span className="font-medium text-foreground">Use custom node</span>
+              <span className="font-medium text-foreground">
+                Use custom node
+              </span>
             </li>
           </ul>
         </div>
@@ -414,23 +421,19 @@ export const suggestedApps: SuggestedApp[] = [
                 Connect to BTCPay Server
               </Link>
             </li>
-            <li>
-              5. Set wallet permissions, according to your preferences
-            </li>
-            <li>
-              6. Copy generated NWC connection secret
-            </li>
+            <li>5. Set wallet permissions, according to your preferences</li>
+            <li>6. Copy generated NWC connection secret</li>
           </ul>
         </div>
         <div>
           <h3 className="font-medium">In BTCPay Server</h3>
           <ul className="list-inside text-muted-foreground">
             <li>
-              7. Paste the connection secret (nostr+walletconnect://....) in the configuration field
+              7. Paste the connection secret (nostr+walletconnect://....) in the
+              configuration field
             </li>
             <li>
-              8. Click{" "}
-              <span className="font-medium text-foreground">Save</span>
+              8. Click <span className="font-medium text-foreground">Save</span>
             </li>
           </ul>
         </div>
@@ -447,31 +450,37 @@ export const suggestedApps: SuggestedApp[] = [
       <>
         <div>
           <p>
-          You can use your Alby Hub as a lightning wallet funding source for your{" "}
-          <ExternalLink
-            to="https://lnbits.com/"
-            className="font-medium text-foreground underline"
-          >
-            LNbits
-          </ExternalLink>{" "}
-          instance, to accept and create payments.
+            You can use your Alby Hub as a lightning wallet funding source for
+            your{" "}
+            <ExternalLink
+              to="https://lnbits.com/"
+              className="font-medium text-foreground underline"
+            >
+              LNbits
+            </ExternalLink>{" "}
+            instance, to accept and create payments.
           </p>
+        </div>
+        <div>
           <h3 className="font-medium">In LNbits</h3>
           <ul className="list-inside text-muted-foreground">
-            <li>
-              1. Log in to your LNbits admin dashboard
-            </li>
+            <li>1. Log in to your LNbits admin dashboard</li>
             <li>
               2. Go to{" "}
               <span className="font-medium text-foreground">Manage</span> →{" "}
               <span className="font-medium text-foreground">Server</span> →{" "}
-              <span className="font-medium text-foreground">Funding</span>, to configure funding wallet
+              <span className="font-medium text-foreground">Funding</span>, to
+              configure funding wallet
             </li>
             <li>
               3. Under{" "}
-              <span className="font-medium text-foreground">Active Funding</span>{" "}
+              <span className="font-medium text-foreground">
+                Active Funding
+              </span>{" "}
               choose{" "}
-              <span className="font-medium text-foreground">Nostr Wallet Connect</span>
+              <span className="font-medium text-foreground">
+                Nostr Wallet Connect
+              </span>
             </li>
           </ul>
         </div>
@@ -487,12 +496,8 @@ export const suggestedApps: SuggestedApp[] = [
                 Connect to LNbits
               </Link>
             </li>
-            <li>
-              5. Set wallet permissions, according to your preferences
-            </li>
-            <li>
-              6. Copy generated NWC connection secret
-            </li>
+            <li>5. Set wallet permissions, according to your preferences</li>
+            <li>6. Copy generated NWC connection secret</li>
           </ul>
         </div>
         <div>
@@ -503,9 +508,11 @@ export const suggestedApps: SuggestedApp[] = [
               <span className="font-medium text-foreground">Pairing URL</span>
             </li>
             <li>
-              8. Click{" "}
-              <span className="font-medium text-foreground">Save</span> and{" "}
-              <span className="font-medium text-foreground">Restart Server</span>
+              8. Click <span className="font-medium text-foreground">Save</span>{" "}
+              and{" "}
+              <span className="font-medium text-foreground">
+                Restart Server
+              </span>
             </li>
           </ul>
         </div>
@@ -518,10 +525,11 @@ export const suggestedApps: SuggestedApp[] = [
     description: "Desktop Nostr client",
     webLink: "https://coracle.social/",
     logo: coracle,
-     guide: (
+    guide: (
       <>
         <p>
-          You can connect your Alby Hub to Coracle to zap Nostr notes directly from your node.
+          You can connect your Alby Hub to Coracle to zap Nostr notes directly
+          from your node.
         </p>
         <div>
           <h3 className="font-medium">In Coracle</h3>
@@ -538,13 +546,18 @@ export const suggestedApps: SuggestedApp[] = [
             </li>
             <li>
               2. Click on a zap icon ⚡ and{" "}
-              <span className="font-medium text-foreground">Zap!</span> under any post, to configure wallet connection and make your first zap
+              <span className="font-medium text-foreground">Zap!</span> under
+              any post, to configure wallet connection and make your first zap
             </li>
             <li>
               3. Click{" "}
-              <span className="font-medium text-foreground">Connect Wallet to Pay</span> 
+              <span className="font-medium text-foreground">
+                Connect Wallet to Pay
+              </span>{" "}
               and choose{" "}
-              <span className="font-medium text-foreground">Nostr Wallet Connect</span>
+              <span className="font-medium text-foreground">
+                Nostr Wallet Connect
+              </span>
             </li>
           </ul>
         </div>
@@ -562,14 +575,16 @@ export const suggestedApps: SuggestedApp[] = [
             </li>
             <li>
               5. Set wallet permissions (required:{" "}
-              <span className="font-medium text-foreground">Send payments</span>
-              {" "}and{" "}
-              <span className="font-medium text-foreground">Lookup status of invoices</span>
+              <span className="font-medium text-foreground">Send payments</span>{" "}
+              and{" "}
+              <span className="font-medium text-foreground">
+                Lookup status of invoices
+              </span>
               ) and maximum spendable budget
             </li>
             <li>
-              6. Click{" "}
-              <span className="font-medium text-foreground">Next</span> and copy generated NWC connection secret
+              6. Click <span className="font-medium text-foreground">Next</span>{" "}
+              and copy generated NWC connection secret
             </li>
           </ul>
         </div>
@@ -577,8 +592,8 @@ export const suggestedApps: SuggestedApp[] = [
           <h3 className="font-medium">In Coracle</h3>
           <ul className="list-inside text-muted-foreground">
             <li>
-              7. Paste the connection secret (nostr+walletconnect://....) and click{" "}
-              <span className="font-medium text-foreground">Connect</span>
+              7. Paste the connection secret (nostr+walletconnect://....) and
+              click <span className="font-medium text-foreground">Connect</span>
             </li>
           </ul>
         </div>
@@ -592,71 +607,78 @@ export const suggestedApps: SuggestedApp[] = [
     webLink: "https://nostter.app/",
     logo: nostter,
     guide: (
-    <>
-      <p>
-        You can connect your Alby Hub to Nostter to zap Nostr notes directly from your node.
-      </p>
-      <div>
-        <h3 className="font-medium">In Nostter</h3>
-        <ul className="list-inside text-muted-foreground">
-          <li>
-            1. Log in with your Nostr keys to{" "}
-            <ExternalLink
-              to="https://nostter.app/"
-              className="font-medium text-foreground underline"
-            >
-              Nostter
-            </ExternalLink>{" "}
-            (it is recommended to use the Alby Extension)
-          </li>
-          <li>
-            2. Go to{" "}
-            <span className="font-medium text-foreground">Preferences</span>
-          </li>
-        </ul>
-      </div>
-      <div>
-        <h3 className="font-medium">In Alby Hub</h3>
-        <ul className="list-inside text-muted-foreground">
-          <li>
-            3. Click{" "}
-            <Link
-              to="/#/apps/new?app=nostter"
-              className="font-medium text-foreground underline"
-            >
-              Connect to Nostter
-            </Link>
-          </li>
-          <li>
-            4. Set wallet permissions (required:{" "}
-            <span className="font-medium text-foreground">Send payments</span> and{" "}
-            <span className="font-medium text-foreground">Lookup status of invoices</span>
-            ) and maximum spendable budget
-          </li>
-          <li>
-            5. Click{" "}
-            <span className="font-medium text-foreground">Next</span> and copy generated NWC connection secret
-          </li>
-        </ul>
-      </div>
-      <div>
-        <h3 className="font-medium">In Nostter</h3>
-        <ul className="list-inside text-muted-foreground">
-          <li>
-            6. Paste the connection secret (nostr+walletconnect://....) under{" "}
-            <span className="font-medium text-foreground">Nostr Wallet Connect</span>
-          </li>
-          <li>
-            7. Click elsewhere for the connection to be tested and saved
-          </li>
-          <li>
-            8. Go to{" "}
-            <span className="font-medium text-foreground">Home</span> and click the zap icon (⚡) under any post to add a comment and send zap directly from your node
-          </li>
-        </ul>
-      </div>
-    </>
-  ),
+      <>
+        <p>
+          You can connect your Alby Hub to Nostter to zap Nostr notes directly
+          from your node.
+        </p>
+        <div>
+          <h3 className="font-medium">In Nostter</h3>
+          <ul className="list-inside text-muted-foreground">
+            <li>
+              1. Log in with your Nostr keys to{" "}
+              <ExternalLink
+                to="https://nostter.app/"
+                className="font-medium text-foreground underline"
+              >
+                Nostter
+              </ExternalLink>{" "}
+              (it is recommended to use the Alby Extension)
+            </li>
+            <li>
+              2. Go to{" "}
+              <span className="font-medium text-foreground">Preferences</span>
+            </li>
+          </ul>
+        </div>
+        <div>
+          <h3 className="font-medium">In Alby Hub</h3>
+          <ul className="list-inside text-muted-foreground">
+            <li>
+              3. Click{" "}
+              <Link
+                to="/#/apps/new?app=nostter"
+                className="font-medium text-foreground underline"
+              >
+                Connect to Nostter
+              </Link>
+            </li>
+            <li>
+              4. Set wallet permissions (required:{" "}
+              <span className="font-medium text-foreground">Send payments</span>{" "}
+              and{" "}
+              <span className="font-medium text-foreground">
+                Lookup status of invoices
+              </span>
+              ) and maximum spendable budget
+            </li>
+            <li>
+              5. Click <span className="font-medium text-foreground">Next</span>{" "}
+              and copy generated NWC connection secret
+            </li>
+          </ul>
+        </div>
+        <div>
+          <h3 className="font-medium">In Nostter</h3>
+          <ul className="list-inside text-muted-foreground">
+            <li>
+              6. Paste the connection secret (nostr+walletconnect://....) under{" "}
+              <span className="font-medium text-foreground">
+                Nostr Wallet Connect
+              </span>
+            </li>
+            <li>
+              7. Click elsewhere for the connection to be tested and saved
+            </li>
+            <li>
+              8. Go to <span className="font-medium text-foreground">Home</span>{" "}
+              and click the zap icon (⚡) under any post to add a comment and
+              send zap directly from your node
+            </li>
+          </ul>
+        </div>
+      </>
+    ),
   },
   {
     id: "wavlake",
@@ -905,25 +927,21 @@ export const suggestedApps: SuggestedApp[] = [
           <h3 className="font-medium">In Nostrcheck server</h3>
           <ul className="list-inside text-muted-foreground">
             <li>
-              1. Go to {" "}
+              1. Go to{" "}
               <span className="font-medium text-foreground">Settings</span> and
               choose{" "}
-              <span className="font-medium text-foreground">
-                Payments
-              </span>
-              {" "}tab
+              <span className="font-medium text-foreground">Payments</span> tab
             </li>
             <li>
-              2. Scroll to Nostr wallet connect settings and paste the {" "}
-              <span className="font-medium text-foreground">connection secret</span>
-              {" "}from Alby Hub
+              2. Scroll to Nostr wallet connect settings and paste the{" "}
+              <span className="font-medium text-foreground">
+                connection secret
+              </span>{" "}
+              from Alby Hub
             </li>
             <li>
-              3. Press the {" "}
-              <span className="font-medium text-foreground">
-                Save 
-              </span>
-              {" "}button
+              3. Press the{" "}
+              <span className="font-medium text-foreground">Save</span> button
             </li>
           </ul>
         </div>
