@@ -12,7 +12,7 @@ function AppStore() {
         contentRight={
           <>
             <a
-              href="https://form.jotform.com/232284367043051"
+              href="https://github.com/getAlby/hub/wiki/How-to:-submit-new-app-to-Hub's-Store"
               target="_blank"
               rel="noreferrer noopener"
             >
