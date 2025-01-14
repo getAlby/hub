@@ -154,7 +154,7 @@ Migration of the database is currently experimental. Please make a backup before
 2. Update the `DATABASE_URI` to your destination e.g. `postgresql://myuser:mypass@localhost:5432/nwc`
 3. Run the migration:
 
-   go run cmd/migrate/main.go .data/nwc.db postgresql://myuser:mypass@localhost:5432/nwc
+   go run cmd/db_migrate/main.go .data/nwc.db postgresql://myuser:mypass@localhost:5432/nwc
 
 ## Node-specific backend parameters
 
