@@ -10,11 +10,12 @@ echo "You will have to unlock Alby Hub after the update."
 echo ""
 echo "Make sure you have your unlock password available and a backup of your seed."
 
-read -p "Do you want continue? (y/n): " -n 1 -r
+read -p "Do you want continue? (y/n):" -n 1 -r
 if [[ ! $REPLY =~ ^[Yy]$ ]]
 then
   exit
 fi
+echo ""
 
 sudo systemctl list-units --type=service --all | grep -Fq albyhub.service
 if [[ $? -eq 0 ]]; then
@@ -28,10 +29,17 @@ then
   pkill -f albyhub
 fi
 
-SCRIPT_DIR=$(dirname "$0")
-read -p "Absolute install directory path (default: $SCRIPT_DIR/albyhub): " USER_INSTALL_DIR
+SCRIPT_DIR=$(pwd)
+read -p "Absolute install directory path (default: $SCRIPT_DIR): " USER_INSTALL_DIR
+echo ""
 
-INSTALL_DIR="${USER_INSTALL_DIR:-$SCRIPT_DIR/albyhub}"
+INSTALL_DIR="${USER_INSTALL_DIR:-$SCRIPT_DIR}"
+
+if ! test -f $INSTALL_DIR/data/nwc.db; then
+  echo "Could not find Alby Hub in this directory"
+  exit 1
+fi
+
 
 echo "Running in $INSTALL_DIR"
 # make sure we run this in the install directory
