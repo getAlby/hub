@@ -607,20 +607,20 @@ export const suggestedApps: SuggestedApp[] = [
           <h3 className="font-medium">In Nostrcheck server</h3>
           <ul className="list-inside text-muted-foreground">
             <li>
-              1. Go to{" "}
+              3. Go to{" "}
               <span className="font-medium text-foreground">Settings</span> and
               choose{" "}
               <span className="font-medium text-foreground">Payments</span> tab
             </li>
             <li>
-              2. Scroll to Nostr wallet connect settings and paste the{" "}
+              4. Scroll to Nostr wallet connect settings and paste the{" "}
               <span className="font-medium text-foreground">
                 connection secret
               </span>{" "}
               from Alby Hub
             </li>
             <li>
-              3. Press the{" "}
+              5. Press the{" "}
               <span className="font-medium text-foreground">Save</span> button
             </li>
           </ul>
