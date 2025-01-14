@@ -440,6 +440,7 @@ export type Transaction = {
     }; // NIP-57
   } & Record<string, unknown>;
   boostagram?: Boostagram;
+  failureReason: string;
 };
 
 export type Boostagram = {
