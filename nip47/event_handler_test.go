@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/nbd-wtf/go-nostr"
-	"github.com/nbd-wtf/go-nostr/nip04"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -33,9 +32,9 @@ func TestCreateResponse_Nip04(t *testing.T) {
 }
 
 func TestCreateResponse_Nip44(t *testing.T) {
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	doTestCreateResponse(t, svc, "1.0")
 }
@@ -467,9 +466,9 @@ func doTestHandleResponse_IncorrectPubkey(t *testing.T, svc *tests.TestService, 
 }
 
 func TestHandleResponse_NoApp(t *testing.T) {
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
 
 	reqPrivateKey := nostr.GeneratePrivateKey()

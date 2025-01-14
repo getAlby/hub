@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/nbd-wtf/go-nostr"
-	"github.com/nbd-wtf/go-nostr/nip04"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -135,16 +134,16 @@ func TestSendNotification_Nip44_PaymentReceived(t *testing.T) {
 }
 
 func TestSendNotification_SharedWalletPubkey_Nip04_PaymentReceived(t *testing.T) {
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
+	defer svc.Remove()
 	require.NoError(t, err)
 
 	doTestSendNotificationPaymentReceived(t, svc, tests.CreateAppWithSharedWalletPubkey, "0.0")
 }
 
 func TestSendNotification_SharedWalletPubkey_Nip44_PaymentReceived(t *testing.T) {
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
+	defer svc.Remove()
 	require.NoError(t, err)
 
 	doTestSendNotificationPaymentReceived(t, svc, tests.CreateAppWithSharedWalletPubkey, "1.0")
