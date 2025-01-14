@@ -258,7 +258,9 @@ func (cs *CashuService) GetNetworkGraph(ctx context.Context, nodeIds []string) (
 func (cs *CashuService) UpdateLastWalletSyncRequest() {}
 
 func (cs *CashuService) GetNodeStatus(ctx context.Context) (nodeStatus *lnclient.NodeStatus, err error) {
-	return nil, nil
+	return &lnclient.NodeStatus{
+		IsReady: true,
+	}, nil
 }
 
 func (cs *CashuService) SendPaymentProbes(ctx context.Context, invoice string) error {

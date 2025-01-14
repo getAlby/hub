@@ -1060,7 +1060,7 @@ func lndPaymentToTransaction(payment *lnrpc.Payment) (*lnclient.Transaction, err
 		DescriptionHash: descriptionHash,
 		ExpiresAt:       expiresAt,
 		SettledAt:       settledAt,
-		//TODO: Metadata:  (e.g. keysend),
+		// TODO: Metadata:  (e.g. keysend),
 	}, nil
 }
 
@@ -1131,6 +1131,7 @@ func (svc *LNDService) GetNodeStatus(ctx context.Context) (nodeStatus *lnclient.
 	}
 
 	return &lnclient.NodeStatus{
+		IsReady: true, // Assuming that, if GetNodeInfo() succeeds, the node is online and accessible.
 		InternalNodeStatus: map[string]interface{}{
 			"info":         info,
 			"config":       debugInfo.Config,

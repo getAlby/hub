@@ -11,10 +11,11 @@ import (
 
 	"github.com/sirupsen/logrus"
 
+	"github.com/wailsapp/wails/v2/pkg/runtime"
+
 	"github.com/getAlby/hub/alby"
 	"github.com/getAlby/hub/api"
 	"github.com/getAlby/hub/logger"
-	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 type WailsRequestRouterResponse struct {
@@ -909,6 +910,17 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: nil, Error: ""}
+	case "/api/health":
+		nodeHealth, err := app.api.Health(ctx)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).WithError(err).Error("Failed to check node health")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: *nodeHealth, Error: ""}
 	}
 
 	if strings.HasPrefix(route, "/api/log/") {
