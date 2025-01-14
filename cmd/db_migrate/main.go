@@ -5,11 +5,22 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"slices"
 
 	"gorm.io/gorm"
 
 	"github.com/getAlby/hub/db"
 )
+
+var expectedTables = []string{
+	"apps",
+	"app_permissions",
+	"request_events",
+	"response_events",
+	"transactions",
+	"user_configs",
+	"migrations",
+}
 
 func main() {
 	var fromDSN, toDSN string
@@ -46,6 +57,14 @@ func main() {
 		os.Exit(1)
 	}
 	defer stopDB(toDB)
+
+	// Migrations are applied to both the source and the target DB, so
+	// schemas should be equal at this point.
+	err = checkSchema(fromDB)
+	if err != nil {
+		slog.Error("database schema check failed; the migration tool may be outdated", "error", err)
+		os.Exit(1)
+	}
 
 	slog.Info("migrating...")
 	err = migrateDB(fromDB, toDB)
@@ -121,4 +140,59 @@ func migrateTable[T any](from, to *gorm.DB) error {
 	}
 
 	return nil
+}
+
+func checkSchema(db *gorm.DB) error {
+	tables, err := listTables(db)
+	if err != nil {
+		return fmt.Errorf("failed to list database tables: %w", err)
+	}
+
+	for _, table := range expectedTables {
+		if !slices.Contains(tables, table) {
+			return fmt.Errorf("table missing from the database: %q", table)
+		}
+	}
+
+	for _, table := range tables {
+		if !slices.Contains(expectedTables, table) {
+			return fmt.Errorf("unexpected table found in the database: %q", table)
+		}
+	}
+
+	return nil
+}
+
+func listTables(db *gorm.DB) ([]string, error) {
+	var query string
+
+	switch db.Dialector.Name() {
+	case "sqlite":
+		query = "SELECT name FROM sqlite_master WHERE type='table'  AND name NOT LIKE 'sqlite_%';"
+	case "postgres":
+		query = "SELECT tablename FROM pg_tables WHERE schemaname = 'public';"
+	default:
+		return nil, fmt.Errorf("unsupported database: %q", db.Dialector.Name())
+	}
+
+	rows, err := db.Raw(query).Rows()
+	if err != nil {
+		return nil, fmt.Errorf("failed to query table names: %w", err)
+	}
+	defer func() {
+		if err := rows.Close(); err != nil {
+			slog.Error("failed to close rows", "error", err)
+		}
+	}()
+
+	var tables []string
+	for rows.Next() {
+		var table string
+		if err := rows.Scan(&table); err != nil {
+			return nil, fmt.Errorf("failed to scan table name: %w", err)
+		}
+		tables = append(tables, table)
+	}
+
+	return tables, nil
 }
