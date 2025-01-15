@@ -64,6 +64,8 @@ func NewDBWithConfig(cfg *Config) (*gorm.DB, error) {
 		}
 	}
 
+	logger.Logger.WithField("db_backend", ret.Dialector.Name()).Debug("loaded database")
+
 	err := migrations.Migrate(ret)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to migrate")
@@ -138,7 +140,7 @@ func Stop(db *gorm.DB) error {
 	}
 
 	dbBackend := db.Dialector.Name()
-
+	logger.Logger.WithField("db_backend", dbBackend).Debug("shutting down database")
 	if dbBackend == "sqlite" {
 		err = db.Exec("PRAGMA wal_checkpoint(FULL)", nil).Error
 		if err != nil {
