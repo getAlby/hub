@@ -7,15 +7,16 @@ import (
 	"testing"
 	"time"
 
+	"github.com/nbd-wtf/go-nostr"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/nip47/cipher"
 	"github.com/getAlby/hub/nip47/models"
 	"github.com/getAlby/hub/nip47/permissions"
 	"github.com/getAlby/hub/tests"
-	"github.com/nbd-wtf/go-nostr"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 // TODO: test HandleEvent
@@ -23,17 +24,17 @@ import (
 // TODO: test if an app doesn't exist it returns the right error code
 
 func TestCreateResponse_Nip04(t *testing.T) {
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	doTestCreateResponse(t, svc, "0.0")
 }
 
 func TestCreateResponse_Nip44(t *testing.T) {
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	doTestCreateResponse(t, svc, "1.0")
 }
@@ -87,17 +88,17 @@ func doTestCreateResponse(t *testing.T, svc *tests.TestService, nip47Version str
 }
 
 func TestHandleResponse_Nip04_WithPermission(t *testing.T) {
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	doTestHandleResponse_WithPermission(t, svc, tests.CreateAppWithPrivateKey, "0.0")
 }
 
 func TestHandleResponse_Nip44_WithPermission(t *testing.T) {
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	doTestHandleResponse_WithPermission(t, svc, tests.CreateAppWithPrivateKey, "1.0")
 }
@@ -175,17 +176,17 @@ func doTestHandleResponse_WithPermission(t *testing.T, svc *tests.TestService, c
 }
 
 func TestHandleResponse_Nip04_DuplicateRequest(t *testing.T) {
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	doTestHandleResponse_DuplicateRequest(t, svc, tests.CreateAppWithPrivateKey, "0.0")
 }
 
 func TestHandleResponse_Nip44_DuplicateRequest(t *testing.T) {
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	doTestHandleResponse_DuplicateRequest(t, svc, tests.CreateAppWithPrivateKey, "1.0")
 }
@@ -249,17 +250,17 @@ func doTestHandleResponse_DuplicateRequest(t *testing.T, svc *tests.TestService,
 }
 
 func TestHandleResponse_Nip04_NoPermission(t *testing.T) {
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	doTestHandleResponse_NoPermission(t, svc, tests.CreateAppWithPrivateKey, "0.0")
 }
 
 func TestHandleResponse_Nip44_NoPermission(t *testing.T) {
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	doTestHandleResponse_NoPermission(t, svc, tests.CreateAppWithPrivateKey, "1.0")
 }
@@ -320,17 +321,17 @@ func doTestHandleResponse_NoPermission(t *testing.T, svc *tests.TestService, cre
 }
 
 func TestHandleResponse_Nip04_OldRequestForPayment(t *testing.T) {
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	doTestHandleResponse_OldRequestForPayment(t, svc, tests.CreateAppWithPrivateKey, "0.0")
 }
 
 func TestHandleResponse_Nip44_OldRequestForPayment(t *testing.T) {
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	doTestHandleResponse_OldRequestForPayment(t, svc, tests.CreateAppWithPrivateKey, "1.0")
 }
@@ -395,17 +396,17 @@ func doTestHandleResponse_OldRequestForPayment(t *testing.T, svc *tests.TestServ
 }
 
 func TestHandleResponse_Nip04_IncorrectPubkey(t *testing.T) {
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	doTestHandleResponse_IncorrectPubkey(t, svc, tests.CreateAppWithPrivateKey, "0.0")
 }
 
 func TestHandleResponse_Nip44_IncorrectPubkey(t *testing.T) {
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	doTestHandleResponse_IncorrectPubkey(t, svc, tests.CreateAppWithPrivateKey, "1.0")
 }
@@ -465,9 +466,9 @@ func doTestHandleResponse_IncorrectPubkey(t *testing.T, svc *tests.TestService, 
 }
 
 func TestHandleResponse_NoApp(t *testing.T) {
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
 
 	reqPrivateKey := nostr.GeneratePrivateKey()
@@ -510,9 +511,9 @@ func TestHandleResponse_NoApp(t *testing.T) {
 }
 
 func TestHandleResponse_IncorrectVersions(t *testing.T) {
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 	// version specifies what cipher will use. If "1.0" is passed,
 	// cipher must be NIP-44, otherwise cipher MUST be NIP-04
 	doTestHandleResponse_IncorrectVersion(t, svc, "0.0", "1.0")

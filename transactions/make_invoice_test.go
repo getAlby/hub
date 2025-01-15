@@ -7,19 +7,20 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/tests"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestMakeInvoice_NoApp(t *testing.T) {
 	ctx := context.TODO()
 
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	txMetadata := make(map[string]interface{})
 	txMetadata["randomkey"] = strings.Repeat("a", constants.INVOICE_METADATA_MAX_LENGTH-16) // json encoding adds 16 characters - {"randomkey":""}
@@ -41,9 +42,9 @@ func TestMakeInvoice_NoApp(t *testing.T) {
 func TestMakeInvoice_MetadataTooLarge(t *testing.T) {
 	ctx := context.TODO()
 
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	metadata := make(map[string]interface{})
 	metadata["randomkey"] = strings.Repeat("a", constants.INVOICE_METADATA_MAX_LENGTH-15) // json encoding adds 16 characters
@@ -59,9 +60,9 @@ func TestMakeInvoice_MetadataTooLarge(t *testing.T) {
 func TestMakeInvoice_App(t *testing.T) {
 	ctx := context.TODO()
 
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)

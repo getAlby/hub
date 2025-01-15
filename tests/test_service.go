@@ -1,29 +1,28 @@
 package tests
 
 import (
-	"os"
 	"strconv"
+	"testing"
 
 	"github.com/getAlby/hub/apps"
+	"github.com/getAlby/hub/tests/db"
+
+	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 
 	"github.com/getAlby/hub/config"
-	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/service/keys"
-	"github.com/sirupsen/logrus"
-	"gorm.io/gorm"
 )
 
-const testDB = "test.db"
-
-func CreateTestService() (svc *TestService, err error) {
-	return CreateTestServiceWithMnemonic("", "")
+func CreateTestService(t *testing.T) (svc *TestService, err error) {
+	return CreateTestServiceWithMnemonic(t, "", "")
 }
 
-func CreateTestServiceWithMnemonic(mnemonic string, unlockPassword string) (svc *TestService, err error) {
-	gormDb, err := db.NewDB(testDB, true)
+func CreateTestServiceWithMnemonic(t *testing.T, mnemonic string, unlockPassword string) (svc *TestService, err error) {
+	gormDb, err := db.NewDB(t)
 	if err != nil {
 		return nil, err
 	}
@@ -49,10 +48,14 @@ func CreateTestServiceWithMnemonic(mnemonic string, unlockPassword string) (svc 
 	keys := keys.NewKeys()
 
 	if mnemonic != "" {
-		cfg.SetUpdate("Mnemonic", mnemonic, unlockPassword)
+		if err = cfg.SetUpdate("Mnemonic", mnemonic, unlockPassword); err != nil {
+			return nil, err
+		}
 	}
 
-	keys.Init(cfg, unlockPassword)
+	if err = keys.Init(cfg, unlockPassword); err != nil {
+		return nil, err
+	}
 
 	eventPublisher := events.NewEventPublisher()
 
@@ -77,6 +80,6 @@ type TestService struct {
 	DB             *gorm.DB
 }
 
-func RemoveTestService() {
-	os.Remove(testDB)
+func (s *TestService) Remove() {
+	db.CloseDB(s.DB)
 }

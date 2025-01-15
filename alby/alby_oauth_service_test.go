@@ -3,19 +3,20 @@ package alby
 import (
 	"testing"
 
-	"github.com/getAlby/hub/config"
-	"github.com/getAlby/hub/events"
-	"github.com/getAlby/hub/tests"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tyler-smith/go-bip32"
 	"github.com/tyler-smith/go-bip39"
+
+	"github.com/getAlby/hub/config"
+	"github.com/getAlby/hub/events"
+	"github.com/getAlby/hub/tests"
 )
 
 func TestExistingEncryptedBackup(t *testing.T) {
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	mnemonic := "limit reward expect search tissue call visa fit thank cream brave jump"
 	unlockPassword := "123"
@@ -40,11 +41,11 @@ func TestExistingEncryptedBackup(t *testing.T) {
 }
 
 func TestEncryptedBackup(t *testing.T) {
-	defer tests.RemoveTestService()
 	mnemonic := "limit reward expect search tissue call visa fit thank cream brave jump"
 	unlockPassword := "123"
-	svc, err := tests.CreateTestServiceWithMnemonic(mnemonic, unlockPassword)
+	svc, err := tests.CreateTestServiceWithMnemonic(t, mnemonic, unlockPassword)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	albyOAuthSvc := NewAlbyOAuthService(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
 	encryptedBackup, err := albyOAuthSvc.createEncryptedChannelBackup(&events.StaticChannelsBackupEvent{

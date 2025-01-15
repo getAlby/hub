@@ -73,9 +73,9 @@ const MockExpiredPaymentHash = "320c2c5a1492ccfd5bc7aa4ad9b657d6aaec3cfcc0d1d984
 func TestHandleMultiPayInvoiceEvent_Success(t *testing.T) {
 	ctx := context.TODO()
 
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	var preimages = []string{"123preimage", "123preimage2"}
 
@@ -151,9 +151,9 @@ func TestHandleMultiPayInvoiceEvent_Success(t *testing.T) {
 func TestHandleMultiPayInvoiceEvent_OneMalformedInvoice(t *testing.T) {
 	ctx := context.TODO()
 
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -212,9 +212,9 @@ func TestHandleMultiPayInvoiceEvent_OneMalformedInvoice(t *testing.T) {
 func TestHandleMultiPayInvoiceEvent_OneExpiredInvoice(t *testing.T) {
 	ctx := context.TODO()
 
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -274,9 +274,9 @@ func TestHandleMultiPayInvoiceEvent_OneExpiredInvoice(t *testing.T) {
 func TestHandleMultiPayInvoiceEvent_IsolatedApp_OneBudgetExceeded(t *testing.T) {
 	ctx := context.TODO()
 
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -356,9 +356,9 @@ func TestHandleMultiPayInvoiceEvent_LNClient_OnePaymentFailed(t *testing.T) {
 
 	ctx := context.TODO()
 
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 	svc.LNClient.(*tests.MockLn).PayInvoiceResponses = []*lnclient.PayInvoiceResponse{{
 		Preimage: "123preimage",
 	}, nil}

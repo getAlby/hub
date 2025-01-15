@@ -4,18 +4,19 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/nip47/models"
 	"github.com/getAlby/hub/tests"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestHasPermission_NoPermission(t *testing.T) {
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -28,9 +29,9 @@ func TestHasPermission_NoPermission(t *testing.T) {
 }
 
 func TestHasPermission_Expired(t *testing.T) {
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -58,7 +59,7 @@ func TestHasPermission_Expired(t *testing.T) {
 // TODO: move to transactions service
 /*func TestHasPermission_Exceeded(t *testing.T) {
 	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 
 	app, _, err := tests.CreateApp(svc)
@@ -85,9 +86,9 @@ func TestHasPermission_Expired(t *testing.T) {
 }*/
 
 func TestHasPermission_OK(t *testing.T) {
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -113,9 +114,9 @@ func TestHasPermission_OK(t *testing.T) {
 }
 
 func TestRequestMethodToScope_GetBudget(t *testing.T) {
-	defer tests.RemoveTestService()
-	_, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	assert.NoError(t, err)
+	defer svc.Remove()
 
 	scope, err := RequestMethodToScope(models.GET_BUDGET_METHOD)
 	assert.NoError(t, err)
@@ -123,9 +124,9 @@ func TestRequestMethodToScope_GetBudget(t *testing.T) {
 }
 
 func TestRequestMethodsToScopes_GetBudget(t *testing.T) {
-	defer tests.RemoveTestService()
-	_, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	assert.NoError(t, err)
+	defer svc.Remove()
 
 	scopes, err := RequestMethodsToScopes([]string{models.GET_BUDGET_METHOD})
 	assert.NoError(t, err)
@@ -145,9 +146,9 @@ func TestRequestMethodsToScopes_GetInfo(t *testing.T) {
 }
 
 func TestGetPermittedMethods_AlwaysGranted(t *testing.T) {
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -158,9 +159,9 @@ func TestGetPermittedMethods_AlwaysGranted(t *testing.T) {
 }
 
 func TestGetPermittedMethods_PayInvoiceScopeGivesAllPaymentMethods(t *testing.T) {
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)

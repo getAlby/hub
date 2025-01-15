@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/nbd-wtf/go-nostr"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
@@ -15,8 +17,6 @@ import (
 	"github.com/getAlby/hub/nip47/permissions"
 	"github.com/getAlby/hub/tests"
 	"github.com/getAlby/hub/transactions"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 type mockConsumer struct {
@@ -118,32 +118,32 @@ func doTestSendNotificationPaymentReceived(t *testing.T, svc *tests.TestService,
 }
 
 func TestSendNotification_Nip04_PaymentReceived(t *testing.T) {
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	doTestSendNotificationPaymentReceived(t, svc, tests.CreateAppWithPrivateKey, "0.0")
 }
 
 func TestSendNotification_Nip44_PaymentReceived(t *testing.T) {
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	doTestSendNotificationPaymentReceived(t, svc, tests.CreateAppWithPrivateKey, "1.0")
 }
 
 func TestSendNotification_SharedWalletPubkey_Nip04_PaymentReceived(t *testing.T) {
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
+	defer svc.Remove()
 	require.NoError(t, err)
 
 	doTestSendNotificationPaymentReceived(t, svc, tests.CreateAppWithSharedWalletPubkey, "0.0")
 }
 
 func TestSendNotification_SharedWalletPubkey_Nip44_PaymentReceived(t *testing.T) {
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
+	defer svc.Remove()
 	require.NoError(t, err)
 
 	doTestSendNotificationPaymentReceived(t, svc, tests.CreateAppWithSharedWalletPubkey, "1.0")
@@ -233,33 +233,33 @@ func doTestSendNotificationPaymentSent(t *testing.T, svc *tests.TestService, cre
 }
 
 func TestSendNotification_Nip04_PaymentSent(t *testing.T) {
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	doTestSendNotificationPaymentSent(t, svc, tests.CreateAppWithPrivateKey, "0.0")
 }
 
 func TestSendNotification_Nip44_PaymentSent(t *testing.T) {
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	doTestSendNotificationPaymentSent(t, svc, tests.CreateAppWithPrivateKey, "1.0")
 }
 
 func TestSendNotification_SharedWalletPubkey_Nip04_PaymentSent(t *testing.T) {
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	doTestSendNotificationPaymentSent(t, svc, tests.CreateAppWithSharedWalletPubkey, "0.0")
 }
 
 func TestSendNotification_SharedWalletPubkey_Nip44_PaymentSent(t *testing.T) {
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	doTestSendNotificationPaymentSent(t, svc, tests.CreateAppWithSharedWalletPubkey, "1.0")
 }
@@ -298,18 +298,18 @@ func doTestSendNotificationNoPermission(t *testing.T, svc *tests.TestService) {
 }
 
 func TestSendNotification_NoPermission(t *testing.T) {
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 	_, _, err = tests.CreateAppWithPrivateKey(svc, nostr.GeneratePrivateKey(), "1.0")
 	assert.NoError(t, err)
 	doTestSendNotificationNoPermission(t, svc)
 }
 
 func TestSendNotification_SharedWalletPubkey_NoPermission(t *testing.T) {
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 	_, _, err = tests.CreateAppWithSharedWalletPubkey(svc, nostr.GeneratePrivateKey(), "1.0")
 	assert.NoError(t, err)
 	doTestSendNotificationNoPermission(t, svc)

@@ -13,7 +13,7 @@ var _202408191242_transaction_failure_reason = &gormigrate.Migration{
 	Migrate: func(tx *gorm.DB) error {
 
 		if err := tx.Exec(`
-	ALTER TABLE transactions ADD failure_reason string;
+	ALTER TABLE transactions ADD failure_reason text;
 `).Error; err != nil {
 			return err
 		}

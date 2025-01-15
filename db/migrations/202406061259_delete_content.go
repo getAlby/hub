@@ -19,9 +19,13 @@ var _202406061259_delete_content = &gormigrate.Migration{
 			return err
 		}
 
-		if err := tx.Exec("VACUUM").Error; err != nil {
-			return err
-		}
+		// Disabled for now: not used.
+		// Cannot run when testing with txdb: VACUUM must be run outside of transaction.
+		// if !testing.Testing() {
+		// 	if err := tx.Exec("VACUUM").Error; err != nil {
+		// 		return err
+		// 	}
+		// }
 
 		return nil
 	},
