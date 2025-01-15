@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
@@ -12,14 +13,15 @@ import (
 )
 
 type getInfoResponse struct {
-	Alias         string   `json:"alias"`
-	Color         string   `json:"color"`
-	Pubkey        string   `json:"pubkey"`
-	Network       string   `json:"network"`
-	BlockHeight   uint32   `json:"block_height"`
-	BlockHash     string   `json:"block_hash"`
-	Methods       []string `json:"methods"`
-	Notifications []string `json:"notifications"`
+	Alias         string      `json:"alias"`
+	Color         string      `json:"color"`
+	Pubkey        string      `json:"pubkey"`
+	Network       string      `json:"network"`
+	BlockHeight   uint32      `json:"block_height"`
+	BlockHash     string      `json:"block_hash"`
+	Methods       []string    `json:"methods"`
+	Notifications []string    `json:"notifications"`
+	Metadata      interface{} `json:"metadata,omitempty"`
 }
 
 func (controller *nip47Controller) HandleGetInfoEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, app *db.App, publishResponse publishFunc) {
@@ -70,6 +72,27 @@ func (controller *nip47Controller) HandleGetInfoEvent(ctx context.Context, nip47
 		responsePayload.Network = network
 		responsePayload.BlockHeight = info.BlockHeight
 		responsePayload.BlockHash = info.BlockHash
+
+		if app != nil {
+			metadata := map[string]interface{}{}
+			if app.Metadata != nil {
+				jsonErr := json.Unmarshal(app.Metadata, &metadata)
+				if jsonErr != nil {
+					logger.Logger.WithError(jsonErr).WithFields(logrus.Fields{
+						"id":       app.ID,
+						"metadata": app.Metadata,
+					}).Error("Failed to deserialize app metadata")
+				}
+			}
+			if metadata["id"] == nil {
+				metadata["id"] = app.ID
+			}
+			if metadata["name"] == nil {
+				metadata["name"] = app.Name
+			}
+
+			responsePayload.Metadata = metadata
+		}
 	}
 
 	publishResponse(&models.Response{
