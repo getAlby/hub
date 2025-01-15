@@ -77,6 +77,8 @@ type LNClient interface {
 	UpdateLastWalletSyncRequest()
 	GetSupportedNIP47Methods() []string
 	GetSupportedNIP47NotificationTypes() []string
+	GetCustomCommandDefinitions() []NodeCommandDef
+	ExecuteCustomCommand(ctx context.Context, command *NodeCommandRequest) (*NodeCommandResponse, error)
 }
 
 type Channel struct {
@@ -186,6 +188,29 @@ type NetworkGraphResponse = interface{}
 type PaymentFailedEventProperties struct {
 	Transaction *Transaction
 	Reason      string
+}
+
+type NodeCommandArgDef struct {
+	Name string
+}
+
+type NodeCommandDef struct {
+	Name string
+	Args []NodeCommandArgDef
+}
+
+type NodeCommandArg struct {
+	Name  string
+	Value string
+}
+
+type NodeCommandRequest struct {
+	Name string
+	Args []NodeCommandArg
+}
+
+type NodeCommandResponse struct {
+	RawJson []byte
 }
 
 // default invoice expiry in seconds (1 day)

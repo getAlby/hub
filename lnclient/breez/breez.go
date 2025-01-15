@@ -46,7 +46,7 @@ func NewBreezService(mnemonic, apiKey, inviteCode, workDir string) (result lncli
 		return nil, errors.New("one or more required breez configuration are missing")
 	}
 
-	//create dir if not exists
+	// create dir if not exists
 	newpath := filepath.Join(workDir)
 	err = os.MkdirAll(newpath, os.ModePerm)
 	if err != nil {
@@ -490,4 +490,12 @@ func (bs *BreezService) GetSupportedNIP47NotificationTypes() []string {
 
 func (bs *BreezService) GetPubkey() string {
 	return bs.pubkey
+}
+
+func (bs *BreezService) GetCustomCommandDefinitions() []lnclient.NodeCommandDef {
+	return nil
+}
+
+func (bs *BreezService) ExecuteCustomCommand(ctx context.Context, command *lnclient.NodeCommandRequest) (*lnclient.NodeCommandResponse, error) {
+	return nil, nil
 }
