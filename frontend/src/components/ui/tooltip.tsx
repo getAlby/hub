@@ -23,6 +23,11 @@ import { cn } from "src/lib/utils";
 
 const TooltipProvider = TooltipPrimitive.Provider;
 
+TooltipProvider.defaultProps = {
+  ...(TooltipProvider.defaultProps || {}),
+  delayDuration: 200,
+};
+
 const Tooltip = TooltipPrimitive.Root;
 
 const TooltipTrigger = TooltipPrimitive.Trigger;
