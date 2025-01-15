@@ -117,6 +117,13 @@ func migrateDB(from, to *gorm.DB) error {
 		return fmt.Errorf("failed to migrate user_configs: %w", err)
 	}
 
+	if to.Dialector.Name() == "postgres" {
+		slog.Info("resetting sequences...")
+		if err := resetSequences(to); err != nil {
+			return fmt.Errorf("failed to reset sequences: %w", err)
+		}
+	}
+
 	tx.Commit()
 	if err := tx.Error; err != nil {
 		return fmt.Errorf("failed to commit transaction: %w", err)
@@ -195,4 +202,37 @@ func listTables(db *gorm.DB) ([]string, error) {
 	}
 
 	return tables, nil
+}
+
+func resetSequences(db *gorm.DB) error {
+	type resetReq struct {
+		table string
+		seq   string
+	}
+
+	resetReqs := []resetReq{
+		{"apps", "apps_2_id_seq"},
+		{"app_permissions", "app_permissions_2_id_seq"},
+		{"request_events", "request_events_id_seq"},
+		{"response_events", "response_events_id_seq"},
+		{"transactions", "transactions_id_seq"},
+		{"user_configs", "user_configs_id_seq"},
+	}
+
+	for _, req := range resetReqs {
+		if err := resetPostgresSequence(db, req.table, req.seq); err != nil {
+			return fmt.Errorf("failed to reset sequence %q for %q: %w", req.seq, req.table, err)
+		}
+	}
+
+	return nil
+}
+
+func resetPostgresSequence(db *gorm.DB, table string, seq string) error {
+	query := fmt.Sprintf("SELECT setval('%s', (SELECT MAX(id) FROM %s));", seq, table)
+	if err := db.Exec(query).Error; err != nil {
+		return fmt.Errorf("failed to execute setval(): %w", err)
+	}
+
+	return nil
 }
