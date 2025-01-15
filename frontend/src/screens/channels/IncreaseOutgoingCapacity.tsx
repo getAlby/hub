@@ -33,6 +33,7 @@ import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
 import { usePeers } from "src/hooks/usePeers";
 import { cn, formatAmount } from "src/lib/utils";
+import { ChannelPeerNote } from "src/screens/channels/ChannelPeerNote";
 import { ChannelPublicPrivateAlert } from "src/screens/channels/ChannelPublicPrivateAlert";
 import useChannelOrderStore from "src/state/ChannelOrderStore";
 import {
@@ -86,6 +87,7 @@ function NewChannelInternal({ network }: { network: Network }) {
       pubkey: "",
       host: "",
       image: "",
+      note: "",
       publicChannelsAllowed: true,
     };
     return _channelPeerSuggestions
@@ -428,6 +430,7 @@ function NewChannelInternal({ network }: { network: Network }) {
           {channels?.some((channel) => channel.public !== !!order.isPublic) && (
             <ChannelPublicPrivateAlert />
           )}
+          {selectedPeer?.note && <ChannelPeerNote peer={selectedPeer} />}
           <Button size="lg">{openImmediately ? "Open Channel" : "Next"}</Button>
         </form>
 
