@@ -30,13 +30,14 @@ func (albyHttpSvc *AlbyHttpService) RegisterSharedRoutes(restrictedGroup *echo.G
 	e.GET("/api/alby/callback", albyHttpSvc.albyCallbackHandler)
 	e.GET("/api/alby/info", albyHttpSvc.albyInfoHandler)
 	e.GET("/api/alby/rates", albyHttpSvc.albyBitcoinRateHandler)
+	// allow unlinking even without a JWT token as this can be done before node start (which will give a new JWT)
+	e.POST("/api/alby/unlink-account", albyHttpSvc.unlinkHandler)
 	restrictedGroup.GET("/api/alby/me", albyHttpSvc.albyMeHandler)
 	restrictedGroup.GET("/api/alby/balance", albyHttpSvc.albyBalanceHandler)
 	restrictedGroup.POST("/api/alby/pay", albyHttpSvc.albyPayHandler)
 	restrictedGroup.POST("/api/alby/drain", albyHttpSvc.albyDrainHandler)
 	restrictedGroup.POST("/api/alby/link-account", albyHttpSvc.albyLinkAccountHandler)
 	restrictedGroup.POST("/api/alby/auto-channel", albyHttpSvc.autoChannelHandler)
-	restrictedGroup.POST("/api/alby/unlink-account", albyHttpSvc.unlinkHandler)
 }
 
 func (albyHttpSvc *AlbyHttpService) autoChannelHandler(c echo.Context) error {
