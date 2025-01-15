@@ -1731,6 +1731,14 @@ func (ls *LDKService) GetPubkey() string {
 	return ls.pubkey
 }
 
+func (ls *LDKService) GetCustomCommandDefinitions() []lnclient.NodeCommandDef {
+	return nil
+}
+
+func (ls *LDKService) ExecuteCustomCommand(ctx context.Context, command *lnclient.NodeCommandRequest) (*lnclient.NodeCommandResponse, error) {
+	return nil, nil
+}
+
 func getEncodedChannelMonitorsFromStaticChannelsBackup(channelsBackup *events.StaticChannelsBackupEvent) []ldk_node.KeyValue {
 	encodedMonitors := []ldk_node.KeyValue{}
 	for _, monitor := range channelsBackup.Monitors {

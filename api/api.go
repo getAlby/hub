@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"flag"
 	"fmt"
 	"io"
 	"net/http"
@@ -1022,6 +1023,65 @@ func (api *api) GetLogOutput(ctx context.Context, logType string, getLogRequest 
 	}
 
 	return &GetLogOutputResponse{Log: string(logData)}, nil
+}
+
+func (api *api) ExecuteNodeCommand(ctx context.Context, command string) ([]byte, error) {
+	lnClient := api.svc.GetLNClient()
+	if lnClient == nil {
+		return nil, errors.New("LNClient not started")
+	}
+
+	// Split command line into arguments. Command name must be the first argument.
+	parsedArgs, err := utils.ParseCommandLine(command)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse node command: %w", err)
+	} else if len(parsedArgs) == 0 {
+		return nil, errors.New("no command provided")
+	}
+
+	// Look up the requested command definition.
+	allCommandDefs := lnClient.GetCustomCommandDefinitions()
+	commandDefIdx := slices.IndexFunc(allCommandDefs, func(def lnclient.NodeCommandDef) bool {
+		return def.Name == parsedArgs[0]
+	})
+	if commandDefIdx < 0 {
+		return nil, fmt.Errorf("unknown command: %q", parsedArgs[0])
+	}
+
+	// Build flag set.
+	commandDef := allCommandDefs[commandDefIdx]
+	flagSet := flag.NewFlagSet(commandDef.Name, flag.ContinueOnError)
+	for _, argDef := range commandDef.Args {
+		flagSet.String(argDef.Name, "", "")
+	}
+
+	if err = flagSet.Parse(parsedArgs[1:]); err != nil {
+		return nil, fmt.Errorf("failed to parse command arguments: %w", err)
+	}
+
+	// Collect flags that have been set.
+	argValues := make(map[string]string)
+	flagSet.Visit(func(f *flag.Flag) {
+		argValues[f.Name] = f.Value.String()
+	})
+
+	reqArgs := make([]lnclient.NodeCommandArg, 0, len(argValues))
+	for argName, argValue := range argValues {
+		reqArgs = append(reqArgs, lnclient.NodeCommandArg{
+			Name:  argName,
+			Value: argValue,
+		})
+	}
+
+	nodeResp, err := lnClient.ExecuteCustomCommand(ctx, &lnclient.NodeCommandRequest{
+		Name: commandDef.Name,
+		Args: reqArgs,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("node failed to execute custom command: %w", err)
+	}
+
+	return nodeResp.RawJson, nil
 }
 
 func (api *api) parseExpiresAt(expiresAtString string) (*time.Time, error) {

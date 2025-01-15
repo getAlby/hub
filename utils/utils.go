@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 )
 
 func ReadFileTail(filePath string, maxLen int) (data []byte, err error) {
@@ -54,4 +55,40 @@ func Filter[T any](s []T, f func(T) bool) []T {
 		}
 	}
 	return r
+}
+
+func ParseCommandLine(s string) ([]string, error) {
+	var args []string
+	var currentArg strings.Builder
+	inQuotes := false
+	escaped := false
+
+	for _, r := range s {
+		switch {
+		case escaped:
+			currentArg.WriteRune(r)
+			escaped = false
+		case r == '\\':
+			escaped = true
+		case r == '"':
+			inQuotes = !inQuotes
+		case r == ' ' && !inQuotes:
+			if currentArg.Len() > 0 {
+				args = append(args, currentArg.String())
+				currentArg.Reset()
+			}
+		default:
+			currentArg.WriteRune(r)
+		}
+	}
+
+	if escaped {
+		return nil, fmt.Errorf("unexpected end of string")
+	}
+
+	if currentArg.Len() > 0 {
+		args = append(args, currentArg.String())
+	}
+
+	return args, nil
 }

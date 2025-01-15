@@ -1060,7 +1060,7 @@ func lndPaymentToTransaction(payment *lnrpc.Payment) (*lnclient.Transaction, err
 		DescriptionHash: descriptionHash,
 		ExpiresAt:       expiresAt,
 		SettledAt:       settledAt,
-		//TODO: Metadata:  (e.g. keysend),
+		// TODO: Metadata:  (e.g. keysend),
 	}, nil
 }
 
@@ -1263,3 +1263,11 @@ func (svc *LNDService) GetStorageDir() (string, error) {
 }
 
 func (svc *LNDService) UpdateLastWalletSyncRequest() {}
+
+func (svc *LNDService) GetCustomCommandDefinitions() []lnclient.NodeCommandDef {
+	return nil
+}
+
+func (svc *LNDService) ExecuteCustomCommand(ctx context.Context, command *lnclient.NodeCommandRequest) (*lnclient.NodeCommandResponse, error) {
+	return nil, nil
+}
