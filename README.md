@@ -154,7 +154,7 @@ Migration of the database is currently experimental. Please make a backup before
 2. Update the `DATABASE_URI` to your destination e.g. `postgresql://myuser:mypass@localhost:5432/nwc`
 3. Run the migration:
 
-   go run cmd/db_migrate/main.go .data/nwc.db postgresql://myuser:mypass@localhost:5432/nwc
+   go run cmd/db_migrate/main.go -from .data/nwc.db -to postgresql://myuser:mypass@localhost:5432/nwc
 
 ## Node-specific backend parameters
 
@@ -446,7 +446,7 @@ LDK logs:
 
 ### Docker
 
-Alby provides container images for each release. Please make sure to use a persistent volume. The lightning state and application state is persisted to disk.  
+Alby provides container images for each release. Please make sure to use a persistent volume. The lightning state and application state is persisted to disk.
 
 #### From Alby's Container Registry
 
