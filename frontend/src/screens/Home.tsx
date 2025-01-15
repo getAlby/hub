@@ -20,6 +20,12 @@ import OnboardingChecklist from "src/screens/wallet/OnboardingChecklist";
 
 import albyGo from "src/assets/suggested-apps/alby-go.png";
 import zapplanner from "src/assets/suggested-apps/zapplanner.png";
+import { AppOfTheDayWidget } from "src/components/home/widgets/AppOfTheDayWidget";
+import { BlockHeightWidget } from "src/components/home/widgets/BlockHeightWidget";
+import { LatestUsedAppsWidget } from "src/components/home/widgets/LatestUsedAppsWidget";
+import { NodeStatusWidget } from "src/components/home/widgets/NodeStatusWidget";
+import { OnchainFeesWidget } from "src/components/home/widgets/OnchainFeesWidget";
+import { WhatsNewWidget } from "src/components/home/widgets/WhatsNewWidget";
 
 function getGreeting(name: string | undefined) {
   const hours = new Date().getHours();
@@ -51,122 +57,135 @@ function Home() {
   return (
     <>
       <AppHeader title={getGreeting(albyMe?.name)} description="" />
-      <OnboardingChecklist />
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        {info.albyAccountConnected && (
-          <ExternalLink to="https://www.getalby.com/dashboard">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start justify-start">
+        {/* LEFT */}
+        <div className="grid gap-5">
+          <OnboardingChecklist />
+          <WhatsNewWidget />
+          {info.albyAccountConnected && (
+            <ExternalLink to="https://www.getalby.com/dashboard">
+              <Card>
+                <CardHeader>
+                  <div className="flex flex-row items-center">
+                    <div className="flex-shrink-0">
+                      <AlbyHead className="w-12 h-12 rounded-xl p-1 border" />
+                    </div>
+                    <div>
+                      <CardTitle>
+                        <div className="flex-1 leading-5 font-semibold text-xl whitespace-nowrap text-ellipsis overflow-hidden ml-4">
+                          Alby Account
+                        </div>
+                      </CardTitle>
+                      <CardDescription className="ml-4">
+                        Get an Alby Account with a web wallet interface,
+                        lightning address and other features.
+                      </CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="text-right">
+                  <Button variant="outline">
+                    Open Alby Account
+                    <ExternalLinkIcon className="w-4 h-4 ml-2" />
+                  </Button>
+                </CardContent>
+              </Card>
+            </ExternalLink>
+          )}
+
+          <Link to="/internal-apps/zapplanner">
             <Card>
               <CardHeader>
                 <div className="flex flex-row items-center">
                   <div className="flex-shrink-0">
-                    <AlbyHead className="w-12 h-12 rounded-xl p-1 border" />
+                    <img
+                      src={zapplanner}
+                      className="w-12 h-12 rounded-xl border"
+                    />
                   </div>
                   <div>
                     <CardTitle>
-                      <div className="flex-1 leading-5 font-semibold text-xl whitespace-nowrap text-ellipsis overflow-hidden ml-4">
-                        Alby Account
+                      <div className="flex-1 leading-5 font-semibold text-xl whitespace-nowrap text-ellipsis overflow-hidden ml-4 flex gap-2">
+                        ZapPlanner <Badge>NEW</Badge>
                       </div>
                     </CardTitle>
                     <CardDescription className="ml-4">
-                      Get an Alby Account with a web wallet interface, lightning
-                      address and other features.
+                      Schedule automatic recurring lightning payments.
                     </CardDescription>
                   </div>
                 </div>
               </CardHeader>
               <CardContent className="text-right">
-                <Button variant="outline">
-                  Open Alby Account
-                  <ExternalLinkIcon className="w-4 h-4 ml-2" />
-                </Button>
+                <Button variant="outline">Open</Button>
               </CardContent>
             </Card>
-          </ExternalLink>
-        )}
+          </Link>
 
-        <Link to="/internal-apps/zapplanner">
-          <Card>
-            <CardHeader>
-              <div className="flex flex-row items-center">
-                <div className="flex-shrink-0">
-                  <img
-                    src={zapplanner}
-                    className="w-12 h-12 rounded-xl border"
-                  />
-                </div>
-                <div>
-                  <CardTitle>
-                    <div className="flex-1 leading-5 font-semibold text-xl whitespace-nowrap text-ellipsis overflow-hidden ml-4 flex gap-2">
-                      ZapPlanner <Badge>NEW</Badge>
-                    </div>
-                  </CardTitle>
-                  <CardDescription className="ml-4">
-                    Schedule automatic recurring lightning payments.
-                  </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="text-right">
-              <Button variant="outline">Open</Button>
-            </CardContent>
-          </Card>
-        </Link>
-
-        <Link to="/appstore/alby-go">
-          <Card>
-            <CardHeader>
-              <div className="flex flex-row items-center">
-                <div className="flex-shrink-0">
-                  <img src={albyGo} className="w-12 h-12 rounded-xl border" />
-                </div>
-                <div>
-                  <CardTitle>
-                    <div className="flex-1 leading-5 font-semibold text-xl whitespace-nowrap text-ellipsis overflow-hidden ml-4">
-                      Alby Go
-                    </div>
-                  </CardTitle>
-                  <CardDescription className="ml-4">
-                    The easiest Bitcoin mobile app that works great with Alby
-                    Hub.
-                  </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="text-right">
-              <Button variant="outline">Open</Button>
-            </CardContent>
-          </Card>
-        </Link>
-        {!extensionInstalled && (
-          <ExternalLink to="https://getalby.com/products/browser-extension">
+          <Link to="/appstore/alby-go">
             <Card>
               <CardHeader>
                 <div className="flex flex-row items-center">
                   <div className="flex-shrink-0">
-                    <AlbyHead className="w-12 h-12 rounded-xl p-1 border bg-[#FFDF6F]" />
+                    <img src={albyGo} className="w-12 h-12 rounded-xl border" />
                   </div>
                   <div>
                     <CardTitle>
                       <div className="flex-1 leading-5 font-semibold text-xl whitespace-nowrap text-ellipsis overflow-hidden ml-4">
-                        Alby Browser Extension
+                        Alby Go
                       </div>
                     </CardTitle>
                     <CardDescription className="ml-4">
-                      Seamless bitcoin payments in your favorite internet
-                      browser.
+                      The easiest Bitcoin mobile app that works great with Alby
+                      Hub.
                     </CardDescription>
                   </div>
                 </div>
               </CardHeader>
               <CardContent className="text-right">
-                <Button variant="outline">
-                  Install Alby Extension
-                  <ExternalLinkIcon className="w-4 h-4 ml-2" />
-                </Button>
+                <Button variant="outline">Open</Button>
               </CardContent>
             </Card>
-          </ExternalLink>
-        )}
+          </Link>
+          {!extensionInstalled && (
+            <ExternalLink to="https://getalby.com/products/browser-extension">
+              <Card>
+                <CardHeader>
+                  <div className="flex flex-row items-center">
+                    <div className="flex-shrink-0">
+                      <AlbyHead className="w-12 h-12 rounded-xl p-1 border bg-[#FFDF6F]" />
+                    </div>
+                    <div>
+                      <CardTitle>
+                        <div className="flex-1 leading-5 font-semibold text-xl whitespace-nowrap text-ellipsis overflow-hidden ml-4">
+                          Alby Browser Extension
+                        </div>
+                      </CardTitle>
+                      <CardDescription className="ml-4">
+                        Seamless bitcoin payments in your favorite internet
+                        browser.
+                      </CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="text-right">
+                  <Button variant="outline">
+                    Install Alby Extension
+                    <ExternalLinkIcon className="w-4 h-4 ml-2" />
+                  </Button>
+                </CardContent>
+              </Card>
+            </ExternalLink>
+          )}
+        </div>
+
+        {/* RIGHT */}
+        <div className="grid gap-5">
+          <BlockHeightWidget />
+          <NodeStatusWidget />
+          <OnchainFeesWidget />
+          <LatestUsedAppsWidget />
+          <AppOfTheDayWidget />
+        </div>
       </div>
     </>
   );
