@@ -92,32 +92,32 @@ func migrateDB(from, to *gorm.DB) error {
 	// before referencing tables.
 
 	logger.Logger.Info("migrating apps...")
-	if err := migrateTable[db.App](from, to); err != nil {
+	if err := migrateTable[db.App](from, tx); err != nil {
 		return fmt.Errorf("failed to migrate apps: %w", err)
 	}
 
 	logger.Logger.Info("migrating app_permissions...")
-	if err := migrateTable[db.AppPermission](from, to); err != nil {
+	if err := migrateTable[db.AppPermission](from, tx); err != nil {
 		return fmt.Errorf("failed to migrate app_permissions: %w", err)
 	}
 
 	logger.Logger.Info("migrating request_events...")
-	if err := migrateTable[db.RequestEvent](from, to); err != nil {
+	if err := migrateTable[db.RequestEvent](from, tx); err != nil {
 		return fmt.Errorf("failed to migrate request_events: %w", err)
 	}
 
 	logger.Logger.Info("migrating response_events...")
-	if err := migrateTable[db.ResponseEvent](from, to); err != nil {
+	if err := migrateTable[db.ResponseEvent](from, tx); err != nil {
 		return fmt.Errorf("failed to migrate response_events: %w", err)
 	}
 
 	logger.Logger.Info("migrating transactions...")
-	if err := migrateTable[db.Transaction](from, to); err != nil {
+	if err := migrateTable[db.Transaction](from, tx); err != nil {
 		return fmt.Errorf("failed to migrate transactions: %w", err)
 	}
 
 	logger.Logger.Info("migrating user_configs...")
-	if err := migrateTable[db.UserConfig](from, to); err != nil {
+	if err := migrateTable[db.UserConfig](from, tx); err != nil {
 		return fmt.Errorf("failed to migrate user_configs: %w", err)
 	}
 
