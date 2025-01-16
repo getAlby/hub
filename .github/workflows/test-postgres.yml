@@ -41,4 +41,5 @@ jobs:
       - name: Run tests
         env:
           TEST_DATABASE_URI: "postgresql://alby:albytest123@localhost:5432/albyhub"
+          TEST_DB_MIGRATE_POSTGRES_URI: "postgresql://alby:albytest123@localhost:5432/albyhub"
         run: mkdir frontend/dist && touch frontend/dist/tmp && go test ./...
