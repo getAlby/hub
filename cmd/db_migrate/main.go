@@ -3,13 +3,15 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log/slog"
 	"os"
 	"slices"
+	"strconv"
 
+	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
 	"github.com/getAlby/hub/db"
+	"github.com/getAlby/hub/logger"
 )
 
 var expectedTables = []string{
@@ -25,6 +27,8 @@ var expectedTables = []string{
 func main() {
 	var fromDSN, toDSN string
 
+	logger.Init(strconv.Itoa(int(logrus.DebugLevel)))
+
 	flag.StringVar(&fromDSN, "from", "", "source DSN")
 	flag.StringVar(&toDSN, "to", "", "destination DSN")
 
@@ -32,28 +36,28 @@ func main() {
 
 	if fromDSN == "" || toDSN == "" {
 		flag.Usage()
-		slog.Error("missing DSN")
+		logger.Logger.Error("missing DSN")
 		os.Exit(1)
 	}
 
 	stopDB := func(d *gorm.DB) {
 		if err := db.Stop(d); err != nil {
-			slog.Error("failed to close database", "error", err)
+			logger.Logger.WithError(err).Error("failed to close database")
 		}
 	}
 
-	slog.Info("opening source DB...")
+	logger.Logger.Info("opening source DB...")
 	fromDB, err := db.NewDB(fromDSN, false)
 	if err != nil {
-		slog.Error("failed to open source database", "error", err)
+		logger.Logger.WithError(err).Error("failed to open source database")
 		os.Exit(1)
 	}
 	defer stopDB(fromDB)
 
-	slog.Info("opening destination DB...")
+	logger.Logger.Info("opening destination DB...")
 	toDB, err := db.NewDB(toDSN, false)
 	if err != nil {
-		slog.Error("failed to open destination database", "error", err)
+		logger.Logger.WithError(err).Error("failed to open destination database")
 		os.Exit(1)
 	}
 	defer stopDB(toDB)
@@ -62,18 +66,18 @@ func main() {
 	// schemas should be equal at this point.
 	err = checkSchema(fromDB)
 	if err != nil {
-		slog.Error("database schema check failed; the migration tool may be outdated", "error", err)
+		logger.Logger.WithError(err).Error("database schema check failed; the migration tool may be outdated")
 		os.Exit(1)
 	}
 
-	slog.Info("migrating...")
+	logger.Logger.Info("migrating...")
 	err = migrateDB(fromDB, toDB)
 	if err != nil {
-		slog.Error("failed to migrate database", "error", err)
+		logger.Logger.WithError(err).Error("failed to migrate database")
 		os.Exit(1)
 	}
 
-	slog.Info("migration complete")
+	logger.Logger.Info("migration complete")
 }
 
 func migrateDB(from, to *gorm.DB) error {
@@ -87,38 +91,38 @@ func migrateDB(from, to *gorm.DB) error {
 	// Table migration order matters: referenced tables must be migrated
 	// before referencing tables.
 
-	slog.Info("migrating apps...")
+	logger.Logger.Info("migrating apps...")
 	if err := migrateTable[db.App](from, to); err != nil {
 		return fmt.Errorf("failed to migrate apps: %w", err)
 	}
 
-	slog.Info("migrating app_permissions...")
+	logger.Logger.Info("migrating app_permissions...")
 	if err := migrateTable[db.AppPermission](from, to); err != nil {
 		return fmt.Errorf("failed to migrate app_permissions: %w", err)
 	}
 
-	slog.Info("migrating request_events...")
+	logger.Logger.Info("migrating request_events...")
 	if err := migrateTable[db.RequestEvent](from, to); err != nil {
 		return fmt.Errorf("failed to migrate request_events: %w", err)
 	}
 
-	slog.Info("migrating response_events...")
+	logger.Logger.Info("migrating response_events...")
 	if err := migrateTable[db.ResponseEvent](from, to); err != nil {
 		return fmt.Errorf("failed to migrate response_events: %w", err)
 	}
 
-	slog.Info("migrating transactions...")
+	logger.Logger.Info("migrating transactions...")
 	if err := migrateTable[db.Transaction](from, to); err != nil {
 		return fmt.Errorf("failed to migrate transactions: %w", err)
 	}
 
-	slog.Info("migrating user_configs...")
+	logger.Logger.Info("migrating user_configs...")
 	if err := migrateTable[db.UserConfig](from, to); err != nil {
 		return fmt.Errorf("failed to migrate user_configs: %w", err)
 	}
 
 	if to.Dialector.Name() == "postgres" {
-		slog.Info("resetting sequences...")
+		logger.Logger.Info("resetting sequences...")
 		if err := resetSequences(to); err != nil {
 			return fmt.Errorf("failed to reset sequences: %w", err)
 		}
@@ -188,7 +192,7 @@ func listTables(db *gorm.DB) ([]string, error) {
 	}
 	defer func() {
 		if err := rows.Close(); err != nil {
-			slog.Error("failed to close rows", "error", err)
+			logger.Logger.WithError(err).Error("failed to close rows")
 		}
 	}()
 

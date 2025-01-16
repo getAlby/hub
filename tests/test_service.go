@@ -4,16 +4,17 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/getAlby/hub/apps"
+	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/tests/db"
 
-	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
-	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/service/keys"
 )
 
@@ -22,6 +23,8 @@ func CreateTestService(t *testing.T) (svc *TestService, err error) {
 }
 
 func CreateTestServiceWithMnemonic(t *testing.T, mnemonic string, unlockPassword string) (svc *TestService, err error) {
+	logger.Init(strconv.Itoa(int(logrus.DebugLevel)))
+
 	gormDb, err := db.NewDB(t)
 	if err != nil {
 		return nil, err
@@ -31,8 +34,6 @@ func CreateTestServiceWithMnemonic(t *testing.T, mnemonic string, unlockPassword
 	if err != nil {
 		return nil, err
 	}
-
-	logger.Init(strconv.Itoa(int(logrus.DebugLevel)))
 
 	appConfig := &config.AppConfig{
 		Workdir: ".test",

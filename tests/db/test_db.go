@@ -26,7 +26,10 @@ func GetTestDatabaseURI() string {
 }
 
 func NewDB(t *testing.T) (*gorm.DB, error) {
-	uri := GetTestDatabaseURI()
+	return NewDBWithURI(t, GetTestDatabaseURI())
+}
+
+func NewDBWithURI(t *testing.T, uri string) (*gorm.DB, error) {
 	if db.IsPostgresURI(uri) {
 		parsedURI, err := url.Parse(uri)
 		if err != nil {
