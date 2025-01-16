@@ -43,7 +43,10 @@ type StepperContextProviderProps = {
   children: React.ReactNode;
 };
 
-const StepperProvider = ({ value, children }: StepperContextProviderProps) => {
+export const StepperProvider = ({
+  value,
+  children,
+}: StepperContextProviderProps) => {
   const isError = value.state === "error";
   const isLoading = value.state === "loading";
 
@@ -623,7 +626,7 @@ const VerticalStep = React.forwardRef<HTMLDivElement, VerticalStepProps>(
           <StepLabel
             label={label}
             description={description}
-            {...{ isCurrentStep, opacity }}
+            {...{ isCurrentStep, opacity, size: "lg" }}
           />
         </div>
         <div
@@ -997,7 +1000,8 @@ const StepLabel = ({
           className={cn(
             "stepper__step-label",
             labelVariants({ size }),
-            styles?.["step-label"]
+            styles?.["step-label"],
+            "font-semibold"
           )}
         >
           {label}
