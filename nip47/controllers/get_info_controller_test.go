@@ -25,9 +25,9 @@ const nip47GetInfoJson = `
 
 func TestHandleGetInfoEvent_NoPermission(t *testing.T) {
 	ctx := context.TODO()
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -74,9 +74,9 @@ func TestHandleGetInfoEvent_NoPermission(t *testing.T) {
 
 func TestHandleGetInfoEvent_WithPermission(t *testing.T) {
 	ctx := context.TODO()
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -122,9 +122,9 @@ func TestHandleGetInfoEvent_WithPermission(t *testing.T) {
 
 func TestHandleGetInfoEvent_WithNotifications(t *testing.T) {
 	ctx := context.TODO()
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
