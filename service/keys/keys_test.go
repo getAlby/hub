@@ -1,10 +1,14 @@
 package keys
 
 import (
+	"strconv"
 	"strings"
 	"testing"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/getAlby/hub/config"
+	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/tests/db"
 
 	"github.com/nbd-wtf/go-nostr"
@@ -15,6 +19,7 @@ import (
 )
 
 func TestUseExistingMnemonic(t *testing.T) {
+	logger.Init(strconv.Itoa(int(logrus.DebugLevel)))
 	gormDb, err := db.NewDB(t)
 	require.NoError(t, err)
 	defer db.CloseDB(gormDb)
@@ -59,6 +64,7 @@ func TestUseExistingMnemonic(t *testing.T) {
 }
 
 func TestGenerateNewMnemonic(t *testing.T) {
+	logger.Init(strconv.Itoa(int(logrus.DebugLevel)))
 	gormDb, err := db.NewDB(t)
 	require.NoError(t, err)
 	defer db.CloseDB(gormDb)
