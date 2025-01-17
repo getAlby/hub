@@ -95,6 +95,7 @@ export function PayLightningInvoice({
         <Button
           onClick={copy}
           variant="outline"
+          size={"sm"}
           className="flex-1 flex gap-2 items-center justify-center"
         >
           <CopyIcon className="w-4 h-4 mr-2" />
@@ -105,6 +106,7 @@ export function PayLightningInvoice({
             <LoadingButton
               loading={isPaying}
               className="whitespace-nowrap"
+              size={"sm"}
               onClick={handlePayment}
             >
               Pay and open channel
