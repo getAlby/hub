@@ -1357,7 +1357,7 @@ export const suggestedApps: SuggestedApp[] = [
         <div>
           <h3 className="font-medium">In Zapstore</h3>
           <ul className="list-inside text-muted-foreground">
-            <li>6. Paste the connection secret from Alby Hub</li>
+            <li>5. Paste the connection secret from Alby Hub</li>
           </ul>
         </div>
       </>
