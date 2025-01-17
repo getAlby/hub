@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"unicode"
 )
 
 func ReadFileTail(filePath string, maxLen int) (data []byte, err error) {
@@ -72,7 +73,7 @@ func ParseCommandLine(s string) ([]string, error) {
 			escaped = true
 		case r == '"':
 			inQuotes = !inQuotes
-		case r == ' ' && !inQuotes:
+		case unicode.IsSpace(r) && !inQuotes:
 			if currentArg.Len() > 0 {
 				args = append(args, currentArg.String())
 				currentArg.Reset()

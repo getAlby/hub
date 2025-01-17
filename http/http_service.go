@@ -153,6 +153,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedGroup.POST("/api/send-payment-probes", httpSvc.sendPaymentProbesHandler)
 	restrictedGroup.POST("/api/send-spontaneous-payment-probes", httpSvc.sendSpontaneousPaymentProbesHandler)
 	restrictedGroup.GET("/api/log/:type", httpSvc.getLogOutputHandler)
+	restrictedGroup.POST("/api/command", httpSvc.execCommandHandler)
 
 	httpSvc.albyHttpSvc.RegisterSharedRoutes(restrictedGroup, e)
 }
@@ -996,6 +997,24 @@ func (httpSvc *HttpService) getLogOutputHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, getLogResponse)
+}
+
+func (httpSvc *HttpService) execCommandHandler(c echo.Context) error {
+	var execCommandRequest api.ExecuteCommandRequest
+	if err := c.Bind(&execCommandRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	execCommandResponse, err := httpSvc.api.ExecuteNodeCommand(c.Request().Context(), execCommandRequest.Command)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to execute command: %v", err),
+		})
+	}
+
+	return c.JSONBlob(http.StatusOK, execCommandResponse)
 }
 
 func (httpSvc *HttpService) logoutHandler(c echo.Context) error {

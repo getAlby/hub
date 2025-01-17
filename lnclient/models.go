@@ -191,7 +191,8 @@ type PaymentFailedEventProperties struct {
 }
 
 type NodeCommandArgDef struct {
-	Name string
+	Name        string
+	Description string
 }
 
 type NodeCommandDef struct {

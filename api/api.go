@@ -1052,7 +1052,7 @@ func (api *api) ExecuteNodeCommand(ctx context.Context, command string) ([]byte,
 	commandDef := allCommandDefs[commandDefIdx]
 	flagSet := flag.NewFlagSet(commandDef.Name, flag.ContinueOnError)
 	for _, argDef := range commandDef.Args {
-		flagSet.String(argDef.Name, "", "")
+		flagSet.String(argDef.Name, "", argDef.Description)
 	}
 
 	if err = flagSet.Parse(parsedArgs[1:]); err != nil {

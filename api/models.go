@@ -56,6 +56,7 @@ type API interface {
 	RestoreBackup(unlockPassword string, r io.Reader) error
 	MigrateNodeStorage(ctx context.Context, to string) error
 	GetWalletCapabilities(ctx context.Context) (*WalletCapabilitiesResponse, error)
+	ExecuteNodeCommand(ctx context.Context, command string) ([]byte, error)
 }
 
 type App struct {
@@ -365,4 +366,8 @@ type Channel struct {
 
 type MigrateNodeStorageRequest struct {
 	To string `json:"to"`
+}
+
+type ExecuteCommandRequest struct {
+	Command string `json:"command"`
 }
