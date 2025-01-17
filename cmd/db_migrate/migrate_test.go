@@ -30,6 +30,40 @@ func (e *testEnvironment) cleanup(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestSchemaCheck(t *testing.T) {
+	type testCase struct {
+		name string
+		uri  string
+	}
+
+	tc := []testCase{
+		{
+			name: "schema check sqlite",
+			uri:  getTestSqliteURI(0),
+		},
+	}
+
+	if pgUri := getTestPostgresURI(); pgUri != "" {
+		tc = append(tc, testCase{
+			name: "schema check postgres",
+			uri:  pgUri,
+		})
+	}
+
+	logger.Init(strconv.Itoa(int(logrus.DebugLevel)))
+
+	for _, tt := range tc {
+		t.Run(tt.name, func(t *testing.T) {
+			dbConn, err := test_db.NewDBWithURI(t, tt.uri)
+			require.NoError(t, err)
+			defer db.Stop(dbConn)
+
+			err = checkSchema(dbConn)
+			require.NoError(t, err)
+		})
+	}
+}
+
 func TestMigrate(t *testing.T) {
 	type testCase struct {
 		name      string
