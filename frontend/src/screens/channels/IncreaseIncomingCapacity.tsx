@@ -31,6 +31,7 @@ import { useChannelPeerSuggestions } from "src/hooks/useChannelPeerSuggestions";
 import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
 import { cn, formatAmount } from "src/lib/utils";
+import { ChannelPeerNote } from "src/screens/channels/ChannelPeerNote";
 import { ChannelPublicPrivateAlert } from "src/screens/channels/ChannelPublicPrivateAlert";
 import { CurrentChannelOrder } from "src/screens/channels/CurrentChannelOrder";
 import useChannelOrderStore from "src/state/ChannelOrderStore";
@@ -308,7 +309,6 @@ function NewChannelInternal({
                   <ChevronDown className="w-4 h-4" />
                 )}
               </div>
-
               {showAdvanced && (
                 <>
                   <div className="flex flex-col gap-3">
@@ -455,10 +455,10 @@ function NewChannelInternal({
                   </div>
                 </>
               )}
-
               {channels?.some(
                 (channel) => channel.public !== !!order.isPublic
               ) && <ChannelPublicPrivateAlert />}
+              {selectedPeer?.note && <ChannelPeerNote peer={selectedPeer} />}
               <StepButtons />
             </form>
           </div>
