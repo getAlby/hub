@@ -14,8 +14,8 @@ import { request } from "src/utils/request";
 
 type PayLightningInvoiceProps = {
   invoice: string;
-  lspOrderResponse: LSPOrderResponse;
-  canPayInternally: boolean | undefined;
+  lspOrderResponse?: LSPOrderResponse;
+  canPayInternally?: boolean | undefined;
 };
 
 export function PayLightningInvoice({
@@ -43,7 +43,7 @@ export function PayLightningInvoice({
     try {
       setPaying(true);
 
-      await request(`/api/payments/${lspOrderResponse.invoice}`, {
+      await request(`/api/payments/${lspOrderResponse?.invoice}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

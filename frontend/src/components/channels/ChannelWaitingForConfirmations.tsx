@@ -30,7 +30,11 @@ export function ChannelWaitingForConfirmations({
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
+    <div className="flex flex-col gap-4">
+      <p className="text-muted-foreground ">
+        You can now leave this page.We’ll notify your by email once your channel
+        is active.
+      </p>
       <div className="w-80 flex justify-center">
         <Card className="text-center">
           <CardHeader>
@@ -48,10 +52,6 @@ export function ChannelWaitingForConfirmations({
           </CardContent>
         </Card>
       </div>
-      <p className="text-muted-foreground order-first md:order-last">
-        You can now leave this page.We’ll notify your by email once your channel
-        is active.
-      </p>
     </div>
   );
 }
