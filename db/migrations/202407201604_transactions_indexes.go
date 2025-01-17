@@ -12,7 +12,7 @@ import (
 // - Adds indexes that should speed up queries related to transactions
 // - (basic indexes)
 // - index for budget query
-// - index for isolated/sub-wallet balance queries
+// - index for isolated balance queries
 // - index for list_transactions / lookup transaciton queries
 
 var _202407201604_transactions_indexes = &gormigrate.Migration{
