@@ -29,7 +29,7 @@ then
   pkill -f albyhub
 fi
 
-SCRIPT_DIR=$(pwd)
+SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
 read -p "Absolute install directory path (default: $SCRIPT_DIR): " USER_INSTALL_DIR
 echo ""
 
