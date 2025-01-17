@@ -320,6 +320,7 @@ export type RecommendedChannelPeer = {
   name: string;
   minimumChannelSize: number;
   maximumChannelSize: number;
+  note: string;
   publicChannelsAllowed: boolean;
 } & (
   | {
