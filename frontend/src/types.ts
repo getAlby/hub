@@ -157,6 +157,21 @@ export interface InfoResponse {
   autoUnlockPasswordEnabled: boolean;
 }
 
+export type HealthAlarmKind =
+  | "alby_service"
+  | "node_not_ready"
+  | "channels_offline"
+  | "nostr_relay_offline";
+
+export type HealthAlarm = {
+  kind: HealthAlarmKind;
+  rawDetails: unknown;
+};
+
+export type HealthResponse = {
+  alarms: HealthAlarm[];
+};
+
 export type Network = "bitcoin" | "testnet" | "signet";
 
 export type AppMetadata = { app_store_app_id?: string } & Record<
@@ -320,6 +335,7 @@ export type RecommendedChannelPeer = {
   name: string;
   minimumChannelSize: number;
   maximumChannelSize: number;
+  note: string;
   publicChannelsAllowed: boolean;
 } & (
   | {
@@ -440,6 +456,7 @@ export type Transaction = {
     }; // NIP-57
   } & Record<string, unknown>;
   boostagram?: Boostagram;
+  failureReason: string;
 };
 
 export type Boostagram = {

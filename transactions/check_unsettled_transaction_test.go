@@ -5,18 +5,19 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/tests"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestCheckUnsettledTransaction(t *testing.T) {
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	dbTransaction := db.Transaction{
 		State:       constants.TRANSACTION_STATE_PENDING,
@@ -51,9 +52,9 @@ func TestCheckUnsettledTransaction(t *testing.T) {
 }
 
 func TestCheckUnsettledTransactions(t *testing.T) {
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	dbTransaction := db.Transaction{
 		State:       constants.TRANSACTION_STATE_PENDING,

@@ -114,6 +114,7 @@ func toApiTransaction(transaction *transactions.Transaction) *Transaction {
 		SettledAt:       settledAt,
 		Metadata:        metadata,
 		Boostagram:      boostagram,
+		FailureReason:   transaction.FailureReason,
 	}
 }
 
@@ -122,7 +123,7 @@ func (api *api) TopupIsolatedApp(ctx context.Context, userApp *db.App, amountMsa
 		return errors.New("LNClient not started")
 	}
 	if !userApp.Isolated {
-		return errors.New("app is not isolated")
+		return errors.New("this app is not a sub-wallet")
 	}
 
 	transaction, err := api.svc.GetTransactionsService().MakeInvoice(ctx, amountMsat, "top up", "", 0, nil, api.svc.GetLNClient(), &userApp.ID, nil)

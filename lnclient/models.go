@@ -100,6 +100,7 @@ type Channel struct {
 }
 
 type NodeStatus struct {
+	IsReady            bool        `json:"isReady"`
 	InternalNodeStatus interface{} `json:"internalNodeStatus"`
 }
 
