@@ -247,7 +247,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/labstack/echo-jwt/v4 v4.3.0
-	github.com/lightningnetwork/lnd v0.18.4-beta.rc1
+	github.com/lightningnetwork/lnd v0.18.4-beta.rc2
 	github.com/sirupsen/logrus v1.9.3
 	github.com/tyler-smith/go-bip32 v1.0.0
 	golang.org/x/exp v0.0.0-20240909161429-701f63a606c0 // indirect
