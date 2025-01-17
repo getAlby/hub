@@ -12,7 +12,7 @@ export function WhatsNewWidget() {
   const { data: info } = useInfo();
   const { data: albyInfo } = useAlbyInfo();
 
-  if (!info || !albyInfo) {
+  if (!info || !albyInfo || !albyInfo.hub.latestReleaseNotes) {
     return null;
   }
 

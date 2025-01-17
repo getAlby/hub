@@ -180,11 +180,11 @@ function Home() {
 
         {/* RIGHT */}
         <div className="grid gap-5">
-          <BlockHeightWidget />
-          <NodeStatusWidget />
-          <OnchainFeesWidget />
           <LatestUsedAppsWidget />
           <AppOfTheDayWidget />
+          <NodeStatusWidget />
+          <BlockHeightWidget />
+          <OnchainFeesWidget />
         </div>
       </div>
     </>

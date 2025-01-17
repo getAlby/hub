@@ -12,7 +12,7 @@ import { useApps } from "src/hooks/useApps";
 
 export function LatestUsedAppsWidget() {
   const { data: apps } = useApps();
-  if (!apps) {
+  if (!apps?.length) {
     return null;
   }
 
