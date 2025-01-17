@@ -1024,6 +1024,50 @@ func (api *api) GetLogOutput(ctx context.Context, logType string, getLogRequest 
 	return &GetLogOutputResponse{Log: string(logData)}, nil
 }
 
+func (api *api) Health(ctx context.Context) (*HealthResponse, error) {
+	var alarms []HealthAlarm
+
+	albyInfo, err := api.albyOAuthSvc.GetInfo(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if !albyInfo.Healthy {
+		alarms = append(alarms, NewHealthAlarm(HealthAlarmKindAlbyService, albyInfo.Incidents))
+	}
+
+	isNostrRelayReady := api.svc.IsRelayReady()
+	if !isNostrRelayReady {
+		alarms = append(alarms, NewHealthAlarm(HealthAlarmKindNostrRelayOffline, nil))
+	}
+
+	lnClient := api.svc.GetLNClient()
+
+	if lnClient != nil {
+		nodeStatus, err := lnClient.GetNodeStatus(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if nodeStatus == nil || !nodeStatus.IsReady {
+			alarms = append(alarms, NewHealthAlarm(HealthAlarmKindNodeNotReady, nodeStatus))
+		}
+
+		channels, err := lnClient.ListChannels(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		offlineChannels := slices.DeleteFunc(channels, func(channel lnclient.Channel) bool {
+			return channel.Active
+		})
+
+		if len(offlineChannels) > 0 {
+			alarms = append(alarms, NewHealthAlarm(HealthAlarmKindChannelsOffline, nil))
+		}
+	}
+
+	return &HealthResponse{Alarms: alarms}, nil
+}
+
 func (api *api) parseExpiresAt(expiresAtString string) (*time.Time, error) {
 	var expiresAt *time.Time
 	if expiresAtString != "" {

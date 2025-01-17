@@ -507,7 +507,9 @@ func (svc *PhoenixService) GetLogOutput(ctx context.Context, maxLen int) ([]byte
 }
 
 func (svc *PhoenixService) GetNodeStatus(ctx context.Context) (nodeStatus *lnclient.NodeStatus, err error) {
-	return nil, nil
+	return &lnclient.NodeStatus{
+		IsReady: true,
+	}, nil
 }
 
 func (svc *PhoenixService) GetStorageDir() (string, error) {
