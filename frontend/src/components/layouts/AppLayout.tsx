@@ -289,8 +289,7 @@ export default function AppLayout() {
                       <Link to="/">
                         <AlbyHubLogo className="text-foreground" />
                       </Link>
-                      {/* align shield with x icon */}
-                      <div className="mr-2">
+                      <div className="mr-1 flex gap-2 items-center justify-center">
                         <AppVersion />
                         <HealthIndicator />
                       </div>
