@@ -250,3 +250,11 @@ func (svc *service) GetTransactionsService() transactions.TransactionsService {
 func (svc *service) GetKeys() keys.Keys {
 	return svc.keys
 }
+
+func (svc *service) setRelayReady(ready bool) {
+	svc.isRelayReady.Store(ready)
+}
+
+func (svc *service) IsRelayReady() bool {
+	return svc.isRelayReady.Load()
+}

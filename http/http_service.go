@@ -153,6 +153,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedGroup.POST("/api/send-payment-probes", httpSvc.sendPaymentProbesHandler)
 	restrictedGroup.POST("/api/send-spontaneous-payment-probes", httpSvc.sendSpontaneousPaymentProbesHandler)
 	restrictedGroup.GET("/api/log/:type", httpSvc.getLogOutputHandler)
+	restrictedGroup.GET("/api/health", httpSvc.healthHandler)
 
 	httpSvc.albyHttpSvc.RegisterSharedRoutes(restrictedGroup, e)
 }
@@ -874,9 +875,9 @@ func (httpSvc *HttpService) isolatedAppTopupHandler(c echo.Context) error {
 	err := httpSvc.api.TopupIsolatedApp(c.Request().Context(), dbApp, requestData.AmountSat*1000)
 
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to topup isolated app")
+		logger.Logger.WithError(err).Error("Failed to topup sub-wallet")
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to topup isolated app: %v", err),
+			Message: fmt.Sprintf("Failed to topup sub-wallet: %v", err),
 		})
 	}
 
@@ -1071,4 +1072,15 @@ func (httpSvc *HttpService) restoreBackupHandler(c echo.Context) error {
 	}
 
 	return c.NoContent(http.StatusNoContent)
+}
+
+func (httpSvc *HttpService) healthHandler(c echo.Context) error {
+	healthResponse, err := httpSvc.api.Health(c.Request().Context())
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to check node health: %v", err),
+		})
+	}
+
+	return c.JSON(http.StatusOK, healthResponse)
 }
