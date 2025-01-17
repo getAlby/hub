@@ -13,8 +13,8 @@ import {
 
 export function AppOfTheDayWidget() {
   function seededRandom(seed: number) {
-    seed = (seed * 48271) % 2147483647; // LCG formula
-    return (seed - 1) / 2147483646; // Normalize to [0, 1)
+    const x = Math.sin(seed++) * 10000;
+    return x - Math.floor(x);
   }
 
   const daysSinceEpoch = Math.floor(Date.now() / (1000 * 60 * 60 * 24));
