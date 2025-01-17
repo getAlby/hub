@@ -1,7 +1,11 @@
 import { Button } from "src/components/ui/button";
 import { useStepper } from "src/components/ui/Stepper";
 
-export default function StepButtons() {
+type StepButtonProps = {
+  onNextClick?: () => void;
+};
+
+export default function StepButtons({ onNextClick }: StepButtonProps) {
   const { nextStep, prevStep, isLastStep, isDisabledStep } = useStepper();
   return (
     <>
@@ -16,7 +20,16 @@ export default function StepButtons() {
               Back
             </Button>
           ) : (
-            <Button onClick={nextStep}>Next</Button>
+            <Button
+              onClick={() => {
+                if (onNextClick) {
+                  onNextClick();
+                }
+                nextStep();
+              }}
+            >
+              Next
+            </Button>
           )}
         </>
       </div>

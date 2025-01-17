@@ -1,5 +1,5 @@
 import { ChevronDown, ChevronUp, InfoIcon, RefreshCw } from "lucide-react";
-import React, { FormEvent, useState } from "react";
+import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
@@ -146,8 +146,7 @@ function NewChannelInternal({
     }
   }, [order.paymentMethod, selectedPeer]);
 
-  function onSubmit(e: FormEvent) {
-    e.preventDefault();
+  function onSubmit() {
     try {
       if (!showAdvanced) {
         if (!channelPeerSuggestions) {
@@ -238,7 +237,7 @@ function NewChannelInternal({
                 Learn more
               </ExternalLink>
             </p>
-            <form onSubmit={onSubmit} className="flex flex-col gap-5 flex-1">
+            <div className="flex flex-col gap-5 flex-1">
               <div className="grid gap-2">
                 <TooltipProvider>
                   <Tooltip>
@@ -459,8 +458,8 @@ function NewChannelInternal({
                 (channel) => channel.public !== !!order.isPublic
               ) && <ChannelPublicPrivateAlert />}
               {selectedPeer?.note && <ChannelPeerNote peer={selectedPeer} />}
-              <StepButtons />
-            </form>
+              <StepButtons onNextClick={() => onSubmit()} />
+            </div>
           </div>
         </Step>
 
