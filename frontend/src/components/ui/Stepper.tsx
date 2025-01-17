@@ -1001,7 +1001,7 @@ const StepLabel = ({
             "stepper__step-label",
             labelVariants({ size }),
             styles?.["step-label"],
-            "font-semibold"
+            "text-lg font-semibold"
           )}
         >
           {label}
