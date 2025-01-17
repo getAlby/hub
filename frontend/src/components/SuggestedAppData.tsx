@@ -1343,7 +1343,7 @@ export const suggestedApps: SuggestedApp[] = [
           <h3 className="font-medium">In Alby Hub</h3>
           <ul className="list-inside text-muted-foreground">
             <li>
-              4. Click{" "}
+              3. Click{" "}
               <Link
                 to="/apps/new?app=zapstore"
                 className="font-medium text-foreground underline"
