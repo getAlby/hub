@@ -1351,7 +1351,7 @@ export const suggestedApps: SuggestedApp[] = [
                 Connect to Zapstore
               </Link>
             </li>
-            <li>5. Set app's wallet permissions (full access recommended)</li>
+            <li>4. Set app's wallet permissions (full access recommended)</li>
           </ul>
         </div>
         <div>
