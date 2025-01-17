@@ -1,5 +1,6 @@
 import dayjs from "dayjs";
 import { ChevronRight } from "lucide-react";
+import { Link } from "react-router-dom";
 import AppAvatar from "src/components/AppAvatar";
 import {
   Card,
@@ -29,23 +30,24 @@ export function LatestUsedAppsWidget() {
           )
           .slice(0, 3)
           .map((app) => (
-            <div
-              key={app.id}
-              className="flex items-center justify-between w-full"
-            >
-              <div className="flex items-center justify-center gap-4">
-                <AppAvatar app={app} className="w-14 h-14 rounded-lg" />
-                <p className="text-xl font-semibold">
-                  {app.name === "getalby.com" ? "Alby Account" : app.name}
-                </p>
+            <Link key={app.id} to={`/apps/${app.appPubkey}`}>
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center justify-center gap-4">
+                  <AppAvatar app={app} className="w-14 h-14 rounded-lg" />
+                  <p className="text-xl font-semibold">
+                    {app.name === "getalby.com" ? "Alby Account" : app.name}
+                  </p>
+                </div>
+                <div className="flex items-center justify-center gap-4">
+                  <p className="text-sm text-muted-foreground">
+                    {app.lastEventAt
+                      ? dayjs(app.lastEventAt).fromNow()
+                      : "never"}
+                  </p>
+                  <ChevronRight className="text-muted-foreground w-8 h-8" />
+                </div>
               </div>
-              <div className="flex items-center justify-center gap-4">
-                <p className="text-sm text-muted-foreground">
-                  {app.lastEventAt ? dayjs(app.lastEventAt).fromNow() : "never"}
-                </p>
-                <ChevronRight className="text-muted-foreground w-8 h-8" />
-              </div>
-            </div>
+            </Link>
           ))}
       </CardContent>
     </Card>
