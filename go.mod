@@ -12,18 +12,20 @@ require (
 	github.com/getAlby/ldk-node-go v0.0.0-20250106052504-d4191410486f
 	github.com/go-gormigrate/gormigrate/v2 v2.1.3
 	github.com/labstack/echo/v4 v4.13.0
-	github.com/nbd-wtf/go-nostr v0.45.0
+	github.com/nbd-wtf/go-nostr v0.46.0
 	github.com/nbd-wtf/ln-decodepay v1.13.0
 	github.com/orandin/lumberjackrus v1.0.1
+	github.com/peterldowns/pgtestdb v0.1.1
 	github.com/stretchr/testify v1.10.0
 	github.com/tyler-smith/go-bip39 v1.1.0
 	github.com/wailsapp/wails/v2 v2.9.2
-	golang.org/x/crypto v0.30.0
+	golang.org/x/crypto v0.32.0
 	golang.org/x/oauth2 v0.24.0
 	google.golang.org/grpc v1.68.0
-	gopkg.in/DataDog/dd-trace-go.v1 v1.70.2
+	gopkg.in/DataDog/dd-trace-go.v1 v1.70.3
 	gopkg.in/macaroon.v2 v2.1.0
-	gorm.io/driver/sqlite v1.5.6
+	gorm.io/driver/postgres v1.5.0
+	gorm.io/driver/sqlite v1.5.7
 	gorm.io/gorm v1.25.12
 )
 
@@ -56,6 +58,7 @@ require (
 	github.com/btcsuite/winsvc v1.0.0 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
+	github.com/coder/websocket v1.8.12 // indirect
 	github.com/containerd/continuity v0.4.3 // indirect
 	github.com/coreos/go-semver v0.3.1 // indirect
 	github.com/coreos/go-systemd/v22 v22.5.0 // indirect
@@ -75,9 +78,6 @@ require (
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/go-sql-driver/mysql v1.8.1 // indirect
 	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
-	github.com/gobwas/httphead v0.1.0 // indirect
-	github.com/gobwas/pool v0.2.1 // indirect
-	github.com/gobwas/ws v1.4.0 // indirect
 	github.com/godbus/dbus/v5 v5.1.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
@@ -172,6 +172,7 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/syndtr/goleveldb v1.0.1-0.20220721030215-126854af5e6d // indirect
+	github.com/testcontainers/testcontainers-go v0.32.0 // indirect
 	github.com/tidwall/gjson v1.18.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
@@ -210,8 +211,8 @@ require (
 	golang.org/x/mod v0.21.0 // indirect
 	golang.org/x/net v0.31.0 // indirect
 	golang.org/x/sync v0.10.0 // indirect
-	golang.org/x/sys v0.28.0 // indirect
-	golang.org/x/term v0.27.0 // indirect
+	golang.org/x/sys v0.29.0 // indirect
+	golang.org/x/term v0.28.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
 	golang.org/x/time v0.8.0 // indirect
 	golang.org/x/tools v0.25.0 // indirect
@@ -246,7 +247,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/labstack/echo-jwt/v4 v4.3.0
-	github.com/lightningnetwork/lnd v0.18.4-beta.rc1
+	github.com/lightningnetwork/lnd v0.18.4-beta.rc2
 	github.com/sirupsen/logrus v1.9.3
 	github.com/tyler-smith/go-bip32 v1.0.0
 	golang.org/x/exp v0.0.0-20240909161429-701f63a606c0 // indirect

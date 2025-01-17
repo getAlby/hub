@@ -112,6 +112,7 @@ type ChannelPeerSuggestion struct {
 	BrokenLspType         string `json:"lsp_type"`
 	LspUrl                string `json:"lspUrl"`
 	LspType               string `json:"lspType"`
+	Note                  string `json:"note"`
 	PublicChannelsAllowed bool   `json:"publicChannelsAllowed"`
 }
 

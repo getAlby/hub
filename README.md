@@ -138,11 +138,23 @@ The following configuration options can be set as environment variables or in a 
 
 - `RELAY`: default: "wss://relay.getalby.com/v1"
 - `JWT_SECRET`: a randomly generated secret string. (only needed in http mode)
-- `DATABASE_URI`: a sqlite filename. Default: $XDG_DATA_HOME/albyhub/nwc.db
+- `DATABASE_URI`: a sqlite filename or postgres URL. Default is SQLite DB `nwc.db` without a path, which will be put in the user home directory: $XDG_DATA_HOME/albyhub/nwc.db
 - `PORT`: the port on which the app should listen on (default: 8080)
 - `WORK_DIR`: directory to store NWC data files. Default: $XDG_DATA_HOME/albyhub
 - `LOG_LEVEL`: log level for the application. Higher is more verbose. Default: 4 (info)
 - `AUTO_UNLOCK_PASSWORD`: provide unlock password to auto-unlock Alby Hub on startup (e.g. after a machine restart). Unlock password still be required to access the interface.
+
+### Migrating the database (Sqlite <-> Postgres)
+
+Migration of the database is currently experimental. Please make a backup before continuing.
+
+#### Migration from Sqlite to Postgres
+
+1. Stop the running hub
+2. Update the `DATABASE_URI` to your destination e.g. `postgresql://myuser:mypass@localhost:5432/nwc`
+3. Run the migration:
+
+   go run cmd/db_migrate/main.go -from .data/nwc.db -to postgresql://myuser:mypass@localhost:5432/nwc
 
 ## Node-specific backend parameters
 
@@ -434,7 +446,7 @@ LDK logs:
 
 ### Docker
 
-Alby provides container images for each release. Please make sure to use a persistent volume. The lightning state and application state is persisted to disk.  
+Alby provides container images for each release. Please make sure to use a persistent volume. The lightning state and application state is persisted to disk.
 
 #### From Alby's Container Registry
 

@@ -56,9 +56,9 @@ const nip47PayJsonExpiredInvoice = `
 
 func TestHandlePayInvoiceEvent(t *testing.T) {
 	ctx := context.TODO()
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -107,9 +107,9 @@ func TestHandlePayInvoiceEvent(t *testing.T) {
 
 func TestHandlePayInvoiceEvent_0Amount(t *testing.T) {
 	ctx := context.TODO()
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -152,9 +152,9 @@ func TestHandlePayInvoiceEvent_0Amount(t *testing.T) {
 
 func TestHandlePayInvoiceEvent_MalformedInvoice(t *testing.T) {
 	ctx := context.TODO()
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -193,9 +193,9 @@ func TestHandlePayInvoiceEvent_MalformedInvoice(t *testing.T) {
 
 func TestHandlePayInvoiceEvent_ExpiredInvoice(t *testing.T) {
 	ctx := context.TODO()
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)

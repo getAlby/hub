@@ -15,7 +15,7 @@ var _202408061737_add_boostagrams_and_use_json = &gormigrate.Migration{
 			return tx.Exec(`
 			ALTER TABLE transactions ADD COLUMN boostagram JSON;
 			ALTER TABLE transactions ADD COLUMN metadata_temp JSON;
-			UPDATE transactions SET metadata_temp = json(metadata) where metadata != "";
+			UPDATE transactions SET metadata_temp = json(metadata) where metadata != '';
 			ALTER TABLE transactions DROP COLUMN metadata;
 			ALTER TABLE transactions RENAME COLUMN metadata_temp TO metadata;
 		`).Error

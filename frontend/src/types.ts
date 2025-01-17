@@ -320,6 +320,7 @@ export type RecommendedChannelPeer = {
   name: string;
   minimumChannelSize: number;
   maximumChannelSize: number;
+  note: string;
   publicChannelsAllowed: boolean;
 } & (
   | {
@@ -440,6 +441,7 @@ export type Transaction = {
     }; // NIP-57
   } & Record<string, unknown>;
   boostagram?: Boostagram;
+  failureReason: string;
 };
 
 export type Boostagram = {
