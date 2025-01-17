@@ -44,15 +44,11 @@ export function IsolatedAppTopupDialog({
       });
       await reloadApp();
       toast({
-        title: "Successfully increased isolated app balance",
+        title: "Successfully increased sub-wallet balance",
       });
       setOpen(false);
     } catch (error) {
-      handleRequestError(
-        toast,
-        "Failed to increase isolated app balance",
-        error
-      );
+      handleRequestError(toast, "Failed to increase sub-wallet balance", error);
     }
     setLoading(false);
   }

@@ -62,7 +62,7 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 		backendType != "LDK" &&
 		backendType != "LND" {
 		return nil, fmt.Errorf(
-			"isolated apps are currently not supported on your node backend. Try LDK or LND")
+			"sub-wallets are currently not supported on your node backend. Try LDK or LND")
 	}
 
 	expiresAt, err := api.parseExpiresAt(createAppRequest.ExpiresAt)
