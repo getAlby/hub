@@ -18,6 +18,7 @@ import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
 import OnboardingChecklist from "src/screens/wallet/OnboardingChecklist";
 
+import React from "react";
 import albyGo from "src/assets/suggested-apps/alby-go.png";
 import zapplanner from "src/assets/suggested-apps/zapplanner.png";
 import { AppOfTheDayWidget } from "src/components/home/widgets/AppOfTheDayWidget";
@@ -46,6 +47,7 @@ function Home() {
   const { data: info } = useInfo();
   const { data: balances } = useBalances();
   const { data: albyMe } = useAlbyMe();
+  const [isNerd, setNerd] = React.useState(false);
 
   /* eslint-disable  @typescript-eslint/no-explicit-any */
   const extensionInstalled = (window as any).alby !== undefined;
@@ -182,9 +184,26 @@ function Home() {
         <div className="grid gap-5">
           <LatestUsedAppsWidget />
           <AppOfTheDayWidget />
-          <NodeStatusWidget />
-          <BlockHeightWidget />
-          <OnchainFeesWidget />
+
+          <Card>
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle>Stats for nerds</CardTitle>
+                <Button variant="secondary" onClick={() => setNerd(!isNerd)}>
+                  {isNerd ? "Hide" : "Show"}
+                </Button>
+              </div>
+            </CardHeader>
+            {isNerd && (
+              <CardContent>
+                <div className="grid gap-5">
+                  <NodeStatusWidget />
+                  <BlockHeightWidget />
+                  <OnchainFeesWidget />
+                </div>
+              </CardContent>
+            )}
+          </Card>
         </div>
       </div>
     </>
