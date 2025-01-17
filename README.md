@@ -489,7 +489,7 @@ The LNClient interface abstracts the differences between wallet implementations 
 
 ### Transactions Service
 
-Alby Hub maintains its own database of transactions to enable features like self-payments for isolated app connections (subaccounts), additional metadata (that apps can provide when creating invoices or making keysend payments), and to associate transactions with apps, providing additional context to users about how their wallet is being used across apps.
+Alby Hub maintains its own database of transactions to enable features like self-payments for isolated app connections (sub-wallets), additional metadata (that apps can provide when creating invoices or making keysend payments), and to associate transactions with apps, providing additional context to users about how their wallet is being used across apps.
 
 The transactions service sits between the LNClient and two possible entry points: the NIP-47 handlers, and our internal API which is used by the Alby Hub frontend.
 

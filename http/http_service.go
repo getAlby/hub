@@ -874,9 +874,9 @@ func (httpSvc *HttpService) isolatedAppTopupHandler(c echo.Context) error {
 	err := httpSvc.api.TopupIsolatedApp(c.Request().Context(), dbApp, requestData.AmountSat*1000)
 
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to topup isolated app")
+		logger.Logger.WithError(err).Error("Failed to topup sub-wallet")
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to topup isolated app: %v", err),
+			Message: fmt.Sprintf("Failed to topup sub-wallet: %v", err),
 		})
 	}
 
