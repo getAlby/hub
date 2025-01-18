@@ -196,8 +196,9 @@ type NodeCommandArgDef struct {
 }
 
 type NodeCommandDef struct {
-	Name string
-	Args []NodeCommandArgDef
+	Name        string
+	Description string
+	Args        []NodeCommandArgDef
 }
 
 type NodeCommandArg struct {

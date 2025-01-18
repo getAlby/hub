@@ -1025,6 +1025,32 @@ func (api *api) GetLogOutput(ctx context.Context, logType string, getLogRequest 
 	return &GetLogOutputResponse{Log: string(logData)}, nil
 }
 
+func (api *api) GetNodeCommands() (*NodeCommandsResponse, error) {
+	lnClient := api.svc.GetLNClient()
+	if lnClient == nil {
+		return nil, errors.New("LNClient not started")
+	}
+
+	allCommandDefs := lnClient.GetCustomCommandDefinitions()
+	commandDefs := make([]NodeCommandDef, 0, len(allCommandDefs))
+	for _, commandDef := range allCommandDefs {
+		argDefs := make([]NodeCommandArgDef, 0, len(commandDef.Args))
+		for _, argDef := range commandDef.Args {
+			argDefs = append(argDefs, NodeCommandArgDef{
+				Name:        argDef.Name,
+				Description: argDef.Description,
+			})
+		}
+		commandDefs = append(commandDefs, NodeCommandDef{
+			Name:        commandDef.Name,
+			Description: commandDef.Description,
+			Args:        argDefs,
+		})
+	}
+
+	return &NodeCommandsResponse{Commands: commandDefs}, nil
+}
+
 func (api *api) ExecuteNodeCommand(ctx context.Context, command string) ([]byte, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
