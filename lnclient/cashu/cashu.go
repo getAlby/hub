@@ -11,11 +11,14 @@ import (
 
 	"github.com/elnosh/gonuts/wallet"
 	"github.com/elnosh/gonuts/wallet/storage"
-	"github.com/getAlby/hub/lnclient"
-	"github.com/getAlby/hub/logger"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
+
+	"github.com/getAlby/hub/lnclient"
+	"github.com/getAlby/hub/logger"
 )
+
+const nodeCommandRestore = "restore"
 
 type CashuService struct {
 	wallet *wallet.Wallet
@@ -29,7 +32,7 @@ func NewCashuService(workDir string, mintUrl string) (result lnclient.LNClient, 
 		return nil, errors.New("no mint URL configured")
 	}
 
-	//create dir if not exists
+	// create dir if not exists
 	newpath := filepath.Join(workDir)
 	_, err = os.Stat(newpath)
 	isFirstSetup := err != nil && errors.Is(err, os.ErrNotExist)
@@ -374,4 +377,48 @@ func (cs *CashuService) GetSupportedNIP47NotificationTypes() []string {
 
 func (svc *CashuService) GetPubkey() string {
 	return ""
+}
+
+func (cs *CashuService) GetCustomCommandDefinitions() []lnclient.NodeCommandDef {
+	return []lnclient.NodeCommandDef{
+		{
+			Name:        nodeCommandRestore,
+			Description: "Restore cashu tokens after the wallet had a stuck payment.",
+			Args:        nil,
+		},
+	}
+}
+
+func (cs *CashuService) ExecuteCustomCommand(ctx context.Context, command *lnclient.NodeCommandRequest) (*lnclient.NodeCommandResponse, error) {
+	switch command.Name {
+	case nodeCommandRestore:
+		return cs.executeCommandRestore(ctx)
+	}
+
+	return nil, lnclient.ErrUnknownNodeCommand
+}
+
+func (cs *CashuService) executeCommandRestore(ctx context.Context) (*lnclient.NodeCommandResponse, error) {
+	// FIXME: needs latest Cashu changes to be merged
+	// mnemonic := cs.wallet.Mnemonic()
+	// currentMint := cs.wallet.CurrentMint()
+	//
+	// if err := cs.wallet.Shutdown(); err != nil {
+	// 	return nil, err
+	// }
+	//
+	// if err := os.RemoveAll(cs.workDir); err != nil {
+	// 	logger.Logger.WithError(err).Error("Failed to remove wallet directory")
+	// 	return nil, err
+	// }
+	//
+	// amountRestored, err := wallet.Restore(cs.workDir, mnemonic, []string{currentMint})
+	// if err != nil {
+	// 	logger.Logger.WithError(err).Error("Failed restore cashu wallet")
+	// 	return nil, err
+	// }
+	//
+	// logger.Logger.WithField("amountRestored", amountRestored).Info("Successfully restored cashu wallet")
+
+	return lnclient.NewNodeCommandResponseEmpty(), nil
 }

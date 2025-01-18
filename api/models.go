@@ -57,6 +57,8 @@ type API interface {
 	MigrateNodeStorage(ctx context.Context, to string) error
 	GetWalletCapabilities(ctx context.Context) (*WalletCapabilitiesResponse, error)
 	Health(ctx context.Context) (*HealthResponse, error)
+	GetNodeCommands() (*NodeCommandsResponse, error)
+	ExecuteNodeCommand(ctx context.Context, command string) ([]byte, error)
 }
 
 type App struct {
@@ -391,4 +393,23 @@ func NewHealthAlarm(kind HealthAlarmKind, rawDetails any) HealthAlarm {
 
 type HealthResponse struct {
 	Alarms []HealthAlarm `json:"alarms,omitempty"`
+}
+
+type NodeCommandArgDef struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
+type NodeCommandDef struct {
+	Name        string              `json:"name"`
+	Description string              `json:"description"`
+	Args        []NodeCommandArgDef `json:"args"`
+}
+
+type NodeCommandsResponse struct {
+	Commands []NodeCommandDef `json:"commands"`
+}
+
+type ExecuteCommandRequest struct {
+	Command string `json:"command"`
 }

@@ -2,6 +2,7 @@ package lnclient
 
 import (
 	"context"
+	"errors"
 )
 
 // TODO: remove JSON tags from these models (LNClient models should not be exposed directly)
@@ -77,6 +78,8 @@ type LNClient interface {
 	UpdateLastWalletSyncRequest()
 	GetSupportedNIP47Methods() []string
 	GetSupportedNIP47NotificationTypes() []string
+	GetCustomCommandDefinitions() []NodeCommandDef
+	ExecuteCustomCommand(ctx context.Context, command *NodeCommandRequest) (*NodeCommandResponse, error)
 }
 
 type Channel struct {
@@ -188,6 +191,39 @@ type PaymentFailedEventProperties struct {
 	Transaction *Transaction
 	Reason      string
 }
+
+type NodeCommandArgDef struct {
+	Name        string
+	Description string
+}
+
+type NodeCommandDef struct {
+	Name        string
+	Description string
+	Args        []NodeCommandArgDef
+}
+
+type NodeCommandArg struct {
+	Name  string
+	Value string
+}
+
+type NodeCommandRequest struct {
+	Name string
+	Args []NodeCommandArg
+}
+
+type NodeCommandResponse struct {
+	RawJson []byte
+}
+
+func NewNodeCommandResponseEmpty() *NodeCommandResponse {
+	return &NodeCommandResponse{
+		RawJson: []byte("{}"),
+	}
+}
+
+var ErrUnknownNodeCommand = errors.New("unknown custom node command")
 
 // default invoice expiry in seconds (1 day)
 const DEFAULT_INVOICE_EXPIRY = 86400
