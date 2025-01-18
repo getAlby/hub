@@ -1,15 +1,7 @@
-import React from "react";
-import {
-  ConnectPeerRequest,
-  NewChannelOrder,
-  Node,
-  OpenChannelRequest,
-  OpenChannelResponse,
-  PayInvoiceResponse,
-} from "src/types";
-
 import { Copy, QrCode, RefreshCw } from "lucide-react";
+import React from "react";
 import { Link } from "react-router-dom";
+import confirmation from "src/assets/images/confirmation.svg";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
@@ -35,7 +27,6 @@ import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { Separator } from "src/components/ui/separator";
-import { Table, TableBody, TableCell, TableRow } from "src/components/ui/table";
 import {
   Tooltip,
   TooltipContent,
@@ -44,10 +35,16 @@ import {
 } from "src/components/ui/tooltip";
 import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
+import {
+  ConnectPeerRequest,
+  NewChannelOrder,
+  Node,
+  OpenChannelRequest,
+  OpenChannelResponse,
+} from "src/types";
 
 import { ChannelWaitingForConfirmations } from "src/components/channels/ChannelWaitingForConfirmations";
 import { PayLightningInvoice } from "src/components/PayLightningInvoice";
-import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { useChannels } from "src/hooks/useChannels";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
 import { useOnchainAddress } from "src/hooks/useOnchainAddress";
@@ -111,29 +108,17 @@ function ChannelOrderInternal({ order }: { order: NewChannelOrder }) {
 
 function Success() {
   return (
-    <div className="flex flex-col justify-center gap-5 p-5 max-w-md items-stretch">
-      <TwoColumnLayoutHeader
-        title="Channel Opened"
-        description="Your new lightning channel is ready to use"
-      />
+    <div className="w-80 flex flex-col gap-6 px-8 py-6 items-center justify-center text-secondary-foreground border rounded-xl">
+      <p className="font-medium">New channel is ready!</p>
 
-      <p>
-        Congratulations! Your channel is active and can be used to send and
-        receive payments.
-      </p>
-      <p>
-        To ensure you can both send and receive, make sure to balance your{" "}
-        <ExternalLink
-          to="https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub/liquidity"
-          className="underline"
-        >
-          channel's liquidity
-        </ExternalLink>
-        .
+      <img src={confirmation} className="w-52 h-52" />
+
+      <p className="text-center">
+        Your new channel is open and ready for payments.
       </p>
 
-      <Link to="/home" className="flex justify-center mt-8">
-        <Button>Go to your dashboard</Button>
+      <Link to="/channels">
+        <Button>View Your Channels</Button>
       </Link>
     </div>
   );
@@ -569,7 +554,7 @@ function PaidLightningChannelOrder() {
   useWaitForNewChannel();
 
   return (
-    <div className="flex w-full h-full gap-2 items-center justify-center">
+    <div className="flex gap-2 items-center justify-center">
       <Loading /> <p>Waiting for channel to be opened...</p>
     </div>
   );
@@ -648,151 +633,90 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
       (channel) =>
         channel.localSpendableBalance / 1000 > lspOrderResponse.invoiceAmount
     );
-  const [isPaying, setPaying] = React.useState(false);
-  const [payExternally, setPayExternally] = React.useState(false);
 
   return (
     <div className="flex flex-col gap-5">
-      <AppHeader
-        title={"Buy Channel"}
-        description={
-          lspOrderResponse
-            ? "Complete Payment to open a channel to your node"
-            : "Please wait, loading..."
-        }
-      />
       {!lspOrderResponse && <Loading />}
 
       {lspOrderResponse && (
         <>
-          <div className="max-w-md flex flex-col gap-5">
-            <div className="border rounded-lg slashed-zero">
-              <Table>
-                <TableBody>
+          <div className="flex flex-col gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
+              <PayLightningInvoice
+                invoice={lspOrderResponse.invoice}
+                lspOrderResponse={lspOrderResponse}
+                canPayInternally={canPayInternally}
+              />
+
+              <div className="order-first md:order-last">
+                <p className="text-muted-foreground mb-6">
+                  Pay the invoice to initiate channel opening.
+                </p>
+                <p className="font-semibold mb-2">Summary</p>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2 mx-auto">
                   {lspOrderResponse.outgoingLiquidity > 0 && (
-                    <TableRow>
-                      <TableCell className="font-medium p-3">
-                        Spending Balance
-                      </TableCell>
-                      <TableCell className="text-right p-3">
+                    <>
+                      <div className="font-medium text-sm">
+                        Channel Size (Outgoing Liquidity)
+                      </div>
+                      <div className="text-muted-foreground">
                         {new Intl.NumberFormat().format(
                           lspOrderResponse.outgoingLiquidity
                         )}{" "}
                         sats
-                      </TableCell>
-                    </TableRow>
+                      </div>
+                    </>
                   )}
                   {lspOrderResponse.incomingLiquidity > 0 && (
-                    <TableRow>
-                      <TableCell className="font-medium p-3">
-                        Incoming Liquidity
-                      </TableCell>
-                      <TableCell className="text-right p-3">
+                    <>
+                      <div className="font-medium text-sm">
+                        Channel Size (Incoming Liquidity)
+                      </div>
+                      <div className="text-muted-foreground">
                         {new Intl.NumberFormat().format(
                           lspOrderResponse.incomingLiquidity
                         )}{" "}
                         sats
-                      </TableCell>
-                    </TableRow>
+                      </div>
+                    </>
                   )}
-                  <TableRow>
-                    <TableCell className="font-medium p-3 flex flex-row gap-1.5 items-center">
-                      Fee
-                    </TableCell>
-                    <TableCell className="text-right p-3">
-                      {new Intl.NumberFormat().format(lspOrderResponse.fee)}{" "}
-                      sats
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-medium p-3">
-                      Amount to pay
-                    </TableCell>
-                    <TableCell className="font-semibold text-right p-3">
-                      {new Intl.NumberFormat().format(
-                        lspOrderResponse.invoiceAmount
-                      )}{" "}
-                      sats
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </div>
-            <>
-              {canPayInternally && (
-                <>
-                  <LoadingButton
-                    loading={isPaying}
-                    className="mt-4"
-                    onClick={async () => {
-                      try {
-                        setPaying(true);
+                  <div className="font-medium text-sm flex flex-row gap-1.5 items-center">
+                    Fee
+                  </div>
+                  <div className="text-muted-foreground pb-4">
+                    {new Intl.NumberFormat().format(lspOrderResponse.fee)} sats
+                  </div>
+                  <Separator className="col-span-2" />
 
-                        await request<PayInvoiceResponse>(
-                          `/api/payments/${lspOrderResponse.invoice}`,
-                          {
-                            method: "POST",
-                            headers: {
-                              "Content-Type": "application/json",
-                            },
-                          }
-                        );
-
-                        useChannelOrderStore.getState().updateOrder({
-                          status: "paid",
-                        });
-                        toast({
-                          title: "Channel successfully requested",
-                        });
-                      } catch (e) {
-                        toast({
-                          variant: "destructive",
-                          title: "Failed to send: " + e,
-                        });
-                        console.error(e);
-                      }
-                      setPaying(false);
-                    }}
-                  >
-                    Pay and open channel
-                  </LoadingButton>
-                  {!payExternally && (
-                    <Button
-                      type="button"
-                      variant="link"
-                      className="text-muted-foreground text-xs"
-                      onClick={() => setPayExternally(true)}
-                    >
-                      Pay with another wallet
-                    </Button>
-                  )}
-                </>
-              )}
-
-              {(payExternally || !canPayInternally) && (
-                <PayLightningInvoice invoice={lspOrderResponse.invoice} />
-              )}
-
-              <div className="flex-1 flex flex-col justify-end items-center gap-4">
-                <Separator className="my-16" />
-                <p className="text-sm text-muted-foreground text-center">
-                  Other options
-                </p>
-                <Link to="/channels/outgoing" className="w-full">
-                  <Button className="w-full" variant="secondary">
-                    Increase Spending Balance
-                  </Button>
-                </Link>
-                <ExternalLink
-                  to="https://www.getalby.com/topup"
-                  className="w-full"
-                >
-                  <Button className="w-full" variant="secondary">
-                    Buy Bitcoin
-                  </Button>
-                </ExternalLink>
+                  <div className="font-medium text-sm">Amount to pay</div>
+                  <div className="font-semibold">
+                    {new Intl.NumberFormat().format(
+                      lspOrderResponse.invoiceAmount
+                    )}{" "}
+                    sats
+                  </div>
+                </div>
               </div>
-            </>
+            </div>
+            <div className="w-80 flex flex-col justify-end items-center gap-4">
+              <Separator className="my-2" />
+              <p className="text-sm text-muted-foreground text-center">
+                Other options
+              </p>
+              <Link to="/channels/outgoing" className="w-full">
+                <Button className="w-full" variant="secondary">
+                  Increase Spending Balance
+                </Button>
+              </Link>
+              <ExternalLink
+                to="https://www.getalby.com/topup"
+                className="w-full"
+              >
+                <Button className="w-full" variant="secondary">
+                  Buy Bitcoin
+                </Button>
+              </ExternalLink>
+            </div>
           </div>
         </>
       )}
