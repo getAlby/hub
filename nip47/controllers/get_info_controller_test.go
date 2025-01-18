@@ -122,9 +122,9 @@ func TestHandleGetInfoEvent_WithPermission(t *testing.T) {
 
 func TestHandleGetInfoEvent_WithMetadata(t *testing.T) {
 	ctx := context.TODO()
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	metadata := map[string]interface{}{
 		"a": 123,

@@ -1131,6 +1131,7 @@ func (svc *LNDService) GetNodeStatus(ctx context.Context) (nodeStatus *lnclient.
 	}
 
 	return &lnclient.NodeStatus{
+		IsReady: true, // Assuming that, if GetNodeInfo() succeeds, the node is online and accessible.
 		InternalNodeStatus: map[string]interface{}{
 			"info":         info,
 			"config":       debugInfo.Config,

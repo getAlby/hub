@@ -56,6 +56,7 @@ type API interface {
 	RestoreBackup(unlockPassword string, r io.Reader) error
 	MigrateNodeStorage(ctx context.Context, to string) error
 	GetWalletCapabilities(ctx context.Context) (*WalletCapabilitiesResponse, error)
+	Health(ctx context.Context) (*HealthResponse, error)
 	GetNodeCommands() (*NodeCommandsResponse, error)
 	ExecuteNodeCommand(ctx context.Context, command string) ([]byte, error)
 }
@@ -367,6 +368,31 @@ type Channel struct {
 
 type MigrateNodeStorageRequest struct {
 	To string `json:"to"`
+}
+
+type HealthAlarmKind string
+
+const (
+	HealthAlarmKindAlbyService       HealthAlarmKind = "alby_service"
+	HealthAlarmKindNodeNotReady                      = "node_not_ready"
+	HealthAlarmKindChannelsOffline                   = "channels_offline"
+	HealthAlarmKindNostrRelayOffline                 = "nostr_relay_offline"
+)
+
+type HealthAlarm struct {
+	Kind       HealthAlarmKind `json:"kind"`
+	RawDetails any             `json:"rawDetails,omitempty"`
+}
+
+func NewHealthAlarm(kind HealthAlarmKind, rawDetails any) HealthAlarm {
+	return HealthAlarm{
+		Kind:       kind,
+		RawDetails: rawDetails,
+	}
+}
+
+type HealthResponse struct {
+	Alarms []HealthAlarm `json:"alarms,omitempty"`
 }
 
 type NodeCommandArgDef struct {

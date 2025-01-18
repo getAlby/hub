@@ -18,6 +18,7 @@ import nostter from "src/assets/suggested-apps/nostter.png";
 import nostur from "src/assets/suggested-apps/nostur.png";
 import paperScissorsHodl from "src/assets/suggested-apps/paper-scissors-hodl.png";
 import primal from "src/assets/suggested-apps/primal.png";
+import pullthatupjamie from "src/assets/suggested-apps/pullthatupjamie.png";
 import simpleboost from "src/assets/suggested-apps/simple-boost.png";
 import snort from "src/assets/suggested-apps/snort.png";
 import stackernews from "src/assets/suggested-apps/stacker-news.png";
@@ -29,6 +30,7 @@ import zapstream from "src/assets/suggested-apps/zap-stream.png";
 import zapplanner from "src/assets/suggested-apps/zapplanner.png";
 import zapplepay from "src/assets/suggested-apps/zapple-pay.png";
 import zappybird from "src/assets/suggested-apps/zappy-bird.png";
+import zapstore from "src/assets/suggested-apps/zapstore.png";
 import ExternalLink from "src/components/ExternalLink";
 
 export type SuggestedApp = {
@@ -1621,6 +1623,110 @@ export const suggestedApps: SuggestedApp[] = [
           <h3 className="font-medium">In Alby Go</h3>
           <ul className="list-inside text-muted-foreground">
             <li>6. Scan or paste the connection secret from Alby Hub</li>
+          </ul>
+        </div>
+      </>
+    ),
+  },
+  {
+    id: "pullthatupjamie-ai",
+    title: "Pull That Up Jamie!",
+    description: "Instantly pull up anything with private web search + AI",
+    webLink: "https://www.pullthatupjamie.ai/",
+    logo: pullthatupjamie,
+    guide: (
+      <>
+        <div>
+          <h3 className="font-medium">In Pull That Up Jamie!</h3>
+          <ul className="list-inside text-muted-foreground">
+            <li>
+              1. Open{" "}
+              <ExternalLink
+                to="https://www.pullthatupjamie.ai/"
+                className="font-medium text-foreground underline"
+              >
+                pullthatupjamie.ai
+              </ExternalLink>{" "}
+              in your browser
+            </li>
+            <li>
+              2. Click on the account dropdown and select "Connect Wallet"
+            </li>
+            <li>
+              3. Choose{" "}
+              <span className="font-medium text-foreground">
+                Nostr Wallet Connect
+              </span>
+            </li>
+          </ul>
+        </div>
+        <div>
+          <h3 className="font-medium">In Alby Hub</h3>
+          <ul className="list-inside text-muted-foreground">
+            <li>
+              4. Click{" "}
+              <Link
+                to="/apps/new?app=pullthatupjamie-ai"
+                className="font-medium text-foreground underline"
+              >
+                Connect to Pull That Up Jamie!
+              </Link>
+            </li>
+            <li>5. Set app's wallet permissions (full access recommended)</li>
+          </ul>
+        </div>
+        <div>
+          <h3 className="font-medium">In Pull That Up Jamie!</h3>
+          <ul className="list-inside text-muted-foreground">
+            <li>6. Paste the connection secret from Alby Hub</li>
+          </ul>
+        </div>
+      </>
+    ),
+  },
+  {
+    id: "zapstore",
+    title: "Zapstore",
+    description: "Discover great apps through your social connections",
+    webLink: "https://zapstore.dev/",
+    logo: zapstore,
+    guide: (
+      <>
+        <div>
+          <h3 className="font-medium">In Zapstore</h3>
+          <ul className="list-inside text-muted-foreground">
+            <li>
+              1. Install{" "}
+              <ExternalLink
+                to="https://www.zapstore.dev/"
+                className="font-medium text-foreground underline"
+              >
+                Zapstore
+              </ExternalLink>{" "}
+              on your Android smartphone
+            </li>
+            <li>2. Open the settings</li>
+          </ul>
+        </div>
+        <div>
+          <h3 className="font-medium">In Alby Hub</h3>
+          <ul className="list-inside text-muted-foreground">
+            <li>
+              3. Click{" "}
+              <Link
+                to="/apps/new?app=zapstore"
+                className="font-medium text-foreground underline"
+              >
+                Connect to Zapstore
+              </Link>
+            </li>
+            <li>4. Set app's wallet permissions (full access recommended)</li>
+          </ul>
+        </div>
+        <div>
+          <h3 className="font-medium">In Zapstore</h3>
+          <ul className="list-inside text-muted-foreground">
+            <li>5. Paste the connection secret from Alby Hub</li>
           </ul>
         </div>
       </>
