@@ -61,7 +61,11 @@ function AppCreatedInternal() {
     }
     // dispatch a success event which can be listened to by the opener or by the app that embedded the webview
     // this gives those apps the chance to know the user has enabled the connection
-    const nwcEvent = new CustomEvent("nwc:success", { detail: {} });
+    const nwcEvent = new CustomEvent("nwc:success", {
+      detail: {
+        nostrWalletConnectUrl: pairingUri,
+      },
+    });
     window.dispatchEvent(nwcEvent);
 
     // notify the opener of the successful connection
@@ -69,12 +73,12 @@ function AppCreatedInternal() {
       window.opener.postMessage(
         {
           type: "nwc:success",
-          payload: { success: true },
+          nostrWalletConnectUrl: pairingUri,
         },
         "*"
       );
     }
-  }, [appstoreApp]);
+  }, [appstoreApp, pairingUri]);
 
   if (!createAppResponse) {
     return <Navigate to="/apps/new" />;
