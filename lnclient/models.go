@@ -2,6 +2,7 @@ package lnclient
 
 import (
 	"context"
+	"errors"
 )
 
 // TODO: remove JSON tags from these models (LNClient models should not be exposed directly)
@@ -214,6 +215,14 @@ type NodeCommandRequest struct {
 type NodeCommandResponse struct {
 	RawJson []byte
 }
+
+func NewNodeCommandResponseEmpty() *NodeCommandResponse {
+	return &NodeCommandResponse{
+		RawJson: []byte("{}"),
+	}
+}
+
+var ErrUnknownNodeCommand = errors.New("unknown custom node command")
 
 // default invoice expiry in seconds (1 day)
 const DEFAULT_INVOICE_EXPIRY = 86400
