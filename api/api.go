@@ -89,6 +89,7 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 		createAppRequest.Scopes,
 		createAppRequest.Isolated,
 		createAppRequest.Metadata,
+		"",
 	)
 
 	if err != nil {

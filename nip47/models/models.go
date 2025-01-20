@@ -10,6 +10,7 @@ const (
 	RESPONSE_KIND            = 23195
 	LEGACY_NOTIFICATION_KIND = 23196
 	NOTIFICATION_KIND        = 23197
+	NWA_EVENT_KIND           = 33195 // NIP-44
 
 	// request methods
 	PAY_INVOICE_METHOD       = "pay_invoice"

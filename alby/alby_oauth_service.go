@@ -674,6 +674,7 @@ func (svc *albyOAuthService) LinkAccount(ctx context.Context, lnClient lnclient.
 		scopes,
 		false,
 		nil,
+		"",
 	)
 
 	if err != nil {

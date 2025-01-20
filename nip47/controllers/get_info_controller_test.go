@@ -130,7 +130,7 @@ func TestHandleGetInfoEvent_WithMetadata(t *testing.T) {
 		"a": 123,
 	}
 
-	app, _, err := svc.AppsService.CreateApp("test", "", 0, "monthly", nil, nil, false, metadata)
+	app, _, err := svc.AppsService.CreateApp("test", "", 0, "monthly", nil, nil, false, metadata, "")
 	assert.NoError(t, err)
 
 	nip47Request := &models.Request{}
