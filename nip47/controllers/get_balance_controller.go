@@ -17,7 +17,7 @@ const (
 )
 
 type getBalanceResponse struct {
-	Balance uint64 `json:"balance"`
+	Balance int64 `json:"balance"`
 	// MaxAmount     int    `json:"max_amount"`
 	// BudgetRenewal string `json:"budget_renewal"`
 }
@@ -29,12 +29,12 @@ func (controller *nip47Controller) HandleGetBalanceEvent(ctx context.Context, ni
 		"request_event_id": requestEventId,
 	}).Debug("Getting balance")
 
-	balance := uint64(0)
+	balance := int64(0)
 	if app.Isolated {
 		balance = queries.GetIsolatedBalance(controller.db, app.ID)
 	} else {
 		balances, err := controller.lnClient.GetBalances(ctx)
-		balance = uint64(balances.Lightning.TotalSpendable)
+		balance = balances.Lightning.TotalSpendable
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"request_event_id": requestEventId,

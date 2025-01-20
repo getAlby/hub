@@ -49,7 +49,7 @@ export function ChannelDropdownMenu({
         <DropdownMenuContent align="end">
           <DropdownMenuItem className="flex flex-row items-center gap-2 cursor-pointer">
             <ExternalLink
-              to={`https://mempool.space/tx/${channel.fundingTxId}`}
+              to={`https://mempool.space/tx/${channel.fundingTxId}#flow=&vout=${channel.fundingTxVout}`}
               className="w-full flex flex-row items-center gap-2"
             >
               <ExternalLinkIcon className="w-4 h-4" />

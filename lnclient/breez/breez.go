@@ -426,7 +426,9 @@ func (bs *BreezService) GetLogOutput(ctx context.Context, maxLen int) ([]byte, e
 }
 
 func (bs *BreezService) GetNodeStatus(ctx context.Context) (nodeStatus *lnclient.NodeStatus, err error) {
-	return nil, nil
+	return &lnclient.NodeStatus{
+		IsReady: true,
+	}, nil
 }
 
 func (bs *BreezService) SignMessage(ctx context.Context, message string) (string, error) {

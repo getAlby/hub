@@ -13,12 +13,12 @@ import (
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
+	"github.com/getAlby/hub/nip47/cipher"
 	"github.com/getAlby/hub/nip47/controllers"
 	"github.com/getAlby/hub/nip47/models"
 	"github.com/getAlby/hub/nip47/permissions"
 	nostrmodels "github.com/getAlby/hub/nostr/models"
 	"github.com/nbd-wtf/go-nostr"
-	"github.com/nbd-wtf/go-nostr/nip04"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
@@ -93,12 +93,21 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 		}
 	}
 
-	ss, err := nip04.ComputeSharedSecret(app.AppPubkey, appWalletPrivKey)
+	version := "0.0"
+	vTag := event.Tags.GetFirst([]string{"v"})
+
+	if vTag != nil && vTag.Value() != "" {
+		version = vTag.Value()
+	}
+
+	nip47Cipher, err := cipher.NewNip47Cipher(version, app.AppPubkey, appWalletPrivKey)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"requestEventNostrId": event.ID,
 			"eventKind":           event.Kind,
-		}).WithError(err).Error("Failed to compute shared secret")
+			"appId":               app.ID,
+			"version":             version,
+		}).WithError(err).Error("Failed to initialize cipher")
 
 		requestEvent.State = db.REQUEST_EVENT_STATE_HANDLER_ERROR
 		err = svc.db.Save(&requestEvent).Error
@@ -123,7 +132,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 				Message: fmt.Sprintf("Failed to save app to nostr event: %s", err.Error()),
 			},
 		}
-		resp, err := svc.CreateResponse(event, nip47Response, nostr.Tags{}, ss, appWalletPrivKey)
+		resp, err := svc.CreateResponse(event, nip47Response, nostr.Tags{}, nip47Cipher, appWalletPrivKey)
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"requestEventNostrId": event.ID,
@@ -143,17 +152,13 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 		return
 	}
 
-	payload, err := nip04.Decrypt(event.Content, ss)
+	payload, err := nip47Cipher.Decrypt(event.Content)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"requestEventNostrId": event.ID,
 			"eventKind":           event.Kind,
 			"appId":               app.ID,
 		}).WithError(err).Error("Failed to decrypt content")
-		logger.Logger.WithFields(logrus.Fields{
-			"requestEventNostrId": event.ID,
-			"eventKind":           event.Kind,
-		}).WithError(err).Error("Failed to decrypt request event")
 
 		requestEvent.State = db.REQUEST_EVENT_STATE_HANDLER_ERROR
 		err = svc.db.Save(&requestEvent).Error
@@ -191,7 +196,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 	// TODO: replace with a channel
 	// TODO: update all previous occurences of svc.publishResponseEvent to also use the channel
 	publishResponse := func(nip47Response *models.Response, tags nostr.Tags) {
-		resp, err := svc.CreateResponse(event, nip47Response, tags, ss, appWalletPrivKey)
+		resp, err := svc.CreateResponse(event, nip47Response, tags, nip47Cipher, appWalletPrivKey)
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"requestEventNostrId": event.ID,
@@ -343,12 +348,13 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 	}
 }
 
-func (svc *nip47Service) CreateResponse(initialEvent *nostr.Event, content interface{}, tags nostr.Tags, ss []byte, appWalletPrivKey string) (result *nostr.Event, err error) {
+func (svc *nip47Service) CreateResponse(initialEvent *nostr.Event, content interface{}, tags nostr.Tags, cipher *cipher.Nip47Cipher, appWalletPrivKey string) (result *nostr.Event, err error) {
 	payloadBytes, err := json.Marshal(content)
 	if err != nil {
 		return nil, err
 	}
-	msg, err := nip04.Encrypt(string(payloadBytes), ss)
+
+	msg, err := cipher.Encrypt(string(payloadBytes))
 	if err != nil {
 		return nil, err
 	}

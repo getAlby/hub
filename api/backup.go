@@ -30,6 +30,18 @@ func (api *api) CreateBackup(unlockPassword string, w io.Writer) error {
 		return errors.New("invalid unlock password")
 	}
 
+	autoUnlockPassword, err := api.cfg.Get("AutoUnlockPassword", "")
+	if err != nil {
+		return err
+	}
+	if autoUnlockPassword != "" {
+		return errors.New("Please disable auto-unlock before using this feature")
+	}
+
+	if api.db.Dialector.Name() != "sqlite" {
+		return errors.New("Migration with non-sqlite backend is currently not supported")
+	}
+
 	workDir, err := filepath.Abs(api.cfg.GetEnv().Workdir)
 	if err != nil {
 		return fmt.Errorf("failed to get absolute workdir: %w", err)

@@ -25,9 +25,9 @@ const nip47GetBalanceJson = `
 
 func TestHandleGetBalanceEvent(t *testing.T) {
 	ctx := context.TODO()
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	nip47Request := &models.Request{}
 	err = json.Unmarshal([]byte(nip47GetBalanceJson), nip47Request)
@@ -51,15 +51,15 @@ func TestHandleGetBalanceEvent(t *testing.T) {
 	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc, svc.AppsService).
 		HandleGetBalanceEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
 
-	assert.Equal(t, uint64(21000), publishedResponse.Result.(*getBalanceResponse).Balance)
+	assert.Equal(t, int64(21000), publishedResponse.Result.(*getBalanceResponse).Balance)
 	assert.Nil(t, publishedResponse.Error)
 }
 
 func TestHandleGetBalanceEvent_IsolatedApp_NoTransactions(t *testing.T) {
 	ctx := context.TODO()
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	nip47Request := &models.Request{}
 	err = json.Unmarshal([]byte(nip47GetBalanceJson), nip47Request)
@@ -85,14 +85,14 @@ func TestHandleGetBalanceEvent_IsolatedApp_NoTransactions(t *testing.T) {
 	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc, svc.AppsService).
 		HandleGetBalanceEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
 
-	assert.Equal(t, uint64(0), publishedResponse.Result.(*getBalanceResponse).Balance)
+	assert.Equal(t, int64(0), publishedResponse.Result.(*getBalanceResponse).Balance)
 	assert.Nil(t, publishedResponse.Error)
 }
 func TestHandleGetBalanceEvent_IsolatedApp_Transactions(t *testing.T) {
 	ctx := context.TODO()
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	nip47Request := &models.Request{}
 	err = json.Unmarshal([]byte(nip47GetBalanceJson), nip47Request)
@@ -132,6 +132,6 @@ func TestHandleGetBalanceEvent_IsolatedApp_Transactions(t *testing.T) {
 	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc, svc.AppsService).
 		HandleGetBalanceEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
 
-	assert.Equal(t, uint64(1000), publishedResponse.Result.(*getBalanceResponse).Balance)
+	assert.Equal(t, int64(1000), publishedResponse.Result.(*getBalanceResponse).Balance)
 	assert.Nil(t, publishedResponse.Error)
 }

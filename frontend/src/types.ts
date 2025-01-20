@@ -157,7 +157,24 @@ export interface InfoResponse {
   enableAdvancedSetup: boolean;
   startupError: string;
   startupErrorTime: string;
+  autoUnlockPasswordSupported: boolean;
+  autoUnlockPasswordEnabled: boolean;
 }
+
+export type HealthAlarmKind =
+  | "alby_service"
+  | "node_not_ready"
+  | "channels_offline"
+  | "nostr_relay_offline";
+
+export type HealthAlarm = {
+  kind: HealthAlarmKind;
+  rawDetails: unknown;
+};
+
+export type HealthResponse = {
+  alarms: HealthAlarm[];
+};
 
 export type Network = "bitcoin" | "testnet" | "signet";
 
@@ -174,7 +191,7 @@ export interface CreateAppRequest {
   name: string;
   pubkey?: string;
   maxAmount?: number;
-  budgetRenewal?: string;
+  budgetRenewal?: BudgetRenewalType;
   expiresAt?: string;
   scopes: Scope[];
   returnTo?: string;
@@ -208,6 +225,7 @@ export type Channel = {
   remotePubkey: string;
   id: string;
   fundingTxId: string;
+  fundingTxVout: number;
   active: boolean;
   public: boolean;
   confirmations?: number;
@@ -280,6 +298,13 @@ export type OnchainBalanceResponse = {
   total: number;
   reserved: number;
   pendingBalancesFromChannelClosures: number;
+  pendingBalancesDetails: {
+    channelId: string;
+    nodeId: string;
+    amount: number;
+    fundingTxId: string;
+    fundingTxVout: number;
+  }[];
 };
 
 // from https://mempool.space/docs/api/rest#get-node-stats
@@ -314,6 +339,7 @@ export type RecommendedChannelPeer = {
   name: string;
   minimumChannelSize: number;
   maximumChannelSize: number;
+  note: string;
   publicChannelsAllowed: boolean;
 } & (
   | {
@@ -334,6 +360,14 @@ export type AlbyInfo = {
     latestVersion: string;
     latestReleaseNotes: string;
   };
+};
+
+export type BitcoinRate = {
+  code: string;
+  symbol: string;
+  rate: string;
+  rate_float: number;
+  rate_cents: number;
 };
 
 // TODO: use camel case (needs mapping in the Alby OAuth Service - see how AlbyInfo is done above)
@@ -426,6 +460,7 @@ export type Transaction = {
     }; // NIP-57
   } & Record<string, unknown>;
   boostagram?: Boostagram;
+  failureReason: string;
 };
 
 export type Boostagram = {

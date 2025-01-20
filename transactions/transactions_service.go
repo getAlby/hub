@@ -14,16 +14,17 @@ import (
 	"strings"
 	"time"
 
+	decodepay "github.com/nbd-wtf/ln-decodepay"
+	"github.com/sirupsen/logrus"
+	"gorm.io/datatypes"
+	"gorm.io/gorm"
+
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/db/queries"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
-	decodepay "github.com/nbd-wtf/ln-decodepay"
-	"github.com/sirupsen/logrus"
-	"gorm.io/datatypes"
-	"gorm.io/gorm"
 )
 
 type transactionsService struct {
@@ -206,6 +207,15 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 		return nil, err
 	}
 
+	if time.Now().After(time.Unix(int64(paymentRequest.CreatedAt+paymentRequest.Expiry), 0)) {
+		logger.Logger.WithFields(logrus.Fields{
+			"bolt11": payReq,
+			"expiry": time.Unix(int64(paymentRequest.CreatedAt+paymentRequest.Expiry), 0),
+		}).Errorf("this invoice has expired")
+
+		return nil, errors.New("this invoice has expired")
+	}
+
 	selfPayment := paymentRequest.Payee != "" && paymentRequest.Payee == lnClient.GetPubkey()
 
 	var dbTransaction db.Transaction
@@ -241,7 +251,7 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 			RequestEventId:  requestEventId,
 			Type:            constants.TRANSACTION_TYPE_OUTGOING,
 			State:           constants.TRANSACTION_STATE_PENDING,
-			FeeReserveMsat:  svc.calculateFeeReserveMsat(paymentAmount),
+			FeeReserveMsat:  CalculateFeeReserveMsat(paymentAmount),
 			AmountMsat:      paymentAmount,
 			PaymentRequest:  payReq,
 			PaymentHash:     paymentRequest.PaymentHash,
@@ -354,7 +364,7 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 			RequestEventId: requestEventId,
 			Type:           constants.TRANSACTION_TYPE_OUTGOING,
 			State:          constants.TRANSACTION_STATE_PENDING,
-			FeeReserveMsat: svc.calculateFeeReserveMsat(uint64(amount)),
+			FeeReserveMsat: CalculateFeeReserveMsat(uint64(amount)),
 			AmountMsat:     amount,
 			Metadata:       datatypes.JSON(metadataBytes),
 			Boostagram:     datatypes.JSON(boostagramBytes),
@@ -480,18 +490,18 @@ func (svc *transactionsService) LookupTransaction(ctx context.Context, paymentHa
 			return nil, NewNotFoundError()
 		}
 		if app.Isolated {
-			tx = tx.Where("app_id == ?", *appId)
+			tx = tx.Where("app_id = ?", *appId)
 		}
 	}
 
 	if transactionType != nil {
-		tx = tx.Where("type == ?", *transactionType)
+		tx = tx.Where("type = ?", *transactionType)
 	}
 
 	// order settled first, otherwise by created date, as there can be multiple outgoing payments
 	// for the same payment hash (if you tried to pay an invoice multiple times - e.g. the first time failed)
 	result := tx.Order("settled_at desc, created_at desc").Limit(1).Find(&transaction, &db.Transaction{
-		//Type:        transactionType,
+		// Type:        transactionType,
 		PaymentHash: paymentHash,
 	})
 
@@ -521,17 +531,17 @@ func (svc *transactionsService) ListTransactions(ctx context.Context, from, unti
 	tx := svc.db
 
 	if !unpaidOutgoing && !unpaidIncoming {
-		tx = tx.Where("state == ?", constants.TRANSACTION_STATE_SETTLED)
+		tx = tx.Where("state = ?", constants.TRANSACTION_STATE_SETTLED)
 	} else if unpaidOutgoing && !unpaidIncoming {
-		tx = tx.Where(tx.Where("state == ?", constants.TRANSACTION_STATE_SETTLED).
-			Or("type == ?", constants.TRANSACTION_TYPE_OUTGOING))
+		tx = tx.Where(tx.Where("state = ?", constants.TRANSACTION_STATE_SETTLED).
+			Or("type = ?", constants.TRANSACTION_TYPE_OUTGOING))
 	} else if unpaidIncoming && !unpaidOutgoing {
-		tx = tx.Where(tx.Where("state == ?", constants.TRANSACTION_STATE_SETTLED).
-			Or("type == ?", constants.TRANSACTION_TYPE_INCOMING))
+		tx = tx.Where(tx.Where("state = ?", constants.TRANSACTION_STATE_SETTLED).
+			Or("type = ?", constants.TRANSACTION_TYPE_INCOMING))
 	}
 
 	if transactionType != nil {
-		tx = tx.Where("type == ?", *transactionType)
+		tx = tx.Where("type = ?", *transactionType)
 	}
 
 	if from > 0 {
@@ -550,7 +560,7 @@ func (svc *transactionsService) ListTransactions(ctx context.Context, from, unti
 			return nil, NewNotFoundError()
 		}
 		if app.Isolated || forceFilterByAppId {
-			tx = tx.Where("app_id == ?", *appId)
+			tx = tx.Where("app_id = ?", *appId)
 		}
 	}
 
@@ -581,7 +591,7 @@ func (svc *transactionsService) checkUnsettledTransactions(ctx context.Context, 
 
 	// check pending payments less than a day old
 	transactions := []Transaction{}
-	result := svc.db.Where("state == ? AND created_at > ?", constants.TRANSACTION_STATE_PENDING, time.Now().Add(-24*time.Hour)).Find(&transactions)
+	result := svc.db.Where("state = ? AND created_at > ?", constants.TRANSACTION_STATE_PENDING, time.Now().Add(-24*time.Hour)).Find(&transactions)
 	if result.Error != nil {
 		logger.Logger.WithError(result.Error).Error("Failed to list DB transactions")
 		return
@@ -787,7 +797,7 @@ func (svc *transactionsService) interceptSelfPayment(paymentHash string) (*lncli
 }
 
 func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount uint64, description string) error {
-	amountWithFeeReserve := amount + svc.calculateFeeReserveMsat(amount)
+	amountWithFeeReserve := amount + CalculateFeeReserveMsat(amount)
 
 	// ensure balance for isolated apps
 	if appId != nil {
@@ -811,7 +821,7 @@ func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount 
 		if app.Isolated {
 			balance := queries.GetIsolatedBalance(tx, appPermission.AppId)
 
-			if amountWithFeeReserve > balance {
+			if int64(amountWithFeeReserve) > balance {
 				message := NewInsufficientBalanceError().Error()
 				if description != "" {
 					message += " " + description
@@ -853,9 +863,8 @@ func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount 
 }
 
 // max of 1% or 10000 millisats (10 sats)
-func (svc *transactionsService) calculateFeeReserveMsat(amount uint64) uint64 {
-	// NOTE: LDK defaults to 1% of the payment amount + 50 sats
-	return uint64(math.Max(math.Ceil(float64(amount)*0.01), 10000))
+func CalculateFeeReserveMsat(amountMsat uint64) uint64 {
+	return uint64(math.Max(math.Ceil(float64(amountMsat)*0.01), 10000))
 }
 
 func makePreimageHex() ([]byte, error) {

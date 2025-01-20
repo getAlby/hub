@@ -5,10 +5,11 @@ import (
 )
 
 const (
-	INFO_EVENT_KIND   = 13194
-	REQUEST_KIND      = 23194
-	RESPONSE_KIND     = 23195
-	NOTIFICATION_KIND = 23196
+	INFO_EVENT_KIND          = 13194
+	REQUEST_KIND             = 23194
+	RESPONSE_KIND            = 23195
+	LEGACY_NOTIFICATION_KIND = 23196
+	NOTIFICATION_KIND        = 23197
 
 	// request methods
 	PAY_INVOICE_METHOD       = "pay_invoice"

@@ -62,7 +62,7 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 		backendType != "LDK" &&
 		backendType != "LND" {
 		return nil, fmt.Errorf(
-			"isolated apps are currently not supported on your node backend. Try LDK or LND")
+			"sub-wallets are currently not supported on your node backend. Try LDK or LND")
 	}
 
 	expiresAt, err := api.parseExpiresAt(createAppRequest.ExpiresAt)
@@ -226,6 +226,13 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 				return err
 			}
 		}
+		api.svc.GetEventPublisher().Publish(&events.Event{
+			Event: "nwc_app_updated",
+			Properties: map[string]interface{}{
+				"name": name,
+				"id":   userApp.ID,
+			},
+		})
 
 		// commit transaction
 		return nil
@@ -252,13 +259,13 @@ func (api *api) GetApp(dbApp *db.App) *App {
 	for _, appPerm := range appPermissions {
 		expiresAt = appPerm.ExpiresAt
 		if appPerm.Scope == constants.PAY_INVOICE_SCOPE {
-			//find the pay_invoice-specific permissions
+			// find the pay_invoice-specific permissions
 			paySpecificPermission = appPerm
 		}
 		requestMethods = append(requestMethods, appPerm.Scope)
 	}
 
-	//renewsIn := ""
+	// renewsIn := ""
 	budgetUsage := uint64(0)
 	maxAmount := uint64(paySpecificPermission.MaxAmountSat)
 	budgetUsage = queries.GetBudgetUsageSat(api.db, &paySpecificPermission)
@@ -395,6 +402,7 @@ func (api *api) ListChannels(ctx context.Context) ([]Channel, error) {
 			Id:                                       channel.Id,
 			RemotePubkey:                             channel.RemotePubkey,
 			FundingTxId:                              channel.FundingTxId,
+			FundingTxVout:                            channel.FundingTxVout,
 			Active:                                   channel.Active,
 			Public:                                   channel.Public,
 			InternalChannel:                          channel.InternalChannel,
@@ -434,7 +442,15 @@ func (api *api) ChangeUnlockPassword(changeUnlockPasswordRequest *ChangeUnlockPa
 		return errors.New("LNClient not started")
 	}
 
-	err := api.cfg.ChangeUnlockPassword(changeUnlockPasswordRequest.CurrentUnlockPassword, changeUnlockPasswordRequest.NewUnlockPassword)
+	autoUnlockPassword, err := api.cfg.Get("AutoUnlockPassword", "")
+	if err != nil {
+		return err
+	}
+	if autoUnlockPassword != "" {
+		return errors.New("Please disable auto-unlock before using this feature")
+	}
+
+	err = api.cfg.ChangeUnlockPassword(changeUnlockPasswordRequest.CurrentUnlockPassword, changeUnlockPasswordRequest.NewUnlockPassword)
 
 	if err != nil {
 		logger.Logger.WithError(err).Error("failed to change unlock password")
@@ -444,6 +460,21 @@ func (api *api) ChangeUnlockPassword(changeUnlockPasswordRequest *ChangeUnlockPa
 	// Because all the encrypted fields have changed
 	// we also need to stop the lnclient and ask the user to start it again
 	return api.Stop()
+}
+
+func (api *api) SetAutoUnlockPassword(unlockPassword string) error {
+	if api.svc.GetLNClient() == nil {
+		return errors.New("LNClient not started")
+	}
+
+	err := api.cfg.SetAutoUnlockPassword(unlockPassword)
+
+	if err != nil {
+		logger.Logger.WithError(err).Error("failed to set auto unlock password")
+		return err
+	}
+
+	return nil
 }
 
 func (api *api) Stop() error {
@@ -679,6 +710,7 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info := InfoResponse{}
 	backendType, _ := api.cfg.Get("LNBackendType", "")
 	ldkVssEnabled, _ := api.cfg.Get("LdkVssEnabled", "")
+	autoUnlockPassword, _ := api.cfg.Get("AutoUnlockPassword", "")
 	info.SetupCompleted = api.cfg.SetupCompleted()
 	if api.startupError != nil {
 		info.StartupError = api.startupError.Error()
@@ -692,6 +724,8 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info.EnableAdvancedSetup = api.cfg.GetEnv().EnableAdvancedSetup
 	info.LdkVssEnabled = ldkVssEnabled == "true"
 	info.VssSupported = backendType == config.LDKBackendType && api.cfg.GetEnv().LDKVssUrl != ""
+	info.AutoUnlockPasswordEnabled = autoUnlockPassword != ""
+	info.AutoUnlockPasswordSupported = api.cfg.GetEnv().IsDefaultClientId()
 	albyUserIdentifier, err := api.albyOAuthSvc.GetUserIdentifier()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to get alby user identifier")
@@ -977,16 +1011,63 @@ func (api *api) GetLogOutput(ctx context.Context, logType string, getLogRequest 
 		}
 	} else if logType == LogTypeApp {
 		logFileName := logger.GetLogFilePath()
-
-		logData, err = utils.ReadFileTail(logFileName, getLogRequest.MaxLen)
-		if err != nil {
-			return nil, err
+		if logFileName == "" {
+			logData = []byte("file log is disabled")
+		} else {
+			logData, err = utils.ReadFileTail(logFileName, getLogRequest.MaxLen)
+			if err != nil {
+				return nil, err
+			}
 		}
 	} else {
 		return nil, fmt.Errorf("invalid log type: '%s'", logType)
 	}
 
 	return &GetLogOutputResponse{Log: string(logData)}, nil
+}
+
+func (api *api) Health(ctx context.Context) (*HealthResponse, error) {
+	var alarms []HealthAlarm
+
+	albyInfo, err := api.albyOAuthSvc.GetInfo(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if !albyInfo.Healthy {
+		alarms = append(alarms, NewHealthAlarm(HealthAlarmKindAlbyService, albyInfo.Incidents))
+	}
+
+	isNostrRelayReady := api.svc.IsRelayReady()
+	if !isNostrRelayReady {
+		alarms = append(alarms, NewHealthAlarm(HealthAlarmKindNostrRelayOffline, nil))
+	}
+
+	lnClient := api.svc.GetLNClient()
+
+	if lnClient != nil {
+		nodeStatus, err := lnClient.GetNodeStatus(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if nodeStatus == nil || !nodeStatus.IsReady {
+			alarms = append(alarms, NewHealthAlarm(HealthAlarmKindNodeNotReady, nodeStatus))
+		}
+
+		channels, err := lnClient.ListChannels(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		offlineChannels := slices.DeleteFunc(channels, func(channel lnclient.Channel) bool {
+			return channel.Active
+		})
+
+		if len(offlineChannels) > 0 {
+			alarms = append(alarms, NewHealthAlarm(HealthAlarmKindChannelsOffline, nil))
+		}
+	}
+
+	return &HealthResponse{Alarms: alarms}, nil
 }
 
 func (api *api) parseExpiresAt(expiresAtString string) (*time.Time, error) {

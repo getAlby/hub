@@ -86,6 +86,7 @@ type Channel struct {
 	Id                                       string
 	RemotePubkey                             string
 	FundingTxId                              string
+	FundingTxVout                            uint32
 	Active                                   bool
 	Public                                   bool
 	InternalChannel                          interface{}
@@ -99,6 +100,7 @@ type Channel struct {
 }
 
 type NodeStatus struct {
+	IsReady            bool        `json:"isReady"`
 	InternalNodeStatus interface{} `json:"internalNodeStatus"`
 }
 
@@ -134,12 +136,21 @@ type UpdateChannelRequest struct {
 type CloseChannelResponse struct {
 }
 
+type PendingBalanceDetails struct {
+	ChannelId     string `json:"channelId"`
+	NodeId        string `json:"nodeId"`
+	Amount        uint64 `json:"amount"`
+	FundingTxId   string `json:"fundingTxId"`
+	FundingTxVout uint32 `json:"fundingTxVout"`
+}
+
 type OnchainBalanceResponse struct {
-	Spendable                          int64       `json:"spendable"`
-	Total                              int64       `json:"total"`
-	Reserved                           int64       `json:"reserved"`
-	PendingBalancesFromChannelClosures uint64      `json:"pendingBalancesFromChannelClosures"`
-	InternalBalances                   interface{} `json:"internalBalances"`
+	Spendable                          int64                   `json:"spendable"`
+	Total                              int64                   `json:"total"`
+	Reserved                           int64                   `json:"reserved"`
+	PendingBalancesFromChannelClosures uint64                  `json:"pendingBalancesFromChannelClosures"`
+	PendingBalancesDetails             []PendingBalanceDetails `json:"pendingBalancesDetails"`
+	InternalBalances                   interface{}             `json:"internalBalances"`
 }
 
 type PeerDetails struct {

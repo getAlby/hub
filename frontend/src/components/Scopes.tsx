@@ -25,7 +25,7 @@ const scopeGroupIconMap: ScopeGroupIconMap = {
 const scopeGroupTitle: Record<ScopeGroup, string> = {
   full_access: "Full Access",
   read_only: "Read Only",
-  isolated: "Isolated",
+  isolated: "Sub-wallet",
   custom: "Custom",
 };
 

@@ -10,13 +10,12 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 import { Progress } from "src/components/ui/progress.tsx";
-import { Separator } from "src/components/ui/separator";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "src/components/ui/tooltip.tsx";
+} from "src/components/ui/tooltip";
 import { formatAmount } from "src/lib/utils.ts";
 import { Channel, Node } from "src/types";
 
@@ -32,34 +31,34 @@ export function ChannelsCards({ channels, nodes }: ChannelsCardsProps) {
 
   return (
     <>
-      <p className="font-semibold text-lg mt-4">Channels</p>
-      <div className="flex flex-col gap-4 slashed-zero">
-        {channels
-          .sort((a, b) =>
-            a.localBalance + a.remoteBalance > b.localBalance + b.remoteBalance
-              ? -1
-              : 1
-          )
-          .map((channel) => {
-            const node = nodes?.find(
-              (n) => n.public_key === channel.remotePubkey
-            );
-            const alias = node?.alias || "Unknown";
-            const capacity = channel.localBalance + channel.remoteBalance;
+      <Card>
+        <CardHeader className="w-full pb-4">Channels</CardHeader>
+        <div className="flex flex-col gap-4 slashed-zero p-4">
+          {channels
+            .sort((a, b) =>
+              a.localBalance + a.remoteBalance >
+              b.localBalance + b.remoteBalance
+                ? -1
+                : 1
+            )
+            .map((channel) => {
+              const node = nodes?.find(
+                (n) => n.public_key === channel.remotePubkey
+              );
+              const alias = node?.alias || "Unknown";
+              const capacity = channel.localBalance + channel.remoteBalance;
 
-            return (
-              <Card>
-                <CardHeader className="w-full pb-4">
+              return (
+                <>
                   <div className="flex flex-col items-start w-full">
                     <CardTitle className="w-full">
                       <div className="flex items-center justify-between">
-                        <div className="flex-1 whitespace-nowrap text-ellipsis overflow-hidden">
+                        <div className="flex-1 whitespace-nowrap text-ellipsis font-semibold overflow-hidden">
                           {alias}
                         </div>
                         <ChannelDropdownMenu alias={alias} channel={channel} />
                       </div>
                     </CardTitle>
-                    <Separator className="mt-5" />
                     <CardDescription className="w-full flex flex-col gap-4 mt-4">
                       <div className="flex w-full justify-between items-center">
                         <p className="text-muted-foreground font-medium">
@@ -74,17 +73,43 @@ export function ChannelsCards({ channels, nodes }: ChannelsCardsProps) {
                         )}
                       </div>
                       <div className="flex w-full justify-between items-center">
-                        <p className="text-muted-foreground font-medium">
-                          Type
-                        </p>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <div className="flex flex-row gap-1 items-center text-muted-foreground">
+                                Type
+                                <InfoIcon className="h-3 w-3 shrink-0" />
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent className="w-[400px]">
+                              The type of lightning channel, By default private
+                              channel is recommended. If you a podcaster or
+                              musician and expect to receive keysend or
+                              Value4Value payments you will need a public
+                              channel.
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                         <p className="text-foreground">
                           {channel.public ? "Public" : "Private"}
                         </p>
                       </div>
                       <div className="flex justify-between items-center">
-                        <p className="text-muted-foreground font-medium">
-                          Capacity
-                        </p>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <div className="flex flex-row gap-1 items-center text-muted-foreground">
+                                Capacity
+                                <InfoIcon className="h-3 w-3 shrink-0" />
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent className="w-[400px]">
+                              Total Spending and Receiving capacity of your
+                              lightning channel.
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+
                         <p className="text-foreground">
                           {formatAmount(capacity)} sats
                         </p>
@@ -93,11 +118,9 @@ export function ChannelsCards({ channels, nodes }: ChannelsCardsProps) {
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger>
-                              <div className="flex flex-row gap-2 items-center">
-                                <p className="text-muted-foreground font-medium">
-                                  Reserve
-                                </p>
-                                <InfoIcon className="h-4 w-4 shrink-0" />
+                              <div className="flex flex-row gap-1 items-center text-muted-foreground">
+                                Reserve
+                                <InfoIcon className="h-3 w-3 shrink-0" />
                               </div>
                             </TooltipTrigger>
                             <TooltipContent className="w-[400px]">
@@ -109,6 +132,7 @@ export function ChannelsCards({ channels, nodes }: ChannelsCardsProps) {
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
+
                         <p className="text-foreground">
                           {channel.localBalance <
                             channel.unspendablePunishmentReserve * 1000 && (
@@ -130,41 +154,45 @@ export function ChannelsCards({ channels, nodes }: ChannelsCardsProps) {
                       </div>
                     </CardDescription>
                   </div>
-                </CardHeader>
 
-                <CardContent>
-                  <div className="flex justify-between items-center">
-                    <p className="text-muted-foreground font-medium text-sm">
-                      Spending
-                    </p>
-                    <p className="text-muted-foreground font-medium text-sm">
-                      Receiving
-                    </p>
-                  </div>
-                  <div className="flex gap-2 items-center mt-2">
-                    <div className="flex-1 relative">
-                      <Progress
-                        value={(channel.localSpendableBalance / capacity) * 100}
-                        className="h-6 absolute"
-                      />
-                      <div className="flex flex-row w-full justify-between px-2 text-xs items-center h-6 mix-blend-exclusion text-white">
-                        <span
-                          title={channel.localSpendableBalance / 1000 + " sats"}
-                        >
-                          {formatAmount(channel.localSpendableBalance)} sats
-                        </span>
-                        <span title={channel.remoteBalance / 1000 + " sats"}>
-                          {formatAmount(channel.remoteBalance)} sats
-                        </span>
-                      </div>
+                  <CardContent className="p-0">
+                    <div className="flex justify-between items-center">
+                      <p className="text-muted-foreground font-medium text-sm">
+                        Spending
+                      </p>
+                      <p className="text-muted-foreground font-medium text-sm">
+                        Receiving
+                      </p>
                     </div>
-                    <ChannelWarning channel={channel} />
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-      </div>
+                    <div className="flex gap-2 items-center mt-2">
+                      <div className="flex-1 relative">
+                        <Progress
+                          value={
+                            (channel.localSpendableBalance / capacity) * 100
+                          }
+                          className="h-6 absolute"
+                        />
+                        <div className="flex flex-row w-full justify-between px-2 text-xs items-center h-6 mix-blend-exclusion text-white">
+                          <span
+                            title={
+                              channel.localSpendableBalance / 1000 + " sats"
+                            }
+                          >
+                            {formatAmount(channel.localSpendableBalance)} sats
+                          </span>
+                          <span title={channel.remoteBalance / 1000 + " sats"}>
+                            {formatAmount(channel.remoteBalance)} sats
+                          </span>
+                        </div>
+                      </div>
+                      <ChannelWarning channel={channel} />
+                    </div>
+                  </CardContent>
+                </>
+              );
+            })}
+        </div>
+      </Card>
     </>
   );
 }
