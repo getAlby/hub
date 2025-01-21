@@ -86,7 +86,7 @@ export const suggestedApps: SuggestedApp[] = [
       "https://chromewebstore.google.com/detail/iokeahhehimjnekafflcihljlcjccdbe",
     firefoxLink: "https://addons.mozilla.org/en-US/firefox/addon/alby/",
     logo: alby,
-    interactions: "Seamlessly connects your hub to lightning-enabled websites",
+    interactions: "Connect your Hub to lightning-enabled websites and lets you pay seamlessly on the web",
     guide: (
       <>
         <div>
@@ -150,7 +150,7 @@ export const suggestedApps: SuggestedApp[] = [
     webLink: "https://damus.io/?utm_source=getalby",
     appleLink: "https://apps.apple.com/ca/app/damus/id1628663131",
     logo: damus,
-    interactions: "Tip nostr posts and profiles and pay invoices seamlessly",
+    interactions: "Tip nostr posts and profiles and receive zaps seamlessly with your Hub",
     guide: (
       <>
         <div>
@@ -201,7 +201,7 @@ export const suggestedApps: SuggestedApp[] = [
     playLink:
       "https://play.google.com/store/apps/details?id=com.vitorpamplona.amethyst",
     logo: amethyst,
-    interactions: "Tip nostr posts and profiles and pay invoices seamlessly",
+    interactions: "Tip nostr posts and profiles and receive zaps seamlessly with your Hub",
     guide: (
       <>
         <div>
@@ -260,7 +260,7 @@ export const suggestedApps: SuggestedApp[] = [
     // NWC is not supported on iOS
     // appleLink: "https://apps.apple.com/us/app/primal/id1673134518",
     logo: primal,
-    interactions: "Tip nostr posts and profiles and pay invoices seamlessly",
+    interactions: "Tip nostr posts and profiles and receive zaps seamlessly with your Hub",
     guide: (
       <>
         <div>
@@ -320,7 +320,7 @@ export const suggestedApps: SuggestedApp[] = [
     webLink: "https://zap.stream/",
     logo: zapstream,
     interactions:
-      "Tip streamers, zap comments and pay for streaming time seamlessly",
+      "Tip streamers, zap comments and pay or receive sats for streaming time with your Hub",
     guide: (
       <>
         <div>
@@ -379,7 +379,7 @@ export const suggestedApps: SuggestedApp[] = [
     webLink: "https://btcpayserver.org/",
     logo: btcpay,
     interactions:
-      "Receive payments directly to your hub for products you sell online",
+      "Receive payments directly to your Hub for products you sell online",
     guide: (
       <>
         <div>
@@ -537,7 +537,7 @@ export const suggestedApps: SuggestedApp[] = [
     description: "Desktop Nostr client",
     webLink: "https://coracle.social/",
     logo: coracle,
-    interactions: "Tip nostr posts and profiles and pay invoices seamlessly",
+    interactions: "Tip nostr posts and profiles and receive zaps seamlessly with your Hub",
     guide: (
       <>
         <p>
@@ -619,7 +619,7 @@ export const suggestedApps: SuggestedApp[] = [
     description: "Minimalistic, desktop Nostr client",
     webLink: "https://nostter.app/",
     logo: nostter,
-    interactions: "Tip nostr posts and profiles and pay invoices seamlessly",
+    interactions: "Tip nostr posts and profiles and receive zaps seamlessly with your Hub",
     guide: (
       <>
         <p>
@@ -703,7 +703,7 @@ export const suggestedApps: SuggestedApp[] = [
       "https://play.google.com/store/apps/details?id=com.wavlake.mobile",
     appleLink: "https://testflight.apple.com/join/eWnqECG4",
     logo: wavlake,
-    interactions: "Pay to upvote music you enjoy seamlessly",
+    interactions: "Support artists by paying to upvote music you enjoy with your Hub",
     guide: (
       <>
         <div>
@@ -753,7 +753,7 @@ export const suggestedApps: SuggestedApp[] = [
     description: "Web Nostr client",
     webLink: "https://snort.social/",
     logo: snort,
-    interactions: "Tip nostr posts and profiles and pay invoices seamlessly",
+    interactions: "Tip nostr posts and profiles and receive zaps seamlessly with your Hub",
     guide: (
       <>
         <div>
@@ -812,7 +812,7 @@ export const suggestedApps: SuggestedApp[] = [
     description: "Blogging platform",
     webLink: "https://habla.news/",
     logo: hablanews,
-    interactions: "Tip nostr posts and profiles and pay invoices seamlessly",
+    interactions: "Tip nostr posts and profiles and receive zaps seamlessly with your Hub",
     guide: (
       <>
         <div>
@@ -874,7 +874,7 @@ export const suggestedApps: SuggestedApp[] = [
     webLink: "https://clams.tech/",
     logo: clams,
     interactions:
-      "Reads your transaction list to provide insights and accounting tools",
+      "Get insights into your transaction history and accounting tools by connecting your Hub",
     guide: (
       <>
         <div>
@@ -926,7 +926,7 @@ export const suggestedApps: SuggestedApp[] = [
     webLink: "https://github.com/quentintaranpino/nostrcheck-server",
     logo: nostrcheckserver,
     interactions:
-      "Enable payments to your hub from users who register or upload and download files",
+      "Enable payments to your Hub from users who register or upload and download files",
     guide: (
       <>
         <div>
@@ -975,7 +975,7 @@ export const suggestedApps: SuggestedApp[] = [
     description: "Web Nostr client",
     webLink: "https://nostrudel.ninja/",
     logo: nostrudel,
-    interactions: "Tip nostr posts and profiles and pay invoices seamlessly",
+    interactions: "Tip nostr posts and profiles and receive zaps seamlessly with your Hub",
     guide: (
       <>
         <div>
@@ -1040,7 +1040,7 @@ export const suggestedApps: SuggestedApp[] = [
       "https://play.google.com/store/apps/details?id=com.yakihonne.yakihonne",
     appleLink: "https://apps.apple.com/us/app/yakihonne/id6472556189",
     logo: yakihonne,
-    interactions: "Tip nostr posts and profiles and pay invoices seamlessly",
+    interactions: "Tip nostr posts and profiles and receive zaps seamlessly with your Hub",
     guide: (
       <>
         <div>
@@ -1107,7 +1107,7 @@ export const suggestedApps: SuggestedApp[] = [
     webLink: "https://www.zapplepay.com/",
     logo: zapplepay,
     interactions:
-      "ZapplePay will make payments from your hub to zap posts when you react to them",
+      "ZapplePay will make payments from your Hub to zap posts when you react to them",
     guide: (
       <>
         <div>
@@ -1162,7 +1162,7 @@ export const suggestedApps: SuggestedApp[] = [
     description: "macOS Nostr client",
     webLink: "https://lume.nu/",
     logo: lume,
-    interactions: "Tip nostr posts and profiles and pay invoices seamlessly",
+    interactions: "Tip nostr posts and profiles and receive zaps seamlessly with your Hub",
     guide: (
       <>
         <div>
@@ -1283,7 +1283,7 @@ export const suggestedApps: SuggestedApp[] = [
     webLink: "https://rolznz.github.io/zappy-bird/",
     logo: zappybird,
     interactions:
-      "Makes a payment from your hub each time your bird flaps its wings",
+      "Makes a payment from your Hub each time your bird flaps its wings",
     guide: (
       <>
         <div>
@@ -1345,7 +1345,7 @@ export const suggestedApps: SuggestedApp[] = [
     webLink: "https://nostur.com/",
     appleLink: "https://apps.apple.com/us/app/nostur-nostr-client/id1672780508",
     logo: nostur,
-    interactions: "Tip nostr posts and profiles and pay invoices seamlessly",
+    interactions: "Tip nostr posts and profiles and receive zaps seamlessly with your Hub",
     guide: (
       <>
         <div>
@@ -1400,7 +1400,7 @@ export const suggestedApps: SuggestedApp[] = [
     description: "Map of notes",
     webLink: "https://wherostr.social/",
     logo: wherostr,
-    interactions: "Tip nostr posts and profiles and pay invoices seamlessly",
+    interactions: "Tip nostr posts and profiles and receive zaps seamlessly with your Hub",
     guide: (
       <>
         <div>
@@ -1459,7 +1459,7 @@ export const suggestedApps: SuggestedApp[] = [
     description: "Like Hacker News but with Bitcoin",
     webLink: "https://stacker.news/",
     logo: stackernews,
-    interactions: "Uses your hub to pay to upvote posts",
+    interactions: "Upvote posts with sats and receive sats for your own posts directly in your Hub",
     guide: (
       <>
         <div>
@@ -1559,7 +1559,7 @@ export const suggestedApps: SuggestedApp[] = [
     webLink: "https://paper-scissors-hodl.fly.dev",
     logo: paperScissorsHodl,
     interactions:
-      "Uses your hub to pay to play a round, and receive the reward if you win",
+      "Uses your Hub to pay to play a round, and receive the reward if you win",
     guide: (
       <>
         <div>
@@ -1618,7 +1618,7 @@ export const suggestedApps: SuggestedApp[] = [
     appleLink: "https://apps.apple.com/us/app/alby-go/id6471335774",
     zapStoreLink: "https://zapstore.dev/download/",
     logo: albyGo,
-    interactions: "Sends and receives payments seamlessly from your hub",
+    interactions: "Sends and receives payments seamlessly from your Hub",
     guide: (
       <>
         <div>
@@ -1667,7 +1667,7 @@ export const suggestedApps: SuggestedApp[] = [
     description: "Instantly pull up anything with private web search + AI",
     webLink: "https://www.pullthatupjamie.ai/",
     logo: pullthatupjamie,
-    interactions: "Pay from your hub to do private AI-powered searches",
+    interactions: "Pay from your Hub to do private AI-powered searches",
     guide: (
       <>
         <div>
@@ -1724,7 +1724,7 @@ export const suggestedApps: SuggestedApp[] = [
     description: "Discover great apps through your social connections",
     webLink: "https://zapstore.dev/",
     logo: zapstore,
-    interactions: "Pay to zap apps and support their creators",
+    interactions: "Pay to zap apps and support their creators seamlessly with your Hub",
     guide: (
       <>
         <div>
