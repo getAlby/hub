@@ -58,7 +58,7 @@ export function AppStoreDetail() {
         <div className="flex flex-col w-full gap-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-2xl">Alby Hub Interactions</CardTitle>
+              <CardTitle className="text-2xl">About the App</CardTitle>
             </CardHeader>
             {app.interactions && (
               <CardContent className="flex flex-col gap-3">
