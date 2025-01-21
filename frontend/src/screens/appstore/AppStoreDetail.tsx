@@ -55,98 +55,114 @@ export function AppStoreDetail() {
         }
       />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {(app.appleLink ||
-          app.playLink ||
-          app.zapStoreLink ||
-          app.chromeLink ||
-          app.firefoxLink) && (
+        <div className="flex flex-col w-full gap-6">
           <Card>
             <CardHeader>
-              <CardTitle>Get This App</CardTitle>
+              <CardTitle className="text-2xl">Alby Hub Interactions</CardTitle>
             </CardHeader>
-            <CardFooter className="flex flex-row gap-2">
-              {app.playLink && (
-                <ExternalLink to={app.playLink}>
-                  <Button variant="outline">
-                    <PlayStoreIcon className="w-4 h-4 mr-2" />
-                    Play Store
-                  </Button>
-                </ExternalLink>
-              )}
-              {app.appleLink && (
-                <ExternalLink to={app.appleLink}>
-                  <Button variant="outline">
-                    <AppleIcon className="w-4 h-4 mr-2" />
-                    App Store
-                  </Button>
-                </ExternalLink>
-              )}
-              {app.zapStoreLink && (
-                <ExternalLink to={app.zapStoreLink}>
-                  <Button variant="outline">
-                    <ZapStoreIcon className="w-4 h-4 mr-2" />
-                    Zapstore
-                  </Button>
-                </ExternalLink>
-              )}
-              {app.chromeLink && (
-                <ExternalLink to={app.chromeLink}>
-                  <Button variant="outline">
-                    <ChromeIcon className="w-4 h-4 mr-2" />
-                    Chrome Web Store
-                  </Button>
-                </ExternalLink>
-              )}
-              {app.firefoxLink && (
-                <ExternalLink to={app.firefoxLink}>
-                  <Button variant="outline">
-                    <FirefoxIcon className="w-4 h-4 mr-2" />
-                    Firefox Add-Ons
-                  </Button>
-                </ExternalLink>
-              )}
-            </CardFooter>
+            {app.interactions && (
+              <CardContent className="flex flex-col gap-3">
+                <p className="text-muted-foreground">{app.interactions}</p>
+              </CardContent>
+            )}
           </Card>
-        )}
-        {app.webLink && (
           <Card>
             <CardHeader>
-              <CardTitle>Links</CardTitle>
+              <CardTitle className="text-2xl">How to Connect</CardTitle>
             </CardHeader>
-            <CardFooter className="flex flex-row gap-2">
-              {app.webLink && (
-                <ExternalLink to={app.webLink}>
-                  <Button variant="outline">
-                    <Globe className="w-4 h-4 mr-2" />
-                    Website
-                  </Button>
-                </ExternalLink>
+            <CardContent className="flex flex-col gap-3">
+              {app.guide || (
+                <ul className="list-inside list-decimal">
+                  <li>Install the app</li>
+                  <li>
+                    Click{" "}
+                    <Link to={`/apps/new?app=${appId}`}>
+                      <Button variant="link" className="px-0">
+                        Connect to {app.title}
+                      </Button>
+                    </Link>
+                  </li>
+                  <li>
+                    Open the Alby Go app on your mobile and scan the QR code
+                  </li>
+                </ul>
               )}
-            </CardFooter>
+            </CardContent>
           </Card>
-        )}
-      </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>How to Connect</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-3">
-          {app.guide || (
-            <ul className="list-inside list-decimal">
-              <li>Install the app</li>
-              <li>
-                Click{" "}
-                <Link to={`/apps/new?app=${appId}`}>
-                  <Button variant="link" className="px-0">
-                    Connect to {app.title}
-                  </Button>
-                </Link>
-              </li>
-              <li>Open the Alby Go app on your mobile and scan the QR code</li>
-            </ul>
+        </div>
+        <div className="flex flex-col w-full gap-6">
+          {(app.appleLink ||
+            app.playLink ||
+            app.zapStoreLink ||
+            app.chromeLink ||
+            app.firefoxLink) && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-2xl">Get This App</CardTitle>
+              </CardHeader>
+              <CardFooter className="flex flex-row gap-2">
+                {app.playLink && (
+                  <ExternalLink to={app.playLink}>
+                    <Button variant="outline">
+                      <PlayStoreIcon className="w-4 h-4 mr-2" />
+                      Play Store
+                    </Button>
+                  </ExternalLink>
+                )}
+                {app.appleLink && (
+                  <ExternalLink to={app.appleLink}>
+                    <Button variant="outline">
+                      <AppleIcon className="w-4 h-4 mr-2" />
+                      App Store
+                    </Button>
+                  </ExternalLink>
+                )}
+                {app.zapStoreLink && (
+                  <ExternalLink to={app.zapStoreLink}>
+                    <Button variant="outline">
+                      <ZapStoreIcon className="w-4 h-4 mr-2" />
+                      Zapstore
+                    </Button>
+                  </ExternalLink>
+                )}
+                {app.chromeLink && (
+                  <ExternalLink to={app.chromeLink}>
+                    <Button variant="outline">
+                      <ChromeIcon className="w-4 h-4 mr-2" />
+                      Chrome Web Store
+                    </Button>
+                  </ExternalLink>
+                )}
+                {app.firefoxLink && (
+                  <ExternalLink to={app.firefoxLink}>
+                    <Button variant="outline">
+                      <FirefoxIcon className="w-4 h-4 mr-2" />
+                      Firefox Add-Ons
+                    </Button>
+                  </ExternalLink>
+                )}
+              </CardFooter>
+            </Card>
           )}
-        </CardContent>
-      </Card>
+          {app.webLink && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-2xl">Links</CardTitle>
+              </CardHeader>
+              <CardFooter className="flex flex-row gap-2">
+                {app.webLink && (
+                  <ExternalLink to={app.webLink}>
+                    <Button variant="outline">
+                      <Globe className="w-4 h-4 mr-2" />
+                      Website
+                    </Button>
+                  </ExternalLink>
+                )}
+              </CardFooter>
+            </Card>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
