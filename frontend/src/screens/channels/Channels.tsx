@@ -193,8 +193,8 @@ export default function Channels() {
                       onChange={(e) => setSwapOutAmount(e.target.value)}
                     />
                     <p className="text-muted-foreground text-xs p-2">
-                      The amount is set to 90% of the funds held in the channel
-                      with the most outbound capacity.
+                      The amount is set to 90% of the maximum spending capacity
+                      available in one of your lightning channels.
                     </p>
                   </div>
                 </div>
@@ -240,9 +240,8 @@ export default function Channels() {
                       onChange={(e) => setSwapInAmount(e.target.value)}
                     />
                     <p className="text-muted-foreground text-xs p-2">
-                      The amount is set to 90% of the funds held by the
-                      counterparty in the channel with the most receiving
-                      capacity.
+                      The amount is set to 90% of the maximum receiving capacity
+                      available in one of your lightning channels.
                     </p>
                   </div>
                 </div>
