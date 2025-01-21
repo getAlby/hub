@@ -193,7 +193,7 @@ export default function Channels() {
                     />
                     <p className="text-muted-foreground text-xs p-2">
                       The amount is set to 90% of the maximum spending capacity
-                      available in one of your Lightning channels.
+                      available in one of your lightning channels.
                     </p>
                   </div>
                 </div>
