@@ -23,6 +23,7 @@ import (
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/lnclient/lnd/wrapper"
 	"github.com/getAlby/hub/logger"
+	"github.com/getAlby/hub/transactions"
 
 	"github.com/sirupsen/logrus"
 	// "gorm.io/gorm"
@@ -198,6 +199,7 @@ func (svc *LNDService) ListChannels(ctx context.Context) ([]lnclient.Channel, er
 			Active:                                   lndChannel.Active,
 			Public:                                   !lndChannel.Private,
 			FundingTxId:                              channelPoint.GetFundingTxidStr(),
+			FundingTxVout:                            channelPoint.GetOutputIndex(),
 			Confirmations:                            &confirmations,
 			ConfirmationsRequired:                    &confirmationsRequired,
 			UnspendablePunishmentReserve:             lndChannel.LocalConstraints.ChanReserveSat,
@@ -313,34 +315,67 @@ func (svc *LNDService) LookupInvoice(ctx context.Context, paymentHash string) (t
 	return transaction, nil
 }
 
+func (svc *LNDService) getPaymentResult(stream routerrpc.Router_SendPaymentV2Client) (*lnrpc.Payment, error) {
+	for {
+		payment, err := stream.Recv()
+		if err != nil {
+			return nil, err
+		}
+
+		if payment.Status != lnrpc.Payment_IN_FLIGHT {
+			return payment, nil
+		}
+	}
+}
+
 func (svc *LNDService) SendPaymentSync(ctx context.Context, payReq string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
-	sendRequest := &lnrpc.SendRequest{PaymentRequest: payReq}
+	const MAX_PARTIAL_PAYMENTS = 16
+	const SEND_PAYMENT_TIMEOUT = 50
+	paymentRequest, err := decodepay.Decodepay(payReq)
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"bolt11": payReq,
+		}).WithError(err).Error("Failed to decode bolt11 invoice")
+
+		return nil, err
+	}
+
+	paymentAmountMsat := uint64(paymentRequest.MSatoshi)
+	if amount != nil {
+		paymentAmountMsat = *amount
+	}
+	sendRequest := &routerrpc.SendPaymentRequest{
+		PaymentRequest: payReq,
+		MaxParts:       MAX_PARTIAL_PAYMENTS,
+		TimeoutSeconds: SEND_PAYMENT_TIMEOUT,
+		FeeLimitMsat:   int64(transactions.CalculateFeeReserveMsat(paymentAmountMsat)),
+	}
 
 	if amount != nil {
 		sendRequest.AmtMsat = int64(*amount)
 	}
 
-	resp, err := svc.client.SendPaymentSync(ctx, sendRequest)
+	payStream, err := svc.client.SendPayment(ctx, sendRequest)
 	if err != nil {
 		return nil, err
 	}
 
-	if resp.PaymentError != "" {
-		return nil, errors.New(resp.PaymentError)
+	resp, err := svc.getPaymentResult(payStream)
+	if err != nil {
+		return nil, err
 	}
 
-	if resp.PaymentPreimage == nil {
+	if resp.Status != lnrpc.Payment_SUCCEEDED {
+		return nil, errors.New(resp.FailureReason.String())
+	}
+
+	if resp.PaymentPreimage == "" {
 		return nil, errors.New("no preimage in response")
 	}
 
-	var fee uint64 = 0
-	if resp.PaymentRoute != nil {
-		fee = uint64(resp.PaymentRoute.TotalFeesMsat)
-	}
-
 	return &lnclient.PayInvoiceResponse{
-		Preimage: hex.EncodeToString(resp.PaymentPreimage),
-		Fee:      fee,
+		Preimage: resp.PaymentPreimage,
+		Fee:      uint64(resp.FeeMsat),
 	}, nil
 }
 
@@ -370,17 +405,22 @@ func (svc *LNDService) SendKeysend(ctx context.Context, amount uint64, destinati
 		}
 		destCustomRecords[record.Type] = decodedValue
 	}
+	const MAX_PARTIAL_PAYMENTS = 16
+	const SEND_PAYMENT_TIMEOUT = 50
 	const KEYSEND_CUSTOM_RECORD = 5482373484
 	destCustomRecords[KEYSEND_CUSTOM_RECORD] = preImageBytes
-	sendPaymentRequest := &lnrpc.SendRequest{
+	sendPaymentRequest := &routerrpc.SendPaymentRequest{
 		Dest:              destBytes,
 		AmtMsat:           int64(amount),
 		PaymentHash:       paymentHashBytes,
 		DestFeatures:      []lnrpc.FeatureBit{lnrpc.FeatureBit_TLV_ONION_REQ},
 		DestCustomRecords: destCustomRecords,
+		MaxParts:          MAX_PARTIAL_PAYMENTS,
+		TimeoutSeconds:    SEND_PAYMENT_TIMEOUT,
+		FeeLimitMsat:      int64(transactions.CalculateFeeReserveMsat(amount)),
 	}
 
-	resp, err := svc.client.SendPaymentSync(ctx, sendPaymentRequest)
+	payStream, err := svc.client.SendPayment(ctx, sendPaymentRequest)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"amount":        amount,
@@ -392,26 +432,31 @@ func (svc *LNDService) SendKeysend(ctx context.Context, amount uint64, destinati
 		}).Errorf("Failed to send keysend payment")
 		return nil, err
 	}
-	if resp.PaymentError != "" {
-		logger.Logger.WithFields(logrus.Fields{
-			"amount":        amount,
-			"payeePubkey":   destination,
-			"paymentHash":   paymentHash,
-			"preimage":      preimage,
-			"customRecords": custom_records,
-			"paymentError":  resp.PaymentError,
-		}).Errorf("Keysend payment has payment error")
-		return nil, errors.New(resp.PaymentError)
+
+	resp, err := svc.getPaymentResult(payStream)
+	if err != nil {
+		return nil, err
 	}
-	respPreimage := hex.EncodeToString(resp.PaymentPreimage)
-	if respPreimage != preimage {
+
+	if resp.Status != lnrpc.Payment_SUCCEEDED {
 		logger.Logger.WithFields(logrus.Fields{
 			"amount":        amount,
 			"payeePubkey":   destination,
 			"paymentHash":   paymentHash,
 			"preimage":      preimage,
 			"customRecords": custom_records,
-			"paymentError":  resp.PaymentError,
+			"paymentError":  resp.FailureReason.String(),
+		}).Errorf("Keysend payment has payment error")
+		return nil, errors.New(resp.FailureReason.String())
+	}
+
+	if resp.PaymentPreimage != preimage {
+		logger.Logger.WithFields(logrus.Fields{
+			"amount":        amount,
+			"payeePubkey":   destination,
+			"paymentHash":   paymentHash,
+			"preimage":      preimage,
+			"customRecords": custom_records,
 		}).Errorf("Preimage in keysend response does not match")
 		return nil, errors.New("preimage in keysend response does not match")
 	}
@@ -421,11 +466,11 @@ func (svc *LNDService) SendKeysend(ctx context.Context, amount uint64, destinati
 		"paymentHash":   paymentHash,
 		"preimage":      preimage,
 		"customRecords": custom_records,
-		"respPreimage":  respPreimage,
+		"respPreimage":  resp.PaymentPreimage,
 	}).Info("Keysend payment successful")
 
 	return &lnclient.PayKeysendResponse{
-		Fee: uint64(resp.PaymentRoute.TotalFeesMsat),
+		Fee: uint64(resp.FeeMsat),
 	}, nil
 }
 
@@ -836,8 +881,21 @@ func (svc *LNDService) GetOnchainBalance(ctx context.Context) (*lnclient.Onchain
 		return nil, err
 	}
 	pendingBalancesFromChannelClosures := uint64(0)
+	pendingBalancesDetails := []lnclient.PendingBalanceDetails{}
 	for _, closingChannel := range pendingChannels.WaitingCloseChannels {
 		pendingBalancesFromChannelClosures += uint64(closingChannel.LimboBalance)
+		if closingChannel.Channel != nil {
+			channelPoint, err := svc.parseChannelPoint(closingChannel.Channel.ChannelPoint)
+			if err != nil {
+				return nil, err
+			}
+			pendingBalancesDetails = append(pendingBalancesDetails, lnclient.PendingBalanceDetails{
+				NodeId:        closingChannel.Channel.RemoteNodePub,
+				Amount:        uint64(closingChannel.LimboBalance),
+				FundingTxId:   channelPoint.GetFundingTxidStr(),
+				FundingTxVout: channelPoint.GetOutputIndex(),
+			})
+		}
 	}
 	logger.Logger.WithFields(logrus.Fields{
 		"balances": balances,
@@ -847,6 +905,7 @@ func (svc *LNDService) GetOnchainBalance(ctx context.Context) (*lnclient.Onchain
 		Total:                              int64(balances.TotalBalance),
 		Reserved:                           int64(balances.ReservedBalanceAnchorChan),
 		PendingBalancesFromChannelClosures: pendingBalancesFromChannelClosures,
+		PendingBalancesDetails:             pendingBalancesDetails,
 		InternalBalances: map[string]interface{}{
 			"balances":         balances,
 			"pending_channels": pendingChannels,
@@ -1001,7 +1060,7 @@ func lndPaymentToTransaction(payment *lnrpc.Payment) (*lnclient.Transaction, err
 		DescriptionHash: descriptionHash,
 		ExpiresAt:       expiresAt,
 		SettledAt:       settledAt,
-		//TODO: Metadata:  (e.g. keysend),
+		// TODO: Metadata:  (e.g. keysend),
 	}, nil
 }
 
@@ -1072,6 +1131,7 @@ func (svc *LNDService) GetNodeStatus(ctx context.Context) (nodeStatus *lnclient.
 	}
 
 	return &lnclient.NodeStatus{
+		IsReady: true, // Assuming that, if GetNodeInfo() succeeds, the node is online and accessible.
 		InternalNodeStatus: map[string]interface{}{
 			"info":         info,
 			"config":       debugInfo.Config,

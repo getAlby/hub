@@ -44,7 +44,7 @@ func (svc *service) startNostr(ctx context.Context) error {
 	go func() {
 		// ensure the relay is properly disconnected before exiting
 		defer svc.wg.Done()
-		//Start infinite loop which will be only broken by canceling ctx (SIGINT)
+		// Start infinite loop which will be only broken by canceling ctx (SIGINT)
 		var relay *nostr.Relay
 		waitToReconnectSeconds := 0
 		var createAppEventListener events.EventSubscriber
@@ -53,11 +53,13 @@ func (svc *service) startNostr(ctx context.Context) error {
 			// wait for a delay if any before retrying
 			contextCancelled := false
 
+			svc.setRelayReady(false)
+
 			select {
 			case <-ctx.Done(): // application service context cancelled
 				logger.Logger.Info("service context cancelled")
 				contextCancelled = true
-			case <-time.After(time.Duration(waitToReconnectSeconds) * time.Second): //timeout
+			case <-time.After(time.Duration(waitToReconnectSeconds) * time.Second): // timeout
 			}
 			if contextCancelled {
 				break
@@ -65,7 +67,7 @@ func (svc *service) startNostr(ctx context.Context) error {
 
 			closeRelay(relay)
 
-			//connect to the relay
+			// connect to the relay
 			logger.Logger.WithFields(logrus.Fields{
 				"relay_url": relayUrl,
 				"iteration": i,
@@ -124,16 +126,19 @@ func (svc *service) startNostr(ctx context.Context) error {
 				// to ensure we do not get duplicate events
 				err = svc.startAppWalletSubscription(ctx, relay, svc.keys.GetNostrPublicKey())
 				if err != nil {
-					//err being non-nil means that we have an error on the websocket error channel. In this case we just try to reconnect.
+					// err being non-nil means that we have an error on the websocket error channel. In this case we just try to reconnect.
 					logger.Logger.WithError(err).Error("Got an error from the relay while listening to subscription.")
 					continue
 				}
 			}
+
+			svc.setRelayReady(true)
+
 			select {
 			case <-ctx.Done():
 				logger.Logger.Info("Main context cancelled, exiting...")
 			case <-relay.Context().Done():
-				//err being non-nil means that we have an error on the websocket error channel. In this case we just try to reconnect.
+				// err being non-nil means that we have an error on the websocket error channel. In this case we just try to reconnect.
 				if relay.ConnectionError != nil {
 					logger.Logger.WithError(relay.ConnectionError).Error("Got an error from the relay, trying to reconnect")
 				} else {
@@ -157,7 +162,15 @@ func (svc *service) startAllExistingAppsWalletSubscriptions(ctx context.Context,
 
 	for _, app := range apps {
 		go func(app db.App) {
-			err := svc.startAppWalletSubscription(ctx, relay, *app.WalletPubkey)
+			// republish info event for all existing apps
+			walletPrivKey, err := svc.keys.GetAppWalletKey(app.ID)
+			_, err = svc.GetNip47Service().PublishNip47Info(ctx, relay, *app.WalletPubkey, walletPrivKey, svc.lnClient)
+			if err != nil {
+				logger.Logger.WithError(err).WithFields(logrus.Fields{
+					"app_id": app.ID}).Error("Could not publish NIP47 info")
+			}
+
+			err = svc.startAppWalletSubscription(ctx, relay, *app.WalletPubkey)
 			if err != nil {
 				logger.Logger.WithError(err).WithFields(logrus.Fields{
 					"app_id": app.ID}).Error("Subscription error")
@@ -211,6 +224,14 @@ func (svc *service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 }
 
 func (svc *service) StartApp(encryptionKey string) error {
+	albyIdentifier, err := svc.albyOAuthSvc.GetUserIdentifier()
+	if err != nil {
+		return err
+	}
+	if albyIdentifier != "" && !svc.albyOAuthSvc.IsConnected(svc.ctx) {
+		return errors.New("alby account is not authenticated")
+	}
+
 	if svc.lnClient != nil {
 		return errors.New("app already started")
 	}
@@ -221,7 +242,7 @@ func (svc *service) StartApp(encryptionKey string) error {
 
 	ctx, cancelFn := context.WithCancel(svc.ctx)
 
-	err := svc.keys.Init(svc.cfg, encryptionKey)
+	err = svc.keys.Init(svc.cfg, encryptionKey)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to init nostr keys")
 		cancelFn()

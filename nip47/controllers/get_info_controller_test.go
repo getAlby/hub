@@ -25,9 +25,9 @@ const nip47GetInfoJson = `
 
 func TestHandleGetInfoEvent_NoPermission(t *testing.T) {
 	ctx := context.TODO()
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -74,9 +74,9 @@ func TestHandleGetInfoEvent_NoPermission(t *testing.T) {
 
 func TestHandleGetInfoEvent_WithPermission(t *testing.T) {
 	ctx := context.TODO()
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -120,11 +120,66 @@ func TestHandleGetInfoEvent_WithPermission(t *testing.T) {
 	assert.Equal(t, []string{}, nodeInfo.Notifications)
 }
 
+func TestHandleGetInfoEvent_WithMetadata(t *testing.T) {
+	ctx := context.TODO()
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	metadata := map[string]interface{}{
+		"a": 123,
+	}
+
+	app, _, err := svc.AppsService.CreateApp("test", "", 0, "monthly", nil, nil, false, metadata)
+	assert.NoError(t, err)
+
+	nip47Request := &models.Request{}
+	err = json.Unmarshal([]byte(nip47GetInfoJson), nip47Request)
+	assert.NoError(t, err)
+
+	dbRequestEvent := &db.RequestEvent{}
+	err = svc.DB.Create(&dbRequestEvent).Error
+	assert.NoError(t, err)
+
+	appPermission := &db.AppPermission{
+		AppId:     app.ID,
+		Scope:     constants.GET_INFO_SCOPE,
+		ExpiresAt: nil,
+	}
+	err = svc.DB.Create(appPermission).Error
+	assert.NoError(t, err)
+
+	var publishedResponse *models.Response
+
+	publishResponse := func(response *models.Response, tags nostr.Tags) {
+		publishedResponse = response
+	}
+
+	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
+		HandleGetInfoEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
+
+	assert.Nil(t, publishedResponse.Error)
+	nodeInfo := publishedResponse.Result.(*getInfoResponse)
+	assert.Equal(t, tests.MockNodeInfo.Alias, nodeInfo.Alias)
+	assert.Equal(t, tests.MockNodeInfo.Color, nodeInfo.Color)
+	assert.Equal(t, tests.MockNodeInfo.Pubkey, nodeInfo.Pubkey)
+	assert.Equal(t, tests.MockNodeInfo.Network, nodeInfo.Network)
+	assert.Equal(t, tests.MockNodeInfo.BlockHeight, nodeInfo.BlockHeight)
+	assert.Equal(t, tests.MockNodeInfo.BlockHash, nodeInfo.BlockHash)
+	assert.Contains(t, nodeInfo.Methods, "get_info")
+	assert.Equal(t, []string{}, nodeInfo.Notifications)
+
+	assert.NoError(t, err)
+	assert.Equal(t, float64(123), nodeInfo.Metadata.(map[string]interface{})["a"])
+}
+
 func TestHandleGetInfoEvent_WithNotifications(t *testing.T) {
 	ctx := context.TODO()
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)

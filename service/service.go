@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"sync/atomic"
 
 	"github.com/adrg/xdg"
 	"github.com/nbd-wtf/go-nostr"
@@ -41,6 +42,7 @@ type service struct {
 	nip47Service        nip47.Nip47Service
 	appCancelFn         context.CancelFunc
 	keys                keys.Keys
+	isRelayReady        atomic.Bool
 }
 
 func NewService(ctx context.Context) (*service, error) {
@@ -94,6 +96,18 @@ func NewService(ctx context.Context) (*service, error) {
 		return nil, err
 	}
 
+	// write auto unlock password from env to user config
+	if appConfig.AutoUnlockPassword != "" {
+		err = cfg.SetUpdate("AutoUnlockPassword", appConfig.AutoUnlockPassword, "")
+		if err != nil {
+			return nil, err
+		}
+	}
+	autoUnlockPassword, err := cfg.Get("AutoUnlockPassword", "")
+	if err != nil {
+		return nil, err
+	}
+
 	eventPublisher := events.NewEventPublisher()
 
 	keys := keys.NewKeys()
@@ -130,10 +144,10 @@ func NewService(ctx context.Context) (*service, error) {
 		startDataDogProfiler(ctx)
 	}
 
-	if appConfig.AutoUnlockPassword != "" {
+	if autoUnlockPassword != "" {
 		nodeLastStartTime, _ := cfg.Get("NodeLastStartTime", "")
 		if nodeLastStartTime != "" {
-			svc.StartApp(appConfig.AutoUnlockPassword)
+			svc.StartApp(autoUnlockPassword)
 		}
 	}
 
@@ -235,4 +249,12 @@ func (svc *service) GetTransactionsService() transactions.TransactionsService {
 
 func (svc *service) GetKeys() keys.Keys {
 	return svc.keys
+}
+
+func (svc *service) setRelayReady(ready bool) {
+	svc.isRelayReady.Store(ready)
+}
+
+func (svc *service) IsRelayReady() bool {
+	return svc.isRelayReady.Load()
 }
