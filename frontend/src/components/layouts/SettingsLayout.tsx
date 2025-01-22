@@ -44,7 +44,7 @@ export default function SettingsLayout() {
           </nav>
         </aside>
         <div className="flex-1 lg:max-w-2xl">
-          <div className="grid gap-6">
+          <div className="grid gap-8">
             <Outlet />
           </div>
         </div>
