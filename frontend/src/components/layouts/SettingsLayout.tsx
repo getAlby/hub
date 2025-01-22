@@ -113,7 +113,6 @@ export default function SettingsLayout() {
             )}
             <MenuItem to="/settings/developer">Developer</MenuItem>
             <MenuItem to="/settings/debug-tools">Debug Tools</MenuItem>
-            <MenuItem to="/settings/shutdown">Shutdown</MenuItem>
           </nav>
         </aside>
         <div className="flex-1 lg:max-w-2xl">

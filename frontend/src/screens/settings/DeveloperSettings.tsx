@@ -59,7 +59,7 @@ export default function DeveloperSettings() {
     <>
       <SettingsHeader
         title="Developer"
-        description="Power your apps with Alby Hub"
+        description="Power your apps with Alby Hub."
       />
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-1 text-sm">
@@ -73,7 +73,7 @@ export default function DeveloperSettings() {
         </div>
         <div>
           <ExternalLinkButton
-            size={"sm"}
+            size={"lg"}
             variant={"secondary"}
             to="https://nwc.dev"
             className="flex-1 gap-2 items-center justify-center"
@@ -98,7 +98,7 @@ export default function DeveloperSettings() {
         {!token && !showCreateTokenForm && (
           <div>
             <Button
-              size={"sm"}
+              size={"lg"}
               variant={"secondary"}
               onClick={() => setShowCreateTokenForm(true)}
               className="flex-1"

@@ -120,7 +120,11 @@ export function BackupMnemonic() {
               />
             </div>
             <div className="flex justify-start">
-              <LoadingButton loading={loading} variant={"secondary"}>
+              <LoadingButton
+                loading={loading}
+                variant={"secondary"}
+                size={"lg"}
+              >
                 View Recovery Phase
               </LoadingButton>
             </div>

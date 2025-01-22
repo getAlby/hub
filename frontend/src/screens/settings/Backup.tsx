@@ -148,6 +148,7 @@ export default function Backup() {
               <LoadingButton
                 loading={loading}
                 variant="secondary"
+                size={"lg"}
                 disabled={!unlockPassword}
               >
                 View Recovery Phase
@@ -192,6 +193,7 @@ export default function Backup() {
                             variant="secondary"
                             loading={isMigratingStorage}
                             disabled={info.ldkVssEnabled}
+                            size={"lg"}
                           >
                             {info.ldkVssEnabled
                               ? "Automated Backups Enabled"
@@ -250,7 +252,9 @@ export default function Backup() {
                   stopped.
                 </p>
                 <Link to="/settings/node-backup">
-                  <Button variant="secondary">Migrate Your Alby Hub</Button>
+                  <Button variant="secondary" size={"lg"}>
+                    Migrate Your Alby Hub
+                  </Button>
                 </Link>
               </div>
             )}

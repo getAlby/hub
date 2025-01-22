@@ -256,7 +256,7 @@ export default function DebugTools() {
     <div>
       <SettingsHeader
         title="Debug Tools"
-        description="Extra tools for debugging purposes"
+        description="Extra tools for debugging purposes."
       />
       <div className="grid mt-6 gap-6 mb-8 lg:mb-8 md:grid-cols-2 xl:grid-cols-3">
         <AlertDialog
