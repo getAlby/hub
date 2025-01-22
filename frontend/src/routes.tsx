@@ -50,7 +50,7 @@ import { ChangeUnlockPassword } from "src/screens/settings/ChangeUnlockPassword"
 import DebugTools from "src/screens/settings/DebugTools";
 import DeveloperSettings from "src/screens/settings/DeveloperSettings";
 import Settings from "src/screens/settings/Settings";
-import Shutdown from "src/screens/settings/Shutdown";
+
 import { ImportMnemonic } from "src/screens/setup/ImportMnemonic";
 import { RestoreNode } from "src/screens/setup/RestoreNode";
 import { SetupAdvanced } from "src/screens/setup/SetupAdvanced";
@@ -208,10 +208,6 @@ const routes = [
               {
                 path: "debug-tools",
                 element: <DebugTools />,
-              },
-              {
-                path: "shutdown",
-                element: <Shutdown />,
               },
             ],
           },
