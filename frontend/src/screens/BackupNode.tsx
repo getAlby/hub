@@ -79,15 +79,16 @@ export function BackupNode() {
   return (
     <>
       <SettingsHeader
-        title="Migrate Your Node"
-        description="Your Alby Hub will be stopped and you will receive a backup file you can import on another host or machine."
+        title="Migrate Alby Hub"
+        description="Create backup file in order to migrate your Alby Hub onto another device or server, "
       />
       <Alert>
         <AlertTriangleIcon className="h-4 w-4" />
-        <AlertTitle>Do not run your node on multiple devices</AlertTitle>
+        <AlertTitle>Do not run your Alby Hub on multiple devices</AlertTitle>
         <AlertDescription>
-          Your node maintains channel state with your channel partners. After
-          you create this backup, do not restart Alby Hub on this device.
+          After creating this backup file, do not restart Alby Hub on this
+          device, as this will cause problems and may cause force channel
+          closures.
         </AlertDescription>
       </Alert>
       <Alert>
@@ -100,13 +101,11 @@ export function BackupNode() {
       </Alert>
       <Alert>
         <InfoCircledIcon className="h-4 w-4" />
-        <AlertTitle>What Happens Next</AlertTitle>
+        <AlertTitle>What happens next?</AlertTitle>
         <AlertDescription>
-          You'll need to enter your unlock password to encrypt and download a
-          backup of your Alby Hub data. After your encrypted backup is
-          downloaded, we'll give you instructions on how to import the backup
-          file on another host or machine. Your unlock password will be needed
-          again to restore your backup.
+          After typing your unlock password, you’ll be able to to download a
+          backup of your Alby Hub data. Then you’ll see instructions on how to
+          import the backup file into another device or server.
         </AlertDescription>
       </Alert>
       {showPasswordScreen ? (
@@ -135,15 +134,14 @@ export function BackupNode() {
           </form>
         </Container>
       ) : (
-        <div className="flex justify-center">
+        <div>
           <Button
             type="submit"
             disabled={loading}
             size="lg"
-            className="w-full"
             onClick={() => setShowPasswordScreen(true)}
           >
-            Create Backup To Migrate Node
+            Create Backup to Migrate Alby Hub
           </Button>
         </div>
       )}

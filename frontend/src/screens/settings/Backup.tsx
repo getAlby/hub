@@ -92,76 +92,74 @@ export default function Backup() {
       />
 
       {hasMnemonic && (
-        <>
-          <div className="flex flex-col gap-6">
-            <div>
-              <h3 className="text-lg font-medium">Wallet Keys Backup</h3>
+        <div className="flex flex-col gap-6">
+          <div>
+            <h3 className="text-lg font-medium">Wallet Keys Backup</h3>
+            <p className="text-sm text-muted-foreground">
+              Key recovery phrase is a group of 12 random words that back up
+              your wallet on-chain balance. Using them is the only way to
+              recover access to your wallet on another machine or when you loose
+              your unlock password. .&nbsp;
+              {info?.albyAccountConnected && (
+                <>
+                  Channel backups are saved automatically to your Alby Account,
+                  encrypted with your recovery phrase.
+                </>
+              )}
+              {!info?.albyAccountConnected && (
+                <>
+                  Make sure to also backup your <b>data directory</b> as this is
+                  required to recover funds on your channels. You can also
+                  connect your Alby Account for automatic encrypted backups.
+                </>
+              )}
+            </p>
+          </div>
+          <p className="text-destructive">
+            If you loose access to your Hub and do not have your recovery
+            phrase, you will loose access to your funds.
+          </p>
+          <form
+            onSubmit={onSubmitPassword}
+            className="max-w-md flex flex-col gap-3"
+          >
+            <div className="grid gap-2 mb-6">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                type={unlockPasswordVisible ? "text" : "password"}
+                name="password"
+                onChange={(e) => setUnlockPassword(e.target.value)}
+                value={unlockPassword}
+                placeholder="Password"
+                endAdornment={
+                  <PasswordViewAdornment
+                    isRevealed={unlockPasswordVisible}
+                    onChange={(passwordView) =>
+                      setUnlockPasswordVisible(passwordView)
+                    }
+                  />
+                }
+              />
               <p className="text-sm text-muted-foreground">
-                Key recovery phrase is a group of 12 random words that back up
-                your wallet on-chain balance. Using them is the only way to
-                recover access to your wallet on another machine or when you
-                loose your unlock password. .&nbsp;
-                {info?.albyAccountConnected && (
-                  <>
-                    Channel backups are saved automatically to your Alby
-                    Account, encrypted with your recovery phrase.
-                  </>
-                )}
-                {!info?.albyAccountConnected && (
-                  <>
-                    Make sure to also backup your <b>data directory</b> as this
-                    is required to recover funds on your channels. You can also
-                    connect your Alby Account for automatic encrypted backups.
-                  </>
-                )}
+                Enter your unlock password to view your recovery phrase.
               </p>
             </div>
-            <p className="text-destructive">
-              If you loose access to your Hub and do not have your recovery
-              phrase, you will loose access to your funds.
-            </p>
-            <form
-              onSubmit={onSubmitPassword}
-              className="max-w-md flex flex-col gap-3"
-            >
-              <div className="grid gap-2 mb-6">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  type={unlockPasswordVisible ? "text" : "password"}
-                  name="password"
-                  onChange={(e) => setUnlockPassword(e.target.value)}
-                  value={unlockPassword}
-                  placeholder="Password"
-                  endAdornment={
-                    <PasswordViewAdornment
-                      isRevealed={unlockPasswordVisible}
-                      onChange={(passwordView) =>
-                        setUnlockPasswordVisible(passwordView)
-                      }
-                    />
-                  }
-                />
-                <p className="text-sm text-muted-foreground">
-                  Enter your unlock password to view your recovery phrase.
-                </p>
-              </div>
-              <div className="flex justify-start">
-                <LoadingButton
-                  loading={loading}
-                  variant="secondary"
-                  disabled={!unlockPassword}
-                >
-                  View Recovery Phase
-                </LoadingButton>
-              </div>
-            </form>
-          </div>
-          <Separator />
-        </>
+            <div className="flex justify-start">
+              <LoadingButton
+                loading={loading}
+                variant="secondary"
+                disabled={!unlockPassword}
+              >
+                View Recovery Phase
+              </LoadingButton>
+            </div>
+          </form>
+        </div>
       )}
 
-      {info?.vssSupported ||
-        (hasNodeBackup && (
+      {(info?.vssSupported || hasNodeBackup) && (
+        <>
+          <Separator className="my-6" />
           <div className="flex flex-col gap-4">
             <h3 className="text-lg font-medium">Channels Backup</h3>
 
@@ -257,7 +255,8 @@ export default function Backup() {
               </div>
             )}
           </div>
-        ))}
+        </>
+      )}
 
       {!hasMnemonic && !hasNodeBackup && !info?.vssSupported && (
         <p className="text-sm text-muted-foreground">
