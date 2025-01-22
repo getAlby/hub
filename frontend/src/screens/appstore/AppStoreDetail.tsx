@@ -60,9 +60,11 @@ export function AppStoreDetail() {
             <CardHeader>
               <CardTitle className="text-2xl">About the App</CardTitle>
             </CardHeader>
-            {app.interactions && (
+            {app.extendedDescription && (
               <CardContent className="flex flex-col gap-3">
-                <p className="text-muted-foreground">{app.interactions}</p>
+                <p className="text-muted-foreground">
+                  {app.extendedDescription}
+                </p>
               </CardContent>
             )}
           </Card>
