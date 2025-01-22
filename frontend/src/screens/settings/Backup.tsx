@@ -1,13 +1,29 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
+import PasswordViewAdornment from "src/components/PasswordAdornment";
 import SettingsHeader from "src/components/SettingsHeader";
+import { Alert } from "src/components/ui/alert";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "src/components/ui/alert-dialog";
+import { Badge } from "src/components/ui/badge";
 import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { Separator } from "src/components/ui/separator";
 import { useToast } from "src/components/ui/use-toast";
+import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useInfo } from "src/hooks/useInfo";
+import { useMigrateLDKStorage } from "src/hooks/useMigrateLDKStorage";
 import { MnemonicResponse } from "src/types";
 import { request } from "src/utils/request";
 
@@ -15,9 +31,12 @@ export default function Backup() {
   const navigate = useNavigate();
 
   const { toast } = useToast();
-  const { hasNodeBackup, hasMnemonic } = useInfo();
-
+  const { data: info, hasNodeBackup, hasMnemonic } = useInfo();
+  const { data: me } = useAlbyMe();
+  const { isMigratingStorage, migrateLDKStorage } = useMigrateLDKStorage();
   const [unlockPassword, setUnlockPassword] = React.useState("");
+  const [unlockPasswordVisible, setUnlockPasswordVisible] =
+    React.useState(false);
 
   const [loading, setLoading] = React.useState(false);
 
@@ -95,18 +114,30 @@ export default function Backup() {
               <div className="grid gap-2 mb-6">
                 <Label htmlFor="password">Password</Label>
                 <Input
-                  type="password"
+                  type={unlockPasswordVisible ? "text" : "password"}
                   name="password"
                   onChange={(e) => setUnlockPassword(e.target.value)}
                   value={unlockPassword}
                   placeholder="Password"
+                  endAdornment={
+                    <PasswordViewAdornment
+                      isRevealed={unlockPasswordVisible}
+                      onChange={(passwordView) =>
+                        setUnlockPasswordVisible(passwordView)
+                      }
+                    />
+                  }
                 />
                 <p className="text-sm text-muted-foreground">
                   Enter your unlock password to view your recovery phrase.
                 </p>
               </div>
               <div className="flex justify-start">
-                <LoadingButton loading={loading} variant="secondary">
+                <LoadingButton
+                  loading={loading}
+                  variant="secondary"
+                  disabled={!unlockPassword}
+                >
                   View Recovery Phase
                 </LoadingButton>
               </div>
@@ -116,24 +147,106 @@ export default function Backup() {
         </>
       )}
 
-      <div className="flex flex-col gap-4">
-        <h3 className="text-lg font-medium">Channels Backup</h3>
-        {hasNodeBackup && (
-          <div>
-            <h3 className="text-sm font-medium mb-1">Migrate Alby Hub</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              If you’d like to import or migrate your Hub onto another device or
-              server, you’ll need your channels’ backup file to import your
-              channels state. This instance of Hub will be stopped.
-            </p>
-            <Link to="/settings/node-backup">
-              <Button variant="secondary">Migrate Your Alby Hub</Button>
-            </Link>
-          </div>
-        )}
-      </div>
+      {info?.vssSupported ||
+        (hasNodeBackup && (
+          <div className="flex flex-col gap-4">
+            <h3 className="text-lg font-medium">Channels Backup</h3>
 
-      {!hasMnemonic && !hasNodeBackup && (
+            {info?.vssSupported && (
+              <>
+                <div>
+                  <div className="flex gap-2 mb-1 items-center">
+                    <h3 className="text-sm font-medium">
+                      Automated Channels Backups
+                    </h3>
+                    <Badge className="ml-2">
+                      {me?.subscription.buzz && info.ldkVssEnabled
+                        ? "Premium"
+                        : "Alby Cloud"}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    When enabled, channels backups are saved automatically a
+                    virtual disk encrypted with your wallet recovery phrase
+                    thanks to Versioned Storage Service (VSS). This allows you
+                    to recover or migrate your Hub without having to close your
+                    channels.
+                  </p>
+
+                  {me?.subscription.buzz && (
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        {
+                          <LoadingButton
+                            variant="secondary"
+                            loading={isMigratingStorage}
+                            disabled={info.ldkVssEnabled}
+                          >
+                            {info.ldkVssEnabled
+                              ? "Automated Backups Enabled"
+                              : "Enable Automated Backups"}
+                          </LoadingButton>
+                        }
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>
+                            Alby Hub Restart Required
+                          </AlertDialogTitle>
+                          <AlertDialogDescription>
+                            <div>
+                              <p>
+                                As part of enabling VSS your hub will be shut
+                                down, and you will need to enter your unlock
+                                password to start it again.
+                              </p>
+                              <p className="mt-2">
+                                Please ensure you have no pending payments or
+                                channel closures before continuing.
+                              </p>
+                            </div>
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => migrateLDKStorage("VSS")}
+                          >
+                            Confirm
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  )}
+
+                  {!me?.subscription.buzz && (
+                    <Alert variant={"default"}>
+                      VSS is only available to Alby users with a paid
+                      subscription.
+                    </Alert>
+                  )}
+                </div>
+              </>
+            )}
+
+            {hasNodeBackup && (
+              <div>
+                <h3 className="text-sm font-medium mb-1">Migrate Alby Hub</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  If you’d like to import or migrate your Hub onto another
+                  device or server, you’ll need your channels’ backup file to
+                  import your channels state. This instance of Hub will be
+                  stopped.
+                </p>
+                <Link to="/settings/node-backup">
+                  <Button variant="secondary">Migrate Your Alby Hub</Button>
+                </Link>
+              </div>
+            )}
+          </div>
+        ))}
+
+      {!hasMnemonic && !hasNodeBackup && !info?.vssSupported && (
         <p className="text-sm text-muted-foreground">
           No wallet recovery phrase or channel state backup present.
         </p>
