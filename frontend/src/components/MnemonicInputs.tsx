@@ -1,4 +1,6 @@
 import { wordlist } from "@scure/bip39/wordlists/english";
+import { useState } from "react";
+import PasswordViewAdornment from "src/components/PasswordAdornment";
 import {
   Card,
   CardContent,
@@ -31,6 +33,10 @@ export default function MnemonicInputs({
     words.pop();
   }
 
+  const [revealedIndex, setRevealedIndex] = useState<number | undefined>(
+    undefined
+  );
+
   return (
     <>
       <Card>
@@ -45,6 +51,7 @@ export default function MnemonicInputs({
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5 justify-center backup sensitive">
             {words.map((word, i) => {
+              const isRevealed = revealedIndex === i;
               const inputId = `mnemonic-word-${i}`;
               return (
                 <div key={i} className="flex justify-center items-center gap-2">
@@ -54,10 +61,15 @@ export default function MnemonicInputs({
                       id={inputId}
                       autoFocus={!readOnly && i === 0}
                       readOnly={readOnly}
-                      className="w-32 text-center bg-muted border-zinc-200 text-muted-foreground"
+                      onFocus={() => setRevealedIndex(i)}
+                      onBlur={() => setRevealedIndex(undefined)}
+                      className="w-32 text-center border-[#E4E4E7] text-muted-foreground"
                       list={readOnly ? undefined : "wordlist"}
-                      value={word}
+                      value={isRevealed ? word : word.length ? "•••••" : ""}
                       onChange={(e) => {
+                        if (revealedIndex !== i) {
+                          return;
+                        }
                         words[i] = e.target.value;
                         setMnemonic?.(
                           words
@@ -66,6 +78,17 @@ export default function MnemonicInputs({
                             .trim()
                         );
                       }}
+                      endAdornment={
+                        <PasswordViewAdornment
+                          isRevealed={isRevealed}
+                          onChange={(passwordView) => {
+                            if (passwordView) {
+                              document.getElementById(inputId)?.focus();
+                            }
+                          }}
+                          iconClass="text-muted-foreground"
+                        />
+                      }
                     />
                   </div>
                 </div>

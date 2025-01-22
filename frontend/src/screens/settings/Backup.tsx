@@ -100,7 +100,20 @@ export default function Backup() {
                 Key recovery phrase is a group of 12 random words that back up
                 your wallet on-chain balance. Using them is the only way to
                 recover access to your wallet on another machine or when you
-                loose your unlock password.
+                loose your unlock password. .&nbsp;
+                {info?.albyAccountConnected && (
+                  <>
+                    Channel backups are saved automatically to your Alby
+                    Account, encrypted with your recovery phrase.
+                  </>
+                )}
+                {!info?.albyAccountConnected && (
+                  <>
+                    Make sure to also backup your <b>data directory</b> as this
+                    is required to recover funds on your channels. You can also
+                    connect your Alby Account for automatic encrypted backups.
+                  </>
+                )}
               </p>
             </div>
             <p className="text-destructive">

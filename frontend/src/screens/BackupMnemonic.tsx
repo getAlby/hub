@@ -1,14 +1,9 @@
-import {
-  CopyIcon,
-  ExternalLinkIcon,
-  LifeBuoy,
-  ShieldAlert,
-} from "lucide-react";
+import { CopyIcon } from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import ExternalLink from "src/components/ExternalLink";
 import MnemonicInputs from "src/components/MnemonicInputs";
+import PasswordViewAdornment from "src/components/PasswordAdornment";
 import SettingsHeader from "src/components/SettingsHeader";
 import { Button } from "src/components/ui/button";
 import { Checkbox } from "src/components/ui/checkbox";
@@ -29,6 +24,8 @@ export function BackupMnemonic() {
   const { mutate: refetchInfo } = useInfo();
 
   const [unlockPassword, setUnlockPassword] = React.useState("");
+  const [unlockPasswordVisible, setUnlockPasswordVisible] =
+    React.useState(false);
   const [decryptedMnemonic, setDecryptedMnemonic] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [backedUp, setIsBackedUp] = useState<boolean>(false);
@@ -104,19 +101,27 @@ export function BackupMnemonic() {
             onSubmit={onSubmitPassword}
             className="max-w-md flex flex-col gap-3 mt-8"
           >
-            <div className="grid gap-1.5 mb-8">
+            <div className="grid gap-2 mb-6">
               <Label htmlFor="password">Password</Label>
               <Input
-                type="password"
+                type={unlockPasswordVisible ? "text" : "password"}
                 name="password"
                 onChange={(e) => setUnlockPassword(e.target.value)}
                 value={unlockPassword}
                 placeholder="Password"
+                endAdornment={
+                  <PasswordViewAdornment
+                    isRevealed={unlockPasswordVisible}
+                    onChange={(passwordView) =>
+                      setUnlockPasswordVisible(passwordView)
+                    }
+                  />
+                }
               />
             </div>
             <div className="flex justify-start">
-              <LoadingButton loading={loading}>
-                View Recovery Phrase
+              <LoadingButton loading={loading} variant={"secondary"}>
+                View Recovery Phase
               </LoadingButton>
             </div>
           </form>
@@ -124,55 +129,8 @@ export function BackupMnemonic() {
       ) : (
         <form
           onSubmit={onSubmit}
-          className="flex mt-6 flex-col gap-2 mx-auto max-w-md text-sm"
+          className="flex mt-6 flex-col gap-2 max-w-md text-sm"
         >
-          <div className="flex flex-col gap-4 mb-4 text-muted-foreground">
-            <div className="flex gap-2 items-center ">
-              <div className="shrink-0 ">
-                <LifeBuoy className="w-6 h-6" />
-              </div>
-              <span>
-                Your recovery phrase is a set of 12 words that{" "}
-                <b>backs up your wallet on-chain balance</b>.&nbsp;
-                {info?.albyAccountConnected && (
-                  <>
-                    Channel backups are saved automatically to your Alby
-                    Account, encrypted with your recovery phrase.
-                  </>
-                )}
-                {!info?.albyAccountConnected && (
-                  <>
-                    Make sure to also backup your <b>data directory</b> as this
-                    is required to recover funds on your channels. You can also
-                    connect your Alby Account for automatic encrypted backups.
-                  </>
-                )}
-              </span>
-            </div>
-            <div className="flex gap-2 items-center text-destructive">
-              <div className="shrink-0 ">
-                <ShieldAlert className="w-6 h-6" />
-              </div>
-              <span>
-                If you lose access to your hub and do not have your{" "}
-                <b>recovery phrase</b>
-                {!info?.albyAccountConnected && (
-                  <>&nbsp;or do not backup your data directory</>
-                )}
-                , you will lose access to your funds.
-              </span>
-            </div>
-          </div>
-          <div className="mb-5">
-            <ExternalLink
-              className="underline flex items-center"
-              to="https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub/backups"
-            >
-              Learn more about backups
-              <ExternalLinkIcon className="w-4 h-4 ml-2" />
-            </ExternalLink>
-          </div>
-
           <MnemonicInputs
             mnemonic={decryptedMnemonic}
             readOnly={true}
@@ -197,7 +155,10 @@ export function BackupMnemonic() {
                   required
                   onCheckedChange={() => setIsBackedUp2(!backedUp2)}
                 />
-                <Label htmlFor="backup2" className="ml-2">
+                <Label
+                  htmlFor="backup2"
+                  className="ml-2 text-sm text-muted-foreground"
+                >
                   I understand the <b>recovery phrase</b> AND{" "}
                   <b>a backup of my hub data directory</b> is required to
                   recover funds from my lightning channels.{" "}

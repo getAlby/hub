@@ -1,12 +1,18 @@
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { useEffect, useState } from "react";
+import { cn } from "src/lib/utils";
 
 type Props = {
   onChange: (viewingPassword: boolean) => void;
   isRevealed?: boolean;
+  iconClass?: string;
 };
 
-export default function PasswordViewAdornment({ onChange, isRevealed }: Props) {
+export default function PasswordViewAdornment({
+  onChange,
+  isRevealed,
+  iconClass,
+}: Props) {
   const [_isRevealed, setRevealed] = useState(false);
 
   // toggle the button if password view is handled by component itself
@@ -27,9 +33,9 @@ export default function PasswordViewAdornment({ onChange, isRevealed }: Props) {
       }}
     >
       {_isRevealed ? (
-        <EyeOffIcon className="h-4 w-4" />
+        <EyeOffIcon className={cn("h-4 w-4", iconClass)} />
       ) : (
-        <EyeIcon className="h-4 w-4" />
+        <EyeIcon className={cn("h-4 w-4", iconClass)} />
       )}
     </button>
   );
