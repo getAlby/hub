@@ -19,6 +19,7 @@ import (
 )
 
 const nodeCommandRestore = "restore"
+const exampleCommandWithArg = "example"
 
 type CashuService struct {
 	wallet *wallet.Wallet
@@ -386,6 +387,16 @@ func (cs *CashuService) GetCustomCommandDefinitions() []lnclient.NodeCommandDef 
 			Description: "Restore cashu tokens after the wallet had a stuck payment.",
 			Args:        nil,
 		},
+		{
+			Name:        exampleCommandWithArg,
+			Description: "Example command with argument",
+			Args: []lnclient.NodeCommandArgDef{
+				{
+					Name:        "hello",
+					Description: "world",
+				},
+			},
+		},
 	}
 }
 
@@ -393,6 +404,14 @@ func (cs *CashuService) ExecuteCustomCommand(ctx context.Context, command *lncli
 	switch command.Name {
 	case nodeCommandRestore:
 		return cs.executeCommandRestore(ctx)
+	case exampleCommandWithArg:
+		if len(command.Args) != 1 {
+			return nil, errors.New("please provide an argument")
+		}
+
+		return &lnclient.NodeCommandResponse{
+			RawJson: []byte("{\"" + command.Args[0].Name + "\": \"" + command.Args[0].Value + "\"}"),
+		}, nil
 	}
 
 	return nil, lnclient.ErrUnknownNodeCommand
