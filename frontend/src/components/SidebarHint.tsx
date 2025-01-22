@@ -1,6 +1,3 @@
-import { UpdateIcon } from "@radix-ui/react-icons";
-import { IconProps } from "@radix-ui/react-icons/dist/types";
-import { compare } from "compare-versions";
 import { ListTodo, LucideIcon, Zap } from "lucide-react";
 import { ReactElement } from "react";
 import { Link, useLocation } from "react-router-dom";
@@ -12,8 +9,6 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 import { Progress } from "src/components/ui/progress";
-import { useAlbyInfo } from "src/hooks/useAlbyInfo";
-import { useInfo } from "src/hooks/useInfo";
 import { useOnboardingData } from "src/hooks/useOnboardingData";
 import useChannelOrderStore from "src/state/ChannelOrderStore";
 
@@ -21,8 +16,6 @@ function SidebarHint() {
   const { isLoading, checklistItems } = useOnboardingData();
   const { order } = useChannelOrderStore();
   const location = useLocation();
-  const { data: albyInfo } = useAlbyInfo();
-  const { data: info } = useInfo();
 
   // User has a channel order
   if (
@@ -74,36 +67,13 @@ function SidebarHint() {
       />
     );
   }
-
-  if (info && albyInfo) {
-    const upToDate =
-      info.version &&
-      info.version.startsWith("v") &&
-      compare(info.version.substring(1), albyInfo.hub.latestVersion, ">=");
-
-    if (!upToDate) {
-      return (
-        <SidebarHintCard
-          icon={UpdateIcon}
-          title="Update Available!"
-          description="New version available! Visit your Alby Account dashboard to update your Hub."
-          buttonText="Update"
-          buttonLink={`https://getalby.com/update/hub?version=${info.version}`}
-        />
-      );
-    }
-  }
 }
 type SidebarHintCardProps = {
   title: string;
   description: string | ReactElement;
   buttonText: string;
   buttonLink: string;
-  icon:
-    | LucideIcon
-    | React.ForwardRefExoticComponent<
-        IconProps & React.RefAttributes<SVGSVGElement>
-      >;
+  icon: LucideIcon;
 };
 function SidebarHintCard({
   title,
