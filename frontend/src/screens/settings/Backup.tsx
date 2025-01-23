@@ -234,8 +234,8 @@ export default function Backup() {
 
                   {!me?.subscription.buzz && (
                     <Alert variant={"default"}>
-                      VSS is only available to Alby users with a paid
-                      subscription.
+                      VSS is only available to Alby users with a Alby Cloud
+                      subcscription.
                     </Alert>
                   )}
                 </div>

@@ -88,7 +88,7 @@ export function BackupNode() {
             <TriangleAlertIcon className="w-4 h-4" />
             <h3>Do not run your Alby Hub on multiple devices</h3>
           </div>
-          <p className="text-sm">
+          <p className="text-sm ml-7">
             After creating this backup file, do not restart Alby Hub on this
             device, as this will cause problems and may cause force channel
             closures.
@@ -99,7 +99,7 @@ export function BackupNode() {
             <TriangleAlertIcon className="w-4 h-4" />
             <h3>Migrate this file only to fresh Alby Hub</h3>
           </div>
-          <p className="text-sm">
+          <p className="text-sm ml-7">
             To import the migration file, you must have a brand new Alby Hub on
             another device and use the “Advanced” option during the onboarding.
           </p>
@@ -109,7 +109,7 @@ export function BackupNode() {
             <InfoCircledIcon className="w-4 h-4" />
             <h3>What happens next?</h3>
           </div>
-          <p className="text-sm">
+          <p className="text-sm ml-7">
             After typing your unlock password, you’ll be able to to download a
             backup of your Alby Hub data. Then you’ll see instructions on how to
             import the backup file into another device or server.

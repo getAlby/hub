@@ -1,7 +1,6 @@
 import { AlertTriangle } from "lucide-react";
 import React from "react";
 
-import Container from "src/components/Container";
 import Loading from "src/components/Loading";
 import SettingsHeader from "src/components/SettingsHeader";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
@@ -63,7 +62,7 @@ export function AutoUnlock() {
         title="Auto Unlock"
         description="Configure Alby Hub will automatically unlock on start (e.g. after machine reboot)"
       />
-      <Container>
+      <div>
         <p className="text-muted-foreground">
           In some situations it can be impractical to manually unlock the wallet
           every time Alby Hub is started. In those cases you can save the unlock
@@ -82,9 +81,9 @@ export function AutoUnlock() {
           <>
             <form
               onSubmit={onSubmit}
-              className="w-full flex flex-col gap-3 mt-3"
+              className="w-full md:w-[373px] flex flex-col gap-4 mt-4"
             >
-              <div className="grid gap-1.5">
+              <div className="grid gap-2">
                 <Label htmlFor="unlock-password">Unlock Password</Label>
                 <Input
                   id="unlock-password"
@@ -95,10 +94,11 @@ export function AutoUnlock() {
                   placeholder="Password"
                 />
               </div>
-
-              <LoadingButton loading={loading}>
-                Enable Auto Unlock
-              </LoadingButton>
+              <div>
+                <LoadingButton loading={loading}>
+                  Enable Auto Unlock
+                </LoadingButton>
+              </div>
             </form>
           </>
         )}
@@ -106,15 +106,17 @@ export function AutoUnlock() {
           <>
             <form
               onSubmit={onSubmit}
-              className="w-full flex flex-col gap-3 mt-3"
+              className="w-full md:w-[373px] flex flex-col gap-4 mt-4"
             >
-              <LoadingButton loading={loading}>
-                Disable Auto Unlock
-              </LoadingButton>
+              <div>
+                <LoadingButton loading={loading}>
+                  Disable Auto Unlock
+                </LoadingButton>
+              </div>
             </form>
           </>
         )}
-      </Container>
+      </div>
     </>
   );
 }

@@ -70,7 +70,7 @@ export function ChangeUnlockPassword() {
         description="Change unlock password to your Hub. Your node will restart after password change."
       />
       <div>
-        <Alert variant={"destructive"} className="mb-8">
+        <Alert variant={"destructive"} className="w-full md:max-w-6xl mb-8">
           <AlertTitle>
             <div className="flex gap-2">
               <ExclamationTriangleIcon /> Important!

@@ -108,7 +108,10 @@ export default function DeveloperSettings() {
           </div>
         )}
         {showCreateTokenForm && !token && (
-          <form onSubmit={createToken} className="w-full flex flex-col gap-4">
+          <form
+            onSubmit={createToken}
+            className="w-full md:w-[373px] flex flex-col gap-4"
+          >
             <>
               <div className="grid gap-2">
                 <Label htmlFor="password">Token Expiry (Days)</Label>

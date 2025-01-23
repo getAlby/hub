@@ -49,7 +49,7 @@ export default function MnemonicInputs({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5 justify-center backup sensitive">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-5 justify-center backup sensitive">
             {words.map((word, i) => {
               const isRevealed = revealedIndex === i;
               const inputId = `mnemonic-word-${i}`;
