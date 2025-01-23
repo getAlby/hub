@@ -23,10 +23,10 @@ function Settings() {
     <>
       <SettingsHeader
         title="Theme"
-        description="Alby Hub is your wallet, make it your style."
+        description="Alby Hub is your wallet. Make it your style."
       />
-      <form className="w-full flex flex-col gap-3">
-        <div className="grid gap-1.5">
+      <form className="w-full flex flex-col gap-4">
+        <div className="grid gap-2">
           <Label htmlFor="theme">Theme</Label>
           <Select
             value={theme}
@@ -35,7 +35,7 @@ function Settings() {
               toast({ title: "Theme updated." });
             }}
           >
-            <SelectTrigger className="w-[150px]">
+            <SelectTrigger className="w-full md:w-[240px] space-y-2">
               <SelectValue placeholder="Theme" />
             </SelectTrigger>
             <SelectContent>
@@ -47,17 +47,17 @@ function Settings() {
             </SelectContent>
           </Select>
         </div>
-        <div className="grid gap-1.5">
-          <Label htmlFor="theme">Dark mode</Label>
+        <div className="grid gap-2">
+          <Label htmlFor="theme">Appearance</Label>
           <Select
             value={darkMode}
             onValueChange={(value) => {
               setDarkMode(value as DarkMode);
-              toast({ title: "Dark Mode updated." });
+              toast({ title: "Appearance updated." });
             }}
           >
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Dark mode" />
+            <SelectTrigger className="w-full md:w-[240px]">
+              <SelectValue placeholder="Appearance" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="system">System</SelectItem>
