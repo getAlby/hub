@@ -1,11 +1,10 @@
 import { InfoCircledIcon } from "@radix-ui/react-icons";
-import { AlertTriangleIcon } from "lucide-react";
+import { TriangleAlertIcon } from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import Container from "src/components/Container";
 import SettingsHeader from "src/components/SettingsHeader";
-import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
@@ -80,38 +79,48 @@ export function BackupNode() {
     <>
       <SettingsHeader
         title="Migrate Alby Hub"
-        description="Create backup file in order to migrate your Alby Hub onto another device or server, "
+        description="Create backup file in order to migrate your Alby Hub onto another device or server."
       />
-      <Alert>
-        <AlertTriangleIcon className="h-4 w-4" />
-        <AlertTitle>Do not run your Alby Hub on multiple devices</AlertTitle>
-        <AlertDescription>
-          After creating this backup file, do not restart Alby Hub on this
-          device, as this will cause problems and may cause force channel
-          closures.
-        </AlertDescription>
-      </Alert>
-      <Alert>
-        <AlertTriangleIcon className="h-4 w-4" />
-        <AlertTitle>Migration requires a fresh Alby Hub</AlertTitle>
-        <AlertDescription>
-          To import the migration file, you must have a brand new Alby Hub on
-          another device and use the "Advanced" option in the onboarding.
-        </AlertDescription>
-      </Alert>
-      <Alert>
-        <InfoCircledIcon className="h-4 w-4" />
-        <AlertTitle>What happens next?</AlertTitle>
-        <AlertDescription>
-          After typing your unlock password, you’ll be able to to download a
-          backup of your Alby Hub data. Then you’ll see instructions on how to
-          import the backup file into another device or server.
-        </AlertDescription>
-      </Alert>
+
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-1">
+          <div className="flex gap-3 items-center">
+            <TriangleAlertIcon className="w-4 h-4" />
+            <h3>Do not run your Alby Hub on multiple devices</h3>
+          </div>
+          <p className="text-sm">
+            After creating this backup file, do not restart Alby Hub on this
+            device, as this will cause problems and may cause force channel
+            closures.
+          </p>
+        </div>
+        <div className="flex flex-col gap-1">
+          <div className="flex gap-3 items-center">
+            <TriangleAlertIcon className="w-4 h-4" />
+            <h3>Migrate this file only to fresh Alby Hub</h3>
+          </div>
+          <p className="text-sm">
+            To import the migration file, you must have a brand new Alby Hub on
+            another device and use the “Advanced” option during the onboarding.
+          </p>
+        </div>
+        <div className="flex flex-col gap-1">
+          <div className="flex gap-3 items-center">
+            <InfoCircledIcon className="w-4 h-4" />
+            <h3>What happens next?</h3>
+          </div>
+          <p className="text-sm">
+            After typing your unlock password, you’ll be able to to download a
+            backup of your Alby Hub data. Then you’ll see instructions on how to
+            import the backup file into another device or server.
+          </p>
+        </div>
+      </div>
+
       {showPasswordScreen ? (
         <Container>
-          <h1 className="text-xl font-medium">Enter unlock password</h1>
-          <p className="text-center text-md text-muted-foreground mb-14">
+          <h1 className="text-xl font-medium mb-1">Enter unlock password</h1>
+          <p className="text-center text-md text-muted-foreground mb-4">
             Your unlock password will be used to encrypt your backup
           </p>
           <form
