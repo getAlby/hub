@@ -25,6 +25,8 @@ import {
 } from "src/components/ui/dialog";
 import { useToast } from "src/components/ui/use-toast";
 import { useApps } from "src/hooks/useApps";
+import { useBitcoinRate } from "src/hooks/useBitcoinRate";
+import { useInfo } from "src/hooks/useInfo";
 import { copyToClipboard } from "src/lib/clipboard";
 import { cn } from "src/lib/utils";
 import { Transaction } from "src/types";
@@ -38,6 +40,8 @@ type Props = {
 
 function TransactionItem({ tx }: Props) {
   const { data: apps } = useApps();
+  const { data: info } = useInfo();
+  const { data: bitcoinRate } = useBitcoinRate();
   const { toast } = useToast();
   const [showDetails, setShowDetails] = React.useState(false);
   const type = tx.type;
@@ -150,21 +154,35 @@ function TransactionItem({ tx }: Props) {
             </p>
           </div>
           <div className="flex ml-auto text-right space-x-3 shrink-0">
-            <div className="flex items-center gap-2 md:text-xl">
-              <p
-                className={cn(
-                  "font-semibold",
-                  type == "incoming" && "text-green-600 dark:text-emerald-500"
-                )}
-              >
-                {type == "outgoing" ? "-" : "+"}
-                {new Intl.NumberFormat().format(
-                  Math.floor(tx.amount / 1000)
-                )}{" "}
-              </p>
-              <p className="text-foreground">
-                {Math.floor(tx.amount / 1000) == 1 ? "sat" : "sats"}
-              </p>
+            <div className="flex flex-col gap-2 md:text-xl">
+              <div className="flex gap-2">
+                <p
+                  className={cn(
+                    "font-semibold",
+                    type == "incoming" && "text-green-600 dark:text-emerald-500"
+                  )}
+                >
+                  {type == "outgoing" ? "-" : "+"}
+                  {new Intl.NumberFormat().format(
+                    Math.floor(tx.amount / 1000)
+                  )}{" "}
+                </p>
+                <p className="text-foreground">
+                  {Math.floor(tx.amount / 1000) == 1 ? "sat" : "sats"}
+                </p>
+              </div>
+
+              {bitcoinRate && (
+                <div className="text-sm text-muted-foreground">
+                  {new Intl.NumberFormat("en-US", {
+                    style: "currency",
+                    currency: info?.currency || "usd",
+                  }).format(
+                    (Math.floor(tx.amount / 1000) / 100_000_000) *
+                      bitcoinRate.rate_float
+                  )}
+                </div>
+              )}
 
               {/* {!!tx.totalAmountFiat && (
                 <p className="text-xs text-muted-foreground">

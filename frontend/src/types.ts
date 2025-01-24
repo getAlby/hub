@@ -155,6 +155,7 @@ export interface InfoResponse {
   startupErrorTime: string;
   autoUnlockPasswordSupported: boolean;
   autoUnlockPasswordEnabled: boolean;
+  currency: string;
 }
 
 export type HealthAlarmKind =

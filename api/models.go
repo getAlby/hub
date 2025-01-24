@@ -57,6 +57,7 @@ type API interface {
 	MigrateNodeStorage(ctx context.Context, to string) error
 	GetWalletCapabilities(ctx context.Context) (*WalletCapabilitiesResponse, error)
 	Health(ctx context.Context) (*HealthResponse, error)
+	SetCurrency(currency string) error
 }
 
 type App struct {
@@ -179,6 +180,11 @@ type InfoResponse struct {
 	StartupErrorTime            time.Time `json:"startupErrorTime"`
 	AutoUnlockPasswordSupported bool      `json:"autoUnlockPasswordSupported"`
 	AutoUnlockPasswordEnabled   bool      `json:"autoUnlockPasswordEnabled"`
+	Currency                    string    `json:"currency"`
+}
+
+type SetCurrencyRequest struct {
+	Currency string `json:"currency"`
 }
 
 type MnemonicRequest struct {

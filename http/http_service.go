@@ -63,7 +63,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.Use(middleware.SecureWithConfig(middleware.SecureConfig{
 		ContentTypeNosniff:    "nosniff",
 		XFrameOptions:         "DENY",
-		ContentSecurityPolicy: "default-src 'self'; img-src 'self' https://uploads.getalby-assets.com https://getalby.com; connect-src 'self' https://api.getalby.com https://getalby.com https://zapplanner.albylabs.com",
+		ContentSecurityPolicy: "default-src 'self'; img-src 'self' https://uploads.getalby-assets.com https://getalby.com; connect-src 'self' https://api.getalby.com https://getalby.com https://getalby.com https://zapplanner.albylabs.com",
 		ReferrerPolicy:        "no-referrer",
 	}))
 	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
@@ -91,6 +91,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 
 	e.GET("/api/info", httpSvc.infoHandler)
 	e.POST("/api/setup", httpSvc.setupHandler)
+	e.PATCH("/api/currency", httpSvc.setCurrencyHandler)
 	e.POST("/api/restore", httpSvc.restoreBackupHandler)
 
 	// allow one unlock request per second
@@ -287,6 +288,30 @@ func (httpSvc *HttpService) changeUnlockPasswordHandler(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: fmt.Sprintf("Failed to change unlock password: %s", err.Error()),
+		})
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
+
+func (httpSvc *HttpService) setCurrencyHandler(c echo.Context) error {
+	var setCurrencyRequest api.SetCurrencyRequest
+	if err := c.Bind(&setCurrencyRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	if setCurrencyRequest.Currency == "" {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: "Currency value cannot be empty",
+		})
+	}
+
+	err := httpSvc.api.SetCurrency(setCurrencyRequest.Currency)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to set currency: %s", err.Error()),
 		})
 	}
 
