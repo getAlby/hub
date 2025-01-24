@@ -1736,11 +1736,11 @@ func (ls *LDKService) GetPubkey() string {
 	return ls.pubkey
 }
 
-func (ls *LDKService) GetCustomCommandDefinitions() []lnclient.NodeCommandDef {
+func (ls *LDKService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCommandDef {
 	return nil
 }
 
-func (ls *LDKService) ExecuteCustomCommand(ctx context.Context, command *lnclient.NodeCommandRequest) (*lnclient.NodeCommandResponse, error) {
+func (ls *LDKService) ExecuteCustomNodeCommand(ctx context.Context, command *lnclient.CustomNodeCommandRequest) (*lnclient.CustomNodeCommandResponse, error) {
 	return nil, nil
 }
 

@@ -1069,33 +1069,33 @@ func (api *api) Health(ctx context.Context) (*HealthResponse, error) {
 	return &HealthResponse{Alarms: alarms}, nil
 }
 
-func (api *api) GetNodeCommands() (*NodeCommandsResponse, error) {
+func (api *api) GetCustomNodeCommands() (*CustomNodeCommandsResponse, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
 		return nil, errors.New("LNClient not started")
 	}
 
-	allCommandDefs := lnClient.GetCustomCommandDefinitions()
-	commandDefs := make([]NodeCommandDef, 0, len(allCommandDefs))
+	allCommandDefs := lnClient.GetCustomNodeCommandDefinitions()
+	commandDefs := make([]CustomNodeCommandDef, 0, len(allCommandDefs))
 	for _, commandDef := range allCommandDefs {
-		argDefs := make([]NodeCommandArgDef, 0, len(commandDef.Args))
+		argDefs := make([]CustomNodeCommandArgDef, 0, len(commandDef.Args))
 		for _, argDef := range commandDef.Args {
-			argDefs = append(argDefs, NodeCommandArgDef{
+			argDefs = append(argDefs, CustomNodeCommandArgDef{
 				Name:        argDef.Name,
 				Description: argDef.Description,
 			})
 		}
-		commandDefs = append(commandDefs, NodeCommandDef{
+		commandDefs = append(commandDefs, CustomNodeCommandDef{
 			Name:        commandDef.Name,
 			Description: commandDef.Description,
 			Args:        argDefs,
 		})
 	}
 
-	return &NodeCommandsResponse{Commands: commandDefs}, nil
+	return &CustomNodeCommandsResponse{Commands: commandDefs}, nil
 }
 
-func (api *api) ExecuteNodeCommand(ctx context.Context, command string) ([]byte, error) {
+func (api *api) ExecuteCustomNodeCommand(ctx context.Context, command string) ([]byte, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
 		return nil, errors.New("LNClient not started")
@@ -1110,8 +1110,8 @@ func (api *api) ExecuteNodeCommand(ctx context.Context, command string) ([]byte,
 	}
 
 	// Look up the requested command definition.
-	allCommandDefs := lnClient.GetCustomCommandDefinitions()
-	commandDefIdx := slices.IndexFunc(allCommandDefs, func(def lnclient.NodeCommandDef) bool {
+	allCommandDefs := lnClient.GetCustomNodeCommandDefinitions()
+	commandDefIdx := slices.IndexFunc(allCommandDefs, func(def lnclient.CustomNodeCommandDef) bool {
 		return def.Name == parsedArgs[0]
 	})
 	if commandDefIdx < 0 {
@@ -1135,15 +1135,15 @@ func (api *api) ExecuteNodeCommand(ctx context.Context, command string) ([]byte,
 		argValues[f.Name] = f.Value.String()
 	})
 
-	reqArgs := make([]lnclient.NodeCommandArg, 0, len(argValues))
+	reqArgs := make([]lnclient.CustomNodeCommandArg, 0, len(argValues))
 	for argName, argValue := range argValues {
-		reqArgs = append(reqArgs, lnclient.NodeCommandArg{
+		reqArgs = append(reqArgs, lnclient.CustomNodeCommandArg{
 			Name:  argName,
 			Value: argValue,
 		})
 	}
 
-	nodeResp, err := lnClient.ExecuteCustomCommand(ctx, &lnclient.NodeCommandRequest{
+	nodeResp, err := lnClient.ExecuteCustomNodeCommand(ctx, &lnclient.CustomNodeCommandRequest{
 		Name: commandDef.Name,
 		Args: reqArgs,
 	})

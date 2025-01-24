@@ -380,8 +380,8 @@ func (svc *CashuService) GetPubkey() string {
 	return ""
 }
 
-func (cs *CashuService) GetCustomCommandDefinitions() []lnclient.NodeCommandDef {
-	return []lnclient.NodeCommandDef{
+func (cs *CashuService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCommandDef {
+	return []lnclient.CustomNodeCommandDef{
 		{
 			Name:        nodeCommandRestore,
 			Description: "Restore cashu tokens after the wallet had a stuck payment.",
@@ -390,7 +390,7 @@ func (cs *CashuService) GetCustomCommandDefinitions() []lnclient.NodeCommandDef 
 		{
 			Name:        exampleCommandWithArg,
 			Description: "Example command with argument",
-			Args: []lnclient.NodeCommandArgDef{
+			Args: []lnclient.CustomNodeCommandArgDef{
 				{
 					Name:        "hello",
 					Description: "world",
@@ -400,7 +400,7 @@ func (cs *CashuService) GetCustomCommandDefinitions() []lnclient.NodeCommandDef 
 	}
 }
 
-func (cs *CashuService) ExecuteCustomCommand(ctx context.Context, command *lnclient.NodeCommandRequest) (*lnclient.NodeCommandResponse, error) {
+func (cs *CashuService) ExecuteCustomNodeCommand(ctx context.Context, command *lnclient.CustomNodeCommandRequest) (*lnclient.CustomNodeCommandResponse, error) {
 	switch command.Name {
 	case nodeCommandRestore:
 		return cs.executeCommandRestore(ctx)
@@ -409,15 +409,15 @@ func (cs *CashuService) ExecuteCustomCommand(ctx context.Context, command *lncli
 			return nil, errors.New("please provide an argument")
 		}
 
-		return &lnclient.NodeCommandResponse{
+		return &lnclient.CustomNodeCommandResponse{
 			RawJson: []byte("{\"" + command.Args[0].Name + "\": \"" + command.Args[0].Value + "\"}"),
 		}, nil
 	}
 
-	return nil, lnclient.ErrUnknownNodeCommand
+	return nil, lnclient.ErrUnknownCustomNodeCommand
 }
 
-func (cs *CashuService) executeCommandRestore(ctx context.Context) (*lnclient.NodeCommandResponse, error) {
+func (cs *CashuService) executeCommandRestore(ctx context.Context) (*lnclient.CustomNodeCommandResponse, error) {
 	// FIXME: needs latest Cashu changes to be merged
 	// mnemonic := cs.wallet.Mnemonic()
 	// currentMint := cs.wallet.CurrentMint()
@@ -439,5 +439,5 @@ func (cs *CashuService) executeCommandRestore(ctx context.Context) (*lnclient.No
 	//
 	// logger.Logger.WithField("amountRestored", amountRestored).Info("Successfully restored cashu wallet")
 
-	return lnclient.NewNodeCommandResponseEmpty(), nil
+	return lnclient.NewCustomNodeCommandResponseEmpty(), nil
 }

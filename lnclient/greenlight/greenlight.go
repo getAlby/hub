@@ -690,10 +690,10 @@ func (gs *GreenlightService) GetPubkey() string {
 	return gs.pubkey
 }
 
-func (gs *GreenlightService) GetCustomCommandDefinitions() []lnclient.NodeCommandDef {
+func (gs *GreenlightService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCommandDef {
 	return nil
 }
 
-func (gs *GreenlightService) ExecuteCustomCommand(ctx context.Context, command *lnclient.NodeCommandRequest) (*lnclient.NodeCommandResponse, error) {
+func (gs *GreenlightService) ExecuteCustomNodeCommand(ctx context.Context, command *lnclient.CustomNodeCommandRequest) (*lnclient.CustomNodeCommandResponse, error) {
 	return nil, nil
 }

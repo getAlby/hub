@@ -543,10 +543,10 @@ func (svc *PhoenixService) GetPubkey() string {
 	return svc.pubkey
 }
 
-func (svc *PhoenixService) GetCustomCommandDefinitions() []lnclient.NodeCommandDef {
+func (svc *PhoenixService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCommandDef {
 	return nil
 }
 
-func (svc *PhoenixService) ExecuteCustomCommand(ctx context.Context, command *lnclient.NodeCommandRequest) (*lnclient.NodeCommandResponse, error) {
+func (svc *PhoenixService) ExecuteCustomNodeCommand(ctx context.Context, command *lnclient.CustomNodeCommandRequest) (*lnclient.CustomNodeCommandResponse, error) {
 	return nil, nil
 }

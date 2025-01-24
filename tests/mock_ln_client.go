@@ -204,10 +204,10 @@ func (mln *MockLn) GetPubkey() string {
 	return "123pubkey"
 }
 
-func (mln *MockLn) GetCustomCommandDefinitions() []lnclient.NodeCommandDef {
+func (mln *MockLn) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCommandDef {
 	return nil
 }
 
-func (mln *MockLn) ExecuteCustomCommand(ctx context.Context, command *lnclient.NodeCommandRequest) (*lnclient.NodeCommandResponse, error) {
+func (mln *MockLn) ExecuteCustomNodeCommand(ctx context.Context, command *lnclient.CustomNodeCommandRequest) (*lnclient.CustomNodeCommandResponse, error) {
 	return nil, nil
 }

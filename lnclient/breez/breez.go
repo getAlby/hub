@@ -494,10 +494,10 @@ func (bs *BreezService) GetPubkey() string {
 	return bs.pubkey
 }
 
-func (bs *BreezService) GetCustomCommandDefinitions() []lnclient.NodeCommandDef {
+func (bs *BreezService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCommandDef {
 	return nil
 }
 
-func (bs *BreezService) ExecuteCustomCommand(ctx context.Context, command *lnclient.NodeCommandRequest) (*lnclient.NodeCommandResponse, error) {
+func (bs *BreezService) ExecuteCustomNodeCommand(ctx context.Context, command *lnclient.CustomNodeCommandRequest) (*lnclient.CustomNodeCommandResponse, error) {
 	return nil, nil
 }

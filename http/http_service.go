@@ -1002,7 +1002,7 @@ func (httpSvc *HttpService) getLogOutputHandler(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) getNodeCommandsHandler(c echo.Context) error {
-	nodeCommandsResponse, err := httpSvc.api.GetNodeCommands()
+	nodeCommandsResponse, err := httpSvc.api.GetCustomNodeCommands()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: fmt.Sprintf("Failed to get node commands: %v", err),
@@ -1013,14 +1013,14 @@ func (httpSvc *HttpService) getNodeCommandsHandler(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) execCommandHandler(c echo.Context) error {
-	var execCommandRequest api.ExecuteCommandRequest
+	var execCommandRequest api.ExecuteCustomNodeCommandRequest
 	if err := c.Bind(&execCommandRequest); err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
 			Message: fmt.Sprintf("Bad request: %s", err.Error()),
 		})
 	}
 
-	execCommandResponse, err := httpSvc.api.ExecuteNodeCommand(c.Request().Context(), execCommandRequest.Command)
+	execCommandResponse, err := httpSvc.api.ExecuteCustomNodeCommand(c.Request().Context(), execCommandRequest.Command)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: fmt.Sprintf("Failed to execute command: %v", err),

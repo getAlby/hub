@@ -78,8 +78,8 @@ type LNClient interface {
 	UpdateLastWalletSyncRequest()
 	GetSupportedNIP47Methods() []string
 	GetSupportedNIP47NotificationTypes() []string
-	GetCustomCommandDefinitions() []NodeCommandDef
-	ExecuteCustomCommand(ctx context.Context, command *NodeCommandRequest) (*NodeCommandResponse, error)
+	GetCustomNodeCommandDefinitions() []CustomNodeCommandDef
+	ExecuteCustomNodeCommand(ctx context.Context, command *CustomNodeCommandRequest) (*CustomNodeCommandResponse, error)
 }
 
 type Channel struct {
@@ -192,38 +192,38 @@ type PaymentFailedEventProperties struct {
 	Reason      string
 }
 
-type NodeCommandArgDef struct {
+type CustomNodeCommandArgDef struct {
 	Name        string
 	Description string
 }
 
-type NodeCommandDef struct {
+type CustomNodeCommandDef struct {
 	Name        string
 	Description string
-	Args        []NodeCommandArgDef
+	Args        []CustomNodeCommandArgDef
 }
 
-type NodeCommandArg struct {
+type CustomNodeCommandArg struct {
 	Name  string
 	Value string
 }
 
-type NodeCommandRequest struct {
+type CustomNodeCommandRequest struct {
 	Name string
-	Args []NodeCommandArg
+	Args []CustomNodeCommandArg
 }
 
-type NodeCommandResponse struct {
+type CustomNodeCommandResponse struct {
 	RawJson []byte
 }
 
-func NewNodeCommandResponseEmpty() *NodeCommandResponse {
-	return &NodeCommandResponse{
+func NewCustomNodeCommandResponseEmpty() *CustomNodeCommandResponse {
+	return &CustomNodeCommandResponse{
 		RawJson: []byte("{}"),
 	}
 }
 
-var ErrUnknownNodeCommand = errors.New("unknown custom node command")
+var ErrUnknownCustomNodeCommand = errors.New("unknown custom node command")
 
 // default invoice expiry in seconds (1 day)
 const DEFAULT_INVOICE_EXPIRY = 86400
