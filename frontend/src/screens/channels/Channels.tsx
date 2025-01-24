@@ -522,9 +522,18 @@ export default function Channels() {
                   </div>
                 )}
                 {balances && (
-                  <FormattedFiatAmount
-                    amount={balances.lightning.totalSpendable / 1000}
-                  />
+                  <>
+                    <div className="text-2xl font-bold balance sensitive">
+                      {new Intl.NumberFormat().format(
+                        Math.floor(balances.lightning.totalSpendable / 1000)
+                      )}{" "}
+                      sats
+                    </div>
+                    <FormattedFiatAmount
+                      amount={balances.lightning.totalSpendable / 1000}
+                      className="text-sm text-muted-foreground"
+                    />
+                  </>
                 )}
               </CardContent>
             </div>
@@ -550,9 +559,18 @@ export default function Channels() {
               </CardHeader>
               <CardContent className="flex-grow pb-0">
                 {balances && (
-                  <FormattedFiatAmount
-                    amount={balances.lightning.totalReceivable / 1000}
-                  />
+                  <>
+                    <div className="text-2xl font-bold balance sensitive">
+                      {new Intl.NumberFormat().format(
+                        Math.floor(balances.lightning.totalReceivable / 1000)
+                      )}{" "}
+                      sats
+                    </div>
+                    <FormattedFiatAmount
+                      amount={balances.lightning.totalReceivable / 1000}
+                      className="text-sm text-muted-foreground"
+                    />
+                  </>
                 )}
               </CardContent>
             </div>
@@ -594,7 +612,16 @@ export default function Channels() {
             <div className="text-2xl balance sensitive">
               {balances && (
                 <>
-                  <FormattedFiatAmount amount={balances.onchain.spendable} />
+                  <div className="text-2xl font-bold balance sensitive">
+                    {new Intl.NumberFormat().format(
+                      Math.floor(balances.onchain.spendable)
+                    )}{" "}
+                    sats
+                  </div>
+                  <FormattedFiatAmount
+                    amount={balances.onchain.spendable}
+                    className="text-sm text-muted-foreground"
+                  />
                   {balances &&
                     balances.onchain.spendable !== balances.onchain.total && (
                       <p className="text-xs text-muted-foreground animate-pulse">

@@ -411,12 +411,6 @@ function NewChannelInternal({
                             </Sheet>
                           </div>
                         </Card>
-
-                        {selectedPeer.name === "Custom" && (
-                          <>
-                            <div className="grid gap-1.5"></div>
-                          </>
-                        )}
                       </div>
                     )}
                   </div>

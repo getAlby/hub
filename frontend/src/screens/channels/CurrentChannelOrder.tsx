@@ -44,6 +44,7 @@ import {
 } from "src/types";
 
 import { ChannelWaitingForConfirmations } from "src/components/channels/ChannelWaitingForConfirmations";
+import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import { PayLightningInvoice } from "src/components/PayLightningInvoice";
 import { useChannels } from "src/hooks/useChannels";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
@@ -640,7 +641,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
 
       {lspOrderResponse && (
         <>
-          <div className="flex flex-col gap-5">
+          <div className="flex gap-5">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
               <PayLightningInvoice
                 invoice={lspOrderResponse.invoice}
@@ -653,11 +654,11 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                   Pay the invoice to initiate channel opening.
                 </p>
                 <p className="font-semibold mb-2">Summary</p>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-2 mx-auto">
+                <div className="grid grid-cols-3 gap-x-8 gap-y-2 col-span-2">
                   {lspOrderResponse.outgoingLiquidity > 0 && (
                     <>
                       <div className="font-medium text-sm">
-                        Channel Size (Outgoing Liquidity)
+                        Outgoing Liquidity
                       </div>
                       <div className="text-muted-foreground">
                         {new Intl.NumberFormat().format(
@@ -670,7 +671,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                   {lspOrderResponse.incomingLiquidity > 0 && (
                     <>
                       <div className="font-medium text-sm">
-                        Channel Size (Incoming Liquidity)
+                        Incoming Liquidity
                       </div>
                       <div className="text-muted-foreground">
                         {new Intl.NumberFormat().format(
@@ -678,44 +679,43 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                         )}{" "}
                         sats
                       </div>
+                      <FormattedFiatAmount
+                        amount={lspOrderResponse.incomingLiquidity}
+                        className="text-sm text-muted-foreground"
+                      />
                     </>
                   )}
-                  <div className="font-medium text-sm flex flex-row gap-1.5 items-center">
-                    Fee
-                  </div>
-                  <div className="text-muted-foreground pb-4">
-                    {new Intl.NumberFormat().format(lspOrderResponse.fee)} sats
-                  </div>
-                  <Separator className="col-span-2" />
+                  <>
+                    {" "}
+                    <div className="font-medium text-sm flex flex-row gap-1.5 items-center">
+                      Fee
+                    </div>
+                    <div className="text-muted-foreground pb-4">
+                      {new Intl.NumberFormat().format(lspOrderResponse.fee)}{" "}
+                      sats
+                    </div>
+                    <FormattedFiatAmount
+                      amount={lspOrderResponse.fee}
+                      className="text-sm text-muted-foreground"
+                    />
+                  </>
 
-                  <div className="font-medium text-sm">Amount to pay</div>
-                  <div className="font-semibold">
-                    {new Intl.NumberFormat().format(
-                      lspOrderResponse.invoiceAmount
-                    )}{" "}
-                    sats
-                  </div>
+                  <Separator className="col-span-3" />
+                  <>
+                    <div className="font-medium text-sm">Amount to pay</div>
+                    <div className="font-semibold">
+                      {new Intl.NumberFormat().format(
+                        lspOrderResponse.invoiceAmount
+                      )}{" "}
+                      sats
+                    </div>
+                    <FormattedFiatAmount
+                      amount={lspOrderResponse.invoiceAmount}
+                      className="font-semibold"
+                    />
+                  </>
                 </div>
               </div>
-            </div>
-            <div className="w-80 flex flex-col justify-end items-center gap-4">
-              <Separator className="my-2" />
-              <p className="text-sm text-muted-foreground text-center">
-                Other options
-              </p>
-              <Link to="/channels/outgoing" className="w-full">
-                <Button className="w-full" variant="secondary">
-                  Increase Spending Balance
-                </Button>
-              </Link>
-              <ExternalLink
-                to="https://www.getalby.com/topup"
-                className="w-full"
-              >
-                <Button className="w-full" variant="secondary">
-                  Buy Bitcoin
-                </Button>
-              </ExternalLink>
             </div>
           </div>
         </>

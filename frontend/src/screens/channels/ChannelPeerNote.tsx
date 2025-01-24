@@ -8,7 +8,7 @@ type ChannelPeerNoteProps = {
 
 export function ChannelPeerNote({ peer }: ChannelPeerNoteProps) {
   return (
-    <Alert>
+    <Alert variant={"destructive"}>
       <AlertCircleIcon className="h-4 w-4" />
       <AlertTitle>
         Please note when opening a channel with {peer.name}

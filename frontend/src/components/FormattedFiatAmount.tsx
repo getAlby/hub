@@ -2,20 +2,19 @@ import { useBitcoinRate } from "src/hooks/useBitcoinRate";
 
 type FormattedFiatAmountProps = {
   amount: number;
+  className?: string;
 };
 
 export default function FormattedFiatAmount({
   amount,
+  className,
 }: FormattedFiatAmountProps) {
   const { data: bitcoinRate } = useBitcoinRate();
 
   return (
     <div>
-      <div className="text-2xl font-bold balance sensitive">
-        {new Intl.NumberFormat().format(Math.floor(amount))} sats
-      </div>
       {bitcoinRate && (
-        <div className="text-sm text-muted-foreground">
+        <div className={className}>
           {new Intl.NumberFormat("en-US", {
             style: "currency",
             currency: "USD",
