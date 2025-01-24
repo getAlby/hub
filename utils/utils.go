@@ -59,7 +59,7 @@ func Filter[T any](s []T, f func(T) bool) []T {
 }
 
 func ParseCommandLine(s string) ([]string, error) {
-	var args []string
+	args := make([]string, 0)
 	var currentArg strings.Builder
 	inQuotes := false
 	escaped := false
@@ -83,7 +83,7 @@ func ParseCommandLine(s string) ([]string, error) {
 		}
 	}
 
-	if escaped {
+	if escaped || inQuotes {
 		return nil, fmt.Errorf("unexpected end of string")
 	}
 
