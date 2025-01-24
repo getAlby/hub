@@ -3,7 +3,6 @@ import { TriangleAlertIcon } from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import Container from "src/components/Container";
 import SettingsHeader from "src/components/SettingsHeader";
 import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
@@ -118,17 +117,17 @@ export function BackupNode() {
       </div>
 
       {showPasswordScreen ? (
-        <Container>
-          <h1 className="text-xl font-medium mb-1">Enter unlock password</h1>
-          <p className="text-center text-md text-muted-foreground mb-4">
+        <div>
+          <h1 className="font-medium mb-1">Enter unlock password</h1>
+          <p className="text-muted-foreground mb-4">
             Your unlock password will be used to encrypt your backup
           </p>
           <form
             onSubmit={onSubmitPassword}
-            className="w-full flex flex-col gap-3"
+            className="w-full md:w-[373px] flex flex-col gap-6"
           >
             <>
-              <div className="grid gap-1.5">
+              <div className="grid gap-2">
                 <Label htmlFor="password">Password</Label>
                 <Input
                   type="password"
@@ -138,10 +137,10 @@ export function BackupNode() {
                   placeholder="Password"
                 />
               </div>
-              <LoadingButton loading={loading}>Continue</LoadingButton>
             </>
+            <LoadingButton loading={loading}>Continue</LoadingButton>
           </form>
-        </Container>
+        </div>
       ) : (
         <div>
           <Button

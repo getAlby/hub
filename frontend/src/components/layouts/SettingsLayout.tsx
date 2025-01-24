@@ -118,7 +118,7 @@ export default function SettingsLayout() {
             <MenuItem to="/settings/debug-tools">Debug Tools</MenuItem>
           </nav>
         </aside>
-        <div className="flex-1 w-full">
+        <div className="flex-1 lg:max-w-2xl">
           <div className="grid gap-6">
             <Outlet />
           </div>
