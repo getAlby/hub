@@ -154,8 +154,8 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedGroup.POST("/api/send-spontaneous-payment-probes", httpSvc.sendSpontaneousPaymentProbesHandler)
 	restrictedGroup.GET("/api/log/:type", httpSvc.getLogOutputHandler)
 	restrictedGroup.GET("/api/health", httpSvc.healthHandler)
-	restrictedGroup.GET("/api/commands", httpSvc.getNodeCommandsHandler)
-	restrictedGroup.POST("/api/command", httpSvc.execCommandHandler)
+	restrictedGroup.GET("/api/commands", httpSvc.getCustomNodeCommandsHandler)
+	restrictedGroup.POST("/api/command", httpSvc.execCustomNodeCommandHandler)
 
 	httpSvc.albyHttpSvc.RegisterSharedRoutes(restrictedGroup, e)
 }
@@ -1001,7 +1001,7 @@ func (httpSvc *HttpService) getLogOutputHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, getLogResponse)
 }
 
-func (httpSvc *HttpService) getNodeCommandsHandler(c echo.Context) error {
+func (httpSvc *HttpService) getCustomNodeCommandsHandler(c echo.Context) error {
 	nodeCommandsResponse, err := httpSvc.api.GetCustomNodeCommands()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
@@ -1012,7 +1012,7 @@ func (httpSvc *HttpService) getNodeCommandsHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, nodeCommandsResponse)
 }
 
-func (httpSvc *HttpService) execCommandHandler(c echo.Context) error {
+func (httpSvc *HttpService) execCustomNodeCommandHandler(c echo.Context) error {
 	var execCommandRequest api.ExecuteCustomNodeCommandRequest
 	if err := c.Bind(&execCommandRequest); err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
