@@ -214,12 +214,12 @@ type CustomNodeCommandRequest struct {
 }
 
 type CustomNodeCommandResponse struct {
-	RawJson []byte
+	Response interface{}
 }
 
 func NewCustomNodeCommandResponseEmpty() *CustomNodeCommandResponse {
 	return &CustomNodeCommandResponse{
-		RawJson: []byte("{}"),
+		Response: struct{}{},
 	}
 }
 

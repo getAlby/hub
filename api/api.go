@@ -1095,7 +1095,7 @@ func (api *api) GetCustomNodeCommands() (*CustomNodeCommandsResponse, error) {
 	return &CustomNodeCommandsResponse{Commands: commandDefs}, nil
 }
 
-func (api *api) ExecuteCustomNodeCommand(ctx context.Context, command string) ([]byte, error) {
+func (api *api) ExecuteCustomNodeCommand(ctx context.Context, command string) (interface{}, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
 		return nil, errors.New("LNClient not started")
@@ -1151,7 +1151,7 @@ func (api *api) ExecuteCustomNodeCommand(ctx context.Context, command string) ([
 		return nil, fmt.Errorf("node failed to execute custom command: %w", err)
 	}
 
-	return nodeResp.RawJson, nil
+	return nodeResp.Response, nil
 }
 
 func (api *api) parseExpiresAt(expiresAtString string) (*time.Time, error) {

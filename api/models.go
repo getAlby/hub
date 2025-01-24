@@ -58,7 +58,7 @@ type API interface {
 	GetWalletCapabilities(ctx context.Context) (*WalletCapabilitiesResponse, error)
 	Health(ctx context.Context) (*HealthResponse, error)
 	GetCustomNodeCommands() (*CustomNodeCommandsResponse, error)
-	ExecuteCustomNodeCommand(ctx context.Context, command string) ([]byte, error)
+	ExecuteCustomNodeCommand(ctx context.Context, command string) (interface{}, error)
 }
 
 type App struct {

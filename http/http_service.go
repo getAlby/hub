@@ -1027,7 +1027,7 @@ func (httpSvc *HttpService) execCustomNodeCommandHandler(c echo.Context) error {
 		})
 	}
 
-	return c.JSONBlob(http.StatusOK, execCommandResponse)
+	return c.JSON(http.StatusOK, execCommandResponse)
 }
 
 func (httpSvc *HttpService) logoutHandler(c echo.Context) error {

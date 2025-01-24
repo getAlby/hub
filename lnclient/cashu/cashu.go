@@ -410,7 +410,9 @@ func (cs *CashuService) ExecuteCustomNodeCommand(ctx context.Context, command *l
 		}
 
 		return &lnclient.CustomNodeCommandResponse{
-			RawJson: []byte("{\"" + command.Args[0].Name + "\": \"" + command.Args[0].Value + "\"}"),
+			Response: map[string]string{
+				command.Args[0].Name: command.Args[0].Value,
+			},
 		}, nil
 	}
 
