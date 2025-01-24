@@ -649,12 +649,12 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                 canPayInternally={canPayInternally}
               />
 
-              <div className="order-first md:order-last">
+              <div className="order-first md:order-last col-span-2">
                 <p className="text-muted-foreground mb-6">
                   Pay the invoice to initiate channel opening.
                 </p>
                 <p className="font-semibold mb-2">Summary</p>
-                <div className="grid grid-cols-3 gap-x-8 gap-y-2 col-span-2">
+                <div className="grid grid-cols-3 gap-x-8 gap-y-2">
                   {lspOrderResponse.outgoingLiquidity > 0 && (
                     <>
                       <div className="font-medium text-sm">
