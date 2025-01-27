@@ -314,7 +314,7 @@ export default function AppLayout() {
                 </DropdownMenu>
               </Sheet>
             </header>
-            <div className="flex flex-1 flex-col gap-4 p-4 pt-[4.5rem] md:pt-4 lg:gap-6 lg:p-8">
+            <div className="flex flex-1 flex-col gap-4 p-4 mt-14 md:mt-0 lg:gap-6 lg:p-8">
               <Outlet />
             </div>
           </main>
