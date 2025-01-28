@@ -386,7 +386,11 @@ For the default backend which runs a node internally we recommend 2GB of RAM + 1
 
 Go to the [Quick start script](https://github.com/getAlby/hub/tree/master/scripts/linux-x86_64) which you can run as a service.
 
-#### Quick start (Arm64 Linux Server or Raspberry PI 4/5)
+#### Quick start (Arm64 Linux Server)
+
+Go to the [Quick start script](https://github.com/getAlby/hub/blob/master/scripts/linux-aarch64) which you can run as a service.
+
+#### Quick start (Raspberry PI 4/5)
 
 Go to the [Quick start script](https://github.com/getAlby/hub/blob/master/scripts/pi-aarch64) which you can run as a service.
 
