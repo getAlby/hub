@@ -16,6 +16,7 @@ func TestParseCommandLine(t *testing.T) {
 		expectedError   string
 	}
 
+	// When called by the API, the first argument of the command input is actually the command name
 	testCases := []testCase{
 		{
 			name:            "empty input",
@@ -51,6 +52,18 @@ func TestParseCommandLine(t *testing.T) {
 			name:            "unquoted escaped whitespace",
 			input:           `arg\ 1 arg2`,
 			expectedSuccess: []string{"arg 1", "arg2"},
+			expectedError:   "",
+		},
+		{
+			name:            "escaped JSON",
+			input:           `{\"hello\":\"world\"}`,
+			expectedSuccess: []string{`{"hello":"world"}`},
+			expectedError:   "",
+		},
+		{
+			name:            "escaped JSON with space",
+			input:           `"{\"hello\": \"world\"}"`,
+			expectedSuccess: []string{`{"hello": "world"}`},
 			expectedError:   "",
 		},
 		{
