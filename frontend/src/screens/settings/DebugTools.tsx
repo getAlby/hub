@@ -306,7 +306,7 @@ export default function DebugTools() {
               Get Network Graph
             </Button>
           </AlertDialogTrigger>
-          {(info?.backendType === "LDK" || info?.backendType === "CASHU") && (
+          {info?.backendType === "LDK" && (
             <AlertDialogTrigger asChild>
               <Button onClick={() => setDialog("resetRoutingData")}>
                 Clear Routing Data

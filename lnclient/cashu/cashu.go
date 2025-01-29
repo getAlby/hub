@@ -3,9 +3,7 @@ package cashu
 import (
 	"context"
 	"errors"
-	"log"
 	"os"
-	"path/filepath"
 	"sort"
 	"time"
 
@@ -19,20 +17,19 @@ import (
 	"github.com/getAlby/hub/logger"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
-
-	"github.com/getAlby/hub/lnclient"
-	"github.com/getAlby/hub/logger"
 )
 
 const nodeCommandRestore = "restore"
+const nodeCommandCheckMnemonic = "checkmnemonic"
 const exampleCommandWithArg = "example"
 
 type CashuService struct {
-	wallet  *wallet.Wallet
-	workDir string
+	wallet               *wallet.Wallet
+	workDir              string
+	hasDifferentMnemonic bool
 }
 
-func NewCashuService(cfg config.Config, workDir, encryptionKey, mintUrl string) (result lnclient.LNClient, err error) {
+func NewCashuService(cfg config.Config, workDir, mnemonic, mintUrl string) (result lnclient.LNClient, err error) {
 	if workDir == "" {
 		return nil, errors.New("one or more required cashu configuration are missing")
 	}
@@ -40,16 +37,16 @@ func NewCashuService(cfg config.Config, workDir, encryptionKey, mintUrl string) 
 		return nil, errors.New("no mint URL configured")
 	}
 
-	// create dir if not exists
-	newpath := filepath.Join(workDir)
-	err = os.MkdirAll(newpath, os.ModePerm)
-	if err != nil {
-		log.Printf("Failed to create cashu working dir: %v", err)
-		return nil, err
+	_, err = os.Stat(workDir)
+	isFirstSetup := err != nil && errors.Is(err, os.ErrNotExist)
+
+	if isFirstSetup {
+		// make the cashu wallet use the Alby Hub provided mnemonic
+		wallet.Restore(workDir, mnemonic, []string{mintUrl})
 	}
 
 	logger.Logger.WithField("mintUrl", mintUrl).Info("Setting up cashu wallet")
-	config := wallet.Config{WalletPath: newpath, CurrentMintURL: mintUrl}
+	config := wallet.Config{WalletPath: workDir, CurrentMintURL: mintUrl}
 
 	cashuWallet, err := wallet.LoadWallet(config)
 	if err != nil {
@@ -62,13 +59,9 @@ func NewCashuService(cfg config.Config, workDir, encryptionKey, mintUrl string) 
 		workDir: workDir,
 	}
 
-	cashuWalletMnemonic := cashuWallet.Mnemonic()
-	mnemonic, _ := cfg.Get("Mnemonic", encryptionKey)
-	if mnemonic != cashuWalletMnemonic {
-		if err := cfg.SetUpdate("Mnemonic", cashuWalletMnemonic, encryptionKey); err != nil {
-			logger.Logger.WithError(err).Error("Failed to save mnemonic from cashu wallet")
-			return nil, err
-		}
+	if cs.wallet.Mnemonic() != mnemonic {
+		logger.Logger.Warn("Cashu is not using Alby Hub mnemonic!")
+		cs.hasDifferentMnemonic = true
 	}
 
 	return &cs, nil
@@ -226,25 +219,6 @@ func (cs *CashuService) RedeemOnchainFunds(ctx context.Context, toAddress string
 }
 
 func (cs *CashuService) ResetRouter(key string) error {
-	mnemonic := cs.wallet.Mnemonic()
-	currentMint := cs.wallet.CurrentMint()
-
-	if err := cs.wallet.Shutdown(); err != nil {
-		return err
-	}
-
-	if err := os.RemoveAll(cs.workDir); err != nil {
-		logger.Logger.WithError(err).Error("Failed to remove wallet directory")
-		return err
-	}
-
-	amountRestored, err := wallet.Restore(cs.workDir, mnemonic, []string{currentMint})
-	if err != nil {
-		logger.Logger.WithError(err).Error("Failed restore cashu wallet")
-		return err
-	}
-
-	logger.Logger.WithField("amountRestored", amountRestored).Info("Successfully restored cashu wallet")
 	return nil
 }
 
@@ -469,6 +443,11 @@ func (cs *CashuService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeC
 			Args:        nil,
 		},
 		{
+			Name:        nodeCommandCheckMnemonic,
+			Description: "Check if your cashu wallet uses the same mnemonic as Alby Hub.",
+			Args:        nil,
+		},
+		{
 			Name:        exampleCommandWithArg,
 			Description: "Example command with argument",
 			Args: []lnclient.CustomNodeCommandArgDef{
@@ -485,6 +464,13 @@ func (cs *CashuService) ExecuteCustomNodeCommand(ctx context.Context, command *l
 	switch command.Name {
 	case nodeCommandRestore:
 		return cs.executeCommandRestore(ctx)
+	case nodeCommandCheckMnemonic:
+		return &lnclient.CustomNodeCommandResponse{
+			Response: map[string]interface{}{
+				"matches": !cs.hasDifferentMnemonic,
+			},
+		}, nil
+	// TODO: consider adding command to migrate to Alby Hub mnemonic
 	case exampleCommandWithArg:
 		if len(command.Args) != 1 {
 			return nil, errors.New("please provide an argument")
@@ -501,26 +487,31 @@ func (cs *CashuService) ExecuteCustomNodeCommand(ctx context.Context, command *l
 }
 
 func (cs *CashuService) executeCommandRestore(ctx context.Context) (*lnclient.CustomNodeCommandResponse, error) {
-	// FIXME: needs latest Cashu changes to be merged
-	// mnemonic := cs.wallet.Mnemonic()
-	// currentMint := cs.wallet.CurrentMint()
-	//
-	// if err := cs.wallet.Shutdown(); err != nil {
-	// 	return nil, err
-	// }
-	//
-	// if err := os.RemoveAll(cs.workDir); err != nil {
-	// 	logger.Logger.WithError(err).Error("Failed to remove wallet directory")
-	// 	return nil, err
-	// }
-	//
-	// amountRestored, err := wallet.Restore(cs.workDir, mnemonic, []string{currentMint})
-	// if err != nil {
-	// 	logger.Logger.WithError(err).Error("Failed restore cashu wallet")
-	// 	return nil, err
-	// }
-	//
-	// logger.Logger.WithField("amountRestored", amountRestored).Info("Successfully restored cashu wallet")
+	mnemonic := cs.wallet.Mnemonic()
+	currentMint := cs.wallet.CurrentMint()
 
-	return lnclient.NewCustomNodeCommandResponseEmpty(), nil
+	if err := cs.wallet.Shutdown(); err != nil {
+		return nil, err
+	}
+
+	// TODO: should we move this to a backup folder instead?
+	// if errors occur users cannot retry
+	if err := os.RemoveAll(cs.workDir); err != nil {
+		logger.Logger.WithError(err).Error("Failed to remove wallet directory")
+		return nil, err
+	}
+
+	amountRestored, err := wallet.Restore(cs.workDir, mnemonic, []string{currentMint})
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed restore cashu wallet")
+		return nil, err
+	}
+
+	logger.Logger.WithField("amountRestored", amountRestored).Info("Successfully restored cashu wallet")
+
+	return &lnclient.CustomNodeCommandResponse{
+		Response: map[string]interface{}{
+			"amountRestored": amountRestored,
+		},
+	}, nil
 }

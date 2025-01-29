@@ -329,10 +329,11 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 
 		lnClient, err = phoenixd.NewPhoenixService(PhoenixdAddress, PhoenixdAuthorization)
 	case config.CashuBackendType:
+		mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
 		cashuMintUrl, _ := svc.cfg.Get("CashuMintUrl", encryptionKey)
 		cashuWorkdir := path.Join(svc.cfg.GetEnv().Workdir, "cashu")
 
-		lnClient, err = cashu.NewCashuService(svc.cfg, cashuWorkdir, encryptionKey, cashuMintUrl)
+		lnClient, err = cashu.NewCashuService(svc.cfg, cashuWorkdir, mnemonic, cashuMintUrl)
 	default:
 		logger.Logger.WithField("backend_type", lnBackend).Error("Unsupported LNBackendType")
 		return fmt.Errorf("unsupported backend type: %s", lnBackend)
