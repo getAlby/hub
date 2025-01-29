@@ -22,6 +22,7 @@ import (
 
 const nodeCommandRestore = "restore"
 const nodeCommandCheckMnemonic = "checkmnemonic"
+const nodeCommandResetWallet = "reset"
 const exampleCommandWithArg = "example"
 
 type CashuService struct {
@@ -449,6 +450,11 @@ func (cs *CashuService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeC
 			Args:        nil,
 		},
 		{
+			Name:        nodeCommandResetWallet,
+			Description: "Completely resets your cashu wallet. Only do this if you have no funds.",
+			Args:        nil,
+		},
+		{
 			Name:        exampleCommandWithArg,
 			Description: "Example command with argument",
 			Args: []lnclient.CustomNodeCommandArgDef{
@@ -465,6 +471,8 @@ func (cs *CashuService) ExecuteCustomNodeCommand(ctx context.Context, command *l
 	switch command.Name {
 	case nodeCommandRestore:
 		return cs.executeCommandRestore(ctx)
+	case nodeCommandResetWallet:
+		return cs.executeCommandResetWallet(ctx)
 	case nodeCommandCheckMnemonic:
 		return &lnclient.CustomNodeCommandResponse{
 			Response: map[string]interface{}{
@@ -508,9 +516,36 @@ func (cs *CashuService) executeCommandRestore(ctx context.Context) (*lnclient.Cu
 
 	logger.Logger.WithField("amountRestored", amountRestored).Info("Successfully restored cashu wallet")
 
+	go func() {
+		time.Sleep(10 * time.Second)
+		os.Exit(0)
+	}()
+
 	return &lnclient.CustomNodeCommandResponse{
 		Response: map[string]interface{}{
 			"amountRestored": amountRestored,
+			"message":        "Restore successful. Your hub will shutdown in 10 seconds.",
+		},
+	}, nil
+}
+func (cs *CashuService) executeCommandResetWallet(ctx context.Context) (*lnclient.CustomNodeCommandResponse, error) {
+	if err := cs.wallet.Shutdown(); err != nil {
+		return nil, err
+	}
+
+	if err := os.Rename(cs.workDir, cs.workDir+strconv.FormatInt(time.Now().Unix(), 10)); err != nil {
+		logger.Logger.WithError(err).Error("Failed to rename wallet directory")
+		return nil, err
+	}
+
+	go func() {
+		time.Sleep(10 * time.Second)
+		os.Exit(0)
+	}()
+
+	return &lnclient.CustomNodeCommandResponse{
+		Response: map[string]interface{}{
+			"message": "Reset successful. Your hub will shutdown in 10 seconds.",
 		},
 	}, nil
 }
