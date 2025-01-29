@@ -1060,7 +1060,7 @@ func lndPaymentToTransaction(payment *lnrpc.Payment) (*lnclient.Transaction, err
 		DescriptionHash: descriptionHash,
 		ExpiresAt:       expiresAt,
 		SettledAt:       settledAt,
-		//TODO: Metadata:  (e.g. keysend),
+		// TODO: Metadata:  (e.g. keysend),
 	}, nil
 }
 
@@ -1131,6 +1131,7 @@ func (svc *LNDService) GetNodeStatus(ctx context.Context) (nodeStatus *lnclient.
 	}
 
 	return &lnclient.NodeStatus{
+		IsReady: true, // Assuming that, if GetNodeInfo() succeeds, the node is online and accessible.
 		InternalNodeStatus: map[string]interface{}{
 			"info":         info,
 			"config":       debugInfo.Config,
@@ -1263,3 +1264,11 @@ func (svc *LNDService) GetStorageDir() (string, error) {
 }
 
 func (svc *LNDService) UpdateLastWalletSyncRequest() {}
+
+func (svc *LNDService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCommandDef {
+	return nil
+}
+
+func (svc *LNDService) ExecuteCustomNodeCommand(ctx context.Context, command *lnclient.CustomNodeCommandRequest) (*lnclient.CustomNodeCommandResponse, error) {
+	return nil, nil
+}

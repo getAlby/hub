@@ -168,7 +168,9 @@ func (mln *MockLn) GetStorageDir() (string, error) {
 	return "", nil
 }
 func (mln *MockLn) GetNodeStatus(ctx context.Context) (nodeStatus *lnclient.NodeStatus, err error) {
-	return nil, nil
+	return &lnclient.NodeStatus{
+		IsReady: true,
+	}, nil
 }
 func (mln *MockLn) GetNetworkGraph(ctx context.Context, nodeIds []string) (lnclient.NetworkGraphResponse, error) {
 	return nil, nil
@@ -200,4 +202,12 @@ func (mln *MockLn) GetPubkey() string {
 	}
 
 	return "123pubkey"
+}
+
+func (mln *MockLn) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCommandDef {
+	return nil
+}
+
+func (mln *MockLn) ExecuteCustomNodeCommand(ctx context.Context, command *lnclient.CustomNodeCommandRequest) (*lnclient.CustomNodeCommandResponse, error) {
+	return nil, nil
 }

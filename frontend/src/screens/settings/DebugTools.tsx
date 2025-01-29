@@ -1,4 +1,5 @@
 import React from "react";
+import { ExecuteCustomNodeCommandDialogContent } from "src/components/ExecuteCustomNodeCommandDialogContent";
 import { ResetRoutingDataDialogContent } from "src/components/ResetRoutingDataDialogContent";
 import SettingsHeader from "src/components/SettingsHeader";
 import {
@@ -221,6 +222,7 @@ export default function DebugTools() {
     | "getNodeLogs"
     | "getNetworkGraph"
     | "resetRoutingData"
+    | "customNodeCommand"
   >();
 
   const { data: info } = useInfo();
@@ -311,6 +313,23 @@ export default function DebugTools() {
               </Button>
             </AlertDialogTrigger>
           )}
+          <Button
+            onClick={() => {
+              apiRequest(`/api/commands`, "GET");
+            }}
+          >
+            Get Node Commands
+          </Button>
+          <AlertDialogTrigger asChild>
+            <Button
+              onClick={() => {
+                apiRequest(`/api/commands`, "GET");
+                setDialog("customNodeCommand");
+              }}
+            >
+              Execute Node Command
+            </Button>
+          </AlertDialogTrigger>
           {/* probing functions are not useful */}
           {/*info?.backendType === "LDK" && (
             <AlertDialogTrigger asChild>
@@ -343,6 +362,12 @@ export default function DebugTools() {
             <GetNetworkGraphDialogContent apiRequest={apiRequest} />
           )}
           {dialog === "resetRoutingData" && <ResetRoutingDataDialogContent />}
+          {dialog === "customNodeCommand" && (
+            <ExecuteCustomNodeCommandDialogContent
+              availableCommands={apiResponse}
+              setCommandResponse={setApiResponse}
+            />
+          )}
         </AlertDialog>
       </div>
       {apiResponse && (

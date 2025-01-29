@@ -19,7 +19,13 @@ import (
 	"github.com/getAlby/hub/logger"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
+
+	"github.com/getAlby/hub/lnclient"
+	"github.com/getAlby/hub/logger"
 )
+
+const nodeCommandRestore = "restore"
+const exampleCommandWithArg = "example"
 
 type CashuService struct {
 	wallet  *wallet.Wallet
@@ -34,7 +40,7 @@ func NewCashuService(cfg config.Config, workDir, encryptionKey, mintUrl string) 
 		return nil, errors.New("no mint URL configured")
 	}
 
-	//create dir if not exists
+	// create dir if not exists
 	newpath := filepath.Join(workDir)
 	err = os.MkdirAll(newpath, os.ModePerm)
 	if err != nil {
@@ -266,7 +272,9 @@ func (cs *CashuService) GetNetworkGraph(ctx context.Context, nodeIds []string) (
 func (cs *CashuService) UpdateLastWalletSyncRequest() {}
 
 func (cs *CashuService) GetNodeStatus(ctx context.Context) (nodeStatus *lnclient.NodeStatus, err error) {
-	return nil, nil
+	return &lnclient.NodeStatus{
+		IsReady: true,
+	}, nil
 }
 
 func (cs *CashuService) SendPaymentProbes(ctx context.Context, invoice string) error {
@@ -451,4 +459,68 @@ func (cs *CashuService) GetSupportedNIP47NotificationTypes() []string {
 
 func (svc *CashuService) GetPubkey() string {
 	return ""
+}
+
+func (cs *CashuService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCommandDef {
+	return []lnclient.CustomNodeCommandDef{
+		{
+			Name:        nodeCommandRestore,
+			Description: "Restore cashu tokens after the wallet had a stuck payment.",
+			Args:        nil,
+		},
+		{
+			Name:        exampleCommandWithArg,
+			Description: "Example command with argument",
+			Args: []lnclient.CustomNodeCommandArgDef{
+				{
+					Name:        "hello",
+					Description: "world",
+				},
+			},
+		},
+	}
+}
+
+func (cs *CashuService) ExecuteCustomNodeCommand(ctx context.Context, command *lnclient.CustomNodeCommandRequest) (*lnclient.CustomNodeCommandResponse, error) {
+	switch command.Name {
+	case nodeCommandRestore:
+		return cs.executeCommandRestore(ctx)
+	case exampleCommandWithArg:
+		if len(command.Args) != 1 {
+			return nil, errors.New("please provide an argument")
+		}
+
+		return &lnclient.CustomNodeCommandResponse{
+			Response: map[string]string{
+				command.Args[0].Name: command.Args[0].Value,
+			},
+		}, nil
+	}
+
+	return nil, lnclient.ErrUnknownCustomNodeCommand
+}
+
+func (cs *CashuService) executeCommandRestore(ctx context.Context) (*lnclient.CustomNodeCommandResponse, error) {
+	// FIXME: needs latest Cashu changes to be merged
+	// mnemonic := cs.wallet.Mnemonic()
+	// currentMint := cs.wallet.CurrentMint()
+	//
+	// if err := cs.wallet.Shutdown(); err != nil {
+	// 	return nil, err
+	// }
+	//
+	// if err := os.RemoveAll(cs.workDir); err != nil {
+	// 	logger.Logger.WithError(err).Error("Failed to remove wallet directory")
+	// 	return nil, err
+	// }
+	//
+	// amountRestored, err := wallet.Restore(cs.workDir, mnemonic, []string{currentMint})
+	// if err != nil {
+	// 	logger.Logger.WithError(err).Error("Failed restore cashu wallet")
+	// 	return nil, err
+	// }
+	//
+	// logger.Logger.WithField("amountRestored", amountRestored).Info("Successfully restored cashu wallet")
+
+	return lnclient.NewCustomNodeCommandResponseEmpty(), nil
 }

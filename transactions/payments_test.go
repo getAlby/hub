@@ -9,21 +9,22 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"gorm.io/gorm"
+
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/tests"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"gorm.io/gorm"
 )
 
 func TestSendPaymentSync_NoApp(t *testing.T) {
 	ctx := context.TODO()
 
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	metadata := map[string]interface{}{
 		"a": 123,
@@ -50,9 +51,9 @@ func TestSendPaymentSync_NoApp(t *testing.T) {
 func TestSendPaymentSync_0Amount(t *testing.T) {
 	ctx := context.TODO()
 
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	metadata := map[string]interface{}{
 		"a": 123,
@@ -72,9 +73,9 @@ func TestSendPaymentSync_0Amount(t *testing.T) {
 func TestSendPaymentSync_MetadataTooLarge(t *testing.T) {
 	ctx := context.TODO()
 
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	metadata := make(map[string]interface{})
 	metadata["randomkey"] = strings.Repeat("a", constants.INVOICE_METADATA_MAX_LENGTH-15) // json encoding adds 16 characters
@@ -90,9 +91,9 @@ func TestSendPaymentSync_MetadataTooLarge(t *testing.T) {
 func TestSendPaymentSync_Duplicate(t *testing.T) {
 	ctx := context.TODO()
 
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	svc.DB.Create(&db.Transaction{
 		State:       constants.TRANSACTION_STATE_SETTLED,
@@ -110,9 +111,9 @@ func TestSendPaymentSync_Duplicate(t *testing.T) {
 }
 
 func TestMarkSettled_Sent(t *testing.T) {
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	dbTransaction := db.Transaction{
 		State:       constants.TRANSACTION_STATE_PENDING,
@@ -139,9 +140,9 @@ func TestMarkSettled_Sent(t *testing.T) {
 }
 
 func TestMarkSettled_Received(t *testing.T) {
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	dbTransaction := db.Transaction{
 		State:       constants.TRANSACTION_STATE_PENDING,
@@ -168,9 +169,9 @@ func TestMarkSettled_Received(t *testing.T) {
 }
 
 func TestDoNotMarkSettledTwice(t *testing.T) {
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	settledAt := time.Now().Add(time.Duration(-1) * time.Minute)
 	dbTransaction := db.Transaction{
@@ -195,9 +196,9 @@ func TestDoNotMarkSettledTwice(t *testing.T) {
 }
 
 func TestMarkFailed(t *testing.T) {
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	dbTransaction := db.Transaction{
 		State:       constants.TRANSACTION_STATE_PENDING,
@@ -224,9 +225,9 @@ func TestMarkFailed(t *testing.T) {
 }
 
 func TestDoNotMarkFailedTwice(t *testing.T) {
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	updatedAt := time.Now().Add(time.Duration(-1) * time.Minute)
 	dbTransaction := db.Transaction{
@@ -253,9 +254,9 @@ func TestDoNotMarkFailedTwice(t *testing.T) {
 func TestSendPaymentSync_FailedRemovesFeeReserve(t *testing.T) {
 	ctx := context.TODO()
 
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	svc.LNClient.(*tests.MockLn).PayInvoiceErrors = append(svc.LNClient.(*tests.MockLn).PayInvoiceErrors, errors.New("Some error"))
 	svc.LNClient.(*tests.MockLn).PayInvoiceResponses = append(svc.LNClient.(*tests.MockLn).PayInvoiceResponses, nil)
@@ -285,9 +286,9 @@ func TestSendPaymentSync_FailedRemovesFeeReserve(t *testing.T) {
 func TestSendPaymentSync_PendingHasFeeReserve(t *testing.T) {
 	ctx := context.TODO()
 
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	// timeout will leave the payment as pending
 	svc.LNClient.(*tests.MockLn).PayInvoiceErrors = append(svc.LNClient.(*tests.MockLn).PayInvoiceErrors, lnclient.NewTimeoutError())

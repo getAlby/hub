@@ -430,11 +430,3 @@ func (svc *service) requestVssToken(ctx context.Context) (string, error) {
 	}
 	return vssToken, nil
 }
-
-func (svc *service) setRelayReady(ready bool) {
-	svc.isRelayReady.Store(ready)
-}
-
-func (svc *service) IsRelayReady() bool {
-	return svc.isRelayReady.Load()
-}

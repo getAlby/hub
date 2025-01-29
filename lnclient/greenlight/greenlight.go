@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	//"github.com/getAlby/hub/glalby" // for local development only
+	// "github.com/getAlby/hub/glalby" // for local development only
 
 	"github.com/getAlby/glalby-go/glalby"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
@@ -36,7 +36,7 @@ func NewGreenlightService(cfg config.Config, mnemonic, inviteCode, workDir, encr
 		return nil, errors.New("one or more required greenlight configuration are missing")
 	}
 
-	//create dir if not exists
+	// create dir if not exists
 	newpath := filepath.Join(workDir)
 	err = os.MkdirAll(newpath, os.ModePerm)
 	if err != nil {
@@ -659,7 +659,9 @@ func (gs *GreenlightService) GetStorageDir() (string, error) {
 }
 
 func (gs *GreenlightService) GetNodeStatus(ctx context.Context) (nodeStatus *lnclient.NodeStatus, err error) {
-	return nil, nil
+	return &lnclient.NodeStatus{
+		IsReady: true,
+	}, nil
 }
 
 func (gs *GreenlightService) GetNetworkGraph(ctx context.Context, nodeIds []string) (lnclient.NetworkGraphResponse, error) {
@@ -686,4 +688,12 @@ func (gs *GreenlightService) GetSupportedNIP47NotificationTypes() []string {
 
 func (gs *GreenlightService) GetPubkey() string {
 	return gs.pubkey
+}
+
+func (gs *GreenlightService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCommandDef {
+	return nil
+}
+
+func (gs *GreenlightService) ExecuteCustomNodeCommand(ctx context.Context, command *lnclient.CustomNodeCommandRequest) (*lnclient.CustomNodeCommandResponse, error) {
+	return nil, nil
 }
