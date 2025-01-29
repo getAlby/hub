@@ -1,15 +1,9 @@
-import {
-  AlertTriangleIcon,
-  HandCoins,
-  ShieldAlert,
-  Unlock,
-} from "lucide-react";
+import { HandCoins, ShieldAlert, Unlock } from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ExternalLink from "src/components/ExternalLink";
 
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
-import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
 import { Checkbox } from "src/components/ui/checkbox";
 import { Label } from "src/components/ui/label";
@@ -33,24 +27,8 @@ export function SetupSecurity() {
             title="Security & Recovery"
             description="Take your time to understand how to secure and recover your funds on Alby Hub."
           />
-          <div className="flex flex-col items-center w-full gap-5">
-            {(store.nodeInfo.backendType === "LND" ||
-              store.nodeInfo.backendType === "PHOENIX") && (
-              <Alert>
-                <AlertTriangleIcon className="h-4 w-4" />
-                <AlertTitle>
-                  {store.nodeInfo.backendType} backups are not handled by Alby
-                  Hub
-                </AlertTitle>
-                <AlertDescription>
-                  Please take care of your own backups. If you use Umbrel or
-                  Start9, please refer to their documentation regarding backups.
-                </AlertDescription>
-              </Alert>
-            )}
-          </div>
 
-          <div className="flex flex-col gap-6 w-full mt-10">
+          <div className="flex flex-col gap-6 w-full mt-6">
             <div className="flex gap-3 items-center">
               <div className="shrink-0">
                 <HandCoins className="w-6 h-6" />
@@ -69,15 +47,29 @@ export function SetupSecurity() {
                 set.
               </span>
             </div>
-            <div className="flex gap-3 items-center">
-              <div className="shrink-0">
-                <ShieldAlert className="w-6 h-6" />
+            {store.nodeInfo.backendType === "LND" ||
+            store.nodeInfo.backendType === "PHOENIX" ? (
+              <div className="flex gap-3 items-center">
+                <div className="shrink-0">
+                  <ShieldAlert className="w-6 h-6" />
+                </div>
+                <span className="text-sm text-muted-foreground">
+                  {store.nodeInfo.backendType} channel backups{" "}
+                  <span className="underline">are not handled</span> by Alby
+                  Hub. Please take care of your own backups.
+                </span>
               </div>
-              <span className="text-sm text-muted-foreground">
-                Your wallet can be recovered only with your 12-word recovery
-                phrase.
-              </span>
-            </div>
+            ) : (
+              <div className="flex gap-3 items-center">
+                <div className="shrink-0">
+                  <ShieldAlert className="w-6 h-6" />
+                </div>
+                <span className="text-sm text-muted-foreground">
+                  Your wallet can be recovered only with your 12-word recovery
+                  phrase.
+                </span>
+              </div>
+            )}
             <ExternalLink
               className="text-muted-foreground flex items-center text-sm"
               to="https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub/backups"
