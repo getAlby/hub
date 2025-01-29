@@ -433,7 +433,7 @@ func (svc *PhoenixService) SendKeysend(ctx context.Context, amount uint64, desti
 	return nil, errors.New("not implemented")
 }
 
-func (svc *PhoenixService) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, sendAll bool) (txId string, err error) {
+func (svc *PhoenixService) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate float64, sendAll bool) (txId string, err error) {
 	return "", errors.New("not implemented")
 }
 

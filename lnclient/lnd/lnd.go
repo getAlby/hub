@@ -913,11 +913,12 @@ func (svc *LNDService) GetOnchainBalance(ctx context.Context) (*lnclient.Onchain
 	}, nil
 }
 
-func (svc *LNDService) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, sendAll bool) (txId string, err error) {
+func (svc *LNDService) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate float64, sendAll bool) (txId string, err error) {
 	resp, err := svc.client.SendCoins(ctx, &lnrpc.SendCoinsRequest{
-		Addr:    toAddress,
-		SendAll: sendAll,
-		Amount:  int64(amount),
+		Addr:        toAddress,
+		SendAll:     sendAll,
+		Amount:      int64(amount),
+		SatPerVbyte: uint64(feeRate),
 	})
 	if err != nil {
 		return "", err

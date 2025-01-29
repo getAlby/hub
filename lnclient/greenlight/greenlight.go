@@ -498,7 +498,7 @@ func (gs *GreenlightService) GetOnchainBalance(ctx context.Context) (*lnclient.O
 	}, nil
 }
 
-func (gs *GreenlightService) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, sendAll bool) (string, error) {
+func (gs *GreenlightService) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate float64, sendAll bool) (string, error) {
 	if !sendAll {
 		return "", errors.New("only send all is supported")
 	}
