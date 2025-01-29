@@ -5,6 +5,7 @@ import (
 	"errors"
 	"os"
 	"sort"
+	"strconv"
 	"time"
 
 	"github.com/elnosh/gonuts/cashu/nuts/nut04"
@@ -494,10 +495,8 @@ func (cs *CashuService) executeCommandRestore(ctx context.Context) (*lnclient.Cu
 		return nil, err
 	}
 
-	// TODO: should we move this to a backup folder instead?
-	// if errors occur users cannot retry
-	if err := os.RemoveAll(cs.workDir); err != nil {
-		logger.Logger.WithError(err).Error("Failed to remove wallet directory")
+	if err := os.Rename(cs.workDir, cs.workDir+strconv.FormatInt(time.Now().Unix(), 10)); err != nil {
+		logger.Logger.WithError(err).Error("Failed to rename wallet directory")
 		return nil, err
 	}
 
