@@ -7,12 +7,14 @@ import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { Button } from "src/components/ui/button";
 import { Checkbox } from "src/components/ui/checkbox";
 import { Label } from "src/components/ui/label";
+import { useInfo } from "src/hooks/useInfo";
 import useSetupStore from "src/state/SetupStore";
 
 export function SetupSecurity() {
   const navigate = useNavigate();
   const [hasConfirmed, setConfirmed] = useState<boolean>(false);
   const store = useSetupStore();
+  const { data: info } = useInfo();
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -65,8 +67,19 @@ export function SetupSecurity() {
                   <ShieldAlert className="w-6 h-6" />
                 </div>
                 <span className="text-sm text-muted-foreground">
-                  Your wallet can be recovered only with your 12-word recovery
-                  phrase.
+                  {!info?.albyUserIdentifier &&
+                  store.nodeInfo.backendType === "LDK" ? (
+                    <>
+                      Your on-chain balance can be recovered only with your
+                      12-word recovery phrase. You must also take care of your
+                      own channel backups.
+                    </>
+                  ) : (
+                    <>
+                      Your wallet can be recovered only with your 12-word
+                      recovery phrase.
+                    </>
+                  )}
                 </span>
               </div>
             )}
