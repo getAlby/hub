@@ -68,19 +68,13 @@ export function SetupSecurity() {
                   <ShieldAlert className="w-6 h-6" />
                 </div>
                 <span className="text-sm text-muted-foreground">
+                  Your on-chain balance can be recovered only with your 12-word
+                  recovery phrase which you can access once your node has
+                  started.
                   {!info?.albyUserIdentifier &&
-                  store.nodeInfo.backendType === "LDK" ? (
-                    <>
-                      Your on-chain balance can be recovered only with your
-                      12-word recovery phrase. You must also take care of your
-                      own channel backups.
-                    </>
-                  ) : (
-                    <>
-                      Your wallet can be recovered only with your 12-word
-                      recovery phrase.
-                    </>
-                  )}
+                    store.nodeInfo.backendType === "LDK" && (
+                      <> You must also take care of your own channel backups.</>
+                    )}
                 </span>
               </div>
             )}
