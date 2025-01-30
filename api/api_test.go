@@ -158,6 +158,18 @@ func TestExecuteCustomNodeCommand(t *testing.T) {
 		apiExpectedErr:       "unknown command",
 	}
 
+	// Error: unsupported command argument.
+	testCaseErrUnknownArg := testCase{
+		name:                 "unknown argument",
+		apiCommandLine:       "test_command --unknown=fail",
+		lnSupportedCommands:  []lnclient.CustomNodeCommandDef{{Name: "test_command"}},
+		lnExpectedCommandReq: nil,
+		lnResponse:           nil,
+		lnError:              nil,
+		apiExpectedResponse:  nil,
+		apiExpectedErr:       "flag provided but not defined: -unknown",
+	}
+
 	// Error: the command is valid but the node fails to execute it.
 	testCaseErrNodeFailed := testCase{
 		name:                 "node failed to execute command",
@@ -177,6 +189,7 @@ func TestExecuteCustomNodeCommand(t *testing.T) {
 		testCaseErrEmptyCommand,
 		testCaseErrMalformedCommand,
 		testCaseErrUnknownCommand,
+		testCaseErrUnknownArg,
 		testCaseErrNodeFailed,
 	}
 
