@@ -8,14 +8,14 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/getAlby/hub/api/mocks"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/service"
+	"github.com/getAlby/hub/tests/mocks"
 )
 
 func TestGetCustomNodeCommandDefinitions(t *testing.T) {
-	lnClient := mocks.NewLNClient(t)
-	svc := mocks.NewService(t)
+	lnClient := mocks.NewMockLNClient(t)
+	svc := mocks.NewMockService(t)
 
 	mockLNCommandDefs := []lnclient.CustomNodeCommandDef{
 		{
@@ -195,8 +195,8 @@ func TestExecuteCustomNodeCommand(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			lnClient := mocks.NewLNClient(t)
-			svc := mocks.NewService(t)
+			lnClient := mocks.NewMockLNClient(t)
+			svc := mocks.NewMockService(t)
 
 			if tc.lnSupportedCommands != nil {
 				lnClient.On("GetCustomNodeCommandDefinitions").Return(tc.lnSupportedCommands)
