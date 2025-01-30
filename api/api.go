@@ -60,8 +60,9 @@ func NewAPI(svc service.Service, gormDB *gorm.DB, config config.Config, keys key
 func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppResponse, error) {
 	backendType, _ := api.cfg.Get("LNBackendType", "")
 	if createAppRequest.Isolated &&
-		backendType != "LDK" &&
-		backendType != "LND" {
+		backendType != config.LDKBackendType &&
+		backendType != config.LNDBackendType &&
+		backendType != config.PhoenixBackendType {
 		return nil, fmt.Errorf(
 			"sub-wallets are currently not supported on your node backend. Try LDK or LND")
 	}
