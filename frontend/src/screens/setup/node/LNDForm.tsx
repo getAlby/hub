@@ -36,7 +36,7 @@ export function LNDForm() {
       backendType: "LND",
       ...data,
     });
-    navigate("/setup/finish");
+    navigate("/setup/security");
   }
 
   return (

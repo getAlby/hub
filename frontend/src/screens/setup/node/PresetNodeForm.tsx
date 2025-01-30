@@ -24,7 +24,7 @@ export function PresetNodeForm() {
       });
     }
 
-    navigate("/setup/finish");
+    navigate("/setup/security");
   }, [info, navigate, searchParams]);
 
   return <Loading />;
