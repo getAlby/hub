@@ -1117,26 +1117,15 @@ func (svc *LNDService) GetNodeStatus(ctx context.Context) (nodeStatus *lnclient.
 	if err != nil {
 		return nil, err
 	}
-	networkInfo, err := svc.client.GetNetworkInfo(ctx, &lnrpc.NetworkInfoRequest{})
-	if err != nil {
-		return nil, err
-	}
 	state, err := svc.client.GetState(ctx, &lnrpc.GetStateRequest{})
 	if err != nil {
 		return nil, err
 	}
-	debugInfo, err := svc.client.GetDebugInfo(ctx, &lnrpc.GetDebugInfoRequest{})
-	if err != nil {
-		return nil, err
-	}
-
 	return &lnclient.NodeStatus{
 		IsReady: true, // Assuming that, if GetNodeInfo() succeeds, the node is online and accessible.
 		InternalNodeStatus: map[string]interface{}{
 			"info":         info,
-			"config":       debugInfo.Config,
 			"node_info":    nodeInfo,
-			"network_info": networkInfo,
 			"wallet_state": state.GetState().String(),
 		},
 	}, nil

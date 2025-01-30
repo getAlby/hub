@@ -221,6 +221,25 @@ func (cs *CashuService) RedeemOnchainFunds(ctx context.Context, toAddress string
 }
 
 func (cs *CashuService) ResetRouter(key string) error {
+	mnemonic := cs.wallet.Mnemonic()
+	currentMint := cs.wallet.CurrentMint()
+
+	if err := cs.wallet.Shutdown(); err != nil {
+		return err
+	}
+
+	if err := os.RemoveAll(cs.workDir); err != nil {
+		logger.Logger.WithError(err).Error("Failed to remove wallet directory")
+		return err
+	}
+
+	amountRestored, err := wallet.Restore(cs.workDir, mnemonic, []string{currentMint})
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed restore cashu wallet")
+		return err
+	}
+
+	logger.Logger.WithField("amountRestored", amountRestored).Info("Successfully restored cashu wallet")
 	return nil
 }
 
