@@ -12,9 +12,10 @@ import (
 	"strings"
 	"time"
 
+	decodepay "github.com/nbd-wtf/ln-decodepay"
+
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
-	decodepay "github.com/nbd-wtf/ln-decodepay"
 
 	"github.com/sirupsen/logrus"
 )
@@ -540,4 +541,12 @@ func (svc *PhoenixService) GetSupportedNIP47NotificationTypes() []string {
 
 func (svc *PhoenixService) GetPubkey() string {
 	return svc.pubkey
+}
+
+func (svc *PhoenixService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCommandDef {
+	return nil
+}
+
+func (svc *PhoenixService) ExecuteCustomNodeCommand(ctx context.Context, command *lnclient.CustomNodeCommandRequest) (*lnclient.CustomNodeCommandResponse, error) {
+	return nil, nil
 }
