@@ -232,8 +232,16 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 			PaymentHash: paymentRequest.PaymentHash,
 			State:       constants.TRANSACTION_STATE_SETTLED,
 		}).RowsAffected > 0 {
-			logger.Logger.WithField("payment_hash", dbTransaction.PaymentHash).Info("this invoice has already been paid")
+			logger.Logger.WithField("payment_hash", dbTransaction.PaymentHash).Debug("this invoice has already been paid")
 			return errors.New("this invoice has already been paid")
+		}
+		if tx.Limit(1).Find(&existingSettledTransaction, &db.Transaction{
+			Type:        constants.TRANSACTION_TYPE_OUTGOING,
+			PaymentHash: paymentRequest.PaymentHash,
+			State:       constants.TRANSACTION_STATE_PENDING,
+		}).RowsAffected > 0 {
+			logger.Logger.WithField("payment_hash", dbTransaction.PaymentHash).Debug("this invoice is already being paid")
+			return errors.New("there is already a payment pending for this invoice")
 		}
 
 		err := svc.validateCanPay(tx, appId, paymentAmount, paymentRequest.Description)
@@ -953,7 +961,7 @@ func (svc *transactionsService) markTransactionSettled(tx *gorm.DB, dbTransactio
 		PaymentHash: dbTransaction.PaymentHash,
 		State:       constants.TRANSACTION_STATE_SETTLED,
 	}).RowsAffected > 0 {
-		logger.Logger.WithField("payment_hash", dbTransaction.PaymentHash).Error("payment already marked as sent")
+		logger.Logger.WithField("payment_hash", dbTransaction.PaymentHash).Debug("payment already marked as sent")
 		return &existingSettledTransaction, nil
 	}
 
