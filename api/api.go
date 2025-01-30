@@ -1136,11 +1136,13 @@ func (api *api) ExecuteCustomNodeCommand(ctx context.Context, command string) (i
 	})
 
 	reqArgs := make([]lnclient.CustomNodeCommandArg, 0, len(argValues))
-	for argName, argValue := range argValues {
-		reqArgs = append(reqArgs, lnclient.CustomNodeCommandArg{
-			Name:  argName,
-			Value: argValue,
-		})
+	for _, argDef := range commandDef.Args {
+		if argValue, ok := argValues[argDef.Name]; ok {
+			reqArgs = append(reqArgs, lnclient.CustomNodeCommandArg{
+				Name:  argDef.Name,
+				Value: argValue,
+			})
+		}
 	}
 
 	nodeResp, err := lnClient.ExecuteCustomNodeCommand(ctx, &lnclient.CustomNodeCommandRequest{
