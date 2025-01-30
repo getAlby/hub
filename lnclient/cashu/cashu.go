@@ -23,7 +23,6 @@ import (
 const nodeCommandRestore = "restore"
 const nodeCommandCheckMnemonic = "checkmnemonic"
 const nodeCommandResetWallet = "reset"
-const exampleCommandWithArg = "example"
 
 type CashuService struct {
 	wallet               *wallet.Wallet
@@ -473,16 +472,6 @@ func (cs *CashuService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeC
 			Description: "Completely resets your cashu wallet. Only do this if you have no funds.",
 			Args:        nil,
 		},
-		{
-			Name:        exampleCommandWithArg,
-			Description: "Example command with argument",
-			Args: []lnclient.CustomNodeCommandArgDef{
-				{
-					Name:        "hello",
-					Description: "world",
-				},
-			},
-		},
 	}
 }
 
@@ -496,17 +485,6 @@ func (cs *CashuService) ExecuteCustomNodeCommand(ctx context.Context, command *l
 		return &lnclient.CustomNodeCommandResponse{
 			Response: map[string]interface{}{
 				"matches": !cs.hasDifferentMnemonic,
-			},
-		}, nil
-	// TODO: consider adding command to migrate to Alby Hub mnemonic
-	case exampleCommandWithArg:
-		if len(command.Args) != 1 {
-			return nil, errors.New("please provide an argument")
-		}
-
-		return &lnclient.CustomNodeCommandResponse{
-			Response: map[string]string{
-				command.Args[0].Name: command.Args[0].Value,
 			},
 		}, nil
 	}
@@ -547,6 +525,7 @@ func (cs *CashuService) executeCommandRestore(ctx context.Context) (*lnclient.Cu
 		},
 	}, nil
 }
+
 func (cs *CashuService) executeCommandResetWallet(ctx context.Context) (*lnclient.CustomNodeCommandResponse, error) {
 	if err := cs.wallet.Shutdown(); err != nil {
 		return nil, err
