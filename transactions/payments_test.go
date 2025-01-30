@@ -183,16 +183,31 @@ func TestDoNotMarkSettledTwice(t *testing.T) {
 	}
 	svc.DB.Create(&dbTransaction)
 
+	dbTransaction2 := db.Transaction{
+		State:       constants.TRANSACTION_STATE_PENDING,
+		Type:        constants.TRANSACTION_TYPE_OUTGOING,
+		PaymentHash: tests.MockLNClientTransaction.PaymentHash,
+		AmountMsat:  123000,
+	}
+	svc.DB.Create(&dbTransaction2)
+
 	mockEventConsumer := tests.NewMockEventConsumer()
 	svc.EventPublisher.RegisterSubscriber(mockEventConsumer)
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 	err = svc.DB.Transaction(func(tx *gorm.DB) error {
-		_, err = transactionsService.markTransactionSettled(tx, &dbTransaction, "test", 0, false)
+		_, err = transactionsService.markTransactionSettled(tx, &dbTransaction2, "test", 0, false)
 		return err
 	})
 
 	assert.NoError(t, err)
 	assert.Zero(t, len(mockEventConsumer.GetConsumedEvents()))
+
+	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, dbTransaction.State)
+	assert.Equal(t, constants.TRANSACTION_STATE_FAILED, dbTransaction2.State)
+
+	settledTransaction, err := transactionsService.LookupTransaction(context.TODO(), dbTransaction.PaymentHash, &dbTransaction.Type, svc.LNClient, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, settledTransaction.State)
 }
 
 func TestMarkFailed(t *testing.T) {

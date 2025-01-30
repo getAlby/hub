@@ -953,7 +953,18 @@ func (svc *transactionsService) markTransactionSettled(tx *gorm.DB, dbTransactio
 		PaymentHash: dbTransaction.PaymentHash,
 		State:       constants.TRANSACTION_STATE_SETTLED,
 	}).RowsAffected > 0 {
-		logger.Logger.WithField("payment_hash", dbTransaction.PaymentHash).Error("payment already marked as sent")
+		logger.Logger.WithField("payment_hash", dbTransaction.PaymentHash).Debug("payment already marked as sent")
+		// update this tx to failed instead to prevent stuck pending transactions
+		err := tx.Model(dbTransaction).Updates(map[string]interface{}{
+			"State": constants.TRANSACTION_STATE_FAILED,
+		}).Error
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"payment_hash": dbTransaction.PaymentHash,
+			}).WithError(err).Error("Failed to mark duplicate transaction as failed")
+			return nil, err
+		}
+
 		return &existingSettledTransaction, nil
 	}
 
