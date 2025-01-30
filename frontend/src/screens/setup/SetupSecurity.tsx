@@ -56,9 +56,10 @@ export function SetupSecurity() {
                   <ShieldAlert className="w-6 h-6" />
                 </div>
                 <span className="text-sm text-muted-foreground">
-                  {store.nodeInfo.backendType} channel backups{" "}
+                  Channel backups{" "}
                   <span className="underline">are not handled</span> by Alby
-                  Hub. Please take care of your own backups.
+                  Hub. Please take care of your own backups or go back and
+                  choose the LDK node type.
                 </span>
               </div>
             ) : (
