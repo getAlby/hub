@@ -1,4 +1,4 @@
-import { HandCoins, ShieldAlert, Unlock } from "lucide-react";
+import { HandCoins, LandmarkIcon, ShieldAlert, Unlock } from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ExternalLink from "src/components/ExternalLink";
@@ -31,15 +31,28 @@ export function SetupSecurity() {
           />
 
           <div className="flex flex-col gap-6 w-full mt-6">
-            <div className="flex gap-3 items-center">
-              <div className="shrink-0">
-                <HandCoins className="w-6 h-6" />
+            {store.nodeInfo.backendType !== "CASHU" && (
+              <div className="flex gap-3 items-center">
+                <div className="shrink-0">
+                  <HandCoins className="w-6 h-6" />
+                </div>
+                <span className="text-sm text-muted-foreground">
+                  Alby Hub is a spending wallet - do not keep all your savings
+                  on it!
+                </span>
               </div>
-              <span className="text-sm text-muted-foreground">
-                Alby Hub is a spending wallet - do not keep all your savings on
-                it!
-              </span>
-            </div>
+            )}
+            {store.nodeInfo.backendType === "CASHU" && (
+              <div className="flex gap-3 items-center">
+                <div className="shrink-0">
+                  <LandmarkIcon className="w-6 h-6" />
+                </div>
+                <span className="text-sm text-muted-foreground">
+                  Your funds are owned by the cashu mint - use at your own risk
+                  with only small amounts!
+                </span>
+              </div>
+            )}
             <div className="flex gap-3 items-center">
               <div className="shrink-0">
                 <Unlock className="w-6 h-6" />
@@ -68,9 +81,9 @@ export function SetupSecurity() {
                   <ShieldAlert className="w-6 h-6" />
                 </div>
                 <span className="text-sm text-muted-foreground">
-                  Your on-chain balance can be recovered only with your 12-word
-                  recovery phrase which you can access once your node has
-                  started.
+                  Your{store.nodeInfo.backendType === "LDK" && " on-chain"}{" "}
+                  balance can be recovered only with your 12-word recovery
+                  phrase which you can access once your node has started.
                   {!info?.albyUserIdentifier &&
                     store.nodeInfo.backendType === "LDK" && (
                       <> You must also take care of your own channel backups.</>
