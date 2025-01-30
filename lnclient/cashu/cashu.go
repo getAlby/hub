@@ -478,9 +478,9 @@ func (cs *CashuService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeC
 func (cs *CashuService) ExecuteCustomNodeCommand(ctx context.Context, command *lnclient.CustomNodeCommandRequest) (*lnclient.CustomNodeCommandResponse, error) {
 	switch command.Name {
 	case nodeCommandRestore:
-		return cs.executeCommandRestore(ctx)
+		return cs.executeCommandRestore()
 	case nodeCommandResetWallet:
-		return cs.executeCommandResetWallet(ctx)
+		return cs.executeCommandResetWallet()
 	case nodeCommandCheckMnemonic:
 		return &lnclient.CustomNodeCommandResponse{
 			Response: map[string]interface{}{
@@ -492,9 +492,9 @@ func (cs *CashuService) ExecuteCustomNodeCommand(ctx context.Context, command *l
 	return nil, lnclient.ErrUnknownCustomNodeCommand
 }
 
-func (cs *CashuService) executeCommandRestore(ctx context.Context) (*lnclient.CustomNodeCommandResponse, error) {
+func (cs *CashuService) executeCommandRestore() (*lnclient.CustomNodeCommandResponse, error) {
 	mnemonic := cs.wallet.Mnemonic()
-	currentMint := cs.wallet.CurrentMint()
+	currentMintUrl := cs.wallet.CurrentMint()
 
 	if err := cs.wallet.Shutdown(); err != nil {
 		return nil, err
@@ -505,7 +505,7 @@ func (cs *CashuService) executeCommandRestore(ctx context.Context) (*lnclient.Cu
 		return nil, err
 	}
 
-	amountRestored, err := wallet.Restore(cs.workDir, mnemonic, []string{currentMint})
+	amountRestored, err := wallet.Restore(cs.workDir, mnemonic, []string{currentMintUrl})
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed restore cashu wallet")
 		return nil, err
@@ -513,20 +513,24 @@ func (cs *CashuService) executeCommandRestore(ctx context.Context) (*lnclient.Cu
 
 	logger.Logger.WithField("amountRestored", amountRestored).Info("Successfully restored cashu wallet")
 
-	go func() {
-		time.Sleep(10 * time.Second)
-		os.Exit(0)
-	}()
+	config := wallet.Config{WalletPath: cs.workDir, CurrentMintURL: currentMintUrl}
+	cashuWallet, err := wallet.LoadWallet(config)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to load cashu wallet")
+		return nil, err
+	}
+
+	cs.wallet = cashuWallet
 
 	return &lnclient.CustomNodeCommandResponse{
 		Response: map[string]interface{}{
 			"amountRestored": amountRestored,
-			"message":        "Restore successful. Your hub will shutdown in 10 seconds.",
+			"message":        "Restore successful.",
 		},
 	}, nil
 }
 
-func (cs *CashuService) executeCommandResetWallet(ctx context.Context) (*lnclient.CustomNodeCommandResponse, error) {
+func (cs *CashuService) executeCommandResetWallet() (*lnclient.CustomNodeCommandResponse, error) {
 	if err := cs.wallet.Shutdown(); err != nil {
 		return nil, err
 	}
@@ -543,7 +547,7 @@ func (cs *CashuService) executeCommandResetWallet(ctx context.Context) (*lnclien
 
 	return &lnclient.CustomNodeCommandResponse{
 		Response: map[string]interface{}{
-			"message": "Reset successful. Your hub will shutdown in 10 seconds.",
+			"message": "Reset successful. Your hub will shutdown in 10 seconds...",
 		},
 	}, nil
 }
