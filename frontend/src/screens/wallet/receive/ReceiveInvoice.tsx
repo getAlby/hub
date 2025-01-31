@@ -197,6 +197,7 @@ export default function ReceiveInvoice() {
                   min={1}
                   autoFocus
                 />
+                <FormattedFiatAmount amount={+amount} className="mt-2" />
               </div>
               <div>
                 <Label htmlFor="description">Description</Label>

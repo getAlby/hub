@@ -23,10 +23,7 @@ function Settings() {
   const { theme, darkMode, setTheme, setDarkMode } = useTheme();
   const { toast } = useToast();
 
-  const [filteredCurrencies, setFilteredCurrencies] = useState<
-    [string, string][]
-  >([]);
-  const [loading, setLoading] = useState(true);
+  const [fiatCurrencies, setFiatCurrencies] = useState<[string, string][]>([]);
 
   const { data: info } = useInfo();
 
@@ -52,12 +49,10 @@ function Settings() {
 
         mappedCurrencies.sort((a, b) => a[1].localeCompare(b[1]));
 
-        setFilteredCurrencies(mappedCurrencies);
+        setFiatCurrencies(mappedCurrencies);
       } catch (error) {
         console.error(error);
         handleRequestError(toast, "Failed to fetch currencies", error);
-      } finally {
-        setLoading(false);
       }
     }
 
@@ -66,7 +61,7 @@ function Settings() {
 
   async function updateCurrency(currency: string) {
     try {
-      await request("/api/currency", {
+      await request("/api/settings", {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -124,30 +119,26 @@ function Settings() {
           </Select>
         </div>
         <div className="grid gap-1.5">
-          <Label htmlFor="currency">Select Currency</Label>
-          {loading ? (
-            <p>Loading currencies...</p>
-          ) : (
-            <Select
-              value={selectedCurrency}
-              onValueChange={async (value) => {
-                setSelectedCurrency(value);
-                await updateCurrency(value);
-                toast({ title: `Currency set to ${value}` });
-              }}
-            >
-              <SelectTrigger className="w-[250px] border border-gray-300 p-2 rounded-md">
-                <SelectValue placeholder="Select a currency" />
-              </SelectTrigger>
-              <SelectContent>
-                {filteredCurrencies.map(([code, name]) => (
-                  <SelectItem key={code} value={code}>
-                    {name} ({code})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
+          <Label htmlFor="currency">Fiat Currency</Label>
+          <Select
+            value={selectedCurrency}
+            onValueChange={async (value) => {
+              setSelectedCurrency(value);
+              await updateCurrency(value);
+              toast({ title: `Currency set to ${value}` });
+            }}
+          >
+            <SelectTrigger className="w-[250px] border border-gray-300 p-2 rounded-md">
+              <SelectValue placeholder="Select a currency" />
+            </SelectTrigger>
+            <SelectContent>
+              {fiatCurrencies.map(([code, name]) => (
+                <SelectItem key={code} value={code}>
+                  {name} ({code})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </form>
     </>

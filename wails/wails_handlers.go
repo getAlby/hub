@@ -715,9 +715,9 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: nil, Error: ""}
-	case "/api/currency":
-		setCurrencyRequest := &api.SetCurrencyRequest{}
-		err := json.Unmarshal([]byte(body), setCurrencyRequest)
+	case "/api/settings":
+		updateSettingsRequest := &api.UpdateSettingsRequest{}
+		err := json.Unmarshal([]byte(body), updateSettingsRequest)
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"route":  route,
@@ -727,7 +727,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 
-		err = app.api.SetCurrency(setCurrencyRequest.Currency)
+		err = app.api.SetCurrency(updateSettingsRequest.Currency)
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"route":  route,

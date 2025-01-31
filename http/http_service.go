@@ -63,7 +63,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.Use(middleware.SecureWithConfig(middleware.SecureConfig{
 		ContentTypeNosniff:    "nosniff",
 		XFrameOptions:         "DENY",
-		ContentSecurityPolicy: "default-src 'self'; img-src 'self' https://uploads.getalby-assets.com https://getalby.com; connect-src 'self' https://api.getalby.com https://getalby.com https://getalby.com https://zapplanner.albylabs.com",
+		ContentSecurityPolicy: "default-src 'self'; img-src 'self' https://uploads.getalby-assets.com https://getalby.com; connect-src 'self' https://api.getalby.com https://getalby.com https://zapplanner.albylabs.com",
 		ReferrerPolicy:        "no-referrer",
 	}))
 	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
@@ -91,7 +91,6 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 
 	e.GET("/api/info", httpSvc.infoHandler)
 	e.POST("/api/setup", httpSvc.setupHandler)
-	e.PATCH("/api/currency", httpSvc.setCurrencyHandler)
 	e.POST("/api/restore", httpSvc.restoreBackupHandler)
 
 	// allow one unlock request per second
@@ -116,6 +115,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedGroup := e.Group("")
 	restrictedGroup.Use(echojwt.WithConfig(jwtConfig))
 
+	restrictedGroup.PATCH("/api/settings", httpSvc.updateSettingsHandler)
 	restrictedGroup.GET("/api/apps", httpSvc.appsListHandler)
 	restrictedGroup.GET("/api/apps/:pubkey", httpSvc.appsShowHandler)
 	restrictedGroup.PATCH("/api/apps/:pubkey", httpSvc.appsUpdateHandler)
@@ -296,21 +296,21 @@ func (httpSvc *HttpService) changeUnlockPasswordHandler(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func (httpSvc *HttpService) setCurrencyHandler(c echo.Context) error {
-	var setCurrencyRequest api.SetCurrencyRequest
-	if err := c.Bind(&setCurrencyRequest); err != nil {
+func (httpSvc *HttpService) updateSettingsHandler(c echo.Context) error {
+	var updateSettingsRequest api.UpdateSettingsRequest
+	if err := c.Bind(&updateSettingsRequest); err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
 			Message: fmt.Sprintf("Bad request: %s", err.Error()),
 		})
 	}
 
-	if setCurrencyRequest.Currency == "" {
+	if updateSettingsRequest.Currency == "" {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
 			Message: "Currency value cannot be empty",
 		})
 	}
 
-	err := httpSvc.api.SetCurrency(setCurrencyRequest.Currency)
+	err := httpSvc.api.SetCurrency(updateSettingsRequest.Currency)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: fmt.Sprintf("Failed to set currency: %s", err.Error()),

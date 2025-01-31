@@ -150,8 +150,8 @@ function TransactionItem({ tx }: Props) {
               {tx.description}
             </p>
           </div>
-          <div className="flex ml-auto text-right space-x-3 shrink-0">
-            <div className="flex flex-col gap-2 md:text-xl">
+          <div className="flex ml-auto space-x-3 shrink-0">
+            <div className="flex flex-col items-end gap-2 md:text-xl">
               <div className="flex gap-2">
                 <p
                   className={cn(

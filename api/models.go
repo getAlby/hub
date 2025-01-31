@@ -187,7 +187,7 @@ type InfoResponse struct {
 	Currency                    string    `json:"currency"`
 }
 
-type SetCurrencyRequest struct {
+type UpdateSettingsRequest struct {
 	Currency string `json:"currency"`
 }
 
