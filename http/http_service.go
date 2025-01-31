@@ -115,6 +115,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedGroup := e.Group("")
 	restrictedGroup.Use(echojwt.WithConfig(jwtConfig))
 
+	restrictedGroup.PATCH("/api/settings", httpSvc.updateSettingsHandler)
 	restrictedGroup.GET("/api/apps", httpSvc.appsListHandler)
 	restrictedGroup.GET("/api/apps/:pubkey", httpSvc.appsShowHandler)
 	restrictedGroup.PATCH("/api/apps/:pubkey", httpSvc.appsUpdateHandler)
@@ -289,6 +290,30 @@ func (httpSvc *HttpService) changeUnlockPasswordHandler(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: fmt.Sprintf("Failed to change unlock password: %s", err.Error()),
+		})
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
+
+func (httpSvc *HttpService) updateSettingsHandler(c echo.Context) error {
+	var updateSettingsRequest api.UpdateSettingsRequest
+	if err := c.Bind(&updateSettingsRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	if updateSettingsRequest.Currency == "" {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: "Currency value cannot be empty",
+		})
+	}
+
+	err := httpSvc.api.SetCurrency(updateSettingsRequest.Currency)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to set currency: %s", err.Error()),
 		})
 	}
 

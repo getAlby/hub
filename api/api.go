@@ -716,6 +716,7 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	ldkVssEnabled, _ := api.cfg.Get("LdkVssEnabled", "")
 	autoUnlockPassword, _ := api.cfg.Get("AutoUnlockPassword", "")
 	info.SetupCompleted = api.cfg.SetupCompleted()
+	info.Currency = api.cfg.GetCurrency()
 	if api.startupError != nil {
 		info.StartupError = api.startupError.Error()
 		info.StartupErrorTime = api.startupErrorTime
@@ -750,6 +751,20 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info.NextBackupReminder, _ = api.cfg.Get("NextBackupReminder", "")
 
 	return &info, nil
+}
+
+func (api *api) SetCurrency(currency string) error {
+	if currency == "" {
+		return fmt.Errorf("currency value cannot be empty")
+	}
+
+	err := api.cfg.SetCurrency(currency)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to update currency")
+		return err
+	}
+
+	return nil
 }
 
 func (api *api) GetMnemonic(unlockPassword string) (*MnemonicResponse, error) {
