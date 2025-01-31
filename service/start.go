@@ -125,7 +125,7 @@ func (svc *service) startNostr(ctx context.Context) error {
 				// legacy single wallet subscription - only subscribe once for all legacy apps
 				// to ensure we do not get duplicate events
 				err = svc.startAppWalletSubscription(ctx, relay, svc.keys.GetNostrPublicKey())
-				if err != nil {
+				if err != nil && !errors.Is(err, context.Canceled) {
 					// err being non-nil means that we have an error on the websocket error channel. In this case we just try to reconnect.
 					logger.Logger.WithError(err).Error("Got an error from the relay while listening to subscription.")
 					continue
@@ -171,7 +171,7 @@ func (svc *service) startAllExistingAppsWalletSubscriptions(ctx context.Context,
 			}
 
 			err = svc.startAppWalletSubscription(ctx, relay, *app.WalletPubkey)
-			if err != nil {
+			if err != nil && !errors.Is(err, context.Canceled) {
 				logger.Logger.WithError(err).WithFields(logrus.Fields{
 					"app_id": app.ID}).Error("Subscription error")
 				return
@@ -185,8 +185,7 @@ func (svc *service) startAppWalletSubscription(ctx context.Context, relay *nostr
 	logger.Logger.Info("Subscribing to events for wallet ", appWalletPubKey)
 	sub, err := relay.Subscribe(ctx, svc.createFilters(appWalletPubKey))
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to subscribe to events")
-		return err
+		return fmt.Errorf("failed to subscribe to events: %w", err)
 	}
 
 	// register a subscriber for "nwc_app_deleted" events, which handles nostr subscription cancel and nip47 info event deletion
@@ -196,8 +195,7 @@ func (svc *service) startAppWalletSubscription(ctx context.Context, relay *nostr
 	err = svc.StartSubscription(sub.Context, sub)
 	svc.eventPublisher.RemoveSubscriber(&deleteEventSubscriber)
 	if err != nil {
-		logger.Logger.WithError(err).Error("Got an error from the relay while listening to subscription.")
-		return err
+		return fmt.Errorf("got an error from the relay while listening to subscription: %w", err)
 	}
 	return nil
 }
@@ -215,9 +213,8 @@ func (svc *service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 
 	<-ctx.Done()
 
-	if sub.Relay.ConnectionError != nil {
-		logger.Logger.WithField("connectionError", sub.Relay.ConnectionError).Error("Relay error")
-		return sub.Relay.ConnectionError
+	if err := sub.Relay.ConnectionError; err != nil {
+		return fmt.Errorf("relay connection error: %w", err)
 	}
 	logger.Logger.Info("Exiting subscription...")
 	return nil
