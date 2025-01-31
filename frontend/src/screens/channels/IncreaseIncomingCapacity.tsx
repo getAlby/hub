@@ -214,10 +214,6 @@ function NewChannelInternal({
           </div>
         }
       />
-      {showAdvanced && (
-        <PeerAlert pubkey={selectedPeer?.pubkey} name={selectedPeer?.name} />
-      )}
-      <MempoolAlert />
       <div className="md:max-w-md max-w-full flex flex-col gap-5 flex-1">
         <img
           src="/images/illustrations/lightning-network-dark.svg"
@@ -412,6 +408,13 @@ function NewChannelInternal({
               Advanced Options
             </Button>
           )}
+          {showAdvanced && (
+            <PeerAlert
+              pubkey={selectedPeer?.pubkey}
+              name={selectedPeer?.name}
+            />
+          )}
+          <MempoolAlert />
           {channels?.some((channel) => channel.public !== !!order.isPublic) && (
             <ChannelPublicPrivateAlert />
           )}
