@@ -1,6 +1,7 @@
 import { ZapIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import albyGo from "src/assets/suggested-apps/alby-go.png";
+import albyLite from "src/assets/suggested-apps/alby-lite.png";
 import alby from "src/assets/suggested-apps/alby.png";
 import amethyst from "src/assets/suggested-apps/amethyst.png";
 import btcpay from "src/assets/suggested-apps/btcpay.png";
@@ -56,6 +57,13 @@ export type SuggestedApp = {
 };
 
 export const suggestedApps: SuggestedApp[] = [
+  {
+    id: "alby-lite",
+    title: "Alby Lite",
+    description: "Lightning address server powered by NWC",
+    internal: true,
+    logo: albyLite,
+  },
   {
     id: "uncle-jim",
     title: "Friends & Family",
