@@ -58,6 +58,8 @@ type API interface {
 	GetWalletCapabilities(ctx context.Context) (*WalletCapabilitiesResponse, error)
 	Health(ctx context.Context) (*HealthResponse, error)
 	SetCurrency(currency string) error
+	GetCustomNodeCommands() (*CustomNodeCommandsResponse, error)
+	ExecuteCustomNodeCommand(ctx context.Context, command string) (interface{}, error)
 }
 
 type App struct {
@@ -152,6 +154,8 @@ type CreateAppResponse struct {
 	PairingUri    string `json:"pairingUri"`
 	PairingSecret string `json:"pairingSecretKey"`
 	Pubkey        string `json:"pairingPublicKey"`
+	RelayUrl      string `json:"relayUrl"`
+	WalletPubkey  string `json:"walletPubkey"`
 	Id            uint   `json:"id"`
 	Name          string `json:"name"`
 	ReturnTo      string `json:"returnTo"`
@@ -397,4 +401,23 @@ func NewHealthAlarm(kind HealthAlarmKind, rawDetails any) HealthAlarm {
 
 type HealthResponse struct {
 	Alarms []HealthAlarm `json:"alarms,omitempty"`
+}
+
+type CustomNodeCommandArgDef struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
+type CustomNodeCommandDef struct {
+	Name        string                    `json:"name"`
+	Description string                    `json:"description"`
+	Args        []CustomNodeCommandArgDef `json:"args"`
+}
+
+type CustomNodeCommandsResponse struct {
+	Commands []CustomNodeCommandDef `json:"commands"`
+}
+
+type ExecuteCustomNodeCommandRequest struct {
+	Command string `json:"command"`
 }

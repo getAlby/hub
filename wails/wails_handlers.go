@@ -921,6 +921,38 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: *nodeHealth, Error: ""}
+	case "/api/commands":
+		nodeCommandsResponse, err := app.api.GetCustomNodeCommands()
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).WithError(err).Error("Failed to get node commands")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: nodeCommandsResponse, Error: ""}
+	case "/api/command":
+		commandRequest := &api.ExecuteCustomNodeCommandRequest{}
+		err := json.Unmarshal([]byte(body), commandRequest)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).WithError(err).Error("Failed to decode request to wails router")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		commandResponse, err := app.api.ExecuteCustomNodeCommand(ctx, commandRequest.Command)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).WithError(err).Error("Failed to execute command")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: commandResponse, Error: ""}
 	}
 
 	if strings.HasPrefix(route, "/api/log/") {

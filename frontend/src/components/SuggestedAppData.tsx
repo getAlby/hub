@@ -429,7 +429,7 @@ export const suggestedApps: SuggestedApp[] = [
             <li>
               4. Click{" "}
               <Link
-                to="/#/apps/new?app=btcpay"
+                to="/apps/new?app=btcpay"
                 className="font-medium text-foreground underline"
               >
                 Connect to BTCPay Server
@@ -506,7 +506,7 @@ export const suggestedApps: SuggestedApp[] = [
             <li>
               4. Click{" "}
               <Link
-                to="/#/apps/new?app=lnbits"
+                to="/apps/new?app=lnbits"
                 className="font-medium text-foreground underline"
               >
                 Connect to LNbits
@@ -585,7 +585,7 @@ export const suggestedApps: SuggestedApp[] = [
             <li>
               4. Click{" "}
               <Link
-                to="/#/apps/new?app=coracle"
+                to="/apps/new?app=coracle"
                 className="font-medium text-foreground underline"
               >
                 Connect to Coracle
@@ -657,7 +657,7 @@ export const suggestedApps: SuggestedApp[] = [
             <li>
               3. Click{" "}
               <Link
-                to="/#/apps/new?app=nostter"
+                to="/apps/new?app=nostter"
                 className="font-medium text-foreground underline"
               >
                 Connect to Nostter

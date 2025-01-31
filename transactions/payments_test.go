@@ -88,7 +88,7 @@ func TestSendPaymentSync_MetadataTooLarge(t *testing.T) {
 	assert.Nil(t, transaction)
 }
 
-func TestSendPaymentSync_Duplicate(t *testing.T) {
+func TestSendPaymentSync_Duplicate_AlreadyPaid(t *testing.T) {
 	ctx := context.TODO()
 
 	svc, err := tests.CreateTestService(t)
@@ -108,6 +108,48 @@ func TestSendPaymentSync_Duplicate(t *testing.T) {
 	assert.Error(t, err)
 	assert.Equal(t, "this invoice has already been paid", err.Error())
 	assert.Nil(t, transaction)
+}
+
+func TestSendPaymentSync_Duplicate_Pending(t *testing.T) {
+	ctx := context.TODO()
+
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	svc.DB.Create(&db.Transaction{
+		State:       constants.TRANSACTION_STATE_PENDING,
+		Type:        constants.TRANSACTION_TYPE_OUTGOING,
+		PaymentHash: tests.MockLNClientTransaction.PaymentHash,
+		AmountMsat:  123000,
+	})
+
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
+	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, nil, nil, svc.LNClient, nil, nil)
+
+	assert.Error(t, err)
+	assert.Equal(t, "there is already a payment pending for this invoice", err.Error())
+	assert.Nil(t, transaction)
+}
+
+func TestSendPaymentSync_Duplicate_Failed(t *testing.T) {
+	ctx := context.TODO()
+
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	svc.DB.Create(&db.Transaction{
+		State:       constants.TRANSACTION_STATE_FAILED,
+		Type:        constants.TRANSACTION_TYPE_OUTGOING,
+		PaymentHash: tests.MockLNClientTransaction.PaymentHash,
+		AmountMsat:  123000,
+	})
+
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
+	_, err = transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, nil, nil, svc.LNClient, nil, nil)
+
+	assert.NoError(t, err)
 }
 
 func TestMarkSettled_Sent(t *testing.T) {

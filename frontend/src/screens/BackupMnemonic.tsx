@@ -3,14 +3,17 @@ import {
   LifeBuoy,
   ShieldAlert,
   ShieldCheck,
+  TriangleAlertIcon,
 } from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import Container from "src/components/Container";
 import ExternalLink from "src/components/ExternalLink";
+import Loading from "src/components/Loading";
 import MnemonicInputs from "src/components/MnemonicInputs";
 import SettingsHeader from "src/components/SettingsHeader";
+import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
 import { Checkbox } from "src/components/ui/checkbox";
 import { Input } from "src/components/ui/input";
@@ -95,6 +98,7 @@ export function BackupMnemonic() {
         title="Backup Your Keys"
         description="Make sure to your backup somewhere safe"
       />
+      {info?.backendType === "CASHU" && <CashuMnemonicWarning />}
       {!decryptedMnemonic ? (
         <Container>
           <h1 className="text-xl font-medium">Please confirm it's you</h1>
@@ -215,5 +219,55 @@ export function BackupMnemonic() {
         </form>
       )}
     </>
+  );
+}
+
+// TODO: remove after 2026-01-01
+function CashuMnemonicWarning() {
+  const [mnemonicMatches, setMnemonicMatches] = React.useState<boolean>();
+
+  React.useEffect(() => {
+    (async () => {
+      try {
+        const result: { matches: boolean } | undefined = await request(
+          "/api/command",
+          {
+            method: "POST",
+            body: JSON.stringify({ command: "checkmnemonic" }),
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        setMnemonicMatches(result?.matches);
+      } catch (error) {
+        console.error(error);
+      }
+    })();
+  }, []);
+
+  if (mnemonicMatches === undefined) {
+    return <Loading />;
+  }
+
+  if (mnemonicMatches) {
+    return null;
+  }
+
+  return (
+    <Alert>
+      <TriangleAlertIcon className="h-4 w-4" />
+      <AlertTitle>
+        Your Cashu wallet uses a different recovery phrase
+      </AlertTitle>
+      <AlertDescription>
+        <p>
+          Please send your funds to a different wallet, then go to settings{" "}
+          {"->"} debug tools {"->"} execute node command {"->"}{" "}
+          <span className="font-mono">reset</span>. You will then receive a
+          fresh cashu wallet with the correct recovery phrase.
+        </p>
+      </AlertDescription>
+    </Alert>
   );
 }

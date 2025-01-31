@@ -88,6 +88,14 @@ func NewAlbyOAuthService(db *gorm.DB, cfg config.Config, keys keys.Keys, eventPu
 	return albyOAuthSvc
 }
 
+func (svc *albyOAuthService) RemoveOAuthAccessToken() error {
+	err := svc.cfg.SetUpdate(accessTokenKey, "", "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("failed to remove access token")
+	}
+	return err
+}
+
 func (svc *albyOAuthService) CallbackHandler(ctx context.Context, code string, lnClient lnclient.LNClient) error {
 	token, err := svc.oauthConf.Exchange(ctx, code)
 	if err != nil {
