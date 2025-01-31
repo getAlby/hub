@@ -214,7 +214,6 @@ function NewChannelInternal({
           </div>
         }
       />
-      <MempoolAlert />
       <div className="md:max-w-md max-w-full flex flex-col gap-5 flex-1">
         <img
           src="/images/illustrations/lightning-network-dark.svg"
@@ -409,6 +408,7 @@ function NewChannelInternal({
               Advanced Options
             </Button>
           )}
+          <MempoolAlert />
           {channels?.some((channel) => channel.public !== !!order.isPublic) && (
             <ChannelPublicPrivateAlert />
           )}
