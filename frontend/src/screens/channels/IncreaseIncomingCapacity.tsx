@@ -214,7 +214,9 @@ function NewChannelInternal({
           </div>
         }
       />
-      <PeerAlert pubkey={selectedPeer?.pubkey} name={selectedPeer?.name} />
+      {showAdvanced && (
+        <PeerAlert pubkey={selectedPeer?.pubkey} name={selectedPeer?.name} />
+      )}
       <MempoolAlert />
       <div className="md:max-w-md max-w-full flex flex-col gap-5 flex-1">
         <img
