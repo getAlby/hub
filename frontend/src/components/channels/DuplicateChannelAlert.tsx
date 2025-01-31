@@ -8,7 +8,7 @@ type PeerAlertProps = {
   name?: string;
 };
 
-export function PeerAlert({ pubkey, name }: PeerAlertProps) {
+export function DuplicateChannelAlert({ pubkey, name }: PeerAlertProps) {
   const { data: channels } = useChannels();
 
   if (!pubkey) {
@@ -33,8 +33,8 @@ export function PeerAlert({ pubkey, name }: PeerAlertProps) {
         )}
       </AlertTitle>
       <AlertDescription>
-        It is not recommended to open multiple channels with the same
-        counterparty, consider choosing a different peer.{" "}
+        There are other options available rather than opening multiple channels
+        with the same counterparty.{" "}
         <ExternalLink
           to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/should-i-open-multiple-channels-with-the-same-counterparty"
           className="underline"
