@@ -1,5 +1,6 @@
 import { LucideIcon } from "lucide-react";
 import { Link } from "react-router-dom";
+import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -36,6 +37,7 @@ function BalanceCard({
         <div className="text-2xl font-bold balance sensitive slashed-zero">
           {new Intl.NumberFormat().format(Math.floor(balance / 1000))} sats
         </div>
+        <FormattedFiatAmount amount={Math.floor(balance / 1000)} />
       </CardContent>
       {hasChannelManagement && (
         <CardFooter className="flex justify-end">

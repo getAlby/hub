@@ -1151,7 +1151,7 @@ func (svc *albyOAuthService) GetChannelPeerSuggestions(ctx context.Context) ([]C
 func (svc *albyOAuthService) GetBitcoinRate(ctx context.Context) (*BitcoinRate, error) {
 	client := &http.Client{Timeout: 10 * time.Second}
 
-	url := fmt.Sprintf("%s/rates/%s", albyInternalAPIURL, "usd")
+	url := fmt.Sprintf("%s/rates/%s", albyInternalAPIURL, svc.cfg.GetCurrency())
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {

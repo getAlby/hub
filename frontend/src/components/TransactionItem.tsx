@@ -14,6 +14,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import AppAvatar from "src/components/AppAvatar";
 import ExternalLink from "src/components/ExternalLink";
+import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import PodcastingInfo from "src/components/PodcastingInfo";
 import {
   Dialog,
@@ -149,28 +150,26 @@ function TransactionItem({ tx }: Props) {
               {tx.description}
             </p>
           </div>
-          <div className="flex ml-auto text-right space-x-3 shrink-0">
-            <div className="flex items-center gap-2 md:text-xl">
-              <p
-                className={cn(
-                  "font-semibold",
-                  type == "incoming" && "text-green-600 dark:text-emerald-500"
-                )}
-              >
-                {type == "outgoing" ? "-" : "+"}
-                {new Intl.NumberFormat().format(
-                  Math.floor(tx.amount / 1000)
-                )}{" "}
-              </p>
-              <p className="text-foreground">
-                {Math.floor(tx.amount / 1000) == 1 ? "sat" : "sats"}
-              </p>
-
-              {/* {!!tx.totalAmountFiat && (
-                <p className="text-xs text-muted-foreground">
-                  ~{tx.totalAmountFiat}
+          <div className="flex ml-auto space-x-3 shrink-0">
+            <div className="flex flex-col items-end gap-2 md:text-xl">
+              <div className="flex gap-2">
+                <p
+                  className={cn(
+                    "font-semibold",
+                    type == "incoming" && "text-green-600 dark:text-emerald-500"
+                  )}
+                >
+                  {type == "outgoing" ? "-" : "+"}
+                  {new Intl.NumberFormat().format(
+                    Math.floor(tx.amount / 1000)
+                  )}{" "}
                 </p>
-              )} */}
+                <p className="text-foreground">
+                  {Math.floor(tx.amount / 1000) == 1 ? "sat" : "sats"}
+                </p>
+              </div>
+
+              <FormattedFiatAmount amount={Math.floor(tx.amount / 1000)} />
             </div>
           </div>
         </div>
@@ -193,6 +192,7 @@ function TransactionItem({ tx }: Props) {
                   {new Intl.NumberFormat().format(Math.floor(tx.amount / 1000))}{" "}
                   {Math.floor(tx.amount / 1000) == 1 ? "sat" : "sats"}
                 </p>
+                <FormattedFiatAmount amount={Math.floor(tx.amount / 1000)} />
               </div>
             </div>
             {app && (
