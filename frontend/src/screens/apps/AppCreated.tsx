@@ -56,10 +56,6 @@ function AppCreatedInternal() {
   }, [app?.lastEventAt, navigate, toast]);
 
   useEffect(() => {
-    // TODO: find a better way to only execute for deeplink flow
-    if (appstoreApp) {
-      return;
-    }
     // dispatch a success event which can be listened to by the opener or by the app that embedded the webview
     // this gives those apps the chance to know the user has enabled the connection
     const nwcEvent = new CustomEvent("nwc:success", {
@@ -81,7 +77,7 @@ function AppCreatedInternal() {
         "*"
       );
     }
-  }, [appstoreApp, createAppResponse.relayUrl, createAppResponse.walletPubkey]);
+  }, [createAppResponse.relayUrl, createAppResponse.walletPubkey]);
 
   if (!createAppResponse) {
     return <Navigate to="/apps/new" />;
