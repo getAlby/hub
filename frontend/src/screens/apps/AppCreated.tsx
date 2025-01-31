@@ -56,6 +56,7 @@ function AppCreatedInternal() {
   }, [app?.lastEventAt, navigate, toast]);
 
   useEffect(() => {
+    // TODO: find a better way to only execute for deeplink flow
     if (appstoreApp) {
       return;
     }
@@ -63,7 +64,8 @@ function AppCreatedInternal() {
     // this gives those apps the chance to know the user has enabled the connection
     const nwcEvent = new CustomEvent("nwc:success", {
       detail: {
-        nostrWalletConnectUrl: pairingUri,
+        relayUrl: createAppResponse.relayUrl,
+        walletPubkey: createAppResponse.walletPubkey,
       },
     });
     window.dispatchEvent(nwcEvent);
@@ -73,12 +75,13 @@ function AppCreatedInternal() {
       window.opener.postMessage(
         {
           type: "nwc:success",
-          nostrWalletConnectUrl: pairingUri,
+          relayUrl: createAppResponse.relayUrl,
+          walletPubkey: createAppResponse.walletPubkey,
         },
         "*"
       );
     }
-  }, [appstoreApp, pairingUri]);
+  }, [appstoreApp, createAppResponse.relayUrl, createAppResponse.walletPubkey]);
 
   if (!createAppResponse) {
     return <Navigate to="/apps/new" />;

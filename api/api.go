@@ -102,6 +102,8 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 	responseBody.Name = createAppRequest.Name
 	responseBody.Pubkey = app.AppPubkey
 	responseBody.PairingSecret = pairingSecretKey
+	responseBody.WalletPubkey = *app.WalletPubkey
+	responseBody.RelayUrl = relayUrl
 
 	lightningAddress, err := api.albyOAuthSvc.GetLightningAddress()
 	if err != nil {
