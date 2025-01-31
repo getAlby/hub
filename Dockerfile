@@ -46,12 +46,17 @@ RUN ./copy_dylibs.sh $(echo "$TARGETPLATFORM" | cut -d'/' -f2)
 FROM debian as final
 
 ENV LD_LIBRARY_PATH=/usr/lib/nwc
-#
-# # Copy the binaries and entrypoint from the builder image.
+
+# Copy the entrypoint script
+COPY entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# Copy the binaries from the builder image.
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /build/libbreez_sdk_bindings.so /usr/lib/nwc/
 COPY --from=builder /build/libglalby_bindings.so /usr/lib/nwc/
 COPY --from=builder /build/libldk_node.so /usr/lib/nwc/
 COPY --from=builder /build/main /bin/
 
-ENTRYPOINT [ "/bin/main" ]
+ENTRYPOINT [ "/usr/local/bin/entrypoint.sh" ]
+CMD [ "/bin/main" ]
