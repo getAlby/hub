@@ -28,6 +28,7 @@ import { useToast } from "src/components/ui/use-toast";
 import { PayInvoiceResponse } from "src/types";
 import { request } from "src/utils/request";
 
+// Must be a sub-wallet connection with only make invoice and list transactions permissions!
 const LIGHTNING_MESSAGEBOARD_NWC_URL =
   import.meta.env.VITE_LIGHTNING_MESSAGEBOARD_NWC_URL ||
   "nostr+walletconnect://f70c731046253fe6d53143f0e62527e08b5011fee5ab9e4c3c5f3075c21a6cb8?relay=wss://relay.getalby.com/v1&secret=e27cac72651d3733f2f195722c9c7d574a34883acf97dc89b8941a838fef43a7";
