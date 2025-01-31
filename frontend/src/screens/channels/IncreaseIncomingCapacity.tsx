@@ -5,6 +5,7 @@ import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
 import { MempoolAlert } from "src/components/MempoolAlert";
+import { PeerAlert } from "src/components/PeerAlert";
 import {
   Button,
   ExternalLinkButton,
@@ -36,6 +37,7 @@ import { ChannelPublicPrivateAlert } from "src/screens/channels/ChannelPublicPri
 import useChannelOrderStore from "src/state/ChannelOrderStore";
 import {
   Channel,
+  LightningOrder,
   Network,
   NewChannelOrder,
   RecommendedChannelPeer,
@@ -70,7 +72,7 @@ function NewChannelInternal({
 
   const presetAmounts = [1_000_000, 2_000_000, 3_000_000];
 
-  const [order, setOrder] = React.useState<Partial<NewChannelOrder>>({
+  const [order, setOrder] = React.useState<Partial<LightningOrder>>({
     paymentMethod: "lightning",
     status: "pay",
     amount: presetAmounts[0].toString(),
@@ -212,6 +214,7 @@ function NewChannelInternal({
           </div>
         }
       />
+      <PeerAlert pubkey={selectedPeer?.pubkey} name={selectedPeer?.name} />
       <MempoolAlert />
       <div className="md:max-w-md max-w-full flex flex-col gap-5 flex-1">
         <img
@@ -439,8 +442,8 @@ function NewChannelInternal({
 }
 
 type NewChannelLightningProps = {
-  order: Partial<NewChannelOrder>;
-  setOrder(order: Partial<NewChannelOrder>): void;
+  order: Partial<LightningOrder>;
+  setOrder(order: Partial<LightningOrder>): void;
 };
 
 function NewChannelLightning(props: NewChannelLightningProps) {

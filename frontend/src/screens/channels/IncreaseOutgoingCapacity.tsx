@@ -5,6 +5,7 @@ import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
 import { MempoolAlert } from "src/components/MempoolAlert";
+import { PeerAlert } from "src/components/PeerAlert";
 import {
   Button,
   ExternalLinkButton,
@@ -40,6 +41,7 @@ import {
   Network,
   NewChannelOrder,
   Node,
+  OnchainOrder,
   RecommendedChannelPeer,
 } from "src/types";
 import { request } from "src/utils/request";
@@ -67,7 +69,7 @@ function NewChannelInternal({ network }: { network: Network }) {
 
   const presetAmounts = [250_000, 500_000, 1_000_000];
 
-  const [order, setOrder] = React.useState<Partial<NewChannelOrder>>({
+  const [order, setOrder] = React.useState<Partial<OnchainOrder>>({
     paymentMethod: "onchain",
     status: "pay",
     amount: presetAmounts[0].toString(),
@@ -194,6 +196,7 @@ function NewChannelInternal({ network }: { network: Network }) {
           </div>
         }
       />
+      <PeerAlert pubkey={order?.pubkey} name={selectedPeer?.name} />
       <MempoolAlert />
       <div className="md:max-w-md max-w-full flex flex-col gap-5 flex-1">
         <img
@@ -402,8 +405,8 @@ function NewChannelInternal({ network }: { network: Network }) {
 }
 
 type NewChannelOnchainProps = {
-  order: Partial<NewChannelOrder>;
-  setOrder: React.Dispatch<React.SetStateAction<Partial<NewChannelOrder>>>;
+  order: Partial<OnchainOrder>;
+  setOrder: React.Dispatch<React.SetStateAction<Partial<OnchainOrder>>>;
   showCustomOptions: boolean;
 };
 
