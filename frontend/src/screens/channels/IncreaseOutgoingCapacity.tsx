@@ -138,6 +138,7 @@ function NewChannelInternal({ network }: { network: Network }) {
           ...current,
           pubkey: selectedPeer.pubkey,
           host: selectedPeer.host,
+          ...(!selectedPeer.publicChannelsAllowed && { isPublic: false }),
         }));
       }
     }
@@ -347,7 +348,7 @@ function NewChannelInternal({ network }: { network: Network }) {
             <div className="mt-2 flex items-top space-x-2">
               <Checkbox
                 id="public-channel"
-                defaultChecked={order.isPublic}
+                checked={order.isPublic}
                 onCheckedChange={() => setPublic(!order.isPublic)}
                 className="mr-2"
                 disabled={selectedPeer && !selectedPeer.publicChannelsAllowed}
