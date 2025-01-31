@@ -1294,3 +1294,11 @@ func lndInvoiceToTransaction(invoice *lnrpc.Invoice) *lnclient.Transaction {
 		Metadata:        metadata,
 	}
 }
+
+func (svc *LNDService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCommandDef {
+	return nil
+}
+
+func (svc *LNDService) ExecuteCustomNodeCommand(ctx context.Context, command *lnclient.CustomNodeCommandRequest) (*lnclient.CustomNodeCommandResponse, error) {
+	return nil, nil
+}

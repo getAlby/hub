@@ -198,7 +198,7 @@ export default function WithdrawOnchainFunds() {
                   )}{" "}
                   will be sent minus onchain transaction fees. The exact amount
                   cannot be determined until the payment is made.
-                  {balances.onchain.reserved && (
+                  {balances.onchain.reserved > 0 && (
                     <>
                       {" "}
                       You have channels open and this withdrawal will deplete

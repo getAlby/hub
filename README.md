@@ -95,6 +95,14 @@ _If you get a blank screen, try running in your normal terminal (outside of vsco
 
     $ go test ./... -run TestHandleGetInfoEvent
 
+#### Mocking
+
+We use [testify/mock](https://github.com/stretchr/testify) to facilitate mocking in tests. Instead of writing mocks manually, we generate them using [vektra/mockery](https://github.com/vektra/mockery). To regenerate them, [install mockery](https://vektra.github.io/mockery/latest/installation) and run it in the project's root directory:
+
+    $ mockery
+
+Mockery loads its configuration from the .mockery.yaml file in the root directory of this project. To add mocks for new interfaces, add them to the configuration file and run mockery.
+
 ### Profiling
 
 The application supports both the Go pprof library and the DataDog profiler.
