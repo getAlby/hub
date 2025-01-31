@@ -5,6 +5,9 @@ import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
 import { MempoolAlert } from "src/components/MempoolAlert";
+import { ChannelPeerNote } from "src/components/channels/ChannelPeerNote";
+import { ChannelPublicPrivateAlert } from "src/components/channels/ChannelPublicPrivateAlert";
+import { DuplicateChannelAlert } from "src/components/channels/DuplicateChannelAlert";
 import {
   Button,
   ExternalLinkButton,
@@ -33,13 +36,12 @@ import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
 import { usePeers } from "src/hooks/usePeers";
 import { cn, formatAmount } from "src/lib/utils";
-import { ChannelPeerNote } from "src/screens/channels/ChannelPeerNote";
-import { ChannelPublicPrivateAlert } from "src/screens/channels/ChannelPublicPrivateAlert";
 import useChannelOrderStore from "src/state/ChannelOrderStore";
 import {
   Network,
   NewChannelOrder,
   Node,
+  OnchainOrder,
   RecommendedChannelPeer,
 } from "src/types";
 import { request } from "src/utils/request";
@@ -67,7 +69,7 @@ function NewChannelInternal({ network }: { network: Network }) {
 
   const presetAmounts = [250_000, 500_000, 1_000_000];
 
-  const [order, setOrder] = React.useState<Partial<NewChannelOrder>>({
+  const [order, setOrder] = React.useState<Partial<OnchainOrder>>({
     paymentMethod: "onchain",
     status: "pay",
     amount: presetAmounts[0].toString(),
@@ -194,7 +196,6 @@ function NewChannelInternal({ network }: { network: Network }) {
           </div>
         }
       />
-      <MempoolAlert />
       <div className="md:max-w-md max-w-full flex flex-col gap-5 flex-1">
         <img
           src="/images/illustrations/lightning-network-dark.svg"
@@ -370,10 +371,15 @@ function NewChannelInternal({ network }: { network: Network }) {
               </div>
             </div>
           </>
+          <MempoolAlert />
           {channels?.some((channel) => channel.public !== !!order.isPublic) && (
             <ChannelPublicPrivateAlert />
           )}
           {selectedPeer?.note && <ChannelPeerNote peer={selectedPeer} />}
+          <DuplicateChannelAlert
+            pubkey={order?.pubkey}
+            name={selectedPeer?.name}
+          />
           <Button size="lg">{openImmediately ? "Open Channel" : "Next"}</Button>
         </form>
 
@@ -402,8 +408,8 @@ function NewChannelInternal({ network }: { network: Network }) {
 }
 
 type NewChannelOnchainProps = {
-  order: Partial<NewChannelOrder>;
-  setOrder: React.Dispatch<React.SetStateAction<Partial<NewChannelOrder>>>;
+  order: Partial<OnchainOrder>;
+  setOrder: React.Dispatch<React.SetStateAction<Partial<OnchainOrder>>>;
   showCustomOptions: boolean;
 };
 

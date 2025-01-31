@@ -480,24 +480,27 @@ export type Boostagram = {
 
 export type NewChannelOrderStatus = "pay" | "paid" | "success" | "opening";
 
-export type NewChannelOrder = {
+type NewChannelOrderCommon = {
   amount: string;
   isPublic: boolean;
   status: NewChannelOrderStatus;
   fundingTxId?: string;
   prevChannelIds: string[];
-} & (
-  | {
-      paymentMethod: "onchain";
-      pubkey: string;
-      host: string;
-    }
-  | {
-      paymentMethod: "lightning";
-      lspType: LSPType;
-      lspUrl: string;
-    }
-);
+};
+
+export type OnchainOrder = {
+  paymentMethod: "onchain";
+  pubkey: string;
+  host: string;
+} & NewChannelOrderCommon;
+
+export type LightningOrder = {
+  paymentMethod: "lightning";
+  lspType: LSPType;
+  lspUrl: string;
+} & NewChannelOrderCommon;
+
+export type NewChannelOrder = OnchainOrder | LightningOrder;
 
 export type AuthTokenResponse = {
   token: string;
