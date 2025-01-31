@@ -13,9 +13,6 @@ export default function FormattedFiatAmount({
 
   return (
     <div>
-      <div className="text-2xl font-bold balance sensitive">
-        {new Intl.NumberFormat().format(Math.floor(amount))} sats
-      </div>
       {bitcoinRate && (
         <div className="text-sm text-muted-foreground">
           {new Intl.NumberFormat("en-US", {

@@ -16,17 +16,18 @@ import {
 } from "src/components/ui/theme-provider";
 import { useToast } from "src/components/ui/use-toast";
 import { useInfo } from "src/hooks/useInfo";
+import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 
 function Settings() {
   const { theme, darkMode, setTheme, setDarkMode } = useTheme();
   const { toast } = useToast();
-  const [currencies, setCurrencies] = useState<[string, string][]>([]);
+
   const [filteredCurrencies, setFilteredCurrencies] = useState<
     [string, string][]
   >([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
+
   const { data: info } = useInfo();
 
   const [selectedCurrency, setSelectedCurrency] = useState<string | undefined>(
@@ -43,29 +44,29 @@ function Settings() {
     async function fetchCurrencies() {
       try {
         const response = await fetch(`https://getalby.com/api/rates`);
-        const data = await response.json();
+        const data: Record<string, { name: string }> = await response.json();
 
         const mappedCurrencies: [string, string][] = Object.entries(data).map(
-          ([code, details]: any) => [code.toUpperCase(), details.name]
+          ([code, details]) => [code.toUpperCase(), details.name]
         );
 
         mappedCurrencies.sort((a, b) => a[1].localeCompare(b[1]));
 
-        setCurrencies(mappedCurrencies);
         setFilteredCurrencies(mappedCurrencies);
       } catch (error) {
-        console.error(error || "Failed to fetch currencies");
+        console.error(error);
+        handleRequestError(toast, "Failed to fetch currencies", error);
       } finally {
         setLoading(false);
       }
     }
 
     fetchCurrencies();
-  }, []);
+  }, [toast]);
 
   async function updateCurrency(currency: string) {
     try {
-      const response = await request("/api/currency", {
+      await request("/api/currency", {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -74,27 +75,13 @@ function Settings() {
       });
     } catch (error) {
       console.error(error);
-      throw error;
+      handleRequestError(toast, "Failed to update currencies", error);
     }
   }
 
-  useEffect(() => {
-    const filtered = currencies.filter(
-      ([code, name]) =>
-        name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        code.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-    setFilteredCurrencies(filtered);
-  }, [searchQuery, currencies]);
-
-  console.log(filteredCurrencies);
-
   return (
     <>
-      <SettingsHeader
-        title="Theme"
-        description="Alby Hub is your wallet, make it your style."
-      />
+      <SettingsHeader title="General" description="General Alby Hub Settings" />
       <form className="w-full flex flex-col gap-3">
         <div className="grid gap-1.5">
           <Label htmlFor="theme">Theme</Label>
@@ -145,7 +132,6 @@ function Settings() {
               value={selectedCurrency}
               onValueChange={async (value) => {
                 setSelectedCurrency(value);
-                console.log(value);
                 await updateCurrency(value);
                 toast({ title: `Currency set to ${value}` });
               }}

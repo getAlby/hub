@@ -14,6 +14,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import AppAvatar from "src/components/AppAvatar";
 import ExternalLink from "src/components/ExternalLink";
+import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import PodcastingInfo from "src/components/PodcastingInfo";
 import {
   Dialog,
@@ -25,8 +26,6 @@ import {
 } from "src/components/ui/dialog";
 import { useToast } from "src/components/ui/use-toast";
 import { useApps } from "src/hooks/useApps";
-import { useBitcoinRate } from "src/hooks/useBitcoinRate";
-import { useInfo } from "src/hooks/useInfo";
 import { copyToClipboard } from "src/lib/clipboard";
 import { cn } from "src/lib/utils";
 import { Transaction } from "src/types";
@@ -40,8 +39,6 @@ type Props = {
 
 function TransactionItem({ tx }: Props) {
   const { data: apps } = useApps();
-  const { data: info } = useInfo();
-  const { data: bitcoinRate } = useBitcoinRate();
   const { toast } = useToast();
   const [showDetails, setShowDetails] = React.useState(false);
   const type = tx.type;
@@ -172,23 +169,7 @@ function TransactionItem({ tx }: Props) {
                 </p>
               </div>
 
-              {bitcoinRate && (
-                <div className="text-sm text-muted-foreground">
-                  {new Intl.NumberFormat("en-US", {
-                    style: "currency",
-                    currency: info?.currency || "usd",
-                  }).format(
-                    (Math.floor(tx.amount / 1000) / 100_000_000) *
-                      bitcoinRate.rate_float
-                  )}
-                </div>
-              )}
-
-              {/* {!!tx.totalAmountFiat && (
-                <p className="text-xs text-muted-foreground">
-                  ~{tx.totalAmountFiat}
-                </p>
-              )} */}
+              <FormattedFiatAmount amount={Math.floor(tx.amount / 1000)} />
             </div>
           </div>
         </div>
@@ -211,6 +192,7 @@ function TransactionItem({ tx }: Props) {
                   {new Intl.NumberFormat().format(Math.floor(tx.amount / 1000))}{" "}
                   {Math.floor(tx.amount / 1000) == 1 ? "sat" : "sats"}
                 </p>
+                <FormattedFiatAmount amount={Math.floor(tx.amount / 1000)} />
               </div>
             </div>
             {app && (
