@@ -715,6 +715,28 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: nil, Error: ""}
+	case "/api/currency":
+		setCurrencyRequest := &api.SetCurrencyRequest{}
+		err := json.Unmarshal([]byte(body), setCurrencyRequest)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).WithError(err).Error("Failed to decode request to wails router")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+
+		err = app.api.SetCurrency(setCurrencyRequest.Currency)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).WithError(err).Error("Failed to set Currency")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: nil, Error: ""}
 	case "/api/auto-unlock":
 		autoUnlockRequest := &api.AutoUnlockRequest{}
 		err := json.Unmarshal([]byte(body), autoUnlockRequest)
