@@ -25,6 +25,7 @@ type AlbyOAuthService interface {
 	UnlinkAccount(ctx context.Context) error
 	RequestAutoChannel(ctx context.Context, lnClient lnclient.LNClient, isPublic bool) (*AutoChannelResponse, error)
 	GetVssAuthToken(ctx context.Context, nodeIdentifier string) (string, error)
+	RemoveOAuthAccessToken() error
 }
 
 type AlbyBalanceResponse struct {

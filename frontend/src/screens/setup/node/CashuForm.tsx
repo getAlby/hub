@@ -25,7 +25,7 @@ export function CashuForm() {
       backendType: "CASHU",
       ...data,
     });
-    navigate("/setup/finish");
+    navigate("/setup/security");
   }
 
   return (

@@ -1,6 +1,7 @@
 import { AlertTriangle, CircleCheck, CopyIcon } from "lucide-react";
 import React from "react";
 import { Link } from "react-router-dom";
+import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
 import {
@@ -69,8 +70,7 @@ export default function ReceiveInvoice() {
           description,
         } as CreateInvoiceRequest),
       });
-      setAmount("");
-      setDescription("");
+
       if (invoice) {
         setTransaction(invoice);
 
@@ -122,11 +122,26 @@ export default function ReceiveInvoice() {
                 <CardContent className="flex flex-col items-center gap-4">
                   {paymentDone ? (
                     <>
-                      <CircleCheck className="w-32 h-32 mb-2" />
-                      <p>Received {(invoiceData?.amount ?? 0) / 1000} sats</p>
+                      <CircleCheck className="w-32 h-32 mb-1" />
+                      <div className="flex flex-col gap-2 items-center">
+                        <p>
+                          Received{" "}
+                          {Math.floor((invoiceData?.amount ?? 0) / 1000)} sats
+                        </p>
+                        <FormattedFiatAmount
+                          amount={Math.floor((invoiceData?.amount ?? 0) / 1000)}
+                        />
+                      </div>
                     </>
                   ) : (
                     <>
+                      <div className="flex flex-col gap-2 items-center">
+                        <p className="text-xl slashed-zero">
+                          {new Intl.NumberFormat().format(parseInt(amount))}{" "}
+                          sats
+                        </p>
+                        <FormattedFiatAmount amount={parseInt(amount)} />
+                      </div>
                       <div className="flex flex-row items-center gap-2 text-sm">
                         <Loading className="w-4 h-4" />
                         <p>Waiting for payment</p>
@@ -182,6 +197,7 @@ export default function ReceiveInvoice() {
                   min={1}
                   autoFocus
                 />
+                <FormattedFiatAmount amount={+amount} className="mt-2" />
               </div>
               <div>
                 <Label htmlFor="description">Description</Label>

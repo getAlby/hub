@@ -193,8 +193,8 @@ export default function Channels() {
                       onChange={(e) => setSwapOutAmount(e.target.value)}
                     />
                     <p className="text-muted-foreground text-xs p-2">
-                      The amount is set to 90% of the funds held in the channel
-                      with the most outbound capacity.
+                      The amount is set to 90% of the maximum spending capacity
+                      available in one of your lightning channels.
                     </p>
                   </div>
                 </div>
@@ -240,9 +240,8 @@ export default function Channels() {
                       onChange={(e) => setSwapInAmount(e.target.value)}
                     />
                     <p className="text-muted-foreground text-xs p-2">
-                      The amount is set to 90% of the funds held by the
-                      counterparty in the channel with the most receiving
-                      capacity.
+                      The amount is set to 90% of the maximum receiving capacity
+                      available in one of your lightning channels.
                     </p>
                   </div>
                 </div>
@@ -467,6 +466,7 @@ export default function Channels() {
               <div className="text-2xl font-bold">
                 {new Intl.NumberFormat().format(albyBalance.sats)} sats
               </div>
+              <FormattedFiatAmount amount={albyBalance.sats} />
             </CardContent>
             <CardFooter className="flex justify-end space-x-1">
               <TransferFundsButton
@@ -522,9 +522,17 @@ export default function Channels() {
                   </div>
                 )}
                 {balances && (
-                  <FormattedFiatAmount
-                    amount={balances.lightning.totalSpendable / 1000}
-                  />
+                  <>
+                    <div className="text-2xl font-bold balance sensitive">
+                      {new Intl.NumberFormat().format(
+                        Math.floor(balances.lightning.totalSpendable / 1000)
+                      )}{" "}
+                      sats
+                    </div>
+                    <FormattedFiatAmount
+                      amount={balances.lightning.totalSpendable / 1000}
+                    />
+                  </>
                 )}
               </CardContent>
             </div>
@@ -550,9 +558,17 @@ export default function Channels() {
               </CardHeader>
               <CardContent className="flex-grow pb-0">
                 {balances && (
-                  <FormattedFiatAmount
-                    amount={balances.lightning.totalReceivable / 1000}
-                  />
+                  <>
+                    <div className="text-2xl font-bold balance sensitive">
+                      {new Intl.NumberFormat().format(
+                        Math.floor(balances.lightning.totalReceivable / 1000)
+                      )}{" "}
+                      sats
+                    </div>
+                    <FormattedFiatAmount
+                      amount={balances.lightning.totalReceivable / 1000}
+                    />
+                  </>
                 )}
               </CardContent>
             </div>
@@ -594,6 +610,12 @@ export default function Channels() {
             <div className="text-2xl balance sensitive">
               {balances && (
                 <>
+                  <div className="text-2xl font-bold balance sensitive">
+                    {new Intl.NumberFormat().format(
+                      Math.floor(balances.onchain.spendable)
+                    )}{" "}
+                    sats
+                  </div>
                   <FormattedFiatAmount amount={balances.onchain.spendable} />
                   {balances &&
                     balances.onchain.spendable !== balances.onchain.total && (

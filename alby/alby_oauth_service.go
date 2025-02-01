@@ -88,6 +88,14 @@ func NewAlbyOAuthService(db *gorm.DB, cfg config.Config, keys keys.Keys, eventPu
 	return albyOAuthSvc
 }
 
+func (svc *albyOAuthService) RemoveOAuthAccessToken() error {
+	err := svc.cfg.SetUpdate(accessTokenKey, "", "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("failed to remove access token")
+	}
+	return err
+}
+
 func (svc *albyOAuthService) CallbackHandler(ctx context.Context, code string, lnClient lnclient.LNClient) error {
 	token, err := svc.oauthConf.Exchange(ctx, code)
 	if err != nil {
@@ -1143,7 +1151,7 @@ func (svc *albyOAuthService) GetChannelPeerSuggestions(ctx context.Context) ([]C
 func (svc *albyOAuthService) GetBitcoinRate(ctx context.Context) (*BitcoinRate, error) {
 	client := &http.Client{Timeout: 10 * time.Second}
 
-	url := fmt.Sprintf("%s/rates/%s", albyInternalAPIURL, "usd")
+	url := fmt.Sprintf("%s/rates/%s", albyInternalAPIURL, svc.cfg.GetCurrency())
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {

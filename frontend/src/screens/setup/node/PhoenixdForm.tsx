@@ -38,7 +38,7 @@ export function PhoenixdForm() {
       backendType: "PHOENIX",
       ...data,
     });
-    navigate("/setup/finish");
+    navigate("/setup/security");
   }
 
   return (

@@ -5,6 +5,9 @@ import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
 import { MempoolAlert } from "src/components/MempoolAlert";
+import { ChannelPeerNote } from "src/components/channels/ChannelPeerNote";
+import { ChannelPublicPrivateAlert } from "src/components/channels/ChannelPublicPrivateAlert";
+import { DuplicateChannelAlert } from "src/components/channels/DuplicateChannelAlert";
 import {
   Button,
   ExternalLinkButton,
@@ -31,11 +34,10 @@ import { useChannelPeerSuggestions } from "src/hooks/useChannelPeerSuggestions";
 import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
 import { cn, formatAmount } from "src/lib/utils";
-import { ChannelPeerNote } from "src/screens/channels/ChannelPeerNote";
-import { ChannelPublicPrivateAlert } from "src/screens/channels/ChannelPublicPrivateAlert";
 import useChannelOrderStore from "src/state/ChannelOrderStore";
 import {
   Channel,
+  LightningOrder,
   Network,
   NewChannelOrder,
   RecommendedChannelPeer,
@@ -70,7 +72,7 @@ function NewChannelInternal({
 
   const presetAmounts = [1_000_000, 2_000_000, 3_000_000];
 
-  const [order, setOrder] = React.useState<Partial<NewChannelOrder>>({
+  const [order, setOrder] = React.useState<Partial<LightningOrder>>({
     paymentMethod: "lightning",
     status: "pay",
     amount: presetAmounts[0].toString(),
@@ -130,6 +132,7 @@ function NewChannelInternal({
           ...current,
           lspType: selectedPeer.lspType,
           lspUrl: selectedPeer.lspUrl,
+          ...(!selectedPeer.publicChannelsAllowed && { isPublic: false }),
         }));
       }
     }
@@ -212,7 +215,6 @@ function NewChannelInternal({
           </div>
         }
       />
-      <MempoolAlert />
       <div className="md:max-w-md max-w-full flex flex-col gap-5 flex-1">
         <img
           src="/images/illustrations/lightning-network-dark.svg"
@@ -371,7 +373,7 @@ function NewChannelInternal({
               <div className="mt-2 flex items-top space-x-2">
                 <Checkbox
                   id="public-channel"
-                  defaultChecked={order.isPublic}
+                  checked={order.isPublic}
                   onCheckedChange={() => setPublic(!order.isPublic)}
                   className="mr-2"
                   disabled={selectedPeer && !selectedPeer.publicChannelsAllowed}
@@ -407,10 +409,17 @@ function NewChannelInternal({
               Advanced Options
             </Button>
           )}
+          <MempoolAlert />
           {channels?.some((channel) => channel.public !== !!order.isPublic) && (
             <ChannelPublicPrivateAlert />
           )}
           {selectedPeer?.note && <ChannelPeerNote peer={selectedPeer} />}
+          {showAdvanced && (
+            <DuplicateChannelAlert
+              pubkey={selectedPeer?.pubkey}
+              name={selectedPeer?.name}
+            />
+          )}
           <Button size="lg">Next</Button>
         </form>
 
@@ -439,8 +448,8 @@ function NewChannelInternal({
 }
 
 type NewChannelLightningProps = {
-  order: Partial<NewChannelOrder>;
-  setOrder(order: Partial<NewChannelOrder>): void;
+  order: Partial<LightningOrder>;
+  setOrder(order: Partial<LightningOrder>): void;
 };
 
 function NewChannelLightning(props: NewChannelLightningProps) {
