@@ -19,8 +19,7 @@ type createConnectionBudgetParams struct {
 }
 
 type createConnectionParams struct {
-	Pubkey    string                       `json:"pubkey"`    // pubkey of the app connection
-	NWASecret string                       `json:"nwaSecret"` // if connection is initiated through NWA
+	Pubkey    string                       `json:"pubkey"` // pubkey of the app connection
 	Name      string                       `json:"name"`
 	Methods   []string                     `json:"methods"`
 	Budget    createConnectionBudgetParams `json:"budget"`
@@ -82,7 +81,7 @@ func (controller *nip47Controller) HandleCreateConnectionEvent(ctx context.Conte
 		return
 	}
 
-	app, _, err := controller.appsService.CreateApp(params.Name, params.Pubkey, params.Budget.Budget, params.Budget.RenewalPeriod, expiresAt, scopes, params.Isolated, params.Metadata, params.NWASecret)
+	app, _, err := controller.appsService.CreateApp(params.Name, params.Pubkey, params.Budget.Budget, params.Budget.RenewalPeriod, expiresAt, scopes, params.Isolated, params.Metadata)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"request_event_id": requestEventId,

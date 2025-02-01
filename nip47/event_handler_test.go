@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/getAlby/hub/alby"
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/nip47/cipher"
@@ -66,7 +67,8 @@ func doTestCreateResponse(t *testing.T, svc *tests.TestService, nip47Version str
 		},
 	}
 
-	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
+	albyOAuthSvc := alby.NewAlbyOAuthService(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
+	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher, albyOAuthSvc)
 
 	res, err := nip47svc.CreateResponse(reqEvent, nip47Response, nostr.Tags{}, nip47Cipher, svc.Keys.GetNostrSecretKey())
 	assert.NoError(t, err)
@@ -104,7 +106,8 @@ func TestHandleResponse_Nip44_WithPermission(t *testing.T) {
 }
 
 func doTestHandleResponse_WithPermission(t *testing.T, svc *tests.TestService, createAppFn tests.CreateAppFn, version string) {
-	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
+	albyOAuthSvc := alby.NewAlbyOAuthService(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
+	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher, albyOAuthSvc)
 
 	reqPrivateKey := nostr.GeneratePrivateKey()
 	reqPubkey, err := nostr.GetPublicKey(reqPrivateKey)
@@ -192,7 +195,8 @@ func TestHandleResponse_Nip44_DuplicateRequest(t *testing.T) {
 }
 
 func doTestHandleResponse_DuplicateRequest(t *testing.T, svc *tests.TestService, createAppFn tests.CreateAppFn, version string) {
-	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
+	albyOAuthSvc := alby.NewAlbyOAuthService(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
+	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher, albyOAuthSvc)
 
 	reqPrivateKey := nostr.GeneratePrivateKey()
 	reqPubkey, err := nostr.GetPublicKey(reqPrivateKey)
@@ -266,7 +270,8 @@ func TestHandleResponse_Nip44_NoPermission(t *testing.T) {
 }
 
 func doTestHandleResponse_NoPermission(t *testing.T, svc *tests.TestService, createAppFn tests.CreateAppFn, version string) {
-	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
+	albyOAuthSvc := alby.NewAlbyOAuthService(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
+	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher, albyOAuthSvc)
 
 	reqPrivateKey := nostr.GeneratePrivateKey()
 	reqPubkey, err := nostr.GetPublicKey(reqPrivateKey)
@@ -337,7 +342,8 @@ func TestHandleResponse_Nip44_OldRequestForPayment(t *testing.T) {
 }
 
 func doTestHandleResponse_OldRequestForPayment(t *testing.T, svc *tests.TestService, createAppFn tests.CreateAppFn, version string) {
-	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
+	albyOAuthSvc := alby.NewAlbyOAuthService(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
+	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher, albyOAuthSvc)
 
 	reqPrivateKey := nostr.GeneratePrivateKey()
 	reqPubkey, err := nostr.GetPublicKey(reqPrivateKey)
@@ -412,7 +418,8 @@ func TestHandleResponse_Nip44_IncorrectPubkey(t *testing.T) {
 }
 
 func doTestHandleResponse_IncorrectPubkey(t *testing.T, svc *tests.TestService, createAppFn tests.CreateAppFn, version string) {
-	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
+	albyOAuthSvc := alby.NewAlbyOAuthService(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
+	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher, albyOAuthSvc)
 
 	reqPrivateKey := nostr.GeneratePrivateKey()
 	reqPubkey, err := nostr.GetPublicKey(reqPrivateKey)
@@ -469,7 +476,8 @@ func TestHandleResponse_NoApp(t *testing.T) {
 	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
-	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
+	albyOAuthSvc := alby.NewAlbyOAuthService(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
+	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher, albyOAuthSvc)
 
 	reqPrivateKey := nostr.GeneratePrivateKey()
 	reqPubkey, err := nostr.GetPublicKey(reqPrivateKey)
@@ -522,7 +530,8 @@ func TestHandleResponse_IncorrectVersions(t *testing.T) {
 }
 
 func doTestHandleResponse_IncorrectVersion(t *testing.T, svc *tests.TestService, appVersion, requestVersion string) {
-	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
+	albyOAuthSvc := alby.NewAlbyOAuthService(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
+	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher, albyOAuthSvc)
 
 	reqPrivateKey := nostr.GeneratePrivateKey()
 	reqPubkey, err := nostr.GetPublicKey(reqPrivateKey)

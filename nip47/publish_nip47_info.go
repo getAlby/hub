@@ -56,6 +56,12 @@ func (svc *nip47Service) PublishNip47Info(ctx context.Context, relay nostrmodels
 		}
 		capabilities = svc.permissionsService.GetPermittedMethods(&app, lnClient)
 		permitsNotifications = svc.permissionsService.PermitsNotifications(&app)
+
+		// NWA: associate the info event with the app so that the app can receive the wallet pubkey
+		tags = append(tags, []string{"p", app.AppPubkey})
+		// also include the LN address for apps that use it (e.g. nostr apps assign lud16 to the profile)
+		lightningAddress, _ := svc.albyOAuthSvc.GetLightningAddress()
+		tags = append(tags, []string{"lud16", lightningAddress})
 	}
 	if permitsNotifications && len(lnClient.GetSupportedNIP47NotificationTypes()) > 0 {
 		capabilities = append(capabilities, "notifications")

@@ -224,7 +224,7 @@ func TestHandlePayInvoiceEvent_ExpiredInvoice(t *testing.T) {
 
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
 	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
-	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc, svc.AppsService).
 		HandlePayInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse, nostr.Tags{})
 
 	assert.Nil(t, publishedResponse.Result)

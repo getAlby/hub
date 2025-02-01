@@ -130,7 +130,7 @@ func TestHandleGetInfoEvent_WithMetadata(t *testing.T) {
 		"a": 123,
 	}
 
-	app, _, err := svc.AppsService.CreateApp("test", "", 0, "monthly", nil, nil, false, metadata, "")
+	app, _, err := svc.AppsService.CreateApp("test", "", 0, "monthly", nil, nil, false, metadata)
 	assert.NoError(t, err)
 
 	nip47Request := &models.Request{}
@@ -157,7 +157,7 @@ func TestHandleGetInfoEvent_WithMetadata(t *testing.T) {
 
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
 	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
-	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc, svc.AppsService).
 		HandleGetInfoEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
 
 	assert.Nil(t, publishedResponse.Error)

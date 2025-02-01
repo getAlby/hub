@@ -86,7 +86,7 @@ func TestHandleCreateConnectionEvent_PubkeyAlreadyExists(t *testing.T) {
 	pairingPublicKey, err := nostr.GetPublicKey(pairingSecretKey)
 	require.NoError(t, err)
 
-	_, _, err = svc.AppsService.CreateApp("Existing App", pairingPublicKey, 0, constants.BUDGET_RENEWAL_NEVER, nil, []string{models.GET_INFO_METHOD}, false, nil, "")
+	_, _, err = svc.AppsService.CreateApp("Existing App", pairingPublicKey, 0, constants.BUDGET_RENEWAL_NEVER, nil, []string{models.GET_INFO_METHOD}, false, nil)
 
 	nip47CreateConnectionJson := fmt.Sprintf(`
 {
@@ -262,9 +262,4 @@ func TestHandleCreateConnectionEvent_DoNotAllowCreateConnectionMethod(t *testing
 	assert.Equal(t, "One or more methods are not supported by the current LNClient", publishedResponse.Error.Message)
 	assert.Equal(t, models.CREATE_CONNECTION_METHOD, publishedResponse.ResultType)
 	assert.Nil(t, publishedResponse.Result)
-}
-
-func TestHandleCreateConnectionEvent_NWA(t *testing.T) {
-	// TODO; should publish event to relay
-	assert.True(t, false)
 }

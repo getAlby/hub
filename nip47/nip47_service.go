@@ -3,6 +3,7 @@ package nip47
 import (
 	"context"
 
+	"github.com/getAlby/hub/alby"
 	"github.com/getAlby/hub/apps"
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/events"
@@ -21,6 +22,7 @@ type nip47Service struct {
 	permissionsService     permissions.PermissionsService
 	transactionsService    transactions.TransactionsService
 	appsService            apps.AppsService
+	albyOAuthSvc           alby.AlbyOAuthService
 	nip47NotificationQueue notifications.Nip47NotificationQueue
 	cfg                    config.Config
 	keys                   keys.Keys
@@ -35,11 +37,10 @@ type Nip47Service interface {
 	GetNip47Info(ctx context.Context, relay *nostr.Relay, appWalletPubKey string) (*nostr.Event, error)
 	PublishNip47Info(ctx context.Context, relay nostrmodels.Relay, appWalletPubKey string, appWalletPrivKey string, lnClient lnclient.LNClient) (*nostr.Event, error)
 	PublishNip47InfoDeletion(ctx context.Context, relay nostrmodels.Relay, appWalletPubKey string, appWalletPrivKey string, infoEventId string) error
-	PublishNWAEvent(ctx context.Context, relay nostrmodels.Relay, nwaSecret string, appPubKey string, appWalletPubKey string, appWalletPrivKey string, lnClient lnclient.LNClient) (*nostr.Event, error)
 	CreateResponse(initialEvent *nostr.Event, content interface{}, tags nostr.Tags, cipher *cipher.Nip47Cipher, walletPrivKey string) (result *nostr.Event, err error)
 }
 
-func NewNip47Service(db *gorm.DB, cfg config.Config, keys keys.Keys, eventPublisher events.EventPublisher) *nip47Service {
+func NewNip47Service(db *gorm.DB, cfg config.Config, keys keys.Keys, eventPublisher events.EventPublisher, albyOAuthSvc alby.AlbyOAuthService) *nip47Service {
 	return &nip47Service{
 		nip47NotificationQueue: notifications.NewNip47NotificationQueue(),
 		cfg:                    cfg,
@@ -49,6 +50,7 @@ func NewNip47Service(db *gorm.DB, cfg config.Config, keys keys.Keys, eventPublis
 		appsService:            apps.NewAppsService(db, eventPublisher, keys),
 		eventPublisher:         eventPublisher,
 		keys:                   keys,
+		albyOAuthSvc:           albyOAuthSvc,
 	}
 }
 
