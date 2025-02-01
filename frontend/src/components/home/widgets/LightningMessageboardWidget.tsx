@@ -54,10 +54,11 @@ export function LightningMessageboardWidget() {
   const [senderName, setSenderName] = React.useState("");
   const [amount, setAmount] = React.useState("");
   const [messages, setMessages] = React.useState<Message[]>();
-  const [isLoading, setLoading] = React.useState(true);
+  const [isLoading, setLoading] = React.useState(false);
   const [isSubmitting, setSubmitting] = React.useState(false);
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const { toast } = useToast();
+  const [isOpen, setOpen] = React.useState(false);
 
   const loadMessages = React.useCallback(() => {
     (async () => {
@@ -98,9 +99,14 @@ export function LightningMessageboardWidget() {
       setLoading(false);
     })();
   }, []);
+
+  const hasLoadedMessages = !!messages;
+
   React.useEffect(() => {
-    loadMessages();
-  }, [loadMessages]);
+    if (isOpen && !hasLoadedMessages) {
+      loadMessages();
+    }
+  }, [hasLoadedMessages, isOpen, loadMessages]);
 
   function handleSubmitOpenDialog(e: React.FormEvent) {
     e.preventDefault();
@@ -108,31 +114,38 @@ export function LightningMessageboardWidget() {
   }
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setSubmitting(true);
 
-    const amountMsat = +amount * 1000;
-
-    const transaction = await getNWCClient().makeInvoice({
-      amount: amountMsat,
-      description: messageText,
-      metadata: {
-        payer_data: {
-          name: senderName,
-        },
-      },
-    });
-
-    const payInvoiceResponse = await request<PayInvoiceResponse>(
-      `/api/payments/${transaction.invoice}`,
-      {
-        method: "POST",
-      }
-    );
-    if (!payInvoiceResponse?.preimage) {
-      throw new Error("No preimage in response");
+    if (+amount < 1000) {
+      toast({
+        title: "Amount too low",
+        description: "Minimum payment is 1000 sats",
+      });
+      return;
     }
 
+    const amountMsat = +amount * 1000;
+    setSubmitting(true);
     try {
+      const transaction = await getNWCClient().makeInvoice({
+        amount: amountMsat,
+        description: messageText,
+        metadata: {
+          payer_data: {
+            name: senderName,
+          },
+        },
+      });
+
+      const payInvoiceResponse = await request<PayInvoiceResponse>(
+        `/api/payments/${transaction.invoice}`,
+        {
+          method: "POST",
+        }
+      );
+      if (!payInvoiceResponse?.preimage) {
+        throw new Error("No preimage in response");
+      }
+
       setMessageText("");
       loadMessages();
       toast({ title: "Sucessfully sent message" });
@@ -156,47 +169,54 @@ export function LightningMessageboardWidget() {
     <>
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            Lightning Messageboard{isLoading && <Loading />}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-96 overflow-y-visible flex flex-col gap-2 overflow-hidden">
-            {messages?.map((message) => (
-              <Card className="mr-2">
-                <CardHeader>
-                  <CardTitle className="flex gap-2 items-start justify-start">
-                    <p className="break-words">{message.message}</p>
-                  </CardTitle>
-                </CardHeader>
-                <CardFooter className="flex items-center justify-between text-sm">
-                  <Badge className="py-1">
-                    <Zap className="w-4 h-4 mr-2" />{" "}
-                    {new Intl.NumberFormat().format(message.amount)}
-                  </Badge>
-                  <CardTitle className="font-normal text-xs">
-                    {message.name || "Anonymous"}
-                  </CardTitle>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-          <form
-            onSubmit={handleSubmitOpenDialog}
-            className="flex items-center gap-2 mt-4"
-          >
-            <Input
-              required
-              placeholder="type your message..."
-              value={messageText}
-              maxLength={140}
-              onChange={(e) => setMessageText(e.target.value)}
-            />
-            <Button>
-              <Zap className="w-4 h-4 mr-2" /> Send
+          <div className="flex justify-between items-center">
+            <CardTitle className="flex items-center gap-2">
+              Lightning Messageboard{isLoading && <Loading />}
+            </CardTitle>
+            <Button variant="secondary" onClick={() => setOpen(!isOpen)}>
+              {isOpen ? "Hide" : "Show"}
             </Button>
-          </form>
-        </CardContent>
+          </div>
+        </CardHeader>
+        {isOpen && (
+          <CardContent>
+            <div className="h-96 overflow-y-visible flex flex-col gap-2 overflow-hidden">
+              {messages?.map((message) => (
+                <Card className="mr-2">
+                  <CardHeader>
+                    <CardTitle className="flex gap-2 items-start justify-start">
+                      <p className="break-words">{message.message}</p>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardFooter className="flex items-center justify-between text-sm">
+                    <Badge className="py-1">
+                      <Zap className="w-4 h-4 mr-2" />{" "}
+                      {new Intl.NumberFormat().format(message.amount)}
+                    </Badge>
+                    <CardTitle className="font-normal text-xs">
+                      {message.name || "Anonymous"}
+                    </CardTitle>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+            <form
+              onSubmit={handleSubmitOpenDialog}
+              className="flex items-center gap-2 mt-4"
+            >
+              <Input
+                required
+                placeholder="type your message..."
+                value={messageText}
+                maxLength={140}
+                onChange={(e) => setMessageText(e.target.value)}
+              />
+              <Button>
+                <Zap className="w-4 h-4 mr-2" /> Send
+              </Button>
+            </form>
+          </CardContent>
+        )}
       </Card>
       <Dialog onOpenChange={setDialogOpen} open={dialogOpen}>
         <DialogContent className="sm:max-w-[600px]">
