@@ -67,6 +67,13 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 			"sub-wallets are currently not supported on your node backend. Try LDK or LND")
 	}
 
+	if slices.Contains(createAppRequest.Scopes, constants.SUPERUSER_SCOPE) {
+		if !api.cfg.CheckUnlockPassword(createAppRequest.UnlockPassword) {
+			return nil, fmt.Errorf(
+				"cannot create app with superuser permission without specifying unlock password")
+		}
+	}
+
 	expiresAt, err := api.parseExpiresAt(createAppRequest.ExpiresAt)
 	if err != nil {
 		return nil, fmt.Errorf("invalid expiresAt: %v", err)
@@ -207,12 +214,17 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 			existingScopeMap[perm.Scope] = true
 		}
 
+		if slices.Contains(newScopes, constants.SUPERUSER_SCOPE) && !existingScopeMap[constants.SUPERUSER_SCOPE] {
+			return fmt.Errorf(
+				"cannot update app to add superuser permission")
+		}
+
 		// Add new permissions
-		for _, method := range newScopes {
-			if !existingScopeMap[method] {
+		for _, scope := range newScopes {
+			if !existingScopeMap[scope] {
 				perm := db.AppPermission{
 					App:           *userApp,
-					Scope:         method,
+					Scope:         scope,
 					ExpiresAt:     expiresAt,
 					MaxAmountSat:  int(maxAmount),
 					BudgetRenewal: budgetRenewal,
@@ -221,12 +233,12 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 					return err
 				}
 			}
-			delete(existingScopeMap, method)
+			delete(existingScopeMap, scope)
 		}
 
 		// Remove old permissions
-		for method := range existingScopeMap {
-			if err := tx.Where("app_id = ? AND scope = ?", userApp.ID, method).Delete(&db.AppPermission{}).Error; err != nil {
+		for scope := range existingScopeMap {
+			if err := tx.Where("app_id = ? AND scope = ?", userApp.ID, scope).Delete(&db.AppPermission{}).Error; err != nil {
 				return err
 			}
 		}
@@ -936,8 +948,6 @@ func (api *api) GetWalletCapabilities(ctx context.Context) (*WalletCapabilitiesR
 	if len(notificationTypes) > 0 {
 		scopes = append(scopes, constants.NOTIFICATIONS_SCOPE)
 	}
-	// add always-supported capabilities
-	scopes = append(scopes, constants.SUPERUSER_SCOPE)
 
 	return &WalletCapabilitiesResponse{
 		Methods:           methods,

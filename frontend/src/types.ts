@@ -198,6 +198,7 @@ export interface CreateAppRequest {
   returnTo?: string;
   isolated?: boolean;
   metadata?: AppMetadata;
+  unlockPassword?: string; // required to create superuser apps
 }
 
 export interface CreateAppResponse {

@@ -53,7 +53,18 @@ func (controller *nip47Controller) HandleCreateConnectionEvent(ctx context.Conte
 		expiresAt = &expiresAtValue
 	}
 
-	// TODO: verify the LNClient supports the methods
+	// explicitly do not allow creating an app with create_connection permission
+	if slices.Contains(params.Methods, models.CREATE_CONNECTION_METHOD) {
+		publishResponse(&models.Response{
+			ResultType: nip47Request.Method,
+			Error: &models.Error{
+				Code:    constants.ERROR_INTERNAL,
+				Message: "cannot create a new app that has create_connection permission via NWC",
+			},
+		}, nostr.Tags{})
+		return
+	}
+
 	supportedMethods := controller.lnClient.GetSupportedNIP47Methods()
 	if slices.ContainsFunc(params.Methods, func(method string) bool {
 		return !slices.Contains(supportedMethods, method)

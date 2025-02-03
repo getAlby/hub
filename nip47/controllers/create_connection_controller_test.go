@@ -217,6 +217,53 @@ func TestHandleCreateConnectionEvent_UnsupportedMethod(t *testing.T) {
 	assert.Equal(t, models.CREATE_CONNECTION_METHOD, publishedResponse.ResultType)
 	assert.Nil(t, publishedResponse.Result)
 }
+
+func TestHandleCreateConnectionEvent_CreateConnectionMethod(t *testing.T) {
+	ctx := context.TODO()
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	pairingSecretKey := nostr.GeneratePrivateKey()
+	pairingPublicKey, err := nostr.GetPublicKey(pairingSecretKey)
+	require.NoError(t, err)
+
+	nip47CreateConnectionJson := fmt.Sprintf(`
+{
+	"method": "create_connection",
+	"params": {
+		"pubkey": "%s",
+		"name": "Test 123",
+		"methods": ["create_connection"]
+	}
+}
+`, pairingPublicKey)
+
+	nip47Request := &models.Request{}
+	err = json.Unmarshal([]byte(nip47CreateConnectionJson), nip47Request)
+	assert.NoError(t, err)
+
+	dbRequestEvent := &db.RequestEvent{}
+	err = svc.DB.Create(&dbRequestEvent).Error
+	assert.NoError(t, err)
+
+	var publishedResponse *models.Response
+
+	publishResponse := func(response *models.Response, tags nostr.Tags) {
+		publishedResponse = response
+	}
+
+	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc, svc.AppsService).
+		HandleCreateConnectionEvent(ctx, nip47Request, dbRequestEvent.ID, publishResponse)
+
+	assert.NotNil(t, publishedResponse.Error)
+	assert.Equal(t, constants.ERROR_INTERNAL, publishedResponse.Error.Code)
+	assert.Equal(t, "cannot create a new app that has create_connection permission via NWC", publishedResponse.Error.Message)
+	assert.Equal(t, models.CREATE_CONNECTION_METHOD, publishedResponse.ResultType)
+	assert.Nil(t, publishedResponse.Result)
+}
 func TestHandleCreateConnectionEvent_DoNotAllowCreateConnectionMethod(t *testing.T) {
 	ctx := context.TODO()
 	svc, err := tests.CreateTestService(t)
