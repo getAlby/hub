@@ -501,7 +501,7 @@ export default function Channels() {
                         ])
                       }
                     >
-                      Transfer <ArrowBigRightDash />
+                      Transfer <ArrowBigRightDash className="w-4 h-4" />
                     </TransferFundsButton>
                   </div>
                 </CardContent>
