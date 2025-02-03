@@ -681,7 +681,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                       </div>
                       <FormattedFiatAmount
                         amount={lspOrderResponse.incomingLiquidity}
-                        className="text-sm text-muted-foreground"
+                        className="text-muted-foreground"
                       />
                     </>
                   )}
@@ -696,7 +696,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                     </div>
                     <FormattedFiatAmount
                       amount={lspOrderResponse.fee}
-                      className="text-sm text-muted-foreground"
+                      className="text-muted-foreground"
                     />
                   </>
 

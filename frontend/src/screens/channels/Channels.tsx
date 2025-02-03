@@ -466,7 +466,10 @@ export default function Channels() {
               <div className="text-2xl font-bold">
                 {new Intl.NumberFormat().format(albyBalance.sats)} sats
               </div>
-              <FormattedFiatAmount amount={albyBalance.sats} />
+              <FormattedFiatAmount
+                amount={albyBalance.sats}
+                className="text-muted-foreground"
+              />
             </CardContent>
             <CardFooter className="flex justify-end space-x-1">
               <TransferFundsButton
@@ -531,6 +534,7 @@ export default function Channels() {
                     </div>
                     <FormattedFiatAmount
                       amount={balances.lightning.totalSpendable / 1000}
+                      className="text-muted-foreground"
                     />
                   </>
                 )}
@@ -567,6 +571,7 @@ export default function Channels() {
                     </div>
                     <FormattedFiatAmount
                       amount={balances.lightning.totalReceivable / 1000}
+                      className="text-muted-foreground"
                     />
                   </>
                 )}
@@ -616,7 +621,10 @@ export default function Channels() {
                     )}{" "}
                     sats
                   </div>
-                  <FormattedFiatAmount amount={balances.onchain.spendable} />
+                  <FormattedFiatAmount
+                    amount={balances.onchain.spendable}
+                    className="text-muted-foreground"
+                  />
                   {balances &&
                     balances.onchain.spendable !== balances.onchain.total && (
                       <p className="text-xs text-muted-foreground animate-pulse">
