@@ -193,8 +193,8 @@ export default function Channels() {
                       onChange={(e) => setSwapOutAmount(e.target.value)}
                     />
                     <p className="text-muted-foreground text-xs p-2">
-                      The amount is set to 90% of the funds held in the channel
-                      with the most outbound capacity.
+                      The amount is set to 90% of the maximum spending capacity
+                      available in one of your lightning channels.
                     </p>
                   </div>
                 </div>
@@ -240,9 +240,8 @@ export default function Channels() {
                       onChange={(e) => setSwapInAmount(e.target.value)}
                     />
                     <p className="text-muted-foreground text-xs p-2">
-                      The amount is set to 90% of the funds held by the
-                      counterparty in the channel with the most receiving
-                      capacity.
+                      The amount is set to 90% of the maximum receiving capacity
+                      available in one of your lightning channels.
                     </p>
                   </div>
                 </div>
@@ -467,6 +466,7 @@ export default function Channels() {
               <div className="text-2xl font-bold">
                 {new Intl.NumberFormat().format(albyBalance.sats)} sats
               </div>
+              <FormattedFiatAmount amount={albyBalance.sats} />
             </CardContent>
             <CardFooter className="flex justify-end space-x-1">
               <TransferFundsButton
@@ -531,7 +531,6 @@ export default function Channels() {
                     </div>
                     <FormattedFiatAmount
                       amount={balances.lightning.totalSpendable / 1000}
-                      className="text-sm text-muted-foreground"
                     />
                   </>
                 )}
@@ -568,7 +567,6 @@ export default function Channels() {
                     </div>
                     <FormattedFiatAmount
                       amount={balances.lightning.totalReceivable / 1000}
-                      className="text-sm text-muted-foreground"
                     />
                   </>
                 )}
@@ -618,10 +616,7 @@ export default function Channels() {
                     )}{" "}
                     sats
                   </div>
-                  <FormattedFiatAmount
-                    amount={balances.onchain.spendable}
-                    className="text-sm text-muted-foreground"
-                  />
+                  <FormattedFiatAmount amount={balances.onchain.spendable} />
                   {balances &&
                     balances.onchain.spendable !== balances.onchain.total && (
                       <p className="text-xs text-muted-foreground animate-pulse">

@@ -225,7 +225,7 @@ export default function AppLayout() {
       <div className="font-sans min-h-screen w-full flex flex-col">
         <div className="flex-1 h-full md:grid md:grid-cols-[280px_minmax(0,1fr)]">
           <div className="hidden border-r bg-muted/40 md:block">
-            <div className="flex h-full max-h-screen flex-col gap-2 sticky z-10 top-0 overflow-y-auto">
+            <div className="flex h-full max-h-screen flex-col gap-2 fixed w-[280px] z-10 top-0 overflow-y-auto">
               <div className="flex-1">
                 <nav className="grid items-start px-4 py-2 text-sm font-medium">
                   <div className="p-3 flex justify-between items-center mt-2 mb-6">
@@ -268,7 +268,7 @@ export default function AppLayout() {
             </div>
           </div>
           <main className="flex flex-col">
-            <header className="md:hidden sticky top-0 z-50 flex h-14 items-center gap-4 border-b bg-muted/40 backdrop-blur px-4 lg:h-[60px] lg:px-6 justify-between">
+            <header className="md:hidden fixed w-full top-0 z-50 flex h-14 items-center gap-4 border-b bg-muted/40 backdrop-blur px-4 lg:h-[60px] lg:px-6 justify-between">
               <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
                 <SheetTrigger asChild>
                   <Button
@@ -314,7 +314,7 @@ export default function AppLayout() {
                 </DropdownMenu>
               </Sheet>
             </header>
-            <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-8">
+            <div className="flex flex-1 flex-col gap-4 p-4 mt-14 md:mt-0 lg:gap-6 lg:p-8">
               <Outlet />
             </div>
           </main>

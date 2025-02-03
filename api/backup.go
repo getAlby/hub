@@ -67,6 +67,14 @@ func (api *api) CreateBackup(unlockPassword string, w io.Writer) error {
 	// Stop the app to ensure no new requests are processed.
 	api.svc.StopApp()
 
+	// Remove the OAuth access token from the DB to ensure the user
+	// has to re-auth with the correct OAuth client when they restore the backup
+	err = api.albyOAuthSvc.RemoveOAuthAccessToken()
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to remove oauth access token")
+		return errors.New("failed to remove oauth access token")
+	}
+
 	// Closing the database leaves the service in an inconsistent state,
 	// but that should not be a problem since the app is not expected
 	// to be used after its data is exported.

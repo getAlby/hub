@@ -2,6 +2,9 @@ import { ChevronDown, ChevronUp, InfoIcon, RefreshCw } from "lucide-react";
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
+import { ChannelPeerNote } from "src/components/channels/ChannelPeerNote";
+import { ChannelPublicPrivateAlert } from "src/components/channels/ChannelPublicPrivateAlert";
+import { DuplicateChannelAlert } from "src/components/channels/DuplicateChannelAlert";
 import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
 import { MempoolAlert } from "src/components/MempoolAlert";
@@ -31,12 +34,11 @@ import { useChannelPeerSuggestions } from "src/hooks/useChannelPeerSuggestions";
 import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
 import { cn, formatAmount } from "src/lib/utils";
-import { ChannelPeerNote } from "src/screens/channels/ChannelPeerNote";
-import { ChannelPublicPrivateAlert } from "src/screens/channels/ChannelPublicPrivateAlert";
 import { CurrentChannelOrder } from "src/screens/channels/CurrentChannelOrder";
 import useChannelOrderStore from "src/state/ChannelOrderStore";
 import {
   Channel,
+  LightningOrder,
   Network,
   NewChannelOrder,
   RecommendedChannelPeer,
@@ -82,7 +84,7 @@ function NewChannelInternal({
 
   const presetAmounts = [1_000_000, 2_000_000, 3_000_000];
 
-  const [order, setOrder] = React.useState<Partial<NewChannelOrder>>({
+  const [order, setOrder] = React.useState<Partial<LightningOrder>>({
     paymentMethod: "lightning",
     status: "pay",
     amount: presetAmounts[0].toString(),
@@ -141,6 +143,7 @@ function NewChannelInternal({
           ...current,
           lspType: selectedPeer.lspType,
           lspUrl: selectedPeer.lspUrl,
+          ...(!selectedPeer.publicChannelsAllowed && { isPublic: false }),
         }));
       }
     }
@@ -452,6 +455,12 @@ function NewChannelInternal({
                 (channel) => channel.public !== !!order.isPublic
               ) && <ChannelPublicPrivateAlert />}
               {selectedPeer?.note && <ChannelPeerNote peer={selectedPeer} />}
+              {showAdvanced && (
+                <DuplicateChannelAlert
+                  pubkey={selectedPeer?.pubkey}
+                  name={selectedPeer?.name}
+                />
+              )}
               <StepButtons onNextClick={() => onSubmit()} />
             </div>
           </div>
@@ -467,8 +476,8 @@ function NewChannelInternal({
 }
 
 type NewChannelLightningProps = {
-  order: Partial<NewChannelOrder>;
-  setOrder(order: Partial<NewChannelOrder>): void;
+  order: Partial<LightningOrder>;
+  setOrder(order: Partial<LightningOrder>): void;
 };
 
 function NewChannelLightning(props: NewChannelLightningProps) {
