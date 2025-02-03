@@ -56,6 +56,8 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
   const hasCustomApp =
     apps && apps.find((x) => x.name !== "getalby.com") !== undefined;
   const hasTransaction = transactions.length > 0;
+  const hasSetupSupportPayment =
+    apps && apps.find((x) => x.name === "ZapPlanner - Alby Hub") !== undefined;
 
   const checklistItems: Omit<ChecklistItem, "disabled">[] = [
     {
@@ -98,6 +100,17 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
               "Secure your keys by creating a backup to ensure you don't lose access.",
             checked: hasBackedUp === true,
             to: "/settings/backup",
+          },
+        ]
+      : []),
+    ...(!info.oauthRedirect
+      ? [
+          {
+            title: "Support Alby Hub",
+            description:
+              "Setup a recurring payment to support the development of Alby Hub",
+            checked: hasSetupSupportPayment,
+            to: "/support-alby",
           },
         ]
       : []),
