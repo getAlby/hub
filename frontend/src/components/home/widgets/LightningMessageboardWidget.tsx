@@ -161,7 +161,7 @@ export function LightningMessageboardWidget() {
   }
 
   const topPlace = Math.max(
-    1,
+    1000,
     ...(messages?.map((message) => message.amount + 1) || [])
   );
 
