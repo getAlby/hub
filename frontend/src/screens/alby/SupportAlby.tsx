@@ -87,7 +87,7 @@ function SupportAlby() {
             </CardContent>
           </Card>
 
-          <Button size="lg">✨ Become a Supporter</Button>
+          <Button size="lg">Become a Supporter</Button>
         </div>
       </div>
     </>
