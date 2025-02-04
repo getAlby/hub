@@ -339,12 +339,6 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		return WailsRequestRouterResponse{Body: &alby.AlbyBalanceResponse{
 			Sats: balance.Balance,
 		}, Error: ""}
-	case "/api/alby/drain":
-		err := app.svc.GetAlbyOAuthSvc().DrainSharedWallet(ctx, app.svc.GetLNClient())
-		if err != nil {
-			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
-		}
-		return WailsRequestRouterResponse{Body: nil, Error: ""}
 	case "/api/alby/unlink-account":
 		err := app.svc.GetAlbyOAuthSvc().UnlinkAccount(ctx)
 		if err != nil {

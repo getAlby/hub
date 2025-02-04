@@ -33,7 +33,6 @@ func (albyHttpSvc *AlbyHttpService) RegisterSharedRoutes(restrictedGroup *echo.G
 	restrictedGroup.GET("/api/alby/me", albyHttpSvc.albyMeHandler)
 	restrictedGroup.GET("/api/alby/balance", albyHttpSvc.albyBalanceHandler)
 	restrictedGroup.POST("/api/alby/pay", albyHttpSvc.albyPayHandler)
-	restrictedGroup.POST("/api/alby/drain", albyHttpSvc.albyDrainHandler)
 	restrictedGroup.POST("/api/alby/link-account", albyHttpSvc.albyLinkAccountHandler)
 	restrictedGroup.POST("/api/alby/auto-channel", albyHttpSvc.autoChannelHandler)
 	restrictedGroup.POST("/api/alby/unlink-account", albyHttpSvc.unlinkHandler)
@@ -166,20 +165,6 @@ func (albyHttpSvc *AlbyHttpService) albyPayHandler(c echo.Context) error {
 		logger.Logger.WithError(err).Error("Failed to request alby pay endpoint")
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: fmt.Sprintf("Failed to request alby pay endpoint: %s", err.Error()),
-		})
-	}
-
-	return c.NoContent(http.StatusNoContent)
-}
-
-func (albyHttpSvc *AlbyHttpService) albyDrainHandler(c echo.Context) error {
-
-	err := albyHttpSvc.albyOAuthSvc.DrainSharedWallet(c.Request().Context(), albyHttpSvc.svc.GetLNClient())
-
-	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to drain shared wallet")
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to drain shared wallet: %s", err.Error()),
 		})
 	}
 
