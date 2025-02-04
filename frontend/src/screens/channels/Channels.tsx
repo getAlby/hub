@@ -1,6 +1,5 @@
 import {
   AlertTriangle,
-  ArrowBigRightDash,
   ArrowRight,
   ChevronDown,
   CopyIcon,
@@ -21,7 +20,6 @@ import { ChannelsTable } from "src/components/channels/ChannelsTable.tsx";
 import EmptyState from "src/components/EmptyState.tsx";
 import ExternalLink from "src/components/ExternalLink";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
-import { TransferFundsButton } from "src/components/TransferFundsButton";
 import {
   Alert,
   AlertDescription,
@@ -62,11 +60,7 @@ import {
   TooltipTrigger,
 } from "src/components/ui/tooltip.tsx";
 import { useToast } from "src/components/ui/use-toast.ts";
-import {
-  ALBY_HIDE_HOSTED_BALANCE_BELOW as ALBY_HIDE_HOSTED_BALANCE_LIMIT,
-  ONCHAIN_DUST_SATS,
-} from "src/constants.ts";
-import { useAlbyBalance } from "src/hooks/useAlbyBalance.ts";
+import { ONCHAIN_DUST_SATS } from "src/constants.ts";
 import { useBalances } from "src/hooks/useBalances.ts";
 import { useChannels } from "src/hooks/useChannels";
 import { useIsDesktop } from "src/hooks/useMediaQuery.ts";
@@ -81,10 +75,9 @@ import { request } from "src/utils/request";
 
 export default function Channels() {
   useSyncWallet();
-  const { data: channels, mutate: reloadChannels } = useChannels();
+  const { data: channels } = useChannels();
   const { data: nodeConnectionInfo } = useNodeConnectionInfo();
-  const { data: balances, mutate: reloadBalances } = useBalances();
-  const { data: albyBalance, mutate: reloadAlbyBalance } = useAlbyBalance();
+  const { data: balances } = useBalances();
   const navigate = useNavigate();
   const [nodes, setNodes] = React.useState<Node[]>([]);
   const [swapInAmount, setSwapInAmount] = React.useState("");
@@ -159,9 +152,6 @@ export default function Channels() {
         : prevLargest;
     }, channels[0]);
   }
-
-  const showHostedBalance =
-    albyBalance && albyBalance.sats > ALBY_HIDE_HOSTED_BALANCE_LIMIT;
 
   return (
     <>
@@ -460,53 +450,6 @@ export default function Channels() {
           </CardHeader>
 
           <CardContent className="flex flex-col sm:flex-row pl-0 flex-wrap">
-            {showHostedBalance && (
-              <div className="flex flex-col flex-1">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 pr-0">
-                  <CardTitle className="text-sm font-medium">
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <div className="flex flex-row gap-1 items-center justify-start text-sm font-medium">
-                            Alby Hosted Balance
-                            <InfoIcon className="h-3 w-3 shrink-0 text-muted-foreground" />
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent className="w-[300px]">
-                          These are the funds from your shared Alby wallet,
-                          which will be migrated to your Hub spending balance
-                          upon transfer.
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="flex-grow pb-0">
-                  <div className="flex flex-row gap-6 items-center justify-between md:justify-start">
-                    <div className="flex-flex-col gap-1">
-                      <div className="text-xl font-medium">
-                        {new Intl.NumberFormat().format(albyBalance.sats)} sats
-                      </div>
-                      <FormattedFiatAmount amount={albyBalance.sats} />
-                    </div>
-                    <TransferFundsButton
-                      variant="secondary"
-                      channels={channels}
-                      albyBalance={albyBalance}
-                      onTransferComplete={() =>
-                        Promise.all([
-                          reloadAlbyBalance(),
-                          reloadBalances(),
-                          reloadChannels(),
-                        ])
-                      }
-                    >
-                      Transfer <ArrowBigRightDash className="w-4 h-4" />
-                    </TransferFundsButton>
-                  </div>
-                </CardContent>
-              </div>
-            )}
             <div className="flex flex-col flex-1">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 pr-0">
                 <CardTitle className="text-sm font-medium">

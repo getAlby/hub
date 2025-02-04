@@ -11,7 +11,6 @@ import BreezRedeem from "src/components/BreezRedeem";
 import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
 import TransactionsList from "src/components/TransactionsList";
-import { TransferFundsButton } from "src/components/TransferFundsButton";
 import {
   Alert,
   AlertDescription,
@@ -23,14 +22,12 @@ import { useAlbyBalance } from "src/hooks/useAlbyBalance";
 import { useBalances } from "src/hooks/useBalances";
 import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
-import { useTransactions } from "src/hooks/useTransactions";
 
 function Wallet() {
   const { data: info, hasChannelManagement } = useInfo();
-  const { data: balances, mutate: reloadBalances } = useBalances();
+  const { data: balances } = useBalances();
   const { data: channels } = useChannels();
-  const { data: albyBalance, mutate: reloadAlbyBalance } = useAlbyBalance();
-  const { mutate: reloadTransactions } = useTransactions();
+  const { data: albyBalance } = useAlbyBalance();
 
   if (!info || !balances) {
     return <Loading />;
@@ -43,7 +40,7 @@ function Wallet() {
   return (
     <>
       <AppHeader title="Wallet" description="" />
-      {showMigrateCard && (
+      {showMigrateCard && needsChannels && (
         <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm p-8">
           <div className="flex flex-col items-center gap-1 text-center max-w-md">
             <ArrowLeftRight className="w-10 h-10 text-primary-background" />
@@ -57,23 +54,7 @@ function Wallet() {
             <p className="text-sm text-muted-foreground mb-4">
               Transfer funds from your Alby hosted balance.
             </p>
-            {needsChannels ? (
-              <LinkButton to="/channels/first">Transfer Funds</LinkButton>
-            ) : (
-              <TransferFundsButton
-                channels={channels}
-                albyBalance={albyBalance}
-                onTransferComplete={() =>
-                  Promise.all([
-                    reloadAlbyBalance(),
-                    reloadBalances(),
-                    reloadTransactions(),
-                  ])
-                }
-              >
-                Transfer Funds
-              </TransferFundsButton>
-            )}
+            <LinkButton to="/channels/first">Transfer Funds</LinkButton>
           </div>
         </div>
       )}
