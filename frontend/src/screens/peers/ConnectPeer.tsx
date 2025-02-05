@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
@@ -12,9 +12,14 @@ import { request } from "src/utils/request";
 
 export default function ConnectPeer() {
   const { toast } = useToast();
-  const [isLoading, setLoading] = React.useState(false);
-  const [connectionString, setConnectionString] = React.useState("");
   const navigate = useNavigate();
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const [isLoading, setLoading] = React.useState(false);
+  const [connectionString, setConnectionString] = React.useState(
+    queryParams.get("peer") ?? ""
+  );
+  const returnTo = queryParams.get("return_to") ?? "";
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -43,6 +48,10 @@ export default function ConnectPeer() {
         },
         body: JSON.stringify(connectPeerRequest),
       });
+      if (returnTo) {
+        window.location.href = returnTo;
+        return;
+      }
       toast({ title: "Successfully connected with peer" });
       setConnectionString("");
       navigate("/channels");
@@ -77,6 +86,11 @@ export default function ConnectPeer() {
               }}
             />
           </div>
+          {returnTo && (
+            <p className="text-xs text-muted-foreground mt-4">
+              You will automatically return to {returnTo}
+            </p>
+          )}
           <div className="mt-4">
             <LoadingButton
               loading={isLoading}
