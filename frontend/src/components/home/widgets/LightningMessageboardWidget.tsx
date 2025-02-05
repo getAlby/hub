@@ -7,7 +7,7 @@ import {
 } from "src/components/ui/card";
 
 import { nwc } from "@getalby/sdk";
-import { Zap } from "lucide-react";
+import { ChevronUp, Zap } from "lucide-react";
 import React from "react";
 import Loading from "src/components/Loading";
 import { Badge } from "src/components/ui/badge";
@@ -23,6 +23,7 @@ import {
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
+import { Separator } from "src/components/ui/separator";
 import { Textarea } from "src/components/ui/textarea";
 import { useToast } from "src/components/ui/use-toast";
 import { PayInvoiceResponse } from "src/types";
@@ -31,7 +32,7 @@ import { request } from "src/utils/request";
 // Must be a sub-wallet connection with only make invoice and list transactions permissions!
 const LIGHTNING_MESSAGEBOARD_NWC_URL =
   import.meta.env.VITE_LIGHTNING_MESSAGEBOARD_NWC_URL ||
-  "nostr+walletconnect://f70c731046253fe6d53143f0e62527e08b5011fee5ab9e4c3c5f3075c21a6cb8?relay=wss://relay.getalby.com/v1&secret=e27cac72651d3733f2f195722c9c7d574a34883acf97dc89b8941a838fef43a7";
+  "nostr+walletconnect://d6566bfd546471252ff04ecb9be007e15eddca0fadb87992b2e8360aab12f3dc?relay=wss://relay.getalby.com/v1&secret=991b820859ccd7ad4aa35d2d6c8a109405eacf59395351d17920005e91327eae";
 
 type Message = {
   name?: string;
@@ -58,7 +59,7 @@ export function LightningMessageboardWidget() {
   const [isSubmitting, setSubmitting] = React.useState(false);
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const { toast } = useToast();
-  const [isOpen, setOpen] = React.useState(false);
+  const [isOpen, setOpen] = React.useState(true);
 
   const loadMessages = React.useCallback(() => {
     (async () => {
@@ -119,6 +120,7 @@ export function LightningMessageboardWidget() {
       toast({
         title: "Amount too low",
         description: "Minimum payment is 1000 sats",
+        variant: "destructive",
       });
       return;
     }
@@ -181,23 +183,27 @@ export function LightningMessageboardWidget() {
         {isOpen && (
           <CardContent>
             <div className="h-96 overflow-y-visible flex flex-col gap-2 overflow-hidden">
-              {messages?.map((message) => (
-                <Card className="mr-2">
-                  <CardHeader>
+              {messages?.map((message, index) => (
+                <div key={index}>
+                  <CardHeader className="flex flex-row justify-between">
                     <CardTitle className="flex gap-2 items-start justify-start">
                       <p className="break-words">{message.message}</p>
                     </CardTitle>
-                  </CardHeader>
-                  <CardFooter className="flex items-center justify-between text-sm">
                     <Badge className="py-1">
-                      <Zap className="w-4 h-4 mr-2" />{" "}
+                      <Zap className="w-4 h-4 mr-1" />{" "}
                       {new Intl.NumberFormat().format(message.amount)}
                     </Badge>
-                    <CardTitle className="font-normal text-xs">
-                      {message.name || "Anonymous"}
-                    </CardTitle>
+                  </CardHeader>
+                  <CardFooter className="flex items-center justify-between text-sm">
+                    {message.name && (
+                      <CardTitle className="flex flex-row items-center font-normal text-xs gap-1">
+                        <span className="text-muted-foreground">by </span>
+                        {message.name || "Anonymous"}
+                      </CardTitle>
+                    )}
                   </CardFooter>
-                </Card>
+                  {index !== messages.length - 1 && <Separator />}
+                </div>
               ))}
             </div>
             <form
@@ -206,7 +212,7 @@ export function LightningMessageboardWidget() {
             >
               <Input
                 required
-                placeholder="type your message..."
+                placeholder="Type your message..."
                 value={messageText}
                 maxLength={140}
                 onChange={(e) => setMessageText(e.target.value)}
@@ -224,8 +230,8 @@ export function LightningMessageboardWidget() {
             <DialogHeader>
               <DialogTitle>Post Message</DialogTitle>
               <DialogDescription>
-                Pay sats to post on the Alby Hub message board. The messages
-                with the highest number of satoshis will be shown first.
+                Pay to post on the Alby Hub message board. The messages with the
+                highest number of satoshis will be shown first.
               </DialogDescription>
             </DialogHeader>
 
@@ -259,7 +265,8 @@ export function LightningMessageboardWidget() {
                   variant="secondary"
                   onClick={() => setAmount("" + topPlace)}
                 >
-                  Top ⚡{new Intl.NumberFormat().format(topPlace)}
+                  <ChevronUp className="w-4 h-4 mr-2" />
+                  Top
                 </Button>
               </div>
               <div className="grid grid-cols-4 gap-4">
@@ -271,6 +278,7 @@ export function LightningMessageboardWidget() {
                   value={messageText}
                   onChange={(e) => setMessageText(e.target.value)}
                   className="col-span-3"
+                  rows={4}
                 />
               </div>
             </div>
