@@ -33,14 +33,14 @@ function Wallet() {
     return <Loading />;
   }
 
-  const showMigrateCard =
+  const hasHostedBalance =
     albyBalance && albyBalance.sats > ALBY_HIDE_HOSTED_BALANCE_LIMIT;
   const needsChannels = hasChannelManagement && channels && channels.length < 1;
 
   return (
     <>
       <AppHeader title="Wallet" description="" />
-      {showMigrateCard && needsChannels && (
+      {hasHostedBalance && needsChannels && (
         <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm p-8">
           <div className="flex flex-col items-center gap-1 text-center max-w-md">
             <ArrowLeftRight className="w-10 h-10 text-primary-background" />
@@ -64,7 +64,7 @@ function Wallet() {
           (channel) =>
             channel.localBalance < channel.unspendablePunishmentReserve * 1000
         ) &&
-        !showMigrateCard && (
+        !hasHostedBalance && (
           <Alert>
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>Channel Reserves Unmet</AlertTitle>
@@ -80,7 +80,7 @@ function Wallet() {
       {hasChannelManagement &&
         !!channels?.length &&
         !balances.lightning.totalReceivable &&
-        !showMigrateCard && (
+        !hasHostedBalance && (
           <Alert>
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>Low receiving capacity</AlertTitle>
@@ -92,7 +92,7 @@ function Wallet() {
             </AlertDescription>
           </Alert>
         )}
-      {hasChannelManagement && !channels?.length && !showMigrateCard && (
+      {hasChannelManagement && !channels?.length && !hasHostedBalance && (
         <Alert>
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Open Your First Channel</AlertTitle>
