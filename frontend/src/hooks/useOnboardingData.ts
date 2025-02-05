@@ -1,5 +1,6 @@
 // src/hooks/useOnboardingData.ts
 
+import { SUPPORT_ALBY_CONNECTION_NAME } from "src/constants";
 import { useAlbyBalance } from "src/hooks/useAlbyBalance";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useApps } from "src/hooks/useApps";
@@ -57,7 +58,8 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
     apps && apps.find((x) => x.name !== "getalby.com") !== undefined;
   const hasTransaction = transactions.length > 0;
   const hasSetupSupportPayment =
-    apps && apps.find((x) => x.name === "ZapPlanner - Alby Hub") !== undefined;
+    apps &&
+    apps.find((x) => x.name === SUPPORT_ALBY_CONNECTION_NAME) !== undefined;
 
   const checklistItems: Omit<ChecklistItem, "disabled">[] = [
     {

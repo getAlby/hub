@@ -12,7 +12,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "src/components/ui/alert-dialog";
-import { Button } from "src/components/ui/button";
+import { Button, LinkButton } from "src/components/ui/button";
 import {
   Card,
   CardContent,
@@ -23,14 +23,15 @@ import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
+import {
+  SUPPORT_ALBY_CONNECTION_NAME,
+  SUPPORT_ALBY_LIGHTNING_ADDRESS,
+} from "src/constants";
 import { useApps } from "src/hooks/useApps";
 import { createApp } from "src/requests/createApp";
 import { CreateAppRequest, UpdateAppRequest } from "src/types";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
-
-const appName = `ZapPlanner - Alby Hub`;
-const recipientLightningAddress = "hub@getalby.com";
 
 function SupportAlby() {
   const { data: apps } = useApps();
@@ -47,7 +48,11 @@ function SupportAlby() {
 
     setSubmitting(true);
     try {
-      if (apps?.some((existingApp) => existingApp.name === appName)) {
+      if (
+        apps?.some(
+          (existingApp) => existingApp.name === SUPPORT_ALBY_CONNECTION_NAME
+        )
+      ) {
         throw new Error("A connection with the same name already exists.");
       }
 
@@ -69,14 +74,14 @@ function SupportAlby() {
       const isolated = false;
 
       const createAppRequest: CreateAppRequest = {
-        name: appName,
+        name: SUPPORT_ALBY_CONNECTION_NAME,
         scopes: ["pay_invoice"],
         budgetRenewal: "monthly",
         maxAmount,
         isolated,
         metadata: {
           app_store_app_id: "zapplanner",
-          recipient_lightning_address: recipientLightningAddress,
+          recipient_lightning_address: SUPPORT_ALBY_LIGHTNING_ADDRESS,
         },
       };
 
@@ -91,7 +96,7 @@ function SupportAlby() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            recipientLightningAddress: recipientLightningAddress,
+            recipientLightningAddress: SUPPORT_ALBY_LIGHTNING_ADDRESS,
             amount: parsedAmount,
             message: "ZapPlanner payment from Alby Hub",
             payerData: JSON.stringify({
@@ -156,7 +161,7 @@ function SupportAlby() {
             <h2 className="text-3xl font-semibold mb-2">
               ✨ Your Support Matters
             </h2>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground text-balance">
               We are committed to elevating the Bitcoin ecosystem by offering
               reliable, efficient, and user-friendly software solutions for
               seamless transactions. With your help, we can keep pushing
@@ -227,16 +232,27 @@ function SupportAlby() {
             </CardContent>
           </Card>
           <AlertDialog open={open} onOpenChange={setOpen}>
-            <AlertDialogTrigger asChild>
-              <Button size="lg">Become a Supporter</Button>
-            </AlertDialogTrigger>
+            <div className="flex flex-col items-center justify-center gap-2">
+              <AlertDialogTrigger asChild>
+                <Button size="lg">Become a Supporter</Button>
+              </AlertDialogTrigger>
+              <LinkButton
+                size="sm"
+                variant="link"
+                to="/"
+                className="text-muted-foreground"
+              >
+                Maybe later
+              </LinkButton>
+            </div>
             <AlertDialogContent>
               <form onSubmit={handleSubmit}>
                 <AlertDialogHeader>
                   <AlertDialogTitle>Become a Supporter</AlertDialogTitle>
                   <AlertDialogDescription>
-                    A new ZapPlanner app will be created specificially for this
-                    purpose and can be cancelled any time.
+                    A new app connection will be established to facilitate
+                    monthly payments to Alby. You can cancel it anytime through
+                    the connections page.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
 
