@@ -16,6 +16,7 @@
   }
 }
 
+/* https://github.com/tailwindlabs/tailwindcss/discussions/12127 */
 .break-anywhere {
   overflow-wrap: anywhere;
 }
