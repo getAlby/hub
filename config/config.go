@@ -288,3 +288,26 @@ func randomHex(n int) (string, error) {
 	}
 	return hex.EncodeToString(bytes), nil
 }
+
+const defaultCurrency = "usd"
+
+func (cfg *config) GetCurrency() string {
+	currency, err := cfg.Get("Currency", "")
+	if err != nil || currency == "" {
+		logger.Logger.WithError(err).Warn("Currency not found, using default")
+		return defaultCurrency
+	}
+	return currency
+}
+
+func (cfg *config) SetCurrency(value string) error {
+	if value == "" {
+		return errors.New("currency value cannot be empty")
+	}
+	err := cfg.SetUpdate("Currency", value, "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to update currency")
+		return err
+	}
+	return nil
+}

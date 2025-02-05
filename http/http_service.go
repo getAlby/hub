@@ -115,6 +115,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedGroup := e.Group("")
 	restrictedGroup.Use(echojwt.WithConfig(jwtConfig))
 
+	restrictedGroup.PATCH("/api/settings", httpSvc.updateSettingsHandler)
 	restrictedGroup.GET("/api/apps", httpSvc.appsListHandler)
 	restrictedGroup.GET("/api/apps/:pubkey", httpSvc.appsShowHandler)
 	restrictedGroup.PATCH("/api/apps/:pubkey", httpSvc.appsUpdateHandler)
@@ -154,6 +155,8 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedGroup.POST("/api/send-spontaneous-payment-probes", httpSvc.sendSpontaneousPaymentProbesHandler)
 	restrictedGroup.GET("/api/log/:type", httpSvc.getLogOutputHandler)
 	restrictedGroup.GET("/api/health", httpSvc.healthHandler)
+	restrictedGroup.GET("/api/commands", httpSvc.getCustomNodeCommandsHandler)
+	restrictedGroup.POST("/api/command", httpSvc.execCustomNodeCommandHandler)
 
 	httpSvc.albyHttpSvc.RegisterSharedRoutes(restrictedGroup, e)
 }
@@ -287,6 +290,30 @@ func (httpSvc *HttpService) changeUnlockPasswordHandler(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: fmt.Sprintf("Failed to change unlock password: %s", err.Error()),
+		})
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
+
+func (httpSvc *HttpService) updateSettingsHandler(c echo.Context) error {
+	var updateSettingsRequest api.UpdateSettingsRequest
+	if err := c.Bind(&updateSettingsRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	if updateSettingsRequest.Currency == "" {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: "Currency value cannot be empty",
+		})
+	}
+
+	err := httpSvc.api.SetCurrency(updateSettingsRequest.Currency)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to set currency: %s", err.Error()),
 		})
 	}
 
@@ -997,6 +1024,35 @@ func (httpSvc *HttpService) getLogOutputHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, getLogResponse)
+}
+
+func (httpSvc *HttpService) getCustomNodeCommandsHandler(c echo.Context) error {
+	nodeCommandsResponse, err := httpSvc.api.GetCustomNodeCommands()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to get node commands: %v", err),
+		})
+	}
+
+	return c.JSON(http.StatusOK, nodeCommandsResponse)
+}
+
+func (httpSvc *HttpService) execCustomNodeCommandHandler(c echo.Context) error {
+	var execCommandRequest api.ExecuteCustomNodeCommandRequest
+	if err := c.Bind(&execCommandRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	execCommandResponse, err := httpSvc.api.ExecuteCustomNodeCommand(c.Request().Context(), execCommandRequest.Command)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to execute command: %v", err),
+		})
+	}
+
+	return c.JSON(http.StatusOK, execCommandResponse)
 }
 
 func (httpSvc *HttpService) logoutHandler(c echo.Context) error {

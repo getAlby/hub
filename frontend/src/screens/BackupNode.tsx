@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import SettingsHeader from "src/components/SettingsHeader";
-import { Button } from "src/components/ui/button";
+import { Button, LinkButton } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
@@ -151,6 +151,15 @@ export function BackupNode() {
           >
             Create Backup to Migrate Alby Hub
           </Button>
+          <p className="text-muted-foreground">or</p>
+          <LinkButton
+            to="/settings/backup"
+            variant="secondary"
+            size="lg"
+            className="w-full"
+          >
+            Backup Without Migrating Node
+          </LinkButton>
         </div>
       )}
     </>

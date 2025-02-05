@@ -64,4 +64,6 @@ type Config interface {
 	SetAutoUnlockPassword(unlockPassword string) error
 	SaveUnlockPasswordCheck(encryptionKey string) error
 	SetupCompleted() bool
+	GetCurrency() string
+	SetCurrency(value string) error
 }

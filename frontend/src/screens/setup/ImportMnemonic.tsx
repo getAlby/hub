@@ -55,7 +55,7 @@ export function ImportMnemonic() {
       nextBackupReminder: sixMonthsLater.toISOString(),
     });
 
-    navigate(`/setup/finish`);
+    navigate(`/setup/security`);
   }
 
   return (

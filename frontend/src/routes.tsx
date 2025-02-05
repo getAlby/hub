@@ -57,6 +57,7 @@ import { SetupAdvanced } from "src/screens/setup/SetupAdvanced";
 import { SetupFinish } from "src/screens/setup/SetupFinish";
 import { SetupNode } from "src/screens/setup/SetupNode";
 import { SetupPassword } from "src/screens/setup/SetupPassword";
+import { SetupSecurity } from "src/screens/setup/SetupSecurity";
 import { BreezForm } from "src/screens/setup/node/BreezForm";
 import { CashuForm } from "src/screens/setup/node/CashuForm";
 import { GreenlightForm } from "src/screens/setup/node/GreenlightForm";
@@ -410,6 +411,10 @@ const routes = [
           {
             path: "password",
             element: <SetupPassword />,
+          },
+          {
+            path: "security",
+            element: <SetupSecurity />,
           },
           {
             path: "node",
