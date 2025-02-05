@@ -59,7 +59,7 @@ export function LightningMessageboardWidget() {
   const [isSubmitting, setSubmitting] = React.useState(false);
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const { toast } = useToast();
-  const [isOpen, setOpen] = React.useState(true);
+  const [isOpen, setOpen] = React.useState(false);
 
   const loadMessages = React.useCallback(() => {
     (async () => {
@@ -185,22 +185,22 @@ export function LightningMessageboardWidget() {
             <div className="h-96 overflow-y-visible flex flex-col gap-2 overflow-hidden">
               {messages?.map((message, index) => (
                 <div key={index}>
-                  <CardHeader className="flex flex-row justify-between">
-                    <CardTitle className="flex gap-2 items-start justify-start">
-                      <p className="break-words">{message.message}</p>
+                  <CardHeader>
+                    <CardTitle className="break-all">
+                      {message.message}
                     </CardTitle>
-                    <Badge className="py-1">
-                      <Zap className="w-4 h-4 mr-1" />{" "}
-                      {new Intl.NumberFormat().format(message.amount)}
-                    </Badge>
                   </CardHeader>
                   <CardFooter className="flex items-center justify-between text-sm">
-                    {message.name && (
-                      <CardTitle className="flex flex-row items-center font-normal text-xs gap-1">
-                        <span className="text-muted-foreground">by </span>
-                        {message.name || "Anonymous"}
-                      </CardTitle>
-                    )}
+                    <CardTitle className="break-all font-normal text-xs">
+                      <span className="text-muted-foreground">by </span>
+                      {message.name || "Anonymous"}
+                    </CardTitle>
+                    <div>
+                      <Badge className="py-1">
+                        <Zap className="w-4 h-4 mr-1" />{" "}
+                        {new Intl.NumberFormat().format(message.amount)}
+                      </Badge>
+                    </div>
                   </CardFooter>
                   {index !== messages.length - 1 && <Separator />}
                 </div>
@@ -244,6 +244,7 @@ export function LightningMessageboardWidget() {
                   id="sender-name"
                   value={senderName}
                   onChange={(e) => setSenderName(e.target.value)}
+                  maxLength={20}
                   className="col-span-3"
                   autoFocus
                 />
