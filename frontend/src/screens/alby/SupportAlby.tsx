@@ -1,5 +1,6 @@
-import { CheckCircle2, Code, PlusCircle, RefreshCw } from "lucide-react";
+import { Code, PlusCircle, RefreshCw } from "lucide-react";
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import ExternalLink from "src/components/ExternalLink";
 import {
   AlertDialog,
@@ -23,7 +24,6 @@ import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 import { useApps } from "src/hooks/useApps";
-import { useTransactions } from "src/hooks/useTransactions";
 import { createApp } from "src/requests/createApp";
 import { CreateAppRequest, UpdateAppRequest } from "src/types";
 import { handleRequestError } from "src/utils/handleRequestError";
@@ -33,10 +33,9 @@ const appName = `ZapPlanner - Alby Hub`;
 const recipientLightningAddress = "hub@getalby.com";
 
 function SupportAlby() {
-  const { data: apps, mutate: reloadApps } = useApps();
-  const subscription = apps?.find((x) => x.name === appName);
+  const { data: apps } = useApps();
+  const navigate = useNavigate();
   const { toast } = useToast();
-  const { data: transactions, isLoading } = useTransactions(subscription?.id);
 
   const [amount, setAmount] = React.useState("");
   const [senderName, setSenderName] = React.useState("");
@@ -45,6 +44,7 @@ function SupportAlby() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     setSubmitting(true);
     try {
       if (apps?.some((existingApp) => existingApp.name === appName)) {
@@ -54,6 +54,15 @@ function SupportAlby() {
       const parsedAmount = parseInt(amount);
       if (isNaN(parsedAmount) || parsedAmount < 1) {
         throw new Error("Invalid amount");
+      }
+
+      if (+amount < 1000) {
+        toast({
+          title: "Amount too low",
+          description: "Minimum payment is 1000 sats",
+          variant: "destructive",
+        });
+        return;
       }
 
       const maxAmount = Math.floor(parsedAmount * 1.01) + 10; // with fee reserve
@@ -127,12 +136,11 @@ function SupportAlby() {
       });
 
       toast({
-        title: "Created subscription",
+        title: "Thank you for becoming a supporter",
         description: "The first payment is scheduled immediately.",
       });
 
-      reloadApps();
-      setOpen(false);
+      navigate("/");
     } catch (error) {
       handleRequestError(toast, "Failed to create app", error);
     } finally {
@@ -144,209 +152,163 @@ function SupportAlby() {
     <>
       <div className="h-full w-full max-w-screen-sm mx-auto flex flex-col justify-center">
         <div className="flex flex-col items-center justify-center gap-6">
-          {!subscription && (
-            <>
-              <section className="text-center">
-                <h2 className="text-3xl font-semibold mb-2">
-                  ✨ Your Support Matters
-                </h2>
-                <p className="text-muted-foreground">
-                  We are committed to elevating the Bitcoin ecosystem by
-                  offering reliable, efficient, and user-friendly software
-                  solutions for seamless transactions. With your help, we can
-                  keep pushing boundaries and evolving Alby Hub into something
-                  even more extraordinary.
-                </p>
-              </section>
-              <Card className="w-full">
-                <CardHeader>
-                  <CardTitle>Why Your Contribution Is Important</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="flex flex-col gap-5">
-                    <li className="flex flex-col">
-                      <div className="flex flex-row items-center">
-                        <PlusCircle className="w-4 h-4 mr-2" />
-                        Unlock New Features
-                      </div>
-                      <div className="text-muted-foreground text-sm">
-                        Your support empowers us to design and implement
-                        cutting-edge{" "}
-                        <ExternalLink
-                          className="underline"
-                          to="https://github.com/getAlby/hub/issues"
-                        >
-                          features
-                        </ExternalLink>{" "}
-                        that enhance your experience and keep us at the
-                        forefront of technology.
-                      </div>
-                    </li>
-                    <li className="flex flex-col ">
-                      <div className="flex flex-row items-center">
-                        <RefreshCw className="w-4 h-4 mr-2" />
-                        Ensure Continuous Improvement
-                      </div>
-                      <div className="text-muted-foreground text-sm">
-                        With your contributions, we can provide{" "}
-                        <ExternalLink
-                          className="underline"
-                          to="https://github.com/getAlby/hub/releases"
-                        >
-                          regular updates
-                        </ExternalLink>{" "}
-                        and ongoing maintenance, ensuring everything runs
-                        smoothly and efficiently for all users.
-                      </div>
-                    </li>
-                    <li className="flex flex-col ">
-                      <div className="flex flex-row items-center">
-                        <Code className="w-4 h-4 mr-2" />
-                        Support Open-Source Freedom
-                      </div>
-                      <div className="text-muted-foreground text-sm">
-                        Your support helps us keep Alby Hub true to the
-                        principles of{" "}
-                        <ExternalLink
-                          className="underline"
-                          to="https://github.com/getAlby/hub/blob/master/LICENSE"
-                        >
-                          free and open-source software
-                        </ExternalLink>{" "}
-                        and remains accessible for everyone to use, modify and
-                        improve.
-                      </div>
-                    </li>
-                  </ul>
-                </CardContent>
-              </Card>
-              <AlertDialog open={open} onOpenChange={setOpen}>
-                <AlertDialogTrigger asChild>
-                  <Button size="lg">Become a Supporter</Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <form onSubmit={handleSubmit}>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Become a Supporter</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        A new ZapPlanner app will be created specificially for
-                        this purpose and can be cancelled any time.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
+          <section className="text-center">
+            <h2 className="text-3xl font-semibold mb-2">
+              ✨ Your Support Matters
+            </h2>
+            <p className="text-muted-foreground">
+              We are committed to elevating the Bitcoin ecosystem by offering
+              reliable, efficient, and user-friendly software solutions for
+              seamless transactions. With your help, we can keep pushing
+              boundaries and evolving Alby Hub into something even more
+              extraordinary.
+            </p>
+          </section>
+          <Card className="w-full">
+            <CardHeader>
+              <CardTitle>Why Your Contribution Is Important</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="flex flex-col gap-5">
+                <li className="flex flex-col">
+                  <div className="flex flex-row items-center">
+                    <PlusCircle className="w-4 h-4 mr-2" />
+                    Unlock New Features
+                  </div>
+                  <div className="text-muted-foreground text-sm">
+                    Your support empowers us to design and implement
+                    cutting-edge{" "}
+                    <ExternalLink
+                      className="underline"
+                      to="https://github.com/getAlby/hub/issues"
+                    >
+                      features
+                    </ExternalLink>{" "}
+                    that enhance your experience and keep us at the forefront of
+                    technology.
+                  </div>
+                </li>
+                <li className="flex flex-col ">
+                  <div className="flex flex-row items-center">
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Ensure Continuous Improvement
+                  </div>
+                  <div className="text-muted-foreground text-sm">
+                    With your contributions, we can provide{" "}
+                    <ExternalLink
+                      className="underline"
+                      to="https://github.com/getAlby/hub/releases"
+                    >
+                      regular updates
+                    </ExternalLink>{" "}
+                    and ongoing maintenance, ensuring everything runs smoothly
+                    and efficiently for all users.
+                  </div>
+                </li>
+                <li className="flex flex-col ">
+                  <div className="flex flex-row items-center">
+                    <Code className="w-4 h-4 mr-2" />
+                    Support Open-Source Freedom
+                  </div>
+                  <div className="text-muted-foreground text-sm">
+                    Your support helps us keep Alby Hub true to the principles
+                    of{" "}
+                    <ExternalLink
+                      className="underline"
+                      to="https://github.com/getAlby/hub/blob/master/LICENSE"
+                    >
+                      free and open-source software
+                    </ExternalLink>{" "}
+                    and remains accessible for everyone to use, modify and
+                    improve.
+                  </div>
+                </li>
+              </ul>
+            </CardContent>
+          </Card>
+          <AlertDialog open={open} onOpenChange={setOpen}>
+            <AlertDialogTrigger asChild>
+              <Button size="lg">Become a Supporter</Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <form onSubmit={handleSubmit}>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Become a Supporter</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    A new ZapPlanner app will be created specificially for this
+                    purpose and can be cancelled any time.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
 
-                    <div className="flex flex-col gap-3 my-5">
-                      <div className="grid grid-cols-4 gap-4">
-                        <Label htmlFor="amount" className="text-right mt-2">
-                          Amount <br></br>
-                          <span className="font-normal text-muted-foreground">
-                            (sats / month)
-                          </span>
-                        </Label>
-                        <div className="col-span-3">
-                          <Input
-                            id="amount"
-                            value={amount}
-                            onChange={(e) => setAmount(e.target.value)}
-                          />
-                          <div className="grid grid-cols-3 gap-3 mt-1">
-                            <Button
-                              type="button"
-                              variant="outline"
-                              onClick={() => setAmount("3000")}
-                            >
-                              🙏 3000
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              onClick={() => setAmount("6000")}
-                            >
-                              💪 6000
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              onClick={() => setAmount("10000")}
-                            >
-                              ✨ 10000
-                            </Button>
-                          </div>
-                        </div>
+                <div className="flex flex-col gap-3 my-5">
+                  <div className="grid grid-cols-4 gap-4">
+                    <Label htmlFor="amount" className="text-right mt-2">
+                      Amount <br></br>
+                      <span className="font-normal text-muted-foreground">
+                        (sats / month)
+                      </span>
+                    </Label>
+                    <div className="col-span-3">
+                      <Input
+                        id="amount"
+                        value={amount}
+                        onChange={(e) => setAmount(e.target.value)}
+                      />
+                      <div className="grid grid-cols-3 gap-1 mt-1">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setAmount("3000")}
+                        >
+                          🙏 3000
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setAmount("6000")}
+                        >
+                          💪 6000
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setAmount("10000")}
+                        >
+                          ✨ 10000
+                        </Button>
                       </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="comment" className="text-right">
-                          Name{" "}
-                          <span className="font-normal text-muted-foreground">
-                            (optional)
-                          </span>
-                        </Label>
-                        <Input
-                          id="sender-name"
-                          value={senderName}
-                          onChange={(e) => setSenderName(e.target.value)}
-                          placeholder={`Nickname, npub, @twitter, etc.`}
-                          className="col-span-3"
-                        />
-                      </div>
-                    </div>
-
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <LoadingButton
-                        type="submit"
-                        disabled={!!isSubmitting}
-                        loading={isSubmitting}
-                      >
-                        Complete Setup
-                      </LoadingButton>
-                    </AlertDialogFooter>
-                  </form>
-                </AlertDialogContent>
-              </AlertDialog>
-            </>
-          )}
-          {subscription && (
-            <>
-              <Card className="w-full">
-                <CardHeader>
-                  <CardTitle className="flex flex-row justify-between">
-                    <div className="flex">
-                      <CheckCircle2 className="w-4 h-4 mr-2" />
-                      You are an Alby Supporter!
-                    </div>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-row justify-between">
-                    <div>
-                      <div>
-                        <p className="text-muted-foreground text-sm">
-                          Total contributions
-                        </p>
-                        <p className="text-xl font-medium">
-                          {new Intl.NumberFormat().format(
-                            Math.floor(1000000 / 1000)
-                          )}{" "}
-                          sats
-                        </p>
-                      </div>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground text-sm">
-                        Amount per month
-                      </p>
-                      <p className="text-xl font-medium">
-                        {new Intl.NumberFormat().format(
-                          Math.floor(1000000 / 1000)
-                        )}{" "}
-                        sats
-                      </p>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            </>
-          )}
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="comment" className="text-right">
+                      Name{" "}
+                      <span className="font-normal text-muted-foreground">
+                        (optional)
+                      </span>
+                    </Label>
+                    <Input
+                      id="sender-name"
+                      value={senderName}
+                      onChange={(e) => setSenderName(e.target.value)}
+                      placeholder={`Nickname, npub, @twitter, etc.`}
+                      className="col-span-3"
+                    />
+                  </div>
+                </div>
+
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <LoadingButton
+                    type="submit"
+                    disabled={!!isSubmitting}
+                    loading={isSubmitting}
+                  >
+                    Complete Setup
+                  </LoadingButton>
+                </AlertDialogFooter>
+              </form>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </div>
     </>
