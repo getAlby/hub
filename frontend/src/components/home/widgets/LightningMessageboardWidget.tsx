@@ -186,7 +186,7 @@ export function LightningMessageboardWidget() {
               {messages?.map((message, index) => (
                 <div key={index}>
                   <CardHeader>
-                    <CardTitle className="break-all">
+                    <CardTitle className="break-words break-all leading-6">
                       {message.message}
                     </CardTitle>
                   </CardHeader>
