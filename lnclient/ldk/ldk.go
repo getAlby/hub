@@ -79,8 +79,17 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		lsp.OlympusMutinynetLSP().Pubkey,
 		lsp.MegalithMutinynetLSP().Pubkey,
 	}
+
+	// rather than fully trusting our LSPs, we set the channel reserve to 0.
+	// this allows us to receive incoming channels without any on-chain balance
+	// but if the user has 0 on-chain balance when the channel is closed,
+	// we rely on the counterparty to bump the transaction.
+	// It's also possible in rare situations the counterparty can take
+	// funds if the channel was closed due to a stuck HTLC.
+	// Therefore, the user SHOULD add some on-chain funds to prevent this.
+	ldkConfig.AnchorChannelsConfig.PerChannelReserveSats = 0
 	ldkConfig.AnchorChannelsConfig.TrustedPeersNoReserve = []string{
-		lsp.OlympusLSP().Pubkey,
+		/*lsp.OlympusLSP().Pubkey,
 		lsp.AlbyPlebsLSP().Pubkey,
 		lsp.MegalithLSP().Pubkey,
 		"02b4552a7a85274e4da01a7c71ca57407181752e8568b31d51f13c111a2941dce3", // LNServer_Wave
@@ -93,7 +102,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		lsp.OlympusMutinynetLSP().Pubkey,
 		lsp.MegalithMutinynetLSP().Pubkey,
 		"0296820bbba5bd33719962bafd69996ee89e03ce7164d8f368cbb85463f5f47876", // flashsats
-		"035e8a9034a8c68f219aacadae748c7a3cd719109309db39b09886e5ff17696b1b", // lqwd
+		"035e8a9034a8c68f219aacadae748c7a3cd719109309db39b09886e5ff17696b1b", // lqwd*/
 	}
 
 	ldkConfig.ListeningAddresses = &listeningAddresses
