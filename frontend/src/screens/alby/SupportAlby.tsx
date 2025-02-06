@@ -268,6 +268,7 @@ function SupportAlby() {
                       <Input
                         id="amount"
                         value={amount}
+                        required
                         onChange={(e) => setAmount(e.target.value)}
                       />
                       <div className="grid grid-cols-3 gap-1 mt-1">
