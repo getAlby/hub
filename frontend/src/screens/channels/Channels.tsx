@@ -594,7 +594,7 @@ export default function Channels() {
                       Your on-chain balance can be used to open new outgoing
                       lightning channels and to ensure channels can be closed
                       when required. When channels are closed, funds on your
-                      side of your channel will be returned to your savings
+                      side of your channel will be returned to your on-chain
                       balance.
                     </TooltipContent>
                   </Tooltip>
@@ -630,8 +630,8 @@ export default function Channels() {
                               You have insufficient funds in reserve to close
                               channels or bump on-chain transactions and
                               currently rely on the counterparty. It is
-                              recommended to deposit at least 25,000 sats
-                              on-chain.
+                              recommended to deposit at least 25,000 sats to
+                              your on-chain balance.
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
