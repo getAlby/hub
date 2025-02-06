@@ -158,7 +158,7 @@ function SupportAlby() {
       <div className="h-full w-full max-w-screen-sm mx-auto flex flex-col justify-center">
         <div className="flex flex-col items-center justify-center gap-6">
           <section className="text-center">
-            <h2 className="text-3xl font-semibold mb-2">
+            <h2 className="text-3xl font-semibold mb-4 max-sm:mt-8">
               ✨ Your Support Matters
             </h2>
             <p className="text-muted-foreground text-balance">
