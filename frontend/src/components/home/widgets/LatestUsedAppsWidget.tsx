@@ -12,17 +12,19 @@ import { useApps } from "src/hooks/useApps";
 
 export function LatestUsedAppsWidget() {
   const { data: apps } = useApps();
-  if (!apps?.length) {
+  const usedApps = apps?.filter((x) => x.lastEventAt);
+
+  if (!usedApps?.length) {
     return null;
   }
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Latest Used Apps</CardTitle>
+        <CardTitle>Recently Used Apps</CardTitle>
       </CardHeader>
       <CardContent className="grid grid-cols-1 gap-4">
-        {apps
+        {usedApps
           .sort(
             (a, b) =>
               new Date(b.lastEventAt ?? 0).getTime() -
@@ -34,12 +36,12 @@ export function LatestUsedAppsWidget() {
               <div className="flex items-center justify-between w-full">
                 <div className="flex items-center justify-center gap-4">
                   <AppAvatar app={app} className="w-14 h-14 rounded-lg" />
-                  <p className="text-xl font-semibold">
+                  <p className="text-sm font-medium">
                     {app.name === "getalby.com" ? "Alby Account" : app.name}
                   </p>
                 </div>
                 <div className="flex items-center justify-center gap-4">
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     {app.lastEventAt
                       ? dayjs(app.lastEventAt).fromNow()
                       : "never"}
