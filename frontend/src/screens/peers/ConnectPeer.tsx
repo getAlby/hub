@@ -48,20 +48,20 @@ export default function ConnectPeer() {
         },
         body: JSON.stringify(connectPeerRequest),
       });
+      toast({ title: "Successfully connected with peer" });
       if (returnTo) {
         window.location.href = returnTo;
-        return;
+      } else {
+        setConnectionString("");
+        navigate("/channels");
+        setLoading(false);
       }
-      toast({ title: "Successfully connected with peer" });
-      setConnectionString("");
-      navigate("/channels");
     } catch (e) {
       toast({
         variant: "destructive",
         title: "Failed to connect peer: " + e,
       });
       console.error(e);
-    } finally {
       setLoading(false);
     }
   };
