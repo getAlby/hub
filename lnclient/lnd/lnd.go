@@ -614,7 +614,7 @@ func (svc *LNDService) ListChannels(ctx context.Context) ([]lnclient.Channel, er
 
 		// first 3 bytes of the channel ID are the block height
 		channelOpeningBlockHeight := lndChannel.ChanId >> 40
-		confirmations := nodeInfo.BlockHeight - uint32(channelOpeningBlockHeight)
+		confirmations := nodeInfo.BlockHeight - uint32(channelOpeningBlockHeight) + 1
 
 		var forwardingFee uint32
 		if !lndChannel.Private {
