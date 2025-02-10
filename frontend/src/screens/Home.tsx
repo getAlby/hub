@@ -24,6 +24,7 @@ import zapplanner from "src/assets/suggested-apps/zapplanner.png";
 import { AppOfTheDayWidget } from "src/components/home/widgets/AppOfTheDayWidget";
 import { BlockHeightWidget } from "src/components/home/widgets/BlockHeightWidget";
 import { LatestUsedAppsWidget } from "src/components/home/widgets/LatestUsedAppsWidget";
+import { LightningMessageboardWidget } from "src/components/home/widgets/LightningMessageboardWidget";
 import { NodeStatusWidget } from "src/components/home/widgets/NodeStatusWidget";
 import { OnchainFeesWidget } from "src/components/home/widgets/OnchainFeesWidget";
 import { WhatsNewWidget } from "src/components/home/widgets/WhatsNewWidget";
@@ -183,6 +184,7 @@ function Home() {
         {/* RIGHT */}
         <div className="grid gap-5">
           <LatestUsedAppsWidget />
+          <LightningMessageboardWidget />
           <AppOfTheDayWidget />
 
           <Card>

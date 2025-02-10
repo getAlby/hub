@@ -548,8 +548,9 @@ export default function Channels() {
                     </TooltipTrigger>
                     <TooltipContent className="w-[300px]">
                       Your on-chain balance can be used to open new outgoing
-                      lightning channels. When channels are closed, funds on
-                      your side of your channel will be returned to your savings
+                      lightning channels and to ensure channels can be closed
+                      when required. When channels are closed, funds on your
+                      side of your channel will be returned to your on-chain
                       balance.
                     </TooltipContent>
                   </Tooltip>
@@ -566,11 +567,31 @@ export default function Channels() {
             <div className="text-2xl balance sensitive">
               {balances && (
                 <>
-                  <div className="text-xl font-medium balance sensitive mb-1">
-                    {new Intl.NumberFormat().format(
-                      Math.floor(balances.onchain.spendable)
-                    )}{" "}
-                    sats
+                  <div className="balance sensitive mb-1">
+                    <span className="text-xl font-medium">
+                      {new Intl.NumberFormat().format(
+                        Math.floor(balances.onchain.spendable)
+                      )}{" "}
+                      sats
+                    </span>
+                    {!!channels?.length &&
+                      balances.onchain.reserved + balances.onchain.spendable <
+                        25_000 && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <AlertTriangle className="w-3 h-3 text-muted-foreground" />
+                            </TooltipTrigger>
+                            <TooltipContent className="w-[300px]">
+                              You have insufficient funds in reserve to close
+                              channels or bump on-chain transactions and
+                              currently rely on the counterparty. It is
+                              recommended to deposit at least 25,000 sats to
+                              your on-chain balance.
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
                   </div>
                   <FormattedFiatAmount
                     amount={balances.onchain.spendable}

@@ -34,6 +34,7 @@ import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { Textarea } from "src/components/ui/textarea";
+import { SUPPORT_ALBY_LIGHTNING_ADDRESS } from "src/constants";
 import { request } from "src/utils/request";
 
 type Recipient = {
@@ -49,7 +50,7 @@ const recipients: Recipient[] = [
     logo: alby,
     description:
       "Support the open-source development of Hub, Go, Lightning Browser Extension, developer tools and open protocols.",
-    lightningAddress: "hello@getalby.com",
+    lightningAddress: SUPPORT_ALBY_LIGHTNING_ADDRESS,
   },
   {
     name: "HRF",

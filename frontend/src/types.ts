@@ -204,6 +204,7 @@ export interface CreateAppResponse {
   pairingSecretKey: string;
   relayUrl: string;
   walletPubkey: string;
+  lud16: string;
   returnTo: string;
 }
 
