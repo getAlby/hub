@@ -1,7 +1,6 @@
 import {
   AlertTriangle,
   ArrowDownIcon,
-  ArrowLeftRight,
   ArrowUpIcon,
   CreditCard,
 } from "lucide-react";
@@ -16,9 +15,7 @@ import {
   AlertDescription,
   AlertTitle,
 } from "src/components/ui/alert.tsx";
-import { Button, LinkButton } from "src/components/ui/button";
-import { ALBY_HIDE_HOSTED_BALANCE_BELOW as ALBY_HIDE_HOSTED_BALANCE_LIMIT } from "src/constants.ts";
-import { useAlbyBalance } from "src/hooks/useAlbyBalance";
+import { Button } from "src/components/ui/button";
 import { useBalances } from "src/hooks/useBalances";
 import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
@@ -27,44 +24,20 @@ function Wallet() {
   const { data: info, hasChannelManagement } = useInfo();
   const { data: balances } = useBalances();
   const { data: channels } = useChannels();
-  const { data: albyBalance } = useAlbyBalance();
 
   if (!info || !balances) {
     return <Loading />;
   }
 
-  const hasHostedBalance =
-    albyBalance && albyBalance.sats > ALBY_HIDE_HOSTED_BALANCE_LIMIT;
-  const needsChannels = hasChannelManagement && channels && channels.length < 1;
-
   return (
     <>
       <AppHeader title="Wallet" description="" />
-      {hasHostedBalance && needsChannels && (
-        <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm p-8">
-          <div className="flex flex-col items-center gap-1 text-center max-w-md">
-            <ArrowLeftRight className="w-10 h-10 text-primary-background" />
-            <h3 className="mt-4 text-lg font-semibold">
-              You still have{" "}
-              <span className="font-bold slashed-zero sensitive">
-                {new Intl.NumberFormat().format(albyBalance.sats)}
-              </span>{" "}
-              sats in your Alby shared wallet
-            </h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Transfer funds from your Alby hosted balance.
-            </p>
-            <LinkButton to="/channels/first">Transfer Funds</LinkButton>
-          </div>
-        </div>
-      )}
       {hasChannelManagement &&
         !!channels?.length &&
         channels?.every(
           (channel) =>
             channel.localBalance < channel.unspendablePunishmentReserve * 1000
-        ) &&
-        !hasHostedBalance && (
+        ) && (
           <Alert>
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>Channel Reserves Unmet</AlertTitle>
@@ -79,8 +52,7 @@ function Wallet() {
         )}
       {hasChannelManagement &&
         !!channels?.length &&
-        !balances.lightning.totalReceivable &&
-        !hasHostedBalance && (
+        !balances.lightning.totalReceivable && (
           <Alert>
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>Low receiving capacity</AlertTitle>
@@ -92,7 +64,7 @@ function Wallet() {
             </AlertDescription>
           </Alert>
         )}
-      {hasChannelManagement && !channels?.length && !hasHostedBalance && (
+      {hasChannelManagement && !channels?.length && (
         <Alert>
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Open Your First Channel</AlertTitle>
