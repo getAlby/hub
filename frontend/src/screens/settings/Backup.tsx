@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import PasswordViewAdornment from "src/components/PasswordAdornment";
+import PasswordViewAdornment from "src/components/password/PasswordAdornment";
 import SettingsHeader from "src/components/SettingsHeader";
 import { Alert } from "src/components/ui/alert";
 import {

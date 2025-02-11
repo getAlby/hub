@@ -1,6 +1,7 @@
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import React from "react";
-import PasswordViewAdornment from "src/components/PasswordAdornment";
+import PasswordViewAdornment from "src/components/password/PasswordAdornment";
+import PasswordInput from "src/components/password/PasswordInput";
 
 import SettingsHeader from "src/components/SettingsHeader";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
@@ -20,8 +21,7 @@ export function ChangeUnlockPassword() {
   const [newUnlockPassword, setNewUnlockPassword] = React.useState("");
   const [confirmNewUnlockPassword, setConfirmNewUnlockPassword] =
     React.useState("");
-  const [currentUnlockPasswordVisible, setCurrentUnlockPasswordVisible] =
-    React.useState(false);
+
   const [newUnlockPasswordVisible, setNewUnlockPasswordVisible] =
     React.useState(false);
   const [confirmNewUnlockPasswordVisible, setConfirmNewUnlockPasswordVisible] =
@@ -86,21 +86,9 @@ export function ChangeUnlockPassword() {
         >
           <div className="grid gap-1.5">
             <Label htmlFor="current-password">Current Password</Label>
-            <Input
+            <PasswordInput
               id="current-password"
-              type={currentUnlockPasswordVisible ? "text" : "password"}
-              name="password"
-              onChange={(e) => setCurrentUnlockPassword(e.target.value)}
-              value={currentUnlockPassword}
-              placeholder="Password"
-              endAdornment={
-                <PasswordViewAdornment
-                  isRevealed={currentUnlockPasswordVisible}
-                  onChange={(passwordView) =>
-                    setCurrentUnlockPasswordVisible(passwordView)
-                  }
-                />
-              }
+              onChange={setCurrentUnlockPassword}
             />
           </div>
           <div className="grid gap-1.5">

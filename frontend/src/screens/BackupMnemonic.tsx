@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Loading from "src/components/Loading";
 
 import MnemonicInputs from "src/components/MnemonicInputs";
-import PasswordViewAdornment from "src/components/PasswordAdornment";
+import PasswordViewAdornment from "src/components/password/PasswordAdornment";
 import SettingsHeader from "src/components/SettingsHeader";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
