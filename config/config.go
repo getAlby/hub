@@ -294,7 +294,7 @@ const defaultCurrency = "usd"
 func (cfg *config) GetCurrency() string {
 	currency, err := cfg.Get("Currency", "")
 	if err != nil || currency == "" {
-		logger.Logger.WithError(err).Warn("Currency not found, using default")
+		logger.Logger.WithError(err).Debug("Currency not found, using default")
 		return defaultCurrency
 	}
 	return currency
