@@ -82,7 +82,7 @@ export function ChangeUnlockPassword() {
         </Alert>
         <form
           onSubmit={onSubmit}
-          className="w-full md:w-[373px] flex flex-col gap-8"
+          className="w-full md:w-96 flex flex-col gap-8"
         >
           <div className="grid gap-1.5">
             <Label htmlFor="current-password">Current Password</Label>

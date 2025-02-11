@@ -81,7 +81,7 @@ export function AutoUnlock() {
           <>
             <form
               onSubmit={onSubmit}
-              className="w-full md:w-[373px] flex flex-col gap-4 mt-4"
+              className="w-full md:w-96 flex flex-col gap-4 mt-4"
             >
               <div className="grid gap-2">
                 <Label htmlFor="unlock-password">Unlock Password</Label>
@@ -106,7 +106,7 @@ export function AutoUnlock() {
           <>
             <form
               onSubmit={onSubmit}
-              className="w-full md:w-[373px] flex flex-col gap-4 mt-4"
+              className="w-full md:w-96 flex flex-col gap-4 mt-4"
             >
               <div>
                 <LoadingButton loading={loading}>

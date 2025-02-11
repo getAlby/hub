@@ -124,7 +124,7 @@ export function BackupNode() {
           </p>
           <form
             onSubmit={onSubmitPassword}
-            className="w-full md:w-[373px] flex flex-col gap-6"
+            className="w-full md:w-96 flex flex-col gap-6"
           >
             <>
               <div className="grid gap-2">
