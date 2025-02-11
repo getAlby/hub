@@ -99,6 +99,11 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 
 	relayUrl := api.cfg.GetRelayUrl()
 
+	lightningAddress, err := api.albyOAuthSvc.GetLightningAddress()
+	if err != nil {
+		return nil, err
+	}
+
 	responseBody := &CreateAppResponse{}
 	responseBody.Id = app.ID
 	responseBody.Name = createAppRequest.Name
@@ -106,11 +111,7 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 	responseBody.PairingSecret = pairingSecretKey
 	responseBody.WalletPubkey = *app.WalletPubkey
 	responseBody.RelayUrl = relayUrl
-
-	lightningAddress, err := api.albyOAuthSvc.GetLightningAddress()
-	if err != nil {
-		return nil, err
-	}
+	responseBody.Lud16 = lightningAddress
 
 	if createAppRequest.ReturnTo != "" {
 		returnToUrl, err := url.Parse(createAppRequest.ReturnTo)

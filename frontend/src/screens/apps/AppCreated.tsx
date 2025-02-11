@@ -62,6 +62,7 @@ function AppCreatedInternal() {
       detail: {
         relayUrl: createAppResponse.relayUrl,
         walletPubkey: createAppResponse.walletPubkey,
+        lud16: createAppResponse.lud16,
       },
     });
     window.dispatchEvent(nwcEvent);
@@ -73,11 +74,16 @@ function AppCreatedInternal() {
           type: "nwc:success",
           relayUrl: createAppResponse.relayUrl,
           walletPubkey: createAppResponse.walletPubkey,
+          lud16: createAppResponse.lud16,
         },
         "*"
       );
     }
-  }, [createAppResponse.relayUrl, createAppResponse.walletPubkey]);
+  }, [
+    createAppResponse.relayUrl,
+    createAppResponse.walletPubkey,
+    createAppResponse.lud16,
+  ]);
 
   if (!createAppResponse) {
     return <Navigate to="/apps/new" />;

@@ -91,7 +91,7 @@ function ChecklistItem({
         </div>
       </div>
       {!checked && (
-        <div className="text-muted-foreground text-sm ml-7">{description}</div>
+        <div className="text-muted-foreground text-sm mx-7">{description}</div>
       )}
     </div>
   );
