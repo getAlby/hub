@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import PasswordViewAdornment from "src/components/password/PasswordAdornment";
+import PasswordInput from "src/components/password/PasswordInput";
 import SettingsHeader from "src/components/SettingsHeader";
 import { Alert } from "src/components/ui/alert";
 import {
@@ -16,7 +16,6 @@ import {
 } from "src/components/ui/alert-dialog";
 import { Badge } from "src/components/ui/badge";
 import { Button } from "src/components/ui/button";
-import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { Separator } from "src/components/ui/separator";
@@ -35,8 +34,6 @@ export default function Backup() {
   const { data: me } = useAlbyMe();
   const { isMigratingStorage, migrateLDKStorage } = useMigrateLDKStorage();
   const [unlockPassword, setUnlockPassword] = React.useState("");
-  const [unlockPasswordVisible, setUnlockPasswordVisible] =
-    React.useState(false);
 
   const [loading, setLoading] = React.useState(false);
 
@@ -125,21 +122,7 @@ export default function Backup() {
           >
             <div className="grid gap-2 mb-6">
               <Label htmlFor="password">Password</Label>
-              <Input
-                type={unlockPasswordVisible ? "text" : "password"}
-                name="password"
-                onChange={(e) => setUnlockPassword(e.target.value)}
-                value={unlockPassword}
-                placeholder="Password"
-                endAdornment={
-                  <PasswordViewAdornment
-                    isRevealed={unlockPasswordVisible}
-                    onChange={(passwordView) =>
-                      setUnlockPasswordVisible(passwordView)
-                    }
-                  />
-                }
-              />
+              <PasswordInput id="password" onChange={setUnlockPassword} />
               <p className="text-sm text-muted-foreground">
                 Enter your unlock password to view your recovery phrase.
               </p>

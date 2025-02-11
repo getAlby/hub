@@ -1,11 +1,9 @@
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import React from "react";
-import PasswordViewAdornment from "src/components/password/PasswordAdornment";
 import PasswordInput from "src/components/password/PasswordInput";
 
 import SettingsHeader from "src/components/SettingsHeader";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
-import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
@@ -21,11 +19,6 @@ export function ChangeUnlockPassword() {
   const [newUnlockPassword, setNewUnlockPassword] = React.useState("");
   const [confirmNewUnlockPassword, setConfirmNewUnlockPassword] =
     React.useState("");
-
-  const [newUnlockPasswordVisible, setNewUnlockPasswordVisible] =
-    React.useState(false);
-  const [confirmNewUnlockPasswordVisible, setConfirmNewUnlockPasswordVisible] =
-    React.useState(false);
 
   const [loading, setLoading] = React.useState(false);
 
@@ -93,40 +86,13 @@ export function ChangeUnlockPassword() {
           </div>
           <div className="grid gap-1.5">
             <Label htmlFor="new-password">New Password</Label>
-            <Input
-              id="new-password"
-              type={newUnlockPasswordVisible ? "text" : "password"}
-              name="password"
-              onChange={(e) => setNewUnlockPassword(e.target.value)}
-              value={newUnlockPassword}
-              placeholder="Password"
-              endAdornment={
-                <PasswordViewAdornment
-                  isRevealed={newUnlockPasswordVisible}
-                  onChange={(passwordView) =>
-                    setNewUnlockPasswordVisible(passwordView)
-                  }
-                />
-              }
-            />
+            <PasswordInput id="new-password" onChange={setNewUnlockPassword} />
           </div>
           <div className="grid gap-1.5">
             <Label htmlFor="confirm-new-password">Confirm New Password</Label>
-            <Input
+            <PasswordInput
               id="confirm-new-password"
-              type={confirmNewUnlockPasswordVisible ? "text" : "password"}
-              name="password"
-              onChange={(e) => setConfirmNewUnlockPassword(e.target.value)}
-              value={confirmNewUnlockPassword}
-              placeholder="Password"
-              endAdornment={
-                <PasswordViewAdornment
-                  isRevealed={confirmNewUnlockPasswordVisible}
-                  onChange={(passwordView) =>
-                    setConfirmNewUnlockPasswordVisible(passwordView)
-                  }
-                />
-              }
+              onChange={setConfirmNewUnlockPassword}
             />
           </div>
           <div className="flex justify-start">

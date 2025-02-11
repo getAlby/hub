@@ -7,7 +7,7 @@ type PasswordInputProps = {
   id: string;
 };
 
-export default function PasswordInput({ onChange }: PasswordInputProps) {
+export default function PasswordInput({ onChange, id }: PasswordInputProps) {
   const [password, setPassword] = React.useState("");
   const [passwordVisible, setPasswordVisible] = React.useState(false);
 
@@ -17,7 +17,7 @@ export default function PasswordInput({ onChange }: PasswordInputProps) {
 
   return (
     <Input
-      id="current-password"
+      id={id}
       type={passwordVisible ? "text" : "password"}
       name="password"
       value={password} // Internal state

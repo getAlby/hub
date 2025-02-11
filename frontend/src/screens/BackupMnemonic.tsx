@@ -4,12 +4,11 @@ import { useNavigate } from "react-router-dom";
 import Loading from "src/components/Loading";
 
 import MnemonicInputs from "src/components/MnemonicInputs";
-import PasswordViewAdornment from "src/components/password/PasswordAdornment";
+import PasswordInput from "src/components/password/PasswordInput";
 import SettingsHeader from "src/components/SettingsHeader";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
 import { Checkbox } from "src/components/ui/checkbox";
-import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
@@ -26,8 +25,7 @@ export function BackupMnemonic() {
   const { mutate: refetchInfo } = useInfo();
 
   const [unlockPassword, setUnlockPassword] = React.useState("");
-  const [unlockPasswordVisible, setUnlockPasswordVisible] =
-    React.useState(false);
+
   const [decryptedMnemonic, setDecryptedMnemonic] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [backedUp, setIsBackedUp] = useState<boolean>(false);
@@ -106,21 +104,7 @@ export function BackupMnemonic() {
           >
             <div className="grid gap-2 mb-6">
               <Label htmlFor="password">Password</Label>
-              <Input
-                type={unlockPasswordVisible ? "text" : "password"}
-                name="password"
-                onChange={(e) => setUnlockPassword(e.target.value)}
-                value={unlockPassword}
-                placeholder="Password"
-                endAdornment={
-                  <PasswordViewAdornment
-                    isRevealed={unlockPasswordVisible}
-                    onChange={(passwordView) =>
-                      setUnlockPasswordVisible(passwordView)
-                    }
-                  />
-                }
-              />
+              <PasswordInput id="password" onChange={setUnlockPassword} />
             </div>
             <div className="flex justify-start">
               <LoadingButton

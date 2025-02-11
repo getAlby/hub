@@ -2,9 +2,9 @@ import { AlertTriangle } from "lucide-react";
 import React from "react";
 
 import Loading from "src/components/Loading";
+import PasswordInput from "src/components/password/PasswordInput";
 import SettingsHeader from "src/components/SettingsHeader";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
-import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
@@ -85,13 +85,9 @@ export function AutoUnlock() {
             >
               <div className="grid gap-2">
                 <Label htmlFor="unlock-password">Unlock Password</Label>
-                <Input
+                <PasswordInput
                   id="unlock-password"
-                  type="password"
-                  name="password"
-                  onChange={(e) => setUnlockPassword(e.target.value)}
-                  value={unlockPassword}
-                  placeholder="Password"
+                  onChange={setUnlockPassword}
                 />
               </div>
               <div>
