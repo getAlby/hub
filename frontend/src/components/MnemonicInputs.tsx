@@ -4,7 +4,6 @@ import PasswordViewAdornment from "src/components/password/PasswordAdornment";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
@@ -14,7 +13,6 @@ type MnemonicInputsProps = {
   mnemonic?: string;
   setMnemonic?(mnemonic: string): void;
   readOnly?: boolean;
-  description?: string;
 };
 
 export default function MnemonicInputs({
@@ -22,7 +20,6 @@ export default function MnemonicInputs({
   setMnemonic,
   readOnly,
   children,
-  description,
 }: React.PropsWithChildren<MnemonicInputsProps>) {
   const words = mnemonic?.split(" ") || [];
   while (words.length < 12) {
@@ -44,17 +41,14 @@ export default function MnemonicInputs({
           <CardTitle className="text-xl text-center">
             Wallet Recovery Phrase
           </CardTitle>
-          <CardDescription className="text-muted-foreground text-sm max-w-xs text-right mt-2">
-            {description}
-          </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-5 justify-center backup sensitive">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-5 gap-8 justify-center backup sensitive">
             {words.map((word, i) => {
               const isRevealed = revealedIndex === i;
               const inputId = `mnemonic-word-${i}`;
               return (
-                <div key={i} className="flex justify-center items-center gap-2">
+                <div key={i} className="flex justify-center items-center gap-4">
                   <span className="text-foreground text-right">{i + 1}.</span>
                   <div className="relative">
                     <Input
@@ -63,7 +57,7 @@ export default function MnemonicInputs({
                       readOnly={readOnly}
                       onFocus={() => setRevealedIndex(i)}
                       onBlur={() => setRevealedIndex(undefined)}
-                      className="w-32 text-center border-[#E4E4E7] text-muted-foreground"
+                      className="w-44 border-[#E4E4E7] text-muted-foreground"
                       list={readOnly ? undefined : "wordlist"}
                       value={isRevealed ? word : word.length ? "•••••" : ""}
                       onChange={(e) => {

@@ -8,7 +8,6 @@ import { DefaultRedirect } from "src/components/redirects/DefaultRedirect";
 import { HomeRedirect } from "src/components/redirects/HomeRedirect";
 import { SetupRedirect } from "src/components/redirects/SetupRedirect";
 import { StartRedirect } from "src/components/redirects/StartRedirect";
-import { BackupMnemonic } from "src/screens/BackupMnemonic";
 import { BackupNode } from "src/screens/BackupNode";
 import { BackupNodeSuccess } from "src/screens/BackupNodeSuccess";
 import { ConnectAlbyAccount } from "src/screens/ConnectAlbyAccount";
@@ -189,11 +188,6 @@ const routes = [
                 path: "backup",
                 element: <Backup />,
                 handle: { crumb: () => "Backup" },
-              },
-              {
-                path: "mnemonic-backup",
-                element: <BackupMnemonic />,
-                handle: { crumb: () => "Key Backup" },
               },
               {
                 path: "node-backup",
