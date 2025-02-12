@@ -184,7 +184,18 @@ export default function Backup() {
                 className="flex flex-col gap-2 max-w-md text-sm"
               >
                 <MnemonicInputs mnemonic={decryptedMnemonic} readOnly={true} />
-                <div className="flex items-center mt-5 text-muted-foreground">
+                <div className="flex justify-center mt-4">
+                  <Button
+                    type="button"
+                    variant={"destructive"}
+                    className="flex gap-2 justify-center"
+                    onClick={() => copyToClipboard(decryptedMnemonic, toast)}
+                  >
+                    <CopyIcon className="w-4 h-4 mr-2" />
+                    Dangerously Copy
+                  </Button>
+                </div>
+                <div className="flex items-center mt-6 text-sm">
                   <Checkbox
                     id="backup"
                     required
@@ -196,7 +207,7 @@ export default function Backup() {
                   </Label>
                 </div>
                 {backedUp && !info?.albyAccountConnected && (
-                  <div className="flex mt-5 text-muted-foreground">
+                  <div className="flex text-sm">
                     <Checkbox
                       id="backup2"
                       required
@@ -204,27 +215,18 @@ export default function Backup() {
                     />
                     <Label
                       htmlFor="backup2"
-                      className="ml-2 text-sm text-muted-foreground"
+                      className="ml-2 text-sm text-foreground"
                     >
-                      I understand the <b>recovery phrase</b> AND{" "}
-                      <b>a backup of my hub data directory</b> is required to
-                      recover funds from my lightning channels.{" "}
+                      I understand the recovery phrase AND a backup of my hub
+                      data directory is required to recover funds from my
+                      lightning channels.
                     </Label>
                   </div>
                 )}
                 <div className="flex justify-end gap-2 items-center">
-                  <Button
-                    type="button"
-                    variant={"destructive"}
-                    className="flex gap-2 justify-center"
-                    onClick={() => copyToClipboard(decryptedMnemonic, toast)}
-                  >
-                    <CopyIcon className="w-4 h-4 mr-2" />
-                    Dangerously Copy
-                  </Button>
                   <div className="flex justify-center">
                     <Button type="submit" size="lg">
-                      Continue
+                      Finish Backup
                     </Button>
                   </div>
                 </div>
