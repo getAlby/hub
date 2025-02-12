@@ -96,7 +96,18 @@ export function ChangeUnlockPassword() {
             />
           </div>
           <div className="flex justify-start">
-            <LoadingButton loading={loading}>Change Password</LoadingButton>
+            <LoadingButton
+              loading={loading}
+              disabled={
+                !(
+                  currentUnlockPassword &&
+                  newUnlockPassword &&
+                  confirmNewUnlockPassword
+                )
+              }
+            >
+              Change Password
+            </LoadingButton>
           </div>
         </form>
       </div>

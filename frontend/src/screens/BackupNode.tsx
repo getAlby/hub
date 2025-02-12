@@ -142,22 +142,16 @@ export function BackupNode() {
           </form>
         </div>
       ) : (
-        <div>
+        <div className="flex gap-4">
           <Button
             type="submit"
             disabled={loading}
-            size="lg"
             onClick={() => setShowPasswordScreen(true)}
           >
             Create Backup to Migrate Alby Hub
           </Button>
-          <p className="text-muted-foreground">or</p>
-          <LinkButton
-            to="/settings/backup"
-            variant="secondary"
-            size="lg"
-            className="w-full"
-          >
+
+          <LinkButton to="/settings/backup" variant={"secondary"}>
             Backup Without Migrating Node
           </LinkButton>
         </div>

@@ -1,5 +1,4 @@
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
 import PasswordInput from "src/components/password/PasswordInput";
 import SettingsHeader from "src/components/SettingsHeader";
 import { Alert } from "src/components/ui/alert";
@@ -15,7 +14,6 @@ import {
   AlertDialogTrigger,
 } from "src/components/ui/alert-dialog";
 import { Badge } from "src/components/ui/badge";
-import { Button } from "src/components/ui/button";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { Separator } from "src/components/ui/separator";
@@ -23,12 +21,11 @@ import { useToast } from "src/components/ui/use-toast";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useInfo } from "src/hooks/useInfo";
 import { useMigrateLDKStorage } from "src/hooks/useMigrateLDKStorage";
+import { BackupMnemonic } from "src/screens/BackupMnemonic";
 import { MnemonicResponse } from "src/types";
 import { request } from "src/utils/request";
 
 export default function Backup() {
-  const navigate = useNavigate();
-
   const { toast } = useToast();
   const { data: info, hasNodeBackup, hasMnemonic } = useInfo();
   const { data: me } = useAlbyMe();
@@ -52,7 +49,7 @@ export default function Backup() {
       });
 
       if (result?.mnemonic) {
-        navigate("/settings/mnemonic-backup");
+        return <BackupMnemonic />;
       }
     } catch (error) {
       toast({
@@ -96,20 +93,7 @@ export default function Backup() {
               Key recovery phrase is a group of 12 random words that back up
               your wallet on-chain balance. Using them is the only way to
               recover access to your wallet on another machine or when you loose
-              your unlock password. .&nbsp;
-              {info?.albyAccountConnected && (
-                <>
-                  Channel backups are saved automatically to your Alby Account,
-                  encrypted with your recovery phrase.
-                </>
-              )}
-              {!info?.albyAccountConnected && (
-                <>
-                  Make sure to also backup your <b>data directory</b> as this is
-                  required to recover funds on your channels. You can also
-                  connect your Alby Account for automatic encrypted backups.
-                </>
-              )}
+              your unlock password.
             </p>
           </div>
           <p className="text-destructive">
@@ -144,8 +128,15 @@ export default function Backup() {
       {(info?.vssSupported || hasNodeBackup) && (
         <>
           <Separator className="my-6" />
-          <div className="flex flex-col gap-4">
-            <h3 className="text-lg font-medium">Channels Backup</h3>
+          <div className="flex flex-col gap-8">
+            <div>
+              <h3 className="text-lg font-medium">Channels Backup</h3>
+              <p className="text-sm text-muted-foreground">
+                Your spending balance is stored in your lightning channels. In
+                case of recovery or migration or your Alby Hub, they need to be
+                backed up every time you open a new channel.
+              </p>
+            </div>
 
             {info?.vssSupported && (
               <>
@@ -223,23 +214,6 @@ export default function Backup() {
                   )}
                 </div>
               </>
-            )}
-
-            {hasNodeBackup && (
-              <div>
-                <h3 className="text-sm font-medium mb-1">Migrate Alby Hub</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  If you’d like to import or migrate your Hub onto another
-                  device or server, you’ll need your channels’ backup file to
-                  import your channels state. This instance of Hub will be
-                  stopped.
-                </p>
-                <Link to="/settings/node-backup">
-                  <Button variant="secondary" size={"lg"}>
-                    Migrate Your Alby Hub
-                  </Button>
-                </Link>
-              </div>
             )}
           </div>
         </>

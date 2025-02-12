@@ -20,7 +20,7 @@ export default function PasswordInput({ onChange, id }: PasswordInputProps) {
       id={id}
       type={passwordVisible ? "text" : "password"}
       name="password"
-      value={password} // Internal state
+      value={password}
       onChange={(e) => setPassword(e.target.value)}
       placeholder="Password"
       endAdornment={

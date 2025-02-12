@@ -90,7 +90,7 @@ function Settings() {
               toast({ title: "Theme updated." });
             }}
           >
-            <SelectTrigger className="w-full md:w-[240px] space-y-2">
+            <SelectTrigger className="w-full md:w-60 space-y-2">
               <SelectValue placeholder="Theme" />
             </SelectTrigger>
             <SelectContent>
@@ -111,7 +111,7 @@ function Settings() {
               toast({ title: "Appearance updated." });
             }}
           >
-            <SelectTrigger className="w-full md:w-[240px]">
+            <SelectTrigger className="w-full md:w-60">
               <SelectValue placeholder="Appearance" />
             </SelectTrigger>
             <SelectContent>
@@ -131,7 +131,7 @@ function Settings() {
               toast({ title: `Currency set to ${value}` });
             }}
           >
-            <SelectTrigger className="w-[250px] border border-gray-300 p-2 rounded-md">
+            <SelectTrigger className="w-full md:w-60">
               <SelectValue placeholder="Select a currency" />
             </SelectTrigger>
             <SelectContent>

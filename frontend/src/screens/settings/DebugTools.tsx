@@ -334,6 +334,7 @@ export default function DebugTools() {
             </AlertDialogTrigger>
           )}
           <Button
+            variant={"outline"}
             onClick={() => {
               apiRequest(`/api/commands`, "GET");
             }}
@@ -342,6 +343,7 @@ export default function DebugTools() {
           </Button>
           <AlertDialogTrigger asChild>
             <Button
+              variant={"outline"}
               onClick={() => {
                 apiRequest(`/api/commands`, "GET");
                 setDialog("customNodeCommand");
