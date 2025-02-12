@@ -1077,7 +1077,13 @@ func (api *api) Health(ctx context.Context) (*HealthResponse, error) {
 		}
 
 		offlineChannels := slices.DeleteFunc(channels, func(channel lnclient.Channel) bool {
-			return channel.Active
+			if channel.Active {
+				return true
+			}
+			if channel.Confirmations == nil || channel.ConfirmationsRequired == nil {
+				return false
+			}
+			return *channel.Confirmations < *channel.ConfirmationsRequired
 		})
 
 		if len(offlineChannels) > 0 {
