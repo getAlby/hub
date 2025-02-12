@@ -151,7 +151,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		"migrate_storage":     migrateStorage,
 		"vss_enabled":         vssToken != "",
 		"listening_addresses": listeningAddresses,
-	}).Info("Creating node")
+	}).Info("Creating LDK node")
 	var node *ldk_node.Node
 	if vssToken != "" {
 		node, err = builder.BuildWithVssStoreAndFixedHeaders(cfg.GetEnv().LDKVssUrl, "albyhub", map[string]string{
@@ -160,6 +160,8 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	} else {
 		node, err = builder.Build()
 	}
+
+	logger.Logger.WithFields(logrus.Fields{}).Info("LDK node created")
 
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to create LDK node")
@@ -220,6 +222,10 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 			}
 		}
 	}()
+
+	logger.Logger.WithFields(logrus.Fields{
+		"nodeId": nodeId,
+	}).Info("Starting LDK node...")
 
 	err = node.Start()
 	if err != nil {
