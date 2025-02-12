@@ -1071,15 +1071,27 @@ func (ls *LDKService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainB
 		}
 	}
 
+	pendingSweepBalanceDetails := make([]lnclient.PendingBalanceDetails, 0)
+	increasePendingBalanceFromClosure := func(nodeId, channelId *string, amount uint64, fundingTxId *ldk_node.Txid, fundingTxIndex *uint16) {
+		pendingBalancesFromChannelClosures += amount
+		pendingSweepBalanceDetails = append(pendingSweepBalanceDetails, lnclient.PendingBalanceDetails{
+			NodeId:        utils.UnwrapOrZero(nodeId),
+			ChannelId:     utils.UnwrapOrZero(channelId),
+			Amount:        amount,
+			FundingTxId:   utils.UnwrapOrZero(fundingTxId),
+			FundingTxVout: uint32(utils.UnwrapOrZero(fundingTxIndex)),
+		})
+	}
+
 	// increase pending balance from any lightning balances for channels that were closed
 	for _, balance := range balances.PendingBalancesFromChannelClosures {
 		switch pendingType := (balance).(type) {
 		case ldk_node.PendingSweepBalancePendingBroadcast:
-			pendingBalancesFromChannelClosures += pendingType.AmountSatoshis
+			increasePendingBalanceFromClosure(pendingType.CounterpartyNodeId, pendingType.ChannelId, pendingType.AmountSatoshis, pendingType.FundingTxId, pendingType.FundingTxIndex)
 		case ldk_node.PendingSweepBalanceBroadcastAwaitingConfirmation:
-			pendingBalancesFromChannelClosures += pendingType.AmountSatoshis
+			increasePendingBalanceFromClosure(pendingType.CounterpartyNodeId, pendingType.ChannelId, pendingType.AmountSatoshis, pendingType.FundingTxId, pendingType.FundingTxIndex)
 		case ldk_node.PendingSweepBalanceAwaitingThresholdConfirmations:
-			pendingBalancesFromChannelClosures += pendingType.AmountSatoshis
+			increasePendingBalanceFromClosure(pendingType.CounterpartyNodeId, pendingType.ChannelId, pendingType.AmountSatoshis, pendingType.FundingTxId, pendingType.FundingTxIndex)
 		}
 	}
 
@@ -1089,6 +1101,7 @@ func (ls *LDKService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainB
 		Reserved:                           int64(balances.TotalAnchorChannelsReserveSats),
 		PendingBalancesFromChannelClosures: pendingBalancesFromChannelClosures,
 		PendingBalancesDetails:             pendingBalancesDetails,
+		PendingSweepBalancesDetails:        pendingSweepBalanceDetails,
 		InternalBalances: map[string]interface{}{
 			"internal_lightning_balances": internalLightningBalances,
 			"all_balances":                balances,
