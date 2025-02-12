@@ -115,21 +115,22 @@ func (svc *service) startNostr(ctx context.Context) error {
 				return
 			}
 			if legacyAppCount > 0 {
-				// re-publish single NIP47 event info for legacy apps
-				_, err := svc.GetNip47Service().PublishNip47Info(ctx, relay, svc.keys.GetNostrPublicKey(), svc.keys.GetNostrSecretKey(), svc.lnClient)
-				if err != nil {
-					logger.Logger.WithError(err).Error("Could not publish NIP47 info for legacy apps")
-					continue
-				}
-				logger.Logger.WithField("legacy_app_count", legacyAppCount).Info("Starting legacy app subscription")
-				// legacy single wallet subscription - only subscribe once for all legacy apps
-				// to ensure we do not get duplicate events
-				err = svc.startAppWalletSubscription(ctx, relay, svc.keys.GetNostrPublicKey())
-				if err != nil && !errors.Is(err, context.Canceled) {
-					// err being non-nil means that we have an error on the websocket error channel. In this case we just try to reconnect.
-					logger.Logger.WithError(err).Error("Got an error from the relay while listening to subscription.")
-					continue
-				}
+				go func() {
+					// re-publish single NIP47 event info for legacy apps
+					_, err := svc.GetNip47Service().PublishNip47Info(ctx, relay, svc.keys.GetNostrPublicKey(), svc.keys.GetNostrSecretKey(), svc.lnClient)
+					if err != nil {
+						logger.Logger.WithError(err).Error("Could not publish NIP47 info for legacy apps")
+						return
+					}
+					logger.Logger.WithField("legacy_app_count", legacyAppCount).Info("Starting legacy app subscription")
+					// legacy single wallet subscription - only subscribe once for all legacy apps
+					// to ensure we do not get duplicate events
+					err = svc.startAppWalletSubscription(ctx, relay, svc.keys.GetNostrPublicKey())
+					if err != nil && !errors.Is(err, context.Canceled) {
+						// err being non-nil means that we have an error on the websocket error channel. In this case we just try to reconnect.
+						logger.Logger.WithError(err).Error("Got an error from the relay while listening to legacy subscription.")
+					}
+				}()
 			}
 
 			svc.setRelayReady(true)
