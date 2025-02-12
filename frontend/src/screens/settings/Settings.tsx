@@ -28,7 +28,7 @@ function Settings() {
   const { data: info } = useInfo();
 
   const [selectedCurrency, setSelectedCurrency] = useState<string | undefined>(
-    info?.currency
+    info?.currency.toUpperCase()
   );
 
   useEffect(() => {
