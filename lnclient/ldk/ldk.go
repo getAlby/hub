@@ -50,6 +50,7 @@ type LDKService struct {
 }
 
 const resetRouterKey = "ResetRouter"
+const maxInvoiceExpiry = 86400 // 1 day
 
 func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events.EventPublisher, mnemonic, workDir string, network string, vssToken string) (result lnclient.LNClient, err error) {
 	if mnemonic == "" || workDir == "" {
@@ -382,6 +383,9 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 					"status":   node.Status(),
 					"duration": math.Ceil(time.Since(syncStartTime).Seconds()),
 				}).Info("LDK node synced successfully")
+
+				// delete old payments while node is not syncing
+				ls.deleteOldLDKPayments()
 			}
 		}
 	}()
@@ -648,6 +652,10 @@ func (ls *LDKService) getMaxSpendable() uint64 {
 }
 
 func (ls *LDKService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *lnclient.Transaction, err error) {
+
+	if expiry > maxInvoiceExpiry {
+		return nil, errors.New("Expiry is too long")
+	}
 
 	maxReceivable := ls.getMaxReceivable()
 
@@ -1629,6 +1637,22 @@ func (ls *LDKService) GetStorageDir() (string, error) {
 	// cfg := ls.node.Config()
 	// return cfg.StorageDirPath, nil
 	return "ldk/storage", nil
+}
+
+func (ls *LDKService) deleteOldLDKPayments() {
+	payments := ls.node.ListPayments()
+
+	now := time.Now()
+	for _, payment := range payments {
+		paymentCreatedAt := time.Unix(int64(payment.CreatedAt), 0)
+		if paymentCreatedAt.Add(maxInvoiceExpiry * time.Second).Before(now) {
+			logger.Logger.WithField("created_at", paymentCreatedAt).Debug("Deleting old payment")
+			err := ls.node.RemovePayment(payment.Id)
+			if err != nil {
+				logger.Logger.WithError(err).WithField("id", payment.Id).Error("failed to delete old payment")
+			}
+		}
+	}
 }
 
 func deleteOldLDKLogs(ldkLogDir string) {
