@@ -38,7 +38,7 @@ func (svc *nip47Service) GetNip47Info(ctx context.Context, relay *nostr.Relay, a
 func (svc *nip47Service) PublishNip47Info(ctx context.Context, relay nostrmodels.Relay, appWalletPubKey string, appWalletPrivKey string, lnClient lnclient.LNClient) (*nostr.Event, error) {
 	var capabilities []string
 	var permitsNotifications bool
-	tags := nostr.Tags{[]string{"v", cipher.SUPPORTED_VERSIONS}}
+	tags := nostr.Tags{[]string{"encryption", cipher.SUPPORTED_ENCRYPTIONS}}
 	if svc.keys.GetNostrPublicKey() == appWalletPubKey {
 		// legacy app, so return lnClient.GetSupportedNIP47Methods()
 		capabilities = lnClient.GetSupportedNIP47Methods()

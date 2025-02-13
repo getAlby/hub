@@ -8,26 +8,26 @@ import (
 )
 
 const (
-	SUPPORTED_VERSIONS = "1.0 0.0"
+	SUPPORTED_ENCRYPTIONS = "nip44_v2 nip04"
 )
 
 type Nip47Cipher struct {
-	version         string
+	encryption      string
 	pubkey          string
 	privkey         string
 	sharedSecret    []byte
 	conversationKey [32]byte
 }
 
-func NewNip47Cipher(version, pubkey, privkey string) (*Nip47Cipher, error) {
-	_, err := isVersionSupported(version)
+func NewNip47Cipher(encryption, pubkey, privkey string) (*Nip47Cipher, error) {
+	_, err := isEncryptionSupported(encryption)
 	if err != nil {
 		return nil, err
 	}
 
 	var ss []byte
 	var ck [32]byte
-	if version == "0.0" {
+	if encryption == "nip04" {
 		ss, err = nip04.ComputeSharedSecret(pubkey, privkey)
 		if err != nil {
 			return nil, err
@@ -40,7 +40,7 @@ func NewNip47Cipher(version, pubkey, privkey string) (*Nip47Cipher, error) {
 	}
 
 	return &Nip47Cipher{
-		version:         version,
+		encryption:      encryption,
 		pubkey:          pubkey,
 		privkey:         privkey,
 		sharedSecret:    ss,
@@ -49,7 +49,7 @@ func NewNip47Cipher(version, pubkey, privkey string) (*Nip47Cipher, error) {
 }
 
 func (c *Nip47Cipher) Encrypt(message string) (msg string, err error) {
-	if c.version == "0.0" {
+	if c.encryption == "nip04" {
 		msg, err = nip04.Encrypt(message, c.sharedSecret)
 		if err != nil {
 			return "", err
@@ -64,7 +64,7 @@ func (c *Nip47Cipher) Encrypt(message string) (msg string, err error) {
 }
 
 func (c *Nip47Cipher) Decrypt(content string) (payload string, err error) {
-	if c.version == "0.0" {
+	if c.encryption == "nip04" {
 		payload, err = nip04.Decrypt(content, c.sharedSecret)
 		if err != nil {
 			return "", err
@@ -78,10 +78,10 @@ func (c *Nip47Cipher) Decrypt(content string) (payload string, err error) {
 	return payload, nil
 }
 
-func isVersionSupported(version string) (bool, error) {
-	if version == "1.0" || version == "0.0" {
+func isEncryptionSupported(encryption string) (bool, error) {
+	if encryption == "nip44_v2" || encryption == "nip04" {
 		return true, nil
 	}
 
-	return false, fmt.Errorf("invalid version: %s", version)
+	return false, fmt.Errorf("invalid encryption: %s", encryption)
 }
