@@ -151,6 +151,7 @@ export interface InfoResponse {
   version: string;
   unlocked: boolean;
   enableAdvancedSetup: boolean;
+  startupState: string;
   startupError: string;
   startupErrorTime: string;
   autoUnlockPasswordSupported: boolean;

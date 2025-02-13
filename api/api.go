@@ -718,6 +718,7 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	autoUnlockPassword, _ := api.cfg.Get("AutoUnlockPassword", "")
 	info.SetupCompleted = api.cfg.SetupCompleted()
 	info.Currency = api.cfg.GetCurrency()
+	info.StartupState = api.svc.GetStartupState()
 	if api.startupError != nil {
 		info.StartupError = api.startupError.Error()
 		info.StartupErrorTime = api.startupErrorTime

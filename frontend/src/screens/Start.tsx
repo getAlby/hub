@@ -12,25 +12,24 @@ import { AuthTokenResponse } from "src/types";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 
-const messages: string[] = [
-  "Unlocking",
-  "Starting the wallet",
-  "Connecting to the network",
-  "Syncing",
-  "Still syncing, please wait...",
-];
-
 export default function Start() {
   const [unlockPassword, setUnlockPassword] = React.useState("");
   const [loading, setLoading] = React.useState(false);
-  const [buttonText, setButtonText] = React.useState("Login");
+  const [buttonText, setButtonText] = React.useState("Start");
 
   const { data: info } = useInfo(true); // poll the info endpoint to auto-redirect when app is running
 
   const { toast } = useToast();
 
+  const startupState = info?.startupState;
   const startupError = info?.startupError;
   const startupErrorTime = info?.startupErrorTime;
+
+  React.useEffect(() => {
+    if (startupState) {
+      setButtonText(startupState);
+    }
+  }, [startupState]);
 
   React.useEffect(() => {
     if (startupError && startupErrorTime) {
@@ -45,45 +44,11 @@ export default function Start() {
     }
   }, [startupError, toast, startupErrorTime]);
 
-  React.useEffect(() => {
-    if (!loading) {
-      return;
-    }
-    let messageIndex = 1;
-    const intervalId = setInterval(() => {
-      if (messageIndex < messages.length) {
-        setButtonText(messages[messageIndex]);
-        messageIndex++;
-      } else {
-        clearInterval(intervalId);
-      }
-    }, 5000);
-
-    const timeoutId = setTimeout(() => {
-      // if redirection didn't happen in 3 minutes info.running is false
-      toast({
-        title: "Failed to start",
-        description: "Please try starting the node again.",
-        variant: "destructive",
-      });
-
-      setLoading(false);
-      setButtonText("Login");
-      setUnlockPassword("");
-      return;
-    }, 60000); // wait for 60 seconds
-
-    return () => {
-      clearInterval(intervalId);
-      clearTimeout(timeoutId);
-    };
-  }, [loading, toast]);
-
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     try {
       setLoading(true);
-      setButtonText(messages[0]);
+      setButtonText("Please wait...");
 
       const authTokenResponse = await request<AuthTokenResponse>("/api/start", {
         method: "POST",
@@ -100,7 +65,7 @@ export default function Start() {
     } catch (error) {
       handleRequestError(toast, "Failed to connect", error);
       setLoading(false);
-      setButtonText("Login");
+      setButtonText("Start");
       setUnlockPassword("");
     }
   }
@@ -129,6 +94,11 @@ export default function Start() {
               <LoadingButton type="submit" loading={loading}>
                 {buttonText}
               </LoadingButton>
+              {loading && (
+                <p className="text-muted-foreground text-xs text-center">
+                  Starting Alby Hub may take a few minutes.
+                </p>
+              )}
             </div>
           </form>
         </div>
