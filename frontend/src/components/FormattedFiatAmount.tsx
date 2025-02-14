@@ -1,6 +1,6 @@
-import clsx from "clsx";
 import { useBitcoinRate } from "src/hooks/useBitcoinRate";
 import { useInfo } from "src/hooks/useInfo";
+import { cn } from "src/lib/utils";
 
 type FormattedFiatAmountProps = {
   amount: number;
@@ -25,7 +25,7 @@ export default function FormattedFiatAmount({
   }
 
   return (
-    <div className={clsx("text-sm text-muted-foreground", className)}>
+    <div className={cn("text-sm text-muted-foreground", className)}>
       {new Intl.NumberFormat("en-US", {
         style: "currency",
         currency: info?.currency || "usd",
