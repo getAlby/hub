@@ -7,12 +7,12 @@ toolchain go1.23.3
 require (
 	github.com/adrg/xdg v0.5.3
 	github.com/breez/breez-sdk-go v0.5.2
-	github.com/elnosh/gonuts v0.3.1-0.20250117175124-50859aadb51a
+	github.com/elnosh/gonuts v0.3.1-0.20250123162555-7c0381a585e3
 	github.com/getAlby/glalby-go v0.0.0-20240621192717-95673c864d59
 	github.com/getAlby/ldk-node-go v0.0.0-20250212151221-c0e4ece4712d
 	github.com/go-gormigrate/gormigrate/v2 v2.1.3
 	github.com/labstack/echo/v4 v4.13.3
-	github.com/nbd-wtf/go-nostr v0.48.4
+	github.com/nbd-wtf/go-nostr v0.49.7
 	github.com/nbd-wtf/ln-decodepay v1.13.0
 	github.com/orandin/lumberjackrus v1.0.1
 	github.com/peterldowns/pgtestdb v0.1.1
