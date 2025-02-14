@@ -73,7 +73,7 @@ function TransactionItem({ tx }: Props) {
           tx.state === "failed"
             ? "bg-red-100 dark:bg-rose-950"
             : tx.state === "pending"
-              ? "bg-blue-500 dark:bg-sky-500"
+              ? "bg-blue-100 dark:bg-sky-950"
               : type === "outgoing"
                 ? "bg-orange-100 dark:bg-amber-950"
                 : "bg-green-100 dark:bg-emerald-950"
