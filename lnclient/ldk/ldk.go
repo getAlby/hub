@@ -52,10 +52,12 @@ type LDKService struct {
 const resetRouterKey = "ResetRouter"
 const maxInvoiceExpiry = 24 * time.Hour
 
-func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events.EventPublisher, mnemonic, workDir string, network string, vssToken string) (result lnclient.LNClient, err error) {
+func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events.EventPublisher, mnemonic, workDir string, network string, vssToken string, setStartupState func(startupState string)) (result lnclient.LNClient, err error) {
 	if mnemonic == "" || workDir == "" {
 		return nil, errors.New("one or more required LDK configuration are missing")
 	}
+
+	setStartupState("Configuring node")
 
 	// create dir if not exists
 	newpath := filepath.Join(workDir)
@@ -153,6 +155,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		"vss_enabled":         vssToken != "",
 		"listening_addresses": listeningAddresses,
 	}).Info("Creating LDK node")
+	setStartupState("Loading node data...")
 	var node *ldk_node.Node
 	if vssToken != "" {
 		node, err = builder.BuildWithVssStoreAndFixedHeaders(cfg.GetEnv().LDKVssUrl, "albyhub", map[string]string{
@@ -228,6 +231,8 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		"nodeId": nodeId,
 	}).Info("Starting LDK node...")
 
+	setStartupState("Starting node...")
+
 	err = node.Start()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to start LDK node")
@@ -239,6 +244,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		"status": node.Status(),
 	}).Info("Started LDK node. Syncing wallet...")
 
+	setStartupState("Syncing node...")
 	syncStartTime := time.Now()
 	err = node.SyncWallets()
 	if err != nil {

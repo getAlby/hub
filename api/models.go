@@ -181,6 +181,7 @@ type InfoResponse struct {
 	EnableAdvancedSetup         bool      `json:"enableAdvancedSetup"`
 	LdkVssEnabled               bool      `json:"ldkVssEnabled"`
 	VssSupported                bool      `json:"vssSupported"`
+	StartupState                string    `json:"startupState"`
 	StartupError                string    `json:"startupError"`
 	StartupErrorTime            time.Time `json:"startupErrorTime"`
 	AutoUnlockPasswordSupported bool      `json:"autoUnlockPasswordSupported"`
