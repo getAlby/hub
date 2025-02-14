@@ -1,12 +1,9 @@
 import { InfoCircledIcon } from "@radix-ui/react-icons";
-import { AlertTriangleIcon, ExternalLinkIcon } from "lucide-react";
+import { TriangleAlertIcon } from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import Container from "src/components/Container";
-import ExternalLink from "src/components/ExternalLink";
 import SettingsHeader from "src/components/SettingsHeader";
-import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button, LinkButton } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
@@ -80,57 +77,57 @@ export function BackupNode() {
   return (
     <>
       <SettingsHeader
-        title="Migrate Your Node"
-        description="Your Alby Hub will be stopped and you will receive a backup file you can import on another host or machine."
+        title="Migrate Alby Hub"
+        description="Create backup file in order to migrate your Alby Hub onto another device or server."
       />
-      <Alert>
-        <AlertTriangleIcon className="h-4 w-4" />
-        <AlertTitle>Do not run your node on multiple devices</AlertTitle>
-        <AlertDescription>
-          Your node maintains channel state with your channel partners. After
-          you create this backup, do not restart Alby Hub on this device.
-        </AlertDescription>
-      </Alert>
-      <Alert>
-        <AlertTriangleIcon className="h-4 w-4" />
-        <AlertTitle>Migration requires a fresh Alby Hub</AlertTitle>
-        <AlertDescription>
-          To import the migration file, you must have a brand new Alby Hub on
-          another device and use the "Advanced" option in the onboarding.
-        </AlertDescription>
-      </Alert>
-      <Alert>
-        <InfoCircledIcon className="h-4 w-4" />
-        <AlertTitle>What Happens Next</AlertTitle>
-        <AlertDescription>
-          You'll need to enter your unlock password to encrypt and download a
-          backup of your Alby Hub data. After your encrypted backup is
-          downloaded, we'll give you instructions on how to import the backup
-          file on another host or machine. Your unlock password will be needed
-          again to restore your backup.
-        </AlertDescription>
-      </Alert>
-      <div className="mb-5">
-        <ExternalLink
-          className="underline flex items-center"
-          to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/how-can-i-migrate-alby-hub-to-a-different-machine"
-        >
-          Learn more about migrating your node
-          <ExternalLinkIcon className="w-4 h-4 ml-2" />
-        </ExternalLink>
+
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-1">
+          <div className="flex gap-3 items-center">
+            <TriangleAlertIcon className="w-4 h-4" />
+            <h3>Do not run your Alby Hub on multiple devices</h3>
+          </div>
+          <p className="text-sm ml-7">
+            After creating this backup file, do not restart Alby Hub on this
+            device, as this will cause problems and may cause force channel
+            closures.
+          </p>
+        </div>
+        <div className="flex flex-col gap-1">
+          <div className="flex gap-3 items-center">
+            <TriangleAlertIcon className="w-4 h-4" />
+            <h3>Migrate this file only to fresh Alby Hub</h3>
+          </div>
+          <p className="text-sm ml-7">
+            To import the migration file, you must have a brand new Alby Hub on
+            another device and use the “Advanced” option during the onboarding.
+          </p>
+        </div>
+        <div className="flex flex-col gap-1">
+          <div className="flex gap-3 items-center">
+            <InfoCircledIcon className="w-4 h-4" />
+            <h3>What happens next?</h3>
+          </div>
+          <p className="text-sm ml-7">
+            After typing your unlock password, you’ll be able to to download a
+            backup of your Alby Hub data. Then you’ll see instructions on how to
+            import the backup file into another device or server.
+          </p>
+        </div>
       </div>
+
       {showPasswordScreen ? (
-        <Container>
-          <h1 className="text-xl font-medium">Enter unlock password</h1>
-          <p className="text-center text-md text-muted-foreground mb-14">
+        <div>
+          <h1 className="font-medium mb-1">Enter unlock password</h1>
+          <p className="text-muted-foreground mb-4">
             Your unlock password will be used to encrypt your backup
           </p>
           <form
             onSubmit={onSubmitPassword}
-            className="w-full flex flex-col gap-3"
+            className="w-full md:w-96 flex flex-col gap-6"
           >
             <>
-              <div className="grid gap-1.5">
+              <div className="grid gap-2">
                 <Label htmlFor="password">Password</Label>
                 <Input
                   type="password"
@@ -140,28 +137,21 @@ export function BackupNode() {
                   placeholder="Password"
                 />
               </div>
-              <LoadingButton loading={loading}>Continue</LoadingButton>
             </>
+            <LoadingButton loading={loading}>Continue</LoadingButton>
           </form>
-        </Container>
+        </div>
       ) : (
-        <div className="flex flex-col gap-5 items-center justify-center">
+        <div className="flex gap-4">
           <Button
             type="submit"
             disabled={loading}
-            size="lg"
-            className="w-full"
             onClick={() => setShowPasswordScreen(true)}
           >
-            Create Backup To Migrate Node
+            Create Backup to Migrate Alby Hub
           </Button>
-          <p className="text-muted-foreground">or</p>
-          <LinkButton
-            to="/settings/backup"
-            variant="secondary"
-            size="lg"
-            className="w-full"
-          >
+
+          <LinkButton to="/settings/backup" variant={"secondary"}>
             Backup Without Migrating Node
           </LinkButton>
         </div>
