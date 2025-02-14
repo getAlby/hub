@@ -98,6 +98,14 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 
 	if encryptionTag != nil && encryptionTag.Value() != "" {
 		encryption = encryptionTag.Value()
+	} else {
+		vTag := event.Tags.GetFirst([]string{"v"})
+		if vTag != nil && vTag.Value() != "" {
+			version := vTag.Value()
+			if version == "1.0" {
+				encryption = "nip44_v2"
+			}
+		}
 	}
 
 	nip47Cipher, err := cipher.NewNip47Cipher(encryption, app.AppPubkey, appWalletPrivKey)

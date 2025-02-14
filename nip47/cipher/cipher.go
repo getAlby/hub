@@ -8,6 +8,7 @@ import (
 )
 
 const (
+	SUPPORTED_VERSIONS    = "0.0 1.0"
 	SUPPORTED_ENCRYPTIONS = "nip44_v2 nip04"
 )
 
