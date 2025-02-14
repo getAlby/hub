@@ -38,9 +38,11 @@ function Settings() {
           ([code, details]) => [code.toUpperCase(), details.name]
         );
 
-        mappedCurrencies.sort((a, b) => a[1].localeCompare(b[1]));
+        const filteredCurrencies = mappedCurrencies
+          .sort((a, b) => a[1].localeCompare(b[1]))
+          .filter((a) => a[0] !== "SATS");
 
-        setFiatCurrencies(mappedCurrencies);
+        setFiatCurrencies(filteredCurrencies);
       } catch (error) {
         console.error(error);
         handleRequestError(toast, "Failed to fetch currencies", error);
