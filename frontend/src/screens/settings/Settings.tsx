@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Loading from "src/components/Loading";
 import SettingsHeader from "src/components/SettingsHeader";
 import { Label } from "src/components/ui/label";
 import {
@@ -25,17 +26,7 @@ function Settings() {
 
   const [fiatCurrencies, setFiatCurrencies] = useState<[string, string][]>([]);
 
-  const { data: info } = useInfo();
-
-  const [selectedCurrency, setSelectedCurrency] = useState<string | undefined>(
-    info?.currency
-  );
-
-  useEffect(() => {
-    if (info?.currency) {
-      setSelectedCurrency(info.currency);
-    }
-  }, [info]);
+  const { data: info, mutate: reloadInfo } = useInfo();
 
   useEffect(() => {
     async function fetchCurrencies() {
@@ -68,10 +59,16 @@ function Settings() {
         },
         body: JSON.stringify({ currency }),
       });
+      await reloadInfo();
+      toast({ title: `Currency set to ${currency}` });
     } catch (error) {
       console.error(error);
       handleRequestError(toast, "Failed to update currencies", error);
     }
+  }
+
+  if (!info) {
+    return <Loading />;
   }
 
   return (
@@ -120,14 +117,7 @@ function Settings() {
         </div>
         <div className="grid gap-1.5">
           <Label htmlFor="currency">Fiat Currency</Label>
-          <Select
-            value={selectedCurrency}
-            onValueChange={async (value) => {
-              setSelectedCurrency(value);
-              await updateCurrency(value);
-              toast({ title: `Currency set to ${value}` });
-            }}
-          >
+          <Select value={info?.currency} onValueChange={updateCurrency}>
             <SelectTrigger className="w-[250px] border border-gray-300 p-2 rounded-md">
               <SelectValue placeholder="Select a currency" />
             </SelectTrigger>
