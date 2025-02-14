@@ -531,12 +531,12 @@ export default function Channels() {
           </CardContent>
         </Card>
         <Card className="flex flex-1 flex-col">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-2xl font-semibold">On-Chain</CardTitle>
             <LinkIcon className="h-6 w-6 text-muted-foreground" />
           </CardHeader>
           <CardContent className="flex-grow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pl-0">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 pl-0">
               <CardTitle className="text-sm font-medium">
                 <TooltipProvider>
                   <Tooltip>
@@ -564,11 +564,11 @@ export default function Channels() {
                 </div>
               </div>
             )}
-            <div className="text-2xl balance sensitive">
+            <div>
               {balances && (
                 <>
-                  <div className="balance sensitive mb-1">
-                    <span className="text-xl font-medium">
+                  <div className="mb-1">
+                    <span className="text-xl font-medium balance sensitive mb-1">
                       {new Intl.NumberFormat().format(
                         Math.floor(balances.onchain.spendable)
                       )}{" "}
