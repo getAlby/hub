@@ -14,6 +14,10 @@ export default function FormattedFiatAmount({
   const { data: info } = useInfo();
   const { data: bitcoinRate } = useBitcoinRate();
 
+  if (info?.currency === "SATS") {
+    return null;
+  }
+
   if (!bitcoinRate) {
     return (
       <div className="animate-pulse h-2.5 bg-muted-foreground rounded-full w-16 my-1 inline-block"></div>
