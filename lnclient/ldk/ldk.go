@@ -50,7 +50,7 @@ type LDKService struct {
 }
 
 const resetRouterKey = "ResetRouter"
-const maxInvoiceExpiry = 86400 // 1 day
+const maxInvoiceExpiry = 24 * time.Hour
 
 func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events.EventPublisher, mnemonic, workDir string, network string, vssToken string) (result lnclient.LNClient, err error) {
 	if mnemonic == "" || workDir == "" {
@@ -653,7 +653,7 @@ func (ls *LDKService) getMaxSpendable() uint64 {
 
 func (ls *LDKService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *lnclient.Transaction, err error) {
 
-	if expiry > maxInvoiceExpiry {
+	if time.Duration(expiry)*time.Second > maxInvoiceExpiry {
 		return nil, errors.New("Expiry is too long")
 	}
 
@@ -1645,8 +1645,11 @@ func (ls *LDKService) deleteOldLDKPayments() {
 	now := time.Now()
 	for _, payment := range payments {
 		paymentCreatedAt := time.Unix(int64(payment.CreatedAt), 0)
-		if paymentCreatedAt.Add(maxInvoiceExpiry * time.Second).Before(now) {
-			logger.Logger.WithField("created_at", paymentCreatedAt).Debug("Deleting old payment")
+		if paymentCreatedAt.Add(maxInvoiceExpiry).Before(now) {
+			logger.Logger.WithFields(logrus.Fields{
+				"created_at": paymentCreatedAt,
+				"payment_id": payment.Id,
+			}).Debug("Deleting old payment")
 			err := ls.node.RemovePayment(payment.Id)
 			if err != nil {
 				logger.Logger.WithError(err).WithField("id", payment.Id).Error("failed to delete old payment")
