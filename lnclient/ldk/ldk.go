@@ -1074,13 +1074,16 @@ func (ls *LDKService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainB
 	pendingSweepBalanceDetails := make([]lnclient.PendingBalanceDetails, 0)
 	increasePendingBalanceFromClosure := func(nodeId, channelId *string, amount uint64, fundingTxId *ldk_node.Txid, fundingTxIndex *uint16) {
 		pendingBalancesFromChannelClosures += amount
-		pendingSweepBalanceDetails = append(pendingSweepBalanceDetails, lnclient.PendingBalanceDetails{
-			NodeId:        utils.UnwrapOrZero(nodeId),
-			ChannelId:     utils.UnwrapOrZero(channelId),
-			Amount:        amount,
-			FundingTxId:   utils.UnwrapOrZero(fundingTxId),
-			FundingTxVout: uint32(utils.UnwrapOrZero(fundingTxIndex)),
-		})
+
+		if nodeId != nil && channelId != nil && fundingTxId != nil && fundingTxIndex != nil {
+			pendingSweepBalanceDetails = append(pendingSweepBalanceDetails, lnclient.PendingBalanceDetails{
+				NodeId:        *nodeId,
+				ChannelId:     *channelId,
+				Amount:        amount,
+				FundingTxId:   *fundingTxId,
+				FundingTxVout: uint32(*fundingTxIndex),
+			})
+		}
 	}
 
 	// increase pending balance from any lightning balances for channels that were closed

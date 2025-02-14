@@ -93,15 +93,3 @@ func ParseCommandLine(s string) ([]string, error) {
 
 	return args, nil
 }
-
-func UnwrapOrDefault[T any](p *T, v T) T {
-	if p == nil {
-		return v
-	}
-	return *p
-}
-
-func UnwrapOrZero[T any](p *T) T {
-	var zero T
-	return UnwrapOrDefault(p, zero)
-}
