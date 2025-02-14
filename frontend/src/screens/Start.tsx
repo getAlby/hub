@@ -39,7 +39,7 @@ export default function Start() {
         variant: "destructive",
       });
       setLoading(false);
-      setButtonText("Login");
+      setButtonText("Start");
       setUnlockPassword("");
     }
   }, [startupError, toast, startupErrorTime]);
@@ -75,7 +75,7 @@ export default function Start() {
       <Container>
         <div className="mx-auto grid gap-5">
           <TwoColumnLayoutHeader
-            title="Login"
+            title="Start"
             description="Enter your password to unlock and start Alby Hub."
           />
           <form onSubmit={onSubmit}>
