@@ -374,7 +374,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 				"route":    route,
 				"method":   method,
 				"body":     body,
-				"currency": "usd",
+				"currency": app.svc.GetConfig().GetCurrency(),
 			}).WithError(err).Error("Failed to get Bitcoin rate")
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}

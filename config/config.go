@@ -289,7 +289,7 @@ func randomHex(n int) (string, error) {
 	return hex.EncodeToString(bytes), nil
 }
 
-const defaultCurrency = "usd"
+const defaultCurrency = "USD"
 
 func (cfg *config) GetCurrency() string {
 	currency, err := cfg.Get("Currency", "")
