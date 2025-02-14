@@ -371,10 +371,9 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		rate, err := app.svc.GetAlbyOAuthSvc().GetBitcoinRate(ctx)
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
-				"route":    route,
-				"method":   method,
-				"body":     body,
-				"currency": app.svc.GetConfig().GetCurrency(),
+				"route":  route,
+				"method": method,
+				"body":   body,
 			}).WithError(err).Error("Failed to get Bitcoin rate")
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
