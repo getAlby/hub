@@ -118,7 +118,8 @@ export function ZapPlanner() {
         throw new Error("Invalid amount");
       }
 
-      const maxAmount = Math.floor(parsedAmount * 1.01) + 10; // with fee reserve
+      // with fee reserve + 30% to avoid nwc_budget_warning (see transactions service)
+      const maxAmount = Math.floor(parsedAmount * 1.3) + 10;
       const isolated = false;
 
       const createAppRequest: CreateAppRequest = {
