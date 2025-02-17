@@ -151,6 +151,7 @@ export interface InfoResponse {
   version: string;
   unlocked: boolean;
   enableAdvancedSetup: boolean;
+  startupState: string;
   startupError: string;
   startupErrorTime: string;
   autoUnlockPasswordSupported: boolean;
@@ -204,6 +205,7 @@ export interface CreateAppResponse {
   pairingSecretKey: string;
   relayUrl: string;
   walletPubkey: string;
+  lud16: string;
   returnTo: string;
 }
 
@@ -292,18 +294,21 @@ export type OpenChannelResponse = {
 // eslint-disable-next-line @typescript-eslint/ban-types
 export type CloseChannelResponse = {};
 
+export type PendingBalancesDetails = {
+  channelId: string;
+  nodeId: string;
+  amount: number;
+  fundingTxId: string;
+  fundingTxVout: number;
+};
+
 export type OnchainBalanceResponse = {
   spendable: number;
   total: number;
   reserved: number;
   pendingBalancesFromChannelClosures: number;
-  pendingBalancesDetails: {
-    channelId: string;
-    nodeId: string;
-    amount: number;
-    fundingTxId: string;
-    fundingTxVout: number;
-  }[];
+  pendingBalancesDetails: PendingBalancesDetails[];
+  pendingSweepBalancesDetails: PendingBalancesDetails[];
 };
 
 // from https://mempool.space/docs/api/rest#get-node-stats

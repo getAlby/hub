@@ -99,6 +99,11 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 
 	relayUrl := api.cfg.GetRelayUrl()
 
+	lightningAddress, err := api.albyOAuthSvc.GetLightningAddress()
+	if err != nil {
+		return nil, err
+	}
+
 	responseBody := &CreateAppResponse{}
 	responseBody.Id = app.ID
 	responseBody.Name = createAppRequest.Name
@@ -106,11 +111,7 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 	responseBody.PairingSecret = pairingSecretKey
 	responseBody.WalletPubkey = *app.WalletPubkey
 	responseBody.RelayUrl = relayUrl
-
-	lightningAddress, err := api.albyOAuthSvc.GetLightningAddress()
-	if err != nil {
-		return nil, err
-	}
+	responseBody.Lud16 = lightningAddress
 
 	if createAppRequest.ReturnTo != "" {
 		returnToUrl, err := url.Parse(createAppRequest.ReturnTo)
@@ -717,6 +718,7 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	autoUnlockPassword, _ := api.cfg.Get("AutoUnlockPassword", "")
 	info.SetupCompleted = api.cfg.SetupCompleted()
 	info.Currency = api.cfg.GetCurrency()
+	info.StartupState = api.svc.GetStartupState()
 	if api.startupError != nil {
 		info.StartupError = api.startupError.Error()
 		info.StartupErrorTime = api.startupErrorTime
@@ -1076,7 +1078,13 @@ func (api *api) Health(ctx context.Context) (*HealthResponse, error) {
 		}
 
 		offlineChannels := slices.DeleteFunc(channels, func(channel lnclient.Channel) bool {
-			return channel.Active
+			if channel.Active {
+				return true
+			}
+			if channel.Confirmations == nil || channel.ConfirmationsRequired == nil {
+				return false
+			}
+			return *channel.Confirmations < *channel.ConfirmationsRequired
 		})
 
 		if len(offlineChannels) > 0 {
