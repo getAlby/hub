@@ -71,6 +71,12 @@ func (cfg *config) init(env *AppConfig) error {
 		if err != nil {
 			return err
 		}
+	} else {
+		// If no LNDCertFile is provided, we create a new one during startup
+		err := cfg.SetUpdate("LNDCertHex", "", "")
+		if err != nil {
+			return err
+		}
 	}
 	if cfg.Env.LNDMacaroonFile != "" {
 		macBytes, err := os.ReadFile(cfg.Env.LNDMacaroonFile)
