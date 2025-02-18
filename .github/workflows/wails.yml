@@ -46,8 +46,10 @@ jobs:
           echo "EXEC_NAME=Alby Hub" >> $GITHUB_ENV
           if [ "${{ matrix.os }}" == "ubuntu-24.04" ]; then
             echo "PACKAGE_NAME=albyhub-Desktop-Linux-Ubuntu-24.04" >> $GITHUB_ENV
+            echo "LIBWEBKIT2GTK=libwebkit2gtk-4.1-dev" >> $GITHUB_ENV
           else
             echo "PACKAGE_NAME=albyhub-Desktop-${{ runner.os }}" >> $GITHUB_ENV
+            echo "LIBWEBKIT2GTK=libwebkit2gtk-4.0-dev" >> $GITHUB_ENV
           fi
 
       - uses: actions/checkout@v4
@@ -79,7 +81,7 @@ jobs:
 
       - name: Install Linux Wails deps
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install libgtk-3-0 libwebkit2gtk-4.0-dev gcc-aarch64-linux-gnu
+        run: sudo apt-get update && sudo apt-get install libgtk-3-0 ${{ env.LIBWEBKIT2GTK }} gcc-aarch64-linux-gnu
         shell: bash
 
       - name: Install macOS Wails deps
