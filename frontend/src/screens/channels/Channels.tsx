@@ -70,6 +70,7 @@ import {
 import { useAlbyBalance } from "src/hooks/useAlbyBalance.ts";
 import { useBalances } from "src/hooks/useBalances.ts";
 import { useChannels } from "src/hooks/useChannels";
+import { useInfo } from "src/hooks/useInfo";
 import { useIsDesktop } from "src/hooks/useMediaQuery.ts";
 import { useNodeConnectionInfo } from "src/hooks/useNodeConnectionInfo.ts";
 import { useOnchainAddress } from "src/hooks/useOnchainAddress";
@@ -82,6 +83,7 @@ import { request } from "src/utils/request";
 
 export default function Channels() {
   useSyncWallet();
+  const { data: info } = useInfo();
   const { data: channels, mutate: reloadChannels } = useChannels();
   const { data: nodeConnectionInfo } = useNodeConnectionInfo();
   const { data: balances, mutate: reloadBalances } = useBalances();
@@ -506,8 +508,18 @@ export default function Channels() {
                         </div>
                       </TooltipTrigger>
                       <TooltipContent className="w-[300px]">
-                        Your spending balance is the funds on your side of your
-                        channels, which you can use to make lightning payments.
+                        Your spending balance is the spendable funds on your
+                        side of your channels, which you can use to make
+                        lightning payments.{" "}
+                        {info?.backendType === "LND" &&
+                          balances &&
+                          `Your total lightning balance is ${new Intl.NumberFormat().format(
+                            Math.floor(balances.lightning.totalBalance / 1000)
+                          )} sats which includes ${new Intl.NumberFormat().format(
+                            Math.floor(
+                              balances.lightning.reservedBalance / 1000
+                            )
+                          )} sats reserved in your channels which cannot be spent.`}
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>

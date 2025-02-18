@@ -425,6 +425,8 @@ export type RedeemOnchainFundsResponse = {
 };
 
 export type LightningBalanceResponse = {
+  totalBalance: number;
+  reservedBalance: number;
   totalSpendable: number;
   totalReceivable: number;
   nextMaxSpendable: number;

@@ -1087,6 +1087,8 @@ func (svc *LNDService) GetBalances(ctx context.Context) (*lnclient.BalancesRespo
 		return nil, err
 	}
 
+	var totalBalance int64 = 0
+	var reservedBalance int64 = 0
 	var totalReceivable int64 = 0
 	var totalSpendable int64 = 0
 	var nextMaxReceivable int64 = 0
@@ -1103,6 +1105,9 @@ func (svc *LNDService) GetBalances(ctx context.Context) (*lnclient.BalancesRespo
 	for _, channel := range resp.Channels {
 		// Unnecessary since ListChannels only returns active channels
 		if channel.Active {
+			channelBalance := channel.LocalBalance * 1000
+			channelReserves := int64(channel.LocalConstraints.ChanReserveSat * 1000)
+
 			channelSpendable := max(channel.LocalBalance*1000-int64(channel.LocalConstraints.ChanReserveSat*1000), 0)
 			channelReceivable := max(channel.RemoteBalance*1000-int64(channel.RemoteConstraints.ChanReserveSat*1000), 0)
 
@@ -1112,6 +1117,9 @@ func (svc *LNDService) GetBalances(ctx context.Context) (*lnclient.BalancesRespo
 
 			nextMaxSpendable = max(nextMaxSpendable, channelConstrainedSpendable)
 			nextMaxReceivable = max(nextMaxReceivable, channelConstrainedReceivable)
+
+			totalBalance += channelBalance
+			reservedBalance += channelReserves
 
 			nextMaxSpendableMPP += channelConstrainedSpendable
 			nextMaxReceivableMPP += channelConstrainedReceivable
@@ -1125,6 +1133,8 @@ func (svc *LNDService) GetBalances(ctx context.Context) (*lnclient.BalancesRespo
 	return &lnclient.BalancesResponse{
 		Onchain: *onchainBalance,
 		Lightning: lnclient.LightningBalanceResponse{
+			TotalBalance:         totalBalance,
+			ReservedBalance:      reservedBalance,
 			TotalSpendable:       totalSpendable,
 			TotalReceivable:      totalReceivable,
 			NextMaxSpendable:     nextMaxSpendable,
