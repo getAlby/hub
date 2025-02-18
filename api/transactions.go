@@ -68,6 +68,7 @@ func (api *api) SendPayment(ctx context.Context, invoice string, amountMsat *uin
 
 func toApiTransaction(transaction *transactions.Transaction) *Transaction {
 
+	updatedAt := transaction.UpdatedAt.Format(time.RFC3339)
 	createdAt := transaction.CreatedAt.Format(time.RFC3339)
 	var settledAt *string
 	var preimage *string
@@ -112,6 +113,7 @@ func toApiTransaction(transaction *transactions.Transaction) *Transaction {
 		Amount:          transaction.AmountMsat,
 		AppId:           transaction.AppId,
 		FeesPaid:        transaction.FeeMsat,
+		UpdatedAt:       updatedAt,
 		CreatedAt:       createdAt,
 		SettledAt:       settledAt,
 		Metadata:        metadata,

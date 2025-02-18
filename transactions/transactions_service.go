@@ -553,10 +553,10 @@ func (svc *transactionsService) ListTransactions(ctx context.Context, from, unti
 	}
 
 	if from > 0 {
-		tx = tx.Where("created_at >= ?", time.Unix(int64(from), 0))
+		tx = tx.Where("updated_at >= ?", time.Unix(int64(from), 0))
 	}
 	if until > 0 {
-		tx = tx.Where("created_at <= ?", time.Unix(int64(until), 0))
+		tx = tx.Where("updated_at <= ?", time.Unix(int64(until), 0))
 	}
 
 	if appId != nil {

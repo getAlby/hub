@@ -449,6 +449,7 @@ export type Transaction = {
   paymentHash: string;
   amount: number;
   feesPaid: number;
+  updatedAt: string;
   createdAt: string;
   settledAt: string | undefined;
   metadata?: {

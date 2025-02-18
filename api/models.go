@@ -248,6 +248,7 @@ type Transaction struct {
 	PaymentHash     string      `json:"paymentHash"`
 	Amount          uint64      `json:"amount"`
 	FeesPaid        uint64      `json:"feesPaid"`
+	UpdatedAt       string      `json:"updatedAt"`
 	CreatedAt       string      `json:"createdAt"`
 	SettledAt       *string     `json:"settledAt"`
 	AppId           *uint       `json:"appId"`
