@@ -30,6 +30,18 @@ func (api *api) CreateBackup(unlockPassword string, w io.Writer) error {
 		return errors.New("invalid unlock password")
 	}
 
+	autoUnlockPassword, err := api.cfg.Get("AutoUnlockPassword", "")
+	if err != nil {
+		return err
+	}
+	if autoUnlockPassword != "" {
+		return errors.New("Please disable auto-unlock before using this feature")
+	}
+
+	if api.db.Dialector.Name() != "sqlite" {
+		return errors.New("Migration with non-sqlite backend is currently not supported")
+	}
+
 	workDir, err := filepath.Abs(api.cfg.GetEnv().Workdir)
 	if err != nil {
 		return fmt.Errorf("failed to get absolute workdir: %w", err)
@@ -54,6 +66,14 @@ func (api *api) CreateBackup(unlockPassword string, w io.Writer) error {
 	}
 	// Stop the app to ensure no new requests are processed.
 	api.svc.StopApp()
+
+	// Remove the OAuth access token from the DB to ensure the user
+	// has to re-auth with the correct OAuth client when they restore the backup
+	err = api.albyOAuthSvc.RemoveOAuthAccessToken()
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to remove oauth access token")
+		return errors.New("failed to remove oauth access token")
+	}
 
 	// Closing the database leaves the service in an inconsistent state,
 	// but that should not be a problem since the app is not expected

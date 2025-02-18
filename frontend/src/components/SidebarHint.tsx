@@ -91,7 +91,9 @@ function SidebarHintCard({
           <CardTitle>{title}</CardTitle>
         </CardHeader>
         <CardContent className="p-4 pt-0">
-          <div className="text-muted-foreground mb-4">{description}</div>
+          <div className="text-muted-foreground mb-4 text-sm">
+            {description}
+          </div>
           <Link to={buttonLink}>
             <Button size="sm" className="w-full">
               {buttonText}

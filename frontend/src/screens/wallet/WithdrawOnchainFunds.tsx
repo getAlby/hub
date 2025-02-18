@@ -198,7 +198,7 @@ export default function WithdrawOnchainFunds() {
                   )}{" "}
                   will be sent minus onchain transaction fees. The exact amount
                   cannot be determined until the payment is made.
-                  {balances.onchain.reserved && (
+                  {balances.onchain.reserved > 0 && (
                     <>
                       {" "}
                       You have channels open and this withdrawal will deplete
@@ -258,20 +258,22 @@ export default function WithdrawOnchainFunds() {
                     Confirm Onchain Transaction
                   </AlertDialogTitle>
                   <AlertDialogDescription>
-                    <p>
-                      Please confirm your payment to{" "}
-                      <span className="font-bold">{onchainAddress}</span>
-                    </p>
-                    <p className="mt-4">
-                      Amount:{" "}
-                      <span className="font-bold slashed-zero">
-                        {sendAll ? (
-                          "entire on-chain balance"
-                        ) : (
-                          <>{new Intl.NumberFormat().format(+amount)} sats</>
-                        )}
-                      </span>
-                    </p>
+                    <div>
+                      <p>Please confirm your payment to</p>
+                      <p className="font-bold max-w-md break-words">
+                        {onchainAddress}
+                      </p>
+                      <p className="mt-4">
+                        Amount:{" "}
+                        <span className="font-bold slashed-zero">
+                          {sendAll ? (
+                            "entire on-chain balance"
+                          ) : (
+                            <>{new Intl.NumberFormat().format(+amount)} sats</>
+                          )}
+                        </span>
+                      </p>
+                    </div>
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

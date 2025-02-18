@@ -55,11 +55,11 @@ func (api *api) ListTransactions(ctx context.Context, appId *uint, limit uint64,
 	}, nil
 }
 
-func (api *api) SendPayment(ctx context.Context, invoice string) (*SendPaymentResponse, error) {
+func (api *api) SendPayment(ctx context.Context, invoice string, amountMsat *uint64) (*SendPaymentResponse, error) {
 	if api.svc.GetLNClient() == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	transaction, err := api.svc.GetTransactionsService().SendPaymentSync(ctx, invoice, nil, api.svc.GetLNClient(), nil, nil)
+	transaction, err := api.svc.GetTransactionsService().SendPaymentSync(ctx, invoice, amountMsat, nil, api.svc.GetLNClient(), nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -116,6 +116,7 @@ func toApiTransaction(transaction *transactions.Transaction) *Transaction {
 		SettledAt:       settledAt,
 		Metadata:        metadata,
 		Boostagram:      boostagram,
+		FailureReason:   transaction.FailureReason,
 	}
 }
 
@@ -124,7 +125,7 @@ func (api *api) TopupIsolatedApp(ctx context.Context, userApp *db.App, amountMsa
 		return errors.New("LNClient not started")
 	}
 	if !userApp.Isolated {
-		return errors.New("app is not isolated")
+		return errors.New("this app is not a sub-wallet")
 	}
 
 	transaction, err := api.svc.GetTransactionsService().MakeInvoice(ctx, amountMsat, "top up", "", 0, nil, api.svc.GetLNClient(), &userApp.ID, nil)
@@ -133,7 +134,7 @@ func (api *api) TopupIsolatedApp(ctx context.Context, userApp *db.App, amountMsa
 		return err
 	}
 
-	_, err = api.svc.GetTransactionsService().SendPaymentSync(ctx, transaction.PaymentRequest, nil, api.svc.GetLNClient(), nil, nil)
+	_, err = api.svc.GetTransactionsService().SendPaymentSync(ctx, transaction.PaymentRequest, nil, nil, api.svc.GetLNClient(), nil, nil)
 	return err
 }
 

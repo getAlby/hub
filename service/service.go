@@ -2,11 +2,11 @@ package service
 
 import (
 	"context"
-
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
+	"sync/atomic"
 
 	"github.com/adrg/xdg"
 	"github.com/nbd-wtf/go-nostr"
@@ -42,6 +42,8 @@ type service struct {
 	nip47Service        nip47.Nip47Service
 	appCancelFn         context.CancelFunc
 	keys                keys.Keys
+	isRelayReady        atomic.Bool
+	startupState        string
 }
 
 func NewService(ctx context.Context) (*service, error) {
@@ -63,9 +65,11 @@ func NewService(ctx context.Context) (*service, error) {
 	// make sure workdir exists
 	os.MkdirAll(appConfig.Workdir, os.ModePerm)
 
-	err = logger.AddFileLogger(appConfig.Workdir)
-	if err != nil {
-		return nil, err
+	if appConfig.LogToFile {
+		err = logger.AddFileLogger(appConfig.Workdir)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	err = finishRestoreNode(appConfig.Workdir)
@@ -89,6 +93,18 @@ func NewService(ctx context.Context) (*service, error) {
 	}
 
 	cfg, err := config.NewConfig(appConfig, gormDB)
+	if err != nil {
+		return nil, err
+	}
+
+	// write auto unlock password from env to user config
+	if appConfig.AutoUnlockPassword != "" {
+		err = cfg.SetUpdate("AutoUnlockPassword", appConfig.AutoUnlockPassword, "")
+		if err != nil {
+			return nil, err
+		}
+	}
+	autoUnlockPassword, err := cfg.Get("AutoUnlockPassword", "")
 	if err != nil {
 		return nil, err
 	}
@@ -129,10 +145,10 @@ func NewService(ctx context.Context) (*service, error) {
 		startDataDogProfiler(ctx)
 	}
 
-	if appConfig.AutoUnlockPassword != "" {
+	if autoUnlockPassword != "" {
 		nodeLastStartTime, _ := cfg.Get("NodeLastStartTime", "")
 		if nodeLastStartTime != "" {
-			svc.StartApp(appConfig.AutoUnlockPassword)
+			svc.StartApp(autoUnlockPassword)
 		}
 	}
 
@@ -234,4 +250,16 @@ func (svc *service) GetTransactionsService() transactions.TransactionsService {
 
 func (svc *service) GetKeys() keys.Keys {
 	return svc.keys
+}
+
+func (svc *service) setRelayReady(ready bool) {
+	svc.isRelayReady.Store(ready)
+}
+
+func (svc *service) IsRelayReady() bool {
+	return svc.isRelayReady.Load()
+}
+
+func (svc *service) GetStartupState() string {
+	return svc.startupState
 }

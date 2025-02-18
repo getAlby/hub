@@ -19,6 +19,7 @@ import Start from "src/screens/Start";
 import Unlock from "src/screens/Unlock";
 import { Welcome } from "src/screens/Welcome";
 import AlbyAuthRedirect from "src/screens/alby/AlbyAuthRedirect";
+import SupportAlby from "src/screens/alby/SupportAlby";
 import AppCreated from "src/screens/apps/AppCreated";
 import AppList from "src/screens/apps/AppList";
 import NewApp from "src/screens/apps/NewApp";
@@ -36,12 +37,15 @@ import { FirstChannel } from "src/screens/channels/first/FirstChannel";
 import { OpenedFirstChannel } from "src/screens/channels/first/OpenedFirstChannel";
 import { OpeningFirstChannel } from "src/screens/channels/first/OpeningFirstChannel";
 import { BuzzPay } from "src/screens/internal-apps/BuzzPay";
+import { SimpleBoost } from "src/screens/internal-apps/SimpleBoost";
 import { UncleJim } from "src/screens/internal-apps/UncleJim";
+import { ZapPlanner } from "src/screens/internal-apps/ZapPlanner";
 import BuyBitcoin from "src/screens/onchain/BuyBitcoin";
 import DepositBitcoin from "src/screens/onchain/DepositBitcoin";
 import ConnectPeer from "src/screens/peers/ConnectPeer";
 import Peers from "src/screens/peers/Peers";
 import { AlbyAccount } from "src/screens/settings/AlbyAccount";
+import { AutoUnlock } from "src/screens/settings/AutoUnlock";
 import { ChangeUnlockPassword } from "src/screens/settings/ChangeUnlockPassword";
 import DebugTools from "src/screens/settings/DebugTools";
 import DeveloperSettings from "src/screens/settings/DeveloperSettings";
@@ -52,6 +56,7 @@ import { SetupAdvanced } from "src/screens/setup/SetupAdvanced";
 import { SetupFinish } from "src/screens/setup/SetupFinish";
 import { SetupNode } from "src/screens/setup/SetupNode";
 import { SetupPassword } from "src/screens/setup/SetupPassword";
+import { SetupSecurity } from "src/screens/setup/SetupSecurity";
 import { BreezForm } from "src/screens/setup/node/BreezForm";
 import { CashuForm } from "src/screens/setup/node/CashuForm";
 import { GreenlightForm } from "src/screens/setup/node/GreenlightForm";
@@ -68,6 +73,7 @@ import ReceiveInvoice from "src/screens/wallet/receive/ReceiveInvoice";
 import ConfirmPayment from "src/screens/wallet/send/ConfirmPayment";
 import LnurlPay from "src/screens/wallet/send/LnurlPay";
 import PaymentSuccess from "src/screens/wallet/send/PaymentSuccess";
+import ZeroAmount from "src/screens/wallet/send/ZeroAmount";
 
 const routes = [
   {
@@ -129,6 +135,10 @@ const routes = [
                 element: <LnurlPay />,
               },
               {
+                path: "0-amount",
+                element: <ZeroAmount />,
+              },
+              {
                 path: "confirm-payment",
                 element: <ConfirmPayment />,
               },
@@ -162,6 +172,11 @@ const routes = [
               {
                 index: true,
                 element: <Settings />,
+              },
+              {
+                path: "auto-unlock",
+                element: <AutoUnlock />,
+                handle: { crumb: () => "Auto Unlock" },
               },
               {
                 path: "change-unlock-password",
@@ -229,6 +244,14 @@ const routes = [
           {
             path: "buzzpay",
             element: <BuzzPay />,
+          },
+          {
+            path: "simpleboost",
+            element: <SimpleBoost />,
+          },
+          {
+            path: "zapplanner",
+            element: <ZapPlanner />,
           },
         ],
       },
@@ -335,6 +358,10 @@ const routes = [
           },
         ],
       },
+      {
+        path: "support-alby",
+        element: <SupportAlby />,
+      },
     ],
   },
   {
@@ -382,6 +409,10 @@ const routes = [
           {
             path: "password",
             element: <SetupPassword />,
+          },
+          {
+            path: "security",
+            element: <SetupSecurity />,
           },
           {
             path: "node",

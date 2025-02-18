@@ -12,9 +12,10 @@ import (
 	"strings"
 	"time"
 
+	decodepay "github.com/nbd-wtf/ln-decodepay"
+
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
-	decodepay "github.com/nbd-wtf/ln-decodepay"
 
 	"github.com/sirupsen/logrus"
 )
@@ -165,23 +166,12 @@ func (svc *PhoenixService) ListTransactions(ctx context.Context, from, until, li
 	}
 	transactions = []lnclient.Transaction{}
 	for _, invoice := range incomingPayments {
-		var settledAt *int64
-		if invoice.CompletedAt != 0 {
-			settledAtUnix := time.UnixMilli(invoice.CompletedAt).Unix()
-			settledAt = &settledAtUnix
+		transaction, err := phoenixInvoiceToTransaction(&invoice)
+		if err != nil {
+			return nil, err
 		}
-		transaction := lnclient.Transaction{
-			Type:        "incoming",
-			Invoice:     invoice.Invoice,
-			Preimage:    invoice.Preimage,
-			PaymentHash: invoice.PaymentHash,
-			Amount:      invoice.ReceivedSat * 1000,
-			FeesPaid:    invoice.Fees * 1000,
-			CreatedAt:   time.UnixMilli(invoice.CreatedAt).Unix(),
-			Description: invoice.Description,
-			SettledAt:   settledAt,
-		}
-		transactions = append(transactions, transaction)
+
+		transactions = append(transactions, *transaction)
 	}
 
 	// get outgoing payments
@@ -319,31 +309,12 @@ func (svc *PhoenixService) MakeInvoice(ctx context.Context, amount int64, descri
 		return nil, err
 	}
 
-	paymentRequest, err := decodepay.Decodepay(invoiceRes.Serialized)
+	tx, err := svc.LookupInvoice(ctx, invoiceRes.PaymentHash)
 	if err != nil {
-		logger.Logger.WithFields(logrus.Fields{
-			"bolt11": invoiceRes.Serialized,
-		}).Errorf("Failed to decode bolt11 invoice: %v", err)
-
+		logger.Logger.WithError(err).Error("failed to lookup newly created invoice")
 		return nil, err
 	}
 
-	expiresAt := time.UnixMilli(int64(paymentRequest.CreatedAt) * 1000).Add(time.Duration(paymentRequest.Expiry) * time.Second).Unix()
-
-	tx := &lnclient.Transaction{
-		Type:            "incoming",
-		Invoice:         invoiceRes.Serialized,
-		Preimage:        "", // TODO: set preimage to enable self-payments
-		PaymentHash:     invoiceRes.PaymentHash,
-		Amount:          amount,
-		FeesPaid:        0,
-		CreatedAt:       time.Now().Unix(),
-		ExpiresAt:       &expiresAt,
-		SettledAt:       nil,
-		Metadata:        nil,
-		Description:     paymentRequest.Description,
-		DescriptionHash: paymentRequest.DescriptionHash,
-	}
 	return tx, nil
 }
 
@@ -365,40 +336,19 @@ func (svc *PhoenixService) LookupInvoice(ctx context.Context, paymentHash string
 		return nil, err
 	}
 
-	var settledAt *int64
-	if invoiceRes.CompletedAt != 0 {
-		settledAtUnix := time.UnixMilli(invoiceRes.CompletedAt).Unix()
-		settledAt = &settledAtUnix
-	}
-
-	paymentRequest, err := decodepay.Decodepay(invoiceRes.Invoice)
+	transaction, err = phoenixInvoiceToTransaction(&invoiceRes)
 	if err != nil {
-		logger.Logger.WithFields(logrus.Fields{
-			"bolt11": invoiceRes.Invoice,
-		}).Errorf("Failed to decode bolt11 invoice: %v", err)
-
 		return nil, err
 	}
 
-	expiresAt := time.UnixMilli(int64(paymentRequest.CreatedAt) * 1000).Add(time.Duration(paymentRequest.Expiry) * time.Second).Unix()
-
-	transaction = &lnclient.Transaction{
-		Type:            "incoming",
-		Invoice:         invoiceRes.Invoice,
-		Preimage:        invoiceRes.Preimage,
-		PaymentHash:     invoiceRes.PaymentHash,
-		Amount:          invoiceRes.ReceivedSat * 1000,
-		FeesPaid:        invoiceRes.Fees * 1000,
-		CreatedAt:       time.UnixMilli(invoiceRes.CreatedAt).Unix(),
-		Description:     invoiceRes.Description,
-		SettledAt:       settledAt,
-		ExpiresAt:       &expiresAt,
-		DescriptionHash: paymentRequest.DescriptionHash,
-	}
 	return transaction, nil
 }
 
-func (svc *PhoenixService) SendPaymentSync(ctx context.Context, payReq string) (*lnclient.PayInvoiceResponse, error) {
+func (svc *PhoenixService) SendPaymentSync(ctx context.Context, payReq string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
+	// TODO: support 0-amount invoices
+	if amount != nil {
+		return nil, errors.New("0-amount invoices not supported")
+	}
 	form := url.Values{}
 	form.Add("invoice", payReq)
 	req, err := http.NewRequest(http.MethodPost, svc.Address+"/payinvoice", strings.NewReader(form.Encode()))
@@ -503,7 +453,9 @@ func (svc *PhoenixService) GetLogOutput(ctx context.Context, maxLen int) ([]byte
 }
 
 func (svc *PhoenixService) GetNodeStatus(ctx context.Context) (nodeStatus *lnclient.NodeStatus, err error) {
-	return nil, nil
+	return &lnclient.NodeStatus{
+		IsReady: true,
+	}, nil
 }
 
 func (svc *PhoenixService) GetStorageDir() (string, error) {
@@ -534,4 +486,45 @@ func (svc *PhoenixService) GetSupportedNIP47NotificationTypes() []string {
 
 func (svc *PhoenixService) GetPubkey() string {
 	return svc.pubkey
+}
+
+func phoenixInvoiceToTransaction(invoiceRes *InvoiceResponse) (*lnclient.Transaction, error) {
+	var settledAt *int64
+	if invoiceRes.CompletedAt != 0 {
+		settledAtUnix := time.UnixMilli(invoiceRes.CompletedAt).Unix()
+		settledAt = &settledAtUnix
+	}
+
+	paymentRequest, err := decodepay.Decodepay(invoiceRes.Invoice)
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"bolt11": invoiceRes.Invoice,
+		}).Errorf("Failed to decode bolt11 invoice: %v", err)
+
+		return nil, err
+	}
+
+	expiresAt := time.UnixMilli(int64(paymentRequest.CreatedAt) * 1000).Add(time.Duration(paymentRequest.Expiry) * time.Second).Unix()
+
+	return &lnclient.Transaction{
+		Type:            "incoming",
+		Invoice:         invoiceRes.Invoice,
+		Preimage:        invoiceRes.Preimage,
+		PaymentHash:     invoiceRes.PaymentHash,
+		Amount:          paymentRequest.MSatoshi,
+		FeesPaid:        invoiceRes.Fees * 1000,
+		CreatedAt:       time.UnixMilli(invoiceRes.CreatedAt).Unix(),
+		Description:     invoiceRes.Description,
+		SettledAt:       settledAt,
+		ExpiresAt:       &expiresAt,
+		DescriptionHash: paymentRequest.DescriptionHash,
+	}, nil
+}
+
+func (svc *PhoenixService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCommandDef {
+	return nil
+}
+
+func (svc *PhoenixService) ExecuteCustomNodeCommand(ctx context.Context, command *lnclient.CustomNodeCommandRequest) (*lnclient.CustomNodeCommandResponse, error) {
+	return nil, nil
 }

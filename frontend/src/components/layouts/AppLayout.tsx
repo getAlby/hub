@@ -4,11 +4,11 @@ import {
   EllipsisVertical,
   Home,
   LayoutGrid,
+  LifeBuoy,
   Lightbulb,
   Lock,
   Megaphone,
   Menu,
-  MessageCircleQuestion,
   Plug2,
   PlugZapIcon,
   Settings,
@@ -49,11 +49,13 @@ import {
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 
 import { useAlbyInfo } from "src/hooks/useAlbyInfo";
+import { useHealthCheck } from "src/hooks/useHealthCheck";
 import { useInfo } from "src/hooks/useInfo";
 import { useNotifyReceivedPayments } from "src/hooks/useNotifyReceivedPayments";
 import { useRemoveSuccessfulChannelOrder } from "src/hooks/useRemoveSuccessfulChannelOrder";
 import { deleteAuthToken } from "src/lib/auth";
 import { cn } from "src/lib/utils";
+import { HealthAlarm } from "src/types";
 import { isHttpMode } from "src/utils/isHttpMode";
 import { openLink } from "src/utils/openLink";
 import ExternalLink from "../ExternalLink";
@@ -170,14 +172,12 @@ export default function AppLayout() {
         <MenuItem
           to="/"
           onClick={(e) => {
-            openLink(
-              "https://feedback.getalby.com/-alby-hub-request-a-feature"
-            );
+            openLink("https://getalby.com/help");
             e.preventDefault();
           }}
         >
-          <Megaphone className="h-4 w-4" />
-          Feedback
+          <LifeBuoy className="h-4 w-4" />
+          Live Support
         </MenuItem>
         <MenuItem
           to="/"
@@ -189,17 +189,19 @@ export default function AppLayout() {
           }}
         >
           <Lightbulb className="h-4 w-4" />
-          Knowledge Base
+          Guides
         </MenuItem>
         <MenuItem
           to="/"
           onClick={(e) => {
-            openLink("https://getalby.com/help");
+            openLink(
+              "https://feedback.getalby.com/-alby-hub-request-a-feature"
+            );
             e.preventDefault();
           }}
         >
-          <MessageCircleQuestion className="h-4 w-4" />
-          Live Support
+          <Megaphone className="h-4 w-4" />
+          Feedback
         </MenuItem>
         {!albyMe?.hub.name && info?.albyAccountConnected && (
           <MenuItem
@@ -222,7 +224,7 @@ export default function AppLayout() {
       <div className="font-sans min-h-screen w-full flex flex-col">
         <div className="flex-1 h-full md:grid md:grid-cols-[280px_minmax(0,1fr)]">
           <div className="hidden border-r bg-muted/40 md:block">
-            <div className="flex h-full max-h-screen flex-col gap-2 sticky z-10 top-0 overflow-y-auto">
+            <div className="flex h-full max-h-screen flex-col gap-2 fixed w-[280px] z-10 top-0 overflow-y-auto">
               <div className="flex-1">
                 <nav className="grid items-start px-4 py-2 text-sm font-medium">
                   <div className="p-3 flex justify-between items-center mt-2 mb-6">
@@ -230,6 +232,7 @@ export default function AppLayout() {
                       <AlbyHubLogo className="text-foreground" />
                     </Link>
                     <AppVersion />
+                    <HealthIndicator />
                   </div>
                   <MainMenuContent />
                 </nav>
@@ -264,7 +267,7 @@ export default function AppLayout() {
             </div>
           </div>
           <main className="flex flex-col">
-            <header className="md:hidden sticky top-0 z-50 flex h-14 items-center gap-4 border-b bg-muted/40 backdrop-blur px-4 lg:h-[60px] lg:px-6 justify-between">
+            <header className="md:hidden fixed w-full top-0 z-50 flex h-14 items-center gap-4 border-b bg-muted/40 backdrop-blur px-4 lg:h-[60px] lg:px-6 justify-between">
               <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
                 <SheetTrigger asChild>
                   <Button
@@ -285,9 +288,9 @@ export default function AppLayout() {
                       <Link to="/">
                         <AlbyHubLogo className="text-foreground" />
                       </Link>
-                      {/* align shield with x icon */}
-                      <div className="mr-2">
+                      <div className="mr-1 flex gap-2 items-center justify-center">
                         <AppVersion />
+                        <HealthIndicator />
                       </div>
                     </div>
                     <MainMenuContent />
@@ -310,7 +313,7 @@ export default function AppLayout() {
                 </DropdownMenu>
               </Sheet>
             </header>
-            <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-8">
+            <div className="flex flex-1 flex-col gap-4 p-4 mt-14 md:mt-0 lg:gap-6 lg:p-8">
               <Outlet />
             </div>
           </main>
@@ -361,6 +364,65 @@ function AppVersion() {
               <p className="mt-2 max-w-xs whitespace-pre-wrap">
                 {albyInfo.hub.latestReleaseNotes}
               </p>
+            </div>
+          )}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
+
+function HealthIndicator() {
+  const { data: health } = useHealthCheck();
+  if (!health) {
+    return null;
+  }
+
+  const ok = !health.alarms?.length;
+
+  function getAlarmTitle(alarm: HealthAlarm) {
+    // TODO: could show extra data from alarm.rawDetails
+    // for some alarm types
+    switch (alarm.kind) {
+      case "alby_service":
+        return "One or more Alby Services are offline";
+      case "channels_offline":
+        return "One or more channels are offline";
+      case "node_not_ready":
+        return "Node is not ready";
+      case "nostr_relay_offline":
+        return "Could not connect to relay";
+      default:
+        return "Unknown error";
+    }
+  }
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger>
+          <span className="text-xs flex items-center text-muted-foreground">
+            <div
+              className={cn(
+                "w-2 h-2 rounded-full",
+                ok ? "bg-green-300" : "bg-destructive"
+              )}
+            />
+          </span>
+        </TooltipTrigger>
+        <TooltipContent>
+          {ok ? (
+            <p>Alby Hub is running</p>
+          ) : (
+            <div>
+              <p className="font-semibold">
+                {health.alarms.length} issues were found
+              </p>
+              <ul className="mt-2 max-w-xs whitespace-pre-wrap list-disc list-inside">
+                {health.alarms.map((alarm) => (
+                  <li key={alarm.kind}>{getAlarmTitle(alarm)}</li>
+                ))}
+              </ul>
             </div>
           )}
         </TooltipContent>

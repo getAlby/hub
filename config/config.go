@@ -41,7 +41,7 @@ func (cfg *config) init(env *AppConfig) error {
 	cfg.Env = env
 
 	if cfg.Env.Relay != "" {
-		err := cfg.SetIgnore("Relay", cfg.Env.Relay, "")
+		err := cfg.SetUpdate("Relay", cfg.Env.Relay, "")
 		if err != nil {
 			return err
 		}
@@ -248,6 +248,20 @@ func (cfg *config) ChangeUnlockPassword(currentUnlockPassword string, newUnlockP
 	return nil
 }
 
+func (cfg *config) SetAutoUnlockPassword(unlockPassword string) error {
+	if unlockPassword != "" && !cfg.CheckUnlockPassword(unlockPassword) {
+		return errors.New("incorrect password")
+	}
+
+	err := cfg.SetUpdate("AutoUnlockPassword", unlockPassword, "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("failed to update auto unlock password")
+		return err
+	}
+
+	return nil
+}
+
 func (cfg *config) CheckUnlockPassword(encryptionKey string) bool {
 	decryptedValue, err := cfg.Get("UnlockPasswordCheck", encryptionKey)
 
@@ -273,4 +287,27 @@ func randomHex(n int) (string, error) {
 		return "", err
 	}
 	return hex.EncodeToString(bytes), nil
+}
+
+const defaultCurrency = "USD"
+
+func (cfg *config) GetCurrency() string {
+	currency, err := cfg.Get("Currency", "")
+	if err != nil || currency == "" {
+		logger.Logger.WithError(err).Debug("Currency not found, using default")
+		return defaultCurrency
+	}
+	return currency
+}
+
+func (cfg *config) SetCurrency(value string) error {
+	if value == "" {
+		return errors.New("currency value cannot be empty")
+	}
+	err := cfg.SetUpdate("Currency", value, "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to update currency")
+		return err
+	}
+	return nil
 }

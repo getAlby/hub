@@ -103,8 +103,8 @@ func (wrapper *LNDWrapper) PendingChannels(ctx context.Context, req *lnrpc.Pendi
 	return wrapper.client.PendingChannels(ctx, req, options...)
 }
 
-func (wrapper *LNDWrapper) SendPaymentSync(ctx context.Context, req *lnrpc.SendRequest, options ...grpc.CallOption) (*lnrpc.SendResponse, error) {
-	return wrapper.client.SendPaymentSync(ctx, req, options...)
+func (wrapper *LNDWrapper) SendPayment(ctx context.Context, req *routerrpc.SendPaymentRequest, options ...grpc.CallOption) (routerrpc.Router_SendPaymentV2Client, error) {
+	return wrapper.routerClient.SendPaymentV2(ctx, req, options...)
 }
 
 func (wrapper *LNDWrapper) ChannelBalance(ctx context.Context, req *lnrpc.ChannelBalanceRequest, options ...grpc.CallOption) (*lnrpc.ChannelBalanceResponse, error) {
@@ -219,4 +219,8 @@ func (wrapper *LNDWrapper) UpdateChannel(ctx context.Context, req *lnrpc.PolicyU
 
 func (wrapper *LNDWrapper) DisconnectPeer(ctx context.Context, req *lnrpc.DisconnectPeerRequest, options ...grpc.CallOption) (*lnrpc.DisconnectPeerResponse, error) {
 	return wrapper.client.DisconnectPeer(ctx, req, options...)
+}
+
+func (wrapper *LNDWrapper) SubscribeChannelEvents(ctx context.Context, in *lnrpc.ChannelEventSubscription, options ...grpc.CallOption) (lnrpc.Lightning_SubscribeChannelEventsClient, error) {
+	return wrapper.client.SubscribeChannelEvents(ctx, in, options...)
 }

@@ -95,6 +95,16 @@ _If you get a blank screen, try running in your normal terminal (outside of vsco
 
     $ go test ./... -run TestHandleGetInfoEvent
 
+#### Mocking
+
+We use [testify/mock](https://github.com/stretchr/testify) to facilitate mocking in tests. Instead of writing mocks manually, we generate them using [vektra/mockery](https://github.com/vektra/mockery). To regenerate them, [install mockery](https://vektra.github.io/mockery/latest/installation) and run it in the project's root directory:
+
+> Use `go install github.com/vektra/mockery/v2@v2.52.1` as go 1.24.0 is currently not supported by Alby Hub.
+
+    $ mockery
+
+Mockery loads its configuration from the .mockery.yaml file in the root directory of this project. To add mocks for new interfaces, add them to the configuration file and run mockery.
+
 ### Profiling
 
 The application supports both the Go pprof library and the DataDog profiler.
@@ -138,11 +148,23 @@ The following configuration options can be set as environment variables or in a 
 
 - `RELAY`: default: "wss://relay.getalby.com/v1"
 - `JWT_SECRET`: a randomly generated secret string. (only needed in http mode)
-- `DATABASE_URI`: a sqlite filename. Default: $XDG_DATA_HOME/albyhub/nwc.db
+- `DATABASE_URI`: a sqlite filename or postgres URL. Default is SQLite DB `nwc.db` without a path, which will be put in the user home directory: $XDG_DATA_HOME/albyhub/nwc.db
 - `PORT`: the port on which the app should listen on (default: 8080)
 - `WORK_DIR`: directory to store NWC data files. Default: $XDG_DATA_HOME/albyhub
 - `LOG_LEVEL`: log level for the application. Higher is more verbose. Default: 4 (info)
 - `AUTO_UNLOCK_PASSWORD`: provide unlock password to auto-unlock Alby Hub on startup (e.g. after a machine restart). Unlock password still be required to access the interface.
+
+### Migrating the database (Sqlite <-> Postgres)
+
+Migration of the database is currently experimental. Please make a backup before continuing.
+
+#### Migration from Sqlite to Postgres
+
+1. Stop the running hub
+2. Update the `DATABASE_URI` to your destination e.g. `postgresql://myuser:mypass@localhost:5432/nwc`
+3. Run the migration:
+
+   go run cmd/db_migrate/main.go -from .data/nwc.db -to postgresql://myuser:mypass@localhost:5432/nwc
 
 ## Node-specific backend parameters
 
@@ -163,6 +185,7 @@ _To configure via env, the following parameters must be provided:_
 
 - `LDK_ESPLORA_SERVER`: By default the optimized Alby esplora is used. You can configure your own esplora server (note: the public blockstream one is slow and can cause onchain syncing and issues with opening channels)
 - `LDK_VSS_URL`: Use VSS (encrypted remote storage) rather than local sqlite store for lightning and bitcoin data. Currently this feature only works for brand new Alby Hub instances that are connected to Alby Accounts with an active subscription plan.
+- `LDK_LISTENING_ADDRESSES`: configure listening addresses, required for public channels, and ideally reachable if you would like others to be able to initiate peering with your node.
 
 #### LDK Network Configuration
 
@@ -188,7 +211,7 @@ See [Phoenixd](scripts/linux-x86_64/phoenixd/README.md)
 
 Create an OAuth client at the [Alby Developer Portal](https://getalby.com/developer) and set your `ALBY_OAUTH_CLIENT_ID` and `ALBY_OAUTH_CLIENT_SECRET` in your .env. If not running locally, you'll also need to change your `BASE_URL`.
 
-> If running the React app locally, OAuth redirects will not work locally if running the react app you will need to manually change the port to 5173. **Login in Wails mode is not yet supported**
+> If running the React app locally, make sure to set `FRONTEND_URL=http://localhost:5173` so that the OAuth redirect works.
 
 ## Getting Started with Mutinynet
 
@@ -214,13 +237,28 @@ Follow the steps to integrate Mutinynet with your NWC Next setup:
 
 3. After the transaction confirms, the new channel will appear in the Channels section
 
-### Opening a Channel in NWC Next
+### Opening a Channel from Alby Hub
 
 1. From the Channels interface (`/channels`), select "Open a Channel" and opt for "Custom Channel."
 
 2. Enter the pubkey of the Faucet Lightning Node (omit host and port details) available on the [Mutinynet Faucet](https://faucet.mutinynet.com/) page.
 
 3. Specify a channel capacity greater than 25,000 sats, confirm the action, and return to the Channels page to view your newly established channel.
+
+### Running Multiple Hubs Locally
+
+You can run multiple hubs locally to e.g. open channels between the two nodes or test sending payments between them. Currently this will only work with LDK.
+
+You will need two copies of the alby hub repository.
+
+For the second hub, you will need to update your .env with the following changes:
+
+    FRONTEND_URL=http://localhost:5174
+    BASE_URL=http://localhost:8081
+    PORT=8081
+    LDK_LISTENING_ADDRESSES=0.0.0.0:9736,[::]:9736
+
+Then launch the frontend with `VITE_PORT=5174 VITE_API_URL=http://localhost:8081 yarn dev:http`
 
 ## Application deeplink options
 
@@ -358,7 +396,11 @@ For the default backend which runs a node internally we recommend 2GB of RAM + 1
 
 Go to the [Quick start script](https://github.com/getAlby/hub/tree/master/scripts/linux-x86_64) which you can run as a service.
 
-#### Quick start (Arm64 Linux Server or Raspberry PI 4/5)
+#### Quick start (Arm64 Linux Server)
+
+Go to the [Quick start script](https://github.com/getAlby/hub/blob/master/scripts/linux-aarch64) which you can run as a service.
+
+#### Quick start (Raspberry PI 4/5)
 
 Go to the [Quick start script](https://github.com/getAlby/hub/blob/master/scripts/pi-aarch64) which you can run as a service.
 
@@ -418,6 +460,8 @@ LDK logs:
 
 ### Docker
 
+Alby provides container images for each release. Please make sure to use a persistent volume. The lightning state and application state is persisted to disk.
+
 #### From Alby's Container Registry
 
 _Tested on Linux only_
@@ -459,7 +503,7 @@ The LNClient interface abstracts the differences between wallet implementations 
 
 ### Transactions Service
 
-Alby Hub maintains its own database of transactions to enable features like self-payments for isolated app connections (subaccounts), additional metadata (that apps can provide when creating invoices or making keysend payments), and to associate transactions with apps, providing additional context to users about how their wallet is being used across apps.
+Alby Hub maintains its own database of transactions to enable features like self-payments for isolated app connections (sub-wallets), additional metadata (that apps can provide when creating invoices or making keysend payments), and to associate transactions with apps, providing additional context to users about how their wallet is being used across apps.
 
 The transactions service sits between the LNClient and two possible entry points: the NIP-47 handlers, and our internal API which is used by the Alby Hub frontend.
 

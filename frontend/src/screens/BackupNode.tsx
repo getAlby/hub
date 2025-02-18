@@ -1,12 +1,13 @@
 import { InfoCircledIcon } from "@radix-ui/react-icons";
-import { AlertTriangleIcon } from "lucide-react";
+import { AlertTriangleIcon, ExternalLinkIcon } from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import Container from "src/components/Container";
+import ExternalLink from "src/components/ExternalLink";
 import SettingsHeader from "src/components/SettingsHeader";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
-import { Button } from "src/components/ui/button";
+import { Button, LinkButton } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
@@ -44,8 +45,8 @@ export function BackupNode() {
           }),
         });
 
-        if (!response?.ok) {
-          throw new Error(`Error:${response?.statusText}`);
+        if (!response.ok) {
+          throw new Error(await response.text());
         }
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
@@ -91,6 +92,14 @@ export function BackupNode() {
         </AlertDescription>
       </Alert>
       <Alert>
+        <AlertTriangleIcon className="h-4 w-4" />
+        <AlertTitle>Migration requires a fresh Alby Hub</AlertTitle>
+        <AlertDescription>
+          To import the migration file, you must have a brand new Alby Hub on
+          another device and use the "Advanced" option in the onboarding.
+        </AlertDescription>
+      </Alert>
+      <Alert>
         <InfoCircledIcon className="h-4 w-4" />
         <AlertTitle>What Happens Next</AlertTitle>
         <AlertDescription>
@@ -101,6 +110,15 @@ export function BackupNode() {
           again to restore your backup.
         </AlertDescription>
       </Alert>
+      <div className="mb-5">
+        <ExternalLink
+          className="underline flex items-center"
+          to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/how-can-i-migrate-alby-hub-to-a-different-machine"
+        >
+          Learn more about migrating your node
+          <ExternalLinkIcon className="w-4 h-4 ml-2" />
+        </ExternalLink>
+      </div>
       {showPasswordScreen ? (
         <Container>
           <h1 className="text-xl font-medium">Enter unlock password</h1>
@@ -127,7 +145,7 @@ export function BackupNode() {
           </form>
         </Container>
       ) : (
-        <div className="flex justify-center">
+        <div className="flex flex-col gap-5 items-center justify-center">
           <Button
             type="submit"
             disabled={loading}
@@ -137,6 +155,15 @@ export function BackupNode() {
           >
             Create Backup To Migrate Node
           </Button>
+          <p className="text-muted-foreground">or</p>
+          <LinkButton
+            to="/settings/backup"
+            variant="secondary"
+            size="lg"
+            className="w-full"
+          >
+            Backup Without Migrating Node
+          </LinkButton>
         </div>
       )}
     </>

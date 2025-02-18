@@ -20,8 +20,8 @@
     "prepare": "cd .. && husky frontend/.husky"
   },
   "dependencies": {
-    "@getalby/bitcoin-connect-react": "^3.6.2",
-    "@getalby/lightning-tools": "^5.1.1",
+    "@getalby/lightning-tools": "^5.1.2",
+    "@getalby/sdk": "^3.8.2",
     "@radix-ui/react-accordion": "^1.2.0",
     "@radix-ui/react-alert-dialog": "^1.0.5",
     "@radix-ui/react-avatar": "^1.0.4",
@@ -42,7 +42,6 @@
     "@radix-ui/react-tooltip": "^1.0.7",
     "@scure/bip39": "^1.2.2",
     "argon2-wasm-esm": "^1.0.3",
-    "canvas-confetti": "^1.9.2",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "compare-versions": "^6.1.1",
@@ -70,7 +69,6 @@
     "@tailwindcss/aspect-ratio": "^0.4.2",
     "@tailwindcss/forms": "^0.5.7",
     "@tailwindcss/typography": "^0.5.10",
-    "@types/canvas-confetti": "^1.6.4",
     "@types/node": "^20.10.8",
     "@types/react": "^18.2.15",
     "@types/react-dom": "^18.2.7",

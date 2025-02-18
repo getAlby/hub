@@ -21,6 +21,7 @@ type API interface {
 	GetChannelPeerSuggestions(ctx context.Context) ([]alby.ChannelPeerSuggestion, error)
 	ResetRouter(key string) error
 	ChangeUnlockPassword(changeUnlockPasswordRequest *ChangeUnlockPasswordRequest) error
+	SetAutoUnlockPassword(unlockPassword string) error
 	Stop() error
 	GetNodeConnectionInfo(ctx context.Context) (*lnclient.NodeConnectionInfo, error)
 	GetNodeStatus(ctx context.Context) (*lnclient.NodeStatus, error)
@@ -36,7 +37,7 @@ type API interface {
 	RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, sendAll bool) (*RedeemOnchainFundsResponse, error)
 	GetBalances(ctx context.Context) (*BalancesResponse, error)
 	ListTransactions(ctx context.Context, appId *uint, limit uint64, offset uint64) (*ListTransactionsResponse, error)
-	SendPayment(ctx context.Context, invoice string) (*SendPaymentResponse, error)
+	SendPayment(ctx context.Context, invoice string, amountMsat *uint64) (*SendPaymentResponse, error)
 	CreateInvoice(ctx context.Context, amount uint64, description string) (*MakeInvoiceResponse, error)
 	LookupInvoice(ctx context.Context, paymentHash string) (*LookupInvoiceResponse, error)
 	RequestMempoolApi(endpoint string) (interface{}, error)
@@ -55,6 +56,10 @@ type API interface {
 	RestoreBackup(unlockPassword string, r io.Reader) error
 	MigrateNodeStorage(ctx context.Context, to string) error
 	GetWalletCapabilities(ctx context.Context) (*WalletCapabilitiesResponse, error)
+	Health(ctx context.Context) (*HealthResponse, error)
+	SetCurrency(currency string) error
+	GetCustomNodeCommands() (*CustomNodeCommandsResponse, error)
+	ExecuteCustomNodeCommand(ctx context.Context, command string) (interface{}, error)
 }
 
 type App struct {
@@ -71,7 +76,7 @@ type App struct {
 	BudgetUsage   uint64     `json:"budgetUsage"`
 	BudgetRenewal string     `json:"budgetRenewal"`
 	Isolated      bool       `json:"isolated"`
-	Balance       uint64     `json:"balance"`
+	Balance       int64      `json:"balance"`
 	Metadata      Metadata   `json:"metadata,omitempty"`
 }
 
@@ -149,6 +154,9 @@ type CreateAppResponse struct {
 	PairingUri    string `json:"pairingUri"`
 	PairingSecret string `json:"pairingSecretKey"`
 	Pubkey        string `json:"pairingPublicKey"`
+	RelayUrl      string `json:"relayUrl"`
+	WalletPubkey  string `json:"walletPubkey"`
+	Lud16         string `json:"lud16"`
 	Id            uint   `json:"id"`
 	Name          string `json:"name"`
 	ReturnTo      string `json:"returnTo"`
@@ -159,21 +167,30 @@ type User struct {
 }
 
 type InfoResponse struct {
-	BackendType          string    `json:"backendType"`
-	SetupCompleted       bool      `json:"setupCompleted"`
-	OAuthRedirect        bool      `json:"oauthRedirect"`
-	Running              bool      `json:"running"`
-	Unlocked             bool      `json:"unlocked"`
-	AlbyAuthUrl          string    `json:"albyAuthUrl"`
-	NextBackupReminder   string    `json:"nextBackupReminder"`
-	AlbyUserIdentifier   string    `json:"albyUserIdentifier"`
-	AlbyAccountConnected bool      `json:"albyAccountConnected"`
-	Version              string    `json:"version"`
-	Network              string    `json:"network"`
-	EnableAdvancedSetup  bool      `json:"enableAdvancedSetup"`
-	LdkVssEnabled        bool      `json:"ldkVssEnabled"`
-	StartupError         string    `json:"startupError"`
-	StartupErrorTime     time.Time `json:"startupErrorTime"`
+	BackendType                 string    `json:"backendType"`
+	SetupCompleted              bool      `json:"setupCompleted"`
+	OAuthRedirect               bool      `json:"oauthRedirect"`
+	Running                     bool      `json:"running"`
+	Unlocked                    bool      `json:"unlocked"`
+	AlbyAuthUrl                 string    `json:"albyAuthUrl"`
+	NextBackupReminder          string    `json:"nextBackupReminder"`
+	AlbyUserIdentifier          string    `json:"albyUserIdentifier"`
+	AlbyAccountConnected        bool      `json:"albyAccountConnected"`
+	Version                     string    `json:"version"`
+	Network                     string    `json:"network"`
+	EnableAdvancedSetup         bool      `json:"enableAdvancedSetup"`
+	LdkVssEnabled               bool      `json:"ldkVssEnabled"`
+	VssSupported                bool      `json:"vssSupported"`
+	StartupState                string    `json:"startupState"`
+	StartupError                string    `json:"startupError"`
+	StartupErrorTime            time.Time `json:"startupErrorTime"`
+	AutoUnlockPasswordSupported bool      `json:"autoUnlockPasswordSupported"`
+	AutoUnlockPasswordEnabled   bool      `json:"autoUnlockPasswordEnabled"`
+	Currency                    string    `json:"currency"`
+}
+
+type UpdateSettingsRequest struct {
+	Currency string `json:"currency"`
 }
 
 type MnemonicRequest struct {
@@ -187,6 +204,9 @@ type MnemonicResponse struct {
 type ChangeUnlockPasswordRequest struct {
 	CurrentUnlockPassword string `json:"currentUnlockPassword"`
 	NewUnlockPassword     string `json:"newUnlockPassword"`
+}
+type AutoUnlockRequest struct {
+	UnlockPassword string `json:"unlockPassword"`
 }
 
 type ConnectPeerRequest = lnclient.ConnectPeerRequest
@@ -233,6 +253,7 @@ type Transaction struct {
 	AppId           *uint       `json:"appId"`
 	Metadata        Metadata    `json:"metadata,omitempty"`
 	Boostagram      *Boostagram `json:"boostagram,omitempty"`
+	FailureReason   string      `json:"failureReason"`
 }
 
 type Metadata = map[string]interface{}
@@ -294,6 +315,10 @@ type SignMessageResponse struct {
 	Signature string `json:"signature"`
 }
 
+type PayInvoiceRequest struct {
+	Amount *uint64 `json:"amount"`
+}
+
 type MakeInvoiceRequest struct {
 	Amount      uint64 `json:"amount"`
 	Description string `json:"description"`
@@ -341,6 +366,7 @@ type Channel struct {
 	Id                                       string      `json:"id"`
 	RemotePubkey                             string      `json:"remotePubkey"`
 	FundingTxId                              string      `json:"fundingTxId"`
+	FundingTxVout                            uint32      `json:"fundingTxVout"`
 	Active                                   bool        `json:"active"`
 	Public                                   bool        `json:"public"`
 	InternalChannel                          interface{} `json:"internalChannel"`
@@ -356,4 +382,48 @@ type Channel struct {
 
 type MigrateNodeStorageRequest struct {
 	To string `json:"to"`
+}
+
+type HealthAlarmKind string
+
+const (
+	HealthAlarmKindAlbyService       HealthAlarmKind = "alby_service"
+	HealthAlarmKindNodeNotReady                      = "node_not_ready"
+	HealthAlarmKindChannelsOffline                   = "channels_offline"
+	HealthAlarmKindNostrRelayOffline                 = "nostr_relay_offline"
+)
+
+type HealthAlarm struct {
+	Kind       HealthAlarmKind `json:"kind"`
+	RawDetails any             `json:"rawDetails,omitempty"`
+}
+
+func NewHealthAlarm(kind HealthAlarmKind, rawDetails any) HealthAlarm {
+	return HealthAlarm{
+		Kind:       kind,
+		RawDetails: rawDetails,
+	}
+}
+
+type HealthResponse struct {
+	Alarms []HealthAlarm `json:"alarms,omitempty"`
+}
+
+type CustomNodeCommandArgDef struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
+type CustomNodeCommandDef struct {
+	Name        string                    `json:"name"`
+	Description string                    `json:"description"`
+	Args        []CustomNodeCommandArgDef `json:"args"`
+}
+
+type CustomNodeCommandsResponse struct {
+	Commands []CustomNodeCommandDef `json:"commands"`
+}
+
+type ExecuteCustomNodeCommandRequest struct {
+	Command string `json:"command"`
 }

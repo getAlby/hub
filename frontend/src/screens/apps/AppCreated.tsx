@@ -56,12 +56,15 @@ function AppCreatedInternal() {
   }, [app?.lastEventAt, navigate, toast]);
 
   useEffect(() => {
-    if (appstoreApp) {
-      return;
-    }
     // dispatch a success event which can be listened to by the opener or by the app that embedded the webview
     // this gives those apps the chance to know the user has enabled the connection
-    const nwcEvent = new CustomEvent("nwc:success", { detail: {} });
+    const nwcEvent = new CustomEvent("nwc:success", {
+      detail: {
+        relayUrl: createAppResponse.relayUrl,
+        walletPubkey: createAppResponse.walletPubkey,
+        lud16: createAppResponse.lud16,
+      },
+    });
     window.dispatchEvent(nwcEvent);
 
     // notify the opener of the successful connection
@@ -69,12 +72,18 @@ function AppCreatedInternal() {
       window.opener.postMessage(
         {
           type: "nwc:success",
-          payload: { success: true },
+          relayUrl: createAppResponse.relayUrl,
+          walletPubkey: createAppResponse.walletPubkey,
+          lud16: createAppResponse.lud16,
         },
         "*"
       );
     }
-  }, [appstoreApp]);
+  }, [
+    createAppResponse.relayUrl,
+    createAppResponse.walletPubkey,
+    createAppResponse.lud16,
+  ]);
 
   if (!createAppResponse) {
     return <Navigate to="/apps/new" />;
@@ -106,7 +115,7 @@ function AppCreatedInternal() {
             </li>
             {app?.isolated && (
               <li>
-                Optional: Increase isolated balance (
+                Optional: Increase sub-wallet balance (
                 {new Intl.NumberFormat().format(Math.floor(app.balance / 1000))}{" "}
                 sats){" "}
                 <IsolatedAppTopupDialog appPubkey={app.appPubkey}>

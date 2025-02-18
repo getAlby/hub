@@ -1,0 +1,45 @@
+name: Backend testing with Postgres
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  test-postgres:
+    runs-on: ubuntu-22.04
+
+    services:
+      postgres:
+        image: postgres:17.2
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_DB: albyhub
+          POSTGRES_USER: alby
+          POSTGRES_PASSWORD: albytest123
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+        name: Check out code
+
+      - name: Setup GoLang
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: "./go.mod"
+
+      - name: Get dependencies
+        run: go get -v -t -d ./...
+
+      - name: Run tests
+        env:
+          TEST_DATABASE_URI: "postgresql://alby:albytest123@localhost:5432/albyhub"
+          TEST_DB_MIGRATE_POSTGRES_URI: "postgresql://alby:albytest123@localhost:5432/albyhub"
+        run: mkdir frontend/dist && touch frontend/dist/tmp && go test ./...

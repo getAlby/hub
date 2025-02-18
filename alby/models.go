@@ -11,6 +11,7 @@ type AlbyOAuthService interface {
 	events.EventSubscriber
 	GetInfo(ctx context.Context) (*AlbyInfo, error)
 	GetChannelPeerSuggestions(ctx context.Context) ([]ChannelPeerSuggestion, error)
+	GetBitcoinRate(ctx context.Context) (*BitcoinRate, error)
 	GetAuthUrl() string
 	GetUserIdentifier() (string, error)
 	GetLightningAddress() (string, error)
@@ -24,6 +25,7 @@ type AlbyOAuthService interface {
 	UnlinkAccount(ctx context.Context) error
 	RequestAutoChannel(ctx context.Context, lnClient lnclient.LNClient, isPublic bool) (*AutoChannelResponse, error)
 	GetVssAuthToken(ctx context.Context, nodeIdentifier string) (string, error)
+	RemoveOAuthAccessToken() error
 }
 
 type AlbyBalanceResponse struct {
@@ -54,9 +56,20 @@ type AlbyInfoHub struct {
 	LatestReleaseNotes string `json:"latestReleaseNotes"`
 }
 
+type AlbyInfoIncident struct {
+	Name    string `json:"name"`
+	Started string `json:"started"`
+	Status  string `json:"status"`
+	Impact  string `json:"impact"`
+	Url     string `json:"url"`
+}
+
 type AlbyInfo struct {
-	Hub AlbyInfoHub `json:"hub"`
-	// TODO: consider getting healthcheck/incident info and showing in the hub
+	Hub              AlbyInfoHub        `json:"hub"`
+	Status           string             `json:"status"`
+	Healthy          bool               `json:"healthy"`
+	AccountAvailable bool               `json:"accountAvailable"` // false if country is blocked (can still use Alby Hub without an Alby Account)
+	Incidents        []AlbyInfoIncident `json:"incidents"`
 }
 
 type AlbyMeHub struct {
@@ -100,9 +113,17 @@ type ChannelPeerSuggestion struct {
 	BrokenLspType         string `json:"lsp_type"`
 	LspUrl                string `json:"lspUrl"`
 	LspType               string `json:"lspType"`
+	Note                  string `json:"note"`
 	PublicChannelsAllowed bool   `json:"publicChannelsAllowed"`
 }
 
+type BitcoinRate struct {
+	Code      string  `json:"code"`
+	Symbol    string  `json:"symbol"`
+	Rate      string  `json:"rate"`
+	RateFloat float64 `json:"rate_float"`
+	RateCents int64   `json:"rate_cents"`
+}
 type ErrorResponse struct {
 	Message string `json:"message"`
 }

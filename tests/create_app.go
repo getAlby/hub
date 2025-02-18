@@ -5,15 +5,18 @@ import (
 
 	db "github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/events"
+	"github.com/getAlby/hub/nip47/cipher"
 	"github.com/nbd-wtf/go-nostr"
-	"github.com/nbd-wtf/go-nostr/nip04"
 	"gorm.io/gorm"
 )
 
-func CreateApp(svc *TestService) (app *db.App, ss []byte, err error) {
-	return CreateAppWithPrivateKey(svc, "")
+type CreateAppFn func(svc *TestService, senderPrivkey string, nip47Version string) (app *db.App, nip47Cipher *cipher.Nip47Cipher, err error)
+
+func CreateApp(svc *TestService) (app *db.App, cipher *cipher.Nip47Cipher, err error) {
+	return CreateAppWithPrivateKey(svc, "", "1.0")
 }
-func CreateAppWithPrivateKey(svc *TestService, senderPrivkey string) (app *db.App, ss []byte, err error) {
+
+func CreateAppWithPrivateKey(svc *TestService, senderPrivkey, nip47Version string) (app *db.App, nip47Cipher *cipher.Nip47Cipher, err error) {
 	senderPubkey := ""
 	if senderPrivkey != "" {
 		var err error
@@ -29,15 +32,15 @@ func CreateAppWithPrivateKey(svc *TestService, senderPrivkey string) (app *db.Ap
 		pairingSecretKey = senderPrivkey
 	}
 
-	ss, err = nip04.ComputeSharedSecret(*app.WalletPubkey, pairingSecretKey)
+	nip47Cipher, err = cipher.NewNip47Cipher(nip47Version, *app.WalletPubkey, pairingSecretKey)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	return app, ss, nil
+	return app, nip47Cipher, nil
 }
 
-func CreateLegacyApp(svc *TestService, senderPrivkey string) (app *db.App, ss []byte, err error) {
+func CreateAppWithSharedWalletPubkey(svc *TestService, senderPrivkey, nip47Version string) (app *db.App, nip47Cipher *cipher.Nip47Cipher, err error) {
 
 	pairingPublicKey, _ := nostr.GetPublicKey(senderPrivkey)
 
@@ -65,6 +68,6 @@ func CreateLegacyApp(svc *TestService, senderPrivkey string) (app *db.App, ss []
 		},
 	})
 
-	ss, err = nip04.ComputeSharedSecret(svc.Keys.GetNostrPublicKey(), senderPrivkey)
-	return app, ss, nil
+	nip47Cipher, err = cipher.NewNip47Cipher(nip47Version, svc.Keys.GetNostrPublicKey(), senderPrivkey)
+	return app, nip47Cipher, nil
 }

@@ -44,19 +44,22 @@ func (svc *service) startNostr(ctx context.Context) error {
 	go func() {
 		// ensure the relay is properly disconnected before exiting
 		defer svc.wg.Done()
-		//Start infinite loop which will be only broken by canceling ctx (SIGINT)
+		// Start infinite loop which will be only broken by canceling ctx (SIGINT)
 		var relay *nostr.Relay
 		waitToReconnectSeconds := 0
 		var createAppEventListener events.EventSubscriber
+		var updateAppEventListener events.EventSubscriber
 		for i := 0; ; i++ {
 			// wait for a delay if any before retrying
 			contextCancelled := false
+
+			svc.setRelayReady(false)
 
 			select {
 			case <-ctx.Done(): // application service context cancelled
 				logger.Logger.Info("service context cancelled")
 				contextCancelled = true
-			case <-time.After(time.Duration(waitToReconnectSeconds) * time.Second): //timeout
+			case <-time.After(time.Duration(waitToReconnectSeconds) * time.Second): // timeout
 			}
 			if contextCancelled {
 				break
@@ -64,7 +67,7 @@ func (svc *service) startNostr(ctx context.Context) error {
 
 			closeRelay(relay)
 
-			//connect to the relay
+			// connect to the relay
 			logger.Logger.WithFields(logrus.Fields{
 				"relay_url": relayUrl,
 				"iteration": i,
@@ -94,6 +97,13 @@ func (svc *service) startNostr(ctx context.Context) error {
 			createAppEventListener = &createAppConsumer{svc: svc, relay: relay}
 			svc.eventPublisher.RegisterSubscriber(createAppEventListener)
 
+			// register a subscriber for events of "nwc_app_updated" which handles re-publishing of nip47 event info
+			if updateAppEventListener != nil {
+				svc.eventPublisher.RemoveSubscriber(updateAppEventListener)
+			}
+			updateAppEventListener = &updateAppConsumer{svc: svc, relay: relay}
+			svc.eventPublisher.RegisterSubscriber(updateAppEventListener)
+
 			// start each app wallet subscription which have a child derived wallet key
 			svc.startAllExistingAppsWalletSubscriptions(ctx, relay)
 
@@ -105,27 +115,31 @@ func (svc *service) startNostr(ctx context.Context) error {
 				return
 			}
 			if legacyAppCount > 0 {
-				// re-publish single NIP47 event info for legacy apps
-				_, err := svc.GetNip47Service().PublishNip47Info(ctx, relay, svc.keys.GetNostrPublicKey(), svc.keys.GetNostrSecretKey(), svc.lnClient)
-				if err != nil {
-					logger.Logger.WithError(err).Error("Could not publish NIP47 info for legacy apps")
-					continue
-				}
-				logger.Logger.WithField("legacy_app_count", legacyAppCount).Info("Starting legacy app subscription")
-				// legacy single wallet subscription - only subscribe once for all legacy apps
-				// to ensure we do not get duplicate events
-				err = svc.startAppWalletSubscription(ctx, relay, svc.keys.GetNostrPublicKey())
-				if err != nil {
-					//err being non-nil means that we have an error on the websocket error channel. In this case we just try to reconnect.
-					logger.Logger.WithError(err).Error("Got an error from the relay while listening to subscription.")
-					continue
-				}
+				go func() {
+					// re-publish single NIP47 event info for legacy apps
+					_, err := svc.GetNip47Service().PublishNip47Info(ctx, relay, svc.keys.GetNostrPublicKey(), svc.keys.GetNostrSecretKey(), svc.lnClient)
+					if err != nil {
+						logger.Logger.WithError(err).Error("Could not publish NIP47 info for legacy apps")
+						return
+					}
+					logger.Logger.WithField("legacy_app_count", legacyAppCount).Info("Starting legacy app subscription")
+					// legacy single wallet subscription - only subscribe once for all legacy apps
+					// to ensure we do not get duplicate events
+					err = svc.startAppWalletSubscription(ctx, relay, svc.keys.GetNostrPublicKey())
+					if err != nil && !errors.Is(err, context.Canceled) {
+						// err being non-nil means that we have an error on the websocket error channel. In this case we just try to reconnect.
+						logger.Logger.WithError(err).Error("Got an error from the relay while listening to legacy subscription.")
+					}
+				}()
 			}
+
+			svc.setRelayReady(true)
+
 			select {
 			case <-ctx.Done():
 				logger.Logger.Info("Main context cancelled, exiting...")
 			case <-relay.Context().Done():
-				//err being non-nil means that we have an error on the websocket error channel. In this case we just try to reconnect.
+				// err being non-nil means that we have an error on the websocket error channel. In this case we just try to reconnect.
 				if relay.ConnectionError != nil {
 					logger.Logger.WithError(relay.ConnectionError).Error("Got an error from the relay, trying to reconnect")
 				} else {
@@ -149,8 +163,16 @@ func (svc *service) startAllExistingAppsWalletSubscriptions(ctx context.Context,
 
 	for _, app := range apps {
 		go func(app db.App) {
-			err := svc.startAppWalletSubscription(ctx, relay, *app.WalletPubkey)
+			// republish info event for all existing apps
+			walletPrivKey, err := svc.keys.GetAppWalletKey(app.ID)
+			_, err = svc.GetNip47Service().PublishNip47Info(ctx, relay, *app.WalletPubkey, walletPrivKey, svc.lnClient)
 			if err != nil {
+				logger.Logger.WithError(err).WithFields(logrus.Fields{
+					"app_id": app.ID}).Error("Could not publish NIP47 info")
+			}
+
+			err = svc.startAppWalletSubscription(ctx, relay, *app.WalletPubkey)
+			if err != nil && !errors.Is(err, context.Canceled) {
 				logger.Logger.WithError(err).WithFields(logrus.Fields{
 					"app_id": app.ID}).Error("Subscription error")
 				return
@@ -164,8 +186,7 @@ func (svc *service) startAppWalletSubscription(ctx context.Context, relay *nostr
 	logger.Logger.Info("Subscribing to events for wallet ", appWalletPubKey)
 	sub, err := relay.Subscribe(ctx, svc.createFilters(appWalletPubKey))
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to subscribe to events")
-		return err
+		return fmt.Errorf("failed to subscribe to events: %w", err)
 	}
 
 	// register a subscriber for "nwc_app_deleted" events, which handles nostr subscription cancel and nip47 info event deletion
@@ -175,8 +196,7 @@ func (svc *service) startAppWalletSubscription(ctx context.Context, relay *nostr
 	err = svc.StartSubscription(sub.Context, sub)
 	svc.eventPublisher.RemoveSubscriber(&deleteEventSubscriber)
 	if err != nil {
-		logger.Logger.WithError(err).Error("Got an error from the relay while listening to subscription.")
-		return err
+		return fmt.Errorf("got an error from the relay while listening to subscription: %w", err)
 	}
 	return nil
 }
@@ -194,15 +214,27 @@ func (svc *service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 
 	<-ctx.Done()
 
-	if sub.Relay.ConnectionError != nil {
-		logger.Logger.WithField("connectionError", sub.Relay.ConnectionError).Error("Relay error")
-		return sub.Relay.ConnectionError
+	if err := sub.Relay.ConnectionError; err != nil {
+		return fmt.Errorf("relay connection error: %w", err)
 	}
 	logger.Logger.Info("Exiting subscription...")
 	return nil
 }
 
 func (svc *service) StartApp(encryptionKey string) error {
+	defer func() {
+		svc.startupState = ""
+	}()
+
+	svc.startupState = "Initializing"
+	albyIdentifier, err := svc.albyOAuthSvc.GetUserIdentifier()
+	if err != nil {
+		return err
+	}
+	if albyIdentifier != "" && !svc.albyOAuthSvc.IsConnected(svc.ctx) {
+		return errors.New("alby account is not authenticated")
+	}
+
 	if svc.lnClient != nil {
 		return errors.New("app already started")
 	}
@@ -213,13 +245,14 @@ func (svc *service) StartApp(encryptionKey string) error {
 
 	ctx, cancelFn := context.WithCancel(svc.ctx)
 
-	err := svc.keys.Init(svc.cfg, encryptionKey)
+	err = svc.keys.Init(svc.cfg, encryptionKey)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to init nostr keys")
 		cancelFn()
 		return err
 	}
 
+	svc.startupState = "Launching Node"
 	err = svc.launchLNBackend(ctx, encryptionKey)
 	if err != nil {
 		logger.Logger.Errorf("Failed to launch LN backend: %v", err)
@@ -230,6 +263,7 @@ func (svc *service) StartApp(encryptionKey string) error {
 		return err
 	}
 
+	svc.startupState = "Connecting To Relay"
 	err = svc.startNostr(ctx)
 	if err != nil {
 		cancelFn()
@@ -280,7 +314,11 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 		}
 		vssEnabled = vssToken != ""
 
-		lnClient, err = ldk.NewLDKService(ctx, svc.cfg, svc.eventPublisher, mnemonic, ldkWorkdir, svc.cfg.GetEnv().LDKNetwork, vssToken)
+		svc.startupState = "Launching Node"
+		setStartupState := func(startupState string) {
+			svc.startupState = startupState
+		}
+		lnClient, err = ldk.NewLDKService(ctx, svc.cfg, svc.eventPublisher, mnemonic, ldkWorkdir, svc.cfg.GetEnv().LDKNetwork, vssToken, setStartupState)
 	case config.GreenlightBackendType:
 		Mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
 		GreenlightInviteCode, _ := svc.cfg.Get("GreenlightInviteCode", encryptionKey)
@@ -300,10 +338,11 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 
 		lnClient, err = phoenixd.NewPhoenixService(PhoenixdAddress, PhoenixdAuthorization)
 	case config.CashuBackendType:
+		mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
 		cashuMintUrl, _ := svc.cfg.Get("CashuMintUrl", encryptionKey)
 		cashuWorkdir := path.Join(svc.cfg.GetEnv().Workdir, "cashu")
 
-		lnClient, err = cashu.NewCashuService(cashuWorkdir, cashuMintUrl)
+		lnClient, err = cashu.NewCashuService(svc.cfg, cashuWorkdir, mnemonic, cashuMintUrl)
 	default:
 		logger.Logger.WithField("backend_type", lnBackend).Error("Unsupported LNBackendType")
 		return fmt.Errorf("unsupported backend type: %s", lnBackend)
@@ -367,6 +406,7 @@ func (svc *service) requestVssToken(ctx context.Context) (string, error) {
 
 	// for brand new nodes, consider enabling VSS
 	if nodeLastStartTime == "" && svc.cfg.GetEnv().LDKVssUrl != "" {
+		svc.startupState = "Checking Subscription"
 		albyUserIdentifier, err := svc.albyOAuthSvc.GetUserIdentifier()
 		if err != nil {
 			logger.Logger.WithError(err).Error("Failed to fetch alby user identifier")
@@ -388,6 +428,7 @@ func (svc *service) requestVssToken(ctx context.Context) (string, error) {
 	vssToken := ""
 	vssEnabled, _ := svc.cfg.Get("LdkVssEnabled", "")
 	if vssEnabled == "true" {
+		svc.startupState = "Fetching VSS token"
 		vssNodeIdentifier, err := ldk.GetVssNodeIdentifier(svc.keys)
 		if err != nil {
 			logger.Logger.WithError(err).Error("Failed to get VSS node identifier")

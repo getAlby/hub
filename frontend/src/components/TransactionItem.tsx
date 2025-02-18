@@ -14,6 +14,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import AppAvatar from "src/components/AppAvatar";
 import ExternalLink from "src/components/ExternalLink";
+import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import PodcastingInfo from "src/components/PodcastingInfo";
 import {
   Dialog,
@@ -70,11 +71,11 @@ function TransactionItem({ tx }: Props) {
         className={cn(
           "flex justify-center items-center rounded-full w-10 h-10 md:w-14 md:h-14 relative",
           tx.state === "failed"
-            ? "bg-red-100 dark:bg-red-950"
+            ? "bg-red-100 dark:bg-rose-950"
             : tx.state === "pending"
-              ? "bg-gray-100 dark:bg-gray-950"
+              ? "bg-blue-100 dark:bg-sky-950"
               : type === "outgoing"
-                ? "bg-orange-100 dark:bg-orange-950"
+                ? "bg-orange-100 dark:bg-amber-950"
                 : "bg-green-100 dark:bg-emerald-950"
         )}
       >
@@ -83,12 +84,12 @@ function TransactionItem({ tx }: Props) {
           className={cn(
             "w-6 h-6 md:w-8 md:h-8",
             tx.state === "failed"
-              ? "stroke-rose-400 dark:stroke-red-600"
+              ? "stroke-red-500 dark:stroke-rose-500"
               : tx.state === "pending"
-                ? "stroke-gray-400 dark:stroke-gray-600"
+                ? "stroke-blue-500 dark:stroke-sky-500"
                 : type === "outgoing"
-                  ? "stroke-orange-400 dark:stroke-amber-600"
-                  : "stroke-green-400 dark:stroke-emerald-500"
+                  ? "stroke-orange-500 dark:stroke-amber-500"
+                  : "stroke-green-500 dark:stroke-teal-500"
           )}
         />
         {app && (
@@ -149,28 +150,26 @@ function TransactionItem({ tx }: Props) {
               {tx.description}
             </p>
           </div>
-          <div className="flex ml-auto text-right space-x-3 shrink-0">
-            <div className="flex items-center gap-2 md:text-xl">
-              <p
-                className={cn(
-                  "font-semibold",
-                  type == "incoming" && "text-green-600 dark:text-emerald-500"
-                )}
-              >
-                {type == "outgoing" ? "-" : "+"}
-                {new Intl.NumberFormat().format(
-                  Math.floor(tx.amount / 1000)
-                )}{" "}
-              </p>
-              <p className="text-foreground">
-                {Math.floor(tx.amount / 1000) == 1 ? "sat" : "sats"}
-              </p>
-
-              {/* {!!tx.totalAmountFiat && (
-                <p className="text-xs text-muted-foreground">
-                  ~{tx.totalAmountFiat}
+          <div className="flex ml-auto space-x-3 shrink-0">
+            <div className="flex flex-col items-end gap-2 md:text-xl">
+              <div className="flex gap-2">
+                <p
+                  className={cn(
+                    "font-semibold",
+                    type == "incoming" && "text-green-600 dark:text-emerald-500"
+                  )}
+                >
+                  {type == "outgoing" ? "-" : "+"}
+                  {new Intl.NumberFormat().format(
+                    Math.floor(tx.amount / 1000)
+                  )}{" "}
                 </p>
-              )} */}
+                <p className="text-foreground">
+                  {Math.floor(tx.amount / 1000) == 1 ? "sat" : "sats"}
+                </p>
+              </div>
+
+              <FormattedFiatAmount amount={Math.floor(tx.amount / 1000)} />
             </div>
           </div>
         </div>
@@ -193,6 +192,7 @@ function TransactionItem({ tx }: Props) {
                   {new Intl.NumberFormat().format(Math.floor(tx.amount / 1000))}{" "}
                   {Math.floor(tx.amount / 1000) == 1 ? "sat" : "sats"}
                 </p>
+                <FormattedFiatAmount amount={Math.floor(tx.amount / 1000)} />
               </div>
             </div>
             {app && (
@@ -296,6 +296,22 @@ function TransactionItem({ tx }: Props) {
                       />
                     </div>
                   </div>
+                  {!!tx.failureReason && (
+                    <div className="mt-6">
+                      <p>Failure Reason</p>
+                      <div className="flex items-center gap-4">
+                        <p className="text-muted-foreground break-words">
+                          {tx.failureReason}
+                        </p>
+                        <CopyIcon
+                          className="cursor-pointer text-muted-foreground w-4 h-4 flex-shrink-0"
+                          onClick={() => {
+                            copy(tx.failureReason);
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
                   {tx.metadata && (
                     <div className="mt-6">
                       <p>Metadata</p>

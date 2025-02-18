@@ -2,6 +2,7 @@ package lnclient
 
 import (
 	"context"
+	"errors"
 )
 
 // TODO: remove JSON tags from these models (LNClient models should not be exposed directly)
@@ -46,7 +47,7 @@ type NodeConnectionInfo struct {
 }
 
 type LNClient interface {
-	SendPaymentSync(ctx context.Context, payReq string) (*PayInvoiceResponse, error)
+	SendPaymentSync(ctx context.Context, payReq string, amount *uint64) (*PayInvoiceResponse, error)
 	SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []TLVRecord, preimage string) (*PayKeysendResponse, error)
 	GetPubkey() string
 	GetInfo(ctx context.Context) (info *NodeInfo, err error)
@@ -77,6 +78,8 @@ type LNClient interface {
 	UpdateLastWalletSyncRequest()
 	GetSupportedNIP47Methods() []string
 	GetSupportedNIP47NotificationTypes() []string
+	GetCustomNodeCommandDefinitions() []CustomNodeCommandDef
+	ExecuteCustomNodeCommand(ctx context.Context, command *CustomNodeCommandRequest) (*CustomNodeCommandResponse, error)
 }
 
 type Channel struct {
@@ -86,6 +89,7 @@ type Channel struct {
 	Id                                       string
 	RemotePubkey                             string
 	FundingTxId                              string
+	FundingTxVout                            uint32
 	Active                                   bool
 	Public                                   bool
 	InternalChannel                          interface{}
@@ -99,6 +103,7 @@ type Channel struct {
 }
 
 type NodeStatus struct {
+	IsReady            bool        `json:"isReady"`
 	InternalNodeStatus interface{} `json:"internalNodeStatus"`
 }
 
@@ -134,12 +139,22 @@ type UpdateChannelRequest struct {
 type CloseChannelResponse struct {
 }
 
+type PendingBalanceDetails struct {
+	ChannelId     string `json:"channelId"`
+	NodeId        string `json:"nodeId"`
+	Amount        uint64 `json:"amount"`
+	FundingTxId   string `json:"fundingTxId"`
+	FundingTxVout uint32 `json:"fundingTxVout"`
+}
+
 type OnchainBalanceResponse struct {
-	Spendable                          int64       `json:"spendable"`
-	Total                              int64       `json:"total"`
-	Reserved                           int64       `json:"reserved"`
-	PendingBalancesFromChannelClosures uint64      `json:"pendingBalancesFromChannelClosures"`
-	InternalBalances                   interface{} `json:"internalBalances"`
+	Spendable                          int64                   `json:"spendable"`
+	Total                              int64                   `json:"total"`
+	Reserved                           int64                   `json:"reserved"`
+	PendingBalancesFromChannelClosures uint64                  `json:"pendingBalancesFromChannelClosures"`
+	PendingBalancesDetails             []PendingBalanceDetails `json:"pendingBalancesDetails"`
+	PendingSweepBalancesDetails        []PendingBalanceDetails `json:"pendingSweepBalancesDetails"`
+	InternalBalances                   interface{}             `json:"internalBalances"`
 }
 
 type PeerDetails struct {
@@ -177,6 +192,39 @@ type PaymentFailedEventProperties struct {
 	Transaction *Transaction
 	Reason      string
 }
+
+type CustomNodeCommandArgDef struct {
+	Name        string
+	Description string
+}
+
+type CustomNodeCommandDef struct {
+	Name        string
+	Description string
+	Args        []CustomNodeCommandArgDef
+}
+
+type CustomNodeCommandArg struct {
+	Name  string
+	Value string
+}
+
+type CustomNodeCommandRequest struct {
+	Name string
+	Args []CustomNodeCommandArg
+}
+
+type CustomNodeCommandResponse struct {
+	Response interface{}
+}
+
+func NewCustomNodeCommandResponseEmpty() *CustomNodeCommandResponse {
+	return &CustomNodeCommandResponse{
+		Response: struct{}{},
+	}
+}
+
+var ErrUnknownCustomNodeCommand = errors.New("unknown custom node command")
 
 // default invoice expiry in seconds (1 day)
 const DEFAULT_INVOICE_EXPIRY = 86400

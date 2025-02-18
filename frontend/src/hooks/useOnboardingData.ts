@@ -1,5 +1,6 @@
 // src/hooks/useOnboardingData.ts
 
+import { SUPPORT_ALBY_CONNECTION_NAME } from "src/constants";
 import { useAlbyBalance } from "src/hooks/useAlbyBalance";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useApps } from "src/hooks/useApps";
@@ -28,14 +29,14 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
   const { data: channels } = useChannels();
   const { data: info, hasChannelManagement, hasMnemonic } = useInfo();
   const { data: nodeConnectionInfo } = useNodeConnectionInfo();
-  const { data: transactionData } = useTransactions(undefined, false, 1);
+  const { data: transactions } = useTransactions(undefined, false, 1);
 
   const isLoading =
     !apps ||
     !channels ||
     !info ||
     !nodeConnectionInfo ||
-    !transactionData ||
+    !transactions ||
     (info.albyAccountConnected && (!albyMe || !albyBalance));
 
   if (isLoading) {
@@ -55,7 +56,10 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
     new Date(info.nextBackupReminder).getTime() > new Date().getTime();
   const hasCustomApp =
     apps && apps.find((x) => x.name !== "getalby.com") !== undefined;
-  const hasTransaction = transactionData.totalCount > 0;
+  const hasTransaction = transactions.totalCount > 0;
+  const hasSetupSupportPayment =
+    apps &&
+    apps.find((x) => x.name === SUPPORT_ALBY_CONNECTION_NAME) !== undefined;
 
   const checklistItems: Omit<ChecklistItem, "disabled">[] = [
     {
@@ -98,6 +102,17 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
               "Secure your keys by creating a backup to ensure you don't lose access.",
             checked: hasBackedUp === true,
             to: "/settings/backup",
+          },
+        ]
+      : []),
+    ...(!info.oauthRedirect
+      ? [
+          {
+            title: "Support Alby Hub",
+            description:
+              "Setup a recurring payment to support the development of Alby Hub",
+            checked: hasSetupSupportPayment,
+            to: "/support-alby",
           },
         ]
       : []),

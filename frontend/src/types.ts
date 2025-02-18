@@ -142,6 +142,7 @@ export interface InfoResponse {
   oauthRedirect: boolean;
   albyAccountConnected: boolean;
   ldkVssEnabled: boolean;
+  vssSupported: boolean;
   running: boolean;
   albyAuthUrl: string;
   nextBackupReminder: string;
@@ -150,9 +151,28 @@ export interface InfoResponse {
   version: string;
   unlocked: boolean;
   enableAdvancedSetup: boolean;
+  startupState: string;
   startupError: string;
   startupErrorTime: string;
+  autoUnlockPasswordSupported: boolean;
+  autoUnlockPasswordEnabled: boolean;
+  currency: string;
 }
+
+export type HealthAlarmKind =
+  | "alby_service"
+  | "node_not_ready"
+  | "channels_offline"
+  | "nostr_relay_offline";
+
+export type HealthAlarm = {
+  kind: HealthAlarmKind;
+  rawDetails: unknown;
+};
+
+export type HealthResponse = {
+  alarms: HealthAlarm[];
+};
 
 export type Network = "bitcoin" | "testnet" | "signet";
 
@@ -169,7 +189,7 @@ export interface CreateAppRequest {
   name: string;
   pubkey?: string;
   maxAmount?: number;
-  budgetRenewal?: string;
+  budgetRenewal?: BudgetRenewalType;
   expiresAt?: string;
   scopes: Scope[];
   returnTo?: string;
@@ -183,6 +203,9 @@ export interface CreateAppResponse {
   pairingUri: string;
   pairingPublicKey: string;
   pairingSecretKey: string;
+  relayUrl: string;
+  walletPubkey: string;
+  lud16: string;
   returnTo: string;
 }
 
@@ -203,6 +226,7 @@ export type Channel = {
   remotePubkey: string;
   id: string;
   fundingTxId: string;
+  fundingTxVout: number;
   active: boolean;
   public: boolean;
   confirmations?: number;
@@ -270,11 +294,21 @@ export type OpenChannelResponse = {
 // eslint-disable-next-line @typescript-eslint/ban-types
 export type CloseChannelResponse = {};
 
+export type PendingBalancesDetails = {
+  channelId: string;
+  nodeId: string;
+  amount: number;
+  fundingTxId: string;
+  fundingTxVout: number;
+};
+
 export type OnchainBalanceResponse = {
   spendable: number;
   total: number;
   reserved: number;
   pendingBalancesFromChannelClosures: number;
+  pendingBalancesDetails: PendingBalancesDetails[];
+  pendingSweepBalancesDetails: PendingBalancesDetails[];
 };
 
 // from https://mempool.space/docs/api/rest#get-node-stats
@@ -309,6 +343,7 @@ export type RecommendedChannelPeer = {
   name: string;
   minimumChannelSize: number;
   maximumChannelSize: number;
+  note: string;
   publicChannelsAllowed: boolean;
 } & (
   | {
@@ -329,6 +364,14 @@ export type AlbyInfo = {
     latestVersion: string;
     latestReleaseNotes: string;
   };
+};
+
+export type BitcoinRate = {
+  code: string;
+  symbol: string;
+  rate: string;
+  rate_float: number;
+  rate_cents: number;
 };
 
 // TODO: use camel case (needs mapping in the Alby OAuth Service - see how AlbyInfo is done above)
@@ -421,6 +464,7 @@ export type Transaction = {
     }; // NIP-57
   } & Record<string, unknown>;
   boostagram?: Boostagram;
+  failureReason: string;
 };
 
 export type Boostagram = {
@@ -447,24 +491,27 @@ export type ListTransactionsResponse = {
 
 export type NewChannelOrderStatus = "pay" | "paid" | "success" | "opening";
 
-export type NewChannelOrder = {
+type NewChannelOrderCommon = {
   amount: string;
   isPublic: boolean;
   status: NewChannelOrderStatus;
   fundingTxId?: string;
   prevChannelIds: string[];
-} & (
-  | {
-      paymentMethod: "onchain";
-      pubkey: string;
-      host: string;
-    }
-  | {
-      paymentMethod: "lightning";
-      lspType: LSPType;
-      lspUrl: string;
-    }
-);
+};
+
+export type OnchainOrder = {
+  paymentMethod: "onchain";
+  pubkey: string;
+  host: string;
+} & NewChannelOrderCommon;
+
+export type LightningOrder = {
+  paymentMethod: "lightning";
+  lspType: LSPType;
+  lspUrl: string;
+} & NewChannelOrderCommon;
+
+export type NewChannelOrder = OnchainOrder | LightningOrder;
 
 export type AuthTokenResponse = {
   token: string;

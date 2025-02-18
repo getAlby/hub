@@ -1,13 +1,14 @@
 package service
 
 import (
+	"gorm.io/gorm"
+
 	"github.com/getAlby/hub/alby"
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/service/keys"
 	"github.com/getAlby/hub/transactions"
-	"gorm.io/gorm"
 )
 
 type Service interface {
@@ -23,4 +24,6 @@ type Service interface {
 	GetDB() *gorm.DB
 	GetConfig() config.Config
 	GetKeys() keys.Keys
+	IsRelayReady() bool
+	GetStartupState() string
 }

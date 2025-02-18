@@ -27,10 +27,10 @@ const nip47MultiPayJson = `
 	"method": "multi_pay_invoice",
 	"params": {
 		"invoices": [{
-				"invoice": "lntb1230n1pjypux0pp5xgxzcks5jtx06k784f9dndjh664wc08ucrganpqn52d0ftrh9n8sdqyw3jscqzpgxqyz5vqsp5rkx7cq252p3frx8ytjpzc55rkgyx2mfkzzraa272dqvr2j6leurs9qyyssqhutxa24r5hqxstchz5fxlslawprqjnarjujp5sm3xj7ex73s32sn54fthv2aqlhp76qmvrlvxppx9skd3r5ut5xutgrup8zuc6ay73gqmra29m"
+				"invoice": "lntbs1230n1pnkqautdqyw3jsnp4q09a0z84kg4a2m38zjllw43h953fx5zvqe8qxfgw694ymkq26u8zcpp5yvnh6hsnlnj4xnuh2trzlnunx732dv8ta2wjr75pdfxf6p2vlyassp5hyeg97a3ft5u769kjwsn7p0e85h79pzz8kladmnqhpcypz2uawjs9qyysgqcqpcxq8zals8sq9yeg2pa9eywkgj50cyzxd5elatujuc0c0wh6j9nat5mn34pgk8u9ufpgs99tw9ldlfk42cqlkr48au3lmuh09269prg4qkggh4a8cyqpfl0y6j"
 			},
 			{
-				"invoice": "lntbs1230n1pnvxqc2dqqnp4q0w0f29u6f7yrrpr5y6wj45gtnyhtch9u2m2j7qrws8eevrw90c72pp57gnea9rwqh9c62dl67akgyhuxm7dd3fgwufyuyctgx3awuv8f7cqsp56rtp7kryxssfp3lk7h79uv7n55dc4nwuvslva64caxz45ysefmeq9qyysgqcqpcxqyz5vq7trlnnrjjtfkaw3evfgqh7nxayppkvlkxa2nzhg39zs372j7hff8kht7j40hl0elh2ukhu26nzawvk3aqszdl8ppxhzsgtumemewtccq3xryqt"
+				"invoice": "lntbs1230n1pnkq7q2dqqnp4q09a0z84kg4a2m38zjllw43h953fx5zvqe8qxfgw694ymkq26u8zcpp54sde879ktfrwnt4re3t2ckkrt5tr6dgv6cfdjgkar7942ruccvuqsp52qlk3rxr926s630fmnc5mg6sexnng4cyyfas4msrms8j6q28j8ys9qyysgqcqpcxq8zals8sqgjd3a60n6dy92jn7ggtkywhw952sc302qj0cwfupp7gayadznaj5cahvuq7py8p7hnq8yxylru6279urzxta3783cxze2atj9zmwadcq36muep"
 			}
 		]
 	}
@@ -46,19 +46,36 @@ const nip47MultiPayOneMalformedInvoiceJson = `
 				"id": "invoiceId123"
 			},
 			{
-				"invoice": "lntb1230n1pjypux0pp5xgxzcks5jtx06k784f9dndjh664wc08ucrganpqn52d0ftrh9n8sdqyw3jscqzpgxqyz5vqsp5rkx7cq252p3frx8ytjpzc55rkgyx2mfkzzraa272dqvr2j6leurs9qyyssqhutxa24r5hqxstchz5fxlslawprqjnarjujp5sm3xj7ex73s32sn54fthv2aqlhp76qmvrlvxppx9skd3r5ut5xutgrup8zuc6ay73gqmra29m"
+				"invoice": "lntbs1230n1pnkqautdqyw3jsnp4q09a0z84kg4a2m38zjllw43h953fx5zvqe8qxfgw694ymkq26u8zcpp5yvnh6hsnlnj4xnuh2trzlnunx732dv8ta2wjr75pdfxf6p2vlyassp5hyeg97a3ft5u769kjwsn7p0e85h79pzz8kladmnqhpcypz2uawjs9qyysgqcqpcxq8zals8sq9yeg2pa9eywkgj50cyzxd5elatujuc0c0wh6j9nat5mn34pgk8u9ufpgs99tw9ldlfk42cqlkr48au3lmuh09269prg4qkggh4a8cyqpfl0y6j"
 			}
 		]
 	}
 }
 `
 
+// the first invoice is expired
+const nip47MultiPayOneExpiredInvoiceJson = `
+{
+	"method": "multi_pay_invoice",
+	"params": {
+		"invoices": [{
+				"invoice": "lntb1230n1pjypux0pp5xgxzcks5jtx06k784f9dndjh664wc08ucrganpqn52d0ftrh9n8sdqyw3jscqzpgxqyz5vqsp5rkx7cq252p3frx8ytjpzc55rkgyx2mfkzzraa272dqvr2j6leurs9qyyssqhutxa24r5hqxstchz5fxlslawprqjnarjujp5sm3xj7ex73s32sn54fthv2aqlhp76qmvrlvxppx9skd3r5ut5xutgrup8zuc6ay73gqmra29m"
+			},
+			{
+				"invoice": "lntbs1230n1pnkqautdqyw3jsnp4q09a0z84kg4a2m38zjllw43h953fx5zvqe8qxfgw694ymkq26u8zcpp5yvnh6hsnlnj4xnuh2trzlnunx732dv8ta2wjr75pdfxf6p2vlyassp5hyeg97a3ft5u769kjwsn7p0e85h79pzz8kladmnqhpcypz2uawjs9qyysgqcqpcxq8zals8sq9yeg2pa9eywkgj50cyzxd5elatujuc0c0wh6j9nat5mn34pgk8u9ufpgs99tw9ldlfk42cqlkr48au3lmuh09269prg4qkggh4a8cyqpfl0y6j"
+			}
+		]
+	}
+}
+`
+const MockExpiredPaymentHash = "320c2c5a1492ccfd5bc7aa4ad9b657d6aaec3cfcc0d1d98413a29af4ac772ccf" // for the expired invoice
+
 func TestHandleMultiPayInvoiceEvent_Success(t *testing.T) {
 	ctx := context.TODO()
 
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	var preimages = []string{"123preimage", "123preimage2"}
 
@@ -106,8 +123,8 @@ func TestHandleMultiPayInvoiceEvent_Success(t *testing.T) {
 		HandleMultiPayInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
 
 	var paymentHashes = []string{
-		"320c2c5a1492ccfd5bc7aa4ad9b657d6aaec3cfcc0d1d98413a29af4ac772ccf",
-		"f2279e946e05cb8d29bfd7bb6412fc36fcd6c52877124e130b41a3d771874fb0",
+		"23277d5e13fce5534f9752c62fcf9337a2a6b0ebea9d21fa816a4c9d054cf93b",
+		"ac1b93f8b65a46e9aea3cc56ac5ac35d163d350cd612d922dd1f8b550f98c338",
 	}
 
 	assert.Equal(t, 2, len(responses))
@@ -134,9 +151,9 @@ func TestHandleMultiPayInvoiceEvent_Success(t *testing.T) {
 func TestHandleMultiPayInvoiceEvent_OneMalformedInvoice(t *testing.T) {
 	ctx := context.TODO()
 
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -190,15 +207,76 @@ func TestHandleMultiPayInvoiceEvent_OneMalformedInvoice(t *testing.T) {
 	assert.Equal(t, tests.MockPaymentHash, dTags[1].GetFirst([]string{"d"}).Value())
 	assert.Equal(t, "123preimage", responses[1].Result.(payResponse).Preimage)
 	assert.Nil(t, responses[1].Error)
+}
 
+func TestHandleMultiPayInvoiceEvent_OneExpiredInvoice(t *testing.T) {
+	ctx := context.TODO()
+
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	app, _, err := tests.CreateApp(svc)
+	assert.NoError(t, err)
+
+	appPermission := &db.AppPermission{
+		AppId: app.ID,
+		App:   *app,
+		Scope: constants.PAY_INVOICE_SCOPE,
+	}
+	err = svc.DB.Create(appPermission).Error
+	assert.NoError(t, err)
+
+	nip47Request := &models.Request{}
+	err = json.Unmarshal([]byte(nip47MultiPayOneExpiredInvoiceJson), nip47Request)
+	assert.NoError(t, err)
+
+	responses := []*models.Response{}
+	dTags := []nostr.Tags{}
+
+	var mu sync.Mutex
+
+	publishResponse := func(response *models.Response, tags nostr.Tags) {
+		mu.Lock()
+		defer mu.Unlock()
+		responses = append(responses, response)
+		dTags = append(dTags, tags)
+	}
+
+	requestEvent := &db.RequestEvent{}
+	svc.DB.Save(requestEvent)
+
+	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
+	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
+	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
+		HandleMultiPayInvoiceEvent(ctx, nip47Request, requestEvent.ID, app, publishResponse)
+
+	assert.Equal(t, 2, len(responses))
+	assert.Equal(t, 2, len(dTags))
+
+	// we can't guarantee which request was processed first
+	// so swap them if they are back to front
+	if responses[0].Result != nil {
+		responses[0], responses[1] = responses[1], responses[0]
+		dTags[0], dTags[1] = dTags[1], dTags[0]
+	}
+
+	assert.Equal(t, MockExpiredPaymentHash, dTags[0].GetFirst([]string{"d"}).Value())
+	assert.Equal(t, constants.ERROR_INTERNAL, responses[0].Error.Code)
+	assert.Equal(t, "this invoice has expired", responses[0].Error.Message)
+	assert.Nil(t, responses[0].Result)
+
+	assert.Equal(t, tests.MockPaymentHash, dTags[1].GetFirst([]string{"d"}).Value())
+	assert.Equal(t, "123preimage", responses[1].Result.(payResponse).Preimage)
+	assert.Nil(t, responses[1].Error)
 }
 
 func TestHandleMultiPayInvoiceEvent_IsolatedApp_OneBudgetExceeded(t *testing.T) {
 	ctx := context.TODO()
 
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 
 	app, _, err := tests.CreateApp(svc)
 	assert.NoError(t, err)
@@ -259,8 +337,8 @@ func TestHandleMultiPayInvoiceEvent_IsolatedApp_OneBudgetExceeded(t *testing.T) 
 	// we cannot guarantee which payment will be made first,
 	// so ensure we have results for both payment hashes
 	var paymentHashes = []string{
-		"320c2c5a1492ccfd5bc7aa4ad9b657d6aaec3cfcc0d1d98413a29af4ac772ccf",
-		"f2279e946e05cb8d29bfd7bb6412fc36fcd6c52877124e130b41a3d771874fb0",
+		"23277d5e13fce5534f9752c62fcf9337a2a6b0ebea9d21fa816a4c9d054cf93b",
+		"ac1b93f8b65a46e9aea3cc56ac5ac35d163d350cd612d922dd1f8b550f98c338",
 	}
 
 	assert.NotEqual(t, dTags[0].GetFirst([]string{"d"}).Value(), dTags[1].GetFirst([]string{"d"}).Value())
@@ -278,9 +356,9 @@ func TestHandleMultiPayInvoiceEvent_LNClient_OnePaymentFailed(t *testing.T) {
 
 	ctx := context.TODO()
 
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService()
+	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
+	defer svc.Remove()
 	svc.LNClient.(*tests.MockLn).PayInvoiceResponses = []*lnclient.PayInvoiceResponse{{
 		Preimage: "123preimage",
 	}, nil}
@@ -340,8 +418,8 @@ func TestHandleMultiPayInvoiceEvent_LNClient_OnePaymentFailed(t *testing.T) {
 	// we cannot guarantee which payment will be made first,
 	// so ensure we have results for both payment hashes
 	var paymentHashes = []string{
-		"320c2c5a1492ccfd5bc7aa4ad9b657d6aaec3cfcc0d1d98413a29af4ac772ccf",
-		"f2279e946e05cb8d29bfd7bb6412fc36fcd6c52877124e130b41a3d771874fb0",
+		"23277d5e13fce5534f9752c62fcf9337a2a6b0ebea9d21fa816a4c9d054cf93b",
+		"ac1b93f8b65a46e9aea3cc56ac5ac35d163d350cd612d922dd1f8b550f98c338",
 	}
 
 	assert.NotEqual(t, dTags[0].GetFirst([]string{"d"}).Value(), dTags[1].GetFirst([]string{"d"}).Value())

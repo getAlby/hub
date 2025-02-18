@@ -46,7 +46,7 @@ func NewBreezService(mnemonic, apiKey, inviteCode, workDir string) (result lncli
 		return nil, errors.New("one or more required breez configuration are missing")
 	}
 
-	//create dir if not exists
+	// create dir if not exists
 	newpath := filepath.Join(workDir)
 	err = os.MkdirAll(newpath, os.ModePerm)
 	if err != nil {
@@ -99,7 +99,10 @@ func (bs *BreezService) Shutdown() error {
 	return bs.svc.Disconnect()
 }
 
-func (bs *BreezService) SendPaymentSync(ctx context.Context, payReq string) (*lnclient.PayInvoiceResponse, error) {
+func (bs *BreezService) SendPaymentSync(ctx context.Context, payReq string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
+	if amount != nil {
+		return nil, errors.New("0-amount invoices not supported")
+	}
 	sendPaymentRequest := breez_sdk.SendPaymentRequest{
 		Bolt11: payReq,
 	}
@@ -423,7 +426,9 @@ func (bs *BreezService) GetLogOutput(ctx context.Context, maxLen int) ([]byte, e
 }
 
 func (bs *BreezService) GetNodeStatus(ctx context.Context) (nodeStatus *lnclient.NodeStatus, err error) {
-	return nil, nil
+	return &lnclient.NodeStatus{
+		IsReady: true,
+	}, nil
 }
 
 func (bs *BreezService) SignMessage(ctx context.Context, message string) (string, error) {
@@ -487,4 +492,12 @@ func (bs *BreezService) GetSupportedNIP47NotificationTypes() []string {
 
 func (bs *BreezService) GetPubkey() string {
 	return bs.pubkey
+}
+
+func (bs *BreezService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCommandDef {
+	return nil
+}
+
+func (bs *BreezService) ExecuteCustomNodeCommand(ctx context.Context, command *lnclient.CustomNodeCommandRequest) (*lnclient.CustomNodeCommandResponse, error) {
+	return nil, nil
 }

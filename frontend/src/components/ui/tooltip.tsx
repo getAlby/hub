@@ -1,9 +1,32 @@
-import * as React from "react";
+import {
+  PopoverContentProps,
+  PopoverProps,
+  PopoverTriggerProps,
+} from "@radix-ui/react-popover";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
+import {
+  TooltipContentProps,
+  TooltipProps,
+  TooltipTriggerProps,
+} from "@radix-ui/react-tooltip";
+import * as React from "react";
+import {
+  PropsWithChildren,
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 
 import { cn } from "src/lib/utils";
 
 const TooltipProvider = TooltipPrimitive.Provider;
+
+TooltipProvider.defaultProps = {
+  ...(TooltipProvider.defaultProps || {}),
+  delayDuration: 200,
+};
 
 const Tooltip = TooltipPrimitive.Root;
 
@@ -25,4 +48,61 @@ const TooltipContent = React.forwardRef<
 ));
 TooltipContent.displayName = TooltipPrimitive.Content.displayName;
 
-export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider };
+// Hybrid tooltip
+
+const TouchContext = createContext<boolean | undefined>(undefined);
+const useTouch = () => useContext(TouchContext);
+
+const TouchProvider = (props: PropsWithChildren) => {
+  const [isTouch, setTouch] = useState<boolean>();
+
+  useEffect(() => {
+    setTouch(window.matchMedia("(pointer: coarse)").matches);
+  }, []);
+
+  return <TouchContext.Provider value={isTouch} {...props} />;
+};
+
+const HybridTooltip = (props: TooltipProps & PopoverProps) => {
+  const isTouch = useTouch();
+
+  return isTouch ? <Popover {...props} /> : <Tooltip {...props} />;
+};
+
+const HybridTooltipTrigger = (
+  props: TooltipTriggerProps & PopoverTriggerProps
+) => {
+  const isTouch = useTouch();
+
+  return isTouch ? (
+    <PopoverTrigger {...props} />
+  ) : (
+    <TooltipTrigger {...props} />
+  );
+};
+
+const HybridTooltipContent = (
+  props: TooltipContentProps & PopoverContentProps
+) => {
+  const isTouch = useTouch();
+
+  return isTouch ? (
+    <PopoverContent
+      {...props}
+      className={cn(
+        "bg-primary text-primary-foreground text-sm",
+        props.className
+      )}
+    />
+  ) : (
+    <TooltipContent {...props} />
+  );
+};
+
+export {
+  HybridTooltip as Tooltip,
+  HybridTooltipContent as TooltipContent,
+  TooltipProvider,
+  HybridTooltipTrigger as TooltipTrigger,
+  TouchProvider,
+};
