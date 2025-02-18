@@ -116,12 +116,12 @@ jobs:
         shell: bash
 
       - name: Build App
-        if: runner.os == 'Linux' && matrix.os != 'ubuntu-24.04'
+        if: runner.os == 'Linux' && matrix.build.os != 'ubuntu-24.04'
         run: wails build --platform linux/amd64 -webview2 embed -o "${{ env.EXEC_NAME }}" -tags "wails" -ldflags "-X 'github.com/getAlby/hub/version.Tag=${{ env.TAG }}'"
         shell: bash
 
       - name: Build App
-        if: runner.os == 'Linux' && matrix.os == 'ubuntu-24.04'
+        if: runner.os == 'Linux' && matrix.build.os == 'ubuntu-24.04'
         run: wails build --platform linux/amd64 -webview2 embed -o "${{ env.EXEC_NAME }}" -tags "wails,webkit2_41" -ldflags "-X 'github.com/getAlby/hub/version.Tag=${{ env.TAG }}'"
         shell: bash
 
