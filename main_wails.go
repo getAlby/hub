@@ -42,4 +42,5 @@ func main() {
 	cancel()
 	svc.Shutdown()
 	logger.Logger.Info("Service exited")
+	logger.Logger.Info("Alby Hub needs to stay online to send and receive transactions. Channels may be closed if your hub stays offline for an extended period of time.")
 }
