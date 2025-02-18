@@ -22,7 +22,7 @@ export function splitSocketAddress(socketAddress: string) {
 }
 
 export function generatePageNumbers(currentPage: number, totalPages: number) {
-  const MAX_PAGES_TO_SHOW = 2;
+  const MAX_PAGES_TO_SHOW = 3;
   const pageNumbers: (number | "ellipsis")[] = [];
   const half = Math.floor(MAX_PAGES_TO_SHOW / 2);
 
