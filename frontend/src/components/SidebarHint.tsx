@@ -29,11 +29,7 @@ function SidebarHint() {
         title="New Channel"
         description="You're currently opening a new channel"
         buttonText="View Channel"
-        buttonLink={`${
-          order.paymentMethod === "lightning"
-            ? "/channels/incoming"
-            : "/channels/outgoing"
-        }`}
+        buttonLink="/channels/order"
       />
     );
   }

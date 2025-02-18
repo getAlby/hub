@@ -7,6 +7,7 @@ import QRCode from "src/components/QRCode";
 import { Button, ExternalLinkButton } from "src/components/ui/button";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
+import { useChannels } from "src/hooks/useChannels";
 import { copyToClipboard } from "src/lib/clipboard";
 import useChannelOrderStore from "src/state/ChannelOrderStore";
 import { LSPOrderResponse } from "src/types";
@@ -18,15 +19,13 @@ type PayLightningInvoiceProps = {
   canPayInternally?: boolean | undefined;
 };
 
-export function PayLightningInvoice({
-  invoice,
-  lspOrderResponse,
-  canPayInternally,
-}: PayLightningInvoiceProps) {
+export function PayLightningInvoice({ invoice }: PayLightningInvoiceProps) {
   const amount = new Invoice({
     pr: invoice,
   }).satoshi;
   const [fiatAmount, setFiatAmount] = React.useState(0);
+  const { data: channels, mutate: reloadChannels } = useChannels();
+
   React.useEffect(() => {
     fiat
       .getFiatValue({ satoshi: amount, currency: "USD" })
@@ -43,7 +42,7 @@ export function PayLightningInvoice({
     try {
       setPaying(true);
 
-      await request(`/api/payments/${lspOrderResponse?.invoice}`, {
+      await request(`/api/payments/${invoice}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -53,6 +52,8 @@ export function PayLightningInvoice({
       useChannelOrderStore.getState().updateOrder({
         status: "paid",
       });
+
+      reloadChannels();
 
       toast({
         title: "Channel successfully requested",
@@ -67,6 +68,10 @@ export function PayLightningInvoice({
       setPaying(false);
     }
   };
+
+  const canPayInternally =
+    channels &&
+    channels.some((channel) => channel.localSpendableBalance / 1000 > amount);
 
   return (
     <div className="w-80 flex flex-col gap-6 px-8 py-6 items-center justify-center border rounded-xl">

@@ -627,14 +627,6 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
     toast,
   ]);
 
-  const canPayInternally =
-    channels &&
-    lspOrderResponse &&
-    channels.some(
-      (channel) =>
-        channel.localSpendableBalance / 1000 > lspOrderResponse.invoiceAmount
-    );
-
   return (
     <div className="flex flex-col gap-5">
       {!lspOrderResponse && <Loading />}
@@ -643,11 +635,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
         <>
           <div className="flex gap-5">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
-              <PayLightningInvoice
-                invoice={lspOrderResponse.invoice}
-                lspOrderResponse={lspOrderResponse}
-                canPayInternally={canPayInternally}
-              />
+              <PayLightningInvoice invoice={lspOrderResponse.invoice} />
 
               <div className="order-first md:order-last col-span-2">
                 <p className="text-muted-foreground mb-6">
