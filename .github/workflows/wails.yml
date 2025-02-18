@@ -44,7 +44,7 @@ jobs:
         shell: bash
         run: |
           echo "EXEC_NAME=Alby Hub" >> $GITHUB_ENV
-          if [ "${{ matrix.os }}" == "ubuntu-24.04" ]; then
+          if [ "${{ matrix.build.os }}" == "ubuntu-24.04" ]; then
             echo "PACKAGE_NAME=albyhub-Desktop-Linux-Ubuntu-24.04" >> $GITHUB_ENV
             echo "LIBWEBKIT2GTK=libwebkit2gtk-4.1-dev" >> $GITHUB_ENV
           else
