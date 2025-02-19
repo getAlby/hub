@@ -72,7 +72,8 @@ func (cfg *config) init(env *AppConfig) error {
 			return err
 		}
 	} else {
-		// If no LNDCertFile is provided, we create a new one during startup
+		// If no LNDCertFile is provided, clear any stored certificate
+		// hex value so that no certificate is used for TLS verification.
 		err := cfg.SetUpdate("LNDCertHex", "", "")
 		if err != nil {
 			return err
