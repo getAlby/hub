@@ -16,9 +16,9 @@ export default function SendLayout() {
   const { hasChannelManagement } = useInfo();
   const { data: balances } = useBalances();
   const { data: channels } = useChannels();
-  const { data: transactions } = useTransactions();
+  const { data: transactionData } = useTransactions();
 
-  if (!balances || !channels) {
+  if (!balances || !channels || !transactionData) {
     return <Loading />;
   }
 
@@ -28,7 +28,7 @@ export default function SendLayout() {
         title="Send"
         description="Pay a lightning invoice created by any bitcoin lightning wallet"
       />
-      {transactions?.some(
+      {transactionData.transactions?.some(
         (tx) =>
           tx.state === "pending" &&
           dayjs().diff(dayjs(tx.createdAt)) <

@@ -56,7 +56,7 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
     new Date(info.nextBackupReminder).getTime() > new Date().getTime();
   const hasCustomApp =
     apps && apps.find((x) => x.name !== "getalby.com") !== undefined;
-  const hasTransaction = transactions.length > 0;
+  const hasTransaction = transactions.totalCount > 0;
   const hasSetupSupportPayment =
     apps &&
     apps.find((x) => x.name === SUPPORT_ALBY_CONNECTION_NAME) !== undefined;
