@@ -44,10 +44,6 @@ export function SimpleBoost() {
     setLoading(true);
     (async () => {
       try {
-        if (apps?.some((existingApp) => existingApp.name === name)) {
-          throw new Error("A connection with the same name already exists.");
-        }
-
         const createAppResponse = await createApp({
           name,
           scopes: ["lookup_invoice", "make_invoice"],
