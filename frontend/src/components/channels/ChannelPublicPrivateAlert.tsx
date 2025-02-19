@@ -4,7 +4,7 @@ import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 
 export function ChannelPublicPrivateAlert() {
   return (
-    <Alert>
+    <Alert variant={"destructive"}>
       <AlertCircleIcon className="h-4 w-4" />
       <AlertTitle>Conflicting Private / Public Channels</AlertTitle>
       <AlertDescription>
