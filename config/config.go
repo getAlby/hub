@@ -71,7 +71,7 @@ func (cfg *config) init(env *AppConfig) error {
 		if err != nil {
 			return err
 		}
-	} else {
+	} else if cfg.Env.LNBackendType == "LND" {
 		// If no LNDCertFile is provided, clear any stored certificate
 		// hex value so that no certificate is used for TLS verification.
 		err := cfg.SetUpdate("LNDCertHex", "", "")
