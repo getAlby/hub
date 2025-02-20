@@ -96,9 +96,8 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 	encryption := "nip04"
 	encryptionTag := event.Tags.GetFirst([]string{"encryption"})
 
-	if encryptionTag != nil && encryptionTag.Value() != "" {
-		encryption = encryptionTag.Value()
-	} else {
+	// TODO: Remove version tag after 01-06-2025
+	if encryptionTag == nil || encryptionTag.Value() == "" {
 		vTag := event.Tags.GetFirst([]string{"v"})
 		if vTag != nil && vTag.Value() != "" {
 			version := vTag.Value()
@@ -106,6 +105,8 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 				encryption = "nip44_v2"
 			}
 		}
+	} else {
+		encryption = encryptionTag.Value()
 	}
 
 	nip47Cipher, err := cipher.NewNip47Cipher(encryption, app.AppPubkey, appWalletPrivKey)

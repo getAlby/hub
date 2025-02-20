@@ -38,7 +38,7 @@ func (svc *nip47Service) GetNip47Info(ctx context.Context, relay *nostr.Relay, a
 func (svc *nip47Service) PublishNip47Info(ctx context.Context, relay nostrmodels.Relay, appWalletPubKey string, appWalletPrivKey string, lnClient lnclient.LNClient) (*nostr.Event, error) {
 	var capabilities []string
 	var permitsNotifications bool
-	// TODO: remove this after 01-06-2025
+	// TODO: Remove version tag after 01-06-2025
 	tags := nostr.Tags{[]string{"encryption", cipher.SUPPORTED_ENCRYPTIONS}, []string{"v", cipher.SUPPORTED_VERSIONS}}
 	if svc.keys.GetNostrPublicKey() == appWalletPubKey {
 		// legacy app, so return lnClient.GetSupportedNIP47Methods()
