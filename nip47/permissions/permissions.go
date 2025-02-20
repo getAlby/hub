@@ -79,6 +79,11 @@ func (svc *permissionsService) GetPermittedMethods(app *db.App, lnClient lnclien
 	// only return methods supported by the lnClient
 	lnClientSupportedMethods := lnClient.GetSupportedNIP47Methods()
 	requestMethods = utils.Filter(requestMethods, func(requestMethod string) bool {
+		// TODO: better way to exclude methods unrelated to the lnclient
+		if requestMethod == models.CREATE_CONNECTION_METHOD {
+			return true
+		}
+
 		return slices.Contains(lnClientSupportedMethods, requestMethod)
 	})
 
@@ -121,6 +126,8 @@ func scopeToRequestMethods(scope string) []string {
 		return []string{models.LIST_TRANSACTIONS_METHOD}
 	case constants.SIGN_MESSAGE_SCOPE:
 		return []string{models.SIGN_MESSAGE_METHOD}
+	case constants.SUPERUSER_SCOPE:
+		return []string{models.CREATE_CONNECTION_METHOD}
 	}
 	return []string{}
 }
@@ -158,6 +165,8 @@ func RequestMethodToScope(requestMethod string) (string, error) {
 		return constants.LIST_TRANSACTIONS_SCOPE, nil
 	case models.SIGN_MESSAGE_METHOD:
 		return constants.SIGN_MESSAGE_SCOPE, nil
+	case models.CREATE_CONNECTION_METHOD:
+		return constants.SUPERUSER_SCOPE, nil
 	}
 	logger.Logger.WithField("request_method", requestMethod).Error("Unsupported request method")
 	return "", fmt.Errorf("unsupported request method: %s", requestMethod)
@@ -173,6 +182,7 @@ func AllScopes() []string {
 		constants.LIST_TRANSACTIONS_SCOPE,
 		constants.SIGN_MESSAGE_SCOPE,
 		constants.NOTIFICATIONS_SCOPE,
+		constants.SUPERUSER_SCOPE,
 	}
 }
 

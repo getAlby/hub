@@ -7,6 +7,7 @@ import (
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/sirupsen/logrus"
 
+	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/logger"
 )
@@ -33,6 +34,18 @@ func (s *createAppConsumer) ConsumeEvent(ctx context.Context, event *events.Even
 		logger.Logger.WithField("event", event).Error("Failed to get app id")
 		return
 	}
+
+	app := db.App{}
+	err := s.svc.db.First(&app, &db.App{
+		ID: id,
+	}).Error
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"id": id,
+		}).WithError(err).Error("Failed to find app for id")
+		return
+	}
+
 	walletPrivKey, err := s.svc.keys.GetAppWalletKey(id)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to calculate app wallet priv key")

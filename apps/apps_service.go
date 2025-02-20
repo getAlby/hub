@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/getAlby/hub/constants"
@@ -42,6 +43,14 @@ func (svc *appsService) CreateApp(name string, pubkey string, maxAmountSat uint6
 	if isolated && (slices.Contains(scopes, constants.SIGN_MESSAGE_SCOPE)) {
 		// cannot sign messages because the isolated app is a custodial sub-wallet
 		return nil, "", errors.New("Sub-wallet app connection cannot have sign_message scope")
+	}
+
+	if budgetRenewal == "" {
+		budgetRenewal = constants.BUDGET_RENEWAL_NEVER
+	}
+
+	if !slices.Contains(constants.GetBudgetRenewals(), budgetRenewal) {
+		return nil, "", fmt.Errorf("invalid budget renewal. Must be one of %s", strings.Join(constants.GetBudgetRenewals(), ","))
 	}
 
 	var pairingPublicKey string

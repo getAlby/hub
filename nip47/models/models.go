@@ -10,6 +10,7 @@ const (
 	RESPONSE_KIND            = 23195
 	LEGACY_NOTIFICATION_KIND = 23196
 	NOTIFICATION_KIND        = 23197
+	NWA_EVENT_KIND           = 33195 // NIP-44
 
 	// request methods
 	PAY_INVOICE_METHOD       = "pay_invoice"
@@ -23,6 +24,7 @@ const (
 	MULTI_PAY_INVOICE_METHOD = "multi_pay_invoice"
 	MULTI_PAY_KEYSEND_METHOD = "multi_pay_keysend"
 	SIGN_MESSAGE_METHOD      = "sign_message"
+	CREATE_CONNECTION_METHOD = "create_connection"
 )
 
 type Transaction struct {
