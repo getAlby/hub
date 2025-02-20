@@ -143,8 +143,7 @@ export function FirstChannel() {
                   .
                 </p>
                 <p>
-                  Those funds will be used to open your first lightning channel
-                  and then migrated to your Hub spending balance.
+                  Those funds will be used to open your first lightning channel.
                 </p>
               </>
             ) : (
