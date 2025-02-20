@@ -568,7 +568,7 @@ export default function Channels() {
               {balances && (
                 <>
                   <div className="mb-1">
-                    <span className="text-xl font-medium balance sensitive mb-1">
+                    <span className="text-xl font-medium balance sensitive mb-1 mr-1">
                       {new Intl.NumberFormat().format(
                         Math.floor(balances.onchain.spendable)
                       )}{" "}
