@@ -62,13 +62,17 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
     apps.find((x) => x.name === SUPPORT_ALBY_CONNECTION_NAME) !== undefined;
 
   const checklistItems: Omit<ChecklistItem, "disabled">[] = [
-    {
-      title: "Open your first channel",
-      description:
-        "Establish a new Lightning channel to enable fast and low-fee Bitcoin transactions.",
-      checked: hasChannel,
-      to: "/channels/first",
-    },
+    ...(hasChannelManagement
+      ? [
+          {
+            title: "Open your first channel",
+            description:
+              "Establish a new Lightning channel to enable fast and low-fee Bitcoin transactions.",
+            checked: hasChannel,
+            to: "/channels/first",
+          },
+        ]
+      : []),
     ...(info.albyAccountConnected
       ? [
           {
