@@ -53,6 +53,8 @@ func (controller *nip47Controller) HandleCreateConnectionEvent(ctx context.Conte
 		expiresAt = &expiresAtValue
 	}
 
+	maxAmountSat := params.Budget.Budget / 1000
+
 	// explicitly do not allow creating an app with create_connection permission
 	if slices.Contains(params.Methods, models.CREATE_CONNECTION_METHOD) {
 		publishResponse(&models.Response{
@@ -92,7 +94,7 @@ func (controller *nip47Controller) HandleCreateConnectionEvent(ctx context.Conte
 		return
 	}
 
-	app, _, err := controller.appsService.CreateApp(params.Name, params.Pubkey, params.Budget.Budget, params.Budget.RenewalPeriod, expiresAt, scopes, params.Isolated, params.Metadata)
+	app, _, err := controller.appsService.CreateApp(params.Name, params.Pubkey, maxAmountSat, params.Budget.RenewalPeriod, expiresAt, scopes, params.Isolated, params.Metadata)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"request_event_id": requestEventId,
