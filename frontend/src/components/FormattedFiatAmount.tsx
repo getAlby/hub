@@ -25,7 +25,7 @@ export default function FormattedFiatAmount({
   }
 
   return (
-    <div className={cn("text-sm text-muted-foreground", className)}>
+    <div className={cn("text-sm", className)}>
       {new Intl.NumberFormat("en-US", {
         style: "currency",
         currency: info?.currency || "usd",
