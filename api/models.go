@@ -233,7 +233,7 @@ type MakeInvoiceResponse = Transaction
 type LookupInvoiceResponse = Transaction
 
 type ListTransactionsResponse struct {
-	TotalCount   int64         `json:"totalCount"`
+	TotalCount   uint64        `json:"totalCount"`
 	Transactions []Transaction `json:"transactions"`
 }
 
