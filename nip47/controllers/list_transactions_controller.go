@@ -23,6 +23,7 @@ type listTransactionsParams struct {
 
 type listTransactionsResponse struct {
 	Transactions []models.Transaction `json:"transactions"`
+	TotalCount   uint64               `json:"total_count"`
 }
 
 func (controller *nip47Controller) HandleListTransactionsEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, appId uint, publishResponse publishFunc) {
@@ -50,7 +51,7 @@ func (controller *nip47Controller) HandleListTransactionsEvent(ctx context.Conte
 		transactionType = &listParams.Type
 	}
 
-	dbTransactions, _, err := controller.transactionsService.ListTransactions(ctx, listParams.From, listParams.Until, limit, listParams.Offset, listParams.Unpaid || listParams.UnpaidOutgoing, listParams.Unpaid || listParams.UnpaidIncoming, transactionType, controller.lnClient, &appId, false)
+	dbTransactions, totalCount, err := controller.transactionsService.ListTransactions(ctx, listParams.From, listParams.Until, limit, listParams.Offset, listParams.Unpaid || listParams.UnpaidOutgoing, listParams.Unpaid || listParams.UnpaidIncoming, transactionType, controller.lnClient, &appId, false)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"params":           listParams,
@@ -74,6 +75,7 @@ func (controller *nip47Controller) HandleListTransactionsEvent(ctx context.Conte
 
 	responsePayload := &listTransactionsResponse{
 		Transactions: transactions,
+		TotalCount:   totalCount,
 	}
 
 	publishResponse(&models.Response{
