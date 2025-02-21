@@ -9,10 +9,11 @@ export type FlyingBeesRef = {
 
 export const FlyingBees = React.forwardRef<FlyingBeesRef>((_, ref) => {
   const [flyingBees, setFlyingBees] = React.useState<FlyingBee[]>([]);
+  const idCounter = React.useRef(0);
 
   const addFlyingBee = React.useCallback(() => {
     const randomTop = Math.floor(Math.random() * window.innerHeight * 0.8);
-    const newId = Date.now();
+    const newId = idCounter.current++;
     setFlyingBees((prev) => [...prev, { id: newId, top: randomTop }]);
   }, []);
 
