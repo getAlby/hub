@@ -51,19 +51,18 @@ export default function ConnectPeer() {
       toast({ title: "Successfully connected with peer" });
       if (returnTo) {
         window.location.href = returnTo;
-      } else {
-        setConnectionString("");
-        navigate("/channels");
-        setLoading(false);
+        return;
       }
+      setConnectionString("");
+      navigate("/channels");
     } catch (e) {
       toast({
         variant: "destructive",
         title: "Failed to connect peer: " + e,
       });
       console.error(e);
-      setLoading(false);
     }
+    setLoading(false);
   };
 
   return (
