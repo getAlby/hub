@@ -48,7 +48,10 @@ import {
 } from "src/components/ui/tooltip";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 
-import bee from "src/assets/images/flying-bee.png";
+import {
+  FlyingBees,
+  FlyingBeesRef,
+} from "src/components/easter-eggs/FlyingBees";
 import { useAlbyInfo } from "src/hooks/useAlbyInfo";
 import { useHealthCheck } from "src/hooks/useHealthCheck";
 import { useInfo } from "src/hooks/useInfo";
@@ -375,19 +378,7 @@ function AppVersion() {
 
 function HealthIndicator() {
   const { data: health } = useHealthCheck();
-  const [flyingBees, setFlyingBees] = React.useState<
-    Array<{ id: number; top: number }>
-  >([]);
-
-  const addFlyingBee = () => {
-    const randomTop = Math.floor(Math.random() * window.innerHeight * 0.8);
-    const newId = new Date().getTime();
-    setFlyingBees((prev) => [...prev, { id: newId, top: randomTop }]);
-  };
-
-  const handleAnimationEnd = (id: number) => {
-    setFlyingBees((prev) => prev.filter((item) => item.id !== id));
-  };
+  const flyingBeesRef = React.useRef<FlyingBeesRef>(null);
 
   if (!health) {
     return null;
@@ -415,7 +406,7 @@ function HealthIndicator() {
   return (
     <TooltipProvider>
       <Tooltip>
-        <TooltipTrigger onClick={addFlyingBee}>
+        <TooltipTrigger onClick={() => flyingBeesRef.current?.addFlyingBee()}>
           <span className="text-xs flex items-center text-muted-foreground">
             <div
               className={cn(
@@ -442,16 +433,7 @@ function HealthIndicator() {
           )}
         </TooltipContent>
       </Tooltip>
-      {flyingBees.map((item) => (
-        <img
-          key={item.id}
-          src={bee}
-          alt="🐝"
-          className="fixed left-0 w-32 pointer-events-none z-[9999] animate-fly-right"
-          style={{ top: item.top }}
-          onAnimationEnd={() => handleAnimationEnd(item.id)}
-        />
-      ))}
+      <FlyingBees ref={flyingBeesRef} />
     </TooltipProvider>
   );
 }
