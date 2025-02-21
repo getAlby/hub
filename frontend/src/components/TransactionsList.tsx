@@ -51,13 +51,6 @@ function TransactionsList({
     return <Loading />;
   }
 
-  const handlePageChange = (newPage: number) => {
-    if (newPage < 1 || newPage > totalPages) {
-      return;
-    }
-    setPage(newPage);
-  };
-
   return (
     <div className="transaction-list flex flex-col">
       {!transactions.length ? (
@@ -91,7 +84,7 @@ function TransactionsList({
                       href="#"
                       onClick={(e) => {
                         e.preventDefault();
-                        handlePageChange(page - 1);
+                        setPage(page - 1);
                       }}
                     />
                   </PaginationItem>
@@ -108,7 +101,7 @@ function TransactionsList({
                           isActive={p === page}
                           onClick={(e) => {
                             e.preventDefault();
-                            handlePageChange(p);
+                            setPage(p);
                           }}
                         >
                           {p}
@@ -127,7 +120,7 @@ function TransactionsList({
                       href="#"
                       onClick={(e) => {
                         e.preventDefault();
-                        handlePageChange(page + 1);
+                        setPage(page + 1);
                       }}
                     />
                   </PaginationItem>

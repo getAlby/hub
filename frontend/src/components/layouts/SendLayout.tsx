@@ -28,7 +28,7 @@ export default function SendLayout() {
         title="Send"
         description="Pay a lightning invoice created by any bitcoin lightning wallet"
       />
-      {transactionData.transactions?.some(
+      {transactionData.transactions.some(
         (tx) =>
           tx.state === "pending" &&
           dayjs().diff(dayjs(tx.createdAt)) <

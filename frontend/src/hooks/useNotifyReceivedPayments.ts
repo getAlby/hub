@@ -4,15 +4,15 @@ import { useTransactions } from "src/hooks/useTransactions";
 import { Transaction } from "src/types";
 
 export function useNotifyReceivedPayments() {
-  const { data } = useTransactions(undefined, true, 1);
+  const { data: transactionsData } = useTransactions(undefined, true, 1);
   const [prevTransaction, setPrevTransaction] = React.useState<Transaction>();
   const { toast } = useToast();
 
   React.useEffect(() => {
-    if (!data?.transactions?.length) {
+    if (!transactionsData?.transactions?.length) {
       return;
     }
-    const latestTx = data.transactions[0];
+    const latestTx = transactionsData.transactions[0];
     if (latestTx !== prevTransaction) {
       if (prevTransaction && latestTx.type === "incoming") {
         toast({
@@ -22,5 +22,5 @@ export function useNotifyReceivedPayments() {
       }
       setPrevTransaction(latestTx);
     }
-  }, [prevTransaction, toast, data]);
+  }, [prevTransaction, toast, transactionsData]);
 }
