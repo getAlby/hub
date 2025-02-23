@@ -1020,7 +1020,7 @@ func (svc *LNDService) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, e
 			IsConnected: true,
 		})
 	}
-	return ret, err
+	return ret, nil
 }
 
 func (svc *LNDService) GetNetworkGraph(ctx context.Context, nodeIds []string) (lnclient.NetworkGraphResponse, error) {
