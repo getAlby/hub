@@ -71,6 +71,13 @@ func (cfg *config) init(env *AppConfig) error {
 		if err != nil {
 			return err
 		}
+	} else if cfg.Env.LNBackendType == "LND" {
+		// If no LNDCertFile is provided, clear any stored certificate
+		// hex value so that no certificate is used for TLS verification.
+		err := cfg.SetUpdate("LNDCertHex", "", "")
+		if err != nil {
+			return err
+		}
 	}
 	if cfg.Env.LNDMacaroonFile != "" {
 		macBytes, err := os.ReadFile(cfg.Env.LNDMacaroonFile)
@@ -289,12 +296,12 @@ func randomHex(n int) (string, error) {
 	return hex.EncodeToString(bytes), nil
 }
 
-const defaultCurrency = "usd"
+const defaultCurrency = "USD"
 
 func (cfg *config) GetCurrency() string {
 	currency, err := cfg.Get("Currency", "")
 	if err != nil || currency == "" {
-		logger.Logger.WithError(err).Warn("Currency not found, using default")
+		logger.Logger.WithError(err).Debug("Currency not found, using default")
 		return defaultCurrency
 	}
 	return currency

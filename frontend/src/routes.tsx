@@ -19,6 +19,7 @@ import Start from "src/screens/Start";
 import Unlock from "src/screens/Unlock";
 import { Welcome } from "src/screens/Welcome";
 import AlbyAuthRedirect from "src/screens/alby/AlbyAuthRedirect";
+import SupportAlby from "src/screens/alby/SupportAlby";
 import AppCreated from "src/screens/apps/AppCreated";
 import AppList from "src/screens/apps/AppList";
 import NewApp from "src/screens/apps/NewApp";
@@ -361,6 +362,10 @@ const routes = [
             handle: { crumb: () => "Connect Peer" },
           },
         ],
+      },
+      {
+        path: "support-alby",
+        element: <SupportAlby />,
       },
     ],
   },

@@ -43,6 +43,7 @@ type service struct {
 	appCancelFn         context.CancelFunc
 	keys                keys.Keys
 	isRelayReady        atomic.Bool
+	startupState        string
 }
 
 func NewService(ctx context.Context) (*service, error) {
@@ -259,4 +260,8 @@ func (svc *service) setRelayReady(ready bool) {
 
 func (svc *service) IsRelayReady() bool {
 	return svc.isRelayReady.Load()
+}
+
+func (svc *service) GetStartupState() string {
+	return svc.startupState
 }

@@ -7,12 +7,12 @@ toolchain go1.23.3
 require (
 	github.com/adrg/xdg v0.5.3
 	github.com/breez/breez-sdk-go v0.5.2
-	github.com/elnosh/gonuts v0.3.1-0.20250117175124-50859aadb51a
+	github.com/elnosh/gonuts v0.4.0
 	github.com/getAlby/glalby-go v0.0.0-20240621192717-95673c864d59
-	github.com/getAlby/ldk-node-go v0.0.0-20250106052504-d4191410486f
+	github.com/getAlby/ldk-node-go v0.0.0-20250212151221-c0e4ece4712d
 	github.com/go-gormigrate/gormigrate/v2 v2.1.3
 	github.com/labstack/echo/v4 v4.13.3
-	github.com/nbd-wtf/go-nostr v0.48.4
+	github.com/nbd-wtf/go-nostr v0.50.0
 	github.com/nbd-wtf/ln-decodepay v1.13.0
 	github.com/orandin/lumberjackrus v1.0.1
 	github.com/peterldowns/pgtestdb v0.1.1
@@ -20,9 +20,9 @@ require (
 	github.com/tyler-smith/go-bip39 v1.1.0
 	github.com/wailsapp/wails/v2 v2.9.2
 	golang.org/x/crypto v0.32.0
-	golang.org/x/oauth2 v0.25.0
+	golang.org/x/oauth2 v0.26.0
 	google.golang.org/grpc v1.70.0
-	gopkg.in/DataDog/dd-trace-go.v1 v1.70.3
+	gopkg.in/DataDog/dd-trace-go.v1 v1.71.1
 	gopkg.in/macaroon.v2 v2.1.0
 	gorm.io/driver/postgres v1.5.11
 	gorm.io/driver/sqlite v1.5.7
@@ -47,7 +47,7 @@ require (
 	github.com/btcsuite/btcd/btcutil v1.1.6 // indirect
 	github.com/btcsuite/btcd/btcutil/psbt v1.1.9 // indirect
 	github.com/btcsuite/btclog v0.0.0-20170628155309-84c8d2346e9f // indirect
-	github.com/btcsuite/btcwallet v0.16.10-0.20240912233857-ffb143c77cc5 // indirect
+	github.com/btcsuite/btcwallet v0.16.10-0.20241127094224-93c858b2ad63 // indirect
 	github.com/btcsuite/btcwallet/wallet/txauthor v1.3.5 // indirect
 	github.com/btcsuite/btcwallet/wallet/txrules v1.2.2 // indirect
 	github.com/btcsuite/btcwallet/wallet/txsizes v1.2.5 // indirect
@@ -247,7 +247,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/labstack/echo-jwt/v4 v4.3.0
-	github.com/lightningnetwork/lnd v0.18.4-beta.rc2
+	github.com/lightningnetwork/lnd v0.18.5-beta.rc2
 	github.com/sirupsen/logrus v1.9.3
 	github.com/tyler-smith/go-bip32 v1.0.0
 	golang.org/x/exp v0.0.0-20241204233417-43b7b7cde48d // indirect

@@ -63,7 +63,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
   const budgetRenewalParam = queryParams.get(
     "budget_renewal"
   ) as BudgetRenewalType;
-  const budgetMaxAmountParam = queryParams.get("max_amount") ?? "";
+  const budgetMaxAmountMsatParam = queryParams.get("max_amount") ?? "";
   const isolatedParam = queryParams.get("isolated") ?? "";
   const expiresAtParam = queryParams.get("expires_at") ?? "";
 
@@ -163,10 +163,12 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
 
   const [permissions, setPermissions] = useState<AppPermissions>({
     scopes: initialScopes,
-    maxAmount: budgetMaxAmountParam ? parseInt(budgetMaxAmountParam) : 0,
+    maxAmount: budgetMaxAmountMsatParam
+      ? Math.floor(parseInt(budgetMaxAmountMsatParam) / 1000)
+      : 0,
     budgetRenewal: validBudgetRenewals.includes(budgetRenewalParam)
       ? budgetRenewalParam
-      : budgetMaxAmountParam
+      : budgetMaxAmountMsatParam
         ? "never"
         : "monthly",
     expiresAt: parseExpiresParam(expiresAtParam),
@@ -267,7 +269,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
             scopesReadOnly={
               !!reqMethodsParam || !!notificationTypesParam || !!isolatedParam
             }
-            budgetReadOnly={!!budgetMaxAmountParam}
+            budgetReadOnly={!!budgetMaxAmountMsatParam}
             expiresAtReadOnly={!!expiresAtParam}
           />
         </div>

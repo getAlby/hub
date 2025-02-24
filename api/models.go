@@ -157,6 +157,7 @@ type CreateAppResponse struct {
 	Pubkey        string `json:"pairingPublicKey"`
 	RelayUrl      string `json:"relayUrl"`
 	WalletPubkey  string `json:"walletPubkey"`
+	Lud16         string `json:"lud16"`
 	Id            uint   `json:"id"`
 	Name          string `json:"name"`
 	ReturnTo      string `json:"returnTo"`
@@ -181,6 +182,7 @@ type InfoResponse struct {
 	EnableAdvancedSetup         bool      `json:"enableAdvancedSetup"`
 	LdkVssEnabled               bool      `json:"ldkVssEnabled"`
 	VssSupported                bool      `json:"vssSupported"`
+	StartupState                string    `json:"startupState"`
 	StartupError                string    `json:"startupError"`
 	StartupErrorTime            time.Time `json:"startupErrorTime"`
 	AutoUnlockPasswordSupported bool      `json:"autoUnlockPasswordSupported"`

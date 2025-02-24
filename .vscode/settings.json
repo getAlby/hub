@@ -5,6 +5,7 @@
   },
   "editor.formatOnSave": true,
   "typescript.preferences.importModuleSpecifier": "non-relative",
+  "typescript.preferences.autoImportFileExcludePatterns": ["@radix-ui"],
   "editor.codeActionsOnSave": {
     "source.organizeImports": "always"
   }
