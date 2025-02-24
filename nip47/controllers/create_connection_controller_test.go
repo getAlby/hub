@@ -34,7 +34,11 @@ func TestHandleCreateConnectionEvent(t *testing.T) {
 	"params": {
 		"pubkey": "%s",
 		"name": "Test 123",
-		"request_methods": ["get_info"]
+		"request_methods": ["get_info", "pay_invoice"],
+		"notification_types": ["payment_received"],
+		"max_amount": 100000000,
+		"budget_renewal": "monthly",
+		"isolated": true
 	}
 }
 `, pairingPublicKey)
@@ -72,8 +76,14 @@ func TestHandleCreateConnectionEvent(t *testing.T) {
 	permissions := []db.AppPermission{}
 	err = svc.DB.Find(&permissions).Error
 	assert.NoError(t, err)
-	assert.Equal(t, 1, len(permissions))
+	assert.Equal(t, 3, len(permissions))
 	assert.Equal(t, constants.GET_INFO_SCOPE, permissions[0].Scope)
+	assert.Equal(t, constants.PAY_INVOICE_SCOPE, permissions[1].Scope)
+	assert.Equal(t, constants.NOTIFICATIONS_SCOPE, permissions[2].Scope)
+
+	assert.True(t, app.Isolated)
+	assert.Equal(t, 100_000, permissions[1].MaxAmountSat)
+	assert.Equal(t, constants.BUDGET_RENEWAL_MONTHLY, permissions[1].BudgetRenewal)
 }
 
 func TestHandleCreateConnectionEvent_PubkeyAlreadyExists(t *testing.T) {
@@ -218,7 +228,7 @@ func TestHandleCreateConnectionEvent_UnsupportedMethod(t *testing.T) {
 	assert.Nil(t, publishedResponse.Result)
 }
 
-func TestHandleCreateConnectionEvent_CreateConnectionMethod(t *testing.T) {
+func TestHandleCreateConnectionEvent_UnsupportedNotificationType(t *testing.T) {
 	ctx := context.TODO()
 	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
@@ -234,7 +244,8 @@ func TestHandleCreateConnectionEvent_CreateConnectionMethod(t *testing.T) {
 	"params": {
 		"pubkey": "%s",
 		"name": "Test 123",
-		"request_methods": ["create_connection"]
+		"request_methods": ["get_info"],
+		"notification_types": ["non_existent"]
 	}
 }
 `, pairingPublicKey)
@@ -260,10 +271,11 @@ func TestHandleCreateConnectionEvent_CreateConnectionMethod(t *testing.T) {
 
 	assert.NotNil(t, publishedResponse.Error)
 	assert.Equal(t, constants.ERROR_INTERNAL, publishedResponse.Error.Code)
-	assert.Equal(t, "cannot create a new app that has create_connection permission via NWC", publishedResponse.Error.Message)
+	assert.Equal(t, "One or more notification types are not supported by the current LNClient", publishedResponse.Error.Message)
 	assert.Equal(t, models.CREATE_CONNECTION_METHOD, publishedResponse.ResultType)
 	assert.Nil(t, publishedResponse.Result)
 }
+
 func TestHandleCreateConnectionEvent_DoNotAllowCreateConnectionMethod(t *testing.T) {
 	ctx := context.TODO()
 	svc, err := tests.CreateTestService(t)

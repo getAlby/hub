@@ -79,6 +79,23 @@ func (controller *nip47Controller) HandleCreateConnectionEvent(ctx context.Conte
 	}
 	scopes, err := permissions.RequestMethodsToScopes(params.RequestMethods)
 
+	supportedNotificationTypes := controller.lnClient.GetSupportedNIP47NotificationTypes()
+	if len(params.NotificationTypes) > 0 {
+		if slices.ContainsFunc(params.NotificationTypes, func(method string) bool {
+			return !slices.Contains(supportedNotificationTypes, method)
+		}) {
+			publishResponse(&models.Response{
+				ResultType: nip47Request.Method,
+				Error: &models.Error{
+					Code:    constants.ERROR_INTERNAL,
+					Message: "One or more notification types are not supported by the current LNClient",
+				},
+			}, nostr.Tags{})
+			return
+		}
+		scopes = append(scopes, constants.NOTIFICATIONS_SCOPE)
+	}
+
 	// ensure there is at least one scope
 	if len(scopes) == 0 {
 		publishResponse(&models.Response{
