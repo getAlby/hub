@@ -301,18 +301,7 @@ Example:
 #### Web-flow: client created secret
 
 Web clients can open a new prompt popup to load the authorization page.
-Once the user has authorized the app connection a `nwc:success` message is sent to the opening page (using `postMessage`) to indicate that the connection is authorized. See the `initNWC()` function in the [alby-js-sdk](https://github.com/getAlby/alby-js-sdk#nostr-wallet-connect-documentation)
-
-Example:
-
-```js
-import { webln } from "alby-js-sdk";
-const nwc = new webln.NWC();
-// initNWC opens a prompt with /apps/new?c=myapp&pubkey=xxxx
-// the promise resolves once the user has authorized the connection (when the `nwc:success` message is received) and the popup is closed automatically
-// the promise rejects if the user cancels by closing the prompt popup
-await nwc.initNWC({ name: "myapp" });
-```
+Once the user has authorized the app connection a `nwc:success` message is sent to the webview (using `dispatchEvent`) or opening page (using `postMessage`) to indicate that the connection is authorized. See the `fromAuthorizationUrl()` function in the [alby-js-sdk](https://github.com/getAlby/alby-js-sdk#nostr-wallet-connect-documentation)
 
 ## Help
 
