@@ -1,5 +1,5 @@
 import dayjs from "dayjs";
-import { BrickWall, CircleCheck, Crown, PlusCircle } from "lucide-react";
+import { BrickWall, CircleCheck, PlusCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "src/components/ui/button";
 import { Progress } from "src/components/ui/progress";
@@ -34,34 +34,7 @@ export function AppCardConnectionInfo({
 
   return (
     <>
-      {connection.scopes.indexOf("superuser") > -1 ? (
-        <>
-          <div className="text-sm text-secondary-foreground font-medium w-full h-full flex flex-col gap-2">
-            <div className="flex flex-row items-center gap-2">
-              <Crown className="w-4 h-4" />
-              Superuser
-            </div>
-          </div>
-          <div className="flex flex-row justify-between mt-2">
-            <div className="mb-2">
-              <p className="text-xs text-secondary-foreground font-medium">
-                You've spent
-              </p>
-              <p className="text-xl font-medium">
-                {new Intl.NumberFormat().format(connection.budgetUsage)} sats
-              </p>
-            </div>
-          </div>
-          <div className="flex flex-row justify-between text-xs items-end mt-2">
-            <div className="text-muted-foreground">
-              Last used:{" "}
-              {connection.lastEventAt
-                ? dayjs(connection.lastEventAt).fromNow()
-                : "Never"}
-            </div>
-          </div>
-        </>
-      ) : connection.isolated ? (
+      {connection.isolated ? (
         <>
           <div className="text-sm text-secondary-foreground font-medium w-full h-full flex flex-col gap-2">
             <div className="flex flex-row items-center gap-2">

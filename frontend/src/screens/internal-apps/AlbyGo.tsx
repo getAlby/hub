@@ -1,6 +1,6 @@
-import { Globe, InfoIcon } from "lucide-react";
+import { Globe } from "lucide-react";
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import { AppleIcon } from "src/components/icons/Apple";
@@ -27,23 +27,15 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
-import { Checkbox } from "src/components/ui/checkbox";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "src/components/ui/tooltip";
 import { useToast } from "src/components/ui/use-toast";
 import { useApp } from "src/hooks/useApp";
 import { createApp } from "src/requests/createApp";
 import { ConnectAppCard } from "src/screens/apps/AppCreated";
 
 export function AlbyGo() {
-  const [isSuperuser, setSuperuser] = React.useState(true);
   const [loading, setLoading] = React.useState(false);
   const [appPubkey, setAppPubkey] = React.useState<string>();
   const [connectionSecret, setConnectionSecret] = React.useState<string>("");
@@ -52,17 +44,12 @@ export function AlbyGo() {
     React.useState(false);
   const app = suggestedApps.find((app) => app.id === "alby-go");
   const { data: createdApp } = useApp(appPubkey, true);
-  const navigate = useNavigate();
   const { toast } = useToast();
   if (!app) {
     return null;
   }
 
   function onClickCreateConnection() {
-    if (!isSuperuser) {
-      navigate("/apps/new?app=alby-go");
-      return;
-    }
     setShowCreateConnectionDialog(true);
   }
   async function onSubmitCreateConnection(e: React.FormEvent) {
@@ -87,6 +74,8 @@ export function AlbyGo() {
           app_store_app_id: "alby-go",
         },
         unlockPassword,
+        maxAmount: 100_000,
+        budgetRenewal: "monthly",
       });
       setConnectionSecret(createAppResponse.pairingUri);
       setAppPubkey(createAppResponse.pairingPublicKey);
@@ -111,11 +100,25 @@ export function AlbyGo() {
               <AlertDialogHeader>
                 <AlertDialogTitle>Confirm New Connection</AlertDialogTitle>
                 <AlertDialogDescription>
-                  <div>
+                  <div className="flex flex-col">
                     <p>
                       Alby Go will be given permission to create other app
-                      connections which can spend your balance. Please enter
-                      your unlock password to continue.
+                      connections which can spend your balance.
+                    </p>
+
+                    <p className="mt-4">
+                      Alby Go will be given a 100k sat / month budget by default
+                      which you can edit after creating the connection.
+                    </p>
+
+                    <p className="mt-4">
+                      Warning: Alby Go can create connections with a larger
+                      budget than the one set for Alby Go. Make sure to always
+                      set a budget.
+                    </p>
+
+                    <p className="mt-4">
+                      Please enter your unlock password to continue.
                     </p>
                     <div className="grid gap-1.5 mt-2">
                       <Label htmlFor="password">Unlock Password</Label>
@@ -159,6 +162,14 @@ export function AlbyGo() {
           </>
         }
         description=""
+        contentRight={
+          <Link to={`/apps/new?app=${app.id}`}>
+            <Button>
+              <NostrWalletConnectIcon className="w-4 h-4 mr-2" />
+              Connect to {app.title}
+            </Button>
+          </Link>
+        }
       />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="flex flex-col w-full gap-6">
@@ -209,52 +220,6 @@ export function AlbyGo() {
               </>
             </CardContent>
           </Card>
-          {createdApp && connectionSecret && (
-            <ConnectAppCard app={createdApp} pairingUri={connectionSecret} />
-          )}
-          {!createdApp && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-2xl">Configure Alby Go</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center mt-2">
-                  <Checkbox
-                    id="superuser"
-                    className="mr-2"
-                    onCheckedChange={(e) =>
-                      setSuperuser(e.valueOf() as boolean)
-                    }
-                    checked={isSuperuser}
-                  />
-                  <Label htmlFor="superuser" className="cursor-pointer">
-                    Allow Alby Go to create other app connections{" "}
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <div className="flex flex-row gap-1 items-center text-muted-foreground">
-                            <InfoIcon className="h-3 w-3 shrink-0" />
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent className="w-[400px]">
-                          Enable other mobile apps to quickly connect to your
-                          hub by confirming within Alby Go. Please be aware that
-                          any budget set on Alby Go will not apply to any newly
-                          created apps.
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </Label>
-                </div>
-                {
-                  <Button className="mt-8" onClick={onClickCreateConnection}>
-                    <NostrWalletConnectIcon className="w-4 h-4 mr-2" />
-                    Create App Connection
-                  </Button>
-                }
-              </CardContent>
-            </Card>
-          )}
         </div>
         <div className="flex flex-col w-full gap-6">
           {(app.appleLink ||
@@ -325,6 +290,28 @@ export function AlbyGo() {
                   </ExternalLink>
                 )}
               </CardFooter>
+            </Card>
+          )}
+          {createdApp && connectionSecret && (
+            <ConnectAppCard app={createdApp} pairingUri={connectionSecret} />
+          )}
+          {!createdApp && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-2xl">One Tap Connections</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  Use Alby Go to quickly connect other apps to your hub with one
+                  tap on mobile.
+                </p>
+                {
+                  <Button className="mt-8" onClick={onClickCreateConnection}>
+                    <NostrWalletConnectIcon className="w-4 h-4 mr-2" />
+                    Enable One Tap Connections
+                  </Button>
+                }
+              </CardContent>
             </Card>
           )}
         </div>

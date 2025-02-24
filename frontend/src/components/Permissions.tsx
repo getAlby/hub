@@ -132,20 +132,6 @@ const Permissions: React.FC<PermissionsProps> = ({
         </>
       )}
 
-      {permissions.scopes.includes("superuser") && (
-        <>
-          <div className="flex items-center gap-2 mb-2">
-            <AlertTriangleIcon className="w-4 h-4" />
-            <p className="text-sm font-medium">Superuser Access</p>
-          </div>
-
-          <p className="mb-4">
-            This app can create other app connections. Please make sure you
-            trust this app.
-          </p>
-        </>
-      )}
-
       {!permissions.isolated && permissions.scopes.includes("pay_invoice") && (
         <>
           {!readOnly && !budgetReadOnly ? (
@@ -241,6 +227,20 @@ const Permissions: React.FC<PermissionsProps> = ({
           </>
         )}
       </>
+
+      {permissions.scopes.includes("superuser") && (
+        <>
+          <div className="flex items-center gap-2 mt-4">
+            <AlertTriangleIcon className="w-4 h-4" />
+            <p className="text-sm font-medium">
+              This app can create other app connections
+            </p>
+          </div>
+          <p className="text-muted-foreground text-sm">
+            Make sure to set budgets on connections created by this app.
+          </p>
+        </>
+      )}
     </div>
   );
 };
