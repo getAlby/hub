@@ -783,7 +783,7 @@ func (api *api) GetMnemonic(unlockPassword string) (*MnemonicResponse, error) {
 		Mnemonic: mnemonic,
 	}
 
-	return &resp, err
+	return &resp, nil
 }
 
 func (api *api) SetNextBackupReminder(backupReminderRequest *BackupReminderRequest) error {
