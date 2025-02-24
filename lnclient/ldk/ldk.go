@@ -14,6 +14,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/getAlby/ldk-node-go/ldk_node"
@@ -47,6 +48,7 @@ type LDKService struct {
 	cfg                   config.Config
 	lastWalletSyncRequest time.Time
 	pubkey                string
+	shuttingDown          bool
 }
 
 const resetRouterKey = "ResetRouter"
@@ -399,14 +401,16 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	return &ls, nil
 }
 
+var shutdownMutex sync.Mutex
+
 func (ls *LDKService) Shutdown() error {
-	if ls.node == nil {
-		logger.Logger.Debug("LDK client already shut down")
+	shutdownMutex.Lock()
+	defer shutdownMutex.Unlock()
+	if ls.shuttingDown {
+		logger.Logger.Debug("LDK client is already shutting down")
 		return nil
 	}
-	// make sure nothing else can use it
-	node := ls.node
-	ls.node = nil
+	ls.shuttingDown = true
 
 	logger.Logger.Info("shutting down LDK client")
 	logger.Logger.Info("cancelling LDK context")
@@ -420,7 +424,7 @@ func (ls *LDKService) Shutdown() error {
 	logger.Logger.Info("stopping LDK node")
 	shutdownChannel := make(chan error)
 	go func() {
-		shutdownChannel <- node.Stop()
+		shutdownChannel <- ls.node.Stop()
 	}()
 
 	select {
@@ -436,7 +440,7 @@ func (ls *LDKService) Shutdown() error {
 	}
 
 	logger.Logger.Debug("Destroying LDK node object")
-	node.Destroy()
+	ls.node.Destroy()
 
 	logger.Logger.Info("LDK shutdown complete")
 
