@@ -449,6 +449,7 @@ export type Transaction = {
   paymentHash: string;
   amount: number;
   feesPaid: number;
+  updatedAt: string;
   createdAt: string;
   settledAt: string | undefined;
   metadata?: {
@@ -482,6 +483,11 @@ export type Boostagram = {
   time: string;
   action: "boost";
   valueMsatTotal: number;
+};
+
+export type ListTransactionsResponse = {
+  transactions: Transaction[];
+  totalCount: number;
 };
 
 export type NewChannelOrderStatus = "pay" | "paid" | "success" | "opening";
