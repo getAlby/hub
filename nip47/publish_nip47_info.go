@@ -61,7 +61,9 @@ func (svc *nip47Service) PublishNip47Info(ctx context.Context, relay nostrmodels
 		tags = append(tags, []string{"p", app.AppPubkey})
 		// also include the LN address for apps that use it (e.g. nostr apps assign lud16 to the profile)
 		lightningAddress, _ := svc.albyOAuthSvc.GetLightningAddress()
-		tags = append(tags, []string{"lud16", lightningAddress})
+		if lightningAddress != "" {
+			tags = append(tags, []string{"lud16", lightningAddress})
+		}
 	}
 	if permitsNotifications && len(lnClient.GetSupportedNIP47NotificationTypes()) > 0 {
 		capabilities = append(capabilities, "notifications")

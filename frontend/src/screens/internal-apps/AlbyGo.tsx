@@ -308,7 +308,7 @@ export function AlbyGo() {
                 {
                   <Button className="mt-8" onClick={onClickCreateConnection}>
                     <NostrWalletConnectIcon className="w-4 h-4 mr-2" />
-                    Enable One Tap Connections
+                    Connect to Alby Go with One Tap Connections
                   </Button>
                 }
               </CardContent>

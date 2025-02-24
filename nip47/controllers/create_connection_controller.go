@@ -13,19 +13,16 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type createConnectionBudgetParams struct {
-	Budget        uint64 `json:"budget"`
-	RenewalPeriod string `json:"renewal_period"`
-}
-
 type createConnectionParams struct {
-	Pubkey    string                       `json:"pubkey"` // pubkey of the app connection
-	Name      string                       `json:"name"`
-	Methods   []string                     `json:"methods"`
-	Budget    createConnectionBudgetParams `json:"budget"`
-	ExpiresAt *uint64                      `json:"expires_at"` // unix timestamp
-	Isolated  bool                         `json:"isolated"`
-	Metadata  map[string]interface{}       `json:"metadata,omitempty"`
+	Pubkey            string                 `json:"pubkey"` // pubkey of the app connection
+	Name              string                 `json:"name"`
+	RequestMethods    []string               `json:"request_methods"`
+	NotificationTypes []string               `json:"notification_types"`
+	MaxAmount         uint64                 `json:"max_amount"`
+	BudgetRenewal     string                 `json:"budget_renewal"`
+	ExpiresAt         *uint64                `json:"expires_at"` // unix timestamp
+	Isolated          bool                   `json:"isolated"`
+	Metadata          map[string]interface{} `json:"metadata,omitempty"`
 }
 
 type createConnectionResponse struct {
@@ -53,10 +50,10 @@ func (controller *nip47Controller) HandleCreateConnectionEvent(ctx context.Conte
 		expiresAt = &expiresAtValue
 	}
 
-	maxAmountSat := params.Budget.Budget / 1000
+	maxAmountSat := params.MaxAmount / 1000
 
 	// explicitly do not allow creating an app with create_connection permission
-	if slices.Contains(params.Methods, models.CREATE_CONNECTION_METHOD) {
+	if slices.Contains(params.RequestMethods, models.CREATE_CONNECTION_METHOD) {
 		publishResponse(&models.Response{
 			ResultType: nip47Request.Method,
 			Error: &models.Error{
@@ -68,7 +65,7 @@ func (controller *nip47Controller) HandleCreateConnectionEvent(ctx context.Conte
 	}
 
 	supportedMethods := controller.lnClient.GetSupportedNIP47Methods()
-	if slices.ContainsFunc(params.Methods, func(method string) bool {
+	if slices.ContainsFunc(params.RequestMethods, func(method string) bool {
 		return !slices.Contains(supportedMethods, method)
 	}) {
 		publishResponse(&models.Response{
@@ -80,7 +77,7 @@ func (controller *nip47Controller) HandleCreateConnectionEvent(ctx context.Conte
 		}, nostr.Tags{})
 		return
 	}
-	scopes, err := permissions.RequestMethodsToScopes(params.Methods)
+	scopes, err := permissions.RequestMethodsToScopes(params.RequestMethods)
 
 	// ensure there is at least one scope
 	if len(scopes) == 0 {
@@ -94,7 +91,7 @@ func (controller *nip47Controller) HandleCreateConnectionEvent(ctx context.Conte
 		return
 	}
 
-	app, _, err := controller.appsService.CreateApp(params.Name, params.Pubkey, maxAmountSat, params.Budget.RenewalPeriod, expiresAt, scopes, params.Isolated, params.Metadata)
+	app, _, err := controller.appsService.CreateApp(params.Name, params.Pubkey, maxAmountSat, params.BudgetRenewal, expiresAt, scopes, params.Isolated, params.Metadata)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"request_event_id": requestEventId,

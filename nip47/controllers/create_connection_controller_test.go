@@ -34,7 +34,7 @@ func TestHandleCreateConnectionEvent(t *testing.T) {
 	"params": {
 		"pubkey": "%s",
 		"name": "Test 123",
-		"methods": ["get_info"]
+		"request_methods": ["get_info"]
 	}
 }
 `, pairingPublicKey)
@@ -94,7 +94,7 @@ func TestHandleCreateConnectionEvent_PubkeyAlreadyExists(t *testing.T) {
 	"params": {
 		"pubkey": "%s",
 		"name": "Test 123",
-		"methods": ["get_info"]
+		"request_methods": ["get_info"]
 	}
 }
 `, pairingPublicKey)
@@ -187,7 +187,7 @@ func TestHandleCreateConnectionEvent_UnsupportedMethod(t *testing.T) {
 	"params": {
 		"pubkey": "%s",
 		"name": "Test 123",
-		"methods": ["non_existent"]
+		"request_methods": ["non_existent"]
 	}
 }
 `, pairingPublicKey)
@@ -234,7 +234,7 @@ func TestHandleCreateConnectionEvent_CreateConnectionMethod(t *testing.T) {
 	"params": {
 		"pubkey": "%s",
 		"name": "Test 123",
-		"methods": ["create_connection"]
+		"request_methods": ["create_connection"]
 	}
 }
 `, pairingPublicKey)
@@ -280,7 +280,7 @@ func TestHandleCreateConnectionEvent_DoNotAllowCreateConnectionMethod(t *testing
 	"params": {
 		"pubkey": "%s",
 		"name": "Test 123",
-		"methods": ["create_connection"]
+		"request_methods": ["create_connection"]
 	}
 }
 `, pairingPublicKey)
@@ -306,7 +306,7 @@ func TestHandleCreateConnectionEvent_DoNotAllowCreateConnectionMethod(t *testing
 
 	assert.NotNil(t, publishedResponse.Error)
 	assert.Equal(t, constants.ERROR_INTERNAL, publishedResponse.Error.Code)
-	assert.Equal(t, "One or more methods are not supported by the current LNClient", publishedResponse.Error.Message)
+	assert.Equal(t, "cannot create a new app that has create_connection permission via NWC", publishedResponse.Error.Message)
 	assert.Equal(t, models.CREATE_CONNECTION_METHOD, publishedResponse.ResultType)
 	assert.Nil(t, publishedResponse.Result)
 }
