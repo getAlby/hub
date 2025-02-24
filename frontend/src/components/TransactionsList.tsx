@@ -1,5 +1,5 @@
 import { Drum } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import EmptyState from "src/components/EmptyState";
 import Loading from "src/components/Loading";
 import TransactionItem from "src/components/TransactionItem";
@@ -26,6 +26,7 @@ function TransactionsList({
   showReceiveButton = true,
 }: TransactionsListProps) {
   const [page, setPage] = useState(1);
+  const transactionListRef = useRef<HTMLDivElement>(null);
   const { data: transactionData, isLoading } = useTransactions(
     appId,
     false,
@@ -41,9 +42,11 @@ function TransactionsList({
   }, [page, totalPages]);
 
   useEffect(() => {
-    const el = document.querySelector(".transaction-list");
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (transactionListRef.current) {
+      transactionListRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
     }
   }, [page]);
 
@@ -52,7 +55,7 @@ function TransactionsList({
   }
 
   return (
-    <div className="transaction-list flex flex-col">
+    <div ref={transactionListRef} className="transaction-list flex flex-col">
       {!transactions.length ? (
         <EmptyState
           icon={Drum}
