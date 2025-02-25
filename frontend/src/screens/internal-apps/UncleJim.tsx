@@ -4,6 +4,7 @@ import AppHeader from "src/components/AppHeader";
 import AppCard from "src/components/connections/AppCard";
 import ExternalLink from "src/components/ExternalLink";
 import { IsolatedAppTopupDialog } from "src/components/IsolatedAppTopupDialog";
+import QRCode from "src/components/QRCode";
 import {
   Accordion,
   AccordionContent,
@@ -12,6 +13,11 @@ import {
 } from "src/components/ui/accordion";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "src/components/ui/dropdown-menu";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
@@ -143,10 +149,27 @@ export function UncleJim() {
             <AccordionItem value="mobile">
               <AccordionTrigger>Alby Go Mobile App</AccordionTrigger>
               <AccordionContent>
-                <p className="text-muted-foreground text-sm mb-5">
-                  1. Ask {name} to download the Alby Go app from Google Play or
-                  the iOS App Store
+                <p className="text-muted-foreground text-sm">
+                  1. Ask {name} to download the Alby Go app from their app store
                 </p>
+                <div className="mb-5 text-muted-foreground text-sm">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger>
+                      <Button variant="link">Google Play</Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <QRCode value="https://play.google.com/store/apps/details?id=com.getalby.mobile" />
+                    </DropdownMenuContent>
+                  </DropdownMenu>{" "}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger>
+                      <Button variant="link">iOS App Store</Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <QRCode value="https://apps.apple.com/at/app/alby-go/id6471335774" />
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
                 <p className="text-muted-foreground text-sm mb-5">
                   2. Ask {name} to scan the below QR code.
                 </p>
