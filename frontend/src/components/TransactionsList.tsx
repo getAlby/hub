@@ -1,5 +1,5 @@
 import { Drum } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import EmptyState from "src/components/EmptyState";
 import Loading from "src/components/Loading";
 import TransactionItem from "src/components/TransactionItem";
@@ -41,14 +41,13 @@ function TransactionsList({
     return generatePageNumbers(page, totalPages);
   }, [page, totalPages]);
 
-  useEffect(() => {
-    if (transactionListRef.current) {
-      transactionListRef.current.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    }
-  }, [page]);
+  const handlePageChange = (page: number) => {
+    setPage(page);
+    transactionListRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
 
   if (isLoading || !transactionData) {
     return <Loading />;
@@ -87,7 +86,7 @@ function TransactionsList({
                       href="#"
                       onClick={(e) => {
                         e.preventDefault();
-                        setPage(page - 1);
+                        handlePageChange(page - 1);
                       }}
                     />
                   </PaginationItem>
@@ -104,7 +103,7 @@ function TransactionsList({
                           isActive={p === page}
                           onClick={(e) => {
                             e.preventDefault();
-                            setPage(p);
+                            handlePageChange(p);
                           }}
                         >
                           {p}
@@ -123,7 +122,7 @@ function TransactionsList({
                       href="#"
                       onClick={(e) => {
                         e.preventDefault();
-                        setPage(page + 1);
+                        handlePageChange(page + 1);
                       }}
                     />
                   </PaginationItem>
