@@ -14,6 +14,7 @@ import {
   AccordionTrigger,
 } from "src/components/ui/accordion";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
+import { Badge } from "src/components/ui/badge";
 import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
@@ -172,7 +173,12 @@ export function UncleJim() {
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="account">
-              <AccordionTrigger>Alby Account</AccordionTrigger>
+              <AccordionTrigger>
+                <div className="flex flex-row gap-3">
+                  <div>Alby Account</div>
+                  <Badge>Lightning Address</Badge>
+                </div>
+              </AccordionTrigger>
               <AccordionContent>
                 <p className="text-muted-foreground text-sm mb-5">
                   1. Send {name} an{" "}
