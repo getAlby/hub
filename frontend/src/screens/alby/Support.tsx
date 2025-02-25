@@ -9,15 +9,6 @@ import {
 } from "lucide-react";
 import AppHeader from "src/components/AppHeader";
 import EmptyState from "src/components/EmptyState";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogContent,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "src/components/ui/alert-dialog";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -26,22 +17,31 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "src/components/ui/dialog";
 
 function Support() {
   return (
     <>
       <AppHeader
         title="Support"
-        description="test"
+        description=""
         contentRight={
-          <AlertDialog>
-            <AlertDialogTrigger>
+          <Dialog>
+            <DialogTrigger>
               <Button>✨ Upgrade</Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>✨ Upgrade to Alby Pro</AlertDialogTitle>
-              </AlertDialogHeader>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>✨ Upgrade to Alby Pro</DialogTitle>
+              </DialogHeader>
               <div className="flex flex-col gap-8">
                 <div>
                   <div className="font-semibold mb-2">What you'll get:</div>
@@ -87,29 +87,36 @@ function Support() {
                   </Card>
                 </div>
               </div>
-              <AlertDialogFooter>
-                <AlertDialogAction>Upgrade</AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button>Upgrade now</Button>
+                </DialogClose>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         }
       />
       <div className="flex flex-col gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Where to find help</CardTitle>
+            <CardDescription>...</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ul className="list-disc list-inside">
+              <li>Alby Guides</li>
+              <li>Discord</li>
+              <li>✨ Personal support</li>
+            </ul>
+          </CardContent>
+        </Card>
         <EmptyState
           icon={MessageSquare}
           title="Need personal assistance?"
           description="Our team of highly skilled support professionals is happy to lend you a helping hand."
           buttonText="✨ Upgrade to Alby Pro"
           buttonLink={""}
-        ></EmptyState>
-        <Card>
-          <CardHeader>
-            <CardTitle>title</CardTitle>
-            <CardDescription>lakjsdflk</CardDescription>
-          </CardHeader>
-          <CardContent>asdf</CardContent>
-        </Card>
-        <div></div>
+        />
       </div>
     </>
   );
