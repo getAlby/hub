@@ -3,6 +3,9 @@ import React from "react";
 import AppHeader from "src/components/AppHeader";
 import AppCard from "src/components/connections/AppCard";
 import ExternalLink from "src/components/ExternalLink";
+import { AppleIcon } from "src/components/icons/Apple";
+import { PlayStoreIcon } from "src/components/icons/PlayStore";
+import { ZapStoreIcon } from "src/components/icons/ZapStore";
 import { IsolatedAppTopupDialog } from "src/components/IsolatedAppTopupDialog";
 import {
   Accordion,
@@ -130,25 +133,38 @@ export function UncleJim() {
       )}
       {connectionSecret && (
         <div className="grid gap-5 max-w-lg">
-          <Alert>
+          <Alert variant="destructive">
             <AlertTriangleIcon className="h-4 w-4" />
             <AlertTitle>Onboard {name} now</AlertTitle>
             <AlertDescription>
-              For security reasons these wallet connection details will only be
-              shown once and can not be retrieved afterwards. You can save them
-              and keep them somewhere safe.
+              For your security, these connection details are only visible now
+              and cannot be retrieved later. If needed, you can store them in a
+              password manager for future reference.
             </AlertDescription>
           </Alert>
           <Accordion type="single" collapsible defaultValue="mobile">
             <AccordionItem value="mobile">
               <AccordionTrigger>Alby Go Mobile App</AccordionTrigger>
               <AccordionContent>
-                <p className="text-muted-foreground text-sm mb-5">
-                  1. Ask {name} to download the Alby Go app from Google Play or
-                  the iOS App Store
+                <p className="text-muted-foreground text-sm mb-3">
+                  1. Download Alby Go from the app store
                 </p>
+                <div className="flex flex-row gap-3 mb-6">
+                  <Button variant="outline">
+                    <PlayStoreIcon className="w-4 h-4 mr-2" />
+                    Play Store
+                  </Button>
+                  <Button variant="outline">
+                    <AppleIcon className="w-4 h-4 mr-2" />
+                    Apple App Store
+                  </Button>
+                  <Button variant="outline">
+                    <ZapStoreIcon className="w-4 h-4 mr-2" />
+                    Zapstore
+                  </Button>
+                </div>
                 <p className="text-muted-foreground text-sm mb-5">
-                  2. Ask {name} to scan the below QR code.
+                  2. Open Alby Go and scan this QR code
                 </p>
                 {app && (
                   <ConnectAppCard app={app} pairingUri={connectionSecret} />
