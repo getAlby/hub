@@ -274,6 +274,12 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                         : "Never"}
                     </TableCell>
                   </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">Created At</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {new Date(app.createdAt).toString()}
+                    </TableCell>
+                  </TableRow>
                   {app.metadata && (
                     <TableRow>
                       <TableCell className="font-medium">Metadata</TableCell>
