@@ -126,8 +126,8 @@ function Wallet() {
         </Alert>
       )}
       <BreezRedeem />
-      <div className="flex flex-col lg:flex-row justify-between lg:items-center gap-5">
-        <div>
+      <div className="flex flex-col xl:flex-row justify-between xl:items-center gap-5">
+        <div className="flex flex-col gap-1 text-center xl:text-left">
           <div className="text-5xl font-semibold balance sensitive slashed-zero">
             {new Intl.NumberFormat().format(
               Math.floor(balances.lightning.totalSpendable / 1000)
@@ -135,7 +135,7 @@ function Wallet() {
             sats
           </div>
           <FormattedFiatAmount
-            className="-mb-4"
+            className="text-xl font-semibold"
             amount={balances.lightning.totalSpendable / 1000}
           />
         </div>
