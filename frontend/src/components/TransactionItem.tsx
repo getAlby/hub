@@ -151,7 +151,7 @@ function TransactionItem({ tx }: Props) {
             </p>
           </div>
           <div className="flex ml-auto space-x-3 shrink-0">
-            <div className="flex flex-col items-end gap-2 md:text-xl">
+            <div className="flex flex-col items-end md:text-xl">
               <div className="flex gap-2">
                 <p
                   className={cn(
