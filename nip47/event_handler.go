@@ -93,20 +93,29 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 		}
 	}
 
-	version := "0.0"
-	vTag := event.Tags.GetFirst([]string{"v"})
+	encryption := "nip04"
+	encryptionTag := event.Tags.GetFirst([]string{"encryption"})
 
-	if vTag != nil && vTag.Value() != "" {
-		version = vTag.Value()
+	// TODO: Remove version tag after 01-06-2025
+	if encryptionTag == nil || encryptionTag.Value() == "" {
+		vTag := event.Tags.GetFirst([]string{"v"})
+		if vTag != nil && vTag.Value() != "" {
+			version := vTag.Value()
+			if version == "1.0" {
+				encryption = "nip44_v2"
+			}
+		}
+	} else {
+		encryption = encryptionTag.Value()
 	}
 
-	nip47Cipher, err := cipher.NewNip47Cipher(version, app.AppPubkey, appWalletPrivKey)
+	nip47Cipher, err := cipher.NewNip47Cipher(encryption, app.AppPubkey, appWalletPrivKey)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"requestEventNostrId": event.ID,
 			"eventKind":           event.Kind,
 			"appId":               app.ID,
-			"version":             version,
+			"encryption":          encryption,
 		}).WithError(err).Error("Failed to initialize cipher")
 
 		requestEvent.State = db.REQUEST_EVENT_STATE_HANDLER_ERROR
