@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"github.com/getAlby/hub/alby"
 	"github.com/getAlby/hub/apps"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
@@ -16,6 +17,7 @@ type nip47Controller struct {
 	permissionsService  permissions.PermissionsService
 	transactionsService transactions.TransactionsService
 	appsService         apps.AppsService
+	albyOAuthService    alby.AlbyOAuthService
 }
 
 func NewNip47Controller(
@@ -24,7 +26,8 @@ func NewNip47Controller(
 	eventPublisher events.EventPublisher,
 	permissionsService permissions.PermissionsService,
 	transactionsService transactions.TransactionsService,
-	appsService apps.AppsService) *nip47Controller {
+	appsService apps.AppsService,
+	albyOAuthService alby.AlbyOAuthService) *nip47Controller {
 	return &nip47Controller{
 		lnClient:            lnClient,
 		db:                  db,
@@ -32,5 +35,6 @@ func NewNip47Controller(
 		permissionsService:  permissionsService,
 		transactionsService: transactionsService,
 		appsService:         appsService,
+		albyOAuthService:    albyOAuthService,
 	}
 }
