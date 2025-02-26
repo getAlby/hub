@@ -42,9 +42,10 @@ export function AlbyGo() {
   const [unlockPassword, setUnlockPassword] = React.useState("");
   const [showCreateConnectionDialog, setShowCreateConnectionDialog] =
     React.useState(false);
-  const app = suggestedApps.find((app) => app.id === "alby-go");
   const { data: createdApp } = useApp(appPubkey, true);
   const { toast } = useToast();
+
+  const app = suggestedApps.find((app) => app.id === "alby-go");
   if (!app) {
     return null;
   }
@@ -52,10 +53,12 @@ export function AlbyGo() {
   function onClickCreateConnection() {
     setShowCreateConnectionDialog(true);
   }
+
   async function onSubmitCreateConnection(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     try {
+      // TODO: fetch scopes from useCapabilities
       const createAppResponse = await createApp({
         name: "Alby Go",
         scopes: [
@@ -89,64 +92,64 @@ export function AlbyGo() {
     }
     setLoading(false);
     setShowCreateConnectionDialog(false);
+    setUnlockPassword("");
   }
 
   return (
     <div className="grid gap-5">
-      {showCreateConnectionDialog && (
-        <AlertDialog open={showCreateConnectionDialog}>
-          <AlertDialogContent>
-            <form onSubmit={onSubmitCreateConnection}>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Confirm New Connection</AlertDialogTitle>
-                <AlertDialogDescription>
-                  <div className="flex flex-col">
-                    <p>
-                      Alby Go will be given permission to create other app
-                      connections which can spend your balance.
-                    </p>
+      <AlertDialog open={showCreateConnectionDialog}>
+        <AlertDialogContent>
+          <form onSubmit={onSubmitCreateConnection}>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirm New Connection</AlertDialogTitle>
+              <AlertDialogDescription>
+                <div className="flex flex-col">
+                  <p>
+                    Alby Go will be given permission to create other app
+                    connections which can spend your balance.
+                  </p>
 
-                    <p className="mt-4">
-                      Alby Go will be given a 100k sat / month budget by default
-                      which you can edit after creating the connection.
-                    </p>
+                  <p className="mt-4">
+                    Alby Go will be given a 100k sat / month budget by default
+                    which you can edit after creating the connection.
+                  </p>
 
-                    <p className="mt-4">
-                      Warning: Alby Go can create connections with a larger
-                      budget than the one set for Alby Go. Make sure to always
-                      set a budget.
-                    </p>
+                  <p className="mt-4">
+                    Warning: Alby Go can create connections with a larger budget
+                    than the one set for Alby Go. Make sure to always set a
+                    budget.
+                  </p>
 
-                    <p className="mt-4">
-                      Please enter your unlock password to continue.
-                    </p>
-                    <div className="grid gap-1.5 mt-2">
-                      <Label htmlFor="password">Unlock Password</Label>
-                      <Input
-                        autoFocus
-                        type="password"
-                        name="password"
-                        onChange={(e) => setUnlockPassword(e.target.value)}
-                        value={unlockPassword}
-                      />
-                    </div>
+                  <p className="mt-4">
+                    Please enter your unlock password to continue.
+                  </p>
+                  <div className="grid gap-1.5 mt-2">
+                    <Label htmlFor="password">Unlock Password</Label>
+                    <Input
+                      autoFocus
+                      type="password"
+                      name="password"
+                      required
+                      onChange={(e) => setUnlockPassword(e.target.value)}
+                      value={unlockPassword}
+                    />
                   </div>
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter className="mt-3">
-                <AlertDialogCancel
-                  onClick={() => setShowCreateConnectionDialog(false)}
-                >
-                  Cancel
-                </AlertDialogCancel>
-                <LoadingButton loading={loading} type="submit">
-                  Confirm
-                </LoadingButton>
-              </AlertDialogFooter>
-            </form>
-          </AlertDialogContent>
-        </AlertDialog>
-      )}
+                </div>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="mt-3">
+              <AlertDialogCancel
+                onClick={() => setShowCreateConnectionDialog(false)}
+              >
+                Cancel
+              </AlertDialogCancel>
+              <LoadingButton loading={loading} type="submit">
+                Confirm
+              </LoadingButton>
+            </AlertDialogFooter>
+          </form>
+        </AlertDialogContent>
+      </AlertDialog>
       <AppHeader
         title={
           <>
