@@ -19,10 +19,7 @@ import { request } from "src/utils/request";
 
 import { MempoolAlert } from "src/components/MempoolAlert";
 import { PayLightningInvoice } from "src/components/PayLightningInvoice";
-import {
-  ALBY_HIDE_HOSTED_BALANCE_BELOW,
-  ALBY_MIN_HOSTED_BALANCE_FOR_FIRST_CHANNEL,
-} from "src/constants";
+import { ALBY_MIN_HOSTED_BALANCE_FOR_FIRST_CHANNEL } from "src/constants";
 
 export function FirstChannel() {
   const { data: info } = useInfo();
@@ -92,9 +89,6 @@ export function FirstChannel() {
     albyBalance &&
     albyBalance.sats >= ALBY_MIN_HOSTED_BALANCE_FOR_FIRST_CHANNEL;
 
-  const canMigrateFunds =
-    albyBalance && albyBalance.sats >= ALBY_HIDE_HOSTED_BALANCE_BELOW;
-
   return (
     <>
       <AppHeader
@@ -149,8 +143,7 @@ export function FirstChannel() {
                   .
                 </p>
                 <p>
-                  Those funds will be used to open your first lightning channel
-                  and then migrated to your Hub spending balance.
+                  Those funds will be used to open your first lightning channel.
                 </p>
               </>
             ) : (
@@ -204,7 +197,6 @@ export function FirstChannel() {
             )}
             <LoadingButton loading={isLoading} onClick={openChannel}>
               Open Channel
-              {canMigrateFunds && <> and Transfer Funds</>}
             </LoadingButton>
           </div>
         </>

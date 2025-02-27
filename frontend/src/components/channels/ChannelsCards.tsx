@@ -32,7 +32,7 @@ export function ChannelsCards({ channels, nodes }: ChannelsCardsProps) {
   return (
     <>
       <Card>
-        <CardHeader className="w-full pb-4">Channels</CardHeader>
+        <CardHeader className="w-full pb-4 text-2xl">Channels</CardHeader>
         <div className="flex flex-col gap-4 slashed-zero p-4">
           {channels
             .sort((a, b) =>

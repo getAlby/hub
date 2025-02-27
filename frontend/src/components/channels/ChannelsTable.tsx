@@ -40,7 +40,7 @@ export function ChannelsTable({ channels, nodes }: ChannelsTableProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Channels</CardTitle>
+        <CardTitle className="text-2xl">Channels</CardTitle>
       </CardHeader>
       <CardContent>
         <Table>
