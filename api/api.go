@@ -100,7 +100,7 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 
 	responseBody := &CreateAppResponse{}
 	responseBody.Id = app.ID
-	responseBody.Name = createAppRequest.Name
+	responseBody.Name = app.Name
 	responseBody.Pubkey = app.AppPubkey
 	responseBody.PairingSecret = pairingSecretKey
 	responseBody.WalletPubkey = *app.WalletPubkey
