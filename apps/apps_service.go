@@ -78,7 +78,21 @@ func (svc *appsService) CreateApp(name string, pubkey string, maxAmountSat uint6
 		}
 	}
 
-	app := db.App{Name: name, AppPubkey: pairingPublicKey, Isolated: isolated, Metadata: datatypes.JSON(metadataBytes)}
+	// use a suffix to avoid duplicate names
+	nameIndex := 0
+	var freeName string
+	for ; ; nameIndex++ {
+		freeName = name
+		if nameIndex > 0 {
+			freeName += fmt.Sprintf(" (%d)", nameIndex)
+		}
+		existingApp := svc.GetAppByName(freeName)
+		if existingApp == nil {
+			break
+		}
+	}
+
+	app := db.App{Name: freeName, AppPubkey: pairingPublicKey, Isolated: isolated, Metadata: datatypes.JSON(metadataBytes)}
 
 	err := svc.db.Transaction(func(tx *gorm.DB) error {
 		err := tx.Save(&app).Error
@@ -155,6 +169,15 @@ func (svc *appsService) DeleteApp(app *db.App) error {
 func (svc *appsService) GetAppByPubkey(pubkey string) *db.App {
 	dbApp := db.App{}
 	findResult := svc.db.Where("app_pubkey = ?", pubkey).First(&dbApp)
+	if findResult.RowsAffected == 0 {
+		return nil
+	}
+	return &dbApp
+}
+
+func (svc *appsService) GetAppByName(name string) *db.App {
+	dbApp := db.App{}
+	findResult := svc.db.Where("name = ?", name).First(&dbApp)
 	if findResult.RowsAffected == 0 {
 		return nil
 	}
