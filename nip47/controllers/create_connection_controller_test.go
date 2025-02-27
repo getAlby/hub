@@ -10,18 +10,18 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/getAlby/hub/alby"
+	"github.com/getAlby/hub/apps"
+	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/nip47/models"
-	"github.com/getAlby/hub/nip47/permissions"
 	"github.com/getAlby/hub/tests"
-	"github.com/getAlby/hub/transactions"
 )
 
 func TestHandleCreateConnectionEvent(t *testing.T) {
 	ctx := context.TODO()
 	svc, err := tests.CreateTestService(t)
+	svc.Cfg.SetUpdate("LNBackendType", config.LDKBackendType, "")
 	require.NoError(t, err)
 	defer svc.Remove()
 
@@ -58,10 +58,7 @@ func TestHandleCreateConnectionEvent(t *testing.T) {
 		publishedResponse = response
 	}
 
-	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
-	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
-	albyOAuthSvc := alby.NewAlbyOAuthService(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
-	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc, svc.AppsService, albyOAuthSvc).
+	NewTestNip47Controller(svc).
 		HandleCreateConnectionEvent(ctx, nip47Request, dbRequestEvent.ID, publishResponse)
 
 	assert.Nil(t, publishedResponse.Error)
@@ -88,6 +85,55 @@ func TestHandleCreateConnectionEvent(t *testing.T) {
 	assert.Equal(t, constants.BUDGET_RENEWAL_MONTHLY, permissions[1].BudgetRenewal)
 }
 
+func TestHandleCreateConnectionEvent_IsolatedUnsupportedBackendType(t *testing.T) {
+	ctx := context.TODO()
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+	svc.Cfg.SetUpdate("BackendType", config.CashuBackendType, "")
+
+	pairingSecretKey := nostr.GeneratePrivateKey()
+	pairingPublicKey, err := nostr.GetPublicKey(pairingSecretKey)
+	require.NoError(t, err)
+
+	nip47CreateConnectionJson := fmt.Sprintf(`
+{
+	"method": "create_connection",
+	"params": {
+		"pubkey": "%s",
+		"name": "Test 123",
+		"request_methods": ["get_info", "pay_invoice"],
+		"notification_types": ["payment_received"],
+		"max_amount": 100000000,
+		"budget_renewal": "monthly",
+		"isolated": true
+	}
+}
+`, pairingPublicKey)
+
+	nip47Request := &models.Request{}
+	err = json.Unmarshal([]byte(nip47CreateConnectionJson), nip47Request)
+	assert.NoError(t, err)
+
+	dbRequestEvent := &db.RequestEvent{}
+	err = svc.DB.Create(&dbRequestEvent).Error
+	assert.NoError(t, err)
+
+	var publishedResponse *models.Response
+
+	publishResponse := func(response *models.Response, tags nostr.Tags) {
+		publishedResponse = response
+	}
+
+	NewTestNip47Controller(svc).
+		HandleCreateConnectionEvent(ctx, nip47Request, dbRequestEvent.ID, publishResponse)
+
+	assert.NotNil(t, publishedResponse.Error)
+	assert.Equal(t, constants.ERROR_INTERNAL, publishedResponse.Error.Code)
+	assert.Equal(t, "sub-wallets are currently not supported on your node backend. Try LDK or LND", publishedResponse.Error.Message)
+	assert.Equal(t, models.CREATE_CONNECTION_METHOD, publishedResponse.ResultType)
+}
+
 func TestHandleCreateConnectionEvent_PubkeyAlreadyExists(t *testing.T) {
 	ctx := context.TODO()
 	svc, err := tests.CreateTestService(t)
@@ -98,7 +144,8 @@ func TestHandleCreateConnectionEvent_PubkeyAlreadyExists(t *testing.T) {
 	pairingPublicKey, err := nostr.GetPublicKey(pairingSecretKey)
 	require.NoError(t, err)
 
-	_, _, err = svc.AppsService.CreateApp("Existing App", pairingPublicKey, 0, constants.BUDGET_RENEWAL_NEVER, nil, []string{models.GET_INFO_METHOD}, false, nil)
+	appsSvc := apps.NewAppsService(svc.DB, svc.EventPublisher, svc.Keys, svc.Cfg)
+	_, _, err = appsSvc.CreateApp("Existing App", pairingPublicKey, 0, constants.BUDGET_RENEWAL_NEVER, nil, []string{models.GET_INFO_METHOD}, false, nil)
 
 	nip47CreateConnectionJson := fmt.Sprintf(`
 {
@@ -125,10 +172,7 @@ func TestHandleCreateConnectionEvent_PubkeyAlreadyExists(t *testing.T) {
 		publishedResponse = response
 	}
 
-	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
-	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
-	albyOAuthSvc := alby.NewAlbyOAuthService(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
-	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc, svc.AppsService, albyOAuthSvc).
+	NewTestNip47Controller(svc).
 		HandleCreateConnectionEvent(ctx, nip47Request, dbRequestEvent.ID, publishResponse)
 
 	assert.NotNil(t, publishedResponse.Error)
@@ -172,10 +216,7 @@ func TestHandleCreateConnectionEvent_NoMethods(t *testing.T) {
 		publishedResponse = response
 	}
 
-	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
-	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
-	albyOAuthSvc := alby.NewAlbyOAuthService(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
-	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc, svc.AppsService, albyOAuthSvc).
+	NewTestNip47Controller(svc).
 		HandleCreateConnectionEvent(ctx, nip47Request, dbRequestEvent.ID, publishResponse)
 
 	assert.NotNil(t, publishedResponse.Error)
@@ -220,10 +261,7 @@ func TestHandleCreateConnectionEvent_UnsupportedMethod(t *testing.T) {
 		publishedResponse = response
 	}
 
-	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
-	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
-	albyOAuthSvc := alby.NewAlbyOAuthService(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
-	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc, svc.AppsService, albyOAuthSvc).
+	NewTestNip47Controller(svc).
 		HandleCreateConnectionEvent(ctx, nip47Request, dbRequestEvent.ID, publishResponse)
 
 	assert.NotNil(t, publishedResponse.Error)
@@ -269,10 +307,7 @@ func TestHandleCreateConnectionEvent_UnsupportedNotificationType(t *testing.T) {
 		publishedResponse = response
 	}
 
-	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
-	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
-	albyOAuthSvc := alby.NewAlbyOAuthService(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
-	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc, svc.AppsService, albyOAuthSvc).
+	NewTestNip47Controller(svc).
 		HandleCreateConnectionEvent(ctx, nip47Request, dbRequestEvent.ID, publishResponse)
 
 	assert.NotNil(t, publishedResponse.Error)
@@ -317,10 +352,7 @@ func TestHandleCreateConnectionEvent_DoNotAllowCreateConnectionMethod(t *testing
 		publishedResponse = response
 	}
 
-	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
-	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
-	albyOAuthSvc := alby.NewAlbyOAuthService(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
-	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc, svc.AppsService, albyOAuthSvc).
+	NewTestNip47Controller(svc).
 		HandleCreateConnectionEvent(ctx, nip47Request, dbRequestEvent.ID, publishResponse)
 
 	assert.NotNil(t, publishedResponse.Error)

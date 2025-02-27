@@ -9,12 +9,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/getAlby/hub/alby"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/nip47/models"
-	"github.com/getAlby/hub/nip47/permissions"
 	"github.com/getAlby/hub/tests"
-	"github.com/getAlby/hub/transactions"
 )
 
 const nip47MakeInvoiceJson = `
@@ -65,10 +62,7 @@ func TestHandleMakeInvoiceEvent(t *testing.T) {
 		publishedResponse = response
 	}
 
-	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
-	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
-	albyOAuthSvc := alby.NewAlbyOAuthService(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
-	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc, svc.AppsService, albyOAuthSvc).
+	NewTestNip47Controller(svc).
 		HandleMakeInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, *dbRequestEvent.AppId, publishResponse)
 
 	expectedMetadata := map[string]interface{}{

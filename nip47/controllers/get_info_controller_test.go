@@ -9,13 +9,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/getAlby/hub/alby"
+	"github.com/getAlby/hub/apps"
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/nip47/models"
-	"github.com/getAlby/hub/nip47/permissions"
 	"github.com/getAlby/hub/tests"
-	"github.com/getAlby/hub/transactions"
 )
 
 const nip47GetInfoJson = `
@@ -41,6 +39,9 @@ func TestHandleGetInfoEvent_NoPermission(t *testing.T) {
 	err = svc.DB.Create(&dbRequestEvent).Error
 	assert.NoError(t, err)
 
+	// delete the existing app permissions (the app was created with get_info scope)
+	svc.DB.Exec("delete from app_permissions")
+
 	appPermission := &db.AppPermission{
 		AppId:     app.ID,
 		Scope:     constants.GET_BALANCE_SCOPE,
@@ -55,10 +56,7 @@ func TestHandleGetInfoEvent_NoPermission(t *testing.T) {
 		publishedResponse = response
 	}
 
-	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
-	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
-	albyOAuthSvc := alby.NewAlbyOAuthService(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
-	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc, svc.AppsService, albyOAuthSvc).
+	NewTestNip47Controller(svc).
 		HandleGetInfoEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
 
 	assert.Nil(t, publishedResponse.Error)
@@ -105,10 +103,7 @@ func TestHandleGetInfoEvent_WithPermission(t *testing.T) {
 		publishedResponse = response
 	}
 
-	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
-	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
-	albyOAuthSvc := alby.NewAlbyOAuthService(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
-	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc, svc.AppsService, albyOAuthSvc).
+	NewTestNip47Controller(svc).
 		HandleGetInfoEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
 
 	assert.Nil(t, publishedResponse.Error)
@@ -133,7 +128,8 @@ func TestHandleGetInfoEvent_WithMetadata(t *testing.T) {
 		"a": 123,
 	}
 
-	app, _, err := svc.AppsService.CreateApp("test", "", 0, "monthly", nil, nil, false, metadata)
+	appsSvc := apps.NewAppsService(svc.DB, svc.EventPublisher, svc.Keys, svc.Cfg)
+	app, _, err := appsSvc.CreateApp("test", "", 0, "monthly", nil, []string{constants.GET_INFO_SCOPE}, false, metadata)
 	assert.NoError(t, err)
 
 	nip47Request := &models.Request{}
@@ -158,10 +154,7 @@ func TestHandleGetInfoEvent_WithMetadata(t *testing.T) {
 		publishedResponse = response
 	}
 
-	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
-	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
-	albyOAuthSvc := alby.NewAlbyOAuthService(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
-	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc, svc.AppsService, albyOAuthSvc).
+	NewTestNip47Controller(svc).
 		HandleGetInfoEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
 
 	assert.Nil(t, publishedResponse.Error)
@@ -218,10 +211,7 @@ func TestHandleGetInfoEvent_WithNotifications(t *testing.T) {
 		publishedResponse = response
 	}
 
-	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
-	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
-	albyOAuthSvc := alby.NewAlbyOAuthService(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
-	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc, svc.AppsService, albyOAuthSvc).
+	NewTestNip47Controller(svc).
 		HandleGetInfoEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
 
 	assert.Nil(t, publishedResponse.Error)

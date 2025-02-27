@@ -47,7 +47,7 @@ func NewNip47Service(db *gorm.DB, cfg config.Config, keys keys.Keys, eventPublis
 		db:                     db,
 		permissionsService:     permissions.NewPermissionsService(db, eventPublisher),
 		transactionsService:    transactions.NewTransactionsService(db, eventPublisher),
-		appsService:            apps.NewAppsService(db, eventPublisher, keys),
+		appsService:            apps.NewAppsService(db, eventPublisher, keys, cfg),
 		eventPublisher:         eventPublisher,
 		keys:                   keys,
 		albyOAuthSvc:           albyOAuthSvc,

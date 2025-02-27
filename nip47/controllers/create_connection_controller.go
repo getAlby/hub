@@ -64,6 +64,18 @@ func (controller *nip47Controller) HandleCreateConnectionEvent(ctx context.Conte
 		return
 	}
 
+	// ensure there is at least one request method
+	if len(params.RequestMethods) == 0 {
+		publishResponse(&models.Response{
+			ResultType: nip47Request.Method,
+			Error: &models.Error{
+				Code:    constants.ERROR_INTERNAL,
+				Message: "No methods provided",
+			},
+		}, nostr.Tags{})
+		return
+	}
+
 	supportedMethods := controller.lnClient.GetSupportedNIP47Methods()
 	if slices.ContainsFunc(params.RequestMethods, func(method string) bool {
 		return !slices.Contains(supportedMethods, method)
@@ -77,6 +89,7 @@ func (controller *nip47Controller) HandleCreateConnectionEvent(ctx context.Conte
 		}, nostr.Tags{})
 		return
 	}
+
 	scopes, err := permissions.RequestMethodsToScopes(params.RequestMethods)
 
 	supportedNotificationTypes := controller.lnClient.GetSupportedNIP47NotificationTypes()
@@ -94,18 +107,6 @@ func (controller *nip47Controller) HandleCreateConnectionEvent(ctx context.Conte
 			return
 		}
 		scopes = append(scopes, constants.NOTIFICATIONS_SCOPE)
-	}
-
-	// ensure there is at least one scope
-	if len(scopes) == 0 {
-		publishResponse(&models.Response{
-			ResultType: nip47Request.Method,
-			Error: &models.Error{
-				Code:    constants.ERROR_INTERNAL,
-				Message: "No methods provided",
-			},
-		}, nostr.Tags{})
-		return
 	}
 
 	app, _, err := controller.appsService.CreateApp(params.Name, params.Pubkey, maxAmountSat, params.BudgetRenewal, expiresAt, scopes, params.Isolated, params.Metadata)

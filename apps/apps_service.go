@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/events"
@@ -29,20 +30,32 @@ type appsService struct {
 	db             *gorm.DB
 	eventPublisher events.EventPublisher
 	keys           keys.Keys
+	cfg            config.Config
 }
 
-func NewAppsService(db *gorm.DB, eventPublisher events.EventPublisher, keys keys.Keys) *appsService {
+func NewAppsService(db *gorm.DB, eventPublisher events.EventPublisher, keys keys.Keys, cfg config.Config) *appsService {
 	return &appsService{
 		db:             db,
 		eventPublisher: eventPublisher,
 		keys:           keys,
+		cfg:            cfg,
 	}
 }
 
 func (svc *appsService) CreateApp(name string, pubkey string, maxAmountSat uint64, budgetRenewal string, expiresAt *time.Time, scopes []string, isolated bool, metadata map[string]interface{}) (*db.App, string, error) {
-	if isolated && (slices.Contains(scopes, constants.SIGN_MESSAGE_SCOPE)) {
-		// cannot sign messages because the isolated app is a custodial sub-wallet
-		return nil, "", errors.New("Sub-wallet app connection cannot have sign_message scope")
+	if isolated {
+		if slices.Contains(scopes, constants.SIGN_MESSAGE_SCOPE) {
+			// cannot sign messages because the isolated app is a custodial sub-wallet
+			return nil, "", errors.New("Sub-wallet app connection cannot have sign_message scope")
+		}
+
+		backendType, _ := svc.cfg.Get("LNBackendType", "")
+		if backendType != config.LDKBackendType &&
+			backendType != config.LNDBackendType &&
+			backendType != config.PhoenixBackendType {
+			return nil, "", fmt.Errorf(
+				"sub-wallets are currently not supported on your node backend. Try LDK or LND")
+		}
 	}
 
 	if budgetRenewal == "" {
@@ -51,6 +64,11 @@ func (svc *appsService) CreateApp(name string, pubkey string, maxAmountSat uint6
 
 	if !slices.Contains(constants.GetBudgetRenewals(), budgetRenewal) {
 		return nil, "", fmt.Errorf("invalid budget renewal. Must be one of %s", strings.Join(constants.GetBudgetRenewals(), ","))
+	}
+
+	// ensure there is at least one scope
+	if scopes == nil || len(scopes) == 0 {
+		return nil, "", errors.New("no scopes provided")
 	}
 
 	var pairingPublicKey string

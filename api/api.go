@@ -48,7 +48,7 @@ type api struct {
 func NewAPI(svc service.Service, gormDB *gorm.DB, config config.Config, keys keys.Keys, albyOAuthSvc alby.AlbyOAuthService, eventPublisher events.EventPublisher) *api {
 	return &api{
 		db:             gormDB,
-		appsSvc:        apps.NewAppsService(gormDB, eventPublisher, keys),
+		appsSvc:        apps.NewAppsService(gormDB, eventPublisher, keys, config),
 		cfg:            config,
 		svc:            svc,
 		permissionsSvc: permissions.NewPermissionsService(gormDB, eventPublisher),
@@ -58,15 +58,6 @@ func NewAPI(svc service.Service, gormDB *gorm.DB, config config.Config, keys key
 }
 
 func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppResponse, error) {
-	backendType, _ := api.cfg.Get("LNBackendType", "")
-	if createAppRequest.Isolated &&
-		backendType != config.LDKBackendType &&
-		backendType != config.LNDBackendType &&
-		backendType != config.PhoenixBackendType {
-		return nil, fmt.Errorf(
-			"sub-wallets are currently not supported on your node backend. Try LDK or LND")
-	}
-
 	if slices.Contains(createAppRequest.Scopes, constants.SUPERUSER_SCOPE) {
 		if !api.cfg.CheckUnlockPassword(createAppRequest.UnlockPassword) {
 			return nil, fmt.Errorf(
@@ -77,10 +68,6 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 	expiresAt, err := api.parseExpiresAt(createAppRequest.ExpiresAt)
 	if err != nil {
 		return nil, fmt.Errorf("invalid expiresAt: %v", err)
-	}
-
-	if len(createAppRequest.Scopes) == 0 {
-		return nil, fmt.Errorf("won't create an app without scopes")
 	}
 
 	for _, scope := range createAppRequest.Scopes {
