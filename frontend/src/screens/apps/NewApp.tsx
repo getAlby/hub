@@ -20,7 +20,6 @@ import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { Separator } from "src/components/ui/separator";
 import { useToast } from "src/components/ui/use-toast";
-import { useApps } from "src/hooks/useApps";
 import { useCapabilities } from "src/hooks/useCapabilities";
 import { createApp } from "src/requests/createApp";
 import { handleRequestError } from "src/utils/handleRequestError";
@@ -45,7 +44,6 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
 
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { data: apps } = useApps();
   const [unsupportedError, setUnsupportedError] = useState<string>();
   const [isLoading, setLoading] = React.useState(false);
 
@@ -187,10 +185,6 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
 
     setLoading(true);
     try {
-      if (apps?.some((existingApp) => existingApp.name === appName)) {
-        throw new Error("A connection with the same name already exists.");
-      }
-
       const createAppRequest: CreateAppRequest = {
         name: appName,
         pubkey,

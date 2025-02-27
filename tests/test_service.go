@@ -60,7 +60,7 @@ func CreateTestServiceWithMnemonic(t *testing.T, mnemonic string, unlockPassword
 
 	eventPublisher := events.NewEventPublisher()
 
-	appsService := apps.NewAppsService(gormDb, eventPublisher, keys)
+	appsService := apps.NewAppsService(gormDb, eventPublisher, keys, cfg)
 
 	return &TestService{
 		Cfg:            cfg,

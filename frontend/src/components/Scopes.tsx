@@ -87,10 +87,17 @@ const Scopes: React.FC<ScopesProps> = ({
   }, [capabilities.scopes]);
 
   const [scopeGroup, setScopeGroup] = React.useState<ScopeGroup>(() => {
-    if (isolated && scopes.length === capabilities.scopes.length) {
+    if (
+      isolated &&
+      scopes.length === isolatedScopes.length &&
+      scopes.every((scope) => isolatedScopes.includes(scope))
+    ) {
       return "isolated";
     }
-    if (scopes.length === capabilities.scopes.length) {
+    if (
+      scopes.length === fullAccessScopes.length &&
+      scopes.every((scope) => fullAccessScopes.includes(scope))
+    ) {
       return "full_access";
     }
     if (

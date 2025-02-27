@@ -99,15 +99,16 @@ type TopupIsolatedAppRequest struct {
 }
 
 type CreateAppRequest struct {
-	Name          string   `json:"name"`
-	Pubkey        string   `json:"pubkey"`
-	MaxAmountSat  uint64   `json:"maxAmount"`
-	BudgetRenewal string   `json:"budgetRenewal"`
-	ExpiresAt     string   `json:"expiresAt"`
-	Scopes        []string `json:"scopes"`
-	ReturnTo      string   `json:"returnTo"`
-	Isolated      bool     `json:"isolated"`
-	Metadata      Metadata `json:"metadata,omitempty"`
+	Name           string   `json:"name"`
+	Pubkey         string   `json:"pubkey"`
+	MaxAmountSat   uint64   `json:"maxAmount"`
+	BudgetRenewal  string   `json:"budgetRenewal"`
+	ExpiresAt      string   `json:"expiresAt"`
+	Scopes         []string `json:"scopes"`
+	ReturnTo       string   `json:"returnTo"`
+	Isolated       bool     `json:"isolated"`
+	Metadata       Metadata `json:"metadata,omitempty"`
+	UnlockPassword string   `json:"unlockPassword"`
 }
 
 type StartRequest struct {
