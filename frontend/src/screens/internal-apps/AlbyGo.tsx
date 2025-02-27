@@ -166,12 +166,14 @@ export function AlbyGo() {
         }
         description=""
         contentRight={
-          <Link to={`/apps/new?app=${app.id}`}>
-            <Button>
-              <NostrWalletConnectIcon className="w-4 h-4 mr-2" />
-              Connect to {app.title}
-            </Button>
-          </Link>
+          !createdApp && (
+            <Link to={`/apps/new?app=${app.id}`}>
+              <Button>
+                <NostrWalletConnectIcon className="w-4 h-4 mr-2" />
+                Connect to {app.title}
+              </Button>
+            </Link>
+          )
         }
       />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -296,7 +298,9 @@ export function AlbyGo() {
             </Card>
           )}
           {createdApp && connectionSecret && (
-            <ConnectAppCard app={createdApp} pairingUri={connectionSecret} />
+            <div className="mb-16 w-full">
+              <ConnectAppCard app={createdApp} pairingUri={connectionSecret} />
+            </div>
           )}
           {!createdApp && (
             <Card>
