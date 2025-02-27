@@ -70,7 +70,7 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 	if slices.Contains(createAppRequest.Scopes, constants.SUPERUSER_SCOPE) {
 		if !api.cfg.CheckUnlockPassword(createAppRequest.UnlockPassword) {
 			return nil, fmt.Errorf(
-				"cannot create app with superuser permission without specifying unlock password")
+				"incorrect unlock password to create app with superuser permission")
 		}
 	}
 
