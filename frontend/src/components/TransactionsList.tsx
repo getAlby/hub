@@ -54,7 +54,7 @@ function TransactionsList({
   }
 
   return (
-    <div ref={transactionListRef} className="transaction-list flex flex-col">
+    <div ref={transactionListRef} className="flex flex-col flex-1">
       {!transactions.length ? (
         <EmptyState
           icon={Drum}
