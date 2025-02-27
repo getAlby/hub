@@ -52,7 +52,7 @@ const Scopes: React.FC<ScopesProps> = ({
   onScopesChanged,
 }) => {
   const fullAccessScopes: Scope[] = React.useMemo(() => {
-    return capabilities.scopes.filter((scope) => scope !== "superuser");
+    return [...capabilities.scopes];
   }, [capabilities.scopes]);
 
   const readOnlyScopes: Scope[] = React.useMemo(() => {
@@ -89,8 +89,8 @@ const Scopes: React.FC<ScopesProps> = ({
   const [scopeGroup, setScopeGroup] = React.useState<ScopeGroup>(() => {
     if (
       isolated &&
-      scopes.length === fullAccessScopes.length &&
-      scopes.every((scope) => fullAccessScopes.includes(scope))
+      scopes.length === isolatedScopes.length &&
+      scopes.every((scope) => isolatedScopes.includes(scope))
     ) {
       return "isolated";
     }
