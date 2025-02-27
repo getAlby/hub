@@ -117,19 +117,18 @@ const Permissions: React.FC<PermissionsProps> = ({
       )}
 
       {permissions.isolated && (
-        <>
+        <div className="mb-4">
           <div className="flex items-center gap-2 mb-2">
             <BrickWall className="w-4 h-4" />
             <p className="text-sm font-medium">Isolated App</p>
           </div>
-
-          <p className="mb-4">
+          <p className="text-muted-foreground text-xs">
             This app is isolated from the rest of your wallet. This means it
             will have an isolated balance and only has access to its own
             transaction history. It will not be able to sign messages on your
             node's behalf.
           </p>
-        </>
+        </div>
       )}
 
       {!permissions.isolated && permissions.scopes.includes("pay_invoice") && (

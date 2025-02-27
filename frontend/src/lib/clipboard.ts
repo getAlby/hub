@@ -27,10 +27,10 @@ export async function copyToClipboard(content: string, toast: ToastSignature) {
 
   try {
     await copyPromise;
-    toast({ title: "Copied to clipboard." });
+    toast({ title: "Copied to clipboard" });
   } catch (e) {
     toast({
-      title: "Failed to copy to clipboard.",
+      title: "Failed to copy to clipboard",
       variant: "destructive",
     });
   }

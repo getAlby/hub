@@ -251,8 +251,12 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                         )}{" "}
                         sats{" "}
                         <IsolatedAppTopupDialog appPubkey={app.appPubkey}>
-                          <Button size="sm" variant="secondary">
-                            Increase
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            className="ml-4"
+                          >
+                            Top Up
                           </Button>
                         </IsolatedAppTopupDialog>
                       </TableCell>
