@@ -63,9 +63,9 @@ export function UncleJim() {
   const [isLoading, setLoading] = React.useState(false);
   const [showIntro, setShowIntro] = React.useState(true);
 
-  const onboardedApps = apps?.filter(
-    (app) => app.metadata?.app_store_app_id === "uncle-jim"
-  );
+  const onboardedApps = apps
+    ?.filter((app) => app.metadata?.app_store_app_id === "uncle-jim")
+    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
