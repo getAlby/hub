@@ -9,6 +9,7 @@ import { FirefoxIcon } from "src/components/icons/Firefox";
 import { NostrWalletConnectIcon } from "src/components/icons/NostrWalletConnectIcon";
 import { PlayStoreIcon } from "src/components/icons/PlayStore";
 import { ZapStoreIcon } from "src/components/icons/ZapStore";
+import Loading from "src/components/Loading";
 import { suggestedApps } from "src/components/SuggestedAppData";
 import {
   AlertDialog,
@@ -32,6 +33,7 @@ import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 import { useApp } from "src/hooks/useApp";
+import { useCapabilities } from "src/hooks/useCapabilities";
 import { createApp } from "src/requests/createApp";
 import { ConnectAppCard } from "src/screens/apps/AppCreated";
 
@@ -44,6 +46,7 @@ export function AlbyGo() {
     React.useState(false);
   const { data: createdApp } = useApp(appPubkey, true);
   const { toast } = useToast();
+  const { data: capabilities } = useCapabilities();
 
   const app = suggestedApps.find((app) => app.id === "alby-go");
   if (!app) {
@@ -58,20 +61,14 @@ export function AlbyGo() {
     e.preventDefault();
     setLoading(true);
     try {
+      if (!capabilities) {
+        throw new Error("capabilities not loaded");
+      }
+
       // TODO: fetch scopes from useCapabilities
       const createAppResponse = await createApp({
         name: "Alby Go",
-        scopes: [
-          "pay_invoice",
-          "get_balance",
-          "get_info",
-          "make_invoice",
-          "lookup_invoice",
-          "list_transactions",
-          "sign_message",
-          "notifications",
-          "superuser",
-        ],
+        scopes: [...capabilities.scopes, "superuser"],
         isolated: false,
         metadata: {
           app_store_app_id: "alby-go",
@@ -93,6 +90,10 @@ export function AlbyGo() {
     setLoading(false);
     setShowCreateConnectionDialog(false);
     setUnlockPassword("");
+  }
+
+  if (!capabilities) {
+    return <Loading />;
   }
 
   return (
