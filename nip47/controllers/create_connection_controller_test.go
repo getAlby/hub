@@ -221,7 +221,7 @@ func TestHandleCreateConnectionEvent_NoMethods(t *testing.T) {
 
 	assert.NotNil(t, publishedResponse.Error)
 	assert.Equal(t, constants.ERROR_INTERNAL, publishedResponse.Error.Code)
-	assert.Equal(t, "No methods provided", publishedResponse.Error.Message)
+	assert.Equal(t, "No request methods provided", publishedResponse.Error.Message)
 	assert.Equal(t, models.CREATE_CONNECTION_METHOD, publishedResponse.ResultType)
 	assert.Nil(t, publishedResponse.Result)
 }

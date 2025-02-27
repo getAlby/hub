@@ -3,7 +3,6 @@ package tests
 import (
 	"time"
 
-	"github.com/getAlby/hub/apps"
 	"github.com/getAlby/hub/constants"
 	db "github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/events"
@@ -29,8 +28,7 @@ func CreateAppWithPrivateKey(svc *TestService, senderPrivkey, nip47Version strin
 	}
 
 	var expiresAt *time.Time
-	appsSvc := apps.NewAppsService(svc.DB, svc.EventPublisher, svc.Keys, svc.Cfg)
-	app, pairingSecretKey, err := appsSvc.CreateApp("test", senderPubkey, 0, "monthly", expiresAt, []string{constants.GET_INFO_SCOPE}, false, nil)
+	app, pairingSecretKey, err := svc.AppsService.CreateApp("test", senderPubkey, 0, "monthly", expiresAt, []string{constants.GET_INFO_SCOPE}, false, nil)
 	if pairingSecretKey == "" {
 		pairingSecretKey = senderPrivkey
 	}

@@ -70,7 +70,7 @@ func (controller *nip47Controller) HandleCreateConnectionEvent(ctx context.Conte
 			ResultType: nip47Request.Method,
 			Error: &models.Error{
 				Code:    constants.ERROR_INTERNAL,
-				Message: "No methods provided",
+				Message: "No request methods provided",
 			},
 		}, nostr.Tags{})
 		return
