@@ -136,14 +136,16 @@ export function FirstChannel() {
             {canPayForFirstChannel ? (
               <>
                 <p>
-                  Your Alby hosted balance currently holds{" "}
+                  You currently have{" "}
                   <span className="font-medium text-foreground sensitive slashed-zero">
-                    {new Intl.NumberFormat().format(albyBalance?.sats)} sats
+                    {new Intl.NumberFormat().format(albyBalance?.sats)} sats as
+                    Alby fee credits
                   </span>
                   .
                 </p>
                 <p>
-                  Those funds will be used to open your first lightning channel.
+                  These fee credits will be applied to open your first Lightning
+                  channel.
                 </p>
               </>
             ) : (
