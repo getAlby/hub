@@ -39,7 +39,7 @@ export function AppCardConnectionInfo({
           <div className="text-sm text-secondary-foreground font-medium w-full h-full flex flex-col gap-2">
             <div className="flex flex-row items-center gap-2">
               <BrickWall className="w-4 h-4" />
-              Isolated
+              Sub-wallet
             </div>
           </div>
           <div className="flex flex-row justify-between text-xs items-end mt-2">

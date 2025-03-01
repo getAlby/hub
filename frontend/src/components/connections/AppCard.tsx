@@ -29,16 +29,21 @@ export default function AppCard({ app, actions }: Props) {
     >
       <CardHeader>
         <CardTitle className="relative">
-          <AppCardNotice app={app} />
           <div className="flex flex-row items-center">
             <AppAvatar className="w-10 h-10" app={app} />
             <div className="flex-1 font-semibold text-xl whitespace-nowrap text-ellipsis overflow-hidden ml-4">
               {app.name}
             </div>
-            {!!actions && (
-              // stop the above navigation click handler
-              <div onClick={(e) => e.stopPropagation()}>{actions}</div>
-            )}
+            <div
+              className="flex items-center gap-2"
+              onClick={
+                (e) =>
+                  e.stopPropagation() /* stop the above navigation click handler */
+              }
+            >
+              <AppCardNotice app={app} />
+              {actions}
+            </div>
           </div>
         </CardTitle>
       </CardHeader>

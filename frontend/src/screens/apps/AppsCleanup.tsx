@@ -66,7 +66,7 @@ export function AppsCleanup() {
             <AppCard
               app={currentApp}
               actions={
-                <div className="flex gap-2">
+                <>
                   <Button
                     variant="destructive"
                     className="w-full"
@@ -88,7 +88,7 @@ export function AppsCleanup() {
                   >
                     Skip
                   </Button>
-                </div>
+                </>
               }
             />
           </div>
