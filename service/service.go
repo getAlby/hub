@@ -43,6 +43,7 @@ type service struct {
 	appCancelFn         context.CancelFunc
 	keys                keys.Keys
 	isRelayReady        atomic.Bool
+	startupState        string
 }
 
 func NewService(ctx context.Context) (*service, error) {
@@ -112,14 +113,16 @@ func NewService(ctx context.Context) (*service, error) {
 
 	keys := keys.NewKeys()
 
+	albyOAuthSvc := alby.NewAlbyOAuthService(gormDB, cfg, keys, eventPublisher)
+
 	var wg sync.WaitGroup
 	svc := &service{
 		cfg:                 cfg,
 		ctx:                 ctx,
 		wg:                  &wg,
 		eventPublisher:      eventPublisher,
-		albyOAuthSvc:        alby.NewAlbyOAuthService(gormDB, cfg, keys, eventPublisher),
-		nip47Service:        nip47.NewNip47Service(gormDB, cfg, keys, eventPublisher),
+		albyOAuthSvc:        albyOAuthSvc,
+		nip47Service:        nip47.NewNip47Service(gormDB, cfg, keys, eventPublisher, albyOAuthSvc),
 		transactionsService: transactions.NewTransactionsService(gormDB, eventPublisher),
 		db:                  gormDB,
 		keys:                keys,
@@ -257,4 +260,8 @@ func (svc *service) setRelayReady(ready bool) {
 
 func (svc *service) IsRelayReady() bool {
 	return svc.isRelayReady.Load()
+}
+
+func (svc *service) GetStartupState() string {
+	return svc.startupState
 }

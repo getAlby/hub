@@ -99,15 +99,16 @@ type TopupIsolatedAppRequest struct {
 }
 
 type CreateAppRequest struct {
-	Name          string   `json:"name"`
-	Pubkey        string   `json:"pubkey"`
-	MaxAmountSat  uint64   `json:"maxAmount"`
-	BudgetRenewal string   `json:"budgetRenewal"`
-	ExpiresAt     string   `json:"expiresAt"`
-	Scopes        []string `json:"scopes"`
-	ReturnTo      string   `json:"returnTo"`
-	Isolated      bool     `json:"isolated"`
-	Metadata      Metadata `json:"metadata,omitempty"`
+	Name           string   `json:"name"`
+	Pubkey         string   `json:"pubkey"`
+	MaxAmountSat   uint64   `json:"maxAmount"`
+	BudgetRenewal  string   `json:"budgetRenewal"`
+	ExpiresAt      string   `json:"expiresAt"`
+	Scopes         []string `json:"scopes"`
+	ReturnTo       string   `json:"returnTo"`
+	Isolated       bool     `json:"isolated"`
+	Metadata       Metadata `json:"metadata,omitempty"`
+	UnlockPassword string   `json:"unlockPassword"`
 }
 
 type StartRequest struct {
@@ -181,6 +182,7 @@ type InfoResponse struct {
 	EnableAdvancedSetup         bool      `json:"enableAdvancedSetup"`
 	LdkVssEnabled               bool      `json:"ldkVssEnabled"`
 	VssSupported                bool      `json:"vssSupported"`
+	StartupState                string    `json:"startupState"`
 	StartupError                string    `json:"startupError"`
 	StartupErrorTime            time.Time `json:"startupErrorTime"`
 	AutoUnlockPasswordSupported bool      `json:"autoUnlockPasswordSupported"`
@@ -230,7 +232,11 @@ type BalancesResponse = lnclient.BalancesResponse
 type SendPaymentResponse = Transaction
 type MakeInvoiceResponse = Transaction
 type LookupInvoiceResponse = Transaction
-type ListTransactionsResponse = []Transaction
+
+type ListTransactionsResponse struct {
+	TotalCount   uint64        `json:"totalCount"`
+	Transactions []Transaction `json:"transactions"`
+}
 
 // TODO: camelCase
 type Transaction struct {
@@ -243,6 +249,7 @@ type Transaction struct {
 	PaymentHash     string      `json:"paymentHash"`
 	Amount          uint64      `json:"amount"`
 	FeesPaid        uint64      `json:"feesPaid"`
+	UpdatedAt       string      `json:"updatedAt"`
 	CreatedAt       string      `json:"createdAt"`
 	SettledAt       *string     `json:"settledAt"`
 	AppId           *uint       `json:"appId"`

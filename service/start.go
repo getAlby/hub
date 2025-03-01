@@ -115,21 +115,22 @@ func (svc *service) startNostr(ctx context.Context) error {
 				return
 			}
 			if legacyAppCount > 0 {
-				// re-publish single NIP47 event info for legacy apps
-				_, err := svc.GetNip47Service().PublishNip47Info(ctx, relay, svc.keys.GetNostrPublicKey(), svc.keys.GetNostrSecretKey(), svc.lnClient)
-				if err != nil {
-					logger.Logger.WithError(err).Error("Could not publish NIP47 info for legacy apps")
-					continue
-				}
-				logger.Logger.WithField("legacy_app_count", legacyAppCount).Info("Starting legacy app subscription")
-				// legacy single wallet subscription - only subscribe once for all legacy apps
-				// to ensure we do not get duplicate events
-				err = svc.startAppWalletSubscription(ctx, relay, svc.keys.GetNostrPublicKey())
-				if err != nil && !errors.Is(err, context.Canceled) {
-					// err being non-nil means that we have an error on the websocket error channel. In this case we just try to reconnect.
-					logger.Logger.WithError(err).Error("Got an error from the relay while listening to subscription.")
-					continue
-				}
+				go func() {
+					// re-publish single NIP47 event info for legacy apps
+					_, err := svc.GetNip47Service().PublishNip47Info(ctx, relay, svc.keys.GetNostrPublicKey(), svc.keys.GetNostrSecretKey(), svc.lnClient)
+					if err != nil {
+						logger.Logger.WithError(err).Error("Could not publish NIP47 info for legacy apps")
+						return
+					}
+					logger.Logger.WithField("legacy_app_count", legacyAppCount).Info("Starting legacy app subscription")
+					// legacy single wallet subscription - only subscribe once for all legacy apps
+					// to ensure we do not get duplicate events
+					err = svc.startAppWalletSubscription(ctx, relay, svc.keys.GetNostrPublicKey())
+					if err != nil && !errors.Is(err, context.Canceled) {
+						// err being non-nil means that we have an error on the websocket error channel. In this case we just try to reconnect.
+						logger.Logger.WithError(err).Error("Got an error from the relay while listening to legacy subscription.")
+					}
+				}()
 			}
 
 			svc.setRelayReady(true)
@@ -221,6 +222,11 @@ func (svc *service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 }
 
 func (svc *service) StartApp(encryptionKey string) error {
+	defer func() {
+		svc.startupState = ""
+	}()
+
+	svc.startupState = "Initializing"
 	albyIdentifier, err := svc.albyOAuthSvc.GetUserIdentifier()
 	if err != nil {
 		return err
@@ -246,6 +252,7 @@ func (svc *service) StartApp(encryptionKey string) error {
 		return err
 	}
 
+	svc.startupState = "Launching Node"
 	err = svc.launchLNBackend(ctx, encryptionKey)
 	if err != nil {
 		logger.Logger.Errorf("Failed to launch LN backend: %v", err)
@@ -256,6 +263,7 @@ func (svc *service) StartApp(encryptionKey string) error {
 		return err
 	}
 
+	svc.startupState = "Connecting To Relay"
 	err = svc.startNostr(ctx)
 	if err != nil {
 		cancelFn()
@@ -306,7 +314,11 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 		}
 		vssEnabled = vssToken != ""
 
-		lnClient, err = ldk.NewLDKService(ctx, svc.cfg, svc.eventPublisher, mnemonic, ldkWorkdir, svc.cfg.GetEnv().LDKNetwork, vssToken)
+		svc.startupState = "Launching Node"
+		setStartupState := func(startupState string) {
+			svc.startupState = startupState
+		}
+		lnClient, err = ldk.NewLDKService(ctx, svc.cfg, svc.eventPublisher, mnemonic, ldkWorkdir, svc.cfg.GetEnv().LDKNetwork, vssToken, setStartupState)
 	case config.GreenlightBackendType:
 		Mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
 		GreenlightInviteCode, _ := svc.cfg.Get("GreenlightInviteCode", encryptionKey)
@@ -394,6 +406,7 @@ func (svc *service) requestVssToken(ctx context.Context) (string, error) {
 
 	// for brand new nodes, consider enabling VSS
 	if nodeLastStartTime == "" && svc.cfg.GetEnv().LDKVssUrl != "" {
+		svc.startupState = "Checking Subscription"
 		albyUserIdentifier, err := svc.albyOAuthSvc.GetUserIdentifier()
 		if err != nil {
 			logger.Logger.WithError(err).Error("Failed to fetch alby user identifier")
@@ -415,6 +428,7 @@ func (svc *service) requestVssToken(ctx context.Context) (string, error) {
 	vssToken := ""
 	vssEnabled, _ := svc.cfg.Get("LdkVssEnabled", "")
 	if vssEnabled == "true" {
+		svc.startupState = "Fetching VSS token"
 		vssNodeIdentifier, err := ldk.GetVssNodeIdentifier(svc.keys)
 		if err != nil {
 			logger.Logger.WithError(err).Error("Failed to get VSS node identifier")

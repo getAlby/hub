@@ -665,7 +665,10 @@ export default function Channels() {
               balances.onchain.pendingBalancesFromChannelClosures
             )}{" "}
             sats pending from closed channels with
-            {balances.onchain.pendingBalancesDetails.map((details, index) => (
+            {[
+              ...balances.onchain.pendingBalancesDetails,
+              ...balances.onchain.pendingSweepBalancesDetails,
+            ].map((details, index) => (
               <div key={details.channelId} className="inline">
                 &nbsp;
                 <ExternalLink

@@ -286,14 +286,16 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 	case len(invoiceMatch) > 1:
 		invoice := invoiceMatch[1]
 		payRequest := &api.PayInvoiceRequest{}
-		err := json.Unmarshal([]byte(body), payRequest)
-		if err != nil {
-			logger.Logger.WithFields(logrus.Fields{
-				"route":  route,
-				"method": method,
-				"body":   body,
-			}).WithError(err).Error("Failed to decode request to wails router")
-			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		if body != "" {
+			err := json.Unmarshal([]byte(body), payRequest)
+			if err != nil {
+				logger.Logger.WithFields(logrus.Fields{
+					"route":  route,
+					"method": method,
+					"body":   body,
+				}).WithError(err).Error("Failed to decode request to wails router")
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
 		}
 		paymentResponse, err := app.api.SendPayment(ctx, invoice, payRequest.Amount)
 		if err != nil {
@@ -371,10 +373,9 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		rate, err := app.svc.GetAlbyOAuthSvc().GetBitcoinRate(ctx)
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
-				"route":    route,
-				"method":   method,
-				"body":     body,
-				"currency": "usd",
+				"route":  route,
+				"method": method,
+				"body":   body,
 			}).WithError(err).Error("Failed to get Bitcoin rate")
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}

@@ -673,7 +673,7 @@ func (svc *albyOAuthService) LinkAccount(ctx context.Context, lnClient lnclient.
 		scopes = append(scopes, constants.NOTIFICATIONS_SCOPE)
 	}
 
-	app, _, err := apps.NewAppsService(svc.db, svc.eventPublisher, svc.keys).CreateApp(
+	app, _, err := apps.NewAppsService(svc.db, svc.eventPublisher, svc.keys, svc.cfg).CreateApp(
 		ALBY_ACCOUNT_APP_NAME,
 		connectionPubkey,
 		budget,
@@ -1150,19 +1150,26 @@ func (svc *albyOAuthService) GetChannelPeerSuggestions(ctx context.Context) ([]C
 
 func (svc *albyOAuthService) GetBitcoinRate(ctx context.Context) (*BitcoinRate, error) {
 	client := &http.Client{Timeout: 10 * time.Second}
+	currency := svc.cfg.GetCurrency()
 
-	url := fmt.Sprintf("%s/rates/%s", albyInternalAPIURL, svc.cfg.GetCurrency())
+	url := fmt.Sprintf("%s/rates/%s", albyInternalAPIURL, currency)
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		logger.Logger.WithError(err).Error("Error creating request to Bitcoin rate endpoint")
+		logger.Logger.WithFields(logrus.Fields{
+			"currency": currency,
+			"error":    err,
+		}).Error("Error creating request to Bitcoin rate endpoint")
 		return nil, err
 	}
 	setDefaultRequestHeaders(req)
 
 	res, err := client.Do(req)
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to fetch Bitcoin rate from API")
+		logger.Logger.WithFields(logrus.Fields{
+			"currency": currency,
+			"error":    err,
+		}).Error("Failed to fetch Bitcoin rate from API")
 		return nil, err
 	}
 
@@ -1178,16 +1185,21 @@ func (svc *albyOAuthService) GetBitcoinRate(ctx context.Context) (*BitcoinRate, 
 
 	if res.StatusCode >= 300 {
 		logger.Logger.WithFields(logrus.Fields{
+			"currency":   currency,
 			"body":       string(body),
 			"statusCode": res.StatusCode,
-		}).Error("bitcoin rate endpoint returned non-success code")
+		}).Error("Bitcoin rate endpoint returned non-success code")
 		return nil, fmt.Errorf("bitcoin rate endpoint returned non-success code: %s", string(body))
 	}
 
 	var rate = &BitcoinRate{}
 	err = json.Unmarshal(body, rate)
 	if err != nil {
-		logger.Logger.WithField("body", string(body)).WithError(err).Error("Failed to decode Bitcoin rate API response")
+		logger.Logger.WithFields(logrus.Fields{
+			"currency": currency,
+			"body":     string(body),
+			"error":    err,
+		}).Error("Failed to decode Bitcoin rate API response")
 		return nil, err
 	}
 

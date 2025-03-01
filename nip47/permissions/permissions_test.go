@@ -56,35 +56,6 @@ func TestHasPermission_Expired(t *testing.T) {
 	assert.Equal(t, "This app has expired", message)
 }
 
-// TODO: move to transactions service
-/*func TestHasPermission_Exceeded(t *testing.T) {
-	defer tests.RemoveTestService()
-	svc, err := tests.CreateTestService(t)
-	require.NoError(t, err)
-
-	app, _, err := tests.CreateApp(svc)
-	assert.NoError(t, err)
-
-	budgetRenewal := "never"
-	expiresAt := time.Now().Add(24 * time.Hour)
-	appPermission := &db.AppPermission{
-		AppId:         app.ID,
-		App:           *app,
-		Scope:         constants.PAY_INVOICE_SCOPE,
-		MaxAmountSat:  10,
-		BudgetRenewal: budgetRenewal,
-		ExpiresAt:     &expiresAt,
-	}
-	err = svc.DB.Create(appPermission).Error
-	assert.NoError(t, err)
-
-	permissionsSvc := NewPermissionsService(svc.DB, svc.EventPublisher)
-	result, code, message := permissionsSvc.HasPermission(app, PAY_INVOICE_SCOPE, 100*1000)
-	assert.False(t, result)
-	assert.Equal(t, constants.ERROR_QUOTA_EXCEEDED, code)
-	assert.Equal(t, "Insufficient budget remaining to make payment", message)
-}*/
-
 func TestHasPermission_OK(t *testing.T) {
 	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
@@ -143,6 +114,16 @@ func TestRequestMethodsToScopes_GetInfo(t *testing.T) {
 	scopes, err := RequestMethodsToScopes([]string{models.GET_INFO_METHOD})
 	assert.NoError(t, err)
 	assert.Equal(t, []string{constants.GET_INFO_SCOPE}, scopes)
+}
+
+func TestRequestMethodToScope_CreateConnection(t *testing.T) {
+	scope, err := RequestMethodToScope(models.CREATE_CONNECTION_METHOD)
+	assert.NoError(t, err)
+	assert.Equal(t, constants.SUPERUSER_SCOPE, scope)
+}
+func TestScopeToRequestMethods_Superuser(t *testing.T) {
+	methods := scopeToRequestMethods(constants.SUPERUSER_SCOPE)
+	assert.Equal(t, []string{models.CREATE_CONNECTION_METHOD}, methods)
 }
 
 func TestGetPermittedMethods_AlwaysGranted(t *testing.T) {

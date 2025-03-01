@@ -48,7 +48,6 @@ import {
 } from "src/components/ui/tooltip";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 
-import clsx from "clsx";
 import { useAlbyInfo } from "src/hooks/useAlbyInfo";
 import { useHealthCheck } from "src/hooks/useHealthCheck";
 import { useInfo } from "src/hooks/useInfo";
@@ -404,7 +403,7 @@ function HealthIndicator() {
         <TooltipTrigger>
           <span className="text-xs flex items-center text-muted-foreground">
             <div
-              className={clsx(
+              className={cn(
                 "w-2 h-2 rounded-full",
                 ok ? "bg-green-300" : "bg-destructive"
               )}

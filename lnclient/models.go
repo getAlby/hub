@@ -153,6 +153,7 @@ type OnchainBalanceResponse struct {
 	Reserved                           int64                   `json:"reserved"`
 	PendingBalancesFromChannelClosures uint64                  `json:"pendingBalancesFromChannelClosures"`
 	PendingBalancesDetails             []PendingBalanceDetails `json:"pendingBalancesDetails"`
+	PendingSweepBalancesDetails        []PendingBalanceDetails `json:"pendingSweepBalancesDetails"`
 	InternalBalances                   interface{}             `json:"internalBalances"`
 }
 
