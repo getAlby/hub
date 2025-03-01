@@ -58,7 +58,7 @@ export function AppsCleanup() {
       {currentApp && (
         <>
           <p className="font-mono">
-            {appIndex + 1} / {appsToReview.length} unused apps to review,{" "}
+            {appIndex + 1} / {appsToReview.length} unused apps reviewed,{" "}
             {skippedCount} skipped, {deletedCount} deleted
           </p>
 
@@ -86,7 +86,7 @@ export function AppsCleanup() {
                       setSkippedCount((current) => current + 1);
                     }}
                   >
-                    Skip
+                    Keep
                   </Button>
                 </>
               }
