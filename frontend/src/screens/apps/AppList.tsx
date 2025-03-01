@@ -1,4 +1,4 @@
-import { Cable, CirclePlus } from "lucide-react";
+import { Cable, CirclePlus, SquareMinus } from "lucide-react";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import EmptyState from "src/components/EmptyState";
@@ -34,12 +34,22 @@ function AppList() {
         title="Connections"
         description="Apps that you connected to already"
         contentRight={
-          <Link to="/apps/new">
-            <Button>
-              <CirclePlus className="h-4 w-4 mr-2" />
-              Add Connection
-            </Button>
-          </Link>
+          <>
+            <Link to="/apps/new">
+              <Button>
+                <CirclePlus className="h-4 w-4 mr-2" />
+                Add Connection
+              </Button>
+            </Link>
+            {apps.length > 5 && (
+              <Link to="/apps/cleanup">
+                <Button variant="secondary">
+                  <SquareMinus className="h-4 w-4 mr-2" />
+                  Cleanup Unused
+                </Button>
+              </Link>
+            )}
+          </>
         }
       />
 
