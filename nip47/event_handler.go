@@ -93,7 +93,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 		}
 	}
 
-	encryption := "nip04"
+	encryption := constants.ENCRYPTION_TYPE_NIP04
 	encryptionTag := event.Tags.GetFirst([]string{"encryption"})
 	if encryptionTag != nil {
 		encryption = encryptionTag.Value()
@@ -105,7 +105,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 		if vTag != nil && vTag.Value() != "" {
 			version := vTag.Value()
 			if version == "1.0" {
-				encryption = "nip44_v2"
+				encryption = constants.ENCRYPTION_TYPE_NIP44_V2
 			}
 		}
 	}
@@ -128,8 +128,8 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 			}).WithError(err).Error("Failed to save state to nostr event")
 		}
 
-		// re-create the cipher with NIP-44 to send a response
-		nip47Cipher, err := cipher.NewNip47Cipher("nip44_v2", app.AppPubkey, appWalletPrivKey)
+		// re-create the cipher with NIP-44 to send an error response
+		nip47Cipher, err := cipher.NewNip47Cipher(constants.ENCRYPTION_TYPE_NIP44_V2, app.AppPubkey, appWalletPrivKey)
 
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
@@ -210,8 +210,8 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 			}).WithError(err).Error("Failed to save state to nostr event")
 		}
 
-		// re-create the cipher with NIP-44 to send a response
-		nip47Cipher, err := cipher.NewNip47Cipher("nip44_v2", app.AppPubkey, appWalletPrivKey)
+		// re-create the cipher with NIP-44 to send an error response
+		nip47Cipher, err := cipher.NewNip47Cipher(constants.ENCRYPTION_TYPE_NIP44_V2, app.AppPubkey, appWalletPrivKey)
 
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{

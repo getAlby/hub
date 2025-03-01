@@ -3,6 +3,7 @@ package cipher
 import (
 	"fmt"
 
+	"github.com/getAlby/hub/constants"
 	"github.com/nbd-wtf/go-nostr/nip04"
 	"github.com/nbd-wtf/go-nostr/nip44"
 )
@@ -28,7 +29,7 @@ func NewNip47Cipher(encryption, pubkey, privkey string) (*Nip47Cipher, error) {
 
 	var ss []byte
 	var ck [32]byte
-	if encryption == "nip04" {
+	if encryption == constants.ENCRYPTION_TYPE_NIP04 {
 		ss, err = nip04.ComputeSharedSecret(pubkey, privkey)
 		if err != nil {
 			return nil, err
@@ -50,7 +51,7 @@ func NewNip47Cipher(encryption, pubkey, privkey string) (*Nip47Cipher, error) {
 }
 
 func (c *Nip47Cipher) Encrypt(message string) (msg string, err error) {
-	if c.encryption == "nip04" {
+	if c.encryption == constants.ENCRYPTION_TYPE_NIP04 {
 		msg, err = nip04.Encrypt(message, c.sharedSecret)
 		if err != nil {
 			return "", err
@@ -65,7 +66,7 @@ func (c *Nip47Cipher) Encrypt(message string) (msg string, err error) {
 }
 
 func (c *Nip47Cipher) Decrypt(content string) (payload string, err error) {
-	if c.encryption == "nip04" {
+	if c.encryption == constants.ENCRYPTION_TYPE_NIP04 {
 		payload, err = nip04.Decrypt(content, c.sharedSecret)
 		if err != nil {
 			return "", err
@@ -80,7 +81,7 @@ func (c *Nip47Cipher) Decrypt(content string) (payload string, err error) {
 }
 
 func isEncryptionSupported(encryption string) (bool, error) {
-	if encryption == "nip44_v2" || encryption == "nip04" {
+	if encryption == constants.ENCRYPTION_TYPE_NIP44_V2 || encryption == constants.ENCRYPTION_TYPE_NIP04 {
 		return true, nil
 	}
 

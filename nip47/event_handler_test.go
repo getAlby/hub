@@ -29,7 +29,7 @@ func TestCreateResponse_Nip04(t *testing.T) {
 	require.NoError(t, err)
 	defer svc.Remove()
 
-	doTestCreateResponse(t, svc, "nip04")
+	doTestCreateResponse(t, svc, constants.ENCRYPTION_TYPE_NIP04)
 }
 
 func TestCreateResponse_Nip44(t *testing.T) {
@@ -37,7 +37,7 @@ func TestCreateResponse_Nip44(t *testing.T) {
 	require.NoError(t, err)
 	defer svc.Remove()
 
-	doTestCreateResponse(t, svc, "nip44_v2")
+	doTestCreateResponse(t, svc, constants.ENCRYPTION_TYPE_NIP44_V2)
 }
 
 func doTestCreateResponse(t *testing.T, svc *tests.TestService, nip47Encryption string) {
@@ -94,7 +94,7 @@ func TestHandleResponse_Nip04_WithPermission(t *testing.T) {
 	require.NoError(t, err)
 	defer svc.Remove()
 
-	doTestHandleResponse_WithPermission(t, svc, tests.CreateAppWithPrivateKey, "nip04")
+	doTestHandleResponse_WithPermission(t, svc, tests.CreateAppWithPrivateKey, constants.ENCRYPTION_TYPE_NIP04)
 }
 
 func TestHandleResponse_Nip44_WithPermission(t *testing.T) {
@@ -102,7 +102,7 @@ func TestHandleResponse_Nip44_WithPermission(t *testing.T) {
 	require.NoError(t, err)
 	defer svc.Remove()
 
-	doTestHandleResponse_WithPermission(t, svc, tests.CreateAppWithPrivateKey, "nip44_v2")
+	doTestHandleResponse_WithPermission(t, svc, tests.CreateAppWithPrivateKey, constants.ENCRYPTION_TYPE_NIP44_V2)
 }
 
 func doTestHandleResponse_WithPermission(t *testing.T, svc *tests.TestService, createAppFn tests.CreateAppFn, encryption string) {
@@ -142,7 +142,7 @@ func doTestHandleResponse_WithPermission(t *testing.T, svc *tests.TestService, c
 		Content:   msg,
 	}
 
-	if encryption != "nip04" {
+	if encryption != constants.ENCRYPTION_TYPE_NIP04 {
 		reqEvent.Tags = append(reqEvent.Tags, []string{"encryption", encryption})
 	}
 
@@ -183,7 +183,7 @@ func TestHandleResponse_Nip04_DuplicateRequest(t *testing.T) {
 	require.NoError(t, err)
 	defer svc.Remove()
 
-	doTestHandleResponse_DuplicateRequest(t, svc, tests.CreateAppWithPrivateKey, "nip04")
+	doTestHandleResponse_DuplicateRequest(t, svc, tests.CreateAppWithPrivateKey, constants.ENCRYPTION_TYPE_NIP04)
 }
 
 func TestHandleResponse_Nip44_DuplicateRequest(t *testing.T) {
@@ -191,7 +191,7 @@ func TestHandleResponse_Nip44_DuplicateRequest(t *testing.T) {
 	require.NoError(t, err)
 	defer svc.Remove()
 
-	doTestHandleResponse_DuplicateRequest(t, svc, tests.CreateAppWithPrivateKey, "nip44_v2")
+	doTestHandleResponse_DuplicateRequest(t, svc, tests.CreateAppWithPrivateKey, constants.ENCRYPTION_TYPE_NIP44_V2)
 }
 
 func doTestHandleResponse_DuplicateRequest(t *testing.T, svc *tests.TestService, createAppFn tests.CreateAppFn, encryption string) {
@@ -231,7 +231,7 @@ func doTestHandleResponse_DuplicateRequest(t *testing.T, svc *tests.TestService,
 		Content:   msg,
 	}
 
-	if encryption != "nip04" {
+	if encryption != constants.ENCRYPTION_TYPE_NIP04 {
 		reqEvent.Tags = append(reqEvent.Tags, []string{"encryption", encryption})
 	}
 
@@ -258,7 +258,7 @@ func TestHandleResponse_Nip04_NoPermission(t *testing.T) {
 	require.NoError(t, err)
 	defer svc.Remove()
 
-	doTestHandleResponse_NoPermission(t, svc, tests.CreateAppWithPrivateKey, "nip04")
+	doTestHandleResponse_NoPermission(t, svc, tests.CreateAppWithPrivateKey, constants.ENCRYPTION_TYPE_NIP04)
 }
 
 func TestHandleResponse_Nip44_NoPermission(t *testing.T) {
@@ -266,7 +266,7 @@ func TestHandleResponse_Nip44_NoPermission(t *testing.T) {
 	require.NoError(t, err)
 	defer svc.Remove()
 
-	doTestHandleResponse_NoPermission(t, svc, tests.CreateAppWithPrivateKey, "nip44_v2")
+	doTestHandleResponse_NoPermission(t, svc, tests.CreateAppWithPrivateKey, constants.ENCRYPTION_TYPE_NIP44_V2)
 }
 
 func doTestHandleResponse_NoPermission(t *testing.T, svc *tests.TestService, createAppFn tests.CreateAppFn, encryption string) {
@@ -298,7 +298,7 @@ func doTestHandleResponse_NoPermission(t *testing.T, svc *tests.TestService, cre
 		Content:   msg,
 	}
 
-	if encryption != "nip04" {
+	if encryption != constants.ENCRYPTION_TYPE_NIP04 {
 		reqEvent.Tags = append(reqEvent.Tags, []string{"encryption", encryption})
 	}
 
@@ -330,7 +330,7 @@ func TestHandleResponse_Nip04_OldRequestForPayment(t *testing.T) {
 	require.NoError(t, err)
 	defer svc.Remove()
 
-	doTestHandleResponse_OldRequestForPayment(t, svc, tests.CreateAppWithPrivateKey, "nip04")
+	doTestHandleResponse_OldRequestForPayment(t, svc, tests.CreateAppWithPrivateKey, constants.ENCRYPTION_TYPE_NIP04)
 }
 
 func TestHandleResponse_Nip44_OldRequestForPayment(t *testing.T) {
@@ -338,7 +338,7 @@ func TestHandleResponse_Nip44_OldRequestForPayment(t *testing.T) {
 	require.NoError(t, err)
 	defer svc.Remove()
 
-	doTestHandleResponse_OldRequestForPayment(t, svc, tests.CreateAppWithPrivateKey, "nip44_v2")
+	doTestHandleResponse_OldRequestForPayment(t, svc, tests.CreateAppWithPrivateKey, constants.ENCRYPTION_TYPE_NIP44_V2)
 }
 
 func doTestHandleResponse_OldRequestForPayment(t *testing.T, svc *tests.TestService, createAppFn tests.CreateAppFn, encryption string) {
@@ -378,7 +378,7 @@ func doTestHandleResponse_OldRequestForPayment(t *testing.T, svc *tests.TestServ
 		Content:   msg,
 	}
 
-	if encryption != "nip04" {
+	if encryption != constants.ENCRYPTION_TYPE_NIP04 {
 		reqEvent.Tags = append(reqEvent.Tags, []string{"encryption", encryption})
 	}
 
@@ -406,7 +406,7 @@ func TestHandleResponse_Nip04_IncorrectPubkey(t *testing.T) {
 	require.NoError(t, err)
 	defer svc.Remove()
 
-	doTestHandleResponse_IncorrectPubkey(t, svc, tests.CreateAppWithPrivateKey, "nip04")
+	doTestHandleResponse_IncorrectPubkey(t, svc, tests.CreateAppWithPrivateKey, constants.ENCRYPTION_TYPE_NIP04)
 }
 
 func TestHandleResponse_Nip44_IncorrectPubkey(t *testing.T) {
@@ -414,7 +414,7 @@ func TestHandleResponse_Nip44_IncorrectPubkey(t *testing.T) {
 	require.NoError(t, err)
 	defer svc.Remove()
 
-	doTestHandleResponse_IncorrectPubkey(t, svc, tests.CreateAppWithPrivateKey, "nip44_v2")
+	doTestHandleResponse_IncorrectPubkey(t, svc, tests.CreateAppWithPrivateKey, constants.ENCRYPTION_TYPE_NIP44_V2)
 }
 
 func doTestHandleResponse_IncorrectPubkey(t *testing.T, svc *tests.TestService, createAppFn tests.CreateAppFn, encryption string) {
@@ -455,7 +455,7 @@ func doTestHandleResponse_IncorrectPubkey(t *testing.T, svc *tests.TestService, 
 		Content:   msg,
 	}
 
-	if encryption != "nip04" {
+	if encryption != constants.ENCRYPTION_TYPE_NIP04 {
 		reqEvent.Tags = append(reqEvent.Tags, []string{"encryption", encryption})
 	}
 
@@ -483,7 +483,7 @@ func TestHandleResponse_NoApp(t *testing.T) {
 	reqPubkey, err := nostr.GetPublicKey(reqPrivateKey)
 	assert.NoError(t, err)
 
-	app, cipher, err := tests.CreateAppWithPrivateKey(svc, reqPrivateKey, "nip44_v2")
+	app, cipher, err := tests.CreateAppWithPrivateKey(svc, reqPrivateKey, constants.ENCRYPTION_TYPE_NIP44_V2)
 	assert.NoError(t, err)
 
 	// delete the app
@@ -504,7 +504,7 @@ func TestHandleResponse_NoApp(t *testing.T) {
 		Kind:      models.REQUEST_KIND,
 		PubKey:    reqPubkey,
 		CreatedAt: nostr.Now(),
-		Tags:      nostr.Tags{[]string{"encryption", "nip44_v2"}},
+		Tags:      nostr.Tags{[]string{"encryption", constants.ENCRYPTION_TYPE_NIP44_V2}},
 		Content:   msg,
 	}
 	err = reqEvent.Sign(reqPrivateKey)
@@ -535,7 +535,7 @@ func doTestHandleResponse_UnknownEncryptionTag(t *testing.T, svc *tests.TestServ
 	reqPubkey, err := nostr.GetPublicKey(reqPrivateKey)
 	assert.NoError(t, err)
 
-	app, cipher, err := tests.CreateAppWithPrivateKey(svc, reqPrivateKey, "nip44_v2")
+	app, cipher, err := tests.CreateAppWithPrivateKey(svc, reqPrivateKey, constants.ENCRYPTION_TYPE_NIP44_V2)
 	assert.NoError(t, err)
 
 	appPermission := &db.AppPermission{
@@ -592,11 +592,11 @@ func TestHandleResponse_EncryptionTagDoesNotMatchPayload(t *testing.T) {
 	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
-	// encryption specifies what cipher will use. If "nip44_v2" is passed,
+	// encryption specifies what cipher will use. If constants.ENCRYPTION_TYPE_NIP44_V2 is passed,
 	// cipher must be NIP-44, otherwise cipher MUST be NIP-04
-	doTestHandleResponse_EncryptionTagDoesNotMatchPayload(t, svc, "nip44_v2", "nip04")
-	doTestHandleResponse_EncryptionTagDoesNotMatchPayload(t, svc, "nip04", "nip44_v2")
-	doTestHandleResponse_EncryptionTagDoesNotMatchPayload(t, svc, "nip44_v2", "")
+	doTestHandleResponse_EncryptionTagDoesNotMatchPayload(t, svc, constants.ENCRYPTION_TYPE_NIP44_V2, constants.ENCRYPTION_TYPE_NIP04)
+	doTestHandleResponse_EncryptionTagDoesNotMatchPayload(t, svc, constants.ENCRYPTION_TYPE_NIP04, constants.ENCRYPTION_TYPE_NIP44_V2)
+	doTestHandleResponse_EncryptionTagDoesNotMatchPayload(t, svc, constants.ENCRYPTION_TYPE_NIP44_V2, "")
 }
 
 func doTestHandleResponse_EncryptionTagDoesNotMatchPayload(t *testing.T, svc *tests.TestService, requestEncryption, requestEncryptionTag string) {
@@ -607,7 +607,7 @@ func doTestHandleResponse_EncryptionTagDoesNotMatchPayload(t *testing.T, svc *te
 	reqPubkey, err := nostr.GetPublicKey(reqPrivateKey)
 	assert.NoError(t, err)
 
-	app, _, err := tests.CreateAppWithPrivateKey(svc, reqPrivateKey, "nip44_v2")
+	app, _, err := tests.CreateAppWithPrivateKey(svc, reqPrivateKey, constants.ENCRYPTION_TYPE_NIP44_V2)
 	assert.NoError(t, err)
 
 	appPermission := &db.AppPermission{
@@ -627,7 +627,7 @@ func doTestHandleResponse_EncryptionTagDoesNotMatchPayload(t *testing.T, svc *te
 
 	reqCipher, err := cipher.NewNip47Cipher(requestEncryption, *app.WalletPubkey, reqPrivateKey)
 	assert.NoError(t, err)
-	nip44Cipher, err := cipher.NewNip47Cipher("nip44_v2", *app.WalletPubkey, reqPrivateKey)
+	nip44Cipher, err := cipher.NewNip47Cipher(constants.ENCRYPTION_TYPE_NIP44_V2, *app.WalletPubkey, reqPrivateKey)
 	assert.NoError(t, err)
 	msg, err := reqCipher.Encrypt(string(payloadBytes))
 	assert.NoError(t, err)
