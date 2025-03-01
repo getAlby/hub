@@ -11,6 +11,8 @@ import { App } from "src/types";
 export function AppsCleanup() {
   const { data: apps } = useApps();
   const [appIndex, setAppIndex] = React.useState<number>();
+  const [skippedCount, setSkippedCount] = React.useState<number>(0);
+  const [deletedCount, setDeletedCount] = React.useState<number>(0);
   const [appsToReview, setAppsToReview] = React.useState<App[]>();
   const { deleteApp } = useDeleteApp();
   React.useEffect(() => {
@@ -56,7 +58,8 @@ export function AppsCleanup() {
       {currentApp && (
         <>
           <p className="font-mono">
-            {appIndex + 1} / {appsToReview.length} unused apps to review
+            {appIndex + 1} / {appsToReview.length} unused apps to review,{" "}
+            {skippedCount} skipped, {deletedCount} deleted
           </p>
 
           <div className="w-full">
@@ -70,6 +73,7 @@ export function AppsCleanup() {
                     onClick={() => {
                       deleteApp(currentApp.appPubkey);
                       setAppIndex(appIndex + 1);
+                      setDeletedCount((current) => current + 1);
                     }}
                   >
                     Delete
@@ -79,6 +83,7 @@ export function AppsCleanup() {
                     className="w-full"
                     onClick={() => {
                       setAppIndex(appIndex + 1);
+                      setSkippedCount((current) => current + 1);
                     }}
                   >
                     Skip
