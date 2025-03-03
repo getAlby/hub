@@ -14,6 +14,7 @@ import {
   Settings,
   ShieldAlertIcon,
   ShieldCheckIcon,
+  SquareStack,
   User2,
   Wallet,
 } from "lucide-react";
@@ -142,6 +143,10 @@ export default function AppLayout() {
         <MenuItem to="/wallet">
           <Wallet className="h-4 w-4" />
           Wallet
+        </MenuItem>
+        <MenuItem to="/internal-apps/uncle-jim">
+          <SquareStack className="h-4 w-4" />
+          Sub-wallets
         </MenuItem>
         <MenuItem to="/appstore">
           <LayoutGrid className="h-4 w-4" />
