@@ -1,7 +1,6 @@
 // src/hooks/useOnboardingData.ts
 
 import { SUPPORT_ALBY_CONNECTION_NAME } from "src/constants";
-import { useAlbyBalance } from "src/hooks/useAlbyBalance";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useApps } from "src/hooks/useApps";
 import { useChannels } from "src/hooks/useChannels";
@@ -23,7 +22,6 @@ interface UseOnboardingDataResponse {
 }
 
 export const useOnboardingData = (): UseOnboardingDataResponse => {
-  const { data: albyBalance } = useAlbyBalance();
   const { data: albyMe } = useAlbyMe();
   const { data: apps } = useApps();
   const { data: channels } = useChannels();
@@ -37,7 +35,7 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
     !info ||
     !nodeConnectionInfo ||
     !transactions ||
-    (info.albyAccountConnected && (!albyMe || !albyBalance));
+    (info.albyAccountConnected && !albyMe);
 
   if (isLoading) {
     return { isLoading: true, checklistItems: [] };
