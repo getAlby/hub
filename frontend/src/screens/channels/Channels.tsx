@@ -209,6 +209,7 @@ export default function Channels() {
                         openLink(
                           `https://boltz.exchange/?sendAsset=LN&receiveAsset=BTC&sendAmount=${swapOutAmount}&destination=${onchainAddress}&ref=alby`
                         );
+                        setSwapOutDialogOpen(false);
                       }
                       setLoadingSwap(false);
                     }}
@@ -271,6 +272,7 @@ export default function Channels() {
                         openLink(
                           `https://boltz.exchange/?sendAsset=BTC&receiveAsset=LN&sendAmount=${swapInAmount}&destination=${transaction.invoice}&ref=alby`
                         );
+                        setSwapInDialogOpen(false);
                       } catch (error) {
                         toast({
                           variant: "destructive",
