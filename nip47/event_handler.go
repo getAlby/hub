@@ -93,24 +93,26 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 		}
 	}
 
-	encryption := "nip04"
+	encryption := constants.ENCRYPTION_TYPE_NIP04
 	encryptionTag := event.Tags.GetFirst([]string{"encryption"})
+	if encryptionTag != nil {
+		encryption = encryptionTag.Value()
+	}
 
 	// TODO: Remove version tag after 01-06-2025
-	if encryptionTag == nil || encryptionTag.Value() == "" {
+	if encryptionTag == nil {
 		vTag := event.Tags.GetFirst([]string{"v"})
 		if vTag != nil && vTag.Value() != "" {
 			version := vTag.Value()
 			if version == "1.0" {
-				encryption = "nip44_v2"
+				encryption = constants.ENCRYPTION_TYPE_NIP44_V2
 			}
 		}
-	} else {
-		encryption = encryptionTag.Value()
 	}
 
 	nip47Cipher, err := cipher.NewNip47Cipher(encryption, app.AppPubkey, appWalletPrivKey)
 	if err != nil {
+		cipherErr := err
 		logger.Logger.WithFields(logrus.Fields{
 			"requestEventNostrId": event.ID,
 			"eventKind":           event.Kind,
@@ -125,6 +127,37 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 				"appPubkey": event.PubKey,
 			}).WithError(err).Error("Failed to save state to nostr event")
 		}
+
+		// whenever we are unable to handle the request encryption, we always respond with our preferred encryption
+		// re-create the cipher with NIP-44 to send an error response
+		nip47Cipher, err := cipher.NewNip47Cipher(constants.ENCRYPTION_TYPE_NIP44_V2, app.AppPubkey, appWalletPrivKey)
+
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"requestEventNostrId": event.ID,
+				"eventKind":           event.Kind,
+				"appId":               app.ID,
+				"encryption":          encryption,
+			}).WithError(err).Error("Failed to initialize cipher")
+			return
+		}
+
+		nip47Response = &models.Response{
+			Error: &models.Error{
+				Code:    constants.ERROR_UNSUPPORTED_ENCRYPTION,
+				Message: cipherErr.Error(),
+			},
+		}
+
+		resp, err := svc.CreateResponse(event, nip47Response, nostr.Tags{}, nip47Cipher, appWalletPrivKey)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"requestEventNostrId": event.ID,
+				"eventKind":           event.Kind,
+			}).WithError(err).Error("Failed to process event")
+		}
+		svc.publishResponseEvent(ctx, relay, &requestEvent, resp, &app)
+
 		return
 	}
 
@@ -163,6 +196,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 
 	payload, err := nip47Cipher.Decrypt(event.Content)
 	if err != nil {
+		decryptionErr := err
 		logger.Logger.WithFields(logrus.Fields{
 			"requestEventNostrId": event.ID,
 			"eventKind":           event.Kind,
@@ -176,6 +210,36 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 				"appPubkey": event.PubKey,
 			}).WithError(err).Error("Failed to save state to nostr event")
 		}
+
+		// whenever we are unable to handle the request encryption, we always respond with our preferred encryption
+		// re-create the cipher with NIP-44 to send an error response
+		nip47Cipher, err := cipher.NewNip47Cipher(constants.ENCRYPTION_TYPE_NIP44_V2, app.AppPubkey, appWalletPrivKey)
+
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"requestEventNostrId": event.ID,
+				"eventKind":           event.Kind,
+				"appId":               app.ID,
+				"encryption":          encryption,
+			}).WithError(err).Error("Failed to initialize cipher")
+			return
+		}
+
+		nip47Response = &models.Response{
+			Error: &models.Error{
+				Code:    constants.ERROR_INTERNAL,
+				Message: fmt.Sprintf("failed to decrypt: %s", decryptionErr.Error()),
+			},
+		}
+
+		resp, err := svc.CreateResponse(event, nip47Response, nostr.Tags{}, nip47Cipher, appWalletPrivKey)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"requestEventNostrId": event.ID,
+				"eventKind":           event.Kind,
+			}).WithError(err).Error("Failed to process event")
+		}
+		svc.publishResponseEvent(ctx, relay, &requestEvent, resp, &app)
 
 		return
 	}

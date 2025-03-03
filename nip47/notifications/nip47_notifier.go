@@ -120,8 +120,8 @@ func (notifier *Nip47Notifier) notifySubscribers(ctx context.Context, notificati
 			return
 		}
 
-		notifier.notifySubscriber(ctx, &app, notification, tags, appWalletPubKey, appWalletPrivKey, "nip04")
-		notifier.notifySubscriber(ctx, &app, notification, tags, appWalletPubKey, appWalletPrivKey, "nip44_v2")
+		notifier.notifySubscriber(ctx, &app, notification, tags, appWalletPubKey, appWalletPrivKey, constants.ENCRYPTION_TYPE_NIP04)
+		notifier.notifySubscriber(ctx, &app, notification, tags, appWalletPubKey, appWalletPrivKey, constants.ENCRYPTION_TYPE_NIP44_V2)
 	}
 }
 
@@ -175,7 +175,7 @@ func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *db.App
 		Content:   msg,
 	}
 
-	if encryption == "nip04" {
+	if encryption == constants.ENCRYPTION_TYPE_NIP04 {
 		event.Kind = models.LEGACY_NOTIFICATION_KIND
 	}
 

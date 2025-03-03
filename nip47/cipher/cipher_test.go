@@ -4,14 +4,15 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/getAlby/hub/constants"
 	"github.com/nbd-wtf/go-nostr"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestCipher(t *testing.T) {
-	doTestCipher(t, "nip04")
-	doTestCipher(t, "nip44_v2")
+	doTestCipher(t, constants.ENCRYPTION_TYPE_NIP04)
+	doTestCipher(t, constants.ENCRYPTION_TYPE_NIP44_V2)
 }
 
 func doTestCipher(t *testing.T, encryption string) {
