@@ -525,6 +525,7 @@ func TestHandleResponse_UnknownEncryptionTag(t *testing.T) {
 	doTestHandleResponse_UnknownEncryptionTag(t, svc, "nip44")
 	doTestHandleResponse_UnknownEncryptionTag(t, svc, "nip44v2")
 	doTestHandleResponse_UnknownEncryptionTag(t, svc, "nip44_v3")
+	doTestHandleResponse_UnknownEncryptionTag(t, svc, "")
 }
 
 func doTestHandleResponse_UnknownEncryptionTag(t *testing.T, svc *tests.TestService, requestEncryptionTag string) {
