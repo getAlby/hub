@@ -164,6 +164,8 @@ type PeerDetails struct {
 	IsConnected bool   `json:"isConnected"`
 }
 type LightningBalanceResponse struct {
+	TotalBalance         int64 `json:"totalBalance"`
+	ReservedBalance      int64 `json:"reservedBalance"`
 	TotalSpendable       int64 `json:"totalSpendable"`
 	TotalReceivable      int64 `json:"totalReceivable"`
 	NextMaxSpendable     int64 `json:"nextMaxSpendable"`
