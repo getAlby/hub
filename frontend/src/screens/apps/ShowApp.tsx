@@ -42,7 +42,6 @@ import {
 import { Input } from "src/components/ui/input";
 import { Table, TableBody, TableCell, TableRow } from "src/components/ui/table";
 import { useToast } from "src/components/ui/use-toast";
-import { useApps } from "src/hooks/useApps";
 import { useCapabilities } from "src/hooks/useCapabilities";
 
 function ShowApp() {
@@ -77,7 +76,6 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
-  const { data: apps } = useApps();
   const [isEditingName, setIsEditingName] = React.useState(false);
   const [isEditingPermissions, setIsEditingPermissions] = React.useState(false);
 
@@ -102,16 +100,6 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
 
   const handleSave = async () => {
     try {
-      if (
-        isEditingName &&
-        apps?.some(
-          (existingApp) =>
-            existingApp.name === name && existingApp.id !== app.id
-        )
-      ) {
-        throw new Error("A connection with the same name already exists.");
-      }
-
       const updateAppRequest: UpdateAppRequest = {
         name,
         scopes: Array.from(permissions.scopes),
@@ -272,6 +260,12 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                       {app.expiresAt
                         ? new Date(app.expiresAt).toString()
                         : "Never"}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">Created At</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {new Date(app.createdAt).toString()}
                     </TableCell>
                   </TableRow>
                   {app.metadata && (

@@ -1,6 +1,7 @@
 import {
   Bell,
   CirclePlus,
+  Crown,
   HandCoins,
   Info,
   LucideIcon,
@@ -47,7 +48,8 @@ export type Scope =
   | "lookup_invoice"
   | "list_transactions"
   | "sign_message"
-  | "notifications"; // covers all notification types
+  | "notifications" // covers all notification types
+  | "superuser";
 
 export type Nip47NotificationType = "payment_received" | "payment_sent";
 
@@ -64,6 +66,7 @@ export const scopeIconMap: ScopeIconMap = {
   pay_invoice: HandCoins,
   sign_message: PenLine,
   notifications: Bell,
+  superuser: Crown,
 };
 
 export type WalletCapabilities = {
@@ -89,6 +92,7 @@ export const scopeDescriptions: Record<Scope, string> = {
   pay_invoice: "Send payments",
   sign_message: "Sign messages",
   notifications: "Receive wallet notifications",
+  superuser: "Create other app connections",
 };
 
 export const expiryOptions: Record<string, number> = {
@@ -195,6 +199,7 @@ export interface CreateAppRequest {
   returnTo?: string;
   isolated?: boolean;
   metadata?: AppMetadata;
+  unlockPassword?: string; // required to create superuser apps
 }
 
 export interface CreateAppResponse {
@@ -449,6 +454,7 @@ export type Transaction = {
   paymentHash: string;
   amount: number;
   feesPaid: number;
+  updatedAt: string;
   createdAt: string;
   settledAt: string | undefined;
   metadata?: {
@@ -482,6 +488,11 @@ export type Boostagram = {
   time: string;
   action: "boost";
   valueMsatTotal: number;
+};
+
+export type ListTransactionsResponse = {
+  transactions: Transaction[];
+  totalCount: number;
 };
 
 export type NewChannelOrderStatus = "pay" | "paid" | "success" | "opening";

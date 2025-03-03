@@ -64,6 +64,19 @@ export const suggestedApps: SuggestedApp[] = [
     logo: uncleJim,
   },
   {
+    id: "alby-go",
+    title: "Alby Go",
+    description: "A simple mobile wallet that works great with Alby Hub",
+    webLink: "https://albygo.com",
+    playLink:
+      "https://play.google.com/store/apps/details?id=com.getalby.mobile",
+    appleLink: "https://apps.apple.com/us/app/alby-go/id6471335774",
+    zapStoreLink: "https://zapstore.dev/download/",
+    logo: albyGo,
+    extendedDescription: "Sends and receives payments seamlessly from your Hub",
+    internal: true,
+  },
+  {
     id: "buzzpay",
     title: "BuzzPay PoS",
     description: "Receive-only PoS you can safely share with your employees",
@@ -1618,59 +1631,6 @@ export const suggestedApps: SuggestedApp[] = [
           <h3 className="font-medium">In Paper Scissors HODL</h3>
           <ul className="list-inside text-muted-foreground">
             <li>6. Paste the connection secret from Alby Hub</li>
-          </ul>
-        </div>
-      </>
-    ),
-  },
-  {
-    id: "alby-go",
-    title: "Alby Go",
-    description: "A simple mobile wallet that works great with Alby Hub",
-    webLink: "https://albygo.com",
-    playLink:
-      "https://play.google.com/store/apps/details?id=com.getalby.mobile",
-    appleLink: "https://apps.apple.com/us/app/alby-go/id6471335774",
-    zapStoreLink: "https://zapstore.dev/download/",
-    logo: albyGo,
-    extendedDescription: "Sends and receives payments seamlessly from your Hub",
-    guide: (
-      <>
-        <div>
-          <h3 className="font-medium">In Alby Go</h3>
-          <ul className="list-inside text-muted-foreground">
-            <li>
-              1. Download and open{" "}
-              <span className="font-medium text-foreground">Alby Go</span> on
-              your Android or iOS device
-            </li>
-            <li>
-              2. Click on{" "}
-              <span className="font-medium text-foreground">
-                Connect Wallet
-              </span>
-            </li>
-          </ul>
-        </div>
-        <div>
-          <h3 className="font-medium">In Alby Hub</h3>
-          <ul className="list-inside text-muted-foreground">
-            <li>
-              4. Click{" "}
-              <Link
-                to="/apps/new?app=alby-go"
-                className="font-medium text-foreground underline"
-              >
-                Connect to Alby Go
-              </Link>
-            </li>
-            <li>5. Set app's wallet permissions (full access recommended)</li>
-          </ul>
-        </div>
-        <div>
-          <h3 className="font-medium">In Alby Go</h3>
-          <ul className="list-inside text-muted-foreground">
-            <li>6. Scan or paste the connection secret from Alby Hub</li>
           </ul>
         </div>
       </>

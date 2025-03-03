@@ -142,7 +142,7 @@ function TransactionItem({ tx }: Props) {
                 </span>
                 {from !== undefined && <>&nbsp;{from}</>}
                 <span className="text-xs md:text-base ml-2 truncate text-muted-foreground">
-                  {dayjs(tx.settledAt || tx.createdAt).fromNow()}
+                  {dayjs(tx.updatedAt).fromNow()}
                 </span>
               </p>
             </div>
@@ -151,7 +151,7 @@ function TransactionItem({ tx }: Props) {
             </p>
           </div>
           <div className="flex ml-auto space-x-3 shrink-0">
-            <div className="flex flex-col items-end gap-2 md:text-xl">
+            <div className="flex flex-col items-end md:text-xl">
               <div className="flex gap-2">
                 <p
                   className={cn(
@@ -208,7 +208,7 @@ function TransactionItem({ tx }: Props) {
             <div className="mt-6">
               <p>Date & Time</p>
               <p className="text-muted-foreground">
-                {dayjs(tx.settledAt || tx.createdAt)
+                {dayjs(tx.updatedAt)
                   .tz(dayjs.tz.guess())
                   .format("D MMMM YYYY, HH:mm")}
               </p>

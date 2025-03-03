@@ -4,21 +4,22 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/getAlby/hub/constants"
 	"github.com/nbd-wtf/go-nostr"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestCipher(t *testing.T) {
-	doTestCipher(t, "0.0")
-	doTestCipher(t, "1.0")
+	doTestCipher(t, constants.ENCRYPTION_TYPE_NIP04)
+	doTestCipher(t, constants.ENCRYPTION_TYPE_NIP44_V2)
 }
 
-func doTestCipher(t *testing.T, version string) {
+func doTestCipher(t *testing.T, encryption string) {
 	reqPrivateKey := nostr.GeneratePrivateKey()
 	reqPubkey, err := nostr.GetPublicKey(reqPrivateKey)
 
-	nip47Cipher, err := NewNip47Cipher(version, reqPubkey, reqPrivateKey)
+	nip47Cipher, err := NewNip47Cipher(encryption, reqPubkey, reqPrivateKey)
 	assert.NoError(t, err)
 
 	payload := "test payload"
@@ -29,19 +30,19 @@ func doTestCipher(t *testing.T, version string) {
 	assert.Equal(t, payload, decrypted)
 }
 
-func TestCipher_UnsupportedVersions(t *testing.T) {
-	doTestCipher_UnsupportedVersions(t, "1")
-	doTestCipher_UnsupportedVersions(t, "x.1")
-	doTestCipher_UnsupportedVersions(t, "1.x")
-	doTestCipher_UnsupportedVersions(t, "2.0")
-	doTestCipher_UnsupportedVersions(t, "0.5")
+func TestCipher_UnsupportedEncrptions(t *testing.T) {
+	doTestCipher_UnsupportedEncrptions(t, "nip44")
+	doTestCipher_UnsupportedEncrptions(t, "nip44_v0")
+	doTestCipher_UnsupportedEncrptions(t, "nip44_v1")
+	doTestCipher_UnsupportedEncrptions(t, "nip44v2")
+	doTestCipher_UnsupportedEncrptions(t, "nip-44")
 }
 
-func doTestCipher_UnsupportedVersions(t *testing.T, version string) {
+func doTestCipher_UnsupportedEncrptions(t *testing.T, encryption string) {
 	reqPrivateKey := nostr.GeneratePrivateKey()
 	reqPubkey, err := nostr.GetPublicKey(reqPrivateKey)
 
-	_, err = NewNip47Cipher(version, reqPubkey, reqPrivateKey)
+	_, err = NewNip47Cipher(encryption, reqPubkey, reqPrivateKey)
 	assert.Error(t, err)
-	assert.Equal(t, fmt.Sprintf("invalid version: %s", version), err.Error())
+	assert.Equal(t, fmt.Sprintf("invalid encryption: %s", encryption), err.Error())
 }

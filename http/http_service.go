@@ -53,7 +53,7 @@ func NewHttpService(svc service.Service, eventPublisher events.EventPublisher) *
 		cfg:            svc.GetConfig(),
 		eventPublisher: eventPublisher,
 		db:             svc.GetDB(),
-		appsSvc:        apps.NewAppsService(svc.GetDB(), eventPublisher, svc.GetKeys()),
+		appsSvc:        apps.NewAppsService(svc.GetDB(), eventPublisher, svc.GetKeys(), svc.GetConfig()),
 	}
 }
 
