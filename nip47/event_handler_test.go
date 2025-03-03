@@ -628,6 +628,7 @@ func doTestHandleResponse_EncryptionTagDoesNotMatchPayload(t *testing.T, svc *te
 
 	reqCipher, err := cipher.NewNip47Cipher(requestEncryption, *app.WalletPubkey, reqPrivateKey)
 	assert.NoError(t, err)
+	// whenever we are unable to handle the request encryption, we always respond with our preferred encryption (NIP44)
 	nip44Cipher, err := cipher.NewNip47Cipher(constants.ENCRYPTION_TYPE_NIP44_V2, *app.WalletPubkey, reqPrivateKey)
 	assert.NoError(t, err)
 	msg, err := reqCipher.Encrypt(string(payloadBytes))
