@@ -14,7 +14,7 @@ import {
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request"; // build the project for this to appear
 
-import { PencilIcon, Trash2 } from "lucide-react";
+import { AlertCircle, PencilIcon, Trash2 } from "lucide-react";
 import AppAvatar from "src/components/AppAvatar";
 import AppHeader from "src/components/AppHeader";
 import { IsolatedAppTopupDialog } from "src/components/IsolatedAppTopupDialog";
@@ -41,6 +41,12 @@ import {
 } from "src/components/ui/card";
 import { Input } from "src/components/ui/input";
 import { Table, TableBody, TableCell, TableRow } from "src/components/ui/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "src/components/ui/tooltip";
 import { useToast } from "src/components/ui/use-toast";
 import { useCapabilities } from "src/hooks/useCapabilities";
 
@@ -225,9 +231,32 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                     </TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell className="font-medium">Public Key</TableCell>
+                    <TableCell className="font-medium">
+                      App Public Key
+                    </TableCell>
                     <TableCell className="text-muted-foreground break-all">
                       {app.appPubkey}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      Wallet Public Key
+                    </TableCell>
+                    <TableCell className="text-muted-foreground whitespace-pre-wrap flex items-center">
+                      {app.walletPubkey}
+                      {!app.uniqueWalletPubkey && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <AlertCircle className="w-3 h-3 ml-2" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              This connection does not have its own unique
+                              wallet pubkey. Re-connect for additional privacy.
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
                     </TableCell>
                   </TableRow>
                   {app.isolated && (
