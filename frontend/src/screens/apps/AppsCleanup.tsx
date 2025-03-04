@@ -1,31 +1,28 @@
-import dayjs from "dayjs";
 import React from "react";
 import AppHeader from "src/components/AppHeader";
 import AppCard from "src/components/connections/AppCard";
 import Loading from "src/components/Loading";
 import { Button, LinkButton } from "src/components/ui/button";
-import { useApps } from "src/hooks/useApps";
 import { useDeleteApp } from "src/hooks/useDeleteApp";
+import { useUnusedApps } from "src/hooks/useUnusedApps";
 import { App } from "src/types";
 
 export function AppsCleanup() {
-  const { data: apps } = useApps();
+  const unusedApps = useUnusedApps();
   const [appIndex, setAppIndex] = React.useState<number>();
   const [skippedCount, setSkippedCount] = React.useState<number>(0);
   const [deletedCount, setDeletedCount] = React.useState<number>(0);
   const [appsToReview, setAppsToReview] = React.useState<App[]>();
   const { deleteApp } = useDeleteApp();
   React.useEffect(() => {
-    if (!apps) {
+    if (!unusedApps) {
       return;
     }
     // only allow initializing once
     if (appIndex === undefined) {
       setAppIndex(0);
-      const oldDate = dayjs().subtract(1, "month");
-      const _appsToReview = apps.filter(
-        (app) => !app.lastEventAt || dayjs(app.lastEventAt).isBefore(oldDate)
-      );
+
+      const _appsToReview = [...unusedApps];
       _appsToReview.sort((a, b) => {
         return (
           (a.lastEventAt ? new Date(a.lastEventAt).getTime() : 0) -
@@ -34,7 +31,7 @@ export function AppsCleanup() {
       });
       setAppsToReview(_appsToReview);
     }
-  }, [appIndex, apps]);
+  }, [appIndex, unusedApps]);
 
   if (!appsToReview || appIndex === undefined) {
     return <Loading />;
