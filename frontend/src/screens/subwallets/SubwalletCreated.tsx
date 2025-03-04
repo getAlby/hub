@@ -86,7 +86,7 @@ export function SubwalletCreated() {
             <div>
               Select which apps to connect to this sub-wallet — whether for
               yourself or someone you're inviting. Connect to as many services
-              as you want.
+              as you want:
             </div>
             <Accordion type="single" collapsible>
               <AccordionItem value="mobile">
