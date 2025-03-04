@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import React from "react";
 import QRCode from "react-qr-code";
+import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import AppCard from "src/components/connections/AppCard";
 import ExternalLink from "src/components/ExternalLink";
@@ -119,9 +120,8 @@ export function UncleJim() {
             description="Create personal spaces for your bitcoin with sub-wallets — keep funds organized for yourself, family and friends"
             contentRight={
               <ExternalLink to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/app-store/sub-wallet-friends-and-family">
-                <Button variant="outline">
-                  <HelpCircle className="w-4 h-4 mr-2" />
-                  Help
+                <Button variant="outline" size="icon">
+                  <HelpCircle className="w-4 h-4" />
                 </Button>
               </ExternalLink>
             }
@@ -240,7 +240,7 @@ export function UncleJim() {
             </AlertDescription>
           </Alert>
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-5 ">
-            <div className="col-span-3">
+            <div className="flex flex-col col-span-3 gap-5 items-start">
               <div className="grid gap-5">
                 <div>
                   Select which apps to connect to this sub-wallet — whether for
@@ -520,6 +520,9 @@ export function UncleJim() {
                   </AccordionItem>
                 </Accordion>
               </div>
+              <Link to="/internal-apps/uncle-jim">
+                <Button>Finish</Button>
+              </Link>
             </div>
             {app && (
               <div className="col-span-2">
