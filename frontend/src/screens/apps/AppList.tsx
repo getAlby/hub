@@ -37,20 +37,20 @@ function AppList() {
         description="Apps that you connected to already"
         contentRight={
           <>
+            {!!unusedApps.length && (
+              <Link to="/apps/cleanup">
+                <Button variant="outline">
+                  <Trash className="h-4 w-4 mr-2" />
+                  Cleanup Unused
+                </Button>
+              </Link>
+            )}
             <Link to="/apps/new">
               <Button>
                 <CirclePlus className="h-4 w-4 mr-2" />
                 Add Connection
               </Button>
             </Link>
-            {!!unusedApps.length && (
-              <Link to="/apps/cleanup">
-                <Button variant="secondary">
-                  <Trash className="h-4 w-4 mr-2" />
-                  Cleanup Unused
-                </Button>
-              </Link>
-            )}
           </>
         }
       />

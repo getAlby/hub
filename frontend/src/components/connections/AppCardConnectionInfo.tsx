@@ -9,11 +9,13 @@ import { App, BudgetRenewalType } from "src/types";
 type AppCardConnectionInfoProps = {
   connection: App;
   budgetRemainingText?: string | React.ReactNode;
+  readonly?: boolean;
 };
 
 export function AppCardConnectionInfo({
   connection,
   budgetRemainingText = "Left in budget",
+  readonly = false,
 }: AppCardConnectionInfoProps) {
   function getBudgetRenewalLabel(renewalType: BudgetRenewalType): string {
     switch (renewalType) {
@@ -117,12 +119,14 @@ export function AppCardConnectionInfo({
                 ? dayjs(connection.lastEventAt).fromNow()
                 : "Never"}
             </div>
-            <Link to={`/apps/${connection.appPubkey}?edit=true`}>
-              <Button variant="outline">
-                <PlusCircle className="w-4 h-4 mr-2" />
-                Set Budget
-              </Button>
-            </Link>
+            {!readonly && (
+              <Link to={`/apps/${connection.appPubkey}?edit=true`}>
+                <Button variant="outline">
+                  <PlusCircle className="w-4 h-4 mr-2" />
+                  Set Budget
+                </Button>
+              </Link>
+            )}
           </div>
         </>
       ) : (
@@ -152,15 +156,17 @@ export function AppCardConnectionInfo({
                 ? dayjs(connection.lastEventAt).fromNow()
                 : "Never"}
             </div>
-            <Link
-              to={`/apps/${connection.appPubkey}?edit=true`}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <Button variant="outline">
-                <PlusCircle className="w-4 h-4 mr-2" />
-                Enable Payments
-              </Button>
-            </Link>
+            {!readonly && (
+              <Link
+                to={`/apps/${connection.appPubkey}?edit=true`}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Button variant="outline">
+                  <PlusCircle className="w-4 h-4 mr-2" />
+                  Enable Payments
+                </Button>
+              </Link>
+            )}
           </div>
         </>
       )}

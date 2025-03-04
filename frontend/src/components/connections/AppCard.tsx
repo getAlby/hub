@@ -17,9 +17,10 @@ dayjs.extend(relativeTime);
 type Props = {
   app: App;
   actions?: React.ReactNode;
+  readonly?: boolean;
 };
 
-export default function AppCard({ app, actions }: Props) {
+export default function AppCard({ app, actions, readonly = false }: Props) {
   const navigate = useNavigate();
 
   return (
@@ -48,7 +49,7 @@ export default function AppCard({ app, actions }: Props) {
         </CardTitle>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col slashed-zero">
-        <AppCardConnectionInfo connection={app} />
+        <AppCardConnectionInfo connection={app} readonly={readonly} />
       </CardContent>
     </Card>
   );

@@ -1,8 +1,18 @@
+import { InfoIcon, SkipForward, Trash2 } from "lucide-react";
 import React from "react";
 import AppHeader from "src/components/AppHeader";
 import AppCard from "src/components/connections/AppCard";
 import Loading from "src/components/Loading";
+import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button, LinkButton } from "src/components/ui/button";
+import {
+  Card,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "src/components/ui/card";
+import { Progress } from "src/components/ui/progress";
 import { useDeleteApp } from "src/hooks/useDeleteApp";
 import { useUnusedApps } from "src/hooks/useUnusedApps";
 import { App } from "src/types";
@@ -40,72 +50,81 @@ export function AppsCleanup() {
   const currentApp = appsToReview[appIndex];
 
   return (
-    <div className="max-w-lg flex flex-col gap-4 items-center">
-      <div className="w-full">
-        <AppHeader
-          title="App Cleanup"
-          description="Quickly remove unused apps"
-        />
+    <>
+      <AppHeader
+        title="Cleanup Unused Apps"
+        description="Review apps that haven't been used for 2 months or longer"
+      />
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        <div className="lg:col-span-3 flex flex-col gap-3">
+          {currentApp && (
+            <>
+              <Alert variant="destructive">
+                <AlertTitle className="flex gap-2">
+                  <InfoIcon className="h-4 w-4" />
+                  asdf
+                </AlertTitle>
+                <AlertDescription>
+                  Review the app carefully before deleting it. Deleted apps
+                  cannot be recovered.
+                </AlertDescription>
+              </Alert>
+              <div className="w-full h-full">
+                <AppCard
+                  app={currentApp}
+                  actions={
+                    <>
+                      <Button
+                        onClick={() => {
+                          setAppIndex(appIndex + 1);
+                          setSkippedCount((current) => current + 1);
+                        }}
+                      >
+                        <SkipForward className="h-4 w-4 mr-2" />
+                        Skip
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        onClick={() => {
+                          deleteApp(currentApp.appPubkey);
+                          setAppIndex(appIndex + 1);
+                          setDeletedCount((current) => current + 1);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
+                      </Button>
+                    </>
+                  }
+                  readonly
+                />
+              </div>
+            </>
+          )}
+          {!currentApp && (
+            <>
+              <div>No more unused apps to review.</div>
+              <div>
+                <LinkButton to="/apps">Back to overview</LinkButton>
+              </div>
+            </>
+          )}
+        </div>
+        <div className="lg:col-span-2">
+          <Card className="w-full">
+            <CardHeader>
+              <CardTitle>Progress</CardTitle>
+              <CardDescription>
+                {appIndex} of {appsToReview.length} unused apps reviewed (
+                {skippedCount} skipped, {deletedCount} deleted)
+              </CardDescription>
+            </CardHeader>
+            <CardFooter>
+              <Progress value={(appIndex / appsToReview.length) * 100} />
+            </CardFooter>
+          </Card>
+        </div>
       </div>
-      <p className="text-muted-foreground">
-        Review the app carefully before deleting it. Deleted apps cannot be
-        recovered. Take care before deleting{" "}
-        <span className="font-semibold">Friends & Family</span> apps.
-      </p>
-      {currentApp && (
-        <>
-          <p className="font-mono">
-            {appIndex + 1} / {appsToReview.length} unused apps reviewed,{" "}
-            {skippedCount} skipped, {deletedCount} deleted
-          </p>
-
-          <div className="w-full">
-            <AppCard
-              app={currentApp}
-              actions={
-                <>
-                  <Button
-                    variant="destructive"
-                    className="w-full"
-                    onClick={() => {
-                      deleteApp(currentApp.appPubkey);
-                      setAppIndex(appIndex + 1);
-                      setDeletedCount((current) => current + 1);
-                    }}
-                  >
-                    Delete
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    className="w-full"
-                    onClick={() => {
-                      setAppIndex(appIndex + 1);
-                      setSkippedCount((current) => current + 1);
-                    }}
-                  >
-                    Keep
-                  </Button>
-                </>
-              }
-            />
-          </div>
-        </>
-      )}
-      {!currentApp && (
-        <>
-          <p className="my-8">🎉 All apps reviewed!</p>
-          <LinkButton to="/" className="w-full">
-            Home
-          </LinkButton>
-          <Button
-            variant="secondary"
-            className="w-full"
-            onClick={() => window.location.reload()}
-          >
-            Restart
-          </Button>
-        </>
-      )}
-    </div>
+    </>
   );
 }
