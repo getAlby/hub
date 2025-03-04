@@ -21,7 +21,6 @@ import pullthatupjamie from "src/assets/suggested-apps/pullthatupjamie.png";
 import simpleboost from "src/assets/suggested-apps/simple-boost.png";
 import snort from "src/assets/suggested-apps/snort.png";
 import stackernews from "src/assets/suggested-apps/stacker-news.png";
-import uncleJim from "src/assets/suggested-apps/uncle-jim.png";
 import wavlake from "src/assets/suggested-apps/wavlake.png";
 import wherostr from "src/assets/suggested-apps/wherostr.png";
 import yakihonne from "src/assets/suggested-apps/yakihonne.png";
@@ -56,13 +55,6 @@ export type SuggestedApp = {
 };
 
 export const suggestedApps: SuggestedApp[] = [
-  {
-    id: "uncle-jim",
-    title: "Friends & Family",
-    description: "Sub-wallets powered by your Hub",
-    internal: true,
-    logo: uncleJim,
-  },
   {
     id: "buzzpay",
     title: "BuzzPay PoS",

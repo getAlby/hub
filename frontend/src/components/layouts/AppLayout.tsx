@@ -144,7 +144,7 @@ export default function AppLayout() {
           <Wallet className="h-4 w-4" />
           Wallet
         </MenuItem>
-        <MenuItem to="/internal-apps/uncle-jim">
+        <MenuItem to="/sub-wallets">
           <SquareStack className="h-4 w-4" />
           Sub-wallets
         </MenuItem>
