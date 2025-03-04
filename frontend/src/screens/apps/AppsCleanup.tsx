@@ -55,16 +55,18 @@ export function AppsCleanup() {
         title="Cleanup Unused Apps"
         description="Review apps that haven't been used for 2 months or longer"
       />
-      <Alert variant="destructive">
-        <AlertTitle className="flex gap-2">
-          <TriangleAlert className="h-4 w-4" />
-          Warning
-        </AlertTitle>
-        <AlertDescription>
-          Review the app carefully before deleting it, deleted apps cannot be
-          recovered.
-        </AlertDescription>
-      </Alert>
+      {currentApp && (
+        <Alert variant="destructive">
+          <AlertTitle className="flex gap-2">
+            <TriangleAlert className="h-4 w-4" />
+            Warning
+          </AlertTitle>
+          <AlertDescription>
+            Review the app carefully before deleting it, deleted apps cannot be
+            recovered.
+          </AlertDescription>
+        </Alert>
+      )}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         <div className="lg:col-span-3 flex flex-col gap-3">
           {currentApp && (
