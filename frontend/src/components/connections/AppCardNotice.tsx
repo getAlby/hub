@@ -24,7 +24,7 @@ export function AppCardNotice({ app }: AppCardNoticeProps) {
   const expiresSoon = expiresAt.isBetween(now, now.add(7, "days"));
 
   return (
-    <div>
+    <div className="absolute top-0 right-0">
       {app.expiresAt ? (
         isExpired ? (
           <TooltipProvider>

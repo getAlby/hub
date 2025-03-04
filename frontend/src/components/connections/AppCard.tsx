@@ -31,6 +31,7 @@ export default function AppCard({ app, actions, readonly = false }: Props) {
       <CardHeader>
         <CardTitle className="relative">
           <div className="flex flex-row items-center">
+            {!actions && <AppCardNotice app={app} />}
             <AppAvatar className="w-10 h-10" app={app} />
             <div className="flex-1 font-semibold text-xl whitespace-nowrap text-ellipsis overflow-hidden ml-4">
               {app.name}
@@ -42,7 +43,6 @@ export default function AppCard({ app, actions, readonly = false }: Props) {
                   e.stopPropagation() /* stop the above navigation click handler */
               }
             >
-              <AppCardNotice app={app} />
               {actions}
             </div>
           </div>
