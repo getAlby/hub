@@ -3,6 +3,8 @@ package nip47
 import (
 	"context"
 
+	"github.com/getAlby/hub/alby"
+	"github.com/getAlby/hub/apps"
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
@@ -19,6 +21,8 @@ import (
 type nip47Service struct {
 	permissionsService     permissions.PermissionsService
 	transactionsService    transactions.TransactionsService
+	appsService            apps.AppsService
+	albyOAuthSvc           alby.AlbyOAuthService
 	nip47NotificationQueue notifications.Nip47NotificationQueue
 	cfg                    config.Config
 	keys                   keys.Keys
@@ -36,15 +40,17 @@ type Nip47Service interface {
 	CreateResponse(initialEvent *nostr.Event, content interface{}, tags nostr.Tags, cipher *cipher.Nip47Cipher, walletPrivKey string) (result *nostr.Event, err error)
 }
 
-func NewNip47Service(db *gorm.DB, cfg config.Config, keys keys.Keys, eventPublisher events.EventPublisher) *nip47Service {
+func NewNip47Service(db *gorm.DB, cfg config.Config, keys keys.Keys, eventPublisher events.EventPublisher, albyOAuthSvc alby.AlbyOAuthService) *nip47Service {
 	return &nip47Service{
 		nip47NotificationQueue: notifications.NewNip47NotificationQueue(),
 		cfg:                    cfg,
 		db:                     db,
 		permissionsService:     permissions.NewPermissionsService(db, eventPublisher),
 		transactionsService:    transactions.NewTransactionsService(db, eventPublisher),
+		appsService:            apps.NewAppsService(db, eventPublisher, keys, cfg),
 		eventPublisher:         eventPublisher,
 		keys:                   keys,
+		albyOAuthSvc:           albyOAuthSvc,
 	}
 }
 

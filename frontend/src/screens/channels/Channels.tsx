@@ -5,7 +5,6 @@ import {
   CopyIcon,
   ExternalLinkIcon,
   Heart,
-  Hotel,
   HourglassIcon,
   InfoIcon,
   LinkIcon,
@@ -21,7 +20,6 @@ import { ChannelsTable } from "src/components/channels/ChannelsTable.tsx";
 import EmptyState from "src/components/EmptyState.tsx";
 import ExternalLink from "src/components/ExternalLink";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
-import { TransferFundsButton } from "src/components/TransferFundsButton";
 import {
   Alert,
   AlertDescription,
@@ -31,7 +29,6 @@ import { Button } from "src/components/ui/button.tsx";
 import {
   Card,
   CardContent,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "src/components/ui/card.tsx";
@@ -63,11 +60,7 @@ import {
   TooltipTrigger,
 } from "src/components/ui/tooltip.tsx";
 import { useToast } from "src/components/ui/use-toast.ts";
-import {
-  ALBY_HIDE_HOSTED_BALANCE_BELOW as ALBY_HIDE_HOSTED_BALANCE_LIMIT,
-  ONCHAIN_DUST_SATS,
-} from "src/constants.ts";
-import { useAlbyBalance } from "src/hooks/useAlbyBalance.ts";
+import { ONCHAIN_DUST_SATS } from "src/constants.ts";
 import { useBalances } from "src/hooks/useBalances.ts";
 import { useChannels } from "src/hooks/useChannels";
 import { useIsDesktop } from "src/hooks/useMediaQuery.ts";
@@ -82,10 +75,9 @@ import { request } from "src/utils/request";
 
 export default function Channels() {
   useSyncWallet();
-  const { data: channels, mutate: reloadChannels } = useChannels();
+  const { data: channels } = useChannels();
   const { data: nodeConnectionInfo } = useNodeConnectionInfo();
-  const { data: balances, mutate: reloadBalances } = useBalances();
-  const { data: albyBalance, mutate: reloadAlbyBalance } = useAlbyBalance();
+  const { data: balances } = useBalances();
   const navigate = useNavigate();
   const [nodes, setNodes] = React.useState<Node[]>([]);
   const [swapInAmount, setSwapInAmount] = React.useState("");
@@ -161,9 +153,6 @@ export default function Channels() {
     }, channels[0]);
   }
 
-  const showHostedBalance =
-    albyBalance && albyBalance.sats > ALBY_HIDE_HOSTED_BALANCE_LIMIT;
-
   return (
     <>
       <AppHeader
@@ -209,6 +198,7 @@ export default function Channels() {
                         openLink(
                           `https://boltz.exchange/?sendAsset=LN&receiveAsset=BTC&sendAmount=${swapOutAmount}&destination=${onchainAddress}&ref=alby`
                         );
+                        setSwapOutDialogOpen(false);
                       }
                       setLoadingSwap(false);
                     }}
@@ -271,6 +261,7 @@ export default function Channels() {
                         openLink(
                           `https://boltz.exchange/?sendAsset=BTC&receiveAsset=LN&sendAmount=${swapInAmount}&destination=${transaction.invoice}&ref=alby`
                         );
+                        setSwapInDialogOpen(false);
                       } catch (error) {
                         toast({
                           variant: "destructive",
@@ -454,56 +445,20 @@ export default function Channels() {
       <div
         className={cn("flex flex-col sm:flex-row flex-wrap gap-3 slashed-zero")}
       >
-        {showHostedBalance && (
-          <Card className="flex flex-col">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Alby Hosted Balance
-              </CardTitle>
-              <Hotel className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent className="flex-grow">
-              <div className="text-2xl font-bold">
-                {new Intl.NumberFormat().format(albyBalance.sats)} sats
-              </div>
-              <FormattedFiatAmount
-                amount={albyBalance.sats}
-                className="text-muted-foreground"
-              />
-            </CardContent>
-            <CardFooter className="flex justify-end space-x-1">
-              <TransferFundsButton
-                variant="outline"
-                channels={channels}
-                albyBalance={albyBalance}
-                onTransferComplete={() =>
-                  Promise.all([
-                    reloadAlbyBalance(),
-                    reloadBalances(),
-                    reloadChannels(),
-                  ])
-                }
-              >
-                Transfer
-              </TransferFundsButton>
-            </CardFooter>
-          </Card>
-        )}
-
         <Card className="flex flex-1 sm:flex-[2] flex-col">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="font-semibold">Lightning</CardTitle>
-            <ZapIcon className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="font-semibold text-2xl">Lightning</CardTitle>
+            <ZapIcon className="h-6 w-6 text-muted-foreground" />
           </CardHeader>
 
           <CardContent className="flex flex-col sm:flex-row pl-0 flex-wrap">
             <div className="flex flex-col flex-1">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pr-0">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 pr-0">
                 <CardTitle className="text-sm font-medium">
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger>
-                        <div className="flex flex-row gap-1 items-center justify-start text-sm text-secondary-foreground">
+                        <div className="flex flex-row gap-1 items-center justify-start text-sm font-medium">
                           Spending Balance
                           <InfoIcon className="h-3 w-3 shrink-0 text-muted-foreground" />
                         </div>
@@ -526,7 +481,7 @@ export default function Channels() {
                 )}
                 {balances && (
                   <>
-                    <div className="text-2xl font-bold balance sensitive">
+                    <div className="text-xl font-medium balance sensitive mb-1">
                       {new Intl.NumberFormat().format(
                         Math.floor(balances.lightning.totalSpendable / 1000)
                       )}{" "}
@@ -541,12 +496,12 @@ export default function Channels() {
               </CardContent>
             </div>
             <div className="flex flex-col flex-1">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pr-0">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 pr-0">
                 <CardTitle className="text-sm font-medium">
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger>
-                        <div className="flex flex-row gap-1 items-center justify-start text-sm text-secondary-foreground">
+                        <div className="flex flex-row gap-1 items-center justify-start text-sm font-medium">
                           Receive Limit
                           <InfoIcon className="h-3 w-3 shrink-0 text-muted-foreground" />
                         </div>
@@ -563,7 +518,7 @@ export default function Channels() {
               <CardContent className="flex-grow pb-0">
                 {balances && (
                   <>
-                    <div className="text-2xl font-bold balance sensitive">
+                    <div className="text-xl font-medium balance sensitive mb-1">
                       {new Intl.NumberFormat().format(
                         Math.floor(balances.lightning.totalReceivable / 1000)
                       )}{" "}
@@ -581,16 +536,16 @@ export default function Channels() {
         </Card>
         <Card className="flex flex-1 flex-col">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="font-semibold">On-Chain</CardTitle>
-            <LinkIcon className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-2xl font-semibold">On-Chain</CardTitle>
+            <LinkIcon className="h-6 w-6 text-muted-foreground" />
           </CardHeader>
           <CardContent className="flex-grow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pl-0">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 pl-0">
               <CardTitle className="text-sm font-medium">
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger>
-                      <div className="flex flex-row gap-1 items-center text-sm text-secondary-foreground">
+                      <div className="flex flex-row gap-1 items-center text-sm font-medium">
                         Balance
                         <InfoIcon className="h-3 w-3 shrink-0 text-muted-foreground" />
                       </div>
@@ -613,11 +568,11 @@ export default function Channels() {
                 </div>
               </div>
             )}
-            <div className="text-2xl balance sensitive">
+            <div>
               {balances && (
                 <>
-                  <div className="balance sensitive flex gap-2">
-                    <span className="text-2xl font-bold">
+                  <div className="mb-1">
+                    <span className="text-xl font-medium balance sensitive mb-1 mr-1">
                       {new Intl.NumberFormat().format(
                         Math.floor(balances.onchain.spendable)
                       )}{" "}
@@ -644,7 +599,7 @@ export default function Channels() {
                   </div>
                   <FormattedFiatAmount
                     amount={balances.onchain.spendable}
-                    className="text-muted-foreground"
+                    className="text-muted-foreground mb-1"
                   />
                   {balances &&
                     balances.onchain.spendable !== balances.onchain.total && (

@@ -38,7 +38,11 @@ func (svc *nip47Service) GetNip47Info(ctx context.Context, relay *nostr.Relay, a
 func (svc *nip47Service) PublishNip47Info(ctx context.Context, relay nostrmodels.Relay, appWalletPubKey string, appWalletPrivKey string, lnClient lnclient.LNClient) (*nostr.Event, error) {
 	var capabilities []string
 	var permitsNotifications bool
-	tags := nostr.Tags{[]string{"v", cipher.SUPPORTED_VERSIONS}}
+	tags := nostr.Tags{[]string{"encryption", cipher.SUPPORTED_ENCRYPTIONS}}
+
+	// TODO: Remove version tag after 01-06-2025
+	tags = append(tags, []string{"v", cipher.SUPPORTED_VERSIONS})
+
 	if svc.keys.GetNostrPublicKey() == appWalletPubKey {
 		// legacy app, so return lnClient.GetSupportedNIP47Methods()
 		capabilities = lnClient.GetSupportedNIP47Methods()
@@ -56,6 +60,9 @@ func (svc *nip47Service) PublishNip47Info(ctx context.Context, relay nostrmodels
 		}
 		capabilities = svc.permissionsService.GetPermittedMethods(&app, lnClient)
 		permitsNotifications = svc.permissionsService.PermitsNotifications(&app)
+
+		// NWA: associate the info event with the app so that the app can receive the wallet pubkey
+		tags = append(tags, []string{"p", app.AppPubkey})
 	}
 	if permitsNotifications && len(lnClient.GetSupportedNIP47NotificationTypes()) > 0 {
 		capabilities = append(capabilities, "notifications")

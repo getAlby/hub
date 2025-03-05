@@ -71,6 +71,13 @@ func (cfg *config) init(env *AppConfig) error {
 		if err != nil {
 			return err
 		}
+	} else if cfg.Env.LNBackendType == "LND" {
+		// If no LNDCertFile is provided, clear any stored certificate
+		// hex value so that no certificate is used for TLS verification.
+		err := cfg.SetUpdate("LNDCertHex", "", "")
+		if err != nil {
+			return err
+		}
 	}
 	if cfg.Env.LNDMacaroonFile != "" {
 		macBytes, err := os.ReadFile(cfg.Env.LNDMacaroonFile)
