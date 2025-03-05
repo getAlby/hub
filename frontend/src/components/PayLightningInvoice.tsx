@@ -10,13 +10,10 @@ import { useToast } from "src/components/ui/use-toast";
 import { useChannels } from "src/hooks/useChannels";
 import { copyToClipboard } from "src/lib/clipboard";
 import useChannelOrderStore from "src/state/ChannelOrderStore";
-import { LSPOrderResponse } from "src/types";
 import { request } from "src/utils/request";
 
 type PayLightningInvoiceProps = {
   invoice: string;
-  lspOrderResponse?: LSPOrderResponse;
-  canPayInternally?: boolean | undefined;
 };
 
 export function PayLightningInvoice({ invoice }: PayLightningInvoiceProps) {
