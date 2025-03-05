@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"math"
 	"net/http"
 	"regexp"
 	"slices"
@@ -31,7 +30,6 @@ import (
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/nip47/permissions"
 	"github.com/getAlby/hub/service/keys"
-	"github.com/getAlby/hub/transactions"
 	"github.com/getAlby/hub/utils"
 	"github.com/getAlby/hub/version"
 )
@@ -485,45 +483,6 @@ func (svc *albyOAuthService) GetBalance(ctx context.Context) (*AlbyBalance, erro
 	return balance, nil
 }
 
-func (svc *albyOAuthService) DrainSharedWallet(ctx context.Context, lnClient lnclient.LNClient) error {
-	balance, err := svc.GetBalance(ctx)
-	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to fetch shared balance")
-		return err
-	}
-
-	balanceSat := float64(balance.Balance)
-
-	amountSat := int64(math.Floor(
-		balanceSat- // Alby shared node balance in sats
-			(balanceSat*(8.0/1000.0))- // Alby service fee (0.8%)
-			(balanceSat*0.01))) - // Maximum potential routing fees (1%)
-		10 // Alby fee reserve (10 sats)
-
-	if amountSat < 1 {
-		return errors.New("not enough balance remaining")
-	}
-	// limit the maximum to 1M sats to ensure the funds can easily be migrated
-	// the user can migrate more if they still have sats left over
-	amountSat = min(amountSat, 1_000_000)
-	amount := uint64(amountSat * 1000)
-
-	logger.Logger.WithField("amount", amount).WithError(err).Error("Draining Alby shared wallet funds")
-
-	transaction, err := transactions.NewTransactionsService(svc.db, svc.eventPublisher).MakeInvoice(ctx, amount, "Send shared wallet funds to Alby Hub", "", 120, nil, lnClient, nil, nil)
-	if err != nil {
-		logger.Logger.WithField("amount", amount).WithError(err).Error("Failed to make invoice")
-		return err
-	}
-
-	err = svc.SendPayment(ctx, transaction.PaymentRequest)
-	if err != nil {
-		logger.Logger.WithField("amount", amount).WithError(err).Error("Failed to pay invoice from shared node")
-		return err
-	}
-	return nil
-}
-
 func (svc *albyOAuthService) SendPayment(ctx context.Context, invoice string) error {
 	token, err := svc.fetchUserToken(ctx)
 	if err != nil {
@@ -673,7 +632,7 @@ func (svc *albyOAuthService) LinkAccount(ctx context.Context, lnClient lnclient.
 		scopes = append(scopes, constants.NOTIFICATIONS_SCOPE)
 	}
 
-	app, _, err := apps.NewAppsService(svc.db, svc.eventPublisher, svc.keys).CreateApp(
+	app, _, err := apps.NewAppsService(svc.db, svc.eventPublisher, svc.keys, svc.cfg).CreateApp(
 		ALBY_ACCOUNT_APP_NAME,
 		connectionPubkey,
 		budget,
@@ -1150,19 +1109,26 @@ func (svc *albyOAuthService) GetChannelPeerSuggestions(ctx context.Context) ([]C
 
 func (svc *albyOAuthService) GetBitcoinRate(ctx context.Context) (*BitcoinRate, error) {
 	client := &http.Client{Timeout: 10 * time.Second}
+	currency := svc.cfg.GetCurrency()
 
-	url := fmt.Sprintf("%s/rates/%s", albyInternalAPIURL, svc.cfg.GetCurrency())
+	url := fmt.Sprintf("%s/rates/%s", albyInternalAPIURL, currency)
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		logger.Logger.WithError(err).Error("Error creating request to Bitcoin rate endpoint")
+		logger.Logger.WithFields(logrus.Fields{
+			"currency": currency,
+			"error":    err,
+		}).Error("Error creating request to Bitcoin rate endpoint")
 		return nil, err
 	}
 	setDefaultRequestHeaders(req)
 
 	res, err := client.Do(req)
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to fetch Bitcoin rate from API")
+		logger.Logger.WithFields(logrus.Fields{
+			"currency": currency,
+			"error":    err,
+		}).Error("Failed to fetch Bitcoin rate from API")
 		return nil, err
 	}
 
@@ -1178,16 +1144,21 @@ func (svc *albyOAuthService) GetBitcoinRate(ctx context.Context) (*BitcoinRate, 
 
 	if res.StatusCode >= 300 {
 		logger.Logger.WithFields(logrus.Fields{
+			"currency":   currency,
 			"body":       string(body),
 			"statusCode": res.StatusCode,
-		}).Error("bitcoin rate endpoint returned non-success code")
+		}).Error("Bitcoin rate endpoint returned non-success code")
 		return nil, fmt.Errorf("bitcoin rate endpoint returned non-success code: %s", string(body))
 	}
 
 	var rate = &BitcoinRate{}
 	err = json.Unmarshal(body, rate)
 	if err != nil {
-		logger.Logger.WithField("body", string(body)).WithError(err).Error("Failed to decode Bitcoin rate API response")
+		logger.Logger.WithFields(logrus.Fields{
+			"currency": currency,
+			"body":     string(body),
+			"error":    err,
+		}).Error("Failed to decode Bitcoin rate API response")
 		return nil, err
 	}
 

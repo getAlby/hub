@@ -1,6 +1,7 @@
 import {
   Bell,
   CirclePlus,
+  Crown,
   HandCoins,
   Info,
   LucideIcon,
@@ -47,7 +48,8 @@ export type Scope =
   | "lookup_invoice"
   | "list_transactions"
   | "sign_message"
-  | "notifications"; // covers all notification types
+  | "notifications" // covers all notification types
+  | "superuser";
 
 export type Nip47NotificationType = "payment_received" | "payment_sent";
 
@@ -64,6 +66,7 @@ export const scopeIconMap: ScopeIconMap = {
   pay_invoice: HandCoins,
   sign_message: PenLine,
   notifications: Bell,
+  superuser: Crown,
 };
 
 export type WalletCapabilities = {
@@ -89,6 +92,7 @@ export const scopeDescriptions: Record<Scope, string> = {
   pay_invoice: "Send payments",
   sign_message: "Sign messages",
   notifications: "Receive wallet notifications",
+  superuser: "Create other app connections",
 };
 
 export const expiryOptions: Record<string, number> = {
@@ -114,6 +118,8 @@ export interface App {
   name: string;
   description: string;
   appPubkey: string;
+  uniqueWalletPubkey: boolean;
+  walletPubkey: string;
   createdAt: string;
   updatedAt: string;
   lastEventAt?: string;
@@ -151,6 +157,7 @@ export interface InfoResponse {
   version: string;
   unlocked: boolean;
   enableAdvancedSetup: boolean;
+  startupState: string;
   startupError: string;
   startupErrorTime: string;
   autoUnlockPasswordSupported: boolean;
@@ -194,6 +201,7 @@ export interface CreateAppRequest {
   returnTo?: string;
   isolated?: boolean;
   metadata?: AppMetadata;
+  unlockPassword?: string; // required to create superuser apps
 }
 
 export interface CreateAppResponse {
@@ -293,18 +301,21 @@ export type OpenChannelResponse = {
 // eslint-disable-next-line @typescript-eslint/ban-types
 export type CloseChannelResponse = {};
 
+export type PendingBalancesDetails = {
+  channelId: string;
+  nodeId: string;
+  amount: number;
+  fundingTxId: string;
+  fundingTxVout: number;
+};
+
 export type OnchainBalanceResponse = {
   spendable: number;
   total: number;
   reserved: number;
   pendingBalancesFromChannelClosures: number;
-  pendingBalancesDetails: {
-    channelId: string;
-    nodeId: string;
-    amount: number;
-    fundingTxId: string;
-    fundingTxVout: number;
-  }[];
+  pendingBalancesDetails: PendingBalancesDetails[];
+  pendingSweepBalancesDetails: PendingBalancesDetails[];
 };
 
 // from https://mempool.space/docs/api/rest#get-node-stats
@@ -445,6 +456,7 @@ export type Transaction = {
   paymentHash: string;
   amount: number;
   feesPaid: number;
+  updatedAt: string;
   createdAt: string;
   settledAt: string | undefined;
   metadata?: {
@@ -478,6 +490,11 @@ export type Boostagram = {
   time: string;
   action: "boost";
   valueMsatTotal: number;
+};
+
+export type ListTransactionsResponse = {
+  transactions: Transaction[];
+  totalCount: number;
 };
 
 export type NewChannelOrderStatus = "pay" | "paid" | "success" | "opening";

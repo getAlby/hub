@@ -1,4 +1,4 @@
-import { Cable, CirclePlus } from "lucide-react";
+import { Cable, CirclePlus, Trash } from "lucide-react";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import EmptyState from "src/components/EmptyState";
@@ -8,14 +8,16 @@ import AppCard from "src/components/connections/AppCard";
 import { Button } from "src/components/ui/button";
 import { useApps } from "src/hooks/useApps";
 import { useInfo } from "src/hooks/useInfo";
+import { useUnusedApps } from "src/hooks/useUnusedApps";
 
 const albyConnectionName = "getalby.com";
 
 function AppList() {
   const { data: apps } = useApps();
   const { data: info } = useInfo();
+  const unusedApps = useUnusedApps();
 
-  if (!apps || !info) {
+  if (!apps || !unusedApps || !info) {
     return <Loading />;
   }
 
@@ -34,12 +36,22 @@ function AppList() {
         title="Connections"
         description="Apps that you connected to already"
         contentRight={
-          <Link to="/apps/new">
-            <Button>
-              <CirclePlus className="h-4 w-4 mr-2" />
-              Add Connection
-            </Button>
-          </Link>
+          <>
+            {!!unusedApps.length && (
+              <Link to="/apps/cleanup">
+                <Button variant="outline">
+                  <Trash className="h-4 w-4 mr-2" />
+                  Cleanup Unused
+                </Button>
+              </Link>
+            )}
+            <Link to="/apps/new">
+              <Button>
+                <CirclePlus className="h-4 w-4 mr-2" />
+                Add Connection
+              </Button>
+            </Link>
+          </>
         }
       />
 

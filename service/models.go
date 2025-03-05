@@ -25,4 +25,5 @@ type Service interface {
 	GetConfig() config.Config
 	GetKeys() keys.Keys
 	IsRelayReady() bool
+	GetStartupState() string
 }

@@ -103,10 +103,6 @@ export function ZapPlanner() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      if (apps?.some((existingApp) => existingApp.name === recipientName)) {
-        throw new Error("A connection with the same name already exists.");
-      }
-
       // validate lighning address
       const ln = new LightningAddress(recipientLightningAddress);
       await ln.fetch();
@@ -118,7 +114,8 @@ export function ZapPlanner() {
         throw new Error("Invalid amount");
       }
 
-      const maxAmount = Math.floor(parsedAmount * 1.01) + 10; // with fee reserve
+      // with fee reserve of max(1% or 10 sats) + 30% to avoid nwc_budget_warning (see transactions service)
+      const maxAmount = Math.floor((parsedAmount * 1.01 + 10) * 1.3);
       const isolated = false;
 
       const createAppRequest: CreateAppRequest = {

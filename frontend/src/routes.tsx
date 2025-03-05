@@ -21,6 +21,7 @@ import AlbyAuthRedirect from "src/screens/alby/AlbyAuthRedirect";
 import SupportAlby from "src/screens/alby/SupportAlby";
 import AppCreated from "src/screens/apps/AppCreated";
 import AppList from "src/screens/apps/AppList";
+import { AppsCleanup } from "src/screens/apps/AppsCleanup";
 import NewApp from "src/screens/apps/NewApp";
 import ShowApp from "src/screens/apps/ShowApp";
 import AppStore from "src/screens/appstore/AppStore";
@@ -35,6 +36,7 @@ import { OpeningAutoChannel } from "src/screens/channels/auto/OpeningAutoChannel
 import { FirstChannel } from "src/screens/channels/first/FirstChannel";
 import { OpenedFirstChannel } from "src/screens/channels/first/OpenedFirstChannel";
 import { OpeningFirstChannel } from "src/screens/channels/first/OpeningFirstChannel";
+import { AlbyGo } from "src/screens/internal-apps/AlbyGo";
 import { BuzzPay } from "src/screens/internal-apps/BuzzPay";
 import { SimpleBoost } from "src/screens/internal-apps/SimpleBoost";
 import { UncleJim } from "src/screens/internal-apps/UncleJim";
@@ -231,6 +233,10 @@ const routes = [
             path: "created",
             element: <AppCreated />,
           },
+          {
+            path: "cleanup",
+            element: <AppsCleanup />,
+          },
         ],
       },
       {
@@ -241,6 +247,10 @@ const routes = [
           {
             path: "uncle-jim",
             element: <UncleJim />,
+          },
+          {
+            path: "alby-go",
+            element: <AlbyGo />,
           },
           {
             path: "buzzpay",
