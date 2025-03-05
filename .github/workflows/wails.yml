@@ -32,6 +32,7 @@ jobs:
         build:
           [
             { platform: linux/amd64, os: ubuntu-20.04 },
+            { platform: linux/amd64, os: ubuntu-24.04 },
             { platform: windows/amd64, os: windows-2019 },
             { platform: darwin/universal, os: macos-13 },
           ]
@@ -43,7 +44,13 @@ jobs:
         shell: bash
         run: |
           echo "EXEC_NAME=Alby Hub" >> $GITHUB_ENV
-          echo "PACKAGE_NAME=albyhub-Desktop-${{ runner.os }}" >> $GITHUB_ENV
+          if [ "${{ matrix.build.os }}" == "ubuntu-24.04" ]; then
+            echo "PACKAGE_NAME=albyhub-Desktop-Linux-Ubuntu-24.04" >> $GITHUB_ENV
+            echo "LIBWEBKIT2GTK=libwebkit2gtk-4.1-dev" >> $GITHUB_ENV
+          else
+            echo "PACKAGE_NAME=albyhub-Desktop-${{ runner.os }}" >> $GITHUB_ENV
+            echo "LIBWEBKIT2GTK=libwebkit2gtk-4.0-dev" >> $GITHUB_ENV
+          fi
 
       - uses: actions/checkout@v4
         with:
@@ -74,7 +81,7 @@ jobs:
 
       - name: Install Linux Wails deps
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install libgtk-3-0 libwebkit2gtk-4.0-dev gcc-aarch64-linux-gnu
+        run: sudo apt-get update && sudo apt-get install libgtk-3-0 ${{ env.LIBWEBKIT2GTK }} gcc-aarch64-linux-gnu
         shell: bash
 
       - name: Install macOS Wails deps
@@ -109,8 +116,13 @@ jobs:
         shell: bash
 
       - name: Build App
-        if: runner.os == 'Linux'
+        if: runner.os == 'Linux' && matrix.build.os != 'ubuntu-24.04'
         run: wails build --platform linux/amd64 -webview2 embed -o "${{ env.EXEC_NAME }}" -tags "wails" -ldflags "-X 'github.com/getAlby/hub/version.Tag=${{ env.TAG }}'"
+        shell: bash
+
+      - name: Build App
+        if: runner.os == 'Linux' && matrix.build.os == 'ubuntu-24.04'
+        run: wails build --platform linux/amd64 -webview2 embed -o "${{ env.EXEC_NAME }}" -tags "wails,webkit2_41" -ldflags "-X 'github.com/getAlby/hub/version.Tag=${{ env.TAG }}'"
         shell: bash
 
       - name: Build Windows App

@@ -17,9 +17,7 @@ import (
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/nip47/models"
-	"github.com/getAlby/hub/nip47/permissions"
 	"github.com/getAlby/hub/tests"
-	"github.com/getAlby/hub/transactions"
 )
 
 const nip47MultiPayJson = `
@@ -117,9 +115,7 @@ func TestHandleMultiPayInvoiceEvent_Success(t *testing.T) {
 	err = svc.DB.Create(&dbRequestEvent).Error
 	assert.NoError(t, err)
 
-	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
-	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
-	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
+	NewTestNip47Controller(svc).
 		HandleMultiPayInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
 
 	var paymentHashes = []string{
@@ -185,9 +181,7 @@ func TestHandleMultiPayInvoiceEvent_OneMalformedInvoice(t *testing.T) {
 	requestEvent := &db.RequestEvent{}
 	svc.DB.Save(requestEvent)
 
-	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
-	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
-	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
+	NewTestNip47Controller(svc).
 		HandleMultiPayInvoiceEvent(ctx, nip47Request, requestEvent.ID, app, publishResponse)
 
 	assert.Equal(t, 2, len(responses))
@@ -246,9 +240,7 @@ func TestHandleMultiPayInvoiceEvent_OneExpiredInvoice(t *testing.T) {
 	requestEvent := &db.RequestEvent{}
 	svc.DB.Save(requestEvent)
 
-	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
-	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
-	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
+	NewTestNip47Controller(svc).
 		HandleMultiPayInvoiceEvent(ctx, nip47Request, requestEvent.ID, app, publishResponse)
 
 	assert.Equal(t, 2, len(responses))
@@ -319,9 +311,7 @@ func TestHandleMultiPayInvoiceEvent_IsolatedApp_OneBudgetExceeded(t *testing.T) 
 	err = svc.DB.Create(&dbRequestEvent).Error
 	assert.NoError(t, err)
 
-	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
-	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
-	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
+	NewTestNip47Controller(svc).
 		HandleMultiPayInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
 
 	assert.Equal(t, 2, len(responses))
@@ -399,9 +389,7 @@ func TestHandleMultiPayInvoiceEvent_LNClient_OnePaymentFailed(t *testing.T) {
 	err = svc.DB.Create(&dbRequestEvent).Error
 	assert.NoError(t, err)
 
-	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
-	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
-	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
+	NewTestNip47Controller(svc).
 		HandleMultiPayInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
 
 	assert.Equal(t, 2, len(responses))

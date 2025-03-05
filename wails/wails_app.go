@@ -30,7 +30,7 @@ func NewApp(svc service.Service) *WailsApp {
 		svc:     svc,
 		api:     api.NewAPI(svc, svc.GetDB(), svc.GetConfig(), svc.GetKeys(), svc.GetAlbyOAuthSvc(), svc.GetEventPublisher()),
 		db:      svc.GetDB(),
-		appsSvc: apps.NewAppsService(svc.GetDB(), svc.GetEventPublisher(), svc.GetKeys()),
+		appsSvc: apps.NewAppsService(svc.GetDB(), svc.GetEventPublisher(), svc.GetKeys(), svc.GetConfig()),
 	}
 }
 
@@ -44,7 +44,7 @@ func (app *WailsApp) onBeforeClose(ctx context.Context) bool {
 	response, err := runtime.MessageDialog(ctx, runtime.MessageDialogOptions{
 		Type:          runtime.QuestionDialog,
 		Title:         "Confirm Exit",
-		Message:       "Are you sure you want to shut down Alby Hub? Alby Hub needs to stay online to send and receive transactions.",
+		Message:       "Are you sure you want to shut down Alby Hub? Alby Hub needs to stay online to send and receive transactions. Channels may be closed if your hub stays offline for an extended period of time.",
 		Buttons:       []string{"Yes", "No"},
 		DefaultButton: "No",
 	})

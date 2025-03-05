@@ -97,7 +97,7 @@ func (cs *CashuService) SendPaymentSync(ctx context.Context, invoice string, amo
 
 	return &lnclient.PayInvoiceResponse{
 		Preimage: meltResponse.Preimage,
-		Fee:      fee,
+		Fee:      fee * 1000,
 	}, nil
 }
 
@@ -360,7 +360,7 @@ func (cs *CashuService) cashuMeltQuoteToTransaction(meltQuote *storage.MeltQuote
 		DescriptionHash: descriptionHash,
 		Preimage:        meltQuote.Preimage,
 		SettledAt:       settledAt,
-		FeesPaid:        int64(meltQuote.FeeReserve),
+		FeesPaid:        int64(meltQuote.FeeReserve * 1000),
 	}
 }
 

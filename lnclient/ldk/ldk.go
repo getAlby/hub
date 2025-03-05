@@ -14,6 +14,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/getAlby/ldk-node-go/ldk_node"
@@ -47,14 +48,18 @@ type LDKService struct {
 	cfg                   config.Config
 	lastWalletSyncRequest time.Time
 	pubkey                string
+	shuttingDown          bool
 }
 
 const resetRouterKey = "ResetRouter"
+const maxInvoiceExpiry = 24 * time.Hour
 
-func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events.EventPublisher, mnemonic, workDir string, network string, vssToken string) (result lnclient.LNClient, err error) {
+func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events.EventPublisher, mnemonic, workDir string, network string, vssToken string, setStartupState func(startupState string)) (result lnclient.LNClient, err error) {
 	if mnemonic == "" || workDir == "" {
 		return nil, errors.New("one or more required LDK configuration are missing")
 	}
+
+	setStartupState("Configuring node")
 
 	// create dir if not exists
 	newpath := filepath.Join(workDir)
@@ -152,6 +157,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		"vss_enabled":         vssToken != "",
 		"listening_addresses": listeningAddresses,
 	}).Info("Creating LDK node")
+	setStartupState("Loading node data...")
 	var node *ldk_node.Node
 	if vssToken != "" {
 		node, err = builder.BuildWithVssStoreAndFixedHeaders(cfg.GetEnv().LDKVssUrl, "albyhub", map[string]string{
@@ -227,6 +233,8 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		"nodeId": nodeId,
 	}).Info("Starting LDK node...")
 
+	setStartupState("Starting node...")
+
 	err = node.Start()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to start LDK node")
@@ -238,6 +246,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		"status": node.Status(),
 	}).Info("Started LDK node. Syncing wallet...")
 
+	setStartupState("Syncing node...")
 	syncStartTime := time.Now()
 	err = node.SyncWallets()
 	if err != nil {
@@ -382,6 +391,9 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 					"status":   node.Status(),
 					"duration": math.Ceil(time.Since(syncStartTime).Seconds()),
 				}).Info("LDK node synced successfully")
+
+				// delete old payments while node is not syncing
+				ls.deleteOldLDKPayments()
 			}
 		}
 	}()
@@ -389,14 +401,16 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	return &ls, nil
 }
 
+var shutdownMutex sync.Mutex
+
 func (ls *LDKService) Shutdown() error {
-	if ls.node == nil {
-		logger.Logger.Debug("LDK client already shut down")
+	shutdownMutex.Lock()
+	defer shutdownMutex.Unlock()
+	if ls.shuttingDown {
+		logger.Logger.Debug("LDK client is already shutting down")
 		return nil
 	}
-	// make sure nothing else can use it
-	node := ls.node
-	ls.node = nil
+	ls.shuttingDown = true
 
 	logger.Logger.Info("shutting down LDK client")
 	logger.Logger.Info("cancelling LDK context")
@@ -410,7 +424,7 @@ func (ls *LDKService) Shutdown() error {
 	logger.Logger.Info("stopping LDK node")
 	shutdownChannel := make(chan error)
 	go func() {
-		shutdownChannel <- node.Stop()
+		shutdownChannel <- ls.node.Stop()
 	}()
 
 	select {
@@ -426,7 +440,7 @@ func (ls *LDKService) Shutdown() error {
 	}
 
 	logger.Logger.Debug("Destroying LDK node object")
-	node.Destroy()
+	ls.node.Destroy()
 
 	logger.Logger.Info("LDK shutdown complete")
 
@@ -648,6 +662,10 @@ func (ls *LDKService) getMaxSpendable() uint64 {
 }
 
 func (ls *LDKService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *lnclient.Transaction, err error) {
+
+	if time.Duration(expiry)*time.Second > maxInvoiceExpiry {
+		return nil, errors.New("Expiry is too long")
+	}
 
 	maxReceivable := ls.getMaxReceivable()
 
@@ -1077,15 +1095,30 @@ func (ls *LDKService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainB
 		}
 	}
 
+	pendingSweepBalanceDetails := make([]lnclient.PendingBalanceDetails, 0)
+	increasePendingBalanceFromClosure := func(nodeId, channelId *string, amount uint64, fundingTxId *ldk_node.Txid, fundingTxIndex *uint16) {
+		pendingBalancesFromChannelClosures += amount
+
+		if nodeId != nil && channelId != nil && fundingTxId != nil && fundingTxIndex != nil {
+			pendingSweepBalanceDetails = append(pendingSweepBalanceDetails, lnclient.PendingBalanceDetails{
+				NodeId:        *nodeId,
+				ChannelId:     *channelId,
+				Amount:        amount,
+				FundingTxId:   *fundingTxId,
+				FundingTxVout: uint32(*fundingTxIndex),
+			})
+		}
+	}
+
 	// increase pending balance from any lightning balances for channels that were closed
 	for _, balance := range balances.PendingBalancesFromChannelClosures {
 		switch pendingType := (balance).(type) {
 		case ldk_node.PendingSweepBalancePendingBroadcast:
-			pendingBalancesFromChannelClosures += pendingType.AmountSatoshis
+			increasePendingBalanceFromClosure(pendingType.CounterpartyNodeId, pendingType.ChannelId, pendingType.AmountSatoshis, pendingType.FundingTxId, pendingType.FundingTxIndex)
 		case ldk_node.PendingSweepBalanceBroadcastAwaitingConfirmation:
-			pendingBalancesFromChannelClosures += pendingType.AmountSatoshis
+			increasePendingBalanceFromClosure(pendingType.CounterpartyNodeId, pendingType.ChannelId, pendingType.AmountSatoshis, pendingType.FundingTxId, pendingType.FundingTxIndex)
 		case ldk_node.PendingSweepBalanceAwaitingThresholdConfirmations:
-			pendingBalancesFromChannelClosures += pendingType.AmountSatoshis
+			increasePendingBalanceFromClosure(pendingType.CounterpartyNodeId, pendingType.ChannelId, pendingType.AmountSatoshis, pendingType.FundingTxId, pendingType.FundingTxIndex)
 		}
 	}
 
@@ -1095,6 +1128,7 @@ func (ls *LDKService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainB
 		Reserved:                           int64(balances.TotalAnchorChannelsReserveSats),
 		PendingBalancesFromChannelClosures: pendingBalancesFromChannelClosures,
 		PendingBalancesDetails:             pendingBalancesDetails,
+		PendingSweepBalancesDetails:        pendingSweepBalanceDetails,
 		InternalBalances: map[string]interface{}{
 			"internal_lightning_balances": internalLightningBalances,
 			"all_balances":                balances,
@@ -1629,6 +1663,25 @@ func (ls *LDKService) GetStorageDir() (string, error) {
 	// cfg := ls.node.Config()
 	// return cfg.StorageDirPath, nil
 	return "ldk/storage", nil
+}
+
+func (ls *LDKService) deleteOldLDKPayments() {
+	payments := ls.node.ListPayments()
+
+	now := time.Now()
+	for _, payment := range payments {
+		paymentCreatedAt := time.Unix(int64(payment.CreatedAt), 0)
+		if paymentCreatedAt.Add(maxInvoiceExpiry).Before(now) {
+			logger.Logger.WithFields(logrus.Fields{
+				"created_at": paymentCreatedAt,
+				"payment_id": payment.Id,
+			}).Debug("Deleting old payment")
+			err := ls.node.RemovePayment(payment.Id)
+			if err != nil {
+				logger.Logger.WithError(err).WithField("id", payment.Id).Error("failed to delete old payment")
+			}
+		}
+	}
 }
 
 func deleteOldLDKLogs(ldkLogDir string) {

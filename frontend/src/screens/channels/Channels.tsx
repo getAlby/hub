@@ -198,6 +198,7 @@ export default function Channels() {
                         openLink(
                           `https://boltz.exchange/?sendAsset=LN&receiveAsset=BTC&sendAmount=${swapOutAmount}&destination=${onchainAddress}&ref=alby`
                         );
+                        setSwapOutDialogOpen(false);
                       }
                       setLoadingSwap(false);
                     }}
@@ -260,6 +261,7 @@ export default function Channels() {
                         openLink(
                           `https://boltz.exchange/?sendAsset=BTC&receiveAsset=LN&sendAmount=${swapInAmount}&destination=${transaction.invoice}&ref=alby`
                         );
+                        setSwapInDialogOpen(false);
                       } catch (error) {
                         toast({
                           variant: "destructive",
@@ -624,7 +626,10 @@ export default function Channels() {
               balances.onchain.pendingBalancesFromChannelClosures
             )}{" "}
             sats pending from closed channels with
-            {balances.onchain.pendingBalancesDetails.map((details, index) => (
+            {[
+              ...balances.onchain.pendingBalancesDetails,
+              ...balances.onchain.pendingSweepBalancesDetails,
+            ].map((details, index) => (
               <div key={details.channelId} className="inline">
                 &nbsp;
                 <ExternalLink

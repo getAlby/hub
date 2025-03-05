@@ -222,6 +222,11 @@ func (svc *service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 }
 
 func (svc *service) StartApp(encryptionKey string) error {
+	defer func() {
+		svc.startupState = ""
+	}()
+
+	svc.startupState = "Initializing"
 	albyIdentifier, err := svc.albyOAuthSvc.GetUserIdentifier()
 	if err != nil {
 		return err
@@ -247,6 +252,7 @@ func (svc *service) StartApp(encryptionKey string) error {
 		return err
 	}
 
+	svc.startupState = "Launching Node"
 	err = svc.launchLNBackend(ctx, encryptionKey)
 	if err != nil {
 		logger.Logger.Errorf("Failed to launch LN backend: %v", err)
@@ -257,6 +263,7 @@ func (svc *service) StartApp(encryptionKey string) error {
 		return err
 	}
 
+	svc.startupState = "Connecting To Relay"
 	err = svc.startNostr(ctx)
 	if err != nil {
 		cancelFn()
@@ -307,7 +314,11 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 		}
 		vssEnabled = vssToken != ""
 
-		lnClient, err = ldk.NewLDKService(ctx, svc.cfg, svc.eventPublisher, mnemonic, ldkWorkdir, svc.cfg.GetEnv().LDKNetwork, vssToken)
+		svc.startupState = "Launching Node"
+		setStartupState := func(startupState string) {
+			svc.startupState = startupState
+		}
+		lnClient, err = ldk.NewLDKService(ctx, svc.cfg, svc.eventPublisher, mnemonic, ldkWorkdir, svc.cfg.GetEnv().LDKNetwork, vssToken, setStartupState)
 	case config.GreenlightBackendType:
 		Mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
 		GreenlightInviteCode, _ := svc.cfg.Get("GreenlightInviteCode", encryptionKey)
@@ -395,6 +406,7 @@ func (svc *service) requestVssToken(ctx context.Context) (string, error) {
 
 	// for brand new nodes, consider enabling VSS
 	if nodeLastStartTime == "" && svc.cfg.GetEnv().LDKVssUrl != "" {
+		svc.startupState = "Checking Subscription"
 		albyUserIdentifier, err := svc.albyOAuthSvc.GetUserIdentifier()
 		if err != nil {
 			logger.Logger.WithError(err).Error("Failed to fetch alby user identifier")
@@ -416,6 +428,7 @@ func (svc *service) requestVssToken(ctx context.Context) (string, error) {
 	vssToken := ""
 	vssEnabled, _ := svc.cfg.Get("LdkVssEnabled", "")
 	if vssEnabled == "true" {
+		svc.startupState = "Fetching VSS token"
 		vssNodeIdentifier, err := ldk.GetVssNodeIdentifier(svc.keys)
 		if err != nil {
 			logger.Logger.WithError(err).Error("Failed to get VSS node identifier")
