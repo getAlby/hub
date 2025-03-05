@@ -171,7 +171,7 @@ export function ConnectAppCard({
         <CardTitle className="text-center">Connection Secret</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col items-center gap-5">
-        {!app.lastEventAt && (
+        {!app.lastEventAt ? (
           <>
             <div className="flex flex-row items-center gap-2 text-sm">
               <Loading className="w-4 h-4" />
@@ -186,16 +186,11 @@ export function ConnectAppCard({
               </div>
             )}
           </>
-        )}
-        {app.lastEventAt && (
-          <>
-            <div className="flex flex-row items-center">
-              <Badge variant="positive">
-                <Check className="w-4 h-4" />
-                <p>App connected</p>
-              </Badge>
-            </div>
-          </>
+        ) : (
+          <Badge variant="positive">
+            <Check className="w-4 h-4 mr-2" />
+            <p>App connected</p>
+          </Badge>
         )}
         <a href={pairingUri} target="_blank" className="relative">
           <div className={!isQRCodeVisible ? "blur-md" : ""}>
