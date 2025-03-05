@@ -138,10 +138,16 @@ export function FirstChannel() {
                 <p>
                   You currently have{" "}
                   <span className="font-medium text-foreground sensitive slashed-zero">
-                    {new Intl.NumberFormat().format(albyBalance?.sats)} sats as
-                    Alby fee credits
-                  </span>
-                  .
+                    {new Intl.NumberFormat().format(albyBalance?.sats)} Alby fee
+                    credits.
+                  </span>{" "}
+                  <Link
+                    to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-account/faqs-alby-account/what-are-fee-credits-in-my-alby-account"
+                    target="_blank"
+                    className="underline"
+                  >
+                    Learn more
+                  </Link>
                 </p>
                 <p>
                   These fee credits will be applied to open your first Lightning
