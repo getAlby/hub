@@ -224,7 +224,6 @@ function NewChannelInternal({
           </div>
         }
       />
-      <MempoolAlert />
       <Stepper initialStep={0} steps={steps} orientation="vertical">
         <Step key="configureChannel" label="Configure Channel">
           <div className="md:max-w-md max-w-full flex flex-col gap-5 flex-1">
@@ -460,6 +459,8 @@ function NewChannelInternal({
                 pubkey={selectedPeer?.pubkey}
                 name={selectedPeer?.name}
               />
+
+              <MempoolAlert />
 
               <StepButtons onNextClick={() => onSubmit()} />
             </div>

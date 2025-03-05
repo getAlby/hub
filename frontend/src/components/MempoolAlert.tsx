@@ -1,4 +1,4 @@
-import { TriangleAlertIcon } from "lucide-react";
+import { AlertCircleIcon } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { ExternalLinkButton } from "src/components/ui/button";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
@@ -26,8 +26,8 @@ export function MempoolAlert() {
     return null;
   }
   return (
-    <Alert>
-      <TriangleAlertIcon className="h-4 w-4" />
+    <Alert variant="destructive">
+      <AlertCircleIcon className="h-4 w-4" />
       <AlertTitle>
         Mempool Fees are currently{" "}
         <span className="font-semibold">{matchedFee[0]}</span>
@@ -36,6 +36,7 @@ export function MempoolAlert() {
         <p>Bitcoin transactions may be uneconomical at this time.</p>
         <div className="flex gap-2 mt-2">
           <ExternalLinkButton
+            variant={"destructive"}
             to="https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub/faq-alby-hub/what-to-do-during-times-of-high-onchain-fees"
             size={"sm"}
           >
@@ -44,7 +45,7 @@ export function MempoolAlert() {
           <ExternalLinkButton
             to="https://mempool.space"
             size={"sm"}
-            variant="secondary"
+            variant="outline"
           >
             View fees on mempool
           </ExternalLinkButton>
