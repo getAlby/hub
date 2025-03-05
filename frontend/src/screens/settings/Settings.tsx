@@ -121,7 +121,7 @@ function Settings() {
         <div className="grid gap-1.5">
           <Label htmlFor="currency">Fiat Currency</Label>
           <Select value={info?.currency} onValueChange={updateCurrency}>
-            <SelectTrigger className="w-[250px] border border-gray-300 p-2 rounded-md">
+            <SelectTrigger className="w-full md:w-60">
               <SelectValue placeholder="Select a currency" />
             </SelectTrigger>
             <SelectContent>
