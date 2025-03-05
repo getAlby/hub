@@ -1,6 +1,6 @@
 import { Globe } from "lucide-react";
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import { AppleIcon } from "src/components/icons/Apple";
@@ -32,21 +32,17 @@ import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
-import { useApp } from "src/hooks/useApp";
 import { useCapabilities } from "src/hooks/useCapabilities";
 import { createApp } from "src/requests/createApp";
-import { ConnectAppCard } from "src/screens/apps/AppCreated";
 
 export function AlbyGo() {
   const [loading, setLoading] = React.useState(false);
-  const [appPubkey, setAppPubkey] = React.useState<string>();
-  const [connectionSecret, setConnectionSecret] = React.useState<string>("");
   const [unlockPassword, setUnlockPassword] = React.useState("");
   const [showCreateConnectionDialog, setShowCreateConnectionDialog] =
     React.useState(false);
-  const { data: createdApp } = useApp(appPubkey, true);
   const { toast } = useToast();
   const { data: capabilities } = useCapabilities();
+  const navigate = useNavigate();
 
   const app = suggestedApps.find((app) => app.id === "alby-go");
   if (!app) {
@@ -61,6 +57,9 @@ export function AlbyGo() {
     e.preventDefault();
     setLoading(true);
     try {
+      if (!app) {
+        throw new Error("Alby go app not found");
+      }
       if (!capabilities) {
         throw new Error("capabilities not loaded");
       }
@@ -71,14 +70,15 @@ export function AlbyGo() {
         scopes: [...capabilities.scopes, "superuser"],
         isolated: false,
         metadata: {
-          app_store_app_id: "alby-go",
+          app_store_app_id: app.id,
         },
         unlockPassword,
         maxAmount: 100_000,
         budgetRenewal: "monthly",
       });
-      setConnectionSecret(createAppResponse.pairingUri);
-      setAppPubkey(createAppResponse.pairingPublicKey);
+      navigate(`/apps/created?app=${app.id}`, {
+        state: createAppResponse,
+      });
       toast({ title: "Alby Go connection created" });
     } catch (error) {
       console.error(error);
@@ -167,14 +167,12 @@ export function AlbyGo() {
         }
         description=""
         contentRight={
-          !createdApp && (
-            <Link to={`/apps/new?app=${app.id}`}>
-              <Button>
-                <NostrWalletConnectIcon className="w-4 h-4 mr-2" />
-                Connect to {app.title}
-              </Button>
-            </Link>
-          )
+          <Link to={`/apps/new?app=${app.id}`}>
+            <Button>
+              <NostrWalletConnectIcon className="w-4 h-4 mr-2" />
+              Connect to {app.title}
+            </Button>
+          </Link>
         }
       />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -298,30 +296,24 @@ export function AlbyGo() {
               </CardFooter>
             </Card>
           )}
-          {createdApp && connectionSecret && (
-            <div className="mb-16 w-full">
-              <ConnectAppCard app={createdApp} pairingUri={connectionSecret} />
-            </div>
-          )}
-          {!createdApp && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-2xl">One Tap Connections</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Use Alby Go to quickly connect other apps to your hub with one
-                  tap on mobile.
-                </p>
-                {
-                  <Button className="mt-8" onClick={onClickCreateConnection}>
-                    <NostrWalletConnectIcon className="w-4 h-4 mr-2" />
-                    Connect with One Tap Connections
-                  </Button>
-                }
-              </CardContent>
-            </Card>
-          )}
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-2xl">One Tap Connections</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">
+                Use Alby Go to quickly connect other apps to your hub with one
+                tap on mobile.
+              </p>
+              {
+                <Button className="mt-8" onClick={onClickCreateConnection}>
+                  <NostrWalletConnectIcon className="w-4 h-4 mr-2" />
+                  Connect with One Tap Connections
+                </Button>
+              }
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
