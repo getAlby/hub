@@ -22,7 +22,7 @@ require (
 	golang.org/x/crypto v0.35.0
 	golang.org/x/oauth2 v0.27.0
 	google.golang.org/grpc v1.70.0
-	gopkg.in/DataDog/dd-trace-go.v1 v1.71.1
+	gopkg.in/DataDog/dd-trace-go.v1 v1.72.1
 	gopkg.in/macaroon.v2 v2.1.0
 	gorm.io/driver/postgres v1.5.11
 	gorm.io/driver/sqlite v1.5.7
@@ -37,6 +37,7 @@ require (
 	github.com/DataDog/gostackparse v0.7.0 // indirect
 	github.com/FactomProject/basen v0.0.0-20150613233007-fe3947df716e // indirect
 	github.com/FactomProject/btcutilecc v0.0.0-20130527213604-d3a63a5752ec // indirect
+	github.com/Masterminds/semver/v3 v3.2.1 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/Nvveen/Gotty v0.0.0-20120604004816-cd527374f1e5 // indirect
 	github.com/aead/chacha20 v0.0.0-20180709150244-8b13a72661da // indirect
@@ -70,7 +71,7 @@ require (
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/fergusstrange/embedded-postgres v1.29.0 // indirect
-	github.com/frankban/quicktest v1.13.0 // indirect
+	github.com/frankban/quicktest v1.14.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.7.0 // indirect
 	github.com/go-errors/errors v1.5.1 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
