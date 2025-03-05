@@ -451,12 +451,12 @@ function NewChannelInternal({
                 (channel) => channel.public !== !!order.isPublic
               ) && <ChannelPublicPrivateAlert />}
               {selectedPeer?.note && <ChannelPeerNote peer={selectedPeer} />}
-
-              <DuplicateChannelAlert
-                pubkey={selectedPeer?.pubkey}
-                name={selectedPeer?.name}
-              />
-
+              {showAdvanced && (
+                <DuplicateChannelAlert
+                  pubkey={selectedPeer?.pubkey}
+                  name={selectedPeer?.name}
+                />
+              )}
               <MempoolAlert />
 
               <StepButtons onNextClick={() => onSubmit()} />
