@@ -155,21 +155,24 @@ function TransactionItem({ tx }: Props) {
               <div className="flex gap-2">
                 <p
                   className={cn(
-                    "font-semibold",
                     type == "incoming" && "text-green-600 dark:text-emerald-500"
                   )}
                 >
                   {type == "outgoing" ? "-" : "+"}
-                  {new Intl.NumberFormat().format(
-                    Math.floor(tx.amount / 1000)
-                  )}{" "}
+                  <span className="font-medium">
+                    {new Intl.NumberFormat().format(
+                      Math.floor(tx.amount / 1000)
+                    )}
+                  </span>{" "}
                 </p>
                 <p className="text-foreground">
                   {Math.floor(tx.amount / 1000) == 1 ? "sat" : "sats"}
                 </p>
               </div>
-
-              <FormattedFiatAmount amount={Math.floor(tx.amount / 1000)} />
+              <FormattedFiatAmount
+                className="text-base"
+                amount={Math.floor(tx.amount / 1000)}
+              />
             </div>
           </div>
         </div>
