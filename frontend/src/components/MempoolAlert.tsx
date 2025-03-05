@@ -26,7 +26,7 @@ export function MempoolAlert() {
     return null;
   }
   return (
-    <Alert variant="destructive">
+    <Alert>
       <AlertCircleIcon className="h-4 w-4" />
       <AlertTitle>
         Mempool Fees are currently{" "}
@@ -36,18 +36,10 @@ export function MempoolAlert() {
         <p>Bitcoin transactions may be uneconomical at this time.</p>
         <div className="flex gap-2 mt-2">
           <ExternalLinkButton
-            variant={"destructive"}
             to="https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub/faq-alby-hub/what-to-do-during-times-of-high-onchain-fees"
             size={"sm"}
           >
             Learn more
-          </ExternalLinkButton>
-          <ExternalLinkButton
-            to="https://mempool.space"
-            size={"sm"}
-            variant="outline"
-          >
-            View fees on mempool
           </ExternalLinkButton>
         </div>
       </AlertDescription>
