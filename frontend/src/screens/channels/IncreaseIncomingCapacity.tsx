@@ -319,12 +319,10 @@ function NewChannelInternal({
                         <Card className="p-4 shadow-none">
                           <div className="flex items-center gap-3 justify-between">
                             <div className="flex items-center gap-3">
-                              {selectedPeer.name !== "Custom" && (
-                                <img
-                                  src={selectedPeer.image}
-                                  className="w-8 h-8 object-contain"
-                                />
-                              )}
+                              <img
+                                src={selectedPeer.image}
+                                className="w-8 h-8 object-contain"
+                              />
                               <div className="flex flex-col gap-1">
                                 <p className="font-semibold">
                                   {selectedPeer.name}
@@ -375,19 +373,18 @@ function NewChannelInternal({
                                                 ? "border-primary"
                                                 : ""
                                             }`}
-                                            onClick={() =>
-                                              setSelectedPeer(peer)
-                                            }
+                                            onClick={() => {
+                                              setSelectedPeer(peer);
+                                              setChannelPartnersMenuOpen(false);
+                                            }}
                                           >
                                             <div className="flex items-center gap-3 justify-between">
                                               <div className="flex items-center gap-3">
-                                                {peer.name !== "Custom" && (
-                                                  <img
-                                                    src={peer.image}
-                                                    className="w-8 h-8 object-contain"
-                                                    alt={peer.name}
-                                                  />
-                                                )}
+                                                <img
+                                                  src={peer.image}
+                                                  className="w-8 h-8 object-contain"
+                                                  alt={peer.name}
+                                                />
                                                 <div className="flex flex-col gap-1">
                                                   <p className="font-semibold">
                                                     {peer.name}
