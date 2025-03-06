@@ -17,6 +17,9 @@ import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { Textarea } from "src/components/ui/textarea";
 import { useToast } from "src/components/ui/use-toast";
+import UpgradeCard from "src/components/UpgradeCard";
+import { UpgradeDialog } from "src/components/UpgradeDialog";
+import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useApp } from "src/hooks/useApp";
 import { useApps } from "src/hooks/useApps";
 import { useNodeConnectionInfo } from "src/hooks/useNodeConnectionInfo";
@@ -35,6 +38,7 @@ export function UncleJim() {
   const { data: nodeConnectionInfo } = useNodeConnectionInfo();
   const { toast } = useToast();
   const [isLoading, setLoading] = React.useState(false);
+  const { data: albyMe } = useAlbyMe();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -79,35 +83,52 @@ export function UncleJim() {
     (app) => app.metadata?.app_store_app_id === "uncle-jim"
   );
 
+  const showForm =
+    albyMe?.subscription.buzz || (onboardedApps && onboardedApps?.length < 3);
+
   return (
     <div className="grid gap-5">
       <AppHeader
         title="Friends & Family"
         description="Create sub-wallets for your friends and family powered by your Hub"
+        contentRight={
+          <UpgradeDialog>
+            <Button variant="premium">Upgrade</Button>
+          </UpgradeDialog>
+        }
       />
       {!connectionSecret && (
         <>
-          <form
-            onSubmit={handleSubmit}
-            className="flex flex-col items-start gap-5 max-w-lg"
-          >
-            <div className="w-full grid gap-1.5">
-              <Label htmlFor="name">Name of friend or family member</Label>
-              <Input
-                autoFocus
-                type="text"
-                name="name"
-                value={name}
-                id="name"
-                onChange={(e) => setName(e.target.value)}
-                required
-                autoComplete="off"
+          {showForm ? (
+            <form
+              onSubmit={handleSubmit}
+              className="flex flex-col items-start gap-5 max-w-lg"
+            >
+              <div className="w-full grid gap-1.5">
+                <Label htmlFor="name">Name of friend or family member</Label>
+                <Input
+                  autoFocus
+                  type="text"
+                  name="name"
+                  value={name}
+                  id="name"
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  autoComplete="off"
+                />
+              </div>
+              <LoadingButton loading={isLoading} type="submit">
+                Create Sub-wallet
+              </LoadingButton>
+            </form>
+          ) : (
+            <>
+              <UpgradeCard
+                title="Need more Sub-wallets?"
+                description="Unlock unlimited sub-wallets by upgrading to Alby Pro"
               />
-            </div>
-            <LoadingButton loading={isLoading} type="submit">
-              Create Sub-wallet
-            </LoadingButton>
-          </form>
+            </>
+          )}
 
           {!!onboardedApps?.length && (
             <>

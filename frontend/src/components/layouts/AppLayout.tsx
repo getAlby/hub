@@ -172,18 +172,18 @@ export default function AppLayout() {
         <MenuItem
           to="/"
           onClick={(e) => {
-            openLink("https://getalby.com/help");
+            openLink("https://support.getalby.com");
             e.preventDefault();
           }}
         >
           <LifeBuoy className="h-4 w-4" />
-          Live Support
+          Support
         </MenuItem>
         <MenuItem
           to="/"
           onClick={(e) => {
             openLink(
-              "https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub"
+              "https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub"
             );
             e.preventDefault();
           }}
