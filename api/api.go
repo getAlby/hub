@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"slices"
+	"strings"
 	"sync"
 	"time"
 
@@ -437,6 +438,24 @@ func (api *api) ListChannels(ctx context.Context) ([]Channel, error) {
 			Status:                                   status,
 		})
 	}
+
+	slices.SortFunc(apiChannels, func(a, b Channel) int {
+		// sort by channel size first
+		aSize := a.LocalBalance + a.RemoteBalance
+		bSize := b.LocalBalance + b.RemoteBalance
+		if aSize != bSize {
+			return int(bSize - aSize)
+		}
+
+		// then by local balance in the channel
+		if a.LocalBalance != b.LocalBalance {
+			return int(b.LocalBalance - a.LocalBalance)
+		}
+
+		// finally sort by channel ID to prevent sort randomly changing
+		return strings.Compare(b.Id, a.Id)
+	})
+
 	return apiChannels, nil
 }
 
