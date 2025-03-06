@@ -1,9 +1,11 @@
 import React, { useEffect } from "react";
 import Lottie from "react-lottie";
 import { useNavigate } from "react-router-dom";
-import animationData from "src/assets/lotties/loading.json";
+import animationDataDark from "src/assets/lotties/loading-dark.json";
+import animationDataLight from "src/assets/lotties/loading-light.json";
 import Container from "src/components/Container";
 import { Button } from "src/components/ui/button";
+import { useTheme } from "src/components/ui/theme-provider";
 import { ToastSignature, useToast } from "src/components/ui/use-toast";
 
 import { useInfo } from "src/hooks/useInfo";
@@ -15,6 +17,7 @@ import { request } from "src/utils/request";
 
 let lastStartupErrorTime: string;
 export function SetupFinish() {
+  const { isDarkMode } = useTheme();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { data: info } = useInfo(true); // poll the info endpoint to auto-redirect when app is running
@@ -26,7 +29,7 @@ export function SetupFinish() {
   const defaultOptions = {
     loop: true,
     autoplay: true,
-    animationData: animationData,
+    animationData: isDarkMode ? animationDataDark : animationDataLight,
     rendererSettings: {
       preserveAspectRatio: "xMidYMid slice",
     },
