@@ -169,7 +169,13 @@ export default function AppLayout() {
           <Settings className="h-4 w-4" />
           Settings
         </MenuItem>
-        <MenuItem to="/support">
+        <MenuItem
+          to="/"
+          onClick={(e) => {
+            openLink("https://support.getalby.com");
+            e.preventDefault();
+          }}
+        >
           <LifeBuoy className="h-4 w-4" />
           Support
         </MenuItem>

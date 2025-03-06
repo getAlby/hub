@@ -1,4 +1,4 @@
-import { LifeBuoy, RefreshCw, Users } from "lucide-react";
+import { LifeBuoy, Mail, RefreshCw, Users, Zap } from "lucide-react";
 import { ReactNode } from "react";
 import { Button } from "src/components/ui/button";
 import {
@@ -70,12 +70,6 @@ export const UpgradeDialog = ({ children }: UpgradeDialogProps) => {
                 </div>
               </li>
               <li className="flex items-center">
-                <div>
-                  <span className="">...and many more</span>
-                </div>
-              </li>
-              {/*
-              <li className="flex items-center">
                 <Zap className="w-5 h-5 mr-3 text-primary" />
                 <div>
                   <span className="font-medium">Custom Lightning Address</span>
@@ -93,6 +87,7 @@ export const UpgradeDialog = ({ children }: UpgradeDialogProps) => {
                   </p>
                 </div>
               </li>
+              {/* 
               <li className="flex items-center">
                 <Server className="w-5 h-5 mr-3 text-primary" />
                 <div>
