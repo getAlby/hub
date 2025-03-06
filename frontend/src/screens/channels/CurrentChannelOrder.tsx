@@ -555,7 +555,7 @@ function PaidLightningChannelOrder() {
   useWaitForNewChannel();
 
   return (
-    <div className="flex gap-2 items-center justify-center">
+    <div className="flex gap-2">
       <Loading /> <p>Waiting for channel to be opened...</p>
     </div>
   );

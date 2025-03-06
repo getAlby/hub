@@ -91,6 +91,8 @@ function NewChannelInternal({
     prevChannelIds: channels.map((channel) => channel.id),
   });
 
+  const currentOrder = useChannelOrderStore((store) => store.order);
+
   const [showAdvanced, setShowAdvanced] = React.useState(false);
   const [selectedPeer, setSelectedPeer] = React.useState<
     RecommendedChannelPeer | undefined
@@ -224,7 +226,11 @@ function NewChannelInternal({
           </div>
         }
       />
-      <Stepper initialStep={0} steps={steps} orientation="vertical">
+      <Stepper
+        initialStep={currentOrder?.status == "opening" ? 1 : 0}
+        steps={steps}
+        orientation="vertical"
+      >
         <Step key="configureChannel" label="Configure Channel">
           <div className="md:max-w-md max-w-full flex flex-col gap-5 flex-1">
             <p className="text-muted-foreground">
@@ -466,7 +472,6 @@ function NewChannelInternal({
 
         <Step key="openChannel" label="Open Channel">
           <CurrentChannelOrder />
-          <StepButtons />
         </Step>
       </Stepper>
     </>
