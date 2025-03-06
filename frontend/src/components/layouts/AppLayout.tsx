@@ -183,7 +183,7 @@ export default function AppLayout() {
           to="/"
           onClick={(e) => {
             openLink(
-              "https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub"
+              "https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub"
             );
             e.preventDefault();
           }}
