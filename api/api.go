@@ -439,28 +439,17 @@ func (api *api) ListChannels(ctx context.Context) ([]Channel, error) {
 		})
 	}
 
-	slices.SortFunc(apiChannels, func(a Channel, b Channel) int {
-
+	slices.SortFunc(apiChannels, func(a, b Channel) int {
 		// sort by channel size first
-		cmp := (b.LocalBalance + b.RemoteBalance) - (a.LocalBalance + a.RemoteBalance)
-		if cmp != 0 {
-			if cmp > 0 {
-				return 1
-			}
-			if cmp < 0 {
-				return -1
-			}
+		aSize := a.LocalBalance + a.RemoteBalance
+		bSize := b.LocalBalance + b.RemoteBalance
+		if aSize != bSize {
+			return int(bSize - aSize)
 		}
 
 		// then by local balance in the channel
-		cmp = b.LocalBalance - a.LocalBalance
-		if cmp != 0 {
-			if cmp > 0 {
-				return 1
-			}
-			if cmp < 0 {
-				return -1
-			}
+		if a.LocalBalance != b.LocalBalance {
+			return int(b.LocalBalance - a.LocalBalance)
 		}
 
 		// finally sort by channel ID to prevent sort randomly changing
