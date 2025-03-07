@@ -37,7 +37,10 @@ function BalanceCard({
         <div className="text-2xl font-bold balance sensitive slashed-zero">
           {new Intl.NumberFormat().format(Math.floor(balance / 1000))} sats
         </div>
-        <FormattedFiatAmount amount={Math.floor(balance / 1000)} />
+        <FormattedFiatAmount
+          amount={Math.floor(balance / 1000)}
+          className="text-muted-foreground"
+        />
       </CardContent>
       {hasChannelManagement && (
         <CardFooter className="flex justify-end">
