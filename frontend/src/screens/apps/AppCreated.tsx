@@ -1,4 +1,4 @@
-import { CopyIcon, EyeIcon } from "lucide-react";
+import { Check, CopyIcon, EyeIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 
@@ -8,6 +8,7 @@ import { IsolatedAppTopupDialog } from "src/components/IsolatedAppTopupDialog";
 import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
 import { SuggestedApp, suggestedApps } from "src/components/SuggestedAppData";
+import { Badge } from "src/components/ui/badge";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -170,17 +171,26 @@ export function ConnectAppCard({
         <CardTitle className="text-center">Connection Secret</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col items-center gap-5">
-        <div className="flex flex-row items-center gap-2 text-sm">
-          <Loading className="w-4 h-4" />
-          <p>Waiting for app to connect</p>
-        </div>
-        {timeout && (
-          <div className="text-sm flex flex-col gap-2 items-center text-center">
-            Connecting is taking longer than usual.
-            <Link to={`/apps/${app?.appPubkey}`}>
-              <Button variant="secondary">Continue anyway</Button>
-            </Link>
-          </div>
+        {!app.lastEventAt ? (
+          <>
+            <div className="flex flex-row items-center gap-2 text-sm">
+              <Loading className="w-4 h-4" />
+              <p>Waiting for app to connect</p>
+            </div>
+            {timeout && (
+              <div className="text-sm flex flex-col gap-2 items-center text-center">
+                Connecting is taking longer than usual.
+                <Link to={`/apps/${app?.appPubkey}`}>
+                  <Button variant="secondary">Continue anyway</Button>
+                </Link>
+              </div>
+            )}
+          </>
+        ) : (
+          <Badge variant="positive">
+            <Check className="w-4 h-4 mr-2" />
+            <p>App connected</p>
+          </Badge>
         )}
         <a href={pairingUri} target="_blank" className="relative">
           <div className={!isQRCodeVisible ? "blur-md" : ""}>

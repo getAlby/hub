@@ -905,7 +905,14 @@ func (ls *LDKService) GetNodeConnectionInfo(ctx context.Context) (nodeConnection
 }
 
 func (ls *LDKService) ConnectPeer(ctx context.Context, connectPeerRequest *lnclient.ConnectPeerRequest) error {
-	err := ls.node.Connect(connectPeerRequest.Pubkey, connectPeerRequest.Address+":"+strconv.Itoa(int(connectPeerRequest.Port)), true)
+	// disconnect first to ensure new IP address is saved in case of re-connecting
+	err := ls.node.Disconnect(connectPeerRequest.Pubkey)
+	if err != nil {
+		// non-critical: only log an error
+		logger.Logger.WithField("request", connectPeerRequest).WithError(err).Error("Disconnect failed while connecting peer")
+	}
+
+	err = ls.node.Connect(connectPeerRequest.Pubkey, connectPeerRequest.Address+":"+strconv.Itoa(int(connectPeerRequest.Port)), true)
 	if err != nil {
 		logger.Logger.WithField("request", connectPeerRequest).WithError(err).Error("ConnectPeer failed")
 		return err
