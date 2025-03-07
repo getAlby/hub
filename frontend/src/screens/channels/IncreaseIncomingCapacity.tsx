@@ -8,6 +8,7 @@ import { MempoolAlert } from "src/components/MempoolAlert";
 import { ChannelPeerNote } from "src/components/channels/ChannelPeerNote";
 import { ChannelPublicPrivateAlert } from "src/components/channels/ChannelPublicPrivateAlert";
 import { DuplicateChannelAlert } from "src/components/channels/DuplicateChannelAlert";
+import { SwapAlert } from "src/components/channels/SwapAlert";
 import {
   Button,
   ExternalLinkButton,
@@ -410,6 +411,7 @@ function NewChannelInternal({
             </Button>
           )}
           <MempoolAlert />
+          <SwapAlert />
           {channels?.some((channel) => channel.public !== !!order.isPublic) && (
             <ChannelPublicPrivateAlert />
           )}
