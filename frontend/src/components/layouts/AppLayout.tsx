@@ -48,6 +48,10 @@ import {
 } from "src/components/ui/tooltip";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 
+import {
+  FlyingBees,
+  FlyingBeesRef,
+} from "src/components/easter-eggs/FlyingBees";
 import { useAlbyInfo } from "src/hooks/useAlbyInfo";
 import { useHealthCheck } from "src/hooks/useHealthCheck";
 import { useInfo } from "src/hooks/useInfo";
@@ -374,6 +378,8 @@ function AppVersion() {
 
 function HealthIndicator() {
   const { data: health } = useHealthCheck();
+  const flyingBeesRef = React.useRef<FlyingBeesRef>(null);
+
   if (!health) {
     return null;
   }
@@ -400,7 +406,7 @@ function HealthIndicator() {
   return (
     <TooltipProvider>
       <Tooltip>
-        <TooltipTrigger>
+        <TooltipTrigger onClick={() => flyingBeesRef.current?.addFlyingBee()}>
           <span className="text-xs flex items-center text-muted-foreground">
             <div
               className={cn(
@@ -427,6 +433,7 @@ function HealthIndicator() {
           )}
         </TooltipContent>
       </Tooltip>
+      <FlyingBees ref={flyingBeesRef} />
     </TooltipProvider>
   );
 }
