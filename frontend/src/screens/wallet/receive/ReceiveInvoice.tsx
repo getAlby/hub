@@ -130,6 +130,7 @@ export default function ReceiveInvoice() {
                         </p>
                         <FormattedFiatAmount
                           amount={Math.floor((invoiceData?.amount ?? 0) / 1000)}
+                          className="text-muted-foreground"
                         />
                       </div>
                     </>
@@ -140,7 +141,10 @@ export default function ReceiveInvoice() {
                           {new Intl.NumberFormat().format(parseInt(amount))}{" "}
                           sats
                         </p>
-                        <FormattedFiatAmount amount={parseInt(amount)} />
+                        <FormattedFiatAmount
+                          amount={parseInt(amount)}
+                          className="text-muted-foreground"
+                        />
                       </div>
                       <div className="flex flex-row items-center gap-2 text-sm">
                         <Loading className="w-4 h-4" />
@@ -197,7 +201,10 @@ export default function ReceiveInvoice() {
                   min={1}
                   autoFocus
                 />
-                <FormattedFiatAmount amount={+amount} className="mt-2" />
+                <FormattedFiatAmount
+                  amount={+amount}
+                  className="mt-2 text-muted-foreground"
+                />
               </div>
               <div>
                 <Label htmlFor="description">Description</Label>
