@@ -466,6 +466,28 @@ export default function Channels() {
                       <TooltipContent className="w-[300px]">
                         Your spending balance is the funds on your side of your
                         channels, which you can use to make lightning payments.
+                        Your total lightning balance is{" "}
+                        {new Intl.NumberFormat().format(
+                          channels
+                            ?.map((channel) =>
+                              Math.floor(channel.localBalance / 1000)
+                            )
+                            .reduce((a, b) => a + b, 0) || 0
+                        )}{" "}
+                        sats which includes{" "}
+                        {new Intl.NumberFormat().format(
+                          Math.floor(
+                            channels
+                              ?.map((channel) =>
+                                Math.min(
+                                  Math.floor(channel.localBalance / 1000),
+                                  channel.unspendablePunishmentReserve
+                                )
+                              )
+                              .reduce((a, b) => a + b, 0) || 0
+                          )
+                        )}{" "}
+                        sats reserved in your channels which cannot be spent.
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
