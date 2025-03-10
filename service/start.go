@@ -90,6 +90,8 @@ func (svc *service) startNostr(ctx context.Context) error {
 			}).Info("Connected to the relay")
 			waitToReconnectSeconds = 0
 
+			svc.nip47Service.StartNotifier(relay.Context(), relay)
+
 			// register a subscriber for events of "nwc_app_created" which handles creation of nostr subscription for new app
 			if createAppEventListener != nil {
 				svc.eventPublisher.RemoveSubscriber(createAppEventListener)
@@ -201,8 +203,6 @@ func (svc *service) startAppWalletSubscription(ctx context.Context, relay *nostr
 }
 
 func (svc *service) StartSubscription(ctx context.Context, sub *nostr.Subscription) error {
-	svc.nip47Service.StartNotifier(ctx, sub.Relay, svc.lnClient)
-
 	go func() {
 		// loop through incoming events
 		for event := range sub.Events {
