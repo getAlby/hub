@@ -206,6 +206,26 @@ function NewChannelInternal({ network }: { network: Network }) {
           src="/images/illustrations/lightning-network-light.svg"
           className="w-full dark:hidden"
         />
+        <p className="text-muted-foreground">
+          Open a channel with on-chain funds. Both parties are free to close the
+          channel at any time. However, by keeping more funds on your side of
+          the channel and using it regularly, there is more chance the channel
+          will stay open. Learn more about{" "}
+          <ExternalLink
+            className="underline"
+            to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/how-to-open-a-channel"
+          >
+            opening channels
+          </ExternalLink>{" "}
+          and{" "}
+          <ExternalLink
+            className="underline"
+            to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/why-was-my-lightning-channel-closed-and-what-to-do-next"
+          >
+            channel closures
+          </ExternalLink>
+          .
+        </p>
         <form
           onSubmit={onSubmit}
           className="md:max-w-md max-w-full flex flex-col gap-5 flex-1"
@@ -366,8 +386,13 @@ function NewChannelInternal({ network }: { network: Network }) {
                   Public Channel
                 </Label>
                 <p className="text-xs text-muted-foreground">
-                  Enable if you want to receive keysend payments. (e.g.
-                  podcasting)
+                  Not recommended for most users.{" "}
+                  <ExternalLink
+                    className="underline"
+                    to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/how-to-open-a-channel"
+                  >
+                    Learn more
+                  </ExternalLink>
                 </p>
               </div>
             </div>

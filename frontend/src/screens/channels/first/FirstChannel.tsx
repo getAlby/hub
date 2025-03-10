@@ -165,6 +165,18 @@ export function FirstChannel() {
                   you'll immediately be able to receive and send bitcoin with
                   your Hub.
                 </p>
+                <p className="text-muted-foreground">
+                  Alby Hub works with selected service providers (LSPs) which
+                  provide the best network connectivity and liquidity to receive
+                  payments. The channel may stay open for a year or more as long
+                  as there is usage.{" "}
+                  <ExternalLink
+                    className="underline"
+                    to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/why-was-my-lightning-channel-closed-and-what-to-do-next"
+                  >
+                    Learn more
+                  </ExternalLink>
+                </p>
               </>
             )}
             {showAdvanced && (
@@ -183,8 +195,13 @@ export function FirstChannel() {
                       Public Channel
                     </Label>
                     <p className="text-xs text-muted-foreground">
-                      Only enable if you want to receive keysend payments. (e.g.
-                      podcasting)
+                      Not recommended for most users.{" "}
+                      <ExternalLink
+                        className="underline"
+                        to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/how-to-open-a-channel"
+                      >
+                        Learn more
+                      </ExternalLink>
                     </p>
                   </div>
                 </div>
