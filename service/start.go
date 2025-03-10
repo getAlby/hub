@@ -120,7 +120,6 @@ func (svc *service) startNostr(ctx context.Context) error {
 					_, err := svc.GetNip47Service().PublishNip47Info(ctx, relay, svc.keys.GetNostrPublicKey(), svc.keys.GetNostrSecretKey(), svc.lnClient)
 					if err != nil {
 						logger.Logger.WithError(err).Error("Could not publish NIP47 info for legacy apps")
-						return
 					}
 					logger.Logger.WithField("legacy_app_count", legacyAppCount).Info("Starting legacy app subscription")
 					// legacy single wallet subscription - only subscribe once for all legacy apps
