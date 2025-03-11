@@ -18,10 +18,9 @@ export function SwapAlert({ className }: SwapAlertProps) {
     return null;
   }
 
-  const directionText =
-    balances.lightning.totalSpendable > balances.lightning.totalReceivable
-      ? "out from"
-      : "into";
+  const isSwapOut =
+    balances.lightning.totalSpendable > balances.lightning.totalReceivable;
+  const directionText = isSwapOut ? "out from" : "into";
 
   return (
     <Alert className={className}>
@@ -43,7 +42,7 @@ export function SwapAlert({ className }: SwapAlertProps) {
             <ExternalLinkIcon className="w-4 h-4 ml-2" />
           </ExternalLinkButton>
           <LinkButton to="/channels?swap=true" variant="secondary">
-            Swap
+            Swap {isSwapOut ? "Out" : "In"}
           </LinkButton>
         </div>
       </AlertDescription>
