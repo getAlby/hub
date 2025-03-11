@@ -16,7 +16,6 @@ import (
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/nip47/permissions"
 	"github.com/getAlby/hub/tests"
-	"github.com/getAlby/hub/transactions"
 )
 
 type mockConsumer struct {
@@ -80,9 +79,8 @@ func doTestSendNotificationPaymentReceived(t *testing.T, svc *tests.TestService,
 	relay := tests.NewMockRelay()
 
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
-	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
 
-	notifier := NewNip47Notifier(relay, svc.DB, svc.Cfg, svc.Keys, permissionsSvc, transactionsSvc, svc.LNClient)
+	notifier := NewNip47Notifier(relay, svc.DB, svc.Cfg, svc.Keys, permissionsSvc)
 	notifier.ConsumeEvent(ctx, receivedEvent)
 
 	var publishedEvent *nostr.Event
@@ -195,9 +193,8 @@ func doTestSendNotificationPaymentSent(t *testing.T, svc *tests.TestService, cre
 	relay := tests.NewMockRelay()
 
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
-	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
 
-	notifier := NewNip47Notifier(relay, svc.DB, svc.Cfg, svc.Keys, permissionsSvc, transactionsSvc, svc.LNClient)
+	notifier := NewNip47Notifier(relay, svc.DB, svc.Cfg, svc.Keys, permissionsSvc)
 	notifier.ConsumeEvent(ctx, receivedEvent)
 
 	var publishedEvent *nostr.Event
@@ -289,9 +286,8 @@ func doTestSendNotificationNoPermission(t *testing.T, svc *tests.TestService) {
 	relay := tests.NewMockRelay()
 
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
-	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
 
-	notifier := NewNip47Notifier(relay, svc.DB, svc.Cfg, svc.Keys, permissionsSvc, transactionsSvc, svc.LNClient)
+	notifier := NewNip47Notifier(relay, svc.DB, svc.Cfg, svc.Keys, permissionsSvc)
 	notifier.ConsumeEvent(ctx, receivedEvent)
 
 	assert.Nil(t, relay.PublishedEvents)
