@@ -285,61 +285,64 @@ export default function Backup() {
                         without having to close your channels.
                       </p>
 
-                      {!me?.subscription.buzz ? (
-                        <Button
-                          variant="secondary"
-                          disabled={info.ldkVssEnabled}
-                          size={"lg"}
-                          onClick={() => {
-                            if (!me?.subscription?.buzz) {
-                              openLink("https://getalby.com/subscription/new");
-                            }
-                          }}
-                        >
-                          Enable Dynamic Channels Backup
-                        </Button>
-                      ) : (
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <LoadingButton
-                              variant="secondary"
-                              loading={isMigratingStorage}
-                              disabled={info.ldkVssEnabled}
-                              size={"lg"}
-                            >
-                              Enable Dynamic Channels Backup
-                            </LoadingButton>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>
-                                Alby Hub Restart Required
-                              </AlertDialogTitle>
-                              <AlertDialogDescription>
-                                <div>
-                                  <p>
-                                    As part of enabling VSS your hub will be
-                                    shut down, and you will need to enter your
-                                    unlock password to start it again.
-                                  </p>
-                                  <p className="mt-2">
-                                    Please ensure you have no pending payments
-                                    or channel closures before continuing.
-                                  </p>
-                                </div>
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => migrateLDKStorage("VSS")}
+                      {!info.ldkVssEnabled &&
+                        (!me?.subscription.buzz ? (
+                          <Button
+                            variant="secondary"
+                            disabled={info.ldkVssEnabled}
+                            size={"lg"}
+                            onClick={() => {
+                              if (!me?.subscription?.buzz) {
+                                openLink(
+                                  "https://getalby.com/subscription/new"
+                                );
+                              }
+                            }}
+                          >
+                            Enable Dynamic Channels Backup
+                          </Button>
+                        ) : (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <LoadingButton
+                                variant="secondary"
+                                loading={isMigratingStorage}
+                                disabled={info.ldkVssEnabled}
+                                size={"lg"}
                               >
-                                Confirm
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      )}
+                                Enable Dynamic Channels Backup
+                              </LoadingButton>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                  Alby Hub Restart Required
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  <div>
+                                    <p>
+                                      As part of enabling VSS your hub will be
+                                      shut down, and you will need to enter your
+                                      unlock password to start it again.
+                                    </p>
+                                    <p className="mt-2">
+                                      Please ensure you have no pending payments
+                                      or channel closures before continuing.
+                                    </p>
+                                  </div>
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => migrateLDKStorage("VSS")}
+                                >
+                                  Confirm
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        ))}
                     </div>
                   </>
                 )}
