@@ -117,8 +117,9 @@ export default function Backup() {
         description={
           <>
             <span className="text-muted-foreground">
-              Backup your wallet recovery phrase and or your channel states in
-              order to migrate your node.{" "}
+              Backup your wallet recovery phrase and channel states. These
+              backups are for disaster recovery only. To migrate your node,
+              please use the migration tool.
             </span>
             <a
               href="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/backups-and-recover"
@@ -138,7 +139,7 @@ export default function Backup() {
           <div>
             <h3 className="text-lg font-medium">Wallet Keys Backup</h3>
             <p className="text-sm text-muted-foreground">
-              Key recovery phrase is a group of 12 random words that back up
+              Your recovery phrase is a group of 12 random words that back up
               your wallet on-chain balance. Using them is the only way to
               recover access to your wallet on another machine or when you loose
               your unlock password.
@@ -242,8 +243,8 @@ export default function Backup() {
             <h3 className="text-lg font-medium">Channels Backup</h3>
             <p className="text-sm text-muted-foreground">
               Your spending balance is stored in your lightning channels. In
-              case of recovery or migration or your Alby Hub, they need to be
-              backed up every time you open a new channel.
+              case of recovery of your Alby Hub, they need to be backed up every
+              time you open a new channel.
             </p>
           </div>
 
@@ -260,7 +261,7 @@ export default function Backup() {
               <>
                 <p className="text-muted-foreground text-sm mb-8">
                   Your channel state is backed up automatically after each
-                  channels creation. Potential recovery will trigger channel
+                  channel creation. Potential recovery will trigger channel
                   closures, and your funds will arrive in your on-chain balance.
                 </p>
                 {info?.vssSupported && (
@@ -278,11 +279,10 @@ export default function Backup() {
                       </div>
                       <p className="text-sm text-muted-foreground mb-4">
                         When enabled, your channels state is dynamically updated
-                        on a virtual disk encrypted with your wallet keys
-                        (Versioned Storage Service). This allows you to
-                        immediately recover or migrate your Hub with full
-                        spending balance and without having to close your
-                        channels.
+                        and stored end-to-end encrypted by Alby's Versioned
+                        Storage Service. This allows you to recover your
+                        spending balance with your recovery phrase alone,
+                        without having to close your channels.
                       </p>
 
                       {!me?.subscription.buzz ? (
@@ -349,7 +349,7 @@ export default function Backup() {
                 <div>
                   <p className="text-muted-foreground text-sm mb-4">
                     Link your Alby Account to enable automated channel backups
-                    after each channels creation.
+                    after each channel creation.
                   </p>
                   <Button
                     type="button"

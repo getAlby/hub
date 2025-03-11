@@ -8,11 +8,11 @@ import { DefaultRedirect } from "src/components/redirects/DefaultRedirect";
 import { HomeRedirect } from "src/components/redirects/HomeRedirect";
 import { SetupRedirect } from "src/components/redirects/SetupRedirect";
 import { StartRedirect } from "src/components/redirects/StartRedirect";
-import { BackupNode } from "src/screens/BackupNode";
-import { BackupNodeSuccess } from "src/screens/BackupNodeSuccess";
 import { ConnectAlbyAccount } from "src/screens/ConnectAlbyAccount";
 import Home from "src/screens/Home";
 import { Intro } from "src/screens/Intro";
+import { MigrateNode } from "src/screens/MigrateNode";
+import { MigrateNodeSuccess } from "src/screens/MigrateNodeSuccess";
 import NotFound from "src/screens/NotFound";
 import Start from "src/screens/Start";
 import Unlock from "src/screens/Unlock";
@@ -192,8 +192,8 @@ const routes = [
                 handle: { crumb: () => "Backup" },
               },
               {
-                path: "node-backup",
-                element: <BackupNode />,
+                path: "node-migrate",
+                element: <MigrateNode />,
               },
               {
                 path: "alby-account",
@@ -483,8 +483,8 @@ const routes = [
     ],
   },
   {
-    path: "node-backup-success",
-    element: <BackupNodeSuccess />,
+    path: "node-migrate-success",
+    element: <MigrateNodeSuccess />,
   },
   {
     path: "intro",

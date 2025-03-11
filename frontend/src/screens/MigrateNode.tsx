@@ -14,7 +14,7 @@ import { handleRequestError } from "src/utils/handleRequestError";
 import { isHttpMode } from "src/utils/isHttpMode";
 import { request } from "src/utils/request";
 
-export function BackupNode() {
+export function MigrateNode() {
   const navigate = useNavigate();
 
   const { toast } = useToast();
@@ -66,7 +66,7 @@ export function BackupNode() {
         });
       }
 
-      navigate("/node-backup-success");
+      navigate("/node-migrate-success");
     } catch (error) {
       handleRequestError(toast, "Failed to backup the node", error);
     } finally {
@@ -148,11 +148,11 @@ export function BackupNode() {
             disabled={loading}
             onClick={() => setShowPasswordScreen(true)}
           >
-            Create Backup to Migrate Alby Hub
+            Create Alby Hub Migration File
           </Button>
 
           <LinkButton to="/settings/backup" variant={"secondary"}>
-            Backup Without Migrating Node
+            Backup Without Migrating Alby Hub
           </LinkButton>
         </div>
       )}
