@@ -32,7 +32,7 @@ export const UpgradeDialog = ({ children }: UpgradeDialogProps) => {
 
   return (
     <Dialog>
-      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogTrigger>{children}</DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>✨ Unlock Alby Pro</DialogTitle>
@@ -45,20 +45,20 @@ export const UpgradeDialog = ({ children }: UpgradeDialogProps) => {
             <h3 className="font-medium text-lg">Pro Features Include:</h3>
             <ul className="space-y-3">
               <li className="flex items-center">
-                <RefreshCw className="w-5 h-5 mr-3 text-primary" />
-                <div>
-                  <span className="font-medium">Encrypted Remote Backups</span>
-                  <p className="text-sm text-muted-foreground">
-                    Secure LDK wallet backups in the cloud
-                  </p>
-                </div>
-              </li>
-              <li className="flex items-center">
                 <Users className="w-5 h-5 mr-3 text-primary" />
                 <div>
                   <span className="font-medium">Unlimited Sub-wallets</span>
                   <p className="text-sm text-muted-foreground">
                     Share with friends, family, coworkers
+                  </p>
+                </div>
+              </li>
+              <li className="flex items-center">
+                <RefreshCw className="w-5 h-5 mr-3 text-primary" />
+                <div>
+                  <span className="font-medium">Encrypted Remote Backups</span>
+                  <p className="text-sm text-muted-foreground">
+                    Secure LDK wallet backups in the cloud
                   </p>
                 </div>
               </li>
