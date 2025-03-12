@@ -132,10 +132,6 @@ export function UncleJim() {
 
           {!!onboardedApps?.length && (
             <>
-              <p className="text-sm text-muted-foreground">
-                Great job! You've onboarded {onboardedApps.length} friends and
-                family members so far.
-              </p>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch app-list">
                 {onboardedApps.map((app, index) => (
                   <AppCard key={index} app={app} />

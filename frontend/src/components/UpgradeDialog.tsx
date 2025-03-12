@@ -21,7 +21,9 @@ export const UpgradeDialog = ({ children }: UpgradeDialogProps) => {
   const { data: albyMe } = useAlbyMe();
 
   const handleUpgrade = () => {
-    openLink(`https://www.getalby.com/subscription/new?plan=${ALBY_PRO_PLAN}`);
+    openLink(
+      `https://www.getalby.com/subscription/confirm?plan=${ALBY_PRO_PLAN}`
+    );
   };
 
   if (albyMe?.subscription.buzz) {
