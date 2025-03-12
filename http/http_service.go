@@ -53,7 +53,7 @@ func NewHttpService(svc service.Service, eventPublisher events.EventPublisher) *
 		cfg:            svc.GetConfig(),
 		eventPublisher: eventPublisher,
 		db:             svc.GetDB(),
-		appsSvc:        apps.NewAppsService(svc.GetDB(), eventPublisher, svc.GetKeys()),
+		appsSvc:        apps.NewAppsService(svc.GetDB(), eventPublisher, svc.GetKeys(), svc.GetConfig()),
 	}
 }
 
@@ -63,7 +63,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.Use(middleware.SecureWithConfig(middleware.SecureConfig{
 		ContentTypeNosniff:    "nosniff",
 		XFrameOptions:         "DENY",
-		ContentSecurityPolicy: "default-src 'self'; img-src 'self' https://uploads.getalby-assets.com https://getalby.com; connect-src 'self' https://api.getalby.com https://getalby.com https://zapplanner.albylabs.com",
+		ContentSecurityPolicy: "default-src 'self'; img-src 'self' https://uploads.getalby-assets.com https://getalby.com; connect-src 'self' https://api.getalby.com https://getalby.com https://zapplanner.albylabs.com wss://relay.getalby.com/v1",
 		ReferrerPolicy:        "no-referrer",
 	}))
 	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
@@ -97,8 +97,6 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	unlockRateLimiter := middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(1))
 	e.POST("/api/start", httpSvc.startHandler, unlockRateLimiter)
 	e.POST("/api/unlock", httpSvc.unlockHandler, unlockRateLimiter)
-	e.PATCH("/api/unlock-password", httpSvc.changeUnlockPasswordHandler, unlockRateLimiter)
-	e.PATCH("/api/auto-unlock", httpSvc.autoUnlockHandler, unlockRateLimiter)
 	e.POST("/api/backup", httpSvc.createBackupHandler, unlockRateLimiter)
 	e.GET("/logout", httpSvc.logoutHandler, unlockRateLimiter)
 
@@ -112,50 +110,55 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 		},
 		SigningKey: []byte(httpSvc.cfg.GetJWTSecret()),
 	}
-	restrictedGroup := e.Group("")
-	restrictedGroup.Use(echojwt.WithConfig(jwtConfig))
+	restrictedApiGroup := e.Group("/api")
+	restrictedApiGroup.Use(echojwt.WithConfig(jwtConfig))
 
-	restrictedGroup.GET("/api/apps", httpSvc.appsListHandler)
-	restrictedGroup.GET("/api/apps/:pubkey", httpSvc.appsShowHandler)
-	restrictedGroup.PATCH("/api/apps/:pubkey", httpSvc.appsUpdateHandler)
-	restrictedGroup.DELETE("/api/apps/:pubkey", httpSvc.appsDeleteHandler)
-	restrictedGroup.POST("/api/apps/:pubkey/topup", httpSvc.isolatedAppTopupHandler)
-	restrictedGroup.POST("/api/apps", httpSvc.appsCreateHandler)
-	restrictedGroup.POST("/api/mnemonic", httpSvc.mnemonicHandler)
-	restrictedGroup.PATCH("/api/backup-reminder", httpSvc.backupReminderHandler)
-	restrictedGroup.GET("/api/channels", httpSvc.channelsListHandler)
-	restrictedGroup.POST("/api/channels", httpSvc.openChannelHandler)
-	restrictedGroup.GET("/api/channels/suggestions", httpSvc.channelPeerSuggestionsHandler)
-	restrictedGroup.POST("/api/lsp-orders", httpSvc.newInstantChannelInvoiceHandler)
-	restrictedGroup.GET("/api/node/connection-info", httpSvc.nodeConnectionInfoHandler)
-	restrictedGroup.GET("/api/node/status", httpSvc.nodeStatusHandler)
-	restrictedGroup.GET("/api/node/network-graph", httpSvc.nodeNetworkGraphHandler)
-	restrictedGroup.POST("/api/node/migrate-storage", httpSvc.migrateNodeStorageHandler)
-	restrictedGroup.GET("/api/peers", httpSvc.listPeers)
-	restrictedGroup.POST("/api/peers", httpSvc.connectPeerHandler)
-	restrictedGroup.DELETE("/api/peers/:peerId", httpSvc.disconnectPeerHandler)
-	restrictedGroup.DELETE("/api/peers/:peerId/channels/:channelId", httpSvc.closeChannelHandler)
-	restrictedGroup.PATCH("/api/peers/:peerId/channels/:channelId", httpSvc.updateChannelHandler)
-	restrictedGroup.GET("/api/wallet/address", httpSvc.onchainAddressHandler)
-	restrictedGroup.POST("/api/wallet/new-address", httpSvc.newOnchainAddressHandler)
-	restrictedGroup.POST("/api/wallet/redeem-onchain-funds", httpSvc.redeemOnchainFundsHandler)
-	restrictedGroup.POST("/api/wallet/sign-message", httpSvc.signMessageHandler)
-	restrictedGroup.POST("/api/wallet/sync", httpSvc.walletSyncHandler)
-	restrictedGroup.GET("/api/wallet/capabilities", httpSvc.capabilitiesHandler)
-	restrictedGroup.POST("/api/payments/:invoice", httpSvc.sendPaymentHandler)
-	restrictedGroup.POST("/api/invoices", httpSvc.makeInvoiceHandler)
-	restrictedGroup.GET("/api/transactions", httpSvc.listTransactionsHandler)
-	restrictedGroup.GET("/api/transactions/:paymentHash", httpSvc.lookupTransactionHandler)
-	restrictedGroup.GET("/api/balances", httpSvc.balancesHandler)
-	restrictedGroup.POST("/api/reset-router", httpSvc.resetRouterHandler)
-	restrictedGroup.POST("/api/stop", httpSvc.stopHandler)
-	restrictedGroup.GET("/api/mempool", httpSvc.mempoolApiHandler)
-	restrictedGroup.POST("/api/send-payment-probes", httpSvc.sendPaymentProbesHandler)
-	restrictedGroup.POST("/api/send-spontaneous-payment-probes", httpSvc.sendSpontaneousPaymentProbesHandler)
-	restrictedGroup.GET("/api/log/:type", httpSvc.getLogOutputHandler)
-	restrictedGroup.GET("/api/health", httpSvc.healthHandler)
+	restrictedApiGroup.PATCH("/unlock-password", httpSvc.changeUnlockPasswordHandler)
+	restrictedApiGroup.PATCH("/auto-unlock", httpSvc.autoUnlockHandler)
+	restrictedApiGroup.PATCH("/settings", httpSvc.updateSettingsHandler)
+	restrictedApiGroup.GET("/apps", httpSvc.appsListHandler)
+	restrictedApiGroup.GET("/apps/:pubkey", httpSvc.appsShowHandler)
+	restrictedApiGroup.PATCH("/apps/:pubkey", httpSvc.appsUpdateHandler)
+	restrictedApiGroup.DELETE("/apps/:pubkey", httpSvc.appsDeleteHandler)
+	restrictedApiGroup.POST("/apps/:pubkey/topup", httpSvc.isolatedAppTopupHandler)
+	restrictedApiGroup.POST("/apps", httpSvc.appsCreateHandler)
+	restrictedApiGroup.POST("/mnemonic", httpSvc.mnemonicHandler)
+	restrictedApiGroup.PATCH("/backup-reminder", httpSvc.backupReminderHandler)
+	restrictedApiGroup.GET("/channels", httpSvc.channelsListHandler)
+	restrictedApiGroup.POST("/channels", httpSvc.openChannelHandler)
+	restrictedApiGroup.GET("/channels/suggestions", httpSvc.channelPeerSuggestionsHandler)
+	restrictedApiGroup.POST("/lsp-orders", httpSvc.newInstantChannelInvoiceHandler)
+	restrictedApiGroup.GET("/node/connection-info", httpSvc.nodeConnectionInfoHandler)
+	restrictedApiGroup.GET("/node/status", httpSvc.nodeStatusHandler)
+	restrictedApiGroup.GET("/node/network-graph", httpSvc.nodeNetworkGraphHandler)
+	restrictedApiGroup.POST("/node/migrate-storage", httpSvc.migrateNodeStorageHandler)
+	restrictedApiGroup.GET("/peers", httpSvc.listPeers)
+	restrictedApiGroup.POST("/peers", httpSvc.connectPeerHandler)
+	restrictedApiGroup.DELETE("/peers/:peerId", httpSvc.disconnectPeerHandler)
+	restrictedApiGroup.DELETE("/peers/:peerId/channels/:channelId", httpSvc.closeChannelHandler)
+	restrictedApiGroup.PATCH("/peers/:peerId/channels/:channelId", httpSvc.updateChannelHandler)
+	restrictedApiGroup.GET("/wallet/address", httpSvc.onchainAddressHandler)
+	restrictedApiGroup.POST("/wallet/new-address", httpSvc.newOnchainAddressHandler)
+	restrictedApiGroup.POST("/wallet/redeem-onchain-funds", httpSvc.redeemOnchainFundsHandler)
+	restrictedApiGroup.POST("/wallet/sign-message", httpSvc.signMessageHandler)
+	restrictedApiGroup.POST("/wallet/sync", httpSvc.walletSyncHandler)
+	restrictedApiGroup.GET("/wallet/capabilities", httpSvc.capabilitiesHandler)
+	restrictedApiGroup.POST("/payments/:invoice", httpSvc.sendPaymentHandler)
+	restrictedApiGroup.POST("/invoices", httpSvc.makeInvoiceHandler)
+	restrictedApiGroup.GET("/transactions", httpSvc.listTransactionsHandler)
+	restrictedApiGroup.GET("/transactions/:paymentHash", httpSvc.lookupTransactionHandler)
+	restrictedApiGroup.GET("/balances", httpSvc.balancesHandler)
+	restrictedApiGroup.POST("/reset-router", httpSvc.resetRouterHandler)
+	restrictedApiGroup.POST("/stop", httpSvc.stopHandler)
+	restrictedApiGroup.GET("/mempool", httpSvc.mempoolApiHandler)
+	restrictedApiGroup.POST("/send-payment-probes", httpSvc.sendPaymentProbesHandler)
+	restrictedApiGroup.POST("/send-spontaneous-payment-probes", httpSvc.sendSpontaneousPaymentProbesHandler)
+	restrictedApiGroup.GET("/log/:type", httpSvc.getLogOutputHandler)
+	restrictedApiGroup.GET("/health", httpSvc.healthHandler)
+	restrictedApiGroup.GET("/commands", httpSvc.getCustomNodeCommandsHandler)
+	restrictedApiGroup.POST("/command", httpSvc.execCustomNodeCommandHandler)
 
-	httpSvc.albyHttpSvc.RegisterSharedRoutes(restrictedGroup, e)
+	httpSvc.albyHttpSvc.RegisterSharedRoutes(restrictedApiGroup, e)
 }
 
 func (httpSvc *HttpService) infoHandler(c echo.Context) error {
@@ -287,6 +290,30 @@ func (httpSvc *HttpService) changeUnlockPasswordHandler(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: fmt.Sprintf("Failed to change unlock password: %s", err.Error()),
+		})
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
+
+func (httpSvc *HttpService) updateSettingsHandler(c echo.Context) error {
+	var updateSettingsRequest api.UpdateSettingsRequest
+	if err := c.Bind(&updateSettingsRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	if updateSettingsRequest.Currency == "" {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: "Currency value cannot be empty",
+		})
+	}
+
+	err := httpSvc.api.SetCurrency(updateSettingsRequest.Currency)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to set currency: %s", err.Error()),
 		})
 	}
 
@@ -997,6 +1024,35 @@ func (httpSvc *HttpService) getLogOutputHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, getLogResponse)
+}
+
+func (httpSvc *HttpService) getCustomNodeCommandsHandler(c echo.Context) error {
+	nodeCommandsResponse, err := httpSvc.api.GetCustomNodeCommands()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to get node commands: %v", err),
+		})
+	}
+
+	return c.JSON(http.StatusOK, nodeCommandsResponse)
+}
+
+func (httpSvc *HttpService) execCustomNodeCommandHandler(c echo.Context) error {
+	var execCommandRequest api.ExecuteCustomNodeCommandRequest
+	if err := c.Bind(&execCommandRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	execCommandResponse, err := httpSvc.api.ExecuteCustomNodeCommand(c.Request().Context(), execCommandRequest.Command)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to execute command: %v", err),
+		})
+	}
+
+	return c.JSON(http.StatusOK, execCommandResponse)
 }
 
 func (httpSvc *HttpService) logoutHandler(c echo.Context) error {

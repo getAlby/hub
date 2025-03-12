@@ -4,11 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"flag"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"slices"
+	"strings"
 	"sync"
 	"time"
 
@@ -47,7 +49,7 @@ type api struct {
 func NewAPI(svc service.Service, gormDB *gorm.DB, config config.Config, keys keys.Keys, albyOAuthSvc alby.AlbyOAuthService, eventPublisher events.EventPublisher) *api {
 	return &api{
 		db:             gormDB,
-		appsSvc:        apps.NewAppsService(gormDB, eventPublisher, keys),
+		appsSvc:        apps.NewAppsService(gormDB, eventPublisher, keys, config),
 		cfg:            config,
 		svc:            svc,
 		permissionsSvc: permissions.NewPermissionsService(gormDB, eventPublisher),
@@ -57,21 +59,16 @@ func NewAPI(svc service.Service, gormDB *gorm.DB, config config.Config, keys key
 }
 
 func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppResponse, error) {
-	backendType, _ := api.cfg.Get("LNBackendType", "")
-	if createAppRequest.Isolated &&
-		backendType != "LDK" &&
-		backendType != "LND" {
-		return nil, fmt.Errorf(
-			"sub-wallets are currently not supported on your node backend. Try LDK or LND")
+	if slices.Contains(createAppRequest.Scopes, constants.SUPERUSER_SCOPE) {
+		if !api.cfg.CheckUnlockPassword(createAppRequest.UnlockPassword) {
+			return nil, fmt.Errorf(
+				"incorrect unlock password to create app with superuser permission")
+		}
 	}
 
 	expiresAt, err := api.parseExpiresAt(createAppRequest.ExpiresAt)
 	if err != nil {
 		return nil, fmt.Errorf("invalid expiresAt: %v", err)
-	}
-
-	if len(createAppRequest.Scopes) == 0 {
-		return nil, fmt.Errorf("won't create an app without scopes")
 	}
 
 	for _, scope := range createAppRequest.Scopes {
@@ -97,16 +94,19 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 
 	relayUrl := api.cfg.GetRelayUrl()
 
-	responseBody := &CreateAppResponse{}
-	responseBody.Id = app.ID
-	responseBody.Name = createAppRequest.Name
-	responseBody.Pubkey = app.AppPubkey
-	responseBody.PairingSecret = pairingSecretKey
-
 	lightningAddress, err := api.albyOAuthSvc.GetLightningAddress()
 	if err != nil {
 		return nil, err
 	}
+
+	responseBody := &CreateAppResponse{}
+	responseBody.Id = app.ID
+	responseBody.Name = app.Name
+	responseBody.Pubkey = app.AppPubkey
+	responseBody.PairingSecret = pairingSecretKey
+	responseBody.WalletPubkey = *app.WalletPubkey
+	responseBody.RelayUrl = relayUrl
+	responseBody.Lud16 = lightningAddress
 
 	if createAppRequest.ReturnTo != "" {
 		returnToUrl, err := url.Parse(createAppRequest.ReturnTo)
@@ -203,12 +203,17 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 			existingScopeMap[perm.Scope] = true
 		}
 
+		if slices.Contains(newScopes, constants.SUPERUSER_SCOPE) && !existingScopeMap[constants.SUPERUSER_SCOPE] {
+			return fmt.Errorf(
+				"cannot update app to add superuser permission")
+		}
+
 		// Add new permissions
-		for _, method := range newScopes {
-			if !existingScopeMap[method] {
+		for _, scope := range newScopes {
+			if !existingScopeMap[scope] {
 				perm := db.AppPermission{
 					App:           *userApp,
-					Scope:         method,
+					Scope:         scope,
 					ExpiresAt:     expiresAt,
 					MaxAmountSat:  int(maxAmount),
 					BudgetRenewal: budgetRenewal,
@@ -217,12 +222,12 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 					return err
 				}
 			}
-			delete(existingScopeMap, method)
+			delete(existingScopeMap, scope)
 		}
 
 		// Remove old permissions
-		for method := range existingScopeMap {
-			if err := tx.Where("app_id = ? AND scope = ?", userApp.ID, method).Delete(&db.AppPermission{}).Error; err != nil {
+		for scope := range existingScopeMap {
+			if err := tx.Where("app_id = ? AND scope = ?", userApp.ID, scope).Delete(&db.AppPermission{}).Error; err != nil {
 				return err
 			}
 		}
@@ -280,20 +285,29 @@ func (api *api) GetApp(dbApp *db.App) *App {
 		}
 	}
 
+	walletPubkey := api.keys.GetNostrPublicKey()
+	uniqueWalletPubkey := false
+	if dbApp.WalletPubkey != nil {
+		walletPubkey = *dbApp.WalletPubkey
+		uniqueWalletPubkey = true
+	}
+
 	response := App{
-		ID:            dbApp.ID,
-		Name:          dbApp.Name,
-		Description:   dbApp.Description,
-		CreatedAt:     dbApp.CreatedAt,
-		UpdatedAt:     dbApp.UpdatedAt,
-		AppPubkey:     dbApp.AppPubkey,
-		ExpiresAt:     expiresAt,
-		MaxAmountSat:  maxAmount,
-		Scopes:        requestMethods,
-		BudgetUsage:   budgetUsage,
-		BudgetRenewal: paySpecificPermission.BudgetRenewal,
-		Isolated:      dbApp.Isolated,
-		Metadata:      metadata,
+		ID:                 dbApp.ID,
+		Name:               dbApp.Name,
+		Description:        dbApp.Description,
+		CreatedAt:          dbApp.CreatedAt,
+		UpdatedAt:          dbApp.UpdatedAt,
+		AppPubkey:          dbApp.AppPubkey,
+		ExpiresAt:          expiresAt,
+		MaxAmountSat:       maxAmount,
+		Scopes:             requestMethods,
+		BudgetUsage:        budgetUsage,
+		BudgetRenewal:      paySpecificPermission.BudgetRenewal,
+		Isolated:           dbApp.Isolated,
+		Metadata:           metadata,
+		WalletPubkey:       walletPubkey,
+		UniqueWalletPubkey: uniqueWalletPubkey,
 	}
 
 	if dbApp.Isolated {
@@ -331,14 +345,22 @@ func (api *api) ListApps() ([]App, error) {
 
 	apiApps := []App{}
 	for _, dbApp := range dbApps {
+		walletPubkey := api.keys.GetNostrPublicKey()
+		uniqueWalletPubkey := false
+		if dbApp.WalletPubkey != nil {
+			walletPubkey = *dbApp.WalletPubkey
+			uniqueWalletPubkey = true
+		}
 		apiApp := App{
-			ID:          dbApp.ID,
-			Name:        dbApp.Name,
-			Description: dbApp.Description,
-			CreatedAt:   dbApp.CreatedAt,
-			UpdatedAt:   dbApp.UpdatedAt,
-			AppPubkey:   dbApp.AppPubkey,
-			Isolated:    dbApp.Isolated,
+			ID:                 dbApp.ID,
+			Name:               dbApp.Name,
+			Description:        dbApp.Description,
+			CreatedAt:          dbApp.CreatedAt,
+			UpdatedAt:          dbApp.UpdatedAt,
+			AppPubkey:          dbApp.AppPubkey,
+			Isolated:           dbApp.Isolated,
+			WalletPubkey:       walletPubkey,
+			UniqueWalletPubkey: uniqueWalletPubkey,
 		}
 
 		if dbApp.Isolated {
@@ -416,6 +438,24 @@ func (api *api) ListChannels(ctx context.Context) ([]Channel, error) {
 			Status:                                   status,
 		})
 	}
+
+	slices.SortFunc(apiChannels, func(a, b Channel) int {
+		// sort by channel size first
+		aSize := a.LocalBalance + a.RemoteBalance
+		bSize := b.LocalBalance + b.RemoteBalance
+		if aSize != bSize {
+			return int(bSize - aSize)
+		}
+
+		// then by local balance in the channel
+		if a.LocalBalance != b.LocalBalance {
+			return int(b.LocalBalance - a.LocalBalance)
+		}
+
+		// finally sort by channel ID to prevent sort randomly changing
+		return strings.Compare(b.Id, a.Id)
+	})
+
 	return apiChannels, nil
 }
 
@@ -712,6 +752,8 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	ldkVssEnabled, _ := api.cfg.Get("LdkVssEnabled", "")
 	autoUnlockPassword, _ := api.cfg.Get("AutoUnlockPassword", "")
 	info.SetupCompleted = api.cfg.SetupCompleted()
+	info.Currency = api.cfg.GetCurrency()
+	info.StartupState = api.svc.GetStartupState()
 	if api.startupError != nil {
 		info.StartupError = api.startupError.Error()
 		info.StartupErrorTime = api.startupErrorTime
@@ -748,6 +790,20 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	return &info, nil
 }
 
+func (api *api) SetCurrency(currency string) error {
+	if currency == "" {
+		return fmt.Errorf("currency value cannot be empty")
+	}
+
+	err := api.cfg.SetCurrency(currency)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to update currency")
+		return err
+	}
+
+	return nil
+}
+
 func (api *api) GetMnemonic(unlockPassword string) (*MnemonicResponse, error) {
 	if !api.cfg.CheckUnlockPassword(unlockPassword) {
 		return nil, fmt.Errorf("wrong password")
@@ -762,7 +818,7 @@ func (api *api) GetMnemonic(unlockPassword string) (*MnemonicResponse, error) {
 		Mnemonic: mnemonic,
 	}
 
-	return &resp, err
+	return &resp, nil
 }
 
 func (api *api) SetNextBackupReminder(backupReminderRequest *BackupReminderRequest) error {
@@ -1057,7 +1113,13 @@ func (api *api) Health(ctx context.Context) (*HealthResponse, error) {
 		}
 
 		offlineChannels := slices.DeleteFunc(channels, func(channel lnclient.Channel) bool {
-			return channel.Active
+			if channel.Active {
+				return true
+			}
+			if channel.Confirmations == nil || channel.ConfirmationsRequired == nil {
+				return false
+			}
+			return *channel.Confirmations < *channel.ConfirmationsRequired
 		})
 
 		if len(offlineChannels) > 0 {
@@ -1066,6 +1128,93 @@ func (api *api) Health(ctx context.Context) (*HealthResponse, error) {
 	}
 
 	return &HealthResponse{Alarms: alarms}, nil
+}
+
+func (api *api) GetCustomNodeCommands() (*CustomNodeCommandsResponse, error) {
+	lnClient := api.svc.GetLNClient()
+	if lnClient == nil {
+		return nil, errors.New("LNClient not started")
+	}
+
+	allCommandDefs := lnClient.GetCustomNodeCommandDefinitions()
+	commandDefs := make([]CustomNodeCommandDef, 0, len(allCommandDefs))
+	for _, commandDef := range allCommandDefs {
+		argDefs := make([]CustomNodeCommandArgDef, 0, len(commandDef.Args))
+		for _, argDef := range commandDef.Args {
+			argDefs = append(argDefs, CustomNodeCommandArgDef{
+				Name:        argDef.Name,
+				Description: argDef.Description,
+			})
+		}
+		commandDefs = append(commandDefs, CustomNodeCommandDef{
+			Name:        commandDef.Name,
+			Description: commandDef.Description,
+			Args:        argDefs,
+		})
+	}
+
+	return &CustomNodeCommandsResponse{Commands: commandDefs}, nil
+}
+
+func (api *api) ExecuteCustomNodeCommand(ctx context.Context, command string) (interface{}, error) {
+	lnClient := api.svc.GetLNClient()
+	if lnClient == nil {
+		return nil, errors.New("LNClient not started")
+	}
+
+	// Split command line into arguments. Command name must be the first argument.
+	parsedArgs, err := utils.ParseCommandLine(command)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse node command: %w", err)
+	} else if len(parsedArgs) == 0 {
+		return nil, errors.New("no command provided")
+	}
+
+	// Look up the requested command definition.
+	allCommandDefs := lnClient.GetCustomNodeCommandDefinitions()
+	commandDefIdx := slices.IndexFunc(allCommandDefs, func(def lnclient.CustomNodeCommandDef) bool {
+		return def.Name == parsedArgs[0]
+	})
+	if commandDefIdx < 0 {
+		return nil, fmt.Errorf("unknown command: %q", parsedArgs[0])
+	}
+
+	// Build flag set.
+	commandDef := allCommandDefs[commandDefIdx]
+	flagSet := flag.NewFlagSet(commandDef.Name, flag.ContinueOnError)
+	for _, argDef := range commandDef.Args {
+		flagSet.String(argDef.Name, "", argDef.Description)
+	}
+
+	if err = flagSet.Parse(parsedArgs[1:]); err != nil {
+		return nil, fmt.Errorf("failed to parse command arguments: %w", err)
+	}
+
+	// Collect flags that have been set.
+	argValues := make(map[string]string)
+	flagSet.Visit(func(f *flag.Flag) {
+		argValues[f.Name] = f.Value.String()
+	})
+
+	reqArgs := make([]lnclient.CustomNodeCommandArg, 0, len(argValues))
+	for _, argDef := range commandDef.Args {
+		if argValue, ok := argValues[argDef.Name]; ok {
+			reqArgs = append(reqArgs, lnclient.CustomNodeCommandArg{
+				Name:  argDef.Name,
+				Value: argValue,
+			})
+		}
+	}
+
+	nodeResp, err := lnClient.ExecuteCustomNodeCommand(ctx, &lnclient.CustomNodeCommandRequest{
+		Name: commandDef.Name,
+		Args: reqArgs,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("node failed to execute custom command: %w", err)
+	}
+
+	return nodeResp.Response, nil
 }
 
 func (api *api) parseExpiresAt(expiresAtString string) (*time.Time, error) {

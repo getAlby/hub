@@ -1,5 +1,6 @@
 import { CircleCheck, CopyIcon } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -32,6 +33,12 @@ export default function PaymentSuccess() {
         </CardHeader>
         <CardContent className="flex flex-col items-center gap-4">
           <CircleCheck className="w-32 h-32 mb-2" />
+          <div className="flex flex-col gap-2 items-center">
+            <p className="text-xl font-bold slashed-zero">
+              {new Intl.NumberFormat().format(state.amount)} sats
+            </p>
+            <FormattedFiatAmount amount={state.amount} />
+          </div>
           <Button onClick={copy} variant="outline">
             <CopyIcon className="w-4 h-4 mr-2" />
             Copy Preimage

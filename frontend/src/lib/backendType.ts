@@ -33,7 +33,7 @@ export const backendTypeConfigs: Record<BackendType, BackendTypeConfig> = {
     hasNodeBackup: false,
   },
   CASHU: {
-    hasMnemonic: false,
+    hasMnemonic: true,
     hasChannelManagement: false,
     hasNodeBackup: false,
   },

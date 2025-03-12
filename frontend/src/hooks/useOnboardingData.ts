@@ -1,6 +1,6 @@
 // src/hooks/useOnboardingData.ts
 
-import { useAlbyBalance } from "src/hooks/useAlbyBalance";
+import { SUPPORT_ALBY_CONNECTION_NAME } from "src/constants";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useApps } from "src/hooks/useApps";
 import { useChannels } from "src/hooks/useChannels";
@@ -22,7 +22,6 @@ interface UseOnboardingDataResponse {
 }
 
 export const useOnboardingData = (): UseOnboardingDataResponse => {
-  const { data: albyBalance } = useAlbyBalance();
   const { data: albyMe } = useAlbyMe();
   const { data: apps } = useApps();
   const { data: channels } = useChannels();
@@ -36,7 +35,7 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
     !info ||
     !nodeConnectionInfo ||
     !transactions ||
-    (info.albyAccountConnected && (!albyMe || !albyBalance));
+    (info.albyAccountConnected && !albyMe);
 
   if (isLoading) {
     return { isLoading: true, checklistItems: [] };
@@ -55,16 +54,23 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
     new Date(info.nextBackupReminder).getTime() > new Date().getTime();
   const hasCustomApp =
     apps && apps.find((x) => x.name !== "getalby.com") !== undefined;
-  const hasTransaction = transactions.length > 0;
+  const hasTransaction = transactions.totalCount > 0;
+  const hasSetupSupportPayment =
+    apps &&
+    apps.find((x) => x.name === SUPPORT_ALBY_CONNECTION_NAME) !== undefined;
 
   const checklistItems: Omit<ChecklistItem, "disabled">[] = [
-    {
-      title: "Open your first channel",
-      description:
-        "Establish a new Lightning channel to enable fast and low-fee Bitcoin transactions.",
-      checked: hasChannel,
-      to: "/channels/first",
-    },
+    ...(hasChannelManagement
+      ? [
+          {
+            title: "Open your first channel",
+            description:
+              "Establish a new Lightning channel to enable fast and low-fee Bitcoin transactions.",
+            checked: hasChannel,
+            to: "/channels/first",
+          },
+        ]
+      : []),
     ...(info.albyAccountConnected
       ? [
           {
@@ -98,6 +104,17 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
               "Secure your keys by creating a backup to ensure you don't lose access.",
             checked: hasBackedUp === true,
             to: "/settings/backup",
+          },
+        ]
+      : []),
+    ...(!info.oauthRedirect
+      ? [
+          {
+            title: "Support Alby Hub",
+            description:
+              "Setup a recurring payment to support the development of Alby Hub",
+            checked: hasSetupSupportPayment,
+            to: "/support-alby",
           },
         ]
       : []),

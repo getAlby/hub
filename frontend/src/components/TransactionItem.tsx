@@ -14,6 +14,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import AppAvatar from "src/components/AppAvatar";
 import ExternalLink from "src/components/ExternalLink";
+import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import PodcastingInfo from "src/components/PodcastingInfo";
 import {
   Dialog,
@@ -72,7 +73,7 @@ function TransactionItem({ tx }: Props) {
           tx.state === "failed"
             ? "bg-red-100 dark:bg-rose-950"
             : tx.state === "pending"
-              ? "bg-blue-500 dark:bg-sky-500"
+              ? "bg-blue-100 dark:bg-sky-950"
               : type === "outgoing"
                 ? "bg-orange-100 dark:bg-amber-950"
                 : "bg-green-100 dark:bg-emerald-950"
@@ -141,7 +142,7 @@ function TransactionItem({ tx }: Props) {
                 </span>
                 {from !== undefined && <>&nbsp;{from}</>}
                 <span className="text-xs md:text-base ml-2 truncate text-muted-foreground">
-                  {dayjs(tx.settledAt || tx.createdAt).fromNow()}
+                  {dayjs(tx.updatedAt).fromNow()}
                 </span>
               </p>
             </div>
@@ -149,28 +150,29 @@ function TransactionItem({ tx }: Props) {
               {tx.description}
             </p>
           </div>
-          <div className="flex ml-auto text-right space-x-3 shrink-0">
-            <div className="flex items-center gap-2 md:text-xl">
-              <p
-                className={cn(
-                  "font-semibold",
-                  type == "incoming" && "text-green-600 dark:text-emerald-500"
-                )}
-              >
-                {type == "outgoing" ? "-" : "+"}
-                {new Intl.NumberFormat().format(
-                  Math.floor(tx.amount / 1000)
-                )}{" "}
-              </p>
-              <p className="text-foreground">
-                {Math.floor(tx.amount / 1000) == 1 ? "sat" : "sats"}
-              </p>
-
-              {/* {!!tx.totalAmountFiat && (
-                <p className="text-xs text-muted-foreground">
-                  ~{tx.totalAmountFiat}
+          <div className="flex ml-auto space-x-3 shrink-0">
+            <div className="flex flex-col items-end md:text-xl">
+              <div className="flex flex-row gap-1">
+                <p
+                  className={cn(
+                    type == "incoming" && "text-green-600 dark:text-emerald-500"
+                  )}
+                >
+                  {type == "outgoing" ? "-" : "+"}
+                  <span className="font-medium">
+                    {new Intl.NumberFormat().format(
+                      Math.floor(tx.amount / 1000)
+                    )}
+                  </span>
                 </p>
-              )} */}
+                <p className="text-muted-foreground">
+                  {Math.floor(tx.amount / 1000) == 1 ? "sat" : "sats"}
+                </p>
+              </div>
+              <FormattedFiatAmount
+                className="text-xs md:text-base"
+                amount={Math.floor(tx.amount / 1000)}
+              />
             </div>
           </div>
         </div>
@@ -193,6 +195,7 @@ function TransactionItem({ tx }: Props) {
                   {new Intl.NumberFormat().format(Math.floor(tx.amount / 1000))}{" "}
                   {Math.floor(tx.amount / 1000) == 1 ? "sat" : "sats"}
                 </p>
+                <FormattedFiatAmount amount={Math.floor(tx.amount / 1000)} />
               </div>
             </div>
             {app && (
@@ -208,7 +211,7 @@ function TransactionItem({ tx }: Props) {
             <div className="mt-6">
               <p>Date & Time</p>
               <p className="text-muted-foreground">
-                {dayjs(tx.settledAt || tx.createdAt)
+                {dayjs(tx.updatedAt)
                   .tz(dayjs.tz.guess())
                   .format("D MMMM YYYY, HH:mm")}
               </p>

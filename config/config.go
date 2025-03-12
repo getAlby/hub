@@ -71,6 +71,13 @@ func (cfg *config) init(env *AppConfig) error {
 		if err != nil {
 			return err
 		}
+	} else if cfg.Env.LNBackendType == "LND" {
+		// If no LNDCertFile is provided, clear any stored certificate
+		// hex value so that no certificate is used for TLS verification.
+		err := cfg.SetUpdate("LNDCertHex", "", "")
+		if err != nil {
+			return err
+		}
 	}
 	if cfg.Env.LNDMacaroonFile != "" {
 		macBytes, err := os.ReadFile(cfg.Env.LNDMacaroonFile)
@@ -205,6 +212,9 @@ func (cfg *config) SetUpdate(key string, value string, encryptionKey string) err
 }
 
 func (cfg *config) ChangeUnlockPassword(currentUnlockPassword string, newUnlockPassword string) error {
+	if newUnlockPassword == "" {
+		return errors.New("New unlock password must not be empty")
+	}
 	if !cfg.CheckUnlockPassword(currentUnlockPassword) {
 		return errors.New("incorrect password")
 	}
@@ -287,4 +297,27 @@ func randomHex(n int) (string, error) {
 		return "", err
 	}
 	return hex.EncodeToString(bytes), nil
+}
+
+const defaultCurrency = "USD"
+
+func (cfg *config) GetCurrency() string {
+	currency, err := cfg.Get("Currency", "")
+	if err != nil || currency == "" {
+		logger.Logger.WithError(err).Debug("Currency not found, using default")
+		return defaultCurrency
+	}
+	return currency
+}
+
+func (cfg *config) SetCurrency(value string) error {
+	if value == "" {
+		return errors.New("currency value cannot be empty")
+	}
+	err := cfg.SetUpdate("Currency", value, "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to update currency")
+		return err
+	}
+	return nil
 }

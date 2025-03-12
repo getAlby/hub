@@ -95,6 +95,16 @@ _If you get a blank screen, try running in your normal terminal (outside of vsco
 
     $ go test ./... -run TestHandleGetInfoEvent
 
+#### Mocking
+
+We use [testify/mock](https://github.com/stretchr/testify) to facilitate mocking in tests. Instead of writing mocks manually, we generate them using [vektra/mockery](https://github.com/vektra/mockery). To regenerate them, [install mockery](https://vektra.github.io/mockery/latest/installation) and run it in the project's root directory:
+
+> Use `go install github.com/vektra/mockery/v2@v2.52.1` as go 1.24.0 is currently not supported by Alby Hub.
+
+    $ mockery
+
+Mockery loads its configuration from the .mockery.yaml file in the root directory of this project. To add mocks for new interfaces, add them to the configuration file and run mockery.
+
 ### Profiling
 
 The application supports both the Go pprof library and the DataDog profiler.
@@ -278,7 +288,7 @@ If the client creates the secret the client only needs to share the public key o
 - `pubkey`: the public key of the client's secret for the user to authorize
 - `return_to`: (optional) if a `return_to` URL is provided the user will be redirected to that URL after authorization. The `lud16`, `relay` and `pubkey` query parameters will be added to the URL.
 - `expires_at` (optional) connection cannot be used after this date. Unix timestamp in seconds.
-- `max_amount` (optional) maximum amount in sats that can be sent per renewal period
+- `max_amount` (optional) maximum amount in millisats that can be sent per renewal period
 - `budget_renewal` (optional) reset the budget at the end of the given budget renewal. Can be `never` (default), `daily`, `weekly`, `monthly`, `yearly`
 - `request_methods` (optional) url encoded, space separated list of request types that you need permission for: `pay_invoice` (default), `get_balance` (see NIP47). For example: `..&request_methods=pay_invoice%20get_balance`
 - `notification_types` (optional) url encoded, space separated list of notification types that you need permission for: For example: `..&notification_types=payment_received%20payment_sent`
@@ -291,18 +301,7 @@ Example:
 #### Web-flow: client created secret
 
 Web clients can open a new prompt popup to load the authorization page.
-Once the user has authorized the app connection a `nwc:success` message is sent to the opening page (using `postMessage`) to indicate that the connection is authorized. See the `initNWC()` function in the [alby-js-sdk](https://github.com/getAlby/alby-js-sdk#nostr-wallet-connect-documentation)
-
-Example:
-
-```js
-import { webln } from "alby-js-sdk";
-const nwc = new webln.NWC();
-// initNWC opens a prompt with /apps/new?c=myapp&pubkey=xxxx
-// the promise resolves once the user has authorized the connection (when the `nwc:success` message is received) and the popup is closed automatically
-// the promise rejects if the user cancels by closing the prompt popup
-await nwc.initNWC({ name: "myapp" });
-```
+Once the user has authorized the app connection a `nwc:success` message is sent to the webview (using `dispatchEvent`) or opening page (using `postMessage`) to indicate that the connection is authorized. See the `fromAuthorizationUrl()` function in the [alby-js-sdk](https://github.com/getAlby/alby-js-sdk#nostr-wallet-connect-documentation)
 
 ## Help
 
@@ -524,6 +523,7 @@ Internally Alby Hub uses a basic implementation of the pubsub messaging pattern 
     - `nwc_app_created` - a new app connection was created
     - `nwc_app_deleted` - a new app connection was deleted
     - `nwc_lnclient_*` - underlying LNClient events, consumed only by the transactions service.
+    - `nwc_alby_account_connected` - user connects alby account for first time
 
 ### NIP-47 Handlers
 

@@ -12,7 +12,6 @@ import (
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/nip47/models"
-	"github.com/getAlby/hub/nip47/permissions"
 	"github.com/getAlby/hub/tests"
 	"github.com/getAlby/hub/transactions"
 )
@@ -85,14 +84,13 @@ func TestHandlePayInvoiceEvent(t *testing.T) {
 		publishedResponse = response
 	}
 
-	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
-	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
-	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
+	NewTestNip47Controller(svc).
 		HandlePayInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse, nostr.Tags{})
 
 	assert.Equal(t, "123preimage", publishedResponse.Result.(payResponse).Preimage)
 
 	transactionType := constants.TRANSACTION_TYPE_OUTGOING
+	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
 	transaction, err := transactionsSvc.LookupTransaction(ctx, "23277d5e13fce5534f9752c62fcf9337a2a6b0ebea9d21fa816a4c9d054cf93b", &transactionType, svc.LNClient, &app.ID)
 	assert.NoError(t, err)
 
@@ -136,14 +134,13 @@ func TestHandlePayInvoiceEvent_0Amount(t *testing.T) {
 		publishedResponse = response
 	}
 
-	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
-	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
-	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
+	NewTestNip47Controller(svc).
 		HandlePayInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse, nostr.Tags{})
 
 	assert.Equal(t, "123preimage", publishedResponse.Result.(payResponse).Preimage)
 
 	transactionType := constants.TRANSACTION_TYPE_OUTGOING
+	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
 	transaction, err := transactionsSvc.LookupTransaction(ctx, tests.Mock0AmountPaymentHash, &transactionType, svc.LNClient, &app.ID)
 	assert.NoError(t, err)
 	// from the request amount
@@ -181,9 +178,7 @@ func TestHandlePayInvoiceEvent_MalformedInvoice(t *testing.T) {
 		publishedResponse = response
 	}
 
-	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
-	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
-	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
+	NewTestNip47Controller(svc).
 		HandlePayInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse, nostr.Tags{})
 
 	assert.Nil(t, publishedResponse.Result)
@@ -222,9 +217,7 @@ func TestHandlePayInvoiceEvent_ExpiredInvoice(t *testing.T) {
 		publishedResponse = response
 	}
 
-	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
-	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
-	NewNip47Controller(svc.LNClient, svc.DB, svc.EventPublisher, permissionsSvc, transactionsSvc).
+	NewTestNip47Controller(svc).
 		HandlePayInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse, nostr.Tags{})
 
 	assert.Nil(t, publishedResponse.Result)

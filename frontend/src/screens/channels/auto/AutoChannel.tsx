@@ -18,7 +18,7 @@ import { request } from "src/utils/request";
 
 import { MempoolAlert } from "src/components/MempoolAlert";
 import { PayLightningInvoice } from "src/components/PayLightningInvoice";
-import { ChannelPublicPrivateAlert } from "src/screens/channels/ChannelPublicPrivateAlert";
+import { ChannelPublicPrivateAlert } from "src/components/channels/ChannelPublicPrivateAlert";
 
 export function AutoChannel() {
   const { data: info } = useInfo();

@@ -286,14 +286,16 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 	case len(invoiceMatch) > 1:
 		invoice := invoiceMatch[1]
 		payRequest := &api.PayInvoiceRequest{}
-		err := json.Unmarshal([]byte(body), payRequest)
-		if err != nil {
-			logger.Logger.WithFields(logrus.Fields{
-				"route":  route,
-				"method": method,
-				"body":   body,
-			}).WithError(err).Error("Failed to decode request to wails router")
-			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		if body != "" {
+			err := json.Unmarshal([]byte(body), payRequest)
+			if err != nil {
+				logger.Logger.WithFields(logrus.Fields{
+					"route":  route,
+					"method": method,
+					"body":   body,
+				}).WithError(err).Error("Failed to decode request to wails router")
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
 		}
 		paymentResponse, err := app.api.SendPayment(ctx, invoice, payRequest.Amount)
 		if err != nil {
@@ -339,12 +341,6 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		return WailsRequestRouterResponse{Body: &alby.AlbyBalanceResponse{
 			Sats: balance.Balance,
 		}, Error: ""}
-	case "/api/alby/drain":
-		err := app.svc.GetAlbyOAuthSvc().DrainSharedWallet(ctx, app.svc.GetLNClient())
-		if err != nil {
-			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
-		}
-		return WailsRequestRouterResponse{Body: nil, Error: ""}
 	case "/api/alby/unlink-account":
 		err := app.svc.GetAlbyOAuthSvc().UnlinkAccount(ctx)
 		if err != nil {
@@ -371,10 +367,9 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		rate, err := app.svc.GetAlbyOAuthSvc().GetBitcoinRate(ctx)
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
-				"route":    route,
-				"method":   method,
-				"body":     body,
-				"currency": "usd",
+				"route":  route,
+				"method": method,
+				"body":   body,
 			}).WithError(err).Error("Failed to get Bitcoin rate")
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
@@ -715,6 +710,28 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: nil, Error: ""}
+	case "/api/settings":
+		updateSettingsRequest := &api.UpdateSettingsRequest{}
+		err := json.Unmarshal([]byte(body), updateSettingsRequest)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).WithError(err).Error("Failed to decode request to wails router")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+
+		err = app.api.SetCurrency(updateSettingsRequest.Currency)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).WithError(err).Error("Failed to set Currency")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: nil, Error: ""}
 	case "/api/auto-unlock":
 		autoUnlockRequest := &api.AutoUnlockRequest{}
 		err := json.Unmarshal([]byte(body), autoUnlockRequest)
@@ -921,6 +938,38 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: *nodeHealth, Error: ""}
+	case "/api/commands":
+		nodeCommandsResponse, err := app.api.GetCustomNodeCommands()
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).WithError(err).Error("Failed to get node commands")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: nodeCommandsResponse, Error: ""}
+	case "/api/command":
+		commandRequest := &api.ExecuteCustomNodeCommandRequest{}
+		err := json.Unmarshal([]byte(body), commandRequest)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).WithError(err).Error("Failed to decode request to wails router")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		commandResponse, err := app.api.ExecuteCustomNodeCommand(ctx, commandRequest.Command)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).WithError(err).Error("Failed to execute command")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: commandResponse, Error: ""}
 	}
 
 	if strings.HasPrefix(route, "/api/log/") {

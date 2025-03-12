@@ -21,10 +21,10 @@ type AlbyOAuthService interface {
 	GetBalance(ctx context.Context) (*AlbyBalance, error)
 	GetMe(ctx context.Context) (*AlbyMe, error)
 	SendPayment(ctx context.Context, invoice string) error
-	DrainSharedWallet(ctx context.Context, lnClient lnclient.LNClient) error
 	UnlinkAccount(ctx context.Context) error
 	RequestAutoChannel(ctx context.Context, lnClient lnclient.LNClient, isPublic bool) (*AutoChannelResponse, error)
 	GetVssAuthToken(ctx context.Context, nodeIdentifier string) (string, error)
+	RemoveOAuthAccessToken() error
 }
 
 type AlbyBalanceResponse struct {

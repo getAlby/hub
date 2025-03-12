@@ -36,7 +36,7 @@ type TransactionsService interface {
 	events.EventSubscriber
 	MakeInvoice(ctx context.Context, amount uint64, description string, descriptionHash string, expiry uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	LookupTransaction(ctx context.Context, paymentHash string, transactionType *string, lnClient lnclient.LNClient, appId *uint) (*Transaction, error)
-	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, transactionType *string, lnClient lnclient.LNClient, appId *uint, forceFilterByAppId bool) (transactions []Transaction, err error)
+	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, transactionType *string, lnClient lnclient.LNClient, appId *uint, forceFilterByAppId bool) (transactions []Transaction, totalCount uint64, err error)
 	SendPaymentSync(ctx context.Context, payReq string, amountMsat *uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []lnclient.TLVRecord, preimage string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 }
@@ -232,8 +232,16 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 			PaymentHash: paymentRequest.PaymentHash,
 			State:       constants.TRANSACTION_STATE_SETTLED,
 		}).RowsAffected > 0 {
-			logger.Logger.WithField("payment_hash", dbTransaction.PaymentHash).Info("this invoice has already been paid")
+			logger.Logger.WithField("payment_hash", dbTransaction.PaymentHash).Debug("this invoice has already been paid")
 			return errors.New("this invoice has already been paid")
+		}
+		if tx.Limit(1).Find(&existingSettledTransaction, &db.Transaction{
+			Type:        constants.TRANSACTION_TYPE_OUTGOING,
+			PaymentHash: paymentRequest.PaymentHash,
+			State:       constants.TRANSACTION_STATE_PENDING,
+		}).RowsAffected > 0 {
+			logger.Logger.WithField("payment_hash", dbTransaction.PaymentHash).Debug("this invoice is already being paid")
+			return errors.New("there is already a payment pending for this invoice")
 		}
 
 		err := svc.validateCanPay(tx, appId, paymentAmount, paymentRequest.Description)
@@ -525,7 +533,7 @@ func (svc *transactionsService) LookupTransaction(ctx context.Context, paymentHa
 	return &transaction, nil
 }
 
-func (svc *transactionsService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, transactionType *string, lnClient lnclient.LNClient, appId *uint, forceFilterByAppId bool) (transactions []Transaction, err error) {
+func (svc *transactionsService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, transactionType *string, lnClient lnclient.LNClient, appId *uint, forceFilterByAppId bool) (transactions []Transaction, totalCount uint64, err error) {
 	svc.checkUnsettledTransactions(ctx, lnClient)
 
 	tx := svc.db
@@ -545,10 +553,10 @@ func (svc *transactionsService) ListTransactions(ctx context.Context, from, unti
 	}
 
 	if from > 0 {
-		tx = tx.Where("created_at >= ?", time.Unix(int64(from), 0))
+		tx = tx.Where("updated_at >= ?", time.Unix(int64(from), 0))
 	}
 	if until > 0 {
-		tx = tx.Where("created_at <= ?", time.Unix(int64(until), 0))
+		tx = tx.Where("updated_at <= ?", time.Unix(int64(until), 0))
 	}
 
 	if appId != nil {
@@ -557,7 +565,7 @@ func (svc *transactionsService) ListTransactions(ctx context.Context, from, unti
 			ID: *appId,
 		})
 		if result.RowsAffected == 0 {
-			return nil, NewNotFoundError()
+			return nil, 0, NewNotFoundError()
 		}
 		if app.Isolated || forceFilterByAppId {
 			tx = tx.Where("app_id = ?", *appId)
@@ -566,6 +574,14 @@ func (svc *transactionsService) ListTransactions(ctx context.Context, from, unti
 
 	tx = tx.Order("updated_at desc")
 
+	var totalCount64 int64
+	result := tx.Model(&db.Transaction{}).Count(&totalCount64)
+	if result.Error != nil {
+		logger.Logger.WithError(result.Error).Error("Failed to count DB transactions")
+		return nil, 0, result.Error
+	}
+	totalCount = uint64(totalCount64)
+
 	if limit > 0 {
 		tx = tx.Limit(int(limit))
 	}
@@ -573,13 +589,13 @@ func (svc *transactionsService) ListTransactions(ctx context.Context, from, unti
 		tx = tx.Offset(int(offset))
 	}
 
-	result := tx.Find(&transactions)
+	result = tx.Find(&transactions)
 	if result.Error != nil {
 		logger.Logger.WithError(result.Error).Error("Failed to list DB transactions")
-		return nil, result.Error
+		return nil, 0, result.Error
 	}
 
-	return transactions, nil
+	return transactions, totalCount, nil
 }
 
 func (svc *transactionsService) checkUnsettledTransactions(ctx context.Context, lnClient lnclient.LNClient) {
@@ -953,7 +969,7 @@ func (svc *transactionsService) markTransactionSettled(tx *gorm.DB, dbTransactio
 		PaymentHash: dbTransaction.PaymentHash,
 		State:       constants.TRANSACTION_STATE_SETTLED,
 	}).RowsAffected > 0 {
-		logger.Logger.WithField("payment_hash", dbTransaction.PaymentHash).Error("payment already marked as sent")
+		logger.Logger.WithField("payment_hash", dbTransaction.PaymentHash).Debug("payment already marked as sent")
 		return &existingSettledTransaction, nil
 	}
 

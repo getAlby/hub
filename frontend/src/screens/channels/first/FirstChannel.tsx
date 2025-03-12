@@ -19,10 +19,7 @@ import { request } from "src/utils/request";
 
 import { MempoolAlert } from "src/components/MempoolAlert";
 import { PayLightningInvoice } from "src/components/PayLightningInvoice";
-import {
-  ALBY_HIDE_HOSTED_BALANCE_BELOW,
-  ALBY_MIN_HOSTED_BALANCE_FOR_FIRST_CHANNEL,
-} from "src/constants";
+import { ALBY_MIN_HOSTED_BALANCE_FOR_FIRST_CHANNEL } from "src/constants";
 
 export function FirstChannel() {
   const { data: info } = useInfo();
@@ -92,9 +89,6 @@ export function FirstChannel() {
     albyBalance &&
     albyBalance.sats >= ALBY_MIN_HOSTED_BALANCE_FOR_FIRST_CHANNEL;
 
-  const canMigrateFunds =
-    albyBalance && albyBalance.sats >= ALBY_HIDE_HOSTED_BALANCE_BELOW;
-
   return (
     <>
       <AppHeader
@@ -142,15 +136,22 @@ export function FirstChannel() {
             {canPayForFirstChannel ? (
               <>
                 <p>
-                  Your Alby hosted balance currently holds{" "}
+                  You currently have{" "}
                   <span className="font-medium text-foreground sensitive slashed-zero">
-                    {new Intl.NumberFormat().format(albyBalance?.sats)} sats
-                  </span>
-                  .
+                    {new Intl.NumberFormat().format(albyBalance?.sats)} Alby fee
+                    credits.
+                  </span>{" "}
+                  <Link
+                    to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-account/faqs-alby-account/what-are-fee-credits-in-my-alby-account"
+                    target="_blank"
+                    className="underline"
+                  >
+                    Learn more
+                  </Link>
                 </p>
                 <p>
-                  Those funds will be used to open your first lightning channel
-                  and then migrated to your Hub spending balance.
+                  These fee credits will be applied to open your first Lightning
+                  channel.
                 </p>
               </>
             ) : (
@@ -204,7 +205,6 @@ export function FirstChannel() {
             )}
             <LoadingButton loading={isLoading} onClick={openChannel}>
               Open Channel
-              {canMigrateFunds && <> and Transfer Funds</>}
             </LoadingButton>
           </div>
         </>

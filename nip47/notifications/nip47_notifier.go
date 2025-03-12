@@ -8,38 +8,32 @@ import (
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/events"
-	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/nip47/cipher"
 	"github.com/getAlby/hub/nip47/models"
 	"github.com/getAlby/hub/nip47/permissions"
 	nostrmodels "github.com/getAlby/hub/nostr/models"
 	"github.com/getAlby/hub/service/keys"
-	"github.com/getAlby/hub/transactions"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
 type Nip47Notifier struct {
-	relay               nostrmodels.Relay
-	cfg                 config.Config
-	keys                keys.Keys
-	lnClient            lnclient.LNClient
-	db                  *gorm.DB
-	permissionsSvc      permissions.PermissionsService
-	transactionsService transactions.TransactionsService
+	relay          nostrmodels.Relay
+	cfg            config.Config
+	keys           keys.Keys
+	db             *gorm.DB
+	permissionsSvc permissions.PermissionsService
 }
 
-func NewNip47Notifier(relay nostrmodels.Relay, db *gorm.DB, cfg config.Config, keys keys.Keys, permissionsSvc permissions.PermissionsService, transactionsService transactions.TransactionsService, lnClient lnclient.LNClient) *Nip47Notifier {
+func NewNip47Notifier(relay nostrmodels.Relay, db *gorm.DB, cfg config.Config, keys keys.Keys, permissionsSvc permissions.PermissionsService) *Nip47Notifier {
 	return &Nip47Notifier{
-		relay:               relay,
-		cfg:                 cfg,
-		db:                  db,
-		lnClient:            lnClient,
-		permissionsSvc:      permissionsSvc,
-		transactionsService: transactionsService,
-		keys:                keys,
+		relay:          relay,
+		cfg:            cfg,
+		db:             db,
+		permissionsSvc: permissionsSvc,
+		keys:           keys,
 	}
 }
 
@@ -120,16 +114,16 @@ func (notifier *Nip47Notifier) notifySubscribers(ctx context.Context, notificati
 			return
 		}
 
-		notifier.notifySubscriber(ctx, &app, notification, tags, appWalletPubKey, appWalletPrivKey, "0.0")
-		notifier.notifySubscriber(ctx, &app, notification, tags, appWalletPubKey, appWalletPrivKey, "1.0")
+		notifier.notifySubscriber(ctx, &app, notification, tags, appWalletPubKey, appWalletPrivKey, constants.ENCRYPTION_TYPE_NIP04)
+		notifier.notifySubscriber(ctx, &app, notification, tags, appWalletPubKey, appWalletPrivKey, constants.ENCRYPTION_TYPE_NIP44_V2)
 	}
 }
 
-func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *db.App, notification *Notification, tags nostr.Tags, appWalletPubKey, appWalletPrivKey string, version string) {
+func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *db.App, notification *Notification, tags nostr.Tags, appWalletPubKey, appWalletPrivKey string, encryption string) {
 	logger.Logger.WithFields(logrus.Fields{
 		"notification": notification,
 		"appId":        app.ID,
-		"version":      version,
+		"encryption":   encryption,
 	}).Debug("Notifying subscriber")
 
 	var err error
@@ -139,17 +133,17 @@ func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *db.App
 		logger.Logger.WithFields(logrus.Fields{
 			"notification": notification,
 			"appId":        app.ID,
-			"version":      version,
+			"encryption":   encryption,
 		}).WithError(err).Error("Failed to stringify notification")
 		return
 	}
 
-	nip47Cipher, err := cipher.NewNip47Cipher(version, app.AppPubkey, appWalletPrivKey)
+	nip47Cipher, err := cipher.NewNip47Cipher(encryption, app.AppPubkey, appWalletPrivKey)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"notification": notification,
 			"appId":        app.ID,
-			"version":      version,
+			"encryption":   encryption,
 		}).WithError(err).Error("Failed to initialize cipher")
 		return
 	}
@@ -159,7 +153,7 @@ func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *db.App
 		logger.Logger.WithFields(logrus.Fields{
 			"notification": notification,
 			"appId":        app.ID,
-			"version":      version,
+			"encryption":   encryption,
 		}).WithError(err).Error("Failed to encrypt notification payload")
 		return
 	}
@@ -175,7 +169,7 @@ func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *db.App
 		Content:   msg,
 	}
 
-	if version == "0.0" {
+	if encryption == constants.ENCRYPTION_TYPE_NIP04 {
 		event.Kind = models.LEGACY_NOTIFICATION_KIND
 	}
 
@@ -184,7 +178,7 @@ func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *db.App
 		logger.Logger.WithFields(logrus.Fields{
 			"notification": notification,
 			"appId":        app.ID,
-			"version":      version,
+			"encryption":   encryption,
 		}).WithError(err).Error("Failed to sign event")
 		return
 	}
@@ -194,12 +188,12 @@ func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *db.App
 		logger.Logger.WithFields(logrus.Fields{
 			"notification": notification,
 			"appId":        app.ID,
-			"version":      version,
+			"encryption":   encryption,
 		}).WithError(err).Error("Failed to publish notification")
 		return
 	}
 	logger.Logger.WithFields(logrus.Fields{
-		"appId":   app.ID,
-		"version": version,
+		"appId":      app.ID,
+		"encryption": encryption,
 	}).Debug("Published notification event")
 }

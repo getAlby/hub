@@ -5,7 +5,6 @@ import {
   CopyIcon,
   ExternalLinkIcon,
   Heart,
-  Hotel,
   HourglassIcon,
   InfoIcon,
   LinkIcon,
@@ -14,14 +13,14 @@ import {
   ZapIcon,
 } from "lucide-react";
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import AppHeader from "src/components/AppHeader.tsx";
 import { ChannelsCards } from "src/components/channels/ChannelsCards.tsx";
 import { ChannelsTable } from "src/components/channels/ChannelsTable.tsx";
+import { SwapDialogs } from "src/components/channels/SwapDialogs";
 import EmptyState from "src/components/EmptyState.tsx";
 import ExternalLink from "src/components/ExternalLink";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
-import { TransferFundsButton } from "src/components/TransferFundsButton";
 import {
   Alert,
   AlertDescription,
@@ -31,18 +30,9 @@ import { Button } from "src/components/ui/button.tsx";
 import {
   Card,
   CardContent,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "src/components/ui/card.tsx";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "src/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -52,9 +42,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "src/components/ui/dropdown-menu.tsx";
-import { Input } from "src/components/ui/input";
-import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import { CircleProgress } from "src/components/ui/progress.tsx";
 import {
   Tooltip,
@@ -63,37 +50,46 @@ import {
   TooltipTrigger,
 } from "src/components/ui/tooltip.tsx";
 import { useToast } from "src/components/ui/use-toast.ts";
-import {
-  ALBY_HIDE_HOSTED_BALANCE_BELOW as ALBY_HIDE_HOSTED_BALANCE_LIMIT,
-  ONCHAIN_DUST_SATS,
-} from "src/constants.ts";
-import { useAlbyBalance } from "src/hooks/useAlbyBalance.ts";
+import { ONCHAIN_DUST_SATS } from "src/constants.ts";
 import { useBalances } from "src/hooks/useBalances.ts";
 import { useChannels } from "src/hooks/useChannels";
 import { useIsDesktop } from "src/hooks/useMediaQuery.ts";
 import { useNodeConnectionInfo } from "src/hooks/useNodeConnectionInfo.ts";
-import { useOnchainAddress } from "src/hooks/useOnchainAddress";
 import { useSyncWallet } from "src/hooks/useSyncWallet.ts";
 import { copyToClipboard } from "src/lib/clipboard.ts";
 import { cn } from "src/lib/utils.ts";
-import { Channel, CreateInvoiceRequest, Node, Transaction } from "src/types";
-import { openLink } from "src/utils/openLink";
+import { Channel, Node } from "src/types";
 import { request } from "src/utils/request";
 
 export default function Channels() {
   useSyncWallet();
-  const { data: channels, mutate: reloadChannels } = useChannels();
+  const { data: channels } = useChannels();
   const { data: nodeConnectionInfo } = useNodeConnectionInfo();
-  const { data: balances, mutate: reloadBalances } = useBalances();
-  const { data: albyBalance, mutate: reloadAlbyBalance } = useAlbyBalance();
+  const { data: balances } = useBalances();
   const navigate = useNavigate();
   const [nodes, setNodes] = React.useState<Node[]>([]);
-  const [swapInAmount, setSwapInAmount] = React.useState("");
-  const [swapOutAmount, setSwapOutAmount] = React.useState("");
   const [swapOutDialogOpen, setSwapOutDialogOpen] = React.useState(false);
   const [swapInDialogOpen, setSwapInDialogOpen] = React.useState(false);
-  const [loadingSwap, setLoadingSwap] = React.useState(false);
-  const { getNewAddress } = useOnchainAddress();
+  const [hasOpenedSwapDialog, setOpenedSwapDialog] = React.useState(false);
+  const [searchParams] = useSearchParams();
+
+  React.useEffect(() => {
+    if (
+      !hasOpenedSwapDialog &&
+      balances &&
+      channels &&
+      searchParams.has("swap", "true")
+    ) {
+      setOpenedSwapDialog(true);
+      if (
+        balances.lightning.totalSpendable > balances.lightning.totalReceivable
+      ) {
+        setSwapOutDialogOpen(true);
+      } else {
+        setSwapInDialogOpen(true);
+      }
+    }
+  }, [balances, channels, hasOpenedSwapDialog, searchParams]);
 
   const { toast } = useToast();
   const isDesktop = useIsDesktop();
@@ -125,45 +121,6 @@ export default function Channels() {
     loadNodeStats();
   }, [loadNodeStats]);
 
-  function openSwapOutDialog() {
-    setSwapOutAmount(
-      Math.floor(
-        ((findChannelWithLargestBalance("localSpendableBalance")
-          ?.localSpendableBalance || 0) *
-          0.9) /
-          1000
-      ).toString()
-    );
-    setSwapOutDialogOpen(true);
-  }
-  function openSwapInDialog() {
-    setSwapInAmount(
-      Math.floor(
-        ((findChannelWithLargestBalance("remoteBalance")?.remoteBalance || 0) *
-          0.9) /
-          1000
-      ).toString()
-    );
-    setSwapInDialogOpen(true);
-  }
-
-  function findChannelWithLargestBalance(
-    balanceType: "remoteBalance" | "localSpendableBalance"
-  ): Channel | undefined {
-    if (!channels || channels.length === 0) {
-      return undefined;
-    }
-
-    return channels.reduce((prevLargest, current) => {
-      return current[balanceType] > prevLargest[balanceType]
-        ? current
-        : prevLargest;
-    }, channels[0]);
-  }
-
-  const showHostedBalance =
-    albyBalance && albyBalance.sats > ALBY_HIDE_HOSTED_BALANCE_LIMIT;
-
   return (
     <>
       <AppHeader
@@ -171,121 +128,12 @@ export default function Channels() {
         description="Manage your lightning node liquidity."
         contentRight={
           <div className="flex gap-3 items-center justify-center">
-            {/* TODO: move these dialogs to a new file */}
-            <Dialog
-              open={swapOutDialogOpen}
-              onOpenChange={setSwapOutDialogOpen}
-            >
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Swap out funds</DialogTitle>
-                  <DialogDescription>
-                    Funds from one of your channels will be sent to your
-                    on-chain balance via a swap service. This helps restore your
-                    inbound liquidity.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid grid-cols-4">
-                  <Label className="pt-3">Amount (sats)</Label>
-                  <div className="col-span-3">
-                    <Input
-                      value={swapOutAmount}
-                      onChange={(e) => setSwapOutAmount(e.target.value)}
-                    />
-                    <p className="text-muted-foreground text-xs p-2">
-                      The amount is set to 90% of the maximum spending capacity
-                      available in one of your lightning channels.
-                    </p>
-                  </div>
-                </div>
-                <DialogFooter>
-                  <LoadingButton
-                    loading={loadingSwap}
-                    type="submit"
-                    onClick={async () => {
-                      setLoadingSwap(true);
-                      const onchainAddress = await getNewAddress();
-                      if (onchainAddress) {
-                        openLink(
-                          `https://boltz.exchange/?sendAsset=LN&receiveAsset=BTC&sendAmount=${swapOutAmount}&destination=${onchainAddress}&ref=alby`
-                        );
-                      }
-                      setLoadingSwap(false);
-                    }}
-                  >
-                    Swap out
-                  </LoadingButton>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-            <Dialog open={swapInDialogOpen} onOpenChange={setSwapInDialogOpen}>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Swap in funds</DialogTitle>
-                  <DialogDescription>
-                    Swap on-chain funds into your lightning channels via a swap
-                    service, increasing your spending balance using on-chain
-                    funds from{" "}
-                    <Link to="/wallet/withdraw" className="underline">
-                      your hub
-                    </Link>{" "}
-                    or an external wallet.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid grid-cols-4">
-                  <Label className="pt-3">Amount (sats)</Label>
-                  <div className="col-span-3">
-                    <Input
-                      value={swapInAmount}
-                      onChange={(e) => setSwapInAmount(e.target.value)}
-                    />
-                    <p className="text-muted-foreground text-xs p-2">
-                      The amount is set to 90% of the maximum receiving capacity
-                      available in one of your lightning channels.
-                    </p>
-                  </div>
-                </div>
-                <DialogFooter>
-                  <LoadingButton
-                    loading={loadingSwap}
-                    type="submit"
-                    onClick={async () => {
-                      setLoadingSwap(true);
-                      try {
-                        const transaction = await request<Transaction>(
-                          "/api/invoices",
-                          {
-                            method: "POST",
-                            headers: {
-                              "Content-Type": "application/json",
-                            },
-                            body: JSON.stringify({
-                              amount: parseInt(swapInAmount) * 1000,
-                              description: "Boltz Swap In",
-                            } as CreateInvoiceRequest),
-                          }
-                        );
-                        if (!transaction) {
-                          throw new Error("no transaction in response");
-                        }
-                        openLink(
-                          `https://boltz.exchange/?sendAsset=BTC&receiveAsset=LN&sendAmount=${swapInAmount}&destination=${transaction.invoice}&ref=alby`
-                        );
-                      } catch (error) {
-                        toast({
-                          variant: "destructive",
-                          title: "Failed to generate swap invoice",
-                          description: "" + error,
-                        });
-                      }
-                      setLoadingSwap(false);
-                    }}
-                  >
-                    Swap in
-                  </LoadingButton>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+            <SwapDialogs
+              setSwapOutDialogOpen={setSwapOutDialogOpen}
+              swapOutDialogOpen={swapOutDialogOpen}
+              setSwapInDialogOpen={setSwapInDialogOpen}
+              swapInDialogOpen={swapInDialogOpen}
+            />
             <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
                 {isDesktop ? (
@@ -354,7 +202,7 @@ export default function Channels() {
                 <DropdownMenuGroup>
                   <DropdownMenuLabel>Swaps</DropdownMenuLabel>
                   <DropdownMenuItem
-                    onClick={openSwapInDialog}
+                    onClick={() => setSwapInDialogOpen(true)}
                     className="cursor-pointer"
                   >
                     <div className="mr-2 text-muted-foreground flex flex-row items-center">
@@ -365,7 +213,7 @@ export default function Channels() {
                     Swap in
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    onClick={openSwapOutDialog}
+                    onClick={() => setSwapOutDialogOpen(true)}
                     className="cursor-pointer"
                   >
                     <div className="mr-2 text-muted-foreground flex flex-row items-center">
@@ -442,9 +290,18 @@ export default function Channels() {
               <AlertTitle>Low receiving limit</AlertTitle>
               <AlertDescription>
                 You likely won't be able to receive payments until you{" "}
+                <Link
+                  className="underline"
+                  to="#"
+                  onClick={() => setSwapOutDialogOpen(true)}
+                >
+                  swap out funds
+                </Link>{" "}
+                or{" "}
                 <Link className="underline" to="/channels/incoming">
-                  increase your receiving limits.
+                  increase your receiving limits
                 </Link>
+                .
               </AlertDescription>
             </Alert>
           )}
@@ -454,52 +311,20 @@ export default function Channels() {
       <div
         className={cn("flex flex-col sm:flex-row flex-wrap gap-3 slashed-zero")}
       >
-        {showHostedBalance && (
-          <Card className="flex flex-col">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Alby Hosted Balance
-              </CardTitle>
-              <Hotel className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent className="flex-grow">
-              <div className="text-2xl font-bold">
-                {new Intl.NumberFormat().format(albyBalance.sats)} sats
-              </div>
-            </CardContent>
-            <CardFooter className="flex justify-end space-x-1">
-              <TransferFundsButton
-                variant="outline"
-                channels={channels}
-                albyBalance={albyBalance}
-                onTransferComplete={() =>
-                  Promise.all([
-                    reloadAlbyBalance(),
-                    reloadBalances(),
-                    reloadChannels(),
-                  ])
-                }
-              >
-                Transfer
-              </TransferFundsButton>
-            </CardFooter>
-          </Card>
-        )}
-
         <Card className="flex flex-1 sm:flex-[2] flex-col">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="font-semibold">Lightning</CardTitle>
-            <ZapIcon className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="font-semibold text-2xl">Lightning</CardTitle>
+            <ZapIcon className="h-6 w-6 text-muted-foreground" />
           </CardHeader>
 
           <CardContent className="flex flex-col sm:flex-row pl-0 flex-wrap">
             <div className="flex flex-col flex-1">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pr-0">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 pr-0">
                 <CardTitle className="text-sm font-medium">
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger>
-                        <div className="flex flex-row gap-1 items-center justify-start text-sm text-secondary-foreground">
+                        <div className="flex flex-row gap-1 items-center justify-start text-sm font-medium">
                           Spending Balance
                           <InfoIcon className="h-3 w-3 shrink-0 text-muted-foreground" />
                         </div>
@@ -507,6 +332,28 @@ export default function Channels() {
                       <TooltipContent className="w-[300px]">
                         Your spending balance is the funds on your side of your
                         channels, which you can use to make lightning payments.
+                        Your total lightning balance is{" "}
+                        {new Intl.NumberFormat().format(
+                          channels
+                            ?.map((channel) =>
+                              Math.floor(channel.localBalance / 1000)
+                            )
+                            .reduce((a, b) => a + b, 0) || 0
+                        )}{" "}
+                        sats which includes{" "}
+                        {new Intl.NumberFormat().format(
+                          Math.floor(
+                            channels
+                              ?.map((channel) =>
+                                Math.min(
+                                  Math.floor(channel.localBalance / 1000),
+                                  channel.unspendablePunishmentReserve
+                                )
+                              )
+                              .reduce((a, b) => a + b, 0) || 0
+                          )
+                        )}{" "}
+                        sats reserved in your channels which cannot be spent.
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -521,19 +368,27 @@ export default function Channels() {
                   </div>
                 )}
                 {balances && (
-                  <FormattedFiatAmount
-                    amount={balances.lightning.totalSpendable / 1000}
-                  />
+                  <>
+                    <div className="text-xl font-medium balance sensitive mb-1">
+                      {new Intl.NumberFormat().format(
+                        Math.floor(balances.lightning.totalSpendable / 1000)
+                      )}{" "}
+                      sats
+                    </div>
+                    <FormattedFiatAmount
+                      amount={balances.lightning.totalSpendable / 1000}
+                    />
+                  </>
                 )}
               </CardContent>
             </div>
             <div className="flex flex-col flex-1">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pr-0">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 pr-0">
                 <CardTitle className="text-sm font-medium">
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger>
-                        <div className="flex flex-row gap-1 items-center justify-start text-sm text-secondary-foreground">
+                        <div className="flex flex-row gap-1 items-center justify-start text-sm font-medium">
                           Receive Limit
                           <InfoIcon className="h-3 w-3 shrink-0 text-muted-foreground" />
                         </div>
@@ -549,9 +404,17 @@ export default function Channels() {
               </CardHeader>
               <CardContent className="flex-grow pb-0">
                 {balances && (
-                  <FormattedFiatAmount
-                    amount={balances.lightning.totalReceivable / 1000}
-                  />
+                  <>
+                    <div className="text-xl font-medium balance sensitive mb-1">
+                      {new Intl.NumberFormat().format(
+                        Math.floor(balances.lightning.totalReceivable / 1000)
+                      )}{" "}
+                      sats
+                    </div>
+                    <FormattedFiatAmount
+                      amount={balances.lightning.totalReceivable / 1000}
+                    />
+                  </>
                 )}
               </CardContent>
             </div>
@@ -559,24 +422,25 @@ export default function Channels() {
         </Card>
         <Card className="flex flex-1 flex-col">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="font-semibold">On-Chain</CardTitle>
-            <LinkIcon className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-2xl font-semibold">On-Chain</CardTitle>
+            <LinkIcon className="h-6 w-6 text-muted-foreground" />
           </CardHeader>
           <CardContent className="flex-grow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pl-0">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 pl-0">
               <CardTitle className="text-sm font-medium">
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger>
-                      <div className="flex flex-row gap-1 items-center text-sm text-secondary-foreground">
+                      <div className="flex flex-row gap-1 items-center text-sm font-medium">
                         Balance
                         <InfoIcon className="h-3 w-3 shrink-0 text-muted-foreground" />
                       </div>
                     </TooltipTrigger>
                     <TooltipContent className="w-[300px]">
                       Your on-chain balance can be used to open new outgoing
-                      lightning channels. When channels are closed, funds on
-                      your side of your channel will be returned to your savings
+                      lightning channels and to ensure channels can be closed
+                      when required. When channels are closed, funds on your
+                      side of your channel will be returned to your on-chain
                       balance.
                     </TooltipContent>
                   </Tooltip>
@@ -590,10 +454,39 @@ export default function Channels() {
                 </div>
               </div>
             )}
-            <div className="text-2xl balance sensitive">
+            <div>
               {balances && (
                 <>
-                  <FormattedFiatAmount amount={balances.onchain.spendable} />
+                  <div className="mb-1">
+                    <span className="text-xl font-medium balance sensitive mb-1 mr-1">
+                      {new Intl.NumberFormat().format(
+                        Math.floor(balances.onchain.spendable)
+                      )}{" "}
+                      sats
+                    </span>
+                    {!!channels?.length &&
+                      balances.onchain.reserved + balances.onchain.spendable <
+                        25_000 && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <AlertTriangle className="w-3 h-3 text-muted-foreground" />
+                            </TooltipTrigger>
+                            <TooltipContent className="w-[300px]">
+                              You have insufficient funds in reserve to close
+                              channels or bump on-chain transactions and
+                              currently rely on the counterparty. It is
+                              recommended to deposit at least 25,000 sats to
+                              your on-chain balance.
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
+                  </div>
+                  <FormattedFiatAmount
+                    amount={balances.onchain.spendable}
+                    className="mb-1"
+                  />
                   {balances &&
                     balances.onchain.spendable !== balances.onchain.total && (
                       <p className="text-xs text-muted-foreground animate-pulse">
@@ -621,7 +514,10 @@ export default function Channels() {
               balances.onchain.pendingBalancesFromChannelClosures
             )}{" "}
             sats pending from closed channels with
-            {balances.onchain.pendingBalancesDetails.map((details, index) => (
+            {[
+              ...balances.onchain.pendingBalancesDetails,
+              ...balances.onchain.pendingSweepBalancesDetails,
+            ].map((details, index) => (
               <div key={details.channelId} className="inline">
                 &nbsp;
                 <ExternalLink

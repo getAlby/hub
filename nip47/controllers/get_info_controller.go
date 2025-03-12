@@ -13,15 +13,16 @@ import (
 )
 
 type getInfoResponse struct {
-	Alias         string      `json:"alias"`
-	Color         string      `json:"color"`
-	Pubkey        string      `json:"pubkey"`
-	Network       string      `json:"network"`
-	BlockHeight   uint32      `json:"block_height"`
-	BlockHash     string      `json:"block_hash"`
-	Methods       []string    `json:"methods"`
-	Notifications []string    `json:"notifications"`
-	Metadata      interface{} `json:"metadata,omitempty"`
+	Alias            string      `json:"alias"`
+	Color            string      `json:"color"`
+	Pubkey           string      `json:"pubkey"`
+	Network          string      `json:"network"`
+	BlockHeight      uint32      `json:"block_height"`
+	BlockHash        string      `json:"block_hash"`
+	Methods          []string    `json:"methods"`
+	Notifications    []string    `json:"notifications"`
+	Metadata         interface{} `json:"metadata,omitempty"`
+	LightningAddress string      `json:"lud16"`
 }
 
 func (controller *nip47Controller) HandleGetInfoEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, app *db.App, publishResponse publishFunc) {
@@ -89,6 +90,10 @@ func (controller *nip47Controller) HandleGetInfoEvent(ctx context.Context, nip47
 			}
 			if metadata["name"] == nil {
 				metadata["name"] = app.Name
+			}
+			if !app.Isolated {
+				lightningAddress, _ := controller.albyOAuthService.GetLightningAddress()
+				responsePayload.LightningAddress = lightningAddress
 			}
 
 			responsePayload.Metadata = metadata
