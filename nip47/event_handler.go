@@ -267,7 +267,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 	svc.db.Save(&requestEvent) // we ignore potential DB errors here as this only saves the method and content data
 
 	// TODO: replace with a channel
-	// TODO: update all previous occurences of svc.publishResponseEvent to also use the channel
+	// TODO: update all previous occurrences of svc.publishResponseEvent to also use the channel
 	publishResponse := func(nip47Response *models.Response, tags nostr.Tags) {
 		resp, err := svc.CreateResponse(event, nip47Response, tags, nip47Cipher, appWalletPrivKey)
 		if err != nil {

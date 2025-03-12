@@ -402,7 +402,7 @@ func (svc *LNDService) SendKeysend(ctx context.Context, amount uint64, destinati
 			"payment_hash": paymentHash,
 			"preimage":     preimage,
 			"reason":       failureReasonMessage,
-		}).Error("Keysend not succcessful")
+		}).Error("Keysend not successful")
 		return nil, errors.New(failureReasonMessage)
 	}
 

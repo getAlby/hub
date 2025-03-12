@@ -820,7 +820,7 @@ func (httpSvc *HttpService) signMessageHandler(c echo.Context) error {
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to sign messae: %s", err.Error()),
+			Message: fmt.Sprintf("Failed to sign message: %s", err.Error()),
 		})
 	}
 	return c.JSON(http.StatusOK, signMessageResponse)
