@@ -1,4 +1,5 @@
 import {
+  AlertCircleIcon,
   AlertTriangleIcon,
   ChevronDown,
   CopyIcon,
@@ -297,6 +298,18 @@ export default function WithdrawOnchainFunds() {
             Please double-check the destination address. This transaction cannot
             be reversed.
           </p>
+
+          {+feeRate > recommendedFees.fastestFee && (
+            <Alert>
+              <AlertCircleIcon className="h-4 w-4" />
+              <AlertTitle>Fee rate exceeds the current fastest fee</AlertTitle>
+              <AlertDescription>
+                While a higher fee may speed up confirmation, it could also mean
+                you're overpaying. Please review your fee rate before
+                proceeding.
+              </AlertDescription>
+            </Alert>
+          )}
 
           <div>
             <AlertDialog
