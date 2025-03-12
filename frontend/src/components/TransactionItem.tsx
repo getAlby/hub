@@ -212,7 +212,11 @@ function TransactionItem({ tx }: Props) {
               <p>Date & Time</p>
               <p className="text-muted-foreground">
                 {dayjs(tx.updatedAt)
-                  .tz(dayjs.tz.guess())
+                  .tz(
+                    dayjs.tz.guess() !== "Etc/Unknown"
+                      ? dayjs.tz.guess()
+                      : "UTC"
+                  )
                   .format("D MMMM YYYY, HH:mm")}
               </p>
             </div>
