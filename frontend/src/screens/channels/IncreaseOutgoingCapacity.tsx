@@ -382,7 +382,7 @@ function NewChannelInternal({ network }: { network: Network }) {
                   Not recommended for most users.{" "}
                   <ExternalLink
                     className="underline"
-                    to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/how-to-open-a-channel"
+                    to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/should-i-open-a-private-or-public-channel"
                   >
                     Learn more
                   </ExternalLink>
