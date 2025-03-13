@@ -118,6 +118,8 @@ export interface App {
   name: string;
   description: string;
   appPubkey: string;
+  uniqueWalletPubkey: boolean;
+  walletPubkey: string;
   createdAt: string;
   updatedAt: string;
   lastEventAt?: string;

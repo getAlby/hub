@@ -27,7 +27,6 @@ import (
 )
 
 func (svc *service) startNostr(ctx context.Context) error {
-
 	relayUrl := svc.cfg.GetRelayUrl()
 
 	npub, err := nip19.EncodePublicKey(svc.keys.GetNostrPublicKey())
@@ -49,6 +48,7 @@ func (svc *service) startNostr(ctx context.Context) error {
 		waitToReconnectSeconds := 0
 		var createAppEventListener events.EventSubscriber
 		var updateAppEventListener events.EventSubscriber
+		publishInfoEvents := true
 		for i := 0; ; i++ {
 			// wait for a delay if any before retrying
 			contextCancelled := false
@@ -90,6 +90,8 @@ func (svc *service) startNostr(ctx context.Context) error {
 			}).Info("Connected to the relay")
 			waitToReconnectSeconds = 0
 
+			svc.nip47Service.StartNotifier(relay.Context(), relay)
+
 			// register a subscriber for events of "nwc_app_created" which handles creation of nostr subscription for new app
 			if createAppEventListener != nil {
 				svc.eventPublisher.RemoveSubscriber(createAppEventListener)
@@ -105,7 +107,7 @@ func (svc *service) startNostr(ctx context.Context) error {
 			svc.eventPublisher.RegisterSubscriber(updateAppEventListener)
 
 			// start each app wallet subscription which have a child derived wallet key
-			svc.startAllExistingAppsWalletSubscriptions(ctx, relay)
+			svc.startAllExistingAppsWalletSubscriptions(ctx, relay, publishInfoEvents)
 
 			// check if there are still legacy apps in DB
 			var legacyAppCount int64
@@ -116,11 +118,12 @@ func (svc *service) startNostr(ctx context.Context) error {
 			}
 			if legacyAppCount > 0 {
 				go func() {
-					// re-publish single NIP47 event info for legacy apps
-					_, err := svc.GetNip47Service().PublishNip47Info(ctx, relay, svc.keys.GetNostrPublicKey(), svc.keys.GetNostrSecretKey(), svc.lnClient)
-					if err != nil {
-						logger.Logger.WithError(err).Error("Could not publish NIP47 info for legacy apps")
-						return
+					if publishInfoEvents {
+						// re-publish single NIP47 event info for legacy apps
+						_, err := svc.GetNip47Service().PublishNip47Info(ctx, relay, svc.keys.GetNostrPublicKey(), svc.keys.GetNostrSecretKey(), svc.lnClient)
+						if err != nil {
+							logger.Logger.WithError(err).Error("Could not publish NIP47 info for legacy apps")
+						}
 					}
 					logger.Logger.WithField("legacy_app_count", legacyAppCount).Info("Starting legacy app subscription")
 					// legacy single wallet subscription - only subscribe once for all legacy apps
@@ -133,6 +136,8 @@ func (svc *service) startNostr(ctx context.Context) error {
 				}()
 			}
 
+			// only publish info events on first connection
+			publishInfoEvents = false
 			svc.setRelayReady(true)
 
 			select {
@@ -153,7 +158,7 @@ func (svc *service) startNostr(ctx context.Context) error {
 	return nil
 }
 
-func (svc *service) startAllExistingAppsWalletSubscriptions(ctx context.Context, relay *nostr.Relay) {
+func (svc *service) startAllExistingAppsWalletSubscriptions(ctx context.Context, relay *nostr.Relay, publishInfoEvent bool) {
 	var apps []db.App
 	result := svc.db.Where("wallet_pubkey IS NOT NULL").Find(&apps)
 	if result.Error != nil {
@@ -165,10 +170,16 @@ func (svc *service) startAllExistingAppsWalletSubscriptions(ctx context.Context,
 		go func(app db.App) {
 			// republish info event for all existing apps
 			walletPrivKey, err := svc.keys.GetAppWalletKey(app.ID)
-			_, err = svc.GetNip47Service().PublishNip47Info(ctx, relay, *app.WalletPubkey, walletPrivKey, svc.lnClient)
 			if err != nil {
 				logger.Logger.WithError(err).WithFields(logrus.Fields{
-					"app_id": app.ID}).Error("Could not publish NIP47 info")
+					"app_id": app.ID}).Error("Could not get app wallet key")
+			}
+			if publishInfoEvent {
+				_, err = svc.GetNip47Service().PublishNip47Info(ctx, relay, *app.WalletPubkey, walletPrivKey, svc.lnClient)
+				if err != nil {
+					logger.Logger.WithError(err).WithFields(logrus.Fields{
+						"app_id": app.ID}).Error("Could not publish NIP47 info")
+				}
 			}
 
 			err = svc.startAppWalletSubscription(ctx, relay, *app.WalletPubkey)
@@ -202,8 +213,6 @@ func (svc *service) startAppWalletSubscription(ctx context.Context, relay *nostr
 }
 
 func (svc *service) StartSubscription(ctx context.Context, sub *nostr.Subscription) error {
-	svc.nip47Service.StartNotifier(ctx, sub.Relay, svc.lnClient)
-
 	go func() {
 		// loop through incoming events
 		for event := range sub.Events {

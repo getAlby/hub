@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"math"
 	"net/http"
 	"regexp"
 	"slices"
@@ -31,7 +30,6 @@ import (
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/nip47/permissions"
 	"github.com/getAlby/hub/service/keys"
-	"github.com/getAlby/hub/transactions"
 	"github.com/getAlby/hub/utils"
 	"github.com/getAlby/hub/version"
 )
@@ -121,13 +119,18 @@ func (svc *albyOAuthService) CallbackHandler(ctx context.Context, code string, l
 		return err
 	}
 
-	// save the user's alby account ID on first time login
 	if existingUserIdentifier == "" {
+		// save the user's alby account ID on first time login
 		err := svc.cfg.SetUpdate(userIdentifierKey, me.Identifier, "")
 		if err != nil {
 			logger.Logger.WithError(err).Error("Failed to set user identifier")
 			return err
 		}
+		// notify that this was the first time the user connected their account
+		svc.eventPublisher.Publish(&events.Event{
+			Event:      "nwc_alby_account_connected",
+			Properties: map[string]interface{}{},
+		})
 	} else if me.Identifier != existingUserIdentifier {
 		// remove token so user can retry with correct account
 		err := svc.cfg.SetUpdate(accessTokenKey, "", "")
@@ -483,45 +486,6 @@ func (svc *albyOAuthService) GetBalance(ctx context.Context) (*AlbyBalance, erro
 
 	logger.Logger.WithFields(logrus.Fields{"balance": balance}).Debug("Alby balance response")
 	return balance, nil
-}
-
-func (svc *albyOAuthService) DrainSharedWallet(ctx context.Context, lnClient lnclient.LNClient) error {
-	balance, err := svc.GetBalance(ctx)
-	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to fetch shared balance")
-		return err
-	}
-
-	balanceSat := float64(balance.Balance)
-
-	amountSat := int64(math.Floor(
-		balanceSat- // Alby shared node balance in sats
-			(balanceSat*(8.0/1000.0))- // Alby service fee (0.8%)
-			(balanceSat*0.01))) - // Maximum potential routing fees (1%)
-		10 // Alby fee reserve (10 sats)
-
-	if amountSat < 1 {
-		return errors.New("not enough balance remaining")
-	}
-	// limit the maximum to 1M sats to ensure the funds can easily be migrated
-	// the user can migrate more if they still have sats left over
-	amountSat = min(amountSat, 1_000_000)
-	amount := uint64(amountSat * 1000)
-
-	logger.Logger.WithField("amount", amount).WithError(err).Error("Draining Alby shared wallet funds")
-
-	transaction, err := transactions.NewTransactionsService(svc.db, svc.eventPublisher).MakeInvoice(ctx, amount, "Send shared wallet funds to Alby Hub", "", 120, nil, lnClient, nil, nil)
-	if err != nil {
-		logger.Logger.WithField("amount", amount).WithError(err).Error("Failed to make invoice")
-		return err
-	}
-
-	err = svc.SendPayment(ctx, transaction.PaymentRequest)
-	if err != nil {
-		logger.Logger.WithField("amount", amount).WithError(err).Error("Failed to pay invoice from shared node")
-		return err
-	}
-	return nil
 }
 
 func (svc *albyOAuthService) SendPayment(ctx context.Context, invoice string) error {
@@ -1503,5 +1467,6 @@ func getEventWhitelist() []string {
 		"nwc_node_start_failed",
 		"nwc_node_stop_failed",
 		"nwc_node_stopped",
+		"nwc_alby_account_connected",
 	}
 }

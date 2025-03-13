@@ -1,13 +1,11 @@
 import { compare } from "compare-versions";
 import {
+  CircleHelp,
   EllipsisVertical,
   GemIcon,
   Home,
   LayoutGrid,
-  LifeBuoy,
-  Lightbulb,
   Lock,
-  Megaphone,
   Menu,
   Plug2,
   PlugZapIcon,
@@ -170,39 +168,17 @@ export default function AppLayout() {
           <Settings className="h-4 w-4" />
           Settings
         </MenuItem>
+
         <MenuItem
           to="/"
           onClick={(e) => {
             openLink("https://support.getalby.com");
+            openLink("https://support.getalby.com");
             e.preventDefault();
           }}
         >
-          <LifeBuoy className="h-4 w-4" />
-          Support
-        </MenuItem>
-        <MenuItem
-          to="/"
-          onClick={(e) => {
-            openLink(
-              "https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub"
-            );
-            e.preventDefault();
-          }}
-        >
-          <Lightbulb className="h-4 w-4" />
-          Guides
-        </MenuItem>
-        <MenuItem
-          to="/"
-          onClick={(e) => {
-            openLink(
-              "https://feedback.getalby.com/-alby-hub-request-a-feature"
-            );
-            e.preventDefault();
-          }}
-        >
-          <Megaphone className="h-4 w-4" />
-          Feedback
+          <CircleHelp className="h-4 w-4" />
+          Help
         </MenuItem>
         <UpgradeDialog>
           <div className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-accent-foreground">

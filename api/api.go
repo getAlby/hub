@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"slices"
+	"strings"
 	"sync"
 	"time"
 
@@ -284,20 +285,29 @@ func (api *api) GetApp(dbApp *db.App) *App {
 		}
 	}
 
+	walletPubkey := api.keys.GetNostrPublicKey()
+	uniqueWalletPubkey := false
+	if dbApp.WalletPubkey != nil {
+		walletPubkey = *dbApp.WalletPubkey
+		uniqueWalletPubkey = true
+	}
+
 	response := App{
-		ID:            dbApp.ID,
-		Name:          dbApp.Name,
-		Description:   dbApp.Description,
-		CreatedAt:     dbApp.CreatedAt,
-		UpdatedAt:     dbApp.UpdatedAt,
-		AppPubkey:     dbApp.AppPubkey,
-		ExpiresAt:     expiresAt,
-		MaxAmountSat:  maxAmount,
-		Scopes:        requestMethods,
-		BudgetUsage:   budgetUsage,
-		BudgetRenewal: paySpecificPermission.BudgetRenewal,
-		Isolated:      dbApp.Isolated,
-		Metadata:      metadata,
+		ID:                 dbApp.ID,
+		Name:               dbApp.Name,
+		Description:        dbApp.Description,
+		CreatedAt:          dbApp.CreatedAt,
+		UpdatedAt:          dbApp.UpdatedAt,
+		AppPubkey:          dbApp.AppPubkey,
+		ExpiresAt:          expiresAt,
+		MaxAmountSat:       maxAmount,
+		Scopes:             requestMethods,
+		BudgetUsage:        budgetUsage,
+		BudgetRenewal:      paySpecificPermission.BudgetRenewal,
+		Isolated:           dbApp.Isolated,
+		Metadata:           metadata,
+		WalletPubkey:       walletPubkey,
+		UniqueWalletPubkey: uniqueWalletPubkey,
 	}
 
 	if dbApp.Isolated {
@@ -335,14 +345,22 @@ func (api *api) ListApps() ([]App, error) {
 
 	apiApps := []App{}
 	for _, dbApp := range dbApps {
+		walletPubkey := api.keys.GetNostrPublicKey()
+		uniqueWalletPubkey := false
+		if dbApp.WalletPubkey != nil {
+			walletPubkey = *dbApp.WalletPubkey
+			uniqueWalletPubkey = true
+		}
 		apiApp := App{
-			ID:          dbApp.ID,
-			Name:        dbApp.Name,
-			Description: dbApp.Description,
-			CreatedAt:   dbApp.CreatedAt,
-			UpdatedAt:   dbApp.UpdatedAt,
-			AppPubkey:   dbApp.AppPubkey,
-			Isolated:    dbApp.Isolated,
+			ID:                 dbApp.ID,
+			Name:               dbApp.Name,
+			Description:        dbApp.Description,
+			CreatedAt:          dbApp.CreatedAt,
+			UpdatedAt:          dbApp.UpdatedAt,
+			AppPubkey:          dbApp.AppPubkey,
+			Isolated:           dbApp.Isolated,
+			WalletPubkey:       walletPubkey,
+			UniqueWalletPubkey: uniqueWalletPubkey,
 		}
 
 		if dbApp.Isolated {
@@ -420,6 +438,24 @@ func (api *api) ListChannels(ctx context.Context) ([]Channel, error) {
 			Status:                                   status,
 		})
 	}
+
+	slices.SortFunc(apiChannels, func(a, b Channel) int {
+		// sort by channel size first
+		aSize := a.LocalBalance + a.RemoteBalance
+		bSize := b.LocalBalance + b.RemoteBalance
+		if aSize != bSize {
+			return int(bSize - aSize)
+		}
+
+		// then by local balance in the channel
+		if a.LocalBalance != b.LocalBalance {
+			return int(b.LocalBalance - a.LocalBalance)
+		}
+
+		// finally sort by channel ID to prevent sort randomly changing
+		return strings.Compare(b.Id, a.Id)
+	})
+
 	return apiChannels, nil
 }
 
