@@ -1343,12 +1343,12 @@ func (ls *LDKService) GetNetworkGraph(ctx context.Context, nodeIds []string) (ln
 				Node:   graphNode,
 				NodeId: nodeId,
 			})
-		}
-		if graphNode.Channels != nil {
-			for _, channelId := range graphNode.Channels {
-				graphChannel := graph.Channel(channelId)
-				if graphChannel != nil {
-					channels = append(channels, graphChannel)
+			if graphNode.Channels != nil {
+				for _, channelId := range graphNode.Channels {
+					graphChannel := graph.Channel(channelId)
+					if graphChannel != nil {
+						channels = append(channels, graphChannel)
+					}
 				}
 			}
 		}
