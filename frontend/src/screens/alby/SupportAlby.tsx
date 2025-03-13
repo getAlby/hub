@@ -1,28 +1,31 @@
-import { Code, PlusCircle, RefreshCw } from "lucide-react";
+import { Code, GemIcon, PlusCircle, RefreshCw } from "lucide-react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import ExternalLink from "src/components/ExternalLink";
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "src/components/ui/alert-dialog";
+import { Badge } from "src/components/ui/badge";
 import { Button, LinkButton } from "src/components/ui/button";
 import {
   Card,
   CardContent,
+  CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "src/components/ui/dialog";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
+import { UpgradeDialog } from "src/components/UpgradeDialog";
 import {
   SUPPORT_ALBY_CONNECTION_NAME,
   SUPPORT_ALBY_LIGHTNING_ADDRESS,
@@ -157,11 +160,11 @@ function SupportAlby() {
 
   return (
     <>
-      <div className="h-full w-full max-w-screen-sm mx-auto flex flex-col justify-center">
+      <div className="h-full w-full max-w-screen-md mx-auto flex flex-col justify-center">
         <div className="flex flex-col items-center justify-center gap-6">
           <section className="text-center">
             <h2 className="text-3xl font-semibold mb-4 max-sm:mt-8">
-              ✨ Your Support Matters
+              Your Support Matters
             </h2>
             <p className="text-muted-foreground text-balance">
               We are committed to elevating the Bitcoin ecosystem by offering
@@ -176,13 +179,13 @@ function SupportAlby() {
               <CardTitle>Why Your Contribution Is Important</CardTitle>
             </CardHeader>
             <CardContent>
-              <ul className="flex flex-col gap-5">
+              <ul className="flex flex-col gap-5 text-sm">
                 <li className="flex flex-col">
                   <div className="flex flex-row items-center">
                     <PlusCircle className="w-4 h-4 mr-2" />
                     Unlock New Features
                   </div>
-                  <div className="text-muted-foreground text-sm">
+                  <div className="text-muted-foreground text-xs">
                     Your support empowers us to design and implement
                     cutting-edge{" "}
                     <ExternalLink
@@ -200,7 +203,7 @@ function SupportAlby() {
                     <RefreshCw className="w-4 h-4 mr-2" />
                     Ensure Continuous Improvement
                   </div>
-                  <div className="text-muted-foreground text-sm">
+                  <div className="text-muted-foreground text-xs">
                     With your contributions, we can provide{" "}
                     <ExternalLink
                       className="underline"
@@ -217,7 +220,7 @@ function SupportAlby() {
                     <Code className="w-4 h-4 mr-2" />
                     Support Open-Source Freedom
                   </div>
-                  <div className="text-muted-foreground text-sm">
+                  <div className="text-muted-foreground text-xs">
                     Your support helps us keep Alby Hub true to the principles
                     of{" "}
                     <ExternalLink
@@ -233,101 +236,131 @@ function SupportAlby() {
               </ul>
             </CardContent>
           </Card>
-          <AlertDialog open={open} onOpenChange={setOpen}>
-            <div className="flex flex-col items-center justify-center gap-2">
-              <AlertDialogTrigger asChild>
-                <Button size="lg">Become a Supporter</Button>
-              </AlertDialogTrigger>
-              <LinkButton
-                size="sm"
-                variant="link"
-                to="/"
-                className="text-muted-foreground"
-              >
-                Maybe later
-              </LinkButton>
-            </div>
-            <AlertDialogContent>
-              <form onSubmit={handleSubmit}>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Become a Supporter</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    A new app connection will be established to facilitate
-                    monthly payments to Alby. You can cancel it anytime through
-                    the connections page.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-
-                <div className="flex flex-col gap-3 my-5">
-                  <div className="grid grid-cols-4 gap-4">
-                    <Label htmlFor="amount" className="text-right mt-2">
-                      Amount <br></br>
-                      <span className="font-normal text-muted-foreground">
-                        (sats / month)
-                      </span>
-                    </Label>
-                    <div className="col-span-3">
-                      <Input
-                        id="amount"
-                        value={amount}
-                        required
-                        onChange={(e) => setAmount(e.target.value)}
-                      />
-                      <div className="grid grid-cols-3 gap-1 mt-1">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => setAmount("3000")}
-                        >
-                          🙏 3000
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => setAmount("6000")}
-                        >
-                          💪 6000
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => setAmount("10000")}
-                        >
-                          ✨ 10000
-                        </Button>
+          <div className="grid grid-cols-2 gap-3 w-full">
+            <Card className="w-full">
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex gap-2">
+                    <GemIcon className="h-4 w-4" />
+                    <div>Alby Pro</div>
+                  </div>
+                  <Badge variant="outline">ACCOUNT REQUIRED</Badge>
+                </CardTitle>
+                <CardDescription>
+                  Upgrade your Alby Account to Alby Pro, support Alby and enjoy
+                  additional perks.
+                </CardDescription>
+              </CardHeader>
+              <CardFooter className="flex justify-center">
+                <UpgradeDialog>
+                  <Button variant="premium">Unlock Alby Pro</Button>
+                </UpgradeDialog>
+              </CardFooter>
+            </Card>
+            <Card className="w-full">
+              <CardHeader>
+                <CardTitle>Become a Supporter</CardTitle>
+                <CardDescription>
+                  Support Alby with recurring #value4value payments.
+                </CardDescription>
+              </CardHeader>
+              <CardFooter className="flex justify-center">
+                <Dialog open={open} onOpenChange={setOpen}>
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <DialogTrigger asChild>
+                      <Button>Become a Supporter</Button>
+                    </DialogTrigger>
+                  </div>
+                  <DialogContent>
+                    <form onSubmit={handleSubmit}>
+                      <DialogHeader>
+                        <DialogTitle>Become a Supporter</DialogTitle>
+                        <DialogDescription>
+                          A new app connection will be established to facilitate
+                          monthly payments to Alby. You can cancel it anytime
+                          through the connections page.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="flex flex-col gap-3 my-5">
+                        <div className="grid grid-cols-4 gap-4">
+                          <Label htmlFor="amount" className="text-right mt-2">
+                            Amount <br></br>
+                            <span className="font-normal text-muted-foreground">
+                              (sats / month)
+                            </span>
+                          </Label>
+                          <div className="col-span-3">
+                            <Input
+                              id="amount"
+                              value={amount}
+                              required
+                              onChange={(e) => setAmount(e.target.value)}
+                            />
+                            <div className="grid grid-cols-3 gap-1 mt-1">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setAmount("3000")}
+                              >
+                                🙏 3000
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setAmount("6000")}
+                              >
+                                💪 6000
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setAmount("10000")}
+                              >
+                                ✨ 10000
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="comment" className="text-right">
+                            Name{" "}
+                            <span className="font-normal text-muted-foreground">
+                              (optional)
+                            </span>
+                          </Label>
+                          <Input
+                            id="sender-name"
+                            value={senderName}
+                            onChange={(e) => setSenderName(e.target.value)}
+                            placeholder={`Nickname, npub, @twitter, etc.`}
+                            className="col-span-3"
+                          />
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="comment" className="text-right">
-                      Name{" "}
-                      <span className="font-normal text-muted-foreground">
-                        (optional)
-                      </span>
-                    </Label>
-                    <Input
-                      id="sender-name"
-                      value={senderName}
-                      onChange={(e) => setSenderName(e.target.value)}
-                      placeholder={`Nickname, npub, @twitter, etc.`}
-                      className="col-span-3"
-                    />
-                  </div>
-                </div>
 
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <LoadingButton
-                    type="submit"
-                    disabled={!!isSubmitting}
-                    loading={isSubmitting}
-                  >
-                    Complete Setup
-                  </LoadingButton>
-                </AlertDialogFooter>
-              </form>
-            </AlertDialogContent>
-          </AlertDialog>
+                      <DialogFooter>
+                        <LoadingButton
+                          type="submit"
+                          disabled={!!isSubmitting}
+                          loading={isSubmitting}
+                        >
+                          Complete Setup
+                        </LoadingButton>
+                      </DialogFooter>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </CardFooter>
+            </Card>
+          </div>
+          <LinkButton
+            size="sm"
+            variant="link"
+            to="/"
+            className="text-muted-foreground"
+          >
+            Maybe later
+          </LinkButton>
         </div>
       </div>
     </>

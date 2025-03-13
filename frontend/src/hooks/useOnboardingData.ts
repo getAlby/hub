@@ -55,9 +55,12 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
   const hasCustomApp =
     apps && apps.find((x) => x.name !== "getalby.com") !== undefined;
   const hasTransaction = transactions.totalCount > 0;
-  const hasSetupSupportPayment =
-    apps &&
-    apps.find((x) => x.name === SUPPORT_ALBY_CONNECTION_NAME) !== undefined;
+  const hasSetupSupportPayment = !!(
+    (apps &&
+      apps.find((x) => x.name === SUPPORT_ALBY_CONNECTION_NAME) !==
+        undefined) ||
+    albyMe?.subscription.buzz
+  );
 
   const checklistItems: Omit<ChecklistItem, "disabled">[] = [
     ...(hasChannelManagement
@@ -110,9 +113,9 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
     ...(!info.oauthRedirect
       ? [
           {
-            title: "Support Alby Hub",
+            title: "Support Alby",
             description:
-              "Setup a recurring payment to support the development of Alby Hub",
+              "Set up a monthly contribution to help us build the future of digital payments.",
             checked: hasSetupSupportPayment,
             to: "/support-alby",
           },

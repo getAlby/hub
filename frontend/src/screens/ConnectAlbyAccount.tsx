@@ -1,6 +1,7 @@
 import {
   CreditCard,
   DatabaseBackup,
+  GemIcon,
   Headphones,
   LifeBuoy,
   Mail,
@@ -8,6 +9,7 @@ import {
 } from "lucide-react";
 import Container from "src/components/Container";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
+import { Badge } from "src/components/ui/badge";
 import { LinkButton } from "src/components/ui/button";
 import {
   Card,
@@ -26,40 +28,76 @@ export function ConnectAlbyAccount({ connectUrl }: ConnectAlbyAccountProps) {
       <Container>
         <TwoColumnLayoutHeader
           title="Connect Your Alby Account"
-          description="Alby Account brings several benefits to your Alby Hub"
+          description="Your Alby Account brings several benefits to your Alby Hub"
         />
         <div className="grid grid-cols-1 md:grid-cols-2 w-full gap-2 mt-5">
-          <Card className="w-full">
+          <Card className="w-full relative">
             <CardHeader className="flex flex-col justify-center items-center text-center p-4">
               <Zap className="w-6 h-6" />
-              <CardTitle className="text-sm">Lightning Address</CardTitle>
+              <CardTitle className="text-sm">
+                Lightning Address
+                <Badge
+                  variant="outline"
+                  className="absolute right-2 top-2"
+                  title="Alby Pro"
+                >
+                  <GemIcon className="w-3 h-3" />
+                </Badge>
+              </CardTitle>
               <CardDescription className="text-xs">
                 Personalized lightning address to receive payments
               </CardDescription>
             </CardHeader>
           </Card>
-          <Card className="w-full">
+          <Card className="w-full relative">
             <CardHeader className="flex flex-col justify-center items-center text-center p-4">
               <Mail className="w-6 h-6" />
-              <CardTitle className="text-sm">Email Notifications</CardTitle>
+              <CardTitle className="text-sm">
+                Email Notifications
+                <Badge
+                  variant="outline"
+                  className="absolute right-2 top-2"
+                  title="Alby Pro"
+                >
+                  <GemIcon className="w-3 h-3" />
+                </Badge>
+              </CardTitle>
               <CardDescription className="text-xs">
                 Instant notifications about incoming transactions and more
               </CardDescription>
             </CardHeader>
           </Card>
-          <Card className="w-full">
+          <Card className="w-full relative">
             <CardHeader className="flex flex-col justify-center items-center text-center p-4">
               <DatabaseBackup className="w-6 h-6" />
-              <CardTitle className="text-sm">Encrypted Backups</CardTitle>
+              <CardTitle className="text-sm">
+                Encrypted Backups
+                <Badge
+                  variant="outline"
+                  className="absolute right-2 top-2"
+                  title="Alby Pro"
+                >
+                  <GemIcon className="w-3 h-3" />
+                </Badge>
+              </CardTitle>
               <CardDescription className="text-xs">
                 Ensures you can always recover funds from lightning channels
               </CardDescription>
             </CardHeader>
           </Card>
-          <Card className="w-full">
+          <Card className="w-full relative">
             <CardHeader className="flex flex-col justify-center items-center text-center p-4">
               <LifeBuoy className="w-6 h-6" />
-              <CardTitle className="text-sm">Support</CardTitle>
+              <CardTitle className="text-sm">
+                Support
+                <Badge
+                  variant="outline"
+                  className="absolute right-2 top-2"
+                  title="Alby Pro"
+                >
+                  <GemIcon className="w-3 h-3" />
+                </Badge>
+              </CardTitle>
               <CardDescription className="text-xs">
                 Human support via live chat when you need a helping hand
               </CardDescription>
@@ -84,15 +122,9 @@ export function ConnectAlbyAccount({ connectUrl }: ConnectAlbyAccountProps) {
             </CardHeader>
           </Card>
         </div>
-        <div className="flex flex-col justify-center items-center text-center p-4 mt-4">
-          <CardTitle className="text-sm">and there's more...</CardTitle>
-          <CardDescription className="text-xs">
-            Claim your Nostr address, discover apps, etc
-          </CardDescription>
-        </div>
-        <div className="flex flex-col items-center justify-center gap-2">
+        <div className="flex flex-col items-center justify-center gap-2 mt-10">
           <LinkButton to={connectUrl || "/alby/auth"} size="lg">
-            Connect now
+            Connect
           </LinkButton>
           <LinkButton
             size="sm"
@@ -102,6 +134,12 @@ export function ConnectAlbyAccount({ connectUrl }: ConnectAlbyAccountProps) {
           >
             Maybe later
           </LinkButton>
+        </div>
+        <div className="text-muted-foreground flex flex-col items-center text-xs gap-2 mt-10">
+          <Badge variant="outline">
+            <GemIcon className="w-3 h-3" />
+          </Badge>
+          Unlock additional features with Alby Pro
         </div>
       </Container>
     </div>

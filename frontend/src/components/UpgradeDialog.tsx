@@ -30,7 +30,7 @@ export const UpgradeDialog = ({ children }: UpgradeDialogProps) => {
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex flex-row gap-2 items-center">
-            <GemIcon className="w-6 h-6 text-primary" />
+            <GemIcon className="w-6 h-6" />
             Unlock Alby Pro
           </DialogTitle>
           <DialogDescription>
@@ -42,7 +42,7 @@ export const UpgradeDialog = ({ children }: UpgradeDialogProps) => {
             <h3 className="font-medium text-lg">Pro Features Include:</h3>
             <ul className="space-y-3">
               <li className="flex items-center">
-                <Users className="w-5 h-5 mr-3 text-primary" />
+                <Users className="w-5 h-5 mr-3" />
                 <div>
                   <span className="font-medium">Unlimited Sub-wallets</span>
                   <p className="text-sm text-muted-foreground">
@@ -52,7 +52,7 @@ export const UpgradeDialog = ({ children }: UpgradeDialogProps) => {
               </li>
               {info?.backendType === "LDK" && (
                 <li className="flex items-center">
-                  <RefreshCw className="w-5 h-5 mr-3 text-primary" />
+                  <RefreshCw className="w-5 h-5 mr-3" />
                   <div>
                     <span className="font-medium">
                       Encrypted Remote Backups
@@ -64,7 +64,7 @@ export const UpgradeDialog = ({ children }: UpgradeDialogProps) => {
                 </li>
               )}
               <li className="flex items-center">
-                <LifeBuoy className="w-5 h-5 mr-3 text-primary" />
+                <LifeBuoy className="w-5 h-5 mr-3" />
                 <div>
                   <span className="font-medium">Priority Support</span>
                   <p className="text-sm text-muted-foreground">
@@ -73,7 +73,7 @@ export const UpgradeDialog = ({ children }: UpgradeDialogProps) => {
                 </div>
               </li>
               <li className="flex items-center">
-                <Zap className="w-5 h-5 mr-3 text-primary" />
+                <Zap className="w-5 h-5 mr-3" />
                 <div>
                   <span className="font-medium">Custom Lightning Address</span>
                   <p className="text-sm text-muted-foreground">
@@ -82,7 +82,7 @@ export const UpgradeDialog = ({ children }: UpgradeDialogProps) => {
                 </div>
               </li>
               <li className="flex items-center">
-                <Mail className="w-5 h-5 mr-3 text-primary" />
+                <Mail className="w-5 h-5 mr-3" />
                 <div>
                   <span className="font-medium">Email Notifications</span>
                   <p className="text-sm text-muted-foreground">
