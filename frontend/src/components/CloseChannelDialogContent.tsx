@@ -77,7 +77,7 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
         setFundingTxId(closedChannel.fundingTxId);
         setStep(step + 1);
       }
-      toast({ title: "Sucessfully closed channel" });
+      toast({ title: "Successfully closed channel" });
     } catch (error) {
       console.error(error);
       toast({
