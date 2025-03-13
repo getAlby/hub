@@ -468,12 +468,23 @@ func (svc *LNDService) MakeInvoice(ctx context.Context, amount int64, descriptio
 		}
 	}
 
+	isPrivate := !hasPublicChannels
+
+	var hints []*lnrpc.RouteHint
+	if isPrivate {
+		hints, err = svc.getRoutingHints(ctx)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	addInvoiceRequest := &lnrpc.Invoice{
 		ValueMsat:       amount,
 		Memo:            description,
 		DescriptionHash: descriptionHashBytes,
 		Expiry:          expiry,
-		Private:         !hasPublicChannels, // use private channel hints in the invoice
+		RouteHints:      hints,
+		Private:         isPrivate, // use private channel hints in the invoice
 	}
 
 	resp, err := svc.client.AddInvoice(ctx, addInvoiceRequest)
@@ -490,6 +501,60 @@ func (svc *LNDService) MakeInvoice(ctx context.Context, amount int64, descriptio
 
 	transaction = lndInvoiceToTransaction(inv)
 	return transaction, nil
+}
+
+func (svc *LNDService) getRoutingHints(ctx context.Context) (hints []*lnrpc.RouteHint, err error) {
+	channelsRes, err := svc.client.ListChannels(ctx, &lnrpc.ListChannelsRequest{
+		PrivateOnly: true,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	processedPeers := make(map[string]struct{})
+	for _, channel := range channelsRes.Channels {
+		if _, ok := processedPeers[channel.RemotePubkey]; ok {
+			continue
+		}
+
+		chanInfo, err := svc.client.GetChanInfo(ctx, &lnrpc.ChanInfoRequest{
+			ChanId: channel.ChanId,
+		})
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"channel_id": channel.ChanId,
+			}).WithError(err).Error("Unable to add routing hint")
+			continue
+		}
+
+		remotePolicy := chanInfo.Node2Policy
+		if remotePolicy == nil {
+			continue
+		}
+
+		feeBaseMsat := uint32(remotePolicy.FeeBaseMsat)
+		proportionalFee := uint32(remotePolicy.FeeRateMilliMsat)
+		cltvExpiryDelta := remotePolicy.TimeLockDelta
+
+		logger.Logger.WithFields(logrus.Fields{
+			"remote_pubkey": channel.RemotePubkey,
+		}).Info("Adding routing hint")
+
+		hint := &lnrpc.RouteHint{
+			HopHints: []*lnrpc.HopHint{
+				{
+					NodeId:                    channel.RemotePubkey,
+					ChanId:                    chanInfo.ChannelId,
+					FeeBaseMsat:               feeBaseMsat,
+					FeeProportionalMillionths: proportionalFee,
+					CltvExpiryDelta:           cltvExpiryDelta,
+				},
+			},
+		}
+		hints = append(hints, hint)
+		processedPeers[channel.RemotePubkey] = struct{}{}
+	}
+	return hints, nil
 }
 
 func (svc *LNDService) LookupInvoice(ctx context.Context, paymentHash string) (transaction *lnclient.Transaction, err error) {
