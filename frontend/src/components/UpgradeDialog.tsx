@@ -1,6 +1,6 @@
 import { GemIcon, LifeBuoy, Mail, RefreshCw, Users, Zap } from "lucide-react";
 import { ReactNode } from "react";
-import { Button } from "src/components/ui/button";
+import { ExternalLinkButton } from "src/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -10,7 +10,6 @@ import {
   DialogTrigger,
 } from "src/components/ui/dialog";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
-import { openLink } from "src/utils/openLink";
 
 interface UpgradeDialogProps {
   children: ReactNode;
@@ -18,10 +17,6 @@ interface UpgradeDialogProps {
 
 export const UpgradeDialog = ({ children }: UpgradeDialogProps) => {
   const { data: albyMe } = useAlbyMe();
-
-  const handleUpgrade = () => {
-    openLink(`https://www.getalby.com/subscription/new`);
-  };
 
   if (albyMe?.subscription.buzz) {
     return null;
@@ -89,29 +84,18 @@ export const UpgradeDialog = ({ children }: UpgradeDialogProps) => {
                   </p>
                 </div>
               </li>
-              {/* 
-              <li className="flex items-center">
-                <Server className="w-5 h-5 mr-3 text-primary" />
-                <div>
-                  <span className="font-medium">Node Monitoring</span>
-                  <p className="text-sm text-muted-foreground">
-                    Keep your node running smoothly
-                  </p>
-                </div>
-              </li>
-              */}
             </ul>
           </div>
         </div>
         <div className="flex-col gap-1">
-          <Button
+          <ExternalLinkButton
             variant="premium"
             size="lg"
             className="w-full"
-            onClick={handleUpgrade}
+            to="https://www.getalby.com/subscription/new"
           >
             Upgrade Now
-          </Button>
+          </ExternalLinkButton>
           <p className="text-xs text-center text-muted-foreground mt-2">
             30 day money back guarantee • Cancel anytime
           </p>
