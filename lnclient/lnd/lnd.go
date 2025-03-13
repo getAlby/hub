@@ -963,6 +963,7 @@ func (svc *LNDService) GetOnchainBalance(ctx context.Context) (*lnclient.Onchain
 		Reserved:                           int64(balances.ReservedBalanceAnchorChan),
 		PendingBalancesFromChannelClosures: pendingBalancesFromChannelClosures,
 		PendingBalancesDetails:             pendingBalancesDetails,
+		PendingSweepBalancesDetails:        []lnclient.PendingBalanceDetails{},
 		InternalBalances: map[string]interface{}{
 			"balances":         balances,
 			"pending_channels": pendingChannels,
