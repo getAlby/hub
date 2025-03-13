@@ -19,7 +19,6 @@ import Start from "src/screens/Start";
 import Unlock from "src/screens/Unlock";
 import { Welcome } from "src/screens/Welcome";
 import AlbyAuthRedirect from "src/screens/alby/AlbyAuthRedirect";
-import Support from "src/screens/alby/Support";
 import SupportAlby from "src/screens/alby/SupportAlby";
 import AppCreated from "src/screens/apps/AppCreated";
 import AppList from "src/screens/apps/AppList";
@@ -367,10 +366,6 @@ const routes = [
       {
         path: "support-alby",
         element: <SupportAlby />,
-      },
-      {
-        path: "support",
-        element: <Support />,
       },
     ],
   },
