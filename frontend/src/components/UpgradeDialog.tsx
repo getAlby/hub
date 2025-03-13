@@ -1,4 +1,4 @@
-import { LifeBuoy, Mail, RefreshCw, Users, Zap } from "lucide-react";
+import { GemIcon, LifeBuoy, Mail, RefreshCw, Users, Zap } from "lucide-react";
 import { ReactNode } from "react";
 import { Button } from "src/components/ui/button";
 import {
@@ -9,7 +9,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "src/components/ui/dialog";
-import { ALBY_PRO_PLAN } from "src/constants";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { openLink } from "src/utils/openLink";
 
@@ -21,9 +20,7 @@ export const UpgradeDialog = ({ children }: UpgradeDialogProps) => {
   const { data: albyMe } = useAlbyMe();
 
   const handleUpgrade = () => {
-    openLink(
-      `https://www.getalby.com/subscription/confirm?plan=${ALBY_PRO_PLAN}`
-    );
+    openLink(`https://www.getalby.com/subscription/new`);
   };
 
   if (albyMe?.subscription.buzz) {
@@ -35,7 +32,10 @@ export const UpgradeDialog = ({ children }: UpgradeDialogProps) => {
       <DialogTrigger>{children}</DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>✨ Unlock Alby Pro</DialogTitle>
+          <DialogTitle className="flex flex-row gap-2 items-center">
+            <GemIcon className="w-6 h-6 text-primary" />
+            Unlock Alby Pro
+          </DialogTitle>
           <DialogDescription>
             Take your Alby Hub experience to the next level
           </DialogDescription>

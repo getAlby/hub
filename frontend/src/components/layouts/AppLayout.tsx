@@ -1,7 +1,7 @@
 import { compare } from "compare-versions";
 import {
-  Cloud,
   EllipsisVertical,
+  GemIcon,
   Home,
   LayoutGrid,
   LifeBuoy,
@@ -48,6 +48,7 @@ import {
 } from "src/components/ui/tooltip";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 
+import { UpgradeDialog } from "src/components/UpgradeDialog";
 import { useAlbyInfo } from "src/hooks/useAlbyInfo";
 import { useHealthCheck } from "src/hooks/useHealthCheck";
 import { useInfo } from "src/hooks/useInfo";
@@ -203,18 +204,12 @@ export default function AppLayout() {
           <Megaphone className="h-4 w-4" />
           Feedback
         </MenuItem>
-        {!albyMe?.hub.name && info?.albyAccountConnected && (
-          <MenuItem
-            to="/"
-            onClick={(e) => {
-              openLink("https://getalby.com/subscription/new");
-              e.preventDefault();
-            }}
-          >
-            <Cloud className="h-4 w-4" />
-            Alby Cloud
-          </MenuItem>
-        )}
+        <UpgradeDialog>
+          <div className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-accent-foreground">
+            <GemIcon className="h-4 w-4" />
+            Upgrade
+          </div>
+        </UpgradeDialog>
       </nav>
     );
   }
