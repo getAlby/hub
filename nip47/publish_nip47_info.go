@@ -16,6 +16,35 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+type Nip47InfoPublishRequest struct {
+	AppWalletPubKey  string
+	AppWalletPrivKey string
+}
+
+type nip47InfoPublishQueue struct {
+	channel chan *Nip47InfoPublishRequest
+}
+
+func NewNip47InfoPublishQueue() *nip47InfoPublishQueue {
+	return &nip47InfoPublishQueue{
+		channel: make(chan *Nip47InfoPublishRequest, 1000),
+	}
+}
+
+func (q *nip47InfoPublishQueue) AddToQueue(req *Nip47InfoPublishRequest) {
+	select {
+	case q.channel <- req: // Put in the channel unless it is full
+		// successfully sent to channel
+	default:
+		// channel full
+		logger.Logger.WithField("info_request", req).Error("Nip47InfoPublishQueue channel full. Discarding value")
+	}
+}
+
+func (q *nip47InfoPublishQueue) Channel() <-chan *Nip47InfoPublishRequest {
+	return q.channel
+}
+
 func (svc *nip47Service) GetNip47Info(ctx context.Context, relay *nostr.Relay, appWalletPubKey string) (*nostr.Event, error) {
 	filter := nostr.Filter{
 		Kinds:   []int{models.INFO_EVENT_KIND},

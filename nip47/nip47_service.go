@@ -8,6 +8,7 @@ import (
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
+	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/nip47/cipher"
 	"github.com/getAlby/hub/nip47/notifications"
 	"github.com/getAlby/hub/nip47/permissions"
@@ -24,6 +25,7 @@ type nip47Service struct {
 	appsService            apps.AppsService
 	albyOAuthSvc           alby.AlbyOAuthService
 	nip47NotificationQueue notifications.Nip47NotificationQueue
+	nip47InfoPublishQueue  *nip47InfoPublishQueue
 	cfg                    config.Config
 	keys                   keys.Keys
 	db                     *gorm.DB
@@ -33,16 +35,19 @@ type nip47Service struct {
 type Nip47Service interface {
 	events.EventSubscriber
 	StartNotifier(ctx context.Context, relay *nostr.Relay)
+	StartNip47InfoPublisher(ctx context.Context, relay nostrmodels.Relay, lnClient lnclient.LNClient)
 	HandleEvent(ctx context.Context, relay nostrmodels.Relay, event *nostr.Event, lnClient lnclient.LNClient)
 	GetNip47Info(ctx context.Context, relay *nostr.Relay, appWalletPubKey string) (*nostr.Event, error)
 	PublishNip47Info(ctx context.Context, relay nostrmodels.Relay, appWalletPubKey string, appWalletPrivKey string, lnClient lnclient.LNClient) (*nostr.Event, error)
 	PublishNip47InfoDeletion(ctx context.Context, relay nostrmodels.Relay, appWalletPubKey string, appWalletPrivKey string, infoEventId string) error
 	CreateResponse(initialEvent *nostr.Event, content interface{}, tags nostr.Tags, cipher *cipher.Nip47Cipher, walletPrivKey string) (result *nostr.Event, err error)
+	EnqueueNip47InfoPublishRequest(AppWalletPubKey, AppWalletPrivKey string)
 }
 
 func NewNip47Service(db *gorm.DB, cfg config.Config, keys keys.Keys, eventPublisher events.EventPublisher, albyOAuthSvc alby.AlbyOAuthService) *nip47Service {
 	return &nip47Service{
 		nip47NotificationQueue: notifications.NewNip47NotificationQueue(),
+		nip47InfoPublishQueue:  NewNip47InfoPublishQueue(),
 		cfg:                    cfg,
 		db:                     db,
 		permissionsService:     permissions.NewPermissionsService(db, eventPublisher),
@@ -71,6 +76,30 @@ func (svc *nip47Service) StartNotifier(ctx context.Context, relay *nostr.Relay) 
 				return
 			case event := <-svc.nip47NotificationQueue.Channel():
 				nip47Notifier.ConsumeEvent(ctx, event)
+			}
+		}
+	}()
+}
+
+func (svc *nip47Service) EnqueueNip47InfoPublishRequest(AppWalletPubKey, AppWalletPrivKey string) {
+	svc.nip47InfoPublishQueue.AddToQueue(&Nip47InfoPublishRequest{
+		AppWalletPubKey:  AppWalletPubKey,
+		AppWalletPrivKey: AppWalletPrivKey,
+	})
+}
+
+func (svc *nip47Service) StartNip47InfoPublisher(ctx context.Context, relay nostrmodels.Relay, lnClient lnclient.LNClient) {
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				// relay disconnected
+				return
+			case req := <-svc.nip47InfoPublishQueue.Channel():
+				_, err := svc.PublishNip47Info(ctx, relay, req.AppWalletPubKey, req.AppWalletPrivKey, lnClient)
+				if err != nil {
+					logger.Logger.WithError(err).WithField("wallet_pubkey", req.AppWalletPubKey).Error("Failed to publish NIP47 info from queue")
+				}
 			}
 		}
 	}()
