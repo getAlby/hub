@@ -157,11 +157,10 @@ export function AutoChannel() {
               <p className="text-muted-foreground">
                 Alby Hub works with selected service providers (LSPs) which
                 provide the best network connectivity and liquidity to receive
-                payments. The channel may stay open for a year or more as long
-                as there is usage.{" "}
+                payments.{" "}
                 <ExternalLink
                   className="underline"
-                  to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/why-was-my-lightning-channel-closed-and-what-to-do-next"
+                  to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/how-to-open-a-payment-channel"
                 >
                   Learn more
                 </ExternalLink>

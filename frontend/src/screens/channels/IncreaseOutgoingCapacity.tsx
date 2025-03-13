@@ -210,19 +210,12 @@ function NewChannelInternal({ network }: { network: Network }) {
           Open a channel with on-chain funds. Both parties are free to close the
           channel at any time. However, by keeping more funds on your side of
           the channel and using it regularly, there is more chance the channel
-          will stay open. Learn more about{" "}
+          will stay open.{" "}
           <ExternalLink
             className="underline"
-            to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/how-to-open-a-channel"
+            to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/node/advanced-increase-spending-balance-with-on-chain-bitcoin"
           >
-            opening channels
-          </ExternalLink>{" "}
-          and{" "}
-          <ExternalLink
-            className="underline"
-            to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/why-was-my-lightning-channel-closed-and-what-to-do-next"
-          >
-            channel closures
+            Learn more
           </ExternalLink>
           .
         </p>
