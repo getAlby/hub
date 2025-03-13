@@ -10,6 +10,7 @@ import {
   DialogTrigger,
 } from "src/components/ui/dialog";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
+import { useInfo } from "src/hooks/useInfo";
 
 interface UpgradeDialogProps {
   children: ReactNode;
@@ -17,6 +18,7 @@ interface UpgradeDialogProps {
 
 export const UpgradeDialog = ({ children }: UpgradeDialogProps) => {
   const { data: albyMe } = useAlbyMe();
+  const { data: info } = useInfo();
 
   if (albyMe?.subscription.buzz) {
     return null;
@@ -48,15 +50,19 @@ export const UpgradeDialog = ({ children }: UpgradeDialogProps) => {
                   </p>
                 </div>
               </li>
-              <li className="flex items-center">
-                <RefreshCw className="w-5 h-5 mr-3 text-primary" />
-                <div>
-                  <span className="font-medium">Encrypted Remote Backups</span>
-                  <p className="text-sm text-muted-foreground">
-                    Secure LDK wallet backups in the cloud
-                  </p>
-                </div>
-              </li>
+              {info?.backendType === "LDK" && (
+                <li className="flex items-center">
+                  <RefreshCw className="w-5 h-5 mr-3 text-primary" />
+                  <div>
+                    <span className="font-medium">
+                      Encrypted Remote Backups
+                    </span>
+                    <p className="text-sm text-muted-foreground">
+                      Secure wallet backups in the cloud
+                    </p>
+                  </div>
+                </li>
+              )}
               <li className="flex items-center">
                 <LifeBuoy className="w-5 h-5 mr-3 text-primary" />
                 <div>
