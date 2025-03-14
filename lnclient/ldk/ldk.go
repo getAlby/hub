@@ -1882,6 +1882,8 @@ func getResetStateRequest(cfg config.Config) *ldk_node.ResetState {
 		ret = ldk_node.ResetStateScorer
 	case "NetworkGraph":
 		ret = ldk_node.ResetStateNetworkGraph
+	case "NodeMetrics":
+		ret = ldk_node.ResetStateNodeMetrics
 	default:
 		logger.Logger.WithField("key", resetKey).Error("Unknown reset router key")
 		return nil
