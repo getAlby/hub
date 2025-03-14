@@ -1,4 +1,11 @@
-import { GemIcon, LifeBuoy, Mail, RefreshCw, Users, Zap } from "lucide-react";
+import {
+  LifeBuoy,
+  Mail,
+  RefreshCw,
+  SparklesIcon,
+  Users,
+  Zap,
+} from "lucide-react";
 import { ReactNode } from "react";
 import { ExternalLinkButton } from "src/components/ui/button";
 import {
@@ -30,7 +37,7 @@ export const UpgradeDialog = ({ children }: UpgradeDialogProps) => {
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex flex-row gap-2 items-center">
-            <GemIcon className="w-6 h-6" />
+            <SparklesIcon className="w-6 h-6" />
             Unlock Alby Pro
           </DialogTitle>
           <DialogDescription>

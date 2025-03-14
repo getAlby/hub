@@ -2,7 +2,6 @@ import { compare } from "compare-versions";
 import {
   CircleHelp,
   EllipsisVertical,
-  GemIcon,
   Home,
   LayoutGrid,
   Lock,
@@ -12,6 +11,7 @@ import {
   Settings,
   ShieldAlertIcon,
   ShieldCheckIcon,
+  SparklesIcon,
   User2,
   Wallet,
 } from "lucide-react";
@@ -182,7 +182,7 @@ export default function AppLayout() {
         </MenuItem>
         <UpgradeDialog>
           <div className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-accent-foreground">
-            <GemIcon className="h-4 w-4" />
+            <SparklesIcon className="h-4 w-4" />
             Upgrade
           </div>
         </UpgradeDialog>

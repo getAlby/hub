@@ -1,4 +1,4 @@
-import { Code, GemIcon, PlusCircle, RefreshCw } from "lucide-react";
+import { Code, PlusCircle, RefreshCw, SparklesIcon } from "lucide-react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import ExternalLink from "src/components/ExternalLink";
@@ -241,7 +241,7 @@ function SupportAlby() {
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <div className="flex gap-2">
-                    <GemIcon className="h-4 w-4" />
+                    <SparklesIcon className="h-4 w-4" />
                     <div>Alby Pro</div>
                   </div>
                   <Badge variant="outline">ACCOUNT REQUIRED</Badge>

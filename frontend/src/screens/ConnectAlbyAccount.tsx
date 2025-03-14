@@ -1,10 +1,10 @@
 import {
   CreditCard,
   DatabaseBackup,
-  GemIcon,
   Headphones,
   LifeBuoy,
   Mail,
+  SparklesIcon,
   Zap,
 } from "lucide-react";
 import Container from "src/components/Container";
@@ -41,7 +41,7 @@ export function ConnectAlbyAccount({ connectUrl }: ConnectAlbyAccountProps) {
                   className="absolute right-2 top-2"
                   title="Alby Pro"
                 >
-                  <GemIcon className="w-3 h-3" />
+                  <SparklesIcon className="w-3 h-3" />
                 </Badge>
               </CardTitle>
               <CardDescription className="text-xs">
@@ -59,7 +59,7 @@ export function ConnectAlbyAccount({ connectUrl }: ConnectAlbyAccountProps) {
                   className="absolute right-2 top-2"
                   title="Alby Pro"
                 >
-                  <GemIcon className="w-3 h-3" />
+                  <SparklesIcon className="w-3 h-3" />
                 </Badge>
               </CardTitle>
               <CardDescription className="text-xs">
@@ -77,7 +77,7 @@ export function ConnectAlbyAccount({ connectUrl }: ConnectAlbyAccountProps) {
                   className="absolute right-2 top-2"
                   title="Alby Pro"
                 >
-                  <GemIcon className="w-3 h-3" />
+                  <SparklesIcon className="w-3 h-3" />
                 </Badge>
               </CardTitle>
               <CardDescription className="text-xs">
@@ -95,7 +95,7 @@ export function ConnectAlbyAccount({ connectUrl }: ConnectAlbyAccountProps) {
                   className="absolute right-2 top-2"
                   title="Alby Pro"
                 >
-                  <GemIcon className="w-3 h-3" />
+                  <SparklesIcon className="w-3 h-3" />
                 </Badge>
               </CardTitle>
               <CardDescription className="text-xs">
@@ -137,7 +137,7 @@ export function ConnectAlbyAccount({ connectUrl }: ConnectAlbyAccountProps) {
         </div>
         <div className="text-muted-foreground flex flex-col items-center text-xs gap-2 mt-10">
           <Badge variant="outline">
-            <GemIcon className="w-3 h-3" />
+            <SparklesIcon className="w-3 h-3" />
           </Badge>
           Unlock additional features with Alby Pro
         </div>
