@@ -2,11 +2,9 @@ import { compare } from "compare-versions";
 import {
   CircleHelp,
   Cloud,
-  EllipsisVertical,
   Home,
   LayoutGrid,
   Lock,
-  Menu,
   Plug2,
   PlugZapIcon,
   Settings,
@@ -25,19 +23,12 @@ import {
   useLocation,
   useNavigate,
 } from "react-router-dom";
-import SidebarHint from "src/components/SidebarHint";
-import UserAvatar from "src/components/UserAvatar";
-import { AlbyHubLogo } from "src/components/icons/AlbyHubLogo";
-import { Button } from "src/components/ui/button";
 import {
-  DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
 } from "src/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetTrigger } from "src/components/ui/sheet";
 import {
   Tooltip,
   TooltipContent,
@@ -46,6 +37,8 @@ import {
 } from "src/components/ui/tooltip";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 
+import { AppSidebar } from "src/components/AppSidebar";
+import { SidebarProvider, SidebarTrigger } from "src/components/ui/sidebar";
 import { useAlbyInfo } from "src/hooks/useAlbyInfo";
 import { useHealthCheck } from "src/hooks/useHealthCheck";
 import { useInfo } from "src/hooks/useInfo";
@@ -197,6 +190,16 @@ export default function AppLayout() {
   return (
     <>
       <div className="font-sans min-h-screen w-full flex flex-col">
+        <SidebarProvider>
+          <AppSidebar />
+          <main>
+            <div className="p-5">
+              <SidebarTrigger />
+              <Outlet />
+            </div>
+          </main>
+        </SidebarProvider>
+        {/*
         <div className="flex-1 h-full md:grid md:grid-cols-[280px_minmax(0,1fr)]">
           <div className="hidden border-r bg-muted/40 md:block">
             <div className="flex h-full max-h-screen flex-col gap-2 fixed w-[280px] z-10 top-0 overflow-y-auto">
@@ -293,6 +296,7 @@ export default function AppLayout() {
             </div>
           </main>
         </div>
+        */}
       </div>
     </>
   );
