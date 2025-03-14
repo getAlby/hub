@@ -38,7 +38,7 @@ import {
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 
 import { AppSidebar } from "src/components/AppSidebar";
-import { SidebarProvider, SidebarTrigger } from "src/components/ui/sidebar";
+import { SidebarProvider } from "src/components/ui/sidebar";
 import { useAlbyInfo } from "src/hooks/useAlbyInfo";
 import { useHealthCheck } from "src/hooks/useHealthCheck";
 import { useInfo } from "src/hooks/useInfo";
@@ -192,11 +192,8 @@ export default function AppLayout() {
       <div className="font-sans min-h-screen w-full flex flex-col">
         <SidebarProvider>
           <AppSidebar />
-          <main>
-            <div className="p-5">
-              <SidebarTrigger />
-              <Outlet />
-            </div>
+          <main className="flex-1 flex flex-col gap-3 p-8">
+            <Outlet />
           </main>
         </SidebarProvider>
         {/*

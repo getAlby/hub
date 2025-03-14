@@ -3,14 +3,19 @@ import {
   Bell,
   Calendar,
   ChevronsUpDown,
+  CircleHelp,
   CreditCard,
   Home,
   Inbox,
   LogOut,
+  LucideIcon,
   Search,
   Settings,
   Sparkles,
 } from "lucide-react";
+
+import { CubeIcon } from "@radix-ui/react-icons";
+import { AlbyHubLogo } from "src/components/icons/AlbyHubLogo";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,6 +32,7 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
+  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -70,9 +76,47 @@ export function AppSidebar() {
 
   const { data: info, mutate: refetchInfo } = useInfo();
   const { isMobile } = useSidebar();
+  const { hasChannelManagement } = useInfo();
+
+  const data = {
+    user: {
+      name: "shadcn",
+      email: "m@example.com",
+      avatar: "/avatars/shadcn.jpg",
+    },
+    navMain: [],
+    navSecondary: [
+      ...(hasChannelManagement
+        ? [
+            {
+              title: "Node",
+              url: "/channels",
+              icon: CubeIcon,
+            },
+          ]
+        : []),
+      {
+        title: "Settings",
+        url: "/settings",
+        icon: Settings,
+      },
+      {
+        title: "Support",
+        url: "https://support.getalby.com",
+        icon: CircleHelp,
+      },
+    ],
+  };
 
   return (
     <Sidebar>
+      <SidebarHeader>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <AlbyHubLogo className="text-foreground" />
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Application</SidebarGroupLabel>
@@ -91,6 +135,7 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
@@ -165,5 +210,35 @@ export function AppSidebar() {
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
+  );
+}
+
+export function NavSecondary({
+  items,
+  ...props
+}: {
+  items: {
+    title: string;
+    url: string;
+    icon: LucideIcon;
+  }[];
+} & React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
+  return (
+    <SidebarGroup {...props}>
+      <SidebarGroupContent>
+        <SidebarMenu>
+          {items.map((item) => (
+            <SidebarMenuItem key={item.title}>
+              <SidebarMenuButton asChild>
+                <a href={item.url}>
+                  <item.icon />
+                  <span>{item.title}</span>
+                </a>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
   );
 }
