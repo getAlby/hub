@@ -6,9 +6,7 @@ toolchain go1.23.3
 
 require (
 	github.com/adrg/xdg v0.5.3
-	github.com/breez/breez-sdk-go v0.5.2
 	github.com/elnosh/gonuts v0.4.0
-	github.com/getAlby/glalby-go v0.0.0-20240621192717-95673c864d59
 	github.com/getAlby/ldk-node-go v0.0.0-20250313063409-c465f4e6e089
 	github.com/go-gormigrate/gormigrate/v2 v2.1.3
 	github.com/labstack/echo/v4 v4.13.3

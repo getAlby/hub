@@ -61,8 +61,6 @@ github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
 github.com/bep/debounce v1.2.1 h1:v67fRdBA9UQu2NhLFXrSg0Brw7CexQekrBwDMM8bzeY=
 github.com/bep/debounce v1.2.1/go.mod h1:H8yggRPQKLUhUoqrJC1bO2xNya7vanpDl7xR3ISbCJ0=
-github.com/breez/breez-sdk-go v0.5.2 h1:frqX14cKTM2egWP7C53u3SzBkYQrgx9P7si/Ig9Droo=
-github.com/breez/breez-sdk-go v0.5.2/go.mod h1:EalYMEeQVwRzr6UXnF4QpLlpuWNwQQN9xwtDKNIutBo=
 github.com/btcsuite/btcd v0.20.1-beta/go.mod h1:wVuoA8VJLEcwgqHBwHmzLRazpKxTv13Px/pDuV7OomQ=
 github.com/btcsuite/btcd v0.22.0-beta.0.20220111032746-97732e52810c/go.mod h1:tjmYdS6MLJ5/s0Fj4DbLgSbDHbEqLJrtnHecBFkdz5M=
 github.com/btcsuite/btcd v0.23.5-0.20231215221805-96c9fd8078fd/go.mod h1:nm3Bko6zh6bWP60UxwoT5LzdGJsQJaPo6HjduXq9p6A=
@@ -205,8 +203,6 @@ github.com/fsnotify/fsnotify v1.8.0 h1:dAwr6QBTBZIkG8roQaJjGof0pp0EeF+tNV7YBP3F/
 github.com/fsnotify/fsnotify v1.8.0/go.mod h1:8jBTzvmWwFyi3Pb8djgCCO5IBqzKJ/Jwo8TRcHyHii0=
 github.com/fxamacker/cbor/v2 v2.7.0 h1:iM5WgngdRBanHcxugY4JySA0nk1wZorNOpTgCMedv5E=
 github.com/fxamacker/cbor/v2 v2.7.0/go.mod h1:pxXPTn3joSm21Gbwsv0w9OSA2y1HFR9qXEeXQVeNoDQ=
-github.com/getAlby/glalby-go v0.0.0-20240621192717-95673c864d59 h1:fSqdXE9uKhLcOOQaLtzN+D8RN3oEcZQkGX5E8PyiKy0=
-github.com/getAlby/glalby-go v0.0.0-20240621192717-95673c864d59/go.mod h1:ViyJvjlvv0GCesTJ7mb3fBo4G+/qsujDAFN90xZ7a9U=
 github.com/getAlby/ldk-node-go v0.0.0-20250313063409-c465f4e6e089 h1:39wtrlg8SxbjJDj/hGdhS4GPlDk9kwxTy36kvrDP5mU=
 github.com/getAlby/ldk-node-go v0.0.0-20250313063409-c465f4e6e089/go.mod h1:8BRjtKcz8E0RyYTPEbMS8VIdgredcGSLne8vHDtcRLg=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
