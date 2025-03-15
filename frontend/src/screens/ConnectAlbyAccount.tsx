@@ -54,13 +54,13 @@ export function ConnectAlbyAccount({ connectUrl }: ConnectAlbyAccountProps) {
               <Mail className="w-6 h-6" />
               <CardTitle className="text-sm">
                 Email Notifications
-                <Badge
-                  variant="outline"
+                <div
+                  //variant="outline"
                   className="absolute right-2 top-2"
                   title="Alby Pro"
                 >
                   <SparklesIcon className="w-3 h-3" />
-                </Badge>
+                </div>
               </CardTitle>
               <CardDescription className="text-xs">
                 Instant notifications about incoming transactions and more

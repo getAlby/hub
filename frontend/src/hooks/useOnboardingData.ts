@@ -59,7 +59,7 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
     (apps &&
       apps.find((x) => x.name === SUPPORT_ALBY_CONNECTION_NAME) !==
         undefined) ||
-    albyMe?.subscription.buzz
+    albyMe?.subscription.plan_code
   );
 
   const checklistItems: Omit<ChecklistItem, "disabled">[] = [

@@ -4,6 +4,7 @@ import AppHeader from "src/components/AppHeader";
 import AppCard from "src/components/connections/AppCard";
 import ExternalLink from "src/components/ExternalLink";
 import { IsolatedAppTopupDialog } from "src/components/IsolatedAppTopupDialog";
+import Loading from "src/components/Loading";
 import {
   Accordion,
   AccordionContent,
@@ -22,6 +23,7 @@ import { UpgradeDialog } from "src/components/UpgradeDialog";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useApp } from "src/hooks/useApp";
 import { useApps } from "src/hooks/useApps";
+import { useInfo } from "src/hooks/useInfo";
 import { useNodeConnectionInfo } from "src/hooks/useNodeConnectionInfo";
 import { copyToClipboard } from "src/lib/clipboard";
 import { createApp } from "src/requests/createApp";
@@ -38,6 +40,7 @@ export function UncleJim() {
   const { data: nodeConnectionInfo } = useNodeConnectionInfo();
   const { toast } = useToast();
   const [isLoading, setLoading] = React.useState(false);
+  const { data: info } = useInfo();
   const { data: albyMe } = useAlbyMe();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -84,7 +87,13 @@ export function UncleJim() {
   );
 
   const showForm =
-    albyMe?.subscription.buzz || (onboardedApps && onboardedApps?.length < 3);
+    albyMe?.subscription.plan_code ||
+    (onboardedApps && onboardedApps?.length < 3);
+
+  if (!info || (info.albyAccountConnected && !albyMe)) {
+    // make sure to not render the incorrect component
+    return <Loading />;
+  }
 
   return (
     <div className="grid gap-5">

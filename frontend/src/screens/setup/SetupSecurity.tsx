@@ -59,7 +59,7 @@ export function SetupSecurity() {
               </div>
               <span className="text-sm text-muted-foreground">
                 Access to your Alby Hub is protected by an unlock password you
-                set.
+                set. It cannot be recovered or reset.
               </span>
             </div>
             {store.nodeInfo.backendType === "LND" ||

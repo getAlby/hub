@@ -27,7 +27,12 @@ export const UpgradeDialog = ({ children }: UpgradeDialogProps) => {
   const { data: albyMe } = useAlbyMe();
   const { data: info } = useInfo();
 
-  if (albyMe?.subscription.buzz) {
+  if (!info || (info.albyAccountConnected && !albyMe)) {
+    // still loading - make sure button does not incorrectly show
+    return;
+  }
+
+  if (albyMe?.subscription.plan_code) {
     return null;
   }
 
