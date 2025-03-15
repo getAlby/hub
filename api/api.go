@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"slices"
+	"strings"
 	"sync"
 	"time"
 
@@ -48,7 +49,7 @@ type api struct {
 func NewAPI(svc service.Service, gormDB *gorm.DB, config config.Config, keys keys.Keys, albyOAuthSvc alby.AlbyOAuthService, eventPublisher events.EventPublisher) *api {
 	return &api{
 		db:             gormDB,
-		appsSvc:        apps.NewAppsService(gormDB, eventPublisher, keys),
+		appsSvc:        apps.NewAppsService(gormDB, eventPublisher, keys, config),
 		cfg:            config,
 		svc:            svc,
 		permissionsSvc: permissions.NewPermissionsService(gormDB, eventPublisher),
@@ -58,22 +59,16 @@ func NewAPI(svc service.Service, gormDB *gorm.DB, config config.Config, keys key
 }
 
 func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppResponse, error) {
-	backendType, _ := api.cfg.Get("LNBackendType", "")
-	if createAppRequest.Isolated &&
-		backendType != config.LDKBackendType &&
-		backendType != config.LNDBackendType &&
-		backendType != config.PhoenixBackendType {
-		return nil, fmt.Errorf(
-			"sub-wallets are currently not supported on your node backend. Try LDK or LND")
+	if slices.Contains(createAppRequest.Scopes, constants.SUPERUSER_SCOPE) {
+		if !api.cfg.CheckUnlockPassword(createAppRequest.UnlockPassword) {
+			return nil, fmt.Errorf(
+				"incorrect unlock password to create app with superuser permission")
+		}
 	}
 
 	expiresAt, err := api.parseExpiresAt(createAppRequest.ExpiresAt)
 	if err != nil {
 		return nil, fmt.Errorf("invalid expiresAt: %v", err)
-	}
-
-	if len(createAppRequest.Scopes) == 0 {
-		return nil, fmt.Errorf("won't create an app without scopes")
 	}
 
 	for _, scope := range createAppRequest.Scopes {
@@ -106,7 +101,7 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 
 	responseBody := &CreateAppResponse{}
 	responseBody.Id = app.ID
-	responseBody.Name = createAppRequest.Name
+	responseBody.Name = app.Name
 	responseBody.Pubkey = app.AppPubkey
 	responseBody.PairingSecret = pairingSecretKey
 	responseBody.WalletPubkey = *app.WalletPubkey
@@ -208,12 +203,17 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 			existingScopeMap[perm.Scope] = true
 		}
 
+		if slices.Contains(newScopes, constants.SUPERUSER_SCOPE) && !existingScopeMap[constants.SUPERUSER_SCOPE] {
+			return fmt.Errorf(
+				"cannot update app to add superuser permission")
+		}
+
 		// Add new permissions
-		for _, method := range newScopes {
-			if !existingScopeMap[method] {
+		for _, scope := range newScopes {
+			if !existingScopeMap[scope] {
 				perm := db.AppPermission{
 					App:           *userApp,
-					Scope:         method,
+					Scope:         scope,
 					ExpiresAt:     expiresAt,
 					MaxAmountSat:  int(maxAmount),
 					BudgetRenewal: budgetRenewal,
@@ -222,12 +222,12 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 					return err
 				}
 			}
-			delete(existingScopeMap, method)
+			delete(existingScopeMap, scope)
 		}
 
 		// Remove old permissions
-		for method := range existingScopeMap {
-			if err := tx.Where("app_id = ? AND scope = ?", userApp.ID, method).Delete(&db.AppPermission{}).Error; err != nil {
+		for scope := range existingScopeMap {
+			if err := tx.Where("app_id = ? AND scope = ?", userApp.ID, scope).Delete(&db.AppPermission{}).Error; err != nil {
 				return err
 			}
 		}
@@ -285,20 +285,29 @@ func (api *api) GetApp(dbApp *db.App) *App {
 		}
 	}
 
+	walletPubkey := api.keys.GetNostrPublicKey()
+	uniqueWalletPubkey := false
+	if dbApp.WalletPubkey != nil {
+		walletPubkey = *dbApp.WalletPubkey
+		uniqueWalletPubkey = true
+	}
+
 	response := App{
-		ID:            dbApp.ID,
-		Name:          dbApp.Name,
-		Description:   dbApp.Description,
-		CreatedAt:     dbApp.CreatedAt,
-		UpdatedAt:     dbApp.UpdatedAt,
-		AppPubkey:     dbApp.AppPubkey,
-		ExpiresAt:     expiresAt,
-		MaxAmountSat:  maxAmount,
-		Scopes:        requestMethods,
-		BudgetUsage:   budgetUsage,
-		BudgetRenewal: paySpecificPermission.BudgetRenewal,
-		Isolated:      dbApp.Isolated,
-		Metadata:      metadata,
+		ID:                 dbApp.ID,
+		Name:               dbApp.Name,
+		Description:        dbApp.Description,
+		CreatedAt:          dbApp.CreatedAt,
+		UpdatedAt:          dbApp.UpdatedAt,
+		AppPubkey:          dbApp.AppPubkey,
+		ExpiresAt:          expiresAt,
+		MaxAmountSat:       maxAmount,
+		Scopes:             requestMethods,
+		BudgetUsage:        budgetUsage,
+		BudgetRenewal:      paySpecificPermission.BudgetRenewal,
+		Isolated:           dbApp.Isolated,
+		Metadata:           metadata,
+		WalletPubkey:       walletPubkey,
+		UniqueWalletPubkey: uniqueWalletPubkey,
 	}
 
 	if dbApp.Isolated {
@@ -336,14 +345,22 @@ func (api *api) ListApps() ([]App, error) {
 
 	apiApps := []App{}
 	for _, dbApp := range dbApps {
+		walletPubkey := api.keys.GetNostrPublicKey()
+		uniqueWalletPubkey := false
+		if dbApp.WalletPubkey != nil {
+			walletPubkey = *dbApp.WalletPubkey
+			uniqueWalletPubkey = true
+		}
 		apiApp := App{
-			ID:          dbApp.ID,
-			Name:        dbApp.Name,
-			Description: dbApp.Description,
-			CreatedAt:   dbApp.CreatedAt,
-			UpdatedAt:   dbApp.UpdatedAt,
-			AppPubkey:   dbApp.AppPubkey,
-			Isolated:    dbApp.Isolated,
+			ID:                 dbApp.ID,
+			Name:               dbApp.Name,
+			Description:        dbApp.Description,
+			CreatedAt:          dbApp.CreatedAt,
+			UpdatedAt:          dbApp.UpdatedAt,
+			AppPubkey:          dbApp.AppPubkey,
+			Isolated:           dbApp.Isolated,
+			WalletPubkey:       walletPubkey,
+			UniqueWalletPubkey: uniqueWalletPubkey,
 		}
 
 		if dbApp.Isolated {
@@ -421,6 +438,24 @@ func (api *api) ListChannels(ctx context.Context) ([]Channel, error) {
 			Status:                                   status,
 		})
 	}
+
+	slices.SortFunc(apiChannels, func(a, b Channel) int {
+		// sort by channel size first
+		aSize := a.LocalBalance + a.RemoteBalance
+		bSize := b.LocalBalance + b.RemoteBalance
+		if aSize != bSize {
+			return int(bSize - aSize)
+		}
+
+		// then by local balance in the channel
+		if a.LocalBalance != b.LocalBalance {
+			return int(b.LocalBalance - a.LocalBalance)
+		}
+
+		// finally sort by channel ID to prevent sort randomly changing
+		return strings.Compare(b.Id, a.Id)
+	})
+
 	return apiChannels, nil
 }
 
@@ -783,7 +818,7 @@ func (api *api) GetMnemonic(unlockPassword string) (*MnemonicResponse, error) {
 		Mnemonic: mnemonic,
 	}
 
-	return &resp, err
+	return &resp, nil
 }
 
 func (api *api) SetNextBackupReminder(backupReminderRequest *BackupReminderRequest) error {

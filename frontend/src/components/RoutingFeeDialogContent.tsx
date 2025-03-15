@@ -53,7 +53,7 @@ export function RoutingFeeDialogContent({ channel }: Props) {
       );
 
       await reloadChannels();
-      toast({ title: "Sucessfully updated channel" });
+      toast({ title: "Successfully updated channel" });
     } catch (error) {
       console.error(error);
       toast({

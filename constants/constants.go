@@ -19,6 +19,16 @@ const (
 	BUDGET_RENEWAL_NEVER   = "never"
 )
 
+func GetBudgetRenewals() []string {
+	return []string{
+		BUDGET_RENEWAL_DAILY,
+		BUDGET_RENEWAL_WEEKLY,
+		BUDGET_RENEWAL_MONTHLY,
+		BUDGET_RENEWAL_YEARLY,
+		BUDGET_RENEWAL_NEVER,
+	}
+}
+
 const (
 	PAY_INVOICE_SCOPE       = "pay_invoice" // also covers pay_keysend and multi_* payment methods
 	GET_BALANCE_SCOPE       = "get_balance"
@@ -28,6 +38,7 @@ const (
 	LIST_TRANSACTIONS_SCOPE = "list_transactions"
 	SIGN_MESSAGE_SCOPE      = "sign_message"
 	NOTIFICATIONS_SCOPE     = "notifications" // covers all notification types
+	SUPERUSER_SCOPE         = "superuser"
 )
 
 // limit encoded metadata length, otherwise relays may have trouble listing multiple transactions
@@ -38,15 +49,20 @@ const INVOICE_METADATA_MAX_LENGTH = 4096
 
 // errors used by NIP-47 and the transaction service
 const (
-	ERROR_INTERNAL             = "INTERNAL"
-	ERROR_NOT_IMPLEMENTED      = "NOT_IMPLEMENTED"
-	ERROR_QUOTA_EXCEEDED       = "QUOTA_EXCEEDED"
-	ERROR_INSUFFICIENT_BALANCE = "INSUFFICIENT_BALANCE"
-	ERROR_UNAUTHORIZED         = "UNAUTHORIZED"
-	ERROR_EXPIRED              = "EXPIRED"
-	ERROR_RESTRICTED           = "RESTRICTED"
-	ERROR_BAD_REQUEST          = "BAD_REQUEST"
-	ERROR_NOT_FOUND            = "NOT_FOUND"
-	ERROR_UNSUPPORTED_VERSION  = "UNSUPPORTED_VERSION"
-	ERROR_OTHER                = "OTHER"
+	ERROR_INTERNAL               = "INTERNAL"
+	ERROR_NOT_IMPLEMENTED        = "NOT_IMPLEMENTED"
+	ERROR_QUOTA_EXCEEDED         = "QUOTA_EXCEEDED"
+	ERROR_INSUFFICIENT_BALANCE   = "INSUFFICIENT_BALANCE"
+	ERROR_UNAUTHORIZED           = "UNAUTHORIZED"
+	ERROR_EXPIRED                = "EXPIRED"
+	ERROR_RESTRICTED             = "RESTRICTED"
+	ERROR_BAD_REQUEST            = "BAD_REQUEST"
+	ERROR_NOT_FOUND              = "NOT_FOUND"
+	ERROR_UNSUPPORTED_ENCRYPTION = "UNSUPPORTED_ENCRYPTION"
+	ERROR_OTHER                  = "OTHER"
+)
+
+const (
+	ENCRYPTION_TYPE_NIP04    = "nip04"
+	ENCRYPTION_TYPE_NIP44_V2 = "nip44_v2"
 )

@@ -103,11 +103,7 @@ export function ZapPlanner() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      if (apps?.some((existingApp) => existingApp.name === recipientName)) {
-        throw new Error("A connection with the same name already exists.");
-      }
-
-      // validate lighning address
+      // validate lightning address
       const ln = new LightningAddress(recipientLightningAddress);
       await ln.fetch();
       if (!ln.lnurlpData) {

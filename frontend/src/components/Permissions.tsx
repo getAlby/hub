@@ -1,4 +1,4 @@
-import { BrickWall, PlusCircle } from "lucide-react";
+import { AlertTriangleIcon, BrickWall, PlusCircle } from "lucide-react";
 import React from "react";
 import BudgetAmountSelect from "src/components/BudgetAmountSelect";
 import BudgetRenewalSelect from "src/components/BudgetRenewalSelect";
@@ -227,6 +227,20 @@ const Permissions: React.FC<PermissionsProps> = ({
           </>
         )}
       </>
+
+      {permissions.scopes.includes("superuser") && (
+        <>
+          <div className="flex items-center gap-2 mt-4">
+            <AlertTriangleIcon className="w-4 h-4" />
+            <p className="text-sm font-medium">
+              This app can create other app connections
+            </p>
+          </div>
+          <p className="text-muted-foreground text-sm">
+            Make sure to set budgets on connections created by this app.
+          </p>
+        </>
+      )}
     </div>
   );
 };

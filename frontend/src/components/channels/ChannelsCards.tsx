@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 import { Progress } from "src/components/ui/progress.tsx";
+import { Separator } from "src/components/ui/separator";
 import {
   Tooltip,
   TooltipContent,
@@ -32,8 +33,10 @@ export function ChannelsCards({ channels, nodes }: ChannelsCardsProps) {
   return (
     <>
       <Card>
-        <CardHeader className="w-full pb-4">Channels</CardHeader>
-        <div className="flex flex-col gap-4 slashed-zero p-4">
+        <CardHeader className="w-full pb-2 text-2xl font-semibold">
+          Channels
+        </CardHeader>
+        <CardContent>
           {channels
             .sort((a, b) =>
               a.localBalance + a.remoteBalance >
@@ -41,7 +44,7 @@ export function ChannelsCards({ channels, nodes }: ChannelsCardsProps) {
                 ? -1
                 : 1
             )
-            .map((channel) => {
+            .map((channel, index) => {
               const node = nodes?.find(
                 (n) => n.public_key === channel.remotePubkey
               );
@@ -50,16 +53,22 @@ export function ChannelsCards({ channels, nodes }: ChannelsCardsProps) {
 
               return (
                 <>
+                  {index > 0 && <Separator className="mt-6 -mb-2" />}
                   <div className="flex flex-col items-start w-full">
-                    <CardTitle className="w-full">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1 whitespace-nowrap text-ellipsis font-semibold overflow-hidden">
-                          {alias}
+                    <CardHeader className="pb-4 px-0 w-full">
+                      <CardTitle className="w-full">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1 whitespace-nowrap text-ellipsis font-semibold truncate leading-normal">
+                            {alias}
+                          </div>
+                          <ChannelDropdownMenu
+                            alias={alias}
+                            channel={channel}
+                          />
                         </div>
-                        <ChannelDropdownMenu alias={alias} channel={channel} />
-                      </div>
-                    </CardTitle>
-                    <CardDescription className="w-full flex flex-col gap-4 mt-4">
+                      </CardTitle>
+                    </CardHeader>
+                    <CardDescription className="w-full flex flex-col gap-4">
                       <div className="flex w-full justify-between items-center">
                         <p className="text-muted-foreground font-medium">
                           Status
@@ -128,7 +137,9 @@ export function ChannelsCards({ channels, nodes }: ChannelsCardsProps) {
                               cheating by ensuring each party has something at
                               stake. This reserve cannot be spent during the
                               channel's lifetime and typically amounts to 1% of
-                              the channel capacity.
+                              the channel capacity. The reserve will
+                              automatically be filled when payments are received
+                              on the channel.
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
@@ -152,46 +163,45 @@ export function ChannelsCards({ channels, nodes }: ChannelsCardsProps) {
                           sats
                         </p>
                       </div>
+                      <div className="flex justify-between items-center">
+                        <p className="text-muted-foreground font-medium text-sm">
+                          Spending
+                        </p>
+                        <p className="text-muted-foreground font-medium text-sm">
+                          Receiving
+                        </p>
+                      </div>
+                      <div className="flex gap-2 items-center">
+                        <div className="flex-1 relative">
+                          <Progress
+                            value={
+                              (channel.localSpendableBalance / capacity) * 100
+                            }
+                            className="h-6 absolute"
+                          />
+                          <div className="flex flex-row w-full justify-between px-2 text-xs items-center h-6 mix-blend-exclusion text-white">
+                            <span
+                              title={
+                                channel.localSpendableBalance / 1000 + " sats"
+                              }
+                            >
+                              {formatAmount(channel.localSpendableBalance)} sats
+                            </span>
+                            <span
+                              title={channel.remoteBalance / 1000 + " sats"}
+                            >
+                              {formatAmount(channel.remoteBalance)} sats
+                            </span>
+                          </div>
+                        </div>
+                        <ChannelWarning channel={channel} />
+                      </div>
                     </CardDescription>
                   </div>
-
-                  <CardContent className="p-0">
-                    <div className="flex justify-between items-center">
-                      <p className="text-muted-foreground font-medium text-sm">
-                        Spending
-                      </p>
-                      <p className="text-muted-foreground font-medium text-sm">
-                        Receiving
-                      </p>
-                    </div>
-                    <div className="flex gap-2 items-center mt-2">
-                      <div className="flex-1 relative">
-                        <Progress
-                          value={
-                            (channel.localSpendableBalance / capacity) * 100
-                          }
-                          className="h-6 absolute"
-                        />
-                        <div className="flex flex-row w-full justify-between px-2 text-xs items-center h-6 mix-blend-exclusion text-white">
-                          <span
-                            title={
-                              channel.localSpendableBalance / 1000 + " sats"
-                            }
-                          >
-                            {formatAmount(channel.localSpendableBalance)} sats
-                          </span>
-                          <span title={channel.remoteBalance / 1000 + " sats"}>
-                            {formatAmount(channel.remoteBalance)} sats
-                          </span>
-                        </div>
-                      </div>
-                      <ChannelWarning channel={channel} />
-                    </div>
-                  </CardContent>
                 </>
               );
             })}
-        </div>
+        </CardContent>
       </Card>
     </>
   );

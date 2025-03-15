@@ -142,7 +142,7 @@ function TransactionItem({ tx }: Props) {
                 </span>
                 {from !== undefined && <>&nbsp;{from}</>}
                 <span className="text-xs md:text-base ml-2 truncate text-muted-foreground">
-                  {dayjs(tx.settledAt || tx.createdAt).fromNow()}
+                  {dayjs(tx.updatedAt).fromNow()}
                 </span>
               </p>
             </div>
@@ -151,25 +151,28 @@ function TransactionItem({ tx }: Props) {
             </p>
           </div>
           <div className="flex ml-auto space-x-3 shrink-0">
-            <div className="flex flex-col items-end gap-2 md:text-xl">
-              <div className="flex gap-2">
+            <div className="flex flex-col items-end md:text-xl">
+              <div className="flex flex-row gap-1">
                 <p
                   className={cn(
-                    "font-semibold",
                     type == "incoming" && "text-green-600 dark:text-emerald-500"
                   )}
                 >
                   {type == "outgoing" ? "-" : "+"}
-                  {new Intl.NumberFormat().format(
-                    Math.floor(tx.amount / 1000)
-                  )}{" "}
+                  <span className="font-medium">
+                    {new Intl.NumberFormat().format(
+                      Math.floor(tx.amount / 1000)
+                    )}
+                  </span>
                 </p>
-                <p className="text-foreground">
+                <p className="text-muted-foreground">
                   {Math.floor(tx.amount / 1000) == 1 ? "sat" : "sats"}
                 </p>
               </div>
-
-              <FormattedFiatAmount amount={Math.floor(tx.amount / 1000)} />
+              <FormattedFiatAmount
+                className="text-xs md:text-base"
+                amount={Math.floor(tx.amount / 1000)}
+              />
             </div>
           </div>
         </div>
@@ -208,7 +211,7 @@ function TransactionItem({ tx }: Props) {
             <div className="mt-6">
               <p>Date & Time</p>
               <p className="text-muted-foreground">
-                {dayjs(tx.settledAt || tx.createdAt)
+                {dayjs(tx.updatedAt)
                   .tz(dayjs.tz.guess())
                   .format("D MMMM YYYY, HH:mm")}
               </p>

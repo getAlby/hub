@@ -14,3 +14,6 @@ packages:
   github.com/getAlby/hub/lnclient:
     interfaces:
       LNClient:
+  github.com/getAlby/hub/config:
+    interfaces:
+      Config:

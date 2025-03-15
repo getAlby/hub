@@ -402,7 +402,7 @@ func (svc *LNDService) SendKeysend(ctx context.Context, amount uint64, destinati
 			"payment_hash": paymentHash,
 			"preimage":     preimage,
 			"reason":       failureReasonMessage,
-		}).Error("Keysend not succcessful")
+		}).Error("Keysend not successful")
 		return nil, errors.New(failureReasonMessage)
 	}
 
@@ -963,6 +963,7 @@ func (svc *LNDService) GetOnchainBalance(ctx context.Context) (*lnclient.Onchain
 		Reserved:                           int64(balances.ReservedBalanceAnchorChan),
 		PendingBalancesFromChannelClosures: pendingBalancesFromChannelClosures,
 		PendingBalancesDetails:             pendingBalancesDetails,
+		PendingSweepBalancesDetails:        []lnclient.PendingBalanceDetails{},
 		InternalBalances: map[string]interface{}{
 			"balances":         balances,
 			"pending_channels": pendingChannels,
@@ -972,9 +973,10 @@ func (svc *LNDService) GetOnchainBalance(ctx context.Context) (*lnclient.Onchain
 
 func (svc *LNDService) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, sendAll bool) (txId string, err error) {
 	resp, err := svc.client.SendCoins(ctx, &lnrpc.SendCoinsRequest{
-		Addr:    toAddress,
-		SendAll: sendAll,
-		Amount:  int64(amount),
+		Addr:       toAddress,
+		SendAll:    sendAll,
+		Amount:     int64(amount),
+		TargetConf: 1,
 	})
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to send onchain funds")
@@ -1020,7 +1022,7 @@ func (svc *LNDService) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, e
 			IsConnected: true,
 		})
 	}
-	return ret, err
+	return ret, nil
 }
 
 func (svc *LNDService) GetNetworkGraph(ctx context.Context, nodeIds []string) (lnclient.NetworkGraphResponse, error) {

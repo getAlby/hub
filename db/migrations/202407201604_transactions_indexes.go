@@ -13,7 +13,7 @@ import (
 // - (basic indexes)
 // - index for budget query
 // - index for isolated balance queries
-// - index for list_transactions / lookup transaciton queries
+// - index for list_transactions / lookup transaction queries
 
 var _202407201604_transactions_indexes = &gormigrate.Migration{
 	ID: "202407201604_transactions_indexes",

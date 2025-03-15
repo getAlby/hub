@@ -53,7 +53,7 @@ func NewHttpService(svc service.Service, eventPublisher events.EventPublisher) *
 		cfg:            svc.GetConfig(),
 		eventPublisher: eventPublisher,
 		db:             svc.GetDB(),
-		appsSvc:        apps.NewAppsService(svc.GetDB(), eventPublisher, svc.GetKeys()),
+		appsSvc:        apps.NewAppsService(svc.GetDB(), eventPublisher, svc.GetKeys(), svc.GetConfig()),
 	}
 }
 
@@ -820,7 +820,7 @@ func (httpSvc *HttpService) signMessageHandler(c echo.Context) error {
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to sign messae: %s", err.Error()),
+			Message: fmt.Sprintf("Failed to sign message: %s", err.Error()),
 		})
 	}
 	return c.JSON(http.StatusOK, signMessageResponse)

@@ -1,6 +1,6 @@
 import useSWR, { SWRConfiguration } from "swr";
 
-import { Transaction } from "src/types";
+import { ListTransactionsResponse } from "src/types";
 import { swrFetcher } from "src/utils/swr";
 
 const pollConfiguration: SWRConfiguration = {
@@ -14,7 +14,7 @@ export function useTransactions(
   page = 1
 ) {
   const offset = (page - 1) * limit;
-  return useSWR<Transaction[]>(
+  return useSWR<ListTransactionsResponse>(
     `/api/transactions?limit=${limit}&offset=${offset}&appId=${appId}`,
     swrFetcher,
     poll ? pollConfiguration : undefined
