@@ -76,8 +76,7 @@ type AlbyMeHub struct {
 }
 
 type AlbyMeSubscription struct {
-	// PlanCode string `json:"plan_code"`
-	Buzz bool `json:"buzz"`
+	PlanCode string `json:"plan_code"`
 }
 
 type AlbyMe struct {

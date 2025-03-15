@@ -102,10 +102,10 @@ export function AlbyAccount() {
               )}
             </p>
           )}
-          {!me.subscription.buzz && (
+          {!me.subscription.plan_code && (
             <p>VSS is only available to Alby users with a paid subscription.</p>
           )}
-          {!info.ldkVssEnabled && me.subscription.buzz && (
+          {!info.ldkVssEnabled && me.subscription.plan_code && (
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 {

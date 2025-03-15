@@ -395,7 +395,7 @@ export type AlbyMe = {
     name?: string;
   };
   subscription: {
-    buzz: boolean;
+    plan_code: string;
   };
 };
 
