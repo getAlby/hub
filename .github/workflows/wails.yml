@@ -101,8 +101,6 @@ jobs:
       - name: Copy shared libraries
         if: runner.os == 'Windows'
         run: |
-          cp `go list -m -f "{{.Dir}}" github.com/breez/breez-sdk-go`/breez_sdk/lib/windows-amd64/breez_sdk_bindings.dll ./
-          cp `go list -m -f "{{.Dir}}" github.com/getAlby/glalby-go`/glalby/x86_64-pc-windows-msvc/glalby_bindings.dll ./
           cp `go list -m -f "{{.Dir}}" github.com/getAlby/ldk-node-go`/ldk_node/x86_64-pc-windows-msvc/ldk_node.dll ./
         shell: bash
 
@@ -142,8 +140,6 @@ jobs:
       - name: Copy DLLs to the output directory
         if: runner.os == 'Windows'
         run: |
-          cp breez_sdk_bindings.dll ./build/bin/
-          cp glalby_bindings.dll ./build/bin/
           cp ldk_node.dll ./build/bin/
         shell: bash
 
@@ -151,8 +147,6 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           mkdir -p ./build/bin/${{ env.PACKAGE_NAME }}/lib
-          cp `go list -m -f "{{.Dir}}" github.com/breez/breez-sdk-go`/breez_sdk/lib/linux-amd64/libbreez_sdk_bindings.so ./build/bin/${{ env.PACKAGE_NAME }}/lib/
-          cp `go list -m -f "{{.Dir}}" github.com/getAlby/glalby-go`/glalby/x86_64-unknown-linux-gnu/libglalby_bindings.so ./build/bin/${{ env.PACKAGE_NAME }}/lib/
           cp `go list -m -f "{{.Dir}}" github.com/getAlby/ldk-node-go`/ldk_node/x86_64-unknown-linux-gnu/libldk_node.so ./build/bin/${{ env.PACKAGE_NAME }}/lib/
           mkdir -p ./build/bin/${{ env.PACKAGE_NAME }}/bin
           mv "./build/bin/${{ env.EXEC_NAME }}" ./build/bin/${{ env.PACKAGE_NAME }}/bin/
@@ -167,8 +161,6 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           mkdir -p "./build/bin/${{ env.EXEC_NAME }}.app/Contents/Frameworks"
-          lipo -create -output "./build/bin/${{ env.EXEC_NAME }}.app/Contents/Frameworks/libbreez_sdk_bindings.dylib" `go list -m -f "{{.Dir}}" github.com/breez/breez-sdk-go`/breez_sdk/lib/darwin-aarch64/libbreez_sdk_bindings.dylib `go list -m -f "{{.Dir}}" github.com/breez/breez-sdk-go`/breez_sdk/lib/darwin-amd64/libbreez_sdk_bindings.dylib
-          cp `go list -m -f "{{.Dir}}" github.com/getAlby/glalby-go`/glalby/universal-macos/libglalby_bindings.dylib "./build/bin/${{ env.EXEC_NAME }}.app/Contents/Frameworks/"
           cp `go list -m -f "{{.Dir}}" github.com/getAlby/ldk-node-go`/ldk_node/universal-macos/libldk_node.dylib "./build/bin/${{ env.EXEC_NAME }}.app/Contents/Frameworks/"
         shell: bash
 

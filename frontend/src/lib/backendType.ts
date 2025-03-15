@@ -12,16 +12,6 @@ export const backendTypeConfigs: Record<BackendType, BackendTypeConfig> = {
     hasChannelManagement: true,
     hasNodeBackup: false,
   },
-  BREEZ: {
-    hasMnemonic: true,
-    hasChannelManagement: false,
-    hasNodeBackup: false,
-  },
-  GREENLIGHT: {
-    hasMnemonic: true,
-    hasChannelManagement: true,
-    hasNodeBackup: false,
-  },
   LDK: {
     hasMnemonic: true,
     hasChannelManagement: true,

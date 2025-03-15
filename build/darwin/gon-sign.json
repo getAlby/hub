@@ -1,9 +1,7 @@
 {
   "source": [
     "./build/bin/AlbyHub.app",
-    "./build/bin/AlbyHub.app/Contents/MacOS/AlbyHub",
-    "./build/bin/AlbyHub.app/Contents/Frameworks/libbreez_sdk_bindings.dylib",
-    "./build/bin/AlbyHub.app/Contents/Frameworks/libglalby_bindings.dylib"
+    "./build/bin/AlbyHub.app/Contents/MacOS/AlbyHub"
   ],
   "bundle_id": "com.getalby.AlbyHub",
   "sign": {

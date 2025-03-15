@@ -59,9 +59,7 @@ import { SetupFinish } from "src/screens/setup/SetupFinish";
 import { SetupNode } from "src/screens/setup/SetupNode";
 import { SetupPassword } from "src/screens/setup/SetupPassword";
 import { SetupSecurity } from "src/screens/setup/SetupSecurity";
-import { BreezForm } from "src/screens/setup/node/BreezForm";
 import { CashuForm } from "src/screens/setup/node/CashuForm";
-import { GreenlightForm } from "src/screens/setup/node/GreenlightForm";
 import { LDKForm } from "src/screens/setup/node/LDKForm";
 import { LNDForm } from "src/screens/setup/node/LNDForm";
 import { PhoenixdForm } from "src/screens/setup/node/PhoenixdForm";
@@ -430,14 +428,6 @@ const routes = [
               {
                 index: true,
                 element: <SetupNode />,
-              },
-              {
-                path: "breez",
-                element: <BreezForm />,
-              },
-              {
-                path: "greenlight",
-                element: <GreenlightForm />,
               },
               {
                 path: "cashu",

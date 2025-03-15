@@ -1,12 +1,10 @@
 package config
 
 const (
-	LNDBackendType        = "LND"
-	GreenlightBackendType = "GREENLIGHT"
-	LDKBackendType        = "LDK"
-	BreezBackendType      = "BREEZ"
-	PhoenixBackendType    = "PHOENIX"
-	CashuBackendType      = "CASHU"
+	LNDBackendType     = "LND"
+	LDKBackendType     = "LDK"
+	PhoenixBackendType = "PHOENIX"
+	CashuBackendType   = "CASHU"
 )
 
 const (

@@ -17,9 +17,7 @@ import (
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
-	"github.com/getAlby/hub/lnclient/breez"
 	"github.com/getAlby/hub/lnclient/cashu"
-	"github.com/getAlby/hub/lnclient/greenlight"
 	"github.com/getAlby/hub/lnclient/ldk"
 	"github.com/getAlby/hub/lnclient/lnd"
 	"github.com/getAlby/hub/lnclient/phoenixd"
@@ -328,19 +326,6 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 			svc.startupState = startupState
 		}
 		lnClient, err = ldk.NewLDKService(ctx, svc.cfg, svc.eventPublisher, mnemonic, ldkWorkdir, svc.cfg.GetEnv().LDKNetwork, vssToken, setStartupState)
-	case config.GreenlightBackendType:
-		Mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
-		GreenlightInviteCode, _ := svc.cfg.Get("GreenlightInviteCode", encryptionKey)
-		GreenlightWorkdir := path.Join(svc.cfg.GetEnv().Workdir, "greenlight")
-
-		lnClient, err = greenlight.NewGreenlightService(svc.cfg, Mnemonic, GreenlightInviteCode, GreenlightWorkdir, encryptionKey)
-	case config.BreezBackendType:
-		Mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
-		BreezAPIKey, _ := svc.cfg.Get("BreezAPIKey", encryptionKey)
-		GreenlightInviteCode, _ := svc.cfg.Get("GreenlightInviteCode", encryptionKey)
-		BreezWorkdir := path.Join(svc.cfg.GetEnv().Workdir, "breez")
-
-		lnClient, err = breez.NewBreezService(Mnemonic, BreezAPIKey, GreenlightInviteCode, BreezWorkdir)
 	case config.PhoenixBackendType:
 		PhoenixdAddress, _ := svc.cfg.Get("PhoenixdAddress", encryptionKey)
 		PhoenixdAuthorization, _ := svc.cfg.Get("PhoenixdAuthorization", encryptionKey)
