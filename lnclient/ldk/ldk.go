@@ -1343,11 +1343,13 @@ func (ls *LDKService) GetNetworkGraph(ctx context.Context, nodeIds []string) (ln
 				Node:   graphNode,
 				NodeId: nodeId,
 			})
-		}
-		for _, channelId := range graphNode.Channels {
-			graphChannel := graph.Channel(channelId)
-			if graphChannel != nil {
-				channels = append(channels, graphChannel)
+			if graphNode.Channels != nil {
+				for _, channelId := range graphNode.Channels {
+					graphChannel := graph.Channel(channelId)
+					if graphChannel != nil {
+						channels = append(channels, graphChannel)
+					}
+				}
 			}
 		}
 	}
@@ -1880,6 +1882,8 @@ func getResetStateRequest(cfg config.Config) *ldk_node.ResetState {
 		ret = ldk_node.ResetStateScorer
 	case "NetworkGraph":
 		ret = ldk_node.ResetStateNetworkGraph
+	case "NodeMetrics":
+		ret = ldk_node.ResetStateNodeMetrics
 	default:
 		logger.Logger.WithField("key", resetKey).Error("Unknown reset router key")
 		return nil
