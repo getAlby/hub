@@ -69,6 +69,7 @@ export default function AppLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const flyingBeesRef = React.useRef<FlyingBeesRef>(null);
   useRemoveSuccessfulChannelOrder();
   useNotifyReceivedPayments();
 
@@ -137,7 +138,16 @@ export default function AppLayout() {
   function MainMenuContent() {
     return (
       <>
-        <MenuItem to="/home">
+        <FlyingBees ref={flyingBeesRef} />
+        <MenuItem
+          to="/home"
+          onClick={(e) => {
+            if (location.pathname === "/home") {
+              flyingBeesRef.current?.addFlyingBee();
+              e.preventDefault();
+            }
+          }}
+        >
           <Home className="h-4 w-4" />
           Home
         </MenuItem>
@@ -353,7 +363,6 @@ function AppVersion() {
 
 function HealthIndicator() {
   const { data: health } = useHealthCheck();
-  const flyingBeesRef = React.useRef<FlyingBeesRef>(null);
 
   if (!health) {
     return null;
@@ -381,7 +390,7 @@ function HealthIndicator() {
   return (
     <TooltipProvider>
       <Tooltip>
-        <TooltipTrigger onClick={() => flyingBeesRef.current?.addFlyingBee()}>
+        <TooltipTrigger>
           <span className="text-xs flex items-center text-muted-foreground">
             <div
               className={cn(
@@ -408,7 +417,6 @@ function HealthIndicator() {
           )}
         </TooltipContent>
       </Tooltip>
-      <FlyingBees ref={flyingBeesRef} />
     </TooltipProvider>
   );
 }
