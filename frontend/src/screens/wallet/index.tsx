@@ -6,7 +6,6 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
-import BreezRedeem from "src/components/BreezRedeem";
 import ExternalLink from "src/components/ExternalLink";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
@@ -78,7 +77,6 @@ function Wallet() {
           </AlertDescription>
         </Alert>
       )}
-      <BreezRedeem />
       <div className="flex flex-col xl:flex-row justify-between xl:items-center gap-5">
         <div className="flex flex-col gap-1 text-center xl:text-left">
           <div className="text-5xl font-medium balance sensitive slashed-zero">
