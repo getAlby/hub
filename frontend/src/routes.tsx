@@ -59,6 +59,7 @@ import { SetupFinish } from "src/screens/setup/SetupFinish";
 import { SetupNode } from "src/screens/setup/SetupNode";
 import { SetupPassword } from "src/screens/setup/SetupPassword";
 import { SetupSecurity } from "src/screens/setup/SetupSecurity";
+import { ArkForm } from "src/screens/setup/node/ArkForm";
 import { CashuForm } from "src/screens/setup/node/CashuForm";
 import { LDKForm } from "src/screens/setup/node/LDKForm";
 import { LNDForm } from "src/screens/setup/node/LNDForm";
@@ -444,6 +445,10 @@ const routes = [
               {
                 path: "ldk",
                 element: <LDKForm />,
+              },
+              {
+                path: "ark",
+                element: <ArkForm />,
               },
               {
                 path: "preset",
