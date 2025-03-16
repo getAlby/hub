@@ -39,6 +39,7 @@ import { OpenedFirstChannel } from "src/screens/channels/first/OpenedFirstChanne
 import { OpeningFirstChannel } from "src/screens/channels/first/OpeningFirstChannel";
 import { AlbyGo } from "src/screens/internal-apps/AlbyGo";
 import { BuzzPay } from "src/screens/internal-apps/BuzzPay";
+import { LightningMessageboard } from "src/screens/internal-apps/LightningMessageboard";
 import { SimpleBoost } from "src/screens/internal-apps/SimpleBoost";
 import { UncleJim } from "src/screens/internal-apps/UncleJim";
 import { ZapPlanner } from "src/screens/internal-apps/ZapPlanner";
@@ -258,6 +259,10 @@ const routes = [
           {
             path: "simpleboost",
             element: <SimpleBoost />,
+          },
+          {
+            path: "lightning-messageboard",
+            element: <LightningMessageboard />,
           },
           {
             path: "zapplanner",
