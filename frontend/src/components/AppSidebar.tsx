@@ -4,6 +4,7 @@ import {
   Calendar,
   ChevronsUpDown,
   CircleHelp,
+  ClockIcon,
   CreditCard,
   Home,
   Inbox,
@@ -12,6 +13,7 @@ import {
   Search,
   Settings,
   Sparkles,
+  Users2,
 } from "lucide-react";
 
 import { CubeIcon } from "@radix-ui/react-icons";
@@ -119,7 +121,6 @@ export function AppSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Application</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
@@ -132,6 +133,27 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        <SidebarGroup>
+          <SidebarGroupLabel>Apps</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem key="asdf">
+                <SidebarMenuButton asChild>
+                  <a href="#">
+                    <Users2 />
+                    <span>Friends & Family</span>
+                  </a>
+                </SidebarMenuButton>
+                <SidebarMenuButton asChild>
+                  <a href="#">
+                    <ClockIcon />
+                    <span>ZapPlanner</span>
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
