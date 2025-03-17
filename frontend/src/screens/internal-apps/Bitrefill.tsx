@@ -18,7 +18,7 @@ import { request } from "src/utils/request";
 
 export function Bitrefill() {
   const { toast } = useToast();
-  const [open, setOpen] = React.useState(false);
+  const [paymentDialogOpen, setPaymentDialogOpen] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [invoice, setInvoice] = React.useState<Invoice>();
 
@@ -30,7 +30,7 @@ export function Bitrefill() {
           const parsedData = JSON.parse(event.data);
 
           if (parsedData.event === "payment_intent") {
-            setOpen(true);
+            setPaymentDialogOpen(true);
             const invoice = new Invoice({ pr: parsedData.paymentAddress });
             setInvoice(invoice);
           }
@@ -58,9 +58,6 @@ export function Bitrefill() {
         `/api/payments/${invoice.paymentRequest}`,
         {
           method: "POST",
-          body: JSON.stringify({
-            amount: invoice.satoshi * 1000,
-          }),
           headers: {
             "Content-Type": "application/json",
           },
@@ -70,6 +67,9 @@ export function Bitrefill() {
       if (!payInvoiceResponse?.preimage) {
         throw new Error("No preimage in response");
       }
+
+      setPaymentDialogOpen(false);
+      setInvoice(undefined);
 
       toast({
         title: "Payment successful",
@@ -83,8 +83,6 @@ export function Bitrefill() {
       console.error(e);
     } finally {
       setLoading(false);
-      setOpen(false);
-      setInvoice(undefined);
     }
   }
 
@@ -102,7 +100,7 @@ export function Bitrefill() {
           sandbox="allow-same-origin allow-popups allow-scripts allow-forms"
         ></iframe>
       </div>
-      <AlertDialog open={open} onOpenChange={setOpen}>
+      <AlertDialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Confirm payment</AlertDialogTitle>
