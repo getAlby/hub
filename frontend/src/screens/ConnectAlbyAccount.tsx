@@ -8,6 +8,7 @@ import {
   Zap,
 } from "lucide-react";
 import Container from "src/components/Container";
+import ExternalLink from "src/components/ExternalLink";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { Badge } from "src/components/ui/badge";
 import { LinkButton } from "src/components/ui/button";
@@ -36,13 +37,7 @@ export function ConnectAlbyAccount({ connectUrl }: ConnectAlbyAccountProps) {
               <Zap className="w-6 h-6" />
               <CardTitle className="text-sm">
                 Lightning Address
-                <Badge
-                  variant="outline"
-                  className="absolute right-2 top-2"
-                  title="Alby Pro"
-                >
-                  <SparklesIcon className="w-3 h-3" />
-                </Badge>
+                <AlbyProIcon />
               </CardTitle>
               <CardDescription className="text-xs">
                 Personalized lightning address to receive payments
@@ -54,9 +49,7 @@ export function ConnectAlbyAccount({ connectUrl }: ConnectAlbyAccountProps) {
               <Mail className="w-6 h-6" />
               <CardTitle className="text-sm">
                 Email Notifications
-                <Badge className="absolute right-2 top-2" title="Alby Pro">
-                  <SparklesIcon className="w-3 h-3" />
-                </Badge>
+                <AlbyProIcon />
               </CardTitle>
               <CardDescription className="text-xs">
                 Instant notifications about incoming transactions and more
@@ -68,13 +61,7 @@ export function ConnectAlbyAccount({ connectUrl }: ConnectAlbyAccountProps) {
               <DatabaseBackup className="w-6 h-6" />
               <CardTitle className="text-sm">
                 Encrypted Backups
-                <Badge
-                  variant="outline"
-                  className="absolute right-2 top-2"
-                  title="Alby Pro"
-                >
-                  <SparklesIcon className="w-3 h-3" />
-                </Badge>
+                <AlbyProIcon />
               </CardTitle>
               <CardDescription className="text-xs">
                 Ensures you can always recover funds from lightning channels
@@ -86,13 +73,7 @@ export function ConnectAlbyAccount({ connectUrl }: ConnectAlbyAccountProps) {
               <LifeBuoy className="w-6 h-6" />
               <CardTitle className="text-sm">
                 Support
-                <Badge
-                  variant="outline"
-                  className="absolute right-2 top-2"
-                  title="Alby Pro"
-                >
-                  <SparklesIcon className="w-3 h-3" />
-                </Badge>
+                <AlbyProIcon />
               </CardTitle>
               <CardDescription className="text-xs">
                 Human support via live chat when you need a helping hand
@@ -132,12 +113,28 @@ export function ConnectAlbyAccount({ connectUrl }: ConnectAlbyAccountProps) {
           </LinkButton>
         </div>
         <div className="text-muted-foreground flex flex-col items-center text-xs gap-2 mt-10">
-          <Badge variant="outline">
+          <Badge title="Alby Pro">
             <SparklesIcon className="w-3 h-3" />
           </Badge>
-          Unlock additional features with Alby Pro
+          <div>
+            Unlock additional features with{" "}
+            <ExternalLink
+              to="https://getalby.com/pricing"
+              className="underline"
+            >
+              Alby Pro
+            </ExternalLink>
+          </div>
         </div>
       </Container>
     </div>
   );
+
+  function AlbyProIcon() {
+    return (
+      <div className="absolute right-2 top-2" title="Alby Pro">
+        <SparklesIcon className="w-3 h-3" />
+      </div>
+    );
+  }
 }
