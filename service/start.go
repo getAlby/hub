@@ -413,7 +413,7 @@ func (svc *service) requestVssToken(ctx context.Context) (string, error) {
 				return "", err
 			}
 			// only activate VSS for Alby paid subscribers
-			if me.Subscription.Buzz {
+			if me.Subscription.PlanCode != "" {
 				svc.cfg.SetUpdate("LdkVssEnabled", "true", "")
 			}
 		}
