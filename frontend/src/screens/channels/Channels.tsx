@@ -125,7 +125,6 @@ export default function Channels() {
     <>
       <AppHeader
         title="Node"
-        description="Manage your lightning node liquidity."
         contentRight={
           <div className="flex gap-3 items-center justify-center">
             <SwapDialogs
