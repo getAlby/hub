@@ -4,14 +4,14 @@ import { SidebarTrigger } from "src/components/ui/sidebar";
 
 type Props = {
   title: string | ReactElement;
-  description: string | ReactElement;
+  description?: string | ReactElement;
   contentRight?: React.ReactNode;
   breadcrumb?: boolean;
 };
 
 function AppHeader({
   title,
-  description,
+  description = "",
   contentRight,
   breadcrumb = true,
 }: Props) {

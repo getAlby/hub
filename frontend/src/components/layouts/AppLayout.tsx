@@ -1,34 +1,8 @@
 import { compare } from "compare-versions";
-import {
-  CircleHelp,
-  Cloud,
-  Home,
-  LayoutGrid,
-  Lock,
-  Plug2,
-  PlugZapIcon,
-  Settings,
-  ShieldAlertIcon,
-  ShieldCheckIcon,
-  User2,
-  Wallet,
-} from "lucide-react";
+import { ShieldAlertIcon, ShieldCheckIcon } from "lucide-react";
 
-import { CubeIcon } from "@radix-ui/react-icons";
 import React from "react";
-import {
-  Link,
-  NavLink,
-  Outlet,
-  useLocation,
-  useNavigate,
-} from "react-router-dom";
-import {
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-} from "src/components/ui/dropdown-menu";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import {
   Tooltip,
   TooltipContent,
@@ -48,24 +22,17 @@ import { deleteAuthToken } from "src/lib/auth";
 import { cn } from "src/lib/utils";
 import { HealthAlarm } from "src/types";
 import { isHttpMode } from "src/utils/isHttpMode";
-import { openLink } from "src/utils/openLink";
 import ExternalLink from "../ExternalLink";
 
 export default function AppLayout() {
   const { data: albyMe } = useAlbyMe();
 
   const { data: info, mutate: refetchInfo } = useInfo();
-  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
-  const location = useLocation();
   const navigate = useNavigate();
   useRemoveSuccessfulChannelOrder();
   useNotifyReceivedPayments();
 
   const _isHttpMode = isHttpMode();
-
-  React.useEffect(() => {
-    setMobileMenuOpen(false);
-  }, [location]);
 
   const logout = React.useCallback(async () => {
     deleteAuthToken();
@@ -82,110 +49,110 @@ export default function AppLayout() {
     return null;
   }
 
-  function UserMenuContent() {
-    return (
-      <DropdownMenuContent align="end">
-        <DropdownMenuGroup>
-          {!info?.albyAccountConnected && (
-            <DropdownMenuItem>
-              <Link
-                to="/alby/account"
-                className="w-full flex flex-row items-center gap-2"
-              >
-                <PlugZapIcon className="w-4 h-4" />
-                <p>Connect Alby Account</p>
-              </Link>
-            </DropdownMenuItem>
-          )}
-          {info?.albyAccountConnected && (
-            <DropdownMenuItem>
-              <Link
-                to="/settings/alby-account"
-                className="w-full flex flex-row items-center gap-2"
-              >
-                <User2 className="w-4 h-4" />
-                <p>Alby Account Settings</p>
-              </Link>
-            </DropdownMenuItem>
-          )}
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        {_isHttpMode && (
-          <DropdownMenuItem
-            onClick={logout}
-            className="w-full flex flex-row items-center gap-2 cursor-pointer"
-          >
-            <Lock className="w-4 h-4" />
-            <p>Lock Alby Hub</p>
-          </DropdownMenuItem>
-        )}
-      </DropdownMenuContent>
-    );
-  }
+  // function UserMenuContent() {
+  //   return (
+  //     <DropdownMenuContent align="end">
+  //       <DropdownMenuGroup>
+  //         {!info?.albyAccountConnected && (
+  //           <DropdownMenuItem>
+  //             <Link
+  //               to="/alby/account"
+  //               className="w-full flex flex-row items-center gap-2"
+  //             >
+  //               <PlugZapIcon className="w-4 h-4" />
+  //               <p>Connect Alby Account</p>
+  //             </Link>
+  //           </DropdownMenuItem>
+  //         )}
+  //         {info?.albyAccountConnected && (
+  //           <DropdownMenuItem>
+  //             <Link
+  //               to="/settings/alby-account"
+  //               className="w-full flex flex-row items-center gap-2"
+  //             >
+  //               <User2 className="w-4 h-4" />
+  //               <p>Alby Account Settings</p>
+  //             </Link>
+  //           </DropdownMenuItem>
+  //         )}
+  //       </DropdownMenuGroup>
+  //       <DropdownMenuSeparator />
+  //       {_isHttpMode && (
+  //         <DropdownMenuItem
+  //           onClick={logout}
+  //           className="w-full flex flex-row items-center gap-2 cursor-pointer"
+  //         >
+  //           <Lock className="w-4 h-4" />
+  //           <p>Lock Alby Hub</p>
+  //         </DropdownMenuItem>
+  //       )}
+  //     </DropdownMenuContent>
+  //   );
+  // }
 
-  function MainMenuContent() {
-    return (
-      <>
-        <MenuItem to="/home">
-          <Home className="h-4 w-4" />
-          Home
-        </MenuItem>
-        <MenuItem to="/wallet">
-          <Wallet className="h-4 w-4" />
-          Wallet
-        </MenuItem>
-        <MenuItem to="/appstore">
-          <LayoutGrid className="h-4 w-4" />
-          App Store
-        </MenuItem>
-        <MenuItem to="/apps">
-          <Plug2 className="h-4 w-4" />
-          Connections
-        </MenuItem>
-      </>
-    );
-  }
+  // function MainMenuContent() {
+  //   return (
+  //     <>
+  //       <MenuItem to="/home">
+  //         <Home className="h-4 w-4" />
+  //         Home
+  //       </MenuItem>
+  //       <MenuItem to="/wallet">
+  //         <Wallet className="h-4 w-4" />
+  //         Wallet
+  //       </MenuItem>
+  //       <MenuItem to="/appstore">
+  //         <LayoutGrid className="h-4 w-4" />
+  //         App Store
+  //       </MenuItem>
+  //       <MenuItem to="/apps">
+  //         <Plug2 className="h-4 w-4" />
+  //         Connections
+  //       </MenuItem>
+  //     </>
+  //   );
+  // }
 
-  function MainNavSecondary() {
-    const { hasChannelManagement } = useInfo();
-    return (
-      <nav className="grid items-start md:px-4 md:py-2 text-sm font-medium">
-        {hasChannelManagement && (
-          <MenuItem to="/channels">
-            <CubeIcon className="h-4 w-4" />
-            Node
-          </MenuItem>
-        )}
-        <MenuItem to="/settings">
-          <Settings className="h-4 w-4" />
-          Settings
-        </MenuItem>
+  // function MainNavSecondary() {
+  //   const { hasChannelManagement } = useInfo();
+  //   return (
+  //     <nav className="grid items-start md:px-4 md:py-2 text-sm font-medium">
+  //       {hasChannelManagement && (
+  //         <MenuItem to="/channels">
+  //           <CubeIcon className="h-4 w-4" />
+  //           Node
+  //         </MenuItem>
+  //       )}
+  //       <MenuItem to="/settings">
+  //         <Settings className="h-4 w-4" />
+  //         Settings
+  //       </MenuItem>
 
-        <MenuItem
-          to="/"
-          onClick={(e) => {
-            openLink("https://support.getalby.com");
-            e.preventDefault();
-          }}
-        >
-          <CircleHelp className="h-4 w-4" />
-          Help
-        </MenuItem>
-        {!albyMe?.hub.name && info?.albyAccountConnected && (
-          <MenuItem
-            to="/"
-            onClick={(e) => {
-              openLink("https://getalby.com/subscription/new");
-              e.preventDefault();
-            }}
-          >
-            <Cloud className="h-4 w-4" />
-            Alby Cloud
-          </MenuItem>
-        )}
-      </nav>
-    );
-  }
+  //       <MenuItem
+  //         to="/"
+  //         onClick={(e) => {
+  //           openLink("https://support.getalby.com");
+  //           e.preventDefault();
+  //         }}
+  //       >
+  //         <CircleHelp className="h-4 w-4" />
+  //         Help
+  //       </MenuItem>
+  //       {!albyMe?.hub.name && info?.albyAccountConnected && (
+  //         <MenuItem
+  //           to="/"
+  //           onClick={(e) => {
+  //             openLink("https://getalby.com/subscription/new");
+  //             e.preventDefault();
+  //           }}
+  //         >
+  //           <Cloud className="h-4 w-4" />
+  //           Alby Cloud
+  //         </MenuItem>
+  //       )}
+  //     </nav>
+  //   );
+  // }
 
   return (
     <>

@@ -1,22 +1,20 @@
 import {
   BadgeCheck,
-  Bell,
-  Calendar,
   ChevronsUpDown,
   CircleHelp,
-  ClockIcon,
-  CreditCard,
   Home,
-  Inbox,
+  HomeIcon,
+  LayoutGridIcon,
   LogOut,
   LucideIcon,
-  Search,
+  Plug2Icon,
   Settings,
   Sparkles,
-  Users2,
+  WalletIcon,
 } from "lucide-react";
 
 import { CubeIcon } from "@radix-ui/react-icons";
+import { Link } from "react-router-dom";
 import { AlbyHubLogo } from "src/components/icons/AlbyHubLogo";
 import {
   DropdownMenu,
@@ -33,7 +31,6 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -51,26 +48,6 @@ const items = [
     url: "#",
     icon: Home,
   },
-  {
-    title: "Inbox",
-    url: "#",
-    icon: Inbox,
-  },
-  {
-    title: "Calendar",
-    url: "#",
-    icon: Calendar,
-  },
-  {
-    title: "Search",
-    url: "#",
-    icon: Search,
-  },
-  {
-    title: "Settings",
-    url: "#",
-    icon: Settings,
-  },
 ];
 
 export function AppSidebar() {
@@ -86,7 +63,28 @@ export function AppSidebar() {
       email: "m@example.com",
       avatar: "/avatars/shadcn.jpg",
     },
-    navMain: [],
+    navMain: [
+      {
+        title: "Home",
+        url: "/home",
+        icon: HomeIcon,
+      },
+      {
+        title: "Wallet",
+        url: "/wallet",
+        icon: WalletIcon,
+      },
+      {
+        title: "App Store",
+        url: "/appstore",
+        icon: LayoutGridIcon,
+      },
+      {
+        title: "Connections",
+        url: "/apps",
+        icon: Plug2Icon,
+      },
+    ],
     navSecondary: [
       ...(hasChannelManagement
         ? [
@@ -106,6 +104,7 @@ export function AppSidebar() {
         title: "Support",
         url: "https://support.getalby.com",
         icon: CircleHelp,
+        target: "_blank",
       },
     ],
   };
@@ -123,37 +122,16 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => (
+              {data.navMain.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <a href={item.url}>
+                    <Link to={item.url}>
                       <item.icon />
                       <span>{item.title}</span>
-                    </a>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-        <SidebarGroup>
-          <SidebarGroupLabel>Apps</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem key="asdf">
-                <SidebarMenuButton asChild>
-                  <a href="#">
-                    <Users2 />
-                    <span>Friends & Family</span>
-                  </a>
-                </SidebarMenuButton>
-                <SidebarMenuButton asChild>
-                  <a href="#">
-                    <ClockIcon />
-                    <span>ZapPlanner</span>
-                  </a>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -200,10 +178,11 @@ export function AppSidebar() {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                {/* TODO: Add link */}
                 <DropdownMenuGroup>
                   <DropdownMenuItem>
                     <Sparkles className="w-4 h-4 mr-2" />
-                    Upgrade to Pro
+                    Alby Pro
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
@@ -211,14 +190,6 @@ export function AppSidebar() {
                   <DropdownMenuItem>
                     <BadgeCheck className="w-4 h-4 mr-2" />
                     Account
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <CreditCard className="w-4 h-4 mr-2" />
-                    Billing
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Bell className="w-4 h-4 mr-2" />
-                    Notifications
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
@@ -252,10 +223,10 @@ export function NavSecondary({
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton asChild>
-                <a href={item.url}>
+                <Link to={item.url}>
                   <item.icon />
                   <span>{item.title}</span>
-                </a>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
