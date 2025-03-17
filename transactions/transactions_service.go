@@ -12,6 +12,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	decodepay "github.com/nbd-wtf/ln-decodepay"
@@ -46,6 +47,10 @@ const (
 	WhatsatTlvType    = 34349334
 	CustomKeyTlvType  = 696969
 )
+
+// Prevent races when checking the current balance and creating payment
+// transactions from concurrent goroutines.
+var balanceValidationLock = &sync.Mutex{}
 
 type Transaction = db.Transaction
 
@@ -226,6 +231,9 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 	}
 
 	err = svc.db.Transaction(func(tx *gorm.DB) error {
+		balanceValidationLock.Lock()
+		defer balanceValidationLock.Unlock()
+
 		var existingSettledTransaction db.Transaction
 		if tx.Limit(1).Find(&existingSettledTransaction, &db.Transaction{
 			Type:        constants.TRANSACTION_TYPE_OUTGOING,
@@ -361,6 +369,9 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 	selfPayment := destination == lnClient.GetPubkey()
 
 	err = svc.db.Transaction(func(tx *gorm.DB) error {
+		balanceValidationLock.Lock()
+		defer balanceValidationLock.Unlock()
+
 		err := svc.validateCanPay(tx, appId, amount, "")
 		if err != nil {
 			return err
