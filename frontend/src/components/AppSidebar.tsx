@@ -1,8 +1,8 @@
 import {
-  BadgeCheck,
   BoxIcon,
   ChevronsUpDown,
   CircleHelp,
+  Cloud,
   Home,
   HomeIcon,
   LayoutGridIcon,
@@ -11,10 +11,12 @@ import {
   Plug2Icon,
   Settings,
   Sparkles,
+  UserCog,
   WalletIcon,
 } from "lucide-react";
 
 import { Link, NavLink } from "react-router-dom";
+import ExternalLink from "src/components/ExternalLink";
 import { AlbyHubLogo } from "src/components/icons/AlbyHubLogo";
 import {
   DropdownMenu,
@@ -100,12 +102,6 @@ export function AppSidebar() {
         url: "/settings",
         icon: Settings,
       },
-      {
-        title: "Support",
-        url: "https://support.getalby.com",
-        icon: CircleHelp,
-        target: "_blank",
-      },
     ],
   };
 
@@ -113,7 +109,7 @@ export function AppSidebar() {
     <Sidebar variant="sidebar">
       <SidebarHeader className="p-5">
         <Link to="/">
-          <AlbyHubLogo className="text-sidebar-primary h-12" />
+          <AlbyHubLogo className="text-sidebar-foreground h-12" />
         </Link>
       </SidebarHeader>
       <SidebarContent>
@@ -153,7 +149,9 @@ export function AppSidebar() {
                         <span className="truncate font-semibold">
                           {albyMe?.name || albyMe?.email}
                         </span>
-                        <span className="truncate text-xs">...</span>
+                        <div className="truncate text-xs">
+                          {albyMe?.lightning_address}
+                        </div>
                       </div>
                     </>
                   )}
@@ -166,30 +164,43 @@ export function AppSidebar() {
                 align="end"
                 sideOffset={4}
               >
-                <DropdownMenuLabel className="p-0 font-normal">
-                  <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                    <UserAvatar />
-                    <div className="grid flex-1 text-left text-sm leading-tight">
-                      <span className="truncate font-semibold">
-                        {albyMe?.name}
-                      </span>
-                      <span className="truncate text-xs">{albyMe?.email}</span>
+                {info?.albyAccountConnected && (
+                  <DropdownMenuLabel className="p-0 font-normal">
+                    <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                      <UserAvatar />
+                      <div className="grid flex-1 text-left text-sm leading-tight">
+                        <span className="truncate font-semibold">
+                          {albyMe?.name || albyMe?.email}
+                        </span>
+                        <span className="truncate text-xs">
+                          {albyMe?.lightning_address}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                </DropdownMenuLabel>
+                  </DropdownMenuLabel>
+                )}
+                {!albyMe?.subscription.buzz && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuGroup>
+                      <DropdownMenuItem>
+                        {/* TODO: add upgradedialog */}
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        Upgrade to Pro
+                      </DropdownMenuItem>
+                    </DropdownMenuGroup>
+                  </>
+                )}
                 <DropdownMenuSeparator />
-                {/* TODO: Add link */}
                 <DropdownMenuGroup>
                   <DropdownMenuItem>
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    Alby Pro
-                  </DropdownMenuItem>
-                </DropdownMenuGroup>
-                <DropdownMenuSeparator />
-                <DropdownMenuGroup>
-                  <DropdownMenuItem>
-                    <BadgeCheck className="w-4 h-4 mr-2" />
-                    Account
+                    <ExternalLink
+                      to="https://getalby.com/user/edit"
+                      className="flex items-center"
+                    >
+                      <UserCog className="w-4 h-4 mr-2" />
+                      Manage Account
+                    </ExternalLink>
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
@@ -216,6 +227,9 @@ export function NavSecondary({
     icon: LucideIcon;
   }[];
 } & React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
+  const { data: albyMe } = useAlbyMe();
+  const { data: info } = useInfo();
+
   return (
     <SidebarGroup {...props}>
       <SidebarGroupContent>
@@ -232,26 +246,27 @@ export function NavSecondary({
               )}
             </NavLink>
           ))}
+          <ExternalLink to="https://support.getalby.com">
+            <SidebarMenuItem>
+              <SidebarMenuButton>
+                <CircleHelp className="h-4 w-4" />
+                Support
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </ExternalLink>
+          {/* Does his still make sense? Can we limit that to desktop users? */}
+          {!albyMe?.hub.name && info?.albyAccountConnected && (
+            <ExternalLink to="https://getalby.com/subscription/new">
+              <SidebarMenuItem>
+                <SidebarMenuButton>
+                  <Cloud className="h-4 w-4" />
+                  Alby Cloud
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </ExternalLink>
+          )}
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
   );
-}
-
-{
-  /* <NavLink
-  end
-  to={to}
-  className={({ isActive }) =>
-    cn(
-      buttonVariants({ variant: "ghost" }),
-      isActive
-        ? "bg-muted hover:bg-muted"
-        : "hover:bg-transparent hover:underline",
-      "justify-start"
-    )
-  }
->
-  {children}
-</NavLink>; */
 }

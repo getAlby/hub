@@ -1,5 +1,4 @@
 import { ReactElement } from "react";
-import Breadcrumbs from "src/components/Breadcrumbs";
 import { Separator } from "src/components/ui/separator";
 import { SidebarTrigger } from "src/components/ui/sidebar";
 
@@ -22,7 +21,7 @@ function AppHeader({
         <SidebarTrigger className="-ml-1" />
         <Separator orientation="vertical" className="mr-2 h-4" />
         <div className="flex flex-col flex-1">
-          {breadcrumb && <Breadcrumbs />}
+          {/* {breadcrumb && <Breadcrumbs />} */}
           <div className="flex justify-between items-center">
             <div className="flex-1">
               <h1 className="text-xl lg:text-3xl font-semibold">{title}</h1>
