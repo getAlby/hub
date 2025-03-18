@@ -17,6 +17,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import AppHeader from "src/components/AppHeader.tsx";
 import { ChannelsCards } from "src/components/channels/ChannelsCards.tsx";
 import { ChannelsTable } from "src/components/channels/ChannelsTable.tsx";
+import { HealthCheckAlert } from "src/components/channels/HealthcheckAlert";
 import { SwapDialogs } from "src/components/channels/SwapDialogs";
 import EmptyState from "src/components/EmptyState.tsx";
 import ExternalLink from "src/components/ExternalLink";
@@ -277,6 +278,7 @@ export default function Channels() {
         }
       ></AppHeader>
 
+      <HealthCheckAlert showOk={searchParams.has("healthcheck", "true")} />
       {!!channels?.length && (
         <>
           {/* If all channels have less than 20% incoming capacity, show a warning */}
