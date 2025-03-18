@@ -23,6 +23,8 @@ const buttonVariants = cva(
         link: "text-foreground hover:text-accent-foreground underline underline-offset-4 hover:no-underline",
         positive:
           "bg-positive text-positive-foreground shadow-sm hover:bg-positive/90",
+        premium:
+          "text-black shadow-md shadow-amber-500/20 bg-gradient-to-r from-amber-500 to-amber-300 hover:from-amber-400 hover:to-amber-200 transition-all duration-200 hover:shadow-lg hover:shadow-amber-500/30",
       },
       size: {
         default: "h-9 px-4 py-2",
