@@ -31,6 +31,7 @@ import zapplanner from "src/assets/suggested-apps/zapplanner.png";
 import zapplepay from "src/assets/suggested-apps/zapple-pay.png";
 import zappybird from "src/assets/suggested-apps/zappy-bird.png";
 import zapstore from "src/assets/suggested-apps/zapstore.png";
+import zeus from "src/assets/suggested-apps/zeus.png";
 import ExternalLink from "src/components/ExternalLink";
 
 export type SuggestedApp = {
@@ -1739,6 +1740,77 @@ export const suggestedApps: SuggestedApp[] = [
           <h3 className="font-medium">In Zapstore</h3>
           <ul className="list-inside text-muted-foreground">
             <li>5. Paste the connection secret from Alby Hub</li>
+          </ul>
+        </div>
+      </>
+    ),
+  },
+  {
+    id: "zeus",
+    title: "ZEUS",
+    description: "A self-custodial Bitcoin wallet that puts you in control.",
+    webLink: "https://zeusln.com/",
+    playLink: "https://play.google.com/store/apps/details?id=app.zeusln.zeus",
+    appleLink: "https://apps.apple.com/us/app/zeus-wallet/id1456038895",
+    zapStoreLink: "https://zapstore.dev/download/",
+    logo: zeus,
+    extendedDescription:
+      "Send and receive payments, to and from your Hub, on the go",
+    guide: (
+      <>
+        <div>
+          <h3 className="font-medium">In ZEUS</h3>
+          <ul className="list-inside text-muted-foreground">
+            <li>
+              1. Install{" "}
+              <ExternalLink
+                to="https://zeusln.com/download/"
+                className="font-medium text-foreground underline"
+              >
+                ZEUS
+              </ExternalLink>{" "}
+              on your Android or iOS smartphone
+            </li>
+            <li>2. Open the settings</li>
+          </ul>
+        </div>
+        <div>
+          <h3 className="font-medium">In Alby Hub</h3>
+          <ul className="list-inside text-muted-foreground">
+            <li>
+              3. Click{" "}
+              <Link
+                to="/apps/new?app=zeus"
+                className="font-medium text-foreground underline"
+              >
+                Connect to ZEUS
+              </Link>
+            </li>
+            <li>4. Set app's wallet permissions (full access recommended)</li>
+          </ul>
+        </div>
+        <div>
+          <h3 className="font-medium">In ZEUS</h3>
+          <ul className="list-inside text-muted-foreground">
+            <li>
+              5. Scan the connection QR using the QR scanner in the bottom right
+              corner of the bottom of the app, OR manually paste in the
+              connection string under{" "}
+              <span className="font-medium text-foreground">Menu</span> {">"}{" "}
+              <span className="font-medium text-foreground">
+                Connect a Wallet
+              </span>{" "}
+              {">"} <span className="font-medium text-foreground">+</span> after
+              selecting{" "}
+              <span className="font-medium text-foreground">
+                Nostr Wallet Connect
+              </span>{" "}
+              as the{" "}
+              <span className="font-medium text-foreground">
+                Wallet interface
+              </span>
+              .
+            </li>
           </ul>
         </div>
       </>
