@@ -1,5 +1,6 @@
 import { ReactElement } from "react";
 import Breadcrumbs from "src/components/Breadcrumbs";
+import { Separator } from "src/components/ui/separator";
 import { SidebarTrigger } from "src/components/ui/sidebar";
 
 type Props = {
@@ -17,21 +18,24 @@ function AppHeader({
 }: Props) {
   return (
     <>
-      <div className="flex flex-row items-center border-b border-border pb-3 lg:pb-6 gap-5">
-        <SidebarTrigger />
+      <header className="flex flex-row items-center border-b border-border pb-3 lg:pb-6 gap-2">
+        <SidebarTrigger className="-ml-1" />
+        <Separator orientation="vertical" className="mr-2 h-4" />
         <div className="flex flex-col flex-1">
           {breadcrumb && <Breadcrumbs />}
           <div className="flex justify-between items-center">
             <div className="flex-1">
               <h1 className="text-xl lg:text-3xl font-semibold">{title}</h1>
-              <p className="hidden lg:inline text-muted-foreground">
-                {description}
-              </p>
+              {description && (
+                <p className="hidden lg:inline text-muted-foreground">
+                  {description}
+                </p>
+              )}
             </div>
             <div className="flex gap-3 h-full">{contentRight}</div>
           </div>
         </div>
-      </div>
+      </header>
     </>
   );
 }

@@ -110,21 +110,11 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar variant="inset">
-      <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <Link to="/">
-              <SidebarMenuButton
-                className="flex text-left items-start"
-                size="lg"
-                asChild
-              >
-                <AlbyHubLogo className="text-sidebar-primary-foreground h-12" />
-              </SidebarMenuButton>
-            </Link>
-          </SidebarMenuItem>
-        </SidebarMenu>
+    <Sidebar variant="sidebar">
+      <SidebarHeader className="p-5">
+        <Link to="/">
+          <AlbyHubLogo className="text-sidebar-primary h-12" />
+        </Link>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
