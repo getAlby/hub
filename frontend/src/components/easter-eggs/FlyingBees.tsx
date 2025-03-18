@@ -1,5 +1,5 @@
 import * as React from "react";
-import bee from "src/assets/images/flying-bee.png";
+import bee from "src/assets/images/easter-eggs/flying-bee.png";
 
 type FlyingBee = { id: number; top: number };
 
@@ -32,7 +32,7 @@ export const FlyingBees = React.forwardRef<FlyingBeesRef>((_, ref) => {
           key={item.id}
           src={bee}
           alt="🐝"
-          className="fixed left-0 w-32 pointer-events-none z-[9999] animate-fly-right"
+          className="fixed left-0 w-32 pointer-events-none z-[9999] animate-easter-egg-fly-right"
           style={{ top: item.top }}
           onAnimationEnd={() => handleAnimationEnd(item.id)}
         />

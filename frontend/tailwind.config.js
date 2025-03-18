@@ -81,7 +81,7 @@ module.exports = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
-        flyRight: {
+        "easter-egg-fly-right": {
           "0%": {
             transform: "translateX(-100px)",
           },
@@ -93,7 +93,7 @@ module.exports = {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        "fly-right": "flyRight 2s linear forwards",
+        "easter-egg-fly-right": "easter-egg-fly-right 1s linear forwards",
         "spin-slow": "spin 3s linear infinite",
       },
       fontFamily: {
