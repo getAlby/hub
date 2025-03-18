@@ -24,23 +24,26 @@ export function HealthCheckAlert({ showOk }: HealthCheckAlertProps) {
   function getAlarmTitle(alarm: HealthAlarm) {
     // TODO: could show extra data from alarm.rawDetails
     // for some alarm types
-    switch (alarm.kind) {
-      case "alby_service":
-        return (
-          "Alby Services: " +
-          (alarm.rawDetails as AlbyInfoIncident[])
-            ?.map((incident) => `${incident.name} (${incident.status})`)
-            .join(", ")
-        );
-      case "channels_offline":
-        return "One or more channels are offline";
-      case "node_not_ready":
-        return "Node is not ready";
-      case "nostr_relay_offline":
-        return "Could not connect to relay";
-      default:
-        return "Unknown error";
+    try {
+      switch (alarm.kind) {
+        case "alby_service":
+          return (
+            "Alby Services: " +
+            (alarm.rawDetails as AlbyInfoIncident[])
+              ?.map((incident) => `${incident.name} (${incident.status})`)
+              .join(", ")
+          );
+        case "channels_offline":
+          return "One or more channels are offline";
+        case "node_not_ready":
+          return "Node is not ready";
+        case "nostr_relay_offline":
+          return "Could not connect to relay";
+      }
+    } catch (error) {
+      console.error("failed to parse alarm details", alarm.kind, error);
     }
+    return alarm.kind || "Unknown";
   }
 
   return (
