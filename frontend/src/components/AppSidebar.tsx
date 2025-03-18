@@ -9,15 +9,18 @@ import {
   LogOut,
   LucideIcon,
   Plug2Icon,
+  PlugZapIcon,
   Settings,
   Sparkles,
   UserCog,
   WalletIcon,
 } from "lucide-react";
+import React from "react";
 
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import ExternalLink from "src/components/ExternalLink";
 import { AlbyHubLogo } from "src/components/icons/AlbyHubLogo";
+import SidebarHint from "src/components/SidebarHint";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,9 +42,21 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "src/components/ui/sidebar";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "src/components/ui/tooltip";
 import UserAvatar from "src/components/UserAvatar";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
+import { useHealthCheck } from "src/hooks/useHealthCheck";
 import { useInfo } from "src/hooks/useInfo";
+import { deleteAuthToken } from "src/lib/auth";
+import { cn } from "src/lib/utils";
+import { HealthAlarm } from "src/types";
+
+import { isHttpMode } from "src/utils/isHttpMode";
 
 // Menu items.
 const items = [
@@ -58,6 +73,20 @@ export function AppSidebar() {
   const { data: info, mutate: refetchInfo } = useInfo();
   const { isMobile } = useSidebar();
   const { hasChannelManagement } = useInfo();
+  const navigate = useNavigate();
+
+  const _isHttpMode = isHttpMode();
+
+  const logout = React.useCallback(async () => {
+    deleteAuthToken();
+    await refetchInfo();
+
+    if (_isHttpMode) {
+      window.location.href = "/logout";
+    } else {
+      navigate("/", { replace: true });
+    }
+  }, [_isHttpMode, navigate, refetchInfo]);
 
   const data = {
     user: {
@@ -107,10 +136,11 @@ export function AppSidebar() {
 
   return (
     <Sidebar variant="sidebar">
-      <SidebarHeader className="p-5">
+      <SidebarHeader className="p-5 flex flex-row items-center justify-between">
         <Link to="/">
           <AlbyHubLogo className="text-sidebar-foreground h-12" />
         </Link>
+        <HealthIndicator />
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
@@ -131,7 +161,10 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+        <SidebarGroup className="mt-auto">
+          <SidebarHint />
+          <NavSecondary items={data.navSecondary} />
+        </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
@@ -179,6 +212,17 @@ export function AppSidebar() {
                     </div>
                   </DropdownMenuLabel>
                 )}
+                {!info?.albyAccountConnected && (
+                  <DropdownMenuItem>
+                    <Link
+                      to="/alby/account"
+                      className="w-full flex flex-row items-center gap-2"
+                    >
+                      <PlugZapIcon className="w-4 h-4" />
+                      <p>Connect Alby Account</p>
+                    </Link>
+                  </DropdownMenuItem>
+                )}
                 {!albyMe?.subscription.buzz && (
                   <>
                     <DropdownMenuSeparator />
@@ -203,11 +247,15 @@ export function AppSidebar() {
                     </ExternalLink>
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Log out
-                </DropdownMenuItem>
+                {_isHttpMode && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={logout}>
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Log out
+                    </DropdownMenuItem>
+                  </>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </SidebarMenuItem>
@@ -250,7 +298,7 @@ export function NavSecondary({
             <SidebarMenuItem>
               <SidebarMenuButton>
                 <CircleHelp className="h-4 w-4" />
-                Support
+                Help
               </SidebarMenuButton>
             </SidebarMenuItem>
           </ExternalLink>
@@ -268,5 +316,66 @@ export function NavSecondary({
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
+  );
+}
+
+function HealthIndicator() {
+  const { data: health } = useHealthCheck();
+  if (!health) {
+    return null;
+  }
+
+  const ok = !health.alarms?.length;
+
+  function getAlarmTitle(alarm: HealthAlarm) {
+    // TODO: could show extra data from alarm.rawDetails
+    // for some alarm types
+    switch (alarm.kind) {
+      case "alby_service":
+        return "One or more Alby Services are offline";
+      case "channels_offline":
+        return "One or more channels are offline";
+      case "node_not_ready":
+        return "Node is not ready";
+      case "nostr_relay_offline":
+        return "Could not connect to relay";
+      default:
+        return "Unknown error";
+    }
+  }
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger>
+          <div className="w-8 h-8 flex items-center justify-center">
+            <span className="text-xs flex items-center text-muted-foreground">
+              <div
+                className={cn(
+                  "w-2 h-2 rounded-full",
+                  ok ? "bg-green-300" : "bg-destructive"
+                )}
+              />
+            </span>
+          </div>
+        </TooltipTrigger>
+        <TooltipContent>
+          {ok ? (
+            <p>Alby Hub is running</p>
+          ) : (
+            <div>
+              <p className="font-semibold">
+                {health.alarms.length} issues were found
+              </p>
+              <ul className="mt-2 max-w-xs whitespace-pre-wrap list-disc list-inside">
+                {health.alarms.map((alarm) => (
+                  <li key={alarm.kind}>{getAlarmTitle(alarm)}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
