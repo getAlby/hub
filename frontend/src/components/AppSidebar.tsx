@@ -14,7 +14,7 @@ import {
   WalletIcon,
 } from "lucide-react";
 
-import { Link } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import { AlbyHubLogo } from "src/components/icons/AlbyHubLogo";
 import {
   DropdownMenu,
@@ -121,14 +121,16 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {data.navMain.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <Link to={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
+                <NavLink key={item.title} to={item.url} end>
+                  {({ isActive }) => (
+                    <SidebarMenuItem>
+                      <SidebarMenuButton isActive={isActive}>
+                        <item.icon />
+                        <span>{item.title}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )}
+                </NavLink>
               ))}
             </SidebarMenu>
           </SidebarGroupContent>
@@ -219,17 +221,37 @@ export function NavSecondary({
       <SidebarGroupContent>
         <SidebarMenu>
           {items.map((item) => (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton asChild>
-                <Link to={item.url}>
-                  <item.icon />
-                  <span>{item.title}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+            <NavLink key={item.title} to={item.url} end>
+              {({ isActive }) => (
+                <SidebarMenuItem>
+                  <SidebarMenuButton isActive={isActive}>
+                    <item.icon />
+                    <span>{item.title}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
+            </NavLink>
           ))}
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
   );
+}
+
+{
+  /* <NavLink
+  end
+  to={to}
+  className={({ isActive }) =>
+    cn(
+      buttonVariants({ variant: "ghost" }),
+      isActive
+        ? "bg-muted hover:bg-muted"
+        : "hover:bg-transparent hover:underline",
+      "justify-start"
+    )
+  }
+>
+  {children}
+</NavLink>; */
 }
