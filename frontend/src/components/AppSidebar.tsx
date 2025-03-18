@@ -1,5 +1,6 @@
 import {
   BadgeCheck,
+  BoxIcon,
   ChevronsUpDown,
   CircleHelp,
   Home,
@@ -13,7 +14,6 @@ import {
   WalletIcon,
 } from "lucide-react";
 
-import { CubeIcon } from "@radix-ui/react-icons";
 import { Link } from "react-router-dom";
 import { AlbyHubLogo } from "src/components/icons/AlbyHubLogo";
 import {
@@ -91,7 +91,7 @@ export function AppSidebar() {
             {
               title: "Node",
               url: "/channels",
-              icon: CubeIcon,
+              icon: BoxIcon,
             },
           ]
         : []),
