@@ -113,7 +113,7 @@ export function ConnectAlbyAccount({ connectUrl }: ConnectAlbyAccountProps) {
           </LinkButton>
         </div>
         <div className="text-muted-foreground flex flex-col items-center text-xs gap-2 mt-10">
-          <Badge title="Alby Pro">
+          <Badge title="Pro">
             <SparklesIcon className="w-3 h-3" />
           </Badge>
           <div>
@@ -122,7 +122,7 @@ export function ConnectAlbyAccount({ connectUrl }: ConnectAlbyAccountProps) {
               to="https://getalby.com/pricing"
               className="underline"
             >
-              Alby Pro
+              Pro
             </ExternalLink>
           </div>
         </div>
@@ -132,7 +132,7 @@ export function ConnectAlbyAccount({ connectUrl }: ConnectAlbyAccountProps) {
 
   function AlbyProIcon() {
     return (
-      <div className="absolute right-2 top-2" title="Alby Pro">
+      <div className="absolute right-2 top-2" title="Pro">
         <SparklesIcon className="w-3 h-3" />
       </div>
     );

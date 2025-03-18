@@ -131,12 +131,10 @@ export function UncleJim() {
               </LoadingButton>
             </form>
           ) : (
-            <>
-              <UpgradeCard
-                title="Need more Sub-wallets?"
-                description="Unlock unlimited sub-wallets by upgrading to Alby Pro"
-              />
-            </>
+            <UpgradeCard
+              title="Need more Sub-wallets?"
+              description="Upgrade to Pro to unlock unlimited sub-wallets"
+            />
           )}
 
           {!!onboardedApps?.length && (

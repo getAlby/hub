@@ -242,18 +242,18 @@ function SupportAlby() {
                 <CardTitle className="flex items-center justify-between">
                   <div className="flex gap-2">
                     <SparklesIcon className="h-4 w-4" />
-                    <div>Alby Pro</div>
+                    <div>Unlock Pro</div>
                   </div>
                   <Badge variant="outline">ACCOUNT REQUIRED</Badge>
                 </CardTitle>
                 <CardDescription>
-                  Upgrade your Alby Account to Alby Pro, support Alby and enjoy
+                  Upgrade your Alby Account to Pro, support Alby and enjoy
                   additional perks.
                 </CardDescription>
               </CardHeader>
               <CardFooter className="flex justify-center">
                 <UpgradeDialog>
-                  <Button variant="premium">Unlock Alby Pro</Button>
+                  <Button variant="premium">Unlock Pro</Button>
                 </UpgradeDialog>
               </CardFooter>
             </Card>

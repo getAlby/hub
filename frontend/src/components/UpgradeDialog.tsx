@@ -43,7 +43,7 @@ export const UpgradeDialog = ({ children }: UpgradeDialogProps) => {
         <DialogHeader>
           <DialogTitle className="flex flex-row gap-2 items-center">
             <SparklesIcon className="w-6 h-6" />
-            Unlock Alby Pro
+            Unlock Pro
           </DialogTitle>
           <DialogDescription>
             Take your Alby Hub experience to the next level
