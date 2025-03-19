@@ -133,7 +133,7 @@ function Home() {
             </Card>
           </Link>
 
-          <Link to="/appstore/alby-go">
+          <Link to="/internal-apps/alby-go">
             <Card>
               <CardHeader>
                 <div className="flex flex-row items-center">
