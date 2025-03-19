@@ -74,7 +74,7 @@ export function HealthCheckAlert({ showOk }: HealthCheckAlertProps) {
             <ExternalLinkButton
               size="sm"
               variant="secondary"
-              to="https://alby.instatus.com/"
+              to="https://status.getalby.com"
             >
               Alby Service Status
             </ExternalLinkButton>
