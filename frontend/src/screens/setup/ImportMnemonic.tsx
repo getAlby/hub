@@ -9,7 +9,7 @@ import {
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import MnemonicInputs from "src/components/MnemonicInputs";
+import MnemonicInputs from "src/components/mnemonic/MnemonicInputs";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";

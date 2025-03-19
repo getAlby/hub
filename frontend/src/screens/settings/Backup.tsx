@@ -1,15 +1,10 @@
-import {
-  CopyIcon,
-  ExternalLinkIcon,
-  Link2Icon,
-  TriangleAlertIcon,
-} from "lucide-react";
+import { ExternalLinkIcon, Link2Icon, TriangleAlertIcon } from "lucide-react";
 import React, { useState } from "react";
 
 import { useNavigate } from "react-router-dom";
 import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
-import MnemonicInputs from "src/components/MnemonicInputs";
+import MnemonicDialog from "src/components/mnemonic/MnemonicDialog";
 import PasswordInput from "src/components/password/PasswordInput";
 import SettingsHeader from "src/components/SettingsHeader";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
@@ -26,14 +21,7 @@ import {
 } from "src/components/ui/alert-dialog";
 import { Badge } from "src/components/ui/badge";
 import { Button } from "src/components/ui/button";
-import { Checkbox } from "src/components/ui/checkbox";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "src/components/ui/dialog";
+
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { Separator } from "src/components/ui/separator";
@@ -41,9 +29,7 @@ import { useToast } from "src/components/ui/use-toast";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useInfo } from "src/hooks/useInfo";
 import { useMigrateLDKStorage } from "src/hooks/useMigrateLDKStorage";
-import { copyToClipboard } from "src/lib/clipboard";
 import { MnemonicResponse } from "src/types";
-import { handleRequestError } from "src/utils/handleRequestError";
 import { openLink } from "src/utils/openLink";
 import { request } from "src/utils/request";
 
@@ -57,9 +43,6 @@ export default function Backup() {
   const [loading, setLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const navigate = useNavigate();
-  const { mutate: refetchInfo } = useInfo();
-  const [backedUp, setIsBackedUp] = useState<boolean>(false);
-  const [backedUp2, setIsBackedUp2] = useState<boolean>(false);
 
   const onSubmitPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,30 +68,6 @@ export default function Backup() {
       setLoading(false);
     }
   };
-
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
-
-    const sixMonthsLater = new Date();
-    sixMonthsLater.setMonth(sixMonthsLater.getMonth() + 6);
-
-    try {
-      await request("/api/backup-reminder", {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          nextBackupReminder: sixMonthsLater.toISOString(),
-        }),
-      });
-      await refetchInfo();
-      navigate("/");
-      toast({ title: "Recovery phrase backed up!" });
-    } catch (error) {
-      handleRequestError(toast, "Failed to store back up info", error);
-    }
-  }
 
   return (
     <>
@@ -170,70 +129,11 @@ export default function Backup() {
               </div>
             </form>
           </div>
-
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Wallet Recovery Phrase</DialogTitle>
-                <DialogDescription>
-                  Write these words down, store them somewhere safe, and keep
-                  them secret.
-                </DialogDescription>
-              </DialogHeader>
-              <form
-                onSubmit={onSubmit}
-                className="flex flex-col gap-2 max-w-md text-sm"
-              >
-                <MnemonicInputs mnemonic={decryptedMnemonic} readOnly={true} />
-                <div className="flex justify-center mt-4">
-                  <Button
-                    type="button"
-                    variant={"destructive"}
-                    className="flex gap-2 justify-center"
-                    onClick={() => copyToClipboard(decryptedMnemonic, toast)}
-                  >
-                    <CopyIcon className="w-4 h-4 mr-2" />
-                    Dangerously Copy
-                  </Button>
-                </div>
-                <div className="flex items-center mt-6 text-sm">
-                  <Checkbox
-                    id="backup"
-                    required
-                    onCheckedChange={() => setIsBackedUp(!backedUp)}
-                  />
-                  <Label htmlFor="backup" className="ml-2">
-                    I've backed up my recovery phrase to my wallet in a private
-                    and secure place
-                  </Label>
-                </div>
-                {backedUp && !info?.albyAccountConnected && (
-                  <div className="flex text-sm">
-                    <Checkbox
-                      id="backup2"
-                      required
-                      onCheckedChange={() => setIsBackedUp2(!backedUp2)}
-                    />
-                    <Label
-                      htmlFor="backup2"
-                      className="ml-2 text-sm text-foreground"
-                    >
-                      I understand the recovery phrase AND a backup of my hub
-                      data directory is required to recover funds from my
-                      lightning channels.
-                    </Label>
-                  </div>
-                )}
-                <div className="flex justify-end gap-2 items-center">
-                  <div className="flex justify-center">
-                    <Button type="submit" size="lg">
-                      Finish Backup
-                    </Button>
-                  </div>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
+          <MnemonicDialog
+            open={isDialogOpen}
+            onOpenChange={setIsDialogOpen}
+            mnemonic={decryptedMnemonic}
+          />
         </div>
       )}
       <>
