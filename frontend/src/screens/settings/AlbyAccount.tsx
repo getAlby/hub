@@ -58,7 +58,7 @@ export function AlbyAccount() {
             >
               <Button
                 size={"lg"}
-                variant={"destructive"}
+                variant={"destructive_outline"}
                 className="flex-1 gap-2 items-center justify-center py-2 px-4"
               >
                 <RefreshCcw className="w-4 h-4 mr-2" /> Change Alby Account
@@ -78,7 +78,7 @@ export function AlbyAccount() {
             <UnlinkAlbyAccount>
               <Button
                 size={"lg"}
-                variant={"destructive"}
+                variant={"destructive_outline"}
                 className="flex-1 gap-2 items-center justify-center py-2 px-4"
               >
                 <Link2Off className="w-4 h-4 mr-2" /> Unlink Alby Account

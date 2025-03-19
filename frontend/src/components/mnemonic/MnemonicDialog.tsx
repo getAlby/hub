@@ -80,7 +80,7 @@ export default function MnemonicDialog({
           <div className="flex justify-center mt-4">
             <Button
               type="button"
-              variant={"destructive"}
+              variant={"destructive_outline"}
               className="flex gap-2 justify-center"
               onClick={() => copyToClipboard(mnemonic, toast)}
             >
