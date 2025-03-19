@@ -20,7 +20,7 @@ import {
   AlertDialogTrigger,
 } from "src/components/ui/alert-dialog";
 import { Badge } from "src/components/ui/badge";
-import { Button } from "src/components/ui/button";
+import { Button, ExternalLinkButton } from "src/components/ui/button";
 
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
@@ -30,7 +30,6 @@ import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useInfo } from "src/hooks/useInfo";
 import { useMigrateLDKStorage } from "src/hooks/useMigrateLDKStorage";
 import { MnemonicResponse } from "src/types";
-import { openLink } from "src/utils/openLink";
 import { request } from "src/utils/request";
 
 export default function Backup() {
@@ -187,20 +186,13 @@ export default function Backup() {
 
                       {!info.ldkVssEnabled &&
                         (!me?.subscription.plan_code ? (
-                          <Button
+                          <ExternalLinkButton
                             variant="secondary"
-                            disabled={info.ldkVssEnabled}
                             size={"lg"}
-                            onClick={() => {
-                              if (!me?.subscription?.plan_code) {
-                                openLink(
-                                  "https://getalby.com/subscription/new"
-                                );
-                              }
-                            }}
+                            to="https://getalby.com/subscription/new"
                           >
                             Enable Dynamic Channels Backup
-                          </Button>
+                          </ExternalLinkButton>
                         ) : (
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
