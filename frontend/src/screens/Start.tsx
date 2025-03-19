@@ -1,7 +1,7 @@
 import React from "react";
 import Container from "src/components/Container";
+import PasswordInput from "src/components/password/PasswordInput";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
-import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
@@ -82,14 +82,7 @@ export default function Start() {
             <div className="grid gap-4">
               <div className="grid gap-1.5">
                 <Label htmlFor="password">Password</Label>
-                <Input
-                  name="unlock"
-                  autoFocus
-                  onChange={(e) => setUnlockPassword(e.target.value)}
-                  value={unlockPassword}
-                  type="password"
-                  placeholder="Password"
-                />
+                <PasswordInput id="password" onChange={setUnlockPassword} />
               </div>
               <LoadingButton type="submit" loading={loading}>
                 {buttonText}

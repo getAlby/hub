@@ -37,6 +37,7 @@ import { FirstChannel } from "src/screens/channels/first/FirstChannel";
 import { OpenedFirstChannel } from "src/screens/channels/first/OpenedFirstChannel";
 import { OpeningFirstChannel } from "src/screens/channels/first/OpeningFirstChannel";
 import { AlbyGo } from "src/screens/internal-apps/AlbyGo";
+import { Bitrefill } from "src/screens/internal-apps/Bitrefill";
 import { BuzzPay } from "src/screens/internal-apps/BuzzPay";
 import { SimpleBoost } from "src/screens/internal-apps/SimpleBoost";
 import { UncleJim } from "src/screens/internal-apps/UncleJim";
@@ -60,9 +61,7 @@ import { SetupFinish } from "src/screens/setup/SetupFinish";
 import { SetupNode } from "src/screens/setup/SetupNode";
 import { SetupPassword } from "src/screens/setup/SetupPassword";
 import { SetupSecurity } from "src/screens/setup/SetupSecurity";
-import { BreezForm } from "src/screens/setup/node/BreezForm";
 import { CashuForm } from "src/screens/setup/node/CashuForm";
-import { GreenlightForm } from "src/screens/setup/node/GreenlightForm";
 import { LDKForm } from "src/screens/setup/node/LDKForm";
 import { LNDForm } from "src/screens/setup/node/LNDForm";
 import { PhoenixdForm } from "src/screens/setup/node/PhoenixdForm";
@@ -264,6 +263,10 @@ const routes = [
             path: "zapplanner",
             element: <ZapPlanner />,
           },
+          {
+            path: "bitrefill",
+            element: <Bitrefill />,
+          },
         ],
       },
       {
@@ -431,14 +434,6 @@ const routes = [
               {
                 index: true,
                 element: <SetupNode />,
-              },
-              {
-                path: "breez",
-                element: <BreezForm />,
-              },
-              {
-                path: "greenlight",
-                element: <GreenlightForm />,
               },
               {
                 path: "cashu",

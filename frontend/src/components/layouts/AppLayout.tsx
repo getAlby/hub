@@ -1,19 +1,17 @@
 import { compare } from "compare-versions";
 import {
-  Cloud,
+  CircleHelp,
   EllipsisVertical,
   Home,
   LayoutGrid,
-  LifeBuoy,
-  Lightbulb,
   Lock,
-  Megaphone,
   Menu,
   Plug2,
   PlugZapIcon,
   Settings,
   ShieldAlertIcon,
   ShieldCheckIcon,
+  SparklesIcon,
   User2,
   Wallet,
 } from "lucide-react";
@@ -48,6 +46,7 @@ import {
 } from "src/components/ui/tooltip";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 
+import { UpgradeDialog } from "src/components/UpgradeDialog";
 import { useAlbyInfo } from "src/hooks/useAlbyInfo";
 import { useHealthCheck } from "src/hooks/useHealthCheck";
 import { useInfo } from "src/hooks/useInfo";
@@ -169,52 +168,24 @@ export default function AppLayout() {
           <Settings className="h-4 w-4" />
           Settings
         </MenuItem>
+
         <MenuItem
           to="/"
           onClick={(e) => {
-            openLink("https://getalby.com/help");
+            openLink("https://support.getalby.com");
+            openLink("https://support.getalby.com");
             e.preventDefault();
           }}
         >
-          <LifeBuoy className="h-4 w-4" />
-          Live Support
+          <CircleHelp className="h-4 w-4" />
+          Help
         </MenuItem>
-        <MenuItem
-          to="/"
-          onClick={(e) => {
-            openLink(
-              "https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub"
-            );
-            e.preventDefault();
-          }}
-        >
-          <Lightbulb className="h-4 w-4" />
-          Guides
-        </MenuItem>
-        <MenuItem
-          to="/"
-          onClick={(e) => {
-            openLink(
-              "https://feedback.getalby.com/-alby-hub-request-a-feature"
-            );
-            e.preventDefault();
-          }}
-        >
-          <Megaphone className="h-4 w-4" />
-          Feedback
-        </MenuItem>
-        {!albyMe?.hub.name && info?.albyAccountConnected && (
-          <MenuItem
-            to="/"
-            onClick={(e) => {
-              openLink("https://getalby.com/subscription/new");
-              e.preventDefault();
-            }}
-          >
-            <Cloud className="h-4 w-4" />
-            Alby Cloud
-          </MenuItem>
-        )}
+        <UpgradeDialog>
+          <div className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-accent-foreground">
+            <SparklesIcon className="h-4 w-4" />
+            Upgrade
+          </div>
+        </UpgradeDialog>
       </nav>
     );
   }

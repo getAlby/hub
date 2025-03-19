@@ -138,10 +138,6 @@ For more information refer to:
 
     $ go run -ldflags="-X 'github.com/getAlby/hub/version.Tag=v0.6.0'" cmd/http/main.go
 
-### Windows
-
-Breez SDK requires gcc to build the Breez bindings. Run `choco install mingw` and copy the breez SDK bindings file into the root of this directory (from your go installation directory) as per the [Breez SDK instructions](https://github.com/breez/breez-sdk-go?tab=readme-ov-file#windows). ALSO copy the bindings file into the output directory alongside the .exe in order to run it.
-
 ## Optional configuration parameters
 
 The following configuration options can be set as environment variables or in a .env file
@@ -356,10 +352,6 @@ You can also contribute to our [bounty program](https://github.com/getAlby/light
 
 - ⚠️ PAYMENT_FAILED error code not supported
 
-### Breez
-
-(Supported methods coming soon)
-
 ## Node Distributions
 
 Run NWC on your own node!
@@ -488,7 +480,7 @@ At a high level Alby Hub is an [NWC](https://nwc.dev) wallet service which allow
 
 ### LNClient
 
-The LNClient interface abstracts the differences between wallet implementations and allows users to run Alby Hub with their preferred wallet, such as LDK, LND, Phoenixd, Cashu, Breez, Greenlight.
+The LNClient interface abstracts the differences between wallet implementations and allows users to run Alby Hub with their preferred wallet, such as LDK, LND, Phoenixd, Cashu.
 
 ### Transactions Service
 
@@ -523,6 +515,7 @@ Internally Alby Hub uses a basic implementation of the pubsub messaging pattern 
     - `nwc_app_created` - a new app connection was created
     - `nwc_app_deleted` - a new app connection was deleted
     - `nwc_lnclient_*` - underlying LNClient events, consumed only by the transactions service.
+    - `nwc_alby_account_connected` - user connects alby account for first time
 
 ### NIP-47 Handlers
 

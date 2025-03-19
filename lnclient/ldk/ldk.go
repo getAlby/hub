@@ -190,6 +190,8 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		pubkey:              nodeId,
 	}
 
+	eventPublisher.RegisterSubscriber(&ls)
+
 	// TODO: remove when LDK supports this
 	deleteOldLDKLogs(logDirPath)
 	go func() {
@@ -411,6 +413,7 @@ func (ls *LDKService) Shutdown() error {
 		return nil
 	}
 	ls.shuttingDown = true
+	ls.eventPublisher.RemoveSubscriber(ls)
 
 	logger.Logger.Info("shutting down LDK client")
 	logger.Logger.Info("cancelling LDK context")
@@ -1340,11 +1343,13 @@ func (ls *LDKService) GetNetworkGraph(ctx context.Context, nodeIds []string) (ln
 				Node:   graphNode,
 				NodeId: nodeId,
 			})
-		}
-		for _, channelId := range graphNode.Channels {
-			graphChannel := graph.Channel(channelId)
-			if graphChannel != nil {
-				channels = append(channels, graphChannel)
+			if graphNode.Channels != nil {
+				for _, channelId := range graphNode.Channels {
+					graphChannel := graph.Channel(channelId)
+					if graphChannel != nil {
+						channels = append(channels, graphChannel)
+					}
+				}
 			}
 		}
 	}
@@ -1835,18 +1840,6 @@ func getEncodedChannelMonitorsFromStaticChannelsBackup(channelsBackup *events.St
 	return encodedMonitors
 }
 
-func forceCloseChannelsFromStaticChannelsBackup(node *ldk_node.Node, staticChannelsBackup *events.StaticChannelsBackupEvent) {
-	// peer with original peers from channels so that we can send closing channel messages
-	for _, channel := range staticChannelsBackup.Channels {
-		err := node.Connect(channel.PeerID, channel.PeerSocketAddress, true)
-		if err != nil {
-			logger.Logger.WithField("peer_id", channel.PeerID).WithError(err).Error("failed to peer to node from channel backup")
-		}
-	}
-
-	node.ForceCloseAllChannelsWithoutBroadcastingTxn()
-}
-
 func GetVssNodeIdentifier(keys keys.Keys) (string, error) {
 	key, err := keys.DeriveKey([]uint32{bip32.FirstHardenedChild + 2})
 
@@ -1889,10 +1882,19 @@ func getResetStateRequest(cfg config.Config) *ldk_node.ResetState {
 		ret = ldk_node.ResetStateScorer
 	case "NetworkGraph":
 		ret = ldk_node.ResetStateNetworkGraph
+	case "NodeMetrics":
+		ret = ldk_node.ResetStateNodeMetrics
 	default:
 		logger.Logger.WithField("key", resetKey).Error("Unknown reset router key")
 		return nil
 	}
 
 	return &ret
+}
+
+func (ls *LDKService) ConsumeEvent(ctx context.Context, event *events.Event, globalProperties map[string]interface{}) {
+	if event.Event == "nwc_alby_account_connected" {
+		// backup existing channels to the user's Alby Account on first connect
+		ls.backupChannels()
+	}
 }

@@ -8,7 +8,7 @@ type Props = {
   iconClass?: string;
 };
 
-export default function PasswordViewAdornment({
+export default function RevealPasswordToggle({
   onChange,
   isRevealed,
   iconClass,

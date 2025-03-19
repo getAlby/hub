@@ -103,7 +103,7 @@ export function ZapPlanner() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      // validate lighning address
+      // validate lightning address
       const ln = new LightningAddress(recipientLightningAddress);
       await ln.fetch();
       if (!ln.lnurlpData) {

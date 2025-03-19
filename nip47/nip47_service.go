@@ -32,7 +32,7 @@ type nip47Service struct {
 
 type Nip47Service interface {
 	events.EventSubscriber
-	StartNotifier(ctx context.Context, relay *nostr.Relay, lnClient lnclient.LNClient)
+	StartNotifier(ctx context.Context, relay *nostr.Relay)
 	HandleEvent(ctx context.Context, relay nostrmodels.Relay, event *nostr.Event, lnClient lnclient.LNClient)
 	GetNip47Info(ctx context.Context, relay *nostr.Relay, appWalletPubKey string) (*nostr.Event, error)
 	PublishNip47Info(ctx context.Context, relay nostrmodels.Relay, appWalletPubKey string, appWalletPrivKey string, lnClient lnclient.LNClient) (*nostr.Event, error)
@@ -58,13 +58,16 @@ func (svc *nip47Service) ConsumeEvent(ctx context.Context, event *events.Event, 
 	svc.nip47NotificationQueue.AddToQueue(event)
 }
 
-func (svc *nip47Service) StartNotifier(ctx context.Context, relay *nostr.Relay, lnClient lnclient.LNClient) {
-	nip47Notifier := notifications.NewNip47Notifier(relay, svc.db, svc.cfg, svc.keys, svc.permissionsService, svc.transactionsService, lnClient)
+// The notifier is decoupled from the notification queue
+// so that if Alby Hub disconnects from the relay, it will wait to reconnect
+// to send notifications rather than dropping them
+func (svc *nip47Service) StartNotifier(ctx context.Context, relay *nostr.Relay) {
+	nip47Notifier := notifications.NewNip47Notifier(relay, svc.db, svc.cfg, svc.keys, svc.permissionsService)
 	go func() {
 		for {
 			select {
 			case <-ctx.Done():
-				// subscription ended
+				// relay disconnected
 				return
 			case event := <-svc.nip47NotificationQueue.Channel():
 				nip47Notifier.ConsumeEvent(ctx, event)

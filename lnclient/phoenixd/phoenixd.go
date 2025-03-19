@@ -146,7 +146,7 @@ func (svc *PhoenixService) ListTransactions(ctx context.Context, from, until, li
 
 	logger.Logger.WithFields(logrus.Fields{
 		"url": incomingUrl,
-	}).Infof("Fetching incoming tranasctions: %s", incomingUrl)
+	}).Infof("Fetching incoming transactions: %s", incomingUrl)
 	incomingReq, err := http.NewRequest(http.MethodGet, incomingUrl, nil)
 	if err != nil {
 		return nil, err
@@ -194,7 +194,7 @@ func (svc *PhoenixService) ListTransactions(ctx context.Context, from, until, li
 
 	logger.Logger.WithFields(logrus.Fields{
 		"url": outgoingUrl,
-	}).Infof("Fetching outgoing tranasctions: %s", outgoingUrl)
+	}).Infof("Fetching outgoing transactions: %s", outgoingUrl)
 	outgoingReq, err := http.NewRequest(http.MethodGet, outgoingUrl, nil)
 	if err != nil {
 		return nil, err

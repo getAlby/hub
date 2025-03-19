@@ -271,7 +271,7 @@ export default function Backup() {
                         <h3 className="text-sm font-medium">
                           Dynamic Channels Backup With Instant Recovery
                         </h3>
-                        {me?.subscription.buzz && info.ldkVssEnabled ? (
+                        {me?.subscription.plan_code && info.ldkVssEnabled ? (
                           <Badge variant={"positive"}>Active</Badge>
                         ) : (
                           <Badge>Alby Cloud</Badge>
@@ -286,13 +286,13 @@ export default function Backup() {
                       </p>
 
                       {!info.ldkVssEnabled &&
-                        (!me?.subscription.buzz ? (
+                        (!me?.subscription.plan_code ? (
                           <Button
                             variant="secondary"
                             disabled={info.ldkVssEnabled}
                             size={"lg"}
                             onClick={() => {
-                              if (!me?.subscription?.buzz) {
+                              if (!me?.subscription?.plan_code) {
                                 openLink(
                                   "https://getalby.com/subscription/new"
                                 );

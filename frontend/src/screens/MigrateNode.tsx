@@ -2,10 +2,10 @@ import { InfoCircledIcon } from "@radix-ui/react-icons";
 import { TriangleAlertIcon } from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import PasswordInput from "src/components/password/PasswordInput";
 
 import SettingsHeader from "src/components/SettingsHeader";
 import { Button, LinkButton } from "src/components/ui/button";
-import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
@@ -129,13 +129,7 @@ export function MigrateNode() {
             <>
               <div className="grid gap-2">
                 <Label htmlFor="password">Password</Label>
-                <Input
-                  type="password"
-                  name="password"
-                  onChange={(e) => setUnlockPassword(e.target.value)}
-                  value={unlockPassword}
-                  placeholder="Password"
-                />
+                <PasswordInput id="password" onChange={setUnlockPassword} />
               </div>
             </>
             <LoadingButton loading={loading}>Continue</LoadingButton>

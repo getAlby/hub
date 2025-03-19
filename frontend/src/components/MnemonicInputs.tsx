@@ -1,6 +1,6 @@
 import { wordlist } from "@scure/bip39/wordlists/english";
 import { useState } from "react";
-import PasswordViewAdornment from "src/components/password/PasswordAdornment";
+import PasswordViewAdornment from "src/components/password/RevealPasswordToggle";
 import {
   Card,
   CardContent,
