@@ -5,6 +5,7 @@ import AppCard from "src/components/connections/AppCard";
 import ExternalLink from "src/components/ExternalLink";
 import { IsolatedAppTopupDialog } from "src/components/IsolatedAppTopupDialog";
 import Loading from "src/components/Loading";
+import PasswordInput from "src/components/password/PasswordInput";
 import {
   Accordion,
   AccordionContent,
@@ -197,12 +198,7 @@ export function UncleJim() {
                   connection secret for their wallet.
                 </p>
                 <div className="flex gap-2">
-                  <Input
-                    disabled
-                    readOnly
-                    type="password"
-                    value={albyAccountUrl}
-                  />
+                  <PasswordInput disabled readOnly value={albyAccountUrl} />
                   <Button
                     onClick={() => copyToClipboard(albyAccountUrl, toast)}
                     variant="outline"
@@ -233,12 +229,7 @@ export function UncleJim() {
                   connection secret for their wallet.
                 </p>
                 <div className="flex gap-2">
-                  <Input
-                    disabled
-                    readOnly
-                    type="password"
-                    value={connectionSecret}
-                  />
+                  <PasswordInput disabled readOnly value={connectionSecret} />
                   <Button
                     onClick={() => copyToClipboard(connectionSecret, toast)}
                     variant="outline"
@@ -258,12 +249,7 @@ export function UncleJim() {
                   it contains the connection secret for their wallet.
                 </p>
                 <div className="flex gap-2">
-                  <Input
-                    disabled
-                    readOnly
-                    type="password"
-                    value={connectionSecret}
-                  />
+                  <PasswordInput disabled readOnly value={connectionSecret} />
                   <Button
                     onClick={() => copyToClipboard(connectionSecret, toast)}
                     variant="outline"

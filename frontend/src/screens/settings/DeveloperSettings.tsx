@@ -1,5 +1,6 @@
 import { Copy, SquareArrowOutUpRight } from "lucide-react";
 import React from "react";
+import PasswordInput from "src/components/password/PasswordInput";
 import SettingsHeader from "src/components/SettingsHeader";
 import { Button, ExternalLinkButton } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
@@ -124,13 +125,7 @@ export default function DeveloperSettings() {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="password">Unlock Password</Label>
-                <Input
-                  type="password"
-                  name="password"
-                  onChange={(e) => setUnlockPassword(e.target.value)}
-                  value={unlockPassword}
-                  placeholder="Password"
-                />
+                <PasswordInput id="password" onChange={setUnlockPassword} />
               </div>
               <div className="mt-4">
                 <LoadingButton loading={loading}>Create Token</LoadingButton>
@@ -141,12 +136,7 @@ export default function DeveloperSettings() {
         {token && (
           <>
             <div className="flex flex-row items-center gap-2 mb-2">
-              <Input
-                type="password"
-                value={token}
-                className="flex-1"
-                readOnly
-              />
+              <PasswordInput readOnly value={token} className="flex-1" />
               <Button
                 type="button"
                 variant="secondary"
