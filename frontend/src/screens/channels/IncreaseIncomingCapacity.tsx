@@ -5,6 +5,7 @@ import AppHeader from "src/components/AppHeader";
 import { ChannelPeerNote } from "src/components/channels/ChannelPeerNote";
 import { ChannelPublicPrivateAlert } from "src/components/channels/ChannelPublicPrivateAlert";
 import { DuplicateChannelAlert } from "src/components/channels/DuplicateChannelAlert";
+import { SwapAlert } from "src/components/channels/SwapAlert";
 import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
 import { MempoolAlert } from "src/components/MempoolAlert";
@@ -464,6 +465,7 @@ function NewChannelInternal({
                 />
               )}
               <MempoolAlert />
+              <SwapAlert />
 
               <StepButtons onNextClick={() => onSubmit()} />
             </div>

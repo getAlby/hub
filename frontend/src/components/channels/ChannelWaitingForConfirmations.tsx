@@ -1,5 +1,6 @@
 import Lottie from "react-lottie";
-import animationData from "src/assets/lotties/loading.json";
+import animationDataDark from "src/assets/lotties/loading-dark.json";
+import animationDataLight from "src/assets/lotties/loading-light.json";
 import Loading from "src/components/Loading";
 import {
   Card,
@@ -8,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { useTheme } from "src/components/ui/theme-provider";
 import { Channel } from "src/types";
 
 export function ChannelWaitingForConfirmations({
@@ -15,6 +17,7 @@ export function ChannelWaitingForConfirmations({
 }: {
   channel: Channel | undefined;
 }) {
+  const { isDarkMode } = useTheme();
   if (!channel?.confirmationsRequired) {
     // 0-conf channel or waiting for transaction to be broadcasted, this should only take a few seconds
     return <Loading />;
@@ -23,7 +26,7 @@ export function ChannelWaitingForConfirmations({
   const defaultOptions = {
     loop: true,
     autoplay: true,
-    animationData: animationData,
+    animationData: isDarkMode ? animationDataDark : animationDataLight,
     rendererSettings: {
       preserveAspectRatio: "xMidYMid slice",
     },

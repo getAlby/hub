@@ -83,6 +83,7 @@ func (svc *nip47Service) PublishNip47Info(ctx context.Context, relay nostrmodels
 	if err != nil {
 		return nil, fmt.Errorf("nostr publish not successful: %s", err)
 	}
+	logger.Logger.WithField("wallet_pubkey", appWalletPubKey).Debug("published info event")
 	return ev, nil
 }
 

@@ -212,6 +212,9 @@ func (cfg *config) SetUpdate(key string, value string, encryptionKey string) err
 }
 
 func (cfg *config) ChangeUnlockPassword(currentUnlockPassword string, newUnlockPassword string) error {
+	if newUnlockPassword == "" {
+		return errors.New("New unlock password must not be empty")
+	}
 	if !cfg.CheckUnlockPassword(currentUnlockPassword) {
 		return errors.New("incorrect password")
 	}
