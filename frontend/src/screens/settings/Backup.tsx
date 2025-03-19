@@ -160,8 +160,8 @@ export default function Backup() {
               <>
                 <p className="text-muted-foreground text-sm mb-8">
                   Your channel state is backed up automatically after each
-                  channel creation. Potential recovery will trigger channel
-                  closures, and your funds will arrive in your on-chain balance.
+                  channel creation. Using an external recovery tool and your
+                  recovery phrase, you can request channel recovery.
                 </p>
                 {info?.vssSupported && (
                   <>
@@ -263,32 +263,19 @@ export default function Backup() {
                     </h3>
                     <Badge variant={"positive"}>Active</Badge>
                   </div>
-                  <p className="text-muted-foreground text-sm ">
-                    To backup your channels state manually, without Alby Account
-                    linked, follow these steps:
+                  <p>
+                    <span className="text-muted-foreground text-sm">
+                      To backup your channels state manually, without Alby
+                      Account linked, follow the
+                    </span>
+                    <ExternalLink
+                      to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/backups-and-recover#alby-hub-self-hosted-without-an-alby-account"
+                      className="underline inline-flex items-center"
+                    >
+                      manual backups guide
+                      <ExternalLinkIcon className="w-4 h-4 ml-2" />
+                    </ExternalLink>
                   </p>
-                  <ol className="text-sm list-decimal list-inside">
-                    <li className="mb-1">
-                      Go to the working directory of your Alby Hub
-                    </li>
-                    <li>
-                      Back up the newest file in: Set your Unlock Passcode{" "}
-                      <code className="bg-muted rounded-lg py-1 px-1">
-                        .data/ldk/static_channel_backups/
-                      </code>
-                    </li>
-                  </ol>
-                  <p className="text-destructive text-sm">
-                    If new channels are created after the backup, you could risk
-                    losing funds.
-                  </p>
-                  <ExternalLink
-                    to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/backups-and-recover#alby-hub-self-hosted-without-an-alby-account"
-                    className="underline flex items-center mt-4"
-                  >
-                    View manual backups guide
-                    <ExternalLinkIcon className="w-4 h-4 ml-2" />
-                  </ExternalLink>
                 </div>
               </div>
             )}
