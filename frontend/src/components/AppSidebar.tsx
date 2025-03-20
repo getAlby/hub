@@ -3,7 +3,6 @@ import {
   ChevronsUpDown,
   CircleHelp,
   Cloud,
-  Home,
   HomeIcon,
   LayoutGridIcon,
   LogOut,
@@ -19,6 +18,7 @@ import React from "react";
 
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import ExternalLink from "src/components/ExternalLink";
+import { AlbyHubIcon } from "src/components/icons/AlbyHubIcon";
 import { AlbyHubLogo } from "src/components/icons/AlbyHubLogo";
 import SidebarHint from "src/components/SidebarHint";
 import {
@@ -58,20 +58,11 @@ import { HealthAlarm } from "src/types";
 
 import { isHttpMode } from "src/utils/isHttpMode";
 
-// Menu items.
-const items = [
-  {
-    title: "Home",
-    url: "#",
-    icon: Home,
-  },
-];
-
 export function AppSidebar() {
   const { data: albyMe } = useAlbyMe();
 
   const { data: info, mutate: refetchInfo } = useInfo();
-  const { isMobile } = useSidebar();
+  const { isMobile, state } = useSidebar();
   const { hasChannelManagement } = useInfo();
   const navigate = useNavigate();
 
@@ -135,12 +126,18 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar variant="sidebar">
-      <SidebarHeader className="p-5 flex flex-row items-center justify-between">
-        <Link to="/">
-          <AlbyHubLogo className="text-sidebar-foreground h-12" />
+    <Sidebar collapsible="icon">
+      <SidebarHeader>
+        <Link to="/home">
+          {state === "expanded" ? (
+            <div className="p-2 flex flex-row items-center justify-between">
+              <AlbyHubLogo className="text-sidebar-foreground h-12" />
+              <HealthIndicator />
+            </div>
+          ) : (
+            <AlbyHubIcon className="w-8 h-8 text-sidebar-foreground" />
+          )}
         </Link>
-        <HealthIndicator />
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
@@ -161,10 +158,16 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-        <SidebarGroup className="mt-auto">
-          <SidebarHint />
+        <div className="mt-auto">
+          {state === "expanded" && (
+            <SidebarGroup>
+              <SidebarGroupContent>
+                <SidebarHint />
+              </SidebarGroupContent>
+            </SidebarGroup>
+          )}
           <NavSecondary items={data.navSecondary} />
-        </SidebarGroup>
+        </div>
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
