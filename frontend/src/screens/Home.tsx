@@ -28,6 +28,7 @@ import { LightningMessageboardWidget } from "src/components/home/widgets/Lightni
 import { NodeStatusWidget } from "src/components/home/widgets/NodeStatusWidget";
 import { OnchainFeesWidget } from "src/components/home/widgets/OnchainFeesWidget";
 import { WhatsNewWidget } from "src/components/home/widgets/WhatsNewWidget";
+import { UpgradeDialog } from "src/components/UpgradeDialog";
 
 function getGreeting(name: string | undefined) {
   const hours = new Date().getHours();
@@ -59,7 +60,15 @@ function Home() {
 
   return (
     <>
-      <AppHeader title={getGreeting(albyMe?.name)} description="" />
+      <AppHeader
+        title={getGreeting(albyMe?.name)}
+        description=""
+        contentRight={
+          <UpgradeDialog>
+            <Button variant="premium">Upgrade</Button>
+          </UpgradeDialog>
+        }
+      />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start justify-start">
         {/* LEFT */}
         <div className="grid gap-5">
@@ -124,7 +133,7 @@ function Home() {
             </Card>
           </Link>
 
-          <Link to="/appstore/alby-go">
+          <Link to="/internal-apps/alby-go">
             <Card>
               <CardHeader>
                 <div className="flex flex-row items-center">

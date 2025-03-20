@@ -130,13 +130,8 @@ type SetupRequest struct {
 	LNBackendType  string `json:"backendType"`
 	UnlockPassword string `json:"unlockPassword"`
 
-	// Breez / Greenlight
-	Mnemonic             string `json:"mnemonic"`
-	GreenlightInviteCode string `json:"greenlightInviteCode"`
-	NextBackupReminder   string `json:"nextBackupReminder"`
-
-	// Breez fields
-	BreezAPIKey string `json:"breezApiKey"`
+	Mnemonic           string `json:"mnemonic"`
+	NextBackupReminder string `json:"nextBackupReminder"`
 
 	// LND fields
 	LNDAddress      string `json:"lndAddress"`
