@@ -149,7 +149,10 @@ func (svc *service) startNostr(ctx context.Context) error {
 	return nil
 }
 
-func (svc *service) queueAppInfoEvents() {
+// In case the relay somehow loses events or the hub updates with
+// new capabilities, we re-publish info events for all apps on startup
+// to ensure that they are retrievable for all connections
+func (svc *service) publishAllAppInfoEvents() {
 	var legacyAppCount int64
 	result := svc.db.Model(&db.App{}).Where("wallet_pubkey IS NULL").Count(&legacyAppCount)
 	if legacyAppCount > 0 {
@@ -279,7 +282,7 @@ func (svc *service) StartApp(encryptionKey string) error {
 		return err
 	}
 
-	svc.queueAppInfoEvents()
+	svc.publishAllAppInfoEvents()
 
 	svc.startupState = "Connecting To Relay"
 	err = svc.startNostr(ctx)
