@@ -95,8 +95,8 @@ export default function SettingsLayout() {
         }
       />
 
-      <div className="flex flex-col space-y-8 lg:flex-row lg:space-x-12 lg:space-y-0">
-        <aside className="lg:-mx-4 lg:w-1/5">
+      <div className="flex flex-col space-y-8 lg:flex-row lg:space-x-12 lg:space-y-0 h-full">
+        <aside className="flex flex-col justify-between lg:-mx-4 lg:w-1/5 max-h-screen">
           <nav className="flex flex-wrap lg:flex-col -space-x-1 lg:space-x-0 lg:space-y-1">
             <MenuItem to="/settings">General</MenuItem>
             {info?.autoUnlockPasswordSupported && (
@@ -118,6 +118,11 @@ export default function SettingsLayout() {
             <MenuItem to="/settings/developer">Developer</MenuItem>
             <MenuItem to="/settings/debug-tools">Debug Tools</MenuItem>
           </nav>
+          {info?.version && (
+            <p className="text-sm text-muted-foreground ml-2 mt-4">
+              {info.version}
+            </p>
+          )}
         </aside>
         <div className="flex-1 lg:max-w-2xl">
           <div className="grid gap-6">
