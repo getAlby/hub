@@ -34,8 +34,8 @@ type nip47Service struct {
 
 type Nip47Service interface {
 	events.EventSubscriber
-	StartNotifier(ctx context.Context, relay *nostr.Relay)
-	StartNip47InfoPublisher(ctx context.Context, relay nostrmodels.Relay, lnClient lnclient.LNClient)
+	StartNotifier(relay *nostr.Relay)
+	StartNip47InfoPublisher(relay *nostr.Relay, lnClient lnclient.LNClient)
 	HandleEvent(ctx context.Context, relay nostrmodels.Relay, event *nostr.Event, lnClient lnclient.LNClient)
 	GetNip47Info(ctx context.Context, relay *nostr.Relay, appWalletPubKey string) (*nostr.Event, error)
 	PublishNip47Info(ctx context.Context, relay nostrmodels.Relay, appWalletPubKey string, appWalletPrivKey string, lnClient lnclient.LNClient) (*nostr.Event, error)
@@ -66,16 +66,16 @@ func (svc *nip47Service) ConsumeEvent(ctx context.Context, event *events.Event, 
 // The notifier is decoupled from the notification queue
 // so that if Alby Hub disconnects from the relay, it will wait to reconnect
 // to send notifications rather than dropping them
-func (svc *nip47Service) StartNotifier(ctx context.Context, relay *nostr.Relay) {
+func (svc *nip47Service) StartNotifier(relay *nostr.Relay) {
 	nip47Notifier := notifications.NewNip47Notifier(relay, svc.db, svc.cfg, svc.keys, svc.permissionsService)
 	go func() {
 		for {
 			select {
-			case <-ctx.Done():
+			case <-relay.Context().Done():
 				// relay disconnected
 				return
 			case event := <-svc.nip47NotificationQueue.Channel():
-				nip47Notifier.ConsumeEvent(ctx, event)
+				nip47Notifier.ConsumeEvent(relay.Context(), event)
 			}
 		}
 	}()
@@ -88,15 +88,15 @@ func (svc *nip47Service) EnqueueNip47InfoPublishRequest(AppWalletPubKey, AppWall
 	})
 }
 
-func (svc *nip47Service) StartNip47InfoPublisher(ctx context.Context, relay nostrmodels.Relay, lnClient lnclient.LNClient) {
+func (svc *nip47Service) StartNip47InfoPublisher(relay *nostr.Relay, lnClient lnclient.LNClient) {
 	go func() {
 		for {
 			select {
-			case <-ctx.Done():
+			case <-relay.Context().Done():
 				// relay disconnected
 				return
 			case req := <-svc.nip47InfoPublishQueue.Channel():
-				_, err := svc.PublishNip47Info(ctx, relay, req.AppWalletPubKey, req.AppWalletPrivKey, lnClient)
+				_, err := svc.PublishNip47Info(relay.Context(), relay, req.AppWalletPubKey, req.AppWalletPrivKey, lnClient)
 				if err != nil {
 					logger.Logger.WithError(err).WithField("wallet_pubkey", req.AppWalletPubKey).Error("Failed to publish NIP47 info from queue")
 				}

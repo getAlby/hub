@@ -89,8 +89,8 @@ func (svc *service) startNostr(ctx context.Context) error {
 			}).Info("Connected to the relay")
 			waitToReconnectSeconds = 0
 
-			svc.nip47Service.StartNotifier(relay.Context(), relay)
-			svc.nip47Service.StartNip47InfoPublisher(relay.Context(), relay, svc.lnClient)
+			svc.nip47Service.StartNotifier(relay)
+			svc.nip47Service.StartNip47InfoPublisher(relay, svc.lnClient)
 
 			// register a subscriber for events of "nwc_app_created" which handles creation of nostr subscription for new app
 			if createAppEventListener != nil {
