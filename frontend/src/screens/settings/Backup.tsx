@@ -20,23 +20,23 @@ import {
   AlertDialogTrigger,
 } from "src/components/ui/alert-dialog";
 import { Badge } from "src/components/ui/badge";
-import { Button, ExternalLinkButton } from "src/components/ui/button";
+import { Button } from "src/components/ui/button";
 
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { Separator } from "src/components/ui/separator";
 import { useToast } from "src/components/ui/use-toast";
+import { UpgradeDialog } from "src/components/UpgradeDialog";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useInfo } from "src/hooks/useInfo";
 import { useMigrateLDKStorage } from "src/hooks/useMigrateLDKStorage";
-import { MnemonicResponse } from "src/types";
+import { InfoResponse, MnemonicResponse } from "src/types";
 import { request } from "src/utils/request";
 
 export default function Backup() {
   const { toast } = useToast();
   const { data: info, hasMnemonic } = useInfo();
   const { data: me } = useAlbyMe();
-  const { isMigratingStorage, migrateLDKStorage } = useMigrateLDKStorage();
   const [unlockPassword, setUnlockPassword] = useState("");
   const [decryptedMnemonic, setDecryptedMnemonic] = useState("");
   const [loading, setLoading] = useState(false);
@@ -103,7 +103,7 @@ export default function Backup() {
               your unlock password.
             </p>
           </div>
-          <p className="text-destructive">
+          <p className="text-sm text-destructive">
             If you loose access to your Hub and do not have your recovery
             phrase, you will loose access to your funds.
           </p>
@@ -112,9 +112,9 @@ export default function Backup() {
           <div>
             <form
               onSubmit={onSubmitPassword}
-              className="max-w-md flex flex-col gap-3"
+              className="max-w-md flex flex-col gap-6"
             >
-              <div className="grid gap-2 mb-6">
+              <div className="grid gap-2">
                 <Label htmlFor="password">Password</Label>
                 <PasswordInput id="password" onChange={setUnlockPassword} />
                 <p className="text-sm text-muted-foreground">
@@ -136,7 +136,7 @@ export default function Backup() {
         </div>
       )}
       <>
-        <Separator className="my-6" />
+        <Separator className="my-2" />
         <div className="flex flex-col gap-8">
           <div>
             <h3 className="text-lg font-medium">Channels Backup</h3>
@@ -186,54 +186,13 @@ export default function Backup() {
 
                       {!info.ldkVssEnabled &&
                         (!me?.subscription.plan_code ? (
-                          <ExternalLinkButton
-                            variant="secondary"
-                            size={"lg"}
-                            to="https://getalby.com/subscription/new"
-                          >
-                            Enable Dynamic Channels Backup
-                          </ExternalLinkButton>
+                          <UpgradeDialog>
+                            <Button variant="secondary" size={"lg"}>
+                              Upgrade to Enable Dynamic Channels Backup
+                            </Button>
+                          </UpgradeDialog>
                         ) : (
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <LoadingButton
-                                variant="secondary"
-                                loading={isMigratingStorage}
-                                disabled={info.ldkVssEnabled}
-                                size={"lg"}
-                              >
-                                Enable Dynamic Channels Backup
-                              </LoadingButton>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>
-                                  Alby Hub Restart Required
-                                </AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  <div>
-                                    <p>
-                                      As part of enabling VSS your hub will be
-                                      shut down, and you will need to enter your
-                                      unlock password to start it again.
-                                    </p>
-                                    <p className="mt-2">
-                                      Please ensure you have no pending payments
-                                      or channel closures before continuing.
-                                    </p>
-                                  </div>
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => migrateLDKStorage("VSS")}
-                                >
-                                  Confirm
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
+                          <DynamicChannelsBackupDialog info={info} />
                         ))}
                     </div>
                   </>
@@ -256,8 +215,8 @@ export default function Backup() {
                     Link Alby Account to Enable
                   </Button>
                 </div>
-                <div className="flex flex-col gap-4">
-                  <div className="flex gap-2 mb-1 items-center">
+                <div className="flex flex-col gap-1">
+                  <div className="flex gap-2 items-center">
                     <h3 className="text-sm font-medium">
                       Manual Channels Backup
                     </h3>
@@ -270,10 +229,10 @@ export default function Backup() {
                     </span>
                     <ExternalLink
                       to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/backups-and-recover#alby-hub-self-hosted-without-an-alby-account"
-                      className="underline inline-flex items-center"
+                      className="underline inline-flex items-center text-sm"
                     >
                       manual backups guide
-                      <ExternalLinkIcon className="w-4 h-4 ml-2" />
+                      <ExternalLinkIcon className="w-4 h-4 ml-1" />
                     </ExternalLink>
                   </p>
                 </div>
@@ -289,6 +248,52 @@ export default function Backup() {
         </p>
       )}
     </>
+  );
+}
+
+type Props = {
+  info: InfoResponse;
+};
+
+function DynamicChannelsBackupDialog({ info }: Props) {
+  const { isMigratingStorage, migrateLDKStorage } = useMigrateLDKStorage();
+
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <LoadingButton
+          variant="secondary"
+          loading={isMigratingStorage}
+          disabled={info.ldkVssEnabled}
+          size={"lg"}
+        >
+          Enable Dynamic Channels Backup
+        </LoadingButton>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Alby Hub Restart Required</AlertDialogTitle>
+          <AlertDialogDescription>
+            <div>
+              <p>
+                As part of enabling VSS your hub will be shut down, and you will
+                need to enter your unlock password to start it again.
+              </p>
+              <p className="mt-2">
+                Please ensure you have no pending payments or channel closures
+                before continuing.
+              </p>
+            </div>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={() => migrateLDKStorage("VSS")}>
+            Confirm
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
 

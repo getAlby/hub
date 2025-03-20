@@ -87,7 +87,7 @@ export default function DeveloperSettings() {
       <Separator />
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-1 text-sm">
-          <h3 className="font-semibold">Experimental</h3>
+          <h3 className="font-semibold">Experimental API access</h3>
 
           <div className="text-muted-foreground">
             You can use your auth token to access the Alby Hub internal API.

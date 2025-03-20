@@ -18,6 +18,7 @@ import {
   AlertDialogTrigger,
 } from "src/components/ui/alert-dialog";
 import { LoadingButton } from "src/components/ui/loading-button";
+import { Separator } from "src/components/ui/separator";
 import { useToast } from "src/components/ui/use-toast";
 import { cn } from "src/lib/utils";
 import { request } from "src/utils/request";
@@ -124,6 +125,7 @@ export default function SettingsLayout() {
             </p>
           )}
         </aside>
+        <Separator orientation="vertical" />
         <div className="flex-1 lg:max-w-2xl">
           <div className="grid gap-6">
             <Outlet />

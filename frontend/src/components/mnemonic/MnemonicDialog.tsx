@@ -114,11 +114,13 @@ export default function MnemonicDialog({
             </div>
           )}
           <div className="flex justify-end gap-2 items-center">
-            <div className="flex justify-center">
-              <Button type="submit" size="lg">
-                Finish Backup
-              </Button>
-            </div>
+            <Button
+              type="submit"
+              size="lg"
+              className="flex-grow sm:flex-grow-0 mt-2"
+            >
+              Finish
+            </Button>
           </div>
         </form>
       </DialogContent>
