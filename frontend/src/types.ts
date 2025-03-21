@@ -167,7 +167,14 @@ export type HealthAlarmKind =
 
 export type HealthAlarm = {
   kind: HealthAlarmKind;
-  rawDetails: unknown;
+  rawDetails?: unknown;
+};
+export type AlbyInfoIncident = {
+  name: string;
+  started: string;
+  status: string;
+  impact: string;
+  url: string;
 };
 
 export type HealthResponse = {

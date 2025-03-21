@@ -54,7 +54,6 @@ import { useNotifyReceivedPayments } from "src/hooks/useNotifyReceivedPayments";
 import { useRemoveSuccessfulChannelOrder } from "src/hooks/useRemoveSuccessfulChannelOrder";
 import { deleteAuthToken } from "src/lib/auth";
 import { cn } from "src/lib/utils";
-import { HealthAlarm } from "src/types";
 import { isHttpMode } from "src/utils/isHttpMode";
 import { openLink } from "src/utils/openLink";
 import ExternalLink from "../ExternalLink";
@@ -351,54 +350,15 @@ function HealthIndicator() {
 
   const ok = !health.alarms?.length;
 
-  function getAlarmTitle(alarm: HealthAlarm) {
-    // TODO: could show extra data from alarm.rawDetails
-    // for some alarm types
-    switch (alarm.kind) {
-      case "alby_service":
-        return "One or more Alby Services are offline";
-      case "channels_offline":
-        return "One or more channels are offline";
-      case "node_not_ready":
-        return "Node is not ready";
-      case "nostr_relay_offline":
-        return "Could not connect to relay";
-      default:
-        return "Unknown error";
-    }
-  }
-
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger>
-          <span className="text-xs flex items-center text-muted-foreground">
-            <div
-              className={cn(
-                "w-2 h-2 rounded-full",
-                ok ? "bg-green-300" : "bg-destructive"
-              )}
-            />
-          </span>
-        </TooltipTrigger>
-        <TooltipContent>
-          {ok ? (
-            <p>Alby Hub is running</p>
-          ) : (
-            <div>
-              <p className="font-semibold">
-                {health.alarms.length} issues were found
-              </p>
-              <ul className="mt-2 max-w-xs whitespace-pre-wrap list-disc list-inside">
-                {health.alarms.map((alarm) => (
-                  <li key={alarm.kind}>{getAlarmTitle(alarm)}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <Link to="/channels?healthcheck=true">
+      <div
+        className={cn(
+          "w-2 h-2 rounded-full",
+          ok ? "bg-green-300" : "bg-destructive"
+        )}
+      />
+    </Link>
   );
 }
 

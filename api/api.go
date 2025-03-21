@@ -1085,10 +1085,7 @@ func (api *api) Health(ctx context.Context) (*HealthResponse, error) {
 	lnClient := api.svc.GetLNClient()
 
 	if lnClient != nil {
-		nodeStatus, err := lnClient.GetNodeStatus(ctx)
-		if err != nil {
-			return nil, err
-		}
+		nodeStatus, _ := lnClient.GetNodeStatus(ctx)
 		if nodeStatus == nil || !nodeStatus.IsReady {
 			alarms = append(alarms, NewHealthAlarm(HealthAlarmKindNodeNotReady, nodeStatus))
 		}
