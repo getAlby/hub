@@ -1,4 +1,5 @@
 import { compare } from "compare-versions";
+import { ExternalLinkButton } from "src/components/ui/button";
 import {
   Card,
   CardContent,
@@ -32,9 +33,15 @@ export function WhatsNewWidget() {
           {albyInfo.hub.latestReleaseNotes}
         </p>
         {!upToDate && (
-          <p className="font-semibold mt-2 text-sm">
-            Make sure to update! you're currently running {info.version}
-          </p>
+          <div className="mt-4 flex gap-2 items-center">
+            <p className="text-sm">You're currently running {info.version}</p>
+            <ExternalLinkButton
+              to={`https://getalby.com/update/hub?version=${info.version}`}
+              size="sm"
+            >
+              Update Now
+            </ExternalLinkButton>
+          </div>
         )}
       </CardContent>
     </Card>
