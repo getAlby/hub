@@ -373,7 +373,7 @@ func TestHandleMultiPayInvoiceEvent_IsolatedApp_ConcurrentPayments(t *testing.T)
 	err = svc.DB.Create(appPermission).Error
 	assert.NoError(t, err)
 
-	tm := time.Date(2025, time.March, 20, 11, 01, 0, 0, time.UTC)
+	tm := time.Now()
 	const amountMsat = 123000
 
 	const nInvoices = 80
