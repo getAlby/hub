@@ -83,6 +83,7 @@ export function SetupPassword() {
                   autoComplete="new-password"
                   placeholder="Re-enter the password"
                   onChange={setConfirmPassword}
+                  autoFocus
                 />
               </div>
             </div>

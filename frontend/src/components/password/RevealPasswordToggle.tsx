@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { cn } from "src/lib/utils";
 
 type Props = {
-  onChange: (viewingPassword: boolean) => void;
+  onChange: (isRevealed: boolean) => void;
   isRevealed?: boolean;
   iconClass?: string;
 };

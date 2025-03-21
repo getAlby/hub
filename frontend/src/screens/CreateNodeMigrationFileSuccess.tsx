@@ -2,12 +2,12 @@ import { BadgePlus, PowerOff, Save } from "lucide-react";
 import AppHeader from "src/components/AppHeader";
 import { Card, CardContent } from "src/components/ui/card";
 
-export function MigrateNodeSuccess() {
+export function CreateNodeMigrationFileSuccess() {
   return (
     <>
       <div className="p-10">
         <AppHeader
-          title="Alby Hub Migration Successful"
+          title="Alby Hub Migration File Saved"
           description="You're ready to move your node to another machine"
         />
         <Card>
@@ -18,8 +18,8 @@ export function MigrateNodeSuccess() {
                   <Save className="w-6 h-6" />
                 </div>
                 <span>
-                  Your Alby Hub has been successfully migrated and saved to your
-                  filesystem.
+                  Your Alby Hub migration file has been successfully saved to
+                  your filesystem.
                 </span>
               </div>
               <div className="flex gap-2 items-center">

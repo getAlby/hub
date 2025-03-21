@@ -92,6 +92,7 @@ export default function MnemonicDialog({
             <Checkbox
               id="backup"
               required
+              checked={backedUp}
               onCheckedChange={() => setIsBackedUp(!backedUp)}
             />
             <Label htmlFor="backup" className="ml-2">
@@ -104,12 +105,13 @@ export default function MnemonicDialog({
               <Checkbox
                 id="backup2"
                 required
+                checked={backedUp2}
                 onCheckedChange={() => setIsBackedUp2(!backedUp2)}
               />
               <Label htmlFor="backup2" className="ml-2 text-sm text-foreground">
                 I understand the recovery phrase AND a backup of my hub data
-                directory is required to recover funds from my lightning
-                channels.
+                directory after each channel opening is required to recover
+                funds from my lightning channels.
               </Label>
             </div>
           )}

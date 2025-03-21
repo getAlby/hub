@@ -9,10 +9,10 @@ import { HomeRedirect } from "src/components/redirects/HomeRedirect";
 import { SetupRedirect } from "src/components/redirects/SetupRedirect";
 import { StartRedirect } from "src/components/redirects/StartRedirect";
 import { ConnectAlbyAccount } from "src/screens/ConnectAlbyAccount";
+import { CreateNodeMigrationFileSuccess } from "src/screens/CreateNodeMigrationFileSuccess";
 import Home from "src/screens/Home";
 import { Intro } from "src/screens/Intro";
 import { MigrateNode } from "src/screens/MigrateNode";
-import { MigrateNodeSuccess } from "src/screens/MigrateNodeSuccess";
 import NotFound from "src/screens/NotFound";
 import Start from "src/screens/Start";
 import Unlock from "src/screens/Unlock";
@@ -478,8 +478,8 @@ const routes = [
     ],
   },
   {
-    path: "node-migrate-success",
-    element: <MigrateNodeSuccess />,
+    path: "create-node-migration-file-success",
+    element: <CreateNodeMigrationFileSuccess />,
   },
   {
     path: "intro",

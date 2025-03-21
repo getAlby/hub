@@ -66,7 +66,7 @@ export function MigrateNode() {
         });
       }
 
-      navigate("/node-migrate-success");
+      navigate("/create-node-migration-file-success");
     } catch (error) {
       handleRequestError(toast, "Failed to backup the node", error);
     } finally {
@@ -78,7 +78,7 @@ export function MigrateNode() {
     <>
       <SettingsHeader
         title="Migrate Alby Hub"
-        description="Create backup file in order to migrate your Alby Hub onto another device or server."
+        description="Create migration file in order to move your Alby Hub to another device or server."
       />
 
       <div className="flex flex-col gap-6">
@@ -88,7 +88,7 @@ export function MigrateNode() {
             <h3>Do not run your Alby Hub on multiple devices</h3>
           </div>
           <p className="text-sm ml-7">
-            After creating this backup file, do not restart Alby Hub on this
+            After creating this migration file, do not restart Alby Hub on this
             device, as this will cause problems and may cause force channel
             closures.
           </p>
@@ -110,8 +110,9 @@ export function MigrateNode() {
           </div>
           <p className="text-sm ml-7">
             After typing your unlock password, you’ll be able to to download a
-            backup of your Alby Hub data. Then you’ll see instructions on how to
-            import the backup file into another device or server.
+            migration file which contains a backup of your Alby Hub data. Then
+            you’ll see instructions on how to import this migration file into
+            another device or server.
           </p>
         </div>
       </div>
@@ -120,7 +121,7 @@ export function MigrateNode() {
         <div>
           <h1 className="font-medium mb-1">Enter unlock password</h1>
           <p className="text-muted-foreground mb-4">
-            Your unlock password will be used to encrypt your backup
+            Your unlock password will be used to encrypt your migration file
           </p>
           <form
             onSubmit={onSubmitPassword}

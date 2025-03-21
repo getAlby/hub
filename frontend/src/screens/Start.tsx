@@ -82,7 +82,11 @@ export default function Start() {
             <div className="grid gap-4">
               <div className="grid gap-1.5">
                 <Label htmlFor="password">Password</Label>
-                <PasswordInput id="password" onChange={setUnlockPassword} />
+                <PasswordInput
+                  id="password"
+                  onChange={setUnlockPassword}
+                  autoFocus
+                />
               </div>
               <LoadingButton type="submit" loading={loading}>
                 {buttonText}

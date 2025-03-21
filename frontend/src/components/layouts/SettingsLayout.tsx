@@ -61,7 +61,7 @@ export default function SettingsLayout() {
     <>
       <AppHeader
         title="Settings"
-        description=""
+        description="Manage your Alby Hub settings."
         breadcrumb={false}
         contentRight={
           <AlertDialog>

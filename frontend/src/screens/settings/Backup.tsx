@@ -1,4 +1,9 @@
-import { ExternalLinkIcon, Link2Icon, TriangleAlertIcon } from "lucide-react";
+import {
+  ExternalLinkIcon,
+  EyeIcon,
+  Link2Icon,
+  TriangleAlertIcon,
+} from "lucide-react";
 import React, { useState } from "react";
 
 import { useNavigate } from "react-router-dom";
@@ -77,7 +82,7 @@ export default function Backup() {
             <span className="text-muted-foreground">
               Backup your wallet recovery phrase and channel states. These
               backups are for disaster recovery only. To migrate your node,
-              please use the migration tool.
+              please use the migration tool.{" "}
             </span>
             <a
               href="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/backups-and-recover"
@@ -85,7 +90,6 @@ export default function Backup() {
               rel="noreferrer noopener"
               className="text-foreground underline"
             >
-              {" "}
               Learn more about backups
             </a>
           </>
@@ -122,7 +126,12 @@ export default function Backup() {
                 </p>
               </div>
               <div className="flex justify-start">
-                <LoadingButton loading={loading} variant="secondary" size="lg">
+                <LoadingButton
+                  loading={loading}
+                  variant="secondary"
+                  className="flex gap-2 justify-center"
+                >
+                  <EyeIcon className="w-4 h-4 mr-2" />
                   View Recovery Phrase
                 </LoadingButton>
               </div>
@@ -149,7 +158,7 @@ export default function Backup() {
 
           <div>
             <div className="flex gap-2 mb-1 items-center">
-              <h3 className="text-sm font-medium">Automated Channels Backup</h3>
+              <h3 className="text-sm font-medium">Automatic Channels Backup</h3>
               {info?.albyAccountConnected ? (
                 <Badge variant={"positive"}>Active</Badge>
               ) : (
@@ -161,7 +170,9 @@ export default function Backup() {
                 <p className="text-muted-foreground text-sm mb-8">
                   Your channel state is backed up automatically after each
                   channel creation. Using an external recovery tool and your
-                  recovery phrase, you can request channel recovery.
+                  recovery phrase, you can recover your funds from channels to
+                  your on-chain balance as long as your channel partners are
+                  online..
                 </p>
                 {info?.vssSupported && (
                   <>
@@ -202,7 +213,7 @@ export default function Backup() {
               <div className="flex flex-col gap-8">
                 <div>
                   <p className="text-muted-foreground text-sm mb-4">
-                    Link your Alby Account to enable automated channel backups
+                    Link your Alby Account to enable automatic channel backups
                     after each channel creation.
                   </p>
                   <Button
