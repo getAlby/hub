@@ -27,7 +27,7 @@ type nip47InfoPublishQueue struct {
 
 func NewNip47InfoPublishQueue() *nip47InfoPublishQueue {
 	return &nip47InfoPublishQueue{
-		channel: make(chan *Nip47InfoPublishRequest, 1000),
+		channel: make(chan *Nip47InfoPublishRequest),
 	}
 }
 
