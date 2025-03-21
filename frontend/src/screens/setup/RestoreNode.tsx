@@ -2,6 +2,7 @@ import { PowerCircleIcon } from "lucide-react";
 import React, { ChangeEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Loading from "src/components/Loading";
+import PasswordInput from "src/components/password/PasswordInput";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import {
   AlertDialog,
@@ -120,12 +121,8 @@ export function RestoreNode() {
         />
         <div className="grid gap-2">
           <Label htmlFor="password">Unlock Password</Label>
-          <Input
-            type="password"
-            name="password"
-            required
-            onChange={(e) => setUnlockPassword(e.target.value)}
-            value={unlockPassword}
+          <PasswordInput
+            onChange={setUnlockPassword}
             placeholder="Unlock Password"
           />
         </div>
