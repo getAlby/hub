@@ -1,6 +1,9 @@
 module github.com/getAlby/hub
 
 go 1.23.1
+
+toolchain go1.23.3
+
 require (
 	github.com/adrg/xdg v0.5.3
 	github.com/elnosh/gonuts v0.4.0
