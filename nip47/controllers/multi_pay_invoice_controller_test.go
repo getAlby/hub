@@ -4,8 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"slices"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/sirupsen/logrus"
@@ -340,6 +343,108 @@ func TestHandleMultiPayInvoiceEvent_IsolatedApp_OneBudgetExceeded(t *testing.T) 
 	assert.Contains(t, paymentHashes, dTags[1].GetFirst([]string{"d"}).Value())
 	assert.Nil(t, responses[1].Result)
 	assert.Equal(t, constants.ERROR_INSUFFICIENT_BALANCE, responses[1].Error.Code)
+}
+
+func TestHandleMultiPayInvoiceEvent_IsolatedApp_ConcurrentPayments(t *testing.T) {
+	ctx := context.TODO()
+
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	app, _, err := tests.CreateApp(svc)
+	assert.NoError(t, err)
+	app.Isolated = true
+	svc.DB.Save(&app)
+
+	svc.DB.Create(&db.Transaction{
+		AppId: &app.ID,
+		State: constants.TRANSACTION_STATE_SETTLED,
+		Type:  constants.TRANSACTION_TYPE_INCOMING,
+		// invoices paid are 123000 millisats
+		AmountMsat: 200000,
+	})
+
+	appPermission := &db.AppPermission{
+		AppId: app.ID,
+		App:   *app,
+		Scope: constants.PAY_INVOICE_SCOPE,
+	}
+	err = svc.DB.Create(appPermission).Error
+	assert.NoError(t, err)
+
+	tm := time.Date(2025, time.March, 20, 11, 01, 0, 0, time.UTC)
+	const amountMsat = 123000
+
+	const nInvoices = 80
+
+	invoices := make([]string, 0, nInvoices)
+	paymentHashes := make([]string, 0, nInvoices)
+	for i := 0; i < nInvoices; i++ {
+		descr := fmt.Sprintf("invoice %d", i)
+		inv, err := tests.NewDummyInvoice(amountMsat, descr, tm)
+		require.NoError(t, err)
+
+		invoices = append(invoices, inv.Encoded)
+		paymentHashes = append(paymentHashes, inv.PaymentHash)
+	}
+
+	type multiPayInvoiceElement struct {
+		Invoice string `json:"invoice"`
+	}
+
+	type multiPayInvoiceParams struct {
+		Invoices []multiPayInvoiceElement `json:"invoices"`
+	}
+
+	invoiceElems := make([]multiPayInvoiceElement, 0, len(invoices))
+	for _, inv := range invoices {
+		invoiceElems = append(invoiceElems, multiPayInvoiceElement{Invoice: inv})
+	}
+
+	params := multiPayInvoiceParams{Invoices: invoiceElems}
+	paramsJSON, err := json.Marshal(params)
+	require.NoError(t, err)
+
+	nip47Request := &models.Request{
+		Method: "multi_pay_invoice",
+		Params: paramsJSON,
+	}
+
+	responses := []*models.Response{}
+
+	var mu sync.Mutex
+
+	publishResponse := func(response *models.Response, tags nostr.Tags) {
+		mu.Lock()
+		defer mu.Unlock()
+		responses = append(responses, response)
+	}
+
+	dbRequestEvent := &db.RequestEvent{}
+	err = svc.DB.Create(&dbRequestEvent).Error
+	assert.NoError(t, err)
+
+	NewTestNip47Controller(svc).
+		HandleMultiPayInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
+
+	require.Equal(t, nInvoices, len(responses))
+
+	// we can't guarantee which request was processed first
+	// so put the successful one at the front
+	successfulIdx := slices.IndexFunc(responses, func(r *models.Response) bool {
+		return r.Result != nil
+	})
+	require.GreaterOrEqual(t, successfulIdx, 0)
+
+	if successfulIdx > 0 {
+		responses[0], responses[successfulIdx] = responses[successfulIdx], responses[0]
+	}
+
+	for _, response := range responses[1:] {
+		require.Nil(t, response.Result)
+		assert.Equal(t, constants.ERROR_INSUFFICIENT_BALANCE, response.Error.Code)
+	}
 }
 
 func TestHandleMultiPayInvoiceEvent_LNClient_OnePaymentFailed(t *testing.T) {
