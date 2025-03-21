@@ -119,11 +119,6 @@ export default function SettingsLayout() {
             <MenuItem to="/settings/developer">Developer</MenuItem>
             <MenuItem to="/settings/debug-tools">Debug Tools</MenuItem>
           </nav>
-          {info?.version && (
-            <p className="text-sm text-muted-foreground ml-2 mt-4">
-              {info.version}
-            </p>
-          )}
         </aside>
         <Separator orientation="vertical" />
         <div className="flex-1 lg:max-w-2xl">
