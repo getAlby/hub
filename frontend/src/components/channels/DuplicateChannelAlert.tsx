@@ -1,4 +1,4 @@
-import { TriangleAlertIcon } from "lucide-react";
+import { AlertCircleIcon } from "lucide-react";
 import ExternalLink from "src/components/ExternalLink";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { useChannels } from "src/hooks/useChannels";
@@ -22,8 +22,8 @@ export function DuplicateChannelAlert({ pubkey, name }: PeerAlertProps) {
   }
 
   return (
-    <Alert>
-      <TriangleAlertIcon className="h-4 w-4" />
+    <Alert variant={"destructive"}>
+      <AlertCircleIcon className="h-4 w-4" />
       <AlertTitle>
         You already have a channel with{" "}
         {name && name !== "Custom" ? (

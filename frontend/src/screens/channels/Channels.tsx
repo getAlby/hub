@@ -377,6 +377,7 @@ export default function Channels() {
                     </div>
                     <FormattedFiatAmount
                       amount={balances.lightning.totalSpendable / 1000}
+                      className="text-muted-foreground"
                     />
                   </>
                 )}
@@ -413,6 +414,7 @@ export default function Channels() {
                     </div>
                     <FormattedFiatAmount
                       amount={balances.lightning.totalReceivable / 1000}
+                      className="text-muted-foreground"
                     />
                   </>
                 )}
@@ -485,7 +487,7 @@ export default function Channels() {
                   </div>
                   <FormattedFiatAmount
                     amount={balances.onchain.spendable}
-                    className="mb-1"
+                    className="text-muted-foreground mb-1"
                   />
                   {balances &&
                     balances.onchain.spendable !== balances.onchain.total && (
