@@ -20,6 +20,8 @@ import (
 
 const nodeCommandReceive = "receive"
 const nodeCommandSend = "send"
+const nodeCommandListVtxos = "list_vtxos"
+const nodeCommandRefreshVtxos = "refresh_vtxos"
 
 const (
 	serverUrl  = "https://mutinynet.arkade.sh"
@@ -35,8 +37,6 @@ type ArkService struct {
 // Experimental Mutinynet Ark client
 // currently supports receiving and sending off-chain via custom node commands
 // TODO:
-// - transaction list
-// - refreshing vtxos
 // - lightning payments via boltz swaps
 // - on-chain receive and send
 func NewArkService(ctx context.Context, cfg config.Config, workDir, mnemonic, unlockPassword string) (result lnclient.LNClient, err error) {
@@ -288,6 +288,16 @@ func (svc *ArkService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCo
 			Args:        nil,
 		},
 		{
+			Name:        nodeCommandListVtxos,
+			Description: "List Ark VTXOs",
+			Args:        nil,
+		},
+		{
+			Name:        nodeCommandRefreshVtxos,
+			Description: "Refresh Ark VTXOs",
+			Args:        nil,
+		},
+		{
 			Name:        nodeCommandSend,
 			Description: "Send funds natively on Ark.",
 			Args: []lnclient.CustomNodeCommandArgDef{
@@ -315,6 +325,27 @@ func (svc *ArkService) ExecuteCustomNodeCommand(ctx context.Context, command *ln
 			Response: map[string]interface{}{
 				"boardingAddress": boardingAddress,
 				"offchainAddress": offchainAddress,
+			},
+		}, nil
+	case nodeCommandListVtxos:
+		spendable, spent, err := svc.arkClient.ListVtxos(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return &lnclient.CustomNodeCommandResponse{
+			Response: map[string]interface{}{
+				"spendable": spendable,
+				"spent":     spent,
+			},
+		}, nil
+	case nodeCommandRefreshVtxos:
+		roundId, err := svc.arkClient.Settle(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return &lnclient.CustomNodeCommandResponse{
+			Response: map[string]interface{}{
+				"roundId": roundId,
 			},
 		}, nil
 	case nodeCommandSend:
