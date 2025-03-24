@@ -250,12 +250,20 @@ func (svc *LNDService) subscribeChannelEvents(ctx context.Context) {
 						"reason":               closureReason,
 					}).Info("Channel closed")
 
+					var fundingTxId string
+					channelPoint, _ := svc.parseChannelPoint(update.ClosedChannel.ChannelPoint)
+					if channelPoint != nil {
+						fundingTxId = channelPoint.GetFundingTxidStr()
+					}
+
 					svc.eventPublisher.Publish(&events.Event{
 						Event: "nwc_channel_closed",
 						Properties: map[string]interface{}{
 							"counterparty_node_id": counterpartyNodeId,
 							"reason":               closureReason,
 							"node_type":            config.LNDBackendType,
+							"funding_tx_id":        fundingTxId,
+							"incoming_balance":     update.ClosedChannel.SettledBalance,
 						},
 					})
 				}
