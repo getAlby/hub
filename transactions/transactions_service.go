@@ -76,23 +76,6 @@ type StringOrNumber struct {
 	NumberData int64
 }
 
-type paymentDetails struct {
-	rawRequest    string
-	parsedRequest *decodepay.Bolt11
-	amountMsat    *uint64
-	metadata      map[string]interface{}
-}
-
-type keysendDetails struct {
-	amount          uint64
-	destination     string
-	customRecords   []lnclient.TLVRecord
-	preimage        string
-	paymentHash     string
-	metadataBytes   []byte
-	boostagramBytes []byte
-}
-
 func (sn *StringOrNumber) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &sn.StringData); err == nil {
 		return nil
@@ -206,6 +189,19 @@ func (svc *transactionsService) MakeInvoice(ctx context.Context, amount uint64, 
 }
 
 func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq string, amountMsat *uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
+	var metadataBytes []byte
+	if metadata != nil {
+		var err error
+		metadataBytes, err = json.Marshal(metadata)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to serialize metadata")
+			return nil, err
+		}
+		if len(metadataBytes) > constants.INVOICE_METADATA_MAX_LENGTH {
+			return nil, fmt.Errorf("encoded payment metadata provided is too large. Limit: %d Received: %d", constants.INVOICE_METADATA_MAX_LENGTH, len(metadataBytes))
+		}
+	}
+
 	payReq = strings.ToLower(payReq)
 	paymentRequest, err := decodepay.Decodepay(payReq)
 	if err != nil {
@@ -216,64 +212,28 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 		return nil, err
 	}
 
-	payment := paymentDetails{
-		rawRequest:    payReq,
-		parsedRequest: &paymentRequest,
-		amountMsat:    amountMsat,
-		metadata:      metadata,
-	}
-
-	dbTransaction, err := svc.validateAndCreatePaymentTransaction(&payment, lnClient, appId, requestEventId)
-	if err != nil {
-		return nil, err
-	}
-
-	tx, err := svc.sendPayment(ctx, &payment, dbTransaction, lnClient)
-	if err != nil {
-		return nil, err
-	}
-
-	return tx, nil
-}
-
-func (svc *transactionsService) validateAndCreatePaymentTransaction(payment *paymentDetails, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*db.Transaction, error) {
-	paymentRequest := payment.parsedRequest
-
-	var metadataBytes []byte
-	if payment.metadata != nil {
-		var err error
-		metadataBytes, err = json.Marshal(payment.metadata)
-		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to serialize metadata")
-			return nil, err
-		}
-		if len(metadataBytes) > constants.INVOICE_METADATA_MAX_LENGTH {
-			return nil, fmt.Errorf("encoded payment metadata provided is too large. Limit: %d Received: %d", constants.INVOICE_METADATA_MAX_LENGTH, len(metadataBytes))
-		}
-	}
-
 	if time.Now().After(time.Unix(int64(paymentRequest.CreatedAt+paymentRequest.Expiry), 0)) {
 		logger.Logger.WithFields(logrus.Fields{
-			"bolt11": payment.rawRequest,
+			"bolt11": payReq,
 			"expiry": time.Unix(int64(paymentRequest.CreatedAt+paymentRequest.Expiry), 0),
 		}).Errorf("this invoice has expired")
 
 		return nil, errors.New("this invoice has expired")
 	}
 
-	selfPayment := isSelfPayment(paymentRequest, lnClient)
-
-	paymentAmount := uint64(paymentRequest.MSatoshi)
-	if payment.amountMsat != nil {
-		paymentAmount = *payment.amountMsat
-	}
+	selfPayment := paymentRequest.Payee != "" && paymentRequest.Payee == lnClient.GetPubkey()
 
 	var dbTransaction db.Transaction
 
-	balanceValidationLock.Lock()
-	defer balanceValidationLock.Unlock()
+	paymentAmount := uint64(paymentRequest.MSatoshi)
+	if amountMsat != nil {
+		paymentAmount = *amountMsat
+	}
 
-	err := svc.db.Transaction(func(tx *gorm.DB) error {
+	err = svc.db.Transaction(func(tx *gorm.DB) error {
+		balanceValidationLock.Lock()
+		defer balanceValidationLock.Unlock()
+
 		var existingSettledTransaction db.Transaction
 		if tx.Limit(1).Find(&existingSettledTransaction, &db.Transaction{
 			Type:        constants.TRANSACTION_TYPE_OUTGOING,
@@ -309,7 +269,7 @@ func (svc *transactionsService) validateAndCreatePaymentTransaction(payment *pay
 			State:           constants.TRANSACTION_STATE_PENDING,
 			FeeReserveMsat:  CalculateFeeReserveMsat(paymentAmount),
 			AmountMsat:      paymentAmount,
-			PaymentRequest:  payment.rawRequest,
+			PaymentRequest:  payReq,
 			PaymentHash:     paymentRequest.PaymentHash,
 			Description:     paymentRequest.Description,
 			DescriptionHash: paymentRequest.DescriptionHash,
@@ -320,35 +280,29 @@ func (svc *transactionsService) validateAndCreatePaymentTransaction(payment *pay
 		err = tx.Create(&dbTransaction).Error
 		return err
 	})
+
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
-			"bolt11": payment.rawRequest,
+			"bolt11": payReq,
 		}).WithError(err).Error("Failed to create DB transaction")
 		return nil, err
 	}
 
-	return &dbTransaction, nil
-}
-
-func (svc *transactionsService) sendPayment(ctx context.Context, payment *paymentDetails, dbTransaction *db.Transaction, lnClient lnclient.LNClient) (*Transaction, error) {
-	selfPayment := isSelfPayment(payment.parsedRequest, lnClient)
-
-	var err error
 	var response *lnclient.PayInvoiceResponse
 	if selfPayment {
-		response, err = svc.interceptSelfPayment(payment.parsedRequest.PaymentHash)
+		response, err = svc.interceptSelfPayment(paymentRequest.PaymentHash)
 	} else {
-		response, err = lnClient.SendPaymentSync(ctx, payment.rawRequest, payment.amountMsat)
+		response, err = lnClient.SendPaymentSync(ctx, payReq, amountMsat)
 	}
 
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
-			"bolt11": payment.rawRequest,
+			"bolt11": payReq,
 		}).WithError(err).Error("Failed to send payment")
 
 		if errors.Is(err, lnclient.NewTimeoutError()) {
 			logger.Logger.WithFields(logrus.Fields{
-				"bolt11": payment.rawRequest,
+				"bolt11": payReq,
 			}).WithError(err).Error("Timed out waiting for payment to be sent. It may still succeed. Skipping update of transaction status")
 			// we cannot update the payment to failed as it still might succeed.
 			// we'll need to check the status of it later
@@ -357,7 +311,7 @@ func (svc *transactionsService) sendPayment(ctx context.Context, payment *paymen
 
 		// As the LNClient did not return a timeout error, we assume the payment definitely failed
 		svc.db.Transaction(func(tx *gorm.DB) error {
-			return svc.markPaymentFailed(tx, dbTransaction, err.Error())
+			return svc.markPaymentFailed(tx, &dbTransaction, err.Error())
 		})
 
 		return nil, err
@@ -366,7 +320,7 @@ func (svc *transactionsService) sendPayment(ctx context.Context, payment *paymen
 	// the payment definitely succeeded
 	var settledTransaction *db.Transaction
 	err = svc.db.Transaction(func(tx *gorm.DB) error {
-		settledTransaction, err = svc.markTransactionSettled(tx, dbTransaction, response.Preimage, response.Fee, selfPayment)
+		settledTransaction, err = svc.markTransactionSettled(tx, &dbTransaction, response.Preimage, response.Fee, selfPayment)
 		return err
 	})
 	if err != nil {
@@ -410,55 +364,31 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 	}
 	boostagramBytes := svc.getBoostagramFromCustomRecords(customRecords)
 
-	keysend := keysendDetails{
-		amount:          amount,
-		destination:     destination,
-		customRecords:   customRecords,
-		preimage:        preimage,
-		paymentHash:     paymentHash,
-		metadataBytes:   metadataBytes,
-		boostagramBytes: boostagramBytes,
-	}
-
-	dbTransaction, err := svc.validateAndCreateKeysendTransaction(&keysend, lnClient, appId, requestEventId)
-	if err != nil {
-		return nil, err
-	}
-
-	tx, err := svc.sendKeysendPayment(ctx, &keysend, dbTransaction, lnClient)
-	if err != nil {
-		return nil, err
-	}
-
-	return tx, nil
-}
-
-func (svc *transactionsService) validateAndCreateKeysendTransaction(keysend *keysendDetails, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*db.Transaction, error) {
-	selfPayment := keysend.destination == lnClient.GetPubkey()
-
 	var dbTransaction db.Transaction
 
-	balanceValidationLock.Lock()
-	defer balanceValidationLock.Unlock()
+	selfPayment := destination == lnClient.GetPubkey()
 
-	err := svc.db.Transaction(func(tx *gorm.DB) error {
-		err := svc.validateCanPay(tx, appId, keysend.amount, "")
+	err = svc.db.Transaction(func(tx *gorm.DB) error {
+		balanceValidationLock.Lock()
+		defer balanceValidationLock.Unlock()
+
+		err := svc.validateCanPay(tx, appId, amount, "")
 		if err != nil {
 			return err
 		}
 
 		dbTransaction = db.Transaction{
 			AppId:          appId,
-			Description:    svc.getDescriptionFromCustomRecords(keysend.customRecords),
+			Description:    svc.getDescriptionFromCustomRecords(customRecords),
 			RequestEventId: requestEventId,
 			Type:           constants.TRANSACTION_TYPE_OUTGOING,
 			State:          constants.TRANSACTION_STATE_PENDING,
-			FeeReserveMsat: CalculateFeeReserveMsat(keysend.amount),
-			AmountMsat:     keysend.amount,
-			Metadata:       keysend.metadataBytes,
-			Boostagram:     keysend.boostagramBytes,
-			PaymentHash:    keysend.paymentHash,
-			Preimage:       &keysend.preimage,
+			FeeReserveMsat: CalculateFeeReserveMsat(uint64(amount)),
+			AmountMsat:     amount,
+			Metadata:       datatypes.JSON(metadataBytes),
+			Boostagram:     datatypes.JSON(boostagramBytes),
+			PaymentHash:    paymentHash,
+			Preimage:       &preimage,
 			SelfPayment:    selfPayment,
 		}
 		err = tx.Create(&dbTransaction).Error
@@ -468,27 +398,12 @@ func (svc *transactionsService) validateAndCreateKeysendTransaction(keysend *key
 
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
-			"destination": keysend.destination,
-			"amount":      keysend.amount,
+			"destination": destination,
+			"amount":      amount,
 		}).WithError(err).Error("Failed to create DB transaction")
 		return nil, err
 	}
 
-	return &dbTransaction, nil
-}
-
-func (svc *transactionsService) sendKeysendPayment(ctx context.Context, keysend *keysendDetails, dbTransaction *db.Transaction, lnClient lnclient.LNClient) (*db.Transaction, error) {
-	amount := keysend.amount
-	destination := keysend.destination
-	customRecords := keysend.customRecords
-	preimage := keysend.preimage
-	paymentHash := keysend.paymentHash
-	metadataBytes := keysend.metadataBytes
-	boostagramBytes := keysend.boostagramBytes
-
-	selfPayment := destination == lnClient.GetPubkey()
-
-	var err error
 	var payKeysendResponse *lnclient.PayKeysendResponse
 
 	if selfPayment {
@@ -539,7 +454,7 @@ func (svc *transactionsService) sendKeysendPayment(ctx context.Context, keysend 
 			// we cannot update the payment to failed as it still might succeed.
 			// we'll need to check the status of it later
 			// but we have the payment hash now, so save it on the transaction
-			dbErr := svc.db.Model(dbTransaction).Updates(&db.Transaction{
+			dbErr := svc.db.Model(&dbTransaction).Updates(&db.Transaction{
 				PaymentHash: paymentHash,
 			}).Error
 			if dbErr != nil {
@@ -552,7 +467,7 @@ func (svc *transactionsService) sendKeysendPayment(ctx context.Context, keysend 
 		}
 
 		// As the LNClient did not return a timeout error, we assume the payment definitely failed
-		dbErr := svc.db.Model(dbTransaction).Updates(&db.Transaction{
+		dbErr := svc.db.Model(&dbTransaction).Updates(&db.Transaction{
 			PaymentHash: paymentHash,
 			State:       constants.TRANSACTION_STATE_FAILED,
 		}).Error
@@ -569,7 +484,7 @@ func (svc *transactionsService) sendKeysendPayment(ctx context.Context, keysend 
 	// the payment definitely succeeded
 	var settledTransaction *db.Transaction
 	err = svc.db.Transaction(func(tx *gorm.DB) error {
-		settledTransaction, err = svc.markTransactionSettled(tx, dbTransaction, preimage, payKeysendResponse.Fee, selfPayment)
+		settledTransaction, err = svc.markTransactionSettled(tx, &dbTransaction, preimage, payKeysendResponse.Fee, selfPayment)
 		return err
 	})
 
@@ -1181,8 +1096,4 @@ func (svc *transactionsService) markPaymentFailed(tx *gorm.DB, dbTransaction *db
 		Properties: dbTransaction,
 	})
 	return nil
-}
-
-func isSelfPayment(paymentRequest *decodepay.Bolt11, lnClient lnclient.LNClient) bool {
-	return paymentRequest.Payee != "" && paymentRequest.Payee == lnClient.GetPubkey()
 }
