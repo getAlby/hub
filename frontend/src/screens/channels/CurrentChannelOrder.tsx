@@ -704,6 +704,22 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                       sats
                     </TableCell>
                   </TableRow>
+                  {lspOrderResponse.incomingLiquidity > 0 && (
+                    <TableRow>
+                      <TableCell className="font-medium p-3">
+                        Duration
+                      </TableCell>
+
+                      <TableCell className="text-right p-3">
+                        <ExternalLink
+                          className="underline"
+                          to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/how-to-open-a-payment-channel"
+                        >
+                          3+ months
+                        </ExternalLink>
+                      </TableCell>
+                    </TableRow>
+                  )}
                   <TableRow>
                     <TableCell className="font-medium p-3">
                       Amount to pay
