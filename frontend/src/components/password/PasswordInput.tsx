@@ -12,7 +12,6 @@ type PasswordInputProps = Omit<
 export default function PasswordInput({
   onChange,
   placeholder,
-  name = "password",
   value = "",
   ...restProps
 }: PasswordInputProps) {
@@ -28,7 +27,6 @@ export default function PasswordInput({
   return (
     <Input
       type={passwordVisible ? "text" : "password"}
-      name={name}
       value={password}
       required
       onChange={(e) => setPassword(e.target.value)}

@@ -64,7 +64,6 @@ export function PhoenixdForm() {
 
           <PasswordInput
             id="phoenix-authorization"
-            name="phoenix-authorization"
             onChange={setPhoenixdAuthorization}
           />
         </div>
