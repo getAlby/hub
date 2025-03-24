@@ -1211,6 +1211,7 @@ func (svc *LNDService) GetPubkey() string {
 func fetchNodeInfo(ctx context.Context, client *wrapper.LNDWrapper) (*lnclient.NodeInfo, error) {
 	resp, err := client.GetInfo(ctx, &lnrpc.GetInfoRequest{})
 	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to fetch node info")
 		return nil, err
 	}
 	network := resp.Chains[0].Network
