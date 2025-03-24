@@ -64,7 +64,7 @@ export default function MnemonicDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange} defaultOpen={defaultOpen}>
-      <DialogContent>
+      <DialogContent className="no-scrollbar">
         <DialogHeader>
           <DialogTitle>Wallet Recovery Phrase</DialogTitle>
           <DialogDescription>
