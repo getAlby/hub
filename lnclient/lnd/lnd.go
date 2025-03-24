@@ -56,24 +56,20 @@ func NewLNDService(ctx context.Context, eventPublisher events.EventPublisher, ln
 
 	var nodeInfo *lnclient.NodeInfo
 	maxRetries := 5
-	for i := range maxRetries {
+	for i := range maxRetries - 1 {
 		nodeInfo, err = fetchNodeInfo(ctx, lndClient)
 		if err == nil {
 			break
 		}
-		if i < maxRetries-1 {
-			logger.Logger.WithFields(logrus.Fields{
-				"iteration": i,
-			}).WithError(err).Error("Failed to connect to LND, retrying in 10s")
-			time.Sleep(10 * time.Second)
-		} else {
-			logger.Logger.WithFields(logrus.Fields{
-				"iteration": i,
-			}).WithError(err).Error("Failed to connect to LND")
-		}
+		logger.Logger.WithFields(logrus.Fields{
+			"iteration": i,
+		}).WithError(err).Error("Failed to connect to LND, retrying in 10s")
+		time.Sleep(10 * time.Second)
 	}
+
+	nodeInfo, err = fetchNodeInfo(ctx, lndClient)
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to fetch node info after 5 attempts")
+		logger.Logger.WithError(err).Error("Failed to connect to LND on final attempt, not attempting further retries")
 		return nil, err
 	}
 
