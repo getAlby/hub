@@ -10,6 +10,7 @@ import { NostrWalletConnectIcon } from "src/components/icons/NostrWalletConnectI
 import { PlayStoreIcon } from "src/components/icons/PlayStore";
 import { ZapStoreIcon } from "src/components/icons/ZapStore";
 import Loading from "src/components/Loading";
+import PasswordInput from "src/components/password/PasswordInput";
 import { suggestedApps } from "src/components/SuggestedAppData";
 import {
   AlertDialog,
@@ -28,7 +29,6 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
-import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
@@ -126,12 +126,10 @@ export function AlbyGo() {
                   </p>
                   <div className="grid gap-1.5 mt-2">
                     <Label htmlFor="password">Unlock Password</Label>
-                    <Input
+                    <PasswordInput
+                      id="password"
+                      onChange={setUnlockPassword}
                       autoFocus
-                      type="password"
-                      name="password"
-                      required
-                      onChange={(e) => setUnlockPassword(e.target.value)}
                       value={unlockPassword}
                     />
                   </div>

@@ -303,8 +303,11 @@ const defaultCurrency = "USD"
 
 func (cfg *config) GetCurrency() string {
 	currency, err := cfg.Get("Currency", "")
-	if err != nil || currency == "" {
-		logger.Logger.WithError(err).Debug("Currency not found, using default")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to fetch currency")
+		return defaultCurrency
+	}
+	if currency == "" {
 		return defaultCurrency
 	}
 	return currency

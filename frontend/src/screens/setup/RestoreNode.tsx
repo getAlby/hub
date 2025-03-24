@@ -2,6 +2,7 @@ import { PowerCircleIcon } from "lucide-react";
 import React, { ChangeEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Loading from "src/components/Loading";
+import PasswordInput from "src/components/password/PasswordInput";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import {
   AlertDialog,
@@ -115,30 +116,28 @@ export function RestoreNode() {
       >
         <TwoColumnLayoutHeader
           // TODO: Show different message in wails mode
-          title="Import Wallet with Backup File"
-          description="Upload your encrypted wallet backup file."
+          title="Import Wallet from Migration File"
+          description="Upload your encrypted wallet migration file."
         />
         <div className="grid gap-2">
           <Label htmlFor="password">Unlock Password</Label>
-          <Input
-            type="password"
-            name="password"
-            required
-            onChange={(e) => setUnlockPassword(e.target.value)}
+          <PasswordInput
+            onChange={setUnlockPassword}
             value={unlockPassword}
             placeholder="Unlock Password"
           />
         </div>
         {_isHttpMode && (
           <div className="grid gap-2">
-            <Label htmlFor="backup">Backup File</Label>
+            <Label htmlFor="backup">Migration File</Label>
             <Input
               type="file"
               required
+              id="backup"
               name="backup"
               accept=".bkp"
               onChange={handleChangeFile}
-              className="cursor-pointer"
+              className="cursor-pointer pt-2"
             />
           </div>
         )}
@@ -150,7 +149,9 @@ export function RestoreNode() {
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Restore Node from Backup</AlertDialogTitle>
+              <AlertDialogTitle>
+                Restore Node from Migration File
+              </AlertDialogTitle>
               <AlertDialogDescription>
                 <div>
                   <p>

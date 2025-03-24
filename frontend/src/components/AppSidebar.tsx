@@ -1,3 +1,4 @@
+import { compare } from "compare-versions";
 import {
   BoxIcon,
   ChevronsUpDown,
@@ -10,6 +11,8 @@ import {
   Plug2Icon,
   PlugZapIcon,
   Settings,
+  ShieldAlertIcon,
+  ShieldCheckIcon,
   Sparkles,
   UserCog,
   WalletIcon,
@@ -48,13 +51,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "src/components/ui/tooltip";
+import { UpgradeDialog } from "src/components/UpgradeDialog";
 import UserAvatar from "src/components/UserAvatar";
+import { useAlbyInfo } from "src/hooks/useAlbyInfo";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useHealthCheck } from "src/hooks/useHealthCheck";
 import { useInfo } from "src/hooks/useInfo";
 import { deleteAuthToken } from "src/lib/auth";
 import { cn } from "src/lib/utils";
-import { HealthAlarm } from "src/types";
 
 import { isHttpMode } from "src/utils/isHttpMode";
 
@@ -128,16 +132,19 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
-        <Link to="/home">
-          {state === "expanded" ? (
-            <div className="p-2 flex flex-row items-center justify-between">
+        {state === "expanded" ? (
+          <div className="p-2 flex flex-row items-center justify-between">
+            <Link to="/home">
               <AlbyHubLogo className="text-sidebar-foreground h-12" />
-              <HealthIndicator />
-            </div>
-          ) : (
+            </Link>
+            <AppVersion />
+            <HealthIndicator />
+          </div>
+        ) : (
+          <Link to="/home">
             <AlbyHubIcon className="w-8 h-8 text-sidebar-foreground" />
-          )}
-        </Link>
+          </Link>
+        )}
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
@@ -226,15 +233,16 @@ export function AppSidebar() {
                     </Link>
                   </DropdownMenuItem>
                 )}
-                {!albyMe?.subscription.buzz && (
+                {!albyMe?.subscription.plan_code && (
                   <>
                     <DropdownMenuSeparator />
                     <DropdownMenuGroup>
-                      <DropdownMenuItem>
-                        {/* TODO: add upgradedialog */}
-                        <Sparkles className="w-4 h-4 mr-2" />
-                        Upgrade to Pro
-                      </DropdownMenuItem>
+                      <UpgradeDialog asChild>
+                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                          <Sparkles className="w-4 h-4 mr-2" />
+                          Upgrade to Pro
+                        </DropdownMenuItem>
+                      </UpgradeDialog>
                     </DropdownMenuGroup>
                   </>
                 )}
@@ -305,6 +313,7 @@ export function NavSecondary({
               </SidebarMenuButton>
             </SidebarMenuItem>
           </ExternalLink>
+          {}
           {/* Does his still make sense? Can we limit that to desktop users? */}
           {!albyMe?.hub.name && info?.albyAccountConnected && (
             <ExternalLink to="https://getalby.com/subscription/new">
@@ -322,6 +331,55 @@ export function NavSecondary({
   );
 }
 
+function AppVersion() {
+  const { data: albyInfo } = useAlbyInfo();
+  const { data: info } = useInfo();
+  if (!info || !albyInfo) {
+    return null;
+  }
+
+  const upToDate =
+    info.version &&
+    info.version.startsWith("v") &&
+    compare(info.version.substring(1), albyInfo.hub.latestVersion, ">=");
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger>
+          <ExternalLink
+            to={`https://getalby.com/update/hub?version=${info.version}`}
+            className="font-semibold text-xl"
+          >
+            <span className="text-xs flex items-center text-muted-foreground">
+              {info.version && <>{info.version}&nbsp;</>}
+              {upToDate ? (
+                <ShieldCheckIcon className="w-4 h-4" />
+              ) : (
+                <ShieldAlertIcon className="w-4 h-4" />
+              )}
+            </span>
+          </ExternalLink>
+        </TooltipTrigger>
+        <TooltipContent>
+          {upToDate ? (
+            <p>Alby Hub is up to date!</p>
+          ) : (
+            <div>
+              <p className="font-semibold">
+                Alby Hub {albyInfo.hub.latestVersion} available!
+              </p>
+              <p className="mt-2 max-w-xs whitespace-pre-wrap">
+                {albyInfo.hub.latestReleaseNotes}
+              </p>
+            </div>
+          )}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
+
 function HealthIndicator() {
   const { data: health } = useHealthCheck();
   if (!health) {
@@ -330,55 +388,14 @@ function HealthIndicator() {
 
   const ok = !health.alarms?.length;
 
-  function getAlarmTitle(alarm: HealthAlarm) {
-    // TODO: could show extra data from alarm.rawDetails
-    // for some alarm types
-    switch (alarm.kind) {
-      case "alby_service":
-        return "One or more Alby Services are offline";
-      case "channels_offline":
-        return "One or more channels are offline";
-      case "node_not_ready":
-        return "Node is not ready";
-      case "nostr_relay_offline":
-        return "Could not connect to relay";
-      default:
-        return "Unknown error";
-    }
-  }
-
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger>
-          <div className="w-8 h-8 flex items-center justify-center">
-            <span className="text-xs flex items-center text-muted-foreground">
-              <div
-                className={cn(
-                  "w-2 h-2 rounded-full",
-                  ok ? "bg-green-300" : "bg-destructive"
-                )}
-              />
-            </span>
-          </div>
-        </TooltipTrigger>
-        <TooltipContent>
-          {ok ? (
-            <p>Alby Hub is running</p>
-          ) : (
-            <div>
-              <p className="font-semibold">
-                {health.alarms.length} issues were found
-              </p>
-              <ul className="mt-2 max-w-xs whitespace-pre-wrap list-disc list-inside">
-                {health.alarms.map((alarm) => (
-                  <li key={alarm.kind}>{getAlarmTitle(alarm)}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <Link to="/channels?healthcheck=true">
+      <div
+        className={cn(
+          "w-2 h-2 rounded-full",
+          ok ? "bg-green-300" : "bg-destructive"
+        )}
+      />
+    </Link>
   );
 }

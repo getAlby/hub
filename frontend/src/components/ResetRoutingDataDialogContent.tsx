@@ -24,7 +24,7 @@ const RESET_KEY_OPTIONS = [
   {
     value: "ALL",
     label: "All",
-    description: "Clears both the scorer and network graph data",
+    description: "Clears both the scorer, network graph data, and node metrics",
   },
   {
     value: "Scorer",
@@ -36,6 +36,12 @@ const RESET_KEY_OPTIONS = [
     value: "NetworkGraph",
     label: "Network Graph",
     description: "Clears the cache of nodes on the network",
+  },
+  {
+    value: "NodeMetrics",
+    label: "Node Metrics",
+    description:
+      "Clears last sync timestamps to do a full wallet or network graph re-scan when RGS is enabled",
   },
 ];
 

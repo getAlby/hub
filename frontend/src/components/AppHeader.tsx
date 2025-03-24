@@ -24,7 +24,7 @@ function AppHeader({
           {/* {breadcrumb && <Breadcrumbs />} */}
           <div className="flex justify-between items-center">
             <div className="flex-1">
-              <h1 className="text-xl lg:text-3xl font-semibold">{title}</h1>
+              <h1 className="text-2xl lg:text-3xl font-semibold">{title}</h1>
               {description && (
                 <p className="hidden lg:inline text-muted-foreground">
                   {description}

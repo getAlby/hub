@@ -11,13 +11,7 @@ import {
   WalletMinimal,
 } from "lucide-react";
 
-export type BackendType =
-  | "LND"
-  | "BREEZ"
-  | "GREENLIGHT"
-  | "LDK"
-  | "PHOENIX"
-  | "CASHU";
+export type BackendType = "LND" | "LDK" | "PHOENIX" | "CASHU";
 
 export type Nip47RequestMethod =
   | "get_info"
@@ -173,7 +167,14 @@ export type HealthAlarmKind =
 
 export type HealthAlarm = {
   kind: HealthAlarmKind;
-  rawDetails: unknown;
+  rawDetails?: unknown;
+};
+export type AlbyInfoIncident = {
+  name: string;
+  started: string;
+  status: string;
+  impact: string;
+  url: string;
 };
 
 export type HealthResponse = {
@@ -331,8 +332,6 @@ export type SetupNodeInfo = Partial<{
 
   mnemonic?: string;
   nextBackupReminder?: string;
-  greenlightInviteCode?: string;
-  breezApiKey?: string;
 
   lndAddress?: string;
   lndCertHex?: string;
@@ -395,7 +394,7 @@ export type AlbyMe = {
     name?: string;
   };
   subscription: {
-    buzz: boolean;
+    plan_code: string;
   };
 };
 
