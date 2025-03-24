@@ -82,8 +82,8 @@ const DEVELOPMENT_NONCE = "'nonce-DEVELOPMENT'";
 const insertDevCSPPlugin: Plugin = {
   name: "dev-csp",
   transformIndexHtml: {
-    enforce: "pre",
-    transform(html) {
+    order: "pre",
+    handler: (html) => {
       return html.replace(
         "<head>",
         `<head>
