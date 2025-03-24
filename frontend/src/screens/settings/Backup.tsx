@@ -172,7 +172,7 @@ export default function Backup() {
                   channel creation. Using an external recovery tool and your
                   recovery phrase, you can recover your funds from channels to
                   your on-chain balance as long as your channel partners are
-                  online..
+                  online.
                 </p>
                 {info?.vssSupported && (
                   <>

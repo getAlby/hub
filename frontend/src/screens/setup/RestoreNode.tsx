@@ -116,8 +116,8 @@ export function RestoreNode() {
       >
         <TwoColumnLayoutHeader
           // TODO: Show different message in wails mode
-          title="Import Wallet with Backup File"
-          description="Upload your encrypted wallet backup file."
+          title="Import Wallet from Migration File"
+          description="Upload your encrypted wallet migration file."
         />
         <div className="grid gap-2">
           <Label htmlFor="password">Unlock Password</Label>
@@ -128,14 +128,15 @@ export function RestoreNode() {
         </div>
         {_isHttpMode && (
           <div className="grid gap-2">
-            <Label htmlFor="backup">Backup File</Label>
+            <Label htmlFor="backup">Migration File</Label>
             <Input
               type="file"
               required
+              id="backup"
               name="backup"
               accept=".bkp"
               onChange={handleChangeFile}
-              className="cursor-pointer"
+              className="cursor-pointer pt-2"
             />
           </div>
         )}
@@ -147,7 +148,9 @@ export function RestoreNode() {
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Restore Node from Backup</AlertDialogTitle>
+              <AlertDialogTitle>
+                Restore Node from Migration File
+              </AlertDialogTitle>
               <AlertDialogDescription>
                 <div>
                   <p>

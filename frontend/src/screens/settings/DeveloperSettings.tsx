@@ -121,6 +121,7 @@ export default function DeveloperSettings() {
                   name="token-expiry"
                   onChange={(e) => setExpiryDays(e.target.value)}
                   value={expiryDays}
+                  autoFocus
                 />
               </div>
               <div className="grid gap-2">

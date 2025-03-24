@@ -81,6 +81,7 @@ export function ChangeUnlockPassword() {
             <Label htmlFor="current-password">Current Password</Label>
             <PasswordInput
               id="current-password"
+              autoFocus
               onChange={setCurrentUnlockPassword}
             />
           </div>

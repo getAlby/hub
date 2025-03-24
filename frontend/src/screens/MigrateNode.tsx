@@ -130,7 +130,11 @@ export function MigrateNode() {
             <>
               <div className="grid gap-2">
                 <Label htmlFor="password">Password</Label>
-                <PasswordInput id="password" onChange={setUnlockPassword} />
+                <PasswordInput
+                  id="password"
+                  autoFocus
+                  onChange={setUnlockPassword}
+                />
               </div>
             </>
             <LoadingButton loading={loading}>Continue</LoadingButton>

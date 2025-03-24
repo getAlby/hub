@@ -15,7 +15,9 @@ export function SetupAdvanced() {
           />
           <div className="flex flex-col gap-3">
             <Link to="/setup/node-restore">
-              <Button className="w-full">Import Wallet with Backup File</Button>
+              <Button className="w-full">
+                Import Wallet from Migration File
+              </Button>
             </Link>
             <Link to="/setup/password?wallet=import" className="w-full">
               <Button className="w-full" variant="secondary">

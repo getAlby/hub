@@ -79,6 +79,7 @@ function AuthCodeForm({ url }: AuthCodeFormProps) {
                 <div className="grid gap-1.5">
                   <Label htmlFor="authorization-code">Authorization Code</Label>
                   <PasswordInput
+                    autoFocus
                     id="authorization-code"
                     placeholder="Enter code you see in the browser"
                     onChange={setAuthCode}

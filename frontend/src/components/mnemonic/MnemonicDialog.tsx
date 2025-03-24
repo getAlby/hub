@@ -1,4 +1,3 @@
-import { CopyIcon } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import MnemonicInputs from "src/components/mnemonic/MnemonicInputs";
@@ -14,7 +13,6 @@ import {
 import { Label } from "src/components/ui/label";
 import { useToast } from "src/components/ui/use-toast";
 import { useInfo } from "src/hooks/useInfo";
-import { copyToClipboard } from "src/lib/clipboard";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 
@@ -64,7 +62,7 @@ export default function MnemonicDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange} defaultOpen={defaultOpen}>
-      <DialogContent className="no-scrollbar">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>Wallet Recovery Phrase</DialogTitle>
           <DialogDescription>
@@ -76,18 +74,7 @@ export default function MnemonicDialog({
           onSubmit={onSubmit}
           className="flex flex-col gap-2 max-w-md text-sm"
         >
-          <MnemonicInputs mnemonic={mnemonic} readOnly={true} />
-          <div className="flex justify-center mt-4">
-            <Button
-              type="button"
-              variant={"destructive_outline"}
-              className="flex gap-2 justify-center"
-              onClick={() => copyToClipboard(mnemonic, toast)}
-            >
-              <CopyIcon className="w-4 h-4 mr-2" />
-              Dangerously Copy
-            </Button>
-          </div>
+          <MnemonicInputs mnemonic={mnemonic} readOnly={true} asCard={false} />
           <div className="flex items-center mt-6 text-sm">
             <Checkbox
               id="backup"
@@ -115,11 +102,11 @@ export default function MnemonicDialog({
               </Label>
             </div>
           )}
-          <div className="flex justify-end gap-2 items-center">
+          <div className="flex justify-end items-center mt-2">
             <Button
               type="submit"
               size="lg"
-              className="flex-grow sm:flex-grow-0 mt-2"
+              className="flex-grow sm:flex-grow-0"
             >
               Finish
             </Button>

@@ -70,20 +70,18 @@ export function SetupPassword() {
                 <PasswordInput
                   id="unlock-password"
                   onChange={store.setUnlockPassword}
-                  name="unlock-password"
                   autoComplete="new-password"
                   placeholder="Enter a password"
+                  autoFocus
                 />
               </div>
               <div className="grid gap-1.5">
                 <Label htmlFor="confirm-password">Repeat Password</Label>
                 <PasswordInput
-                  name="confirm-password"
                   id="confirm-password"
                   autoComplete="new-password"
                   placeholder="Re-enter the password"
                   onChange={setConfirmPassword}
-                  autoFocus
                 />
               </div>
             </div>

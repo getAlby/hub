@@ -30,7 +30,8 @@ export function CreateNodeMigrationFileSuccess() {
                   This Alby Hub has is now in a halted state to prevent further
                   changes.{" "}
                   <b>
-                    Do not restart it otherwise your backup will be invalidated.
+                    Do not restart it otherwise your migration file will be
+                    invalidated.
                   </b>
                 </span>
               </div>
@@ -40,7 +41,7 @@ export function CreateNodeMigrationFileSuccess() {
                 </div>
                 <span>
                   Start your new Alby Hub on another machine and choose the
-                  "import backup" option to import your backup file.
+                  "import backup" option to import your migration file.
                 </span>
               </div>
             </div>
