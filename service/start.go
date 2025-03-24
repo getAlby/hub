@@ -153,30 +153,36 @@ func (svc *service) startNostr(ctx context.Context) error {
 // new capabilities, we re-publish info events for all apps on startup
 // to ensure that they are retrievable for all connections
 func (svc *service) publishAllAppInfoEvents() {
-	var legacyAppCount int64
-	result := svc.db.Model(&db.App{}).Where("wallet_pubkey IS NULL").Count(&legacyAppCount)
-	if legacyAppCount > 0 {
-		go func() {
-			// queue info event publish request for legacy apps
+	func() {
+		var legacyAppCount int64
+		result := svc.db.Model(&db.App{}).Where("wallet_pubkey IS NULL").Count(&legacyAppCount)
+		if result.Error != nil {
+			logger.Logger.WithError(result.Error).Error("Failed to fetch App records with empty WalletPubkey")
+			return
+		}
+		if legacyAppCount > 0 {
+			logger.Logger.WithField("legacy_app_count", legacyAppCount).Debug("Enqueuing publish of legacy info event")
 			svc.nip47Service.EnqueueNip47InfoPublishRequest(svc.keys.GetNostrPublicKey(), svc.keys.GetNostrSecretKey())
-		}()
-	}
+		}
+	}()
 
 	var apps []db.App
-	result = svc.db.Where("wallet_pubkey IS NOT NULL").Find(&apps)
+	result := svc.db.Where("wallet_pubkey IS NOT NULL").Find(&apps)
 	if result.Error != nil {
 		logger.Logger.WithError(result.Error).Error("Failed to fetch App records with non-empty WalletPubkey")
 		return
 	}
 
 	for _, app := range apps {
-		go func(app db.App) {
+		func(app db.App) {
 			// queue info event publish request for all existing apps
 			walletPrivKey, err := svc.keys.GetAppWalletKey(app.ID)
 			if err != nil {
 				logger.Logger.WithError(err).WithFields(logrus.Fields{
 					"app_id": app.ID}).Error("Could not get app wallet key")
+				return
 			}
+			logger.Logger.WithField("app_id", app.ID).Debug("Enqueuing publish of app info event")
 			svc.nip47Service.EnqueueNip47InfoPublishRequest(*app.WalletPubkey, walletPrivKey)
 		}(app)
 	}

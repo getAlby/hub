@@ -32,13 +32,10 @@ func NewNip47InfoPublishQueue() *nip47InfoPublishQueue {
 }
 
 func (q *nip47InfoPublishQueue) AddToQueue(req *Nip47InfoPublishRequest) {
-	select {
-	case q.channel <- req: // Put in the channel unless it is full
-		// successfully sent to channel
-	default:
-		// channel full
-		logger.Logger.WithField("info_request", req).Error("Nip47InfoPublishQueue channel full. Discarding value")
-	}
+	// thread will be blocked if the channel is full, so execute in a separate goroutine
+	go func() {
+		q.channel <- req
+	}()
 }
 
 func (q *nip47InfoPublishQueue) Channel() <-chan *Nip47InfoPublishRequest {
