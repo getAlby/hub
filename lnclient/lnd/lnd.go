@@ -1083,7 +1083,7 @@ func (svc *LNDService) GetLogOutput(ctx context.Context, maxLen int) ([]byte, er
 	return slicedBytes, nil
 }
 
-func (svc *LNDService) GetBalances(ctx context.Context) (*lnclient.BalancesResponse, error) {
+func (svc *LNDService) GetBalances(ctx context.Context, includeInactiveChannels bool) (*lnclient.BalancesResponse, error) {
 	onchainBalance, err := svc.GetOnchainBalance(ctx)
 	if err != nil {
 		return nil, err
@@ -1104,7 +1104,7 @@ func (svc *LNDService) GetBalances(ctx context.Context) (*lnclient.BalancesRespo
 
 	for _, channel := range resp.Channels {
 		// Unnecessary since ListChannels only returns active channels
-		if channel.Active {
+		if channel.Active || includeInactiveChannels {
 			channelSpendable := max(channel.LocalBalance*1000-int64(channel.LocalConstraints.ChanReserveSat*1000), 0)
 			channelReceivable := max(channel.RemoteBalance*1000-int64(channel.RemoteConstraints.ChanReserveSat*1000), 0)
 

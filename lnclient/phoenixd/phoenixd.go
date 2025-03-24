@@ -90,7 +90,7 @@ func NewPhoenixService(address string, authorization string) (result lnclient.LN
 	return phoenixService, nil
 }
 
-func (svc *PhoenixService) GetBalances(ctx context.Context) (*lnclient.BalancesResponse, error) {
+func (svc *PhoenixService) GetBalances(ctx context.Context, includeInactiveChannels bool) (*lnclient.BalancesResponse, error) {
 	req, err := http.NewRequest(http.MethodGet, svc.Address+"/getbalance", nil)
 	if err != nil {
 		return nil, err
