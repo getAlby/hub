@@ -1,8 +1,9 @@
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import React from "react";
+import PasswordInput from "src/components/password/PasswordInput";
 
-import Container from "src/components/Container";
 import SettingsHeader from "src/components/SettingsHeader";
-import { Input } from "src/components/ui/input";
+import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
@@ -18,6 +19,7 @@ export function ChangeUnlockPassword() {
   const [newUnlockPassword, setNewUnlockPassword] = React.useState("");
   const [confirmNewUnlockPassword, setConfirmNewUnlockPassword] =
     React.useState("");
+
   const [loading, setLoading] = React.useState(false);
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -57,48 +59,65 @@ export function ChangeUnlockPassword() {
   return (
     <>
       <SettingsHeader
-        title="Change Unlock Password"
-        description="Enter your current and new unlock password. Your node
-          will be stopped as part of this process."
+        title="Unlock Password"
+        description="Change unlock password to your Hub. Your node will restart after password change."
       />
-      <Container>
-        <form onSubmit={onSubmit} className="w-full flex flex-col gap-3">
+      <div>
+        <Alert variant={"destructive"} className="w-full md:max-w-6xl mb-8">
+          <AlertTitle>
+            <div className="flex gap-2">
+              <ExclamationTriangleIcon /> Important!
+            </div>
+          </AlertTitle>
+          <AlertDescription>
+            Password can't be reset or recovered. Make sure to back it up!
+          </AlertDescription>
+        </Alert>
+        <form
+          onSubmit={onSubmit}
+          className="w-full md:w-96 flex flex-col gap-6"
+        >
           <div className="grid gap-1.5">
             <Label htmlFor="current-password">Current Password</Label>
-            <Input
+            <PasswordInput
               id="current-password"
-              type="password"
-              name="password"
-              onChange={(e) => setCurrentUnlockPassword(e.target.value)}
+              autoFocus
+              onChange={setCurrentUnlockPassword}
               value={currentUnlockPassword}
-              placeholder="Password"
             />
           </div>
           <div className="grid gap-1.5">
             <Label htmlFor="new-password">New Password</Label>
-            <Input
+            <PasswordInput
               id="new-password"
-              type="password"
-              name="password"
-              onChange={(e) => setNewUnlockPassword(e.target.value)}
+              onChange={setNewUnlockPassword}
               value={newUnlockPassword}
-              placeholder="Password"
             />
           </div>
           <div className="grid gap-1.5">
             <Label htmlFor="confirm-new-password">Confirm New Password</Label>
-            <Input
+            <PasswordInput
               id="confirm-new-password"
-              type="password"
-              name="password"
-              onChange={(e) => setConfirmNewUnlockPassword(e.target.value)}
+              onChange={setConfirmNewUnlockPassword}
               value={confirmNewUnlockPassword}
-              placeholder="Password"
             />
           </div>
-          <LoadingButton loading={loading}>Change Password</LoadingButton>
+          <div className="flex justify-start">
+            <LoadingButton
+              loading={loading}
+              disabled={
+                !(
+                  currentUnlockPassword &&
+                  newUnlockPassword &&
+                  confirmNewUnlockPassword
+                )
+              }
+            >
+              Change Password
+            </LoadingButton>
+          </div>
         </form>
-      </Container>
+      </div>
     </>
   );
 }

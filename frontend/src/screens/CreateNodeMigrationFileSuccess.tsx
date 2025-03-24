@@ -2,12 +2,12 @@ import { BadgePlus, PowerOff, Save } from "lucide-react";
 import AppHeader from "src/components/AppHeader";
 import { Card, CardContent } from "src/components/ui/card";
 
-export function BackupNodeSuccess() {
+export function CreateNodeMigrationFileSuccess() {
   return (
     <>
       <div className="p-10">
         <AppHeader
-          title="Backup Successful"
+          title="Alby Hub Migration File Saved"
           description="You're ready to move your node to another machine"
         />
         <Card>
@@ -18,7 +18,7 @@ export function BackupNodeSuccess() {
                   <Save className="w-6 h-6" />
                 </div>
                 <span>
-                  Your Alby Hub has been successfully backed up and saved to
+                  Your Alby Hub migration file has been successfully saved to
                   your filesystem.
                 </span>
               </div>
@@ -30,7 +30,8 @@ export function BackupNodeSuccess() {
                   This Alby Hub has is now in a halted state to prevent further
                   changes.{" "}
                   <b>
-                    Do not restart it otherwise your backup will be invalidated.
+                    Do not restart it otherwise your migration file will be
+                    invalidated.
                   </b>
                 </span>
               </div>
@@ -40,7 +41,7 @@ export function BackupNodeSuccess() {
                 </div>
                 <span>
                   Start your new Alby Hub on another machine and choose the
-                  "import backup" option to import your backup file.
+                  "import backup" option to import your migration file.
                 </span>
               </div>
             </div>
