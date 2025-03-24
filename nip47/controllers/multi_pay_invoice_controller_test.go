@@ -2,11 +2,22 @@ package controllers
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"slices"
 	"sync"
 	"testing"
+	"time"
 
+	"github.com/btcsuite/btcd/btcec/v2/ecdsa"
+	"github.com/btcsuite/btcd/chaincfg"
+	"github.com/decred/dcrd/dcrec/secp256k1/v4"
+	"github.com/lightningnetwork/lnd/lnwire"
+	"github.com/lightningnetwork/lnd/zpay32"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -420,4 +431,148 @@ func TestHandleMultiPayInvoiceEvent_LNClient_OnePaymentFailed(t *testing.T) {
 	assert.Nil(t, responses[1].Result)
 	assert.Equal(t, constants.ERROR_INTERNAL, responses[1].Error.Code)
 	assert.Equal(t, "Some error", responses[1].Error.Message)
+}
+
+func TestHandleMultiPayInvoiceEvent_IsolatedApp_ConcurrentPayments(t *testing.T) {
+	ctx := context.TODO()
+
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	app, _, err := tests.CreateApp(svc)
+	assert.NoError(t, err)
+	app.Isolated = true
+	svc.DB.Save(&app)
+
+	svc.DB.Create(&db.Transaction{
+		AppId: &app.ID,
+		State: constants.TRANSACTION_STATE_SETTLED,
+		Type:  constants.TRANSACTION_TYPE_INCOMING,
+		// invoices paid are 123000 millisats
+		AmountMsat: 200000,
+	})
+
+	appPermission := &db.AppPermission{
+		AppId: app.ID,
+		App:   *app,
+		Scope: constants.PAY_INVOICE_SCOPE,
+	}
+	err = svc.DB.Create(appPermission).Error
+	assert.NoError(t, err)
+
+	tm := time.Now()
+	const amountMsat = 123000
+
+	const nInvoices = 80
+
+	type Invoice struct {
+		Decoded     *zpay32.Invoice
+		Encoded     string
+		PaymentHash string
+	}
+
+	newDummyInvoice := func(amountMsat uint64, descr string, tm time.Time) (*Invoice, error) {
+		random := make([]byte, 32)
+		_, err := rand.Read(random)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read random bytes: %w", err)
+		}
+
+		phash := sha256.Sum256(random)
+
+		privKey, err := secp256k1.GeneratePrivateKey()
+		if err != nil {
+			return nil, fmt.Errorf("failed to generate private key: %w", err)
+		}
+
+		inv, err := zpay32.NewInvoice(&chaincfg.TestNet3Params, phash, tm,
+			zpay32.Amount(lnwire.MilliSatoshi(amountMsat)),
+			zpay32.Description(descr),
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create invoice: %w", err)
+		}
+
+		invoiceStr, err := inv.Encode(zpay32.MessageSigner{
+			SignCompact: func(msg []byte) ([]byte, error) {
+				return ecdsa.SignCompact(privKey, msg, true), nil
+			},
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to encode invoice: %w", err)
+		}
+
+		return &Invoice{
+			Decoded:     inv,
+			Encoded:     invoiceStr,
+			PaymentHash: hex.EncodeToString(phash[:]),
+		}, nil
+	}
+
+	invoices := make([]string, 0, nInvoices)
+	for i := 0; i < nInvoices; i++ {
+		descr := fmt.Sprintf("invoice %d", i)
+		inv, err := newDummyInvoice(amountMsat, descr, tm)
+		require.NoError(t, err)
+
+		invoices = append(invoices, inv.Encoded)
+	}
+
+	type multiPayInvoiceElement struct {
+		Invoice string `json:"invoice"`
+	}
+
+	type multiPayInvoiceParams struct {
+		Invoices []multiPayInvoiceElement `json:"invoices"`
+	}
+
+	invoiceElems := make([]multiPayInvoiceElement, 0, len(invoices))
+	for _, inv := range invoices {
+		invoiceElems = append(invoiceElems, multiPayInvoiceElement{Invoice: inv})
+	}
+
+	params := multiPayInvoiceParams{Invoices: invoiceElems}
+	paramsJSON, err := json.Marshal(params)
+	require.NoError(t, err)
+
+	nip47Request := &models.Request{
+		Method: "multi_pay_invoice",
+		Params: paramsJSON,
+	}
+
+	responses := []*models.Response{}
+
+	var mu sync.Mutex
+
+	publishResponse := func(response *models.Response, tags nostr.Tags) {
+		mu.Lock()
+		defer mu.Unlock()
+		responses = append(responses, response)
+	}
+
+	dbRequestEvent := &db.RequestEvent{}
+	err = svc.DB.Create(&dbRequestEvent).Error
+	assert.NoError(t, err)
+
+	NewTestNip47Controller(svc).
+		HandleMultiPayInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
+
+	require.Equal(t, nInvoices, len(responses))
+
+	// we can't guarantee which request was processed first
+	// so put the successful one at the front
+	successfulIdx := slices.IndexFunc(responses, func(r *models.Response) bool {
+		return r.Result != nil
+	})
+	require.GreaterOrEqual(t, successfulIdx, 0)
+
+	if successfulIdx > 0 {
+		responses[0], responses[successfulIdx] = responses[successfulIdx], responses[0]
+	}
+
+	for _, response := range responses[1:] {
+		require.Nil(t, response.Result)
+		assert.Equal(t, constants.ERROR_INSUFFICIENT_BALANCE, response.Error.Code)
+	}
 }
