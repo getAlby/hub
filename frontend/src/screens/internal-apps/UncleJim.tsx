@@ -4,6 +4,8 @@ import AppHeader from "src/components/AppHeader";
 import AppCard from "src/components/connections/AppCard";
 import ExternalLink from "src/components/ExternalLink";
 import { IsolatedAppTopupDialog } from "src/components/IsolatedAppTopupDialog";
+import Loading from "src/components/Loading";
+import PasswordInput from "src/components/password/PasswordInput";
 import {
   Accordion,
   AccordionContent,
@@ -17,8 +19,12 @@ import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { Textarea } from "src/components/ui/textarea";
 import { useToast } from "src/components/ui/use-toast";
+import UpgradeCard from "src/components/UpgradeCard";
+import { UpgradeDialog } from "src/components/UpgradeDialog";
+import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useApp } from "src/hooks/useApp";
 import { useApps } from "src/hooks/useApps";
+import { useInfo } from "src/hooks/useInfo";
 import { useNodeConnectionInfo } from "src/hooks/useNodeConnectionInfo";
 import { copyToClipboard } from "src/lib/clipboard";
 import { createApp } from "src/requests/createApp";
@@ -35,6 +41,8 @@ export function UncleJim() {
   const { data: nodeConnectionInfo } = useNodeConnectionInfo();
   const { toast } = useToast();
   const [isLoading, setLoading] = React.useState(false);
+  const { data: info } = useInfo();
+  const { data: albyMe } = useAlbyMe();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -79,42 +87,59 @@ export function UncleJim() {
     (app) => app.metadata?.app_store_app_id === "uncle-jim"
   );
 
+  const showForm =
+    albyMe?.subscription.plan_code ||
+    (onboardedApps && onboardedApps?.length < 3);
+
+  if (!info || (info.albyAccountConnected && !albyMe)) {
+    // make sure to not render the incorrect component
+    return <Loading />;
+  }
+
   return (
     <div className="grid gap-5">
       <AppHeader
         title="Friends & Family"
         description="Create sub-wallets for your friends and family powered by your Hub"
+        contentRight={
+          <UpgradeDialog>
+            <Button variant="premium">Upgrade</Button>
+          </UpgradeDialog>
+        }
       />
       {!connectionSecret && (
         <>
-          <form
-            onSubmit={handleSubmit}
-            className="flex flex-col items-start gap-5 max-w-lg"
-          >
-            <div className="w-full grid gap-1.5">
-              <Label htmlFor="name">Name of friend or family member</Label>
-              <Input
-                autoFocus
-                type="text"
-                name="name"
-                value={name}
-                id="name"
-                onChange={(e) => setName(e.target.value)}
-                required
-                autoComplete="off"
-              />
-            </div>
-            <LoadingButton loading={isLoading} type="submit">
-              Create Sub-wallet
-            </LoadingButton>
-          </form>
+          {showForm ? (
+            <form
+              onSubmit={handleSubmit}
+              className="flex flex-col items-start gap-5 max-w-lg"
+            >
+              <div className="w-full grid gap-1.5">
+                <Label htmlFor="name">Name of friend or family member</Label>
+                <Input
+                  autoFocus
+                  type="text"
+                  name="name"
+                  value={name}
+                  id="name"
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  autoComplete="off"
+                />
+              </div>
+              <LoadingButton loading={isLoading} type="submit">
+                Create Sub-wallet
+              </LoadingButton>
+            </form>
+          ) : (
+            <UpgradeCard
+              title="Need more Sub-wallets?"
+              description="Upgrade to Pro to unlock unlimited sub-wallets"
+            />
+          )}
 
           {!!onboardedApps?.length && (
             <>
-              <p className="text-sm text-muted-foreground">
-                Great job! You've onboarded {onboardedApps.length} friends and
-                family members so far.
-              </p>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch app-list">
                 {onboardedApps.map((app, index) => (
                   <AppCard key={index} app={app} />
@@ -171,12 +196,7 @@ export function UncleJim() {
                   connection secret for their wallet.
                 </p>
                 <div className="flex gap-2">
-                  <Input
-                    disabled
-                    readOnly
-                    type="password"
-                    value={albyAccountUrl}
-                  />
+                  <PasswordInput disabled readOnly value={albyAccountUrl} />
                   <Button
                     onClick={() => copyToClipboard(albyAccountUrl, toast)}
                     variant="outline"
@@ -207,12 +227,7 @@ export function UncleJim() {
                   connection secret for their wallet.
                 </p>
                 <div className="flex gap-2">
-                  <Input
-                    disabled
-                    readOnly
-                    type="password"
-                    value={connectionSecret}
-                  />
+                  <PasswordInput disabled readOnly value={connectionSecret} />
                   <Button
                     onClick={() => copyToClipboard(connectionSecret, toast)}
                     variant="outline"
@@ -232,12 +247,7 @@ export function UncleJim() {
                   it contains the connection secret for their wallet.
                 </p>
                 <div className="flex gap-2">
-                  <Input
-                    disabled
-                    readOnly
-                    type="password"
-                    value={connectionSecret}
-                  />
+                  <PasswordInput disabled readOnly value={connectionSecret} />
                   <Button
                     onClick={() => copyToClipboard(connectionSecret, toast)}
                     variant="outline"

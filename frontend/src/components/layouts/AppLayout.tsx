@@ -1,19 +1,17 @@
 import { compare } from "compare-versions";
 import {
-  Cloud,
+  CircleHelp,
   EllipsisVertical,
   Home,
   LayoutGrid,
-  LifeBuoy,
-  Lightbulb,
   Lock,
-  Megaphone,
   Menu,
   Plug2,
   PlugZapIcon,
   Settings,
   ShieldAlertIcon,
   ShieldCheckIcon,
+  SparklesIcon,
   User2,
   Wallet,
 } from "lucide-react";
@@ -48,6 +46,7 @@ import {
 } from "src/components/ui/tooltip";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 
+import { UpgradeDialog } from "src/components/UpgradeDialog";
 import { useAlbyInfo } from "src/hooks/useAlbyInfo";
 import { useHealthCheck } from "src/hooks/useHealthCheck";
 import { useInfo } from "src/hooks/useInfo";
@@ -55,7 +54,6 @@ import { useNotifyReceivedPayments } from "src/hooks/useNotifyReceivedPayments";
 import { useRemoveSuccessfulChannelOrder } from "src/hooks/useRemoveSuccessfulChannelOrder";
 import { deleteAuthToken } from "src/lib/auth";
 import { cn } from "src/lib/utils";
-import { HealthAlarm } from "src/types";
 import { isHttpMode } from "src/utils/isHttpMode";
 import { openLink } from "src/utils/openLink";
 import ExternalLink from "../ExternalLink";
@@ -169,52 +167,24 @@ export default function AppLayout() {
           <Settings className="h-4 w-4" />
           Settings
         </MenuItem>
+
         <MenuItem
           to="/"
           onClick={(e) => {
-            openLink("https://getalby.com/help");
+            openLink("https://support.getalby.com");
+            openLink("https://support.getalby.com");
             e.preventDefault();
           }}
         >
-          <LifeBuoy className="h-4 w-4" />
-          Live Support
+          <CircleHelp className="h-4 w-4" />
+          Help
         </MenuItem>
-        <MenuItem
-          to="/"
-          onClick={(e) => {
-            openLink(
-              "https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub"
-            );
-            e.preventDefault();
-          }}
-        >
-          <Lightbulb className="h-4 w-4" />
-          Guides
-        </MenuItem>
-        <MenuItem
-          to="/"
-          onClick={(e) => {
-            openLink(
-              "https://feedback.getalby.com/-alby-hub-request-a-feature"
-            );
-            e.preventDefault();
-          }}
-        >
-          <Megaphone className="h-4 w-4" />
-          Feedback
-        </MenuItem>
-        {!albyMe?.hub.name && info?.albyAccountConnected && (
-          <MenuItem
-            to="/"
-            onClick={(e) => {
-              openLink("https://getalby.com/subscription/new");
-              e.preventDefault();
-            }}
-          >
-            <Cloud className="h-4 w-4" />
-            Alby Cloud
-          </MenuItem>
-        )}
+        <UpgradeDialog>
+          <div className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-accent-foreground">
+            <SparklesIcon className="h-4 w-4" />
+            Upgrade
+          </div>
+        </UpgradeDialog>
       </nav>
     );
   }
@@ -380,54 +350,15 @@ function HealthIndicator() {
 
   const ok = !health.alarms?.length;
 
-  function getAlarmTitle(alarm: HealthAlarm) {
-    // TODO: could show extra data from alarm.rawDetails
-    // for some alarm types
-    switch (alarm.kind) {
-      case "alby_service":
-        return "One or more Alby Services are offline";
-      case "channels_offline":
-        return "One or more channels are offline";
-      case "node_not_ready":
-        return "Node is not ready";
-      case "nostr_relay_offline":
-        return "Could not connect to relay";
-      default:
-        return "Unknown error";
-    }
-  }
-
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger>
-          <span className="text-xs flex items-center text-muted-foreground">
-            <div
-              className={cn(
-                "w-2 h-2 rounded-full",
-                ok ? "bg-green-300" : "bg-destructive"
-              )}
-            />
-          </span>
-        </TooltipTrigger>
-        <TooltipContent>
-          {ok ? (
-            <p>Alby Hub is running</p>
-          ) : (
-            <div>
-              <p className="font-semibold">
-                {health.alarms.length} issues were found
-              </p>
-              <ul className="mt-2 max-w-xs whitespace-pre-wrap list-disc list-inside">
-                {health.alarms.map((alarm) => (
-                  <li key={alarm.kind}>{getAlarmTitle(alarm)}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <Link to="/channels?healthcheck=true">
+      <div
+        className={cn(
+          "w-2 h-2 rounded-full",
+          ok ? "bg-green-300" : "bg-destructive"
+        )}
+      />
+    </Link>
   );
 }
 

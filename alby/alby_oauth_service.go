@@ -119,13 +119,18 @@ func (svc *albyOAuthService) CallbackHandler(ctx context.Context, code string, l
 		return err
 	}
 
-	// save the user's alby account ID on first time login
 	if existingUserIdentifier == "" {
+		// save the user's alby account ID on first time login
 		err := svc.cfg.SetUpdate(userIdentifierKey, me.Identifier, "")
 		if err != nil {
 			logger.Logger.WithError(err).Error("Failed to set user identifier")
 			return err
 		}
+		// notify that this was the first time the user connected their account
+		svc.eventPublisher.Publish(&events.Event{
+			Event:      "nwc_alby_account_connected",
+			Properties: map[string]interface{}{},
+		})
 	} else if me.Identifier != existingUserIdentifier {
 		// remove token so user can retry with correct account
 		err := svc.cfg.SetUpdate(accessTokenKey, "", "")
@@ -1462,5 +1467,6 @@ func getEventWhitelist() []string {
 		"nwc_node_start_failed",
 		"nwc_node_stop_failed",
 		"nwc_node_stopped",
+		"nwc_alby_account_connected",
 	}
 }

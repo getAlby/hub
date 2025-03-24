@@ -694,7 +694,7 @@ func (api *api) GetBalances(ctx context.Context) (*BalancesResponse, error) {
 	if api.svc.GetLNClient() == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	balances, err := api.svc.GetLNClient().GetBalances(ctx)
+	balances, err := api.svc.GetLNClient().GetBalances(ctx, false)
 	if err != nil {
 		return nil, err
 	}
@@ -889,24 +889,10 @@ func (api *api) Setup(ctx context.Context, setupRequest *SetupRequest) error {
 			return err
 		}
 	}
-	if setupRequest.BreezAPIKey != "" {
-		err = api.cfg.SetUpdate("BreezAPIKey", setupRequest.BreezAPIKey, setupRequest.UnlockPassword)
-		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to save breez api key")
-			return err
-		}
-	}
 	if setupRequest.Mnemonic != "" {
 		err = api.cfg.SetUpdate("Mnemonic", setupRequest.Mnemonic, setupRequest.UnlockPassword)
 		if err != nil {
 			logger.Logger.WithError(err).Error("Failed to save encrypted mnemonic")
-			return err
-		}
-	}
-	if setupRequest.GreenlightInviteCode != "" {
-		err = api.cfg.SetUpdate("GreenlightInviteCode", setupRequest.GreenlightInviteCode, setupRequest.UnlockPassword)
-		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to save greenlight invite code")
 			return err
 		}
 	}
@@ -1099,10 +1085,7 @@ func (api *api) Health(ctx context.Context) (*HealthResponse, error) {
 	lnClient := api.svc.GetLNClient()
 
 	if lnClient != nil {
-		nodeStatus, err := lnClient.GetNodeStatus(ctx)
-		if err != nil {
-			return nil, err
-		}
+		nodeStatus, _ := lnClient.GetNodeStatus(ctx)
 		if nodeStatus == nil || !nodeStatus.IsReady {
 			alarms = append(alarms, NewHealthAlarm(HealthAlarmKindNodeNotReady, nodeStatus))
 		}

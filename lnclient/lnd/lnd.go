@@ -402,7 +402,7 @@ func (svc *LNDService) SendKeysend(ctx context.Context, amount uint64, destinati
 			"payment_hash": paymentHash,
 			"preimage":     preimage,
 			"reason":       failureReasonMessage,
-		}).Error("Keysend not succcessful")
+		}).Error("Keysend not successful")
 		return nil, errors.New(failureReasonMessage)
 	}
 
@@ -963,6 +963,7 @@ func (svc *LNDService) GetOnchainBalance(ctx context.Context) (*lnclient.Onchain
 		Reserved:                           int64(balances.ReservedBalanceAnchorChan),
 		PendingBalancesFromChannelClosures: pendingBalancesFromChannelClosures,
 		PendingBalancesDetails:             pendingBalancesDetails,
+		PendingSweepBalancesDetails:        []lnclient.PendingBalanceDetails{},
 		InternalBalances: map[string]interface{}{
 			"balances":         balances,
 			"pending_channels": pendingChannels,
@@ -972,9 +973,10 @@ func (svc *LNDService) GetOnchainBalance(ctx context.Context) (*lnclient.Onchain
 
 func (svc *LNDService) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, sendAll bool) (txId string, err error) {
 	resp, err := svc.client.SendCoins(ctx, &lnrpc.SendCoinsRequest{
-		Addr:    toAddress,
-		SendAll: sendAll,
-		Amount:  int64(amount),
+		Addr:       toAddress,
+		SendAll:    sendAll,
+		Amount:     int64(amount),
+		TargetConf: 1,
 	})
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to send onchain funds")
@@ -1081,7 +1083,7 @@ func (svc *LNDService) GetLogOutput(ctx context.Context, maxLen int) ([]byte, er
 	return slicedBytes, nil
 }
 
-func (svc *LNDService) GetBalances(ctx context.Context) (*lnclient.BalancesResponse, error) {
+func (svc *LNDService) GetBalances(ctx context.Context, includeInactiveChannels bool) (*lnclient.BalancesResponse, error) {
 	onchainBalance, err := svc.GetOnchainBalance(ctx)
 	if err != nil {
 		return nil, err
@@ -1102,7 +1104,7 @@ func (svc *LNDService) GetBalances(ctx context.Context) (*lnclient.BalancesRespo
 
 	for _, channel := range resp.Channels {
 		// Unnecessary since ListChannels only returns active channels
-		if channel.Active {
+		if channel.Active || includeInactiveChannels {
 			channelSpendable := max(channel.LocalBalance*1000-int64(channel.LocalConstraints.ChanReserveSat*1000), 0)
 			channelReceivable := max(channel.RemoteBalance*1000-int64(channel.RemoteConstraints.ChanReserveSat*1000), 0)
 

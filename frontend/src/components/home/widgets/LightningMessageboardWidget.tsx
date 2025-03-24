@@ -150,7 +150,7 @@ export function LightningMessageboardWidget() {
 
       setMessageText("");
       loadMessages();
-      toast({ title: "Sucessfully sent message" });
+      toast({ title: "Successfully sent message" });
       setDialogOpen(false);
     } catch (error) {
       console.error(error);

@@ -1,4 +1,5 @@
 import { CircleCheck, CopyIcon } from "lucide-react";
+import { useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import { Button } from "src/components/ui/button";
@@ -16,8 +17,13 @@ export default function PaymentSuccess() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  if (!state.preimage) {
-    navigate("/wallet/send");
+  useEffect(() => {
+    if (!state?.preimage) {
+      navigate("/wallet/send");
+    }
+  }, [state, navigate]);
+
+  if (!state?.preimage) {
     return null;
   }
 

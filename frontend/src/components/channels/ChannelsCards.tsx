@@ -137,7 +137,9 @@ export function ChannelsCards({ channels, nodes }: ChannelsCardsProps) {
                               cheating by ensuring each party has something at
                               stake. This reserve cannot be spent during the
                               channel's lifetime and typically amounts to 1% of
-                              the channel capacity.
+                              the channel capacity. The reserve will
+                              automatically be filled when payments are received
+                              on the channel.
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>

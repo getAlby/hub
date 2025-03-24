@@ -1,7 +1,11 @@
-import { Power } from "lucide-react";
 import React, { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
+import { buttonVariants } from "src/components/ui/button";
+
+import { useInfo } from "src/hooks/useInfo";
+
+import { Power } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,12 +17,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "src/components/ui/alert-dialog";
-import { buttonVariants } from "src/components/ui/button";
 import { LoadingButton } from "src/components/ui/loading-button";
+import { Separator } from "src/components/ui/separator";
 import { useToast } from "src/components/ui/use-toast";
-
-import { useInfo } from "src/hooks/useInfo";
-
 import { cn } from "src/lib/utils";
 import { request } from "src/utils/request";
 
@@ -76,11 +77,11 @@ export default function SettingsLayout() {
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>
-                  Do you want to turn off Alby Hub?
+                  Do you want to turn off your Alby Hub?
                 </AlertDialogTitle>
                 <AlertDialogDescription>
                   This will turn off your Alby Hub and make your node offline.
-                  You won't be able to send or receive bitcoin until you unlock
+                  You won’t be able to send or receive bitcoin until you unlock
                   it.
                 </AlertDialogDescription>
               </AlertDialogHeader>
@@ -94,8 +95,9 @@ export default function SettingsLayout() {
           </AlertDialog>
         }
       />
-      <div className="flex flex-col space-y-8 lg:flex-row lg:space-x-12 lg:space-y-0">
-        <aside className="lg:-mx-4 lg:w-1/5">
+
+      <div className="flex flex-col space-y-8 lg:flex-row lg:space-x-12 lg:space-y-0 h-full">
+        <aside className="flex flex-col justify-between lg:-mx-4 lg:w-1/5 max-h-screen">
           <nav className="flex flex-wrap lg:flex-col -space-x-1 lg:space-x-0 lg:space-y-1">
             <MenuItem to="/settings">General</MenuItem>
             {info?.autoUnlockPasswordSupported && (
@@ -106,7 +108,7 @@ export default function SettingsLayout() {
             </MenuItem>
             {hasMnemonic && <MenuItem to="/settings/backup">Backup</MenuItem>}
             {hasNodeBackup && (
-              <MenuItem to="/settings/node-backup">Migrate Node</MenuItem>
+              <MenuItem to="/settings/node-migrate">Migrate Alby Hub</MenuItem>
             )}
             {info?.albyAccountConnected && (
               <MenuItem to="/settings/alby-account">Your Alby Account</MenuItem>
@@ -118,6 +120,7 @@ export default function SettingsLayout() {
             <MenuItem to="/settings/debug-tools">Debug Tools</MenuItem>
           </nav>
         </aside>
+        <Separator orientation="vertical" />
         <div className="flex-1 lg:max-w-2xl">
           <div className="grid gap-6">
             <Outlet />

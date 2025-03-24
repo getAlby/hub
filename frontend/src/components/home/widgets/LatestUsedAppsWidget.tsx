@@ -33,21 +33,15 @@ export function LatestUsedAppsWidget() {
           .slice(0, 3)
           .map((app) => (
             <Link key={app.id} to={`/apps/${app.appPubkey}`}>
-              <div className="flex items-center justify-between w-full">
-                <div className="flex items-center justify-center gap-4">
-                  <AppAvatar app={app} className="w-14 h-14 rounded-lg" />
-                  <p className="text-sm font-medium">
-                    {app.name === "getalby.com" ? "Alby Account" : app.name}
-                  </p>
-                </div>
-                <div className="flex items-center justify-center gap-4">
-                  <p className="text-xs text-muted-foreground">
-                    {app.lastEventAt
-                      ? dayjs(app.lastEventAt).fromNow()
-                      : "never"}
-                  </p>
-                  <ChevronRight className="text-muted-foreground w-8 h-8" />
-                </div>
+              <div className="flex items-center w-full gap-4">
+                <AppAvatar app={app} className="w-14 h-14 rounded-lg" />
+                <p className="text-sm font-medium flex-1 truncate">
+                  {app.name === "getalby.com" ? "Alby Account" : app.name}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {app.lastEventAt ? dayjs(app.lastEventAt).fromNow() : "never"}
+                </p>
+                <ChevronRight className="text-muted-foreground w-8 h-8" />
               </div>
             </Link>
           ))}
