@@ -26,7 +26,6 @@ export default function AppLayout() {
             </div>
           </SidebarInset>
         </SidebarProvider>
-        {/* <AppVersion /> */}
       </div>
     </>
   );
