@@ -83,17 +83,23 @@ export function ChangeUnlockPassword() {
               id="current-password"
               autoFocus
               onChange={setCurrentUnlockPassword}
+              value={currentUnlockPassword}
             />
           </div>
           <div className="grid gap-1.5">
             <Label htmlFor="new-password">New Password</Label>
-            <PasswordInput id="new-password" onChange={setNewUnlockPassword} />
+            <PasswordInput
+              id="new-password"
+              onChange={setNewUnlockPassword}
+              value={newUnlockPassword}
+            />
           </div>
           <div className="grid gap-1.5">
             <Label htmlFor="confirm-new-password">Confirm New Password</Label>
             <PasswordInput
               id="confirm-new-password"
               onChange={setConfirmNewUnlockPassword}
+              value={confirmNewUnlockPassword}
             />
           </div>
           <div className="flex justify-start">

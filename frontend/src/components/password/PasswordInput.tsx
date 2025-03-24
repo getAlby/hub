@@ -4,18 +4,19 @@ import { Input } from "src/components/ui/input";
 
 type PasswordInputProps = Omit<
   React.InputHTMLAttributes<HTMLInputElement>,
-  "type" | "onChange"
+  "type" | "onChange" | "value"
 > & {
+  value: string;
   onChange?: (value: string) => void;
 };
 
 export default function PasswordInput({
   onChange,
   placeholder,
-  value = "",
+  value,
   ...restProps
 }: PasswordInputProps) {
-  const [password, setPassword] = React.useState(String(value));
+  const [password, setPassword] = React.useState(value);
   const [passwordVisible, setPasswordVisible] = React.useState(false);
 
   React.useEffect(() => {

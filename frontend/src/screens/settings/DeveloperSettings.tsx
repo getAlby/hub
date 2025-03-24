@@ -17,7 +17,7 @@ export default function DeveloperSettings() {
   const { data: albyMe } = useAlbyMe();
   const [token, setToken] = React.useState<string>();
   const [expiryDays, setExpiryDays] = React.useState<string>("365");
-  const [unlockPassword, setUnlockPassword] = React.useState<string>();
+  const [unlockPassword, setUnlockPassword] = React.useState<string>("");
   const [showCreateTokenForm, setShowCreateTokenForm] =
     React.useState<boolean>();
   const [loading, setLoading] = React.useState<boolean>();
@@ -126,7 +126,11 @@ export default function DeveloperSettings() {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="password">Unlock Password</Label>
-                <PasswordInput id="password" onChange={setUnlockPassword} />
+                <PasswordInput
+                  id="password"
+                  onChange={setUnlockPassword}
+                  value={unlockPassword}
+                />
               </div>
               <div className="mt-4">
                 <LoadingButton loading={loading}>Create Token</LoadingButton>

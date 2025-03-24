@@ -123,6 +123,7 @@ export function RestoreNode() {
           <Label htmlFor="password">Unlock Password</Label>
           <PasswordInput
             onChange={setUnlockPassword}
+            value={unlockPassword}
             placeholder="Unlock Password"
           />
         </div>

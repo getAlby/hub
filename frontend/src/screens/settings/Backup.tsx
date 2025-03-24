@@ -120,7 +120,11 @@ export default function Backup() {
             >
               <div className="grid gap-2">
                 <Label htmlFor="password">Password</Label>
-                <PasswordInput id="password" onChange={setUnlockPassword} />
+                <PasswordInput
+                  id="password"
+                  onChange={setUnlockPassword}
+                  value={unlockPassword}
+                />
                 <p className="text-sm text-muted-foreground">
                   Enter your unlock password to view your recovery phrase.
                 </p>

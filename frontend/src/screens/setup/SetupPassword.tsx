@@ -73,6 +73,7 @@ export function SetupPassword() {
                   autoComplete="new-password"
                   placeholder="Enter a password"
                   autoFocus
+                  value={store.unlockPassword}
                 />
               </div>
               <div className="grid gap-1.5">
@@ -82,6 +83,7 @@ export function SetupPassword() {
                   autoComplete="new-password"
                   placeholder="Re-enter the password"
                   onChange={setConfirmPassword}
+                  value={confirmPassword}
                 />
               </div>
             </div>

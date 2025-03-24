@@ -130,6 +130,7 @@ export function AlbyGo() {
                       id="password"
                       onChange={setUnlockPassword}
                       autoFocus
+                      value={unlockPassword}
                     />
                   </div>
                 </div>

@@ -86,6 +86,7 @@ export default function Start() {
                   id="password"
                   onChange={setUnlockPassword}
                   autoFocus
+                  value={unlockPassword}
                 />
               </div>
               <LoadingButton type="submit" loading={loading}>

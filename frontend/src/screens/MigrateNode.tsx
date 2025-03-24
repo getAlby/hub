@@ -134,6 +134,7 @@ export function MigrateNode() {
                   id="password"
                   autoFocus
                   onChange={setUnlockPassword}
+                  value={unlockPassword}
                 />
               </div>
             </>

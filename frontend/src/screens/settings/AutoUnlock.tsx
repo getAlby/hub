@@ -89,6 +89,7 @@ export function AutoUnlock() {
                   id="unlock-password"
                   autoFocus
                   onChange={setUnlockPassword}
+                  value={unlockPassword}
                 />
               </div>
               <div>

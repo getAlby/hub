@@ -83,6 +83,7 @@ function AuthCodeForm({ url }: AuthCodeFormProps) {
                     id="authorization-code"
                     placeholder="Enter code you see in the browser"
                     onChange={setAuthCode}
+                    value={authCode}
                   />
                 </div>
               </div>
