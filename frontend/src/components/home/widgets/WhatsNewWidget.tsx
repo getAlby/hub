@@ -3,6 +3,7 @@ import { ExternalLinkButton } from "src/components/ui/button";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
@@ -26,24 +27,18 @@ export function WhatsNewWidget() {
     <Card>
       <CardHeader>
         <CardTitle>What's New in {upToDate && "your "}Alby Hub?</CardTitle>
+        <CardDescription>{albyInfo.hub.latestReleaseNotes}</CardDescription>
       </CardHeader>
-      <CardContent>
-        <p className="text-xl font-semibold">v{albyInfo.hub.latestVersion}</p>
-        <p className="text-muted-foreground mt-1">
-          {albyInfo.hub.latestReleaseNotes}
-        </p>
-        {!upToDate && (
-          <div className="mt-4 flex gap-2 items-center">
-            <p className="text-sm">You're currently running {info.version}</p>
-            <ExternalLinkButton
-              to={`https://getalby.com/update/hub?version=${info.version}`}
-              size="sm"
-            >
-              Update Now
-            </ExternalLinkButton>
-          </div>
-        )}
-      </CardContent>
+      {!upToDate && (
+        <CardContent className="text-right">
+          <ExternalLinkButton
+            to={`https://getalby.com/update/hub?version=${info.version}`}
+            size="sm"
+          >
+            Update Now
+          </ExternalLinkButton>
+        </CardContent>
+      )}
     </Card>
   );
 }
