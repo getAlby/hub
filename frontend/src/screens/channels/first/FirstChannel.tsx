@@ -1,4 +1,4 @@
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Info } from "lucide-react";
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
@@ -117,29 +117,16 @@ export function FirstChannel() {
                     {new Intl.NumberFormat().format(channelSize)} sats
                   </TableCell>
                 </TableRow>
-                {invoice && (
-                  <TableRow>
-                    <TableCell className="font-medium p-3 flex flex-row gap-1.5 items-center">
-                      Fee
-                    </TableCell>
-                    <TableCell className="text-right p-3">
-                      {new Intl.NumberFormat().format(
-                        new Invoice({ pr: invoice }).satoshi
-                      )}{" "}
-                      sats
-                    </TableCell>
-                  </TableRow>
-                )}
                 <TableRow>
-                  <TableCell className="font-medium p-3">Duration</TableCell>
-
-                  <TableCell className="text-right p-3">
-                    <ExternalLink
-                      className="underline"
-                      to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/how-to-open-a-payment-channel"
-                    >
-                      3+ months
+                  <TableCell className="font-medium p-3 flex items-center gap-2">
+                    Duration
+                    <ExternalLink to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/how-to-open-a-payment-channel#which-lightning-service-provider-to-choose">
+                      <Info className="w-4 h-4 text-muted-foreground" />
                     </ExternalLink>
+                  </TableCell>
+
+                  <TableCell className="p-3 text-right">
+                    at least 3 months
                   </TableCell>
                 </TableRow>
                 {invoice && (

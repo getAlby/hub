@@ -8,7 +8,7 @@ import {
   PayInvoiceResponse,
 } from "src/types";
 
-import { Copy, QrCode, RefreshCw } from "lucide-react";
+import { Copy, Info, QrCode, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
@@ -695,7 +695,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                       </TableCell>
                     </TableRow>
                   )}
-                  <TableRow>
+                  {/* <TableRow>
                     <TableCell className="font-medium p-3 flex flex-row gap-1.5 items-center">
                       Fee
                     </TableCell>
@@ -703,20 +703,18 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                       {new Intl.NumberFormat().format(lspOrderResponse.fee)}{" "}
                       sats
                     </TableCell>
-                  </TableRow>
+                  </TableRow> */}
                   {lspOrderResponse.incomingLiquidity > 0 && (
                     <TableRow>
-                      <TableCell className="font-medium p-3">
+                      <TableCell className="font-medium p-3 flex items-center gap-2">
                         Duration
+                        <ExternalLink to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/how-to-open-a-payment-channel#which-lightning-service-provider-to-choose">
+                          <Info className="w-4 h-4 text-muted-foreground" />
+                        </ExternalLink>
                       </TableCell>
 
-                      <TableCell className="text-right p-3">
-                        <ExternalLink
-                          className="underline"
-                          to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/how-to-open-a-payment-channel"
-                        >
-                          3+ months
-                        </ExternalLink>
+                      <TableCell className="p-3 text-right">
+                        at least 3 months
                       </TableCell>
                     </TableRow>
                   )}
