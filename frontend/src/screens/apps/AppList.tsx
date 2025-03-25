@@ -47,18 +47,23 @@ function AppList() {
                     Cleanup Unused
                   </Button>
                 ) : (
-                  <Button variant="outline">
-                    <Trash className="w-4 h-4 mr-2" />
-                    Cleanup
+                  <Button variant="outline" size="icon">
+                    <Trash className="w-4 h-4" />
                   </Button>
                 )}
               </Link>
             )}
             <Link to="/apps/new">
-              <Button>
-                <CirclePlus className="h-4 w-4 mr-2" />
-                {isDesktop ? "Add Connection" : "Add"}
-              </Button>
+              {isDesktop ? (
+                <Button>
+                  <CirclePlus className="h-4 w-4 mr-2" />
+                  Add Connection
+                </Button>
+              ) : (
+                <Button size="icon">
+                  <CirclePlus className="w-4 h-4" />
+                </Button>
+              )}
             </Link>
           </>
         }
