@@ -87,7 +87,7 @@ function Settings() {
               toast({ title: "Theme updated." });
             }}
           >
-            <SelectTrigger className="w-full md:w-60 space-y-2">
+            <SelectTrigger className="w-full md:w-60">
               <SelectValue placeholder="Theme" />
             </SelectTrigger>
             <SelectContent>

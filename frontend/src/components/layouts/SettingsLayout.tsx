@@ -81,7 +81,7 @@ export default function SettingsLayout() {
                 </AlertDialogTitle>
                 <AlertDialogDescription>
                   This will turn off your Alby Hub and make your node offline.
-                  You won’t be able to send or receive bitcoin until you unlock
+                  You won't be able to send or receive bitcoin until you unlock
                   it.
                 </AlertDialogDescription>
               </AlertDialogHeader>
