@@ -1,11 +1,11 @@
 import {
-  CreditCard,
-  DatabaseBackup,
-  Headphones,
-  LifeBuoy,
-  Mail,
+  CreditCardIcon,
+  DatabaseBackupIcon,
+  HeadphonesIcon,
+  LifeBuoyIcon,
+  MailIcon,
   SparklesIcon,
-  Zap,
+  ZapIcon,
 } from "lucide-react";
 import Container from "src/components/Container";
 import ExternalLink from "src/components/ExternalLink";
@@ -34,7 +34,7 @@ export function ConnectAlbyAccount({ connectUrl }: ConnectAlbyAccountProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 w-full gap-2 mt-5">
           <Card className="w-full relative">
             <CardHeader className="flex flex-col justify-center items-center text-center p-4">
-              <Zap className="w-6 h-6" />
+              <ZapIcon className="w-6 h-6" />
               <CardTitle className="text-sm">
                 Lightning Address
                 <AlbyProIcon />
@@ -46,7 +46,7 @@ export function ConnectAlbyAccount({ connectUrl }: ConnectAlbyAccountProps) {
           </Card>
           <Card className="w-full relative">
             <CardHeader className="flex flex-col justify-center items-center text-center p-4">
-              <Mail className="w-6 h-6" />
+              <MailIcon className="w-6 h-6" />
               <CardTitle className="text-sm">
                 Email Notifications
                 <AlbyProIcon />
@@ -58,7 +58,7 @@ export function ConnectAlbyAccount({ connectUrl }: ConnectAlbyAccountProps) {
           </Card>
           <Card className="w-full relative">
             <CardHeader className="flex flex-col justify-center items-center text-center p-4">
-              <DatabaseBackup className="w-6 h-6" />
+              <DatabaseBackupIcon className="w-6 h-6" />
               <CardTitle className="text-sm">
                 Encrypted Backups
                 <AlbyProIcon />
@@ -70,7 +70,7 @@ export function ConnectAlbyAccount({ connectUrl }: ConnectAlbyAccountProps) {
           </Card>
           <Card className="w-full relative">
             <CardHeader className="flex flex-col justify-center items-center text-center p-4">
-              <LifeBuoy className="w-6 h-6" />
+              <LifeBuoyIcon className="w-6 h-6" />
               <CardTitle className="text-sm">
                 Support
                 <AlbyProIcon />
@@ -82,7 +82,7 @@ export function ConnectAlbyAccount({ connectUrl }: ConnectAlbyAccountProps) {
           </Card>
           <Card className="w-full">
             <CardHeader className="flex flex-col justify-center items-center text-center p-4">
-              <CreditCard className="w-6 h-6" />
+              <CreditCardIcon className="w-6 h-6" />
               <CardTitle className="text-sm">Fiat Topups</CardTitle>
               <CardDescription className="text-xs">
                 Top up with fiat and get Bitcoin delivered to your Alby Hub
@@ -91,7 +91,7 @@ export function ConnectAlbyAccount({ connectUrl }: ConnectAlbyAccountProps) {
           </Card>
           <Card className="w-full">
             <CardHeader className="flex flex-col justify-center items-center text-center p-4">
-              <Headphones className="w-6 h-6" />
+              <HeadphonesIcon className="w-6 h-6" />
               <CardTitle className="text-sm">Podcasting 2.0</CardTitle>
               <CardDescription className="text-xs">
                 Support your favorite creators by streaming sats

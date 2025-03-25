@@ -1,4 +1,4 @@
-import { Copy } from "lucide-react";
+import { CopyIcon } from "lucide-react";
 import React from "react";
 import AppHeader from "src/components/AppHeader";
 import { Button } from "src/components/ui/button";
@@ -111,7 +111,7 @@ export default function SignMessage() {
                       copyToClipboard(signature, toast);
                     }}
                   >
-                    <Copy className="w-4 h-4" />
+                    <CopyIcon className="w-4 h-4" />
                   </Button>
                 </div>
               </CardContent>

@@ -1,15 +1,15 @@
 import {
-  AlertTriangle,
-  ArrowRight,
-  ChevronDown,
+  AlertTriangleIcon,
+  ArrowRightIcon,
+  ChevronDownIcon,
   CopyIcon,
   ExternalLinkIcon,
-  Heart,
+  HeartIcon,
   HourglassIcon,
   InfoIcon,
   LinkIcon,
-  Settings2,
-  Unplug,
+  Settings2Icon,
+  UnplugIcon,
   ZapIcon,
 } from "lucide-react";
 import React from "react";
@@ -147,11 +147,11 @@ export default function Channels() {
                       size="default"
                     >
                       Advanced
-                      <ChevronDown />
+                      <ChevronDownIcon />
                     </Button>
                   ) : (
                     <Button variant="outline" size="icon">
-                      <Settings2 className="w-4 h-4" />
+                      <Settings2Icon className="w-4 h-4" />
                     </Button>
                   )}
                 </DropdownMenuTrigger>
@@ -211,7 +211,7 @@ export default function Channels() {
                     >
                       <div className="mr-2 text-muted-foreground flex flex-row items-center">
                         <LinkIcon className="w-4 h-4" />
-                        <ArrowRight className="w-4 h-4" />
+                        <ArrowRightIcon className="w-4 h-4" />
                         <ZapIcon className="w-4 h-4" />
                       </div>
                       Swap in
@@ -222,7 +222,7 @@ export default function Channels() {
                     >
                       <div className="mr-2 text-muted-foreground flex flex-row items-center">
                         <ZapIcon className="w-4 h-4" />
-                        <ArrowRight className="w-4 h-4" />
+                        <ArrowRightIcon className="w-4 h-4" />
                         <LinkIcon className="w-4 h-4" />
                       </div>
                       Swap out
@@ -261,7 +261,7 @@ export default function Channels() {
                             <div className="absolute w-full h-full bg-primary animate-pulse" />
                           </div>
                         )}
-                        <Heart
+                        <HeartIcon
                           className="w-4 h-4"
                           stroke={"hsl(var(--primary))"}
                           strokeWidth={3}
@@ -295,7 +295,7 @@ export default function Channels() {
                   (channel.localBalance + channel.remoteBalance) * 0.2
               ) && (
                 <Alert>
-                  <AlertTriangle className="h-4 w-4" />
+                  <AlertTriangleIcon className="h-4 w-4" />
                   <AlertTitle>Low receiving limit</AlertTitle>
                   <AlertDescription>
                     You likely won't be able to receive payments until you{" "}
@@ -489,7 +489,7 @@ export default function Channels() {
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger>
-                                  <AlertTriangle className="w-3 h-3 text-muted-foreground" />
+                                  <AlertTriangleIcon className="w-3 h-3 text-muted-foreground" />
                                 </TooltipTrigger>
                                 <TooltipContent className="w-[300px]">
                                   You have insufficient funds in reserve to
@@ -580,7 +580,7 @@ export default function Channels() {
 
           {channels && channels.length === 0 && (
             <EmptyState
-              icon={Unplug}
+              icon={UnplugIcon}
               title="No Channels Available"
               description="Connect to the Lightning Network by establishing your first channel and start transacting."
               buttonText="Open Channel"

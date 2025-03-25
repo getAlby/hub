@@ -1,4 +1,4 @@
-import { Copy, CreditCard, RefreshCw } from "lucide-react";
+import { CopyIcon, CreditCardIcon, RefreshCwIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import Loading from "src/components/Loading";
@@ -35,7 +35,7 @@ export default function DepositBitcoin() {
         contentRight={
           <Link to="/channels/onchain/buy-bitcoin">
             <Button>
-              <CreditCard className="h-4 w-4 mr-2" />
+              <CreditCardIcon className="h-4 w-4 mr-2" />
               Buy Bitcoin
             </Button>
           </Link>
@@ -70,7 +70,7 @@ export default function DepositBitcoin() {
                 className="w-28"
                 loading={loadingAddress}
               >
-                {!loadingAddress && <RefreshCw className="w-4 h-4 mr-2" />}
+                {!loadingAddress && <RefreshCwIcon className="w-4 h-4 mr-2" />}
                 Change
               </LoadingButton>
               <Button
@@ -80,7 +80,7 @@ export default function DepositBitcoin() {
                   copyToClipboard(onchainAddress, toast);
                 }}
               >
-                <Copy className="w-4 h-4 mr-2" />
+                <CopyIcon className="w-4 h-4 mr-2" />
                 Copy
               </Button>
             </div>

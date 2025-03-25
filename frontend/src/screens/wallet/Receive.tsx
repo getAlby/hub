@@ -1,4 +1,4 @@
-import { Copy, Edit } from "lucide-react";
+import { CopyIcon, EditIcon } from "lucide-react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import Loading from "src/components/Loading";
@@ -42,7 +42,7 @@ export default function Receive() {
               variant="outline"
               className="flex-1 flex gap-2 items-center justify-center"
             >
-              <Edit className="w-4 h-4" /> Amount
+              <EditIcon className="w-4 h-4" /> Amount
             </LinkButton>
             <Button
               variant="secondary"
@@ -51,7 +51,7 @@ export default function Receive() {
               }}
               className="flex-1 flex gap-2 items-center justify-center"
             >
-              <Copy className="w-4 h-4" /> Copy
+              <CopyIcon className="w-4 h-4" /> Copy
             </Button>
           </div>
         </div>

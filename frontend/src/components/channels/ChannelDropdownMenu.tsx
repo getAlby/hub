@@ -1,8 +1,8 @@
 import {
   ExternalLinkIcon,
-  HandCoins,
-  MoreHorizontal,
-  Trash2,
+  HandCoinsIcon,
+  MoreHorizontalIcon,
+  Trash2Icon,
 } from "lucide-react";
 import React from "react";
 import { CloseChannelDialogContent } from "src/components/CloseChannelDialogContent";
@@ -43,7 +43,7 @@ export function ChannelDropdownMenu({
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
           <Button size="icon" variant="ghost">
-            <MoreHorizontal className="h-4 w-4" />
+            <MoreHorizontalIcon className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
@@ -71,7 +71,7 @@ export function ChannelDropdownMenu({
                 className="flex flex-row items-center gap-2 cursor-pointer"
                 onClick={() => setDialog("routingFee")}
               >
-                <HandCoins className="h-4 w-4" />
+                <HandCoinsIcon className="h-4 w-4" />
                 Set Routing Fee
               </DropdownMenuItem>
             </AlertDialogTrigger>
@@ -81,7 +81,7 @@ export function ChannelDropdownMenu({
               className="flex flex-row items-center gap-2 cursor-pointer"
               onClick={() => setDialog("closeChannel")}
             >
-              <Trash2 className="h-4 w-4 text-destructive" />
+              <Trash2Icon className="h-4 w-4 text-destructive" />
               Close Channel
             </DropdownMenuItem>
           </AlertDialogTrigger>

@@ -1,4 +1,4 @@
-import { ArrowDown } from "lucide-react";
+import { ArrowDownIcon } from "lucide-react";
 import { Outlet } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import BalanceCard from "src/components/BalanceCard";
@@ -33,7 +33,7 @@ export default function ReceiveLayout() {
             title="Receiving Capacity"
             buttonTitle="Increase"
             buttonLink="/channels/incoming"
-            BalanceCardIcon={ArrowDown}
+            BalanceCardIcon={ArrowDownIcon}
             hasChannelManagement
           />
         )}

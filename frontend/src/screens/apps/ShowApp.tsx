@@ -14,7 +14,7 @@ import {
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request"; // build the project for this to appear
 
-import { AlertCircle, PencilIcon, Trash2 } from "lucide-react";
+import { AlertCircleIcon, PencilIcon, Trash2Icon } from "lucide-react";
 import AppAvatar from "src/components/AppAvatar";
 import AppHeader from "src/components/AppHeader";
 import { IsolatedAppTopupDialog } from "src/components/IsolatedAppTopupDialog";
@@ -183,7 +183,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="destructive" size="icon">
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2Icon className="w-4 h-4" />
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
@@ -248,7 +248,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <AlertCircle className="w-3 h-3 ml-2" />
+                              <AlertCircleIcon className="w-3 h-3 ml-2" />
                             </TooltipTrigger>
                             <TooltipContent>
                               This connection does not have its own unique

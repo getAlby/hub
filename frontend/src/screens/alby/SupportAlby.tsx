@@ -1,4 +1,9 @@
-import { Code, PlusCircle, RefreshCw, SparklesIcon } from "lucide-react";
+import {
+  CodeIcon,
+  PlusCircleIcon,
+  RefreshCwIcon,
+  SparklesIcon,
+} from "lucide-react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import ExternalLink from "src/components/ExternalLink";
@@ -182,7 +187,7 @@ function SupportAlby() {
               <ul className="flex flex-col gap-5 text-sm">
                 <li className="flex flex-col">
                   <div className="flex flex-row items-center">
-                    <PlusCircle className="w-4 h-4 mr-2" />
+                    <PlusCircleIcon className="w-4 h-4 mr-2" />
                     Unlock New Features
                   </div>
                   <div className="text-muted-foreground text-xs">
@@ -200,7 +205,7 @@ function SupportAlby() {
                 </li>
                 <li className="flex flex-col ">
                   <div className="flex flex-row items-center">
-                    <RefreshCw className="w-4 h-4 mr-2" />
+                    <RefreshCwIcon className="w-4 h-4 mr-2" />
                     Ensure Continuous Improvement
                   </div>
                   <div className="text-muted-foreground text-xs">
@@ -217,7 +222,7 @@ function SupportAlby() {
                 </li>
                 <li className="flex flex-col ">
                   <div className="flex flex-row items-center">
-                    <Code className="w-4 h-4 mr-2" />
+                    <CodeIcon className="w-4 h-4 mr-2" />
                     Support Open-Source Freedom
                   </div>
                   <div className="text-muted-foreground text-xs">

@@ -1,4 +1,4 @@
-import { CirclePlus } from "lucide-react";
+import { CirclePlusIcon } from "lucide-react";
 import AppHeader from "src/components/AppHeader";
 import SuggestedApps from "src/components/SuggestedApps";
 import { Button } from "src/components/ui/button";
@@ -17,7 +17,7 @@ function AppStore() {
               rel="noreferrer noopener"
             >
               <Button variant="outline">
-                <CirclePlus className="h-4 w-4 mr-2" />
+                <CirclePlusIcon className="h-4 w-4 mr-2" />
                 Submit your app
               </Button>
             </a>

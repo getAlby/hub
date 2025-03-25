@@ -1,4 +1,4 @@
-import { ExternalLinkIcon, Globe } from "lucide-react";
+import { ExternalLinkIcon, GlobeIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import ExternalLink from "src/components/ExternalLink";
 import { AppleIcon } from "src/components/icons/Apple";
@@ -39,7 +39,7 @@ function SuggestedAppCard({
           {webLink && (
             <ExternalLink to={webLink}>
               <Button variant="outline" size="icon">
-                <Globe className="w-4 h-4" />
+                <GlobeIcon className="w-4 h-4" />
               </Button>
             </ExternalLink>
           )}

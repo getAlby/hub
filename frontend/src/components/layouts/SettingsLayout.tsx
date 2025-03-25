@@ -5,7 +5,7 @@ import { buttonVariants } from "src/components/ui/button";
 
 import { useInfo } from "src/hooks/useInfo";
 
-import { Power } from "lucide-react";
+import { PowerIcon } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -71,7 +71,7 @@ export default function SettingsLayout() {
                 size="icon"
                 loading={shuttingDown}
               >
-                {!shuttingDown && <Power className="w-4 h-4" />}
+                {!shuttingDown && <PowerIcon className="w-4 h-4" />}
               </LoadingButton>
             </AlertDialogTrigger>
             <AlertDialogContent>

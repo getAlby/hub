@@ -1,4 +1,4 @@
-import { MoreHorizontal, Trash2 } from "lucide-react";
+import { MoreHorizontalIcon, Trash2Icon } from "lucide-react";
 import React from "react";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader.tsx";
@@ -138,7 +138,7 @@ export default function Peers() {
                     <DropdownMenu modal={false}>
                       <DropdownMenuTrigger asChild>
                         <Button size="icon" variant="ghost">
-                          <MoreHorizontal className="h-4 w-4" />
+                          <MoreHorizontalIcon className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
@@ -146,7 +146,7 @@ export default function Peers() {
                           onClick={() => checkDisconnectPeer(peer)}
                           className="flex flex-row items-center gap-2"
                         >
-                          <Trash2 className="h-4 w-4 text-destructive" />
+                          <Trash2Icon className="h-4 w-4 text-destructive" />
                           Disconnect Peer
                         </DropdownMenuItem>
                       </DropdownMenuContent>

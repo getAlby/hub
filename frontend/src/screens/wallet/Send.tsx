@@ -1,4 +1,4 @@
-import { ClipboardPaste } from "lucide-react";
+import { ClipboardPasteIcon } from "lucide-react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import Loading from "src/components/Loading";
@@ -92,7 +92,7 @@ export default function Send() {
           className="px-2"
           onClick={paste}
         >
-          <ClipboardPaste className="w-4 h-4" />
+          <ClipboardPasteIcon className="w-4 h-4" />
         </Button>
       </div>
       <LoadingButton loading={isLoading} type="submit" disabled={!recipient}>

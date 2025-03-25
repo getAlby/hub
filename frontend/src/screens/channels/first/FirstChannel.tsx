@@ -1,4 +1,4 @@
-import { ChevronDown, Info } from "lucide-react";
+import { ChevronDown, InfoIcon } from "lucide-react";
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
@@ -121,7 +121,7 @@ export function FirstChannel() {
                   <TableCell className="font-medium p-3 flex items-center gap-2">
                     Duration
                     <ExternalLink to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/how-to-open-a-payment-channel#which-lightning-service-provider-to-choose">
-                      <Info className="w-4 h-4 text-muted-foreground" />
+                      <InfoIcon className="w-4 h-4 text-muted-foreground" />
                     </ExternalLink>
                   </TableCell>
 
