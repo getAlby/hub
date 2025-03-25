@@ -141,7 +141,7 @@ export function AppSidebar() {
             <HealthIndicator />
           </div>
         ) : (
-          <Link to="/home">
+          <Link to="/home" className="py-4">
             <AlbyHubIcon className="w-8 h-8 text-sidebar-foreground" />
           </Link>
         )}
