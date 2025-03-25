@@ -95,6 +95,22 @@ _If you get a blank screen, try running in your normal terminal (outside of vsco
 
     $ go test ./... -run TestHandleGetInfoEvent
 
+#### Testing with PostgreSQL
+
+By default, sqlite is used for testing. It is also possible to run the tests with PostgreSQL.
+
+The tests use [pgtestdb](https://github.com/peterldowns/pgtestdb) to set up a temporary PostgreSQL database, which requires a running PostgreSQL server. Follow your OS instructions to install PostgreSQL, or use the official [Docker image](https://hub.docker.com/_/postgres).
+
+See the [docker compose file](./tests/db/postgres/docker-compose.yml) for an easy way to get started.
+
+When PostgreSQL is installed and running, set the `TEST_DATABASE_URI` environment variable to the PostgreSQL connection string. For example:
+
+    $ export TEST_DATABASE_URI="postgresql://user:password@localhost:5432/postgres"
+
+Note that the PostgreSQL user account must be granted appropriate permissions to create new databases. When the tests complete, the temporary database will be removed.
+
+**Do not** use a production database. It is preferable to launch a dedicated PostgreSQL instance for testing purposes.
+
 #### Mocking
 
 We use [testify/mock](https://github.com/stretchr/testify) to facilitate mocking in tests. Instead of writing mocks manually, we generate them using [vektra/mockery](https://github.com/vektra/mockery). To regenerate them, [install mockery](https://vektra.github.io/mockery/latest/installation) and run it in the project's root directory:
