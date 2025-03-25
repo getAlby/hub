@@ -237,7 +237,7 @@ export function AppSidebar() {
                   <>
                     <DropdownMenuSeparator />
                     <DropdownMenuGroup>
-                      <UpgradeDialog asChild>
+                      <UpgradeDialog>
                         <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                           <Sparkles className="w-4 h-4 mr-2" />
                           Upgrade to Pro

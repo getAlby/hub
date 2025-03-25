@@ -21,13 +21,9 @@ import { useInfo } from "src/hooks/useInfo";
 
 interface UpgradeDialogProps {
   children: ReactNode;
-  asChild?: boolean;
 }
 
-export const UpgradeDialog = ({
-  children,
-  asChild = false,
-}: UpgradeDialogProps) => {
+export const UpgradeDialog = ({ children }: UpgradeDialogProps) => {
   const { data: albyMe } = useAlbyMe();
   const { data: info } = useInfo();
 
@@ -42,7 +38,7 @@ export const UpgradeDialog = ({
 
   return (
     <Dialog>
-      <DialogTrigger asChild={asChild}>{children}</DialogTrigger>
+      <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex flex-row gap-2 items-center">
