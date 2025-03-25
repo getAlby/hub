@@ -2,22 +2,12 @@ package controllers
 
 import (
 	"context"
-	"crypto/rand"
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"slices"
 	"sync"
 	"testing"
-	"time"
 
-	"github.com/btcsuite/btcd/btcec/v2/ecdsa"
-	"github.com/btcsuite/btcd/chaincfg"
-	"github.com/decred/dcrd/dcrec/secp256k1/v4"
-	"github.com/lightningnetwork/lnd/lnwire"
-	"github.com/lightningnetwork/lnd/zpay32"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -445,6 +435,26 @@ func TestHandleMultiPayInvoiceEvent_IsolatedApp_ConcurrentPayments(t *testing.T)
 	app.Isolated = true
 	svc.DB.Save(&app)
 
+	// force delay inside transaction
+	if svc.DB.Dialector.Name() == "postgres" {
+		err = svc.DB.Exec(`
+CREATE OR REPLACE FUNCTION slow_down_query()
+RETURNS TRIGGER AS $slow_down_query$
+BEGIN
+    -- Introduce a delay of 5 seconds
+    PERFORM pg_sleep(5);
+    RETURN NEW;
+END;
+$slow_down_query$ LANGUAGE plpgsql;
+
+CREATE TRIGGER slow_down_query
+AFTER INSERT ON transactions
+FOR EACH ROW
+EXECUTE PROCEDURE slow_down_query();`).Error
+
+		require.NoError(t, err)
+	}
+
 	svc.DB.Create(&db.Transaction{
 		AppId: &app.ID,
 		State: constants.TRANSACTION_STATE_SETTLED,
@@ -461,85 +471,9 @@ func TestHandleMultiPayInvoiceEvent_IsolatedApp_ConcurrentPayments(t *testing.T)
 	err = svc.DB.Create(appPermission).Error
 	assert.NoError(t, err)
 
-	tm := time.Now()
-	const amountMsat = 123000
-
-	const nInvoices = 80
-
-	type Invoice struct {
-		Decoded     *zpay32.Invoice
-		Encoded     string
-		PaymentHash string
-	}
-
-	newDummyInvoice := func(amountMsat uint64, descr string, tm time.Time) (*Invoice, error) {
-		random := make([]byte, 32)
-		_, err := rand.Read(random)
-		if err != nil {
-			return nil, fmt.Errorf("failed to read random bytes: %w", err)
-		}
-
-		phash := sha256.Sum256(random)
-
-		privKey, err := secp256k1.GeneratePrivateKey()
-		if err != nil {
-			return nil, fmt.Errorf("failed to generate private key: %w", err)
-		}
-
-		inv, err := zpay32.NewInvoice(&chaincfg.TestNet3Params, phash, tm,
-			zpay32.Amount(lnwire.MilliSatoshi(amountMsat)),
-			zpay32.Description(descr),
-		)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create invoice: %w", err)
-		}
-
-		invoiceStr, err := inv.Encode(zpay32.MessageSigner{
-			SignCompact: func(msg []byte) ([]byte, error) {
-				return ecdsa.SignCompact(privKey, msg, true), nil
-			},
-		})
-		if err != nil {
-			return nil, fmt.Errorf("failed to encode invoice: %w", err)
-		}
-
-		return &Invoice{
-			Decoded:     inv,
-			Encoded:     invoiceStr,
-			PaymentHash: hex.EncodeToString(phash[:]),
-		}, nil
-	}
-
-	invoices := make([]string, 0, nInvoices)
-	for i := 0; i < nInvoices; i++ {
-		descr := fmt.Sprintf("invoice %d", i)
-		inv, err := newDummyInvoice(amountMsat, descr, tm)
-		require.NoError(t, err)
-
-		invoices = append(invoices, inv.Encoded)
-	}
-
-	type multiPayInvoiceElement struct {
-		Invoice string `json:"invoice"`
-	}
-
-	type multiPayInvoiceParams struct {
-		Invoices []multiPayInvoiceElement `json:"invoices"`
-	}
-
-	invoiceElems := make([]multiPayInvoiceElement, 0, len(invoices))
-	for _, inv := range invoices {
-		invoiceElems = append(invoiceElems, multiPayInvoiceElement{Invoice: inv})
-	}
-
-	params := multiPayInvoiceParams{Invoices: invoiceElems}
-	paramsJSON, err := json.Marshal(params)
-	require.NoError(t, err)
-
-	nip47Request := &models.Request{
-		Method: "multi_pay_invoice",
-		Params: paramsJSON,
-	}
+	nip47Request := &models.Request{}
+	err = json.Unmarshal([]byte(nip47MultiPayJson), nip47Request)
+	assert.NoError(t, err)
 
 	responses := []*models.Response{}
 
@@ -558,7 +492,7 @@ func TestHandleMultiPayInvoiceEvent_IsolatedApp_ConcurrentPayments(t *testing.T)
 	NewTestNip47Controller(svc).
 		HandleMultiPayInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
 
-	require.Equal(t, nInvoices, len(responses))
+	require.Equal(t, 2, len(responses))
 
 	// we can't guarantee which request was processed first
 	// so put the successful one at the front
