@@ -14,20 +14,19 @@ import {
   ShieldAlertIcon,
   ShieldCheckIcon,
   Sparkles,
-  UserCog,
   WalletIcon,
 } from "lucide-react";
 import React from "react";
 
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import ExternalLink from "src/components/ExternalLink";
+import { AlbyIcon } from "src/components/icons/Alby";
 import { AlbyHubIcon } from "src/components/icons/AlbyHubIcon";
 import { AlbyHubLogo } from "src/components/icons/AlbyHubLogo";
 import SidebarHint from "src/components/SidebarHint";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -210,21 +209,24 @@ export function AppSidebar() {
                 sideOffset={4}
               >
                 {info?.albyAccountConnected && (
-                  <DropdownMenuLabel className="p-0 font-normal">
-                    <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                      <UserAvatar />
-                      <div className="grid flex-1 text-left text-sm leading-tight">
-                        <span className="truncate font-semibold">
-                          {albyMe?.name || albyMe?.email}
-                        </span>
-                        <span className="truncate text-xs">
-                          {albyMe?.lightning_address}
-                        </span>
+                  <>
+                    <DropdownMenuLabel className="p-0 font-normal">
+                      <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                        <UserAvatar />
+                        <div className="grid flex-1 text-left text-sm leading-tight">
+                          <span className="truncate font-semibold">
+                            {albyMe?.name || albyMe?.email}
+                          </span>
+                          <span className="truncate text-xs">
+                            {albyMe?.lightning_address}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  </DropdownMenuLabel>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                  </>
                 )}
-                {!info?.albyAccountConnected && (
+                {!info?.albyAccountConnected ? (
                   <DropdownMenuItem>
                     <Link
                       to="/alby/account"
@@ -234,32 +236,27 @@ export function AppSidebar() {
                       <p>Connect Alby Account</p>
                     </Link>
                   </DropdownMenuItem>
-                )}
-                {!albyMe?.subscription.plan_code && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuGroup>
-                      <UpgradeDialog>
-                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                          <Sparkles className="w-4 h-4 mr-2" />
-                          Upgrade to Pro
-                        </DropdownMenuItem>
-                      </UpgradeDialog>
-                    </DropdownMenuGroup>
-                  </>
-                )}
-                <DropdownMenuSeparator />
-                <DropdownMenuGroup>
+                ) : (
                   <DropdownMenuItem>
                     <ExternalLink
                       to="https://getalby.com/user/edit"
                       className="flex items-center"
                     >
-                      <UserCog className="w-4 h-4 mr-2" />
-                      Manage Account
+                      <AlbyIcon className="w-4 h-4 mr-2" />
+                      Alby Account Settings
                     </ExternalLink>
                   </DropdownMenuItem>
-                </DropdownMenuGroup>
+                )}
+                {!albyMe?.subscription.plan_code && (
+                  <>
+                    <UpgradeDialog>
+                      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        Upgrade to Pro
+                      </DropdownMenuItem>
+                    </UpgradeDialog>
+                  </>
+                )}
                 {_isHttpMode && (
                   <>
                     <DropdownMenuSeparator />
