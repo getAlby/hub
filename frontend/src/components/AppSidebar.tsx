@@ -137,8 +137,10 @@ export function AppSidebar() {
             <Link to="/home">
               <AlbyHubLogo className="text-sidebar-foreground h-12" />
             </Link>
-            <AppVersion />
-            <HealthIndicator />
+            <div className="flex gap-3 items-center">
+              <AppVersion />
+              <HealthIndicator />
+            </div>
           </div>
         ) : (
           <Link to="/home" className="py-4">
