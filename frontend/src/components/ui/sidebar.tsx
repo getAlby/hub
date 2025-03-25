@@ -1,6 +1,6 @@
-import { ViewVerticalIcon } from "@radix-ui/react-icons";
 import { Slot } from "@radix-ui/react-slot";
 import { VariantProps, cva } from "class-variance-authority";
+import { Columns2Icon } from "lucide-react";
 import * as React from "react";
 import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
@@ -285,7 +285,7 @@ const SidebarTrigger = React.forwardRef<
       }}
       {...props}
     >
-      <ViewVerticalIcon />
+      <Columns2Icon className="w-4 h-4" />
       <span className="sr-only">Toggle Sidebar</span>
     </Button>
   );
