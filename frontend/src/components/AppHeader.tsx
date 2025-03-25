@@ -9,12 +9,7 @@ type Props = {
   breadcrumb?: boolean;
 };
 
-function AppHeader({
-  title,
-  description = "",
-  contentRight,
-  breadcrumb = true,
-}: Props) {
+function AppHeader({ title, description = "", contentRight }: Props) {
   return (
     <>
       <header className="flex flex-row items-center border-b border-border pb-3 lg:pb-6 gap-2">
