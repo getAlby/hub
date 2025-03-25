@@ -8,6 +8,7 @@ import AppCard from "src/components/connections/AppCard";
 import { Button } from "src/components/ui/button";
 import { useApps } from "src/hooks/useApps";
 import { useInfo } from "src/hooks/useInfo";
+import { useIsDesktop } from "src/hooks/useMediaQuery";
 import { useUnusedApps } from "src/hooks/useUnusedApps";
 
 const albyConnectionName = "getalby.com";
@@ -15,6 +16,7 @@ const albyConnectionName = "getalby.com";
 function AppList() {
   const { data: apps } = useApps();
   const { data: info } = useInfo();
+  const isDesktop = useIsDesktop();
   const unusedApps = useUnusedApps();
 
   if (!apps || !unusedApps || !info) {
@@ -39,16 +41,23 @@ function AppList() {
           <>
             {!!unusedApps.length && (
               <Link to="/apps/cleanup">
-                <Button variant="outline">
-                  <Trash className="h-4 w-4 mr-2" />
-                  Cleanup Unused
-                </Button>
+                {isDesktop ? (
+                  <Button variant="outline">
+                    <Trash className="h-4 w-4 mr-2" />
+                    Cleanup Unused
+                  </Button>
+                ) : (
+                  <Button variant="outline">
+                    <Trash className="w-4 h-4 mr-2" />
+                    Cleanup
+                  </Button>
+                )}
               </Link>
             )}
             <Link to="/apps/new">
               <Button>
                 <CirclePlus className="h-4 w-4 mr-2" />
-                Add Connection
+                {isDesktop ? "Add Connection" : "Add"}
               </Button>
             </Link>
           </>
