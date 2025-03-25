@@ -195,14 +195,22 @@ func TestHandleMultiPayKeysendEvent_IsolatedApp_ConcurrentPayments(t *testing.T)
 	err = svc.DB.Create(appPermission).Error
 	assert.NoError(t, err)
 
+	svc.DB.Create(&db.Transaction{
+		AppId: &app.ID,
+		State: constants.TRANSACTION_STATE_SETTLED,
+		Type:  constants.TRANSACTION_TYPE_INCOMING,
+		// keysends paid are 123000 millisats
+		AmountMsat: 200000,
+	})
+
 	// force delay inside transaction
 	if svc.DB.Dialector.Name() == "postgres" {
 		err = svc.DB.Exec(`
 CREATE OR REPLACE FUNCTION slow_down_query()
 RETURNS TRIGGER AS $slow_down_query$
 BEGIN
-    -- Introduce a delay of 5 seconds
-    PERFORM pg_sleep(5);
+    -- Introduce a delay of 1 second
+    PERFORM pg_sleep(1);
     RETURN NEW;
 END;
 $slow_down_query$ LANGUAGE plpgsql;
@@ -214,14 +222,6 @@ EXECUTE PROCEDURE slow_down_query();`).Error
 
 		require.NoError(t, err)
 	}
-
-	svc.DB.Create(&db.Transaction{
-		AppId: &app.ID,
-		State: constants.TRANSACTION_STATE_SETTLED,
-		Type:  constants.TRANSACTION_TYPE_INCOMING,
-		// keysends paid are 123000 millisats
-		AmountMsat: 200000,
-	})
 
 	nip47Request := &models.Request{}
 	err = json.Unmarshal([]byte(nip47MultiPayKeysendJson), nip47Request)
