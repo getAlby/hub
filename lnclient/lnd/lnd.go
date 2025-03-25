@@ -53,9 +53,22 @@ func NewLNDService(ctx context.Context, eventPublisher events.EventPublisher, ln
 		logger.Logger.WithError(err).Error("Failed to create new LND client")
 		return nil, err
 	}
-	nodeInfo, err := fetchNodeInfo(ctx, lndClient)
+
+	var nodeInfo *lnclient.NodeInfo
+	maxRetries := 5
+	for i := range maxRetries {
+		nodeInfo, err = fetchNodeInfo(ctx, lndClient)
+		if err == nil {
+			break
+		}
+		logger.Logger.WithFields(logrus.Fields{
+			"iteration": i,
+		}).WithError(err).Error("Failed to connect to LND, retrying in 10s")
+		time.Sleep(10 * time.Second)
+	}
+
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to fetch node info")
+		logger.Logger.WithError(err).Error("Failed to connect to LND on final attempt, not attempting further retries")
 		return nil, err
 	}
 
