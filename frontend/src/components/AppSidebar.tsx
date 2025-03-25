@@ -313,8 +313,6 @@ export function NavSecondary({
               </SidebarMenuButton>
             </SidebarMenuItem>
           </ExternalLink>
-          {}
-          {/* Does his still make sense? Can we limit that to desktop users? */}
           {!albyMe?.hub.name && info?.albyAccountConnected && (
             <ExternalLink to="https://getalby.com/subscription/new">
               <SidebarMenuItem>
