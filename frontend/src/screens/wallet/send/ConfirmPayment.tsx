@@ -80,10 +80,7 @@ export default function ConfirmPayment() {
           <p className="text-xl font-bold slashed-zero">
             {new Intl.NumberFormat().format(amount || invoice.satoshi)} sats
           </p>
-          <FormattedFiatAmount
-            amount={amount || invoice.satoshi}
-            className="text-muted-foreground"
-          />
+          <FormattedFiatAmount amount={amount || invoice.satoshi} />
         </div>
         {invoice.description && (
           <div className="mt-2">

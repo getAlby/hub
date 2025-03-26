@@ -20,7 +20,7 @@ export default function FormattedFiatAmount({
   }
 
   return (
-    <div className={cn("text-sm", className)}>
+    <div className={cn("text-sm text-muted-foreground", className)}>
       {!bitcoinRate ? (
         <Skeleton className="w-20">&nbsp;</Skeleton>
       ) : (

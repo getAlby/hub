@@ -116,10 +116,7 @@ export function Bitrefill() {
                 <span className="font-medium slashed-zero">
                   {new Intl.NumberFormat().format(invoice?.satoshi || 0)} sats
                 </span>
-                <FormattedFiatAmount
-                  className="text-muted-foreground"
-                  amount={invoice?.satoshi || 0}
-                />
+                <FormattedFiatAmount amount={invoice?.satoshi || 0} />
               </div>
             </div>
           </div>

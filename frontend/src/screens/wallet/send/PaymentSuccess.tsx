@@ -43,10 +43,7 @@ export default function PaymentSuccess() {
             <p className="text-xl font-bold slashed-zero">
               {new Intl.NumberFormat().format(state.amount)} sats
             </p>
-            <FormattedFiatAmount
-              amount={state.amount}
-              className="text-muted-foreground"
-            />
+            <FormattedFiatAmount amount={state.amount} />
           </div>
           <Button onClick={copy} variant="outline">
             <CopyIcon className="w-4 h-4 mr-2" />
