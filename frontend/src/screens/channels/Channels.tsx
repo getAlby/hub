@@ -55,7 +55,6 @@ import { ONCHAIN_DUST_SATS } from "src/constants.ts";
 import { useBalances } from "src/hooks/useBalances.ts";
 import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
-import { useIsDesktop } from "src/hooks/useMediaQuery.ts";
 import { useNodeConnectionInfo } from "src/hooks/useNodeConnectionInfo.ts";
 import { useSyncWallet } from "src/hooks/useSyncWallet.ts";
 import { copyToClipboard } from "src/lib/clipboard.ts";
@@ -95,7 +94,6 @@ export default function Channels() {
   }, [balances, channels, hasOpenedSwapDialog, searchParams]);
 
   const { toast } = useToast();
-  const isDesktop = useIsDesktop();
 
   const nodeHealth = channels ? getNodeHealth(channels) : 0;
 
@@ -140,20 +138,19 @@ export default function Channels() {
               />
               <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
-                  {isDesktop ? (
+                  <>
                     <Button
-                      className="inline-flex"
+                      className="hidden lg:inline-flex"
                       variant="outline"
                       size="default"
                     >
                       Advanced
                       <ChevronDown />
                     </Button>
-                  ) : (
-                    <Button variant="outline" size="icon">
+                    <Button className="lg:hidden" variant="outline" size="icon">
                       <Settings2 className="w-4 h-4" />
                     </Button>
-                  )}
+                  </>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56">
                   <DropdownMenuGroup>
@@ -588,11 +585,8 @@ export default function Channels() {
             />
           )}
 
-          {isDesktop ? (
-            <ChannelsTable channels={channels} nodes={nodes} />
-          ) : (
-            <ChannelsCards channels={channels} nodes={nodes} />
-          )}
+          <ChannelsTable channels={channels} nodes={nodes} />
+          <ChannelsCards channels={channels} nodes={nodes} />
         </>
       )}
     </>

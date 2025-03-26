@@ -2,11 +2,8 @@ import { CirclePlus } from "lucide-react";
 import AppHeader from "src/components/AppHeader";
 import SuggestedApps from "src/components/SuggestedApps";
 import { Button } from "src/components/ui/button";
-import { useIsDesktop } from "src/hooks/useMediaQuery";
 
 function AppStore() {
-  const isDesktop = useIsDesktop();
-
   return (
     <>
       <AppHeader
@@ -19,16 +16,13 @@ function AppStore() {
               target="_blank"
               rel="noreferrer noopener"
             >
-              {isDesktop ? (
-                <Button variant="outline">
-                  <CirclePlus className="h-4 w-4 mr-2" />
-                  Submit your app
-                </Button>
-              ) : (
-                <Button variant="outline" size="icon">
-                  <CirclePlus className="h-4 w-4" />
-                </Button>
-              )}
+              <Button className="hidden lg:inline-flex" variant="outline">
+                <CirclePlus className="h-4 w-4 mr-2" />
+                Submit your app
+              </Button>
+              <Button className="lg:hidden" variant="outline" size="icon">
+                <CirclePlus className="h-4 w-4" />
+              </Button>
             </a>
           </>
         }

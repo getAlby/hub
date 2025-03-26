@@ -8,7 +8,6 @@ import AppCard from "src/components/connections/AppCard";
 import { Button } from "src/components/ui/button";
 import { useApps } from "src/hooks/useApps";
 import { useInfo } from "src/hooks/useInfo";
-import { useIsDesktop } from "src/hooks/useMediaQuery";
 import { useUnusedApps } from "src/hooks/useUnusedApps";
 
 const albyConnectionName = "getalby.com";
@@ -16,7 +15,6 @@ const albyConnectionName = "getalby.com";
 function AppList() {
   const { data: apps } = useApps();
   const { data: info } = useInfo();
-  const isDesktop = useIsDesktop();
   const unusedApps = useUnusedApps();
 
   if (!apps || !unusedApps || !info) {
@@ -41,29 +39,23 @@ function AppList() {
           <>
             {!!unusedApps.length && (
               <Link to="/apps/cleanup">
-                {isDesktop ? (
-                  <Button variant="outline">
-                    <Trash className="h-4 w-4 mr-2" />
-                    Cleanup Unused
-                  </Button>
-                ) : (
-                  <Button variant="outline" size="icon">
-                    <Trash className="w-4 h-4" />
-                  </Button>
-                )}
+                <Button className="hidden lg:inline-flex" variant="outline">
+                  <Trash className="h-4 w-4 mr-2" />
+                  Cleanup Unused
+                </Button>
+                <Button className="lg:hidden" variant="outline" size="icon">
+                  <Trash className="w-4 h-4" />
+                </Button>
               </Link>
             )}
             <Link to="/apps/new">
-              {isDesktop ? (
-                <Button>
-                  <CirclePlus className="h-4 w-4 mr-2" />
-                  Add Connection
-                </Button>
-              ) : (
-                <Button size="icon">
-                  <CirclePlus className="w-4 h-4" />
-                </Button>
-              )}
+              <Button className="hidden lg:inline-flex">
+                <CirclePlus className="h-4 w-4 mr-2" />
+                Add Connection
+              </Button>
+              <Button className="lg:hidden" size="icon">
+                <CirclePlus className="w-4 h-4" />
+              </Button>
             </Link>
           </>
         }
