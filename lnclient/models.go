@@ -66,7 +66,7 @@ type LNClient interface {
 	GetNewOnchainAddress(ctx context.Context) (string, error)
 	ResetRouter(key string) error
 	GetOnchainBalance(ctx context.Context) (*OnchainBalanceResponse, error)
-	GetBalances(ctx context.Context) (*BalancesResponse, error)
+	GetBalances(ctx context.Context, includeInactiveChannels bool) (*BalancesResponse, error)
 	RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, sendAll bool) (txId string, err error)
 	SendPaymentProbes(ctx context.Context, invoice string) error
 	SendSpontaneousPaymentProbes(ctx context.Context, amountMsat uint64, nodeId string) error

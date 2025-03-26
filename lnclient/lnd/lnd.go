@@ -53,9 +53,22 @@ func NewLNDService(ctx context.Context, eventPublisher events.EventPublisher, ln
 		logger.Logger.WithError(err).Error("Failed to create new LND client")
 		return nil, err
 	}
-	nodeInfo, err := fetchNodeInfo(ctx, lndClient)
+
+	var nodeInfo *lnclient.NodeInfo
+	maxRetries := 5
+	for i := range maxRetries {
+		nodeInfo, err = fetchNodeInfo(ctx, lndClient)
+		if err == nil {
+			break
+		}
+		logger.Logger.WithFields(logrus.Fields{
+			"iteration": i,
+		}).WithError(err).Error("Failed to connect to LND, retrying in 10s")
+		time.Sleep(10 * time.Second)
+	}
+
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to fetch node info")
+		logger.Logger.WithError(err).Error("Failed to connect to LND on final attempt, not attempting further retries")
 		return nil, err
 	}
 
@@ -1083,7 +1096,7 @@ func (svc *LNDService) GetLogOutput(ctx context.Context, maxLen int) ([]byte, er
 	return slicedBytes, nil
 }
 
-func (svc *LNDService) GetBalances(ctx context.Context) (*lnclient.BalancesResponse, error) {
+func (svc *LNDService) GetBalances(ctx context.Context, includeInactiveChannels bool) (*lnclient.BalancesResponse, error) {
 	onchainBalance, err := svc.GetOnchainBalance(ctx)
 	if err != nil {
 		return nil, err
@@ -1104,7 +1117,7 @@ func (svc *LNDService) GetBalances(ctx context.Context) (*lnclient.BalancesRespo
 
 	for _, channel := range resp.Channels {
 		// Unnecessary since ListChannels only returns active channels
-		if channel.Active {
+		if channel.Active || includeInactiveChannels {
 			channelSpendable := max(channel.LocalBalance*1000-int64(channel.LocalConstraints.ChanReserveSat*1000), 0)
 			channelReceivable := max(channel.RemoteBalance*1000-int64(channel.RemoteConstraints.ChanReserveSat*1000), 0)
 

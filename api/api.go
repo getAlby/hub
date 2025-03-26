@@ -694,7 +694,7 @@ func (api *api) GetBalances(ctx context.Context) (*BalancesResponse, error) {
 	if api.svc.GetLNClient() == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	balances, err := api.svc.GetLNClient().GetBalances(ctx)
+	balances, err := api.svc.GetLNClient().GetBalances(ctx, false)
 	if err != nil {
 		return nil, err
 	}

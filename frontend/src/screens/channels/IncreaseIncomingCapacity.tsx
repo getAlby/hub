@@ -227,11 +227,10 @@ function NewChannelInternal({
         />
         <p className="text-muted-foreground">
           Alby Hub works with selected service providers (LSPs) which provide
-          the best network connectivity and liquidity to receive payments. The
-          channel typically stays open as long as there is usage.{" "}
+          the best network connectivity and liquidity to receive payments.{" "}
           <ExternalLink
             className="underline"
-            to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/how-to-open-a-channel"
+            to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/how-to-open-a-payment-channel"
           >
             Learn more
           </ExternalLink>
@@ -392,8 +391,13 @@ function NewChannelInternal({
                     Public Channel
                   </Label>
                   <p className="text-xs text-muted-foreground">
-                    Only enable if you want to receive keysend payments. (e.g.
-                    podcasting)
+                    Not recommended for most users.{" "}
+                    <ExternalLink
+                      className="underline"
+                      to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/should-i-open-a-private-or-public-channel"
+                    >
+                      Learn more
+                    </ExternalLink>
                   </p>
                 </div>
               </div>
