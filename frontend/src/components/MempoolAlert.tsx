@@ -1,4 +1,4 @@
-import { TriangleAlertIcon } from "lucide-react";
+import { AlertCircleIcon } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { ExternalLinkButton } from "src/components/ui/button";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
@@ -27,7 +27,7 @@ export function MempoolAlert() {
   }
   return (
     <Alert>
-      <TriangleAlertIcon className="h-4 w-4" />
+      <AlertCircleIcon className="h-4 w-4" />
       <AlertTitle>
         Mempool Fees are currently{" "}
         <span className="font-semibold">{matchedFee[0]}</span>
@@ -40,13 +40,6 @@ export function MempoolAlert() {
             size={"sm"}
           >
             Learn more
-          </ExternalLinkButton>
-          <ExternalLinkButton
-            to="https://mempool.space"
-            size={"sm"}
-            variant="secondary"
-          >
-            View fees on mempool
           </ExternalLinkButton>
         </div>
       </AlertDescription>

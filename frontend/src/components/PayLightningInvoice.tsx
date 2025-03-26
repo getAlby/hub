@@ -1,12 +1,16 @@
 import { Invoice, fiat } from "@getalby/lightning-tools";
 import { CopyIcon, LightbulbIcon } from "lucide-react";
-import React from "react";
+import React, { useState } from "react";
 import { LightningIcon } from "src/components/icons/Lightning";
 import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
 import { Button, ExternalLinkButton } from "src/components/ui/button";
+import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
+import { useChannels } from "src/hooks/useChannels";
 import { copyToClipboard } from "src/lib/clipboard";
+import useChannelOrderStore from "src/state/ChannelOrderStore";
+import { request } from "src/utils/request";
 
 type PayLightningInvoiceProps = {
   invoice: string;
@@ -17,6 +21,8 @@ export function PayLightningInvoice({ invoice }: PayLightningInvoiceProps) {
     pr: invoice,
   }).satoshi;
   const [fiatAmount, setFiatAmount] = React.useState(0);
+  const { data: channels, mutate: reloadChannels } = useChannels();
+
   React.useEffect(() => {
     fiat
       .getFiatValue({ satoshi: amount, currency: "USD" })
@@ -27,11 +33,48 @@ export function PayLightningInvoice({ invoice }: PayLightningInvoiceProps) {
     copyToClipboard(invoice, toast);
   };
 
+  const [isPaying, setPaying] = useState(false);
+
+  const handlePayment = async () => {
+    try {
+      setPaying(true);
+
+      await request(`/api/payments/${invoice}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      useChannelOrderStore.getState().updateOrder({
+        status: "paid",
+      });
+
+      reloadChannels();
+
+      toast({
+        title: "Channel successfully requested",
+      });
+    } catch (e) {
+      toast({
+        variant: "destructive",
+        title: "Failed to send: " + e,
+      });
+      console.error(e);
+    } finally {
+      setPaying(false);
+    }
+  };
+
+  const canPayInternally =
+    channels &&
+    channels.some((channel) => channel.localSpendableBalance / 1000 > amount);
+
   return (
-    <div className="w-96 flex flex-col gap-6 p-6 items-center justify-center">
-      <div className="flex items-center justify-center gap-2 text-muted-foreground">
+    <div className="w-80 flex flex-col gap-6 px-8 py-6 items-center justify-center border rounded-xl">
+      <div className="flex items-center justify-center gap-2">
         <Loading variant="loader" />
-        <p>Waiting for lightning payment...</p>
+        <p className="text-secondary-foreground">Waiting for payment...</p>
       </div>
       <div className="w-full relative flex items-center justify-center">
         <QRCode value={invoice} className="w-full" />
@@ -43,7 +86,7 @@ export function PayLightningInvoice({ invoice }: PayLightningInvoiceProps) {
         <p className="text-lg font-semibold">
           {new Intl.NumberFormat().format(amount)} sats
         </p>
-        <p className="flex flex-col items-center justify-center">
+        <p className="flex flex-col items-center justify-center text-muted-foreground">
           {new Intl.NumberFormat("en-US", {
             currency: "USD",
             style: "currency",
@@ -54,18 +97,33 @@ export function PayLightningInvoice({ invoice }: PayLightningInvoiceProps) {
         <Button
           onClick={copy}
           variant="outline"
+          size={"sm"}
           className="flex-1 flex gap-2 items-center justify-center"
         >
           <CopyIcon className="w-4 h-4 mr-2" />
-          Copy Invoice
+          Copy
         </Button>
-        <ExternalLinkButton
-          to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/wallet/open-your-first-channel"
-          variant="secondary"
-          className="flex-1 flex gap-2 items-center justify-center"
-        >
-          <LightbulbIcon className="w-4 h-4" /> How to pay
-        </ExternalLinkButton>
+        <>
+          {canPayInternally ? (
+            <LoadingButton
+              loading={isPaying}
+              className="whitespace-nowrap"
+              size={"sm"}
+              onClick={handlePayment}
+            >
+              Pay and open channel
+            </LoadingButton>
+          ) : (
+            <ExternalLinkButton
+              to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/wallet/open-your-first-channel"
+              variant="secondary"
+              className="flex-1 flex gap-2 items-center justify-center"
+            >
+              <LightbulbIcon className="w-4 h-4" />
+              How to pay
+            </ExternalLinkButton>
+          )}
+        </>
       </div>
     </div>
   );
