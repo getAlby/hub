@@ -81,10 +81,19 @@ module.exports = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        "easter-egg-fly-right": {
+          "0%": {
+            transform: "translateX(-100px)",
+          },
+          "100%": {
+            transform: "translateX(110vw)",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "easter-egg-fly-right": "easter-egg-fly-right 1s linear forwards",
         "spin-slow": "spin 3s linear infinite",
         highlight: "pulse 1s 2 cubic-bezier(0.4, 0, 0.6, 1)",
       },

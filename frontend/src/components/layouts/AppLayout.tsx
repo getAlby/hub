@@ -25,9 +25,8 @@ import {
   useLocation,
   useNavigate,
 } from "react-router-dom";
-import SidebarHint from "src/components/SidebarHint";
-import UserAvatar from "src/components/UserAvatar";
 import { AlbyHubLogo } from "src/components/icons/AlbyHubLogo";
+import SidebarHint from "src/components/SidebarHint";
 import { Button } from "src/components/ui/button";
 import {
   DropdownMenu,
@@ -44,8 +43,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "src/components/ui/tooltip";
+import UserAvatar from "src/components/UserAvatar";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 
+import {
+  FlyingBees,
+  FlyingBeesRef,
+} from "src/components/easter-eggs/FlyingBees";
 import { UpgradeDialog } from "src/components/UpgradeDialog";
 import { useAlbyInfo } from "src/hooks/useAlbyInfo";
 import { useHealthCheck } from "src/hooks/useHealthCheck";
@@ -65,6 +69,7 @@ export default function AppLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const flyingBeesRef = React.useRef<FlyingBeesRef>(null);
   useRemoveSuccessfulChannelOrder();
   useNotifyReceivedPayments();
 
@@ -133,7 +138,16 @@ export default function AppLayout() {
   function MainMenuContent() {
     return (
       <>
-        <MenuItem to="/home">
+        <FlyingBees ref={flyingBeesRef} />
+        <MenuItem
+          to="/home"
+          onClick={(e) => {
+            if (location.pathname === "/home") {
+              flyingBeesRef.current?.addFlyingBee();
+              e.preventDefault();
+            }
+          }}
+        >
           <Home className="h-4 w-4" />
           Home
         </MenuItem>
@@ -344,6 +358,7 @@ function AppVersion() {
 
 function HealthIndicator() {
   const { data: health } = useHealthCheck();
+
   if (!health) {
     return null;
   }
