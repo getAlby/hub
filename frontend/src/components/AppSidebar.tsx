@@ -65,7 +65,7 @@ export function AppSidebar() {
   const { data: albyMe } = useAlbyMe();
 
   const { data: info, mutate: refetchInfo } = useInfo();
-  const { isMobile, state } = useSidebar();
+  const { isMobile, state, setOpenMobile } = useSidebar();
   const { hasChannelManagement } = useInfo();
   const navigate = useNavigate();
 
@@ -154,7 +154,11 @@ export function AppSidebar() {
               {data.navMain.map((item) => (
                 <NavLink key={item.title} to={item.url} end>
                   {({ isActive }) => (
-                    <SidebarMenuItem>
+                    <SidebarMenuItem
+                      onClick={() => {
+                        setOpenMobile(false);
+                      }}
+                    >
                       <SidebarMenuButton isActive={isActive}>
                         <item.icon />
                         <span>{item.title}</span>
@@ -287,6 +291,7 @@ export function NavSecondary({
 } & React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
   const { data: albyMe } = useAlbyMe();
   const { data: info } = useInfo();
+  const { setOpenMobile } = useSidebar();
 
   return (
     <SidebarGroup {...props}>
@@ -295,7 +300,11 @@ export function NavSecondary({
           {items.map((item) => (
             <NavLink key={item.title} to={item.url} end>
               {({ isActive }) => (
-                <SidebarMenuItem>
+                <SidebarMenuItem
+                  onClick={() => {
+                    setOpenMobile(false);
+                  }}
+                >
                   <SidebarMenuButton isActive={isActive}>
                     <item.icon />
                     <span>{item.title}</span>
