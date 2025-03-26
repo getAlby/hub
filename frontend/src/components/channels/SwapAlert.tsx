@@ -6,15 +6,16 @@ import { useChannels } from "src/hooks/useChannels";
 
 type SwapAlertProps = {
   className?: string;
+  minChannels?: number;
 };
-export function SwapAlert({ className }: SwapAlertProps) {
+export function SwapAlert({ className, minChannels = 2 }: SwapAlertProps) {
   const { data: channels } = useChannels();
   const { data: balances } = useBalances();
 
   if (!channels || !balances) {
     return null;
   }
-  if (channels.length < 2) {
+  if (minChannels && channels.length < minChannels) {
     return null;
   }
 
