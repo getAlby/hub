@@ -133,7 +133,7 @@ export function AppSidebar() {
       <SidebarHeader>
         {state === "expanded" ? (
           <div className="p-2 flex flex-row items-center justify-between">
-            <Link to="/home">
+            <Link to="/home" onClick={() => setOpenMobile(false)}>
               <AlbyHubLogo className="text-sidebar-foreground h-12" />
             </Link>
             <div className="flex gap-3 items-center">
@@ -388,6 +388,8 @@ function AppVersion() {
 
 function HealthIndicator() {
   const { data: health } = useHealthCheck();
+  const { setOpenMobile } = useSidebar();
+
   if (!health) {
     return null;
   }
@@ -395,7 +397,7 @@ function HealthIndicator() {
   const ok = !health.alarms?.length;
 
   return (
-    <Link to="/channels?healthcheck=true">
+    <Link to="/channels?healthcheck=true" onClick={() => setOpenMobile(false)}>
       <div
         className={cn(
           "w-2 h-2 rounded-full",
