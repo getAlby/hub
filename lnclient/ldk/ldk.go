@@ -1624,7 +1624,7 @@ func (ls *LDKService) saveStaticChannelBackupToDisk(event *events.StaticChannels
 	logger.Logger.WithField("backupPath", backupFilePath).Debug("Saved static channel backup to disk")
 }
 
-func (ls *LDKService) GetBalances(ctx context.Context) (*lnclient.BalancesResponse, error) {
+func (ls *LDKService) GetBalances(ctx context.Context, includeInactiveChannels bool) (*lnclient.BalancesResponse, error) {
 	onchainBalance, err := ls.GetOnchainBalance(ctx)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to retrieve onchain balance")
@@ -1639,7 +1639,7 @@ func (ls *LDKService) GetBalances(ctx context.Context) (*lnclient.BalancesRespon
 	var nextMaxSpendableMPP int64 = 0
 	channels := ls.node.ListChannels()
 	for _, channel := range channels {
-		if channel.IsUsable {
+		if channel.IsUsable || includeInactiveChannels {
 			// spending or receiving amount may be constrained by channel configuration (e.g. ACINQ does this)
 			channelConstrainedSpendable := min(int64(channel.OutboundCapacityMsat), int64(*channel.CounterpartyOutboundHtlcMaximumMsat))
 			channelConstrainedReceivable := min(int64(channel.InboundCapacityMsat), int64(*channel.InboundHtlcMaximumMsat))

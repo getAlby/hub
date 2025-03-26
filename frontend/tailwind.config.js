@@ -96,6 +96,7 @@ module.exports = {
         "spin-slow": "spin 3s linear infinite",
         "collapsible-down": "collapsible-down 0.2s ease-out",
         "collapsible-up": "collapsible-up 0.2s ease-out",
+        highlight: "pulse 1s 2 cubic-bezier(0.4, 0, 0.6, 1)",
       },
       fontFamily: {
         sans: ["Inter var", ...defaultTheme.fontFamily.sans],

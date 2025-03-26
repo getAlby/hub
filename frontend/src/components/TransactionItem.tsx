@@ -1,5 +1,4 @@
 import dayjs from "dayjs";
-import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import {
   ArrowDownIcon,
@@ -31,7 +30,6 @@ import { cn } from "src/lib/utils";
 import { Transaction } from "src/types";
 
 dayjs.extend(utc);
-dayjs.extend(timezone);
 
 type Props = {
   tx: Transaction;
@@ -214,9 +212,7 @@ function TransactionItem({ tx }: Props) {
             <div className="mt-6">
               <p>Date & Time</p>
               <p className="text-muted-foreground">
-                {dayjs(tx.updatedAt)
-                  .tz(dayjs.tz.guess())
-                  .format("D MMMM YYYY, HH:mm")}
+                {dayjs(tx.updatedAt).local().format("D MMMM YYYY, HH:mm")}
               </p>
             </div>
             {tx.state != "failed" && type == "outgoing" && (

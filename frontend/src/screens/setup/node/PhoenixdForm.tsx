@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import Container from "src/components/Container";
+import PasswordInput from "src/components/password/PasswordInput";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
@@ -60,12 +61,11 @@ export function PhoenixdForm() {
         </div>
         <div className="grid gap-1.5">
           <Label htmlFor="lnd-cert-hex">Authorization</Label>
-          <Input
-            name="phoenix-authorization"
-            onChange={(e) => setPhoenixdAuthorization(e.target.value)}
-            value={phoenixdAuthorization}
-            type="password"
+
+          <PasswordInput
             id="phoenix-authorization"
+            onChange={setPhoenixdAuthorization}
+            value={phoenixdAuthorization}
           />
         </div>
         <Button>Next</Button>

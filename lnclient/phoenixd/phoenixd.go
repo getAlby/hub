@@ -70,6 +70,7 @@ type PhoenixService struct {
 	Address       string
 	Authorization string
 	pubkey        string
+	nodeInfo      *lnclient.NodeInfo
 }
 
 func NewPhoenixService(address string, authorization string) (result lnclient.LNClient, err error) {
@@ -81,16 +82,17 @@ func NewPhoenixService(address string, authorization string) (result lnclient.LN
 	}
 	phoenixService := &PhoenixService{Address: address, Authorization: authorizationBase64}
 
-	info, err := phoenixService.GetInfo(context.Background())
+	info, err := fetchNodeInfo(phoenixService)
 	if err != nil {
 		return nil, err
 	}
+	phoenixService.nodeInfo = info
 	phoenixService.pubkey = info.Pubkey
 
 	return phoenixService, nil
 }
 
-func (svc *PhoenixService) GetBalances(ctx context.Context) (*lnclient.BalancesResponse, error) {
+func (svc *PhoenixService) GetBalances(ctx context.Context, includeInactiveChannels bool) (*lnclient.BalancesResponse, error) {
 	req, err := http.NewRequest(http.MethodGet, svc.Address+"/getbalance", nil)
 	if err != nil {
 		return nil, err
@@ -238,6 +240,10 @@ func (svc *PhoenixService) ListTransactions(ctx context.Context, from, until, li
 }
 
 func (svc *PhoenixService) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, err error) {
+	return svc.nodeInfo, nil
+}
+
+func fetchNodeInfo(svc *PhoenixService) (info *lnclient.NodeInfo, err error) {
 	req, err := http.NewRequest(http.MethodGet, svc.Address+"/getinfo", nil)
 	if err != nil {
 		return nil, err
@@ -453,6 +459,11 @@ func (svc *PhoenixService) GetLogOutput(ctx context.Context, maxLen int) ([]byte
 }
 
 func (svc *PhoenixService) GetNodeStatus(ctx context.Context) (nodeStatus *lnclient.NodeStatus, err error) {
+	_, err = fetchNodeInfo(svc)
+	if err != nil {
+		return nil, err
+	}
+
 	return &lnclient.NodeStatus{
 		IsReady: true,
 	}, nil

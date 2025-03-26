@@ -1,5 +1,13 @@
 import { Copy, QrCode, RefreshCw } from "lucide-react";
 import React from "react";
+import {
+  ConnectPeerRequest,
+  NewChannelOrder,
+  Node,
+  OpenChannelRequest,
+  OpenChannelResponse,
+} from "src/types";
+
 import { Link } from "react-router-dom";
 import confirmation from "src/assets/images/confirmation.svg";
 import AppHeader from "src/components/AppHeader";
@@ -35,13 +43,6 @@ import {
 } from "src/components/ui/tooltip";
 import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
-import {
-  ConnectPeerRequest,
-  NewChannelOrder,
-  Node,
-  OpenChannelRequest,
-  OpenChannelResponse,
-} from "src/types";
 
 import { ChannelWaitingForConfirmations } from "src/components/channels/ChannelWaitingForConfirmations";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";

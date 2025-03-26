@@ -8,12 +8,11 @@ import { DefaultRedirect } from "src/components/redirects/DefaultRedirect";
 import { HomeRedirect } from "src/components/redirects/HomeRedirect";
 import { SetupRedirect } from "src/components/redirects/SetupRedirect";
 import { StartRedirect } from "src/components/redirects/StartRedirect";
-import { BackupMnemonic } from "src/screens/BackupMnemonic";
-import { BackupNode } from "src/screens/BackupNode";
-import { BackupNodeSuccess } from "src/screens/BackupNodeSuccess";
 import { ConnectAlbyAccount } from "src/screens/ConnectAlbyAccount";
+import { CreateNodeMigrationFileSuccess } from "src/screens/CreateNodeMigrationFileSuccess";
 import Home from "src/screens/Home";
 import { Intro } from "src/screens/Intro";
+import { MigrateNode } from "src/screens/MigrateNode";
 import NotFound from "src/screens/NotFound";
 import Start from "src/screens/Start";
 import Unlock from "src/screens/Unlock";
@@ -40,6 +39,7 @@ import { OpeningFirstChannel } from "src/screens/channels/first/OpeningFirstChan
 import { AlbyGo } from "src/screens/internal-apps/AlbyGo";
 import { Bitrefill } from "src/screens/internal-apps/Bitrefill";
 import { BuzzPay } from "src/screens/internal-apps/BuzzPay";
+import { LightningMessageboard } from "src/screens/internal-apps/LightningMessageboard";
 import { SimpleBoost } from "src/screens/internal-apps/SimpleBoost";
 import { UncleJim } from "src/screens/internal-apps/UncleJim";
 import { ZapPlanner } from "src/screens/internal-apps/ZapPlanner";
@@ -49,10 +49,12 @@ import ConnectPeer from "src/screens/peers/ConnectPeer";
 import Peers from "src/screens/peers/Peers";
 import { AlbyAccount } from "src/screens/settings/AlbyAccount";
 import { AutoUnlock } from "src/screens/settings/AutoUnlock";
+import Backup from "src/screens/settings/Backup";
 import { ChangeUnlockPassword } from "src/screens/settings/ChangeUnlockPassword";
 import DebugTools from "src/screens/settings/DebugTools";
 import DeveloperSettings from "src/screens/settings/DeveloperSettings";
 import Settings from "src/screens/settings/Settings";
+
 import { ImportMnemonic } from "src/screens/setup/ImportMnemonic";
 import { RestoreNode } from "src/screens/setup/RestoreNode";
 import { SetupAdvanced } from "src/screens/setup/SetupAdvanced";
@@ -186,12 +188,12 @@ const routes = [
               },
               {
                 path: "backup",
-                element: <BackupMnemonic />,
+                element: <Backup />,
                 handle: { crumb: () => "Backup" },
               },
               {
-                path: "node-backup",
-                element: <BackupNode />,
+                path: "node-migrate",
+                element: <MigrateNode />,
               },
               {
                 path: "alby-account",
@@ -257,6 +259,10 @@ const routes = [
           {
             path: "simpleboost",
             element: <SimpleBoost />,
+          },
+          {
+            path: "lightning-messageboard",
+            element: <LightningMessageboard />,
           },
           {
             path: "zapplanner",
@@ -477,8 +483,8 @@ const routes = [
     ],
   },
   {
-    path: "node-backup-success",
-    element: <BackupNodeSuccess />,
+    path: "create-node-migration-file-success",
+    element: <CreateNodeMigrationFileSuccess />,
   },
   {
     path: "intro",

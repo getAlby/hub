@@ -68,7 +68,6 @@ function SidebarHint() {
     );
   }
 }
-
 type SidebarHintCardProps = {
   title: string;
   description: string | ReactElement;

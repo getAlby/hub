@@ -16,6 +16,32 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+type Nip47InfoPublishRequest struct {
+	AppWalletPubKey  string
+	AppWalletPrivKey string
+}
+
+type nip47InfoPublishQueue struct {
+	channel chan *Nip47InfoPublishRequest
+}
+
+func NewNip47InfoPublishQueue() *nip47InfoPublishQueue {
+	return &nip47InfoPublishQueue{
+		channel: make(chan *Nip47InfoPublishRequest),
+	}
+}
+
+func (q *nip47InfoPublishQueue) AddToQueue(req *Nip47InfoPublishRequest) {
+	// thread will be blocked if the channel is full, so execute in a separate goroutine
+	go func() {
+		q.channel <- req
+	}()
+}
+
+func (q *nip47InfoPublishQueue) Channel() <-chan *Nip47InfoPublishRequest {
+	return q.channel
+}
+
 func (svc *nip47Service) GetNip47Info(ctx context.Context, relay *nostr.Relay, appWalletPubKey string) (*nostr.Event, error) {
 	filter := nostr.Filter{
 		Kinds:   []int{models.INFO_EVENT_KIND},
