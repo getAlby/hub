@@ -1,4 +1,4 @@
-import { Copy, QrCode, RefreshCw } from "lucide-react";
+import { Copy, Info, QrCode, RefreshCw } from "lucide-react";
 import React from "react";
 import {
   ConnectPeerRequest,
@@ -116,7 +116,14 @@ function Success() {
       <img src={confirmation} className="w-52 h-52" />
 
       <p className="text-center">
-        Your new channel is open and ready for payments.
+        Your new channel is open and ready for payments. To ensure you can both
+        send and receive, make sure to balance your{" "}
+        <ExternalLink
+          to="https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub/liquidity"
+          className="underline"
+        >
+          channel's liquidity
+        </ExternalLink>
       </p>
 
       <Link to="/channels">
@@ -674,18 +681,30 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                     </>
                   )}
                   <>
-                    {" "}
                     <div className="font-medium text-sm flex flex-row gap-1.5 items-center">
                       Fee
                     </div>
-                    <div className="text-muted-foreground pb-4">
+                    <div className="text-muted-foreground">
                       {new Intl.NumberFormat().format(lspOrderResponse.fee)}{" "}
                       sats
                     </div>
                     <FormattedFiatAmount amount={lspOrderResponse.fee} />
                   </>
 
-                  <Separator className="col-span-3" />
+                  {lspOrderResponse.incomingLiquidity > 0 && (
+                    <>
+                      <div className="flex gap-1 items-center font-medium text-sm">
+                        Duration
+                        <ExternalLink to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/how-to-open-a-payment-channel#which-lightning-service-provider-to-choose">
+                          <Info className="w-4 h-4 text-muted-foreground" />
+                        </ExternalLink>
+                      </div>
+                      <p></p>
+                      <p className="text-muted-foreground">at least 3 months</p>
+                    </>
+                  )}
+
+                  <Separator className="col-span-3 mt-4" />
                   <>
                     <div className="font-medium text-sm">Amount to pay</div>
                     <div className="font-semibold">

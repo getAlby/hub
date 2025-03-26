@@ -18,10 +18,6 @@ export function ChannelWaitingForConfirmations({
   channel: Channel | undefined;
 }) {
   const { isDarkMode } = useTheme();
-  if (!channel?.confirmationsRequired) {
-    // 0-conf channel or waiting for transaction to be broadcasted, this should only take a few seconds
-    return <Loading />;
-  }
 
   const defaultOptions = {
     loop: true,
@@ -31,6 +27,11 @@ export function ChannelWaitingForConfirmations({
       preserveAspectRatio: "xMidYMid slice",
     },
   };
+
+  if (!channel?.confirmationsRequired) {
+    // 0-conf channel or waiting for transaction to be broadcasted, this should only take a few seconds
+    return <Loading />;
+  }
 
   return (
     <div className="flex flex-col gap-4">

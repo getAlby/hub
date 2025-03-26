@@ -466,7 +466,6 @@ function NewChannelInternal({
               )}
               <MempoolAlert />
               <SwapAlert />
-
               <StepButtons onNextClick={() => onSubmit()} />
             </div>
           </div>
