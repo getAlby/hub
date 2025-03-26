@@ -113,8 +113,8 @@ export function ConnectAlbyAccount({ connectUrl }: ConnectAlbyAccountProps) {
           </LinkButton>
         </div>
         <div className="text-muted-foreground flex flex-col items-center text-xs gap-2 mt-10">
-          <Badge title="Pro">
-            <SparklesIcon className="w-3 h-3" />
+          <Badge title="Pro" variant="outline">
+            <SparklesIcon className="w-4 h-4" />
           </Badge>
           <div>
             Unlock additional features with{" "}
@@ -133,7 +133,7 @@ export function ConnectAlbyAccount({ connectUrl }: ConnectAlbyAccountProps) {
   function AlbyProIcon() {
     return (
       <div className="absolute right-2 top-2" title="Pro">
-        <SparklesIcon className="w-3 h-3" />
+        <SparklesIcon className="w-4 h-4" />
       </div>
     );
   }
