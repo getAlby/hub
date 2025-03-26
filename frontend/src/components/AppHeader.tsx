@@ -12,7 +12,7 @@ type Props = {
 function AppHeader({ title, description = "", contentRight }: Props) {
   return (
     <>
-      <header className="flex flex-row items-center border-b border-border pb-3 lg:pb-6 gap-2">
+      <header className="flex flex-row items-center border-b border-border pb-4 gap-2">
         <SidebarTrigger className="-ml-1" />
         <Separator orientation="vertical" className="mr-2 h-4" />
         <div className="flex flex-col flex-1">
