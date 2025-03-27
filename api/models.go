@@ -387,9 +387,10 @@ type HealthAlarmKind string
 
 const (
 	HealthAlarmKindAlbyService       HealthAlarmKind = "alby_service"
-	HealthAlarmKindNodeNotReady                      = "node_not_ready"
-	HealthAlarmKindChannelsOffline                   = "channels_offline"
-	HealthAlarmKindNostrRelayOffline                 = "nostr_relay_offline"
+	HealthAlarmKindNodeNotReady      HealthAlarmKind = "node_not_ready"
+	HealthAlarmKindChannelsOffline   HealthAlarmKind = "channels_offline"
+	HealthAlarmKindNostrRelayOffline HealthAlarmKind = "nostr_relay_offline"
+	HealthAlarmKindVssNoSubscription HealthAlarmKind = "vss_no_subscription"
 )
 
 type HealthAlarm struct {
