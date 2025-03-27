@@ -5,6 +5,7 @@ import {
   Trash2,
 } from "lucide-react";
 import React from "react";
+import { useSearchParams } from "react-router-dom";
 import { CloseChannelDialogContent } from "src/components/CloseChannelDialogContent";
 import ExternalLink from "src/components/ExternalLink";
 import { RoutingFeeDialogContent } from "src/components/RoutingFeeDialogContent";
@@ -30,11 +31,19 @@ export function ChannelDropdownMenu({
   alias,
   channel,
 }: ChannelDropdownMenuProps) {
+  const [searchParams] = useSearchParams();
   const [dialog, setDialog] = React.useState<"closeChannel" | "routingFee">();
+
+  React.useEffect(() => {
+    // when opening the swap dialog, close existing dialog
+    if (searchParams.has("swap", "true")) {
+      setDialog(undefined);
+    }
+  }, [searchParams]);
 
   return (
     <AlertDialog
-      onOpenChange={() => {
+      onOpenChange={(open) => {
         if (!open) {
           setDialog(undefined);
         }
