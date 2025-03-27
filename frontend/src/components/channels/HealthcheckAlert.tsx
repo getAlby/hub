@@ -39,6 +39,8 @@ export function HealthCheckAlert({ showOk }: HealthCheckAlertProps) {
           return "Node is not ready";
         case "nostr_relay_offline":
           return "Could not connect to relay";
+        case "vss_no_subscription":
+          return "Your lightning channel data is stored encrypted by Alby's Versioned Storage Service which is a paid feature. Restart your subscription or send your funds to another wallet as soon as possible.";
       }
     } catch (error) {
       console.error("failed to parse alarm details", alarm.kind, error);

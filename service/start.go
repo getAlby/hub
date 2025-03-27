@@ -449,7 +449,18 @@ func (svc *service) requestVssToken(ctx context.Context) (string, error) {
 		vssToken, err = svc.albyOAuthSvc.GetVssAuthToken(ctx, vssNodeIdentifier)
 		if err != nil {
 			logger.Logger.WithError(err).Error("Failed to fetch VSS JWT token")
+
+			existingVssToken, _ := svc.cfg.Get("VssToken", "")
+			if existingVssToken != "" {
+				logger.Logger.Warn("Using stored VSS JWT token")
+				return existingVssToken, nil
+			}
+
 			return "", err
+		}
+		err = svc.cfg.SetUpdate("VssToken", vssToken, "")
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to save VSS JWT token to user config")
 		}
 	}
 	return vssToken, nil

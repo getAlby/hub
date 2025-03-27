@@ -163,7 +163,8 @@ export type HealthAlarmKind =
   | "alby_service"
   | "node_not_ready"
   | "channels_offline"
-  | "nostr_relay_offline";
+  | "nostr_relay_offline"
+  | "vss_no_subscription";
 
 export type HealthAlarm = {
   kind: HealthAlarmKind;
