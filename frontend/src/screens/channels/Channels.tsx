@@ -1,7 +1,6 @@
 import {
   AlertTriangle,
   ArrowRight,
-  ChevronDown,
   CopyIcon,
   ExternalLinkIcon,
   Heart,
@@ -22,6 +21,7 @@ import { SwapDialogs } from "src/components/channels/SwapDialogs";
 import EmptyState from "src/components/EmptyState.tsx";
 import ExternalLink from "src/components/ExternalLink";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
+import ResponsiveButton from "src/components/ResponsiveButton";
 import {
   Alert,
   AlertDescription,
@@ -137,20 +137,12 @@ export default function Channels() {
                 swapInDialogOpen={swapInDialogOpen}
               />
               <DropdownMenu modal={false}>
-                <DropdownMenuTrigger asChild>
-                  <>
-                    <Button
-                      className="hidden lg:inline-flex"
-                      variant="outline"
-                      size="default"
-                    >
-                      Advanced
-                      <ChevronDown />
-                    </Button>
-                    <Button className="lg:hidden" variant="outline" size="icon">
-                      <Settings2 className="w-4 h-4" />
-                    </Button>
-                  </>
+                <DropdownMenuTrigger>
+                  <ResponsiveButton
+                    icon={Settings2}
+                    text="Advanced"
+                    variant="outline"
+                  />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56">
                   <DropdownMenuGroup>

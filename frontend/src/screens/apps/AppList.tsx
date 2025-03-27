@@ -3,9 +3,9 @@ import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import EmptyState from "src/components/EmptyState";
 import Loading from "src/components/Loading";
+import ResponsiveButton from "src/components/ResponsiveButton";
 import AlbyConnectionCard from "src/components/connections/AlbyConnectionCard";
 import AppCard from "src/components/connections/AppCard";
-import { Button } from "src/components/ui/button";
 import { useApps } from "src/hooks/useApps";
 import { useInfo } from "src/hooks/useInfo";
 import { useUnusedApps } from "src/hooks/useUnusedApps";
@@ -39,23 +39,15 @@ function AppList() {
           <>
             {!!unusedApps.length && (
               <Link to="/apps/cleanup">
-                <Button className="hidden lg:inline-flex" variant="outline">
-                  <Trash className="h-4 w-4 mr-2" />
-                  Cleanup Unused
-                </Button>
-                <Button className="lg:hidden" variant="outline" size="icon">
-                  <Trash className="w-4 h-4" />
-                </Button>
+                <ResponsiveButton
+                  icon={Trash}
+                  text="Cleanup Unused"
+                  variant="outline"
+                />
               </Link>
             )}
             <Link to="/apps/new">
-              <Button className="hidden lg:inline-flex">
-                <CirclePlus className="h-4 w-4 mr-2" />
-                Add Connection
-              </Button>
-              <Button className="lg:hidden" size="icon">
-                <CirclePlus className="w-4 h-4" />
-              </Button>
+              <ResponsiveButton icon={CirclePlus} text="Add Connection" />
             </Link>
           </>
         }
