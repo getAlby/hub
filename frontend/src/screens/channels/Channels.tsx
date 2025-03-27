@@ -73,17 +73,11 @@ export default function Channels() {
   const [nodes, setNodes] = React.useState<Node[]>([]);
   const [swapOutDialogOpen, setSwapOutDialogOpen] = React.useState(false);
   const [swapInDialogOpen, setSwapInDialogOpen] = React.useState(false);
-  const [hasOpenedSwapDialog, setOpenedSwapDialog] = React.useState(false);
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   React.useEffect(() => {
-    if (
-      !hasOpenedSwapDialog &&
-      balances &&
-      channels &&
-      searchParams.has("swap", "true")
-    ) {
-      setOpenedSwapDialog(true);
+    if (balances && channels && searchParams.has("swap", "true")) {
+      setSearchParams({});
       if (
         balances.lightning.totalSpendable > balances.lightning.totalReceivable
       ) {
@@ -92,7 +86,7 @@ export default function Channels() {
         setSwapInDialogOpen(true);
       }
     }
-  }, [balances, channels, hasOpenedSwapDialog, searchParams]);
+  }, [balances, channels, searchParams, setSearchParams]);
 
   const { toast } = useToast();
   const isDesktop = useIsDesktop();

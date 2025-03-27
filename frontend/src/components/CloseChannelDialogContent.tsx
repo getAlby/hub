@@ -114,7 +114,7 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
               Are you sure you want to close the channel with {alias}?
             </AlertDialogTitle>
             <AlertDialogDescription className="text-left">
-              <SwapAlert className="mb-4" />
+              <SwapAlert minChannels={0} className="mb-4" />
               <Alert className="mb-4">
                 <AlertCircleIcon className="h-4 w-4" />
                 <AlertDescription>
