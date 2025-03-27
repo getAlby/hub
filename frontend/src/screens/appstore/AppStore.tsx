@@ -1,7 +1,7 @@
 import { CirclePlusIcon } from "lucide-react";
 import AppHeader from "src/components/AppHeader";
+import ResponsiveButton from "src/components/ResponsiveButton";
 import SuggestedApps from "src/components/SuggestedApps";
-import { Button } from "src/components/ui/button";
 
 function AppStore() {
   return (
@@ -16,10 +16,11 @@ function AppStore() {
               target="_blank"
               rel="noreferrer noopener"
             >
-              <Button variant="outline">
-                <CirclePlusIcon className="h-4 w-4 mr-2" />
-                Submit your app
-              </Button>
+              <ResponsiveButton
+                icon={CirclePlusIcon}
+                text="Submit your app"
+                variant="outline"
+              />
             </a>
           </>
         }
