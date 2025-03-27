@@ -1,4 +1,4 @@
-import { CircleCheck, CopyIcon } from "lucide-react";
+import { CircleCheckIcon, CopyIcon } from "lucide-react";
 import { useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
@@ -38,7 +38,7 @@ export default function PaymentSuccess() {
           <CardTitle className="text-center">Payment Successful</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col items-center gap-4">
-          <CircleCheck className="w-32 h-32 mb-2" />
+          <CircleCheckIcon className="w-32 h-32 mb-2" />
           <div className="flex flex-col gap-2 items-center">
             <p className="text-xl font-bold slashed-zero">
               {new Intl.NumberFormat().format(state.amount)} sats

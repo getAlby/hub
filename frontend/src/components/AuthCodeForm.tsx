@@ -1,4 +1,4 @@
-import { RefreshCw } from "lucide-react";
+import { RefreshCwIcon } from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Container from "src/components/Container";
@@ -97,7 +97,7 @@ function AuthCodeForm({ url }: AuthCodeFormProps) {
                   variant="outline"
                   onClick={() => url && openLink(url)}
                 >
-                  <RefreshCw className="w-4 h-4" />
+                  <RefreshCwIcon className="w-4 h-4" />
                 </Button>
               </div>
             </>

@@ -1,10 +1,10 @@
 import {
-  LifeBuoy,
-  Mail,
-  RefreshCw,
+  LifeBuoyIcon,
+  MailIcon,
+  RefreshCwIcon,
   SparklesIcon,
-  Users,
-  Zap,
+  UsersIcon,
+  ZapIcon,
 } from "lucide-react";
 import { ReactNode } from "react";
 import { ExternalLinkButton } from "src/components/ui/button";
@@ -54,7 +54,7 @@ export const UpgradeDialog = ({ children }: UpgradeDialogProps) => {
             <h3 className="font-medium text-lg">Pro Features Include:</h3>
             <ul className="space-y-3">
               <li className="flex items-center">
-                <Users className="w-5 h-5 mr-3" />
+                <UsersIcon className="w-5 h-5 mr-3" />
                 <div>
                   <span className="font-medium">Unlimited Sub-wallets</span>
                   <p className="text-sm text-muted-foreground">
@@ -64,7 +64,7 @@ export const UpgradeDialog = ({ children }: UpgradeDialogProps) => {
               </li>
               {info?.backendType === "LDK" && (
                 <li className="flex items-center">
-                  <RefreshCw className="w-5 h-5 mr-3" />
+                  <RefreshCwIcon className="w-5 h-5 mr-3" />
                   <div>
                     <span className="font-medium">
                       Encrypted Remote Backups
@@ -76,7 +76,7 @@ export const UpgradeDialog = ({ children }: UpgradeDialogProps) => {
                 </li>
               )}
               <li className="flex items-center">
-                <LifeBuoy className="w-5 h-5 mr-3" />
+                <LifeBuoyIcon className="w-5 h-5 mr-3" />
                 <div>
                   <span className="font-medium">Priority Support</span>
                   <p className="text-sm text-muted-foreground">
@@ -85,7 +85,7 @@ export const UpgradeDialog = ({ children }: UpgradeDialogProps) => {
                 </div>
               </li>
               <li className="flex items-center">
-                <Zap className="w-5 h-5 mr-3" />
+                <ZapIcon className="w-5 h-5 mr-3" />
                 <div>
                   <span className="font-medium">Custom Lightning Address</span>
                   <p className="text-sm text-muted-foreground">
@@ -94,7 +94,7 @@ export const UpgradeDialog = ({ children }: UpgradeDialogProps) => {
                 </div>
               </li>
               <li className="flex items-center">
-                <Mail className="w-5 h-5 mr-3" />
+                <MailIcon className="w-5 h-5 mr-3" />
                 <div>
                   <span className="font-medium">Email Notifications</span>
                   <p className="text-sm text-muted-foreground">

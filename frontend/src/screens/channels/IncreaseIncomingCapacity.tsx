@@ -1,4 +1,4 @@
-import { ChevronDown, InfoIcon } from "lucide-react";
+import { ChevronDownIcon, InfoIcon } from "lucide-react";
 import React, { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
@@ -410,7 +410,7 @@ function NewChannelInternal({
               className="text-muted-foreground text-xs"
               onClick={() => setShowAdvanced((current) => !current)}
             >
-              <ChevronDown className="w-4 h-4 mr-2" />
+              <ChevronDownIcon className="w-4 h-4 mr-2" />
               Advanced Options
             </Button>
           )}

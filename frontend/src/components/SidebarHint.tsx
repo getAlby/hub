@@ -1,4 +1,4 @@
-import { ListTodo, LucideIcon, Zap } from "lucide-react";
+import { ListTodoIcon, LucideIcon, ZapIcon } from "lucide-react";
 import { ReactElement } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "src/components/ui/button";
@@ -25,7 +25,7 @@ function SidebarHint() {
   ) {
     return (
       <SidebarHintCard
-        icon={Zap}
+        icon={ZapIcon}
         title="New Channel"
         description="You're currently opening a new channel"
         buttonText="View Channel"
@@ -44,7 +44,7 @@ function SidebarHint() {
   ) {
     return (
       <SidebarHintCard
-        icon={ListTodo}
+        icon={ListTodoIcon}
         title="Finish Setup"
         description={
           <>

@@ -5,7 +5,7 @@ import { buttonVariants } from "src/components/ui/button";
 
 import { useInfo } from "src/hooks/useInfo";
 
-import { Power } from "lucide-react";
+import { PowerIcon } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -70,7 +70,7 @@ export default function SettingsLayout() {
                 size="icon"
                 loading={shuttingDown}
               >
-                {!shuttingDown && <Power className="w-4 h-4" />}
+                {!shuttingDown && <PowerIcon className="w-4 h-4" />}
               </LoadingButton>
             </AlertDialogTrigger>
             <AlertDialogContent>
@@ -80,7 +80,7 @@ export default function SettingsLayout() {
                 </AlertDialogTitle>
                 <AlertDialogDescription>
                   This will turn off your Alby Hub and make your node offline.
-                  You won’t be able to send or receive bitcoin until you unlock
+                  You won't be able to send or receive bitcoin until you unlock
                   it.
                 </AlertDialogDescription>
               </AlertDialogHeader>

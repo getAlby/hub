@@ -1,4 +1,4 @@
-import { AlertTriangle, CheckCircle2 } from "lucide-react";
+import { AlertTriangleIcon, CheckCircle2Icon } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { ExternalLinkButton } from "src/components/ui/button";
 import { useHealthCheck } from "src/hooks/useHealthCheck";
@@ -51,12 +51,12 @@ export function HealthCheckAlert({ showOk }: HealthCheckAlertProps) {
       <Alert className="animate-highlight">
         {ok ? (
           <>
-            <CheckCircle2 className="h-4 w-4" />
+            <CheckCircle2Icon className="h-4 w-4" />
             <AlertTitle>Alby Hub is running smoothly</AlertTitle>
           </>
         ) : (
           <>
-            <AlertTriangle className="h-4 w-4" />
+            <AlertTriangleIcon className="h-4 w-4" />
             <AlertTitle>
               {health.alarms.length} issues impacting your hub were found
             </AlertTitle>

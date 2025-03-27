@@ -1,5 +1,4 @@
-import { InfoCircledIcon } from "@radix-ui/react-icons";
-import { TriangleAlertIcon } from "lucide-react";
+import { InfoIcon, TriangleAlertIcon } from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PasswordInput from "src/components/password/PasswordInput";
@@ -105,13 +104,13 @@ export function MigrateNode() {
         </div>
         <div className="flex flex-col gap-1">
           <div className="flex gap-3 items-center">
-            <InfoCircledIcon className="w-4 h-4" />
+            <InfoIcon className="w-4 h-4" />
             <h3>What happens next?</h3>
           </div>
           <p className="text-sm ml-7">
-            After typing your unlock password, you’ll be able to to download a
+            After typing your unlock password, you'll be able to to download a
             migration file which contains a backup of your Alby Hub data. Then
-            you’ll see instructions on how to import this migration file into
+            you'll see instructions on how to import this migration file into
             another device or server.
           </p>
         </div>

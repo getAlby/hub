@@ -266,9 +266,10 @@ func (svc *LNDService) subscribeChannelEvents(ctx context.Context) {
 					svc.eventPublisher.Publish(&events.Event{
 						Event: "nwc_channel_closed",
 						Properties: map[string]interface{}{
-							"counterparty_node_id": counterpartyNodeId,
-							"reason":               closureReason,
-							"node_type":            config.LNDBackendType,
+							"counterparty_node_id":  counterpartyNodeId,
+							"counterparty_node_url": "https://amboss.space/node/" + counterpartyNodeId,
+							"reason":                closureReason,
+							"node_type":             config.LNDBackendType,
 						},
 					})
 				}

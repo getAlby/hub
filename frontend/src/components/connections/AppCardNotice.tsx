@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween"; // Add this line
-import { CalendarClock } from "lucide-react";
+import { CalendarClockIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Badge } from "src/components/ui/badge";
 import {
@@ -32,7 +32,7 @@ export function AppCardNotice({ app }: AppCardNoticeProps) {
               <TooltipTrigger asChild>
                 <Link to={`/apps/${app.appPubkey}`}>
                   <Badge variant="destructive">
-                    <CalendarClock className="w-3 h-3 mr-2" />
+                    <CalendarClockIcon className="w-3 h-3 mr-2" />
                     Expired
                   </Badge>
                 </Link>
@@ -46,7 +46,7 @@ export function AppCardNotice({ app }: AppCardNoticeProps) {
               <TooltipTrigger asChild>
                 <Link to={`/apps/${app.appPubkey}`}>
                   <Badge variant="outline">
-                    <CalendarClock className="w-3 h-3 mr-2" />
+                    <CalendarClockIcon className="w-3 h-3 mr-2" />
                     Expires Soon
                   </Badge>
                 </Link>

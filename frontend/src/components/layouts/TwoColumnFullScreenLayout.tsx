@@ -1,4 +1,4 @@
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeftIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { AlbyHubLogo } from "src/components/icons/AlbyHubLogo";
@@ -102,7 +102,7 @@ export default function TwoColumnFullScreenLayout() {
               }}
               className="top-4 left-4 md:top-10 md:left-10 absolute mr-4"
             >
-              <ChevronLeft className="w-4 h-4 mr-2" />
+              <ChevronLeftIcon className="w-4 h-4 mr-2" />
               Back
             </Button>
           )}

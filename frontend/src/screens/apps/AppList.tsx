@@ -1,11 +1,11 @@
-import { Cable, CirclePlus, Trash } from "lucide-react";
+import { CableIcon, CirclePlusIcon, TrashIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import EmptyState from "src/components/EmptyState";
 import Loading from "src/components/Loading";
+import ResponsiveButton from "src/components/ResponsiveButton";
 import AlbyConnectionCard from "src/components/connections/AlbyConnectionCard";
 import AppCard from "src/components/connections/AppCard";
-import { Button } from "src/components/ui/button";
 import { useApps } from "src/hooks/useApps";
 import { useInfo } from "src/hooks/useInfo";
 import { useUnusedApps } from "src/hooks/useUnusedApps";
@@ -38,17 +38,15 @@ function AppList() {
           <>
             {!!unusedApps.length && (
               <Link to="/apps/cleanup">
-                <Button variant="outline">
-                  <Trash className="h-4 w-4 mr-2" />
-                  Cleanup Unused
-                </Button>
+                <ResponsiveButton
+                  icon={TrashIcon}
+                  text="Cleanup Unused"
+                  variant="outline"
+                />
               </Link>
             )}
             <Link to="/apps/new">
-              <Button>
-                <CirclePlus className="h-4 w-4 mr-2" />
-                Add Connection
-              </Button>
+              <ResponsiveButton icon={CirclePlusIcon} text="Add Connection" />
             </Link>
           </>
         }
@@ -60,7 +58,7 @@ function AppList() {
 
       {!otherApps.length && (
         <EmptyState
-          icon={Cable}
+          icon={CableIcon}
           title="Connect Your First App"
           description="Connect your app of choice, fine-tune permissions and enjoy a seamless and secure wallet experience."
           buttonText="See Recommended Apps"

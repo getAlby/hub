@@ -1461,13 +1461,54 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 			"event":  event,
 			"reason": closureReason,
 		}).Info("Channel closed")
+		onchainBalance, err := ls.GetOnchainBalance(context.Background())
+		if err != nil {
+			logger.Logger.WithError(err).Error("failed to retrieve on-chain balance when closing channel")
+		}
+		var pendingBalance uint64
+		var fundingTxId string
+		var fundingTxVout uint32
+		var fundingTxUrl string
+
+		if onchainBalance != nil {
+			logger.Logger.WithField("onchain_balance", onchainBalance).Info("got on-chain balance when closing channel")
+
+			for _, details := range onchainBalance.PendingBalancesDetails {
+				if details.ChannelId == eventType.ChannelId {
+					fundingTxId = details.FundingTxId
+					fundingTxVout = details.FundingTxVout
+					fundingTxUrl = fmt.Sprintf("https://mempool.space/tx/%s#flow=&vout=%d", fundingTxId, fundingTxVout)
+					pendingBalance += details.Amount
+				}
+			}
+			for _, details := range onchainBalance.PendingSweepBalancesDetails {
+				if details.ChannelId == eventType.ChannelId {
+					fundingTxId = details.FundingTxId
+					fundingTxVout = details.FundingTxVout
+					fundingTxUrl = fmt.Sprintf("https://mempool.space/tx/%s#flow=&vout=%d", fundingTxId, fundingTxVout)
+					pendingBalance += details.Amount
+				}
+			}
+		}
+
+		var counterpartyNodeId string
+		var counterpartyNodeUrl string
+		if eventType.CounterpartyNodeId != nil {
+			counterpartyNodeId = *eventType.CounterpartyNodeId
+			counterpartyNodeUrl = "https://amboss.space/node/" + counterpartyNodeId
+		}
 
 		ls.eventPublisher.Publish(&events.Event{
 			Event: "nwc_channel_closed",
 			Properties: map[string]interface{}{
-				"counterparty_node_id": eventType.CounterpartyNodeId,
-				"reason":               closureReason,
-				"node_type":            config.LDKBackendType,
+				"counterparty_node_id":  counterpartyNodeId,
+				"counterparty_node_url": counterpartyNodeUrl,
+				"reason":                closureReason,
+				"node_type":             config.LDKBackendType,
+				"pending_balance":       pendingBalance,
+				"funding_tx_id":         fundingTxId,
+				"funding_tx_vout":       fundingTxVout,
+				"funding_tx_url":        fundingTxUrl,
 			},
 		})
 	case ldk_node.EventPaymentReceived:

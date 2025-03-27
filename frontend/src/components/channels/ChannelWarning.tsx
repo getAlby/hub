@@ -1,4 +1,4 @@
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangleIcon } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -34,7 +34,7 @@ export function ChannelWarning({ channel }: ChannelWarningProps) {
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger>
-          <AlertTriangle className="w-4 h-4" />
+          <AlertTriangleIcon className="w-4 h-4" />
         </TooltipTrigger>
         <TooltipContent className="max-w-[400px]">
           {channelWarning}

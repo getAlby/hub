@@ -14,7 +14,7 @@ import { CreateAppRequest, UpdateAppRequest } from "src/types";
 import { handleRequestError } from "src/utils/handleRequestError";
 
 import { LightningAddress } from "@getalby/lightning-tools";
-import { ExternalLinkIcon, PlusCircle } from "lucide-react";
+import { ExternalLinkIcon, PlusCircleIcon } from "lucide-react";
 import alby from "src/assets/suggested-apps/alby.png";
 import bitcoinbrink from "src/assets/zapplanner/bitcoinbrink.png";
 import hrf from "src/assets/zapplanner/hrf.png";
@@ -213,7 +213,7 @@ export function ZapPlanner() {
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
                 <Button>
-                  <PlusCircle className="h-4 w-4 mr-2" />
+                  <PlusCircleIcon className="h-4 w-4 mr-2" />
                   New Recurring Payment
                 </Button>
               </DialogTrigger>

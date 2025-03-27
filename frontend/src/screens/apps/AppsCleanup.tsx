@@ -1,4 +1,4 @@
-import { SkipForward, Trash2, TriangleAlert } from "lucide-react";
+import { SkipForwardIcon, Trash2Icon, TriangleAlertIcon } from "lucide-react";
 import React from "react";
 import AppHeader from "src/components/AppHeader";
 import AppCard from "src/components/connections/AppCard";
@@ -58,7 +58,7 @@ export function AppsCleanup() {
       {currentApp && (
         <Alert variant="destructive">
           <AlertTitle className="flex gap-2">
-            <TriangleAlert className="h-4 w-4" />
+            <TriangleAlertIcon className="h-4 w-4" />
             Warning
           </AlertTitle>
           <AlertDescription>
@@ -82,7 +82,7 @@ export function AppsCleanup() {
                           setSkippedCount((current) => current + 1);
                         }}
                       >
-                        <SkipForward className="h-4 w-4 mr-2" />
+                        <SkipForwardIcon className="h-4 w-4 mr-2" />
                         Skip
                       </Button>
                       <Button
@@ -93,7 +93,7 @@ export function AppsCleanup() {
                           setDeletedCount((current) => current + 1);
                         }}
                       >
-                        <Trash2 className="h-4 w-4 mr-2" />
+                        <Trash2Icon className="h-4 w-4 mr-2" />
                         Delete
                       </Button>
                     </>

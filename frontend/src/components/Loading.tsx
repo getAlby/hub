@@ -1,4 +1,4 @@
-import { Loader, Loader2 } from "lucide-react";
+import { Loader2Icon, LoaderIcon } from "lucide-react";
 import { cn } from "src/lib/utils";
 
 function Loading({
@@ -8,7 +8,7 @@ function Loading({
   className?: string;
   variant?: "loader2" | "loader";
 }) {
-  const Component = variant === "loader2" ? Loader2 : Loader;
+  const Component = variant === "loader2" ? Loader2Icon : LoaderIcon;
 
   return (
     <>
