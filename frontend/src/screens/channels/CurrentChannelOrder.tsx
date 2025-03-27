@@ -8,7 +8,7 @@ import {
   PayInvoiceResponse,
 } from "src/types";
 
-import { Copy, Info, QrCode, RefreshCw } from "lucide-react";
+import { CopyIcon, InfoIcon, QrCodeIcon, RefreshCwIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
@@ -309,12 +309,12 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
                 copyToClipboard(onchainAddress, toast);
               }}
             >
-              <Copy className="w-4 h-4" />
+              <CopyIcon className="w-4 h-4" />
             </Button>
             <Dialog>
               <DialogTrigger asChild>
                 <Button variant="secondary" size="icon">
-                  <QrCode className="w-4 h-4" />
+                  <QrCodeIcon className="w-4 h-4" />
                 </Button>
               </DialogTrigger>
               <DialogContent>
@@ -341,7 +341,7 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
                     loading={loadingAddress}
                     className="w-9 h-9"
                   >
-                    {!loadingAddress && <RefreshCw className="w-4 h-4" />}
+                    {!loadingAddress && <RefreshCwIcon className="w-4 h-4" />}
                   </LoadingButton>
                 </TooltipTrigger>
                 <TooltipContent>Generate a new address</TooltipContent>
@@ -709,7 +709,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                       <TableCell className="font-medium p-3 flex items-center gap-2">
                         Duration
                         <ExternalLink to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/how-to-open-a-payment-channel#which-lightning-service-provider-to-choose">
-                          <Info className="w-4 h-4 text-muted-foreground" />
+                          <InfoIcon className="w-4 h-4 text-muted-foreground" />
                         </ExternalLink>
                       </TableCell>
 

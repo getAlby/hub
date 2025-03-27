@@ -1,5 +1,5 @@
 import dayjs from "dayjs";
-import { ChevronRight } from "lucide-react";
+import { ChevronRightIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import AppAvatar from "src/components/AppAvatar";
 import {
@@ -41,7 +41,7 @@ export function LatestUsedAppsWidget() {
                 <p className="text-xs text-muted-foreground">
                   {app.lastEventAt ? dayjs(app.lastEventAt).fromNow() : "never"}
                 </p>
-                <ChevronRight className="text-muted-foreground w-8 h-8" />
+                <ChevronRightIcon className="text-muted-foreground w-8 h-8" />
               </div>
             </Link>
           ))}

@@ -1,4 +1,4 @@
-import { Cable, CirclePlus, Trash } from "lucide-react";
+import { CableIcon, CirclePlusIcon, TrashIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import EmptyState from "src/components/EmptyState";
@@ -40,14 +40,14 @@ function AppList() {
             {!!unusedApps.length && (
               <Link to="/apps/cleanup">
                 <ResponsiveButton
-                  icon={Trash}
+                  icon={TrashIcon}
                   text="Cleanup Unused"
                   variant="outline"
                 />
               </Link>
             )}
             <Link to="/apps/new">
-              <ResponsiveButton icon={CirclePlus} text="Add Connection" />
+              <ResponsiveButton icon={CirclePlusIcon} text="Add Connection" />
             </Link>
           </>
         }
@@ -59,7 +59,7 @@ function AppList() {
 
       {!otherApps.length && (
         <EmptyState
-          icon={Cable}
+          icon={CableIcon}
           title="Connect Your First App"
           description="Connect your app of choice, fine-tune permissions and enjoy a seamless and secure wallet experience."
           buttonText="See Recommended Apps"

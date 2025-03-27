@@ -1,4 +1,4 @@
-import { Globe } from "lucide-react";
+import { GlobeIcon } from "lucide-react";
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
@@ -286,7 +286,7 @@ export function AlbyGo() {
                 {app.webLink && (
                   <ExternalLink to={app.webLink}>
                     <Button variant="outline">
-                      <Globe className="w-4 h-4 mr-2" />
+                      <GlobeIcon className="w-4 h-4 mr-2" />
                       Website
                     </Button>
                   </ExternalLink>

@@ -1,8 +1,8 @@
 import {
-  AlertTriangle,
+  AlertTriangleIcon,
   ArrowDownIcon,
   ArrowUpIcon,
-  CreditCard,
+  CreditCardIcon,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
@@ -39,7 +39,7 @@ function Wallet() {
             channel.localBalance < channel.unspendablePunishmentReserve * 1000
         ) && (
           <Alert>
-            <AlertTriangle className="h-4 w-4" />
+            <AlertTriangleIcon className="h-4 w-4" />
             <AlertTitle>Channel Reserves Unmet</AlertTitle>
             <AlertDescription>
               You won't be able to make payments until you fill your channel
@@ -54,7 +54,7 @@ function Wallet() {
         !!channels?.length &&
         !balances.lightning.totalReceivable && (
           <Alert>
-            <AlertTriangle className="h-4 w-4" />
+            <AlertTriangleIcon className="h-4 w-4" />
             <AlertTitle>Low receiving capacity</AlertTitle>
             <AlertDescription>
               You won't be able to receive payments until you{" "}
@@ -66,7 +66,7 @@ function Wallet() {
         )}
       {hasChannelManagement && !channels?.length && (
         <Alert>
-          <AlertTriangle className="h-4 w-4" />
+          <AlertTriangleIcon className="h-4 w-4" />
           <AlertTitle>Open Your First Channel</AlertTitle>
           <AlertDescription>
             You won't be able to receive or send payments until you{" "}
@@ -96,7 +96,7 @@ function Wallet() {
             className="col-span-2 sm:col-span-1"
           >
             <Button size="lg" className="w-full" variant="secondary">
-              <CreditCard className="h-4 w-4 shrink-0 mr-2" />
+              <CreditCardIcon className="h-4 w-4 shrink-0 mr-2" />
               Buy Bitcoin
             </Button>
           </ExternalLink>

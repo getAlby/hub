@@ -1,22 +1,21 @@
 import { compare } from "compare-versions";
 import {
-  CircleHelp,
-  EllipsisVertical,
-  Home,
-  LayoutGrid,
-  Lock,
-  Menu,
-  Plug2,
+  BoxIcon,
+  CircleHelpIcon,
+  EllipsisVerticalIcon,
+  HomeIcon,
+  LayoutGridIcon,
+  LockIcon,
+  MenuIcon,
+  Plug2Icon,
   PlugZapIcon,
-  Settings,
+  SettingsIcon,
   ShieldAlertIcon,
   ShieldCheckIcon,
   SparklesIcon,
-  User2,
-  Wallet,
+  User2Icon,
+  WalletIcon,
 } from "lucide-react";
-
-import { CubeIcon } from "@radix-ui/react-icons";
 import React from "react";
 import {
   Link,
@@ -26,6 +25,7 @@ import {
   useNavigate,
 } from "react-router-dom";
 import SidebarHint from "src/components/SidebarHint";
+import { UpgradeDialog } from "src/components/UpgradeDialog";
 import UserAvatar from "src/components/UserAvatar";
 import { AlbyHubLogo } from "src/components/icons/AlbyHubLogo";
 import { Button } from "src/components/ui/button";
@@ -44,10 +44,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "src/components/ui/tooltip";
-import { useAlbyMe } from "src/hooks/useAlbyMe";
-
-import { UpgradeDialog } from "src/components/UpgradeDialog";
 import { useAlbyInfo } from "src/hooks/useAlbyInfo";
+import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useHealthCheck } from "src/hooks/useHealthCheck";
 import { useInfo } from "src/hooks/useInfo";
 import { useNotifyReceivedPayments } from "src/hooks/useNotifyReceivedPayments";
@@ -110,7 +108,7 @@ export default function AppLayout() {
                 to="/settings/alby-account"
                 className="w-full flex flex-row items-center gap-2"
               >
-                <User2 className="w-4 h-4" />
+                <User2Icon className="w-4 h-4" />
                 <p>Alby Account Settings</p>
               </Link>
             </DropdownMenuItem>
@@ -122,7 +120,7 @@ export default function AppLayout() {
             onClick={logout}
             className="w-full flex flex-row items-center gap-2 cursor-pointer"
           >
-            <Lock className="w-4 h-4" />
+            <LockIcon className="w-4 h-4" />
             <p>Lock Alby Hub</p>
           </DropdownMenuItem>
         )}
@@ -134,19 +132,19 @@ export default function AppLayout() {
     return (
       <>
         <MenuItem to="/home">
-          <Home className="h-4 w-4" />
+          <HomeIcon className="h-4 w-4" />
           Home
         </MenuItem>
         <MenuItem to="/wallet">
-          <Wallet className="h-4 w-4" />
+          <WalletIcon className="h-4 w-4" />
           Wallet
         </MenuItem>
         <MenuItem to="/appstore">
-          <LayoutGrid className="h-4 w-4" />
+          <LayoutGridIcon className="h-4 w-4" />
           App Store
         </MenuItem>
         <MenuItem to="/apps">
-          <Plug2 className="h-4 w-4" />
+          <Plug2Icon className="h-4 w-4" />
           Connections
         </MenuItem>
       </>
@@ -159,12 +157,12 @@ export default function AppLayout() {
       <nav className="grid items-start md:px-4 md:py-2 text-sm font-medium">
         {hasChannelManagement && (
           <MenuItem to="/channels">
-            <CubeIcon className="h-4 w-4" />
+            <BoxIcon className="h-4 w-4" />
             Node
           </MenuItem>
         )}
         <MenuItem to="/settings">
-          <Settings className="h-4 w-4" />
+          <SettingsIcon className="h-4 w-4" />
           Settings
         </MenuItem>
 
@@ -176,7 +174,7 @@ export default function AppLayout() {
             e.preventDefault();
           }}
         >
-          <CircleHelp className="h-4 w-4" />
+          <CircleHelpIcon className="h-4 w-4" />
           Help
         </MenuItem>
         <UpgradeDialog>
@@ -227,7 +225,7 @@ export default function AppLayout() {
                   <DropdownMenu modal={false}>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon">
-                        <EllipsisVertical className="w-4 h-4" />
+                        <EllipsisVerticalIcon className="w-4 h-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <UserMenuContent />
@@ -245,7 +243,7 @@ export default function AppLayout() {
                     size="icon"
                     className="shrink-0 md:hidden"
                   >
-                    <Menu className="h-5 w-5" />
+                    <MenuIcon className="h-5 w-5" />
                     <span className="sr-only">Toggle navigation menu</span>
                   </Button>
                 </SheetTrigger>

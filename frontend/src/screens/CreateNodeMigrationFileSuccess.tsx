@@ -1,4 +1,4 @@
-import { BadgePlus, PowerOff, Save } from "lucide-react";
+import { BadgePlusIcon, PowerOffIcon, SaveIcon } from "lucide-react";
 import AppHeader from "src/components/AppHeader";
 import { Card, CardContent } from "src/components/ui/card";
 
@@ -15,7 +15,7 @@ export function CreateNodeMigrationFileSuccess() {
             <div className="flex justify-center flex-col gap-4 text-foreground">
               <div className="flex gap-2 items-center ">
                 <div className="shrink-0 ">
-                  <Save className="w-6 h-6" />
+                  <SaveIcon className="w-6 h-6" />
                 </div>
                 <span>
                   Your Alby Hub migration file has been successfully saved to
@@ -24,7 +24,7 @@ export function CreateNodeMigrationFileSuccess() {
               </div>
               <div className="flex gap-2 items-center">
                 <div className="shrink-0">
-                  <PowerOff className="w-6 h-6" />
+                  <PowerOffIcon className="w-6 h-6" />
                 </div>
                 <span>
                   This Alby Hub has is now in a halted state to prevent further
@@ -37,7 +37,7 @@ export function CreateNodeMigrationFileSuccess() {
               </div>
               <div className="flex gap-2 items-center">
                 <div className="shrink-0 ">
-                  <BadgePlus className="w-6 h-6" />
+                  <BadgePlusIcon className="w-6 h-6" />
                 </div>
                 <span>
                   Start your new Alby Hub on another machine and choose the

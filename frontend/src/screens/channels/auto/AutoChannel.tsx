@@ -1,4 +1,4 @@
-import { ChevronDown } from "lucide-react";
+import { ChevronDownIcon } from "lucide-react";
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
@@ -203,7 +203,7 @@ export function AutoChannel() {
                   onClick={() => setShowAdvanced((current) => !current)}
                 >
                   Advanced Options
-                  <ChevronDown className="w-4 h-4 ml-1" />
+                  <ChevronDownIcon className="w-4 h-4 ml-1" />
                 </Button>
               </div>
             )}

@@ -1,4 +1,4 @@
-import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import { TriangleAlertIcon } from "lucide-react";
 import React from "react";
 import PasswordInput from "src/components/password/PasswordInput";
 
@@ -66,7 +66,7 @@ export function ChangeUnlockPassword() {
         <Alert variant={"destructive"} className="w-full md:max-w-6xl mb-8">
           <AlertTitle>
             <div className="flex gap-2">
-              <ExclamationTriangleIcon /> Important!
+              <TriangleAlertIcon className="w-4 h-4" /> Important!
             </div>
           </AlertTitle>
           <AlertDescription>

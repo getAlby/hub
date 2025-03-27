@@ -1,14 +1,14 @@
 import {
-  Bell,
-  CirclePlus,
-  Crown,
-  HandCoins,
-  Info,
+  BellIcon,
+  CirclePlusIcon,
+  CrownIcon,
+  HandCoinsIcon,
+  InfoIcon,
   LucideIcon,
-  NotebookTabs,
-  PenLine,
-  Search,
-  WalletMinimal,
+  NotebookTabsIcon,
+  PenLineIcon,
+  SearchIcon,
+  WalletMinimalIcon,
 } from "lucide-react";
 
 export type BackendType = "LND" | "LDK" | "PHOENIX" | "CASHU";
@@ -52,15 +52,15 @@ export type ScopeIconMap = {
 };
 
 export const scopeIconMap: ScopeIconMap = {
-  get_balance: WalletMinimal,
-  get_info: Info,
-  list_transactions: NotebookTabs,
-  lookup_invoice: Search,
-  make_invoice: CirclePlus,
-  pay_invoice: HandCoins,
-  sign_message: PenLine,
-  notifications: Bell,
-  superuser: Crown,
+  get_balance: WalletMinimalIcon,
+  get_info: InfoIcon,
+  list_transactions: NotebookTabsIcon,
+  lookup_invoice: SearchIcon,
+  make_invoice: CirclePlusIcon,
+  pay_invoice: HandCoinsIcon,
+  sign_message: PenLineIcon,
+  notifications: BellIcon,
+  superuser: CrownIcon,
 };
 
 export type WalletCapabilities = {

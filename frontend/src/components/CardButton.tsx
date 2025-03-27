@@ -1,4 +1,4 @@
-import { ChevronRight } from "lucide-react";
+import { ChevronRightIcon } from "lucide-react";
 import { ReactElement } from "react";
 import { Link } from "react-router-dom";
 import { Card } from "src/components/ui/card";
@@ -21,7 +21,7 @@ function CardButton({ title, description, to }: Props) {
             <div className="text-muted-foreground text-sm">{description}</div>
           </div>
           <div>
-            <ChevronRight />
+            <ChevronRightIcon />
           </div>
         </div>
       </Card>

@@ -1,4 +1,9 @@
-import { HandCoins, LandmarkIcon, ShieldAlert, Unlock } from "lucide-react";
+import {
+  HandCoinsIcon,
+  LandmarkIcon,
+  ShieldAlertIcon,
+  UnlockIcon,
+} from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ExternalLink from "src/components/ExternalLink";
@@ -34,7 +39,7 @@ export function SetupSecurity() {
             {store.nodeInfo.backendType !== "CASHU" && (
               <div className="flex gap-3 items-center">
                 <div className="shrink-0">
-                  <HandCoins className="w-6 h-6" />
+                  <HandCoinsIcon className="w-6 h-6" />
                 </div>
                 <span className="text-sm text-muted-foreground">
                   Alby Hub is a spending wallet - do not keep all your savings
@@ -55,7 +60,7 @@ export function SetupSecurity() {
             )}
             <div className="flex gap-3 items-center">
               <div className="shrink-0">
-                <Unlock className="w-6 h-6" />
+                <UnlockIcon className="w-6 h-6" />
               </div>
               <span className="text-sm text-muted-foreground">
                 Access to your Alby Hub is protected by an unlock password you
@@ -66,7 +71,7 @@ export function SetupSecurity() {
             store.nodeInfo.backendType === "PHOENIX" ? (
               <div className="flex gap-3 items-center">
                 <div className="shrink-0">
-                  <ShieldAlert className="w-6 h-6" />
+                  <ShieldAlertIcon className="w-6 h-6" />
                 </div>
                 <span className="text-sm text-muted-foreground">
                   Channel backups{" "}
@@ -78,7 +83,7 @@ export function SetupSecurity() {
             ) : (
               <div className="flex gap-3 items-center">
                 <div className="shrink-0">
-                  <ShieldAlert className="w-6 h-6" />
+                  <ShieldAlertIcon className="w-6 h-6" />
                 </div>
                 <span className="text-sm text-muted-foreground">
                   Your{store.nodeInfo.backendType === "LDK" && " on-chain"}{" "}

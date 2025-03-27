@@ -2,9 +2,9 @@ import * as bip39 from "@scure/bip39";
 import { wordlist } from "@scure/bip39/wordlists/english";
 import {
   AlertTriangleIcon,
-  LifeBuoy,
-  ShieldAlert,
-  ShieldCheck,
+  LifeBuoyIcon,
+  ShieldAlertIcon,
+  ShieldCheckIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -83,7 +83,7 @@ export function ImportMnemonic() {
           <div className="flex flex-col gap-4">
             <div className="flex gap-2 items-center">
               <div className="shrink-0 text-muted-foreground">
-                <LifeBuoy className="w-6 h-6" />
+                <LifeBuoyIcon className="w-6 h-6" />
               </div>
               <span className="text-muted-foreground">
                 Your recovery phrase is a set of 12 words used to restore your
@@ -92,7 +92,7 @@ export function ImportMnemonic() {
             </div>
             <div className="flex gap-2 items-center">
               <div className="shrink-0 text-muted-foreground">
-                <ShieldCheck className="w-6 h-6" />
+                <ShieldCheckIcon className="w-6 h-6" />
               </div>
               <span className="text-muted-foreground">
                 Keep it safe and private to ensure your funds remain secure.
@@ -100,7 +100,7 @@ export function ImportMnemonic() {
             </div>
             <div className="flex gap-2 items-center">
               <div className="shrink-0 text-muted-foreground">
-                <ShieldAlert className="w-6 h-6" />
+                <ShieldAlertIcon className="w-6 h-6" />
               </div>
               <span className="text-muted-foreground">
                 Your recovery phrase cannot restore funds from lightning

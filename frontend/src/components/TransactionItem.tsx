@@ -3,8 +3,8 @@ import utc from "dayjs/plugin/utc";
 import {
   ArrowDownIcon,
   ArrowUpIcon,
-  ChevronDown,
-  ChevronUp,
+  ChevronDownIcon,
+  ChevronUpIcon,
   CopyIcon,
   XIcon,
 } from "lucide-react";
@@ -255,9 +255,9 @@ function TransactionItem({ tx }: Props) {
               >
                 Details
                 {showDetails ? (
-                  <ChevronUp className="w-4 h-4" />
+                  <ChevronUpIcon className="w-4 h-4" />
                 ) : (
-                  <ChevronDown className="w-4 h-4" />
+                  <ChevronDownIcon className="w-4 h-4" />
                 )}
               </div>
               {showDetails && (

@@ -1,4 +1,4 @@
-import { ArrowDownUp, ExternalLinkIcon } from "lucide-react";
+import { ArrowDownUpIcon, ExternalLinkIcon } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { ExternalLinkButton, LinkButton } from "src/components/ui/button";
 import { useBalances } from "src/hooks/useBalances";
@@ -26,7 +26,7 @@ export function SwapAlert({ className, minChannels = 2 }: SwapAlertProps) {
   return (
     <Alert className={className}>
       <AlertTitle className="flex items-center gap-1">
-        <ArrowDownUp className="h-4 w-4" />
+        <ArrowDownUpIcon className="h-4 w-4" />
         Swap {directionText} existing channels
       </AlertTitle>
       <AlertDescription className="text-xs text-muted-foreground">

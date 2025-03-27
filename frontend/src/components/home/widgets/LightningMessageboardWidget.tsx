@@ -7,7 +7,7 @@ import {
 } from "src/components/ui/card";
 
 import { nwc } from "@getalby/sdk";
-import { ChevronUp, Zap } from "lucide-react";
+import { ChevronUpIcon, ZapIcon } from "lucide-react";
 import React from "react";
 import Loading from "src/components/Loading";
 import { Badge } from "src/components/ui/badge";
@@ -197,7 +197,7 @@ export function LightningMessageboardWidget() {
                     </CardTitle>
                     <div>
                       <Badge className="py-1">
-                        <Zap className="w-4 h-4 mr-1" />{" "}
+                        <ZapIcon className="w-4 h-4 mr-1" />{" "}
                         {new Intl.NumberFormat().format(message.amount)}
                       </Badge>
                     </div>
@@ -218,7 +218,7 @@ export function LightningMessageboardWidget() {
                 onChange={(e) => setMessageText(e.target.value)}
               />
               <Button>
-                <Zap className="w-4 h-4 mr-2" /> Send
+                <ZapIcon className="w-4 h-4 mr-2" /> Send
               </Button>
             </form>
           </CardContent>
@@ -266,7 +266,7 @@ export function LightningMessageboardWidget() {
                   variant="secondary"
                   onClick={() => setAmount("" + topPlace)}
                 >
-                  <ChevronUp className="w-4 h-4 mr-2" />
+                  <ChevronUpIcon className="w-4 h-4 mr-2" />
                   Top
                 </Button>
               </div>

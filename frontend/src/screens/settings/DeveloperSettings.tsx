@@ -1,4 +1,4 @@
-import { Copy, SquareArrowOutUpRight } from "lucide-react";
+import { CopyIcon, SquareArrowOutUpRightIcon } from "lucide-react";
 import React from "react";
 import PasswordInput from "src/components/password/PasswordInput";
 import SettingsHeader from "src/components/SettingsHeader";
@@ -80,7 +80,7 @@ export default function DeveloperSettings() {
             className="flex-1 gap-2 items-center justify-center"
           >
             Learn More on nwc.dev{" "}
-            <SquareArrowOutUpRight className="w-4 h-4 mr-2" />
+            <SquareArrowOutUpRightIcon className="w-4 h-4 mr-2" />
           </ExternalLinkButton>
         </div>
       </div>
@@ -150,7 +150,7 @@ export default function DeveloperSettings() {
                   copyToClipboard(token, toast);
                 }}
               >
-                <Copy className="w-4 h-4" />
+                <CopyIcon className="w-4 h-4" />
               </Button>
             </div>
             <div className="my-4 border rounded-lg p-4">

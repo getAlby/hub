@@ -1,4 +1,4 @@
-import { ArrowUp, InfoIcon } from "lucide-react";
+import { ArrowUpIcon, InfoIcon } from "lucide-react";
 import { Outlet } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import BalanceCard from "src/components/BalanceCard";
@@ -57,7 +57,7 @@ export default function SendLayout() {
           title="Spending Balance"
           buttonTitle="Top Up"
           buttonLink="/channels/outgoing"
-          BalanceCardIcon={ArrowUp}
+          BalanceCardIcon={ArrowUpIcon}
           hasChannelManagement={!!hasChannelManagement}
         />
       </div>

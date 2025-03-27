@@ -1,4 +1,4 @@
-import { Check, CopyIcon, EyeIcon } from "lucide-react";
+import { CheckIcon, CopyIcon, EyeIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 
@@ -188,7 +188,7 @@ export function ConnectAppCard({
           </>
         ) : (
           <Badge variant="positive">
-            <Check className="w-4 h-4 mr-2" />
+            <CheckIcon className="w-4 h-4 mr-2" />
             <p>App connected</p>
           </Badge>
         )}

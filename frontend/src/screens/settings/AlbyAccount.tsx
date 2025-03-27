@@ -1,4 +1,8 @@
-import { Link2Off, RefreshCcw, SquareArrowOutUpRight } from "lucide-react";
+import {
+  Link2OffIcon,
+  RefreshCcwIcon,
+  SquareArrowOutUpRightIcon,
+} from "lucide-react";
 
 import Loading from "src/components/Loading";
 import SettingsHeader from "src/components/SettingsHeader";
@@ -39,7 +43,7 @@ export function AlbyAccount() {
               className="flex-1 gap-2 items-center justify-center"
             >
               Alby Account Settings{" "}
-              <SquareArrowOutUpRight className="w-4 h-4 mr-2" />
+              <SquareArrowOutUpRightIcon className="w-4 h-4 mr-2" />
             </ExternalLinkButton>
           </div>
         </div>
@@ -61,7 +65,7 @@ export function AlbyAccount() {
                 variant={"destructive_outline"}
                 className="flex-1 gap-2 items-center justify-center py-2 px-4"
               >
-                <RefreshCcw className="w-4 h-4 mr-2" /> Change Alby Account
+                <RefreshCcwIcon className="w-4 h-4 mr-2" /> Change Alby Account
               </Button>
             </UnlinkAlbyAccount>
           </div>
@@ -81,7 +85,7 @@ export function AlbyAccount() {
                 variant={"destructive_outline"}
                 className="flex-1 gap-2 items-center justify-center py-2 px-4"
               >
-                <Link2Off className="w-4 h-4 mr-2" /> Unlink Alby Account
+                <Link2OffIcon className="w-4 h-4 mr-2" /> Unlink Alby Account
               </Button>
             </UnlinkAlbyAccount>
           </div>
