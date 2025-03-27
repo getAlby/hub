@@ -1,7 +1,6 @@
 import {
   AlertTriangle,
   ArrowRight,
-  ChevronDown,
   CopyIcon,
   ExternalLinkIcon,
   Heart,
@@ -22,6 +21,7 @@ import { SwapDialogs } from "src/components/channels/SwapDialogs";
 import EmptyState from "src/components/EmptyState.tsx";
 import ExternalLink from "src/components/ExternalLink";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
+import ResponsiveButton from "src/components/ResponsiveButton";
 import {
   Alert,
   AlertDescription,
@@ -55,7 +55,6 @@ import { ONCHAIN_DUST_SATS } from "src/constants.ts";
 import { useBalances } from "src/hooks/useBalances.ts";
 import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
-import { useIsDesktop } from "src/hooks/useMediaQuery.ts";
 import { useNodeConnectionInfo } from "src/hooks/useNodeConnectionInfo.ts";
 import { useSyncWallet } from "src/hooks/useSyncWallet.ts";
 import { copyToClipboard } from "src/lib/clipboard.ts";
@@ -89,7 +88,6 @@ export default function Channels() {
   }, [balances, channels, searchParams, setSearchParams]);
 
   const { toast } = useToast();
-  const isDesktop = useIsDesktop();
 
   const nodeHealth = channels ? getNodeHealth(channels) : 0;
 
@@ -133,21 +131,12 @@ export default function Channels() {
                 swapInDialogOpen={swapInDialogOpen}
               />
               <DropdownMenu modal={false}>
-                <DropdownMenuTrigger asChild>
-                  {isDesktop ? (
-                    <Button
-                      className="inline-flex"
-                      variant="outline"
-                      size="default"
-                    >
-                      Advanced
-                      <ChevronDown />
-                    </Button>
-                  ) : (
-                    <Button variant="outline" size="icon">
-                      <Settings2 className="w-4 h-4" />
-                    </Button>
-                  )}
+                <DropdownMenuTrigger>
+                  <ResponsiveButton
+                    icon={Settings2}
+                    text="Advanced"
+                    variant="outline"
+                  />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56">
                   <DropdownMenuGroup>
@@ -582,11 +571,8 @@ export default function Channels() {
             />
           )}
 
-          {isDesktop ? (
-            <ChannelsTable channels={channels} nodes={nodes} />
-          ) : (
-            <ChannelsCards channels={channels} nodes={nodes} />
-          )}
+          <ChannelsTable channels={channels} nodes={nodes} />
+          <ChannelsCards channels={channels} nodes={nodes} />
         </>
       )}
     </>

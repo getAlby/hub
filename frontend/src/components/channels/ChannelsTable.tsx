@@ -38,7 +38,7 @@ export function ChannelsTable({ channels, nodes }: ChannelsTableProps) {
   }
 
   return (
-    <Card>
+    <Card className="hidden lg:block">
       <CardHeader>
         <CardTitle className="text-2xl">Channels</CardTitle>
       </CardHeader>
