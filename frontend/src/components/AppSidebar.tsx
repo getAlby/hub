@@ -65,7 +65,7 @@ export function AppSidebar() {
   const { data: albyMe } = useAlbyMe();
 
   const { data: info, mutate: refetchInfo } = useInfo();
-  const { isMobile, state, setOpenMobile } = useSidebar();
+  const { isMobile, setOpenMobile } = useSidebar();
   const { hasChannelManagement } = useInfo();
   const navigate = useNavigate();
 
@@ -126,21 +126,21 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
-        {state === "expanded" ? (
-          <div className="p-2 flex flex-row items-center justify-between">
-            <Link to="/home" onClick={() => setOpenMobile(false)}>
-              <AlbyHubLogo className="text-sidebar-foreground h-12" />
-            </Link>
-            <div className="flex gap-3 items-center">
-              <AppVersion />
-              <HealthIndicator />
-            </div>
-          </div>
-        ) : (
-          <Link to="/home" className="py-4">
-            <AlbyHubIcon className="w-8 h-8 text-sidebar-foreground" />
+        <div className="p-2 flex flex-row items-center justify-between group-data-[collapsible=icon]:hidden">
+          <Link to="/home" onClick={() => setOpenMobile(false)}>
+            <AlbyHubLogo className="text-sidebar-foreground h-12" />
           </Link>
-        )}
+          <div className="flex gap-3 items-center">
+            <AppVersion />
+            <HealthIndicator />
+          </div>
+        </div>
+        <Link
+          to="/home"
+          className="py-4 hidden group-data-[collapsible=icon]:inline"
+        >
+          <AlbyHubIcon className="w-8 h-8 text-sidebar-foreground" />
+        </Link>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
@@ -166,13 +166,11 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
         <div className="mt-auto">
-          {state === "expanded" && (
-            <SidebarGroup>
-              <SidebarGroupContent>
-                <SidebarHint />
-              </SidebarGroupContent>
-            </SidebarGroup>
-          )}
+          <SidebarGroup className="group-data-[collapsible=icon]:hidden">
+            <SidebarGroupContent>
+              <SidebarHint />
+            </SidebarGroupContent>
+          </SidebarGroup>
           <NavSecondary items={data.navSecondary} />
         </div>
       </SidebarContent>
