@@ -83,11 +83,6 @@ export function AppSidebar() {
   }, [_isHttpMode, navigate, refetchInfo]);
 
   const data = {
-    user: {
-      name: "shadcn",
-      email: "m@example.com",
-      avatar: "/avatars/shadcn.jpg",
-    },
     navMain: [
       {
         title: "Home",
