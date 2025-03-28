@@ -24,10 +24,7 @@ export default function SendLayout() {
 
   return (
     <div className="grid gap-5">
-      <AppHeader
-        title="Send"
-        description="Pay a lightning invoice created by any bitcoin lightning wallet"
-      />
+      <AppHeader title="Send" />
       {transactionData.transactions.some(
         (tx) =>
           tx.state === "pending" &&

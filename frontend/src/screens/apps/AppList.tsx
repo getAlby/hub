@@ -34,7 +34,6 @@ function AppList() {
     <>
       <AppHeader
         title="Connections"
-        description="Apps that you connected to already"
         contentRight={
           <>
             {!!unusedApps.length && (
