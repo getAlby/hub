@@ -100,7 +100,7 @@ function NewChannelInternal({ network }: { network: Network }) {
           ),
           customOption,
         ]
-      : undefined;
+      : [customOption];
   }, [_channelPeerSuggestions, network]);
 
   function setPublic(isPublic: boolean) {
