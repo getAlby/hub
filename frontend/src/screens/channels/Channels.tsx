@@ -264,7 +264,7 @@ export default function Channels() {
         }
       ></AppHeader>
 
-      <HealthCheckAlert showOk={searchParams.has("healthcheck", "true")} />
+      <HealthCheckAlert />
 
       {hasChannelManagement && (
         <>

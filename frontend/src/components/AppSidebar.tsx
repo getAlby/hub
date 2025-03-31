@@ -326,6 +326,7 @@ export function NavSecondary({
 function AppVersion() {
   const { data: albyInfo } = useAlbyInfo();
   const { data: info } = useInfo();
+
   if (!info || !albyInfo) {
     return null;
   }
@@ -381,15 +382,13 @@ function HealthIndicator() {
   }
 
   const ok = !health.alarms?.length;
+  if (ok) {
+    return null;
+  }
 
   return (
-    <Link to="/channels?healthcheck=true" onClick={() => setOpenMobile(false)}>
-      <div
-        className={cn(
-          "w-2 h-2 rounded-full",
-          ok ? "bg-green-300" : "bg-destructive"
-        )}
-      />
+    <Link to="/channels" onClick={() => setOpenMobile(false)}>
+      <div className={cn("w-2 h-2 rounded-full", "bg-destructive")} />
     </Link>
   );
 }
