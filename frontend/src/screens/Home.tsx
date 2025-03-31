@@ -62,7 +62,6 @@ function Home() {
     <>
       <AppHeader
         title={getGreeting(albyMe?.name)}
-        description=""
         contentRight={
           <UpgradeDialog>
             <Button variant="premium">Upgrade</Button>

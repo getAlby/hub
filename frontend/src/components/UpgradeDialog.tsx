@@ -38,7 +38,7 @@ export const UpgradeDialog = ({ children }: UpgradeDialogProps) => {
 
   return (
     <Dialog>
-      <DialogTrigger>{children}</DialogTrigger>
+      <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex flex-row gap-2 items-center">

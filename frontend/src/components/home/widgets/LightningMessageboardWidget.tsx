@@ -7,6 +7,7 @@ import {
 } from "src/components/ui/card";
 
 import { nwc } from "@getalby/sdk";
+import dayjs from "dayjs";
 import { ChevronUpIcon, ZapIcon } from "lucide-react";
 import React from "react";
 import Loading from "src/components/Loading";
@@ -38,6 +39,7 @@ type Message = {
   name?: string;
   message: string;
   amount: number;
+  created_at: number;
 };
 
 let nwcClient: nwc.NWCClient | undefined;
@@ -79,6 +81,7 @@ export function LightningMessageboardWidget() {
 
           _messages.push(
             ...transactions.transactions.map((transaction) => ({
+              created_at: transaction.created_at,
               message: transaction.description,
               name: (
                 transaction.metadata as
@@ -194,6 +197,7 @@ export function LightningMessageboardWidget() {
                     <CardTitle className="break-all font-normal text-xs">
                       <span className="text-muted-foreground">by </span>
                       {message.name || "Anonymous"}
+                      {dayjs(message.created_at).fromNow()}
                     </CardTitle>
                     <div>
                       <Badge className="py-1">

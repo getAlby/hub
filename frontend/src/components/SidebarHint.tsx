@@ -68,6 +68,7 @@ function SidebarHint() {
     );
   }
 }
+
 type SidebarHintCardProps = {
   title: string;
   description: string | ReactElement;
@@ -83,24 +84,20 @@ function SidebarHintCard({
   buttonLink,
 }: SidebarHintCardProps) {
   return (
-    <div className="my-4 md:mx-4">
-      <Card>
-        <CardHeader className="p-4">
-          <Icon className="h-8 w-8 mb-4" />
-          <CardTitle>{title}</CardTitle>
-        </CardHeader>
-        <CardContent className="p-4 pt-0">
-          <div className="text-muted-foreground mb-4 text-sm">
-            {description}
-          </div>
-          <Link to={buttonLink}>
-            <Button size="sm" className="w-full">
-              {buttonText}
-            </Button>
-          </Link>
-        </CardContent>
-      </Card>
-    </div>
+    <Card>
+      <CardHeader className="p-4">
+        <Icon className="h-8 w-8 mb-4" />
+        <CardTitle>{title}</CardTitle>
+      </CardHeader>
+      <CardContent className="p-4 pt-0">
+        <div className="text-muted-foreground mb-4 text-sm">{description}</div>
+        <Link to={buttonLink}>
+          <Button size="sm" className="w-full">
+            {buttonText}
+          </Button>
+        </Link>
+      </CardContent>
+    </Card>
   );
 }
 

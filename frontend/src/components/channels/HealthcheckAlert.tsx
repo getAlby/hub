@@ -4,11 +4,7 @@ import { ExternalLinkButton } from "src/components/ui/button";
 import { useHealthCheck } from "src/hooks/useHealthCheck";
 import { AlbyInfoIncident, HealthAlarm } from "src/types";
 
-type HealthCheckAlertProps = {
-  showOk?: boolean;
-};
-
-export function HealthCheckAlert({ showOk }: HealthCheckAlertProps) {
+export function HealthCheckAlert() {
   const { data: health } = useHealthCheck();
 
   const ok = !health?.alarms?.length;
@@ -17,7 +13,7 @@ export function HealthCheckAlert({ showOk }: HealthCheckAlertProps) {
     return null;
   }
 
-  if (!showOk && ok) {
+  if (ok) {
     return null;
   }
 

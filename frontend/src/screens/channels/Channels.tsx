@@ -120,7 +120,6 @@ export default function Channels() {
     <>
       <AppHeader
         title="Node"
-        description="Manage your lightning node."
         contentRight={
           hasChannelManagement && (
             <div className="flex gap-3 items-center justify-center">
@@ -265,7 +264,7 @@ export default function Channels() {
         }
       ></AppHeader>
 
-      <HealthCheckAlert showOk={searchParams.has("healthcheck", "true")} />
+      <HealthCheckAlert />
 
       {hasChannelManagement && (
         <>
