@@ -3,7 +3,7 @@ import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { ExternalLinkButton } from "src/components/ui/button";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
 
-export function MempoolAlert() {
+export function MempoolAlert({ className }: { className?: string }) {
   const { data: recommendedFees } = useMempoolApi<{ fastestFee: number }>(
     "/v1/fees/recommended",
     true
@@ -26,7 +26,7 @@ export function MempoolAlert() {
     return null;
   }
   return (
-    <Alert>
+    <Alert className={className}>
       <TriangleAlertIcon className="h-4 w-4" />
       <AlertTitle>
         Mempool Fees are currently{" "}
