@@ -42,7 +42,7 @@ export function UncleJim() {
   const { toast } = useToast();
   const [isLoading, setLoading] = React.useState(false);
   const { data: info } = useInfo();
-  const { data: albyMe } = useAlbyMe();
+  const { data: albyMe, error: albyMeError } = useAlbyMe();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -91,7 +91,7 @@ export function UncleJim() {
     albyMe?.subscription.plan_code ||
     (onboardedApps && onboardedApps?.length < 3);
 
-  if (!info || (info.albyAccountConnected && !albyMe)) {
+  if (!info || (info.albyAccountConnected && !albyMe && !albyMeError)) {
     // make sure to not render the incorrect component
     return <Loading />;
   }
