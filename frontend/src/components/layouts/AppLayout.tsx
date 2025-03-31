@@ -8,7 +8,6 @@ import { useRemoveSuccessfulChannelOrder } from "src/hooks/useRemoveSuccessfulCh
 
 export default function AppLayout() {
   const { data: info } = useInfo();
-  const sidebarOpen = window.localStorage.getItem("sidebar_open") !== "false";
 
   useRemoveSuccessfulChannelOrder();
   useNotifyReceivedPayments();
@@ -20,7 +19,7 @@ export default function AppLayout() {
   return (
     <>
       <div className="font-sans min-h-screen w-full flex flex-col">
-        <SidebarProvider defaultOpen={sidebarOpen}>
+        <SidebarProvider>
           <AppSidebar />
           <SidebarInset>
             <div className="flex flex-1 flex-col gap-4 p-4">

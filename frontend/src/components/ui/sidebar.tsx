@@ -22,7 +22,6 @@ import {
 import { useIsMobile } from "src/hooks/use-mobile";
 import { cn } from "src/lib/utils";
 
-const SIDEBAR_LOCALSTORAGE_NAME = "sidebar_open";
 const SIDEBAR_WIDTH = "16rem";
 const SIDEBAR_WIDTH_MOBILE = "18rem";
 const SIDEBAR_WIDTH_ICON = "3rem";
@@ -84,11 +83,6 @@ const SidebarProvider = React.forwardRef<
         } else {
           _setOpen(openState);
         }
-
-        window.localStorage.setItem(
-          SIDEBAR_LOCALSTORAGE_NAME,
-          openState.toString()
-        );
       },
       [setOpenProp, open]
     );

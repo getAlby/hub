@@ -21,7 +21,6 @@ import React from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import ExternalLink from "src/components/ExternalLink";
 import { AlbyIcon } from "src/components/icons/Alby";
-import { AlbyHubIcon } from "src/components/icons/AlbyHubIcon";
 import { AlbyHubLogo } from "src/components/icons/AlbyHubLogo";
 import SidebarHint from "src/components/SidebarHint";
 import {
@@ -124,9 +123,9 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar collapsible="offcanvas">
       <SidebarHeader>
-        <div className="p-2 flex flex-row items-center justify-between group-data-[collapsible=icon]:hidden">
+        <div className="p-2 flex flex-row items-center justify-between">
           <Link to="/home" onClick={() => setOpenMobile(false)}>
             <AlbyHubLogo className="text-sidebar-foreground h-12" />
           </Link>
@@ -135,12 +134,6 @@ export function AppSidebar() {
             <HealthIndicator />
           </div>
         </div>
-        <Link
-          to="/home"
-          className="py-4 hidden group-data-[collapsible=icon]:inline"
-        >
-          <AlbyHubIcon className="w-8 h-8 text-sidebar-foreground" />
-        </Link>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
@@ -166,7 +159,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
         <div className="mt-auto">
-          <SidebarGroup className="group-data-[collapsible=icon]:hidden">
+          <SidebarGroup>
             <SidebarGroupContent>
               <SidebarHint />
             </SidebarGroupContent>
