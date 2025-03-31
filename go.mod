@@ -2,7 +2,7 @@ module github.com/getAlby/hub
 
 go 1.23.1
 
-toolchain go1.23.3
+toolchain go1.24.1
 
 require (
 	github.com/adrg/xdg v0.5.3
@@ -20,7 +20,7 @@ require (
 	golang.org/x/crypto v0.36.0
 	golang.org/x/oauth2 v0.28.0
 	google.golang.org/grpc v1.71.0
-	gopkg.in/DataDog/dd-trace-go.v1 v1.72.1
+	gopkg.in/DataDog/dd-trace-go.v1 v1.72.2
 	gopkg.in/macaroon.v2 v2.1.0
 	gorm.io/driver/postgres v1.5.11
 	gorm.io/driver/sqlite v1.5.7
