@@ -56,7 +56,6 @@ import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useHealthCheck } from "src/hooks/useHealthCheck";
 import { useInfo } from "src/hooks/useInfo";
 import { deleteAuthToken } from "src/lib/auth";
-import { cn } from "src/lib/utils";
 
 import { isHttpMode } from "src/utils/isHttpMode";
 
@@ -399,7 +398,7 @@ function HealthIndicator() {
 
   return (
     <Link to="/channels" onClick={() => setOpenMobile(false)}>
-      <div className={cn("w-2 h-2 rounded-full", "bg-destructive")} />
+      <div className="w-2 h-2 rounded-full bg-destructive" />
     </Link>
   );
 }
