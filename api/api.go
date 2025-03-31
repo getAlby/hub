@@ -1082,6 +1082,17 @@ func (api *api) Health(ctx context.Context) (*HealthResponse, error) {
 		alarms = append(alarms, NewHealthAlarm(HealthAlarmKindNostrRelayOffline, nil))
 	}
 
+	ldkVssEnabled, _ := api.cfg.Get("LdkVssEnabled", "")
+	if ldkVssEnabled == "true" {
+		albyMe, err := api.albyOAuthSvc.GetMe(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if albyMe.Subscription.PlanCode == "" {
+			alarms = append(alarms, NewHealthAlarm(HealthAlarmKindVssNoSubscription, nil))
+		}
+	}
+
 	lnClient := api.svc.GetLNClient()
 
 	if lnClient != nil {

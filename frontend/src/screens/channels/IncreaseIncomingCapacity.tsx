@@ -66,7 +66,8 @@ function NewChannelInternal({
   network: Network;
   channels: Channel[];
 }) {
-  const { data: _channelPeerSuggestions } = useChannelPeerSuggestions();
+  const { data: _channelPeerSuggestions, error: channelPeerSuggestionsError } =
+    useChannelPeerSuggestions();
   const navigate = useNavigate();
 
   const { toast } = useToast();
@@ -85,6 +86,16 @@ function NewChannelInternal({
   const [selectedPeer, setSelectedPeer] = React.useState<
     RecommendedChannelPeer | undefined
   >();
+
+  React.useEffect(() => {
+    if (channelPeerSuggestionsError) {
+      toast({
+        variant: "destructive",
+        title: "Failed to load channel suggestions",
+      });
+      navigate("/channels/outgoing");
+    }
+  }, [channelPeerSuggestionsError, navigate, toast]);
 
   const channelPeerSuggestions = React.useMemo(() => {
     return _channelPeerSuggestions
