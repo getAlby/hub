@@ -195,9 +195,11 @@ export function LightningMessageboardWidget() {
                   </CardHeader>
                   <CardFooter className="flex items-center justify-between text-sm">
                     <CardTitle className="break-all font-normal text-xs">
-                      <span className="text-muted-foreground">by </span>
-                      {message.name || "Anonymous"}
-                      {dayjs(message.created_at).fromNow()}
+                      <span className="text-muted-foreground">by</span>{" "}
+                      {message.name || "Anonymous"}{" "}
+                      <span className="text-muted-foreground">
+                        {dayjs(message.created_at * 1000).fromNow()}
+                      </span>
                     </CardTitle>
                     <div>
                       <Badge className="py-1">
