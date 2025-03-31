@@ -326,8 +326,19 @@ export function NavSecondary({
 function AppVersion() {
   const { data: albyInfo } = useAlbyInfo();
   const { data: info } = useInfo();
+  // briefly delay display of version to fix bug on mobile
+  // where update tooltip is always shown when sidebar is expanded
+  const [isVisible, setVisible] = React.useState(false);
 
-  if (!info || !albyInfo) {
+  React.useEffect(() => {
+    const timeout = setTimeout(() => setVisible(true), 1000);
+    return () => {
+      clearTimeout(timeout);
+      setVisible(false);
+    };
+  }, []);
+
+  if (!info || !albyInfo || !isVisible) {
     return null;
   }
 
