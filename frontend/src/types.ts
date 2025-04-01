@@ -1,22 +1,17 @@
 import {
-  Bell,
-  CirclePlus,
-  HandCoins,
-  Info,
+  BellIcon,
+  CirclePlusIcon,
+  CrownIcon,
+  HandCoinsIcon,
+  InfoIcon,
   LucideIcon,
-  NotebookTabs,
-  PenLine,
-  Search,
-  WalletMinimal,
+  NotebookTabsIcon,
+  PenLineIcon,
+  SearchIcon,
+  WalletMinimalIcon,
 } from "lucide-react";
 
-export type BackendType =
-  | "LND"
-  | "BREEZ"
-  | "GREENLIGHT"
-  | "LDK"
-  | "PHOENIX"
-  | "CASHU";
+export type BackendType = "LND" | "LDK" | "PHOENIX" | "CASHU";
 
 export type Nip47RequestMethod =
   | "get_info"
@@ -47,7 +42,8 @@ export type Scope =
   | "lookup_invoice"
   | "list_transactions"
   | "sign_message"
-  | "notifications"; // covers all notification types
+  | "notifications" // covers all notification types
+  | "superuser";
 
 export type Nip47NotificationType = "payment_received" | "payment_sent";
 
@@ -56,14 +52,15 @@ export type ScopeIconMap = {
 };
 
 export const scopeIconMap: ScopeIconMap = {
-  get_balance: WalletMinimal,
-  get_info: Info,
-  list_transactions: NotebookTabs,
-  lookup_invoice: Search,
-  make_invoice: CirclePlus,
-  pay_invoice: HandCoins,
-  sign_message: PenLine,
-  notifications: Bell,
+  get_balance: WalletMinimalIcon,
+  get_info: InfoIcon,
+  list_transactions: NotebookTabsIcon,
+  lookup_invoice: SearchIcon,
+  make_invoice: CirclePlusIcon,
+  pay_invoice: HandCoinsIcon,
+  sign_message: PenLineIcon,
+  notifications: BellIcon,
+  superuser: CrownIcon,
 };
 
 export type WalletCapabilities = {
@@ -89,6 +86,7 @@ export const scopeDescriptions: Record<Scope, string> = {
   pay_invoice: "Send payments",
   sign_message: "Sign messages",
   notifications: "Receive wallet notifications",
+  superuser: "Create other app connections",
 };
 
 export const expiryOptions: Record<string, number> = {
@@ -114,6 +112,8 @@ export interface App {
   name: string;
   description: string;
   appPubkey: string;
+  uniqueWalletPubkey: boolean;
+  walletPubkey: string;
   createdAt: string;
   updatedAt: string;
   lastEventAt?: string;
@@ -163,11 +163,19 @@ export type HealthAlarmKind =
   | "alby_service"
   | "node_not_ready"
   | "channels_offline"
-  | "nostr_relay_offline";
+  | "nostr_relay_offline"
+  | "vss_no_subscription";
 
 export type HealthAlarm = {
   kind: HealthAlarmKind;
-  rawDetails: unknown;
+  rawDetails?: unknown;
+};
+export type AlbyInfoIncident = {
+  name: string;
+  started: string;
+  status: string;
+  impact: string;
+  url: string;
 };
 
 export type HealthResponse = {
@@ -195,6 +203,7 @@ export interface CreateAppRequest {
   returnTo?: string;
   isolated?: boolean;
   metadata?: AppMetadata;
+  unlockPassword?: string; // required to create superuser apps
 }
 
 export interface CreateAppResponse {
@@ -324,8 +333,6 @@ export type SetupNodeInfo = Partial<{
 
   mnemonic?: string;
   nextBackupReminder?: string;
-  greenlightInviteCode?: string;
-  breezApiKey?: string;
 
   lndAddress?: string;
   lndCertHex?: string;
@@ -388,7 +395,7 @@ export type AlbyMe = {
     name?: string;
   };
   subscription: {
-    buzz: boolean;
+    plan_code: string;
   };
 };
 

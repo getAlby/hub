@@ -1,4 +1,4 @@
-import { AlertTriangle, CircleCheck, CopyIcon } from "lucide-react";
+import { AlertTriangleIcon, CircleCheckIcon, CopyIcon } from "lucide-react";
 import React from "react";
 import { Link } from "react-router-dom";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
@@ -99,7 +99,7 @@ export default function ReceiveInvoice() {
         parseInt(amount || "0") * 1000 >=
           0.8 * balances.lightning.totalReceivable && (
           <Alert>
-            <AlertTriangle className="h-4 w-4" />
+            <AlertTriangleIcon className="h-4 w-4" />
             <AlertTitle>Low receiving capacity</AlertTitle>
             <AlertDescription>
               You likely won't be able to receive payments until you{" "}
@@ -122,7 +122,7 @@ export default function ReceiveInvoice() {
                 <CardContent className="flex flex-col items-center gap-4">
                   {paymentDone ? (
                     <>
-                      <CircleCheck className="w-32 h-32 mb-1" />
+                      <CircleCheckIcon className="w-32 h-32 mb-1" />
                       <div className="flex flex-col gap-2 items-center">
                         <p>
                           Received{" "}

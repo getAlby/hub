@@ -1,9 +1,9 @@
 import {
-  ArrowDownUp,
-  BrickWall,
+  ArrowDownUpIcon,
+  BrickWallIcon,
   LucideIcon,
-  MoveDown,
-  SquarePen,
+  MoveDownIcon,
+  SquarePenIcon,
 } from "lucide-react";
 import React from "react";
 import { Checkbox } from "src/components/ui/checkbox";
@@ -16,10 +16,10 @@ type ScopeGroup = (typeof scopeGroups)[number];
 type ScopeGroupIconMap = { [key in ScopeGroup]: LucideIcon };
 
 const scopeGroupIconMap: ScopeGroupIconMap = {
-  full_access: ArrowDownUp,
-  read_only: MoveDown,
-  isolated: BrickWall,
-  custom: SquarePen,
+  full_access: ArrowDownUpIcon,
+  read_only: MoveDownIcon,
+  isolated: BrickWallIcon,
+  custom: SquarePenIcon,
 };
 
 const scopeGroupTitle: Record<ScopeGroup, string> = {
@@ -87,10 +87,17 @@ const Scopes: React.FC<ScopesProps> = ({
   }, [capabilities.scopes]);
 
   const [scopeGroup, setScopeGroup] = React.useState<ScopeGroup>(() => {
-    if (isolated && scopes.length === capabilities.scopes.length) {
+    if (
+      isolated &&
+      scopes.length === isolatedScopes.length &&
+      scopes.every((scope) => isolatedScopes.includes(scope))
+    ) {
       return "isolated";
     }
-    if (scopes.length === capabilities.scopes.length) {
+    if (
+      scopes.length === fullAccessScopes.length &&
+      scopes.every((scope) => fullAccessScopes.includes(scope))
+    ) {
       return "full_access";
     }
     if (

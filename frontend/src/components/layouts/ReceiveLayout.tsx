@@ -1,4 +1,4 @@
-import { ArrowDown } from "lucide-react";
+import { ArrowDownIcon } from "lucide-react";
 import { Outlet } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import BalanceCard from "src/components/BalanceCard";
@@ -19,10 +19,7 @@ export default function ReceiveLayout() {
 
   return (
     <div className="grid gap-5">
-      <AppHeader
-        title="Receive"
-        description="Create a lightning invoice that can be paid by any bitcoin lightning wallet"
-      />
+      <AppHeader title="Receive" />
       <div className="flex gap-12 w-full">
         <div className="w-full max-w-lg">
           <Outlet />
@@ -33,7 +30,7 @@ export default function ReceiveLayout() {
             title="Receiving Capacity"
             buttonTitle="Increase"
             buttonLink="/channels/incoming"
-            BalanceCardIcon={ArrowDown}
+            BalanceCardIcon={ArrowDownIcon}
             hasChannelManagement
           />
         )}

@@ -190,6 +190,8 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		pubkey:              nodeId,
 	}
 
+	eventPublisher.RegisterSubscriber(&ls)
+
 	// TODO: remove when LDK supports this
 	deleteOldLDKLogs(logDirPath)
 	go func() {
@@ -411,6 +413,7 @@ func (ls *LDKService) Shutdown() error {
 		return nil
 	}
 	ls.shuttingDown = true
+	ls.eventPublisher.RemoveSubscriber(ls)
 
 	logger.Logger.Info("shutting down LDK client")
 	logger.Logger.Info("cancelling LDK context")
@@ -905,7 +908,14 @@ func (ls *LDKService) GetNodeConnectionInfo(ctx context.Context) (nodeConnection
 }
 
 func (ls *LDKService) ConnectPeer(ctx context.Context, connectPeerRequest *lnclient.ConnectPeerRequest) error {
-	err := ls.node.Connect(connectPeerRequest.Pubkey, connectPeerRequest.Address+":"+strconv.Itoa(int(connectPeerRequest.Port)), true)
+	// disconnect first to ensure new IP address is saved in case of re-connecting
+	err := ls.node.Disconnect(connectPeerRequest.Pubkey)
+	if err != nil {
+		// non-critical: only log an error
+		logger.Logger.WithField("request", connectPeerRequest).WithError(err).Error("Disconnect failed while connecting peer")
+	}
+
+	err = ls.node.Connect(connectPeerRequest.Pubkey, connectPeerRequest.Address+":"+strconv.Itoa(int(connectPeerRequest.Port)), true)
 	if err != nil {
 		logger.Logger.WithField("request", connectPeerRequest).WithError(err).Error("ConnectPeer failed")
 		return err
@@ -1333,11 +1343,13 @@ func (ls *LDKService) GetNetworkGraph(ctx context.Context, nodeIds []string) (ln
 				Node:   graphNode,
 				NodeId: nodeId,
 			})
-		}
-		for _, channelId := range graphNode.Channels {
-			graphChannel := graph.Channel(channelId)
-			if graphChannel != nil {
-				channels = append(channels, graphChannel)
+			if graphNode.Channels != nil {
+				for _, channelId := range graphNode.Channels {
+					graphChannel := graph.Channel(channelId)
+					if graphChannel != nil {
+						channels = append(channels, graphChannel)
+					}
+				}
 			}
 		}
 	}
@@ -1449,13 +1461,54 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 			"event":  event,
 			"reason": closureReason,
 		}).Info("Channel closed")
+		onchainBalance, err := ls.GetOnchainBalance(context.Background())
+		if err != nil {
+			logger.Logger.WithError(err).Error("failed to retrieve on-chain balance when closing channel")
+		}
+		var pendingBalance uint64
+		var fundingTxId string
+		var fundingTxVout uint32
+		var fundingTxUrl string
+
+		if onchainBalance != nil {
+			logger.Logger.WithField("onchain_balance", onchainBalance).Info("got on-chain balance when closing channel")
+
+			for _, details := range onchainBalance.PendingBalancesDetails {
+				if details.ChannelId == eventType.ChannelId {
+					fundingTxId = details.FundingTxId
+					fundingTxVout = details.FundingTxVout
+					fundingTxUrl = fmt.Sprintf("https://mempool.space/tx/%s#flow=&vout=%d", fundingTxId, fundingTxVout)
+					pendingBalance += details.Amount
+				}
+			}
+			for _, details := range onchainBalance.PendingSweepBalancesDetails {
+				if details.ChannelId == eventType.ChannelId {
+					fundingTxId = details.FundingTxId
+					fundingTxVout = details.FundingTxVout
+					fundingTxUrl = fmt.Sprintf("https://mempool.space/tx/%s#flow=&vout=%d", fundingTxId, fundingTxVout)
+					pendingBalance += details.Amount
+				}
+			}
+		}
+
+		var counterpartyNodeId string
+		var counterpartyNodeUrl string
+		if eventType.CounterpartyNodeId != nil {
+			counterpartyNodeId = *eventType.CounterpartyNodeId
+			counterpartyNodeUrl = "https://amboss.space/node/" + counterpartyNodeId
+		}
 
 		ls.eventPublisher.Publish(&events.Event{
 			Event: "nwc_channel_closed",
 			Properties: map[string]interface{}{
-				"counterparty_node_id": eventType.CounterpartyNodeId,
-				"reason":               closureReason,
-				"node_type":            config.LDKBackendType,
+				"counterparty_node_id":  counterpartyNodeId,
+				"counterparty_node_url": counterpartyNodeUrl,
+				"reason":                closureReason,
+				"node_type":             config.LDKBackendType,
+				"pending_balance":       pendingBalance,
+				"funding_tx_id":         fundingTxId,
+				"funding_tx_vout":       fundingTxVout,
+				"funding_tx_url":        fundingTxUrl,
 			},
 		})
 	case ldk_node.EventPaymentReceived:
@@ -1612,7 +1665,7 @@ func (ls *LDKService) saveStaticChannelBackupToDisk(event *events.StaticChannels
 	logger.Logger.WithField("backupPath", backupFilePath).Debug("Saved static channel backup to disk")
 }
 
-func (ls *LDKService) GetBalances(ctx context.Context) (*lnclient.BalancesResponse, error) {
+func (ls *LDKService) GetBalances(ctx context.Context, includeInactiveChannels bool) (*lnclient.BalancesResponse, error) {
 	onchainBalance, err := ls.GetOnchainBalance(ctx)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to retrieve onchain balance")
@@ -1627,7 +1680,7 @@ func (ls *LDKService) GetBalances(ctx context.Context) (*lnclient.BalancesRespon
 	var nextMaxSpendableMPP int64 = 0
 	channels := ls.node.ListChannels()
 	for _, channel := range channels {
-		if channel.IsUsable {
+		if channel.IsUsable || includeInactiveChannels {
 			// spending or receiving amount may be constrained by channel configuration (e.g. ACINQ does this)
 			channelConstrainedSpendable := min(int64(channel.OutboundCapacityMsat), int64(*channel.CounterpartyOutboundHtlcMaximumMsat))
 			channelConstrainedReceivable := min(int64(channel.InboundCapacityMsat), int64(*channel.InboundHtlcMaximumMsat))
@@ -1828,18 +1881,6 @@ func getEncodedChannelMonitorsFromStaticChannelsBackup(channelsBackup *events.St
 	return encodedMonitors
 }
 
-func forceCloseChannelsFromStaticChannelsBackup(node *ldk_node.Node, staticChannelsBackup *events.StaticChannelsBackupEvent) {
-	// peer with original peers from channels so that we can send closing channel messages
-	for _, channel := range staticChannelsBackup.Channels {
-		err := node.Connect(channel.PeerID, channel.PeerSocketAddress, true)
-		if err != nil {
-			logger.Logger.WithField("peer_id", channel.PeerID).WithError(err).Error("failed to peer to node from channel backup")
-		}
-	}
-
-	node.ForceCloseAllChannelsWithoutBroadcastingTxn()
-}
-
 func GetVssNodeIdentifier(keys keys.Keys) (string, error) {
 	key, err := keys.DeriveKey([]uint32{bip32.FirstHardenedChild + 2})
 
@@ -1882,10 +1923,19 @@ func getResetStateRequest(cfg config.Config) *ldk_node.ResetState {
 		ret = ldk_node.ResetStateScorer
 	case "NetworkGraph":
 		ret = ldk_node.ResetStateNetworkGraph
+	case "NodeMetrics":
+		ret = ldk_node.ResetStateNodeMetrics
 	default:
 		logger.Logger.WithField("key", resetKey).Error("Unknown reset router key")
 		return nil
 	}
 
 	return &ret
+}
+
+func (ls *LDKService) ConsumeEvent(ctx context.Context, event *events.Event, globalProperties map[string]interface{}) {
+	if event.Event == "nwc_alby_account_connected" {
+		// backup existing channels to the user's Alby Account on first connect
+		ls.backupChannels()
+	}
 }

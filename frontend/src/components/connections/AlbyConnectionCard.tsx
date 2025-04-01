@@ -1,6 +1,6 @@
 import {
-  CheckCircle2,
-  CircleX,
+  CheckCircle2Icon,
+  CircleXIcon,
   EditIcon,
   ExternalLinkIcon,
   InfoIcon,
@@ -146,13 +146,13 @@ function AlbyConnectionCard({ connection }: { connection?: App }) {
                   disabled
                   className="disabled:opacity-100"
                 >
-                  <CheckCircle2 className="w-4 h-4 mr-2" />
+                  <CheckCircle2Icon className="w-4 h-4 mr-2" />
                   Alby Account Linked
                 </Button>
               ) : (
                 linkStatus === LinkStatus.OtherNode && (
                   <Button variant="destructive" disabled>
-                    <CircleX className="w-4 h-4 mr-2" />
+                    <CircleXIcon className="w-4 h-4 mr-2" />
                     Linked to another wallet
                   </Button>
                 )

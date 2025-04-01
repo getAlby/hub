@@ -14,7 +14,7 @@ import {
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request"; // build the project for this to appear
 
-import { PencilIcon, Trash2 } from "lucide-react";
+import { AlertCircleIcon, PencilIcon, Trash2Icon } from "lucide-react";
 import AppAvatar from "src/components/AppAvatar";
 import AppHeader from "src/components/AppHeader";
 import { IsolatedAppTopupDialog } from "src/components/IsolatedAppTopupDialog";
@@ -41,8 +41,13 @@ import {
 } from "src/components/ui/card";
 import { Input } from "src/components/ui/input";
 import { Table, TableBody, TableCell, TableRow } from "src/components/ui/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "src/components/ui/tooltip";
 import { useToast } from "src/components/ui/use-toast";
-import { useApps } from "src/hooks/useApps";
 import { useCapabilities } from "src/hooks/useCapabilities";
 
 function ShowApp() {
@@ -77,7 +82,6 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
-  const { data: apps } = useApps();
   const [isEditingName, setIsEditingName] = React.useState(false);
   const [isEditingPermissions, setIsEditingPermissions] = React.useState(false);
 
@@ -102,16 +106,6 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
 
   const handleSave = async () => {
     try {
-      if (
-        isEditingName &&
-        apps?.some(
-          (existingApp) =>
-            existingApp.name === name && existingApp.id !== app.id
-        )
-      ) {
-        throw new Error("A connection with the same name already exists.");
-      }
-
       const updateAppRequest: UpdateAppRequest = {
         name,
         scopes: Array.from(permissions.scopes),
@@ -189,7 +183,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="destructive" size="icon">
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2Icon className="w-4 h-4" />
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
@@ -237,9 +231,32 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                     </TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell className="font-medium">Public Key</TableCell>
+                    <TableCell className="font-medium">
+                      App Public Key
+                    </TableCell>
                     <TableCell className="text-muted-foreground break-all">
                       {app.appPubkey}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      Wallet Public Key
+                    </TableCell>
+                    <TableCell className="text-muted-foreground whitespace-pre-wrap flex items-center">
+                      {app.walletPubkey}
+                      {!app.uniqueWalletPubkey && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <AlertCircleIcon className="w-3 h-3 ml-2" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              This connection does not have its own unique
+                              wallet pubkey. Re-connect for additional privacy.
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
                     </TableCell>
                   </TableRow>
                   {app.isolated && (

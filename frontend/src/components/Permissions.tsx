@@ -1,4 +1,4 @@
-import { BrickWall, PlusCircle } from "lucide-react";
+import { AlertTriangleIcon, BrickWallIcon, PlusCircleIcon } from "lucide-react";
 import React from "react";
 import BudgetAmountSelect from "src/components/BudgetAmountSelect";
 import BudgetRenewalSelect from "src/components/BudgetRenewalSelect";
@@ -119,7 +119,7 @@ const Permissions: React.FC<PermissionsProps> = ({
       {permissions.isolated && (
         <div className="mb-4">
           <div className="flex items-center gap-2 mb-2">
-            <BrickWall className="w-4 h-4" />
+            <BrickWallIcon className="w-4 h-4" />
             <p className="text-sm font-medium">Isolated App</p>
           </div>
           <p className="text-muted-foreground text-xs">
@@ -146,7 +146,7 @@ const Permissions: React.FC<PermissionsProps> = ({
                   }}
                   className={cn("mr-4", showExpiryOptions && "mb-4")}
                 >
-                  <PlusCircle className="w-4 h-4 mr-2" />
+                  <PlusCircleIcon className="w-4 h-4 mr-2" />
                   Set budget
                 </Button>
               )}
@@ -203,7 +203,7 @@ const Permissions: React.FC<PermissionsProps> = ({
                 variant="secondary"
                 onClick={() => setShowExpiryOptions(true)}
               >
-                <PlusCircle className="w-4 h-4 mr-2" />
+                <PlusCircleIcon className="w-4 h-4 mr-2" />
                 Set expiration time
               </Button>
             )}
@@ -226,6 +226,20 @@ const Permissions: React.FC<PermissionsProps> = ({
           </>
         )}
       </>
+
+      {permissions.scopes.includes("superuser") && (
+        <>
+          <div className="flex items-center gap-2 mt-4">
+            <AlertTriangleIcon className="w-4 h-4" />
+            <p className="text-sm font-medium">
+              This app can create other app connections
+            </p>
+          </div>
+          <p className="text-muted-foreground text-sm">
+            Make sure to set budgets on connections created by this app.
+          </p>
+        </>
+      )}
     </div>
   );
 };

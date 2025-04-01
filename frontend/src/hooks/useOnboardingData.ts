@@ -1,7 +1,6 @@
 // src/hooks/useOnboardingData.ts
 
 import { SUPPORT_ALBY_CONNECTION_NAME } from "src/constants";
-import { useAlbyBalance } from "src/hooks/useAlbyBalance";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useApps } from "src/hooks/useApps";
 import { useChannels } from "src/hooks/useChannels";
@@ -23,7 +22,6 @@ interface UseOnboardingDataResponse {
 }
 
 export const useOnboardingData = (): UseOnboardingDataResponse => {
-  const { data: albyBalance } = useAlbyBalance();
   const { data: albyMe } = useAlbyMe();
   const { data: apps } = useApps();
   const { data: channels } = useChannels();
@@ -37,7 +35,7 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
     !info ||
     !nodeConnectionInfo ||
     !transactions ||
-    (info.albyAccountConnected && (!albyMe || !albyBalance));
+    (info.albyAccountConnected && !albyMe);
 
   if (isLoading) {
     return { isLoading: true, checklistItems: [] };
@@ -57,9 +55,12 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
   const hasCustomApp =
     apps && apps.find((x) => x.name !== "getalby.com") !== undefined;
   const hasTransaction = transactions.totalCount > 0;
-  const hasSetupSupportPayment =
-    apps &&
-    apps.find((x) => x.name === SUPPORT_ALBY_CONNECTION_NAME) !== undefined;
+  const hasSetupSupportPayment = !!(
+    (apps &&
+      apps.find((x) => x.name === SUPPORT_ALBY_CONNECTION_NAME) !==
+        undefined) ||
+    albyMe?.subscription.plan_code
+  );
 
   const checklistItems: Omit<ChecklistItem, "disabled">[] = [
     ...(hasChannelManagement
@@ -112,9 +113,9 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
     ...(!info.oauthRedirect
       ? [
           {
-            title: "Support Alby Hub",
+            title: "Support Alby",
             description:
-              "Setup a recurring payment to support the development of Alby Hub",
+              "Set up a monthly contribution to help us build the future of digital payments.",
             checked: hasSetupSupportPayment,
             to: "/support-alby",
           },

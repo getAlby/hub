@@ -3,6 +3,7 @@ package tests
 import (
 	"time"
 
+	"github.com/getAlby/hub/constants"
 	db "github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/nip47/cipher"
@@ -10,13 +11,13 @@ import (
 	"gorm.io/gorm"
 )
 
-type CreateAppFn func(svc *TestService, senderPrivkey string, nip47Version string) (app *db.App, nip47Cipher *cipher.Nip47Cipher, err error)
+type CreateAppFn func(svc *TestService, senderPrivkey string, nip47Encryption string) (app *db.App, nip47Cipher *cipher.Nip47Cipher, err error)
 
 func CreateApp(svc *TestService) (app *db.App, cipher *cipher.Nip47Cipher, err error) {
-	return CreateAppWithPrivateKey(svc, "", "1.0")
+	return CreateAppWithPrivateKey(svc, "", constants.ENCRYPTION_TYPE_NIP44_V2)
 }
 
-func CreateAppWithPrivateKey(svc *TestService, senderPrivkey, nip47Version string) (app *db.App, nip47Cipher *cipher.Nip47Cipher, err error) {
+func CreateAppWithPrivateKey(svc *TestService, senderPrivkey, nip47Encryption string) (app *db.App, nip47Cipher *cipher.Nip47Cipher, err error) {
 	senderPubkey := ""
 	if senderPrivkey != "" {
 		var err error
@@ -27,12 +28,12 @@ func CreateAppWithPrivateKey(svc *TestService, senderPrivkey, nip47Version strin
 	}
 
 	var expiresAt *time.Time
-	app, pairingSecretKey, err := svc.AppsService.CreateApp("test", senderPubkey, 0, "monthly", expiresAt, nil, false, nil)
+	app, pairingSecretKey, err := svc.AppsService.CreateApp("test", senderPubkey, 0, "monthly", expiresAt, []string{constants.GET_INFO_SCOPE}, false, nil)
 	if pairingSecretKey == "" {
 		pairingSecretKey = senderPrivkey
 	}
 
-	nip47Cipher, err = cipher.NewNip47Cipher(nip47Version, *app.WalletPubkey, pairingSecretKey)
+	nip47Cipher, err = cipher.NewNip47Cipher(nip47Encryption, *app.WalletPubkey, pairingSecretKey)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -40,7 +41,7 @@ func CreateAppWithPrivateKey(svc *TestService, senderPrivkey, nip47Version strin
 	return app, nip47Cipher, nil
 }
 
-func CreateAppWithSharedWalletPubkey(svc *TestService, senderPrivkey, nip47Version string) (app *db.App, nip47Cipher *cipher.Nip47Cipher, err error) {
+func CreateAppWithSharedWalletPubkey(svc *TestService, senderPrivkey, nip47Encryption string) (app *db.App, nip47Cipher *cipher.Nip47Cipher, err error) {
 
 	pairingPublicKey, _ := nostr.GetPublicKey(senderPrivkey)
 
@@ -68,6 +69,6 @@ func CreateAppWithSharedWalletPubkey(svc *TestService, senderPrivkey, nip47Versi
 		},
 	})
 
-	nip47Cipher, err = cipher.NewNip47Cipher(nip47Version, svc.Keys.GetNostrPublicKey(), senderPrivkey)
+	nip47Cipher, err = cipher.NewNip47Cipher(nip47Encryption, svc.Keys.GetNostrPublicKey(), senderPrivkey)
 	return app, nip47Cipher, nil
 }

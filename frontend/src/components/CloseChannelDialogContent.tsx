@@ -5,6 +5,7 @@ import {
   ExternalLinkIcon,
 } from "lucide-react";
 import React from "react";
+import { SwapAlert } from "src/components/channels/SwapAlert";
 import ExternalLink from "src/components/ExternalLink";
 import { MempoolAlert } from "src/components/MempoolAlert";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
@@ -76,7 +77,7 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
         setFundingTxId(closedChannel.fundingTxId);
         setStep(step + 1);
       }
-      toast({ title: "Sucessfully closed channel" });
+      toast({ title: "Successfully closed channel" });
     } catch (error) {
       console.error(error);
       toast({
@@ -113,6 +114,7 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
               Are you sure you want to close the channel with {alias}?
             </AlertDialogTitle>
             <AlertDialogDescription className="text-left">
+              <SwapAlert minChannels={0} className="mb-4" />
               <Alert className="mb-4">
                 <AlertCircleIcon className="h-4 w-4" />
                 <AlertDescription>

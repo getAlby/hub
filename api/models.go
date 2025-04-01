@@ -63,21 +63,23 @@ type API interface {
 }
 
 type App struct {
-	ID            uint       `json:"id"`
-	Name          string     `json:"name"`
-	Description   string     `json:"description"`
-	AppPubkey     string     `json:"appPubkey"`
-	CreatedAt     time.Time  `json:"createdAt"`
-	UpdatedAt     time.Time  `json:"updatedAt"`
-	LastEventAt   *time.Time `json:"lastEventAt"`
-	ExpiresAt     *time.Time `json:"expiresAt"`
-	Scopes        []string   `json:"scopes"`
-	MaxAmountSat  uint64     `json:"maxAmount"`
-	BudgetUsage   uint64     `json:"budgetUsage"`
-	BudgetRenewal string     `json:"budgetRenewal"`
-	Isolated      bool       `json:"isolated"`
-	Balance       int64      `json:"balance"`
-	Metadata      Metadata   `json:"metadata,omitempty"`
+	ID                 uint       `json:"id"`
+	Name               string     `json:"name"`
+	Description        string     `json:"description"`
+	AppPubkey          string     `json:"appPubkey"`
+	CreatedAt          time.Time  `json:"createdAt"`
+	UpdatedAt          time.Time  `json:"updatedAt"`
+	LastEventAt        *time.Time `json:"lastEventAt"`
+	ExpiresAt          *time.Time `json:"expiresAt"`
+	Scopes             []string   `json:"scopes"`
+	MaxAmountSat       uint64     `json:"maxAmount"`
+	BudgetUsage        uint64     `json:"budgetUsage"`
+	BudgetRenewal      string     `json:"budgetRenewal"`
+	Isolated           bool       `json:"isolated"`
+	WalletPubkey       string     `json:"walletPubkey"`
+	UniqueWalletPubkey bool       `json:"uniqueWalletPubkey"`
+	Balance            int64      `json:"balance"`
+	Metadata           Metadata   `json:"metadata,omitempty"`
 }
 
 type ListAppsResponse struct {
@@ -99,15 +101,16 @@ type TopupIsolatedAppRequest struct {
 }
 
 type CreateAppRequest struct {
-	Name          string   `json:"name"`
-	Pubkey        string   `json:"pubkey"`
-	MaxAmountSat  uint64   `json:"maxAmount"`
-	BudgetRenewal string   `json:"budgetRenewal"`
-	ExpiresAt     string   `json:"expiresAt"`
-	Scopes        []string `json:"scopes"`
-	ReturnTo      string   `json:"returnTo"`
-	Isolated      bool     `json:"isolated"`
-	Metadata      Metadata `json:"metadata,omitempty"`
+	Name           string   `json:"name"`
+	Pubkey         string   `json:"pubkey"`
+	MaxAmountSat   uint64   `json:"maxAmount"`
+	BudgetRenewal  string   `json:"budgetRenewal"`
+	ExpiresAt      string   `json:"expiresAt"`
+	Scopes         []string `json:"scopes"`
+	ReturnTo       string   `json:"returnTo"`
+	Isolated       bool     `json:"isolated"`
+	Metadata       Metadata `json:"metadata,omitempty"`
+	UnlockPassword string   `json:"unlockPassword"`
 }
 
 type StartRequest struct {
@@ -127,13 +130,8 @@ type SetupRequest struct {
 	LNBackendType  string `json:"backendType"`
 	UnlockPassword string `json:"unlockPassword"`
 
-	// Breez / Greenlight
-	Mnemonic             string `json:"mnemonic"`
-	GreenlightInviteCode string `json:"greenlightInviteCode"`
-	NextBackupReminder   string `json:"nextBackupReminder"`
-
-	// Breez fields
-	BreezAPIKey string `json:"breezApiKey"`
+	Mnemonic           string `json:"mnemonic"`
+	NextBackupReminder string `json:"nextBackupReminder"`
 
 	// LND fields
 	LNDAddress      string `json:"lndAddress"`
@@ -389,9 +387,10 @@ type HealthAlarmKind string
 
 const (
 	HealthAlarmKindAlbyService       HealthAlarmKind = "alby_service"
-	HealthAlarmKindNodeNotReady                      = "node_not_ready"
-	HealthAlarmKindChannelsOffline                   = "channels_offline"
-	HealthAlarmKindNostrRelayOffline                 = "nostr_relay_offline"
+	HealthAlarmKindNodeNotReady      HealthAlarmKind = "node_not_ready"
+	HealthAlarmKindChannelsOffline   HealthAlarmKind = "channels_offline"
+	HealthAlarmKindNostrRelayOffline HealthAlarmKind = "nostr_relay_offline"
+	HealthAlarmKindVssNoSubscription HealthAlarmKind = "vss_no_subscription"
 )
 
 type HealthAlarm struct {

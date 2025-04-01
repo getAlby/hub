@@ -3,6 +3,7 @@ import React from "react";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
+import { MempoolAlert } from "src/components/MempoolAlert";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import {
   AlertDialog,
@@ -21,6 +22,7 @@ import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 import { ONCHAIN_DUST_SATS } from "src/constants";
 import { useBalances } from "src/hooks/useBalances";
+import { useChannels } from "src/hooks/useChannels";
 
 import { copyToClipboard } from "src/lib/clipboard";
 import { RedeemOnchainFundsResponse } from "src/types";
@@ -30,6 +32,7 @@ export default function WithdrawOnchainFunds() {
   const [isLoading, setLoading] = React.useState(false);
   const { toast } = useToast();
   const { data: balances } = useBalances();
+  const { data: channels } = useChannels();
   const [onchainAddress, setOnchainAddress] = React.useState("");
   const [amount, setAmount] = React.useState("");
   const [sendAll, setSendAll] = React.useState(false);
@@ -180,39 +183,22 @@ export default function WithdrawOnchainFunds() {
                 }}
               />
             )}
+            <MempoolAlert className="mt-4" />
             {sendAll && (
               <Alert className="mt-4">
                 <AlertTriangleIcon className="h-4 w-4" />
                 <AlertTitle>Entire wallet balance will be sent</AlertTitle>
                 <AlertDescription>
-                  Your entire wallet balance
-                  {balances.onchain.reserved > 0 && (
-                    <span className="sensitive slashed-zero">
-                      {" "}
-                      including reserves (
-                      {new Intl.NumberFormat().format(
-                        balances.onchain.reserved
-                      )}{" "}
-                      sats)
-                    </span>
-                  )}{" "}
-                  will be sent minus onchain transaction fees. The exact amount
-                  cannot be determined until the payment is made.
-                  {balances.onchain.reserved > 0 && (
-                    <>
-                      {" "}
-                      You have channels open and this withdrawal will deplete
-                      your anchor reserves, which may make it harder to close
-                      channels without depositing additional onchain funds to
-                      your on-chain balance.
-                    </>
-                  )}
+                  Your entire wallet balance will be sent minus onchain
+                  transaction fees. The exact amount cannot be determined until
+                  the payment is made.
                 </AlertDescription>
               </Alert>
             )}
-            {!!balances?.onchain.reserved &&
-              !sendAll &&
-              +amount > balances.onchain.spendable * 0.9 && (
+            {!!channels?.length &&
+              (sendAll ||
+                +amount >
+                  balances.onchain.spendable - channels.length * 25000) && (
                 <Alert className="mt-4">
                   <AlertTriangleIcon className="h-4 w-4" />
                   <AlertTitle>
@@ -220,9 +206,11 @@ export default function WithdrawOnchainFunds() {
                   </AlertTitle>
                   <AlertDescription>
                     You have channels open and this withdrawal may deplete your
-                    anchor reserves, which may make it harder to close channels
+                    anchor reserves which may make it harder to close channels
                     without depositing additional onchain funds to your savings
-                    balance.
+                    balance. To avoid this, set aside at least{" "}
+                    {new Intl.NumberFormat().format(channels.length * 25000)}{" "}
+                    sats on-chain.
                   </AlertDescription>
                 </Alert>
               )}

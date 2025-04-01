@@ -21,7 +21,6 @@ type AlbyOAuthService interface {
 	GetBalance(ctx context.Context) (*AlbyBalance, error)
 	GetMe(ctx context.Context) (*AlbyMe, error)
 	SendPayment(ctx context.Context, invoice string) error
-	DrainSharedWallet(ctx context.Context, lnClient lnclient.LNClient) error
 	UnlinkAccount(ctx context.Context) error
 	RequestAutoChannel(ctx context.Context, lnClient lnclient.LNClient, isPublic bool) (*AutoChannelResponse, error)
 	GetVssAuthToken(ctx context.Context, nodeIdentifier string) (string, error)
@@ -77,8 +76,7 @@ type AlbyMeHub struct {
 }
 
 type AlbyMeSubscription struct {
-	// PlanCode string `json:"plan_code"`
-	Buzz bool `json:"buzz"`
+	PlanCode string `json:"plan_code"`
 }
 
 type AlbyMe struct {

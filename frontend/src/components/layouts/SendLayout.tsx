@@ -1,4 +1,4 @@
-import { ArrowUp, InfoIcon } from "lucide-react";
+import { ArrowUpIcon, InfoIcon } from "lucide-react";
 import { Outlet } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import BalanceCard from "src/components/BalanceCard";
@@ -24,10 +24,7 @@ export default function SendLayout() {
 
   return (
     <div className="grid gap-5">
-      <AppHeader
-        title="Send"
-        description="Pay a lightning invoice created by any bitcoin lightning wallet"
-      />
+      <AppHeader title="Send" />
       {transactionData.transactions.some(
         (tx) =>
           tx.state === "pending" &&
@@ -57,7 +54,7 @@ export default function SendLayout() {
           title="Spending Balance"
           buttonTitle="Top Up"
           buttonLink="/channels/outgoing"
-          BalanceCardIcon={ArrowUp}
+          BalanceCardIcon={ArrowUpIcon}
           hasChannelManagement={!!hasChannelManagement}
         />
       </div>

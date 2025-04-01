@@ -1,11 +1,10 @@
 import dayjs from "dayjs";
-import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import {
   ArrowDownIcon,
   ArrowUpIcon,
-  ChevronDown,
-  ChevronUp,
+  ChevronDownIcon,
+  ChevronUpIcon,
   CopyIcon,
   XIcon,
 } from "lucide-react";
@@ -31,7 +30,6 @@ import { cn } from "src/lib/utils";
 import { Transaction } from "src/types";
 
 dayjs.extend(utc);
-dayjs.extend(timezone);
 
 type Props = {
   tx: Transaction;
@@ -152,24 +150,27 @@ function TransactionItem({ tx }: Props) {
           </div>
           <div className="flex ml-auto space-x-3 shrink-0">
             <div className="flex flex-col items-end md:text-xl">
-              <div className="flex gap-2">
+              <div className="flex flex-row gap-1">
                 <p
                   className={cn(
-                    "font-semibold",
                     type == "incoming" && "text-green-600 dark:text-emerald-500"
                   )}
                 >
                   {type == "outgoing" ? "-" : "+"}
-                  {new Intl.NumberFormat().format(
-                    Math.floor(tx.amount / 1000)
-                  )}{" "}
+                  <span className="font-medium">
+                    {new Intl.NumberFormat().format(
+                      Math.floor(tx.amount / 1000)
+                    )}
+                  </span>
                 </p>
-                <p className="text-foreground">
+                <p className="text-muted-foreground">
                   {Math.floor(tx.amount / 1000) == 1 ? "sat" : "sats"}
                 </p>
               </div>
-
-              <FormattedFiatAmount amount={Math.floor(tx.amount / 1000)} />
+              <FormattedFiatAmount
+                className="text-xs md:text-base"
+                amount={Math.floor(tx.amount / 1000)}
+              />
             </div>
           </div>
         </div>
@@ -208,9 +209,7 @@ function TransactionItem({ tx }: Props) {
             <div className="mt-6">
               <p>Date & Time</p>
               <p className="text-muted-foreground">
-                {dayjs(tx.updatedAt)
-                  .tz(dayjs.tz.guess())
-                  .format("D MMMM YYYY, HH:mm")}
+                {dayjs(tx.updatedAt).local().format("D MMMM YYYY, HH:mm")}
               </p>
             </div>
             {tx.state != "failed" && type == "outgoing" && (
@@ -256,9 +255,9 @@ function TransactionItem({ tx }: Props) {
               >
                 Details
                 {showDetails ? (
-                  <ChevronUp className="w-4 h-4" />
+                  <ChevronUpIcon className="w-4 h-4" />
                 ) : (
-                  <ChevronDown className="w-4 h-4" />
+                  <ChevronDownIcon className="w-4 h-4" />
                 )}
               </div>
               {showDetails && (

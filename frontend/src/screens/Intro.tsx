@@ -1,10 +1,10 @@
 import { EmblaCarouselType } from "embla-carousel";
 import {
-  ArrowRight,
-  CloudLightning,
+  ArrowRightIcon,
+  CloudLightningIcon,
   LucideIcon,
-  ShieldCheck,
-  Wallet,
+  ShieldCheckIcon,
+  WalletIcon,
 } from "lucide-react";
 import React, { ReactElement } from "react";
 import { useNavigate } from "react-router-dom";
@@ -90,7 +90,7 @@ export function Intro() {
         <CarouselItem>
           <Slide
             api={api}
-            icon={CloudLightning}
+            icon={CloudLightningIcon}
             title="Anywhere & Anytime"
             description="Your wallet is always online and ready to use on any device."
           />
@@ -98,7 +98,7 @@ export function Intro() {
         <CarouselItem>
           <Slide
             api={api}
-            icon={ShieldCheck}
+            icon={ShieldCheckIcon}
             title="Your Keys Are Safe"
             description="Your wallet is encrypted by a password of your choice. No one can access your funds but you."
           />
@@ -106,7 +106,7 @@ export function Intro() {
         <CarouselItem>
           <Slide
             api={api}
-            icon={Wallet}
+            icon={WalletIcon}
             title="Take Your Wallet With You"
             description="Connect your wallet to dozens of apps and participate in the bitcoin digital economy."
           />
@@ -153,7 +153,7 @@ function Slide({
         </div>
       </div>
       <Button size="icon" onClick={slideNext} className="">
-        <ArrowRight className="w-4 h-4" />
+        <ArrowRightIcon className="w-4 h-4" />
       </Button>
     </div>
   );

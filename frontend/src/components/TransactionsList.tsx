@@ -1,4 +1,4 @@
-import { Drum } from "lucide-react";
+import { DrumIcon } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import EmptyState from "src/components/EmptyState";
 import Loading from "src/components/Loading";
@@ -57,7 +57,7 @@ function TransactionsList({
     <div ref={transactionListRef} className="flex flex-col flex-1">
       {!transactions.length ? (
         <EmptyState
-          icon={Drum}
+          icon={DrumIcon}
           title="No transactions yet"
           description="Your most recent incoming and outgoing payments will show up here."
           buttonText="Receive Your First Payment"

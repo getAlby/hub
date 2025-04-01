@@ -1,5 +1,5 @@
 import dayjs from "dayjs";
-import { BrickWall, CircleCheck, PlusCircle } from "lucide-react";
+import { BrickWallIcon, CircleCheckIcon, PlusCircleIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "src/components/ui/button";
 import { Progress } from "src/components/ui/progress";
@@ -9,11 +9,13 @@ import { App, BudgetRenewalType } from "src/types";
 type AppCardConnectionInfoProps = {
   connection: App;
   budgetRemainingText?: string | React.ReactNode;
+  readonly?: boolean;
 };
 
 export function AppCardConnectionInfo({
   connection,
   budgetRemainingText = "Left in budget",
+  readonly = false,
 }: AppCardConnectionInfoProps) {
   function getBudgetRenewalLabel(renewalType: BudgetRenewalType): string {
     switch (renewalType) {
@@ -38,8 +40,8 @@ export function AppCardConnectionInfo({
         <>
           <div className="text-sm text-secondary-foreground font-medium w-full h-full flex flex-col gap-2">
             <div className="flex flex-row items-center gap-2">
-              <BrickWall className="w-4 h-4" />
-              Isolated
+              <BrickWallIcon className="w-4 h-4" />
+              Sub-wallet
             </div>
           </div>
           <div className="flex flex-row justify-between text-xs items-end mt-2">
@@ -117,30 +119,32 @@ export function AppCardConnectionInfo({
                 ? dayjs(connection.lastEventAt).fromNow()
                 : "Never"}
             </div>
-            <Link to={`/apps/${connection.appPubkey}?edit=true`}>
-              <Button variant="outline">
-                <PlusCircle className="w-4 h-4 mr-2" />
-                Set Budget
-              </Button>
-            </Link>
+            {!readonly && (
+              <Link to={`/apps/${connection.appPubkey}?edit=true`}>
+                <Button variant="outline">
+                  <PlusCircleIcon className="w-4 h-4 mr-2" />
+                  Set Budget
+                </Button>
+              </Link>
+            )}
           </div>
         </>
       ) : (
         <>
           <div className="text-sm text-secondary-foreground font-medium w-full h-full flex flex-col gap-2">
             <div className="flex flex-row items-center gap-2">
-              <CircleCheck className="w-4 h-4" />
+              <CircleCheckIcon className="w-4 h-4" />
               Share wallet information
             </div>
             {connection.scopes.indexOf("make_invoice") > -1 && (
               <div className="flex flex-row items-center gap-2">
-                <CircleCheck className="w-4 h-4" />
+                <CircleCheckIcon className="w-4 h-4" />
                 Receive payments
               </div>
             )}
             {connection.scopes.indexOf("list_transactions") > -1 && (
               <div className="flex flex-row items-center gap-2">
-                <CircleCheck className="w-4 h-4" />
+                <CircleCheckIcon className="w-4 h-4" />
                 Read transaction history
               </div>
             )}
@@ -152,15 +156,17 @@ export function AppCardConnectionInfo({
                 ? dayjs(connection.lastEventAt).fromNow()
                 : "Never"}
             </div>
-            <Link
-              to={`/apps/${connection.appPubkey}?edit=true`}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <Button variant="outline">
-                <PlusCircle className="w-4 h-4 mr-2" />
-                Enable Payments
-              </Button>
-            </Link>
+            {!readonly && (
+              <Link
+                to={`/apps/${connection.appPubkey}?edit=true`}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Button variant="outline">
+                  <PlusCircleIcon className="w-4 h-4 mr-2" />
+                  Enable Payments
+                </Button>
+              </Link>
+            )}
           </div>
         </>
       )}

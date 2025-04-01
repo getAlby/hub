@@ -1,4 +1,4 @@
-import { ChevronDown } from "lucide-react";
+import { ChevronDownIcon } from "lucide-react";
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
@@ -154,6 +154,17 @@ export function AutoChannel() {
                 immediately be able to receive and send bitcoin through this
                 channel with your Hub.
               </p>
+              <p className="text-muted-foreground">
+                Alby Hub works with selected service providers (LSPs) which
+                provide the best network connectivity and liquidity to receive
+                payments.{" "}
+                <ExternalLink
+                  className="underline"
+                  to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/how-to-open-a-payment-channel"
+                >
+                  Learn more
+                </ExternalLink>
+              </p>
             </>
             {showAdvanced && (
               <>
@@ -171,8 +182,13 @@ export function AutoChannel() {
                       Public Channel
                     </Label>
                     <p className="text-xs text-muted-foreground">
-                      Only enable if you want to receive keysend payments. (e.g.
-                      podcasting)
+                      Not recommended for most users.{" "}
+                      <ExternalLink
+                        className="underline"
+                        to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/should-i-open-a-private-or-public-channel"
+                      >
+                        Learn more
+                      </ExternalLink>
                     </p>
                   </div>
                 </div>
@@ -187,7 +203,7 @@ export function AutoChannel() {
                   onClick={() => setShowAdvanced((current) => !current)}
                 >
                   Advanced Options
-                  <ChevronDown className="w-4 h-4 ml-1" />
+                  <ChevronDownIcon className="w-4 h-4 ml-1" />
                 </Button>
               </div>
             )}

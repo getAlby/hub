@@ -8,6 +8,7 @@ import { MempoolAlert } from "src/components/MempoolAlert";
 import { ChannelPeerNote } from "src/components/channels/ChannelPeerNote";
 import { ChannelPublicPrivateAlert } from "src/components/channels/ChannelPublicPrivateAlert";
 import { DuplicateChannelAlert } from "src/components/channels/DuplicateChannelAlert";
+import { SwapAlert } from "src/components/channels/SwapAlert";
 import {
   Button,
   ExternalLinkButton,
@@ -99,7 +100,7 @@ function NewChannelInternal({ network }: { network: Network }) {
           ),
           customOption,
         ]
-      : undefined;
+      : [customOption];
   }, [_channelPeerSuggestions, network]);
 
   function setPublic(isPublic: boolean) {
@@ -206,6 +207,19 @@ function NewChannelInternal({ network }: { network: Network }) {
           src="/images/illustrations/lightning-network-light.svg"
           className="w-full dark:hidden"
         />
+        <p className="text-muted-foreground">
+          Open a channel with on-chain funds. Both parties are free to close the
+          channel at any time. However, by keeping more funds on your side of
+          the channel and using it regularly, there is more chance the channel
+          will stay open.{" "}
+          <ExternalLink
+            className="underline"
+            to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/node/advanced-increase-spending-balance-with-on-chain-bitcoin"
+          >
+            Learn more
+          </ExternalLink>
+          .
+        </p>
         <form
           onSubmit={onSubmit}
           className="md:max-w-md max-w-full flex flex-col gap-5 flex-1"
@@ -366,13 +380,19 @@ function NewChannelInternal({ network }: { network: Network }) {
                   Public Channel
                 </Label>
                 <p className="text-xs text-muted-foreground">
-                  Enable if you want to receive keysend payments. (e.g.
-                  podcasting)
+                  Not recommended for most users.{" "}
+                  <ExternalLink
+                    className="underline"
+                    to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/should-i-open-a-private-or-public-channel"
+                  >
+                    Learn more
+                  </ExternalLink>
                 </p>
               </div>
             </div>
           </>
           <MempoolAlert />
+          <SwapAlert />
           {channels?.some((channel) => channel.public !== !!order.isPublic) && (
             <ChannelPublicPrivateAlert />
           )}

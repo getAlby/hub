@@ -258,9 +258,9 @@ export default function DebugTools() {
     <div>
       <SettingsHeader
         title="Debug Tools"
-        description="Extra tools for debugging purposes"
+        description="Extra tools for debugging purposes."
       />
-      <div className="grid gap-6 mb-8 lg:mb-8 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid mt-6 gap-6 mb-8 lg:mb-8 md:grid-cols-2 xl:grid-cols-3">
         <AlertDialog
           onOpenChange={() => {
             if (!open) {
@@ -268,26 +268,39 @@ export default function DebugTools() {
             }
           }}
         >
-          <Button onClick={() => apiRequest("/api/info", "GET")}>
+          <Button
+            variant={"outline"}
+            onClick={() => apiRequest("/api/info", "GET")}
+          >
             Get Info
           </Button>
-          <Button onClick={() => apiRequest("/api/peers", "GET")}>
+          <Button
+            variant={"outline"}
+            onClick={() => apiRequest("/api/peers", "GET")}
+          >
             List Peers
           </Button>
-          <Button onClick={() => apiRequest("/api/channels", "GET")}>
+          <Button
+            variant={"outline"}
+            onClick={() => apiRequest("/api/channels", "GET")}
+          >
             List Channels
           </Button>
           <AlertDialogTrigger asChild>
-            <Button onClick={() => setDialog("getAppLogs")}>
+            <Button variant={"outline"} onClick={() => setDialog("getAppLogs")}>
               Get App Logs
             </Button>
           </AlertDialogTrigger>
           <AlertDialogTrigger asChild>
-            <Button onClick={() => setDialog("getNodeLogs")}>
+            <Button
+              variant={"outline"}
+              onClick={() => setDialog("getNodeLogs")}
+            >
               Get Node Logs
             </Button>
           </AlertDialogTrigger>
           <Button
+            variant={"outline"}
             onClick={() => {
               apiRequest(`/api/node/status`, "GET");
             }}
@@ -295,6 +308,7 @@ export default function DebugTools() {
             Get Node Status
           </Button>
           <Button
+            variant={"outline"}
             onClick={() => {
               apiRequest(`/api/balances`, "GET");
             }}
@@ -302,18 +316,25 @@ export default function DebugTools() {
             Get Balances
           </Button>
           <AlertDialogTrigger asChild>
-            <Button onClick={() => setDialog("getNetworkGraph")}>
+            <Button
+              variant={"outline"}
+              onClick={() => setDialog("getNetworkGraph")}
+            >
               Get Network Graph
             </Button>
           </AlertDialogTrigger>
           {(info?.backendType === "LDK" || info?.backendType === "CASHU") && (
             <AlertDialogTrigger asChild>
-              <Button onClick={() => setDialog("resetRoutingData")}>
+              <Button
+                variant={"outline"}
+                onClick={() => setDialog("resetRoutingData")}
+              >
                 Clear Routing Data
               </Button>
             </AlertDialogTrigger>
           )}
           <Button
+            variant={"outline"}
             onClick={() => {
               apiRequest(`/api/commands`, "GET");
             }}
@@ -322,6 +343,7 @@ export default function DebugTools() {
           </Button>
           <AlertDialogTrigger asChild>
             <Button
+              variant={"outline"}
               onClick={() => {
                 apiRequest(`/api/commands`, "GET");
                 setDialog("customNodeCommand");

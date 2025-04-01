@@ -283,7 +283,7 @@ func (cs *CashuService) UpdateChannel(ctx context.Context, updateChannelRequest 
 	return nil
 }
 
-func (cs *CashuService) GetBalances(ctx context.Context) (*lnclient.BalancesResponse, error) {
+func (cs *CashuService) GetBalances(ctx context.Context, includeInactiveChannels bool) (*lnclient.BalancesResponse, error) {
 	cashuBalance := cs.wallet.GetBalance()
 	balance := int64(cashuBalance * 1000)
 

@@ -1,4 +1,4 @@
-import { Copy, Edit } from "lucide-react";
+import { CopyIcon, EditIcon } from "lucide-react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import Loading from "src/components/Loading";
@@ -12,16 +12,23 @@ import { copyToClipboard } from "src/lib/clipboard";
 
 export default function Receive() {
   const { data: info } = useInfo();
-  const { data: me } = useAlbyMe();
+  const { data: me, error: meError } = useAlbyMe();
   const { toast } = useToast();
   const navigate = useNavigate();
 
   // TODO: remove this once we have a CTA to connect an Alby Account to use a lightning address
   React.useEffect(() => {
-    if (info && !info.albyAccountConnected) {
+    if (info && (!info.albyAccountConnected || meError)) {
+      if (meError) {
+        toast({
+          variant: "destructive",
+          title: "Failed to load lightning address",
+        });
+      }
+
       navigate("/wallet/receive/invoice");
     }
-  }, [info, navigate]);
+  }, [info, meError, navigate, toast]);
 
   if (!info || (info.albyAccountConnected && !me)) {
     return <Loading />;
@@ -42,7 +49,7 @@ export default function Receive() {
               variant="outline"
               className="flex-1 flex gap-2 items-center justify-center"
             >
-              <Edit className="w-4 h-4" /> Amount
+              <EditIcon className="w-4 h-4" /> Amount
             </LinkButton>
             <Button
               variant="secondary"
@@ -51,7 +58,7 @@ export default function Receive() {
               }}
               className="flex-1 flex gap-2 items-center justify-center"
             >
-              <Copy className="w-4 h-4" /> Copy
+              <CopyIcon className="w-4 h-4" /> Copy
             </Button>
           </div>
         </div>

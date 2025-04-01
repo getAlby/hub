@@ -73,9 +73,12 @@ function Settings() {
 
   return (
     <>
-      <SettingsHeader title="General" description="General Alby Hub Settings" />
-      <form className="w-full flex flex-col gap-3">
-        <div className="grid gap-1.5">
+      <SettingsHeader
+        title="General"
+        description="General Alby Hub settings."
+      />
+      <form className="w-full flex flex-col gap-4">
+        <div className="grid gap-2">
           <Label htmlFor="theme">Theme</Label>
           <Select
             value={theme}
@@ -84,7 +87,7 @@ function Settings() {
               toast({ title: "Theme updated." });
             }}
           >
-            <SelectTrigger className="w-[150px]">
+            <SelectTrigger className="w-full md:w-60">
               <SelectValue placeholder="Theme" />
             </SelectTrigger>
             <SelectContent>
@@ -96,17 +99,17 @@ function Settings() {
             </SelectContent>
           </Select>
         </div>
-        <div className="grid gap-1.5">
-          <Label htmlFor="theme">Dark mode</Label>
+        <div className="grid gap-2">
+          <Label htmlFor="theme">Appearance</Label>
           <Select
             value={darkMode}
             onValueChange={(value) => {
               setDarkMode(value as DarkMode);
-              toast({ title: "Dark Mode updated." });
+              toast({ title: "Appearance updated." });
             }}
           >
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Dark mode" />
+            <SelectTrigger className="w-full md:w-60">
+              <SelectValue placeholder="Appearance" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="system">System</SelectItem>
@@ -118,7 +121,7 @@ function Settings() {
         <div className="grid gap-1.5">
           <Label htmlFor="currency">Fiat Currency</Label>
           <Select value={info?.currency} onValueChange={updateCurrency}>
-            <SelectTrigger className="w-[250px] border border-gray-300 p-2 rounded-md">
+            <SelectTrigger className="w-full md:w-60">
               <SelectValue placeholder="Select a currency" />
             </SelectTrigger>
             <SelectContent>

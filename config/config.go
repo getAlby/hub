@@ -212,6 +212,9 @@ func (cfg *config) SetUpdate(key string, value string, encryptionKey string) err
 }
 
 func (cfg *config) ChangeUnlockPassword(currentUnlockPassword string, newUnlockPassword string) error {
+	if newUnlockPassword == "" {
+		return errors.New("New unlock password must not be empty")
+	}
 	if !cfg.CheckUnlockPassword(currentUnlockPassword) {
 		return errors.New("incorrect password")
 	}
@@ -300,8 +303,11 @@ const defaultCurrency = "USD"
 
 func (cfg *config) GetCurrency() string {
 	currency, err := cfg.Get("Currency", "")
-	if err != nil || currency == "" {
-		logger.Logger.WithError(err).Debug("Currency not found, using default")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to fetch currency")
+		return defaultCurrency
+	}
+	if currency == "" {
 		return defaultCurrency
 	}
 	return currency

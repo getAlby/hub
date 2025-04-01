@@ -3,12 +3,14 @@ import { Link } from "react-router-dom";
 import albyGo from "src/assets/suggested-apps/alby-go.png";
 import alby from "src/assets/suggested-apps/alby.png";
 import amethyst from "src/assets/suggested-apps/amethyst.png";
+import bitrefill from "src/assets/suggested-apps/bitrefill.png";
 import btcpay from "src/assets/suggested-apps/btcpay.png";
 import buzzpay from "src/assets/suggested-apps/buzzpay.png";
 import clams from "src/assets/suggested-apps/clams.png";
 import coracle from "src/assets/suggested-apps/coracle.png";
 import damus from "src/assets/suggested-apps/damus.png";
 import hablanews from "src/assets/suggested-apps/habla-news.png";
+import lightningMessageboard from "src/assets/suggested-apps/lightning-messageboard.png";
 import lnbits from "src/assets/suggested-apps/lnbits.png";
 import lume from "src/assets/suggested-apps/lume.png";
 import nostrcheckserver from "src/assets/suggested-apps/nostrcheck-server.png";
@@ -29,6 +31,7 @@ import zapplanner from "src/assets/suggested-apps/zapplanner.png";
 import zapplepay from "src/assets/suggested-apps/zapple-pay.png";
 import zappybird from "src/assets/suggested-apps/zappy-bird.png";
 import zapstore from "src/assets/suggested-apps/zapstore.png";
+import zeus from "src/assets/suggested-apps/zeus.png";
 import ExternalLink from "src/components/ExternalLink";
 
 export type SuggestedApp = {
@@ -56,6 +59,19 @@ export type SuggestedApp = {
 
 export const suggestedApps: SuggestedApp[] = [
   {
+    id: "alby-go",
+    title: "Alby Go",
+    description: "A simple mobile wallet that works great with Alby Hub",
+    webLink: "https://albygo.com",
+    playLink:
+      "https://play.google.com/store/apps/details?id=com.getalby.mobile",
+    appleLink: "https://apps.apple.com/us/app/alby-go/id6471335774",
+    zapStoreLink: "https://zapstore.dev/download/",
+    logo: albyGo,
+    extendedDescription: "Sends and receives payments seamlessly from your Hub",
+    internal: true,
+  },
+  {
     id: "buzzpay",
     title: "BuzzPay PoS",
     description: "Receive-only PoS you can safely share with your employees",
@@ -68,6 +84,13 @@ export const suggestedApps: SuggestedApp[] = [
     description: "Donation widget for your website",
     internal: true,
     logo: simpleboost,
+  },
+  {
+    id: "lightning-messageboard",
+    title: "Lightning Messageboard",
+    description: "Paid messageboard widget for your website",
+    internal: true,
+    logo: lightningMessageboard,
   },
   {
     id: "alby-extension",
@@ -1616,59 +1639,6 @@ export const suggestedApps: SuggestedApp[] = [
     ),
   },
   {
-    id: "alby-go",
-    title: "Alby Go",
-    description: "A simple mobile wallet that works great with Alby Hub",
-    webLink: "https://albygo.com",
-    playLink:
-      "https://play.google.com/store/apps/details?id=com.getalby.mobile",
-    appleLink: "https://apps.apple.com/us/app/alby-go/id6471335774",
-    zapStoreLink: "https://zapstore.dev/download/",
-    logo: albyGo,
-    extendedDescription: "Sends and receives payments seamlessly from your Hub",
-    guide: (
-      <>
-        <div>
-          <h3 className="font-medium">In Alby Go</h3>
-          <ul className="list-inside text-muted-foreground">
-            <li>
-              1. Download and open{" "}
-              <span className="font-medium text-foreground">Alby Go</span> on
-              your Android or iOS device
-            </li>
-            <li>
-              2. Click on{" "}
-              <span className="font-medium text-foreground">
-                Connect Wallet
-              </span>
-            </li>
-          </ul>
-        </div>
-        <div>
-          <h3 className="font-medium">In Alby Hub</h3>
-          <ul className="list-inside text-muted-foreground">
-            <li>
-              4. Click{" "}
-              <Link
-                to="/apps/new?app=alby-go"
-                className="font-medium text-foreground underline"
-              >
-                Connect to Alby Go
-              </Link>
-            </li>
-            <li>5. Set app's wallet permissions (full access recommended)</li>
-          </ul>
-        </div>
-        <div>
-          <h3 className="font-medium">In Alby Go</h3>
-          <ul className="list-inside text-muted-foreground">
-            <li>6. Scan or paste the connection secret from Alby Hub</li>
-          </ul>
-        </div>
-      </>
-    ),
-  },
-  {
     id: "pullthatupjamie-ai",
     title: "Pull That Up Jamie!",
     description: "Instantly pull up anything with private web search + AI",
@@ -1774,5 +1744,84 @@ export const suggestedApps: SuggestedApp[] = [
         </div>
       </>
     ),
+  },
+  {
+    id: "zeus",
+    title: "ZEUS",
+    description: "A self-custodial Bitcoin wallet that puts you in control.",
+    webLink: "https://zeusln.com/",
+    playLink: "https://play.google.com/store/apps/details?id=app.zeusln.zeus",
+    appleLink: "https://apps.apple.com/us/app/zeus-wallet/id1456038895",
+    zapStoreLink: "https://zapstore.dev/download/",
+    logo: zeus,
+    extendedDescription:
+      "Send and receive payments, to and from your Hub, on the go",
+    guide: (
+      <>
+        <div>
+          <h3 className="font-medium">In ZEUS</h3>
+          <ul className="list-inside text-muted-foreground">
+            <li>
+              1. Install{" "}
+              <ExternalLink
+                to="https://zeusln.com/download/"
+                className="font-medium text-foreground underline"
+              >
+                ZEUS
+              </ExternalLink>{" "}
+              on your Android or iOS smartphone
+            </li>
+            <li>2. Open the settings</li>
+          </ul>
+        </div>
+        <div>
+          <h3 className="font-medium">In Alby Hub</h3>
+          <ul className="list-inside text-muted-foreground">
+            <li>
+              3. Click{" "}
+              <Link
+                to="/apps/new?app=zeus"
+                className="font-medium text-foreground underline"
+              >
+                Connect to ZEUS
+              </Link>
+            </li>
+            <li>4. Set app's wallet permissions (full access recommended)</li>
+          </ul>
+        </div>
+        <div>
+          <h3 className="font-medium">In ZEUS</h3>
+          <ul className="list-inside text-muted-foreground">
+            <li>
+              5. Scan the connection QR using the QR scanner in the bottom right
+              corner of the bottom of the app, OR manually paste in the
+              connection string under{" "}
+              <span className="font-medium text-foreground">Menu</span> {">"}{" "}
+              <span className="font-medium text-foreground">
+                Connect a Wallet
+              </span>{" "}
+              {">"} <span className="font-medium text-foreground">+</span> after
+              selecting{" "}
+              <span className="font-medium text-foreground">
+                Nostr Wallet Connect
+              </span>{" "}
+              as the{" "}
+              <span className="font-medium text-foreground">
+                Wallet interface
+              </span>
+              .
+            </li>
+          </ul>
+        </div>
+      </>
+    ),
+  },
+  {
+    id: "bitrefill",
+    title: "Bitrefill",
+    description: "Live on bitcoin",
+    internal: true,
+    webLink: "https://bitrefill.com",
+    logo: bitrefill,
   },
 ].sort((a, b) => (a.title.toUpperCase() > b.title.toUpperCase() ? 1 : -1));
