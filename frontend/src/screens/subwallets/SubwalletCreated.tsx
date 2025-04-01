@@ -50,8 +50,7 @@ export function SubwalletCreated() {
 
   const { state } = useLocation();
   const navigate = useNavigate();
-  const createAppResponse = state as CreateAppResponse | undefined;
-  // TODO: FIXME
+  const createAppResponse = state as CreateAppResponse;
   const { data: app } = useApp(createAppResponse.pairingPublicKey, true);
 
   if (!createAppResponse?.pairingUri) {
@@ -63,7 +62,7 @@ export function SubwalletCreated() {
   const appPublicKey = createAppResponse.pairingPublicKey;
   const connectionSecret = createAppResponse.pairingSecretKey;
 
-  const albyAccountUrl = `https://getalby.com/nwc/new#${createAppResponse.connectionSecret}`;
+  const albyAccountUrl = `https://getalby.com/nwc/new#${connectionSecret}`;
   const valueTag = `<podcast:value type="lightning" method="keysend">
     <podcast:valueRecipient name="${name}" type="node" address="${nodeConnectionInfo?.pubkey}" customKey="696969"  customValue="${app?.id}" split="100"/>
   </podcast:value>`;
