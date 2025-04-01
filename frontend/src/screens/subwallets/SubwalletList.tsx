@@ -4,12 +4,17 @@ import { useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import AppCard from "src/components/connections/AppCard";
 import ExternalLink from "src/components/ExternalLink";
+import Loading from "src/components/Loading";
 import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
+import UpgradeCard from "src/components/UpgradeCard";
+import { UpgradeDialog } from "src/components/UpgradeDialog";
+import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useApps } from "src/hooks/useApps";
+import { useInfo } from "src/hooks/useInfo";
 import { createApp } from "src/requests/createApp";
 import { CreateAppRequest } from "src/types";
 import { handleRequestError } from "src/utils/handleRequestError";
@@ -19,12 +24,17 @@ export function SubwalletList() {
   const [name, setName] = React.useState("");
   const { data: apps } = useApps();
   const { toast } = useToast();
-  const [isLoading, setLoading] = React.useState(false);
-  const [showIntro, setShowIntro] = React.useState(true);
-
+  const { data: albyMe, error: albyMeError } = useAlbyMe();
+  const { data: info } = useInfo();
   const onboardedApps = apps
     ?.filter((app) => app.metadata?.app_store_app_id === "uncle-jim")
     .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+
+  const [isLoading, setLoading] = React.useState(false);
+  const [showIntro, setShowIntro] = React.useState(true);
+  const showForm =
+    albyMe?.subscription.plan_code ||
+    (onboardedApps && onboardedApps?.length < 3);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -65,42 +75,59 @@ export function SubwalletList() {
     setLoading(false);
   };
 
+  if (!info || (info.albyAccountConnected && !albyMe && !albyMeError)) {
+    // make sure to not render the incorrect component
+    return <Loading />;
+  }
+
   return (
     <div className="grid gap-5">
       <AppHeader
         title="Sub-wallets"
         description="Create personal spaces for your bitcoin with sub-wallets — keep funds organized for yourself, family and friends"
         contentRight={
-          <ExternalLink to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/app-store/sub-wallet-friends-and-family">
-            <Button variant="outline" size="icon">
-              <HelpCircle className="w-4 h-4" />
-            </Button>
-          </ExternalLink>
+          <>
+            <ExternalLink to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/app-store/sub-wallet-friends-and-family">
+              <Button variant="outline" size="icon">
+                <HelpCircle className="w-4 h-4" />
+              </Button>
+            </ExternalLink>
+            <UpgradeDialog>
+              <Button variant="premium">Upgrade</Button>
+            </UpgradeDialog>
+          </>
         }
       />
       {(!showIntro || !!onboardedApps?.length) && (
         <>
-          <form
-            onSubmit={handleSubmit}
-            className="flex flex-col items-start gap-3 max-w-lg"
-          >
-            <div className="w-full grid gap-1.5">
-              <Label htmlFor="name">Sub-wallet name</Label>
-              <Input
-                autoFocus
-                type="text"
-                name="name"
-                value={name}
-                id="name"
-                onChange={(e) => setName(e.target.value)}
-                required
-                autoComplete="off"
-              />
-            </div>
-            <LoadingButton loading={isLoading} type="submit">
-              Create Sub-wallet
-            </LoadingButton>
-          </form>
+          {showForm ? (
+            <form
+              onSubmit={handleSubmit}
+              className="flex flex-col items-start gap-3 max-w-lg"
+            >
+              <div className="w-full grid gap-1.5">
+                <Label htmlFor="name">Sub-wallet name</Label>
+                <Input
+                  autoFocus
+                  type="text"
+                  name="name"
+                  value={name}
+                  id="name"
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  autoComplete="off"
+                />
+              </div>
+              <LoadingButton loading={isLoading} type="submit">
+                Create Sub-wallet
+              </LoadingButton>
+            </form>
+          ) : (
+            <UpgradeCard
+              title="Need more Sub-wallets?"
+              description="Upgrade to Pro to unlock unlimited sub-wallets"
+            />
+          )}
 
           {!!onboardedApps?.length && (
             <>
