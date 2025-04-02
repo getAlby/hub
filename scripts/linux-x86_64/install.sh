@@ -28,7 +28,7 @@ if [[ ! -f "verify.sh" ]]; then
   chmod +x verify.sh
 fi
 
-./verify.sh server-linux-aarch64.tar.bz2 albyhub-Server-Linux-aarch64.tar.bz2
+./verify.sh server-linux-x86_64.tar.bz2 albyhub-Server-Linux-x86_64.tar.bz2
 if [[ $? -ne 0 ]]; then
   echo "❌ Verification failed, aborting installation"
   exit 1
