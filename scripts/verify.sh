@@ -38,6 +38,7 @@ verify_package() {
 
   if ! gpg --batch --verify "manifest.txt.asc" "manifest.txt"; then
     echo "❌ GPG signature verification failed!" >&2
+    echo "Visit https://github.com/getAlby/hub/releases for more information on how to verify the release" >&2
     return 1
   fi
 

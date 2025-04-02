@@ -1,7 +1,6 @@
 #!/bin/bash
 
 ALBYHUB_URL="https://getalby.com/install/hub/server-linux-aarch64.tar.bz2"
-VERIFIER_URL="https://getalby.com/install/hub/verify.sh"
 echo ""
 echo ""
 echo "⚡️ Updating Alby Hub"
@@ -58,15 +57,6 @@ cp -r data albyhub-backup
 
 echo "Downloading latest version"
 wget $ALBYHUB_URL
-
-if [[ ! -f "verify.sh" ]]; then
-  echo "Downloading the verification script..."
-  if ! wget -q "$VERIFIER_URL"; then
-    echo "❌ Failed to download the verification script." >&2
-    exit 1
-  fi
-  chmod +x verify.sh
-fi
 
 ./verify.sh server-linux-aarch64.tar.bz2 albyhub-Server-Linux-aarch64.tar.bz2
 if [[ $? -ne 0 ]]; then
