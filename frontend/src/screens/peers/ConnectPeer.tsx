@@ -45,7 +45,7 @@ export default function ConnectPeer() {
       });
       toast({ title: "Successfully connected with peer" });
       setConnectionString("");
-      navigate("/channels");
+      navigate("/peers");
     } catch (e) {
       toast({
         variant: "destructive",
