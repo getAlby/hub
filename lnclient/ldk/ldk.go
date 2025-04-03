@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"net"
 	"os"
 	"path/filepath"
 	"slices"
@@ -73,6 +74,11 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 
 	ldkConfig := ldk_node.DefaultConfig()
 	listeningAddresses := strings.Split(cfg.GetEnv().LDKListeningAddresses, ",")
+
+	err = checkPortsAvailable(listeningAddresses)
+	if err != nil {
+		return nil, err
+	}
 
 	ldkConfig.TrustedPeers0conf = []string{
 		lsp.OlympusLSP().Pubkey,
@@ -1879,6 +1885,21 @@ func getEncodedChannelMonitorsFromStaticChannelsBackup(channelsBackup *events.St
 		})
 	}
 	return encodedMonitors
+}
+
+func checkPortsAvailable(addresses []string) error {
+	for _, addr := range addresses {
+		host, portStr, err := net.SplitHostPort(addr)
+		if err != nil {
+			return fmt.Errorf("invalid listening address format: %s", addr)
+		}
+		conn, err := net.Listen("tcp", net.JoinHostPort(host, portStr))
+		if err != nil {
+			return fmt.Errorf("port %s already in use, please choose a different address", addr)
+		}
+		conn.Close()
+	}
+	return nil
 }
 
 func GetVssNodeIdentifier(keys keys.Keys) (string, error) {
