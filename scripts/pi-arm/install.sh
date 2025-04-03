@@ -1,3 +1,5 @@
+VERIFIER_URL="https://getalby.com/install/hub/verify.sh"
+
 echo ""
 echo ""
 echo "⚡️ Welcome to Alby Hub"
@@ -9,6 +11,21 @@ sudo mkdir -p /opt/albyhub
 sudo chown -R $USER:$USER /opt/albyhub
 cd /opt/albyhub
 wget https://getalby.com/install/hub/server-linux-armv6.tar.bz2
+
+if [[ ! -f "verify.sh" ]]; then
+  echo "Downloading the verification script..."
+  if ! wget -q "$VERIFIER_URL"; then
+    echo "❌ Failed to download the verification script." >&2
+    exit 1
+  fi
+  chmod +x verify.sh
+fi
+
+./verify.sh server-linux-armv6.tar.bz2 albyhub-Server-Linux-armv6.tar.bz2
+if [[ $? -ne 0 ]]; then
+  echo "❌ Verification failed, aborting installation"
+  exit 1
+fi
 
 # Extract archives
 tar -xvf server-linux-armv6.tar.bz2
