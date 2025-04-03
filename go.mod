@@ -8,7 +8,7 @@ require (
 	github.com/adrg/xdg v0.5.3
 	github.com/elnosh/gonuts v0.4.0
 	github.com/getAlby/ldk-node-go v0.0.0-20250317054222-37346892e729
-	github.com/go-gormigrate/gormigrate/v2 v2.1.3
+	github.com/go-gormigrate/gormigrate/v2 v2.1.4
 	github.com/labstack/echo/v4 v4.13.3
 	github.com/nbd-wtf/go-nostr v0.50.0
 	github.com/nbd-wtf/ln-decodepay v1.13.0
