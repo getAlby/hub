@@ -457,7 +457,7 @@ func getMaxTotalRoutingFeeLimit(amountMsat uint64) ldk_node.MaxTotalRoutingFeeLi
 }
 
 func (ls *LDKService) GenerateOfferSync(ctx context.Context, description string) (string, error) {
-	expiry := uint32(86400)
+	expiry := uint32(86400000)
 	offer, err := ls.node.Bolt12Payment().ReceiveVariableAmount(description, &expiry)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to generate BOLT12 offer")
@@ -538,6 +538,7 @@ func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string, amoun
 				logger.Logger.WithFields(logrus.Fields{
 					"payment": payment,
 				}).Error("Payment is not a bolt11 kind")
+				return nil, errors.New("payment is not a bolt11 kind")
 			}
 
 			if bolt11PaymentKind.Preimage == nil {
@@ -1243,6 +1244,24 @@ func (ls *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 		paymentHash = bolt11PaymentKind.Hash
 	}
 
+	bolt12PaymentKind, isBolt12PaymentKind := payment.Kind.(ldk_node.PaymentKindBolt12Offer)
+
+	if isBolt12PaymentKind {
+		logger.Logger.WithField("bolt12", bolt12PaymentKind).WithField("payment", payment).Info("Received BOLT-12 payment")
+		createdAt = int64(payment.CreatedAt)
+
+		paymentHash = *bolt12PaymentKind.Hash
+		description = *bolt12PaymentKind.PayerNote
+
+		metadata["offer_id"] = bolt12PaymentKind.OfferId
+
+		if payment.Status == ldk_node.PaymentStatusSucceeded {
+			preimage = *bolt12PaymentKind.Preimage
+			lastUpdate := int64(payment.LatestUpdateTimestamp)
+			settledAt = &lastUpdate
+		}
+	}
+
 	spontaneousPaymentKind, isSpontaneousPaymentKind := payment.Kind.(ldk_node.PaymentKindSpontaneous)
 	if isSpontaneousPaymentKind {
 		// keysend payment
@@ -1883,10 +1902,6 @@ func (ls *LDKService) PayOfferSync(ctx context.Context, offer string, amount uin
 	ldkEventSubscription := ls.ldkEventBroadcaster.Subscribe()
 	defer ls.ldkEventBroadcaster.CancelSubscription(ldkEventSubscription)
 
-	// TODO: Decode the offer before proceeding
-
-	// quantity should be set to nil for it to work if it is a normal offer
-	// if it is a offer with specifiedmax quantity then you have to pass it - unless it wouldn't work, so you have to decode and know if it has a max quantity or not
 	paymentId, err := ls.node.Bolt12Payment().SendUsingAmount(offer, amount, nil, &payerNote)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to initiate BOLT-12 variable amount payment")
