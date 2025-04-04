@@ -1,4 +1,9 @@
-import { AlertTriangleIcon, CircleCheckIcon, CopyIcon } from "lucide-react";
+import {
+  AlertCircleIcon,
+  AlertTriangleIcon,
+  CircleCheckIcon,
+  CopyIcon,
+} from "lucide-react";
 import React from "react";
 import { Link } from "react-router-dom";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
@@ -9,7 +14,7 @@ import {
   AlertDescription,
   AlertTitle,
 } from "src/components/ui/alert.tsx";
-import { Button } from "src/components/ui/button";
+import { Button, LinkButton } from "src/components/ui/button";
 import {
   Card,
   CardContent,
@@ -29,7 +34,7 @@ import { CreateInvoiceRequest, Transaction } from "src/types";
 import { request } from "src/utils/request";
 
 export default function ReceiveInvoice() {
-  const { hasChannelManagement } = useInfo();
+  const { data: info, hasChannelManagement } = useInfo();
   const { data: balances } = useBalances();
 
   const { toast } = useToast();
@@ -220,6 +225,20 @@ export default function ReceiveInvoice() {
                   Create Invoice
                 </LoadingButton>
               </div>
+              {!info?.albyAccountConnected && (
+                <Alert>
+                  <AlertCircleIcon className="h-4 w-4" />
+                  <AlertTitle>BOLT-12 Offers is here!</AlertTitle>
+                  <AlertDescription>
+                    <div className="mb-2">
+                      (Beta) You can now create BOLT-12 offers from Alby Hub
+                    </div>
+                    <LinkButton to="/wallet/receive/offer" variant="secondary">
+                      Create BOLT-12 Offer
+                    </LinkButton>
+                  </AlertDescription>
+                </Alert>
+              )}
             </form>
           )}
         </div>
