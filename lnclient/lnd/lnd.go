@@ -1318,3 +1318,7 @@ func (svc *LNDService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCo
 func (svc *LNDService) ExecuteCustomNodeCommand(ctx context.Context, command *lnclient.CustomNodeCommandRequest) (*lnclient.CustomNodeCommandResponse, error) {
 	return nil, nil
 }
+
+func (svc *LNDService) GenerateOfferSync(ctx context.Context, description string) (string, error) {
+	return "", errors.New("not supported")
+}

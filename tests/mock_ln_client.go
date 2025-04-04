@@ -2,6 +2,7 @@ package tests
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/getAlby/hub/lnclient"
@@ -210,4 +211,8 @@ func (mln *MockLn) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeComman
 
 func (mln *MockLn) ExecuteCustomNodeCommand(ctx context.Context, command *lnclient.CustomNodeCommandRequest) (*lnclient.CustomNodeCommandResponse, error) {
 	return nil, nil
+}
+
+func (mln *MockLn) GenerateOfferSync(ctx context.Context, description string) (string, error) {
+	return "", errors.New("not supported")
 }

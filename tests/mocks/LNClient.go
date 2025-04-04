@@ -234,6 +234,63 @@ func (_c *MockLNClient_ExecuteCustomNodeCommand_Call) RunAndReturn(run func(cont
 	return _c
 }
 
+// GenerateOfferSync provides a mock function with given fields: ctx, description
+func (_m *MockLNClient) GenerateOfferSync(ctx context.Context, description string) (string, error) {
+	ret := _m.Called(ctx, description)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GenerateOfferSync")
+	}
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (string, error)); ok {
+		return rf(ctx, description)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) string); ok {
+		r0 = rf(ctx, description)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, description)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockLNClient_GenerateOfferSync_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GenerateOfferSync'
+type MockLNClient_GenerateOfferSync_Call struct {
+	*mock.Call
+}
+
+// GenerateOfferSync is a helper method to define mock.On call
+//   - ctx context.Context
+//   - description string
+func (_e *MockLNClient_Expecter) GenerateOfferSync(ctx interface{}, description interface{}) *MockLNClient_GenerateOfferSync_Call {
+	return &MockLNClient_GenerateOfferSync_Call{Call: _e.mock.On("GenerateOfferSync", ctx, description)}
+}
+
+func (_c *MockLNClient_GenerateOfferSync_Call) Run(run func(ctx context.Context, description string)) *MockLNClient_GenerateOfferSync_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *MockLNClient_GenerateOfferSync_Call) Return(_a0 string, _a1 error) *MockLNClient_GenerateOfferSync_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockLNClient_GenerateOfferSync_Call) RunAndReturn(run func(context.Context, string) (string, error)) *MockLNClient_GenerateOfferSync_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetBalances provides a mock function with given fields: ctx, includeInactiveChannels
 func (_m *MockLNClient) GetBalances(ctx context.Context, includeInactiveChannels bool) (*lnclient.BalancesResponse, error) {
 	ret := _m.Called(ctx, includeInactiveChannels)
