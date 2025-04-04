@@ -1,15 +1,15 @@
 import React from "react";
 import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "src/components/ui/alert-dialog";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "src/components/ui/dialog";
 import { Input } from "src/components/ui/input";
+import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 import { useApp } from "src/hooks/useApp";
@@ -44,26 +44,33 @@ export function IsolatedAppTopupDialog({
       });
       await reloadApp();
       toast({
-        title: "Successfully increased sub-wallet balance",
+        title: `Successfully transferred ${+amountSat} sats`,
       });
-      setOpen(false);
+      reset();
     } catch (error) {
-      handleRequestError(toast, "Failed to increase sub-wallet balance", error);
+      handleRequestError(toast, "Failed to top up sub-wallet balance", error);
     }
     setLoading(false);
   }
+
+  function reset() {
+    setOpen(false);
+    setAmountSat("");
+  }
+
   return (
-    <AlertDialog open={open} onOpenChange={setOpen}>
-      <AlertDialogTrigger asChild>{children}</AlertDialogTrigger>
-      <AlertDialogContent>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogContent>
         <form onSubmit={onSubmit}>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Increase Isolated App Balance</AlertDialogTitle>
-            <AlertDialogDescription>
-              As the owner of your Alby Hub, you must make sure you have enough
-              funds in your channels for this app to make payments matching its
-              balance.
-            </AlertDialogDescription>
+          <DialogHeader>
+            <DialogTitle>Top Up</DialogTitle>
+            <DialogDescription>
+              Transfer funds from your node's spending balance
+            </DialogDescription>
+          </DialogHeader>
+          <div className="my-5">
+            <Label htmlFor="amount">Amount (sats)</Label>
             <Input
               autoFocus
               id="amount"
@@ -74,13 +81,12 @@ export function IsolatedAppTopupDialog({
                 setAmountSat(e.target.value.trim());
               }}
             />
-          </AlertDialogHeader>
-          <AlertDialogFooter className="mt-5">
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+          </div>
+          <DialogFooter className="mt-5">
             <LoadingButton loading={loading}>Top Up</LoadingButton>
-          </AlertDialogFooter>
+          </DialogFooter>
         </form>
-      </AlertDialogContent>
-    </AlertDialog>
+      </DialogContent>
+    </Dialog>
   );
 }
