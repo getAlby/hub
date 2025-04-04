@@ -1250,13 +1250,19 @@ func (ls *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 		logger.Logger.WithField("bolt12", bolt12PaymentKind).WithField("payment", payment).Info("Received BOLT-12 payment")
 		createdAt = int64(payment.CreatedAt)
 
-		paymentHash = *bolt12PaymentKind.Hash
-		description = *bolt12PaymentKind.PayerNote
+		if bolt12PaymentKind.Hash != nil {
+			paymentHash = *bolt12PaymentKind.Hash
+		}
+		if bolt12PaymentKind.PayerNote != nil {
+			description = *bolt12PaymentKind.PayerNote
+		}
 
 		metadata["offer_id"] = bolt12PaymentKind.OfferId
 
 		if payment.Status == ldk_node.PaymentStatusSucceeded {
-			preimage = *bolt12PaymentKind.Preimage
+			if bolt12PaymentKind.Preimage != nil {
+				preimage = *bolt12PaymentKind.Preimage
+			}
 			lastUpdate := int64(payment.LatestUpdateTimestamp)
 			settledAt = &lastUpdate
 		}
