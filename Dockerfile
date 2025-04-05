@@ -43,7 +43,7 @@ RUN chmod +x copy_dylibs.sh
 RUN ./copy_dylibs.sh $(echo "$TARGETPLATFORM" | cut -d'/' -f2)
 
 # Start a new, final image to reduce size.
-FROM debian as final
+FROM debian:12-slim as final
 
 ENV LD_LIBRARY_PATH=/usr/lib/nwc
 #
