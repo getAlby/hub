@@ -60,7 +60,7 @@ export function SubwalletCreated() {
 
   const name = createAppResponse.name;
   const appPublicKey = createAppResponse.pairingPublicKey;
-  const connectionSecret = createAppResponse.pairingSecretKey;
+  const connectionSecret = createAppResponse.pairingUri;
 
   const albyAccountUrl = `https://getalby.com/nwc/new#${connectionSecret}`;
   const valueTag = `<podcast:value type="lightning" method="keysend">
