@@ -1,95 +1,53 @@
-import { ExternalLinkIcon, GlobeIcon } from "lucide-react";
 import { Link } from "react-router-dom";
-import ExternalLink from "src/components/ExternalLink";
-import { AppleIcon } from "src/components/icons/Apple";
-import { NostrWalletConnectIcon } from "src/components/icons/NostrWalletConnectIcon";
-import { PlayStoreIcon } from "src/components/icons/PlayStore";
-import { Button } from "src/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardTitle,
 } from "src/components/ui/card";
 import { SuggestedApp, suggestedApps } from "./SuggestedAppData";
 
-function SuggestedAppCard({
-  id,
-  title,
-  description,
-  logo,
-  webLink,
-  appleLink,
-  playLink,
-}: SuggestedApp) {
+function SuggestedAppCard({ id, title, description, logo }: SuggestedApp) {
   return (
-    <Card>
-      <CardContent className="pt-6">
-        <div className="flex gap-3 items-center">
-          <img src={logo} alt="logo" className="inline rounded-lg w-12 h-12" />
-          <div className="flex-grow">
-            <CardTitle>{title}</CardTitle>
-            <CardDescription>{description}</CardDescription>
+    <Link to={`/appstore/${id}`}>
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex gap-3 items-center">
+            <img
+              src={logo}
+              alt="logo"
+              className="inline rounded-lg w-12 h-12"
+            />
+            <div className="flex-grow">
+              <CardTitle>{title}</CardTitle>
+              <CardDescription>{description}</CardDescription>
+            </div>
           </div>
-        </div>
-      </CardContent>
-      <CardFooter className="flex flex-row justify-between">
-        <div className="flex flex-row gap-4">
-          {webLink && (
-            <ExternalLink to={webLink}>
-              <Button variant="outline" size="icon">
-                <GlobeIcon className="w-4 h-4" />
-              </Button>
-            </ExternalLink>
-          )}
-          {appleLink && (
-            <ExternalLink to={appleLink}>
-              <Button variant="outline" size="icon">
-                <AppleIcon className="w-4 h-4" />
-              </Button>
-            </ExternalLink>
-          )}
-          {playLink && (
-            <ExternalLink to={playLink}>
-              <Button variant="outline" size="icon">
-                <PlayStoreIcon className="w-4 h-4" />
-              </Button>
-            </ExternalLink>
-          )}
-        </div>
-        <Link to={`/appstore/${id}`}>
-          <Button variant="outline">
-            <NostrWalletConnectIcon className="w-4 h-4 mr-2" />
-            Connect
-          </Button>
-        </Link>
-      </CardFooter>
-    </Card>
+        </CardContent>
+      </Card>
+    </Link>
   );
 }
 
 function InternalAppCard({ id, title, description, logo }: SuggestedApp) {
   return (
-    <Card>
-      <CardContent className="pt-6">
-        <div className="flex gap-3 items-center">
-          <img src={logo} alt="logo" className="inline rounded-lg w-12 h-12" />
-          <div className="flex-grow">
-            <CardTitle>{title}</CardTitle>
-            <CardDescription>{description}</CardDescription>
+    <Link to={`/internal-apps/${id}`}>
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex gap-3 items-center">
+            <img
+              src={logo}
+              alt="logo"
+              className="inline rounded-lg w-12 h-12"
+            />
+            <div className="flex-grow">
+              <CardTitle>{title}</CardTitle>
+              <CardDescription>{description}</CardDescription>
+            </div>
           </div>
-        </div>
-      </CardContent>
-      <CardFooter className="flex flex-row justify-end">
-        <Link to={`/internal-apps/${id}`}>
-          <Button variant="outline">
-            <ExternalLinkIcon className="w-4 h-4 mr-2" />
-            Open
-          </Button>
-        </Link>
-      </CardFooter>
-    </Card>
+        </CardContent>
+      </Card>
+    </Link>
   );
 }
 
