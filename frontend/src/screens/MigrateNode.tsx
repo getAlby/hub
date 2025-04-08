@@ -108,7 +108,7 @@ export function MigrateNode() {
             <h3>What happens next?</h3>
           </div>
           <p className="text-sm ml-7">
-            After typing your unlock password, you'll be able to to download a
+            After typing your unlock password, you'll be able to download a
             migration file which contains a backup of your Alby Hub data. Then
             you'll see instructions on how to import this migration file into
             another device or server.

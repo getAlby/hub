@@ -54,7 +54,7 @@ export default function ConnectPeer() {
         return;
       }
       setConnectionString("");
-      navigate("/channels");
+      navigate("/peers");
     } catch (e) {
       toast({
         variant: "destructive",
