@@ -102,7 +102,7 @@ export function SubwalletList() {
         title="Sub-wallets"
         contentRight={
           <>
-            {subwalletAmount && (
+            {subwalletAmount !== undefined && (
               <Tooltip>
                 <TooltipTrigger>
                   <Button variant="outline">

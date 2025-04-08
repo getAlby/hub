@@ -92,7 +92,9 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
   }, [location.search]);
 
   const { deleteApp, isDeleting } = useDeleteApp(() => {
-    navigate("/apps");
+    navigate(
+      app.metadata?.app_store_app_id !== "uncle-jim" ? "/apps" : "/sub-wallets"
+    );
   });
 
   const [name, setName] = React.useState(app.name);
