@@ -1,4 +1,10 @@
-import { HandCoins, HelpCircle, TriangleAlert, Wallet2 } from "lucide-react";
+import {
+  HandCoins,
+  HelpCircle,
+  Landmark,
+  TriangleAlert,
+  Wallet2,
+} from "lucide-react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
@@ -9,6 +15,11 @@ import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "src/components/ui/tooltip";
 import { useToast } from "src/components/ui/use-toast";
 import UpgradeCard from "src/components/UpgradeCard";
 import { UpgradeDialog } from "src/components/UpgradeDialog";
@@ -29,6 +40,11 @@ export function SubwalletList() {
   const onboardedApps = apps
     ?.filter((app) => app.metadata?.app_store_app_id === "uncle-jim")
     .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+
+  const subwalletAmount = onboardedApps?.reduce(
+    (total, app) => total + app.balance,
+    0
+  );
 
   const [isLoading, setLoading] = React.useState(false);
   const [showIntro, setShowIntro] = React.useState(true);
@@ -84,9 +100,24 @@ export function SubwalletList() {
     <div className="grid gap-5">
       <AppHeader
         title="Sub-wallets"
-        description="Create personal spaces for your bitcoin with sub-wallets — keep funds organized for yourself, family and friends"
         contentRight={
           <>
+            {subwalletAmount && (
+              <Tooltip>
+                <TooltipTrigger>
+                  <Button variant="outline">
+                    <Landmark className="w-4 h-4 mr-2" />
+                    {new Intl.NumberFormat().format(
+                      Math.floor(subwalletAmount / 1000)
+                    )}{" "}
+                    sats
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  Total amount of assets under management
+                </TooltipContent>
+              </Tooltip>
+            )}
             <ExternalLink to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/app-store/sub-wallet-friends-and-family">
               <Button variant="outline" size="icon">
                 <HelpCircle className="w-4 h-4" />
