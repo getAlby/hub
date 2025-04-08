@@ -57,10 +57,6 @@ export function SubwalletList() {
     setLoading(true);
 
     try {
-      if (apps?.some((existingApp) => existingApp.name === name)) {
-        throw new Error("A connection with the same name already exists.");
-      }
-
       const createAppRequest: CreateAppRequest = {
         name,
         scopes: [
