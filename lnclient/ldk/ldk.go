@@ -427,7 +427,7 @@ func (ls *LDKService) Shutdown() error {
 	logger.Logger.Info("stopping LDK node")
 	shutdownChannel := make(chan error)
 	go func() {
-		shutdownChannel <- ls.node.Stop()
+		shutdownChannel <- ls.node.Stop().AsError()
 	}()
 
 	select {
