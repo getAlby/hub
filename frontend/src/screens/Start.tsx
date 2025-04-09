@@ -89,7 +89,11 @@ export default function Start() {
                   value={unlockPassword}
                 />
               </div>
-              <LoadingButton type="submit" loading={loading}>
+              <LoadingButton
+                type="submit"
+                loading={loading}
+                disabled={!unlockPassword}
+              >
                 {buttonText}
               </LoadingButton>
               {loading && (
