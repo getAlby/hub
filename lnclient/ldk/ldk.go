@@ -664,10 +664,10 @@ func (ls *LDKService) getMaxSpendable() uint64 {
 	return spendable
 }
 
-func (ls *LDKService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *lnclient.Transaction, err error) {
+func (ls *LDKService) MakeInvoice(ctx context.Context, amount int64, description string, _descriptionHash string, expiry int64) (transaction *lnclient.Transaction, err error) {
 
 	if time.Duration(expiry)*time.Second > maxInvoiceExpiry {
-		return nil, errors.New("Expiry is too long")
+		return nil, errors.New("expiry is too long")
 	}
 
 	maxReceivable := ls.getMaxReceivable()
@@ -710,7 +710,7 @@ func (ls *LDKService) MakeInvoice(ctx context.Context, amount int64, description
 	expiresAtUnix := time.UnixMilli(int64(paymentRequest.CreatedAt) * 1000).Add(time.Duration(paymentRequest.Expiry) * time.Second).Unix()
 	expiresAt = &expiresAtUnix
 	description = paymentRequest.Description
-	descriptionHash = paymentRequest.DescriptionHash
+	descriptionHash := paymentRequest.DescriptionHash
 
 	payment := ls.node.Payment(paymentRequest.PaymentHash)
 
