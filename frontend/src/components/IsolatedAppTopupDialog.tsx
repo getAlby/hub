@@ -66,8 +66,9 @@ export function IsolatedAppTopupDialog({
           <DialogHeader>
             <DialogTitle>Top Up</DialogTitle>
             <DialogDescription>
-              Credit funds from your main spending balance. You must make sure
-              the main spending balance can cover for the sub-wallet's payments.
+              Credit funds from your main spending balance. Make sure you always
+              maintain enough funds in your spending balance to prevent
+              sub-wallets becoming unspendable.
             </DialogDescription>
           </DialogHeader>
           <div className="my-5">
