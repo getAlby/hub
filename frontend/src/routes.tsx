@@ -21,6 +21,7 @@ import AlbyAuthRedirect from "src/screens/alby/AlbyAuthRedirect";
 import SupportAlby from "src/screens/alby/SupportAlby";
 import AppCreated from "src/screens/apps/AppCreated";
 import AppList from "src/screens/apps/AppList";
+import { AppsCleanup } from "src/screens/apps/AppsCleanup";
 import NewApp from "src/screens/apps/NewApp";
 import ShowApp from "src/screens/apps/ShowApp";
 import AppStore from "src/screens/appstore/AppStore";
@@ -232,6 +233,10 @@ const routes = [
           {
             path: "created",
             element: <AppCreated />,
+          },
+          {
+            path: "cleanup",
+            element: <AppsCleanup />,
           },
         ],
       },

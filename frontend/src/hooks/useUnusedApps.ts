@@ -1,5 +1,6 @@
 import dayjs from "dayjs";
 import React from "react";
+import { SUBWALLET_APPSTORE_APP_ID } from "src/constants";
 import { useApps } from "src/hooks/useApps";
 
 const OLD_DATE = dayjs().subtract(2, "months");
@@ -12,7 +13,7 @@ export function useUnusedApps() {
       apps?.filter(
         (app) =>
           (!app.lastEventAt || dayjs(app.lastEventAt).isBefore(OLD_DATE)) &&
-          app.metadata?.app_store_app_id != "uncle-jim"
+          app.metadata?.app_store_app_id != SUBWALLET_APPSTORE_APP_ID
       ),
     [apps]
   );

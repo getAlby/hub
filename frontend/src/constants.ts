@@ -13,3 +13,5 @@ export const LIST_TRANSACTIONS_LIMIT = 20;
 
 export const SUPPORT_ALBY_CONNECTION_NAME = `ZapPlanner - Alby Hub`;
 export const SUPPORT_ALBY_LIGHTNING_ADDRESS = "hub@getalby.com";
+
+export const SUBWALLET_APPSTORE_APP_ID = "uncle-jim";

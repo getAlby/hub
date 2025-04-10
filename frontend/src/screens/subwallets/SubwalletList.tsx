@@ -23,6 +23,7 @@ import {
 import { useToast } from "src/components/ui/use-toast";
 import UpgradeCard from "src/components/UpgradeCard";
 import { UpgradeDialog } from "src/components/UpgradeDialog";
+import { SUBWALLET_APPSTORE_APP_ID } from "src/constants";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useApps } from "src/hooks/useApps";
 import { useInfo } from "src/hooks/useInfo";
@@ -38,7 +39,9 @@ export function SubwalletList() {
   const { data: albyMe, error: albyMeError } = useAlbyMe();
   const { data: info } = useInfo();
   const onboardedApps = apps
-    ?.filter((app) => app.metadata?.app_store_app_id === "uncle-jim")
+    ?.filter(
+      (app) => app.metadata?.app_store_app_id === SUBWALLET_APPSTORE_APP_ID
+    )
     .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
 
   const subwalletAmount = onboardedApps?.reduce(
@@ -70,7 +73,7 @@ export function SubwalletList() {
         ],
         isolated: true,
         metadata: {
-          app_store_app_id: "uncle-jim",
+          app_store_app_id: SUBWALLET_APPSTORE_APP_ID,
         },
       };
 
