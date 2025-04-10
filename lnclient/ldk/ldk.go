@@ -1908,7 +1908,7 @@ func (ls *LDKService) PayOfferSync(ctx context.Context, offer string, amount uin
 	ldkEventSubscription := ls.ldkEventBroadcaster.Subscribe()
 	defer ls.ldkEventBroadcaster.CancelSubscription(ldkEventSubscription)
 
-	paymentId, err := ls.node.Bolt12Payment().SendUsingAmount(offer, amount, nil, &payerNote)
+	paymentId, err := checkLDKErr(ls.node.Bolt12Payment().SendUsingAmount(offer, amount, nil, &payerNote))
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to initiate BOLT-12 variable amount payment")
 		return "", nil, errors.New("failed to initiate BOLT-12 variable amount payment")
