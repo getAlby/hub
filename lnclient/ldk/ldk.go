@@ -747,6 +747,7 @@ func (ls *LDKService) LookupInvoice(ctx context.Context, paymentHash string) (tr
 	return transaction, nil
 }
 
+// TODO: throw an error if this method is called (it shouldn't be any more because this LNClient supports notifications)
 func (ls *LDKService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []lnclient.Transaction, err error) {
 	transactions = []lnclient.Transaction{}
 
@@ -1863,22 +1864,6 @@ func (ls *LDKService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCom
 
 func (ls *LDKService) ExecuteCustomNodeCommand(ctx context.Context, command *lnclient.CustomNodeCommandRequest) (*lnclient.CustomNodeCommandResponse, error) {
 	return nil, nil
-}
-
-func getEncodedChannelMonitorsFromStaticChannelsBackup(channelsBackup *events.StaticChannelsBackupEvent) []ldk_node.KeyValue {
-	encodedMonitors := []ldk_node.KeyValue{}
-	for _, monitor := range channelsBackup.Monitors {
-		value, err := hex.DecodeString(monitor.Value)
-		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to decode LDK channel monitor hex")
-			continue
-		}
-		encodedMonitors = append(encodedMonitors, ldk_node.KeyValue{
-			Key:   monitor.Key,
-			Value: value,
-		})
-	}
-	return encodedMonitors
 }
 
 func GetVssNodeIdentifier(keys keys.Keys) (string, error) {
