@@ -242,15 +242,15 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                     <TableCell className="font-medium">
                       Wallet Public Key
                     </TableCell>
-                    <TableCell className="text-muted-foreground whitespace-pre-wrap flex items-center">
-                      {app.walletPubkey}
+                    <TableCell className="text-muted-foreground flex items-center">
+                      <span className="break-all">{app.walletPubkey}</span>
                       {!app.uniqueWalletPubkey && (
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <AlertCircleIcon className="w-3 h-3 ml-2" />
+                              <AlertCircleIcon className="w-3 h-3 ml-2 flex-shrink-0" />
                             </TooltipTrigger>
-                            <TooltipContent>
+                            <TooltipContent className="w-[300px]">
                               This connection does not have its own unique
                               wallet pubkey. Re-connect for additional privacy.
                             </TooltipContent>
