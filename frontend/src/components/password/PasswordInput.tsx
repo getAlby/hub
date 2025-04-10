@@ -16,21 +16,14 @@ export default function PasswordInput({
   value,
   ...restProps
 }: PasswordInputProps) {
-  const [password, setPassword] = React.useState(value);
   const [passwordVisible, setPasswordVisible] = React.useState(false);
-
-  React.useEffect(() => {
-    if (onChange) {
-      onChange(password);
-    }
-  }, [password, onChange]);
 
   return (
     <Input
       type={passwordVisible ? "text" : "password"}
-      value={password}
+      value={value}
       required
-      onChange={(e) => setPassword(e.target.value)}
+      onChange={(e) => onChange && onChange(e.target.value)}
       placeholder={placeholder}
       {...restProps}
       endAdornment={
