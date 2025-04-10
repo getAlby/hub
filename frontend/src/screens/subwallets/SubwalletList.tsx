@@ -218,9 +218,10 @@ export function SubwalletList() {
                 </div>
               </div>
               <div className="ml-9 text-muted-foreground text-sm">
-                If your main balance runs low, funds from isolated wallets can
-                be spent by your main wallet balance. You'll receive alerts when
-                your spending balance is nearing this point.
+                Make sure you always maintain enough funds in your spending
+                balance to prevent sub-wallets becoming unspendable. Sub-wallet
+                payments might fail if the amount isn't available in your
+                spending balance.
               </div>
             </div>
             <div>

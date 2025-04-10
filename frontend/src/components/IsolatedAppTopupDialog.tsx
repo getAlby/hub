@@ -66,7 +66,8 @@ export function IsolatedAppTopupDialog({
           <DialogHeader>
             <DialogTitle>Top Up</DialogTitle>
             <DialogDescription>
-              Transfer funds from your node's spending balance
+              Credit funds from your main spending balance. You must make sure
+              the main spending balance can cover for the sub-wallet's payments.
             </DialogDescription>
           </DialogHeader>
           <div className="my-5">
