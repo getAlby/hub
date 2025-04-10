@@ -104,7 +104,7 @@ export function SubwalletList() {
             {subwalletAmount !== undefined && (
               <Tooltip>
                 <TooltipTrigger>
-                  <Button variant="outline">
+                  <Button variant="outline" className="hidden sm:inline-flex">
                     <Landmark className="w-4 h-4 mr-2" />
                     {new Intl.NumberFormat().format(
                       Math.floor(subwalletAmount / 1000)
