@@ -48,6 +48,7 @@ import {
   TooltipTrigger,
 } from "src/components/ui/tooltip";
 import { useToast } from "src/components/ui/use-toast";
+import { SUBWALLET_APPSTORE_APP_ID } from "src/constants";
 import { useCapabilities } from "src/hooks/useCapabilities";
 
 function ShowApp() {
@@ -93,7 +94,9 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
 
   const { deleteApp, isDeleting } = useDeleteApp(() => {
     navigate(
-      app.metadata?.app_store_app_id !== "uncle-jim" ? "/apps" : "/sub-wallets"
+      app.metadata?.app_store_app_id !== SUBWALLET_APPSTORE_APP_ID
+        ? "/apps"
+        : "/sub-wallets"
     );
   });
 

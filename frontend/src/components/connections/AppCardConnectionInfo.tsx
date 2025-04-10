@@ -3,6 +3,7 @@ import { BrickWallIcon, CircleCheckIcon, PlusCircleIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "src/components/ui/button";
 import { Progress } from "src/components/ui/progress";
+import { SUBWALLET_APPSTORE_APP_ID } from "src/constants";
 import { formatAmount } from "src/lib/utils";
 import { App, BudgetRenewalType } from "src/types";
 
@@ -42,7 +43,8 @@ export function AppCardConnectionInfo({
             <div className="flex flex-row items-center gap-2">
               <BrickWallIcon className="w-4 h-4" />
 
-              {connection.metadata?.app_store_app_id === "uncle-jim"
+              {connection.metadata?.app_store_app_id ===
+              SUBWALLET_APPSTORE_APP_ID
                 ? "Sub-wallet"
                 : "Isolated App"}
             </div>
