@@ -11,7 +11,7 @@ function SuggestedAppCard({ id, title, description, logo }: SuggestedApp) {
   return (
     <Link to={`/appstore/${id}`}>
       <Card>
-        <CardContent className="pt-6">
+        <CardContent className="p-4">
           <div className="flex gap-3 items-center">
             <img
               src={logo}
@@ -33,7 +33,7 @@ function InternalAppCard({ id, title, description, logo }: SuggestedApp) {
   return (
     <Link to={`/internal-apps/${id}`}>
       <Card>
-        <CardContent className="pt-6">
+        <CardContent className="p-4">
           <div className="flex gap-3 items-center">
             <img
               src={logo}
