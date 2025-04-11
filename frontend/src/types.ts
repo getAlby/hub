@@ -285,6 +285,10 @@ export type PayInvoiceResponse = {
   fee: number;
 };
 
+export type CreateOfferRequest = {
+  description: string;
+};
+
 export type CreateInvoiceRequest = {
   amount: number;
   description: string;
