@@ -35,14 +35,12 @@ import {
   SUPPORT_ALBY_CONNECTION_NAME,
   SUPPORT_ALBY_LIGHTNING_ADDRESS,
 } from "src/constants";
-import { useApps } from "src/hooks/useApps";
 import { createApp } from "src/requests/createApp";
 import { CreateAppRequest, UpdateAppRequest } from "src/types";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 
 function SupportAlby() {
-  const { data: apps } = useApps();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -56,14 +54,6 @@ function SupportAlby() {
 
     setSubmitting(true);
     try {
-      if (
-        apps?.some(
-          (existingApp) => existingApp.name === SUPPORT_ALBY_CONNECTION_NAME
-        )
-      ) {
-        throw new Error("A connection with the same name already exists.");
-      }
-
       const parsedAmount = parseInt(amount);
       if (isNaN(parsedAmount) || parsedAmount < 1) {
         throw new Error("Invalid amount");

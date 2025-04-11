@@ -48,6 +48,7 @@ import {
   TooltipTrigger,
 } from "src/components/ui/tooltip";
 import { useToast } from "src/components/ui/use-toast";
+import { SUBWALLET_APPSTORE_APP_ID } from "src/constants";
 import { useCapabilities } from "src/hooks/useCapabilities";
 
 function ShowApp() {
@@ -92,7 +93,11 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
   }, [location.search]);
 
   const { deleteApp, isDeleting } = useDeleteApp(() => {
-    navigate("/apps");
+    navigate(
+      app.metadata?.app_store_app_id !== SUBWALLET_APPSTORE_APP_ID
+        ? "/apps"
+        : "/sub-wallets"
+    );
   });
 
   const [name, setName] = React.useState(app.name);
@@ -268,8 +273,12 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                         )}{" "}
                         sats{" "}
                         <IsolatedAppTopupDialog appPubkey={app.appPubkey}>
-                          <Button size="sm" variant="secondary">
-                            Increase
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            className="ml-4"
+                          >
+                            Top Up
                           </Button>
                         </IsolatedAppTopupDialog>
                       </TableCell>

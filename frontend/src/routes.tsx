@@ -41,7 +41,6 @@ import { Bitrefill } from "src/screens/internal-apps/Bitrefill";
 import { BuzzPay } from "src/screens/internal-apps/BuzzPay";
 import { LightningMessageboard } from "src/screens/internal-apps/LightningMessageboard";
 import { SimpleBoost } from "src/screens/internal-apps/SimpleBoost";
-import { UncleJim } from "src/screens/internal-apps/UncleJim";
 import { ZapPlanner } from "src/screens/internal-apps/ZapPlanner";
 import BuyBitcoin from "src/screens/onchain/BuyBitcoin";
 import DepositBitcoin from "src/screens/onchain/DepositBitcoin";
@@ -67,6 +66,8 @@ import { LDKForm } from "src/screens/setup/node/LDKForm";
 import { LNDForm } from "src/screens/setup/node/LNDForm";
 import { PhoenixdForm } from "src/screens/setup/node/PhoenixdForm";
 import { PresetNodeForm } from "src/screens/setup/node/PresetNodeForm";
+import { SubwalletCreated } from "src/screens/subwallets/SubwalletCreated";
+import { SubwalletList } from "src/screens/subwallets/SubwalletList";
 import Wallet from "src/screens/wallet";
 import Receive from "src/screens/wallet/Receive";
 import Send from "src/screens/wallet/Send";
@@ -240,14 +241,26 @@ const routes = [
         ],
       },
       {
+        path: "sub-wallets",
+        element: <DefaultRedirect />,
+        handle: { crumb: () => "Sub-wallets" },
+
+        children: [
+          {
+            index: true,
+            element: <SubwalletList />,
+          },
+          {
+            path: "created",
+            element: <SubwalletCreated />,
+          },
+        ],
+      },
+      {
         path: "internal-apps",
         element: <DefaultRedirect />,
         handle: { crumb: () => "Connections" },
         children: [
-          {
-            path: "uncle-jim",
-            element: <UncleJim />,
-          },
           {
             path: "alby-go",
             element: <AlbyGo />,

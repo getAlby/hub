@@ -229,7 +229,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
     <>
       <AppHeader
         title={nameParam ? `Connect to ${appName}` : "Connect a new app"}
-        description="Configure wallet permissions for the app and follow instructions to finalise the connection"
+        description="Configure wallet permissions for the app and follow instructions to finalize the connection"
       />
       <form
         onSubmit={handleSubmit}
