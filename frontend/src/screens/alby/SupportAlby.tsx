@@ -1,7 +1,14 @@
-import { HandCoins, Sparkles } from "lucide-react";
+import {
+  CodeIcon,
+  HandCoins,
+  PlusCircleIcon,
+  RefreshCwIcon,
+  Sparkles,
+} from "lucide-react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
+import ExternalLink from "src/components/ExternalLink";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -152,7 +159,7 @@ function SupportAlby() {
         title="Support Alby Hub"
         description="We are committed to elevating the Bitcoin ecosystem by offering reliable, efficient, and user-friendly software solutions for seamless transactions. With your help, we can keep pushing boundaries and evolving Alby Hub into something extraordinary."
       />
-      <h2 className="text-3xl font-semibold mb-4">Become a Supporter</h2>
+      <h2 className="text-2xl font-semibold">Become a Supporter</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Card className="h-full">
           <CardHeader>
@@ -270,6 +277,63 @@ function SupportAlby() {
             </Dialog>
           </CardFooter>
         </Card>
+      </div>
+      <div className="mt-4">
+        <h2 className="text-2xl font-semibold mb-4">
+          Why Your Contribution Is Important
+        </h2>
+        <ul className="flex flex-col gap-5">
+          <li className="flex flex-col">
+            <div className="flex flex-row items-center">
+              <PlusCircleIcon className="w-4 h-4 mr-2" />
+              Unlock New Features
+            </div>
+            <div className="text-muted-foreground text-sm">
+              Your support empowers us to design and implement cutting-edge{" "}
+              <ExternalLink
+                className="underline"
+                to="https://github.com/getAlby/hub/issues"
+              >
+                features
+              </ExternalLink>{" "}
+              that enhance your experience and keep us at the forefront of
+              technology.
+            </div>
+          </li>
+          <li className="flex flex-col ">
+            <div className="flex flex-row items-center">
+              <RefreshCwIcon className="w-4 h-4 mr-2" />
+              Ensure Continuous Improvement
+            </div>
+            <div className="text-muted-foreground text-sm">
+              With your contributions, we can provide{" "}
+              <ExternalLink
+                className="underline"
+                to="https://github.com/getAlby/hub/releases"
+              >
+                regular updates
+              </ExternalLink>{" "}
+              and ongoing maintenance, ensuring everything runs smoothly and
+              efficiently for all users.
+            </div>
+          </li>
+          <li className="flex flex-col ">
+            <div className="flex flex-row items-center">
+              <CodeIcon className="w-4 h-4 mr-2" />
+              Support Open-Source Freedom
+            </div>
+            <div className="text-muted-foreground text-sm">
+              Your support helps us keep Alby Hub true to the principles of{" "}
+              <ExternalLink
+                className="underline"
+                to="https://github.com/getAlby/hub/blob/master/LICENSE"
+              >
+                free and open-source software
+              </ExternalLink>{" "}
+              and remains accessible for everyone to use, modify and improve.
+            </div>
+          </li>
+        </ul>
       </div>
     </>
   );
