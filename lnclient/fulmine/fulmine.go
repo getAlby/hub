@@ -29,13 +29,14 @@ func NewFulmineService(ctx context.Context, cfg config.Config, workDir string) (
 		return nil, errors.New("one or more required fulmine configuration are missing")
 	}
 
-	conn, err := grpc.NewClient("localhost:7000", grpc.WithInsecure()) // Use secure connection in production
+	// TODO: do not use grpc.WithInsecure()
+	conn, err := grpc.NewClient("localhost:7000", grpc.WithInsecure())
 	if err != nil {
 		logger.Logger.Fatalf("did not connect: %v", err)
 	}
 
 	// Create a new client
-	client := pb.NewServiceClient(conn) // Replace with the actual service client name
+	client := pb.NewServiceClient(conn)
 
 	svc := FulmineService{
 		workDir: workDir,
