@@ -47,18 +47,18 @@ export function SubwalletList() {
     return <Loading />;
   }
 
-  const onboardedApps = apps
+  const subwalletApps = apps
     ?.filter(
       (app) => app.metadata?.app_store_app_id === SUBWALLET_APPSTORE_APP_ID
     )
     .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
 
-  if (!onboardedApps?.length) {
+  if (!subwalletApps?.length) {
     return <SubwalletIntro />;
   }
 
   const subwalletTotalAmount =
-    onboardedApps.reduce((total, app) => total + app.balance, 0) || 0;
+    subwalletApps.reduce((total, app) => total + app.balance, 0) || 0;
   const isSufficientlyBacked =
     subwalletTotalAmount <= balances.lightning.totalSpendable;
 
@@ -78,7 +78,7 @@ export function SubwalletList() {
               icon={CirclePlusIcon}
               text="New Sub-wallet"
               disabled={
-                !albyMe?.subscription.plan_code && onboardedApps?.length >= 3
+                !albyMe?.subscription.plan_code && subwalletApps?.length >= 3
               }
               onClick={() => navigate("/sub-wallets/new")}
             />
@@ -141,7 +141,7 @@ export function SubwalletList() {
           <CardContent className="flex-grow flex flex-col gap-4">
             <div className="flex flex-row items-center justify-between mt-4">
               <span className="text-4xl font-medium balance sensitive mb-1">
-                {onboardedApps.length} /{" "}
+                {subwalletApps.length} /{" "}
                 {albyMe?.subscription.plan_code ? "∞" : 3}
               </span>
               {isSufficientlyBacked ? (
@@ -189,7 +189,7 @@ export function SubwalletList() {
       <div className="mt-8">
         <h3 className="font-semibold text-2xl mb-4">Managed Sub-wallets</h3>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch app-list">
-          {onboardedApps.map((app, index) => (
+          {subwalletApps.map((app, index) => (
             <AppCard key={index} app={app} />
           ))}
         </div>
