@@ -1,10 +1,10 @@
-import { HelpCircle } from "lucide-react";
+import { HelpCircleIcon } from "lucide-react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
-import { Button } from "src/components/ui/button";
+import ResponsiveButton from "src/components/ResponsiveButton";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
@@ -84,14 +84,15 @@ export function NewSubwallet() {
   return (
     <div className="grid gap-5">
       <AppHeader
-        title="Sub-wallets"
-        description="Create sub-wallets for yourself, friends, family or coworkers"
+        title="Create Sub-wallet"
         contentRight={
           <>
             <ExternalLink to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/app-store/sub-wallet-friends-and-family">
-              <Button variant="outline" size="icon">
-                <HelpCircle className="w-4 h-4" />
-              </Button>
+              <ResponsiveButton
+                icon={HelpCircleIcon}
+                text="Help"
+                variant="outline"
+              />
             </ExternalLink>
           </>
         }
@@ -100,7 +101,7 @@ export function NewSubwallet() {
         onSubmit={handleSubmit}
         className="flex flex-col items-start gap-3 max-w-lg"
       >
-        <div className="w-full grid gap-1.5">
+        <div className="w-full grid gap-1.5 mb-4">
           <Label htmlFor="name">Sub-wallet name</Label>
           <Input
             autoFocus
@@ -112,6 +113,9 @@ export function NewSubwallet() {
             required
             autoComplete="off"
           />
+          <p className="text-muted-foreground text-sm">
+            Name your friend, family member or coworker
+          </p>
         </div>
         <LoadingButton loading={isLoading} type="submit">
           Create Sub-wallet
