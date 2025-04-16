@@ -71,16 +71,17 @@ type PhoenixService struct {
 	Authorization string
 	pubkey        string
 	nodeInfo      *lnclient.NodeInfo
+	ctx           context.Context
 }
 
-func NewPhoenixService(address string, authorization string) (result lnclient.LNClient, err error) {
+func NewPhoenixService(ctx context.Context, address string, authorization string) (result lnclient.LNClient, err error) {
 	authorizationBase64 := b64.StdEncoding.EncodeToString([]byte(":" + authorization))
 	// some environments (e.g. in a cloud environment like render.com) can only get the address and the port but not the protocol
 	// in those cases we default to http for local requests
 	if !strings.HasPrefix(address, "http") {
 		address = "http://" + address
 	}
-	phoenixService := &PhoenixService{Address: address, Authorization: authorizationBase64}
+	phoenixService := &PhoenixService{Address: address, Authorization: authorizationBase64, ctx: ctx}
 
 	info, err := fetchNodeInfo(phoenixService)
 	if err != nil {
@@ -126,6 +127,10 @@ func (svc *PhoenixService) GetBalances(ctx context.Context, includeInactiveChann
 			NextMaxReceivableMPP: 0,
 		},
 	}, nil
+}
+
+func (svc *PhoenixService) EnableAutoSwap(balanceThreshold uint64, destination string) error {
+	return lnclient.StartAutoSwap(svc.ctx, balanceThreshold, destination, svc.GetBalances)
 }
 
 func (svc *PhoenixService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []lnclient.Transaction, err error) {

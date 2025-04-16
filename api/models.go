@@ -58,6 +58,7 @@ type API interface {
 	GetWalletCapabilities(ctx context.Context) (*WalletCapabilitiesResponse, error)
 	Health(ctx context.Context) (*HealthResponse, error)
 	SetCurrency(currency string) error
+	EnableAutoSwap(ctx context.Context, enableAutoSwapRequest *EnableAutoSwapRequest) error
 	GetCustomNodeCommands() (*CustomNodeCommandsResponse, error)
 	ExecuteCustomNodeCommand(ctx context.Context, command string) (interface{}, error)
 }
@@ -111,6 +112,11 @@ type CreateAppRequest struct {
 	Isolated       bool     `json:"isolated"`
 	Metadata       Metadata `json:"metadata,omitempty"`
 	UnlockPassword string   `json:"unlockPassword"`
+}
+
+type EnableAutoSwapRequest struct {
+	BalanceThreshold uint64 `json:"balanceThreshold"`
+	Destination      string `json:"destination"`
 }
 
 type StartRequest struct {

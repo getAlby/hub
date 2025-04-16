@@ -8,7 +8,9 @@ const (
 )
 
 const (
-	OnchainAddressKey = "OnchainAddress"
+	OnchainAddressKey           = "OnchainAddress"
+	AutoSwapBalanceThresholdKey = "AutoSwapBalanceThreshold"
+	AutoSwapDestinationKey      = "AutoSwapDestination"
 )
 
 type AppConfig struct {

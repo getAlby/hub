@@ -39,6 +39,7 @@ type LDKService struct {
 	workdir               string
 	node                  *ldk_node.Node
 	ldkEventBroadcaster   LDKEventBroadcaster
+	ctx                   context.Context
 	cancel                context.CancelFunc
 	network               string
 	eventPublisher        events.EventPublisher
@@ -182,6 +183,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	ls := LDKService{
 		workdir:             newpath,
 		node:                node,
+		ctx:                 ldkCtx,
 		cancel:              cancel,
 		ldkEventBroadcaster: ldkEventBroadcaster,
 		network:             network,
@@ -1709,6 +1711,10 @@ func (ls *LDKService) GetBalances(ctx context.Context, includeInactiveChannels b
 			NextMaxReceivableMPP: nextMaxReceivableMPP,
 		},
 	}, nil
+}
+
+func (ls *LDKService) EnableAutoSwap(balanceThreshold uint64, destination string) error {
+	return lnclient.StartAutoSwap(ls.ctx, balanceThreshold, destination, ls.GetBalances)
 }
 
 func (ls *LDKService) GetStorageDir() (string, error) {

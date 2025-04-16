@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"slices"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -541,6 +542,20 @@ func (api *api) GetNodeConnectionInfo(ctx context.Context) (*lnclient.NodeConnec
 		return nil, errors.New("LNClient not started")
 	}
 	return api.svc.GetLNClient().GetNodeConnectionInfo(ctx)
+}
+
+func (api *api) EnableAutoSwap(ctx context.Context, enableAutoSwapRequest *EnableAutoSwapRequest) error {
+	err := api.cfg.SetUpdate(config.AutoSwapBalanceThresholdKey, strconv.FormatUint(enableAutoSwapRequest.BalanceThreshold, 10), "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to save autoswap balance threshold to config")
+	}
+
+	err = api.cfg.SetUpdate(config.AutoSwapDestinationKey, enableAutoSwapRequest.Destination, "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to save autoswap destination to config")
+	}
+
+	return api.svc.GetLNClient().EnableAutoSwap(enableAutoSwapRequest.BalanceThreshold, enableAutoSwapRequest.Destination)
 }
 
 func (api *api) GetNodeStatus(ctx context.Context) (*lnclient.NodeStatus, error) {

@@ -33,6 +33,7 @@ import (
 )
 
 type LNDService struct {
+	ctx            context.Context
 	client         *wrapper.LNDWrapper
 	nodeInfo       *lnclient.NodeInfo
 	cancel         context.CancelFunc
@@ -75,6 +76,7 @@ func NewLNDService(ctx context.Context, eventPublisher events.EventPublisher, ln
 	lndCtx, cancel := context.WithCancel(ctx)
 
 	lndService := &LNDService{
+		ctx:            lndCtx,
 		client:         lndClient,
 		nodeInfo:       nodeInfo,
 		cancel:         cancel,
@@ -1149,6 +1151,10 @@ func (svc *LNDService) GetBalances(ctx context.Context, includeInactiveChannels 
 			NextMaxReceivableMPP: nextMaxReceivableMPP,
 		},
 	}, nil
+}
+
+func (svc *LNDService) EnableAutoSwap(balanceThreshold uint64, destination string) error {
+	return lnclient.StartAutoSwap(svc.ctx, balanceThreshold, destination, svc.GetBalances)
 }
 
 func (svc *LNDService) GetStorageDir() (string, error) {
