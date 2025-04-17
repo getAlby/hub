@@ -12,6 +12,7 @@ function Swaps() {
 
   const [balanceThreshold, setBalanceThreshold] = useState("");
   const [destination, setDestination] = useState("");
+  const [swapAmount, setSwapAmount] = useState("");
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,6 +26,7 @@ function Swaps() {
         },
         body: JSON.stringify({
           balanceThreshold: parseInt(balanceThreshold),
+          swapAmount: parseInt(swapAmount),
           destination,
         }),
       });
@@ -47,14 +49,18 @@ function Swaps() {
         <div className="grid gap-1.5">
           <Label>Spending balance threshold</Label>
           <Input
-            placeholder="2M sats"
+            placeholder="Swap out as soon as this amount is reached"
             value={balanceThreshold}
             onChange={(e) => setBalanceThreshold(e.target.value)}
           />
         </div>
         <div className="grid gap-1.5">
           <Label>Swap amount</Label>
-          <Input placeholder="1M sats" />
+          <Input
+            placeholder="How much do you want to swap out?"
+            value={swapAmount}
+            onChange={(e) => setSwapAmount(e.target.value)}
+          />
         </div>
         <div className="grid gap-1.5">
           <Label>Bitcoin address</Label>

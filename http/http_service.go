@@ -1143,7 +1143,6 @@ func (httpSvc *HttpService) healthHandler(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) patchSwapSettingsHandler(c echo.Context) error {
-	c.Logger().Error("🚀🚀🚀🚀")
 	var swapSettingsRequest api.SwapsSettingsRequest
 	if err := c.Bind(&swapSettingsRequest); err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{

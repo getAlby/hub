@@ -15,7 +15,7 @@ import (
 
 type GetBalancesFn func(context.Context, bool) (*BalancesResponse, error)
 
-func StartAutoSwap(ctx context.Context, balanceThreshold uint64, destination string, getBalancesFn GetBalancesFn) error {
+func StartAutoSwap(ctx context.Context, balanceThreshold uint64, swapAmount uint64, destination string, getBalancesFn GetBalancesFn) error {
 	go func() {
 		// TODO: Do we want to check every hour?
 		ticker := time.NewTicker(1 * time.Hour)
@@ -31,9 +31,7 @@ func StartAutoSwap(ctx context.Context, balanceThreshold uint64, destination str
 				lightningBalance := uint64(balance.Lightning.TotalSpendable)
 				if lightningBalance >= balanceThreshold {
 					logger.Logger.Info("Initiating swap")
-					// TODO: Change this calcuation
-					amount := lightningBalance - balanceThreshold
-					ReverseSwap(amount, destination)
+					ReverseSwap(swapAmount, destination)
 				}
 			case <-ctx.Done():
 				return
