@@ -1,4 +1,4 @@
-import { CopyIcon, EditIcon } from "lucide-react";
+import { CopyIcon, EditIcon, ReceiptTextIcon } from "lucide-react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import Loading from "src/components/Loading";
@@ -16,6 +16,7 @@ export default function Receive() {
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  // TODO: Include offer if not logged in
   // TODO: remove this once we have a CTA to connect an Alby Account to use a lightning address
   React.useEffect(() => {
     if (info && (!info.albyAccountConnected || meError)) {
@@ -39,11 +40,11 @@ export default function Receive() {
       {info?.albyAccountConnected && me?.lightning_address && (
         <div className="flex flex-col items-center justify-center gap-6 w-full sm:w-64">
           <div className="relative flex flex-col items-center justify-center w-full">
-            <QRCode value={me.lightning_address} className="w-full h-auto" />
-            <UserAvatar className="w-14 h-auto absolute border-4 border-white" />
+            <QRCode value={me.lightning_address} className="w-full  h-auto" />
+            <UserAvatar className="w-14 h-auto absolute border-4 bg-white border-white" />
           </div>
           <p className="font-semibold break-all">{me.lightning_address}</p>
-          <div className="flex gap-4 w-full">
+          <div className="flex gap-4 w-full flex-wrap">
             <LinkButton
               to="invoice"
               variant="outline"
@@ -60,6 +61,13 @@ export default function Receive() {
             >
               <CopyIcon className="w-4 h-4" /> Copy
             </Button>
+            <LinkButton
+              to="offer"
+              variant="outline"
+              className="flex-1 flex gap-2 items-center justify-center"
+            >
+              <ReceiptTextIcon className="w-4 h-4" /> BOLT-12 Offer
+            </LinkButton>
           </div>
         </div>
       )}
