@@ -157,6 +157,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedApiGroup.GET("/health", httpSvc.healthHandler)
 	restrictedApiGroup.GET("/commands", httpSvc.getCustomNodeCommandsHandler)
 	restrictedApiGroup.POST("/command", httpSvc.execCustomNodeCommandHandler)
+	restrictedApiGroup.PATCH("/settings/swaps", httpSvc.patchSwapSettingsHandler)
 
 	httpSvc.albyHttpSvc.RegisterSharedRoutes(restrictedApiGroup, e)
 }
@@ -1139,4 +1140,23 @@ func (httpSvc *HttpService) healthHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, healthResponse)
+}
+
+func (httpSvc *HttpService) patchSwapSettingsHandler(c echo.Context) error {
+	c.Logger().Error("🚀🚀🚀🚀")
+	var swapSettingsRequest api.SwapsSettingsRequest
+	if err := c.Bind(&swapSettingsRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	err := httpSvc.api.SetSwapsSettings(c.Request().Context(), &swapSettingsRequest)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to save swap settings: %v", err),
+		})
+	}
+
+	return c.NoContent(http.StatusNoContent)
 }

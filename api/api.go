@@ -544,7 +544,7 @@ func (api *api) GetNodeConnectionInfo(ctx context.Context) (*lnclient.NodeConnec
 	return api.svc.GetLNClient().GetNodeConnectionInfo(ctx)
 }
 
-func (api *api) EnableAutoSwap(ctx context.Context, enableAutoSwapRequest *EnableAutoSwapRequest) error {
+func (api *api) SetSwapsSettings(ctx context.Context, enableAutoSwapRequest *SwapsSettingsRequest) error {
 	err := api.cfg.SetUpdate(config.AutoSwapBalanceThresholdKey, strconv.FormatUint(enableAutoSwapRequest.BalanceThreshold, 10), "")
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to save autoswap balance threshold to config")
