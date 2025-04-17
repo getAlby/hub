@@ -175,6 +175,9 @@ func (mln *MockLn) GetNodeStatus(ctx context.Context) (nodeStatus *lnclient.Node
 func (mln *MockLn) GetNetworkGraph(ctx context.Context, nodeIds []string) (lnclient.NetworkGraphResponse, error) {
 	return nil, nil
 }
+func (mln *MockLn) EnableAutoSwap(uint64, string) error {
+	return nil
+}
 
 func (mln *MockLn) UpdateLastWalletSyncRequest() {}
 

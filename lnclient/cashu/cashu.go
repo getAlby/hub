@@ -286,7 +286,7 @@ func (cs *CashuService) UpdateChannel(ctx context.Context, updateChannelRequest 
 }
 
 func (cs *CashuService) EnableAutoSwap(balanceThreshold uint64, destination string) error {
-	return lnclient.StartAutoSwap(cs.ctx, balanceThreshold, destination, cs.GetBalances)
+	return lnclient.StartAutoSwap(cs.ctx, balanceThreshold, destination, cs.GetBalances, cs.SendPaymentSync)
 }
 
 func (cs *CashuService) GetBalances(ctx context.Context, includeInactiveChannels bool) (*lnclient.BalancesResponse, error) {

@@ -1714,7 +1714,7 @@ func (ls *LDKService) GetBalances(ctx context.Context, includeInactiveChannels b
 }
 
 func (ls *LDKService) EnableAutoSwap(balanceThreshold uint64, destination string) error {
-	return lnclient.StartAutoSwap(ls.ctx, balanceThreshold, destination, ls.GetBalances)
+	return lnclient.StartAutoSwap(ls.ctx, balanceThreshold, destination, ls.GetBalances, ls.SendPaymentSync)
 }
 
 func (ls *LDKService) GetStorageDir() (string, error) {

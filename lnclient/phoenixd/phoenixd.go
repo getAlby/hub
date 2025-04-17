@@ -130,7 +130,7 @@ func (svc *PhoenixService) GetBalances(ctx context.Context, includeInactiveChann
 }
 
 func (svc *PhoenixService) EnableAutoSwap(balanceThreshold uint64, destination string) error {
-	return lnclient.StartAutoSwap(svc.ctx, balanceThreshold, destination, svc.GetBalances)
+	return lnclient.StartAutoSwap(svc.ctx, balanceThreshold, destination, svc.GetBalances, svc.SendPaymentSync)
 }
 
 func (svc *PhoenixService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []lnclient.Transaction, err error) {

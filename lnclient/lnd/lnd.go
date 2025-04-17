@@ -1154,7 +1154,7 @@ func (svc *LNDService) GetBalances(ctx context.Context, includeInactiveChannels 
 }
 
 func (svc *LNDService) EnableAutoSwap(balanceThreshold uint64, destination string) error {
-	return lnclient.StartAutoSwap(svc.ctx, balanceThreshold, destination, svc.GetBalances)
+	return lnclient.StartAutoSwap(svc.ctx, balanceThreshold, destination, svc.GetBalances, svc.SendPaymentSync)
 }
 
 func (svc *LNDService) GetStorageDir() (string, error) {
