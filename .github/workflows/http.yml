@@ -31,17 +31,17 @@ jobs:
             {
               arch: x86_64,
               alby_arch: x86_64-unknown-linux-gnu,
-              os: ubuntu-20.04,
+              os: ubuntu-22.04,
             },
             {
               arch: armv6,
               alby_arch: arm-unknown-linux-gnueabihf,
-              os: ubuntu-20.04,
+              os: ubuntu-22.04,
             },
             {
               arch: aarch64,
               alby_arch: aarch64-unknown-linux-gnu,
-              os: ubuntu-20.04,
+              os: ubuntu-22.04,
             },
             { arch: darwin/universal, os: macos-13 },
           ]
