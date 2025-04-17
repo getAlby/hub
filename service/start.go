@@ -18,6 +18,7 @@ import (
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/lnclient/cashu"
+	"github.com/getAlby/hub/lnclient/fulmine"
 	"github.com/getAlby/hub/lnclient/ldk"
 	"github.com/getAlby/hub/lnclient/lnd"
 	"github.com/getAlby/hub/lnclient/phoenixd"
@@ -355,6 +356,10 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 		cashuWorkdir := path.Join(svc.cfg.GetEnv().Workdir, "cashu")
 
 		lnClient, err = cashu.NewCashuService(svc.cfg, cashuWorkdir, mnemonic, cashuMintUrl)
+	case config.FulmineBackendType:
+		fulmineWorkdir := path.Join(svc.cfg.GetEnv().Workdir, "fulmine")
+
+		lnClient, err = fulmine.NewFulmineService(ctx, svc.cfg, fulmineWorkdir)
 	default:
 		logger.Logger.WithField("backend_type", lnBackend).Error("Unsupported LNBackendType")
 		return fmt.Errorf("unsupported backend type: %s", lnBackend)
