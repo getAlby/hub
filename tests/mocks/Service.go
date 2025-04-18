@@ -16,6 +16,8 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 
+	swaps "github.com/getAlby/hub/swaps"
+
 	transactions "github.com/getAlby/hub/transactions"
 )
 
@@ -359,6 +361,53 @@ func (_c *MockService_GetStartupState_Call) RunAndReturn(run func() string) *Moc
 	return _c
 }
 
+// GetSwapsService provides a mock function with no fields
+func (_m *MockService) GetSwapsService() swaps.SwapsService {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetSwapsService")
+	}
+
+	var r0 swaps.SwapsService
+	if rf, ok := ret.Get(0).(func() swaps.SwapsService); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(swaps.SwapsService)
+		}
+	}
+
+	return r0
+}
+
+// MockService_GetSwapsService_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetSwapsService'
+type MockService_GetSwapsService_Call struct {
+	*mock.Call
+}
+
+// GetSwapsService is a helper method to define mock.On call
+func (_e *MockService_Expecter) GetSwapsService() *MockService_GetSwapsService_Call {
+	return &MockService_GetSwapsService_Call{Call: _e.mock.On("GetSwapsService")}
+}
+
+func (_c *MockService_GetSwapsService_Call) Run(run func()) *MockService_GetSwapsService_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockService_GetSwapsService_Call) Return(_a0 swaps.SwapsService) *MockService_GetSwapsService_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockService_GetSwapsService_Call) RunAndReturn(run func() swaps.SwapsService) *MockService_GetSwapsService_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetTransactionsService provides a mock function with no fields
 func (_m *MockService) GetTransactionsService() transactions.TransactionsService {
 	ret := _m.Called()
@@ -525,6 +574,51 @@ func (_c *MockService_StartApp_Call) Return(_a0 error) *MockService_StartApp_Cal
 }
 
 func (_c *MockService_StartApp_Call) RunAndReturn(run func(string) error) *MockService_StartApp_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// StartAutoSwaps provides a mock function with no fields
+func (_m *MockService) StartAutoSwaps() error {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for StartAutoSwaps")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockService_StartAutoSwaps_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StartAutoSwaps'
+type MockService_StartAutoSwaps_Call struct {
+	*mock.Call
+}
+
+// StartAutoSwaps is a helper method to define mock.On call
+func (_e *MockService_Expecter) StartAutoSwaps() *MockService_StartAutoSwaps_Call {
+	return &MockService_StartAutoSwaps_Call{Call: _e.mock.On("StartAutoSwaps")}
+}
+
+func (_c *MockService_StartAutoSwaps_Call) Run(run func()) *MockService_StartAutoSwaps_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockService_StartAutoSwaps_Call) Return(_a0 error) *MockService_StartAutoSwaps_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockService_StartAutoSwaps_Call) RunAndReturn(run func() error) *MockService_StartAutoSwaps_Call {
 	_c.Call.Return(run)
 	return _c
 }
