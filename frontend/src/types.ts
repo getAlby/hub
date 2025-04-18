@@ -189,6 +189,13 @@ export type AppMetadata = { app_store_app_id?: string } & Record<
   unknown
 >;
 
+export type SwapsSettingsResponse = {
+  enabled: boolean;
+  balanceThreshold: number;
+  swapAmount: number;
+  destination: string;
+};
+
 export interface MnemonicResponse {
   mnemonic: string;
 }
