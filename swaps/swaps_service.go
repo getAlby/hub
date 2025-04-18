@@ -40,7 +40,7 @@ func NewSwapsService(cfg config.Config, eventPublisher events.EventPublisher, tr
 	}
 }
 
-func (svc swapsService) EnableAutoSwaps(ctx context.Context, lnClient lnclient.LNClient) error {
+func (svc *swapsService) EnableAutoSwaps(ctx context.Context, lnClient lnclient.LNClient) error {
 	// stop any existing swap process
 	svc.StopAutoSwaps()
 
@@ -92,6 +92,7 @@ func (svc swapsService) EnableAutoSwaps(ctx context.Context, lnClient lnclient.L
 					}
 				}
 			case <-ctx.Done():
+				logger.Logger.Info("Stopping auto swap workflow")
 				return
 			}
 		}
@@ -102,7 +103,7 @@ func (svc swapsService) EnableAutoSwaps(ctx context.Context, lnClient lnclient.L
 	return nil
 }
 
-func (svc swapsService) StopAutoSwaps() {
+func (svc *swapsService) StopAutoSwaps() {
 	if svc.cancelFn != nil {
 		logger.Logger.Info("Stopping swap service...")
 		svc.cancelFn()
@@ -110,7 +111,7 @@ func (svc swapsService) StopAutoSwaps() {
 	}
 }
 
-func (svc swapsService) ReverseSwap(ctx context.Context, amount uint64, destination string, lnClient lnclient.LNClient) error {
+func (svc *swapsService) ReverseSwap(ctx context.Context, amount uint64, destination string, lnClient lnclient.LNClient) error {
 	var network, err = boltz.ParseChain(svc.cfg.GetEnv().LDKNetwork)
 	if err != nil {
 		return err
