@@ -10,6 +10,7 @@ const (
 const (
 	OnchainAddressKey           = "OnchainAddress"
 	AutoSwapBalanceThresholdKey = "AutoSwapBalanceThreshold"
+	AutoSwapAmountKey           = "AutoSwapAmount"
 	AutoSwapDestinationKey      = "AutoSwapDestination"
 )
 

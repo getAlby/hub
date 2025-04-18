@@ -16,7 +16,7 @@ function Swaps() {
   const [swapTo, setSwapTo] = useState("hub");
   const [balanceThreshold, setBalanceThreshold] = useState("");
   const [swapAmount, setSwapAmount] = useState("");
-  const [destination, setDestination] = useState(onchainAddress);
+  const [destination, setDestination] = useState("");
   const [loading, setLoading] = useState(false);
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -58,7 +58,7 @@ function Swaps() {
         description="Swap bitcoin lightning into your on-chain balance"
       />
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
-        <div className="grid gap-2">
+        <div className="grid gap-1.5">
           <Label>Spending balance threshold</Label>
           <Input
             type="number"
@@ -67,7 +67,7 @@ function Swaps() {
             onChange={(e) => setBalanceThreshold(e.target.value)}
           />
         </div>
-        <div className="grid gap-2">
+        <div className="grid gap-1.5">
           <Label>Swap amount</Label>
           <Input
             type="number"
@@ -76,6 +76,9 @@ function Swaps() {
             min={50000}
             onChange={(e) => setSwapAmount(e.target.value)}
           />
+          <p className="text-xs text-muted-foreground">
+            Should be atleast 50000 sats
+          </p>
         </div>
         <Label>Swap to</Label>
         <RadioGroup
@@ -115,7 +118,7 @@ function Swaps() {
           </div>
         </RadioGroup>
         {swapTo == "external" && (
-          <div className="grid gap-2">
+          <div className="grid gap-1.5">
             <Label>Receiving on-chain address</Label>
             <Input
               placeholder="bc1..."
@@ -127,7 +130,9 @@ function Swaps() {
         <div>
           <LoadingButton
             loading={loading}
-            disabled={!destination || !balanceThreshold}
+            disabled={
+              !balanceThreshold || (swapTo == "external" && !destination)
+            }
           >
             Enable Auto Swaps
           </LoadingButton>

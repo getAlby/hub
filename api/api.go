@@ -551,6 +551,12 @@ func (api *api) SetSwapsSettings(ctx context.Context, enableAutoSwapRequest *Swa
 		return err
 	}
 
+	err = api.cfg.SetUpdate(config.AutoSwapAmountKey, strconv.FormatUint(enableAutoSwapRequest.SwapAmount, 10), "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to save autoswap balance threshold to config")
+		return err
+	}
+
 	err = api.cfg.SetUpdate(config.AutoSwapDestinationKey, enableAutoSwapRequest.Destination, "")
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to save autoswap destination to config")

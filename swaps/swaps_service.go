@@ -47,13 +47,20 @@ func (svc swapsService) EnableAutoSwaps(ctx context.Context, lnClient lnclient.L
 	ctx, cancelFn := context.WithCancel(ctx)
 	swapDestination, _ := svc.cfg.Get(config.AutoSwapDestinationKey, "")
 	balanceThresholdStr, _ := svc.cfg.Get(config.AutoSwapBalanceThresholdKey, "")
+	amountStr, _ := svc.cfg.Get(config.AutoSwapAmountKey, "")
 
-	if swapDestination == "" || balanceThresholdStr == "" {
+	if swapDestination == "" || balanceThresholdStr == "" || amountStr == "" {
 		cancelFn()
 		return errors.New("auto swap not configured")
 	}
 
 	parsedBalanceThreshold, err := strconv.ParseUint(balanceThresholdStr, 10, 64)
+	if err != nil {
+		cancelFn()
+		return errors.New("invalid auto swap configuration")
+	}
+
+	amount, err := strconv.ParseUint(amountStr, 10, 64)
 	if err != nil {
 		cancelFn()
 		return errors.New("invalid auto swap configuration")
@@ -73,14 +80,11 @@ func (svc swapsService) EnableAutoSwaps(ctx context.Context, lnClient lnclient.L
 				lightningBalance := uint64(balance.Lightning.TotalSpendable)
 				balanceThresholdMilliSats := parsedBalanceThreshold * 1000
 				if lightningBalance >= balanceThresholdMilliSats {
-					// TODO: Change this calcuation
-					amount := lightningBalance - balanceThresholdMilliSats
 					logger.Logger.WithFields(logrus.Fields{
 						"amount":      amount,
 						"destination": swapDestination,
 					}).Info("Initiating swap")
-					// TODO: Should we ourselves add a check that the amount is < 50000
-					err := svc.ReverseSwap(ctx, amount/1000, swapDestination, lnClient)
+					err := svc.ReverseSwap(ctx, amount, swapDestination, lnClient)
 					if err != nil {
 						logger.Logger.WithError(err).Error("Failed to swap")
 					}
