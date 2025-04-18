@@ -191,7 +191,7 @@ function Swaps() {
               <div className="flex justify-between items-center">
                 <span className="font-medium">Type</span>
                 <span className="text-muted-foreground text-right">
-                  On-chain to Lightning
+                  Lightning to On-chain
                 </span>
               </div>
               <div className="flex justify-between items-center">
