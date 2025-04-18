@@ -21,31 +21,32 @@ import (
 
 type swapsService struct {
 	cancelFn            context.CancelFunc
+	cfg                 config.Config
 	eventPublisher      events.EventPublisher
-	lnClient            lnclient.LNClient
 	transactionsService transactions.TransactionsService
 }
 
 type SwapsService interface {
-	EnableAutoSwaps(ctx context.Context, cfg config.Config, lnClient lnclient.LNClient) error
+	EnableAutoSwaps(ctx context.Context, lnClient lnclient.LNClient) error
 	StopAutoSwap()
 	ReverseSwap(ctx context.Context, amount uint64, destination string, lnClient lnclient.LNClient) error
 }
 
-func NewSwapsService(eventPublisher events.EventPublisher, transactionsService transactions.TransactionsService) *swapsService {
+func NewSwapsService(cfg config.Config, eventPublisher events.EventPublisher, transactionsService transactions.TransactionsService) *swapsService {
 	return &swapsService{
+		cfg:                 cfg,
 		eventPublisher:      eventPublisher,
 		transactionsService: transactionsService,
 	}
 }
 
-func (svc swapsService) EnableAutoSwaps(ctx context.Context, cfg config.Config, lnClient lnclient.LNClient) error {
+func (svc swapsService) EnableAutoSwaps(ctx context.Context, lnClient lnclient.LNClient) error {
 	// stop any existing swap process
 	svc.StopAutoSwap()
 
 	ctx, cancelFn := context.WithCancel(ctx)
-	swapDestination, _ := cfg.Get(config.AutoSwapDestinationKey, "")
-	balanceThresholdStr, _ := cfg.Get(config.AutoSwapBalanceThresholdKey, "")
+	swapDestination, _ := svc.cfg.Get(config.AutoSwapDestinationKey, "")
+	balanceThresholdStr, _ := svc.cfg.Get(config.AutoSwapBalanceThresholdKey, "")
 
 	if swapDestination == "" || balanceThresholdStr == "" {
 		cancelFn()
@@ -104,9 +105,10 @@ func (svc swapsService) StopAutoSwap() {
 }
 
 func (svc swapsService) ReverseSwap(ctx context.Context, amount uint64, destination string, lnClient lnclient.LNClient) error {
-	// TODO: Make these configurable from env or using network env var
-	const endpoint = "https://api.testnet.boltz.exchange"
-	var network = boltz.TestNet
+	var network, err = boltz.ParseChain(svc.cfg.GetEnv().LDKNetwork)
+	if err != nil {
+		return err
+	}
 
 	ourKeys, err := btcec.NewPrivateKey()
 	if err != nil {
@@ -120,7 +122,7 @@ func (svc swapsService) ReverseSwap(ctx context.Context, amount uint64, destinat
 	}
 	preimageHash := sha256.Sum256(preimage)
 
-	boltzApi := &boltz.Api{URL: endpoint}
+	boltzApi := &boltz.Api{URL: svc.cfg.GetEnv().BoltzApi}
 
 	swap, err := boltzApi.CreateReverseSwap(boltz.CreateReverseSwapRequest{
 		From:           boltz.CurrencyBtc,

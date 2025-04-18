@@ -306,7 +306,7 @@ func (svc *service) StartApp(encryptionKey string) error {
 }
 
 func (svc *service) StartAutoSwaps() error {
-	return svc.GetSwapsService().EnableAutoSwaps(svc.ctx, svc.cfg, svc.lnClient)
+	return svc.GetSwapsService().EnableAutoSwaps(svc.ctx, svc.lnClient)
 }
 
 func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) error {
