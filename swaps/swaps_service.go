@@ -90,6 +90,8 @@ func (svc *swapsService) EnableAutoSwaps(ctx context.Context, lnClient lnclient.
 					if err != nil {
 						logger.Logger.WithError(err).Error("Failed to swap")
 					}
+				} else {
+					logger.Logger.Info("Threshold requirements not met for swap, ignoring")
 				}
 			case <-ctx.Done():
 				logger.Logger.Info("Stopping auto swap workflow")
@@ -177,7 +179,9 @@ func (svc *swapsService) ReverseSwap(ctx context.Context, amount uint64, destina
 				"update": update,
 			}).Info("Swap created, paying the invoice")
 			metadata := map[string]interface{}{
-				"swap": swap,
+				"swapId":        swap.Id,
+				"onchainAmount": swap.OnchainAmount,
+				"refundPubkey":  swap.RefundPublicKey,
 			}
 			_, err := svc.transactionsService.SendPaymentSync(ctx, swap.Invoice, nil, metadata, lnClient, nil, nil)
 			if err != nil {
