@@ -19,6 +19,7 @@ import (
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/service/keys"
+	"github.com/getAlby/hub/swaps"
 	"github.com/getAlby/hub/transactions"
 	"github.com/getAlby/hub/version"
 
@@ -35,6 +36,7 @@ type service struct {
 	db                  *gorm.DB
 	lnClient            lnclient.LNClient
 	transactionsService transactions.TransactionsService
+	swapsService        swaps.SwapsService
 	albyOAuthSvc        alby.AlbyOAuthService
 	eventPublisher      events.EventPublisher
 	ctx                 context.Context
@@ -115,6 +117,8 @@ func NewService(ctx context.Context) (*service, error) {
 
 	albyOAuthSvc := alby.NewAlbyOAuthService(gormDB, cfg, keys, eventPublisher)
 
+	transactionsSvc := transactions.NewTransactionsService(gormDB, eventPublisher)
+
 	var wg sync.WaitGroup
 	svc := &service{
 		cfg:                 cfg,
@@ -123,7 +127,8 @@ func NewService(ctx context.Context) (*service, error) {
 		eventPublisher:      eventPublisher,
 		albyOAuthSvc:        albyOAuthSvc,
 		nip47Service:        nip47.NewNip47Service(gormDB, cfg, keys, eventPublisher, albyOAuthSvc),
-		transactionsService: transactions.NewTransactionsService(gormDB, eventPublisher),
+		transactionsService: transactionsSvc,
+		swapsService:        swaps.NewSwapsService(eventPublisher, transactionsSvc),
 		db:                  gormDB,
 		keys:                keys,
 	}
@@ -248,6 +253,10 @@ func (svc *service) GetLNClient() lnclient.LNClient {
 
 func (svc *service) GetTransactionsService() transactions.TransactionsService {
 	return svc.transactionsService
+}
+
+func (svc *service) GetSwapsService() swaps.SwapsService {
+	return svc.swapsService
 }
 
 func (svc *service) GetKeys() keys.Keys {

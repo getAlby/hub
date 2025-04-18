@@ -1,45 +1,85 @@
-package lnclient
+package swaps
 
 import (
 	"context"
 	"crypto/rand"
 	"crypto/sha256"
+	"errors"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/BoltzExchange/boltz-client/v2/pkg/boltz"
 	"github.com/btcsuite/btcd/btcec/v2"
+	"github.com/getAlby/hub/config"
+	"github.com/getAlby/hub/events"
+	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
+	"github.com/getAlby/hub/transactions"
 	"github.com/sirupsen/logrus"
 )
 
-type getBalancesFn func(context.Context, bool) (*BalancesResponse, error)
-type sendPaymentFn func(context.Context, string, *uint64) (*PayInvoiceResponse, error)
+type swapsService struct {
+	cancelFn            context.CancelFunc
+	eventPublisher      events.EventPublisher
+	lnClient            lnclient.LNClient
+	transactionsService transactions.TransactionsService
+}
 
-func StartAutoSwap(ctx context.Context, balanceThreshold uint64, destination string, getBalances getBalancesFn, sendPayment sendPaymentFn) error {
+type SwapsService interface {
+	EnableAutoSwaps(ctx context.Context, cfg config.Config, lnClient lnclient.LNClient) error
+	StopAutoSwap()
+	ReverseSwap(ctx context.Context, amount uint64, destination string, lnClient lnclient.LNClient) error
+}
+
+func NewSwapsService(eventPublisher events.EventPublisher, transactionsService transactions.TransactionsService) *swapsService {
+	return &swapsService{
+		eventPublisher:      eventPublisher,
+		transactionsService: transactionsService,
+	}
+}
+
+func (svc swapsService) EnableAutoSwaps(ctx context.Context, cfg config.Config, lnClient lnclient.LNClient) error {
+	// stop any existing swap process
+	svc.StopAutoSwap()
+
+	ctx, cancelFn := context.WithCancel(ctx)
+	swapDestination, _ := cfg.Get(config.AutoSwapDestinationKey, "")
+	balanceThresholdStr, _ := cfg.Get(config.AutoSwapBalanceThresholdKey, "")
+
+	if swapDestination == "" || balanceThresholdStr == "" {
+		cancelFn()
+		return errors.New("auto swap not configured")
+	}
+
+	parsedBalanceThreshold, err := strconv.ParseUint(balanceThresholdStr, 10, 64)
+	if err != nil {
+		cancelFn()
+		return errors.New("invalid auto swap configuration")
+	}
+
 	go func() {
-		// TODO: Do we want to check every hour?
 		ticker := time.NewTicker(1 * time.Hour)
 		for {
 			select {
 			case <-ticker.C:
 				logger.Logger.Info("Checking to see if we can swap")
-				balance, err := getBalances(ctx, false)
+				balance, err := lnClient.GetBalances(ctx, false)
 				if err != nil {
 					logger.Logger.WithError(err).Error("Failed to get balance")
 					return
 				}
 				lightningBalance := uint64(balance.Lightning.TotalSpendable)
-				balanceThresholdMilliSats := balanceThreshold * 1000
+				balanceThresholdMilliSats := parsedBalanceThreshold * 1000
 				if lightningBalance >= balanceThresholdMilliSats {
 					// TODO: Change this calcuation
 					amount := lightningBalance - balanceThresholdMilliSats
 					logger.Logger.WithFields(logrus.Fields{
 						"amount":      amount,
-						"destination": destination,
+						"destination": swapDestination,
 					}).Info("Initiating swap")
 					// TODO: Should we ourselves add a check that the amount is < 50000
-					err := ReverseSwap(ctx, amount/1000, destination, sendPayment)
+					err := svc.ReverseSwap(ctx, amount/1000, swapDestination, lnClient)
 					if err != nil {
 						logger.Logger.WithError(err).Error("Failed to swap")
 					}
@@ -49,10 +89,21 @@ func StartAutoSwap(ctx context.Context, balanceThreshold uint64, destination str
 			}
 		}
 	}()
+
+	svc.cancelFn = cancelFn
+
 	return nil
 }
 
-func ReverseSwap(ctx context.Context, amount uint64, destination string, sendPayment sendPaymentFn) error {
+func (svc swapsService) StopAutoSwap() {
+	if svc.cancelFn != nil {
+		logger.Logger.Info("Stopping swap service...")
+		svc.cancelFn()
+		logger.Logger.Info("swap service stopped")
+	}
+}
+
+func (svc swapsService) ReverseSwap(ctx context.Context, amount uint64, destination string, lnClient lnclient.LNClient) error {
 	// TODO: Make these configurable from env or using network env var
 	const endpoint = "https://api.testnet.boltz.exchange"
 	var network = boltz.TestNet
@@ -116,8 +167,10 @@ func ReverseSwap(ctx context.Context, amount uint64, destination string, sendPay
 				"swap":   swap,
 				"update": update,
 			}).Info("Swap created, paying the invoice")
-			// TODO: Use transaction service method here
-			_, err := sendPayment(ctx, swap.Invoice, nil)
+			metadata := map[string]interface{}{
+				"swap": swap,
+			}
+			_, err := svc.transactionsService.SendPaymentSync(ctx, swap.Invoice, nil, metadata, lnClient, nil, nil)
 			if err != nil {
 				logger.Logger.WithFields(logrus.Fields{
 					"swap":   swap,
@@ -176,6 +229,15 @@ func ReverseSwap(ctx context.Context, amount uint64, destination string, sendPay
 
 		case boltz.InvoiceSettled:
 			logger.Logger.WithField("swapId", swap.Id).Info("Swap succeeded")
+			svc.eventPublisher.Publish(&events.Event{
+				Event: "nwc_swap_succeeded",
+				Properties: map[string]interface{}{
+					"swapId":        swap.Id,
+					"invoice":       swap.Invoice,
+					"onchainAmount": swap.OnchainAmount,
+					"refundPubkey":  swap.RefundPublicKey,
+				},
+			})
 			if err := boltzWs.Close(); err != nil {
 				return err
 			}

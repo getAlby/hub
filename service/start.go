@@ -286,6 +286,11 @@ func (svc *service) StartApp(encryptionKey string) error {
 		return err
 	}
 
+	err = svc.StartAutoSwaps()
+	if err != nil {
+		logger.Logger.WithError(err).Error("Couldn't enable auto swaps")
+	}
+
 	svc.publishAllAppInfoEvents()
 
 	svc.startupState = "Connecting To Relay"
@@ -298,6 +303,10 @@ func (svc *service) StartApp(encryptionKey string) error {
 	svc.appCancelFn = cancelFn
 
 	return nil
+}
+
+func (svc *service) StartAutoSwaps() error {
+	return svc.GetSwapsService().EnableAutoSwaps(svc.ctx, svc.cfg, svc.lnClient)
 }
 
 func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) error {
@@ -348,13 +357,13 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 		PhoenixdAddress, _ := svc.cfg.Get("PhoenixdAddress", encryptionKey)
 		PhoenixdAuthorization, _ := svc.cfg.Get("PhoenixdAuthorization", encryptionKey)
 
-		lnClient, err = phoenixd.NewPhoenixService(ctx, PhoenixdAddress, PhoenixdAuthorization)
+		lnClient, err = phoenixd.NewPhoenixService(PhoenixdAddress, PhoenixdAuthorization)
 	case config.CashuBackendType:
 		mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
 		cashuMintUrl, _ := svc.cfg.Get("CashuMintUrl", encryptionKey)
 		cashuWorkdir := path.Join(svc.cfg.GetEnv().Workdir, "cashu")
 
-		lnClient, err = cashu.NewCashuService(ctx, svc.cfg, cashuWorkdir, mnemonic, cashuMintUrl)
+		lnClient, err = cashu.NewCashuService(svc.cfg, cashuWorkdir, mnemonic, cashuMintUrl)
 	default:
 		logger.Logger.WithField("backend_type", lnBackend).Error("Unsupported LNBackendType")
 		return fmt.Errorf("unsupported backend type: %s", lnBackend)
@@ -362,19 +371,6 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to launch LN backend")
 		return err
-	}
-
-	swapDestination, _ := svc.cfg.Get(config.AutoSwapDestinationKey, "")
-	balanceThresholdStr, _ := svc.cfg.Get(config.AutoSwapBalanceThresholdKey, "")
-
-	if swapDestination != "" && balanceThresholdStr != "" {
-		if parsedBalanceThreshold, err := strconv.ParseUint(balanceThresholdStr, 10, 64); err == nil {
-			if err := lnClient.EnableAutoSwap(parsedBalanceThreshold, swapDestination); err != nil {
-				logger.Logger.WithError(err).Error("Failed to enable auto swap")
-			}
-		} else {
-			logger.Logger.WithError(err).Error("Invalid auto swap configuration")
-		}
 	}
 
 	// TODO: call a method on the LNClient here to check the LNClient is actually connectable,

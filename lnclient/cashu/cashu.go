@@ -28,10 +28,9 @@ type CashuService struct {
 	wallet               *wallet.Wallet
 	workDir              string
 	hasDifferentMnemonic bool
-	ctx                  context.Context
 }
 
-func NewCashuService(ctx context.Context, cfg config.Config, workDir, mnemonic, mintUrl string) (result lnclient.LNClient, err error) {
+func NewCashuService(cfg config.Config, workDir, mnemonic, mintUrl string) (result lnclient.LNClient, err error) {
 	if workDir == "" {
 		return nil, errors.New("one or more required cashu configuration are missing")
 	}
@@ -59,7 +58,6 @@ func NewCashuService(ctx context.Context, cfg config.Config, workDir, mnemonic, 
 	cs := CashuService{
 		wallet:  cashuWallet,
 		workDir: workDir,
-		ctx:     ctx,
 	}
 
 	if cs.wallet.Mnemonic() != mnemonic {
@@ -283,10 +281,6 @@ func (cs *CashuService) SendSpontaneousPaymentProbes(ctx context.Context, amount
 
 func (cs *CashuService) UpdateChannel(ctx context.Context, updateChannelRequest *lnclient.UpdateChannelRequest) error {
 	return nil
-}
-
-func (cs *CashuService) EnableAutoSwap(balanceThreshold uint64, destination string) error {
-	return lnclient.StartAutoSwap(cs.ctx, balanceThreshold, destination, cs.GetBalances, cs.SendPaymentSync)
 }
 
 func (cs *CashuService) GetBalances(ctx context.Context, includeInactiveChannels bool) (*lnclient.BalancesResponse, error) {

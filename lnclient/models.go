@@ -55,7 +55,6 @@ type LNClient interface {
 	LookupInvoice(ctx context.Context, paymentHash string) (transaction *Transaction, err error)
 	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []Transaction, err error)
 	Shutdown() error
-	EnableAutoSwap(balanceThreshold uint64, destination string) error
 	ListChannels(ctx context.Context) (channels []Channel, err error)
 	GetNodeConnectionInfo(ctx context.Context) (nodeConnectionInfo *NodeConnectionInfo, err error)
 	GetNodeStatus(ctx context.Context) (nodeStatus *NodeStatus, err error)

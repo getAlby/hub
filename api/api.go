@@ -548,14 +548,16 @@ func (api *api) SetSwapsSettings(ctx context.Context, enableAutoSwapRequest *Swa
 	err := api.cfg.SetUpdate(config.AutoSwapBalanceThresholdKey, strconv.FormatUint(enableAutoSwapRequest.BalanceThreshold, 10), "")
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to save autoswap balance threshold to config")
+		return err
 	}
 
 	err = api.cfg.SetUpdate(config.AutoSwapDestinationKey, enableAutoSwapRequest.Destination, "")
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to save autoswap destination to config")
+		return err
 	}
 
-	return api.svc.GetLNClient().EnableAutoSwap(enableAutoSwapRequest.BalanceThreshold, enableAutoSwapRequest.Destination)
+	return api.svc.StartAutoSwaps()
 }
 
 func (api *api) GetNodeStatus(ctx context.Context) (*lnclient.NodeStatus, error) {

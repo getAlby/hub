@@ -8,11 +8,13 @@ import (
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/service/keys"
+	"github.com/getAlby/hub/swaps"
 	"github.com/getAlby/hub/transactions"
 )
 
 type Service interface {
 	StartApp(encryptionKey string) error
+	StartAutoSwaps() error
 	StopApp()
 	Shutdown()
 
@@ -21,6 +23,7 @@ type Service interface {
 	GetEventPublisher() events.EventPublisher
 	GetLNClient() lnclient.LNClient
 	GetTransactionsService() transactions.TransactionsService
+	GetSwapsService() swaps.SwapsService
 	GetDB() *gorm.DB
 	GetConfig() config.Config
 	GetKeys() keys.Keys
