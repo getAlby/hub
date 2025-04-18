@@ -92,7 +92,7 @@ function Swaps() {
     <>
       <SettingsHeader
         title="Swaps"
-        description="Swap bitcoin lightning into your on-chain balance"
+        description="Automatically swap lightning to on-chain funds"
       />
       {!swapsSettings.enabled ? (
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
@@ -115,10 +115,10 @@ function Swaps() {
               onChange={(e) => setSwapAmount(e.target.value)}
             />
             <p className="text-xs text-muted-foreground">
-              Should be atleast 50000 sats
+              Should be ≥ 50000 sats
             </p>
           </div>
-          <Label>Swap to</Label>
+          <Label>Destination</Label>
           <RadioGroup
             defaultValue="normal"
             value={swapTo}
@@ -184,7 +184,7 @@ function Swaps() {
           <CardContent>
             <p className="text-sm text-muted-foreground">
               Alby Hub will try to perform a swap every time the balance reaches
-              the set threshold.
+              the threshold.
             </p>
 
             <div className="mt-6 space-y-4 text-sm">
@@ -195,13 +195,13 @@ function Swaps() {
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="font-medium">Swap to</span>
+                <span className="font-medium">Destination</span>
                 <span className="text-muted-foreground text-right">
                   {swapsSettings.destination}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="font-medium">On-chain threshold</span>
+                <span className="font-medium">Spending Balance Threshold</span>
                 <span className="text-muted-foreground text-right">
                   {new Intl.NumberFormat().format(
                     swapsSettings.balanceThreshold
