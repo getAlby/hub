@@ -157,7 +157,9 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedApiGroup.GET("/health", httpSvc.healthHandler)
 	restrictedApiGroup.GET("/commands", httpSvc.getCustomNodeCommandsHandler)
 	restrictedApiGroup.POST("/command", httpSvc.execCustomNodeCommandHandler)
-	restrictedApiGroup.PATCH("/settings/swaps", httpSvc.patchSwapSettingsHandler)
+	restrictedApiGroup.GET("/settings/swaps", httpSvc.getAutoSwapsHandler)
+	restrictedApiGroup.POST("/settings/swaps", httpSvc.enableAutoSwapsHandler)
+	restrictedApiGroup.DELETE("/settings/swaps", httpSvc.deleteAutoSwapsHandler)
 
 	httpSvc.albyHttpSvc.RegisterSharedRoutes(restrictedApiGroup, e)
 }
@@ -1142,18 +1144,41 @@ func (httpSvc *HttpService) healthHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, healthResponse)
 }
 
-func (httpSvc *HttpService) patchSwapSettingsHandler(c echo.Context) error {
-	var swapSettingsRequest api.SwapsSettingsRequest
-	if err := c.Bind(&swapSettingsRequest); err != nil {
+func (httpSvc *HttpService) getAutoSwapsHandler(c echo.Context) error {
+	getAutoSwapsResponse, err := httpSvc.api.GetAutoSwaps(c.Request().Context())
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to get swap settings: %v", err),
+		})
+	}
+
+	return c.JSON(http.StatusOK, getAutoSwapsResponse)
+}
+
+func (httpSvc *HttpService) enableAutoSwapsHandler(c echo.Context) error {
+	var enableAutoSwapsRequest api.EnableAutoSwapsRequest
+	if err := c.Bind(&enableAutoSwapsRequest); err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
 			Message: fmt.Sprintf("Bad request: %s", err.Error()),
 		})
 	}
 
-	err := httpSvc.api.SetSwapsSettings(c.Request().Context(), &swapSettingsRequest)
+	err := httpSvc.api.EnableAutoSwaps(c.Request().Context(), &enableAutoSwapsRequest)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: fmt.Sprintf("Failed to save swap settings: %v", err),
+		})
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
+
+func (httpSvc *HttpService) deleteAutoSwapsHandler(c echo.Context) error {
+	err := httpSvc.api.DeleteAutoSwaps()
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
 		})
 	}
 

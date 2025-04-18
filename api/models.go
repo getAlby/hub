@@ -58,7 +58,9 @@ type API interface {
 	GetWalletCapabilities(ctx context.Context) (*WalletCapabilitiesResponse, error)
 	Health(ctx context.Context) (*HealthResponse, error)
 	SetCurrency(currency string) error
-	SetSwapsSettings(ctx context.Context, swapsSettingsRequest *SwapsSettingsRequest) error
+	GetAutoSwaps(ctx context.Context) (*GetAutoSwapsResponse, error)
+	DeleteAutoSwaps() error
+	EnableAutoSwaps(ctx context.Context, autoSwapsRequest *EnableAutoSwapsRequest) error
 	GetCustomNodeCommands() (*CustomNodeCommandsResponse, error)
 	ExecuteCustomNodeCommand(ctx context.Context, command string) (interface{}, error)
 }
@@ -114,7 +116,14 @@ type CreateAppRequest struct {
 	UnlockPassword string   `json:"unlockPassword"`
 }
 
-type SwapsSettingsRequest struct {
+type EnableAutoSwapsRequest struct {
+	BalanceThreshold uint64 `json:"balanceThreshold"`
+	SwapAmount       uint64 `json:"swapAmount"`
+	Destination      string `json:"destination"`
+}
+
+type GetAutoSwapsResponse struct {
+	Enabled          bool   `json:"enabled"`
 	BalanceThreshold uint64 `json:"balanceThreshold"`
 	SwapAmount       uint64 `json:"swapAmount"`
 	Destination      string `json:"destination"`

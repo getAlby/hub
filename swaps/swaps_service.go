@@ -28,7 +28,7 @@ type swapsService struct {
 
 type SwapsService interface {
 	EnableAutoSwaps(ctx context.Context, lnClient lnclient.LNClient) error
-	StopAutoSwap()
+	StopAutoSwaps()
 	ReverseSwap(ctx context.Context, amount uint64, destination string, lnClient lnclient.LNClient) error
 }
 
@@ -42,7 +42,7 @@ func NewSwapsService(cfg config.Config, eventPublisher events.EventPublisher, tr
 
 func (svc swapsService) EnableAutoSwaps(ctx context.Context, lnClient lnclient.LNClient) error {
 	// stop any existing swap process
-	svc.StopAutoSwap()
+	svc.StopAutoSwaps()
 
 	ctx, cancelFn := context.WithCancel(ctx)
 	swapDestination, _ := svc.cfg.Get(config.AutoSwapDestinationKey, "")
@@ -65,6 +65,8 @@ func (svc swapsService) EnableAutoSwaps(ctx context.Context, lnClient lnclient.L
 		cancelFn()
 		return errors.New("invalid auto swap configuration")
 	}
+
+	logger.Logger.Info("Starting auto swap workflow")
 
 	go func() {
 		ticker := time.NewTicker(1 * time.Hour)
@@ -100,7 +102,7 @@ func (svc swapsService) EnableAutoSwaps(ctx context.Context, lnClient lnclient.L
 	return nil
 }
 
-func (svc swapsService) StopAutoSwap() {
+func (svc swapsService) StopAutoSwaps() {
 	if svc.cancelFn != nil {
 		logger.Logger.Info("Stopping swap service...")
 		svc.cancelFn()
