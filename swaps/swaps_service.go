@@ -183,13 +183,22 @@ func (svc *swapsService) ReverseSwap(ctx context.Context, amount uint64, destina
 				"onchainAmount": swap.OnchainAmount,
 				"refundPubkey":  swap.RefundPublicKey,
 			}
-			_, err := svc.transactionsService.SendPaymentSync(ctx, swap.Invoice, nil, metadata, lnClient, nil, nil)
-			if err != nil {
+			go func() {
+				payCtx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+				defer cancel()
+				transaction, err := svc.transactionsService.SendPaymentSync(payCtx, swap.Invoice, nil, metadata, lnClient, nil, nil)
 				logger.Logger.WithFields(logrus.Fields{
-					"swap":   swap,
-					"update": update,
-				}).Error("Error paying the invoice")
-			}
+					"transaction": transaction,
+				}).Info("Swap created, paying the invoice")
+				if err != nil {
+					logger.Logger.WithError(err).WithFields(logrus.Fields{
+						"swap":   swap,
+						"update": update,
+					}).Error("Error paying the swap invoice")
+					return
+				}
+				logger.Logger.WithField("transaction", transaction).Info("Swap payment succeeded")
+			}()
 			break
 
 		case boltz.TransactionMempool:
