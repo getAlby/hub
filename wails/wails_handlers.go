@@ -970,6 +970,38 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: commandResponse, Error: ""}
+	case "/api/settings/swaps":
+		switch method {
+		case "GET":
+			autoSwapsConfig, err := app.api.GetAutoSwapsConfig()
+			if err != nil {
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
+			return WailsRequestRouterResponse{Body: autoSwapsConfig, Error: ""}
+		case "POST":
+			enableAutoSwapsRequest := &api.EnableAutoSwapsRequest{}
+			err := json.Unmarshal([]byte(body), enableAutoSwapsRequest)
+			if err != nil {
+				logger.Logger.WithFields(logrus.Fields{
+					"route":  route,
+					"method": method,
+					"body":   body,
+				}).WithError(err).Error("Failed to decode request to wails router")
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
+
+			err = app.api.EnableAutoSwaps(ctx, enableAutoSwapsRequest)
+			if err != nil {
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
+			return WailsRequestRouterResponse{Body: nil, Error: ""}
+		case "DELETE":
+			err := app.api.DisableAutoSwaps()
+			if err != nil {
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
+			return WailsRequestRouterResponse{Body: nil, Error: ""}
+		}
 	}
 
 	if strings.HasPrefix(route, "/api/log/") {
