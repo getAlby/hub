@@ -24,6 +24,7 @@ type swapsService struct {
 	cfg                 config.Config
 	eventPublisher      events.EventPublisher
 	transactionsService transactions.TransactionsService
+	boltzApi            *boltz.Api
 }
 
 type SwapsService interface {
@@ -37,6 +38,7 @@ func NewSwapsService(cfg config.Config, eventPublisher events.EventPublisher, tr
 		cfg:                 cfg,
 		eventPublisher:      eventPublisher,
 		transactionsService: transactionsService,
+		boltzApi:            &boltz.Api{URL: cfg.GetEnv().BoltzApi},
 	}
 }
 
@@ -131,9 +133,7 @@ func (svc *swapsService) ReverseSwap(ctx context.Context, amount uint64, destina
 	}
 	preimageHash := sha256.Sum256(preimage)
 
-	boltzApi := &boltz.Api{URL: svc.cfg.GetEnv().BoltzApi}
-
-	swap, err := boltzApi.CreateReverseSwap(boltz.CreateReverseSwapRequest{
+	swap, err := svc.boltzApi.CreateReverseSwap(boltz.CreateReverseSwapRequest{
 		From:           boltz.CurrencyBtc,
 		To:             boltz.CurrencyBtc,
 		ClaimPublicKey: ourKeys.PubKey().SerializeCompressed(),
@@ -162,7 +162,7 @@ func (svc *swapsService) ReverseSwap(ctx context.Context, amount uint64, destina
 
 	logger.Logger.WithField("swap", swap).Info("Swap created")
 
-	boltzWs := boltzApi.NewWebsocket()
+	boltzWs := svc.boltzApi.NewWebsocket()
 	if err := boltzWs.Connect(); err != nil {
 		return fmt.Errorf("could not connect to Boltz websocket: %w", err)
 	}
@@ -239,7 +239,7 @@ func (svc *swapsService) ReverseSwap(ctx context.Context, amount uint64, destina
 						},
 					},
 					satPerVbyte,
-					boltzApi,
+					svc.boltzApi,
 				)
 				if err != nil {
 					return fmt.Errorf("could not create claim transaction: %w", err)
@@ -250,7 +250,8 @@ func (svc *swapsService) ReverseSwap(ctx context.Context, amount uint64, destina
 					return fmt.Errorf("could not serialize claim transaction: %w", err)
 				}
 
-				txId, err := boltzApi.BroadcastTransaction(boltz.CurrencyBtc, txHex)
+				// TODO: Replace with LNClient method
+				txId, err := svc.boltzApi.BroadcastTransaction(boltz.CurrencyBtc, txHex)
 				if err != nil {
 					return fmt.Errorf("could not broadcast transaction: %w", err)
 				}
