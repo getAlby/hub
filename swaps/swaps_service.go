@@ -73,7 +73,7 @@ func (svc *swapsService) EnableAutoSwaps(ctx context.Context, lnClient lnclient.
 		for {
 			select {
 			case <-ticker.C:
-				logger.Logger.Info("Checking to see if we can swap")
+				logger.Logger.Debug("Checking to see if we can swap")
 				balance, err := lnClient.GetBalances(ctx, false)
 				if err != nil {
 					logger.Logger.WithError(err).Error("Failed to get balance")
@@ -139,6 +139,8 @@ func (svc *swapsService) ReverseSwap(ctx context.Context, amount uint64, destina
 		ClaimPublicKey: ourKeys.PubKey().SerializeCompressed(),
 		PreimageHash:   preimageHash[:],
 		InvoiceAmount:  amount,
+		// TODO: Add referral id
+		ReferralId: "getalby",
 	})
 	if err != nil {
 		return fmt.Errorf("could not create swap: %s", err)
@@ -183,25 +185,18 @@ func (svc *swapsService) ReverseSwap(ctx context.Context, amount uint64, destina
 				"onchainAmount": swap.OnchainAmount,
 				"refundPubkey":  swap.RefundPublicKey,
 			}
-			go func() {
-				payCtx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
-				defer cancel()
-				transaction, err := svc.transactionsService.SendPaymentSync(payCtx, swap.Invoice, nil, metadata, lnClient, nil, nil)
-				logger.Logger.WithFields(logrus.Fields{
-					"transaction": transaction,
-				}).Info("Swap created, paying the invoice")
-				if err != nil {
-					logger.Logger.WithError(err).WithFields(logrus.Fields{
-						"swap":   swap,
-						"update": update,
-					}).Error("Error paying the swap invoice")
-					return
-				}
-				logger.Logger.WithField("transaction", transaction).Info("Swap payment succeeded")
-			}()
+			transaction, err := svc.transactionsService.SendPaymentSync(ctx, swap.Invoice, nil, metadata, lnClient, nil, nil)
+			if err != nil {
+				logger.Logger.WithError(err).WithFields(logrus.Fields{
+					"swap":   swap,
+					"update": update,
+				}).Error("Error paying the swap invoice")
+				return err
+			}
+			logger.Logger.WithField("transaction", transaction).Info("Swap payment succeeded")
 			break
 
-		case boltz.TransactionMempool:
+		case boltz.TransactionConfirmed:
 			lockupTransaction, err := boltz.NewTxFromHex(boltz.CurrencyBtc, update.Transaction.Hex, nil)
 			if err != nil {
 				return err
