@@ -59,7 +59,7 @@ type API interface {
 	Health(ctx context.Context) (*HealthResponse, error)
 	SetCurrency(currency string) error
 	GetAutoSwaps(ctx context.Context) (*GetAutoSwapsResponse, error)
-	DeleteAutoSwaps() error
+	DisableAutoSwaps() error
 	EnableAutoSwaps(ctx context.Context, autoSwapsRequest *EnableAutoSwapsRequest) error
 	GetCustomNodeCommands() (*CustomNodeCommandsResponse, error)
 	ExecuteCustomNodeCommand(ctx context.Context, command string) (interface{}, error)

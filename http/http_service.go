@@ -159,7 +159,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedApiGroup.POST("/command", httpSvc.execCustomNodeCommandHandler)
 	restrictedApiGroup.GET("/settings/swaps", httpSvc.getAutoSwapsHandler)
 	restrictedApiGroup.POST("/settings/swaps", httpSvc.enableAutoSwapsHandler)
-	restrictedApiGroup.DELETE("/settings/swaps", httpSvc.deleteAutoSwapsHandler)
+	restrictedApiGroup.DELETE("/settings/swaps", httpSvc.disableAutoSwapsHandler)
 
 	httpSvc.albyHttpSvc.RegisterSharedRoutes(restrictedApiGroup, e)
 }
@@ -1173,8 +1173,8 @@ func (httpSvc *HttpService) enableAutoSwapsHandler(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func (httpSvc *HttpService) deleteAutoSwapsHandler(c echo.Context) error {
-	err := httpSvc.api.DeleteAutoSwaps()
+func (httpSvc *HttpService) disableAutoSwapsHandler(c echo.Context) error {
+	err := httpSvc.api.DisableAutoSwaps()
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{

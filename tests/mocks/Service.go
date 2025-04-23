@@ -655,38 +655,6 @@ func (_c *MockService_StopApp_Call) RunAndReturn(run func()) *MockService_StopAp
 	return _c
 }
 
-// StopAutoSwaps provides a mock function with no fields
-func (_m *MockService) StopAutoSwaps() {
-	_m.Called()
-}
-
-// MockService_StopAutoSwaps_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StopAutoSwaps'
-type MockService_StopAutoSwaps_Call struct {
-	*mock.Call
-}
-
-// StopAutoSwaps is a helper method to define mock.On call
-func (_e *MockService_Expecter) StopAutoSwaps() *MockService_StopAutoSwaps_Call {
-	return &MockService_StopAutoSwaps_Call{Call: _e.mock.On("StopAutoSwaps")}
-}
-
-func (_c *MockService_StopAutoSwaps_Call) Run(run func()) *MockService_StopAutoSwaps_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *MockService_StopAutoSwaps_Call) Return() *MockService_StopAutoSwaps_Call {
-	_c.Call.Return()
-	return _c
-}
-
-func (_c *MockService_StopAutoSwaps_Call) RunAndReturn(run func()) *MockService_StopAutoSwaps_Call {
-	_c.Run(run)
-	return _c
-}
-
 // NewMockService creates a new instance of MockService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewMockService(t interface {

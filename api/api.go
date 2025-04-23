@@ -591,7 +591,7 @@ func (api *api) EnableAutoSwaps(ctx context.Context, enableAutoSwapsRequest *Ena
 	return api.svc.StartAutoSwaps()
 }
 
-func (api *api) DeleteAutoSwaps() error {
+func (api *api) DisableAutoSwaps() error {
 	if err := api.cfg.SetUpdate(config.AutoSwapBalanceThresholdKey, "", ""); err != nil {
 		logger.Logger.WithError(err).Error("Failed to remove autoswap balance threshold")
 		return err
