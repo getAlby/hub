@@ -58,7 +58,7 @@ type API interface {
 	GetWalletCapabilities(ctx context.Context) (*WalletCapabilitiesResponse, error)
 	Health(ctx context.Context) (*HealthResponse, error)
 	SetCurrency(currency string) error
-	GetAutoSwaps(ctx context.Context) (*GetAutoSwapsResponse, error)
+	GetAutoSwapsConfig(ctx context.Context) (*GetAutoSwapsConfigResponse, error)
 	DisableAutoSwaps() error
 	EnableAutoSwaps(ctx context.Context, autoSwapsRequest *EnableAutoSwapsRequest) error
 	GetCustomNodeCommands() (*CustomNodeCommandsResponse, error)
@@ -122,7 +122,7 @@ type EnableAutoSwapsRequest struct {
 	Destination      string `json:"destination"`
 }
 
-type GetAutoSwapsResponse struct {
+type GetAutoSwapsConfigResponse struct {
 	Enabled          bool   `json:"enabled"`
 	BalanceThreshold uint64 `json:"balanceThreshold"`
 	SwapAmount       uint64 `json:"swapAmount"`

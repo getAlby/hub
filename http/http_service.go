@@ -157,7 +157,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedApiGroup.GET("/health", httpSvc.healthHandler)
 	restrictedApiGroup.GET("/commands", httpSvc.getCustomNodeCommandsHandler)
 	restrictedApiGroup.POST("/command", httpSvc.execCustomNodeCommandHandler)
-	restrictedApiGroup.GET("/settings/swaps", httpSvc.getAutoSwapsHandler)
+	restrictedApiGroup.GET("/settings/swaps", httpSvc.getAutoSwapsConfigHandler)
 	restrictedApiGroup.POST("/settings/swaps", httpSvc.enableAutoSwapsHandler)
 	restrictedApiGroup.DELETE("/settings/swaps", httpSvc.disableAutoSwapsHandler)
 
@@ -1144,15 +1144,15 @@ func (httpSvc *HttpService) healthHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, healthResponse)
 }
 
-func (httpSvc *HttpService) getAutoSwapsHandler(c echo.Context) error {
-	getAutoSwapsResponse, err := httpSvc.api.GetAutoSwaps(c.Request().Context())
+func (httpSvc *HttpService) getAutoSwapsConfigHandler(c echo.Context) error {
+	getAutoSwapsConfigResponse, err := httpSvc.api.GetAutoSwapsConfig(c.Request().Context())
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: fmt.Sprintf("Failed to get swap settings: %v", err),
 		})
 	}
 
-	return c.JSON(http.StatusOK, getAutoSwapsResponse)
+	return c.JSON(http.StatusOK, getAutoSwapsConfigResponse)
 }
 
 func (httpSvc *HttpService) enableAutoSwapsHandler(c echo.Context) error {
