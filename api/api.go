@@ -544,7 +544,7 @@ func (api *api) GetNodeConnectionInfo(ctx context.Context) (*lnclient.NodeConnec
 	return api.svc.GetLNClient().GetNodeConnectionInfo(ctx)
 }
 
-func (api *api) GetAutoSwapsConfig(ctx context.Context) (*GetAutoSwapsConfigResponse, error) {
+func (api *api) GetAutoSwapsConfig() (*GetAutoSwapsConfigResponse, error) {
 	swapBalanceThresholdStr, _ := api.cfg.Get(config.AutoSwapBalanceThresholdKey, "")
 	swapAmountStr, _ := api.cfg.Get(config.AutoSwapAmountKey, "")
 	swapDestination, _ := api.cfg.Get(config.AutoSwapDestinationKey, "")

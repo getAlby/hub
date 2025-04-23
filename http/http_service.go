@@ -1145,7 +1145,7 @@ func (httpSvc *HttpService) healthHandler(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) getAutoSwapsConfigHandler(c echo.Context) error {
-	getAutoSwapsConfigResponse, err := httpSvc.api.GetAutoSwapsConfig(c.Request().Context())
+	getAutoSwapsConfigResponse, err := httpSvc.api.GetAutoSwapsConfig()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: fmt.Sprintf("Failed to get swap settings: %v", err),
