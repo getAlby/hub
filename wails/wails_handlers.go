@@ -975,6 +975,11 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		case "GET":
 			autoSwapsConfig, err := app.api.GetAutoSwapsConfig()
 			if err != nil {
+				logger.Logger.WithFields(logrus.Fields{
+					"route":  route,
+					"method": method,
+					"body":   body,
+				}).WithError(err).Error("Failed to get auto swaps configuration")
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 			}
 			return WailsRequestRouterResponse{Body: autoSwapsConfig, Error: ""}
@@ -992,12 +997,22 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 
 			err = app.api.EnableAutoSwaps(ctx, enableAutoSwapsRequest)
 			if err != nil {
+				logger.Logger.WithFields(logrus.Fields{
+					"route":  route,
+					"method": method,
+					"body":   body,
+				}).WithError(err).Error("Failed to enable swaps")
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 			}
 			return WailsRequestRouterResponse{Body: nil, Error: ""}
 		case "DELETE":
 			err := app.api.DisableAutoSwaps()
 			if err != nil {
+				logger.Logger.WithFields(logrus.Fields{
+					"route":  route,
+					"method": method,
+					"body":   body,
+				}).WithError(err).Error("Failed to disable swaps")
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 			}
 			return WailsRequestRouterResponse{Body: nil, Error: ""}
