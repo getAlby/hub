@@ -17,10 +17,6 @@ func (svc *service) StopApp() {
 	}
 }
 
-func (svc *service) StopAutoSwaps() {
-	svc.swapsService.StopAutoSwaps()
-}
-
 func (svc *service) stopLNClient() {
 	defer svc.wg.Done()
 	if svc.lnClient == nil {

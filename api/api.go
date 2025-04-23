@@ -605,7 +605,7 @@ func (api *api) DeleteAutoSwaps() error {
 		return err
 	}
 
-	api.svc.StopAutoSwaps()
+	api.svc.GetSwapsService().StopAutoSwaps()
 
 	return nil
 }
