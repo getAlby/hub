@@ -502,17 +502,23 @@ func (svc *transactionsService) LookupTransaction(ctx context.Context, paymentHa
 
 	tx := svc.db
 
+	var isIsolatedApp bool
 	if appId != nil {
-		var app db.App
-		result := svc.db.Limit(1).Find(&app, &db.App{
-			ID: *appId,
-		})
-		if result.RowsAffected == 0 {
-			return nil, NewNotFoundError()
+		err := svc.db.
+			Model(&db.App{}).
+			Where("id", *appId).
+			Pluck("isolated", &isIsolatedApp).
+			Error
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return nil, NewNotFoundError()
+			}
+			return nil, err
 		}
-		if app.Isolated {
-			tx = tx.Where("app_id = ?", *appId)
-		}
+	}
+
+	if isIsolatedApp {
+		tx = tx.Where("app_id = ?", *appId)
 	}
 
 	if transactionType != nil {
@@ -549,7 +555,26 @@ func (svc *transactionsService) LookupTransaction(ctx context.Context, paymentHa
 func (svc *transactionsService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, transactionType *string, lnClient lnclient.LNClient, appId *uint, forceFilterByAppId bool) (transactions []Transaction, totalCount uint64, err error) {
 	svc.checkUnsettledTransactions(ctx, lnClient)
 
+	var isIsolatedApp bool
+	if appId != nil {
+		err := svc.db.
+			Model(&db.App{}).
+			Where("id", *appId).
+			Pluck("isolated", &isIsolatedApp).
+			Error
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return nil, 0, NewNotFoundError()
+			}
+			return nil, 0, err
+		}
+	}
+
 	tx := svc.db
+
+	if isIsolatedApp || forceFilterByAppId {
+		tx = tx.Where("app_id = ?", *appId)
+	}
 
 	if !unpaidOutgoing && !unpaidIncoming {
 		tx = tx.Where("state = ?", constants.TRANSACTION_STATE_SETTLED)
@@ -570,19 +595,6 @@ func (svc *transactionsService) ListTransactions(ctx context.Context, from, unti
 	}
 	if until > 0 {
 		tx = tx.Where("updated_at <= ?", time.Unix(int64(until), 0))
-	}
-
-	if appId != nil {
-		var app db.App
-		result := svc.db.Limit(1).Find(&app, &db.App{
-			ID: *appId,
-		})
-		if result.RowsAffected == 0 {
-			return nil, 0, NewNotFoundError()
-		}
-		if app.Isolated || forceFilterByAppId {
-			tx = tx.Where("app_id = ?", *appId)
-		}
 	}
 
 	tx = tx.Order("updated_at desc")
