@@ -85,9 +85,9 @@ export function SubwalletList() {
         }
       />
       {!isSufficientlyBacked && (
-        <Alert className="text-warning-foreground border-warning-foreground flex items-center gap-4">
+        <Alert variant="warning" className="flex items-center gap-4">
           <div className="flex gap-3">
-            <InfoIcon className="!text-warning-foreground h-4 w-4 shrink-0" />
+            <InfoIcon className="h-4 w-4 shrink-0" />
             <div>
               <AlertTitle>
                 Sub-wallets you manage are insufficiently backed
