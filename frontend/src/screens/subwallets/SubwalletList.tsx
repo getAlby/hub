@@ -28,7 +28,6 @@ import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useApps } from "src/hooks/useApps";
 import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
-import { cn } from "src/lib/utils";
 import { SubwalletIntro } from "src/screens/subwallets/SubwalletIntro";
 
 export function SubwalletList() {
@@ -88,7 +87,7 @@ export function SubwalletList() {
       {!isSufficientlyBacked && (
         <Alert className="text-warning-foreground border-warning-foreground flex items-center gap-4">
           <div className="flex gap-3">
-            <InfoIcon className="!text-warning-foreground h-4 w-4 flex-shrink-0" />
+            <InfoIcon className="!text-warning-foreground h-4 w-4 shrink-0" />
             <div>
               <AlertTitle>
                 Sub-wallets you manage are insufficiently backed
@@ -106,12 +105,34 @@ export function SubwalletList() {
           </Link>
         </Alert>
       )}
-      <div
-        className={cn("flex flex-col sm:flex-row flex-wrap gap-4 slashed-zero")}
-      >
+
+      {!albyMe?.subscription.plan_code && (
+        <>
+          <Alert className="flex items-center gap-4 justify-between">
+            <div className="flex gap-3">
+              <InfoIcon className="h-4 w-4 shrink-0" />
+              <div>
+                <AlertTitle>Need more Sub-wallets?</AlertTitle>
+                <AlertDescription>
+                  Upgrade your subscription plan to Pro unlock unlimited number
+                  of Sub-wallets.
+                </AlertDescription>
+              </div>
+            </div>
+            <UpgradeDialog>
+              <Button>
+                <SparklesIcon className="w-4 h-4 mr-2" />
+                Upgrade
+              </Button>
+            </UpgradeDialog>
+          </Alert>
+        </>
+      )}
+
+      <div className="flex flex-col sm:flex-row flex-wrap gap-4 slashed-zero">
         <Card className="flex flex-1 flex-col">
           <CardHeader className="pb-2 space-y-0">
-            <CardTitle className="text-lg">Assets Under Management</CardTitle>
+            <CardTitle className="text-lg">Total Sub-wallet Balance</CardTitle>
             <CardDescription className="mt-0">
               Total amount of assets under management
             </CardDescription>
@@ -158,27 +179,6 @@ export function SubwalletList() {
                 </div>
               )}
             </div>
-            {!albyMe?.subscription.plan_code && (
-              <>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                  <div className="flex gap-2 items-center">
-                    <InfoIcon className="w-4 h-4 shrink-0" />
-                    <h4 className="font-medium text-sm">
-                      Upgrade to unlock unlimited Sub-wallets
-                    </h4>
-                  </div>
-
-                  <div className="flex justify-end">
-                    <UpgradeDialog>
-                      <Button variant="secondary">
-                        <SparklesIcon className="w-4 h-4 mr-2" />
-                        Upgrade
-                      </Button>
-                    </UpgradeDialog>
-                  </div>
-                </div>
-              </>
-            )}
           </CardContent>
         </Card>
       </div>
