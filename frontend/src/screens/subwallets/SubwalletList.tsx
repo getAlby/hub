@@ -101,8 +101,8 @@ export function SubwalletList() {
               </AlertDescription>
             </div>
           </div>
-          <Link to="/channels">
-            <Button>Go to Node</Button>
+          <Link to="/wallet/receive">
+            <Button variant="secondary">Deposit Bitcoin</Button>
           </Link>
         </Alert>
       )}
@@ -139,7 +139,7 @@ export function SubwalletList() {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex-grow flex flex-col gap-4">
-            <div className="flex flex-row items-center justify-between mt-4">
+            <div className="flex flex-row items-center justify-start gap-4 mt-4">
               <span className="text-4xl font-medium balance sensitive mb-1">
                 {subwalletApps.length} /{" "}
                 {albyMe?.subscription.plan_code ? "∞" : 3}
@@ -160,26 +160,22 @@ export function SubwalletList() {
             </div>
             {!albyMe?.subscription.plan_code && (
               <>
-                <div className="flex gap-3">
-                  <InfoIcon className="w-6 h-6" />
-                  <div>
-                    <h4 className="font-medium mb-1">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                  <div className="flex gap-2 items-center">
+                    <InfoIcon className="w-4 h-4 shrink-0" />
+                    <h4 className="font-medium text-sm">
                       Upgrade to unlock unlimited Sub-wallets
                     </h4>
-                    <p className="text-sm text-muted-foreground">
-                      Upgrade your plan to Pro to be able to create unlimited
-                      number of Sub-wallets
-                    </p>
                   </div>
-                </div>
 
-                <div className="flex justify-end">
-                  <UpgradeDialog>
-                    <Button variant="secondary">
-                      <SparklesIcon className="w-4 h-4 mr-2" />
-                      Upgrade Your Plan
-                    </Button>
-                  </UpgradeDialog>
+                  <div className="flex justify-end">
+                    <UpgradeDialog>
+                      <Button variant="secondary">
+                        <SparklesIcon className="w-4 h-4 mr-2" />
+                        Upgrade
+                      </Button>
+                    </UpgradeDialog>
+                  </div>
                 </div>
               </>
             )}
