@@ -106,7 +106,7 @@ export function SubwalletList() {
         </Alert>
       )}
 
-      {!albyMe?.subscription.plan_code && (
+      {!albyMe?.subscription.plan_code && subwalletApps.length >= 3 && (
         <>
           <Alert className="flex items-center gap-4 justify-between">
             <div className="flex gap-3">
@@ -146,10 +146,7 @@ export function SubwalletList() {
                 sats
               </span>
             </div>
-            <FormattedFiatAmount
-              amount={subwalletTotalAmount / 1000}
-              className="mb-1"
-            />
+            <FormattedFiatAmount amount={subwalletTotalAmount / 1000} />
           </CardContent>
         </Card>
         <Card className="flex flex-1 flex-col">
@@ -166,12 +163,12 @@ export function SubwalletList() {
                 {albyMe?.subscription.plan_code ? "∞" : 3}
               </span>
               {isSufficientlyBacked ? (
-                <div className="flex items-center text-positive-foreground">
+                <div className="flex items-center text-positive-foreground text-sm">
                   <ShieldCheckIcon className="w-4 h-4 mr-2" />
                   <span className="text-sm font-medium">Fully backed</span>
                 </div>
               ) : (
-                <div className="flex items-center text-warning-foreground">
+                <div className="flex items-center text-warning-foreground text-sm">
                   <TriangleAlertIcon className="w-4 h-4 mr-2" />
                   <span className="text-sm font-medium">
                     Insufficiently backed
