@@ -160,8 +160,8 @@ export function SubwalletList() {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex-grow flex flex-col gap-4">
-            <div className="flex flex-row items-center justify-start gap-4 mt-4">
-              <span className="text-4xl font-medium balance sensitive mb-1">
+            <div className="flex flex-col gap-2 mt-4">
+              <span className="text-2xl font-medium">
                 {subwalletApps.length} /{" "}
                 {albyMe?.subscription.plan_code ? "∞" : 3}
               </span>
