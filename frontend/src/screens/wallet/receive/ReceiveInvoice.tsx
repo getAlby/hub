@@ -1,6 +1,7 @@
 import { AlertTriangleIcon, CircleCheckIcon, CopyIcon } from "lucide-react";
 import React from "react";
 import { Link } from "react-router-dom";
+import ExternalLink from "src/components/ExternalLink";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
@@ -13,6 +14,7 @@ import { Button } from "src/components/ui/button";
 import {
   Card,
   CardContent,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
@@ -20,6 +22,7 @@ import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
+import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useBalances } from "src/hooks/useBalances";
 
 import { useInfo } from "src/hooks/useInfo";
@@ -29,7 +32,8 @@ import { CreateInvoiceRequest, Transaction } from "src/types";
 import { request } from "src/utils/request";
 
 export default function ReceiveInvoice() {
-  const { hasChannelManagement } = useInfo();
+  const { data: info, hasChannelManagement } = useInfo();
+  const { data: me } = useAlbyMe();
   const { data: balances } = useBalances();
 
   const { toast } = useToast();
@@ -51,7 +55,7 @@ export default function ReceiveInvoice() {
     }
   }, [invoiceData, toast]);
 
-  if (!balances) {
+  if (!balances || !info || (info.albyAccountConnected && !me)) {
     return <Loading />;
   }
 
@@ -94,136 +98,156 @@ export default function ReceiveInvoice() {
   };
 
   return (
-    <div className="grid gap-5">
-      {hasChannelManagement &&
-        parseInt(amount || "0") * 1000 >=
-          0.8 * balances.lightning.totalReceivable && (
-          <Alert>
-            <AlertTriangleIcon className="h-4 w-4" />
-            <AlertTitle>Low receiving capacity</AlertTitle>
-            <AlertDescription>
-              You likely won't be able to receive payments until you{" "}
-              <Link className="underline" to="/channels/incoming">
-                increase your receiving capacity.
-              </Link>
-            </AlertDescription>
-          </Alert>
-        )}
-      <div className="flex gap-12 w-full">
-        <div className="w-full max-w-lg">
-          {transaction ? (
-            <>
-              <Card className="w-full">
-                <CardHeader>
-                  <CardTitle className="text-center">
-                    {paymentDone ? "Payment Received" : "Invoice"}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="flex flex-col items-center gap-4">
-                  {paymentDone ? (
-                    <>
-                      <CircleCheckIcon className="w-32 h-32 mb-1" />
-                      <div className="flex flex-col gap-2 items-center">
-                        <p>
-                          Received{" "}
-                          {Math.floor((invoiceData?.amount ?? 0) / 1000)} sats
-                        </p>
-                        <FormattedFiatAmount
-                          amount={Math.floor((invoiceData?.amount ?? 0) / 1000)}
-                        />
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="flex flex-col gap-2 items-center">
-                        <p className="text-xl slashed-zero">
-                          {new Intl.NumberFormat().format(parseInt(amount))}{" "}
-                          sats
-                        </p>
-                        <FormattedFiatAmount amount={parseInt(amount)} />
-                      </div>
-                      <div className="flex flex-row items-center gap-2 text-sm">
-                        <Loading className="w-4 h-4" />
-                        <p>Waiting for payment</p>
-                      </div>
-                      <QRCode value={transaction.invoice} className="w-full" />
-                      <div>
-                        <Button onClick={copy} variant="outline">
-                          <CopyIcon className="w-4 h-4 mr-2" />
-                          Copy Invoice
-                        </Button>
-                      </div>
-                    </>
-                  )}
-                </CardContent>
-              </Card>
-              {paymentDone && (
-                <>
-                  <Button
-                    className="mt-4 w-full"
-                    onClick={() => {
-                      setPaymentDone(false);
-                      setTransaction(null);
-                    }}
-                  >
-                    Receive Another Payment
-                  </Button>
-                  <Link to="/wallet">
-                    <Button
-                      className="mt-4 w-full"
-                      onClick={() => {
-                        setPaymentDone(false);
-                      }}
-                      variant="secondary"
-                    >
-                      Back To Wallet
-                    </Button>
+    <div className="flex flex-col md:flex-row gap-6">
+      <div className="w-full md:max-w-xl">
+        <div className="grid gap-5">
+          {hasChannelManagement &&
+            parseInt(amount || "0") * 1000 >=
+              0.8 * balances.lightning.totalReceivable && (
+              <Alert>
+                <AlertTriangleIcon className="h-4 w-4" />
+                <AlertTitle>Low receiving capacity</AlertTitle>
+                <AlertDescription>
+                  You likely won't be able to receive payments until you{" "}
+                  <Link className="underline" to="/channels/incoming">
+                    increase your receiving capacity.
                   </Link>
-                </>
-              )}
-            </>
-          ) : (
-            <form onSubmit={handleSubmit} className="grid gap-5">
-              <div>
-                <Label htmlFor="amount">Amount</Label>
-                <Input
-                  id="amount"
-                  type="number"
-                  value={amount?.toString()}
-                  placeholder="Amount in Satoshi..."
-                  onChange={(e) => {
-                    setAmount(e.target.value.trim());
-                  }}
-                  min={1}
-                  autoFocus
-                />
-                <FormattedFiatAmount amount={+amount} className="mt-2" />
+                </AlertDescription>
+              </Alert>
+            )}
+          <div>
+            {transaction ? (
+              <div className="flex flex-col items-center justify-center gap-6 border rounded-xl w-full md:max-w-xs p-4 md:p-6">
+                {!paymentDone ? (
+                  <>
+                    <div className="flex flex-row items-center gap-2 font-medium">
+                      <Loading className="w-4 h-4" />
+                      <p>Waiting for payment</p>
+                    </div>
+                    <div className="relative flex flex-col items-center justify-center">
+                      <QRCode value={transaction.invoice} className="w-full" />
+                    </div>
+                    <div className="flex flex-col gap-2 items-center">
+                      <p className="text-xl font-semibold slashed-zero">
+                        {new Intl.NumberFormat().format(parseInt(amount))} sats
+                      </p>
+                      <FormattedFiatAmount amount={parseInt(amount)} />
+                    </div>
+                    <div>
+                      <Button onClick={copy} variant="outline">
+                        <CopyIcon className="w-4 h-4 mr-2" />
+                        Copy Invoice
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="text-center font-medium">
+                      Payment Received!
+                    </div>
+                    <div className="relative flex flex-col items-center justify-center">
+                      <CircleCheckIcon className="w-64 h-64 mb-1" />
+                    </div>
+                    <div className="flex flex-col gap-2 items-center">
+                      <p className="text-xl font-semibold slashed-zero">
+                        {new Intl.NumberFormat().format(parseInt(amount))} sats
+                      </p>
+                      <FormattedFiatAmount amount={parseInt(amount)} />
+                    </div>
+                    <div>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setPaymentDone(false);
+                          setTransaction(null);
+                        }}
+                      >
+                        Receive Another Payment
+                      </Button>
+                    </div>
+                  </>
+                )}
               </div>
-              <div>
-                <Label htmlFor="description">Description</Label>
-                <Input
-                  id="description"
-                  type="text"
-                  value={description}
-                  placeholder="For e.g. who is sending this payment?"
-                  onChange={(e) => {
-                    setDescription(e.target.value);
-                  }}
-                />
-              </div>
-              <div>
-                <LoadingButton
-                  loading={isLoading}
-                  type="submit"
-                  disabled={!amount}
-                >
-                  Create Invoice
-                </LoadingButton>
-              </div>
-            </form>
-          )}
+            ) : (
+              <form onSubmit={handleSubmit} className="grid gap-5">
+                <div>
+                  <Label htmlFor="amount">Amount</Label>
+                  <Input
+                    id="amount"
+                    type="number"
+                    value={amount?.toString()}
+                    placeholder="Amount in Satoshi..."
+                    onChange={(e) => {
+                      setAmount(e.target.value.trim());
+                    }}
+                    min={1}
+                    autoFocus
+                  />
+                  <FormattedFiatAmount amount={+amount} className="mt-2" />
+                </div>
+                <div>
+                  <Label htmlFor="description">Description</Label>
+                  <Input
+                    id="description"
+                    type="text"
+                    value={description}
+                    placeholder="For e.g. who is sending this payment?"
+                    onChange={(e) => {
+                      setDescription(e.target.value);
+                    }}
+                  />
+                </div>
+                <div>
+                  <LoadingButton
+                    className="w-full md:w-auto"
+                    loading={isLoading}
+                    type="submit"
+                    disabled={!amount}
+                  >
+                    Create Invoice
+                  </LoadingButton>
+                </div>
+              </form>
+            )}
+          </div>
         </div>
       </div>
+      {(!info?.albyAccountConnected || !me?.lightning_address) && (
+        <LightningAddressCard />
+      )}
     </div>
+  );
+}
+
+function LightningAddressCard() {
+  return (
+    <Card className="w-full self-start">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="font-semibold text-lg">
+          Get Your Free Lightning Address
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="flex flex-col gap-3 text-muted-foreground">
+          <p>
+            Create free Alby Account and link it with your Alby Hub to get a
+            convenient <span className="text-foreground">@getalby.com</span>{" "}
+            lightning address and other perks:
+          </p>
+          <ul className="flex flex-col gap-1">
+            <li>• Lightning address & Nostr identifier,</li>
+            <li>• Personal tipping page,</li>
+            <li>• Access to podcasting 2.0 apps,</li>
+            <li>• Buy bitcoin directly to your wallet,</li>
+            <li>• Useful email Alby Hub notifications.</li>
+          </ul>
+        </div>
+      </CardContent>
+      <CardFooter className="flex justify-end">
+        <ExternalLink to="https://getalby.com/">
+          <Button variant="secondary">Get Alby Account</Button>
+        </ExternalLink>
+      </CardFooter>
+    </Card>
   );
 }
