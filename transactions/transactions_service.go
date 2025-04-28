@@ -597,8 +597,6 @@ func (svc *transactionsService) ListTransactions(ctx context.Context, from, unti
 		tx = tx.Where("updated_at <= ?", time.Unix(int64(until), 0))
 	}
 
-	tx = tx.Order("updated_at desc")
-
 	var totalCount64 int64
 	result := tx.Model(&db.Transaction{}).Count(&totalCount64)
 	if result.Error != nil {
@@ -606,6 +604,8 @@ func (svc *transactionsService) ListTransactions(ctx context.Context, from, unti
 		return nil, 0, result.Error
 	}
 	totalCount = uint64(totalCount64)
+
+	tx = tx.Order("updated_at desc")
 
 	if limit > 0 {
 		tx = tx.Limit(int(limit))

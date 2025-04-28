@@ -24,9 +24,9 @@ DROP INDEX IF EXISTS idx_transactions_app_id_type_state_created_at_settled_at_pa
 			}
 
 			if err := tx.Exec(`
-CREATE INDEX idx_transactions_updated_at ON transactions(updated_at);
-CREATE INDEX idx_transactions_app_id_updated_at ON transactions(app_id, updated_at);
+CREATE INDEX idx_transactions_state_type ON transactions(state, type);
 CREATE INDEX idx_transactions_state_type_updated_at ON transactions(state, type, updated_at);
+CREATE INDEX idx_transactions_app_id_state_type_updated_at ON transactions(app_id, state, type, updated_at);
 CREATE INDEX idx_transactions_payment_hash_settled_at_created_at ON transactions(payment_hash, settled_at, created_at);
 			`).Error; err != nil {
 				return err
