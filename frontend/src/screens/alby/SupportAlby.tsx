@@ -194,7 +194,7 @@ function SupportAlby() {
                 <DialogTrigger asChild>
                   <Button>
                     <HandCoins className="w-4 h-4 mr-2" />
-                    Become a Supporter
+                    Setup Donation
                   </Button>
                 </DialogTrigger>
               </div>

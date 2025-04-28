@@ -1,5 +1,11 @@
-import { HelpingHand, ListTodoIcon, LucideIcon, ZapIcon } from "lucide-react";
-import { ReactElement } from "react";
+import {
+  HeartIcon,
+  ListTodoIcon,
+  LucideIcon,
+  XIcon,
+  ZapIcon,
+} from "lucide-react";
+import React, { ReactElement } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "src/components/ui/button";
 import {
@@ -9,6 +15,7 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 import { Progress } from "src/components/ui/progress";
+import { useToast } from "src/components/ui/use-toast";
 import { SUPPORT_ALBY_CONNECTION_NAME } from "src/constants";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useApps } from "src/hooks/useApps";
@@ -21,6 +28,12 @@ function SidebarHint() {
   const { data: albyMe } = useAlbyMe();
   const { order } = useChannelOrderStore();
   const location = useLocation();
+  const { toast } = useToast();
+
+  const SUPPORT_CARD_KEY_HIDDEN_UNTIL = "supporter-card-hidden";
+  const [hiddenUntil, setHiddenUntil] = React.useState(
+    localStorage.getItem(SUPPORT_CARD_KEY_HIDDEN_UNTIL)
+  );
 
   // User has a channel order
   if (
@@ -78,11 +91,29 @@ function SidebarHint() {
       apps.filter((x) => x.name == SUPPORT_ALBY_CONNECTION_NAME).length > 0) ||
     albyMe?.subscription.plan_code;
 
-  // TODO: Add a check if the user is a supporter (zapplanner)
-  if (!location.pathname.startsWith("/support-alby") && !isSupporter) {
+  if (
+    !location.pathname.startsWith("/support-alby") &&
+    !isSupporter &&
+    (!hiddenUntil || new Date() >= new Date(hiddenUntil))
+  ) {
     return (
       <SidebarHintCard
-        icon={HelpingHand}
+        onClose={() => {
+          // Set the date to the next 21st of the month
+          const now = new Date();
+          const next21st = new Date(
+            now.getFullYear(),
+            now.getMonth() + (now.getDate() >= 21 ? 1 : 0),
+            21
+          ).toString();
+          localStorage.setItem(
+            SUPPORT_CARD_KEY_HIDDEN_UNTIL,
+            next21st.toString()
+          );
+          setHiddenUntil(next21st);
+          toast({ title: "No worries, we'll remind you again!" });
+        }}
+        icon={HeartIcon}
         title="Support Alby Hub"
         description="See how you can support the development of Alby Hub"
         buttonText="Become a Supporter"
@@ -98,6 +129,7 @@ type SidebarHintCardProps = {
   buttonText: string;
   buttonLink: string;
   icon: LucideIcon;
+  onClose?: () => void;
 };
 function SidebarHintCard({
   title,
@@ -105,12 +137,21 @@ function SidebarHintCard({
   icon: Icon,
   buttonText,
   buttonLink,
+  onClose,
 }: SidebarHintCardProps) {
   return (
     <Card>
       <CardHeader className="p-4">
         <Icon className="h-8 w-8 mb-4" />
         <CardTitle>{title}</CardTitle>
+        {onClose && (
+          <button
+            className="absolute top-4 right-4 text-muted-foreground hover:text-primary"
+            onClick={onClose}
+          >
+            <XIcon name="X" />
+          </button>
+        )}
       </CardHeader>
       <CardContent className="p-4 pt-0">
         <div className="text-muted-foreground mb-4 text-sm">{description}</div>
