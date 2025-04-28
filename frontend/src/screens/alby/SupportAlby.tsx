@@ -12,6 +12,7 @@ import ExternalLink from "src/components/ExternalLink";
 import { Button } from "src/components/ui/button";
 import {
   Card,
+  CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
@@ -161,8 +162,8 @@ function SupportAlby() {
       />
       <h2 className="text-2xl font-semibold">Become a Supporter</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Card className="h-full">
-          <CardHeader>
+        <Card className="flex flex-col">
+          <CardHeader className="grow">
             <CardTitle>Upgrade to Pro</CardTitle>
             <CardDescription>
               Upgrade your Alby Account to Pro for a small fee and enjoy
@@ -178,14 +179,15 @@ function SupportAlby() {
             </UpgradeDialog>
           </CardFooter>
         </Card>
-        <Card>
-          <CardHeader>
+        <Card className="flex flex-col">
+          <CardHeader className="grow">
             <CardTitle>Donate to Alby Hub development</CardTitle>
             <CardDescription>
               Set up a recurring value4value payment to support the development
               of Alby Hub, Alby Go, and the NWC ecosystem.
             </CardDescription>
           </CardHeader>
+          <CardContent className="flex-1 grow" />
           <CardFooter className="flex justify-end">
             <Dialog open={open} onOpenChange={setOpen}>
               <div className="flex flex-col items-center justify-center gap-2">
