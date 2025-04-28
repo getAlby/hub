@@ -83,7 +83,7 @@ export default function ConfirmPayment() {
           <FormattedFiatAmount amount={amount || invoice.satoshi} />
         </div>
         {invoice.description && (
-          <div className="mt-2 max-w-lg break-words">
+          <div className="mt-2 break-all">
             <Label>Description</Label>
             <p className="text-muted-foreground">{invoice.description}</p>
           </div>
