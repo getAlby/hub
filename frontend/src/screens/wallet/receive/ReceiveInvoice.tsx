@@ -212,9 +212,10 @@ export default function ReceiveInvoice() {
           </div>
         </div>
       </div>
-      {(!info?.albyAccountConnected || !me?.lightning_address) && (
-        <LightningAddressCard />
-      )}
+      {!transaction &&
+        (!info?.albyAccountConnected || !me?.lightning_address) && (
+          <LightningAddressCard />
+        )}
     </div>
   );
 }
@@ -244,7 +245,7 @@ function LightningAddressCard() {
         </div>
       </CardContent>
       <CardFooter className="flex justify-end">
-        <ExternalLink to="https://getalby.com/">
+        <ExternalLink to="https://getalby.com/auth/users/new">
           <Button variant="secondary">Get Alby Account</Button>
         </ExternalLink>
       </CardFooter>
