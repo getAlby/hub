@@ -579,11 +579,9 @@ func (svc *transactionsService) ListTransactions(ctx context.Context, from, unti
 	if !unpaidOutgoing && !unpaidIncoming {
 		tx = tx.Where("state = ?", constants.TRANSACTION_STATE_SETTLED)
 	} else if unpaidOutgoing && !unpaidIncoming {
-		tx = tx.Where(tx.Where("state = ?", constants.TRANSACTION_STATE_SETTLED).
-			Or("type = ?", constants.TRANSACTION_TYPE_OUTGOING))
+		tx = tx.Where("state = ? OR type = ?", constants.TRANSACTION_STATE_SETTLED, constants.TRANSACTION_TYPE_OUTGOING)
 	} else if unpaidIncoming && !unpaidOutgoing {
-		tx = tx.Where(tx.Where("state = ?", constants.TRANSACTION_STATE_SETTLED).
-			Or("type = ?", constants.TRANSACTION_TYPE_INCOMING))
+		tx = tx.Where("state = ? OR type = ?", constants.TRANSACTION_STATE_SETTLED, constants.TRANSACTION_TYPE_INCOMING)
 	}
 
 	if transactionType != nil {
