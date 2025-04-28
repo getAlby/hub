@@ -133,7 +133,9 @@ export function SubwalletList() {
       <div className="flex flex-col sm:flex-row flex-wrap gap-4 slashed-zero">
         <Card className="flex flex-1 flex-col">
           <CardHeader className="pb-2 space-y-0">
-            <CardTitle className="text-lg">Total Sub-wallet Balance</CardTitle>
+            <CardTitle className="text-lg">
+              Total Balance of Sub-wallets
+            </CardTitle>
             <CardDescription className="mt-0">
               Total amount of assets under management
             </CardDescription>
