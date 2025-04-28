@@ -255,13 +255,14 @@ function SupportAlby() {
                           (optional)
                         </span>
                       </Label>
-                      <Input
-                        id="sender-name"
-                        value={senderName}
-                        onChange={(e) => setSenderName(e.target.value)}
-                        placeholder={`Nickname, npub, @twitter, etc.`}
-                        className="col-span-3"
-                      />
+                      <div className="col-span-3">
+                        <Input
+                          id="sender-name"
+                          value={senderName}
+                          onChange={(e) => setSenderName(e.target.value)}
+                          placeholder={`Nickname, npub, @twitter, etc.`}
+                        />
+                      </div>
                     </div>
                   </div>
 

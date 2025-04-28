@@ -1,4 +1,4 @@
-import { ListTodoIcon, LucideIcon, ZapIcon } from "lucide-react";
+import { HelpingHand, ListTodoIcon, LucideIcon, ZapIcon } from "lucide-react";
 import { ReactElement } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "src/components/ui/button";
@@ -9,11 +9,16 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 import { Progress } from "src/components/ui/progress";
+import { SUPPORT_ALBY_CONNECTION_NAME } from "src/constants";
+import { useAlbyMe } from "src/hooks/useAlbyMe";
+import { useApps } from "src/hooks/useApps";
 import { useOnboardingData } from "src/hooks/useOnboardingData";
 import useChannelOrderStore from "src/state/ChannelOrderStore";
 
 function SidebarHint() {
   const { isLoading, checklistItems } = useOnboardingData();
+  const { data: apps } = useApps();
+  const { data: albyMe } = useAlbyMe();
   const { order } = useChannelOrderStore();
   const location = useLocation();
 
@@ -64,6 +69,24 @@ function SidebarHint() {
         }
         buttonText="See Next Steps"
         buttonLink="/home"
+      />
+    );
+  }
+
+  const isSupporter =
+    (apps &&
+      apps.filter((x) => x.name == SUPPORT_ALBY_CONNECTION_NAME).length > 0) ||
+    albyMe?.subscription.plan_code;
+
+  // TODO: Add a check if the user is a supporter (zapplanner)
+  if (!location.pathname.startsWith("/support-alby") && !isSupporter) {
+    return (
+      <SidebarHintCard
+        icon={HelpingHand}
+        title="Support Alby Hub"
+        description="See how you can support the development of Alby Hub"
+        buttonText="Become a Supporter"
+        buttonLink="/support-alby"
       />
     );
   }
