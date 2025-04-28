@@ -14,7 +14,6 @@ var _202504231037_add_indexes = &gormigrate.Migration{
 		if err := db.Transaction(func(tx *gorm.DB) error {
 
 			if err := tx.Exec(`
-DROP INDEX IF EXISTS idx_transactions_app_id;
 DROP INDEX IF EXISTS idx_transactions_request_event_id;
 DROP INDEX IF EXISTS idx_transactions_created_at;
 DROP INDEX IF EXISTS idx_transactions_settled_at;
