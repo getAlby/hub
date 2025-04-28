@@ -546,15 +546,23 @@ func (api *api) GetNodeConnectionInfo(ctx context.Context) (*lnclient.NodeConnec
 
 func (api *api) GetAutoSwapsConfig() (*GetAutoSwapsConfigResponse, error) {
 	swapBalanceThresholdStr, _ := api.cfg.Get(config.AutoSwapBalanceThresholdKey, "")
+	maxFeePercentageStr, _ := api.cfg.Get(config.AutoSwapMaxFeePercentageKey, "")
 	swapAmountStr, _ := api.cfg.Get(config.AutoSwapAmountKey, "")
 	swapDestination, _ := api.cfg.Get(config.AutoSwapDestinationKey, "")
 
-	enabled := swapBalanceThresholdStr != "" && swapAmountStr != "" && swapDestination != ""
+	enabled := swapBalanceThresholdStr != "" &&
+		maxFeePercentageStr != "" &&
+		swapAmountStr != "" &&
+		swapDestination != ""
 	var swapBalanceThreshold, swapAmount uint64
+	var swapMaxFeePercentage float64
 	if enabled {
 		var err error
 		if swapBalanceThreshold, err = strconv.ParseUint(swapBalanceThresholdStr, 10, 64); err != nil {
 			return nil, fmt.Errorf("invalid autoswap balance threshold: %w", err)
+		}
+		if swapMaxFeePercentage, err = strconv.ParseFloat(maxFeePercentageStr, 64); err != nil {
+			return nil, fmt.Errorf("invalid autoswap max fee percentage: %w", err)
 		}
 		if swapAmount, err = strconv.ParseUint(swapAmountStr, 10, 64); err != nil {
 			return nil, fmt.Errorf("invalid autoswap amount: %w", err)
@@ -563,6 +571,7 @@ func (api *api) GetAutoSwapsConfig() (*GetAutoSwapsConfigResponse, error) {
 
 	return &GetAutoSwapsConfigResponse{
 		Enabled:          enabled,
+		MaxFeePercentage: swapMaxFeePercentage,
 		BalanceThreshold: swapBalanceThreshold,
 		SwapAmount:       swapAmount,
 		Destination:      swapDestination,
@@ -576,9 +585,15 @@ func (api *api) EnableAutoSwaps(ctx context.Context, enableAutoSwapsRequest *Ena
 		return err
 	}
 
+	err = api.cfg.SetUpdate(config.AutoSwapMaxFeePercentageKey, fmt.Sprintf("%.2f", enableAutoSwapsRequest.MaxFeePercentage), "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to save autoswap max fee percentage to config")
+		return err
+	}
+
 	err = api.cfg.SetUpdate(config.AutoSwapAmountKey, strconv.FormatUint(enableAutoSwapsRequest.SwapAmount, 10), "")
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to save autoswap balance threshold to config")
+		logger.Logger.WithError(err).Error("Failed to save autoswap amount to config")
 		return err
 	}
 
@@ -594,6 +609,10 @@ func (api *api) EnableAutoSwaps(ctx context.Context, enableAutoSwapsRequest *Ena
 func (api *api) DisableAutoSwaps() error {
 	if err := api.cfg.SetUpdate(config.AutoSwapBalanceThresholdKey, "", ""); err != nil {
 		logger.Logger.WithError(err).Error("Failed to remove autoswap balance threshold")
+		return err
+	}
+	if err := api.cfg.SetUpdate(config.AutoSwapMaxFeePercentageKey, "", ""); err != nil {
+		logger.Logger.WithError(err).Error("Failed to remove autoswap max fee percentage")
 		return err
 	}
 	if err := api.cfg.SetUpdate(config.AutoSwapAmountKey, "", ""); err != nil {

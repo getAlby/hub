@@ -28,6 +28,7 @@ function Swaps() {
   const [swapTo, setSwapTo] = useState("hub");
   const [balanceThreshold, setBalanceThreshold] = useState("");
   const [swapAmount, setSwapAmount] = useState("");
+  const [maxFeePercentage, setMaxFeePercentage] = useState("");
   const [destination, setDestination] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -43,6 +44,7 @@ function Swaps() {
         },
         body: JSON.stringify({
           swapAmount: parseInt(swapAmount),
+          maxFeePercentage: parseFloat(maxFeePercentage),
           balanceThreshold: parseInt(balanceThreshold),
           destination: swapTo === "hub" ? onchainAddress : destination,
         }),
@@ -117,6 +119,18 @@ function Swaps() {
             <p className="text-xs text-muted-foreground">
               Should be ≥ 50000 sats
             </p>
+          </div>
+          <div className="grid gap-1.5">
+            <Label>Max Fee Percentage</Label>
+            <Input
+              type="number"
+              placeholder="Max fee percentage (e.g. 5%)"
+              value={maxFeePercentage}
+              step="0.01"
+              min={0}
+              max={100}
+              onChange={(e) => setMaxFeePercentage(e.target.value)}
+            />
           </div>
           <Label>Destination</Label>
           <RadioGroup
@@ -214,6 +228,15 @@ function Swaps() {
                 <span className="text-muted-foreground text-right">
                   {new Intl.NumberFormat().format(swapsSettings.swapAmount)}{" "}
                   sats
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="font-medium">Max Fee Percentage</span>
+                <span className="text-muted-foreground text-right">
+                  {new Intl.NumberFormat().format(
+                    swapsSettings.maxFeePercentage
+                  )}
+                  %
                 </span>
               </div>
             </div>

@@ -30,7 +30,7 @@ type swapsService struct {
 type SwapsService interface {
 	EnableAutoSwaps(ctx context.Context, lnClient lnclient.LNClient) error
 	StopAutoSwaps()
-	ReverseSwap(ctx context.Context, amount uint64, destination string, lnClient lnclient.LNClient) error
+	ReverseSwap(ctx context.Context, amount uint64, destination string, maxFeePercentage float64, lnClient lnclient.LNClient) error
 }
 
 func NewSwapsService(cfg config.Config, eventPublisher events.EventPublisher, transactionsService transactions.TransactionsService) *swapsService {
@@ -49,14 +49,21 @@ func (svc *swapsService) EnableAutoSwaps(ctx context.Context, lnClient lnclient.
 	ctx, cancelFn := context.WithCancel(ctx)
 	swapDestination, _ := svc.cfg.Get(config.AutoSwapDestinationKey, "")
 	balanceThresholdStr, _ := svc.cfg.Get(config.AutoSwapBalanceThresholdKey, "")
+	maxFeePercentageStr, _ := svc.cfg.Get(config.AutoSwapMaxFeePercentageKey, "")
 	amountStr, _ := svc.cfg.Get(config.AutoSwapAmountKey, "")
 
-	if swapDestination == "" || balanceThresholdStr == "" || amountStr == "" {
+	if swapDestination == "" || balanceThresholdStr == "" || maxFeePercentageStr == "" || amountStr == "" {
 		cancelFn()
 		return errors.New("auto swap not configured")
 	}
 
 	parsedBalanceThreshold, err := strconv.ParseUint(balanceThresholdStr, 10, 64)
+	if err != nil {
+		cancelFn()
+		return errors.New("invalid auto swap configuration")
+	}
+
+	maxFeePercentage, err := strconv.ParseFloat(maxFeePercentageStr, 64)
 	if err != nil {
 		cancelFn()
 		return errors.New("invalid auto swap configuration")
@@ -88,7 +95,7 @@ func (svc *swapsService) EnableAutoSwaps(ctx context.Context, lnClient lnclient.
 						"amount":      amount,
 						"destination": swapDestination,
 					}).Info("Initiating swap")
-					err := svc.ReverseSwap(ctx, amount, swapDestination, lnClient)
+					err := svc.ReverseSwap(ctx, amount, swapDestination, maxFeePercentage, lnClient)
 					if err != nil {
 						logger.Logger.WithError(err).Error("Failed to swap")
 					}
@@ -115,7 +122,7 @@ func (svc *swapsService) StopAutoSwaps() {
 	}
 }
 
-func (svc *swapsService) ReverseSwap(ctx context.Context, amount uint64, destination string, lnClient lnclient.LNClient) error {
+func (svc *swapsService) ReverseSwap(ctx context.Context, amount uint64, destination string, maxFeePercentage float64, lnClient lnclient.LNClient) error {
 	var network, err = boltz.ParseChain(svc.cfg.GetEnv().LDKNetwork)
 	if err != nil {
 		return err
@@ -133,12 +140,39 @@ func (svc *swapsService) ReverseSwap(ctx context.Context, amount uint64, destina
 	}
 	preimageHash := sha256.Sum256(preimage)
 
+	reversePairs, err := svc.boltzApi.GetReversePairs()
+	if err != nil {
+		return fmt.Errorf("could not get reverse pairs: %s", err)
+	}
+
+	pair := boltz.Pair{From: boltz.CurrencyBtc, To: boltz.CurrencyBtc}
+	pairInfo, err := boltz.FindPair(pair, reversePairs)
+	if err != nil {
+		return fmt.Errorf("could not find reverse pair: %s", err)
+	}
+
+	fees := pairInfo.Fees
+	serviceFeePercentage := boltz.Percentage(fees.Percentage)
+
+	serviceFee := boltz.CalculatePercentage(serviceFeePercentage, amount)
+	networkFee := fees.MinerFees.Lockup + fees.MinerFees.Claim
+
+	logger.Logger.WithFields(logrus.Fields{
+		"serviceFee": serviceFee,
+		"networkFee": networkFee,
+	}).Info("Calculated fees for swap")
+
+	if fees.Percentage > maxFeePercentage {
+		return fmt.Errorf("fee exceeds the max allowed percentage")
+	}
+
 	swap, err := svc.boltzApi.CreateReverseSwap(boltz.CreateReverseSwapRequest{
 		From:           boltz.CurrencyBtc,
 		To:             boltz.CurrencyBtc,
 		ClaimPublicKey: ourKeys.PubKey().SerializeCompressed(),
 		PreimageHash:   preimageHash[:],
 		InvoiceAmount:  amount,
+		PairHash:       pairInfo.Hash,
 		// TODO: Add referral id
 		ReferralId: "getalby",
 	})
