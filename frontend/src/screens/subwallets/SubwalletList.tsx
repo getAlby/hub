@@ -84,27 +84,6 @@ export function SubwalletList() {
           </>
         }
       />
-      {!isSufficientlyBacked && (
-        <Alert variant="warning" className="flex items-center gap-4">
-          <div className="flex gap-3">
-            <InfoIcon className="h-4 w-4 shrink-0" />
-            <div>
-              <AlertTitle>
-                Sub-wallets you manage are insufficiently backed
-              </AlertTitle>
-              <AlertDescription>
-                There's not enough bitcoin in your spending balance to honor all
-                balances of sub-wallets under your management. Increase spending
-                capacity by opening a channel or review your channel statuses to
-                back them up again.
-              </AlertDescription>
-            </div>
-          </div>
-          <Link to="/wallet/receive">
-            <Button variant="secondary">Deposit Bitcoin</Button>
-          </Link>
-        </Alert>
-      )}
 
       {!albyMe?.subscription.plan_code && subwalletApps.length >= 3 && (
         <>
@@ -127,6 +106,28 @@ export function SubwalletList() {
             </UpgradeDialog>
           </Alert>
         </>
+      )}
+
+      {!isSufficientlyBacked && (
+        <Alert variant="warning" className="flex items-center gap-4">
+          <div className="flex gap-3">
+            <InfoIcon className="h-4 w-4 shrink-0" />
+            <div>
+              <AlertTitle>
+                Sub-wallets you manage are insufficiently backed
+              </AlertTitle>
+              <AlertDescription>
+                There's not enough bitcoin in your spending balance to honor all
+                balances of sub-wallets under your management. Increase spending
+                capacity by opening a channel or review your channel statuses to
+                back them up again.
+              </AlertDescription>
+            </div>
+          </div>
+          <Link to="/wallet/receive">
+            <Button variant="secondary">Deposit Bitcoin</Button>
+          </Link>
+        </Alert>
       )}
 
       <div className="flex flex-col sm:flex-row flex-wrap gap-4 slashed-zero">
