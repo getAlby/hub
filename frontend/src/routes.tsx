@@ -67,6 +67,7 @@ import { LDKForm } from "src/screens/setup/node/LDKForm";
 import { LNDForm } from "src/screens/setup/node/LNDForm";
 import { PhoenixdForm } from "src/screens/setup/node/PhoenixdForm";
 import { PresetNodeForm } from "src/screens/setup/node/PresetNodeForm";
+import { NewSubwallet } from "src/screens/subwallets/NewSubwallet";
 import { SubwalletCreated } from "src/screens/subwallets/SubwalletCreated";
 import { SubwalletList } from "src/screens/subwallets/SubwalletList";
 import Wallet from "src/screens/wallet";
@@ -254,6 +255,10 @@ const routes = [
           {
             index: true,
             element: <SubwalletList />,
+          },
+          {
+            path: "new",
+            element: <NewSubwallet />,
           },
           {
             path: "created",

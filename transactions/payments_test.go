@@ -15,6 +15,7 @@ import (
 
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
+	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/tests"
 )
@@ -350,4 +351,63 @@ func TestSendPaymentSync_PendingHasFeeReserve(t *testing.T) {
 	assert.Equal(t, constants.TRANSACTION_STATE_PENDING, transaction.State)
 	assert.Equal(t, uint64(10000), transaction.FeeReserveMsat)
 	assert.Nil(t, transaction.Preimage)
+}
+
+func TestConsumeEvent_DoesNotMarkFailedAsSuccessful(t *testing.T) {
+	ctx := context.TODO()
+
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
+
+	svc.LNClient.(*tests.MockLn).PayInvoiceErrors = append(svc.LNClient.(*tests.MockLn).PayInvoiceErrors, errors.New("some error"))
+	svc.LNClient.(*tests.MockLn).PayInvoiceResponses = append(svc.LNClient.(*tests.MockLn).PayInvoiceResponses, nil)
+
+	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, nil, nil, svc.LNClient, nil, nil)
+
+	assert.Error(t, err)
+	assert.Nil(t, transaction)
+
+	var transactions []db.Transaction
+	result := svc.DB.Find(&transactions, &db.Transaction{
+		Type:        constants.TRANSACTION_TYPE_OUTGOING,
+		PaymentHash: tests.MockLNClientTransaction.PaymentHash,
+	})
+	assert.NoError(t, result.Error)
+	assert.Equal(t, 1, len(transactions))
+
+	transaction = &transactions[0]
+	assert.Equal(t, constants.TRANSACTION_STATE_FAILED, transaction.State)
+
+	// Now that we have a failed transaction, we submit a "nwc_lnclient_payment_sent" event.
+	// This should not mark the already failed transaction as successful
+	// See https://github.com/getAlby/hub/issues/1272 for details.
+
+	transactionsService.ConsumeEvent(ctx, &events.Event{
+		Event: "nwc_lnclient_payment_sent",
+		Properties: &lnclient.Transaction{
+			Type:            tests.MockLNClientTransaction.Type,
+			Invoice:         tests.MockLNClientTransaction.Invoice,
+			Description:     tests.MockLNClientTransaction.Description,
+			DescriptionHash: tests.MockLNClientTransaction.DescriptionHash,
+			Preimage:        tests.MockLNClientTransaction.Preimage,
+			PaymentHash:     tests.MockLNClientTransaction.PaymentHash,
+			Amount:          tests.MockLNClientTransaction.Amount,
+			FeesPaid:        tests.MockLNClientTransaction.FeesPaid,
+		},
+	}, nil)
+
+	// Re-read transactions and ensure that the single returned transaction
+	// is still in the failed state.
+	result = svc.DB.Find(&transactions, &db.Transaction{
+		Type:        constants.TRANSACTION_TYPE_OUTGOING,
+		PaymentHash: tests.MockLNClientTransaction.PaymentHash,
+	})
+	assert.NoError(t, result.Error)
+	assert.Equal(t, 1, len(transactions))
+
+	transaction = &transactions[0]
+	assert.Equal(t, constants.TRANSACTION_STATE_FAILED, transaction.State)
 }
