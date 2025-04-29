@@ -246,7 +246,7 @@ function LightningAddressCard() {
       </CardContent>
       <CardFooter className="flex justify-end">
         <ExternalLink to="https://getalby.com/auth/users/new">
-          <Button variant="secondary">Get Alby Account</Button>
+          <Button variant="secondary">Create Alby Account</Button>
         </ExternalLink>
       </CardFooter>
     </Card>
