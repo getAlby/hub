@@ -1,237 +1,195 @@
 import {
-  HandCoins,
+  CirclePlusIcon,
   HelpCircle,
-  Landmark,
-  TriangleAlert,
-  Wallet2,
+  InfoIcon,
+  ShieldCheckIcon,
+  SparklesIcon,
+  TriangleAlertIcon,
 } from "lucide-react";
-import React from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import AppCard from "src/components/connections/AppCard";
 import ExternalLink from "src/components/ExternalLink";
+import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
+import ResponsiveButton from "src/components/ResponsiveButton";
+import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
-import { Input } from "src/components/ui/input";
-import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "src/components/ui/tooltip";
-import { useToast } from "src/components/ui/use-toast";
-import UpgradeCard from "src/components/UpgradeCard";
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "src/components/ui/card";
 import { UpgradeDialog } from "src/components/UpgradeDialog";
 import { SUBWALLET_APPSTORE_APP_ID } from "src/constants";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useApps } from "src/hooks/useApps";
+import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
-import { createApp } from "src/requests/createApp";
-import { CreateAppRequest } from "src/types";
-import { handleRequestError } from "src/utils/handleRequestError";
+import { SubwalletIntro } from "src/screens/subwallets/SubwalletIntro";
 
 export function SubwalletList() {
-  const navigate = useNavigate();
-  const [name, setName] = React.useState("");
-  const { data: apps } = useApps();
-  const { toast } = useToast();
-  const { data: albyMe, error: albyMeError } = useAlbyMe();
   const { data: info } = useInfo();
-  const onboardedApps = apps
+  const { data: apps } = useApps();
+  const { data: albyMe, error: albyMeError } = useAlbyMe();
+  const { data: balances } = useBalances();
+  const navigate = useNavigate();
+
+  if (
+    !info ||
+    !apps ||
+    !balances ||
+    (info.albyAccountConnected && !albyMe && !albyMeError)
+  ) {
+    return <Loading />;
+  }
+
+  const subwalletApps = apps
     ?.filter(
       (app) => app.metadata?.app_store_app_id === SUBWALLET_APPSTORE_APP_ID
     )
     .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
 
-  const subwalletAmount = onboardedApps?.reduce(
-    (total, app) => total + app.balance,
-    0
-  );
-
-  const [isLoading, setLoading] = React.useState(false);
-  const [showIntro, setShowIntro] = React.useState(true);
-  const showForm =
-    albyMe?.subscription.plan_code ||
-    (onboardedApps && onboardedApps?.length < 3);
-
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setLoading(true);
-
-    try {
-      const createAppRequest: CreateAppRequest = {
-        name,
-        scopes: [
-          "get_balance",
-          "get_info",
-          "list_transactions",
-          "lookup_invoice",
-          "make_invoice",
-          "notifications",
-          "pay_invoice",
-        ],
-        isolated: true,
-        metadata: {
-          app_store_app_id: SUBWALLET_APPSTORE_APP_ID,
-        },
-      };
-
-      const createAppResponse = await createApp(createAppRequest);
-
-      navigate(`/sub-wallets/created`, {
-        state: createAppResponse,
-      });
-
-      toast({ title: "New sub-wallet created for " + name });
-    } catch (error) {
-      handleRequestError(toast, "Failed to create app", error);
-    }
-    setLoading(false);
-  };
-
-  if (!info || (info.albyAccountConnected && !albyMe && !albyMeError)) {
-    // make sure to not render the incorrect component
-    return <Loading />;
+  if (!subwalletApps?.length) {
+    return <SubwalletIntro />;
   }
 
+  const subwalletTotalAmount =
+    subwalletApps.reduce((total, app) => total + app.balance, 0) || 0;
+  const isSufficientlyBacked =
+    subwalletTotalAmount <= balances.lightning.totalSpendable;
+
   return (
-    <div className="grid gap-5">
+    <div className="grid gap-4">
       <AppHeader
         title="Sub-wallets"
+        description="Create sub-wallets for yourself, friends, family or coworkers"
         contentRight={
           <>
-            {subwalletAmount !== undefined && (
-              <Tooltip>
-                <TooltipTrigger>
-                  <Button variant="outline" className="hidden sm:inline-flex">
-                    <Landmark className="w-4 h-4 mr-2" />
-                    {new Intl.NumberFormat().format(
-                      Math.floor(subwalletAmount / 1000)
-                    )}{" "}
-                    sats
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  Total amount of assets under management
-                </TooltipContent>
-              </Tooltip>
-            )}
             <ExternalLink to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/app-store/sub-wallet-friends-and-family">
               <Button variant="outline" size="icon">
                 <HelpCircle className="w-4 h-4" />
               </Button>
             </ExternalLink>
-            <UpgradeDialog>
-              <Button variant="premium">Upgrade</Button>
-            </UpgradeDialog>
+            <ResponsiveButton
+              icon={CirclePlusIcon}
+              text="New Sub-wallet"
+              disabled={
+                !albyMe?.subscription.plan_code && subwalletApps?.length >= 3
+              }
+              onClick={() => navigate("/sub-wallets/new")}
+            />
           </>
         }
       />
-      {(!showIntro || !!onboardedApps?.length) && (
-        <>
-          {showForm ? (
-            <form
-              onSubmit={handleSubmit}
-              className="flex flex-col items-start gap-3 max-w-lg"
-            >
-              <div className="w-full grid gap-1.5">
-                <Label htmlFor="name">Sub-wallet name</Label>
-                <Input
-                  autoFocus
-                  type="text"
-                  name="name"
-                  value={name}
-                  id="name"
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                  autoComplete="off"
-                />
-              </div>
-              <LoadingButton loading={isLoading} type="submit">
-                Create Sub-wallet
-              </LoadingButton>
-            </form>
-          ) : (
-            <UpgradeCard
-              title="Need more Sub-wallets?"
-              description="Upgrade to Pro to unlock unlimited sub-wallets"
-            />
-          )}
 
-          {!!onboardedApps?.length && (
-            <>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch app-list">
-                {onboardedApps.map((app, index) => (
-                  <AppCard key={index} app={app} />
-                ))}
+      {!albyMe?.subscription.plan_code && subwalletApps.length >= 3 && (
+        <>
+          <Alert className="flex items-center gap-4 justify-between">
+            <div className="flex gap-3">
+              <InfoIcon className="h-4 w-4 shrink-0" />
+              <div>
+                <AlertTitle>Need more Sub-wallets?</AlertTitle>
+                <AlertDescription>
+                  Upgrade your subscription plan to Pro unlock unlimited number
+                  of Sub-wallets.
+                </AlertDescription>
               </div>
-            </>
-          )}
+            </div>
+            <UpgradeDialog>
+              <Button>
+                <SparklesIcon className="w-4 h-4 mr-2" />
+                Upgrade
+              </Button>
+            </UpgradeDialog>
+          </Alert>
         </>
       )}
 
-      {showIntro && !onboardedApps?.length && (
-        <div>
-          <div className="flex flex-col gap-6 max-w-screen-md">
-            <div className="mb-2">
-              <img
-                src="/images/illustrations/sub-wallet-dark.svg"
-                className="w-72 hidden dark:block"
-              />
-              <img
-                src="/images/illustrations/sub-wallet-light.svg"
-                className="w-72 dark:hidden"
-              />
-            </div>
+      {!isSufficientlyBacked && (
+        <Alert variant="warning" className="flex items-center gap-4">
+          <div className="flex gap-3">
+            <InfoIcon className="h-4 w-4 shrink-0" />
             <div>
-              <div className="flex flex-row gap-3">
-                <Wallet2 className="w-6 h-6" />
-                <div className="font-medium">
-                  Sub-wallets are seperate wallets hosted by your Alby Hub
-                </div>
-              </div>
-              <div className="ml-9 text-muted-foreground text-sm">
-                Each sub-wallet has its own balance and can be used as a
-                separate wallet that can be connected to Alby Account or any
-                app.
-              </div>
-            </div>
-            <div>
-              <div className="flex flex-row gap-3">
-                <HandCoins className="w-6 h-6" />
-                <div className="font-medium">
-                  Sub-wallets depend on your Alby Hub spending balance and
-                  receive limit
-                </div>
-              </div>
-              <div className="ml-9 text-muted-foreground text-sm">
-                Sub-wallets are using your Hubs node liquidity. They can receive
-                funds as long as you have enough receive limit in your channels.
-              </div>
-            </div>
-            <div>
-              <div className="flex flex-row gap-3">
-                <TriangleAlert className="w-6 h-6" />
-                <div className="font-medium">
-                  Be wary of spending sub-wallets funds
-                </div>
-              </div>
-              <div className="ml-9 text-muted-foreground text-sm">
-                Make sure you always maintain enough funds in your spending
-                balance to prevent sub-wallets becoming unspendable. Sub-wallet
-                payments might fail if the amount isn't available in your
-                spending balance.
-              </div>
-            </div>
-            <div>
-              <Button onClick={() => setShowIntro(false)}>
-                Create Sub-wallet
-              </Button>
+              <AlertTitle>
+                Sub-wallets you manage are insufficiently backed
+              </AlertTitle>
+              <AlertDescription>
+                There's not enough bitcoin in your spending balance to honor all
+                balances of sub-wallets under your management. Increase spending
+                capacity by opening a channel or review your channel statuses to
+                back them up again.
+              </AlertDescription>
             </div>
           </div>
-        </div>
+          <Link to="/wallet/receive">
+            <Button variant="secondary">Deposit Bitcoin</Button>
+          </Link>
+        </Alert>
       )}
+
+      <div className="flex flex-col sm:flex-row flex-wrap gap-4 slashed-zero">
+        <Card className="flex flex-1 flex-col">
+          <CardHeader className="pb-2 space-y-0">
+            <CardTitle className="text-lg">
+              Total Balance of Sub-wallets
+            </CardTitle>
+            <CardDescription className="mt-0">
+              Total amount of assets under management
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex-grow">
+            <div className="mt-4 mb-1">
+              <span className="text-2xl font-medium balance sensitive">
+                {new Intl.NumberFormat().format(
+                  Math.floor(subwalletTotalAmount / 1000)
+                )}{" "}
+                sats
+              </span>
+            </div>
+            <FormattedFiatAmount amount={subwalletTotalAmount / 1000} />
+          </CardContent>
+        </Card>
+        <Card className="flex flex-1 flex-col">
+          <CardHeader className="pb-2 space-y-0">
+            <CardTitle className="text-lg">Active Sub-wallets</CardTitle>
+            <CardDescription className="mt-0">
+              Number of Sub-wallets backed by your node funds
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex-grow flex flex-col gap-4">
+            <div className="flex flex-col gap-2 mt-4">
+              <span className="text-2xl font-medium">
+                {subwalletApps.length} /{" "}
+                {albyMe?.subscription.plan_code ? "∞" : 3}
+              </span>
+              {isSufficientlyBacked ? (
+                <div className="flex items-center text-positive-foreground text-sm">
+                  <ShieldCheckIcon className="w-4 h-4 mr-2" />
+                  <span className="text-sm font-medium">Fully backed</span>
+                </div>
+              ) : (
+                <div className="flex items-center text-warning-foreground text-sm">
+                  <TriangleAlertIcon className="w-4 h-4 mr-2" />
+                  <span className="text-sm font-medium">
+                    Insufficiently backed
+                  </span>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      <div className="mt-8">
+        <h3 className="font-semibold text-2xl mb-4">Managed Sub-wallets</h3>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch app-list">
+          {subwalletApps.map((app, index) => (
+            <AppCard key={index} app={app} />
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

@@ -13,8 +13,8 @@ function AppHeader({ title, description = "", contentRight }: Props) {
   return (
     <>
       <header className="flex flex-row items-center border-b border-border pb-4 gap-2">
-        <SidebarTrigger className="-ml-1 sm:hidden" />
-        <Separator orientation="vertical" className="mr-2 h-4 sm:hidden" />
+        <SidebarTrigger className="-ml-1 md:hidden" />
+        <Separator orientation="vertical" className="mr-2 h-4 md:hidden" />
         <div className="flex flex-col flex-1">
           <div className="flex justify-between items-center">
             <div className="flex-1">
