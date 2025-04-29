@@ -1,5 +1,11 @@
-import { ListTodoIcon, LucideIcon, ZapIcon } from "lucide-react";
-import { ReactElement } from "react";
+import {
+  HeartIcon,
+  ListTodoIcon,
+  LucideIcon,
+  XIcon,
+  ZapIcon,
+} from "lucide-react";
+import React, { ReactElement } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "src/components/ui/button";
 import {
@@ -9,13 +15,24 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 import { Progress } from "src/components/ui/progress";
+import { useToast } from "src/components/ui/use-toast";
+import { localStorageKeys, SUPPORT_ALBY_CONNECTION_NAME } from "src/constants";
+import { useAlbyMe } from "src/hooks/useAlbyMe";
+import { useApps } from "src/hooks/useApps";
 import { useOnboardingData } from "src/hooks/useOnboardingData";
 import useChannelOrderStore from "src/state/ChannelOrderStore";
 
 function SidebarHint() {
   const { isLoading, checklistItems } = useOnboardingData();
+  const { data: apps } = useApps();
+  const { data: albyMe } = useAlbyMe();
   const { order } = useChannelOrderStore();
   const location = useLocation();
+  const { toast } = useToast();
+
+  const [hiddenUntil, setHiddenUntil] = React.useState(
+    localStorage.getItem(localStorageKeys.supportAlbySidebarHintHiddenUntil)
+  );
 
   // User has a channel order
   if (
@@ -67,6 +84,42 @@ function SidebarHint() {
       />
     );
   }
+
+  const showSupport =
+    apps &&
+    apps.filter((x) => x.name == SUPPORT_ALBY_CONNECTION_NAME).length === 0 &&
+    !albyMe?.subscription.plan_code;
+
+  if (
+    !location.pathname.startsWith("/support-alby") &&
+    showSupport &&
+    (!hiddenUntil || new Date() >= new Date(hiddenUntil))
+  ) {
+    return (
+      <SidebarHintCard
+        onClose={() => {
+          // Set the date to the next 21st of the month
+          const now = new Date();
+          const next21st = new Date(
+            now.getFullYear(),
+            now.getMonth() + (now.getDate() >= 21 ? 1 : 0),
+            21
+          ).toString();
+          localStorage.setItem(
+            localStorageKeys.supportAlbySidebarHintHiddenUntil,
+            next21st
+          );
+          setHiddenUntil(next21st);
+          toast({ title: "No worries, we'll remind you again!" });
+        }}
+        icon={HeartIcon}
+        title="Support Alby Hub"
+        description="See how you can support the development of Alby Hub"
+        buttonText="Become a Supporter"
+        buttonLink="/support-alby"
+      />
+    );
+  }
 }
 
 type SidebarHintCardProps = {
@@ -75,6 +128,7 @@ type SidebarHintCardProps = {
   buttonText: string;
   buttonLink: string;
   icon: LucideIcon;
+  onClose?: () => void;
 };
 function SidebarHintCard({
   title,
@@ -82,12 +136,21 @@ function SidebarHintCard({
   icon: Icon,
   buttonText,
   buttonLink,
+  onClose,
 }: SidebarHintCardProps) {
   return (
     <Card>
       <CardHeader className="p-4">
         <Icon className="h-8 w-8 mb-4" />
         <CardTitle>{title}</CardTitle>
+        {onClose && (
+          <button
+            className="absolute top-4 right-4 text-muted-foreground hover:text-primary"
+            onClick={onClose}
+          >
+            <XIcon name="X" />
+          </button>
+        )}
       </CardHeader>
       <CardContent className="p-4 pt-0">
         <div className="text-muted-foreground mb-4 text-sm">{description}</div>

@@ -1,4 +1,4 @@
-import { ExternalLinkIcon } from "lucide-react";
+import { ExternalLinkIcon, HeartIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
@@ -10,6 +10,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
@@ -28,7 +29,6 @@ import { LightningMessageboardWidget } from "src/components/home/widgets/Lightni
 import { NodeStatusWidget } from "src/components/home/widgets/NodeStatusWidget";
 import { OnchainFeesWidget } from "src/components/home/widgets/OnchainFeesWidget";
 import { WhatsNewWidget } from "src/components/home/widgets/WhatsNewWidget";
-import { UpgradeDialog } from "src/components/UpgradeDialog";
 
 function getGreeting(name: string | undefined) {
   const hours = new Date().getHours();
@@ -60,19 +60,29 @@ function Home() {
 
   return (
     <>
-      <AppHeader
-        title={getGreeting(albyMe?.name)}
-        contentRight={
-          <UpgradeDialog>
-            <Button variant="premium">Upgrade</Button>
-          </UpgradeDialog>
-        }
-      />
+      <AppHeader title={getGreeting(albyMe?.name)} />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start justify-start">
         {/* LEFT */}
         <div className="grid gap-5">
           <OnboardingChecklist />
           <WhatsNewWidget />
+          <Card>
+            <CardHeader>
+              <CardTitle>Support Alby</CardTitle>
+              <CardDescription>
+                Upgrade to Pro or setup a recurring payment to support the
+                development of Alby Hub, Alby Go and the NWC ecosystem.
+              </CardDescription>
+            </CardHeader>
+            <CardFooter className="flex justify-end">
+              <Link to="/support-alby">
+                <Button variant="outline">
+                  <HeartIcon className="w-4 h-4 mr-2" />
+                  Become a Supporter
+                </Button>
+              </Link>
+            </CardFooter>
+          </Card>
           {info.albyAccountConnected && (
             <ExternalLink to="https://www.getalby.com/dashboard">
               <Card>
