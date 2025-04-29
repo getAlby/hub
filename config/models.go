@@ -12,7 +12,6 @@ const (
 	AutoSwapBalanceThresholdKey = "AutoSwapBalanceThreshold"
 	AutoSwapAmountKey           = "AutoSwapAmount"
 	AutoSwapDestinationKey      = "AutoSwapDestination"
-	AutoSwapMaxFeePercentageKey = "AutoSwapMaxFeePercentage"
 )
 
 type AppConfig struct {

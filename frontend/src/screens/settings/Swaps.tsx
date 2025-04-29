@@ -1,7 +1,8 @@
-import { XCircleIcon } from "lucide-react";
+import { AlertCircleIcon, XCircleIcon } from "lucide-react";
 import { useState } from "react";
 import Loading from "src/components/Loading";
 import SettingsHeader from "src/components/SettingsHeader";
+import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -15,6 +16,7 @@ import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { RadioGroup, RadioGroupItem } from "src/components/ui/radio-group";
 import { useToast } from "src/components/ui/use-toast";
+import { ALBY_SWAP_SERVICE_FEE_PERCENTAGE } from "src/constants";
 import { useOnchainAddress } from "src/hooks/useOnchainAddress";
 import { useSwaps } from "src/hooks/useSwaps";
 import { request } from "src/utils/request";
@@ -28,7 +30,6 @@ function Swaps() {
   const [swapTo, setSwapTo] = useState("hub");
   const [balanceThreshold, setBalanceThreshold] = useState("");
   const [swapAmount, setSwapAmount] = useState("");
-  const [maxFeePercentage, setMaxFeePercentage] = useState("");
   const [destination, setDestination] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -44,7 +45,6 @@ function Swaps() {
         },
         body: JSON.stringify({
           swapAmount: parseInt(swapAmount),
-          maxFeePercentage: parseFloat(maxFeePercentage),
           balanceThreshold: parseInt(balanceThreshold),
           destination: swapTo === "hub" ? onchainAddress : destination,
         }),
@@ -120,18 +120,6 @@ function Swaps() {
               Should be ≥ 50000 sats
             </p>
           </div>
-          <div className="grid gap-1.5">
-            <Label>Max Fee Percentage</Label>
-            <Input
-              type="number"
-              placeholder="Max fee percentage (e.g. 5%)"
-              value={maxFeePercentage}
-              step="0.01"
-              min={0}
-              max={100}
-              onChange={(e) => setMaxFeePercentage(e.target.value)}
-            />
-          </div>
           <Label>Destination</Label>
           <RadioGroup
             defaultValue="normal"
@@ -179,6 +167,26 @@ function Swaps() {
               />
             </div>
           )}
+          <Alert>
+            <AlertCircleIcon className="h-4 w-4" />
+            <AlertTitle>Fee Information</AlertTitle>
+            <AlertDescription>
+              <div className="mt-4 space-y-2 text-sm">
+                <div className="flex justify-between items-center">
+                  <span className="font-medium">Boltz Service Fee</span>
+                  <span className="text-muted-foreground text-right">
+                    {swapsSettings.serviceFee} %
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="font-medium">Alby Service Fee</span>
+                  <span className="text-muted-foreground text-right">
+                    {ALBY_SWAP_SERVICE_FEE_PERCENTAGE} %
+                  </span>
+                </div>
+              </div>
+            </AlertDescription>
+          </Alert>
           <div>
             <LoadingButton
               loading={loading}
@@ -230,13 +238,17 @@ function Swaps() {
                   sats
                 </span>
               </div>
+              <h3 className="text-center font-medium">Fee info</h3>
               <div className="flex justify-between items-center">
-                <span className="font-medium">Max Fee Percentage</span>
+                <span className="font-medium">Boltz Service Fee</span>
                 <span className="text-muted-foreground text-right">
-                  {new Intl.NumberFormat().format(
-                    swapsSettings.maxFeePercentage
-                  )}
-                  %
+                  {swapsSettings.serviceFee} %
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="font-medium">Alby Service Fee</span>
+                <span className="text-muted-foreground text-right">
+                  {ALBY_SWAP_SERVICE_FEE_PERCENTAGE} %
                 </span>
               </div>
             </div>

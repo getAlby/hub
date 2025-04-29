@@ -191,7 +191,7 @@ export type AppMetadata = { app_store_app_id?: string } & Record<
 
 export type SwapsSettingsResponse = {
   enabled: boolean;
-  maxFeePercentage: number;
+  serviceFee: number;
   balanceThreshold: number;
   swapAmount: number;
   destination: string;

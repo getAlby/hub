@@ -117,15 +117,14 @@ type CreateAppRequest struct {
 }
 
 type EnableAutoSwapsRequest struct {
-	MaxFeePercentage float64 `json:"maxFeePercentage"`
-	BalanceThreshold uint64  `json:"balanceThreshold"`
-	SwapAmount       uint64  `json:"swapAmount"`
-	Destination      string  `json:"destination"`
+	BalanceThreshold uint64 `json:"balanceThreshold"`
+	SwapAmount       uint64 `json:"swapAmount"`
+	Destination      string `json:"destination"`
 }
 
 type GetAutoSwapsConfigResponse struct {
 	Enabled          bool    `json:"enabled"`
-	MaxFeePercentage float64 `json:"maxFeePercentage"`
+	ServiceFee       float64 `json:"serviceFee"`
 	BalanceThreshold uint64  `json:"balanceThreshold"`
 	SwapAmount       uint64  `json:"swapAmount"`
 	Destination      string  `json:"destination"`
