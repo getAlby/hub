@@ -16,7 +16,7 @@ import {
 } from "src/components/ui/card";
 import { Progress } from "src/components/ui/progress";
 import { useToast } from "src/components/ui/use-toast";
-import { SUPPORT_ALBY_CONNECTION_NAME } from "src/constants";
+import { localStorageKeys, SUPPORT_ALBY_CONNECTION_NAME } from "src/constants";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useApps } from "src/hooks/useApps";
 import { useOnboardingData } from "src/hooks/useOnboardingData";
@@ -30,9 +30,8 @@ function SidebarHint() {
   const location = useLocation();
   const { toast } = useToast();
 
-  const SUPPORT_CARD_KEY_HIDDEN_UNTIL = "supporter-card-hidden";
   const [hiddenUntil, setHiddenUntil] = React.useState(
-    localStorage.getItem(SUPPORT_CARD_KEY_HIDDEN_UNTIL)
+    localStorage.getItem(localStorageKeys.supportAlbySidebarHintHiddenUntil)
   );
 
   // User has a channel order
@@ -107,8 +106,8 @@ function SidebarHint() {
             21
           ).toString();
           localStorage.setItem(
-            SUPPORT_CARD_KEY_HIDDEN_UNTIL,
-            next21st.toString()
+            localStorageKeys.supportAlbySidebarHintHiddenUntil,
+            next21st
           );
           setHiddenUntil(next21st);
           toast({ title: "No worries, we'll remind you again!" });
