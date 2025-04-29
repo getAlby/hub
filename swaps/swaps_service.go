@@ -173,8 +173,7 @@ func (svc *swapsService) ReverseSwap(ctx context.Context, amount uint64, destina
 		PreimageHash:   preimageHash[:],
 		InvoiceAmount:  amount,
 		PairHash:       pairInfo.Hash,
-		// TODO: Add referral id
-		ReferralId: "getalby",
+		ReferralId:     "alby",
 	})
 	if err != nil {
 		return fmt.Errorf("could not create swap: %s", err)
