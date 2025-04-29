@@ -109,7 +109,7 @@ function TransactionItem({ tx }: Props) {
 
   if (tx.metadata?.payer_data?.name) {
     from = "from " + tx.metadata.payer_data.name;
-  } else if (tx.metadata?.nostr) {
+  } else if (tx.metadata?.nostr?.pubkey) {
     const npub = nip19.npubEncode(tx.metadata.nostr.pubkey);
     from = "zap from " + npub.substring(0, 12) + "...";
   }
@@ -241,10 +241,13 @@ function TransactionItem({ tx }: Props) {
                     className="underline"
                   >
                     Nostr Zap
-                  </ExternalLink>{" "}
-                  <span className="text-muted-foreground break-all">
-                    from {nip19.npubEncode(tx.metadata.nostr.pubkey)}
-                  </span>
+                  </ExternalLink>
+                  {tx.metadata.nostr.pubkey && (
+                    <span className="text-muted-foreground break-all">
+                      {" "}
+                      from {nip19.npubEncode(tx.metadata.nostr.pubkey)}
+                    </span>
+                  )}
                 </p>
               </div>
             )}
