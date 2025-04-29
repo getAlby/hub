@@ -86,14 +86,14 @@ function SidebarHint() {
     );
   }
 
-  const isSupporter =
-    (apps &&
-      apps.filter((x) => x.name == SUPPORT_ALBY_CONNECTION_NAME).length > 0) ||
-    albyMe?.subscription.plan_code;
+  const showSupport =
+    apps &&
+    apps.filter((x) => x.name == SUPPORT_ALBY_CONNECTION_NAME).length === 0 &&
+    !albyMe?.subscription.plan_code;
 
   if (
     !location.pathname.startsWith("/support-alby") &&
-    !isSupporter &&
+    showSupport &&
     (!hiddenUntil || new Date() >= new Date(hiddenUntil))
   ) {
     return (
