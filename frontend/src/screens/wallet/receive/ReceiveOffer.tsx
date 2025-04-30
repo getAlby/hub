@@ -1,6 +1,5 @@
-import { AlertTriangleIcon, CopyIcon } from "lucide-react";
+import { CircleAlertIcon, CopyIcon, RefreshCwIcon } from "lucide-react";
 import React from "react";
-import { Link } from "react-router-dom";
 import QRCode from "src/components/QRCode";
 import {
   Alert,
@@ -67,74 +66,71 @@ export default function ReceiveOffer() {
   };
 
   return (
-    <div className="grid gap-5">
-      <Alert>
-        <AlertTriangleIcon className="h-4 w-4" />
-        <AlertTitle>BOLT-12 is in beta phase</AlertTitle>
-        <AlertDescription>
-          This will only work if you have a channel with a node that supports
-          onion message forwarding
-        </AlertDescription>
-      </Alert>
-      <div className="flex gap-12 w-full">
-        <div className="w-full max-w-lg">
-          {offer ? (
-            <>
-              <Card className="w-full">
-                <CardHeader>
-                  <CardTitle className="text-center">BOLT-12 Offer</CardTitle>
-                </CardHeader>
-                <CardContent className="flex flex-col items-center gap-4">
-                  <QRCode value={offer} className="w-full" />
-                  <div>
-                    <Button onClick={copy} variant="outline">
-                      <CopyIcon className="w-4 h-4 mr-2" />
-                      Copy Offer
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-              <Button
-                className="mt-4 w-full"
-                onClick={() => {
-                  setOffer(null);
-                }}
-              >
-                Create Another Offer
-              </Button>
-              <Link to="/wallet">
-                <Button className="mt-4 w-full" variant="secondary">
-                  Back To Wallet
-                </Button>
-              </Link>
-            </>
-          ) : (
-            <form onSubmit={handleSubmit} className="grid gap-5">
-              <div>
-                <Label htmlFor="description">Description</Label>
-                <Input
-                  id="description"
-                  type="text"
-                  value={description}
-                  placeholder="For e.g. OCEAN Payouts for bc1a..."
-                  onChange={(e) => {
-                    setDescription(e.target.value);
+    <div className="grid gap-5 md:max-w-lg">
+      {!offer && (
+        <Alert>
+          <CircleAlertIcon className="h-4 w-4" />
+          <AlertTitle>Reusable invoices (BOLT-12) are in beta phase</AlertTitle>
+          <AlertDescription>
+            This feature will work only if you have a channel with a node that
+            supports onion message forwarding
+          </AlertDescription>
+        </Alert>
+      )}
+      {offer ? (
+        <>
+          <Card className="w-full md:max-w-xs">
+            <CardHeader>
+              <CardTitle className="text-center">Lightning Offer</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col items-center gap-4">
+              <QRCode value={offer} className="w-full" />
+              <div className="flex flex-col md:flex-row gap-4 w-full">
+                <Button
+                  className="flex-1"
+                  variant="outline"
+                  onClick={() => {
+                    setDescription("");
+                    setOffer(null);
                   }}
-                />
-              </div>
-              <div>
-                <LoadingButton
-                  loading={isLoading}
-                  type="submit"
-                  disabled={!description}
                 >
-                  Create Offer
-                </LoadingButton>
+                  <RefreshCwIcon className="h-4 w-4 shrink-0 mr-2" />
+                  New Offer
+                </Button>
+                <Button className="flex-1" onClick={copy} variant="secondary">
+                  <CopyIcon className="w-4 h-4 mr-2" />
+                  Copy
+                </Button>
               </div>
-            </form>
-          )}
-        </div>
-      </div>
+            </CardContent>
+          </Card>
+        </>
+      ) : (
+        <form onSubmit={handleSubmit} className="grid gap-5">
+          <div>
+            <Label htmlFor="description">Description</Label>
+            <Input
+              id="description"
+              type="text"
+              value={description}
+              placeholder="For e.g. what is this payment for?"
+              onChange={(e) => {
+                setDescription(e.target.value);
+              }}
+            />
+          </div>
+          <div>
+            <LoadingButton
+              className="w-full md:w-auto"
+              loading={isLoading}
+              type="submit"
+              disabled={!description}
+            >
+              Create Offer
+            </LoadingButton>
+          </div>
+        </form>
+      )}
     </div>
   );
 }
