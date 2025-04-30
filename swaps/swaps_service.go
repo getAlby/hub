@@ -33,9 +33,13 @@ type swapsService struct {
 type SwapsService interface {
 	EnableAutoSwaps(ctx context.Context, lnClient lnclient.LNClient) error
 	StopAutoSwaps()
-	CalculateFee() (float64, error)
+	CalculateFee() (*SwapFees, error)
 	ReverseSwap(ctx context.Context, amount uint64, destination string, lnClient lnclient.LNClient) error
 }
+
+const (
+	AlbySwapServiceFee = 1.0
+)
 
 type FeeRates struct {
 	FastestFee  uint64 `json:"fastestFee"`
@@ -43,6 +47,12 @@ type FeeRates struct {
 	HourFee     uint64 `json:"hourFee"`
 	EconomyFee  uint64 `json:"economyFee"`
 	MinimumFee  uint64 `json:"minimumFee"`
+}
+
+type SwapFees struct {
+	AlbyServiceFee  float64 `json:"albyServiceFee"`
+	BoltzServiceFee float64 `json:"boltzServiceFee"`
+	BoltzNetworkFee uint64  `json:"boltzNetworkFee"`
 }
 
 func NewSwapsService(cfg config.Config, eventPublisher events.EventPublisher, transactionsService transactions.TransactionsService) *swapsService {
@@ -255,7 +265,7 @@ func (svc *swapsService) ReverseSwap(ctx context.Context, amount uint64, destina
 					return err
 				}
 
-				feeRates, err := svc.GetFeeRates()
+				feeRates, err := svc.getFeeRates()
 				if err != nil {
 					return err
 				}
@@ -314,24 +324,29 @@ func (svc *swapsService) ReverseSwap(ctx context.Context, amount uint64, destina
 	}
 }
 
-func (svc *swapsService) CalculateFee() (float64, error) {
+func (svc *swapsService) CalculateFee() (*SwapFees, error) {
 	reversePairs, err := svc.boltzApi.GetReversePairs()
 	if err != nil {
-		return 0, fmt.Errorf("could not get reverse pairs: %s", err)
+		return nil, fmt.Errorf("could not get reverse pairs: %s", err)
 	}
 
 	pair := boltz.Pair{From: boltz.CurrencyBtc, To: boltz.CurrencyBtc}
 	pairInfo, err := boltz.FindPair(pair, reversePairs)
 	if err != nil {
-		return 0, fmt.Errorf("could not find reverse pair: %s", err)
+		return nil, fmt.Errorf("could not find reverse pair: %s", err)
 	}
 
 	fees := pairInfo.Fees
+	networkFee := fees.MinerFees.Claim
 
-	return fees.Percentage, nil
+	return &SwapFees{
+		AlbyServiceFee:  AlbySwapServiceFee,
+		BoltzServiceFee: fees.Percentage,
+		BoltzNetworkFee: networkFee,
+	}, nil
 }
 
-func (svc *swapsService) GetFeeRates() (*FeeRates, error) {
+func (svc *swapsService) getFeeRates() (*FeeRates, error) {
 	url := svc.cfg.GetEnv().MempoolApi + "/v1/fees/recommended"
 
 	client := http.Client{

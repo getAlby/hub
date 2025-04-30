@@ -563,7 +563,7 @@ func (api *api) GetAutoSwapsConfig() (*GetAutoSwapsConfigResponse, error) {
 		}
 	}
 
-	serviceFee, err := api.svc.GetSwapsService().CalculateFee()
+	swapFees, err := api.svc.GetSwapsService().CalculateFee()
 	if err != nil {
 		logger.Logger.WithError(err).Error("failed to calculate fee info")
 		return nil, err
@@ -572,9 +572,11 @@ func (api *api) GetAutoSwapsConfig() (*GetAutoSwapsConfigResponse, error) {
 	return &GetAutoSwapsConfigResponse{
 		Enabled:          enabled,
 		BalanceThreshold: swapBalanceThreshold,
-		ServiceFee:       serviceFee,
 		SwapAmount:       swapAmount,
 		Destination:      swapDestination,
+		AlbyServiceFee:   swapFees.AlbyServiceFee,
+		BoltzServiceFee:  swapFees.BoltzServiceFee,
+		BoltzNetworkFee:  swapFees.BoltzNetworkFee,
 	}, nil
 }
 

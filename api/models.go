@@ -124,10 +124,12 @@ type EnableAutoSwapsRequest struct {
 
 type GetAutoSwapsConfigResponse struct {
 	Enabled          bool    `json:"enabled"`
-	ServiceFee       float64 `json:"serviceFee"`
 	BalanceThreshold uint64  `json:"balanceThreshold"`
 	SwapAmount       uint64  `json:"swapAmount"`
 	Destination      string  `json:"destination"`
+	AlbyServiceFee   float64 `json:"albyServiceFee"`
+	BoltzServiceFee  float64 `json:"boltzServiceFee"`
+	BoltzNetworkFee  uint64  `json:"boltzNetworkFee"`
 }
 
 type StartRequest struct {

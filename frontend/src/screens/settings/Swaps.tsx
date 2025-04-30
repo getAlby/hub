@@ -16,7 +16,6 @@ import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { RadioGroup, RadioGroupItem } from "src/components/ui/radio-group";
 import { useToast } from "src/components/ui/use-toast";
-import { ALBY_SWAP_SERVICE_FEE_PERCENTAGE } from "src/constants";
 import { useOnchainAddress } from "src/hooks/useOnchainAddress";
 import { useSwaps } from "src/hooks/useSwaps";
 import { request } from "src/utils/request";
@@ -173,15 +172,21 @@ function Swaps() {
             <AlertDescription>
               <div className="mt-4 space-y-2 text-sm">
                 <div className="flex justify-between items-center">
-                  <span className="font-medium">Boltz Service Fee</span>
+                  <span className="font-medium">Alby Service Fee</span>
                   <span className="text-muted-foreground text-right">
-                    {swapsSettings.serviceFee} %
+                    {swapsSettings.albyServiceFee} %
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="font-medium">Alby Service Fee</span>
+                  <span className="font-medium">Boltz Service Fee</span>
                   <span className="text-muted-foreground text-right">
-                    {ALBY_SWAP_SERVICE_FEE_PERCENTAGE} %
+                    {swapsSettings.boltzServiceFee} %
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="font-medium">Boltz Network Fee</span>
+                  <span className="text-muted-foreground text-right">
+                    {swapsSettings.boltzNetworkFee} sats
                   </span>
                 </div>
               </div>
@@ -240,15 +245,21 @@ function Swaps() {
               </div>
               <h3 className="text-center font-medium">Fee info</h3>
               <div className="flex justify-between items-center">
-                <span className="font-medium">Boltz Service Fee</span>
+                <span className="font-medium">Alby Service Fee</span>
                 <span className="text-muted-foreground text-right">
-                  {swapsSettings.serviceFee} %
+                  {swapsSettings.albyServiceFee} %
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="font-medium">Alby Service Fee</span>
+                <span className="font-medium">Boltz Service Fee</span>
                 <span className="text-muted-foreground text-right">
-                  {ALBY_SWAP_SERVICE_FEE_PERCENTAGE} %
+                  {swapsSettings.boltzServiceFee} %
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="font-medium">Boltz Network Fee</span>
+                <span className="text-muted-foreground text-right">
+                  {swapsSettings.boltzNetworkFee} sats
                 </span>
               </div>
             </div>

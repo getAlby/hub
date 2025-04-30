@@ -191,10 +191,12 @@ export type AppMetadata = { app_store_app_id?: string } & Record<
 
 export type SwapsSettingsResponse = {
   enabled: boolean;
-  serviceFee: number;
   balanceThreshold: number;
   swapAmount: number;
   destination: string;
+  albyServiceFee: number;
+  boltzServiceFee: number;
+  boltzNetworkFee: number;
 };
 
 export interface MnemonicResponse {
