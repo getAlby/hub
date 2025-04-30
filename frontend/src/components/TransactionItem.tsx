@@ -35,29 +35,64 @@ type Props = {
   tx: Transaction;
 };
 
+function safeNpubEncode(hex: string): string | undefined {
+  try {
+    return nip19.npubEncode(hex);
+  } catch {
+    console.error("Failed to encode:", hex);
+    return undefined;
+  }
+}
+
 function TransactionItem({ tx }: Props) {
   const { data: apps } = useApps();
   const { toast } = useToast();
   const [showDetails, setShowDetails] = React.useState(false);
   const type = tx.type;
-  const typeStateText =
-    type == "incoming"
+
+  const typeStateText = React.useMemo(() => {
+    return type == "incoming"
       ? "Received"
       : tx.state === "settled" // we only fetch settled incoming payments
         ? "Sent"
         : tx.state === "pending"
           ? "Sending"
           : "Failed";
-  const Icon =
-    tx.state === "failed"
+  }, [type, tx.state]);
+
+  const Icon = React.useMemo(() => {
+    return tx.state === "failed"
       ? XIcon
       : tx.type == "outgoing"
         ? ArrowUpIcon
         : ArrowDownIcon;
-  const app =
-    tx.appId !== undefined
-      ? apps?.find((app) => app.id === tx.appId)
-      : undefined;
+  }, [tx.state, tx.type]);
+
+  const app = React.useMemo(
+    () =>
+      tx.appId != null ? apps?.find((app) => app.id === tx.appId) : undefined,
+    [apps, tx.appId]
+  );
+
+  const npub = React.useMemo(
+    () => safeNpubEncode(tx.metadata?.nostr?.pubkey as string),
+    [tx.metadata?.nostr?.pubkey]
+  );
+
+  const from = React.useMemo(() => {
+    if (tx.metadata?.payer_data?.name) {
+      return `from ${tx.metadata.payer_data.name}`;
+    }
+    if (npub) {
+      return `zap from ${npub.substring(0, 12)}...`;
+    }
+    return undefined;
+  }, [tx.metadata?.payer_data?.name, npub]);
+
+  const eventId = React.useMemo(
+    () => tx.metadata?.nostr?.tags?.find((t) => t[0] === "e")?.[1],
+    [tx.metadata?.nostr?.tags]
+  );
 
   const copy = (text: string) => {
     copyToClipboard(text, toast);
@@ -104,17 +139,6 @@ function TransactionItem({ tx }: Props) {
       </div>
     </div>
   );
-
-  let from;
-
-  if (tx.metadata?.payer_data?.name) {
-    from = "from " + tx.metadata.payer_data.name;
-  } else if (tx.metadata?.nostr?.pubkey) {
-    const npub = nip19.npubEncode(tx.metadata.nostr.pubkey);
-    from = "zap from " + npub.substring(0, 12) + "...";
-  }
-
-  const eventId = tx.metadata?.nostr?.tags.find((t) => t[0] === "e")?.[1];
 
   return (
     <Dialog
@@ -231,7 +255,7 @@ function TransactionItem({ tx }: Props) {
                 </p>
               </div>
             )}
-            {tx.metadata?.nostr && eventId && (
+            {tx.metadata?.nostr && eventId && npub && (
               <div className="mt-6">
                 <p>
                   <ExternalLink
@@ -241,13 +265,10 @@ function TransactionItem({ tx }: Props) {
                     className="underline"
                   >
                     Nostr Zap
-                  </ExternalLink>
-                  {tx.metadata.nostr.pubkey && (
-                    <span className="text-muted-foreground break-all">
-                      {" "}
-                      from {nip19.npubEncode(tx.metadata.nostr.pubkey)}
-                    </span>
-                  )}
+                  </ExternalLink>{" "}
+                  <span className="text-muted-foreground break-all">
+                    from {npub}
+                  </span>
                 </p>
               </div>
             )}
