@@ -337,7 +337,7 @@ func (svc *swapsService) CalculateFee() (*SwapFees, error) {
 	}
 
 	fees := pairInfo.Fees
-	networkFee := fees.MinerFees.Claim
+	networkFee := fees.MinerFees.Lockup + fees.MinerFees.Claim
 
 	return &SwapFees{
 		AlbyServiceFee:  AlbySwapServiceFee,
