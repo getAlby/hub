@@ -6,7 +6,7 @@
 app = 'nwc'
 primary_region = 'lax'
 swap_size_mb = 2048
-kill_timeout = 120
+kill_timeout = 300
 
 [build]
   image = 'ghcr.io/getalby/hub:latest'

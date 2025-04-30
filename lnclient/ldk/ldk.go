@@ -438,8 +438,8 @@ func (ls *LDKService) Shutdown() error {
 		} else {
 			logger.Logger.Info("LDK stop node succeeded")
 		}
-	case <-time.After(120 * time.Second):
-		logger.Logger.Error("Timeout shutting down LDK node after 120 seconds")
+	case <-time.After(5 * time.Minute):
+		logger.Logger.Error("Timeout shutting down LDK node after 5 minutes")
 	}
 
 	logger.Logger.Debug("Destroying LDK node object")
