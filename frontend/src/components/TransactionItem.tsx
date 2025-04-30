@@ -39,7 +39,6 @@ function safeNpubEncode(hex: string): string | undefined {
   try {
     return nip19.npubEncode(hex);
   } catch {
-    console.error("Failed to encode:", hex);
     return undefined;
   }
 }
