@@ -14,6 +14,7 @@ import {
   ShieldAlertIcon,
   ShieldCheckIcon,
   Sparkles,
+  SquareStack,
   WalletIcon,
 } from "lucide-react";
 import React from "react";
@@ -91,6 +92,11 @@ export function AppSidebar() {
         title: "Wallet",
         url: "/wallet",
         icon: WalletIcon,
+      },
+      {
+        title: "Sub-wallets",
+        url: "/sub-wallets",
+        icon: SquareStack,
       },
       {
         title: "App Store",

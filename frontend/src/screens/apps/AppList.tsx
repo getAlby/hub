@@ -6,6 +6,7 @@ import Loading from "src/components/Loading";
 import ResponsiveButton from "src/components/ResponsiveButton";
 import AlbyConnectionCard from "src/components/connections/AlbyConnectionCard";
 import AppCard from "src/components/connections/AppCard";
+import { SUBWALLET_APPSTORE_APP_ID } from "src/constants";
 import { useApps } from "src/hooks/useApps";
 import { useInfo } from "src/hooks/useInfo";
 import { useUnusedApps } from "src/hooks/useUnusedApps";
@@ -23,7 +24,10 @@ function AppList() {
 
   const albyConnection = apps.find((x) => x.name === albyConnectionName);
   const otherApps = apps
-    .filter((x) => x.appPubkey !== albyConnection?.appPubkey)
+    .filter((app) => app.appPubkey !== albyConnection?.appPubkey)
+    .filter(
+      (app) => app.metadata?.app_store_app_id !== SUBWALLET_APPSTORE_APP_ID
+    )
     .sort(
       (a, b) =>
         new Date(b.lastEventAt ?? 0).getTime() -

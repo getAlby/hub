@@ -57,6 +57,13 @@ cp -r data albyhub-backup
 
 echo "Downloading latest version"
 wget $ALBYHUB_URL
+
+./verify.sh server-linux-aarch64.tar.bz2 albyhub-Server-Linux-aarch64.tar.bz2
+if [[ $? -ne 0 ]]; then
+  echo "❌ Verification failed, aborting installation"
+  exit 1
+fi
+
 tar -xvf server-linux-aarch64.tar.bz2
 rm server-linux-aarch64.tar.bz2
 

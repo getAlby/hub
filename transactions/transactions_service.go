@@ -741,6 +741,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 		err := svc.db.Transaction(func(tx *gorm.DB) error {
 			result := tx.Limit(1).Find(&dbTransaction, &db.Transaction{
 				Type:        constants.TRANSACTION_TYPE_OUTGOING,
+				State:       constants.TRANSACTION_STATE_PENDING,
 				PaymentHash: lnClientTransaction.PaymentHash,
 			})
 

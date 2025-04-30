@@ -94,7 +94,7 @@ function AppCreatedInternal() {
     <>
       <AppHeader
         title={`Connect to ${createAppResponse.name}`}
-        description="Configure wallet permissions for the app and follow instructions to finalise the connection"
+        description="Configure wallet permissions for the app and follow instructions to finalize the connection"
       />
       <div className="flex flex-col gap-3 sensitive">
         <div>
@@ -116,12 +116,12 @@ function AppCreatedInternal() {
             </li>
             {app?.isolated && (
               <li>
-                Optional: Increase sub-wallet balance (
+                Optional: Top up sub-wallet balance (
                 {new Intl.NumberFormat().format(Math.floor(app.balance / 1000))}{" "}
                 sats){" "}
                 <IsolatedAppTopupDialog appPubkey={app.appPubkey}>
                   <Button size="sm" variant="secondary">
-                    Increase
+                    Top Up
                   </Button>
                 </IsolatedAppTopupDialog>
               </li>

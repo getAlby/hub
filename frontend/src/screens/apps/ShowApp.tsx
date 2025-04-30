@@ -48,6 +48,7 @@ import {
   TooltipTrigger,
 } from "src/components/ui/tooltip";
 import { useToast } from "src/components/ui/use-toast";
+import { SUBWALLET_APPSTORE_APP_ID } from "src/constants";
 import { useCapabilities } from "src/hooks/useCapabilities";
 
 function ShowApp() {
@@ -92,7 +93,11 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
   }, [location.search]);
 
   const { deleteApp, isDeleting } = useDeleteApp(() => {
-    navigate("/apps");
+    navigate(
+      app.metadata?.app_store_app_id !== SUBWALLET_APPSTORE_APP_ID
+        ? "/apps"
+        : "/sub-wallets"
+    );
   });
 
   const [name, setName] = React.useState(app.name);
@@ -242,15 +247,15 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                     <TableCell className="font-medium">
                       Wallet Public Key
                     </TableCell>
-                    <TableCell className="text-muted-foreground whitespace-pre-wrap flex items-center">
-                      {app.walletPubkey}
+                    <TableCell className="text-muted-foreground flex items-center">
+                      <span className="break-all">{app.walletPubkey}</span>
                       {!app.uniqueWalletPubkey && (
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <AlertCircleIcon className="w-3 h-3 ml-2" />
+                              <AlertCircleIcon className="w-3 h-3 ml-2 flex-shrink-0" />
                             </TooltipTrigger>
-                            <TooltipContent>
+                            <TooltipContent className="w-[300px]">
                               This connection does not have its own unique
                               wallet pubkey. Re-connect for additional privacy.
                             </TooltipContent>
@@ -268,8 +273,12 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                         )}{" "}
                         sats{" "}
                         <IsolatedAppTopupDialog appPubkey={app.appPubkey}>
-                          <Button size="sm" variant="secondary">
-                            Increase
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            className="ml-4"
+                          >
+                            Top Up
                           </Button>
                         </IsolatedAppTopupDialog>
                       </TableCell>
