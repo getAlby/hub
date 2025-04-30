@@ -4,8 +4,11 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/sha256"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"net/http"
 	"strconv"
 	"time"
 
@@ -32,6 +35,14 @@ type SwapsService interface {
 	StopAutoSwaps()
 	CalculateFee() (float64, error)
 	ReverseSwap(ctx context.Context, amount uint64, destination string, lnClient lnclient.LNClient) error
+}
+
+type FeeRates struct {
+	FastestFee  uint64 `json:"fastestFee"`
+	HalfHourFee uint64 `json:"halfHourFee"`
+	HourFee     uint64 `json:"hourFee"`
+	EconomyFee  uint64 `json:"economyFee"`
+	MinimumFee  uint64 `json:"minimumFee"`
 }
 
 func NewSwapsService(cfg config.Config, eventPublisher events.EventPublisher, transactionsService transactions.TransactionsService) *swapsService {
@@ -244,7 +255,11 @@ func (svc *swapsService) ReverseSwap(ctx context.Context, amount uint64, destina
 					return err
 				}
 
-				satPerVbyte := float64(2)
+				feeRates, err := svc.GetFeeRates()
+				if err != nil {
+					return err
+				}
+
 				claimTransaction, _, err := boltz.ConstructTransaction(
 					network,
 					boltz.CurrencyBtc,
@@ -261,7 +276,7 @@ func (svc *swapsService) ReverseSwap(ctx context.Context, amount uint64, destina
 							Cooperative:       true,
 						},
 					},
-					satPerVbyte,
+					float64(feeRates.FastestFee),
 					svc.boltzApi,
 				)
 				if err != nil {
@@ -314,4 +329,48 @@ func (svc *swapsService) CalculateFee() (float64, error) {
 	fees := pairInfo.Fees
 
 	return fees.Percentage, nil
+}
+
+func (svc *swapsService) GetFeeRates() (*FeeRates, error) {
+	url := svc.cfg.GetEnv().MempoolApi + "/v1/fees/recommended"
+
+	client := http.Client{
+		Timeout: time.Second * 10,
+	}
+
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"url": url,
+		}).Error("Failed to create http request")
+		return nil, err
+	}
+
+	res, err := client.Do(req)
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"url": url,
+		}).Error("Failed to send request")
+		return nil, err
+	}
+
+	defer res.Body.Close()
+
+	body, readErr := io.ReadAll(res.Body)
+	if readErr != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"url": url,
+		}).Error("Failed to read response body")
+		return nil, errors.New("failed to read response body")
+	}
+
+	var rates FeeRates
+	jsonErr := json.Unmarshal(body, &rates)
+	if jsonErr != nil {
+		logger.Logger.WithError(jsonErr).WithFields(logrus.Fields{
+			"url": url,
+		}).Error("Failed to deserialize json")
+		return nil, fmt.Errorf("failed to deserialize json %s %s", url, string(body))
+	}
+	return &rates, nil
 }
