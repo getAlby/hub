@@ -107,7 +107,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	}
 
 	ldkConfig.ListeningAddresses = &listeningAddresses
-	logLevel, err := strconv.Atoi(cfg.GetEnv().LDKLogLevel)
+	logLevel, _ := strconv.Atoi(cfg.GetEnv().LDKLogLevel)
 	// LogLevelGossip is added due to bug in go bindings which uses an enum that starts at 1 instead of 0
 	ldkLogger := NewLDKLogger(ldk_node.LogLevel(logLevel) + ldk_node.LogLevelGossip)
 	ldkConfig.TransientNetworkGraph = cfg.GetEnv().LDKTransientNetworkGraph
