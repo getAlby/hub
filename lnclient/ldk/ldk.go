@@ -1140,7 +1140,7 @@ func (ls *LDKService) RedeemOnchainFunds(ctx context.Context, toAddress string, 
 		return txId, nil
 	}
 
-	txId, err := checkLDKErr(ls.node.OnchainPayment().SendAllToAddress(toAddress, true, nil))
+	txId, err := checkLDKErr(ls.node.OnchainPayment().SendAllToAddress(toAddress, false, nil))
 	if err != nil {
 		logger.Logger.WithError(err).Error("SendAllToAddress failed")
 		return "", err
