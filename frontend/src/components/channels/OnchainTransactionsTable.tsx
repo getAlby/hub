@@ -1,7 +1,6 @@
 import dayjs from "dayjs";
-import { AlertCircle, ArrowDownIcon, ArrowUpIcon } from "lucide-react";
+import { ArrowDownIcon, ArrowUpIcon } from "lucide-react";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
-import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import {
   Card,
   CardContent,
@@ -13,21 +12,7 @@ import { useOnchainTransactions } from "src/hooks/useOnchainTransactions";
 import { cn } from "src/lib/utils";
 
 export function OnchainTransactionsTable() {
-  const { data: transactions, error, isLoading } = useOnchainTransactions();
-
-  if (isLoading) {
-    return null;
-  }
-
-  if (error) {
-    return (
-      <Alert variant="destructive" className="mt-4">
-        <AlertCircle className="h-4 w-4" />
-        <AlertTitle>Error loading on-chain transactions</AlertTitle>
-        <AlertDescription>{error.message}</AlertDescription>
-      </Alert>
-    );
-  }
+  const { data: transactions } = useOnchainTransactions();
 
   if (!transactions?.length) {
     return null;
