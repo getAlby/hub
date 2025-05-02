@@ -1320,5 +1320,38 @@ func (svc *LNDService) ExecuteCustomNodeCommand(ctx context.Context, command *ln
 }
 
 func (svc *LNDService) ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error) {
-	return nil, errors.ErrUnsupported
+	resp, err := svc.client.GetTransactions(ctx, &lnrpc.GetTransactionsRequest{})
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to get onchain transactions")
+		return nil, err
+	}
+
+	transactions := []lnclient.OnchainTransaction{}
+	for _, tx := range resp.Transactions {
+		state := "unconfirmed"
+		if tx.NumConfirmations > 0 {
+			state = "confirmed"
+		}
+
+		amountSat := tx.Amount
+		txType := "incoming"
+		if tx.Amount < 0 {
+			amountSat = -amountSat
+			txType = "outgoing"
+		}
+
+		transactions = append(transactions, lnclient.OnchainTransaction{
+			AmountSat:        uint64(amountSat),
+			CreatedAt:        uint64(tx.TimeStamp),
+			UpdatedAt:        uint64(tx.TimeStamp),
+			State:            state,
+			Type:             txType,
+			NumConfirmations: uint32(tx.NumConfirmations),
+			TxId:             tx.TxHash,
+		})
+	}
+	sort.SliceStable(transactions, func(i, j int) bool {
+		return transactions[i].UpdatedAt > transactions[j].UpdatedAt
+	})
+	return transactions, nil
 }
