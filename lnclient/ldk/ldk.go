@@ -16,10 +16,10 @@ import (
 	"sync"
 	"time"
 
-	//"github.com/getAlby/ldk-node-go/ldk_node"
+	"github.com/getAlby/ldk-node-go/ldk_node"
 	"github.com/tyler-smith/go-bip32"
 
-	"github.com/getAlby/hub/ldk_node"
+	// "github.com/getAlby/hub/ldk_node"
 
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"

@@ -1,10 +1,10 @@
 package ldk
 
 import (
-	"github.com/getAlby/hub/ldk_node"
+	// "github.com/getAlby/hub/ldk_node"
 	"github.com/getAlby/hub/logger"
 
-	//"github.com/getAlby/ldk-node-go/ldk_node"
+	"github.com/getAlby/ldk-node-go/ldk_node"
 	"github.com/sirupsen/logrus"
 )
 
