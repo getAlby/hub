@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -779,6 +780,53 @@ func (ls *LDKService) ListTransactions(ctx context.Context, from, until, limit, 
 	// logger.Logger.WithField("transactions", transactions).Debug("Listed transactions")
 
 	return transactions, nil*/
+}
+
+func (ls *LDKService) ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error) {
+	transactions := []lnclient.OnchainTransaction{}
+	for _, payment := range ls.node.ListPayments() {
+		onchainPaymentKind, isOnchainPaymentKind := payment.Kind.(ldk_node.PaymentKindOnchain)
+		if !isOnchainPaymentKind {
+			continue
+		}
+
+		transactionType := "incoming"
+		if payment.Direction == ldk_node.PaymentDirectionOutbound {
+			transactionType = "outgoing"
+		}
+
+		var amountMsat uint64
+		if payment.AmountMsat != nil {
+			amountMsat = *payment.AmountMsat
+		}
+		var status string
+		var height uint32
+		var numConfirmations uint32
+		switch onchainPaymentStatus := onchainPaymentKind.Status.(type) {
+		case ldk_node.ConfirmationStatusConfirmed:
+			status = "confirmed"
+			height = onchainPaymentStatus.Height
+			nodeStatus := ls.node.Status()
+			numConfirmations = nodeStatus.CurrentBestBlock.Height - height
+		case ldk_node.ConfirmationStatusUnconfirmed:
+			status = "unconfirmed"
+		}
+
+		transactions = append(transactions, lnclient.OnchainTransaction{
+			AmountSat:        amountMsat / 1000,
+			CreatedAt:        payment.CreatedAt,
+			UpdatedAt:        payment.LatestUpdateTimestamp,
+			State:            status,
+			Type:             transactionType,
+			NumConfirmations: numConfirmations,
+			TxId:             onchainPaymentKind.Txid,
+		})
+
+	}
+	sort.SliceStable(transactions, func(i, j int) bool {
+		return transactions[i].UpdatedAt > transactions[j].UpdatedAt
+	})
+	return transactions, nil
 }
 
 func (ls *LDKService) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, err error) {

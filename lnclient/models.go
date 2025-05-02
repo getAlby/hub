@@ -40,6 +40,16 @@ type Transaction struct {
 	Metadata        Metadata
 }
 
+type OnchainTransaction struct {
+	AmountSat        uint64 `json:"amountSat"`
+	CreatedAt        uint64 `json:"createdAt"`
+	UpdatedAt        uint64 `json:"updatedAt"`
+	State            string `json:"state"`
+	Type             string `json:"type"`
+	NumConfirmations uint32 `json:"numConfirmations"`
+	TxId             string `json:"txId"`
+}
+
 type NodeConnectionInfo struct {
 	Pubkey  string `json:"pubkey"`
 	Address string `json:"address"`
@@ -54,6 +64,7 @@ type LNClient interface {
 	MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *Transaction, err error)
 	LookupInvoice(ctx context.Context, paymentHash string) (transaction *Transaction, err error)
 	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []Transaction, err error)
+	ListOnchainTransactions(ctx context.Context) ([]OnchainTransaction, error)
 	Shutdown() error
 	ListChannels(ctx context.Context) (channels []Channel, err error)
 	GetNodeConnectionInfo(ctx context.Context) (nodeConnectionInfo *NodeConnectionInfo, err error)

@@ -539,3 +539,7 @@ func (svc *PhoenixService) GetCustomNodeCommandDefinitions() []lnclient.CustomNo
 func (svc *PhoenixService) ExecuteCustomNodeCommand(ctx context.Context, command *lnclient.CustomNodeCommandRequest) (*lnclient.CustomNodeCommandResponse, error) {
 	return nil, nil
 }
+
+func (svc *PhoenixService) ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error) {
+	return nil, errors.ErrUnsupported
+}
