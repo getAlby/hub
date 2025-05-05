@@ -132,6 +132,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedApiGroup.GET("/node/status", httpSvc.nodeStatusHandler)
 	restrictedApiGroup.GET("/node/network-graph", httpSvc.nodeNetworkGraphHandler)
 	restrictedApiGroup.POST("/node/migrate-storage", httpSvc.migrateNodeStorageHandler)
+	restrictedApiGroup.GET("/node/transactions", httpSvc.listOnchainTransactionsHandler)
 	restrictedApiGroup.GET("/peers", httpSvc.listPeers)
 	restrictedApiGroup.POST("/peers", httpSvc.connectPeerHandler)
 	restrictedApiGroup.DELETE("/peers/:peerId", httpSvc.disconnectPeerHandler)
@@ -606,6 +607,20 @@ func (httpSvc *HttpService) listTransactionsHandler(c echo.Context) error {
 	}
 
 	transactions, err := httpSvc.api.ListTransactions(ctx, appId, limit, offset)
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+
+	return c.JSON(http.StatusOK, transactions)
+}
+
+func (httpSvc *HttpService) listOnchainTransactionsHandler(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	transactions, err := httpSvc.api.ListOnchainTransactions(ctx)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{

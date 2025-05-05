@@ -17,6 +17,7 @@ import AppHeader from "src/components/AppHeader.tsx";
 import { ChannelsCards } from "src/components/channels/ChannelsCards.tsx";
 import { ChannelsTable } from "src/components/channels/ChannelsTable.tsx";
 import { HealthCheckAlert } from "src/components/channels/HealthcheckAlert";
+import { OnchainTransactionsTable } from "src/components/channels/OnchainTransactionsTable.tsx";
 import { SwapDialogs } from "src/components/channels/SwapDialogs";
 import EmptyState from "src/components/EmptyState.tsx";
 import ExternalLink from "src/components/ExternalLink";
@@ -572,6 +573,7 @@ export default function Channels() {
 
           <ChannelsTable channels={channels} nodes={nodes} />
           <ChannelsCards channels={channels} nodes={nodes} />
+          <OnchainTransactionsTable />
         </>
       )}
     </>

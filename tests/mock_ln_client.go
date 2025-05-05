@@ -216,3 +216,7 @@ func (mln *MockLn) ExecuteCustomNodeCommand(ctx context.Context, command *lnclie
 func (mln *MockLn) GenerateOfferSync(ctx context.Context, description string) (string, error) {
 	return "", errors.New("not supported")
 }
+
+func (mln *MockLn) ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error) {
+	return nil, errors.ErrUnsupported
+}

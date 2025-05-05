@@ -39,7 +39,13 @@ func (api *api) ListTransactions(ctx context.Context, appId *uint, limit uint64,
 	if api.svc.GetLNClient() == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	transactions, totalCount, err := api.svc.GetTransactionsService().ListTransactions(ctx, 0, 0, limit, offset, true, false, nil, api.svc.GetLNClient(), appId, true)
+
+	forceFilterByAppId := false
+	if appId != nil {
+		forceFilterByAppId = true
+	}
+
+	transactions, totalCount, err := api.svc.GetTransactionsService().ListTransactions(ctx, 0, 0, limit, offset, true, false, nil, api.svc.GetLNClient(), appId, forceFilterByAppId)
 	if err != nil {
 		return nil, err
 	}

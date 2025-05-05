@@ -32,7 +32,6 @@ import (
 	"github.com/getAlby/hub/lsp"
 	"github.com/getAlby/hub/service/keys"
 	"github.com/getAlby/hub/transactions"
-	"github.com/getAlby/hub/utils"
 )
 
 type LDKService struct {
@@ -68,8 +67,6 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		logger.Logger.WithError(err).Error("Failed to create LDK working dir")
 		return nil, err
 	}
-
-	logDirPath := filepath.Join(newpath, "./logs")
 
 	ldkConfig := ldk_node.DefaultConfig()
 	listeningAddresses := strings.Split(cfg.GetEnv().LDKListeningAddresses, ",")
@@ -111,15 +108,13 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	}
 
 	ldkConfig.ListeningAddresses = &listeningAddresses
-	ldkConfig.LogDirPath = &logDirPath
-	logLevel, err := strconv.Atoi(cfg.GetEnv().LDKLogLevel)
-	if err == nil {
-		// LogLevelGossip is added due to bug in go bindings which uses an enum that starts at 1 instead of 0
-		// If LogLevelGossip is changed to 0, this addition can be removed
-		ldkConfig.LogLevel = ldk_node.LogLevel(logLevel) + ldk_node.LogLevelGossip
-	}
+	logLevel, _ := strconv.Atoi(cfg.GetEnv().LDKLogLevel)
+	// LogLevelGossip is added due to bug in go bindings which uses an enum that starts at 1 instead of 0
+	ldkLogger := NewLDKLogger(ldk_node.LogLevel(logLevel) + ldk_node.LogLevelGossip)
 	ldkConfig.TransientNetworkGraph = cfg.GetEnv().LDKTransientNetworkGraph
+
 	builder := ldk_node.BuilderFromConfig(ldkConfig)
+	builder.SetCustomLogger(ldkLogger)
 	builder.SetNodeAlias("Alby Hub") // TODO: allow users to customize
 	builder.SetEntropyBip39Mnemonic(mnemonic, nil)
 	builder.SetNetwork(network)
@@ -129,11 +124,6 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		builder.SetGossipSourceRgs(cfg.GetEnv().LDKGossipSource)
 	}
 	builder.SetStorageDirPath(filepath.Join(newpath, "./storage"))
-
-	// TODO: remove when https://github.com/lightningdevkit/rust-lightning/issues/2914 is merged
-	// LDK default HTLC inflight value is 10% of the channel size. If an LSPS service is configured this will be set to 0.
-	// The liquidity source below is not used because we do not use the native LDK-node LSPS2 API.
-	builder.SetLiquiditySourceLsps2("52.88.33.119:9735", lsp.OlympusLSP().Pubkey, nil)
 
 	migrateStorage, _ := cfg.Get("LdkMigrateStorage", "")
 	if migrateStorage == "VSS" {
@@ -192,20 +182,9 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 
 	eventPublisher.RegisterSubscriber(&ls)
 
-	// TODO: remove when LDK supports this
-	deleteOldLDKLogs(logDirPath)
-	go func() {
-		// delete old LDK logs every 24 hours
-		ticker := time.NewTicker(24 * time.Hour)
-		for {
-			select {
-			case <-ticker.C:
-				deleteOldLDKLogs(logDirPath)
-			case <-ldkCtx.Done():
-				return
-			}
-		}
-	}()
+	// TODO: remove after 2026-01-01 - we now log to app logs rather than ldk log files
+	// this line is just left to cleanup old logs after the update
+	deleteOldLDKLogs(filepath.Join(newpath, "./logs"))
 
 	// check for and forward new LDK events to LDKEventBroadcaster (through ldkEventConsumer)
 	go func() {
@@ -438,8 +417,8 @@ func (ls *LDKService) Shutdown() error {
 		} else {
 			logger.Logger.Info("LDK stop node succeeded")
 		}
-	case <-time.After(120 * time.Second):
-		logger.Logger.Error("Timeout shutting down LDK node after 120 seconds")
+	case <-time.After(5 * time.Minute):
+		logger.Logger.Error("Timeout shutting down LDK node after 5 minutes")
 	}
 
 	logger.Logger.Debug("Destroying LDK node object")
@@ -531,20 +510,12 @@ func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string, amoun
 				return nil, errors.New("payment not found")
 			}
 
-			bolt11PaymentKind, ok := payment.Kind.(ldk_node.PaymentKindBolt11)
-
-			if !ok {
-				logger.Logger.WithFields(logrus.Fields{
-					"payment": payment,
-				}).Error("Payment is not a bolt11 kind")
-				return nil, errors.New("payment is not a bolt11 kind")
-			}
-
-			if bolt11PaymentKind.Preimage == nil {
-				logger.Logger.WithField("payment_hash", paymentHash).Error("No payment preimage for payment hash")
+			if eventPaymentSuccessful.PaymentPreimage == nil {
+				logger.Logger.WithField("payment_hash", paymentHash).Error("No payment preimage in payment success event")
 				return nil, errors.New("payment preimage not found")
 			}
-			preimage = *bolt11PaymentKind.Preimage
+
+			preimage = *eventPaymentSuccessful.PaymentPreimage
 
 			if eventPaymentSuccessful.FeePaidMsat != nil {
 				fee = *eventPaymentSuccessful.FeePaidMsat
@@ -603,7 +574,7 @@ func (ls *LDKService) SendKeysend(ctx context.Context, amount uint64, destinatio
 		MaxTotalRoutingFeeMsat: &maxTotalRoutingFeeMsat,
 	}
 
-	paymentHash, err := checkLDKErr(ls.node.SpontaneousPayment().Send(amount, destination, sendingParams, customTlvs, &preimage))
+	paymentHash, err := checkLDKErr(ls.node.SpontaneousPayment().SendWithTlvsAndPreimage(amount, destination, sendingParams, customTlvs, &preimage))
 	if err != nil {
 		logger.Logger.WithError(err).Error("Keysend failed")
 		return nil, err
@@ -676,7 +647,7 @@ func (ls *LDKService) getMaxSpendable() uint64 {
 	return spendable
 }
 
-func (ls *LDKService) MakeInvoice(ctx context.Context, amount int64, description string, _descriptionHash string, expiry int64) (transaction *lnclient.Transaction, err error) {
+func (ls *LDKService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *lnclient.Transaction, err error) {
 
 	if time.Duration(expiry)*time.Second > maxInvoiceExpiry {
 		return nil, errors.New("expiry is too long")
@@ -700,9 +671,18 @@ func (ls *LDKService) MakeInvoice(ctx context.Context, amount int64, description
 		expiry = lnclient.DEFAULT_INVOICE_EXPIRY
 	}
 
-	// TODO: support passing description hash
+	var descriptionType ldk_node.Bolt11InvoiceDescription
+	descriptionType = ldk_node.Bolt11InvoiceDescriptionDirect{
+		Description: description,
+	}
+	if description == "" && descriptionHash != "" {
+		descriptionType = ldk_node.Bolt11InvoiceDescriptionHash{
+			Hash: descriptionHash,
+		}
+	}
+
 	invoice, err := checkLDKErr(ls.node.Bolt11Payment().Receive(uint64(amount),
-		description,
+		descriptionType,
 		uint32(expiry)))
 
 	if err != nil {
@@ -722,7 +702,7 @@ func (ls *LDKService) MakeInvoice(ctx context.Context, amount int64, description
 	expiresAtUnix := time.UnixMilli(int64(paymentRequest.CreatedAt) * 1000).Add(time.Duration(paymentRequest.Expiry) * time.Second).Unix()
 	expiresAt = &expiresAtUnix
 	description = paymentRequest.Description
-	descriptionHash := paymentRequest.DescriptionHash
+	descriptionHash = paymentRequest.DescriptionHash
 
 	payment := ls.node.Payment(paymentRequest.PaymentHash)
 
@@ -759,9 +739,10 @@ func (ls *LDKService) LookupInvoice(ctx context.Context, paymentHash string) (tr
 	return transaction, nil
 }
 
-// TODO: throw an error if this method is called (it shouldn't be any more because this LNClient supports notifications)
 func (ls *LDKService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []lnclient.Transaction, err error) {
-	transactions = []lnclient.Transaction{}
+	// this method shouldn't be any more because this LNClient supports notifications
+	return nil, errors.New("this method should not be called")
+	/*transactions = []lnclient.Transaction{}
 
 	// TODO: support pagination
 	payments := ls.node.ListPayments()
@@ -809,6 +790,57 @@ func (ls *LDKService) ListTransactions(ctx context.Context, from, until, limit, 
 
 	// logger.Logger.WithField("transactions", transactions).Debug("Listed transactions")
 
+	return transactions, nil*/
+}
+
+func (ls *LDKService) ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error) {
+	transactions := []lnclient.OnchainTransaction{}
+	for _, payment := range ls.node.ListPayments() {
+		onchainPaymentKind, isOnchainPaymentKind := payment.Kind.(ldk_node.PaymentKindOnchain)
+		if !isOnchainPaymentKind {
+			continue
+		}
+
+		transactionType := "incoming"
+		if payment.Direction == ldk_node.PaymentDirectionOutbound {
+			transactionType = "outgoing"
+		}
+
+		var amountMsat uint64
+		if payment.AmountMsat != nil {
+			amountMsat = *payment.AmountMsat
+		}
+		var status string
+		var height uint32
+		var numConfirmations uint32
+		switch onchainPaymentStatus := onchainPaymentKind.Status.(type) {
+		case ldk_node.ConfirmationStatusConfirmed:
+			status = "confirmed"
+			height = onchainPaymentStatus.Height
+			nodeStatus := ls.node.Status()
+			numConfirmations = nodeStatus.CurrentBestBlock.Height - height
+		case ldk_node.ConfirmationStatusUnconfirmed:
+			status = "unconfirmed"
+		}
+
+		createdAt := payment.CreatedAt
+		if createdAt == 0 {
+			createdAt = payment.LatestUpdateTimestamp
+		}
+
+		transactions = append(transactions, lnclient.OnchainTransaction{
+			AmountSat:        amountMsat / 1000,
+			CreatedAt:        createdAt,
+			State:            status,
+			Type:             transactionType,
+			NumConfirmations: numConfirmations,
+			TxId:             onchainPaymentKind.Txid,
+		})
+
+	}
+	sort.SliceStable(transactions, func(i, j int) bool {
+		return transactions[i].CreatedAt > transactions[j].CreatedAt
+	})
 	return transactions, nil
 }
 
@@ -1163,7 +1195,7 @@ func (ls *LDKService) RedeemOnchainFunds(ctx context.Context, toAddress string, 
 	if !sendAll {
 		// NOTE: this may fail if user does not reserve enough for the onchain transaction
 		// and can also drain the anchor reserves if the user provides a too high amount.
-		txId, err := checkLDKErr(ls.node.OnchainPayment().SendToAddress(toAddress, amount))
+		txId, err := checkLDKErr(ls.node.OnchainPayment().SendToAddress(toAddress, amount, nil))
 		if err != nil {
 			logger.Logger.WithError(err).Error("SendToAddress failed")
 			return "", err
@@ -1171,8 +1203,7 @@ func (ls *LDKService) RedeemOnchainFunds(ctx context.Context, toAddress string, 
 		return txId, nil
 	}
 
-	// TODO: this could be improved to preserve anchor reserves once LDK supports this
-	txId, err := checkLDKErr(ls.node.OnchainPayment().SendAllToAddress(toAddress))
+	txId, err := checkLDKErr(ls.node.OnchainPayment().SendAllToAddress(toAddress, false, nil))
 	if err != nil {
 		logger.Logger.WithError(err).Error("SendAllToAddress failed")
 		return "", err
@@ -1236,8 +1267,8 @@ func (ls *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 				preimage = *bolt11PaymentKind.Preimage
 			}
 			settledAt = &createdAt // fallback settledAt to created at time
-			if payment.LastUpdate > 0 {
-				lastUpdate := int64(payment.LastUpdate)
+			if payment.LatestUpdateTimestamp > 0 {
+				lastUpdate := int64(payment.LatestUpdateTimestamp)
 				settledAt = &lastUpdate
 			}
 		}
@@ -1271,7 +1302,7 @@ func (ls *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 	spontaneousPaymentKind, isSpontaneousPaymentKind := payment.Kind.(ldk_node.PaymentKindSpontaneous)
 	if isSpontaneousPaymentKind {
 		// keysend payment
-		lastUpdate := int64(payment.LastUpdate)
+		lastUpdate := int64(payment.LatestUpdateTimestamp)
 		createdAt = int64(payment.CreatedAt)
 		// TODO: remove this check some point in the future
 		// all payments after v0.6.2 will have createdAt set
@@ -1302,8 +1333,8 @@ func (ls *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 	}
 
 	var fee uint64 = 0
-	if payment.FeeMsat != nil {
-		fee = *payment.FeeMsat
+	if payment.FeePaidMsat != nil {
+		fee = *payment.FeePaidMsat
 	}
 
 	return &lnclient.Transaction{
@@ -1399,36 +1430,7 @@ func (ls *LDKService) GetNetworkGraph(ctx context.Context, nodeIds []string) (ln
 }
 
 func (ls *LDKService) GetLogOutput(ctx context.Context, maxLen int) ([]byte, error) {
-	config := ls.node.Config()
-	logPath := ""
-	if config.LogDirPath != nil {
-		logPath = *config.LogDirPath
-	} else {
-		// Default log path if not set explicitly in the config.
-		logPath = filepath.Join(config.StorageDirPath, "logs")
-	}
-
-	allLogFiles, err := filepath.Glob(filepath.Join(logPath, "ldk_node_*.log"))
-	if err != nil {
-		logger.Logger.WithError(err).Error("GetLogOutput failed to list log files")
-		return nil, err
-	}
-
-	if len(allLogFiles) == 0 {
-		return []byte{}, nil
-	}
-
-	// Log filenames are formatted as ldk_node_YYYY_MM_DD.log, hence they
-	// naturally sort by date.
-	lastLogFileName := slices.Max(allLogFiles)
-
-	logData, err := utils.ReadFileTail(lastLogFileName, maxLen)
-	if err != nil {
-		logger.Logger.WithError(err).Error("GetLogOutput failed to read log file")
-		return nil, err
-	}
-
-	return logData, nil
+	return []byte("Node logs are now included in application logs"), nil
 }
 
 func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
@@ -1469,7 +1471,6 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 			return
 		}
 
-		// also
 		maxDustHtlcExposureFromFeeRateMultiplier := uint64(0)
 		if isTrusted {
 			// avoid closures like "ProcessingError: Peer sent update_fee with a feerate (62500)
@@ -1616,6 +1617,11 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 				Reason:      reason,
 			},
 		})
+	case ldk_node.EventPaymentForwarded:
+		logger.Logger.WithFields(logrus.Fields{
+			"total_fee_earned_msat":          eventType.TotalFeeEarnedMsat,
+			"outbound_amount_forwarded_msat": eventType.OutboundAmountForwardedMsat,
+		}).Info("LDK Payment forwarded")
 	}
 }
 
@@ -1761,6 +1767,22 @@ func (ls *LDKService) deleteOldLDKPayments() {
 	now := time.Now()
 	for _, payment := range payments {
 		paymentCreatedAt := time.Unix(int64(payment.CreatedAt), 0)
+
+		deletablePaymentKind := false
+		switch (payment.Kind).(type) {
+		case ldk_node.PaymentKindBolt11:
+			deletablePaymentKind = true
+		case ldk_node.PaymentKindSpontaneous:
+			deletablePaymentKind = true
+		}
+		if !deletablePaymentKind {
+			logger.Logger.WithFields(logrus.Fields{
+				"created_at": paymentCreatedAt,
+				"payment_id": payment.Id,
+			}).Debug("Skipping undeletable payment kind")
+			continue
+		}
+
 		if paymentCreatedAt.Add(maxInvoiceExpiry).Before(now) {
 			logger.Logger.WithFields(logrus.Fields{
 				"created_at": paymentCreatedAt,
@@ -1853,6 +1875,8 @@ func (ls *LDKService) getPaymentFailReason(eventPaymentFailed *ldk_node.EventPay
 		failureReasonMessage = "InvoiceRequestExpired"
 	case ldk_node.PaymentFailureReasonInvoiceRequestRejected:
 		failureReasonMessage = "InvoiceRequestRejected"
+	case ldk_node.PaymentFailureReasonBlindedPathCreationFailed:
+		failureReasonMessage = "BlindedPathCreationFailed"
 	default:
 		failureReasonMessage = "UnknownError"
 	}
