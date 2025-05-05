@@ -49,23 +49,21 @@ function TransactionItem({ tx }: Props) {
   const [showDetails, setShowDetails] = React.useState(false);
   const type = tx.type;
 
-  const typeStateText = React.useMemo(() => {
-    return type == "incoming"
+  const typeStateText =
+    type == "incoming"
       ? "Received"
       : tx.state === "settled" // we only fetch settled incoming payments
         ? "Sent"
         : tx.state === "pending"
           ? "Sending"
           : "Failed";
-  }, [type, tx.state]);
 
-  const Icon = React.useMemo(() => {
-    return tx.state === "failed"
+  const Icon =
+    tx.state === "failed"
       ? XIcon
       : tx.type == "outgoing"
         ? ArrowUpIcon
         : ArrowDownIcon;
-  }, [tx.state, tx.type]);
 
   const app = React.useMemo(
     () =>
@@ -78,20 +76,13 @@ function TransactionItem({ tx }: Props) {
     [tx.metadata?.nostr?.pubkey]
   );
 
-  const from = React.useMemo(() => {
-    if (tx.metadata?.payer_data?.name) {
-      return `from ${tx.metadata.payer_data.name}`;
-    }
-    if (npub) {
-      return `zap from ${npub.substring(0, 12)}...`;
-    }
-    return undefined;
-  }, [tx.metadata?.payer_data?.name, npub]);
+  const from = tx.metadata?.payer_data?.name
+    ? `from ${tx.metadata.payer_data.name}`
+    : npub
+      ? `zap from ${npub.substring(0, 12)}...`
+      : undefined;
 
-  const eventId = React.useMemo(
-    () => tx.metadata?.nostr?.tags?.find((t) => t[0] === "e")?.[1],
-    [tx.metadata?.nostr?.tags]
-  );
+  const eventId = tx.metadata?.nostr?.tags?.find((t) => t[0] === "e")?.[1];
 
   const copy = (text: string) => {
     copyToClipboard(text, toast);
