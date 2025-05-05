@@ -1,8 +1,7 @@
-import { AlertCircleIcon, XCircleIcon } from "lucide-react";
+import { XCircleIcon } from "lucide-react";
 import { useState } from "react";
 import Loading from "src/components/Loading";
 import SettingsHeader from "src/components/SettingsHeader";
-import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -93,7 +92,7 @@ function Swaps() {
     <>
       <SettingsHeader
         title="Swaps"
-        description="Automatically swap lightning to on-chain funds"
+        description="Automatically swap lightning to on-chain funds, a fee of 1.5% applies to all swaps."
       />
       {!swapsSettings.enabled ? (
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
@@ -166,32 +165,7 @@ function Swaps() {
               />
             </div>
           )}
-          <Alert>
-            <AlertCircleIcon className="h-4 w-4" />
-            <AlertTitle>Fee Information</AlertTitle>
-            <AlertDescription>
-              <div className="mt-4 space-y-2 text-sm">
-                <div className="flex justify-between items-center">
-                  <span className="font-medium">Alby Service Fee</span>
-                  <span className="text-muted-foreground text-right">
-                    {swapsSettings.albyServiceFee} %
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="font-medium">Boltz Service Fee</span>
-                  <span className="text-muted-foreground text-right">
-                    {swapsSettings.boltzServiceFee} %
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="font-medium">Boltz Network Fee</span>
-                  <span className="text-muted-foreground text-right">
-                    {swapsSettings.boltzNetworkFee} sats
-                  </span>
-                </div>
-              </div>
-            </AlertDescription>
-          </Alert>
+
           <div>
             <LoadingButton
               loading={loading}
@@ -241,25 +215,6 @@ function Swaps() {
                 <span className="text-muted-foreground text-right">
                   {new Intl.NumberFormat().format(swapsSettings.swapAmount)}{" "}
                   sats
-                </span>
-              </div>
-              <h3 className="text-center font-medium">Fee info</h3>
-              <div className="flex justify-between items-center">
-                <span className="font-medium">Alby Service Fee</span>
-                <span className="text-muted-foreground text-right">
-                  {swapsSettings.albyServiceFee} %
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="font-medium">Boltz Service Fee</span>
-                <span className="text-muted-foreground text-right">
-                  {swapsSettings.boltzServiceFee} %
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="font-medium">Boltz Network Fee</span>
-                <span className="text-muted-foreground text-right">
-                  {swapsSettings.boltzNetworkFee} sats
                 </span>
               </div>
             </div>
