@@ -69,14 +69,16 @@ export default function Receive() {
                   <CopyIcon className="w-4 h-4" /> Copy
                 </Button>
               </div>
-              <div className="w-full border-t pt-6">
-                <Link to="/wallet/receive/offer">
-                  <Button variant="outline" className="w-full">
-                    <ReceiptTextIcon className="h-4 w-4 shrink-0 mr-2" />
-                    Lightning Offer
-                  </Button>
-                </Link>
-              </div>
+              {info.backendType === "LDK" && (
+                <div className="w-full border-t pt-6">
+                  <Link to="/wallet/receive/offer">
+                    <Button variant="outline" className="w-full">
+                      <ReceiptTextIcon className="h-4 w-4 shrink-0 mr-2" />
+                      Lightning Offer
+                    </Button>
+                  </Link>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}

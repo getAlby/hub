@@ -217,14 +217,15 @@ export default function ReceiveInvoice() {
                   >
                     Create Invoice
                   </LoadingButton>
-                  {!info?.albyAccountConnected && (
-                    <Link to="/wallet/receive/offer">
-                      <Button variant="outline" className="w-full">
-                        <ReceiptTextIcon className="h-4 w-4 shrink-0 mr-2" />
-                        Lightning Offer
-                      </Button>
-                    </Link>
-                  )}
+                  {!info?.albyAccountConnected &&
+                    info.backendType === "LDK" && (
+                      <Link to="/wallet/receive/offer">
+                        <Button variant="outline" className="w-full">
+                          <ReceiptTextIcon className="h-4 w-4 shrink-0 mr-2" />
+                          Lightning Offer
+                        </Button>
+                      </Link>
+                    )}
                 </div>
               </form>
             )}
