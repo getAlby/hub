@@ -8,7 +8,7 @@ function UserAvatar({ className }: { className?: string }) {
   return (
     <Avatar className={cn("h-8 w-8 rounded-lg", className)}>
       <AvatarImage src={albyMe?.avatar} alt="Avatar" />
-      <AvatarFallback className="rounded-lg">
+      <AvatarFallback className="font-medium rounded-lg">
         {(albyMe?.name || albyMe?.email || "SN").substring(0, 2).toUpperCase()}
       </AvatarFallback>
     </Avatar>

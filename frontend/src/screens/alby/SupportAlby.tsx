@@ -1,14 +1,15 @@
 import {
   CodeIcon,
+  HandCoins,
   PlusCircleIcon,
   RefreshCwIcon,
-  SparklesIcon,
+  Sparkles,
 } from "lucide-react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
-import { Badge } from "src/components/ui/badge";
-import { Button, LinkButton } from "src/components/ui/button";
+import { Button } from "src/components/ui/button";
 import {
   Card,
   CardContent,
@@ -155,208 +156,187 @@ function SupportAlby() {
 
   return (
     <>
-      <div className="h-full w-full max-w-screen-md mx-auto flex flex-col justify-center">
-        <div className="flex flex-col items-center justify-center gap-6">
-          <section className="text-center">
-            <h2 className="text-3xl font-semibold mb-4 max-sm:mt-8">
-              Your Support Matters
-            </h2>
-            <p className="text-muted-foreground text-balance">
-              We are committed to elevating the Bitcoin ecosystem by offering
-              reliable, efficient, and user-friendly software solutions for
-              seamless transactions. With your help, we can keep pushing
-              boundaries and evolving Alby Hub into something even more
-              extraordinary.
-            </p>
-          </section>
-          <Card className="w-full">
-            <CardHeader>
-              <CardTitle>Why Your Contribution Is Important</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="flex flex-col gap-5 text-sm">
-                <li className="flex flex-col">
-                  <div className="flex flex-row items-center">
-                    <PlusCircleIcon className="w-4 h-4 mr-2" />
-                    Unlock New Features
-                  </div>
-                  <div className="text-muted-foreground text-xs">
-                    Your support empowers us to design and implement
-                    cutting-edge{" "}
-                    <ExternalLink
-                      className="underline"
-                      to="https://github.com/getAlby/hub/issues"
-                    >
-                      features
-                    </ExternalLink>{" "}
-                    that enhance your experience and keep us at the forefront of
-                    technology.
-                  </div>
-                </li>
-                <li className="flex flex-col ">
-                  <div className="flex flex-row items-center">
-                    <RefreshCwIcon className="w-4 h-4 mr-2" />
-                    Ensure Continuous Improvement
-                  </div>
-                  <div className="text-muted-foreground text-xs">
-                    With your contributions, we can provide{" "}
-                    <ExternalLink
-                      className="underline"
-                      to="https://github.com/getAlby/hub/releases"
-                    >
-                      regular updates
-                    </ExternalLink>{" "}
-                    and ongoing maintenance, ensuring everything runs smoothly
-                    and efficiently for all users.
-                  </div>
-                </li>
-                <li className="flex flex-col ">
-                  <div className="flex flex-row items-center">
-                    <CodeIcon className="w-4 h-4 mr-2" />
-                    Support Open-Source Freedom
-                  </div>
-                  <div className="text-muted-foreground text-xs">
-                    Your support helps us keep Alby Hub true to the principles
-                    of{" "}
-                    <ExternalLink
-                      className="underline"
-                      to="https://github.com/getAlby/hub/blob/master/LICENSE"
-                    >
-                      free and open-source software
-                    </ExternalLink>{" "}
-                    and remains accessible for everyone to use, modify and
-                    improve.
-                  </div>
-                </li>
-              </ul>
-            </CardContent>
-          </Card>
-          <div className="grid grid-cols-2 gap-3 w-full">
-            <Card className="w-full">
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <div className="flex gap-2">
-                    <SparklesIcon className="h-4 w-4" />
-                    <div>Unlock Pro</div>
-                  </div>
-                  <Badge variant="outline">ACCOUNT REQUIRED</Badge>
-                </CardTitle>
-                <CardDescription>
-                  Upgrade your Alby Account to Pro, support Alby and enjoy
-                  additional perks.
-                </CardDescription>
-              </CardHeader>
-              <CardFooter className="flex justify-center">
-                <UpgradeDialog>
-                  <Button variant="premium">Unlock Pro</Button>
-                </UpgradeDialog>
-              </CardFooter>
-            </Card>
-            <Card className="w-full">
-              <CardHeader>
-                <CardTitle>Become a Supporter</CardTitle>
-                <CardDescription>
-                  Support Alby with recurring #value4value payments.
-                </CardDescription>
-              </CardHeader>
-              <CardFooter className="flex justify-center">
-                <Dialog open={open} onOpenChange={setOpen}>
-                  <div className="flex flex-col items-center justify-center gap-2">
-                    <DialogTrigger asChild>
-                      <Button>Become a Supporter</Button>
-                    </DialogTrigger>
-                  </div>
-                  <DialogContent>
-                    <form onSubmit={handleSubmit}>
-                      <DialogHeader>
-                        <DialogTitle>Become a Supporter</DialogTitle>
-                        <DialogDescription>
-                          A new app connection will be established to facilitate
-                          monthly payments to Alby. You can cancel it anytime
-                          through the connections page.
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="flex flex-col gap-3 my-5">
-                        <div className="grid grid-cols-4 gap-4">
-                          <Label htmlFor="amount" className="text-right mt-2">
-                            Amount <br></br>
-                            <span className="font-normal text-muted-foreground">
-                              (sats / month)
-                            </span>
-                          </Label>
-                          <div className="col-span-3">
-                            <Input
-                              id="amount"
-                              value={amount}
-                              required
-                              onChange={(e) => setAmount(e.target.value)}
-                            />
-                            <div className="grid grid-cols-3 gap-1 mt-1">
-                              <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => setAmount("3000")}
-                              >
-                                🙏 3000
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => setAmount("6000")}
-                              >
-                                💪 6000
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => setAmount("10000")}
-                              >
-                                ✨ 10000
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="comment" className="text-right">
-                            Name{" "}
-                            <span className="font-normal text-muted-foreground">
-                              (optional)
-                            </span>
-                          </Label>
-                          <Input
-                            id="sender-name"
-                            value={senderName}
-                            onChange={(e) => setSenderName(e.target.value)}
-                            placeholder={`Nickname, npub, @twitter, etc.`}
-                            className="col-span-3"
-                          />
+      <AppHeader
+        title="Support Alby Hub"
+        description="We are committed to elevating the Bitcoin ecosystem by offering reliable, efficient, and user-friendly software solutions for seamless transactions. With your help, we can keep pushing boundaries and evolving Alby Hub into something extraordinary."
+      />
+      <h2 className="text-2xl font-semibold">Become a Supporter</h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Card className="flex flex-col">
+          <CardHeader className="grow">
+            <CardTitle>Upgrade to Pro</CardTitle>
+            <CardDescription>
+              Upgrade your Alby Account to Pro for a small fee and enjoy
+              additional perks that come with it!
+            </CardDescription>
+          </CardHeader>
+          <CardFooter className="flex justify-end">
+            <UpgradeDialog>
+              <Button>
+                <Sparkles className="w-4 h-4 mr-2" />
+                Upgrade to Pro
+              </Button>
+            </UpgradeDialog>
+          </CardFooter>
+        </Card>
+        <Card className="flex flex-col">
+          <CardHeader className="grow">
+            <CardTitle>Donate to Alby Hub development</CardTitle>
+            <CardDescription>
+              Set up a recurring value4value payment to support the development
+              of Alby Hub, Alby Go, and the NWC ecosystem.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex-1 grow" />
+          <CardFooter className="flex justify-end">
+            <Dialog open={open} onOpenChange={setOpen}>
+              <div className="flex flex-col items-center justify-center gap-2">
+                <DialogTrigger asChild>
+                  <Button>
+                    <HandCoins className="w-4 h-4 mr-2" />
+                    Setup Donation
+                  </Button>
+                </DialogTrigger>
+              </div>
+              <DialogContent>
+                <form onSubmit={handleSubmit}>
+                  <DialogHeader>
+                    <DialogTitle>Become a Supporter</DialogTitle>
+                    <DialogDescription>
+                      A new app connection will be established to facilitate
+                      monthly payments to Alby. You can cancel it anytime
+                      through the connections page.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="flex flex-col gap-3 my-5">
+                    <div className="grid grid-cols-4 gap-4">
+                      <Label htmlFor="amount" className="text-right mt-2">
+                        Amount <br></br>
+                        <span className="font-normal text-muted-foreground">
+                          (sats / month)
+                        </span>
+                      </Label>
+                      <div className="col-span-3">
+                        <Input
+                          id="amount"
+                          value={amount}
+                          required
+                          onChange={(e) => setAmount(e.target.value)}
+                        />
+                        <div className="grid grid-cols-3 gap-1 mt-1">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setAmount("3000")}
+                          >
+                            🙏 3000
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setAmount("6000")}
+                          >
+                            💪 6000
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setAmount("10000")}
+                          >
+                            ✨ 10000
+                          </Button>
                         </div>
                       </div>
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="comment" className="text-right">
+                        Name{" "}
+                        <span className="font-normal text-muted-foreground">
+                          (optional)
+                        </span>
+                      </Label>
+                      <div className="col-span-3">
+                        <Input
+                          id="sender-name"
+                          value={senderName}
+                          onChange={(e) => setSenderName(e.target.value)}
+                          placeholder={`Nickname, npub, @twitter, etc.`}
+                        />
+                      </div>
+                    </div>
+                  </div>
 
-                      <DialogFooter>
-                        <LoadingButton
-                          type="submit"
-                          disabled={!!isSubmitting}
-                          loading={isSubmitting}
-                        >
-                          Complete Setup
-                        </LoadingButton>
-                      </DialogFooter>
-                    </form>
-                  </DialogContent>
-                </Dialog>
-              </CardFooter>
-            </Card>
-          </div>
-          <LinkButton
-            size="sm"
-            variant="link"
-            to="/"
-            className="text-muted-foreground"
-          >
-            Maybe later
-          </LinkButton>
-        </div>
+                  <DialogFooter>
+                    <LoadingButton
+                      type="submit"
+                      disabled={!!isSubmitting}
+                      loading={isSubmitting}
+                    >
+                      Complete Setup
+                    </LoadingButton>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </CardFooter>
+        </Card>
+      </div>
+      <div className="mt-4">
+        <h2 className="text-2xl font-semibold mb-4">
+          Why Your Contribution Is Important
+        </h2>
+        <ul className="flex flex-col gap-5">
+          <li className="flex flex-col">
+            <div className="flex flex-row items-center">
+              <PlusCircleIcon className="w-4 h-4 mr-2" />
+              Unlock New Features
+            </div>
+            <div className="text-muted-foreground text-sm">
+              Your support empowers us to design and implement cutting-edge{" "}
+              <ExternalLink
+                className="underline"
+                to="https://github.com/getAlby/hub/issues"
+              >
+                features
+              </ExternalLink>{" "}
+              that enhance your experience and keep us at the forefront of
+              technology.
+            </div>
+          </li>
+          <li className="flex flex-col ">
+            <div className="flex flex-row items-center">
+              <RefreshCwIcon className="w-4 h-4 mr-2" />
+              Ensure Continuous Improvement
+            </div>
+            <div className="text-muted-foreground text-sm">
+              With your contributions, we can provide{" "}
+              <ExternalLink
+                className="underline"
+                to="https://github.com/getAlby/hub/releases"
+              >
+                regular updates
+              </ExternalLink>{" "}
+              and ongoing maintenance, ensuring everything runs smoothly and
+              efficiently for all users.
+            </div>
+          </li>
+          <li className="flex flex-col ">
+            <div className="flex flex-row items-center">
+              <CodeIcon className="w-4 h-4 mr-2" />
+              Support Open-Source Freedom
+            </div>
+            <div className="text-muted-foreground text-sm">
+              Your support helps us keep Alby Hub true to the principles of{" "}
+              <ExternalLink
+                className="underline"
+                to="https://github.com/getAlby/hub/blob/master/LICENSE"
+              >
+                free and open-source software
+              </ExternalLink>{" "}
+              and remains accessible for everyone to use, modify and improve.
+            </div>
+          </li>
+        </ul>
       </div>
     </>
   );

@@ -998,6 +998,64 @@ func (_c *MockLNClient_ListChannels_Call) RunAndReturn(run func(context.Context)
 	return _c
 }
 
+// ListOnchainTransactions provides a mock function with given fields: ctx
+func (_m *MockLNClient) ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error) {
+	ret := _m.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListOnchainTransactions")
+	}
+
+	var r0 []lnclient.OnchainTransaction
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context) ([]lnclient.OnchainTransaction, error)); ok {
+		return rf(ctx)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context) []lnclient.OnchainTransaction); ok {
+		r0 = rf(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]lnclient.OnchainTransaction)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockLNClient_ListOnchainTransactions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListOnchainTransactions'
+type MockLNClient_ListOnchainTransactions_Call struct {
+	*mock.Call
+}
+
+// ListOnchainTransactions is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *MockLNClient_Expecter) ListOnchainTransactions(ctx interface{}) *MockLNClient_ListOnchainTransactions_Call {
+	return &MockLNClient_ListOnchainTransactions_Call{Call: _e.mock.On("ListOnchainTransactions", ctx)}
+}
+
+func (_c *MockLNClient_ListOnchainTransactions_Call) Run(run func(ctx context.Context)) *MockLNClient_ListOnchainTransactions_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *MockLNClient_ListOnchainTransactions_Call) Return(_a0 []lnclient.OnchainTransaction, _a1 error) *MockLNClient_ListOnchainTransactions_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockLNClient_ListOnchainTransactions_Call) RunAndReturn(run func(context.Context) ([]lnclient.OnchainTransaction, error)) *MockLNClient_ListOnchainTransactions_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListPeers provides a mock function with given fields: ctx
 func (_m *MockLNClient) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, error) {
 	ret := _m.Called(ctx)

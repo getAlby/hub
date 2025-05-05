@@ -582,6 +582,12 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: ""}
 		}
 		return WailsRequestRouterResponse{Body: *nodeStatus, Error: ""}
+	case "/api/node/transactions":
+		transactions, err := app.api.ListOnchainTransactions(ctx)
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: transactions, Error: ""}
 	case "/api/info":
 		infoResponse, err := app.api.GetInfo(ctx)
 		if err != nil {

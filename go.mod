@@ -7,7 +7,7 @@ toolchain go1.24.2
 require (
 	github.com/adrg/xdg v0.5.3
 	github.com/elnosh/gonuts v0.4.0
-	github.com/getAlby/ldk-node-go v0.0.0-20250409032721-a0b2d497fc2c
+	github.com/getAlby/ldk-node-go v0.0.0-20250503035148-4f935f853d83
 	github.com/go-gormigrate/gormigrate/v2 v2.1.4
 	github.com/labstack/echo/v4 v4.13.3
 	github.com/nbd-wtf/go-nostr v0.51.10
@@ -48,12 +48,12 @@ require (
 	github.com/btcsuite/btcd/btcutil/psbt v1.1.9 // indirect
 	github.com/btcsuite/btclog v0.0.0-20241003133417-09c4e92e319c // indirect
 	github.com/btcsuite/btclog/v2 v2.0.1-0.20250110154127-3ae4bf1cb318 // indirect
-	github.com/btcsuite/btcwallet v0.16.12 // indirect
+	github.com/btcsuite/btcwallet v0.16.13 // indirect
 	github.com/btcsuite/btcwallet/wallet/txauthor v1.3.5 // indirect
 	github.com/btcsuite/btcwallet/wallet/txrules v1.2.2 // indirect
 	github.com/btcsuite/btcwallet/wallet/txsizes v1.2.5 // indirect
-	github.com/btcsuite/btcwallet/walletdb v1.4.4 // indirect
-	github.com/btcsuite/btcwallet/wtxmgr v1.5.4 // indirect
+	github.com/btcsuite/btcwallet/walletdb v1.5.1 // indirect
+	github.com/btcsuite/btcwallet/wtxmgr v1.5.6 // indirect
 	github.com/btcsuite/go-socks v0.0.0-20170105172521-4720035b7bfd // indirect
 	github.com/btcsuite/websocket v0.0.0-20150119174127-31079b680792 // indirect
 	github.com/btcsuite/winsvc v1.0.0 // indirect
@@ -135,7 +135,7 @@ require (
 	github.com/lightningnetwork/lnd/clock v1.1.1 // indirect
 	github.com/lightningnetwork/lnd/fn/v2 v2.0.8 // indirect
 	github.com/lightningnetwork/lnd/healthcheck v1.2.6 // indirect
-	github.com/lightningnetwork/lnd/kvdb v1.4.14 // indirect
+	github.com/lightningnetwork/lnd/kvdb v1.4.16 // indirect
 	github.com/lightningnetwork/lnd/queue v1.1.1 // indirect
 	github.com/lightningnetwork/lnd/sqldb v1.0.9 // indirect
 	github.com/lightningnetwork/lnd/ticker v1.1.1 // indirect
@@ -255,7 +255,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/labstack/echo-jwt/v4 v4.3.1
-	github.com/lightningnetwork/lnd v0.19.0-beta.rc2
+	github.com/lightningnetwork/lnd v0.19.0-beta.rc3
 	github.com/sirupsen/logrus v1.9.3
 	github.com/tyler-smith/go-bip32 v1.0.0
 	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394 // indirect

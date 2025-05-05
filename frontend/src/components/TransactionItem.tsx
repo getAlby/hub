@@ -158,7 +158,7 @@ function TransactionItem({ tx }: Props) {
                 </span>
               </p>
             </div>
-            <p className="text-sm md:text-base text-muted-foreground break-all w-full truncate">
+            <p className="text-sm md:text-base text-muted-foreground break-all line-clamp-1">
               {tx.description}
             </p>
           </div>
