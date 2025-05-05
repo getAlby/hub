@@ -71,10 +71,8 @@ function TransactionItem({ tx }: Props) {
     [apps, tx.appId]
   );
 
-  const npub = React.useMemo(
-    () => safeNpubEncode(tx.metadata?.nostr?.pubkey as string),
-    [tx.metadata?.nostr?.pubkey]
-  );
+  const pubkey = tx.metadata?.nostr?.pubkey;
+  const npub = pubkey ? safeNpubEncode(pubkey) : undefined;
 
   const from = tx.metadata?.payer_data?.name
     ? `from ${tx.metadata.payer_data.name}`
