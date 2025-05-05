@@ -1584,8 +1584,8 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 		})
 	case ldk_node.EventPaymentForwarded:
 		logger.Logger.WithFields(logrus.Fields{
-			"total_fee_earned_msat":           eventType.TotalFeeEarnedMsat,
-			"aoutbound_amount_forwarded_msat": eventType.OutboundAmountForwardedMsat,
+			"total_fee_earned_msat":          eventType.TotalFeeEarnedMsat,
+			"outbound_amount_forwarded_msat": eventType.OutboundAmountForwardedMsat,
 		}).Info("LDK Payment forwarded")
 	}
 }
