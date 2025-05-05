@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -781,6 +782,57 @@ func (ls *LDKService) ListTransactions(ctx context.Context, from, until, limit, 
 	return transactions, nil*/
 }
 
+func (ls *LDKService) ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error) {
+	transactions := []lnclient.OnchainTransaction{}
+	for _, payment := range ls.node.ListPayments() {
+		onchainPaymentKind, isOnchainPaymentKind := payment.Kind.(ldk_node.PaymentKindOnchain)
+		if !isOnchainPaymentKind {
+			continue
+		}
+
+		transactionType := "incoming"
+		if payment.Direction == ldk_node.PaymentDirectionOutbound {
+			transactionType = "outgoing"
+		}
+
+		var amountMsat uint64
+		if payment.AmountMsat != nil {
+			amountMsat = *payment.AmountMsat
+		}
+		var status string
+		var height uint32
+		var numConfirmations uint32
+		switch onchainPaymentStatus := onchainPaymentKind.Status.(type) {
+		case ldk_node.ConfirmationStatusConfirmed:
+			status = "confirmed"
+			height = onchainPaymentStatus.Height
+			nodeStatus := ls.node.Status()
+			numConfirmations = nodeStatus.CurrentBestBlock.Height - height
+		case ldk_node.ConfirmationStatusUnconfirmed:
+			status = "unconfirmed"
+		}
+
+		createdAt := payment.CreatedAt
+		if createdAt == 0 {
+			createdAt = payment.LatestUpdateTimestamp
+		}
+
+		transactions = append(transactions, lnclient.OnchainTransaction{
+			AmountSat:        amountMsat / 1000,
+			CreatedAt:        createdAt,
+			State:            status,
+			Type:             transactionType,
+			NumConfirmations: numConfirmations,
+			TxId:             onchainPaymentKind.Txid,
+		})
+
+	}
+	sort.SliceStable(transactions, func(i, j int) bool {
+		return transactions[i].CreatedAt > transactions[j].CreatedAt
+	})
+	return transactions, nil
+}
+
 func (ls *LDKService) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, err error) {
 	// TODO: should alias, color be configured in LDK-node? or can we manage them in NWC?
 	// an alias is only needed if the user has public channels and wants their node to be publicly visible?
@@ -1532,7 +1584,7 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 		})
 	case ldk_node.EventPaymentForwarded:
 		logger.Logger.WithFields(logrus.Fields{
-			"total_fee_earned_msat":           eventType.TotalFeeEarnedMsat,
+			"total_fee_earned_msat":          eventType.TotalFeeEarnedMsat,
 			"outbound_amount_forwarded_msat": eventType.OutboundAmountForwardedMsat,
 		}).Info("LDK Payment forwarded")
 	}
