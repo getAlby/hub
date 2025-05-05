@@ -495,7 +495,6 @@ export type Boostagram = {
 export type OnchainTransaction = {
   amountSat: number;
   createdAt: number;
-  updatedAt: number;
   type: "incoming" | "outgoing";
   state: "confirmed" | "unconfirmed";
   numConfirmations: number;

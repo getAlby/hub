@@ -75,11 +75,11 @@ export function OnchainTransactionsTable() {
                       </p>
                       <p
                         className="text-muted-foreground"
-                        title={dayjs(tx.updatedAt * 1000)
+                        title={dayjs(tx.createdAt * 1000)
                           .local()
                           .format("D MMMM YYYY, HH:mm")}
                       >
-                        {dayjs(tx.updatedAt * 1000)
+                        {dayjs(tx.createdAt * 1000)
                           .local()
                           .fromNow()}
                       </p>

@@ -812,10 +812,14 @@ func (ls *LDKService) ListOnchainTransactions(ctx context.Context) ([]lnclient.O
 			status = "unconfirmed"
 		}
 
+		createdAt := payment.CreatedAt
+		if createdAt == 0 {
+			createdAt = payment.LatestUpdateTimestamp
+		}
+
 		transactions = append(transactions, lnclient.OnchainTransaction{
 			AmountSat:        amountMsat / 1000,
-			CreatedAt:        payment.CreatedAt,
-			UpdatedAt:        payment.LatestUpdateTimestamp,
+			CreatedAt:        createdAt,
 			State:            status,
 			Type:             transactionType,
 			NumConfirmations: numConfirmations,
@@ -824,7 +828,7 @@ func (ls *LDKService) ListOnchainTransactions(ctx context.Context) ([]lnclient.O
 
 	}
 	sort.SliceStable(transactions, func(i, j int) bool {
-		return transactions[i].UpdatedAt > transactions[j].UpdatedAt
+		return transactions[i].CreatedAt > transactions[j].CreatedAt
 	})
 	return transactions, nil
 }

@@ -43,7 +43,6 @@ type Transaction struct {
 type OnchainTransaction struct {
 	AmountSat        uint64 `json:"amountSat"`
 	CreatedAt        uint64 `json:"createdAt"`
-	UpdatedAt        uint64 `json:"updatedAt"`
 	State            string `json:"state"`
 	Type             string `json:"type"`
 	NumConfirmations uint32 `json:"numConfirmations"`

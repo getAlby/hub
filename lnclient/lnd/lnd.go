@@ -1343,7 +1343,6 @@ func (svc *LNDService) ListOnchainTransactions(ctx context.Context) ([]lnclient.
 		transactions = append(transactions, lnclient.OnchainTransaction{
 			AmountSat:        uint64(amountSat),
 			CreatedAt:        uint64(tx.TimeStamp),
-			UpdatedAt:        uint64(tx.TimeStamp),
 			State:            state,
 			Type:             txType,
 			NumConfirmations: uint32(tx.NumConfirmations),
@@ -1351,7 +1350,7 @@ func (svc *LNDService) ListOnchainTransactions(ctx context.Context) ([]lnclient.
 		})
 	}
 	sort.SliceStable(transactions, func(i, j int) bool {
-		return transactions[i].UpdatedAt > transactions[j].UpdatedAt
+		return transactions[i].CreatedAt > transactions[j].CreatedAt
 	})
 	return transactions, nil
 }
