@@ -177,6 +177,11 @@ func (svc *swapsService) ReverseSwap(ctx context.Context, amount uint64, destina
 		"networkFee": networkFee,
 	}).Info("Calculated fees for swap")
 
+	albyFee := &boltz.ExtraFees{
+		Percentage: AlbySwapServiceFee,
+		Id:         "albyServiceFee",
+	}
+
 	swap, err := svc.boltzApi.CreateReverseSwap(boltz.CreateReverseSwapRequest{
 		From:           boltz.CurrencyBtc,
 		To:             boltz.CurrencyBtc,
@@ -185,6 +190,7 @@ func (svc *swapsService) ReverseSwap(ctx context.Context, amount uint64, destina
 		InvoiceAmount:  amount,
 		PairHash:       pairInfo.Hash,
 		ReferralId:     "alby",
+		ExtraFees:      albyFee,
 	})
 	if err != nil {
 		return fmt.Errorf("could not create swap: %s", err)
