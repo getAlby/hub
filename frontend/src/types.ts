@@ -502,6 +502,15 @@ export type Boostagram = {
   valueMsatTotal: number;
 };
 
+export type OnchainTransaction = {
+  amountSat: number;
+  createdAt: number;
+  type: "incoming" | "outgoing";
+  state: "confirmed" | "unconfirmed";
+  numConfirmations: number;
+  txId: string;
+};
+
 export type ListTransactionsResponse = {
   transactions: Transaction[];
   totalCount: number;

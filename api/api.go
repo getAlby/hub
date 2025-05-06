@@ -1113,6 +1113,12 @@ func (api *api) SyncWallet() error {
 	api.svc.GetLNClient().UpdateLastWalletSyncRequest()
 	return nil
 }
+func (api *api) ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error) {
+	if api.svc.GetLNClient() == nil {
+		return nil, errors.New("LNClient not started")
+	}
+	return api.svc.GetLNClient().ListOnchainTransactions(ctx)
+}
 
 func (api *api) GetLogOutput(ctx context.Context, logType string, getLogRequest *GetLogOutputRequest) (*GetLogOutputResponse, error) {
 	var err error

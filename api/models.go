@@ -37,6 +37,7 @@ type API interface {
 	RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, sendAll bool) (*RedeemOnchainFundsResponse, error)
 	GetBalances(ctx context.Context) (*BalancesResponse, error)
 	ListTransactions(ctx context.Context, appId *uint, limit uint64, offset uint64) (*ListTransactionsResponse, error)
+	ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error)
 	SendPayment(ctx context.Context, invoice string, amountMsat *uint64) (*SendPaymentResponse, error)
 	CreateInvoice(ctx context.Context, amount uint64, description string) (*MakeInvoiceResponse, error)
 	LookupInvoice(ctx context.Context, paymentHash string) (*LookupInvoiceResponse, error)
