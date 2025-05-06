@@ -16,21 +16,6 @@ type cancelHoldInvoiceParams struct {
 type cancelHoldInvoiceResponse struct{}
 
 func (controller *nip47Controller) HandleCancelHoldInvoiceEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, appId uint, publishResponse func(*models.Response, nostr.Tags)) {
-	if nip47Request == nil {
-		logger.Logger.WithFields(logrus.Fields{
-			"requestEventId": requestEventId,
-			"appId":          appId,
-		}).Error("Received nil nip47Request in HandleCancelHoldInvoiceEvent")
-		publishResponse(&models.Response{
-			ResultType: models.CANCEL_HOLD_INVOICE_METHOD,
-			Error: &models.Error{
-				Code:    constants.ERROR_INTERNAL,
-				Message: "Internal server error: received nil request payload",
-			},
-		}, nostr.Tags{})
-		return
-	}
-
 	resp := &models.Response{}
 	resp.ResultType = models.CANCEL_HOLD_INVOICE_METHOD
 
