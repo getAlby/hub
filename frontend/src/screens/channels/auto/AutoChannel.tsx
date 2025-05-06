@@ -109,8 +109,8 @@ export function AutoChannel() {
           <p className="text-muted-foreground slashed-zero">
             Please pay the lightning invoice below which will cover the costs of
             opening your channel. You will receive a channel with{" "}
-            {new Intl.NumberFormat().format(channelSize)} sats of incoming
-            liquidity.
+            {new Intl.NumberFormat().format(channelSize)} sats of receiving
+            capacity.
           </p>
           <PayLightningInvoice invoice={invoice} />
 
