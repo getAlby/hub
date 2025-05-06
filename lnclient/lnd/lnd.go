@@ -24,6 +24,7 @@ import (
 	"github.com/getAlby/hub/lnclient/lnd/wrapper"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/nip47/models"
+	"github.com/getAlby/hub/nip47/notifications"
 	"github.com/getAlby/hub/transactions"
 
 	"github.com/sirupsen/logrus"
@@ -1419,7 +1420,7 @@ func (svc *LNDService) GetSupportedNIP47Methods() []string {
 }
 
 func (svc *LNDService) GetSupportedNIP47NotificationTypes() []string {
-	return []string{"payment_received", "payment_sent"}
+	return []string{notifications.PAYMENT_RECEIVED_NOTIFICATION, notifications.PAYMENT_SENT_NOTIFICATION, notifications.HOLD_INVOICE_ACCEPTED_NOTIFICATION}
 }
 
 func (svc *LNDService) GetPubkey() string {
