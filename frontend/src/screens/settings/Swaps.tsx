@@ -1,4 +1,4 @@
-import { XCircleIcon } from "lucide-react";
+import { ClipboardPasteIcon, XCircleIcon } from "lucide-react";
 import { useState } from "react";
 import Loading from "src/components/Loading";
 import SettingsHeader from "src/components/SettingsHeader";
@@ -84,6 +84,11 @@ function Swaps() {
     }
   };
 
+  const paste = async () => {
+    const text = await navigator.clipboard.readText();
+    setDestination(text.trim());
+  };
+
   if (!onchainAddress || !swapsSettings) {
     return <Loading />;
   }
@@ -158,24 +163,39 @@ function Swaps() {
           {swapTo == "external" && (
             <div className="grid gap-1.5">
               <Label>Receiving on-chain address</Label>
-              <Input
-                placeholder="bc1..."
-                value={destination}
-                onChange={(e) => setDestination(e.target.value)}
-              />
+              <div className="flex gap-2 mb-4">
+                <Input
+                  placeholder="bc1..."
+                  value={destination}
+                  onChange={(e) => setDestination(e.target.value)}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="px-2"
+                  onClick={paste}
+                >
+                  <ClipboardPasteIcon className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
           )}
 
-          <div>
-            <LoadingButton
-              loading={loading}
-              disabled={
-                !balanceThreshold || (swapTo == "external" && !destination)
-              }
-            >
-              Enable Auto Swaps
-            </LoadingButton>
+          <div className="flex items-center justify-between border-t py-4">
+            <Label>Fee</Label>
+            <p className="text-muted-foreground text-sm">
+              {swapsSettings.albyServiceFee + swapsSettings.boltzServiceFee}% +
+              on-chain fees
+            </p>
           </div>
+          <LoadingButton
+            loading={loading}
+            disabled={
+              !balanceThreshold || (swapTo == "external" && !destination)
+            }
+          >
+            Enable Auto Swaps
+          </LoadingButton>
         </form>
       ) : (
         <Card className="w-full hidden md:block self-start">
@@ -215,6 +235,13 @@ function Swaps() {
                 <span className="text-muted-foreground text-right">
                   {new Intl.NumberFormat().format(swapsSettings.swapAmount)}{" "}
                   sats
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="font-medium">Fee</span>
+                <span className="text-muted-foreground text-right">
+                  {swapsSettings.albyServiceFee + swapsSettings.boltzServiceFee}
+                  % + on-chain fees
                 </span>
               </div>
             </div>
