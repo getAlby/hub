@@ -126,6 +126,8 @@ func scopeToRequestMethods(scope string) []string {
 		return []string{models.LIST_TRANSACTIONS_METHOD}
 	case constants.SIGN_MESSAGE_SCOPE:
 		return []string{models.SIGN_MESSAGE_METHOD}
+	case constants.HOLD_INVOICES_SCOPE:
+		return []string{models.MAKE_HOLD_INVOICE_METHOD, models.SETTLE_HOLD_INVOICE_METHOD, models.CANCEL_HOLD_INVOICE_METHOD}
 	case constants.SUPERUSER_SCOPE:
 		return []string{models.CREATE_CONNECTION_METHOD}
 	}
@@ -165,6 +167,8 @@ func RequestMethodToScope(requestMethod string) (string, error) {
 		return constants.LIST_TRANSACTIONS_SCOPE, nil
 	case models.SIGN_MESSAGE_METHOD:
 		return constants.SIGN_MESSAGE_SCOPE, nil
+	case models.MAKE_HOLD_INVOICE_METHOD, models.SETTLE_HOLD_INVOICE_METHOD, models.CANCEL_HOLD_INVOICE_METHOD:
+		return constants.HOLD_INVOICES_SCOPE, nil
 	case models.CREATE_CONNECTION_METHOD:
 		return constants.SUPERUSER_SCOPE, nil
 	}
@@ -181,6 +185,7 @@ func AllScopes() []string {
 		constants.LOOKUP_INVOICE_SCOPE,
 		constants.LIST_TRANSACTIONS_SCOPE,
 		constants.SIGN_MESSAGE_SCOPE,
+		constants.HOLD_INVOICES_SCOPE,
 		constants.NOTIFICATIONS_SCOPE,
 		constants.SUPERUSER_SCOPE,
 	}

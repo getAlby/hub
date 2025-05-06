@@ -23,12 +23,14 @@ import (
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/lnclient/lnd/wrapper"
 	"github.com/getAlby/hub/logger"
+	"github.com/getAlby/hub/nip47/models"
 	"github.com/getAlby/hub/transactions"
 
 	"github.com/sirupsen/logrus"
 	// "gorm.io/gorm"
 
 	"github.com/lightningnetwork/lnd/lnrpc"
+	"github.com/lightningnetwork/lnd/lnrpc/invoicesrpc"
 	"github.com/lightningnetwork/lnd/lnrpc/routerrpc"
 )
 
@@ -36,6 +38,7 @@ type LNDService struct {
 	client         *wrapper.LNDWrapper
 	nodeInfo       *lnclient.NodeInfo
 	cancel         context.CancelFunc
+	globalCtx      context.Context
 	eventPublisher events.EventPublisher
 }
 
@@ -72,12 +75,13 @@ func NewLNDService(ctx context.Context, eventPublisher events.EventPublisher, ln
 		return nil, err
 	}
 
-	lndCtx, cancel := context.WithCancel(ctx)
+	lndCtx, svcCancel := context.WithCancel(ctx)
 
 	lndService := &LNDService{
 		client:         lndClient,
 		nodeInfo:       nodeInfo,
-		cancel:         cancel,
+		cancel:         svcCancel,
+		globalCtx:      ctx,
 		eventPublisher: eventPublisher,
 	}
 
@@ -274,6 +278,79 @@ func (svc *LNDService) subscribeChannelEvents(ctx context.Context) {
 					})
 				}
 			}
+		}
+	}
+}
+
+func (svc *LNDService) subscribeSingleInvoice(paymentHashBytes []byte) {
+	// Use the global context for the lifetime of this subscription, but create a cancellable one for this specific task
+	// This allows the goroutine to be potentially cancelled externally if needed, though it primarily exits on invoice state change.
+	// We use a background context derived from the global one to avoid cancelling if the original request context finishes.
+	ctx, cancel := context.WithCancel(svc.globalCtx)
+	defer cancel() // Ensure cancellation happens on exit
+
+	paymentHashHex := hex.EncodeToString(paymentHashBytes)
+	log := logger.Logger.WithField("paymentHash", paymentHashHex)
+
+	log.Info("Starting subscribeSingleInvoice goroutine")
+
+	subReq := &invoicesrpc.SubscribeSingleInvoiceRequest{
+		RHash: paymentHashBytes,
+	}
+
+	invoiceStream, err := svc.client.SubscribeSingleInvoice(ctx, subReq)
+	if err != nil {
+		log.WithError(err).Error("SubscribeSingleInvoice call failed")
+		// Goroutine will exit
+		return
+	}
+
+	log.Info("Successfully subscribed to single invoice stream")
+
+	defer func() {
+		log.Info("Exiting subscribeSingleInvoice goroutine")
+		if r := recover(); r != nil {
+			log.WithField("panic", r).Errorf("PANIC recovered in single invoice stream processing")
+		}
+	}()
+
+	for {
+		invoice, err := invoiceStream.Recv()
+
+		if err != nil {
+			log.WithError(err).Error("Failed to receive single invoice update from stream")
+			return
+		}
+		if ctx.Err() != nil {
+			log.Info("Context cancelled, exiting single invoice subscription loop")
+			return
+		}
+
+		log.WithFields(logrus.Fields{
+			"rawState":    invoice.State.String(),
+			"addIndex":    invoice.AddIndex,
+			"settleIndex": invoice.SettleIndex,
+			"amtPaidMsat": invoice.AmtPaidMsat,
+		}).Info("Raw update received from single invoice stream")
+
+		switch invoice.State {
+		case lnrpc.Invoice_ACCEPTED:
+			log.Info("Hold invoice accepted, publishing internal event")
+			svc.eventPublisher.Publish(&events.Event{
+				Event:      "nwc_lnclient_hold_invoice_accepted",
+				Properties: lndInvoiceToTransaction(invoice),
+			})
+		case lnrpc.Invoice_CANCELED:
+			log.Info("Hold invoice canceled, publishing internal event")
+			svc.eventPublisher.Publish(&events.Event{
+				Event:      "nwc_lnclient_hold_invoice_canceled",
+				Properties: lndInvoiceToTransaction(invoice),
+			})
+			return // Invoice reached final state, exit goroutine
+		case lnrpc.Invoice_SETTLED:
+			return // Invoice reached final state, exit goroutine
+		case lnrpc.Invoice_OPEN:
+			// Continue loop
 		}
 	}
 }
@@ -504,6 +581,134 @@ func (svc *LNDService) MakeInvoice(ctx context.Context, amount int64, descriptio
 
 	transaction = lndInvoiceToTransaction(inv)
 	return transaction, nil
+}
+
+func (svc *LNDService) MakeHoldInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string) (transaction *lnclient.Transaction, err error) { // Added missing function name
+	var descriptionHashBytes []byte
+	var paymentHashBytes []byte
+
+	if descriptionHash != "" {
+		descriptionHashBytes, err = hex.DecodeString(descriptionHash)
+		if err != nil || len(descriptionHashBytes) != 32 {
+			if err == nil {
+				err = errors.New("description hash must be 32 bytes hex")
+			}
+			logger.Logger.WithFields(logrus.Fields{
+				"descriptionHash": descriptionHash,
+			}).WithError(err).Error("Invalid description hash")
+			return nil, err
+		}
+	}
+
+	paymentHashBytes, err = hex.DecodeString(paymentHash)
+	if err != nil || len(paymentHashBytes) != 32 {
+		if err == nil {
+			err = errors.New("payment hash must be 32 bytes hex")
+		}
+		logger.Logger.WithFields(logrus.Fields{
+			"paymentHash": paymentHash,
+		}).WithError(err).Error("Invalid payment hash")
+		return nil, err
+	}
+
+	if expiry == 0 {
+		expiry = lnclient.DEFAULT_INVOICE_EXPIRY
+	}
+
+	channels, err := svc.ListChannels(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	hasPublicChannels := false
+	for _, channel := range channels {
+		if channel.Active && channel.Public {
+			hasPublicChannels = true
+		}
+	}
+
+	addInvoiceRequest := &invoicesrpc.AddHoldInvoiceRequest{
+		ValueMsat:       amount,
+		Memo:            description,
+		DescriptionHash: descriptionHashBytes,
+		Expiry:          expiry,
+		Private:         !hasPublicChannels, // use private channel hints in the invoice
+		Hash:            paymentHashBytes,
+	}
+
+	resp, err := svc.client.AddHoldInvoice(ctx, addInvoiceRequest)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to create hold invoice")
+		return nil, err
+	}
+
+	// Start subscribing to updates for this specific hold invoice in a separate goroutine
+	go svc.subscribeSingleInvoice(paymentHashBytes)
+	logger.Logger.WithField("paymentHash", paymentHash).Info("Launched single invoice subscription goroutine")
+
+	inv, err := svc.client.LookupInvoice(ctx, &lnrpc.PaymentHash{RHash: paymentHashBytes})
+	if err != nil {
+		logger.Logger.WithField("paymentHash", paymentHash).WithError(err).Error("Failed to lookup hold invoice after creation")
+		return &lnclient.Transaction{
+			Type:        "incoming",
+			Invoice:     resp.PaymentRequest,
+			PaymentHash: paymentHash,
+			Amount:      amount,
+			CreatedAt:   time.Now().Unix(),
+			ExpiresAt:   &expiry,
+		}, nil
+	}
+
+	transaction = lndInvoiceToTransaction(inv)
+	return transaction, nil
+}
+
+func (svc *LNDService) SettleHoldInvoice(ctx context.Context, preimage string) (err error) {
+	preimageBytes, err := hex.DecodeString(preimage)
+	if err != nil || len(preimageBytes) != 32 {
+		if err == nil {
+			err = errors.New("preimage must be 32 bytes hex")
+		}
+		logger.Logger.WithFields(logrus.Fields{
+			"preimage": preimage,
+		}).WithError(err).Error("Invalid preimage")
+		return err
+	}
+
+	_, err = svc.client.SettleInvoice(ctx, &invoicesrpc.SettleInvoiceMsg{
+		Preimage: preimageBytes,
+	})
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"preimage": preimage,
+		}).WithError(err).Error("Failed to settle hold invoice")
+		return err
+	}
+	return nil
+}
+
+func (svc *LNDService) CancelHoldInvoice(ctx context.Context, paymentHash string) (err error) {
+	paymentHashBytes, err := hex.DecodeString(paymentHash)
+	if err != nil || len(paymentHashBytes) != 32 {
+		if err == nil {
+			err = errors.New("payment hash must be 32 bytes hex")
+		}
+		logger.Logger.WithFields(logrus.Fields{
+			"paymentHash": paymentHash,
+		}).WithError(err).Error("Invalid payment hash")
+		return err
+	}
+
+	_, err = svc.client.CancelInvoice(ctx, &invoicesrpc.CancelInvoiceMsg{
+		PaymentHash: paymentHashBytes,
+	})
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"paymentHash": paymentHash,
+		}).WithError(err).Error("Failed to cancel hold invoice")
+		return err
+	}
+	return nil
 }
 
 func (svc *LNDService) LookupInvoice(ctx context.Context, paymentHash string) (transaction *lnclient.Transaction, err error) {
@@ -1196,7 +1401,20 @@ func (svc *LNDService) UpdateLastWalletSyncRequest() {}
 
 func (svc *LNDService) GetSupportedNIP47Methods() []string {
 	return []string{
-		"pay_invoice", "pay_keysend", "get_balance", "get_budget", "get_info", "make_invoice", "lookup_invoice", "list_transactions", "multi_pay_invoice", "multi_pay_keysend", "sign_message",
+		models.PAY_INVOICE_METHOD,
+		models.PAY_KEYSEND_METHOD,
+		models.GET_BALANCE_METHOD,
+		models.GET_BUDGET_METHOD,
+		models.GET_INFO_METHOD,
+		models.MAKE_INVOICE_METHOD,
+		models.LOOKUP_INVOICE_METHOD,
+		models.LIST_TRANSACTIONS_METHOD,
+		models.MULTI_PAY_INVOICE_METHOD,
+		models.MULTI_PAY_KEYSEND_METHOD,
+		models.SIGN_MESSAGE_METHOD,
+		models.MAKE_HOLD_INVOICE_METHOD,
+		models.SETTLE_HOLD_INVOICE_METHOD,
+		models.CANCEL_HOLD_INVOICE_METHOD,
 	}
 }
 

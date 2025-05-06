@@ -106,6 +106,18 @@ func (mln *MockLn) MakeInvoice(ctx context.Context, amount int64, description st
 	return MockLNClientTransaction, nil
 }
 
+func (mln *MockLn) MakeHoldInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string) (transaction *lnclient.Transaction, err error) {
+	return MockLNClientTransaction, nil
+}
+
+func (mln *MockLn) SettleHoldInvoice(ctx context.Context, preimage string) (err error) {
+	return nil
+}
+
+func (mln *MockLn) CancelHoldInvoice(ctx context.Context, paymentHash string) (err error) {
+	return nil
+}
+
 func (mln *MockLn) LookupInvoice(ctx context.Context, paymentHash string) (transaction *lnclient.Transaction, err error) {
 	if mln.MockTransaction != nil {
 		return mln.MockTransaction, nil

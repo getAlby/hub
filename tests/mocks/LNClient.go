@@ -234,6 +234,53 @@ func (_c *MockLNClient_ExecuteCustomNodeCommand_Call) RunAndReturn(run func(cont
 	return _c
 }
 
+// CancelHoldInvoice provides a mock function with given fields: ctx, paymentHash
+func (_m *MockLNClient) CancelHoldInvoice(ctx context.Context, paymentHash string) error {
+ret := _m.Called(ctx, paymentHash)
+
+if len(ret) == 0 {
+panic("no return value specified for CancelHoldInvoice")
+}
+
+var r0 error
+if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+r0 = rf(ctx, paymentHash)
+} else {
+r0 = ret.Error(0)
+}
+
+return r0
+}
+
+// MockLNClient_CancelHoldInvoice_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CancelHoldInvoice'
+type MockLNClient_CancelHoldInvoice_Call struct {
+*mock.Call
+}
+
+// CancelHoldInvoice is a helper method to define mock.On call
+//   - ctx context.Context
+//   - paymentHash string
+func (_e *MockLNClient_Expecter) CancelHoldInvoice(ctx interface{}, paymentHash interface{}) *MockLNClient_CancelHoldInvoice_Call {
+return &MockLNClient_CancelHoldInvoice_Call{Call: _e.mock.On("CancelHoldInvoice", ctx, paymentHash)}
+}
+
+func (_c *MockLNClient_CancelHoldInvoice_Call) Run(run func(ctx context.Context, paymentHash string)) *MockLNClient_CancelHoldInvoice_Call {
+_c.Call.Run(func(args mock.Arguments) {
+run(args[0].(context.Context), args[1].(string))
+})
+return _c
+}
+
+func (_c *MockLNClient_CancelHoldInvoice_Call) Return(_a0 error) *MockLNClient_CancelHoldInvoice_Call {
+_c.Call.Return(_a0)
+return _c
+}
+
+func (_c *MockLNClient_CancelHoldInvoice_Call) RunAndReturn(run func(context.Context, string) error) *MockLNClient_CancelHoldInvoice_Call {
+_c.Call.Return(run)
+return _c
+}
+
 // GetBalances provides a mock function with given fields: ctx, includeInactiveChannels
 func (_m *MockLNClient) GetBalances(ctx context.Context, includeInactiveChannels bool) (*lnclient.BalancesResponse, error) {
 	ret := _m.Called(ctx, includeInactiveChannels)
@@ -1299,6 +1346,69 @@ func (_c *MockLNClient_MakeInvoice_Call) RunAndReturn(run func(context.Context, 
 	return _c
 }
 
+// MakeHoldInvoice provides a mock function with given fields: ctx, amount, description, descriptionHash, expiry, paymentHash
+func (_m *MockLNClient) MakeHoldInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string) (*lnclient.Transaction, error) {
+ret := _m.Called(ctx, amount, description, descriptionHash, expiry, paymentHash)
+
+if len(ret) == 0 {
+panic("no return value specified for MakeHoldInvoice")
+}
+
+var r0 *lnclient.Transaction
+var r1 error
+if rf, ok := ret.Get(0).(func(context.Context, int64, string, string, int64, string) (*lnclient.Transaction, error)); ok {
+return rf(ctx, amount, description, descriptionHash, expiry, paymentHash)
+}
+if rf, ok := ret.Get(0).(func(context.Context, int64, string, string, int64, string) *lnclient.Transaction); ok {
+r0 = rf(ctx, amount, description, descriptionHash, expiry, paymentHash)
+} else {
+if ret.Get(0) != nil {
+r0 = ret.Get(0).(*lnclient.Transaction)
+}
+}
+
+if rf, ok := ret.Get(1).(func(context.Context, int64, string, string, int64, string) error); ok {
+r1 = rf(ctx, amount, description, descriptionHash, expiry, paymentHash)
+} else {
+r1 = ret.Error(1)
+}
+
+return r0, r1
+}
+
+// MockLNClient_MakeHoldInvoice_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'MakeHoldInvoice'
+type MockLNClient_MakeHoldInvoice_Call struct {
+*mock.Call
+}
+
+// MakeHoldInvoice is a helper method to define mock.On call
+//   - ctx context.Context
+//   - amount int64
+//   - description string
+//   - descriptionHash string
+//   - expiry int64
+//   - paymentHash string
+func (_e *MockLNClient_Expecter) MakeHoldInvoice(ctx interface{}, amount interface{}, description interface{}, descriptionHash interface{}, expiry interface{}, paymentHash interface{}) *MockLNClient_MakeHoldInvoice_Call { //nolint:govet
+return &MockLNClient_MakeHoldInvoice_Call{Call: _e.mock.On("MakeHoldInvoice", ctx, amount, description, descriptionHash, expiry, paymentHash)}
+}
+
+func (_c *MockLNClient_MakeHoldInvoice_Call) Run(run func(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string)) *MockLNClient_MakeHoldInvoice_Call {
+_c.Call.Run(func(args mock.Arguments) {
+run(args[0].(context.Context), args[1].(int64), args[2].(string), args[3].(string), args[4].(int64), args[5].(string))
+})
+return _c
+}
+
+func (_c *MockLNClient_MakeHoldInvoice_Call) Return(transaction *lnclient.Transaction, err error) *MockLNClient_MakeHoldInvoice_Call {
+_c.Call.Return(transaction, err)
+return _c
+}
+
+func (_c *MockLNClient_MakeHoldInvoice_Call) RunAndReturn(run func(context.Context, int64, string, string, int64, string) (*lnclient.Transaction, error)) *MockLNClient_MakeHoldInvoice_Call {
+_c.Call.Return(run)
+return _c
+}
+
 // OpenChannel provides a mock function with given fields: ctx, openChannelRequest
 func (_m *MockLNClient) OpenChannel(ctx context.Context, openChannelRequest *lnclient.OpenChannelRequest) (*lnclient.OpenChannelResponse, error) {
 	ret := _m.Called(ctx, openChannelRequest)
@@ -1523,6 +1633,53 @@ func (_c *MockLNClient_SendKeysend_Call) Return(_a0 *lnclient.PayKeysendResponse
 func (_c *MockLNClient_SendKeysend_Call) RunAndReturn(run func(context.Context, uint64, string, []lnclient.TLVRecord, string) (*lnclient.PayKeysendResponse, error)) *MockLNClient_SendKeysend_Call {
 	_c.Call.Return(run)
 	return _c
+}
+
+// SettleHoldInvoice provides a mock function with given fields: ctx, preimage
+func (_m *MockLNClient) SettleHoldInvoice(ctx context.Context, preimage string) error {
+ret := _m.Called(ctx, preimage)
+
+if len(ret) == 0 {
+panic("no return value specified for SettleHoldInvoice")
+}
+
+var r0 error
+if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+r0 = rf(ctx, preimage)
+} else {
+r0 = ret.Error(0)
+}
+
+return r0
+}
+
+// MockLNClient_SettleHoldInvoice_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SettleHoldInvoice'
+type MockLNClient_SettleHoldInvoice_Call struct {
+*mock.Call
+}
+
+// SettleHoldInvoice is a helper method to define mock.On call
+//   - ctx context.Context
+//   - preimage string
+func (_e *MockLNClient_Expecter) SettleHoldInvoice(ctx interface{}, preimage interface{}) *MockLNClient_SettleHoldInvoice_Call {
+return &MockLNClient_SettleHoldInvoice_Call{Call: _e.mock.On("SettleHoldInvoice", ctx, preimage)}
+}
+
+func (_c *MockLNClient_SettleHoldInvoice_Call) Run(run func(ctx context.Context, preimage string)) *MockLNClient_SettleHoldInvoice_Call {
+_c.Call.Run(func(args mock.Arguments) {
+run(args[0].(context.Context), args[1].(string))
+})
+return _c
+}
+
+func (_c *MockLNClient_SettleHoldInvoice_Call) Return(_a0 error) *MockLNClient_SettleHoldInvoice_Call {
+_c.Call.Return(_a0)
+return _c
+}
+
+func (_c *MockLNClient_SettleHoldInvoice_Call) RunAndReturn(run func(context.Context, string) error) *MockLNClient_SettleHoldInvoice_Call {
+_c.Call.Return(run)
+return _c
 }
 
 // SendPaymentProbes provides a mock function with given fields: ctx, invoice

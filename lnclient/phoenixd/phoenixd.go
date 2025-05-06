@@ -324,6 +324,18 @@ func (svc *PhoenixService) MakeInvoice(ctx context.Context, amount int64, descri
 	return tx, nil
 }
 
+func (svc *PhoenixService) MakeHoldInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string) (transaction *lnclient.Transaction, err error) {
+	return nil, errors.New("not implemented")
+}
+
+func (svc *PhoenixService) SettleHoldInvoice(ctx context.Context, preimage string) (err error) {
+	return errors.New("not implemented")
+}
+
+func (svc *PhoenixService) CancelHoldInvoice(ctx context.Context, paymentHash string) (err error) {
+	return errors.New("not implemented")
+}
+
 func (svc *PhoenixService) LookupInvoice(ctx context.Context, paymentHash string) (transaction *lnclient.Transaction, err error) {
 	req, err := http.NewRequest(http.MethodGet, svc.Address+"/payments/incoming/"+paymentHash, nil)
 	if err != nil {
