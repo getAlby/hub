@@ -23,21 +23,6 @@ type makeHoldInvoiceResponse struct {
 }
 
 func (controller *nip47Controller) HandleMakeHoldInvoiceEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, appId uint, publishResponse func(*models.Response, nostr.Tags)) {
-	if nip47Request == nil {
-		logger.Logger.WithFields(logrus.Fields{
-			"requestEventId": requestEventId,
-			"appId":          appId,
-		}).Error("Received nil nip47Request in HandleMakeHoldInvoiceEvent")
-		publishResponse(&models.Response{
-			ResultType: models.MAKE_HOLD_INVOICE_METHOD,
-			Error: &models.Error{
-				Code:    constants.ERROR_INTERNAL,
-				Message: "Internal server error: received nil request payload",
-			},
-		}, nostr.Tags{})
-		return
-	}
-
 	resp := &models.Response{}
 	resp.ResultType = models.MAKE_HOLD_INVOICE_METHOD
 
