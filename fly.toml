@@ -1,42 +1,43 @@
-# fly.toml app configuration file generated for hub-test-dupa on 2025-03-07T17:46:20+01:00
+# fly.toml app configuration file generated for nwc on 2024-01-30T12:30:13+01:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'hub-test-dupa'
-primary_region = 'dfw'
-kill_timeout = '2m0s'
+app = 'nwc'
+primary_region = 'lax'
 swap_size_mb = 2048
+<<<<<<< HEAD
 kill_timeout = 330
+=======
+kill_timeout = 120
+>>>>>>> 47308d5a (fix: revert)
 
 [build]
-  image = 'ghcr.io/getalby/hub:v1.14.3'
+  image = 'ghcr.io/getalby/hub:latest'
 
 [env]
-#  DATABASE_URI = '/data/nwc.db'
+  DATABASE_URI = '/data/nwc.db'
   LDK_LOG_LEVEL = '3'
-  LOG_LEVEL = '5'
+  LOG_LEVEL = '4'
   WORK_DIR = '/data'
-  DATABASE_URI = 'postgres://nwc13820861fa:x63Qjndnp2Am@hub-db-lax.internal:5432/nwc13820861fa?sslmode=disable'
-  ALBY_OAUTH_CLIENT_ID = 'Q6VIubLWWF'
-  ALBY_OAUTH_CLIENT_SECRET = 'jytdjU1uLQyGPlEKwlOW'
-  BASE_URL = 'https://my.albyhub.com'
-  FLY_PROCESS_GROUP = 'app'
-  LDK_ESPLORA_SERVER = 'https://electrs.getalbypro.com'
-  LDK_GOSSIP_SOURCE = ''
-  LDK_TRANSIENT_NETWORK_GRAPH = 'true'
-  LDK_VSS_URL = 'https://vss.getalbypro.com/vss'
-  LOG_EVENTS = 'true'
-  LOG_TO_FILE = 'false'
+
+[[mounts]]
+  source = 'nwc_data'
+  destination = '/data'
+  initial_size = '1'
+  auto_extend_size_threshold = 80
+  auto_extend_size_increment = "1GB"
+  auto_extend_size_limit = "5GB"
+
 [http_service]
   internal_port = 8080
   force_https = true
-  auto_stop_machines = 'off'
+  auto_stop_machines = false
   auto_start_machines = true
   min_machines_running = 0
-#  processes = ['app']
+  processes = ['app']
 
 [[vm]]
-  memory = '512mb'
   cpu_kind = 'shared'
   cpus = 1
+  memory = '512mb'
