@@ -40,6 +40,9 @@ type TransactionsService interface {
 	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, transactionType *string, lnClient lnclient.LNClient, appId *uint, forceFilterByAppId bool) (transactions []Transaction, totalCount uint64, err error)
 	SendPaymentSync(ctx context.Context, payReq string, amountMsat *uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []lnclient.TLVRecord, preimage string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
+	MakeHoldInvoice(ctx context.Context, amount uint64, description string, descriptionHash string, expiry uint64, paymentHash string, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
+	SettleHoldInvoice(ctx context.Context, preimage string, lnClient lnclient.LNClient) (*Transaction, error)
+	CancelHoldInvoice(ctx context.Context, paymentHash string, lnClient lnclient.LNClient) error
 }
 
 const (
@@ -183,6 +186,59 @@ func (svc *transactionsService) MakeInvoice(ctx context.Context, amount uint64, 
 	err = svc.db.Create(&dbTransaction).Error
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to create DB transaction")
+		return nil, err
+	}
+	return &dbTransaction, nil
+}
+
+func (svc *transactionsService) MakeHoldInvoice(ctx context.Context, amount uint64, description string, descriptionHash string, expiry uint64, paymentHash string, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
+	var metadataBytes []byte
+	if metadata != nil {
+		var err error
+		metadataBytes, err = json.Marshal(metadata)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to serialize metadata")
+			return nil, err
+		}
+		if len(metadataBytes) > constants.INVOICE_METADATA_MAX_LENGTH {
+			return nil, fmt.Errorf("encoded invoice metadata provided is too large. Limit: %d Received: %d", constants.INVOICE_METADATA_MAX_LENGTH, len(metadataBytes))
+		}
+	}
+
+	lnClientTransaction, err := lnClient.MakeHoldInvoice(ctx, int64(amount), description, descriptionHash, int64(expiry), paymentHash)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to create hold invoice via LN client")
+		return nil, err
+	}
+
+	var preimage *string
+	if lnClientTransaction.Preimage != "" {
+		preimage = &lnClientTransaction.Preimage
+	}
+
+	var expiresAt *time.Time
+	if lnClientTransaction.ExpiresAt != nil {
+		expiresAtValue := time.Unix(*lnClientTransaction.ExpiresAt, 0)
+		expiresAt = &expiresAtValue
+	}
+
+	dbTransaction := db.Transaction{
+		AppId:           appId,
+		RequestEventId:  requestEventId,
+		Type:            constants.TRANSACTION_TYPE_INCOMING,
+		State:           constants.TRANSACTION_STATE_PENDING,
+		AmountMsat:      uint64(lnClientTransaction.Amount),
+		Description:     description,
+		DescriptionHash: descriptionHash,
+		PaymentRequest:  lnClientTransaction.Invoice,
+		PaymentHash:     lnClientTransaction.PaymentHash,
+		ExpiresAt:       expiresAt,
+		Preimage:        preimage,
+		Metadata:        datatypes.JSON(metadataBytes),
+	}
+	err = svc.db.Create(&dbTransaction).Error
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to create hold invoice DB transaction")
 		return nil, err
 	}
 	return &dbTransaction, nil
@@ -730,6 +786,68 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 			}).WithError(err).Error("Failed to execute DB transaction")
 			return
 		}
+
+	case "nwc_lnclient_hold_invoice_accepted":
+		lnClientTransaction, ok := event.Properties.(*lnclient.Transaction)
+		if !ok {
+			logger.Logger.WithField("event", event).Error("Failed to cast event properties for hold invoice accepted")
+			return
+		}
+		logger.Logger.WithFields(logrus.Fields{
+			"paymentHash": lnClientTransaction.PaymentHash,
+		}).Info("Processing hold invoice accepted event")
+
+		var dbTransaction db.Transaction
+		err := svc.db.Transaction(func(tx *gorm.DB) error {
+			result := tx.Where("payment_hash = ? AND type = ? AND state = ?", lnClientTransaction.PaymentHash, constants.TRANSACTION_TYPE_INCOMING, constants.TRANSACTION_STATE_PENDING).First(&dbTransaction)
+			if result.Error != nil {
+				if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+					logger.Logger.WithFields(logrus.Fields{
+						"paymentHash": lnClientTransaction.PaymentHash,
+					}).Warn("No corresponding pending incoming transaction found in DB for accepted hold invoice")
+					var existingTx db.Transaction
+					if tx.Where("payment_hash = ? AND type = ? AND (state = ? OR state = ?)", lnClientTransaction.PaymentHash, constants.TRANSACTION_TYPE_INCOMING, constants.TRANSACTION_STATE_ACCEPTED, constants.TRANSACTION_STATE_SETTLED).First(&existingTx).Error == nil {
+						logger.Logger.WithFields(logrus.Fields{
+							"paymentHash":  lnClientTransaction.PaymentHash,
+							"currentState": existingTx.State,
+						}).Info("Transaction already in accepted/settled state")
+						return nil // Not an error, already handled
+					}
+				}
+				logger.Logger.WithFields(logrus.Fields{
+					"paymentHash": lnClientTransaction.PaymentHash,
+				}).WithError(result.Error).Error("Failed to query DB for accepted hold invoice")
+				return result.Error
+			}
+
+			err := tx.Model(&dbTransaction).Update("state", constants.TRANSACTION_STATE_ACCEPTED).Error
+			if err != nil {
+				logger.Logger.WithFields(logrus.Fields{
+					"paymentHash": lnClientTransaction.PaymentHash,
+					"dbTxID":      dbTransaction.ID,
+				}).WithError(err).Error("Failed to update hold invoice state to accepted in DB")
+				return err
+			}
+
+			logger.Logger.WithFields(logrus.Fields{
+				"paymentHash": lnClientTransaction.PaymentHash,
+				"dbTxID":      dbTransaction.ID,
+			}).Info("Updated hold invoice state to accepted in DB")
+
+			var updatedDbTransaction db.Transaction
+			tx.First(&updatedDbTransaction, dbTransaction.ID)
+			svc.eventPublisher.Publish(&events.Event{
+				Event:      "nwc_hold_invoice_accepted",
+				Properties: &updatedDbTransaction,
+			})
+			return nil
+		})
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"paymentHash": lnClientTransaction.PaymentHash,
+			}).WithError(err).Error("Failed DB transaction for hold invoice accepted event")
+		}
+
 	case "nwc_lnclient_payment_sent":
 		lnClientTransaction, ok := event.Properties.(*lnclient.Transaction)
 		if !ok {
@@ -972,6 +1090,140 @@ func (svc *transactionsService) getAppIdFromCustomRecords(customRecords []lnclie
 			return &app.ID
 		}
 	}
+	return nil
+}
+
+func (svc *transactionsService) SettleHoldInvoice(ctx context.Context, preimage string, lnClient lnclient.LNClient) (*Transaction, error) {
+	if len(preimage) != 64 {
+		return nil, errors.New("invalid preimage format")
+	}
+	preimageBytes, err := hex.DecodeString(preimage)
+	if err != nil {
+		return nil, fmt.Errorf("invalid preimage hex: %w", err)
+	}
+
+	err = lnClient.SettleHoldInvoice(ctx, preimage)
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"preimage": preimage,
+		}).WithError(err).Error("Failed to settle hold invoice via LN client")
+		// Don't mark DB as failed here, as the settle might succeed later or might have already succeeded.
+		return nil, err
+	}
+
+	paymentHashBytes := sha256.Sum256(preimageBytes)
+	paymentHash := hex.EncodeToString(paymentHashBytes[:])
+
+	var settledTransaction *db.Transaction
+	err = svc.db.Transaction(func(tx *gorm.DB) error {
+		var dbTransaction db.Transaction
+		result := tx.Limit(1).Find(&dbTransaction, &db.Transaction{
+			Type:        constants.TRANSACTION_TYPE_INCOMING,
+			State:       constants.TRANSACTION_STATE_ACCEPTED,
+			PaymentHash: paymentHash,
+		})
+
+		if result.Error != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"paymentHash": paymentHash,
+				"preimage":    preimage,
+			}).WithError(result.Error).Error("Failed to find pending hold invoice in DB")
+			return result.Error
+		}
+		if result.RowsAffected == 0 {
+			// Could be already settled, or never existed. Check if already settled.
+			var existingSettled db.Transaction
+			if tx.Limit(1).Find(&existingSettled, &db.Transaction{Type: constants.TRANSACTION_TYPE_INCOMING, State: constants.TRANSACTION_STATE_SETTLED, PaymentHash: paymentHash}).RowsAffected > 0 {
+				logger.Logger.WithFields(logrus.Fields{
+					"paymentHash": paymentHash,
+					"preimage":    preimage,
+				}).Warn("Hold invoice already marked as settled in DB")
+				settledTransaction = &existingSettled
+				return nil
+			}
+			logger.Logger.WithFields(logrus.Fields{
+				"paymentHash": paymentHash,
+				"preimage":    preimage,
+			}).Warn("No pending hold invoice found in DB to mark as settled")
+			return NewNotFoundError()
+		}
+
+		var err error
+		settledTransaction, err = svc.markTransactionSettled(tx, &dbTransaction, preimage, 0, false) // Assuming not self-payment for now
+		return err
+	})
+
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"paymentHash": paymentHash,
+			"preimage":    preimage,
+		}).WithError(err).Error("Failed DB transaction while settling hold invoice")
+		return nil, err
+	}
+
+	if settledTransaction == nil {
+		return nil, fmt.Errorf("settled transaction is nil despite no error")
+	}
+
+	return settledTransaction, nil
+}
+
+func (svc *transactionsService) CancelHoldInvoice(ctx context.Context, paymentHash string, lnClient lnclient.LNClient) error {
+	err := lnClient.CancelHoldInvoice(ctx, paymentHash)
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"paymentHash": paymentHash,
+		}).WithError(err).Error("Failed to cancel hold invoice via LN client")
+		// Don't mark DB as failed here, cancellation might have already happened or might succeed later.
+		return err
+	}
+
+	err = svc.db.Transaction(func(tx *gorm.DB) error {
+		var dbTransaction db.Transaction
+		result := tx.Limit(1).Find(&dbTransaction, &db.Transaction{
+			Type:        constants.TRANSACTION_TYPE_INCOMING,
+			State:       constants.TRANSACTION_STATE_PENDING,
+			PaymentHash: paymentHash,
+		})
+
+		if result.Error != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"paymentHash": paymentHash,
+			}).WithError(result.Error).Error("Failed to find pending hold invoice in DB for cancellation")
+			return result.Error
+		}
+		if result.RowsAffected == 0 {
+			// Check if already failed/settled.
+			var existingFinalized db.Transaction
+			if tx.Limit(1).Find(&existingFinalized, "type = ? AND state <> ? AND payment_hash = ?", constants.TRANSACTION_TYPE_INCOMING, constants.TRANSACTION_STATE_PENDING, paymentHash).RowsAffected > 0 {
+				logger.Logger.WithFields(logrus.Fields{
+					"paymentHash": paymentHash,
+					"state":       existingFinalized.State,
+				}).Warn("Hold invoice already finalized in DB, cannot mark as failed due to cancellation")
+				return nil
+			}
+			logger.Logger.WithFields(logrus.Fields{
+				"paymentHash": paymentHash,
+			}).Warn("No pending hold invoice found in DB to mark as failed due to cancellation")
+			return NewNotFoundError()
+		}
+
+		return svc.markPaymentFailed(tx, &dbTransaction, "Canceled via NIP-47")
+	})
+
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"paymentHash": paymentHash,
+		}).WithError(err).Error("Failed DB transaction while canceling hold invoice")
+		return nil
+	}
+
+	logger.Logger.WithFields(logrus.Fields{
+		"paymentHash": paymentHash,
+	}).Info("Marked hold invoice as failed in DB due to cancellation")
+
+	// TODO: Should we publish a specific nwc_hold_invoice_canceled event?
+
 	return nil
 }
 

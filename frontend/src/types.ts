@@ -1,5 +1,6 @@
 import {
   BellIcon,
+  CirclePauseIcon,
   CirclePlusIcon,
   CrownIcon,
   HandCoinsIcon,
@@ -24,7 +25,10 @@ export type Nip47RequestMethod =
   | "list_transactions"
   | "sign_message"
   | "multi_pay_invoice"
-  | "multi_pay_keysend";
+  | "multi_pay_keysend"
+  | "make_hold_invoice"
+  | "settle_hold_invoice"
+  | "cancel_hold_invoice";
 
 export type BudgetRenewalType =
   | "daily"
@@ -39,6 +43,7 @@ export type Scope =
   | "get_balance"
   | "get_info"
   | "make_invoice"
+  | "hold_invoices"
   | "lookup_invoice"
   | "list_transactions"
   | "sign_message"
@@ -57,6 +62,7 @@ export const scopeIconMap: ScopeIconMap = {
   list_transactions: NotebookTabsIcon,
   lookup_invoice: SearchIcon,
   make_invoice: CirclePlusIcon,
+  hold_invoices: CirclePauseIcon,
   pay_invoice: HandCoinsIcon,
   sign_message: PenLineIcon,
   notifications: BellIcon,
@@ -84,6 +90,7 @@ export const scopeDescriptions: Record<Scope, string> = {
   lookup_invoice: "Lookup status of invoices",
   make_invoice: "Create invoices",
   pay_invoice: "Send payments",
+  hold_invoices: "Create, settle & cancel hold invoices",
   sign_message: "Sign messages",
   notifications: "Receive wallet notifications",
   superuser: "Create other app connections",

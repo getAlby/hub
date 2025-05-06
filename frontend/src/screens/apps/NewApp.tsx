@@ -129,6 +129,14 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
     if (requestMethodsSet.has("make_invoice")) {
       scopes.push("make_invoice");
     }
+    // Add check for hold invoice methods
+    if (
+      requestMethodsSet.has("make_hold_invoice") ||
+      requestMethodsSet.has("settle_hold_invoice") ||
+      requestMethodsSet.has("cancel_hold_invoice")
+    ) {
+      scopes.push("hold_invoices");
+    }
     if (requestMethodsSet.has("lookup_invoice")) {
       scopes.push("lookup_invoice");
     }

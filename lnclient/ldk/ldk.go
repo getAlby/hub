@@ -1866,6 +1866,18 @@ func (ls *LDKService) ExecuteCustomNodeCommand(ctx context.Context, command *lnc
 	return nil, nil
 }
 
+func (ls *LDKService) MakeHoldInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string) (*lnclient.Transaction, error) {
+	return nil, errors.New("make_hold_invoice is not yet implemented for LDK")
+}
+
+func (ls *LDKService) CancelHoldInvoice(ctx context.Context, paymentHash string) error {
+	return errors.New("cancel_hold_invoice is not yet implemented for LDK")
+}
+
+func (ls *LDKService) SettleHoldInvoice(ctx context.Context, preimage string) error {
+	return errors.New("settle_hold_invoice is not yet implemented for LDK")
+}
+
 func GetVssNodeIdentifier(keys keys.Keys) (string, error) {
 	key, err := keys.DeriveKey([]uint32{bip32.FirstHardenedChild + 2})
 
