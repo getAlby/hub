@@ -126,6 +126,4 @@ func TestHandleMakeHoldInvoiceEvent_MissingPaymentHash(t *testing.T) {
 
 	require.NotNil(t, publishedResponse.Error)
 	assert.Equal(t, constants.ERROR_BAD_REQUEST, publishedResponse.Error.Code)
-	// Potentially check for a more specific error message if available
-	// assert.Contains(t, publishedResponse.Error.Message, "payment_hash is required")
 }
