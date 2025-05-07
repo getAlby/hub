@@ -1108,7 +1108,7 @@ func (svc *transactionsService) SettleHoldInvoice(ctx context.Context, preimage 
 	paymentHash := hex.EncodeToString(paymentHashBytes[:])
 
 	var dbTransaction db.Transaction
-	dbTransaction := svc.db.Limit(1).Find(&dbTransaction, &db.Transaction{
+	result := svc.db.Limit(1).Find(&dbTransaction, &db.Transaction{
 		Type:        constants.TRANSACTION_TYPE_INCOMING,
 		State:       constants.TRANSACTION_STATE_ACCEPTED,
 		PaymentHash: paymentHash,
@@ -1128,7 +1128,6 @@ func (svc *transactionsService) SettleHoldInvoice(ctx context.Context, preimage 
 		return nil, err
 	}
 
-	var settledTransaction *db.Transaction
 	err = svc.db.Transaction(func(tx *gorm.DB) error {
 		var err error
 		settledTransaction, err = svc.markTransactionSettled(tx, &dbTransaction, preimage, 0, false) // Assuming not self-payment for now
