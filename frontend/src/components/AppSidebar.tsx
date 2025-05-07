@@ -1,4 +1,3 @@
-import { compare } from "compare-versions";
 import {
   BoxIcon,
   ChevronsUpDown,
@@ -11,8 +10,6 @@ import {
   Plug2Icon,
   PlugZapIcon,
   Settings,
-  ShieldAlertIcon,
-  ShieldCheckIcon,
   Sparkles,
   SquareStack,
   WalletIcon,
@@ -44,15 +41,8 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "src/components/ui/sidebar";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "src/components/ui/tooltip";
 import { UpgradeDialog } from "src/components/UpgradeDialog";
 import UserAvatar from "src/components/UserAvatar";
-import { useAlbyInfo } from "src/hooks/useAlbyInfo";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useHealthCheck } from "src/hooks/useHealthCheck";
 import { useInfo } from "src/hooks/useInfo";
@@ -135,7 +125,6 @@ export function AppSidebar() {
             <AlbyHubLogo className="text-sidebar-foreground h-12" />
           </Link>
           <div className="flex gap-3 items-center">
-            <AppVersion />
             <HealthIndicator />
           </div>
         </div>
@@ -325,67 +314,6 @@ export function NavSecondary({
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
-  );
-}
-
-function AppVersion() {
-  const { data: albyInfo } = useAlbyInfo();
-  const { data: info } = useInfo();
-  // briefly delay display of version to fix bug on mobile
-  // where update tooltip is always shown when sidebar is expanded
-  const [isVisible, setVisible] = React.useState(false);
-
-  React.useEffect(() => {
-    const timeout = setTimeout(() => setVisible(true), 1000);
-    return () => {
-      clearTimeout(timeout);
-      setVisible(false);
-    };
-  }, []);
-
-  if (!info || !albyInfo || !isVisible) {
-    return null;
-  }
-
-  const upToDate =
-    info.version &&
-    info.version.startsWith("v") &&
-    compare(info.version.substring(1), albyInfo.hub.latestVersion, ">=");
-
-  return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger>
-          <ExternalLink
-            to={`https://getalby.com/update/hub?version=${info.version}`}
-            className="font-semibold text-xl"
-          >
-            <span className="text-xs flex items-center text-muted-foreground">
-              {info.version && <>{info.version}&nbsp;</>}
-              {upToDate ? (
-                <ShieldCheckIcon className="w-4 h-4" />
-              ) : (
-                <ShieldAlertIcon className="w-4 h-4" />
-              )}
-            </span>
-          </ExternalLink>
-        </TooltipTrigger>
-        <TooltipContent>
-          {upToDate ? (
-            <p>Alby Hub is up to date!</p>
-          ) : (
-            <div>
-              <p className="font-semibold">
-                Alby Hub {albyInfo.hub.latestVersion} available!
-              </p>
-              <p className="mt-2 max-w-xs whitespace-pre-wrap">
-                {albyInfo.hub.latestReleaseNotes}
-              </p>
-            </div>
-          )}
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
   );
 }
 
