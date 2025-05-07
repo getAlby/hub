@@ -118,7 +118,10 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar collapsible="offcanvas">
+    <Sidebar
+      className="top-[--header-height] !h-[calc(100svh-var(--header-height))]"
+      collapsible="offcanvas"
+    >
       <SidebarHeader>
         <div className="p-2 flex flex-row items-center justify-between">
           <Link to="/home" onClick={() => setOpenMobile(false)}>

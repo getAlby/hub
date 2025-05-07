@@ -3,12 +3,15 @@ import { Outlet } from "react-router-dom";
 import { AppSidebar } from "src/components/AppSidebar";
 import { SidebarInset, SidebarProvider } from "src/components/ui/sidebar";
 import { UpdateBanner } from "src/components/UpdateBanner";
+import { useBanner } from "src/hooks/useBanner";
 import { useInfo } from "src/hooks/useInfo";
 import { useNotifyReceivedPayments } from "src/hooks/useNotifyReceivedPayments";
 import { useRemoveSuccessfulChannelOrder } from "src/hooks/useRemoveSuccessfulChannelOrder";
+import { cn } from "src/lib/utils";
 
 export default function AppLayout() {
   const { data: info } = useInfo();
+  const { showBanner, dismissBanner } = useBanner();
 
   useRemoveSuccessfulChannelOrder();
   useNotifyReceivedPayments();
@@ -19,15 +22,29 @@ export default function AppLayout() {
 
   return (
     <>
-      <div className="font-sans min-h-screen w-full flex flex-col">
-        <UpdateBanner />
-        <SidebarProvider>
-          <AppSidebar />
-          <SidebarInset>
-            <div className="flex flex-1 flex-col gap-4 p-4">
-              <Outlet />
-            </div>
-          </SidebarInset>
+      <div
+        className={cn(
+          "font-sans min-h-screen w-full flex flex-col",
+          showBanner
+            ? "[--header-height:calc(theme(spacing.9))]"
+            : "[--header-height:0]"
+        )}
+      >
+        <SidebarProvider className="flex flex-col">
+          {showBanner && <UpdateBanner onDismiss={dismissBanner} />}
+          <div className="flex flex-1">
+            <AppSidebar />
+            <SidebarInset>
+              <div
+                className={cn(
+                  "flex flex-1 flex-col gap-4 p-4",
+                  showBanner && "mt-14 md:mt-9"
+                )}
+              >
+                <Outlet />
+              </div>
+            </SidebarInset>
+          </div>
         </SidebarProvider>
       </div>
     </>
