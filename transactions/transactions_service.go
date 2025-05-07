@@ -1116,7 +1116,7 @@ func (svc *transactionsService) SettleHoldInvoice(ctx context.Context, preimage 
 
 	if result.RowsAffected == 0 {
 		logger.Logger.WithField("paymentHash", paymentHash).Error("Failed to find accepted hold invoice")
-		return nil, errors.New("failed to find accepted hold invoice with payment hash %s", paymentHash)
+		return nil, errors.New("failed to find accepted hold invoice")
 	}
 
 	err = lnClient.SettleHoldInvoice(ctx, preimage)
@@ -1128,7 +1128,7 @@ func (svc *transactionsService) SettleHoldInvoice(ctx context.Context, preimage 
 		return nil, err
 	}
 
-    var settledTransaction *db.Transaction
+	var settledTransaction *db.Transaction
 	err = svc.db.Transaction(func(tx *gorm.DB) error {
 		var err error
 		settledTransaction, err = svc.markTransactionSettled(tx, &dbTransaction, preimage, 0, false) // Assuming not self-payment for now
