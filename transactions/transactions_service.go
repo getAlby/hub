@@ -1128,6 +1128,7 @@ func (svc *transactionsService) SettleHoldInvoice(ctx context.Context, preimage 
 		return nil, err
 	}
 
+    var settledTransaction *db.Transaction
 	err = svc.db.Transaction(func(tx *gorm.DB) error {
 		var err error
 		settledTransaction, err = svc.markTransactionSettled(tx, &dbTransaction, preimage, 0, false) // Assuming not self-payment for now
