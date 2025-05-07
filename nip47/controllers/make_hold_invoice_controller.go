@@ -33,6 +33,21 @@ func (controller *nip47Controller) HandleMakeHoldInvoiceEvent(ctx context.Contex
 		return
 	}
 
+	if makeHoldInvoiceParams.PaymentHash == "" {
+		logger.Logger.WithFields(logrus.Fields{
+			"requestEventId": requestEventId,
+			"appId":          appId,
+		}).Error("Payment hash is missing for make_hold_invoice")
+		publishResponse(&models.Response{
+			ResultType: nip47Request.Method,
+			Error: &models.Error{
+				Code:    constants.ERROR_BAD_REQUEST,
+				Message: "payment_hash is required for make_hold_invoice",
+			},
+		}, nostr.Tags{})
+		return
+	}
+
 	logger.Logger.WithFields(logrus.Fields{
 		"requestEventId":  requestEventId,
 		"appId":           appId,
@@ -43,7 +58,6 @@ func (controller *nip47Controller) HandleMakeHoldInvoiceEvent(ctx context.Contex
 		"paymentHash":     makeHoldInvoiceParams.PaymentHash,
 		"metadata":        makeHoldInvoiceParams.Metadata,
 	}).Info("Making hold invoice")
-
 
 	requestEventIdUint := uint(requestEventId)
 	transaction, err := controller.transactionsService.MakeHoldInvoice(
@@ -68,7 +82,7 @@ func (controller *nip47Controller) HandleMakeHoldInvoiceEvent(ctx context.Contex
 			"descriptionHash":  makeHoldInvoiceParams.DescriptionHash,
 			"expiry":           makeHoldInvoiceParams.Expiry,
 			"paymentHash":      makeHoldInvoiceParams.PaymentHash,
-		}).WithError(err).Error("Failed to make invoice");
+		}).WithError(err).Error("Failed to make invoice")
 
 		publishResponse(&models.Response{
 			ResultType: nip47Request.Method,

@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/nip47/models"
 	"github.com/getAlby/hub/tests"
@@ -45,7 +46,7 @@ func TestHandleMakeHoldInvoiceEvent(t *testing.T) {
 	defer svc.Remove()
 
 	nip47Request := &models.Request{}
-	err = json.Unmarshal([]byte(nip47MakeInvoiceJson), nip47Request)
+	err = json.Unmarshal([]byte(nip47MakeHoldInvoiceJson), nip47Request)
 	assert.NoError(t, err)
 
 	app, _, err := tests.CreateApp(svc)
@@ -64,7 +65,7 @@ func TestHandleMakeHoldInvoiceEvent(t *testing.T) {
 	}
 
 	NewTestNip47Controller(svc).
-		HandleMakeInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, *dbRequestEvent.AppId, publishResponse)
+		HandleMakeHoldInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, *dbRequestEvent.AppId, publishResponse)
 
 	expectedMetadata := map[string]interface{}{
 		"a": float64(1),
@@ -79,6 +80,52 @@ func TestHandleMakeHoldInvoiceEvent(t *testing.T) {
 	}
 
 	assert.Nil(t, publishedResponse.Error)
-	assert.Equal(t, tests.MockLNClientTransaction.Invoice, publishedResponse.Result.(*makeInvoiceResponse).Invoice)
-	assert.Equal(t, expectedMetadata, publishedResponse.Result.(*makeInvoiceResponse).Metadata)
+	assert.Equal(t, tests.MockLNClientTransaction.Invoice, publishedResponse.Result.(*makeHoldInvoiceResponse).Invoice)
+	assert.Equal(t, tests.MockLNClientTransaction.PaymentHash, publishedResponse.Result.(*makeHoldInvoiceResponse).PaymentHash)
+	assert.Equal(t, expectedMetadata, publishedResponse.Result.(*makeHoldInvoiceResponse).Metadata)
+}
+
+const nip47MakeHoldInvoiceMissingPaymentHashJson = `
+{
+"method": "make_hold_invoice",
+"params": {
+"amount": 1000,
+"description": "Hello, world",
+"expiry": 3600
+}
+}
+`
+
+func TestHandleMakeHoldInvoiceEvent_MissingPaymentHash(t *testing.T) {
+	ctx := context.TODO()
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	nip47Request := &models.Request{}
+	err = json.Unmarshal([]byte(nip47MakeHoldInvoiceMissingPaymentHashJson), nip47Request)
+	assert.NoError(t, err)
+
+	app, _, err := tests.CreateApp(svc)
+	assert.NoError(t, err)
+
+	dbRequestEvent := &db.RequestEvent{
+		AppId: &app.ID,
+	}
+	err = svc.DB.Create(&dbRequestEvent).Error
+	assert.NoError(t, err)
+
+	var publishedResponse *models.Response
+
+	publishResponse := func(response *models.Response, tags nostr.Tags) {
+		publishedResponse = response
+	}
+
+	NewTestNip47Controller(svc).
+		HandleMakeHoldInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, *dbRequestEvent.AppId, publishResponse)
+
+	require.NotNil(t, publishedResponse.Error)
+	assert.Equal(t, constants.ERROR_BAD_REQUEST, publishedResponse.Error.Code)
+	// Potentially check for a more specific error message if available
+	// assert.Contains(t, publishedResponse.Error.Message, "payment_hash is required")
 }
