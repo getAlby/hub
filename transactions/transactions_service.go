@@ -815,14 +815,6 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 					logger.Logger.WithFields(logrus.Fields{
 						"paymentHash": lnClientTransaction.PaymentHash,
 					}).Warn("No corresponding pending incoming transaction found in DB for accepted hold invoice")
-					var existingTx db.Transaction
-					if tx.Where("payment_hash = ? AND type = ? AND (state = ? OR state = ?)", lnClientTransaction.PaymentHash, constants.TRANSACTION_TYPE_INCOMING, constants.TRANSACTION_STATE_ACCEPTED, constants.TRANSACTION_STATE_SETTLED).First(&existingTx).Error == nil {
-						logger.Logger.WithFields(logrus.Fields{
-							"paymentHash":  lnClientTransaction.PaymentHash,
-							"currentState": existingTx.State,
-						}).Info("Transaction already in accepted/settled state")
-						return nil // Not an error, already handled
-					}
 				}
 				logger.Logger.WithFields(logrus.Fields{
 					"paymentHash": lnClientTransaction.PaymentHash,
