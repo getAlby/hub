@@ -14,7 +14,6 @@ import (
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
 
-	// lnclient import removed as it's not directly used after mock setup
 	"crypto/sha256"
 	"encoding/hex"
 
@@ -32,39 +31,39 @@ const nip47SettleHoldInvoiceJson = `
 }
 `
 
-const testPreimage = "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
-const testPaymentHash = "b7e060a60bb7a82f536a73c17bde37a1b6cf5769ee4a8325bff76c55a95b6aa4" // Corrected sha256 of testPreimage
+const testSettlePreimage = "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+const testSettlePaymentHash = "b7e060a60bb7a82f536a73c17bde37a1b6cf5769ee4a8325bff76c55a95b6aa4"
 
-func TestHandleSettleHoldInvoiceEvent(t *testing.T) {
-	// Verify that testPaymentHash is correctly derived from testPreimage
-	preimageBytesForCheck, err := hex.DecodeString(testPreimage)
-	require.NoError(t, err, "Test setup: failed to decode testPreimage for hash verification")
-	calculatedHashBytesForCheck := sha256.Sum256(preimageBytesForCheck)
-	calculatedPaymentHashForCheck := hex.EncodeToString(calculatedHashBytesForCheck[:])
-	assert.Equal(t, testPaymentHash, calculatedPaymentHashForCheck, "Test setup: testPaymentHash constant does not match calculated hash of testPreimage")
+type settleHoldInvoiceTestSetup struct {
+	ctx            context.Context
+	svc            *tests.TestService
+	nip47Request   *models.Request
+	app            *db.App
+	dbRequestEvent *db.RequestEvent
+	publishCalled  bool
+	response       *models.Response
+}
 
+func setupSettleHoldInvoiceTest(t *testing.T, preimage string, paymentHashToCreate string, initialTransactionState string) *settleHoldInvoiceTestSetup {
 	ctx := context.TODO()
 	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
-	defer svc.Remove()
 
 	nip47Request := &models.Request{}
-	err = json.Unmarshal([]byte(nip47SettleHoldInvoiceJson), nip47Request)
+	requestJson := `
+{
+"method": "settle_hold_invoice",
+"params": {
+"preimage": "` + preimage + `"
+}
+}
+`
+	err = json.Unmarshal([]byte(requestJson), nip47Request)
 	require.NoError(t, err)
-
-	// Unmarshal params into a map to set the preimage
-	var params map[string]interface{}
-	err = json.Unmarshal(nip47Request.Params, &params)
-	require.NoError(t, err)
-	params["preimage"] = testPreimage
-	rawParams, err := json.Marshal(params)
-	require.NoError(t, err)
-	nip47Request.Params = rawParams
 
 	app, _, err := tests.CreateApp(svc)
 	require.NoError(t, err)
 
-	// Grant the hold_invoice scope to the app
 	appPermission := &db.AppPermission{
 		AppId: app.ID,
 		Scope: constants.HOLD_INVOICES_SCOPE,
@@ -72,57 +71,93 @@ func TestHandleSettleHoldInvoiceEvent(t *testing.T) {
 	err = svc.DB.Create(appPermission).Error
 	require.NoError(t, err)
 
-	// Create a dummy hold invoice transaction
-	preimageVar := testPreimage // Use a variable to take its address
-	expiresAtVar := time.Now().Add(1 * time.Hour)
-	appIDForTx := app.ID // Use a separate variable for the transaction AppId pointer
-	holdInvoice := &db.Transaction{
-		AppId:       &appIDForTx, // Assuming db.Transaction.AppId is *uint
-		Type:        constants.TRANSACTION_TYPE_INCOMING,
-		State:       constants.TRANSACTION_STATE_ACCEPTED, // Hold invoices are 'ACCEPTED' until settled or canceled
-		PaymentHash: testPaymentHash,
-		Preimage:    &preimageVar, // Store preimage to allow lookup by it
-		AmountMsat:  1000,
-		ExpiresAt:   &expiresAtVar,
+	if paymentHashToCreate != "" && initialTransactionState != "" {
+		expiresAtVar := time.Now().Add(1 * time.Hour)
+		appIDForTx := app.ID
+		holdInvoice := &db.Transaction{
+			AppId:       &appIDForTx,
+			Type:        constants.TRANSACTION_TYPE_INCOMING,
+			State:       initialTransactionState,
+			PaymentHash: paymentHashToCreate,
+			AmountMsat:  1000,
+			ExpiresAt:   &expiresAtVar,
+		}
+		err = svc.DB.Create(holdInvoice).Error
+		require.NoError(t, err)
 	}
-	err = svc.DB.Create(holdInvoice).Error
-	require.NoError(t, err)
 
-	appID := app.ID // Use a variable to take its address
 	dbRequestEvent := &db.RequestEvent{
-		AppId: &appID,
+		AppId: &app.ID,
 	}
 	err = svc.DB.Create(&dbRequestEvent).Error
 	require.NoError(t, err)
 
-	// svc.LNClient is already a *tests.MockLn, so no specific mock setup is needed here for SettleHoldInvoice
-	// as the default mock implementation returns nil, which is the success case.
-
-	var publishedResponse *models.Response
-	publishResponse := func(response *models.Response, tags nostr.Tags) {
-		publishedResponse = response
-	}
-
 	controller := NewTestNip47Controller(svc)
-	// Ensure the transactionsService within the controller uses the EventPublisher from the TestService
-	controller.transactionsService = transactions.NewTransactionsService(svc.DB, svc.EventPublisher) // Explicitly using svc.EventPublisher
-
-	// Log the transaction we expect to find
-	var foundTxBeforeCall db.Transaction
-	err = svc.DB.Where("payment_hash = ? AND type = ? AND state = ?", testPaymentHash, constants.TRANSACTION_TYPE_INCOMING, constants.TRANSACTION_STATE_ACCEPTED).First(&foundTxBeforeCall).Error
-	if err != nil {
-		t.Logf("DEBUG: Transaction NOT FOUND in DB before calling HandleSettleHoldInvoiceEvent. PaymentHash: %s, Error: %v", testPaymentHash, err)
-	} else {
-		t.Logf("DEBUG: Transaction FOUND in DB before calling HandleSettleHoldInvoiceEvent. ID: %d, PaymentHash: %s, State: %s", foundTxBeforeCall.ID, foundTxBeforeCall.PaymentHash, foundTxBeforeCall.State)
+	if controller.transactionsService == nil {
+		controller.transactionsService = transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
 	}
-	var allTxs []db.Transaction
-	svc.DB.Find(&allTxs)
-	t.Logf("DEBUG: All transactions in DB before call: %+v", allTxs)
 
-	controller.HandleSettleHoldInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, *dbRequestEvent.AppId, publishResponse)
+	setup := &settleHoldInvoiceTestSetup{
+		ctx:            ctx,
+		svc:            svc,
+		nip47Request:   nip47Request,
+		app:            app,
+		dbRequestEvent: dbRequestEvent,
+	}
+	return setup
+}
 
-	assert.Nil(t, publishedResponse.Error, "Expected no error, got: %v", publishedResponse.Error)
-	// Successful response for settle_hold_invoice has an empty result object
-	assert.Equal(t, &settleHoldInvoiceResponse{}, publishedResponse.Result)
-	// mockLnClient.AssertExpectations(t) removed as MockLn is not a testify mock
+func (s *settleHoldInvoiceTestSetup) TearDown() {
+	s.svc.Remove()
+}
+
+func (s *settleHoldInvoiceTestSetup) PublishResponse(response *models.Response, tags nostr.Tags) {
+	s.publishCalled = true
+	s.response = response
+}
+
+func TestHandleSettleHoldInvoiceEvent(t *testing.T) {
+	preimageBytesForCheck, err := hex.DecodeString(testSettlePreimage)
+	require.NoError(t, err)
+	calculatedHashBytesForCheck := sha256.Sum256(preimageBytesForCheck)
+	calculatedPaymentHashForCheck := hex.EncodeToString(calculatedHashBytesForCheck[:])
+	assert.Equal(t, testSettlePaymentHash, calculatedPaymentHashForCheck)
+
+	setup := setupSettleHoldInvoiceTest(t, testSettlePreimage, testSettlePaymentHash, constants.TRANSACTION_STATE_ACCEPTED)
+	defer setup.TearDown()
+
+	controller := NewTestNip47Controller(setup.svc)
+	if controller.transactionsService == nil {
+		controller.transactionsService = transactions.NewTransactionsService(setup.svc.DB, setup.svc.EventPublisher)
+	}
+
+	controller.HandleSettleHoldInvoiceEvent(setup.ctx, setup.nip47Request, setup.dbRequestEvent.ID, *setup.dbRequestEvent.AppId, setup.PublishResponse)
+
+	assert.True(t, setup.publishCalled)
+	assert.Nil(t, setup.response.Error)
+	assert.Equal(t, &settleHoldInvoiceResponse{}, setup.response.Result)
+
+	var settledTx db.Transaction
+	err = setup.svc.DB.First(&settledTx, "payment_hash = ?", testSettlePaymentHash).Error
+	assert.NoError(t, err)
+	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, settledTx.State)
+	assert.NotNil(t, settledTx.Preimage)
+	assert.Equal(t, testSettlePreimage, *settledTx.Preimage)
+}
+
+func TestHandleSettleHoldInvoiceEvent_InvalidPreimage(t *testing.T) {
+	invalidPreimage := "invalidpreimageinvalidpreimageinvalidpreimageinvalidpreimageinvalid"
+	setup := setupSettleHoldInvoiceTest(t, invalidPreimage, testSettlePaymentHash, constants.TRANSACTION_STATE_ACCEPTED)
+	defer setup.TearDown()
+
+	controller := NewTestNip47Controller(setup.svc)
+	if controller.transactionsService == nil {
+		controller.transactionsService = transactions.NewTransactionsService(setup.svc.DB, setup.svc.EventPublisher)
+	}
+
+	controller.HandleSettleHoldInvoiceEvent(setup.ctx, setup.nip47Request, setup.dbRequestEvent.ID, *setup.dbRequestEvent.AppId, setup.PublishResponse)
+
+	assert.True(t, setup.publishCalled)
+	require.NotNil(t, setup.response.Error)
+	assert.Equal(t, constants.ERROR_INTERNAL, setup.response.Error.Code)
 }
