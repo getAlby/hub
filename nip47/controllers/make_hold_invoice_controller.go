@@ -68,7 +68,7 @@ func (controller *nip47Controller) HandleMakeHoldInvoiceEvent(ctx context.Contex
 			"descriptionHash":  makeHoldInvoiceParams.DescriptionHash,
 			"expiry":           makeHoldInvoiceParams.Expiry,
 			"paymentHash":      makeHoldInvoiceParams.PaymentHash,
-		}).Infof("Failed to make invoice: %v", err)
+		}).WithError(err).Error("Failed to make invoice");
 
 		publishResponse(&models.Response{
 			ResultType: nip47Request.Method,

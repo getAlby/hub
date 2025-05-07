@@ -38,7 +38,7 @@ func (controller *nip47Controller) HandleCancelHoldInvoiceEvent(ctx context.Cont
 			"request_event_id": requestEventId,
 			"appId":            appId,
 			"paymentHash":      cancelHoldInvoiceParams.PaymentHash,
-		}).Infof("Failed to cancel hold invoice: %v", err)
+		}).WithError(err).Error("Failed to cancel hold invoice")
 
 		publishResponse(&models.Response{
 			ResultType: nip47Request.Method,

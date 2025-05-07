@@ -38,7 +38,7 @@ func (controller *nip47Controller) HandleSettleHoldInvoiceEvent(ctx context.Cont
 			"request_event_id": requestEventId,
 			"appId":            appId,
 			"preimage":         settleHoldInvoiceParams.Preimage,
-		}).Infof("Failed to settle hold invoice: %v", err)
+		}).WithError(err).Error("Failed to settle hold invoice")
 
 		publishResponse(&models.Response{
 			ResultType: nip47Request.Method,
